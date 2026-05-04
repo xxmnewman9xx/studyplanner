@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Study Planner: Syllabus AI",
+    "slug": "study-planner-syllabus-ai",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "studyplanner",
+    "splash": {
+      "backgroundColor": "#F7F4EE"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.studyplannersyllabusai",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Scan syllabus pages so Study Planner can help create your course plan.",
+        "NSPhotoLibraryUsageDescription": "Choose syllabus screenshots or photos to import into your plan.",
+        "NSCalendarsFullAccessUsageDescription": "Sync assignment and exam dates to your calendar.",
+        "NSUserNotificationsUsageDescription": "Send calm reminders before deadlines, exams, and classes."
+      }
+    },
+    "android": {
+      "package": "com.example.studyplannersyllabusai",
+      "permissions": [
+        "CAMERA",
+        "READ_CALENDAR",
+        "WRITE_CALENDAR",
+        "POST_NOTIFICATIONS"
+      ]
+    },
+    "plugins": [
+      "expo-calendar",
+      "expo-document-picker",
+      "expo-image-picker",
+      "expo-notifications"
+    ]
+  }
+}

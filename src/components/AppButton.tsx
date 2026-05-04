@@ -1,0 +1,81 @@
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, ViewStyle } from "react-native";
+import { AppTheme } from "../theme";
+import { useAppTheme } from "../themeContext";
+
+type AppButtonProps = {
+  label: string;
+  onPress: () => void;
+  variant?: "primary" | "secondary" | "quiet";
+  disabled?: boolean;
+  icon?: React.ComponentType<{ color: string; size: number }>;
+  style?: ViewStyle;
+};
+
+export function AppButton({
+  label,
+  onPress,
+  variant = "primary",
+  disabled = false,
+  icon: Icon,
+  style
+}: AppButtonProps) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  const { colors } = theme;
+  const foreground =
+    variant === "primary" ? colors.surface : variant === "secondary" ? colors.ink : colors.muted;
+
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      disabled={disabled}
+      style={[
+        styles.button,
+        variant === "primary" ? styles.primary : null,
+        variant === "secondary" ? styles.secondary : null,
+        variant === "quiet" ? styles.quiet : null,
+        disabled ? styles.disabled : null,
+        style
+      ]}
+      onPress={onPress}
+    >
+      {Icon ? <Icon color={foreground} size={18} /> : null}
+      <Text style={[styles.label, { color: foreground }]}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
+function createStyles(theme: AppTheme) {
+  const { colors, radii, spacing } = theme;
+
+  return StyleSheet.create({
+    button: {
+      minHeight: 48,
+      borderRadius: radii.md,
+      paddingHorizontal: spacing.md,
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+      gap: spacing.xs
+    },
+    primary: {
+      backgroundColor: colors.ink
+    },
+    secondary: {
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface
+    },
+    quiet: {
+      backgroundColor: "transparent"
+    },
+    disabled: {
+      opacity: 0.45
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: "800"
+    }
+  });
+}

@@ -1,0 +1,21 @@
+{
+  "extends": "expo/tsconfig.base",
+  "include": [
+    "App.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": false
+  },
+  "exclude": [
+    "node_modules",
+    ".expo",
+    "dist",
+    "dist-smoke",
+    "dist-smoke-*",
+    ".ts-trace"
+  ]
+}
