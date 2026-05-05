@@ -33,6 +33,12 @@ Scan or upload a syllabus, review the detected courses and deadlines, then see w
 
 Built for students who want less clutter, less typing, and fewer missed deadlines.
 
+Terms of Use:
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
+Privacy Policy:
+https://github.com/xxmnewman9xx/studyplanner/blob/main/docs/PRIVACY_POLICY.md
+
 ## Screenshot Narrative
 
 1. Scan your syllabus in seconds.
@@ -44,6 +50,9 @@ Built for students who want less clutter, less typing, and fewer missed deadline
 ## Review Notes To Prepare
 
 - Explain that AI parse results are editable before application.
+- StudyPlanner Plus is available through the in-app subscription screen. To test Syllabus Scan, complete onboarding, choose Study Planner Plus, subscribe using Apple's sandbox purchase flow, then open Syllabus Scan from the Scan tab. Restore Purchases is available on the paywall.
+- Supported syllabus files for App Review: text-based PDF or plain-text syllabus from Files.
+- The app uses Apple's standard EULA: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 - Do not mention Canvas in metadata unless the app supports a clear Canvas-related feature.
 - Document notification, calendar, camera, and photo usage with concrete purpose strings.
 - Avoid screenshots that imply unsupported LMS integrations.

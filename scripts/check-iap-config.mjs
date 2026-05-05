@@ -6,6 +6,8 @@ const root = path.resolve(new URL("..", import.meta.url).pathname);
 const app = read("App.tsx");
 const appConfig = JSON.parse(read("app.json")).expo;
 const purchaseConfig = read("src/services/purchaseConfig.ts");
+const parser = read("src/services/syllabusParser.ts");
+const importScreen = read("src/screens/ImportScreen.tsx");
 const subscriptions = read("src/services/subscriptions.tsx");
 const upgrade = read("src/screens/UpgradeScreen.tsx");
 const srcSource = walk(path.join(root, "src"))
@@ -42,6 +44,11 @@ for (const name of [
 }
 
 assert(
+  parser.includes("EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT"),
+  "Syllabus parser must read the production parse endpoint when configured."
+);
+
+assert(
   purchaseConfig.includes("process.env.EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS"),
   "IAP product IDs must use direct EXPO_PUBLIC env reads so Expo can inline them into native bundles."
 );
@@ -58,8 +65,11 @@ for (const api of [
 }
 
 assert(upgrade.includes("Restore Purchases"), "Paywall must expose Restore Purchases.");
-assert(upgrade.includes("Terms of Service"), "Paywall must expose Terms of Service.");
+assert(upgrade.includes("Terms of Use"), "Paywall must expose Terms of Use.");
+assert(upgrade.includes("Terms of Use (EULA)"), "Paywall must expose EULA wording.");
 assert(upgrade.includes("Privacy Policy"), "Paywall must expose Privacy Policy.");
+assert(!importScreen.includes("Syllabus scan is unavailable"), "Scan UI must not render unavailable copy.");
+assert(!importScreen.includes("disabled={!parserReady"), "Scan buttons must not be disabled by missing endpoint config.");
 
 for (const [file, source] of srcSource) {
   assert(!source.includes("parseSyllabusStub"), `Remove stub parser reference from ${file}.`);

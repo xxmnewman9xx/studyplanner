@@ -15,11 +15,7 @@ import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
 import { SectionHeader } from "../components/SectionHeader";
 import { AssignmentKind, Priority, SyllabusImportSource, SyllabusParseResult } from "../models";
-import {
-  isSyllabusParsingConfigured,
-  parseSyllabus,
-  updateParsedAssignment
-} from "../services/syllabusParser";
+import { parseSyllabus, supportsSyllabusImageParsing, updateParsedAssignment } from "../services/syllabusParser";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 
@@ -36,7 +32,7 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
   const styles = createStyles(theme);
   const [draft, setDraft] = useState<SyllabusParseResult | null>(null);
   const [loading, setLoading] = useState(false);
-  const parserReady = isSyllabusParsingConfigured();
+  const imageParsingReady = supportsSyllabusImageParsing();
 
   const runParse = async (source: SyllabusImportSource) => {
     try {
@@ -52,7 +48,7 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
 
   const pickPdf = async () => {
     const result = await DocumentPicker.getDocumentAsync({
-      type: "application/pdf",
+      type: ["application/pdf", "text/plain"],
       copyToCacheDirectory: true
     });
 
@@ -127,7 +123,7 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
           </View>
           <View style={styles.guideCopy}>
             <Text style={styles.guideTitle}>Guided syllabus review</Text>
-            <Text style={styles.guideMeta}>Upload, review the plan, then apply deliberately.</Text>
+            <Text style={styles.guideMeta}>Upload a PDF or text syllabus, review, then apply.</Text>
           </View>
         </View>
         <View style={styles.stepRail}>
@@ -142,39 +138,35 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
 
       <View style={styles.importGrid}>
         <AppButton
-          label="PDF"
+          label="File"
           icon={FileText}
           variant="secondary"
           style={styles.importButton}
-          disabled={!parserReady || loading}
+          disabled={loading}
           onPress={pickPdf}
         />
-        <AppButton
-          label="Photo"
-          icon={Upload}
-          variant="secondary"
-          style={styles.importButton}
-          disabled={!parserReady || loading}
-          onPress={pickPhoto}
-        />
-        <AppButton
-          label="Camera"
-          icon={Camera}
-          variant="secondary"
-          style={styles.importButton}
-          disabled={!parserReady || loading}
-          onPress={capturePhoto}
-        />
+        {imageParsingReady ? (
+          <>
+            <AppButton
+              label="Photo"
+              icon={Upload}
+              variant="secondary"
+              style={styles.importButton}
+              disabled={loading}
+              onPress={pickPhoto}
+            />
+            <AppButton
+              label="Camera"
+              icon={Camera}
+              variant="secondary"
+              style={styles.importButton}
+              disabled={loading}
+              onPress={capturePhoto}
+            />
+          </>
+        ) : null}
       </View>
 
-      {!parserReady ? (
-        <View style={styles.unavailableCard}>
-          <Text style={styles.unavailableTitle}>Syllabus scan is unavailable right now</Text>
-          <Text style={styles.unavailableCopy}>
-            You can still add courses and deadlines manually from Courses.
-          </Text>
-        </View>
-      ) : null}
       {loading ? <ActivityIndicator style={styles.loader} color={colors.ink} /> : null}
 
       {draft ? (
@@ -434,23 +426,6 @@ function createStyles(theme: AppTheme) {
     },
     loader: {
       marginTop: spacing.md
-    },
-    unavailableCard: {
-      borderRadius: radii.md,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.md,
-      gap: spacing.xs
-    },
-    unavailableTitle: {
-      color: colors.ink,
-      fontSize: 17,
-      lineHeight: 23,
-      fontWeight: "900"
-    },
-    unavailableCopy: {
-      ...typography.body
     },
     resultCard: {
       borderRadius: radii.xl,

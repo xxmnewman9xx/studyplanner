@@ -5,6 +5,10 @@ declare const process:
   | undefined;
 
 const defaultAndroidPackageName = "com.studyplanner.syllabusai";
+export const appleStandardEulaUrl =
+  "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
+export const studyPlannerPrivacyUrl =
+  "https://github.com/xxmnewman9xx/studyplanner/blob/main/docs/PRIVACY_POLICY.md";
 const publicEnv =
   typeof process !== "undefined" && process.env
     ? {
@@ -23,8 +27,8 @@ const publicEnv =
 export const purchaseConfig = {
   subscriptionIds: readListEnv(publicEnv.subscriptionIds),
   lifetimeProductIds: readListEnv(publicEnv.lifetimeProductIds),
-  termsUrl: publicEnv.termsUrl,
-  privacyUrl: publicEnv.privacyUrl,
+  termsUrl: publicEnv.termsUrl || appleStandardEulaUrl,
+  privacyUrl: publicEnv.privacyUrl || studyPlannerPrivacyUrl,
   androidPackageName: publicEnv.androidPackageName || defaultAndroidPackageName
 };
 

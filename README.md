@@ -35,6 +35,8 @@ EXPO_PUBLIC_TERMS_URL=https://your-site.example.com/terms
 EXPO_PUBLIC_PRIVACY_URL=https://your-site.example.com/privacy
 ```
 
+If policy URLs are not provided, the app falls back to Apple's standard EULA and the Study Planner privacy policy in `docs/PRIVACY_POLICY.md`. If `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT` is not provided, the Scan tab stays available and uses the on-device text parser for text-based PDFs and plain-text syllabi.
+
 Only include product IDs that exist in App Store Connect or Google Play Console. If no Plus products are configured, the paywall fails closed and does not grant premium access.
 
 Canvas is intentionally not a live V1 integration. Do not claim Canvas sync until OAuth, school-domain handling, and update reconciliation are implemented.

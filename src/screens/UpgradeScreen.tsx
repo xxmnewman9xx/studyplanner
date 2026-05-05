@@ -179,7 +179,7 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
       </View>
 
       <View style={styles.legalRow}>
-        <LegalLink label="Terms of Service" document="terms" onOpen={setLegalDocument} />
+        <LegalLink label="Terms of Use (EULA)" document="terms" onOpen={setLegalDocument} />
         <Text style={styles.legalDivider}>·</Text>
         <LegalLink label="Privacy Policy" document="privacy" onOpen={setLegalDocument} />
       </View>
@@ -278,7 +278,7 @@ function LegalNotice({
       <View style={styles.legalHeader}>
         <View>
           <Text style={styles.kicker}>{isTerms ? "Terms" : "Privacy"}</Text>
-          <Text style={styles.title}>{isTerms ? "Terms of Service" : "Privacy Policy"}</Text>
+          <Text style={styles.title}>{isTerms ? "Terms of Use" : "Privacy Policy"}</Text>
         </View>
         <TouchableOpacity
           accessibilityRole="button"
@@ -293,7 +293,7 @@ function LegalNotice({
       <View style={styles.legalCard}>
         <Text style={styles.legalBody}>
           {isTerms
-            ? "Subscriptions are billed by the App Store or Google Play account used at purchase. Manage or cancel renewal from your store account settings. Premium access remains tied to valid store entitlement status and may change when a plan expires, is refunded, or is cancelled."
+            ? "Subscriptions are billed by the App Store or Google Play account used at purchase. Apple's standard EULA applies on iOS. Manage or cancel renewal from your store account settings. Premium access remains tied to valid store entitlement status."
             : "Study Planner stores planner details on your device unless you choose services that require upload, such as syllabus scan. Syllabus files are sent only for parsing, and the app does not sell personal planner data."}
         </Text>
         <View style={styles.legalFeature}>
