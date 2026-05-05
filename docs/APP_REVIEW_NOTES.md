@@ -6,7 +6,7 @@ The app uses Apple's standard EULA:
 https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 
 Privacy Policy:
-https://github.com/xxmnewman9xx/studyplanner/blob/main/docs/PRIVACY_POLICY.md
+https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408
 
 Supported syllabus upload flow for this build:
 
