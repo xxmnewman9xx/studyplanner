@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ActivityIndicator, Linking, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { CalendarSync, Check, Crown, FileScan, ShieldCheck, X } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
@@ -322,7 +322,9 @@ function ctaLabel(product: PaywallProduct | undefined, flowState: string) {
 
 function unavailableCopy(status: string, hasConfiguredProducts: boolean) {
   if (status === "unavailable" && hasConfiguredProducts) {
-    return "Subscriptions are available in the iOS or Android app. You can keep using the free planner here.";
+    return Platform.OS === "web"
+      ? "Subscriptions are available in the iOS or Android app. You can keep using the free planner here."
+      : "Store purchases are unavailable on this device right now. You can keep using the free planner.";
   }
 
   if (!hasConfiguredProducts) {

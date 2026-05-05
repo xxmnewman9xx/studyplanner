@@ -77,6 +77,14 @@ export function useSubscription() {
 function UnavailableSubscriptionProvider({ children }: { children: React.ReactNode }) {
   const hasProducts = hasConfiguredPurchases();
   const [message, setMessage] = useState<string | undefined>();
+  const subscribeUnavailableMessage =
+    Platform.OS === "web" && hasProducts
+      ? "Open the iOS or Android app to subscribe."
+      : "Plus purchases are not available on this device right now.";
+  const restoreUnavailableMessage =
+    Platform.OS === "web" && hasProducts
+      ? "Open the iOS or Android app to restore purchases."
+      : "Purchases are not available on this device right now.";
 
   const value = useMemo<SubscriptionContextValue>(
     () => ({
@@ -86,21 +94,19 @@ function UnavailableSubscriptionProvider({ children }: { children: React.ReactNo
       products: [],
       hasConfiguredProducts: hasProducts,
       message,
-      errorMessage: hasProducts
-        ? "Open the iOS or Android app to subscribe."
-        : "Plus purchases are not available right now.",
+      errorMessage: subscribeUnavailableMessage,
       purchase: async () => {
-        setMessage("Plus purchases are not available right now.");
+        setMessage(subscribeUnavailableMessage);
       },
       restore: async () => {
-        setMessage("Open the iOS or Android app to restore purchases.");
+        setMessage(restoreUnavailableMessage);
       },
       refresh: async () => undefined,
       manageSubscriptions: async () => undefined,
       setSelectedProductId: () => undefined,
       clearMessage: () => setMessage(undefined)
     }),
-    [hasProducts, message]
+    [hasProducts, message, restoreUnavailableMessage, subscribeUnavailableMessage]
   );
 
   return <SubscriptionContext.Provider value={value}>{children}</SubscriptionContext.Provider>;

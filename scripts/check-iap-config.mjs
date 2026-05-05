@@ -41,6 +41,11 @@ for (const name of [
   assert(purchaseConfig.includes(name), `purchaseConfig must read ${name}.`);
 }
 
+assert(
+  purchaseConfig.includes("process.env.EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS"),
+  "IAP product IDs must use direct EXPO_PUBLIC env reads so Expo can inline them into native bundles."
+);
+
 for (const api of [
   "fetchProducts",
   "getActiveSubscriptions",
