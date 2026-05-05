@@ -64,7 +64,7 @@ export function AssignmentDetailScreen({
   const save = () => {
     onSave({
       title: title.trim() || assignment.title,
-      dueAt: `${dueDate || assignment.dueAt.slice(0, 10)}T${dueTime || "23:59"}:00-05:00`,
+      dueAt: `${dueDate || assignment.dueAt.slice(0, 10)}T${dueTime || "23:59"}:00`,
       estimatedMinutes: Number.parseInt(estimatedMinutes, 10) || assignment.estimatedMinutes,
       tags: tags
         .split(",")
@@ -104,24 +104,28 @@ export function AssignmentDetailScreen({
         </Field>
 
         <View style={styles.twoColumn}>
-          <Field label="Due date">
-            <TextInput
-              value={dueDate}
-              onChangeText={setDueDate}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.faint}
-              style={styles.input}
-            />
-          </Field>
-          <Field label="Time">
-            <TextInput
-              value={dueTime}
-              onChangeText={setDueTime}
-              placeholder="HH:MM"
-              placeholderTextColor={colors.faint}
-              style={styles.input}
-            />
-          </Field>
+          <View style={styles.fieldHalf}>
+            <Field label="Due date">
+              <TextInput
+                value={dueDate}
+                onChangeText={setDueDate}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={colors.faint}
+                style={styles.input}
+              />
+            </Field>
+          </View>
+          <View style={styles.fieldHalf}>
+            <Field label="Time">
+              <TextInput
+                value={dueTime}
+                onChangeText={setDueTime}
+                placeholder="HH:MM"
+                placeholderTextColor={colors.faint}
+                style={styles.input}
+              />
+            </Field>
+          </View>
         </View>
 
         <Field label="Course">
@@ -154,21 +158,25 @@ export function AssignmentDetailScreen({
         </Field>
 
         <View style={styles.twoColumn}>
-          <Field label="Estimate">
-            <TextInput
-              keyboardType="numeric"
-              value={estimatedMinutes}
-              onChangeText={setEstimatedMinutes}
-              placeholder="Minutes"
-              placeholderTextColor={colors.faint}
-              style={styles.input}
-            />
-          </Field>
-          <Field label="Source">
-            <View style={styles.sourceBox}>
-              <Badge label={assignment.source} tone="neutral" />
-            </View>
-          </Field>
+          <View style={styles.fieldHalf}>
+            <Field label="Estimate">
+              <TextInput
+                keyboardType="numeric"
+                value={estimatedMinutes}
+                onChangeText={setEstimatedMinutes}
+                placeholder="Minutes"
+                placeholderTextColor={colors.faint}
+                style={styles.input}
+              />
+            </Field>
+          </View>
+          <View style={styles.fieldHalf}>
+            <Field label="Source">
+              <View style={styles.sourceBox}>
+                <Badge label={assignment.source} tone="neutral" />
+              </View>
+            </Field>
+          </View>
         </View>
 
         <Field label="Tags">
@@ -276,6 +284,7 @@ function createStyles(theme: AppTheme) {
       gap: spacing.md
     },
     field: {
+      minWidth: 0,
       gap: spacing.xs
     },
     fieldLabel: {
@@ -284,6 +293,7 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     input: {
+      minWidth: 0,
       minHeight: 46,
       borderRadius: radii.sm,
       borderWidth: 1,
@@ -296,7 +306,12 @@ function createStyles(theme: AppTheme) {
     },
     twoColumn: {
       flexDirection: "row",
-      gap: spacing.sm
+      gap: spacing.sm,
+      alignItems: "stretch"
+    },
+    fieldHalf: {
+      flex: 1,
+      minWidth: 0
     },
     chipRow: {
       flexDirection: "row",

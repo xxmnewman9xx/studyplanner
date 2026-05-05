@@ -69,6 +69,7 @@ export function CoursesScreen({
     if (!selectedCourse) return;
     onAddQuickAssignment(selectedCourse.id, title, dueDate, kind);
     setTitle("");
+    setDueDate("");
   };
 
   return (
@@ -267,7 +268,12 @@ export function CoursesScreen({
           placeholderTextColor={colors.faint}
           style={styles.input}
         />
-        <AppButton label="Add" icon={Plus} disabled={!selectedCourse} onPress={addItem} />
+        <AppButton
+          label="Add"
+          icon={Plus}
+          disabled={!selectedCourse || !title.trim() || !dueDate.trim()}
+          onPress={addItem}
+        />
       </View>
 
       <SectionHeader title="Weekly Schedule" note="Class blocks by day" />
@@ -425,6 +431,7 @@ function createStyles(theme: AppTheme) {
       color: colors.ink
     },
     input: {
+      minWidth: 0,
       minHeight: 46,
       borderRadius: radii.sm,
       borderWidth: 1,
@@ -442,10 +449,12 @@ function createStyles(theme: AppTheme) {
     },
     twoColumn: {
       flexDirection: "row",
-      gap: spacing.sm
+      gap: spacing.sm,
+      alignItems: "stretch"
     },
     fieldHalf: {
-      flex: 1
+      flex: 1,
+      minWidth: 0
     },
     week: {
       borderRadius: radii.md,

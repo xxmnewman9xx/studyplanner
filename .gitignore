@@ -1,4 +1,5 @@
 node_modules/
+.DS_Store
 .expo/
 .expo-start.*
 .expo-web.*
@@ -6,6 +7,7 @@ node_modules/
 dist/
 dist-smoke*/
 web-build/
+/ios/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

@@ -1,66 +1,79 @@
 export const lightColors = {
-  canvas: "#F4EFE6",
-  surface: "#FFFDF8",
-  surfaceAlt: "#EFE7DA",
-  ink: "#1A1A1A",
-  muted: "#5C584F",
-  faint: "#8A8472",
-  line: "#D8CCB9",
-  softGold: "#F0DEC0",
-  gold: "#B8912C",
-  mint: "#E1EBDD",
-  sage: "#637B58",
-  coral: "#B5482E",
-  blue: "#1E3A8A",
-  red: "#B0382C",
-  green: "#2F7D55",
-  lavender: "#DED7EC",
-  accent: "#B5482E",
+  canvas: "#F5F7FB",
+  canvasTint: "#EAF1F8",
+  surface: "#FFFFFF",
+  surfaceAlt: "#EEF3F8",
+  surfaceTint: "#F8FBF4",
+  ink: "#151A23",
+  muted: "#596273",
+  faint: "#8B94A7",
+  line: "#DDE4EE",
+  lineStrong: "#C5D0DE",
+  softGold: "#FFF2CB",
+  gold: "#D49A21",
+  mint: "#E4F8EF",
+  sage: "#2F8F64",
+  coral: "#E45C45",
+  blue: "#245CFF",
+  red: "#CF3D31",
+  green: "#1F9A6B",
+  lavender: "#EEE8FF",
+  accent: "#22577A",
+  accentSoft: "#DDECF4",
   elevated: "#FFFFFF",
-  heroSurface: "#1A1A1A",
-  heroText: "#FFFDF8",
-  heroMuted: "#D6CDBE"
+  heroSurface: "#111827",
+  heroText: "#F8FAFC",
+  heroMuted: "#BCC7D8",
+  shadow: "#102033"
 };
 
 export const darkColors = {
-  canvas: "#0B0D10",
-  surface: "#14171C",
-  surfaceAlt: "#1C2128",
-  ink: "#F2F4F8",
-  muted: "#C7CCD6",
-  faint: "#7A8190",
-  line: "#2A3039",
-  softGold: "#27321B",
-  gold: "#C9F75D",
-  mint: "#173125",
-  sage: "#5BE5A0",
-  coral: "#FF6E5A",
-  blue: "#78A0FF",
-  red: "#FF6E5A",
-  green: "#5BE5A0",
-  lavender: "#2A2540",
-  accent: "#5BE5A0",
-  elevated: "#191D24",
-  heroSurface: "#15181E",
-  heroText: "#F5F7F8",
-  heroMuted: "#AEB6C2"
+  canvas: "#080B12",
+  canvasTint: "#101827",
+  surface: "#111722",
+  surfaceAlt: "#182131",
+  surfaceTint: "#15261E",
+  ink: "#F5F7FB",
+  muted: "#C1CAD8",
+  faint: "#7F8A9C",
+  line: "#263244",
+  lineStrong: "#3B485B",
+  softGold: "#332A12",
+  gold: "#F4C95D",
+  mint: "#123425",
+  sage: "#61D394",
+  coral: "#FF7A63",
+  blue: "#8DB3FF",
+  red: "#FF786B",
+  green: "#61D394",
+  lavender: "#2B2544",
+  accent: "#7DD3FC",
+  accentSoft: "#102A3B",
+  elevated: "#151D2A",
+  heroSurface: "#EAF6FF",
+  heroText: "#07111D",
+  heroMuted: "#3C5067",
+  shadow: "#000000"
 };
 
 export const colors = lightColors;
 
 export const spacing = {
-  xs: 6,
-  sm: 10,
+  xxs: 4,
+  xs: 8,
+  sm: 12,
   md: 16,
-  lg: 22,
-  xl: 32
+  lg: 24,
+  xl: 32,
+  xxl: 44
 };
 
 export const radii = {
-  sm: 6,
-  md: 8,
-  lg: 14,
-  xl: 22
+  sm: 10,
+  md: 14,
+  lg: 20,
+  xl: 28,
+  round: 999
 };
 
 export type ColorTokens = typeof lightColors;
@@ -68,27 +81,39 @@ export type ThemeMode = "light" | "dark";
 
 export function createTypography(themeColors: ColorTokens) {
   return {
+    hero: {
+      fontSize: 36,
+      lineHeight: 42,
+      fontWeight: "900" as const,
+      color: themeColors.ink
+    },
     title: {
-      fontSize: 28,
-      lineHeight: 34,
-      fontWeight: "800" as const,
+      fontSize: 30,
+      lineHeight: 36,
+      fontWeight: "900" as const,
       color: themeColors.ink
     },
     h2: {
-      fontSize: 20,
-      lineHeight: 26,
-      fontWeight: "800" as const,
+      fontSize: 21,
+      lineHeight: 27,
+      fontWeight: "900" as const,
       color: themeColors.ink
     },
     body: {
       fontSize: 15,
-      lineHeight: 22,
+      lineHeight: 23,
       color: themeColors.muted
     },
     small: {
       fontSize: 12,
       lineHeight: 17,
       color: themeColors.muted
+    },
+    caption: {
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900" as const,
+      color: themeColors.faint
     }
   };
 }

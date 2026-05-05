@@ -46,29 +46,50 @@ export function TodayScreen({
   const nextCourse = plan.nextAction
     ? getCourseForAssignment(courses, plan.nextAction)
     : undefined;
+  const totalTracked = plan.openCount + plan.doneCount;
+  const completionPercent = totalTracked > 0 ? plan.doneCount / totalTracked : 0;
+  const semesterPercent = Math.round(plan.semesterProgress * 100);
+  const semesterProgressWidth = `${Math.max(0, Math.min(100, semesterPercent))}%` as `${number}%`;
 
   return (
     <View>
-      <View style={styles.header}>
-        <Text style={styles.kicker}>{semester.name}</Text>
-        <Text style={styles.title}>Today</Text>
-        <Text style={styles.subtitle}>
-          A short list, sorted by urgency, grade pressure, and time needed.
-        </Text>
+      <View style={styles.heroCard}>
+        <View style={styles.header}>
+          <Text style={styles.kicker}>{semester.name}</Text>
+          <Text style={styles.title}>Today</Text>
+          <Text style={styles.subtitle}>
+            A calm priority stack sorted by urgency, grade pressure, and time needed.
+          </Text>
+        </View>
+        <View style={styles.heroProgressRow}>
+          <View style={styles.heroProgressCopy}>
+            <Text style={styles.heroProgressValue}>{semesterPercent}%</Text>
+            <Text style={styles.heroProgressLabel}>semester complete</Text>
+          </View>
+          <View style={styles.heroProgressTrack}>
+            <View style={[styles.heroProgressFill, { width: semesterProgressWidth }]} />
+          </View>
+        </View>
       </View>
 
       <View style={styles.metricRow}>
         <MetricCard
-          label="Open work"
+          label="Open"
           value={String(plan.openCount)}
           detail={`${plan.doneCount} finished`}
           tone="green"
         />
         <MetricCard
-          label="Semester"
-          value={`${Math.round(plan.semesterProgress * 100)}%`}
+          label="Term"
+          value={`${semesterPercent}%`}
           detail={`${formatDateOnly(semester.endDate)} end`}
           tone="gold"
+        />
+        <MetricCard
+          label="Done"
+          value={`${Math.round(completionPercent * 100)}%`}
+          detail="tracked work"
+          tone="blue"
         />
       </View>
 
@@ -174,16 +195,61 @@ function createStyles(theme: AppTheme) {
     header: {
       gap: spacing.xs
     },
+    heroCard: {
+      borderRadius: radii.xl,
+      backgroundColor: colors.heroSurface,
+      padding: spacing.lg,
+      gap: spacing.lg,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.32 : 0.14,
+      shadowRadius: 22,
+      shadowOffset: { width: 0, height: 12 },
+      elevation: 6
+    },
     kicker: {
       color: colors.accent,
       fontSize: 13,
       fontWeight: "900"
     },
     title: {
-      ...typography.title
+      ...typography.hero,
+      color: colors.heroText
     },
     subtitle: {
-      ...typography.body
+      ...typography.body,
+      color: colors.heroMuted
+    },
+    heroProgressRow: {
+      gap: spacing.sm
+    },
+    heroProgressCopy: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    heroProgressValue: {
+      color: colors.heroText,
+      fontSize: 26,
+      lineHeight: 31,
+      fontWeight: "900"
+    },
+    heroProgressLabel: {
+      color: colors.heroMuted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    heroProgressTrack: {
+      height: 10,
+      borderRadius: radii.round,
+      backgroundColor: theme.isDark ? "rgba(7,17,29,0.2)" : "rgba(255,255,255,0.16)",
+      overflow: "hidden"
+    },
+    heroProgressFill: {
+      height: "100%",
+      borderRadius: radii.round,
+      backgroundColor: colors.accent
     },
     metricRow: {
       flexDirection: "row",
@@ -192,12 +258,17 @@ function createStyles(theme: AppTheme) {
     },
     nextCard: {
       marginTop: spacing.lg,
-      borderRadius: radii.lg,
-      backgroundColor: colors.heroSurface,
-      borderWidth: theme.isDark ? 1 : 0,
+      borderRadius: radii.xl,
+      backgroundColor: colors.elevated,
+      borderWidth: 1,
       borderColor: colors.line,
       padding: spacing.lg,
-      gap: spacing.sm
+      gap: spacing.sm,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.18 : 0.08,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 4
     },
     nextHeader: {
       flexDirection: "row",
@@ -210,13 +281,13 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     nextTitle: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 22,
       lineHeight: 28,
       fontWeight: "900"
     },
     nextMeta: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 14,
       lineHeight: 20
     },

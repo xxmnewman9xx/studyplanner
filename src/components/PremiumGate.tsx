@@ -58,18 +58,23 @@ function createStyles(theme: AppTheme) {
     },
     card: {
       marginTop: spacing.lg,
-      borderRadius: radii.md,
+      borderRadius: radii.xl,
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: colors.surface,
       padding: spacing.lg,
-      gap: spacing.md
+      gap: spacing.md,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.18 : 0.08,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 4
     },
     iconMark: {
       width: 52,
       height: 52,
-      borderRadius: radii.md,
-      backgroundColor: colors.softGold,
+      borderRadius: radii.lg,
+      backgroundColor: colors.accentSoft,
       alignItems: "center",
       justifyContent: "center"
     },

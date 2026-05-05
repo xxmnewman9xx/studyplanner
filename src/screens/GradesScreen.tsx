@@ -407,6 +407,7 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     targetInput: {
+      minWidth: 0,
       minHeight: 46,
       borderRadius: radii.sm,
       borderWidth: 1,
@@ -487,7 +488,8 @@ function createStyles(theme: AppTheme) {
       gap: spacing.sm
     },
     scoreInput: {
-      flex: 1
+      flex: 1,
+      minWidth: 0
     },
     scoreList: {
       borderRadius: radii.md,

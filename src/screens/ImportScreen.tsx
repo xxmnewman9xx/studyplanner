@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { Camera, FileText, Upload } from "lucide-react-native";
+import { Camera, CheckCircle2, FileText, Sparkles, Upload } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
 import { SectionHeader } from "../components/SectionHeader";
@@ -113,11 +113,31 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
     <View>
       <View style={styles.header}>
         <Text style={styles.kicker}>Syllabus import</Text>
-        <Text style={styles.title}>Scan, review, then apply.</Text>
+        <Text style={styles.title}>Import without losing control.</Text>
         <Text style={styles.subtitle}>
-          AI never silently edits the planner. Every detected course, date, and grade
-          category stays editable first.
+          The scanner never silently edits the planner. Every detected course, date, and
+          grade category stays editable before it touches your semester.
         </Text>
+      </View>
+
+      <View style={styles.guideCard}>
+        <View style={styles.guideHeader}>
+          <View style={styles.guideIcon}>
+            <Sparkles color={colors.heroText} size={19} />
+          </View>
+          <View style={styles.guideCopy}>
+            <Text style={styles.guideTitle}>Guided syllabus review</Text>
+            <Text style={styles.guideMeta}>Upload, review the plan, then apply deliberately.</Text>
+          </View>
+        </View>
+        <View style={styles.stepRail}>
+          {["Upload", "Review", "Apply"].map((step, index) => (
+            <View key={step} style={styles.stepCard}>
+              <Text style={styles.stepNumber}>0{index + 1}</Text>
+              <Text style={styles.stepLabel}>{step}</Text>
+            </View>
+          ))}
+        </View>
       </View>
 
       <View style={styles.importGrid}>
@@ -161,6 +181,20 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
         <>
           <SectionHeader title="Review Results" note={draft.sourceName} />
           <View style={styles.resultCard}>
+            <View style={styles.resultStats}>
+              <View style={styles.resultStat}>
+                <Text style={styles.resultStatValue}>{draft.courses.length}</Text>
+                <Text style={styles.resultStatLabel}>course</Text>
+              </View>
+              <View style={styles.resultStat}>
+                <Text style={styles.resultStatValue}>{draft.assignments.length}</Text>
+                <Text style={styles.resultStatLabel}>deadlines</Text>
+              </View>
+              <View style={styles.resultStat}>
+                <Text style={styles.resultStatValue}>{draft.gradeItems.length}</Text>
+                <Text style={styles.resultStatLabel}>scores</Text>
+              </View>
+            </View>
             <View style={styles.findings}>
               {draft.findings.map((finding) => (
                 <Badge
@@ -173,7 +207,10 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
 
             {draft.courses.map((course) => (
               <View key={course.id} style={styles.coursePreview}>
-                <Text style={styles.courseCode}>{course.code}</Text>
+                <View style={styles.coursePreviewTop}>
+                  <CheckCircle2 color={colors.green} size={18} />
+                  <Text style={styles.courseCode}>{course.code}</Text>
+                </View>
                 <Text style={styles.courseName}>{course.name}</Text>
                 <Text style={styles.courseMeta}>
                   {course.meetings.length} class meetings · {course.gradeCategories.length} grade
@@ -205,7 +242,7 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
                   onChangeText={(date) =>
                     setDraft(
                       updateParsedAssignment(draft, assignment.id, {
-                        dueAt: `${date}T23:59:00-05:00`
+                        dueAt: `${date}T23:59:00`
                       })
                     )
                   }
@@ -319,6 +356,73 @@ function createStyles(theme: AppTheme) {
     subtitle: {
       ...typography.body
     },
+    guideCard: {
+      marginTop: spacing.lg,
+      borderRadius: radii.xl,
+      backgroundColor: colors.heroSurface,
+      padding: spacing.lg,
+      gap: spacing.md,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.26 : 0.12,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 5
+    },
+    guideHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.md
+    },
+    guideIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: radii.round,
+      backgroundColor: colors.accent,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    guideCopy: {
+      flex: 1,
+      gap: 2
+    },
+    guideTitle: {
+      color: colors.heroText,
+      fontSize: 17,
+      lineHeight: 22,
+      fontWeight: "900"
+    },
+    guideMeta: {
+      color: colors.heroMuted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "800"
+    },
+    stepRail: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    stepCard: {
+      flex: 1,
+      minHeight: 64,
+      borderRadius: radii.lg,
+      backgroundColor: theme.isDark ? "rgba(7,17,29,0.12)" : "rgba(255,255,255,0.1)",
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(7,17,29,0.18)" : "rgba(255,255,255,0.16)",
+      padding: spacing.sm,
+      justifyContent: "center"
+    },
+    stepNumber: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900"
+    },
+    stepLabel: {
+      color: colors.heroText,
+      fontSize: 14,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
     importGrid: {
       flexDirection: "row",
       gap: spacing.sm,
@@ -349,12 +453,41 @@ function createStyles(theme: AppTheme) {
       ...typography.body
     },
     resultCard: {
-      borderRadius: radii.md,
+      borderRadius: radii.xl,
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: colors.surface,
       padding: spacing.md,
-      gap: spacing.md
+      gap: spacing.md,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.16 : 0.06,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 3
+    },
+    resultStats: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    resultStat: {
+      flex: 1,
+      minHeight: 70,
+      borderRadius: radii.lg,
+      backgroundColor: colors.surfaceAlt,
+      padding: spacing.sm,
+      justifyContent: "center"
+    },
+    resultStatValue: {
+      color: colors.ink,
+      fontSize: 23,
+      lineHeight: 29,
+      fontWeight: "900"
+    },
+    resultStatLabel: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900"
     },
     findings: {
       flexDirection: "row",
@@ -366,6 +499,11 @@ function createStyles(theme: AppTheme) {
       borderTopColor: colors.line,
       paddingTop: spacing.md,
       gap: 2
+    },
+    coursePreviewTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs
     },
     courseCode: {
       color: colors.accent,
@@ -400,6 +538,7 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     input: {
+      minWidth: 0,
       minHeight: 44,
       borderRadius: radii.sm,
       borderWidth: 1,
@@ -418,10 +557,12 @@ function createStyles(theme: AppTheme) {
     },
     twoColumn: {
       flexDirection: "row",
-      gap: spacing.sm
+      gap: spacing.sm,
+      alignItems: "stretch"
     },
     fieldHalf: {
       flex: 1,
+      minWidth: 0,
       gap: spacing.xs
     },
     lockedField: {

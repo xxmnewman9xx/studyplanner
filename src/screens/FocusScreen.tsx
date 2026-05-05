@@ -140,13 +140,18 @@ function createStyles(theme: AppTheme) {
     },
     timerCard: {
       marginTop: spacing.lg,
-      borderRadius: radii.lg,
+      borderRadius: radii.xl,
       backgroundColor: colors.heroSurface,
       borderWidth: theme.isDark ? 1 : 0,
       borderColor: colors.line,
       padding: spacing.lg,
       alignItems: "center",
-      gap: spacing.md
+      gap: spacing.md,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.3 : 0.14,
+      shadowRadius: 22,
+      shadowOffset: { width: 0, height: 12 },
+      elevation: 6
     },
     timer: {
       color: colors.heroText,

@@ -30,21 +30,29 @@ function createStyles(theme: AppTheme) {
     card: {
       flex: 1,
       minHeight: 104,
-      borderRadius: radii.md,
+      borderRadius: radii.lg,
       padding: spacing.md,
       borderWidth: 1,
       borderColor: colors.line,
-      backgroundColor: colors.surface
+      backgroundColor: colors.surface,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.18 : 0.07,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 3
     },
     plain: {},
     green: {
-      backgroundColor: colors.surfaceAlt
+      backgroundColor: colors.mint,
+      borderColor: theme.isDark ? "#1D5A3D" : "#C9ECD9"
     },
     gold: {
-      backgroundColor: colors.softGold
+      backgroundColor: colors.softGold,
+      borderColor: theme.isDark ? "#584518" : "#F0DA99"
     },
     blue: {
-      backgroundColor: theme.isDark ? "#162033" : "#EAF0FF"
+      backgroundColor: theme.isDark ? "#162033" : "#EAF0FF",
+      borderColor: theme.isDark ? "#2C4A7C" : "#C8D7FF"
     },
     label: {
       ...typography.small,
@@ -54,8 +62,8 @@ function createStyles(theme: AppTheme) {
     value: {
       marginTop: spacing.xs,
       color: colors.ink,
-      fontSize: 24,
-      lineHeight: 30,
+      fontSize: 26,
+      lineHeight: 31,
       fontWeight: "900"
     },
     detail: {

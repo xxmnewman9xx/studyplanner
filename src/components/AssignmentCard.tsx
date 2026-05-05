@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { CheckCircle2, Circle, Clock3 } from "lucide-react-native";
+import { CheckCircle2, ChevronRight, Circle, Clock3 } from "lucide-react-native";
 import { Assignment, Course } from "../models";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -28,7 +28,8 @@ export function AssignmentCard({
   const done = assignment.status === "done";
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, urgent ? styles.urgentCard : null]}>
+      <View style={[styles.courseStripe, { backgroundColor: course?.color || colors.accent }]} />
       <TouchableOpacity
         accessibilityRole="button"
         accessibilityLabel={done ? "Mark not done" : "Mark done"}
@@ -48,10 +49,11 @@ export function AssignmentCard({
             {onOpen ? (
               <TouchableOpacity
                 accessibilityRole="button"
+                accessibilityLabel={`Open ${assignment.title}`}
                 style={styles.editButton}
                 onPress={onOpen}
               >
-                <Text style={styles.editText}>Edit</Text>
+                <ChevronRight color={colors.ink} size={16} />
               </TouchableOpacity>
             ) : null}
             <Badge
@@ -64,7 +66,7 @@ export function AssignmentCard({
         <View style={styles.metaRow}>
           <Clock3 color={colors.faint} size={14} />
           <Text style={styles.meta}>
-            {formatShortDate(assignment.dueAt)} - {assignment.estimatedMinutes} min
+            Due {formatShortDate(assignment.dueAt)} · {assignment.estimatedMinutes} min
           </Text>
         </View>
         <View style={styles.tagRow}>
@@ -87,10 +89,26 @@ function createStyles(theme: AppTheme) {
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: colors.surface,
-      borderRadius: radii.md,
+      borderRadius: radii.lg,
       padding: spacing.md,
       flexDirection: "row",
-      gap: spacing.sm
+      gap: spacing.sm,
+      overflow: "hidden",
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.14 : 0.06,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 2
+    },
+    urgentCard: {
+      borderColor: theme.isDark ? "#5B3933" : "#F1C2B8"
+    },
+    courseStripe: {
+      position: "absolute",
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: 5
     },
     checkButton: {
       width: 34,
@@ -114,18 +132,13 @@ function createStyles(theme: AppTheme) {
       gap: spacing.xs
     },
     editButton: {
-      minHeight: 28,
-      borderRadius: radii.sm,
+      width: 30,
+      height: 30,
+      borderRadius: radii.round,
       borderWidth: 1,
       borderColor: colors.line,
-      paddingHorizontal: spacing.sm,
       alignItems: "center",
       justifyContent: "center"
-    },
-    editText: {
-      color: colors.ink,
-      fontSize: 12,
-      fontWeight: "900"
     },
     course: {
       color: colors.muted,

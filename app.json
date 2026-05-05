@@ -4,15 +4,19 @@
     "slug": "study-planner-syllabus-ai",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
+    "icon": "./assets/app/study-planner-icon.png",
     "scheme": "studyplanner",
     "splash": {
-      "backgroundColor": "#F7F4EE"
+      "backgroundColor": "#F5F7FB"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.studyplanner.syllabusai",
+      "bundleIdentifier": "com.mattnewman.studyplanner",
+      "icon": "./assets/app/study-planner-icon.png",
+      "buildNumber": "9",
       "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "Scan syllabus pages so Study Planner can help create your course plan.",
         "NSPhotoLibraryUsageDescription": "Choose syllabus screenshots or photos to import into your plan.",
         "NSCalendarsFullAccessUsageDescription": "Sync assignment and exam dates to your calendar.",
@@ -34,6 +38,12 @@
       "expo-image-picker",
       "expo-notifications",
       "expo-iap"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "69335c75-753e-424e-8a76-c8bd2455a112"
+      }
+    },
+    "owner": "xxmnewman9xx"
   }
 }

@@ -1,4 +1,4 @@
-# Study Planner: Syllabus AI MVP Blueprint
+# Study Planner: Syllabus AI Product Blueprint
 
 ## Product Promise
 
@@ -10,7 +10,7 @@ Turn a messy semester into a clear daily execution plan. Students upload or phot
 - College students juggling LMS dates, calendars, notes, email, and syllabi.
 - Overwhelmed students who need a trusted planner more than another feed.
 
-## MVP Scope
+## Release Scope
 
 ### Included
 

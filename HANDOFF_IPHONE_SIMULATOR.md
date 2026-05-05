@@ -12,11 +12,11 @@ C:\Users\xxmne\Studyapp
 
 ## Current App Status
 
-The app is an Expo + React Native MVP with:
+The app is an Expo + React Native production candidate with:
 
 - Onboarding, Today, Scan, Courses, Grades, Focus, and Plus screens.
 - Light and dark mode.
-- Local planner persistence for web preview.
+- Local planner persistence for web and native app sessions.
 - Editable assignment detail flow.
 - Editable semester and course setup.
 - Editable grade tracking and target-grade calculator.

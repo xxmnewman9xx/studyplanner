@@ -6,7 +6,7 @@ Checked on May 4, 2026.
 
 Apple's current public review and product-page guidance emphasizes accurate app names, relevant keywords, and avoiding metadata that packs trademarked terms or popular app names just to improve search placement.
 
-Decision: avoid using `Canvas` in the subtitle or keywords until a shipped feature actually supports Canvas. `Homework, Exams, Class Schedule` is the safer MVP subtitle.
+Decision: avoid using `Canvas` in the subtitle or keywords until a shipped feature actually supports Canvas. `Homework, Exams, Class Schedule` is the safer release subtitle.
 
 Sources:
 
@@ -16,7 +16,7 @@ Sources:
 
 ## Canvas API
 
-Canvas has official REST resources for assignments and calendar events, and the API docs include OAuth2 resources. That makes Canvas a credible later milestone, but not a low-risk MVP claim.
+Canvas has official REST resources for assignments and calendar events, and the API docs include OAuth2 resources. That makes Canvas a credible later milestone, but not a low-risk launch claim.
 
 Decision: keep Canvas out of live V1 scope. Treat it as a paid milestone after OAuth, school-domain discovery, permission handling, assignment reconciliation, and calendar-event update semantics are designed.
 

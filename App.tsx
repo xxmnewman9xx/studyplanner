@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -11,7 +11,6 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import {
-  BookOpen,
   CalendarDays,
   Crown,
   FileScan,
@@ -79,6 +78,7 @@ function AppContent() {
   const { colors } = theme;
   const styles = useMemo(() => createStyles(theme), [theme]);
   const subscription = useSubscription();
+  const scrollRef = useRef<ScrollView>(null);
   const [onboarded, setOnboarded] = useState(false);
   const [paywallSeen, setPaywallSeen] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>("today");
@@ -98,6 +98,12 @@ function AppContent() {
     () => assignments.find((assignment) => assignment.id === selectedAssignmentId),
     [assignments, selectedAssignmentId]
   );
+
+  const openTab = (tab: NavTab) => {
+    setSelectedAssignmentId(null);
+    setActiveTab(tab);
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -162,7 +168,7 @@ function AppContent() {
       startDate: parse.semesterStartDate || current.startDate,
       endDate: parse.semesterEndDate || current.endDate
     }));
-    setActiveTab("today");
+    openTab("today");
   };
 
   const updateAssignmentStatus = (
@@ -194,7 +200,7 @@ function AppContent() {
         courseId,
         title: title.trim(),
         kind,
-        dueAt: `${dueDate.trim()}T23:59:00-05:00`,
+        dueAt: `${dueDate.trim()}T23:59:00`,
         tags: kind === "exam" ? ["exam"] : ["homework"],
         priority: kind === "exam" ? "high" : "medium",
         estimatedMinutes: kind === "exam" ? 150 : 60,
@@ -270,7 +276,7 @@ function AppContent() {
 
   const handleScheduleReminders = async () => {
     if (!subscription.isPremium) {
-      setActiveTab("upgrade");
+      openTab("upgrade");
       return;
     }
 
@@ -298,7 +304,7 @@ function AppContent() {
 
   const handleCalendarSync = async () => {
     if (!subscription.isPremium) {
-      setActiveTab("upgrade");
+      openTab("upgrade");
       return;
     }
 
@@ -367,6 +373,7 @@ function AppContent() {
           <ModeToggle />
         </View>
         <ScrollView
+          ref={scrollRef}
           style={styles.scrollArea}
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
@@ -391,7 +398,7 @@ function AppContent() {
                   onScheduleReminders={handleScheduleReminders}
                   onCalendarSync={handleCalendarSync}
                   premiumAutomationLocked={premiumLocked}
-                  onOpenPaywall={() => setActiveTab("upgrade")}
+                  onOpenPaywall={() => openTab("upgrade")}
                 />
               ) : null}
               {activeTab === "import" ? (
@@ -399,7 +406,7 @@ function AppContent() {
                   <PremiumGate
                     title="Scan a syllabus into your planner."
                     copy="Plus is required before syllabus scan opens."
-                    onUpgrade={() => setActiveTab("upgrade")}
+                    onUpgrade={() => openTab("upgrade")}
                   />
                 ) : (
                   <ImportScreen onApplyParsedPlan={applyParsedPlan} />
@@ -422,7 +429,7 @@ function AppContent() {
                   <PremiumGate
                     title="Forecast grades before finals week."
                     copy="Plus unlocks weighted grade tracking and target-score planning."
-                    onUpgrade={() => setActiveTab("upgrade")}
+                    onUpgrade={() => openTab("upgrade")}
                   />
                 ) : (
                   <GradesScreen
@@ -455,11 +462,10 @@ function AppContent() {
                 accessibilityState={{ selected: active }}
                 style={[styles.tabButton, active ? styles.tabButtonActive : null]}
                 onPress={() => {
-                  setSelectedAssignmentId(null);
-                  setActiveTab(tab.id);
+                  openTab(tab.id);
                 }}
               >
-                <Icon color={active ? colors.ink : colors.muted} size={20} />
+                <Icon color={active ? colors.heroText : colors.faint} size={20} />
                 <Text style={[styles.tabLabel, active ? styles.tabLabelActive : null]}>
                   {tab.label}
                 </Text>
@@ -504,11 +510,13 @@ function createStyles(theme: AppTheme) {
   return StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: colors.canvas
+      backgroundColor: colors.canvas,
+      overflow: "hidden"
     },
     appShell: {
       flex: 1,
-      backgroundColor: colors.canvas
+      backgroundColor: colors.canvas,
+      overflow: "hidden"
     },
     modeToggle: {
       position: "absolute",
@@ -517,9 +525,10 @@ function createStyles(theme: AppTheme) {
       zIndex: 2
     },
     content: {
+      width: "100%",
       paddingHorizontal: spacing.lg,
-      paddingTop: spacing.xl,
-      paddingBottom: spacing.xl
+      paddingTop: 70,
+      paddingBottom: 126
     },
     scrollArea: {
       flex: 1
@@ -537,41 +546,48 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800"
     },
     tabBar: {
-      marginHorizontal: spacing.md,
-      marginBottom: spacing.md,
-      minHeight: 76,
+      position: "absolute",
+      left: spacing.md,
+      right: spacing.md,
+      bottom: spacing.md,
+      minHeight: 78,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       borderRadius: radii.xl,
       borderWidth: 1,
       borderColor: colors.line,
-      backgroundColor: colors.surface,
+      backgroundColor: theme.isDark ? "rgba(17, 23, 34, 0.96)" : "rgba(255, 255, 255, 0.96)",
       padding: spacing.xs,
-      shadowColor: theme.isDark ? "#000000" : "#0E1726",
-      shadowOpacity: theme.isDark ? 0.35 : 0.08,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 6
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.42 : 0.16,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 12 },
+      elevation: 9
     },
     tabButton: {
       width: "16.3%",
-      minHeight: 60,
+      minHeight: 62,
       alignItems: "center",
       justifyContent: "center",
       borderRadius: radii.lg,
       gap: 4
     },
     tabButtonActive: {
-      backgroundColor: colors.softGold
+      backgroundColor: colors.accent,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.28 : 0.16,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 4
     },
     tabLabel: {
       color: colors.muted,
       fontSize: 10,
-      fontWeight: "700"
+      fontWeight: "900"
     },
     tabLabelActive: {
-      color: colors.ink
+      color: colors.heroText
     }
   });
 }

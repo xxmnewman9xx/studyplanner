@@ -24,11 +24,13 @@ export function AppButton({
   const styles = createStyles(theme);
   const { colors } = theme;
   const foreground =
-    variant === "primary" ? colors.surface : variant === "secondary" ? colors.ink : colors.muted;
+    variant === "primary" ? colors.heroText : variant === "secondary" ? colors.ink : colors.muted;
 
   return (
     <TouchableOpacity
       accessibilityRole="button"
+      accessibilityLabel={label}
+      activeOpacity={0.78}
       disabled={disabled}
       style={[
         styles.button,
@@ -51,8 +53,8 @@ function createStyles(theme: AppTheme) {
 
   return StyleSheet.create({
     button: {
-      minHeight: 48,
-      borderRadius: radii.md,
+      minHeight: 50,
+      borderRadius: radii.lg,
       paddingHorizontal: spacing.md,
       alignItems: "center",
       justifyContent: "center",
@@ -60,12 +62,17 @@ function createStyles(theme: AppTheme) {
       gap: spacing.xs
     },
     primary: {
-      backgroundColor: colors.ink
+      backgroundColor: colors.accent,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.35 : 0.18,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 5
     },
     secondary: {
       borderWidth: 1,
       borderColor: colors.line,
-      backgroundColor: colors.surface
+      backgroundColor: colors.elevated
     },
     quiet: {
       backgroundColor: "transparent"
@@ -75,7 +82,7 @@ function createStyles(theme: AppTheme) {
     },
     label: {
       fontSize: 14,
-      fontWeight: "800"
+      fontWeight: "900"
     }
   });
 }

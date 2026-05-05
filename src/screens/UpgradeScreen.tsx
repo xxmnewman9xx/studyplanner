@@ -130,17 +130,17 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
             <View style={styles.unavailableCard}>
               <Text style={styles.unavailableTitle}>Purchases are unavailable</Text>
               <Text style={styles.unavailableCopy}>
-                {subscription.hasConfiguredProducts
-                  ? "The store did not return active Plus plans. Please try again shortly."
-                  : "Plus purchases are not available right now."}
+                {unavailableCopy(subscription.status, subscription.hasConfiguredProducts)}
               </Text>
-              <AppButton
-                label="Try Again"
-                variant="secondary"
-                onPress={() => {
-                  void subscription.refresh();
-                }}
-              />
+              {subscription.status !== "unavailable" ? (
+                <AppButton
+                  label="Try Again"
+                  variant="secondary"
+                  onPress={() => {
+                    void subscription.refresh();
+                  }}
+                />
+              ) : null}
             </View>
           ) : null}
 
@@ -294,7 +294,7 @@ function LegalNotice({
         <Text style={styles.legalBody}>
           {isTerms
             ? "Subscriptions are billed by the App Store or Google Play account used at purchase. Manage or cancel renewal from your store account settings. Premium access remains tied to valid store entitlement status and may change when a plan expires, is refunded, or is cancelled."
-            : "Study Planner stores planner details on your device unless you choose services that require upload, such as syllabus scan. Syllabus files are sent only to the secure scan service for parsing. The app does not sell personal planner data."}
+            : "Study Planner stores planner details on your device unless you choose services that require upload, such as syllabus scan. Syllabus files are sent only for parsing, and the app does not sell personal planner data."}
         </Text>
         <View style={styles.legalFeature}>
           {isTerms ? (
@@ -305,7 +305,7 @@ function LegalNotice({
           <Text style={styles.legalBody}>
             {isTerms
               ? "Prices, trials, and renewal periods shown on the paywall come from the store."
-              : "A hosted privacy policy can be opened here when one is provided for the published app."}
+              : "You can continue using the planner manually without creating an account or purchasing Plus."}
           </Text>
         </View>
         <AppButton label="Back to Plus" onPress={onClose} />
@@ -318,6 +318,18 @@ function ctaLabel(product: PaywallProduct | undefined, flowState: string) {
   if (flowState === "purchasing") return "Opening Store";
   if (!product) return "Choose a Plan";
   return product.hasFreeTrial ? "Start Free Trial" : "Subscribe";
+}
+
+function unavailableCopy(status: string, hasConfiguredProducts: boolean) {
+  if (status === "unavailable" && hasConfiguredProducts) {
+    return "Subscriptions are available in the iOS or Android app. You can keep using the free planner here.";
+  }
+
+  if (!hasConfiguredProducts) {
+    return "Subscription plans are not available right now. You can keep using the free planner.";
+  }
+
+  return "The store could not load active Plus plans. Please try again shortly.";
 }
 
 function createStyles(theme: AppTheme) {

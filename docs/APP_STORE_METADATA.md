@@ -8,7 +8,7 @@ Study Planner: Syllabus AI
 
 Homework, Exams, Class Schedule
 
-This is safer than `Homework, Exams, Canvas` for the current MVP because Canvas sync is not implemented. Apple warns against metadata that uses trademarked, popular app, or irrelevant terms to game discovery, and App Store product-page guidance calls out improper keyword use as a rejection risk.
+This is safer than `Homework, Exams, Canvas` for the current release because Canvas sync is not implemented. Apple warns against metadata that uses trademarked, popular app, or irrelevant terms to game discovery, and App Store product-page guidance calls out improper keyword use as a rejection risk.
 
 Sources:
 
