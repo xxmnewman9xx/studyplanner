@@ -2,7 +2,7 @@
   "expo": {
     "name": "Study Planner: Syllabus AI",
     "slug": "study-planner-syllabus-ai",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "scheme": "studyplanner",
@@ -11,7 +11,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.example.studyplannersyllabusai",
+      "bundleIdentifier": "com.studyplanner.syllabusai",
       "infoPlist": {
         "NSCameraUsageDescription": "Scan syllabus pages so Study Planner can help create your course plan.",
         "NSPhotoLibraryUsageDescription": "Choose syllabus screenshots or photos to import into your plan.",
@@ -20,7 +20,7 @@
       }
     },
     "android": {
-      "package": "com.example.studyplannersyllabusai",
+      "package": "com.studyplanner.syllabusai",
       "permissions": [
         "CAMERA",
         "READ_CALENDAR",
@@ -32,7 +32,8 @@
       "expo-calendar",
       "expo-document-picker",
       "expo-image-picker",
-      "expo-notifications"
+      "expo-notifications",
+      "expo-iap"
     ]
   }
 }

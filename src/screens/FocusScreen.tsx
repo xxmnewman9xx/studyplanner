@@ -80,6 +80,9 @@ export function FocusScreen({ assignments, courses }: FocusScreenProps) {
 
       <SectionHeader title="Tie Timer To" />
       <View style={styles.assignmentList}>
+        {focusableAssignments.length === 0 ? (
+          <Text style={styles.emptyCard}>Add an assignment to start a focus session.</Text>
+        ) : null}
         {focusableAssignments.map((assignment) => {
           const active = assignment.id === selectedId;
           return (
@@ -164,6 +167,18 @@ function createStyles(theme: AppTheme) {
     },
     assignmentList: {
       gap: spacing.sm
+    },
+    emptyCard: {
+      overflow: "hidden",
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      color: colors.muted,
+      fontSize: 14,
+      lineHeight: 20,
+      fontWeight: "700"
     },
     assignmentRow: {
       minHeight: 76,

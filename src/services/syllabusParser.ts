@@ -1,130 +1,42 @@
 import { Assignment, Course, GradeItem, SyllabusImportSource, SyllabusParseResult } from "../models";
-import { colors } from "../theme";
 
-export async function parseSyllabusStub(
-  source: SyllabusImportSource
-): Promise<SyllabusParseResult> {
-  await delay(650);
-
-  const courseId = "eng-102";
-  const courses: Course[] = [
-    {
-      id: courseId,
-      code: "ENG 102",
-      name: "Composition and Research",
-      instructor: "Dr. Patel",
-      color: colors.green,
-      meetings: [
-        {
-          id: "eng-tue",
-          day: "Tue",
-          startTime: "10:00",
-          endTime: "11:15",
-          location: "Library 302"
-        },
-        {
-          id: "eng-thu",
-          day: "Thu",
-          startTime: "10:00",
-          endTime: "11:15",
-          location: "Library 302"
-        }
-      ],
-      gradeCategories: [
-        { id: "eng-essays", name: "Essays", weight: 45 },
-        { id: "eng-research", name: "Research Project", weight: 30 },
-        { id: "eng-discussion", name: "Discussion", weight: 15 },
-        { id: "eng-final", name: "Final Portfolio", weight: 10 }
-      ]
+declare const process:
+  | {
+      env?: Record<string, string | undefined>;
     }
-  ];
+  | undefined;
 
-  const assignments: Assignment[] = [
-    {
-      id: "eng-rhetorical-analysis",
-      courseId,
-      title: "Rhetorical analysis draft",
-      kind: "assignment",
-      dueAt: "2026-09-08T23:59:00-04:00",
-      tags: ["essay", "draft"],
-      priority: "high",
-      estimatedMinutes: 150,
-      status: "not_started",
-      source: "syllabus",
-      gradeWeight: 10
-    },
-    {
-      id: "eng-library-workshop",
-      courseId,
-      title: "Library research worksheet",
-      kind: "assignment",
-      dueAt: "2026-09-15T10:00:00-04:00",
-      tags: ["research"],
-      priority: "medium",
-      estimatedMinutes: 45,
-      status: "not_started",
-      source: "syllabus"
-    },
-    {
-      id: "eng-midterm",
-      courseId,
-      title: "Midterm portfolio check",
-      kind: "exam",
-      dueAt: "2026-10-13T10:00:00-04:00",
-      tags: ["portfolio", "exam"],
-      priority: "high",
-      estimatedMinutes: 180,
-      status: "not_started",
-      source: "syllabus",
-      gradeWeight: 15
-    },
-    {
-      id: "eng-final-portfolio",
-      courseId,
-      title: "Final portfolio",
-      kind: "assignment",
-      dueAt: "2026-12-08T23:59:00-05:00",
-      tags: ["final", "portfolio"],
-      priority: "high",
-      estimatedMinutes: 240,
-      status: "not_started",
-      source: "syllabus",
-      gradeWeight: 10
-    }
-  ];
+const parseEndpoint = readEnv("EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT");
 
-  const gradeItems: GradeItem[] = [
-    {
-      id: "eng-discussion-week-1",
-      courseId,
-      categoryId: "eng-discussion",
-      title: "Discussion check-in",
-      earned: 10,
-      possible: 10
-    }
-  ];
+export function isSyllabusParsingConfigured() {
+  return Boolean(parseEndpoint);
+}
 
-  return {
-    sourceName: source.name || source.kind,
-    semesterName: "Fall 2026",
-    semesterStartDate: "2026-08-24",
-    semesterEndDate: "2026-12-11",
-    courses,
-    assignments,
-    gradeItems,
-    findings: [
-      {
-        id: "office-hours",
-        severity: "info",
-        message: "Office hours detected but not added to schedule."
-      },
-      {
-        id: "date-confidence",
-        severity: "needs_review",
-        message: "One assignment used a relative date; review before applying."
-      }
-    ]
-  };
+export async function parseSyllabus(source: SyllabusImportSource): Promise<SyllabusParseResult> {
+  if (!parseEndpoint) {
+    throw new Error(
+      "Syllabus scan is temporarily unavailable. You can keep planning manually from Courses."
+    );
+  }
+
+  if (!source.uri) {
+    throw new Error("Choose a syllabus file or photo before scanning.");
+  }
+
+  const response = await fetch(parseEndpoint, {
+    method: "POST",
+    body: buildUploadBody(source)
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      response.status >= 500
+        ? "The scan service is having trouble right now. Try again in a little while."
+        : "This syllabus could not be scanned. Check the file and try again."
+    );
+  }
+
+  return normalizeParseResult(await response.json(), source);
 }
 
 export function updateParsedAssignment(
@@ -140,6 +52,51 @@ export function updateParsedAssignment(
   };
 }
 
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function buildUploadBody(source: SyllabusImportSource) {
+  const body = new FormData();
+  const name = source.name || (source.kind === "pdf" ? "syllabus.pdf" : "syllabus-photo.jpg");
+  const type = source.mimeType || (source.kind === "pdf" ? "application/pdf" : "image/jpeg");
+
+  body.append("kind", source.kind);
+  body.append("file", {
+    uri: source.uri,
+    name,
+    type
+  } as unknown as Blob);
+
+  return body;
+}
+
+function normalizeParseResult(value: unknown, source: SyllabusImportSource): SyllabusParseResult {
+  if (!value || typeof value !== "object") {
+    throw new Error("The scan service returned an unreadable result.");
+  }
+
+  const result = value as Partial<SyllabusParseResult>;
+  const courses = ensureArray<Course>(result.courses, "courses");
+  const assignments = ensureArray<Assignment>(result.assignments, "assignments");
+  const gradeItems = ensureArray<GradeItem>(result.gradeItems, "grade items");
+
+  return {
+    sourceName: result.sourceName || source.name || "Syllabus scan",
+    semesterName: result.semesterName,
+    semesterStartDate: result.semesterStartDate,
+    semesterEndDate: result.semesterEndDate,
+    courses,
+    assignments,
+    gradeItems,
+    findings: Array.isArray(result.findings) ? result.findings : []
+  };
+}
+
+function ensureArray<T>(value: unknown, label: string): T[] {
+  if (!Array.isArray(value)) {
+    throw new Error(`The scan service did not return ${label}.`);
+  }
+
+  return value as T[];
+}
+
+function readEnv(name: string) {
+  return typeof process !== "undefined" ? process.env?.[name] : undefined;
 }

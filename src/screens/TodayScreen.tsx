@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { Bell, CalendarPlus, ChevronRight, Target } from "lucide-react-native";
+import { Bell, CalendarPlus, ChevronRight, Crown, Target } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { AssignmentCard } from "../components/AssignmentCard";
 import { Badge } from "../components/Badge";
@@ -24,6 +24,8 @@ type TodayScreenProps = {
   onOpenAssignment: (assignmentId: string) => void;
   onScheduleReminders: () => void;
   onCalendarSync: () => void;
+  premiumAutomationLocked: boolean;
+  onOpenPaywall: () => void;
 };
 
 export function TodayScreen({
@@ -33,7 +35,9 @@ export function TodayScreen({
   onUpdateStatus,
   onOpenAssignment,
   onScheduleReminders,
-  onCalendarSync
+  onCalendarSync,
+  premiumAutomationLocked,
+  onOpenPaywall
 }: TodayScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
@@ -102,54 +106,62 @@ export function TodayScreen({
       <View style={styles.actionRow}>
         <AppButton
           label="Remind"
-          icon={Bell}
+          icon={premiumAutomationLocked ? Crown : Bell}
           variant="secondary"
           style={styles.halfButton}
-          onPress={onScheduleReminders}
+          onPress={premiumAutomationLocked ? onOpenPaywall : onScheduleReminders}
         />
         <AppButton
           label="Sync"
-          icon={CalendarPlus}
+          icon={premiumAutomationLocked ? Crown : CalendarPlus}
           variant="secondary"
           style={styles.halfButton}
-          onPress={onCalendarSync}
+          onPress={premiumAutomationLocked ? onOpenPaywall : onCalendarSync}
         />
       </View>
 
       <SectionHeader title="Upcoming" note="One place for assignments and exams" />
       <View style={styles.list}>
-        {plan.upcoming.map((assignment) => (
-          <AssignmentCard
-            key={assignment.id}
-            assignment={assignment}
-            course={getCourseForAssignment(courses, assignment)}
-            onOpen={() => onOpenAssignment(assignment.id)}
-            onPressStatus={() =>
-              onUpdateStatus(
-                assignment.id,
-                assignment.status === "done" ? "not_started" : "done"
-              )
-            }
-          />
-        ))}
+        {plan.upcoming.length === 0 ? (
+          <Text style={styles.emptyCard}>Add coursework from Courses to build your day.</Text>
+        ) : (
+          plan.upcoming.map((assignment) => (
+            <AssignmentCard
+              key={assignment.id}
+              assignment={assignment}
+              course={getCourseForAssignment(courses, assignment)}
+              onOpen={() => onOpenAssignment(assignment.id)}
+              onPressStatus={() =>
+                onUpdateStatus(
+                  assignment.id,
+                  assignment.status === "done" ? "not_started" : "done"
+                )
+              }
+            />
+          ))
+        )}
       </View>
 
       <SectionHeader title="Exam Countdown" note="Study pressure without panic" />
       <View style={styles.examRail}>
-        {plan.exams.map((assignment) => (
-          <TouchableOpacity
-            accessibilityRole="button"
-            key={assignment.id}
-            style={styles.examCard}
-            onPress={() => onOpenAssignment(assignment.id)}
-          >
-            <Badge label={`${daysUntil(assignment.dueAt)} days`} tone="red" />
-            <Text style={styles.examTitle}>{assignment.title}</Text>
-            <Text style={styles.examCourse}>
-              {getCourseForAssignment(courses, assignment)?.code}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {plan.exams.length === 0 ? (
+          <Text style={styles.emptyCard}>No exams added yet.</Text>
+        ) : (
+          plan.exams.map((assignment) => (
+            <TouchableOpacity
+              accessibilityRole="button"
+              key={assignment.id}
+              style={styles.examCard}
+              onPress={() => onOpenAssignment(assignment.id)}
+            >
+              <Badge label={`${daysUntil(assignment.dueAt)} days`} tone="red" />
+              <Text style={styles.examTitle}>{assignment.title}</Text>
+              <Text style={styles.examCourse}>
+                {getCourseForAssignment(courses, assignment)?.code}
+              </Text>
+            </TouchableOpacity>
+          ))
+        )}
       </View>
     </View>
   );
@@ -223,6 +235,18 @@ function createStyles(theme: AppTheme) {
     },
     list: {
       gap: spacing.sm
+    },
+    emptyCard: {
+      overflow: "hidden",
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      color: colors.muted,
+      fontSize: 14,
+      lineHeight: 20,
+      fontWeight: "700"
     },
     examRail: {
       flexDirection: "row",

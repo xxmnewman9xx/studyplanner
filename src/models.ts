@@ -16,6 +16,7 @@ export type Semester = {
 
 export type PlannerData = {
   onboarded: boolean;
+  paywallSeen: boolean;
   semester: Semester;
   courses: Course[];
   assignments: Assignment[];
@@ -77,9 +78,10 @@ export type GradeItem = {
 };
 
 export type SyllabusImportSource = {
-  kind: "pdf" | "photo" | "sample";
+  kind: "pdf" | "photo";
   uri?: string;
   name?: string;
+  mimeType?: string;
 };
 
 export type ParserFinding = {

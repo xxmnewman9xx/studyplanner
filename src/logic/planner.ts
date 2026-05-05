@@ -72,7 +72,7 @@ export function formatDateOnly(iso: string) {
     month: "short",
     day: "numeric",
     year: "numeric"
-  }).format(new Date(iso));
+  }).format(parseDateOnlyAsLocal(iso));
 }
 
 export function getCourseForAssignment(courses: Course[], assignment: Assignment) {
@@ -110,4 +110,12 @@ function isSameDay(a: Date, b: Date) {
 
 function isPast(due: Date, now: Date) {
   return due.getTime() < now.getTime();
+}
+
+function parseDateOnlyAsLocal(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return new Date(value);
+
+  const [, year, month, day] = match;
+  return new Date(Number(year), Number(month) - 1, Number(day));
 }

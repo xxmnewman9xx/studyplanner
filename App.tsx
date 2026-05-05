@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   SafeAreaView,
   ScrollView,
@@ -33,12 +34,8 @@ import {
 import { AppTheme } from "./src/theme";
 import { AppThemeProvider, useAppTheme } from "./src/themeContext";
 import { ModeToggle } from "./src/components/ModeToggle";
-import {
-  seedAssignments,
-  seedCourses,
-  seedGradeItems,
-  seedSemester
-} from "./src/data/seed";
+import { PremiumGate } from "./src/components/PremiumGate";
+import { defaultCourses, defaultGradeItems, defaultSemester } from "./src/data/defaultPlanner";
 import { OnboardingScreen } from "./src/screens/OnboardingScreen";
 import { TodayScreen } from "./src/screens/TodayScreen";
 import { ImportScreen } from "./src/screens/ImportScreen";
@@ -50,8 +47,9 @@ import { AssignmentDetailScreen } from "./src/screens/AssignmentDetailScreen";
 import { scheduleSmartReminders } from "./src/services/reminders";
 import { syncAssignmentsToDeviceCalendar } from "./src/services/calendarSync";
 import { loadJson, saveJson } from "./src/services/storage";
+import { SubscriptionProvider, useSubscription } from "./src/services/subscriptions";
 
-const plannerStorageKey = "study-planner-data-v1";
+const plannerStorageKey = "study-planner-data-v2";
 
 const tabs: Array<{
   id: NavTab;
@@ -69,7 +67,9 @@ const tabs: Array<{
 export default function App() {
   return (
     <AppThemeProvider>
-      <AppContent />
+      <SubscriptionProvider>
+        <AppContent />
+      </SubscriptionProvider>
     </AppThemeProvider>
   );
 }
@@ -78,12 +78,14 @@ function AppContent() {
   const { theme } = useAppTheme();
   const { colors } = theme;
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const subscription = useSubscription();
   const [onboarded, setOnboarded] = useState(false);
+  const [paywallSeen, setPaywallSeen] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>("today");
-  const [semester, setSemester] = useState(seedSemester);
-  const [courses, setCourses] = useState(seedCourses);
-  const [assignments, setAssignments] = useState(seedAssignments);
-  const [gradeItems, setGradeItems] = useState(seedGradeItems);
+  const [semester, setSemester] = useState(defaultSemester);
+  const [courses, setCourses] = useState<Course[]>(defaultCourses);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [gradeItems, setGradeItems] = useState(defaultGradeItems);
   const [targetGradePercent, setTargetGradePercent] = useState(90);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
@@ -104,12 +106,13 @@ function AppContent() {
       if (!mounted) return;
 
       if (stored) {
-        setOnboarded(stored.onboarded);
-        setSemester(stored.semester);
-        setCourses(stored.courses);
-        setAssignments(stored.assignments);
-        setGradeItems(stored.gradeItems);
-        setTargetGradePercent(stored.targetGradePercent);
+        setOnboarded(Boolean(stored.onboarded));
+        setPaywallSeen(Boolean(stored.paywallSeen));
+        setSemester(stored.semester || defaultSemester);
+        setCourses(stored.courses || []);
+        setAssignments(stored.assignments || []);
+        setGradeItems(stored.gradeItems || []);
+        setTargetGradePercent(stored.targetGradePercent || 90);
       }
 
       setHydrated(true);
@@ -125,13 +128,29 @@ function AppContent() {
 
     saveJson<PlannerData>(plannerStorageKey, {
       onboarded,
+      paywallSeen,
       semester,
       courses,
       assignments,
       gradeItems,
       targetGradePercent
     });
-  }, [assignments, courses, gradeItems, hydrated, onboarded, semester, targetGradePercent]);
+  }, [
+    assignments,
+    courses,
+    gradeItems,
+    hydrated,
+    onboarded,
+    paywallSeen,
+    semester,
+    targetGradePercent
+  ]);
+
+  useEffect(() => {
+    if (subscription.isPremium && !paywallSeen) {
+      setPaywallSeen(true);
+    }
+  }, [paywallSeen, subscription.isPremium]);
 
   const applyParsedPlan = (parse: SyllabusParseResult) => {
     setCourses((current) => mergeById(current, parse.courses));
@@ -190,13 +209,18 @@ function AppContent() {
   };
 
   const addCourse = (course: Pick<Course, "code" | "name" | "instructor">) => {
+    if (!course.code.trim() || !course.name.trim()) {
+      Alert.alert("Add course details", "Course code and course name are both needed.");
+      return;
+    }
+
     const id = `course-${Date.now()}`;
     setCourses((current) => [
       ...current,
       {
         id,
-        code: course.code.trim() || "CLASS",
-        name: course.name.trim() || "New Course",
+        code: course.code.trim(),
+        name: course.name.trim(),
         instructor: course.instructor?.trim(),
         color: colors.accent,
         meetings: [],
@@ -245,6 +269,11 @@ function AppContent() {
   };
 
   const handleScheduleReminders = async () => {
+    if (!subscription.isPremium) {
+      setActiveTab("upgrade");
+      return;
+    }
+
     try {
       const { count, reminderIdsByAssignment } = await scheduleSmartReminders(
         activeAssignments,
@@ -268,6 +297,11 @@ function AppContent() {
   };
 
   const handleCalendarSync = async () => {
+    if (!subscription.isPremium) {
+      setActiveTab("upgrade");
+      return;
+    }
+
     try {
       const { count, calendarEventIdsByAssignment } = await syncAssignmentsToDeviceCalendar(
         activeAssignments,
@@ -289,17 +323,38 @@ function AppContent() {
     }
   };
 
+  const premiumLocked = subscription.status !== "ready" || !subscription.isPremium;
+  const showInitialPaywall =
+    hydrated &&
+    onboarded &&
+    !paywallSeen &&
+    !subscription.isPremium &&
+    subscription.status !== "checking";
+
+  if (!hydrated) {
+    return <LoadingScreen label="Loading Study Planner" />;
+  }
+
   if (!onboarded) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <StatusBar style={theme.isDark ? "light" : "dark"} />
-        <OnboardingScreen
-          onFinish={() => setOnboarded(true)}
-          onApplyParsedPlan={(parse) => {
-            applyParsedPlan(parse);
-            setOnboarded(true);
-          }}
-        />
+        <OnboardingScreen onFinish={() => setOnboarded(true)} />
+      </SafeAreaView>
+    );
+  }
+
+  if (!paywallSeen && !subscription.isPremium && subscription.status === "checking") {
+    return <LoadingScreen label="Checking Plus access" />;
+  }
+
+  if (showInitialPaywall) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar style={theme.isDark ? "light" : "dark"} />
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          <UpgradeScreen onContinueFree={() => setPaywallSeen(true)} />
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -312,6 +367,7 @@ function AppContent() {
           <ModeToggle />
         </View>
         <ScrollView
+          style={styles.scrollArea}
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
@@ -334,10 +390,20 @@ function AppContent() {
                   onOpenAssignment={setSelectedAssignmentId}
                   onScheduleReminders={handleScheduleReminders}
                   onCalendarSync={handleCalendarSync}
+                  premiumAutomationLocked={premiumLocked}
+                  onOpenPaywall={() => setActiveTab("upgrade")}
                 />
               ) : null}
               {activeTab === "import" ? (
-                <ImportScreen onApplyParsedPlan={applyParsedPlan} />
+                premiumLocked ? (
+                  <PremiumGate
+                    title="Scan a syllabus into your planner."
+                    copy="Plus is required before syllabus scan opens."
+                    onUpgrade={() => setActiveTab("upgrade")}
+                  />
+                ) : (
+                  <ImportScreen onApplyParsedPlan={applyParsedPlan} />
+                )
               ) : null}
               {activeTab === "courses" ? (
                 <CoursesScreen
@@ -352,15 +418,23 @@ function AppContent() {
                 />
               ) : null}
               {activeTab === "grades" ? (
-                <GradesScreen
-                  courses={courses}
-                  assignments={activeAssignments}
-                  gradeItems={gradeItems}
-                  targetGradePercent={targetGradePercent}
-                  onTargetGradeChange={setTargetGradePercent}
-                  onAddGradeItem={addGradeItem}
-                  onUpdateGradeItem={updateGradeItem}
-                />
+                premiumLocked ? (
+                  <PremiumGate
+                    title="Forecast grades before finals week."
+                    copy="Plus unlocks weighted grade tracking and target-score planning."
+                    onUpgrade={() => setActiveTab("upgrade")}
+                  />
+                ) : (
+                  <GradesScreen
+                    courses={courses}
+                    assignments={activeAssignments}
+                    gradeItems={gradeItems}
+                    targetGradePercent={targetGradePercent}
+                    onTargetGradeChange={setTargetGradePercent}
+                    onAddGradeItem={addGradeItem}
+                    onUpdateGradeItem={updateGradeItem}
+                  />
+                )
               ) : null}
               {activeTab === "focus" ? (
                 <FocusScreen assignments={activeAssignments} courses={courses} />
@@ -398,6 +472,22 @@ function AppContent() {
   );
 }
 
+function LoadingScreen({ label }: { label: string }) {
+  const { theme } = useAppTheme();
+  const { colors } = theme;
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar style={theme.isDark ? "light" : "dark"} />
+      <View style={styles.loadingScreen}>
+        <ActivityIndicator color={colors.ink} />
+        <Text style={styles.loadingText}>{label}</Text>
+      </View>
+    </SafeAreaView>
+  );
+}
+
 function mergeById<T extends { id: string }>(current: T[], incoming: T[]) {
   const existing = new Map(current.map((item) => [item.id, item]));
   incoming.forEach((item) => existing.set(item.id, item));
@@ -429,13 +519,26 @@ function createStyles(theme: AppTheme) {
     content: {
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.xl,
-      paddingBottom: 110
+      paddingBottom: spacing.xl
+    },
+    scrollArea: {
+      flex: 1
+    },
+    loadingScreen: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: spacing.sm
+    },
+    loadingText: {
+      color: colors.muted,
+      fontSize: 14,
+      lineHeight: 20,
+      fontWeight: "800"
     },
     tabBar: {
-      position: "absolute",
-      left: spacing.md,
-      right: spacing.md,
-      bottom: spacing.md,
+      marginHorizontal: spacing.md,
+      marginBottom: spacing.md,
       minHeight: 76,
       flexDirection: "row",
       alignItems: "center",

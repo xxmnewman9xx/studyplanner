@@ -1,34 +1,66 @@
 import React, { useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { Bell, CalendarCheck2, CheckCircle2, FileScan, Sparkles } from "lucide-react-native";
+import { StyleSheet, Text, View } from "react-native";
+import {
+  Bell,
+  CalendarCheck2,
+  ChevronRight,
+  Crown,
+  FileScan,
+  Sparkles
+} from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
 import { ModeToggle } from "../components/ModeToggle";
-import { SyllabusParseResult } from "../models";
-import { parseSyllabusStub } from "../services/syllabusParser";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 
 type OnboardingScreenProps = {
   onFinish: () => void;
-  onApplyParsedPlan: (parse: SyllabusParseResult) => void;
 };
 
-export function OnboardingScreen({ onFinish, onApplyParsedPlan }: OnboardingScreenProps) {
+const slides = [
+  {
+    badge: "Welcome",
+    title: "Make the semester feel manageable.",
+    copy: "Study Planner turns courses, deadlines, exams, and grades into one calm daily plan.",
+    icon: Sparkles
+  },
+  {
+    badge: "Plan",
+    title: "Know what matters next.",
+    copy: "See urgent work first, track progress, and keep assignments moving without a messy checklist.",
+    icon: CalendarCheck2
+  },
+  {
+    badge: "Personalize",
+    title: "Shape it around your classes.",
+    copy: "Add courses, deadlines, grade weights, and focus sessions that match your actual semester.",
+    icon: Bell
+  },
+  {
+    badge: "Plus",
+    title: "Unlock the time-saving tools.",
+    copy: "Plus adds syllabus scan, calendar sync, smart reminders, and grade forecasting when you are ready.",
+    icon: Crown
+  }
+];
+
+export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
-  const [loading, setLoading] = useState(false);
-  const [parse, setParse] = useState<SyllabusParseResult | null>(null);
+  const [index, setIndex] = useState(0);
+  const slide = slides[index] ?? slides[0]!;
+  const Icon = slide.icon;
+  const isFinal = index === slides.length - 1;
 
-  const handleSampleScan = async () => {
-    setLoading(true);
-    const result = await parseSyllabusStub({
-      kind: "sample",
-      name: "ENG 102 syllabus sample"
-    });
-    setParse(result);
-    setLoading(false);
+  const continueOnboarding = () => {
+    if (isFinal) {
+      onFinish();
+      return;
+    }
+
+    setIndex((current) => current + 1);
   };
 
   return (
@@ -36,7 +68,7 @@ export function OnboardingScreen({ onFinish, onApplyParsedPlan }: OnboardingScre
       <View style={styles.brandRow}>
         <View style={styles.brandLeft}>
           <View style={styles.logoMark}>
-            <Sparkles color={colors.ink} size={20} />
+            <FileScan color={colors.ink} size={20} />
           </View>
           <Text style={styles.brand}>Study Planner: Syllabus AI</Text>
         </View>
@@ -44,54 +76,28 @@ export function OnboardingScreen({ onFinish, onApplyParsedPlan }: OnboardingScre
       </View>
 
       <View style={styles.hero}>
-        <Badge label="Planner first" tone="gold" />
-        <Text style={styles.title}>Turn a messy semester into a daily plan.</Text>
-        <Text style={styles.copy}>
-          Scan a syllabus, review the detected courses and deadlines, then start with
-          the next useful task.
-        </Text>
+        <View style={styles.iconMark}>
+          <Icon color={colors.ink} size={32} />
+        </View>
+        <Badge label={slide.badge} tone={slide.badge === "Plus" ? "gold" : "green"} />
+        <Text style={styles.title}>{slide.title}</Text>
+        <Text style={styles.copy}>{slide.copy}</Text>
       </View>
 
-      {parse ? (
-        <View style={styles.preview}>
-          <View style={styles.previewHeader}>
-            <CheckCircle2 color={colors.green} size={22} />
-            <Text style={styles.previewTitle}>First plan ready</Text>
-          </View>
-          <Text style={styles.previewCopy}>
-            Found {parse.courses.length} course, {parse.assignments.length} deadlines,
-            a class schedule, and weighted grade categories.
-          </Text>
-          <View style={styles.previewList}>
-            {parse.assignments.slice(0, 3).map((assignment) => (
-              <Text key={assignment.id} style={styles.previewItem}>
-                {assignment.title}
-              </Text>
-            ))}
-          </View>
-          <AppButton
-            label="Use this plan"
-            icon={CalendarCheck2}
-            onPress={() => onApplyParsedPlan(parse)}
-          />
+      <View style={styles.footer}>
+        <View style={styles.dots} accessibilityRole="progressbar">
+          {slides.map((item, dotIndex) => (
+            <View
+              key={item.title}
+              style={[styles.dot, dotIndex === index ? styles.dotActive : null]}
+            />
+          ))}
         </View>
-      ) : (
-        <View style={styles.actions}>
-          <AppButton
-            label={loading ? "Reading syllabus" : "Scan sample syllabus"}
-            icon={FileScan}
-            disabled={loading}
-            onPress={handleSampleScan}
-          />
-          {loading ? <ActivityIndicator color={colors.ink} /> : null}
-          <AppButton label="Start with planner" variant="secondary" icon={Bell} onPress={onFinish} />
-        </View>
-      )}
-
-      <View style={styles.promiseRow}>
-        <Text style={styles.promise}>No ads</Text>
-        <Text style={styles.promise}>Editable AI</Text>
-        <Text style={styles.promise}>Calm reminders</Text>
+        <AppButton
+          label={isFinal ? "Continue" : "Next"}
+          icon={ChevronRight}
+          onPress={continueOnboarding}
+        />
       </View>
     </View>
   );
@@ -137,6 +143,16 @@ function createStyles(theme: AppTheme) {
       gap: spacing.md,
       paddingVertical: spacing.xl
     },
+    iconMark: {
+      width: 72,
+      height: 72,
+      borderRadius: radii.lg,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.line,
+      alignItems: "center",
+      justifyContent: "center"
+    },
     title: {
       ...typography.title,
       fontSize: 34,
@@ -146,47 +162,24 @@ function createStyles(theme: AppTheme) {
       ...typography.body,
       color: colors.muted
     },
-    actions: {
-      gap: spacing.sm
-    },
-    preview: {
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.lg,
+    footer: {
       gap: spacing.md
     },
-    previewHeader: {
+    dots: {
       flexDirection: "row",
+      gap: spacing.xs,
       alignItems: "center",
-      gap: spacing.sm
+      justifyContent: "center"
     },
-    previewTitle: {
-      color: colors.ink,
-      fontSize: 19,
-      fontWeight: "900"
+    dot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.line
     },
-    previewCopy: {
-      ...typography.body
-    },
-    previewList: {
-      gap: spacing.xs
-    },
-    previewItem: {
-      color: colors.ink,
-      fontSize: 14,
-      fontWeight: "700"
-    },
-    promiseRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      gap: spacing.sm
-    },
-    promise: {
-      color: colors.muted,
-      fontSize: 12,
-      fontWeight: "800"
+    dotActive: {
+      width: 24,
+      backgroundColor: colors.accent
     }
   });
 }

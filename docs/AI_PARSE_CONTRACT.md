@@ -1,6 +1,6 @@
 # AI Parse Contract
 
-The app currently uses `parseSyllabusStub()` in `src/services/syllabusParser.ts`. Replace it with a production endpoint that performs OCR, extracts structured dates, and returns the contract below.
+The app posts PDF/photo uploads to `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT`. The endpoint should perform OCR, extract structured dates, and return the contract below.
 
 ## Request
 

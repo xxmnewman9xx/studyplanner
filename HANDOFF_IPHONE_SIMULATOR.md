@@ -20,7 +20,8 @@ The app is an Expo + React Native MVP with:
 - Editable assignment detail flow.
 - Editable semester and course setup.
 - Editable grade tracking and target-grade calculator.
-- Syllabus parse review flow backed by `parseSyllabusStub()`.
+- Syllabus parse review flow backed by `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT`.
+- Store-backed Plus paywall using configured App Store or Google Play product IDs.
 
 ## Important Simulator Note
 
@@ -88,19 +89,17 @@ npx expo start --tunnel
 3. Tap `Start with planner`, refresh/reopen, confirm onboarding stays complete.
 4. Today screen: tap assignment `Edit`, update estimate/tags/status, save.
 5. Courses screen: edit semester dates, edit a course, add a course.
-6. Scan screen: run sample parse, edit parsed title/date/kind/priority, apply plan.
-7. Grades screen: change target grade, add a score, edit score values.
-8. Focus screen: start, pause, and reset timer.
-9. Plus screen: verify free/paid boundary copy.
+6. Plus screen: verify products load from the store, purchase/restore states render, and Terms/Privacy links open.
+7. Scan screen with active Plus access: choose a PDF/photo, edit parsed title/date/kind/priority, apply plan.
+8. Grades screen with active Plus access: change target grade, add a score, edit score values.
+9. Focus screen: start, pause, and reset timer.
+10. Unsubscribed state: verify Scan, Grades, Remind, and Sync route to Plus.
 
 ## Known Production Gaps
 
-- Syllabus import still uses `parseSyllabusStub()` instead of a real OCR/AI backend.
 - No account/cloud sync yet.
-- No App Store in-app purchase integration yet.
 - No Canvas OAuth integration yet.
-- Native persistent storage should be upgraded before App Store submission.
-- Calendar/reminder integrations are starter implementations and need deeper native-device QA.
+- Calendar/reminder integrations need deeper native-device QA across real calendars and notification permission states.
 
 ## Useful Commands
 

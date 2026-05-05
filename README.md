@@ -1,6 +1,6 @@
 # Study Planner: Syllabus AI
 
-An Expo + React Native MVP starter for a calm student planner that turns a syllabus into courses, deadlines, grades, reminders, and a daily execution plan.
+An Expo + React Native app for a calm student planner that turns courses, deadlines, grades, reminders, and syllabus scans into a daily execution plan.
 
 ## Run Locally
 
@@ -12,19 +12,29 @@ npx expo start
 
 ## What Is Included
 
-- Fast onboarding that reaches a first generated plan in under 3 minutes.
-- Editable syllabus import flow for PDF, photo, or sample AI parse output.
+- Polished first-run onboarding that leads into the Plus paywall.
+- Editable syllabus import flow for PDF or photo uploads through a configured parse endpoint.
 - Course and semester setup with weekly class schedule.
 - Assignment and exam objects with due dates, tags, priority, estimates, and status.
 - Today screen with "what should I do next?" planning logic.
 - Weighted grade tracker and final target calculator.
-- Smart reminder starter using `expo-notifications`.
-- Device calendar sync starter using `expo-calendar`.
+- Smart reminders using `expo-notifications`.
+- Device calendar sync using `expo-calendar`.
 - Focus session timer tied to a selected assignment.
-- Free and paid tier boundary screen.
+- Store-backed Plus paywall and premium guards for syllabus scan, calendar sync, reminders, and grade forecasting.
 
-## Production Notes
+## Configuration
 
-The scanner currently uses `parseSyllabusStub()` so the app can run without credentials. Replace it with a backend that does OCR, returns the JSON contract in [docs/AI_PARSE_CONTRACT.md](docs/AI_PARSE_CONTRACT.md), and requires user review before applying changes.
+The app does not commit store product IDs, policy URLs, or scan-service endpoints. Set these at build time:
 
-Canvas is intentionally not a live MVP integration. The docs include a milestone path, but the first release should avoid claiming Canvas sync until OAuth, school-domain handling, and update reconciliation are implemented.
+```bash
+EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS=<comma-separated-store-subscription-ids>
+EXPO_PUBLIC_IAP_LIFETIME_PRODUCT_IDS=<comma-separated-store-nonconsumable-ids>
+EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT=https://your-api.example.com/api/syllabus/parse
+EXPO_PUBLIC_TERMS_URL=https://your-site.example.com/terms
+EXPO_PUBLIC_PRIVACY_URL=https://your-site.example.com/privacy
+```
+
+Only include product IDs that exist in App Store Connect or Google Play Console. If no Plus products are configured, the paywall fails closed and does not grant premium access.
+
+Canvas is intentionally not a live V1 integration. Do not claim Canvas sync until OAuth, school-domain handling, and update reconciliation are implemented.

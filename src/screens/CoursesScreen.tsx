@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Plus } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
@@ -41,7 +41,7 @@ export function CoursesScreen({
   const styles = createStyles(theme);
   const [selectedCourseId, setSelectedCourseId] = useState(courses[0]?.id || "");
   const [title, setTitle] = useState("");
-  const [dueDate, setDueDate] = useState("2026-09-10");
+  const [dueDate, setDueDate] = useState("");
   const [kind, setKind] = useState<AssignmentKind>("assignment");
   const [newCourseCode, setNewCourseCode] = useState("");
   const [newCourseName, setNewCourseName] = useState("");
@@ -53,6 +53,17 @@ export function CoursesScreen({
         .filter((assignment) => assignment.courseId === selectedCourse.id)
         .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
     : [];
+
+  useEffect(() => {
+    if (courses.length === 0) {
+      setSelectedCourseId("");
+      return;
+    }
+
+    if (!courses.some((course) => course.id === selectedCourseId)) {
+      setSelectedCourseId(courses[0]?.id || "");
+    }
+  }, [courses, selectedCourseId]);
 
   const addItem = () => {
     if (!selectedCourse) return;
@@ -103,6 +114,9 @@ export function CoursesScreen({
 
       <SectionHeader title="Courses" note={`${courses.length} active courses`} />
       <View style={styles.courseList}>
+        {courses.length === 0 ? (
+          <Text style={styles.emptyCard}>Add your first course to start building the semester.</Text>
+        ) : null}
         {courses.map((course) => {
           const openCount = assignments.filter(
             (assignment) => assignment.courseId === course.id && assignment.status !== "done"
@@ -253,7 +267,7 @@ export function CoursesScreen({
           placeholderTextColor={colors.faint}
           style={styles.input}
         />
-        <AppButton label="Add" icon={Plus} onPress={addItem} />
+        <AppButton label="Add" icon={Plus} disabled={!selectedCourse} onPress={addItem} />
       </View>
 
       <SectionHeader title="Weekly Schedule" note="Class blocks by day" />
@@ -321,6 +335,18 @@ function createStyles(theme: AppTheme) {
     },
     courseList: {
       gap: spacing.sm
+    },
+    emptyCard: {
+      overflow: "hidden",
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      color: colors.muted,
+      fontSize: 14,
+      lineHeight: 20,
+      fontWeight: "700"
     },
     courseCard: {
       minHeight: 96,

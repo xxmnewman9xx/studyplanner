@@ -28,12 +28,10 @@ Sources:
 
 ## Calendar Sync
 
-The starter can create device calendar events, but production sync needs persisted external event IDs. Without those IDs, repeated sync can create duplicates.
-
-Decision: ship calendar sync only after update/delete behavior is safe and clear.
+Calendar sync stores the external event ID on the assignment after creating each device calendar event. Plus access is checked before sync starts.
 
 ## Syllabus AI
 
 Syllabi can include personal notes, school names, instructor details, and accommodations language. Upload handling needs retention limits and deletion controls before production.
 
-Decision: the MVP client includes an editable contract and stub parser, but real OCR/LLM parsing belongs behind a backend with validation, observability, and privacy policy coverage.
+Decision: the client posts PDF/photo uploads only when a production parse endpoint is configured. Parsed results remain editable before they are applied to the planner.

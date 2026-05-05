@@ -74,6 +74,17 @@ export function GradesScreen({
     ? assignments.filter((assignment) => assignment.courseId === selectedCourse.id)
     : [];
 
+  useEffect(() => {
+    if (courses.length === 0) {
+      setSelectedCourseId("");
+      return;
+    }
+
+    if (!courses.some((course) => course.id === selectedCourseId)) {
+      setSelectedCourseId(courses[0]?.id || "");
+    }
+  }, [courses, selectedCourseId]);
+
   return (
     <View>
       <View style={styles.header}>
@@ -85,6 +96,9 @@ export function GradesScreen({
       </View>
 
       <View style={styles.courseTabs}>
+        {courses.length === 0 ? (
+          <Text style={styles.emptyCard}>Add a course before tracking grades.</Text>
+        ) : null}
         {courses.map((course) => (
           <TouchableOpacity
             accessibilityRole="button"
@@ -323,6 +337,19 @@ function createStyles(theme: AppTheme) {
       gap: spacing.xs,
       flexWrap: "wrap",
       marginTop: spacing.lg
+    },
+    emptyCard: {
+      overflow: "hidden",
+      width: "100%",
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      color: colors.muted,
+      fontSize: 14,
+      lineHeight: 20,
+      fontWeight: "700"
     },
     courseTab: {
       minHeight: 38,

@@ -21,9 +21,9 @@ Turn a messy semester into a clear daily execution plan. Students upload or phot
 - Today view with a ranked next action.
 - Weighted grade tracker and target-grade calculator.
 - Smart local reminders for deadlines and exams.
-- Device calendar sync starter.
+- Device calendar sync.
 - Focus timer tied to a specific assignment.
-- Onboarding that reaches first value with a sample plan or import path in under 3 minutes.
+- Onboarding that explains value quickly and routes into the Plus paywall or planner.
 
 ### Not Included In V1
 
@@ -37,10 +37,10 @@ Turn a messy semester into a clear daily execution plan. Students upload or phot
 ### Fast Onboarding
 
 1. Student sees the product promise and trust cues.
-2. Student scans a syllabus, picks a PDF/photo, or starts from a sample plan.
-3. App shows detected courses, grade categories, meetings, and deadlines.
-4. Student reviews edits.
-5. App lands on Today with the next action already chosen.
+2. Student completes onboarding.
+3. App presents Plus value and store-backed purchase options.
+4. Student subscribes, restores purchases, or continues with the free planner.
+5. App lands on Today with manual planning available and Plus features gated.
 
 ### Syllabus Import
 
