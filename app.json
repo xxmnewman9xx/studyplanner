@@ -37,7 +37,14 @@
       "expo-document-picker",
       "expo-image-picker",
       "expo-notifications",
-      "expo-iap"
+      "expo-iap",
+      [
+        "./plugins/withStudyPlannerWidget",
+        {
+          "appGroupIdentifier": "group.com.mattnewman.studyplanner",
+          "widgetBundleIdentifier": "com.mattnewman.studyplanner.widget"
+        }
+      ]
     ],
     "extra": {
       "eas": {

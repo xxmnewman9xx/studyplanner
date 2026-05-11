@@ -4,6 +4,7 @@ import {
   WidgetSnapshotInput
 } from "../logic/widgetSnapshot";
 import { saveJson } from "./storage";
+import { mirrorWidgetSnapshotToNative } from "./widgetSnapshotNativeBridge";
 
 export const widgetSnapshotStorageKey = "study-planner-widget-snapshot-v1";
 
@@ -19,5 +20,6 @@ export async function writeWidgetSnapshot(
 ): Promise<WidgetSnapshot> {
   const snapshot = buildWidgetSnapshot(input, now);
   await saveJson(widgetSnapshotStorageKey, snapshot);
+  await mirrorWidgetSnapshotToNative(snapshot);
   return snapshot;
 }

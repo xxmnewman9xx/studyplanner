@@ -37,7 +37,7 @@ import { ModeToggle } from "./src/components/ModeToggle";
 import { PremiumGate } from "./src/components/PremiumGate";
 import { isStoreCaptureEnabled } from "./src/config/storeCapture";
 import { defaultCourses, defaultGradeItems, defaultSemester } from "./src/data/defaultPlanner";
-import { createDemoSemesterSeed } from "./src/data/demoSemester";
+import { createDemoSemesterSeed, storeCaptureNow } from "./src/data/demoSemester";
 import { OnboardingScreen } from "./src/screens/OnboardingScreen";
 import { TodayScreen } from "./src/screens/TodayScreen";
 import { ImportScreen } from "./src/screens/ImportScreen";
@@ -193,17 +193,20 @@ function AppContent() {
   useEffect(() => {
     if (!hydrated) return;
 
-    void WidgetSnapshotService.write({
-      semester,
-      courses,
-      assignments,
-      demoState: storeCaptureEnabled
-        ? {
-            enabled: true,
-            label: "Store capture"
-          }
-        : undefined
-    }).catch(() => undefined);
+    void WidgetSnapshotService.write(
+      {
+        semester,
+        courses,
+        assignments,
+        demoState: storeCaptureEnabled
+          ? {
+              enabled: true,
+              label: "Store capture"
+            }
+          : undefined
+      },
+      storeCaptureEnabled ? storeCaptureNow : new Date()
+    ).catch(() => undefined);
   }, [assignments, courses, hydrated, semester, storeCaptureEnabled]);
 
   useEffect(() => {
