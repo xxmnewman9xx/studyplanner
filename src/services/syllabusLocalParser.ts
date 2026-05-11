@@ -1,4 +1,5 @@
 import { Assignment, Course, GradeCategory, SyllabusParseResult } from "../models";
+import { normalizeAssignment } from "../logic/assignmentModel";
 
 type InferredSemester = {
   name?: string;
@@ -24,7 +25,7 @@ export function parseSyllabusText(rawText: string, sourceName: string): Syllabus
   const inferredYear = inferYear(text);
   const semester = inferSemester(text, inferredYear);
   const course = inferCourse(lines, sourceName);
-  const assignments = inferAssignments(lines, course.id, inferredYear);
+  const assignments = inferAssignments(lines, course, inferredYear);
   const gradeCategories = inferGradeCategories(lines, course.id);
   const courseWithGrades = {
     ...course,
@@ -233,7 +234,7 @@ function inferGradeCategories(lines: string[], courseId: string): GradeCategory[
   return categories;
 }
 
-function inferAssignments(lines: string[], courseId: string, inferredYear: number): Assignment[] {
+function inferAssignments(lines: string[], course: Course, inferredYear: number): Assignment[] {
   const assignments: Assignment[] = [];
   const seen = new Set<string>();
 
@@ -257,18 +258,32 @@ function inferAssignments(lines: string[], courseId: string, inferredYear: numbe
     seen.add(key);
 
     const kind = examKeywords.test(title) ? "exam" : "assignment";
-    assignments.push({
-      id: `${courseId}-${slugify(title)}-${dueDate}`,
-      courseId,
-      title,
-      kind,
-      dueAt: `${dueDate}T${kind === "exam" ? "09:00" : "23:59"}:00`,
-      tags: kind === "exam" ? ["exam", "study"] : ["syllabus"],
-      priority: kind === "exam" ? "high" : "medium",
-      estimatedMinutes: kind === "exam" ? 180 : 60,
-      status: "not_started",
-      source: "syllabus"
-    });
+    assignments.push(
+      normalizeAssignment(
+        {
+          id: `${course.id}-${slugify(title)}-${dueDate}`,
+          courseId: course.id,
+          courseName: course.name,
+          title,
+          type: kind,
+          kind,
+          dueAt: `${dueDate}T${kind === "exam" ? "09:00" : "23:59"}:00`,
+          sourceText: line,
+          confidence: 0.74,
+          reviewStatus: "needsReview",
+          completionStatus: "open",
+          reminderPreset: kind === "exam" ? "week_before" : "day_before",
+          createdAt: new Date(`${dueDate}T12:00:00`).toISOString(),
+          updatedAt: new Date(`${dueDate}T12:00:00`).toISOString(),
+          tags: kind === "exam" ? ["exam", "study"] : ["syllabus"],
+          priority: kind === "exam" ? "high" : "medium",
+          estimatedMinutes: kind === "exam" ? 180 : 60,
+          status: "not_started",
+          source: "syllabus"
+        },
+        [course]
+      )
+    );
   }
 
   return assignments.slice(0, 30);

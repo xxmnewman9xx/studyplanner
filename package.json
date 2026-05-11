@@ -9,6 +9,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
+    "test": "tsc -p tsconfig.tests.json && node --test .test-build/tests/*.test.js",
     "check:iap": "node scripts/check-iap-config.mjs",
     "export:web": "expo export --platform web"
   },
@@ -32,6 +33,7 @@
     "react-native-web": "^0.21.0"
   },
   "devDependencies": {
+    "@types/node": "^25.6.2",
     "@types/pako": "^2.0.4",
     "@types/react": "~19.2.0",
     "babel-preset-expo": "~55.0.19",

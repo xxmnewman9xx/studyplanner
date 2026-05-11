@@ -28,6 +28,7 @@ import {
   NavTab,
   PlannerData,
   Semester,
+  SyllabusSource,
   SyllabusParseResult
 } from "./src/models";
 import { AppTheme } from "./src/theme";
@@ -47,6 +48,13 @@ import { scheduleSmartReminders } from "./src/services/reminders";
 import { syncAssignmentsToDeviceCalendar } from "./src/services/calendarSync";
 import { loadJson, saveJson } from "./src/services/storage";
 import { SubscriptionProvider, useSubscription } from "./src/services/subscriptions";
+import {
+  createSyllabusSourceFromParse,
+  isAssignmentArchived,
+  normalizeAssignment,
+  normalizeAssignments,
+  withAssignmentPatch
+} from "./src/logic/assignmentModel";
 
 const plannerStorageKey = "study-planner-data-v2";
 
@@ -85,13 +93,14 @@ function AppContent() {
   const [semester, setSemester] = useState(defaultSemester);
   const [courses, setCourses] = useState<Course[]>(defaultCourses);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [syllabusSources, setSyllabusSources] = useState<SyllabusSource[]>([]);
   const [gradeItems, setGradeItems] = useState(defaultGradeItems);
   const [targetGradePercent, setTargetGradePercent] = useState(90);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   const activeAssignments = useMemo(
-    () => assignments.filter((item) => item.status !== "archived"),
+    () => assignments.filter((item) => !isAssignmentArchived(item)),
     [assignments]
   );
   const selectedAssignment = useMemo(
@@ -116,7 +125,8 @@ function AppContent() {
         setPaywallSeen(Boolean(stored.paywallSeen));
         setSemester(stored.semester || defaultSemester);
         setCourses(stored.courses || []);
-        setAssignments(stored.assignments || []);
+        setAssignments(normalizeAssignments(stored.assignments || [], stored.courses || []));
+        setSyllabusSources(stored.syllabusSources || []);
         setGradeItems(stored.gradeItems || []);
         setTargetGradePercent(stored.targetGradePercent || 90);
       }
@@ -139,6 +149,7 @@ function AppContent() {
       courses,
       assignments,
       gradeItems,
+      syllabusSources,
       targetGradePercent
     });
   }, [
@@ -149,6 +160,7 @@ function AppContent() {
     onboarded,
     paywallSeen,
     semester,
+    syllabusSources,
     targetGradePercent
   ]);
 
@@ -159,9 +171,16 @@ function AppContent() {
   }, [paywallSeen, subscription.isPremium]);
 
   const applyParsedPlan = (parse: SyllabusParseResult) => {
+    const normalizedAssignments = normalizeAssignments(parse.assignments, parse.courses);
+    const normalizedParse = { ...parse, assignments: normalizedAssignments };
     setCourses((current) => mergeById(current, parse.courses));
-    setAssignments((current) => mergeById(current, parse.assignments));
+    setAssignments((current) => mergeById(current, normalizedAssignments));
     setGradeItems((current) => mergeById(current, parse.gradeItems));
+    setSyllabusSources((current) =>
+      mergeById(current, [
+        parse.syllabusSource || createSyllabusSourceFromParse(normalizedParse, "device")
+      ])
+    );
     setSemester((current) => ({
       ...current,
       name: parse.semesterName || current.name,
@@ -177,7 +196,9 @@ function AppContent() {
   ) => {
     setAssignments((current) =>
       current.map((assignment) =>
-        assignment.id === assignmentId ? { ...assignment, status } : assignment
+        assignment.id === assignmentId
+          ? withAssignmentPatch(assignment, { status }, courses)
+          : assignment
       )
     );
   };
@@ -195,18 +216,27 @@ function AppContent() {
 
     setAssignments((current) => [
       ...current,
-      {
+      normalizeAssignment({
         id: `manual-${Date.now()}`,
         courseId,
+        courseName: courses.find((course) => course.id === courseId)?.name || "Course",
         title: title.trim(),
+        type: kind,
         kind,
         dueAt: `${dueDate.trim()}T23:59:00`,
+        sourceText: title.trim(),
+        confidence: 1,
+        reviewStatus: "accepted",
+        completionStatus: "open",
+        reminderPreset: kind === "exam" ? "week_before" : "day_before",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         tags: kind === "exam" ? ["exam"] : ["homework"],
         priority: kind === "exam" ? "high" : "medium",
         estimatedMinutes: kind === "exam" ? 150 : 60,
         status: "not_started",
         source: "manual"
-      }
+      }, courses)
     ]);
   };
 
@@ -248,13 +278,13 @@ function AppContent() {
   const updateAssignment = (assignmentId: string, patch: Partial<Assignment>) => {
     setAssignments((current) =>
       current.map((assignment) =>
-        assignment.id === assignmentId ? { ...assignment, ...patch } : assignment
+        assignment.id === assignmentId ? withAssignmentPatch(assignment, patch, courses) : assignment
       )
     );
   };
 
   const archiveAssignment = (assignmentId: string) => {
-    updateAssignment(assignmentId, { status: "archived" });
+    updateAssignment(assignmentId, { status: "archived", reviewStatus: "ignored" });
     setSelectedAssignmentId(null);
   };
 
@@ -289,10 +319,9 @@ function AppContent() {
         current.map((assignment) => {
           const newReminderIds = reminderIdsByAssignment[assignment.id];
           return newReminderIds
-            ? {
-                ...assignment,
+            ? withAssignmentPatch(assignment, {
                 reminderIds: [...(assignment.reminderIds || []), ...newReminderIds]
-              }
+              }, courses)
             : assignment;
         })
       );
@@ -316,10 +345,9 @@ function AppContent() {
       setAssignments((current) =>
         current.map((assignment) =>
           calendarEventIdsByAssignment[assignment.id]
-            ? {
-                ...assignment,
+            ? withAssignmentPatch(assignment, {
                 externalCalendarEventId: calendarEventIdsByAssignment[assignment.id]
-              }
+              }, courses)
             : assignment
         )
       );

@@ -1,4 +1,5 @@
 import { Assignment, Course, Semester } from "../models";
+import { isAssignmentCompleted, isAssignmentOpen } from "./assignmentModel";
 
 const dayMs = 24 * 60 * 60 * 1000;
 
@@ -18,7 +19,7 @@ export function buildTodayPlan(
   now = new Date()
 ): TodayPlan {
   const open = assignments
-    .filter((item) => item.status !== "done" && item.status !== "archived")
+    .filter((item) => isAssignmentOpen(item))
     .sort((a, b) => scoreWork(b, now) - scoreWork(a, now));
   const dueToday = open.filter((item) => isSameDay(new Date(item.dueAt), now));
   const upcoming = open
@@ -35,7 +36,7 @@ export function buildTodayPlan(
     dueToday,
     upcoming,
     exams,
-    doneCount: assignments.filter((item) => item.status === "done").length,
+    doneCount: assignments.filter((item) => isAssignmentCompleted(item)).length,
     openCount: open.length,
     semesterProgress: calculateSemesterProgress(semester, now)
   };

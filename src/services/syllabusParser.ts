@@ -1,5 +1,10 @@
 import { Assignment, Course, GradeItem, SyllabusImportSource, SyllabusParseResult } from "../models";
 import * as FileSystem from "expo-file-system/legacy";
+import {
+  createSyllabusSourceFromParse,
+  normalizeAssignments,
+  withAssignmentPatch
+} from "../logic/assignmentModel";
 import { extractTextFromPdfBase64 } from "./pdfText";
 import { parseSyllabusText } from "./syllabusLocalParser";
 
@@ -64,13 +69,21 @@ async function parseSyllabusWithEndpoint(source: SyllabusImportSource, endpoint:
     );
   }
 
-  return normalizeParseResult(await response.json(), source);
+  const result = normalizeParseResult(await response.json(), source);
+  return {
+    ...result,
+    syllabusSource: result.syllabusSource || createSyllabusSourceFromParse(result, "endpoint")
+  };
 }
 
 async function parseSyllabusOnDevice(source: SyllabusImportSource) {
   const sourceName = source.name || "Syllabus scan";
   const text = await readSourceText(source);
-  return parseSyllabusText(text, sourceName);
+  const result = parseSyllabusText(text, sourceName);
+  return {
+    ...result,
+    syllabusSource: result.syllabusSource || createSyllabusSourceFromParse(result, "device")
+  };
 }
 
 async function readSourceText(source: SyllabusImportSource) {
@@ -109,7 +122,9 @@ export function updateParsedAssignment(
   return {
     ...parse,
     assignments: parse.assignments.map((assignment) =>
-      assignment.id === assignmentId ? { ...assignment, ...patch } : assignment
+      assignment.id === assignmentId
+        ? withAssignmentPatch(assignment, patch, parse.courses)
+        : assignment
     )
   };
 }
@@ -145,9 +160,10 @@ function normalizeParseResult(value: unknown, source: SyllabusImportSource): Syl
     semesterStartDate: result.semesterStartDate,
     semesterEndDate: result.semesterEndDate,
     courses,
-    assignments,
+    assignments: normalizeAssignments(assignments, courses),
     gradeItems,
-    findings: Array.isArray(result.findings) ? result.findings : []
+    findings: Array.isArray(result.findings) ? result.findings : [],
+    syllabusSource: result.syllabusSource
   };
 }
 
