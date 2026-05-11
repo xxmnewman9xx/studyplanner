@@ -15,6 +15,23 @@ export type TodayPlan = {
   semesterProgress: number;
 };
 
+export type WeekPlanDay = {
+  date: string;
+  label: string;
+  items: Assignment[];
+  exams: Assignment[];
+};
+
+export type WeekPlan = {
+  startsAt: string;
+  endsAt: string;
+  days: WeekPlanDay[];
+  exams: Assignment[];
+  itemCount: number;
+  examCount: number;
+  heavyWorkloadWarning?: string;
+};
+
 export function buildTodayPlan(
   assignments: Assignment[],
   semester: Semester,
@@ -62,6 +79,41 @@ export function scoreWork(assignment: Assignment, now = new Date()) {
   return urgency + kindBoost + priorityBoost + timeBoost + startedBoost;
 }
 
+export function buildWeekPlan(assignments: Assignment[], now = new Date()): WeekPlan {
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(start.getTime() + index * dayMs);
+    const dateKey = toDateKey(date);
+    const items = assignments
+      .filter((assignment) => isAssignmentOpen(assignment))
+      .filter((assignment) => toDateKey(new Date(assignment.dueAt)) === dateKey)
+      .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
+
+    return {
+      date: dateKey,
+      label: weekDayLabel(date, now),
+      items,
+      exams: items.filter((assignment) => assignment.type === "exam" || assignment.kind === "exam")
+    };
+  });
+  const exams = days.flatMap((day) => day.exams);
+  const itemCount = days.reduce((sum, day) => sum + day.items.length, 0);
+  const examCount = exams.length;
+
+  return {
+    startsAt: toDateKey(start),
+    endsAt: toDateKey(new Date(start.getTime() + 6 * dayMs)),
+    days,
+    exams,
+    itemCount,
+    examCount,
+    heavyWorkloadWarning:
+      itemCount >= 5 || examCount >= 2
+        ? `${itemCount} deadlines${examCount > 0 ? `, including ${examCount} exam${examCount === 1 ? "" : "s"}` : ""}`
+        : undefined
+  };
+}
+
 export function daysUntil(iso: string, now = new Date()) {
   const due = new Date(iso);
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -88,6 +140,15 @@ export function formatDateOnly(iso: string) {
 
 export function getCourseForAssignment(courses: Course[], assignment: Assignment) {
   return courses.find((course) => course.id === assignment.courseId);
+}
+
+export function urgencyLabel(assignment: Assignment, now = new Date()) {
+  const days = daysUntil(assignment.dueAt, now);
+  if (days < 0) return "Overdue";
+  if (days === 0) return "Today";
+  if (days === 1) return "Tomorrow";
+  if (days <= 3) return "Soon";
+  return assignment.type === "exam" || assignment.kind === "exam" ? "Exam" : "Upcoming";
 }
 
 export function calculateSemesterProgress(semester: Semester, now = new Date()) {
@@ -141,4 +202,21 @@ function parseDateOnlyAsLocal(value: string) {
 
   const [, year, month, day] = match;
   return new Date(Number(year), Number(month) - 1, Number(day));
+}
+
+function toDateKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+    date.getDate()
+  ).padStart(2, "0")}`;
+}
+
+function weekDayLabel(date: Date, now: Date) {
+  if (isSameDay(date, now)) return "Today";
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  if (isSameDay(date, tomorrow)) return "Tomorrow";
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric"
+  }).format(date);
 }

@@ -5,8 +5,8 @@ import { AppButton } from "../components/AppButton";
 import { AssignmentCard } from "../components/AssignmentCard";
 import { Badge } from "../components/Badge";
 import { SectionHeader } from "../components/SectionHeader";
-import { Assignment, AssignmentKind, Course, Semester } from "../models";
-import { formatDateOnly, groupMeetingsByDay } from "../logic/planner";
+import { Assignment, AssignmentKind, Course, Semester, SyllabusSource } from "../models";
+import { formatDateOnly, groupMeetingsByDay, urgencyLabel } from "../logic/planner";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 
@@ -14,6 +14,7 @@ type CoursesScreenProps = {
   semester: Semester;
   courses: Course[];
   assignments: Assignment[];
+  syllabusSources: SyllabusSource[];
   onAddQuickAssignment: (
     courseId: string,
     title: string,
@@ -30,6 +31,7 @@ export function CoursesScreen({
   semester,
   courses,
   assignments,
+  syllabusSources,
   onAddQuickAssignment,
   onOpenAssignment,
   onUpdateSemester,
@@ -53,6 +55,20 @@ export function CoursesScreen({
         .filter((assignment) => assignment.courseId === selectedCourse.id)
         .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
     : [];
+  const selectedExams = selectedAssignments.filter(
+    (assignment) => assignment.type === "exam" || assignment.kind === "exam"
+  );
+  const selectedOpenAssignments = selectedAssignments.filter(
+    (assignment) => assignment.completionStatus !== "completed"
+  );
+  const selectedDoneCount = selectedAssignments.filter(
+    (assignment) => assignment.completionStatus === "completed"
+  ).length;
+  const selectedProgress =
+    selectedAssignments.length > 0 ? Math.round((selectedDoneCount / selectedAssignments.length) * 100) : 0;
+  const selectedSyllabusSources = selectedCourse
+    ? syllabusSources.filter((source) => source.courseIds.includes(selectedCourse.id))
+    : [];
 
   useEffect(() => {
     if (courses.length === 0) {
@@ -75,7 +91,7 @@ export function CoursesScreen({
   return (
     <View>
       <View style={styles.header}>
-        <Text style={styles.kicker}>Semester setup</Text>
+        <Text style={styles.kicker}>Class Hub</Text>
         <TextInput
           value={semester.name}
           onChangeText={(name) => onUpdateSemester({ name })}
@@ -84,7 +100,7 @@ export function CoursesScreen({
           style={styles.titleInput}
         />
         <Text style={styles.subtitle}>
-          {formatDateOnly(semester.startDate)} to {formatDateOnly(semester.endDate)}
+          {formatDateOnly(semester.startDate)} to {formatDateOnly(semester.endDate)} Â· {courses.length} classes
         </Text>
       </View>
 
@@ -147,6 +163,38 @@ export function CoursesScreen({
 
       {selectedCourse ? (
         <>
+          <SectionHeader title="Class Hub" note={selectedCourse.code} />
+          <View style={styles.hubCard}>
+            <View style={styles.hubTop}>
+              <View>
+                <Text style={styles.hubCode}>{selectedCourse.code}</Text>
+                <Text style={styles.hubName}>{selectedCourse.name}</Text>
+              </View>
+              <Badge label={`${selectedProgress}% done`} tone={selectedProgress >= 80 ? "green" : "blue"} />
+            </View>
+            <View style={styles.hubMetrics}>
+              <View style={styles.hubMetric}>
+                <Text style={styles.hubMetricValue}>{selectedOpenAssignments.length}</Text>
+                <Text style={styles.hubMetricLabel}>open</Text>
+              </View>
+              <View style={styles.hubMetric}>
+                <Text style={styles.hubMetricValue}>{selectedExams.length}</Text>
+                <Text style={styles.hubMetricLabel}>exams</Text>
+              </View>
+              <View style={styles.hubMetric}>
+                <Text style={styles.hubMetricValue}>{selectedCourse.meetings.length}</Text>
+                <Text style={styles.hubMetricLabel}>meetings</Text>
+              </View>
+            </View>
+            <View style={styles.reminderDefaults}>
+              <Badge label="Assignments: day before" tone="gold" />
+              <Badge label="Exams: week before" tone="red" />
+            </View>
+            <Text style={styles.hubMeta}>
+              Syllabus: {selectedSyllabusSources[0]?.sourceName || "Not linked yet"}
+            </Text>
+          </View>
+
           <SectionHeader title="Edit Course" note={selectedCourse.code} />
           <View style={styles.addCard}>
             <Text style={styles.inputLabel}>Code</Text>
@@ -220,6 +268,28 @@ export function CoursesScreen({
 
       {selectedCourse ? (
         <>
+          <SectionHeader title="Exams" note={`${selectedExams.length} scheduled`} />
+          <View style={styles.workList}>
+            {selectedExams.length === 0 ? (
+              <Text style={styles.emptyDay}>No exams for this class yet.</Text>
+            ) : (
+              selectedExams.map((assignment) => (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  key={assignment.id}
+                  style={styles.examHubItem}
+                  onPress={() => onOpenAssignment(assignment.id)}
+                >
+                  <Badge label={urgencyLabel(assignment)} tone="red" />
+                  <View style={styles.examHubCopy}>
+                    <Text style={styles.examHubTitle}>{assignment.title}</Text>
+                    <Text style={styles.examHubMeta}>{assignment.dueAt.slice(0, 10)}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
+
           <SectionHeader title="Course Work" note={selectedCourse.code} />
           <View style={styles.workList}>
             {selectedAssignments.length === 0 ? (
@@ -393,6 +463,92 @@ function createStyles(theme: AppTheme) {
       color: colors.muted,
       fontSize: 13,
       lineHeight: 18
+    },
+    hubCard: {
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      gap: spacing.md
+    },
+    hubTop: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    hubCode: {
+      color: colors.accent,
+      fontSize: 13,
+      fontWeight: "900"
+    },
+    hubName: {
+      color: colors.ink,
+      fontSize: 20,
+      lineHeight: 26,
+      fontWeight: "900"
+    },
+    hubMetrics: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    hubMetric: {
+      flex: 1,
+      minHeight: 70,
+      borderRadius: radii.sm,
+      backgroundColor: colors.canvas,
+      padding: spacing.sm,
+      justifyContent: "center"
+    },
+    hubMetricValue: {
+      color: colors.ink,
+      fontSize: 22,
+      lineHeight: 27,
+      fontWeight: "900"
+    },
+    hubMetricLabel: {
+      color: colors.muted,
+      fontSize: 11,
+      fontWeight: "900"
+    },
+    reminderDefaults: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    hubMeta: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "700"
+    },
+    examHubItem: {
+      minHeight: 72,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    examHubCopy: {
+      flex: 1,
+      minWidth: 0
+    },
+    examHubTitle: {
+      color: colors.ink,
+      fontSize: 15,
+      lineHeight: 20,
+      fontWeight: "900"
+    },
+    examHubMeta: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
     },
     addCard: {
       borderRadius: radii.md,

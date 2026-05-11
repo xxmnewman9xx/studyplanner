@@ -473,6 +473,7 @@ function AppContent() {
                   semester={semester}
                   courses={courses}
                   assignments={activeAssignments}
+                  syllabusSources={syllabusSources}
                   onAddQuickAssignment={addQuickAssignment}
                   onOpenAssignment={setSelectedAssignmentId}
                   onUpdateSemester={updateSemester}

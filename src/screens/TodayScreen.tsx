@@ -8,9 +8,11 @@ import { MetricCard } from "../components/MetricCard";
 import { SectionHeader } from "../components/SectionHeader";
 import { Assignment, Course, Semester } from "../models";
 import {
+  buildWeekPlan,
   buildTodayPlan,
   daysUntil,
-  getCourseForAssignment
+  getCourseForAssignment,
+  urgencyLabel
 } from "../logic/planner";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -44,6 +46,7 @@ export function TodayScreen({
   const { colors } = theme;
   const styles = createStyles(theme);
   const plan = buildTodayPlan(assignments, semester);
+  const weekPlan = buildWeekPlan(assignments);
   const nextCourse = plan.nextAction
     ? getCourseForAssignment(courses, plan.nextAction)
     : undefined;
@@ -179,19 +182,64 @@ export function TodayScreen({
         )}
       </View>
 
-      <SectionHeader title="This Week" note={`${plan.dueThisWeek.length} upcoming`} />
-      <View style={styles.list}>
-        {plan.dueThisWeek.length === 0 ? (
+      <SectionHeader title="This Week Planner" note={`${weekPlan.itemCount} deadlines`} />
+      {weekPlan.heavyWorkloadWarning ? (
+        <View style={styles.weekWarning}>
+          <AlertTriangle color={colors.red} size={18} />
+          <Text style={styles.weekWarningText}>{weekPlan.heavyWorkloadWarning}</Text>
+        </View>
+      ) : null}
+      {weekPlan.exams.length > 0 ? (
+        <View style={styles.examStrip}>
+          {weekPlan.exams.map((assignment) => (
+            <TouchableOpacity
+              accessibilityRole="button"
+              key={assignment.id}
+              style={styles.examPill}
+              onPress={() => onOpenAssignment(assignment.id)}
+            >
+              <Badge label={urgencyLabel(assignment)} tone="red" />
+              <Text style={styles.examPillTitle}>{assignment.title}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      ) : null}
+      <View style={styles.weekPlanner}>
+        {weekPlan.itemCount === 0 ? (
           <Text style={styles.emptyCard}>The next seven days are clear.</Text>
         ) : (
-          plan.dueThisWeek.slice(0, 5).map((assignment) => (
-            <AssignmentCard
-              key={assignment.id}
-              assignment={assignment}
-              course={getCourseForAssignment(courses, assignment)}
-              onOpen={() => onOpenAssignment(assignment.id)}
-              onPressStatus={() => onUpdateStatus(assignment.id, "done")}
-            />
+          weekPlan.days.map((day) => (
+            <View key={day.date} style={styles.weekDay}>
+              <View style={styles.weekDayHeader}>
+                <Text style={styles.weekDayLabel}>{day.label}</Text>
+                <Text style={styles.weekDayCount}>{day.items.length}</Text>
+              </View>
+              <View style={styles.weekDayItems}>
+                {day.items.length === 0 ? (
+                  <Text style={styles.weekEmpty}>No work due</Text>
+                ) : (
+                  day.items.map((assignment) => (
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      key={assignment.id}
+                      style={styles.weekItem}
+                      onPress={() => onOpenAssignment(assignment.id)}
+                    >
+                      <View style={styles.weekItemCopy}>
+                        <Text style={styles.weekItemCourse}>
+                          {getCourseForAssignment(courses, assignment)?.code || assignment.courseName}
+                        </Text>
+                        <Text style={styles.weekItemTitle}>{assignment.title}</Text>
+                      </View>
+                      <Badge
+                        label={urgencyLabel(assignment)}
+                        tone={assignment.type === "exam" ? "red" : "blue"}
+                      />
+                    </TouchableOpacity>
+                  ))
+                )}
+              </View>
+            </View>
           ))
         )}
       </View>
@@ -379,6 +427,111 @@ function createStyles(theme: AppTheme) {
       color: colors.ink,
       fontSize: 14,
       lineHeight: 20,
+      fontWeight: "800"
+    },
+    weekWarning: {
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.red,
+      backgroundColor: theme.isDark ? "#3A201D" : "#FFE0D8",
+      padding: spacing.md,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      marginBottom: spacing.sm
+    },
+    weekWarningText: {
+      flex: 1,
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 20,
+      fontWeight: "800"
+    },
+    examStrip: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm,
+      marginBottom: spacing.sm
+    },
+    examPill: {
+      flexGrow: 1,
+      flexBasis: "48%",
+      minHeight: 76,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      gap: spacing.xs
+    },
+    examPillTitle: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    weekPlanner: {
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      overflow: "hidden"
+    },
+    weekDay: {
+      borderBottomWidth: 1,
+      borderBottomColor: colors.line,
+      padding: spacing.sm,
+      gap: spacing.sm
+    },
+    weekDayHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    weekDayLabel: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    weekDayCount: {
+      color: colors.faint,
+      fontSize: 12,
+      fontWeight: "900"
+    },
+    weekDayItems: {
+      gap: spacing.xs
+    },
+    weekEmpty: {
+      color: colors.faint,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
+    },
+    weekItem: {
+      minHeight: 58,
+      borderRadius: radii.sm,
+      backgroundColor: colors.canvas,
+      padding: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    weekItemCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    weekItemCourse: {
+      color: colors.muted,
+      fontSize: 11,
+      fontWeight: "900"
+    },
+    weekItemTitle: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 19,
       fontWeight: "800"
     },
     emptyState: {
