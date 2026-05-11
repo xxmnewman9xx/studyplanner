@@ -1,15 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Plus } from "lucide-react-native";
+import { BookOpen, CalendarClock, ChevronRight, Plus } from "lucide-react-native";
 
 import { AppButton } from "../components/AppButton";
-import { AssignmentCard } from "../components/AssignmentCard";
-import { Badge } from "../components/Badge";
-import { CourseSummaryCard, PremiumCard, ScreenHeader } from "../components/PremiumUI";
-import { SectionHeader } from "../components/SectionHeader";
+import {
+  CourseCard,
+  GlassCard,
+  MetricPill,
+  PremiumHeader,
+  PremiumScreen,
+  StatusBadge,
+  TaskRow
+} from "../components/PremiumUI";
 import { isStoreCaptureEnabled } from "../config/storeCapture";
 import { storeCaptureNow } from "../data/demoSemester";
-import { formatDateOnly, groupMeetingsByDay, urgencyLabel } from "../logic/planner";
+import { formatDateOnly, getCourseForAssignment, groupMeetingsByDay, urgencyLabel } from "../logic/planner";
 import { Assignment, AssignmentKind, Course, Semester, SyllabusSource } from "../models";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -45,6 +50,7 @@ export function CoursesScreen({
   const { theme } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
+  const captureMode = isStoreCaptureEnabled();
   const [selectedCourseId, setSelectedCourseId] = useState(courses[0]?.id || "");
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -52,20 +58,20 @@ export function CoursesScreen({
   const [newCourseCode, setNewCourseCode] = useState("");
   const [newCourseName, setNewCourseName] = useState("");
   const [newCourseInstructor, setNewCourseInstructor] = useState("");
-  const now = isStoreCaptureEnabled() ? storeCaptureNow : new Date();
+  const now = captureMode ? storeCaptureNow : new Date();
   const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-  const weekly = groupMeetingsByDay(courses);
+  const weekly = useMemo(() => groupMeetingsByDay(courses), [courses]);
   const selectedCourse = courses.find((course) => course.id === selectedCourseId) || courses[0];
   const selectedAssignments = selectedCourse
     ? assignments
         .filter((assignment) => assignment.courseId === selectedCourse.id)
         .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
     : [];
-  const selectedExams = selectedAssignments.filter(
-    (assignment) => assignment.type === "exam" || assignment.kind === "exam"
-  );
   const selectedOpenAssignments = selectedAssignments.filter(
     (assignment) => assignment.completionStatus !== "completed"
+  );
+  const selectedExams = selectedAssignments.filter(
+    (assignment) => assignment.type === "exam" || assignment.kind === "exam"
   );
   const selectedDoneCount = selectedAssignments.filter(
     (assignment) => assignment.completionStatus === "completed"
@@ -97,59 +103,37 @@ export function CoursesScreen({
   };
 
   return (
-    <View style={styles.screen}>
-      <ScreenHeader
-        eyebrow="Class Hub"
+    <PremiumScreen>
+      <PremiumHeader
+        eyebrow={`${formatDateOnly(semester.startDate)} - ${formatDateOnly(semester.endDate)}`}
         title="My Classes"
-        subtitle={`${formatDateOnly(semester.startDate)} to ${formatDateOnly(semester.endDate)} - ${courses.length} classes`}
+        subtitle="Everything for each class. All in one place."
+        right={
+          captureMode ? null : (
+            <TouchableOpacity accessibilityRole="button" style={styles.addButton}>
+              <Plus color={colors.brandPurple} size={19} />
+            </TouchableOpacity>
+          )
+        }
       />
 
-      <PremiumCard>
-        <Text style={styles.cardTitle}>Semester setup</Text>
-        <TextInput
-          value={semester.name}
-          onChangeText={(name) => onUpdateSemester({ name })}
-          placeholder="Semester name"
-          placeholderTextColor={colors.faint}
-          style={styles.titleInput}
-        />
-        <View style={styles.twoColumn}>
-          <View style={styles.fieldHalf}>
-            <Text style={styles.inputLabel}>Start</Text>
-            <TextInput
-              value={semester.startDate}
-              onChangeText={(startDate) => onUpdateSemester({ startDate })}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.faint}
-              style={styles.input}
-            />
-          </View>
-          <View style={styles.fieldHalf}>
-            <Text style={styles.inputLabel}>End</Text>
-            <TextInput
-              value={semester.endDate}
-              onChangeText={(endDate) => onUpdateSemester({ endDate })}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.faint}
-              style={styles.input}
-            />
-          </View>
-        </View>
-      </PremiumCard>
-
-      <SectionHeader title="Courses" note={`${courses.length} active courses`} />
       <View style={styles.courseList}>
         {courses.length === 0 ? (
-          <Text style={styles.emptyCard}>Add your first course to start building the semester.</Text>
+          <GlassCard>
+            <Text style={styles.emptyTitle}>Add your first course.</Text>
+            <Text style={styles.emptyCopy}>Courses group assignments, exams, reminders, and widgets.</Text>
+          </GlassCard>
         ) : null}
         {courses.map((course) => {
           const stats = courseStats(course, assignments, now, weekEnd);
           return (
-            <CourseSummaryCard
+            <CourseCard
               key={course.id}
               course={course}
               dueThisWeek={stats.dueThisWeek}
               progress={stats.progress}
+              nextDue={stats.nextDue}
+              active={course.id === selectedCourse?.id}
               onPress={() => setSelectedCourseId(course.id)}
             />
           );
@@ -158,215 +142,225 @@ export function CoursesScreen({
 
       {selectedCourse ? (
         <>
-          <SectionHeader title="Class Detail" note={selectedCourse.code} />
-          <PremiumCard>
-            <View style={styles.hubTop}>
-              <View>
-                <Text style={styles.hubCode}>{selectedCourse.code}</Text>
-                <Text style={styles.hubName}>{selectedCourse.name}</Text>
-                <Text style={styles.hubMeta}>{selectedCourse.instructor || "Instructor"}</Text>
+          <GlassCard tint="hero">
+            <View style={styles.detailTop}>
+              <View style={[styles.detailIcon, { backgroundColor: selectedCourse.color }]}>
+                <BookOpen color={colors.heroText} size={20} />
               </View>
-              <Badge label={`${selectedProgress}% done`} tone={selectedProgress >= 80 ? "green" : "blue"} />
+              <View style={styles.detailCopy}>
+                <Text style={styles.detailCode}>{selectedCourse.code}</Text>
+                <Text style={styles.detailName}>{selectedCourse.name}</Text>
+                <Text style={styles.detailMeta}>
+                  {selectedCourse.instructor || "Instructor"} - {selectedCourse.meetings.length} meetings
+                </Text>
+              </View>
+              <StatusBadge label={`${selectedProgress}%`} tone={selectedProgress >= 75 ? "green" : "purple"} />
             </View>
-            <View style={styles.hubMetrics}>
-              <MetricTile label="open" value={String(selectedOpenAssignments.length)} />
-              <MetricTile label="exams" value={String(selectedExams.length)} />
-              <MetricTile label="meetings" value={String(selectedCourse.meetings.length)} />
+            <View style={styles.metricRow}>
+              <MetricPill label="Open" value={String(selectedOpenAssignments.length)} tone="purple" />
+              <MetricPill label="Exams" value={String(selectedExams.length)} tone="red" />
+              <MetricPill label="This Week" value={String(courseStats(selectedCourse, assignments, now, weekEnd).dueThisWeek)} tone="blue" />
             </View>
-            <View style={styles.reminderDefaults}>
-              <Badge label="Assignments: day before" tone="gold" />
-              <Badge label="Exams: week before" tone="red" />
+            <View style={styles.detailFooter}>
+              <CalendarClock color={colors.brandPurple} size={16} />
+              <Text style={styles.detailFooterText}>
+                Syllabus: {selectedSyllabusSources[0]?.sourceName || "Not linked yet"}
+              </Text>
+              <ChevronRight color={colors.faint} size={16} />
             </View>
-            <Text style={styles.hubMeta}>
-              Syllabus: {selectedSyllabusSources[0]?.sourceName || "Not linked yet"}
-            </Text>
-          </PremiumCard>
+          </GlassCard>
 
-          <SectionHeader title="Edit Course" note={selectedCourse.code} />
-          <PremiumCard>
-            <Text style={styles.inputLabel}>Code</Text>
-            <TextInput
-              value={selectedCourse.code}
-              onChangeText={(code) => onUpdateCourse(selectedCourse.id, { code })}
-              placeholder="BIO 101"
-              placeholderTextColor={colors.faint}
-              style={styles.input}
-            />
-            <Text style={styles.inputLabel}>Name</Text>
-            <TextInput
-              value={selectedCourse.name}
-              onChangeText={(name) => onUpdateCourse(selectedCourse.id, { name })}
-              placeholder="Course name"
-              placeholderTextColor={colors.faint}
-              style={styles.input}
-            />
-            <Text style={styles.inputLabel}>Instructor</Text>
-            <TextInput
-              value={selectedCourse.instructor || ""}
-              onChangeText={(instructor) => onUpdateCourse(selectedCourse.id, { instructor })}
-              placeholder="Instructor"
-              placeholderTextColor={colors.faint}
-              style={styles.input}
-            />
-          </PremiumCard>
-
-          <SectionHeader title="Exams" note={`${selectedExams.length} scheduled`} />
-          <View style={styles.workList}>
-            {selectedExams.length === 0 ? (
-              <Text style={styles.emptyDay}>No exams for this class yet.</Text>
-            ) : (
-              selectedExams.map((assignment) => (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  key={assignment.id}
-                  style={styles.examHubItem}
-                  onPress={() => onOpenAssignment(assignment.id)}
-                >
-                  <Badge label={urgencyLabel(assignment, now)} tone="red" />
-                  <View style={styles.examHubCopy}>
-                    <Text style={styles.examHubTitle}>{assignment.title}</Text>
-                    <Text style={styles.examHubMeta}>{assignment.dueAt.slice(0, 10)}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))
-            )}
+          <View style={styles.sectionTop}>
+            <View>
+              <Text style={styles.sectionTitle}>Next Due</Text>
+              <Text style={styles.sectionMeta}>{selectedCourse.code} coursework</Text>
+            </View>
           </View>
-
-          <SectionHeader title="Course Work" note={selectedCourse.code} />
           <View style={styles.workList}>
-            {selectedAssignments.length === 0 ? (
-              <Text style={styles.emptyDay}>No assignments yet.</Text>
+            {selectedOpenAssignments.length === 0 ? (
+              <GlassCard>
+                <Text style={styles.emptyTitle}>No open assignments.</Text>
+                <Text style={styles.emptyCopy}>This class is clear for now.</Text>
+              </GlassCard>
             ) : (
-              selectedAssignments.map((assignment) => (
-                <AssignmentCard
+              selectedOpenAssignments.slice(0, captureMode ? 3 : 6).map((assignment) => (
+                <TaskRow
                   key={assignment.id}
                   assignment={assignment}
-                  course={selectedCourse}
+                  course={getCourseForAssignment(courses, assignment)}
                   onOpen={() => onOpenAssignment(assignment.id)}
+                  compact
+                  right={<StatusBadge label={urgencyLabel(assignment, now)} tone={assignment.kind === "exam" ? "red" : "blue"} />}
                 />
               ))
             )}
           </View>
+
+          {!captureMode ? (
+            <>
+              <GlassCard>
+                <Text style={styles.panelTitle}>Edit Class</Text>
+                <TextInput
+                  value={selectedCourse.code}
+                  onChangeText={(code) => onUpdateCourse(selectedCourse.id, { code })}
+                  placeholder="BIO 101"
+                  placeholderTextColor={colors.faint}
+                  style={styles.input}
+                />
+                <TextInput
+                  value={selectedCourse.name}
+                  onChangeText={(name) => onUpdateCourse(selectedCourse.id, { name })}
+                  placeholder="Course name"
+                  placeholderTextColor={colors.faint}
+                  style={styles.input}
+                />
+                <TextInput
+                  value={selectedCourse.instructor || ""}
+                  onChangeText={(instructor) => onUpdateCourse(selectedCourse.id, { instructor })}
+                  placeholder="Instructor"
+                  placeholderTextColor={colors.faint}
+                  style={styles.input}
+                />
+              </GlassCard>
+
+              <GlassCard>
+                <Text style={styles.panelTitle}>Quick Add</Text>
+                <View style={styles.segmented}>
+                  {(["assignment", "exam"] as AssignmentKind[]).map((option) => (
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      key={option}
+                      style={[styles.segment, kind === option ? styles.segmentActive : null]}
+                      onPress={() => setKind(option)}
+                    >
+                      <Text style={[styles.segmentText, kind === option ? styles.segmentTextActive : null]}>
+                        {option === "exam" ? "Exam" : "Assignment"}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <TextInput
+                  value={title}
+                  onChangeText={setTitle}
+                  placeholder="Title"
+                  placeholderTextColor={colors.faint}
+                  style={styles.input}
+                />
+                <TextInput
+                  value={dueDate}
+                  onChangeText={setDueDate}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor={colors.faint}
+                  style={styles.input}
+                />
+                <AppButton
+                  label="Add"
+                  icon={Plus}
+                  disabled={!selectedCourse || !title.trim() || !dueDate.trim()}
+                  onPress={addItem}
+                />
+              </GlassCard>
+
+              <GlassCard>
+                <Text style={styles.panelTitle}>Add Course</Text>
+                <View style={styles.twoColumn}>
+                  <TextInput
+                    value={newCourseCode}
+                    onChangeText={setNewCourseCode}
+                    placeholder="Code"
+                    placeholderTextColor={colors.faint}
+                    style={[styles.input, styles.fieldHalf]}
+                  />
+                  <TextInput
+                    value={newCourseInstructor}
+                    onChangeText={setNewCourseInstructor}
+                    placeholder="Instructor"
+                    placeholderTextColor={colors.faint}
+                    style={[styles.input, styles.fieldHalf]}
+                  />
+                </View>
+                <TextInput
+                  value={newCourseName}
+                  onChangeText={setNewCourseName}
+                  placeholder="Course name"
+                  placeholderTextColor={colors.faint}
+                  style={styles.input}
+                />
+                <AppButton
+                  label="Add course"
+                  icon={Plus}
+                  onPress={() => {
+                    onAddCourse({
+                      code: newCourseCode,
+                      name: newCourseName,
+                      instructor: newCourseInstructor
+                    });
+                    setNewCourseCode("");
+                    setNewCourseName("");
+                    setNewCourseInstructor("");
+                  }}
+                />
+              </GlassCard>
+
+              <GlassCard>
+                <Text style={styles.panelTitle}>Semester Setup</Text>
+                <TextInput
+                  value={semester.name}
+                  onChangeText={(name) => onUpdateSemester({ name })}
+                  placeholder="Semester name"
+                  placeholderTextColor={colors.faint}
+                  style={styles.input}
+                />
+                <View style={styles.twoColumn}>
+                  <TextInput
+                    value={semester.startDate}
+                    onChangeText={(startDate) => onUpdateSemester({ startDate })}
+                    placeholder="YYYY-MM-DD"
+                    placeholderTextColor={colors.faint}
+                    style={[styles.input, styles.fieldHalf]}
+                  />
+                  <TextInput
+                    value={semester.endDate}
+                    onChangeText={(endDate) => onUpdateSemester({ endDate })}
+                    placeholder="YYYY-MM-DD"
+                    placeholderTextColor={colors.faint}
+                    style={[styles.input, styles.fieldHalf]}
+                  />
+                </View>
+              </GlassCard>
+            </>
+          ) : null}
         </>
       ) : null}
 
-      <SectionHeader title="Quick Add" note="Minimal typing for manual entry" />
-      <PremiumCard>
-        <View style={styles.segmented}>
-          {(["assignment", "exam"] as AssignmentKind[]).map((option) => (
-            <TouchableOpacity
-              accessibilityRole="button"
-              key={option}
-              style={[styles.segment, kind === option ? styles.segmentActive : null]}
-              onPress={() => setKind(option)}
-            >
-              <Text style={[styles.segmentText, kind === option ? styles.segmentTextActive : null]}>
-                {option === "exam" ? "Exam" : "Assignment"}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <TextInput
-          value={title}
-          onChangeText={setTitle}
-          placeholder="Title"
-          placeholderTextColor={colors.faint}
-          style={styles.input}
-        />
-        <TextInput
-          value={dueDate}
-          onChangeText={setDueDate}
-          placeholder="YYYY-MM-DD"
-          placeholderTextColor={colors.faint}
-          style={styles.input}
-        />
-        <AppButton
-          label="Add"
-          icon={Plus}
-          disabled={!selectedCourse || !title.trim() || !dueDate.trim()}
-          onPress={addItem}
-        />
-      </PremiumCard>
-
-      <SectionHeader title="Add Course" note="Defaults include editable grade weights" />
-      <PremiumCard>
-        <View style={styles.twoColumn}>
-          <TextInput
-            value={newCourseCode}
-            onChangeText={setNewCourseCode}
-            placeholder="Code"
-            placeholderTextColor={colors.faint}
-            style={[styles.input, styles.fieldHalf]}
-          />
-          <TextInput
-            value={newCourseInstructor}
-            onChangeText={setNewCourseInstructor}
-            placeholder="Instructor"
-            placeholderTextColor={colors.faint}
-            style={[styles.input, styles.fieldHalf]}
-          />
-        </View>
-        <TextInput
-          value={newCourseName}
-          onChangeText={setNewCourseName}
-          placeholder="Course name"
-          placeholderTextColor={colors.faint}
-          style={styles.input}
-        />
-        <AppButton
-          label="Add course"
-          icon={Plus}
-          onPress={() => {
-            onAddCourse({
-              code: newCourseCode,
-              name: newCourseName,
-              instructor: newCourseInstructor
-            });
-            setNewCourseCode("");
-            setNewCourseName("");
-            setNewCourseInstructor("");
-          }}
-        />
-      </PremiumCard>
-
-      <SectionHeader title="Weekly Schedule" note="Class blocks by day" />
-      <PremiumCard>
-        {weekly.map(({ day, meetings }) => (
-          <View key={day} style={styles.dayRow}>
-            <Text style={styles.day}>{day}</Text>
-            <View style={styles.meetingColumn}>
-              {meetings.length === 0 ? (
-                <Text style={styles.emptyDay}>No classes</Text>
-              ) : (
-                meetings.map((meeting) => (
-                  <View key={meeting.id} style={styles.meeting}>
-                    <Badge label={meeting.course.code} tone="green" />
-                    <View style={styles.meetingCopy}>
-                      <Text style={styles.meetingTime}>
-                        {meeting.startTime} to {meeting.endTime}
-                      </Text>
-                      <Text style={styles.meetingPlace}>{meeting.location}</Text>
+      {!captureMode ? (
+        <GlassCard>
+          <Text style={styles.panelTitle}>Weekly Schedule</Text>
+          {weekly.map(({ day, meetings }) => (
+            <View key={day} style={styles.dayRow}>
+              <Text style={styles.day}>{day}</Text>
+              <View style={styles.meetingColumn}>
+                {meetings.length === 0 ? (
+                  <Text style={styles.emptyDay}>No classes</Text>
+                ) : (
+                  meetings.map((meeting) => (
+                    <View key={meeting.id} style={styles.meeting}>
+                      <StatusBadge label={meeting.course.code} tone="green" />
+                      <View style={styles.meetingCopy}>
+                        <Text style={styles.meetingTime}>
+                          {meeting.startTime} to {meeting.endTime}
+                        </Text>
+                        <Text style={styles.meetingPlace}>{meeting.location}</Text>
+                      </View>
                     </View>
-                  </View>
-                ))
-              )}
+                  ))
+                )}
+              </View>
             </View>
-          </View>
-        ))}
-      </PremiumCard>
-    </View>
-  );
-}
-
-function MetricTile({ label, value }: { label: string; value: string }) {
-  const { theme } = useAppTheme();
-  const styles = createStyles(theme);
-
-  return (
-    <View style={styles.hubMetric}>
-      <Text style={styles.hubMetricValue}>{value}</Text>
-      <Text style={styles.hubMetricLabel}>{label}</Text>
-    </View>
+          ))}
+        </GlassCard>
+      ) : null}
+    </PremiumScreen>
   );
 }
 
@@ -375,13 +369,17 @@ function courseStats(course: Course, assignments: Assignment[], now: Date, weekE
   const completedCount = courseAssignments.filter(
     (assignment) => assignment.completionStatus === "completed"
   ).length;
-  const dueThisWeek = courseAssignments.filter((assignment) => {
+  const openAssignments = courseAssignments
+    .filter((assignment) => assignment.completionStatus !== "completed")
+    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
+  const dueThisWeek = openAssignments.filter((assignment) => {
     const due = new Date(assignment.dueAt);
-    return due >= now && due < weekEnd && assignment.completionStatus !== "completed";
+    return due >= now && due < weekEnd;
   }).length;
 
   return {
     dueThisWeek,
+    nextDue: openAssignments[0],
     progress:
       courseAssignments.length > 0
         ? Math.round((completedCount / courseAssignments.length) * 100)
@@ -393,120 +391,101 @@ function createStyles(theme: AppTheme) {
   const { colors, radii, spacing } = theme;
 
   return StyleSheet.create({
-    screen: {
-      gap: spacing.md
-    },
-    cardTitle: {
-      color: colors.ink,
-      fontSize: 15,
-      lineHeight: 20,
-      fontWeight: "900"
-    },
-    titleInput: {
-      color: colors.ink,
-      fontSize: 24,
-      lineHeight: 30,
-      fontWeight: "900",
-      padding: 0
+    addButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.purpleSoft,
+      borderWidth: 1,
+      borderColor: "rgba(108,92,231,0.18)"
     },
     courseList: {
       gap: spacing.sm
     },
-    emptyCard: {
-      overflow: "hidden",
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.md,
-      color: colors.muted,
-      fontSize: 14,
-      lineHeight: 20,
-      fontWeight: "700"
-    },
-    hubTop: {
+    detailTop: {
       flexDirection: "row",
-      alignItems: "flex-start",
-      justifyContent: "space-between",
+      alignItems: "center",
       gap: spacing.sm
     },
-    hubCode: {
+    detailIcon: {
+      width: 46,
+      height: 46,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    detailCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    detailCode: {
       color: colors.brandPurple,
-      fontSize: 13,
+      fontSize: 12,
+      lineHeight: 16,
       fontWeight: "900"
     },
-    hubName: {
+    detailName: {
       color: colors.ink,
       fontSize: 20,
       lineHeight: 26,
       fontWeight: "900"
     },
-    hubMetrics: {
-      flexDirection: "row",
-      gap: spacing.sm,
-      marginTop: spacing.md,
-      marginBottom: spacing.md
-    },
-    hubMetric: {
-      flex: 1,
-      minHeight: 70,
-      borderRadius: radii.lg,
-      backgroundColor: colors.surfaceAlt,
-      padding: spacing.sm,
-      justifyContent: "center"
-    },
-    hubMetricValue: {
-      color: colors.ink,
-      fontSize: 22,
-      lineHeight: 27,
-      fontWeight: "900"
-    },
-    hubMetricLabel: {
-      color: colors.muted,
-      fontSize: 11,
-      fontWeight: "900"
-    },
-    reminderDefaults: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: spacing.xs,
-      marginBottom: spacing.sm
-    },
-    hubMeta: {
-      color: colors.muted,
-      fontSize: 13,
-      lineHeight: 18,
-      fontWeight: "700"
-    },
-    examHubItem: {
-      minHeight: 72,
-      borderRadius: radii.xl,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.md,
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.sm
-    },
-    examHubCopy: {
-      flex: 1,
-      minWidth: 0
-    },
-    examHubTitle: {
-      color: colors.ink,
-      fontSize: 15,
-      lineHeight: 20,
-      fontWeight: "900"
-    },
-    examHubMeta: {
+    detailMeta: {
       color: colors.muted,
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "700"
     },
+    metricRow: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    detailFooter: {
+      minHeight: 40,
+      borderRadius: radii.round,
+      borderWidth: 1,
+      borderColor: colors.line,
+      paddingHorizontal: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
+      backgroundColor: colors.surfaceAlt
+    },
+    detailFooterText: {
+      flex: 1,
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
+    },
+    sectionTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between"
+    },
+    sectionTitle: {
+      color: colors.ink,
+      fontSize: 16,
+      lineHeight: 22,
+      fontWeight: "900"
+    },
+    sectionMeta: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 16,
+      fontWeight: "700"
+    },
     workList: {
       gap: spacing.sm
+    },
+    panelTitle: {
+      color: colors.ink,
+      fontSize: 16,
+      lineHeight: 22,
+      fontWeight: "900"
     },
     segmented: {
       minHeight: 44,
@@ -544,12 +523,6 @@ function createStyles(theme: AppTheme) {
       paddingHorizontal: spacing.sm,
       fontSize: 15,
       fontWeight: "700"
-    },
-    inputLabel: {
-      color: colors.faint,
-      fontSize: 12,
-      fontWeight: "900",
-      marginTop: spacing.xs
     },
     twoColumn: {
       flexDirection: "row",
@@ -600,6 +573,18 @@ function createStyles(theme: AppTheme) {
       color: colors.faint,
       fontSize: 13,
       lineHeight: 19
+    },
+    emptyTitle: {
+      color: colors.ink,
+      fontSize: 16,
+      lineHeight: 22,
+      fontWeight: "900"
+    },
+    emptyCopy: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "700"
     }
   });
 }

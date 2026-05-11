@@ -6,7 +6,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
@@ -15,8 +14,7 @@ import {
   Crown,
   FileScan,
   GraduationCap,
-  Home,
-  Timer
+  Home
 } from "lucide-react-native";
 
 import {
@@ -35,6 +33,7 @@ import { AppTheme } from "./src/theme";
 import { AppThemeProvider, useAppTheme } from "./src/themeContext";
 import { ModeToggle } from "./src/components/ModeToggle";
 import { PremiumGate } from "./src/components/PremiumGate";
+import { BottomDock } from "./src/components/PremiumUI";
 import { isStoreCaptureEnabled } from "./src/config/storeCapture";
 import { defaultCourses, defaultGradeItems, defaultSemester } from "./src/data/defaultPlanner";
 import { createDemoSemesterSeed, storeCaptureNow } from "./src/data/demoSemester";
@@ -43,8 +42,9 @@ import { TodayScreen } from "./src/screens/TodayScreen";
 import { ImportScreen } from "./src/screens/ImportScreen";
 import { CoursesScreen } from "./src/screens/CoursesScreen";
 import { GradesScreen } from "./src/screens/GradesScreen";
-import { FocusScreen } from "./src/screens/FocusScreen";
+import { WeekPlannerScreen } from "./src/screens/WeekPlannerScreen";
 import { UpgradeScreen } from "./src/screens/UpgradeScreen";
+import { WidgetShowcaseScreen } from "./src/screens/WidgetShowcaseScreen";
 import { AssignmentDetailScreen } from "./src/screens/AssignmentDetailScreen";
 import { scheduleSmartReminders } from "./src/services/reminders";
 import { syncAssignmentsToDeviceCalendar } from "./src/services/calendarSync";
@@ -67,11 +67,10 @@ const tabs: Array<{
   icon: React.ComponentType<{ color: string; size: number }>;
 }> = [
   { id: "today", label: "Today", icon: Home },
-  { id: "import", label: "Scan", icon: FileScan },
-  { id: "courses", label: "Courses", icon: CalendarDays },
-  { id: "grades", label: "Grades", icon: GraduationCap },
-  { id: "focus", label: "Focus", icon: Timer },
-  { id: "upgrade", label: "Plus", icon: Crown }
+  { id: "focus", label: "This Week", icon: CalendarDays },
+  { id: "courses", label: "Classes", icon: GraduationCap },
+  { id: "import", label: "Inbox", icon: FileScan },
+  { id: "upgrade", label: "Widgets", icon: Crown }
 ];
 
 export default function App() {
@@ -85,7 +84,7 @@ export default function App() {
 }
 
 function AppContent() {
-  const { theme } = useAppTheme();
+  const { theme, setMode } = useAppTheme();
   const { colors } = theme;
   const styles = useMemo(() => createStyles(theme), [theme]);
   const subscription = useSubscription();
@@ -108,6 +107,12 @@ function AppContent() {
   const [targetGradePercent, setTargetGradePercent] = useState(demoSeed?.targetGradePercent || 90);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    if (storeCaptureEnabled && theme.mode !== "light") {
+      setMode("light");
+    }
+  }, [setMode, storeCaptureEnabled, theme.mode]);
 
   const activeAssignments = useMemo(
     () => assignments.filter((item) => !isAssignmentArchived(item)),
@@ -523,34 +528,27 @@ function AppContent() {
                 )
               ) : null}
               {activeTab === "focus" ? (
-                <FocusScreen assignments={activeAssignments} courses={courses} />
+                <WeekPlannerScreen
+                  semester={semester}
+                  assignments={activeAssignments}
+                  courses={courses}
+                  onUpdateStatus={updateAssignmentStatus}
+                  onOpenAssignment={setSelectedAssignmentId}
+                />
               ) : null}
-              {activeTab === "upgrade" ? <UpgradeScreen /> : null}
+              {activeTab === "upgrade" ? (
+                <WidgetShowcaseScreen
+                  semester={semester}
+                  courses={courses}
+                  assignments={activeAssignments}
+                />
+              ) : null}
             </>
           )}
         </ScrollView>
 
-        <View style={styles.tabBar}>
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const active = activeTab === tab.id;
-            return (
-              <TouchableOpacity
-                key={tab.id}
-                accessibilityRole="button"
-                accessibilityState={{ selected: active }}
-                style={[styles.tabButton, active ? styles.tabButtonActive : null]}
-                onPress={() => {
-                  openTab(tab.id);
-                }}
-              >
-                <Icon color={active ? colors.heroText : colors.faint} size={20} />
-                <Text style={[styles.tabLabel, active ? styles.tabLabelActive : null]}>
-                  {tab.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+        <View style={styles.dockWrap}>
+          <BottomDock tabs={tabs} activeTab={activeTab} onSelect={openTab} />
         </View>
       </View>
     </SafeAreaView>
@@ -605,12 +603,12 @@ function createStyles(theme: AppTheme) {
     },
     content: {
       width: "100%",
-      paddingHorizontal: spacing.lg,
-      paddingTop: 64,
-      paddingBottom: 126
+      paddingHorizontal: 16,
+      paddingTop: 22,
+      paddingBottom: 118
     },
     captureContent: {
-      paddingTop: spacing.xl
+      paddingTop: 22
     },
     scrollArea: {
       flex: 1
@@ -627,49 +625,11 @@ function createStyles(theme: AppTheme) {
       lineHeight: 20,
       fontWeight: "800"
     },
-    tabBar: {
+    dockWrap: {
       position: "absolute",
-      left: spacing.md,
-      right: spacing.md,
-      bottom: 14,
-      minHeight: 74,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      borderRadius: radii.round,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: theme.isDark ? "rgba(17, 23, 34, 0.96)" : "rgba(255, 255, 255, 0.96)",
-      padding: 6,
-      shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.42 : 0.16,
-      shadowRadius: 24,
-      shadowOffset: { width: 0, height: 12 },
-      elevation: 9
-    },
-    tabButton: {
-      width: "16.3%",
-      minHeight: 58,
-      alignItems: "center",
-      justifyContent: "center",
-      borderRadius: radii.round,
-      gap: 4
-    },
-    tabButtonActive: {
-      backgroundColor: colors.brandPurple,
-      shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.28 : 0.16,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 6 },
-      elevation: 4
-    },
-    tabLabel: {
-      color: colors.muted,
-      fontSize: 10,
-      fontWeight: "900"
-    },
-    tabLabelActive: {
-      color: colors.heroText
+      left: 14,
+      right: 14,
+      bottom: 14
     }
   });
 }

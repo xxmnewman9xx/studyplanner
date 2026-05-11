@@ -16,18 +16,18 @@ import {
   CheckCircle2,
   FileText,
   Pencil,
-  RotateCcw,
   Sparkles,
-  Trash2,
+  Bell,
   Upload
 } from "lucide-react-native";
 
 import { AppButton } from "../components/AppButton";
 import {
+  GlassCard,
+  MetricPill,
   PillFilter,
-  PremiumCard,
-  ScreenHeader,
-  StatChip,
+  PremiumHeader,
+  PremiumScreen,
   StatusBadge
 } from "../components/PremiumUI";
 import { isStoreCaptureEnabled } from "../config/storeCapture";
@@ -76,8 +76,7 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
     const assignments = draft?.assignments || [];
     return {
       total: assignments.length,
-      needsReview: assignments.filter((assignment) => assignment.reviewStatus === "needsReview")
-        .length,
+      needsReview: assignments.filter((assignment) => assignment.reviewStatus === "needsReview").length,
       accepted: assignments.filter((assignment) => assignment.reviewStatus === "accepted").length,
       ignored: assignments.filter((assignment) => assignment.reviewStatus === "ignored").length,
       high: assignments.filter((assignment) => confidenceBucket(assignment.confidence) === "high").length,
@@ -230,76 +229,81 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
   };
 
   return (
-    <View style={styles.screen}>
-      <ScreenHeader
-        eyebrow="Review Inbox"
-        title="AI found these."
+    <PremiumScreen>
+      <PremiumHeader
+        eyebrow="AI found these."
+        title="Review Inbox"
         subtitle="Review extracted coursework before it touches your semester."
       />
 
-      <PremiumCard tone="hero">
-        <View style={styles.scanHeroTop}>
-          <View style={styles.scanHeroIcon}>
-            <Sparkles color={colors.heroText} size={20} />
+      {captureMode ? null : (
+        <GlassCard tint="hero">
+          <View style={styles.scanHeroTop}>
+            <View style={styles.scanHeroIcon}>
+              <Sparkles color={colors.heroText} size={20} />
+            </View>
+            <View style={styles.scanHeroCopy}>
+              <Text style={styles.scanHeroTitle}>Scan Syllabus</Text>
+              <Text style={styles.scanHeroMeta}>Upload or snap any syllabus.</Text>
+            </View>
           </View>
-          <View style={styles.scanHeroCopy}>
-            <Text style={styles.scanHeroTitle}>Scan Syllabus</Text>
-            <Text style={styles.scanHeroMeta}>Upload or snap any syllabus.</Text>
+          <View style={styles.importGrid}>
+            <AppButton
+              label="File"
+              icon={FileText}
+              variant="secondary"
+              style={styles.importButton}
+              disabled={loading}
+              onPress={pickPdf}
+            />
+            {imageParsingReady ? (
+              <>
+                <AppButton
+                  label="Photo"
+                  icon={Upload}
+                  variant="secondary"
+                  style={styles.importButton}
+                  disabled={loading}
+                  onPress={pickPhoto}
+                />
+                <AppButton
+                  label="Camera"
+                  icon={Camera}
+                  variant="secondary"
+                  style={styles.importButton}
+                  disabled={loading}
+                  onPress={capturePhoto}
+                />
+              </>
+            ) : null}
           </View>
-        </View>
-        {captureMode ? (
-          <View style={styles.messySource}>
-            <Text style={styles.messyLabel}>Before: messy syllabus</Text>
-            <Text style={styles.messyText} numberOfLines={7}>{messySyllabusExample}</Text>
-          </View>
-        ) : null}
-        <View style={styles.importGrid}>
-          <AppButton
-            label="File"
-            icon={FileText}
-            variant="secondary"
-            style={styles.importButton}
-            disabled={loading}
-            onPress={pickPdf}
-          />
-          {imageParsingReady ? (
-            <>
-              <AppButton
-                label="Photo"
-                icon={Upload}
-                variant="secondary"
-                style={styles.importButton}
-                disabled={loading}
-                onPress={pickPhoto}
-              />
-              <AppButton
-                label="Camera"
-                icon={Camera}
-                variant="secondary"
-                style={styles.importButton}
-                disabled={loading}
-                onPress={capturePhoto}
-              />
-            </>
-          ) : null}
-        </View>
-      </PremiumCard>
+        </GlassCard>
+      )}
 
       {loading ? <ActivityIndicator style={styles.loader} color={colors.ink} /> : null}
       {errorMessage ? (
-        <PremiumCard>
+        <GlassCard>
           <Text style={styles.errorTitle}>Scan paused</Text>
           <Text style={styles.errorCopy}>{errorMessage}</Text>
-        </PremiumCard>
+        </GlassCard>
       ) : null}
 
       {draft ? (
         <>
-          <View style={styles.statRow}>
-            <StatChip label="Extracted" value={String(reviewStats.total)} tone="purple" />
-            <StatChip label="High" value={String(reviewStats.high)} tone="green" />
-            <StatChip label="Needs Review" value={String(reviewStats.needsReview)} tone="gold" />
-          </View>
+          <GlassCard style={styles.summaryCard}>
+            <View style={styles.summaryTop}>
+              <View>
+                <Text style={styles.summaryTitle}>Extracted {reviewStats.total} items</Text>
+                <Text style={styles.summaryMeta}>Confidence-ranked and ready for review.</Text>
+              </View>
+              <StatusBadge label={`${reviewStats.needsReview} waiting`} tone="purple" />
+            </View>
+            <View style={styles.statRow}>
+              <MetricPill label="High" value={String(reviewStats.high)} tone="green" />
+              <MetricPill label="Medium" value={String(reviewStats.medium)} tone="gold" />
+              <MetricPill label="Low" value={String(reviewStats.low)} tone="red" />
+            </View>
+          </GlassCard>
 
           <View style={styles.filterRow}>
             {filters.map((option) => (
@@ -313,15 +317,12 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
             ))}
           </View>
 
-          <View style={styles.ctaRow}>
-            <AppButton
-              label={`Accept ${reviewStats.high} High Confidence`}
-              icon={CheckCheck}
-              disabled={reviewStats.high === 0}
-              onPress={acceptAllHighConfidence}
-              style={styles.ctaButton}
-            />
-          </View>
+          <AppButton
+            label={`Accept ${reviewStats.high} High Confidence`}
+            icon={CheckCheck}
+            disabled={reviewStats.high === 0}
+            onPress={acceptAllHighConfidence}
+          />
 
           <View style={styles.secondaryActions}>
             <TouchableOpacity accessibilityRole="button" onPress={acceptVisible}>
@@ -332,17 +333,20 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
                 <Text style={styles.secondaryActionText}>Restore Ignored</Text>
               </TouchableOpacity>
             ) : null}
-            <TouchableOpacity accessibilityRole="button" onPress={() => setExpandedAssignmentId(visibleAssignments[0]?.id || null)}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={() => setExpandedAssignmentId(visibleAssignments[0]?.id || null)}
+            >
               <Text style={styles.secondaryActionText}>Edit</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.reviewList}>
             {visibleAssignments.length === 0 ? (
-              <PremiumCard>
+              <GlassCard>
                 <Text style={styles.emptyTitle}>Nothing in this filter.</Text>
                 <Text style={styles.emptyCopy}>Switch filters or upload another syllabus.</Text>
-              </PremiumCard>
+              </GlassCard>
             ) : (
               visibleAssignments.map((assignment) => (
                 <ReviewRow
@@ -354,23 +358,25 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
                   onEdit={() =>
                     setExpandedAssignmentId(expandedAssignmentId === assignment.id ? null : assignment.id)
                   }
-                  onIgnore={() => updateDraftAssignment(assignment.id, { reviewStatus: "ignored" })}
                   onPatch={(patch) => updateDraftAssignment(assignment.id, patch)}
                 />
               ))
             )}
           </View>
 
-          <View style={styles.applyBar}>
-            <AppButton
-              label="Apply accepted plan"
-              disabled={acceptedAssignments.length === 0 && draft.assignments.length > 0}
-              onPress={applyAcceptedPlan}
-            />
-          </View>
+          <AppButton
+            label="Apply accepted plan"
+            disabled={acceptedAssignments.length === 0 && draft.assignments.length > 0}
+            onPress={applyAcceptedPlan}
+          />
         </>
-      ) : null}
-    </View>
+      ) : (
+        <GlassCard>
+          <Text style={styles.emptyTitle}>No syllabus scanned yet.</Text>
+          <Text style={styles.emptyCopy}>{messySyllabusExample.slice(0, 138)}...</Text>
+        </GlassCard>
+      )}
+    </PremiumScreen>
   );
 }
 
@@ -380,7 +386,6 @@ function ReviewRow({
   expanded,
   onAccept,
   onEdit,
-  onIgnore,
   onPatch
 }: {
   assignment: Assignment;
@@ -388,7 +393,6 @@ function ReviewRow({
   expanded: boolean;
   onAccept: () => void;
   onEdit: () => void;
-  onIgnore: () => void;
   onPatch: (patch: Partial<Assignment>) => void;
 }) {
   const { theme } = useAppTheme();
@@ -397,7 +401,7 @@ function ReviewRow({
   const accepted = assignment.reviewStatus === "accepted";
 
   return (
-    <PremiumCard style={styles.reviewCard}>
+    <GlassCard style={styles.reviewCard}>
       <View style={styles.reviewRow}>
         <TouchableOpacity accessibilityRole="button" style={styles.checkButton} onPress={onAccept}>
           <CheckCircle2 color={accepted ? colors.green : colors.brandPurple} size={21} />
@@ -411,15 +415,15 @@ function ReviewRow({
         <StatusBadge label={confidenceLabel(assignment.confidence)} tone={confidenceTone(assignment.confidence)} />
       </View>
       <View style={styles.reviewActionRow}>
-        <TouchableOpacity accessibilityRole="button" style={styles.iconAction} onPress={onAccept}>
-          <CheckCircle2 color={colors.green} size={17} />
-        </TouchableOpacity>
-        <TouchableOpacity accessibilityRole="button" style={styles.iconAction} onPress={onEdit}>
-          <Pencil color={colors.brandPurple} size={17} />
-        </TouchableOpacity>
-        <TouchableOpacity accessibilityRole="button" style={styles.iconAction} onPress={onIgnore}>
-          <Trash2 color={colors.red} size={17} />
-        </TouchableOpacity>
+        <MicroAction label="Accept" onPress={onAccept}>
+          <CheckCircle2 color={colors.green} size={16} />
+        </MicroAction>
+        <MicroAction label="Edit" onPress={onEdit}>
+          <Pencil color={colors.brandPurple} size={16} />
+        </MicroAction>
+        <MicroAction label="Remind" onPress={() => onPatch({ reminderPreset: "day_before" })}>
+          <Bell color={colors.gold} size={16} />
+        </MicroAction>
       </View>
       {expanded ? (
         <View style={styles.editPanel}>
@@ -440,35 +444,69 @@ function ReviewRow({
           />
           <View style={styles.choiceRow}>
             {kinds.map((kind) => (
-              <TouchableOpacity
-                accessibilityRole="button"
+              <Choice
                 key={kind}
-                style={[styles.choice, assignment.kind === kind ? styles.choiceActive : null]}
+                label={labelize(kind)}
+                active={assignment.kind === kind}
                 onPress={() => onPatch({ kind, type: kind })}
-              >
-                <Text style={[styles.choiceText, assignment.kind === kind ? styles.choiceTextActive : null]}>
-                  {labelize(kind)}
-                </Text>
-              </TouchableOpacity>
+              />
             ))}
           </View>
           <View style={styles.choiceRow}>
             {priorities.map((priority) => (
-              <TouchableOpacity
-                accessibilityRole="button"
+              <Choice
                 key={priority}
-                style={[styles.choice, assignment.priority === priority ? styles.choiceActive : null]}
+                label={priority}
+                active={assignment.priority === priority}
                 onPress={() => onPatch({ priority })}
-              >
-                <Text style={[styles.choiceText, assignment.priority === priority ? styles.choiceTextActive : null]}>
-                  {priority}
-                </Text>
-              </TouchableOpacity>
+              />
             ))}
           </View>
         </View>
       ) : null}
-    </PremiumCard>
+    </GlassCard>
+  );
+}
+
+function MicroAction({
+  label,
+  children,
+  onPress
+}: {
+  label: string;
+  children: React.ReactNode;
+  onPress: () => void;
+}) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      activeOpacity={0.82}
+      style={styles.iconAction}
+      onPress={onPress}
+    >
+      {children}
+    </TouchableOpacity>
+  );
+}
+
+function Choice({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      activeOpacity={0.82}
+      style={[styles.choice, active ? styles.choiceActive : null]}
+      onPress={onPress}
+    >
+      <Text style={[styles.choiceText, active ? styles.choiceTextActive : null]}>{label}</Text>
+    </TouchableOpacity>
   );
 }
 
@@ -507,9 +545,6 @@ function createStyles(theme: AppTheme) {
   const { colors, radii, spacing } = theme;
 
   return StyleSheet.create({
-    screen: {
-      gap: spacing.md
-    },
     scanHeroTop: {
       flexDirection: "row",
       alignItems: "center",
@@ -518,7 +553,7 @@ function createStyles(theme: AppTheme) {
     scanHeroIcon: {
       width: 44,
       height: 44,
-      borderRadius: radii.lg,
+      borderRadius: 14,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: colors.brandPurple
@@ -529,45 +564,25 @@ function createStyles(theme: AppTheme) {
     },
     scanHeroTitle: {
       color: colors.ink,
-      fontSize: 19,
-      lineHeight: 25,
+      fontSize: 18,
+      lineHeight: 24,
       fontWeight: "900"
     },
     scanHeroMeta: {
       color: colors.muted,
-      fontSize: 13,
-      lineHeight: 18,
-      fontWeight: "700"
-    },
-    messySource: {
-      marginTop: spacing.md,
-      borderRadius: radii.lg,
-      backgroundColor: colors.surfaceAlt,
-      padding: spacing.md,
-      gap: spacing.xs
-    },
-    messyLabel: {
-      color: colors.brandPurple,
-      fontSize: 12,
-      lineHeight: 16,
-      fontWeight: "900"
-    },
-    messyText: {
-      color: colors.ink,
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "700"
     },
     importGrid: {
       flexDirection: "row",
-      gap: spacing.sm,
-      marginTop: spacing.md
+      gap: spacing.sm
     },
     importButton: {
       flex: 1
     },
     loader: {
-      marginTop: spacing.sm
+      marginTop: spacing.xs
     },
     errorTitle: {
       color: colors.red,
@@ -581,6 +596,27 @@ function createStyles(theme: AppTheme) {
       lineHeight: 19,
       fontWeight: "700"
     },
+    summaryCard: {
+      gap: spacing.md
+    },
+    summaryTop: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    summaryTitle: {
+      color: colors.ink,
+      fontSize: 18,
+      lineHeight: 24,
+      fontWeight: "900"
+    },
+    summaryMeta: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
+    },
     statRow: {
       flexDirection: "row",
       gap: spacing.sm
@@ -589,12 +625,6 @@ function createStyles(theme: AppTheme) {
       flexDirection: "row",
       flexWrap: "wrap",
       gap: spacing.xs
-    },
-    ctaRow: {
-      flexDirection: "row"
-    },
-    ctaButton: {
-      flex: 1
     },
     secondaryActions: {
       flexDirection: "row",
@@ -612,7 +642,8 @@ function createStyles(theme: AppTheme) {
       gap: spacing.sm
     },
     reviewCard: {
-      gap: spacing.sm
+      gap: spacing.sm,
+      paddingVertical: spacing.sm
     },
     reviewRow: {
       flexDirection: "row",
@@ -650,12 +681,12 @@ function createStyles(theme: AppTheme) {
     iconAction: {
       width: 34,
       height: 34,
-      borderRadius: radii.round,
+      borderRadius: 17,
       borderWidth: 1,
       borderColor: colors.line,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: colors.surface
+      backgroundColor: colors.surfaceAlt
     },
     editPanel: {
       gap: spacing.xs,
@@ -693,7 +724,8 @@ function createStyles(theme: AppTheme) {
       borderColor: colors.line,
       paddingHorizontal: spacing.sm,
       alignItems: "center",
-      justifyContent: "center"
+      justifyContent: "center",
+      backgroundColor: colors.surfaceAlt
     },
     choiceActive: {
       backgroundColor: colors.brandPurple,
@@ -719,9 +751,6 @@ function createStyles(theme: AppTheme) {
       fontSize: 13,
       lineHeight: 18,
       fontWeight: "700"
-    },
-    applyBar: {
-      marginTop: spacing.xs
     }
   });
 }

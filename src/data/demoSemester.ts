@@ -1,45 +1,43 @@
 import { normalizeAssignment } from "../logic/assignmentModel";
 import { Assignment, Course, PlannerData, Semester, SyllabusParseResult, SyllabusSource } from "../models";
 
-export const storeCaptureNow = new Date("2026-10-05T12:00:00-04:00");
+export const storeCaptureNow = new Date("2025-03-10T09:41:00-04:00");
 
-export const messySyllabusExample = `BIO 101 / HIST 204 / STAT 215 / ART 118 fall packet
-week 5: reading response? due maybe 10/3; STAT p-set due 10/4 (see table)
-Oct 5 discussion board - primary source post
-10/6 lab prep, cells + microscope; Oct. 8 stats worksheet quiz review
-BIO MIDTERM Friday Oct 9 9am. Art critique notes by 10/10.
-Later: essay outline 10/20, regression lab 10/21, portfolio check 10/22, Stat Exam 10/23.
-Final exam: HIST 204 Dec 9 1:30pm. Some rows duplicated in the PDF export.`;
+export const messySyllabusExample = `BIO 101 / CALC II / ENG 201 / PSY 201 spring packet
+Week 9: problem set maybe 3/10, discussion post due 3/10 11:59p.
+BIO lab report #2 due Mar 11. Reading response 3 due Mar 12.
+Psych weekly quiz 5 around Mar 14. Midterm exam BIO Mar 28.
+Research paper April 24. Essay outline April 14. Some duplicate PDF rows.`;
 
 export const demoWidgetSnapshotCandidate = {
-  nextDueAssignmentId: "hist-forum-week-6",
+  nextDueAssignmentId: "problem-set-4",
   thisWeekAssignmentIds: [
-    "hist-forum-week-6",
-    "bio-lab-prep-cells",
-    "stat-worksheet-quiz-review",
-    "bio-midterm-cells",
-    "art-critique-notes"
+    "problem-set-4",
+    "discussion-post",
+    "lab-report-2",
+    "reading-response-3",
+    "weekly-quiz-5"
   ],
-  heavyWeekStartsOn: "2026-10-05",
+  heavyWeekStartsOn: "2025-03-10",
   heavyWeekItemCount: 5,
-  overdueItemCount: 2
+  overdueItemCount: 0
 };
 
 export function createDemoSemesterSeed(now = storeCaptureNow): PlannerData {
   const semester: Semester = {
-    id: "fall-2026-demo",
-    name: "Fall 2026 Preview",
-    startDate: "2026-08-24",
-    endDate: "2026-12-11",
-    targetGpa: 3.7
+    id: "spring-2025-demo",
+    name: "Spring 2025 Preview",
+    startDate: "2025-01-13",
+    endDate: "2025-05-09",
+    targetGpa: 3.8
   };
   const courses = createDemoCourses();
   const assignments = createDemoAssignments(courses);
   const syllabusSources: SyllabusSource[] = [
     {
-      id: "syllabus-demo-messy-fall-2026",
+      id: "syllabus-demo-messy-spring-2025",
       kind: "demo",
-      sourceName: "Messy Fall 2026 syllabus packet.txt",
+      sourceName: "Messy Spring 2025 syllabus packet.txt",
       importedAt: now.toISOString(),
       parser: "demo",
       courseIds: courses.map((course) => course.id),
@@ -65,7 +63,7 @@ export function createDemoSemesterSeed(now = storeCaptureNow): PlannerData {
     assignments,
     gradeItems: [],
     syllabusSources,
-    targetGradePercent: 91,
+    targetGradePercent: 92,
     updatedAt: now.toISOString()
   };
 }
@@ -75,7 +73,7 @@ export function createDemoSyllabusParseResult(now = storeCaptureNow): SyllabusPa
   const syllabusSource = seed.syllabusSources[0];
 
   return {
-    sourceName: syllabusSource?.sourceName || "Messy Fall 2026 syllabus packet.txt",
+    sourceName: syllabusSource?.sourceName || "Messy Spring 2025 syllabus packet.txt",
     semesterName: seed.semester.name,
     semesterStartDate: seed.semester.startDate,
     semesterEndDate: seed.semester.endDate,
@@ -91,10 +89,10 @@ function createDemoCourses(): Course[] {
   return [
     {
       id: "bio-101",
-      code: "BIO 101",
-      name: "Intro Biology",
+      code: "Biology 101",
+      name: "Intro to Biology",
       instructor: "Dr. Nguyen",
-      color: "#2F855A",
+      color: "#31C77F",
       meetings: [
         {
           id: "bio-mon-0900",
@@ -118,73 +116,73 @@ function createDemoCourses(): Course[] {
       ]
     },
     {
-      id: "hist-204",
-      code: "HIST 204",
-      name: "Modern World History",
-      instructor: "Prof. Alvarez",
-      color: "#8B5CF6",
+      id: "calc-2",
+      code: "Calculus II",
+      name: "Differential Calculus",
+      instructor: "Prof. Singh",
+      color: "#7C4DFF",
       meetings: [
         {
-          id: "hist-tue-1100",
+          id: "calc-tue-1100",
           day: "Tue",
           startTime: "11:00",
           endTime: "12:15",
-          location: "Humanities 118"
+          location: "Math 118"
+        },
+        {
+          id: "calc-thu-1100",
+          day: "Thu",
+          startTime: "11:00",
+          endTime: "12:15",
+          location: "Math 118"
         }
       ],
       gradeCategories: [
-        { id: "hist-papers", name: "Papers", weight: 45 },
-        { id: "hist-exams", name: "Exams", weight: 35 },
-        { id: "hist-discussion", name: "Discussion", weight: 20 }
+        { id: "calc-homework", name: "Problem Sets", weight: 35 },
+        { id: "calc-quizzes", name: "Quizzes", weight: 25 },
+        { id: "calc-exams", name: "Exams", weight: 40 }
       ]
     },
     {
-      id: "stat-215",
-      code: "STAT 215",
-      name: "Applied Statistics",
-      instructor: "Dr. Brooks",
-      color: "#2563EB",
+      id: "eng-201",
+      code: "English 201",
+      name: "Academic Writing",
+      instructor: "Prof. Alvarez",
+      color: "#F97316",
       meetings: [
         {
-          id: "stat-mon-1400",
+          id: "eng-fri-1000",
+          day: "Fri",
+          startTime: "10:00",
+          endTime: "11:15",
+          location: "Humanities 220"
+        }
+      ],
+      gradeCategories: [
+        { id: "eng-papers", name: "Papers", weight: 55 },
+        { id: "eng-reading", name: "Reading", weight: 25 },
+        { id: "eng-participation", name: "Participation", weight: 20 }
+      ]
+    },
+    {
+      id: "psych-201",
+      code: "Psychology 201",
+      name: "Intro to Psychology",
+      instructor: "Dr. Brooks",
+      color: "#4ADE80",
+      meetings: [
+        {
+          id: "psych-mon-1400",
           day: "Mon",
           startTime: "14:00",
           endTime: "15:15",
-          location: "Data Lab 3"
-        },
-        {
-          id: "stat-thu-1400",
-          day: "Thu",
-          startTime: "14:00",
-          endTime: "15:15",
-          location: "Data Lab 3"
+          location: "Social Science 3"
         }
       ],
       gradeCategories: [
-        { id: "stat-homework", name: "Homework", weight: 30 },
-        { id: "stat-projects", name: "Projects", weight: 30 },
-        { id: "stat-exams", name: "Exams", weight: 40 }
-      ]
-    },
-    {
-      id: "art-118",
-      code: "ART 118",
-      name: "Design Studio",
-      instructor: "Maya Chen",
-      color: "#D97706",
-      meetings: [
-        {
-          id: "art-fri-1000",
-          day: "Fri",
-          startTime: "10:00",
-          endTime: "12:40",
-          location: "Studio B"
-        }
-      ],
-      gradeCategories: [
-        { id: "art-critiques", name: "Critiques", weight: 40 },
-        { id: "art-portfolio", name: "Portfolio", weight: 40 },
-        { id: "art-process", name: "Process", weight: 20 }
+        { id: "psych-discussion", name: "Discussion", weight: 30 },
+        { id: "psych-quizzes", name: "Quizzes", weight: 30 },
+        { id: "psych-exams", name: "Exams", weight: 40 }
       ]
     }
   ];
@@ -192,29 +190,18 @@ function createDemoCourses(): Course[] {
 
 function createDemoAssignments(courses: Course[]): Assignment[] {
   return [
-    demoAssignment(courses, "hist-timeline-complete", "hist-204", "Timeline warmup", "assignment", "2026-09-25T17:00:00", "accepted", 0.98, "completed"),
-    demoAssignment(courses, "bio-safety-quiz-complete", "bio-101", "Lab safety quiz", "quiz", "2026-09-28T23:59:00", "accepted", 0.97, "completed"),
-    demoAssignment(courses, "stat-problem-set-overdue", "stat-215", "Problem Set 4: sampling distributions", "assignment", "2026-10-04T23:59:00", "needsReview", 0.62),
-    demoAssignment(courses, "art-reading-overdue", "art-118", "Reading response: Bauhaus notes", "reading", "2026-10-03T18:00:00", "accepted", 0.91),
-    demoAssignment(courses, "hist-forum-week-6", "hist-204", "Discussion board: primary source post", "assignment", "2026-10-05T18:00:00", "needsReview", 0.58),
-    demoAssignment(courses, "bio-lab-prep-cells", "bio-101", "Lab prep: cells and microscopes", "assignment", "2026-10-06T21:00:00", "accepted", 0.94),
-    demoAssignment(courses, "stat-worksheet-quiz-review", "stat-215", "Quiz review worksheet", "quiz", "2026-10-08T16:00:00", "needsReview", 0.76),
-    demoAssignment(courses, "art-critique-notes", "art-118", "Critique notes: color systems", "assignment", "2026-10-10T12:00:00", "needsReview", 0.81),
-    demoAssignment(courses, "bio-lab-mitosis", "bio-101", "Mitosis lab report", "assignment", "2026-10-14T23:59:00", "accepted", 0.92),
-    demoAssignment(courses, "hist-primary-source", "hist-204", "Primary source annotation set", "reading", "2026-10-15T17:00:00", "needsReview", 0.68),
-    demoAssignment(courses, "stat-regression-lab", "stat-215", "Regression lab notebook", "project", "2026-10-17T20:00:00", "accepted", 0.9),
-    demoAssignment(courses, "art-color-study", "art-118", "Color study board", "project", "2026-10-18T15:00:00", "accepted", 0.96),
-    demoAssignment(courses, "bio-problem-set-5", "bio-101", "Problem Set 5: genetics", "assignment", "2026-10-20T23:59:00", "accepted", 0.93),
-    demoAssignment(courses, "hist-essay-outline", "hist-204", "Essay outline and thesis", "project", "2026-10-20T17:00:00", "needsReview", 0.71),
-    demoAssignment(courses, "stat-project-proposal", "stat-215", "Project proposal: campus survey", "project", "2026-10-21T18:00:00", "needsReview", 0.69),
-    demoAssignment(courses, "art-portfolio-check", "art-118", "Portfolio checkpoint", "project", "2026-10-22T12:00:00", "accepted", 0.95),
-    demoAssignment(courses, "bio-chapter-9-reading", "bio-101", "Reading notes: Chapter 9", "reading", "2026-10-26T20:00:00", "accepted", 0.89),
-    demoAssignment(courses, "hist-map-quiz-prep", "hist-204", "Map quiz prep sheet", "quiz", "2026-10-28T17:00:00", "accepted", 0.88),
-    demoAssignment(courses, "stat-mini-project", "stat-215", "Mini project: visualization draft", "project", "2026-10-30T18:00:00", "accepted", 0.91),
-    demoAssignment(courses, "art-gallery-reflection", "art-118", "Gallery reflection", "reading", "2026-11-02T19:00:00", "needsReview", 0.73),
-    demoAssignment(courses, "bio-midterm-cells", "bio-101", "Midterm: cells and genetics", "exam", "2026-10-09T09:00:00", "accepted", 0.98),
-    demoAssignment(courses, "stat-exam-regression", "stat-215", "Exam 2: regression and inference", "exam", "2026-10-23T14:00:00", "accepted", 0.97),
-    demoAssignment(courses, "hist-final-exam", "hist-204", "Final exam: global systems", "exam", "2026-12-09T13:30:00", "accepted", 0.95)
+    demoAssignment(courses, "bio-chapter-review-complete", "bio-101", "Chapter 6 review notes", "reading", "2025-03-03T20:00:00", "accepted", 0.98, "completed"),
+    demoAssignment(courses, "calc-quiz-complete", "calc-2", "Limits quiz corrections", "quiz", "2025-03-05T17:00:00", "accepted", 0.96, "completed"),
+    demoAssignment(courses, "problem-set-4", "calc-2", "Problem Set 4", "assignment", "2025-03-10T17:00:00", "needsReview", 0.94),
+    demoAssignment(courses, "discussion-post", "psych-201", "Discussion Post", "assignment", "2025-03-10T23:59:00", "needsReview", 0.66),
+    demoAssignment(courses, "lab-report-2", "bio-101", "Lab Report #2", "assignment", "2025-03-11T23:59:00", "needsReview", 0.97),
+    demoAssignment(courses, "reading-response-3", "eng-201", "Reading Response 3", "reading", "2025-03-12T23:59:00", "needsReview", 0.78),
+    demoAssignment(courses, "weekly-quiz-5", "psych-201", "Weekly Quiz 5", "quiz", "2025-03-14T12:00:00", "needsReview", 0.82),
+    demoAssignment(courses, "research-paper", "eng-201", "Research Paper", "project", "2025-04-24T17:00:00", "needsReview", 0.93),
+    demoAssignment(courses, "midterm-exam", "bio-101", "Midterm Exam", "exam", "2025-03-28T09:00:00", "accepted", 0.98),
+    demoAssignment(courses, "essay-outline", "eng-201", "Essay outline", "project", "2025-04-14T17:00:00", "accepted", 0.88),
+    demoAssignment(courses, "calc-midterm-review", "calc-2", "Midterm review packet", "assignment", "2025-03-20T18:00:00", "accepted", 0.86),
+    demoAssignment(courses, "psych-final-exam", "psych-201", "Final exam review", "exam", "2025-05-05T13:30:00", "accepted", 0.95)
   ];
 }
 
@@ -246,8 +233,8 @@ function demoAssignment(
       completionStatus,
       status: completionStatus === "completed" ? "done" : "not_started",
       source: "demo",
-      createdAt: "2026-08-20T12:00:00.000Z",
-      updatedAt: "2026-10-05T16:00:00.000Z"
+      createdAt: "2025-01-10T12:00:00.000Z",
+      updatedAt: "2025-03-10T13:41:00.000Z"
     },
     courses,
     storeCaptureNow

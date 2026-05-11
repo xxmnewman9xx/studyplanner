@@ -8,9 +8,9 @@ test("widget snapshot selects next due and overdue counts", () => {
   const seed = createDemoSemesterSeed();
   const snapshot = buildWidgetSnapshot(seed, storeCaptureNow);
 
-  assert.equal(snapshot.nextDue?.assignmentId, "art-reading-overdue");
-  assert.equal(snapshot.nextDue?.urgency, "overdue");
-  assert.equal(snapshot.overdueCount, 2);
+  assert.equal(snapshot.nextDue?.assignmentId, "problem-set-4");
+  assert.equal(snapshot.nextDue?.urgency, "today");
+  assert.equal(snapshot.overdueCount, 0);
   assert.ok(snapshot.reviewQueueCount > 0);
 });
 
@@ -23,7 +23,7 @@ test("widget snapshot prepares this-week surfaces and heavy warning", () => {
   assert.equal(snapshot.surfaces.medium.items.length, 4);
   assert.equal(snapshot.surfaces.medium.overflowCount, 1);
   assert.equal(snapshot.surfaces.large.heavyWeekWarning?.isHeavy, true);
-  assert.equal(snapshot.surfaces.lockScreen.countdownLabel, "2 days overdue");
+  assert.equal(snapshot.surfaces.lockScreen.countdownLabel, "Today");
 });
 
 test("widget snapshot has a useful empty state", () => {
