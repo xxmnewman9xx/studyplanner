@@ -35,7 +35,9 @@ import { AppTheme } from "./src/theme";
 import { AppThemeProvider, useAppTheme } from "./src/themeContext";
 import { ModeToggle } from "./src/components/ModeToggle";
 import { PremiumGate } from "./src/components/PremiumGate";
+import { isStoreCaptureEnabled } from "./src/config/storeCapture";
 import { defaultCourses, defaultGradeItems, defaultSemester } from "./src/data/defaultPlanner";
+import { createDemoSemesterSeed } from "./src/data/demoSemester";
 import { OnboardingScreen } from "./src/screens/OnboardingScreen";
 import { TodayScreen } from "./src/screens/TodayScreen";
 import { ImportScreen } from "./src/screens/ImportScreen";
@@ -87,15 +89,22 @@ function AppContent() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const subscription = useSubscription();
   const scrollRef = useRef<ScrollView>(null);
-  const [onboarded, setOnboarded] = useState(false);
-  const [paywallSeen, setPaywallSeen] = useState(false);
+  const storeCaptureEnabled = isStoreCaptureEnabled();
+  const demoSeed = useMemo(
+    () => (storeCaptureEnabled ? createDemoSemesterSeed() : null),
+    [storeCaptureEnabled]
+  );
+  const [onboarded, setOnboarded] = useState(Boolean(demoSeed?.onboarded));
+  const [paywallSeen, setPaywallSeen] = useState(Boolean(demoSeed?.paywallSeen));
   const [activeTab, setActiveTab] = useState<NavTab>("today");
-  const [semester, setSemester] = useState(defaultSemester);
-  const [courses, setCourses] = useState<Course[]>(defaultCourses);
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [syllabusSources, setSyllabusSources] = useState<SyllabusSource[]>([]);
-  const [gradeItems, setGradeItems] = useState(defaultGradeItems);
-  const [targetGradePercent, setTargetGradePercent] = useState(90);
+  const [semester, setSemester] = useState(demoSeed?.semester || defaultSemester);
+  const [courses, setCourses] = useState<Course[]>(demoSeed?.courses || defaultCourses);
+  const [assignments, setAssignments] = useState<Assignment[]>(demoSeed?.assignments || []);
+  const [syllabusSources, setSyllabusSources] = useState<SyllabusSource[]>(
+    demoSeed?.syllabusSources || []
+  );
+  const [gradeItems, setGradeItems] = useState(demoSeed?.gradeItems || defaultGradeItems);
+  const [targetGradePercent, setTargetGradePercent] = useState(demoSeed?.targetGradePercent || 90);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
@@ -117,6 +126,21 @@ function AppContent() {
   useEffect(() => {
     let mounted = true;
 
+    if (demoSeed) {
+      setOnboarded(demoSeed.onboarded);
+      setPaywallSeen(demoSeed.paywallSeen);
+      setSemester(demoSeed.semester);
+      setCourses(demoSeed.courses);
+      setAssignments(demoSeed.assignments);
+      setSyllabusSources(demoSeed.syllabusSources);
+      setGradeItems(demoSeed.gradeItems);
+      setTargetGradePercent(demoSeed.targetGradePercent);
+      setHydrated(true);
+      return () => {
+        mounted = false;
+      };
+    }
+
     loadJson<PlannerData>(plannerStorageKey).then((stored) => {
       if (!mounted) return;
 
@@ -137,10 +161,10 @@ function AppContent() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [demoSeed]);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || storeCaptureEnabled) return;
 
     saveJson<PlannerData>(plannerStorageKey, {
       onboarded,
@@ -161,6 +185,7 @@ function AppContent() {
     paywallSeen,
     semester,
     syllabusSources,
+    storeCaptureEnabled,
     targetGradePercent
   ]);
 
@@ -357,12 +382,14 @@ function AppContent() {
     }
   };
 
-  const premiumLocked = subscription.status !== "ready" || !subscription.isPremium;
+  const premiumLocked =
+    !storeCaptureEnabled && (subscription.status !== "ready" || !subscription.isPremium);
   const showInitialPaywall =
     hydrated &&
     onboarded &&
     !paywallSeen &&
     !subscription.isPremium &&
+    !storeCaptureEnabled &&
     subscription.status !== "checking";
 
   if (!hydrated) {

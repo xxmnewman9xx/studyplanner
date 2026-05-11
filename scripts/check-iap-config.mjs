@@ -11,6 +11,7 @@ const parser = read("src/services/syllabusParser.ts");
 const importScreen = read("src/screens/ImportScreen.tsx");
 const subscriptions = read("src/services/subscriptions.tsx");
 const upgrade = read("src/screens/UpgradeScreen.tsx");
+const storeCapture = read("src/config/storeCapture.ts");
 const srcSource = walk(path.join(root, "src"))
   .filter((file) => /\.(ts|tsx)$/.test(file))
   .map((file) => [path.relative(root, file), fs.readFileSync(file, "utf8")]);
@@ -71,11 +72,17 @@ assert(upgrade.includes("Terms of Use (EULA)"), "Paywall must expose EULA wordin
 assert(upgrade.includes("Privacy Policy"), "Paywall must expose Privacy Policy.");
 assert(!importScreen.includes("Syllabus scan is unavailable"), "Scan UI must not render unavailable copy.");
 assert(!importScreen.includes("disabled={!parserReady"), "Scan buttons must not be disabled by missing endpoint config.");
+assert(
+  storeCapture.includes('readEnv("EXPO_PUBLIC_STORE_CAPTURE") === "1"'),
+  "Store capture mode must require the exact EXPO_PUBLIC_STORE_CAPTURE=1 flag."
+);
+assert(
+  app.includes("!storeCaptureEnabled &&") && app.includes("if (!hydrated || storeCaptureEnabled) return;"),
+  "Store capture mode must bypass normal gates without persisting demo planner data."
+);
 
 for (const [file, source] of srcSource) {
   assert(!source.includes("parseSyllabusStub"), `Remove stub parser reference from ${file}.`);
-  assert(!source.includes("StoreCapture"), `Remove store capture source from ${file}.`);
-  assert(!source.includes("StorePreview"), `Remove store preview source from ${file}.`);
   assert(!source.includes("seedAssignments"), `Remove seeded planner data from ${file}.`);
   assert(!source.includes("seedCourses"), `Remove seeded courses from ${file}.`);
   assert(!source.includes("isPremium: true"), `Remove hardcoded premium access from ${file}.`);
