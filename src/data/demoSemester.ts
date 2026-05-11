@@ -1,5 +1,5 @@
 import { normalizeAssignment } from "../logic/assignmentModel";
-import { Assignment, Course, PlannerData, Semester, SyllabusSource } from "../models";
+import { Assignment, Course, PlannerData, Semester, SyllabusParseResult, SyllabusSource } from "../models";
 
 export const storeCaptureNow = new Date("2026-10-05T12:00:00-04:00");
 
@@ -67,6 +67,23 @@ export function createDemoSemesterSeed(now = storeCaptureNow): PlannerData {
     syllabusSources,
     targetGradePercent: 91,
     updatedAt: now.toISOString()
+  };
+}
+
+export function createDemoSyllabusParseResult(now = storeCaptureNow): SyllabusParseResult {
+  const seed = createDemoSemesterSeed(now);
+  const syllabusSource = seed.syllabusSources[0];
+
+  return {
+    sourceName: syllabusSource?.sourceName || "Messy Fall 2026 syllabus packet.txt",
+    semesterName: seed.semester.name,
+    semesterStartDate: seed.semester.startDate,
+    semesterEndDate: seed.semester.endDate,
+    courses: seed.courses,
+    assignments: seed.assignments.filter((assignment) => assignment.source === "demo"),
+    gradeItems: seed.gradeItems,
+    findings: syllabusSource?.findings || [],
+    syllabusSource
   };
 }
 

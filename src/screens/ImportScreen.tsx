@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -10,11 +10,22 @@ import {
 } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { Camera, CheckCircle2, FileText, Sparkles, Upload } from "lucide-react-native";
+import {
+  Camera,
+  CheckCheck,
+  CheckCircle2,
+  FileText,
+  RotateCcw,
+  Sparkles,
+  Trash2,
+  Upload
+} from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
 import { SectionHeader } from "../components/SectionHeader";
 import { AssignmentKind, Priority, SyllabusImportSource, SyllabusParseResult } from "../models";
+import { isStoreCaptureEnabled } from "../config/storeCapture";
+import { createDemoSyllabusParseResult, messySyllabusExample } from "../data/demoSemester";
 import { parseSyllabus, supportsSyllabusImageParsing, updateParsedAssignment } from "../services/syllabusParser";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -30,20 +41,86 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
-  const [draft, setDraft] = useState<SyllabusParseResult | null>(null);
+  const captureMode = isStoreCaptureEnabled();
+  const [draft, setDraft] = useState<SyllabusParseResult | null>(() =>
+    captureMode ? createDemoSyllabusParseResult() : null
+  );
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const imageParsingReady = supportsSyllabusImageParsing();
+  const reviewStats = useMemo(() => {
+    const assignments = draft?.assignments || [];
+    return {
+      total: assignments.length,
+      needsReview: assignments.filter((assignment) => assignment.reviewStatus === "needsReview")
+        .length,
+      accepted: assignments.filter((assignment) => assignment.reviewStatus === "accepted").length,
+      ignored: assignments.filter((assignment) => assignment.reviewStatus === "ignored").length,
+      highConfidence: assignments.filter(
+        (assignment) => assignment.confidence >= 0.85 && assignment.reviewStatus !== "ignored"
+      ).length
+    };
+  }, [draft]);
+  const visibleAssignments = useMemo(
+    () => (draft?.assignments || []).filter((assignment) => assignment.reviewStatus !== "ignored"),
+    [draft]
+  );
+  const acceptedAssignments = useMemo(
+    () => (draft?.assignments || []).filter((assignment) => assignment.reviewStatus === "accepted"),
+    [draft]
+  );
 
   const runParse = async (source: SyllabusImportSource) => {
     try {
       setLoading(true);
+      setErrorMessage(null);
       const result = await parseSyllabus(source);
       setDraft(result);
     } catch (error) {
-      Alert.alert("Could not parse syllabus", errorMessage(error));
+      const message = errorMessageFromUnknown(error);
+      setErrorMessage(message);
+      Alert.alert("Could not parse syllabus", message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const updateDraftAssignment = (assignmentId: string, patch: Parameters<typeof updateParsedAssignment>[2]) => {
+    setDraft((current) => (current ? updateParsedAssignment(current, assignmentId, patch) : current));
+  };
+
+  const acceptAllHighConfidence = () => {
+    setDraft((current) => {
+      if (!current) return current;
+      return current.assignments.reduce(
+        (next, assignment) =>
+          assignment.confidence >= 0.85 && assignment.reviewStatus !== "ignored"
+            ? updateParsedAssignment(next, assignment.id, { reviewStatus: "accepted" })
+            : next,
+        current
+      );
+    });
+  };
+
+  const applyAcceptedPlan = () => {
+    if (!draft) return;
+    onApplyParsedPlan({
+      ...draft,
+      assignments: acceptedAssignments
+    });
+  };
+
+  const restoreIgnored = () => {
+    setDraft((current) => {
+      if (!current) return current;
+      return current.assignments.reduce(
+        (next, assignment) =>
+          assignment.reviewStatus === "ignored"
+            ? updateParsedAssignment(next, assignment.id, { reviewStatus: "needsReview" })
+            : next,
+        current
+      );
+    });
   };
 
   const pickPdf = async () => {
@@ -136,6 +213,13 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
         </View>
       </View>
 
+      {captureMode ? (
+        <View style={styles.captureCard}>
+          <Text style={styles.captureLabel}>Preview syllabus</Text>
+          <Text style={styles.captureText}>{messySyllabusExample}</Text>
+        </View>
+      ) : null}
+
       <View style={styles.importGrid}>
         <AppButton
           label="File"
@@ -169,6 +253,13 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
 
       {loading ? <ActivityIndicator style={styles.loader} color={colors.ink} /> : null}
 
+      {errorMessage ? (
+        <View style={styles.errorCard}>
+          <Text style={styles.errorTitle}>Scan paused</Text>
+          <Text style={styles.errorCopy}>{errorMessage}</Text>
+        </View>
+      ) : null}
+
       {draft ? (
         <>
           <SectionHeader title="Review Results" note={draft.sourceName} />
@@ -180,11 +271,15 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
               </View>
               <View style={styles.resultStat}>
                 <Text style={styles.resultStatValue}>{draft.assignments.length}</Text>
-                <Text style={styles.resultStatLabel}>deadlines</Text>
+                <Text style={styles.resultStatLabel}>found</Text>
               </View>
               <View style={styles.resultStat}>
-                <Text style={styles.resultStatValue}>{draft.gradeItems.length}</Text>
-                <Text style={styles.resultStatLabel}>scores</Text>
+                <Text style={styles.resultStatValue}>{reviewStats.needsReview}</Text>
+                <Text style={styles.resultStatLabel}>review</Text>
+              </View>
+              <View style={styles.resultStat}>
+                <Text style={styles.resultStatValue}>{reviewStats.accepted}</Text>
+                <Text style={styles.resultStatLabel}>accepted</Text>
               </View>
             </View>
             <View style={styles.findings}>
@@ -212,18 +307,61 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
             ))}
           </View>
 
-          <SectionHeader title="Editable Deadlines" />
+          <SectionHeader
+            title="Review Inbox"
+            note={`${reviewStats.accepted} accepted Â· ${reviewStats.ignored} ignored`}
+          />
+          <View style={styles.reviewToolbar}>
+            <AppButton
+              label="Accept high"
+              icon={CheckCheck}
+              variant="secondary"
+              disabled={reviewStats.highConfidence === 0}
+              onPress={acceptAllHighConfidence}
+            />
+          </View>
           <View style={styles.editList}>
-            {draft.assignments.map((assignment) => (
+            {visibleAssignments.length === 0 ? (
+              <Text style={styles.emptyReview}>
+                No active items remain in review. Restore the scan or upload another syllabus.
+              </Text>
+            ) : null}
+            {visibleAssignments.map((assignment) => (
               <View key={assignment.id} style={styles.editCard}>
+                <View style={styles.reviewCardTop}>
+                  <View style={styles.reviewBadges}>
+                    <Badge
+                      label={reviewStatusLabel(assignment.reviewStatus)}
+                      tone={assignment.reviewStatus === "accepted" ? "green" : "gold"}
+                    />
+                    <Badge label={confidenceLabel(assignment.confidence)} tone={confidenceTone(assignment.confidence)} />
+                  </View>
+                  <View style={styles.reviewActions}>
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      style={[styles.iconAction, assignment.reviewStatus === "accepted" ? styles.iconActionActive : null]}
+                      onPress={() => updateDraftAssignment(assignment.id, { reviewStatus: "accepted" })}
+                    >
+                      <CheckCircle2 color={assignment.reviewStatus === "accepted" ? colors.green : colors.ink} size={18} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      style={styles.iconAction}
+                      onPress={() => updateDraftAssignment(assignment.id, { reviewStatus: "ignored" })}
+                    >
+                      <Trash2 color={colors.red} size={18} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                {assignment.sourceText ? (
+                  <Text style={styles.sourceText}>{assignment.sourceText}</Text>
+                ) : null}
                 <Text style={styles.editLabel}>Title</Text>
                 <TextInput
                   value={assignment.title}
                   style={styles.input}
                   placeholderTextColor={colors.faint}
-                  onChangeText={(title) =>
-                    setDraft(updateParsedAssignment(draft, assignment.id, { title }))
-                  }
+                  onChangeText={(title) => updateDraftAssignment(assignment.id, { title })}
                 />
                 <Text style={styles.editLabel}>Due date</Text>
                 <TextInput
@@ -232,11 +370,9 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
                   placeholder="YYYY-MM-DD"
                   placeholderTextColor={colors.faint}
                   onChangeText={(date) =>
-                    setDraft(
-                      updateParsedAssignment(draft, assignment.id, {
-                        dueAt: `${date}T23:59:00`
-                      })
-                    )
+                    updateDraftAssignment(assignment.id, {
+                      dueAt: `${date}T23:59:00`
+                    })
                   }
                 />
                 <View style={styles.twoColumn}>
@@ -249,11 +385,9 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
                       placeholder="Minutes"
                       placeholderTextColor={colors.faint}
                       onChangeText={(estimatedMinutes) =>
-                        setDraft(
-                          updateParsedAssignment(draft, assignment.id, {
-                            estimatedMinutes: Number.parseInt(estimatedMinutes, 10) || 0
-                          })
-                        )
+                        updateDraftAssignment(assignment.id, {
+                          estimatedMinutes: Number.parseInt(estimatedMinutes, 10) || 0
+                        })
                       }
                     />
                   </View>
@@ -274,7 +408,7 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
                       key={kind}
                       style={[styles.choice, assignment.kind === kind ? styles.choiceActive : null]}
                       onPress={() =>
-                        setDraft(updateParsedAssignment(draft, assignment.id, { kind }))
+                        updateDraftAssignment(assignment.id, { kind, type: kind })
                       }
                     >
                       <Text
@@ -299,7 +433,7 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
                         assignment.priority === priority ? styles.choiceActive : null
                       ]}
                       onPress={() =>
-                        setDraft(updateParsedAssignment(draft, assignment.id, { priority }))
+                        updateDraftAssignment(assignment.id, { priority })
                       }
                     >
                       <Text
@@ -318,7 +452,19 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
           </View>
 
           <View style={styles.applyBar}>
-            <AppButton label="Apply parsed plan" onPress={() => onApplyParsedPlan(draft)} />
+            {reviewStats.ignored > 0 ? (
+              <AppButton
+                label="Restore ignored"
+                icon={RotateCcw}
+                variant="quiet"
+                onPress={restoreIgnored}
+              />
+            ) : null}
+            <AppButton
+              label="Apply accepted plan"
+              disabled={acceptedAssignments.length === 0 && draft.assignments.length > 0}
+              onPress={applyAcceptedPlan}
+            />
           </View>
         </>
       ) : null}
@@ -326,8 +472,24 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
   );
 }
 
-function errorMessage(error: unknown) {
+function errorMessageFromUnknown(error: unknown) {
   return error instanceof Error ? error.message : "The import could not be read.";
+}
+
+function confidenceLabel(confidence: number) {
+  return `${Math.round(confidence * 100)}% confidence`;
+}
+
+function confidenceTone(confidence: number): "green" | "gold" | "red" {
+  if (confidence >= 0.85) return "green";
+  if (confidence >= 0.7) return "gold";
+  return "red";
+}
+
+function reviewStatusLabel(status: string) {
+  if (status === "accepted") return "Accepted";
+  if (status === "ignored") return "Ignored";
+  return "Needs review";
 }
 
 function createStyles(theme: AppTheme) {
@@ -415,6 +577,26 @@ function createStyles(theme: AppTheme) {
       lineHeight: 19,
       fontWeight: "900"
     },
+    captureCard: {
+      marginTop: spacing.md,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      gap: spacing.xs
+    },
+    captureLabel: {
+      color: colors.accent,
+      fontSize: 12,
+      fontWeight: "900"
+    },
+    captureText: {
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "700"
+    },
     importGrid: {
       flexDirection: "row",
       gap: spacing.sm,
@@ -426,6 +608,27 @@ function createStyles(theme: AppTheme) {
     },
     loader: {
       marginTop: spacing.md
+    },
+    errorCard: {
+      marginTop: spacing.md,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.red,
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      gap: spacing.xs
+    },
+    errorTitle: {
+      color: colors.red,
+      fontSize: 15,
+      lineHeight: 20,
+      fontWeight: "900"
+    },
+    errorCopy: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "700"
     },
     resultCard: {
       borderRadius: radii.xl,
@@ -499,6 +702,22 @@ function createStyles(theme: AppTheme) {
     editList: {
       gap: spacing.sm
     },
+    reviewToolbar: {
+      alignItems: "flex-start",
+      marginBottom: spacing.sm
+    },
+    emptyReview: {
+      overflow: "hidden",
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      color: colors.muted,
+      fontSize: 14,
+      lineHeight: 20,
+      fontWeight: "700"
+    },
     editCard: {
       borderRadius: radii.md,
       borderWidth: 1,
@@ -506,6 +725,42 @@ function createStyles(theme: AppTheme) {
       backgroundColor: colors.surface,
       padding: spacing.md,
       gap: spacing.xs
+    },
+    reviewCardTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    reviewBadges: {
+      flex: 1,
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    reviewActions: {
+      flexDirection: "row",
+      gap: spacing.xs
+    },
+    iconAction: {
+      width: 38,
+      height: 38,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.canvas,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    iconActionActive: {
+      borderColor: colors.green,
+      backgroundColor: colors.mint
+    },
+    sourceText: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
     },
     editLabel: {
       color: colors.faint,
