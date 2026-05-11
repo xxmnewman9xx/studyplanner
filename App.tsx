@@ -50,6 +50,7 @@ import { scheduleSmartReminders } from "./src/services/reminders";
 import { syncAssignmentsToDeviceCalendar } from "./src/services/calendarSync";
 import { loadJson, saveJson } from "./src/services/storage";
 import { SubscriptionProvider, useSubscription } from "./src/services/subscriptions";
+import { WidgetSnapshotService } from "./src/services/widgetSnapshotService";
 import {
   createSyllabusSourceFromParse,
   isAssignmentArchived,
@@ -188,6 +189,22 @@ function AppContent() {
     storeCaptureEnabled,
     targetGradePercent
   ]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+
+    void WidgetSnapshotService.write({
+      semester,
+      courses,
+      assignments,
+      demoState: storeCaptureEnabled
+        ? {
+            enabled: true,
+            label: "Store capture"
+          }
+        : undefined
+    }).catch(() => undefined);
+  }, [assignments, courses, hydrated, semester, storeCaptureEnabled]);
 
   useEffect(() => {
     if (subscription.isPremium && !paywallSeen) {
