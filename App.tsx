@@ -452,6 +452,7 @@ function AppContent() {
                   onOpenAssignment={setSelectedAssignmentId}
                   onScheduleReminders={handleScheduleReminders}
                   onCalendarSync={handleCalendarSync}
+                  onOpenImport={() => openTab("import")}
                   premiumAutomationLocked={premiumLocked}
                   onOpenPaywall={() => openTab("upgrade")}
                 />

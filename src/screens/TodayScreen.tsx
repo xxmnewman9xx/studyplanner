@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { Bell, CalendarPlus, ChevronRight, Crown, Target } from "lucide-react-native";
+import { AlertTriangle, Bell, CalendarPlus, ChevronRight, Crown, FileScan, Target } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { AssignmentCard } from "../components/AssignmentCard";
 import { Badge } from "../components/Badge";
@@ -10,7 +10,6 @@ import { Assignment, Course, Semester } from "../models";
 import {
   buildTodayPlan,
   daysUntil,
-  formatDateOnly,
   getCourseForAssignment
 } from "../logic/planner";
 import { AppTheme } from "../theme";
@@ -24,6 +23,7 @@ type TodayScreenProps = {
   onOpenAssignment: (assignmentId: string) => void;
   onScheduleReminders: () => void;
   onCalendarSync: () => void;
+  onOpenImport: () => void;
   premiumAutomationLocked: boolean;
   onOpenPaywall: () => void;
 };
@@ -36,6 +36,7 @@ export function TodayScreen({
   onOpenAssignment,
   onScheduleReminders,
   onCalendarSync,
+  onOpenImport,
   premiumAutomationLocked,
   onOpenPaywall
 }: TodayScreenProps) {
@@ -50,6 +51,9 @@ export function TodayScreen({
   const completionPercent = totalTracked > 0 ? plan.doneCount / totalTracked : 0;
   const semesterPercent = Math.round(plan.semesterProgress * 100);
   const semesterProgressWidth = `${Math.max(0, Math.min(100, semesterPercent))}%` as `${number}%`;
+  const reviewQueueCount = assignments.filter(
+    (assignment) => assignment.reviewStatus === "needsReview"
+  ).length;
 
   return (
     <View>
@@ -80,16 +84,16 @@ export function TodayScreen({
           tone="green"
         />
         <MetricCard
-          label="Term"
-          value={`${semesterPercent}%`}
-          detail={`${formatDateOnly(semester.endDate)} end`}
-          tone="gold"
+          label="Review"
+          value={String(reviewQueueCount)}
+          detail="items waiting"
+          tone={reviewQueueCount > 0 ? "gold" : "green"}
         />
         <MetricCard
-          label="Done"
-          value={`${Math.round(completionPercent * 100)}%`}
-          detail="tracked work"
-          tone="blue"
+          label="Overdue"
+          value={String(plan.overdue.length)}
+          detail={`${Math.round(completionPercent * 100)}% done`}
+          tone={plan.overdue.length > 0 ? "red" : "blue"}
         />
       </View>
 
@@ -120,9 +124,22 @@ export function TodayScreen({
             </View>
           </>
         ) : (
-          <Text style={styles.nextMeta}>Nothing urgent. Your plan is clear for now.</Text>
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyTitle}>No next deadline yet.</Text>
+            <Text style={styles.nextMeta}>Scan a syllabus or add coursework to build the daily plan.</Text>
+            <AppButton label="Scan syllabus" icon={FileScan} variant="secondary" onPress={onOpenImport} />
+          </View>
         )}
       </View>
+
+      {plan.overdue.length > 0 ? (
+        <View style={styles.warningCard}>
+          <AlertTriangle color={colors.red} size={20} />
+          <Text style={styles.warningText}>
+            {plan.overdue.length} overdue item{plan.overdue.length === 1 ? "" : "s"} need a quick decision.
+          </Text>
+        </View>
+      ) : null}
 
       <View style={styles.actionRow}>
         <AppButton
@@ -139,6 +156,44 @@ export function TodayScreen({
           style={styles.halfButton}
           onPress={premiumAutomationLocked ? onOpenPaywall : onCalendarSync}
         />
+      </View>
+
+      <View style={styles.scanAction}>
+        <AppButton label="Scan or upload syllabus" icon={FileScan} variant="quiet" onPress={onOpenImport} />
+      </View>
+
+      <SectionHeader title="Due Today" note={`${plan.dueToday.length} item${plan.dueToday.length === 1 ? "" : "s"}`} />
+      <View style={styles.list}>
+        {plan.dueToday.length === 0 ? (
+          <Text style={styles.emptyCard}>No deadlines today.</Text>
+        ) : (
+          plan.dueToday.map((assignment) => (
+            <AssignmentCard
+              key={assignment.id}
+              assignment={assignment}
+              course={getCourseForAssignment(courses, assignment)}
+              onOpen={() => onOpenAssignment(assignment.id)}
+              onPressStatus={() => onUpdateStatus(assignment.id, "done")}
+            />
+          ))
+        )}
+      </View>
+
+      <SectionHeader title="This Week" note={`${plan.dueThisWeek.length} upcoming`} />
+      <View style={styles.list}>
+        {plan.dueThisWeek.length === 0 ? (
+          <Text style={styles.emptyCard}>The next seven days are clear.</Text>
+        ) : (
+          plan.dueThisWeek.slice(0, 5).map((assignment) => (
+            <AssignmentCard
+              key={assignment.id}
+              assignment={assignment}
+              course={getCourseForAssignment(courses, assignment)}
+              onOpen={() => onOpenAssignment(assignment.id)}
+              onPressStatus={() => onUpdateStatus(assignment.id, "done")}
+            />
+          ))
+        )}
       </View>
 
       <SectionHeader title="Upcoming" note="One place for assignments and exams" />
@@ -301,8 +356,40 @@ function createStyles(theme: AppTheme) {
       gap: spacing.sm,
       marginTop: spacing.md
     },
+    scanAction: {
+      alignItems: "flex-start",
+      marginTop: spacing.xs
+    },
     halfButton: {
       flex: 1
+    },
+    warningCard: {
+      marginTop: spacing.md,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.red,
+      backgroundColor: theme.isDark ? "#3A201D" : "#FFE0D8",
+      padding: spacing.md,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    warningText: {
+      flex: 1,
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 20,
+      fontWeight: "800"
+    },
+    emptyState: {
+      gap: spacing.sm,
+      alignItems: "flex-start"
+    },
+    emptyTitle: {
+      color: colors.ink,
+      fontSize: 17,
+      lineHeight: 23,
+      fontWeight: "900"
     },
     list: {
       gap: spacing.sm

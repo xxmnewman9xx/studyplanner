@@ -6,6 +6,8 @@ const dayMs = 24 * 60 * 60 * 1000;
 export type TodayPlan = {
   nextAction?: Assignment;
   dueToday: Assignment[];
+  dueThisWeek: Assignment[];
+  overdue: Assignment[];
   upcoming: Assignment[];
   exams: Assignment[];
   doneCount: number;
@@ -22,6 +24,12 @@ export function buildTodayPlan(
     .filter((item) => isAssignmentOpen(item))
     .sort((a, b) => scoreWork(b, now) - scoreWork(a, now));
   const dueToday = open.filter((item) => isSameDay(new Date(item.dueAt), now));
+  const overdue = open
+    .filter((item) => isBeforeToday(new Date(item.dueAt), now))
+    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
+  const dueThisWeek = open
+    .filter((item) => isInNextDays(new Date(item.dueAt), now, 7))
+    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
   const upcoming = open
     .filter((item) => !isPast(new Date(item.dueAt), now))
     .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
@@ -34,6 +42,8 @@ export function buildTodayPlan(
   return {
     nextAction: open[0],
     dueToday,
+    dueThisWeek,
+    overdue,
     upcoming,
     exams,
     doneCount: assignments.filter((item) => isAssignmentCompleted(item)).length,
@@ -111,6 +121,18 @@ function isSameDay(a: Date, b: Date) {
 
 function isPast(due: Date, now: Date) {
   return due.getTime() < now.getTime();
+}
+
+function isBeforeToday(due: Date, now: Date) {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  return due.getTime() < today;
+}
+
+function isInNextDays(due: Date, now: Date, days: number) {
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const end = start + days * dayMs;
+  const dueTime = due.getTime();
+  return dueTime >= start && dueTime < end;
 }
 
 function parseDateOnlyAsLocal(value: string) {

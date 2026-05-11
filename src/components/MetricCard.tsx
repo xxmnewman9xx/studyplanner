@@ -7,7 +7,7 @@ type MetricCardProps = {
   label: string;
   value: string;
   detail?: string;
-  tone?: "plain" | "green" | "gold" | "blue";
+  tone?: "plain" | "green" | "gold" | "blue" | "red";
 };
 
 export function MetricCard({ label, value, detail, tone = "plain" }: MetricCardProps) {
@@ -53,6 +53,10 @@ function createStyles(theme: AppTheme) {
     blue: {
       backgroundColor: theme.isDark ? "#162033" : "#EAF0FF",
       borderColor: theme.isDark ? "#2C4A7C" : "#C8D7FF"
+    },
+    red: {
+      backgroundColor: theme.isDark ? "#3A201D" : "#FFE0D8",
+      borderColor: theme.isDark ? "#6B322A" : "#F3B7A9"
     },
     label: {
       ...typography.small,
