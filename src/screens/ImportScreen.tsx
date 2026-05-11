@@ -15,17 +15,30 @@ import {
   CheckCheck,
   CheckCircle2,
   FileText,
+  Pencil,
   RotateCcw,
   Sparkles,
   Trash2,
   Upload
 } from "lucide-react-native";
+
 import { AppButton } from "../components/AppButton";
-import { Badge } from "../components/Badge";
-import { SectionHeader } from "../components/SectionHeader";
-import { AssignmentKind, Priority, SyllabusImportSource, SyllabusParseResult } from "../models";
+import {
+  PillFilter,
+  PremiumCard,
+  ScreenHeader,
+  StatChip,
+  StatusBadge
+} from "../components/PremiumUI";
 import { isStoreCaptureEnabled } from "../config/storeCapture";
 import { createDemoSyllabusParseResult, messySyllabusExample } from "../data/demoSemester";
+import {
+  Assignment,
+  AssignmentKind,
+  Priority,
+  SyllabusImportSource,
+  SyllabusParseResult
+} from "../models";
 import { parseSyllabus, supportsSyllabusImageParsing, updateParsedAssignment } from "../services/syllabusParser";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -34,8 +47,16 @@ type ImportScreenProps = {
   onApplyParsedPlan: (parse: SyllabusParseResult) => void;
 };
 
+type ConfidenceFilter = "all" | "high" | "medium" | "low";
+
 const priorities: Priority[] = ["low", "medium", "high"];
-const kinds: AssignmentKind[] = ["assignment", "exam"];
+const kinds: AssignmentKind[] = ["assignment", "exam", "quiz", "project", "reading", "other"];
+const filters: Array<{ id: ConfidenceFilter; label: string }> = [
+  { id: "all", label: "All" },
+  { id: "high", label: "High" },
+  { id: "medium", label: "Medium" },
+  { id: "low", label: "Low" }
+];
 
 export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
   const { theme } = useAppTheme();
@@ -47,7 +68,10 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
   );
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [filter, setFilter] = useState<ConfidenceFilter>("all");
+  const [expandedAssignmentId, setExpandedAssignmentId] = useState<string | null>(null);
   const imageParsingReady = supportsSyllabusImageParsing();
+
   const reviewStats = useMemo(() => {
     const assignments = draft?.assignments || [];
     return {
@@ -56,14 +80,22 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
         .length,
       accepted: assignments.filter((assignment) => assignment.reviewStatus === "accepted").length,
       ignored: assignments.filter((assignment) => assignment.reviewStatus === "ignored").length,
-      highConfidence: assignments.filter(
-        (assignment) => assignment.confidence >= 0.85 && assignment.reviewStatus !== "ignored"
-      ).length
+      high: assignments.filter((assignment) => confidenceBucket(assignment.confidence) === "high").length,
+      medium: assignments.filter((assignment) => confidenceBucket(assignment.confidence) === "medium").length,
+      low: assignments.filter((assignment) => confidenceBucket(assignment.confidence) === "low").length
     };
   }, [draft]);
-  const visibleAssignments = useMemo(
+
+  const activeAssignments = useMemo(
     () => (draft?.assignments || []).filter((assignment) => assignment.reviewStatus !== "ignored"),
     [draft]
+  );
+  const visibleAssignments = useMemo(
+    () =>
+      activeAssignments.filter((assignment) =>
+        filter === "all" ? true : confidenceBucket(assignment.confidence) === filter
+      ),
+    [activeAssignments, filter]
   );
   const acceptedAssignments = useMemo(
     () => (draft?.assignments || []).filter((assignment) => assignment.reviewStatus === "accepted"),
@@ -85,21 +117,11 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
     }
   };
 
-  const updateDraftAssignment = (assignmentId: string, patch: Parameters<typeof updateParsedAssignment>[2]) => {
+  const updateDraftAssignment = (
+    assignmentId: string,
+    patch: Parameters<typeof updateParsedAssignment>[2]
+  ) => {
     setDraft((current) => (current ? updateParsedAssignment(current, assignmentId, patch) : current));
-  };
-
-  const acceptAllHighConfidence = () => {
-    setDraft((current) => {
-      if (!current) return current;
-      return current.assignments.reduce(
-        (next, assignment) =>
-          assignment.confidence >= 0.85 && assignment.reviewStatus !== "ignored"
-            ? updateParsedAssignment(next, assignment.id, { reviewStatus: "accepted" })
-            : next,
-        current
-      );
-    });
   };
 
   const applyAcceptedPlan = () => {
@@ -110,17 +132,42 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
     });
   };
 
+  const acceptAllHighConfidence = () => {
+    updateDraft((current) =>
+      current.assignments.reduce(
+        (next, assignment) =>
+          assignment.confidence >= 0.85 && assignment.reviewStatus !== "ignored"
+            ? updateParsedAssignment(next, assignment.id, { reviewStatus: "accepted" })
+            : next,
+        current
+      )
+    );
+  };
+
+  const acceptVisible = () => {
+    updateDraft((current) =>
+      visibleAssignments.reduce(
+        (next, assignment) =>
+          updateParsedAssignment(next, assignment.id, { reviewStatus: "accepted" }),
+        current
+      )
+    );
+  };
+
   const restoreIgnored = () => {
-    setDraft((current) => {
-      if (!current) return current;
-      return current.assignments.reduce(
+    updateDraft((current) =>
+      current.assignments.reduce(
         (next, assignment) =>
           assignment.reviewStatus === "ignored"
             ? updateParsedAssignment(next, assignment.id, { reviewStatus: "needsReview" })
             : next,
         current
-      );
-    });
+      )
+    );
+  };
+
+  const updateDraft = (mapper: (current: SyllabusParseResult) => SyllabusParseResult) => {
+    setDraft((current) => (current ? mapper(current) : current));
   };
 
   const pickPdf = async () => {
@@ -183,283 +230,138 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
   };
 
   return (
-    <View>
-      <View style={styles.header}>
-        <Text style={styles.kicker}>Syllabus import</Text>
-        <Text style={styles.title}>Import without losing control.</Text>
-        <Text style={styles.subtitle}>
-          The scanner never silently edits the planner. Every detected course, date, and
-          grade category stays editable before it touches your semester.
-        </Text>
-      </View>
+    <View style={styles.screen}>
+      <ScreenHeader
+        eyebrow="Review Inbox"
+        title="AI found these."
+        subtitle="Review extracted coursework before it touches your semester."
+      />
 
-      <View style={styles.guideCard}>
-        <View style={styles.guideHeader}>
-          <View style={styles.guideIcon}>
-            <Sparkles color={colors.heroText} size={19} />
+      <PremiumCard tone="hero">
+        <View style={styles.scanHeroTop}>
+          <View style={styles.scanHeroIcon}>
+            <Sparkles color={colors.heroText} size={20} />
           </View>
-          <View style={styles.guideCopy}>
-            <Text style={styles.guideTitle}>Guided syllabus review</Text>
-            <Text style={styles.guideMeta}>Upload a PDF or text syllabus, review, then apply.</Text>
+          <View style={styles.scanHeroCopy}>
+            <Text style={styles.scanHeroTitle}>Scan Syllabus</Text>
+            <Text style={styles.scanHeroMeta}>Upload or snap any syllabus.</Text>
           </View>
         </View>
-        <View style={styles.stepRail}>
-          {["Upload", "Review", "Apply"].map((step, index) => (
-            <View key={step} style={styles.stepCard}>
-              <Text style={styles.stepNumber}>0{index + 1}</Text>
-              <Text style={styles.stepLabel}>{step}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      {captureMode ? (
-        <View style={styles.captureCard}>
-          <Text style={styles.captureLabel}>Preview syllabus</Text>
-          <Text style={styles.captureText}>{messySyllabusExample}</Text>
-        </View>
-      ) : null}
-
-      <View style={styles.importGrid}>
-        <AppButton
-          label="File"
-          icon={FileText}
-          variant="secondary"
-          style={styles.importButton}
-          disabled={loading}
-          onPress={pickPdf}
-        />
-        {imageParsingReady ? (
-          <>
-            <AppButton
-              label="Photo"
-              icon={Upload}
-              variant="secondary"
-              style={styles.importButton}
-              disabled={loading}
-              onPress={pickPhoto}
-            />
-            <AppButton
-              label="Camera"
-              icon={Camera}
-              variant="secondary"
-              style={styles.importButton}
-              disabled={loading}
-              onPress={capturePhoto}
-            />
-          </>
+        {captureMode ? (
+          <View style={styles.messySource}>
+            <Text style={styles.messyLabel}>Before: messy syllabus</Text>
+            <Text style={styles.messyText} numberOfLines={7}>{messySyllabusExample}</Text>
+          </View>
         ) : null}
-      </View>
+        <View style={styles.importGrid}>
+          <AppButton
+            label="File"
+            icon={FileText}
+            variant="secondary"
+            style={styles.importButton}
+            disabled={loading}
+            onPress={pickPdf}
+          />
+          {imageParsingReady ? (
+            <>
+              <AppButton
+                label="Photo"
+                icon={Upload}
+                variant="secondary"
+                style={styles.importButton}
+                disabled={loading}
+                onPress={pickPhoto}
+              />
+              <AppButton
+                label="Camera"
+                icon={Camera}
+                variant="secondary"
+                style={styles.importButton}
+                disabled={loading}
+                onPress={capturePhoto}
+              />
+            </>
+          ) : null}
+        </View>
+      </PremiumCard>
 
       {loading ? <ActivityIndicator style={styles.loader} color={colors.ink} /> : null}
-
       {errorMessage ? (
-        <View style={styles.errorCard}>
+        <PremiumCard>
           <Text style={styles.errorTitle}>Scan paused</Text>
           <Text style={styles.errorCopy}>{errorMessage}</Text>
-        </View>
+        </PremiumCard>
       ) : null}
 
       {draft ? (
         <>
-          <SectionHeader title="Review Results" note={draft.sourceName} />
-          <View style={styles.resultCard}>
-            <View style={styles.resultStats}>
-              <View style={styles.resultStat}>
-                <Text style={styles.resultStatValue}>{draft.courses.length}</Text>
-                <Text style={styles.resultStatLabel}>course</Text>
-              </View>
-              <View style={styles.resultStat}>
-                <Text style={styles.resultStatValue}>{draft.assignments.length}</Text>
-                <Text style={styles.resultStatLabel}>found</Text>
-              </View>
-              <View style={styles.resultStat}>
-                <Text style={styles.resultStatValue}>{reviewStats.needsReview}</Text>
-                <Text style={styles.resultStatLabel}>review</Text>
-              </View>
-              <View style={styles.resultStat}>
-                <Text style={styles.resultStatValue}>{reviewStats.accepted}</Text>
-                <Text style={styles.resultStatLabel}>accepted</Text>
-              </View>
-            </View>
-            <View style={styles.findings}>
-              {draft.findings.map((finding) => (
-                <Badge
-                  key={finding.id}
-                  label={finding.message}
-                  tone={finding.severity === "needs_review" ? "red" : "green"}
-                />
-              ))}
-            </View>
+          <View style={styles.statRow}>
+            <StatChip label="Extracted" value={String(reviewStats.total)} tone="purple" />
+            <StatChip label="High" value={String(reviewStats.high)} tone="green" />
+            <StatChip label="Needs Review" value={String(reviewStats.needsReview)} tone="gold" />
+          </View>
 
-            {draft.courses.map((course) => (
-              <View key={course.id} style={styles.coursePreview}>
-                <View style={styles.coursePreviewTop}>
-                  <CheckCircle2 color={colors.green} size={18} />
-                  <Text style={styles.courseCode}>{course.code}</Text>
-                </View>
-                <Text style={styles.courseName}>{course.name}</Text>
-                <Text style={styles.courseMeta}>
-                  {course.meetings.length} class meetings · {course.gradeCategories.length} grade
-                  categories
-                </Text>
-              </View>
+          <View style={styles.filterRow}>
+            {filters.map((option) => (
+              <PillFilter
+                key={option.id}
+                label={option.label}
+                count={countForFilter(option.id, reviewStats)}
+                active={filter === option.id}
+                onPress={() => setFilter(option.id)}
+              />
             ))}
           </View>
 
-          <SectionHeader
-            title="Review Inbox"
-            note={`${reviewStats.accepted} accepted Â· ${reviewStats.ignored} ignored`}
-          />
-          <View style={styles.reviewToolbar}>
+          <View style={styles.ctaRow}>
             <AppButton
-              label="Accept high"
+              label={`Accept ${reviewStats.high} High Confidence`}
               icon={CheckCheck}
-              variant="secondary"
-              disabled={reviewStats.highConfidence === 0}
+              disabled={reviewStats.high === 0}
               onPress={acceptAllHighConfidence}
+              style={styles.ctaButton}
             />
           </View>
-          <View style={styles.editList}>
-            {visibleAssignments.length === 0 ? (
-              <Text style={styles.emptyReview}>
-                No active items remain in review. Restore the scan or upload another syllabus.
-              </Text>
+
+          <View style={styles.secondaryActions}>
+            <TouchableOpacity accessibilityRole="button" onPress={acceptVisible}>
+              <Text style={styles.secondaryActionText}>Select All</Text>
+            </TouchableOpacity>
+            {reviewStats.ignored > 0 ? (
+              <TouchableOpacity accessibilityRole="button" onPress={restoreIgnored}>
+                <Text style={styles.secondaryActionText}>Restore Ignored</Text>
+              </TouchableOpacity>
             ) : null}
-            {visibleAssignments.map((assignment) => (
-              <View key={assignment.id} style={styles.editCard}>
-                <View style={styles.reviewCardTop}>
-                  <View style={styles.reviewBadges}>
-                    <Badge
-                      label={reviewStatusLabel(assignment.reviewStatus)}
-                      tone={assignment.reviewStatus === "accepted" ? "green" : "gold"}
-                    />
-                    <Badge label={confidenceLabel(assignment.confidence)} tone={confidenceTone(assignment.confidence)} />
-                  </View>
-                  <View style={styles.reviewActions}>
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      style={[styles.iconAction, assignment.reviewStatus === "accepted" ? styles.iconActionActive : null]}
-                      onPress={() => updateDraftAssignment(assignment.id, { reviewStatus: "accepted" })}
-                    >
-                      <CheckCircle2 color={assignment.reviewStatus === "accepted" ? colors.green : colors.ink} size={18} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      style={styles.iconAction}
-                      onPress={() => updateDraftAssignment(assignment.id, { reviewStatus: "ignored" })}
-                    >
-                      <Trash2 color={colors.red} size={18} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-                {assignment.sourceText ? (
-                  <Text style={styles.sourceText}>{assignment.sourceText}</Text>
-                ) : null}
-                <Text style={styles.editLabel}>Title</Text>
-                <TextInput
-                  value={assignment.title}
-                  style={styles.input}
-                  placeholderTextColor={colors.faint}
-                  onChangeText={(title) => updateDraftAssignment(assignment.id, { title })}
-                />
-                <Text style={styles.editLabel}>Due date</Text>
-                <TextInput
-                  value={assignment.dueAt.slice(0, 10)}
-                  style={styles.input}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor={colors.faint}
-                  onChangeText={(date) =>
-                    updateDraftAssignment(assignment.id, {
-                      dueAt: `${date}T23:59:00`
-                    })
+            <TouchableOpacity accessibilityRole="button" onPress={() => setExpandedAssignmentId(visibleAssignments[0]?.id || null)}>
+              <Text style={styles.secondaryActionText}>Edit</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.reviewList}>
+            {visibleAssignments.length === 0 ? (
+              <PremiumCard>
+                <Text style={styles.emptyTitle}>Nothing in this filter.</Text>
+                <Text style={styles.emptyCopy}>Switch filters or upload another syllabus.</Text>
+              </PremiumCard>
+            ) : (
+              visibleAssignments.map((assignment) => (
+                <ReviewRow
+                  key={assignment.id}
+                  assignment={assignment}
+                  courseName={draft.courses.find((course) => course.id === assignment.courseId)?.code || assignment.courseName}
+                  expanded={expandedAssignmentId === assignment.id}
+                  onAccept={() => updateDraftAssignment(assignment.id, { reviewStatus: "accepted" })}
+                  onEdit={() =>
+                    setExpandedAssignmentId(expandedAssignmentId === assignment.id ? null : assignment.id)
                   }
+                  onIgnore={() => updateDraftAssignment(assignment.id, { reviewStatus: "ignored" })}
+                  onPatch={(patch) => updateDraftAssignment(assignment.id, patch)}
                 />
-                <View style={styles.twoColumn}>
-                  <View style={styles.fieldHalf}>
-                    <Text style={styles.editLabel}>Estimate</Text>
-                    <TextInput
-                      keyboardType="numeric"
-                      value={String(assignment.estimatedMinutes)}
-                      style={styles.input}
-                      placeholder="Minutes"
-                      placeholderTextColor={colors.faint}
-                      onChangeText={(estimatedMinutes) =>
-                        updateDraftAssignment(assignment.id, {
-                          estimatedMinutes: Number.parseInt(estimatedMinutes, 10) || 0
-                        })
-                      }
-                    />
-                  </View>
-                  <View style={styles.fieldHalf}>
-                    <Text style={styles.editLabel}>Course</Text>
-                    <View style={styles.lockedField}>
-                      <Text style={styles.lockedText}>
-                        {draft.courses.find((course) => course.id === assignment.courseId)?.code}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-                <Text style={styles.editLabel}>Kind</Text>
-                <View style={styles.choiceRow}>
-                  {kinds.map((kind) => (
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      key={kind}
-                      style={[styles.choice, assignment.kind === kind ? styles.choiceActive : null]}
-                      onPress={() =>
-                        updateDraftAssignment(assignment.id, { kind, type: kind })
-                      }
-                    >
-                      <Text
-                        style={[
-                          styles.choiceText,
-                          assignment.kind === kind ? styles.choiceTextActive : null
-                        ]}
-                      >
-                        {kind}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-                <Text style={styles.editLabel}>Priority</Text>
-                <View style={styles.choiceRow}>
-                  {priorities.map((priority) => (
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      key={priority}
-                      style={[
-                        styles.choice,
-                        assignment.priority === priority ? styles.choiceActive : null
-                      ]}
-                      onPress={() =>
-                        updateDraftAssignment(assignment.id, { priority })
-                      }
-                    >
-                      <Text
-                        style={[
-                          styles.choiceText,
-                          assignment.priority === priority ? styles.choiceTextActive : null
-                        ]}
-                      >
-                        {priority}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            ))}
+              ))
+            )}
           </View>
 
           <View style={styles.applyBar}>
-            {reviewStats.ignored > 0 ? (
-              <AppButton
-                label="Restore ignored"
-                icon={RotateCcw}
-                variant="quiet"
-                onPress={restoreIgnored}
-              />
-            ) : null}
             <AppButton
               label="Apply accepted plan"
               disabled={acceptedAssignments.length === 0 && draft.assignments.length > 0}
@@ -472,12 +374,119 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
   );
 }
 
-function errorMessageFromUnknown(error: unknown) {
-  return error instanceof Error ? error.message : "The import could not be read.";
+function ReviewRow({
+  assignment,
+  courseName,
+  expanded,
+  onAccept,
+  onEdit,
+  onIgnore,
+  onPatch
+}: {
+  assignment: Assignment;
+  courseName: string;
+  expanded: boolean;
+  onAccept: () => void;
+  onEdit: () => void;
+  onIgnore: () => void;
+  onPatch: (patch: Partial<Assignment>) => void;
+}) {
+  const { theme } = useAppTheme();
+  const { colors } = theme;
+  const styles = createStyles(theme);
+  const accepted = assignment.reviewStatus === "accepted";
+
+  return (
+    <PremiumCard style={styles.reviewCard}>
+      <View style={styles.reviewRow}>
+        <TouchableOpacity accessibilityRole="button" style={styles.checkButton} onPress={onAccept}>
+          <CheckCircle2 color={accepted ? colors.green : colors.brandPurple} size={21} />
+        </TouchableOpacity>
+        <View style={styles.reviewBody}>
+          <Text style={styles.reviewTitle}>{assignment.title}</Text>
+          <Text style={styles.reviewMeta}>
+            {courseName} - {assignment.dueAt.slice(0, 10)} - {labelize(assignment.type)}
+          </Text>
+        </View>
+        <StatusBadge label={confidenceLabel(assignment.confidence)} tone={confidenceTone(assignment.confidence)} />
+      </View>
+      <View style={styles.reviewActionRow}>
+        <TouchableOpacity accessibilityRole="button" style={styles.iconAction} onPress={onAccept}>
+          <CheckCircle2 color={colors.green} size={17} />
+        </TouchableOpacity>
+        <TouchableOpacity accessibilityRole="button" style={styles.iconAction} onPress={onEdit}>
+          <Pencil color={colors.brandPurple} size={17} />
+        </TouchableOpacity>
+        <TouchableOpacity accessibilityRole="button" style={styles.iconAction} onPress={onIgnore}>
+          <Trash2 color={colors.red} size={17} />
+        </TouchableOpacity>
+      </View>
+      {expanded ? (
+        <View style={styles.editPanel}>
+          <Text style={styles.editLabel}>Title</Text>
+          <TextInput
+            value={assignment.title}
+            style={styles.input}
+            placeholderTextColor={colors.faint}
+            onChangeText={(title) => onPatch({ title })}
+          />
+          <Text style={styles.editLabel}>Due date</Text>
+          <TextInput
+            value={assignment.dueAt.slice(0, 10)}
+            style={styles.input}
+            placeholder="YYYY-MM-DD"
+            placeholderTextColor={colors.faint}
+            onChangeText={(date) => onPatch({ dueAt: `${date}T23:59:00` })}
+          />
+          <View style={styles.choiceRow}>
+            {kinds.map((kind) => (
+              <TouchableOpacity
+                accessibilityRole="button"
+                key={kind}
+                style={[styles.choice, assignment.kind === kind ? styles.choiceActive : null]}
+                onPress={() => onPatch({ kind, type: kind })}
+              >
+                <Text style={[styles.choiceText, assignment.kind === kind ? styles.choiceTextActive : null]}>
+                  {labelize(kind)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <View style={styles.choiceRow}>
+            {priorities.map((priority) => (
+              <TouchableOpacity
+                accessibilityRole="button"
+                key={priority}
+                style={[styles.choice, assignment.priority === priority ? styles.choiceActive : null]}
+                onPress={() => onPatch({ priority })}
+              >
+                <Text style={[styles.choiceText, assignment.priority === priority ? styles.choiceTextActive : null]}>
+                  {priority}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      ) : null}
+    </PremiumCard>
+  );
+}
+
+function countForFilter(filter: ConfidenceFilter, stats: { total: number; high: number; medium: number; low: number }) {
+  if (filter === "all") return stats.total;
+  return stats[filter];
+}
+
+function confidenceBucket(confidence: number): Exclude<ConfidenceFilter, "all"> {
+  if (confidence >= 0.85) return "high";
+  if (confidence >= 0.7) return "medium";
+  return "low";
 }
 
 function confidenceLabel(confidence: number) {
-  return `${Math.round(confidence * 100)}% confidence`;
+  if (confidence >= 0.85) return "High";
+  if (confidence >= 0.7) return "Medium";
+  return "Low";
 }
 
 function confidenceTone(confidence: number): "green" | "gold" | "red" {
@@ -486,137 +495,79 @@ function confidenceTone(confidence: number): "green" | "gold" | "red" {
   return "red";
 }
 
-function reviewStatusLabel(status: string) {
-  if (status === "accepted") return "Accepted";
-  if (status === "ignored") return "Ignored";
-  return "Needs review";
+function errorMessageFromUnknown(error: unknown) {
+  return error instanceof Error ? error.message : "The import could not be read.";
+}
+
+function labelize(value: string) {
+  return value.replace("_", " ");
 }
 
 function createStyles(theme: AppTheme) {
-  const { colors, radii, spacing, typography } = theme;
+  const { colors, radii, spacing } = theme;
 
   return StyleSheet.create({
-    header: {
-      gap: spacing.xs
-    },
-    kicker: {
-      color: colors.accent,
-      fontSize: 13,
-      fontWeight: "900"
-    },
-    title: {
-      ...typography.title
-    },
-    subtitle: {
-      ...typography.body
-    },
-    guideCard: {
-      marginTop: spacing.lg,
-      borderRadius: radii.xl,
-      backgroundColor: colors.heroSurface,
-      padding: spacing.lg,
-      gap: spacing.md,
-      shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.26 : 0.12,
-      shadowRadius: 20,
-      shadowOffset: { width: 0, height: 10 },
-      elevation: 5
-    },
-    guideHeader: {
-      flexDirection: "row",
-      alignItems: "center",
+    screen: {
       gap: spacing.md
     },
-    guideIcon: {
-      width: 42,
-      height: 42,
-      borderRadius: radii.round,
-      backgroundColor: colors.accent,
+    scanHeroTop: {
+      flexDirection: "row",
       alignItems: "center",
-      justifyContent: "center"
+      gap: spacing.sm
     },
-    guideCopy: {
+    scanHeroIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: radii.lg,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.brandPurple
+    },
+    scanHeroCopy: {
       flex: 1,
       gap: 2
     },
-    guideTitle: {
-      color: colors.heroText,
-      fontSize: 17,
-      lineHeight: 22,
+    scanHeroTitle: {
+      color: colors.ink,
+      fontSize: 19,
+      lineHeight: 25,
       fontWeight: "900"
     },
-    guideMeta: {
-      color: colors.heroMuted,
-      fontSize: 12,
-      lineHeight: 17,
-      fontWeight: "800"
+    scanHeroMeta: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "700"
     },
-    stepRail: {
-      flexDirection: "row",
-      gap: spacing.sm
-    },
-    stepCard: {
-      flex: 1,
-      minHeight: 64,
-      borderRadius: radii.lg,
-      backgroundColor: theme.isDark ? "rgba(7,17,29,0.12)" : "rgba(255,255,255,0.1)",
-      borderWidth: 1,
-      borderColor: theme.isDark ? "rgba(7,17,29,0.18)" : "rgba(255,255,255,0.16)",
-      padding: spacing.sm,
-      justifyContent: "center"
-    },
-    stepNumber: {
-      color: colors.accent,
-      fontSize: 11,
-      lineHeight: 15,
-      fontWeight: "900"
-    },
-    stepLabel: {
-      color: colors.heroText,
-      fontSize: 14,
-      lineHeight: 19,
-      fontWeight: "900"
-    },
-    captureCard: {
+    messySource: {
       marginTop: spacing.md,
-      borderRadius: radii.md,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      backgroundColor: colors.surfaceAlt,
       padding: spacing.md,
       gap: spacing.xs
     },
-    captureLabel: {
-      color: colors.accent,
+    messyLabel: {
+      color: colors.brandPurple,
       fontSize: 12,
+      lineHeight: 16,
       fontWeight: "900"
     },
-    captureText: {
+    messyText: {
       color: colors.ink,
-      fontSize: 13,
-      lineHeight: 19,
+      fontSize: 12,
+      lineHeight: 17,
       fontWeight: "700"
     },
     importGrid: {
       flexDirection: "row",
       gap: spacing.sm,
-      marginTop: spacing.lg,
-      marginBottom: spacing.sm
+      marginTop: spacing.md
     },
     importButton: {
       flex: 1
     },
     loader: {
-      marginTop: spacing.md
-    },
-    errorCard: {
-      marginTop: spacing.md,
-      borderRadius: radii.md,
-      borderWidth: 1,
-      borderColor: colors.red,
-      backgroundColor: colors.surface,
-      padding: spacing.md,
-      gap: spacing.xs
+      marginTop: spacing.sm
     },
     errorTitle: {
       color: colors.red,
@@ -630,184 +581,105 @@ function createStyles(theme: AppTheme) {
       lineHeight: 19,
       fontWeight: "700"
     },
-    resultCard: {
-      borderRadius: radii.xl,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.md,
-      gap: spacing.md,
-      shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.16 : 0.06,
-      shadowRadius: 14,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 3
-    },
-    resultStats: {
+    statRow: {
       flexDirection: "row",
       gap: spacing.sm
     },
-    resultStat: {
-      flex: 1,
-      minHeight: 70,
-      borderRadius: radii.lg,
-      backgroundColor: colors.surfaceAlt,
-      padding: spacing.sm,
-      justifyContent: "center"
+    filterRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
     },
-    resultStatValue: {
-      color: colors.ink,
-      fontSize: 23,
-      lineHeight: 29,
+    ctaRow: {
+      flexDirection: "row"
+    },
+    ctaButton: {
+      flex: 1
+    },
+    secondaryActions: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: spacing.sm,
+      paddingHorizontal: spacing.xs
+    },
+    secondaryActionText: {
+      color: colors.brandPurple,
+      fontSize: 13,
+      lineHeight: 18,
       fontWeight: "900"
     },
-    resultStatLabel: {
+    reviewList: {
+      gap: spacing.sm
+    },
+    reviewCard: {
+      gap: spacing.sm
+    },
+    reviewRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    checkButton: {
+      width: 30,
+      height: 30,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    reviewBody: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    reviewTitle: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    reviewMeta: {
       color: colors.muted,
       fontSize: 11,
       lineHeight: 15,
-      fontWeight: "900"
-    },
-    findings: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: spacing.xs
-    },
-    coursePreview: {
-      borderTopWidth: 1,
-      borderTopColor: colors.line,
-      paddingTop: spacing.md,
-      gap: 2
-    },
-    coursePreviewTop: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.xs
-    },
-    courseCode: {
-      color: colors.accent,
-      fontSize: 13,
-      fontWeight: "900"
-    },
-    courseName: {
-      color: colors.ink,
-      fontSize: 17,
-      lineHeight: 23,
-      fontWeight: "900"
-    },
-    courseMeta: {
-      color: colors.muted,
-      fontSize: 13,
-      lineHeight: 18
-    },
-    editList: {
-      gap: spacing.sm
-    },
-    reviewToolbar: {
-      alignItems: "flex-start",
-      marginBottom: spacing.sm
-    },
-    emptyReview: {
-      overflow: "hidden",
-      borderRadius: radii.md,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.md,
-      color: colors.muted,
-      fontSize: 14,
-      lineHeight: 20,
       fontWeight: "700"
     },
-    editCard: {
-      borderRadius: radii.md,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.md,
-      gap: spacing.xs
-    },
-    reviewCardTop: {
+    reviewActionRow: {
       flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: spacing.sm
-    },
-    reviewBadges: {
-      flex: 1,
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: spacing.xs
-    },
-    reviewActions: {
-      flexDirection: "row",
+      justifyContent: "flex-end",
       gap: spacing.xs
     },
     iconAction: {
-      width: 38,
-      height: 38,
-      borderRadius: radii.md,
+      width: 34,
+      height: 34,
+      borderRadius: radii.round,
       borderWidth: 1,
       borderColor: colors.line,
-      backgroundColor: colors.canvas,
       alignItems: "center",
-      justifyContent: "center"
+      justifyContent: "center",
+      backgroundColor: colors.surface
     },
-    iconActionActive: {
-      borderColor: colors.green,
-      backgroundColor: colors.mint
-    },
-    sourceText: {
-      color: colors.muted,
-      fontSize: 12,
-      lineHeight: 17,
-      fontWeight: "700"
+    editPanel: {
+      gap: spacing.xs,
+      borderTopWidth: 1,
+      borderTopColor: colors.line,
+      paddingTop: spacing.sm
     },
     editLabel: {
       color: colors.faint,
-      fontSize: 12,
+      fontSize: 11,
+      lineHeight: 15,
       fontWeight: "900"
     },
     input: {
       minWidth: 0,
       minHeight: 44,
-      borderRadius: radii.sm,
+      borderRadius: radii.md,
       borderWidth: 1,
       borderColor: colors.line,
       paddingHorizontal: spacing.sm,
       color: colors.ink,
-      fontSize: 15,
-      fontWeight: "700",
+      fontSize: 14,
+      fontWeight: "800",
       backgroundColor: colors.canvas
-    },
-    row: {
-      flexDirection: "row",
-      gap: spacing.xs,
-      flexWrap: "wrap",
-      marginTop: spacing.xs
-    },
-    twoColumn: {
-      flexDirection: "row",
-      gap: spacing.sm,
-      alignItems: "stretch"
-    },
-    fieldHalf: {
-      flex: 1,
-      minWidth: 0,
-      gap: spacing.xs
-    },
-    lockedField: {
-      minHeight: 44,
-      borderRadius: radii.sm,
-      borderWidth: 1,
-      borderColor: colors.line,
-      paddingHorizontal: spacing.sm,
-      justifyContent: "center",
-      backgroundColor: colors.canvas
-    },
-    lockedText: {
-      color: colors.ink,
-      fontSize: 15,
-      fontWeight: "900"
     },
     choiceRow: {
       flexDirection: "row",
@@ -815,8 +687,8 @@ function createStyles(theme: AppTheme) {
       flexWrap: "wrap"
     },
     choice: {
-      minHeight: 36,
-      borderRadius: radii.sm,
+      minHeight: 34,
+      borderRadius: radii.round,
       borderWidth: 1,
       borderColor: colors.line,
       paddingHorizontal: spacing.sm,
@@ -824,20 +696,32 @@ function createStyles(theme: AppTheme) {
       justifyContent: "center"
     },
     choiceActive: {
-      backgroundColor: colors.softGold,
-      borderColor: colors.gold
+      backgroundColor: colors.brandPurple,
+      borderColor: colors.brandPurple
     },
     choiceText: {
       color: colors.muted,
-      fontSize: 12,
+      fontSize: 11,
       fontWeight: "900",
       textTransform: "capitalize"
     },
     choiceTextActive: {
-      color: colors.ink
+      color: colors.heroText
+    },
+    emptyTitle: {
+      color: colors.ink,
+      fontSize: 16,
+      lineHeight: 22,
+      fontWeight: "900"
+    },
+    emptyCopy: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "700"
     },
     applyBar: {
-      marginTop: spacing.lg
+      marginTop: spacing.xs
     }
   });
 }

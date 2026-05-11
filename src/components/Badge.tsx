@@ -38,7 +38,7 @@ function createStyles(theme: AppTheme) {
 
   return StyleSheet.create({
     badge: {
-      minHeight: 28,
+      minHeight: 26,
       borderRadius: radii.round,
       paddingHorizontal: spacing.sm,
       alignItems: "center",
@@ -62,7 +62,7 @@ function createStyles(theme: AppTheme) {
       borderColor: theme.isDark ? "#6B322A" : "#F3B7A9"
     },
     blueBadge: {
-      backgroundColor: theme.isDark ? "#1B2844" : "#E3ECFF",
+      backgroundColor: colors.blueSoft,
       borderColor: theme.isDark ? "#35517F" : "#C8D7FF"
     },
     neutralLabel: {

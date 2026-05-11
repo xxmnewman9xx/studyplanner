@@ -201,7 +201,7 @@ function AppContent() {
         demoState: storeCaptureEnabled
           ? {
               enabled: true,
-              label: "Store capture"
+              label: "Preview"
             }
           : undefined
       },
@@ -444,13 +444,15 @@ function AppContent() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style={theme.isDark ? "light" : "dark"} />
       <View style={styles.appShell}>
-        <View style={styles.modeToggle}>
-          <ModeToggle />
-        </View>
+        {!storeCaptureEnabled ? (
+          <View style={styles.modeToggle}>
+            <ModeToggle />
+          </View>
+        ) : null}
         <ScrollView
           ref={scrollRef}
           style={styles.scrollArea}
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[styles.content, storeCaptureEnabled ? styles.captureContent : null]}
           showsVerticalScrollIndicator={false}
         >
           {selectedAssignment ? (
@@ -604,8 +606,11 @@ function createStyles(theme: AppTheme) {
     content: {
       width: "100%",
       paddingHorizontal: spacing.lg,
-      paddingTop: 70,
+      paddingTop: 64,
       paddingBottom: 126
+    },
+    captureContent: {
+      paddingTop: spacing.xl
     },
     scrollArea: {
       flex: 1
@@ -626,16 +631,16 @@ function createStyles(theme: AppTheme) {
       position: "absolute",
       left: spacing.md,
       right: spacing.md,
-      bottom: spacing.md,
-      minHeight: 78,
+      bottom: 14,
+      minHeight: 74,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      borderRadius: radii.xl,
+      borderRadius: radii.round,
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: theme.isDark ? "rgba(17, 23, 34, 0.96)" : "rgba(255, 255, 255, 0.96)",
-      padding: spacing.xs,
+      padding: 6,
       shadowColor: colors.shadow,
       shadowOpacity: theme.isDark ? 0.42 : 0.16,
       shadowRadius: 24,
@@ -644,14 +649,14 @@ function createStyles(theme: AppTheme) {
     },
     tabButton: {
       width: "16.3%",
-      minHeight: 62,
+      minHeight: 58,
       alignItems: "center",
       justifyContent: "center",
-      borderRadius: radii.lg,
+      borderRadius: radii.round,
       gap: 4
     },
     tabButtonActive: {
-      backgroundColor: colors.accent,
+      backgroundColor: colors.brandPurple,
       shadowColor: colors.shadow,
       shadowOpacity: theme.isDark ? 0.28 : 0.16,
       shadowRadius: 10,

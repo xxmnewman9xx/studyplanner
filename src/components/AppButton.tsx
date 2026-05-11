@@ -53,8 +53,8 @@ function createStyles(theme: AppTheme) {
 
   return StyleSheet.create({
     button: {
-      minHeight: 50,
-      borderRadius: radii.lg,
+      minHeight: 48,
+      borderRadius: radii.round,
       paddingHorizontal: spacing.md,
       alignItems: "center",
       justifyContent: "center",
@@ -62,17 +62,17 @@ function createStyles(theme: AppTheme) {
       gap: spacing.xs
     },
     primary: {
-      backgroundColor: colors.accent,
+      backgroundColor: colors.brandPurple,
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.35 : 0.18,
-      shadowRadius: 14,
+      shadowOpacity: theme.isDark ? 0.35 : 0.2,
+      shadowRadius: 16,
       shadowOffset: { width: 0, height: 8 },
       elevation: 5
     },
     secondary: {
       borderWidth: 1,
       borderColor: colors.line,
-      backgroundColor: colors.elevated
+      backgroundColor: colors.surface
     },
     quiet: {
       backgroundColor: "transparent"

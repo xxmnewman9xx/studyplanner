@@ -12,6 +12,16 @@ EXPO_PUBLIC_STORE_CAPTURE=1
 
 This mode loads deterministic demo data, does not persist the demo planner blob, and does not fake purchase execution.
 
+## Visual Capture Notes
+
+The Windows UI pass upgraded the real app screens to better match the reference:
+
+- Today now opens with a premium greeting, Next Due hero card, stat chips, heavy-week warning, scan CTA, weekly planner, and widget showcase.
+- Scan now presents the Review Inbox with confidence filters and compact extracted-item rows.
+- Courses now acts as the Class Hub with course cards, progress, due-this-week counts, class details, and source/reminder summaries.
+- The in-app widget showcase uses live `WidgetSnapshotService` data for small, medium, and Lock Screen concept previews.
+- In `EXPO_PUBLIC_STORE_CAPTURE=1`, the theme toggle is hidden so screenshots frame the app like the reference phone screens.
+
 ## Demo Data States
 
 The preview seed includes:
@@ -96,10 +106,13 @@ Screen: Review Inbox section.
 
 State:
 
+- Use the Scan tab in capture mode.
 - Mixed confidence badges visible.
+- Confidence filter chips visible: All, High, Medium, Low.
 - At least one `Needs review` item.
 - At least one accepted item.
 - Show Accept high action.
+- Show compact accept, edit, and ignore actions on extracted rows.
 
 Caption key:
 
@@ -119,10 +132,13 @@ Screen: Today tab.
 
 State:
 
+- Greeting/header visible.
+- Next Due hero card visible.
+- Due Today, Due This Week, and Review Inbox stat chips visible.
 - Review count visible.
 - Overdue count visible.
-- Next due card visible.
-- Due Today and This Week Planner visible if possible.
+- Scan/upload CTA visible if possible.
+- Widget preview entry visible if possible.
 
 Caption key:
 
@@ -143,8 +159,11 @@ Screen: Today tab, scrolled to This Week Planner.
 State:
 
 - Heavy week warning visible.
+- Seven-day date strip visible.
+- Compact workload bars visible.
 - Exam strip visible.
 - Grouped day rows visible.
+- Completed and open visual states visible if possible.
 
 Caption key:
 
@@ -164,9 +183,11 @@ Screen: Courses tab / Class Hub.
 
 State:
 
+- Course cards visible at the top.
 - Selected course hub card visible.
 - Progress, open count, exam count, meeting count visible.
 - Reminder defaults and syllabus source visible.
+- Due-this-week counts visible on course cards.
 
 Caption key:
 
@@ -182,7 +203,7 @@ See every class from one hub.
 
 ### 7. Home Screen Widget
 
-Screen: iOS Home Screen.
+Screen: iOS Home Screen, after WidgetKit validation on Mac.
 
 State:
 
@@ -190,6 +211,7 @@ State:
 - Medium widget: This Week.
 - Use capture seed snapshot.
 - Verify data came from the app-side `WidgetSnapshot` contract.
+- Cross-check against the in-app widget showcase for title/date consistency.
 
 Caption key:
 
@@ -210,7 +232,7 @@ Screen: iOS Lock Screen if implemented in the Mac phase.
 State:
 
 - Countdown / due soon item.
-- If Lock Screen is not implemented for v1.1, capture the native handoff/spec screen or omit this asset.
+- If Lock Screen is not implemented for v1.1, use the in-app Lock Screen concept preview for internal reference only and omit the App Store Lock Screen asset.
 
 Caption key:
 

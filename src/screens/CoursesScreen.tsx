@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Plus } from "lucide-react-native";
+
 import { AppButton } from "../components/AppButton";
 import { AssignmentCard } from "../components/AssignmentCard";
 import { Badge } from "../components/Badge";
+import { CourseSummaryCard, PremiumCard, ScreenHeader } from "../components/PremiumUI";
 import { SectionHeader } from "../components/SectionHeader";
-import { Assignment, AssignmentKind, Course, Semester, SyllabusSource } from "../models";
+import { isStoreCaptureEnabled } from "../config/storeCapture";
+import { storeCaptureNow } from "../data/demoSemester";
 import { formatDateOnly, groupMeetingsByDay, urgencyLabel } from "../logic/planner";
+import { Assignment, AssignmentKind, Course, Semester, SyllabusSource } from "../models";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 
@@ -48,6 +52,8 @@ export function CoursesScreen({
   const [newCourseCode, setNewCourseCode] = useState("");
   const [newCourseName, setNewCourseName] = useState("");
   const [newCourseInstructor, setNewCourseInstructor] = useState("");
+  const now = isStoreCaptureEnabled() ? storeCaptureNow : new Date();
+  const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   const weekly = groupMeetingsByDay(courses);
   const selectedCourse = courses.find((course) => course.id === selectedCourseId) || courses[0];
   const selectedAssignments = selectedCourse
@@ -65,7 +71,9 @@ export function CoursesScreen({
     (assignment) => assignment.completionStatus === "completed"
   ).length;
   const selectedProgress =
-    selectedAssignments.length > 0 ? Math.round((selectedDoneCount / selectedAssignments.length) * 100) : 0;
+    selectedAssignments.length > 0
+      ? Math.round((selectedDoneCount / selectedAssignments.length) * 100)
+      : 0;
   const selectedSyllabusSources = selectedCourse
     ? syllabusSources.filter((source) => source.courseIds.includes(selectedCourse.id))
     : [];
@@ -89,9 +97,15 @@ export function CoursesScreen({
   };
 
   return (
-    <View>
-      <View style={styles.header}>
-        <Text style={styles.kicker}>Class Hub</Text>
+    <View style={styles.screen}>
+      <ScreenHeader
+        eyebrow="Class Hub"
+        title="My Classes"
+        subtitle={`${formatDateOnly(semester.startDate)} to ${formatDateOnly(semester.endDate)} - ${courses.length} classes`}
+      />
+
+      <PremiumCard>
+        <Text style={styles.cardTitle}>Semester setup</Text>
         <TextInput
           value={semester.name}
           onChangeText={(name) => onUpdateSemester({ name })}
@@ -99,12 +113,6 @@ export function CoursesScreen({
           placeholderTextColor={colors.faint}
           style={styles.titleInput}
         />
-        <Text style={styles.subtitle}>
-          {formatDateOnly(semester.startDate)} to {formatDateOnly(semester.endDate)} Â· {courses.length} classes
-        </Text>
-      </View>
-
-      <View style={styles.semesterCard}>
         <View style={styles.twoColumn}>
           <View style={styles.fieldHalf}>
             <Text style={styles.inputLabel}>Start</Text>
@@ -127,7 +135,7 @@ export function CoursesScreen({
             />
           </View>
         </View>
-      </View>
+      </PremiumCard>
 
       <SectionHeader title="Courses" note={`${courses.length} active courses`} />
       <View style={styles.courseList}>
@@ -135,56 +143,35 @@ export function CoursesScreen({
           <Text style={styles.emptyCard}>Add your first course to start building the semester.</Text>
         ) : null}
         {courses.map((course) => {
-          const openCount = assignments.filter(
-            (assignment) => assignment.courseId === course.id && assignment.status !== "done"
-          ).length;
+          const stats = courseStats(course, assignments, now, weekEnd);
           return (
-            <TouchableOpacity
-              accessibilityRole="button"
+            <CourseSummaryCard
               key={course.id}
-              style={[
-                styles.courseCard,
-                selectedCourse?.id === course.id ? styles.courseCardSelected : null
-              ]}
+              course={course}
+              dueThisWeek={stats.dueThisWeek}
+              progress={stats.progress}
               onPress={() => setSelectedCourseId(course.id)}
-            >
-              <View style={[styles.colorDot, { backgroundColor: course.color }]} />
-              <View style={styles.courseBody}>
-                <Text style={styles.courseCode}>{course.code}</Text>
-                <Text style={styles.courseName}>{course.name}</Text>
-                <Text style={styles.courseMeta}>
-                  {course.instructor || "Instructor"} · {openCount} open
-                </Text>
-              </View>
-            </TouchableOpacity>
+            />
           );
         })}
       </View>
 
       {selectedCourse ? (
         <>
-          <SectionHeader title="Class Hub" note={selectedCourse.code} />
-          <View style={styles.hubCard}>
+          <SectionHeader title="Class Detail" note={selectedCourse.code} />
+          <PremiumCard>
             <View style={styles.hubTop}>
               <View>
                 <Text style={styles.hubCode}>{selectedCourse.code}</Text>
                 <Text style={styles.hubName}>{selectedCourse.name}</Text>
+                <Text style={styles.hubMeta}>{selectedCourse.instructor || "Instructor"}</Text>
               </View>
               <Badge label={`${selectedProgress}% done`} tone={selectedProgress >= 80 ? "green" : "blue"} />
             </View>
             <View style={styles.hubMetrics}>
-              <View style={styles.hubMetric}>
-                <Text style={styles.hubMetricValue}>{selectedOpenAssignments.length}</Text>
-                <Text style={styles.hubMetricLabel}>open</Text>
-              </View>
-              <View style={styles.hubMetric}>
-                <Text style={styles.hubMetricValue}>{selectedExams.length}</Text>
-                <Text style={styles.hubMetricLabel}>exams</Text>
-              </View>
-              <View style={styles.hubMetric}>
-                <Text style={styles.hubMetricValue}>{selectedCourse.meetings.length}</Text>
-                <Text style={styles.hubMetricLabel}>meetings</Text>
-              </View>
+              <MetricTile label="open" value={String(selectedOpenAssignments.length)} />
+              <MetricTile label="exams" value={String(selectedExams.length)} />
+              <MetricTile label="meetings" value={String(selectedCourse.meetings.length)} />
             </View>
             <View style={styles.reminderDefaults}>
               <Badge label="Assignments: day before" tone="gold" />
@@ -193,10 +180,10 @@ export function CoursesScreen({
             <Text style={styles.hubMeta}>
               Syllabus: {selectedSyllabusSources[0]?.sourceName || "Not linked yet"}
             </Text>
-          </View>
+          </PremiumCard>
 
           <SectionHeader title="Edit Course" note={selectedCourse.code} />
-          <View style={styles.addCard}>
+          <PremiumCard>
             <Text style={styles.inputLabel}>Code</Text>
             <TextInput
               value={selectedCourse.code}
@@ -221,12 +208,88 @@ export function CoursesScreen({
               placeholderTextColor={colors.faint}
               style={styles.input}
             />
+          </PremiumCard>
+
+          <SectionHeader title="Exams" note={`${selectedExams.length} scheduled`} />
+          <View style={styles.workList}>
+            {selectedExams.length === 0 ? (
+              <Text style={styles.emptyDay}>No exams for this class yet.</Text>
+            ) : (
+              selectedExams.map((assignment) => (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  key={assignment.id}
+                  style={styles.examHubItem}
+                  onPress={() => onOpenAssignment(assignment.id)}
+                >
+                  <Badge label={urgencyLabel(assignment, now)} tone="red" />
+                  <View style={styles.examHubCopy}>
+                    <Text style={styles.examHubTitle}>{assignment.title}</Text>
+                    <Text style={styles.examHubMeta}>{assignment.dueAt.slice(0, 10)}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
+
+          <SectionHeader title="Course Work" note={selectedCourse.code} />
+          <View style={styles.workList}>
+            {selectedAssignments.length === 0 ? (
+              <Text style={styles.emptyDay}>No assignments yet.</Text>
+            ) : (
+              selectedAssignments.map((assignment) => (
+                <AssignmentCard
+                  key={assignment.id}
+                  assignment={assignment}
+                  course={selectedCourse}
+                  onOpen={() => onOpenAssignment(assignment.id)}
+                />
+              ))
+            )}
           </View>
         </>
       ) : null}
 
+      <SectionHeader title="Quick Add" note="Minimal typing for manual entry" />
+      <PremiumCard>
+        <View style={styles.segmented}>
+          {(["assignment", "exam"] as AssignmentKind[]).map((option) => (
+            <TouchableOpacity
+              accessibilityRole="button"
+              key={option}
+              style={[styles.segment, kind === option ? styles.segmentActive : null]}
+              onPress={() => setKind(option)}
+            >
+              <Text style={[styles.segmentText, kind === option ? styles.segmentTextActive : null]}>
+                {option === "exam" ? "Exam" : "Assignment"}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <TextInput
+          value={title}
+          onChangeText={setTitle}
+          placeholder="Title"
+          placeholderTextColor={colors.faint}
+          style={styles.input}
+        />
+        <TextInput
+          value={dueDate}
+          onChangeText={setDueDate}
+          placeholder="YYYY-MM-DD"
+          placeholderTextColor={colors.faint}
+          style={styles.input}
+        />
+        <AppButton
+          label="Add"
+          icon={Plus}
+          disabled={!selectedCourse || !title.trim() || !dueDate.trim()}
+          onPress={addItem}
+        />
+      </PremiumCard>
+
       <SectionHeader title="Add Course" note="Defaults include editable grade weights" />
-      <View style={styles.addCard}>
+      <PremiumCard>
         <View style={styles.twoColumn}>
           <TextInput
             value={newCourseCode}
@@ -264,90 +327,10 @@ export function CoursesScreen({
             setNewCourseInstructor("");
           }}
         />
-      </View>
-
-      {selectedCourse ? (
-        <>
-          <SectionHeader title="Exams" note={`${selectedExams.length} scheduled`} />
-          <View style={styles.workList}>
-            {selectedExams.length === 0 ? (
-              <Text style={styles.emptyDay}>No exams for this class yet.</Text>
-            ) : (
-              selectedExams.map((assignment) => (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  key={assignment.id}
-                  style={styles.examHubItem}
-                  onPress={() => onOpenAssignment(assignment.id)}
-                >
-                  <Badge label={urgencyLabel(assignment)} tone="red" />
-                  <View style={styles.examHubCopy}>
-                    <Text style={styles.examHubTitle}>{assignment.title}</Text>
-                    <Text style={styles.examHubMeta}>{assignment.dueAt.slice(0, 10)}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))
-            )}
-          </View>
-
-          <SectionHeader title="Course Work" note={selectedCourse.code} />
-          <View style={styles.workList}>
-            {selectedAssignments.length === 0 ? (
-              <Text style={styles.emptyDay}>No assignments yet.</Text>
-            ) : (
-              selectedAssignments.map((assignment) => (
-                <AssignmentCard
-                  key={assignment.id}
-                  assignment={assignment}
-                  course={selectedCourse}
-                  onOpen={() => onOpenAssignment(assignment.id)}
-                />
-              ))
-            )}
-          </View>
-        </>
-      ) : null}
-
-      <SectionHeader title="Quick Add" note="Minimal typing for manual entry" />
-      <View style={styles.addCard}>
-        <View style={styles.segmented}>
-          {(["assignment", "exam"] as AssignmentKind[]).map((option) => (
-            <TouchableOpacity
-              accessibilityRole="button"
-              key={option}
-              style={[styles.segment, kind === option ? styles.segmentActive : null]}
-              onPress={() => setKind(option)}
-            >
-              <Text style={[styles.segmentText, kind === option ? styles.segmentTextActive : null]}>
-                {option === "exam" ? "Exam" : "Assignment"}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <TextInput
-          value={title}
-          onChangeText={setTitle}
-          placeholder="Title"
-          placeholderTextColor={colors.faint}
-          style={styles.input}
-        />
-        <TextInput
-          value={dueDate}
-          onChangeText={setDueDate}
-          placeholder="YYYY-MM-DD"
-          placeholderTextColor={colors.faint}
-          style={styles.input}
-        />
-        <AppButton
-          label="Add"
-          icon={Plus}
-          disabled={!selectedCourse || !title.trim() || !dueDate.trim()}
-          onPress={addItem}
-        />
-      </View>
+      </PremiumCard>
 
       <SectionHeader title="Weekly Schedule" note="Class blocks by day" />
-      <View style={styles.week}>
+      <PremiumCard>
         {weekly.map(({ day, meetings }) => (
           <View key={day} style={styles.dayRow}>
             <Text style={styles.day}>{day}</Text>
@@ -370,51 +353,68 @@ export function CoursesScreen({
             </View>
           </View>
         ))}
-      </View>
+      </PremiumCard>
     </View>
   );
 }
 
+function MetricTile({ label, value }: { label: string; value: string }) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.hubMetric}>
+      <Text style={styles.hubMetricValue}>{value}</Text>
+      <Text style={styles.hubMetricLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function courseStats(course: Course, assignments: Assignment[], now: Date, weekEnd: Date) {
+  const courseAssignments = assignments.filter((assignment) => assignment.courseId === course.id);
+  const completedCount = courseAssignments.filter(
+    (assignment) => assignment.completionStatus === "completed"
+  ).length;
+  const dueThisWeek = courseAssignments.filter((assignment) => {
+    const due = new Date(assignment.dueAt);
+    return due >= now && due < weekEnd && assignment.completionStatus !== "completed";
+  }).length;
+
+  return {
+    dueThisWeek,
+    progress:
+      courseAssignments.length > 0
+        ? Math.round((completedCount / courseAssignments.length) * 100)
+        : 0
+  };
+}
+
 function createStyles(theme: AppTheme) {
-  const { colors, radii, spacing, typography } = theme;
+  const { colors, radii, spacing } = theme;
 
   return StyleSheet.create({
-    header: {
-      gap: spacing.xs
+    screen: {
+      gap: spacing.md
     },
-    kicker: {
-      color: colors.accent,
-      fontSize: 13,
+    cardTitle: {
+      color: colors.ink,
+      fontSize: 15,
+      lineHeight: 20,
       fontWeight: "900"
-    },
-    title: {
-      ...typography.title
     },
     titleInput: {
       color: colors.ink,
-      fontSize: 28,
-      lineHeight: 34,
+      fontSize: 24,
+      lineHeight: 30,
       fontWeight: "900",
       padding: 0
-    },
-    subtitle: {
-      ...typography.body
-    },
-    semesterCard: {
-      marginTop: spacing.lg,
-      borderRadius: radii.md,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.md,
-      gap: spacing.sm
     },
     courseList: {
       gap: spacing.sm
     },
     emptyCard: {
       overflow: "hidden",
-      borderRadius: radii.md,
+      borderRadius: radii.lg,
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: colors.surface,
@@ -424,54 +424,6 @@ function createStyles(theme: AppTheme) {
       lineHeight: 20,
       fontWeight: "700"
     },
-    courseCard: {
-      minHeight: 96,
-      borderRadius: radii.md,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.md,
-      flexDirection: "row",
-      gap: spacing.sm
-    },
-    courseCardSelected: {
-      borderColor: colors.accent,
-      backgroundColor: colors.surfaceAlt
-    },
-    colorDot: {
-      width: 12,
-      height: 12,
-      borderRadius: 6,
-      marginTop: 4
-    },
-    courseBody: {
-      flex: 1,
-      gap: 2
-    },
-    courseCode: {
-      color: colors.ink,
-      fontSize: 13,
-      fontWeight: "900"
-    },
-    courseName: {
-      color: colors.ink,
-      fontSize: 17,
-      lineHeight: 23,
-      fontWeight: "900"
-    },
-    courseMeta: {
-      color: colors.muted,
-      fontSize: 13,
-      lineHeight: 18
-    },
-    hubCard: {
-      borderRadius: radii.md,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.md,
-      gap: spacing.md
-    },
     hubTop: {
       flexDirection: "row",
       alignItems: "flex-start",
@@ -479,7 +431,7 @@ function createStyles(theme: AppTheme) {
       gap: spacing.sm
     },
     hubCode: {
-      color: colors.accent,
+      color: colors.brandPurple,
       fontSize: 13,
       fontWeight: "900"
     },
@@ -491,13 +443,15 @@ function createStyles(theme: AppTheme) {
     },
     hubMetrics: {
       flexDirection: "row",
-      gap: spacing.sm
+      gap: spacing.sm,
+      marginTop: spacing.md,
+      marginBottom: spacing.md
     },
     hubMetric: {
       flex: 1,
       minHeight: 70,
-      borderRadius: radii.sm,
-      backgroundColor: colors.canvas,
+      borderRadius: radii.lg,
+      backgroundColor: colors.surfaceAlt,
       padding: spacing.sm,
       justifyContent: "center"
     },
@@ -515,7 +469,8 @@ function createStyles(theme: AppTheme) {
     reminderDefaults: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: spacing.xs
+      gap: spacing.xs,
+      marginBottom: spacing.sm
     },
     hubMeta: {
       color: colors.muted,
@@ -525,7 +480,7 @@ function createStyles(theme: AppTheme) {
     },
     examHubItem: {
       minHeight: 72,
-      borderRadius: radii.md,
+      borderRadius: radii.xl,
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: colors.surface,
@@ -550,28 +505,20 @@ function createStyles(theme: AppTheme) {
       lineHeight: 17,
       fontWeight: "700"
     },
-    addCard: {
-      borderRadius: radii.md,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.md,
-      gap: spacing.sm
-    },
     workList: {
       gap: spacing.sm
     },
     segmented: {
       minHeight: 44,
       flexDirection: "row",
-      borderRadius: radii.md,
+      borderRadius: radii.round,
       backgroundColor: colors.canvas,
       padding: 4,
       gap: 4
     },
     segment: {
       flex: 1,
-      borderRadius: radii.sm,
+      borderRadius: radii.round,
       alignItems: "center",
       justifyContent: "center"
     },
@@ -589,7 +536,7 @@ function createStyles(theme: AppTheme) {
     input: {
       minWidth: 0,
       minHeight: 46,
-      borderRadius: radii.sm,
+      borderRadius: radii.lg,
       borderWidth: 1,
       borderColor: colors.line,
       color: colors.ink,
@@ -601,7 +548,8 @@ function createStyles(theme: AppTheme) {
     inputLabel: {
       color: colors.faint,
       fontSize: 12,
-      fontWeight: "900"
+      fontWeight: "900",
+      marginTop: spacing.xs
     },
     twoColumn: {
       flexDirection: "row",
@@ -612,19 +560,12 @@ function createStyles(theme: AppTheme) {
       flex: 1,
       minWidth: 0
     },
-    week: {
-      borderRadius: radii.md,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      overflow: "hidden"
-    },
     dayRow: {
       minHeight: 64,
       flexDirection: "row",
       borderBottomWidth: 1,
       borderBottomColor: colors.line,
-      padding: spacing.sm,
+      paddingVertical: spacing.sm,
       gap: spacing.sm
     },
     day: {
