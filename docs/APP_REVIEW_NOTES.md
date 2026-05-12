@@ -1,6 +1,6 @@
 # App Review Notes
 
-StudyPlanner Plus is available through the in-app subscription screen. To test Syllabus Scan, open the app, complete onboarding, choose Study Planner Plus, subscribe using Apple's sandbox purchase flow, then open Syllabus Scan from the Scan tab. Restore Purchases is available on the paywall.
+StudyPlanner Plus is available through the in-app subscription screen. To test syllabus import, open the app, complete onboarding, open Widget Setup, choose View Plus Plans, subscribe using Apple's sandbox purchase flow, then open Check New Work from the bottom dock. Restore Purchases is available on the paywall.
 
 The app uses Apple's standard EULA:
 https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
@@ -10,7 +10,7 @@ https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Polic
 
 Supported syllabus upload flow for this build:
 
-1. Use the Scan tab after Plus is active.
+1. Use Check New Work after Plus is active.
 2. Choose File to select a text-based PDF or plain-text syllabus from Files.
 3. Review detected courses, deadlines, and grade categories.
 4. Apply the parsed plan only after review.

@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   completionStatusFromStatus,
   isAssignmentCompleted,
+  isAssignmentConfirmed,
   isAssignmentOpen,
   normalizeAssignment,
   withAssignmentPatch
@@ -41,6 +42,28 @@ test("normalizes legacy syllabus assignments into the v1.1 contract", () => {
   assert.equal(assignment.completionStatus, "open");
   assert.equal(assignment.reminderPreset, "week_before");
   assert.equal(assignment.createdAt, "2026-08-24T12:00:00.000Z");
+});
+
+test("unreviewed syllabus work is not a confirmed open assignment", () => {
+  const assignment = normalizeAssignment(
+    {
+      id: "bio-reading",
+      courseId: course.id,
+      title: "Chapter 2 reading",
+      dueAt: "2026-09-20T23:59:00",
+      source: "syllabus"
+    },
+    [course],
+    new Date("2026-08-24T12:00:00Z")
+  );
+
+  assert.equal(assignment.reviewStatus, "needsReview");
+  assert.equal(isAssignmentConfirmed(assignment), false);
+  assert.equal(isAssignmentOpen(assignment), false);
+
+  const accepted = withAssignmentPatch(assignment, { reviewStatus: "accepted" }, [course]);
+  assert.equal(isAssignmentConfirmed(accepted), true);
+  assert.equal(isAssignmentOpen(accepted), true);
 });
 
 test("completion status transitions stay compatible with legacy status", () => {

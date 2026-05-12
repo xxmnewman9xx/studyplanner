@@ -160,7 +160,14 @@ function normalizeParseResult(value: unknown, source: SyllabusImportSource): Syl
     semesterStartDate: result.semesterStartDate,
     semesterEndDate: result.semesterEndDate,
     courses,
-    assignments: normalizeAssignments(assignments, courses),
+    assignments: normalizeAssignments(
+      assignments.map((assignment) => ({
+        ...assignment,
+        source: "syllabus" as const,
+        reviewStatus: "needsReview" as const
+      })),
+      courses
+    ),
     gradeItems,
     findings: Array.isArray(result.findings) ? result.findings : [],
     syllabusSource: result.syllabusSource

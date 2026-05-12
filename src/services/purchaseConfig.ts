@@ -5,6 +5,12 @@ declare const process:
   | undefined;
 
 const defaultAndroidPackageName = "com.studyplanner.syllabusai";
+export const expectedMonthlySubscriptionId =
+  "com.mattnewman.studyplanner.plus.monthly";
+export const expectedYearlySubscriptionId =
+  "com.mattnewman.studyplanner.plus.yearly";
+export const proposedLifetimeProductId =
+  "com.mattnewman.studyplanner.plus.lifetime";
 export const appleStandardEulaUrl =
   "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
 export const studyPlannerPrivacyUrl =

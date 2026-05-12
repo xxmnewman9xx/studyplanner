@@ -8,8 +8,8 @@ test("widget snapshot selects next due and overdue counts", () => {
   const seed = createDemoSemesterSeed();
   const snapshot = buildWidgetSnapshot(seed, storeCaptureNow);
 
-  assert.equal(snapshot.nextDue?.assignmentId, "problem-set-4");
-  assert.equal(snapshot.nextDue?.urgency, "today");
+  assert.equal(snapshot.nextDue?.assignmentId, "lab-report");
+  assert.equal(snapshot.nextDue?.urgency, "soon");
   assert.equal(snapshot.overdueCount, 0);
   assert.ok(snapshot.reviewQueueCount > 0);
 });
@@ -18,14 +18,14 @@ test("widget snapshot prepares this-week surfaces and heavy warning", () => {
   const seed = createDemoSemesterSeed();
   const snapshot = buildWidgetSnapshot(seed, storeCaptureNow);
 
-  assert.equal(snapshot.thisWeek.length, 8);
+  assert.equal(snapshot.thisWeek.length, 5);
   assert.equal(snapshot.surfaces.small.kind, "nextDue");
   assert.equal(snapshot.surfaces.medium.items.length, 4);
-  assert.equal(snapshot.surfaces.medium.overflowCount, 4);
+  assert.equal(snapshot.surfaces.medium.overflowCount, 1);
   assert.equal(snapshot.surfaces.large.heavyWeekWarning?.isHeavy, true);
-  assert.equal(snapshot.surfaces.lockScreen.countdownLabel, "Today");
-  assert.equal(snapshot.surfaces.monthly.dueThisMonth, 9);
-  assert.equal(snapshot.surfaces.heavyWeek.workloadByDay[1]?.count, 4);
+  assert.equal(snapshot.surfaces.lockScreen.countdownLabel, "Tomorrow");
+  assert.equal(snapshot.surfaces.monthly.dueThisMonth, 6);
+  assert.equal(snapshot.surfaces.heavyWeek.workloadByDay[1]?.count, 3);
   assert.ok(snapshot.widgetStyle?.paletteId);
 });
 

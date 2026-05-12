@@ -10,6 +10,7 @@ type InferredSemester = {
 const assignmentKeywords =
   /\b(assignment|homework|hw|exam|midterm|final|quiz|test|paper|project|presentation|lab|essay|due)\b/i;
 const examKeywords = /\b(exam|midterm|final|quiz|test)\b/i;
+const assignmentReviewLimit = 75;
 const datePattern =
   /\b(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[/. -]\d{1,2}(?:[/. -]\d{2,4})?|(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+\d{4})?)\b/i;
 
@@ -25,7 +26,8 @@ export function parseSyllabusText(rawText: string, sourceName: string): Syllabus
   const inferredYear = inferYear(text);
   const semester = inferSemester(text, inferredYear);
   const course = inferCourse(lines, sourceName);
-  const assignments = inferAssignments(lines, course, inferredYear);
+  const inferredAssignments = inferAssignments(lines, course, inferredYear);
+  const assignments = inferredAssignments.slice(0, assignmentReviewLimit);
   const gradeCategories = inferGradeCategories(lines, course.id);
   const courseWithGrades = {
     ...course,
@@ -52,6 +54,15 @@ export function parseSyllabusText(rawText: string, sourceName: string): Syllabus
               id: "no-deadlines-found",
               severity: "needs_review" as const,
               message: "No dated deadlines were found. You can still apply the course and add deadlines manually."
+            }
+          ]
+        : []),
+      ...(inferredAssignments.length > assignmentReviewLimit
+        ? [
+            {
+              id: "deadline-review-limit",
+              severity: "needs_review" as const,
+              message: `More than ${assignmentReviewLimit} dated items were found. The first ${assignmentReviewLimit} are ready to check; add any extras manually.`
             }
           ]
         : [])
@@ -286,7 +297,7 @@ function inferAssignments(lines: string[], course: Course, inferredYear: number)
     );
   }
 
-  return assignments.slice(0, 30);
+  return assignments;
 }
 
 function parseDateToken(token: string, inferredYear: number) {

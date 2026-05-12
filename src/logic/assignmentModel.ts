@@ -96,14 +96,30 @@ export function isAssignmentArchived(assignment: Pick<Assignment, "status" | "re
   return assignment.status === "archived" || assignment.reviewStatus === "ignored";
 }
 
+export function isAssignmentConfirmed(assignment: Pick<Assignment, "reviewStatus">) {
+  return assignment.reviewStatus === "accepted";
+}
+
+export function isAssignmentNeedsReview(
+  assignment: Pick<Assignment, "status" | "reviewStatus">
+) {
+  return assignment.reviewStatus === "needsReview" && !isAssignmentArchived(assignment);
+}
+
 export function isAssignmentCompleted(
   assignment: Pick<Assignment, "status" | "completionStatus">
 ) {
   return assignment.completionStatus === "completed" || assignment.status === "done";
 }
 
-export function isAssignmentOpen(assignment: Pick<Assignment, "status" | "completionStatus" | "reviewStatus">) {
-  return !isAssignmentArchived(assignment) && !isAssignmentCompleted(assignment);
+export function isAssignmentOpen(
+  assignment: Pick<Assignment, "status" | "completionStatus" | "reviewStatus">
+) {
+  return (
+    isAssignmentConfirmed(assignment) &&
+    !isAssignmentArchived(assignment) &&
+    !isAssignmentCompleted(assignment)
+  );
 }
 
 export function completionStatusFromStatus(status: AssignmentStatus): CompletionStatus {

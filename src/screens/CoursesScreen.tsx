@@ -15,6 +15,11 @@ import {
 } from "../components/PremiumUI";
 import { isStoreCaptureEnabled } from "../config/storeCapture";
 import { storeCaptureNow } from "../data/demoSemester";
+import {
+  isAssignmentCompleted,
+  isAssignmentConfirmed,
+  isAssignmentOpen
+} from "../logic/assignmentModel";
 import { formatDateOnly, getCourseForAssignment, groupMeetingsByDay, urgencyLabel } from "../logic/planner";
 import { buildSemesterInsights } from "../logic/semesterInsights";
 import { Assignment, AssignmentKind, Course, Semester, SyllabusSource } from "../models";
@@ -70,17 +75,20 @@ export function CoursesScreen({
   const selectedCourse = courses.find((course) => course.id === selectedCourseId) || courses[0];
   const selectedAssignments = selectedCourse
     ? assignments
-        .filter((assignment) => assignment.courseId === selectedCourse.id)
+        .filter(
+          (assignment) =>
+            assignment.courseId === selectedCourse.id && isAssignmentConfirmed(assignment)
+        )
         .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
     : [];
-  const selectedOpenAssignments = selectedAssignments.filter(
-    (assignment) => assignment.completionStatus !== "completed"
+  const selectedOpenAssignments = selectedAssignments.filter((assignment) =>
+    isAssignmentOpen(assignment)
   );
   const selectedExams = selectedAssignments.filter(
     (assignment) => assignment.type === "exam" || assignment.kind === "exam"
   );
   const selectedDoneCount = selectedAssignments.filter(
-    (assignment) => assignment.completionStatus === "completed"
+    (assignment) => isAssignmentCompleted(assignment)
   ).length;
   const selectedProgress =
     selectedAssignments.length > 0
@@ -398,12 +406,14 @@ export function CoursesScreen({
 }
 
 function courseStats(course: Course, assignments: Assignment[], now: Date, weekEnd: Date) {
-  const courseAssignments = assignments.filter((assignment) => assignment.courseId === course.id);
-  const completedCount = courseAssignments.filter(
-    (assignment) => assignment.completionStatus === "completed"
+  const courseAssignments = assignments.filter(
+    (assignment) => assignment.courseId === course.id && isAssignmentConfirmed(assignment)
+  );
+  const completedCount = courseAssignments.filter((assignment) =>
+    isAssignmentCompleted(assignment)
   ).length;
   const openAssignments = courseAssignments
-    .filter((assignment) => assignment.completionStatus !== "completed")
+    .filter((assignment) => isAssignmentOpen(assignment))
     .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
   const dueThisWeek = openAssignments.filter((assignment) => {
     const due = new Date(assignment.dueAt);

@@ -53,9 +53,9 @@ const priorities: Priority[] = ["low", "medium", "high"];
 const kinds: AssignmentKind[] = ["assignment", "exam", "quiz", "project", "reading", "other"];
 const filters: Array<{ id: ConfidenceFilter; label: string }> = [
   { id: "all", label: "All" },
-  { id: "high", label: "Sure" },
-  { id: "medium", label: "Check" },
-  { id: "low", label: "Needs help" }
+  { id: "high", label: "Looks good" },
+  { id: "medium", label: "Check date" },
+  { id: "low", label: "Needs check" }
 ];
 
 export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
@@ -234,54 +234,52 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
   return (
     <PremiumScreen>
       <PremiumHeader
-        eyebrow="All extracted. You review."
-        title="Review Inbox"
-        subtitle="Review extracted coursework before it touches your semester."
+        eyebrow="Found work. You check."
+        title="Check New Work"
+        subtitle="Look over found coursework before it touches your semester."
       />
 
-      {captureMode ? null : (
-        <GlassCard tint="hero">
-          <View style={styles.scanHeroTop}>
-            <View style={styles.scanHeroIcon}>
-              <Sparkles color={colors.heroText} size={20} />
-            </View>
-            <View style={styles.scanHeroCopy}>
-              <Text style={styles.scanHeroTitle}>Scan Syllabus</Text>
-              <Text style={styles.scanHeroMeta}>{scanCopy}</Text>
-            </View>
+      <GlassCard tint="hero">
+        <View style={styles.scanHeroTop}>
+          <View style={styles.scanHeroIcon}>
+            <Sparkles color={colors.heroText} size={20} />
           </View>
-          <View style={styles.importGrid}>
-            <AppButton
-              label="File"
-              icon={FileText}
-              variant="secondary"
-              style={styles.importButton}
-              disabled={loading}
-              onPress={pickPdf}
-            />
-            {imageParsingReady ? (
-              <>
-                <AppButton
-                  label="Photo"
-                  icon={Upload}
-                  variant="secondary"
-                  style={styles.importButton}
-                  disabled={loading}
-                  onPress={pickPhoto}
-                />
-                <AppButton
-                  label="Camera"
-                  icon={Camera}
-                  variant="secondary"
-                  style={styles.importButton}
-                  disabled={loading}
-                  onPress={capturePhoto}
-                />
-              </>
-            ) : null}
+          <View style={styles.scanHeroCopy}>
+            <Text style={styles.scanHeroTitle}>Add School Stuff</Text>
+            <Text style={styles.scanHeroMeta}>{scanCopy}</Text>
           </View>
-        </GlassCard>
-      )}
+        </View>
+        <View style={styles.importGrid}>
+          <AppButton
+            label="File"
+            icon={FileText}
+            variant="secondary"
+            style={styles.importButton}
+            disabled={loading}
+            onPress={pickPdf}
+          />
+          {imageParsingReady ? (
+            <>
+              <AppButton
+                label="Photo"
+                icon={Upload}
+                variant="secondary"
+                style={styles.importButton}
+                disabled={loading}
+                onPress={pickPhoto}
+              />
+              <AppButton
+                label="Camera"
+                icon={Camera}
+                variant="secondary"
+                style={styles.importButton}
+                disabled={loading}
+                onPress={capturePhoto}
+              />
+            </>
+          ) : null}
+        </View>
+      </GlassCard>
 
       {loading ? <ActivityIndicator style={styles.loader} color={colors.ink} /> : null}
       {errorMessage ? (
@@ -300,13 +298,13 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
                 <Sparkles color={colors.heroText} size={20} />
               </View>
               <View style={styles.aiHeroCopy}>
-                <Text style={styles.aiHeroKicker}>Needs Review</Text>
+                <Text style={styles.aiHeroKicker}>Needs Check</Text>
                 <Text style={styles.aiHeroTitle}>{reviewStats.needsReview} waiting for approval</Text>
                 <Text style={styles.aiHeroMeta}>
-                  {reviewStats.high} sure items can flow into Today, Calendar, Classes, and widgets.
+                  {reviewStats.high} look ready, but you choose what goes into Today, Calendar, Classes, and widgets.
                 </Text>
               </View>
-              <StatusBadge label={reviewStats.low > 0 ? "Needs eyes" : "Clean"} tone={reviewStats.low > 0 ? "gold" : "green"} />
+              <StatusBadge label={reviewStats.low > 0 ? "Needs check" : "Clean"} tone={reviewStats.low > 0 ? "gold" : "green"} />
             </View>
           </GlassCard>
 
@@ -319,20 +317,20 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
                 </View>
                 <View style={styles.summaryCopy}>
                   <Text style={styles.summaryKicker}>Found from syllabus</Text>
-                  <Text style={styles.summaryTitle}>Extracted {reviewStats.total} items</Text>
-                  <Text style={styles.summaryMeta}>Sorted by AI confidence. You choose what gets added.</Text>
+                  <Text style={styles.summaryTitle}>Found {reviewStats.total} items</Text>
+                  <Text style={styles.summaryMeta}>Sorted by how sure the app is. You choose what gets added.</Text>
                 </View>
               </View>
               <StatusBadge label={`${reviewStats.needsReview} waiting`} tone="purple" />
             </View>
             <View style={styles.statRow}>
-              <MetricPill label="Sure" value={String(reviewStats.high)} tone="green" />
-              <MetricPill label="Check" value={String(reviewStats.medium)} tone="gold" />
-              <MetricPill label="Needs help" value={String(reviewStats.low)} tone="red" />
+              <MetricPill label="Looks Good" value={String(reviewStats.high)} tone="green" />
+              <MetricPill label="Check Date" value={String(reviewStats.medium)} tone="gold" />
+              <MetricPill label="Needs Check" value={String(reviewStats.low)} tone="red" />
             </View>
           </GlassCard>
 
-          <Text style={styles.filterCaption}>AI confidence</Text>
+          <Text style={styles.filterCaption}>How sure</Text>
           <View style={styles.filterRow}>
             {filters.map((option) => (
               <PillFilter
@@ -346,7 +344,7 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
           </View>
 
           <AppButton
-            label={`Accept ${reviewStats.high} sure items`}
+            label={`Mark ${reviewStats.high} looks good`}
             icon={CheckCheck}
             disabled={reviewStats.high === 0}
             onPress={acceptAllHighConfidence}
@@ -354,7 +352,7 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
 
           <View style={styles.secondaryActions}>
             <TouchableOpacity accessibilityRole="button" onPress={acceptVisible}>
-              <Text style={styles.secondaryActionText}>Accept shown</Text>
+              <Text style={styles.secondaryActionText}>Looks good shown</Text>
             </TouchableOpacity>
             {reviewStats.ignored > 0 ? (
               <TouchableOpacity accessibilityRole="button" onPress={restoreIgnored}>
@@ -394,7 +392,7 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
           </View>
 
           <AppButton
-            label="Add accepted items to planner"
+            label="Add checked items to planner"
             disabled={acceptedAssignments.length === 0 && draft.assignments.length > 0}
             onPress={applyAcceptedPlan}
           />
@@ -446,7 +444,7 @@ function ReviewRow({
         <StatusBadge label={confidenceLabel(assignment.confidence)} tone={confidenceTone(assignment.confidence)} />
       </View>
       <View style={styles.reviewActionRow}>
-        <MicroAction label="Accept" onPress={onAccept}>
+        <MicroAction label="Looks good" onPress={onAccept}>
           <CheckCircle2 color={colors.green} size={16} />
         </MicroAction>
         <MicroAction label="Remove" onPress={onIgnore}>
@@ -554,9 +552,9 @@ function confidenceBucket(confidence: number): Exclude<ConfidenceFilter, "all"> 
 }
 
 function confidenceLabel(confidence: number) {
-  if (confidence >= 0.85) return "Sure";
-  if (confidence >= 0.7) return "Check";
-  return "Needs help";
+  if (confidence >= 0.85) return "Looks good";
+  if (confidence >= 0.7) return "Check date";
+  return "Needs check";
 }
 
 function confidenceTone(confidence: number): "green" | "gold" | "red" {

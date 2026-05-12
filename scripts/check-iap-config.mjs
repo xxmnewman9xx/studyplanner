@@ -15,6 +15,9 @@ const storeCapture = read("src/config/storeCapture.ts");
 const srcSource = walk(path.join(root, "src"))
   .filter((file) => /\.(ts|tsx)$/.test(file))
   .map((file) => [path.relative(root, file), fs.readFileSync(file, "utf8")]);
+const expectedMonthlyId = "com.mattnewman.studyplanner.plus.monthly";
+const expectedYearlyId = "com.mattnewman.studyplanner.plus.yearly";
+const expectedLifetimeId = "com.mattnewman.studyplanner.plus.lifetime";
 
 assert(app.includes("<SubscriptionProvider>"), "App must wrap screens in SubscriptionProvider.");
 assert(app.includes("useSubscription"), "App must read centralized subscription state.");
@@ -44,6 +47,28 @@ for (const name of [
 ]) {
   assert(purchaseConfig.includes(name), `purchaseConfig must read ${name}.`);
 }
+for (const productId of [expectedMonthlyId, expectedYearlyId, expectedLifetimeId]) {
+  assert(
+    purchaseConfig.includes(productId),
+    `purchaseConfig must document expected product ID ${productId}.`
+  );
+}
+
+if (process.env.EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS) {
+  const subscriptionIds = process.env.EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS.split(",").map((id) => id.trim());
+  assert(subscriptionIds.includes(expectedMonthlyId), `Configured subscriptions must include ${expectedMonthlyId}.`);
+  assert(subscriptionIds.includes(expectedYearlyId), `Configured subscriptions must include ${expectedYearlyId}.`);
+}
+
+if (process.env.EXPO_PUBLIC_IAP_LIFETIME_PRODUCT_IDS) {
+  const lifetimeIds = process.env.EXPO_PUBLIC_IAP_LIFETIME_PRODUCT_IDS.split(",").map((id) => id.trim());
+  assert(lifetimeIds.includes(expectedLifetimeId), `Configured lifetime products must include ${expectedLifetimeId}.`);
+}
+
+assert(
+  process.env.EXPO_PUBLIC_STORE_CAPTURE !== "1",
+  "EXPO_PUBLIC_STORE_CAPTURE=1 must not be set for production/IAP verification."
+);
 
 assert(
   parser.includes("EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT"),

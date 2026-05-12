@@ -122,7 +122,7 @@ const onboardingSteps: Array<{
   },
   {
     id: "review",
-    eyebrow: "Review Inbox",
+    eyebrow: "Check New Work",
     title: "Approve the plan before it touches your calendar.",
     copy: "High-confidence dates can be accepted quickly, while anything uncertain stays editable.",
     icon: CheckCircle2
@@ -143,7 +143,7 @@ const onboardingSteps: Array<{
   },
   {
     id: "widgets",
-    eyebrow: "Widget Studio",
+    eyebrow: "Widget Setup",
     title: "Make deadlines visible before opening the app.",
     copy: "Choose what a widget shows, how big it is, and which colors it uses.",
     icon: Crown
@@ -427,7 +427,7 @@ function ReviewInboxPreview({ motion }: { motion: Animated.Value }) {
           <CheckCircle2 color={colors.heroText} size={18} />
         </View>
         <View style={styles.previewCopy}>
-          <Text style={styles.previewKicker}>Review Inbox</Text>
+          <Text style={styles.previewKicker}>Check New Work</Text>
           <Text style={styles.previewTitle}>Approve with confidence</Text>
           <Text style={styles.previewMeta}>Nothing reaches Today, Calendar, or widgets until you say yes.</Text>
         </View>
@@ -596,7 +596,7 @@ function TodayCommandPreview({ motion }: { motion: Animated.Value }) {
       <View style={styles.metricRow}>
         <MetricPill label="Due Today" value="3" tone="purple" />
         <MetricPill label="Due Week" value="6" tone="blue" />
-        <MetricPill label="Inbox" value="7" tone="gold" />
+        <MetricPill label="Needs Check" value="7" tone="gold" />
       </View>
       <View style={styles.insightMini}>
         <Flame color={colors.coral} size={18} />
@@ -638,7 +638,7 @@ function WidgetCustomizationPreview({
           <Crown color={colors.heroText} size={18} />
         </View>
         <View style={styles.previewCopy}>
-          <Text style={styles.widgetPreviewKicker}>Widget Studio</Text>
+          <Text style={styles.widgetPreviewKicker}>Widget Setup</Text>
           <Text style={styles.widgetPreviewTitle}>Deadlines stay visible on your Home Screen.</Text>
         </View>
       </View>

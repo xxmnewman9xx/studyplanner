@@ -1,5 +1,6 @@
 import * as Notifications from "expo-notifications";
 import { Assignment, Course } from "../models";
+import { isAssignmentOpen } from "../logic/assignmentModel";
 import { getCourseForAssignment } from "../logic/planner";
 
 export async function scheduleSmartReminders(assignments: Assignment[], courses: Course[]) {
@@ -8,7 +9,7 @@ export async function scheduleSmartReminders(assignments: Assignment[], courses:
     throw new Error("Notifications permission was not granted.");
   }
 
-  const openAssignments = assignments.filter((assignment) => assignment.status !== "done");
+  const openAssignments = assignments.filter((assignment) => isAssignmentOpen(assignment));
   let scheduled = 0;
   const reminderIdsByAssignment: Record<string, string[]> = {};
 

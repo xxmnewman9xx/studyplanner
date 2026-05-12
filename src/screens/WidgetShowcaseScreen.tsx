@@ -99,8 +99,8 @@ export function WidgetShowcaseScreen({
   return (
     <PremiumScreen>
       <PremiumHeader
-        eyebrow="Widget Studio"
-        title="Widget Studio"
+        eyebrow="Widget Setup"
+        title="Widget Setup"
         subtitle="Preview widget ideas. iOS Home Screen widgets currently install as Small Next Due and Medium This Week."
       />
 
@@ -248,7 +248,7 @@ export function WidgetShowcaseScreen({
         <View pointerEvents="none" style={styles.stageBandTop} />
         <View pointerEvents="none" style={styles.stageBandBottom} />
         <View style={styles.galleryHeader}>
-          <Text style={styles.galleryKicker}>Widget previews</Text>
+          <Text style={styles.galleryKicker}>Widget setup</Text>
           <Text style={styles.galleryTitle}>Small, medium, and lock widgets use your latest deadlines.</Text>
         </View>
         <View style={styles.widgetPair}>

@@ -1,5 +1,6 @@
 import * as Calendar from "expo-calendar";
 import { Assignment, Course } from "../models";
+import { isAssignmentOpen } from "../logic/assignmentModel";
 import { getCourseForAssignment } from "../logic/planner";
 
 const plannerCalendarTitle = "Study Planner";
@@ -15,7 +16,7 @@ export async function syncAssignmentsToDeviceCalendar(
 
   const calendarId = await getOrCreatePlannerCalendar();
   const openAssignments = assignments.filter(
-    (assignment) => assignment.status !== "done" && !assignment.externalCalendarEventId
+    (assignment) => isAssignmentOpen(assignment) && !assignment.externalCalendarEventId
   );
   const calendarEventIdsByAssignment: Record<string, string> = {};
 

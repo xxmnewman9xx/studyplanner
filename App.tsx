@@ -64,6 +64,7 @@ import {
 import {
   createSyllabusSourceFromParse,
   isAssignmentArchived,
+  isAssignmentConfirmed,
   normalizeAssignment,
   normalizeAssignments,
   withAssignmentPatch
@@ -74,7 +75,10 @@ const plannerStorageKey = "study-planner-data-v2";
 if (isStoreCaptureEnabled()) {
   LogBox.ignoreAllLogs(true);
 } else {
-  LogBox.ignoreLogs(["SafeAreaView has been deprecated"]);
+  LogBox.ignoreLogs([
+    "SafeAreaView has been deprecated",
+    "SafeAreaView has been deprecated and will be removed"
+  ]);
 }
 
 const tabs: Array<{
@@ -86,8 +90,8 @@ const tabs: Array<{
   { id: "calendar", label: "Calendar", icon: CalendarRange },
   { id: "week", label: "Week", icon: CalendarDays },
   { id: "courses", label: "Classes", icon: GraduationCap },
-  { id: "import", label: "Inbox", icon: FileScan },
-  { id: "upgrade", label: "Widgets", icon: Crown }
+  { id: "import", label: "Check", icon: FileScan },
+  { id: "upgrade", label: "Setup", icon: Crown }
 ];
 
 export default function App() {
@@ -159,6 +163,10 @@ function AppContent() {
   const activeAssignments = useMemo(
     () => assignments.filter((item) => !isAssignmentArchived(item)),
     [assignments]
+  );
+  const confirmedAssignments = useMemo(
+    () => activeAssignments.filter((item) => isAssignmentConfirmed(item)),
+    [activeAssignments]
   );
   const selectedAssignment = useMemo(
     () => assignments.find((assignment) => assignment.id === selectedAssignmentId),
@@ -324,13 +332,20 @@ function AppContent() {
   const applyParsedPlan = (parse: SyllabusParseResult) => {
     const normalizedAssignments = normalizeAssignments(parse.assignments, parse.courses);
     const normalizedParse = { ...parse, assignments: normalizedAssignments };
+    const trustedSource = parse.syllabusSource
+      ? {
+          ...parse.syllabusSource,
+          courseIds: normalizedParse.courses.map((course) => course.id),
+          assignmentIds: normalizedAssignments.map((assignment) => assignment.id),
+          findings: normalizedParse.findings
+        }
+      : createSyllabusSourceFromParse(normalizedParse, "device");
+
     setCourses((current) => mergeById(current, parse.courses));
     setAssignments((current) => mergeById(current, normalizedAssignments));
     setGradeItems((current) => mergeById(current, parse.gradeItems));
     setSyllabusSources((current) =>
-      mergeById(current, [
-        parse.syllabusSource || createSyllabusSourceFromParse(normalizedParse, "device")
-      ])
+      mergeById(current, [trustedSource])
     );
     setSemester((current) => ({
       ...current,
@@ -463,7 +478,7 @@ function AppContent() {
 
     try {
       const { count, reminderIdsByAssignment } = await scheduleSmartReminders(
-        activeAssignments,
+        confirmedAssignments,
         courses
       );
       setAssignments((current) =>
@@ -490,7 +505,7 @@ function AppContent() {
 
     try {
       const { count, calendarEventIdsByAssignment } = await syncAssignmentsToDeviceCalendar(
-        activeAssignments,
+        confirmedAssignments,
         courses
       );
       setAssignments((current) =>

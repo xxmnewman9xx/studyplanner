@@ -41,7 +41,7 @@ https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Polic
 
 ## Screenshot Narrative
 
-1. Scan your syllabus in seconds.
+1. Turn text-based syllabi into work you can check.
 2. See every deadline in one place.
 3. Know what to do today.
 4. Track grades and final targets.
@@ -50,7 +50,7 @@ https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Polic
 ## Review Notes To Prepare
 
 - Explain that AI parse results are editable before application.
-- StudyPlanner Plus is available through the in-app subscription screen. To test Syllabus Scan, complete onboarding, choose Study Planner Plus, subscribe using Apple's sandbox purchase flow, then open Syllabus Scan from the Scan tab. Restore Purchases is available on the paywall.
+- StudyPlanner Plus is available through the in-app subscription screen. To test syllabus import, complete onboarding, open Widget Setup, choose View Plus Plans, subscribe using Apple's sandbox purchase flow, then open Check New Work from the bottom dock. Restore Purchases is available on the paywall.
 - Supported syllabus files for App Review: text-based PDF or plain-text syllabus from Files.
 - The app uses Apple's standard EULA: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 - Do not mention Canvas in metadata unless the app supports a clear Canvas-related feature.

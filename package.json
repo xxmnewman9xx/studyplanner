@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "tsc -p tsconfig.tests.json && node --test .test-build/tests/*.test.js",
     "check:iap": "node scripts/check-iap-config.mjs",
+    "verify:production": "node scripts/verify-production-config.mjs",
     "export:web": "expo export --platform web"
   },
   "dependencies": {

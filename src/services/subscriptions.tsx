@@ -220,24 +220,34 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
     setFlowState("loading");
     setErrorMessage(undefined);
 
-    const [subscriptions, lifetimeProducts] = await Promise.all([
-      purchaseConfig.subscriptionIds.length
-        ? fetchProducts({ skus: purchaseConfig.subscriptionIds, type: "subs" })
-        : Promise.resolve([]),
-      purchaseConfig.lifetimeProductIds.length
-        ? fetchProducts({ skus: purchaseConfig.lifetimeProductIds, type: "in-app" })
-        : Promise.resolve([])
-    ]);
+    try {
+      const [subscriptions, lifetimeProducts] = await Promise.all([
+        purchaseConfig.subscriptionIds.length
+          ? fetchProducts({ skus: purchaseConfig.subscriptionIds, type: "subs" })
+          : Promise.resolve([]),
+        purchaseConfig.lifetimeProductIds.length
+          ? fetchProducts({ skus: purchaseConfig.lifetimeProductIds, type: "in-app" })
+          : Promise.resolve([])
+      ]);
 
-    const mapped = [...(subscriptions ?? []), ...(lifetimeProducts ?? [])]
-      .map(mapStoreProduct)
-      .sort(sortProducts);
-    setProducts(mapped);
-    setSelectedProductId((current) => current || mapped[0]?.id);
-    setFlowState("idle");
+      const mapped = [...(subscriptions ?? []), ...(lifetimeProducts ?? [])]
+        .map(mapStoreProduct)
+        .sort(sortProducts);
+      setProducts(mapped);
+      setSelectedProductId((current) =>
+        current && mapped.some((product) => product.id === current) ? current : mapped[0]?.id
+      );
 
-    if (mapped.length === 0) {
-      setErrorMessage("The store did not return any available Plus plans.");
+      if (mapped.length === 0) {
+        setErrorMessage("The store did not return any available Plus plans.");
+      }
+    } catch (error) {
+      setProducts([]);
+      setSelectedProductId(undefined);
+      setStatus("error");
+      setErrorMessage(userMessageFromError(error));
+    } finally {
+      setFlowState((current) => (current === "loading" ? "idle" : current));
     }
   }, []);
 
@@ -257,6 +267,11 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
       mounted = false;
     };
   }, [iap.connected, loadProducts, refreshEntitlement]);
+
+  const refreshStore = useCallback(async () => {
+    await Promise.allSettled([loadProducts(), refreshEntitlement()]);
+    setStatus((current) => (current === "checking" ? "ready" : current));
+  }, [loadProducts, refreshEntitlement]);
 
   const purchaseProduct = useCallback(
     async (productId: string) => {
@@ -361,7 +376,7 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
       hasConfiguredProducts: true,
       purchase: purchaseProduct,
       restore,
-      refresh: refreshEntitlement,
+      refresh: refreshStore,
       manageSubscriptions,
       setSelectedProductId,
       clearMessage: () => {
@@ -379,7 +394,7 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
       message,
       products,
       purchaseProduct,
-      refreshEntitlement,
+      refreshStore,
       restore,
       selectedProductId,
       status

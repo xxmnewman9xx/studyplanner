@@ -7,6 +7,7 @@ import {
 import {
   isAssignmentArchived,
   isAssignmentCompleted,
+  isAssignmentConfirmed,
   isAssignmentOpen
 } from "./assignmentModel";
 import { buildWeekPlan, getCourseForAssignment } from "./planner";
@@ -146,7 +147,9 @@ export function buildSemesterInsights(
   courses: Course[],
   now = new Date()
 ): SemesterInsightPlan {
-  const visibleAssignments = assignments.filter((assignment) => !isAssignmentArchived(assignment));
+  const visibleAssignments = assignments.filter(
+    (assignment) => !isAssignmentArchived(assignment) && isAssignmentConfirmed(assignment)
+  );
   const openAssignments = visibleAssignments.filter((assignment) => isAssignmentOpen(assignment));
   const completedAssignments = visibleAssignments.filter((assignment) => isAssignmentCompleted(assignment));
   const weekPlan = buildWeekPlan(visibleAssignments, now);
@@ -214,6 +217,7 @@ export function buildWidgetMonthlySnapshot(
 function filterAssignments(assignments: Assignment[], courseFilterId?: string) {
   return assignments.filter((assignment) => {
     if (isAssignmentArchived(assignment)) return false;
+    if (!isAssignmentConfirmed(assignment)) return false;
     if (!courseFilterId || courseFilterId === "all") return true;
     return assignment.courseId === courseFilterId;
   });

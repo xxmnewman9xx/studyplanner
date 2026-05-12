@@ -100,6 +100,9 @@ export function TodayScreen({
     () => buildSemesterInsights(assignments, courses, now),
     [assignments, courses, now]
   );
+  const needsCheckCount = assignments.filter(
+    (assignment) => assignment.reviewStatus === "needsReview"
+  ).length;
   const todayItems = plan.dueToday.slice(0, captureMode ? 2 : 4);
   const upcomingItems = plan.upcoming
     .filter((assignment) => assignment.id !== heroAssignment?.id)
@@ -128,7 +131,7 @@ export function TodayScreen({
         right={
           captureMode ? null : (
             <View style={styles.headerActions}>
-              <CircleAction label="Scan" onPress={onOpenImport}>
+              <CircleAction label="Add" onPress={onOpenImport}>
                 <FileScan color={colors.brandPurple} size={17} />
               </CircleAction>
               <CircleAction label="Remind" onPress={() => automationPress("reminders")}>
@@ -164,6 +167,15 @@ export function TodayScreen({
           message={`${weekPlan.heavyWorkloadWarning}. Open Calendar to see which days need time.`}
           actionLabel="Open Calendar"
           onPress={onOpenWeek}
+        />
+      ) : null}
+
+      {needsCheckCount > 0 ? (
+        <WarningCard
+          title="Check new work"
+          message={`${needsCheckCount} found item${needsCheckCount === 1 ? "" : "s"} need your check before they show as due dates.`}
+          actionLabel="Check"
+          onPress={onOpenImport}
         />
       ) : null}
 
