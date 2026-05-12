@@ -24,7 +24,7 @@ Future cycles will append exact commands, outputs, fixes, and retests after impl
 | 6 | Improved Assignment Detail | Passed | safe date/time validation, source note, simpler labels, screenshot `12` | No |
 | 7 | Improved Onboarding and Widget Setup | Passed | supported small/medium widget focus only, conversion copy rewrite, screenshots `02`, `13-15` | Native Home Screen widget add remains manual |
 | 8 | `npm run typecheck` | Passed | `tsc --noEmit` completed | No |
-| 8 | `npm run test` | Passed | 23/23 tests passed, including new invalid-date/parser/widget regressions | No |
+| 8 | `npm run test` | Passed | 23/23 tests passed, including new invalid-date/parser/widget regressions | No; expanded to 26/26 in cycle 10 |
 | 8 | `npm run check:iap` | Passed | IAP and premium gate configuration passed | No |
 | 8 | `npm run verify:production` | Passed | Production config verification passed | No |
 | 8 | `EXPO_PUBLIC_STORE_CAPTURE=1 ./scripts/verify-ios-widgetkit.sh` | Passed with manual widget step | App Group payload contained preview snapshot with `demoState.enabled=true` and confirmed-only widget items | Manual Home Screen widget add still required |
@@ -36,3 +36,13 @@ Known residual risks:
 - Native widget add-widget screenshots were not automated; WidgetKit payload was verified and in-app previews were captured.
 - Accessibility/localization/performance are improved only at high-impact points, not exhaustively completed.
 - Heavy-load scenarios from the 500-use-case swarm are specified but not fully automated as e2e tests.
+
+## Completion Audit Addendum
+
+| Cycle | Command/Test | Result | Evidence | Blocker |
+| --- | --- | --- | --- | --- |
+| 10 | Prompt-to-artifact completion audit | Completed | `docs/COMPLETION_AUDIT_9_2.md` | 9.2 not reached |
+| 10 | Import trust helper extraction | Passed | `src/logic/importTrust.ts`, `tests/importTrust.test.ts` | No |
+| 10 | 500-assignment planner scale test | Passed | `tests/plannerScale.test.ts` | No |
+| 10 | `npm run typecheck` | Passed | `tsc --noEmit` completed after audit changes | No |
+| 10 | `npm run test` | Passed | 26/26 tests passed | No |

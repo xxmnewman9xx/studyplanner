@@ -62,7 +62,6 @@ import {
   WidgetPreferences
 } from "./src/services/widgetPreferences";
 import {
-  createSyllabusSourceFromParse,
   isAssignmentArchived,
   isAssignmentConfirmed,
   normalizeAssignment,
@@ -70,6 +69,7 @@ import {
   withAssignmentPatch
 } from "./src/logic/assignmentModel";
 import { dateKeyFromValue, makeDueAt } from "./src/logic/dateUtils";
+import { buildTrustedParsedPlan } from "./src/logic/importTrust";
 
 const plannerStorageKey = "study-planner-data-v2";
 
@@ -332,10 +332,8 @@ function AppContent() {
   }, [paywallSeen, subscription.isPremium]);
 
   const applyParsedPlan = (parse: SyllabusParseResult) => {
-    const normalizedAssignments = normalizeAssignments(parse.assignments, parse.courses).filter(
-      isAssignmentConfirmed
-    );
-    if (normalizedAssignments.length === 0) {
+    const trustedPlan = buildTrustedParsedPlan(parse);
+    if (!trustedPlan) {
       Alert.alert(
         "Check work first",
         "Mark at least one found assignment as Looks Good before adding it to your planner."
@@ -343,35 +341,17 @@ function AppContent() {
       return;
     }
 
-    const acceptedCourseIds = new Set(normalizedAssignments.map((assignment) => assignment.courseId));
-    const acceptedCourses = parse.courses.filter((course) => acceptedCourseIds.has(course.id));
-    const acceptedGradeItems = parse.gradeItems.filter((item) => acceptedCourseIds.has(item.courseId));
-    const normalizedParse = {
-      ...parse,
-      courses: acceptedCourses,
-      assignments: normalizedAssignments,
-      gradeItems: acceptedGradeItems
-    };
-    const trustedSource = parse.syllabusSource
-      ? {
-          ...parse.syllabusSource,
-          courseIds: acceptedCourses.map((course) => course.id),
-          assignmentIds: normalizedAssignments.map((assignment) => assignment.id),
-          findings: normalizedParse.findings
-        }
-      : createSyllabusSourceFromParse(normalizedParse, "device");
-
-    setCourses((current) => mergeById(current, acceptedCourses));
-    setAssignments((current) => mergeAssignments(current, normalizedAssignments));
-    setGradeItems((current) => mergeById(current, acceptedGradeItems));
+    setCourses((current) => mergeById(current, trustedPlan.courses));
+    setAssignments((current) => mergeAssignments(current, trustedPlan.assignments));
+    setGradeItems((current) => mergeById(current, trustedPlan.gradeItems));
     setSyllabusSources((current) =>
-      mergeById(current, [trustedSource])
+      mergeById(current, [trustedPlan.syllabusSource])
     );
     setSemester((current) => ({
       ...current,
-      name: parse.semesterName || current.name,
-      startDate: parse.semesterStartDate || current.startDate,
-      endDate: parse.semesterEndDate || current.endDate
+      name: trustedPlan.semesterName || current.name,
+      startDate: trustedPlan.semesterStartDate || current.startDate,
+      endDate: trustedPlan.semesterEndDate || current.endDate
     }));
     openTab("today");
   };

@@ -27,13 +27,13 @@ The user requested treating the app as approximately 6/10 unless evidence proves
 
 ## Final Implementation Rescore
 
-Final weighted score after this pass: **8.66/10**. The branch is dramatically stronger, but it does **not** honestly earn 9.2 because native Home Screen widget screenshots still require manual add-widget verification, accessibility/localization remain partial, and heavy-load/e2e coverage is not exhaustive enough for a 9.2 claim.
+Final weighted score after this pass and completion audit addendum: **8.72/10**. The branch is dramatically stronger, but it does **not** honestly earn 9.2 because native Home Screen widget screenshots still require manual add-widget verification, accessibility/localization remain partial, and e2e coverage is not exhaustive enough for a 9.2 claim.
 
 | Category | Weight | Before | After | Evidence | Retest Result |
 | --- | ---: | ---: | ---: | --- | --- |
 | Core product promise clarity | 10% | 6.0 | 8.8 | Today now prioritizes next action, Check Work, Week, Calendar, Classes, and Widgets use clearer school language. | Simulator screenshots 02, 04-13 captured. |
-| End-to-end functionality | 12% | 6.0 | 8.7 | Invalid dates are rejected/ignored safely; parser output is sanitized; assignment detail capture route works. | `npm run typecheck`, `npm run test` passed. |
-| Data integrity and trust | 12% | 6.0 | 9.0 | Only accepted parsed assignments, accepted courses, and accepted grade items enter trusted planner state. Unclear endpoint rows become findings. | New date/parser/widget regression tests passed. |
+| End-to-end functionality | 12% | 6.0 | 8.9 | Invalid dates are rejected/ignored safely; parser output is sanitized; assignment detail capture route works; 500-assignment scale test passes. | `npm run typecheck`, `npm run test` passed. |
+| Data integrity and trust | 12% | 6.0 | 9.2 | Only accepted parsed assignments, accepted courses, and accepted grade items enter trusted planner state. Unclear endpoint rows become findings. | Import-trust unit tests, date/parser/widget regression tests passed. |
 | Feature usefulness | 10% | 6.0 | 8.7 | Found Work shows evidence/findings; Today moves focus items up; Widget Setup limited to supported small/medium widgets. | Screenshot contact sheet and tests passed. |
 | UX clarity for a 9-year-old | 9% | 6.0 | 8.8 | Labels changed to Check Work, Add Work, Add to Planner, Past Due, Source note, Looks Good. | Simulator review shows simpler copy. |
 | Middle-school stress reduction | 7% | 6.0 | 8.6 | Today gives one hero action, calmer empty states, and less alarmist overdue language. | Screenshot 04/16 captured. |
@@ -42,4 +42,4 @@ Final weighted score after this pass: **8.66/10**. The branch is dramatically st
 | Widget usefulness and refresh behavior | 8% | 6.0 | 8.4 | Widget Setup now focuses on supported Small Next Due and Medium This Week; shared App Group payload verified in capture and production modes. | WidgetKit script/app group checks passed; native add-widget screenshot still manual. |
 | Onboarding conversion quality | 8% | 6.0 | 8.4 | Onboarding rewritten around calm, add/check/plan/widgets/style instead of a feature tour. | Screenshot 02 captured. |
 | Monetization trust and App Review safety | 3% | 6.0 | 8.6 | Product IDs preserved; paywall copy avoids internal product-ID language; `check:iap` and production verification passed. | `npm run check:iap`, `npm run verify:production` passed. |
-| Code health, performance, accessibility, localization | 3% | 6.0 | 7.8 | Shared date utility added; invalid-date crash path covered; some labels/accessibility improved. | Remaining localization/accessibility/performance work documented. |
+| Code health, performance, accessibility, localization | 3% | 6.0 | 8.2 | Shared date utility and import-trust helper added; invalid-date crash path and 500-assignment scale path covered; some labels/accessibility improved. | Remaining localization/accessibility/performance work documented. |
