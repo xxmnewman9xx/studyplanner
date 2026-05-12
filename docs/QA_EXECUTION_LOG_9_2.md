@@ -33,7 +33,7 @@ Future cycles will append exact commands, outputs, fixes, and retests after impl
 
 Known residual risks:
 
-- Native small/medium widget screenshots are now captured on the successor branch; refresh-after-completion proof is captured in `artifacts/post-goal-aso-submission/46-widget-refresh-after-completion.png`, edit refresh proof is captured in `artifacts/post-goal-aso-submission/47-widget-refresh-after-edit.png`, and add/day-boundary refresh proof still needs a focused simulator pass.
+- Native small/medium widget screenshots are now captured on the successor branch; refresh-after-completion proof is captured in `artifacts/post-goal-aso-submission/46-widget-refresh-after-completion.png`, edit refresh proof is captured in `artifacts/post-goal-aso-submission/47-widget-refresh-after-edit.png`, add refresh proof is captured in `artifacts/post-goal-aso-submission/48-widget-refresh-after-add.png`, and day-boundary refresh proof still needs a focused simulator pass.
 - Accessibility/localization/performance are improved only at high-impact points, not exhaustively completed.
 - Heavy-load scenarios from the 500-use-case swarm are specified but not fully automated as e2e tests.
 
@@ -71,5 +71,7 @@ Known residual risks:
 | 17 | `npm run test` | Passed | 37/37 tests passed | No |
 | 18 | Widget refresh-after-completion proof | Passed | Completing Lab Report moved native widget `nextDue` to Reading Reflection, reduced This Week to 4, monthly due to 7, and completed count to 4; payload stored at `artifacts/post-goal-aso-submission/widget-refresh-after-completion-snapshot.json` | Add/day-boundary proof still needed |
 | 18 | `xcrun simctl io screenshot` | Passed | Captured refreshed installed widgets in `artifacts/post-goal-aso-submission/46-widget-refresh-after-completion.png` | No |
-| 19 | Widget refresh-after-edit proof | Passed | Editing Reading Reflection to Reflection Draft updated native widget nextDue and medium item title; payload stored at `artifacts/post-goal-aso-submission/widget-refresh-after-edit-snapshot.json` | Add/day-boundary proof still needed |
+| 19 | Widget refresh-after-edit proof | Passed | Editing Reading Reflection to Reflection Draft updated native widget nextDue and medium item title; payload stored at `artifacts/post-goal-aso-submission/widget-refresh-after-edit-snapshot.json` | Day-boundary proof still needed after cycle 20 |
 | 19 | `xcrun simctl io screenshot` | Passed | Captured edited-title installed widgets in `artifacts/post-goal-aso-submission/47-widget-refresh-after-edit.png` | No |
+| 20 | Widget refresh-after-add proof | Passed | Adding Field Notes to Science Lab updated native widget nextDue, This Week, and monthly counts; payload stored at `artifacts/post-goal-aso-submission/widget-refresh-after-add-snapshot.json` | Day-boundary proof still needed |
+| 20 | `xcrun simctl io screenshot` | Passed | Captured added-assignment installed widgets in `artifacts/post-goal-aso-submission/48-widget-refresh-after-add.png` | No |
