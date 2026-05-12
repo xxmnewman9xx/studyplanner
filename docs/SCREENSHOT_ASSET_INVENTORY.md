@@ -2,7 +2,7 @@
 
 Folder: `artifacts/post-goal-aso-submission`
 
-Status: partial proof captured on 2026-05-12. The folder now contains **45 raw simulator PNGs** plus a generated contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit, iPad, and App Store-size export proof are complete.
+Status: partial proof captured on 2026-05-12. The folder now contains **46 raw simulator PNGs** plus a generated contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit, iPad, and App Store-size export proof are complete.
 
 ## Capture Summary
 
@@ -16,7 +16,8 @@ Status: partial proof captured on 2026-05-12. The folder now contains **45 raw s
 - Widget refresh payload captured: `widget-refresh-after-completion-snapshot.json`.
 - Widget edit refresh proof captured: `47-widget-refresh-after-edit.png` and `widget-refresh-after-edit-snapshot.json`.
 - Widget add refresh proof captured: `48-widget-refresh-after-add.png` and `widget-refresh-after-add-snapshot.json`.
-- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 45 PNGs.
+- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 46 PNGs.
+- Restore access proof captured: `39-restore-purchases.png`. This proves the Restore entry point exists, not that a sandbox restore succeeded.
 - Paywall products-loaded proof is still missing. The captured paywall state shows purchases unavailable and is correctly stored as `38-paywall-product-load-failure.png`.
 
 | Required PNG | Status | Notes |
@@ -60,13 +61,13 @@ Status: partial proof captured on 2026-05-12. The folder now contains **45 raw s
 | 36-settings.png | Captured | Capture-mode Settings screen, 1179x2556 PNG. It shows planner status, appearance, Plus/store status, restore access, widget scope, and support URL gap without claiming submission readiness. |
 | 37-paywall-products-loaded.png | Missing | StoreKit products were not loaded; do not claim this state. |
 | 38-paywall-product-load-failure.png | Captured | Real simulator paywall failure state: "Purchases are unavailable", 1179x2556 PNG. |
-| 39-restore-purchases.png | Missing | Restore flow not captured or sandbox-proven. |
+| 39-restore-purchases.png | Captured with caveat | Capture-mode Settings/Plus surface, 1179x2556 PNG. It shows real Restore access, but sandbox restore success is still unproven. |
 | 40-app-icon-home-screen.png | Captured | Real simulator Home Screen showing installed StudyPlanner app icons/widgets, 1179x2556 PNG. |
 | 41-no-data-app-review-state.png | Missing | Production no-data Today is captured as `06-today-empty.png`; separate App Review state not captured. |
 | 42-sample-plan-state.png | Missing | Sample plan entry/state not separately captured. |
 | 43-localized-ui-example.png | Missing | UI localization proof not captured. |
 | 44-accessibility-large-text.png | Captured | Real simulator Today screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves the top hierarchy no longer catastrophically explodes, but full VoiceOver/contrast audit remains open. |
-| 45-final-contact-sheet.png | Captured | Generated from the 45 current raw PNGs, 1230x7308 PNG. |
+| 45-final-contact-sheet.png | Captured | Generated from the 46 current raw PNGs, 1230x8120 PNG. |
 | 46-widget-refresh-after-completion.png | Captured | Real simulator Home Screen after tapping Complete in the app. Small and medium widgets reflect the refreshed snapshot. |
 | 47-widget-refresh-after-edit.png | Captured | Real simulator Home Screen after editing Reading Reflection to Reflection Draft. Small and medium widgets reflect the edited title. |
 | 48-widget-refresh-after-add.png | Captured | Real simulator Home Screen after adding Field Notes to Science Lab. Small and medium widgets reflect the added assignment from the App Group snapshot. |

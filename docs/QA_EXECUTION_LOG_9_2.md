@@ -142,3 +142,10 @@ Known residual risks:
 | 28 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after Settings proof | No |
 | 28 | `npm run verify:production` | Passed | Production config verification passed after Settings proof | No |
 | 28 | `git diff --check` | Passed | No whitespace errors or conflict markers after Settings proof | No |
+| 29 | Capture-mode iOS rebuild | Passed | `EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE` built, installed, and opened with 0 errors/0 warnings | No |
+| 29 | Restore-access screenshot capture | Passed | Captured `39-restore-purchases.png` as real simulator UI showing the Restore entry point; sandbox restore success remains unproven | No |
+| 29 | Contact sheet regeneration | Passed | `45-final-contact-sheet.png` regenerated from 46 raw PNGs | No |
+| 29 | Screenshot inventory check | Passed | 46 raw PNGs; `39-restore-purchases.png` is 1179x2556 and contact sheet is 1230x8120 | No |
+| 29 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after Restore proof | No |
+| 29 | `npm run verify:production` | Passed | Production config verification passed after Restore proof | No |
+| 29 | `git diff --check` | Passed | No whitespace errors or conflict markers after Restore proof | No |

@@ -112,5 +112,12 @@
 | npm run check:iap | Passed | IAP and premium gate configuration passed | Final static IAP guard after Settings proof |
 | npm run verify:production | Passed | Production config verification passed | Final production config guard after Settings proof |
 | git diff --check | Passed | exit 0 | Final whitespace/conflict-marker check after Settings proof |
+| EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE | Passed | Build succeeded, 0 errors/0 warnings; app installed/opened | Re-run before restore-access screenshot |
+| xcrun simctl openurl + xcrun simctl io screenshot | Passed | `39-restore-purchases.png` | Real simulator UI captured for Restore entry point; sandbox restore success remains unproven |
+| Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 46 PNGs at 1230x8120 | Re-run after Restore screenshot |
+| screenshot inventory check | Passed | 46 raw PNGs; `39-restore-purchases.png` is 1179x2556; contact sheet 1230x8120 | Final artifact dimensions verified after Restore capture |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Final static IAP guard after Restore proof |
+| npm run verify:production | Passed | Production config verification passed | Final production config guard after Restore proof |
+| git diff --check | Passed | exit 0 | Final whitespace/conflict-marker check after Restore proof |
 
 Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/contrast pass, restore purchase success proof. Optional: overnight widget rollover screenshot.
