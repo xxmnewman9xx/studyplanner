@@ -2,7 +2,7 @@
 
 Branch: `v1-2-goal-9-2-root-concept-transformation`  
 Starting commit: `69d75470328bc470bce6097384b4a7e39e79c89a`  
-Final implementation score: **8.72/10**
+Final implementation score: **8.75/10**
 9.2 reached: **No**
 
 ## What Changed
@@ -15,6 +15,7 @@ Final implementation score: **8.72/10**
 - Classes now support class color ownership with swatches and simpler Add Work language.
 - Widget Setup now focuses on the supported native concepts only: Small Next Due and Medium This Week.
 - Onboarding copy now frames StudyPlanner as calm school planning instead of a feature tour.
+- Onboarding now offers first-action routes for Scan Paper, Upload File, Add Classes, and Try Sample.
 - Paywall copy no longer exposes internal product-ID language.
 
 ## Verification

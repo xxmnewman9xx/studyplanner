@@ -27,7 +27,7 @@ The user requested treating the app as approximately 6/10 unless evidence proves
 
 ## Final Implementation Rescore
 
-Final weighted score after this pass and completion audit addendum: **8.72/10**. The branch is dramatically stronger, but it does **not** honestly earn 9.2 because native Home Screen widget screenshots still require manual add-widget verification, accessibility/localization remain partial, and e2e coverage is not exhaustive enough for a 9.2 claim.
+Final weighted score after this pass and completion audit addendum: **8.75/10**. The branch is dramatically stronger, but it does **not** honestly earn 9.2 because native Home Screen widget screenshots still require manual add-widget verification, accessibility/localization remain partial, and e2e coverage is not exhaustive enough for a 9.2 claim.
 
 | Category | Weight | Before | After | Evidence | Retest Result |
 | --- | ---: | ---: | ---: | --- | --- |
@@ -40,6 +40,6 @@ Final weighted score after this pass and completion audit addendum: **8.72/10**.
 | Apple-native visual design | 12% | 6.0 | 8.8 | Assignment detail, classes, review flow, widgets, onboarding, and paywall now read cleaner and more native. | Final contact sheet captured. |
 | Customization richness and simplicity | 6% | 6.0 | 8.3 | Class color swatches added for new/edit class; widget style/native pair behavior simplified. | Screenshots 10, 11, 17 captured. |
 | Widget usefulness and refresh behavior | 8% | 6.0 | 8.4 | Widget Setup now focuses on supported Small Next Due and Medium This Week; shared App Group payload verified in capture and production modes. | WidgetKit script/app group checks passed; native add-widget screenshot still manual. |
-| Onboarding conversion quality | 8% | 6.0 | 8.4 | Onboarding rewritten around calm, add/check/plan/widgets/style instead of a feature tour. | Screenshot 02 captured. |
+| Onboarding conversion quality | 8% | 6.0 | 8.8 | Onboarding rewritten around calm, add/check/plan/widgets/style instead of a feature tour; final step now routes Scan Paper, Upload File, Add Classes, and Try Sample. | Screenshot 02 captured; routing code in `App.tsx` and `OnboardingScreen.tsx`. |
 | Monetization trust and App Review safety | 3% | 6.0 | 8.6 | Product IDs preserved; paywall copy avoids internal product-ID language; `check:iap` and production verification passed. | `npm run check:iap`, `npm run verify:production` passed. |
 | Code health, performance, accessibility, localization | 3% | 6.0 | 8.2 | Shared date utility and import-trust helper added; invalid-date crash path and 500-assignment scale path covered; some labels/accessibility improved. | Remaining localization/accessibility/performance work documented. |

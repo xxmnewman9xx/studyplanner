@@ -40,7 +40,7 @@ import { BottomDock } from "./src/components/PremiumUI";
 import { isStoreCaptureEnabled } from "./src/config/storeCapture";
 import { defaultCourses, defaultGradeItems, defaultSemester } from "./src/data/defaultPlanner";
 import { createDemoSemesterSeed, storeCaptureNow } from "./src/data/demoSemester";
-import { OnboardingScreen } from "./src/screens/OnboardingScreen";
+import { OnboardingScreen, OnboardingStartPath } from "./src/screens/OnboardingScreen";
 import { TodayScreen } from "./src/screens/TodayScreen";
 import { ImportScreen } from "./src/screens/ImportScreen";
 import { CoursesScreen } from "./src/screens/CoursesScreen";
@@ -529,6 +529,36 @@ function AppContent() {
     }
   };
 
+  const finishOnboarding = (path?: OnboardingStartPath) => {
+    setOnboardingStep(0);
+    setOnboarded(true);
+    setPaywallSeen(true);
+
+    if (path === "sample") {
+      const sample = createDemoSemesterSeed();
+      setSemester(sample.semester);
+      setCourses(sample.courses);
+      setAssignments(sample.assignments);
+      setSyllabusSources(sample.syllabusSources);
+      setGradeItems(sample.gradeItems);
+      setTargetGradePercent(sample.targetGradePercent);
+      setActiveTab("today");
+      return;
+    }
+
+    if (path === "scan" || path === "upload") {
+      setActiveTab("import");
+      return;
+    }
+
+    if (path === "manual") {
+      setActiveTab("courses");
+      return;
+    }
+
+    setActiveTab("today");
+  };
+
   const premiumLocked =
     !storeCaptureEnabled && (subscription.status !== "ready" || !subscription.isPremium);
   const showInitialPaywall =
@@ -549,11 +579,7 @@ function AppContent() {
         <StatusBar style={theme.isDark ? "light" : "dark"} />
         <OnboardingScreen
           initialStep={storeCaptureEnabled ? onboardingStep : undefined}
-          onFinish={() => {
-            setOnboardingStep(0);
-            setOnboarded(true);
-            setPaywallSeen(true);
-          }}
+          onFinish={finishOnboarding}
         />
       </SafeAreaView>
     );

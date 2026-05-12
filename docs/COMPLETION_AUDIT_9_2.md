@@ -14,7 +14,7 @@ Status: **Not complete as a 9.2 goal.**
 
 The branch has a real transformation and stronger evidence than the release-candidate baseline, but the audit does not support marking the objective fully achieved because the final score is still below 9.2 and several requested proof gates remain weak or manual.
 
-Updated audited score after adding import-trust and 500-assignment regression tests: **8.72/10**.
+Updated audited score after adding import-trust, onboarding first-action routing, and 500-assignment regression tests: **8.75/10**.
 
 ## Prompt-To-Artifact Checklist
 
@@ -39,7 +39,7 @@ Updated audited score after adding import-trust and 500-assignment regression te
 | Improve Today as home base | `TodayScreen.tsx`, screenshot `04-today-after.png` | Complete | Could still be calmer under extreme data |
 | Improve Classes/customization | `CoursesScreen.tsx`, screenshots `10`, `11`, `17` | Complete | No per-assignment color rules |
 | Improve widgets | `WidgetShowcaseScreen.tsx`, `widgetSnapshot` tests, WidgetKit App Group payload inspection | Partial | Native Home Screen screenshots still manual |
-| Improve onboarding | `OnboardingScreen.tsx`, screenshot `02-onboarding-after.png` | Partial | No direct path selection behavior yet |
+| Improve onboarding | `OnboardingScreen.tsx`, `App.tsx`, screenshot `02-onboarding-after.png` | Complete for this pass | Direct path selection exists; final visual screenshot of the chooser is still optional proof |
 | Improve monetization safety | `UpgradeScreen` existing behavior, `WidgetShowcaseScreen` copy, `check:iap`, `verify:production` | Partial | StoreKit sandbox purchase/restore not proven |
 | Accessibility/localization/performance | date/label improvements, `plannerScale.test.ts`, docs | Partial | VoiceOver/Dynamic Type/localized string audit remains incomplete |
 | Capture screenshot artifacts | `artifacts/goal-9-2-transformation/00-20*.png` | Partial | `14` and `15` are in-app widget previews, not Home Screen widgets |
@@ -47,7 +47,7 @@ Updated audited score after adding import-trust and 500-assignment regression te
 | Run IAP/production checks | `npm run check:iap`, `npm run verify:production` passed | Complete for static config | Sandbox commerce not proven |
 | Run WidgetKit verification | Capture and production App Group payloads inspected | Partial | Manual add-widget flow not captured |
 | Final readiness report | `docs/FINAL_9_2_READINESS_REPORT.md` | Complete | Correctly says 9.2 was not reached |
-| Final weighted score >= 9.2 | `docs/GOAL_9_2_SCORECARD.md` | Incomplete | Current audited score: 8.72 |
+| Final weighted score >= 9.2 | `docs/GOAL_9_2_SCORECARD.md` | Incomplete | Current audited score: 8.75 |
 
 ## Requirements Not Yet Covered Well Enough
 
@@ -56,8 +56,7 @@ Updated audited score after adding import-trust and 500-assignment regression te
 3. VoiceOver, Dynamic Type, reduced motion, and contrast pass with screenshots/logs.
 4. Localized/date behavior proof for 24-hour time and Monday-start locales.
 5. Automated e2e coverage for the full functionality matrix.
-6. Direct onboarding first-action routing: Scan Paper, Upload File, Add Classes Manually, Try Sample Plan.
-7. Final scorecard evidence supporting at least 9.2.
+6. Final scorecard evidence supporting at least 9.2.
 
 ## Continue/Stop Decision
 

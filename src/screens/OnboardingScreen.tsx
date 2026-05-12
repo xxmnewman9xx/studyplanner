@@ -41,8 +41,10 @@ import { useAppTheme } from "../themeContext";
 
 type OnboardingScreenProps = {
   initialStep?: number;
-  onFinish: () => void;
+  onFinish: (path?: OnboardingStartPath) => void;
 };
+
+export type OnboardingStartPath = "scan" | "upload" | "manual" | "sample";
 
 type OnboardingStepId =
   | "syllabus"
@@ -238,7 +240,7 @@ export function OnboardingScreen({ initialStep = 0, onFinish }: OnboardingScreen
     >
       <View style={styles.topBar}>
         <StudyPlannerBrand compact />
-        <TouchableOpacity accessibilityRole="button" style={styles.skipButton} onPress={onFinish}>
+        <TouchableOpacity accessibilityRole="button" style={styles.skipButton} onPress={() => onFinish()}>
           <Text style={styles.skipText}>Skip</Text>
         </TouchableOpacity>
       </View>
@@ -271,6 +273,8 @@ export function OnboardingScreen({ initialStep = 0, onFinish }: OnboardingScreen
         palettes={palettes}
         onPaletteChange={setPalette}
       />
+
+      {isFinal ? <StartPathChooser onChoose={onFinish} /> : null}
 
       <View style={styles.footer}>
         <TouchableOpacity
@@ -342,6 +346,38 @@ function FeaturePreview({
     );
   }
   return <SyllabusToPlanPreview motion={motion} />;
+}
+
+function StartPathChooser({ onChoose }: { onChoose: (path: OnboardingStartPath) => void }) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  const choices: Array<{ id: OnboardingStartPath; title: string; copy: string }> = [
+    { id: "scan", title: "Scan Paper", copy: "Use the camera when photo parsing is available." },
+    { id: "upload", title: "Upload File", copy: "Start with a text-based PDF or class file." },
+    { id: "manual", title: "Add Classes", copy: "Build your plan by hand." },
+    { id: "sample", title: "Try Sample", copy: "Explore a safe preview semester." }
+  ];
+
+  return (
+    <GlassCard style={styles.startPathCard}>
+      <Text style={styles.startPathTitle}>Start with one thing.</Text>
+      <Text style={styles.startPathCopy}>You can change paths later.</Text>
+      <View style={styles.startPathGrid}>
+        {choices.map((choice) => (
+          <TouchableOpacity
+            accessibilityRole="button"
+            key={choice.id}
+            activeOpacity={0.86}
+            style={styles.startPathChoice}
+            onPress={() => onChoose(choice.id)}
+          >
+            <Text style={styles.startPathChoiceTitle}>{choice.title}</Text>
+            <Text style={styles.startPathChoiceCopy}>{choice.copy}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </GlassCard>
+  );
 }
 
 function SyllabusToPlanPreview({ motion }: { motion: Animated.Value }) {
@@ -1514,6 +1550,49 @@ function createStyles(theme: AppTheme) {
       borderColor: colors.line,
       padding: spacing.sm,
       backgroundColor: colors.surfaceAlt
+    },
+    startPathCard: {
+      gap: spacing.sm
+    },
+    startPathTitle: {
+      color: colors.ink,
+      fontSize: 16,
+      lineHeight: 21,
+      fontWeight: "900"
+    },
+    startPathCopy: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
+    },
+    startPathGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    startPathChoice: {
+      width: "48%",
+      minHeight: 82,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      padding: spacing.sm,
+      justifyContent: "center",
+      gap: 3
+    },
+    startPathChoiceTitle: {
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "900"
+    },
+    startPathChoiceCopy: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "700"
     },
     footer: {
       flexDirection: "row",

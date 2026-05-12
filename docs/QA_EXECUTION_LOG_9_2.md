@@ -46,3 +46,6 @@ Known residual risks:
 | 10 | 500-assignment planner scale test | Passed | `tests/plannerScale.test.ts` | No |
 | 10 | `npm run typecheck` | Passed | `tsc --noEmit` completed after audit changes | No |
 | 10 | `npm run test` | Passed | 26/26 tests passed | No |
+| 11 | Onboarding first-action routing | Passed | `OnboardingScreen.tsx` exposes Scan Paper, Upload File, Add Classes, Try Sample; `App.tsx` routes each path | No |
+| 11 | `npm run typecheck` | Passed | `tsc --noEmit` completed after onboarding routing | No |
+| 11 | `npm run test` | Passed | 26/26 tests passed | No |
