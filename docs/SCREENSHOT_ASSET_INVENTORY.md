@@ -2,7 +2,7 @@
 
 Folder: `artifacts/post-goal-aso-submission`
 
-Status: partial proof captured on 2026-05-12. The folder now contains **46 primary raw simulator PNGs**, **11 raw 13-inch iPad simulator PNGs**, a primary contact sheet, and an iPad contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit and App Store-size export proof are complete.
+Status: partial proof captured on 2026-05-12. The folder now contains **47 primary raw simulator PNGs**, **11 raw 13-inch iPad simulator PNGs**, a primary contact sheet, and an iPad contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit and App Store-size export proof are complete.
 
 ## Capture Summary
 
@@ -16,7 +16,8 @@ Status: partial proof captured on 2026-05-12. The folder now contains **46 prima
 - Widget refresh payload captured: `widget-refresh-after-completion-snapshot.json`.
 - Widget edit refresh proof captured: `47-widget-refresh-after-edit.png` and `widget-refresh-after-edit-snapshot.json`.
 - Widget add refresh proof captured: `48-widget-refresh-after-add.png` and `widget-refresh-after-add-snapshot.json`.
-- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 46 PNGs.
+- Localized/date proof captured: `43-localized-ui-example.png`, captured on the iPhone simulator with `AppleLanguages=fr-FR`, `AppleLocale=fr_FR`, and forced 24-hour time. It shows locale-sensitive date ordering in Week Plan (`12 May - 18 May`) and 24-hour status-bar style, but app interface strings remain English; this is date-format proof, not full UI localization proof.
+- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 47 PNGs.
 - iPad proof captured in `ipad/`: 11 upright 2064x2752 PNGs plus `ipad-contact-sheet.png`.
 - Restore access proof captured: `39-restore-purchases.png`. This proves the Restore entry point exists, not that a sandbox restore succeeded.
 - Paywall products-loaded proof is still missing. The captured paywall state shows purchases unavailable and is correctly stored as `38-paywall-product-load-failure.png`.
@@ -85,9 +86,9 @@ The app currently supports iPad (`ios.supportsTablet: true`, native target famil
 | 40-app-icon-home-screen.png | Captured | Real simulator Home Screen showing installed StudyPlanner app icons/widgets, 1179x2556 PNG. |
 | 41-no-data-app-review-state.png | Missing | Production no-data Today is captured as `06-today-empty.png`; separate App Review state not captured. |
 | 42-sample-plan-state.png | Missing | Sample plan entry/state not separately captured. |
-| 43-localized-ui-example.png | Missing | UI localization proof not captured. |
+| 43-localized-ui-example.png | Captured with caveat | Real simulator Week Plan screenshot at `fr-FR` / `fr_FR` with forced 24-hour time, 1179x2556 PNG. It proves partial locale/date behavior, but interface strings remain English and full UI localization/string extraction remains incomplete. |
 | 44-accessibility-large-text.png | Captured | Real simulator Today screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves the top hierarchy no longer catastrophically explodes, but full VoiceOver/contrast audit remains open. |
-| 45-final-contact-sheet.png | Captured | Generated from the 46 current raw PNGs, 1230x8120 PNG. |
+| 45-final-contact-sheet.png | Captured | Generated from the 47 current raw PNGs, 1040x6860 PNG. |
 | 46-widget-refresh-after-completion.png | Captured | Real simulator Home Screen after tapping Complete in the app. Small and medium widgets reflect the refreshed snapshot. |
 | 47-widget-refresh-after-edit.png | Captured | Real simulator Home Screen after editing Reading Reflection to Reflection Draft. Small and medium widgets reflect the edited title. |
 | 48-widget-refresh-after-add.png | Captured | Real simulator Home Screen after adding Field Notes to Science Lab. Small and medium widgets reflect the added assignment from the App Group snapshot. |

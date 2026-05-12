@@ -21,7 +21,7 @@ Status: NO-SUBMIT as of 2026-05-12.
 
 1. App Store Connect IAP product status and sandbox monthly/yearly/Lifetime/restore proof missing.
 2. Support URL missing; submission verification fails without EXPO_PUBLIC_SUPPORT_URL in submission mode.
-3. Fresh screenshot folder is incomplete for direct upload: 46 primary iPhone/simulator PNGs, 11 iPad PNGs, and contact sheets are captured, but App Store-sized exports and remaining required StoreKit/localization states are missing.
+3. Fresh screenshot folder is incomplete for direct upload: 47 primary iPhone/simulator PNGs, 11 iPad PNGs, and contact sheets are captured, but App Store-sized exports, products-loaded StoreKit proof, and full localized UI proof are missing.
 4. Native widget refresh after completion, edit, and add is proven; day-boundary label/urgency behavior is code/build proven, but overnight Home Screen screenshot proof is not captured.
 5. iPad strategy is no longer unresolved, but the 13-inch iPad set still needs final App Store Connect screenshot-size/export validation.
 6. Privacy URL/support page must be publicly verified and updated for parser endpoint/upload retention if endpoint is enabled.
@@ -43,7 +43,7 @@ Use docs/APP_STORE_METADATA.md, docs/ASO_METADATA_PACK_EN.md, and localized ASO 
 
 Current capture inventory:
 
-- 46 primary raw simulator PNGs captured.
+- 47 primary raw simulator PNGs captured.
 - 11 raw 13-inch iPad simulator PNGs captured in `artifacts/post-goal-aso-submission/ipad`.
 - Contact sheet captured: `artifacts/post-goal-aso-submission/45-final-contact-sheet.png`.
 - iPad contact sheet captured: `artifacts/post-goal-aso-submission/ipad/ipad-contact-sheet.png`.
@@ -56,6 +56,7 @@ Current capture inventory:
 - Reminders proof captured: `28-reminders.png` shows the Today Reminders card with real Queue Reminders and Sync Calendar actions.
 - Settings proof captured: `36-settings.png` shows planner status, appearance, Plus/store status, restore access, widget scope, privacy link, and the still-missing support URL configuration.
 - Restore access proof captured: `39-restore-purchases.png` shows the real Restore entry point, but does not prove sandbox restore success.
+- Localized/date proof captured: `43-localized-ui-example.png` shows a real `fr-FR` / `fr_FR` simulator Week Plan screenshot with locale-sensitive date ordering and 24-hour status-bar style; it does not prove translated app strings.
 - iPad proof captured: onboarding, Today, Add School Stuff/Check New Work, Calendar, Week, Classes, Widget Setup, paywall unavailable state, Settings/Restore, and Assignment Detail are captured as upright 2064x2752 PNGs on `StudyPlanner-Codex-iPad`.
 - Native widget proof captured: `30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png` show installed WidgetKit small/medium widgets using the current May 2026 capture snapshot.
 - Native widget edge-state proof captured: `32-widget-empty-state.png`, `33-widget-needs-check-state.png`, `widget-empty-state-snapshot.json`, and `widget-needs-check-state-snapshot.json`.
@@ -65,13 +66,13 @@ Current capture inventory:
 - Widget add refresh proof captured: `48-widget-refresh-after-add.png` and `widget-refresh-after-add-snapshot.json` show adding Field Notes updated the App Group snapshot and installed widgets.
 - Widget day-boundary behavior is code/build proven: WidgetKit recomputes label/urgency at render time and schedules refresh for the earlier of 30 minutes or 00:01 local time.
 - Core action large-text proof captured: `49-accessibility-check-work-large-text.png` through `52-accessibility-paywall-large-text.png`.
-- Missing: products-loaded paywall, restore purchase success/sandbox proof, localized UI screenshots/string extraction, full VoiceOver/contrast pass, App Store-sized screenshot exports, and optional overnight widget rollover screenshot.
+- Missing: products-loaded paywall, restore purchase success/sandbox proof, full UI localization/string extraction/native review, full VoiceOver/contrast pass, App Store-sized screenshot exports, and optional overnight widget rollover screenshot.
 
 Date/localization implementation note:
 
 - Month calendar logic now respects locale week-start rules and has Sunday/Monday/Saturday-start unit coverage.
 - Due-date and Week Plan date labels now use preferred locale formatting, including 24-hour locale coverage for `fr-FR` and `en-GB`.
-- Full localized submission still requires localized UI review, hardcoded string extraction, and real locale screenshots.
+- A real French-locale simulator screenshot now proves partial locale/date behavior in Week Plan, but full localized submission still requires localized UI review, hardcoded string extraction, native-speaker review, and localized screenshot text-fit checks.
 
 Accessibility implementation note:
 
@@ -81,4 +82,4 @@ Accessibility implementation note:
 
 ## Recommendation
 
-Do not submit this branch yet. Continue with StoreKit sandbox proof, support/privacy finalization, App Store-sized screenshot export validation, localized UI proof, optional overnight widget rollover screenshot, and final QA.
+Do not submit this branch yet. Continue with StoreKit sandbox proof, support/privacy finalization, App Store-sized screenshot export validation, full localized UI proof/native review, optional overnight widget rollover screenshot, and final QA.

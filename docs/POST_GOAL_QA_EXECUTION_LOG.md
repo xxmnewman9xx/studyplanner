@@ -126,5 +126,13 @@
 | iPad screenshot inventory check | Passed | 11 iPad PNGs, each 2064x2752, plus contact sheet | iPad strategy is captured but App Store upload-size/export validation remains open |
 | npm run check:iap | Passed | IAP and premium gate configuration passed | Final static IAP guard after iPad proof |
 | npm run verify:production | Passed | Production config verification passed | Final production config guard after iPad proof |
+| xcrun simctl defaults locale setup | Passed | iPhone simulator set to `AppleLanguages=fr-FR`, `AppleLocale=fr_FR`, and forced 24-hour time, then restored to `en-US` / `en_US` after capture | Used only for localized/date screenshot proof |
+| EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE | Passed | Build succeeded, 0 errors/0 warnings; app installed/opened on the iPhone simulator | Localized/date capture build |
+| xcrun simctl openurl + xcrun simctl io screenshot | Passed | `artifacts/post-goal-aso-submission/43-localized-ui-example.png`, 1179x2556 | Real French-locale Week Plan capture proves partial locale/date behavior; app strings remain English |
+| Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 47 PNGs at 1040x6860 | Re-run after localized/date screenshot |
+| screenshot inventory check | Passed | 47 primary raw PNGs; `43-localized-ui-example.png` is 1179x2556; contact sheet is 1040x6860 | Final artifact dimensions verified after localized/date capture |
+| git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after localized/date proof docs |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Final static IAP guard after localized/date proof |
+| npm run verify:production | Passed | Production config verification passed | Final production config guard after localized/date proof |
 
-Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, App Store screenshot export/upload-size validation, localized UI screenshots/string extraction, full simulator VoiceOver/contrast pass, restore purchase success proof. Optional: overnight widget rollover screenshot.
+Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, App Store screenshot export/upload-size validation, full translated UI/string extraction/native localization review, full simulator VoiceOver/contrast pass, restore purchase success proof. Optional: overnight widget rollover screenshot.

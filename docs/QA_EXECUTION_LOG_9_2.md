@@ -56,10 +56,10 @@ Known residual risks:
 | 13 | Large-text simulator proof | Passed | `xcrun simctl ui ... content_size accessibility-extra-extra-large`; screenshot `artifacts/goal-9-2-transformation/21-accessibility-large-text.png`; simulator restored to `large` | No |
 | 13 | `npm run typecheck` | Passed | `tsc --noEmit` completed after Dynamic Type patch | No |
 | 13 | `npm run test` | Passed | 32/32 tests passed | No |
-| 14 | Locale-aware month grid | Passed | `buildMonthCalendarPlan` uses locale week start and local-day increments; Monday-start `en-GB` test added | Real localized simulator screenshots still needed |
+| 14 | Locale-aware month grid | Passed | `buildMonthCalendarPlan` uses locale week start and local-day increments; Monday-start `en-GB` test added | Superseded by cycle 31 partial French-locale date screenshot; full translated UI proof still needed |
 | 14 | `npm run typecheck` | Passed | `tsc --noEmit` completed after locale/date patch | No |
 | 14 | `npm run test` | Passed | 34/34 tests passed, including Sunday/Monday/Saturday week-start helpers and Monday-start month grid | No |
-| 15 | Locale-aware date formatting | Passed | Due-date and Week Plan date labels use preferred locale instead of hardcoded `en-US`; `fr-FR`/`en-GB` 24-hour formatting tests added | Real localized simulator screenshots still needed |
+| 15 | Locale-aware date formatting | Passed | Due-date and Week Plan date labels use preferred locale instead of hardcoded `en-US`; `fr-FR`/`en-GB` 24-hour formatting tests added | Superseded by cycle 31 partial French-locale date screenshot; full translated UI proof still needed |
 | 15 | `npm run typecheck` | Passed | `tsc --noEmit` completed after 24-hour locale formatting patch | No |
 | 15 | `npm run test` | Passed | 35/35 tests passed | No |
 | 16 | Planner visual VoiceOver labels | Passed | `TaskRow`, task completion, `WeekStrip`, workload bars, calendar mini-days, workload forecasts, class balance rows, and completion cards now expose descriptive accessibility labels | Full simulator VoiceOver traversal still needed |
@@ -155,3 +155,11 @@ Known residual risks:
 | 30 | iPad contact sheet | Passed | `artifacts/post-goal-aso-submission/ipad/ipad-contact-sheet.png` generated from 11 PNGs | No |
 | 30 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after iPad proof | No |
 | 30 | `npm run verify:production` | Passed | Production config verification passed after iPad proof | No |
+| 31 | French-locale simulator setup | Passed | iPhone simulator set to `AppleLanguages=fr-FR`, `AppleLocale=fr_FR`, and forced 24-hour time, then restored to `en-US` / `en_US` after capture | No |
+| 31 | Localized/date capture-mode build | Passed | `EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE` built, installed, and opened with 0 errors/0 warnings | No |
+| 31 | Localized/date screenshot capture | Passed with caveat | Captured `43-localized-ui-example.png` as real iPhone simulator Week Plan UI; date ordering reflects locale behavior, but app strings remain English | Full UI localization remains incomplete |
+| 31 | Contact sheet regeneration | Passed | `45-final-contact-sheet.png` regenerated from 47 raw PNGs at 1040x6860 | No |
+| 31 | Screenshot inventory check | Passed | 47 primary raw PNGs; `43-localized-ui-example.png` is 1179x2556 and contact sheet is 1040x6860 | No |
+| 31 | `git diff --check` | Passed | No whitespace errors or conflict markers after localized/date proof docs | No |
+| 31 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after localized/date proof | No |
+| 31 | `npm run verify:production` | Passed | Production config verification passed after localized/date proof | No |

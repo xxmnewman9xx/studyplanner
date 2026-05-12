@@ -59,7 +59,7 @@ Final implementation score: **9.19/10**
 
 ## Why This Is Not 9.2 Yet
 
-- Accessibility and localization remain targeted improvements rather than exhaustive completion; source-tested VoiceOver labels and core Dynamic Type screenshots now cover key planner/action visuals, but full simulator VoiceOver traversal, contrast proof, and localized simulator screenshots are still needed.
+- Accessibility and localization remain targeted improvements rather than exhaustive completion; source-tested VoiceOver labels, core Dynamic Type screenshots, and one French-locale date-format screenshot now cover key planner/action visuals, but full simulator VoiceOver traversal, contrast proof, translated UI proof, and native-speaker localization review are still needed.
 - The 500-use-case swarm is generated and ranked, but not converted into a full automated e2e suite.
 - StoreKit configuration passes static checks, but sandbox purchase/restore proof still needs a validation run.
 
