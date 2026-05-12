@@ -152,5 +152,8 @@
 | npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after screenshot export script/docs |
 | npm run verify:production | Passed | Production config verification passed | Re-run after screenshot export script/docs |
 | git diff --check | Passed | exit 0 | Final whitespace/conflict-marker check after screenshot export script/docs |
+| npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning | Local screenshot export checks passed; missing blockers are IAP env IDs, support URL, products-loaded paywall screenshot, StoreKit proof, App Store Connect upload acceptance, signed archive entitlements, and VoiceOver traversal |
+| npm run typecheck | Passed | exit 0 | Re-run after submission readiness verifier |
+| npm run test | Passed | 46/46 | Added `tests/submissionReadiness.test.ts` proving the verifier blocks incomplete external proof while accepting local screenshot exports |
 
 Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, manual App Store Connect screenshot upload acceptance, full translated UI/string extraction/native localization review, full simulator VoiceOver traversal, restore purchase success proof. Optional: overnight widget rollover screenshot.

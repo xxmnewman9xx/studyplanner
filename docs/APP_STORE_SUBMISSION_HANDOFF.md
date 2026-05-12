@@ -29,6 +29,8 @@ Status: NO-SUBMIT as of 2026-05-12.
 8. Localized metadata packs require native-speaker and text-fit review.
 9. Products-loaded paywall screenshot is missing; the captured paywall proof currently shows purchases unavailable.
 
+`npm run verify:submission` now centralizes these gates. As of 2026-05-12 it correctly returns **NO-SUBMIT** with 8 blockers and 1 warning: missing IAP env IDs, support URL, products-loaded paywall screenshot, StoreKit sandbox proof, App Store Connect screenshot upload acceptance, signed archive entitlement proof, and VoiceOver traversal proof. It passes the local iPhone/iPad accepted-size screenshot export checks.
+
 ## Reviewer flow draft
 
 See docs/APP_REVIEW_NOTES_FINAL.md.
@@ -68,6 +70,7 @@ Current capture inventory:
 - Widget day-boundary behavior is code/build proven: WidgetKit recomputes label/urgency at render time and schedules refresh for the earlier of 30 minutes or 00:01 local time.
 - Core action large-text proof captured: `49-accessibility-check-work-large-text.png` through `52-accessibility-paywall-large-text.png`.
 - Contrast-safe visual spot check refreshed `01-onboarding-welcome.png`, `07-today-populated.png`, `21-calendar-month.png`, `24-week-plan.png`, `26-classes-list.png`, and `29-widget-setup.png`; `45-final-contact-sheet.png` was regenerated from 47 primary PNGs at 1040x6856.
+- Submission verifier proof: `npm run verify:submission` passes local screenshot export checks and fails honestly until external StoreKit/support/App Store Connect/VoiceOver/archive proof is supplied.
 - Missing: products-loaded paywall, restore purchase success/sandbox proof, full UI localization/string extraction/native review, full VoiceOver traversal, manual App Store Connect upload acceptance for the exported screenshots, and optional overnight widget rollover screenshot.
 
 Date/localization implementation note:

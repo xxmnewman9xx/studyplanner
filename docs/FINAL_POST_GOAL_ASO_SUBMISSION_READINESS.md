@@ -5,7 +5,7 @@ This is an interim readiness report, not a submit approval.
 ## Score
 
 Initial v1-3 post-goal score: 7.82/10.  
-Current evidence-adjusted score after fixes/docs/screenshots/accessibility/date/widget/reminder/settings/restore-access/iPad proof, partial localized/date proof, contrast guard quick wins, and local App Store-sized screenshot export validation: 9.16/10.
+Current evidence-adjusted score after fixes/docs/screenshots/accessibility/date/widget/reminder/settings/restore-access/iPad proof, partial localized/date proof, contrast guard quick wins, local App Store-sized screenshot export validation, and a centralized no-submit submission verifier: 9.17/10.
 Target: 9.4/10.  
 Verdict: not reached.
 
@@ -34,6 +34,7 @@ Verdict: not reached.
 - A generated contact sheet was captured at `artifacts/post-goal-aso-submission/45-final-contact-sheet.png`.
 - Theme/class/widget contrast is guarded by `tests/themeContrast.test.ts`; `01-onboarding-welcome.png`, `07-today-populated.png`, `21-calendar-month.png`, `24-week-plan.png`, `26-classes-list.png`, and `29-widget-setup.png` were refreshed after the contrast-safe color pass.
 - Local App Store-sized screenshot export proof is now captured: `npm run export:screenshots` generated 10 iPhone 6.9-inch candidate PNGs at 1290x2796, 10 iPad 13-inch candidate PNGs at 2064x2752, and `artifacts/post-goal-aso-submission/app-store-export/manifest.json`.
+- Submission readiness is now guarded by `npm run verify:submission`, which passes local screenshot export checks and returns **NO-SUBMIT** until IAP env IDs, support URL, products-loaded paywall proof, StoreKit sandbox proof, App Store Connect upload acceptance, signed archive entitlements, and VoiceOver traversal proof are supplied.
 - Paywall failure proof was captured honestly as `38-paywall-product-load-failure.png`; products-loaded proof remains missing.
 - A targeted Dynamic Type fix keeps the Today hero, metrics, warning card, and dock readable at `accessibility-extra-extra-large`; proof captured as `44-accessibility-large-text.png`.
 - Month calendar planning now respects locale week-start rules with tests for Sunday, Monday, and Saturday-start regions.
@@ -51,7 +52,7 @@ Verdict: not reached.
 
 ## Still blocking 9.4
 
-StoreKit proof, products-loaded paywall proof, support URL, manual App Store Connect screenshot upload acceptance, full UI localization/native review, signed archive entitlement check, full simulator VoiceOver traversal, and final simulator QA.
+StoreKit proof, products-loaded paywall proof, support URL, manual App Store Connect screenshot upload acceptance, full UI localization/native review, signed archive entitlement check, full simulator VoiceOver traversal, and final simulator QA. The new `npm run verify:submission` command tracks these as explicit blockers instead of relying on prose.
 
 The capture-mode rebuild solved the original deep-link capture problem, installed small/medium WidgetKit screenshots now exist, app icon proof exists, native widget empty/needs-check states exist, reminders proof exists, settings proof exists, restore access proof exists, iPad raw proof exists, partial localized/date proof exists, contrast-token proof exists, local App Store-sized export proof exists, completion/edit/add refresh is proven, day-boundary behavior is code/build proven, core action large-text proof now exists, and Manual Add/Edit Item/filtered Calendar/import-path capture states are now real. The screenshot set is closer to upload-ready, but final App Store readiness still needs manual App Store Connect upload acceptance and StoreKit/localization proof. Missing proof includes restore purchase success/sandbox proof, translated UI/string extraction/native review, full simulator VoiceOver traversal, manual screenshot upload acceptance, and StoreKit products loaded.
 

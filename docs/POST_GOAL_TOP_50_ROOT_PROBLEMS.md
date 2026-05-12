@@ -4,7 +4,7 @@ Product thesis: StudyPlanner is a reviewed due-date planner with useful small an
 
 | Rank | Title | Affected features | Evidence | User/conversion harm | Risk | Strategy | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Proof debt counted as readiness | Submission readiness | v1-2 audit scored 8.76 and v1-3 scorecard starts at 7.82; StoreKit/support/localization/manual upload acceptance remain open. | False submit confidence. | High | No-submit until proof exists. | Open |
+| 1 | Proof debt counted as readiness | Submission readiness | v1-2 audit scored 8.76 and v1-3 scorecard starts at 7.82; `npm run verify:submission` now blocks submit with 8 real blockers. | False submit confidence. | High | Keep no-submit verifier failing until StoreKit/support/upload/archive/VoiceOver proof exists. | Partially fixed |
 | 2 | iPad screenshot obligation unclear | App Store media | app.json has ios.supportsTablet true; 11 raw 13-inch iPad proof PNGs and 10 local 2064x2752 export PNGs now exist. | Missing required media can block upload/review if App Store Connect acceptance is not confirmed. | High | Capture/export complete; manually upload/confirm acceptance in App Store Connect. | Fixed locally; external confirmation pending |
 | 3 | StoreKit proof missing | Paywall/IAP | Static checks pass; no sandbox monthly/yearly/lifetime/restore evidence. | Reviewer may see unavailable products. | High | Submission verification mode and sandbox proof packet. | Open |
 | 4 | Support URL missing | Submission metadata | Evidence ledger marks support URL as blocker. | App Store metadata incomplete. | High | Provide public HTTPS support page/contact. | Open |
@@ -53,4 +53,4 @@ Product thesis: StudyPlanner is a reviewed due-date planner with useful small an
 | 47 | No reliable external parser timeout proof | Parser | Failure docs more complete than tests. | Reviewer/user uncertainty. | Medium | Add endpoint timeout test. | Open |
 | 48 | Accessibility proof incomplete | Accessibility | Large-text screenshots and source-tested VoiceOver labels exist, but full simulator VoiceOver traversal is incomplete. | Cannot claim exhaustive accessibility polish. | Medium | Complete VoiceOver traversal before final 9.4/submit claim. | Partially fixed |
 | 49 | Performance proof is logic-heavy only | Performance | 500 assignment logic test passes; UI virtualization not proven. | Heavy UI may jank. | Low | Future simulator profiling. | Open |
-| 50 | Submission handoff incomplete until external proofs | Submission | App Review handoff depends on IAP/support/screenshots. | Cannot submit without guessing. | High | Final handoff lists blockers. | Open |
+| 50 | Submission handoff incomplete until external proofs | Submission | App Review handoff depends on IAP/support/screenshots; `npm run verify:submission` now codifies blockers. | Cannot submit without guessing. | High | Add real external proof files/env values, then rerun verifier. | Partially fixed |

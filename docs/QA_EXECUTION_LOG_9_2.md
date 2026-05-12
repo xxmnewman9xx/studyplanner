@@ -183,3 +183,7 @@ Known residual risks:
 | 33 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after screenshot export script/docs | No |
 | 33 | `npm run verify:production` | Passed | Production config verification passed after screenshot export script/docs | No |
 | 33 | `git diff --check` | Passed | No whitespace errors or conflict markers after screenshot export script/docs | No |
+| 34 | Submission readiness verifier | Failed as intended | `npm run verify:submission` returned NO-SUBMIT with 8 blockers and 1 warning while passing local screenshot export checks | Yes, external proof blockers remain |
+| 34 | Submission verifier regression tests | Passed | `tests/submissionReadiness.test.ts` verifies missing external proof blocks readiness and local iPhone/iPad exports pass | No |
+| 34 | `npm run typecheck` | Passed | `tsc --noEmit` completed after submission verifier | No |
+| 34 | `npm run test` | Passed | 46/46 tests passed after submission verifier | No |

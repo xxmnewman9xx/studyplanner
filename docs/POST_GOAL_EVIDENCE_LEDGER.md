@@ -60,6 +60,7 @@ Starting commit: `e766ddaf17c9954ab1aaf53e09be8dbe4b6b0b8e`
 | EV-050 | Localized/date screenshot proof | `artifacts/post-goal-aso-submission/43-localized-ui-example.png`, iPhone simulator `AppleLanguages=fr-FR`, `AppleLocale=fr_FR`, forced 24-hour time | Real iPhone simulator screenshot proves partial locale/date behavior in Week Plan (`12 May - 18 May`); app interface strings remain English. The then-current contact sheet was later superseded by EV-051. | Localization/date evidence and screenshot inventory | Captured with caveat |
 | EV-051 | Contrast guard and refreshed visual proof | `src/theme.ts`, `tests/themeContrast.test.ts`, `artifacts/post-goal-aso-submission/01-onboarding-welcome.png`, `07-today-populated.png`, `21-calendar-month.png`, `24-week-plan.png`, `26-classes-list.png`, `29-widget-setup.png`, `45-final-contact-sheet.png` | Foreground-bearing theme accents, class colors, and widget presets now have automated contrast coverage; six high-signal iPhone screens were recaptured and the contact sheet was regenerated from 47 raw PNGs at 1040x6856 | Accessibility contrast and screenshot freshness | Fixed and tested |
 | EV-052 | App Store screenshot export validation | `scripts/export-app-store-screenshots.mjs`, `package.json`, `artifacts/post-goal-aso-submission/app-store-export/manifest.json`, `npm run export:screenshots`, Node IHDR dimension check | Local candidate export generated 10 iPhone 6.9-inch PNGs at 1290x2796 and 10 iPad 13-inch PNGs at 2064x2752, matching Apple's current accepted portrait-size options documented in the manifest; dimension check passed | Screenshot upload preparation | Local export fixed; manual App Store Connect upload acceptance still external |
+| EV-053 | Submission readiness gate | `scripts/verify-submission-readiness.mjs`, `tests/submissionReadiness.test.ts`, `npm run verify:submission` | The new verifier passes local screenshot export checks and currently fails with 8 blockers plus 1 warning: missing IAP env IDs, support URL, products-loaded paywall screenshot, StoreKit proof, App Store Connect upload acceptance, signed archive entitlements, and VoiceOver traversal | No-submit protection and handoff completeness | Fixed and tested; submit blockers remain |
 
 ## Open Evidence Gaps
 
@@ -75,6 +76,8 @@ Starting commit: `e766ddaf17c9954ab1aaf53e09be8dbe4b6b0b8e`
 | App Store Connect product status | Code preserves product IDs, but ASC status is external | Blocker for submit recommendation | ASC checklist screenshots or manual confirmation |
 | Full e2e matrix | Unit tests cover logic, not all user flows | Non-blocker if documented; blocker for 9.4 claim if untested flows remain high-risk | Simulator use-case log and screenshots |
 | Remaining raw screenshots | 47 primary PNGs, 11 iPad PNGs, and local App Store-sized exports are captured, but restore success/sandbox proof, products-loaded paywall, full translated UI proof, and manual App Store Connect upload acceptance are still missing | Partial blocker for final asset package | Capture remaining supported states, upload/export confirmations, or document exclusions |
+
+`npm run verify:submission` now codifies the blocker list above. It should remain failing until the external proof files and environment values are real.
 
 ## Evidence Rules For This Branch
 
