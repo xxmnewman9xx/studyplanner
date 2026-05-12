@@ -50,5 +50,13 @@
 | npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after WidgetKit day-boundary patch; unchanged monetization guard |
 | npm run verify:production | Passed | Production config verification passed | Re-run after WidgetKit day-boundary patch |
 | EXPO_PUBLIC_STORE_CAPTURE=0 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE --no-bundler | Passed | Build succeeded, 0 errors/0 warnings; app installed/opened | Verified WidgetKit extension compiles after day-boundary patch |
+| Core action accessibility source guard | Passed | `tests/accessibilitySource.test.ts` | Guards labels/hints and bounded text scaling in Check Work, Assignment Detail, Widget Setup, Paywall, and shared buttons |
+| xcrun simctl ui content_size accessibility-extra-extra-large + screenshots | Passed | `49-accessibility-check-work-large-text.png`, `50-accessibility-assignment-detail-large-text.png`, `51-accessibility-widget-setup-large-text.png`, `52-accessibility-paywall-large-text.png` | Fresh real simulator captures replaced the earlier red-box/failed attempts; simulator content size restored to `large` |
+| npm run typecheck | Passed | exit 0 | Re-run after core action accessibility patch |
+| npm run test | Passed | 39/39 | Re-run after core action accessibility patch |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after core action accessibility patch |
+| npm run verify:production | Passed | Production config verification passed | Re-run after core action accessibility patch |
+| git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after core action accessibility patch |
+| Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 33 PNGs at 1248x5994 | Re-run after core action large-text screenshots |
 
-Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/Dynamic Type screen sweep, restore purchases. Optional: overnight widget rollover screenshot.
+Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/contrast pass, restore purchases. Optional: overnight widget rollover screenshot.

@@ -81,3 +81,10 @@ Known residual risks:
 | 21 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after widget day-boundary patch | No |
 | 21 | `npm run verify:production` | Passed | Production config verification passed after widget day-boundary patch | No |
 | 21 | `EXPO_PUBLIC_STORE_CAPTURE=0 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE --no-bundler` | Passed | iOS build compiled, signed, installed, and opened; WidgetKit extension linked without warnings/errors | No |
+| 22 | Core action accessibility source guard | Passed | Check Work, Assignment Detail, Widget Setup, Paywall, and shared buttons have source-tested labels/hints and bounded text scaling | Full simulator VoiceOver traversal still needed |
+| 22 | Core action large-text simulator proof | Passed | Captured `49-accessibility-check-work-large-text.png` through `52-accessibility-paywall-large-text.png` at `accessibility-extra-extra-large`; simulator restored to `large` | No |
+| 22 | `npm run typecheck` | Passed | `tsc --noEmit` completed after core action accessibility patch | No |
+| 22 | `npm run test` | Passed | 39/39 tests passed, including core action accessibility source guard | No |
+| 22 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after core action accessibility patch | No |
+| 22 | `npm run verify:production` | Passed | Production config verification passed after core action accessibility patch | No |
+| 22 | Contact sheet regeneration | Passed | `45-final-contact-sheet.png` regenerated from 33 raw PNGs | No |

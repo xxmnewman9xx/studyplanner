@@ -26,6 +26,7 @@ const freeFeatures = [
   "Today plan and weekly planning",
   "Editable semester setup"
 ];
+const bodyTextScale = 1.35;
 
 export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
   const { theme } = useAppTheme();
@@ -52,9 +53,9 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
   return (
     <View>
       <View style={styles.header}>
-        <Text style={styles.kicker}>Study Planner Plus</Text>
-        <Text style={styles.title}>Save time when the semester gets busy.</Text>
-        <Text style={styles.subtitle}>
+        <Text maxFontSizeMultiplier={bodyTextScale} style={styles.kicker}>Study Planner Plus</Text>
+        <Text maxFontSizeMultiplier={bodyTextScale} style={styles.title}>Save time when the semester gets busy.</Text>
+        <Text maxFontSizeMultiplier={bodyTextScale} style={styles.subtitle}>
           Keep the free planner for manual organization, or unlock the automation that
           removes the repetitive setup work.
         </Text>
@@ -66,14 +67,14 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
             <Crown color={colors.ink} size={22} />
           </View>
           <View style={styles.valueCopy}>
-            <Text style={styles.valueTitle}>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.valueTitle}>
               {subscription.isPremium
                 ? subscription.activeProductKind === "lifetime"
                   ? "Lifetime Plus is active"
                   : "Plus is active"
                 : "Unlock Plus"}
             </Text>
-            <Text style={styles.valueSubtitle}>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.valueSubtitle}>
               {subscription.isPremium
                 ? "Premium tools are available on this device."
                 : "Syllabus scan, calendar sync, reminders, and grade forecasting."}
@@ -89,13 +90,13 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
       {subscription.message ? (
         <View style={styles.noticeSuccess}>
           <ShieldCheck color={colors.green} size={18} />
-          <Text style={styles.noticeText}>{subscription.message}</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.noticeText}>{subscription.message}</Text>
         </View>
       ) : null}
 
       {subscription.errorMessage && !plansUnavailable ? (
         <View style={styles.noticeError}>
-          <Text style={styles.noticeText}>{subscription.errorMessage}</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.noticeText}>{subscription.errorMessage}</Text>
         </View>
       ) : null}
 
@@ -118,7 +119,7 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
             {subscription.status === "checking" || subscription.flowState === "loading" ? (
               <View style={styles.loadingCard}>
                 <ActivityIndicator color={colors.ink} />
-                <Text style={styles.loadingText}>Loading store plans</Text>
+                <Text maxFontSizeMultiplier={bodyTextScale} style={styles.loadingText}>Loading store plans</Text>
               </View>
             ) : null}
 
@@ -134,8 +135,8 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
 
           {plansUnavailable ? (
             <View style={styles.unavailableCard}>
-              <Text style={styles.unavailableTitle}>Purchases are unavailable</Text>
-              <Text style={styles.unavailableCopy}>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.unavailableTitle}>Purchases are unavailable</Text>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.unavailableCopy}>
                 {unavailableCopy(subscription.status, subscription.hasConfiguredProducts)}
               </Text>
               {subscription.status !== "unavailable" ? (
@@ -178,7 +179,7 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
 
       <View style={styles.freeCard}>
         <Badge label="Included" tone="green" />
-        <Text style={styles.freeTitle}>Free planner</Text>
+        <Text maxFontSizeMultiplier={bodyTextScale} style={styles.freeTitle}>Free planner</Text>
         {freeFeatures.map((feature) => (
           <FeatureRow key={feature} text={feature} />
         ))}
@@ -186,7 +187,7 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
 
       <View style={styles.legalRow}>
         <LegalLink label="Terms of Use (EULA)" document="terms" onOpen={setLegalDocument} />
-        <Text style={styles.legalDivider}>·</Text>
+        <Text maxFontSizeMultiplier={bodyTextScale} style={styles.legalDivider}>·</Text>
         <LegalLink label="Privacy Policy" document="privacy" onOpen={setLegalDocument} />
       </View>
     </View>
@@ -208,18 +209,20 @@ function ProductOption({
   return (
     <TouchableOpacity
       accessibilityRole="button"
+      accessibilityLabel={`${product.title}, ${product.periodLabel}, ${product.displayPrice}`}
+      accessibilityHint="Selects this Plus plan. Purchase starts only after pressing the main paywall button."
       accessibilityState={{ selected }}
       style={[styles.productCard, selected ? styles.productCardSelected : null]}
       onPress={onPress}
     >
       <View style={styles.productHeader}>
         <View style={styles.productCopy}>
-          <Text style={styles.productTitle}>{product.title}</Text>
-          <Text style={styles.productMeta}>{product.periodLabel}</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.productTitle}>{product.title}</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.productMeta}>{product.periodLabel}</Text>
         </View>
-        <Text style={styles.productPrice}>{product.displayPrice}</Text>
+        <Text maxFontSizeMultiplier={bodyTextScale} style={styles.productPrice}>{product.displayPrice}</Text>
       </View>
-      <Text style={styles.productDescription}>{product.description}</Text>
+      <Text maxFontSizeMultiplier={bodyTextScale} style={styles.productDescription}>{product.description}</Text>
       {product.hasFreeTrial ? <Badge label="Free trial available" tone="gold" /> : null}
     </TouchableOpacity>
   );
@@ -233,7 +236,7 @@ function FeatureRow({ text }: { text: string }) {
   return (
     <View style={styles.featureRow}>
       <Check color={colors.green} size={17} />
-      <Text style={styles.featureText}>{text}</Text>
+      <Text maxFontSizeMultiplier={bodyTextScale} style={styles.featureText}>{text}</Text>
     </View>
   );
 }
@@ -261,8 +264,8 @@ function LegalLink({
   };
 
   return (
-    <TouchableOpacity accessibilityRole="link" onPress={() => void open()}>
-      <Text style={styles.legalLink}>{label}</Text>
+    <TouchableOpacity accessibilityRole="link" accessibilityLabel={label} onPress={() => void open()}>
+      <Text maxFontSizeMultiplier={bodyTextScale} style={styles.legalLink}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -283,8 +286,8 @@ function LegalNotice({
     <View>
       <View style={styles.legalHeader}>
         <View>
-          <Text style={styles.kicker}>{isTerms ? "Terms" : "Privacy"}</Text>
-          <Text style={styles.title}>{isTerms ? "Terms of Use" : "Privacy Policy"}</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.kicker}>{isTerms ? "Terms" : "Privacy"}</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.title}>{isTerms ? "Terms of Use" : "Privacy Policy"}</Text>
         </View>
         <TouchableOpacity
           accessibilityRole="button"
@@ -297,7 +300,7 @@ function LegalNotice({
       </View>
 
       <View style={styles.legalCard}>
-        <Text style={styles.legalBody}>
+        <Text maxFontSizeMultiplier={bodyTextScale} style={styles.legalBody}>
           {isTerms
             ? "Subscriptions are billed by the App Store or Google Play account used at purchase. Apple's standard EULA applies on iOS. Manage or cancel renewal from your store account settings. Premium access remains tied to valid store entitlement status."
             : "Study Planner stores planner details on your device unless you choose services that require upload, such as syllabus scan. Syllabus files are sent only for parsing, and the app does not sell personal planner data."}
@@ -308,7 +311,7 @@ function LegalNotice({
           ) : (
             <FileScan color={colors.accent} size={18} />
           )}
-          <Text style={styles.legalBody}>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.legalBody}>
             {isTerms
               ? "Prices, trials, and renewal periods shown on the paywall come from the store."
               : "You can continue using the planner manually without creating an account or purchasing Plus."}

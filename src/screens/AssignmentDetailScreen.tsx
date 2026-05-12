@@ -24,6 +24,7 @@ const statuses: Array<Exclude<AssignmentStatus, "archived">> = [
   "done"
 ];
 const kinds: AssignmentKind[] = ["assignment", "exam"];
+const bodyTextScale = 1.35;
 
 export function AssignmentDetailScreen({
   assignment,
@@ -107,13 +108,18 @@ export function AssignmentDetailScreen({
     <View style={styles.screen}>
       <View style={styles.headerRow}>
         <View style={styles.headerCopy}>
-          <Text style={styles.kicker}>Assignment detail</Text>
-          <Text style={styles.title}>{assignment.title}</Text>
-          <Text style={styles.subtitle}>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.kicker}>Assignment detail</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.title}>{assignment.title}</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.subtitle}>
             {course?.code || "Course"} · {formatShortDate(assignment.dueAt)}
           </Text>
         </View>
-        <TouchableOpacity accessibilityRole="button" style={styles.closeButton} onPress={onClose}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Close assignment detail"
+          style={styles.closeButton}
+          onPress={onClose}
+        >
           <X color={colors.ink} size={20} />
         </TouchableOpacity>
       </View>
@@ -125,6 +131,7 @@ export function AssignmentDetailScreen({
             onChangeText={setTitle}
             placeholder="Assignment title"
             accessibilityLabel="Assignment title"
+            maxFontSizeMultiplier={bodyTextScale}
             placeholderTextColor={colors.faint}
             style={styles.input}
           />
@@ -138,6 +145,8 @@ export function AssignmentDetailScreen({
                 onChangeText={setDueDate}
                 placeholder="YYYY-MM-DD"
                 accessibilityLabel="Due date"
+                accessibilityHint="Use a real date like 2026-09-18."
+                maxFontSizeMultiplier={bodyTextScale}
                 placeholderTextColor={colors.faint}
                 style={styles.input}
               />
@@ -150,24 +159,28 @@ export function AssignmentDetailScreen({
                 onChangeText={setDueTime}
                 placeholder="HH:MM"
                 accessibilityLabel="Due time"
+                accessibilityHint="Use 24-hour time like 15:30."
+                maxFontSizeMultiplier={bodyTextScale}
                 placeholderTextColor={colors.faint}
                 style={styles.input}
               />
             </Field>
           </View>
         </View>
-        {dateError ? <Text style={styles.errorText}>{dateError}</Text> : null}
+        {dateError ? <Text maxFontSizeMultiplier={bodyTextScale} style={styles.errorText}>{dateError}</Text> : null}
 
         <Field label="Course">
           <View style={styles.chipRow}>
             {courses.map((option) => (
               <TouchableOpacity
                 accessibilityRole="button"
+                accessibilityLabel={`Set assignment course to ${option.code}, ${option.name}`}
+                accessibilityState={{ selected: courseId === option.id }}
                 key={option.id}
                 style={[styles.choice, courseId === option.id ? styles.choiceActive : null]}
                 onPress={() => setCourseId(option.id)}
               >
-                <Text style={[styles.choiceText, courseId === option.id ? styles.choiceTextActive : null]}>
+                <Text maxFontSizeMultiplier={bodyTextScale} style={[styles.choiceText, courseId === option.id ? styles.choiceTextActive : null]}>
                   {option.code}
                 </Text>
               </TouchableOpacity>
@@ -196,6 +209,7 @@ export function AssignmentDetailScreen({
                 onChangeText={setEstimatedMinutes}
                 placeholder="Minutes"
                 accessibilityLabel="Estimated minutes"
+                maxFontSizeMultiplier={bodyTextScale}
                 placeholderTextColor={colors.faint}
                 style={styles.input}
               />
@@ -205,7 +219,7 @@ export function AssignmentDetailScreen({
             <Field label="Where it came from">
               <View style={styles.sourceBox}>
                 <Badge label={assignment.source} tone="neutral" />
-                <Text style={styles.sourceMeta}>
+                <Text maxFontSizeMultiplier={bodyTextScale} style={styles.sourceMeta}>
                   {assignment.reviewStatus === "accepted" ? "Checked" : "Needs check"} ·{" "}
                   {Math.round(assignment.confidence * 100)}% match
                 </Text>
@@ -217,7 +231,7 @@ export function AssignmentDetailScreen({
         {assignment.sourceText ? (
           <Field label="Source note">
             <View style={styles.sourceNote}>
-              <Text style={styles.sourceNoteText}>{assignment.sourceText}</Text>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.sourceNoteText}>{assignment.sourceText}</Text>
             </View>
           </Field>
         ) : null}
@@ -228,6 +242,7 @@ export function AssignmentDetailScreen({
             onChangeText={setTags}
             placeholder="essay, lab, exam"
             accessibilityLabel="Labels"
+            maxFontSizeMultiplier={bodyTextScale}
             placeholderTextColor={colors.faint}
             style={styles.input}
           />
@@ -250,7 +265,7 @@ export function AssignmentDetailScreen({
   function Field({ label, children }: { label: string; children: React.ReactNode }) {
     return (
       <View style={styles.field}>
-        <Text style={styles.fieldLabel}>{label}</Text>
+        <Text maxFontSizeMultiplier={bodyTextScale} style={styles.fieldLabel}>{label}</Text>
         {children}
       </View>
     );
@@ -270,11 +285,13 @@ export function AssignmentDetailScreen({
         {options.map((option) => (
           <TouchableOpacity
             accessibilityRole="button"
+            accessibilityLabel={`Set assignment option to ${labelize(option)}`}
             key={option}
+            accessibilityState={{ selected: value === option }}
             style={[styles.segment, value === option ? styles.segmentActive : null]}
             onPress={() => onChange(option)}
           >
-            <Text style={[styles.segmentText, value === option ? styles.segmentTextActive : null]}>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={[styles.segmentText, value === option ? styles.segmentTextActive : null]}>
               {labelize(option)}
             </Text>
           </TouchableOpacity>

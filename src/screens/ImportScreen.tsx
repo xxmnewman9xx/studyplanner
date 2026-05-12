@@ -58,6 +58,7 @@ const filters: Array<{ id: ConfidenceFilter; label: string }> = [
   { id: "medium", label: "Check date" },
   { id: "low", label: "Needs check" }
 ];
+const bodyTextScale = 1.35;
 
 export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
   const { theme } = useAppTheme();
@@ -267,8 +268,8 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
             <Sparkles color={colors.heroText} size={20} />
           </View>
           <View style={styles.scanHeroCopy}>
-            <Text style={styles.scanHeroTitle}>Add School Stuff</Text>
-            <Text style={styles.scanHeroMeta}>{scanCopy}</Text>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.scanHeroTitle}>Add School Stuff</Text>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.scanHeroMeta}>{scanCopy}</Text>
           </View>
         </View>
         <View style={styles.importGrid}>
@@ -306,8 +307,8 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
       {loading ? <ActivityIndicator style={styles.loader} color={colors.ink} /> : null}
       {errorMessage ? (
         <GlassCard>
-          <Text style={styles.errorTitle}>Scan paused</Text>
-          <Text style={styles.errorCopy}>{errorMessage}</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.errorTitle}>Scan paused</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.errorCopy}>{errorMessage}</Text>
         </GlassCard>
       ) : null}
 
@@ -320,9 +321,9 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
                 <Sparkles color={colors.heroText} size={20} />
               </View>
               <View style={styles.aiHeroCopy}>
-                <Text style={styles.aiHeroKicker}>Needs Check</Text>
-                <Text style={styles.aiHeroTitle}>{reviewStats.needsReview} waiting for approval</Text>
-                <Text style={styles.aiHeroMeta}>
+                <Text maxFontSizeMultiplier={bodyTextScale} style={styles.aiHeroKicker}>Needs Check</Text>
+                <Text maxFontSizeMultiplier={bodyTextScale} style={styles.aiHeroTitle}>{reviewStats.needsReview} waiting for approval</Text>
+                <Text maxFontSizeMultiplier={bodyTextScale} style={styles.aiHeroMeta}>
                   {reviewStats.high} look ready, but you choose what goes into Today, Calendar, Classes, and widgets.
                 </Text>
               </View>
@@ -338,9 +339,9 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
                   <Sparkles color={colors.heroText} size={18} />
                 </View>
                 <View style={styles.summaryCopy}>
-                  <Text style={styles.summaryKicker}>Found from syllabus</Text>
-                  <Text style={styles.summaryTitle}>Found {reviewStats.total} items</Text>
-                  <Text style={styles.summaryMeta}>Sorted by how sure the app is. You choose what gets added.</Text>
+                  <Text maxFontSizeMultiplier={bodyTextScale} style={styles.summaryKicker}>Found from syllabus</Text>
+                  <Text maxFontSizeMultiplier={bodyTextScale} style={styles.summaryTitle}>Found {reviewStats.total} items</Text>
+                  <Text maxFontSizeMultiplier={bodyTextScale} style={styles.summaryMeta}>Sorted by how sure the app is. You choose what gets added.</Text>
                 </View>
               </View>
               <StatusBadge label={`${reviewStats.needsReview} waiting`} tone="purple" />
@@ -354,9 +355,9 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
 
           {draft.findings.length > 0 ? (
             <GlassCard>
-              <Text style={styles.findingTitle}>What the app noticed</Text>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.findingTitle}>What the app noticed</Text>
               {draft.findings.slice(0, 4).map((finding) => (
-                <Text key={finding.id} style={styles.findingText}>
+                <Text maxFontSizeMultiplier={bodyTextScale} key={finding.id} style={styles.findingText}>
                   {finding.message}
                 </Text>
               ))}
@@ -365,15 +366,15 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
 
           {reviewStats.total === 0 ? (
             <GlassCard>
-              <Text style={styles.emptyTitle}>No dated work found.</Text>
-              <Text style={styles.emptyCopy}>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyTitle}>No dated work found.</Text>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyCopy}>
                 The class can still be added manually, but StudyPlanner did not find a deadline safe enough to put
                 in your planner.
               </Text>
             </GlassCard>
           ) : (
             <>
-              <Text style={styles.filterCaption}>How sure</Text>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.filterCaption}>How sure</Text>
               <View style={styles.filterRow}>
                 {filters.map((option) => (
                   <PillFilter
@@ -394,27 +395,38 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
               />
 
               <View style={styles.secondaryActions}>
-                <TouchableOpacity accessibilityRole="button" onPress={acceptVisible}>
-                  <Text style={styles.secondaryActionText}>Looks good shown</Text>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={`Mark ${visibleAssignments.length} shown item${visibleAssignments.length === 1 ? "" : "s"} looks good`}
+                  accessibilityHint="Adds the currently filtered found work to the planner after review."
+                  onPress={acceptVisible}
+                >
+                  <Text maxFontSizeMultiplier={bodyTextScale} style={styles.secondaryActionText}>Looks good shown</Text>
                 </TouchableOpacity>
                 {reviewStats.ignored > 0 ? (
-                  <TouchableOpacity accessibilityRole="button" onPress={restoreIgnored}>
-                    <Text style={styles.secondaryActionText}>Undo removed</Text>
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel={`Restore ${reviewStats.ignored} removed found item${reviewStats.ignored === 1 ? "" : "s"}`}
+                    onPress={restoreIgnored}
+                  >
+                    <Text maxFontSizeMultiplier={bodyTextScale} style={styles.secondaryActionText}>Undo removed</Text>
                   </TouchableOpacity>
                 ) : null}
                 <TouchableOpacity
                   accessibilityRole="button"
+                  accessibilityLabel="Edit first shown found item"
+                  accessibilityHint="Opens the first visible found assignment for title, date, type, and priority edits."
                   onPress={() => setExpandedAssignmentId(visibleAssignments[0]?.id || null)}
                 >
-                  <Text style={styles.secondaryActionText}>Edit first</Text>
+                  <Text maxFontSizeMultiplier={bodyTextScale} style={styles.secondaryActionText}>Edit first</Text>
                 </TouchableOpacity>
               </View>
 
               <View style={styles.reviewList}>
                 {visibleAssignments.length === 0 ? (
                   <GlassCard>
-                    <Text style={styles.emptyTitle}>Nothing in this filter.</Text>
-                    <Text style={styles.emptyCopy}>Switch filters or upload another syllabus.</Text>
+                    <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyTitle}>Nothing in this filter.</Text>
+                    <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyCopy}>Switch filters or upload another syllabus.</Text>
                   </GlassCard>
                 ) : (
                   visibleAssignments.map((assignment) => (
@@ -447,8 +459,8 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
         </>
       ) : (
         <GlassCard>
-          <Text style={styles.emptyTitle}>No syllabus scanned yet.</Text>
-          <Text style={styles.emptyCopy}>{messySyllabusExample.slice(0, 138)}...</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyTitle}>No syllabus scanned yet.</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyCopy}>{messySyllabusExample.slice(0, 138)}...</Text>
         </GlassCard>
       )}
     </PremiumScreen>
@@ -501,12 +513,18 @@ function ReviewRow({
   return (
     <GlassCard style={styles.reviewCard}>
       <View style={styles.reviewRow}>
-        <TouchableOpacity accessibilityRole="button" style={styles.checkButton} onPress={onAccept}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={accepted ? `${assignment.title} already marked looks good` : `Mark ${assignment.title} looks good`}
+          accessibilityState={{ checked: accepted }}
+          style={styles.checkButton}
+          onPress={onAccept}
+        >
           <CheckCircle2 color={accepted ? colors.green : colors.brandPurple} size={21} />
         </TouchableOpacity>
         <View style={styles.reviewBody}>
-          <Text style={styles.reviewTitle}>{assignment.title}</Text>
-          <Text style={styles.reviewMeta}>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.reviewTitle}>{assignment.title}</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.reviewMeta}>
             {courseName} - {dateKeyFromValue(assignment.dueAt) || "Date needs check"} -{" "}
             {labelize(assignment.type)}
           </Text>
@@ -526,30 +544,34 @@ function ReviewRow({
       </View>
       {assignment.sourceText ? (
         <View style={styles.sourceEvidence}>
-          <Text style={styles.sourceEvidenceLabel}>Found in syllabus</Text>
-          <Text style={styles.sourceEvidenceText}>{assignment.sourceText}</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.sourceEvidenceLabel}>Found in syllabus</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.sourceEvidenceText}>{assignment.sourceText}</Text>
         </View>
       ) : null}
       {expanded ? (
         <View style={styles.editPanel}>
-          <Text style={styles.editLabel}>Title</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.editLabel}>Title</Text>
           <TextInput
             value={assignment.title}
             style={styles.input}
             accessibilityLabel="Found work title"
+            accessibilityHint="Edit the title before adding this work to your planner."
+            maxFontSizeMultiplier={bodyTextScale}
             placeholderTextColor={colors.faint}
             onChangeText={(title) => onPatch({ title })}
           />
-          <Text style={styles.editLabel}>Due date</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.editLabel}>Due date</Text>
           <TextInput
             value={draftDate}
             style={styles.input}
             placeholder="YYYY-MM-DD"
             accessibilityLabel="Found work due date"
+            accessibilityHint="Use a real date like 2026-09-18."
+            maxFontSizeMultiplier={bodyTextScale}
             placeholderTextColor={colors.faint}
             onChangeText={patchDate}
           />
-          {dateError ? <Text style={styles.dateError}>{dateError}</Text> : null}
+          {dateError ? <Text maxFontSizeMultiplier={bodyTextScale} style={styles.dateError}>{dateError}</Text> : null}
           <View style={styles.choiceRow}>
             {kinds.map((kind) => (
               <Choice
@@ -597,7 +619,7 @@ function MicroAction({
       onPress={onPress}
     >
       {children}
-      <Text style={styles.iconActionText}>{label}</Text>
+      <Text maxFontSizeMultiplier={bodyTextScale} style={styles.iconActionText}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -610,11 +632,12 @@ function Choice({ label, active, onPress }: { label: string; active: boolean; on
     <TouchableOpacity
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
+      accessibilityLabel={`Set found work option to ${label}`}
       activeOpacity={0.82}
       style={[styles.choice, active ? styles.choiceActive : null]}
       onPress={onPress}
     >
-      <Text style={[styles.choiceText, active ? styles.choiceTextActive : null]}>{label}</Text>
+      <Text maxFontSizeMultiplier={bodyTextScale} style={[styles.choiceText, active ? styles.choiceTextActive : null]}>{label}</Text>
     </TouchableOpacity>
   );
 }

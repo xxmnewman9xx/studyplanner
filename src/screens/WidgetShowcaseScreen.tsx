@@ -47,6 +47,7 @@ const widgetFocusOptions: Array<{
   { id: "nextDue", label: "Next Due", description: "Answers what is due next without opening the app." },
   { id: "thisWeek", label: "This Week", description: "Shows the next several deadlines and overflow count." }
 ];
+const bodyTextScale = 1.35;
 
 export function WidgetShowcaseScreen({
   semester,
@@ -112,8 +113,8 @@ export function WidgetShowcaseScreen({
             <Sparkles color={colors.heroText} size={20} />
           </View>
           <View style={styles.heroCopy}>
-            <Text style={styles.heroTitle}>Your widget preview</Text>
-            <Text style={styles.heroMeta}>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroTitle}>Your widget preview</Text>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroMeta}>
               {snapshot.surfaces.monthly.monthLabel} - {snapshot.surfaces.monthly.dueThisMonth} due - {snapshot.surfaces.heavyWeek.warning?.label || "steady week"}
             </Text>
           </View>
@@ -124,11 +125,11 @@ export function WidgetShowcaseScreen({
       <GlassCard style={styles.customizerCard}>
         <View style={styles.customizerTop}>
           <View>
-            <Text style={styles.panelTitle}>Customize</Text>
-            <Text style={styles.panelMeta}>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.panelTitle}>Customize</Text>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.panelMeta}>
               {sizeLabel(widgetSize)} - {selectedFocus.label}
             </Text>
-            <Text style={styles.panelFinePrint}>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.panelFinePrint}>
               These previews use confirmed assignments only. Widgets refresh after planner changes on iOS timing.
             </Text>
           </View>
@@ -136,17 +137,18 @@ export function WidgetShowcaseScreen({
         </View>
 
         <View style={styles.controlGroup}>
-          <Text style={styles.controlLabel}>Size</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.controlLabel}>Size</Text>
           <View style={styles.segmented}>
             {widgetSizes.map((size) => (
               <TouchableOpacity
                 key={size}
                 accessibilityRole="button"
+                accessibilityLabel={`Use ${sizeLabel(size)} widget size`}
                 accessibilityState={{ selected: widgetSize === size }}
                 style={[styles.segment, widgetSize === size ? styles.segmentActive : null]}
                 onPress={() => updatePreferences({ size })}
               >
-                <Text style={[styles.segmentText, widgetSize === size ? styles.segmentTextActive : null]}>
+                <Text maxFontSizeMultiplier={bodyTextScale} style={[styles.segmentText, widgetSize === size ? styles.segmentTextActive : null]}>
                   {sizeLabel(size)}
                 </Text>
               </TouchableOpacity>
@@ -155,18 +157,20 @@ export function WidgetShowcaseScreen({
         </View>
 
         <View style={styles.controlGroup}>
-          <Text style={styles.controlLabel}>Shows</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.controlLabel}>Shows</Text>
           <View style={styles.chipRow}>
             {widgetFocusOptions.map((focus) => (
               <TouchableOpacity
                 key={focus.id}
                 accessibilityRole="button"
+                accessibilityLabel={`Show ${focus.label} on widget`}
+                accessibilityHint={focus.description}
                 accessibilityState={{ selected: safeWidgetFocus === focus.id }}
                 activeOpacity={0.82}
                 style={[styles.textChip, safeWidgetFocus === focus.id ? styles.textChipActive : null]}
                 onPress={() => updatePreferences({ focus: focus.id })}
               >
-                <Text style={[styles.chipText, safeWidgetFocus === focus.id ? styles.chipTextActive : null]}>
+                <Text maxFontSizeMultiplier={bodyTextScale} style={[styles.chipText, safeWidgetFocus === focus.id ? styles.chipTextActive : null]}>
                   {focus.label}
                 </Text>
               </TouchableOpacity>
@@ -175,18 +179,19 @@ export function WidgetShowcaseScreen({
         </View>
 
         <View style={styles.controlGroup}>
-          <Text style={styles.controlLabel}>Style</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.controlLabel}>Style</Text>
           <View style={styles.chipRow}>
             {widgetStylePresets.map((style) => (
               <TouchableOpacity
                 key={style.id}
                 accessibilityRole="button"
+                accessibilityLabel={`Use ${style.name} widget style`}
                 accessibilityState={{ selected: widgetStyleId === style.id }}
                 activeOpacity={0.82}
                 style={[styles.textChip, widgetStyleId === style.id ? styles.textChipActive : null]}
                 onPress={() => updatePreferences({ styleId: style.id })}
               >
-                <Text style={[styles.chipText, widgetStyleId === style.id ? styles.chipTextActive : null]}>
+                <Text maxFontSizeMultiplier={bodyTextScale} style={[styles.chipText, widgetStyleId === style.id ? styles.chipTextActive : null]}>
                   {style.name}
                 </Text>
               </TouchableOpacity>
@@ -195,13 +200,13 @@ export function WidgetShowcaseScreen({
         </View>
 
         <View style={styles.controlGroup}>
-          <Text style={styles.controlLabel}>Color</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.controlLabel}>Color</Text>
           <View style={styles.paletteDotRow}>
             {palettes.map((palette) => (
               <TouchableOpacity
                 key={palette.id}
                 accessibilityRole="button"
-                accessibilityLabel={palette.name}
+                accessibilityLabel={`Set app color theme to ${palette.name}`}
                 accessibilityState={{ selected: paletteId === palette.id }}
                 activeOpacity={0.82}
                 style={[
@@ -217,20 +222,25 @@ export function WidgetShowcaseScreen({
         </View>
       </GlassCard>
 
-      <View style={styles.livePreviewStage}>
+      <View
+        accessible
+        accessibilityRole="summary"
+        accessibilityLabel={`Live widget preview. ${selectedFocus.label}, ${sizeLabel(widgetSize)}. ${selectedStats.value} ${selectedStats.label}.`}
+        style={styles.livePreviewStage}
+      >
         <View pointerEvents="none" style={styles.stageBandTop} />
         <View pointerEvents="none" style={styles.stageBandBottom} />
         <View style={styles.livePreviewHeader}>
           <View style={styles.livePreviewCopy}>
-            <Text style={styles.liveKicker}>Live preview</Text>
-            <Text style={styles.liveTitle}>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.liveKicker}>Live preview</Text>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.liveTitle}>
               {selectedFocus.label} - {sizeLabel(widgetSize)}
             </Text>
-            <Text style={styles.liveMeta}>{selectedFocus.description}</Text>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.liveMeta}>{selectedFocus.description}</Text>
           </View>
           <View style={styles.statStack}>
-            <Text style={styles.statValue}>{selectedStats.value}</Text>
-            <Text style={styles.statLabel}>{selectedStats.label}</Text>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.statValue}>{selectedStats.value}</Text>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.statLabel}>{selectedStats.label}</Text>
           </View>
         </View>
         <View style={styles.previewMetaRow}>
@@ -249,8 +259,8 @@ export function WidgetShowcaseScreen({
         <View pointerEvents="none" style={styles.stageBandTop} />
         <View pointerEvents="none" style={styles.stageBandBottom} />
         <View style={styles.galleryHeader}>
-          <Text style={styles.galleryKicker}>Widget setup</Text>
-          <Text style={styles.galleryTitle}>Small and medium widgets use your latest deadlines.</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.galleryKicker}>Widget setup</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.galleryTitle}>Small and medium widgets use your latest deadlines.</Text>
         </View>
         <View style={styles.widgetPair}>
           <WidgetPreviewSmall snapshot={snapshot} widgetStyle={widgetStyle} />
@@ -260,8 +270,8 @@ export function WidgetShowcaseScreen({
 
       {!captureMode ? (
         <GlassCard>
-          <Text style={styles.plusTitle}>Study Planner Plus</Text>
-          <Text style={styles.plusCopy}>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.plusTitle}>Study Planner Plus</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.plusCopy}>
             Plus unlocks syllabus scan, calendar sync, reminders, and grade forecasting. Purchases are handled
             securely through the App Store, and Restore Purchases is available anytime.
           </Text>

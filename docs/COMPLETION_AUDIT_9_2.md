@@ -14,7 +14,7 @@ Status: **Not complete as a 9.2 goal.**
 
 The branch has a real transformation and stronger evidence than the release-candidate baseline, but the audit does not support marking the objective fully achieved because the final score is still below 9.2 and several requested proof gates remain weak or manual.
 
-Updated audited score after adding import-trust, onboarding first-action routing, accessibility quick wins, 500-assignment regression tests, successor-branch large-text Today proof, locale-aware month grid logic, 24-hour locale date formatting, source-tested VoiceOver labels for planner visuals, current-date capture seed fix, native small/medium widget screenshot proof, widget refresh-after-completion/edit/add proof, and widget day-boundary code/build proof: **9.14/10**.
+Updated audited score after adding import-trust, onboarding first-action routing, accessibility quick wins, 500-assignment regression tests, successor-branch large-text Today/core action proof, locale-aware month grid logic, 24-hour locale date formatting, source-tested VoiceOver labels for planner visuals, current-date capture seed fix, native small/medium widget screenshot proof, widget refresh-after-completion/edit/add proof, and widget day-boundary code/build proof: **9.16/10**.
 
 ## Prompt-To-Artifact Checklist
 
@@ -41,21 +41,21 @@ Updated audited score after adding import-trust, onboarding first-action routing
 | Improve widgets | `WidgetShowcaseScreen.tsx`, `widgetSnapshot` tests, WidgetKit App Group payload inspection, native small/medium screenshots in `artifacts/post-goal-aso-submission/30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png`, refresh proof in `46-widget-refresh-after-completion.png`, `47-widget-refresh-after-edit.png`, `48-widget-refresh-after-add.png`, widget refresh JSON payloads, and `tests/widgetPlugin.test.ts` | Partial | Completion, edit, and add refresh are proven; day-boundary behavior is code/build proven; overnight visual screenshot remains optional evidence |
 | Improve onboarding | `OnboardingScreen.tsx`, `App.tsx`, screenshot `02-onboarding-after.png` | Complete for this pass | Direct path selection exists; final visual screenshot of the chooser is still optional proof |
 | Improve monetization safety | `UpgradeScreen` existing behavior, `WidgetShowcaseScreen` copy, `check:iap`, `verify:production` | Partial | StoreKit sandbox purchase/restore not proven |
-| Accessibility/localization/performance | date/label improvements, reduced-motion guard, larger touch targets, `plannerScale.test.ts`, targeted large-text caps in `src/components/PremiumUI.tsx`, screenshot `artifacts/goal-9-2-transformation/21-accessibility-large-text.png`, locale-aware month grid and 24-hour date formatting tests, source-tested VoiceOver labels in `tests/accessibilitySource.test.ts` | Partial | Full simulator VoiceOver traversal, complete Dynamic Type screen sweep, contrast, localized string audit, and real locale screenshots remain incomplete |
+| Accessibility/localization/performance | date/label improvements, reduced-motion guard, larger touch targets, `plannerScale.test.ts`, targeted large-text caps in `src/components/PremiumUI.tsx`, core action caps/labels in `ImportScreen`, `AssignmentDetailScreen`, `WidgetShowcaseScreen`, and `UpgradeScreen`, screenshots `artifacts/goal-9-2-transformation/21-accessibility-large-text.png` and `artifacts/post-goal-aso-submission/49-accessibility-check-work-large-text.png` through `52-accessibility-paywall-large-text.png`, locale-aware month grid and 24-hour date formatting tests, source-tested VoiceOver labels in `tests/accessibilitySource.test.ts` | Partial | Full simulator VoiceOver traversal, contrast, localized string audit, and real locale screenshots remain incomplete |
 | Capture screenshot artifacts | `artifacts/goal-9-2-transformation/00-20*.png` | Partial | `14` and `15` are in-app widget previews, not Home Screen widgets |
-| Run tests | `npm run typecheck`, `npm run test` = 38/38 | Complete | Does not cover all e2e scenarios |
+| Run tests | `npm run typecheck`, `npm run test` = 39/39 | Complete | Does not cover all e2e scenarios |
 | Run IAP/production checks | `npm run check:iap`, `npm run verify:production` passed | Complete for static config | Sandbox commerce not proven |
 | Run WidgetKit verification | Capture and production App Group payloads inspected | Partial | Manual add-widget flow not captured |
 | Final readiness report | `docs/FINAL_9_2_READINESS_REPORT.md` | Complete | Correctly says 9.2 was not reached |
-| Final weighted score >= 9.2 | `docs/GOAL_9_2_SCORECARD.md` | Incomplete | Current audited score: 9.14 |
+| Final weighted score >= 9.2 | `docs/GOAL_9_2_SCORECARD.md` | Incomplete | Current audited score: 9.16 |
 
 ## Requirements Not Yet Covered Well Enough
 
 1. StoreKit sandbox monthly/yearly/lifetime purchase and restore proof.
-2. Full VoiceOver, Dynamic Type, and contrast pass with screenshots/logs. A targeted Today large-text proof and source-tested visual-surface labels exist, but this is not exhaustive.
+2. Full VoiceOver and contrast pass with screenshots/logs. Targeted Today/core action large-text proof and source-tested visual-surface labels exist, but this is not exhaustive.
 3. Localized/date behavior proof remains incomplete. Monday-start calendar logic and 24-hour locale date formatting now have unit coverage, but real locale simulator screenshots and localized UI proof remain missing.
 4. Automated e2e coverage for the full functionality matrix.
-5. Final scorecard evidence supporting at least 9.2. Current audited score: 9.14.
+5. Final scorecard evidence supporting at least 9.2. Current audited score: 9.16.
 
 ## Continue/Stop Decision
 

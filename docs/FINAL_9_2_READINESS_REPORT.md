@@ -2,7 +2,7 @@
 
 Branch: `v1-2-goal-9-2-root-concept-transformation`  
 Starting commit: `69d75470328bc470bce6097384b4a7e39e79c89a`  
-Final implementation score: **9.14/10**
+Final implementation score: **9.16/10**
 9.2 reached: **No**
 
 ## What Changed
@@ -19,6 +19,7 @@ Final implementation score: **9.14/10**
 - Accessibility quick wins now cover Reduce Motion in onboarding and larger primary touch targets across the main planner flows.
 - A targeted Dynamic Type fix keeps the Today header, hero, metrics, warning card, progress ring, and dock readable at an accessibility content size.
 - Task rows, completion buttons, WeekStrip days, workload bars, calendar mini-days, workload forecasts, class balance rows, and completion cards now expose VoiceOver labels, with a source-regression test guarding the labels.
+- Check Work, Assignment Detail, Widget Setup, Paywall, and shared buttons now use bounded text scaling plus clearer labels/hints for selection, edit, preview, and plan-selection actions.
 - Month calendar planning now respects locale week-start rules for Sunday, Monday, and Saturday-start regions, with Monday-start coverage for `en-GB`.
 - Due-date and Week Plan date labels now use the preferred locale, with 24-hour formatting coverage for `fr-FR` and `en-GB`.
 - Successor-branch capture mode now uses current relative demo dates, preventing stale WidgetKit due labels.
@@ -32,18 +33,19 @@ Final implementation score: **9.14/10**
 ## Verification
 
 - `npm run typecheck`: passed.
-- `npm run test`: passed, 38/38 tests.
+- `npm run test`: passed, 39/39 tests.
 - `npm run check:iap`: passed.
 - `npm run verify:production`: passed.
 - `EXPO_PUBLIC_STORE_CAPTURE=1 ./scripts/verify-ios-widgetkit.sh`: passed build/App Group payload inspection; manual widget placement remains.
 - `EXPO_PUBLIC_STORE_CAPTURE=0 ./scripts/verify-ios-widgetkit.sh`: production payload verified after stopping the stale capture Metro server; no `demoState`, no demo assignments.
 - Simulator screenshot sweep captured `02` through `19`, plus `00` and `20` contact sheets.
 - Large-text proof captured at `artifacts/goal-9-2-transformation/21-accessibility-large-text.png`.
+- Successor-branch core action large-text proof captured at `artifacts/post-goal-aso-submission/49-accessibility-check-work-large-text.png` through `52-accessibility-paywall-large-text.png`.
 - Completion audit added in `docs/COMPLETION_AUDIT_9_2.md`; verdict remains not complete as a 9.2 goal.
 
 ## Why This Is Not 9.2 Yet
 
-- Accessibility and localization remain targeted improvements rather than exhaustive completion; source-tested VoiceOver labels now cover key planner visuals, but full simulator VoiceOver/Dynamic Type proof and localized simulator screenshots are still needed.
+- Accessibility and localization remain targeted improvements rather than exhaustive completion; source-tested VoiceOver labels and core Dynamic Type screenshots now cover key planner/action visuals, but full simulator VoiceOver traversal, contrast proof, and localized simulator screenshots are still needed.
 - The 500-use-case swarm is generated and ranked, but not converted into a full automated e2e suite.
 - StoreKit configuration passes static checks, but sandbox purchase/restore proof still needs a validation run.
 
@@ -52,7 +54,7 @@ Final implementation score: **9.14/10**
 Run a release-validation gate on this branch focused only on:
 
 1. StoreKit sandbox monthly/yearly/lifetime purchase and restore proof.
-2. VoiceOver/Dynamic Type pass on Today, Check Work, Assignment Detail, Widget Setup, and Paywall.
+2. VoiceOver and contrast pass on Today, Check Work, Assignment Detail, Widget Setup, and Paywall.
 3. Heavy-load simulator seed with 100 and 500 assignments.
 4. Optional overnight widget rollover screenshot for extra submission confidence.
 5. Final scorecard update after those proofs.

@@ -2,7 +2,7 @@
 
 Folder: `artifacts/post-goal-aso-submission`
 
-Status: partial proof captured on 2026-05-12. The folder now contains **29 raw simulator PNGs** plus a generated contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit, iPad, and App Store-size export proof are complete.
+Status: partial proof captured on 2026-05-12. The folder now contains **33 raw simulator PNGs** plus a generated contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit, iPad, and App Store-size export proof are complete.
 
 ## Capture Summary
 
@@ -10,12 +10,12 @@ Status: partial proof captured on 2026-05-12. The folder now contains **29 raw s
 - Capture-mode feature proof captured: onboarding, populated Today, Add School Stuff, Check New Work, assignment detail, Calendar, Week Plan, Classes, Widget Setup, theme customization, and paywall product-load failure.
 - Native Home Screen widget proof captured: `30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png` show installed WidgetKit small and medium widgets, refreshed from a current May 2026 capture snapshot.
 - App icon/Home Screen proof captured: `40-app-icon-home-screen.png`.
-- Accessibility proof captured: Today at `accessibility-extra-extra-large` content size after capping the most failure-prone shared display labels.
+- Accessibility proof captured: Today plus Check Work, Assignment Detail, Widget Setup, and Paywall at `accessibility-extra-extra-large` content size after capping high-risk display/action labels.
 - Widget refresh proof captured: `46-widget-refresh-after-completion.png` shows installed widgets after completing Lab Report, with the small widget moved to Reading Reflection and the medium list reduced to the remaining week items.
 - Widget refresh payload captured: `widget-refresh-after-completion-snapshot.json`.
 - Widget edit refresh proof captured: `47-widget-refresh-after-edit.png` and `widget-refresh-after-edit-snapshot.json`.
 - Widget add refresh proof captured: `48-widget-refresh-after-add.png` and `widget-refresh-after-add-snapshot.json`.
-- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 29 PNGs.
+- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 33 PNGs.
 - Paywall products-loaded proof is still missing. The captured paywall state shows purchases unavailable and is correctly stored as `38-paywall-product-load-failure.png`.
 
 | Required PNG | Status | Notes |
@@ -64,11 +64,15 @@ Status: partial proof captured on 2026-05-12. The folder now contains **29 raw s
 | 41-no-data-app-review-state.png | Missing | Production no-data Today is captured as `06-today-empty.png`; separate App Review state not captured. |
 | 42-sample-plan-state.png | Missing | Sample plan entry/state not separately captured. |
 | 43-localized-ui-example.png | Missing | UI localization proof not captured. |
-| 44-accessibility-large-text.png | Captured | Real simulator Today screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves the top hierarchy no longer catastrophically explodes, but full Dynamic Type/VoiceOver audit remains open. |
-| 45-final-contact-sheet.png | Captured | Generated from the 29 current raw PNGs, 1248x5328 PNG. |
+| 44-accessibility-large-text.png | Captured | Real simulator Today screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves the top hierarchy no longer catastrophically explodes, but full VoiceOver/contrast audit remains open. |
+| 45-final-contact-sheet.png | Captured | Generated from the 33 current raw PNGs, 1248x5994 PNG. |
 | 46-widget-refresh-after-completion.png | Captured | Real simulator Home Screen after tapping Complete in the app. Small and medium widgets reflect the refreshed snapshot. |
 | 47-widget-refresh-after-edit.png | Captured | Real simulator Home Screen after editing Reading Reflection to Reflection Draft. Small and medium widgets reflect the edited title. |
 | 48-widget-refresh-after-add.png | Captured | Real simulator Home Screen after adding Field Notes to Science Lab. Small and medium widgets reflect the added assignment from the App Group snapshot. |
+| 49-accessibility-check-work-large-text.png | Captured | Real simulator Check Work screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves Add School Stuff and Needs Check remain legible with large type; deeper review-row VoiceOver traversal remains open. |
+| 50-accessibility-assignment-detail-large-text.png | Captured | Real simulator Assignment Detail at `accessibility-extra-extra-large`, 1179x2556 PNG. Title/date/time/course controls remain legible; full edit/save VoiceOver traversal remains open. |
+| 51-accessibility-widget-setup-large-text.png | Captured | Real simulator Widget Setup at `accessibility-extra-extra-large`, 1179x2556 PNG. Supported size/focus controls remain legible; native widget VoiceOver proof remains open. |
+| 52-accessibility-paywall-large-text.png | Captured | Real simulator Paywall at `accessibility-extra-extra-large`, 1179x2556 PNG. The paywall remains readable in product-load-failure mode; products-loaded StoreKit proof remains missing. |
 
 ## Excluded Assets
 

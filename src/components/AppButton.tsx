@@ -3,6 +3,8 @@ import { StyleSheet, Text, TouchableOpacity, ViewStyle } from "react-native";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 
+const buttonTextScale = 1.25;
+
 type AppButtonProps = {
   label: string;
   onPress: () => void;
@@ -43,7 +45,9 @@ export function AppButton({
       onPress={onPress}
     >
       {Icon ? <Icon color={foreground} size={18} /> : null}
-      <Text style={[styles.label, { color: foreground }]}>{label}</Text>
+      <Text maxFontSizeMultiplier={buttonTextScale} numberOfLines={2} style={[styles.label, { color: foreground }]}>
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 }
