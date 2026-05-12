@@ -25,6 +25,7 @@ import {
   LockWidgetPreview,
   MetricPill,
   StatusBadge,
+  StudyPlannerBrand,
   WidgetPreviewHeavyWeek,
   WidgetPreviewMedium,
   WidgetPreviewMonthly,
@@ -56,7 +57,7 @@ type OnboardingStepId =
 
 type WidgetFocusId = "nextDue" | "thisWeek" | "calendar" | "heavyWeek";
 
-const previewNow = new Date("2025-03-10T09:41:00-04:00");
+const previewNow = new Date("2025-04-22T09:41:00-04:00");
 
 const previewSemester: Semester = {
   id: "onboarding-preview-semester",
@@ -68,15 +69,15 @@ const previewSemester: Semester = {
 const previewCourses: Course[] = [
   {
     id: "preview-bio",
-    code: "BIO 101",
-    name: "Intro to Biology",
+    code: "Chemistry 101",
+    name: "Lab Chemistry",
     color: "#34D399",
     meetings: [],
     gradeCategories: []
   },
   {
     id: "preview-calc",
-    code: "CALC II",
+    code: "Calculus II",
     name: "Differential Calculus",
     color: "#7C3AED",
     meetings: [],
@@ -84,7 +85,7 @@ const previewCourses: Course[] = [
   },
   {
     id: "preview-writing",
-    code: "WRIT 201",
+    code: "English 101",
     name: "Academic Writing",
     color: "#F97316",
     meetings: [],
@@ -93,12 +94,12 @@ const previewCourses: Course[] = [
 ];
 
 const previewAssignments: Assignment[] = [
-  previewAssignment("preview-problem-set", "preview-calc", "CALC II", "Problem Set 4", "2025-03-10T17:00:00-04:00", "assignment", "high"),
-  previewAssignment("preview-lab-report", "preview-bio", "BIO 101", "Lab Report #2", "2025-03-11T23:59:00-04:00", "assignment", "medium"),
-  previewAssignment("preview-reading", "preview-writing", "WRIT 201", "Reading Response", "2025-03-12T11:00:00-04:00", "reading", "medium"),
-  previewAssignment("preview-midterm", "preview-calc", "CALC II", "Midterm Exam", "2025-03-20T09:00:00-04:00", "exam", "high"),
+  previewAssignment("preview-problem-set", "preview-calc", "Calculus II", "Problem Set 4", "2025-04-23T23:59:00-04:00", "assignment", "high"),
+  previewAssignment("preview-lab-report", "preview-bio", "Chemistry 101", "Lab Report", "2025-04-22T23:59:00-04:00", "assignment", "medium"),
+  previewAssignment("preview-reading", "preview-writing", "English 101", "Reading Reflection", "2025-04-23T11:00:00-04:00", "reading", "medium"),
+  previewAssignment("preview-midterm", "preview-calc", "Calculus II", "Midterm Review", "2025-04-25T09:00:00-04:00", "exam", "high"),
   {
-    ...previewAssignment("preview-done", "preview-bio", "BIO 101", "Cell Diagram Quiz", "2025-03-05T09:00:00-04:00", "quiz", "low"),
+    ...previewAssignment("preview-done", "preview-bio", "Chemistry 101", "Syllabus Quiz", "2025-04-18T09:00:00-04:00", "quiz", "low"),
     completionStatus: "completed",
     status: "done",
     reviewStatus: "accepted"
@@ -116,7 +117,7 @@ const onboardingSteps: Array<{
     id: "syllabus",
     eyebrow: "Syllabus AI",
     title: "Turn syllabi into a semester plan.",
-    copy: "Upload a PDF or photo and StudyPlanner pulls out assignments, exams, dates, and course context.",
+    copy: "Manual planning is free. Plus can scan a PDF or photo and pull out assignments, exams, dates, and class details.",
     icon: FileScan
   },
   {
@@ -130,28 +131,28 @@ const onboardingSteps: Array<{
     id: "calendar",
     eyebrow: "Calendar",
     title: "See the month and week together.",
-    copy: "Course colors, exams, heavy days, completed work, and the week timeline all read from the same plan.",
+    copy: "Course colors, exams, busy days, completed work, and the week view all use the same plan.",
     icon: CalendarRange
   },
   {
     id: "today",
-    eyebrow: "Command Center",
+    eyebrow: "Today",
     title: "Know what to do today.",
-    copy: "Today shows the next useful action, weekly pressure, workload graphs, and widget-ready signals.",
+    copy: "Today shows the next deadline, this week's workload, and quick actions.",
     icon: Target
   },
   {
     id: "widgets",
     eyebrow: "Widget Studio",
     title: "Make deadlines visible before opening the app.",
-    copy: "Choose a widget focus, size, and visual style for Home Screen and Lock Screen glances.",
+    copy: "Choose what a widget shows, how big it is, and which colors it uses.",
     icon: Crown
   },
   {
     id: "palette",
     eyebrow: "Study Style",
     title: "Choose the color system that feels like yours.",
-    copy: "Your palette carries through hero cards, calendar dots, graph bars, and widget previews.",
+    copy: "Your colors carry through the app, calendar dots, workload bars, and widget previews.",
     icon: Sparkles
   }
 ];
@@ -160,17 +161,17 @@ const widgetFocusOptions: Array<{ id: WidgetFocusId; label: string }> = [
   { id: "nextDue", label: "Next Due" },
   { id: "thisWeek", label: "This Week" },
   { id: "calendar", label: "Calendar" },
-  { id: "heavyWeek", label: "Heavy Week" }
+  { id: "heavyWeek", label: "Busy Week" }
 ];
 
 const onboardingWidgetStyles: WidgetStylePresetId[] = [
-  "darkGlass",
-  "cleanWhite",
   "ocean",
   "violet",
   "emerald",
   "sunset",
-  "graphite"
+  "graphite",
+  "cleanWhite",
+  "darkGlass"
 ];
 
 export function OnboardingScreen({ initialStep = 0, onFinish }: OnboardingScreenProps) {
@@ -178,7 +179,7 @@ export function OnboardingScreen({ initialStep = 0, onFinish }: OnboardingScreen
   const { colors } = theme;
   const styles = createStyles(theme);
   const [index, setIndex] = useState(clampStep(initialStep));
-  const [widgetStyleId, setWidgetStyleId] = useState<WidgetStylePresetId>("darkGlass");
+  const [widgetStyleId, setWidgetStyleId] = useState<WidgetStylePresetId>("ocean");
   const [widgetFocus, setWidgetFocus] = useState<WidgetFocusId>("calendar");
   const motion = useRef(new Animated.Value(0)).current;
   const step = onboardingSteps[index] ?? onboardingSteps[0]!;
@@ -248,15 +249,7 @@ export function OnboardingScreen({ initialStep = 0, onFinish }: OnboardingScreen
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.topBar}>
-        <View style={styles.brandRow}>
-          <View style={styles.logoMark}>
-            <Sparkles color={colors.heroText} size={18} />
-          </View>
-          <View>
-            <Text style={styles.brandKicker}>StudyPlanner</Text>
-            <Text style={styles.brandTitle}>Semester command center</Text>
-          </View>
-        </View>
+        <StudyPlannerBrand compact />
         <TouchableOpacity accessibilityRole="button" style={styles.skipButton} onPress={onFinish}>
           <Text style={styles.skipText}>Skip</Text>
         </TouchableOpacity>
@@ -385,7 +378,7 @@ function SyllabusToPlanPreview({ motion }: { motion: Animated.Value }) {
       </View>
       <View style={styles.scanStage}>
         <View style={styles.syllabusPage}>
-          <Text style={styles.syllabusTitle}>BIO 101 schedule</Text>
+          <Text style={styles.syllabusTitle}>Spring syllabus packet</Text>
           {[0, 1, 2, 3, 4].map((line) => (
             <View key={line} style={[styles.syllabusLine, { width: `${86 - line * 9}%` as `${number}%` }]} />
           ))}
@@ -408,9 +401,9 @@ function SyllabusToPlanPreview({ motion }: { motion: Animated.Value }) {
             { opacity: extractedOpacity, transform: [{ translateX: extractedShift }] }
           ]}
         >
-          <ExtractedRow color={previewCourses[0]!.color} title="Lab Report #2" meta="Mar 11 - assignment" />
-          <ExtractedRow color={previewCourses[1]!.color} title="Midterm Exam" meta="Mar 20 - exam" />
-          <ExtractedRow color={previewCourses[2]!.color} title="Reading Response" meta="Mar 12 - reading" />
+          <ExtractedRow color={previewCourses[0]!.color} title="Lab Report" meta="Apr 22 - assignment" />
+          <ExtractedRow color={previewCourses[1]!.color} title="Problem Set 4" meta="Apr 23 - assignment" />
+          <ExtractedRow color={previewCourses[2]!.color} title="Reading Reflection" meta="Apr 23 - reading" />
         </Animated.View>
       </View>
     </GlassCard>
@@ -422,9 +415,9 @@ function ReviewInboxPreview({ motion }: { motion: Animated.Value }) {
   const { colors } = theme;
   const styles = createStyles(theme);
   const rows = [
-    ["Lab Report #2", "BIO 101 - high confidence", previewCourses[0]!.color],
-    ["Midterm Exam", "CALC II - needs date check", previewCourses[1]!.color],
-    ["Reading Response", "WRIT 201 - accepted", previewCourses[2]!.color]
+    ["Lab Report", "Chemistry 101 - high confidence", previewCourses[0]!.color],
+    ["Problem Set 4", "Calculus II - needs date check", previewCourses[1]!.color],
+    ["Reading Reflection", "English 101 - accepted", previewCourses[2]!.color]
   ] as const;
 
   return (
@@ -499,10 +492,10 @@ function CalendarFillPreview({ motion }: { motion: Animated.Value }) {
           <CalendarRange color={colors.heroText} size={18} />
         </View>
         <View style={styles.previewCopy}>
-          <Text style={styles.previewKicker}>March 2025</Text>
+          <Text style={styles.previewKicker}>April 2025</Text>
           <Text style={styles.previewTitle}>Month grid plus week pressure</Text>
         </View>
-        <StatusBadge label="2 heavy days" tone="gold" />
+        <StatusBadge label="2 busy days" tone="gold" />
       </View>
       <View style={styles.calendarPreviewGrid}>
         {Array.from({ length: 21 }, (_, dayIndex) => {
@@ -578,7 +571,7 @@ function TodayCommandPreview({ motion }: { motion: Animated.Value }) {
           <View style={styles.previewCopy}>
             <Text style={styles.previewKicker}>Next Due</Text>
             <Text style={styles.todayTitle}>Problem Set 4</Text>
-            <Text style={styles.todayMeta}>CALC II - Today at 5:00 PM</Text>
+            <Text style={styles.todayMeta}>Calculus II - Tomorrow at 11:59 PM</Text>
           </View>
           <StatusBadge label="Today" tone="gold" />
         </View>
@@ -608,7 +601,7 @@ function TodayCommandPreview({ motion }: { motion: Animated.Value }) {
       <View style={styles.insightMini}>
         <Flame color={colors.coral} size={18} />
         <View style={styles.previewCopy}>
-          <Text style={styles.rowTitle}>Heavy week ahead</Text>
+          <Text style={styles.rowTitle}>Busy week ahead</Text>
           <Text style={styles.rowMeta}>Calendar pressure and widgets update together.</Text>
         </View>
       </View>
@@ -933,14 +926,14 @@ function createStyles(theme: AppTheme) {
       borderRadius: 31,
       padding: spacing.lg,
       gap: spacing.sm,
-      backgroundColor: colors.heroSurface,
+      backgroundColor: colors.surface,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.14)",
-      shadowColor: colors.brandPurple,
-      shadowOpacity: 0.25,
-      shadowRadius: 28,
-      shadowOffset: { width: 0, height: 16 },
-      elevation: 8
+      borderColor: `${colors.brandBlue}24`,
+      shadowColor: colors.shadow,
+      shadowOpacity: 0.1,
+      shadowRadius: 22,
+      shadowOffset: { width: 0, height: 12 },
+      elevation: 5
     },
     heroBandOne: {
       position: "absolute",
@@ -949,7 +942,7 @@ function createStyles(theme: AppTheme) {
       width: 230,
       height: 116,
       borderRadius: 42,
-      backgroundColor: `${colors.brandBlue}55`,
+      backgroundColor: `${colors.brandBlue}14`,
       transform: [{ rotate: "24deg" }]
     },
     heroBandTwo: {
@@ -959,7 +952,7 @@ function createStyles(theme: AppTheme) {
       width: 220,
       height: 98,
       borderRadius: 38,
-      backgroundColor: `${colors.brandCoral}42`,
+      backgroundColor: `${colors.brandCoral}10`,
       transform: [{ rotate: "-18deg" }]
     },
     stepBadge: {
@@ -977,26 +970,26 @@ function createStyles(theme: AppTheme) {
     },
     stepKicker: {
       flex: 1,
-      color: colors.widgetAccent,
+      color: colors.brandPurple,
       fontSize: 11,
       lineHeight: 15,
       fontWeight: "900",
       textTransform: "uppercase"
     },
     stepCount: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 12,
       lineHeight: 16,
       fontWeight: "900"
     },
     title: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 33,
       lineHeight: 38,
       fontWeight: "900"
     },
     copy: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 14,
       lineHeight: 21,
       fontWeight: "700"
@@ -1011,13 +1004,13 @@ function createStyles(theme: AppTheme) {
       flex: 1,
       height: 6,
       borderRadius: radii.round,
-      backgroundColor: "rgba(255,255,255,0.16)"
+      backgroundColor: colors.line
     },
     progressDotActive: {
-      backgroundColor: "rgba(183,167,255,0.72)"
+      backgroundColor: colors.blueSoft
     },
     progressDotCurrent: {
-      backgroundColor: colors.widgetAccent
+      backgroundColor: colors.brandBlue
     },
     previewCard: {
       position: "relative",
@@ -1114,7 +1107,9 @@ function createStyles(theme: AppTheme) {
       borderRadius: 24,
       padding: spacing.sm,
       gap: spacing.xs,
-      backgroundColor: colors.heroSurface
+      backgroundColor: colors.surfaceAlt,
+      borderWidth: 1,
+      borderColor: colors.line
     },
     extractedRow: {
       flexDirection: "row",
@@ -1122,7 +1117,7 @@ function createStyles(theme: AppTheme) {
       gap: spacing.xs,
       borderRadius: 15,
       padding: spacing.xs,
-      backgroundColor: "rgba(255,255,255,0.12)"
+      backgroundColor: colors.surface
     },
     courseDot: {
       width: 10,
@@ -1147,7 +1142,7 @@ function createStyles(theme: AppTheme) {
       gap: spacing.sm,
       borderRadius: 24,
       padding: spacing.md,
-      backgroundColor: colors.heroSurface,
+      backgroundColor: colors.surfaceAlt,
       overflow: "hidden"
     },
     reviewIcon: {
@@ -1267,7 +1262,9 @@ function createStyles(theme: AppTheme) {
       borderRadius: 24,
       padding: spacing.md,
       gap: spacing.md,
-      backgroundColor: colors.heroSurface
+      backgroundColor: colors.surfaceAlt,
+      borderWidth: 1,
+      borderColor: colors.line
     },
     todayBand: {
       position: "absolute",
@@ -1276,17 +1273,17 @@ function createStyles(theme: AppTheme) {
       width: 180,
       height: 82,
       borderRadius: 28,
-      backgroundColor: `${colors.brandBlue}62`,
+      backgroundColor: `${colors.brandBlue}18`,
       transform: [{ rotate: "22deg" }]
     },
     todayTitle: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 20,
       lineHeight: 25,
       fontWeight: "900"
     },
     todayMeta: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 12,
       lineHeight: 16,
       fontWeight: "800"
@@ -1300,10 +1297,10 @@ function createStyles(theme: AppTheme) {
       minHeight: 44,
       borderRadius: radii.round,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.28)",
+      borderColor: colors.line,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: "rgba(255,255,255,0.14)"
+      backgroundColor: colors.surface
     },
     primaryAction: {
       flex: 1,
@@ -1314,7 +1311,7 @@ function createStyles(theme: AppTheme) {
       backgroundColor: colors.brandCoral
     },
     actionText: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 12,
       fontWeight: "900"
     },
@@ -1341,8 +1338,8 @@ function createStyles(theme: AppTheme) {
       position: "relative",
       overflow: "hidden",
       gap: spacing.md,
-      backgroundColor: colors.heroSurface,
-      borderColor: "rgba(255,255,255,0.14)"
+      backgroundColor: colors.surface,
+      borderColor: `${colors.brandBlue}24`
     },
     widgetShellBand: {
       position: "absolute",
@@ -1351,18 +1348,18 @@ function createStyles(theme: AppTheme) {
       width: 240,
       height: 115,
       borderRadius: 42,
-      backgroundColor: `${colors.brandBlue}4D`,
+      backgroundColor: `${colors.brandBlue}14`,
       transform: [{ rotate: "24deg" }]
     },
     widgetPreviewKicker: {
-      color: colors.widgetAccent,
+      color: colors.brandPurple,
       fontSize: 10,
       lineHeight: 13,
       fontWeight: "900",
       textTransform: "uppercase"
     },
     widgetPreviewTitle: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 18,
       lineHeight: 23,
       fontWeight: "900"
@@ -1379,12 +1376,13 @@ function createStyles(theme: AppTheme) {
       flexDirection: "row",
       alignItems: "center",
       gap: 5,
-      backgroundColor: "rgba(255,255,255,0.13)",
+      backgroundColor: colors.surfaceAlt,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.12)"
+      borderColor: colors.line
     },
     widgetStyleChipActive: {
-      backgroundColor: "rgba(255,255,255,0.88)"
+      backgroundColor: colors.blueSoft,
+      borderColor: colors.brandBlue
     },
     styleSwatch: {
       width: 12,
@@ -1392,7 +1390,7 @@ function createStyles(theme: AppTheme) {
       borderRadius: 6
     },
     widgetChipText: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 10,
       lineHeight: 13,
       fontWeight: "900"
@@ -1405,16 +1403,16 @@ function createStyles(theme: AppTheme) {
       borderRadius: radii.round,
       paddingHorizontal: spacing.sm,
       justifyContent: "center",
-      backgroundColor: "rgba(255,255,255,0.13)",
+      backgroundColor: colors.surfaceAlt,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.12)"
+      borderColor: colors.line
     },
     focusChipActive: {
       backgroundColor: colors.brandPurple,
       borderColor: colors.brandPurple
     },
     focusChipText: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 11,
       fontWeight: "900"
     },
@@ -1433,19 +1431,19 @@ function createStyles(theme: AppTheme) {
       minHeight: 58,
       borderRadius: 18,
       padding: spacing.xs,
-      backgroundColor: "rgba(255,255,255,0.13)",
+      backgroundColor: colors.surfaceAlt,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.12)"
+      borderColor: colors.line
     },
     conceptLabel: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 10,
       lineHeight: 13,
       fontWeight: "900",
       textTransform: "uppercase"
     },
     conceptValue: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 12,
       lineHeight: 16,
       fontWeight: "900"
@@ -1457,7 +1455,7 @@ function createStyles(theme: AppTheme) {
       overflow: "hidden",
       justifyContent: "flex-end",
       padding: spacing.md,
-      backgroundColor: colors.heroSurface
+      backgroundColor: colors.surfaceAlt
     },
     paletteOrb: {
       position: "absolute",
@@ -1478,13 +1476,13 @@ function createStyles(theme: AppTheme) {
       opacity: 0.46
     },
     paletteTitle: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 26,
       lineHeight: 31,
       fontWeight: "900"
     },
     paletteMeta: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "800"

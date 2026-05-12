@@ -381,23 +381,25 @@ struct SmallWidgetView: View {
   let snapshot: StudyPlannerWidgetSnapshot?
 
   var body: some View {
+    let style = snapshot?.widgetStyle
+
     ZStack {
-      WidgetAuroraBands(style: snapshot?.widgetStyle)
+      WidgetAuroraBands(style: style)
       VStack(alignment: .leading, spacing: 7) {
         HeaderView(title: "Next", snapshot: snapshot)
 
         if let snapshot, snapshot.emptyState.isEmpty {
-          EmptyStateView(title: snapshot.emptyState.title, message: snapshot.emptyState.message)
+          EmptyStateView(title: snapshot.emptyState.title, message: snapshot.emptyState.message, style: style)
         } else if let item = snapshot?.surfaces.small.item ?? snapshot?.nextDue {
           VStack(alignment: .leading, spacing: 5) {
             Text(compactCourseName(item.courseName))
               .font(.system(size: 10, weight: .semibold))
-              .foregroundStyle(widgetMuted)
+              .foregroundStyle(style?.mutedColor ?? widgetMuted)
               .lineLimit(1)
               .minimumScaleFactor(0.7)
             Text(item.title)
               .font(.system(size: 18, weight: .black))
-              .foregroundStyle(widgetText)
+              .foregroundStyle(style?.textColor ?? widgetText)
               .lineLimit(2)
               .minimumScaleFactor(0.78)
             Spacer(minLength: 0)
@@ -405,12 +407,12 @@ struct SmallWidgetView: View {
             if let overdueCount = snapshot?.overdueCount, overdueCount > 1 {
               Text("\\(overdueCount) overdue")
                 .font(.system(size: 9, weight: .semibold))
-                .foregroundStyle(widgetMuted)
+                .foregroundStyle(style?.mutedColor ?? widgetMuted)
                 .lineLimit(1)
             }
           }
         } else {
-          EmptyStateView(title: "Open Study Planner", message: "Launch the app to sync your widget.")
+          EmptyStateView(title: "Open Study Planner", message: "Launch the app to sync your widget.", style: style)
         }
       }
       .padding(12)
@@ -426,15 +428,17 @@ struct MediumWidgetView: View {
   }
 
   var body: some View {
+    let style = snapshot?.widgetStyle
+
     ZStack {
-      WidgetAuroraBands(style: snapshot?.widgetStyle)
+      WidgetAuroraBands(style: style)
       VStack(alignment: .leading, spacing: 7) {
         HeaderView(title: "This Week", snapshot: snapshot)
 
         if let snapshot, snapshot.emptyState.isEmpty {
-          EmptyStateView(title: snapshot.emptyState.title, message: snapshot.emptyState.message)
+          EmptyStateView(title: snapshot.emptyState.title, message: snapshot.emptyState.message, style: style)
         } else if items.isEmpty {
-          EmptyStateView(title: "No upcoming work", message: "New deadlines will appear here after your next sync.")
+          EmptyStateView(title: "No upcoming deadlines", message: "Scan a syllabus to start.", style: style)
         } else {
           VStack(alignment: .leading, spacing: 5) {
             ForEach(items.prefix(4)) { item in
@@ -443,12 +447,12 @@ struct MediumWidgetView: View {
                 VStack(alignment: .leading, spacing: 1) {
                   Text(item.title)
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(widgetText)
+                    .foregroundStyle(style?.textColor ?? widgetText)
                     .lineLimit(1)
                     .minimumScaleFactor(0.82)
                   Text("\\(compactCourseName(item.courseName)) - \\(item.dueLabel)")
                     .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(widgetMuted)
+                    .foregroundStyle(style?.mutedColor ?? widgetMuted)
                     .lineLimit(1)
                 }
                 Spacer(minLength: 2)
@@ -472,10 +476,12 @@ struct HeaderView: View {
   let snapshot: StudyPlannerWidgetSnapshot?
 
   var body: some View {
+    let style = snapshot?.widgetStyle
+
     HStack(alignment: .center, spacing: 6) {
       Text(title)
         .font(.system(size: 11, weight: .black))
-        .foregroundStyle(widgetText)
+        .foregroundStyle(style?.textColor ?? widgetText)
         .lineLimit(1)
         .layoutPriority(1)
       Spacer(minLength: 4)
@@ -496,6 +502,8 @@ struct FooterView: View {
   let snapshot: StudyPlannerWidgetSnapshot?
 
   var body: some View {
+    let style = snapshot?.widgetStyle
+
     HStack(spacing: 8) {
       if let warning = snapshot?.heavyWeekWarning, warning.isHeavy {
         Text(warning.label)
@@ -507,7 +515,7 @@ struct FooterView: View {
         Text("\\(reviewCount) to review")
           .font(.system(size: 9, weight: .bold))
           .fontWeight(.semibold)
-          .foregroundStyle(widgetAccent)
+          .foregroundStyle(style?.accentColor ?? widgetAccent)
           .lineLimit(1)
       }
 
@@ -517,7 +525,7 @@ struct FooterView: View {
         Text("+\\(overflow) more")
           .font(.system(size: 9, weight: .bold))
           .fontWeight(.bold)
-          .foregroundStyle(widgetMuted)
+          .foregroundStyle(style?.mutedColor ?? widgetMuted)
       }
     }
   }
@@ -526,6 +534,7 @@ struct FooterView: View {
 struct EmptyStateView: View {
   let title: String
   let message: String
+  let style: WidgetStyle?
 
   var body: some View {
     VStack(alignment: .leading, spacing: 5) {
@@ -533,12 +542,12 @@ struct EmptyStateView: View {
       Text(title)
         .font(.system(size: 15, weight: .black))
         .fontWeight(.bold)
-        .foregroundStyle(widgetText)
+        .foregroundStyle(style?.textColor ?? widgetText)
         .lineLimit(2)
         .minimumScaleFactor(0.8)
       Text(message)
         .font(.system(size: 10, weight: .semibold))
-        .foregroundStyle(widgetMuted)
+        .foregroundStyle(style?.mutedColor ?? widgetMuted)
         .lineLimit(3)
       Spacer(minLength: 0)
     }
@@ -645,6 +654,8 @@ struct WidgetStyle: Decodable {
   let secondary: String?
 
   var backgroundColor: Color { colorFromHex(background) ?? widgetBackground }
+  var textColor: Color { colorFromHex(text) ?? widgetText }
+  var mutedColor: Color { colorFromHex(muted) ?? widgetMuted }
   var accentColor: Color { colorFromHex(accent) ?? widgetAccent }
   var secondaryColor: Color { colorFromHex(secondary) ?? Color(red: 0.23, green: 0.43, blue: 0.86) }
 }
@@ -682,16 +693,16 @@ struct StudyPlannerWidgetSnapshot: Decodable {
 
   static let placeholder = StudyPlannerWidgetSnapshot(
     version: 1,
-    generatedAt: "2026-10-05T16:00:00.000Z",
-    lastUpdated: "2026-10-05T16:00:00.000Z",
+    generatedAt: "2025-04-22T13:41:00.000Z",
+    lastUpdated: "2025-04-22T13:41:00.000Z",
     semesterId: "placeholder",
-    semesterName: "Fall Preview",
+    semesterName: "Spring 2025 Preview",
     nextDue: StudyPlannerWidgetSnapshotItem(
-      assignmentId: "placeholder",
-      title: "Discussion board: primary source post",
-      courseId: "hist-204",
-      courseName: "Modern World History",
-      dueAt: "2026-10-05T18:00:00",
+      assignmentId: "problem-set-4",
+      title: "Problem Set 4",
+      courseId: "calc-2",
+      courseName: "Calculus II",
+      dueAt: "2025-04-22T23:59:00",
       type: "assignment",
       dueLabel: "Today",
       urgency: "today",
@@ -702,27 +713,27 @@ struct StudyPlannerWidgetSnapshot: Decodable {
     thisWeek: [],
     overdueCount: 0,
     reviewQueueCount: 3,
-    heavyWeekWarning: HeavyWeekWarning(isHeavy: true, label: "Heavy week ahead", itemCount: 5, examCount: 1),
-    emptyState: EmptyState(isEmpty: false, title: "No plan yet", message: "Scan a syllabus or add coursework to fill your widget."),
+    heavyWeekWarning: HeavyWeekWarning(isHeavy: true, label: "8 deadlines this week", itemCount: 8, examCount: 0),
+    emptyState: EmptyState(isEmpty: false, title: "No upcoming deadlines", message: "Scan a syllabus to start."),
     widgetStyle: WidgetStyle(
-      paletteId: "violetGlow",
-      paletteName: "Violet Glow",
-      styleId: "darkGlass",
-      styleName: "Dark Glass",
-      background: "#17152D",
-      text: "#F8FAFC",
-      muted: "#BCC7D8",
-      accent: "#B7A7FF",
+      paletteId: "oceanBlue",
+      paletteName: "Ocean Blue",
+      styleId: "cleanWhite",
+      styleName: "Clean White",
+      background: "#F8FBFF",
+      text: "#111827",
+      muted: "#667085",
+      accent: "#6C5CE7",
       secondary: "#3B82F6"
     ),
     demoState: DemoState(enabled: true, label: "Preview"),
     surfaces: Surfaces(
       small: SmallSurface(kind: "nextDue", item: StudyPlannerWidgetSnapshotItem(
-        assignmentId: "placeholder",
-        title: "Discussion board: primary source post",
-        courseId: "hist-204",
-        courseName: "Modern World History",
-        dueAt: "2026-10-05T18:00:00",
+        assignmentId: "problem-set-4",
+        title: "Problem Set 4",
+        courseId: "calc-2",
+        courseName: "Calculus II",
+        dueAt: "2025-04-22T23:59:00",
         type: "assignment",
         dueLabel: "Today",
         urgency: "today",
@@ -732,11 +743,11 @@ struct StudyPlannerWidgetSnapshot: Decodable {
       ), emptyTitle: nil),
       medium: MediumSurface(kind: "thisWeek", items: [
         StudyPlannerWidgetSnapshotItem(
-          assignmentId: "hist-forum-week-6",
-          title: "Discussion board: primary source post",
-          courseId: "hist-204",
-          courseName: "Modern World History",
-          dueAt: "2026-10-05T18:00:00",
+          assignmentId: "problem-set-4",
+          title: "Problem Set 4",
+          courseId: "calc-2",
+          courseName: "Calculus II",
+          dueAt: "2025-04-22T23:59:00",
           type: "assignment",
           dueLabel: "Today",
           urgency: "today",
@@ -745,11 +756,11 @@ struct StudyPlannerWidgetSnapshot: Decodable {
           completionStatus: "open"
         ),
         StudyPlannerWidgetSnapshotItem(
-          assignmentId: "bio-lab-prep-cells",
-          title: "Lab prep: cells and microscopes",
-          courseId: "bio-101",
-          courseName: "Intro Biology",
-          dueAt: "2026-10-06T21:00:00",
+          assignmentId: "lab-report",
+          title: "Lab Report",
+          courseId: "chem-101",
+          courseName: "Chemistry 101",
+          dueAt: "2025-04-23T17:00:00",
           type: "assignment",
           dueLabel: "Tomorrow",
           urgency: "soon",

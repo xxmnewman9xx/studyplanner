@@ -65,14 +65,14 @@ export function WeekPlannerScreen({
       <PremiumHeader
         eyebrow={semester.name}
         title="This Week"
-        subtitle="Your week, at a glance. Plan it. Own it."
+        subtitle="See every deadline for the next seven days."
       />
 
       <GlassCard style={styles.rangeCard}>
         <View pointerEvents="none" style={styles.rangeBand} />
         <View style={styles.weekRangeTop}>
           <View>
-            <Text style={styles.rangeKicker}>Semester timeline</Text>
+            <Text style={styles.rangeKicker}>This week</Text>
             <Text style={styles.rangeTitle}>{formatRange(weekPlan.startsAt, weekPlan.endsAt)}</Text>
             <Text style={styles.rangeMeta}>{weekPlan.itemCount} deadlines across seven days</Text>
           </View>
@@ -97,16 +97,16 @@ export function WeekPlannerScreen({
 
       {weekPlan.heavyWorkloadWarning ? (
         <WarningCard
-          title="Workload Warning"
-          message={`${weekPlan.heavyWorkloadWarning}. Block time before the week gets loud.`}
+          title="Busy week"
+          message={`${weekPlan.heavyWorkloadWarning}. Pick the busiest days first and block time.`}
         />
       ) : null}
 
       <GlassCard style={styles.loadCard}>
         <View style={styles.sectionTop}>
           <View>
-            <Text style={styles.sectionTitle}>Load Map</Text>
-            <Text style={styles.sectionMeta}>Daily pressure by deadline count</Text>
+            <Text style={styles.sectionTitle}>Workload</Text>
+            <Text style={styles.sectionMeta}>Bars show how many deadlines are due each day</Text>
           </View>
         </View>
         <WorkloadBars values={weekPlan.days.map((day) => day.items.length)} />
@@ -123,7 +123,7 @@ export function WeekPlannerScreen({
         {visibleDays.length === 0 ? (
           <GlassCard>
             <Text style={styles.emptyTitle}>No deadlines this week.</Text>
-            <Text style={styles.emptyCopy}>Your workload map is clear.</Text>
+            <Text style={styles.emptyCopy}>No assignments or exams are due in the next seven days.</Text>
           </GlassCard>
         ) : (
           visibleDays.map((day) => (
@@ -184,8 +184,8 @@ function createStyles(theme: AppTheme) {
   return StyleSheet.create({
     rangeCard: {
       overflow: "hidden",
-      backgroundColor: colors.heroSurface,
-      borderColor: "rgba(255,255,255,0.16)"
+      backgroundColor: colors.surface,
+      borderColor: `${colors.brandBlue}26`
     },
     rangeBand: {
       position: "absolute",
@@ -194,7 +194,7 @@ function createStyles(theme: AppTheme) {
       width: 210,
       height: 96,
       borderRadius: 34,
-      backgroundColor: "rgba(59,130,246,0.28)",
+      backgroundColor: `${colors.brandBlue}16`,
       transform: [{ rotate: "22deg" }]
     },
     weekRangeTop: {
@@ -204,20 +204,20 @@ function createStyles(theme: AppTheme) {
       gap: spacing.sm
     },
     rangeKicker: {
-      color: colors.widgetAccent,
+      color: colors.brandPurple,
       fontSize: 10,
       lineHeight: 13,
       fontWeight: "900",
       textTransform: "uppercase"
     },
     rangeTitle: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 19,
       lineHeight: 25,
       fontWeight: "900"
     },
     rangeMeta: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 11,
       lineHeight: 16,
       fontWeight: "700"

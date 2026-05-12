@@ -20,10 +20,15 @@ import { storeCaptureNow } from "../data/demoSemester";
 import { Assignment, Course, Semester, WidgetSnapshot, WidgetSnapshotStyle } from "../models";
 import { WidgetSnapshotService } from "../services/widgetSnapshotService";
 import {
+  normalizeWidgetPreferences,
+  WidgetFocusPreference,
+  WidgetPreferences,
+  WidgetSizePreference
+} from "../services/widgetPreferences";
+import {
   AppTheme,
   createWidgetStyleSnapshot,
   ThemePaletteId,
-  WidgetStylePresetId,
   widgetStylePresets
 } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -33,34 +38,39 @@ type WidgetShowcaseScreenProps = {
   semester: Semester;
   courses: Course[];
   assignments: Assignment[];
+  preferences: WidgetPreferences;
+  onPreferencesChange: (preferences: WidgetPreferences) => void;
 };
 
-type WidgetSizeId = "small" | "medium" | "lock";
-type WidgetFocusId = "nextDue" | "thisWeek" | "monthly" | "heavyWeek" | "courseFocus" | "lockScreen";
-
-const widgetSizes: WidgetSizeId[] = ["small", "medium", "lock"];
+const widgetSizes: WidgetSizePreference[] = ["small", "medium", "lock"];
 const widgetFocusOptions: Array<{
-  id: WidgetFocusId;
+  id: WidgetFocusPreference;
   label: string;
   description: string;
 }> = [
-  { id: "nextDue", label: "Next Due", description: "One urgent assignment with countdown context." },
-  { id: "thisWeek", label: "This Week", description: "A medium widget for the next several deadlines." },
-  { id: "monthly", label: "Monthly", description: "A compact month grid with heavy days and exam signals." },
-  { id: "heavyWeek", label: "Heavy Week", description: "Daily load bars and the current workload warning." },
-  { id: "courseFocus", label: "Course Focus", description: "Course balance from the same graph insight data." },
-  { id: "lockScreen", label: "Lock Screen", description: "A glanceable countdown for the lock screen." }
+  { id: "nextDue", label: "Next Due", description: "Shows the next assignment or exam." },
+  { id: "thisWeek", label: "This Week", description: "Shows the next several deadlines." },
+  { id: "monthly", label: "Calendar", description: "Shows this month, busy days, and exams." },
+  { id: "heavyWeek", label: "Busy Week", description: "Shows how many deadlines land each day." },
+  { id: "courseFocus", label: "Work by Class", description: "Shows which classes have the most open work." },
+  { id: "lockScreen", label: "Lock Screen", description: "Shows a quick deadline countdown." }
 ];
 
-export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetShowcaseScreenProps) {
+export function WidgetShowcaseScreen({
+  semester,
+  courses,
+  assignments,
+  preferences,
+  onPreferencesChange
+}: WidgetShowcaseScreenProps) {
   const { theme, paletteId, palettes, setPalette } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
   const captureMode = isStoreCaptureEnabled();
   const [showPlans, setShowPlans] = useState(false);
-  const [widgetStyleId, setWidgetStyleId] = useState<WidgetStylePresetId>("darkGlass");
-  const [widgetSize, setWidgetSize] = useState<WidgetSizeId>("medium");
-  const [widgetFocus, setWidgetFocus] = useState<WidgetFocusId>("monthly");
+  const widgetStyleId = preferences.styleId;
+  const widgetSize = preferences.size;
+  const widgetFocus = preferences.focus;
   const widgetStyle = createWidgetStyleSnapshot(paletteId, widgetStyleId);
   const snapshot = WidgetSnapshotService.build(
     {
@@ -78,6 +88,9 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
     [widgetFocus]
   );
   const selectedStats = getSelectedWidgetStats(snapshot, widgetFocus);
+  const updatePreferences = (patch: Partial<WidgetPreferences>) => {
+    onPreferencesChange(normalizeWidgetPreferences({ ...preferences, ...patch }));
+  };
 
   if (showPlans && !captureMode) {
     return <UpgradeScreen onContinueFree={() => setShowPlans(false)} />;
@@ -87,8 +100,8 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
     <PremiumScreen>
       <PremiumHeader
         eyebrow="Widget Studio"
-        title="Stay in the loop"
-        subtitle="Customize calendar, workload, course, and countdown widgets from real snapshot data."
+        title="Widget Studio"
+        subtitle="Design your perfect widget."
       />
 
       <GlassCard tint="hero" style={styles.heroCard}>
@@ -98,9 +111,9 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
             <Sparkles color={colors.heroText} size={20} />
           </View>
           <View style={styles.heroCopy}>
-            <Text style={styles.heroTitle}>Widget command center</Text>
+            <Text style={styles.heroTitle}>Your widget preview</Text>
             <Text style={styles.heroMeta}>
-              {snapshot.surfaces.monthly.monthLabel} - {snapshot.surfaces.monthly.dueThisMonth} due - {snapshot.surfaces.heavyWeek.warning?.label || "balanced week"}
+              {snapshot.surfaces.monthly.monthLabel} - {snapshot.surfaces.monthly.dueThisMonth} due - {snapshot.surfaces.heavyWeek.warning?.label || "steady week"}
             </Text>
           </View>
           <StatusBadge label={widgetStyle.styleName} tone="purple" />
@@ -112,30 +125,45 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
           <View>
             <Text style={styles.panelTitle}>Customize</Text>
             <Text style={styles.panelMeta}>
-              {widgetSize} - {labelize(widgetFocus)}
+              {sizeLabel(widgetSize)} - {selectedFocus.label}
             </Text>
           </View>
           <View style={[styles.swatchLarge, { backgroundColor: widgetStyle.accent }]} />
         </View>
 
         <View style={styles.controlGroup}>
-          <Text style={styles.controlLabel}>Palette</Text>
-          <View style={styles.chipRow}>
-            {palettes.map((palette) => (
+          <Text style={styles.controlLabel}>Size</Text>
+          <View style={styles.segmented}>
+            {widgetSizes.map((size) => (
               <TouchableOpacity
-                key={palette.id}
+                key={size}
                 accessibilityRole="button"
-                accessibilityState={{ selected: paletteId === palette.id }}
-                activeOpacity={0.82}
-                style={[
-                  styles.paletteChip,
-                  paletteId === palette.id ? styles.paletteChipActive : null
-                ]}
-                onPress={() => setPalette(palette.id as ThemePaletteId)}
+                accessibilityState={{ selected: widgetSize === size }}
+                style={[styles.segment, widgetSize === size ? styles.segmentActive : null]}
+                onPress={() => updatePreferences({ size })}
               >
-                <View style={[styles.swatch, { backgroundColor: palette.accent }]} />
-                <Text style={[styles.chipText, paletteId === palette.id ? styles.paletteChipTextActive : null]}>
-                  {palette.shortName}
+                <Text style={[styles.segmentText, widgetSize === size ? styles.segmentTextActive : null]}>
+                  {sizeLabel(size)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.controlGroup}>
+          <Text style={styles.controlLabel}>Shows</Text>
+          <View style={styles.chipRow}>
+            {widgetFocusOptions.map((focus) => (
+              <TouchableOpacity
+                key={focus.id}
+                accessibilityRole="button"
+                accessibilityState={{ selected: widgetFocus === focus.id }}
+                activeOpacity={0.82}
+                style={[styles.textChip, widgetFocus === focus.id ? styles.textChipActive : null]}
+                onPress={() => updatePreferences({ focus: focus.id })}
+              >
+                <Text style={[styles.chipText, widgetFocus === focus.id ? styles.chipTextActive : null]}>
+                  {focus.label}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -152,7 +180,7 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
                 accessibilityState={{ selected: widgetStyleId === style.id }}
                 activeOpacity={0.82}
                 style={[styles.textChip, widgetStyleId === style.id ? styles.textChipActive : null]}
-                onPress={() => setWidgetStyleId(style.id)}
+                onPress={() => updatePreferences({ styleId: style.id })}
               >
                 <Text style={[styles.chipText, widgetStyleId === style.id ? styles.chipTextActive : null]}>
                   {style.name}
@@ -163,39 +191,25 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
         </View>
 
         <View style={styles.controlGroup}>
-          <Text style={styles.controlLabel}>Focus</Text>
-          <View style={styles.chipRow}>
-            {widgetFocusOptions.map((focus) => (
+          <Text style={styles.controlLabel}>Color</Text>
+          <View style={styles.paletteDotRow}>
+            {palettes.map((palette) => (
               <TouchableOpacity
-                key={focus.id}
+                key={palette.id}
                 accessibilityRole="button"
-                accessibilityState={{ selected: widgetFocus === focus.id }}
+                accessibilityLabel={palette.name}
+                accessibilityState={{ selected: paletteId === palette.id }}
                 activeOpacity={0.82}
-                style={[styles.textChip, widgetFocus === focus.id ? styles.textChipActive : null]}
-                onPress={() => setWidgetFocus(focus.id)}
+                style={[
+                  styles.paletteDotButton,
+                  paletteId === palette.id ? styles.paletteDotButtonActive : null
+                ]}
+                onPress={() => setPalette(palette.id as ThemePaletteId)}
               >
-                <Text style={[styles.chipText, widgetFocus === focus.id ? styles.chipTextActive : null]}>
-                  {focus.label}
-                </Text>
+                <View style={[styles.paletteDot, { backgroundColor: palette.accent }]} />
               </TouchableOpacity>
             ))}
           </View>
-        </View>
-
-        <View style={styles.segmented}>
-          {widgetSizes.map((size) => (
-            <TouchableOpacity
-              key={size}
-              accessibilityRole="button"
-              accessibilityState={{ selected: widgetSize === size }}
-              style={[styles.segment, widgetSize === size ? styles.segmentActive : null]}
-              onPress={() => setWidgetSize(size)}
-            >
-              <Text style={[styles.segmentText, widgetSize === size ? styles.segmentTextActive : null]}>
-                {size}
-              </Text>
-            </TouchableOpacity>
-          ))}
         </View>
       </GlassCard>
 
@@ -204,9 +218,9 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
         <View pointerEvents="none" style={styles.stageBandBottom} />
         <View style={styles.livePreviewHeader}>
           <View style={styles.livePreviewCopy}>
-            <Text style={styles.liveKicker}>Live configuration</Text>
+            <Text style={styles.liveKicker}>Live preview</Text>
             <Text style={styles.liveTitle}>
-              {selectedFocus.label} - {labelize(widgetSize)}
+              {selectedFocus.label} - {sizeLabel(widgetSize)}
             </Text>
             <Text style={styles.liveMeta}>{selectedFocus.description}</Text>
           </View>
@@ -231,8 +245,8 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
         <View pointerEvents="none" style={styles.stageBandTop} />
         <View pointerEvents="none" style={styles.stageBandBottom} />
         <View style={styles.galleryHeader}>
-          <Text style={styles.galleryKicker}>Widget Library</Text>
-          <Text style={styles.galleryTitle}>Every surface uses the same semester snapshot.</Text>
+          <Text style={styles.galleryKicker}>Widget previews</Text>
+          <Text style={styles.galleryTitle}>Small, medium, and lock widgets use your latest deadlines.</Text>
         </View>
         <View style={styles.widgetPair}>
           <WidgetPreviewSmall snapshot={snapshot} widgetStyle={widgetStyle} />
@@ -266,8 +280,8 @@ function SelectedWidgetPreview({
   snapshot,
   widgetStyle
 }: {
-  focus: WidgetFocusId;
-  size: WidgetSizeId;
+  focus: WidgetFocusPreference;
+  size: WidgetSizePreference;
   snapshot: WidgetSnapshot;
   widgetStyle: WidgetSnapshotStyle;
 }) {
@@ -321,7 +335,7 @@ function SelectedWidgetPreview({
   );
 }
 
-function getSelectedWidgetStats(snapshot: WidgetSnapshot, focus: WidgetFocusId) {
+function getSelectedWidgetStats(snapshot: WidgetSnapshot, focus: WidgetFocusPreference) {
   if (focus === "monthly") {
     return {
       value: String(snapshot.surfaces.monthly.dueThisMonth),
@@ -332,14 +346,14 @@ function getSelectedWidgetStats(snapshot: WidgetSnapshot, focus: WidgetFocusId) 
   if (focus === "heavyWeek") {
     return {
       value: String(snapshot.heavyWeekWarning?.itemCount || snapshot.surfaces.heavyWeek.warning?.itemCount || 0),
-      label: "Week load"
+      label: "Deadlines this week"
     };
   }
 
   if (focus === "courseFocus") {
     return {
       value: String(snapshot.insights?.courseBalance[0]?.openCount || 0),
-      label: snapshot.insights?.courseBalance[0]?.courseName || "Top course"
+      label: snapshot.insights?.courseBalance[0]?.courseName || "Busiest class"
     };
   }
 
@@ -356,8 +370,9 @@ function getSelectedWidgetStats(snapshot: WidgetSnapshot, focus: WidgetFocusId) 
   };
 }
 
-function labelize(value: string) {
-  return value.replace(/([A-Z])/g, " $1").replace(/^./, (letter) => letter.toUpperCase());
+function sizeLabel(value: WidgetSizePreference) {
+  if (value === "lock") return "Lock Screen";
+  return value === "small" ? "Small" : "Medium";
 }
 
 function createStyles(theme: AppTheme) {
@@ -366,8 +381,8 @@ function createStyles(theme: AppTheme) {
   return StyleSheet.create({
     heroCard: {
       overflow: "hidden",
-      backgroundColor: colors.heroSurface,
-      borderColor: "rgba(255,255,255,0.16)"
+      backgroundColor: colors.surface,
+      borderColor: `${colors.brandBlue}26`
     },
     heroBand: {
       position: "absolute",
@@ -376,7 +391,7 @@ function createStyles(theme: AppTheme) {
       width: 210,
       height: 92,
       borderRadius: 34,
-      backgroundColor: "rgba(59,130,246,0.30)",
+      backgroundColor: `${colors.brandBlue}14`,
       transform: [{ rotate: "22deg" }]
     },
     heroTop: {
@@ -398,13 +413,13 @@ function createStyles(theme: AppTheme) {
       gap: 2
     },
     heroTitle: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 18,
       lineHeight: 24,
       fontWeight: "900"
     },
     heroMeta: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "700"
@@ -498,12 +513,12 @@ function createStyles(theme: AppTheme) {
       height: 42,
       borderRadius: 14,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.48)"
+      borderColor: colors.line
     },
     segmented: {
       minHeight: 42,
       borderRadius: radii.round,
-      backgroundColor: colors.canvas,
+      backgroundColor: colors.surfaceAlt,
       flexDirection: "row",
       padding: 4,
       gap: 4
@@ -532,9 +547,9 @@ function createStyles(theme: AppTheme) {
       borderRadius: 30,
       padding: spacing.sm,
       gap: spacing.sm,
-      backgroundColor: colors.heroSurface,
+      backgroundColor: colors.surface,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.12)"
+      borderColor: colors.line
     },
     livePreviewStage: {
       position: "relative",
@@ -542,14 +557,14 @@ function createStyles(theme: AppTheme) {
       borderRadius: 30,
       padding: spacing.md,
       gap: spacing.sm,
-      backgroundColor: colors.heroSurface,
+      backgroundColor: colors.surface,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.14)",
-      shadowColor: colors.brandPurple,
-      shadowOpacity: 0.24,
-      shadowRadius: 28,
-      shadowOffset: { width: 0, height: 16 },
-      elevation: 7
+      borderColor: `${colors.brandBlue}26`,
+      shadowColor: colors.shadow,
+      shadowOpacity: 0.1,
+      shadowRadius: 22,
+      shadowOffset: { width: 0, height: 12 },
+      elevation: 5
     },
     livePreviewHeader: {
       flexDirection: "row",
@@ -562,20 +577,20 @@ function createStyles(theme: AppTheme) {
       gap: 2
     },
     liveKicker: {
-      color: colors.widgetAccent,
+      color: colors.brandPurple,
       fontSize: 10,
       lineHeight: 13,
       fontWeight: "900",
       textTransform: "uppercase"
     },
     liveTitle: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 19,
       lineHeight: 24,
       fontWeight: "900"
     },
     liveMeta: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "700"
@@ -585,18 +600,18 @@ function createStyles(theme: AppTheme) {
       borderRadius: 18,
       paddingHorizontal: spacing.sm,
       paddingVertical: spacing.xs,
-      backgroundColor: "rgba(255,255,255,0.13)",
+      backgroundColor: colors.surfaceAlt,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.12)"
+      borderColor: colors.line
     },
     statValue: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 18,
       lineHeight: 23,
       fontWeight: "900"
     },
     statLabel: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 10,
       lineHeight: 13,
       fontWeight: "800"
@@ -621,14 +636,14 @@ function createStyles(theme: AppTheme) {
       zIndex: 1
     },
     galleryKicker: {
-      color: colors.widgetAccent,
+      color: colors.brandPurple,
       fontSize: 10,
       lineHeight: 13,
       fontWeight: "900",
       textTransform: "uppercase"
     },
     galleryTitle: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 15,
       lineHeight: 20,
       fontWeight: "900"
@@ -640,7 +655,7 @@ function createStyles(theme: AppTheme) {
       width: 250,
       height: 116,
       borderRadius: 42,
-      backgroundColor: "rgba(59,130,246,0.30)",
+      backgroundColor: `${colors.brandBlue}14`,
       transform: [{ rotate: "24deg" }]
     },
     stageBandBottom: {
@@ -650,12 +665,38 @@ function createStyles(theme: AppTheme) {
       width: 230,
       height: 104,
       borderRadius: 38,
-      backgroundColor: "rgba(242,95,107,0.24)",
+      backgroundColor: `${colors.brandCoral}10`,
       transform: [{ rotate: "-18deg" }]
     },
     widgetPair: {
       flexDirection: "row",
       gap: spacing.sm
+    },
+    paletteDotRow: {
+      minHeight: 44,
+      flexDirection: "row",
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: spacing.sm
+    },
+    paletteDotButton: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface
+    },
+    paletteDotButtonActive: {
+      borderColor: colors.brandBlue,
+      backgroundColor: colors.blueSoft
+    },
+    paletteDot: {
+      width: 22,
+      height: 22,
+      borderRadius: 11
     },
     plusTitle: {
       color: colors.ink,

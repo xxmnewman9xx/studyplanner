@@ -49,11 +49,11 @@ export function buildWidgetSnapshot(
     : undefined;
   const emptyState = {
     isEmpty: openAssignments.length === 0,
-    title: input.assignments.length === 0 ? "No plan yet" : "All clear",
+    title: "No upcoming deadlines",
     message:
       input.assignments.length === 0
-        ? "Scan a syllabus or add coursework to fill your widget."
-        : "No open deadlines are waiting right now."
+        ? "Scan a syllabus to start."
+        : "Everything due is complete."
   };
   const generatedAt = now.toISOString();
   const insights = buildSemesterInsights(input.assignments, input.courses, now);

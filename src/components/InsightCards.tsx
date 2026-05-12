@@ -31,7 +31,7 @@ export function CalendarSignalCard({
           <Text style={styles.kicker}>Monthly Calendar</Text>
           <Text style={styles.title}>{monthPlan.monthLabel}</Text>
           <Text style={styles.meta}>
-            {monthPlan.summary.dueThisMonth} due - {monthPlan.summary.heavyDayCount} heavy days
+            {monthPlan.summary.dueThisMonth} due - {monthPlan.summary.heavyDayCount} busy days
           </Text>
         </View>
         {onPress ? <ChevronRight color={colors.faint} size={18} /> : null}
@@ -93,11 +93,11 @@ export function WorkloadInsightCard({
           <Flame color={colors.heroText} size={18} />
         </View>
         <View style={styles.cardCopy}>
-          <Text style={styles.kicker}>Graph Insight</Text>
+          <Text style={styles.kicker}>Due by day</Text>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.meta}>{subtitle}</Text>
         </View>
-        {insights.heavyWeekLabel ? <StatusBadge label="Heavy" tone="gold" /> : null}
+        {insights.heavyWeekLabel ? <StatusBadge label="Busy week" tone="gold" /> : null}
       </View>
 
       <View style={styles.workloadGraph}>
@@ -135,7 +135,7 @@ export function WorkloadInsightCard({
 
 export function CourseBalanceCard({
   insights,
-  title = "Course Balance",
+  title = "Work by class",
   maxCourses = 4,
   style
 }: {
@@ -157,9 +157,9 @@ export function CourseBalanceCard({
           <PieChart color={colors.heroText} size={18} />
         </View>
         <View style={styles.cardCopy}>
-          <Text style={styles.kicker}>Course Load</Text>
+          <Text style={styles.kicker}>Classes</Text>
           <Text style={styles.title}>{title}</Text>
-          <Text style={styles.meta}>{insights.openCount} open items across classes</Text>
+          <Text style={styles.meta}>{insights.openCount} open assignments and exams</Text>
         </View>
       </View>
 
@@ -206,8 +206,8 @@ export function CompletionInsightCard({
           <CheckCircle2 color={colors.heroText} size={18} />
         </View>
         <View style={styles.cardCopy}>
-          <Text style={styles.kicker}>Completion</Text>
-          <Text style={styles.title}>{insights.completionPercent}% semester flow</Text>
+          <Text style={styles.kicker}>Progress</Text>
+          <Text style={styles.title}>{insights.completionPercent}% complete</Text>
           <Text style={styles.meta}>
             {insights.completedCount} done - {insights.openCount} open
           </Text>

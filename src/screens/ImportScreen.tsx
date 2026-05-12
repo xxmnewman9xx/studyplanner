@@ -18,7 +18,8 @@ import {
   Pencil,
   Sparkles,
   Bell,
-  Upload
+  Upload,
+  XCircle
 } from "lucide-react-native";
 
 import { AppButton } from "../components/AppButton";
@@ -53,9 +54,9 @@ const priorities: Priority[] = ["low", "medium", "high"];
 const kinds: AssignmentKind[] = ["assignment", "exam", "quiz", "project", "reading", "other"];
 const filters: Array<{ id: ConfidenceFilter; label: string }> = [
   { id: "all", label: "All" },
-  { id: "high", label: "High" },
-  { id: "medium", label: "Medium" },
-  { id: "low", label: "Low" }
+  { id: "high", label: "Sure" },
+  { id: "medium", label: "Check" },
+  { id: "low", label: "Needs help" }
 ];
 
 export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
@@ -231,7 +232,7 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
   return (
     <PremiumScreen>
       <PremiumHeader
-        eyebrow="AI found these."
+        eyebrow="All extracted. You review."
         title="Review Inbox"
         subtitle="Review extracted coursework before it touches your semester."
       />
@@ -297,10 +298,10 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
                 <Sparkles color={colors.heroText} size={20} />
               </View>
               <View style={styles.aiHeroCopy}>
-                <Text style={styles.aiHeroKicker}>AI Review Matrix</Text>
+                <Text style={styles.aiHeroKicker}>Needs Review</Text>
                 <Text style={styles.aiHeroTitle}>{reviewStats.needsReview} waiting for approval</Text>
                 <Text style={styles.aiHeroMeta}>
-                  {reviewStats.high} high-confidence items can flow into Today, Month, Week, Classes, and widgets.
+                  {reviewStats.high} sure items can flow into Today, Calendar, Classes, and widgets.
                 </Text>
               </View>
               <StatusBadge label={reviewStats.low > 0 ? "Needs eyes" : "Clean"} tone={reviewStats.low > 0 ? "gold" : "green"} />
@@ -317,18 +318,19 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
                 <View style={styles.summaryCopy}>
                   <Text style={styles.summaryKicker}>Found from syllabus</Text>
                   <Text style={styles.summaryTitle}>Extracted {reviewStats.total} items</Text>
-                  <Text style={styles.summaryMeta}>Confidence-ranked and ready for review.</Text>
+                  <Text style={styles.summaryMeta}>Sorted by AI confidence. You choose what gets added.</Text>
                 </View>
               </View>
               <StatusBadge label={`${reviewStats.needsReview} waiting`} tone="purple" />
             </View>
             <View style={styles.statRow}>
-              <MetricPill label="High" value={String(reviewStats.high)} tone="green" />
-              <MetricPill label="Medium" value={String(reviewStats.medium)} tone="gold" />
-              <MetricPill label="Low" value={String(reviewStats.low)} tone="red" />
+              <MetricPill label="Sure" value={String(reviewStats.high)} tone="green" />
+              <MetricPill label="Check" value={String(reviewStats.medium)} tone="gold" />
+              <MetricPill label="Needs help" value={String(reviewStats.low)} tone="red" />
             </View>
           </GlassCard>
 
+          <Text style={styles.filterCaption}>AI confidence</Text>
           <View style={styles.filterRow}>
             {filters.map((option) => (
               <PillFilter
@@ -342,7 +344,7 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
           </View>
 
           <AppButton
-            label={`Accept ${reviewStats.high} High Confidence`}
+            label={`Accept ${reviewStats.high} sure items`}
             icon={CheckCheck}
             disabled={reviewStats.high === 0}
             onPress={acceptAllHighConfidence}
@@ -350,18 +352,18 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
 
           <View style={styles.secondaryActions}>
             <TouchableOpacity accessibilityRole="button" onPress={acceptVisible}>
-              <Text style={styles.secondaryActionText}>Select All</Text>
+              <Text style={styles.secondaryActionText}>Accept shown</Text>
             </TouchableOpacity>
             {reviewStats.ignored > 0 ? (
               <TouchableOpacity accessibilityRole="button" onPress={restoreIgnored}>
-                <Text style={styles.secondaryActionText}>Restore Ignored</Text>
+                <Text style={styles.secondaryActionText}>Undo removed</Text>
               </TouchableOpacity>
             ) : null}
             <TouchableOpacity
               accessibilityRole="button"
               onPress={() => setExpandedAssignmentId(visibleAssignments[0]?.id || null)}
             >
-              <Text style={styles.secondaryActionText}>Edit</Text>
+              <Text style={styles.secondaryActionText}>Edit first</Text>
             </TouchableOpacity>
           </View>
 
@@ -379,6 +381,7 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
                   courseName={draft.courses.find((course) => course.id === assignment.courseId)?.code || assignment.courseName}
                   expanded={expandedAssignmentId === assignment.id}
                   onAccept={() => updateDraftAssignment(assignment.id, { reviewStatus: "accepted" })}
+                  onIgnore={() => updateDraftAssignment(assignment.id, { reviewStatus: "ignored" })}
                   onEdit={() =>
                     setExpandedAssignmentId(expandedAssignmentId === assignment.id ? null : assignment.id)
                   }
@@ -389,7 +392,7 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
           </View>
 
           <AppButton
-            label="Apply accepted plan"
+            label="Add accepted items to planner"
             disabled={acceptedAssignments.length === 0 && draft.assignments.length > 0}
             onPress={applyAcceptedPlan}
           />
@@ -409,6 +412,7 @@ function ReviewRow({
   courseName,
   expanded,
   onAccept,
+  onIgnore,
   onEdit,
   onPatch
 }: {
@@ -416,6 +420,7 @@ function ReviewRow({
   courseName: string;
   expanded: boolean;
   onAccept: () => void;
+  onIgnore: () => void;
   onEdit: () => void;
   onPatch: (patch: Partial<Assignment>) => void;
 }) {
@@ -441,6 +446,9 @@ function ReviewRow({
       <View style={styles.reviewActionRow}>
         <MicroAction label="Accept" onPress={onAccept}>
           <CheckCircle2 color={colors.green} size={16} />
+        </MicroAction>
+        <MicroAction label="Remove" onPress={onIgnore}>
+          <XCircle color={colors.red} size={16} />
         </MicroAction>
         <MicroAction label="Edit" onPress={onEdit}>
           <Pencil color={colors.brandPurple} size={16} />
@@ -547,9 +555,9 @@ function confidenceBucket(confidence: number): Exclude<ConfidenceFilter, "all"> 
 }
 
 function confidenceLabel(confidence: number) {
-  if (confidence >= 0.85) return "High";
-  if (confidence >= 0.7) return "Medium";
-  return "Low";
+  if (confidence >= 0.85) return "Sure";
+  if (confidence >= 0.7) return "Check";
+  return "Needs help";
 }
 
 function confidenceTone(confidence: number): "green" | "gold" | "red" {
@@ -623,8 +631,8 @@ function createStyles(theme: AppTheme) {
     },
     aiReviewHero: {
       overflow: "hidden",
-      backgroundColor: colors.heroSurface,
-      borderColor: "rgba(255,255,255,0.16)"
+      backgroundColor: colors.surface,
+      borderColor: `${colors.brandBlue}26`
     },
     aiHeroBand: {
       position: "absolute",
@@ -633,7 +641,7 @@ function createStyles(theme: AppTheme) {
       width: 210,
       height: 92,
       borderRadius: 34,
-      backgroundColor: `${colors.brandBlue}40`,
+      backgroundColor: `${colors.brandBlue}16`,
       transform: [{ rotate: "22deg" }]
     },
     aiHeroTop: {
@@ -655,20 +663,20 @@ function createStyles(theme: AppTheme) {
       gap: 2
     },
     aiHeroKicker: {
-      color: colors.widgetAccent,
+      color: colors.brandPurple,
       fontSize: 10,
       lineHeight: 13,
       fontWeight: "900",
       textTransform: "uppercase"
     },
     aiHeroTitle: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 17,
       lineHeight: 23,
       fontWeight: "900"
     },
     aiHeroMeta: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 11,
       lineHeight: 16,
       fontWeight: "700"
@@ -742,6 +750,13 @@ function createStyles(theme: AppTheme) {
       flexWrap: "wrap",
       gap: spacing.xs
     },
+    filterCaption: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
     secondaryActions: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -792,11 +807,12 @@ function createStyles(theme: AppTheme) {
     },
     reviewActionRow: {
       flexDirection: "row",
+      flexWrap: "wrap",
       justifyContent: "flex-end",
       gap: spacing.xs
     },
     iconAction: {
-      minWidth: 74,
+      minWidth: 66,
       height: 34,
       borderRadius: 17,
       borderWidth: 1,

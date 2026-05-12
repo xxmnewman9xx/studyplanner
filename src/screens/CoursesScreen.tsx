@@ -60,6 +60,7 @@ export function CoursesScreen({
   const [newCourseCode, setNewCourseCode] = useState("");
   const [newCourseName, setNewCourseName] = useState("");
   const [newCourseInstructor, setNewCourseInstructor] = useState("");
+  const [showAddCourseForm, setShowAddCourseForm] = useState(courses.length === 0);
   const now = captureMode ? storeCaptureNow : new Date();
   const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   const weekly = useMemo(() => groupMeetingsByDay(courses), [courses]);
@@ -90,6 +91,7 @@ export function CoursesScreen({
   useEffect(() => {
     if (courses.length === 0) {
       setSelectedCourseId("");
+      setShowAddCourseForm(true);
       return;
     }
 
@@ -105,6 +107,18 @@ export function CoursesScreen({
     setDueDate("");
   };
 
+  const addCourseFromDraft = () => {
+    onAddCourse({
+      code: newCourseCode,
+      name: newCourseName,
+      instructor: newCourseInstructor
+    });
+    setNewCourseCode("");
+    setNewCourseName("");
+    setNewCourseInstructor("");
+    setShowAddCourseForm(false);
+  };
+
   return (
     <PremiumScreen>
       <PremiumHeader
@@ -113,7 +127,12 @@ export function CoursesScreen({
         subtitle="Everything for each class. All in one place."
         right={
           captureMode ? null : (
-            <TouchableOpacity accessibilityRole="button" style={styles.addButton}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Add class"
+              style={styles.addButton}
+              onPress={() => setShowAddCourseForm((current) => !current)}
+            >
               <Plus color={colors.brandPurple} size={19} />
             </TouchableOpacity>
           )
@@ -143,7 +162,42 @@ export function CoursesScreen({
         })}
       </View>
 
-      <CourseBalanceCard insights={insights} title="Class Load Graph" />
+      {!captureMode && showAddCourseForm ? (
+        <GlassCard>
+          <Text style={styles.panelTitle}>Add Class</Text>
+          <View style={styles.twoColumn}>
+            <TextInput
+              value={newCourseCode}
+              onChangeText={setNewCourseCode}
+              placeholder="Code"
+              placeholderTextColor={colors.faint}
+              style={[styles.input, styles.fieldHalf]}
+            />
+            <TextInput
+              value={newCourseInstructor}
+              onChangeText={setNewCourseInstructor}
+              placeholder="Teacher"
+              placeholderTextColor={colors.faint}
+              style={[styles.input, styles.fieldHalf]}
+            />
+          </View>
+          <TextInput
+            value={newCourseName}
+            onChangeText={setNewCourseName}
+            placeholder="Class name"
+            placeholderTextColor={colors.faint}
+            style={styles.input}
+          />
+          <AppButton
+            label="Add class"
+            icon={Plus}
+            disabled={!newCourseCode.trim() || !newCourseName.trim()}
+            onPress={addCourseFromDraft}
+          />
+        </GlassCard>
+      ) : null}
+
+      <CourseBalanceCard insights={insights} title="Work by class" />
 
       {selectedCourse ? (
         <>
@@ -271,47 +325,6 @@ export function CoursesScreen({
               </GlassCard>
 
               <GlassCard>
-                <Text style={styles.panelTitle}>Add Course</Text>
-                <View style={styles.twoColumn}>
-                  <TextInput
-                    value={newCourseCode}
-                    onChangeText={setNewCourseCode}
-                    placeholder="Code"
-                    placeholderTextColor={colors.faint}
-                    style={[styles.input, styles.fieldHalf]}
-                  />
-                  <TextInput
-                    value={newCourseInstructor}
-                    onChangeText={setNewCourseInstructor}
-                    placeholder="Instructor"
-                    placeholderTextColor={colors.faint}
-                    style={[styles.input, styles.fieldHalf]}
-                  />
-                </View>
-                <TextInput
-                  value={newCourseName}
-                  onChangeText={setNewCourseName}
-                  placeholder="Course name"
-                  placeholderTextColor={colors.faint}
-                  style={styles.input}
-                />
-                <AppButton
-                  label="Add course"
-                  icon={Plus}
-                  onPress={() => {
-                    onAddCourse({
-                      code: newCourseCode,
-                      name: newCourseName,
-                      instructor: newCourseInstructor
-                    });
-                    setNewCourseCode("");
-                    setNewCourseName("");
-                    setNewCourseInstructor("");
-                  }}
-                />
-              </GlassCard>
-
-              <GlassCard>
                 <Text style={styles.panelTitle}>Semester Setup</Text>
                 <TextInput
                   value={semester.name}
@@ -415,8 +428,8 @@ function createStyles(theme: AppTheme) {
     },
     detailCard: {
       overflow: "hidden",
-      backgroundColor: colors.heroSurface,
-      borderColor: "rgba(255,255,255,0.16)"
+      backgroundColor: colors.surface,
+      borderColor: `${colors.brandBlue}26`
     },
     detailBand: {
       position: "absolute",
@@ -425,7 +438,7 @@ function createStyles(theme: AppTheme) {
       width: 210,
       height: 94,
       borderRadius: 34,
-      backgroundColor: "rgba(108,92,231,0.28)",
+      backgroundColor: `${colors.brandBlue}14`,
       transform: [{ rotate: "23deg" }]
     },
     detailTop: {
@@ -446,19 +459,19 @@ function createStyles(theme: AppTheme) {
       gap: 2
     },
     detailCode: {
-      color: colors.widgetAccent,
+      color: colors.brandPurple,
       fontSize: 12,
       lineHeight: 16,
       fontWeight: "900"
     },
     detailName: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 20,
       lineHeight: 26,
       fontWeight: "900"
     },
     detailMeta: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "700"
@@ -471,16 +484,16 @@ function createStyles(theme: AppTheme) {
       minHeight: 40,
       borderRadius: radii.round,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.16)",
+      borderColor: colors.line,
       paddingHorizontal: spacing.sm,
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.xs,
-      backgroundColor: "rgba(255,255,255,0.10)"
+      backgroundColor: colors.surfaceAlt
     },
     detailFooterText: {
       flex: 1,
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 11,
       lineHeight: 15,
       fontWeight: "800"

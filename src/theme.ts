@@ -121,7 +121,8 @@ export type ThemePaletteId =
   | "graphitePro"
   | "roseQuartz"
   | "cyberTeal"
-  | "goldSemester";
+  | "goldSemester"
+  | "cleanStudy";
 
 export type ThemePalette = {
   id: ThemePaletteId;
@@ -358,10 +359,36 @@ export const themePalettes: ThemePalette[] = [
     darkCanvasTint: "#201A0C",
     darkSurfaceTint: "#241F10",
     darkHeroSurface: "#FFF5D7"
+  },
+  {
+    id: "cleanStudy",
+    name: "Clean",
+    shortName: "Clean",
+    accent: "#2563EB",
+    secondary: "#14B8A6",
+    tertiary: "#F43F5E",
+    soft: "#EEF5FF",
+    softBlue: "#E6FAF8",
+    softRed: "#FFF0F4",
+    canvas: "#F7F9FC",
+    canvasTint: "#EEF3FA",
+    surfaceTint: "#FFFFFF",
+    heroSurface: "#FFFFFF",
+    widgetDark: "#F8FBFF",
+    widgetAccent: "#2563EB",
+    lockWidget: "#EAF1FF",
+    darkAccent: "#93C5FD",
+    darkSecondary: "#5EEAD4",
+    darkTertiary: "#FDA4AF",
+    darkSoft: "#162033",
+    darkCanvas: "#07111F",
+    darkCanvasTint: "#101827",
+    darkSurfaceTint: "#111827",
+    darkHeroSurface: "#FFFFFF"
   }
 ];
 
-export const defaultThemePaletteId: ThemePaletteId = "violetGlow";
+export const defaultThemePaletteId: ThemePaletteId = "oceanBlue";
 
 export type WidgetStylePresetId =
   | "darkGlass"
@@ -449,7 +476,7 @@ export const widgetStylePresets: WidgetStylePreset[] = [
 ];
 
 export function resolveThemePalette(id?: string): ThemePalette {
-  return themePalettes.find((palette) => palette.id === id) || themePalettes[1]!;
+  return themePalettes.find((palette) => palette.id === id) || themePalettes[0]!;
 }
 
 export function isThemePaletteId(id: string): id is ThemePaletteId {

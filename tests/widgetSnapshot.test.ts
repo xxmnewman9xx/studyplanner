@@ -18,14 +18,14 @@ test("widget snapshot prepares this-week surfaces and heavy warning", () => {
   const seed = createDemoSemesterSeed();
   const snapshot = buildWidgetSnapshot(seed, storeCaptureNow);
 
-  assert.equal(snapshot.thisWeek.length, 6);
+  assert.equal(snapshot.thisWeek.length, 8);
   assert.equal(snapshot.surfaces.small.kind, "nextDue");
   assert.equal(snapshot.surfaces.medium.items.length, 4);
-  assert.equal(snapshot.surfaces.medium.overflowCount, 2);
+  assert.equal(snapshot.surfaces.medium.overflowCount, 4);
   assert.equal(snapshot.surfaces.large.heavyWeekWarning?.isHeavy, true);
   assert.equal(snapshot.surfaces.lockScreen.countdownLabel, "Today");
   assert.equal(snapshot.surfaces.monthly.dueThisMonth, 9);
-  assert.equal(snapshot.surfaces.heavyWeek.workloadByDay[0]?.count, 3);
+  assert.equal(snapshot.surfaces.heavyWeek.workloadByDay[1]?.count, 4);
   assert.ok(snapshot.widgetStyle?.paletteId);
 });
 
@@ -40,7 +40,8 @@ test("widget snapshot has a useful empty state", () => {
   );
 
   assert.equal(snapshot.emptyState.isEmpty, true);
-  assert.equal(snapshot.surfaces.small.emptyTitle, "No plan yet");
+  assert.equal(snapshot.surfaces.small.emptyTitle, "No upcoming deadlines");
+  assert.equal(snapshot.emptyState.message, "Scan a syllabus to start.");
   assert.equal(snapshot.thisWeek.length, 0);
 });
 

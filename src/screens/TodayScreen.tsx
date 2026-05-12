@@ -30,7 +30,7 @@ import {
 import { buildMonthCalendarPlan, buildSemesterInsights } from "../logic/semesterInsights";
 import { Assignment, Course, Semester } from "../models";
 import { WidgetSnapshotService } from "../services/widgetSnapshotService";
-import { AppTheme } from "../theme";
+import { AppTheme, WidgetStylePresetId } from "../theme";
 import { useAppTheme } from "../themeContext";
 
 type TodayScreenProps = {
@@ -44,6 +44,7 @@ type TodayScreenProps = {
   onOpenImport: () => void;
   onOpenWeek: () => void;
   onOpenCalendar: () => void;
+  widgetStyleId?: WidgetStylePresetId;
   premiumAutomationLocked: boolean;
   onOpenPaywall: () => void;
 };
@@ -59,6 +60,7 @@ export function TodayScreen({
   onOpenImport,
   onOpenWeek,
   onOpenCalendar,
+  widgetStyleId,
   premiumAutomationLocked,
   onOpenPaywall
 }: TodayScreenProps) {
@@ -75,13 +77,11 @@ export function TodayScreen({
         courses,
         assignments,
         paletteId: theme.palette.id,
+        widgetStyleId,
         demoState: captureMode ? { enabled: true, label: "Preview" } : undefined
       },
       now
   );
-  const reviewQueueCount = assignments.filter(
-    (assignment) => assignment.reviewStatus === "needsReview"
-  ).length;
   const heroAssignment = useMemo(
     () =>
       assignments.find((assignment) => assignment.id === widgetSnapshot.nextDue?.assignmentId) ||
@@ -123,8 +123,8 @@ export function TodayScreen({
     <PremiumScreen>
       <PremiumHeader
         eyebrow={semester.name}
-        title="Today"
-        subtitle="Your command center. See what matters now."
+        title={captureMode ? "Good morning, Alex" : "Today"}
+        subtitle={captureMode ? "Let's make it a productive day." : "See what is due and what to do next."}
         right={
           captureMode ? null : (
             <View style={styles.headerActions}>
@@ -155,17 +155,13 @@ export function TodayScreen({
       <View style={styles.metricRow}>
         <MetricPill label="Due Today" value={String(plan.dueToday.length)} tone="purple" />
         <MetricPill label="Due This Week" value={String(weekPlan.itemCount)} tone="blue" />
-        <MetricPill
-          label="Review Inbox"
-          value={String(reviewQueueCount)}
-          tone={reviewQueueCount > 0 ? "gold" : "green"}
-        />
+        <MetricPill label="Overdue" value={String(plan.overdue.length)} tone={plan.overdue.length > 0 ? "red" : "green"} />
       </View>
 
       {weekPlan.heavyWorkloadWarning ? (
         <WarningCard
-          title="Heavy Week Ahead"
-          message={`${weekPlan.heavyWorkloadWarning}. Plan ahead to stay on track.`}
+          title="Busy week ahead"
+          message={`${weekPlan.heavyWorkloadWarning}. Open Calendar to see which days need time.`}
           actionLabel="Open Calendar"
           onPress={onOpenWeek}
         />
@@ -176,7 +172,7 @@ export function TodayScreen({
       <GlassCard style={styles.weekCard}>
         <View style={styles.sectionTop}>
           <View>
-            <Text style={styles.sectionTitle}>Weekly Urgency</Text>
+            <Text style={styles.sectionTitle}>Due this week</Text>
             <Text style={styles.sectionMeta}>{weekPlan.itemCount} deadlines in the next seven days</Text>
           </View>
           <Text style={styles.sectionAccent}>{weekPlan.examCount} exams</Text>
@@ -194,8 +190,8 @@ export function TodayScreen({
 
       <WorkloadInsightCard
         insights={insights}
-        title="Command Load"
-        subtitle="Calendar pressure, exams, and open coursework stay connected"
+        title="Workload"
+        subtitle="Bars show how many assignments or exams are due each day"
       />
 
       <View style={styles.sectionTop}>
@@ -231,14 +227,14 @@ export function TodayScreen({
         <WidgetShowcase snapshot={widgetSnapshot} />
       </GlassCard>
 
-      <CourseBalanceCard insights={insights} title="Class Balance" />
+      <CourseBalanceCard insights={insights} title="Work by class" />
 
       {upcomingItems.length > 0 ? (
         <>
           <View style={styles.sectionTop}>
             <View>
-              <Text style={styles.sectionTitle}>Next Up</Text>
-              <Text style={styles.sectionMeta}>Layered cards for assignments and exams</Text>
+            <Text style={styles.sectionTitle}>Up Next</Text>
+              <Text style={styles.sectionMeta}>Tap an item to see details or mark it done</Text>
             </View>
           </View>
           <View style={styles.layeredStack}>
@@ -277,10 +273,11 @@ function CircleAction({
       accessibilityRole="button"
       accessibilityLabel={label}
       activeOpacity={0.82}
-      style={styles.circleAction}
+      style={styles.circleActionWrap}
       onPress={onPress}
     >
-      {children}
+      <View style={styles.circleAction}>{children}</View>
+      <Text style={styles.circleActionLabel}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -291,7 +288,12 @@ function createStyles(theme: AppTheme) {
   return StyleSheet.create({
     headerActions: {
       flexDirection: "row",
-      gap: 7
+      gap: 8
+    },
+    circleActionWrap: {
+      width: 42,
+      alignItems: "center",
+      gap: 3
     },
     circleAction: {
       width: 36,
@@ -302,6 +304,13 @@ function createStyles(theme: AppTheme) {
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: colors.surface
+    },
+    circleActionLabel: {
+      color: colors.muted,
+      fontSize: 9,
+      lineHeight: 11,
+      fontWeight: "800",
+      textAlign: "center"
     },
     metricRow: {
       flexDirection: "row",

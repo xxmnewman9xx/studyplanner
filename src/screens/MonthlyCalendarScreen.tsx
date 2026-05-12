@@ -90,7 +90,7 @@ export function MonthlyCalendarScreen({
       <PremiumHeader
         eyebrow={semester.name}
         title="Calendar"
-        subtitle="A semester map powered by every assignment, exam, and completed item."
+        subtitle="Tap any day to see its assignments and exams."
         right={
           <View style={styles.navButtons}>
             <IconButton label="Previous month" onPress={() => setCursorMonth(monthPlan.previousMonthDate)}>
@@ -110,10 +110,10 @@ export function MonthlyCalendarScreen({
             <CalendarRange color={colors.heroText} size={20} />
           </View>
           <View style={styles.heroCopy}>
-            <Text style={styles.heroKicker}>Semester OS</Text>
+            <Text style={styles.heroKicker}>Month view</Text>
             <Text style={styles.heroTitle}>{monthPlan.monthLabel}</Text>
             <Text style={styles.heroMeta}>
-              Current week: {monthPlan.summary.currentWeekCount} open - {monthPlan.summary.heavyWeekLabel || "balanced load"}
+              This week: {monthPlan.summary.currentWeekCount} open - {monthPlan.summary.heavyWeekLabel || "steady workload"}
             </Text>
           </View>
           {monthPlan.summary.overdueCount > 0 ? (
@@ -125,16 +125,16 @@ export function MonthlyCalendarScreen({
       </GlassCard>
 
       <View style={styles.metricRow}>
-        <MetricPill label="Due Month" value={String(monthPlan.summary.dueThisMonth)} tone="purple" />
+        <MetricPill label="Due This Month" value={String(monthPlan.summary.dueThisMonth)} tone="purple" />
         <MetricPill label="Exams" value={String(monthPlan.summary.examCount)} tone="red" />
-        <MetricPill label="Heavy Days" value={String(monthPlan.summary.heavyDayCount)} tone="gold" />
+        <MetricPill label="Busy Days" value={String(monthPlan.summary.heavyDayCount)} tone="gold" />
         <MetricPill label="Done" value={String(monthPlan.summary.completedCount)} tone="green" />
       </View>
 
       {weekPlan.heavyWorkloadWarning ? (
         <WarningCard
-          title="This Week Is Heavy"
-          message={`${weekPlan.heavyWorkloadWarning}. The monthly grid and week timeline are reading the same planner data.`}
+          title="Busy week"
+          message={`${weekPlan.heavyWorkloadWarning}. Use the calendar to choose when to work.`}
         />
       ) : null}
 
@@ -146,7 +146,7 @@ export function MonthlyCalendarScreen({
               {weekPlan.itemCount} deadlines - {weekPlan.examCount} exams
             </Text>
           </View>
-          <StatusBadge label="Synced" tone="purple" />
+          <StatusBadge label="Tap a day" tone="purple" />
         </View>
         <WeekStrip
           activeDate={activeWeekDate}
@@ -217,7 +217,7 @@ export function MonthlyCalendarScreen({
                 {selectedDay.openItems.length} open - {selectedDay.completedItems.length} completed
               </Text>
             </View>
-            {selectedDay.exams.length > 0 ? <StatusBadge label="Exam day" tone="red" /> : selectedDay.isHeavy ? <StatusBadge label="Heavy" tone="gold" /> : null}
+            {selectedDay.exams.length > 0 ? <StatusBadge label="Exam day" tone="red" /> : selectedDay.isHeavy ? <StatusBadge label="Busy day" tone="gold" /> : null}
           </View>
 
           <View style={styles.agendaList}>
@@ -263,8 +263,8 @@ export function MonthlyCalendarScreen({
       <View style={styles.weekTimeline}>
         <View style={styles.sectionTop}>
           <View>
-            <Text style={styles.sectionTitle}>Week Timeline</Text>
-            <Text style={styles.sectionMeta}>A planner view folded into Calendar</Text>
+            <Text style={styles.sectionTitle}>Week details</Text>
+            <Text style={styles.sectionMeta}>Each row shows what is due that day</Text>
           </View>
         </View>
         {weekPlan.days
@@ -310,8 +310,8 @@ export function MonthlyCalendarScreen({
       </View>
 
       <CalendarSignalCard monthPlan={monthPlan} />
-      <WorkloadInsightCard insights={insights} title="Week Pressure" />
-      <CourseBalanceCard insights={insights} />
+      <WorkloadInsightCard insights={insights} title="Due this week" />
+      <CourseBalanceCard insights={insights} title="Work by class" />
       <CompletionInsightCard insights={insights} />
     </PremiumScreen>
   );
@@ -423,8 +423,8 @@ function createStyles(theme: AppTheme) {
     },
     monthHero: {
       overflow: "hidden",
-      backgroundColor: colors.heroSurface,
-      borderColor: "rgba(255,255,255,0.16)"
+      backgroundColor: colors.surface,
+      borderColor: `${colors.brandBlue}26`
     },
     heroBand: {
       position: "absolute",
@@ -433,7 +433,7 @@ function createStyles(theme: AppTheme) {
       width: 220,
       height: 102,
       borderRadius: 34,
-      backgroundColor: `${colors.brandBlue}44`,
+      backgroundColor: `${colors.brandBlue}16`,
       transform: [{ rotate: "23deg" }]
     },
     heroTop: {
@@ -455,20 +455,20 @@ function createStyles(theme: AppTheme) {
       gap: 2
     },
     heroKicker: {
-      color: colors.widgetAccent,
+      color: colors.brandPurple,
       fontSize: 11,
       lineHeight: 15,
       fontWeight: "900",
       textTransform: "uppercase"
     },
     heroTitle: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 22,
       lineHeight: 28,
       fontWeight: "900"
     },
     heroMeta: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 11,
       lineHeight: 16,
       fontWeight: "700"
@@ -541,14 +541,14 @@ function createStyles(theme: AppTheme) {
       opacity: 0.34
     },
     dayCellToday: {
-      backgroundColor: colors.brandPurple,
-      borderColor: colors.brandPurple
+      backgroundColor: colors.brandBlue,
+      borderColor: colors.brandBlue
     },
     dayCellHeavy: {
       borderColor: `${colors.brandCoral}66`
     },
     dayCellSelected: {
-      backgroundColor: colors.heroSurface,
+      backgroundColor: colors.brandPurple,
       borderColor: colors.brandPurple,
       shadowColor: colors.brandPurple,
       shadowOpacity: 0.18,

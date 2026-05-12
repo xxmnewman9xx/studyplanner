@@ -18,7 +18,13 @@ import {
   Sparkles,
   Target
 } from "lucide-react-native";
-import Svg, { Circle as SvgCircle } from "react-native-svg";
+import Svg, {
+  Circle as SvgCircle,
+  Defs,
+  LinearGradient,
+  Path,
+  Stop
+} from "react-native-svg";
 
 import { Assignment, Course, WidgetSnapshot, WidgetSnapshotStyle } from "../models";
 import { AppTheme } from "../theme";
@@ -74,6 +80,53 @@ export function PremiumHeader({
   );
 }
 
+export function StudyPlannerBrand({ compact = false }: { compact?: boolean }) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.brandLockup}>
+      <BrandMark size={compact ? 38 : 48} />
+      <View style={styles.brandCopy}>
+        <Text style={[styles.brandWordmark, compact ? styles.brandWordmarkCompact : null]}>
+          StudyPlanner
+        </Text>
+        <Text style={styles.brandSubtitle}>SYLLABUS AI</Text>
+      </View>
+    </View>
+  );
+}
+
+export function BrandMark({ size = 42 }: { size?: number }) {
+  return (
+    <View style={{ width: size, height: size }}>
+      <Svg width={size} height={size} viewBox="0 0 48 48">
+        <Defs>
+          <LinearGradient id="brandA" x1="8" y1="4" x2="42" y2="44">
+            <Stop offset="0" stopColor="#1D7CFF" />
+            <Stop offset="0.45" stopColor="#7C3AED" />
+            <Stop offset="1" stopColor="#FF7AA8" />
+          </LinearGradient>
+          <LinearGradient id="brandB" x1="12" y1="40" x2="42" y2="8">
+            <Stop offset="0" stopColor="#8B5CF6" />
+            <Stop offset="0.42" stopColor="#22C7D8" />
+            <Stop offset="1" stopColor="#FDE68A" />
+          </LinearGradient>
+        </Defs>
+        <Path
+          d="M35.4 5.2c-7.8-2.2-17.1.3-22.2 6.4-5.1 6.1-4.4 14.2 1.5 18.4 3.9 2.8 9 3 12.6 1.5 2.5-1 4.9-.6 6.5 1.2 2.4 2.7.8 7.6-3.4 9.5-7.4 3.4-17.8 1-24.7-5.6C10.9 45 26.8 48 38 39.3c8.7-6.8 9.2-18.2.8-23.1-3.8-2.2-8.8-2.4-12.5-.9-2.1.9-4.2.4-5.2-1.3-1.4-2.4.5-5.2 4.2-6.3 2.9-.9 6.4-.7 10.1.5Z"
+          fill="url(#brandA)"
+        />
+        <Path
+          d="M10.7 31.4c6.2 3.4 14.2 2.8 19.4-1.3 3.2-2.5 4.8-5.8 4.5-9.3 7.1 3.9 8.2 12.3 2.2 17.7-8.6 7.7-24.7 4.9-31.1-1.9 1.1-2.4 2.7-4.1 5-5.2Z"
+          fill="url(#brandB)"
+          opacity={0.88}
+        />
+      </Svg>
+    </View>
+  );
+}
+
 export function GlassCard({
   children,
   style,
@@ -125,16 +178,18 @@ export function CommandCenterHero({
   return (
     <GlassCard tint="hero" style={styles.commandHero}>
       <View pointerEvents="none" style={styles.heroBackdropBand} />
-      <View pointerEvents="none" style={styles.heroBackdropRail} />
       <View style={styles.heroTopRow}>
         <View style={styles.heroIcon}>
           <Target color={colors.heroText} size={20} />
         </View>
         <View style={styles.heroTopCopy}>
-          <Text style={styles.heroKicker}>Next Due</Text>
+          <Text style={styles.heroKicker}>NEXT DUE</Text>
           <Text style={styles.heroDueLabel}>{dueLabel || "Your plan is clear"}</Text>
         </View>
-        {assignment ? <StatusBadge label={badgeLabel(assignment, now)} tone={badgeTone(assignment, now)} /> : null}
+        <ProgressRing
+          value={assignment ? Math.max(28, Math.min(100, 100 - Math.max(0, daysUntil(assignment.dueAt, now)) * 18)) : 100}
+          color={course?.color || colors.brandBlue}
+        />
       </View>
 
       {assignment ? (
@@ -147,6 +202,10 @@ export function CommandCenterHero({
               {(course?.code || assignment.courseName || "Course")} - Due {formatShortDate(assignment.dueAt)}
             </Text>
           </TouchableOpacity>
+          <View style={styles.heroBadgeRow}>
+            <StatusBadge label={badgeLabel(assignment, now)} tone={badgeTone(assignment, now)} />
+            <StatusBadge label={course?.code || "Class"} tone="blue" />
+          </View>
           <View style={styles.heroActions}>
             <TouchableOpacity accessibilityRole="button" style={styles.heroSecondaryButton} onPress={onStart}>
               <Text style={styles.heroSecondaryText}>Start</Text>
@@ -160,7 +219,7 @@ export function CommandCenterHero({
       ) : (
         <View style={styles.emptyStack}>
           <Text style={styles.heroTitle}>No next deadline.</Text>
-          <Text style={styles.heroMeta}>Scan a syllabus or add coursework to build your command center.</Text>
+          <Text style={styles.heroMeta}>Scan a syllabus or add coursework to build your plan.</Text>
         </View>
       )}
     </GlassCard>
@@ -358,7 +417,7 @@ export function CourseCard({
         <Text style={styles.courseName} numberOfLines={1}>
           {course.name}
         </Text>
-        <Text style={styles.courseMeta}>{dueThisWeek} Due This Week</Text>
+        <Text style={styles.courseMeta}>{dueThisWeek} assignments due this week</Text>
         {nextDue ? <Text style={styles.courseNext} numberOfLines={1}>Next: {nextDue.title}</Text> : null}
       </View>
       <ProgressRing value={progress} color={course.color} />
@@ -568,7 +627,7 @@ export function WidgetPreviewMonthly({
         ))}
       </View>
       <Text style={[styles.widgetRowMeta, { color: visual.muted }]}>
-        {month?.heavyDayCount || 0} heavy days - {month?.examCount || 0} exams
+        {month?.heavyDayCount || 0} busy days - {month?.examCount || 0} exams
       </Text>
     </View>
   );
@@ -591,7 +650,7 @@ export function WidgetPreviewHeavyWeek({
   return (
     <View style={[styles.heavyWeekWidget, { backgroundColor: visual.background }]}>
       <View style={styles.widgetTop}>
-        <Text style={[styles.widgetLabel, { color: visual.text }]}>Heavy Week</Text>
+        <Text style={[styles.widgetLabel, { color: visual.text }]}>Busy Week</Text>
         <Flame color={visual.accent} size={15} />
       </View>
       <Text style={[styles.widgetMeta, { color: visual.muted }]} numberOfLines={1}>
@@ -632,7 +691,7 @@ export function WidgetPreviewCourseFocus({
   return (
     <View style={[styles.courseFocusWidget, { backgroundColor: visual.background }]}>
       <View style={styles.widgetTop}>
-        <Text style={[styles.widgetLabel, { color: visual.text }]}>Course Focus</Text>
+        <Text style={[styles.widgetLabel, { color: visual.text }]}>Work by Class</Text>
         <Target color={visual.accent} size={15} />
       </View>
       {courses.map((course) => (
@@ -663,8 +722,8 @@ export function WidgetShowcase({
       <View pointerEvents="none" style={styles.widgetShowcaseRail} />
       <View style={styles.widgetHeader}>
         <View>
-          <Text style={styles.widgetKicker}>Command Widgets</Text>
-          <Text style={styles.widgetTitle}>Visible before the app opens.</Text>
+          <Text style={styles.widgetKicker}>Home Screen Widgets</Text>
+          <Text style={styles.widgetTitle}>Deadlines stay visible before the app opens.</Text>
         </View>
         <Sparkles color={theme.colors.brandPurple} size={20} />
       </View>
@@ -868,7 +927,7 @@ function createStyles(theme: AppTheme) {
       width: 265,
       height: 146,
       borderRadius: 46,
-      backgroundColor: `${colors.brandPurple}24`,
+      backgroundColor: `${colors.brandBlue}12`,
       transform: [{ rotate: "28deg" }]
     },
     screenWashBottom: {
@@ -878,7 +937,7 @@ function createStyles(theme: AppTheme) {
       width: 250,
       height: 82,
       borderRadius: 32,
-      backgroundColor: `${colors.brandBlue}18`,
+      backgroundColor: `${colors.brandPurple}10`,
       transform: [{ rotate: "-22deg" }]
     },
     screenWashMiddle: {
@@ -888,7 +947,7 @@ function createStyles(theme: AppTheme) {
       width: 290,
       height: 110,
       borderRadius: 42,
-      backgroundColor: `${colors.brandCoral}12`,
+      backgroundColor: `${colors.brandCoral}0D`,
       transform: [{ rotate: "-18deg" }]
     },
     screenRail: {
@@ -898,7 +957,32 @@ function createStyles(theme: AppTheme) {
       width: 6,
       height: 220,
       borderRadius: 999,
-      backgroundColor: `${colors.brandPurple}30`
+      backgroundColor: `${colors.brandBlue}18`
+    },
+    brandLockup: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    brandCopy: {
+      gap: 2
+    },
+    brandWordmark: {
+      color: colors.ink,
+      fontSize: 27,
+      lineHeight: 31,
+      fontWeight: "900"
+    },
+    brandWordmarkCompact: {
+      fontSize: 22,
+      lineHeight: 26
+    },
+    brandSubtitle: {
+      color: colors.faint,
+      fontSize: 9,
+      lineHeight: 12,
+      fontWeight: "900",
+      letterSpacing: 0
     },
     premiumHeader: {
       flexDirection: "row",
@@ -936,13 +1020,13 @@ function createStyles(theme: AppTheme) {
       borderRadius: 22,
       borderWidth: 1,
       borderColor: colors.line,
-      backgroundColor: "rgba(255,255,255,0.96)",
+      backgroundColor: colors.surface,
       padding: spacing.md,
       gap: spacing.sm,
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.22 : 0.11,
-      shadowRadius: 24,
-      shadowOffset: { width: 0, height: 14 },
+      shadowOpacity: theme.isDark ? 0.22 : 0.08,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 10 },
       elevation: 4
     },
     glassCardWarm: {
@@ -958,15 +1042,15 @@ function createStyles(theme: AppTheme) {
       backgroundColor: colors.surface
     },
     commandHero: {
-      minHeight: 178,
+      minHeight: 150,
       overflow: "hidden",
-      borderColor: "rgba(255,255,255,0.16)",
-      backgroundColor: colors.heroSurface,
-      shadowColor: colors.brandPurple,
-      shadowOpacity: 0.28,
-      shadowRadius: 28,
-      shadowOffset: { width: 0, height: 16 },
-      elevation: 7
+      borderColor: `${colors.brandBlue}26`,
+      backgroundColor: colors.surface,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.22 : 0.1,
+      shadowRadius: 22,
+      shadowOffset: { width: 0, height: 12 },
+      elevation: 5
     },
     heroBackdropBand: {
       position: "absolute",
@@ -975,7 +1059,7 @@ function createStyles(theme: AppTheme) {
       width: 210,
       height: 116,
       borderRadius: 34,
-      backgroundColor: "rgba(59,130,246,0.34)",
+      backgroundColor: `${colors.brandBlue}14`,
       transform: [{ rotate: "20deg" }]
     },
     heroBackdropRail: {
@@ -1006,29 +1090,34 @@ function createStyles(theme: AppTheme) {
       gap: 2
     },
     heroKicker: {
-      color: colors.widgetAccent,
+      color: colors.faint,
       fontSize: 12,
       lineHeight: 16,
       fontWeight: "900"
     },
     heroDueLabel: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 11,
       lineHeight: 15,
       fontWeight: "800"
     },
     heroTitle: {
-      color: colors.heroText,
-      fontSize: 25,
-      lineHeight: 31,
+      color: colors.ink,
+      fontSize: 20,
+      lineHeight: 26,
       fontWeight: "900"
     },
     heroMeta: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "700",
       marginTop: 2
+    },
+    heroBadgeRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
     },
     heroActions: {
       flexDirection: "row",
@@ -1042,11 +1131,11 @@ function createStyles(theme: AppTheme) {
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.18)",
-      backgroundColor: "rgba(255,255,255,0.12)"
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt
     },
     heroSecondaryText: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 12,
       fontWeight: "900"
     },
@@ -1058,9 +1147,9 @@ function createStyles(theme: AppTheme) {
       justifyContent: "center",
       flexDirection: "row",
       gap: 2,
-      backgroundColor: colors.brandCoral,
-      shadowColor: colors.brandCoral,
-      shadowOpacity: 0.34,
+      backgroundColor: colors.brandBlue,
+      shadowColor: colors.brandBlue,
+      shadowOpacity: 0.22,
       shadowRadius: 14,
       shadowOffset: { width: 0, height: 8 },
       elevation: 4
@@ -1443,7 +1532,7 @@ function createStyles(theme: AppTheme) {
       width: 180,
       height: 88,
       borderRadius: 30,
-      backgroundColor: "rgba(108,92,231,0.12)",
+      backgroundColor: `${colors.brandBlue}12`,
       transform: [{ rotate: "24deg" }]
     },
     widgetHeader: {
@@ -1476,8 +1565,13 @@ function createStyles(theme: AppTheme) {
       overflow: "hidden",
       backgroundColor: "#19132D",
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.14)",
-      gap: spacing.xs
+      borderColor: "rgba(16,24,40,0.10)",
+      gap: spacing.xs,
+      shadowColor: colors.shadow,
+      shadowOpacity: 0.12,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 9 },
+      elevation: 3
     },
     mediumWidget: {
       flex: 1.35,
@@ -1487,7 +1581,7 @@ function createStyles(theme: AppTheme) {
       overflow: "hidden",
       backgroundColor: "#19132D",
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.14)",
+      borderColor: "rgba(16,24,40,0.10)",
       gap: 6
     },
     monthlyWidget: {
@@ -1497,7 +1591,7 @@ function createStyles(theme: AppTheme) {
       overflow: "hidden",
       backgroundColor: "#19132D",
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.14)",
+      borderColor: "rgba(16,24,40,0.10)",
       gap: spacing.xs
     },
     heavyWeekWidget: {
@@ -1508,7 +1602,7 @@ function createStyles(theme: AppTheme) {
       overflow: "hidden",
       backgroundColor: "#19132D",
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.14)",
+      borderColor: "rgba(16,24,40,0.10)",
       gap: spacing.xs
     },
     courseFocusWidget: {
@@ -1519,7 +1613,7 @@ function createStyles(theme: AppTheme) {
       overflow: "hidden",
       backgroundColor: "#19132D",
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.14)",
+      borderColor: "rgba(16,24,40,0.10)",
       gap: spacing.xs
     },
     widgetBandOne: {
@@ -1707,7 +1801,7 @@ function createStyles(theme: AppTheme) {
       overflow: "hidden",
       backgroundColor: colors.lockWidget,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.18)",
+      borderColor: "rgba(16,24,40,0.10)",
       padding: spacing.md,
       alignItems: "center",
       gap: spacing.xs
@@ -1787,11 +1881,11 @@ function createStyles(theme: AppTheme) {
       justifyContent: "space-between",
       borderRadius: 25,
       borderWidth: 1,
-      borderColor: "rgba(148,163,184,0.22)",
-      backgroundColor: "rgba(255,255,255,0.94)",
+      borderColor: "rgba(148,163,184,0.24)",
+      backgroundColor: "rgba(255,255,255,0.96)",
       padding: 5,
       shadowColor: colors.shadow,
-      shadowOpacity: 0.16,
+      shadowOpacity: 0.12,
       shadowRadius: 22,
       shadowOffset: { width: 0, height: 12 },
       elevation: 10

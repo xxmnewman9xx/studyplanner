@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import {
+  CalendarDays,
   CalendarRange,
   Crown,
   FileScan,
@@ -45,6 +46,7 @@ import { ImportScreen } from "./src/screens/ImportScreen";
 import { CoursesScreen } from "./src/screens/CoursesScreen";
 import { GradesScreen } from "./src/screens/GradesScreen";
 import { MonthlyCalendarScreen } from "./src/screens/MonthlyCalendarScreen";
+import { WeekPlannerScreen } from "./src/screens/WeekPlannerScreen";
 import { UpgradeScreen } from "./src/screens/UpgradeScreen";
 import { WidgetShowcaseScreen } from "./src/screens/WidgetShowcaseScreen";
 import { AssignmentDetailScreen } from "./src/screens/AssignmentDetailScreen";
@@ -53,6 +55,12 @@ import { syncAssignmentsToDeviceCalendar } from "./src/services/calendarSync";
 import { loadJson, saveJson } from "./src/services/storage";
 import { SubscriptionProvider, useSubscription } from "./src/services/subscriptions";
 import { WidgetSnapshotService } from "./src/services/widgetSnapshotService";
+import {
+  defaultWidgetPreferences,
+  loadWidgetPreferences,
+  saveWidgetPreferences,
+  WidgetPreferences
+} from "./src/services/widgetPreferences";
 import {
   createSyllabusSourceFromParse,
   isAssignmentArchived,
@@ -72,6 +80,7 @@ const tabs: Array<{
 }> = [
   { id: "today", label: "Today", icon: Home },
   { id: "calendar", label: "Calendar", icon: CalendarRange },
+  { id: "week", label: "Week", icon: CalendarDays },
   { id: "courses", label: "Classes", icon: GraduationCap },
   { id: "import", label: "Inbox", icon: FileScan },
   { id: "upgrade", label: "Widgets", icon: Crown }
@@ -111,6 +120,9 @@ function AppContent() {
   const [targetGradePercent, setTargetGradePercent] = useState(demoSeed?.targetGradePercent || 90);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
   const [onboardingStep, setOnboardingStep] = useState(0);
+  const [capturePaywallVisible, setCapturePaywallVisible] = useState(false);
+  const [widgetPreferences, setWidgetPreferences] = useState<WidgetPreferences>(defaultWidgetPreferences);
+  const [widgetPreferencesHydrated, setWidgetPreferencesHydrated] = useState(storeCaptureEnabled);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -118,6 +130,27 @@ function AppContent() {
       setMode("light");
     }
   }, [setMode, storeCaptureEnabled, theme.mode]);
+
+  useEffect(() => {
+    if (storeCaptureEnabled) {
+      setWidgetPreferences(defaultWidgetPreferences);
+      setWidgetPreferencesHydrated(true);
+      return;
+    }
+
+    let mounted = true;
+    setWidgetPreferencesHydrated(false);
+
+    loadWidgetPreferences().then((preferences) => {
+      if (!mounted) return;
+      setWidgetPreferences(preferences);
+      setWidgetPreferencesHydrated(true);
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, [storeCaptureEnabled]);
 
   const activeAssignments = useMemo(
     () => assignments.filter((item) => !isAssignmentArchived(item)),
@@ -130,6 +163,7 @@ function AppContent() {
 
   const openTab = (tab: NavTab) => {
     setSelectedAssignmentId(null);
+    setCapturePaywallVisible(false);
     setActiveTab(tab);
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   };
@@ -146,8 +180,17 @@ function AppContent() {
 
       if (requestedTabRaw === "onboarding") {
         setSelectedAssignmentId(null);
+        setCapturePaywallVisible(false);
         setOnboardingStep(requestedStep);
         setOnboarded(false);
+        requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: 0, animated: false }));
+        return;
+      }
+
+      if (requestedTabRaw === "paywall") {
+        setSelectedAssignmentId(null);
+        setOnboarded(true);
+        setCapturePaywallVisible(true);
         requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: 0, animated: false }));
         return;
       }
@@ -157,6 +200,7 @@ function AppContent() {
       const scrollMatch = /[?&](?:scroll|y)=([0-9]+)/.exec(url);
       const scrollY = scrollMatch?.[1] ? Number(scrollMatch[1]) : 0;
       setSelectedAssignmentId(null);
+      setCapturePaywallVisible(false);
       setOnboarded(true);
       setActiveTab(requestedTab);
       requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: scrollY, animated: false }));
@@ -234,6 +278,11 @@ function AppContent() {
   ]);
 
   useEffect(() => {
+    if (!hydrated || !widgetPreferencesHydrated || storeCaptureEnabled) return;
+    void saveWidgetPreferences(widgetPreferences).catch(() => undefined);
+  }, [hydrated, storeCaptureEnabled, widgetPreferences, widgetPreferencesHydrated]);
+
+  useEffect(() => {
     if (!hydrated) return;
 
     void WidgetSnapshotService.write(
@@ -242,6 +291,7 @@ function AppContent() {
         courses,
         assignments,
         paletteId: theme.palette.id,
+        widgetStyleId: widgetPreferences.styleId,
         demoState: storeCaptureEnabled
           ? {
               enabled: true,
@@ -251,7 +301,15 @@ function AppContent() {
       },
       storeCaptureEnabled ? storeCaptureNow : new Date()
     ).catch(() => undefined);
-  }, [assignments, courses, hydrated, semester, storeCaptureEnabled, theme.palette.id]);
+  }, [
+    assignments,
+    courses,
+    hydrated,
+    semester,
+    storeCaptureEnabled,
+    theme.palette.id,
+    widgetPreferences.styleId
+  ]);
 
   useEffect(() => {
     if (subscription.isPremium && !paywallSeen) {
@@ -514,6 +572,8 @@ function AppContent() {
               onSave={(patch) => updateAssignment(selectedAssignment.id, patch)}
               onArchive={() => archiveAssignment(selectedAssignment.id)}
             />
+          ) : capturePaywallVisible ? (
+            <UpgradeScreen onContinueFree={() => setCapturePaywallVisible(false)} />
           ) : (
             <>
               {activeTab === "today" ? (
@@ -526,8 +586,9 @@ function AppContent() {
                   onScheduleReminders={handleScheduleReminders}
                   onCalendarSync={handleCalendarSync}
                   onOpenImport={() => openTab("import")}
-                  onOpenWeek={() => openTab("calendar")}
+                  onOpenWeek={() => openTab("week")}
                   onOpenCalendar={() => openTab("calendar")}
+                  widgetStyleId={widgetPreferences.styleId}
                   premiumAutomationLocked={premiumLocked}
                   onOpenPaywall={() => openTab("upgrade")}
                 />
@@ -584,11 +645,22 @@ function AppContent() {
                   onOpenAssignment={setSelectedAssignmentId}
                 />
               ) : null}
+              {activeTab === "week" ? (
+                <WeekPlannerScreen
+                  semester={semester}
+                  assignments={activeAssignments}
+                  courses={courses}
+                  onUpdateStatus={updateAssignmentStatus}
+                  onOpenAssignment={setSelectedAssignmentId}
+                />
+              ) : null}
               {activeTab === "upgrade" ? (
                 <WidgetShowcaseScreen
                   semester={semester}
                   courses={courses}
                   assignments={activeAssignments}
+                  preferences={widgetPreferences}
+                  onPreferencesChange={setWidgetPreferences}
                 />
               ) : null}
             </>

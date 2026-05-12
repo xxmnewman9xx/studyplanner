@@ -1,6 +1,7 @@
 export type NavTab =
   | "today"
   | "calendar"
+  | "week"
   | "import"
   | "courses"
   | "grades"
