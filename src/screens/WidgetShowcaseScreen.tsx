@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Crown, Sparkles } from "lucide-react-native";
 
@@ -17,7 +17,7 @@ import {
 } from "../components/PremiumUI";
 import { isStoreCaptureEnabled } from "../config/storeCapture";
 import { storeCaptureNow } from "../data/demoSemester";
-import { Assignment, Course, Semester } from "../models";
+import { Assignment, Course, Semester, WidgetSnapshot, WidgetSnapshotStyle } from "../models";
 import { WidgetSnapshotService } from "../services/widgetSnapshotService";
 import {
   AppTheme,
@@ -35,6 +35,23 @@ type WidgetShowcaseScreenProps = {
   assignments: Assignment[];
 };
 
+type WidgetSizeId = "small" | "medium" | "lock";
+type WidgetFocusId = "nextDue" | "thisWeek" | "monthly" | "heavyWeek" | "courseFocus" | "lockScreen";
+
+const widgetSizes: WidgetSizeId[] = ["small", "medium", "lock"];
+const widgetFocusOptions: Array<{
+  id: WidgetFocusId;
+  label: string;
+  description: string;
+}> = [
+  { id: "nextDue", label: "Next Due", description: "One urgent assignment with countdown context." },
+  { id: "thisWeek", label: "This Week", description: "A medium widget for the next several deadlines." },
+  { id: "monthly", label: "Monthly", description: "A compact month grid with heavy days and exam signals." },
+  { id: "heavyWeek", label: "Heavy Week", description: "Daily load bars and the current workload warning." },
+  { id: "courseFocus", label: "Course Focus", description: "Course balance from the same graph insight data." },
+  { id: "lockScreen", label: "Lock Screen", description: "A glanceable countdown for the lock screen." }
+];
+
 export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetShowcaseScreenProps) {
   const { theme, paletteId, palettes, setPalette } = useAppTheme();
   const { colors } = theme;
@@ -42,10 +59,8 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
   const captureMode = isStoreCaptureEnabled();
   const [showPlans, setShowPlans] = useState(false);
   const [widgetStyleId, setWidgetStyleId] = useState<WidgetStylePresetId>("darkGlass");
-  const [widgetSize, setWidgetSize] = useState<"small" | "medium" | "lock">("medium");
-  const [widgetFocus, setWidgetFocus] = useState<
-    "nextDue" | "thisWeek" | "monthly" | "heavyWeek" | "courseFocus" | "lockScreen"
-  >("monthly");
+  const [widgetSize, setWidgetSize] = useState<WidgetSizeId>("medium");
+  const [widgetFocus, setWidgetFocus] = useState<WidgetFocusId>("monthly");
   const widgetStyle = createWidgetStyleSnapshot(paletteId, widgetStyleId);
   const snapshot = WidgetSnapshotService.build(
     {
@@ -58,6 +73,11 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
     },
     captureMode ? storeCaptureNow : new Date()
   );
+  const selectedFocus = useMemo(
+    () => widgetFocusOptions.find((option) => option.id === widgetFocus) ?? widgetFocusOptions[0]!,
+    [widgetFocus]
+  );
+  const selectedStats = getSelectedWidgetStats(snapshot, widgetFocus);
 
   if (showPlans && !captureMode) {
     return <UpgradeScreen onContinueFree={() => setShowPlans(false)} />;
@@ -145,17 +165,17 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
         <View style={styles.controlGroup}>
           <Text style={styles.controlLabel}>Focus</Text>
           <View style={styles.chipRow}>
-            {(["nextDue", "thisWeek", "monthly", "heavyWeek", "courseFocus", "lockScreen"] as const).map((focus) => (
+            {widgetFocusOptions.map((focus) => (
               <TouchableOpacity
-                key={focus}
+                key={focus.id}
                 accessibilityRole="button"
-                accessibilityState={{ selected: widgetFocus === focus }}
+                accessibilityState={{ selected: widgetFocus === focus.id }}
                 activeOpacity={0.82}
-                style={[styles.textChip, widgetFocus === focus ? styles.textChipActive : null]}
-                onPress={() => setWidgetFocus(focus)}
+                style={[styles.textChip, widgetFocus === focus.id ? styles.textChipActive : null]}
+                onPress={() => setWidgetFocus(focus.id)}
               >
-                <Text style={[styles.chipText, widgetFocus === focus ? styles.chipTextActive : null]}>
-                  {labelize(focus)}
+                <Text style={[styles.chipText, widgetFocus === focus.id ? styles.chipTextActive : null]}>
+                  {focus.label}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -163,7 +183,7 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
         </View>
 
         <View style={styles.segmented}>
-          {(["small", "medium", "lock"] as const).map((size) => (
+          {widgetSizes.map((size) => (
             <TouchableOpacity
               key={size}
               accessibilityRole="button"
@@ -179,9 +199,41 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
         </View>
       </GlassCard>
 
+      <View style={styles.livePreviewStage}>
+        <View pointerEvents="none" style={styles.stageBandTop} />
+        <View pointerEvents="none" style={styles.stageBandBottom} />
+        <View style={styles.livePreviewHeader}>
+          <View style={styles.livePreviewCopy}>
+            <Text style={styles.liveKicker}>Live configuration</Text>
+            <Text style={styles.liveTitle}>
+              {selectedFocus.label} - {labelize(widgetSize)}
+            </Text>
+            <Text style={styles.liveMeta}>{selectedFocus.description}</Text>
+          </View>
+          <View style={styles.statStack}>
+            <Text style={styles.statValue}>{selectedStats.value}</Text>
+            <Text style={styles.statLabel}>{selectedStats.label}</Text>
+          </View>
+        </View>
+        <View style={styles.previewMetaRow}>
+          <StatusBadge label={widgetStyle.styleName} tone="purple" />
+          <StatusBadge label={theme.palette.name} tone="blue" />
+        </View>
+        <SelectedWidgetPreview
+          focus={widgetFocus}
+          size={widgetSize}
+          snapshot={snapshot}
+          widgetStyle={widgetStyle}
+        />
+      </View>
+
       <View style={styles.widgetStage}>
         <View pointerEvents="none" style={styles.stageBandTop} />
         <View pointerEvents="none" style={styles.stageBandBottom} />
+        <View style={styles.galleryHeader}>
+          <Text style={styles.galleryKicker}>Widget Library</Text>
+          <Text style={styles.galleryTitle}>Every surface uses the same semester snapshot.</Text>
+        </View>
         <View style={styles.widgetPair}>
           <WidgetPreviewSmall snapshot={snapshot} widgetStyle={widgetStyle} />
           <WidgetPreviewMedium snapshot={snapshot} widgetStyle={widgetStyle} />
@@ -206,6 +258,102 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
       ) : null}
     </PremiumScreen>
   );
+}
+
+function SelectedWidgetPreview({
+  focus,
+  size,
+  snapshot,
+  widgetStyle
+}: {
+  focus: WidgetFocusId;
+  size: WidgetSizeId;
+  snapshot: WidgetSnapshot;
+  widgetStyle: WidgetSnapshotStyle;
+}) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
+  if (size === "lock" || focus === "lockScreen") {
+    return (
+      <View style={styles.selectedLockFrame}>
+        <LockWidgetPreview snapshot={snapshot} widgetStyle={widgetStyle} />
+      </View>
+    );
+  }
+
+  if (focus === "nextDue") {
+    return (
+      <View style={size === "small" ? styles.selectedSmallFrame : styles.selectedMediumFrame}>
+        <WidgetPreviewSmall snapshot={snapshot} widgetStyle={widgetStyle} />
+      </View>
+    );
+  }
+
+  if (focus === "thisWeek") {
+    return (
+      <View style={size === "small" ? styles.selectedSmallFrame : styles.selectedMediumFrame}>
+        <WidgetPreviewMedium snapshot={snapshot} widgetStyle={widgetStyle} />
+      </View>
+    );
+  }
+
+  if (focus === "heavyWeek") {
+    return (
+      <View style={size === "small" ? styles.selectedSmallFrame : styles.selectedMediumFrame}>
+        <WidgetPreviewHeavyWeek snapshot={snapshot} widgetStyle={widgetStyle} />
+      </View>
+    );
+  }
+
+  if (focus === "courseFocus") {
+    return (
+      <View style={size === "small" ? styles.selectedSmallFrame : styles.selectedMediumFrame}>
+        <WidgetPreviewCourseFocus snapshot={snapshot} widgetStyle={widgetStyle} />
+      </View>
+    );
+  }
+
+  return (
+    <View style={size === "small" ? styles.selectedSmallFrame : styles.selectedMediumFrame}>
+      <WidgetPreviewMonthly snapshot={snapshot} widgetStyle={widgetStyle} />
+    </View>
+  );
+}
+
+function getSelectedWidgetStats(snapshot: WidgetSnapshot, focus: WidgetFocusId) {
+  if (focus === "monthly") {
+    return {
+      value: String(snapshot.surfaces.monthly.dueThisMonth),
+      label: "Due this month"
+    };
+  }
+
+  if (focus === "heavyWeek") {
+    return {
+      value: String(snapshot.heavyWeekWarning?.itemCount || snapshot.surfaces.heavyWeek.warning?.itemCount || 0),
+      label: "Week load"
+    };
+  }
+
+  if (focus === "courseFocus") {
+    return {
+      value: String(snapshot.insights?.courseBalance[0]?.openCount || 0),
+      label: snapshot.insights?.courseBalance[0]?.courseName || "Top course"
+    };
+  }
+
+  if (focus === "lockScreen" || focus === "nextDue") {
+    return {
+      value: snapshot.nextDue?.dueLabel || "Clear",
+      label: "Next due"
+    };
+  }
+
+  return {
+    value: String(snapshot.thisWeek.length),
+    label: "This week"
+  };
 }
 
 function labelize(value: string) {
@@ -384,6 +532,103 @@ function createStyles(theme: AppTheme) {
       backgroundColor: colors.heroSurface,
       borderWidth: 1,
       borderColor: "rgba(255,255,255,0.12)"
+    },
+    livePreviewStage: {
+      position: "relative",
+      overflow: "hidden",
+      borderRadius: 30,
+      padding: spacing.md,
+      gap: spacing.sm,
+      backgroundColor: colors.heroSurface,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.14)",
+      shadowColor: colors.brandPurple,
+      shadowOpacity: 0.24,
+      shadowRadius: 28,
+      shadowOffset: { width: 0, height: 16 },
+      elevation: 7
+    },
+    livePreviewHeader: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: spacing.sm
+    },
+    livePreviewCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    liveKicker: {
+      color: colors.widgetAccent,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    liveTitle: {
+      color: colors.heroText,
+      fontSize: 19,
+      lineHeight: 24,
+      fontWeight: "900"
+    },
+    liveMeta: {
+      color: colors.heroMuted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
+    },
+    statStack: {
+      minWidth: 82,
+      borderRadius: 18,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+      backgroundColor: "rgba(255,255,255,0.13)",
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.12)"
+    },
+    statValue: {
+      color: colors.heroText,
+      fontSize: 18,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    statLabel: {
+      color: colors.heroMuted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "800"
+    },
+    previewMetaRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    selectedSmallFrame: {
+      width: "58%",
+      minWidth: 178,
+      alignSelf: "center"
+    },
+    selectedMediumFrame: {
+      width: "100%"
+    },
+    selectedLockFrame: {
+      width: "100%"
+    },
+    galleryHeader: {
+      zIndex: 1
+    },
+    galleryKicker: {
+      color: colors.widgetAccent,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    galleryTitle: {
+      color: colors.heroText,
+      fontSize: 15,
+      lineHeight: 20,
+      fontWeight: "900"
     },
     stageBandTop: {
       position: "absolute",

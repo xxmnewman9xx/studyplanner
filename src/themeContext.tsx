@@ -9,6 +9,7 @@ import {
   ThemePaletteId,
   themePalettes
 } from "./theme";
+import { isStoreCaptureEnabled } from "./config/storeCapture";
 import { loadJson, saveJson } from "./services/storage";
 
 const themeStorageKey = "study-planner-theme-mode-v1";
@@ -27,11 +28,14 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 export function AppThemeProvider({ children }: { children: React.ReactNode }) {
+  const captureMode = isStoreCaptureEnabled();
   const [mode, setMode] = useState<ThemeMode>("light");
   const [paletteId, setPaletteId] = useState<ThemePaletteId>(defaultThemePaletteId);
   const theme = useMemo(() => getTheme(mode, paletteId), [mode, paletteId]);
 
   useEffect(() => {
+    if (captureMode) return;
+
     let mounted = true;
 
     void Promise.all([
@@ -52,15 +56,17 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [captureMode]);
 
   useEffect(() => {
+    if (captureMode) return;
     saveJson(themeStorageKey, mode);
-  }, [mode]);
+  }, [captureMode, mode]);
 
   useEffect(() => {
+    if (captureMode) return;
     saveJson(paletteStorageKey, paletteId);
-  }, [paletteId]);
+  }, [captureMode, paletteId]);
 
   const value = useMemo(
     () => ({
