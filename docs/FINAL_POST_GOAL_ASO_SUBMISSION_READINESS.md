@@ -5,7 +5,7 @@ This is an interim readiness report, not a submit approval.
 ## Score
 
 Initial v1-3 post-goal score: 7.82/10.  
-Current evidence-adjusted score after fixes/docs/screenshots/accessibility/date/widget/reminder/settings/restore-access/iPad proof, partial localized/date proof, contrast guard quick wins, local App Store-sized screenshot export validation, a centralized no-submit submission verifier, and external-proof packet templates: 9.18/10.
+Current evidence-adjusted score after fixes/docs/screenshots/accessibility/date/widget/reminder/settings/restore-access/iPad proof, partial localized/date proof, contrast guard quick wins, local App Store-sized screenshot export validation, a centralized no-submit submission verifier, external-proof packet templates, and localization string audit: 9.19/10.
 Target: 9.4/10.  
 Verdict: not reached.
 
@@ -36,6 +36,7 @@ Verdict: not reached.
 - Local App Store-sized screenshot export proof is now captured: `npm run export:screenshots` generated 10 iPhone 6.9-inch candidate PNGs at 1290x2796, 10 iPad 13-inch candidate PNGs at 2064x2752, and `artifacts/post-goal-aso-submission/app-store-export/manifest.json`.
 - Submission readiness is now guarded by `npm run verify:submission`, which passes local screenshot export checks and returns **NO-SUBMIT** until IAP env IDs, support URL, products-loaded paywall proof, StoreKit sandbox proof, App Store Connect upload acceptance, signed archive entitlements, and VoiceOver traversal proof are supplied.
 - External proof packet templates are now staged in `artifacts/post-goal-aso-submission/external-proof`; the verifier rejects template/TODO/placeholder wording so template files cannot accidentally count as proof.
+- Localization string debt is now measured by `npm run audit:localization`; the current audit found 737 likely localizable strings across 46 tracked source files and wrote `docs/LOCALIZATION_STRING_AUDIT.md`.
 - Paywall failure proof was captured honestly as `38-paywall-product-load-failure.png`; products-loaded proof remains missing.
 - A targeted Dynamic Type fix keeps the Today hero, metrics, warning card, and dock readable at `accessibility-extra-extra-large`; proof captured as `44-accessibility-large-text.png`.
 - Month calendar planning now respects locale week-start rules with tests for Sunday, Monday, and Saturday-start regions.

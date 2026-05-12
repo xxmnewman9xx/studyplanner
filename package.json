@@ -10,6 +10,7 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "test": "tsc -p tsconfig.tests.json && node --test .test-build/tests/*.test.js",
+    "audit:localization": "node scripts/audit-localization-strings.mjs",
     "check:iap": "node scripts/check-iap-config.mjs",
     "verify:production": "node scripts/verify-production-config.mjs",
     "verify:submission": "node scripts/verify-submission-readiness.mjs",

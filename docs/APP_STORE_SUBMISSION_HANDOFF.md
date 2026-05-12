@@ -62,6 +62,7 @@ Current capture inventory:
 - Settings proof captured: `36-settings.png` shows planner status, appearance, Plus/store status, restore access, widget scope, privacy link, and the still-missing support URL configuration.
 - Restore access proof captured: `39-restore-purchases.png` shows the real Restore entry point, but does not prove sandbox restore success.
 - Localized/date proof captured: `43-localized-ui-example.png` shows a real `fr-FR` / `fr_FR` simulator Week Plan screenshot with locale-sensitive date ordering and 24-hour status-bar style; it does not prove translated app strings.
+- Localization string audit captured: `docs/LOCALIZATION_STRING_AUDIT.md` reports 737 likely localizable strings across 46 tracked source files, confirming localized UI submission is not ready without deliberate i18n work and native review.
 - iPad proof captured: onboarding, Today, Add School Stuff/Check New Work, Calendar, Week, Classes, Widget Setup, paywall unavailable state, Settings/Restore, and Assignment Detail are captured as upright 2064x2752 PNGs on `StudyPlanner-Codex-iPad`.
 - Native widget proof captured: `30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png` show installed WidgetKit small/medium widgets using the current May 2026 capture snapshot.
 - Native widget edge-state proof captured: `32-widget-empty-state.png`, `33-widget-needs-check-state.png`, `widget-empty-state-snapshot.json`, and `widget-needs-check-state-snapshot.json`.
@@ -80,7 +81,7 @@ Date/localization implementation note:
 
 - Month calendar logic now respects locale week-start rules and has Sunday/Monday/Saturday-start unit coverage.
 - Due-date and Week Plan date labels now use preferred locale formatting, including 24-hour locale coverage for `fr-FR` and `en-GB`.
-- A real French-locale simulator screenshot now proves partial locale/date behavior in Week Plan, but full localized submission still requires localized UI review, hardcoded string extraction, native-speaker review, and localized screenshot text-fit checks.
+- A real French-locale simulator screenshot now proves partial locale/date behavior in Week Plan, and `npm run audit:localization` now provides hardcoded-string extraction evidence. Full localized submission still requires translated UI implementation, native-speaker review, and localized screenshot text-fit checks.
 
 Accessibility implementation note:
 

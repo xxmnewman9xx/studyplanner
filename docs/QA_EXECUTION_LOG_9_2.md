@@ -189,3 +189,5 @@ Known residual risks:
 | 34 | `npm run test` | Passed | 46/46 tests passed after submission verifier | No |
 | 35 | External proof templates | Passed | Added `artifacts/post-goal-aso-submission/external-proof/*.template.md` for StoreKit, App Store Connect upload, archive entitlements, VoiceOver, and localized UI/native review | No |
 | 35 | Placeholder-proof rejection | Passed | `tests/submissionReadiness.test.ts` verifies template/TODO proof files are rejected by `npm run verify:submission` | No |
+| 36 | Localization string audit | Passed | `npm run audit:localization` wrote `docs/LOCALIZATION_STRING_AUDIT.md` with 737 likely localizable strings across 46 tracked source files | Localized UI submission remains blocked |
+| 36 | Localization audit regression test | Passed | `tests/localizationAudit.test.ts`; `npm run test` passed 48/48 | No |
