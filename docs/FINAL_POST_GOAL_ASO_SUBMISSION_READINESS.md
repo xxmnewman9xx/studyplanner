@@ -5,7 +5,7 @@ This is an interim readiness report, not a submit approval.
 ## Score
 
 Initial v1-3 post-goal score: 7.82/10.  
-Current evidence-adjusted score after fixes/docs/screenshots/accessibility/date/widget quick wins: 8.99/10.
+Current evidence-adjusted score after fixes/docs/screenshots/accessibility/date/widget quick wins: 9.00/10.
 Target: 9.4/10.  
 Verdict: not reached.
 
@@ -22,8 +22,9 @@ Verdict: not reached.
 - Parser grade items no longer enter the planner without a review surface.
 - Reminder and calendar side effects now skip invalid legacy due dates.
 - Capture-mode iOS build now responds to screenshot deep links.
-- 35 raw simulator PNGs were captured in `artifacts/post-goal-aso-submission`.
+- 36 raw simulator PNGs were captured in `artifacts/post-goal-aso-submission`.
 - Manual Add and Check Work edit-item proof are now captured as `13-manual-add.png` and `17-check-new-work-edit-item.png`.
+- Filtered Calendar proof is now captured as `23-calendar-filtered-class.png`, showing the Chemistry 101 course filter narrowing the calendar view.
 - A generated contact sheet was captured at `artifacts/post-goal-aso-submission/45-final-contact-sheet.png`.
 - Paywall failure proof was captured honestly as `38-paywall-product-load-failure.png`; products-loaded proof remains missing.
 - A targeted Dynamic Type fix keeps the Today hero, metrics, warning card, and dock readable at `accessibility-extra-extra-large`; proof captured as `44-accessibility-large-text.png`.
@@ -43,7 +44,7 @@ Verdict: not reached.
 
 StoreKit proof, products-loaded paywall proof, support URL, remaining screenshots, iPad screenshot strategy, localized review, signed archive entitlement check, full simulator VoiceOver/contrast traversal, and final simulator QA.
 
-The capture-mode rebuild solved the original deep-link capture problem, installed small/medium WidgetKit screenshots now exist, app icon proof exists, completion/edit/add refresh is proven, day-boundary behavior is code/build proven, core action large-text proof now exists, and Manual Add/Edit Item capture states are now real. The screenshot set is still not App Store-ready. Missing proof includes upload/photo/parser success states, restore purchases, localized UI screenshots/string extraction, full simulator VoiceOver/contrast coverage, iPad sizing, and StoreKit products loaded.
+The capture-mode rebuild solved the original deep-link capture problem, installed small/medium WidgetKit screenshots now exist, app icon proof exists, completion/edit/add refresh is proven, day-boundary behavior is code/build proven, core action large-text proof now exists, and Manual Add/Edit Item/filtered Calendar capture states are now real. The screenshot set is still not App Store-ready. Missing proof includes upload/photo/parser success states, restore purchases, localized UI screenshots/string extraction, full simulator VoiceOver/contrast coverage, iPad sizing, and StoreKit products loaded.
 
 ## Next prompt
 

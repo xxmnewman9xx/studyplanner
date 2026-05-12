@@ -95,3 +95,12 @@ Known residual risks:
 | 23 | `npm run verify:production` | Passed | Production config verification passed after capture state patch | No |
 | 23 | Missing screenshot state capture | Passed | Captured `13-manual-add.png` and `17-check-new-work-edit-item.png` as real simulator UI | No |
 | 23 | Contact sheet regeneration | Passed | `45-final-contact-sheet.png` regenerated from 35 raw PNGs | No |
+| 24 | Calendar filtered-class source guard | Passed | `App.tsx`, `MonthlyCalendarScreen`, and `tests/accessibilitySource.test.ts` guard the capture-only `calendar-filtered` route and Calendar course-filter setter | No |
+| 24 | `npm run typecheck` | Passed | `tsc --noEmit` completed after Calendar filtered-class capture state | No |
+| 24 | `npm run test` | Passed | 40/40 tests passed, including the expanded capture route source guard | No |
+| 24 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after Calendar filtered-class capture state | No |
+| 24 | `npm run verify:production` | Passed | Production config verification passed after Calendar filtered-class capture state | No |
+| 24 | Filtered Calendar screenshot capture | Passed | Captured `23-calendar-filtered-class.png` as real simulator UI with Chemistry 101 selected | No |
+| 24 | Contact sheet regeneration | Passed | `45-final-contact-sheet.png` regenerated from 36 raw PNGs | No |
+| 24 | `git diff --check` | Passed | No whitespace errors or conflict markers | No |
+| 24 | Screenshot inventory check | Passed | 36 raw PNGs; `23-calendar-filtered-class.png` is 1179x2556 and contact sheet is 1248x5994 | No |

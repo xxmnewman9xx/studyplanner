@@ -95,7 +95,7 @@ const tabs: Array<{
   { id: "upgrade", label: "Widgets", icon: Crown }
 ];
 
-type CaptureState = "edit-found-work" | "manual-add" | null;
+type CaptureState = "calendar-filtered" | "edit-found-work" | "manual-add" | null;
 
 export default function App() {
   return (
@@ -701,6 +701,7 @@ function AppContent() {
                   courses={courses}
                   onUpdateStatus={updateAssignmentStatus}
                   onOpenAssignment={setSelectedAssignmentId}
+                  captureState={captureState}
                 />
               ) : null}
               {activeTab === "week" ? (
@@ -734,6 +735,7 @@ function AppContent() {
 }
 
 function captureStateFromQuery(value: string | null): CaptureState {
+  if (value === "calendar-filtered" || value === "filtered-class") return "calendar-filtered";
   if (value === "edit-found-work" || value === "edit") return "edit-found-work";
   if (value === "manual-add" || value === "manual") return "manual-add";
   return null;

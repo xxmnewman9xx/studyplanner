@@ -65,5 +65,14 @@
 | npm run verify:production | Passed | Production config verification passed | Re-run after capture state patch |
 | xcrun simctl openurl + xcrun simctl io screenshot | Passed | `13-manual-add.png`, `17-check-new-work-edit-item.png` | Real simulator UI captured for missing Manual Add and edit-item states |
 | Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 35 PNGs at 1248x5994 | Re-run after Manual Add and edit-item screenshots |
+| Calendar filtered-class source guard | Passed | `App.tsx`, `MonthlyCalendarScreen`, `tests/accessibilitySource.test.ts` | Guards capture-only `calendar-filtered` route and confirms the Calendar screen applies `setCourseFilterId(courseId)` |
+| npm run typecheck | Passed | exit 0 | Re-run after Calendar filtered-class capture state |
+| npm run test | Passed | 40/40 | Re-run after Calendar filtered-class capture state |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after Calendar filtered-class capture state |
+| npm run verify:production | Passed | Production config verification passed | Re-run after Calendar filtered-class capture state |
+| xcrun simctl openurl + xcrun simctl io screenshot | Passed | `23-calendar-filtered-class.png` | Real simulator UI captured for the Calendar class filter state |
+| Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 36 PNGs at 1248x5994 | Re-run after Calendar filtered-class screenshot |
+| git diff --check | Passed | exit 0 | Final whitespace/conflict-marker check before commit |
+| screenshot inventory check | Passed | 36 raw PNGs; `23-calendar-filtered-class.png` 1179x2556; contact sheet 1248x5994 | Final artifact dimensions verified before commit |
 
 Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/contrast pass, restore purchases. Optional: overnight widget rollover screenshot.

@@ -34,6 +34,7 @@ type MonthlyCalendarScreenProps = {
   courses: Course[];
   onUpdateStatus: (assignmentId: string, status: "not_started" | "in_progress" | "done") => void;
   onOpenAssignment: (assignmentId: string) => void;
+  captureState?: string | null;
 };
 
 const weekdays = ["S", "M", "T", "W", "T", "F", "S"];
@@ -43,7 +44,8 @@ export function MonthlyCalendarScreen({
   assignments,
   courses,
   onUpdateStatus,
-  onOpenAssignment
+  onOpenAssignment,
+  captureState
 }: MonthlyCalendarScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
@@ -84,6 +86,22 @@ export function MonthlyCalendarScreen({
       if (fallback) setSelectedDate(fallback.date);
     }
   }, [monthPlan.days, selectedDate]);
+
+  useEffect(() => {
+    if (!captureMode || captureState !== "calendar-filtered") return;
+    const courseId = courses.some((course) => course.id === "chem-101")
+      ? "chem-101"
+      : courses[0]?.id;
+    if (!courseId) return;
+
+    const firstCourseAssignment = assignments.find((assignment) => assignment.courseId === courseId);
+    setCourseFilterId(courseId);
+    if (firstCourseAssignment) {
+      const dueDateKey = toDateKey(new Date(firstCourseAssignment.dueAt));
+      setSelectedDate(dueDateKey);
+      setCursorMonth(new Date(firstCourseAssignment.dueAt));
+    }
+  }, [assignments, captureMode, captureState, courses]);
 
   return (
     <PremiumScreen>

@@ -21,7 +21,7 @@ Status: NO-SUBMIT as of 2026-05-12.
 
 1. App Store Connect IAP product status and sandbox monthly/yearly/Lifetime/restore proof missing.
 2. Support URL missing; submission verification fails without EXPO_PUBLIC_SUPPORT_URL in submission mode.
-3. Fresh screenshot folder is incomplete: 35 raw simulator PNGs and a contact sheet are captured, but remaining required states are missing.
+3. Fresh screenshot folder is incomplete: 36 raw simulator PNGs and a contact sheet are captured, but remaining required states are missing.
 4. Native widget refresh after completion, edit, and add is proven; day-boundary label/urgency behavior is code/build proven, but overnight Home Screen screenshot proof is not captured.
 5. iPad screenshot strategy unresolved while ios.supportsTablet is true.
 6. Privacy URL/support page must be publicly verified and updated for parser endpoint/upload retention if endpoint is enabled.
@@ -43,12 +43,13 @@ Use docs/APP_STORE_METADATA.md, docs/ASO_METADATA_PACK_EN.md, and localized ASO 
 
 Current capture inventory:
 
-- 35 raw simulator PNGs captured.
+- 36 raw simulator PNGs captured.
 - Contact sheet captured: `artifacts/post-goal-aso-submission/45-final-contact-sheet.png`.
 - Production empty Today proof captured: `06-today-empty.png`.
 - Capture-mode proof captured for onboarding, populated Today, Add School Stuff, Check New Work, assignment detail, Calendar, Week Plan, Classes, Widget Setup, themes, and paywall product-load failure.
 - Manual Add proof captured: `13-manual-add.png`.
 - Check Work edit-item proof captured: `17-check-new-work-edit-item.png`.
+- Calendar filtered-class proof captured: `23-calendar-filtered-class.png` shows the Chemistry 101 filter applied to real planner data.
 - Native widget proof captured: `30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png` show installed WidgetKit small/medium widgets using the current May 2026 capture snapshot.
 - App icon/Home Screen proof captured: `40-app-icon-home-screen.png`.
 - Widget refresh proof captured: `46-widget-refresh-after-completion.png` and `widget-refresh-after-completion-snapshot.json` show completing Lab Report updated the App Group snapshot and installed widgets.
