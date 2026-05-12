@@ -104,3 +104,13 @@ Known residual risks:
 | 24 | Contact sheet regeneration | Passed | `45-final-contact-sheet.png` regenerated from 36 raw PNGs | No |
 | 24 | `git diff --check` | Passed | No whitespace errors or conflict markers | No |
 | 24 | Screenshot inventory check | Passed | 36 raw PNGs; `23-calendar-filtered-class.png` is 1179x2556 and contact sheet is 1248x5994 | No |
+| 25 | Import capture state source guard | Passed | `App.tsx`, `ImportScreen`, and `tests/accessibilitySource.test.ts` guard scan/upload/processing/duplicate/imported capture states | No |
+| 25 | `npm run typecheck` | Passed after fix | `tsc --noEmit` completed after tightening nullable capture state and duplicate assignment construction | No |
+| 25 | `npm run test` | Passed after fix | 40/40 tests passed after updating the source guard assertion | No |
+| 25 | Capture-mode iOS rebuild | Passed | `EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE` built, installed, and opened with 0 errors/0 warnings | No |
+| 25 | Import-path screenshot capture | Passed | Captured `11-scan-paper.png`, `12-upload-file.png`, `14-parser-processing.png`, `18-check-new-work-duplicate.png`, and `19-check-new-work-imported.png` as real simulator UI | No |
+| 25 | Contact sheet regeneration | Passed | `45-final-contact-sheet.png` regenerated from 41 raw PNGs | No |
+| 25 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after import-path capture states | No |
+| 25 | `npm run verify:production` | Passed | Production config verification passed after import-path capture states | No |
+| 25 | `git diff --check` | Passed | No whitespace errors or conflict markers after import-path capture states and docs | No |
+| 25 | Screenshot inventory check | Passed | 41 raw PNGs; new import screenshots are 1179x2556 and contact sheet is 1230x7305 | No |

@@ -74,14 +74,49 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
   const [filter, setFilter] = useState<ConfidenceFilter>("all");
   const [expandedAssignmentId, setExpandedAssignmentId] = useState<string | null>(null);
   const imageParsingReady = supportsSyllabusImageParsing();
+  const showPhotoActions = imageParsingReady || (captureMode && captureState === "scan-paper");
   const scanCopy = imageParsingReady
     ? "Upload a text-based PDF, text file, or photo syllabus."
     : "Upload a text-based PDF or text file. Photo OCR needs a configured parser endpoint.";
 
   useEffect(() => {
-    if (!captureMode || captureState !== "edit-found-work") return;
-    setFilter("all");
-    setExpandedAssignmentId("problem-set-4");
+    if (!captureMode) return;
+
+    setErrorMessage(null);
+
+    if (captureState === "scan-paper" || captureState === "upload-file") {
+      setDraft(null);
+      setLoading(false);
+      setFilter("all");
+      setExpandedAssignmentId(null);
+      return;
+    }
+
+    if (captureState === "parser-processing") {
+      setDraft(null);
+      setLoading(true);
+      setFilter("all");
+      setExpandedAssignmentId(null);
+      return;
+    }
+
+    if (captureState === "duplicate-found-work" || captureState === "imported-found-work") {
+      setDraft(createCaptureImportDraft(captureState));
+      setLoading(false);
+      setFilter("all");
+      setExpandedAssignmentId(null);
+      return;
+    }
+
+    if (captureState === "edit-found-work") {
+      setDraft(createDemoSyllabusParseResult());
+      setLoading(false);
+      setFilter("all");
+      setExpandedAssignmentId("problem-set-4");
+      return;
+    }
+
+    setLoading(false);
   }, [captureMode, captureState]);
 
   const reviewStats = useMemo(() => {
@@ -112,6 +147,12 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
     () => (draft?.assignments || []).filter((assignment) => assignment.reviewStatus === "accepted"),
     [draft]
   );
+  const captureProof = captureMode
+    ? captureImportProof(captureState ?? null, {
+        acceptedCount: acceptedAssignments.length,
+        imageParsingReady
+      })
+    : null;
 
   const runParse = async (source: SyllabusImportSource) => {
     try {
@@ -288,14 +329,14 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
             disabled={loading}
             onPress={pickPdf}
           />
-          {imageParsingReady ? (
+          {showPhotoActions ? (
             <>
               <AppButton
                 label="Photo"
                 icon={Upload}
                 variant="secondary"
                 style={styles.importButton}
-                disabled={loading}
+                disabled={loading || !imageParsingReady}
                 onPress={pickPhoto}
               />
               <AppButton
@@ -303,7 +344,7 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
                 icon={Camera}
                 variant="secondary"
                 style={styles.importButton}
-                disabled={loading}
+                disabled={loading || !imageParsingReady}
                 onPress={capturePhoto}
               />
             </>
@@ -311,7 +352,26 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
         </View>
       </GlassCard>
 
-      {loading ? <ActivityIndicator style={styles.loader} color={colors.ink} /> : null}
+      {captureProof ? (
+        <GlassCard style={styles.captureProofCard}>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyTitle}>{captureProof.title}</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyCopy}>{captureProof.copy}</Text>
+        </GlassCard>
+      ) : null}
+
+      {loading ? (
+        <GlassCard>
+          <View style={styles.processingRow}>
+            <ActivityIndicator color={colors.ink} />
+            <View style={styles.processingCopy}>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyTitle}>Reading syllabus</Text>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyCopy}>
+                StudyPlanner is looking for classes, dates, and work that still needs your check.
+              </Text>
+            </View>
+          </View>
+        </GlassCard>
+      ) : null}
       {errorMessage ? (
         <GlassCard>
           <Text maxFontSizeMultiplier={bodyTextScale} style={styles.errorTitle}>Scan paused</Text>
@@ -680,6 +740,102 @@ function labelize(value: string) {
   return value.replace("_", " ");
 }
 
+function createCaptureImportDraft(captureState: string | null): SyllabusParseResult {
+  const base = createDemoSyllabusParseResult();
+
+  if (captureState === "duplicate-found-work") {
+    const original = base.assignments.find((assignment) => assignment.id === "problem-set-4");
+    const duplicate = original
+      ? {
+          ...original,
+          id: "problem-set-4-duplicate",
+          confidence: 0.58,
+          reviewStatus: "needsReview" as const,
+          sourceText: "Problem Set 4 appears again on page 3 with the same due date."
+        }
+      : null;
+
+    return {
+      ...base,
+      assignments: duplicate
+        ? [...base.assignments.slice(0, 1), duplicate, ...base.assignments.slice(1)]
+        : base.assignments,
+      findings: [
+        {
+          id: "capture-duplicate-found-work",
+          severity: "needs_review",
+          message: "Possible duplicate: Problem Set 4 appeared twice. Check before adding it."
+        },
+        ...base.findings
+      ]
+    };
+  }
+
+  if (captureState === "imported-found-work") {
+    return {
+      ...base,
+      assignments: base.assignments.map((assignment, index) => ({
+        ...assignment,
+        reviewStatus: index < 6 ? "accepted" : assignment.reviewStatus
+      })),
+      findings: [
+        {
+          id: "capture-imported-found-work",
+          severity: "info",
+          message: "Checked items are ready for Today, Calendar, Classes, and widgets."
+        },
+        ...base.findings
+      ]
+    };
+  }
+
+  return base;
+}
+
+function captureImportProof(
+  captureState: string | null,
+  stats: { acceptedCount: number; imageParsingReady: boolean }
+) {
+  if (captureState === "scan-paper") {
+    return {
+      title: stats.imageParsingReady ? "Scan paper syllabus" : "Paper scan needs setup",
+      copy: stats.imageParsingReady
+        ? "Use Camera or Photo when the parser endpoint is configured, then check every found item."
+        : "This build keeps paper scanning honest: Camera and Photo stay disabled until photo parsing is configured."
+    };
+  }
+
+  if (captureState === "upload-file") {
+    return {
+      title: "Upload a syllabus file",
+      copy: "Start with a text-based PDF or plain text file. Found work stays in Check New Work until you approve it."
+    };
+  }
+
+  if (captureState === "parser-processing") {
+    return {
+      title: "Scanning stays untrusted",
+      copy: "While the parser reads a file, nothing is added to the planner until the review step finishes."
+    };
+  }
+
+  if (captureState === "duplicate-found-work") {
+    return {
+      title: "Duplicate needs a check",
+      copy: "StudyPlanner can flag repeated-looking work, but the student decides whether it belongs in the planner."
+    };
+  }
+
+  if (captureState === "imported-found-work") {
+    return {
+      title: "Checked work is ready",
+      copy: `${stats.acceptedCount} checked item${stats.acceptedCount === 1 ? "" : "s"} can now power Today, Calendar, Classes, and widgets.`
+    };
+  }
+
+  return null;
+}
+
 function createStyles(theme: AppTheme) {
   const { colors, radii, spacing } = theme;
 
@@ -720,8 +876,18 @@ function createStyles(theme: AppTheme) {
     importButton: {
       flex: 1
     },
-    loader: {
-      marginTop: spacing.xs
+    captureProofCard: {
+      borderColor: `${colors.brandPurple}24`,
+      backgroundColor: colors.surface
+    },
+    processingRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    processingCopy: {
+      flex: 1,
+      minWidth: 0
     },
     errorTitle: {
       color: colors.red,

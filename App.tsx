@@ -95,7 +95,16 @@ const tabs: Array<{
   { id: "upgrade", label: "Widgets", icon: Crown }
 ];
 
-type CaptureState = "calendar-filtered" | "edit-found-work" | "manual-add" | null;
+type CaptureState =
+  | "calendar-filtered"
+  | "duplicate-found-work"
+  | "edit-found-work"
+  | "imported-found-work"
+  | "manual-add"
+  | "parser-processing"
+  | "scan-paper"
+  | "upload-file"
+  | null;
 
 export default function App() {
   return (
@@ -736,8 +745,13 @@ function AppContent() {
 
 function captureStateFromQuery(value: string | null): CaptureState {
   if (value === "calendar-filtered" || value === "filtered-class") return "calendar-filtered";
+  if (value === "duplicate-found-work" || value === "duplicate") return "duplicate-found-work";
   if (value === "edit-found-work" || value === "edit") return "edit-found-work";
+  if (value === "imported-found-work" || value === "imported") return "imported-found-work";
   if (value === "manual-add" || value === "manual") return "manual-add";
+  if (value === "parser-processing" || value === "processing") return "parser-processing";
+  if (value === "scan-paper" || value === "scan") return "scan-paper";
+  if (value === "upload-file" || value === "upload") return "upload-file";
   return null;
 }
 

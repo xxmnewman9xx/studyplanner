@@ -14,7 +14,7 @@ Status: **Not complete as a 9.2 goal.**
 
 The branch has a real transformation and stronger evidence than the release-candidate baseline, but the audit does not support marking the objective fully achieved because the final score is still below 9.2 and several requested proof gates remain weak or manual.
 
-Updated audited score after adding import-trust, onboarding first-action routing, accessibility quick wins, 500-assignment regression tests, successor-branch large-text Today/core action proof, Manual Add/Edit Item/filtered Calendar screenshot proof, locale-aware month grid logic, 24-hour locale date formatting, source-tested VoiceOver labels for planner visuals, current-date capture seed fix, native small/medium widget screenshot proof, widget refresh-after-completion/edit/add proof, and widget day-boundary code/build proof: **9.18/10**.
+Updated audited score after adding import-trust, onboarding first-action routing, accessibility quick wins, 500-assignment regression tests, successor-branch large-text Today/core action proof, Manual Add/Edit Item/filtered Calendar/import-path screenshot proof, locale-aware month grid logic, 24-hour locale date formatting, source-tested VoiceOver labels for planner visuals, current-date capture seed fix, native small/medium widget screenshot proof, widget refresh-after-completion/edit/add proof, and widget day-boundary code/build proof: **9.19/10**.
 
 ## Prompt-To-Artifact Checklist
 
@@ -47,7 +47,7 @@ Updated audited score after adding import-trust, onboarding first-action routing
 | Run IAP/production checks | `npm run check:iap`, `npm run verify:production` passed | Complete for static config | Sandbox commerce not proven |
 | Run WidgetKit verification | Capture and production App Group payloads inspected | Partial | Manual add-widget flow not captured |
 | Final readiness report | `docs/FINAL_9_2_READINESS_REPORT.md` | Complete | Correctly says 9.2 was not reached |
-| Final weighted score >= 9.2 | `docs/GOAL_9_2_SCORECARD.md` | Incomplete | Current audited score: 9.18 |
+| Final weighted score >= 9.2 | `docs/GOAL_9_2_SCORECARD.md` | Incomplete | Current audited score: 9.19 |
 
 ## Requirements Not Yet Covered Well Enough
 
@@ -55,7 +55,7 @@ Updated audited score after adding import-trust, onboarding first-action routing
 2. Full VoiceOver and contrast pass with screenshots/logs. Targeted Today/core action large-text proof and source-tested visual-surface labels exist, but this is not exhaustive.
 3. Localized/date behavior proof remains incomplete. Monday-start calendar logic and 24-hour locale date formatting now have unit coverage, but real locale simulator screenshots and localized UI proof remain missing.
 4. Automated e2e coverage for the full functionality matrix.
-5. Final scorecard evidence supporting at least 9.2. Current audited score: 9.18.
+5. Final scorecard evidence supporting at least 9.2. Current audited score: 9.19.
 
 ## Continue/Stop Decision
 

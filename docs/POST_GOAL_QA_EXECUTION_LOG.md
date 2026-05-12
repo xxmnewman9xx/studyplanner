@@ -74,5 +74,15 @@
 | Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 36 PNGs at 1248x5994 | Re-run after Calendar filtered-class screenshot |
 | git diff --check | Passed | exit 0 | Final whitespace/conflict-marker check before commit |
 | screenshot inventory check | Passed | 36 raw PNGs; `23-calendar-filtered-class.png` 1179x2556; contact sheet 1248x5994 | Final artifact dimensions verified before commit |
+| Import capture state source guard | Passed | `App.tsx`, `ImportScreen`, `tests/accessibilitySource.test.ts` | Guards scan-paper, upload-file, parser-processing, duplicate-found-work, and imported-found-work capture states |
+| npm run typecheck | Passed after fix | exit 0 | Initial run caught nullable capture state and possible undefined assignment; patched and re-ran successfully |
+| npm run test | Passed after fix | 40/40 | Initial run caught an outdated source-test assertion; patched and re-ran successfully |
+| EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE | Passed | Build succeeded, 0 errors/0 warnings; app installed/opened | Required because the prior installed app had an older embedded JS bundle |
+| xcrun simctl openurl + xcrun simctl io screenshot | Passed | `11-scan-paper.png`, `12-upload-file.png`, `14-parser-processing.png`, `18-check-new-work-duplicate.png`, `19-check-new-work-imported.png` | Real simulator UI captured for import-path proof states |
+| Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 41 PNGs at 1230x7305 | Re-run after import-path screenshots |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after import-path capture states |
+| npm run verify:production | Passed | Production config verification passed | Re-run after import-path capture states |
+| git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after import-path capture states and docs |
+| screenshot inventory check | Passed | 41 raw PNGs; new import screenshots are 1179x2556; contact sheet 1230x7305 | Final artifact dimensions verified after import-path capture |
 
-Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/contrast pass, restore purchases. Optional: overnight widget rollover screenshot.
+Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/contrast pass, restore purchases, settings/reminders screens, native widget empty/needs-check states. Optional: overnight widget rollover screenshot.

@@ -2,7 +2,7 @@
 
 Branch: `v1-2-goal-9-2-root-concept-transformation`  
 Starting commit: `69d75470328bc470bce6097384b4a7e39e79c89a`  
-Final implementation score: **9.18/10**
+Final implementation score: **9.19/10**
 9.2 reached: **No**
 
 ## What Changed
@@ -22,6 +22,7 @@ Final implementation score: **9.18/10**
 - Check Work, Assignment Detail, Widget Setup, Paywall, and shared buttons now use bounded text scaling plus clearer labels/hints for selection, edit, preview, and plan-selection actions.
 - Capture-only proof routes now expose Manual Add and expanded Check Work edit-item states for honest simulator screenshot capture.
 - Capture-only proof routes now expose a filtered Calendar state, proving the class filter with `23-calendar-filtered-class.png`.
+- Capture-only proof routes now expose import-path states for scan paper, upload file, parser processing, duplicate found work, and imported found work.
 - Month calendar planning now respects locale week-start rules for Sunday, Monday, and Saturday-start regions, with Monday-start coverage for `en-GB`.
 - Due-date and Week Plan date labels now use the preferred locale, with 24-hour formatting coverage for `fr-FR` and `en-GB`.
 - Successor-branch capture mode now uses current relative demo dates, preventing stale WidgetKit due labels.
@@ -45,6 +46,7 @@ Final implementation score: **9.18/10**
 - Successor-branch core action large-text proof captured at `artifacts/post-goal-aso-submission/49-accessibility-check-work-large-text.png` through `52-accessibility-paywall-large-text.png`.
 - Successor-branch Manual Add/Edit Item proof captured at `artifacts/post-goal-aso-submission/13-manual-add.png` and `17-check-new-work-edit-item.png`.
 - Successor-branch filtered Calendar proof captured at `artifacts/post-goal-aso-submission/23-calendar-filtered-class.png`.
+- Successor-branch import-path proof captured at `artifacts/post-goal-aso-submission/11-scan-paper.png`, `12-upload-file.png`, `14-parser-processing.png`, `18-check-new-work-duplicate.png`, and `19-check-new-work-imported.png`.
 - Completion audit added in `docs/COMPLETION_AUDIT_9_2.md`; verdict remains not complete as a 9.2 goal.
 
 ## Why This Is Not 9.2 Yet

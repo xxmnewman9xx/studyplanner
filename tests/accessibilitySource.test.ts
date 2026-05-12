@@ -73,10 +73,20 @@ test("capture routes expose honest screenshot proof states", () => {
 
   assert.ok(app.includes("captureStateFromQuery"));
   assert.ok(app.includes("\"calendar-filtered\""));
+  assert.ok(app.includes("\"duplicate-found-work\""));
   assert.ok(app.includes("\"edit-found-work\""));
+  assert.ok(app.includes("\"imported-found-work\""));
   assert.ok(app.includes("\"manual-add\""));
+  assert.ok(app.includes("\"parser-processing\""));
+  assert.ok(app.includes("\"scan-paper\""));
+  assert.ok(app.includes("\"upload-file\""));
 
-  assert.ok(importScreen.includes("captureState !== \"edit-found-work\""));
+  assert.ok(importScreen.includes("captureState === \"edit-found-work\""));
+  assert.ok(importScreen.includes("captureState === \"parser-processing\""));
+  assert.ok(importScreen.includes("createCaptureImportDraft(captureState)"));
+  assert.ok(importScreen.includes("showPhotoActions"));
+  assert.ok(importScreen.includes("Paper scan needs setup"));
+  assert.ok(importScreen.includes("Checked work is ready"));
   assert.ok(importScreen.includes("setExpandedAssignmentId(\"problem-set-4\")"));
 
   assert.ok(coursesScreen.includes("showCaptureManualAdd"));
