@@ -15,5 +15,8 @@
 | EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE | Passed | App installed and capture deep links responded | Capture-mode build only; not production proof |
 | xcrun simctl openurl + xcrun simctl io screenshot | Passed after retry | 22 raw PNGs in `artifacts/post-goal-aso-submission` | First attempt used relative output paths and failed; rerun with absolute paths passed |
 | Swift/AppKit contact sheet generation | Passed after retry | `artifacts/post-goal-aso-submission/45-final-contact-sheet.png` | First `mktemp` template failed; rerun with simpler temp filename passed |
+| xcrun simctl ui content_size accessibility-extra-extra-large + screenshot | Passed | `artifacts/post-goal-aso-submission/44-accessibility-large-text.png` | Initial capture exposed catastrophic large-text layout; targeted shared component caps fixed the top Today hierarchy; simulator content size restored to `large` |
+| npm run typecheck | Passed | exit 0 | Re-run after Dynamic Type component patch |
+| npm run test | Passed | 32/32 | Re-run after Dynamic Type component patch |
 
-Unrun/blocked: WidgetKit rerun, StoreKit sandbox, native widget Home Screen placement screenshots, products-loaded paywall proof, iPad screenshot strategy, localized UI proof, accessibility large-text proof, restore purchases.
+Unrun/blocked: WidgetKit rerun, StoreKit sandbox, native widget Home Screen placement screenshots, products-loaded paywall proof, iPad screenshot strategy, localized UI proof, full VoiceOver/Dynamic Type screen sweep, restore purchases.

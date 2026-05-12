@@ -52,3 +52,7 @@ Known residual risks:
 | 12 | Accessibility quick wins | Passed | Onboarding honors Reduce Motion; high-traffic touch targets increased toward 44pt | VoiceOver/Dynamic Type proof still needed |
 | 12 | `npm run typecheck` | Passed | `tsc --noEmit` completed after accessibility changes | No |
 | 12 | `npm run test` | Passed | 26/26 tests passed | No |
+| 13 | Targeted Dynamic Type fix | Passed | Shared premium header, command hero, metric, warning, progress ring, and dock labels capped for compact large-text layout | Full VoiceOver/Dynamic Type sweep still needed |
+| 13 | Large-text simulator proof | Passed | `xcrun simctl ui ... content_size accessibility-extra-extra-large`; screenshot `artifacts/goal-9-2-transformation/21-accessibility-large-text.png`; simulator restored to `large` | No |
+| 13 | `npm run typecheck` | Passed | `tsc --noEmit` completed after Dynamic Type patch | No |
+| 13 | `npm run test` | Passed | 32/32 tests passed | No |

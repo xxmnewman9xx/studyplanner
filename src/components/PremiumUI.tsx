@@ -37,6 +37,10 @@ type DockTab<T extends string> = {
   icon: React.ComponentType<{ color: string; size: number }>;
 };
 
+const displayTextScale = 1.18;
+const bodyTextScale = 1.35;
+const dockTextScale = 1.1;
+
 export function PremiumScreen({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
@@ -69,9 +73,11 @@ export function PremiumHeader({
   return (
     <View style={styles.premiumHeader}>
       <View style={styles.headerCopy}>
-        {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
-        <Text style={styles.headerTitle}>{title}</Text>
-        {subtitle ? <Text style={styles.headerSubtitle}>{subtitle}</Text> : null}
+        {eyebrow ? <Text maxFontSizeMultiplier={bodyTextScale} style={styles.eyebrow}>{eyebrow}</Text> : null}
+        <Text maxFontSizeMultiplier={displayTextScale} style={styles.headerTitle}>
+          {title}
+        </Text>
+        {subtitle ? <Text maxFontSizeMultiplier={bodyTextScale} style={styles.headerSubtitle}>{subtitle}</Text> : null}
       </View>
       {right ? <View style={styles.headerRight}>{right}</View> : null}
     </View>
@@ -181,8 +187,10 @@ export function CommandCenterHero({
           <Target color={colors.heroText} size={20} />
         </View>
         <View style={styles.heroTopCopy}>
-          <Text style={styles.heroKicker}>NEXT DUE</Text>
-          <Text style={styles.heroDueLabel}>{dueLabel || "Your plan is clear"}</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroKicker}>NEXT DUE</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroDueLabel}>
+            {dueLabel || "Your plan is clear"}
+          </Text>
         </View>
         <ProgressRing
           value={assignment ? Math.max(28, Math.min(100, 100 - Math.max(0, daysUntil(assignment.dueAt, now)) * 18)) : 100}
@@ -193,10 +201,10 @@ export function CommandCenterHero({
       {assignment ? (
         <>
           <TouchableOpacity accessibilityRole="button" activeOpacity={0.82} onPress={onOpen}>
-            <Text style={styles.heroTitle} numberOfLines={2}>
+            <Text maxFontSizeMultiplier={displayTextScale} style={styles.heroTitle} numberOfLines={2}>
               {assignment.title}
             </Text>
-            <Text style={styles.heroMeta} numberOfLines={1}>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroMeta} numberOfLines={1}>
               {(course?.code || assignment.courseName || "Course")} - Due {formatShortDate(assignment.dueAt)}
             </Text>
           </TouchableOpacity>
@@ -206,18 +214,20 @@ export function CommandCenterHero({
           </View>
           <View style={styles.heroActions}>
             <TouchableOpacity accessibilityRole="button" style={styles.heroSecondaryButton} onPress={onStart}>
-              <Text style={styles.heroSecondaryText}>Start</Text>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroSecondaryText}>Start</Text>
             </TouchableOpacity>
             <TouchableOpacity accessibilityRole="button" style={styles.heroPrimaryButton} onPress={onComplete}>
-              <Text style={styles.heroPrimaryText}>Complete</Text>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroPrimaryText}>Complete</Text>
               <ChevronRight color={colors.heroText} size={15} />
             </TouchableOpacity>
           </View>
         </>
       ) : (
         <View style={styles.emptyStack}>
-          <Text style={styles.heroTitle}>No next deadline.</Text>
-          <Text style={styles.heroMeta}>Scan a syllabus or add coursework to build your plan.</Text>
+          <Text maxFontSizeMultiplier={displayTextScale} style={styles.heroTitle}>No next deadline.</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroMeta}>
+            Scan a syllabus or add coursework to build your plan.
+          </Text>
         </View>
       )}
     </GlassCard>
@@ -240,9 +250,9 @@ export function MetricPill({
 
   return (
     <View style={[styles.metricPill, styles[`${tone}Metric`]]}>
-      <Text style={styles.metricValue}>{value}</Text>
-      <Text style={styles.metricLabel}>{label}</Text>
-      {detail ? <Text style={styles.metricDetail}>{detail}</Text> : null}
+      <Text maxFontSizeMultiplier={displayTextScale} style={styles.metricValue}>{value}</Text>
+      <Text maxFontSizeMultiplier={bodyTextScale} style={styles.metricLabel}>{label}</Text>
+      {detail ? <Text maxFontSizeMultiplier={bodyTextScale} style={styles.metricDetail}>{detail}</Text> : null}
     </View>
   );
 }
@@ -254,7 +264,7 @@ export function StatusBadge({ label, tone = "neutral" }: { label: string; tone?:
   return (
     <View style={[styles.statusBadge, styles[`${tone}Badge`]]}>
       <View style={[styles.statusDot, styles[`${tone}Dot`]]} />
-      <Text style={styles.statusText}>{label}</Text>
+      <Text maxFontSizeMultiplier={bodyTextScale} style={styles.statusText}>{label}</Text>
     </View>
   );
 }
@@ -444,12 +454,12 @@ export function WarningCard({
         <Flame color={colors.coral} size={20} />
       </View>
       <View style={styles.warningBody}>
-        <Text style={styles.warningTitle}>{title}</Text>
-        <Text style={styles.warningMessage}>{message}</Text>
+        <Text maxFontSizeMultiplier={displayTextScale} style={styles.warningTitle}>{title}</Text>
+        <Text maxFontSizeMultiplier={bodyTextScale} style={styles.warningMessage}>{message}</Text>
       </View>
       {actionLabel && onPress ? (
         <TouchableOpacity accessibilityRole="button" style={styles.warningButton} onPress={onPress}>
-          <Text style={styles.warningButtonText}>{actionLabel}</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.warningButtonText}>{actionLabel}</Text>
           <ChevronRight color={colors.heroText} size={14} />
         </TouchableOpacity>
       ) : null}
@@ -725,7 +735,12 @@ export function BottomDock<T extends string>({
             onPress={() => onSelect(tab.id)}
           >
             <Icon color={active ? colors.brandPurple : colors.faint} size={19} />
-            <Text style={[styles.dockLabel, active ? styles.dockLabelActive : null]}>
+            <Text
+              maxFontSizeMultiplier={dockTextScale}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              style={[styles.dockLabel, active ? styles.dockLabelActive : null]}
+            >
               {tab.label}
             </Text>
           </TouchableOpacity>
@@ -841,7 +856,7 @@ function ProgressRing({ value, color }: { value: number; color: string }) {
           origin="24,24"
         />
       </Svg>
-      <Text style={[styles.progressValue, { color }]}>{value}%</Text>
+      <Text maxFontSizeMultiplier={1} style={[styles.progressValue, { color }]}>{value}%</Text>
     </View>
   );
 }
