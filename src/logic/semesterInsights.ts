@@ -11,6 +11,7 @@ import {
   isAssignmentOpen
 } from "./assignmentModel";
 import { buildWeekPlan, getCourseForAssignment } from "./planner";
+import { dateKeyFromValue, parseValidDate, startOfLocalDay, toDateKey } from "./dateUtils";
 
 const dayMs = 24 * 60 * 60 * 1000;
 
@@ -77,7 +78,7 @@ export function buildMonthCalendarPlan({
     const date = new Date(gridStart.getTime() + index * dayMs);
     const dateKey = toDateKey(date);
     const items = allItems
-      .filter((assignment) => toDateKey(new Date(assignment.dueAt)) === dateKey)
+      .filter((assignment) => dateKeyFromValue(assignment.dueAt) === dateKey)
       .sort(sortAssignmentsByDue);
     const openItems = items.filter((assignment) => isAssignmentOpen(assignment));
     const completedItems = items.filter((assignment) => isAssignmentCompleted(assignment));
@@ -102,7 +103,8 @@ export function buildMonthCalendarPlan({
   const weeks = chunk(days, 7);
   const currentMonthDays = days.filter((day) => day.isCurrentMonth);
   const currentMonthItems = allItems.filter((assignment) => {
-    const due = new Date(assignment.dueAt);
+    const due = parseValidDate(assignment.dueAt);
+    if (!due) return false;
     return due >= monthStart && due <= new Date(monthEnd.getFullYear(), monthEnd.getMonth(), monthEnd.getDate(), 23, 59, 59);
   });
   const currentWeek = currentWeekDays(days, now);
@@ -134,7 +136,7 @@ export function buildMonthCalendarPlan({
       completedCount: currentMonthItems.filter((assignment) => isAssignmentCompleted(assignment)).length,
       heavyDayCount: currentMonthDays.filter((day) => day.isHeavy).length,
       overdueCount: currentMonthItems.filter(
-        (assignment) => isAssignmentOpen(assignment) && new Date(assignment.dueAt) < startOfDay(now)
+        (assignment) => isAssignmentOpen(assignment) && Boolean(parseValidDate(assignment.dueAt)) && parseValidDate(assignment.dueAt)! < startOfLocalDay(now)
       ).length,
       currentWeekCount: currentWeek.reduce((sum, day) => sum + day.openItems.length, 0),
       heavyWeekLabel
@@ -148,7 +150,10 @@ export function buildSemesterInsights(
   now = new Date()
 ): SemesterInsightPlan {
   const visibleAssignments = assignments.filter(
-    (assignment) => !isAssignmentArchived(assignment) && isAssignmentConfirmed(assignment)
+    (assignment) =>
+      !isAssignmentArchived(assignment) &&
+      isAssignmentConfirmed(assignment) &&
+      Boolean(parseValidDate(assignment.dueAt))
   );
   const openAssignments = visibleAssignments.filter((assignment) => isAssignmentOpen(assignment));
   const completedAssignments = visibleAssignments.filter((assignment) => isAssignmentCompleted(assignment));
@@ -246,17 +251,7 @@ function isExam(assignment: Assignment) {
 function sortAssignmentsByDue(a: Assignment, b: Assignment) {
   const doneDelta = Number(isAssignmentCompleted(a)) - Number(isAssignmentCompleted(b));
   if (doneDelta !== 0) return doneDelta;
-  return new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime();
-}
-
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-function toDateKey(date: Date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
-    date.getDate()
-  ).padStart(2, "0")}`;
+  return (parseValidDate(a.dueAt)?.getTime() || 0) - (parseValidDate(b.dueAt)?.getTime() || 0);
 }
 
 function formatCompactRange(start?: string, end?: string) {

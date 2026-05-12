@@ -5,6 +5,7 @@ import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
 import { Assignment, AssignmentKind, AssignmentStatus, Course, Priority } from "../models";
 import { formatShortDate, getCourseForAssignment } from "../logic/planner";
+import { dateKeyFromValue, isValidDateKey, isValidTime, makeDueAt } from "../logic/dateUtils";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 
@@ -36,8 +37,13 @@ export function AssignmentDetailScreen({
   const styles = createStyles(theme);
   const course = getCourseForAssignment(courses, assignment);
   const [title, setTitle] = useState(assignment.title);
-  const [dueDate, setDueDate] = useState(assignment.dueAt.slice(0, 10));
-  const [dueTime, setDueTime] = useState(assignment.dueAt.slice(11, 16));
+  const originalDueDate = dateKeyFromValue(assignment.dueAt) || "";
+  const originalDueTime = isValidTime(assignment.dueAt.slice(11, 16))
+    ? assignment.dueAt.slice(11, 16)
+    : "23:59";
+  const [dueDate, setDueDate] = useState(originalDueDate);
+  const [dueTime, setDueTime] = useState(originalDueTime);
+  const [dateError, setDateError] = useState("");
   const [estimatedMinutes, setEstimatedMinutes] = useState(String(assignment.estimatedMinutes));
   const [tags, setTags] = useState(assignment.tags.join(", "));
   const [priority, setPriority] = useState<Priority>(assignment.priority);
@@ -50,21 +56,41 @@ export function AssignmentDetailScreen({
   const dirty = useMemo(
     () =>
       title !== assignment.title ||
-      dueDate !== assignment.dueAt.slice(0, 10) ||
-      dueTime !== assignment.dueAt.slice(11, 16) ||
+      dueDate !== originalDueDate ||
+      dueTime !== originalDueTime ||
       Number.parseInt(estimatedMinutes, 10) !== assignment.estimatedMinutes ||
       tags !== assignment.tags.join(", ") ||
       priority !== assignment.priority ||
       status !== assignment.status ||
       kind !== assignment.kind ||
       courseId !== assignment.courseId,
-    [assignment, courseId, dueDate, dueTime, estimatedMinutes, kind, priority, status, tags, title]
+    [
+      assignment,
+      courseId,
+      dueDate,
+      dueTime,
+      estimatedMinutes,
+      kind,
+      originalDueDate,
+      originalDueTime,
+      priority,
+      status,
+      tags,
+      title
+    ]
   );
 
   const save = () => {
+    const dueAt = makeDueAt(dueDate || originalDueDate, dueTime || "23:59");
+    if (!dueAt || !isValidDateKey(dueDate || originalDueDate) || !isValidTime(dueTime || "23:59")) {
+      setDateError("Use a real date like 2026-09-18 and a 24-hour time like 15:30.");
+      return;
+    }
+    setDateError("");
+
     onSave({
       title: title.trim() || assignment.title,
-      dueAt: `${dueDate || assignment.dueAt.slice(0, 10)}T${dueTime || "23:59"}:00`,
+      dueAt,
       estimatedMinutes: Number.parseInt(estimatedMinutes, 10) || assignment.estimatedMinutes,
       tags: tags
         .split(",")
@@ -98,6 +124,7 @@ export function AssignmentDetailScreen({
             value={title}
             onChangeText={setTitle}
             placeholder="Assignment title"
+            accessibilityLabel="Assignment title"
             placeholderTextColor={colors.faint}
             style={styles.input}
           />
@@ -110,6 +137,7 @@ export function AssignmentDetailScreen({
                 value={dueDate}
                 onChangeText={setDueDate}
                 placeholder="YYYY-MM-DD"
+                accessibilityLabel="Due date"
                 placeholderTextColor={colors.faint}
                 style={styles.input}
               />
@@ -121,12 +149,14 @@ export function AssignmentDetailScreen({
                 value={dueTime}
                 onChangeText={setDueTime}
                 placeholder="HH:MM"
+                accessibilityLabel="Due time"
                 placeholderTextColor={colors.faint}
                 style={styles.input}
               />
             </Field>
           </View>
         </View>
+        {dateError ? <Text style={styles.errorText}>{dateError}</Text> : null}
 
         <Field label="Course">
           <View style={styles.chipRow}>
@@ -145,7 +175,7 @@ export function AssignmentDetailScreen({
           </View>
         </Field>
 
-        <Field label="Kind">
+        <Field label="Type">
           <Segmented options={kinds} value={kind} onChange={setKind} />
         </Field>
 
@@ -159,31 +189,45 @@ export function AssignmentDetailScreen({
 
         <View style={styles.twoColumn}>
           <View style={styles.fieldHalf}>
-            <Field label="Estimate">
+            <Field label="Time needed">
               <TextInput
                 keyboardType="numeric"
                 value={estimatedMinutes}
                 onChangeText={setEstimatedMinutes}
                 placeholder="Minutes"
+                accessibilityLabel="Estimated minutes"
                 placeholderTextColor={colors.faint}
                 style={styles.input}
               />
             </Field>
           </View>
           <View style={styles.fieldHalf}>
-            <Field label="Source">
+            <Field label="Where it came from">
               <View style={styles.sourceBox}>
                 <Badge label={assignment.source} tone="neutral" />
+                <Text style={styles.sourceMeta}>
+                  {assignment.reviewStatus === "accepted" ? "Checked" : "Needs check"} ·{" "}
+                  {Math.round(assignment.confidence * 100)}% match
+                </Text>
               </View>
             </Field>
           </View>
         </View>
 
-        <Field label="Tags">
+        {assignment.sourceText ? (
+          <Field label="Source note">
+            <View style={styles.sourceNote}>
+              <Text style={styles.sourceNoteText}>{assignment.sourceText}</Text>
+            </View>
+          </Field>
+        ) : null}
+
+        <Field label="Labels">
           <TextInput
             value={tags}
             onChangeText={setTags}
             placeholder="essay, lab, exam"
+            accessibilityLabel="Labels"
             placeholderTextColor={colors.faint}
             style={styles.input}
           />
@@ -192,7 +236,13 @@ export function AssignmentDetailScreen({
 
       <View style={styles.actionRow}>
         <AppButton label="Save" icon={Save} disabled={!dirty} onPress={save} style={styles.actionButton} />
-        <AppButton label="Archive" icon={Archive} variant="secondary" onPress={onArchive} style={styles.actionButton} />
+        <AppButton
+          label="Remove"
+          icon={Archive}
+          variant="secondary"
+          onPress={onArchive}
+          style={styles.actionButton}
+        />
       </View>
     </View>
   );
@@ -304,6 +354,12 @@ function createStyles(theme: AppTheme) {
       fontSize: 15,
       fontWeight: "800"
     },
+    errorText: {
+      color: colors.red,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "800"
+    },
     twoColumn: {
       flexDirection: "row",
       gap: spacing.sm,
@@ -368,7 +424,27 @@ function createStyles(theme: AppTheme) {
     },
     sourceBox: {
       minHeight: 46,
-      justifyContent: "center"
+      justifyContent: "center",
+      gap: 4
+    },
+    sourceMeta: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
+    },
+    sourceNote: {
+      borderRadius: radii.sm,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.canvas,
+      padding: spacing.sm
+    },
+    sourceNoteText: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "700"
     },
     actionRow: {
       flexDirection: "row",

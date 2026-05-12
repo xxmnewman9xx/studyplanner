@@ -92,6 +92,23 @@ export const darkColors = {
 
 export const colors = lightColors;
 
+export const classColorPalette = [
+  "#2563EB",
+  "#10A66A",
+  "#F97316",
+  "#E11D48",
+  "#7C3AED",
+  "#0891B2",
+  "#B7791F",
+  "#64748B",
+  "#F25F6B",
+  "#14B8A6"
+];
+
+export function courseColorAt(index: number) {
+  return classColorPalette[Math.abs(index) % classColorPalette.length] || colors.accent;
+}
+
 export const spacing = {
   xxs: 4,
   xs: 8,

@@ -41,7 +41,7 @@ test("widget snapshot has a useful empty state", () => {
 
   assert.equal(snapshot.emptyState.isEmpty, true);
   assert.equal(snapshot.surfaces.small.emptyTitle, "No upcoming deadlines");
-  assert.equal(snapshot.emptyState.message, "Scan a syllabus to start.");
+  assert.equal(snapshot.emptyState.message, "Add school stuff to see what is due next.");
   assert.equal(snapshot.thisWeek.length, 0);
 });
 

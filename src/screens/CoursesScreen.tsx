@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { BookOpen, CalendarClock, Plus } from "lucide-react-native";
+import { BookOpen, CalendarClock, Check, Plus } from "lucide-react-native";
 
 import { AppButton } from "../components/AppButton";
 import { CourseBalanceCard, CompletionInsightCard } from "../components/InsightCards";
@@ -20,10 +20,17 @@ import {
   isAssignmentConfirmed,
   isAssignmentOpen
 } from "../logic/assignmentModel";
-import { formatDateOnly, getCourseForAssignment, groupMeetingsByDay, urgencyLabel } from "../logic/planner";
+import {
+  daysUntil,
+  formatDateOnly,
+  getCourseForAssignment,
+  groupMeetingsByDay,
+  urgencyLabel
+} from "../logic/planner";
 import { buildSemesterInsights } from "../logic/semesterInsights";
+import { isValidDateKey, parseValidDate } from "../logic/dateUtils";
 import { Assignment, AssignmentKind, Course, Semester, SyllabusSource } from "../models";
-import { AppTheme } from "../theme";
+import { AppTheme, classColorPalette, courseColorAt } from "../theme";
 import { useAppTheme } from "../themeContext";
 
 type CoursesScreenProps = {
@@ -39,7 +46,7 @@ type CoursesScreenProps = {
   ) => void;
   onOpenAssignment: (assignmentId: string) => void;
   onUpdateSemester: (patch: Partial<Semester>) => void;
-  onAddCourse: (course: Pick<Course, "code" | "name" | "instructor">) => void;
+  onAddCourse: (course: Pick<Course, "code" | "name" | "instructor"> & { color?: string }) => void;
   onUpdateCourse: (courseId: string, patch: Partial<Course>) => void;
   onOpenGrades: () => void;
 };
@@ -67,9 +74,9 @@ export function CoursesScreen({
   const [newCourseCode, setNewCourseCode] = useState("");
   const [newCourseName, setNewCourseName] = useState("");
   const [newCourseInstructor, setNewCourseInstructor] = useState("");
+  const [newCourseColor, setNewCourseColor] = useState(courseColorAt(courses.length));
   const [showAddCourseForm, setShowAddCourseForm] = useState(courses.length === 0);
   const now = captureMode ? storeCaptureNow : new Date();
-  const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   const weekly = useMemo(() => groupMeetingsByDay(courses), [courses]);
   const insights = useMemo(() => buildSemesterInsights(assignments, courses, now), [assignments, courses, now]);
   const selectedCourse = courses.find((course) => course.id === selectedCourseId) || courses[0];
@@ -79,7 +86,7 @@ export function CoursesScreen({
           (assignment) =>
             assignment.courseId === selectedCourse.id && isAssignmentConfirmed(assignment)
         )
-        .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
+        .sort((a, b) => (parseValidDate(a.dueAt)?.getTime() || 0) - (parseValidDate(b.dueAt)?.getTime() || 0))
     : [];
   const selectedOpenAssignments = selectedAssignments.filter((assignment) =>
     isAssignmentOpen(assignment)
@@ -112,20 +119,24 @@ export function CoursesScreen({
 
   const addItem = () => {
     if (!selectedCourse) return;
+    if (!title.trim() || !isValidDateKey(dueDate.trim())) return;
     onAddQuickAssignment(selectedCourse.id, title, dueDate, kind);
     setTitle("");
     setDueDate("");
   };
 
   const addCourseFromDraft = () => {
+    if (!newCourseCode.trim() || !newCourseName.trim()) return;
     onAddCourse({
       code: newCourseCode,
       name: newCourseName,
-      instructor: newCourseInstructor
+      instructor: newCourseInstructor,
+      color: newCourseColor
     });
     setNewCourseCode("");
     setNewCourseName("");
     setNewCourseInstructor("");
+    setNewCourseColor(courseColorAt(courses.length + 1));
     setShowAddCourseForm(false);
   };
 
@@ -157,7 +168,7 @@ export function CoursesScreen({
           </GlassCard>
         ) : null}
         {courses.map((course) => {
-          const stats = courseStats(course, assignments, now, weekEnd);
+          const stats = courseStats(course, assignments, now);
           return (
             <CourseCard
               key={course.id}
@@ -180,6 +191,7 @@ export function CoursesScreen({
               value={newCourseCode}
               onChangeText={setNewCourseCode}
               placeholder="Code"
+              accessibilityLabel="Class code"
               placeholderTextColor={colors.faint}
               style={[styles.input, styles.fieldHalf]}
             />
@@ -187,6 +199,7 @@ export function CoursesScreen({
               value={newCourseInstructor}
               onChangeText={setNewCourseInstructor}
               placeholder="Teacher"
+              accessibilityLabel="Teacher"
               placeholderTextColor={colors.faint}
               style={[styles.input, styles.fieldHalf]}
             />
@@ -195,9 +208,28 @@ export function CoursesScreen({
             value={newCourseName}
             onChangeText={setNewCourseName}
             placeholder="Class name"
+            accessibilityLabel="Class name"
             placeholderTextColor={colors.faint}
             style={styles.input}
           />
+          <Text style={styles.label}>Class color</Text>
+          <View style={styles.swatchRow}>
+            {classColorPalette.map((color) => (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={`Choose class color ${color}`}
+                key={color}
+                style={[
+                  styles.swatch,
+                  { backgroundColor: color },
+                  newCourseColor === color ? styles.swatchSelected : null
+                ]}
+                onPress={() => setNewCourseColor(color)}
+              >
+                {newCourseColor === color ? <Check color="#FFFFFF" size={15} /> : null}
+              </TouchableOpacity>
+            ))}
+          </View>
           <AppButton
             label="Add class"
             icon={Plus}
@@ -229,7 +261,7 @@ export function CoursesScreen({
             <View style={styles.metricRow}>
               <MetricPill label="Open" value={String(selectedOpenAssignments.length)} tone="purple" />
               <MetricPill label="Exams" value={String(selectedExams.length)} tone="red" />
-              <MetricPill label="This Week" value={String(courseStats(selectedCourse, assignments, now, weekEnd).dueThisWeek)} tone="blue" />
+              <MetricPill label="This Week" value={String(courseStats(selectedCourse, assignments, now).dueThisWeek)} tone="blue" />
             </View>
             <View style={styles.detailFooter}>
               <CalendarClock color={colors.brandPurple} size={16} />
@@ -286,6 +318,7 @@ export function CoursesScreen({
                   value={selectedCourse.code}
                   onChangeText={(code) => onUpdateCourse(selectedCourse.id, { code })}
                   placeholder="BIO 101"
+                  accessibilityLabel="Class code"
                   placeholderTextColor={colors.faint}
                   style={styles.input}
                 />
@@ -293,6 +326,7 @@ export function CoursesScreen({
                   value={selectedCourse.name}
                   onChangeText={(name) => onUpdateCourse(selectedCourse.id, { name })}
                   placeholder="Course name"
+                  accessibilityLabel="Class name"
                   placeholderTextColor={colors.faint}
                   style={styles.input}
                 />
@@ -300,13 +334,32 @@ export function CoursesScreen({
                   value={selectedCourse.instructor || ""}
                   onChangeText={(instructor) => onUpdateCourse(selectedCourse.id, { instructor })}
                   placeholder="Instructor"
+                  accessibilityLabel="Teacher"
                   placeholderTextColor={colors.faint}
                   style={styles.input}
                 />
+                <Text style={styles.label}>Class color</Text>
+                <View style={styles.swatchRow}>
+                  {classColorPalette.map((color) => (
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityLabel={`Set ${selectedCourse.code} color to ${color}`}
+                      key={color}
+                      style={[
+                        styles.swatch,
+                        { backgroundColor: color },
+                        selectedCourse.color === color ? styles.swatchSelected : null
+                      ]}
+                      onPress={() => onUpdateCourse(selectedCourse.id, { color })}
+                    >
+                      {selectedCourse.color === color ? <Check color="#FFFFFF" size={15} /> : null}
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </GlassCard>
 
               <GlassCard>
-                <Text style={styles.panelTitle}>Quick Add</Text>
+                <Text style={styles.panelTitle}>Add Work</Text>
                 <View style={styles.segmented}>
                   {(["assignment", "exam"] as AssignmentKind[]).map((option) => (
                     <TouchableOpacity
@@ -325,6 +378,7 @@ export function CoursesScreen({
                   value={title}
                   onChangeText={setTitle}
                   placeholder="Title"
+                  accessibilityLabel="Assignment title"
                   placeholderTextColor={colors.faint}
                   style={styles.input}
                 />
@@ -332,13 +386,14 @@ export function CoursesScreen({
                   value={dueDate}
                   onChangeText={setDueDate}
                   placeholder="YYYY-MM-DD"
+                  accessibilityLabel="Due date"
                   placeholderTextColor={colors.faint}
                   style={styles.input}
                 />
                 <AppButton
-                  label="Add"
+                  label="Add to Planner"
                   icon={Plus}
-                  disabled={!selectedCourse || !title.trim() || !dueDate.trim()}
+                  disabled={!selectedCourse || !title.trim() || !isValidDateKey(dueDate.trim())}
                   onPress={addItem}
                 />
               </GlassCard>
@@ -349,6 +404,7 @@ export function CoursesScreen({
                   value={semester.name}
                   onChangeText={(name) => onUpdateSemester({ name })}
                   placeholder="Semester name"
+                  accessibilityLabel="Semester name"
                   placeholderTextColor={colors.faint}
                   style={styles.input}
                 />
@@ -357,6 +413,7 @@ export function CoursesScreen({
                     value={semester.startDate}
                     onChangeText={(startDate) => onUpdateSemester({ startDate })}
                     placeholder="YYYY-MM-DD"
+                    accessibilityLabel="Semester start date"
                     placeholderTextColor={colors.faint}
                     style={[styles.input, styles.fieldHalf]}
                   />
@@ -364,6 +421,7 @@ export function CoursesScreen({
                     value={semester.endDate}
                     onChangeText={(endDate) => onUpdateSemester({ endDate })}
                     placeholder="YYYY-MM-DD"
+                    accessibilityLabel="Semester end date"
                     placeholderTextColor={colors.faint}
                     style={[styles.input, styles.fieldHalf]}
                   />
@@ -405,7 +463,7 @@ export function CoursesScreen({
   );
 }
 
-function courseStats(course: Course, assignments: Assignment[], now: Date, weekEnd: Date) {
+function courseStats(course: Course, assignments: Assignment[], now: Date) {
   const courseAssignments = assignments.filter(
     (assignment) => assignment.courseId === course.id && isAssignmentConfirmed(assignment)
   );
@@ -414,10 +472,10 @@ function courseStats(course: Course, assignments: Assignment[], now: Date, weekE
   ).length;
   const openAssignments = courseAssignments
     .filter((assignment) => isAssignmentOpen(assignment))
-    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
+    .sort((a, b) => (parseValidDate(a.dueAt)?.getTime() || 0) - (parseValidDate(b.dueAt)?.getTime() || 0));
   const dueThisWeek = openAssignments.filter((assignment) => {
-    const due = new Date(assignment.dueAt);
-    return due >= now && due < weekEnd;
+    const dueInDays = daysUntil(assignment.dueAt, now);
+    return dueInDays >= 0 && dueInDays < 7;
   }).length;
 
   return {
@@ -544,6 +602,29 @@ function createStyles(theme: AppTheme) {
       fontSize: 16,
       lineHeight: 22,
       fontWeight: "900"
+    },
+    label: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
+    },
+    swatchRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    swatch: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 2,
+      borderColor: "rgba(255,255,255,0.9)"
+    },
+    swatchSelected: {
+      borderColor: colors.ink
     },
     segmented: {
       minHeight: 44,

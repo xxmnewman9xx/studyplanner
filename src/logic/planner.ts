@@ -4,6 +4,16 @@ import {
   isAssignmentConfirmed,
   isAssignmentOpen
 } from "./assignmentModel";
+import {
+  addDaysLocal,
+  dateKeyFromValue,
+  daysBetweenDateKeys,
+  formatDateOnlySafe,
+  formatShortDateSafe,
+  parseValidDate,
+  startOfLocalDay,
+  toDateKey
+} from "./dateUtils";
 
 const dayMs = 24 * 60 * 60 * 1000;
 
@@ -44,21 +54,22 @@ export function buildTodayPlan(
   const confirmedAssignments = assignments.filter((item) => isAssignmentConfirmed(item));
   const open = assignments
     .filter((item) => isAssignmentOpen(item))
+    .filter((item) => parseValidDate(item.dueAt))
     .sort((a, b) => scoreWork(b, now) - scoreWork(a, now));
-  const dueToday = open.filter((item) => isSameDay(new Date(item.dueAt), now));
+  const dueToday = open.filter((item) => isSameDay(parseValidDate(item.dueAt)!, now));
   const overdue = open
-    .filter((item) => isBeforeToday(new Date(item.dueAt), now))
-    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
+    .filter((item) => isBeforeToday(parseValidDate(item.dueAt)!, now))
+    .sort((a, b) => parseValidDate(a.dueAt)!.getTime() - parseValidDate(b.dueAt)!.getTime());
   const dueThisWeek = open
-    .filter((item) => isInNextDays(new Date(item.dueAt), now, 7))
-    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
+    .filter((item) => isInNextDays(parseValidDate(item.dueAt)!, now, 7))
+    .sort((a, b) => parseValidDate(a.dueAt)!.getTime() - parseValidDate(b.dueAt)!.getTime());
   const upcoming = open
-    .filter((item) => !isPast(new Date(item.dueAt), now))
-    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
+    .filter((item) => !isPast(parseValidDate(item.dueAt)!, now))
+    .sort((a, b) => parseValidDate(a.dueAt)!.getTime() - parseValidDate(b.dueAt)!.getTime())
     .slice(0, 6);
   const exams = open
     .filter((item) => item.kind === "exam")
-    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
+    .sort((a, b) => parseValidDate(a.dueAt)!.getTime() - parseValidDate(b.dueAt)!.getTime())
     .slice(0, 3);
 
   return {
@@ -85,14 +96,14 @@ export function scoreWork(assignment: Assignment, now = new Date()) {
 }
 
 export function buildWeekPlan(assignments: Assignment[], now = new Date()): WeekPlan {
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const start = startOfLocalDay(now);
   const days = Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(start.getTime() + index * dayMs);
+    const date = addDaysLocal(start, index);
     const dateKey = toDateKey(date);
     const items = assignments
       .filter((assignment) => isAssignmentOpen(assignment))
-      .filter((assignment) => toDateKey(new Date(assignment.dueAt)) === dateKey)
-      .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
+      .filter((assignment) => dateKeyFromValue(assignment.dueAt) === dateKey)
+      .sort((a, b) => parseValidDate(a.dueAt)!.getTime() - parseValidDate(b.dueAt)!.getTime());
 
     return {
       date: dateKey,
@@ -107,7 +118,7 @@ export function buildWeekPlan(assignments: Assignment[], now = new Date()): Week
 
   return {
     startsAt: toDateKey(start),
-    endsAt: toDateKey(new Date(start.getTime() + 6 * dayMs)),
+    endsAt: toDateKey(addDaysLocal(start, 6)),
     days,
     exams,
     itemCount,
@@ -120,27 +131,17 @@ export function buildWeekPlan(assignments: Assignment[], now = new Date()): Week
 }
 
 export function daysUntil(iso: string, now = new Date()) {
-  const due = new Date(iso);
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const dueDay = new Date(due.getFullYear(), due.getMonth(), due.getDate()).getTime();
-  return Math.ceil((dueDay - start) / dayMs);
+  const dateKey = dateKeyFromValue(iso);
+  if (!dateKey) return Number.POSITIVE_INFINITY;
+  return daysBetweenDateKeys(dateKey, now);
 }
 
 export function formatShortDate(iso: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
-  }).format(new Date(iso));
+  return formatShortDateSafe(iso);
 }
 
 export function formatDateOnly(iso: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric"
-  }).format(parseDateOnlyAsLocal(iso));
+  return formatDateOnlySafe(iso);
 }
 
 export function getCourseForAssignment(courses: Course[], assignment: Assignment) {
@@ -190,29 +191,15 @@ function isPast(due: Date, now: Date) {
 }
 
 function isBeforeToday(due: Date, now: Date) {
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const today = startOfLocalDay(now).getTime();
   return due.getTime() < today;
 }
 
 function isInNextDays(due: Date, now: Date, days: number) {
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const start = startOfLocalDay(now).getTime();
   const end = start + days * dayMs;
   const dueTime = due.getTime();
   return dueTime >= start && dueTime < end;
-}
-
-function parseDateOnlyAsLocal(value: string) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!match) return new Date(value);
-
-  const [, year, month, day] = match;
-  return new Date(Number(year), Number(month) - 1, Number(day));
-}
-
-function toDateKey(date: Date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
-    date.getDate()
-  ).padStart(2, "0")}`;
 }
 
 function weekDayLabel(date: Date, now: Date) {

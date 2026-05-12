@@ -8,6 +8,7 @@ import {
 } from "../models";
 import { createWidgetStyleSnapshot, defaultThemePaletteId } from "../theme";
 import { isAssignmentArchived, isAssignmentOpen } from "./assignmentModel";
+import { parseValidDate } from "./dateUtils";
 import { buildWeekPlan, daysUntil } from "./planner";
 import { buildSemesterInsights, buildWidgetMonthlySnapshot } from "./semesterInsights";
 
@@ -26,7 +27,8 @@ export function buildWidgetSnapshot(
 ): WidgetSnapshot {
   const openAssignments = input.assignments
     .filter((assignment) => isAssignmentOpen(assignment))
-    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
+    .filter((assignment) => parseValidDate(assignment.dueAt))
+    .sort((a, b) => parseValidDate(a.dueAt)!.getTime() - parseValidDate(b.dueAt)!.getTime());
   const weekPlan = buildWeekPlan(input.assignments, now);
   const thisWeek = weekPlan.days.flatMap((day) => day.items).map((assignment) =>
     toWidgetItem(assignment, input.courses, now)
@@ -52,7 +54,7 @@ export function buildWidgetSnapshot(
     title: "No upcoming deadlines",
     message:
       input.assignments.length === 0
-        ? "Scan a syllabus to start."
+        ? "Add school stuff to see what is due next."
         : "Everything due is complete."
   };
   const generatedAt = now.toISOString();

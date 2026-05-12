@@ -1,5 +1,6 @@
 import { Assignment, Course, GradeCategory, SyllabusParseResult } from "../models";
 import { normalizeAssignment } from "../logic/assignmentModel";
+import { formatDateKey } from "../logic/dateUtils";
 
 type InferredSemester = {
   name?: string;
@@ -313,6 +314,17 @@ function parseDateToken(token: string, inferredYear: number) {
     return formatDateParts(year, Number(numeric[1]), Number(numeric[2]));
   }
 
+  const named = normalized.match(
+    /^(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+(\d{1,2})(?:,?\s+(\d{4}))?$/i
+  );
+  if (named) {
+    return formatDateParts(
+      normalizeYear(named[3], inferredYear),
+      monthNumberFromName(named[1]!),
+      Number(named[2])
+    );
+  }
+
   const parsed = new Date(`${normalized}${/\b\d{4}\b/.test(normalized) ? "" : `, ${inferredYear}`}`);
   if (Number.isNaN(parsed.getTime())) return undefined;
   return formatDateParts(parsed.getFullYear(), parsed.getMonth() + 1, parsed.getDate());
@@ -325,8 +337,12 @@ function normalizeYear(value: string | undefined, fallback: number) {
 }
 
 function formatDateParts(year: number, month: number, day: number) {
-  if (!year || !month || !day || month > 12 || day > 31) return undefined;
-  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  return formatDateKey(year, month, day);
+}
+
+function monthNumberFromName(value: string) {
+  const month = value.toLowerCase().slice(0, 3);
+  return ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"].indexOf(month) + 1;
 }
 
 function normalizeCourseCode(value: string) {

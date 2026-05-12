@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -40,6 +40,7 @@ import {
   SyllabusParseResult
 } from "../models";
 import { parseSyllabus, supportsSyllabusImageParsing, updateParsedAssignment } from "../services/syllabusParser";
+import { dateKeyFromValue, isValidDateKey, makeDueAt } from "../logic/dateUtils";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 
@@ -128,6 +129,10 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
 
   const applyAcceptedPlan = () => {
     if (!draft) return;
+    if (acceptedAssignments.length === 0) {
+      Alert.alert("Check one item first", "Tap Looks good on at least one found assignment before adding it.");
+      return;
+    }
     onApplyParsedPlan({
       ...draft,
       assignments: acceptedAssignments
@@ -147,13 +152,30 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
   };
 
   const acceptVisible = () => {
-    updateDraft((current) =>
-      visibleAssignments.reduce(
-        (next, assignment) =>
-          updateParsedAssignment(next, assignment.id, { reviewStatus: "accepted" }),
-        current
-      )
-    );
+    const riskyCount = visibleAssignments.filter((assignment) => assignment.confidence < 0.85).length;
+    const accept = () => {
+      updateDraft((current) =>
+        visibleAssignments.reduce(
+          (next, assignment) =>
+            updateParsedAssignment(next, assignment.id, { reviewStatus: "accepted" }),
+          current
+        )
+      );
+    };
+
+    if (riskyCount > 0) {
+      Alert.alert(
+        "Check these carefully",
+        `${riskyCount} shown item${riskyCount === 1 ? "" : "s"} may have a date or title to check. Add them anyway?`,
+        [
+          { text: "Keep checking", style: "cancel" },
+          { text: "Looks good", onPress: accept }
+        ]
+      );
+      return;
+    }
+
+    accept();
   };
 
   const restoreIgnored = () => {
@@ -330,72 +352,98 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
             </View>
           </GlassCard>
 
-          <Text style={styles.filterCaption}>How sure</Text>
-          <View style={styles.filterRow}>
-            {filters.map((option) => (
-              <PillFilter
-                key={option.id}
-                label={option.label}
-                count={countForFilter(option.id, reviewStats)}
-                active={filter === option.id}
-                onPress={() => setFilter(option.id)}
+          {draft.findings.length > 0 ? (
+            <GlassCard>
+              <Text style={styles.findingTitle}>What the app noticed</Text>
+              {draft.findings.slice(0, 4).map((finding) => (
+                <Text key={finding.id} style={styles.findingText}>
+                  {finding.message}
+                </Text>
+              ))}
+            </GlassCard>
+          ) : null}
+
+          {reviewStats.total === 0 ? (
+            <GlassCard>
+              <Text style={styles.emptyTitle}>No dated work found.</Text>
+              <Text style={styles.emptyCopy}>
+                The class can still be added manually, but StudyPlanner did not find a deadline safe enough to put
+                in your planner.
+              </Text>
+            </GlassCard>
+          ) : (
+            <>
+              <Text style={styles.filterCaption}>How sure</Text>
+              <View style={styles.filterRow}>
+                {filters.map((option) => (
+                  <PillFilter
+                    key={option.id}
+                    label={option.label}
+                    count={countForFilter(option.id, reviewStats)}
+                    active={filter === option.id}
+                    onPress={() => setFilter(option.id)}
+                  />
+                ))}
+              </View>
+
+              <AppButton
+                label={`Mark ${reviewStats.high} looks good`}
+                icon={CheckCheck}
+                disabled={reviewStats.high === 0}
+                onPress={acceptAllHighConfidence}
               />
-            ))}
-          </View>
 
-          <AppButton
-            label={`Mark ${reviewStats.high} looks good`}
-            icon={CheckCheck}
-            disabled={reviewStats.high === 0}
-            onPress={acceptAllHighConfidence}
-          />
+              <View style={styles.secondaryActions}>
+                <TouchableOpacity accessibilityRole="button" onPress={acceptVisible}>
+                  <Text style={styles.secondaryActionText}>Looks good shown</Text>
+                </TouchableOpacity>
+                {reviewStats.ignored > 0 ? (
+                  <TouchableOpacity accessibilityRole="button" onPress={restoreIgnored}>
+                    <Text style={styles.secondaryActionText}>Undo removed</Text>
+                  </TouchableOpacity>
+                ) : null}
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  onPress={() => setExpandedAssignmentId(visibleAssignments[0]?.id || null)}
+                >
+                  <Text style={styles.secondaryActionText}>Edit first</Text>
+                </TouchableOpacity>
+              </View>
 
-          <View style={styles.secondaryActions}>
-            <TouchableOpacity accessibilityRole="button" onPress={acceptVisible}>
-              <Text style={styles.secondaryActionText}>Looks good shown</Text>
-            </TouchableOpacity>
-            {reviewStats.ignored > 0 ? (
-              <TouchableOpacity accessibilityRole="button" onPress={restoreIgnored}>
-                <Text style={styles.secondaryActionText}>Undo removed</Text>
-              </TouchableOpacity>
-            ) : null}
-            <TouchableOpacity
-              accessibilityRole="button"
-              onPress={() => setExpandedAssignmentId(visibleAssignments[0]?.id || null)}
-            >
-              <Text style={styles.secondaryActionText}>Edit first</Text>
-            </TouchableOpacity>
-          </View>
+              <View style={styles.reviewList}>
+                {visibleAssignments.length === 0 ? (
+                  <GlassCard>
+                    <Text style={styles.emptyTitle}>Nothing in this filter.</Text>
+                    <Text style={styles.emptyCopy}>Switch filters or upload another syllabus.</Text>
+                  </GlassCard>
+                ) : (
+                  visibleAssignments.map((assignment) => (
+                    <ReviewRow
+                      key={assignment.id}
+                      assignment={assignment}
+                      courseName={
+                        draft.courses.find((course) => course.id === assignment.courseId)?.code ||
+                        assignment.courseName
+                      }
+                      expanded={expandedAssignmentId === assignment.id}
+                      onAccept={() => updateDraftAssignment(assignment.id, { reviewStatus: "accepted" })}
+                      onIgnore={() => updateDraftAssignment(assignment.id, { reviewStatus: "ignored" })}
+                      onEdit={() =>
+                        setExpandedAssignmentId(expandedAssignmentId === assignment.id ? null : assignment.id)
+                      }
+                      onPatch={(patch) => updateDraftAssignment(assignment.id, patch)}
+                    />
+                  ))
+                )}
+              </View>
 
-          <View style={styles.reviewList}>
-            {visibleAssignments.length === 0 ? (
-              <GlassCard>
-                <Text style={styles.emptyTitle}>Nothing in this filter.</Text>
-                <Text style={styles.emptyCopy}>Switch filters or upload another syllabus.</Text>
-              </GlassCard>
-            ) : (
-              visibleAssignments.map((assignment) => (
-                <ReviewRow
-                  key={assignment.id}
-                  assignment={assignment}
-                  courseName={draft.courses.find((course) => course.id === assignment.courseId)?.code || assignment.courseName}
-                  expanded={expandedAssignmentId === assignment.id}
-                  onAccept={() => updateDraftAssignment(assignment.id, { reviewStatus: "accepted" })}
-                  onIgnore={() => updateDraftAssignment(assignment.id, { reviewStatus: "ignored" })}
-                  onEdit={() =>
-                    setExpandedAssignmentId(expandedAssignmentId === assignment.id ? null : assignment.id)
-                  }
-                  onPatch={(patch) => updateDraftAssignment(assignment.id, patch)}
-                />
-              ))
-            )}
-          </View>
-
-          <AppButton
-            label="Add checked items to planner"
-            disabled={acceptedAssignments.length === 0 && draft.assignments.length > 0}
-            onPress={applyAcceptedPlan}
-          />
+              <AppButton
+                label="Add to Planner"
+                disabled={acceptedAssignments.length === 0}
+                onPress={applyAcceptedPlan}
+              />
+            </>
+          )}
         </>
       ) : (
         <GlassCard>
@@ -428,6 +476,27 @@ function ReviewRow({
   const { colors } = theme;
   const styles = createStyles(theme);
   const accepted = assignment.reviewStatus === "accepted";
+  const [draftDate, setDraftDate] = useState(dateKeyFromValue(assignment.dueAt) || "");
+  const [dateError, setDateError] = useState("");
+
+  useEffect(() => {
+    setDraftDate(dateKeyFromValue(assignment.dueAt) || "");
+    setDateError("");
+  }, [assignment.dueAt]);
+
+  const patchDate = (date: string) => {
+    setDraftDate(date);
+    if (!isValidDateKey(date)) {
+      setDateError("Use a real date like 2026-09-18.");
+      return;
+    }
+
+    const dueAt = makeDueAt(date, assignment.kind === "exam" ? "09:00" : "23:59");
+    if (dueAt) {
+      setDateError("");
+      onPatch({ dueAt });
+    }
+  };
 
   return (
     <GlassCard style={styles.reviewCard}>
@@ -438,7 +507,8 @@ function ReviewRow({
         <View style={styles.reviewBody}>
           <Text style={styles.reviewTitle}>{assignment.title}</Text>
           <Text style={styles.reviewMeta}>
-            {courseName} - {assignment.dueAt.slice(0, 10)} - {labelize(assignment.type)}
+            {courseName} - {dateKeyFromValue(assignment.dueAt) || "Date needs check"} -{" "}
+            {labelize(assignment.type)}
           </Text>
         </View>
         <StatusBadge label={confidenceLabel(assignment.confidence)} tone={confidenceTone(assignment.confidence)} />
@@ -454,23 +524,32 @@ function ReviewRow({
           <Pencil color={colors.brandPurple} size={16} />
         </MicroAction>
       </View>
+      {assignment.sourceText ? (
+        <View style={styles.sourceEvidence}>
+          <Text style={styles.sourceEvidenceLabel}>Found in syllabus</Text>
+          <Text style={styles.sourceEvidenceText}>{assignment.sourceText}</Text>
+        </View>
+      ) : null}
       {expanded ? (
         <View style={styles.editPanel}>
           <Text style={styles.editLabel}>Title</Text>
           <TextInput
             value={assignment.title}
             style={styles.input}
+            accessibilityLabel="Found work title"
             placeholderTextColor={colors.faint}
             onChangeText={(title) => onPatch({ title })}
           />
           <Text style={styles.editLabel}>Due date</Text>
           <TextInput
-            value={assignment.dueAt.slice(0, 10)}
+            value={draftDate}
             style={styles.input}
             placeholder="YYYY-MM-DD"
+            accessibilityLabel="Found work due date"
             placeholderTextColor={colors.faint}
-            onChangeText={(date) => onPatch({ dueAt: `${date}T23:59:00` })}
+            onChangeText={patchDate}
           />
+          {dateError ? <Text style={styles.dateError}>{dateError}</Text> : null}
           <View style={styles.choiceRow}>
             {kinds.map((kind) => (
               <Choice
@@ -766,6 +845,18 @@ function createStyles(theme: AppTheme) {
       lineHeight: 18,
       fontWeight: "900"
     },
+    findingTitle: {
+      color: colors.ink,
+      fontSize: 15,
+      lineHeight: 20,
+      fontWeight: "900"
+    },
+    findingText: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "700"
+    },
     reviewList: {
       gap: spacing.sm
     },
@@ -808,6 +899,27 @@ function createStyles(theme: AppTheme) {
       justifyContent: "flex-end",
       gap: spacing.xs
     },
+    sourceEvidence: {
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      padding: spacing.sm,
+      gap: 3
+    },
+    sourceEvidenceLabel: {
+      color: colors.brandPurple,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    sourceEvidenceText: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 18,
+      fontWeight: "700"
+    },
     iconAction: {
       minWidth: 66,
       height: 34,
@@ -837,6 +949,12 @@ function createStyles(theme: AppTheme) {
       fontSize: 11,
       lineHeight: 15,
       fontWeight: "900"
+    },
+    dateError: {
+      color: colors.red,
+      fontSize: 11,
+      lineHeight: 16,
+      fontWeight: "800"
     },
     input: {
       minWidth: 0,

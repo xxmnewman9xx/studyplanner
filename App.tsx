@@ -32,7 +32,7 @@ import {
   SyllabusSource,
   SyllabusParseResult
 } from "./src/models";
-import { AppTheme } from "./src/theme";
+import { AppTheme, courseColorAt } from "./src/theme";
 import { AppThemeProvider, useAppTheme } from "./src/themeContext";
 import { ModeToggle } from "./src/components/ModeToggle";
 import { PremiumGate } from "./src/components/PremiumGate";
@@ -69,6 +69,7 @@ import {
   normalizeAssignments,
   withAssignmentPatch
 } from "./src/logic/assignmentModel";
+import { dateKeyFromValue, makeDueAt } from "./src/logic/dateUtils";
 
 const plannerStorageKey = "study-planner-data-v2";
 
@@ -90,8 +91,8 @@ const tabs: Array<{
   { id: "calendar", label: "Calendar", icon: CalendarRange },
   { id: "week", label: "Week", icon: CalendarDays },
   { id: "courses", label: "Classes", icon: GraduationCap },
-  { id: "import", label: "Check", icon: FileScan },
-  { id: "upgrade", label: "Setup", icon: Crown }
+  { id: "import", label: "Check Work", icon: FileScan },
+  { id: "upgrade", label: "Widgets", icon: Crown }
 ];
 
 export default function App() {
@@ -106,7 +107,6 @@ export default function App() {
 
 function AppContent() {
   const { theme, setMode } = useAppTheme();
-  const { colors } = theme;
   const styles = useMemo(() => createStyles(theme), [theme]);
   const subscription = useSubscription();
   const scrollRef = useRef<ScrollView>(null);
@@ -211,7 +211,9 @@ function AppContent() {
       if (!requestedTab || !tabs.some((tab) => tab.id === requestedTab)) return;
       const scrollMatch = /[?&](?:scroll|y)=([0-9]+)/.exec(url);
       const scrollY = scrollMatch?.[1] ? Number(scrollMatch[1]) : 0;
-      setSelectedAssignmentId(null);
+      const assignmentMatch = /[?&]assignment=([^&]+)/.exec(url);
+      const requestedAssignmentId = assignmentMatch?.[1] ? decodeURIComponent(assignmentMatch[1]) : null;
+      setSelectedAssignmentId(requestedAssignmentId);
       setCapturePaywallVisible(false);
       setOnboarded(true);
       setActiveTab(requestedTab);
@@ -330,20 +332,38 @@ function AppContent() {
   }, [paywallSeen, subscription.isPremium]);
 
   const applyParsedPlan = (parse: SyllabusParseResult) => {
-    const normalizedAssignments = normalizeAssignments(parse.assignments, parse.courses);
-    const normalizedParse = { ...parse, assignments: normalizedAssignments };
+    const normalizedAssignments = normalizeAssignments(parse.assignments, parse.courses).filter(
+      isAssignmentConfirmed
+    );
+    if (normalizedAssignments.length === 0) {
+      Alert.alert(
+        "Check work first",
+        "Mark at least one found assignment as Looks Good before adding it to your planner."
+      );
+      return;
+    }
+
+    const acceptedCourseIds = new Set(normalizedAssignments.map((assignment) => assignment.courseId));
+    const acceptedCourses = parse.courses.filter((course) => acceptedCourseIds.has(course.id));
+    const acceptedGradeItems = parse.gradeItems.filter((item) => acceptedCourseIds.has(item.courseId));
+    const normalizedParse = {
+      ...parse,
+      courses: acceptedCourses,
+      assignments: normalizedAssignments,
+      gradeItems: acceptedGradeItems
+    };
     const trustedSource = parse.syllabusSource
       ? {
           ...parse.syllabusSource,
-          courseIds: normalizedParse.courses.map((course) => course.id),
+          courseIds: acceptedCourses.map((course) => course.id),
           assignmentIds: normalizedAssignments.map((assignment) => assignment.id),
           findings: normalizedParse.findings
         }
       : createSyllabusSourceFromParse(normalizedParse, "device");
 
-    setCourses((current) => mergeById(current, parse.courses));
-    setAssignments((current) => mergeById(current, normalizedAssignments));
-    setGradeItems((current) => mergeById(current, parse.gradeItems));
+    setCourses((current) => mergeById(current, acceptedCourses));
+    setAssignments((current) => mergeAssignments(current, normalizedAssignments));
+    setGradeItems((current) => mergeById(current, acceptedGradeItems));
     setSyllabusSources((current) =>
       mergeById(current, [trustedSource])
     );
@@ -380,6 +400,12 @@ function AppContent() {
       return;
     }
 
+    const dueAt = makeDueAt(dueDate.trim());
+    if (!dueAt) {
+      Alert.alert("Check the date", "Use a real date like 2026-09-18.");
+      return;
+    }
+
     setAssignments((current) => [
       ...current,
       normalizeAssignment({
@@ -389,7 +415,7 @@ function AppContent() {
         title: title.trim(),
         type: kind,
         kind,
-        dueAt: `${dueDate.trim()}T23:59:00`,
+        dueAt,
         sourceText: title.trim(),
         confidence: 1,
         reviewStatus: "accepted",
@@ -410,7 +436,7 @@ function AppContent() {
     setSemester((current) => ({ ...current, ...patch }));
   };
 
-  const addCourse = (course: Pick<Course, "code" | "name" | "instructor">) => {
+  const addCourse = (course: Pick<Course, "code" | "name" | "instructor"> & { color?: string }) => {
     if (!course.code.trim() || !course.name.trim()) {
       Alert.alert("Add course details", "Course code and course name are both needed.");
       return;
@@ -424,7 +450,7 @@ function AppContent() {
         code: course.code.trim(),
         name: course.name.trim(),
         instructor: course.instructor?.trim(),
-        color: colors.accent,
+        color: course.color || courseColorAt(current.length),
         meetings: [],
         gradeCategories: [
           { id: `${id}-assignments`, name: "Assignments", weight: 40 },
@@ -715,6 +741,33 @@ function mergeById<T extends { id: string }>(current: T[], incoming: T[]) {
   const existing = new Map(current.map((item) => [item.id, item]));
   incoming.forEach((item) => existing.set(item.id, item));
   return Array.from(existing.values());
+}
+
+function mergeAssignments(current: Assignment[], incoming: Assignment[]) {
+  const merged = [...current];
+  incoming.forEach((assignment) => {
+    const existingIndex = merged.findIndex(
+      (item) => item.id === assignment.id || assignmentFingerprint(item) === assignmentFingerprint(assignment)
+    );
+    if (existingIndex >= 0) {
+      merged[existingIndex] = {
+        ...merged[existingIndex],
+        ...assignment,
+        id: merged[existingIndex]?.id || assignment.id
+      };
+    } else {
+      merged.push(assignment);
+    }
+  });
+  return merged;
+}
+
+function assignmentFingerprint(assignment: Assignment) {
+  return [
+    assignment.courseId,
+    assignment.title.trim().toLowerCase(),
+    dateKeyFromValue(assignment.dueAt) || assignment.dueAt
+  ].join("|");
 }
 
 function messageFromError(error: unknown) {

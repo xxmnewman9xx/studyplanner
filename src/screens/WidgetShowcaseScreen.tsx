@@ -8,10 +8,7 @@ import {
   PremiumHeader,
   PremiumScreen,
   StatusBadge,
-  WidgetPreviewCourseFocus,
-  WidgetPreviewHeavyWeek,
   WidgetPreviewMedium,
-  WidgetPreviewMonthly,
   WidgetPreviewSmall,
 } from "../components/PremiumUI";
 import { isStoreCaptureEnabled } from "../config/storeCapture";
@@ -47,11 +44,8 @@ const widgetFocusOptions: Array<{
   label: string;
   description: string;
 }> = [
-  { id: "nextDue", label: "Next Due", description: "Shows the next assignment or exam." },
-  { id: "thisWeek", label: "This Week", description: "Shows the next several deadlines." },
-  { id: "monthly", label: "Calendar", description: "Shows this month, busy days, and exams." },
-  { id: "heavyWeek", label: "Busy Week", description: "Shows how many deadlines land each day." },
-  { id: "courseFocus", label: "Work by Class", description: "Shows which classes have the most open work." }
+  { id: "nextDue", label: "Next Due", description: "Answers what is due next without opening the app." },
+  { id: "thisWeek", label: "This Week", description: "Shows the next several deadlines and overflow count." }
 ];
 
 export function WidgetShowcaseScreen({
@@ -69,6 +63,9 @@ export function WidgetShowcaseScreen({
   const widgetStyleId = preferences.styleId;
   const widgetSize = preferences.size;
   const widgetFocus = preferences.focus;
+  const safeWidgetFocus = widgetFocusOptions.some((option) => option.id === widgetFocus)
+    ? widgetFocus
+    : "thisWeek";
   const widgetStyle = createWidgetStyleSnapshot(paletteId, widgetStyleId);
   const snapshot = WidgetSnapshotService.build(
     {
@@ -82,12 +79,18 @@ export function WidgetShowcaseScreen({
     captureMode ? storeCaptureNow : new Date()
   );
   const selectedFocus = useMemo(
-    () => widgetFocusOptions.find((option) => option.id === widgetFocus) ?? widgetFocusOptions[0]!,
-    [widgetFocus]
+    () => widgetFocusOptions.find((option) => option.id === safeWidgetFocus) ?? widgetFocusOptions[0]!,
+    [safeWidgetFocus]
   );
-  const selectedStats = getSelectedWidgetStats(snapshot, widgetFocus);
+  const selectedStats = getSelectedWidgetStats(snapshot, safeWidgetFocus);
   const updatePreferences = (patch: Partial<WidgetPreferences>) => {
-    onPreferencesChange(normalizeWidgetPreferences({ ...preferences, ...patch }));
+    const nativePair =
+      patch.focus === "nextDue" || patch.size === "small"
+        ? ({ focus: "nextDue", size: "small" } as const)
+        : patch.focus === "thisWeek" || patch.size === "medium"
+          ? ({ focus: "thisWeek", size: "medium" } as const)
+          : {};
+    onPreferencesChange(normalizeWidgetPreferences({ ...preferences, ...patch, ...nativePair }));
   };
 
   if (showPlans && !captureMode) {
@@ -99,7 +102,7 @@ export function WidgetShowcaseScreen({
       <PremiumHeader
         eyebrow="Widget Setup"
         title="Widget Setup"
-        subtitle="Preview widget ideas. iOS Home Screen widgets currently install as Small Next Due and Medium This Week."
+        subtitle="Set up the supported Home Screen widgets: Small Next Due and Medium This Week."
       />
 
       <GlassCard tint="hero" style={styles.heroCard}>
@@ -126,7 +129,7 @@ export function WidgetShowcaseScreen({
               {sizeLabel(widgetSize)} - {selectedFocus.label}
             </Text>
             <Text style={styles.panelFinePrint}>
-              Size and Shows change the in-app preview. Native iOS widgets use Small Next Due and Medium This Week.
+              These previews use confirmed assignments only. Widgets refresh after planner changes on iOS timing.
             </Text>
           </View>
           <View style={[styles.swatchLarge, { backgroundColor: widgetStyle.accent }]} />
@@ -158,12 +161,12 @@ export function WidgetShowcaseScreen({
               <TouchableOpacity
                 key={focus.id}
                 accessibilityRole="button"
-                accessibilityState={{ selected: widgetFocus === focus.id }}
+                accessibilityState={{ selected: safeWidgetFocus === focus.id }}
                 activeOpacity={0.82}
-                style={[styles.textChip, widgetFocus === focus.id ? styles.textChipActive : null]}
+                style={[styles.textChip, safeWidgetFocus === focus.id ? styles.textChipActive : null]}
                 onPress={() => updatePreferences({ focus: focus.id })}
               >
-                <Text style={[styles.chipText, widgetFocus === focus.id ? styles.chipTextActive : null]}>
+                <Text style={[styles.chipText, safeWidgetFocus === focus.id ? styles.chipTextActive : null]}>
                   {focus.label}
                 </Text>
               </TouchableOpacity>
@@ -235,7 +238,7 @@ export function WidgetShowcaseScreen({
           <StatusBadge label={theme.palette.name} tone="blue" />
         </View>
         <SelectedWidgetPreview
-          focus={widgetFocus}
+          focus={safeWidgetFocus}
           size={widgetSize}
           snapshot={snapshot}
           widgetStyle={widgetStyle}
@@ -253,19 +256,14 @@ export function WidgetShowcaseScreen({
           <WidgetPreviewSmall snapshot={snapshot} widgetStyle={widgetStyle} />
           <WidgetPreviewMedium snapshot={snapshot} widgetStyle={widgetStyle} />
         </View>
-        <WidgetPreviewMonthly snapshot={snapshot} widgetStyle={widgetStyle} />
-        <View style={styles.widgetPair}>
-          <WidgetPreviewHeavyWeek snapshot={snapshot} widgetStyle={widgetStyle} />
-          <WidgetPreviewCourseFocus snapshot={snapshot} widgetStyle={widgetStyle} />
-        </View>
       </View>
 
       {!captureMode ? (
         <GlassCard>
           <Text style={styles.plusTitle}>Study Planner Plus</Text>
           <Text style={styles.plusCopy}>
-            Plus unlocks syllabus scan, calendar sync, reminders, and grade forecasting. Product IDs
-            and purchase handling remain managed by the existing subscription service.
+            Plus unlocks syllabus scan, calendar sync, reminders, and grade forecasting. Purchases are handled
+            securely through the App Store, and Restore Purchases is available anytime.
           </Text>
           <AppButton label="View Plus Plans" icon={Crown} onPress={() => setShowPlans(true)} />
         </GlassCard>
@@ -296,59 +294,14 @@ function SelectedWidgetPreview({
     );
   }
 
-  if (focus === "thisWeek") {
-    return (
-      <View style={size === "small" ? styles.selectedSmallFrame : styles.selectedMediumFrame}>
-        <WidgetPreviewMedium snapshot={snapshot} widgetStyle={widgetStyle} />
-      </View>
-    );
-  }
-
-  if (focus === "heavyWeek") {
-    return (
-      <View style={size === "small" ? styles.selectedSmallFrame : styles.selectedMediumFrame}>
-        <WidgetPreviewHeavyWeek snapshot={snapshot} widgetStyle={widgetStyle} />
-      </View>
-    );
-  }
-
-  if (focus === "courseFocus") {
-    return (
-      <View style={size === "small" ? styles.selectedSmallFrame : styles.selectedMediumFrame}>
-        <WidgetPreviewCourseFocus snapshot={snapshot} widgetStyle={widgetStyle} />
-      </View>
-    );
-  }
-
   return (
     <View style={size === "small" ? styles.selectedSmallFrame : styles.selectedMediumFrame}>
-      <WidgetPreviewMonthly snapshot={snapshot} widgetStyle={widgetStyle} />
+      <WidgetPreviewMedium snapshot={snapshot} widgetStyle={widgetStyle} />
     </View>
   );
 }
 
 function getSelectedWidgetStats(snapshot: WidgetSnapshot, focus: WidgetFocusPreference) {
-  if (focus === "monthly") {
-    return {
-      value: String(snapshot.surfaces.monthly.dueThisMonth),
-      label: "Due this month"
-    };
-  }
-
-  if (focus === "heavyWeek") {
-    return {
-      value: String(snapshot.heavyWeekWarning?.itemCount || snapshot.surfaces.heavyWeek.warning?.itemCount || 0),
-      label: "Deadlines this week"
-    };
-  }
-
-  if (focus === "courseFocus") {
-    return {
-      value: String(snapshot.insights?.courseBalance[0]?.openCount || 0),
-      label: snapshot.insights?.courseBalance[0]?.courseName || "Busiest class"
-    };
-  }
-
   if (focus === "nextDue") {
     return {
       value: snapshot.nextDue?.dueLabel || "Clear",

@@ -25,9 +25,7 @@ import {
   MetricPill,
   StatusBadge,
   StudyPlannerBrand,
-  WidgetPreviewHeavyWeek,
   WidgetPreviewMedium,
-  WidgetPreviewMonthly,
   WidgetPreviewSmall
 } from "../components/PremiumUI";
 import { WidgetSnapshotService } from "../services/widgetSnapshotService";
@@ -54,7 +52,7 @@ type OnboardingStepId =
   | "widgets"
   | "palette";
 
-type WidgetFocusId = "nextDue" | "thisWeek" | "calendar" | "heavyWeek";
+type WidgetFocusId = "nextDue" | "thisWeek";
 
 const previewNow = new Date("2025-04-22T09:41:00-04:00");
 
@@ -114,53 +112,44 @@ const onboardingSteps: Array<{
 }> = [
   {
     id: "syllabus",
-    eyebrow: "Syllabus AI",
-    title: "Turn syllabi into a semester plan.",
-    copy: "Manual planning is free. Plus can read text-based syllabi now, with photo OCR when a school-safe parser is configured.",
+    eyebrow: "Start calm",
+    title: "Turn school chaos into one trusted plan.",
+    copy: "Add school stuff by scanning a syllabus, uploading a file, or typing classes in by hand.",
     icon: FileScan
   },
   {
     id: "review",
     eyebrow: "Check New Work",
-    title: "Approve the plan before it touches your calendar.",
-    copy: "High-confidence dates can be accepted quickly, while anything uncertain stays editable.",
+    title: "Check what StudyPlanner found.",
+    copy: "Nothing becomes a due date until you mark it Looks Good. Unclear dates stay editable.",
     icon: CheckCircle2
-  },
-  {
-    id: "calendar",
-    eyebrow: "Calendar",
-    title: "See the month and week together.",
-    copy: "Course colors, exams, busy days, completed work, and the week view all use the same plan.",
-    icon: CalendarRange
   },
   {
     id: "today",
     eyebrow: "Today",
-    title: "Know what to do today.",
-    copy: "Today shows the next deadline, this week's workload, and quick actions.",
+    title: "Know the next thing to do.",
+    copy: "Today, Week Plan, Calendar, reminders, and widgets all use the same checked assignments.",
     icon: Target
   },
   {
     id: "widgets",
     eyebrow: "Widget Setup",
-    title: "Make deadlines visible before opening the app.",
-    copy: "Choose what a widget shows, how big it is, and which colors it uses.",
+    title: "See what is due without opening the app.",
+    copy: "Small shows Next Due. Medium shows This Week. Both stay tied to your confirmed planner.",
     icon: Crown
   },
   {
     id: "palette",
-    eyebrow: "Study Style",
-    title: "Choose the color system that feels like yours.",
-    copy: "Your colors carry through the app, calendar dots, workload bars, and widget previews.",
+    eyebrow: "Make it yours",
+    title: "Choose a study style and start.",
+    copy: "Your colors carry through classes, calendar dots, workload bars, and widget previews.",
     icon: Sparkles
   }
 ];
 
 const widgetFocusOptions: Array<{ id: WidgetFocusId; label: string }> = [
   { id: "nextDue", label: "Next Due" },
-  { id: "thisWeek", label: "This Week" },
-  { id: "calendar", label: "Calendar" },
-  { id: "heavyWeek", label: "Busy Week" }
+  { id: "thisWeek", label: "This Week" }
 ];
 
 const onboardingWidgetStyles: WidgetStylePresetId[] = [
@@ -179,7 +168,7 @@ export function OnboardingScreen({ initialStep = 0, onFinish }: OnboardingScreen
   const styles = createStyles(theme);
   const [index, setIndex] = useState(clampStep(initialStep));
   const [widgetStyleId, setWidgetStyleId] = useState<WidgetStylePresetId>("ocean");
-  const [widgetFocus, setWidgetFocus] = useState<WidgetFocusId>("calendar");
+  const [widgetFocus, setWidgetFocus] = useState<WidgetFocusId>("thisWeek");
   const motion = useRef(new Animated.Value(0)).current;
   const step = onboardingSteps[index] ?? onboardingSteps[0]!;
   const Icon = step.icon;
@@ -294,7 +283,7 @@ export function OnboardingScreen({ initialStep = 0, onFinish }: OnboardingScreen
           <Text style={[styles.backText, index === 0 ? styles.backTextDisabled : null]}>Back</Text>
         </TouchableOpacity>
         <TouchableOpacity accessibilityRole="button" style={styles.nextButton} onPress={goNext}>
-          <Text style={styles.nextText}>{isFinal ? "Enter StudyPlanner" : "Next"}</Text>
+          <Text style={styles.nextText}>{isFinal ? "Start Planning" : "Next"}</Text>
           <ChevronRight color={colors.heroText} size={18} />
         </TouchableOpacity>
       </View>
@@ -696,12 +685,8 @@ function WidgetCustomizationPreview({
       >
         {widgetFocus === "nextDue" ? (
           <WidgetPreviewSmall snapshot={snapshot} widgetStyle={widgetStyle} />
-        ) : widgetFocus === "thisWeek" ? (
-          <WidgetPreviewMedium snapshot={snapshot} widgetStyle={widgetStyle} />
-        ) : widgetFocus === "heavyWeek" ? (
-          <WidgetPreviewHeavyWeek snapshot={snapshot} widgetStyle={widgetStyle} />
         ) : (
-          <WidgetPreviewMonthly snapshot={snapshot} widgetStyle={widgetStyle} />
+          <WidgetPreviewMedium snapshot={snapshot} widgetStyle={widgetStyle} />
         )}
       </Animated.View>
 

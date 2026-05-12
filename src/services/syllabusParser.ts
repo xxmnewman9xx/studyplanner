@@ -1,10 +1,20 @@
-import { Assignment, Course, GradeItem, SyllabusImportSource, SyllabusParseResult } from "../models";
+import {
+  Assignment,
+  AssignmentType,
+  Course,
+  GradeItem,
+  ParserFinding,
+  SyllabusImportSource,
+  SyllabusParseResult
+} from "../models";
 import * as FileSystem from "expo-file-system/legacy";
 import {
   createSyllabusSourceFromParse,
   normalizeAssignments,
   withAssignmentPatch
 } from "../logic/assignmentModel";
+import { normalizeDueAt } from "../logic/dateUtils";
+import { courseColorAt } from "../theme";
 import { extractTextFromPdfBase64 } from "./pdfText";
 import { parseSyllabusText } from "./syllabusLocalParser";
 
@@ -150,9 +160,15 @@ function normalizeParseResult(value: unknown, source: SyllabusImportSource): Syl
   }
 
   const result = value as Partial<SyllabusParseResult>;
-  const courses = ensureArray<Course>(result.courses, "courses");
-  const assignments = ensureArray<Assignment>(result.assignments, "assignments");
-  const gradeItems = ensureArray<GradeItem>(result.gradeItems, "grade items");
+  const findings: ParserFinding[] = Array.isArray(result.findings)
+    ? result.findings.filter(isParserFinding)
+    : [];
+  const courses = sanitizeCourses(ensureArray<Partial<Course>>(result.courses, "courses"));
+  const { assignments, findings: assignmentFindings } = sanitizeAssignments(
+    ensureArray<Partial<Assignment>>(result.assignments, "assignments"),
+    courses
+  );
+  const gradeItems = sanitizeGradeItems(ensureArray<Partial<GradeItem>>(result.gradeItems, "grade items"), courses);
 
   return {
     sourceName: result.sourceName || source.name || "Syllabus scan",
@@ -169,7 +185,7 @@ function normalizeParseResult(value: unknown, source: SyllabusImportSource): Syl
       courses
     ),
     gradeItems,
-    findings: Array.isArray(result.findings) ? result.findings : [],
+    findings: [...findings, ...assignmentFindings],
     syllabusSource: result.syllabusSource
   };
 }
@@ -184,4 +200,114 @@ function ensureArray<T>(value: unknown, label: string): T[] {
 
 function readEnv(name: string) {
   return typeof process !== "undefined" ? process.env?.[name] : undefined;
+}
+
+function sanitizeCourses(rawCourses: Partial<Course>[]) {
+  return rawCourses
+    .filter((course) => typeof course === "object" && course !== null)
+    .map((course, index): Course => {
+      const code = safeText(course.code) || `CLASS ${index + 1}`;
+      const name = safeText(course.name) || code;
+      const id = safeText(course.id) || slugify(code) || `class-${index + 1}`;
+
+      return {
+        id,
+        code,
+        name,
+        instructor: safeText(course.instructor) || undefined,
+        color: safeText(course.color) || courseColorAt(index),
+        meetings: Array.isArray(course.meetings) ? course.meetings : [],
+        gradeCategories: Array.isArray(course.gradeCategories) ? course.gradeCategories : []
+      };
+    });
+}
+
+function sanitizeAssignments(rawAssignments: Partial<Assignment>[], courses: Course[]) {
+  const findings: ParserFinding[] = [];
+  const fallbackCourse = courses[0];
+  const assignments = rawAssignments.flatMap((assignment, index) => {
+    const title = safeText(assignment.title);
+    const courseId = safeText(assignment.courseId) || fallbackCourse?.id;
+    const course = courses.find((item) => item.id === courseId) || fallbackCourse;
+    const dueAt = normalizeDueAt(assignment.dueAt);
+
+    if (!title || !course || !dueAt) {
+      findings.push({
+        id: `endpoint-skipped-assignment-${index + 1}`,
+        severity: "needs_review",
+        message: "One scanned item was left out because its title, class, or date was not clear."
+      });
+      return [];
+    }
+
+    const type = normalizeAssignmentType(assignment.type || assignment.kind);
+    return [
+      {
+        ...assignment,
+        id: safeText(assignment.id) || `${course.id}-${slugify(title)}-${dueAt.slice(0, 10)}`,
+        courseId: course.id,
+        courseName: course.name,
+        title,
+        type,
+        kind: type,
+        dueAt,
+        sourceText: safeText(assignment.sourceText) || title,
+        source: "syllabus" as const,
+        reviewStatus: "needsReview" as const
+      }
+    ];
+  });
+
+  return { assignments, findings };
+}
+
+function sanitizeGradeItems(rawGradeItems: Partial<GradeItem>[], courses: Course[]) {
+  const courseIds = new Set(courses.map((course) => course.id));
+  return rawGradeItems
+    .filter((item) => item.courseId && courseIds.has(item.courseId))
+    .filter((item) => safeText(item.title))
+    .map((item, index): GradeItem => ({
+      id: safeText(item.id) || `${item.courseId}-grade-${index + 1}`,
+      courseId: item.courseId!,
+      categoryId: safeText(item.categoryId) || "imported",
+      title: safeText(item.title),
+      earned: numberOrZero(item.earned),
+      possible: Math.max(numberOrZero(item.possible), 1)
+    }));
+}
+
+function normalizeAssignmentType(value: unknown): AssignmentType {
+  return value === "exam" ||
+    value === "quiz" ||
+    value === "project" ||
+    value === "reading" ||
+    value === "other"
+    ? value
+    : "assignment";
+}
+
+function isParserFinding(value: unknown): value is ParserFinding {
+  if (!value || typeof value !== "object") return false;
+  const finding = value as Partial<ParserFinding>;
+  return (
+    typeof finding.id === "string" &&
+    typeof finding.message === "string" &&
+    (finding.severity === "info" || finding.severity === "needs_review")
+  );
+}
+
+function safeText(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function numberOrZero(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
 }

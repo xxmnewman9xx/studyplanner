@@ -158,14 +158,14 @@ export function TodayScreen({
       <View style={styles.metricRow}>
         <MetricPill label="Due Today" value={String(plan.dueToday.length)} tone="purple" />
         <MetricPill label="Due This Week" value={String(weekPlan.itemCount)} tone="blue" />
-        <MetricPill label="Overdue" value={String(plan.overdue.length)} tone={plan.overdue.length > 0 ? "red" : "green"} />
+        <MetricPill label="Past Due" value={String(plan.overdue.length)} tone={plan.overdue.length > 0 ? "red" : "green"} />
       </View>
 
       {weekPlan.heavyWorkloadWarning ? (
         <WarningCard
           title="Busy week ahead"
-          message={`${weekPlan.heavyWorkloadWarning}. Open Calendar to see which days need time.`}
-          actionLabel="Open Calendar"
+          message={`${weekPlan.heavyWorkloadWarning}. Open Week Plan to pick calmer study blocks.`}
+          actionLabel="Open Week"
           onPress={onOpenWeek}
         />
       ) : null}
@@ -174,10 +174,41 @@ export function TodayScreen({
         <WarningCard
           title="Check new work"
           message={`${needsCheckCount} found item${needsCheckCount === 1 ? "" : "s"} need your check before they show as due dates.`}
-          actionLabel="Check"
+          actionLabel="Check Work"
           onPress={onOpenImport}
         />
       ) : null}
+
+      <View style={styles.sectionTop}>
+        <View>
+          <Text style={styles.sectionTitle}>Today</Text>
+          <Text style={styles.sectionMeta}>
+            {todayItems.length} focus item{todayItems.length === 1 ? "" : "s"}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.layeredStack}>
+        {todayItems.length === 0 ? (
+          <GlassCard>
+            <Text style={styles.emptyTitle}>No deadlines today.</Text>
+            <Text style={styles.emptyCopy}>
+              Start the next item above, or check the week plan when you have extra time.
+            </Text>
+          </GlassCard>
+        ) : (
+          todayItems.map((assignment, index) => (
+            <View key={assignment.id} style={[styles.layeredItem, { marginTop: index === 0 ? 0 : -4 }]}>
+              <TaskRow
+                assignment={assignment}
+                course={getCourseForAssignment(courses, assignment)}
+                now={now}
+                onOpen={() => onOpenAssignment(assignment.id)}
+                onComplete={() => onUpdateStatus(assignment.id, "done")}
+              />
+            </View>
+          ))
+        )}
+      </View>
 
       <CalendarSignalCard monthPlan={monthPlan} onPress={onOpenCalendar} />
 
@@ -205,35 +236,6 @@ export function TodayScreen({
         title="Workload"
         subtitle="Bars show how many assignments or exams are due each day"
       />
-
-      <View style={styles.sectionTop}>
-        <View>
-          <Text style={styles.sectionTitle}>Today</Text>
-          <Text style={styles.sectionMeta}>
-            {todayItems.length} focus item{todayItems.length === 1 ? "" : "s"}
-          </Text>
-        </View>
-      </View>
-      <View style={styles.layeredStack}>
-        {todayItems.length === 0 ? (
-          <GlassCard>
-            <Text style={styles.emptyTitle}>No deadlines today.</Text>
-            <Text style={styles.emptyCopy}>Your next open work is already waiting in the week strip.</Text>
-          </GlassCard>
-        ) : (
-          todayItems.map((assignment, index) => (
-            <View key={assignment.id} style={[styles.layeredItem, { marginTop: index === 0 ? 0 : -4 }]}>
-              <TaskRow
-                assignment={assignment}
-                course={getCourseForAssignment(courses, assignment)}
-                now={now}
-                onOpen={() => onOpenAssignment(assignment.id)}
-                onComplete={() => onUpdateStatus(assignment.id, "done")}
-              />
-            </View>
-          ))
-        )}
-      </View>
 
       <GlassCard>
         <WidgetShowcase snapshot={widgetSnapshot} />
