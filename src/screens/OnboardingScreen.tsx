@@ -117,7 +117,7 @@ const onboardingSteps: Array<{
     id: "syllabus",
     eyebrow: "Syllabus AI",
     title: "Turn syllabi into a semester plan.",
-    copy: "Manual planning is free. Plus can scan a PDF or photo and pull out assignments, exams, dates, and class details.",
+    copy: "Manual planning is free. Plus can read text-based syllabi now, with photo OCR when a school-safe parser is configured.",
     icon: FileScan
   },
   {

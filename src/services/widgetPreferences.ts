@@ -20,7 +20,7 @@ export const widgetPreferencesStorageKey = "study-planner-widget-preferences-v1"
 
 export const defaultWidgetPreferences: WidgetPreferences = {
   size: "medium",
-  focus: "monthly",
+  focus: "thisWeek",
   styleId: "cleanWhite"
 };
 

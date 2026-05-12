@@ -30,6 +30,15 @@ EXPO_PUBLIC_IAP_LIFETIME_PRODUCT_IDS=com.mattnewman.studyplanner.plus.lifetime
 - Lifetime unlocks Plus only when `getAvailablePurchases` returns a purchased product ID that matches `EXPO_PUBLIC_IAP_LIFETIME_PRODUCT_IDS`.
 - Restore Purchases must be tested before submission.
 
+## Current App Behavior
+
+- Monthly and yearly IDs remain `com.mattnewman.studyplanner.plus.monthly` and `com.mattnewman.studyplanner.plus.yearly`.
+- Lifetime uses only the proposed ID `com.mattnewman.studyplanner.plus.lifetime`.
+- The lifetime button label is `Buy Lifetime`, not `Subscribe`.
+- If a lifetime purchase is restored by the store, the paywall says `Lifetime Plus is active`.
+- `Manage Subscription` is hidden for lifetime entitlement because a non-consumable is not managed like an auto-renewing subscription.
+- No fake lifetime success path or local entitlement grant was added.
+
 ## Current Verdict
 
-Safe. The code can display and purchase lifetime only through the existing store-backed path. No fake lifetime entitlement was added.
+Safe for code review. Release still requires the App Store Connect non-consumable product, localized metadata, pricing, review notes, and sandbox purchase/restore validation.

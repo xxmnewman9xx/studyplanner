@@ -17,7 +17,6 @@ import {
   FileText,
   Pencil,
   Sparkles,
-  Bell,
   Upload,
   XCircle
 } from "lucide-react-native";
@@ -72,6 +71,9 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
   const [filter, setFilter] = useState<ConfidenceFilter>("all");
   const [expandedAssignmentId, setExpandedAssignmentId] = useState<string | null>(null);
   const imageParsingReady = supportsSyllabusImageParsing();
+  const scanCopy = imageParsingReady
+    ? "Upload a text-based PDF, text file, or photo syllabus."
+    : "Upload a text-based PDF or text file. Photo OCR needs a configured parser endpoint.";
 
   const reviewStats = useMemo(() => {
     const assignments = draft?.assignments || [];
@@ -245,7 +247,7 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
             </View>
             <View style={styles.scanHeroCopy}>
               <Text style={styles.scanHeroTitle}>Scan Syllabus</Text>
-              <Text style={styles.scanHeroMeta}>Upload or snap any syllabus.</Text>
+              <Text style={styles.scanHeroMeta}>{scanCopy}</Text>
             </View>
           </View>
           <View style={styles.importGrid}>
@@ -452,9 +454,6 @@ function ReviewRow({
         </MicroAction>
         <MicroAction label="Edit" onPress={onEdit}>
           <Pencil color={colors.brandPurple} size={16} />
-        </MicroAction>
-        <MicroAction label="Remind" onPress={() => onPatch({ reminderPreset: "day_before" })}>
-          <Bell color={colors.gold} size={16} />
         </MicroAction>
       </View>
       {expanded ? (

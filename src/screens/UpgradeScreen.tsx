@@ -23,7 +23,7 @@ const paidFeatures = [
 
 const freeFeatures = [
   "Manual courses and assignments",
-  "Today plan and focus timer",
+  "Today plan and weekly planning",
   "Editable semester setup"
 ];
 
@@ -67,7 +67,11 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
           </View>
           <View style={styles.valueCopy}>
             <Text style={styles.valueTitle}>
-              {subscription.isPremium ? "Plus is active" : "Unlock Plus"}
+              {subscription.isPremium
+                ? subscription.activeProductKind === "lifetime"
+                  ? "Lifetime Plus is active"
+                  : "Plus is active"
+                : "Unlock Plus"}
             </Text>
             <Text style={styles.valueSubtitle}>
               {subscription.isPremium
@@ -97,13 +101,15 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
 
       {subscription.isPremium ? (
         <View style={styles.actionStack}>
-          <AppButton
-            label="Manage Subscription"
-            variant="secondary"
-            onPress={() => {
-              void subscription.manageSubscriptions();
-            }}
-          />
+          {subscription.activeProductKind !== "lifetime" ? (
+            <AppButton
+              label="Manage Subscription"
+              variant="secondary"
+              onPress={() => {
+                void subscription.manageSubscriptions();
+              }}
+            />
+          ) : null}
           {onContinueFree ? <AppButton label="Continue" onPress={onContinueFree} /> : null}
         </View>
       ) : (
@@ -317,6 +323,7 @@ function LegalNotice({
 function ctaLabel(product: PaywallProduct | undefined, flowState: string) {
   if (flowState === "purchasing") return "Opening Store";
   if (!product) return "Choose a Plan";
+  if (product.kind === "lifetime") return "Buy Lifetime";
   return product.hasFreeTrial ? "Start Free Trial" : "Subscribe";
 }
 

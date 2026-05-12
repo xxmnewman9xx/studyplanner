@@ -71,7 +71,11 @@ import {
 
 const plannerStorageKey = "study-planner-data-v2";
 
-LogBox.ignoreLogs(["SafeAreaView has been deprecated"]);
+if (isStoreCaptureEnabled()) {
+  LogBox.ignoreAllLogs(true);
+} else {
+  LogBox.ignoreLogs(["SafeAreaView has been deprecated"]);
+}
 
 const tabs: Array<{
   id: NavTab;
@@ -615,6 +619,7 @@ function AppContent() {
                   onUpdateSemester={updateSemester}
                   onAddCourse={addCourse}
                   onUpdateCourse={updateCourse}
+                  onOpenGrades={() => openTab("grades")}
                 />
               ) : null}
               {activeTab === "grades" ? (

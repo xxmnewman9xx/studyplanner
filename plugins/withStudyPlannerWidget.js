@@ -368,9 +368,9 @@ struct StudyPlannerWidgetView: View {
     Group {
       switch family {
       case .systemMedium:
-        MediumWidgetView(snapshot: entry.snapshot)
+        MediumWidgetView(snapshot: entry.snapshot, date: entry.date)
       default:
-        SmallWidgetView(snapshot: entry.snapshot)
+        SmallWidgetView(snapshot: entry.snapshot, date: entry.date)
       }
     }
     .studyPlannerWidgetBackground(entry.snapshot?.widgetStyle)
@@ -379,6 +379,7 @@ struct StudyPlannerWidgetView: View {
 
 struct SmallWidgetView: View {
   let snapshot: StudyPlannerWidgetSnapshot?
+  let date: Date
 
   var body: some View {
     let style = snapshot?.widgetStyle
@@ -403,7 +404,7 @@ struct SmallWidgetView: View {
               .lineLimit(2)
               .minimumScaleFactor(0.78)
             Spacer(minLength: 0)
-            DuePill(item: item)
+            DuePill(item: item, date: date)
             if let overdueCount = snapshot?.overdueCount, overdueCount > 1 {
               Text("\\(overdueCount) overdue")
                 .font(.system(size: 9, weight: .semibold))
@@ -422,6 +423,7 @@ struct SmallWidgetView: View {
 
 struct MediumWidgetView: View {
   let snapshot: StudyPlannerWidgetSnapshot?
+  let date: Date
 
   var items: [StudyPlannerWidgetSnapshotItem] {
     snapshot?.surfaces.medium.items ?? []
@@ -438,7 +440,11 @@ struct MediumWidgetView: View {
         if let snapshot, snapshot.emptyState.isEmpty {
           EmptyStateView(title: snapshot.emptyState.title, message: snapshot.emptyState.message, style: style)
         } else if items.isEmpty {
-          EmptyStateView(title: "No upcoming deadlines", message: "Scan a syllabus to start.", style: style)
+          if let item = snapshot?.nextDue {
+            EmptyStateView(title: "Nothing due this week", message: "Next: \\(item.title) - \\(relativeDueLabel(item.dueAt, from: date))", style: style)
+          } else {
+            EmptyStateView(title: "Nothing due this week", message: "Your next seven days are clear.", style: style)
+          }
         } else {
           VStack(alignment: .leading, spacing: 5) {
             ForEach(items.prefix(4)) { item in
@@ -450,7 +456,7 @@ struct MediumWidgetView: View {
                     .foregroundStyle(style?.textColor ?? widgetText)
                     .lineLimit(1)
                     .minimumScaleFactor(0.82)
-                  Text("\\(compactCourseName(item.courseName)) - \\(item.dueLabel)")
+                  Text("\\(compactCourseName(item.courseName)) - \\(relativeDueLabel(item.dueAt, from: date))")
                     .font(.system(size: 9, weight: .semibold))
                     .foregroundStyle(style?.mutedColor ?? widgetMuted)
                     .lineLimit(1)
@@ -566,11 +572,12 @@ struct UrgencyDot: View {
 
 struct DuePill: View {
   let item: StudyPlannerWidgetSnapshotItem
+  let date: Date
 
   var body: some View {
     HStack(spacing: 5) {
       UrgencyDot(urgency: item.urgency)
-      Text(item.dueLabel)
+      Text(relativeDueLabel(item.dueAt, from: date))
         .font(.system(size: 12, weight: .black))
         .foregroundStyle(urgencyColor(item.urgency))
         .lineLimit(1)
@@ -599,6 +606,52 @@ struct WidgetAuroraBands: View {
         .offset(x: -58, y: 58)
     }
   }
+}
+
+func relativeDueLabel(_ dueAt: String, from date: Date) -> String {
+  guard let due = parseWidgetDate(dueAt) else {
+    return "Upcoming"
+  }
+
+  let calendar = Calendar.current
+  let today = calendar.startOfDay(for: date)
+  let dueDay = calendar.startOfDay(for: due)
+  let days = calendar.dateComponents([.day], from: today, to: dueDay).day ?? 0
+
+  if days < 0 {
+    let overdue = abs(days)
+    return "\\(overdue) day\\(overdue == 1 ? "" : "s") overdue"
+  }
+
+  if days == 0 { return "Today" }
+  if days == 1 { return "Tomorrow" }
+  return "\\(days) days"
+}
+
+func parseWidgetDate(_ value: String) -> Date? {
+  let internetWithFractional = ISO8601DateFormatter()
+  internetWithFractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+  if let date = internetWithFractional.date(from: value) {
+    return date
+  }
+
+  let internet = ISO8601DateFormatter()
+  internet.formatOptions = [.withInternetDateTime]
+  if let date = internet.date(from: value) {
+    return date
+  }
+
+  let localDateTime = DateFormatter()
+  localDateTime.locale = Locale(identifier: "en_US_POSIX")
+  localDateTime.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+  if let date = localDateTime.date(from: value) {
+    return date
+  }
+
+  let localDate = DateFormatter()
+  localDate.locale = Locale(identifier: "en_US_POSIX")
+  localDate.dateFormat = "yyyy-MM-dd"
+  return localDate.date(from: value)
 }
 
 func compactCourseName(_ name: String) -> String {
@@ -693,28 +746,16 @@ struct StudyPlannerWidgetSnapshot: Decodable {
 
   static let placeholder = StudyPlannerWidgetSnapshot(
     version: 1,
-    generatedAt: "2025-04-22T13:41:00.000Z",
-    lastUpdated: "2025-04-22T13:41:00.000Z",
+    generatedAt: "1970-01-01T00:00:00.000Z",
+    lastUpdated: "1970-01-01T00:00:00.000Z",
     semesterId: "placeholder",
-    semesterName: "Spring 2025 Preview",
-    nextDue: StudyPlannerWidgetSnapshotItem(
-      assignmentId: "problem-set-4",
-      title: "Problem Set 4",
-      courseId: "calc-2",
-      courseName: "Calculus II",
-      dueAt: "2025-04-22T23:59:00",
-      type: "assignment",
-      dueLabel: "Today",
-      urgency: "today",
-      urgencyLabel: "Due today",
-      reviewStatus: "needsReview",
-      completionStatus: "open"
-    ),
+    semesterName: "Study Planner",
+    nextDue: nil,
     thisWeek: [],
     overdueCount: 0,
-    reviewQueueCount: 3,
-    heavyWeekWarning: HeavyWeekWarning(isHeavy: true, label: "8 deadlines this week", itemCount: 8, examCount: 0),
-    emptyState: EmptyState(isEmpty: false, title: "No upcoming deadlines", message: "Scan a syllabus to start."),
+    reviewQueueCount: 0,
+    heavyWeekWarning: nil,
+    emptyState: EmptyState(isEmpty: true, title: "No upcoming deadlines", message: "Open Study Planner to sync your classes."),
     widgetStyle: WidgetStyle(
       paletteId: "oceanBlue",
       paletteName: "Ocean Blue",
@@ -726,49 +767,10 @@ struct StudyPlannerWidgetSnapshot: Decodable {
       accent: "#6C5CE7",
       secondary: "#3B82F6"
     ),
-    demoState: DemoState(enabled: true, label: "Preview"),
+    demoState: nil,
     surfaces: Surfaces(
-      small: SmallSurface(kind: "nextDue", item: StudyPlannerWidgetSnapshotItem(
-        assignmentId: "problem-set-4",
-        title: "Problem Set 4",
-        courseId: "calc-2",
-        courseName: "Calculus II",
-        dueAt: "2025-04-22T23:59:00",
-        type: "assignment",
-        dueLabel: "Today",
-        urgency: "today",
-        urgencyLabel: "Due today",
-        reviewStatus: "needsReview",
-        completionStatus: "open"
-      ), emptyTitle: nil),
-      medium: MediumSurface(kind: "thisWeek", items: [
-        StudyPlannerWidgetSnapshotItem(
-          assignmentId: "problem-set-4",
-          title: "Problem Set 4",
-          courseId: "calc-2",
-          courseName: "Calculus II",
-          dueAt: "2025-04-22T23:59:00",
-          type: "assignment",
-          dueLabel: "Today",
-          urgency: "today",
-          urgencyLabel: "Due today",
-          reviewStatus: "needsReview",
-          completionStatus: "open"
-        ),
-        StudyPlannerWidgetSnapshotItem(
-          assignmentId: "lab-report",
-          title: "Lab Report",
-          courseId: "chem-101",
-          courseName: "Chemistry 101",
-          dueAt: "2025-04-23T17:00:00",
-          type: "assignment",
-          dueLabel: "Tomorrow",
-          urgency: "soon",
-          urgencyLabel: "Due soon",
-          reviewStatus: "accepted",
-          completionStatus: "open"
-        )
-      ], overflowCount: 1),
+      small: SmallSurface(kind: "nextDue", item: nil, emptyTitle: "No upcoming deadlines"),
+      medium: MediumSurface(kind: "thisWeek", items: [], overflowCount: 0),
       large: LargeSurface(kind: "weeklyWorkload", items: [], heavyWeekWarning: nil),
       lockScreen: LockScreenSurface(kind: "countdown", item: nil, countdownLabel: nil)
     )

@@ -20,6 +20,14 @@ test("widget preferences keep valid user choices", () => {
   });
 });
 
+test("widget preferences default to native-supported medium this week", () => {
+  assert.deepEqual(defaultWidgetPreferences, {
+    size: "medium",
+    focus: "thisWeek",
+    styleId: "cleanWhite"
+  });
+});
+
 test("widget preferences fall back safely when stored values are invalid", () => {
   const preferences = normalizeWidgetPreferences({
     size: "poster" as never,

@@ -101,7 +101,7 @@ export function WidgetShowcaseScreen({
       <PremiumHeader
         eyebrow="Widget Studio"
         title="Widget Studio"
-        subtitle="Design your perfect widget."
+        subtitle="Preview widget ideas. iOS Home Screen widgets currently install as Small Next Due and Medium This Week."
       />
 
       <GlassCard tint="hero" style={styles.heroCard}>
@@ -126,6 +126,9 @@ export function WidgetShowcaseScreen({
             <Text style={styles.panelTitle}>Customize</Text>
             <Text style={styles.panelMeta}>
               {sizeLabel(widgetSize)} - {selectedFocus.label}
+            </Text>
+            <Text style={styles.panelFinePrint}>
+              Size and Shows change the in-app preview. Native iOS widgets use Small Next Due and Medium This Week.
             </Text>
           </View>
           <View style={[styles.swatchLarge, { backgroundColor: widgetStyle.accent }]} />
@@ -446,6 +449,13 @@ function createStyles(theme: AppTheme) {
       lineHeight: 17,
       fontWeight: "700",
       textTransform: "capitalize"
+    },
+    panelFinePrint: {
+      color: colors.faint,
+      fontSize: 10,
+      lineHeight: 14,
+      fontWeight: "700",
+      maxWidth: 250
     },
     controlGroup: {
       gap: spacing.xs

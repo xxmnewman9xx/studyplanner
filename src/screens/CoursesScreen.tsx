@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { BookOpen, CalendarClock, ChevronRight, Plus } from "lucide-react-native";
+import { BookOpen, CalendarClock, Plus } from "lucide-react-native";
 
 import { AppButton } from "../components/AppButton";
 import { CourseBalanceCard, CompletionInsightCard } from "../components/InsightCards";
@@ -36,6 +36,7 @@ type CoursesScreenProps = {
   onUpdateSemester: (patch: Partial<Semester>) => void;
   onAddCourse: (course: Pick<Course, "code" | "name" | "instructor">) => void;
   onUpdateCourse: (courseId: string, patch: Partial<Course>) => void;
+  onOpenGrades: () => void;
 };
 
 export function CoursesScreen({
@@ -47,7 +48,8 @@ export function CoursesScreen({
   onOpenAssignment,
   onUpdateSemester,
   onAddCourse,
-  onUpdateCourse
+  onUpdateCourse,
+  onOpenGrades
 }: CoursesScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
@@ -226,11 +228,20 @@ export function CoursesScreen({
               <Text style={styles.detailFooterText}>
                 Syllabus: {selectedSyllabusSources[0]?.sourceName || "Not linked yet"}
               </Text>
-              <ChevronRight color={colors.faint} size={16} />
             </View>
           </GlassCard>
 
           <CompletionInsightCard insights={insights} />
+
+          {!captureMode ? (
+            <GlassCard>
+              <Text style={styles.panelTitle}>Grade Forecast</Text>
+              <Text style={styles.emptyCopy}>
+                Track weighted scores and target grades from the same classes.
+              </Text>
+              <AppButton label="Open grade forecast" variant="secondary" onPress={onOpenGrades} />
+            </GlassCard>
+          ) : null}
 
           <View style={styles.sectionTop}>
             <View>

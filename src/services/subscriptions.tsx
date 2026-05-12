@@ -35,6 +35,7 @@ export type PaywallProduct = {
 type EntitlementRecord = {
   isPremium: boolean;
   productId?: string;
+  productKind?: ProductKind;
   checkedAt: string;
 };
 
@@ -42,6 +43,8 @@ type SubscriptionContextValue = {
   status: PurchaseStatus;
   flowState: PurchaseFlowState;
   isPremium: boolean;
+  activeProductId?: string;
+  activeProductKind?: ProductKind;
   products: PaywallProduct[];
   selectedProductId?: string;
   message?: string;
@@ -91,6 +94,8 @@ function UnavailableSubscriptionProvider({ children }: { children: React.ReactNo
       status: "unavailable",
       flowState: "idle",
       isPremium: false,
+      activeProductId: undefined,
+      activeProductKind: undefined,
       products: [],
       hasConfiguredProducts: hasProducts,
       message,
@@ -116,6 +121,8 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
   const [status, setStatus] = useState<PurchaseStatus>("checking");
   const [flowState, setFlowState] = useState<PurchaseFlowState>("idle");
   const [isPremium, setIsPremium] = useState(false);
+  const [activeProductId, setActiveProductId] = useState<string | undefined>();
+  const [activeProductKind, setActiveProductKind] = useState<ProductKind | undefined>();
   const [products, setProducts] = useState<PaywallProduct[]>([]);
   const [selectedProductId, setSelectedProductId] = useState<string | undefined>();
   const [message, setMessage] = useState<string | undefined>();
@@ -130,6 +137,8 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
       const entitlement = resolveEntitlement(activeSubscriptions, availablePurchases);
 
       setIsPremium(entitlement.isPremium);
+      setActiveProductId(entitlement.productId);
+      setActiveProductKind(entitlement.productKind);
       setStatus("ready");
 
       if (entitlement.isPremium) {
@@ -139,6 +148,8 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
       }
     } catch (error) {
       setIsPremium(false);
+      setActiveProductId(undefined);
+      setActiveProductKind(undefined);
       setStatus("error");
       setErrorMessage(userMessageFromError(error));
     }
@@ -151,6 +162,8 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
         const knownProduct = allPremiumProductIds.includes(purchaseResult.productId);
         const entitlement = await refreshEntitlementAfterPurchase();
         setIsPremium(entitlement.isPremium);
+        setActiveProductId(entitlement.productId);
+        setActiveProductKind(entitlement.productKind);
         setStatus("ready");
 
         if (knownProduct && entitlement.isPremium) {
@@ -306,6 +319,8 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
       await restorePurchases();
       const entitlement = await refreshEntitlementAfterPurchase();
       setIsPremium(entitlement.isPremium);
+      setActiveProductId(entitlement.productId);
+      setActiveProductKind(entitlement.productKind);
       setStatus("ready");
 
       if (entitlement.isPremium) {
@@ -337,6 +352,8 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
       status,
       flowState,
       isPremium,
+      activeProductId,
+      activeProductKind,
       products,
       selectedProductId,
       message,
@@ -355,6 +372,8 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
     [
       errorMessage,
       flowState,
+      activeProductId,
+      activeProductKind,
       isPremium,
       manageSubscriptions,
       message,
@@ -408,10 +427,16 @@ function resolveEntitlement(activeSubscriptions: ActiveSubscription[], purchases
       purchaseConfig.lifetimeProductIds.includes(purchase.productId)
   );
   const productId = activeSubscription?.productId || lifetimePurchase?.productId;
+  const productKind: ProductKind | undefined = activeSubscription
+    ? "subscription"
+    : lifetimePurchase
+      ? "lifetime"
+      : undefined;
 
   return {
     isPremium: Boolean(productId),
     productId,
+    productKind,
     checkedAt: new Date().toISOString()
   };
 }
