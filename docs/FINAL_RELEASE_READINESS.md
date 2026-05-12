@@ -44,7 +44,7 @@ All required docs exist and were updated for this pass: GitNexus index, evidence
 
 - Validate monthly, yearly, restore, subscription expiry, and Lifetime purchase with real App Store Connect sandbox products.
 - Manually place and observe the native small/medium widgets on device/simulator across refresh boundaries.
-- Decide whether to implement true large/lock-screen native widgets or remove those expectations from release materials.
+- Keep large and lock-screen widgets out of submission materials unless those native widget families are implemented in a later release.
 - Defer broad performance virtualization, date/time localization, and external calendar/reminder update reconciliation until after the trust release unless App Review testing exposes them.
 
 ## Recommended Final Build Prompt

@@ -1,14 +1,13 @@
 import { WidgetStylePresetId, widgetStylePresets } from "../theme";
 import { loadJson, saveJson } from "./storage";
 
-export type WidgetSizePreference = "small" | "medium" | "lock";
+export type WidgetSizePreference = "small" | "medium";
 export type WidgetFocusPreference =
   | "nextDue"
   | "thisWeek"
   | "monthly"
   | "heavyWeek"
-  | "courseFocus"
-  | "lockScreen";
+  | "courseFocus";
 
 export type WidgetPreferences = {
   size: WidgetSizePreference;
@@ -24,14 +23,13 @@ export const defaultWidgetPreferences: WidgetPreferences = {
   styleId: "cleanWhite"
 };
 
-const widgetSizes: WidgetSizePreference[] = ["small", "medium", "lock"];
+const widgetSizes: WidgetSizePreference[] = ["small", "medium"];
 const widgetFocuses: WidgetFocusPreference[] = [
   "nextDue",
   "thisWeek",
   "monthly",
   "heavyWeek",
-  "courseFocus",
-  "lockScreen"
+  "courseFocus"
 ];
 
 export function normalizeWidgetPreferences(

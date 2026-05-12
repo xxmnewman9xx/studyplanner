@@ -33,4 +33,4 @@ Screenshots only. No preview videos were created.
 
 ## Verdict
 
-Partial pass. The supported app and native widget surfaces were captured with safe synthetic data and real simulator UI. The unsupported native widget sizes are documented instead of faked.
+Partial pass. The supported app and native widget surfaces were captured with safe synthetic data and real simulator UI. The unsupported native widget sizes are documented instead of faked, and Widget Setup screenshots were refreshed after removing Lock Screen controls.

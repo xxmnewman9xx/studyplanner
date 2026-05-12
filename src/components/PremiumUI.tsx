@@ -8,13 +8,11 @@ import {
   ViewStyle
 } from "react-native";
 import {
-  Bell,
   CalendarClock,
   CheckCircle2,
   ChevronRight,
   Circle,
   Flame,
-  Lock,
   Sparkles,
   Target
 } from "lucide-react-native";
@@ -547,43 +545,6 @@ export function WidgetPreviewMedium({
   );
 }
 
-export function LockWidgetPreview({
-  snapshot,
-  widgetStyle
-}: {
-  snapshot: WidgetSnapshot;
-  widgetStyle?: WidgetSnapshotStyle;
-}) {
-  const { theme } = useAppTheme();
-  const { colors } = theme;
-  const styles = createStyles(theme);
-  const item = snapshot.surfaces.lockScreen.item;
-  const visual = widgetPreviewVisual(snapshot, widgetStyle, colors);
-
-  return (
-    <View style={[styles.lockWidget, { backgroundColor: visual.background }]}>
-      <View style={[styles.lockAuroraOne, { backgroundColor: `${visual.secondary}5C` }]} />
-      <View style={[styles.lockAuroraTwo, { backgroundColor: `${visual.accent}52` }]} />
-      <Lock color={colors.heroText} size={18} />
-      <Text style={[styles.lockDate, { color: visual.text }]}>Monday, March 10</Text>
-      <Text style={[styles.lockTime, { color: visual.text }]}>9:41</Text>
-      <View style={styles.lockNotification}>
-        <View style={[styles.lockNotificationIcon, { backgroundColor: visual.accent }]}>
-          <Bell color={colors.heroText} size={14} />
-        </View>
-        <View style={styles.lockNotificationCopy}>
-          <Text style={[styles.lockNotificationTitle, { color: visual.text }]} numberOfLines={1}>
-            {item?.title || "No open deadlines"}
-          </Text>
-          <Text style={[styles.lockNotificationMeta, { color: visual.muted }]} numberOfLines={1}>
-            {item ? `${item.courseName} - ${item.dueLabel}` : snapshot.emptyState.message}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-}
-
 export function WidgetPreviewMonthly({
   snapshot,
   widgetStyle
@@ -731,7 +692,6 @@ export function WidgetShowcase({
         <WidgetPreviewSmall snapshot={snapshot} widgetStyle={widgetStyle} />
         <WidgetPreviewMedium snapshot={snapshot} widgetStyle={widgetStyle} />
       </View>
-      <LockWidgetPreview snapshot={snapshot} widgetStyle={widgetStyle} />
     </View>
   );
 }

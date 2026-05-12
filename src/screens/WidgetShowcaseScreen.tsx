@@ -5,7 +5,6 @@ import { Crown, Sparkles } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import {
   GlassCard,
-  LockWidgetPreview,
   PremiumHeader,
   PremiumScreen,
   StatusBadge,
@@ -42,7 +41,7 @@ type WidgetShowcaseScreenProps = {
   onPreferencesChange: (preferences: WidgetPreferences) => void;
 };
 
-const widgetSizes: WidgetSizePreference[] = ["small", "medium", "lock"];
+const widgetSizes: WidgetSizePreference[] = ["small", "medium"];
 const widgetFocusOptions: Array<{
   id: WidgetFocusPreference;
   label: string;
@@ -52,8 +51,7 @@ const widgetFocusOptions: Array<{
   { id: "thisWeek", label: "This Week", description: "Shows the next several deadlines." },
   { id: "monthly", label: "Calendar", description: "Shows this month, busy days, and exams." },
   { id: "heavyWeek", label: "Busy Week", description: "Shows how many deadlines land each day." },
-  { id: "courseFocus", label: "Work by Class", description: "Shows which classes have the most open work." },
-  { id: "lockScreen", label: "Lock Screen", description: "Shows a quick deadline countdown." }
+  { id: "courseFocus", label: "Work by Class", description: "Shows which classes have the most open work." }
 ];
 
 export function WidgetShowcaseScreen({
@@ -249,7 +247,7 @@ export function WidgetShowcaseScreen({
         <View pointerEvents="none" style={styles.stageBandBottom} />
         <View style={styles.galleryHeader}>
           <Text style={styles.galleryKicker}>Widget setup</Text>
-          <Text style={styles.galleryTitle}>Small, medium, and lock widgets use your latest deadlines.</Text>
+          <Text style={styles.galleryTitle}>Small and medium widgets use your latest deadlines.</Text>
         </View>
         <View style={styles.widgetPair}>
           <WidgetPreviewSmall snapshot={snapshot} widgetStyle={widgetStyle} />
@@ -260,7 +258,6 @@ export function WidgetShowcaseScreen({
           <WidgetPreviewHeavyWeek snapshot={snapshot} widgetStyle={widgetStyle} />
           <WidgetPreviewCourseFocus snapshot={snapshot} widgetStyle={widgetStyle} />
         </View>
-        <LockWidgetPreview snapshot={snapshot} widgetStyle={widgetStyle} />
       </View>
 
       {!captureMode ? (
@@ -290,14 +287,6 @@ function SelectedWidgetPreview({
 }) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
-
-  if (size === "lock" || focus === "lockScreen") {
-    return (
-      <View style={styles.selectedLockFrame}>
-        <LockWidgetPreview snapshot={snapshot} widgetStyle={widgetStyle} />
-      </View>
-    );
-  }
 
   if (focus === "nextDue") {
     return (
@@ -360,7 +349,7 @@ function getSelectedWidgetStats(snapshot: WidgetSnapshot, focus: WidgetFocusPref
     };
   }
 
-  if (focus === "lockScreen" || focus === "nextDue") {
+  if (focus === "nextDue") {
     return {
       value: snapshot.nextDue?.dueLabel || "Clear",
       label: "Next due"
@@ -374,7 +363,6 @@ function getSelectedWidgetStats(snapshot: WidgetSnapshot, focus: WidgetFocusPref
 }
 
 function sizeLabel(value: WidgetSizePreference) {
-  if (value === "lock") return "Lock Screen";
   return value === "small" ? "Small" : "Medium";
 }
 

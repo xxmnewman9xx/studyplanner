@@ -17,6 +17,7 @@ Conditional pass for the currently implemented native WidgetKit families: small 
 - Confirmed-only due-date data now feeds widget snapshots through shared assignment helpers.
 - Production no-demo guard added through `scripts/verify-production-config.mjs`.
 - Widget Setup copy now uses the plain-language label instead of Widget Studio.
+- Unsupported Lock Screen widget setup controls were removed from the user-facing app in the final submission gate.
 - Screenshot plan documents unsupported large and lock-screen native widgets instead of inventing proof.
 
 ## Remaining Risk

@@ -8,13 +8,13 @@ import {
 
 test("widget preferences keep valid user choices", () => {
   const preferences = normalizeWidgetPreferences({
-    size: "lock",
+    size: "small",
     focus: "courseFocus",
     styleId: "emerald"
   });
 
   assert.deepEqual(preferences, {
-    size: "lock",
+    size: "small",
     focus: "courseFocus",
     styleId: "emerald"
   });
@@ -30,8 +30,8 @@ test("widget preferences default to native-supported medium this week", () => {
 
 test("widget preferences fall back safely when stored values are invalid", () => {
   const preferences = normalizeWidgetPreferences({
-    size: "poster" as never,
-    focus: "semesterPulse" as never,
+    size: "lock" as never,
+    focus: "lockScreen" as never,
     styleId: "neonChaos" as never
   });
 

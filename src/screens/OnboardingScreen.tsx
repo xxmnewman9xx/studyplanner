@@ -22,7 +22,6 @@ import {
 
 import {
   GlassCard,
-  LockWidgetPreview,
   MetricPill,
   StatusBadge,
   StudyPlannerBrand,
@@ -715,12 +714,7 @@ function WidgetCustomizationPreview({
           <Text style={styles.conceptLabel}>Medium</Text>
           <Text style={styles.conceptValue}>This Week</Text>
         </View>
-        <View style={styles.widgetConcept}>
-          <Text style={styles.conceptLabel}>Lock</Text>
-          <Text style={styles.conceptValue}>Countdown</Text>
-        </View>
       </View>
-      <LockWidgetPreview snapshot={snapshot} widgetStyle={widgetStyle} />
     </GlassCard>
   );
 }
