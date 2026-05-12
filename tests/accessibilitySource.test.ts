@@ -13,6 +13,7 @@ const coursesScreenPath = path.join(process.cwd(), "src/screens/CoursesScreen.ts
 const monthlyCalendarPath = path.join(process.cwd(), "src/screens/MonthlyCalendarScreen.tsx");
 const assignmentDetailPath = path.join(process.cwd(), "src/screens/AssignmentDetailScreen.tsx");
 const widgetShowcasePath = path.join(process.cwd(), "src/screens/WidgetShowcaseScreen.tsx");
+const settingsScreenPath = path.join(process.cwd(), "src/screens/SettingsScreen.tsx");
 const upgradeScreenPath = path.join(process.cwd(), "src/screens/UpgradeScreen.tsx");
 
 test("planner visual surfaces expose VoiceOver labels", () => {
@@ -38,6 +39,7 @@ test("core action screens expose labels and bounded text scaling", () => {
   const importScreen = fs.readFileSync(importScreenPath, "utf8");
   const assignmentDetail = fs.readFileSync(assignmentDetailPath, "utf8");
   const widgetShowcase = fs.readFileSync(widgetShowcasePath, "utf8");
+  const settingsScreen = fs.readFileSync(settingsScreenPath, "utf8");
   const upgradeScreen = fs.readFileSync(upgradeScreenPath, "utf8");
 
   assert.ok(appButton.includes("maxFontSizeMultiplier={buttonTextScale}"));
@@ -60,6 +62,11 @@ test("core action screens expose labels and bounded text scaling", () => {
   assert.ok(widgetShowcase.includes("Use ${style.name} widget style"));
   assert.ok(widgetShowcase.includes("Live widget preview. ${selectedFocus.label}"));
   assert.ok(widgetShowcase.includes("maxFontSizeMultiplier={bodyTextScale}"));
+
+  assert.ok(settingsScreen.includes("Widgets and reminders"));
+  assert.ok(settingsScreen.includes("Restore"));
+  assert.ok(settingsScreen.includes("Support URL is required before final submission."));
+  assert.ok(settingsScreen.includes("maxFontSizeMultiplier={bodyTextScale}"));
 
   assert.ok(upgradeScreen.includes("Selects this Plus plan."));
   assert.ok(upgradeScreen.includes("${product.title}, ${product.periodLabel}, ${product.displayPrice}"));
@@ -86,6 +93,8 @@ test("capture routes expose honest screenshot proof states", () => {
   assert.ok(app.includes("\"upload-file\""));
   assert.ok(app.includes("\"widget-empty\""));
   assert.ok(app.includes("\"widget-needs-check\""));
+  assert.ok(app.includes("\"settings\""));
+  assert.ok(app.includes("knownTabs.includes(requestedTab)"));
   assert.ok(app.includes("widgetAssignmentsForCapture"));
   assert.ok(app.includes("assignments: widgetSnapshotAssignments"));
 

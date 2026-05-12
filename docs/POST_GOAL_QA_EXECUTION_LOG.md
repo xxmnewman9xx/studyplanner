@@ -102,5 +102,15 @@
 | npm run check:iap | Passed | IAP and premium gate configuration passed | Final static IAP guard after Reminders proof |
 | npm run verify:production | Passed | Production config verification passed | Final production config guard after Reminders proof |
 | git diff --check | Passed | exit 0 | Final whitespace/conflict-marker check after Reminders proof |
+| Settings source guard | Passed | `App.tsx`, `SettingsScreen`, `purchaseConfig`, `tests/accessibilitySource.test.ts` | Guards real settings route, support URL config visibility, restore access, and bounded text scaling |
+| npm run typecheck | Passed | exit 0 | Re-run after Settings screen patch |
+| npm run test | Passed | 40/40 | Re-run after Settings screen patch |
+| EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE | Passed | Build succeeded, 0 errors/0 warnings; app installed/opened | Required to update the settings route in simulator UI |
+| xcrun simctl openurl + xcrun simctl io screenshot | Passed | `36-settings.png` | Real simulator UI captured for Settings surface |
+| Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 45 PNGs at 1230x7308 | Re-run after Settings screenshot |
+| screenshot inventory check | Passed | 45 raw PNGs; `36-settings.png` is 1179x2556; contact sheet 1230x7308 | Final artifact dimensions verified after Settings capture |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Final static IAP guard after Settings proof |
+| npm run verify:production | Passed | Production config verification passed | Final production config guard after Settings proof |
+| git diff --check | Passed | exit 0 | Final whitespace/conflict-marker check after Settings proof |
 
-Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/contrast pass, restore purchases, dedicated settings screen/state. Optional: overnight widget rollover screenshot.
+Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/contrast pass, restore purchase success proof. Optional: overnight widget rollover screenshot.

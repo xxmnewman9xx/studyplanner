@@ -5,6 +5,7 @@ export type NavTab =
   | "import"
   | "courses"
   | "grades"
+  | "settings"
   | "upgrade";
 
 export type Priority = "low" | "medium" | "high";

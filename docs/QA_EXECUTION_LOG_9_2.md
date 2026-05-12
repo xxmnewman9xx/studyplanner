@@ -132,3 +132,13 @@ Known residual risks:
 | 27 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after Reminders proof | No |
 | 27 | `npm run verify:production` | Passed | Production config verification passed after Reminders proof | No |
 | 27 | `git diff --check` | Passed | No whitespace errors or conflict markers after Reminders proof | No |
+| 28 | Settings source guard | Passed | `App.tsx`, `SettingsScreen`, `purchaseConfig`, and `tests/accessibilitySource.test.ts` guard the settings route, support URL visibility, restore access, and bounded text scaling | No |
+| 28 | `npm run typecheck` | Passed | `tsc --noEmit` completed after Settings screen patch | No |
+| 28 | `npm run test` | Passed | 40/40 tests passed after Settings screen patch | No |
+| 28 | Capture-mode iOS rebuild | Passed | `EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE` built, installed, and opened with 0 errors/0 warnings | No |
+| 28 | Settings screenshot capture | Passed | Captured `36-settings.png` as real simulator UI showing planner status, appearance, Plus/store status, and restore/support surfaces | No |
+| 28 | Contact sheet regeneration | Passed | `45-final-contact-sheet.png` regenerated from 45 raw PNGs | No |
+| 28 | Screenshot inventory check | Passed | 45 raw PNGs; `36-settings.png` is 1179x2556 and contact sheet is 1230x7308 | No |
+| 28 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after Settings proof | No |
+| 28 | `npm run verify:production` | Passed | Production config verification passed after Settings proof | No |
+| 28 | `git diff --check` | Passed | No whitespace errors or conflict markers after Settings proof | No |

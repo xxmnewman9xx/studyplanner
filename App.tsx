@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
@@ -17,7 +18,8 @@ import {
   Crown,
   FileScan,
   GraduationCap,
-  Home
+  Home,
+  Settings
 } from "lucide-react-native";
 
 import {
@@ -50,6 +52,7 @@ import { WeekPlannerScreen } from "./src/screens/WeekPlannerScreen";
 import { UpgradeScreen } from "./src/screens/UpgradeScreen";
 import { WidgetShowcaseScreen } from "./src/screens/WidgetShowcaseScreen";
 import { AssignmentDetailScreen } from "./src/screens/AssignmentDetailScreen";
+import { SettingsScreen } from "./src/screens/SettingsScreen";
 import { scheduleSmartReminders } from "./src/services/reminders";
 import { syncAssignmentsToDeviceCalendar } from "./src/services/calendarSync";
 import { loadJson, saveJson } from "./src/services/storage";
@@ -96,6 +99,7 @@ const tabs: Array<{
   { id: "import", label: "Check Work", icon: FileScan },
   { id: "upgrade", label: "Widgets", icon: Crown }
 ];
+const knownTabs: NavTab[] = [...tabs.map((tab) => tab.id), "grades", "settings"];
 
 type CaptureState =
   | "calendar-filtered"
@@ -236,7 +240,7 @@ function AppContent() {
       }
 
       const requestedTab = (requestedTabRaw === "focus" ? "calendar" : requestedTabRaw) as NavTab | null;
-      if (!requestedTab || !tabs.some((tab) => tab.id === requestedTab)) return;
+      if (!requestedTab || !knownTabs.includes(requestedTab)) return;
       const scrollMatch = /[?&](?:scroll|y)=([0-9]+)/.exec(url);
       const scrollY = scrollMatch?.[1] ? Number(scrollMatch[1]) : 0;
       const assignmentMatch = /[?&]assignment=([^&]+)/.exec(url);
@@ -628,8 +632,11 @@ function AppContent() {
       <StatusBar style={theme.isDark ? "light" : "dark"} />
       <View style={styles.appShell}>
         {!storeCaptureEnabled ? (
-          <View style={styles.modeToggle}>
+          <View style={styles.topActions}>
             <ModeToggle />
+            <TopIconButton label="Settings" onPress={() => openTab("settings")}>
+              <Settings color={theme.colors.accent} size={16} />
+            </TopIconButton>
           </View>
         ) : null}
         <ScrollView
@@ -742,6 +749,16 @@ function AppContent() {
                   onPreferencesChange={setWidgetPreferences}
                 />
               ) : null}
+              {activeTab === "settings" ? (
+                <SettingsScreen
+                  semester={semester}
+                  courses={courses}
+                  assignments={activeAssignments}
+                  onOpenImport={() => openTab("import")}
+                  onOpenPaywall={() => openTab("upgrade")}
+                  onOpenWidgetSetup={() => openTab("upgrade")}
+                />
+              ) : null}
             </>
           )}
         </ScrollView>
@@ -799,6 +816,31 @@ function LoadingScreen({ label }: { label: string }) {
   );
 }
 
+function TopIconButton({
+  label,
+  children,
+  onPress
+}: {
+  label: string;
+  children: React.ReactNode;
+  onPress: () => void;
+}) {
+  const { theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      activeOpacity={0.82}
+      style={styles.topIconButton}
+      onPress={onPress}
+    >
+      {children}
+    </TouchableOpacity>
+  );
+}
+
 function mergeById<T extends { id: string }>(current: T[], incoming: T[]) {
   const existing = new Map(current.map((item) => [item.id, item]));
   incoming.forEach((item) => existing.set(item.id, item));
@@ -850,11 +892,24 @@ function createStyles(theme: AppTheme) {
       backgroundColor: colors.canvas,
       overflow: "hidden"
     },
-    modeToggle: {
+    topActions: {
       position: "absolute",
       top: spacing.sm,
       right: spacing.lg,
-      zIndex: 2
+      zIndex: 2,
+      flexDirection: "row",
+      gap: spacing.xs,
+      alignItems: "center"
+    },
+    topIconButton: {
+      width: 38,
+      height: 38,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.elevated,
+      alignItems: "center",
+      justifyContent: "center"
     },
     content: {
       width: "100%",

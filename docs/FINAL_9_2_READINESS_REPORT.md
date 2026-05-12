@@ -24,6 +24,7 @@ Final implementation score: **9.19/10**
 - Capture-only proof routes now expose a filtered Calendar state, proving the class filter with `23-calendar-filtered-class.png`.
 - Capture-only proof routes now expose import-path states for scan paper, upload file, parser processing, duplicate found work, and imported found work.
 - Today now exposes a real Reminders card wired to Queue Reminders and Sync Calendar, with proof captured at `artifacts/post-goal-aso-submission/28-reminders.png`.
+- Settings is now a real top-level surface for planner status, appearance, Plus/store status, restore access, widget scope, privacy, and support URL readiness; proof captured at `artifacts/post-goal-aso-submission/36-settings.png`.
 - Month calendar planning now respects locale week-start rules for Sunday, Monday, and Saturday-start regions, with Monday-start coverage for `en-GB`.
 - Due-date and Week Plan date labels now use the preferred locale, with 24-hour formatting coverage for `fr-FR` and `en-GB`.
 - Successor-branch capture mode now uses current relative demo dates, preventing stale WidgetKit due labels.
@@ -50,6 +51,7 @@ Final implementation score: **9.19/10**
 - Successor-branch filtered Calendar proof captured at `artifacts/post-goal-aso-submission/23-calendar-filtered-class.png`.
 - Successor-branch import-path proof captured at `artifacts/post-goal-aso-submission/11-scan-paper.png`, `12-upload-file.png`, `14-parser-processing.png`, `18-check-new-work-duplicate.png`, and `19-check-new-work-imported.png`.
 - Successor-branch Reminders proof captured at `artifacts/post-goal-aso-submission/28-reminders.png`.
+- Successor-branch Settings proof captured at `artifacts/post-goal-aso-submission/36-settings.png`.
 - Successor-branch native widget edge-state proof captured at `artifacts/post-goal-aso-submission/32-widget-empty-state.png`, `33-widget-needs-check-state.png`, `widget-empty-state-snapshot.json`, and `widget-needs-check-state-snapshot.json`.
 - Completion audit added in `docs/COMPLETION_AUDIT_9_2.md`; verdict remains not complete as a 9.2 goal.
 
