@@ -207,3 +207,6 @@ Known residual risks:
 | 38 | `npm run verify:production` | Passed | Production config verification passed after VoiceOver hint cleanup | No |
 | 38 | `npm run verify:submission` | Failed as intended | NO-SUBMIT with 8 blockers and 1 warning while local screenshot export checks pass | External proof blockers remain |
 | 38 | `git diff --check` | Passed | No whitespace errors or conflict markers after VoiceOver hint cleanup | No |
+| 39 | Submission verifier VoiceOver source gate | Passed | `npm run verify:submission` now includes `PASS VoiceOver source audit is clean` while separately blocking missing manual traversal proof | External proof blockers remain |
+| 39 | `npm run typecheck` | Passed | `tsc --noEmit` completed after submission verifier source-audit gate | No |
+| 39 | `npm run test` | Passed | 49/49 tests passed; submission readiness tests assert source-audit pass plus traversal blocker | No |

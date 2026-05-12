@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -89,6 +90,7 @@ checkProof({
   blockerMessage:
     "Archive/sign the App Store build and record production notification entitlements."
 });
+checkVoiceOverSourceAudit();
 checkProof({
   label: "VoiceOver traversal is recorded",
   fileName: "voiceover-traversal.md",
@@ -213,6 +215,34 @@ function checkProof({ label, fileName, requiredTerms, blockerMessage }) {
     label,
     `${blockerMessage} Proof file is too thin, contains placeholder language, or is missing terms. Missing terms: ${missingTerms.join(", ") || "none"}. Placeholder term: ${placeholderTerm || "none"}.`
   );
+}
+
+function checkVoiceOverSourceAudit() {
+  const scriptPath = path.join(root, "scripts/audit-voiceover-readiness.mjs");
+  try {
+    const output = execFileSync(process.execPath, [scriptPath, "--json"], {
+      cwd: root,
+      encoding: "utf8"
+    });
+    const audit = JSON.parse(output);
+    const passed =
+      audit.filesScanned >= 20 &&
+      audit.interactiveCount >= 100 &&
+      audit.missingExplicitLabelCount === 0 &&
+      audit.missingRoleCount === 0 &&
+      audit.missingHintCount === 0;
+    check(
+      passed,
+      "VoiceOver source audit is clean",
+      `Run npm run audit:voiceover and fix source findings. Current counts: files=${audit.filesScanned}, interactive=${audit.interactiveCount}, missing labels=${audit.missingExplicitLabelCount}, missing roles=${audit.missingRoleCount}, missing hints=${audit.missingHintCount}.`
+    );
+  } catch (error) {
+    check(
+      false,
+      "VoiceOver source audit is clean",
+      `VoiceOver source audit failed: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 }
 
 function readPngDimensions(filePath) {

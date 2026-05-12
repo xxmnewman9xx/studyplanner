@@ -173,5 +173,8 @@
 | npm run verify:production | Passed | Production config verification passed | Re-run after VoiceOver hint cleanup |
 | npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning | Local screenshot export checks still pass; external blockers remain IAP env IDs, support URL, products-loaded paywall, StoreKit proof, App Store Connect upload acceptance, signed archive entitlements, and manual VoiceOver traversal |
 | git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after VoiceOver hint cleanup |
+| npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning; includes `PASS VoiceOver source audit is clean` | Re-run after wiring VoiceOver source audit into the submission verifier |
+| npm run typecheck | Passed | exit 0 | Re-run after submission verifier VoiceOver source-audit gate |
+| npm run test | Passed | 49/49 | `tests/submissionReadiness.test.ts` now asserts clean source-audit pass and separate manual traversal blocker |
 
 Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, manual App Store Connect screenshot upload acceptance, full translated UI/string extraction/native localization review, full simulator VoiceOver traversal, restore purchase success proof. Optional: overnight widget rollover screenshot.
