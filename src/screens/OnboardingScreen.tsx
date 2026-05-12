@@ -1,72 +1,244 @@
-import React, { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Bell,
-  CalendarCheck2,
+  Animated,
+  Easing,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
+import {
+  CalendarRange,
+  CheckCircle2,
+  ChevronLeft,
   ChevronRight,
   Crown,
   FileScan,
-  Sparkles
+  Flame,
+  Sparkles,
+  Target
 } from "lucide-react-native";
-import { AppButton } from "../components/AppButton";
-import { Badge } from "../components/Badge";
-import { ModeToggle } from "../components/ModeToggle";
-import { AppTheme } from "../theme";
+
+import {
+  GlassCard,
+  LockWidgetPreview,
+  MetricPill,
+  StatusBadge,
+  WidgetPreviewHeavyWeek,
+  WidgetPreviewMedium,
+  WidgetPreviewMonthly,
+  WidgetPreviewSmall
+} from "../components/PremiumUI";
+import { WidgetSnapshotService } from "../services/widgetSnapshotService";
+import { Assignment, Course, Semester } from "../models";
+import {
+  AppTheme,
+  createWidgetStyleSnapshot,
+  ThemePaletteId,
+  WidgetStylePresetId,
+  widgetStylePresets
+} from "../theme";
 import { useAppTheme } from "../themeContext";
 
 type OnboardingScreenProps = {
+  initialStep?: number;
   onFinish: () => void;
 };
 
-const slides = [
+type OnboardingStepId =
+  | "syllabus"
+  | "review"
+  | "calendar"
+  | "today"
+  | "widgets"
+  | "palette";
+
+type WidgetFocusId = "nextDue" | "thisWeek" | "calendar" | "heavyWeek";
+
+const previewNow = new Date("2025-03-10T09:41:00-04:00");
+
+const previewSemester: Semester = {
+  id: "onboarding-preview-semester",
+  name: "Spring Preview",
+  startDate: "2025-01-13",
+  endDate: "2025-05-09"
+};
+
+const previewCourses: Course[] = [
   {
-    badge: "Welcome",
-    title: "Make the semester feel manageable",
-    copy: "Study Planner turns courses, deadlines, exams, and grades into one calm daily plan.",
-    icon: Sparkles
+    id: "preview-bio",
+    code: "BIO 101",
+    name: "Intro to Biology",
+    color: "#34D399",
+    meetings: [],
+    gradeCategories: []
   },
   {
-    badge: "Plan",
-    title: "Know what matters next",
-    copy: "See urgent work first, track progress, and keep assignments moving without a messy checklist.",
-    icon: CalendarCheck2
+    id: "preview-calc",
+    code: "CALC II",
+    name: "Differential Calculus",
+    color: "#7C3AED",
+    meetings: [],
+    gradeCategories: []
   },
   {
-    badge: "Personalize",
-    title: "Shape it around your classes",
-    copy: "Add courses, deadlines, grade weights, and focus sessions that match your actual semester.",
-    icon: Bell
-  },
-  {
-    badge: "Plus",
-    title: "Unlock the time-saving tools",
-    copy: "Plus adds syllabus scan, calendar sync, smart reminders, and grade forecasting when you are ready.",
-    icon: Crown
+    id: "preview-writing",
+    code: "WRIT 201",
+    name: "Academic Writing",
+    color: "#F97316",
+    meetings: [],
+    gradeCategories: []
   }
 ];
 
-const flowSteps = [
-  ["Set up", "Add courses and the dates that define your term."],
-  ["Plan", "Use Today to decide the next useful move."],
-  ["Unlock", "Add Plus automation when setup work starts to pile up."]
+const previewAssignments: Assignment[] = [
+  previewAssignment("preview-problem-set", "preview-calc", "CALC II", "Problem Set 4", "2025-03-10T17:00:00-04:00", "assignment", "high"),
+  previewAssignment("preview-lab-report", "preview-bio", "BIO 101", "Lab Report #2", "2025-03-11T23:59:00-04:00", "assignment", "medium"),
+  previewAssignment("preview-reading", "preview-writing", "WRIT 201", "Reading Response", "2025-03-12T11:00:00-04:00", "reading", "medium"),
+  previewAssignment("preview-midterm", "preview-calc", "CALC II", "Midterm Exam", "2025-03-20T09:00:00-04:00", "exam", "high"),
+  {
+    ...previewAssignment("preview-done", "preview-bio", "BIO 101", "Cell Diagram Quiz", "2025-03-05T09:00:00-04:00", "quiz", "low"),
+    completionStatus: "completed",
+    status: "done",
+    reviewStatus: "accepted"
+  }
 ];
 
-export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
-  const { theme } = useAppTheme();
+const onboardingSteps: Array<{
+  id: OnboardingStepId;
+  eyebrow: string;
+  title: string;
+  copy: string;
+  icon: React.ComponentType<{ color: string; size: number }>;
+}> = [
+  {
+    id: "syllabus",
+    eyebrow: "Syllabus AI",
+    title: "Turn syllabi into a semester plan.",
+    copy: "Upload a PDF or photo and StudyPlanner pulls out assignments, exams, dates, and course context.",
+    icon: FileScan
+  },
+  {
+    id: "review",
+    eyebrow: "Review Inbox",
+    title: "Approve the plan before it touches your calendar.",
+    copy: "High-confidence dates can be accepted quickly, while anything uncertain stays editable.",
+    icon: CheckCircle2
+  },
+  {
+    id: "calendar",
+    eyebrow: "Calendar",
+    title: "See the month and week together.",
+    copy: "Course colors, exams, heavy days, completed work, and the week timeline all read from the same plan.",
+    icon: CalendarRange
+  },
+  {
+    id: "today",
+    eyebrow: "Command Center",
+    title: "Know what to do today.",
+    copy: "Today shows the next useful action, weekly pressure, workload graphs, and widget-ready signals.",
+    icon: Target
+  },
+  {
+    id: "widgets",
+    eyebrow: "Widget Studio",
+    title: "Make deadlines visible before opening the app.",
+    copy: "Choose a widget focus, size, and visual style for Home Screen and Lock Screen glances.",
+    icon: Crown
+  },
+  {
+    id: "palette",
+    eyebrow: "Study Style",
+    title: "Choose the color system that feels like yours.",
+    copy: "Your palette carries through hero cards, calendar dots, graph bars, and widget previews.",
+    icon: Sparkles
+  }
+];
+
+const widgetFocusOptions: Array<{ id: WidgetFocusId; label: string }> = [
+  { id: "nextDue", label: "Next Due" },
+  { id: "thisWeek", label: "This Week" },
+  { id: "calendar", label: "Calendar" },
+  { id: "heavyWeek", label: "Heavy Week" }
+];
+
+const onboardingWidgetStyles: WidgetStylePresetId[] = [
+  "darkGlass",
+  "cleanWhite",
+  "ocean",
+  "violet",
+  "emerald",
+  "sunset",
+  "graphite"
+];
+
+export function OnboardingScreen({ initialStep = 0, onFinish }: OnboardingScreenProps) {
+  const { theme, paletteId, palettes, setPalette } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
-  const [index, setIndex] = useState(0);
-  const slide = slides[index] ?? slides[0]!;
-  const Icon = slide.icon;
-  const isFinal = index === slides.length - 1;
+  const [index, setIndex] = useState(clampStep(initialStep));
+  const [widgetStyleId, setWidgetStyleId] = useState<WidgetStylePresetId>("darkGlass");
+  const [widgetFocus, setWidgetFocus] = useState<WidgetFocusId>("calendar");
+  const motion = useRef(new Animated.Value(0)).current;
+  const step = onboardingSteps[index] ?? onboardingSteps[0]!;
+  const Icon = step.icon;
+  const isFinal = index === onboardingSteps.length - 1;
+  const widgetSnapshot = useMemo(
+    () =>
+      WidgetSnapshotService.build(
+        {
+          semester: previewSemester,
+          courses: previewCourses,
+          assignments: previewAssignments,
+          paletteId,
+          widgetStyleId
+        },
+        previewNow
+      ),
+    [paletteId, widgetStyleId]
+  );
+  const widgetStyle = useMemo(
+    () => createWidgetStyleSnapshot(paletteId, widgetStyleId),
+    [paletteId, widgetStyleId]
+  );
 
-  const continueOnboarding = () => {
+  useEffect(() => {
+    setIndex(clampStep(initialStep));
+  }, [initialStep]);
+
+  useEffect(() => {
+    motion.setValue(0);
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(motion, {
+          toValue: 1,
+          duration: 1700,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true
+        }),
+        Animated.timing(motion, {
+          toValue: 0,
+          duration: 1100,
+          easing: Easing.inOut(Easing.cubic),
+          useNativeDriver: true
+        })
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [index, motion]);
+
+  const goNext = () => {
     if (isFinal) {
       onFinish();
       return;
     }
+    setIndex((current) => Math.min(onboardingSteps.length - 1, current + 1));
+  };
 
-    setIndex((current) => current + 1);
+  const goBack = () => {
+    setIndex((current) => Math.max(0, current - 1));
   };
 
   return (
@@ -75,80 +247,622 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      <View style={styles.brandRow}>
-        <View style={styles.brandLeft}>
+      <View style={styles.topBar}>
+        <View style={styles.brandRow}>
           <View style={styles.logoMark}>
-            <FileScan color={colors.heroText} size={20} />
+            <Sparkles color={colors.heroText} size={18} />
           </View>
-          <Text style={styles.brand}>Study Planner: Syllabus AI</Text>
+          <View>
+            <Text style={styles.brandKicker}>StudyPlanner</Text>
+            <Text style={styles.brandTitle}>Semester command center</Text>
+          </View>
         </View>
-        <ModeToggle />
+        <TouchableOpacity accessibilityRole="button" style={styles.skipButton} onPress={onFinish}>
+          <Text style={styles.skipText}>Skip</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.hero}>
-        <View style={styles.iconMark}>
-          <Icon color={colors.heroText} size={30} />
+        <View pointerEvents="none" style={styles.heroBandOne} />
+        <View pointerEvents="none" style={styles.heroBandTwo} />
+        <View style={styles.stepBadge}>
+          <View style={styles.stepIcon}>
+            <Icon color={colors.heroText} size={19} />
+          </View>
+          <Text style={styles.stepKicker}>{step.eyebrow}</Text>
+          <Text style={styles.stepCount}>{index + 1}/{onboardingSteps.length}</Text>
         </View>
-        <Badge label={slide.badge} tone={slide.badge === "Plus" ? "gold" : "blue"} />
-        <Text style={styles.title}>{slide.title}</Text>
-        <Text style={styles.copy}>{slide.copy}</Text>
-        <View style={styles.heroStats}>
-          <View style={styles.heroStat}>
-            <Text style={styles.heroStatValue}>1</Text>
-            <Text style={styles.heroStatLabel}>daily plan</Text>
-          </View>
-          <View style={styles.heroStat}>
-            <Text style={styles.heroStatValue}>4</Text>
-            <Text style={styles.heroStatLabel}>core tools</Text>
-          </View>
-          <View style={styles.heroStat}>
-            <Text style={styles.heroStatValue}>+</Text>
-            <Text style={styles.heroStatLabel}>Plus</Text>
-          </View>
-        </View>
+        <Text style={styles.title}>{step.title}</Text>
+        <Text style={styles.copy}>{step.copy}</Text>
+        <StepProgress activeIndex={index} />
       </View>
 
-      <View style={styles.flowPanel}>
-        {flowSteps.map(([title, text], stepIndex) => (
-          <View key={title} style={styles.flowRow}>
-            <View style={styles.flowNumber}>
-              <Text style={styles.flowNumberText}>{stepIndex + 1}</Text>
-            </View>
-            <View style={styles.flowCopy}>
-              <Text style={styles.flowTitle}>{title}</Text>
-              <Text style={styles.flowText}>{text}</Text>
-            </View>
-          </View>
-        ))}
-      </View>
+      <FeaturePreview
+        id={step.id}
+        motion={motion}
+        widgetFocus={widgetFocus}
+        widgetSnapshot={widgetSnapshot}
+        widgetStyle={widgetStyle}
+        widgetStyleId={widgetStyleId}
+        onWidgetFocusChange={setWidgetFocus}
+        onWidgetStyleChange={setWidgetStyleId}
+        paletteId={paletteId}
+        palettes={palettes}
+        onPaletteChange={setPalette}
+      />
 
-      <View style={styles.footerPanel}>
-        <View style={styles.dots} accessibilityRole="progressbar">
-          {slides.map((item, dotIndex) => (
-            <View
-              key={item.title}
-              style={[styles.dot, dotIndex === index ? styles.dotActive : null]}
-            />
-          ))}
-        </View>
-        <AppButton
-          label={isFinal ? "Continue" : "Next"}
-          icon={ChevronRight}
-          onPress={continueOnboarding}
-        />
-      </View>
-
-      <View style={styles.promiseRow}>
-        <Text style={styles.promise}>No ads</Text>
-        <Text style={styles.promise}>Editable planner</Text>
-        <Text style={styles.promise}>Private by default</Text>
+      <View style={styles.footer}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          disabled={index === 0}
+          style={[styles.backButton, index === 0 ? styles.backButtonDisabled : null]}
+          onPress={goBack}
+        >
+          <ChevronLeft color={index === 0 ? colors.faint : colors.ink} size={18} />
+          <Text style={[styles.backText, index === 0 ? styles.backTextDisabled : null]}>Back</Text>
+        </TouchableOpacity>
+        <TouchableOpacity accessibilityRole="button" style={styles.nextButton} onPress={goNext}>
+          <Text style={styles.nextText}>{isFinal ? "Enter StudyPlanner" : "Next"}</Text>
+          <ChevronRight color={colors.heroText} size={18} />
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
 }
 
+function FeaturePreview({
+  id,
+  motion,
+  widgetFocus,
+  widgetSnapshot,
+  widgetStyle,
+  widgetStyleId,
+  onWidgetFocusChange,
+  onWidgetStyleChange,
+  paletteId,
+  palettes,
+  onPaletteChange
+}: {
+  id: OnboardingStepId;
+  motion: Animated.Value;
+  widgetFocus: WidgetFocusId;
+  widgetSnapshot: ReturnType<typeof WidgetSnapshotService.build>;
+  widgetStyle: ReturnType<typeof createWidgetStyleSnapshot>;
+  widgetStyleId: WidgetStylePresetId;
+  onWidgetFocusChange: (focus: WidgetFocusId) => void;
+  onWidgetStyleChange: (styleId: WidgetStylePresetId) => void;
+  paletteId: ThemePaletteId;
+  palettes: ReturnType<typeof useAppTheme>["palettes"];
+  onPaletteChange: (paletteId: ThemePaletteId) => void;
+}) {
+  if (id === "review") return <ReviewInboxPreview motion={motion} />;
+  if (id === "calendar") return <CalendarFillPreview motion={motion} />;
+  if (id === "today") return <TodayCommandPreview motion={motion} />;
+  if (id === "widgets") {
+    return (
+      <WidgetCustomizationPreview
+        motion={motion}
+        snapshot={widgetSnapshot}
+        widgetFocus={widgetFocus}
+        widgetStyle={widgetStyle}
+        widgetStyleId={widgetStyleId}
+        onWidgetFocusChange={onWidgetFocusChange}
+        onWidgetStyleChange={onWidgetStyleChange}
+      />
+    );
+  }
+  if (id === "palette") {
+    return (
+      <PaletteSelectorPreview
+        paletteId={paletteId}
+        palettes={palettes}
+        onPaletteChange={onPaletteChange}
+      />
+    );
+  }
+  return <SyllabusToPlanPreview motion={motion} />;
+}
+
+function SyllabusToPlanPreview({ motion }: { motion: Animated.Value }) {
+  const { theme } = useAppTheme();
+  const { colors } = theme;
+  const styles = createStyles(theme);
+  const extractedOpacity = motion.interpolate({ inputRange: [0, 0.45, 1], outputRange: [0.18, 1, 1] });
+  const extractedShift = motion.interpolate({ inputRange: [0, 1], outputRange: [24, 0] });
+
+  return (
+    <GlassCard style={styles.previewCard}>
+      <View pointerEvents="none" style={styles.previewBand} />
+      <View style={styles.previewHeader}>
+        <View style={styles.previewIcon}>
+          <FileScan color={colors.heroText} size={18} />
+        </View>
+        <View style={styles.previewCopy}>
+          <Text style={styles.previewKicker}>Upload flow</Text>
+          <Text style={styles.previewTitle}>Messy syllabus to clean plan</Text>
+        </View>
+        <StatusBadge label="Private" tone="green" />
+      </View>
+      <View style={styles.scanStage}>
+        <View style={styles.syllabusPage}>
+          <Text style={styles.syllabusTitle}>BIO 101 schedule</Text>
+          {[0, 1, 2, 3, 4].map((line) => (
+            <View key={line} style={[styles.syllabusLine, { width: `${86 - line * 9}%` as `${number}%` }]} />
+          ))}
+          <Animated.View
+            style={[
+              styles.scanBeam,
+              {
+                transform: [
+                  {
+                    translateY: motion.interpolate({ inputRange: [0, 1], outputRange: [-2, 92] })
+                  }
+                ]
+              }
+            ]}
+          />
+        </View>
+        <Animated.View
+          style={[
+            styles.extractedPanel,
+            { opacity: extractedOpacity, transform: [{ translateX: extractedShift }] }
+          ]}
+        >
+          <ExtractedRow color={previewCourses[0]!.color} title="Lab Report #2" meta="Mar 11 - assignment" />
+          <ExtractedRow color={previewCourses[1]!.color} title="Midterm Exam" meta="Mar 20 - exam" />
+          <ExtractedRow color={previewCourses[2]!.color} title="Reading Response" meta="Mar 12 - reading" />
+        </Animated.View>
+      </View>
+    </GlassCard>
+  );
+}
+
+function ReviewInboxPreview({ motion }: { motion: Animated.Value }) {
+  const { theme } = useAppTheme();
+  const { colors } = theme;
+  const styles = createStyles(theme);
+  const rows = [
+    ["Lab Report #2", "BIO 101 - high confidence", previewCourses[0]!.color],
+    ["Midterm Exam", "CALC II - needs date check", previewCourses[1]!.color],
+    ["Reading Response", "WRIT 201 - accepted", previewCourses[2]!.color]
+  ] as const;
+
+  return (
+    <GlassCard style={styles.previewCard}>
+      <View style={styles.reviewHero}>
+        <View style={styles.reviewIcon}>
+          <CheckCircle2 color={colors.heroText} size={18} />
+        </View>
+        <View style={styles.previewCopy}>
+          <Text style={styles.previewKicker}>Review Inbox</Text>
+          <Text style={styles.previewTitle}>Approve with confidence</Text>
+          <Text style={styles.previewMeta}>Nothing reaches Today, Calendar, or widgets until you say yes.</Text>
+        </View>
+      </View>
+      <View style={styles.reviewRows}>
+        {rows.map(([title, meta, color], index) => (
+          <Animated.View
+            key={title}
+            style={[
+              styles.reviewRow,
+              {
+                opacity: motion.interpolate({
+                  inputRange: [0, 0.2 + index * 0.14, 1],
+                  outputRange: [0.35, 1, 1]
+                }),
+                transform: [
+                  {
+                    translateX: motion.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [26 - index * 5, 0]
+                    })
+                  }
+                ]
+              }
+            ]}
+          >
+            <View style={[styles.courseDot, { backgroundColor: color }]} />
+            <View style={styles.reviewCopy}>
+              <Text style={styles.rowTitle}>{title}</Text>
+              <Text style={styles.rowMeta}>{meta}</Text>
+            </View>
+            <View style={styles.reviewChips}>
+              <Text style={styles.acceptChip}>Accept</Text>
+              <Text style={styles.editChip}>Edit</Text>
+            </View>
+          </Animated.View>
+        ))}
+      </View>
+    </GlassCard>
+  );
+}
+
+function CalendarFillPreview({ motion }: { motion: Animated.Value }) {
+  const { theme } = useAppTheme();
+  const { colors } = theme;
+  const styles = createStyles(theme);
+  const activeScale = motion.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1.04] });
+  const dotDays = new Map([
+    [3, [previewCourses[0]!.color]],
+    [5, [previewCourses[1]!.color]],
+    [10, [previewCourses[0]!.color, previewCourses[1]!.color]],
+    [11, [previewCourses[0]!.color]],
+    [12, [previewCourses[2]!.color]],
+    [14, [previewCourses[0]!.color]],
+    [20, [previewCourses[1]!.color]]
+  ]);
+
+  return (
+    <GlassCard style={styles.previewCard}>
+      <View style={styles.previewHeader}>
+        <View style={styles.previewIcon}>
+          <CalendarRange color={colors.heroText} size={18} />
+        </View>
+        <View style={styles.previewCopy}>
+          <Text style={styles.previewKicker}>March 2025</Text>
+          <Text style={styles.previewTitle}>Month grid plus week pressure</Text>
+        </View>
+        <StatusBadge label="2 heavy days" tone="gold" />
+      </View>
+      <View style={styles.calendarPreviewGrid}>
+        {Array.from({ length: 21 }, (_, dayIndex) => {
+          const dayNumber = dayIndex + 1;
+          const isToday = dayNumber === 10;
+          const isExam = dayNumber === 20;
+          return (
+            <Animated.View
+              key={dayNumber}
+              style={[
+                styles.calendarDay,
+                isToday ? styles.calendarDayToday : null,
+                isExam ? styles.calendarDayExam : null,
+                isToday ? { transform: [{ scale: activeScale }] } : null
+              ]}
+            >
+              <Text style={[styles.calendarDayText, isToday ? styles.calendarDayTextActive : null]}>
+                {dayNumber}
+              </Text>
+              <View style={styles.calendarDots}>
+                {(dotDays.get(dayNumber) || []).map((color, index) => (
+                  <Animated.View
+                    key={`${dayNumber}-${color}-${index}`}
+                    style={[
+                      styles.calendarDot,
+                      {
+                        backgroundColor: color,
+                        opacity: motion.interpolate({
+                          inputRange: [0, 0.2 + index * 0.2, 1],
+                          outputRange: [0, 1, 1]
+                        })
+                      }
+                    ]}
+                  />
+                ))}
+              </View>
+            </Animated.View>
+          );
+        })}
+      </View>
+      <View style={styles.weekPreview}>
+        {[3, 1, 1, 0, 1, 0, 0].map((value, index) => (
+          <View key={`${value}-${index}`} style={styles.weekTrack}>
+            <Animated.View
+              style={[
+                styles.weekFill,
+                {
+                  height: `${Math.max(10, value * 30)}%` as `${number}%`,
+                  opacity: motion.interpolate({ inputRange: [0, 1], outputRange: [0.52, 1] })
+                }
+              ]}
+            />
+          </View>
+        ))}
+      </View>
+    </GlassCard>
+  );
+}
+
+function TodayCommandPreview({ motion }: { motion: Animated.Value }) {
+  const { theme } = useAppTheme();
+  const { colors } = theme;
+  const styles = createStyles(theme);
+
+  return (
+    <GlassCard style={styles.previewCard}>
+      <View style={styles.todayHero}>
+        <View pointerEvents="none" style={styles.todayBand} />
+        <View style={styles.previewHeader}>
+          <View style={styles.previewIcon}>
+            <Target color={colors.heroText} size={18} />
+          </View>
+          <View style={styles.previewCopy}>
+            <Text style={styles.previewKicker}>Next Due</Text>
+            <Text style={styles.todayTitle}>Problem Set 4</Text>
+            <Text style={styles.todayMeta}>CALC II - Today at 5:00 PM</Text>
+          </View>
+          <StatusBadge label="Today" tone="gold" />
+        </View>
+        <View style={styles.todayActions}>
+          <View style={styles.secondaryAction}><Text style={styles.actionText}>Start</Text></View>
+          <Animated.View
+            style={[
+              styles.primaryAction,
+              {
+                transform: [
+                  {
+                    scale: motion.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] })
+                  }
+                ]
+              }
+            ]}
+          >
+            <Text style={styles.primaryActionText}>Complete</Text>
+          </Animated.View>
+        </View>
+      </View>
+      <View style={styles.metricRow}>
+        <MetricPill label="Due Today" value="3" tone="purple" />
+        <MetricPill label="Due Week" value="6" tone="blue" />
+        <MetricPill label="Inbox" value="7" tone="gold" />
+      </View>
+      <View style={styles.insightMini}>
+        <Flame color={colors.coral} size={18} />
+        <View style={styles.previewCopy}>
+          <Text style={styles.rowTitle}>Heavy week ahead</Text>
+          <Text style={styles.rowMeta}>Calendar pressure and widgets update together.</Text>
+        </View>
+      </View>
+    </GlassCard>
+  );
+}
+
+function WidgetCustomizationPreview({
+  motion,
+  snapshot,
+  widgetFocus,
+  widgetStyle,
+  widgetStyleId,
+  onWidgetFocusChange,
+  onWidgetStyleChange
+}: {
+  motion: Animated.Value;
+  snapshot: ReturnType<typeof WidgetSnapshotService.build>;
+  widgetFocus: WidgetFocusId;
+  widgetStyle: ReturnType<typeof createWidgetStyleSnapshot>;
+  widgetStyleId: WidgetStylePresetId;
+  onWidgetFocusChange: (focus: WidgetFocusId) => void;
+  onWidgetStyleChange: (styleId: WidgetStylePresetId) => void;
+}) {
+  const { theme } = useAppTheme();
+  const { colors } = theme;
+  const styles = createStyles(theme);
+
+  return (
+    <GlassCard style={styles.widgetPreviewShell}>
+      <View pointerEvents="none" style={styles.widgetShellBand} />
+      <View style={styles.previewHeader}>
+        <View style={styles.previewIcon}>
+          <Crown color={colors.heroText} size={18} />
+        </View>
+        <View style={styles.previewCopy}>
+          <Text style={styles.widgetPreviewKicker}>Widget Studio</Text>
+          <Text style={styles.widgetPreviewTitle}>Deadlines stay visible on your Home Screen.</Text>
+        </View>
+      </View>
+
+      <View style={styles.chipWrap}>
+        {onboardingWidgetStyles.map((styleId) => {
+          const preset = widgetStylePresets.find((item) => item.id === styleId)!;
+          const active = widgetStyleId === styleId;
+          return (
+            <TouchableOpacity
+              key={styleId}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              style={[styles.widgetStyleChip, active ? styles.widgetStyleChipActive : null]}
+              onPress={() => onWidgetStyleChange(styleId)}
+            >
+              <View style={[styles.styleSwatch, { backgroundColor: preset.accent }]} />
+              <Text style={[styles.widgetChipText, active ? styles.widgetChipTextActive : null]}>
+                {preset.name}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      <View style={styles.chipWrap}>
+        {widgetFocusOptions.map((focus) => {
+          const active = widgetFocus === focus.id;
+          return (
+            <TouchableOpacity
+              key={focus.id}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              style={[styles.focusChip, active ? styles.focusChipActive : null]}
+              onPress={() => onWidgetFocusChange(focus.id)}
+            >
+              <Text style={[styles.focusChipText, active ? styles.focusChipTextActive : null]}>
+                {focus.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      <Animated.View
+        style={[
+          styles.widgetHeroPreview,
+          {
+            transform: [
+              {
+                translateY: motion.interpolate({ inputRange: [0, 1], outputRange: [10, 0] })
+              }
+            ]
+          }
+        ]}
+      >
+        {widgetFocus === "nextDue" ? (
+          <WidgetPreviewSmall snapshot={snapshot} widgetStyle={widgetStyle} />
+        ) : widgetFocus === "thisWeek" ? (
+          <WidgetPreviewMedium snapshot={snapshot} widgetStyle={widgetStyle} />
+        ) : widgetFocus === "heavyWeek" ? (
+          <WidgetPreviewHeavyWeek snapshot={snapshot} widgetStyle={widgetStyle} />
+        ) : (
+          <WidgetPreviewMonthly snapshot={snapshot} widgetStyle={widgetStyle} />
+        )}
+      </Animated.View>
+
+      <View style={styles.widgetConceptRow}>
+        <View style={styles.widgetConcept}>
+          <Text style={styles.conceptLabel}>Small</Text>
+          <Text style={styles.conceptValue}>Next Due</Text>
+        </View>
+        <View style={styles.widgetConcept}>
+          <Text style={styles.conceptLabel}>Medium</Text>
+          <Text style={styles.conceptValue}>This Week</Text>
+        </View>
+        <View style={styles.widgetConcept}>
+          <Text style={styles.conceptLabel}>Lock</Text>
+          <Text style={styles.conceptValue}>Countdown</Text>
+        </View>
+      </View>
+      <LockWidgetPreview snapshot={snapshot} widgetStyle={widgetStyle} />
+    </GlassCard>
+  );
+}
+
+function PaletteSelectorPreview({
+  paletteId,
+  palettes,
+  onPaletteChange
+}: {
+  paletteId: ThemePaletteId;
+  palettes: ReturnType<typeof useAppTheme>["palettes"];
+  onPaletteChange: (paletteId: ThemePaletteId) => void;
+}) {
+  const { theme } = useAppTheme();
+  const { colors } = theme;
+  const styles = createStyles(theme);
+  const activePalette = palettes.find((palette) => palette.id === paletteId) || palettes[0]!;
+
+  return (
+    <GlassCard style={styles.previewCard}>
+      <View style={styles.paletteHero}>
+        <View style={[styles.paletteOrb, { backgroundColor: activePalette.accent }]} />
+        <View style={[styles.paletteOrbTwo, { backgroundColor: activePalette.secondary }]} />
+        <Text style={styles.paletteTitle}>{activePalette.name}</Text>
+        <Text style={styles.paletteMeta}>Your selection is saved as the app palette.</Text>
+      </View>
+      <View style={styles.paletteGrid}>
+        {palettes.map((palette) => {
+          const active = palette.id === paletteId;
+          return (
+            <TouchableOpacity
+              key={palette.id}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              activeOpacity={0.86}
+              style={[styles.paletteChoice, active ? styles.paletteChoiceActive : null]}
+              onPress={() => onPaletteChange(palette.id)}
+            >
+              <View style={styles.paletteSwatches}>
+                <View style={[styles.paletteSwatch, { backgroundColor: palette.accent }]} />
+                <View style={[styles.paletteSwatch, { backgroundColor: palette.secondary }]} />
+                <View style={[styles.paletteSwatch, { backgroundColor: palette.tertiary }]} />
+              </View>
+              <Text style={[styles.paletteName, active ? styles.paletteNameActive : null]}>
+                {palette.shortName}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      <View style={styles.readyPanel}>
+        <Sparkles color={colors.brandPurple} size={18} />
+        <View style={styles.previewCopy}>
+          <Text style={styles.rowTitle}>Ready when you are</Text>
+          <Text style={styles.rowMeta}>Start with an empty planner, then scan a syllabus or add courses manually.</Text>
+        </View>
+      </View>
+    </GlassCard>
+  );
+}
+
+function StepProgress({ activeIndex }: { activeIndex: number }) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.progressRow}>
+      {onboardingSteps.map((step, index) => (
+        <View
+          key={step.id}
+          style={[
+            styles.progressDot,
+            index <= activeIndex ? styles.progressDotActive : null,
+            index === activeIndex ? styles.progressDotCurrent : null
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
+function ExtractedRow({ color, title, meta }: { color: string; title: string; meta: string }) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.extractedRow}>
+      <View style={[styles.courseDot, { backgroundColor: color }]} />
+      <View style={styles.previewCopy}>
+        <Text style={styles.rowTitle}>{title}</Text>
+        <Text style={styles.rowMeta}>{meta}</Text>
+      </View>
+    </View>
+  );
+}
+
+function previewAssignment(
+  id: string,
+  courseId: string,
+  courseName: string,
+  title: string,
+  dueAt: string,
+  type: Assignment["type"],
+  priority: Assignment["priority"]
+): Assignment {
+  return {
+    id,
+    courseId,
+    courseName,
+    title,
+    type,
+    kind: type,
+    dueAt,
+    sourceText: `${title} due ${dueAt}`,
+    confidence: priority === "high" ? 0.96 : 0.87,
+    reviewStatus: "needsReview",
+    completionStatus: "open",
+    reminderPreset: "day_before",
+    createdAt: "2025-03-01T12:00:00-04:00",
+    updatedAt: "2025-03-01T12:00:00-04:00",
+    tags: ["onboarding-preview"],
+    priority,
+    estimatedMinutes: type === "exam" ? 180 : 75,
+    status: "not_started",
+    source: "demo"
+  };
+}
+
+function clampStep(step: number) {
+  if (!Number.isFinite(step)) return 0;
+  return Math.max(0, Math.min(onboardingSteps.length - 1, Math.floor(step)));
+}
+
 function createStyles(theme: AppTheme) {
-  const { colors, radii, spacing, typography } = theme;
+  const { colors, radii, spacing } = theme;
 
   return StyleSheet.create({
     screen: {
@@ -157,165 +871,721 @@ function createStyles(theme: AppTheme) {
     },
     content: {
       padding: spacing.lg,
-      paddingBottom: spacing.xxl,
-      gap: spacing.lg
+      paddingBottom: 40,
+      gap: spacing.md
     },
-    brandRow: {
+    topBar: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       gap: spacing.sm
     },
-    brandLeft: {
+    brandRow: {
       flex: 1,
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.sm
     },
     logoMark: {
-      width: 40,
-      height: 40,
-      borderRadius: radii.lg,
-      backgroundColor: colors.accent,
+      width: 42,
+      height: 42,
+      borderRadius: 15,
       alignItems: "center",
       justifyContent: "center",
-      shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.32 : 0.14,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 7 },
+      backgroundColor: colors.brandPurple,
+      shadowColor: colors.brandPurple,
+      shadowOpacity: 0.24,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 8 },
       elevation: 4
     },
-    brand: {
-      flex: 1,
+    brandKicker: {
+      color: colors.brandPurple,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    brandTitle: {
       color: colors.ink,
       fontSize: 15,
+      lineHeight: 20,
+      fontWeight: "900"
+    },
+    skipButton: {
+      borderRadius: radii.round,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.xs,
+      backgroundColor: colors.surfaceAlt,
+      borderWidth: 1,
+      borderColor: colors.line
+    },
+    skipText: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 16,
       fontWeight: "900"
     },
     hero: {
-      gap: spacing.md,
-      borderRadius: radii.xl,
-      backgroundColor: colors.heroSurface,
+      position: "relative",
+      overflow: "hidden",
+      minHeight: 238,
+      borderRadius: 31,
       padding: spacing.lg,
-      borderWidth: theme.isDark ? 0 : 1,
-      borderColor: colors.line
-    },
-    iconMark: {
-      width: 62,
-      height: 62,
-      borderRadius: radii.lg,
-      backgroundColor: theme.isDark ? "rgba(7,17,29,0.12)" : "rgba(255,255,255,0.1)",
+      gap: spacing.sm,
+      backgroundColor: colors.heroSurface,
       borderWidth: 1,
-      borderColor: theme.isDark ? "rgba(7,17,29,0.18)" : "rgba(255,255,255,0.16)",
-      alignItems: "center",
-      justifyContent: "center"
+      borderColor: "rgba(255,255,255,0.14)",
+      shadowColor: colors.brandPurple,
+      shadowOpacity: 0.25,
+      shadowRadius: 28,
+      shadowOffset: { width: 0, height: 16 },
+      elevation: 8
     },
-    title: {
-      ...typography.hero,
-      color: colors.heroText
+    heroBandOne: {
+      position: "absolute",
+      top: -42,
+      right: -54,
+      width: 230,
+      height: 116,
+      borderRadius: 42,
+      backgroundColor: `${colors.brandBlue}55`,
+      transform: [{ rotate: "24deg" }]
     },
-    copy: {
-      ...typography.body,
-      color: colors.heroMuted
+    heroBandTwo: {
+      position: "absolute",
+      bottom: -46,
+      left: -52,
+      width: 220,
+      height: 98,
+      borderRadius: 38,
+      backgroundColor: `${colors.brandCoral}42`,
+      transform: [{ rotate: "-18deg" }]
     },
-    heroStats: {
+    stepBadge: {
       flexDirection: "row",
-      gap: spacing.sm
+      alignItems: "center",
+      gap: spacing.xs
     },
-    heroStat: {
+    stepIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.brandPurple
+    },
+    stepKicker: {
       flex: 1,
-      minHeight: 74,
-      borderRadius: radii.lg,
-      backgroundColor: theme.isDark ? "rgba(7,17,29,0.12)" : "rgba(255,255,255,0.1)",
-      borderWidth: 1,
-      borderColor: theme.isDark ? "rgba(7,17,29,0.18)" : "rgba(255,255,255,0.16)",
-      padding: spacing.sm,
-      justifyContent: "center"
-    },
-    heroStatValue: {
-      color: colors.heroText,
-      fontSize: 22,
-      lineHeight: 27,
-      fontWeight: "900"
-    },
-    heroStatLabel: {
-      color: colors.heroMuted,
+      color: colors.widgetAccent,
       fontSize: 11,
       lineHeight: 15,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    stepCount: {
+      color: colors.heroMuted,
+      fontSize: 12,
+      lineHeight: 16,
       fontWeight: "900"
     },
-    flowPanel: {
-      borderRadius: radii.xl,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.lg,
-      gap: spacing.md
-    },
-    flowRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.md
-    },
-    flowNumber: {
-      width: 34,
-      height: 34,
-      borderRadius: 17,
-      backgroundColor: colors.accent,
-      alignItems: "center",
-      justifyContent: "center"
-    },
-    flowNumberText: {
+    title: {
       color: colors.heroText,
+      fontSize: 33,
+      lineHeight: 38,
+      fontWeight: "900"
+    },
+    copy: {
+      color: colors.heroMuted,
       fontSize: 14,
-      fontWeight: "900"
-    },
-    flowCopy: {
-      flex: 1
-    },
-    flowTitle: {
-      color: colors.ink,
-      fontSize: 16,
       lineHeight: 21,
-      fontWeight: "900"
+      fontWeight: "700"
     },
-    flowText: {
-      ...typography.small,
-      color: colors.muted
-    },
-    footerPanel: {
-      borderRadius: radii.xl,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.lg,
-      gap: spacing.md
-    },
-    dots: {
+    progressRow: {
       flexDirection: "row",
-      gap: spacing.xs,
       alignItems: "center",
-      justifyContent: "center"
+      gap: 7,
+      marginTop: "auto"
     },
-    dot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: colors.line
+    progressDot: {
+      flex: 1,
+      height: 6,
+      borderRadius: radii.round,
+      backgroundColor: "rgba(255,255,255,0.16)"
     },
-    dotActive: {
-      width: 24,
-      backgroundColor: colors.accent
+    progressDotActive: {
+      backgroundColor: "rgba(183,167,255,0.72)"
     },
-    promiseRow: {
+    progressDotCurrent: {
+      backgroundColor: colors.widgetAccent
+    },
+    previewCard: {
+      position: "relative",
+      overflow: "hidden",
+      gap: spacing.md,
+      borderRadius: 28
+    },
+    previewBand: {
+      position: "absolute",
+      top: -36,
+      right: -42,
+      width: 190,
+      height: 86,
+      borderRadius: 30,
+      backgroundColor: `${colors.brandBlue}26`,
+      transform: [{ rotate: "22deg" }]
+    },
+    previewHeader: {
       flexDirection: "row",
-      justifyContent: "center",
-      flexWrap: "wrap",
+      alignItems: "center",
       gap: spacing.sm
     },
-    promise: {
-      color: colors.faint,
+    previewIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: 13,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.brandPurple
+    },
+    previewCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    previewKicker: {
+      color: colors.brandPurple,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    previewTitle: {
+      color: colors.ink,
+      fontSize: 18,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    previewMeta: {
+      color: colors.muted,
       fontSize: 12,
       lineHeight: 17,
+      fontWeight: "700"
+    },
+    scanStage: {
+      flexDirection: "row",
+      gap: spacing.sm,
+      alignItems: "stretch"
+    },
+    syllabusPage: {
+      flex: 1,
+      minHeight: 190,
+      borderRadius: 24,
+      padding: spacing.md,
+      gap: spacing.sm,
+      overflow: "hidden",
+      backgroundColor: colors.surfaceAlt,
+      borderWidth: 1,
+      borderColor: colors.line
+    },
+    syllabusTitle: {
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "900"
+    },
+    syllabusLine: {
+      height: 9,
+      borderRadius: 5,
+      backgroundColor: colors.lineStrong
+    },
+    scanBeam: {
+      position: "absolute",
+      left: spacing.sm,
+      right: spacing.sm,
+      top: 54,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: `${colors.brandPurple}38`
+    },
+    extractedPanel: {
+      flex: 1,
+      minHeight: 190,
+      borderRadius: 24,
+      padding: spacing.sm,
+      gap: spacing.xs,
+      backgroundColor: colors.heroSurface
+    },
+    extractedRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
+      borderRadius: 15,
+      padding: spacing.xs,
+      backgroundColor: "rgba(255,255,255,0.12)"
+    },
+    courseDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5
+    },
+    rowTitle: {
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    rowMeta: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "700"
+    },
+    reviewHero: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      borderRadius: 24,
+      padding: spacing.md,
+      backgroundColor: colors.heroSurface,
+      overflow: "hidden"
+    },
+    reviewIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.brandPurple
+    },
+    reviewRows: {
+      gap: spacing.xs
+    },
+    reviewRow: {
+      minHeight: 72,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      borderRadius: 20,
+      padding: spacing.sm,
+      backgroundColor: colors.surfaceAlt,
+      borderWidth: 1,
+      borderColor: colors.line
+    },
+    reviewCopy: {
+      flex: 1,
+      minWidth: 0
+    },
+    reviewChips: {
+      gap: 5,
+      alignItems: "flex-end"
+    },
+    acceptChip: {
+      overflow: "hidden",
+      borderRadius: radii.round,
+      paddingHorizontal: spacing.xs,
+      paddingVertical: 4,
+      color: colors.green,
+      backgroundColor: colors.mint,
+      fontSize: 10,
+      fontWeight: "900"
+    },
+    editChip: {
+      overflow: "hidden",
+      borderRadius: radii.round,
+      paddingHorizontal: spacing.xs,
+      paddingVertical: 4,
+      color: colors.brandPurple,
+      backgroundColor: colors.purpleSoft,
+      fontSize: 10,
+      fontWeight: "900"
+    },
+    calendarPreviewGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 7
+    },
+    calendarDay: {
+      width: "12.9%",
+      minHeight: 46,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 3
+    },
+    calendarDayToday: {
+      backgroundColor: colors.brandPurple,
+      borderColor: colors.brandPurple
+    },
+    calendarDayExam: {
+      borderColor: `${colors.brandCoral}77`
+    },
+    calendarDayText: {
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    calendarDayTextActive: {
+      color: colors.heroText
+    },
+    calendarDots: {
+      minHeight: 5,
+      flexDirection: "row",
+      gap: 2
+    },
+    calendarDot: {
+      width: 5,
+      height: 5,
+      borderRadius: 3
+    },
+    weekPreview: {
+      height: 72,
+      flexDirection: "row",
+      alignItems: "flex-end",
+      gap: spacing.xs
+    },
+    weekTrack: {
+      flex: 1,
+      height: "100%",
+      borderRadius: radii.round,
+      backgroundColor: colors.graphTrack,
+      justifyContent: "flex-end",
+      overflow: "hidden"
+    },
+    weekFill: {
+      width: "100%",
+      borderRadius: radii.round,
+      backgroundColor: colors.brandPurple
+    },
+    todayHero: {
+      position: "relative",
+      overflow: "hidden",
+      borderRadius: 24,
+      padding: spacing.md,
+      gap: spacing.md,
+      backgroundColor: colors.heroSurface
+    },
+    todayBand: {
+      position: "absolute",
+      top: -24,
+      right: -40,
+      width: 180,
+      height: 82,
+      borderRadius: 28,
+      backgroundColor: `${colors.brandBlue}62`,
+      transform: [{ rotate: "22deg" }]
+    },
+    todayTitle: {
+      color: colors.heroText,
+      fontSize: 20,
+      lineHeight: 25,
+      fontWeight: "900"
+    },
+    todayMeta: {
+      color: colors.heroMuted,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "800"
+    },
+    todayActions: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    secondaryAction: {
+      flex: 1,
+      minHeight: 44,
+      borderRadius: radii.round,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.28)",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "rgba(255,255,255,0.14)"
+    },
+    primaryAction: {
+      flex: 1,
+      minHeight: 44,
+      borderRadius: radii.round,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.brandCoral
+    },
+    actionText: {
+      color: colors.heroText,
+      fontSize: 12,
+      fontWeight: "900"
+    },
+    primaryActionText: {
+      color: colors.heroText,
+      fontSize: 12,
+      fontWeight: "900"
+    },
+    metricRow: {
+      flexDirection: "row",
+      gap: spacing.xs
+    },
+    insightMini: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: "rgba(245,158,11,0.28)",
+      backgroundColor: colors.warningSurface,
+      padding: spacing.sm
+    },
+    widgetPreviewShell: {
+      position: "relative",
+      overflow: "hidden",
+      gap: spacing.md,
+      backgroundColor: colors.heroSurface,
+      borderColor: "rgba(255,255,255,0.14)"
+    },
+    widgetShellBand: {
+      position: "absolute",
+      top: -48,
+      right: -60,
+      width: 240,
+      height: 115,
+      borderRadius: 42,
+      backgroundColor: `${colors.brandBlue}4D`,
+      transform: [{ rotate: "24deg" }]
+    },
+    widgetPreviewKicker: {
+      color: colors.widgetAccent,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    widgetPreviewTitle: {
+      color: colors.heroText,
+      fontSize: 18,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    chipWrap: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    widgetStyleChip: {
+      minHeight: 34,
+      borderRadius: radii.round,
+      paddingHorizontal: spacing.xs,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      backgroundColor: "rgba(255,255,255,0.13)",
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.12)"
+    },
+    widgetStyleChipActive: {
+      backgroundColor: "rgba(255,255,255,0.88)"
+    },
+    styleSwatch: {
+      width: 12,
+      height: 12,
+      borderRadius: 6
+    },
+    widgetChipText: {
+      color: colors.heroMuted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    widgetChipTextActive: {
+      color: colors.ink
+    },
+    focusChip: {
+      minHeight: 34,
+      borderRadius: radii.round,
+      paddingHorizontal: spacing.sm,
+      justifyContent: "center",
+      backgroundColor: "rgba(255,255,255,0.13)",
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.12)"
+    },
+    focusChipActive: {
+      backgroundColor: colors.brandPurple,
+      borderColor: colors.brandPurple
+    },
+    focusChipText: {
+      color: colors.heroMuted,
+      fontSize: 11,
+      fontWeight: "900"
+    },
+    focusChipTextActive: {
+      color: colors.heroText
+    },
+    widgetHeroPreview: {
+      zIndex: 1
+    },
+    widgetConceptRow: {
+      flexDirection: "row",
+      gap: spacing.xs
+    },
+    widgetConcept: {
+      flex: 1,
+      minHeight: 58,
+      borderRadius: 18,
+      padding: spacing.xs,
+      backgroundColor: "rgba(255,255,255,0.13)",
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.12)"
+    },
+    conceptLabel: {
+      color: colors.heroMuted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    conceptValue: {
+      color: colors.heroText,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
+    },
+    paletteHero: {
+      position: "relative",
+      minHeight: 154,
+      borderRadius: 26,
+      overflow: "hidden",
+      justifyContent: "flex-end",
+      padding: spacing.md,
+      backgroundColor: colors.heroSurface
+    },
+    paletteOrb: {
+      position: "absolute",
+      top: -36,
+      right: -28,
+      width: 160,
+      height: 160,
+      borderRadius: 80,
+      opacity: 0.72
+    },
+    paletteOrbTwo: {
+      position: "absolute",
+      bottom: -54,
+      left: -38,
+      width: 180,
+      height: 180,
+      borderRadius: 90,
+      opacity: 0.46
+    },
+    paletteTitle: {
+      color: colors.heroText,
+      fontSize: 26,
+      lineHeight: 31,
+      fontWeight: "900"
+    },
+    paletteMeta: {
+      color: colors.heroMuted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "800"
+    },
+    paletteGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    paletteChoice: {
+      width: "48%",
+      minHeight: 74,
+      borderRadius: 22,
+      borderWidth: 1,
+      borderColor: colors.line,
+      padding: spacing.sm,
+      justifyContent: "space-between",
+      backgroundColor: colors.surfaceAlt
+    },
+    paletteChoiceActive: {
+      borderColor: colors.brandPurple,
+      backgroundColor: colors.purpleSoft
+    },
+    paletteSwatches: {
+      flexDirection: "row"
+    },
+    paletteSwatch: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      marginRight: -6,
+      borderWidth: 2,
+      borderColor: colors.surface
+    },
+    paletteName: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    paletteNameActive: {
+      color: colors.brandPurple
+    },
+    readyPanel: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: colors.line,
+      padding: spacing.sm,
+      backgroundColor: colors.surfaceAlt
+    },
+    footer: {
+      flexDirection: "row",
+      gap: spacing.sm,
+      alignItems: "center"
+    },
+    backButton: {
+      minHeight: 54,
+      borderRadius: radii.round,
+      paddingHorizontal: spacing.md,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 4,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.line
+    },
+    backButtonDisabled: {
+      opacity: 0.48
+    },
+    backText: {
+      color: colors.ink,
+      fontSize: 13,
+      fontWeight: "900"
+    },
+    backTextDisabled: {
+      color: colors.faint
+    },
+    nextButton: {
+      flex: 1,
+      minHeight: 54,
+      borderRadius: radii.round,
+      paddingHorizontal: spacing.md,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: spacing.xs,
+      backgroundColor: colors.brandPurple,
+      shadowColor: colors.brandPurple,
+      shadowOpacity: 0.26,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 9 },
+      elevation: 5
+    },
+    nextText: {
+      color: colors.heroText,
+      fontSize: 14,
+      lineHeight: 18,
       fontWeight: "900"
     }
   });

@@ -134,7 +134,7 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
                 onPress={() => setPalette(palette.id as ThemePaletteId)}
               >
                 <View style={[styles.swatch, { backgroundColor: palette.accent }]} />
-                <Text style={[styles.chipText, paletteId === palette.id ? styles.chipTextActive : null]}>
+                <Text style={[styles.chipText, paletteId === palette.id ? styles.paletteChipTextActive : null]}>
                   {palette.shortName}
                 </Text>
               </TouchableOpacity>
@@ -484,6 +484,9 @@ function createStyles(theme: AppTheme) {
     },
     chipTextActive: {
       color: colors.heroText
+    },
+    paletteChipTextActive: {
+      color: colors.ink
     },
     swatch: {
       width: 14,

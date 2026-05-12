@@ -110,6 +110,7 @@ function AppContent() {
   const [gradeItems, setGradeItems] = useState(demoSeed?.gradeItems || defaultGradeItems);
   const [targetGradePercent, setTargetGradePercent] = useState(demoSeed?.targetGradePercent || 90);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
+  const [onboardingStep, setOnboardingStep] = useState(0);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -140,11 +141,23 @@ function AppContent() {
       if (!url || !url.includes("capture")) return;
       const match = /[?&]tab=([^&]+)/.exec(url);
       const requestedTabRaw = match?.[1] ? decodeURIComponent(match[1]) : null;
+      const stepMatch = /[?&]step=([0-9]+)/.exec(url);
+      const requestedStep = stepMatch?.[1] ? Number(stepMatch[1]) : 0;
+
+      if (requestedTabRaw === "onboarding") {
+        setSelectedAssignmentId(null);
+        setOnboardingStep(requestedStep);
+        setOnboarded(false);
+        requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: 0, animated: false }));
+        return;
+      }
+
       const requestedTab = (requestedTabRaw === "focus" ? "calendar" : requestedTabRaw) as NavTab | null;
       if (!requestedTab || !tabs.some((tab) => tab.id === requestedTab)) return;
       const scrollMatch = /[?&](?:scroll|y)=([0-9]+)/.exec(url);
       const scrollY = scrollMatch?.[1] ? Number(scrollMatch[1]) : 0;
       setSelectedAssignmentId(null);
+      setOnboarded(true);
       setActiveTab(requestedTab);
       requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: scrollY, animated: false }));
     };
@@ -451,7 +464,14 @@ function AppContent() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <StatusBar style={theme.isDark ? "light" : "dark"} />
-        <OnboardingScreen onFinish={() => setOnboarded(true)} />
+        <OnboardingScreen
+          initialStep={storeCaptureEnabled ? onboardingStep : undefined}
+          onFinish={() => {
+            setOnboardingStep(0);
+            setOnboarded(true);
+            setPaywallSeen(true);
+          }}
+        />
       </SafeAreaView>
     );
   }
