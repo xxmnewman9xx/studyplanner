@@ -35,5 +35,7 @@
 | Simulator Complete + App Group payload check | Passed | `widget-refresh-after-completion-snapshot.json` | Completing Lab Report moved nextDue to Reading Reflection, reduced This Week to 4, monthly due to 7, and completed count to 4 |
 | xcrun simctl io screenshot | Passed | `46-widget-refresh-after-completion.png` | Installed Home Screen widgets rendered the refreshed snapshot after completing Lab Report |
 | Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 26 PNGs at 1090x4302 | Re-run after widget refresh proof screenshot |
+| xcrun simctl io screenshot | Passed | `40-app-icon-home-screen.png` | Captured real simulator Home Screen app icon/widget proof |
+| Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 27 PNGs at 1090x4302 | Re-run after app icon proof screenshot |
 
 Unrun/blocked: StoreKit sandbox, widget add/edit/day-boundary refresh proof, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/Dynamic Type screen sweep, restore purchases.

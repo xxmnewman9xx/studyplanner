@@ -35,7 +35,7 @@ Starting commit: `e766ddaf17c9954ab1aaf53e09be8dbe4b6b0b8e`
 | EV-025 | Capture build | `EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE` | Capture-mode iOS build installed and responded to `studyplanner://capture` deep links | Screenshot proof | Passed |
 | EV-026 | Screenshots | `xcrun simctl openurl` + `xcrun simctl io screenshot` | 22 raw simulator PNGs captured in `artifacts/post-goal-aso-submission` | Screenshot inventory and visual proof | Partial; not App Store-size exported |
 | EV-027 | Screenshot | `artifacts/post-goal-aso-submission/38-paywall-product-load-failure.png` | Paywall showed "Purchases are unavailable"; product-loaded paywall proof remains missing | StoreKit/App Review risk | Captured failure state honestly |
-| EV-028 | Contact sheet | `artifacts/post-goal-aso-submission/45-final-contact-sheet.png` | Contact sheet generated from current 26 PNGs, 1090x4302 | Screenshot proof | Captured |
+| EV-028 | Contact sheet | `artifacts/post-goal-aso-submission/45-final-contact-sheet.png` | Contact sheet generated from current 27 PNGs, 1090x4302 | Screenshot proof | Captured |
 | EV-029 | Screenshot gap | `docs/SCREENSHOT_ASSET_INVENTORY.md` | Superseded by EV-034: native small/medium Home Screen widget screenshots are now captured; remaining widget gap is refresh-after-completion/edit proof | Widget claims and App Store screenshots | Superseded |
 | EV-030 | Accessibility fix | `src/components/PremiumUI.tsx`, `artifacts/post-goal-aso-submission/44-accessibility-large-text.png` | Premium header, command hero, metrics, warnings, progress ring, and dock labels remain readable at `accessibility-extra-extra-large` after targeted font-scale caps | Dynamic Type proof | Partial accessibility improvement |
 | EV-031 | Localization/date fix | `src/logic/dateUtils.ts`, `src/logic/semesterInsights.ts`, `tests/dateUtils.test.ts`, `tests/planner.test.ts` | Month calendar grids use locale week starts and local-day increments; tests cover Sunday, Monday, and Saturday-start locales | Localization/date proof | Partial implementation improvement |
@@ -44,6 +44,7 @@ Starting commit: `e766ddaf17c9954ab1aaf53e09be8dbe4b6b0b8e`
 | EV-034 | Widget proof | `artifacts/post-goal-aso-submission/30-small-widget-home-screen.png`, `artifacts/post-goal-aso-submission/31-medium-widget-home-screen.png` | Installed WidgetKit small and medium Home Screen widgets captured on the simulator with current May 2026 due labels | Widget claims and screenshot inventory | Fixed screenshot blocker; refresh proof still partial |
 | EV-035 | Capture data fix | `src/data/demoSemester.ts`, `tests/demoSemester.test.ts`, `tests/widgetSnapshot.test.ts`, `artifacts/post-goal-aso-submission/45-final-contact-sheet.png` | Capture/demo assignments now roll relative to the capture day; test suite passed 37/37; contact sheet regenerated from 25 PNGs | Screenshot truth and widget due-label trust | Fixed stale demo-date bug |
 | EV-036 | Widget refresh proof | Simulator Today Complete button, App Group plist extraction, `artifacts/post-goal-aso-submission/widget-refresh-after-completion-snapshot.json`, `artifacts/post-goal-aso-submission/46-widget-refresh-after-completion.png` | Completing Lab Report updated the native App Group snapshot: nextDue changed to Reading Reflection, This Week dropped from 5 to 4, monthly due dropped from 8 to 7, completed rose to 4, and the installed Home Screen widgets rendered the refreshed state | Widget refresh after planner changes | Completion refresh proven; add/edit/day-boundary still partial |
+| EV-037 | App icon proof | `artifacts/post-goal-aso-submission/40-app-icon-home-screen.png` | Real simulator Home Screen screenshot includes installed StudyPlanner app icons alongside supported widgets | App icon / screenshot inventory | Captured; not App Store-size exported |
 
 ## Open Evidence Gaps
 
@@ -57,7 +58,7 @@ Starting commit: `e766ddaf17c9954ab1aaf53e09be8dbe4b6b0b8e`
 | Accepted-size App Store screenshots | Raw simulator screenshots may not match required 6.9/6.5 sizes | Blocker for upload-ready assets | Export plan or final resized PNGs |
 | App Store Connect product status | Code preserves product IDs, but ASC status is external | Blocker for submit recommendation | ASC checklist screenshots or manual confirmation |
 | Full e2e matrix | Unit tests cover logic, not all user flows | Non-blocker if documented; blocker for 9.4 claim if untested flows remain high-risk | Simulator use-case log and screenshots |
-| Remaining raw screenshots | 26 PNGs are captured, but upload/file/photo/manual/parser/success/restore/app icon/localized states are still missing | Partial blocker for final asset package | Capture remaining supported states or document exclusions |
+| Remaining raw screenshots | 27 PNGs are captured, but upload/file/photo/manual/parser/success/restore/localized states are still missing | Partial blocker for final asset package | Capture remaining supported states or document exclusions |
 
 ## Evidence Rules For This Branch
 

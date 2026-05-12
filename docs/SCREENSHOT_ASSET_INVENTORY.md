@@ -2,17 +2,18 @@
 
 Folder: `artifacts/post-goal-aso-submission`
 
-Status: partial proof captured on 2026-05-12. The folder now contains **26 raw simulator PNGs** plus a generated contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit, iPad, and App Store-size export proof are complete.
+Status: partial proof captured on 2026-05-12. The folder now contains **27 raw simulator PNGs** plus a generated contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit, iPad, and App Store-size export proof are complete.
 
 ## Capture Summary
 
 - Production/no-demo proof captured: `06-today-empty.png`.
 - Capture-mode feature proof captured: onboarding, populated Today, Add School Stuff, Check New Work, assignment detail, Calendar, Week Plan, Classes, Widget Setup, theme customization, and paywall product-load failure.
 - Native Home Screen widget proof captured: `30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png` show installed WidgetKit small and medium widgets, refreshed from a current May 2026 capture snapshot.
+- App icon/Home Screen proof captured: `40-app-icon-home-screen.png`.
 - Accessibility proof captured: Today at `accessibility-extra-extra-large` content size after capping the most failure-prone shared display labels.
 - Widget refresh proof captured: `46-widget-refresh-after-completion.png` shows installed widgets after completing Lab Report, with the small widget moved to Reading Reflection and the medium list reduced to the remaining week items.
 - Widget refresh payload captured: `widget-refresh-after-completion-snapshot.json`.
-- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 26 PNGs.
+- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 27 PNGs.
 - Paywall products-loaded proof is still missing. The captured paywall state shows purchases unavailable and is correctly stored as `38-paywall-product-load-failure.png`.
 
 | Required PNG | Status | Notes |
@@ -57,12 +58,12 @@ Status: partial proof captured on 2026-05-12. The folder now contains **26 raw s
 | 37-paywall-products-loaded.png | Missing | StoreKit products were not loaded; do not claim this state. |
 | 38-paywall-product-load-failure.png | Captured | Real simulator paywall failure state: "Purchases are unavailable", 1179x2556 PNG. |
 | 39-restore-purchases.png | Missing | Restore flow not captured or sandbox-proven. |
-| 40-app-icon-home-screen.png | Missing | Home Screen app icon proof not captured. |
+| 40-app-icon-home-screen.png | Captured | Real simulator Home Screen showing installed StudyPlanner app icons/widgets, 1179x2556 PNG. |
 | 41-no-data-app-review-state.png | Missing | Production no-data Today is captured as `06-today-empty.png`; separate App Review state not captured. |
 | 42-sample-plan-state.png | Missing | Sample plan entry/state not separately captured. |
 | 43-localized-ui-example.png | Missing | UI localization proof not captured. |
 | 44-accessibility-large-text.png | Captured | Real simulator Today screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves the top hierarchy no longer catastrophically explodes, but full Dynamic Type/VoiceOver audit remains open. |
-| 45-final-contact-sheet.png | Captured | Generated from the 26 current PNGs, 1090x4302 PNG. |
+| 45-final-contact-sheet.png | Captured | Generated from the 27 current PNGs, 1090x4302 PNG. |
 | 46-widget-refresh-after-completion.png | Captured | Real simulator Home Screen after tapping Complete in the app. Small and medium widgets reflect the refreshed snapshot. |
 
 ## Excluded Assets
