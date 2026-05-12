@@ -211,7 +211,13 @@ export function CommandCenterHero({
 
       {assignment ? (
         <>
-          <TouchableOpacity accessibilityRole="button" activeOpacity={0.82} onPress={onOpen}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={`Open ${assignment.title}, due ${formatShortDate(assignment.dueAt)}`}
+            accessibilityHint="Opens assignment details."
+            activeOpacity={0.82}
+            onPress={onOpen}
+          >
             <Text maxFontSizeMultiplier={displayTextScale} style={styles.heroTitle} numberOfLines={2}>
               {assignment.title}
             </Text>
@@ -224,10 +230,22 @@ export function CommandCenterHero({
             <StatusBadge label={course?.code || "Class"} tone="blue" />
           </View>
           <View style={styles.heroActions}>
-            <TouchableOpacity accessibilityRole="button" style={styles.heroSecondaryButton} onPress={onStart}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={`Start ${assignment.title}`}
+              accessibilityHint="Opens the assignment so you can begin working."
+              style={styles.heroSecondaryButton}
+              onPress={onStart}
+            >
               <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroSecondaryText}>Start</Text>
             </TouchableOpacity>
-            <TouchableOpacity accessibilityRole="button" style={styles.heroPrimaryButton} onPress={onComplete}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={`Mark ${assignment.title} complete`}
+              accessibilityHint="Marks this assignment done and refreshes planner surfaces."
+              style={styles.heroPrimaryButton}
+              onPress={onComplete}
+            >
               <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroPrimaryText}>Complete</Text>
               <ChevronRight color={colors.heroText} size={15} />
             </TouchableOpacity>
@@ -297,6 +315,7 @@ export function PillFilter({
   return (
     <TouchableOpacity
       accessibilityRole="button"
+      accessibilityLabel={`${label}${typeof count === "number" ? `, ${count}` : ""}`}
       accessibilityState={{ selected: active }}
       activeOpacity={0.82}
       style={[styles.filterPill, active ? styles.filterPillActive : null]}
@@ -430,6 +449,7 @@ export function CourseCard({
   return (
     <TouchableOpacity
       accessibilityRole="button"
+      accessibilityLabel={`${course.code}, ${course.name}. ${dueThisWeek} assignments due this week${nextDue ? `. Next: ${nextDue.title}` : ""}`}
       accessibilityState={{ selected: active }}
       activeOpacity={0.84}
       style={[styles.courseCard, active ? styles.courseCardActive : null]}
@@ -477,7 +497,13 @@ export function WarningCard({
         <Text maxFontSizeMultiplier={bodyTextScale} style={styles.warningMessage}>{message}</Text>
       </View>
       {actionLabel && onPress ? (
-        <TouchableOpacity accessibilityRole="button" style={styles.warningButton} onPress={onPress}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={actionLabel}
+          accessibilityHint={message}
+          style={styles.warningButton}
+          onPress={onPress}
+        >
           <Text maxFontSizeMultiplier={bodyTextScale} style={styles.warningButtonText}>{actionLabel}</Text>
           <ChevronRight color={colors.heroText} size={14} />
         </TouchableOpacity>

@@ -351,6 +351,7 @@ function CalendarDayCell({
   return (
     <TouchableOpacity
       accessibilityRole="button"
+      accessibilityLabel={`${day.date}, ${day.openItems.length} open deadline${day.openItems.length === 1 ? "" : "s"}${day.exams.length > 0 ? `, ${day.exams.length} exam${day.exams.length === 1 ? "" : "s"}` : ""}`}
       accessibilityState={{ selected }}
       activeOpacity={0.82}
       style={[

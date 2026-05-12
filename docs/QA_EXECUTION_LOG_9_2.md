@@ -191,3 +191,11 @@ Known residual risks:
 | 35 | Placeholder-proof rejection | Passed | `tests/submissionReadiness.test.ts` verifies template/TODO proof files are rejected by `npm run verify:submission` | No |
 | 36 | Localization string audit | Passed | `npm run audit:localization` wrote `docs/LOCALIZATION_STRING_AUDIT.md` with 737 likely localizable strings across 46 tracked source files | Localized UI submission remains blocked |
 | 36 | Localization audit regression test | Passed | `tests/localizationAudit.test.ts`; `npm run test` passed 48/48 | No |
+| 37 | VoiceOver readiness audit | Passed | `npm run audit:voiceover` wrote `docs/VOICEOVER_READINESS_AUDIT.md` with 104 scanned interactive elements, 104 explicit labels, 104 roles, and 18 recommended hints remaining | Manual VoiceOver traversal still required |
+| 37 | VoiceOver source label fixes | Passed | Added or tightened labels/hints across onboarding, command cards, focus assignment rows, calendar day cells, grade controls, filter chips, class cards, and warning actions | No |
+| 37 | `npm run typecheck` | Passed | `tsc --noEmit` completed after VoiceOver readiness audit/fixes | No |
+| 37 | `npm run test` | Passed | 49/49 tests passed, including `tests/voiceoverAudit.test.ts` | No |
+| 37 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after VoiceOver readiness slice | No |
+| 37 | `npm run verify:production` | Passed | Production config verification passed after VoiceOver readiness slice | No |
+| 37 | `npm run verify:submission` | Failed as intended | NO-SUBMIT with 8 blockers and 1 warning while local screenshot export checks pass | External proof blockers remain |
+| 37 | `git diff --check` | Passed | No whitespace errors or conflict markers after VoiceOver readiness slice | No |

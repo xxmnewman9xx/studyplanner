@@ -63,6 +63,7 @@ Current capture inventory:
 - Restore access proof captured: `39-restore-purchases.png` shows the real Restore entry point, but does not prove sandbox restore success.
 - Localized/date proof captured: `43-localized-ui-example.png` shows a real `fr-FR` / `fr_FR` simulator Week Plan screenshot with locale-sensitive date ordering and 24-hour status-bar style; it does not prove translated app strings.
 - Localization string audit captured: `docs/LOCALIZATION_STRING_AUDIT.md` reports 737 likely localizable strings across 46 tracked source files, confirming localized UI submission is not ready without deliberate i18n work and native review.
+- VoiceOver source audit captured: `docs/VOICEOVER_READINESS_AUDIT.md` reports 104 scanned interactive elements with 104 explicit labels and 104 roles; 18 recommended hints and the full manual traversal remain open.
 - iPad proof captured: onboarding, Today, Add School Stuff/Check New Work, Calendar, Week, Classes, Widget Setup, paywall unavailable state, Settings/Restore, and Assignment Detail are captured as upright 2064x2752 PNGs on `StudyPlanner-Codex-iPad`.
 - Native widget proof captured: `30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png` show installed WidgetKit small/medium widgets using the current May 2026 capture snapshot.
 - Native widget edge-state proof captured: `32-widget-empty-state.png`, `33-widget-needs-check-state.png`, `widget-empty-state-snapshot.json`, and `widget-needs-check-state-snapshot.json`.
@@ -87,6 +88,7 @@ Accessibility implementation note:
 
 - Task rows, completion controls, WeekStrip days, workload bars, calendar mini-days, workload forecasts, class balance rows, and completion cards now expose source-tested VoiceOver labels.
 - Check Work, Assignment Detail, Widget Setup, Paywall, and shared buttons now expose stronger labels/hints and bounded text scaling, with large-text screenshots captured.
+- `npm run audit:voiceover` provides source-level VoiceOver readiness evidence, but it is not a substitute for the required simulator/device VoiceOver traversal proof packet.
 - Theme/class/widget contrast is guarded by `tests/themeContrast.test.ts`; full submission polish still requires real VoiceOver traversal and localized UI states.
 
 ## Recommendation

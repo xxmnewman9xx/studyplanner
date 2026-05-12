@@ -102,6 +102,7 @@ export function GradesScreen({
         {courses.map((course) => (
           <TouchableOpacity
             accessibilityRole="button"
+            accessibilityLabel={`Show grades for ${course.code}, ${course.name}`}
             key={course.id}
             style={[
               styles.courseTab,
@@ -186,12 +187,14 @@ export function GradesScreen({
               onChangeText={setNewTitle}
               placeholder="Score title"
               placeholderTextColor={colors.faint}
+              accessibilityLabel="New score title"
               style={styles.targetInput}
             />
             <View style={styles.chipRow}>
               {selectedCourse.gradeCategories.map((category) => (
                 <TouchableOpacity
                   accessibilityRole="button"
+                  accessibilityLabel={`Use ${category.name} grade category`}
                   key={category.id}
                   style={[
                     styles.categoryChip,
@@ -219,6 +222,8 @@ export function GradesScreen({
                 onChangeText={setNewEarned}
                 placeholder="Earned"
                 placeholderTextColor={colors.faint}
+                accessibilityLabel="New score earned points"
+                accessibilityHint="Enter the points earned for this score."
                 style={[styles.targetInput, styles.scoreInput]}
               />
               <TextInput
@@ -227,6 +232,8 @@ export function GradesScreen({
                 onChangeText={setNewPossible}
                 placeholder="Possible"
                 placeholderTextColor={colors.faint}
+                accessibilityLabel="New score possible points"
+                accessibilityHint="Enter the total possible points for this score."
                 style={[styles.targetInput, styles.scoreInput]}
               />
             </View>
@@ -262,6 +269,7 @@ export function GradesScreen({
                       onChangeText={(title) => onUpdateGradeItem(item.id, { title })}
                       placeholder="Score title"
                       placeholderTextColor={colors.faint}
+                      accessibilityLabel={`Score title for ${item.title}`}
                       style={styles.scoreTitleInput}
                     />
                     <Text style={styles.categoryMeta}>
@@ -281,6 +289,8 @@ export function GradesScreen({
                           earned: Number.parseFloat(earned) || 0
                         })
                       }
+                      accessibilityLabel={`${item.title} earned points`}
+                      accessibilityHint="Edit the earned points for this score."
                       style={styles.inlineScoreInput}
                     />
                     <Text style={styles.scoreSlash}>/</Text>
@@ -292,6 +302,8 @@ export function GradesScreen({
                           possible: Number.parseFloat(possible) || 0
                         })
                       }
+                      accessibilityLabel={`${item.title} possible points`}
+                      accessibilityHint="Edit the possible points for this score."
                       style={styles.inlineScoreInput}
                     />
                   </View>

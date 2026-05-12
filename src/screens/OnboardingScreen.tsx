@@ -155,9 +155,9 @@ const onboardingSteps: Array<{
   }
 ];
 
-const widgetFocusOptions: Array<{ id: WidgetFocusId; label: string }> = [
-  { id: "nextDue", label: "Next Due" },
-  { id: "thisWeek", label: "This Week" }
+const widgetFocusOptions: Array<{ id: WidgetFocusId; label: string; description: string }> = [
+  { id: "nextDue", label: "Next Due", description: "Shows the single assignment that is due next." },
+  { id: "thisWeek", label: "This Week", description: "Shows upcoming assignments for the current week." }
 ];
 
 const onboardingWidgetStyles: WidgetStylePresetId[] = [
@@ -268,7 +268,12 @@ export function OnboardingScreen({ initialStep = 0, onFinish }: OnboardingScreen
     >
       <View style={styles.topBar}>
         <StudyPlannerBrand compact />
-        <TouchableOpacity accessibilityRole="button" style={styles.skipButton} onPress={() => onFinish()}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Skip onboarding"
+          style={styles.skipButton}
+          onPress={() => onFinish()}
+        >
           <Text style={styles.skipText}>Skip</Text>
         </TouchableOpacity>
       </View>
@@ -307,6 +312,7 @@ export function OnboardingScreen({ initialStep = 0, onFinish }: OnboardingScreen
       <View style={styles.footer}>
         <TouchableOpacity
           accessibilityRole="button"
+          accessibilityLabel="Go back"
           disabled={index === 0}
           style={[styles.backButton, index === 0 ? styles.backButtonDisabled : null]}
           onPress={goBack}
@@ -314,7 +320,12 @@ export function OnboardingScreen({ initialStep = 0, onFinish }: OnboardingScreen
           <ChevronLeft color={index === 0 ? colors.faint : colors.ink} size={18} />
           <Text style={[styles.backText, index === 0 ? styles.backTextDisabled : null]}>Back</Text>
         </TouchableOpacity>
-        <TouchableOpacity accessibilityRole="button" style={styles.nextButton} onPress={goNext}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={isFinal ? "Start planning" : "Next onboarding step"}
+          style={styles.nextButton}
+          onPress={goNext}
+        >
           <Text style={styles.nextText}>{isFinal ? "Start Planning" : "Next"}</Text>
           <ChevronRight color={colors.heroText} size={18} />
         </TouchableOpacity>
@@ -394,6 +405,7 @@ function StartPathChooser({ onChoose }: { onChoose: (path: OnboardingStartPath) 
         {choices.map((choice) => (
           <TouchableOpacity
             accessibilityRole="button"
+            accessibilityLabel={`${choice.title}. ${choice.copy}`}
             key={choice.id}
             activeOpacity={0.86}
             style={styles.startPathChoice}
@@ -703,6 +715,7 @@ function WidgetCustomizationPreview({
             <TouchableOpacity
               key={styleId}
               accessibilityRole="button"
+              accessibilityLabel={`Use ${preset.name} widget style`}
               accessibilityState={{ selected: active }}
               style={[styles.widgetStyleChip, active ? styles.widgetStyleChipActive : null]}
               onPress={() => onWidgetStyleChange(styleId)}
@@ -723,6 +736,8 @@ function WidgetCustomizationPreview({
             <TouchableOpacity
               key={focus.id}
               accessibilityRole="button"
+              accessibilityLabel={`Show ${focus.label} on widget`}
+              accessibilityHint={focus.description}
               accessibilityState={{ selected: active }}
               style={[styles.focusChip, active ? styles.focusChipActive : null]}
               onPress={() => onWidgetFocusChange(focus.id)}
@@ -797,6 +812,7 @@ function PaletteSelectorPreview({
             <TouchableOpacity
               key={palette.id}
               accessibilityRole="button"
+              accessibilityLabel={`Use ${palette.name} app palette`}
               accessibilityState={{ selected: active }}
               activeOpacity={0.86}
               style={[styles.paletteChoice, active ? styles.paletteChoiceActive : null]}

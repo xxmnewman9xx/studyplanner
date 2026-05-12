@@ -159,5 +159,12 @@
 | npm run test | Passed | 47/47 | Added placeholder-proof rejection coverage |
 | npm run audit:localization | Passed | `docs/LOCALIZATION_STRING_AUDIT.md`; 737 candidates across 46 tracked source files | Compiler-based hardcoded-string audit; proves localized UI submission is still not ready |
 | npm run test | Passed | 48/48 | Added `tests/localizationAudit.test.ts` coverage for the localization audit |
+| npm run audit:voiceover | Passed | `docs/VOICEOVER_READINESS_AUDIT.md`; 104 scanned interactive elements, 104 explicit labels, 104 roles, 18 recommended hints remaining | Compiler-based source audit for VoiceOver readiness; does not replace manual traversal |
+| npm run typecheck | Passed | exit 0 | Re-run after VoiceOver audit and accessibility label fixes |
+| npm run test | Passed | 49/49 | Added `tests/voiceoverAudit.test.ts` coverage for the source-level VoiceOver readiness audit |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after VoiceOver readiness slice |
+| npm run verify:production | Passed | Production config verification passed | Re-run after VoiceOver readiness slice |
+| npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning | Local screenshot export checks still pass; external blockers include IAP env IDs, support URL, products-loaded paywall, StoreKit proof, App Store Connect upload acceptance, signed archive entitlements, and manual VoiceOver traversal |
+| git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after VoiceOver readiness slice |
 
 Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, manual App Store Connect screenshot upload acceptance, full translated UI/string extraction/native localization review, full simulator VoiceOver traversal, restore purchase success proof. Optional: overnight widget rollover screenshot.

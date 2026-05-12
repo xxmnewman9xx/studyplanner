@@ -88,6 +88,7 @@ export function FocusScreen({ assignments, courses }: FocusScreenProps) {
           return (
             <TouchableOpacity
               accessibilityRole="button"
+              accessibilityLabel={`Focus on ${assignment.title}`}
               accessibilityState={{ selected: active }}
               key={assignment.id}
               style={[styles.assignmentRow, active ? styles.assignmentRowActive : null]}
