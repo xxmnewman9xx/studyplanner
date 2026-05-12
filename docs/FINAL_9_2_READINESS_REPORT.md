@@ -41,9 +41,10 @@ Final implementation score: **9.20/10**
 ## Verification
 
 - `npm run typecheck`: passed.
-- `npm run test`: passed, 44/44 tests.
+- `npm run test`: passed, 44/44 tests during the original v1-2 pass; the current successor branch now passes 53/53 tests, including ASO copy, localized ASO structure, iOS archive preflight, StoreKit source handoff, submission-readiness, VoiceOver source, contrast, locale/date, 500-assignment scale, and native widget guards.
 - `npm run check:iap`: passed.
 - `npm run verify:production`: passed.
+- Current successor-branch `npm run verify:submission`: fails as intended with NO-SUBMIT, 8 blockers, and 1 warning. The gate passes local screenshot export, English ASO, localized ASO structure, iOS archive source preflight, StoreKit source handoff, and VoiceOver source audits before blocking on external proof.
 - `EXPO_PUBLIC_STORE_CAPTURE=1 ./scripts/verify-ios-widgetkit.sh`: passed build/App Group payload inspection; manual widget placement remains.
 - `EXPO_PUBLIC_STORE_CAPTURE=0 ./scripts/verify-ios-widgetkit.sh`: production payload verified after stopping the stale capture Metro server; no `demoState`, no demo assignments.
 - Simulator screenshot sweep captured `02` through `19`, plus `00` and `20` contact sheets.
@@ -57,13 +58,14 @@ Final implementation score: **9.20/10**
 - Successor-branch Settings proof captured at `artifacts/post-goal-aso-submission/36-settings.png`.
 - Successor-branch restore-access proof captured at `artifacts/post-goal-aso-submission/39-restore-purchases.png`.
 - Successor-branch native widget edge-state proof captured at `artifacts/post-goal-aso-submission/32-widget-empty-state.png`, `33-widget-needs-check-state.png`, `widget-empty-state-snapshot.json`, and `widget-needs-check-state-snapshot.json`.
-- Completion audit added in `docs/COMPLETION_AUDIT_9_2.md`; verdict remains not complete as a 9.2 goal.
+- Completion audit added and refreshed in `docs/COMPLETION_AUDIT_9_2.md`; verdict remains not complete as a 9.2 goal.
 
 ## Why This Is Not 9.2 Yet
 
-- Accessibility and localization remain targeted improvements rather than exhaustive completion; source-tested VoiceOver labels, automated contrast coverage, core Dynamic Type screenshots, and one French-locale date-format screenshot now cover key planner/action visuals, but full simulator VoiceOver traversal, translated UI proof, and native-speaker localization review are still needed.
+- Accessibility and localization remain targeted improvements rather than exhaustive completion; source-tested VoiceOver labels, automated contrast coverage, source-level VoiceOver readiness, core Dynamic Type screenshots, localized ASO structural checks, a localization string audit, and one French-locale date-format screenshot now cover key planner/action visuals, but full simulator VoiceOver traversal, translated UI proof, and native-speaker localization review are still needed.
 - The 500-use-case swarm is generated and ranked, but not converted into a full automated e2e suite.
-- StoreKit configuration passes static checks, but sandbox purchase/restore proof still needs a validation run.
+- StoreKit configuration and source handoff now pass static/source checks, but products-loaded paywall proof plus monthly/yearly/Lifetime/restore sandbox proof still need a validation run.
+- The current submission gate also blocks on a real support URL, App Store Connect screenshot-upload acceptance, signed archive entitlement proof, and the external proof files required for submission.
 
 ## Next Validation Prompt
 

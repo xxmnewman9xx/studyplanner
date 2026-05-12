@@ -63,3 +63,56 @@ Updated audited score after adding import-trust, onboarding first-action routing
 ## Continue/Stop Decision
 
 Continue. The branch is materially better and safer than baseline, but the explicit 9.2 success criterion is not yet met.
+
+## Current-State Addendum
+
+Addendum date: 2026-05-12
+Current branch inspected: `v1-3-post-goal-aso-submission-master`
+Current commit inspected: `4d23d1d35fc4f1e2718639d051b2e83fbdc34724`
+Relationship to v1-2 goal branch: `v1-2-goal-9-2-root-concept-transformation` is an ancestor of the current branch, so this audit includes the v1-2 transformation plus later proof work.
+
+This addendum exists because the original completion audit was written before later source-level proof gates, screenshots, and tests. It does not mark the goal complete. It updates the evidence ledger for the active 9.2 objective and records why the goal still needs external/manual proof before completion can be claimed.
+
+### Current Prompt-To-Artifact Checklist
+
+| Requirement or gate | Evidence inspected on current branch | Current status | Remaining gap |
+| --- | --- | --- | --- |
+| New v1-2 branch created from protected release candidate | Branch exists; `git merge-base --is-ancestor v1-2-goal-9-2-root-concept-transformation HEAD` returned 0 | Complete | Current working branch is successor `v1-3-post-goal-aso-submission-master`, not the original v1-2 branch |
+| Required 9.2 docs exist | All 18 required 9.2 docs checked present with a Node file-existence audit | Complete | Several docs are condensed summaries rather than raw transcripts |
+| Root-concept/subagent review recorded | `docs/SUBAGENT_GOAL_REVIEWS.md`, `docs/ROOT_CONCEPT_AUDIT.md`, `docs/TOP_ROOT_CONCEPT_PROBLEMS.md` | Complete enough for planning | Raw separate subagent transcripts remain unavailable |
+| At least 500 use cases generated | `docs/USE_CASE_SWARM_500.md` contains 565 `UC-` rows | Complete | Use cases are not all executable automated e2e tests |
+| Functionality matrix created | `docs/FUNCTIONALITY_TEST_MATRIX_9_2.md` contains 440 `FT-` rows | Complete as a matrix | Full matrix is not fully automated |
+| Screenshots captured | `artifacts/goal-9-2-transformation` has 22 PNGs; successor proof folder has 48 primary PNGs and 12 iPad PNGs | Complete with caveats | Products-loaded paywall and some external proof screenshots remain missing |
+| Current source verification | `npm run typecheck` passed; `npm run test` passed 53/53 | Complete for current source tests | Tests are not a full end-to-end simulator matrix |
+| IAP and production static verification | `npm run check:iap` passed; `npm run verify:production` passed | Complete for static config | StoreKit sandbox/App Store Connect product proof still missing |
+| Submission/readiness gate honesty | `npm run verify:submission` returns NO-SUBMIT with 8 blockers and 1 warning | Complete as a gate | The gate correctly blocks completion until external proof exists |
+| StoreKit source proof | Submission verifier reports `PASS StoreKit/IAP source handoff has no local blockers`; `docs/STOREKIT_IAP_HANDOFF_AUDIT.md` exists | Source-level complete | Products-loaded paywall screenshot, monthly/yearly/Lifetime/restore sandbox proof, and App Store Connect product status remain external |
+| VoiceOver accessibility proof | Source audit passes in test suite and submission verifier | Partial | Full simulator/device VoiceOver traversal proof is missing |
+| Localization proof | Localized ASO structural audit passes; `docs/LOCALIZATION_STRING_AUDIT.md` records current English UI string debt | Partial | App UI remains English; translated UI, native-speaker review, and localized screenshot text-fit proof remain missing |
+| Widget proof | Native small/medium, empty, needs-check, completion/edit/add refresh, and day-boundary code/build proof exist | Strong partial | Optional overnight visual rollover screenshot remains uncaptured |
+| Final readiness report | `docs/FINAL_9_2_READINESS_REPORT.md` exists and says 9.2 reached: No | Complete and honest | Needs current test-count/proof addendum |
+| Goal completion | Current evidence has not removed all required proof gaps | Not complete | Do not call `update_goal` |
+
+### Current Verification Commands
+
+| Command | Result | Notes |
+| --- | --- | --- |
+| `npm run typecheck` | Passed | `tsc --noEmit` completed |
+| `npm run test` | Passed | 53/53 tests passed |
+| `npm run check:iap` | Passed | IAP and premium gate configuration passed |
+| `npm run verify:production` | Passed | Production config verification passed |
+| `npm run verify:submission` | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning |
+
+### Current Missing Or Weakly Verified Requirements
+
+1. StoreKit sandbox/App Store Connect proof remains external: monthly, yearly, Lifetime, restore, products-loaded paywall, and product attachment/status are not proven.
+2. Support URL is not configured for final submission.
+3. App Store Connect screenshot upload acceptance is not recorded.
+4. Signed archive production entitlement proof is not recorded.
+5. Full simulator/device VoiceOver traversal is not recorded.
+6. Full localized UI implementation, native-speaker review, and localized screenshot text-fit proof are not complete.
+7. The 440-row functionality matrix is not fully executable as automated e2e coverage.
+
+### Updated Continue/Stop Decision
+
+Continue. The current branch has strong source-level evidence and a numerical score above the original 9.2 line in later scorecards, but the active 9.2 goal should remain open because explicit proof gates still fail and the current submission verifier correctly returns NO-SUBMIT.
