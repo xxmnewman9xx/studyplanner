@@ -182,5 +182,13 @@
 | npm run test | Passed | 50/50 | Added `tests/asoCopy.test.ts` and updated submission-readiness assertions |
 | npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after ASO copy verifier |
 | npm run verify:production | Passed | Production config verification passed | Re-run after ASO copy verifier |
+| npm run verify:localized-aso | Passed | `docs/ASO_LOCALIZATION_AUDIT.md`; 20 localized metadata rows, 20 caption QA rows, no placeholders, length-safe fields, safe claims | Localized ASO structural gate; does not replace native-speaker/text-fit review |
+| npm run verify:aso | Passed | `docs/ASO_COPY_AUDIT.md`; English metadata remains length-safe and claim-safe | Re-run after localized ASO verifier |
+| npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning; includes `PASS Localized ASO draft is structurally complete` | Re-run after wiring localized ASO audit into submission verifier |
+| npm run typecheck | Passed | exit 0 | Re-run after localized ASO verifier |
+| npm run test | Passed | 51/51 | Added `tests/localizedAso.test.ts` and updated submission-readiness assertions |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after localized ASO verifier |
+| npm run verify:production | Passed | Production config verification passed | Re-run after localized ASO verifier |
+| git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after localized ASO verifier |
 
 Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, manual App Store Connect screenshot upload acceptance, full translated UI/string extraction/native localization review, full simulator VoiceOver traversal, restore purchase success proof. Optional: overnight widget rollover screenshot.

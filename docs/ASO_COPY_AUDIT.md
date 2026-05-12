@@ -1,6 +1,6 @@
 # ASO Copy Audit
 
-Generated: 2026-05-12T22:04:47.433Z
+Generated: 2026-05-12T22:13:59.092Z
 
 Source: `docs/APP_STORE_METADATA.md`
 

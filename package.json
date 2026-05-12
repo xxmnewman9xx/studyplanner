@@ -13,6 +13,7 @@
     "audit:localization": "node scripts/audit-localization-strings.mjs",
     "audit:voiceover": "node scripts/audit-voiceover-readiness.mjs",
     "verify:aso": "node scripts/verify-aso-copy.mjs",
+    "verify:localized-aso": "node scripts/verify-localized-aso.mjs",
     "check:iap": "node scripts/check-iap-config.mjs",
     "verify:production": "node scripts/verify-production-config.mjs",
     "verify:submission": "node scripts/verify-submission-readiness.mjs",

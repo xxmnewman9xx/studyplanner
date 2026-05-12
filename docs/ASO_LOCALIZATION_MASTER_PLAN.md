@@ -9,3 +9,4 @@ Rules:
 - Native-speaker review and screenshot text-fit QA are required before upload.
 - Avoid literal translations of syllabus AI, command center, and widgets where the local market uses different school terms.
 - Keep claims conservative: review found work, track deadlines, small/medium Home Screen widgets.
+- Run `npm run verify:localized-aso` after localized metadata or caption edits; this only proves structural readiness, not native-speaker approval.

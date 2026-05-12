@@ -1,26 +1,37 @@
 # ASO Localized Metadata Packs
 
-Generated draft packs. Native-speaker review required.
+Status: draft only. Do not upload these localizations until native-speaker review, keyword-field packing, and screenshot text-fit QA are complete.
 
-| Locale | Localized app name | Localized subtitle | Keyword intent | Review notes |
-| --- | --- | --- | --- | --- |
-| en-US | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| en-GB | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| es-US | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| es-ES | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| fr-FR | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| de-DE | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| pt-BR | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| ja-JP | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| ko-KR | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| zh-Hans | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| it-IT | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| nl-NL | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| sv-SE | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| da-DK | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| fi-FI | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| nb-NO | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| pl-PL | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| tr-TR | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| ar-SA | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
-| zh-Hant | Study Planner | School deadlines planner | homework,student,calendar,assignments localized equivalent | Needs native-speaker keyword and screenshot caption review |
+These packs are intentionally conservative. They localize the search intent and user promise without claiming perfect extraction, guaranteed grades, unsupported LMS sync, large widgets, or Lock Screen widgets.
+
+## Draft Locale Matrix
+
+| Locale | Tier | Localized app name | Localized subtitle | Keyword themes | School-term notes | Parent/student notes | Review notes |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| en-US | 1 | Study Planner | Homework, classes, widgets | homework planner; assignment tracker; syllabus planner; school calendar; homework widget | Use syllabus, homework, class, semester. | Plain school language for students and parents. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| en-GB | 1 | Study Planner | Homework, classes, widgets | homework planner; assignment tracker; school planner; timetable; deadline reminders | Use timetable where useful; syllabus may be less common than course outline. | Keep parent copy plain; avoid US-only school phrasing. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| es-US | 1 | Study Planner | Tareas, clases y fechas | planificador de tareas; calendario escolar; entregas; clases; widget de tareas | Sílabo may work for college; use tareas/entregas for broader school language. | Spanish-speaking US parents may search in practical homework terms. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| es-ES | 1 | Study Planner | Tareas, clases y fechas | planificador escolar; deberes; calendario de clases; fechas de entrega; organización escolar | Temario or guía docente may fit better than sílabo in Spain. | Avoid Latin-America-only school terms in final keywords. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| fr-FR | 1 | Study Planner | Devoirs, cours et dates | agenda étudiant; devoirs; calendrier scolaire; dates limites; organisation des cours | Use devoirs for schoolwork; syllabus may be plan de cours in some contexts. | Parent trust angle should stress checking found work before adding it. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| de-DE | 1 | Study Planner | Aufgaben und Fristen | schüler planer; hausaufgaben; stundenplan; abgabetermine; kalender schule | Stundenplan is schedule-oriented; Fristen/Abgabetermine covers deadlines. | Keep copy direct and utility-focused. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| pt-BR | 1 | Study Planner | Tarefas, aulas e prazos | planejador de estudos; tarefas; calendário escolar; prazos; organizador estudantil | Ementa is useful for university; tarefas/aulas work for broader school. | Parent copy should focus on deadlines visible and checked. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| ja-JP | 1 | Study Planner | 課題と締切を管理 | 学習計画; 課題管理; 時間割; 締切; 宿題 | シラバス is common for college; 課題 and 締切 are broader. | Screenshot captions need CJK line-break QA. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| ko-KR | 1 | Study Planner | 과제와 마감일 관리 | 학습 플래너; 과제 관리; 시간표; 마감일; 숙제 | 강의계획서 is college-focused; 과제/마감일 are broader. | Keep captions compact for Korean text density. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| zh-Hans | 1 | Study Planner | 管理作业与截止日期 | 学习计划; 作业管理; 课程表; 截止日期; 学校日历 | 课程大纲 fits syllabus; 作业/截止日期 are broader. | Screenshot text-fit and Simplified Chinese line breaks need review. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| it-IT | 2 | Study Planner | Compiti, corsi e scadenze | planner studenti; compiti; calendario scolastico; scadenze; lezioni | Programma del corso may fit syllabus; compiti/scadenze are clearer. | Parent messaging should stay practical and trust-led. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| nl-NL | 2 | Study Planner | Huiswerk en deadlines | studieplanner; huiswerk; schoolagenda; deadlines; lessen | Schoolagenda is a strong local planning term. | Avoid overusing English deadline if native reviewer prefers inleverdatum. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| sv-SE | 2 | Study Planner | Läxor och deadlines | studieplanerare; läxor; skolschema; deadlines; uppgifter | Uppgifter may work better than läxor for older students. | Keep parent trust around checked assignments. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| da-DK | 2 | Study Planner | Lektier og deadlines | studieplanlægger; lektier; skoleskema; afleveringer; deadlines | Afleveringer is useful for assignments due. | Use calm planning language, not productivity hype. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| fi-FI | 2 | Study Planner | Tehtävät ja määräajat | opiskelusuunnitelma; kotitehtävät; lukujärjestys; määräajat; tehtävät | Lukujärjestys is schedule-oriented; määräajat covers deadlines. | Long Finnish strings require screenshot fit checks. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| nb-NO | 2 | Study Planner | Lekser og frister | studieplanlegger; lekser; timeplan; frister; oppgaver | Timeplan and frister are useful search anchors. | Keep captions short for App Store cards. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| pl-PL | 2 | Study Planner | Zadania i terminy | planer nauki; zadania domowe; plan lekcji; terminy; organizacja szkoły | Plan lekcji is schedule-oriented; terminy covers due dates. | Polish caption length needs visual QA. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| tr-TR | 2 | Study Planner | Ödevler ve tarihler | ders planlayıcı; ödev takip; okul takvimi; son tarihler; öğrenci planı | Müfredat may not map cleanly to syllabus; use ders/ödev/son tarih. | Avoid literal command center wording. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| ar-SA | 2 | Study Planner | إدارة الواجبات والمواعيد | مخطط دراسة; واجبات; جدول دراسي; مواعيد التسليم; تقويم مدرسي | RTL screenshots need manual alignment and Arabic typography review. | Parent trust copy should emphasize checking items before adding them. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+| zh-Hant | 2 | Study Planner | 管理作業與截止日期 | 學習計畫; 作業管理; 課表; 截止日期; 學校行事曆 | 課程大綱 fits syllabus; 作業/截止日期 are broader. | Traditional Chinese line breaks and screenshot fit need review. | Native-speaker keyword review and screenshot text-fit review required before upload. |
+
+## Upload Rules
+
+- Treat these as keyword and screenshot-caption briefs, not final App Store Connect fields.
+- Keep English as the primary language until localized UI/screenshots are complete.
+- Do not submit non-English localizations without native-speaker sign-off recorded in `artifacts/post-goal-aso-submission/external-proof/localized-ui-native-review.md`.
+- Re-run `npm run verify:localized-aso` after any localized ASO edit.

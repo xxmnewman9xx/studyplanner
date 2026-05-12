@@ -216,3 +216,10 @@ Known residual risks:
 | 40 | `npm run test` | Passed | 50/50 tests passed, including `tests/asoCopy.test.ts` | No |
 | 40 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after ASO copy verifier | No |
 | 40 | `npm run verify:production` | Passed | Production config verification passed after ASO copy verifier | No |
+| 41 | Localized ASO structural audit | Passed | `npm run verify:localized-aso` wrote `docs/ASO_LOCALIZATION_AUDIT.md` and passed 20 locale metadata rows, 20 caption QA rows, no-placeholder checks, field-length checks, review-caveat checks, and unsafe-claim checks | Native-speaker/text-fit review still required |
+| 41 | Submission verifier localized ASO gate | Passed | `npm run verify:submission` now includes `PASS Localized ASO draft is structurally complete` while preserving 8 external blockers and 1 localization warning | External proof blockers remain |
+| 41 | `npm run typecheck` | Passed | `tsc --noEmit` completed after localized ASO verifier | No |
+| 41 | `npm run test` | Passed | 51/51 tests passed, including `tests/localizedAso.test.ts` | No |
+| 41 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after localized ASO verifier | No |
+| 41 | `npm run verify:production` | Passed | Production config verification passed after localized ASO verifier | No |
+| 41 | `git diff --check` | Passed | No whitespace errors or conflict markers after localized ASO verifier | No |

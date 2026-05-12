@@ -63,6 +63,7 @@ checkPngSet({
 });
 checkManifest();
 checkAsoCopy();
+checkLocalizedAsoDraft();
 
 checkFile(
   "Products-loaded paywall screenshot exists",
@@ -264,6 +265,28 @@ function checkAsoCopy() {
       false,
       "English ASO metadata is length-safe and claim-safe",
       `ASO metadata audit failed: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
+
+function checkLocalizedAsoDraft() {
+  const scriptPath = path.join(root, "scripts/verify-localized-aso.mjs");
+  try {
+    const output = execFileSync(process.execPath, [scriptPath, "--json"], {
+      cwd: root,
+      encoding: "utf8"
+    });
+    const audit = JSON.parse(output);
+    check(
+      audit.passed === true && audit.localeCount === 20,
+      "Localized ASO draft is structurally complete",
+      "Run npm run verify:localized-aso and fix missing locale rows, placeholder copy, length issues, or unsafe claims."
+    );
+  } catch (error) {
+    check(
+      false,
+      "Localized ASO draft is structurally complete",
+      `Localized ASO audit failed: ${error instanceof Error ? error.message : String(error)}`
     );
   }
 }
