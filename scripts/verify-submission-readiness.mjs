@@ -205,11 +205,13 @@ function checkProof({ label, fileName, requiredTerms, blockerMessage }) {
 
   const source = fs.readFileSync(filePath, "utf8").toLowerCase();
   const missingTerms = requiredTerms.filter((term) => !source.includes(term));
-  const passed = source.trim().length >= 120 && missingTerms.length === 0;
+  const placeholderTerms = ["template", "todo", "placeholder", "replace before submit", "sample only"];
+  const placeholderTerm = placeholderTerms.find((term) => source.includes(term));
+  const passed = source.trim().length >= 120 && missingTerms.length === 0 && !placeholderTerm;
   check(
     passed,
     label,
-    `${blockerMessage} Proof file is too thin or missing terms: ${missingTerms.join(", ") || "none"}.`
+    `${blockerMessage} Proof file is too thin, contains placeholder language, or is missing terms. Missing terms: ${missingTerms.join(", ") || "none"}. Placeholder term: ${placeholderTerm || "none"}.`
   );
 }
 

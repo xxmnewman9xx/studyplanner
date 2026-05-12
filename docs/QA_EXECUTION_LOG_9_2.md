@@ -187,3 +187,5 @@ Known residual risks:
 | 34 | Submission verifier regression tests | Passed | `tests/submissionReadiness.test.ts` verifies missing external proof blocks readiness and local iPhone/iPad exports pass | No |
 | 34 | `npm run typecheck` | Passed | `tsc --noEmit` completed after submission verifier | No |
 | 34 | `npm run test` | Passed | 46/46 tests passed after submission verifier | No |
+| 35 | External proof templates | Passed | Added `artifacts/post-goal-aso-submission/external-proof/*.template.md` for StoreKit, App Store Connect upload, archive entitlements, VoiceOver, and localized UI/native review | No |
+| 35 | Placeholder-proof rejection | Passed | `tests/submissionReadiness.test.ts` verifies template/TODO proof files are rejected by `npm run verify:submission` | No |

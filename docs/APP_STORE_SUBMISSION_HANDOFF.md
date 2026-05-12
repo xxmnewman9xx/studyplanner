@@ -31,6 +31,8 @@ Status: NO-SUBMIT as of 2026-05-12.
 
 `npm run verify:submission` now centralizes these gates. As of 2026-05-12 it correctly returns **NO-SUBMIT** with 8 blockers and 1 warning: missing IAP env IDs, support URL, products-loaded paywall screenshot, StoreKit sandbox proof, App Store Connect screenshot upload acceptance, signed archive entitlement proof, and VoiceOver traversal proof. It passes the local iPhone/iPad accepted-size screenshot export checks.
 
+External proof templates are staged in `artifacts/post-goal-aso-submission/external-proof`. The verifier rejects template/TODO/placeholder language, so those templates are only a checklist for the future App Store Connect/StoreKit run, not proof.
+
 ## Reviewer flow draft
 
 See docs/APP_REVIEW_NOTES_FINAL.md.
@@ -71,6 +73,7 @@ Current capture inventory:
 - Core action large-text proof captured: `49-accessibility-check-work-large-text.png` through `52-accessibility-paywall-large-text.png`.
 - Contrast-safe visual spot check refreshed `01-onboarding-welcome.png`, `07-today-populated.png`, `21-calendar-month.png`, `24-week-plan.png`, `26-classes-list.png`, and `29-widget-setup.png`; `45-final-contact-sheet.png` was regenerated from 47 primary PNGs at 1040x6856.
 - Submission verifier proof: `npm run verify:submission` passes local screenshot export checks and fails honestly until external StoreKit/support/App Store Connect/VoiceOver/archive proof is supplied.
+- External proof packet templates captured: `external-proof/*.template.md` for StoreKit, App Store Connect screenshot upload, signed archive entitlements, VoiceOver traversal, and localized UI/native review.
 - Missing: products-loaded paywall, restore purchase success/sandbox proof, full UI localization/string extraction/native review, full VoiceOver traversal, manual App Store Connect upload acceptance for the exported screenshots, and optional overnight widget rollover screenshot.
 
 Date/localization implementation note:
