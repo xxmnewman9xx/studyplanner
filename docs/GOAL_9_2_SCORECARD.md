@@ -53,6 +53,6 @@ As of current successor branch `v1-3-post-goal-aso-submission-master` at commit 
 - `npm run check:iap`
 - `npm run verify:production`
 
-`npm run verify:goal92` now writes `docs/GOAL_9_2_COMPLETION_GATE.md` and returns GOAL-OPEN with 6 blockers. It passes the required 9.2 docs, 565 use cases, 440 functionality rows, screenshot sets, implementation evidence, scorecard, VoiceOver source audit, StoreKit source handoff audit, and submission-gate honesty before refusing completion on the remaining proof gaps.
+`npm run verify:goal92` now writes `docs/GOAL_9_2_COMPLETION_GATE.md` and returns GOAL-OPEN with 5 blockers. It passes the required 9.2 docs, 565 use cases, 440 functionality rows, screenshot sets, implementation evidence, scorecard, VoiceOver source audit, StoreKit source handoff audit, submission-gate honesty, and the English-only localized UI/native review deferral before refusing completion on the remaining proof gaps.
 
 `npm run verify:submission` still returns NO-SUBMIT with 8 blockers and 1 warning. It passes local screenshot export, English ASO, localized ASO structure, iOS archive source preflight, StoreKit source handoff, and VoiceOver source audits, then blocks on external proof: IAP environment values, support URL, products-loaded paywall screenshot, StoreKit sandbox/App Store Connect proof, screenshot-upload acceptance, signed archive entitlements, and full VoiceOver traversal. This scorecard therefore remains evidence-positive but not goal-complete.

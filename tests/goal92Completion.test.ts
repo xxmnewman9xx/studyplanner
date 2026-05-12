@@ -20,6 +20,7 @@ test("goal 9.2 completion gate verifies artifacts but keeps the goal open for pr
   assert.match(output, /BLOCKER\s+Final readiness report marks 9\.2 reached/);
   assert.match(output, /BLOCKER\s+StoreKit sandbox purchase\/restore proof exists/);
   assert.match(output, /BLOCKER\s+Full VoiceOver traversal proof exists/);
+  assert.match(output, /PASS\s+Localized UI\/native review proof exists or is explicitly deferred/);
 });
 
 test("goal 9.2 completion gate exposes structured JSON for audit tooling", () => {
@@ -38,6 +39,12 @@ test("goal 9.2 completion gate exposes structured JSON for audit tooling", () =>
   assert.ok(
     audit.checks.some((check: { label: string; status: string }) =>
       check.label === "Submission gate blocks only after local source audits pass" &&
+      check.status === "PASS"
+    )
+  );
+  assert.ok(
+    audit.checks.some((check: { label: string; status: string }) =>
+      check.label === "Localized UI/native review proof exists or is explicitly deferred" &&
       check.status === "PASS"
     )
   );

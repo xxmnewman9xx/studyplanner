@@ -218,5 +218,12 @@
 | npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after adding goal 9.2 completion gate |
 | npm run verify:production | Passed | Production config verification passed | Re-run after adding goal 9.2 completion gate |
 | npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning | Re-run after adding goal 9.2 completion gate; submission blockers unchanged |
+| Localized UI/native review disposition | Passed | Added `external-proof/localized-ui-native-review.md` as an English-only deferral; no localized UI/native review is claimed complete | Reduces the goal-completion gate only; localized submission still requires real native review |
+| npm run verify:goal92 | Failed as intended | GOAL-OPEN: 5 blockers, 0 warnings; localized UI/native review disposition now passes | Remaining 9.2 blockers are products-loaded paywall, StoreKit sandbox/restore, VoiceOver traversal, and docs honestly marking 9.2 incomplete |
+| npm run typecheck | Passed | exit 0 | Re-run after localized UI deferral disposition |
+| npm run test | Passed | 55/55 | Updated `tests/goal92Completion.test.ts` to assert the localization disposition pass |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after localized UI deferral disposition |
+| npm run verify:production | Passed | Production config verification passed | Re-run after localized UI deferral disposition |
+| npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning | Submission gate remains unchanged for English-only submission |
 
 Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, manual App Store Connect screenshot upload acceptance, full translated UI/string extraction/native localization review, full simulator VoiceOver traversal, restore purchase success proof. Optional: overnight widget rollover screenshot.

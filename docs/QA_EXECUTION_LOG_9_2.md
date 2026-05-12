@@ -245,3 +245,10 @@ Known residual risks:
 | 44 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after goal 9.2 completion gate | No |
 | 44 | `npm run verify:production` | Passed | Production config verification passed after goal 9.2 completion gate | No |
 | 44 | `npm run verify:submission` | Failed as intended | NO-SUBMIT remains 8 blockers and 1 warning | External proof blockers remain |
+| 45 | Localized UI/native review disposition | Passed | Added `external-proof/localized-ui-native-review.md` to explicitly defer localized UI/native review for an English-only pass without claiming translated UI is complete | Localized submission still requires real native review and screenshot text-fit proof |
+| 45 | Goal 9.2 completion gate after localization disposition | Failed as intended | `npm run verify:goal92` now reports GOAL-OPEN with 5 blockers and passes `Localized UI/native review proof exists or is explicitly deferred` | Products-loaded paywall, StoreKit sandbox/restore, VoiceOver traversal, and docs still marking 9.2 incomplete remain blockers |
+| 45 | `npm run typecheck` | Passed | `tsc --noEmit` completed after localized UI disposition | No |
+| 45 | `npm run test` | Passed | 55/55 tests passed after updating `tests/goal92Completion.test.ts` | No |
+| 45 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after localized UI disposition | No |
+| 45 | `npm run verify:production` | Passed | Production config verification passed after localized UI disposition | No |
+| 45 | `npm run verify:submission` | Failed as intended | NO-SUBMIT remains 8 blockers and 1 warning | External proof blockers remain |

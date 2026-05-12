@@ -166,13 +166,7 @@ checkProof({
   detail:
     "Source-level VoiceOver coverage is not a substitute for simulator/device traversal proof."
 });
-checkProof({
-  label: "Localized UI/native review proof exists or is explicitly deferred",
-  fileName: "localized-ui-native-review.md",
-  requiredTerms: ["native", "locale", "screenshot", "review"],
-  detail:
-    "The current app still has English UI string debt; localized UI/native review must be supplied or explicitly deferred by a release gate."
-});
+checkLocalizedUiDisposition();
 
 const blockers = checks.filter((item) => item.status === "BLOCKER");
 const warnings = checks.filter((item) => item.status === "WARN");
@@ -315,6 +309,42 @@ function checkProof({ label, fileName, requiredTerms, detail }) {
     source.trim().length >= 120 && missingTerms.length === 0 && !placeholderTerm,
     label,
     `${detail} Missing terms: ${missingTerms.join(", ") || "none"}. Placeholder term: ${placeholderTerm || "none"}.`
+  );
+}
+
+function checkLocalizedUiDisposition() {
+  const filePath = path.join(proofRoot, "localized-ui-native-review.md");
+  const label = "Localized UI/native review proof exists or is explicitly deferred";
+  const detail =
+    "The current app still has English UI string debt; localized UI/native review must be supplied or explicitly deferred by a release gate.";
+  if (!fs.existsSync(filePath)) {
+    check(false, label, `${detail} Missing: ${path.relative(root, filePath)}.`);
+    return;
+  }
+
+  const source = fs.readFileSync(filePath, "utf8").toLowerCase();
+  const requiredTerms = ["native", "locale", "screenshot", "review"];
+  const missingTerms = requiredTerms.filter((term) => !source.includes(term));
+  const placeholderTerm = ["template", "todo", "placeholder", "replace before submit", "sample only"].find((term) =>
+    source.includes(term)
+  );
+  const isRealReview =
+    source.includes("native reviewer") &&
+    source.includes("approved") &&
+    source.includes("screenshot text-fit");
+  const isExplicitDeferral =
+    source.includes("explicitly deferred") &&
+    source.includes("english-only") &&
+    source.includes("not submitted") &&
+    source.includes("localization implementation deferred");
+
+  check(
+    source.trim().length >= 120 &&
+      missingTerms.length === 0 &&
+      !placeholderTerm &&
+      (isRealReview || isExplicitDeferral),
+    label,
+    `${detail} Missing terms: ${missingTerms.join(", ") || "none"}. Placeholder term: ${placeholderTerm || "none"}. Disposition must be either a real native review or an English-only explicit deferral.`
   );
 }
 

@@ -85,7 +85,8 @@ This addendum exists because the original completion audit was written before la
 | Screenshots captured | `artifacts/goal-9-2-transformation` has 22 PNGs; successor proof folder has 48 primary PNGs and 12 iPad PNGs | Complete with caveats | Products-loaded paywall and some external proof screenshots remain missing |
 | Current source verification | `npm run typecheck` passed; `npm run test` passed 53/53 | Complete for current source tests | Tests are not a full end-to-end simulator matrix |
 | IAP and production static verification | `npm run check:iap` passed; `npm run verify:production` passed | Complete for static config | StoreKit sandbox/App Store Connect product proof still missing |
-| Executable 9.2 completion gate | `npm run verify:goal92` writes `docs/GOAL_9_2_COMPLETION_GATE.md` and reports GOAL-OPEN with 6 blockers | Complete as a blocker gate | The gate correctly refuses completion until the remaining manual/external proof exists |
+| Executable 9.2 completion gate | `npm run verify:goal92` writes `docs/GOAL_9_2_COMPLETION_GATE.md` and reports GOAL-OPEN with 5 blockers | Complete as a blocker gate | The gate correctly refuses completion until the remaining manual/external proof exists |
+| Localized UI/native review disposition | `artifacts/post-goal-aso-submission/external-proof/localized-ui-native-review.md` explicitly defers localized UI/native review for an English-only pass | Complete as a deferral | Full localized UI implementation and native review remain future work, not claimed complete |
 | Submission/readiness gate honesty | `npm run verify:submission` returns NO-SUBMIT with 8 blockers and 1 warning | Complete as a gate | The gate correctly blocks completion until external proof exists |
 | StoreKit source proof | Submission verifier reports `PASS StoreKit/IAP source handoff has no local blockers`; `docs/STOREKIT_IAP_HANDOFF_AUDIT.md` exists | Source-level complete | Products-loaded paywall screenshot, monthly/yearly/Lifetime/restore sandbox proof, and App Store Connect product status remain external |
 | VoiceOver accessibility proof | Source audit passes in test suite and submission verifier | Partial | Full simulator/device VoiceOver traversal proof is missing |
@@ -98,7 +99,7 @@ This addendum exists because the original completion audit was written before la
 
 | Command | Result | Notes |
 | --- | --- | --- |
-| `npm run verify:goal92` | Failed as intended | GOAL-OPEN: 6 blockers, 0 warnings |
+| `npm run verify:goal92` | Failed as intended | GOAL-OPEN: 5 blockers, 0 warnings |
 | `npm run typecheck` | Passed | `tsc --noEmit` completed |
 | `npm run test` | Passed | 55/55 tests passed |
 | `npm run check:iap` | Passed | IAP and premium gate configuration passed |
