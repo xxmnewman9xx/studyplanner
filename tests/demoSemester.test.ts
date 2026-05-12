@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 import { isStoreCaptureEnabled } from "../src/config/storeCapture";
 import { createDemoSemesterSeed, storeCaptureNow } from "../src/data/demoSemester";
+import { addDaysLocal, startOfLocalDay, toDateKey } from "../src/logic/dateUtils";
+import { daysUntil } from "../src/logic/planner";
 
 test("demo semester seed is deterministic and shaped for store capture", () => {
   const first = createDemoSemesterSeed();
@@ -21,8 +23,8 @@ test("demo semester seed is deterministic and shaped for store capture", () => {
 test("demo semester includes overdue, this-week, and mixed-review states", () => {
   const seed = createDemoSemesterSeed();
   const now = storeCaptureNow.getTime();
-  const weekStart = new Date("2025-04-22T00:00:00-04:00").getTime();
-  const weekEnd = new Date("2025-04-28T23:59:59-04:00").getTime();
+  const weekStart = startOfLocalDay(storeCaptureNow).getTime();
+  const weekEnd = addDaysLocal(startOfLocalDay(storeCaptureNow), 6).getTime() + 86_399_999;
   const open = seed.assignments.filter((assignment) => assignment.completionStatus === "open");
   const overdue = open.filter((assignment) => new Date(assignment.dueAt).getTime() < now);
   const dueThisWeek = open.filter((assignment) => {
@@ -37,6 +39,17 @@ test("demo semester includes overdue, this-week, and mixed-review states", () =>
   assert.equal(dueThisWeek.length, 8);
   assert.ok(needsReview.some((assignment) => assignment.confidence < 0.7));
   assert.ok(needsReview.some((assignment) => assignment.confidence >= 0.8));
+});
+
+test("demo widget dates stay near the capture date", () => {
+  const fixedNow = new Date("2026-05-12T09:41:00-04:00");
+  const seed = createDemoSemesterSeed(fixedNow);
+  const labReport = seed.assignments.find((assignment) => assignment.id === "lab-report");
+  const problemSet = seed.assignments.find((assignment) => assignment.id === "problem-set-4");
+
+  assert.equal(toDateKey(storeCaptureNow).length, 10);
+  assert.equal(labReport && daysUntil(labReport.dueAt, fixedNow), 1);
+  assert.equal(problemSet && daysUntil(problemSet.dueAt, fixedNow), 0);
 });
 
 test("store capture mode only enables on the exact public preview flag", () => {

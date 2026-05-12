@@ -39,6 +39,7 @@ import {
   widgetStylePresets
 } from "../theme";
 import { useAppTheme } from "../themeContext";
+import { addDaysLocal, makeDueAt, startOfLocalDay, toDateKey } from "../logic/dateUtils";
 
 type OnboardingScreenProps = {
   initialStep?: number;
@@ -57,13 +58,17 @@ type OnboardingStepId =
 
 type WidgetFocusId = "nextDue" | "thisWeek";
 
-const previewNow = new Date("2025-04-22T09:41:00-04:00");
+const previewNow = createPreviewNow();
+const previewMonthLabel = new Intl.DateTimeFormat(undefined, {
+  month: "long",
+  year: "numeric"
+}).format(previewNow);
 
 const previewSemester: Semester = {
   id: "onboarding-preview-semester",
-  name: "Spring Preview",
-  startDate: "2025-01-13",
-  endDate: "2025-05-09"
+  name: "Semester Preview",
+  startDate: toDateKey(addDaysLocal(startOfLocalDay(previewNow), -90)),
+  endDate: toDateKey(addDaysLocal(startOfLocalDay(previewNow), 45))
 };
 
 const previewCourses: Course[] = [
@@ -94,12 +99,12 @@ const previewCourses: Course[] = [
 ];
 
 const previewAssignments: Assignment[] = [
-  previewAssignment("preview-problem-set", "preview-calc", "Calculus II", "Problem Set 4", "2025-04-23T23:59:00-04:00", "assignment", "high"),
-  previewAssignment("preview-lab-report", "preview-bio", "Chemistry 101", "Lab Report", "2025-04-22T23:59:00-04:00", "assignment", "medium"),
-  previewAssignment("preview-reading", "preview-writing", "English 101", "Reading Reflection", "2025-04-23T11:00:00-04:00", "reading", "medium"),
-  previewAssignment("preview-midterm", "preview-calc", "Calculus II", "Midterm Review", "2025-04-25T09:00:00-04:00", "exam", "high"),
+  previewAssignment("preview-problem-set", "preview-calc", "Calculus II", "Problem Set 4", previewDueAt(1, "23:59"), "assignment", "high"),
+  previewAssignment("preview-lab-report", "preview-bio", "Chemistry 101", "Lab Report", previewDueAt(0, "23:59"), "assignment", "medium"),
+  previewAssignment("preview-reading", "preview-writing", "English 101", "Reading Reflection", previewDueAt(1, "11:00"), "reading", "medium"),
+  previewAssignment("preview-midterm", "preview-calc", "Calculus II", "Midterm Review", previewDueAt(3, "09:00"), "exam", "high"),
   {
-    ...previewAssignment("preview-done", "preview-bio", "Chemistry 101", "Syllabus Quiz", "2025-04-18T09:00:00-04:00", "quiz", "low"),
+    ...previewAssignment("preview-done", "preview-bio", "Chemistry 101", "Syllabus Quiz", previewDueAt(-4, "09:00"), "quiz", "low"),
     completionStatus: "completed",
     status: "done",
     reviewStatus: "accepted"
@@ -539,7 +544,7 @@ function CalendarFillPreview({ motion }: { motion: Animated.Value }) {
           <CalendarRange color={colors.heroText} size={18} />
         </View>
         <View style={styles.previewCopy}>
-          <Text style={styles.previewKicker}>April 2025</Text>
+          <Text style={styles.previewKicker}>{previewMonthLabel}</Text>
           <Text style={styles.previewTitle}>Month grid plus week pressure</Text>
         </View>
         <StatusBadge label="2 busy days" tone="gold" />
@@ -877,14 +882,24 @@ function previewAssignment(
     reviewStatus: "needsReview",
     completionStatus: "open",
     reminderPreset: "day_before",
-    createdAt: "2025-03-01T12:00:00-04:00",
-    updatedAt: "2025-03-01T12:00:00-04:00",
+    createdAt: addDaysLocal(startOfLocalDay(previewNow), -30).toISOString(),
+    updatedAt: previewNow.toISOString(),
     tags: ["onboarding-preview"],
     priority,
     estimatedMinutes: type === "exam" ? 180 : 75,
     status: "not_started",
     source: "demo"
   };
+}
+
+function createPreviewNow() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 41, 0, 0);
+}
+
+function previewDueAt(dayOffset: number, time: string) {
+  const dateKey = toDateKey(addDaysLocal(startOfLocalDay(previewNow), dayOffset));
+  return makeDueAt(dateKey, time) || `${dateKey}T${time}:00`;
 }
 
 function clampStep(step: number) {

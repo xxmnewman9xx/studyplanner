@@ -1,6 +1,6 @@
 # Widget Retention Final
 
-Implementation score: 8.0/10. Submission evidence score: 7.2/10.
+Implementation score: 8.4/10. Submission evidence score: 8.1/10.
 
 ## What is real
 
@@ -9,10 +9,11 @@ Implementation score: 8.0/10. Submission evidence score: 7.2/10.
 - Medium answers This Week.
 - Snapshot writes through App Group and reloads timelines.
 - Production placeholder does not ship demo coursework.
+- Installed small and medium Home Screen widgets were captured on the simulator as `artifacts/post-goal-aso-submission/30-small-widget-home-screen.png` and `artifacts/post-goal-aso-submission/31-medium-widget-home-screen.png`.
+- Capture/demo coursework dates now roll relative to the capture day, preventing stale native widget screenshots such as false "384 days overdue" labels.
 
 ## Submission blockers
 
-- Fresh installed Home Screen small and medium PNGs are required.
 - Widget freshness after add/complete/edit needs proof.
 - Old Lock Screen/large widget assets must be excluded.
-- In-app previews do not count as native Home Screen proof.
+- In-app previews do not count as native Home Screen proof unless paired with the installed WidgetKit screenshots above.

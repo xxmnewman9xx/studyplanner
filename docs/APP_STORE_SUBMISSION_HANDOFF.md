@@ -21,8 +21,8 @@ Status: NO-SUBMIT as of 2026-05-12.
 
 1. App Store Connect IAP product status and sandbox monthly/yearly/Lifetime/restore proof missing.
 2. Support URL missing; submission verification fails without EXPO_PUBLIC_SUPPORT_URL in submission mode.
-3. Fresh screenshot folder is incomplete: 23 raw simulator PNGs and a contact sheet are captured, but remaining required states are missing.
-4. Native small/medium Home Screen widget screenshots and freshness proof missing.
+3. Fresh screenshot folder is incomplete: 25 raw simulator PNGs and a contact sheet are captured, but remaining required states are missing.
+4. Native widget refresh-after-assignment-change proof is still missing, though installed small/medium Home Screen screenshots are now captured.
 5. iPad screenshot strategy unresolved while ios.supportsTablet is true.
 6. Privacy URL/support page must be publicly verified and updated for parser endpoint/upload retention if endpoint is enabled.
 7. Signed App Store archive entitlement for notifications must be checked.
@@ -43,11 +43,12 @@ Use docs/APP_STORE_METADATA.md, docs/ASO_METADATA_PACK_EN.md, and localized ASO 
 
 Current capture inventory:
 
-- 23 raw simulator PNGs captured.
+- 25 raw simulator PNGs captured.
 - Contact sheet captured: `artifacts/post-goal-aso-submission/45-final-contact-sheet.png`.
 - Production empty Today proof captured: `06-today-empty.png`.
 - Capture-mode proof captured for onboarding, populated Today, Add School Stuff, Check New Work, assignment detail, Calendar, Week Plan, Classes, Widget Setup, themes, and paywall product-load failure.
-- Missing: native small/medium Home Screen widgets, products-loaded paywall, upload/photo/manual/parser-success states, restore purchases, app icon Home Screen, localized UI screenshots/string extraction, full VoiceOver/Dynamic Type screen sweep, iPad screenshots.
+- Native widget proof captured: `30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png` show installed WidgetKit small/medium widgets using the current May 2026 capture snapshot.
+- Missing: products-loaded paywall, upload/photo/manual/parser-success states, restore purchases, app icon Home Screen, localized UI screenshots/string extraction, full VoiceOver/Dynamic Type screen sweep, iPad screenshots, and widget refresh-after-completion proof.
 
 Date/localization implementation note:
 
@@ -62,4 +63,4 @@ Accessibility implementation note:
 
 ## Recommendation
 
-Do not submit this branch yet. Continue with remaining screenshot capture, StoreKit sandbox proof, support/privacy finalization, native widget Home Screen proof, iPad strategy, and final QA.
+Do not submit this branch yet. Continue with remaining screenshot capture, StoreKit sandbox proof, support/privacy finalization, widget refresh-after-completion proof, iPad strategy, and final QA.

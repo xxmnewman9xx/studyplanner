@@ -24,5 +24,13 @@
 | npm run test | Passed | 35/35 | Added `fr-FR` and `en-GB` 24-hour due-date formatting coverage |
 | npm run typecheck | Passed | exit 0 | Re-run after visual planner VoiceOver label patch |
 | npm run test | Passed | 36/36 | Added `tests/accessibilitySource.test.ts` to guard labels on task rows, WeekStrip, workload bars, calendar mini-days, workload forecasts, class balance rows, and completion cards |
+| EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE | Passed | Build succeeded and app wrote a current May 2026 WidgetKit payload | Used to refresh installed widgets after capture seed fix |
+| xcrun simctl + Simulator accessibility tree | Passed | Installed native small and medium widgets via Home Screen Add Widget flow | `simctl` has no widget placement command in this Xcode install; Computer Use completed the UI-only step |
+| xcrun simctl io screenshot | Passed | Captured `30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png`, then refreshed date-sensitive app screenshots | First helper attempt failed because zsh `path` shadowed PATH; rerun used `out` and absolute `/usr/bin/xcrun` |
+| npm run typecheck | Passed | exit 0 | Re-run after capture seed patch |
+| npm run test | Passed | 37/37 | Added current-date capture seed regression and updated month/widget expectations |
+| Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 25 PNGs at 1090x4302 | Re-run after correcting onboarding widget screenshot and native widget captures |
+| git diff --check | Passed | exit 0 | Final whitespace/conflict-marker check before commit |
+| sips screenshot dimension check | Passed | Native widget screenshots are 1179x2556; contact sheet is 1090x4302 | Confirms expected raw simulator/contact-sheet dimensions |
 
-Unrun/blocked: WidgetKit rerun, StoreKit sandbox, native widget Home Screen placement screenshots, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/Dynamic Type screen sweep, restore purchases.
+Unrun/blocked: StoreKit sandbox, widget refresh-after-completion proof, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/Dynamic Type screen sweep, restore purchases.

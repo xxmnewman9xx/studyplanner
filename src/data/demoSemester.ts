@@ -1,12 +1,13 @@
 import { normalizeAssignment } from "../logic/assignmentModel";
+import { addDaysLocal, makeDueAt, startOfLocalDay, toDateKey } from "../logic/dateUtils";
 import { Assignment, Course, PlannerData, Semester, SyllabusParseResult, SyllabusSource } from "../models";
 
-export const storeCaptureNow = new Date("2025-04-22T09:41:00-04:00");
+export const storeCaptureNow = createStoreCaptureNow();
 
-export const messySyllabusExample = `Calculus II / Chemistry 101 / Physics I / English 101 / World History spring packet
-Week of Apr 22: Problem Set 4 due Apr 22 11:59p, Chem Lab 3 titration around Apr 23.
-Physics chapter 7 problems due Apr 25. English reading reflection Apr 23.
-World History notes due Apr 23. Chemistry unit exam Apr 30. Midterm review May 16.
+export const messySyllabusExample = `Calculus II / Chemistry 101 / Physics I / English 101 / World History semester packet
+This week: Problem Set 4 due tonight, Chem Lab 3 titration around tomorrow.
+Physics chapter 7 problems due later this week. English reading reflection tomorrow.
+World History notes tomorrow. Chemistry unit exam next week. Midterm review later this month.
 Some duplicate rows and scanned page marks included.`;
 
 export const demoWidgetSnapshotCandidate = {
@@ -20,26 +21,28 @@ export const demoWidgetSnapshotCandidate = {
     "physics-motion-lab",
     "reading-quiz"
   ],
-  heavyWeekStartsOn: "2025-04-22",
+  heavyWeekStartsOn: toDateKey(storeCaptureNow),
   heavyWeekItemCount: 7,
   overdueItemCount: 0
 };
 
 export function createDemoSemesterSeed(now = storeCaptureNow): PlannerData {
+  const semesterStart = toDateKey(addDaysLocal(startOfLocalDay(now), -90));
+  const semesterEnd = toDateKey(addDaysLocal(startOfLocalDay(now), 45));
   const semester: Semester = {
-    id: "spring-2025-demo",
-    name: "Spring 2025 Preview",
-    startDate: "2025-01-13",
-    endDate: "2025-05-09",
+    id: "current-semester-demo",
+    name: "Current Semester Preview",
+    startDate: semesterStart,
+    endDate: semesterEnd,
     targetGpa: 3.8
   };
   const courses = createDemoCourses();
-  const assignments = createDemoAssignments(courses);
+  const assignments = createDemoAssignments(courses, now);
   const syllabusSources: SyllabusSource[] = [
     {
-      id: "syllabus-demo-messy-spring-2025",
+      id: "syllabus-demo-messy-current-semester",
       kind: "demo",
-      sourceName: "Messy Spring 2025 syllabus packet.txt",
+      sourceName: "Messy current-semester syllabus packet.txt",
       importedAt: now.toISOString(),
       parser: "demo",
       courseIds: courses.map((course) => course.id),
@@ -75,7 +78,7 @@ export function createDemoSyllabusParseResult(now = storeCaptureNow): SyllabusPa
   const syllabusSource = seed.syllabusSources[0];
 
   return {
-    sourceName: syllabusSource?.sourceName || "Messy Spring 2025 syllabus packet.txt",
+    sourceName: syllabusSource?.sourceName || "Messy current-semester syllabus packet.txt",
     semesterName: seed.semester.name,
     semesterStartDate: seed.semester.startDate,
     semesterEndDate: seed.semester.endDate,
@@ -211,23 +214,23 @@ function createDemoCourses(): Course[] {
   ];
 }
 
-function createDemoAssignments(courses: Course[]): Assignment[] {
+function createDemoAssignments(courses: Course[], now: Date): Assignment[] {
   return [
-    demoAssignment(courses, "syllabus-quiz-complete", "world-history", "Syllabus Quiz", "quiz", "2025-04-16T14:00:00", "accepted", 0.98, "completed"),
-    demoAssignment(courses, "english-reading-complete", "english-101", "Reading Reflection", "reading", "2025-04-18T20:00:00", "accepted", 0.96, "completed"),
-    demoAssignment(courses, "calc-quiz-complete", "calc-2", "Quiz 1", "quiz", "2025-04-18T17:00:00", "accepted", 0.96, "completed"),
-    demoAssignment(courses, "problem-set-4", "calc-2", "Problem Set 4", "assignment", "2025-04-22T23:59:00", "needsReview", 0.94),
-    demoAssignment(courses, "lab-3-titration", "chem-101", "Lab 3: Titration", "assignment", "2025-04-23T23:59:00", "needsReview", 0.66),
-    demoAssignment(courses, "chapter-7-problems", "physics-1", "Chapter 7 Problems", "assignment", "2025-04-25T17:00:00", "needsReview", 0.89),
-    demoAssignment(courses, "lab-report", "chem-101", "Lab Report", "assignment", "2025-04-23T17:00:00", "accepted", 0.97),
-    demoAssignment(courses, "reading-reflection", "english-101", "Reading Reflection", "reading", "2025-04-23T20:00:00", "accepted", 0.78),
-    demoAssignment(courses, "world-history-notes", "world-history", "World History Notes", "reading", "2025-04-23T20:00:00", "accepted", 0.82),
-    demoAssignment(courses, "reading-quiz", "world-history", "Reading Quiz", "quiz", "2025-04-24T12:00:00", "accepted", 0.93),
-    demoAssignment(courses, "physics-motion-lab", "physics-1", "Motion Lab", "assignment", "2025-04-28T18:00:00", "accepted", 0.91),
-    demoAssignment(courses, "chemistry-unit-exam", "chem-101", "Chemistry Unit Exam", "exam", "2025-04-30T09:00:00", "accepted", 0.98),
-    demoAssignment(courses, "english-essay-outline", "english-101", "Essay Outline", "project", "2025-05-02T17:00:00", "accepted", 0.88),
-    demoAssignment(courses, "midterm-review", "physics-1", "Midterm Review", "assignment", "2025-05-16T17:00:00", "accepted", 0.86),
-    demoAssignment(courses, "history-final-review", "world-history", "Final Review", "exam", "2025-05-05T13:30:00", "accepted", 0.95)
+    demoAssignment(courses, "syllabus-quiz-complete", "world-history", "Syllabus Quiz", "quiz", demoDueAt(now, -6, "14:00"), "accepted", 0.98, "completed", now),
+    demoAssignment(courses, "english-reading-complete", "english-101", "Reading Reflection", "reading", demoDueAt(now, -4, "20:00"), "accepted", 0.96, "completed", now),
+    demoAssignment(courses, "calc-quiz-complete", "calc-2", "Quiz 1", "quiz", demoDueAt(now, -4, "17:00"), "accepted", 0.96, "completed", now),
+    demoAssignment(courses, "problem-set-4", "calc-2", "Problem Set 4", "assignment", demoDueAt(now, 0, "23:59"), "needsReview", 0.94, "open", now),
+    demoAssignment(courses, "lab-3-titration", "chem-101", "Lab 3: Titration", "assignment", demoDueAt(now, 1, "23:59"), "needsReview", 0.66, "open", now),
+    demoAssignment(courses, "chapter-7-problems", "physics-1", "Chapter 7 Problems", "assignment", demoDueAt(now, 3, "17:00"), "needsReview", 0.89, "open", now),
+    demoAssignment(courses, "lab-report", "chem-101", "Lab Report", "assignment", demoDueAt(now, 1, "17:00"), "accepted", 0.97, "open", now),
+    demoAssignment(courses, "reading-reflection", "english-101", "Reading Reflection", "reading", demoDueAt(now, 1, "20:00"), "accepted", 0.78, "open", now),
+    demoAssignment(courses, "world-history-notes", "world-history", "World History Notes", "reading", demoDueAt(now, 1, "20:00"), "accepted", 0.82, "open", now),
+    demoAssignment(courses, "reading-quiz", "world-history", "Reading Quiz", "quiz", demoDueAt(now, 2, "12:00"), "accepted", 0.93, "open", now),
+    demoAssignment(courses, "physics-motion-lab", "physics-1", "Motion Lab", "assignment", demoDueAt(now, 6, "18:00"), "accepted", 0.91, "open", now),
+    demoAssignment(courses, "chemistry-unit-exam", "chem-101", "Chemistry Unit Exam", "exam", demoDueAt(now, 8, "09:00"), "accepted", 0.98, "open", now),
+    demoAssignment(courses, "english-essay-outline", "english-101", "Essay Outline", "project", demoDueAt(now, 10, "17:00"), "accepted", 0.88, "open", now),
+    demoAssignment(courses, "midterm-review", "physics-1", "Midterm Review", "assignment", demoDueAt(now, 24, "17:00"), "accepted", 0.86, "open", now),
+    demoAssignment(courses, "history-final-review", "world-history", "Final Review", "exam", demoDueAt(now, 13, "13:30"), "accepted", 0.95, "open", now)
   ];
 }
 
@@ -240,7 +243,8 @@ function demoAssignment(
   dueAt: string,
   reviewStatus: Assignment["reviewStatus"],
   confidence: number,
-  completionStatus: Assignment["completionStatus"] = "open"
+  completionStatus: Assignment["completionStatus"] = "open",
+  now = storeCaptureNow
 ) {
   const course = courses.find((item) => item.id === courseId);
 
@@ -259,10 +263,20 @@ function demoAssignment(
       completionStatus,
       status: completionStatus === "completed" ? "done" : "not_started",
       source: "demo",
-      createdAt: "2025-01-10T12:00:00.000Z",
-      updatedAt: "2025-04-22T13:41:00.000Z"
+      createdAt: addDaysLocal(startOfLocalDay(now), -100).toISOString(),
+      updatedAt: now.toISOString()
     },
     courses,
-    storeCaptureNow
+    now
   );
+}
+
+function createStoreCaptureNow() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 41, 0, 0);
+}
+
+function demoDueAt(now: Date, dayOffset: number, time: string) {
+  const dateKey = toDateKey(addDaysLocal(startOfLocalDay(now), dayOffset));
+  return makeDueAt(dateKey, time) || `${dateKey}T${time}:00`;
 }

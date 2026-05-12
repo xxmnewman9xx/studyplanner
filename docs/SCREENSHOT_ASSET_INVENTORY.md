@@ -2,16 +2,16 @@
 
 Folder: `artifacts/post-goal-aso-submission`
 
-Status: partial proof captured on 2026-05-12. The folder now contains **23 raw simulator PNGs** plus a generated contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit, native widget, iPad, and App Store-size export proof are complete.
+Status: partial proof captured on 2026-05-12. The folder now contains **25 raw simulator PNGs** plus a generated contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit, iPad, and App Store-size export proof are complete.
 
 ## Capture Summary
 
 - Production/no-demo proof captured: `06-today-empty.png`.
 - Capture-mode feature proof captured: onboarding, populated Today, Add School Stuff, Check New Work, assignment detail, Calendar, Week Plan, Classes, Widget Setup, theme customization, and paywall product-load failure.
+- Native Home Screen widget proof captured: `30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png` show installed WidgetKit small and medium widgets, refreshed from a current May 2026 capture snapshot.
 - Accessibility proof captured: Today at `accessibility-extra-extra-large` content size after capping the most failure-prone shared display labels.
-- Contact sheet captured: `45-final-contact-sheet.png`.
+- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 25 PNGs.
 - Paywall products-loaded proof is still missing. The captured paywall state shows purchases unavailable and is correctly stored as `38-paywall-product-load-failure.png`.
-- Native Home Screen widget screenshots are still missing. In-app widget previews are useful design proof only; they do not prove installed WidgetKit widgets.
 
 | Required PNG | Status | Notes |
 | --- | --- | --- |
@@ -20,7 +20,7 @@ Status: partial proof captured on 2026-05-12. The folder now contains **23 raw s
 | 02-onboarding-syllabus-to-plan.png | Captured | Capture-mode simulator UI, 1179x2556 PNG. |
 | 03-onboarding-check-found-work.png | Captured | Capture-mode simulator UI, 1179x2556 PNG. |
 | 04-onboarding-widgets.png | Captured | Capture-mode simulator UI, 1179x2556 PNG. |
-| 05-onboarding-first-action.png | Captured | Capture-mode simulator UI, 1179x2556 PNG. |
+| 05-onboarding-first-action.png | Captured with caveat | Capture-mode simulator UI, 1179x2556 PNG. Current capture shows the final style/palette step; a cleaner first-action button close-up is still useful for App Store-ready assets. |
 | 06-today-empty.png | Captured | Real simulator production empty Today state, 1179x2556 PNG. Not App Store-size exported yet. |
 | 07-today-populated.png | Captured | Capture-mode simulator UI with safe synthetic assignments, 1179x2556 PNG. |
 | 08-today-overdue.png | Missing | Current capture seed has no overdue state; do not fabricate one. |
@@ -45,8 +45,8 @@ Status: partial proof captured on 2026-05-12. The folder now contains **23 raw s
 | 27-class-detail.png | Captured | Capture-mode class detail/lower scroll, 1179x2556 PNG. |
 | 28-reminders.png | Missing | Reminder permission/schedule flow not captured. |
 | 29-widget-setup.png | Captured | Capture-mode Widget Setup in-app preview, 1179x2556 PNG. Not native Home Screen proof. |
-| 30-small-widget-home-screen.png | Missing | Native Home Screen widget placement proof required. |
-| 31-medium-widget-home-screen.png | Missing | Native Home Screen widget placement proof required. |
+| 30-small-widget-home-screen.png | Captured | Real simulator Home Screen with installed WidgetKit small widget, 1179x2556 PNG. The widget shows current capture dates, not stale overdue demo data. |
+| 31-medium-widget-home-screen.png | Captured | Real simulator Home Screen with installed WidgetKit medium widget, 1179x2556 PNG. The widget shows current capture dates, not stale overdue demo data. |
 | 32-widget-empty-state.png | Missing | Native/widget empty state not captured. |
 | 33-widget-needs-check-state.png | Missing | Native/widget needs-check state not captured. |
 | 34-theme-customization.png | Captured | Capture-mode Widget Setup/theme preview, 1179x2556 PNG. |
@@ -60,12 +60,12 @@ Status: partial proof captured on 2026-05-12. The folder now contains **23 raw s
 | 42-sample-plan-state.png | Missing | Sample plan entry/state not separately captured. |
 | 43-localized-ui-example.png | Missing | UI localization proof not captured. |
 | 44-accessibility-large-text.png | Captured | Real simulator Today screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves the top hierarchy no longer catastrophically explodes, but full Dynamic Type/VoiceOver audit remains open. |
-| 45-final-contact-sheet.png | Captured | Generated from the 23 current PNGs, 1064x3468 PNG. |
+| 45-final-contact-sheet.png | Captured | Generated from the 25 current PNGs, 1090x4302 PNG. |
 
 ## Excluded Assets
 
 - Any old asset with Lock Screen widget claims.
-- In-app previews as native Home Screen widget proof.
+- In-app previews as the only native Home Screen widget proof.
 - App preview videos.
 - Demo/capture state as production proof.
 - A products-loaded paywall screenshot until StoreKit products actually load.

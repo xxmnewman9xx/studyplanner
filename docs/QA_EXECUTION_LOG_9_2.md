@@ -22,7 +22,7 @@ Future cycles will append exact commands, outputs, fixes, and retests after impl
 | 4 | Improved Check New Work evidence flow | Passed | source evidence, parser findings, no-date state, guarded bulk accept, date validation | No |
 | 5 | Improved Classes/customization | Passed | class color swatches, Add Work language, date validation, screenshots `10`, `11`, `17` | No |
 | 6 | Improved Assignment Detail | Passed | safe date/time validation, source note, simpler labels, screenshot `12` | No |
-| 7 | Improved Onboarding and Widget Setup | Passed | supported small/medium widget focus only, conversion copy rewrite, screenshots `02`, `13-15` | Native Home Screen widget add remains manual |
+| 7 | Improved Onboarding and Widget Setup | Passed | supported small/medium widget focus only, conversion copy rewrite, screenshots `02`, `13-15` | Refresh-after-completion proof remains manual |
 | 8 | `npm run typecheck` | Passed | `tsc --noEmit` completed | No |
 | 8 | `npm run test` | Passed | 23/23 tests passed, including new invalid-date/parser/widget regressions | No; expanded to 26/26 in cycle 10 |
 | 8 | `npm run check:iap` | Passed | IAP and premium gate configuration passed | No |
@@ -33,7 +33,7 @@ Future cycles will append exact commands, outputs, fixes, and retests after impl
 
 Known residual risks:
 
-- Native widget add-widget screenshots were not automated; WidgetKit payload was verified and in-app previews were captured.
+- Native small/medium widget screenshots are now captured on the successor branch; refresh-after-completion proof still needs a focused simulator pass.
 - Accessibility/localization/performance are improved only at high-impact points, not exhaustively completed.
 - Heavy-load scenarios from the 500-use-case swarm are specified but not fully automated as e2e tests.
 
@@ -65,3 +65,7 @@ Known residual risks:
 | 16 | Planner visual VoiceOver labels | Passed | `TaskRow`, task completion, `WeekStrip`, workload bars, calendar mini-days, workload forecasts, class balance rows, and completion cards now expose descriptive accessibility labels | Full simulator VoiceOver traversal still needed |
 | 16 | `npm run typecheck` | Passed | `tsc --noEmit` completed after visual-label patch | No |
 | 16 | `npm run test` | Passed | 36/36 tests passed, including `tests/accessibilitySource.test.ts` | No |
+| 17 | Native widget screenshot proof | Passed | Successor branch installed small/medium Home Screen widgets and captured `30-small-widget-home-screen.png` / `31-medium-widget-home-screen.png` with current May 2026 labels | Refresh-after-completion proof still needed |
+| 17 | Current-date capture seed | Passed | `src/data/demoSemester.ts` now rolls demo dates relative to capture day; stale native widget overdue labels fixed | No |
+| 17 | `npm run typecheck` | Passed | `tsc --noEmit` completed after current-date capture patch | No |
+| 17 | `npm run test` | Passed | 37/37 tests passed | No |

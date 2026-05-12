@@ -2,7 +2,7 @@
 
 Branch: `v1-2-goal-9-2-root-concept-transformation`  
 Starting commit: `69d75470328bc470bce6097384b4a7e39e79c89a`  
-Final implementation score: **8.88/10**
+Final implementation score: **8.96/10**
 9.2 reached: **No**
 
 ## What Changed
@@ -21,12 +21,14 @@ Final implementation score: **8.88/10**
 - Task rows, completion buttons, WeekStrip days, workload bars, calendar mini-days, workload forecasts, class balance rows, and completion cards now expose VoiceOver labels, with a source-regression test guarding the labels.
 - Month calendar planning now respects locale week-start rules for Sunday, Monday, and Saturday-start regions, with Monday-start coverage for `en-GB`.
 - Due-date and Week Plan date labels now use the preferred locale, with 24-hour formatting coverage for `fr-FR` and `en-GB`.
+- Successor-branch capture mode now uses current relative demo dates, preventing stale WidgetKit due labels.
+- Installed native small and medium Home Screen widgets are captured in `artifacts/post-goal-aso-submission/30-small-widget-home-screen.png` and `artifacts/post-goal-aso-submission/31-medium-widget-home-screen.png`.
 - Paywall copy no longer exposes internal product-ID language.
 
 ## Verification
 
 - `npm run typecheck`: passed.
-- `npm run test`: passed, 36/36 tests.
+- `npm run test`: passed, 37/37 tests.
 - `npm run check:iap`: passed.
 - `npm run verify:production`: passed.
 - `EXPO_PUBLIC_STORE_CAPTURE=1 ./scripts/verify-ios-widgetkit.sh`: passed build/App Group payload inspection; manual widget placement remains.
@@ -37,7 +39,7 @@ Final implementation score: **8.88/10**
 
 ## Why This Is Not 9.2 Yet
 
-- Native Home Screen widget screenshots are not fully automated; current artifact set includes in-app widget previews plus verified WidgetKit payload.
+- Widget refresh after completion/edit is not proven; installed Home Screen small/medium screenshots now exist, but freshness after a user action still needs proof.
 - Accessibility and localization remain targeted improvements rather than exhaustive completion; source-tested VoiceOver labels now cover key planner visuals, but full simulator VoiceOver/Dynamic Type proof and localized simulator screenshots are still needed.
 - The 500-use-case swarm is generated and ranked, but not converted into a full automated e2e suite.
 - StoreKit configuration passes static checks, but sandbox purchase/restore proof still needs a validation run.
@@ -46,7 +48,7 @@ Final implementation score: **8.88/10**
 
 Run a release-validation gate on this branch focused only on:
 
-1. Native Home Screen small/medium widget installation screenshots and refresh-after-completion proof.
+1. Native widget refresh-after-completion proof using the installed small/medium Home Screen widgets.
 2. StoreKit sandbox monthly/yearly/lifetime purchase and restore proof.
 3. VoiceOver/Dynamic Type pass on Today, Check Work, Assignment Detail, Widget Setup, and Paywall.
 4. Heavy-load simulator seed with 100 and 500 assignments.

@@ -24,7 +24,8 @@ test("widget snapshot prepares this-week surfaces and heavy warning", () => {
   assert.equal(snapshot.surfaces.medium.overflowCount, 1);
   assert.equal(snapshot.surfaces.large.heavyWeekWarning?.isHeavy, true);
   assert.equal(snapshot.surfaces.lockScreen.countdownLabel, "Tomorrow");
-  assert.equal(snapshot.surfaces.monthly.dueThisMonth, 6);
+  assert.equal(snapshot.surfaces.monthly.dueThisMonth, snapshot.monthly?.dueThisMonth);
+  assert.ok(snapshot.surfaces.monthly.dueThisMonth > 0);
   assert.equal(snapshot.surfaces.heavyWeek.workloadByDay[1]?.count, 3);
   assert.ok(snapshot.widgetStyle?.paletteId);
 });
