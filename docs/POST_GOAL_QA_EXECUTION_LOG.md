@@ -227,5 +227,12 @@
 | npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning | Submission gate remains unchanged for English-only submission |
 | VoiceOver traversal tooling check | Blocked | `simctl ui` cannot traverse VoiceOver, Accessibility Inspector launched only as GUI, and `xcodebuild test` failed because no UI test bundles are available | Added `docs/VOICEOVER_TRAVERSAL_RUNBOOK.md` and `voiceover-traversal-attempt.md`; real manual traversal still required |
 | StoreKit testing setup check | Blocked | No `.storekit` file exists, `xcrun storekit` is unavailable, and the shared app scheme has no StoreKit configuration reference | Added `docs/STOREKIT_TESTING_RUNBOOK.md` and `storekit-sandbox-attempt.md`; real StoreKit Testing/App Store Connect proof still required |
+| npm run verify:goal92 | Failed as intended | GOAL-OPEN: 5 blockers, 0 warnings; wrote `docs/GOAL_9_2_COMPLETION_GATE.md` and `docs/GOAL_9_2_COMPLETION_BLOCKERS.json` | Added a machine-readable blocker ledger for products-loaded paywall, StoreKit sandbox/restore, VoiceOver traversal, and honest final-doc state blockers |
+| npm run typecheck | Passed | exit 0 | Re-run after blocker-ledger gate patch |
+| npm run test | Passed | 55/55 | `tests/goal92Completion.test.ts` now asserts structured blocker proof types and required evidence files |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after blocker-ledger gate patch |
+| npm run verify:production | Passed | Production config verification passed | Re-run after blocker-ledger gate patch |
+| npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning | Submission gate remains unchanged; external proof blockers remain |
+| git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after blocker-ledger gate patch |
 
 Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, manual App Store Connect screenshot upload acceptance, full translated UI/string extraction/native localization review, full simulator VoiceOver traversal, restore purchase success proof. Optional: overnight widget rollover screenshot.

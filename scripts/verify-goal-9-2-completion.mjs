@@ -11,6 +11,7 @@ const goalArtifactRoot = path.join(root, "artifacts/goal-9-2-transformation");
 const postGoalArtifactRoot = path.join(root, "artifacts/post-goal-aso-submission");
 const proofRoot = path.join(postGoalArtifactRoot, "external-proof");
 const outputPath = path.join(root, "docs/GOAL_9_2_COMPLETION_GATE.md");
+const blockerOutputPath = path.join(root, "docs/GOAL_9_2_COMPLETION_BLOCKERS.json");
 const jsonMode = process.argv.includes("--json");
 const writeDoc = !jsonMode && !process.argv.includes("--no-write");
 const checks = [];
@@ -180,8 +181,9 @@ checkProof({
 });
 checkLocalizedUiDisposition();
 
-const blockers = checks.filter((item) => item.status === "BLOCKER");
-const warnings = checks.filter((item) => item.status === "WARN");
+const blockingChecks = checks.filter((item) => item.status === "BLOCKER");
+const warningChecks = checks.filter((item) => item.status === "WARN");
+const blockerInventory = buildBlockerInventory(blockingChecks);
 const audit = {
   generatedAt: new Date().toISOString(),
   branchContext:
@@ -189,9 +191,10 @@ const audit = {
   useCaseRows,
   functionalityRows,
   checks,
-  blockerCount: blockers.length,
-  warningCount: warnings.length,
-  passed: blockers.length === 0
+  blockers: blockerInventory,
+  blockerCount: blockingChecks.length,
+  warningCount: warningChecks.length,
+  passed: blockingChecks.length === 0
 };
 
 if (jsonMode) {
@@ -200,6 +203,7 @@ if (jsonMode) {
   const markdown = renderMarkdown(audit);
   if (writeDoc) {
     fs.writeFileSync(outputPath, markdown);
+    fs.writeFileSync(blockerOutputPath, `${JSON.stringify(renderBlockerJson(audit), null, 2)}\n`);
   }
   console.log("Goal 9.2 completion verification");
   console.log(`Use cases: ${useCaseRows}`);
@@ -214,20 +218,21 @@ if (jsonMode) {
   if (writeDoc) {
     console.log("");
     console.log(`Wrote ${path.relative(root, outputPath)}`);
+    console.log(`Wrote ${path.relative(root, blockerOutputPath)}`);
   }
 }
 
 if (!audit.passed) {
   if (!jsonMode) {
     console.error("");
-    console.error(`GOAL-OPEN: ${blockers.length} blocker(s), ${warnings.length} warning(s).`);
+    console.error(`GOAL-OPEN: ${blockingChecks.length} blocker(s), ${warningChecks.length} warning(s).`);
   }
   process.exit(1);
 }
 
 if (!jsonMode) {
   console.log("");
-  console.log(`GOAL-COMPLETE-CANDIDATE: 0 blockers, ${warnings.length} warning(s).`);
+  console.log(`GOAL-COMPLETE-CANDIDATE: 0 blockers, ${warningChecks.length} warning(s).`);
 }
 
 function checkScorecard() {
@@ -423,6 +428,105 @@ function check(condition, label, detail) {
   });
 }
 
+function buildBlockerInventory(items) {
+  return items.map((item, index) => {
+    const metadata = blockerMetadata(item.label);
+    return {
+      id: `G92-B${String(index + 1).padStart(2, "0")}`,
+      label: item.label,
+      status: item.status,
+      proofType: metadata.proofType,
+      category: metadata.category,
+      detail: item.detail,
+      requiredEvidence: metadata.requiredEvidence,
+      requiredFiles: metadata.requiredFiles,
+      nextAction: metadata.nextAction,
+      canBeClosedByLocalSourceTests: metadata.canBeClosedByLocalSourceTests
+    };
+  });
+}
+
+function blockerMetadata(label) {
+  const defaults = {
+    proofType: "goal-artifact",
+    category: "Goal completion evidence",
+    requiredEvidence: ["Resolve the failing gate check with real evidence, then re-run npm run verify:goal92."],
+    requiredFiles: [],
+    nextAction: "Inspect the failing check, add the missing proof artifact, and re-run npm run verify:goal92.",
+    canBeClosedByLocalSourceTests: false
+  };
+
+  const known = {
+    "Final readiness report marks 9.2 reached": {
+      proofType: "doc-state-after-proof",
+      category: "Final readiness claim",
+      requiredEvidence: [
+        "docs/FINAL_9_2_READINESS_REPORT.md may only switch to 9.2 reached: Yes after all external/manual proof blockers are closed."
+      ],
+      requiredFiles: ["docs/FINAL_9_2_READINESS_REPORT.md"],
+      nextAction:
+        "Leave the report at No until products-loaded paywall, StoreKit sandbox/restore, and VoiceOver traversal proof exist; then update and re-run the gate.",
+      canBeClosedByLocalSourceTests: false
+    },
+    "Completion audit no longer marks goal incomplete": {
+      proofType: "doc-state-after-proof",
+      category: "Completion audit claim",
+      requiredEvidence: [
+        "docs/COMPLETION_AUDIT_9_2.md may only remove the Not complete verdict after all external/manual proof blockers are closed."
+      ],
+      requiredFiles: ["docs/COMPLETION_AUDIT_9_2.md"],
+      nextAction:
+        "Keep the audit honest while proof is missing; after proof exists, update the verdict and re-run npm run verify:goal92.",
+      canBeClosedByLocalSourceTests: false
+    },
+    "Products-loaded paywall proof exists": {
+      proofType: "external-storekit-screenshot",
+      category: "StoreKit products-loaded paywall proof",
+      requiredEvidence: [
+        "A real simulator/device screenshot of the paywall with monthly, yearly, and Lifetime products loaded from StoreKit Testing or sandbox."
+      ],
+      requiredFiles: ["artifacts/post-goal-aso-submission/37-paywall-products-loaded.png"],
+      nextAction:
+        "Follow docs/STOREKIT_TESTING_RUNBOOK.md, launch a StoreKit-enabled build, capture the paywall products-loaded state, and re-run the gate.",
+      canBeClosedByLocalSourceTests: false
+    },
+    "StoreKit sandbox purchase/restore proof exists": {
+      proofType: "external-storekit-sandbox",
+      category: "StoreKit purchase and restore proof",
+      requiredEvidence: [
+        "Monthly subscription purchase result",
+        "Yearly subscription purchase result",
+        "Lifetime non-consumable purchase result",
+        "Restore Purchases result",
+        "Confirmation that the run used StoreKit Testing or App Store sandbox, not mocked entitlement state."
+      ],
+      requiredFiles: ["artifacts/post-goal-aso-submission/external-proof/storekit-sandbox-proof.md"],
+      nextAction:
+        "Run the StoreKit Testing or sandbox flow from docs/STOREKIT_TESTING_RUNBOOK.md, record product IDs and restore output, then re-run npm run verify:goal92.",
+      canBeClosedByLocalSourceTests: false
+    },
+    "Full VoiceOver traversal proof exists": {
+      proofType: "manual-accessibility-traversal",
+      category: "VoiceOver simulator/device proof",
+      requiredEvidence: [
+        "Traversal notes for Today",
+        "Traversal notes for Check New Work",
+        "Traversal notes for Assignment Detail",
+        "Traversal notes for Widget Setup",
+        "Traversal notes for Paywall",
+        "Traversal notes for Settings/Restore",
+        "Any screenshots or logs captured during real VoiceOver traversal."
+      ],
+      requiredFiles: ["artifacts/post-goal-aso-submission/external-proof/voiceover-traversal.md"],
+      nextAction:
+        "Follow docs/VOICEOVER_TRAVERSAL_RUNBOOK.md with VoiceOver enabled on simulator/device, record real traversal results, and re-run npm run verify:goal92.",
+      canBeClosedByLocalSourceTests: false
+    }
+  };
+
+  return known[label] || defaults;
+}
+
 function fileExists(relativePath) {
   const fullPath = path.join(root, relativePath);
   return fs.existsSync(fullPath) && fs.statSync(fullPath).size > 0;
@@ -464,10 +568,36 @@ Functionality matrix rows inspected: ${audit.functionalityRows}
 | --- | --- | --- |
 ${audit.checks.map((item) => `| ${escapeCell(item.label)} | ${item.status} | ${escapeCell(item.detail || "")} |`).join("\n")}
 
+## Machine-Readable Blocker Inventory
+
+The current blocker ledger is written to \`docs/GOAL_9_2_COMPLETION_BLOCKERS.json\` whenever this gate runs without \`--json\` or \`--no-write\`.
+
+| ID | Blocker | Proof type | Required files | Next action |
+| --- | --- | --- | --- | --- |
+${audit.blockers.map((item) => `| ${item.id} | ${escapeCell(item.label)} | ${escapeCell(item.proofType)} | ${escapeCell(item.requiredFiles.join("<br>") || "n/a")} | ${escapeCell(item.nextAction)} |`).join("\n") || "| n/a | No blockers | n/a | n/a | n/a |"}
+
 ## Interpretation
 
 This gate is intentionally stricter than a source test suite. It verifies the original 9.2 transformation artifacts and then refuses to close the goal while manual/external proof gaps remain. Passing source tests, screenshot manifests, or local audits does not by itself prove the active goal is complete.
 `;
+}
+
+function renderBlockerJson(audit) {
+  return {
+    generatedAt: audit.generatedAt,
+    result: audit.passed
+      ? `GOAL-COMPLETE-CANDIDATE: 0 blockers, ${audit.warningCount} warning(s).`
+      : `GOAL-OPEN: ${audit.blockerCount} blocker(s), ${audit.warningCount} warning(s).`,
+    branchContext: audit.branchContext,
+    useCaseRows: audit.useCaseRows,
+    functionalityRows: audit.functionalityRows,
+    blockerCount: audit.blockerCount,
+    warningCount: audit.warningCount,
+    blockers: audit.blockers,
+    nextGateCommand: "npm run verify:goal92",
+    note:
+      "This file is generated from scripts/verify-goal-9-2-completion.mjs and intentionally lists only blockers, not passing checks."
+  };
 }
 
 function escapeCell(value) {

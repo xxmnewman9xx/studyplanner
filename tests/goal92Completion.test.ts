@@ -38,6 +38,28 @@ test("goal 9.2 completion gate exposes structured JSON for audit tooling", () =>
   assert.ok(audit.blockerCount >= 4);
   assert.ok(audit.useCaseRows >= 500);
   assert.ok(audit.functionalityRows >= 400);
+  assert.ok(Array.isArray(audit.blockers));
+  assert.ok(
+    audit.blockers.some((blocker: { label: string; proofType: string; requiredFiles: string[] }) =>
+      blocker.label === "Products-loaded paywall proof exists" &&
+      blocker.proofType === "external-storekit-screenshot" &&
+      blocker.requiredFiles.includes("artifacts/post-goal-aso-submission/37-paywall-products-loaded.png")
+    )
+  );
+  assert.ok(
+    audit.blockers.some((blocker: { label: string; proofType: string; requiredFiles: string[] }) =>
+      blocker.label === "StoreKit sandbox purchase/restore proof exists" &&
+      blocker.proofType === "external-storekit-sandbox" &&
+      blocker.requiredFiles.includes("artifacts/post-goal-aso-submission/external-proof/storekit-sandbox-proof.md")
+    )
+  );
+  assert.ok(
+    audit.blockers.some((blocker: { label: string; proofType: string; requiredFiles: string[] }) =>
+      blocker.label === "Full VoiceOver traversal proof exists" &&
+      blocker.proofType === "manual-accessibility-traversal" &&
+      blocker.requiredFiles.includes("artifacts/post-goal-aso-submission/external-proof/voiceover-traversal.md")
+    )
+  );
   assert.ok(
     audit.checks.some((check: { label: string; status: string }) =>
       check.label === "Submission gate blocks only after local source audits pass" &&

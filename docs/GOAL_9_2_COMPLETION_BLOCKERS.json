@@ -1,0 +1,103 @@
+{
+  "generatedAt": "2026-05-12T22:58:41.501Z",
+  "result": "GOAL-OPEN: 5 blocker(s), 0 warning(s).",
+  "branchContext": "The v1-2 goal branch is an ancestor of the current v1-3 ASO/submission branch.",
+  "useCaseRows": 565,
+  "functionalityRows": 440,
+  "blockerCount": 5,
+  "warningCount": 0,
+  "blockers": [
+    {
+      "id": "G92-B01",
+      "label": "Final readiness report marks 9.2 reached",
+      "status": "BLOCKER",
+      "proofType": "doc-state-after-proof",
+      "category": "Final readiness claim",
+      "detail": "docs/FINAL_9_2_READINESS_REPORT.md still says 9.2 reached: No.",
+      "requiredEvidence": [
+        "docs/FINAL_9_2_READINESS_REPORT.md may only switch to 9.2 reached: Yes after all external/manual proof blockers are closed."
+      ],
+      "requiredFiles": [
+        "docs/FINAL_9_2_READINESS_REPORT.md"
+      ],
+      "nextAction": "Leave the report at No until products-loaded paywall, StoreKit sandbox/restore, and VoiceOver traversal proof exist; then update and re-run the gate.",
+      "canBeClosedByLocalSourceTests": false
+    },
+    {
+      "id": "G92-B02",
+      "label": "Completion audit no longer marks goal incomplete",
+      "status": "BLOCKER",
+      "proofType": "doc-state-after-proof",
+      "category": "Completion audit claim",
+      "detail": "docs/COMPLETION_AUDIT_9_2.md still marks goal completion as not complete.",
+      "requiredEvidence": [
+        "docs/COMPLETION_AUDIT_9_2.md may only remove the Not complete verdict after all external/manual proof blockers are closed."
+      ],
+      "requiredFiles": [
+        "docs/COMPLETION_AUDIT_9_2.md"
+      ],
+      "nextAction": "Keep the audit honest while proof is missing; after proof exists, update the verdict and re-run npm run verify:goal92.",
+      "canBeClosedByLocalSourceTests": false
+    },
+    {
+      "id": "G92-B03",
+      "label": "Products-loaded paywall proof exists",
+      "status": "BLOCKER",
+      "proofType": "external-storekit-screenshot",
+      "category": "StoreKit products-loaded paywall proof",
+      "detail": "Missing products-loaded StoreKit paywall screenshot. Use docs/STOREKIT_TESTING_RUNBOOK.md; tooling/setup attempts are recorded in storekit-sandbox-attempt.md.",
+      "requiredEvidence": [
+        "A real simulator/device screenshot of the paywall with monthly, yearly, and Lifetime products loaded from StoreKit Testing or sandbox."
+      ],
+      "requiredFiles": [
+        "artifacts/post-goal-aso-submission/37-paywall-products-loaded.png"
+      ],
+      "nextAction": "Follow docs/STOREKIT_TESTING_RUNBOOK.md, launch a StoreKit-enabled build, capture the paywall products-loaded state, and re-run the gate.",
+      "canBeClosedByLocalSourceTests": false
+    },
+    {
+      "id": "G92-B04",
+      "label": "StoreKit sandbox purchase/restore proof exists",
+      "status": "BLOCKER",
+      "proofType": "external-storekit-sandbox",
+      "category": "StoreKit purchase and restore proof",
+      "detail": "StoreKit monthly/yearly/Lifetime purchase and restore proof must be recorded before the 9.2 goal can be closed. Use docs/STOREKIT_TESTING_RUNBOOK.md; setup attempts are recorded in storekit-sandbox-attempt.md. Missing: artifacts/post-goal-aso-submission/external-proof/storekit-sandbox-proof.md.",
+      "requiredEvidence": [
+        "Monthly subscription purchase result",
+        "Yearly subscription purchase result",
+        "Lifetime non-consumable purchase result",
+        "Restore Purchases result",
+        "Confirmation that the run used StoreKit Testing or App Store sandbox, not mocked entitlement state."
+      ],
+      "requiredFiles": [
+        "artifacts/post-goal-aso-submission/external-proof/storekit-sandbox-proof.md"
+      ],
+      "nextAction": "Run the StoreKit Testing or sandbox flow from docs/STOREKIT_TESTING_RUNBOOK.md, record product IDs and restore output, then re-run npm run verify:goal92.",
+      "canBeClosedByLocalSourceTests": false
+    },
+    {
+      "id": "G92-B05",
+      "label": "Full VoiceOver traversal proof exists",
+      "status": "BLOCKER",
+      "proofType": "manual-accessibility-traversal",
+      "category": "VoiceOver simulator/device proof",
+      "detail": "Source-level VoiceOver coverage is not a substitute for simulator/device traversal proof. Use docs/VOICEOVER_TRAVERSAL_RUNBOOK.md; tooling attempts are recorded in voiceover-traversal-attempt.md. Missing: artifacts/post-goal-aso-submission/external-proof/voiceover-traversal.md.",
+      "requiredEvidence": [
+        "Traversal notes for Today",
+        "Traversal notes for Check New Work",
+        "Traversal notes for Assignment Detail",
+        "Traversal notes for Widget Setup",
+        "Traversal notes for Paywall",
+        "Traversal notes for Settings/Restore",
+        "Any screenshots or logs captured during real VoiceOver traversal."
+      ],
+      "requiredFiles": [
+        "artifacts/post-goal-aso-submission/external-proof/voiceover-traversal.md"
+      ],
+      "nextAction": "Follow docs/VOICEOVER_TRAVERSAL_RUNBOOK.md with VoiceOver enabled on simulator/device, record real traversal results, and re-run npm run verify:goal92.",
+      "canBeClosedByLocalSourceTests": false
+    }
+  ],
+  "nextGateCommand": "npm run verify:goal92",
+  "note": "This file is generated from scripts/verify-goal-9-2-completion.mjs and intentionally lists only blockers, not passing checks."
+}

@@ -254,3 +254,10 @@ Known residual risks:
 | 45 | `npm run verify:submission` | Failed as intended | NO-SUBMIT remains 8 blockers and 1 warning | External proof blockers remain |
 | 46 | VoiceOver traversal tooling check | Blocked | `xcrun simctl help ui` has no VoiceOver traversal option; Accessibility Inspector launched only as a GUI process; `xcodebuild test` failed with no available test bundles | Added `docs/VOICEOVER_TRAVERSAL_RUNBOOK.md` and `artifacts/post-goal-aso-submission/external-proof/voiceover-traversal-attempt.md`; manual traversal proof remains required |
 | 47 | StoreKit testing setup check | Blocked | No `.storekit` file exists, `xcrun storekit` is unavailable, and the shared app scheme has no StoreKit configuration reference | Added `docs/STOREKIT_TESTING_RUNBOOK.md` and `artifacts/post-goal-aso-submission/external-proof/storekit-sandbox-attempt.md`; products-loaded paywall and purchase/restore proof remain required |
+| 48 | Goal 9.2 blocker ledger | Failed as intended | `npm run verify:goal92` now writes both `docs/GOAL_9_2_COMPLETION_GATE.md` and `docs/GOAL_9_2_COMPLETION_BLOCKERS.json`; the JSON ledger categorizes the 5 open blockers by proof type, required evidence, required file, and next action | Products-loaded paywall, StoreKit sandbox/restore, VoiceOver traversal, and honest final-doc state blockers remain |
+| 48 | `npm run typecheck` | Passed | `tsc --noEmit` completed after blocker-ledger gate patch | No |
+| 48 | `npm run test` | Passed | 55/55 tests passed; `tests/goal92Completion.test.ts` asserts external StoreKit and manual VoiceOver blocker metadata | No |
+| 48 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after blocker-ledger gate patch | No |
+| 48 | `npm run verify:production` | Passed | Production config verification passed after blocker-ledger gate patch | No |
+| 48 | `npm run verify:submission` | Failed as intended | NO-SUBMIT remains 8 blockers and 1 warning | External proof blockers remain |
+| 48 | `git diff --check` | Passed | No whitespace errors or conflict markers after blocker-ledger gate patch | No |
