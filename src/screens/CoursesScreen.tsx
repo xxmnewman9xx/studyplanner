@@ -142,7 +142,8 @@ export function CoursesScreen({
 
       {selectedCourse ? (
         <>
-          <GlassCard tint="hero">
+          <GlassCard tint="hero" style={styles.detailCard}>
+            <View pointerEvents="none" style={styles.detailBand} />
             <View style={styles.detailTop}>
               <View style={[styles.detailIcon, { backgroundColor: selectedCourse.color }]}>
                 <BookOpen color={colors.heroText} size={20} />
@@ -188,6 +189,7 @@ export function CoursesScreen({
                   key={assignment.id}
                   assignment={assignment}
                   course={getCourseForAssignment(courses, assignment)}
+                  now={now}
                   onOpen={() => onOpenAssignment(assignment.id)}
                   compact
                   right={<StatusBadge label={urgencyLabel(assignment, now)} tone={assignment.kind === "exam" ? "red" : "blue"} />}
@@ -404,6 +406,21 @@ function createStyles(theme: AppTheme) {
     courseList: {
       gap: spacing.sm
     },
+    detailCard: {
+      overflow: "hidden",
+      backgroundColor: colors.heroSurface,
+      borderColor: "rgba(255,255,255,0.16)"
+    },
+    detailBand: {
+      position: "absolute",
+      top: -36,
+      right: -44,
+      width: 210,
+      height: 94,
+      borderRadius: 34,
+      backgroundColor: "rgba(108,92,231,0.28)",
+      transform: [{ rotate: "23deg" }]
+    },
     detailTop: {
       flexDirection: "row",
       alignItems: "center",
@@ -422,19 +439,19 @@ function createStyles(theme: AppTheme) {
       gap: 2
     },
     detailCode: {
-      color: colors.brandPurple,
+      color: colors.widgetAccent,
       fontSize: 12,
       lineHeight: 16,
       fontWeight: "900"
     },
     detailName: {
-      color: colors.ink,
+      color: colors.heroText,
       fontSize: 20,
       lineHeight: 26,
       fontWeight: "900"
     },
     detailMeta: {
-      color: colors.muted,
+      color: colors.heroMuted,
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "700"
@@ -447,16 +464,16 @@ function createStyles(theme: AppTheme) {
       minHeight: 40,
       borderRadius: radii.round,
       borderWidth: 1,
-      borderColor: colors.line,
+      borderColor: "rgba(255,255,255,0.16)",
       paddingHorizontal: spacing.sm,
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.xs,
-      backgroundColor: colors.surfaceAlt
+      backgroundColor: "rgba(255,255,255,0.10)"
     },
     detailFooterText: {
       flex: 1,
-      color: colors.muted,
+      color: colors.heroMuted,
       fontSize: 11,
       lineHeight: 15,
       fontWeight: "800"

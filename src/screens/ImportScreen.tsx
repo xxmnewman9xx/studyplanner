@@ -291,10 +291,17 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
       {draft ? (
         <>
           <GlassCard style={styles.summaryCard}>
+            <View pointerEvents="none" style={styles.summaryBand} />
             <View style={styles.summaryTop}>
-              <View>
-                <Text style={styles.summaryTitle}>Extracted {reviewStats.total} items</Text>
-                <Text style={styles.summaryMeta}>Confidence-ranked and ready for review.</Text>
+              <View style={styles.summaryLead}>
+                <View style={styles.summaryIcon}>
+                  <Sparkles color={colors.heroText} size={18} />
+                </View>
+                <View style={styles.summaryCopy}>
+                  <Text style={styles.summaryKicker}>Found from syllabus</Text>
+                  <Text style={styles.summaryTitle}>Extracted {reviewStats.total} items</Text>
+                  <Text style={styles.summaryMeta}>Confidence-ranked and ready for review.</Text>
+                </View>
               </View>
               <StatusBadge label={`${reviewStats.needsReview} waiting`} tone="purple" />
             </View>
@@ -489,6 +496,7 @@ function MicroAction({
       onPress={onPress}
     >
       {children}
+      <Text style={styles.iconActionText}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -597,13 +605,52 @@ function createStyles(theme: AppTheme) {
       fontWeight: "700"
     },
     summaryCard: {
-      gap: spacing.md
+      gap: spacing.md,
+      overflow: "hidden",
+      borderColor: "rgba(108,92,231,0.22)"
+    },
+    summaryBand: {
+      position: "absolute",
+      top: -34,
+      right: -40,
+      width: 190,
+      height: 84,
+      borderRadius: 30,
+      backgroundColor: "rgba(108,92,231,0.10)",
+      transform: [{ rotate: "24deg" }]
     },
     summaryTop: {
       flexDirection: "row",
       alignItems: "flex-start",
       justifyContent: "space-between",
       gap: spacing.sm
+    },
+    summaryLead: {
+      flex: 1,
+      minWidth: 0,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    summaryIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.brandPurple
+    },
+    summaryCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 1
+    },
+    summaryKicker: {
+      color: colors.brandPurple,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
     },
     summaryTitle: {
       color: colors.ink,
@@ -643,7 +690,8 @@ function createStyles(theme: AppTheme) {
     },
     reviewCard: {
       gap: spacing.sm,
-      paddingVertical: spacing.sm
+      paddingVertical: spacing.sm,
+      borderColor: "rgba(108,92,231,0.14)"
     },
     reviewRow: {
       flexDirection: "row",
@@ -679,14 +727,22 @@ function createStyles(theme: AppTheme) {
       gap: spacing.xs
     },
     iconAction: {
-      width: 34,
+      minWidth: 74,
       height: 34,
       borderRadius: 17,
       borderWidth: 1,
       borderColor: colors.line,
+      flexDirection: "row",
+      gap: 4,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: colors.surfaceAlt
+    },
+    iconActionText: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
     },
     editPanel: {
       gap: spacing.xs,

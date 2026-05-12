@@ -19,7 +19,8 @@ import { storeCaptureNow } from "../data/demoSemester";
 import {
   buildTodayPlan,
   buildWeekPlan,
-  getCourseForAssignment
+  getCourseForAssignment,
+  urgencyLabel
 } from "../logic/planner";
 import { Assignment, Course, Semester } from "../models";
 import { WidgetSnapshotService } from "../services/widgetSnapshotService";
@@ -72,13 +73,12 @@ export function TodayScreen({
   ).length;
   const heroAssignment = useMemo(
     () =>
-      (captureMode
-        ? assignments.find((assignment) => assignment.id === "lab-report-2") ||
-          assignments.find((assignment) => assignment.title.toLowerCase().includes("lab report"))
-        : undefined) || plan.nextAction,
-    [assignments, captureMode, plan.nextAction]
+      assignments.find((assignment) => assignment.id === widgetSnapshot.nextDue?.assignmentId) ||
+      plan.nextAction,
+    [assignments, plan.nextAction, widgetSnapshot.nextDue?.assignmentId]
   );
   const heroCourse = heroAssignment ? getCourseForAssignment(courses, heroAssignment) : undefined;
+  const heroDueLabel = heroAssignment ? urgencyLabel(heroAssignment, now) : widgetSnapshot.emptyState.title;
   const activeDate =
     weekPlan.days.find((day) => day.items.length > 0)?.date || weekPlan.days[0]?.date;
   const todayItems = plan.dueToday.slice(0, captureMode ? 2 : 4);
@@ -126,7 +126,8 @@ export function TodayScreen({
       <CommandCenterHero
         assignment={heroAssignment}
         course={heroCourse}
-        dueLabel={widgetSnapshot.nextDue?.dueLabel}
+        dueLabel={heroDueLabel}
+        now={now}
         onOpen={heroAssignment ? () => onOpenAssignment(heroAssignment.id) : undefined}
         onStart={heroAssignment ? () => onUpdateStatus(heroAssignment.id, "in_progress") : undefined}
         onComplete={heroAssignment ? () => onUpdateStatus(heroAssignment.id, "done") : undefined}
@@ -190,6 +191,7 @@ export function TodayScreen({
               <TaskRow
                 assignment={assignment}
                 course={getCourseForAssignment(courses, assignment)}
+                now={now}
                 onOpen={() => onOpenAssignment(assignment.id)}
                 onComplete={() => onUpdateStatus(assignment.id, "done")}
               />
@@ -216,6 +218,7 @@ export function TodayScreen({
                 key={assignment.id}
                 assignment={assignment}
                 course={getCourseForAssignment(courses, assignment)}
+                now={now}
                 onOpen={() => onOpenAssignment(assignment.id)}
                 onComplete={() => onUpdateStatus(assignment.id, "done")}
                 compact

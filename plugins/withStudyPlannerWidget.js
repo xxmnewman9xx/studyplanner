@@ -322,6 +322,10 @@ import SwiftUI
 
 private let appGroupIdentifier = "${appGroupIdentifier}"
 private let snapshotStorageKey = "${snapshotKey}"
+private let widgetBackground = Color(red: 0.09, green: 0.07, blue: 0.17)
+private let widgetText = Color(red: 0.97, green: 0.98, blue: 1.00)
+private let widgetMuted = Color(red: 0.70, green: 0.73, blue: 0.82)
+private let widgetAccent = Color(red: 0.74, green: 0.66, blue: 1.00)
 
 struct StudyPlannerEntry: TimelineEntry {
   let date: Date
@@ -377,44 +381,40 @@ struct SmallWidgetView: View {
   let snapshot: StudyPlannerWidgetSnapshot?
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      HeaderView(title: "Next Due", snapshot: snapshot)
+    ZStack {
+      WidgetAuroraBands()
+      VStack(alignment: .leading, spacing: 7) {
+        HeaderView(title: "Next", snapshot: snapshot)
 
-      if let snapshot, snapshot.emptyState.isEmpty {
-        EmptyStateView(title: snapshot.emptyState.title, message: snapshot.emptyState.message)
-      } else if let item = snapshot?.surfaces.small.item ?? snapshot?.nextDue {
-        VStack(alignment: .leading, spacing: 5) {
-          Text(item.courseName)
-            .font(.caption2)
-            .fontWeight(.semibold)
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
-          Text(item.title)
-            .font(.headline)
-            .fontWeight(.bold)
-            .foregroundStyle(.primary)
-            .lineLimit(3)
-            .minimumScaleFactor(0.75)
-          Spacer(minLength: 0)
-          HStack(spacing: 6) {
-            UrgencyDot(urgency: item.urgency)
-            Text(item.dueLabel)
-              .font(.caption)
-              .fontWeight(.bold)
-              .foregroundStyle(urgencyColor(item.urgency))
+        if let snapshot, snapshot.emptyState.isEmpty {
+          EmptyStateView(title: snapshot.emptyState.title, message: snapshot.emptyState.message)
+        } else if let item = snapshot?.surfaces.small.item ?? snapshot?.nextDue {
+          VStack(alignment: .leading, spacing: 5) {
+            Text(compactCourseName(item.courseName))
+              .font(.system(size: 10, weight: .semibold))
+              .foregroundStyle(widgetMuted)
               .lineLimit(1)
+              .minimumScaleFactor(0.7)
+            Text(item.title)
+              .font(.system(size: 18, weight: .black))
+              .foregroundStyle(widgetText)
+              .lineLimit(2)
+              .minimumScaleFactor(0.78)
+            Spacer(minLength: 0)
+            DuePill(item: item)
+            if let overdueCount = snapshot?.overdueCount, overdueCount > 1 {
+              Text("\\(overdueCount) overdue")
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(widgetMuted)
+                .lineLimit(1)
+            }
           }
-          if let overdueCount = snapshot?.overdueCount, overdueCount > 1 {
-            Text("\\(overdueCount) overdue")
-              .font(.caption2)
-              .foregroundStyle(.secondary)
-          }
+        } else {
+          EmptyStateView(title: "Open Study Planner", message: "Launch the app to sync your widget.")
         }
-      } else {
-        EmptyStateView(title: "Open Study Planner", message: "Launch the app to sync your widget.")
       }
+      .padding(12)
     }
-    .padding(14)
   }
 }
 
@@ -426,38 +426,44 @@ struct MediumWidgetView: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      HeaderView(title: snapshot?.semesterName ?? "This Week", snapshot: snapshot)
+    ZStack {
+      WidgetAuroraBands()
+      VStack(alignment: .leading, spacing: 7) {
+        HeaderView(title: "This Week", snapshot: snapshot)
 
-      if let snapshot, snapshot.emptyState.isEmpty {
-        EmptyStateView(title: snapshot.emptyState.title, message: snapshot.emptyState.message)
-      } else if items.isEmpty {
-        EmptyStateView(title: "No upcoming work", message: "New deadlines will appear here after your next sync.")
-      } else {
-        VStack(alignment: .leading, spacing: 6) {
-          ForEach(items) { item in
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-              UrgencyDot(urgency: item.urgency)
-              VStack(alignment: .leading, spacing: 1) {
-                Text(item.title)
-                  .font(.caption)
-                  .fontWeight(.semibold)
-                  .lineLimit(1)
-                Text("\\(item.courseName) - \\(item.dueLabel)")
-                  .font(.caption2)
-                  .foregroundStyle(.secondary)
-                  .lineLimit(1)
+        if let snapshot, snapshot.emptyState.isEmpty {
+          EmptyStateView(title: snapshot.emptyState.title, message: snapshot.emptyState.message)
+        } else if items.isEmpty {
+          EmptyStateView(title: "No upcoming work", message: "New deadlines will appear here after your next sync.")
+        } else {
+          VStack(alignment: .leading, spacing: 5) {
+            ForEach(items.prefix(4)) { item in
+              HStack(alignment: .center, spacing: 7) {
+                UrgencyDot(urgency: item.urgency)
+                VStack(alignment: .leading, spacing: 1) {
+                  Text(item.title)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(widgetText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.82)
+                  Text("\\(compactCourseName(item.courseName)) - \\(item.dueLabel)")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(widgetMuted)
+                    .lineLimit(1)
+                }
+                Spacer(minLength: 2)
               }
             }
           }
+
+          Spacer(minLength: 0)
+
+          FooterView(snapshot: snapshot)
         }
-
-        Spacer(minLength: 0)
-
-        FooterView(snapshot: snapshot)
       }
+      .padding(12)
+      .padding(.top, 2)
     }
-    .padding(14)
   }
 }
 
@@ -468,19 +474,18 @@ struct HeaderView: View {
   var body: some View {
     HStack(alignment: .center, spacing: 6) {
       Text(title)
-        .font(.caption)
-        .fontWeight(.bold)
-        .foregroundStyle(.primary)
+        .font(.system(size: 11, weight: .black))
+        .foregroundStyle(widgetText)
         .lineLimit(1)
+        .layoutPriority(1)
       Spacer(minLength: 4)
       if snapshot?.demoState?.enabled == true {
         Text(snapshot?.demoState?.label ?? "Demo")
-          .font(.caption2)
-          .fontWeight(.bold)
-          .padding(.horizontal, 6)
-          .padding(.vertical, 3)
-          .background(Color(red: 0.89, green: 0.95, blue: 0.91))
-          .foregroundStyle(Color(red: 0.07, green: 0.36, blue: 0.20))
+          .font(.system(size: 9, weight: .bold))
+          .padding(.horizontal, 5)
+          .padding(.vertical, 2)
+          .background(Color.white.opacity(0.12))
+          .foregroundStyle(Color(red: 0.78, green: 0.93, blue: 0.80))
           .clipShape(Capsule())
       }
     }
@@ -494,15 +499,15 @@ struct FooterView: View {
     HStack(spacing: 8) {
       if let warning = snapshot?.heavyWeekWarning, warning.isHeavy {
         Text(warning.label)
-          .font(.caption2)
+          .font(.system(size: 9, weight: .bold))
           .fontWeight(.semibold)
-          .foregroundStyle(Color(red: 0.70, green: 0.22, blue: 0.06))
+          .foregroundStyle(Color(red: 1.00, green: 0.66, blue: 0.44))
           .lineLimit(1)
       } else if let reviewCount = snapshot?.reviewQueueCount, reviewCount > 0 {
         Text("\\(reviewCount) to review")
-          .font(.caption2)
+          .font(.system(size: 9, weight: .bold))
           .fontWeight(.semibold)
-          .foregroundStyle(Color(red: 0.55, green: 0.32, blue: 0.03))
+          .foregroundStyle(widgetAccent)
           .lineLimit(1)
       }
 
@@ -510,9 +515,9 @@ struct FooterView: View {
 
       if let overflow = snapshot?.surfaces.medium.overflowCount, overflow > 0 {
         Text("+\\(overflow) more")
-          .font(.caption2)
+          .font(.system(size: 9, weight: .bold))
           .fontWeight(.bold)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(widgetMuted)
       }
     }
   }
@@ -526,13 +531,14 @@ struct EmptyStateView: View {
     VStack(alignment: .leading, spacing: 5) {
       Spacer(minLength: 0)
       Text(title)
-        .font(.headline)
+        .font(.system(size: 15, weight: .black))
         .fontWeight(.bold)
+        .foregroundStyle(widgetText)
         .lineLimit(2)
         .minimumScaleFactor(0.8)
       Text(message)
-        .font(.caption2)
-        .foregroundStyle(.secondary)
+        .font(.system(size: 10, weight: .semibold))
+        .foregroundStyle(widgetMuted)
         .lineLimit(3)
       Spacer(minLength: 0)
     }
@@ -546,6 +552,56 @@ struct UrgencyDot: View {
     Circle()
       .fill(urgencyColor(urgency))
       .frame(width: 7, height: 7)
+  }
+}
+
+struct DuePill: View {
+  let item: StudyPlannerWidgetSnapshotItem
+
+  var body: some View {
+    HStack(spacing: 5) {
+      UrgencyDot(urgency: item.urgency)
+      Text(item.dueLabel)
+        .font(.system(size: 12, weight: .black))
+        .foregroundStyle(urgencyColor(item.urgency))
+        .lineLimit(1)
+    }
+    .padding(.horizontal, 8)
+    .padding(.vertical, 5)
+    .background(Color.white.opacity(0.10))
+    .clipShape(Capsule())
+  }
+}
+
+struct WidgetAuroraBands: View {
+  var body: some View {
+    ZStack {
+      RoundedRectangle(cornerRadius: 28)
+        .fill(Color(red: 0.23, green: 0.43, blue: 0.86).opacity(0.34))
+        .frame(width: 150, height: 62)
+        .rotationEffect(.degrees(24))
+        .offset(x: 54, y: -54)
+      RoundedRectangle(cornerRadius: 26)
+        .fill(Color(red: 0.66, green: 0.22, blue: 0.55).opacity(0.28))
+        .frame(width: 150, height: 58)
+        .rotationEffect(.degrees(-18))
+        .offset(x: -58, y: 58)
+    }
+  }
+}
+
+func compactCourseName(_ name: String) -> String {
+  switch name {
+  case "Differential Calculus":
+    return "Calculus II"
+  case "Intro to Psychology":
+    return "Psychology"
+  case "Intro to Biology":
+    return "Biology"
+  case "Academic Writing":
+    return "Writing"
+  default:
+    return name
   }
 }
 
@@ -566,9 +622,9 @@ extension View {
   @ViewBuilder
   func studyPlannerWidgetBackground() -> some View {
     if #available(iOSApplicationExtension 17.0, *) {
-      self.containerBackground(Color(red: 0.96, green: 0.98, blue: 0.99), for: .widget)
+      self.containerBackground(widgetBackground, for: .widget)
     } else {
-      self.background(Color(red: 0.96, green: 0.98, blue: 0.99))
+      self.background(widgetBackground)
     }
   }
 }

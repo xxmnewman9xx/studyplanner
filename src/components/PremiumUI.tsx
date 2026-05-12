@@ -40,6 +40,7 @@ export function PremiumScreen({ children, style }: { children: React.ReactNode; 
     <View style={[styles.premiumScreen, style]}>
       <View style={styles.screenWashTop} />
       <View style={styles.screenWashBottom} />
+      <View style={styles.screenRail} />
       {children}
     </View>
   );
@@ -102,6 +103,7 @@ export function CommandCenterHero({
   assignment,
   course,
   dueLabel,
+  now,
   onOpen,
   onStart,
   onComplete
@@ -109,6 +111,7 @@ export function CommandCenterHero({
   assignment?: Assignment;
   course?: Course;
   dueLabel?: string;
+  now?: Date;
   onOpen?: () => void;
   onStart?: () => void;
   onComplete?: () => void;
@@ -119,6 +122,8 @@ export function CommandCenterHero({
 
   return (
     <GlassCard tint="hero" style={styles.commandHero}>
+      <View pointerEvents="none" style={styles.heroBackdropBand} />
+      <View pointerEvents="none" style={styles.heroBackdropRail} />
       <View style={styles.heroTopRow}>
         <View style={styles.heroIcon}>
           <Target color={colors.heroText} size={20} />
@@ -127,7 +132,7 @@ export function CommandCenterHero({
           <Text style={styles.heroKicker}>Next Due</Text>
           <Text style={styles.heroDueLabel}>{dueLabel || "Your plan is clear"}</Text>
         </View>
-        {assignment ? <StatusBadge label={badgeLabel(assignment)} tone={badgeTone(assignment)} /> : null}
+        {assignment ? <StatusBadge label={badgeLabel(assignment, now)} tone={badgeTone(assignment, now)} /> : null}
       </View>
 
       {assignment ? (
@@ -228,6 +233,7 @@ export function PillFilter({
 export function TaskRow({
   assignment,
   course,
+  now,
   onOpen,
   onComplete,
   right,
@@ -235,6 +241,7 @@ export function TaskRow({
 }: {
   assignment: Assignment;
   course?: Course;
+  now?: Date;
   onOpen?: () => void;
   onComplete?: () => void;
   right?: React.ReactNode;
@@ -259,14 +266,17 @@ export function TaskRow({
         <Text style={styles.taskMarkText}>{(course?.code || assignment.courseName || "SP").slice(0, 1)}</Text>
       </View>
       <View style={styles.taskBody}>
+        <Text style={[styles.taskCourse, done ? styles.doneText : null]} numberOfLines={1}>
+          {course?.code || assignment.courseName || "Course"}
+        </Text>
         <Text style={[styles.taskTitle, done ? styles.doneText : null]} numberOfLines={1}>
           {assignment.title}
         </Text>
         <Text style={styles.taskMeta} numberOfLines={1}>
-          {course?.code || assignment.courseName || "Course"} - Due {formatShortDate(assignment.dueAt)}
+          Due {formatShortDate(assignment.dueAt)}
         </Text>
       </View>
-      {right || <StatusBadge label={badgeLabel(assignment)} tone={badgeTone(assignment)} />}
+      {right || <StatusBadge label={badgeLabel(assignment, now)} tone={badgeTone(assignment, now)} />}
     </TouchableOpacity>
   );
 }
@@ -337,6 +347,7 @@ export function CourseCard({
       style={[styles.courseCard, active ? styles.courseCardActive : null]}
       onPress={onPress}
     >
+      <View pointerEvents="none" style={[styles.courseAccentRail, { backgroundColor: course.color }]} />
       <View style={[styles.courseGlyph, { backgroundColor: course.color }]}>
         <Text style={styles.courseGlyphText}>{course.code.slice(0, 1)}</Text>
       </View>
@@ -395,9 +406,11 @@ export function WidgetPreviewSmall({ snapshot }: { snapshot: WidgetSnapshot }) {
 
   return (
     <View style={styles.smallWidget}>
+      <View pointerEvents="none" style={styles.widgetBandOne} />
+      <View pointerEvents="none" style={styles.widgetBandTwo} />
       <View style={styles.widgetTop}>
         <Text style={styles.widgetLabel}>Next Due</Text>
-        <Text style={styles.widgetBadge}>{item?.urgencyLabel || "Clear"}</Text>
+        <Text style={styles.widgetBadge} numberOfLines={1}>{item?.dueLabel || "Clear"}</Text>
       </View>
       <View style={styles.widgetIcon}>
         <CalendarClock color={colors.heroText} size={16} />
@@ -421,6 +434,8 @@ export function WidgetPreviewMedium({ snapshot }: { snapshot: WidgetSnapshot }) 
 
   return (
     <View style={styles.mediumWidget}>
+      <View pointerEvents="none" style={styles.widgetBandOne} />
+      <View pointerEvents="none" style={styles.widgetBandTwo} />
       <View style={styles.widgetTop}>
         <Text style={styles.widgetLabel}>This Week</Text>
         <Sparkles color={colors.widgetAccent} size={15} />
@@ -487,10 +502,11 @@ export function WidgetShowcase({ snapshot }: { snapshot: WidgetSnapshot }) {
 
   return (
     <View style={styles.widgetShowcase}>
+      <View pointerEvents="none" style={styles.widgetShowcaseRail} />
       <View style={styles.widgetHeader}>
         <View>
-          <Text style={styles.widgetKicker}>Widgets</Text>
-          <Text style={styles.widgetTitle}>Keep deadlines visible.</Text>
+          <Text style={styles.widgetKicker}>Command Widgets</Text>
+          <Text style={styles.widgetTitle}>Visible before the app opens.</Text>
         </View>
         <Sparkles color={theme.colors.brandPurple} size={20} />
       </View>
@@ -637,9 +653,9 @@ function ProgressRing({ value, color }: { value: number; color: string }) {
   );
 }
 
-function badgeLabel(assignment: Assignment) {
+function badgeLabel(assignment: Assignment, now = new Date()) {
   if (assignment.kind === "exam" || assignment.type === "exam") return "High";
-  const days = daysUntil(assignment.dueAt);
+  const days = daysUntil(assignment.dueAt, now);
   if (days < 0) return "Overdue";
   if (days === 0) return "Today";
   if (days === 1) return "Tomorrow";
@@ -647,9 +663,9 @@ function badgeLabel(assignment: Assignment) {
   return assignment.priority === "high" ? "High" : "Open";
 }
 
-function badgeTone(assignment: Assignment): Tone {
+function badgeTone(assignment: Assignment, now = new Date()): Tone {
   if (assignment.kind === "exam" || assignment.type === "exam" || assignment.priority === "high") return "red";
-  const days = daysUntil(assignment.dueAt);
+  const days = daysUntil(assignment.dueAt, now);
   if (days <= 1) return "gold";
   if (assignment.priority === "medium") return "blue";
   return "green";
@@ -673,21 +689,32 @@ function createStyles(theme: AppTheme) {
     },
     screenWashTop: {
       position: "absolute",
-      top: -90,
-      right: -94,
-      width: 190,
-      height: 190,
-      borderRadius: 95,
-      backgroundColor: "rgba(108,92,231,0.10)"
+      top: -58,
+      right: -68,
+      width: 265,
+      height: 146,
+      borderRadius: 46,
+      backgroundColor: "rgba(108,92,231,0.14)",
+      transform: [{ rotate: "28deg" }]
     },
     screenWashBottom: {
       position: "absolute",
-      bottom: 160,
-      left: -110,
-      width: 220,
+      top: 132,
+      left: -92,
+      width: 250,
+      height: 82,
+      borderRadius: 32,
+      backgroundColor: "rgba(59,130,246,0.09)",
+      transform: [{ rotate: "-22deg" }]
+    },
+    screenRail: {
+      position: "absolute",
+      top: 0,
+      right: 0,
+      width: 6,
       height: 220,
-      borderRadius: 110,
-      backgroundColor: "rgba(59,130,246,0.08)"
+      borderRadius: 999,
+      backgroundColor: "rgba(108,92,231,0.18)"
     },
     premiumHeader: {
       flexDirection: "row",
@@ -711,8 +738,8 @@ function createStyles(theme: AppTheme) {
     },
     headerTitle: {
       color: colors.ink,
-      fontSize: 27,
-      lineHeight: 33,
+      fontSize: 28,
+      lineHeight: 34,
       fontWeight: "900"
     },
     headerSubtitle: {
@@ -725,13 +752,13 @@ function createStyles(theme: AppTheme) {
       borderRadius: 22,
       borderWidth: 1,
       borderColor: colors.line,
-      backgroundColor: colors.surface,
+      backgroundColor: "rgba(255,255,255,0.96)",
       padding: spacing.md,
       gap: spacing.sm,
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.2 : 0.08,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: theme.isDark ? 0.22 : 0.11,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 14 },
       elevation: 4
     },
     glassCardWarm: {
@@ -747,7 +774,35 @@ function createStyles(theme: AppTheme) {
       backgroundColor: colors.surface
     },
     commandHero: {
-      minHeight: 160
+      minHeight: 178,
+      overflow: "hidden",
+      borderColor: "rgba(255,255,255,0.16)",
+      backgroundColor: colors.heroSurface,
+      shadowColor: colors.brandPurple,
+      shadowOpacity: 0.28,
+      shadowRadius: 28,
+      shadowOffset: { width: 0, height: 16 },
+      elevation: 7
+    },
+    heroBackdropBand: {
+      position: "absolute",
+      top: -24,
+      right: -56,
+      width: 210,
+      height: 116,
+      borderRadius: 34,
+      backgroundColor: "rgba(59,130,246,0.34)",
+      transform: [{ rotate: "20deg" }]
+    },
+    heroBackdropRail: {
+      position: "absolute",
+      bottom: -34,
+      left: -36,
+      width: 220,
+      height: 86,
+      borderRadius: 32,
+      backgroundColor: "rgba(242,95,107,0.26)",
+      transform: [{ rotate: "-17deg" }]
     },
     heroTopRow: {
       flexDirection: "row",
@@ -767,25 +822,25 @@ function createStyles(theme: AppTheme) {
       gap: 2
     },
     heroKicker: {
-      color: colors.brandPurple,
+      color: colors.widgetAccent,
       fontSize: 12,
       lineHeight: 16,
       fontWeight: "900"
     },
     heroDueLabel: {
-      color: colors.muted,
+      color: colors.heroMuted,
       fontSize: 11,
       lineHeight: 15,
       fontWeight: "800"
     },
     heroTitle: {
-      color: colors.ink,
-      fontSize: 19,
-      lineHeight: 25,
+      color: colors.heroText,
+      fontSize: 25,
+      lineHeight: 31,
       fontWeight: "900"
     },
     heroMeta: {
-      color: colors.muted,
+      color: colors.heroMuted,
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "700",
@@ -803,11 +858,11 @@ function createStyles(theme: AppTheme) {
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surfaceAlt
+      borderColor: "rgba(255,255,255,0.18)",
+      backgroundColor: "rgba(255,255,255,0.12)"
     },
     heroSecondaryText: {
-      color: colors.ink,
+      color: colors.heroText,
       fontSize: 12,
       fontWeight: "900"
     },
@@ -819,9 +874,9 @@ function createStyles(theme: AppTheme) {
       justifyContent: "center",
       flexDirection: "row",
       gap: 2,
-      backgroundColor: colors.brandPurple,
-      shadowColor: colors.brandPurple,
-      shadowOpacity: 0.22,
+      backgroundColor: colors.brandCoral,
+      shadowColor: colors.brandCoral,
+      shadowOpacity: 0.34,
       shadowRadius: 14,
       shadowOffset: { width: 0, height: 8 },
       elevation: 4
@@ -837,11 +892,16 @@ function createStyles(theme: AppTheme) {
     metricPill: {
       flex: 1,
       minHeight: 72,
-      borderRadius: 13,
+      borderRadius: 16,
       borderWidth: 1,
       paddingHorizontal: spacing.sm,
       paddingVertical: spacing.xs,
-      justifyContent: "center"
+      justifyContent: "center",
+      shadowColor: colors.shadow,
+      shadowOpacity: 0.06,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 7 },
+      elevation: 2
     },
     metricValue: {
       color: colors.ink,
@@ -941,18 +1001,18 @@ function createStyles(theme: AppTheme) {
     },
     taskRow: {
       minHeight: 76,
-      borderRadius: 16,
+      borderRadius: 18,
       borderWidth: 1,
       borderColor: colors.line,
-      backgroundColor: colors.surface,
+      backgroundColor: "rgba(255,255,255,0.97)",
       padding: spacing.sm,
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.xs,
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.16 : 0.05,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: theme.isDark ? 0.18 : 0.08,
+      shadowRadius: 15,
+      shadowOffset: { width: 0, height: 8 },
       elevation: 2
     },
     taskRowCompact: {
@@ -982,7 +1042,14 @@ function createStyles(theme: AppTheme) {
     taskBody: {
       flex: 1,
       minWidth: 0,
-      gap: 2
+      gap: 1
+    },
+    taskCourse: {
+      color: colors.brandPurple,
+      fontSize: 9,
+      lineHeight: 12,
+      fontWeight: "900",
+      textTransform: "uppercase"
     },
     taskTitle: {
       color: colors.ink,
@@ -1008,11 +1075,11 @@ function createStyles(theme: AppTheme) {
     weekPill: {
       flex: 1,
       minHeight: 57,
-      borderRadius: radii.round,
+      borderRadius: 18,
       alignItems: "center",
       justifyContent: "center",
       gap: 1,
-      backgroundColor: "transparent"
+      backgroundColor: "rgba(255,255,255,0.56)"
     },
     weekPillActive: {
       backgroundColor: colors.brandPurple,
@@ -1051,20 +1118,29 @@ function createStyles(theme: AppTheme) {
       borderRadius: 19,
       borderWidth: 1,
       borderColor: colors.line,
-      backgroundColor: colors.surface,
+      backgroundColor: "rgba(255,255,255,0.97)",
       padding: spacing.md,
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.sm,
+      overflow: "hidden",
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.16 : 0.06,
-      shadowRadius: 14,
-      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: theme.isDark ? 0.18 : 0.09,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 },
       elevation: 3
     },
     courseCardActive: {
-      borderColor: "rgba(108,92,231,0.32)",
-      backgroundColor: colors.surface
+      borderColor: "rgba(108,92,231,0.38)",
+      backgroundColor: "#FFFFFF"
+    },
+    courseAccentRail: {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      left: 0,
+      width: 6,
+      opacity: 0.9
     },
     courseGlyph: {
       width: 42,
@@ -1120,14 +1196,19 @@ function createStyles(theme: AppTheme) {
     },
     warningCard: {
       minHeight: 92,
-      borderRadius: 20,
-      backgroundColor: colors.warningSurface,
+      borderRadius: 22,
+      backgroundColor: "#FFF3DA",
       borderWidth: 1,
-      borderColor: "rgba(245,158,11,0.28)",
+      borderColor: "rgba(245,158,11,0.36)",
       padding: spacing.md,
       flexDirection: "row",
       alignItems: "center",
-      gap: spacing.sm
+      gap: spacing.sm,
+      shadowColor: colors.gold,
+      shadowOpacity: 0.14,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 3
     },
     warningIcon: {
       width: 42,
@@ -1168,7 +1249,18 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     widgetShowcase: {
-      gap: spacing.md
+      gap: spacing.md,
+      overflow: "hidden"
+    },
+    widgetShowcaseRail: {
+      position: "absolute",
+      top: -38,
+      right: -36,
+      width: 180,
+      height: 88,
+      borderRadius: 30,
+      backgroundColor: "rgba(108,92,231,0.12)",
+      transform: [{ rotate: "24deg" }]
     },
     widgetHeader: {
       flexDirection: "row",
@@ -1198,9 +1290,9 @@ function createStyles(theme: AppTheme) {
       borderRadius: 22,
       padding: spacing.md,
       overflow: "hidden",
-      backgroundColor: colors.widgetDark,
+      backgroundColor: "#19132D",
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.10)",
+      borderColor: "rgba(255,255,255,0.14)",
       gap: spacing.xs
     },
     mediumWidget: {
@@ -1209,10 +1301,30 @@ function createStyles(theme: AppTheme) {
       borderRadius: 22,
       padding: spacing.md,
       overflow: "hidden",
-      backgroundColor: colors.widgetDark,
+      backgroundColor: "#19132D",
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.10)",
+      borderColor: "rgba(255,255,255,0.14)",
       gap: 6
+    },
+    widgetBandOne: {
+      position: "absolute",
+      top: -34,
+      right: -40,
+      width: 152,
+      height: 74,
+      borderRadius: 28,
+      backgroundColor: "rgba(59,130,246,0.28)",
+      transform: [{ rotate: "21deg" }]
+    },
+    widgetBandTwo: {
+      position: "absolute",
+      bottom: -32,
+      left: -38,
+      width: 150,
+      height: 66,
+      borderRadius: 28,
+      backgroundColor: "rgba(242,95,107,0.20)",
+      transform: [{ rotate: "-18deg" }]
     },
     widgetTop: {
       flexDirection: "row",
@@ -1229,7 +1341,7 @@ function createStyles(theme: AppTheme) {
     widgetBadge: {
       overflow: "hidden",
       borderRadius: radii.round,
-      backgroundColor: "rgba(255,255,255,0.10)",
+      backgroundColor: "rgba(255,255,255,0.14)",
       color: colors.heroText,
       fontSize: 10,
       lineHeight: 14,
@@ -1265,7 +1377,7 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     mediumWidgetRow: {
-      minHeight: 34,
+      minHeight: 32,
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.xs,

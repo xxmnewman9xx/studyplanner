@@ -68,9 +68,11 @@ export function WeekPlannerScreen({
         subtitle="Your week, at a glance. Plan it. Own it."
       />
 
-      <GlassCard>
+      <GlassCard style={styles.rangeCard}>
+        <View pointerEvents="none" style={styles.rangeBand} />
         <View style={styles.weekRangeTop}>
           <View>
+            <Text style={styles.rangeKicker}>Semester timeline</Text>
             <Text style={styles.rangeTitle}>{formatRange(weekPlan.startsAt, weekPlan.endsAt)}</Text>
             <Text style={styles.rangeMeta}>{weekPlan.itemCount} deadlines across seven days</Text>
           </View>
@@ -100,7 +102,7 @@ export function WeekPlannerScreen({
         />
       ) : null}
 
-      <GlassCard>
+      <GlassCard style={styles.loadCard}>
         <View style={styles.sectionTop}>
           <View>
             <Text style={styles.sectionTitle}>Load Map</Text>
@@ -146,6 +148,7 @@ export function WeekPlannerScreen({
                       key={assignment.id}
                       assignment={assignment}
                       course={getCourseForAssignment(courses, assignment)}
+                      now={now}
                       compact
                       onOpen={() => onOpenAssignment(assignment.id)}
                       onComplete={() => onUpdateStatus(assignment.id, "done")}
@@ -179,20 +182,42 @@ function createStyles(theme: AppTheme) {
   const { colors, spacing } = theme;
 
   return StyleSheet.create({
+    rangeCard: {
+      overflow: "hidden",
+      backgroundColor: colors.heroSurface,
+      borderColor: "rgba(255,255,255,0.16)"
+    },
+    rangeBand: {
+      position: "absolute",
+      top: -32,
+      right: -48,
+      width: 210,
+      height: 96,
+      borderRadius: 34,
+      backgroundColor: "rgba(59,130,246,0.28)",
+      transform: [{ rotate: "22deg" }]
+    },
     weekRangeTop: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "flex-start",
       gap: spacing.sm
     },
+    rangeKicker: {
+      color: colors.widgetAccent,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
     rangeTitle: {
-      color: colors.ink,
-      fontSize: 16,
-      lineHeight: 22,
+      color: colors.heroText,
+      fontSize: 19,
+      lineHeight: 25,
       fontWeight: "900"
     },
     rangeMeta: {
-      color: colors.muted,
+      color: colors.heroMuted,
       fontSize: 11,
       lineHeight: 16,
       fontWeight: "700"
@@ -205,6 +230,9 @@ function createStyles(theme: AppTheme) {
       flexDirection: "row",
       alignItems: "flex-start",
       justifyContent: "space-between"
+    },
+    loadCard: {
+      borderColor: "rgba(59,130,246,0.18)"
     },
     sectionTitle: {
       color: colors.ink,

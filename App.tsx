@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -128,6 +129,24 @@ function AppContent() {
     setActiveTab(tab);
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   };
+
+  useEffect(() => {
+    if (!storeCaptureEnabled) return;
+
+    const openCaptureUrl = (url: string | null) => {
+      if (!url || !url.includes("capture")) return;
+      const match = /[?&]tab=([^&]+)/.exec(url);
+      const requestedTab = match?.[1] ? (decodeURIComponent(match[1]) as NavTab) : null;
+      if (!requestedTab || !tabs.some((tab) => tab.id === requestedTab)) return;
+      setSelectedAssignmentId(null);
+      setActiveTab(requestedTab);
+      requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: 0, animated: false }));
+    };
+
+    Linking.getInitialURL().then(openCaptureUrl).catch(() => undefined);
+    const subscription = Linking.addEventListener("url", ({ url }) => openCaptureUrl(url));
+    return () => subscription.remove();
+  }, [storeCaptureEnabled]);
 
   useEffect(() => {
     let mounted = true;
@@ -605,10 +624,11 @@ function createStyles(theme: AppTheme) {
       width: "100%",
       paddingHorizontal: 16,
       paddingTop: 22,
-      paddingBottom: 118
+      paddingBottom: 176
     },
     captureContent: {
-      paddingTop: 22
+      paddingTop: 22,
+      paddingBottom: 190
     },
     scrollArea: {
       flex: 1
