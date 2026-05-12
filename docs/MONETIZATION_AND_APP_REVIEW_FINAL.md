@@ -12,6 +12,7 @@ Score: 7.6/10 before external proof.
 
 - Added submission-mode production verification requiring explicit monthly/yearly/lifetime IDs and a support URL.
 - Added iOS archive source preflight audit for entitlement/project wiring; signed App Store archive proof is still required.
+- Added StoreKit source handoff audit for product IDs, subscription/Lifetime purchase paths, restore, store-sourced trial copy, and safe metadata; sandbox/App Store Connect proof is still required.
 - Added tests proving normal verification passes and submission verification fails closed without required env.
 - Tightened import trust so unreviewed parser grade items do not enter the planner.
 - Guarded reminder/calendar side effects against invalid legacy due dates.
@@ -20,6 +21,7 @@ Score: 7.6/10 before external proof.
 
 - App Store Connect product status not proven.
 - Sandbox monthly/yearly/Lifetime/restore not captured.
+- Products-loaded paywall screenshot missing.
 - Support URL missing.
 - Signed archive entitlements need verification; source preflight reports `aps-environment=development`, so the final archive must prove production APNs entitlement.
 

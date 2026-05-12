@@ -18,9 +18,9 @@ Status: partial proof captured on 2026-05-12. The folder now contains **47 prima
 - Widget add refresh proof captured: `48-widget-refresh-after-add.png` and `widget-refresh-after-add-snapshot.json`.
 - Localized/date proof captured: `43-localized-ui-example.png`, captured on the iPhone simulator with `AppleLanguages=fr-FR`, `AppleLocale=fr_FR`, and forced 24-hour time. It shows locale-sensitive date ordering in Week Plan (`12 May - 18 May`) and 24-hour status-bar style, but app interface strings remain English; this is date-format proof, not full UI localization proof.
 - Contrast-safe visual spot check refreshed: `01-onboarding-welcome.png`, `07-today-populated.png`, `21-calendar-month.png`, `24-week-plan.png`, `26-classes-list.png`, and `29-widget-setup.png` after darkening foreground-bearing theme/class colors.
-- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 47 PNGs.
-- iPad proof captured in `ipad/`: 11 upright 2064x2752 PNGs plus `ipad-contact-sheet.png`.
-- Local App Store-sized export proof captured in `app-store-export/`: 10 iPhone 6.9-inch candidate PNGs at 1290x2796, 10 iPad 13-inch candidate PNGs at 2064x2752, and `manifest.json`.
+- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 47 PNGs after the Settings/Restore Purchases refresh.
+- iPad proof captured in `ipad/`: 11 upright 2064x2752 PNGs plus `ipad-contact-sheet.png`; `ipad-10-settings-restore.png` was refreshed after the Settings restore label changed.
+- Local App Store-sized export proof captured in `app-store-export/`: 10 iPhone 6.9-inch candidate PNGs at 1290x2796, 10 iPad 13-inch candidate PNGs at 2064x2752, and `manifest.json`; the export was regenerated after the Settings/Restore Purchases refresh.
 - Restore access proof captured: `39-restore-purchases.png`. This proves the Restore entry point exists, not that a sandbox restore succeeded.
 - Paywall products-loaded proof is still missing. The captured paywall state shows purchases unavailable and is correctly stored as `38-paywall-product-load-failure.png`.
 
@@ -51,9 +51,9 @@ The app currently supports iPad (`ios.supportsTablet: true`, native target famil
 | ipad/ipad-07-classes-list.png | Captured | 2064x2752, Classes plus class hub proof. |
 | ipad/ipad-08-widget-setup.png | Captured | 2064x2752, Widget Setup proof. |
 | ipad/ipad-09-paywall-product-load-failure.png | Captured | 2064x2752, honest purchases-unavailable paywall state. |
-| ipad/ipad-10-settings-restore.png | Captured | 2064x2752, Settings with Restore/support proof. |
+| ipad/ipad-10-settings-restore.png | Captured | 2064x2752, Settings with Restore Purchases/support proof. |
 | ipad/ipad-11-assignment-detail.png | Captured | 2064x2752, Assignment Detail proof. |
-| ipad/ipad-contact-sheet.png | Captured | Generated contact sheet from the 11 iPad PNGs. |
+| ipad/ipad-contact-sheet.png | Captured | Generated contact sheet from the 11 iPad PNGs, 1040x1946 PNG after Settings refresh. |
 
 | Required PNG | Status | Notes |
 | --- | --- | --- |
@@ -93,16 +93,16 @@ The app currently supports iPad (`ios.supportsTablet: true`, native target famil
 | 33-widget-needs-check-state.png | Captured | Real simulator Home Screen with installed WidgetKit widgets in needs-check state, 1179x2556 PNG. Payload proof shows accepted Lab Report as next due plus reviewQueueCount 3. |
 | 34-theme-customization.png | Captured | Capture-mode Widget Setup/theme preview, 1179x2556 PNG. |
 | 35-class-color-customization.png | Captured | Capture-mode widget color/style controls, 1179x2556 PNG. |
-| 36-settings.png | Captured | Capture-mode Settings screen, 1179x2556 PNG. It shows planner status, appearance, Plus/store status, restore access, widget scope, and support URL gap without claiming submission readiness. |
+| 36-settings.png | Captured | Capture-mode Settings screen, 1179x2556 PNG. It shows planner status, appearance, Plus/store status, Restore Purchases access, widget scope, and support URL gap without claiming submission readiness. |
 | 37-paywall-products-loaded.png | Missing | StoreKit products were not loaded; do not claim this state. |
 | 38-paywall-product-load-failure.png | Captured | Real simulator paywall failure state: "Purchases are unavailable", 1179x2556 PNG. |
-| 39-restore-purchases.png | Captured with caveat | Capture-mode Settings/Plus surface, 1179x2556 PNG. It shows real Restore access, but sandbox restore success is still unproven. |
+| 39-restore-purchases.png | Captured with caveat | Capture-mode Settings/Plus surface, 1179x2556 PNG. It shows real Restore Purchases access, but sandbox restore success is still unproven. |
 | 40-app-icon-home-screen.png | Captured | Real simulator Home Screen showing installed StudyPlanner app icons/widgets, 1179x2556 PNG. |
 | 41-no-data-app-review-state.png | Missing | Production no-data Today is captured as `06-today-empty.png`; separate App Review state not captured. |
 | 42-sample-plan-state.png | Missing | Sample plan entry/state not separately captured. |
 | 43-localized-ui-example.png | Captured with caveat | Real simulator Week Plan screenshot at `fr-FR` / `fr_FR` with forced 24-hour time, 1179x2556 PNG. It proves partial locale/date behavior, but interface strings remain English and full UI localization/string extraction remains incomplete. |
 | 44-accessibility-large-text.png | Captured | Real simulator Today screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves the top hierarchy no longer catastrophically explodes, but full VoiceOver traversal remains open. |
-| 45-final-contact-sheet.png | Captured | Generated from the 47 current raw PNGs, 1040x6856 PNG. |
+| 45-final-contact-sheet.png | Captured | Generated from the 47 current raw PNGs, 1040x6860 PNG. |
 | 46-widget-refresh-after-completion.png | Captured | Real simulator Home Screen after tapping Complete in the app. Small and medium widgets reflect the refreshed snapshot. |
 | 47-widget-refresh-after-edit.png | Captured | Real simulator Home Screen after editing Reading Reflection to Reflection Draft. Small and medium widgets reflect the edited title. |
 | 48-widget-refresh-after-add.png | Captured | Real simulator Home Screen after adding Field Notes to Science Lab. Small and medium widgets reflect the added assignment from the App Group snapshot. |

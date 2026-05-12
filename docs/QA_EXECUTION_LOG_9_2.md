@@ -230,3 +230,12 @@ Known residual risks:
 | 42 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after iOS archive preflight verifier | No |
 | 42 | `npm run verify:production` | Passed | Production config verification passed after iOS archive preflight verifier | No |
 | 42 | `git diff --check` | Passed | No whitespace errors or conflict markers after iOS archive preflight verifier | No |
+| 43 | StoreKit source handoff audit | Passed with caveat | `npm run audit:storekit` wrote `docs/STOREKIT_IAP_HANDOFF_AUDIT.md`; local StoreKit paths have 0 blockers and 1 external sandbox proof warning | Products-loaded/sandbox/App Store Connect proof still required |
+| 43 | Settings/restore screenshot refresh | Passed | Rebuilt capture-mode iPhone and iPad apps; refreshed `36-settings.png`, `39-restore-purchases.png`, `ipad/ipad-10-settings-restore.png`, `45-final-contact-sheet.png`, `ipad/ipad-contact-sheet.png`, and `app-store-export/manifest.json` after changing Settings button to `Restore Purchases` | Sandbox restore success still required |
+| 43 | `npm run typecheck` | Passed | `tsc --noEmit` completed after StoreKit handoff audit wiring | No |
+| 43 | `npm run test` | Passed | 53/53 tests passed, including `tests/storekitHandoff.test.ts` | No |
+| 43 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after StoreKit handoff audit wiring | No |
+| 43 | `npm run verify:production` | Passed | Production config verification passed after StoreKit handoff audit wiring | No |
+| 43 | Submission verifier StoreKit handoff gate | Passed | `npm run verify:submission` now includes `PASS StoreKit/IAP source handoff has no local blockers` while preserving 8 external blockers and 1 warning | External proof blockers remain |
+| 43 | `npm run export:screenshots` | Passed | Regenerated iPhone/iPad accepted-size export sets and manifest after Settings/Restore Purchases refresh | No |
+| 43 | `git diff --check` | Passed | No whitespace errors or conflict markers after StoreKit handoff verifier | No |

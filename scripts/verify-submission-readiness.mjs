@@ -65,6 +65,7 @@ checkManifest();
 checkAsoCopy();
 checkLocalizedAsoDraft();
 checkIosArchivePreflight();
+checkStoreKitHandoff();
 
 checkFile(
   "Products-loaded paywall screenshot exists",
@@ -310,6 +311,28 @@ function checkIosArchivePreflight() {
       false,
       "iOS archive preflight has no source blockers",
       `iOS archive preflight failed: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
+
+function checkStoreKitHandoff() {
+  const scriptPath = path.join(root, "scripts/audit-storekit-handoff.mjs");
+  try {
+    const output = execFileSync(process.execPath, [scriptPath, "--json"], {
+      cwd: root,
+      encoding: "utf8"
+    });
+    const audit = JSON.parse(output);
+    check(
+      audit.passed === true,
+      "StoreKit/IAP source handoff has no local blockers",
+      "Run npm run audit:storekit and fix product ID, Lifetime, restore, paywall, or unsafe-claim source issues."
+    );
+  } catch (error) {
+    check(
+      false,
+      "StoreKit/IAP source handoff has no local blockers",
+      `StoreKit handoff audit failed: ${error instanceof Error ? error.message : String(error)}`
     );
   }
 }

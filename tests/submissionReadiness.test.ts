@@ -31,6 +31,7 @@ test("submission readiness gate blocks the current incomplete external proof sta
   assert.match(output, /PASS\s+English ASO metadata is length-safe and claim-safe/);
   assert.match(output, /PASS\s+Localized ASO draft is structurally complete/);
   assert.match(output, /PASS\s+iOS archive preflight has no source blockers/);
+  assert.match(output, /PASS\s+StoreKit\/IAP source handoff has no local blockers/);
   assert.match(output, /PASS\s+VoiceOver source audit is clean/);
   assert.match(output, /BLOCKER\s+VoiceOver traversal is recorded/);
 });
@@ -60,6 +61,7 @@ test("submission readiness gate verifies local screenshot exports before externa
   assert.match(output, /PASS\s+English ASO metadata is length-safe and claim-safe/);
   assert.match(output, /PASS\s+Localized ASO draft is structurally complete/);
   assert.match(output, /PASS\s+iOS archive preflight has no source blockers/);
+  assert.match(output, /PASS\s+StoreKit\/IAP source handoff has no local blockers/);
   assert.match(output, /PASS\s+VoiceOver source audit is clean/);
   assert.match(output, /BLOCKER\s+Products-loaded paywall screenshot exists/);
 });

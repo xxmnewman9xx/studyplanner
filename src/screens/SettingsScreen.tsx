@@ -131,7 +131,7 @@ export function SettingsScreen({
             style={styles.halfButton}
           />
           <AppButton
-            label={subscription.flowState === "restoring" ? "Restoring" : "Restore"}
+            label={subscription.flowState === "restoring" ? "Restoring" : "Restore Purchases"}
             variant="secondary"
             icon={RotateCcw}
             onPress={() => {

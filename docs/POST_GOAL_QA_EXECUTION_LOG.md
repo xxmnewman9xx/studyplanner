@@ -197,5 +197,20 @@
 | npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after iOS archive preflight verifier |
 | npm run verify:production | Passed | Production config verification passed | Re-run after iOS archive preflight verifier |
 | git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after iOS archive preflight verifier |
+| npm run audit:storekit | Passed with warning | `docs/STOREKIT_IAP_HANDOFF_AUDIT.md`; source StoreKit/IAP paths pass, sandbox/App Store Connect proof remains external | StoreKit source handoff; does not replace products-loaded/sandbox proof |
+| EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE | Passed | Build succeeded, 0 errors/0 warnings; app installed/opened on `StudyPlanner-Codex-iPhone` | Required to recapture Settings after Restore Purchases label change |
+| xcrun simctl openurl + xcrun simctl io screenshot | Passed | Refreshed `36-settings.png` and `39-restore-purchases.png`, each 1179x2556 | Real simulator UI captured for clearer Restore Purchases label; sandbox restore success remains unproven |
+| Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 47 PNGs at 1040x6860 | Re-run after Settings/Restore screenshot refresh |
+| EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 4314D877-E762-4A10-ACC2-B15D1BBC6A6C | Passed | Build succeeded, 0 errors/0 warnings; app installed/opened on `StudyPlanner-Codex-iPad` | Required to refresh iPad Settings proof after Restore Purchases label change |
+| xcrun simctl openurl + xcrun simctl io screenshot | Passed | Refreshed `ipad/ipad-10-settings-restore.png`, 2064x2752 | Real iPad simulator UI captured for Settings/Restore Purchases proof |
+| Swift/AppKit iPad contact sheet generation | Passed | `ipad/ipad-contact-sheet.png` regenerated from 11 PNGs at 1040x1946 | Re-run after iPad Settings refresh |
+| npm run export:screenshots | Passed | Regenerated 10 iPhone 1290x2796 PNGs, 10 iPad 2064x2752 PNGs, and `app-store-export/manifest.json` | Re-run after Settings/Restore screenshot refresh |
+| npm run typecheck | Passed | exit 0 | Final StoreKit handoff slice verification |
+| npm run test | Passed | 53/53 | Added `tests/storekitHandoff.test.ts` and updated submission-readiness assertions |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Final StoreKit handoff slice verification |
+| npm run verify:production | Passed | Production config verification passed | Final StoreKit handoff slice verification |
+| npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning; includes `PASS StoreKit/IAP source handoff has no local blockers` | Submission gate preserves external StoreKit/support/App Store Connect/archive/VoiceOver blockers |
+| npm run export:screenshots | Passed | Regenerated 10 iPhone 1290x2796 PNGs, 10 iPad 2064x2752 PNGs, and `app-store-export/manifest.json` | Final screenshot export after StoreKit handoff refresh |
+| git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after StoreKit handoff slice |
 
 Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, manual App Store Connect screenshot upload acceptance, full translated UI/string extraction/native localization review, full simulator VoiceOver traversal, restore purchase success proof. Optional: overnight widget rollover screenshot.
