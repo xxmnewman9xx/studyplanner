@@ -305,14 +305,14 @@ function createStyles(theme: AppTheme) {
       gap: 8
     },
     circleActionWrap: {
-      width: 42,
+      width: 50,
       alignItems: "center",
       gap: 3
     },
     circleAction: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 1,

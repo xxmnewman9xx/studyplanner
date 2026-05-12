@@ -493,9 +493,9 @@ function createStyles(theme: AppTheme) {
 
   return StyleSheet.create({
     addButton: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: colors.purpleSoft,
@@ -615,9 +615,9 @@ function createStyles(theme: AppTheme) {
       gap: spacing.xs
     },
     swatch: {
-      width: 34,
-      height: 34,
-      borderRadius: 17,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 2,

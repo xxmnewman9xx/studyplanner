@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+  AccessibilityInfo,
   Animated,
   Easing,
   ScrollView,
@@ -171,6 +172,7 @@ export function OnboardingScreen({ initialStep = 0, onFinish }: OnboardingScreen
   const [index, setIndex] = useState(clampStep(initialStep));
   const [widgetStyleId, setWidgetStyleId] = useState<WidgetStylePresetId>("ocean");
   const [widgetFocus, setWidgetFocus] = useState<WidgetFocusId>("thisWeek");
+  const [reduceMotion, setReduceMotion] = useState(false);
   const motion = useRef(new Animated.Value(0)).current;
   const step = onboardingSteps[index] ?? onboardingSteps[0]!;
   const Icon = step.icon;
@@ -199,7 +201,28 @@ export function OnboardingScreen({ initialStep = 0, onFinish }: OnboardingScreen
   }, [initialStep]);
 
   useEffect(() => {
-    motion.setValue(0);
+    let mounted = true;
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then((enabled) => {
+        if (mounted) setReduceMotion(enabled);
+      })
+      .catch(() => undefined);
+
+    const subscription = AccessibilityInfo.addEventListener?.(
+      "reduceMotionChanged",
+      setReduceMotion
+    );
+
+    return () => {
+      mounted = false;
+      subscription?.remove?.();
+    };
+  }, []);
+
+  useEffect(() => {
+    motion.setValue(reduceMotion ? 1 : 0);
+    if (reduceMotion) return undefined;
+
     const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(motion, {
@@ -218,7 +241,7 @@ export function OnboardingScreen({ initialStep = 0, onFinish }: OnboardingScreen
     );
     animation.start();
     return () => animation.stop();
-  }, [index, motion]);
+  }, [index, motion, reduceMotion]);
 
   const goNext = () => {
     if (isFinal) {
@@ -976,9 +999,9 @@ function createStyles(theme: AppTheme) {
       gap: spacing.xs
     },
     stepIcon: {
-      width: 36,
-      height: 36,
-      borderRadius: 12,
+      width: 44,
+      height: 44,
+      borderRadius: 14,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: colors.brandPurple
@@ -1385,7 +1408,7 @@ function createStyles(theme: AppTheme) {
       gap: spacing.xs
     },
     widgetStyleChip: {
-      minHeight: 34,
+      minHeight: 44,
       borderRadius: radii.round,
       paddingHorizontal: spacing.xs,
       flexDirection: "row",
@@ -1414,7 +1437,7 @@ function createStyles(theme: AppTheme) {
       color: colors.ink
     },
     focusChip: {
-      minHeight: 34,
+      minHeight: 44,
       borderRadius: radii.round,
       paddingHorizontal: spacing.sm,
       justifyContent: "center",

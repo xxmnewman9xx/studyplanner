@@ -414,7 +414,7 @@ function createStyles(theme: AppTheme) {
       gap: spacing.xs
     },
     paletteChip: {
-      minHeight: 34,
+      minHeight: 44,
       borderRadius: radii.round,
       borderWidth: 1,
       borderColor: colors.line,
@@ -429,7 +429,7 @@ function createStyles(theme: AppTheme) {
       backgroundColor: colors.purpleSoft
     },
     textChip: {
-      minHeight: 34,
+      minHeight: 44,
       borderRadius: radii.round,
       borderWidth: 1,
       borderColor: colors.line,
@@ -631,9 +631,9 @@ function createStyles(theme: AppTheme) {
       gap: spacing.sm
     },
     paletteDotButton: {
-      width: 34,
-      height: 34,
-      borderRadius: 17,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 1,

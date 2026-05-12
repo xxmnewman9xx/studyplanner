@@ -375,7 +375,7 @@ function createStyles(theme: AppTheme) {
       gap: spacing.xs
     },
     choice: {
-      minHeight: 38,
+      minHeight: 44,
       borderRadius: radii.sm,
       borderWidth: 1,
       borderColor: colors.line,

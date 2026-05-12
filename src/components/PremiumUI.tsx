@@ -1211,7 +1211,7 @@ function createStyles(theme: AppTheme) {
     redDot: { backgroundColor: colors.red },
     neutralDot: { backgroundColor: colors.faint },
     filterPill: {
-      minHeight: 34,
+      minHeight: 44,
       borderRadius: radii.round,
       borderWidth: 1,
       borderColor: colors.line,
@@ -1255,15 +1255,15 @@ function createStyles(theme: AppTheme) {
       opacity: 0.58
     },
     taskCheck: {
-      width: 28,
-      height: 28,
+      width: 44,
+      height: 44,
       alignItems: "center",
       justifyContent: "center"
     },
     taskMark: {
-      width: 35,
-      height: 35,
-      borderRadius: 11,
+      width: 40,
+      height: 40,
+      borderRadius: 13,
       alignItems: "center",
       justifyContent: "center"
     },

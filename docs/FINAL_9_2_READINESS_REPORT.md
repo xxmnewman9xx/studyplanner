@@ -2,7 +2,7 @@
 
 Branch: `v1-2-goal-9-2-root-concept-transformation`  
 Starting commit: `69d75470328bc470bce6097384b4a7e39e79c89a`  
-Final implementation score: **8.75/10**
+Final implementation score: **8.76/10**
 9.2 reached: **No**
 
 ## What Changed
@@ -16,6 +16,7 @@ Final implementation score: **8.75/10**
 - Widget Setup now focuses on the supported native concepts only: Small Next Due and Medium This Week.
 - Onboarding copy now frames StudyPlanner as calm school planning instead of a feature tour.
 - Onboarding now offers first-action routes for Scan Paper, Upload File, Add Classes, and Try Sample.
+- Accessibility quick wins now cover Reduce Motion in onboarding and larger primary touch targets across the main planner flows.
 - Paywall copy no longer exposes internal product-ID language.
 
 ## Verification
@@ -32,7 +33,7 @@ Final implementation score: **8.75/10**
 ## Why This Is Not 9.2 Yet
 
 - Native Home Screen widget screenshots are not fully automated; current artifact set includes in-app widget previews plus verified WidgetKit payload.
-- Accessibility and localization remain targeted improvements rather than exhaustive completion.
+- Accessibility and localization remain targeted improvements rather than exhaustive completion; VoiceOver/Dynamic Type proof is still needed.
 - The 500-use-case swarm is generated and ranked, but not converted into a full automated e2e suite.
 - StoreKit configuration passes static checks, but sandbox purchase/restore proof still needs a validation run.
 

@@ -871,8 +871,8 @@ function createStyles(theme: AppTheme) {
       gap: spacing.sm
     },
     checkButton: {
-      width: 30,
-      height: 30,
+      width: 44,
+      height: 44,
       alignItems: "center",
       justifyContent: "center"
     },
@@ -921,9 +921,9 @@ function createStyles(theme: AppTheme) {
       fontWeight: "700"
     },
     iconAction: {
-      minWidth: 66,
-      height: 34,
-      borderRadius: 17,
+      minWidth: 82,
+      minHeight: 44,
+      borderRadius: 22,
       borderWidth: 1,
       borderColor: colors.line,
       flexDirection: "row",
@@ -974,7 +974,7 @@ function createStyles(theme: AppTheme) {
       flexWrap: "wrap"
     },
     choice: {
-      minHeight: 34,
+      minHeight: 44,
       borderRadius: radii.round,
       borderWidth: 1,
       borderColor: colors.line,

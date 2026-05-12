@@ -111,8 +111,8 @@ function createStyles(theme: AppTheme) {
       width: 5
     },
     checkButton: {
-      width: 34,
-      height: 34,
+      width: 44,
+      height: 44,
       alignItems: "center",
       justifyContent: "center"
     },
@@ -132,8 +132,8 @@ function createStyles(theme: AppTheme) {
       gap: spacing.xs
     },
     editButton: {
-      width: 30,
-      height: 30,
+      width: 44,
+      height: 44,
       borderRadius: radii.round,
       borderWidth: 1,
       borderColor: colors.line,

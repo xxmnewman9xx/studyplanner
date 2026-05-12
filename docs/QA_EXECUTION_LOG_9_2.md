@@ -49,3 +49,6 @@ Known residual risks:
 | 11 | Onboarding first-action routing | Passed | `OnboardingScreen.tsx` exposes Scan Paper, Upload File, Add Classes, Try Sample; `App.tsx` routes each path | No |
 | 11 | `npm run typecheck` | Passed | `tsc --noEmit` completed after onboarding routing | No |
 | 11 | `npm run test` | Passed | 26/26 tests passed | No |
+| 12 | Accessibility quick wins | Passed | Onboarding honors Reduce Motion; high-traffic touch targets increased toward 44pt | VoiceOver/Dynamic Type proof still needed |
+| 12 | `npm run typecheck` | Passed | `tsc --noEmit` completed after accessibility changes | No |
+| 12 | `npm run test` | Passed | 26/26 tests passed | No |
