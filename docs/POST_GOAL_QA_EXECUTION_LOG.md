@@ -119,5 +119,12 @@
 | npm run check:iap | Passed | IAP and premium gate configuration passed | Final static IAP guard after Restore proof |
 | npm run verify:production | Passed | Production config verification passed | Final production config guard after Restore proof |
 | git diff --check | Passed | exit 0 | Final whitespace/conflict-marker check after Restore proof |
+| app.json / native project iPad support inspection | Passed | `ios.supportsTablet: true`; `TARGETED_DEVICE_FAMILY = "1,2"` | Confirms iPad screenshots are needed unless tablet support is intentionally removed |
+| EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 4314D877-E762-4A10-ACC2-B15D1BBC6A6C | Passed | Build succeeded, 0 errors/0 warnings; app installed/opened on `StudyPlanner-Codex-iPad` | iPad capture-mode proof build |
+| iPad simulator capture with Computer Use prompt acceptance + xcrun simctl io screenshot | Passed after recapture | `artifacts/post-goal-aso-submission/ipad/ipad-01-onboarding-welcome.png` through `ipad-11-assignment-detail.png` | First iPad contact sheet exposed modal overlays and upside-down raw frames; recaptured/rotated clean proof PNGs |
+| Swift/AppKit iPad contact sheet generation | Passed | `artifacts/post-goal-aso-submission/ipad/ipad-contact-sheet.png`, 11 items, 1040x1975 | Visual check confirmed no remaining prompt overlays |
+| iPad screenshot inventory check | Passed | 11 iPad PNGs, each 2064x2752, plus contact sheet | iPad strategy is captured but App Store upload-size/export validation remains open |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Final static IAP guard after iPad proof |
+| npm run verify:production | Passed | Production config verification passed | Final production config guard after iPad proof |
 
-Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/contrast pass, restore purchase success proof. Optional: overnight widget rollover screenshot.
+Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, App Store screenshot export/upload-size validation, localized UI screenshots/string extraction, full simulator VoiceOver/contrast pass, restore purchase success proof. Optional: overnight widget rollover screenshot.

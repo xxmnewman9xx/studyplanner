@@ -9,7 +9,7 @@ Status: NO-SUBMIT as of 2026-05-12.
 - Bundle ID: com.mattnewman.studyplanner
 - Version: 1.0.0
 - Build number: 10
-- iPad support: enabled in app.json; capture 13-inch iPad screenshots or intentionally disable tablet support before submission.
+- iPad support: enabled in app.json and native project (`TARGETED_DEVICE_FAMILY = "1,2"`); 13-inch iPad raw proof screenshots are now captured in `artifacts/post-goal-aso-submission/ipad`, but App Store Connect upload-size/export validation is still needed.
 
 ## IAP IDs
 
@@ -21,9 +21,9 @@ Status: NO-SUBMIT as of 2026-05-12.
 
 1. App Store Connect IAP product status and sandbox monthly/yearly/Lifetime/restore proof missing.
 2. Support URL missing; submission verification fails without EXPO_PUBLIC_SUPPORT_URL in submission mode.
-3. Fresh screenshot folder is incomplete: 46 raw simulator PNGs and a contact sheet are captured, but remaining required states are missing.
+3. Fresh screenshot folder is incomplete for direct upload: 46 primary iPhone/simulator PNGs, 11 iPad PNGs, and contact sheets are captured, but App Store-sized exports and remaining required StoreKit/localization states are missing.
 4. Native widget refresh after completion, edit, and add is proven; day-boundary label/urgency behavior is code/build proven, but overnight Home Screen screenshot proof is not captured.
-5. iPad screenshot strategy unresolved while ios.supportsTablet is true.
+5. iPad strategy is no longer unresolved, but the 13-inch iPad set still needs final App Store Connect screenshot-size/export validation.
 6. Privacy URL/support page must be publicly verified and updated for parser endpoint/upload retention if endpoint is enabled.
 7. Signed App Store archive entitlement for notifications must be checked.
 8. Localized metadata packs require native-speaker and text-fit review.
@@ -43,8 +43,10 @@ Use docs/APP_STORE_METADATA.md, docs/ASO_METADATA_PACK_EN.md, and localized ASO 
 
 Current capture inventory:
 
-- 46 raw simulator PNGs captured.
+- 46 primary raw simulator PNGs captured.
+- 11 raw 13-inch iPad simulator PNGs captured in `artifacts/post-goal-aso-submission/ipad`.
 - Contact sheet captured: `artifacts/post-goal-aso-submission/45-final-contact-sheet.png`.
+- iPad contact sheet captured: `artifacts/post-goal-aso-submission/ipad/ipad-contact-sheet.png`.
 - Production empty Today proof captured: `06-today-empty.png`.
 - Capture-mode proof captured for onboarding, populated Today, Reminders, Settings, Add School Stuff, Check New Work, assignment detail, Calendar, Week Plan, Classes, Widget Setup, themes, and paywall product-load failure.
 - Manual Add proof captured: `13-manual-add.png`.
@@ -54,6 +56,7 @@ Current capture inventory:
 - Reminders proof captured: `28-reminders.png` shows the Today Reminders card with real Queue Reminders and Sync Calendar actions.
 - Settings proof captured: `36-settings.png` shows planner status, appearance, Plus/store status, restore access, widget scope, privacy link, and the still-missing support URL configuration.
 - Restore access proof captured: `39-restore-purchases.png` shows the real Restore entry point, but does not prove sandbox restore success.
+- iPad proof captured: onboarding, Today, Add School Stuff/Check New Work, Calendar, Week, Classes, Widget Setup, paywall unavailable state, Settings/Restore, and Assignment Detail are captured as upright 2064x2752 PNGs on `StudyPlanner-Codex-iPad`.
 - Native widget proof captured: `30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png` show installed WidgetKit small/medium widgets using the current May 2026 capture snapshot.
 - Native widget edge-state proof captured: `32-widget-empty-state.png`, `33-widget-needs-check-state.png`, `widget-empty-state-snapshot.json`, and `widget-needs-check-state-snapshot.json`.
 - App icon/Home Screen proof captured: `40-app-icon-home-screen.png`.
@@ -62,7 +65,7 @@ Current capture inventory:
 - Widget add refresh proof captured: `48-widget-refresh-after-add.png` and `widget-refresh-after-add-snapshot.json` show adding Field Notes updated the App Group snapshot and installed widgets.
 - Widget day-boundary behavior is code/build proven: WidgetKit recomputes label/urgency at render time and schedules refresh for the earlier of 30 minutes or 00:01 local time.
 - Core action large-text proof captured: `49-accessibility-check-work-large-text.png` through `52-accessibility-paywall-large-text.png`.
-- Missing: products-loaded paywall, restore purchase success/sandbox proof, localized UI screenshots/string extraction, full VoiceOver/contrast pass, iPad screenshots, and optional overnight widget rollover screenshot.
+- Missing: products-loaded paywall, restore purchase success/sandbox proof, localized UI screenshots/string extraction, full VoiceOver/contrast pass, App Store-sized screenshot exports, and optional overnight widget rollover screenshot.
 
 Date/localization implementation note:
 
@@ -78,4 +81,4 @@ Accessibility implementation note:
 
 ## Recommendation
 
-Do not submit this branch yet. Continue with remaining screenshot capture, StoreKit sandbox proof, support/privacy finalization, optional overnight widget rollover screenshot, iPad strategy, and final QA.
+Do not submit this branch yet. Continue with StoreKit sandbox proof, support/privacy finalization, App Store-sized screenshot export validation, localized UI proof, optional overnight widget rollover screenshot, and final QA.

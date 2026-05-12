@@ -2,7 +2,7 @@
 
 Folder: `artifacts/post-goal-aso-submission`
 
-Status: partial proof captured on 2026-05-12. The folder now contains **46 raw simulator PNGs** plus a generated contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit, iPad, and App Store-size export proof are complete.
+Status: partial proof captured on 2026-05-12. The folder now contains **46 primary raw simulator PNGs**, **11 raw 13-inch iPad simulator PNGs**, a primary contact sheet, and an iPad contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit and App Store-size export proof are complete.
 
 ## Capture Summary
 
@@ -17,8 +17,28 @@ Status: partial proof captured on 2026-05-12. The folder now contains **46 raw s
 - Widget edit refresh proof captured: `47-widget-refresh-after-edit.png` and `widget-refresh-after-edit-snapshot.json`.
 - Widget add refresh proof captured: `48-widget-refresh-after-add.png` and `widget-refresh-after-add-snapshot.json`.
 - Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 46 PNGs.
+- iPad proof captured in `ipad/`: 11 upright 2064x2752 PNGs plus `ipad-contact-sheet.png`.
 - Restore access proof captured: `39-restore-purchases.png`. This proves the Restore entry point exists, not that a sandbox restore succeeded.
 - Paywall products-loaded proof is still missing. The captured paywall state shows purchases unavailable and is correctly stored as `38-paywall-product-load-failure.png`.
+
+## iPad Raw Proof Set
+
+The app currently supports iPad (`ios.supportsTablet: true`, native target family `1,2`), so a 13-inch iPad simulator proof set was captured on `StudyPlanner-Codex-iPad`.
+
+| iPad PNG | Status | Notes |
+| --- | --- | --- |
+| ipad/ipad-01-onboarding-welcome.png | Captured | 2064x2752, real iPad simulator UI. |
+| ipad/ipad-02-today-populated.png | Captured | 2064x2752, Today command center without deep-link prompt overlay. |
+| ipad/ipad-03-add-school-stuff.png | Captured | 2064x2752, Check New Work/Add School Stuff entry. |
+| ipad/ipad-04-check-new-work-edit.png | Captured with caveat | 2064x2752, Check New Work proof; status bar shows transient refresh state. |
+| ipad/ipad-05-calendar-month.png | Captured | 2064x2752, Calendar month/workload proof. |
+| ipad/ipad-06-week-plan.png | Captured | 2064x2752, Week Plan proof. |
+| ipad/ipad-07-classes-list.png | Captured | 2064x2752, Classes plus class hub proof. |
+| ipad/ipad-08-widget-setup.png | Captured | 2064x2752, Widget Setup proof. |
+| ipad/ipad-09-paywall-product-load-failure.png | Captured | 2064x2752, honest purchases-unavailable paywall state. |
+| ipad/ipad-10-settings-restore.png | Captured | 2064x2752, Settings with Restore/support proof. |
+| ipad/ipad-11-assignment-detail.png | Captured | 2064x2752, Assignment Detail proof. |
+| ipad/ipad-contact-sheet.png | Captured | Generated contact sheet from the 11 iPad PNGs. |
 
 | Required PNG | Status | Notes |
 | --- | --- | --- |

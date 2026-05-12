@@ -5,7 +5,7 @@ This is an interim readiness report, not a submit approval.
 ## Score
 
 Initial v1-3 post-goal score: 7.82/10.  
-Current evidence-adjusted score after fixes/docs/screenshots/accessibility/date/widget/reminder/settings/restore-access quick wins: 9.08/10.
+Current evidence-adjusted score after fixes/docs/screenshots/accessibility/date/widget/reminder/settings/restore-access/iPad proof quick wins: 9.13/10.
 Target: 9.4/10.  
 Verdict: not reached.
 
@@ -29,6 +29,7 @@ Verdict: not reached.
 - Reminders proof is now captured as `28-reminders.png`; Today exposes real Queue Reminders and Sync Calendar actions without claiming notification permission success.
 - Settings proof is now captured as `36-settings.png`; the screen surfaces planner status, appearance, Plus/store status, restore access, widget scope, privacy link, and the unresolved support URL requirement.
 - Restore access proof is now captured as `39-restore-purchases.png`; it proves the Restore entry point exists but does not prove sandbox restore success.
+- iPad support is confirmed enabled in both Expo and native project settings, and 11 real 13-inch iPad simulator proof PNGs plus `ipad-contact-sheet.png` are captured in `artifacts/post-goal-aso-submission/ipad`.
 - A generated contact sheet was captured at `artifacts/post-goal-aso-submission/45-final-contact-sheet.png`.
 - Paywall failure proof was captured honestly as `38-paywall-product-load-failure.png`; products-loaded proof remains missing.
 - A targeted Dynamic Type fix keeps the Today hero, metrics, warning card, and dock readable at `accessibility-extra-extra-large`; proof captured as `44-accessibility-large-text.png`.
@@ -47,10 +48,10 @@ Verdict: not reached.
 
 ## Still blocking 9.4
 
-StoreKit proof, products-loaded paywall proof, support URL, remaining screenshots, iPad screenshot strategy, localized review, signed archive entitlement check, full simulator VoiceOver/contrast traversal, and final simulator QA.
+StoreKit proof, products-loaded paywall proof, support URL, App Store-sized screenshot export validation, localized review, signed archive entitlement check, full simulator VoiceOver/contrast traversal, and final simulator QA.
 
-The capture-mode rebuild solved the original deep-link capture problem, installed small/medium WidgetKit screenshots now exist, app icon proof exists, native widget empty/needs-check states exist, reminders proof exists, settings proof exists, restore access proof exists, completion/edit/add refresh is proven, day-boundary behavior is code/build proven, core action large-text proof now exists, and Manual Add/Edit Item/filtered Calendar/import-path capture states are now real. The screenshot set is still not App Store-ready. Missing proof includes restore purchase success/sandbox proof, localized UI screenshots/string extraction, full simulator VoiceOver/contrast coverage, iPad sizing, and StoreKit products loaded.
+The capture-mode rebuild solved the original deep-link capture problem, installed small/medium WidgetKit screenshots now exist, app icon proof exists, native widget empty/needs-check states exist, reminders proof exists, settings proof exists, restore access proof exists, iPad raw proof exists, completion/edit/add refresh is proven, day-boundary behavior is code/build proven, core action large-text proof now exists, and Manual Add/Edit Item/filtered Calendar/import-path capture states are now real. The screenshot set is still not App Store-ready. Missing proof includes restore purchase success/sandbox proof, localized UI screenshots/string extraction, full simulator VoiceOver/contrast coverage, App Store-size export validation, and StoreKit products loaded.
 
 ## Next prompt
 
-Run final App Store Connect validation for StudyPlanner on branch v1-3-post-goal-aso-submission-master: provide real support URL and IAP env IDs, run StoreKit sandbox monthly/yearly/Lifetime/restore tests, resolve iPad screenshot strategy, capture the remaining supported PNGs in artifacts/post-goal-aso-submission, optionally capture overnight widget rollover, run production and submission verification, then update docs/APP_STORE_SUBMISSION_HANDOFF.md with a submit/no-submit decision.
+Run final App Store Connect validation for StudyPlanner on branch v1-3-post-goal-aso-submission-master: provide real support URL and IAP env IDs, run StoreKit sandbox monthly/yearly/Lifetime/restore tests, export/upload-size-check the iPhone and iPad screenshot sets, capture localized UI proof if submitting localizations, optionally capture overnight widget rollover, run production and submission verification, then update docs/APP_STORE_SUBMISSION_HANDOFF.md with a submit/no-submit decision.

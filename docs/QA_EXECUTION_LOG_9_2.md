@@ -149,3 +149,9 @@ Known residual risks:
 | 29 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after Restore proof | No |
 | 29 | `npm run verify:production` | Passed | Production config verification passed after Restore proof | No |
 | 29 | `git diff --check` | Passed | No whitespace errors or conflict markers after Restore proof | No |
+| 30 | iPad support inspection | Passed | `app.json` has `ios.supportsTablet: true`; native Xcode project targets device family `1,2` | No |
+| 30 | iPad capture-mode build | Passed | `EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 4314D877-E762-4A10-ACC2-B15D1BBC6A6C` built, installed, and opened with 0 errors/0 warnings | No |
+| 30 | iPad proof capture | Passed after recapture | Captured 11 upright 2064x2752 PNGs in `artifacts/post-goal-aso-submission/ipad`; first contact sheet exposed deep-link prompt overlays and raw orientation issues, then clean shots were recaptured/rotated | App Store-sized export validation still needed |
+| 30 | iPad contact sheet | Passed | `artifacts/post-goal-aso-submission/ipad/ipad-contact-sheet.png` generated from 11 PNGs | No |
+| 30 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after iPad proof | No |
+| 30 | `npm run verify:production` | Passed | Production config verification passed after iPad proof | No |
