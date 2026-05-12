@@ -84,5 +84,13 @@
 | npm run verify:production | Passed | Production config verification passed | Re-run after import-path capture states |
 | git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after import-path capture states and docs |
 | screenshot inventory check | Passed | 41 raw PNGs; new import screenshots are 1179x2556; contact sheet 1230x7305 | Final artifact dimensions verified after import-path capture |
+| Widget capture state source guard | Passed | `App.tsx`, `WidgetShowcaseScreen`, `tests/accessibilitySource.test.ts` | Guards capture-only `widget-empty` and `widget-needs-check` states and routes them through native widget snapshot assignments |
+| npm run typecheck | Passed | exit 0 | Re-run after widget edge-state capture patch |
+| npm run test | Passed | 40/40 | Re-run after widget edge-state capture patch |
+| EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE | Passed | Build succeeded, 0 errors/0 warnings; app installed/opened | Required to update native snapshot capture routes |
+| xcrun simctl openurl + SpringBoard launch + xcrun simctl io screenshot | Passed | `32-widget-empty-state.png`, `33-widget-needs-check-state.png` | Real simulator Home Screen captured installed WidgetKit small/medium widgets for empty and needs-check states |
+| App Group payload extraction | Passed | `widget-empty-state-snapshot.json`, `widget-needs-check-state-snapshot.json` | Empty snapshot has no nextDue/weekly items; needs-check snapshot has accepted Lab Report and reviewQueueCount 3 |
+| Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 43 PNGs at 1230x7305 | Re-run after native widget edge-state screenshots |
+| screenshot inventory check | Passed | 43 raw PNGs; widget edge-state screenshots are 1179x2556; contact sheet 1230x7305 | Final artifact dimensions verified after widget edge-state capture |
 
-Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/contrast pass, restore purchases, settings/reminders screens, native widget empty/needs-check states. Optional: overnight widget rollover screenshot.
+Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/contrast pass, restore purchases, settings/reminders screens. Optional: overnight widget rollover screenshot.

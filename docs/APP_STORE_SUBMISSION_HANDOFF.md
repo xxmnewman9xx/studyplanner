@@ -21,7 +21,7 @@ Status: NO-SUBMIT as of 2026-05-12.
 
 1. App Store Connect IAP product status and sandbox monthly/yearly/Lifetime/restore proof missing.
 2. Support URL missing; submission verification fails without EXPO_PUBLIC_SUPPORT_URL in submission mode.
-3. Fresh screenshot folder is incomplete: 41 raw simulator PNGs and a contact sheet are captured, but remaining required states are missing.
+3. Fresh screenshot folder is incomplete: 43 raw simulator PNGs and a contact sheet are captured, but remaining required states are missing.
 4. Native widget refresh after completion, edit, and add is proven; day-boundary label/urgency behavior is code/build proven, but overnight Home Screen screenshot proof is not captured.
 5. iPad screenshot strategy unresolved while ios.supportsTablet is true.
 6. Privacy URL/support page must be publicly verified and updated for parser endpoint/upload retention if endpoint is enabled.
@@ -43,7 +43,7 @@ Use docs/APP_STORE_METADATA.md, docs/ASO_METADATA_PACK_EN.md, and localized ASO 
 
 Current capture inventory:
 
-- 41 raw simulator PNGs captured.
+- 43 raw simulator PNGs captured.
 - Contact sheet captured: `artifacts/post-goal-aso-submission/45-final-contact-sheet.png`.
 - Production empty Today proof captured: `06-today-empty.png`.
 - Capture-mode proof captured for onboarding, populated Today, Add School Stuff, Check New Work, assignment detail, Calendar, Week Plan, Classes, Widget Setup, themes, and paywall product-load failure.
@@ -52,13 +52,14 @@ Current capture inventory:
 - Calendar filtered-class proof captured: `23-calendar-filtered-class.png` shows the Chemistry 101 filter applied to real planner data.
 - Import-path proof captured: `11-scan-paper.png`, `12-upload-file.png`, `14-parser-processing.png`, `18-check-new-work-duplicate.png`, and `19-check-new-work-imported.png`; the scan-paper proof keeps Camera/Photo disabled until photo parsing is configured.
 - Native widget proof captured: `30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png` show installed WidgetKit small/medium widgets using the current May 2026 capture snapshot.
+- Native widget edge-state proof captured: `32-widget-empty-state.png`, `33-widget-needs-check-state.png`, `widget-empty-state-snapshot.json`, and `widget-needs-check-state-snapshot.json`.
 - App icon/Home Screen proof captured: `40-app-icon-home-screen.png`.
 - Widget refresh proof captured: `46-widget-refresh-after-completion.png` and `widget-refresh-after-completion-snapshot.json` show completing Lab Report updated the App Group snapshot and installed widgets.
 - Widget edit refresh proof captured: `47-widget-refresh-after-edit.png` and `widget-refresh-after-edit-snapshot.json` show editing Reading Reflection to Reflection Draft updated the App Group snapshot and installed widgets.
 - Widget add refresh proof captured: `48-widget-refresh-after-add.png` and `widget-refresh-after-add-snapshot.json` show adding Field Notes updated the App Group snapshot and installed widgets.
 - Widget day-boundary behavior is code/build proven: WidgetKit recomputes label/urgency at render time and schedules refresh for the earlier of 30 minutes or 00:01 local time.
 - Core action large-text proof captured: `49-accessibility-check-work-large-text.png` through `52-accessibility-paywall-large-text.png`.
-- Missing: products-loaded paywall, restore purchases, localized UI screenshots/string extraction, full VoiceOver/contrast pass, iPad screenshots, settings/reminders screens, native widget empty/needs-check states, and optional overnight widget rollover screenshot.
+- Missing: products-loaded paywall, restore purchases, localized UI screenshots/string extraction, full VoiceOver/contrast pass, iPad screenshots, settings/reminders screens, and optional overnight widget rollover screenshot.
 
 Date/localization implementation note:
 

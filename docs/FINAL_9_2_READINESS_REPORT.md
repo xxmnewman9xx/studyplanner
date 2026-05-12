@@ -27,6 +27,7 @@ Final implementation score: **9.19/10**
 - Due-date and Week Plan date labels now use the preferred locale, with 24-hour formatting coverage for `fr-FR` and `en-GB`.
 - Successor-branch capture mode now uses current relative demo dates, preventing stale WidgetKit due labels.
 - Installed native small and medium Home Screen widgets are captured in `artifacts/post-goal-aso-submission/30-small-widget-home-screen.png` and `artifacts/post-goal-aso-submission/31-medium-widget-home-screen.png`.
+- Native widget empty and needs-check Home Screen states are captured in `artifacts/post-goal-aso-submission/32-widget-empty-state.png` and `artifacts/post-goal-aso-submission/33-widget-needs-check-state.png`, with App Group payload proof that unreviewed work remains out of next due.
 - Completing Lab Report in the simulator updates the App Group widget payload and installed Home Screen widgets; proof is captured in `artifacts/post-goal-aso-submission/46-widget-refresh-after-completion.png` and `widget-refresh-after-completion-snapshot.json`.
 - Editing Reading Reflection to Reflection Draft in Assignment Detail updates the App Group widget payload and installed Home Screen widgets; proof is captured in `artifacts/post-goal-aso-submission/47-widget-refresh-after-edit.png` and `widget-refresh-after-edit-snapshot.json`.
 - Adding Field Notes to Science Lab in normal mode updates the App Group widget payload and installed Home Screen widgets; proof is captured in `artifacts/post-goal-aso-submission/48-widget-refresh-after-add.png` and `widget-refresh-after-add-snapshot.json`.
@@ -47,6 +48,7 @@ Final implementation score: **9.19/10**
 - Successor-branch Manual Add/Edit Item proof captured at `artifacts/post-goal-aso-submission/13-manual-add.png` and `17-check-new-work-edit-item.png`.
 - Successor-branch filtered Calendar proof captured at `artifacts/post-goal-aso-submission/23-calendar-filtered-class.png`.
 - Successor-branch import-path proof captured at `artifacts/post-goal-aso-submission/11-scan-paper.png`, `12-upload-file.png`, `14-parser-processing.png`, `18-check-new-work-duplicate.png`, and `19-check-new-work-imported.png`.
+- Successor-branch native widget edge-state proof captured at `artifacts/post-goal-aso-submission/32-widget-empty-state.png`, `33-widget-needs-check-state.png`, `widget-empty-state-snapshot.json`, and `widget-needs-check-state-snapshot.json`.
 - Completion audit added in `docs/COMPLETION_AUDIT_9_2.md`; verdict remains not complete as a 9.2 goal.
 
 ## Why This Is Not 9.2 Yet

@@ -5,7 +5,7 @@ This is an interim readiness report, not a submit approval.
 ## Score
 
 Initial v1-3 post-goal score: 7.82/10.  
-Current evidence-adjusted score after fixes/docs/screenshots/accessibility/date/widget quick wins: 9.03/10.
+Current evidence-adjusted score after fixes/docs/screenshots/accessibility/date/widget quick wins: 9.05/10.
 Target: 9.4/10.  
 Verdict: not reached.
 
@@ -22,7 +22,7 @@ Verdict: not reached.
 - Parser grade items no longer enter the planner without a review surface.
 - Reminder and calendar side effects now skip invalid legacy due dates.
 - Capture-mode iOS build now responds to screenshot deep links.
-- 41 raw simulator PNGs were captured in `artifacts/post-goal-aso-submission`.
+- 43 raw simulator PNGs were captured in `artifacts/post-goal-aso-submission`.
 - Manual Add and Check Work edit-item proof are now captured as `13-manual-add.png` and `17-check-new-work-edit-item.png`.
 - Filtered Calendar proof is now captured as `23-calendar-filtered-class.png`, showing the Chemistry 101 course filter narrowing the calendar view.
 - Import-path proof is now captured as `11-scan-paper.png`, `12-upload-file.png`, `14-parser-processing.png`, `18-check-new-work-duplicate.png`, and `19-check-new-work-imported.png`; the scan-paper state is honest about photo parsing being unavailable without a configured endpoint.
@@ -35,6 +35,7 @@ Verdict: not reached.
 - Visual planner surfaces now expose VoiceOver labels for task rows, completion buttons, WeekStrip days, workload bars, calendar mini-days, workload forecasts, class balance rows, and completion cards; the source-regression test passes in the current 40/40 suite.
 - Capture/demo coursework dates now roll relative to the capture day so native WidgetKit screenshots do not age into false overdue states.
 - Installed native small and medium Home Screen widget screenshots are captured as `30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png`; both show current May 2026 due labels.
+- Native widget empty and needs-check states are captured as `32-widget-empty-state.png` and `33-widget-needs-check-state.png`; App Group payloads show the empty state has no due items, while the needs-check state has accepted Lab Report as next due plus reviewQueueCount 3.
 - App icon/Home Screen proof is captured as `40-app-icon-home-screen.png`.
 - Widget refresh after completion is captured as `46-widget-refresh-after-completion.png`; the App Group payload in `widget-refresh-after-completion-snapshot.json` shows next due moved to Reading Reflection, This Week dropped to 4, monthly due dropped to 7, and completed count rose to 4.
 - Widget refresh after edit is captured as `47-widget-refresh-after-edit.png`; the App Group payload in `widget-refresh-after-edit-snapshot.json` shows the edited title Reflection Draft in both small and medium widget data.
@@ -45,7 +46,7 @@ Verdict: not reached.
 
 StoreKit proof, products-loaded paywall proof, support URL, remaining screenshots, iPad screenshot strategy, localized review, signed archive entitlement check, full simulator VoiceOver/contrast traversal, and final simulator QA.
 
-The capture-mode rebuild solved the original deep-link capture problem, installed small/medium WidgetKit screenshots now exist, app icon proof exists, completion/edit/add refresh is proven, day-boundary behavior is code/build proven, core action large-text proof now exists, and Manual Add/Edit Item/filtered Calendar/import-path capture states are now real. The screenshot set is still not App Store-ready. Missing proof includes restore purchases, localized UI screenshots/string extraction, full simulator VoiceOver/contrast coverage, iPad sizing, native widget empty/needs-check states, settings/reminders screens, and StoreKit products loaded.
+The capture-mode rebuild solved the original deep-link capture problem, installed small/medium WidgetKit screenshots now exist, app icon proof exists, native widget empty/needs-check states exist, completion/edit/add refresh is proven, day-boundary behavior is code/build proven, core action large-text proof now exists, and Manual Add/Edit Item/filtered Calendar/import-path capture states are now real. The screenshot set is still not App Store-ready. Missing proof includes restore purchases, localized UI screenshots/string extraction, full simulator VoiceOver/contrast coverage, iPad sizing, settings/reminders screens, and StoreKit products loaded.
 
 ## Next prompt
 

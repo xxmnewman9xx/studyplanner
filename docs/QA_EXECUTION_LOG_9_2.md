@@ -114,3 +114,11 @@ Known residual risks:
 | 25 | `npm run verify:production` | Passed | Production config verification passed after import-path capture states | No |
 | 25 | `git diff --check` | Passed | No whitespace errors or conflict markers after import-path capture states and docs | No |
 | 25 | Screenshot inventory check | Passed | 41 raw PNGs; new import screenshots are 1179x2556 and contact sheet is 1230x7305 | No |
+| 26 | Widget capture state source guard | Passed | `App.tsx`, `WidgetShowcaseScreen`, and `tests/accessibilitySource.test.ts` guard `widget-empty` and `widget-needs-check` capture states | No |
+| 26 | `npm run typecheck` | Passed | `tsc --noEmit` completed after widget edge-state capture patch | No |
+| 26 | `npm run test` | Passed | 40/40 tests passed after widget edge-state capture patch | No |
+| 26 | Capture-mode iOS rebuild | Passed | `EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE` built, installed, and opened with 0 errors/0 warnings | No |
+| 26 | Native widget edge-state capture | Passed | Captured `32-widget-empty-state.png` and `33-widget-needs-check-state.png` as real simulator Home Screen UI | No |
+| 26 | App Group payload extraction | Passed | `widget-empty-state-snapshot.json` has no nextDue/weekly items; `widget-needs-check-state-snapshot.json` has accepted Lab Report plus reviewQueueCount 3 | No |
+| 26 | Contact sheet regeneration | Passed | `45-final-contact-sheet.png` regenerated from 43 raw PNGs | No |
+| 26 | Screenshot inventory check | Passed | 43 raw PNGs; widget edge-state screenshots are 1179x2556 and contact sheet is 1230x7305 | No |

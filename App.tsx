@@ -64,6 +64,8 @@ import {
 import {
   isAssignmentArchived,
   isAssignmentConfirmed,
+  isAssignmentNeedsReview,
+  isAssignmentOpen,
   normalizeAssignment,
   normalizeAssignments,
   withAssignmentPatch
@@ -104,6 +106,8 @@ type CaptureState =
   | "parser-processing"
   | "scan-paper"
   | "upload-file"
+  | "widget-empty"
+  | "widget-needs-check"
   | null;
 
 export default function App() {
@@ -175,6 +179,10 @@ function AppContent() {
   const activeAssignments = useMemo(
     () => assignments.filter((item) => !isAssignmentArchived(item)),
     [assignments]
+  );
+  const widgetSnapshotAssignments = useMemo(
+    () => widgetAssignmentsForCapture(activeAssignments, captureState),
+    [activeAssignments, captureState]
   );
   const confirmedAssignments = useMemo(
     () => activeAssignments.filter((item) => isAssignmentConfirmed(item)),
@@ -323,7 +331,7 @@ function AppContent() {
       {
         semester,
         courses,
-        assignments,
+        assignments: widgetSnapshotAssignments,
         paletteId: theme.palette.id,
         widgetStyleId: widgetPreferences.styleId,
         demoState: storeCaptureEnabled
@@ -336,12 +344,12 @@ function AppContent() {
       storeCaptureEnabled ? storeCaptureNow : new Date()
     ).catch(() => undefined);
   }, [
-    assignments,
     courses,
     hydrated,
     semester,
     storeCaptureEnabled,
     theme.palette.id,
+    widgetSnapshotAssignments,
     widgetPreferences.styleId
   ]);
 
@@ -726,8 +734,9 @@ function AppContent() {
                 <WidgetShowcaseScreen
                   semester={semester}
                   courses={courses}
-                  assignments={activeAssignments}
+                  assignments={widgetSnapshotAssignments}
                   preferences={widgetPreferences}
+                  captureState={captureState}
                   onPreferencesChange={setWidgetPreferences}
                 />
               ) : null}
@@ -752,7 +761,23 @@ function captureStateFromQuery(value: string | null): CaptureState {
   if (value === "parser-processing" || value === "processing") return "parser-processing";
   if (value === "scan-paper" || value === "scan") return "scan-paper";
   if (value === "upload-file" || value === "upload") return "upload-file";
+  if (value === "widget-empty" || value === "empty-widget") return "widget-empty";
+  if (value === "widget-needs-check" || value === "needs-check-widget") return "widget-needs-check";
   return null;
+}
+
+function widgetAssignmentsForCapture(assignments: Assignment[], captureState: CaptureState) {
+  if (captureState === "widget-empty") return [];
+
+  if (captureState === "widget-needs-check") {
+    const confirmed =
+      assignments.find((assignment) => assignment.id === "lab-report" && isAssignmentOpen(assignment)) ||
+      assignments.find(isAssignmentOpen);
+    const needsReview = assignments.filter(isAssignmentNeedsReview).slice(0, 3);
+    return confirmed ? [confirmed, ...needsReview] : needsReview;
+  }
+
+  return assignments;
 }
 
 function LoadingScreen({ label }: { label: string }) {

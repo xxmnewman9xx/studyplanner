@@ -36,6 +36,7 @@ type WidgetShowcaseScreenProps = {
   assignments: Assignment[];
   preferences: WidgetPreferences;
   onPreferencesChange: (preferences: WidgetPreferences) => void;
+  captureState?: string | null;
 };
 
 const widgetSizes: WidgetSizePreference[] = ["small", "medium"];
@@ -54,7 +55,8 @@ export function WidgetShowcaseScreen({
   courses,
   assignments,
   preferences,
-  onPreferencesChange
+  onPreferencesChange,
+  captureState
 }: WidgetShowcaseScreenProps) {
   const { theme, paletteId, palettes, setPalette } = useAppTheme();
   const { colors } = theme;
@@ -102,7 +104,7 @@ export function WidgetShowcaseScreen({
     <PremiumScreen>
       <PremiumHeader
         eyebrow="Widget Setup"
-        title="Widget Setup"
+        title={captureState === "widget-empty" ? "Empty Widget" : captureState === "widget-needs-check" ? "Needs Check Widget" : "Widget Setup"}
         subtitle="Set up the supported Home Screen widgets: Small Next Due and Medium This Week."
       />
 

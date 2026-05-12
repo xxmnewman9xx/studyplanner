@@ -70,6 +70,7 @@ test("capture routes expose honest screenshot proof states", () => {
   const importScreen = fs.readFileSync(importScreenPath, "utf8");
   const coursesScreen = fs.readFileSync(coursesScreenPath, "utf8");
   const monthlyCalendar = fs.readFileSync(monthlyCalendarPath, "utf8");
+  const widgetShowcase = fs.readFileSync(widgetShowcasePath, "utf8");
 
   assert.ok(app.includes("captureStateFromQuery"));
   assert.ok(app.includes("\"calendar-filtered\""));
@@ -80,6 +81,10 @@ test("capture routes expose honest screenshot proof states", () => {
   assert.ok(app.includes("\"parser-processing\""));
   assert.ok(app.includes("\"scan-paper\""));
   assert.ok(app.includes("\"upload-file\""));
+  assert.ok(app.includes("\"widget-empty\""));
+  assert.ok(app.includes("\"widget-needs-check\""));
+  assert.ok(app.includes("widgetAssignmentsForCapture"));
+  assert.ok(app.includes("assignments: widgetSnapshotAssignments"));
 
   assert.ok(importScreen.includes("captureState === \"edit-found-work\""));
   assert.ok(importScreen.includes("captureState === \"parser-processing\""));
@@ -95,4 +100,7 @@ test("capture routes expose honest screenshot proof states", () => {
 
   assert.ok(monthlyCalendar.includes("captureState !== \"calendar-filtered\""));
   assert.ok(monthlyCalendar.includes("setCourseFilterId(courseId)"));
+
+  assert.ok(widgetShowcase.includes("captureState === \"widget-empty\""));
+  assert.ok(widgetShowcase.includes("captureState === \"widget-needs-check\""));
 });
