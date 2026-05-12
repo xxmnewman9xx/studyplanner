@@ -2,7 +2,7 @@
 
 Branch: `v1-2-goal-9-2-root-concept-transformation`  
 Starting commit: `69d75470328bc470bce6097384b4a7e39e79c89a`  
-Final implementation score: **8.86/10**
+Final implementation score: **8.88/10**
 9.2 reached: **No**
 
 ## What Changed
@@ -18,6 +18,7 @@ Final implementation score: **8.86/10**
 - Onboarding now offers first-action routes for Scan Paper, Upload File, Add Classes, and Try Sample.
 - Accessibility quick wins now cover Reduce Motion in onboarding and larger primary touch targets across the main planner flows.
 - A targeted Dynamic Type fix keeps the Today header, hero, metrics, warning card, progress ring, and dock readable at an accessibility content size.
+- Task rows, completion buttons, WeekStrip days, workload bars, calendar mini-days, workload forecasts, class balance rows, and completion cards now expose VoiceOver labels, with a source-regression test guarding the labels.
 - Month calendar planning now respects locale week-start rules for Sunday, Monday, and Saturday-start regions, with Monday-start coverage for `en-GB`.
 - Due-date and Week Plan date labels now use the preferred locale, with 24-hour formatting coverage for `fr-FR` and `en-GB`.
 - Paywall copy no longer exposes internal product-ID language.
@@ -25,7 +26,7 @@ Final implementation score: **8.86/10**
 ## Verification
 
 - `npm run typecheck`: passed.
-- `npm run test`: passed, 35/35 tests.
+- `npm run test`: passed, 36/36 tests.
 - `npm run check:iap`: passed.
 - `npm run verify:production`: passed.
 - `EXPO_PUBLIC_STORE_CAPTURE=1 ./scripts/verify-ios-widgetkit.sh`: passed build/App Group payload inspection; manual widget placement remains.
@@ -37,7 +38,7 @@ Final implementation score: **8.86/10**
 ## Why This Is Not 9.2 Yet
 
 - Native Home Screen widget screenshots are not fully automated; current artifact set includes in-app widget previews plus verified WidgetKit payload.
-- Accessibility and localization remain targeted improvements rather than exhaustive completion; full VoiceOver/Dynamic Type proof and localized simulator screenshots are still needed.
+- Accessibility and localization remain targeted improvements rather than exhaustive completion; source-tested VoiceOver labels now cover key planner visuals, but full simulator VoiceOver/Dynamic Type proof and localized simulator screenshots are still needed.
 - The 500-use-case swarm is generated and ranked, but not converted into a full automated e2e suite.
 - StoreKit configuration passes static checks, but sandbox purchase/restore proof still needs a validation run.
 

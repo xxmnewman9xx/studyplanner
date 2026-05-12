@@ -22,5 +22,7 @@
 | npm run test | Passed | 34/34 | Added Sunday/Monday/Saturday week-start helpers and Monday-start month grid coverage |
 | npm run typecheck | Passed | exit 0 | Re-run after 24-hour locale formatting patch |
 | npm run test | Passed | 35/35 | Added `fr-FR` and `en-GB` 24-hour due-date formatting coverage |
+| npm run typecheck | Passed | exit 0 | Re-run after visual planner VoiceOver label patch |
+| npm run test | Passed | 36/36 | Added `tests/accessibilitySource.test.ts` to guard labels on task rows, WeekStrip, workload bars, calendar mini-days, workload forecasts, class balance rows, and completion cards |
 
-Unrun/blocked: WidgetKit rerun, StoreKit sandbox, native widget Home Screen placement screenshots, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full VoiceOver/Dynamic Type screen sweep, restore purchases.
+Unrun/blocked: WidgetKit rerun, StoreKit sandbox, native widget Home Screen placement screenshots, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/Dynamic Type screen sweep, restore purchases.

@@ -20,8 +20,9 @@ export function CalendarSignalCard({
   const { colors } = theme;
   const styles = createStyles(theme);
   const monthDays = monthPlan.days.filter((day) => day.isCurrentMonth).slice(0, 14);
+  const cardLabel = `Monthly calendar for ${monthPlan.monthLabel}. ${monthPlan.summary.dueThisMonth} due this month, ${monthPlan.summary.heavyDayCount} busy days.`;
   const content = (
-    <GlassCard style={[styles.calendarSignal, style]}>
+    <GlassCard accessible={!onPress} accessibilityLabel={!onPress ? cardLabel : undefined} style={[styles.calendarSignal, style]}>
       <View pointerEvents="none" style={styles.signalBand} />
       <View style={styles.cardTop}>
         <View style={styles.iconTile}>
@@ -41,6 +42,12 @@ export function CalendarSignalCard({
         {monthDays.map((day) => (
           <View
             key={day.date}
+            accessible
+            accessibilityLabel={`${day.date}, ${day.openItems.length} open deadline${
+              day.openItems.length === 1 ? "" : "s"
+            }${day.exams.length > 0 ? `, ${day.exams.length} exam${day.exams.length === 1 ? "" : "s"}` : ""}${
+              day.isToday ? ", today" : ""
+            }${day.isHeavy ? ", busy day" : ""}`}
             style={[
               styles.monthMiniDay,
               day.isToday ? styles.monthMiniToday : null,
@@ -62,7 +69,13 @@ export function CalendarSignalCard({
   );
 
   return onPress ? (
-    <TouchableOpacity accessibilityRole="button" activeOpacity={0.84} onPress={onPress}>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel={cardLabel}
+      accessibilityHint="Opens the full calendar"
+      activeOpacity={0.84}
+      onPress={onPress}
+    >
       {content}
     </TouchableOpacity>
   ) : (
@@ -87,7 +100,13 @@ export function WorkloadInsightCard({
   const max = Math.max(1, ...insights.workloadByDay.map((day) => day.count));
 
   return (
-    <GlassCard style={[styles.insightCard, style]}>
+    <GlassCard
+      accessible
+      accessibilityLabel={`Workload forecast. ${insights.weekItemCount} deadlines and ${insights.weekExamCount} exams this week.${
+        insights.heavyWeekLabel ? ` Busy week: ${insights.heavyWeekLabel}.` : ""
+      }`}
+      style={[styles.insightCard, style]}
+    >
       <View style={styles.cardTop}>
         <View style={styles.iconTile}>
           <Flame color={colors.heroText} size={18} />
@@ -102,7 +121,14 @@ export function WorkloadInsightCard({
 
       <View style={styles.workloadGraph}>
         {insights.workloadByDay.map((day) => (
-          <View key={day.date} style={styles.workloadColumn}>
+          <View
+            key={day.date}
+            accessible
+            accessibilityLabel={`${day.label}, ${day.count} deadline${day.count === 1 ? "" : "s"}${
+              day.examCount > 0 ? `, ${day.examCount} exam${day.examCount === 1 ? "" : "s"}` : ""
+            }`}
+            style={styles.workloadColumn}
+          >
             <View style={styles.workloadTrack}>
               <View
                 style={[
@@ -151,7 +177,11 @@ export function CourseBalanceCard({
   const max = Math.max(1, ...rows.map((course) => course.openCount));
 
   return (
-    <GlassCard style={[styles.insightCard, style]}>
+    <GlassCard
+      accessible
+      accessibilityLabel={`Work by class. ${insights.openCount} open assignments and exams.`}
+      style={[styles.insightCard, style]}
+    >
       <View style={styles.cardTop}>
         <View style={styles.iconTile}>
           <PieChart color={colors.heroText} size={18} />
@@ -165,7 +195,14 @@ export function CourseBalanceCard({
 
       <View style={styles.balanceRows}>
         {rows.map((course) => (
-          <View key={course.courseId} style={styles.balanceRow}>
+          <View
+            key={course.courseId}
+            accessible
+            accessibilityLabel={`${course.courseName}, ${course.openCount} open assignment${
+              course.openCount === 1 ? "" : "s"
+            }`}
+            style={styles.balanceRow}
+          >
             <Text style={styles.balanceLabel} numberOfLines={1}>
               {course.courseName}
             </Text>
@@ -200,7 +237,11 @@ export function CompletionInsightCard({
   const styles = createStyles(theme);
 
   return (
-    <GlassCard style={[styles.completionCard, style]}>
+    <GlassCard
+      accessible
+      accessibilityLabel={`Progress. ${insights.completionPercent}% complete. ${insights.completedCount} done, ${insights.openCount} open.`}
+      style={[styles.completionCard, style]}
+    >
       <View style={styles.cardTop}>
         <View style={styles.iconTile}>
           <CheckCircle2 color={colors.heroText} size={18} />

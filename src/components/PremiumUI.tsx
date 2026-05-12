@@ -5,6 +5,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ViewProps,
   ViewStyle
 } from "react-native";
 import {
@@ -131,20 +132,30 @@ export function BrandMark({ size = 42 }: { size?: number }) {
   );
 }
 
-export function GlassCard({
-  children,
-  style,
-  tint = "plain"
-}: {
+type GlassCardProps = {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   tint?: "plain" | "warm" | "dark" | "hero";
-}) {
+} & Pick<ViewProps, "accessible" | "accessibilityHint" | "accessibilityLabel" | "accessibilityRole">;
+
+export function GlassCard({
+  children,
+  style,
+  tint = "plain",
+  accessible,
+  accessibilityLabel,
+  accessibilityHint,
+  accessibilityRole
+}: GlassCardProps) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
 
   return (
     <View
+      accessible={accessible}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      accessibilityRole={accessibilityRole}
       style={[
         styles.glassCard,
         tint === "warm" ? styles.glassCardWarm : null,
@@ -324,11 +335,18 @@ export function TaskRow({
   return (
     <TouchableOpacity
       accessibilityRole="button"
+      accessibilityLabel={`${assignment.title}, ${course?.code || assignment.courseName || "Course"}, due ${formatShortDate(assignment.dueAt)}, ${done ? "done" : "not done"}`}
+      accessibilityHint={onOpen ? "Opens assignment details" : undefined}
       activeOpacity={0.84}
       style={[styles.taskRow, compact ? styles.taskRowCompact : null, done ? styles.taskRowDone : null]}
       onPress={onOpen}
     >
-      <TouchableOpacity accessibilityRole="button" style={styles.taskCheck} onPress={onComplete}>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel={done ? `Mark ${assignment.title} not done` : `Mark ${assignment.title} done`}
+        style={styles.taskCheck}
+        onPress={onComplete}
+      >
         {done ? <CheckCircle2 color={colors.green} size={20} /> : <Circle color={colors.brandPurple} size={20} />}
       </TouchableOpacity>
       <View style={[styles.taskMark, { backgroundColor: course?.color || colors.brandPurple }]}>
@@ -370,6 +388,7 @@ export function WeekStrip({
         return (
           <TouchableOpacity
             accessibilityRole="button"
+            accessibilityLabel={`${day.label}, ${Number(dateNumber)}, ${day.count} deadline${day.count === 1 ? "" : "s"}`}
             accessibilityState={{ selected: active }}
             activeOpacity={0.82}
             key={day.date}
@@ -792,7 +811,13 @@ export function WorkloadBars({ values }: { values: number[] }) {
   const max = Math.max(1, ...values);
 
   return (
-    <View style={styles.workloadBars}>
+    <View
+      accessible
+      accessibilityLabel={`Workload by day: ${values
+        .map((value, index) => `day ${index + 1} has ${value} deadline${value === 1 ? "" : "s"}`)
+        .join(", ")}`}
+      style={styles.workloadBars}
+    >
       {values.map((value, index) => (
         <View key={`${value}-${index}`} style={styles.workloadTrack}>
           <View style={[styles.workloadFill, { height: `${Math.max(8, (value / max) * 100)}%` as `${number}%` }]} />

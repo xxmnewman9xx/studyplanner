@@ -55,6 +55,11 @@ Date/localization implementation note:
 - Due-date and Week Plan date labels now use preferred locale formatting, including 24-hour locale coverage for `fr-FR` and `en-GB`.
 - Full localized submission still requires localized UI review, hardcoded string extraction, and real locale screenshots.
 
+Accessibility implementation note:
+
+- Task rows, completion controls, WeekStrip days, workload bars, calendar mini-days, workload forecasts, class balance rows, and completion cards now expose source-tested VoiceOver labels.
+- Full submission polish still requires real VoiceOver traversal and Dynamic Type screenshots across Check Work, Assignment Detail, Widget Setup, Paywall, and localized UI states.
+
 ## Recommendation
 
 Do not submit this branch yet. Continue with remaining screenshot capture, StoreKit sandbox proof, support/privacy finalization, native widget Home Screen proof, iPad strategy, and final QA.

@@ -14,7 +14,7 @@ Status: **Not complete as a 9.2 goal.**
 
 The branch has a real transformation and stronger evidence than the release-candidate baseline, but the audit does not support marking the objective fully achieved because the final score is still below 9.2 and several requested proof gates remain weak or manual.
 
-Updated audited score after adding import-trust, onboarding first-action routing, accessibility quick wins, 500-assignment regression tests, successor-branch large-text Today proof, locale-aware month grid logic, and 24-hour locale date formatting: **8.86/10**.
+Updated audited score after adding import-trust, onboarding first-action routing, accessibility quick wins, 500-assignment regression tests, successor-branch large-text Today proof, locale-aware month grid logic, 24-hour locale date formatting, and source-tested VoiceOver labels for planner visuals: **8.88/10**.
 
 ## Prompt-To-Artifact Checklist
 
@@ -41,22 +41,22 @@ Updated audited score after adding import-trust, onboarding first-action routing
 | Improve widgets | `WidgetShowcaseScreen.tsx`, `widgetSnapshot` tests, WidgetKit App Group payload inspection | Partial | Native Home Screen screenshots still manual |
 | Improve onboarding | `OnboardingScreen.tsx`, `App.tsx`, screenshot `02-onboarding-after.png` | Complete for this pass | Direct path selection exists; final visual screenshot of the chooser is still optional proof |
 | Improve monetization safety | `UpgradeScreen` existing behavior, `WidgetShowcaseScreen` copy, `check:iap`, `verify:production` | Partial | StoreKit sandbox purchase/restore not proven |
-| Accessibility/localization/performance | date/label improvements, reduced-motion guard, larger touch targets, `plannerScale.test.ts`, targeted large-text caps in `src/components/PremiumUI.tsx`, screenshot `artifacts/goal-9-2-transformation/21-accessibility-large-text.png`, locale-aware month grid and 24-hour date formatting tests | Partial | Full VoiceOver, complete Dynamic Type screen sweep, contrast, localized string audit, and real locale screenshots remain incomplete |
+| Accessibility/localization/performance | date/label improvements, reduced-motion guard, larger touch targets, `plannerScale.test.ts`, targeted large-text caps in `src/components/PremiumUI.tsx`, screenshot `artifacts/goal-9-2-transformation/21-accessibility-large-text.png`, locale-aware month grid and 24-hour date formatting tests, source-tested VoiceOver labels in `tests/accessibilitySource.test.ts` | Partial | Full simulator VoiceOver traversal, complete Dynamic Type screen sweep, contrast, localized string audit, and real locale screenshots remain incomplete |
 | Capture screenshot artifacts | `artifacts/goal-9-2-transformation/00-20*.png` | Partial | `14` and `15` are in-app widget previews, not Home Screen widgets |
-| Run tests | `npm run typecheck`, `npm run test` = 35/35 | Complete | Does not cover all e2e scenarios |
+| Run tests | `npm run typecheck`, `npm run test` = 36/36 | Complete | Does not cover all e2e scenarios |
 | Run IAP/production checks | `npm run check:iap`, `npm run verify:production` passed | Complete for static config | Sandbox commerce not proven |
 | Run WidgetKit verification | Capture and production App Group payloads inspected | Partial | Manual add-widget flow not captured |
 | Final readiness report | `docs/FINAL_9_2_READINESS_REPORT.md` | Complete | Correctly says 9.2 was not reached |
-| Final weighted score >= 9.2 | `docs/GOAL_9_2_SCORECARD.md` | Incomplete | Current audited score: 8.76 |
+| Final weighted score >= 9.2 | `docs/GOAL_9_2_SCORECARD.md` | Incomplete | Current audited score: 8.88 |
 
 ## Requirements Not Yet Covered Well Enough
 
 1. Native small and medium Home Screen widget screenshots after installing widgets on the simulator.
 2. StoreKit sandbox monthly/yearly/lifetime purchase and restore proof.
-3. Full VoiceOver, Dynamic Type, and contrast pass with screenshots/logs. A targeted Today large-text proof exists, but this is not exhaustive.
+3. Full VoiceOver, Dynamic Type, and contrast pass with screenshots/logs. A targeted Today large-text proof and source-tested visual-surface labels exist, but this is not exhaustive.
 4. Localized/date behavior proof remains incomplete. Monday-start calendar logic and 24-hour locale date formatting now have unit coverage, but real locale simulator screenshots and localized UI proof remain missing.
 5. Automated e2e coverage for the full functionality matrix.
-6. Final scorecard evidence supporting at least 9.2.
+6. Final scorecard evidence supporting at least 9.2. Current audited score: 8.88.
 
 ## Continue/Stop Decision
 

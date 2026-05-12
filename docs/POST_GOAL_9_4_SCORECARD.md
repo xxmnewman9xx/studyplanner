@@ -10,14 +10,14 @@ Baseline posture: Treat the app as **not submission-ready** until screenshots, S
 
 Initial weighted score before implementation in this branch: **7.82/10**.
 
-Current evidence-adjusted score after screenshot capture, contact-sheet proof, targeted large-text fix, locale-aware month grid coverage, and 24-hour date formatting coverage: **8.64/10**.
+Current evidence-adjusted score after screenshot capture, contact-sheet proof, targeted large-text fix, locale-aware month grid coverage, 24-hour date formatting coverage, and source-tested VoiceOver labels for planner visuals: **8.66/10**.
 
-This is intentionally lower than the prior v1-2 audited 8.76 because this score includes new ASO, localization, screenshot, App Store submission, and handoff requirements that were not completed by v1-2.
+This is intentionally lower than the prior v1-2 audited 8.88 because this score includes new ASO, localization, screenshot, App Store submission, and handoff requirements that were not completed by v1-2.
 
 | Category | Weight | Initial | Weighted | Evidence | Root cause | Proposed fix | Status | Retest |
 | --- | ---: | ---: | ---: | --- | --- | --- | --- | --- |
 | Core product promise clarity | 8 | 8.6 | 0.688 | Onboarding and Today now center reviewed schoolwork and next action: `src/screens/OnboardingScreen.tsx`, `src/screens/TodayScreen.tsx` | Product thesis is strong in app, weaker in ASO copy/handoff | Align App Store copy, screenshots, and onboarding around checked work -> trusted plan -> visible next action | In progress | Pending screenshots |
-| End-to-end functionality | 10 | 8.3 | 0.830 | `npm run test` 26/26; prior audit fixed invalid dates/import trust | Simulator e2e and widget install proof still missing | Run simulator flows and widget scripts; document failures honestly | In progress | Pending |
+| End-to-end functionality | 10 | 8.3 | 0.830 | Latest `npm run test` 36/36; prior audit fixed invalid dates/import trust | Simulator e2e and widget install proof still missing | Run simulator flows and widget scripts; document failures honestly | In progress | Pending |
 | Data integrity and trust | 10 | 8.7 | 0.870 | `src/logic/importTrust.ts`, `tests/importTrust.test.ts`, production verify passed | Endpoint/parser and duplicate import proof remain limited | Add submission docs and targeted tests only if subagents find high-risk gaps | In progress | Pending |
 | Feature usefulness | 8 | 8.1 | 0.648 | Today/Calendar/Week/Classes/Widgets are functional; docs still flag graphs/preview ambiguity | Some surfaces still feel dashboard-like or screenshot-driven | Simplify/hide low-value surfaces if screenshots or agents show confusion | In progress | Pending |
 | UX clarity for a 9-year-old | 7 | 8.4 | 0.588 | Plain labels exist: Today, Calendar, Week, Classes, Check Work, Widgets | Some adult terms remain: Sync, automation, forecasting, product copy | Apply clarity pass to labels/captions/docs/paywall | In progress | Pending |
@@ -30,9 +30,9 @@ This is intentionally lower than the prior v1-2 audited 8.76 because this score 
 | Paywall conversion and monetization trust | 5 | 7.4 | 0.370 | `check:iap` passes; StoreKit-backed code; IAP IDs preserved | Product load and purchase/restore not sandbox-proven | Document StoreKit blockers; improve copy only if safe | Pending | Pending |
 | ASO metadata and localization readiness | 10 | 4.7 | 0.470 | Official research doc exists; prior marketing files are untracked | Full metadata packs, localized captions, keywords, CPP/PPO missing | Create ASO master system and localized packs | Pending | Pending |
 | Submission handoff completeness | 6 | 4.8 | 0.288 | Starting state and research docs created | App Review notes, screenshot inventory, exact metadata, blockers not complete | Build complete handoff doc | Pending | Pending |
-| Code health, performance, accessibility, localization implementation | 6 | 7.8 | 0.468 | Typecheck/test pass; GitNexus indexed; `44-accessibility-large-text.png` captured; locale-aware month grid tests cover Sunday/Monday/Saturday starts; date format tests cover `fr-FR` and `en-GB` 24-hour labels | Hardcoded English, limited UI localization, full VoiceOver proof, complete Dynamic Type screen coverage, and real localized screenshots remain incomplete | Fix quick wins only; document deferred implementation | In progress | Partial large-text and locale-date proof |
+| Code health, performance, accessibility, localization implementation | 6 | 7.8 | 0.468 | Typecheck/test pass; GitNexus indexed; `44-accessibility-large-text.png` captured; locale-aware month grid tests cover Sunday/Monday/Saturday starts; date format tests cover `fr-FR` and `en-GB` 24-hour labels; visual planner surfaces now have source-tested VoiceOver labels | Hardcoded English, limited UI localization, full simulator VoiceOver proof, complete Dynamic Type screen coverage, and real localized screenshots remain incomplete | Fix quick wins only; document deferred implementation | In progress | Partial large-text, locale-date, and source-label proof |
 
-Total weighted score at branch start: **7.82/10**. Current evidence-adjusted score: **8.64/10**.
+Total weighted score at branch start: **7.82/10**. Current evidence-adjusted score: **8.66/10**.
 
 ## Current Submit Recommendation
 
@@ -49,6 +49,7 @@ Total weighted score at branch start: **7.82/10**. Current evidence-adjusted sco
 | 5 | Targeted Dynamic Type proof | 8.52 | 8.58 | `44-accessibility-large-text.png`; `npm run typecheck`; shared premium header/hero/metric/warning/dock labels capped to prevent catastrophic layout at accessibility content size | Continue |
 | 6 | Locale/date proof | 8.58 | 8.62 | Month calendar respects locale week-start logic; `npm run typecheck`; `npm run test` 34/34 with Sunday/Monday/Saturday week-start coverage | Continue |
 | 7 | 24-hour date formatting proof | 8.62 | 8.64 | Due-date and Week Plan date labels use preferred locale; `npm run typecheck`; `npm run test` 35/35 with `fr-FR`/`en-GB` 24-hour date coverage | Continue |
+| 8 | Visual-surface VoiceOver labels | 8.64 | 8.66 | `src/components/PremiumUI.tsx`, `src/components/InsightCards.tsx`, `tests/accessibilitySource.test.ts`; `npm run typecheck`; `npm run test` 36/36 | Continue |
 
 ## Minimum To Claim 9.4
 
