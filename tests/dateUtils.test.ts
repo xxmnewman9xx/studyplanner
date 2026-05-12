@@ -4,9 +4,11 @@ import assert from "node:assert/strict";
 import { buildTodayPlan, formatShortDate } from "../src/logic/planner";
 import {
   daysBetweenDateKeys,
+  getWeekStartsOn,
   isValidDateKey,
   makeDueAt,
-  normalizeDueAt
+  normalizeDueAt,
+  weekOffsetFromStart
 } from "../src/logic/dateUtils";
 import { defaultSemester } from "../src/data/defaultPlanner";
 import { Assignment } from "../src/models";
@@ -53,4 +55,14 @@ test("date-key day counts are stable across daylight saving boundaries", () => {
   assert.equal(daysBetweenDateKeys("2026-11-02", fallBackNow), 1);
   assert.equal(daysBetweenDateKeys("2026-03-09", springForwardNow), 1);
   assert.equal(daysBetweenDateKeys("2026-11-01", fallBackNow), 0);
+});
+
+test("week-start helpers support Sunday, Monday, and Saturday locales", () => {
+  assert.equal(getWeekStartsOn("en-US"), 0);
+  assert.equal(getWeekStartsOn("en-GB"), 1);
+  assert.equal(getWeekStartsOn("de-DE"), 1);
+  assert.equal(getWeekStartsOn("ar-EG"), 6);
+
+  assert.equal(weekOffsetFromStart(new Date("2025-06-01T12:00:00"), 0), 0);
+  assert.equal(weekOffsetFromStart(new Date("2025-06-01T12:00:00"), 1), 6);
 });

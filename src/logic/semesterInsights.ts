@@ -11,9 +11,16 @@ import {
   isAssignmentOpen
 } from "./assignmentModel";
 import { buildWeekPlan, getCourseForAssignment } from "./planner";
-import { dateKeyFromValue, parseValidDate, startOfLocalDay, toDateKey } from "./dateUtils";
-
-const dayMs = 24 * 60 * 60 * 1000;
+import {
+  addDaysLocal,
+  dateKeyFromValue,
+  getPreferredLocale,
+  getWeekStartsOn,
+  parseValidDate,
+  startOfLocalDay,
+  toDateKey,
+  weekOffsetFromStart
+} from "./dateUtils";
 
 export type MonthCalendarDay = {
   date: string;
@@ -59,23 +66,27 @@ export function buildMonthCalendarPlan({
   courses,
   now = new Date(),
   monthDate = now,
-  courseFilterId
+  courseFilterId,
+  locale = getPreferredLocale(),
+  weekStartsOn = getWeekStartsOn(locale)
 }: {
   assignments: Assignment[];
   courses: Course[];
   now?: Date;
   monthDate?: Date;
   courseFilterId?: string;
+  locale?: string;
+  weekStartsOn?: number;
 }): MonthCalendarPlan {
   const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
   const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
-  const gridStart = new Date(monthStart.getTime() - monthStart.getDay() * dayMs);
+  const gridStart = addDaysLocal(monthStart, -weekOffsetFromStart(monthStart, weekStartsOn));
   const allItems = filterAssignments(assignments, courseFilterId);
   const todayKey = toDateKey(now);
   const monthKey = `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, "0")}`;
 
   const days = Array.from({ length: 42 }, (_, index) => {
-    const date = new Date(gridStart.getTime() + index * dayMs);
+    const date = addDaysLocal(gridStart, index);
     const dateKey = toDateKey(date);
     const items = allItems
       .filter((assignment) => dateKeyFromValue(assignment.dueAt) === dateKey)
@@ -124,7 +135,7 @@ export function buildMonthCalendarPlan({
       : undefined;
 
   return {
-    monthLabel: new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(monthStart),
+    monthLabel: new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(monthStart),
     monthKey,
     previousMonthDate: new Date(monthStart.getFullYear(), monthStart.getMonth() - 1, 1),
     nextMonthDate: new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 1),

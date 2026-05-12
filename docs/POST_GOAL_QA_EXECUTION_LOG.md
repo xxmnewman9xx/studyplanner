@@ -18,5 +18,7 @@
 | xcrun simctl ui content_size accessibility-extra-extra-large + screenshot | Passed | `artifacts/post-goal-aso-submission/44-accessibility-large-text.png` | Initial capture exposed catastrophic large-text layout; targeted shared component caps fixed the top Today hierarchy; simulator content size restored to `large` |
 | npm run typecheck | Passed | exit 0 | Re-run after Dynamic Type component patch |
 | npm run test | Passed | 32/32 | Re-run after Dynamic Type component patch |
+| npm run typecheck | Passed | exit 0 | Re-run after locale/date patch |
+| npm run test | Passed | 34/34 | Added Sunday/Monday/Saturday week-start helpers and Monday-start month grid coverage |
 
-Unrun/blocked: WidgetKit rerun, StoreKit sandbox, native widget Home Screen placement screenshots, products-loaded paywall proof, iPad screenshot strategy, localized UI proof, full VoiceOver/Dynamic Type screen sweep, restore purchases.
+Unrun/blocked: WidgetKit rerun, StoreKit sandbox, native widget Home Screen placement screenshots, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full VoiceOver/Dynamic Type screen sweep, restore purchases.

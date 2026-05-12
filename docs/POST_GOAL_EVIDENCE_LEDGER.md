@@ -38,6 +38,7 @@ Starting commit: `e766ddaf17c9954ab1aaf53e09be8dbe4b6b0b8e`
 | EV-028 | Contact sheet | `artifacts/post-goal-aso-submission/45-final-contact-sheet.png` | Contact sheet generated from current 23 PNGs, 1064x3468 | Screenshot proof | Captured |
 | EV-029 | Screenshot gap | `docs/SCREENSHOT_ASSET_INVENTORY.md` | Native small/medium Home Screen widget screenshots are not captured; in-app previews are not counted as native widget proof | Widget claims and App Store screenshots | Open blocker |
 | EV-030 | Accessibility fix | `src/components/PremiumUI.tsx`, `artifacts/post-goal-aso-submission/44-accessibility-large-text.png` | Premium header, command hero, metrics, warnings, progress ring, and dock labels remain readable at `accessibility-extra-extra-large` after targeted font-scale caps | Dynamic Type proof | Partial accessibility improvement |
+| EV-031 | Localization/date fix | `src/logic/dateUtils.ts`, `src/logic/semesterInsights.ts`, `tests/dateUtils.test.ts`, `tests/planner.test.ts` | Month calendar grids use locale week starts and local-day increments; tests cover Sunday, Monday, and Saturday-start locales | Localization/date proof | Partial implementation improvement |
 
 ## Open Evidence Gaps
 
@@ -47,7 +48,7 @@ Starting commit: `e766ddaf17c9954ab1aaf53e09be8dbe4b6b0b8e`
 | StoreKit sandbox monthly/yearly/Lifetime/restore | Static checks do not prove App Store Connect products work | Blocker for submit recommendation | Sandbox or StoreKit Testing logs/screenshots |
 | Support URL | Apple requires support URL and classroom apps need reachable contact info | Blocker for final handoff | Real support URL and in-app/App Store metadata entry |
 | VoiceOver/full Dynamic Type proof | One large-text Today screenshot is captured, but full screen and VoiceOver coverage is still incomplete | Non-blocker for English submit if documented; blocker for 9.4 claim | VoiceOver pass and Dynamic Type screenshots across Check Work, Assignment Detail, Widget Setup, and Paywall |
-| Localized UI proof | ASO packs can be drafted, but UI localization appears limited | Blocker for localized submission, non-blocker for English-only | Locale/date screenshots and hardcoded string audit |
+| Localized UI proof | ASO packs can be drafted and month grid week-start logic is tested, but UI localization appears limited | Blocker for localized submission, non-blocker for English-only | Locale/date screenshots and hardcoded string audit |
 | Accepted-size App Store screenshots | Raw simulator screenshots may not match required 6.9/6.5 sizes | Blocker for upload-ready assets | Export plan or final resized PNGs |
 | App Store Connect product status | Code preserves product IDs, but ASC status is external | Blocker for submit recommendation | ASC checklist screenshots or manual confirmation |
 | Full e2e matrix | Unit tests cover logic, not all user flows | Non-blocker if documented; blocker for 9.4 claim if untested flows remain high-risk | Simulator use-case log and screenshots |

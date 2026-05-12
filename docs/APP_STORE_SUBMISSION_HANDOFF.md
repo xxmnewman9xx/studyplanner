@@ -47,7 +47,12 @@ Current capture inventory:
 - Contact sheet captured: `artifacts/post-goal-aso-submission/45-final-contact-sheet.png`.
 - Production empty Today proof captured: `06-today-empty.png`.
 - Capture-mode proof captured for onboarding, populated Today, Add School Stuff, Check New Work, assignment detail, Calendar, Week Plan, Classes, Widget Setup, themes, and paywall product-load failure.
-- Missing: native small/medium Home Screen widgets, products-loaded paywall, upload/photo/manual/parser-success states, restore purchases, app icon Home Screen, localized UI, full VoiceOver/Dynamic Type screen sweep, iPad screenshots.
+- Missing: native small/medium Home Screen widgets, products-loaded paywall, upload/photo/manual/parser-success states, restore purchases, app icon Home Screen, localized UI screenshots/string extraction, full VoiceOver/Dynamic Type screen sweep, iPad screenshots.
+
+Date/localization implementation note:
+
+- Month calendar logic now respects locale week-start rules and has Sunday/Monday/Saturday-start unit coverage.
+- Full localized submission still requires localized UI review, hardcoded string extraction, and real locale screenshots.
 
 ## Recommendation
 

@@ -56,3 +56,6 @@ Known residual risks:
 | 13 | Large-text simulator proof | Passed | `xcrun simctl ui ... content_size accessibility-extra-extra-large`; screenshot `artifacts/goal-9-2-transformation/21-accessibility-large-text.png`; simulator restored to `large` | No |
 | 13 | `npm run typecheck` | Passed | `tsc --noEmit` completed after Dynamic Type patch | No |
 | 13 | `npm run test` | Passed | 32/32 tests passed | No |
+| 14 | Locale-aware month grid | Passed | `buildMonthCalendarPlan` uses locale week start and local-day increments; Monday-start `en-GB` test added | Real localized simulator screenshots still needed |
+| 14 | `npm run typecheck` | Passed | `tsc --noEmit` completed after locale/date patch | No |
+| 14 | `npm run test` | Passed | 34/34 tests passed, including Sunday/Monday/Saturday week-start helpers and Monday-start month grid | No |

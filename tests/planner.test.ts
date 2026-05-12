@@ -30,7 +30,8 @@ test("monthly calendar marks heavy days and month summary from real work", () =>
   const month = buildMonthCalendarPlan({
     assignments: seed.assignments,
     courses: seed.courses,
-    now: storeCaptureNow
+    now: storeCaptureNow,
+    locale: "en-US"
   });
 
   const today = month.days.find((day) => day.date === "2025-04-22");
@@ -44,6 +45,27 @@ test("monthly calendar marks heavy days and month summary from real work", () =>
   assert.equal(today?.openItems.length, 0);
   assert.equal(heavyDay?.isHeavy, true);
   assert.equal(heavyDay?.openItems.length, 3);
+});
+
+test("monthly calendar respects Monday-start locales without changing assignment counts", () => {
+  const seed = createDemoSemesterSeed();
+  const sundayStart = buildMonthCalendarPlan({
+    assignments: seed.assignments,
+    courses: seed.courses,
+    now: storeCaptureNow,
+    locale: "en-US"
+  });
+  const mondayStart = buildMonthCalendarPlan({
+    assignments: seed.assignments,
+    courses: seed.courses,
+    now: storeCaptureNow,
+    locale: "en-GB"
+  });
+
+  assert.equal(sundayStart.weeks[0]?.[0]?.date, "2025-03-30");
+  assert.equal(mondayStart.weeks[0]?.[0]?.date, "2025-03-31");
+  assert.equal(mondayStart.summary.dueThisMonth, sundayStart.summary.dueThisMonth);
+  assert.equal(mondayStart.days.find((day) => day.date === "2025-04-23")?.openItems.length, 3);
 });
 
 test("semester insights connect workload, courses, and completion", () => {

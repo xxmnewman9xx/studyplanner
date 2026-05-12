@@ -1,6 +1,70 @@
 const dateKeyPattern = /^(\d{4})-(\d{2})-(\d{2})$/;
 const timePattern = /^([01]\d|2[0-3]):([0-5]\d)$/;
 const dayMs = 24 * 60 * 60 * 1000;
+const mondayStartRegions = new Set([
+  "AD",
+  "AL",
+  "AM",
+  "AR",
+  "AT",
+  "AU",
+  "BE",
+  "BG",
+  "BR",
+  "CH",
+  "CL",
+  "CN",
+  "CZ",
+  "DE",
+  "DK",
+  "EE",
+  "ES",
+  "FI",
+  "FR",
+  "GB",
+  "GR",
+  "HR",
+  "HU",
+  "IE",
+  "IS",
+  "IT",
+  "JP",
+  "KR",
+  "LI",
+  "LT",
+  "LU",
+  "LV",
+  "MC",
+  "NL",
+  "NO",
+  "NZ",
+  "PL",
+  "PT",
+  "RO",
+  "SE",
+  "SI",
+  "SK",
+  "TR",
+  "UA"
+]);
+const saturdayStartRegions = new Set([
+  "AE",
+  "AF",
+  "BH",
+  "DJ",
+  "DZ",
+  "EG",
+  "IQ",
+  "IR",
+  "JO",
+  "KW",
+  "LY",
+  "OM",
+  "QA",
+  "SD",
+  "SY",
+  "YE"
+]);
 
 export function isValidDateKey(value?: string | null): value is string {
   if (!value) return false;
@@ -112,6 +176,25 @@ export function formatDateOnlySafe(value: string, fallback = "Date needs check")
   }).format(parseDateOnlyAsLocal(dateKey));
 }
 
+export function getPreferredLocale() {
+  return Intl.DateTimeFormat().resolvedOptions().locale || "en-US";
+}
+
+export function getWeekStartsOn(locale = getPreferredLocale()) {
+  const localeWeekInfo = weekInfoForLocale(locale);
+  if (typeof localeWeekInfo === "number") return localeWeekInfo;
+
+  const region = regionFromLocale(locale);
+  if (region && mondayStartRegions.has(region)) return 1;
+  if (region && saturdayStartRegions.has(region)) return 6;
+  return 0;
+}
+
+export function weekOffsetFromStart(date: Date, weekStartsOn = getWeekStartsOn()) {
+  const normalizedStart = ((weekStartsOn % 7) + 7) % 7;
+  return (date.getDay() - normalizedStart + 7) % 7;
+}
+
 export function toDateKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
     date.getDate()
@@ -124,6 +207,31 @@ function parseDateOnlyAsLocal(value: string) {
 
   const [, year, month, day] = match;
   return new Date(Number(year), Number(month) - 1, Number(day));
+}
+
+function weekInfoForLocale(locale: string) {
+  try {
+    const LocaleCtor = (Intl as unknown as {
+      Locale?: new (value: string) => {
+        weekInfo?: { firstDay?: number };
+        getWeekInfo?: () => { firstDay?: number };
+      };
+    }).Locale;
+    const localeInstance = LocaleCtor ? new LocaleCtor(locale) : undefined;
+    const weekInfo = localeInstance?.weekInfo || localeInstance?.getWeekInfo?.();
+    const firstDay = weekInfo?.firstDay;
+    if (firstDay === 7) return 0;
+    if (typeof firstDay === "number" && firstDay >= 1 && firstDay <= 6) return firstDay;
+  } catch {
+    return undefined;
+  }
+
+  return undefined;
+}
+
+function regionFromLocale(locale: string) {
+  const regionMatch = /[-_]([A-Za-z]{2}|\d{3})(?:[-_]|$)/.exec(locale);
+  return regionMatch?.[1]?.toUpperCase();
 }
 
 function utcMiddayFromDateKey(value: string) {
