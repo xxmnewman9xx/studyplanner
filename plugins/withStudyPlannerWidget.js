@@ -373,7 +373,7 @@ struct StudyPlannerWidgetView: View {
         SmallWidgetView(snapshot: entry.snapshot)
       }
     }
-    .studyPlannerWidgetBackground()
+    .studyPlannerWidgetBackground(entry.snapshot?.widgetStyle)
   }
 }
 
@@ -382,7 +382,7 @@ struct SmallWidgetView: View {
 
   var body: some View {
     ZStack {
-      WidgetAuroraBands()
+      WidgetAuroraBands(style: snapshot?.widgetStyle)
       VStack(alignment: .leading, spacing: 7) {
         HeaderView(title: "Next", snapshot: snapshot)
 
@@ -427,7 +427,7 @@ struct MediumWidgetView: View {
 
   var body: some View {
     ZStack {
-      WidgetAuroraBands()
+      WidgetAuroraBands(style: snapshot?.widgetStyle)
       VStack(alignment: .leading, spacing: 7) {
         HeaderView(title: "This Week", snapshot: snapshot)
 
@@ -574,15 +574,17 @@ struct DuePill: View {
 }
 
 struct WidgetAuroraBands: View {
+  let style: WidgetStyle?
+
   var body: some View {
     ZStack {
       RoundedRectangle(cornerRadius: 28)
-        .fill(Color(red: 0.23, green: 0.43, blue: 0.86).opacity(0.34))
+        .fill((style?.secondaryColor ?? Color(red: 0.23, green: 0.43, blue: 0.86)).opacity(0.34))
         .frame(width: 150, height: 62)
         .rotationEffect(.degrees(24))
         .offset(x: 54, y: -54)
       RoundedRectangle(cornerRadius: 26)
-        .fill(Color(red: 0.66, green: 0.22, blue: 0.55).opacity(0.28))
+        .fill((style?.accentColor ?? Color(red: 0.66, green: 0.22, blue: 0.55)).opacity(0.28))
         .frame(width: 150, height: 58)
         .rotationEffect(.degrees(-18))
         .offset(x: -58, y: 58)
@@ -620,13 +622,46 @@ func urgencyColor(_ urgency: String) -> Color {
 
 extension View {
   @ViewBuilder
-  func studyPlannerWidgetBackground() -> some View {
+  func studyPlannerWidgetBackground(_ style: WidgetStyle?) -> some View {
+    let background = style?.backgroundColor ?? widgetBackground
+
     if #available(iOSApplicationExtension 17.0, *) {
-      self.containerBackground(widgetBackground, for: .widget)
+      self.containerBackground(background, for: .widget)
     } else {
-      self.background(widgetBackground)
+      self.background(background)
     }
   }
+}
+
+struct WidgetStyle: Decodable {
+  let paletteId: String?
+  let paletteName: String?
+  let styleId: String?
+  let styleName: String?
+  let background: String?
+  let text: String?
+  let muted: String?
+  let accent: String?
+  let secondary: String?
+
+  var backgroundColor: Color { colorFromHex(background) ?? widgetBackground }
+  var accentColor: Color { colorFromHex(accent) ?? widgetAccent }
+  var secondaryColor: Color { colorFromHex(secondary) ?? Color(red: 0.23, green: 0.43, blue: 0.86) }
+}
+
+func colorFromHex(_ value: String?) -> Color? {
+  guard let value else { return nil }
+  let trimmed = value.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+
+  guard trimmed.count == 6, let number = UInt64(trimmed, radix: 16) else {
+    return nil
+  }
+
+  let red = Double((number >> 16) & 0xFF) / 255.0
+  let green = Double((number >> 8) & 0xFF) / 255.0
+  let blue = Double(number & 0xFF) / 255.0
+
+  return Color(red: red, green: green, blue: blue)
 }
 
 struct StudyPlannerWidgetSnapshot: Decodable {
@@ -641,6 +676,7 @@ struct StudyPlannerWidgetSnapshot: Decodable {
   let reviewQueueCount: Int
   let heavyWeekWarning: HeavyWeekWarning?
   let emptyState: EmptyState
+  let widgetStyle: WidgetStyle?
   let demoState: DemoState?
   let surfaces: Surfaces
 
@@ -668,6 +704,17 @@ struct StudyPlannerWidgetSnapshot: Decodable {
     reviewQueueCount: 3,
     heavyWeekWarning: HeavyWeekWarning(isHeavy: true, label: "Heavy week ahead", itemCount: 5, examCount: 1),
     emptyState: EmptyState(isEmpty: false, title: "No plan yet", message: "Scan a syllabus or add coursework to fill your widget."),
+    widgetStyle: WidgetStyle(
+      paletteId: "violetGlow",
+      paletteName: "Violet Glow",
+      styleId: "darkGlass",
+      styleName: "Dark Glass",
+      background: "#17152D",
+      text: "#F8FAFC",
+      muted: "#BCC7D8",
+      accent: "#B7A7FF",
+      secondary: "#3B82F6"
+    ),
     demoState: DemoState(enabled: true, label: "Preview"),
     surfaces: Surfaces(
       small: SmallSurface(kind: "nextDue", item: StudyPlannerWidgetSnapshotItem(

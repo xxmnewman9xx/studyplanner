@@ -290,6 +290,23 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
 
       {draft ? (
         <>
+          <GlassCard tint="hero" style={styles.aiReviewHero}>
+            <View pointerEvents="none" style={styles.aiHeroBand} />
+            <View style={styles.aiHeroTop}>
+              <View style={styles.aiHeroIcon}>
+                <Sparkles color={colors.heroText} size={20} />
+              </View>
+              <View style={styles.aiHeroCopy}>
+                <Text style={styles.aiHeroKicker}>AI Review Matrix</Text>
+                <Text style={styles.aiHeroTitle}>{reviewStats.needsReview} waiting for approval</Text>
+                <Text style={styles.aiHeroMeta}>
+                  {reviewStats.high} high-confidence items can flow into Today, Month, Week, Classes, and widgets.
+                </Text>
+              </View>
+              <StatusBadge label={reviewStats.low > 0 ? "Needs eyes" : "Clean"} tone={reviewStats.low > 0 ? "gold" : "green"} />
+            </View>
+          </GlassCard>
+
           <GlassCard style={styles.summaryCard}>
             <View pointerEvents="none" style={styles.summaryBand} />
             <View style={styles.summaryTop}>
@@ -602,6 +619,58 @@ function createStyles(theme: AppTheme) {
       color: colors.muted,
       fontSize: 13,
       lineHeight: 19,
+      fontWeight: "700"
+    },
+    aiReviewHero: {
+      overflow: "hidden",
+      backgroundColor: colors.heroSurface,
+      borderColor: "rgba(255,255,255,0.16)"
+    },
+    aiHeroBand: {
+      position: "absolute",
+      top: -36,
+      right: -44,
+      width: 210,
+      height: 92,
+      borderRadius: 34,
+      backgroundColor: `${colors.brandBlue}40`,
+      transform: [{ rotate: "22deg" }]
+    },
+    aiHeroTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    aiHeroIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.brandPurple
+    },
+    aiHeroCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    aiHeroKicker: {
+      color: colors.widgetAccent,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    aiHeroTitle: {
+      color: colors.heroText,
+      fontSize: 17,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    aiHeroMeta: {
+      color: colors.heroMuted,
+      fontSize: 11,
+      lineHeight: 16,
       fontWeight: "700"
     },
     summaryCard: {

@@ -3,6 +3,11 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Bell, CalendarPlus, FileScan } from "lucide-react-native";
 
 import {
+  CalendarSignalCard,
+  CourseBalanceCard,
+  WorkloadInsightCard
+} from "../components/InsightCards";
+import {
   CommandCenterHero,
   GlassCard,
   MetricPill,
@@ -22,6 +27,7 @@ import {
   getCourseForAssignment,
   urgencyLabel
 } from "../logic/planner";
+import { buildMonthCalendarPlan, buildSemesterInsights } from "../logic/semesterInsights";
 import { Assignment, Course, Semester } from "../models";
 import { WidgetSnapshotService } from "../services/widgetSnapshotService";
 import { AppTheme } from "../theme";
@@ -36,6 +42,8 @@ type TodayScreenProps = {
   onScheduleReminders: () => void;
   onCalendarSync: () => void;
   onOpenImport: () => void;
+  onOpenWeek: () => void;
+  onOpenCalendar: () => void;
   premiumAutomationLocked: boolean;
   onOpenPaywall: () => void;
 };
@@ -49,6 +57,8 @@ export function TodayScreen({
   onScheduleReminders,
   onCalendarSync,
   onOpenImport,
+  onOpenWeek,
+  onOpenCalendar,
   premiumAutomationLocked,
   onOpenPaywall
 }: TodayScreenProps) {
@@ -61,12 +71,13 @@ export function TodayScreen({
   const weekPlan = buildWeekPlan(assignments, now);
   const widgetSnapshot = WidgetSnapshotService.build(
     {
-      semester,
-      courses,
-      assignments,
-      demoState: captureMode ? { enabled: true, label: "Preview" } : undefined
-    },
-    now
+        semester,
+        courses,
+        assignments,
+        paletteId: theme.palette.id,
+        demoState: captureMode ? { enabled: true, label: "Preview" } : undefined
+      },
+      now
   );
   const reviewQueueCount = assignments.filter(
     (assignment) => assignment.reviewStatus === "needsReview"
@@ -81,6 +92,14 @@ export function TodayScreen({
   const heroDueLabel = heroAssignment ? urgencyLabel(heroAssignment, now) : widgetSnapshot.emptyState.title;
   const activeDate =
     weekPlan.days.find((day) => day.items.length > 0)?.date || weekPlan.days[0]?.date;
+  const monthPlan = useMemo(
+    () => buildMonthCalendarPlan({ assignments, courses, now }),
+    [assignments, courses, now]
+  );
+  const insights = useMemo(
+    () => buildSemesterInsights(assignments, courses, now),
+    [assignments, courses, now]
+  );
   const todayItems = plan.dueToday.slice(0, captureMode ? 2 : 4);
   const upcomingItems = plan.upcoming
     .filter((assignment) => assignment.id !== heroAssignment?.id)
@@ -147,10 +166,12 @@ export function TodayScreen({
         <WarningCard
           title="Heavy Week Ahead"
           message={`${weekPlan.heavyWorkloadWarning}. Plan ahead to stay on track.`}
-          actionLabel="View Week"
-          onPress={() => undefined}
+          actionLabel="Open Calendar"
+          onPress={onOpenWeek}
         />
       ) : null}
+
+      <CalendarSignalCard monthPlan={monthPlan} onPress={onOpenCalendar} />
 
       <GlassCard style={styles.weekCard}>
         <View style={styles.sectionTop}>
@@ -170,6 +191,12 @@ export function TodayScreen({
         />
         <WorkloadBars values={weekPlan.days.map((day) => day.items.length)} />
       </GlassCard>
+
+      <WorkloadInsightCard
+        insights={insights}
+        title="Command Load"
+        subtitle="Calendar pressure, exams, and open coursework stay connected"
+      />
 
       <View style={styles.sectionTop}>
         <View>
@@ -203,6 +230,8 @@ export function TodayScreen({
       <GlassCard>
         <WidgetShowcase snapshot={widgetSnapshot} />
       </GlassCard>
+
+      <CourseBalanceCard insights={insights} title="Class Balance" />
 
       {upcomingItems.length > 0 ? (
         <>

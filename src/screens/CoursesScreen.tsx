@@ -3,6 +3,7 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-nativ
 import { BookOpen, CalendarClock, ChevronRight, Plus } from "lucide-react-native";
 
 import { AppButton } from "../components/AppButton";
+import { CourseBalanceCard, CompletionInsightCard } from "../components/InsightCards";
 import {
   CourseCard,
   GlassCard,
@@ -15,6 +16,7 @@ import {
 import { isStoreCaptureEnabled } from "../config/storeCapture";
 import { storeCaptureNow } from "../data/demoSemester";
 import { formatDateOnly, getCourseForAssignment, groupMeetingsByDay, urgencyLabel } from "../logic/planner";
+import { buildSemesterInsights } from "../logic/semesterInsights";
 import { Assignment, AssignmentKind, Course, Semester, SyllabusSource } from "../models";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -61,6 +63,7 @@ export function CoursesScreen({
   const now = captureMode ? storeCaptureNow : new Date();
   const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   const weekly = useMemo(() => groupMeetingsByDay(courses), [courses]);
+  const insights = useMemo(() => buildSemesterInsights(assignments, courses, now), [assignments, courses, now]);
   const selectedCourse = courses.find((course) => course.id === selectedCourseId) || courses[0];
   const selectedAssignments = selectedCourse
     ? assignments
@@ -140,6 +143,8 @@ export function CoursesScreen({
         })}
       </View>
 
+      <CourseBalanceCard insights={insights} title="Class Load Graph" />
+
       {selectedCourse ? (
         <>
           <GlassCard tint="hero" style={styles.detailCard}>
@@ -170,6 +175,8 @@ export function CoursesScreen({
               <ChevronRight color={colors.faint} size={16} />
             </View>
           </GlassCard>
+
+          <CompletionInsightCard insights={insights} />
 
           <View style={styles.sectionTop}>
             <View>

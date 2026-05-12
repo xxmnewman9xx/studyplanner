@@ -1,21 +1,31 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Crown, Sparkles } from "lucide-react-native";
 
 import { AppButton } from "../components/AppButton";
 import {
   GlassCard,
+  LockWidgetPreview,
   PremiumHeader,
   PremiumScreen,
+  StatusBadge,
+  WidgetPreviewCourseFocus,
+  WidgetPreviewHeavyWeek,
   WidgetPreviewMedium,
+  WidgetPreviewMonthly,
   WidgetPreviewSmall,
-  LockWidgetPreview
 } from "../components/PremiumUI";
 import { isStoreCaptureEnabled } from "../config/storeCapture";
 import { storeCaptureNow } from "../data/demoSemester";
 import { Assignment, Course, Semester } from "../models";
 import { WidgetSnapshotService } from "../services/widgetSnapshotService";
-import { AppTheme } from "../theme";
+import {
+  AppTheme,
+  createWidgetStyleSnapshot,
+  ThemePaletteId,
+  WidgetStylePresetId,
+  widgetStylePresets
+} from "../theme";
 import { useAppTheme } from "../themeContext";
 import { UpgradeScreen } from "./UpgradeScreen";
 
@@ -26,16 +36,24 @@ type WidgetShowcaseScreenProps = {
 };
 
 export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetShowcaseScreenProps) {
-  const { theme } = useAppTheme();
+  const { theme, paletteId, palettes, setPalette } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
   const captureMode = isStoreCaptureEnabled();
   const [showPlans, setShowPlans] = useState(false);
+  const [widgetStyleId, setWidgetStyleId] = useState<WidgetStylePresetId>("darkGlass");
+  const [widgetSize, setWidgetSize] = useState<"small" | "medium" | "lock">("medium");
+  const [widgetFocus, setWidgetFocus] = useState<
+    "nextDue" | "thisWeek" | "monthly" | "heavyWeek" | "courseFocus" | "lockScreen"
+  >("monthly");
+  const widgetStyle = createWidgetStyleSnapshot(paletteId, widgetStyleId);
   const snapshot = WidgetSnapshotService.build(
     {
       semester,
       courses,
       assignments,
+      paletteId,
+      widgetStyleId,
       demoState: captureMode ? { enabled: true, label: "Preview" } : undefined
     },
     captureMode ? storeCaptureNow : new Date()
@@ -48,9 +66,9 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
   return (
     <PremiumScreen>
       <PremiumHeader
-        eyebrow="Widget Showcase"
+        eyebrow="Widget Studio"
         title="Stay in the loop"
-        subtitle="Next Due, This Week, and Lock Screen previews powered by real snapshot data."
+        subtitle="Customize calendar, workload, course, and countdown widgets from real snapshot data."
       />
 
       <GlassCard tint="hero" style={styles.heroCard}>
@@ -62,9 +80,102 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
           <View style={styles.heroCopy}>
             <Text style={styles.heroTitle}>Widget command center</Text>
             <Text style={styles.heroMeta}>
-              Generated from WidgetSnapshotService so the app and WidgetKit stay aligned.
+              {snapshot.surfaces.monthly.monthLabel} - {snapshot.surfaces.monthly.dueThisMonth} due - {snapshot.surfaces.heavyWeek.warning?.label || "balanced week"}
             </Text>
           </View>
+          <StatusBadge label={widgetStyle.styleName} tone="purple" />
+        </View>
+      </GlassCard>
+
+      <GlassCard style={styles.customizerCard}>
+        <View style={styles.customizerTop}>
+          <View>
+            <Text style={styles.panelTitle}>Customize</Text>
+            <Text style={styles.panelMeta}>
+              {widgetSize} - {labelize(widgetFocus)}
+            </Text>
+          </View>
+          <View style={[styles.swatchLarge, { backgroundColor: widgetStyle.accent }]} />
+        </View>
+
+        <View style={styles.controlGroup}>
+          <Text style={styles.controlLabel}>Palette</Text>
+          <View style={styles.chipRow}>
+            {palettes.map((palette) => (
+              <TouchableOpacity
+                key={palette.id}
+                accessibilityRole="button"
+                accessibilityState={{ selected: paletteId === palette.id }}
+                activeOpacity={0.82}
+                style={[
+                  styles.paletteChip,
+                  paletteId === palette.id ? styles.paletteChipActive : null
+                ]}
+                onPress={() => setPalette(palette.id as ThemePaletteId)}
+              >
+                <View style={[styles.swatch, { backgroundColor: palette.accent }]} />
+                <Text style={[styles.chipText, paletteId === palette.id ? styles.chipTextActive : null]}>
+                  {palette.shortName}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.controlGroup}>
+          <Text style={styles.controlLabel}>Style</Text>
+          <View style={styles.chipRow}>
+            {widgetStylePresets.map((style) => (
+              <TouchableOpacity
+                key={style.id}
+                accessibilityRole="button"
+                accessibilityState={{ selected: widgetStyleId === style.id }}
+                activeOpacity={0.82}
+                style={[styles.textChip, widgetStyleId === style.id ? styles.textChipActive : null]}
+                onPress={() => setWidgetStyleId(style.id)}
+              >
+                <Text style={[styles.chipText, widgetStyleId === style.id ? styles.chipTextActive : null]}>
+                  {style.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.controlGroup}>
+          <Text style={styles.controlLabel}>Focus</Text>
+          <View style={styles.chipRow}>
+            {(["nextDue", "thisWeek", "monthly", "heavyWeek", "courseFocus", "lockScreen"] as const).map((focus) => (
+              <TouchableOpacity
+                key={focus}
+                accessibilityRole="button"
+                accessibilityState={{ selected: widgetFocus === focus }}
+                activeOpacity={0.82}
+                style={[styles.textChip, widgetFocus === focus ? styles.textChipActive : null]}
+                onPress={() => setWidgetFocus(focus)}
+              >
+                <Text style={[styles.chipText, widgetFocus === focus ? styles.chipTextActive : null]}>
+                  {labelize(focus)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.segmented}>
+          {(["small", "medium", "lock"] as const).map((size) => (
+            <TouchableOpacity
+              key={size}
+              accessibilityRole="button"
+              accessibilityState={{ selected: widgetSize === size }}
+              style={[styles.segment, widgetSize === size ? styles.segmentActive : null]}
+              onPress={() => setWidgetSize(size)}
+            >
+              <Text style={[styles.segmentText, widgetSize === size ? styles.segmentTextActive : null]}>
+                {size}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </GlassCard>
 
@@ -72,10 +183,15 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
         <View pointerEvents="none" style={styles.stageBandTop} />
         <View pointerEvents="none" style={styles.stageBandBottom} />
         <View style={styles.widgetPair}>
-          <WidgetPreviewSmall snapshot={snapshot} />
-          <WidgetPreviewMedium snapshot={snapshot} />
+          <WidgetPreviewSmall snapshot={snapshot} widgetStyle={widgetStyle} />
+          <WidgetPreviewMedium snapshot={snapshot} widgetStyle={widgetStyle} />
         </View>
-        <LockWidgetPreview snapshot={snapshot} />
+        <WidgetPreviewMonthly snapshot={snapshot} widgetStyle={widgetStyle} />
+        <View style={styles.widgetPair}>
+          <WidgetPreviewHeavyWeek snapshot={snapshot} widgetStyle={widgetStyle} />
+          <WidgetPreviewCourseFocus snapshot={snapshot} widgetStyle={widgetStyle} />
+        </View>
+        <LockWidgetPreview snapshot={snapshot} widgetStyle={widgetStyle} />
       </View>
 
       {!captureMode ? (
@@ -92,8 +208,12 @@ export function WidgetShowcaseScreen({ semester, courses, assignments }: WidgetS
   );
 }
 
+function labelize(value: string) {
+  return value.replace(/([A-Z])/g, " $1").replace(/^./, (letter) => letter.toUpperCase());
+}
+
 function createStyles(theme: AppTheme) {
-  const { colors, spacing } = theme;
+  const { colors, radii, spacing } = theme;
 
   return StyleSheet.create({
     heroCard: {
@@ -126,6 +246,7 @@ function createStyles(theme: AppTheme) {
     },
     heroCopy: {
       flex: 1,
+      minWidth: 0,
       gap: 2
     },
     heroTitle: {
@@ -139,6 +260,120 @@ function createStyles(theme: AppTheme) {
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "700"
+    },
+    customizerCard: {
+      gap: spacing.md,
+      borderColor: "rgba(108,92,231,0.22)"
+    },
+    customizerTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    panelTitle: {
+      color: colors.ink,
+      fontSize: 17,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    panelMeta: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700",
+      textTransform: "capitalize"
+    },
+    controlGroup: {
+      gap: spacing.xs
+    },
+    controlLabel: {
+      color: colors.faint,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    chipRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    paletteChip: {
+      minHeight: 34,
+      borderRadius: radii.round,
+      borderWidth: 1,
+      borderColor: colors.line,
+      paddingHorizontal: spacing.xs,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      backgroundColor: colors.surfaceAlt
+    },
+    paletteChipActive: {
+      borderColor: colors.brandPurple,
+      backgroundColor: colors.purpleSoft
+    },
+    textChip: {
+      minHeight: 34,
+      borderRadius: radii.round,
+      borderWidth: 1,
+      borderColor: colors.line,
+      paddingHorizontal: spacing.sm,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.surfaceAlt
+    },
+    textChipActive: {
+      borderColor: colors.brandPurple,
+      backgroundColor: colors.brandPurple
+    },
+    chipText: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900"
+    },
+    chipTextActive: {
+      color: colors.heroText
+    },
+    swatch: {
+      width: 14,
+      height: 14,
+      borderRadius: 7
+    },
+    swatchLarge: {
+      width: 42,
+      height: 42,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.48)"
+    },
+    segmented: {
+      minHeight: 42,
+      borderRadius: radii.round,
+      backgroundColor: colors.canvas,
+      flexDirection: "row",
+      padding: 4,
+      gap: 4
+    },
+    segment: {
+      flex: 1,
+      borderRadius: radii.round,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    segmentActive: {
+      backgroundColor: colors.surface
+    },
+    segmentText: {
+      color: colors.muted,
+      fontSize: 12,
+      fontWeight: "900",
+      textTransform: "capitalize"
+    },
+    segmentTextActive: {
+      color: colors.ink
     },
     widgetStage: {
       position: "relative",

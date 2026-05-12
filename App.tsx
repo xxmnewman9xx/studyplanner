@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
+  LogBox,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -11,7 +12,7 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import {
-  CalendarDays,
+  CalendarRange,
   Crown,
   FileScan,
   GraduationCap,
@@ -43,7 +44,7 @@ import { TodayScreen } from "./src/screens/TodayScreen";
 import { ImportScreen } from "./src/screens/ImportScreen";
 import { CoursesScreen } from "./src/screens/CoursesScreen";
 import { GradesScreen } from "./src/screens/GradesScreen";
-import { WeekPlannerScreen } from "./src/screens/WeekPlannerScreen";
+import { MonthlyCalendarScreen } from "./src/screens/MonthlyCalendarScreen";
 import { UpgradeScreen } from "./src/screens/UpgradeScreen";
 import { WidgetShowcaseScreen } from "./src/screens/WidgetShowcaseScreen";
 import { AssignmentDetailScreen } from "./src/screens/AssignmentDetailScreen";
@@ -62,13 +63,15 @@ import {
 
 const plannerStorageKey = "study-planner-data-v2";
 
+LogBox.ignoreLogs(["SafeAreaView has been deprecated"]);
+
 const tabs: Array<{
   id: NavTab;
   label: string;
   icon: React.ComponentType<{ color: string; size: number }>;
 }> = [
   { id: "today", label: "Today", icon: Home },
-  { id: "focus", label: "This Week", icon: CalendarDays },
+  { id: "calendar", label: "Calendar", icon: CalendarRange },
   { id: "courses", label: "Classes", icon: GraduationCap },
   { id: "import", label: "Inbox", icon: FileScan },
   { id: "upgrade", label: "Widgets", icon: Crown }
@@ -136,11 +139,14 @@ function AppContent() {
     const openCaptureUrl = (url: string | null) => {
       if (!url || !url.includes("capture")) return;
       const match = /[?&]tab=([^&]+)/.exec(url);
-      const requestedTab = match?.[1] ? (decodeURIComponent(match[1]) as NavTab) : null;
+      const requestedTabRaw = match?.[1] ? decodeURIComponent(match[1]) : null;
+      const requestedTab = (requestedTabRaw === "focus" ? "calendar" : requestedTabRaw) as NavTab | null;
       if (!requestedTab || !tabs.some((tab) => tab.id === requestedTab)) return;
+      const scrollMatch = /[?&](?:scroll|y)=([0-9]+)/.exec(url);
+      const scrollY = scrollMatch?.[1] ? Number(scrollMatch[1]) : 0;
       setSelectedAssignmentId(null);
       setActiveTab(requestedTab);
-      requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: 0, animated: false }));
+      requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: scrollY, animated: false }));
     };
 
     Linking.getInitialURL().then(openCaptureUrl).catch(() => undefined);
@@ -222,6 +228,7 @@ function AppContent() {
         semester,
         courses,
         assignments,
+        paletteId: theme.palette.id,
         demoState: storeCaptureEnabled
           ? {
               enabled: true,
@@ -231,7 +238,7 @@ function AppContent() {
       },
       storeCaptureEnabled ? storeCaptureNow : new Date()
     ).catch(() => undefined);
-  }, [assignments, courses, hydrated, semester, storeCaptureEnabled]);
+  }, [assignments, courses, hydrated, semester, storeCaptureEnabled, theme.palette.id]);
 
   useEffect(() => {
     if (subscription.isPremium && !paywallSeen) {
@@ -499,6 +506,8 @@ function AppContent() {
                   onScheduleReminders={handleScheduleReminders}
                   onCalendarSync={handleCalendarSync}
                   onOpenImport={() => openTab("import")}
+                  onOpenWeek={() => openTab("calendar")}
+                  onOpenCalendar={() => openTab("calendar")}
                   premiumAutomationLocked={premiumLocked}
                   onOpenPaywall={() => openTab("upgrade")}
                 />
@@ -546,8 +555,8 @@ function AppContent() {
                   />
                 )
               ) : null}
-              {activeTab === "focus" ? (
-                <WeekPlannerScreen
+              {activeTab === "calendar" ? (
+                <MonthlyCalendarScreen
                   semester={semester}
                   assignments={activeAssignments}
                   courses={courses}
@@ -606,7 +615,7 @@ function createStyles(theme: AppTheme) {
   return StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: colors.canvas,
+      backgroundColor: colors.canvasTint,
       overflow: "hidden"
     },
     appShell: {

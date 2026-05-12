@@ -6,13 +6,17 @@ import {
   WidgetSnapshotItem,
   WidgetUrgency
 } from "../models";
+import { createWidgetStyleSnapshot, defaultThemePaletteId } from "../theme";
 import { isAssignmentArchived, isAssignmentOpen } from "./assignmentModel";
 import { buildWeekPlan, daysUntil } from "./planner";
+import { buildSemesterInsights, buildWidgetMonthlySnapshot } from "./semesterInsights";
 
 export type WidgetSnapshotInput = {
   semester: Semester;
   courses: Course[];
   assignments: Assignment[];
+  paletteId?: string;
+  widgetStyleId?: string;
   demoState?: WidgetSnapshot["demoState"];
 };
 
@@ -52,6 +56,12 @@ export function buildWidgetSnapshot(
         : "No open deadlines are waiting right now."
   };
   const generatedAt = now.toISOString();
+  const insights = buildSemesterInsights(input.assignments, input.courses, now);
+  const monthly = buildWidgetMonthlySnapshot(input.assignments, input.courses, now);
+  const widgetStyle = createWidgetStyleSnapshot(
+    input.paletteId || defaultThemePaletteId,
+    input.widgetStyleId
+  );
 
   return {
     version: 1,
@@ -65,6 +75,9 @@ export function buildWidgetSnapshot(
     reviewQueueCount,
     heavyWeekWarning,
     emptyState,
+    widgetStyle,
+    monthly,
+    insights,
     demoState: input.demoState,
     surfaces: {
       small: {
@@ -86,6 +99,22 @@ export function buildWidgetSnapshot(
         kind: "countdown",
         item: nextDue,
         countdownLabel: nextDue ? nextDue.dueLabel : undefined
+      },
+      monthly: {
+        kind: "monthlyCalendar",
+        monthLabel: monthly.monthLabel,
+        dueThisMonth: monthly.dueThisMonth,
+        examCount: monthly.examCount,
+        heavyDayCount: monthly.heavyDayCount
+      },
+      heavyWeek: {
+        kind: "heavyWeek",
+        warning: heavyWeekWarning,
+        workloadByDay: insights.workloadByDay
+      },
+      courseFocus: {
+        kind: "courseFocus",
+        courses: insights.courseBalance.slice(0, 3)
       }
     }
   };

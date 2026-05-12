@@ -4,7 +4,7 @@ import { Assignment, Course, PlannerData, Semester, SyllabusParseResult, Syllabu
 export const storeCaptureNow = new Date("2025-03-10T09:41:00-04:00");
 
 export const messySyllabusExample = `BIO 101 / CALC II / ENG 201 / PSY 201 spring packet
-Week 9: problem set maybe 3/10, discussion post due 3/10 11:59p.
+Week 9: problem set maybe 3/10, discussion post due 3/10 11:59p, group worksheet 3.
 BIO lab report #2 due Mar 11. Reading response 3 due Mar 12.
 Psych weekly quiz 5 around Mar 14. Midterm exam BIO Mar 28.
 Research paper April 24. Essay outline April 14. Some duplicate PDF rows.`;
@@ -14,12 +14,13 @@ export const demoWidgetSnapshotCandidate = {
   thisWeekAssignmentIds: [
     "problem-set-4",
     "discussion-post",
+    "group-worksheet-3",
     "lab-report-2",
     "reading-response-3",
     "weekly-quiz-5"
   ],
   heavyWeekStartsOn: "2025-03-10",
-  heavyWeekItemCount: 5,
+  heavyWeekItemCount: 6,
   overdueItemCount: 0
 };
 
@@ -194,11 +195,13 @@ function createDemoAssignments(courses: Course[]): Assignment[] {
     demoAssignment(courses, "calc-quiz-complete", "calc-2", "Limits quiz corrections", "quiz", "2025-03-05T17:00:00", "accepted", 0.96, "completed"),
     demoAssignment(courses, "problem-set-4", "calc-2", "Problem Set 4", "assignment", "2025-03-10T17:00:00", "needsReview", 0.94),
     demoAssignment(courses, "discussion-post", "psych-201", "Discussion Post", "assignment", "2025-03-10T23:59:00", "needsReview", 0.66),
+    demoAssignment(courses, "group-worksheet-3", "calc-2", "Group Worksheet 3", "assignment", "2025-03-10T19:30:00", "needsReview", 0.89),
     demoAssignment(courses, "lab-report-2", "bio-101", "Lab Report #2", "assignment", "2025-03-11T23:59:00", "needsReview", 0.97),
     demoAssignment(courses, "reading-response-3", "eng-201", "Reading Response 3", "reading", "2025-03-12T23:59:00", "needsReview", 0.78),
     demoAssignment(courses, "weekly-quiz-5", "psych-201", "Weekly Quiz 5", "quiz", "2025-03-14T12:00:00", "needsReview", 0.82),
     demoAssignment(courses, "research-paper", "eng-201", "Research Paper", "project", "2025-04-24T17:00:00", "needsReview", 0.93),
     demoAssignment(courses, "midterm-exam", "bio-101", "Midterm Exam", "exam", "2025-03-28T09:00:00", "accepted", 0.98),
+    demoAssignment(courses, "bio-midterm-study-guide", "bio-101", "Midterm study guide", "reading", "2025-03-28T20:00:00", "accepted", 0.91),
     demoAssignment(courses, "essay-outline", "eng-201", "Essay outline", "project", "2025-04-14T17:00:00", "accepted", 0.88),
     demoAssignment(courses, "calc-midterm-review", "calc-2", "Midterm review packet", "assignment", "2025-03-20T18:00:00", "accepted", 0.86),
     demoAssignment(courses, "psych-final-exam", "psych-201", "Final exam review", "exam", "2025-05-05T13:30:00", "accepted", 0.95)

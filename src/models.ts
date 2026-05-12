@@ -1,4 +1,10 @@
-export type NavTab = "today" | "import" | "courses" | "grades" | "focus" | "upgrade";
+export type NavTab =
+  | "today"
+  | "calendar"
+  | "import"
+  | "courses"
+  | "grades"
+  | "upgrade";
 
 export type Priority = "low" | "medium" | "high";
 
@@ -172,6 +178,61 @@ export type WidgetSnapshotItem = {
   completionStatus: CompletionStatus;
 };
 
+export type WidgetSnapshotStyle = {
+  paletteId: string;
+  paletteName: string;
+  styleId: string;
+  styleName: string;
+  background: string;
+  text: string;
+  muted: string;
+  accent: string;
+  secondary: string;
+};
+
+export type WidgetSnapshotInsight = {
+  completionPercent: number;
+  openCount: number;
+  completedCount: number;
+  workloadByDay: Array<{
+    date: string;
+    label: string;
+    count: number;
+    examCount: number;
+  }>;
+  courseBalance: Array<{
+    courseId: string;
+    courseName: string;
+    color: string;
+    openCount: number;
+  }>;
+};
+
+export type WidgetSnapshotMonthly = {
+  monthLabel: string;
+  dueThisMonth: number;
+  examCount: number;
+  heavyDayCount: number;
+  completedCount: number;
+  days: Array<{
+    date: string;
+    dayNumber: number;
+    itemCount: number;
+    examCount: number;
+    completedCount: number;
+    isToday: boolean;
+    isHeavy: boolean;
+    courseColors: string[];
+  }>;
+};
+
+export type WidgetHeavyWeekWarning = {
+  isHeavy: boolean;
+  label: string;
+  itemCount: number;
+  examCount: number;
+};
+
 export type WidgetSnapshot = {
   version: 1;
   generatedAt: string;
@@ -182,17 +243,15 @@ export type WidgetSnapshot = {
   thisWeek: WidgetSnapshotItem[];
   overdueCount: number;
   reviewQueueCount: number;
-  heavyWeekWarning?: {
-    isHeavy: boolean;
-    label: string;
-    itemCount: number;
-    examCount: number;
-  };
+  heavyWeekWarning?: WidgetHeavyWeekWarning;
   emptyState: {
     isEmpty: boolean;
     title: string;
     message: string;
   };
+  widgetStyle?: WidgetSnapshotStyle;
+  monthly?: WidgetSnapshotMonthly;
+  insights?: WidgetSnapshotInsight;
   demoState?: {
     enabled: boolean;
     label: string;
@@ -211,12 +270,28 @@ export type WidgetSnapshot = {
     large: {
       kind: "weeklyWorkload";
       items: WidgetSnapshotItem[];
-      heavyWeekWarning?: WidgetSnapshot["heavyWeekWarning"];
+      heavyWeekWarning?: WidgetHeavyWeekWarning;
     };
     lockScreen: {
       kind: "countdown";
       item?: WidgetSnapshotItem;
       countdownLabel?: string;
+    };
+    monthly: {
+      kind: "monthlyCalendar";
+      monthLabel: string;
+      dueThisMonth: number;
+      examCount: number;
+      heavyDayCount: number;
+    };
+    heavyWeek: {
+      kind: "heavyWeek";
+      warning?: WidgetHeavyWeekWarning;
+      workloadByDay: WidgetSnapshotInsight["workloadByDay"];
+    };
+    courseFocus: {
+      kind: "courseFocus";
+      courses: WidgetSnapshotInsight["courseBalance"];
     };
   };
 };

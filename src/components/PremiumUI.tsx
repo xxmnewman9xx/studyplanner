@@ -1,6 +1,7 @@
 import React from "react";
 import {
   StyleSheet,
+  StyleProp,
   Text,
   TouchableOpacity,
   View,
@@ -19,7 +20,7 @@ import {
 } from "lucide-react-native";
 import Svg, { Circle as SvgCircle } from "react-native-svg";
 
-import { Assignment, Course, WidgetSnapshot } from "../models";
+import { Assignment, Course, WidgetSnapshot, WidgetSnapshotStyle } from "../models";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { daysUntil, formatShortDate } from "../logic/planner";
@@ -32,7 +33,7 @@ type DockTab<T extends string> = {
   icon: React.ComponentType<{ color: string; size: number }>;
 };
 
-export function PremiumScreen({ children, style }: { children: React.ReactNode; style?: ViewStyle }) {
+export function PremiumScreen({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
 
@@ -40,6 +41,7 @@ export function PremiumScreen({ children, style }: { children: React.ReactNode; 
     <View style={[styles.premiumScreen, style]}>
       <View style={styles.screenWashTop} />
       <View style={styles.screenWashBottom} />
+      <View style={styles.screenWashMiddle} />
       <View style={styles.screenRail} />
       {children}
     </View>
@@ -78,7 +80,7 @@ export function GlassCard({
   tint = "plain"
 }: {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   tint?: "plain" | "warm" | "dark" | "hero";
 }) {
   const { theme } = useAppTheme();
@@ -398,50 +400,64 @@ export function WarningCard({
   );
 }
 
-export function WidgetPreviewSmall({ snapshot }: { snapshot: WidgetSnapshot }) {
+export function WidgetPreviewSmall({
+  snapshot,
+  widgetStyle
+}: {
+  snapshot: WidgetSnapshot;
+  widgetStyle?: WidgetSnapshotStyle;
+}) {
   const { theme } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
   const item = snapshot.surfaces.small.item;
+  const visual = widgetPreviewVisual(snapshot, widgetStyle, colors);
 
   return (
-    <View style={styles.smallWidget}>
-      <View pointerEvents="none" style={styles.widgetBandOne} />
-      <View pointerEvents="none" style={styles.widgetBandTwo} />
+    <View style={[styles.smallWidget, { backgroundColor: visual.background }]}>
+      <View pointerEvents="none" style={[styles.widgetBandOne, { backgroundColor: `${visual.secondary}45` }]} />
+      <View pointerEvents="none" style={[styles.widgetBandTwo, { backgroundColor: `${visual.accent}33` }]} />
       <View style={styles.widgetTop}>
-        <Text style={styles.widgetLabel}>Next Due</Text>
-        <Text style={styles.widgetBadge} numberOfLines={1}>{item?.dueLabel || "Clear"}</Text>
+        <Text style={[styles.widgetLabel, { color: visual.text }]}>Next Due</Text>
+        <Text style={[styles.widgetBadge, { color: visual.text }]} numberOfLines={1}>{item?.dueLabel || "Clear"}</Text>
       </View>
-      <View style={styles.widgetIcon}>
+      <View style={[styles.widgetIcon, { backgroundColor: visual.accent }]}>
         <CalendarClock color={colors.heroText} size={16} />
       </View>
-      <Text style={styles.smallWidgetTitle} numberOfLines={2}>
+      <Text style={[styles.smallWidgetTitle, { color: visual.text }]} numberOfLines={2}>
         {item?.title || snapshot.emptyState.title}
       </Text>
-      <Text style={styles.widgetMeta} numberOfLines={1}>
+      <Text style={[styles.widgetMeta, { color: visual.muted }]} numberOfLines={1}>
         {item?.courseName || snapshot.emptyState.message}
       </Text>
-      <Text style={styles.widgetCountdown}>{item?.dueLabel || "All set"}</Text>
+      <Text style={[styles.widgetCountdown, { color: visual.accent }]}>{item?.dueLabel || "All set"}</Text>
     </View>
   );
 }
 
-export function WidgetPreviewMedium({ snapshot }: { snapshot: WidgetSnapshot }) {
+export function WidgetPreviewMedium({
+  snapshot,
+  widgetStyle
+}: {
+  snapshot: WidgetSnapshot;
+  widgetStyle?: WidgetSnapshotStyle;
+}) {
   const { theme } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
   const items = snapshot.surfaces.medium.items;
+  const visual = widgetPreviewVisual(snapshot, widgetStyle, colors);
 
   return (
-    <View style={styles.mediumWidget}>
-      <View pointerEvents="none" style={styles.widgetBandOne} />
-      <View pointerEvents="none" style={styles.widgetBandTwo} />
+    <View style={[styles.mediumWidget, { backgroundColor: visual.background }]}>
+      <View pointerEvents="none" style={[styles.widgetBandOne, { backgroundColor: `${visual.secondary}45` }]} />
+      <View pointerEvents="none" style={[styles.widgetBandTwo, { backgroundColor: `${visual.accent}33` }]} />
       <View style={styles.widgetTop}>
-        <Text style={styles.widgetLabel}>This Week</Text>
-        <Sparkles color={colors.widgetAccent} size={15} />
+        <Text style={[styles.widgetLabel, { color: visual.text }]}>This Week</Text>
+        <Sparkles color={visual.accent} size={15} />
       </View>
       {items.length === 0 ? (
-        <Text style={styles.widgetMeta}>{snapshot.emptyState.message}</Text>
+        <Text style={[styles.widgetMeta, { color: visual.muted }]}>{snapshot.emptyState.message}</Text>
       ) : (
         items.map((item) => (
           <View key={item.assignmentId} style={styles.mediumWidgetRow}>
@@ -449,14 +465,20 @@ export function WidgetPreviewMedium({ snapshot }: { snapshot: WidgetSnapshot }) 
               <CalendarClock color={colors.heroText} size={12} />
             </View>
             <View style={styles.widgetRowCopy}>
-              <Text style={styles.widgetRowTitle} numberOfLines={1}>
+              <Text style={[styles.widgetRowTitle, { color: visual.text }]} numberOfLines={1}>
                 {item.title}
               </Text>
-              <Text style={styles.widgetRowMeta} numberOfLines={1}>
+              <Text style={[styles.widgetRowMeta, { color: visual.muted }]} numberOfLines={1}>
                 {item.courseName}
               </Text>
             </View>
-            <Text style={[styles.widgetDue, item.urgency === "today" || item.urgency === "soon" ? styles.widgetDueHot : null]}>
+            <Text
+              style={[
+                styles.widgetDue,
+                { color: visual.accent },
+                item.urgency === "today" || item.urgency === "soon" ? styles.widgetDueHot : null
+              ]}
+            >
               {item.dueLabel}
             </Text>
           </View>
@@ -466,28 +488,35 @@ export function WidgetPreviewMedium({ snapshot }: { snapshot: WidgetSnapshot }) 
   );
 }
 
-export function LockWidgetPreview({ snapshot }: { snapshot: WidgetSnapshot }) {
+export function LockWidgetPreview({
+  snapshot,
+  widgetStyle
+}: {
+  snapshot: WidgetSnapshot;
+  widgetStyle?: WidgetSnapshotStyle;
+}) {
   const { theme } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
   const item = snapshot.surfaces.lockScreen.item;
+  const visual = widgetPreviewVisual(snapshot, widgetStyle, colors);
 
   return (
-    <View style={styles.lockWidget}>
-      <View style={styles.lockAuroraOne} />
-      <View style={styles.lockAuroraTwo} />
+    <View style={[styles.lockWidget, { backgroundColor: visual.background }]}>
+      <View style={[styles.lockAuroraOne, { backgroundColor: `${visual.secondary}5C` }]} />
+      <View style={[styles.lockAuroraTwo, { backgroundColor: `${visual.accent}52` }]} />
       <Lock color={colors.heroText} size={18} />
-      <Text style={styles.lockDate}>Monday, March 10</Text>
-      <Text style={styles.lockTime}>9:41</Text>
+      <Text style={[styles.lockDate, { color: visual.text }]}>Monday, March 10</Text>
+      <Text style={[styles.lockTime, { color: visual.text }]}>9:41</Text>
       <View style={styles.lockNotification}>
-        <View style={styles.lockNotificationIcon}>
+        <View style={[styles.lockNotificationIcon, { backgroundColor: visual.accent }]}>
           <Bell color={colors.heroText} size={14} />
         </View>
         <View style={styles.lockNotificationCopy}>
-          <Text style={styles.lockNotificationTitle} numberOfLines={1}>
+          <Text style={[styles.lockNotificationTitle, { color: visual.text }]} numberOfLines={1}>
             {item?.title || "No open deadlines"}
           </Text>
-          <Text style={styles.lockNotificationMeta} numberOfLines={1}>
+          <Text style={[styles.lockNotificationMeta, { color: visual.muted }]} numberOfLines={1}>
             {item ? `${item.courseName} - ${item.dueLabel}` : snapshot.emptyState.message}
           </Text>
         </View>
@@ -496,7 +525,136 @@ export function LockWidgetPreview({ snapshot }: { snapshot: WidgetSnapshot }) {
   );
 }
 
-export function WidgetShowcase({ snapshot }: { snapshot: WidgetSnapshot }) {
+export function WidgetPreviewMonthly({
+  snapshot,
+  widgetStyle
+}: {
+  snapshot: WidgetSnapshot;
+  widgetStyle?: WidgetSnapshotStyle;
+}) {
+  const { theme } = useAppTheme();
+  const { colors } = theme;
+  const styles = createStyles(theme);
+  const visual = widgetPreviewVisual(snapshot, widgetStyle, colors);
+  const month = snapshot.monthly;
+  const days = month?.days.slice(0, 21) || [];
+
+  return (
+    <View style={[styles.monthlyWidget, { backgroundColor: visual.background }]}>
+      <View pointerEvents="none" style={[styles.widgetBandOne, { backgroundColor: `${visual.secondary}45` }]} />
+      <View style={styles.widgetTop}>
+        <Text style={[styles.widgetLabel, { color: visual.text }]}>Monthly Calendar</Text>
+        <Text style={[styles.widgetDue, { color: visual.accent }]}>{month?.dueThisMonth || 0} due</Text>
+      </View>
+      <View style={styles.monthlyWidgetGrid}>
+        {days.map((day) => (
+          <View
+            key={day.date}
+            style={[
+              styles.monthlyWidgetDay,
+              day.isToday ? { backgroundColor: visual.accent } : null,
+              day.isHeavy ? { borderColor: visual.accent } : null
+            ]}
+          >
+            <Text style={[styles.monthlyWidgetDayText, { color: day.isToday ? colors.heroText : visual.text }]}>
+              {day.dayNumber}
+            </Text>
+            <View style={styles.monthlyWidgetDots}>
+              {day.courseColors.slice(0, 2).map((color, index) => (
+                <View key={`${day.date}-${color}-${index}`} style={[styles.monthlyWidgetDot, { backgroundColor: color }]} />
+              ))}
+            </View>
+          </View>
+        ))}
+      </View>
+      <Text style={[styles.widgetRowMeta, { color: visual.muted }]}>
+        {month?.heavyDayCount || 0} heavy days - {month?.examCount || 0} exams
+      </Text>
+    </View>
+  );
+}
+
+export function WidgetPreviewHeavyWeek({
+  snapshot,
+  widgetStyle
+}: {
+  snapshot: WidgetSnapshot;
+  widgetStyle?: WidgetSnapshotStyle;
+}) {
+  const { theme } = useAppTheme();
+  const { colors } = theme;
+  const styles = createStyles(theme);
+  const visual = widgetPreviewVisual(snapshot, widgetStyle, colors);
+  const values = snapshot.insights?.workloadByDay || [];
+  const max = Math.max(1, ...values.map((day) => day.count));
+
+  return (
+    <View style={[styles.heavyWeekWidget, { backgroundColor: visual.background }]}>
+      <View style={styles.widgetTop}>
+        <Text style={[styles.widgetLabel, { color: visual.text }]}>Heavy Week</Text>
+        <Flame color={visual.accent} size={15} />
+      </View>
+      <Text style={[styles.widgetMeta, { color: visual.muted }]} numberOfLines={1}>
+        {snapshot.heavyWeekWarning?.label || "Workload is steady"}
+      </Text>
+      <View style={styles.heavyWeekBars}>
+        {values.map((day) => (
+          <View key={day.date} style={styles.heavyWeekTrack}>
+            <View
+              style={[
+                styles.heavyWeekFill,
+                {
+                  height: `${Math.max(10, (day.count / max) * 100)}%` as `${number}%`,
+                  backgroundColor: day.examCount > 0 ? colors.brandCoral : visual.accent
+                }
+              ]}
+            />
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+export function WidgetPreviewCourseFocus({
+  snapshot,
+  widgetStyle
+}: {
+  snapshot: WidgetSnapshot;
+  widgetStyle?: WidgetSnapshotStyle;
+}) {
+  const { theme } = useAppTheme();
+  const { colors } = theme;
+  const styles = createStyles(theme);
+  const visual = widgetPreviewVisual(snapshot, widgetStyle, colors);
+  const courses = snapshot.insights?.courseBalance.slice(0, 3) || [];
+
+  return (
+    <View style={[styles.courseFocusWidget, { backgroundColor: visual.background }]}>
+      <View style={styles.widgetTop}>
+        <Text style={[styles.widgetLabel, { color: visual.text }]}>Course Focus</Text>
+        <Target color={visual.accent} size={15} />
+      </View>
+      {courses.map((course) => (
+        <View key={course.courseId} style={styles.courseFocusRow}>
+          <View style={[styles.courseFocusDot, { backgroundColor: course.color }]} />
+          <Text style={[styles.widgetRowTitle, { color: visual.text }]} numberOfLines={1}>
+            {course.courseName}
+          </Text>
+          <Text style={[styles.widgetDue, { color: visual.accent }]}>{course.openCount}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+export function WidgetShowcase({
+  snapshot,
+  widgetStyle
+}: {
+  snapshot: WidgetSnapshot;
+  widgetStyle?: WidgetSnapshotStyle;
+}) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
 
@@ -511,10 +669,10 @@ export function WidgetShowcase({ snapshot }: { snapshot: WidgetSnapshot }) {
         <Sparkles color={theme.colors.brandPurple} size={20} />
       </View>
       <View style={styles.widgetGrid}>
-        <WidgetPreviewSmall snapshot={snapshot} />
-        <WidgetPreviewMedium snapshot={snapshot} />
+        <WidgetPreviewSmall snapshot={snapshot} widgetStyle={widgetStyle} />
+        <WidgetPreviewMedium snapshot={snapshot} widgetStyle={widgetStyle} />
       </View>
-      <LockWidgetPreview snapshot={snapshot} />
+      <LockWidgetPreview snapshot={snapshot} widgetStyle={widgetStyle} />
     </View>
   );
 }
@@ -568,7 +726,7 @@ export function PreviewPosterSurface({ children }: { children: React.ReactNode }
 export function PremiumCard(props: {
   children: React.ReactNode;
   tone?: "plain" | "hero" | "soft";
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }) {
   return <GlassCard tint={props.tone === "hero" ? "hero" : "plain"} style={props.style}>{props.children}</GlassCard>;
 }
@@ -621,6 +779,22 @@ export function CourseSummaryCard(props: {
 
 export function WidgetPreviewSection({ snapshot }: { snapshot: WidgetSnapshot }) {
   return <WidgetShowcase snapshot={snapshot} />;
+}
+
+function widgetPreviewVisual(
+  snapshot: WidgetSnapshot,
+  override: WidgetSnapshotStyle | undefined,
+  colors: AppTheme["colors"]
+) {
+  const visual = override || snapshot.widgetStyle;
+
+  return {
+    background: visual?.background || colors.widgetDark,
+    text: visual?.text || colors.heroText,
+    muted: visual?.muted || colors.heroMuted,
+    accent: visual?.accent || colors.widgetAccent,
+    secondary: visual?.secondary || colors.brandBlue
+  };
 }
 
 function ProgressRing({ value, color }: { value: number; color: string }) {
@@ -694,7 +868,7 @@ function createStyles(theme: AppTheme) {
       width: 265,
       height: 146,
       borderRadius: 46,
-      backgroundColor: "rgba(108,92,231,0.14)",
+      backgroundColor: `${colors.brandPurple}24`,
       transform: [{ rotate: "28deg" }]
     },
     screenWashBottom: {
@@ -704,8 +878,18 @@ function createStyles(theme: AppTheme) {
       width: 250,
       height: 82,
       borderRadius: 32,
-      backgroundColor: "rgba(59,130,246,0.09)",
+      backgroundColor: `${colors.brandBlue}18`,
       transform: [{ rotate: "-22deg" }]
+    },
+    screenWashMiddle: {
+      position: "absolute",
+      top: 320,
+      right: -112,
+      width: 290,
+      height: 110,
+      borderRadius: 42,
+      backgroundColor: `${colors.brandCoral}12`,
+      transform: [{ rotate: "-18deg" }]
     },
     screenRail: {
       position: "absolute",
@@ -714,7 +898,7 @@ function createStyles(theme: AppTheme) {
       width: 6,
       height: 220,
       borderRadius: 999,
-      backgroundColor: "rgba(108,92,231,0.18)"
+      backgroundColor: `${colors.brandPurple}30`
     },
     premiumHeader: {
       flexDirection: "row",
@@ -1306,6 +1490,38 @@ function createStyles(theme: AppTheme) {
       borderColor: "rgba(255,255,255,0.14)",
       gap: 6
     },
+    monthlyWidget: {
+      minHeight: 196,
+      borderRadius: 22,
+      padding: spacing.md,
+      overflow: "hidden",
+      backgroundColor: "#19132D",
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.14)",
+      gap: spacing.xs
+    },
+    heavyWeekWidget: {
+      flex: 1,
+      minHeight: 154,
+      borderRadius: 22,
+      padding: spacing.md,
+      overflow: "hidden",
+      backgroundColor: "#19132D",
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.14)",
+      gap: spacing.xs
+    },
+    courseFocusWidget: {
+      flex: 1,
+      minHeight: 154,
+      borderRadius: 22,
+      padding: spacing.md,
+      overflow: "hidden",
+      backgroundColor: "#19132D",
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.14)",
+      gap: spacing.xs
+    },
     widgetBandOne: {
       position: "absolute",
       top: -34,
@@ -1420,6 +1636,71 @@ function createStyles(theme: AppTheme) {
     widgetDueHot: {
       color: "#FF8A7A"
     },
+    monthlyWidgetGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 4
+    },
+    monthlyWidgetDay: {
+      width: "12%",
+      minHeight: 24,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.10)",
+      backgroundColor: "rgba(255,255,255,0.08)",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 1
+    },
+    monthlyWidgetDayText: {
+      color: colors.heroText,
+      fontSize: 9,
+      lineHeight: 11,
+      fontWeight: "900"
+    },
+    monthlyWidgetDots: {
+      minHeight: 3,
+      flexDirection: "row",
+      gap: 1
+    },
+    monthlyWidgetDot: {
+      width: 3,
+      height: 3,
+      borderRadius: 2
+    },
+    heavyWeekBars: {
+      flex: 1,
+      minHeight: 74,
+      flexDirection: "row",
+      alignItems: "flex-end",
+      gap: 5,
+      paddingTop: spacing.xs
+    },
+    heavyWeekTrack: {
+      flex: 1,
+      height: "100%",
+      borderRadius: radii.round,
+      backgroundColor: "rgba(255,255,255,0.10)",
+      justifyContent: "flex-end",
+      overflow: "hidden"
+    },
+    heavyWeekFill: {
+      width: "100%",
+      borderRadius: radii.round
+    },
+    courseFocusRow: {
+      minHeight: 31,
+      borderTopWidth: 1,
+      borderTopColor: "rgba(255,255,255,0.08)",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs
+    },
+    courseFocusDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4
+    },
     lockWidget: {
       minHeight: 258,
       borderRadius: 28,
@@ -1500,15 +1781,15 @@ function createStyles(theme: AppTheme) {
       fontWeight: "700"
     },
     bottomDock: {
-      minHeight: 74,
+      minHeight: 72,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      borderRadius: 26,
+      borderRadius: 25,
       borderWidth: 1,
       borderColor: "rgba(148,163,184,0.22)",
       backgroundColor: "rgba(255,255,255,0.94)",
-      padding: 6,
+      padding: 5,
       shadowColor: colors.shadow,
       shadowOpacity: 0.16,
       shadowRadius: 22,
@@ -1517,8 +1798,8 @@ function createStyles(theme: AppTheme) {
     },
     dockButton: {
       flex: 1,
-      minHeight: 58,
-      borderRadius: 21,
+      minHeight: 56,
+      borderRadius: 20,
       alignItems: "center",
       justifyContent: "center",
       gap: 3
@@ -1528,8 +1809,8 @@ function createStyles(theme: AppTheme) {
     },
     dockLabel: {
       color: colors.faint,
-      fontSize: 9,
-      lineHeight: 12,
+      fontSize: 8,
+      lineHeight: 11,
       fontWeight: "900"
     },
     dockLabelActive: {
