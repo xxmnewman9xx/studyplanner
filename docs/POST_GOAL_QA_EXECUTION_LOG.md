@@ -32,5 +32,8 @@
 | Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 25 PNGs at 1090x4302 | Re-run after correcting onboarding widget screenshot and native widget captures |
 | git diff --check | Passed | exit 0 | Final whitespace/conflict-marker check before commit |
 | sips screenshot dimension check | Passed | Native widget screenshots are 1179x2556; contact sheet is 1090x4302 | Confirms expected raw simulator/contact-sheet dimensions |
+| Simulator Complete + App Group payload check | Passed | `widget-refresh-after-completion-snapshot.json` | Completing Lab Report moved nextDue to Reading Reflection, reduced This Week to 4, monthly due to 7, and completed count to 4 |
+| xcrun simctl io screenshot | Passed | `46-widget-refresh-after-completion.png` | Installed Home Screen widgets rendered the refreshed snapshot after completing Lab Report |
+| Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 26 PNGs at 1090x4302 | Re-run after widget refresh proof screenshot |
 
-Unrun/blocked: StoreKit sandbox, widget refresh-after-completion proof, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/Dynamic Type screen sweep, restore purchases.
+Unrun/blocked: StoreKit sandbox, widget add/edit/day-boundary refresh proof, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/Dynamic Type screen sweep, restore purchases.

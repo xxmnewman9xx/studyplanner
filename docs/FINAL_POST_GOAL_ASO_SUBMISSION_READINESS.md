@@ -5,7 +5,7 @@ This is an interim readiness report, not a submit approval.
 ## Score
 
 Initial v1-3 post-goal score: 7.82/10.  
-Current evidence-adjusted score after fixes/docs/screenshots/accessibility/date/widget quick wins: 8.76/10.
+Current evidence-adjusted score after fixes/docs/screenshots/accessibility/date/widget quick wins: 8.86/10.
 Target: 9.4/10.  
 Verdict: not reached.
 
@@ -22,7 +22,7 @@ Verdict: not reached.
 - Parser grade items no longer enter the planner without a review surface.
 - Reminder and calendar side effects now skip invalid legacy due dates.
 - Capture-mode iOS build now responds to screenshot deep links.
-- 25 raw simulator PNGs were captured in `artifacts/post-goal-aso-submission`.
+- 26 raw simulator PNGs were captured in `artifacts/post-goal-aso-submission`.
 - A generated contact sheet was captured at `artifacts/post-goal-aso-submission/45-final-contact-sheet.png`.
 - Paywall failure proof was captured honestly as `38-paywall-product-load-failure.png`; products-loaded proof remains missing.
 - A targeted Dynamic Type fix keeps the Today hero, metrics, warning card, and dock readable at `accessibility-extra-extra-large`; proof captured as `44-accessibility-large-text.png`.
@@ -31,13 +31,14 @@ Verdict: not reached.
 - Visual planner surfaces now expose VoiceOver labels for task rows, completion buttons, WeekStrip days, workload bars, calendar mini-days, workload forecasts, class balance rows, and completion cards; the source-regression test passes in the 37/37 suite.
 - Capture/demo coursework dates now roll relative to the capture day so native WidgetKit screenshots do not age into false overdue states.
 - Installed native small and medium Home Screen widget screenshots are captured as `30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png`; both show current May 2026 due labels.
+- Widget refresh after completion is captured as `46-widget-refresh-after-completion.png`; the App Group payload in `widget-refresh-after-completion-snapshot.json` shows next due moved to Reading Reflection, This Week dropped to 4, monthly due dropped to 7, and completed count rose to 4.
 
 ## Still blocking 9.4
 
-StoreKit proof, products-loaded paywall proof, support URL, remaining screenshots, widget refresh-after-assignment-change proof, iPad screenshot strategy, localized review, signed archive entitlement check, full simulator VoiceOver traversal, and final simulator QA.
+StoreKit proof, products-loaded paywall proof, support URL, remaining screenshots, widget add/edit/day-boundary refresh proof, iPad screenshot strategy, localized review, signed archive entitlement check, full simulator VoiceOver traversal, and final simulator QA.
 
-The capture-mode rebuild solved the original deep-link capture problem, and installed small/medium WidgetKit screenshots now exist. The screenshot set is still not App Store-ready. Missing proof includes upload/photo/manual/parser success states, restore purchases, app icon Home Screen, localized UI screenshots/string extraction, full simulator VoiceOver/Dynamic Type screen coverage, iPad sizing, StoreKit products loaded, and widget refresh after completing/editing work.
+The capture-mode rebuild solved the original deep-link capture problem, installed small/medium WidgetKit screenshots now exist, and completion refresh is proven. The screenshot set is still not App Store-ready. Missing proof includes upload/photo/manual/parser success states, restore purchases, app icon Home Screen, localized UI screenshots/string extraction, full simulator VoiceOver/Dynamic Type screen coverage, iPad sizing, StoreKit products loaded, and widget refresh after add/edit/day-boundary changes.
 
 ## Next prompt
 
-Run final App Store Connect validation for StudyPlanner on branch v1-3-post-goal-aso-submission-master: provide real support URL and IAP env IDs, run StoreKit sandbox monthly/yearly/Lifetime/restore tests, resolve iPad screenshot strategy, capture the remaining supported PNGs in artifacts/post-goal-aso-submission, verify widget refresh after completing or editing an assignment, run production and submission verification, then update docs/APP_STORE_SUBMISSION_HANDOFF.md with a submit/no-submit decision.
+Run final App Store Connect validation for StudyPlanner on branch v1-3-post-goal-aso-submission-master: provide real support URL and IAP env IDs, run StoreKit sandbox monthly/yearly/Lifetime/restore tests, resolve iPad screenshot strategy, capture the remaining supported PNGs in artifacts/post-goal-aso-submission, verify widget refresh after add/edit/day-boundary changes, run production and submission verification, then update docs/APP_STORE_SUBMISSION_HANDOFF.md with a submit/no-submit decision.

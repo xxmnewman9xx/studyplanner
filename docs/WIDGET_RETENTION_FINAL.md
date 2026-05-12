@@ -1,6 +1,6 @@
 # Widget Retention Final
 
-Implementation score: 8.4/10. Submission evidence score: 8.1/10.
+Implementation score: 8.8/10. Submission evidence score: 8.6/10.
 
 ## What is real
 
@@ -11,9 +11,10 @@ Implementation score: 8.4/10. Submission evidence score: 8.1/10.
 - Production placeholder does not ship demo coursework.
 - Installed small and medium Home Screen widgets were captured on the simulator as `artifacts/post-goal-aso-submission/30-small-widget-home-screen.png` and `artifacts/post-goal-aso-submission/31-medium-widget-home-screen.png`.
 - Capture/demo coursework dates now roll relative to the capture day, preventing stale native widget screenshots such as false "384 days overdue" labels.
+- Refresh after completing the next assignment is now proven: tapping Complete moved the App Group snapshot from `lab-report` to `reading-reflection`, reduced This Week from 5 to 4 items, and the installed Home Screen widgets refreshed in `artifacts/post-goal-aso-submission/46-widget-refresh-after-completion.png`.
 
 ## Submission blockers
 
-- Widget freshness after add/complete/edit needs proof.
+- Widget freshness after add/edit and day-boundary rollover still needs proof.
 - Old Lock Screen/large widget assets must be excluded.
 - In-app previews do not count as native Home Screen proof unless paired with the installed WidgetKit screenshots above.

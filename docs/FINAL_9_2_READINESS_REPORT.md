@@ -2,7 +2,7 @@
 
 Branch: `v1-2-goal-9-2-root-concept-transformation`  
 Starting commit: `69d75470328bc470bce6097384b4a7e39e79c89a`  
-Final implementation score: **8.96/10**
+Final implementation score: **9.03/10**
 9.2 reached: **No**
 
 ## What Changed
@@ -23,6 +23,7 @@ Final implementation score: **8.96/10**
 - Due-date and Week Plan date labels now use the preferred locale, with 24-hour formatting coverage for `fr-FR` and `en-GB`.
 - Successor-branch capture mode now uses current relative demo dates, preventing stale WidgetKit due labels.
 - Installed native small and medium Home Screen widgets are captured in `artifacts/post-goal-aso-submission/30-small-widget-home-screen.png` and `artifacts/post-goal-aso-submission/31-medium-widget-home-screen.png`.
+- Completing Lab Report in the simulator updates the App Group widget payload and installed Home Screen widgets; proof is captured in `artifacts/post-goal-aso-submission/46-widget-refresh-after-completion.png` and `widget-refresh-after-completion-snapshot.json`.
 - Paywall copy no longer exposes internal product-ID language.
 
 ## Verification
@@ -39,7 +40,7 @@ Final implementation score: **8.96/10**
 
 ## Why This Is Not 9.2 Yet
 
-- Widget refresh after completion/edit is not proven; installed Home Screen small/medium screenshots now exist, but freshness after a user action still needs proof.
+- Widget refresh after completion is proven; add/edit/day-boundary widget refresh still needs proof.
 - Accessibility and localization remain targeted improvements rather than exhaustive completion; source-tested VoiceOver labels now cover key planner visuals, but full simulator VoiceOver/Dynamic Type proof and localized simulator screenshots are still needed.
 - The 500-use-case swarm is generated and ranked, but not converted into a full automated e2e suite.
 - StoreKit configuration passes static checks, but sandbox purchase/restore proof still needs a validation run.
@@ -48,7 +49,7 @@ Final implementation score: **8.96/10**
 
 Run a release-validation gate on this branch focused only on:
 
-1. Native widget refresh-after-completion proof using the installed small/medium Home Screen widgets.
+1. Native widget add/edit/day-boundary refresh proof using the installed small/medium Home Screen widgets.
 2. StoreKit sandbox monthly/yearly/lifetime purchase and restore proof.
 3. VoiceOver/Dynamic Type pass on Today, Check Work, Assignment Detail, Widget Setup, and Paywall.
 4. Heavy-load simulator seed with 100 and 500 assignments.
