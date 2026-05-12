@@ -145,19 +145,31 @@ checkFinalReadiness();
 checkCompletionAudit();
 checkVoiceOverSourceAudit();
 checkStoreKitHandoff();
+checkRunbook(
+  "StoreKit testing runbook and attempt log exist",
+  "docs/STOREKIT_TESTING_RUNBOOK.md",
+  path.join(proofRoot, "storekit-sandbox-attempt.md"),
+  "StoreKit testing handoff must explain how to capture products-loaded paywall and purchase/restore proof."
+);
+checkRunbook(
+  "VoiceOver traversal runbook and attempt log exist",
+  "docs/VOICEOVER_TRAVERSAL_RUNBOOK.md",
+  path.join(proofRoot, "voiceover-traversal-attempt.md"),
+  "VoiceOver handoff must explain how to capture real traversal proof."
+);
 checkSubmissionGateHasExpectedBlockers();
 
 checkFile(
   "Products-loaded paywall proof exists",
   path.join(postGoalArtifactRoot, "37-paywall-products-loaded.png"),
-  "Missing products-loaded StoreKit paywall screenshot."
+  "Missing products-loaded StoreKit paywall screenshot. Use docs/STOREKIT_TESTING_RUNBOOK.md; tooling/setup attempts are recorded in storekit-sandbox-attempt.md."
 );
 checkProof({
   label: "StoreKit sandbox purchase/restore proof exists",
   fileName: "storekit-sandbox-proof.md",
   requiredTerms: ["monthly", "yearly", "lifetime", "restore", "sandbox"],
   detail:
-    "StoreKit monthly/yearly/Lifetime purchase and restore proof must be recorded before the 9.2 goal can be closed."
+    "StoreKit monthly/yearly/Lifetime purchase and restore proof must be recorded before the 9.2 goal can be closed. Use docs/STOREKIT_TESTING_RUNBOOK.md; setup attempts are recorded in storekit-sandbox-attempt.md."
 });
 checkProof({
   label: "Full VoiceOver traversal proof exists",
@@ -309,6 +321,19 @@ function checkProof({ label, fileName, requiredTerms, detail }) {
     source.trim().length >= 120 && missingTerms.length === 0 && !placeholderTerm,
     label,
     `${detail} Missing terms: ${missingTerms.join(", ") || "none"}. Placeholder term: ${placeholderTerm || "none"}.`
+  );
+}
+
+function checkRunbook(label, docPath, attemptPath, detail) {
+  const docExists = fileExists(docPath);
+  const attemptExists = fs.existsSync(attemptPath) && fs.statSync(attemptPath).size > 0;
+  check(
+    docExists && attemptExists,
+    label,
+    `${detail} Missing: ${[
+      docExists ? null : docPath,
+      attemptExists ? null : path.relative(root, attemptPath)
+    ].filter(Boolean).join(", ") || "none"}.`
   );
 }
 

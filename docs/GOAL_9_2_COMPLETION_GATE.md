@@ -1,6 +1,6 @@
 # Goal 9.2 Completion Gate
 
-Generated: 2026-05-12T22:51:34.426Z
+Generated: 2026-05-12T22:54:40.152Z
 
 The v1-2 goal branch is an ancestor of the current v1-3 ASO/submission branch.
 
@@ -24,9 +24,11 @@ Functionality matrix rows inspected: 440
 | Completion audit no longer marks goal incomplete | BLOCKER | docs/COMPLETION_AUDIT_9_2.md still marks goal completion as not complete. |
 | VoiceOver source audit has no local blockers | PASS |  |
 | StoreKit source handoff audit has no local blockers | PASS |  |
+| StoreKit testing runbook and attempt log exist | PASS |  |
+| VoiceOver traversal runbook and attempt log exist | PASS |  |
 | Submission gate blocks only after local source audits pass | PASS |  |
-| Products-loaded paywall proof exists | BLOCKER | Missing products-loaded StoreKit paywall screenshot. |
-| StoreKit sandbox purchase/restore proof exists | BLOCKER | StoreKit monthly/yearly/Lifetime purchase and restore proof must be recorded before the 9.2 goal can be closed. Missing: artifacts/post-goal-aso-submission/external-proof/storekit-sandbox-proof.md. |
+| Products-loaded paywall proof exists | BLOCKER | Missing products-loaded StoreKit paywall screenshot. Use docs/STOREKIT_TESTING_RUNBOOK.md; tooling/setup attempts are recorded in storekit-sandbox-attempt.md. |
+| StoreKit sandbox purchase/restore proof exists | BLOCKER | StoreKit monthly/yearly/Lifetime purchase and restore proof must be recorded before the 9.2 goal can be closed. Use docs/STOREKIT_TESTING_RUNBOOK.md; setup attempts are recorded in storekit-sandbox-attempt.md. Missing: artifacts/post-goal-aso-submission/external-proof/storekit-sandbox-proof.md. |
 | Full VoiceOver traversal proof exists | BLOCKER | Source-level VoiceOver coverage is not a substitute for simulator/device traversal proof. Use docs/VOICEOVER_TRAVERSAL_RUNBOOK.md; tooling attempts are recorded in voiceover-traversal-attempt.md. Missing: artifacts/post-goal-aso-submission/external-proof/voiceover-traversal.md. |
 | Localized UI/native review proof exists or is explicitly deferred | PASS |  |
 

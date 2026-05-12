@@ -226,5 +226,6 @@
 | npm run verify:production | Passed | Production config verification passed | Re-run after localized UI deferral disposition |
 | npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning | Submission gate remains unchanged for English-only submission |
 | VoiceOver traversal tooling check | Blocked | `simctl ui` cannot traverse VoiceOver, Accessibility Inspector launched only as GUI, and `xcodebuild test` failed because no UI test bundles are available | Added `docs/VOICEOVER_TRAVERSAL_RUNBOOK.md` and `voiceover-traversal-attempt.md`; real manual traversal still required |
+| StoreKit testing setup check | Blocked | No `.storekit` file exists, `xcrun storekit` is unavailable, and the shared app scheme has no StoreKit configuration reference | Added `docs/STOREKIT_TESTING_RUNBOOK.md` and `storekit-sandbox-attempt.md`; real StoreKit Testing/App Store Connect proof still required |
 
 Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, manual App Store Connect screenshot upload acceptance, full translated UI/string extraction/native localization review, full simulator VoiceOver traversal, restore purchase success proof. Optional: overnight widget rollover screenshot.
