@@ -252,3 +252,4 @@ Known residual risks:
 | 45 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after localized UI disposition | No |
 | 45 | `npm run verify:production` | Passed | Production config verification passed after localized UI disposition | No |
 | 45 | `npm run verify:submission` | Failed as intended | NO-SUBMIT remains 8 blockers and 1 warning | External proof blockers remain |
+| 46 | VoiceOver traversal tooling check | Blocked | `xcrun simctl help ui` has no VoiceOver traversal option; Accessibility Inspector launched only as a GUI process; `xcodebuild test` failed with no available test bundles | Added `docs/VOICEOVER_TRAVERSAL_RUNBOOK.md` and `artifacts/post-goal-aso-submission/external-proof/voiceover-traversal-attempt.md`; manual traversal proof remains required |

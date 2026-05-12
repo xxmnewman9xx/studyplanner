@@ -164,7 +164,7 @@ checkProof({
   fileName: "voiceover-traversal.md",
   requiredTerms: ["today", "check", "assignment", "widget", "paywall"],
   detail:
-    "Source-level VoiceOver coverage is not a substitute for simulator/device traversal proof."
+    "Source-level VoiceOver coverage is not a substitute for simulator/device traversal proof. Use docs/VOICEOVER_TRAVERSAL_RUNBOOK.md; tooling attempts are recorded in voiceover-traversal-attempt.md."
 });
 checkLocalizedUiDisposition();
 
