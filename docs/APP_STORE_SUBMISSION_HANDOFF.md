@@ -22,7 +22,7 @@ Status: NO-SUBMIT as of 2026-05-12.
 1. App Store Connect IAP product status and sandbox monthly/yearly/Lifetime/restore proof missing.
 2. Support URL missing; submission verification fails without EXPO_PUBLIC_SUPPORT_URL in submission mode.
 3. Fresh screenshot folder is incomplete: 29 raw simulator PNGs and a contact sheet are captured, but remaining required states are missing.
-4. Native widget refresh after completion, edit, and add is proven, but day-boundary widget refresh proof remains missing.
+4. Native widget refresh after completion, edit, and add is proven; day-boundary label/urgency behavior is code/build proven, but overnight Home Screen screenshot proof is not captured.
 5. iPad screenshot strategy unresolved while ios.supportsTablet is true.
 6. Privacy URL/support page must be publicly verified and updated for parser endpoint/upload retention if endpoint is enabled.
 7. Signed App Store archive entitlement for notifications must be checked.
@@ -52,7 +52,8 @@ Current capture inventory:
 - Widget refresh proof captured: `46-widget-refresh-after-completion.png` and `widget-refresh-after-completion-snapshot.json` show completing Lab Report updated the App Group snapshot and installed widgets.
 - Widget edit refresh proof captured: `47-widget-refresh-after-edit.png` and `widget-refresh-after-edit-snapshot.json` show editing Reading Reflection to Reflection Draft updated the App Group snapshot and installed widgets.
 - Widget add refresh proof captured: `48-widget-refresh-after-add.png` and `widget-refresh-after-add-snapshot.json` show adding Field Notes updated the App Group snapshot and installed widgets.
-- Missing: products-loaded paywall, upload/photo/manual/parser-success states, restore purchases, localized UI screenshots/string extraction, full VoiceOver/Dynamic Type screen sweep, iPad screenshots, and widget day-boundary refresh proof.
+- Widget day-boundary behavior is code/build proven: WidgetKit recomputes label/urgency at render time and schedules refresh for the earlier of 30 minutes or 00:01 local time.
+- Missing: products-loaded paywall, upload/photo/manual/parser-success states, restore purchases, localized UI screenshots/string extraction, full VoiceOver/Dynamic Type screen sweep, iPad screenshots, and optional overnight widget rollover screenshot.
 
 Date/localization implementation note:
 
@@ -67,4 +68,4 @@ Accessibility implementation note:
 
 ## Recommendation
 
-Do not submit this branch yet. Continue with remaining screenshot capture, StoreKit sandbox proof, support/privacy finalization, widget day-boundary refresh proof, iPad strategy, and final QA.
+Do not submit this branch yet. Continue with remaining screenshot capture, StoreKit sandbox proof, support/privacy finalization, optional overnight widget rollover screenshot, iPad strategy, and final QA.

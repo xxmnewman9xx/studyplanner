@@ -33,7 +33,7 @@ Future cycles will append exact commands, outputs, fixes, and retests after impl
 
 Known residual risks:
 
-- Native small/medium widget screenshots are now captured on the successor branch; refresh-after-completion proof is captured in `artifacts/post-goal-aso-submission/46-widget-refresh-after-completion.png`, edit refresh proof is captured in `artifacts/post-goal-aso-submission/47-widget-refresh-after-edit.png`, add refresh proof is captured in `artifacts/post-goal-aso-submission/48-widget-refresh-after-add.png`, and day-boundary refresh proof still needs a focused simulator pass.
+- Native small/medium widget screenshots are now captured on the successor branch; refresh-after-completion proof is captured in `artifacts/post-goal-aso-submission/46-widget-refresh-after-completion.png`, edit refresh proof is captured in `artifacts/post-goal-aso-submission/47-widget-refresh-after-edit.png`, add refresh proof is captured in `artifacts/post-goal-aso-submission/48-widget-refresh-after-add.png`, and day-boundary behavior is code/build proven. An overnight visual screenshot remains optional final proof.
 - Accessibility/localization/performance are improved only at high-impact points, not exhaustively completed.
 - Heavy-load scenarios from the 500-use-case swarm are specified but not fully automated as e2e tests.
 
@@ -69,9 +69,15 @@ Known residual risks:
 | 17 | Current-date capture seed | Passed | `src/data/demoSemester.ts` now rolls demo dates relative to capture day; stale native widget overdue labels fixed | No |
 | 17 | `npm run typecheck` | Passed | `tsc --noEmit` completed after current-date capture patch | No |
 | 17 | `npm run test` | Passed | 37/37 tests passed | No |
-| 18 | Widget refresh-after-completion proof | Passed | Completing Lab Report moved native widget `nextDue` to Reading Reflection, reduced This Week to 4, monthly due to 7, and completed count to 4; payload stored at `artifacts/post-goal-aso-submission/widget-refresh-after-completion-snapshot.json` | Add/day-boundary proof still needed |
+| 18 | Widget refresh-after-completion proof | Passed | Completing Lab Report moved native widget `nextDue` to Reading Reflection, reduced This Week to 4, monthly due to 7, and completed count to 4; payload stored at `artifacts/post-goal-aso-submission/widget-refresh-after-completion-snapshot.json` | Add proof completed in cycle 20; day-boundary code/build proof completed in cycle 21 |
 | 18 | `xcrun simctl io screenshot` | Passed | Captured refreshed installed widgets in `artifacts/post-goal-aso-submission/46-widget-refresh-after-completion.png` | No |
-| 19 | Widget refresh-after-edit proof | Passed | Editing Reading Reflection to Reflection Draft updated native widget nextDue and medium item title; payload stored at `artifacts/post-goal-aso-submission/widget-refresh-after-edit-snapshot.json` | Day-boundary proof still needed after cycle 20 |
+| 19 | Widget refresh-after-edit proof | Passed | Editing Reading Reflection to Reflection Draft updated native widget nextDue and medium item title; payload stored at `artifacts/post-goal-aso-submission/widget-refresh-after-edit-snapshot.json` | Day-boundary code/build proof added in cycle 21 |
 | 19 | `xcrun simctl io screenshot` | Passed | Captured edited-title installed widgets in `artifacts/post-goal-aso-submission/47-widget-refresh-after-edit.png` | No |
-| 20 | Widget refresh-after-add proof | Passed | Adding Field Notes to Science Lab updated native widget nextDue, This Week, and monthly counts; payload stored at `artifacts/post-goal-aso-submission/widget-refresh-after-add-snapshot.json` | Day-boundary proof still needed |
+| 20 | Widget refresh-after-add proof | Passed | Adding Field Notes to Science Lab updated native widget nextDue, This Week, and monthly counts; payload stored at `artifacts/post-goal-aso-submission/widget-refresh-after-add-snapshot.json` | Day-boundary code/build proof added in cycle 21 |
 | 20 | `xcrun simctl io screenshot` | Passed | Captured added-assignment installed widgets in `artifacts/post-goal-aso-submission/48-widget-refresh-after-add.png` | No |
+| 21 | Widget day-boundary source guard | Passed | `plugins/withStudyPlannerWidget.js` adds `nextWidgetRefreshDate`, render-time `relativeUrgency`, and shared `relativeDueDays`; `tests/widgetPlugin.test.ts` checks plugin and generated Swift source | Overnight screenshot optional |
+| 21 | `npm run typecheck` | Passed | `tsc --noEmit` completed after widget day-boundary patch | No |
+| 21 | `npm run test` | Passed | 38/38 tests passed, including widget day-boundary source guard | No |
+| 21 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after widget day-boundary patch | No |
+| 21 | `npm run verify:production` | Passed | Production config verification passed after widget day-boundary patch | No |
+| 21 | `EXPO_PUBLIC_STORE_CAPTURE=0 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE --no-bundler` | Passed | iOS build compiled, signed, installed, and opened; WidgetKit extension linked without warnings/errors | No |

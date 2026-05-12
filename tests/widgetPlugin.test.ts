@@ -4,6 +4,16 @@ import fs from "node:fs";
 import path from "node:path";
 
 const pluginPath = path.join(process.cwd(), "plugins/withStudyPlannerWidget.js");
+const nativeWidgetPath = path.join(
+  process.cwd(),
+  "ios/StudyPlannerWidgetExtension/StudyPlannerWidget.swift"
+);
+
+function widgetSources() {
+  return fs.existsSync(nativeWidgetPath)
+    ? [pluginPath, nativeWidgetPath]
+    : [pluginPath];
+}
 
 test("native widget placeholder does not ship demo coursework", () => {
   const source = fs.readFileSync(pluginPath, "utf8");
@@ -22,9 +32,22 @@ test("native widget placeholder does not ship demo coursework", () => {
 });
 
 test("native widget swift computes due labels at render time", () => {
-  const source = fs.readFileSync(pluginPath, "utf8");
+  for (const sourcePath of widgetSources()) {
+    const source = fs.readFileSync(sourcePath, "utf8");
 
-  assert.ok(source.includes("func relativeDueLabel"));
-  assert.ok(source.includes("DuePill(item: item, date: date)"));
-  assert.ok(source.includes("relativeDueLabel(item.dueAt, from: date)"));
+    assert.ok(source.includes("func relativeDueLabel"), sourcePath);
+    assert.ok(source.includes("DuePill(item: item, date: date)"), sourcePath);
+    assert.ok(source.includes("relativeDueLabel(item.dueAt, from: date)"), sourcePath);
+  }
+});
+
+test("native widget refreshes date-sensitive display around day boundaries", () => {
+  for (const sourcePath of widgetSources()) {
+    const source = fs.readFileSync(sourcePath, "utf8");
+
+    assert.ok(source.includes("func nextWidgetRefreshDate"), sourcePath);
+    assert.ok(source.includes("DateComponents(hour: 0, minute: 1, second: 0)"), sourcePath);
+    assert.ok(source.includes("relativeUrgency(item.dueAt, from: date, fallback: item.urgency)"), sourcePath);
+    assert.ok(source.includes("urgencyColor(urgency)"), sourcePath);
+  }
 });

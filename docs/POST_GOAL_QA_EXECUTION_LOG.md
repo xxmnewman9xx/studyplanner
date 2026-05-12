@@ -44,5 +44,11 @@
 | Simulator class/work add + App Group payload check | Passed | `widget-refresh-after-add-snapshot.json` | Adding Science Lab and Field Notes updated native widget nextDue, This Week, and monthly due count |
 | xcrun simctl io screenshot | Passed | `48-widget-refresh-after-add.png` | Installed Home Screen widgets rendered the added assignment |
 | Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 29 PNGs at 1248x5328 | Re-run after widget add refresh screenshot |
+| Widget day-boundary source guard | Passed | `tests/widgetPlugin.test.ts` | Guards render-time due labels, render-time urgency, and 00:01 local timeline refresh in plugin and generated Swift source |
+| npm run typecheck | Passed | exit 0 | Re-run after WidgetKit day-boundary patch |
+| npm run test | Passed | 38/38 | Added widget day-boundary source guard |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after WidgetKit day-boundary patch; unchanged monetization guard |
+| npm run verify:production | Passed | Production config verification passed | Re-run after WidgetKit day-boundary patch |
+| EXPO_PUBLIC_STORE_CAPTURE=0 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE --no-bundler | Passed | Build succeeded, 0 errors/0 warnings; app installed/opened | Verified WidgetKit extension compiles after day-boundary patch |
 
-Unrun/blocked: StoreKit sandbox, widget day-boundary refresh proof, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/Dynamic Type screen sweep, restore purchases.
+Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/Dynamic Type screen sweep, restore purchases. Optional: overnight widget rollover screenshot.

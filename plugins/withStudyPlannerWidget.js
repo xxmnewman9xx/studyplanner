@@ -342,8 +342,10 @@ struct StudyPlannerProvider: TimelineProvider {
   }
 
   func getTimeline(in context: Context, completion: @escaping (Timeline<StudyPlannerEntry>) -> Void) {
-    let entry = StudyPlannerEntry(date: Date(), snapshot: loadSnapshot())
-    let refreshDate = Calendar.current.date(byAdding: .minute, value: 30, to: Date()) ?? Date().addingTimeInterval(1800)
+    let now = Date()
+    let snapshot = loadSnapshot()
+    let entry = StudyPlannerEntry(date: now, snapshot: snapshot)
+    let refreshDate = nextWidgetRefreshDate(from: now)
     completion(Timeline(entries: [entry], policy: .after(refreshDate)))
   }
 
@@ -449,7 +451,7 @@ struct MediumWidgetView: View {
           VStack(alignment: .leading, spacing: 5) {
             ForEach(items.prefix(4)) { item in
               HStack(alignment: .center, spacing: 7) {
-                UrgencyDot(urgency: item.urgency)
+                UrgencyDot(urgency: relativeUrgency(item.dueAt, from: date, fallback: item.urgency))
                 VStack(alignment: .leading, spacing: 1) {
                   Text(item.title)
                     .font(.system(size: 12, weight: .bold))
@@ -575,11 +577,13 @@ struct DuePill: View {
   let date: Date
 
   var body: some View {
+    let urgency = relativeUrgency(item.dueAt, from: date, fallback: item.urgency)
+
     HStack(spacing: 5) {
-      UrgencyDot(urgency: item.urgency)
+      UrgencyDot(urgency: urgency)
       Text(relativeDueLabel(item.dueAt, from: date))
         .font(.system(size: 12, weight: .black))
-        .foregroundStyle(urgencyColor(item.urgency))
+        .foregroundStyle(urgencyColor(urgency))
         .lineLimit(1)
     }
     .padding(.horizontal, 8)
@@ -609,14 +613,9 @@ struct WidgetAuroraBands: View {
 }
 
 func relativeDueLabel(_ dueAt: String, from date: Date) -> String {
-  guard let due = parseWidgetDate(dueAt) else {
+  guard let days = relativeDueDays(dueAt, from: date) else {
     return "Upcoming"
   }
-
-  let calendar = Calendar.current
-  let today = calendar.startOfDay(for: date)
-  let dueDay = calendar.startOfDay(for: due)
-  let days = calendar.dateComponents([.day], from: today, to: dueDay).day ?? 0
 
   if days < 0 {
     let overdue = abs(days)
@@ -626,6 +625,40 @@ func relativeDueLabel(_ dueAt: String, from date: Date) -> String {
   if days == 0 { return "Today" }
   if days == 1 { return "Tomorrow" }
   return "\\(days) days"
+}
+
+func relativeUrgency(_ dueAt: String, from date: Date, fallback: String) -> String {
+  guard let days = relativeDueDays(dueAt, from: date) else {
+    return fallback
+  }
+
+  if days < 0 { return "overdue" }
+  if days == 0 { return "today" }
+  if days <= 2 { return "soon" }
+  return "upcoming"
+}
+
+func relativeDueDays(_ dueAt: String, from date: Date) -> Int? {
+  guard let due = parseWidgetDate(dueAt) else {
+    return nil
+  }
+
+  let calendar = Calendar.current
+  let today = calendar.startOfDay(for: date)
+  let dueDay = calendar.startOfDay(for: due)
+  return calendar.dateComponents([.day], from: today, to: dueDay).day
+}
+
+func nextWidgetRefreshDate(from date: Date) -> Date {
+  let calendar = Calendar.current
+  let thirtyMinutes = calendar.date(byAdding: .minute, value: 30, to: date) ?? date.addingTimeInterval(1800)
+  let nextDayBoundary = calendar.nextDate(
+    after: date,
+    matching: DateComponents(hour: 0, minute: 1, second: 0),
+    matchingPolicy: .nextTime
+  ) ?? thirtyMinutes
+
+  return nextDayBoundary < thirtyMinutes ? nextDayBoundary : thirtyMinutes
 }
 
 func parseWidgetDate(_ value: String) -> Date? {
