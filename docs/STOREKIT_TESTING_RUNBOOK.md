@@ -2,7 +2,7 @@
 
 Date created: 2026-05-12
 
-Purpose: provide the exact path to clear the remaining products-loaded paywall and StoreKit purchase/restore blockers. This is a runbook, not proof. Do not copy it to `storekit-sandbox-proof.md` unless real products-loaded, purchase, restore, and entitlement behavior has been captured.
+Purpose: provide the exact path to clear the remaining StoreKit purchase/restore blockers. This is a runbook, not proof. Do not copy it to `storekit-sandbox-proof.md` unless real purchase, restore, and entitlement behavior has been captured.
 
 Official Apple reference checked:
 - [Setting up StoreKit Testing in Xcode](https://developer.apple.com/documentation/xcode/setting-up-storekit-testing-in-xcode/)
@@ -10,12 +10,12 @@ Official Apple reference checked:
 
 ## Current Blocker
 
-`npm run verify:goal92` requires:
+`npm run verify:goal92` previously required:
 
 - `artifacts/post-goal-aso-submission/37-paywall-products-loaded.png`
 - `artifacts/post-goal-aso-submission/external-proof/storekit-sandbox-proof.md`
 
-`npm run verify:submission` also requires these, plus real IAP env values and App Store Connect proof.
+`37-paywall-products-loaded.png` is now captured from a real simulator paywall with returned subscription products. The remaining blocker is `storekit-sandbox-proof.md`, which must include monthly, yearly, Lifetime, and restore results. `npm run verify:submission` also requires real IAP env values, support URL, App Store Connect proof, signed archive proof, and VoiceOver traversal proof.
 
 ## Current Local State
 
@@ -23,10 +23,11 @@ Checks run on 2026-05-12:
 
 | Check | Result | Impact |
 | --- | --- | --- |
-| `rg --files \| rg -i '\\.storekit$'` | No `.storekit` file found | Local StoreKit Testing is not configured in repo |
+| `rg --files \| rg -i '\\.storekit$'` | `ios/StudyPlannerProducts.storekit` exists | Local StoreKit Testing configuration is present in repo |
 | `xcrun storekit --help` | `xcrun` could not find a `storekit` utility | No local StoreKit CLI is available in this Xcode install |
-| Shared app scheme inspection | `ios/StudyPlannerSyllabusAI.xcodeproj/xcshareddata/xcschemes/StudyPlannerSyllabusAI.xcscheme` has no StoreKit configuration reference | Launching from this scheme will not load local StoreKit products |
-| Source audit | `npm run audit:storekit` passes with one external-proof warning | Code paths are ready, but StoreKit product behavior remains unproven |
+| Shared app scheme inspection | `ios/StudyPlannerSyllabusAI.xcodeproj/xcshareddata/xcschemes/StudyPlannerSyllabusAI.xcscheme` references `../StudyPlannerProducts.storekit` | Xcode Debug Run is prepared for local StoreKit Testing |
+| Source audit | `npm run audit:storekit` passes with one external-proof warning | Code paths and local config are ready, but StoreKit transaction behavior remains unproven |
+| Products-loaded screenshot | `artifacts/post-goal-aso-submission/37-paywall-products-loaded.png`, 1179x2556 | Real simulator paywall shows returned monthly/yearly subscription products. Lifetime purchase remains unproven and must be covered by the transaction proof. |
 
 ## Product IDs
 
@@ -40,13 +41,13 @@ Use the exact IDs already preserved in source and App Store metadata:
 
 ## Local StoreKit Testing Path
 
-1. In Xcode, create or sync a StoreKit configuration file for the three product IDs above.
-2. Include:
+1. Use the checked-in StoreKit configuration file: `ios/StudyPlannerProducts.storekit`.
+2. Confirm it includes:
    - Monthly auto-renewable subscription.
    - Yearly auto-renewable subscription.
    - Lifetime non-consumable.
    - Localized title/description/price values that match the planned App Store Connect products closely enough for screenshot proof.
-3. Attach the `.storekit` file to the app scheme under Run options as the StoreKit Configuration.
+3. Confirm the shared app scheme references `../StudyPlannerProducts.storekit` under Run options as the StoreKit Configuration.
 4. Launch the app with explicit IAP env IDs:
 
 ```sh
@@ -95,4 +96,5 @@ The verifier rejects template/TODO/placeholder language, so keep the proof speci
 - Do not claim App Store Connect products are approved from local StoreKit Testing alone.
 - Do not claim Lifetime is purchasable unless the store returns the non-consumable product.
 - Do not use `38-paywall-product-load-failure.png` as products-loaded proof.
+- Do not treat `37-paywall-products-loaded.png` as transaction proof; it proves a products-loaded paywall state only.
 - Do not fake a successful restore without a real transaction result.

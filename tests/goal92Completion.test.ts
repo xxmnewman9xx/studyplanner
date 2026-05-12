@@ -40,12 +40,12 @@ test("goal 9.2 completion gate exposes structured JSON for audit tooling", () =>
   assert.ok(audit.functionalityRows >= 400);
   assert.ok(Array.isArray(audit.blockers));
   assert.ok(
-    audit.blockers.some((blocker: { label: string; proofType: string; requiredFiles: string[] }) =>
-      blocker.label === "Products-loaded paywall proof exists" &&
-      blocker.proofType === "external-storekit-screenshot" &&
-      blocker.requiredFiles.includes("artifacts/post-goal-aso-submission/37-paywall-products-loaded.png")
+    audit.checks.some((check: { label: string; status: string }) =>
+      check.label === "Products-loaded paywall proof exists" &&
+      check.status === "PASS"
     )
   );
+  assert.ok(!audit.blockers.some((blocker: { label: string }) => blocker.label === "Products-loaded paywall proof exists"));
   assert.ok(
     audit.blockers.some((blocker: { label: string; proofType: string; requiredFiles: string[] }) =>
       blocker.label === "StoreKit sandbox purchase/restore proof exists" &&

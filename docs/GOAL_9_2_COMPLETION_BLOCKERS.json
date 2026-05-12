@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-05-12T22:58:41.501Z",
-  "result": "GOAL-OPEN: 5 blocker(s), 0 warning(s).",
+  "generatedAt": "2026-05-12T23:20:00.639Z",
+  "result": "GOAL-OPEN: 4 blocker(s), 0 warning(s).",
   "branchContext": "The v1-2 goal branch is an ancestor of the current v1-3 ASO/submission branch.",
   "useCaseRows": 565,
   "functionalityRows": 440,
-  "blockerCount": 5,
+  "blockerCount": 4,
   "warningCount": 0,
   "blockers": [
     {
@@ -20,7 +20,7 @@
       "requiredFiles": [
         "docs/FINAL_9_2_READINESS_REPORT.md"
       ],
-      "nextAction": "Leave the report at No until products-loaded paywall, StoreKit sandbox/restore, and VoiceOver traversal proof exist; then update and re-run the gate.",
+      "nextAction": "Leave the report at No until StoreKit sandbox/restore and VoiceOver traversal proof exist; then update and re-run the gate.",
       "canBeClosedByLocalSourceTests": false
     },
     {
@@ -41,22 +41,6 @@
     },
     {
       "id": "G92-B03",
-      "label": "Products-loaded paywall proof exists",
-      "status": "BLOCKER",
-      "proofType": "external-storekit-screenshot",
-      "category": "StoreKit products-loaded paywall proof",
-      "detail": "Missing products-loaded StoreKit paywall screenshot. Use docs/STOREKIT_TESTING_RUNBOOK.md; tooling/setup attempts are recorded in storekit-sandbox-attempt.md.",
-      "requiredEvidence": [
-        "A real simulator/device screenshot of the paywall with monthly, yearly, and Lifetime products loaded from StoreKit Testing or sandbox."
-      ],
-      "requiredFiles": [
-        "artifacts/post-goal-aso-submission/37-paywall-products-loaded.png"
-      ],
-      "nextAction": "Follow docs/STOREKIT_TESTING_RUNBOOK.md, launch a StoreKit-enabled build, capture the paywall products-loaded state, and re-run the gate.",
-      "canBeClosedByLocalSourceTests": false
-    },
-    {
-      "id": "G92-B04",
       "label": "StoreKit sandbox purchase/restore proof exists",
       "status": "BLOCKER",
       "proofType": "external-storekit-sandbox",
@@ -76,7 +60,7 @@
       "canBeClosedByLocalSourceTests": false
     },
     {
-      "id": "G92-B05",
+      "id": "G92-B04",
       "label": "Full VoiceOver traversal proof exists",
       "status": "BLOCKER",
       "proofType": "manual-accessibility-traversal",

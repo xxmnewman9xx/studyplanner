@@ -20,6 +20,8 @@ const files = {
   subscriptions: read("src/services/subscriptions.tsx"),
   upgrade: read("src/screens/UpgradeScreen.tsx"),
   settings: read("src/screens/SettingsScreen.tsx"),
+  storeKitConfig: read("ios/StudyPlannerProducts.storekit"),
+  xcodeScheme: read("ios/StudyPlannerSyllabusAI.xcodeproj/xcshareddata/xcschemes/StudyPlannerSyllabusAI.xcscheme"),
   appStoreMetadata: read("docs/APP_STORE_METADATA.md"),
   lifetimeSetup: read("docs/LIFETIME_IAP_SETUP.md"),
   handoff: read("docs/APP_STORE_SUBMISSION_HANDOFF.md")
@@ -116,6 +118,20 @@ const checks = [
     "Settings exposes restore and support/privacy surfaces",
     ["Restore Purchases", "Privacy Policy", "Support URL is required before final submission."]
   ),
+  check(
+    parseStoreKitConfig(files.storeKitConfig) !== null,
+    "Local StoreKit configuration is valid JSON",
+    "ios/StudyPlannerProducts.storekit must parse as JSON so Xcode can load it."
+  ),
+  checkStoreKitProducts(),
+  checkIncludesAll(
+    files.xcodeScheme,
+    "Debug scheme selects the local StoreKit configuration",
+    [
+      "<StoreKitConfigurationFileReference",
+      "identifier = \"../StudyPlannerProducts.storekit\""
+    ]
+  ),
   checkIncludesAll(
     files.lifetimeSetup,
     "Lifetime setup doc describes real non-consumable handling",
@@ -133,15 +149,16 @@ const checks = [
   ),
   checkIncludesAll(
     files.handoff,
-    "Submission handoff keeps StoreKit proof external",
+    "Submission handoff keeps StoreKit transaction proof external",
     [
       "App Store Connect IAP product status and sandbox monthly/yearly/Lifetime/restore proof missing",
-      "Products-loaded paywall screenshot is missing"
+      "Products-loaded paywall screenshot is captured",
+      "does not prove Lifetime purchase availability"
     ]
   ),
   warn(
     "StoreKit sandbox proof remains external",
-    "This source audit cannot prove products-loaded paywall, sandbox monthly/yearly/Lifetime purchases, restore success, App Store Connect product status, or reviewer product attachment."
+    "This source audit cannot prove sandbox monthly/yearly/Lifetime purchases, restore success, App Store Connect product status, reviewer product attachment, or Lifetime transaction availability."
   )
 ];
 
@@ -155,6 +172,8 @@ const audit = {
     "src/services/subscriptions.tsx",
     "src/screens/UpgradeScreen.tsx",
     "src/screens/SettingsScreen.tsx",
+    "ios/StudyPlannerProducts.storekit",
+    "ios/StudyPlannerSyllabusAI.xcodeproj/xcshareddata/xcschemes/StudyPlannerSyllabusAI.xcscheme",
     "docs/APP_STORE_METADATA.md",
     "docs/LIFETIME_IAP_SETUP.md",
     "docs/APP_STORE_SUBMISSION_HANDOFF.md"
@@ -217,6 +236,44 @@ function checkIncludesAll(source, label, snippets) {
   );
 }
 
+function checkStoreKitProducts() {
+  const config = parseStoreKitConfig(files.storeKitConfig);
+  if (!config) {
+    return check(false, "Local StoreKit configuration includes the exact StudyPlanner product set", "StoreKit config JSON could not be parsed.");
+  }
+
+  const nonConsumableProducts = Array.isArray(config.products) ? config.products : [];
+  const subscriptionGroups = Array.isArray(config.subscriptionGroups) ? config.subscriptionGroups : [];
+  const subscriptions = subscriptionGroups.flatMap((group) =>
+    Array.isArray(group.subscriptions) ? group.subscriptions : []
+  );
+  const lifetime = nonConsumableProducts.find((product) => product.productID === expectedLifetimeId);
+  const monthly = subscriptions.find((product) => product.productID === expectedMonthlyId);
+  const yearly = subscriptions.find((product) => product.productID === expectedYearlyId);
+
+  const failures = [
+    lifetime?.type === "NonConsumable" ? null : "Lifetime must be NonConsumable",
+    monthly?.type === "RecurringSubscription" ? null : "Monthly must be RecurringSubscription",
+    monthly?.recurringSubscriptionPeriod === "P1M" ? null : "Monthly must use P1M",
+    yearly?.type === "RecurringSubscription" ? null : "Yearly must be RecurringSubscription",
+    yearly?.recurringSubscriptionPeriod === "P1Y" ? null : "Yearly must use P1Y"
+  ].filter(Boolean);
+
+  return check(
+    failures.length === 0,
+    "Local StoreKit configuration includes the exact StudyPlanner product set",
+    failures.join("; ") || "none"
+  );
+}
+
+function parseStoreKitConfig(source) {
+  try {
+    return JSON.parse(source);
+  } catch {
+    return null;
+  }
+}
+
 function renderMarkdown(audit) {
   return `# StoreKit IAP Handoff Audit
 
@@ -225,7 +282,7 @@ Generated: ${audit.generatedAt}
 Sources:
 ${audit.sources.map((source) => `- \`${source}\``).join("\n")}
 
-This audit verifies local StoreKit/IAP source and handoff readiness. It does **not** prove App Store Connect product attachment, products-loaded paywall screenshots, sandbox purchase success, restore success, subscription renewal state, or Lifetime product approval.
+This audit verifies local StoreKit/IAP source and handoff readiness. It does **not** prove App Store Connect product attachment, sandbox purchase success, restore success, subscription renewal state, Lifetime transaction availability, or Lifetime product approval.
 
 ## Result
 
@@ -237,7 +294,6 @@ ${audit.checks.map((item) => `| ${escapeCell(item.label)} | ${item.status} | ${e
 
 ## Remaining External Proof
 
-- Products-loaded paywall screenshot from real StoreKit products.
 - Sandbox monthly purchase, yearly purchase, Lifetime purchase, and restore proof.
 - App Store Connect product attachment/status for the submitted app version.
 - Final App Review notes with exact product availability.

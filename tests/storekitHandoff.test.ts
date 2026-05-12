@@ -31,6 +31,20 @@ test("StoreKit handoff audit verifies source paths without replacing sandbox pro
     "finished transactions should not be marked consumable"
   );
   assert.ok(
+    audit.checks.some((check: { label: string; status: string }) =>
+      check.label === "Local StoreKit configuration includes the exact StudyPlanner product set" &&
+      check.status === "PASS"
+    ),
+    "local StoreKit config should include monthly, yearly, and Lifetime with correct product types"
+  );
+  assert.ok(
+    audit.checks.some((check: { label: string; status: string }) =>
+      check.label === "Debug scheme selects the local StoreKit configuration" &&
+      check.status === "PASS"
+    ),
+    "Debug scheme should point to the local StoreKit config for Xcode Run testing"
+  );
+  assert.ok(
     audit.checks.some((check: { label: string; status: string; detail?: string }) =>
       check.label === "StoreKit sandbox proof remains external" &&
       check.status === "WARN" &&

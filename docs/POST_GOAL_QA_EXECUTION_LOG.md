@@ -234,5 +234,18 @@
 | npm run verify:production | Passed | Production config verification passed | Re-run after blocker-ledger gate patch |
 | npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning | Submission gate remains unchanged; external proof blockers remain |
 | git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after blocker-ledger gate patch |
+| Local StoreKit config setup | Passed | `ios/StudyPlannerProducts.storekit`; shared scheme references `../StudyPlannerProducts.storekit` | Added monthly/yearly/Lifetime local StoreKit test config and Debug scheme wiring; this is setup, not transaction proof |
+| npm run audit:storekit | Passed with warning | `docs/STOREKIT_IAP_HANDOFF_AUDIT.md` | Audit now verifies local StoreKit config and scheme wiring; sandbox purchase/restore/Lifetime transaction proof remains external |
+| EXPO_PUBLIC_STORE_CAPTURE=1 + IAP env `npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE` | Passed | Build succeeded with 0 errors and 0 warnings | Used for products-loaded paywall capture with returned store products |
+| xcrun simctl openurl + screenshot | Passed | `artifacts/post-goal-aso-submission/37-paywall-products-loaded.png`, 1179x2556 | Real simulator paywall shows returned Yearly Plus `$24.99` and Plus Monthly `$3.99`; Lifetime transaction availability remains unproven |
+| Restore/purchase interaction attempt | Blocked safely | `storekit-sandbox-attempt.md` | Restore prompted Apple Account sign-in and then no active purchase after cancel; an accidental transaction-shaped prompt was cancelled; no credentials entered and no purchase completed |
+| Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png`, 48 raw PNGs, 1060x6907 | Re-run after products-loaded paywall screenshot |
+| npm run verify:goal92 | Failed as intended | GOAL-OPEN: 4 blockers, 0 warnings | Products-loaded screenshot blocker is closed; final-doc state, StoreKit sandbox/restore, and VoiceOver traversal blockers remain |
+| npm run verify:submission | Failed as intended | NO-SUBMIT: 7 blockers, 1 warning | Products-loaded screenshot check passes; submission remains blocked on IAP env IDs, support URL, StoreKit proof, App Store Connect upload acceptance, signed archive entitlements, and VoiceOver traversal |
+| npm run typecheck | Passed | exit 0 | Re-run after StoreKit config/products-loaded proof patch |
+| npm run test | Passed | 55/55 | Updated goal/submission tests for products-loaded PASS and transaction-proof blocker |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after StoreKit config/products-loaded proof patch |
+| npm run verify:production | Passed | Production config verification passed | Re-run after StoreKit config/products-loaded proof patch |
+| git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after StoreKit config/products-loaded proof patch |
 
-Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, manual App Store Connect screenshot upload acceptance, full translated UI/string extraction/native localization review, full simulator VoiceOver traversal, restore purchase success proof. Optional: overnight widget rollover screenshot.
+Unrun/blocked: StoreKit sandbox purchase/restore and Lifetime transaction proof, manual App Store Connect screenshot upload acceptance, full translated UI/string extraction/native localization review, full simulator VoiceOver traversal, restore purchase success proof. Optional: overnight widget rollover screenshot.

@@ -261,3 +261,14 @@ Known residual risks:
 | 48 | `npm run verify:production` | Passed | Production config verification passed after blocker-ledger gate patch | No |
 | 48 | `npm run verify:submission` | Failed as intended | NO-SUBMIT remains 8 blockers and 1 warning | External proof blockers remain |
 | 48 | `git diff --check` | Passed | No whitespace errors or conflict markers after blocker-ledger gate patch | No |
+| 49 | Local StoreKit config and scheme wiring | Passed with caveat | Added `ios/StudyPlannerProducts.storekit` with monthly/yearly/Lifetime IDs and wired the Debug scheme to `../StudyPlannerProducts.storekit`; `npm run audit:storekit` verifies config and scheme wiring | Transaction proof remains external |
+| 49 | Products-loaded paywall screenshot | Passed with caveat | Built capture-mode app with real IAP env IDs, opened paywall, and captured `37-paywall-products-loaded.png` at 1179x2556; visible returned products are Yearly Plus `$24.99` and Plus Monthly `$3.99` | Lifetime transaction availability and purchase/restore success remain unproven |
+| 49 | Restore/purchase interaction attempt | Blocked safely | Restore prompted Apple Account sign-in and after cancel reported no active Plus purchase; an accidental transaction-shaped prompt was cancelled; no credentials were entered and no purchase completed | StoreKit sandbox proof still required |
+| 49 | Contact sheet regeneration | Passed | `45-final-contact-sheet.png` regenerated from 48 raw PNGs at 1060x6907 | No |
+| 49 | Goal 9.2 completion gate after products-loaded proof | Failed as intended | `npm run verify:goal92` now reports GOAL-OPEN with 4 blockers and passes `Products-loaded paywall proof exists` | Final doc-state blockers, StoreKit sandbox/restore proof, and VoiceOver traversal remain |
+| 49 | Submission verifier after products-loaded proof | Failed as intended | `npm run verify:submission` now reports NO-SUBMIT with 7 blockers and 1 warning while passing products-loaded screenshot proof | External proof blockers remain |
+| 49 | `npm run typecheck` | Passed | `tsc --noEmit` completed after StoreKit config/products-loaded proof patch | No |
+| 49 | `npm run test` | Passed | 55/55 tests passed; goal/submission tests now assert products-loaded PASS and transaction-proof blockers | No |
+| 49 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after StoreKit config/products-loaded proof patch | No |
+| 49 | `npm run verify:production` | Passed | Production config verification passed after StoreKit config/products-loaded proof patch | No |
+| 49 | `git diff --check` | Passed | No whitespace errors or conflict markers after StoreKit config/products-loaded proof patch | No |

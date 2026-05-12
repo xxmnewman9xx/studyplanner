@@ -1,0 +1,94 @@
+{
+  "identifier" : "D7F92B41",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "79.99",
+      "familyShareable" : false,
+      "internalID" : "1A7E3D91",
+      "localizations" : [
+        {
+          "description" : "Unlock StudyPlanner Plus once, without a subscription.",
+          "displayName" : "StudyPlanner Plus Lifetime",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.mattnewman.studyplanner.plus.lifetime",
+      "referenceName" : "StudyPlanner Plus Lifetime",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_billingGracePeriodEnabled" : false,
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "USA",
+    "_timeRate" : 1000
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "A83D2F10",
+      "localizations" : [
+
+      ],
+      "name" : "StudyPlanner Plus",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "29.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6E24B1C8",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "A calmer school plan for the whole year.",
+              "displayName" : "StudyPlanner Plus Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.mattnewman.studyplanner.plus.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "StudyPlanner Plus Yearly",
+          "subscriptionGroupID" : "A83D2F10",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "9C35A0DE",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Month-to-month access to StudyPlanner Plus.",
+              "displayName" : "StudyPlanner Plus Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.mattnewman.studyplanner.plus.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "StudyPlanner Plus Monthly",
+          "subscriptionGroupID" : "A83D2F10",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 2,
+    "minor" : 0
+  }
+}

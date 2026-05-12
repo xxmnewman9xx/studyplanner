@@ -2,12 +2,12 @@
 
 Folder: `artifacts/post-goal-aso-submission`
 
-Status: partial proof captured on 2026-05-12. The folder now contains **47 primary raw simulator PNGs**, **11 raw 13-inch iPad simulator PNGs**, a primary contact sheet, an iPad contact sheet, and a local App Store-sized candidate export set. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit/products-loaded proof and manual App Store Connect upload acceptance are complete.
+Status: partial proof captured on 2026-05-12. The folder now contains **48 primary raw simulator PNGs**, **11 raw 13-inch iPad simulator PNGs**, a primary contact sheet, an iPad contact sheet, and a local App Store-sized candidate export set. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit transaction proof and manual App Store Connect upload acceptance are complete.
 
 ## Capture Summary
 
 - Production/no-demo proof captured: `06-today-empty.png`.
-- Capture-mode feature proof captured: onboarding, populated Today, Reminders, Settings, Add School Stuff, scan-paper unavailable state, upload-file state, parser-processing state, Check New Work, Check Work edit item, duplicate-found-work state, imported-found-work state, Manual Add, assignment detail, Calendar, filtered Calendar, Week Plan, Classes, Widget Setup, theme customization, and paywall product-load failure.
+- Capture-mode feature proof captured: onboarding, populated Today, Reminders, Settings, Add School Stuff, scan-paper unavailable state, upload-file state, parser-processing state, Check New Work, Check Work edit item, duplicate-found-work state, imported-found-work state, Manual Add, assignment detail, Calendar, filtered Calendar, Week Plan, Classes, Widget Setup, theme customization, paywall products-loaded state, and paywall product-load failure.
 - Native Home Screen widget proof captured: `30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png` show installed WidgetKit small and medium widgets, refreshed from a current May 2026 capture snapshot.
 - Native Home Screen widget edge-state proof captured: `32-widget-empty-state.png` and `33-widget-needs-check-state.png`, with App Group payload proof in `widget-empty-state-snapshot.json` and `widget-needs-check-state-snapshot.json`.
 - App icon/Home Screen proof captured: `40-app-icon-home-screen.png`.
@@ -18,11 +18,12 @@ Status: partial proof captured on 2026-05-12. The folder now contains **47 prima
 - Widget add refresh proof captured: `48-widget-refresh-after-add.png` and `widget-refresh-after-add-snapshot.json`.
 - Localized/date proof captured: `43-localized-ui-example.png`, captured on the iPhone simulator with `AppleLanguages=fr-FR`, `AppleLocale=fr_FR`, and forced 24-hour time. It shows locale-sensitive date ordering in Week Plan (`12 May - 18 May`) and 24-hour status-bar style, but app interface strings remain English; this is date-format proof, not full UI localization proof.
 - Contrast-safe visual spot check refreshed: `01-onboarding-welcome.png`, `07-today-populated.png`, `21-calendar-month.png`, `24-week-plan.png`, `26-classes-list.png`, and `29-widget-setup.png` after darkening foreground-bearing theme/class colors.
-- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 47 PNGs after the Settings/Restore Purchases refresh.
+- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 48 raw PNGs after the products-loaded paywall capture.
 - iPad proof captured in `ipad/`: 11 upright 2064x2752 PNGs plus `ipad-contact-sheet.png`; `ipad-10-settings-restore.png` was refreshed after the Settings restore label changed.
 - Local App Store-sized export proof captured in `app-store-export/`: 10 iPhone 6.9-inch candidate PNGs at 1290x2796, 10 iPad 13-inch candidate PNGs at 2064x2752, and `manifest.json`; the export was regenerated after the Settings/Restore Purchases refresh.
 - Restore access proof captured: `39-restore-purchases.png`. This proves the Restore entry point exists, not that a sandbox restore succeeded.
-- Paywall products-loaded proof is still missing. The captured paywall state shows purchases unavailable and is correctly stored as `38-paywall-product-load-failure.png`.
+- Paywall products-loaded proof captured: `37-paywall-products-loaded.png`, 1179x2556 real simulator UI showing returned Yearly Plus and Plus Monthly products. This does not prove Lifetime transaction availability, purchase success, restore success, or App Store Connect product approval.
+- Paywall product-load failure proof remains captured as `38-paywall-product-load-failure.png`.
 
 ## App Store-Sized Candidate Export
 
@@ -34,7 +35,7 @@ Status: partial proof captured on 2026-05-12. The folder now contains **47 prima
 | app-store-export/ipad-13 | Exported | 10 PNGs at 2064x2752, copied from validated real 13-inch iPad simulator screenshots. |
 | app-store-export/manifest.json | Exported | Lists source files, output files, dimensions, Apple spec URL, and the manual App Store Connect confirmation caveat. |
 
-This closes the local accepted-size export gap. It does not prove App Store Connect upload acceptance, StoreKit product loading, or localized App Store screenshot approval.
+This closes the local accepted-size export gap. It does not prove App Store Connect upload acceptance, StoreKit transaction success, or localized App Store screenshot approval.
 
 ## iPad Raw Proof Set
 
@@ -94,7 +95,7 @@ The app currently supports iPad (`ios.supportsTablet: true`, native target famil
 | 34-theme-customization.png | Captured | Capture-mode Widget Setup/theme preview, 1179x2556 PNG. |
 | 35-class-color-customization.png | Captured | Capture-mode widget color/style controls, 1179x2556 PNG. |
 | 36-settings.png | Captured | Capture-mode Settings screen, 1179x2556 PNG. It shows planner status, appearance, Plus/store status, Restore Purchases access, widget scope, and support URL gap without claiming submission readiness. |
-| 37-paywall-products-loaded.png | Missing | StoreKit products were not loaded; do not claim this state. |
+| 37-paywall-products-loaded.png | Captured with caveat | Real simulator paywall with returned Yearly Plus and Plus Monthly products, 1179x2556 PNG. It does not prove Lifetime purchase availability, completed purchase, restore success, or App Store Connect approval. |
 | 38-paywall-product-load-failure.png | Captured | Real simulator paywall failure state: "Purchases are unavailable", 1179x2556 PNG. |
 | 39-restore-purchases.png | Captured with caveat | Capture-mode Settings/Plus surface, 1179x2556 PNG. It shows real Restore Purchases access, but sandbox restore success is still unproven. |
 | 40-app-icon-home-screen.png | Captured | Real simulator Home Screen showing installed StudyPlanner app icons/widgets, 1179x2556 PNG. |
@@ -102,14 +103,14 @@ The app currently supports iPad (`ios.supportsTablet: true`, native target famil
 | 42-sample-plan-state.png | Missing | Sample plan entry/state not separately captured. |
 | 43-localized-ui-example.png | Captured with caveat | Real simulator Week Plan screenshot at `fr-FR` / `fr_FR` with forced 24-hour time, 1179x2556 PNG. It proves partial locale/date behavior, but interface strings remain English and full UI localization/string extraction remains incomplete. |
 | 44-accessibility-large-text.png | Captured | Real simulator Today screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves the top hierarchy no longer catastrophically explodes, but full VoiceOver traversal remains open. |
-| 45-final-contact-sheet.png | Captured | Generated from the 47 current raw PNGs, 1040x6860 PNG. |
+| 45-final-contact-sheet.png | Captured | Generated from the 48 current raw PNGs, 1060x6907 PNG. |
 | 46-widget-refresh-after-completion.png | Captured | Real simulator Home Screen after tapping Complete in the app. Small and medium widgets reflect the refreshed snapshot. |
 | 47-widget-refresh-after-edit.png | Captured | Real simulator Home Screen after editing Reading Reflection to Reflection Draft. Small and medium widgets reflect the edited title. |
 | 48-widget-refresh-after-add.png | Captured | Real simulator Home Screen after adding Field Notes to Science Lab. Small and medium widgets reflect the added assignment from the App Group snapshot. |
 | 49-accessibility-check-work-large-text.png | Captured | Real simulator Check Work screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves Add School Stuff and Needs Check remain legible with large type; deeper review-row VoiceOver traversal remains open. |
 | 50-accessibility-assignment-detail-large-text.png | Captured | Real simulator Assignment Detail at `accessibility-extra-extra-large`, 1179x2556 PNG. Title/date/time/course controls remain legible; full edit/save VoiceOver traversal remains open. |
 | 51-accessibility-widget-setup-large-text.png | Captured | Real simulator Widget Setup at `accessibility-extra-extra-large`, 1179x2556 PNG. Supported size/focus controls remain legible; native widget VoiceOver proof remains open. |
-| 52-accessibility-paywall-large-text.png | Captured | Real simulator Paywall at `accessibility-extra-extra-large`, 1179x2556 PNG. The paywall remains readable in product-load-failure mode; products-loaded StoreKit proof remains missing. |
+| 52-accessibility-paywall-large-text.png | Captured | Real simulator Paywall at `accessibility-extra-extra-large`, 1179x2556 PNG. The paywall remains readable in product-load-failure mode; products-loaded large-text proof is not separately captured. |
 
 ## Excluded Assets
 
@@ -117,5 +118,5 @@ The app currently supports iPad (`ios.supportsTablet: true`, native target famil
 - In-app previews as the only native Home Screen widget proof.
 - App preview videos.
 - Demo/capture state as production proof.
-- A products-loaded paywall screenshot until StoreKit products actually load.
+- Product-load-failure screenshots as substitutes for products-loaded proof.
 - Manual App Store Connect upload acceptance until the exported PNGs are uploaded and accepted in App Store Connect.

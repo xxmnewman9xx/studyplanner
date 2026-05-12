@@ -82,14 +82,14 @@ This addendum exists because the original completion audit was written before la
 | Root-concept/subagent review recorded | `docs/SUBAGENT_GOAL_REVIEWS.md`, `docs/ROOT_CONCEPT_AUDIT.md`, `docs/TOP_ROOT_CONCEPT_PROBLEMS.md` | Complete enough for planning | Raw separate subagent transcripts remain unavailable |
 | At least 500 use cases generated | `docs/USE_CASE_SWARM_500.md` contains 565 `UC-` rows | Complete | Use cases are not all executable automated e2e tests |
 | Functionality matrix created | `docs/FUNCTIONALITY_TEST_MATRIX_9_2.md` contains 440 `FT-` rows | Complete as a matrix | Full matrix is not fully automated |
-| Screenshots captured | `artifacts/goal-9-2-transformation` has 22 PNGs; successor proof folder has 48 primary PNGs and 12 iPad PNGs | Complete with caveats | Products-loaded paywall and some external proof screenshots remain missing |
+| Screenshots captured | `artifacts/goal-9-2-transformation` has 22 PNGs; successor proof folder has 48 primary raw PNGs and 11 iPad PNGs | Complete with caveats | StoreKit transaction proof, VoiceOver traversal proof, and some external proof screenshots remain missing |
 | Current source verification | `npm run typecheck` passed; `npm run test` passed 53/53 | Complete for current source tests | Tests are not a full end-to-end simulator matrix |
 | IAP and production static verification | `npm run check:iap` passed; `npm run verify:production` passed | Complete for static config | StoreKit sandbox/App Store Connect product proof still missing |
 | Executable 9.2 completion gate | `npm run verify:goal92` writes `docs/GOAL_9_2_COMPLETION_GATE.md` and reports GOAL-OPEN with 5 blockers | Complete as a blocker gate | The gate correctly refuses completion until the remaining manual/external proof exists |
 | Localized UI/native review disposition | `artifacts/post-goal-aso-submission/external-proof/localized-ui-native-review.md` explicitly defers localized UI/native review for an English-only pass | Complete as a deferral | Full localized UI implementation and native review remain future work, not claimed complete |
-| Submission/readiness gate honesty | `npm run verify:submission` returns NO-SUBMIT with 8 blockers and 1 warning | Complete as a gate | The gate correctly blocks completion until external proof exists |
-| StoreKit source proof | Submission verifier reports `PASS StoreKit/IAP source handoff has no local blockers`; `docs/STOREKIT_IAP_HANDOFF_AUDIT.md` exists | Source-level complete | Products-loaded paywall screenshot, monthly/yearly/Lifetime/restore sandbox proof, and App Store Connect product status remain external |
-| StoreKit testing runbook | `docs/STOREKIT_TESTING_RUNBOOK.md` and `storekit-sandbox-attempt.md` record exact setup path and missing local StoreKit tooling/config | Complete as a handoff aid | Not proof; `37-paywall-products-loaded.png` and `storekit-sandbox-proof.md` still require real StoreKit Testing or sandbox results |
+| Submission/readiness gate honesty | `npm run verify:submission` returns NO-SUBMIT with 7 blockers and 1 warning | Complete as a gate | The gate correctly blocks completion until external proof exists |
+| StoreKit source proof | Submission verifier reports `PASS StoreKit/IAP source handoff has no local blockers`; `docs/STOREKIT_IAP_HANDOFF_AUDIT.md` exists | Source-level complete | Monthly/yearly/Lifetime/restore sandbox proof, Lifetime transaction availability, and App Store Connect product status remain external |
+| StoreKit testing runbook | `docs/STOREKIT_TESTING_RUNBOOK.md` and `storekit-sandbox-attempt.md` record exact setup path, local StoreKit config, products-loaded capture, and transaction-proof gap | Complete as a handoff aid | Not transaction proof; `storekit-sandbox-proof.md` still requires real monthly/yearly/Lifetime purchase and restore results |
 | VoiceOver accessibility proof | Source audit passes in test suite and submission verifier | Partial | Full simulator/device VoiceOver traversal proof is missing |
 | VoiceOver traversal runbook | `docs/VOICEOVER_TRAVERSAL_RUNBOOK.md` and `voiceover-traversal-attempt.md` record exact manual route and failed automation attempts | Complete as a handoff aid | Not proof; `voiceover-traversal.md` still must be created after real traversal |
 | Localization proof | Localized ASO structural audit passes; `docs/LOCALIZATION_STRING_AUDIT.md` records current English UI string debt | Partial | App UI remains English; translated UI, native-speaker review, and localized screenshot text-fit proof remain missing |
@@ -101,16 +101,16 @@ This addendum exists because the original completion audit was written before la
 
 | Command | Result | Notes |
 | --- | --- | --- |
-| `npm run verify:goal92` | Failed as intended | GOAL-OPEN: 5 blockers, 0 warnings |
+| `npm run verify:goal92` | Failed as intended | GOAL-OPEN: 4 blockers, 0 warnings |
 | `npm run typecheck` | Passed | `tsc --noEmit` completed |
 | `npm run test` | Passed | 55/55 tests passed |
 | `npm run check:iap` | Passed | IAP and premium gate configuration passed |
 | `npm run verify:production` | Passed | Production config verification passed |
-| `npm run verify:submission` | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning |
+| `npm run verify:submission` | Failed as intended | NO-SUBMIT: 7 blockers, 1 warning |
 
 ### Current Missing Or Weakly Verified Requirements
 
-1. StoreKit sandbox/App Store Connect proof remains external: monthly, yearly, Lifetime, restore, products-loaded paywall, and product attachment/status are not proven.
+1. StoreKit sandbox/App Store Connect proof remains external: monthly, yearly, Lifetime, restore, Lifetime transaction availability, and product attachment/status are not proven. Products-loaded paywall screenshot proof now exists for returned subscription products.
 2. Support URL is not configured for final submission.
 3. App Store Connect screenshot upload acceptance is not recorded.
 4. Signed archive production entitlement proof is not recorded.

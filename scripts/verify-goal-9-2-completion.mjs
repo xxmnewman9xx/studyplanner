@@ -465,7 +465,7 @@ function blockerMetadata(label) {
       ],
       requiredFiles: ["docs/FINAL_9_2_READINESS_REPORT.md"],
       nextAction:
-        "Leave the report at No until products-loaded paywall, StoreKit sandbox/restore, and VoiceOver traversal proof exist; then update and re-run the gate.",
+        "Leave the report at No until StoreKit sandbox/restore and VoiceOver traversal proof exist; then update and re-run the gate.",
       canBeClosedByLocalSourceTests: false
     },
     "Completion audit no longer marks goal incomplete": {
