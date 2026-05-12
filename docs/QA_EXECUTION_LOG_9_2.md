@@ -210,3 +210,9 @@ Known residual risks:
 | 39 | Submission verifier VoiceOver source gate | Passed | `npm run verify:submission` now includes `PASS VoiceOver source audit is clean` while separately blocking missing manual traversal proof | External proof blockers remain |
 | 39 | `npm run typecheck` | Passed | `tsc --noEmit` completed after submission verifier source-audit gate | No |
 | 39 | `npm run test` | Passed | 49/49 tests passed; submission readiness tests assert source-audit pass plus traversal blocker | No |
+| 40 | English ASO copy audit | Passed | `npm run verify:aso` wrote `docs/ASO_COPY_AUDIT.md` and passed length/keyword/unsafe-claim checks | Localized/native review still required |
+| 40 | Submission verifier ASO gate | Passed | `npm run verify:submission` now includes `PASS English ASO metadata is length-safe and claim-safe` while preserving external proof blockers | External proof blockers remain |
+| 40 | `npm run typecheck` | Passed | `tsc --noEmit` completed after ASO copy verifier | No |
+| 40 | `npm run test` | Passed | 50/50 tests passed, including `tests/asoCopy.test.ts` | No |
+| 40 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after ASO copy verifier | No |
+| 40 | `npm run verify:production` | Passed | Production config verification passed after ASO copy verifier | No |

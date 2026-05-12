@@ -5,7 +5,7 @@ This is an interim readiness report, not a submit approval.
 ## Score
 
 Initial v1-3 post-goal score: 7.82/10.  
-Current evidence-adjusted score after fixes/docs/screenshots/accessibility/date/widget/reminder/settings/restore-access/iPad proof, partial localized/date proof, contrast guard quick wins, local App Store-sized screenshot export validation, a centralized no-submit submission verifier, external-proof packet templates, localization string audit, and a clean source-level VoiceOver readiness audit wired into the submission gate: 9.22/10.
+Current evidence-adjusted score after fixes/docs/screenshots/accessibility/date/widget/reminder/settings/restore-access/iPad proof, partial localized/date proof, contrast guard quick wins, local App Store-sized screenshot export validation, a centralized no-submit submission verifier, external-proof packet templates, localization string audit, clean source-level VoiceOver readiness audit, and English ASO copy audit wired into the submission gate: 9.24/10.
 Target: 9.4/10.  
 Verdict: not reached.
 
@@ -16,7 +16,7 @@ Verdict: not reached.
 - Assignment course names refresh from selected class after moves/renames.
 - Submission-mode production verification fails without explicit monthly/yearly/lifetime IDs and support URL.
 - AI parse contract now matches multipart code.
-- App Store metadata draft now respects 30-character subtitle and 100-byte keyword constraints.
+- App Store metadata draft now respects app name/subtitle/promo/description length limits, the 100-byte keyword constraint, and the unsafe-claim bank.
 - ASO, localization, screenshot, App Review, and handoff docs now mark real blockers.
 - A real simulator production empty Today screenshot was captured at artifacts/post-goal-aso-submission/06-today-empty.png.
 - Parser grade items no longer enter the planner without a review surface.
@@ -34,15 +34,16 @@ Verdict: not reached.
 - A generated contact sheet was captured at `artifacts/post-goal-aso-submission/45-final-contact-sheet.png`.
 - Theme/class/widget contrast is guarded by `tests/themeContrast.test.ts`; `01-onboarding-welcome.png`, `07-today-populated.png`, `21-calendar-month.png`, `24-week-plan.png`, `26-classes-list.png`, and `29-widget-setup.png` were refreshed after the contrast-safe color pass.
 - Local App Store-sized screenshot export proof is now captured: `npm run export:screenshots` generated 10 iPhone 6.9-inch candidate PNGs at 1290x2796, 10 iPad 13-inch candidate PNGs at 2064x2752, and `artifacts/post-goal-aso-submission/app-store-export/manifest.json`.
-- Submission readiness is now guarded by `npm run verify:submission`, which passes local screenshot export checks and the clean source-level VoiceOver audit, then returns **NO-SUBMIT** until IAP env IDs, support URL, products-loaded paywall proof, StoreKit sandbox proof, App Store Connect upload acceptance, signed archive entitlements, and VoiceOver traversal proof are supplied.
+- Submission readiness is now guarded by `npm run verify:submission`, which passes local screenshot export checks, English ASO copy checks, and the clean source-level VoiceOver audit, then returns **NO-SUBMIT** until IAP env IDs, support URL, products-loaded paywall proof, StoreKit sandbox proof, App Store Connect upload acceptance, signed archive entitlements, and VoiceOver traversal proof are supplied.
 - External proof packet templates are now staged in `artifacts/post-goal-aso-submission/external-proof`; the verifier rejects template/TODO/placeholder wording so template files cannot accidentally count as proof.
 - Localization string debt is now measured by `npm run audit:localization`; the current audit found 737 likely localizable strings across 46 tracked source files and wrote `docs/LOCALIZATION_STRING_AUDIT.md`.
+- English ASO copy is now measured by `npm run verify:aso`; `docs/ASO_COPY_AUDIT.md` records length-safe app name/subtitle/promo/description/keyword fields and confirms avoided claims are absent from the recommended metadata.
 - Paywall failure proof was captured honestly as `38-paywall-product-load-failure.png`; products-loaded proof remains missing.
 - A targeted Dynamic Type fix keeps the Today hero, metrics, warning card, and dock readable at `accessibility-extra-extra-large`; proof captured as `44-accessibility-large-text.png`.
 - Month calendar planning now respects locale week-start rules with tests for Sunday, Monday, and Saturday-start regions.
 - Due-date and Week Plan date labels now use the preferred locale, with 24-hour formatting tests for `fr-FR` and `en-GB`.
 - Check Work, Assignment Detail, Widget Setup, Paywall, and shared buttons now use bounded text scaling plus clearer labels/hints; large-text proof is captured as `49-accessibility-check-work-large-text.png` through `52-accessibility-paywall-large-text.png`.
-- Visual planner surfaces now expose VoiceOver labels for task rows, completion buttons, WeekStrip days, workload bars, calendar mini-days, workload forecasts, class balance rows, and completion cards; `npm run audit:voiceover` now writes `docs/VOICEOVER_READINESS_AUDIT.md` and reports 104/104 scanned interactive elements with explicit labels, roles, and recommended hints. The source-regression, localization, VoiceOver audit, and contrast tests pass in the current 49/49 suite.
+- Visual planner surfaces now expose VoiceOver labels for task rows, completion buttons, WeekStrip days, workload bars, calendar mini-days, workload forecasts, class balance rows, and completion cards; `npm run audit:voiceover` now writes `docs/VOICEOVER_READINESS_AUDIT.md` and reports 104/104 scanned interactive elements with explicit labels, roles, and recommended hints. The source-regression, ASO, localization, VoiceOver audit, and contrast tests pass in the current 50/50 suite.
 - Capture/demo coursework dates now roll relative to the capture day so native WidgetKit screenshots do not age into false overdue states.
 - Installed native small and medium Home Screen widget screenshots are captured as `30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png`; both show current May 2026 due labels.
 - Native widget empty and needs-check states are captured as `32-widget-empty-state.png` and `33-widget-needs-check-state.png`; App Group payloads show the empty state has no due items, while the needs-check state has accepted Lab Report as next due plus reviewQueueCount 3.
@@ -54,7 +55,7 @@ Verdict: not reached.
 
 ## Still blocking 9.4
 
-StoreKit proof, products-loaded paywall proof, support URL, manual App Store Connect screenshot upload acceptance, full UI localization/native review, signed archive entitlement check, full simulator VoiceOver traversal, and final simulator QA. The new `npm run verify:submission` command tracks these as explicit blockers instead of relying on prose; it now also runs the source-level VoiceOver audit, but that does not replace the required manual traversal proof.
+StoreKit proof, products-loaded paywall proof, support URL, manual App Store Connect screenshot upload acceptance, full UI localization/native review, signed archive entitlement check, full simulator VoiceOver traversal, and final simulator QA. The new `npm run verify:submission` command tracks these as explicit blockers instead of relying on prose; it now also runs the English ASO copy audit and source-level VoiceOver audit, but those do not replace App Store Connect acceptance, native review, or manual traversal proof.
 
 The capture-mode rebuild solved the original deep-link capture problem, installed small/medium WidgetKit screenshots now exist, app icon proof exists, native widget empty/needs-check states exist, reminders proof exists, settings proof exists, restore access proof exists, iPad raw proof exists, partial localized/date proof exists, contrast-token proof exists, local App Store-sized export proof exists, completion/edit/add refresh is proven, day-boundary behavior is code/build proven, core action large-text proof now exists, source-level VoiceOver readiness is clean, and Manual Add/Edit Item/filtered Calendar/import-path capture states are now real. The screenshot set is closer to upload-ready, but final App Store readiness still needs manual App Store Connect upload acceptance and StoreKit/localization proof. Missing proof includes restore purchase success/sandbox proof, translated UI/string extraction/native review, full simulator VoiceOver traversal, manual screenshot upload acceptance, and StoreKit products loaded.
 

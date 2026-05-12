@@ -28,6 +28,7 @@ test("submission readiness gate blocks the current incomplete external proof sta
   assert.match(output, /StoreKit monthly\/yearly\/Lifetime\/restore proof/);
   assert.match(output, /Products-loaded paywall screenshot/);
   assert.match(output, /App Store Connect screenshot upload acceptance/);
+  assert.match(output, /PASS\s+English ASO metadata is length-safe and claim-safe/);
   assert.match(output, /PASS\s+VoiceOver source audit is clean/);
   assert.match(output, /BLOCKER\s+VoiceOver traversal is recorded/);
 });
@@ -54,6 +55,7 @@ test("submission readiness gate verifies local screenshot exports before externa
   assert.match(output, /PASS\s+Support URL is configured/);
   assert.match(output, /PASS\s+iPhone 6\.9-inch export has 10 accepted-size PNGs/);
   assert.match(output, /PASS\s+iPad 13-inch export has 10 accepted-size PNGs/);
+  assert.match(output, /PASS\s+English ASO metadata is length-safe and claim-safe/);
   assert.match(output, /PASS\s+VoiceOver source audit is clean/);
   assert.match(output, /BLOCKER\s+Products-loaded paywall screenshot exists/);
 });

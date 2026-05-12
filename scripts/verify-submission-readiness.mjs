@@ -62,6 +62,7 @@ checkPngSet({
   expectedHeight: 2752
 });
 checkManifest();
+checkAsoCopy();
 
 checkFile(
   "Products-loaded paywall screenshot exists",
@@ -241,6 +242,28 @@ function checkVoiceOverSourceAudit() {
       false,
       "VoiceOver source audit is clean",
       `VoiceOver source audit failed: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
+
+function checkAsoCopy() {
+  const scriptPath = path.join(root, "scripts/verify-aso-copy.mjs");
+  try {
+    const output = execFileSync(process.execPath, [scriptPath, "--json"], {
+      cwd: root,
+      encoding: "utf8"
+    });
+    const audit = JSON.parse(output);
+    check(
+      audit.passed === true,
+      "English ASO metadata is length-safe and claim-safe",
+      "Run npm run verify:aso and fix App Store metadata length or unsafe-claim issues."
+    );
+  } catch (error) {
+    check(
+      false,
+      "English ASO metadata is length-safe and claim-safe",
+      `ASO metadata audit failed: ${error instanceof Error ? error.message : String(error)}`
     );
   }
 }

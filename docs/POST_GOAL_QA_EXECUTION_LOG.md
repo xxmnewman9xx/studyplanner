@@ -176,5 +176,11 @@
 | npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning; includes `PASS VoiceOver source audit is clean` | Re-run after wiring VoiceOver source audit into the submission verifier |
 | npm run typecheck | Passed | exit 0 | Re-run after submission verifier VoiceOver source-audit gate |
 | npm run test | Passed | 49/49 | `tests/submissionReadiness.test.ts` now asserts clean source-audit pass and separate manual traversal blocker |
+| npm run verify:aso | Passed | `docs/ASO_COPY_AUDIT.md`; app name 26/30, fallback 23/30, subtitle 30/30, promo 131/170, description 1220/4000, keywords 100/100 bytes, no avoided claims | English App Store metadata copy gate |
+| npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning; includes `PASS English ASO metadata is length-safe and claim-safe` | Re-run after wiring ASO copy audit into submission verifier |
+| npm run typecheck | Passed | exit 0 | Re-run after ASO copy verifier |
+| npm run test | Passed | 50/50 | Added `tests/asoCopy.test.ts` and updated submission-readiness assertions |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after ASO copy verifier |
+| npm run verify:production | Passed | Production config verification passed | Re-run after ASO copy verifier |
 
 Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, manual App Store Connect screenshot upload acceptance, full translated UI/string extraction/native localization review, full simulator VoiceOver traversal, restore purchase success proof. Optional: overnight widget rollover screenshot.

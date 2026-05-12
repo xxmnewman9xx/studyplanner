@@ -6,6 +6,7 @@
 - Subtitle: Scan syllabi. Track deadlines.
 - Keywords: homework,assignments,exams,calendar,classes,grades,school,college,student,widget,reminders,timetable
 - Promotional text: Add a syllabus, review found work, and keep confirmed deadlines visible in Today, Week, Calendar, Classes, and Home Screen widgets.
+- Verification: `npm run verify:aso` writes `docs/ASO_COPY_AUDIT.md` and currently passes English field limits plus unsafe-claim checks. This is not App Store Connect acceptance or localized/native review.
 
 ## Positioning
 
