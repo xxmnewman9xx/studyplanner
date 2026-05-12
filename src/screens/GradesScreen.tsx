@@ -160,6 +160,8 @@ export function GradesScreen({
               }}
               placeholder="Target percent"
               placeholderTextColor={colors.faint}
+              accessibilityLabel="Target grade percent"
+              accessibilityHint="Enter the overall grade you want for this class."
               style={styles.targetInput}
             />
           </View>
@@ -188,6 +190,7 @@ export function GradesScreen({
               placeholder="Score title"
               placeholderTextColor={colors.faint}
               accessibilityLabel="New score title"
+              accessibilityHint="Enter a name for the quiz, exam, project, or assignment score."
               style={styles.targetInput}
             />
             <View style={styles.chipRow}>
@@ -270,6 +273,7 @@ export function GradesScreen({
                       placeholder="Score title"
                       placeholderTextColor={colors.faint}
                       accessibilityLabel={`Score title for ${item.title}`}
+                      accessibilityHint="Edit the name of this grade entry."
                       style={styles.scoreTitleInput}
                     />
                     <Text style={styles.categoryMeta}>

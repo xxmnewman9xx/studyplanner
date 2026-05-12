@@ -199,3 +199,11 @@ Known residual risks:
 | 37 | `npm run verify:production` | Passed | Production config verification passed after VoiceOver readiness slice | No |
 | 37 | `npm run verify:submission` | Failed as intended | NO-SUBMIT with 8 blockers and 1 warning while local screenshot export checks pass | External proof blockers remain |
 | 37 | `git diff --check` | Passed | No whitespace errors or conflict markers after VoiceOver readiness slice | No |
+| 38 | VoiceOver recommended hint cleanup | Passed | Added hints to shared `AppButton`, Plus plan buttons, class/work/semester text fields, assignment detail fields, and grade calculator/score fields | No |
+| 38 | `npm run audit:voiceover` | Passed | 104 scanned interactive elements, 104 explicit labels, 104 roles, and 0 missing recommended hints | Manual VoiceOver traversal still required |
+| 38 | `npm run typecheck` | Passed | `tsc --noEmit` completed after VoiceOver hint cleanup | No |
+| 38 | `npm run test` | Passed | 49/49 tests passed after VoiceOver hint cleanup | No |
+| 38 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after VoiceOver hint cleanup | No |
+| 38 | `npm run verify:production` | Passed | Production config verification passed after VoiceOver hint cleanup | No |
+| 38 | `npm run verify:submission` | Failed as intended | NO-SUBMIT with 8 blockers and 1 warning while local screenshot export checks pass | External proof blockers remain |
+| 38 | `git diff --check` | Passed | No whitespace errors or conflict markers after VoiceOver hint cleanup | No |

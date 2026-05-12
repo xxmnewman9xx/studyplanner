@@ -175,6 +175,7 @@ export function CoursesScreen({
         onChangeText={setTitle}
         placeholder="Title"
         accessibilityLabel="Assignment title"
+        accessibilityHint="Enter the name of the work to add to this class."
         placeholderTextColor={colors.faint}
         style={styles.input}
       />
@@ -248,6 +249,7 @@ export function CoursesScreen({
               onChangeText={setNewCourseCode}
               placeholder="Code"
               accessibilityLabel="Class code"
+              accessibilityHint="Enter a short class code, like BIO 101."
               placeholderTextColor={colors.faint}
               style={[styles.input, styles.fieldHalf]}
             />
@@ -256,6 +258,7 @@ export function CoursesScreen({
               onChangeText={setNewCourseInstructor}
               placeholder="Teacher"
               accessibilityLabel="Teacher"
+              accessibilityHint="Enter the teacher or instructor name."
               placeholderTextColor={colors.faint}
               style={[styles.input, styles.fieldHalf]}
             />
@@ -265,6 +268,7 @@ export function CoursesScreen({
             onChangeText={setNewCourseName}
             placeholder="Class name"
             accessibilityLabel="Class name"
+            accessibilityHint="Enter the full name of the class."
             placeholderTextColor={colors.faint}
             style={styles.input}
           />
@@ -377,6 +381,7 @@ export function CoursesScreen({
                   onChangeText={(code) => onUpdateCourse(selectedCourse.id, { code })}
                   placeholder="BIO 101"
                   accessibilityLabel="Class code"
+                  accessibilityHint="Edit the short code shown for this class."
                   placeholderTextColor={colors.faint}
                   style={styles.input}
                 />
@@ -385,6 +390,7 @@ export function CoursesScreen({
                   onChangeText={(name) => onUpdateCourse(selectedCourse.id, { name })}
                   placeholder="Course name"
                   accessibilityLabel="Class name"
+                  accessibilityHint="Edit the full name of this class."
                   placeholderTextColor={colors.faint}
                   style={styles.input}
                 />
@@ -393,6 +399,7 @@ export function CoursesScreen({
                   onChangeText={(instructor) => onUpdateCourse(selectedCourse.id, { instructor })}
                   placeholder="Instructor"
                   accessibilityLabel="Teacher"
+                  accessibilityHint="Edit the teacher or instructor for this class."
                   placeholderTextColor={colors.faint}
                   style={styles.input}
                 />
@@ -425,6 +432,7 @@ export function CoursesScreen({
                   onChangeText={(name) => onUpdateSemester({ name })}
                   placeholder="Semester name"
                   accessibilityLabel="Semester name"
+                  accessibilityHint="Edit the name used for this school term."
                   placeholderTextColor={colors.faint}
                   style={styles.input}
                 />
@@ -434,6 +442,7 @@ export function CoursesScreen({
                     onChangeText={(startDate) => onUpdateSemester({ startDate })}
                     placeholder="YYYY-MM-DD"
                     accessibilityLabel="Semester start date"
+                    accessibilityHint="Use a real start date like 2026-08-24."
                     placeholderTextColor={colors.faint}
                     style={[styles.input, styles.fieldHalf]}
                   />
@@ -442,6 +451,7 @@ export function CoursesScreen({
                     onChangeText={(endDate) => onUpdateSemester({ endDate })}
                     placeholder="YYYY-MM-DD"
                     accessibilityLabel="Semester end date"
+                    accessibilityHint="Use a real end date like 2026-12-18."
                     placeholderTextColor={colors.faint}
                     style={[styles.input, styles.fieldHalf]}
                   />

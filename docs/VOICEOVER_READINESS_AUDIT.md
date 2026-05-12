@@ -1,6 +1,6 @@
 # VoiceOver Readiness Audit
 
-Generated: 2026-05-12T21:49:12.925Z
+Generated: 2026-05-12T21:52:05.974Z
 
 ## Summary
 
@@ -15,25 +15,21 @@ This source audit scans tracked UI files in `src/components` and `src/screens` f
 | TextInput elements | 25 |
 | Elements with explicit labels | 104 |
 | Elements with accessibility roles | 104 |
-| Elements with accessibility hints | 20 |
+| Elements with accessibility hints | 39 |
 | Summary surfaces | 3 |
 | Missing explicit labels | 0 |
 | Missing roles | 0 |
-| Missing recommended hints | 18 |
+| Missing recommended hints | 0 |
 
 ## Readiness Verdict
 
-VoiceOver readiness is **partial**. Core shared controls have strong label and role coverage, but this audit still found controls that need recommended hint review before a final submission claim. Full submission readiness still requires a real VoiceOver traversal recorded in `artifacts/post-goal-aso-submission/external-proof/voiceover-traversal.md`.
+VoiceOver source readiness is **strong** for the scanned controls: this audit found no missing explicit labels, roles, or recommended hints. Full submission readiness still requires a real VoiceOver traversal recorded in `artifacts/post-goal-aso-submission/external-proof/voiceover-traversal.md`.
 
 ## Highest-Risk Files
 
 | File | Missing labels | Missing roles | Missing hints |
 | --- | ---: | ---: | ---: |
-| src/screens/CoursesScreen.tsx | 0 | 0 | 10 |
-| src/screens/AssignmentDetailScreen.tsx | 0 | 0 | 3 |
-| src/screens/GradesScreen.tsx | 0 | 0 | 3 |
-| src/components/PremiumGate.tsx | 0 | 0 | 1 |
-| src/screens/WidgetShowcaseScreen.tsx | 0 | 0 | 1 |
+| None | 0 | 0 | 0 |
 
 ## Missing Explicit Labels: Sample
 
@@ -45,24 +41,7 @@ VoiceOver readiness is **partial**. Core shared controls have strong label and r
 
 | Location | Element | Visible text guess |
 | --- | --- | --- |
-| src/components/PremiumGate.tsx:35 | AppButton | Unlock with Study Planner Plus These tools open after Plus is active on your store account. |
-| src/screens/AssignmentDetailScreen.tsx:129 | TextInput | - |
-| src/screens/AssignmentDetailScreen.tsx:206 | TextInput | - |
-| src/screens/AssignmentDetailScreen.tsx:240 | TextInput | - |
-| src/screens/CoursesScreen.tsx:173 | TextInput | Add Work |
-| src/screens/CoursesScreen.tsx:246 | TextInput | - |
-| src/screens/CoursesScreen.tsx:254 | TextInput | - |
-| src/screens/CoursesScreen.tsx:263 | TextInput | Add Class Class color |
-| src/screens/CoursesScreen.tsx:375 | TextInput | Edit Class Class color |
-| src/screens/CoursesScreen.tsx:383 | TextInput | Edit Class Class color |
-| src/screens/CoursesScreen.tsx:391 | TextInput | Edit Class Class color |
-| src/screens/CoursesScreen.tsx:423 | TextInput | Semester Setup |
-| src/screens/CoursesScreen.tsx:432 | TextInput | - |
-| src/screens/CoursesScreen.tsx:440 | TextInput | - |
-| src/screens/GradesScreen.tsx:154 | TextInput | Target-grade calculator Aim for % overall. Remaining work needs about on average. |
-| src/screens/GradesScreen.tsx:185 | TextInput | - |
-| src/screens/GradesScreen.tsx:267 | TextInput | - |
-| src/screens/WidgetShowcaseScreen.tsx:280 | AppButton | Study Planner Plus Plus unlocks syllabus scan, calendar sync, reminders, and grade forecasting. Purchases are handled securely through the App Store, and Restore Purchases is available anytime. |
+| None | - | - |
 
 ## Manual Traversal Route
 

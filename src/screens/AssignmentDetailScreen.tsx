@@ -131,6 +131,7 @@ export function AssignmentDetailScreen({
             onChangeText={setTitle}
             placeholder="Assignment title"
             accessibilityLabel="Assignment title"
+            accessibilityHint="Edit the assignment name shown across Today, Calendar, and widgets."
             maxFontSizeMultiplier={bodyTextScale}
             placeholderTextColor={colors.faint}
             style={styles.input}
@@ -209,6 +210,7 @@ export function AssignmentDetailScreen({
                 onChangeText={setEstimatedMinutes}
                 placeholder="Minutes"
                 accessibilityLabel="Estimated minutes"
+                accessibilityHint="Enter about how many minutes this work may take."
                 maxFontSizeMultiplier={bodyTextScale}
                 placeholderTextColor={colors.faint}
                 style={styles.input}
@@ -242,6 +244,7 @@ export function AssignmentDetailScreen({
             onChangeText={setTags}
             placeholder="essay, lab, exam"
             accessibilityLabel="Labels"
+            accessibilityHint="Add short labels separated by commas."
             maxFontSizeMultiplier={bodyTextScale}
             placeholderTextColor={colors.faint}
             style={styles.input}

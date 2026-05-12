@@ -201,6 +201,11 @@ function summarizeByFile(items) {
 }
 
 function renderMarkdown(data) {
+  const sourceVerdict =
+    data.missingExplicitLabelCount === 0 && data.missingRoleCount === 0 && data.missingHintCount === 0
+      ? "VoiceOver source readiness is **strong** for the scanned controls: this audit found no missing explicit labels, roles, or recommended hints. Full submission readiness still requires a real VoiceOver traversal recorded in `artifacts/post-goal-aso-submission/external-proof/voiceover-traversal.md`."
+      : "VoiceOver readiness is **partial**. Core shared controls have strong label and role coverage, but this audit still found controls that need recommended hint review before a final submission claim. Full submission readiness still requires a real VoiceOver traversal recorded in `artifacts/post-goal-aso-submission/external-proof/voiceover-traversal.md`.";
+
   return `# VoiceOver Readiness Audit
 
 Generated: ${data.generatedAt}
@@ -226,7 +231,7 @@ This source audit scans tracked UI files in \`src/components\` and \`src/screens
 
 ## Readiness Verdict
 
-VoiceOver readiness is **partial**. Core shared controls have strong label and role coverage, but this audit still found controls that need recommended hint review before a final submission claim. Full submission readiness still requires a real VoiceOver traversal recorded in \`artifacts/post-goal-aso-submission/external-proof/voiceover-traversal.md\`.
+${sourceVerdict}
 
 ## Highest-Risk Files
 

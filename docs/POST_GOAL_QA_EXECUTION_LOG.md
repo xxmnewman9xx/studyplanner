@@ -166,5 +166,12 @@
 | npm run verify:production | Passed | Production config verification passed | Re-run after VoiceOver readiness slice |
 | npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning | Local screenshot export checks still pass; external blockers include IAP env IDs, support URL, products-loaded paywall, StoreKit proof, App Store Connect upload acceptance, signed archive entitlements, and manual VoiceOver traversal |
 | git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after VoiceOver readiness slice |
+| npm run audit:voiceover | Passed | `docs/VOICEOVER_READINESS_AUDIT.md`; 104 scanned interactive elements, 104 explicit labels, 104 roles, 0 missing recommended hints | Re-run after adding hints to Plus buttons, class/work/semester fields, assignment detail fields, and grade controls |
+| npm run typecheck | Passed | exit 0 | Re-run after VoiceOver hint cleanup |
+| npm run test | Passed | 49/49 | Re-run after VoiceOver hint cleanup |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after VoiceOver hint cleanup |
+| npm run verify:production | Passed | Production config verification passed | Re-run after VoiceOver hint cleanup |
+| npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning | Local screenshot export checks still pass; external blockers remain IAP env IDs, support URL, products-loaded paywall, StoreKit proof, App Store Connect upload acceptance, signed archive entitlements, and manual VoiceOver traversal |
+| git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after VoiceOver hint cleanup |
 
 Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, manual App Store Connect screenshot upload acceptance, full translated UI/string extraction/native localization review, full simulator VoiceOver traversal, restore purchase success proof. Optional: overnight widget rollover screenshot.

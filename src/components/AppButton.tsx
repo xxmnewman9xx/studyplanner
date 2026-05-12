@@ -12,6 +12,7 @@ type AppButtonProps = {
   disabled?: boolean;
   icon?: React.ComponentType<{ color: string; size: number }>;
   style?: ViewStyle;
+  accessibilityHint?: string;
 };
 
 export function AppButton({
@@ -20,7 +21,8 @@ export function AppButton({
   variant = "primary",
   disabled = false,
   icon: Icon,
-  style
+  style,
+  accessibilityHint
 }: AppButtonProps) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
@@ -32,6 +34,7 @@ export function AppButton({
     <TouchableOpacity
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityHint={accessibilityHint}
       activeOpacity={0.78}
       disabled={disabled}
       style={[

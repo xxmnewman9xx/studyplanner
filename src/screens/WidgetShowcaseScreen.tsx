@@ -277,7 +277,12 @@ export function WidgetShowcaseScreen({
             Plus unlocks syllabus scan, calendar sync, reminders, and grade forecasting. Purchases are handled
             securely through the App Store, and Restore Purchases is available anytime.
           </Text>
-          <AppButton label="View Plus Plans" icon={Crown} onPress={() => setShowPlans(true)} />
+          <AppButton
+            label="View Plus Plans"
+            icon={Crown}
+            accessibilityHint="Opens Study Planner Plus plan options for widgets and premium tools."
+            onPress={() => setShowPlans(true)}
+          />
         </GlassCard>
       ) : null}
     </PremiumScreen>

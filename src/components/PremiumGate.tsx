@@ -32,7 +32,12 @@ export function PremiumGate({ title, copy, onUpgrade }: PremiumGateProps) {
         <Text style={styles.cardCopy}>
           These tools open after Plus is active on your store account.
         </Text>
-        <AppButton label="View Plus" icon={Crown} onPress={onUpgrade} />
+        <AppButton
+          label="View Plus"
+          icon={Crown}
+          accessibilityHint="Opens Study Planner Plus plan options."
+          onPress={onUpgrade}
+        />
       </View>
     </View>
   );
