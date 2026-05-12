@@ -49,8 +49,10 @@ Final weighted score after this pass, completion audit addendum, targeted large-
 As of current successor branch `v1-3-post-goal-aso-submission-master` at commit `4d23d1d35fc4f1e2718639d051b2e83fbdc34724`, the v1-2 branch remains an ancestor and later proof work improves the evidence base. Current checks passed:
 
 - `npm run typecheck`
-- `npm run test` with 53/53 tests
+- `npm run test` with 55/55 tests
 - `npm run check:iap`
 - `npm run verify:production`
+
+`npm run verify:goal92` now writes `docs/GOAL_9_2_COMPLETION_GATE.md` and returns GOAL-OPEN with 6 blockers. It passes the required 9.2 docs, 565 use cases, 440 functionality rows, screenshot sets, implementation evidence, scorecard, VoiceOver source audit, StoreKit source handoff audit, and submission-gate honesty before refusing completion on the remaining proof gaps.
 
 `npm run verify:submission` still returns NO-SUBMIT with 8 blockers and 1 warning. It passes local screenshot export, English ASO, localized ASO structure, iOS archive source preflight, StoreKit source handoff, and VoiceOver source audits, then blocks on external proof: IAP environment values, support URL, products-loaded paywall screenshot, StoreKit sandbox/App Store Connect proof, screenshot-upload acceptance, signed archive entitlements, and full VoiceOver traversal. This scorecard therefore remains evidence-positive but not goal-complete.

@@ -212,5 +212,11 @@
 | npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning; includes `PASS StoreKit/IAP source handoff has no local blockers` | Submission gate preserves external StoreKit/support/App Store Connect/archive/VoiceOver blockers |
 | npm run export:screenshots | Passed | Regenerated 10 iPhone 1290x2796 PNGs, 10 iPad 2064x2752 PNGs, and `app-store-export/manifest.json` | Final screenshot export after StoreKit handoff refresh |
 | git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after StoreKit handoff slice |
+| npm run verify:goal92 | Failed as intended | GOAL-OPEN: 6 blockers, 0 warnings; wrote `docs/GOAL_9_2_COMPLETION_GATE.md` | New active-goal completion gate verifies docs/use cases/screenshots/source audits, then blocks on remaining 9.2 proof gaps |
+| npm run typecheck | Passed | exit 0 | Re-run after adding goal 9.2 completion gate |
+| npm run test | Passed | 55/55 | Added `tests/goal92Completion.test.ts`; gate test verifies structured JSON and intentional GOAL-OPEN state |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after adding goal 9.2 completion gate |
+| npm run verify:production | Passed | Production config verification passed | Re-run after adding goal 9.2 completion gate |
+| npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning | Re-run after adding goal 9.2 completion gate; submission blockers unchanged |
 
 Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, manual App Store Connect screenshot upload acceptance, full translated UI/string extraction/native localization review, full simulator VoiceOver traversal, restore purchase success proof. Optional: overnight widget rollover screenshot.

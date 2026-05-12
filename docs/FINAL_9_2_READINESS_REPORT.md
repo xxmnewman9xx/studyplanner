@@ -41,7 +41,8 @@ Final implementation score: **9.20/10**
 ## Verification
 
 - `npm run typecheck`: passed.
-- `npm run test`: passed, 44/44 tests during the original v1-2 pass; the current successor branch now passes 53/53 tests, including ASO copy, localized ASO structure, iOS archive preflight, StoreKit source handoff, submission-readiness, VoiceOver source, contrast, locale/date, 500-assignment scale, and native widget guards.
+- `npm run test`: passed, 44/44 tests during the original v1-2 pass; the current successor branch now passes 55/55 tests, including ASO copy, localized ASO structure, iOS archive preflight, StoreKit source handoff, goal 9.2 completion-gate, submission-readiness, VoiceOver source, contrast, locale/date, 500-assignment scale, and native widget guards.
+- `npm run verify:goal92`: fails as intended with GOAL-OPEN, 6 blockers, and 0 warnings. It verifies the original 9.2 docs, 565 use cases, 440 functionality rows, screenshot sets, implementation evidence, scorecard, source audits, and submission-gate honesty before blocking on remaining proof gaps.
 - `npm run check:iap`: passed.
 - `npm run verify:production`: passed.
 - Current successor-branch `npm run verify:submission`: fails as intended with NO-SUBMIT, 8 blockers, and 1 warning. The gate passes local screenshot export, English ASO, localized ASO structure, iOS archive source preflight, StoreKit source handoff, and VoiceOver source audits before blocking on external proof.
