@@ -92,5 +92,15 @@
 | App Group payload extraction | Passed | `widget-empty-state-snapshot.json`, `widget-needs-check-state-snapshot.json` | Empty snapshot has no nextDue/weekly items; needs-check snapshot has accepted Lab Report and reviewQueueCount 3 |
 | Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 43 PNGs at 1230x7305 | Re-run after native widget edge-state screenshots |
 | screenshot inventory check | Passed | 43 raw PNGs; widget edge-state screenshots are 1179x2556; contact sheet 1230x7305 | Final artifact dimensions verified after widget edge-state capture |
+| Reminder capture state source guard | Passed | `App.tsx`, `TodayScreen`, `tests/accessibilitySource.test.ts` | Guards capture-only `reminders` state and real Queue Reminders / Sync Calendar actions |
+| npm run typecheck | Passed | exit 0 | Re-run after Today Reminders card patch |
+| npm run test | Passed | 40/40 | Re-run after Today Reminders card patch |
+| EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE | Passed | Build succeeded, 0 errors/0 warnings; app installed/opened | Required to update the capture route in simulator UI |
+| xcrun simctl openurl + xcrun simctl io screenshot | Passed | `28-reminders.png` | Real simulator UI captured for Today Reminders card; first relative-path screenshot attempt failed, absolute-path retry passed |
+| Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 44 PNGs at 1230x7308 | Re-run after Reminders screenshot |
+| screenshot inventory check | Passed | 44 raw PNGs; `28-reminders.png` is 1179x2556; contact sheet 1230x7308 | Final artifact dimensions verified after Reminders capture |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Final static IAP guard after Reminders proof |
+| npm run verify:production | Passed | Production config verification passed | Final production config guard after Reminders proof |
+| git diff --check | Passed | exit 0 | Final whitespace/conflict-marker check after Reminders proof |
 
-Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/contrast pass, restore purchases, settings/reminders screens. Optional: overnight widget rollover screenshot.
+Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/contrast pass, restore purchases, dedicated settings screen/state. Optional: overnight widget rollover screenshot.

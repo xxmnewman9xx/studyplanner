@@ -104,6 +104,7 @@ type CaptureState =
   | "imported-found-work"
   | "manual-add"
   | "parser-processing"
+  | "reminders"
   | "scan-paper"
   | "upload-file"
   | "widget-empty"
@@ -664,6 +665,7 @@ function AppContent() {
                   widgetStyleId={widgetPreferences.styleId}
                   premiumAutomationLocked={premiumLocked}
                   onOpenPaywall={() => openTab("upgrade")}
+                  captureState={captureState}
                 />
               ) : null}
               {activeTab === "import" ? (
@@ -759,6 +761,7 @@ function captureStateFromQuery(value: string | null): CaptureState {
   if (value === "imported-found-work" || value === "imported") return "imported-found-work";
   if (value === "manual-add" || value === "manual") return "manual-add";
   if (value === "parser-processing" || value === "processing") return "parser-processing";
+  if (value === "reminders" || value === "reminder") return "reminders";
   if (value === "scan-paper" || value === "scan") return "scan-paper";
   if (value === "upload-file" || value === "upload") return "upload-file";
   if (value === "widget-empty" || value === "empty-widget") return "widget-empty";

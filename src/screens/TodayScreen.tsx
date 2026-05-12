@@ -7,6 +7,7 @@ import {
   CourseBalanceCard,
   WorkloadInsightCard
 } from "../components/InsightCards";
+import { AppButton } from "../components/AppButton";
 import {
   CommandCenterHero,
   GlassCard,
@@ -33,6 +34,8 @@ import { WidgetSnapshotService } from "../services/widgetSnapshotService";
 import { AppTheme, WidgetStylePresetId } from "../theme";
 import { useAppTheme } from "../themeContext";
 
+const bodyTextScale = 1.35;
+
 type TodayScreenProps = {
   assignments: Assignment[];
   courses: Course[];
@@ -47,6 +50,7 @@ type TodayScreenProps = {
   widgetStyleId?: WidgetStylePresetId;
   premiumAutomationLocked: boolean;
   onOpenPaywall: () => void;
+  captureState?: string | null;
 };
 
 export function TodayScreen({
@@ -62,7 +66,8 @@ export function TodayScreen({
   onOpenCalendar,
   widgetStyleId,
   premiumAutomationLocked,
-  onOpenPaywall
+  onOpenPaywall,
+  captureState
 }: TodayScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
@@ -107,6 +112,7 @@ export function TodayScreen({
   const upcomingItems = plan.upcoming
     .filter((assignment) => assignment.id !== heroAssignment?.id)
     .slice(0, 4);
+  const showAutomationCard = !captureMode || captureState === "reminders";
 
   const automationPress = (kind: "reminders" | "calendar") => {
     if (premiumAutomationLocked) {
@@ -160,6 +166,44 @@ export function TodayScreen({
         <MetricPill label="Due This Week" value={String(weekPlan.itemCount)} tone="blue" />
         <MetricPill label="Past Due" value={String(plan.overdue.length)} tone={plan.overdue.length > 0 ? "red" : "green"} />
       </View>
+
+      {showAutomationCard ? (
+        <GlassCard
+          accessible
+          accessibilityRole="summary"
+          accessibilityLabel="Reminders and calendar sync"
+          style={styles.automationCard}
+        >
+          <View style={styles.automationTop}>
+            <View style={styles.automationIcon}>
+              <Bell color={colors.brandPurple} size={18} />
+            </View>
+            <View style={styles.automationCopy}>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.automationTitle}>Reminders</Text>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.automationSubtitle}>
+                {premiumAutomationLocked
+                  ? "Plus can queue smart reminders and send checked due dates to Calendar."
+                  : "Queue smart reminders and send checked due dates to Calendar."}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.automationActions}>
+            <AppButton
+              label="Queue Reminders"
+              icon={Bell}
+              onPress={() => automationPress("reminders")}
+              style={styles.automationButton}
+            />
+            <AppButton
+              label="Sync Calendar"
+              icon={CalendarPlus}
+              variant="secondary"
+              onPress={() => automationPress("calendar")}
+              style={styles.automationButton}
+            />
+          </View>
+        </GlassCard>
+      ) : null}
 
       {weekPlan.heavyWorkloadWarning ? (
         <WarningCard
@@ -381,6 +425,48 @@ function createStyles(theme: AppTheme) {
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "700"
+    },
+    automationCard: {
+      gap: spacing.md
+    },
+    automationTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    automationIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.purpleSoft,
+      borderWidth: 1,
+      borderColor: colors.line
+    },
+    automationCopy: {
+      flex: 1,
+      gap: 2
+    },
+    automationTitle: {
+      color: colors.ink,
+      fontSize: 16,
+      lineHeight: 21,
+      fontWeight: "900"
+    },
+    automationSubtitle: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
+    },
+    automationActions: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    automationButton: {
+      flex: 1,
+      paddingHorizontal: spacing.sm
     }
   });
 }

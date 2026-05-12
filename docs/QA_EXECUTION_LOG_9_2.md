@@ -122,3 +122,13 @@ Known residual risks:
 | 26 | App Group payload extraction | Passed | `widget-empty-state-snapshot.json` has no nextDue/weekly items; `widget-needs-check-state-snapshot.json` has accepted Lab Report plus reviewQueueCount 3 | No |
 | 26 | Contact sheet regeneration | Passed | `45-final-contact-sheet.png` regenerated from 43 raw PNGs | No |
 | 26 | Screenshot inventory check | Passed | 43 raw PNGs; widget edge-state screenshots are 1179x2556 and contact sheet is 1230x7305 | No |
+| 27 | Reminder capture state source guard | Passed | `App.tsx`, `TodayScreen`, and `tests/accessibilitySource.test.ts` guard `reminders` capture state and real reminder/calendar actions | No |
+| 27 | `npm run typecheck` | Passed | `tsc --noEmit` completed after Today Reminders card patch | No |
+| 27 | `npm run test` | Passed | 40/40 tests passed after Today Reminders card patch | No |
+| 27 | Capture-mode iOS rebuild | Passed | `EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE` built, installed, and opened with 0 errors/0 warnings | No |
+| 27 | Reminders screenshot capture | Passed | Captured `28-reminders.png` as real simulator UI showing the Today Reminders card | No |
+| 27 | Contact sheet regeneration | Passed | `45-final-contact-sheet.png` regenerated from 44 raw PNGs | No |
+| 27 | Screenshot inventory check | Passed | 44 raw PNGs; `28-reminders.png` is 1179x2556 and contact sheet is 1230x7308 | No |
+| 27 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after Reminders proof | No |
+| 27 | `npm run verify:production` | Passed | Production config verification passed after Reminders proof | No |
+| 27 | `git diff --check` | Passed | No whitespace errors or conflict markers after Reminders proof | No |

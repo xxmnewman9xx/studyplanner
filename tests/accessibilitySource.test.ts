@@ -8,6 +8,7 @@ const insightCardsPath = path.join(process.cwd(), "src/components/InsightCards.t
 const appPath = path.join(process.cwd(), "App.tsx");
 const appButtonPath = path.join(process.cwd(), "src/components/AppButton.tsx");
 const importScreenPath = path.join(process.cwd(), "src/screens/ImportScreen.tsx");
+const todayScreenPath = path.join(process.cwd(), "src/screens/TodayScreen.tsx");
 const coursesScreenPath = path.join(process.cwd(), "src/screens/CoursesScreen.tsx");
 const monthlyCalendarPath = path.join(process.cwd(), "src/screens/MonthlyCalendarScreen.tsx");
 const assignmentDetailPath = path.join(process.cwd(), "src/screens/AssignmentDetailScreen.tsx");
@@ -68,6 +69,7 @@ test("core action screens expose labels and bounded text scaling", () => {
 test("capture routes expose honest screenshot proof states", () => {
   const app = fs.readFileSync(appPath, "utf8");
   const importScreen = fs.readFileSync(importScreenPath, "utf8");
+  const todayScreen = fs.readFileSync(todayScreenPath, "utf8");
   const coursesScreen = fs.readFileSync(coursesScreenPath, "utf8");
   const monthlyCalendar = fs.readFileSync(monthlyCalendarPath, "utf8");
   const widgetShowcase = fs.readFileSync(widgetShowcasePath, "utf8");
@@ -79,6 +81,7 @@ test("capture routes expose honest screenshot proof states", () => {
   assert.ok(app.includes("\"imported-found-work\""));
   assert.ok(app.includes("\"manual-add\""));
   assert.ok(app.includes("\"parser-processing\""));
+  assert.ok(app.includes("\"reminders\""));
   assert.ok(app.includes("\"scan-paper\""));
   assert.ok(app.includes("\"upload-file\""));
   assert.ok(app.includes("\"widget-empty\""));
@@ -93,6 +96,10 @@ test("capture routes expose honest screenshot proof states", () => {
   assert.ok(importScreen.includes("Paper scan needs setup"));
   assert.ok(importScreen.includes("Checked work is ready"));
   assert.ok(importScreen.includes("setExpandedAssignmentId(\"problem-set-4\")"));
+
+  assert.ok(todayScreen.includes("captureState === \"reminders\""));
+  assert.ok(todayScreen.includes("Queue Reminders"));
+  assert.ok(todayScreen.includes("Sync Calendar"));
 
   assert.ok(coursesScreen.includes("showCaptureManualAdd"));
   assert.ok(coursesScreen.includes("setTitle(\"Field Notes\")"));

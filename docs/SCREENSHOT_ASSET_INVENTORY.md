@@ -2,12 +2,12 @@
 
 Folder: `artifacts/post-goal-aso-submission`
 
-Status: partial proof captured on 2026-05-12. The folder now contains **43 raw simulator PNGs** plus a generated contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit, iPad, and App Store-size export proof are complete.
+Status: partial proof captured on 2026-05-12. The folder now contains **44 raw simulator PNGs** plus a generated contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit, iPad, and App Store-size export proof are complete.
 
 ## Capture Summary
 
 - Production/no-demo proof captured: `06-today-empty.png`.
-- Capture-mode feature proof captured: onboarding, populated Today, Add School Stuff, scan-paper unavailable state, upload-file state, parser-processing state, Check New Work, Check Work edit item, duplicate-found-work state, imported-found-work state, Manual Add, assignment detail, Calendar, filtered Calendar, Week Plan, Classes, Widget Setup, theme customization, and paywall product-load failure.
+- Capture-mode feature proof captured: onboarding, populated Today, Reminders, Add School Stuff, scan-paper unavailable state, upload-file state, parser-processing state, Check New Work, Check Work edit item, duplicate-found-work state, imported-found-work state, Manual Add, assignment detail, Calendar, filtered Calendar, Week Plan, Classes, Widget Setup, theme customization, and paywall product-load failure.
 - Native Home Screen widget proof captured: `30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png` show installed WidgetKit small and medium widgets, refreshed from a current May 2026 capture snapshot.
 - Native Home Screen widget edge-state proof captured: `32-widget-empty-state.png` and `33-widget-needs-check-state.png`, with App Group payload proof in `widget-empty-state-snapshot.json` and `widget-needs-check-state-snapshot.json`.
 - App icon/Home Screen proof captured: `40-app-icon-home-screen.png`.
@@ -16,7 +16,7 @@ Status: partial proof captured on 2026-05-12. The folder now contains **43 raw s
 - Widget refresh payload captured: `widget-refresh-after-completion-snapshot.json`.
 - Widget edit refresh proof captured: `47-widget-refresh-after-edit.png` and `widget-refresh-after-edit-snapshot.json`.
 - Widget add refresh proof captured: `48-widget-refresh-after-add.png` and `widget-refresh-after-add-snapshot.json`.
-- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 43 PNGs.
+- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 44 PNGs.
 - Paywall products-loaded proof is still missing. The captured paywall state shows purchases unavailable and is correctly stored as `38-paywall-product-load-failure.png`.
 
 | Required PNG | Status | Notes |
@@ -49,7 +49,7 @@ Status: partial proof captured on 2026-05-12. The folder now contains **43 raw s
 | 25-busy-week.png | Captured | Capture-mode Busy Week evidence, 1179x2556 PNG. |
 | 26-classes-list.png | Captured | Capture-mode classes list, 1179x2556 PNG. |
 | 27-class-detail.png | Captured | Capture-mode class detail/lower scroll, 1179x2556 PNG. |
-| 28-reminders.png | Missing | Reminder permission/schedule flow not captured. |
+| 28-reminders.png | Captured | Capture-mode Today Reminders card, 1179x2556 PNG. It exposes real Queue Reminders and Sync Calendar actions without claiming permission success. |
 | 29-widget-setup.png | Captured | Capture-mode Widget Setup in-app preview, 1179x2556 PNG. Not native Home Screen proof. |
 | 30-small-widget-home-screen.png | Captured | Real simulator Home Screen with installed WidgetKit small widget, 1179x2556 PNG. The widget shows current capture dates, not stale overdue demo data. |
 | 31-medium-widget-home-screen.png | Captured | Real simulator Home Screen with installed WidgetKit medium widget, 1179x2556 PNG. The widget shows current capture dates, not stale overdue demo data. |
@@ -66,7 +66,7 @@ Status: partial proof captured on 2026-05-12. The folder now contains **43 raw s
 | 42-sample-plan-state.png | Missing | Sample plan entry/state not separately captured. |
 | 43-localized-ui-example.png | Missing | UI localization proof not captured. |
 | 44-accessibility-large-text.png | Captured | Real simulator Today screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves the top hierarchy no longer catastrophically explodes, but full VoiceOver/contrast audit remains open. |
-| 45-final-contact-sheet.png | Captured | Generated from the 43 current raw PNGs, 1230x7305 PNG. |
+| 45-final-contact-sheet.png | Captured | Generated from the 44 current raw PNGs, 1230x7308 PNG. |
 | 46-widget-refresh-after-completion.png | Captured | Real simulator Home Screen after tapping Complete in the app. Small and medium widgets reflect the refreshed snapshot. |
 | 47-widget-refresh-after-edit.png | Captured | Real simulator Home Screen after editing Reading Reflection to Reflection Draft. Small and medium widgets reflect the edited title. |
 | 48-widget-refresh-after-add.png | Captured | Real simulator Home Screen after adding Field Notes to Science Lab. Small and medium widgets reflect the added assignment from the App Group snapshot. |
