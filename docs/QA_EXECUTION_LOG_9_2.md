@@ -163,3 +163,13 @@ Known residual risks:
 | 31 | `git diff --check` | Passed | No whitespace errors or conflict markers after localized/date proof docs | No |
 | 31 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after localized/date proof | No |
 | 31 | `npm run verify:production` | Passed | Production config verification passed after localized/date proof | No |
+| 32 | Contrast-safe theme patch | Passed | Darkened foreground-bearing theme accents, class swatches, and light `faint` text in `src/theme.ts` | No |
+| 32 | `npm run typecheck` | Passed | `tsc --noEmit` completed after contrast patch | No |
+| 32 | `npm run test` | Passed | 44/44 tests passed, including new `tests/themeContrast.test.ts` coverage for themes, class colors, and widget presets | No |
+| 32 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after contrast patch | No |
+| 32 | `npm run verify:production` | Passed | Production config verification passed after contrast patch | No |
+| 32 | Capture-mode iOS rebuild | Passed | `EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE` built, installed, and opened with 0 errors/0 warnings | No |
+| 32 | Contrast visual spot-check capture | Passed | Refreshed `01-onboarding-welcome.png`, `07-today-populated.png`, `21-calendar-month.png`, `24-week-plan.png`, `26-classes-list.png`, and `29-widget-setup.png` as real simulator UI | No |
+| 32 | Contact sheet regeneration | Passed | `45-final-contact-sheet.png` regenerated from 47 raw PNGs at 1040x6856 | No |
+| 32 | Screenshot inventory check | Passed | 47 primary raw PNGs; refreshed spot-check PNGs are 1179x2556 and contact sheet is 1040x6856 | No |
+| 32 | `git diff --check` | Passed | No whitespace errors or conflict markers after contrast pass docs and artifacts | No |

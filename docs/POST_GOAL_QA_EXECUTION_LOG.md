@@ -134,5 +134,14 @@
 | git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after localized/date proof docs |
 | npm run check:iap | Passed | IAP and premium gate configuration passed | Final static IAP guard after localized/date proof |
 | npm run verify:production | Passed | Production config verification passed | Final production config guard after localized/date proof |
+| npm run typecheck | Passed | exit 0 | Re-run after contrast-safe theme/class color patch |
+| npm run test | Passed | 44/44 | Added `tests/themeContrast.test.ts` covering core text tokens, accent backgrounds, class swatches, and widget presets |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Final static IAP guard after contrast patch |
+| npm run verify:production | Passed | Production config verification passed | Final production config guard after contrast patch |
+| EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE | Passed | Build succeeded, 0 errors/0 warnings; app installed/opened on the iPhone simulator | Required to recapture contrast-safe visual spot-check screens |
+| xcrun simctl openurl + xcrun simctl io screenshot | Passed | Refreshed `01-onboarding-welcome.png`, `07-today-populated.png`, `21-calendar-month.png`, `24-week-plan.png`, `26-classes-list.png`, and `29-widget-setup.png`, all 1179x2556 | Real simulator spot check after theme contrast token changes |
+| Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 47 PNGs at 1040x6856 | Re-run after contrast-safe screenshot refresh |
+| screenshot inventory check | Passed | 47 primary raw PNGs; refreshed spot-check PNGs are 1179x2556; contact sheet is 1040x6856 | Final artifact dimensions verified after contrast pass |
+| git diff --check | Passed | exit 0 | Final whitespace/conflict-marker check after contrast pass docs and artifacts |
 
-Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, App Store screenshot export/upload-size validation, full translated UI/string extraction/native localization review, full simulator VoiceOver/contrast pass, restore purchase success proof. Optional: overnight widget rollover screenshot.
+Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, App Store screenshot export/upload-size validation, full translated UI/string extraction/native localization review, full simulator VoiceOver traversal, restore purchase success proof. Optional: overnight widget rollover screenshot.

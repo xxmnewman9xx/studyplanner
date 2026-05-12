@@ -17,6 +17,7 @@ Status: partial proof captured on 2026-05-12. The folder now contains **47 prima
 - Widget edit refresh proof captured: `47-widget-refresh-after-edit.png` and `widget-refresh-after-edit-snapshot.json`.
 - Widget add refresh proof captured: `48-widget-refresh-after-add.png` and `widget-refresh-after-add-snapshot.json`.
 - Localized/date proof captured: `43-localized-ui-example.png`, captured on the iPhone simulator with `AppleLanguages=fr-FR`, `AppleLocale=fr_FR`, and forced 24-hour time. It shows locale-sensitive date ordering in Week Plan (`12 May - 18 May`) and 24-hour status-bar style, but app interface strings remain English; this is date-format proof, not full UI localization proof.
+- Contrast-safe visual spot check refreshed: `01-onboarding-welcome.png`, `07-today-populated.png`, `21-calendar-month.png`, `24-week-plan.png`, `26-classes-list.png`, and `29-widget-setup.png` after darkening foreground-bearing theme/class colors.
 - Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 47 PNGs.
 - iPad proof captured in `ipad/`: 11 upright 2064x2752 PNGs plus `ipad-contact-sheet.png`.
 - Restore access proof captured: `39-restore-purchases.png`. This proves the Restore entry point exists, not that a sandbox restore succeeded.
@@ -44,13 +45,13 @@ The app currently supports iPad (`ios.supportsTablet: true`, native target famil
 | Required PNG | Status | Notes |
 | --- | --- | --- |
 | 00-contact-sheet-before.png | Missing | No fresh before contact sheet was captured for this v1-3 branch. |
-| 01-onboarding-welcome.png | Captured | Capture-mode simulator UI, 1179x2556 PNG. |
+| 01-onboarding-welcome.png | Captured | Capture-mode simulator UI, 1179x2556 PNG. Refreshed after contrast-safe color pass. |
 | 02-onboarding-syllabus-to-plan.png | Captured | Capture-mode simulator UI, 1179x2556 PNG. |
 | 03-onboarding-check-found-work.png | Captured | Capture-mode simulator UI, 1179x2556 PNG. |
 | 04-onboarding-widgets.png | Captured | Capture-mode simulator UI, 1179x2556 PNG. |
 | 05-onboarding-first-action.png | Captured with caveat | Capture-mode simulator UI, 1179x2556 PNG. Current capture shows the final style/palette step; a cleaner first-action button close-up is still useful for App Store-ready assets. |
 | 06-today-empty.png | Captured | Real simulator production empty Today state, 1179x2556 PNG. Not App Store-size exported yet. |
-| 07-today-populated.png | Captured | Capture-mode simulator UI with safe synthetic assignments, 1179x2556 PNG. |
+| 07-today-populated.png | Captured | Capture-mode simulator UI with safe synthetic assignments, 1179x2556 PNG. Refreshed after contrast-safe color pass. |
 | 08-today-overdue.png | Missing | Current capture seed has no overdue state; do not fabricate one. |
 | 09-today-needs-check.png | Captured | Capture-mode Today scrolled to needs-check warning, 1179x2556 PNG. |
 | 10-add-school-stuff.png | Captured | Capture-mode Check Work/Add School Stuff entry state, 1179x2556 PNG. |
@@ -64,15 +65,15 @@ The app currently supports iPad (`ios.supportsTablet: true`, native target famil
 | 18-check-new-work-duplicate.png | Captured | Capture-mode duplicate-found-work state, 1179x2556 PNG. It flags repeated-looking work without auto-confirming it. |
 | 19-check-new-work-imported.png | Captured | Capture-mode imported-found-work state, 1179x2556 PNG. It shows checked work ready for planner surfaces. |
 | 20-assignment-detail.png | Captured | Capture-mode assignment detail, 1179x2556 PNG. |
-| 21-calendar-month.png | Captured | Capture-mode Calendar overview, 1179x2556 PNG. |
+| 21-calendar-month.png | Captured | Capture-mode Calendar overview, 1179x2556 PNG. Refreshed after contrast-safe color pass. |
 | 22-calendar-day-detail.png | Captured | Capture-mode Calendar scrolled/detail state, 1179x2556 PNG. |
 | 23-calendar-filtered-class.png | Captured | Capture-mode Calendar with Chemistry 101 filter selected, 1179x2556 PNG. It shows class-specific dots and agenda context from real planner data. |
-| 24-week-plan.png | Captured | Capture-mode Week Plan, 1179x2556 PNG. |
+| 24-week-plan.png | Captured | Capture-mode Week Plan, 1179x2556 PNG. Refreshed after contrast-safe color pass. |
 | 25-busy-week.png | Captured | Capture-mode Busy Week evidence, 1179x2556 PNG. |
-| 26-classes-list.png | Captured | Capture-mode classes list, 1179x2556 PNG. |
+| 26-classes-list.png | Captured | Capture-mode classes list, 1179x2556 PNG. Refreshed after contrast-safe color pass. |
 | 27-class-detail.png | Captured | Capture-mode class detail/lower scroll, 1179x2556 PNG. |
 | 28-reminders.png | Captured | Capture-mode Today Reminders card, 1179x2556 PNG. It exposes real Queue Reminders and Sync Calendar actions without claiming permission success. |
-| 29-widget-setup.png | Captured | Capture-mode Widget Setup in-app preview, 1179x2556 PNG. Not native Home Screen proof. |
+| 29-widget-setup.png | Captured | Capture-mode Widget Setup in-app preview, 1179x2556 PNG. Refreshed after contrast-safe color pass. Not native Home Screen proof. |
 | 30-small-widget-home-screen.png | Captured | Real simulator Home Screen with installed WidgetKit small widget, 1179x2556 PNG. The widget shows current capture dates, not stale overdue demo data. |
 | 31-medium-widget-home-screen.png | Captured | Real simulator Home Screen with installed WidgetKit medium widget, 1179x2556 PNG. The widget shows current capture dates, not stale overdue demo data. |
 | 32-widget-empty-state.png | Captured | Real simulator Home Screen with installed WidgetKit widgets in empty state, 1179x2556 PNG. Payload proof shows no next due, no weekly items, and emptyState true. |
@@ -87,8 +88,8 @@ The app currently supports iPad (`ios.supportsTablet: true`, native target famil
 | 41-no-data-app-review-state.png | Missing | Production no-data Today is captured as `06-today-empty.png`; separate App Review state not captured. |
 | 42-sample-plan-state.png | Missing | Sample plan entry/state not separately captured. |
 | 43-localized-ui-example.png | Captured with caveat | Real simulator Week Plan screenshot at `fr-FR` / `fr_FR` with forced 24-hour time, 1179x2556 PNG. It proves partial locale/date behavior, but interface strings remain English and full UI localization/string extraction remains incomplete. |
-| 44-accessibility-large-text.png | Captured | Real simulator Today screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves the top hierarchy no longer catastrophically explodes, but full VoiceOver/contrast audit remains open. |
-| 45-final-contact-sheet.png | Captured | Generated from the 47 current raw PNGs, 1040x6860 PNG. |
+| 44-accessibility-large-text.png | Captured | Real simulator Today screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves the top hierarchy no longer catastrophically explodes, but full VoiceOver traversal remains open. |
+| 45-final-contact-sheet.png | Captured | Generated from the 47 current raw PNGs, 1040x6856 PNG. |
 | 46-widget-refresh-after-completion.png | Captured | Real simulator Home Screen after tapping Complete in the app. Small and medium widgets reflect the refreshed snapshot. |
 | 47-widget-refresh-after-edit.png | Captured | Real simulator Home Screen after editing Reading Reflection to Reflection Draft. Small and medium widgets reflect the edited title. |
 | 48-widget-refresh-after-add.png | Captured | Real simulator Home Screen after adding Field Notes to Science Lab. Small and medium widgets reflect the added assignment from the App Group snapshot. |

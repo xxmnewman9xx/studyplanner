@@ -66,7 +66,8 @@ Current capture inventory:
 - Widget add refresh proof captured: `48-widget-refresh-after-add.png` and `widget-refresh-after-add-snapshot.json` show adding Field Notes updated the App Group snapshot and installed widgets.
 - Widget day-boundary behavior is code/build proven: WidgetKit recomputes label/urgency at render time and schedules refresh for the earlier of 30 minutes or 00:01 local time.
 - Core action large-text proof captured: `49-accessibility-check-work-large-text.png` through `52-accessibility-paywall-large-text.png`.
-- Missing: products-loaded paywall, restore purchase success/sandbox proof, full UI localization/string extraction/native review, full VoiceOver/contrast pass, App Store-sized screenshot exports, and optional overnight widget rollover screenshot.
+- Contrast-safe visual spot check refreshed `01-onboarding-welcome.png`, `07-today-populated.png`, `21-calendar-month.png`, `24-week-plan.png`, `26-classes-list.png`, and `29-widget-setup.png`; `45-final-contact-sheet.png` was regenerated from 47 primary PNGs at 1040x6856.
+- Missing: products-loaded paywall, restore purchase success/sandbox proof, full UI localization/string extraction/native review, full VoiceOver traversal, App Store-sized screenshot exports, and optional overnight widget rollover screenshot.
 
 Date/localization implementation note:
 
@@ -78,7 +79,7 @@ Accessibility implementation note:
 
 - Task rows, completion controls, WeekStrip days, workload bars, calendar mini-days, workload forecasts, class balance rows, and completion cards now expose source-tested VoiceOver labels.
 - Check Work, Assignment Detail, Widget Setup, Paywall, and shared buttons now expose stronger labels/hints and bounded text scaling, with large-text screenshots captured.
-- Full submission polish still requires real VoiceOver traversal, contrast proof, and localized UI states.
+- Theme/class/widget contrast is guarded by `tests/themeContrast.test.ts`; full submission polish still requires real VoiceOver traversal and localized UI states.
 
 ## Recommendation
 

@@ -2,7 +2,7 @@
 
 Branch: `v1-2-goal-9-2-root-concept-transformation`  
 Starting commit: `69d75470328bc470bce6097384b4a7e39e79c89a`  
-Final implementation score: **9.19/10**
+Final implementation score: **9.20/10**
 9.2 reached: **No**
 
 ## What Changed
@@ -20,6 +20,7 @@ Final implementation score: **9.19/10**
 - A targeted Dynamic Type fix keeps the Today header, hero, metrics, warning card, progress ring, and dock readable at an accessibility content size.
 - Task rows, completion buttons, WeekStrip days, workload bars, calendar mini-days, workload forecasts, class balance rows, and completion cards now expose VoiceOver labels, with a source-regression test guarding the labels.
 - Check Work, Assignment Detail, Widget Setup, Paywall, and shared buttons now use bounded text scaling plus clearer labels/hints for selection, edit, preview, and plan-selection actions.
+- Theme accents, class colors, and widget presets now have automated contrast coverage so foreground text remains readable across all light/dark palettes.
 - Capture-only proof routes now expose Manual Add and expanded Check Work edit-item states for honest simulator screenshot capture.
 - Capture-only proof routes now expose a filtered Calendar state, proving the class filter with `23-calendar-filtered-class.png`.
 - Capture-only proof routes now expose import-path states for scan paper, upload file, parser processing, duplicate found work, and imported found work.
@@ -40,7 +41,7 @@ Final implementation score: **9.19/10**
 ## Verification
 
 - `npm run typecheck`: passed.
-- `npm run test`: passed, 40/40 tests.
+- `npm run test`: passed, 44/44 tests.
 - `npm run check:iap`: passed.
 - `npm run verify:production`: passed.
 - `EXPO_PUBLIC_STORE_CAPTURE=1 ./scripts/verify-ios-widgetkit.sh`: passed build/App Group payload inspection; manual widget placement remains.
@@ -48,6 +49,7 @@ Final implementation score: **9.19/10**
 - Simulator screenshot sweep captured `02` through `19`, plus `00` and `20` contact sheets.
 - Large-text proof captured at `artifacts/goal-9-2-transformation/21-accessibility-large-text.png`.
 - Successor-branch core action large-text proof captured at `artifacts/post-goal-aso-submission/49-accessibility-check-work-large-text.png` through `52-accessibility-paywall-large-text.png`.
+- Successor-branch contrast-safe visual spot check refreshed `01-onboarding-welcome.png`, `07-today-populated.png`, `21-calendar-month.png`, `24-week-plan.png`, `26-classes-list.png`, and `29-widget-setup.png`, then regenerated `45-final-contact-sheet.png` from 47 PNGs.
 - Successor-branch Manual Add/Edit Item proof captured at `artifacts/post-goal-aso-submission/13-manual-add.png` and `17-check-new-work-edit-item.png`.
 - Successor-branch filtered Calendar proof captured at `artifacts/post-goal-aso-submission/23-calendar-filtered-class.png`.
 - Successor-branch import-path proof captured at `artifacts/post-goal-aso-submission/11-scan-paper.png`, `12-upload-file.png`, `14-parser-processing.png`, `18-check-new-work-duplicate.png`, and `19-check-new-work-imported.png`.
@@ -59,7 +61,7 @@ Final implementation score: **9.19/10**
 
 ## Why This Is Not 9.2 Yet
 
-- Accessibility and localization remain targeted improvements rather than exhaustive completion; source-tested VoiceOver labels, core Dynamic Type screenshots, and one French-locale date-format screenshot now cover key planner/action visuals, but full simulator VoiceOver traversal, contrast proof, translated UI proof, and native-speaker localization review are still needed.
+- Accessibility and localization remain targeted improvements rather than exhaustive completion; source-tested VoiceOver labels, automated contrast coverage, core Dynamic Type screenshots, and one French-locale date-format screenshot now cover key planner/action visuals, but full simulator VoiceOver traversal, translated UI proof, and native-speaker localization review are still needed.
 - The 500-use-case swarm is generated and ranked, but not converted into a full automated e2e suite.
 - StoreKit configuration passes static checks, but sandbox purchase/restore proof still needs a validation run.
 
@@ -68,7 +70,7 @@ Final implementation score: **9.19/10**
 Run a release-validation gate on this branch focused only on:
 
 1. StoreKit sandbox monthly/yearly/lifetime purchase and restore proof.
-2. VoiceOver and contrast pass on Today, Check Work, Assignment Detail, Widget Setup, and Paywall.
+2. VoiceOver traversal on Today, Check Work, Assignment Detail, Widget Setup, and Paywall, plus any manual contrast issues not covered by token tests.
 3. Heavy-load simulator seed with 100 and 500 assignments.
 4. Optional overnight widget rollover screenshot for extra submission confidence.
 5. Final scorecard update after those proofs.
