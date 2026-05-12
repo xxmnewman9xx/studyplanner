@@ -13,12 +13,13 @@ export function buildTrustedParsedPlan(parse: SyllabusParseResult) {
 
   const courseIds = new Set(assignments.map((assignment) => assignment.courseId));
   const courses = parse.courses.filter((course) => courseIds.has(course.id));
-  const gradeItems = parse.gradeItems.filter((item) => courseIds.has(item.courseId));
+  const gradeItems: SyllabusParseResult["gradeItems"] = [];
   const trustedParse = {
-    ...parse,
+    sourceName: parse.sourceName,
     courses,
     assignments,
-    gradeItems
+    gradeItems,
+    findings: parse.findings
   };
   const syllabusSource = parse.syllabusSource
     ? {

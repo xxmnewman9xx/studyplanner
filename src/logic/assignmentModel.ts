@@ -33,7 +33,7 @@ export function normalizeAssignment(
     ...input,
     id: input.id,
     courseId: input.courseId,
-    courseName: input.courseName || course?.name || course?.code || "Course",
+    courseName: course?.name || course?.code || input.courseName || "Course",
     title: input.title,
     type,
     kind,

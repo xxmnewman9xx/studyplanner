@@ -1,6 +1,6 @@
 import * as Calendar from "expo-calendar";
 import { Assignment, Course } from "../models";
-import { isAssignmentOpen } from "../logic/assignmentModel";
+import { openAssignmentsWithValidDueDates } from "../logic/assignmentSideEffects";
 import { getCourseForAssignment } from "../logic/planner";
 
 const plannerCalendarTitle = "Study Planner";
@@ -15,14 +15,13 @@ export async function syncAssignmentsToDeviceCalendar(
   }
 
   const calendarId = await getOrCreatePlannerCalendar();
-  const openAssignments = assignments.filter(
-    (assignment) => isAssignmentOpen(assignment) && !assignment.externalCalendarEventId
+  const openAssignments = openAssignmentsWithValidDueDates(assignments).filter(
+    ({ assignment }) => !assignment.externalCalendarEventId
   );
   const calendarEventIdsByAssignment: Record<string, string> = {};
 
-  for (const assignment of openAssignments) {
+  for (const { assignment, dueDate: due } of openAssignments) {
     const course = getCourseForAssignment(courses, assignment);
-    const due = new Date(assignment.dueAt);
     const startDate = assignment.kind === "exam" ? due : new Date(due.getTime() - 30 * 60 * 1000);
     const endDate = assignment.kind === "exam" ? new Date(due.getTime() + 75 * 60 * 1000) : due;
 
@@ -36,7 +35,10 @@ export async function syncAssignmentsToDeviceCalendar(
     calendarEventIdsByAssignment[assignment.id] = eventId;
   }
 
-  return { count: openAssignments.length, calendarEventIdsByAssignment };
+  return {
+    count: Object.keys(calendarEventIdsByAssignment).length,
+    calendarEventIdsByAssignment
+  };
 }
 
 async function getOrCreatePlannerCalendar() {

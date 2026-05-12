@@ -84,10 +84,13 @@ test("trusted parsed plan only includes accepted work and its class data", () =>
   assert.ok(trusted);
   assert.deepEqual(trusted.assignments.map((assignment) => assignment.id), ["accepted-homework"]);
   assert.deepEqual(trusted.courses.map((course) => course.id), ["math"]);
-  assert.deepEqual(trusted.gradeItems.map((item) => item.id), ["math-grade"]);
+  assert.deepEqual(trusted.gradeItems, []);
   assert.deepEqual(trusted.syllabusSource.assignmentIds, ["accepted-homework"]);
   assert.deepEqual(trusted.syllabusSource.courseIds, ["math"]);
   assert.equal(trusted.syllabusSource.findings[0]?.id, "ambiguous-lab");
+  assert.equal("semesterName" in trusted, false);
+  assert.equal("semesterStartDate" in trusted, false);
+  assert.equal("semesterEndDate" in trusted, false);
 });
 
 test("trusted parsed plan refuses an import with no accepted assignments", () => {

@@ -94,3 +94,38 @@ test("completion status transitions stay compatible with legacy status", () => {
   assert.equal(isAssignmentCompleted(completed), true);
   assert.equal(isAssignmentOpen(completed), false);
 });
+
+test("assignment patches refresh the displayed class name from the selected class", () => {
+  const math: Course = {
+    id: "math",
+    code: "MATH 6",
+    name: "Math",
+    color: "#2563EB",
+    meetings: [],
+    gradeCategories: []
+  };
+  const science: Course = {
+    id: "science",
+    code: "SCI 6",
+    name: "Science Lab",
+    color: "#10A66A",
+    meetings: [],
+    gradeCategories: []
+  };
+  const assignment = normalizeAssignment(
+    {
+      id: "homework",
+      courseId: math.id,
+      courseName: "Old Math Name",
+      title: "Homework",
+      dueAt: "2026-09-14T23:59:00",
+      source: "manual"
+    },
+    [math],
+    new Date("2026-08-24T12:00:00Z")
+  );
+
+  const moved = withAssignmentPatch(assignment, { courseId: science.id }, [math, science]);
+
+  assert.equal(moved.courseName, "Science Lab");
+});

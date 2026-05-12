@@ -2,7 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { buildTodayPlan, formatShortDate } from "../src/logic/planner";
-import { isValidDateKey, makeDueAt, normalizeDueAt } from "../src/logic/dateUtils";
+import {
+  daysBetweenDateKeys,
+  isValidDateKey,
+  makeDueAt,
+  normalizeDueAt
+} from "../src/logic/dateUtils";
 import { defaultSemester } from "../src/data/defaultPlanner";
 import { Assignment } from "../src/models";
 
@@ -39,4 +44,13 @@ test("planner ignores invalid due dates instead of crashing", () => {
   const plan = buildTodayPlan([assignment], defaultSemester, new Date("2026-05-12T12:00:00"));
   assert.equal(plan.openCount, 0);
   assert.equal(formatShortDate(assignment.dueAt), "Date needs check");
+});
+
+test("date-key day counts are stable across daylight saving boundaries", () => {
+  const fallBackNow = new Date("2026-11-01T09:00:00-05:00");
+  const springForwardNow = new Date("2026-03-08T09:00:00-04:00");
+
+  assert.equal(daysBetweenDateKeys("2026-11-02", fallBackNow), 1);
+  assert.equal(daysBetweenDateKeys("2026-03-09", springForwardNow), 1);
+  assert.equal(daysBetweenDateKeys("2026-11-01", fallBackNow), 0);
 });

@@ -1,0 +1,56 @@
+# Post-Goal Top 50 Root Problems
+
+Product thesis: StudyPlanner is a reviewed due-date planner with useful small and medium Home Screen widgets: school materials become found work, students check it, then confirmed deadlines power Today, Calendar, Week, Classes, reminders, and widgets.
+
+| Rank | Title | Affected features | Evidence | User/conversion harm | Risk | Strategy | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | Proof debt counted as readiness | Submission readiness | v1-2 audit scored 8.76 and v1-3 scorecard starts at 7.82; StoreKit/widget/screenshots/support remain open. | False submit confidence. | High | No-submit until proof exists. | Open |
+| 2 | iPad screenshot obligation unclear | App Store media | app.json has ios.supportsTablet true. | Missing required media can block upload/review. | High | Capture 13-inch iPad set or disable tablet support intentionally. | Open |
+| 3 | StoreKit proof missing | Paywall/IAP | Static checks pass; no sandbox monthly/yearly/lifetime/restore evidence. | Reviewer may see unavailable products. | High | Submission verification mode and sandbox proof packet. | Open |
+| 4 | Support URL missing | Submission metadata | Evidence ledger marks support URL as blocker. | App Store metadata incomplete. | High | Provide public HTTPS support page/contact. | Open |
+| 5 | Parser semester metadata crossed trust boundary | Data integrity | Subagents found parser semester dates applied after one accepted assignment. | Unreviewed semester changes could alter planner frame. | High | Trusted import no longer applies parser semester dates. | Fixed |
+| 6 | DST date-key bug | Calendar/widgets | Calendar agent found date-key diff used fixed local-midnight milliseconds. | Tomorrow could label as two days around DST. | High | UTC-midday date-key math. | Fixed |
+| 7 | Course name drift | Widgets/assignment detail | Assignment move kept old courseName before course lookup. | Widgets can show stale class names. | Medium | Normalization now prefers selected course name/code. | Fixed |
+| 8 | Photo/OCR claim scope mismatch | Import/ASO | Photo parsing requires endpoint; local parser rejects images. | Users and reviewers expect unsupported OCR. | High | Conditional copy and endpoint disclosure. | Open |
+| 9 | Today remains dense | Today/stress | Hero followed by metrics, warnings, list, calendar, week bars, widgets, class balance. | Stressed students face a wall of data. | Medium | Move analytics below Plan Ahead; add overdue rescue. | Deferred |
+| 10 | Bulk approval wording too loose | Check Work/trust | Looks good shown can approve visible low-confidence rows after alert. | Students may approve without checking. | Medium | Rename to Add shown after checking; future risk constraints. | Open |
+| 11 | No FoundWorkDraft model | Parser/review | Assignment requires dueAt; no-date/ambiguous/duplicate cards are not first-class. | Messy syllabus realities collapse into findings/skips. | High | Future draft model with statuses. | Deferred |
+| 12 | Endpoint contract drift | Parser/docs | Docs said JSON/studentContext; code sends multipart kind/file. | Backend/reviewer confusion. | Medium | AI parse contract doc now matches code. | Fixed docs |
+| 13 | Calendar/reminder lifecycle is create-only | Reminders/calendar sync | Existing reminders/events are skipped rather than updated/deleted. | Edits can leave stale external notifications/events. | High | Avoid full-sync claims; later reconciliation. | Open |
+| 14 | Reminder presets ignored | Reminders | Model has presets; service schedules by kind only. | User expectations mismatch. | Medium | Implement before claiming preset control. | Deferred |
+| 15 | Class schedule overclaim | Classes/ASO | Meetings can display but not be edited in manual class flows. | Schedule/timetable claims feel fake. | High | Remove class schedule editing claims. | Fixed docs |
+| 16 | Focus screen hidden | Product/ASO | FocusScreen exists but route remaps focus to calendar. | Focus-session claims unsupported. | High | Remove focus claims from ASO. | Fixed docs |
+| 17 | Widget proof conflict | Widgets/screenshots | Native small/medium exist, but docs/assets conflict; old Lock Screen asset exists. | ASO can overclaim unsupported widgets. | High | Exclude stale assets; capture fresh Home Screen small/medium. | Open |
+| 18 | Widget future concepts in code | Widget architecture | TS/preview code includes monthly/heavy/course/lock concepts. | Future drift and accidental claims. | Medium | Keep internal only; lint docs/assets. | Deferred |
+| 19 | Paywall detour | Conversion | Locked import/grade paths route via Widget Setup before plans. | Purchase intent friction. | Medium | Route premium intent directly to UpgradeScreen or separate Widgets/Plans. | Deferred |
+| 20 | Paywall loaded product proof missing | IAP/screenshots | Paywall screenshots show unavailable state in existing artifacts. | Conversion and review proof incomplete. | High | Capture loaded products after StoreKit setup. | Open |
+| 21 | Privacy parser details thin | Parent trust | Policy lacks vendor/retention/deletion specifics for uploads. | Parent/App Review trust risk. | High | Update privacy/support with parser endpoint details. | Open |
+| 22 | Localized packs draft-only | Localization/ASO | Existing localized captions lack native-speaker/text-fit proof. | Bad localized uploads can reduce conversion. | Medium | Mark review required; launch English first if needed. | Open |
+| 23 | Keywords over limit in old metadata | ASO | Old keywords were 175 bytes. | Rejected/ignored metadata. | High | Metadata doc now uses 100-byte keyword field. | Fixed docs |
+| 24 | Subtitle over limit in old metadata | ASO | Old subtitle was 31 chars. | Metadata upload failure. | High | Metadata doc now uses 30-char subtitle. | Fixed docs |
+| 25 | Unsupported Lock Screen asset | Screenshots | store-preview-widget-final asset includes Lock Screen preview claim. | Misleading App Store media. | High | Exclude from inventory. | Open |
+| 26 | App preview videos out of scope | Media | User requested no videos; older video artifacts exist. | Wrong submission asset set. | Medium | Screenshots only; exclude videos. | Fixed docs |
+| 27 | Production verify used to be too weak for submission | QA | Normal verify passed without product env. | False IAP readiness. | High | STUDYPLANNER_SUBMISSION_VERIFY=1 requires IAP IDs/support URL. | Fixed |
+| 28 | Signed archive entitlements unverified | App Review/build | Local entitlements show aps-environment development. | Archive may need production entitlement confirmation. | Medium | Verify signed App Store archive. | Open |
+| 29 | E2E coverage incomplete | QA | 31 logic tests pass; no UI automation. | Some flows remain manually validated. | Medium | Manual QA matrix and future e2e. | Open |
+| 30 | Screenshot folder empty at start | Evidence | artifacts/post-goal-aso-submission created but no fresh captures yet. | Cannot claim screenshot readiness. | High | Capture or mark blockers in inventory. | Open |
+| 31 | No support/contact in app metadata | Parent trust | Support URL placeholder remains. | Review and user trust gap. | High | Provide support URL and in-app support location. | Open |
+| 32 | No native-speaker localization review | Localization | Generated packs only. | Risky literal translations. | Medium | Native review required. | Open |
+| 33 | No accepted-size export proof | Screenshots | Raw screenshots may not be 6.9 accepted dimensions. | Upload friction. | Medium | Export App Store-ready sizes. | Open |
+| 34 | No App Store Connect IAP status proof | IAP | Product IDs in code, not confirmed in ASC. | Rejected/unavailable IAP. | High | ASC screenshots/checklist. | Open |
+| 35 | Manual text date entry remains unfriendly | UX | Manual flows use YYYY-MM-DD. | Younger users may stumble. | Medium | Future date picker/friendly parsing. | Deferred |
+| 36 | No recurrence model | Power users | Assignments have no recurrence. | Weekly homework has manual overhead. | Medium | Defer recurrence design. | Deferred |
+| 37 | No duplicate merge UI | Parser/review | Duplicates dedupe silently/overwrite by ID. | Heavy syllabus users can lose clarity. | Medium | Future duplicate merge cards. | Deferred |
+| 38 | No all-day event model | Calendar | dueAt only. | Calendar can feel too exact for date-only work. | Low | Future all-day flag. | Deferred |
+| 39 | Calendar filters partial | Calendar | Month grid filters, week strip still all assignments. | Filtered view can confuse. | Medium | Patch in future calendar pass. | Open |
+| 40 | Heavy-week label ambiguity | Calendar | Month heaviest week rendered near This week. | Misleading stress signal. | Medium | Rename to Busiest week this month. | Open |
+| 41 | Old docs/assets contradict current scope | Docs | Multiple older docs mention unsupported media/widgets. | Handoff confusion. | Medium | Submission inventory excludes stale assets. | Open |
+| 42 | No current contact sheet | Screenshots | Required final contact sheet not captured. | Visual score cannot reach target. | High | Capture fresh contact sheet. | Open |
+| 43 | Store capture labels visible in widget previews | Screenshots | Preview labels appear in some captures. | Customer-facing proof can look fake. | Medium | Avoid or recapture final assets. | Open |
+| 44 | Paywall legal copy could be closer to CTA | Monetization trust | Store-handled renewal/cancel info exists but not always near purchase action. | Low | Add microcopy near CTA. | Open |
+| 45 | Onboarding action chooser late | Onboarding | Path chooser on final step. | First value delayed. | Medium | Future screen-one action design. | Deferred |
+| 46 | No direct paywall from premium intent | Conversion | Widget Setup detour. | Conversion friction. | Medium | Add direct plan route later. | Deferred |
+| 47 | No reliable external parser timeout proof | Parser | Failure docs more complete than tests. | Reviewer/user uncertainty. | Medium | Add endpoint timeout test. | Open |
+| 48 | Accessibility proof incomplete | Accessibility | No VoiceOver/Dynamic Type screenshots in v1-3 folder. | Cannot claim accessibility polish. | Medium | Capture large text and VoiceOver notes. | Open |
+| 49 | Performance proof is logic-heavy only | Performance | 500 assignment logic test passes; UI virtualization not proven. | Heavy UI may jank. | Low | Future simulator profiling. | Open |
+| 50 | Submission handoff incomplete until external proofs | Submission | App Review handoff depends on IAP/support/screenshots. | Cannot submit without guessing. | High | Final handoff lists blockers. | Open |

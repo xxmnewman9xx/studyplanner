@@ -347,12 +347,6 @@ function AppContent() {
     setSyllabusSources((current) =>
       mergeById(current, [trustedPlan.syllabusSource])
     );
-    setSemester((current) => ({
-      ...current,
-      name: trustedPlan.semesterName || current.name,
-      startDate: trustedPlan.semesterStartDate || current.startDate,
-      endDate: trustedPlan.semesterEndDate || current.endDate
-    }));
     openTab("today");
   };
 

@@ -83,9 +83,10 @@ export function addDaysLocal(date: Date, days: number) {
 }
 
 export function daysBetweenDateKeys(dateKey: string, now = new Date()) {
-  const due = parseDateOnlyAsLocal(dateKey).getTime();
-  const start = startOfLocalDay(now).getTime();
-  return Math.ceil((due - start) / dayMs);
+  const dueUtc = utcMiddayFromDateKey(dateKey);
+  const nowKey = toDateKey(now);
+  const startUtc = utcMiddayFromDateKey(nowKey);
+  return Math.round((dueUtc - startUtc) / dayMs);
 }
 
 export function formatShortDateSafe(value: string, fallback = "Date needs check") {
@@ -123,6 +124,14 @@ function parseDateOnlyAsLocal(value: string) {
 
   const [, year, month, day] = match;
   return new Date(Number(year), Number(month) - 1, Number(day));
+}
+
+function utcMiddayFromDateKey(value: string) {
+  const match = dateKeyPattern.exec(value);
+  if (!match) return Number.NaN;
+
+  const [, year, month, day] = match;
+  return Date.UTC(Number(year), Number(month) - 1, Number(day), 12);
 }
 
 function isValidDate(date: Date) {
