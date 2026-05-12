@@ -29,7 +29,7 @@ Status: NO-SUBMIT as of 2026-05-12.
 8. Localized metadata packs require native-speaker and text-fit review.
 9. Products-loaded paywall screenshot is captured, but transaction proof is still missing. The screenshot shows returned Yearly Plus and Plus Monthly products; it does not prove Lifetime purchase availability, completed purchase, restore success, or App Store Connect approval.
 
-`npm run verify:submission` now centralizes these gates. As of 2026-05-12 it correctly returns **NO-SUBMIT** while the remaining external blockers are IAP env IDs for submission, support URL, StoreKit sandbox proof, App Store Connect screenshot upload acceptance, signed archive entitlement proof, and VoiceOver traversal proof. It passes the local iPhone/iPad accepted-size screenshot export checks, products-loaded paywall screenshot check, English ASO copy audit, localized ASO structural audit, iOS archive source preflight audit, StoreKit source handoff audit, and source-level VoiceOver audit.
+`npm run verify:submission` now centralizes these gates. As of 2026-05-12 it correctly returns **NO-SUBMIT** with 6 blockers and 1 warning while the remaining blockers are IAP env IDs for submission, support URL, StoreKit sandbox proof, App Store Connect screenshot upload acceptance, and signed archive entitlement proof. It passes the local iPhone/iPad accepted-size screenshot export checks, products-loaded paywall screenshot check, English ASO copy audit, localized ASO structural audit, iOS archive source preflight audit, StoreKit source handoff audit, source-level VoiceOver audit, and local simulator VoiceOver traversal proof.
 
 External proof templates are staged in `artifacts/post-goal-aso-submission/external-proof`. The verifier rejects template/TODO/placeholder language, so those templates are only a checklist for the future App Store Connect/StoreKit run, not proof.
 
@@ -64,7 +64,8 @@ Current capture inventory:
 - Products-loaded paywall proof captured: `37-paywall-products-loaded.png` shows returned Yearly Plus and Plus Monthly products on a real simulator paywall. It does not prove Lifetime purchase availability, completed purchase, restore success, or App Store Connect approval.
 - Localized/date proof captured: `43-localized-ui-example.png` shows a real `fr-FR` / `fr_FR` simulator Week Plan screenshot with locale-sensitive date ordering and 24-hour status-bar style; it does not prove translated app strings.
 - Localization string audit captured: `docs/LOCALIZATION_STRING_AUDIT.md` reports 737 likely localizable strings across 46 tracked source files, confirming localized UI submission is not ready without deliberate i18n work and native review.
-- VoiceOver source audit captured: `docs/VOICEOVER_READINESS_AUDIT.md` reports 104 scanned interactive elements with 104 explicit labels, 104 roles, and 0 missing recommended hints; the full manual traversal remains open.
+- VoiceOver source audit captured: `docs/VOICEOVER_READINESS_AUDIT.md` reports 104 scanned interactive elements with 104 explicit labels, 104 roles, and 0 missing recommended hints.
+- VoiceOver traversal proof captured: `artifacts/post-goal-aso-submission/external-proof/voiceover-traversal.md` records local simulator traversal for Today, Check New Work, Assignment Detail, Widget Setup, Paywall, and Settings/Restore, with screenshots in `external-proof/voiceover-screenshots/`.
 - ASO copy audit captured: `docs/ASO_COPY_AUDIT.md` reports English metadata is length-safe and claim-safe; localized metadata structure is separately checked, but native review remains open.
 - Localized ASO structural audit captured: `docs/ASO_LOCALIZATION_AUDIT.md` reports 20 localized metadata draft rows and 20 screenshot-caption QA rows are placeholder-free, length-safe, claim-safe, and explicitly caveated for native-speaker/text-fit review.
 - iOS archive source preflight captured: `docs/IOS_ARCHIVE_PREFLIGHT_AUDIT.md` reports app/widget entitlement files are wired, app/widget bundle IDs are configured, the shared App Group is present on both targets, the privacy manifest is included, usage descriptions exist, and the widget extension is embedded. It also warns that source `aps-environment` is `development`; signed archive production entitlement proof is still required.
@@ -79,9 +80,9 @@ Current capture inventory:
 - Widget day-boundary behavior is code/build proven: WidgetKit recomputes label/urgency at render time and schedules refresh for the earlier of 30 minutes or 00:01 local time.
 - Core action large-text proof captured: `49-accessibility-check-work-large-text.png` through `52-accessibility-paywall-large-text.png`.
 - Contrast-safe visual spot check refreshed `01-onboarding-welcome.png`, `07-today-populated.png`, `21-calendar-month.png`, `24-week-plan.png`, `26-classes-list.png`, and `29-widget-setup.png`; StoreKit handoff pass refreshed `36-settings.png`, `39-restore-purchases.png`, and `ipad/ipad-10-settings-restore.png`; products-loaded proof captured `37-paywall-products-loaded.png`; `45-final-contact-sheet.png` was regenerated from 48 primary raw PNGs at 1060x6907, `ipad/ipad-contact-sheet.png` was regenerated at 1040x1946, and `npm run export:screenshots` regenerated the local accepted-size export.
-- Submission verifier proof: `npm run verify:submission` passes local screenshot export checks, English ASO copy audit, localized ASO structural audit, iOS archive source preflight audit, StoreKit source handoff audit, and the source-level VoiceOver audit, then fails honestly until external StoreKit/support/App Store Connect/VoiceOver/archive proof is supplied.
+- Submission verifier proof: `npm run verify:submission` passes local screenshot export checks, English ASO copy audit, localized ASO structural audit, iOS archive source preflight audit, StoreKit source handoff audit, products-loaded paywall proof, source-level VoiceOver audit, and local simulator VoiceOver traversal, then fails honestly until external StoreKit/support/App Store Connect/archive proof is supplied.
 - External proof packet templates captured: `external-proof/*.template.md` for StoreKit, App Store Connect screenshot upload, signed archive entitlements, VoiceOver traversal, and localized UI/native review.
-- Missing: restore purchase success/sandbox proof, Lifetime transaction proof, full UI localization/string extraction/native review, full VoiceOver traversal, manual App Store Connect upload acceptance for the exported screenshots, and optional overnight widget rollover screenshot.
+- Missing: restore purchase success/sandbox proof, Lifetime transaction proof, full UI localization/native review for localized submission, manual App Store Connect upload acceptance for the exported screenshots, signed archive proof, and optional overnight widget rollover screenshot.
 
 Date/localization implementation note:
 
@@ -93,8 +94,8 @@ Accessibility implementation note:
 
 - Task rows, completion controls, WeekStrip days, workload bars, calendar mini-days, workload forecasts, class balance rows, and completion cards now expose source-tested VoiceOver labels.
 - Check Work, Assignment Detail, Widget Setup, Paywall, and shared buttons now expose stronger labels/hints and bounded text scaling, with large-text screenshots captured.
-- `npm run audit:voiceover` provides source-level VoiceOver readiness evidence, but it is not a substitute for the required simulator/device VoiceOver traversal proof packet.
-- Theme/class/widget contrast is guarded by `tests/themeContrast.test.ts`; full submission polish still requires real VoiceOver traversal and localized UI states.
+- `npm run audit:voiceover` provides source-level VoiceOver readiness evidence, and `voiceover-traversal.md` provides local simulator traversal evidence. A physical-device repeat is recommended before final submission, but the local traversal blocker is closed.
+- Theme/class/widget contrast is guarded by `tests/themeContrast.test.ts`; full localized submission polish still requires localized UI states and native review.
 
 iOS archive implementation note:
 
@@ -102,4 +103,4 @@ iOS archive implementation note:
 
 ## Recommendation
 
-Do not submit this branch yet. Continue with StoreKit sandbox proof, support/privacy finalization, manual App Store Connect screenshot upload acceptance, full localized UI proof/native review, optional overnight widget rollover screenshot, and final QA.
+Do not submit this branch yet. Continue with StoreKit sandbox proof, support/privacy finalization, manual App Store Connect screenshot upload acceptance, signed archive entitlement proof, full localized UI proof/native review if submitting localizations, optional overnight widget rollover screenshot, and final QA.

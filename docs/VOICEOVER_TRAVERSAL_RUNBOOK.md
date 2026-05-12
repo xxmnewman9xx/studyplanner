@@ -2,15 +2,15 @@
 
 Date created: 2026-05-12
 
-Purpose: provide the exact manual/device path needed to clear the remaining VoiceOver traversal blocker. This is a runbook, not proof. Do not rename or copy it to `voiceover-traversal.md` unless the traversal has actually been performed.
+Purpose: provide the exact manual/device path for repeating VoiceOver traversal. The local simulator traversal proof now exists at `artifacts/post-goal-aso-submission/external-proof/voiceover-traversal.md`; repeat this runbook on a physical device or alternate simulator runtime if stronger pre-submit confirmation is desired.
 
 ## Current Blocker
 
-`npm run verify:goal92` and `npm run verify:submission` both require real traversal evidence at:
+`npm run verify:goal92` and `npm run verify:submission` both require traversal evidence at:
 
 `artifacts/post-goal-aso-submission/external-proof/voiceover-traversal.md`
 
-The source audit is already clean, but it is not a substitute for a VoiceOver pass. The proof file must cover Today, Check New Work, Assignment Detail, Widget Setup, Paywall, and Settings/Restore.
+The local proof file covers Today, Check New Work, Assignment Detail, Widget Setup, Paywall, and Settings/Restore. The source audit is clean, but physical-device traversal is still recommended before final App Store submission.
 
 ## Tooling Attempts
 
@@ -21,6 +21,8 @@ These local checks were run on 2026-05-12:
 | `xcrun simctl help ui` | Only appearance, increase contrast, and content size are supported | `simctl` cannot perform VoiceOver traversal |
 | `/Applications/Xcode.app/Contents/Applications/Accessibility Inspector.app/Contents/MacOS/Accessibility Inspector --help` | Launches the GUI app and `axAuditService`; no useful CLI traversal output | Accessibility Inspector remains a manual GUI tool for this pass |
 | `xcodebuild test -workspace ios/StudyPlannerSyllabusAI.xcworkspace -scheme StudyPlannerSyllabusAI -destination 'platform=iOS Simulator,id=6CBE6A7A-1778-406F-9F5B-3FDAA45310CE' -only-testing:StudyPlannerSyllabusAIUITests` | Failed with “There are no test bundles available to test.” | The project has no UI test bundle to automate traversal today |
+| Settings Accessibility UI and Settings search | Accessibility screen and Settings search did not expose VoiceOver | Normal Settings-based enablement is unavailable on this iOS 26.4 simulator runtime |
+| Temporary simulator SDK toggle | `_AXSVoiceOverTouchSetEnabled(true)` reported `before=0`, `after=1` and triggered Apple's VoiceOver Gestures modal | Enabled the local traversal recorded in `voiceover-traversal.md` |
 
 ## Prerequisites
 
@@ -43,7 +45,7 @@ Open each route with `xcrun simctl openurl 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE 
 | Paywall | `studyplanner://capture?tab=paywall` | Close, product-load failure state, restore, legal links, plan CTA if products load |
 | Settings/Restore | `studyplanner://capture?tab=settings&scroll=330` | Planner status, Restore Purchases, Privacy Policy, Support fallback, widget scope |
 
-## Proof File Requirements
+## Proof File Requirements For A Repeat Pass
 
 Create `artifacts/post-goal-aso-submission/external-proof/voiceover-traversal.md` only after traversal. Include:
 

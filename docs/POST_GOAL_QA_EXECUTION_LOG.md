@@ -247,5 +247,9 @@
 | npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after StoreKit config/products-loaded proof patch |
 | npm run verify:production | Passed | Production config verification passed | Re-run after StoreKit config/products-loaded proof patch |
 | git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after StoreKit config/products-loaded proof patch |
+| VoiceOver simulator enablement | Passed | Temporary simulator-only SDK toggle reported `before=0`, `after=1`; Apple VoiceOver Gestures modal appeared | Settings on iOS 26.4 did not expose VoiceOver; method recorded in `voiceover-traversal-attempt.md` |
+| VoiceOver traversal | Passed | `voiceover-traversal.md`; screenshots `external-proof/voiceover-screenshots/01`-`06` | Traversed Today, Check New Work, Assignment Detail, Widget Setup, Paywall, and Settings/Restore while VoiceOver was active; paywall/settings showed prior canceled-purchase banner but it was accessible |
+| npm run verify:goal92 | Failed as intended | GOAL-OPEN: 3 blockers, 0 warnings | VoiceOver proof blocker is closed; final-doc state and StoreKit sandbox/restore blockers remain |
+| npm run verify:submission | Failed as intended | NO-SUBMIT: 6 blockers, 1 warning | VoiceOver traversal passes; submission remains blocked on IAP env IDs, support URL, StoreKit proof, App Store Connect upload acceptance, and signed archive entitlements |
 
-Unrun/blocked: StoreKit sandbox purchase/restore and Lifetime transaction proof, manual App Store Connect screenshot upload acceptance, full translated UI/string extraction/native localization review, full simulator VoiceOver traversal, restore purchase success proof. Optional: overnight widget rollover screenshot.
+Unrun/blocked: StoreKit sandbox purchase/restore and Lifetime transaction proof, manual App Store Connect screenshot upload acceptance, full translated UI/string extraction/native localization review for localized submission, restore purchase success proof, signed archive entitlement proof. Optional: physical-device VoiceOver repeat and overnight widget rollover screenshot.

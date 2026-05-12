@@ -2,7 +2,7 @@
 
 Date checked: 2026-05-12
 
-Status: traversal proof is still missing. This file records tooling attempts only. It is intentionally not named `voiceover-traversal.md` and must not be treated as proof.
+Status: traversal proof was completed after these attempts uncovered a working simulator-only VoiceOver toggle path. The proof is recorded in `voiceover-traversal.md`; this file remains the tooling-attempt log.
 
 Simulator:
 - `StudyPlanner-Codex-iPhone`
@@ -24,5 +24,14 @@ Attempts:
    - Result: failed with “There are no test bundles available to test.”
    - Conclusion: there is no UI test bundle available to automate traversal in the current project.
 
-Next required action:
-Run the manual traversal using `docs/VOICEOVER_TRAVERSAL_RUNBOOK.md`, then create `voiceover-traversal.md` with real results for Today, Check New Work, Assignment Detail, Widget Setup, Paywall, and Settings/Restore.
+4. Settings UI search
+   - Result: iOS Settings search returned “No Results for ‘VoiceOver’,” and the Accessibility screen exposed Hover Text, Display & Text Size, Motion, Spoken Content, Face ID & Attention, Control Nearby Devices, and Subtitles & Captioning, but no VoiceOver row.
+   - Conclusion: normal Settings-based enablement was unavailable on this iOS 26.4 simulator runtime.
+
+5. Temporary simulator SDK toggle
+   - Result: a temporary C program compiled outside the repository against the iPhone Simulator SDK called `_AXSVoiceOverTouchSetEnabled(true)` and reported `before=0`, `after=1`.
+   - Confirmation: the simulator displayed Apple’s “VoiceOver Gestures” modal, then the app exposed VoiceOver accessibility trees for the required flows.
+   - Conclusion: this enabled a real local traversal pass. Results are recorded in `voiceover-traversal.md`.
+
+Current required action:
+Repeat the traversal on a physical device or a simulator runtime with visible Settings support before a final App Store submission if the release owner wants device-level confirmation beyond this local simulator pass.

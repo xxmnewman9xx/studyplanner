@@ -14,7 +14,7 @@ Status: **Not complete as a 9.2 goal.**
 
 The branch has a real transformation and stronger evidence than the release-candidate baseline, but the audit does not support marking the objective fully achieved because several requested proof gates remain weak, external, or manual even though the evidence-adjusted score now reaches the numerical 9.2 line.
 
-Updated audited score after adding import-trust, onboarding first-action routing, accessibility quick wins, 500-assignment regression tests, successor-branch large-text Today/core action proof, automated theme/class/widget contrast proof, Manual Add/Edit Item/filtered Calendar/import-path/reminders/settings/restore-access screenshot proof, partial French-locale date screenshot proof, locale-aware month grid logic, 24-hour locale date formatting, source-tested VoiceOver labels for planner visuals, current-date capture seed fix, native small/medium widget screenshot proof, native widget empty/needs-check proof, widget refresh-after-completion/edit/add proof, and widget day-boundary code/build proof: **9.20/10**.
+Updated audited score after adding import-trust, onboarding first-action routing, accessibility quick wins, 500-assignment regression tests, successor-branch large-text Today/core action proof, automated theme/class/widget contrast proof, Manual Add/Edit Item/filtered Calendar/import-path/reminders/settings/restore-access screenshot proof, partial French-locale date screenshot proof, locale-aware month grid logic, 24-hour locale date formatting, source-tested VoiceOver labels for planner visuals, current-date capture seed fix, native small/medium widget screenshot proof, native widget empty/needs-check proof, widget refresh-after-completion/edit/add proof, widget day-boundary code/build proof, and local simulator VoiceOver traversal proof: **9.22/10**.
 
 ## Prompt-To-Artifact Checklist
 
@@ -44,7 +44,7 @@ Updated audited score after adding import-trust, onboarding first-action routing
 | Improve widgets | `WidgetShowcaseScreen.tsx`, `widgetSnapshot` tests, WidgetKit App Group payload inspection, native small/medium screenshots in `artifacts/post-goal-aso-submission/30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png`, native empty/needs-check screenshots in `32-widget-empty-state.png` and `33-widget-needs-check-state.png`, refresh proof in `46-widget-refresh-after-completion.png`, `47-widget-refresh-after-edit.png`, `48-widget-refresh-after-add.png`, widget refresh JSON payloads, and `tests/widgetPlugin.test.ts` | Partial | Empty, needs-check, completion, edit, and add refresh are proven; day-boundary behavior is code/build proven; overnight visual screenshot remains optional evidence |
 | Improve onboarding | `OnboardingScreen.tsx`, `App.tsx`, screenshot `02-onboarding-after.png` | Complete for this pass | Direct path selection exists; final visual screenshot of the chooser is still optional proof |
 | Improve monetization safety | `UpgradeScreen` existing behavior, `WidgetShowcaseScreen` copy, `check:iap`, `verify:production` | Partial | StoreKit sandbox purchase/restore not proven |
-| Accessibility/localization/performance | date/label improvements, reduced-motion guard, larger touch targets, `plannerScale.test.ts`, targeted large-text caps in `src/components/PremiumUI.tsx`, core action caps/labels in `ImportScreen`, `AssignmentDetailScreen`, `WidgetShowcaseScreen`, and `UpgradeScreen`, contrast-safe theme/class/widget tokens in `src/theme.ts`, screenshots `artifacts/goal-9-2-transformation/21-accessibility-large-text.png`, `artifacts/post-goal-aso-submission/43-localized-ui-example.png`, refreshed contrast spot-check screenshots `01`, `07`, `21`, `24`, `26`, `29`, and `artifacts/post-goal-aso-submission/49-accessibility-check-work-large-text.png` through `52-accessibility-paywall-large-text.png`, locale-aware month grid and 24-hour date formatting tests, source-tested VoiceOver labels in `tests/accessibilitySource.test.ts`, contrast guard in `tests/themeContrast.test.ts` | Partial | Full simulator VoiceOver traversal, localized string audit, translated UI, and native-speaker localization review remain incomplete |
+| Accessibility/localization/performance | date/label improvements, reduced-motion guard, larger touch targets, `plannerScale.test.ts`, targeted large-text caps in `src/components/PremiumUI.tsx`, core action caps/labels in `ImportScreen`, `AssignmentDetailScreen`, `WidgetShowcaseScreen`, and `UpgradeScreen`, contrast-safe theme/class/widget tokens in `src/theme.ts`, screenshots `artifacts/goal-9-2-transformation/21-accessibility-large-text.png`, `artifacts/post-goal-aso-submission/43-localized-ui-example.png`, refreshed contrast spot-check screenshots `01`, `07`, `21`, `24`, `26`, `29`, `artifacts/post-goal-aso-submission/49-accessibility-check-work-large-text.png` through `52-accessibility-paywall-large-text.png`, `artifacts/post-goal-aso-submission/external-proof/voiceover-traversal.md`, locale-aware month grid and 24-hour date formatting tests, source-tested VoiceOver labels in `tests/accessibilitySource.test.ts`, contrast guard in `tests/themeContrast.test.ts` | Strong partial | Local simulator VoiceOver traversal is recorded; physical-device repeat, translated UI, and native-speaker localization review remain incomplete |
 | Capture screenshot artifacts | `artifacts/goal-9-2-transformation/00-20*.png` | Partial | `14` and `15` are in-app widget previews, not Home Screen widgets |
 | Run tests | `npm run typecheck`, `npm run test` = 44/44 | Complete | Does not cover all e2e scenarios |
 | Run IAP/production checks | `npm run check:iap`, `npm run verify:production` passed | Complete for static config | Sandbox commerce not proven |
@@ -55,10 +55,9 @@ Updated audited score after adding import-trust, onboarding first-action routing
 ## Requirements Not Yet Covered Well Enough
 
 1. StoreKit sandbox monthly/yearly/lifetime purchase and restore proof.
-2. Full VoiceOver traversal with screenshots/logs. Targeted Today/core action large-text proof, source-tested visual-surface labels, and automated theme/class/widget contrast proof exist, but this is not exhaustive.
-3. Localized/date behavior proof remains incomplete as a full localization gate. Monday-start calendar logic and 24-hour locale date formatting now have unit coverage, and `43-localized-ui-example.png` provides one real French-locale simulator Week Plan screenshot, but the app UI strings remain English and a localized string audit/native review is still missing.
-4. Automated e2e coverage for the full functionality matrix.
-5. Final scorecard evidence now supports a numerical 9.20, but the prompt-level completion claim remains unearned until StoreKit, VoiceOver, localization, and e2e proof gaps are resolved or explicitly deferred by a validation gate.
+2. Localized/date behavior proof remains incomplete as a full localization gate. Monday-start calendar logic and 24-hour locale date formatting now have unit coverage, and `43-localized-ui-example.png` provides one real French-locale simulator Week Plan screenshot, but the app UI strings remain English and a localized string audit/native review is still missing.
+3. Automated e2e coverage for the full functionality matrix.
+4. Final scorecard evidence now supports a numerical 9.22, but the prompt-level completion claim remains unearned until StoreKit proof and final completion-doc gates are resolved.
 
 ## Continue/Stop Decision
 
@@ -82,16 +81,16 @@ This addendum exists because the original completion audit was written before la
 | Root-concept/subagent review recorded | `docs/SUBAGENT_GOAL_REVIEWS.md`, `docs/ROOT_CONCEPT_AUDIT.md`, `docs/TOP_ROOT_CONCEPT_PROBLEMS.md` | Complete enough for planning | Raw separate subagent transcripts remain unavailable |
 | At least 500 use cases generated | `docs/USE_CASE_SWARM_500.md` contains 565 `UC-` rows | Complete | Use cases are not all executable automated e2e tests |
 | Functionality matrix created | `docs/FUNCTIONALITY_TEST_MATRIX_9_2.md` contains 440 `FT-` rows | Complete as a matrix | Full matrix is not fully automated |
-| Screenshots captured | `artifacts/goal-9-2-transformation` has 22 PNGs; successor proof folder has 48 primary raw PNGs and 11 iPad PNGs | Complete with caveats | StoreKit transaction proof, VoiceOver traversal proof, and some external proof screenshots remain missing |
+| Screenshots captured | `artifacts/goal-9-2-transformation` has 22 PNGs; successor proof folder has 48 primary raw PNGs, 11 iPad PNGs, and 6 VoiceOver traversal screenshots | Complete with caveats | StoreKit transaction proof and some external proof screenshots remain missing |
 | Current source verification | `npm run typecheck` passed; `npm run test` passed 53/53 | Complete for current source tests | Tests are not a full end-to-end simulator matrix |
 | IAP and production static verification | `npm run check:iap` passed; `npm run verify:production` passed | Complete for static config | StoreKit sandbox/App Store Connect product proof still missing |
-| Executable 9.2 completion gate | `npm run verify:goal92` writes `docs/GOAL_9_2_COMPLETION_GATE.md` and reports GOAL-OPEN with 5 blockers | Complete as a blocker gate | The gate correctly refuses completion until the remaining manual/external proof exists |
+| Executable 9.2 completion gate | `npm run verify:goal92` writes `docs/GOAL_9_2_COMPLETION_GATE.md` and reports GOAL-OPEN with 3 blockers | Complete as a blocker gate | The gate correctly refuses completion until StoreKit transaction proof and final-doc state are resolved |
 | Localized UI/native review disposition | `artifacts/post-goal-aso-submission/external-proof/localized-ui-native-review.md` explicitly defers localized UI/native review for an English-only pass | Complete as a deferral | Full localized UI implementation and native review remain future work, not claimed complete |
-| Submission/readiness gate honesty | `npm run verify:submission` returns NO-SUBMIT with 7 blockers and 1 warning | Complete as a gate | The gate correctly blocks completion until external proof exists |
+| Submission/readiness gate honesty | `npm run verify:submission` returns NO-SUBMIT with 6 blockers and 1 warning | Complete as a gate | The gate correctly blocks submission until external proof and env values exist |
 | StoreKit source proof | Submission verifier reports `PASS StoreKit/IAP source handoff has no local blockers`; `docs/STOREKIT_IAP_HANDOFF_AUDIT.md` exists | Source-level complete | Monthly/yearly/Lifetime/restore sandbox proof, Lifetime transaction availability, and App Store Connect product status remain external |
 | StoreKit testing runbook | `docs/STOREKIT_TESTING_RUNBOOK.md` and `storekit-sandbox-attempt.md` record exact setup path, local StoreKit config, products-loaded capture, and transaction-proof gap | Complete as a handoff aid | Not transaction proof; `storekit-sandbox-proof.md` still requires real monthly/yearly/Lifetime purchase and restore results |
-| VoiceOver accessibility proof | Source audit passes in test suite and submission verifier | Partial | Full simulator/device VoiceOver traversal proof is missing |
-| VoiceOver traversal runbook | `docs/VOICEOVER_TRAVERSAL_RUNBOOK.md` and `voiceover-traversal-attempt.md` record exact manual route and failed automation attempts | Complete as a handoff aid | Not proof; `voiceover-traversal.md` still must be created after real traversal |
+| VoiceOver accessibility proof | Source audit passes in test suite and submission verifier; `voiceover-traversal.md` records Today, Check New Work, Assignment Detail, Widget Setup, Paywall, and Settings/Restore traversal while VoiceOver was active | Complete for local simulator proof | Repeat on physical device or alternate runtime if the release owner wants stronger pre-submit confirmation |
+| VoiceOver traversal runbook | `docs/VOICEOVER_TRAVERSAL_RUNBOOK.md` and `voiceover-traversal-attempt.md` record the failed standard routes plus the working simulator SDK toggle route | Complete as a handoff aid | None for local proof |
 | Localization proof | Localized ASO structural audit passes; `docs/LOCALIZATION_STRING_AUDIT.md` records current English UI string debt | Partial | App UI remains English; translated UI, native-speaker review, and localized screenshot text-fit proof remain missing |
 | Widget proof | Native small/medium, empty, needs-check, completion/edit/add refresh, and day-boundary code/build proof exist | Strong partial | Optional overnight visual rollover screenshot remains uncaptured |
 | Final readiness report | `docs/FINAL_9_2_READINESS_REPORT.md` exists and says 9.2 reached: No | Complete and honest | Needs current test-count/proof addendum |
@@ -101,12 +100,12 @@ This addendum exists because the original completion audit was written before la
 
 | Command | Result | Notes |
 | --- | --- | --- |
-| `npm run verify:goal92` | Failed as intended | GOAL-OPEN: 4 blockers, 0 warnings |
+| `npm run verify:goal92` | Failed as intended | GOAL-OPEN: 3 blockers, 0 warnings |
 | `npm run typecheck` | Passed | `tsc --noEmit` completed |
 | `npm run test` | Passed | 55/55 tests passed |
 | `npm run check:iap` | Passed | IAP and premium gate configuration passed |
 | `npm run verify:production` | Passed | Production config verification passed |
-| `npm run verify:submission` | Failed as intended | NO-SUBMIT: 7 blockers, 1 warning |
+| `npm run verify:submission` | Failed as intended | NO-SUBMIT: 6 blockers, 1 warning |
 
 ### Current Missing Or Weakly Verified Requirements
 
@@ -114,10 +113,9 @@ This addendum exists because the original completion audit was written before la
 2. Support URL is not configured for final submission.
 3. App Store Connect screenshot upload acceptance is not recorded.
 4. Signed archive production entitlement proof is not recorded.
-5. Full simulator/device VoiceOver traversal is not recorded.
-6. Full localized UI implementation, native-speaker review, and localized screenshot text-fit proof are not complete.
-7. The 440-row functionality matrix is not fully executable as automated e2e coverage.
+5. Full localized UI implementation, native-speaker review, and localized screenshot text-fit proof are not complete.
+6. The 440-row functionality matrix is not fully executable as automated e2e coverage.
 
 ### Updated Continue/Stop Decision
 
-Continue. The current branch has strong source-level evidence and a numerical score above the original 9.2 line in later scorecards, but the active 9.2 goal should remain open because explicit proof gates still fail and the current submission verifier correctly returns NO-SUBMIT.
+Continue. The current branch has strong source-level and local simulator VoiceOver evidence with a numerical score above the original 9.2 line, but the active 9.2 goal should remain open because StoreKit transaction proof is still missing and the current submission verifier correctly returns NO-SUBMIT.

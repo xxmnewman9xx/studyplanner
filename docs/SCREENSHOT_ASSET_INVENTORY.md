@@ -102,15 +102,28 @@ The app currently supports iPad (`ios.supportsTablet: true`, native target famil
 | 41-no-data-app-review-state.png | Missing | Production no-data Today is captured as `06-today-empty.png`; separate App Review state not captured. |
 | 42-sample-plan-state.png | Missing | Sample plan entry/state not separately captured. |
 | 43-localized-ui-example.png | Captured with caveat | Real simulator Week Plan screenshot at `fr-FR` / `fr_FR` with forced 24-hour time, 1179x2556 PNG. It proves partial locale/date behavior, but interface strings remain English and full UI localization/string extraction remains incomplete. |
-| 44-accessibility-large-text.png | Captured | Real simulator Today screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves the top hierarchy no longer catastrophically explodes, but full VoiceOver traversal remains open. |
+| 44-accessibility-large-text.png | Captured | Real simulator Today screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves the top hierarchy no longer catastrophically explodes; local VoiceOver traversal is now separately recorded in `external-proof/voiceover-traversal.md`. |
 | 45-final-contact-sheet.png | Captured | Generated from the 48 current raw PNGs, 1060x6907 PNG. |
 | 46-widget-refresh-after-completion.png | Captured | Real simulator Home Screen after tapping Complete in the app. Small and medium widgets reflect the refreshed snapshot. |
 | 47-widget-refresh-after-edit.png | Captured | Real simulator Home Screen after editing Reading Reflection to Reflection Draft. Small and medium widgets reflect the edited title. |
 | 48-widget-refresh-after-add.png | Captured | Real simulator Home Screen after adding Field Notes to Science Lab. Small and medium widgets reflect the added assignment from the App Group snapshot. |
-| 49-accessibility-check-work-large-text.png | Captured | Real simulator Check Work screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves Add School Stuff and Needs Check remain legible with large type; deeper review-row VoiceOver traversal remains open. |
-| 50-accessibility-assignment-detail-large-text.png | Captured | Real simulator Assignment Detail at `accessibility-extra-extra-large`, 1179x2556 PNG. Title/date/time/course controls remain legible; full edit/save VoiceOver traversal remains open. |
-| 51-accessibility-widget-setup-large-text.png | Captured | Real simulator Widget Setup at `accessibility-extra-extra-large`, 1179x2556 PNG. Supported size/focus controls remain legible; native widget VoiceOver proof remains open. |
+| 49-accessibility-check-work-large-text.png | Captured | Real simulator Check Work screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves Add School Stuff and Needs Check remain legible with large type; VoiceOver traversal for this flow is now recorded separately. |
+| 50-accessibility-assignment-detail-large-text.png | Captured | Real simulator Assignment Detail at `accessibility-extra-extra-large`, 1179x2556 PNG. Title/date/time/course controls remain legible; VoiceOver traversal for this flow is now recorded separately. |
+| 51-accessibility-widget-setup-large-text.png | Captured | Real simulator Widget Setup at `accessibility-extra-extra-large`, 1179x2556 PNG. Supported size/focus controls remain legible; VoiceOver traversal for this flow is now recorded separately. |
 | 52-accessibility-paywall-large-text.png | Captured | Real simulator Paywall at `accessibility-extra-extra-large`, 1179x2556 PNG. The paywall remains readable in product-load-failure mode; products-loaded large-text proof is not separately captured. |
+
+## VoiceOver Traversal Proof Screenshots
+
+These screenshots live under `artifacts/post-goal-aso-submission/external-proof/voiceover-screenshots` and support `external-proof/voiceover-traversal.md`.
+
+| File | Status | Notes |
+| --- | --- | --- |
+| 01-today-voiceover-active.png | Captured | Today while VoiceOver was active after the simulator SDK toggle. |
+| 02-check-new-work-voiceover-active.png | Captured | Check New Work while VoiceOver was active. |
+| 03-assignment-detail-voiceover-active.png | Captured | Assignment Detail opened from Today while VoiceOver was active. |
+| 04-widget-setup-voiceover-active.png | Captured | Widget Setup while VoiceOver was active. |
+| 05-paywall-voiceover-active.png | Captured with caveat | Paywall while VoiceOver was active; the prior canceled-purchase banner is visible and accessible, so do not use this as final marketing artwork. |
+| 06-settings-restore-voiceover-active.png | Captured with caveat | Settings/Restore while VoiceOver was active; the prior canceled-purchase banner is visible and accessible. |
 
 ## Excluded Assets
 

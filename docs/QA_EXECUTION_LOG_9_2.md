@@ -272,3 +272,7 @@ Known residual risks:
 | 49 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after StoreKit config/products-loaded proof patch | No |
 | 49 | `npm run verify:production` | Passed | Production config verification passed after StoreKit config/products-loaded proof patch | No |
 | 49 | `git diff --check` | Passed | No whitespace errors or conflict markers after StoreKit config/products-loaded proof patch | No |
+| 50 | VoiceOver simulator enablement | Passed | Temporary simulator-only SDK toggle reported `before=0`, `after=1`; Apple VoiceOver Gestures modal appeared | Settings on iOS 26.4 did not expose VoiceOver, so physical-device repeat is recommended |
+| 50 | VoiceOver traversal | Passed | `artifacts/post-goal-aso-submission/external-proof/voiceover-traversal.md` plus six traversal screenshots | Today, Check New Work, Assignment Detail, Widget Setup, Paywall, and Settings/Restore exposed usable labels while VoiceOver was active |
+| 50 | Goal 9.2 completion gate after VoiceOver proof | Failed as intended | `npm run verify:goal92` now reports GOAL-OPEN with 3 blockers and passes `Full VoiceOver traversal proof exists` | StoreKit sandbox/restore proof and honest final-doc state blockers remain |
+| 50 | Submission verifier after VoiceOver proof | Failed as intended | `npm run verify:submission` now reports NO-SUBMIT with 6 blockers and 1 warning while passing VoiceOver traversal | IAP env IDs, support URL, StoreKit proof, App Store Connect upload acceptance, and signed archive entitlement proof remain |

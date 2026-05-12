@@ -33,7 +33,7 @@ test("submission readiness gate blocks the current incomplete external proof sta
   assert.match(output, /PASS\s+iOS archive preflight has no source blockers/);
   assert.match(output, /PASS\s+StoreKit\/IAP source handoff has no local blockers/);
   assert.match(output, /PASS\s+VoiceOver source audit is clean/);
-  assert.match(output, /BLOCKER\s+VoiceOver traversal is recorded/);
+  assert.match(output, /PASS\s+VoiceOver traversal is recorded/);
 });
 
 test("submission readiness gate verifies local screenshot exports before external blockers", () => {

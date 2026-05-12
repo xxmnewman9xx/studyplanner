@@ -2,7 +2,7 @@
 
 Branch: `v1-2-goal-9-2-root-concept-transformation`  
 Starting commit: `69d75470328bc470bce6097384b4a7e39e79c89a`  
-Final implementation score: **9.20/10**
+Final implementation score: **9.22/10**
 9.2 reached: **No**
 
 ## What Changed
@@ -37,15 +37,16 @@ Final implementation score: **9.20/10**
 - Adding Field Notes to Science Lab in normal mode updates the App Group widget payload and installed Home Screen widgets; proof is captured in `artifacts/post-goal-aso-submission/48-widget-refresh-after-add.png` and `widget-refresh-after-add-snapshot.json`.
 - Widget day-boundary behavior is now code/build proven: due labels and urgency color recompute from `dueAt` at render time and the native timeline wakes at 00:01 local if that is sooner than the 30-minute refresh.
 - Paywall copy no longer exposes internal product-ID language.
+- Local simulator VoiceOver traversal is now recorded for Today, Check New Work, Assignment Detail, Widget Setup, Paywall, and Settings/Restore in `artifacts/post-goal-aso-submission/external-proof/voiceover-traversal.md`.
 
 ## Verification
 
 - `npm run typecheck`: passed.
 - `npm run test`: passed, 44/44 tests during the original v1-2 pass; the current successor branch now passes 55/55 tests, including ASO copy, localized ASO structure, iOS archive preflight, StoreKit source handoff, goal 9.2 completion-gate, submission-readiness, VoiceOver source, contrast, locale/date, 500-assignment scale, and native widget guards.
-- `npm run verify:goal92`: fails as intended with GOAL-OPEN, 5 blockers, and 0 warnings. It verifies the original 9.2 docs, 565 use cases, 440 functionality rows, screenshot sets, implementation evidence, scorecard, source audits, submission-gate honesty, and the English-only localized UI/native review deferral before blocking on remaining proof gaps.
+- `npm run verify:goal92`: fails as intended with GOAL-OPEN, 3 blockers, and 0 warnings. It verifies the original 9.2 docs, 565 use cases, 440 functionality rows, screenshot sets, implementation evidence, scorecard, source audits, submission-gate honesty, products-loaded paywall proof, local simulator VoiceOver traversal, and the English-only localized UI/native review deferral before blocking on StoreKit transaction proof and final-doc state.
 - `npm run check:iap`: passed.
 - `npm run verify:production`: passed.
-- Current successor-branch `npm run verify:submission`: fails as intended with NO-SUBMIT, 8 blockers, and 1 warning. The gate passes local screenshot export, English ASO, localized ASO structure, iOS archive source preflight, StoreKit source handoff, and VoiceOver source audits before blocking on external proof.
+- Current successor-branch `npm run verify:submission`: fails as intended with NO-SUBMIT, 6 blockers, and 1 warning. The gate passes local screenshot export, products-loaded paywall proof, English ASO, localized ASO structure, iOS archive source preflight, StoreKit source handoff, VoiceOver source audit, and local simulator VoiceOver traversal before blocking on env/external proof.
 - `EXPO_PUBLIC_STORE_CAPTURE=1 ./scripts/verify-ios-widgetkit.sh`: passed build/App Group payload inspection; manual widget placement remains.
 - `EXPO_PUBLIC_STORE_CAPTURE=0 ./scripts/verify-ios-widgetkit.sh`: production payload verified after stopping the stale capture Metro server; no `demoState`, no demo assignments.
 - Simulator screenshot sweep captured `02` through `19`, plus `00` and `20` contact sheets.
@@ -59,11 +60,11 @@ Final implementation score: **9.20/10**
 - Successor-branch Settings proof captured at `artifacts/post-goal-aso-submission/36-settings.png`.
 - Successor-branch restore-access proof captured at `artifacts/post-goal-aso-submission/39-restore-purchases.png`.
 - Successor-branch native widget edge-state proof captured at `artifacts/post-goal-aso-submission/32-widget-empty-state.png`, `33-widget-needs-check-state.png`, `widget-empty-state-snapshot.json`, and `widget-needs-check-state-snapshot.json`.
-- Completion audit added and refreshed in `docs/COMPLETION_AUDIT_9_2.md`; verdict remains not complete as a 9.2 goal.
+- Completion audit added and refreshed in `docs/COMPLETION_AUDIT_9_2.md`; verdict remains not complete as a 9.2 goal because StoreKit transaction proof is still missing.
 
 ## Why This Is Not 9.2 Yet
 
-- Accessibility and localization remain targeted improvements rather than exhaustive completion; source-tested VoiceOver labels, automated contrast coverage, source-level VoiceOver readiness, core Dynamic Type screenshots, localized ASO structural checks, a localization string audit, and one French-locale date-format screenshot now cover key planner/action visuals, but full simulator VoiceOver traversal, translated UI proof, and native-speaker localization review are still needed.
+- Accessibility and localization remain targeted improvements rather than exhaustive completion; source-tested VoiceOver labels, automated contrast coverage, source-level VoiceOver readiness, local simulator VoiceOver traversal, core Dynamic Type screenshots, localized ASO structural checks, a localization string audit, and one French-locale date-format screenshot now cover key planner/action visuals. Translated UI proof and native-speaker localization review are still needed before localized submission.
 - The 500-use-case swarm is generated and ranked, but not converted into a full automated e2e suite.
 - StoreKit configuration and source handoff now pass static/source checks, and products-loaded paywall proof exists for returned subscription products. Monthly/yearly/Lifetime purchase, restore success, Lifetime transaction availability, and App Store Connect product status still need a validation run.
 - The current submission gate also blocks on a real support URL, App Store Connect screenshot-upload acceptance, signed archive entitlement proof, and the external proof files required for submission.
@@ -73,7 +74,7 @@ Final implementation score: **9.20/10**
 Run a release-validation gate on this branch focused only on:
 
 1. StoreKit sandbox monthly/yearly/lifetime purchase and restore proof.
-2. VoiceOver traversal on Today, Check Work, Assignment Detail, Widget Setup, and Paywall, plus any manual contrast issues not covered by token tests.
-3. Heavy-load simulator seed with 100 and 500 assignments.
+2. Heavy-load simulator seed with 100 and 500 assignments.
+3. Optional physical-device VoiceOver repeat for extra submission confidence.
 4. Optional overnight widget rollover screenshot for extra submission confidence.
-5. Final scorecard update after those proofs.
+5. Final scorecard update after StoreKit proof.

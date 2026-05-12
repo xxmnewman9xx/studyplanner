@@ -21,7 +21,7 @@ test("goal 9.2 completion gate verifies artifacts but keeps the goal open for pr
   assert.match(output, /PASS\s+VoiceOver traversal runbook and attempt log exist/);
   assert.match(output, /BLOCKER\s+Final readiness report marks 9\.2 reached/);
   assert.match(output, /BLOCKER\s+StoreKit sandbox purchase\/restore proof exists/);
-  assert.match(output, /BLOCKER\s+Full VoiceOver traversal proof exists/);
+  assert.match(output, /PASS\s+Full VoiceOver traversal proof exists/);
   assert.match(output, /PASS\s+Localized UI\/native review proof exists or is explicitly deferred/);
 });
 
@@ -35,7 +35,7 @@ test("goal 9.2 completion gate exposes structured JSON for audit tooling", () =>
   const audit = JSON.parse(result.stdout);
 
   assert.equal(audit.passed, false);
-  assert.ok(audit.blockerCount >= 4);
+  assert.equal(audit.blockerCount, 3);
   assert.ok(audit.useCaseRows >= 500);
   assert.ok(audit.functionalityRows >= 400);
   assert.ok(Array.isArray(audit.blockers));
@@ -53,11 +53,11 @@ test("goal 9.2 completion gate exposes structured JSON for audit tooling", () =>
       blocker.requiredFiles.includes("artifacts/post-goal-aso-submission/external-proof/storekit-sandbox-proof.md")
     )
   );
+  assert.ok(!audit.blockers.some((blocker: { label: string }) => blocker.label === "Full VoiceOver traversal proof exists"));
   assert.ok(
-    audit.blockers.some((blocker: { label: string; proofType: string; requiredFiles: string[] }) =>
-      blocker.label === "Full VoiceOver traversal proof exists" &&
-      blocker.proofType === "manual-accessibility-traversal" &&
-      blocker.requiredFiles.includes("artifacts/post-goal-aso-submission/external-proof/voiceover-traversal.md")
+    audit.checks.some((check: { label: string; status: string }) =>
+      check.label === "Full VoiceOver traversal proof exists" &&
+      check.status === "PASS"
     )
   );
   assert.ok(
