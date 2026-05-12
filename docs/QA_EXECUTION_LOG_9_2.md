@@ -223,3 +223,10 @@ Known residual risks:
 | 41 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after localized ASO verifier | No |
 | 41 | `npm run verify:production` | Passed | Production config verification passed after localized ASO verifier | No |
 | 41 | `git diff --check` | Passed | No whitespace errors or conflict markers after localized ASO verifier | No |
+| 42 | iOS archive source preflight audit | Passed with caveat | `npm run audit:ios-archive` wrote `docs/IOS_ARCHIVE_PREFLIGHT_AUDIT.md`; native source wiring has 0 blockers and 1 APNs source entitlement warning | Signed App Store archive proof still required |
+| 42 | Submission verifier iOS archive preflight gate | Passed | `npm run verify:submission` now includes `PASS iOS archive preflight has no source blockers` while preserving 8 external blockers and 1 localization warning | External proof blockers remain |
+| 42 | `npm run typecheck` | Passed | `tsc --noEmit` completed after iOS archive preflight verifier | No |
+| 42 | `npm run test` | Passed | 52/52 tests passed, including `tests/iosArchivePreflight.test.ts` | No |
+| 42 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after iOS archive preflight verifier | No |
+| 42 | `npm run verify:production` | Passed | Production config verification passed after iOS archive preflight verifier | No |
+| 42 | `git diff --check` | Passed | No whitespace errors or conflict markers after iOS archive preflight verifier | No |

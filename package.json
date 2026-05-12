@@ -10,6 +10,7 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "test": "tsc -p tsconfig.tests.json && node --test .test-build/tests/*.test.js",
+    "audit:ios-archive": "node scripts/audit-ios-archive-preflight.mjs",
     "audit:localization": "node scripts/audit-localization-strings.mjs",
     "audit:voiceover": "node scripts/audit-voiceover-readiness.mjs",
     "verify:aso": "node scripts/verify-aso-copy.mjs",

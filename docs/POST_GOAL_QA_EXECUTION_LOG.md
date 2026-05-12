@@ -190,5 +190,12 @@
 | npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after localized ASO verifier |
 | npm run verify:production | Passed | Production config verification passed | Re-run after localized ASO verifier |
 | git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after localized ASO verifier |
+| npm run audit:ios-archive | Passed with warning | `docs/IOS_ARCHIVE_PREFLIGHT_AUDIT.md`; 0 source blockers, 1 warning that source APNs entitlement is `development` and signed archive must prove production | iOS archive source preflight; does not replace signed archive proof |
+| npm run verify:submission | Failed as intended | NO-SUBMIT: 8 blockers, 1 warning; includes `PASS iOS archive preflight has no source blockers` | Re-run after wiring iOS archive preflight into submission verifier |
+| npm run typecheck | Passed | exit 0 | Re-run after iOS archive preflight verifier |
+| npm run test | Passed | 52/52 | Added `tests/iosArchivePreflight.test.ts` and updated submission-readiness assertions |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after iOS archive preflight verifier |
+| npm run verify:production | Passed | Production config verification passed | Re-run after iOS archive preflight verifier |
+| git diff --check | Passed | exit 0 | Whitespace/conflict-marker check after iOS archive preflight verifier |
 
 Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, manual App Store Connect screenshot upload acceptance, full translated UI/string extraction/native localization review, full simulator VoiceOver traversal, restore purchase success proof. Optional: overnight widget rollover screenshot.

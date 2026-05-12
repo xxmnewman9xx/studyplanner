@@ -20,4 +20,4 @@ If EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT is not configured, photo/OCR parsing is u
 - Privacy URL confirmation.
 - Exact IAP products attached to submitted version.
 - Sandbox purchase/restore proof summary.
-- Signed archive entitlement check.
+- Signed archive entitlement check showing production APNs entitlement and shared App Group; source preflight exists, but does not replace archive proof.

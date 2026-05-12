@@ -64,6 +64,7 @@ checkPngSet({
 checkManifest();
 checkAsoCopy();
 checkLocalizedAsoDraft();
+checkIosArchivePreflight();
 
 checkFile(
   "Products-loaded paywall screenshot exists",
@@ -287,6 +288,28 @@ function checkLocalizedAsoDraft() {
       false,
       "Localized ASO draft is structurally complete",
       `Localized ASO audit failed: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
+
+function checkIosArchivePreflight() {
+  const scriptPath = path.join(root, "scripts/audit-ios-archive-preflight.mjs");
+  try {
+    const output = execFileSync(process.execPath, [scriptPath, "--json"], {
+      cwd: root,
+      encoding: "utf8"
+    });
+    const audit = JSON.parse(output);
+    check(
+      audit.passed === true,
+      "iOS archive preflight has no source blockers",
+      "Run npm run audit:ios-archive and fix native entitlement, bundle ID, privacy manifest, or widget embedding issues."
+    );
+  } catch (error) {
+    check(
+      false,
+      "iOS archive preflight has no source blockers",
+      `iOS archive preflight failed: ${error instanceof Error ? error.message : String(error)}`
     );
   }
 }
