@@ -10,7 +10,7 @@ Baseline posture: Treat the app as **not submission-ready** until screenshots, S
 
 Initial weighted score before implementation in this branch: **7.82/10**.
 
-Current evidence-adjusted score after screenshot capture, contact-sheet proof, targeted large-text fix, and locale-aware month grid coverage: **8.62/10**.
+Current evidence-adjusted score after screenshot capture, contact-sheet proof, targeted large-text fix, locale-aware month grid coverage, and 24-hour date formatting coverage: **8.64/10**.
 
 This is intentionally lower than the prior v1-2 audited 8.76 because this score includes new ASO, localization, screenshot, App Store submission, and handoff requirements that were not completed by v1-2.
 
@@ -30,9 +30,9 @@ This is intentionally lower than the prior v1-2 audited 8.76 because this score 
 | Paywall conversion and monetization trust | 5 | 7.4 | 0.370 | `check:iap` passes; StoreKit-backed code; IAP IDs preserved | Product load and purchase/restore not sandbox-proven | Document StoreKit blockers; improve copy only if safe | Pending | Pending |
 | ASO metadata and localization readiness | 10 | 4.7 | 0.470 | Official research doc exists; prior marketing files are untracked | Full metadata packs, localized captions, keywords, CPP/PPO missing | Create ASO master system and localized packs | Pending | Pending |
 | Submission handoff completeness | 6 | 4.8 | 0.288 | Starting state and research docs created | App Review notes, screenshot inventory, exact metadata, blockers not complete | Build complete handoff doc | Pending | Pending |
-| Code health, performance, accessibility, localization implementation | 6 | 7.8 | 0.468 | Typecheck/test pass; GitNexus indexed; `44-accessibility-large-text.png` captured; locale-aware month grid tests cover Sunday/Monday/Saturday starts | Hardcoded English, limited UI localization, full VoiceOver proof, complete Dynamic Type screen coverage, and real localized screenshots remain incomplete | Fix quick wins only; document deferred implementation | In progress | Partial large-text and locale-date proof |
+| Code health, performance, accessibility, localization implementation | 6 | 7.8 | 0.468 | Typecheck/test pass; GitNexus indexed; `44-accessibility-large-text.png` captured; locale-aware month grid tests cover Sunday/Monday/Saturday starts; date format tests cover `fr-FR` and `en-GB` 24-hour labels | Hardcoded English, limited UI localization, full VoiceOver proof, complete Dynamic Type screen coverage, and real localized screenshots remain incomplete | Fix quick wins only; document deferred implementation | In progress | Partial large-text and locale-date proof |
 
-Total weighted score at branch start: **7.82/10**. Current evidence-adjusted score: **8.62/10**.
+Total weighted score at branch start: **7.82/10**. Current evidence-adjusted score: **8.64/10**.
 
 ## Current Submit Recommendation
 
@@ -48,6 +48,7 @@ Total weighted score at branch start: **7.82/10**. Current evidence-adjusted sco
 | 4 | Screenshot evidence recovery | 8.35 | 8.52 | Capture-mode build launched; 22 raw simulator PNGs plus `45-final-contact-sheet.png` captured; products-loaded paywall and native widgets still missing | Continue |
 | 5 | Targeted Dynamic Type proof | 8.52 | 8.58 | `44-accessibility-large-text.png`; `npm run typecheck`; shared premium header/hero/metric/warning/dock labels capped to prevent catastrophic layout at accessibility content size | Continue |
 | 6 | Locale/date proof | 8.58 | 8.62 | Month calendar respects locale week-start logic; `npm run typecheck`; `npm run test` 34/34 with Sunday/Monday/Saturday week-start coverage | Continue |
+| 7 | 24-hour date formatting proof | 8.62 | 8.64 | Due-date and Week Plan date labels use preferred locale; `npm run typecheck`; `npm run test` 35/35 with `fr-FR`/`en-GB` 24-hour date coverage | Continue |
 
 ## Minimum To Claim 9.4
 

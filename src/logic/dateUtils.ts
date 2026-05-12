@@ -153,11 +153,15 @@ export function daysBetweenDateKeys(dateKey: string, now = new Date()) {
   return Math.round((dueUtc - startUtc) / dayMs);
 }
 
-export function formatShortDateSafe(value: string, fallback = "Date needs check") {
+export function formatShortDateSafe(
+  value: string,
+  fallback = "Date needs check",
+  locale = getPreferredLocale()
+) {
   const parsed = parseValidDate(value);
   if (!parsed) return fallback;
 
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat(locale, {
     month: "short",
     day: "numeric",
     hour: "numeric",
@@ -165,11 +169,15 @@ export function formatShortDateSafe(value: string, fallback = "Date needs check"
   }).format(parsed);
 }
 
-export function formatDateOnlySafe(value: string, fallback = "Date needs check") {
+export function formatDateOnlySafe(
+  value: string,
+  fallback = "Date needs check",
+  locale = getPreferredLocale()
+) {
   const dateKey = dateKeyFromValue(value);
   if (!dateKey) return fallback;
 
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat(locale, {
     month: "short",
     day: "numeric",
     year: "numeric"

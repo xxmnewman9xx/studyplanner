@@ -14,6 +14,7 @@ import {
 } from "../components/PremiumUI";
 import { isStoreCaptureEnabled } from "../config/storeCapture";
 import { storeCaptureNow } from "../data/demoSemester";
+import { getPreferredLocale } from "../logic/dateUtils";
 import { buildWeekPlan, getCourseForAssignment } from "../logic/planner";
 import { Assignment, Course, Semester } from "../models";
 import { AppTheme } from "../theme";
@@ -173,8 +174,9 @@ export function WeekPlannerScreen({
 function formatRange(start: string, end: string) {
   const startDate = new Date(`${start}T00:00:00`);
   const endDate = new Date(`${end}T00:00:00`);
-  const startLabel = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(startDate);
-  const endLabel = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(endDate);
+  const locale = getPreferredLocale();
+  const startLabel = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" }).format(startDate);
+  const endLabel = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" }).format(endDate);
   return `${startLabel} - ${endLabel}`;
 }
 

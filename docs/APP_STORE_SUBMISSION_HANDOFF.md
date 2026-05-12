@@ -52,6 +52,7 @@ Current capture inventory:
 Date/localization implementation note:
 
 - Month calendar logic now respects locale week-start rules and has Sunday/Monday/Saturday-start unit coverage.
+- Due-date and Week Plan date labels now use preferred locale formatting, including 24-hour locale coverage for `fr-FR` and `en-GB`.
 - Full localized submission still requires localized UI review, hardcoded string extraction, and real locale screenshots.
 
 ## Recommendation

@@ -20,5 +20,7 @@
 | npm run test | Passed | 32/32 | Re-run after Dynamic Type component patch |
 | npm run typecheck | Passed | exit 0 | Re-run after locale/date patch |
 | npm run test | Passed | 34/34 | Added Sunday/Monday/Saturday week-start helpers and Monday-start month grid coverage |
+| npm run typecheck | Passed | exit 0 | Re-run after 24-hour locale formatting patch |
+| npm run test | Passed | 35/35 | Added `fr-FR` and `en-GB` 24-hour due-date formatting coverage |
 
 Unrun/blocked: WidgetKit rerun, StoreKit sandbox, native widget Home Screen placement screenshots, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full VoiceOver/Dynamic Type screen sweep, restore purchases.

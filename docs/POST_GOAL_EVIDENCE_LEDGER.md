@@ -39,6 +39,7 @@ Starting commit: `e766ddaf17c9954ab1aaf53e09be8dbe4b6b0b8e`
 | EV-029 | Screenshot gap | `docs/SCREENSHOT_ASSET_INVENTORY.md` | Native small/medium Home Screen widget screenshots are not captured; in-app previews are not counted as native widget proof | Widget claims and App Store screenshots | Open blocker |
 | EV-030 | Accessibility fix | `src/components/PremiumUI.tsx`, `artifacts/post-goal-aso-submission/44-accessibility-large-text.png` | Premium header, command hero, metrics, warnings, progress ring, and dock labels remain readable at `accessibility-extra-extra-large` after targeted font-scale caps | Dynamic Type proof | Partial accessibility improvement |
 | EV-031 | Localization/date fix | `src/logic/dateUtils.ts`, `src/logic/semesterInsights.ts`, `tests/dateUtils.test.ts`, `tests/planner.test.ts` | Month calendar grids use locale week starts and local-day increments; tests cover Sunday, Monday, and Saturday-start locales | Localization/date proof | Partial implementation improvement |
+| EV-032 | Localization/date fix | `src/logic/dateUtils.ts`, `src/logic/planner.ts`, `src/logic/semesterInsights.ts`, `src/screens/WeekPlannerScreen.tsx`, `tests/dateUtils.test.ts` | Due-date labels, month labels, compact ranges, and Week Plan ranges use preferred locale; tests cover 24-hour `fr-FR` and `en-GB` due-date labels | Localization/date proof | Partial implementation improvement |
 
 ## Open Evidence Gaps
 

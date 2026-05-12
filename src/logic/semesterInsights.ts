@@ -131,7 +131,7 @@ export function buildMonthCalendarPlan({
   const heaviestWeek = weekLoads[0];
   const heavyWeekLabel =
     heaviestWeek && (heaviestWeek.count >= 5 || heaviestWeek.examCount >= 2)
-      ? `${heaviestWeek.count} due ${formatCompactRange(heaviestWeek.start, heaviestWeek.end)}`
+      ? `${heaviestWeek.count} due ${formatCompactRange(heaviestWeek.start, heaviestWeek.end, locale)}`
       : undefined;
 
   return {
@@ -265,12 +265,12 @@ function sortAssignmentsByDue(a: Assignment, b: Assignment) {
   return (parseValidDate(a.dueAt)?.getTime() || 0) - (parseValidDate(b.dueAt)?.getTime() || 0);
 }
 
-function formatCompactRange(start?: string, end?: string) {
+function formatCompactRange(start?: string, end?: string, locale = getPreferredLocale()) {
   if (!start || !end) return "this month";
   const startDate = new Date(`${start}T00:00:00`);
   const endDate = new Date(`${end}T00:00:00`);
-  const startLabel = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(startDate);
-  const endLabel = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(endDate);
+  const startLabel = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" }).format(startDate);
+  const endLabel = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" }).format(endDate);
   return `${startLabel}-${endLabel}`;
 }
 

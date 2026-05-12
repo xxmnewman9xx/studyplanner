@@ -10,6 +10,7 @@ import {
   daysBetweenDateKeys,
   formatDateOnlySafe,
   formatShortDateSafe,
+  getPreferredLocale,
   parseValidDate,
   startOfLocalDay,
   toDateKey
@@ -136,12 +137,12 @@ export function daysUntil(iso: string, now = new Date()) {
   return daysBetweenDateKeys(dateKey, now);
 }
 
-export function formatShortDate(iso: string) {
-  return formatShortDateSafe(iso);
+export function formatShortDate(iso: string, locale?: string) {
+  return formatShortDateSafe(iso, "Date needs check", locale);
 }
 
-export function formatDateOnly(iso: string) {
-  return formatDateOnlySafe(iso);
+export function formatDateOnly(iso: string, locale?: string) {
+  return formatDateOnlySafe(iso, "Date needs check", locale);
 }
 
 export function getCourseForAssignment(courses: Course[], assignment: Assignment) {
@@ -206,7 +207,7 @@ function weekDayLabel(date: Date, now: Date) {
   if (isSameDay(date, now)) return "Today";
   const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
   if (isSameDay(date, tomorrow)) return "Tomorrow";
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat(getPreferredLocale(), {
     weekday: "short",
     month: "short",
     day: "numeric"

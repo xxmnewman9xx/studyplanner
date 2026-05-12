@@ -2,7 +2,7 @@
 
 Branch: `v1-2-goal-9-2-root-concept-transformation`  
 Starting commit: `69d75470328bc470bce6097384b4a7e39e79c89a`  
-Final implementation score: **8.84/10**
+Final implementation score: **8.86/10**
 9.2 reached: **No**
 
 ## What Changed
@@ -19,12 +19,13 @@ Final implementation score: **8.84/10**
 - Accessibility quick wins now cover Reduce Motion in onboarding and larger primary touch targets across the main planner flows.
 - A targeted Dynamic Type fix keeps the Today header, hero, metrics, warning card, progress ring, and dock readable at an accessibility content size.
 - Month calendar planning now respects locale week-start rules for Sunday, Monday, and Saturday-start regions, with Monday-start coverage for `en-GB`.
+- Due-date and Week Plan date labels now use the preferred locale, with 24-hour formatting coverage for `fr-FR` and `en-GB`.
 - Paywall copy no longer exposes internal product-ID language.
 
 ## Verification
 
 - `npm run typecheck`: passed.
-- `npm run test`: passed, 34/34 tests.
+- `npm run test`: passed, 35/35 tests.
 - `npm run check:iap`: passed.
 - `npm run verify:production`: passed.
 - `EXPO_PUBLIC_STORE_CAPTURE=1 ./scripts/verify-ios-widgetkit.sh`: passed build/App Group payload inspection; manual widget placement remains.

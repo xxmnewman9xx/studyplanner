@@ -4,6 +4,8 @@ import assert from "node:assert/strict";
 import { buildTodayPlan, formatShortDate } from "../src/logic/planner";
 import {
   daysBetweenDateKeys,
+  formatDateOnlySafe,
+  formatShortDateSafe,
   getWeekStartsOn,
   isValidDateKey,
   makeDueAt,
@@ -65,4 +67,16 @@ test("week-start helpers support Sunday, Monday, and Saturday locales", () => {
 
   assert.equal(weekOffsetFromStart(new Date("2025-06-01T12:00:00"), 0), 0);
   assert.equal(weekOffsetFromStart(new Date("2025-06-01T12:00:00"), 1), 6);
+});
+
+test("date formatters respect 24-hour locales", () => {
+  const french = formatShortDateSafe("2026-09-18T15:30:00", "Date needs check", "fr-FR");
+  const british = formatShortDateSafe("2026-09-18T15:30:00", "Date needs check", "en-GB");
+  const dateOnly = formatDateOnlySafe("2026-09-18", "Date needs check", "de-DE");
+
+  assert.match(french, /15:30/);
+  assert.match(british, /15:30/);
+  assert.doesNotMatch(french, /AM|PM/i);
+  assert.doesNotMatch(british, /AM|PM/i);
+  assert.match(dateOnly, /2026/);
 });

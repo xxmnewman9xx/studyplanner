@@ -59,3 +59,6 @@ Known residual risks:
 | 14 | Locale-aware month grid | Passed | `buildMonthCalendarPlan` uses locale week start and local-day increments; Monday-start `en-GB` test added | Real localized simulator screenshots still needed |
 | 14 | `npm run typecheck` | Passed | `tsc --noEmit` completed after locale/date patch | No |
 | 14 | `npm run test` | Passed | 34/34 tests passed, including Sunday/Monday/Saturday week-start helpers and Monday-start month grid | No |
+| 15 | Locale-aware date formatting | Passed | Due-date and Week Plan date labels use preferred locale instead of hardcoded `en-US`; `fr-FR`/`en-GB` 24-hour formatting tests added | Real localized simulator screenshots still needed |
+| 15 | `npm run typecheck` | Passed | `tsc --noEmit` completed after 24-hour locale formatting patch | No |
+| 15 | `npm run test` | Passed | 35/35 tests passed | No |
