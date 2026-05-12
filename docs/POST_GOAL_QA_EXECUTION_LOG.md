@@ -12,5 +12,8 @@
 | npm run verify:production | Passed | Production config verification passed | Normal mode |
 | STUDYPLANNER_SUBMISSION_VERIFY=1 npm run verify:production | Failed as intended | Missing monthly product ID | Submission guard works; provide env/support URL before submit |
 | xcrun simctl launch/openurl/screenshot | Partial | Captured `artifacts/post-goal-aso-submission/06-today-empty.png` | Installed app did not respond to capture deep link; screenshot is real production empty Today state |
+| EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE | Passed | App installed and capture deep links responded | Capture-mode build only; not production proof |
+| xcrun simctl openurl + xcrun simctl io screenshot | Passed after retry | 22 raw PNGs in `artifacts/post-goal-aso-submission` | First attempt used relative output paths and failed; rerun with absolute paths passed |
+| Swift/AppKit contact sheet generation | Passed after retry | `artifacts/post-goal-aso-submission/45-final-contact-sheet.png` | First `mktemp` template failed; rerun with simpler temp filename passed |
 
-Unrun/blocked: simulator screenshot pass, WidgetKit rerun, StoreKit sandbox, native widget Home Screen placement screenshots.
+Unrun/blocked: WidgetKit rerun, StoreKit sandbox, native widget Home Screen placement screenshots, products-loaded paywall proof, iPad screenshot strategy, localized UI proof, accessibility large-text proof, restore purchases.

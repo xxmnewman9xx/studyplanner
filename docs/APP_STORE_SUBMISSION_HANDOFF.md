@@ -21,13 +21,13 @@ Status: NO-SUBMIT as of 2026-05-12.
 
 1. App Store Connect IAP product status and sandbox monthly/yearly/Lifetime/restore proof missing.
 2. Support URL missing; submission verification fails without EXPO_PUBLIC_SUPPORT_URL in submission mode.
-3. Fresh screenshot folder is incomplete.
+3. Fresh screenshot folder is incomplete: 22 raw simulator PNGs and a contact sheet are captured, but remaining required states are missing.
 4. Native small/medium Home Screen widget screenshots and freshness proof missing.
 5. iPad screenshot strategy unresolved while ios.supportsTablet is true.
 6. Privacy URL/support page must be publicly verified and updated for parser endpoint/upload retention if endpoint is enabled.
 7. Signed App Store archive entitlement for notifications must be checked.
 8. Localized metadata packs require native-speaker and text-fit review.
-9. Capture-mode build is required for the remaining screenshot set; current installed simulator app only yielded the production empty Today screenshot.
+9. Products-loaded paywall screenshot is missing; the captured paywall proof currently shows purchases unavailable.
 
 ## Reviewer flow draft
 
@@ -39,8 +39,16 @@ Use docs/APP_STORE_METADATA.md, docs/ASO_METADATA_PACK_EN.md, and localized ASO 
 
 ## Screenshot folder
 
-artifacts/post-goal-aso-submission
+`artifacts/post-goal-aso-submission`
+
+Current capture inventory:
+
+- 22 raw simulator PNGs captured.
+- Contact sheet captured: `artifacts/post-goal-aso-submission/45-final-contact-sheet.png`.
+- Production empty Today proof captured: `06-today-empty.png`.
+- Capture-mode proof captured for onboarding, populated Today, Add School Stuff, Check New Work, assignment detail, Calendar, Week Plan, Classes, Widget Setup, themes, and paywall product-load failure.
+- Missing: native small/medium Home Screen widgets, products-loaded paywall, upload/photo/manual/parser-success states, restore purchases, app icon Home Screen, localized UI, large-text accessibility, iPad screenshots.
 
 ## Recommendation
 
-Do not submit this branch yet. Continue with screenshot capture, StoreKit sandbox proof, support/privacy finalization, and final QA.
+Do not submit this branch yet. Continue with remaining screenshot capture, StoreKit sandbox proof, support/privacy finalization, native widget Home Screen proof, iPad strategy, and final QA.

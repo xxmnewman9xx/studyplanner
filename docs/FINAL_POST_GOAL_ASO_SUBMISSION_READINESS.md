@@ -5,7 +5,7 @@ This is an interim readiness report, not a submit approval.
 ## Score
 
 Initial v1-3 post-goal score: 7.82/10.  
-Current evidence-adjusted score after fixes/docs: 8.35/10.  
+Current evidence-adjusted score after fixes/docs/screenshots: 8.52/10.
 Target: 9.4/10.  
 Verdict: not reached.
 
@@ -21,13 +21,17 @@ Verdict: not reached.
 - A real simulator production empty Today screenshot was captured at artifacts/post-goal-aso-submission/06-today-empty.png.
 - Parser grade items no longer enter the planner without a review surface.
 - Reminder and calendar side effects now skip invalid legacy due dates.
+- Capture-mode iOS build now responds to screenshot deep links.
+- 22 raw simulator PNGs were captured in `artifacts/post-goal-aso-submission`.
+- A generated contact sheet was captured at `artifacts/post-goal-aso-submission/45-final-contact-sheet.png`.
+- Paywall failure proof was captured honestly as `38-paywall-product-load-failure.png`; products-loaded proof remains missing.
 
 ## Still blocking 9.4
 
-StoreKit proof, support URL, fresh screenshots, native widget Home Screen proof, iPad screenshot strategy, localized review, signed archive entitlement check, and final simulator QA.
+StoreKit proof, products-loaded paywall proof, support URL, remaining screenshots, native widget Home Screen proof, iPad screenshot strategy, localized review, signed archive entitlement check, and final simulator QA.
 
-The installed simulator app did not respond to capture deep links, so the remaining screenshot set needs a capture-mode rebuild before App Store-ready assets can be claimed.
+The capture-mode rebuild solved the original deep-link capture problem, but the screenshot set is still not App Store-ready. Missing proof includes native small/medium widgets on the Home Screen, upload/photo/manual/parser success states, restore purchases, app icon Home Screen, localized UI, large text accessibility, iPad sizing, and StoreKit products loaded.
 
 ## Next prompt
 
-Run final App Store Connect validation for StudyPlanner on branch v1-3-post-goal-aso-submission-master: provide real support URL and IAP env IDs, run StoreKit sandbox monthly/yearly/Lifetime/restore tests, resolve iPad screenshot strategy, capture all PNGs in artifacts/post-goal-aso-submission, verify native small/medium widgets on the Home Screen, run production and submission verification, then update docs/APP_STORE_SUBMISSION_HANDOFF.md with a submit/no-submit decision.
+Run final App Store Connect validation for StudyPlanner on branch v1-3-post-goal-aso-submission-master: provide real support URL and IAP env IDs, run StoreKit sandbox monthly/yearly/Lifetime/restore tests, resolve iPad screenshot strategy, capture the remaining supported PNGs in artifacts/post-goal-aso-submission, verify native small/medium widgets on the Home Screen, run production and submission verification, then update docs/APP_STORE_SUBMISSION_HANDOFF.md with a submit/no-submit decision.
