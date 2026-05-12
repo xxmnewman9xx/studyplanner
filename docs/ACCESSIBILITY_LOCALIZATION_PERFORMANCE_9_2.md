@@ -15,7 +15,7 @@
 - Shared task rows, task completion controls, WeekStrip buttons, workload bars, calendar mini-days, workload forecast, class balance, and completion insight cards now expose VoiceOver labels that describe the visible school state instead of relying on color or chart shape alone.
 - Check Work, Assignment Detail, Widget Setup, Paywall, and shared `AppButton` labels now use bounded text scaling, wrapped button text where needed, and more specific VoiceOver labels/hints for edit, select, preview, and plan-selection actions.
 - Large-text proof captured at `artifacts/goal-9-2-transformation/21-accessibility-large-text.png`, `artifacts/post-goal-aso-submission/44-accessibility-large-text.png`, and `artifacts/post-goal-aso-submission/49-accessibility-check-work-large-text.png` through `52-accessibility-paywall-large-text.png`.
-- `npm run typecheck` and `npm run test` passed after the accessibility changes; latest run: 39/39 tests, including `tests/accessibilitySource.test.ts`, current-date capture seed coverage, and widget day-boundary coverage.
+- `npm run typecheck` and `npm run test` passed after the accessibility changes; latest run: 40/40 tests, including `tests/accessibilitySource.test.ts`, current-date capture seed coverage, widget day-boundary coverage, and capture-state source coverage.
 
 Remaining accessibility proof needed for 9.2: real VoiceOver traversal, contrast audit, localized/large-text spot checks, and simulator proof that color-independent graph/status alternatives read well in context.
 
@@ -25,6 +25,6 @@ Remaining accessibility proof needed for 9.2: real VoiceOver traversal, contrast
 - Month calendar grid generation uses local calendar-day increments instead of fixed milliseconds, reducing DST drift risk.
 - `buildMonthCalendarPlan` accepts `locale` and `weekStartsOn` overrides for deterministic tests and future localization wiring.
 - Date formatting helpers and Week Plan range formatting now use the preferred locale instead of hardcoded `en-US`.
-- `npm run test` now includes Monday-start calendar coverage for `en-GB`, week-start helper coverage for `en-US`, `en-GB`, `de-DE`, and `ar-EG`, plus 24-hour due-date formatting coverage for `fr-FR` and `en-GB`; latest run: 39/39 tests.
+- `npm run test` now includes Monday-start calendar coverage for `en-GB`, week-start helper coverage for `en-US`, `en-GB`, `de-DE`, and `ar-EG`, plus 24-hour due-date formatting coverage for `fr-FR` and `en-GB`; latest run: 40/40 tests.
 
 Remaining localization proof needed for 9.2: localized UI screenshots, hardcoded-string extraction, widget string localization, parser locale/date assumptions, and real simulator locale verification.

@@ -95,6 +95,8 @@ const tabs: Array<{
   { id: "upgrade", label: "Widgets", icon: Crown }
 ];
 
+type CaptureState = "edit-found-work" | "manual-add" | null;
+
 export default function App() {
   return (
     <AppThemeProvider>
@@ -129,6 +131,7 @@ function AppContent() {
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
   const [onboardingStep, setOnboardingStep] = useState(0);
   const [capturePaywallVisible, setCapturePaywallVisible] = useState(false);
+  const [captureState, setCaptureState] = useState<CaptureState>(null);
   const [widgetPreferences, setWidgetPreferences] = useState<WidgetPreferences>(defaultWidgetPreferences);
   const [widgetPreferencesHydrated, setWidgetPreferencesHydrated] = useState(storeCaptureEnabled);
   const [hydrated, setHydrated] = useState(false);
@@ -176,6 +179,7 @@ function AppContent() {
   const openTab = (tab: NavTab) => {
     setSelectedAssignmentId(null);
     setCapturePaywallVisible(false);
+    setCaptureState(null);
     setActiveTab(tab);
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   };
@@ -189,10 +193,15 @@ function AppContent() {
       const requestedTabRaw = match?.[1] ? decodeURIComponent(match[1]) : null;
       const stepMatch = /[?&]step=([0-9]+)/.exec(url);
       const requestedStep = stepMatch?.[1] ? Number(stepMatch[1]) : 0;
+      const stateMatch = /[?&]state=([^&]+)/.exec(url);
+      const requestedCaptureState = captureStateFromQuery(
+        stateMatch?.[1] ? decodeURIComponent(stateMatch[1]) : null
+      );
 
       if (requestedTabRaw === "onboarding") {
         setSelectedAssignmentId(null);
         setCapturePaywallVisible(false);
+        setCaptureState(requestedCaptureState);
         setOnboardingStep(requestedStep);
         setOnboarded(false);
         requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: 0, animated: false }));
@@ -201,6 +210,7 @@ function AppContent() {
 
       if (requestedTabRaw === "paywall") {
         setSelectedAssignmentId(null);
+        setCaptureState(requestedCaptureState);
         setOnboarded(true);
         setCapturePaywallVisible(true);
         requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: 0, animated: false }));
@@ -214,6 +224,7 @@ function AppContent() {
       const assignmentMatch = /[?&]assignment=([^&]+)/.exec(url);
       const requestedAssignmentId = assignmentMatch?.[1] ? decodeURIComponent(assignmentMatch[1]) : null;
       setSelectedAssignmentId(requestedAssignmentId);
+      setCaptureState(requestedCaptureState);
       setCapturePaywallVisible(false);
       setOnboarded(true);
       setActiveTab(requestedTab);
@@ -646,7 +657,7 @@ function AppContent() {
                     onUpgrade={() => openTab("upgrade")}
                   />
                 ) : (
-                  <ImportScreen onApplyParsedPlan={applyParsedPlan} />
+                  <ImportScreen captureState={captureState} onApplyParsedPlan={applyParsedPlan} />
                 )
               ) : null}
               {activeTab === "courses" ? (
@@ -661,6 +672,7 @@ function AppContent() {
                   onAddCourse={addCourse}
                   onUpdateCourse={updateCourse}
                   onOpenGrades={() => openTab("grades")}
+                  captureState={captureState}
                 />
               ) : null}
               {activeTab === "grades" ? (
@@ -719,6 +731,12 @@ function AppContent() {
       </View>
     </SafeAreaView>
   );
+}
+
+function captureStateFromQuery(value: string | null): CaptureState {
+  if (value === "edit-found-work" || value === "edit") return "edit-found-work";
+  if (value === "manual-add" || value === "manual") return "manual-add";
+  return null;
 }
 
 function LoadingScreen({ label }: { label: string }) {

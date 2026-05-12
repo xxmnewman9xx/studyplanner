@@ -2,12 +2,12 @@
 
 Folder: `artifacts/post-goal-aso-submission`
 
-Status: partial proof captured on 2026-05-12. The folder now contains **33 raw simulator PNGs** plus a generated contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit, iPad, and App Store-size export proof are complete.
+Status: partial proof captured on 2026-05-12. The folder now contains **35 raw simulator PNGs** plus a generated contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit, iPad, and App Store-size export proof are complete.
 
 ## Capture Summary
 
 - Production/no-demo proof captured: `06-today-empty.png`.
-- Capture-mode feature proof captured: onboarding, populated Today, Add School Stuff, Check New Work, assignment detail, Calendar, Week Plan, Classes, Widget Setup, theme customization, and paywall product-load failure.
+- Capture-mode feature proof captured: onboarding, populated Today, Add School Stuff, Check New Work, Check Work edit item, Manual Add, assignment detail, Calendar, Week Plan, Classes, Widget Setup, theme customization, and paywall product-load failure.
 - Native Home Screen widget proof captured: `30-small-widget-home-screen.png` and `31-medium-widget-home-screen.png` show installed WidgetKit small and medium widgets, refreshed from a current May 2026 capture snapshot.
 - App icon/Home Screen proof captured: `40-app-icon-home-screen.png`.
 - Accessibility proof captured: Today plus Check Work, Assignment Detail, Widget Setup, and Paywall at `accessibility-extra-extra-large` content size after capping high-risk display/action labels.
@@ -15,7 +15,7 @@ Status: partial proof captured on 2026-05-12. The folder now contains **33 raw s
 - Widget refresh payload captured: `widget-refresh-after-completion-snapshot.json`.
 - Widget edit refresh proof captured: `47-widget-refresh-after-edit.png` and `widget-refresh-after-edit-snapshot.json`.
 - Widget add refresh proof captured: `48-widget-refresh-after-add.png` and `widget-refresh-after-add-snapshot.json`.
-- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 33 PNGs.
+- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 35 PNGs.
 - Paywall products-loaded proof is still missing. The captured paywall state shows purchases unavailable and is correctly stored as `38-paywall-product-load-failure.png`.
 
 | Required PNG | Status | Notes |
@@ -33,11 +33,11 @@ Status: partial proof captured on 2026-05-12. The folder now contains **33 raw s
 | 10-add-school-stuff.png | Captured | Capture-mode Check Work/Add School Stuff entry state, 1179x2556 PNG. |
 | 11-scan-paper.png | Missing | Requires camera/photo flow proof; not captured. |
 | 12-upload-file.png | Missing | Requires document picker/upload proof; not captured. |
-| 13-manual-add.png | Missing | No direct capture state was available. |
+| 13-manual-add.png | Captured | Capture-mode manual Add Work state, 1179x2556 PNG. It shows a filled Field Notes assignment and enabled Add to Planner action using safe synthetic data. |
 | 14-parser-processing.png | Missing | Parser loading state was not safely captured. |
 | 15-found-work-summary.png | Captured | Capture-mode import summary, 1179x2556 PNG. |
 | 16-check-new-work-needs-check.png | Captured | Capture-mode review flow, 1179x2556 PNG. |
-| 17-check-new-work-edit-item.png | Missing | Edit-item expanded state was not captured. |
+| 17-check-new-work-edit-item.png | Captured | Capture-mode Check Work expanded edit panel for Problem Set 4, 1179x2556 PNG. It shows source evidence plus editable title/date/type controls before planner import. |
 | 18-check-new-work-duplicate.png | Missing | Duplicate import state was not captured. |
 | 19-check-new-work-imported.png | Missing | Imported/success state was not captured. |
 | 20-assignment-detail.png | Captured | Capture-mode assignment detail, 1179x2556 PNG. |
@@ -65,7 +65,7 @@ Status: partial proof captured on 2026-05-12. The folder now contains **33 raw s
 | 42-sample-plan-state.png | Missing | Sample plan entry/state not separately captured. |
 | 43-localized-ui-example.png | Missing | UI localization proof not captured. |
 | 44-accessibility-large-text.png | Captured | Real simulator Today screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves the top hierarchy no longer catastrophically explodes, but full VoiceOver/contrast audit remains open. |
-| 45-final-contact-sheet.png | Captured | Generated from the 33 current raw PNGs, 1248x5994 PNG. |
+| 45-final-contact-sheet.png | Captured | Generated from the 35 current raw PNGs, 1248x5994 PNG. |
 | 46-widget-refresh-after-completion.png | Captured | Real simulator Home Screen after tapping Complete in the app. Small and medium widgets reflect the refreshed snapshot. |
 | 47-widget-refresh-after-edit.png | Captured | Real simulator Home Screen after editing Reading Reflection to Reflection Draft. Small and medium widgets reflect the edited title. |
 | 48-widget-refresh-after-add.png | Captured | Real simulator Home Screen after adding Field Notes to Science Lab. Small and medium widgets reflect the added assignment from the App Group snapshot. |

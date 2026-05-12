@@ -88,3 +88,10 @@ Known residual risks:
 | 22 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after core action accessibility patch | No |
 | 22 | `npm run verify:production` | Passed | Production config verification passed after core action accessibility patch | No |
 | 22 | Contact sheet regeneration | Passed | `45-final-contact-sheet.png` regenerated from 33 raw PNGs | No |
+| 23 | Capture state source guard | Passed | `App.tsx`, `ImportScreen`, and `CoursesScreen` expose capture-only Manual Add and Check Work edit-item states; guarded in `tests/accessibilitySource.test.ts` | No |
+| 23 | `npm run typecheck` | Passed | `tsc --noEmit` completed after capture state patch | No |
+| 23 | `npm run test` | Passed | 40/40 tests passed, including capture route source guard | No |
+| 23 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after capture state patch | No |
+| 23 | `npm run verify:production` | Passed | Production config verification passed after capture state patch | No |
+| 23 | Missing screenshot state capture | Passed | Captured `13-manual-add.png` and `17-check-new-work-edit-item.png` as real simulator UI | No |
+| 23 | Contact sheet regeneration | Passed | `45-final-contact-sheet.png` regenerated from 35 raw PNGs | No |

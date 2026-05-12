@@ -5,8 +5,10 @@ import path from "node:path";
 
 const premiumUiPath = path.join(process.cwd(), "src/components/PremiumUI.tsx");
 const insightCardsPath = path.join(process.cwd(), "src/components/InsightCards.tsx");
+const appPath = path.join(process.cwd(), "App.tsx");
 const appButtonPath = path.join(process.cwd(), "src/components/AppButton.tsx");
 const importScreenPath = path.join(process.cwd(), "src/screens/ImportScreen.tsx");
+const coursesScreenPath = path.join(process.cwd(), "src/screens/CoursesScreen.tsx");
 const assignmentDetailPath = path.join(process.cwd(), "src/screens/AssignmentDetailScreen.tsx");
 const widgetShowcasePath = path.join(process.cwd(), "src/screens/WidgetShowcaseScreen.tsx");
 const upgradeScreenPath = path.join(process.cwd(), "src/screens/UpgradeScreen.tsx");
@@ -60,4 +62,21 @@ test("core action screens expose labels and bounded text scaling", () => {
   assert.ok(upgradeScreen.includes("Selects this Plus plan."));
   assert.ok(upgradeScreen.includes("${product.title}, ${product.periodLabel}, ${product.displayPrice}"));
   assert.ok(upgradeScreen.includes("maxFontSizeMultiplier={bodyTextScale}"));
+});
+
+test("capture routes expose honest screenshot proof states", () => {
+  const app = fs.readFileSync(appPath, "utf8");
+  const importScreen = fs.readFileSync(importScreenPath, "utf8");
+  const coursesScreen = fs.readFileSync(coursesScreenPath, "utf8");
+
+  assert.ok(app.includes("captureStateFromQuery"));
+  assert.ok(app.includes("\"edit-found-work\""));
+  assert.ok(app.includes("\"manual-add\""));
+
+  assert.ok(importScreen.includes("captureState !== \"edit-found-work\""));
+  assert.ok(importScreen.includes("setExpandedAssignmentId(\"problem-set-4\")"));
+
+  assert.ok(coursesScreen.includes("showCaptureManualAdd"));
+  assert.ok(coursesScreen.includes("setTitle(\"Field Notes\")"));
+  assert.ok(coursesScreen.includes("Set new work type to ${option === \"exam\" ? \"Exam\" : \"Assignment\"}"));
 });

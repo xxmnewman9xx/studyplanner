@@ -46,6 +46,7 @@ import { useAppTheme } from "../themeContext";
 
 type ImportScreenProps = {
   onApplyParsedPlan: (parse: SyllabusParseResult) => void;
+  captureState?: string | null;
 };
 
 type ConfidenceFilter = "all" | "high" | "medium" | "low";
@@ -60,7 +61,7 @@ const filters: Array<{ id: ConfidenceFilter; label: string }> = [
 ];
 const bodyTextScale = 1.35;
 
-export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
+export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
@@ -76,6 +77,12 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
   const scanCopy = imageParsingReady
     ? "Upload a text-based PDF, text file, or photo syllabus."
     : "Upload a text-based PDF or text file. Photo OCR needs a configured parser endpoint.";
+
+  useEffect(() => {
+    if (!captureMode || captureState !== "edit-found-work") return;
+    setFilter("all");
+    setExpandedAssignmentId("problem-set-4");
+  }, [captureMode, captureState]);
 
   const reviewStats = useMemo(() => {
     const assignments = draft?.assignments || [];

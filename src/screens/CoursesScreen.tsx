@@ -28,7 +28,7 @@ import {
   urgencyLabel
 } from "../logic/planner";
 import { buildSemesterInsights } from "../logic/semesterInsights";
-import { isValidDateKey, parseValidDate } from "../logic/dateUtils";
+import { addDaysLocal, isValidDateKey, parseValidDate, startOfLocalDay, toDateKey } from "../logic/dateUtils";
 import { Assignment, AssignmentKind, Course, Semester, SyllabusSource } from "../models";
 import { AppTheme, classColorPalette, courseColorAt } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -49,6 +49,7 @@ type CoursesScreenProps = {
   onAddCourse: (course: Pick<Course, "code" | "name" | "instructor"> & { color?: string }) => void;
   onUpdateCourse: (courseId: string, patch: Partial<Course>) => void;
   onOpenGrades: () => void;
+  captureState?: string | null;
 };
 
 export function CoursesScreen({
@@ -61,7 +62,8 @@ export function CoursesScreen({
   onUpdateSemester,
   onAddCourse,
   onUpdateCourse,
-  onOpenGrades
+  onOpenGrades,
+  captureState
 }: CoursesScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
@@ -77,6 +79,7 @@ export function CoursesScreen({
   const [newCourseColor, setNewCourseColor] = useState(courseColorAt(courses.length));
   const [showAddCourseForm, setShowAddCourseForm] = useState(courses.length === 0);
   const now = captureMode ? storeCaptureNow : new Date();
+  const showCaptureManualAdd = captureMode && captureState === "manual-add";
   const weekly = useMemo(() => groupMeetingsByDay(courses), [courses]);
   const insights = useMemo(() => buildSemesterInsights(assignments, courses, now), [assignments, courses, now]);
   const selectedCourse = courses.find((course) => course.id === selectedCourseId) || courses[0];
@@ -117,6 +120,14 @@ export function CoursesScreen({
     }
   }, [courses, selectedCourseId]);
 
+  useEffect(() => {
+    if (!showCaptureManualAdd) return;
+    setSelectedCourseId(courses[0]?.id || "");
+    setKind("assignment");
+    setTitle("Field Notes");
+    setDueDate(toDateKey(addDaysLocal(startOfLocalDay(now), 1)));
+  }, [courses, now, showCaptureManualAdd]);
+
   const addItem = () => {
     if (!selectedCourse) return;
     if (!title.trim() || !isValidDateKey(dueDate.trim())) return;
@@ -139,6 +150,51 @@ export function CoursesScreen({
     setNewCourseColor(courseColorAt(courses.length + 1));
     setShowAddCourseForm(false);
   };
+
+  const quickAddWorkCard = selectedCourse ? (
+    <GlassCard>
+      <Text style={styles.panelTitle}>Add Work</Text>
+      <View style={styles.segmented}>
+        {(["assignment", "exam"] as AssignmentKind[]).map((option) => (
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityState={{ selected: kind === option }}
+            accessibilityLabel={`Set new work type to ${option === "exam" ? "Exam" : "Assignment"}`}
+            key={option}
+            style={[styles.segment, kind === option ? styles.segmentActive : null]}
+            onPress={() => setKind(option)}
+          >
+            <Text style={[styles.segmentText, kind === option ? styles.segmentTextActive : null]}>
+              {option === "exam" ? "Exam" : "Assignment"}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <TextInput
+        value={title}
+        onChangeText={setTitle}
+        placeholder="Title"
+        accessibilityLabel="Assignment title"
+        placeholderTextColor={colors.faint}
+        style={styles.input}
+      />
+      <TextInput
+        value={dueDate}
+        onChangeText={setDueDate}
+        placeholder="YYYY-MM-DD"
+        accessibilityLabel="Due date"
+        accessibilityHint="Use a real date like 2026-09-18."
+        placeholderTextColor={colors.faint}
+        style={styles.input}
+      />
+      <AppButton
+        label="Add to Planner"
+        icon={Plus}
+        disabled={!selectedCourse || !title.trim() || !isValidDateKey(dueDate.trim())}
+        onPress={addItem}
+      />
+    </GlassCard>
+  ) : null;
 
   return (
     <PremiumScreen>
@@ -238,6 +294,8 @@ export function CoursesScreen({
           />
         </GlassCard>
       ) : null}
+
+      {showCaptureManualAdd ? quickAddWorkCard : null}
 
       <CourseBalanceCard insights={insights} title="Work by class" />
 
@@ -358,45 +416,7 @@ export function CoursesScreen({
                 </View>
               </GlassCard>
 
-              <GlassCard>
-                <Text style={styles.panelTitle}>Add Work</Text>
-                <View style={styles.segmented}>
-                  {(["assignment", "exam"] as AssignmentKind[]).map((option) => (
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      key={option}
-                      style={[styles.segment, kind === option ? styles.segmentActive : null]}
-                      onPress={() => setKind(option)}
-                    >
-                      <Text style={[styles.segmentText, kind === option ? styles.segmentTextActive : null]}>
-                        {option === "exam" ? "Exam" : "Assignment"}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-                <TextInput
-                  value={title}
-                  onChangeText={setTitle}
-                  placeholder="Title"
-                  accessibilityLabel="Assignment title"
-                  placeholderTextColor={colors.faint}
-                  style={styles.input}
-                />
-                <TextInput
-                  value={dueDate}
-                  onChangeText={setDueDate}
-                  placeholder="YYYY-MM-DD"
-                  accessibilityLabel="Due date"
-                  placeholderTextColor={colors.faint}
-                  style={styles.input}
-                />
-                <AppButton
-                  label="Add to Planner"
-                  icon={Plus}
-                  disabled={!selectedCourse || !title.trim() || !isValidDateKey(dueDate.trim())}
-                  onPress={addItem}
-                />
-              </GlassCard>
+              {quickAddWorkCard}
 
               <GlassCard>
                 <Text style={styles.panelTitle}>Semester Setup</Text>
