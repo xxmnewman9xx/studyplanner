@@ -37,5 +37,8 @@
 | Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 26 PNGs at 1090x4302 | Re-run after widget refresh proof screenshot |
 | xcrun simctl io screenshot | Passed | `40-app-icon-home-screen.png` | Captured real simulator Home Screen app icon/widget proof |
 | Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 27 PNGs at 1090x4302 | Re-run after app icon proof screenshot |
+| Simulator Assignment Detail edit + App Group payload check | Passed | `widget-refresh-after-edit-snapshot.json` | Editing Reading Reflection to Reflection Draft updated native widget nextDue and medium item title |
+| xcrun simctl io screenshot | Passed | `47-widget-refresh-after-edit.png` | Installed Home Screen widgets rendered the edited assignment title |
+| Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 28 PNGs at 1090x4302 | Re-run after widget edit refresh screenshot |
 
-Unrun/blocked: StoreKit sandbox, widget add/edit/day-boundary refresh proof, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/Dynamic Type screen sweep, restore purchases.
+Unrun/blocked: StoreKit sandbox, widget add/day-boundary refresh proof, products-loaded paywall proof, iPad screenshot strategy, localized UI screenshots/string extraction, full simulator VoiceOver/Dynamic Type screen sweep, restore purchases.

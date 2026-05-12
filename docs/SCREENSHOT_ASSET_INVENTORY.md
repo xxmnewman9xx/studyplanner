@@ -2,7 +2,7 @@
 
 Folder: `artifacts/post-goal-aso-submission`
 
-Status: partial proof captured on 2026-05-12. The folder now contains **27 raw simulator PNGs** plus a generated contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit, iPad, and App Store-size export proof are complete.
+Status: partial proof captured on 2026-05-12. The folder now contains **28 raw simulator PNGs** plus a generated contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit, iPad, and App Store-size export proof are complete.
 
 ## Capture Summary
 
@@ -13,7 +13,8 @@ Status: partial proof captured on 2026-05-12. The folder now contains **27 raw s
 - Accessibility proof captured: Today at `accessibility-extra-extra-large` content size after capping the most failure-prone shared display labels.
 - Widget refresh proof captured: `46-widget-refresh-after-completion.png` shows installed widgets after completing Lab Report, with the small widget moved to Reading Reflection and the medium list reduced to the remaining week items.
 - Widget refresh payload captured: `widget-refresh-after-completion-snapshot.json`.
-- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 27 PNGs.
+- Widget edit refresh proof captured: `47-widget-refresh-after-edit.png` and `widget-refresh-after-edit-snapshot.json`.
+- Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 28 PNGs.
 - Paywall products-loaded proof is still missing. The captured paywall state shows purchases unavailable and is correctly stored as `38-paywall-product-load-failure.png`.
 
 | Required PNG | Status | Notes |
@@ -63,8 +64,9 @@ Status: partial proof captured on 2026-05-12. The folder now contains **27 raw s
 | 42-sample-plan-state.png | Missing | Sample plan entry/state not separately captured. |
 | 43-localized-ui-example.png | Missing | UI localization proof not captured. |
 | 44-accessibility-large-text.png | Captured | Real simulator Today screen at `accessibility-extra-extra-large`, 1179x2556 PNG. It proves the top hierarchy no longer catastrophically explodes, but full Dynamic Type/VoiceOver audit remains open. |
-| 45-final-contact-sheet.png | Captured | Generated from the 27 current PNGs, 1090x4302 PNG. |
+| 45-final-contact-sheet.png | Captured | Generated from the 28 current PNGs, 1090x4302 PNG. |
 | 46-widget-refresh-after-completion.png | Captured | Real simulator Home Screen after tapping Complete in the app. Small and medium widgets reflect the refreshed snapshot. |
+| 47-widget-refresh-after-edit.png | Captured | Real simulator Home Screen after editing Reading Reflection to Reflection Draft. Small and medium widgets reflect the edited title. |
 
 ## Excluded Assets
 
