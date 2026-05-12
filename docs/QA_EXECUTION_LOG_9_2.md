@@ -173,3 +173,13 @@ Known residual risks:
 | 32 | Contact sheet regeneration | Passed | `45-final-contact-sheet.png` regenerated from 47 raw PNGs at 1040x6856 | No |
 | 32 | Screenshot inventory check | Passed | 47 primary raw PNGs; refreshed spot-check PNGs are 1179x2556 and contact sheet is 1040x6856 | No |
 | 32 | `git diff --check` | Passed | No whitespace errors or conflict markers after contrast pass docs and artifacts | No |
+| 33 | App Store screenshot export script | Passed | Added `npm run export:screenshots` and `scripts/export-app-store-screenshots.mjs` | No |
+| 33 | App Store-sized iPhone export | Passed | Exported 10 candidate PNGs at 1290x2796 into `artifacts/post-goal-aso-submission/app-store-export/iphone-6-9` | Manual App Store Connect upload acceptance still needed |
+| 33 | App Store-sized iPad export | Passed | Exported 10 candidate PNGs at 2064x2752 into `artifacts/post-goal-aso-submission/app-store-export/ipad-13` | Manual App Store Connect upload acceptance still needed |
+| 33 | Export manifest | Passed | `artifacts/post-goal-aso-submission/app-store-export/manifest.json` maps source-to-output files and records the Apple screenshot spec URL | No |
+| 33 | Export dimension check | Passed | Node IHDR check confirmed 10 iPhone PNGs at 1290x2796 and 10 iPad PNGs at 2064x2752 | No |
+| 33 | `npm run typecheck` | Passed | `tsc --noEmit` completed after screenshot export script/docs | No |
+| 33 | `npm run test` | Passed | 44/44 tests passed after screenshot export script/docs | No |
+| 33 | `npm run check:iap` | Passed | IAP and premium gate configuration passed after screenshot export script/docs | No |
+| 33 | `npm run verify:production` | Passed | Production config verification passed after screenshot export script/docs | No |
+| 33 | `git diff --check` | Passed | No whitespace errors or conflict markers after screenshot export script/docs | No |

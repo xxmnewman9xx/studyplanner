@@ -5,7 +5,7 @@ This is an interim readiness report, not a submit approval.
 ## Score
 
 Initial v1-3 post-goal score: 7.82/10.  
-Current evidence-adjusted score after fixes/docs/screenshots/accessibility/date/widget/reminder/settings/restore-access/iPad proof, partial localized/date proof, and contrast guard quick wins: 9.14/10.
+Current evidence-adjusted score after fixes/docs/screenshots/accessibility/date/widget/reminder/settings/restore-access/iPad proof, partial localized/date proof, contrast guard quick wins, and local App Store-sized screenshot export validation: 9.16/10.
 Target: 9.4/10.  
 Verdict: not reached.
 
@@ -33,6 +33,7 @@ Verdict: not reached.
 - Partial localized/date proof is now captured as `43-localized-ui-example.png`; it uses a real `fr-FR` / `fr_FR` iPhone simulator state and proves locale-sensitive Week Plan date ordering, but the app strings remain English.
 - A generated contact sheet was captured at `artifacts/post-goal-aso-submission/45-final-contact-sheet.png`.
 - Theme/class/widget contrast is guarded by `tests/themeContrast.test.ts`; `01-onboarding-welcome.png`, `07-today-populated.png`, `21-calendar-month.png`, `24-week-plan.png`, `26-classes-list.png`, and `29-widget-setup.png` were refreshed after the contrast-safe color pass.
+- Local App Store-sized screenshot export proof is now captured: `npm run export:screenshots` generated 10 iPhone 6.9-inch candidate PNGs at 1290x2796, 10 iPad 13-inch candidate PNGs at 2064x2752, and `artifacts/post-goal-aso-submission/app-store-export/manifest.json`.
 - Paywall failure proof was captured honestly as `38-paywall-product-load-failure.png`; products-loaded proof remains missing.
 - A targeted Dynamic Type fix keeps the Today hero, metrics, warning card, and dock readable at `accessibility-extra-extra-large`; proof captured as `44-accessibility-large-text.png`.
 - Month calendar planning now respects locale week-start rules with tests for Sunday, Monday, and Saturday-start regions.
@@ -50,10 +51,10 @@ Verdict: not reached.
 
 ## Still blocking 9.4
 
-StoreKit proof, products-loaded paywall proof, support URL, App Store-sized screenshot export validation, full UI localization/native review, signed archive entitlement check, full simulator VoiceOver traversal, and final simulator QA.
+StoreKit proof, products-loaded paywall proof, support URL, manual App Store Connect screenshot upload acceptance, full UI localization/native review, signed archive entitlement check, full simulator VoiceOver traversal, and final simulator QA.
 
-The capture-mode rebuild solved the original deep-link capture problem, installed small/medium WidgetKit screenshots now exist, app icon proof exists, native widget empty/needs-check states exist, reminders proof exists, settings proof exists, restore access proof exists, iPad raw proof exists, partial localized/date proof exists, contrast-token proof exists, completion/edit/add refresh is proven, day-boundary behavior is code/build proven, core action large-text proof now exists, and Manual Add/Edit Item/filtered Calendar/import-path capture states are now real. The screenshot set is still not App Store-ready. Missing proof includes restore purchase success/sandbox proof, translated UI/string extraction/native review, full simulator VoiceOver traversal, App Store-size export validation, and StoreKit products loaded.
+The capture-mode rebuild solved the original deep-link capture problem, installed small/medium WidgetKit screenshots now exist, app icon proof exists, native widget empty/needs-check states exist, reminders proof exists, settings proof exists, restore access proof exists, iPad raw proof exists, partial localized/date proof exists, contrast-token proof exists, local App Store-sized export proof exists, completion/edit/add refresh is proven, day-boundary behavior is code/build proven, core action large-text proof now exists, and Manual Add/Edit Item/filtered Calendar/import-path capture states are now real. The screenshot set is closer to upload-ready, but final App Store readiness still needs manual App Store Connect upload acceptance and StoreKit/localization proof. Missing proof includes restore purchase success/sandbox proof, translated UI/string extraction/native review, full simulator VoiceOver traversal, manual screenshot upload acceptance, and StoreKit products loaded.
 
 ## Next prompt
 
-Run final App Store Connect validation for StudyPlanner on branch v1-3-post-goal-aso-submission-master: provide real support URL and IAP env IDs, run StoreKit sandbox monthly/yearly/Lifetime/restore tests, export/upload-size-check the iPhone and iPad screenshot sets, complete full translated UI/native-speaker localization proof if submitting localizations, optionally capture overnight widget rollover, run production and submission verification, then update docs/APP_STORE_SUBMISSION_HANDOFF.md with a submit/no-submit decision.
+Run final App Store Connect validation for StudyPlanner on branch v1-3-post-goal-aso-submission-master: provide real support URL and IAP env IDs, run StoreKit sandbox monthly/yearly/Lifetime/restore tests, upload the exported iPhone and iPad screenshot sets to App Store Connect and record acceptance, complete full translated UI/native-speaker localization proof if submitting localizations, optionally capture overnight widget rollover, run production and submission verification, then update docs/APP_STORE_SUBMISSION_HANDOFF.md with a submit/no-submit decision.

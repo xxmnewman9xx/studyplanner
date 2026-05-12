@@ -2,7 +2,7 @@
 
 Folder: `artifacts/post-goal-aso-submission`
 
-Status: partial proof captured on 2026-05-12. The folder now contains **47 primary raw simulator PNGs**, **11 raw 13-inch iPad simulator PNGs**, a primary contact sheet, and an iPad contact sheet. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit and App Store-size export proof are complete.
+Status: partial proof captured on 2026-05-12. The folder now contains **47 primary raw simulator PNGs**, **11 raw 13-inch iPad simulator PNGs**, a primary contact sheet, an iPad contact sheet, and a local App Store-sized candidate export set. These are real simulator screenshots, but most are capture-mode synthetic states and are **not final App Store upload assets** until StoreKit/products-loaded proof and manual App Store Connect upload acceptance are complete.
 
 ## Capture Summary
 
@@ -20,8 +20,21 @@ Status: partial proof captured on 2026-05-12. The folder now contains **47 prima
 - Contrast-safe visual spot check refreshed: `01-onboarding-welcome.png`, `07-today-populated.png`, `21-calendar-month.png`, `24-week-plan.png`, `26-classes-list.png`, and `29-widget-setup.png` after darkening foreground-bearing theme/class colors.
 - Contact sheet captured: `45-final-contact-sheet.png`, regenerated from 47 PNGs.
 - iPad proof captured in `ipad/`: 11 upright 2064x2752 PNGs plus `ipad-contact-sheet.png`.
+- Local App Store-sized export proof captured in `app-store-export/`: 10 iPhone 6.9-inch candidate PNGs at 1290x2796, 10 iPad 13-inch candidate PNGs at 2064x2752, and `manifest.json`.
 - Restore access proof captured: `39-restore-purchases.png`. This proves the Restore entry point exists, not that a sandbox restore succeeded.
 - Paywall products-loaded proof is still missing. The captured paywall state shows purchases unavailable and is correctly stored as `38-paywall-product-load-failure.png`.
+
+## App Store-Sized Candidate Export
+
+`npm run export:screenshots` creates a local upload-size candidate set based on Apple's current screenshot specification page:
+
+| Export set | Status | Notes |
+| --- | --- | --- |
+| app-store-export/iphone-6-9 | Exported | 10 PNGs at 1290x2796, scaled from real 1179x2556 iPhone simulator screenshots. |
+| app-store-export/ipad-13 | Exported | 10 PNGs at 2064x2752, copied from validated real 13-inch iPad simulator screenshots. |
+| app-store-export/manifest.json | Exported | Lists source files, output files, dimensions, Apple spec URL, and the manual App Store Connect confirmation caveat. |
+
+This closes the local accepted-size export gap. It does not prove App Store Connect upload acceptance, StoreKit product loading, or localized App Store screenshot approval.
 
 ## iPad Raw Proof Set
 
@@ -50,7 +63,7 @@ The app currently supports iPad (`ios.supportsTablet: true`, native target famil
 | 03-onboarding-check-found-work.png | Captured | Capture-mode simulator UI, 1179x2556 PNG. |
 | 04-onboarding-widgets.png | Captured | Capture-mode simulator UI, 1179x2556 PNG. |
 | 05-onboarding-first-action.png | Captured with caveat | Capture-mode simulator UI, 1179x2556 PNG. Current capture shows the final style/palette step; a cleaner first-action button close-up is still useful for App Store-ready assets. |
-| 06-today-empty.png | Captured | Real simulator production empty Today state, 1179x2556 PNG. Not App Store-size exported yet. |
+| 06-today-empty.png | Captured | Real simulator production empty Today state, 1179x2556 PNG. Not included in the default local App Store export set because the default story uses populated value proof. |
 | 07-today-populated.png | Captured | Capture-mode simulator UI with safe synthetic assignments, 1179x2556 PNG. Refreshed after contrast-safe color pass. |
 | 08-today-overdue.png | Missing | Current capture seed has no overdue state; do not fabricate one. |
 | 09-today-needs-check.png | Captured | Capture-mode Today scrolled to needs-check warning, 1179x2556 PNG. |
@@ -105,3 +118,4 @@ The app currently supports iPad (`ios.supportsTablet: true`, native target famil
 - App preview videos.
 - Demo/capture state as production proof.
 - A products-loaded paywall screenshot until StoreKit products actually load.
+- Manual App Store Connect upload acceptance until the exported PNGs are uploaded and accepted in App Store Connect.

@@ -9,7 +9,7 @@ Status: NO-SUBMIT as of 2026-05-12.
 - Bundle ID: com.mattnewman.studyplanner
 - Version: 1.0.0
 - Build number: 10
-- iPad support: enabled in app.json and native project (`TARGETED_DEVICE_FAMILY = "1,2"`); 13-inch iPad raw proof screenshots are now captured in `artifacts/post-goal-aso-submission/ipad`, but App Store Connect upload-size/export validation is still needed.
+- iPad support: enabled in app.json and native project (`TARGETED_DEVICE_FAMILY = "1,2"`); 13-inch iPad raw proof screenshots are captured in `artifacts/post-goal-aso-submission/ipad`, and a local 2064x2752 App Store-sized candidate set is exported in `artifacts/post-goal-aso-submission/app-store-export/ipad-13`. Manual App Store Connect upload acceptance is still external and unproven.
 
 ## IAP IDs
 
@@ -21,9 +21,9 @@ Status: NO-SUBMIT as of 2026-05-12.
 
 1. App Store Connect IAP product status and sandbox monthly/yearly/Lifetime/restore proof missing.
 2. Support URL missing; submission verification fails without EXPO_PUBLIC_SUPPORT_URL in submission mode.
-3. Fresh screenshot folder is incomplete for direct upload: 47 primary iPhone/simulator PNGs, 11 iPad PNGs, and contact sheets are captured, but App Store-sized exports, products-loaded StoreKit proof, and full localized UI proof are missing.
+3. Fresh screenshot folder is incomplete for direct upload: 47 primary iPhone/simulator PNGs, 11 iPad PNGs, contact sheets, and local accepted-size candidate exports are captured, but products-loaded StoreKit proof, full localized UI proof, and manual App Store Connect upload acceptance are missing.
 4. Native widget refresh after completion, edit, and add is proven; day-boundary label/urgency behavior is code/build proven, but overnight Home Screen screenshot proof is not captured.
-5. iPad strategy is no longer unresolved, but the 13-inch iPad set still needs final App Store Connect screenshot-size/export validation.
+5. iPad strategy is no longer unresolved: raw 13-inch proof and local 2064x2752 export validation exist, but App Store Connect upload acceptance still needs manual confirmation.
 6. Privacy URL/support page must be publicly verified and updated for parser endpoint/upload retention if endpoint is enabled.
 7. Signed App Store archive entitlement for notifications must be checked.
 8. Localized metadata packs require native-speaker and text-fit review.
@@ -47,6 +47,7 @@ Current capture inventory:
 - 11 raw 13-inch iPad simulator PNGs captured in `artifacts/post-goal-aso-submission/ipad`.
 - Contact sheet captured: `artifacts/post-goal-aso-submission/45-final-contact-sheet.png`.
 - iPad contact sheet captured: `artifacts/post-goal-aso-submission/ipad/ipad-contact-sheet.png`.
+- Local App Store-sized candidate export captured: `artifacts/post-goal-aso-submission/app-store-export/iphone-6-9` contains 10 PNGs at 1290x2796; `artifacts/post-goal-aso-submission/app-store-export/ipad-13` contains 10 PNGs at 2064x2752; `app-store-export/manifest.json` maps source-to-output files and retains the manual upload caveat.
 - Production empty Today proof captured: `06-today-empty.png`.
 - Capture-mode proof captured for onboarding, populated Today, Reminders, Settings, Add School Stuff, Check New Work, assignment detail, Calendar, Week Plan, Classes, Widget Setup, themes, and paywall product-load failure.
 - Manual Add proof captured: `13-manual-add.png`.
@@ -67,7 +68,7 @@ Current capture inventory:
 - Widget day-boundary behavior is code/build proven: WidgetKit recomputes label/urgency at render time and schedules refresh for the earlier of 30 minutes or 00:01 local time.
 - Core action large-text proof captured: `49-accessibility-check-work-large-text.png` through `52-accessibility-paywall-large-text.png`.
 - Contrast-safe visual spot check refreshed `01-onboarding-welcome.png`, `07-today-populated.png`, `21-calendar-month.png`, `24-week-plan.png`, `26-classes-list.png`, and `29-widget-setup.png`; `45-final-contact-sheet.png` was regenerated from 47 primary PNGs at 1040x6856.
-- Missing: products-loaded paywall, restore purchase success/sandbox proof, full UI localization/string extraction/native review, full VoiceOver traversal, App Store-sized screenshot exports, and optional overnight widget rollover screenshot.
+- Missing: products-loaded paywall, restore purchase success/sandbox proof, full UI localization/string extraction/native review, full VoiceOver traversal, manual App Store Connect upload acceptance for the exported screenshots, and optional overnight widget rollover screenshot.
 
 Date/localization implementation note:
 
@@ -83,4 +84,4 @@ Accessibility implementation note:
 
 ## Recommendation
 
-Do not submit this branch yet. Continue with StoreKit sandbox proof, support/privacy finalization, App Store-sized screenshot export validation, full localized UI proof/native review, optional overnight widget rollover screenshot, and final QA.
+Do not submit this branch yet. Continue with StoreKit sandbox proof, support/privacy finalization, manual App Store Connect screenshot upload acceptance, full localized UI proof/native review, optional overnight widget rollover screenshot, and final QA.

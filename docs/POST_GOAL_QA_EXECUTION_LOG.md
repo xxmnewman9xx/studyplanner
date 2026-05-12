@@ -123,7 +123,7 @@
 | EXPO_PUBLIC_STORE_CAPTURE=1 npx expo run:ios --device 4314D877-E762-4A10-ACC2-B15D1BBC6A6C | Passed | Build succeeded, 0 errors/0 warnings; app installed/opened on `StudyPlanner-Codex-iPad` | iPad capture-mode proof build |
 | iPad simulator capture with Computer Use prompt acceptance + xcrun simctl io screenshot | Passed after recapture | `artifacts/post-goal-aso-submission/ipad/ipad-01-onboarding-welcome.png` through `ipad-11-assignment-detail.png` | First iPad contact sheet exposed modal overlays and upside-down raw frames; recaptured/rotated clean proof PNGs |
 | Swift/AppKit iPad contact sheet generation | Passed | `artifacts/post-goal-aso-submission/ipad/ipad-contact-sheet.png`, 11 items, 1040x1975 | Visual check confirmed no remaining prompt overlays |
-| iPad screenshot inventory check | Passed | 11 iPad PNGs, each 2064x2752, plus contact sheet | iPad strategy is captured but App Store upload-size/export validation remains open |
+| iPad screenshot inventory check | Passed | 11 iPad PNGs, each 2064x2752, plus contact sheet | Superseded by local App Store export validation; manual App Store Connect upload acceptance remains open |
 | npm run check:iap | Passed | IAP and premium gate configuration passed | Final static IAP guard after iPad proof |
 | npm run verify:production | Passed | Production config verification passed | Final production config guard after iPad proof |
 | xcrun simctl defaults locale setup | Passed | iPhone simulator set to `AppleLanguages=fr-FR`, `AppleLocale=fr_FR`, and forced 24-hour time, then restored to `en-US` / `en_US` after capture | Used only for localized/date screenshot proof |
@@ -143,5 +143,14 @@
 | Swift/AppKit contact sheet generation | Passed | `45-final-contact-sheet.png` regenerated from 47 PNGs at 1040x6856 | Re-run after contrast-safe screenshot refresh |
 | screenshot inventory check | Passed | 47 primary raw PNGs; refreshed spot-check PNGs are 1179x2556; contact sheet is 1040x6856 | Final artifact dimensions verified after contrast pass |
 | git diff --check | Passed | exit 0 | Final whitespace/conflict-marker check after contrast pass docs and artifacts |
+| npm run export:screenshots | Passed | `artifacts/post-goal-aso-submission/app-store-export` | Exported 10 iPhone 6.9-inch candidate PNGs at 1290x2796 and 10 iPad 13-inch candidate PNGs at 2064x2752 |
+| screenshot export manifest check | Passed | `artifacts/post-goal-aso-submission/app-store-export/manifest.json` | Source/output file mapping and Apple screenshot spec URL recorded; manifest states manual App Store Connect upload acceptance is still required |
+| local export visual spot-check | Passed | `app-store-export/iphone-6-9/05-07-today-populated.png` | Exported iPhone Today screenshot opened cleanly at 1290x2796 without obvious cropping/clipping |
+| screenshot export dimension check | Passed | 10 iPhone PNGs at 1290x2796; 10 iPad PNGs at 2064x2752 | Node IHDR dimension check after export |
+| npm run typecheck | Passed | exit 0 | Re-run after screenshot export script/docs |
+| npm run test | Passed | 44/44 | Re-run after screenshot export script/docs |
+| npm run check:iap | Passed | IAP and premium gate configuration passed | Re-run after screenshot export script/docs |
+| npm run verify:production | Passed | Production config verification passed | Re-run after screenshot export script/docs |
+| git diff --check | Passed | exit 0 | Final whitespace/conflict-marker check after screenshot export script/docs |
 
-Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, App Store screenshot export/upload-size validation, full translated UI/string extraction/native localization review, full simulator VoiceOver traversal, restore purchase success proof. Optional: overnight widget rollover screenshot.
+Unrun/blocked: StoreKit sandbox, products-loaded paywall proof, manual App Store Connect screenshot upload acceptance, full translated UI/string extraction/native localization review, full simulator VoiceOver traversal, restore purchase success proof. Optional: overnight widget rollover screenshot.

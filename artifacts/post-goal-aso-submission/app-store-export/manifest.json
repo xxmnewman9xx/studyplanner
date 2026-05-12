@@ -1,0 +1,205 @@
+{
+  "generatedAt": "2026-05-12T21:23:55.088Z",
+  "appleScreenshotSpecUrl": "https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications",
+  "note": "Local accepted-size candidate export. Final App Store Connect upload still requires manual upload/status confirmation.",
+  "iphone": {
+    "display": "6.9-inch",
+    "acceptedPortraitSize": {
+      "width": 1290,
+      "height": 2796
+    },
+    "strategy": "Scaled from real 1179x2556 simulator PNGs to an Apple-accepted 1290x2796 portrait size.",
+    "screenshots": [
+      {
+        "slot": "01",
+        "source": "artifacts/post-goal-aso-submission/01-onboarding-welcome.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/iphone-6-9/01-01-onboarding-welcome.png",
+        "dimensions": {
+          "width": 1290,
+          "height": 2796
+        }
+      },
+      {
+        "slot": "02",
+        "source": "artifacts/post-goal-aso-submission/10-add-school-stuff.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/iphone-6-9/02-10-add-school-stuff.png",
+        "dimensions": {
+          "width": 1290,
+          "height": 2796
+        }
+      },
+      {
+        "slot": "03",
+        "source": "artifacts/post-goal-aso-submission/16-check-new-work-needs-check.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/iphone-6-9/03-16-check-new-work-needs-check.png",
+        "dimensions": {
+          "width": 1290,
+          "height": 2796
+        }
+      },
+      {
+        "slot": "04",
+        "source": "artifacts/post-goal-aso-submission/21-calendar-month.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/iphone-6-9/04-21-calendar-month.png",
+        "dimensions": {
+          "width": 1290,
+          "height": 2796
+        }
+      },
+      {
+        "slot": "05",
+        "source": "artifacts/post-goal-aso-submission/07-today-populated.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/iphone-6-9/05-07-today-populated.png",
+        "dimensions": {
+          "width": 1290,
+          "height": 2796
+        }
+      },
+      {
+        "slot": "06",
+        "source": "artifacts/post-goal-aso-submission/24-week-plan.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/iphone-6-9/06-24-week-plan.png",
+        "dimensions": {
+          "width": 1290,
+          "height": 2796
+        }
+      },
+      {
+        "slot": "07",
+        "source": "artifacts/post-goal-aso-submission/26-classes-list.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/iphone-6-9/07-26-classes-list.png",
+        "dimensions": {
+          "width": 1290,
+          "height": 2796
+        }
+      },
+      {
+        "slot": "08",
+        "source": "artifacts/post-goal-aso-submission/29-widget-setup.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/iphone-6-9/08-29-widget-setup.png",
+        "dimensions": {
+          "width": 1290,
+          "height": 2796
+        }
+      },
+      {
+        "slot": "09",
+        "source": "artifacts/post-goal-aso-submission/30-small-widget-home-screen.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/iphone-6-9/09-30-small-widget-home-screen.png",
+        "dimensions": {
+          "width": 1290,
+          "height": 2796
+        }
+      },
+      {
+        "slot": "10",
+        "source": "artifacts/post-goal-aso-submission/31-medium-widget-home-screen.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/iphone-6-9/10-31-medium-widget-home-screen.png",
+        "dimensions": {
+          "width": 1290,
+          "height": 2796
+        }
+      }
+    ]
+  },
+  "ipad": {
+    "display": "13-inch",
+    "acceptedPortraitSize": {
+      "width": 2064,
+      "height": 2752
+    },
+    "strategy": "Copied real 2064x2752 iPad simulator PNGs after dimension validation.",
+    "screenshots": [
+      {
+        "slot": "01",
+        "source": "artifacts/post-goal-aso-submission/ipad/ipad-01-onboarding-welcome.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/ipad-13/01-ipad-01-onboarding-welcome.png",
+        "dimensions": {
+          "width": 2064,
+          "height": 2752
+        }
+      },
+      {
+        "slot": "02",
+        "source": "artifacts/post-goal-aso-submission/ipad/ipad-02-today-populated.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/ipad-13/02-ipad-02-today-populated.png",
+        "dimensions": {
+          "width": 2064,
+          "height": 2752
+        }
+      },
+      {
+        "slot": "03",
+        "source": "artifacts/post-goal-aso-submission/ipad/ipad-03-add-school-stuff.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/ipad-13/03-ipad-03-add-school-stuff.png",
+        "dimensions": {
+          "width": 2064,
+          "height": 2752
+        }
+      },
+      {
+        "slot": "04",
+        "source": "artifacts/post-goal-aso-submission/ipad/ipad-04-check-new-work-edit.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/ipad-13/04-ipad-04-check-new-work-edit.png",
+        "dimensions": {
+          "width": 2064,
+          "height": 2752
+        }
+      },
+      {
+        "slot": "05",
+        "source": "artifacts/post-goal-aso-submission/ipad/ipad-05-calendar-month.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/ipad-13/05-ipad-05-calendar-month.png",
+        "dimensions": {
+          "width": 2064,
+          "height": 2752
+        }
+      },
+      {
+        "slot": "06",
+        "source": "artifacts/post-goal-aso-submission/ipad/ipad-06-week-plan.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/ipad-13/06-ipad-06-week-plan.png",
+        "dimensions": {
+          "width": 2064,
+          "height": 2752
+        }
+      },
+      {
+        "slot": "07",
+        "source": "artifacts/post-goal-aso-submission/ipad/ipad-07-classes-list.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/ipad-13/07-ipad-07-classes-list.png",
+        "dimensions": {
+          "width": 2064,
+          "height": 2752
+        }
+      },
+      {
+        "slot": "08",
+        "source": "artifacts/post-goal-aso-submission/ipad/ipad-08-widget-setup.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/ipad-13/08-ipad-08-widget-setup.png",
+        "dimensions": {
+          "width": 2064,
+          "height": 2752
+        }
+      },
+      {
+        "slot": "09",
+        "source": "artifacts/post-goal-aso-submission/ipad/ipad-10-settings-restore.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/ipad-13/09-ipad-10-settings-restore.png",
+        "dimensions": {
+          "width": 2064,
+          "height": 2752
+        }
+      },
+      {
+        "slot": "10",
+        "source": "artifacts/post-goal-aso-submission/ipad/ipad-11-assignment-detail.png",
+        "output": "artifacts/post-goal-aso-submission/app-store-export/ipad-13/10-ipad-11-assignment-detail.png",
+        "dimensions": {
+          "width": 2064,
+          "height": 2752
+        }
+      }
+    ]
+  }
+}
