@@ -66,7 +66,7 @@ Final implementation score: **9.22/10**
 
 - Accessibility and localization remain targeted improvements rather than exhaustive completion; source-tested VoiceOver labels, automated contrast coverage, source-level VoiceOver readiness, local simulator VoiceOver traversal, core Dynamic Type screenshots, localized ASO structural checks, a localization string audit, and one French-locale date-format screenshot now cover key planner/action visuals. Translated UI proof and native-speaker localization review are still needed before localized submission.
 - The 500-use-case swarm is generated and ranked, but not converted into a full automated e2e suite.
-- StoreKit configuration and source handoff now pass static/source checks, and products-loaded paywall proof exists for returned subscription products. Monthly/yearly/Lifetime purchase, restore success, Lifetime transaction availability, and App Store Connect product status still need a validation run.
+- StoreKit configuration and source handoff now pass static/source checks, and products-loaded paywall proof exists for returned subscription products. The returned prices differ from the local `.storekit` config, so local StoreKit Testing transaction proof is still absent. Monthly/yearly/Lifetime purchase, restore success, Lifetime transaction availability, and App Store Connect product status still need a validation run.
 - The current submission gate also blocks on a real support URL, App Store Connect screenshot-upload acceptance, signed archive entitlement proof, and the external proof files required for submission.
 
 ## Next Validation Prompt

@@ -27,7 +27,9 @@ Checks run on 2026-05-12:
 | `xcrun storekit --help` | `xcrun` could not find a `storekit` utility | No local StoreKit CLI is available in this Xcode install |
 | Shared app scheme inspection | `ios/StudyPlannerSyllabusAI.xcodeproj/xcshareddata/xcschemes/StudyPlannerSyllabusAI.xcscheme` references `../StudyPlannerProducts.storekit` | Xcode Debug Run is prepared for local StoreKit Testing |
 | Source audit | `npm run audit:storekit` passes with one external-proof warning | Code paths and local config are ready, but StoreKit transaction behavior remains unproven |
-| Products-loaded screenshot | `artifacts/post-goal-aso-submission/37-paywall-products-loaded.png`, 1179x2556 | Real simulator paywall shows returned monthly/yearly subscription products. Lifetime purchase remains unproven and must be covered by the transaction proof. |
+| Products-loaded screenshot | `artifacts/post-goal-aso-submission/37-paywall-products-loaded.png`, 1179x2556 | Real simulator paywall shows returned monthly/yearly subscription products. The visible prices (`$3.99` monthly, `$24.99` yearly) do not match the local `.storekit` prices (`$4.99`, `$29.99`), so treat this as returned store-product proof rather than local StoreKit Testing proof. Lifetime purchase remains unproven and must be covered by the transaction proof. |
+| `expo-iap` product type audit | `node_modules/expo-iap/src/index.ts` normalizes `in-app` as canonical and `inapp` as deprecated | The missing Lifetime plan is not explained by the app using `type: "in-app"`; investigate App Store Connect product status/attachment or local StoreKit launch attachment. |
+| Standalone StoreKitTest attempts | Simulator Swift binary failed to connect to `com.apple.storekitd`; temporary iOS XCTest target could not link `StoreKitTest.framework` for iPhone Simulator; temporary macOS SwiftPM XCTest failed with `SKInternalErrorDomain Code=3` | These local harnesses are not proof paths on this Xcode install. Use Xcode Run with StoreKit configuration or App Store Connect sandbox proof. |
 
 ## Product IDs
 
@@ -48,7 +50,8 @@ Use the exact IDs already preserved in source and App Store metadata:
    - Lifetime non-consumable.
    - Localized title/description/price values that match the planned App Store Connect products closely enough for screenshot proof.
 3. Confirm the shared app scheme references `../StudyPlannerProducts.storekit` under Run options as the StoreKit Configuration.
-4. Launch the app with explicit IAP env IDs:
+4. Prefer launching from Xcode's Run action using the shared `StudyPlannerSyllabusAI` scheme, because the StoreKit configuration is a scheme Run option. If using `npx expo run:ios`, do not assume it attached the `.storekit` file; the current products-loaded screenshot appears to have loaded returned store products instead of local StoreKit products.
+5. Build or launch the app with explicit IAP env IDs:
 
 ```sh
 EXPO_PUBLIC_STORE_CAPTURE=0 \
@@ -58,20 +61,20 @@ EXPO_PUBLIC_SUPPORT_URL=https://<real-support-url> \
 npx expo run:ios --device 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE
 ```
 
-5. Open the paywall:
+6. Open the paywall:
 
 ```sh
 xcrun simctl openurl 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE 'studyplanner://capture?tab=paywall'
 ```
 
-6. Capture products-loaded proof only if real StoreKit products appear:
+7. Capture products-loaded proof only if real StoreKit products appear:
 
 ```sh
 xcrun simctl io 6CBE6A7A-1778-406F-9F5B-3FDAA45310CE screenshot artifacts/post-goal-aso-submission/37-paywall-products-loaded.png
 ```
 
-7. Test monthly, yearly, Lifetime, and Restore Purchases using StoreKit Testing or sandbox/App Store Connect.
-8. Record proof in `artifacts/post-goal-aso-submission/external-proof/storekit-sandbox-proof.md`.
+8. Test monthly, yearly, Lifetime, and Restore Purchases using StoreKit Testing or sandbox/App Store Connect.
+9. Record proof in `artifacts/post-goal-aso-submission/external-proof/storekit-sandbox-proof.md`.
 
 ## Proof File Requirements
 

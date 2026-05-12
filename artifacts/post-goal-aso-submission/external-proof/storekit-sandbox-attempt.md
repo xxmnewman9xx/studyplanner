@@ -53,5 +53,31 @@ Follow-up local setup on 2026-05-12:
    - A transaction-shaped flow was accidentally opened during a drag/click attempt and was cancelled at the Apple Account prompt. The app reported: `Purchase was cancelled.`
    - No credentials were entered. No purchase was completed. No restore success was proven.
 
+Additional investigation on 2026-05-12:
+
+1. Checked whether the missing Lifetime plan was caused by the app using the wrong `expo-iap` product type.
+   - Source checked: `node_modules/expo-iap/src/index.ts`.
+   - Result: `expo-iap` treats `in-app` as the canonical product type and only keeps `inapp` as a deprecated alias.
+   - Impact: the app-side `fetchProducts({ skus: purchaseConfig.lifetimeProductIds, type: "in-app" })` path is consistent with the installed package. The missing Lifetime plan is more likely product availability/status, App Store Connect configuration, or local StoreKit attachment, not the product type string.
+
+2. Compared local StoreKit prices with the products-loaded paywall screenshot.
+   - Local config: `ios/StudyPlannerProducts.storekit` has Monthly `4.99`, Yearly `29.99`, Lifetime `79.99`.
+   - Screenshot: `artifacts/post-goal-aso-submission/37-paywall-products-loaded.png` shows Yearly Plus `$24.99` and Plus Monthly `$3.99`.
+   - Inference: the products-loaded screenshot appears to show returned App Store Connect/sandbox products rather than the local `.storekit` file. The screenshot is still useful returned-product proof, but it is not local StoreKit Testing proof and it does not prove Lifetime availability.
+
+3. Tried to exercise `SKTestSession` from a standalone iOS simulator binary.
+   - Result: a temporary Swift binary could compile when pointed at the iPhoneOS `StoreKitTest.framework`, but `simctl spawn` aborted with a StoreKit service connection failure to `com.apple.storekitd`.
+   - Impact: standalone simulator binaries are not a valid proof path on this machine.
+
+4. Tried to restore the missing Xcode XCTest target long enough to run a local StoreKit proof.
+   - Temporary files/target were backed out after the attempt.
+   - Result: `xcodebuild test` could see the restored `StudyPlannerSyllabusAITests` target, but linking failed because this Xcode install exposes `StoreKitTest.framework` for iPhoneOS and macOS, not iPhone Simulator. Pointing the simulator test target at the iPhoneOS framework caused the linker to reject an iOS `XCTest.framework` while building for `iOS-simulator`.
+   - Failure: `Building for 'iOS-simulator', but linking in dylib ... XCTest.framework/XCTest built for 'iOS'`.
+   - Impact: iOS simulator XCTest StoreKit proof is blocked with the currently available framework layout.
+
+5. Tried a temporary macOS SwiftPM XCTest proof harness against the same `.storekit` file.
+   - Result: the test bundle built, but `SKTestSession` failed at runtime with `SKInternalErrorDomain Code=3` while saving configuration, clearing overrides, setting `disableDialogs`, and deleting transactions.
+   - Impact: macOS XCTest is also not proof on this machine.
+
 Next required action:
-Use `docs/STOREKIT_TESTING_RUNBOOK.md` to complete real StoreKit Testing or App Store Connect sandbox transactions, then create `storekit-sandbox-proof.md` with real monthly, yearly, Lifetime, and restore results. Do not mark the 9.2 goal complete until that proof exists.
+Use `docs/STOREKIT_TESTING_RUNBOOK.md` to complete real StoreKit Testing through Xcode's Run action with the StoreKit configuration attached, or complete App Store Connect sandbox transactions with the products attached to the app record. Then create `storekit-sandbox-proof.md` with real monthly, yearly, Lifetime, and restore results. Do not mark the 9.2 goal complete until that proof exists.
