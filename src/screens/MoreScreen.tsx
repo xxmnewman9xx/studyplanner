@@ -1,19 +1,24 @@
 import React, { useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
   Bell,
+  BookOpen,
+  CalendarDays,
+  CheckCircle2,
   Crown,
+  FlaskConical,
   Palette,
+  PenLine,
   RotateCcw,
   Save,
   Settings,
   ShieldCheck,
+  Sparkles,
   Timer,
   WandSparkles
 } from "lucide-react-native";
 import {
   AppLogo,
-  EmojiBadge,
   GlassCard,
   SegmentedControl,
   SettingsRow,
@@ -33,6 +38,7 @@ import {
   WidgetType
 } from "../models";
 import { getWidgetData } from "../logic/planner";
+import { defaultWidgetPresets } from "../data/defaultPlanner";
 import { AppTheme, themePalettes } from "../theme";
 import { useAppTheme } from "../themeContext";
 
@@ -61,6 +67,15 @@ const widgetTypes: WidgetType[] = [
 ];
 const widgetSizes: WidgetSize[] = ["small", "medium", "large"];
 const backgrounds: WidgetBackground[] = ["solid", "gradient", "glass", "dark"];
+const widgetPaletteOptions: WidgetPalette[] = [
+  "sunset",
+  "ocean",
+  "forest",
+  "lavender",
+  "midnight",
+  "candy",
+  "minimal"
+];
 const palettes: Array<WidgetPalette | "custom"> = [
   "sunset",
   "ocean",
@@ -87,7 +102,7 @@ export function MoreScreen({
   onOpenGrades,
   onOpenPaywall
 }: MoreScreenProps) {
-  const { theme } = useAppTheme();
+  const { theme, setMode } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
   const firstPreset = widgetPresets[0];
@@ -103,10 +118,11 @@ export function MoreScreen({
   );
   const [layout, setLayout] = useState<WidgetPreset["layout"]>(firstPreset?.layout || "compact");
   const [iconKey, setIconKey] = useState(firstPreset?.iconKey || "book");
+  const [editingPresetId, setEditingPresetId] = useState(firstPreset?.id || "preset-due-next");
 
   const previewPreset = useMemo<WidgetPreset>(
     () => ({
-      id: "preview",
+      id: editingPresetId || "preview",
       name: labelize(type),
       type,
       size,
@@ -119,21 +135,37 @@ export function MoreScreen({
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }),
-    [background, classFocusCourseId, font, iconKey, layout, palette, size, type]
+    [background, classFocusCourseId, editingPresetId, font, iconKey, layout, palette, size, type]
   );
   const widgetData = getWidgetData(previewPreset, assignments, courses);
   const focusedCourse = classFocusCourseId
     ? courses.find((course) => course.id === classFocusCourseId)
     : undefined;
+  const libraryCombos = widgetTypes.flatMap((widgetType, typeIndex) => {
+    const sizes: WidgetSize[] = widgetType === "week" ? ["small", "medium", "large"] : ["small", "medium"];
+    return sizes.map((widgetSize, sizeIndex) => ({
+      type: widgetType,
+      size: widgetSize,
+      background: backgrounds[(typeIndex + sizeIndex) % backgrounds.length],
+      palette: widgetPaletteOptions[(typeIndex + sizeIndex) % widgetPaletteOptions.length],
+      layout: layouts[(typeIndex + sizeIndex) % layouts.length],
+      iconKey: iconKeys[(typeIndex + sizeIndex) % iconKeys.length],
+      classFocusCourseId: courses[typeIndex % Math.max(courses.length, 1)]?.id
+    }));
+  });
 
   const savePreset = () => {
-    onSaveWidgetPreset({
+    const timestamp = new Date().toISOString();
+    const existingPreset = widgetPresets.find((preset) => preset.id === editingPresetId);
+    const savedPreset: WidgetPreset = {
       ...previewPreset,
-      id: `preset-${Date.now()}`,
+      id: editingPresetId || `preset-${Date.now()}`,
       name: labelize(type),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    });
+      createdAt: existingPreset?.createdAt || timestamp,
+      updatedAt: timestamp
+    };
+    setEditingPresetId(savedPreset.id);
+    onSaveWidgetPreset(savedPreset);
   };
 
   const loadPreset = (preset: WidgetPreset) => {
@@ -145,6 +177,13 @@ export function MoreScreen({
     setClassFocusCourseId(preset.classFocusCourseId || courses[0]?.id);
     setLayout(preset.layout);
     setIconKey(preset.iconKey);
+    setEditingPresetId(preset.id);
+  };
+
+  const resetStudio = () => {
+    onResetWidgetPresets();
+    const defaultPreset = defaultWidgetPresets[0];
+    if (defaultPreset) loadPreset(defaultPreset);
   };
 
   return (
@@ -154,12 +193,15 @@ export function MoreScreen({
           <View style={styles.heroCopy}>
             <AppLogo showWordmark size={44} />
             <Text style={styles.kicker}>Widget Studio</Text>
-            <Text style={styles.heroTitle}>Design widgets that match your vibe.</Text>
+            <Text style={styles.heroTitle}>Build your Apple-style widget.</Text>
             <Text style={styles.heroText}>
-              Pick size, type, background, palette, class focus, icon, and layout. The preview updates immediately.
+              Size, type, color, class focus, icon, and layout update the preview live.
             </Text>
           </View>
-          <EmojiBadge name="widget" label="Live" tone="violet" />
+          <View style={styles.livePill}>
+            <View style={styles.liveDot} />
+            <Text style={styles.liveText}>Live</Text>
+          </View>
         </View>
         <View style={styles.previewStage}>
           <WidgetPreviewCard
@@ -171,6 +213,10 @@ export function MoreScreen({
             size={size}
             type={type}
             course={widgetData.course || focusedCourse}
+            font={font}
+            layout={layout}
+            iconKey={iconKey}
+            items={widgetData.items}
           />
         </View>
       </GlassCard>
@@ -273,15 +319,7 @@ export function MoreScreen({
         <ControlLabel title="Icon" />
         <View style={styles.iconGrid}>
           {iconKeys.map((option) => (
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityState={{ selected: option === iconKey }}
-              key={option}
-              style={[styles.iconButton, option === iconKey ? styles.iconButtonActive : null]}
-              onPress={() => setIconKey(option)}
-            >
-              <Text style={styles.iconButtonText}>{iconGlyph(option)}</Text>
-            </TouchableOpacity>
+            <IconChoice key={option} option={option} />
           ))}
         </View>
 
@@ -291,7 +329,7 @@ export function MoreScreen({
             label="Reset"
             icon={RotateCcw}
             variant="secondary"
-            onPress={onResetWidgetPresets}
+            onPress={resetStudio}
             style={styles.actionButton}
           />
         </View>
@@ -312,6 +350,10 @@ export function MoreScreen({
                 size="small"
                 type={preset.type}
                 course={data.course}
+                font={preset.font}
+                layout={preset.layout}
+                iconKey={preset.iconKey}
+                items={data.items}
               />
             </TouchableOpacity>
           );
@@ -324,27 +366,33 @@ export function MoreScreen({
 
       <SectionHeader title="Widget Library" note="Small, medium, glass, gradient, solid, dark" />
       <View style={styles.libraryGrid}>
-        {widgetTypes.slice(0, 6).map((option, index) => {
+        {libraryCombos.map((combo) => {
           const libraryPreset: WidgetPreset = {
             ...previewPreset,
-            type: option,
-            size: index % 2 === 0 ? "small" : "medium",
-            background: backgrounds[index % backgrounds.length] || "solid",
-            palette: palettes[index % 6] as WidgetPalette,
-            classFocusCourseId: courses[index % Math.max(courses.length, 1)]?.id
+            type: combo.type,
+            size: combo.size,
+            background: combo.background || "solid",
+            palette: combo.palette || "sunset",
+            layout: combo.layout || "compact",
+            iconKey: combo.iconKey || "calendar",
+            classFocusCourseId: combo.classFocusCourseId
           };
           const data = getWidgetData(libraryPreset, assignments, courses);
           return (
             <WidgetPreviewCard
-              key={option}
+              key={`${combo.type}-${combo.size}`}
               title={data.headline}
               value={data.value}
               detail={data.detail}
               background={libraryPreset.background}
               palette={libraryPreset.palette}
               size={libraryPreset.size}
-              type={option}
+              type={combo.type}
               course={data.course}
+              font={libraryPreset.font}
+              layout={libraryPreset.layout}
+              iconKey={libraryPreset.iconKey}
+              items={data.items}
               style={libraryPreset.size === "medium" ? styles.libraryWide : undefined}
             />
           );
@@ -363,10 +411,23 @@ export function MoreScreen({
             size="medium"
             type="due_next"
             course={courses[0]}
+            font={font}
+            layout="list"
+            iconKey="calendar"
+            items={assignments.slice(0, 3)}
           />
           <View style={styles.appIconGrid}>
-            {["#EC4899", "#10B981", "#FFFFFF", "#FDBA2D", "#2F80ED", "#8B5CF6"].map((color, index) => (
-              <View key={`${color}-${index}`} style={[styles.fakeAppIcon, { backgroundColor: color }]} />
+            {["brand", "#10B981", "#FFFFFF", "#FDBA2D", "#2F80ED", "#8B5CF6"].map((color, index) => (
+              color === "brand" ? (
+                <Image
+                  accessibilityLabel="StudyPlanner app icon"
+                  key="brand-icon"
+                  source={require("../../assets/app/study-planner-icon.png")}
+                  style={styles.fakeAppIcon}
+                />
+              ) : (
+                <View key={`${color}-${index}`} style={[styles.fakeAppIcon, { backgroundColor: color }]} />
+              )
             ))}
           </View>
         </View>
@@ -381,7 +442,33 @@ export function MoreScreen({
         </View>
       </View>
 
+      <View style={styles.lockShapeStrip}>
+        {[
+          ["Round", "3"],
+          ["Inline", "Algebra · 11:30"],
+          ["Rectangle", "Week 11"],
+          ["Circular", "7"]
+        ].map(([label, value]) => (
+          <View key={label} style={styles.lockShape}>
+            <Text style={styles.lockShapeValue}>{value}</Text>
+            <Text style={styles.lockShapeLabel}>{label}</Text>
+          </View>
+        ))}
+      </View>
+
       <SectionHeader title="Themes" note="Eight curated vibes plus your own" />
+      <GlassCard style={styles.modeCard}>
+        <View>
+          <Text style={styles.modeTitle}>App appearance</Text>
+          <Text style={styles.modeCopy}>Light for day planning, Midnight for late-night study.</Text>
+        </View>
+        <SegmentedControl
+          options={["light", "dark"]}
+          value={theme.mode}
+          onChange={(mode) => setMode(mode)}
+          labelForOption={labelize}
+        />
+      </GlassCard>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.themeRail}>
         {palettes.map((option) => (
           <ThemeCard
@@ -392,6 +479,8 @@ export function MoreScreen({
             onPress={() => {
               onUpdateSettings({ selectedTheme: option });
               if (option !== "custom") setPalette(option);
+              if (option === "midnight") setMode("dark");
+              if (option !== "midnight" && option !== "custom") setMode("light");
             }}
           />
         ))}
@@ -463,32 +552,49 @@ export function MoreScreen({
       </TouchableOpacity>
     );
   }
+
+  function IconChoice({ option }: { option: string }) {
+    const Icon = studioIconForKey(option);
+    const active = option === iconKey;
+    return (
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel={`${labelize(option)} widget icon`}
+        accessibilityState={{ selected: active }}
+        style={[styles.iconButton, active ? styles.iconButtonActive : null]}
+        onPress={() => setIconKey(option)}
+      >
+        <Icon color={active ? colors.accent : colors.muted} size={18} />
+      </TouchableOpacity>
+    );
+  }
 }
 
 function labelize(value: string) {
   return value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function iconGlyph(value: string) {
-  const map: Record<string, string> = {
-    book: "▣",
-    calendar: "□",
-    flask: "△",
-    pen: "✎",
-    spark: "✦",
-    check: "✓",
-    timer: "◴",
-    palette: "◐"
+function studioIconForKey(value: string) {
+  const map: Record<string, React.ComponentType<{ color: string; size: number }>> = {
+    book: BookOpen,
+    calendar: CalendarDays,
+    flask: FlaskConical,
+    pen: PenLine,
+    spark: Sparkles,
+    check: CheckCircle2,
+    timer: Timer,
+    palette: Palette
   };
-  return map[value] || "□";
+  return map[value] || CalendarDays;
 }
 
 function createStyles(theme: AppTheme) {
-  const { colors, radii, spacing, typography } = theme;
+  const { colors, radii, spacing } = theme;
 
   return StyleSheet.create({
     studioHero: {
-      gap: spacing.lg
+      gap: spacing.md,
+      padding: spacing.md
     },
     heroHeader: {
       flexDirection: "row",
@@ -497,7 +603,7 @@ function createStyles(theme: AppTheme) {
     },
     heroCopy: {
       flex: 1,
-      gap: spacing.sm
+      gap: spacing.xs
     },
     kicker: {
       color: colors.heroMuted,
@@ -507,12 +613,39 @@ function createStyles(theme: AppTheme) {
       textTransform: "uppercase"
     },
     heroTitle: {
-      ...typography.title,
-      color: colors.heroText
+      color: colors.heroText,
+      fontSize: 27,
+      lineHeight: 32,
+      fontWeight: "900"
     },
     heroText: {
-      ...typography.body,
-      color: colors.heroMuted
+      color: colors.heroMuted,
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "800"
+    },
+    livePill: {
+      minHeight: 32,
+      borderRadius: radii.round,
+      backgroundColor: "rgba(255,255,255,0.15)",
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.22)",
+      paddingHorizontal: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6
+    },
+    liveDot: {
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      backgroundColor: "#36D399"
+    },
+    liveText: {
+      color: colors.heroText,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
     },
     previewStage: {
       alignItems: "center"
@@ -657,11 +790,6 @@ function createStyles(theme: AppTheme) {
       borderColor: colors.accent,
       backgroundColor: colors.accentSoft
     },
-    iconButtonText: {
-      color: colors.ink,
-      fontSize: 19,
-      fontWeight: "900"
-    },
     controlActions: {
       flexDirection: "row",
       gap: spacing.sm,
@@ -785,9 +913,59 @@ function createStyles(theme: AppTheme) {
       fontSize: 17,
       fontWeight: "900"
     },
+    lockShapeStrip: {
+      marginTop: spacing.md,
+      borderRadius: radii.xl,
+      backgroundColor: "#25205F",
+      padding: spacing.md,
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    lockShape: {
+      flex: 1,
+      minWidth: 86,
+      minHeight: 72,
+      borderRadius: radii.lg,
+      backgroundColor: "rgba(255,255,255,0.1)",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 3
+    },
+    lockShapeValue: {
+      color: "#FFFFFF",
+      fontSize: 15,
+      lineHeight: 20,
+      fontWeight: "900",
+      textAlign: "center"
+    },
+    lockShapeLabel: {
+      color: "#C9C4FF",
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
     themeRail: {
       gap: spacing.sm,
       paddingRight: spacing.lg
+    },
+    modeCard: {
+      gap: spacing.sm,
+      marginBottom: spacing.sm
+    },
+    modeTitle: {
+      color: colors.ink,
+      fontSize: 16,
+      lineHeight: 22,
+      fontWeight: "900"
+    },
+    modeCopy: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "800"
     },
     settingsList: {
       gap: spacing.sm

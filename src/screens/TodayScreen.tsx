@@ -50,10 +50,7 @@ export function TodayScreen({
   premiumAutomationLocked,
   onOpenPaywall,
   onOpenFocus,
-  onOpenScan,
-  onOpenPlan,
-  onOpenClasses,
-  onOpenWidgets
+  onOpenScan
 }: TodayScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
@@ -88,12 +85,21 @@ export function TodayScreen({
                 Due {formatDateOnly(plan.nextAction.dueAt.slice(0, 10))} · {plan.nextAction.estimatedMinutes}m · {nextCourse?.period || "class"}
               </Text>
             </View>
-            <AppButton
-              label="Start now"
-              icon={ChevronRight}
-              onPress={() => onUpdateStatus(plan.nextAction!.id, "in_progress")}
-              style={styles.startButton}
-            />
+            <View style={styles.nextActions}>
+              <AppButton
+                label="Start now"
+                icon={ChevronRight}
+                onPress={() => onUpdateStatus(plan.nextAction!.id, "in_progress")}
+                style={styles.startButton}
+              />
+              <AppButton
+                label="Focus"
+                icon={Timer}
+                variant="secondary"
+                onPress={onOpenFocus}
+                style={styles.focusButton}
+              />
+            </View>
           </View>
         ) : (
           <EmptyState title="All caught up" copy="No urgent work in the planner right now." emoji="complete" />
@@ -104,30 +110,6 @@ export function TodayScreen({
         <StatPill label="Due Today" value={String(plan.dueToday.length)} tone="pink" />
         <StatPill label="Due Soon" value={String(plan.dueSoon.length)} tone="gold" />
         <StatPill label="Needs Check" value={String(plan.needsReview.length)} tone="plain" />
-      </View>
-
-      <View style={styles.quickGrid}>
-        <QuickAction title="Plan" copy="Calendar + week load" onPress={onOpenPlan} />
-        <QuickAction title="Classes" copy={`${courses.length} active`} onPress={onOpenClasses} />
-        <QuickAction title="Widgets" copy="Studio + themes" onPress={onOpenWidgets} />
-      </View>
-
-      <View style={styles.actionRow}>
-        <AppButton label="Start Focus" icon={Timer} onPress={onOpenFocus} style={styles.actionButton} />
-        <AppButton
-          label="Remind"
-          icon={premiumAutomationLocked ? Crown : Bell}
-          variant="secondary"
-          style={styles.actionButton}
-          onPress={premiumAutomationLocked ? onOpenPaywall : onScheduleReminders}
-        />
-        <AppButton
-          label="Sync"
-          icon={premiumAutomationLocked ? Crown : CalendarPlus}
-          variant="secondary"
-          style={styles.actionButton}
-          onPress={premiumAutomationLocked ? onOpenPaywall : onCalendarSync}
-        />
       </View>
 
       <SectionHeader title="Today" note="Agenda sorted by urgency and class color" />
@@ -163,21 +145,31 @@ export function TodayScreen({
           ))
         )}
       </View>
+
+      <SectionHeader title="Automation" note="Premium reminder and calendar workflows" />
+      <View style={styles.actionRow}>
+        <AppButton
+          label="Remind"
+          icon={premiumAutomationLocked ? Crown : Bell}
+          variant="secondary"
+          style={styles.actionButton}
+          onPress={premiumAutomationLocked ? onOpenPaywall : onScheduleReminders}
+        />
+        <AppButton
+          label="Sync"
+          icon={premiumAutomationLocked ? Crown : CalendarPlus}
+          variant="secondary"
+          style={styles.actionButton}
+          onPress={premiumAutomationLocked ? onOpenPaywall : onCalendarSync}
+        />
+      </View>
     </View>
   );
 
-  function QuickAction({ title, copy, onPress }: { title: string; copy: string; onPress: () => void }) {
-    return (
-      <TouchableOpacity accessibilityRole="button" style={styles.quickAction} onPress={onPress}>
-        <Text style={styles.quickTitle}>{title}</Text>
-        <Text style={styles.quickCopy}>{copy}</Text>
-      </TouchableOpacity>
-    );
-  }
 }
 
 function createStyles(theme: AppTheme) {
-  const { colors, radii, spacing, typography } = theme;
+  const { colors, radii, spacing } = theme;
 
   return StyleSheet.create({
     screen: {
@@ -187,7 +179,7 @@ function createStyles(theme: AppTheme) {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: spacing.lg,
+      marginBottom: spacing.md,
       gap: spacing.md
     },
     scanButton: {
@@ -204,7 +196,8 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     heroCard: {
-      gap: spacing.md
+      gap: spacing.sm,
+      padding: spacing.md
     },
     heroKicker: {
       color: colors.heroMuted,
@@ -213,16 +206,18 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800"
     },
     heroTitle: {
-      ...typography.title,
-      color: colors.heroText
+      color: colors.heroText,
+      fontSize: 29,
+      lineHeight: 35,
+      fontWeight: "900"
     },
     nextHero: {
       borderRadius: radii.xl,
       backgroundColor: "rgba(255,255,255,0.16)",
       borderWidth: 1,
       borderColor: "rgba(255,255,255,0.2)",
-      padding: spacing.md,
-      gap: spacing.md
+      padding: spacing.sm,
+      gap: spacing.sm
     },
     nextHeroCopy: {
       gap: 3
@@ -236,8 +231,8 @@ function createStyles(theme: AppTheme) {
     },
     nextTitle: {
       color: colors.heroText,
-      fontSize: 20,
-      lineHeight: 26,
+      fontSize: 18,
+      lineHeight: 23,
       fontWeight: "900"
     },
     nextMeta: {
@@ -247,45 +242,26 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800"
     },
     startButton: {
-      alignSelf: "flex-start",
+      flex: 1,
       backgroundColor: colors.brandPink
+    },
+    focusButton: {
+      flex: 1,
+      backgroundColor: "rgba(255,255,255,0.96)"
+    },
+    nextActions: {
+      flexDirection: "row",
+      gap: spacing.sm
     },
     statsRow: {
       flexDirection: "row",
       gap: spacing.sm,
-      marginTop: spacing.lg
-    },
-    quickGrid: {
-      flexDirection: "row",
-      gap: spacing.sm,
       marginTop: spacing.md
-    },
-    quickAction: {
-      flex: 1,
-      minHeight: 68,
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.sm,
-      justifyContent: "center"
-    },
-    quickTitle: {
-      color: colors.ink,
-      fontSize: 14,
-      lineHeight: 19,
-      fontWeight: "900"
-    },
-    quickCopy: {
-      color: colors.muted,
-      fontSize: 11,
-      lineHeight: 15,
-      fontWeight: "800"
     },
     actionRow: {
       flexDirection: "row",
       gap: spacing.sm,
-      marginTop: spacing.md
+      marginTop: spacing.sm
     },
     actionButton: {
       flex: 1,

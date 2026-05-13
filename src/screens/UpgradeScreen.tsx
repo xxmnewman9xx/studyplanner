@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ActivityIndicator, Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { CalendarSync, Check, Crown, FileScan, ShieldCheck, X } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
+import { AppLogo } from "../components/AppleComponents";
 import { Badge } from "../components/Badge";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -52,19 +53,17 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
   return (
     <View>
       <View style={styles.header}>
-        <Text style={styles.kicker}>Study Planner Plus</Text>
-        <Text style={styles.title}>Save time when the semester gets busy.</Text>
+        <AppLogo showWordmark size={44} />
+        <Text style={styles.kicker}>StudyPlanner Pro</Text>
+        <Text style={styles.title}>Unlimited syllabus-to-plan power.</Text>
         <Text style={styles.subtitle}>
-          Keep the free planner for manual organization, or unlock the automation that
-          removes the repetitive setup work.
+          Scan more, save every widget preset, unlock every theme, and keep school moving with calm automation.
         </Text>
       </View>
 
       <View style={styles.valueCard}>
         <View style={styles.valueHeader}>
-          <View style={styles.iconMark}>
-            <Crown color={colors.ink} size={22} />
-          </View>
+          <AppLogo size={52} />
           <View style={styles.valueCopy}>
             <Text style={styles.valueTitle}>
               {subscription.isPremium ? "Plus is active" : "Unlock Plus"}
@@ -294,7 +293,7 @@ function LegalNotice({
         <Text style={styles.legalBody}>
           {isTerms
             ? "Subscriptions are billed by the App Store or Google Play account used at purchase. Apple's standard EULA applies on iOS. Manage or cancel renewal from your store account settings. Premium access remains tied to valid store entitlement status."
-            : "Study Planner stores planner details on your device unless you choose services that require upload, such as syllabus scan. Syllabus files are sent only for parsing, and the app does not sell personal planner data."}
+            : "StudyPlanner stores planner details on your device unless you choose services that require upload, such as syllabus scan. Syllabus files are sent only for parsing, and the app does not sell personal planner data."}
         </Text>
         <View style={styles.legalFeature}>
           {isTerms ? (

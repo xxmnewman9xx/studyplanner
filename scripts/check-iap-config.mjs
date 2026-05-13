@@ -27,7 +27,7 @@ assert(
 );
 assert(
   appConfig.ios?.bundleIdentifier === "com.mattnewman.studyplanner",
-  "iOS bundle identifier must target the existing Study Planner app."
+  "iOS bundle identifier must target the existing StudyPlanner app."
 );
 assert(
   appConfig.extra?.eas?.projectId === "69335c75-753e-424e-8a76-c8bd2455a112",

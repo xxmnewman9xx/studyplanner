@@ -16,7 +16,7 @@ import {
   Crown,
   FileScan,
   GraduationCap,
-  Home,
+  Image as ImageIcon,
   PanelsTopLeft,
   Sparkles,
   Timer
@@ -40,7 +40,6 @@ import {
 } from "./src/models";
 import { AppTheme } from "./src/theme";
 import { AppThemeProvider, useAppTheme } from "./src/themeContext";
-import { ModeToggle } from "./src/components/ModeToggle";
 import { AppLogo } from "./src/components/AppleComponents";
 import {
   defaultAssignments,
@@ -63,6 +62,7 @@ import { UpgradeScreen } from "./src/screens/UpgradeScreen";
 import { AssignmentDetailScreen } from "./src/screens/AssignmentDetailScreen";
 import { PlanScreen } from "./src/screens/PlanScreen";
 import { MoreScreen } from "./src/screens/MoreScreen";
+import { completeAssignment, saveWidgetPreset as saveWidgetPresetState } from "./src/logic/planner";
 import { scheduleSmartReminders } from "./src/services/reminders";
 import { syncAssignmentsToDeviceCalendar } from "./src/services/calendarSync";
 import { loadJson, saveJson } from "./src/services/storage";
@@ -84,7 +84,7 @@ const tabs: Array<{
   label: string;
   icon: React.ComponentType<{ color: string; size: number }>;
 }> = [
-  { id: "today", label: "Today", icon: Home },
+  { id: "today", label: "Today", icon: ImageIcon },
   { id: "import", label: "Scan", icon: FileScan },
   { id: "plan", label: "Plan", icon: CalendarDays },
   { id: "courses", label: "Classes", icon: GraduationCap },
@@ -243,6 +243,9 @@ function AppContent() {
 
   const applyParsedPlan = (parse: SyllabusParseResult) => {
     const timestamp = new Date().toISOString();
+    const parsedAssignmentIds = new Set(
+      parse.assignments.map((assignment) => assignment.sourceId).filter(Boolean)
+    );
     setCourses((current) => mergeById(current, parse.courses));
     setAssignments((current) =>
       mergeById(
@@ -259,18 +262,37 @@ function AppContent() {
       )
     );
     setGradeItems((current) => mergeById(current, parse.gradeItems));
-    setParsedImports((current) => [
-      {
-        id: `import-${timestamp}`,
-        title: parse.sourceName,
-        sourceType: "scan",
-        status: "applied",
-        itemCount: parse.assignments.length + parse.courses.length + parse.gradeItems.length,
-        createdAt: timestamp,
-        updatedAt: timestamp
-      },
-      ...current
-    ]);
+    setParsedImports((current) => {
+      const existing = current.find((item) => item.title === parse.sourceName);
+      const itemCount = parse.assignments.length + parse.courses.length + parse.gradeItems.length;
+      if (existing) {
+        return current.map((item) =>
+          item.id === existing.id
+            ? { ...item, status: "applied", itemCount, updatedAt: timestamp }
+            : item
+        );
+      }
+
+      return [
+        {
+          id: `import-${timestamp}`,
+          title: parse.sourceName,
+          sourceType: "scan",
+          status: "applied",
+          itemCount,
+          createdAt: timestamp,
+          updatedAt: timestamp
+        },
+        ...current
+      ];
+    });
+    setParsedItems((current) =>
+      current.map((item) =>
+        parsedAssignmentIds.has(item.parsedImportId)
+          ? { ...item, acceptedAt: timestamp, reviewStatus: "accepted" }
+          : item
+      )
+    );
     setSemester((current) => ({
       ...current,
       name: parse.semesterName || current.name,
@@ -285,11 +307,13 @@ function AppContent() {
     status: Exclude<AssignmentStatus, "archived">
   ) => {
     setAssignments((current) =>
-      current.map((assignment) =>
-        assignment.id === assignmentId
-          ? { ...assignment, status, progress: status === "done" ? 1 : assignment.progress }
-          : assignment
-      )
+      status === "done"
+        ? completeAssignment(current, assignmentId)
+        : current.map((assignment) =>
+            assignment.id === assignmentId
+              ? { ...assignment, status, updatedAt: new Date().toISOString() }
+              : assignment
+          )
     );
   };
 
@@ -410,7 +434,7 @@ function AppContent() {
   };
 
   const saveWidgetPreset = (preset: WidgetPreset) => {
-    setWidgetPresets((current) => [preset, ...current.filter((item) => item.id !== preset.id)]);
+    setWidgetPresets((current) => saveWidgetPresetState(current, preset));
   };
 
   const resetWidgetPresets = () => {
@@ -481,7 +505,7 @@ function AppContent() {
   const showInitialPaywall = false;
 
   if (!hydrated) {
-    return <LoadingScreen label="Loading Study Planner" />;
+    return <LoadingScreen label="Loading StudyPlanner" />;
   }
 
   if (!onboarded) {
@@ -562,9 +586,6 @@ function AppContent() {
             </View>
           </View>
         ) : null}
-        <View style={styles.modeToggle}>
-          <ModeToggle />
-        </View>
         <ScrollView
           ref={scrollRef}
           style={styles.scrollArea}
@@ -704,6 +725,7 @@ function LoadingScreen({ label }: { label: string }) {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style={theme.isDark ? "light" : "dark"} />
       <View style={styles.loadingScreen}>
+        <AppLogo showWordmark size={74} />
         <ActivityIndicator color={colors.ink} />
         <Text style={styles.loadingText}>{label}</Text>
       </View>
@@ -736,19 +758,13 @@ function createStyles(theme: AppTheme, tablet = false) {
       overflow: "hidden",
       flexDirection: tablet ? "row" : "column"
     },
-    modeToggle: {
-      position: "absolute",
-      top: spacing.sm,
-      right: spacing.lg,
-      zIndex: 2
-    },
     content: {
       width: "100%",
       maxWidth: tablet ? 980 : undefined,
       alignSelf: tablet ? "center" : undefined,
       paddingHorizontal: spacing.lg,
-      paddingTop: tablet ? spacing.xl : 70,
-      paddingBottom: tablet ? spacing.xxl : 126
+      paddingTop: tablet ? spacing.xl : spacing.lg,
+      paddingBottom: tablet ? spacing.xxl : 196
     },
     scrollArea: {
       flex: 1
@@ -800,7 +816,8 @@ function createStyles(theme: AppTheme, tablet = false) {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
-      gap: spacing.sm
+      gap: spacing.md,
+      padding: spacing.xl
     },
     loadingText: {
       color: colors.muted,
@@ -813,14 +830,14 @@ function createStyles(theme: AppTheme, tablet = false) {
       left: spacing.md,
       right: spacing.md,
       bottom: spacing.md,
-      minHeight: 78,
+      minHeight: 70,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      borderRadius: radii.xl,
+      borderRadius: 26,
       borderWidth: 1,
       borderColor: colors.line,
-      backgroundColor: theme.isDark ? "rgba(17, 23, 34, 0.96)" : "rgba(255, 255, 255, 0.96)",
+      backgroundColor: theme.isDark ? "rgba(17, 23, 34, 0.98)" : "rgba(255, 255, 255, 0.985)",
       padding: spacing.xs,
       shadowColor: colors.shadow,
       shadowOpacity: theme.isDark ? 0.42 : 0.16,
@@ -830,10 +847,10 @@ function createStyles(theme: AppTheme, tablet = false) {
     },
     tabButton: {
       width: "19.4%",
-      minHeight: 62,
+      minHeight: 56,
       alignItems: "center",
       justifyContent: "center",
-      borderRadius: radii.lg,
+      borderRadius: 20,
       gap: 4
     },
     tabButtonActive: {

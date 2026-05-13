@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Crown, LockKeyhole } from "lucide-react-native";
 import { AppButton } from "./AppButton";
+import { AppLogo } from "./AppleComponents";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 
@@ -25,10 +26,13 @@ export function PremiumGate({ title, copy, onUpgrade }: PremiumGateProps) {
       </View>
 
       <View style={styles.card}>
-        <View style={styles.iconMark}>
-          <LockKeyhole color={colors.ink} size={24} />
+        <View style={styles.brandLock}>
+          <AppLogo size={54} />
+          <View style={styles.lockBadge}>
+            <LockKeyhole color={colors.heroText} size={17} />
+          </View>
         </View>
-        <Text style={styles.cardTitle}>Unlock with Study Planner Plus</Text>
+        <Text style={styles.cardTitle}>Unlock with StudyPlanner Pro</Text>
         <Text style={styles.cardCopy}>
           These tools open after Plus is active on your store account.
         </Text>
@@ -70,13 +74,24 @@ function createStyles(theme: AppTheme) {
       shadowOffset: { width: 0, height: 10 },
       elevation: 4
     },
-    iconMark: {
+    brandLock: {
       width: 52,
       height: 52,
-      borderRadius: radii.lg,
-      backgroundColor: colors.accentSoft,
       alignItems: "center",
       justifyContent: "center"
+    },
+    lockBadge: {
+      position: "absolute",
+      right: -7,
+      bottom: -7,
+      width: 27,
+      height: 27,
+      borderRadius: 14,
+      backgroundColor: colors.accent,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 2,
+      borderColor: colors.surface
     },
     cardTitle: {
       color: colors.ink,

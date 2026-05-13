@@ -4,8 +4,7 @@ import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react-native";
 import {
   AssignmentRow,
   EmptyState,
-  GlassCard,
-  StatPill
+  GlassCard
 } from "../components/AppleComponents";
 import { SectionHeader } from "../components/SectionHeader";
 import { Assignment, Course } from "../models";
@@ -60,13 +59,13 @@ export function PlanScreen({ assignments, courses, onOpenAssignment }: PlanScree
           Month dots show due dates. Week load spots the heavy days before they sneak up.
         </Text>
         <View style={styles.heroStats}>
-          <StatPill label="Due Today" value={String(weekLoad.find((day) => day.dateKey === dateKey(today))?.items.length || 0)} tone="pink" />
-          <StatPill label="Heavy Days" value={String(insight.heavyDays.length)} tone="gold" />
-          <StatPill label="This Week" value={String(weekLoad.reduce((sum, day) => sum + day.items.length, 0))} tone="violet" />
+          <MiniStat label="Due Today" value={String(weekLoad.find((day) => day.dateKey === dateKey(today))?.items.length || 0)} tone="pink" />
+          <MiniStat label="Heavy Days" value={String(insight.heavyDays.length)} tone="gold" />
+          <MiniStat label="This Week" value={String(weekLoad.reduce((sum, day) => sum + day.items.length, 0))} tone="violet" />
         </View>
       </GlassCard>
 
-      <SectionHeader title="May Plan" note="Class-color dots by due date" />
+      <SectionHeader title={`${monthCursor.toLocaleString("en-US", { month: "long" })} Plan`} note="Class-color dots by due date" />
       <GlassCard style={styles.calendarCard}>
         <View style={styles.monthHeader}>
           <TouchableOpacity accessibilityRole="button" style={styles.monthButton} onPress={() => moveMonth(-1)}>
@@ -188,6 +187,28 @@ export function PlanScreen({ assignments, courses, onOpenAssignment }: PlanScree
       </GlassCard>
     </View>
   );
+
+  function MiniStat({
+    label,
+    value,
+    tone
+  }: {
+    label: string;
+    value: string;
+    tone: "pink" | "gold" | "violet";
+  }) {
+    const toneStyle = {
+      pink: styles.miniStatPink,
+      gold: styles.miniStatGold,
+      violet: styles.miniStatViolet
+    }[tone];
+    return (
+      <View style={[styles.miniStat, toneStyle]}>
+        <Text style={styles.miniStatValue}>{value}</Text>
+        <Text style={styles.miniStatLabel}>{label}</Text>
+      </View>
+    );
+  }
 }
 
 function buildMonthDays(cursor: Date) {
@@ -217,14 +238,15 @@ function formatSelectedDate(key: string) {
 }
 
 function createStyles(theme: AppTheme) {
-  const { colors, radii, spacing, typography } = theme;
+  const { colors, radii, spacing } = theme;
 
   return StyleSheet.create({
     screen: {
       gap: 0
     },
     hero: {
-      gap: spacing.md
+      gap: spacing.sm,
+      padding: spacing.md
     },
     heroTop: {
       flexDirection: "row",
@@ -248,16 +270,52 @@ function createStyles(theme: AppTheme) {
       textTransform: "uppercase"
     },
     title: {
-      ...typography.title,
-      color: colors.heroText
+      color: colors.heroText,
+      fontSize: 29,
+      lineHeight: 35,
+      fontWeight: "900"
     },
     heroCopy: {
-      ...typography.body,
-      color: colors.heroMuted
+      color: colors.heroMuted,
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "800"
     },
     heroStats: {
       flexDirection: "row",
       gap: spacing.sm
+    },
+    miniStat: {
+      flex: 1,
+      minHeight: 62,
+      borderRadius: radii.lg,
+      padding: spacing.sm,
+      justifyContent: "center",
+      borderWidth: 1
+    },
+    miniStatPink: {
+      backgroundColor: "#FFE8F3",
+      borderColor: "#FFC9E3"
+    },
+    miniStatGold: {
+      backgroundColor: colors.softGold,
+      borderColor: "#F1D991"
+    },
+    miniStatViolet: {
+      backgroundColor: "rgba(255,255,255,0.18)",
+      borderColor: "rgba(255,255,255,0.22)"
+    },
+    miniStatValue: {
+      color: colors.ink,
+      fontSize: 22,
+      lineHeight: 27,
+      fontWeight: "900"
+    },
+    miniStatLabel: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
     },
     calendarCard: {
       padding: spacing.md

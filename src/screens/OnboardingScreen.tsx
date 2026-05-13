@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { CalendarCheck2, CheckCircle2, FileScan, Sparkles, WandSparkles } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { AppLogo, EmojiAccent, GlassCard } from "../components/AppleComponents";
-import { ModeToggle } from "../components/ModeToggle";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 
@@ -67,10 +66,9 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
   };
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <View style={styles.screen}>
       <View style={styles.brandRow}>
         <AppLogo showWordmark size={46} />
-        <ModeToggle />
       </View>
 
       <GlassCard style={styles.illustrationCard}>
@@ -101,52 +99,28 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
         ))}
       </View>
 
-      <View style={styles.loopCard}>
-        {["Scan", "Parse", "Plan", "Focus", "Review"].map((step, stepIndex) => (
-          <View key={step} style={styles.loopRow}>
-            <View style={[styles.loopNumber, { backgroundColor: stepColors[stepIndex] || colors.accent }]}>
-              <Text style={styles.loopNumberText}>{stepIndex + 1}</Text>
-            </View>
-            <View style={styles.loopCopy}>
-              <Text style={styles.loopTitle}>{step}</Text>
-              <Text style={styles.loopText}>{loopCopy[stepIndex]}</Text>
-            </View>
-          </View>
-        ))}
+      <View style={styles.bottomBar}>
+        <Text style={styles.promise}>Private by default · Built for students · Widget-ready</Text>
+        <AppButton label={isFinal ? "Get started" : "Continue"} onPress={continueOnboarding} style={styles.cta} />
       </View>
-
-      <AppButton label={isFinal ? "Get started" : "Continue"} onPress={continueOnboarding} style={styles.cta} />
-      <Text style={styles.promise}>Private by default · Built for students · Widget-ready</Text>
-    </ScrollView>
+    </View>
   );
 }
 
-const stepColors = ["#6C5CE7", "#2F80ED", "#10B981", "#F59E0B", "#FF4FA3"];
-const loopCopy = [
-  "Scan or upload anything your teacher gives you.",
-  "AI reads, understands, and finds your work.",
-  "We organize everything into your schedule.",
-  "See what’s next and stay on track.",
-  "Check in, adjust, and keep improving."
-];
-
 function createStyles(theme: AppTheme) {
-  const { colors, radii, spacing, typography } = theme;
+  const { colors, spacing, typography } = theme;
 
   return StyleSheet.create({
     screen: {
       flex: 1,
-      backgroundColor: colors.canvas
-    },
-    content: {
+      backgroundColor: colors.canvas,
       padding: spacing.lg,
-      paddingBottom: spacing.xxl,
       gap: spacing.lg
     },
     brandRow: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
+      justifyContent: "center",
       gap: spacing.sm
     },
     illustrationCard: {
@@ -155,8 +129,8 @@ function createStyles(theme: AppTheme) {
       backgroundColor: theme.isDark ? "#17142A" : "#F1ECFF"
     },
     illustration: {
-      width: 210,
-      height: 210,
+      width: 190,
+      height: 190,
       borderRadius: 34,
       backgroundColor: theme.isDark ? "#241D3E" : "#EFE9FF",
       alignItems: "center",
@@ -222,7 +196,8 @@ function createStyles(theme: AppTheme) {
     },
     copy: {
       ...typography.body,
-      textAlign: "center"
+      textAlign: "center",
+      maxWidth: 330
     },
     dots: {
       flexDirection: "row",
@@ -240,43 +215,9 @@ function createStyles(theme: AppTheme) {
       width: 24,
       backgroundColor: colors.accent
     },
-    loopCard: {
-      borderRadius: radii.xl,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.lg,
-      gap: spacing.md
-    },
-    loopRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.md
-    },
-    loopNumber: {
-      width: 34,
-      height: 34,
-      borderRadius: 17,
-      alignItems: "center",
-      justifyContent: "center"
-    },
-    loopNumberText: {
-      color: "#FFFFFF",
-      fontSize: 14,
-      fontWeight: "900"
-    },
-    loopCopy: {
-      flex: 1
-    },
-    loopTitle: {
-      color: colors.ink,
-      fontSize: 16,
-      lineHeight: 21,
-      fontWeight: "900"
-    },
-    loopText: {
-      ...typography.small,
-      color: colors.muted
+    bottomBar: {
+      marginTop: "auto",
+      gap: spacing.sm
     },
     cta: {
       backgroundColor: colors.brandPink

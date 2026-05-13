@@ -9,7 +9,19 @@ import {
   View,
   ViewStyle
 } from "react-native";
-import { Check, ChevronRight, Plus } from "lucide-react-native";
+import {
+  BookOpen,
+  CalendarDays,
+  Check,
+  CheckCircle2,
+  ChevronRight,
+  FlaskConical,
+  Palette,
+  PenLine,
+  Plus,
+  Sparkles,
+  Timer
+} from "lucide-react-native";
 import { Assignment, Course, WidgetBackground, WidgetPalette, WidgetSize, WidgetType } from "../models";
 import { AppTheme, themePalettes } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -56,13 +68,14 @@ export function AppLogo({
     <View style={[styles.logoWrap, style]}>
       <Image
         accessibilityLabel="StudyPlanner app icon"
+        resizeMode="cover"
         source={require("../../assets/app/study-planner-icon.png")}
-        style={[styles.logoImage, { width: size, height: size, borderRadius: Math.max(12, size * 0.22) } as ImageStyle]}
+        style={[styles.logoImage, { width: size, height: size, borderRadius: size * 0.22 } as ImageStyle]}
       />
       {showWordmark ? (
         <View style={styles.logoCopy}>
           <Text style={styles.logoTitle}>StudyPlanner</Text>
-          <Text style={styles.logoSubtitle}>AI Homework Planner</Text>
+          <Text style={styles.logoSubtitle}>Syllabus AI</Text>
         </View>
       ) : null}
     </View>
@@ -294,6 +307,10 @@ export function WidgetPreviewCard({
   size,
   type,
   course,
+  font = "SF Pro",
+  layout = "compact",
+  iconKey = "calendar",
+  items = [],
   style
 }: {
   title: string;
@@ -304,19 +321,28 @@ export function WidgetPreviewCard({
   size: WidgetSize;
   type: WidgetType;
   course?: Course;
+  font?: "SF Pro" | "New York" | "Rounded" | "Mono";
+  layout?: "compact" | "list" | "ring" | "calendar" | "grid";
+  iconKey?: string;
+  items?: Assignment[];
   style?: StyleProp<ViewStyle>;
 }) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
   const paletteColors = themePalettes[palette] || themePalettes.sunset;
-  const isDark = background === "dark";
+  const isTinted = background === "dark" || background === "gradient";
+  const isLarge = size === "large";
   const isMedium = size === "medium" || size === "large";
+  const labelTone = isTinted ? styles.widgetTextDark : null;
+  const previewItems = items.slice(0, isMedium ? 3 : 2);
+  const fontStyle = font === "Mono" ? styles.widgetMono : font === "Rounded" ? styles.widgetRounded : null;
+  const WidgetIcon = iconForKey(iconKey);
 
   return (
     <View
       style={[
         styles.widget,
-        isMedium ? styles.widgetMedium : styles.widgetSmall,
+        isLarge ? styles.widgetLarge : isMedium ? styles.widgetMedium : styles.widgetSmall,
         background === "solid" ? styles.widgetSolid : null,
         background === "glass" ? styles.widgetGlass : null,
         background === "dark" ? styles.widgetDark : null,
@@ -328,19 +354,64 @@ export function WidgetPreviewCard({
         <View style={[styles.widgetGlow, { backgroundColor: paletteColors[1] }]} />
       ) : null}
       <View style={styles.widgetTop}>
-        <Text style={[styles.widgetLabel, isDark ? styles.widgetTextDark : null]}>{title}</Text>
-        <Text style={[styles.widgetTiny, isDark ? styles.widgetTextDark : null]}>
+        <Text style={[styles.widgetLabel, labelTone, fontStyle]}>{title}</Text>
+        <Text style={[styles.widgetTiny, labelTone]}>
           {type === "due_next" ? "2h" : "May 13"}
         </Text>
       </View>
-      <Text style={[styles.widgetValue, isDark ? styles.widgetTextDark : null]}>{value}</Text>
-      <Text style={[styles.widgetDetail, isDark ? styles.widgetTextDark : null]} numberOfLines={2}>
-        {detail}
-      </Text>
+      <View style={styles.widgetMainRow}>
+        <View style={styles.widgetCopy}>
+          <Text style={[styles.widgetValue, labelTone, fontStyle]}>{value}</Text>
+          <Text style={[styles.widgetDetail, labelTone]} numberOfLines={2}>
+            {detail}
+          </Text>
+        </View>
+        <View style={[styles.widgetIconOrb, { backgroundColor: paletteColors[2] || paletteColors[1] }]}>
+          <WidgetIcon color="#FFFFFF" size={17} />
+        </View>
+      </View>
+      {layout === "list" || type === "today" || type === "needs_check" ? (
+        <View style={styles.widgetMiniList}>
+          {previewItems.map((item) => (
+            <View key={item.id} style={styles.widgetMiniRow}>
+              <View style={[styles.widgetMiniDot, { backgroundColor: course?.color || paletteColors[1] }]} />
+              <Text style={[styles.widgetMiniText, labelTone]} numberOfLines={1}>
+                {item.title}
+              </Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
+      {layout === "ring" || type === "focus" || type === "streak" ? (
+        <View style={[styles.widgetRing, { borderColor: paletteColors[1] || theme.colors.brandPink }]}>
+          <Text style={[styles.widgetRingText, labelTone]}>{type === "streak" ? "7" : "25"}</Text>
+        </View>
+      ) : null}
+      {layout === "calendar" || type === "week" ? (
+        <View style={styles.widgetBars}>
+          {[0.28, 0.6, 0.92, 0.44, 0.72].map((height, index) => (
+            <View key={index} style={styles.widgetBarWrap}>
+              <View
+                style={[
+                  styles.widgetBar,
+                  { height: 12 + height * 34, backgroundColor: paletteColors[index % paletteColors.length] }
+                ]}
+              />
+            </View>
+          ))}
+        </View>
+      ) : null}
+      {layout === "grid" || type === "class_focus" ? (
+        <View style={styles.widgetGridDots}>
+          {paletteColors.slice(0, 4).map((color) => (
+            <View key={color} style={[styles.widgetGridDot, { backgroundColor: color }]} />
+          ))}
+        </View>
+      ) : null}
       {course ? (
         <View style={styles.widgetCourseRow}>
           <View style={[styles.widgetDot, { backgroundColor: course.color }]} />
-          <Text style={[styles.widgetTiny, isDark ? styles.widgetTextDark : null]}>
+          <Text style={[styles.widgetTiny, labelTone]}>
             {course.code}
           </Text>
         </View>
@@ -449,6 +520,20 @@ function labelize(value: string) {
   return value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function iconForKey(value: string) {
+  const map: Record<string, React.ComponentType<IconProps>> = {
+    book: BookOpen,
+    calendar: CalendarDays,
+    flask: FlaskConical,
+    pen: PenLine,
+    spark: Sparkles,
+    check: CheckCircle2,
+    timer: Timer,
+    palette: Palette
+  };
+  return map[value] || CalendarDays;
+}
+
 function createStyles(theme: AppTheme) {
   const { colors, radii, spacing } = theme;
 
@@ -459,10 +544,12 @@ function createStyles(theme: AppTheme) {
       gap: spacing.sm
     },
     logoImage: {
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.24)" : "rgba(255,255,255,0.92)",
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.38 : 0.2,
-      shadowRadius: 16,
-      shadowOffset: { width: 0, height: 9 }
+      shadowOpacity: theme.isDark ? 0.42 : 0.24,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 }
     },
     logoCopy: {
       gap: 1
@@ -477,7 +564,8 @@ function createStyles(theme: AppTheme) {
       color: colors.muted,
       fontSize: 12,
       lineHeight: 16,
-      fontWeight: "800"
+      fontWeight: "900",
+      letterSpacing: 0
     },
     emojiBadge: {
       minHeight: 34,
@@ -517,20 +605,20 @@ function createStyles(theme: AppTheme) {
     glassCard: {
       borderRadius: radii.xl,
       borderWidth: 1,
-      borderColor: colors.line,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.12)" : "rgba(119,107,255,0.12)",
       padding: spacing.lg,
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.24 : 0.1,
-      shadowRadius: 24,
-      shadowOffset: { width: 0, height: 14 },
-      elevation: 5
+      shadowOpacity: theme.isDark ? 0.34 : 0.14,
+      shadowRadius: 28,
+      shadowOffset: { width: 0, height: 16 },
+      elevation: 7
     },
     plainGlassCard: {
-      backgroundColor: colors.surface
+      backgroundColor: theme.isDark ? "rgba(18,18,31,0.92)" : "rgba(255,255,255,0.92)"
     },
     heroGlassCard: {
       backgroundColor: colors.heroSurface,
-      borderColor: theme.isDark ? "#312C59" : "#766CFF"
+      borderColor: theme.isDark ? "#3B3270" : "#8075FF"
     },
     softGlassCard: {
       backgroundColor: colors.surfaceTint
@@ -545,7 +633,12 @@ function createStyles(theme: AppTheme) {
       borderRadius: radii.lg,
       padding: spacing.md,
       borderWidth: 1,
-      justifyContent: "center"
+      justifyContent: "center",
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.18 : 0.07,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 7 },
+      elevation: 2
     },
     plainStatPill: {
       backgroundColor: colors.surface,
@@ -733,6 +826,10 @@ function createStyles(theme: AppTheme) {
       width: 252,
       minHeight: 126
     },
+    widgetLarge: {
+      width: 292,
+      minHeight: 164
+    },
     widgetSolid: {
       backgroundColor: colors.surface
     },
@@ -784,8 +881,95 @@ function createStyles(theme: AppTheme) {
       lineHeight: 18,
       fontWeight: "800"
     },
+    widgetMainRow: {
+      marginTop: spacing.xs,
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: spacing.sm
+    },
+    widgetCopy: {
+      flex: 1,
+      minWidth: 0
+    },
+    widgetIconOrb: {
+      width: 34,
+      height: 34,
+      borderRadius: 13,
+      alignItems: "center",
+      justifyContent: "center",
+      opacity: 0.95
+    },
+    widgetMono: {
+      fontVariant: ["tabular-nums"]
+    },
+    widgetRounded: {
+      letterSpacing: 0
+    },
     widgetTextDark: {
       color: "#FFFFFF"
+    },
+    widgetMiniList: {
+      marginTop: spacing.xs,
+      gap: 4
+    },
+    widgetMiniRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5
+    },
+    widgetMiniDot: {
+      width: 5,
+      height: 5,
+      borderRadius: 3
+    },
+    widgetMiniText: {
+      flex: 1,
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "800"
+    },
+    widgetRing: {
+      marginTop: spacing.xs,
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      borderWidth: 5,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    widgetRingText: {
+      color: colors.ink,
+      fontSize: 16,
+      fontWeight: "900"
+    },
+    widgetBars: {
+      marginTop: spacing.xs,
+      height: 54,
+      flexDirection: "row",
+      alignItems: "flex-end",
+      gap: 5
+    },
+    widgetBarWrap: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "flex-end"
+    },
+    widgetBar: {
+      width: "78%",
+      borderRadius: 5,
+      opacity: 0.92
+    },
+    widgetGridDots: {
+      marginTop: spacing.xs,
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 5
+    },
+    widgetGridDot: {
+      width: 20,
+      height: 20,
+      borderRadius: 7
     },
     widgetCourseRow: {
       marginTop: "auto",

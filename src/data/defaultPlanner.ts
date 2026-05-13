@@ -412,6 +412,71 @@ export const defaultWidgetPresets: WidgetPreset[] = [
     iconKey: "flask",
     createdAt: now,
     updatedAt: now
+  },
+  {
+    id: "preset-needs-check",
+    name: "Needs Check",
+    type: "needs_check",
+    size: "small",
+    background: "gradient",
+    palette: "candy",
+    font: "Rounded",
+    layout: "list",
+    iconKey: "check",
+    createdAt: now,
+    updatedAt: now
+  },
+  {
+    id: "preset-week",
+    name: "Week",
+    type: "week",
+    size: "medium",
+    background: "glass",
+    palette: "lavender",
+    font: "SF Pro",
+    layout: "calendar",
+    iconKey: "calendar",
+    createdAt: now,
+    updatedAt: now
+  },
+  {
+    id: "preset-focus",
+    name: "Focus",
+    type: "focus",
+    size: "small",
+    background: "dark",
+    palette: "midnight",
+    font: "Mono",
+    layout: "ring",
+    iconKey: "timer",
+    createdAt: now,
+    updatedAt: now
+  },
+  {
+    id: "preset-streak",
+    name: "Streak",
+    type: "streak",
+    size: "small",
+    background: "solid",
+    palette: "forest",
+    font: "Rounded",
+    layout: "ring",
+    iconKey: "spark",
+    createdAt: now,
+    updatedAt: now
+  },
+  {
+    id: "preset-empty",
+    name: "Empty State",
+    type: "empty",
+    size: "small",
+    background: "glass",
+    palette: "minimal",
+    font: "SF Pro",
+    layout: "compact",
+    iconKey: "check",
+    createdAt: now,
+    updatedAt: now
   }
 ];
 

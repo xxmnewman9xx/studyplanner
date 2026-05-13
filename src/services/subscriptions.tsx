@@ -432,7 +432,7 @@ function mapStoreProduct(product: Product | ProductSubscription): PaywallProduct
 }
 
 function cleanupProductTitle(title: string) {
-  return title.replace(/\s*\([^)]*\)\s*$/, "").trim() || "Study Planner Plus";
+  return title.replace(/\s*\([^)]*\)\s*$/, "").trim() || "StudyPlanner Plus";
 }
 
 function defaultProductDescription(kind: ProductKind) {

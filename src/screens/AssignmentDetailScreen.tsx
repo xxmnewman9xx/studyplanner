@@ -76,6 +76,15 @@ export function AssignmentDetailScreen({
   );
 
   const save = (override?: Partial<Assignment>) => {
+    const nextChecklist = override?.checklist || checklist;
+    const nextStatus = override?.status || status;
+    const nextProgress = override?.progress ?? (
+      nextStatus === "done"
+        ? 1
+        : nextChecklist.length > 0
+          ? nextChecklist.filter((item) => item.done).length / nextChecklist.length
+          : progress
+    );
     onSave({
       title: title.trim() || assignment.title,
       dueAt: `${dueDate || assignment.dueAt.slice(0, 10)}T${dueTime || "23:59"}:00`,
@@ -85,12 +94,12 @@ export function AssignmentDetailScreen({
         .map((tag) => tag.trim())
         .filter(Boolean),
       priority,
-      status,
+      status: nextStatus,
       kind,
       type: kind,
       courseId,
-      checklist,
-      progress,
+      checklist: nextChecklist,
+      progress: nextProgress,
       ...override
     });
   };
@@ -139,8 +148,10 @@ export function AssignmentDetailScreen({
             icon={CheckCircle2}
             variant="secondary"
             onPress={() => {
+              const completedChecklist = checklist.map((item) => ({ ...item, done: true }));
               setStatus("done");
-              save({ status: "done", progress: 1 });
+              setChecklist(completedChecklist);
+              save({ status: "done", progress: 1, checklist: completedChecklist });
             }}
             style={styles.heroButton}
           />

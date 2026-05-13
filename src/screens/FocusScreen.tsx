@@ -42,6 +42,7 @@ export function FocusScreen({
   const [secondsLeft, setSecondsLeft] = useState(defaultMinutes * 60);
   const [running, setRunning] = useState(false);
   const [startedAt, setStartedAt] = useState<string | null>(null);
+  const [pauseRecorded, setPauseRecorded] = useState(false);
   const selected = focusableAssignments.find((assignment) => assignment.id === selectedId);
   const selectedCourse = selected ? getCourseForAssignment(courses, selected) : undefined;
   const sessionNumber = sessions.length + 1;
@@ -62,7 +63,7 @@ export function FocusScreen({
       setSecondsLeft((current) => {
         if (current <= 1) {
           setRunning(false);
-          record("completed");
+          record("completed", defaultMinutes);
           return 0;
         }
         return current - 1;
@@ -74,24 +75,39 @@ export function FocusScreen({
 
   const startPause = () => {
     if (!selected) return;
-    if (!startedAt) setStartedAt(new Date().toISOString());
-    setRunning((current) => !current);
+    if (!startedAt) {
+      setStartedAt(new Date().toISOString());
+      setPauseRecorded(false);
+      setRunning(true);
+      return;
+    }
+    if (running) {
+      record("paused");
+      setPauseRecorded(true);
+      setRunning(false);
+      return;
+    }
+    setPauseRecorded(false);
+    setRunning(true);
   };
 
   const stop = () => {
+    const hadStarted = Boolean(startedRef.current);
     setRunning(false);
-    record("stopped");
+    if (hadStarted) record("stopped");
     setSecondsLeft(defaultMinutes * 60);
     setStartedAt(null);
+    setPauseRecorded(false);
   };
 
   const complete = () => {
     if (!selected) return;
     setRunning(false);
-    record("completed");
+    record("completed", startedRef.current ? undefined : defaultMinutes);
     onMarkComplete?.(selected.id);
     setSecondsLeft(defaultMinutes * 60);
     setStartedAt(null);
+    setPauseRecorded(false);
   };
 
   const elapsedMinutes = Math.max(0, defaultMinutes - Math.ceil(secondsLeft / 60));
@@ -144,6 +160,7 @@ export function FocusScreen({
                 setSelectedId(assignment.id);
                 setRunning(false);
                 setStartedAt(null);
+                setPauseRecorded(false);
               }}
             >
               <View style={[styles.classDot, { backgroundColor: getCourseForAssignment(courses, assignment)?.color || colors.accent }]} />
@@ -174,7 +191,11 @@ export function FocusScreen({
           label={`${elapsedMinutes} min logged`}
           variant="secondary"
           onPress={() => {
-            if (selected) record("paused");
+            if (selected && startedRef.current && !pauseRecorded) {
+              record("paused");
+              setPauseRecorded(true);
+              setRunning(false);
+            }
           }}
           style={styles.bottomButton}
         />
@@ -182,12 +203,16 @@ export function FocusScreen({
     </View>
   );
 
-  function record(status: FocusSession["status"]) {
+  function record(status: FocusSession["status"], durationOverride?: number) {
     if (!selected) return;
+    if (!startedRef.current && status !== "completed") return;
+    const durationMinutes =
+      durationOverride ??
+      (status === "completed" && secondsLeft === 0 ? defaultMinutes : elapsedMinutes);
     onRecordSession({
       id: `focus-${Date.now()}`,
       assignmentId: selected.id,
-      durationMinutes: Math.max(1, elapsedMinutes || defaultMinutes),
+      durationMinutes: Math.max(1, durationMinutes),
       startedAt: startedRef.current || new Date().toISOString(),
       endedAt: new Date().toISOString(),
       status,

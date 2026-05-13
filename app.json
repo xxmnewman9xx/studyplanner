@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Study Planner: Syllabus AI",
+    "name": "StudyPlanner: Syllabus AI",
     "slug": "study-planner-syllabus-ai",
     "version": "1.0.0",
     "orientation": "default",
@@ -8,7 +8,9 @@
     "icon": "./assets/app/study-planner-icon.png",
     "scheme": "studyplanner",
     "splash": {
-      "backgroundColor": "#F5F7FB"
+      "image": "./assets/app/study-planner-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F8F6FF"
     },
     "ios": {
       "supportsTablet": true,
@@ -17,7 +19,7 @@
       "buildNumber": "10",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSCameraUsageDescription": "Scan syllabus pages so Study Planner can help create your course plan.",
+        "NSCameraUsageDescription": "Scan syllabus pages so StudyPlanner can help create your course plan.",
         "NSPhotoLibraryUsageDescription": "Choose syllabus screenshots or photos to import into your plan.",
         "NSCalendarsFullAccessUsageDescription": "Sync assignment and exam dates to your calendar.",
         "NSUserNotificationsUsageDescription": "Send calm reminders before deadlines, exams, and classes."
@@ -25,6 +27,10 @@
     },
     "android": {
       "package": "com.studyplanner.syllabusai",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/app/study-planner-icon.png",
+        "backgroundColor": "#F8F6FF"
+      },
       "permissions": [
         "CAMERA",
         "READ_CALENDAR",

@@ -21,6 +21,7 @@ import {
 import { SectionHeader } from "../components/SectionHeader";
 import {
   AssignmentKind,
+  Course,
   ParsedImport,
   ParsedItem,
   Priority,
@@ -163,7 +164,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
         <Text style={styles.dropCopy}>Your plan changes only after review.</Text>
         <View style={styles.scanActions}>
           <AppButton label="Scan Document" icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
-          <AppButton label="Upload File" icon={Upload} variant="secondary" onPress={imageParsingReady ? pickPhoto : pickPdf} />
+          <AppButton label="Upload File" icon={Upload} variant="secondary" onPress={pickPdf} />
           <AppButton label="Type It In" icon={Keyboard} variant="secondary" onPress={typeItIn} />
         </View>
         <TextInput
@@ -199,7 +200,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
             key={item.id}
             style={styles.recentRow}
             onPress={() => {
-              if (!draft && parsedItems.length > 0) setDraft(marketingCaptureParseResult);
+              setDraft(buildDraftFromRecentImport(item, parsedItems));
             }}
           >
             <View style={styles.recentIcon}>
@@ -208,6 +209,9 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
             <View style={styles.recentCopy}>
               <Text style={styles.recentTitle}>{item.title}</Text>
               <Text style={styles.recentMeta}>{item.itemCount} found · {labelize(item.status)}</Text>
+              {imageParsingReady ? null : (
+                <Text style={styles.recentSubtle}>Photo parsing needs the configured AI endpoint; files and typed text work on device.</Text>
+              )}
             </View>
             <Badge label={labelize(item.sourceType)} tone={item.status === "ready" ? "blue" : "green"} />
           </TouchableOpacity>
@@ -354,6 +358,124 @@ function summarizeDraft(draft: SyllabusParseResult) {
   };
 }
 
+function buildDraftFromRecentImport(
+  parsedImport: ParsedImport,
+  parsedItems: ParsedItem[]
+): SyllabusParseResult {
+  const items = parsedItems.filter(
+    (item) =>
+      item.parsedImportId === parsedImport.id &&
+      item.reviewStatus !== "dismissed" &&
+      item.reviewStatus !== "accepted" &&
+      !item.acceptedAt
+  );
+  const courseNames = Array.from(new Set(items.map((item) => item.courseName || "Study Hall")));
+  const courses: Course[] = courseNames.map((name, index) => {
+    const id = courseIdForName(name);
+    return {
+      id,
+      code: initialsForCourse(name),
+      name,
+      instructor: "Teacher",
+      teacher: "Teacher",
+      period: `Period ${index + 1}`,
+      room: "Room TBD",
+      color: courseColors[index % courseColors.length] || "#6D5CFF",
+      iconKey: "book",
+      emojiKey: index % 2 === 0 ? "study" : "science",
+      semester: "Spring 2026",
+      createdAt: parsedImport.createdAt,
+      updatedAt: parsedImport.updatedAt,
+      meetings: [],
+      gradeCategories: [
+        { id: `${id}-work`, name: "Coursework", weight: 50 },
+        { id: `${id}-tests`, name: "Tests", weight: 30 },
+        { id: `${id}-participation`, name: "Participation", weight: 20 }
+      ]
+    };
+  });
+  const fallbackDate = new Date(parsedImport.createdAt || Date.now());
+  fallbackDate.setDate(fallbackDate.getDate() + 2);
+  const fallbackDueAt = `${fallbackDate.toISOString().slice(0, 10)}T23:59:00`;
+  if (items.length === 0) {
+    return {
+      sourceName: parsedImport.title,
+      courses,
+      gradeItems: [],
+      assignments: [],
+      findings: [
+        {
+          id: `${parsedImport.id}-empty`,
+          severity: "info",
+          message: "Everything from this import has already been handled."
+        }
+      ]
+    };
+  }
+
+  return {
+    sourceName: parsedImport.title,
+    courses,
+    gradeItems: [],
+    assignments: items.map((item) => ({
+      id: `review-${item.id}`,
+      courseId: courseIdForName(item.courseName || "Study Hall"),
+      title: item.title,
+      kind: item.type,
+      type: item.type,
+      dueAt: item.dueAt || fallbackDueAt,
+      tags: ["imported", item.type],
+      priority: item.needsReview ? "high" : "medium",
+      estimatedMinutes: item.type === "exam" ? 120 : item.type === "reading" ? 35 : 55,
+      status: "not_started",
+      source: parsedImport.sourceType === "typed" ? "typed" : "scan",
+      sourceId: parsedImport.id,
+      progress: 0,
+      checklist: [
+        { id: `review-${item.id}-1`, title: "Review instructions", done: false },
+        { id: `review-${item.id}-2`, title: "Block study time", done: false }
+      ],
+      reminder: { enabled: true, leadTimeHours: item.type === "exam" ? 72 : 24 },
+      needsReview: item.needsReview || !item.dueAt,
+      duplicateOf: item.duplicateCandidateId,
+      confidence: item.confidence,
+      createdAt: parsedImport.createdAt,
+      updatedAt: parsedImport.updatedAt || new Date().toISOString()
+    })),
+    findings: [
+      {
+        id: `${parsedImport.id}-source`,
+        severity: "info",
+        message: `${items.length} parsed items from ${parsedImport.title}`
+      },
+      ...items
+        .filter((item) => item.needsReview || item.duplicateCandidateId || !item.dueAt)
+        .slice(0, 3)
+        .map((item, index) => ({
+          id: `${item.id}-finding-${index}`,
+          severity: "needs_review" as const,
+          message: item.duplicateCandidateId
+            ? `${item.title} may already be in your planner`
+            : !item.dueAt
+              ? `${item.title} needs a due date`
+              : `${item.title} needs review`
+        }))
+    ]
+  };
+}
+
+const courseColors = ["#6D5CFF", "#FF4FA8", "#2F80ED", "#20A66B", "#F97316", "#8B5CF6"];
+
+function courseIdForName(name: string) {
+  return `parsed-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "course"}`;
+}
+
+function initialsForCourse(name: string) {
+  const words = name.split(/\s+/).filter(Boolean);
+  const letters = words.length > 1 ? words.slice(0, 2).map((word) => word[0]).join("") : name.slice(0, 3);
+  return letters.toUpperCase();
+}
+
 function labelize(value: string) {
   return value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
@@ -382,14 +504,15 @@ function createStyles(theme: AppTheme) {
       ...typography.body
     },
     scanHero: {
-      marginTop: spacing.lg,
+      marginTop: spacing.md,
       alignItems: "center",
-      gap: spacing.sm
+      gap: spacing.xs,
+      padding: spacing.md
     },
     dropIcon: {
-      width: 78,
-      height: 78,
-      borderRadius: 24,
+      width: 62,
+      height: 62,
+      borderRadius: 20,
       backgroundColor: colors.accent,
       alignItems: "center",
       justifyContent: "center"
@@ -410,14 +533,14 @@ function createStyles(theme: AppTheme) {
     scanActions: {
       alignSelf: "stretch",
       gap: spacing.sm,
-      marginTop: spacing.sm
+      marginTop: spacing.xs
     },
     scanActionPrimary: {
       backgroundColor: colors.brandPink
     },
     typeBox: {
       alignSelf: "stretch",
-      minHeight: 92,
+      minHeight: 72,
       borderRadius: radii.lg,
       borderWidth: 1,
       borderColor: colors.line,
@@ -507,6 +630,12 @@ function createStyles(theme: AppTheme) {
       color: colors.muted,
       fontSize: 12,
       lineHeight: 16,
+      fontWeight: "800"
+    },
+    recentSubtle: {
+      color: colors.faint,
+      fontSize: 10,
+      lineHeight: 14,
       fontWeight: "800"
     },
     resultCard: {

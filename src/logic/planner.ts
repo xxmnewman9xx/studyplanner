@@ -1,8 +1,12 @@
 import {
   Assignment,
   Course,
+  FocusSession,
   ParsedItem,
   Semester,
+  UserSettings,
+  WidgetBackground,
+  WidgetPalette,
   WidgetPreset,
   WidgetType
 } from "../models";
@@ -56,6 +60,8 @@ export type WidgetData = {
   detail: string;
   items: Assignment[];
   course?: Course;
+  accent?: string;
+  weekLoad?: DailyLoad[];
 };
 
 export function buildTodayPlan(
@@ -158,7 +164,7 @@ export function getCourseForAssignment(courses: Course[], assignment: Assignment
 
 export function getCalendarEventsByDay(assignments: Assignment[], courses: Course[]) {
   return assignments
-    .filter((assignment) => assignment.status !== "archived")
+    .filter((assignment) => assignment.status !== "archived" && assignment.status !== "done")
     .reduce<Record<string, CalendarEvent[]>>((events, assignment) => {
       const dateKey = dateKeyFromIso(assignment.dueAt);
       const event: CalendarEvent = {
@@ -182,7 +188,9 @@ export function getWeekLoad(assignments: Assignment[], now = new Date()) {
     const dateKey = dateKeyFromDate(date);
     const items = assignments.filter(
       (assignment) =>
-        assignment.status !== "archived" && dateKeyFromIso(assignment.dueAt) === dateKey
+        assignment.status !== "archived" &&
+        assignment.status !== "done" &&
+        dateKeyFromIso(assignment.dueAt) === dateKey
     );
     const score = items.reduce((sum, item) => {
       const priority = item.priority === "high" ? 2 : item.priority === "medium" ? 1.2 : 0.8;
@@ -291,15 +299,17 @@ export function getWidgetData(
     week: {
       headline: "Week",
       value: String(getWeekLoad(assignments, now).reduce((sum, day) => sum + day.items.length, 0)),
-      detail: "items to do",
-      items: dueSoon
+      detail: getBusyWeekInsight(assignments, now).heavyDays.length > 0 ? "busy week" : "balanced",
+      items: dueSoon,
+      weekLoad: getWeekLoad(assignments, now)
     },
     class_focus: {
       headline: "Class Focus",
       value: course?.code || "Class",
       detail: `${classItems.filter((item) => item.status !== "done").length} open`,
       items: classItems,
-      course
+      course,
+      accent: course?.color
     },
     empty: {
       headline: "All Done",
@@ -353,10 +363,104 @@ export function convertParsedItemsToAssignments(
         duplicateOf: item.duplicateCandidateId,
         confidence: item.confidence,
         progress: 0,
+        checklist: buildParsedChecklist(item.type, item.needsReview),
+        reminder: { enabled: Boolean(item.dueAt), leadTimeHours: item.type === "exam" ? 24 : 2 },
         createdAt: now.toISOString(),
         updatedAt: now.toISOString()
       } satisfies Assignment;
     });
+}
+
+export function saveWidgetPreset(
+  presets: WidgetPreset[],
+  preset: WidgetPreset,
+  now = new Date()
+) {
+  const timestamp = now.toISOString();
+  const nextPreset: WidgetPreset = {
+    ...preset,
+    createdAt: preset.createdAt || timestamp,
+    updatedAt: timestamp
+  };
+
+  return [nextPreset, ...presets.filter((item) => item.id !== nextPreset.id)];
+}
+
+export function applyTheme(
+  settings: UserSettings,
+  selectedTheme: UserSettings["selectedTheme"],
+  defaultWidgetStyle?: WidgetBackground
+) {
+  return {
+    ...settings,
+    selectedTheme,
+    defaultWidgetStyle: defaultWidgetStyle || settings.defaultWidgetStyle
+  };
+}
+
+export function startFocusSession(
+  assignmentId: string,
+  durationMinutes: number,
+  sessions: FocusSession[],
+  now = new Date()
+): FocusSession {
+  const previousForAssignment = sessions.filter((session) => session.assignmentId === assignmentId);
+
+  return {
+    id: `focus-${now.getTime()}`,
+    assignmentId,
+    durationMinutes,
+    startedAt: now.toISOString(),
+    status: "running",
+    sessionNumber: previousForAssignment.length + 1,
+    notes: "Focus session started."
+  };
+}
+
+export function pauseFocusSession(session: FocusSession, now = new Date()): FocusSession {
+  return {
+    ...session,
+    endedAt: now.toISOString(),
+    status: "paused",
+    notes: session.notes || "Focus session paused."
+  };
+}
+
+export function completeFocusSession(
+  session: FocusSession,
+  status: Extract<FocusSession["status"], "completed" | "stopped"> = "completed",
+  now = new Date()
+): FocusSession {
+  return {
+    ...session,
+    endedAt: now.toISOString(),
+    status,
+    notes: status === "completed" ? "Focus block completed." : "Focus block stopped."
+  };
+}
+
+export function completeAssignment(
+  assignments: Assignment[],
+  assignmentId: string,
+  now = new Date()
+) {
+  return assignments.map((assignment) =>
+    assignment.id === assignmentId
+      ? {
+          ...assignment,
+          status: "done" as const,
+          progress: 1,
+          checklist: assignment.checklist?.map((item) => ({ ...item, done: true })),
+          updatedAt: now.toISOString()
+        }
+      : assignment
+  );
+}
+
+export function calculateChecklistProgress(assignment: Assignment) {
+  if (!assignment.checklist?.length) return assignment.progress || 0;
+  const done = assignment.checklist.filter((item) => item.done).length;
+  return done / assignment.checklist.length;
 }
 
 export function calculateSemesterProgress(semester: Semester, now = new Date()) {
@@ -420,6 +524,26 @@ function timeUntilLabel(iso: string, now: Date) {
   if (days <= 0) return "Today";
   if (days === 1) return "Tomorrow";
   return `${days} days`;
+}
+
+function buildParsedChecklist(kind: ParsedItem["type"], needsReview: boolean) {
+  const reviewItem = needsReview ? [{ id: "review", title: "Confirm date and class", done: false }] : [];
+  const byKind = {
+    assignment: ["Read directions", "Finish work", "Turn in"],
+    worksheet: ["Complete problems", "Check answers", "Submit"],
+    reading: ["Read pages", "Take notes", "Flag questions"],
+    project: ["Outline", "Build draft", "Final pass"],
+    exam: ["Review guide", "Practice problems", "Pack materials"]
+  } satisfies Record<ParsedItem["type"], string[]>;
+
+  return [
+    ...reviewItem,
+    ...byKind[kind].map((title, index) => ({
+      id: `${kind}-${index + 1}`,
+      title,
+      done: false
+    }))
+  ];
 }
 
 function parseDateOnlyAsLocal(value: string) {

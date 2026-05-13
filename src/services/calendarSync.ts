@@ -2,7 +2,7 @@ import * as Calendar from "expo-calendar";
 import { Assignment, Course } from "../models";
 import { getCourseForAssignment } from "../logic/planner";
 
-const plannerCalendarTitle = "Study Planner";
+const plannerCalendarTitle = "StudyPlanner";
 
 export async function syncAssignmentsToDeviceCalendar(
   assignments: Assignment[],
@@ -27,7 +27,7 @@ export async function syncAssignmentsToDeviceCalendar(
 
     const eventId = await Calendar.createEventAsync(calendarId, {
       title: `${course?.code || "Class"}: ${assignment.title}`,
-      notes: `Created by Study Planner. Priority: ${assignment.priority}.`,
+      notes: `Created by StudyPlanner. Priority: ${assignment.priority}.`,
       startDate,
       endDate,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone

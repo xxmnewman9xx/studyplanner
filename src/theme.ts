@@ -1,9 +1,9 @@
 export const lightColors = {
-  canvas: "#F7F6FB",
-  canvasTint: "#F1ECFF",
+  canvas: "#F8F6FF",
+  canvasTint: "#F3EDFF",
   surface: "#FFFFFF",
-  surfaceAlt: "#F1F3FA",
-  surfaceTint: "#FFF4F8",
+  surfaceAlt: "#F4F2FB",
+  surfaceTint: "#FFF0F7",
   ink: "#101326",
   muted: "#606478",
   faint: "#989CAF",
@@ -18,17 +18,17 @@ export const lightColors = {
   red: "#FF4D5D",
   green: "#10B981",
   lavender: "#EEE8FF",
-  accent: "#6C5CE7",
-  accentSoft: "#EAE6FF",
-  brandPink: "#FF4FA3",
-  brandViolet: "#8B5CF6",
-  brandIndigo: "#4F46E5",
+  accent: "#7668F8",
+  accentSoft: "#EFEBFF",
+  brandPink: "#FF4FA8",
+  brandViolet: "#855CFF",
+  brandIndigo: "#3F6BFF",
   brandOrange: "#FF9F1C",
   elevated: "#FFFFFF",
-  heroSurface: "#5B4DFF",
+  heroSurface: "#6B5CF6",
   heroText: "#F8FAFC",
   heroMuted: "#EDEBFF",
-  shadow: "#342061"
+  shadow: "#4B2E83"
 };
 
 export const darkColors = {
@@ -58,7 +58,7 @@ export const darkColors = {
   brandIndigo: "#818CF8",
   brandOrange: "#FDBA2D",
   elevated: "#151D2A",
-  heroSurface: "#111024",
+  heroSurface: "#15113A",
   heroText: "#FFFFFF",
   heroMuted: "#CFC9FF",
   shadow: "#000000"
@@ -112,19 +112,19 @@ export function createTypography(themeColors: ColorTokens) {
     hero: {
       fontSize: 36,
       lineHeight: 42,
-      fontWeight: "900" as const,
+      fontWeight: "800" as const,
       color: themeColors.ink
     },
     title: {
       fontSize: 30,
       lineHeight: 36,
-      fontWeight: "900" as const,
+      fontWeight: "800" as const,
       color: themeColors.ink
     },
     h2: {
       fontSize: 21,
       lineHeight: 27,
-      fontWeight: "900" as const,
+      fontWeight: "800" as const,
       color: themeColors.ink
     },
     body: {
