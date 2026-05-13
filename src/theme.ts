@@ -405,7 +405,7 @@ export const themePalettes: ThemePalette[] = [
   }
 ];
 
-export const defaultThemePaletteId: ThemePaletteId = "oceanBlue";
+export const defaultThemePaletteId: ThemePaletteId = "violetGlow";
 
 export type WidgetStylePresetId =
   | "darkGlass"
@@ -508,6 +508,16 @@ export function createWidgetStyleSnapshot(paletteId?: string, styleId?: string) 
   const palette = resolveThemePalette(paletteId);
   const style = styleId ? resolveWidgetStylePreset(styleId) : null;
   const background = style?.background || palette.widgetDark;
+  const accent = readableAccentOnBackground(
+    [palette.widgetAccent, palette.accent, palette.secondary, style?.accent],
+    background,
+    style?.accent || "#B7A7FF"
+  );
+  const secondary = readableAccentOnBackground(
+    [palette.secondary, palette.widgetAccent, style?.secondary],
+    background,
+    style?.secondary || "#3B82F6"
+  );
 
   return {
     paletteId: palette.id,
@@ -517,9 +527,59 @@ export function createWidgetStyleSnapshot(paletteId?: string, styleId?: string) 
     background,
     text: style?.text || "#F8FAFC",
     muted: style?.muted || "#BCC7D8",
-    accent: palette.widgetAccent || style?.accent || "#B7A7FF",
-    secondary: palette.secondary || style?.secondary || "#3B82F6"
+    accent,
+    secondary
   };
+}
+
+export function contrastRatio(foreground: string, background: string) {
+  const foregroundLuminance = relativeLuminance(foreground);
+  const backgroundLuminance = relativeLuminance(background);
+  const lighter = Math.max(foregroundLuminance, backgroundLuminance);
+  const darker = Math.min(foregroundLuminance, backgroundLuminance);
+
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+export function isReadableColor(foreground: string, background: string, ratio = 4.5) {
+  return contrastRatio(foreground, background) >= ratio;
+}
+
+export function readableColorOnBackground(
+  background: string,
+  light = "#F8FAFC",
+  dark = "#111827"
+) {
+  return isReadableColor(light, background) ? light : dark;
+}
+
+export function readableAccentOnBackground(
+  candidates: Array<string | undefined>,
+  background: string,
+  fallback: string,
+  ratio = 3
+) {
+  return candidates.find((candidate) => candidate && isReadableColor(candidate, background, ratio)) || fallback;
+}
+
+function relativeLuminance(hex: string) {
+  const channels = rgbFromHex(hex).map((channel) =>
+    channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4)
+  ) as [number, number, number];
+  const [red, green, blue] = channels;
+
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+}
+
+function rgbFromHex(hex: string): [number, number, number] {
+  const value = hex.replace("#", "");
+  if (value.length !== 6) return [0, 0, 0];
+
+  return [0, 2, 4].map((offset) => Number.parseInt(value.slice(offset, offset + 2), 16) / 255) as [
+    number,
+    number,
+    number
+  ];
 }
 
 export function createTypography(themeColors: ColorTokens) {

@@ -41,6 +41,12 @@ export async function syncAssignmentsToDeviceCalendar(
   };
 }
 
+export async function deleteSyncedAssignmentEvent(eventId: string | undefined) {
+  if (!eventId) return false;
+  await Calendar.deleteEventAsync(eventId);
+  return true;
+}
+
 async function getOrCreatePlannerCalendar() {
   const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
   const existing = calendars.find((calendar) => calendar.title === plannerCalendarTitle);

@@ -59,7 +59,7 @@ test("core action screens expose labels and bounded text scaling", () => {
 
   assert.ok(widgetShowcase.includes("Use ${sizeLabel(size)} widget size"));
   assert.ok(widgetShowcase.includes("Show ${focus.label} on widget"));
-  assert.ok(widgetShowcase.includes("Use ${style.name} widget style"));
+  assert.ok(widgetShowcase.includes("Use ${preset.name} widget style"));
   assert.ok(widgetShowcase.includes("Live widget preview. ${selectedFocus.label}"));
   assert.ok(widgetShowcase.includes("maxFontSizeMultiplier={bodyTextScale}"));
 

@@ -18,6 +18,7 @@ export type WidgetSnapshotInput = {
   assignments: Assignment[];
   paletteId?: string;
   widgetStyleId?: string;
+  reviewQueueCount?: number;
   demoState?: WidgetSnapshot["demoState"];
 };
 
@@ -35,9 +36,11 @@ export function buildWidgetSnapshot(
   );
   const overdueCount = openAssignments.filter((assignment) => daysUntil(assignment.dueAt, now) < 0)
     .length;
-  const reviewQueueCount = input.assignments.filter(
-    (assignment) => assignment.reviewStatus === "needsReview" && !isAssignmentArchived(assignment)
-  ).length;
+  const reviewQueueCount =
+    input.reviewQueueCount ??
+    input.assignments.filter(
+      (assignment) => assignment.reviewStatus === "needsReview" && !isAssignmentArchived(assignment)
+    ).length;
   const nextDue = openAssignments[0]
     ? toWidgetItem(openAssignments[0], input.courses, now)
     : undefined;

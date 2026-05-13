@@ -40,6 +40,7 @@ type TodayScreenProps = {
   assignments: Assignment[];
   courses: Course[];
   semester: Semester;
+  needsReviewCount?: number;
   onUpdateStatus: (assignmentId: string, status: "not_started" | "in_progress" | "done") => void;
   onToggleDone: (assignmentId: string) => void;
   onOpenAssignment: (assignmentId: string) => void;
@@ -59,6 +60,7 @@ export function TodayScreen({
   assignments,
   courses,
   semester,
+  needsReviewCount,
   onUpdateStatus,
   onToggleDone,
   onOpenAssignment,
@@ -87,6 +89,7 @@ export function TodayScreen({
         assignments,
         paletteId: theme.palette.id,
         widgetStyleId,
+        reviewQueueCount: needsReviewCount,
         demoState: captureMode ? { enabled: true, label: "Preview" } : undefined
       },
       now
@@ -109,9 +112,9 @@ export function TodayScreen({
     () => buildSemesterInsights(assignments, courses, now),
     [assignments, courses, now]
   );
-  const needsCheckCount = assignments.filter(
-    (assignment) => assignment.reviewStatus === "needsReview"
-  ).length;
+  const needsCheckCount =
+    needsReviewCount ??
+    assignments.filter((assignment) => assignment.reviewStatus === "needsReview").length;
   const todayItems = plan.dueToday.slice(0, captureMode ? 2 : 4);
   const upcomingItems = plan.upcoming
     .filter((assignment) => assignment.id !== heroAssignment?.id)
@@ -142,7 +145,7 @@ export function TodayScreen({
         right={
           captureMode ? null : (
             <View style={styles.headerActions}>
-              <CircleAction label="Add" onPress={onOpenImport}>
+              <CircleAction label="Scan" onPress={onOpenImport}>
                 <FileScan color={colors.brandPurple} size={17} />
               </CircleAction>
               <CircleAction label="Remind" onPress={() => automationPress("reminders")}>
@@ -223,9 +226,9 @@ export function TodayScreen({
 
       {needsCheckCount > 0 ? (
         <WarningCard
-          title="Check new work"
+          title="Found Work"
           message={`${needsCheckCount} found item${needsCheckCount === 1 ? "" : "s"} need your check before they show as due dates.`}
-          actionLabel="Check Work"
+          actionLabel="Review"
           onPress={onOpenImport}
         />
       ) : null}

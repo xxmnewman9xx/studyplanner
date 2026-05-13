@@ -34,6 +34,8 @@ type WidgetShowcaseScreenProps = {
   semester: Semester;
   courses: Course[];
   assignments: Assignment[];
+  reviewQueueCount?: number;
+  captureWidgetPreview?: WidgetSizePreference | null;
   preferences: WidgetPreferences;
   onPreferencesChange: (preferences: WidgetPreferences) => void;
   captureState?: string | null;
@@ -54,6 +56,8 @@ export function WidgetShowcaseScreen({
   semester,
   courses,
   assignments,
+  reviewQueueCount,
+  captureWidgetPreview,
   preferences,
   onPreferencesChange,
   captureState
@@ -64,8 +68,8 @@ export function WidgetShowcaseScreen({
   const captureMode = isStoreCaptureEnabled();
   const [showPlans, setShowPlans] = useState(false);
   const widgetStyleId = preferences.styleId;
-  const widgetSize = preferences.size;
-  const widgetFocus = preferences.focus;
+  const widgetSize = captureWidgetPreview || preferences.size;
+  const widgetFocus = captureWidgetPreview === "small" ? "nextDue" : captureWidgetPreview === "medium" ? "thisWeek" : preferences.focus;
   const safeWidgetFocus = widgetFocusOptions.some((option) => option.id === widgetFocus)
     ? widgetFocus
     : "thisWeek";
@@ -77,6 +81,7 @@ export function WidgetShowcaseScreen({
       assignments,
       paletteId,
       widgetStyleId,
+      reviewQueueCount,
       demoState: captureMode ? { enabled: true, label: "Preview" } : undefined
     },
     captureMode ? storeCaptureNow : new Date()
@@ -139,7 +144,7 @@ export function WidgetShowcaseScreen({
         </View>
 
         <View style={styles.controlGroup}>
-          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.controlLabel}>Size</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.controlLabel}>Preview</Text>
           <View style={styles.segmented}>
             {widgetSizes.map((size) => (
               <TouchableOpacity
@@ -151,7 +156,7 @@ export function WidgetShowcaseScreen({
                 onPress={() => updatePreferences({ size })}
               >
                 <Text maxFontSizeMultiplier={bodyTextScale} style={[styles.segmentText, widgetSize === size ? styles.segmentTextActive : null]}>
-                  {sizeLabel(size)}
+                  {nativeFamilyLabel(size)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -182,21 +187,14 @@ export function WidgetShowcaseScreen({
 
         <View style={styles.controlGroup}>
           <Text maxFontSizeMultiplier={bodyTextScale} style={styles.controlLabel}>Style</Text>
-          <View style={styles.chipRow}>
+          <View style={styles.styleCardGrid}>
             {widgetStylePresets.map((style) => (
-              <TouchableOpacity
+              <WidgetStyleCard
                 key={style.id}
-                accessibilityRole="button"
-                accessibilityLabel={`Use ${style.name} widget style`}
-                accessibilityState={{ selected: widgetStyleId === style.id }}
-                activeOpacity={0.82}
-                style={[styles.textChip, widgetStyleId === style.id ? styles.textChipActive : null]}
+                preset={style}
+                active={widgetStyleId === style.id}
                 onPress={() => updatePreferences({ styleId: style.id })}
-              >
-                <Text maxFontSizeMultiplier={bodyTextScale} style={[styles.chipText, widgetStyleId === style.id ? styles.chipTextActive : null]}>
-                  {style.name}
-                </Text>
-              </TouchableOpacity>
+              />
             ))}
           </View>
         </View>
@@ -336,6 +334,47 @@ function sizeLabel(value: WidgetSizePreference) {
   return value === "small" ? "Small" : "Medium";
 }
 
+function nativeFamilyLabel(value: WidgetSizePreference) {
+  return value === "small" ? "Small Next Due" : "Medium This Week";
+}
+
+function WidgetStyleCard({
+  preset,
+  active,
+  onPress
+}: {
+  preset: (typeof widgetStylePresets)[number];
+  active: boolean;
+  onPress: () => void;
+}) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel={`Use ${preset.name} widget style`}
+      accessibilityState={{ selected: active }}
+      activeOpacity={0.84}
+      style={[styles.styleCard, active ? styles.styleCardActive : null]}
+      onPress={onPress}
+    >
+      <View style={[styles.stylePreview, { backgroundColor: preset.background }]}>
+        <View style={[styles.stylePreviewBand, { backgroundColor: `${preset.secondary}55` }]} />
+        <View style={[styles.stylePreviewLine, { backgroundColor: preset.accent }]} />
+        <View style={styles.stylePreviewDots}>
+          <View style={[styles.stylePreviewDot, { backgroundColor: preset.accent }]} />
+          <View style={[styles.stylePreviewDot, { backgroundColor: preset.secondary }]} />
+          <View style={[styles.stylePreviewDot, { backgroundColor: preset.muted }]} />
+        </View>
+      </View>
+      <Text maxFontSizeMultiplier={bodyTextScale} style={[styles.styleCardText, active ? styles.styleCardTextActive : null]}>
+        {preset.name}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
 function createStyles(theme: AppTheme) {
   const { colors, radii, spacing } = theme;
 
@@ -430,6 +469,11 @@ function createStyles(theme: AppTheme) {
       flexWrap: "wrap",
       gap: spacing.xs
     },
+    styleCardGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
     paletteChip: {
       minHeight: 44,
       borderRadius: radii.round,
@@ -483,6 +527,59 @@ function createStyles(theme: AppTheme) {
       borderWidth: 1,
       borderColor: colors.line
     },
+    styleCard: {
+      width: "31.8%",
+      minHeight: 116,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: 7,
+      gap: 6
+    },
+    styleCardActive: {
+      borderColor: colors.brandPurple,
+      backgroundColor: colors.purpleSoft
+    },
+    stylePreview: {
+      height: 70,
+      borderRadius: 14,
+      overflow: "hidden",
+      padding: 8,
+      justifyContent: "space-between"
+    },
+    stylePreviewBand: {
+      position: "absolute",
+      top: -16,
+      right: -18,
+      width: 76,
+      height: 38,
+      borderRadius: 16,
+      transform: [{ rotate: "22deg" }]
+    },
+    stylePreviewLine: {
+      width: "68%",
+      height: 8,
+      borderRadius: 999
+    },
+    stylePreviewDots: {
+      flexDirection: "row",
+      gap: 4
+    },
+    stylePreviewDot: {
+      width: 13,
+      height: 13,
+      borderRadius: 7
+    },
+    styleCardText: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    styleCardTextActive: {
+      color: colors.ink
+    },
     segmented: {
       minHeight: 42,
       borderRadius: radii.round,
@@ -502,7 +599,7 @@ function createStyles(theme: AppTheme) {
     },
     segmentText: {
       color: colors.muted,
-      fontSize: 12,
+      fontSize: 11,
       fontWeight: "900",
       textTransform: "capitalize"
     },

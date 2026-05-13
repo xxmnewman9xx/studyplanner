@@ -53,8 +53,8 @@ import { UpgradeScreen } from "./src/screens/UpgradeScreen";
 import { WidgetShowcaseScreen } from "./src/screens/WidgetShowcaseScreen";
 import { AssignmentDetailScreen } from "./src/screens/AssignmentDetailScreen";
 import { SettingsScreen } from "./src/screens/SettingsScreen";
-import { scheduleSmartReminders } from "./src/services/reminders";
-import { syncAssignmentsToDeviceCalendar } from "./src/services/calendarSync";
+import { cancelScheduledAssignmentReminders, scheduleSmartReminders } from "./src/services/reminders";
+import { deleteSyncedAssignmentEvent, syncAssignmentsToDeviceCalendar } from "./src/services/calendarSync";
 import { loadJson, saveJson } from "./src/services/storage";
 import { SubscriptionProvider, useSubscription } from "./src/services/subscriptions";
 import { WidgetSnapshotService } from "./src/services/widgetSnapshotService";
@@ -65,6 +65,10 @@ import {
   WidgetPreferences
 } from "./src/services/widgetPreferences";
 import {
+  assignmentPatchInvalidatesSideEffects,
+  sideEffectClearingPatch
+} from "./src/logic/assignmentSideEffects";
+import {
   isAssignmentArchived,
   isAssignmentConfirmed,
   isAssignmentNeedsReview,
@@ -74,7 +78,9 @@ import {
   withAssignmentPatch
 } from "./src/logic/assignmentModel";
 import { dateKeyFromValue, makeDueAt } from "./src/logic/dateUtils";
+import { foundWorkNeedsReviewCount, removePromotedFoundWork } from "./src/logic/foundWorkInbox";
 import { buildTrustedParsedPlan } from "./src/logic/importTrust";
+import { isThemePaletteId } from "./src/theme";
 
 const plannerStorageKey = "study-planner-data-v2";
 
@@ -96,7 +102,7 @@ const tabs: Array<{
   { id: "calendar", label: "Calendar", icon: CalendarRange },
   { id: "week", label: "Week", icon: CalendarDays },
   { id: "courses", label: "Classes", icon: GraduationCap },
-  { id: "import", label: "Check Work", icon: FileScan },
+  { id: "import", label: "Scan", icon: FileScan },
   { id: "upgrade", label: "Widgets", icon: Crown }
 ];
 const knownTabs: NavTab[] = [...tabs.map((tab) => tab.id), "grades", "settings"];
@@ -115,6 +121,8 @@ type CaptureState =
   | "widget-needs-check"
   | null;
 
+type CaptureWidgetPreview = "small" | "medium" | null;
+
 export default function App() {
   return (
     <AppThemeProvider>
@@ -126,7 +134,7 @@ export default function App() {
 }
 
 function AppContent() {
-  const { theme, setMode } = useAppTheme();
+  const { theme, setMode, setPalette } = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const subscription = useSubscription();
   const scrollRef = useRef<ScrollView>(null);
@@ -141,6 +149,7 @@ function AppContent() {
   const [semester, setSemester] = useState(demoSeed?.semester || defaultSemester);
   const [courses, setCourses] = useState<Course[]>(demoSeed?.courses || defaultCourses);
   const [assignments, setAssignments] = useState<Assignment[]>(demoSeed?.assignments || []);
+  const [foundWorkDraft, setFoundWorkDraft] = useState<SyllabusParseResult | null>(null);
   const [syllabusSources, setSyllabusSources] = useState<SyllabusSource[]>(
     demoSeed?.syllabusSources || []
   );
@@ -151,6 +160,7 @@ function AppContent() {
   const [capturePaywallVisible, setCapturePaywallVisible] = useState(false);
   const [captureState, setCaptureState] = useState<CaptureState>(null);
   const [captureThemeMode, setCaptureThemeMode] = useState<"light" | "dark">("light");
+  const [captureWidgetPreview, setCaptureWidgetPreview] = useState<CaptureWidgetPreview>(null);
   const [widgetPreferences, setWidgetPreferences] = useState<WidgetPreferences>(defaultWidgetPreferences);
   const [widgetPreferencesHydrated, setWidgetPreferencesHydrated] = useState(storeCaptureEnabled);
   const [hydrated, setHydrated] = useState(false);
@@ -195,6 +205,9 @@ function AppContent() {
     () => activeAssignments.filter((item) => isAssignmentConfirmed(item)),
     [activeAssignments]
   );
+  const foundWorkReviewQueueCount = foundWorkDraft
+    ? foundWorkNeedsReviewCount(foundWorkDraft)
+    : undefined;
   const selectedAssignment = useMemo(
     () => assignments.find((assignment) => assignment.id === selectedAssignmentId),
     [assignments, selectedAssignmentId]
@@ -204,6 +217,7 @@ function AppContent() {
     setSelectedAssignmentId(null);
     setCapturePaywallVisible(false);
     setCaptureState(null);
+    setCaptureWidgetPreview(null);
     setActiveTab(tab);
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   };
@@ -224,12 +238,25 @@ function AppContent() {
       const modeMatch = /[?&](?:mode|theme)=([^&]+)/.exec(url);
       const requestedThemeMode =
         modeMatch?.[1] && decodeURIComponent(modeMatch[1]) === "dark" ? "dark" : "light";
+      const paletteMatch = /[?&]palette=([^&]+)/.exec(url);
+      const requestedPaletteId = paletteMatch?.[1] ? decodeURIComponent(paletteMatch[1]) : null;
+      if (requestedPaletteId && isThemePaletteId(requestedPaletteId)) {
+        setPalette(requestedPaletteId);
+      }
+      const widgetMatch = /[?&]widget=([^&]+)/.exec(url);
+      const requestedWidgetPreview =
+        widgetMatch?.[1] && decodeURIComponent(widgetMatch[1]) === "small"
+          ? "small"
+          : widgetMatch?.[1] && decodeURIComponent(widgetMatch[1]) === "medium"
+            ? "medium"
+            : null;
 
       if (requestedTabRaw === "onboarding") {
         setCaptureThemeMode(requestedThemeMode);
         setSelectedAssignmentId(null);
         setCapturePaywallVisible(false);
         setCaptureState(requestedCaptureState);
+        setCaptureWidgetPreview(requestedWidgetPreview);
         setOnboardingStep(requestedStep);
         setOnboarded(false);
         requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: 0, animated: false }));
@@ -240,6 +267,7 @@ function AppContent() {
         setCaptureThemeMode(requestedThemeMode);
         setSelectedAssignmentId(null);
         setCaptureState(requestedCaptureState);
+        setCaptureWidgetPreview(requestedWidgetPreview);
         setOnboarded(true);
         setCapturePaywallVisible(true);
         requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: 0, animated: false }));
@@ -255,6 +283,7 @@ function AppContent() {
       setCaptureThemeMode(requestedThemeMode);
       setSelectedAssignmentId(requestedAssignmentId);
       setCaptureState(requestedCaptureState);
+      setCaptureWidgetPreview(requestedWidgetPreview);
       setCapturePaywallVisible(false);
       setOnboarded(true);
       setActiveTab(requestedTab);
@@ -264,7 +293,7 @@ function AppContent() {
     Linking.getInitialURL().then(openCaptureUrl).catch(() => undefined);
     const subscription = Linking.addEventListener("url", ({ url }) => openCaptureUrl(url));
     return () => subscription.remove();
-  }, [storeCaptureEnabled]);
+  }, [setPalette, storeCaptureEnabled]);
 
   useEffect(() => {
     let mounted = true;
@@ -275,6 +304,7 @@ function AppContent() {
       setSemester(demoSeed.semester);
       setCourses(demoSeed.courses);
       setAssignments(demoSeed.assignments);
+      setFoundWorkDraft(null);
       setSyllabusSources(demoSeed.syllabusSources);
       setGradeItems(demoSeed.gradeItems);
       setTargetGradePercent(demoSeed.targetGradePercent);
@@ -293,6 +323,7 @@ function AppContent() {
         setSemester(stored.semester || defaultSemester);
         setCourses(stored.courses || []);
         setAssignments(normalizeAssignments(stored.assignments || [], stored.courses || []));
+        setFoundWorkDraft(stored.foundWorkDraft || null);
         setSyllabusSources(stored.syllabusSources || []);
         setGradeItems(stored.gradeItems || []);
         setTargetGradePercent(stored.targetGradePercent || 90);
@@ -315,6 +346,7 @@ function AppContent() {
       semester,
       courses,
       assignments,
+      foundWorkDraft,
       gradeItems,
       syllabusSources,
       targetGradePercent
@@ -322,6 +354,7 @@ function AppContent() {
   }, [
     assignments,
     courses,
+    foundWorkDraft,
     gradeItems,
     hydrated,
     onboarded,
@@ -339,7 +372,6 @@ function AppContent() {
 
   useEffect(() => {
     if (!hydrated) return;
-
     void WidgetSnapshotService.write(
       {
         semester,
@@ -347,6 +379,7 @@ function AppContent() {
         assignments: widgetSnapshotAssignments,
         paletteId: theme.palette.id,
         widgetStyleId: widgetPreferences.styleId,
+        reviewQueueCount: foundWorkReviewQueueCount,
         demoState: storeCaptureEnabled
           ? {
               enabled: true,
@@ -359,6 +392,8 @@ function AppContent() {
   }, [
     courses,
     hydrated,
+    foundWorkDraft,
+    foundWorkReviewQueueCount,
     semester,
     storeCaptureEnabled,
     theme.palette.id,
@@ -384,6 +419,7 @@ function AppContent() {
 
     setCourses((current) => mergeById(current, trustedPlan.courses));
     setAssignments((current) => mergeAssignments(current, trustedPlan.assignments));
+    setFoundWorkDraft((current) => removePromotedFoundWork(current || parse, trustedPlan.assignments));
     setGradeItems((current) => mergeById(current, trustedPlan.gradeItems));
     setSyllabusSources((current) =>
       mergeById(current, [trustedPlan.syllabusSource])
@@ -395,10 +431,15 @@ function AppContent() {
     assignmentId: string,
     status: Exclude<AssignmentStatus, "archived">
   ) => {
+    const currentAssignment = assignments.find((assignment) => assignment.id === assignmentId);
+    if (currentAssignment && assignmentPatchInvalidatesSideEffects({ status })) {
+      cleanupAssignmentSideEffects(currentAssignment);
+    }
+
     setAssignments((current) =>
       current.map((assignment) =>
         assignment.id === assignmentId
-          ? withAssignmentPatch(assignment, { status }, courses)
+          ? withAssignmentPatch(assignment, sideEffectClearingPatch({ status }), courses)
           : assignment
       )
     );
@@ -492,9 +533,15 @@ function AppContent() {
   };
 
   const updateAssignment = (assignmentId: string, patch: Partial<Assignment>) => {
+    const currentAssignment = assignments.find((assignment) => assignment.id === assignmentId);
+    const safePatch = sideEffectClearingPatch(patch);
+    if (currentAssignment && assignmentPatchInvalidatesSideEffects(patch)) {
+      cleanupAssignmentSideEffects(currentAssignment);
+    }
+
     setAssignments((current) =>
       current.map((assignment) =>
-        assignment.id === assignmentId ? withAssignmentPatch(assignment, patch, courses) : assignment
+        assignment.id === assignmentId ? withAssignmentPatch(assignment, safePatch, courses) : assignment
       )
     );
   };
@@ -502,6 +549,11 @@ function AppContent() {
   const archiveAssignment = (assignmentId: string) => {
     updateAssignment(assignmentId, { status: "archived", reviewStatus: "ignored" });
     setSelectedAssignmentId(null);
+  };
+
+  const cleanupAssignmentSideEffects = (assignment: Assignment) => {
+    void cancelScheduledAssignmentReminders(assignment.reminderIds).catch(() => undefined);
+    void deleteSyncedAssignmentEvent(assignment.externalCalendarEventId).catch(() => undefined);
   };
 
   const addGradeItem = (item: Omit<GradeItem, "id">) => {
@@ -591,6 +643,7 @@ function AppContent() {
       setSemester(sample.semester);
       setCourses(sample.courses);
       setAssignments(sample.assignments);
+      setFoundWorkDraft(null);
       setSyllabusSources(sample.syllabusSources);
       setGradeItems(sample.gradeItems);
       setTargetGradePercent(sample.targetGradePercent);
@@ -687,6 +740,7 @@ function AppContent() {
                   assignments={activeAssignments}
                   courses={courses}
                   semester={semester}
+                  needsReviewCount={foundWorkReviewQueueCount}
                   onUpdateStatus={updateAssignmentStatus}
                   onToggleDone={toggleAssignmentDone}
                   onOpenAssignment={setSelectedAssignmentId}
@@ -710,7 +764,12 @@ function AppContent() {
                     onUpgrade={() => openTab("upgrade")}
                   />
                 ) : (
-                  <ImportScreen captureState={captureState} onApplyParsedPlan={applyParsedPlan} />
+                  <ImportScreen
+                    captureState={captureState}
+                    foundWorkDraft={foundWorkDraft}
+                    onFoundWorkDraftChange={setFoundWorkDraft}
+                    onApplyParsedPlan={applyParsedPlan}
+                  />
                 )
               ) : null}
               {activeTab === "courses" ? (
@@ -774,6 +833,8 @@ function AppContent() {
                   semester={semester}
                   courses={courses}
                   assignments={widgetSnapshotAssignments}
+                  reviewQueueCount={foundWorkReviewQueueCount}
+                  captureWidgetPreview={captureWidgetPreview}
                   preferences={widgetPreferences}
                   captureState={captureState}
                   onPreferencesChange={setWidgetPreferences}
@@ -784,6 +845,7 @@ function AppContent() {
                   semester={semester}
                   courses={courses}
                   assignments={activeAssignments}
+                  needsReviewCount={foundWorkReviewQueueCount}
                   onOpenImport={() => openTab("import")}
                   onOpenPaywall={() => openTab("upgrade")}
                   onOpenWidgetSetup={() => openTab("upgrade")}

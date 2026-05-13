@@ -47,6 +47,8 @@ import { useAppTheme } from "../themeContext";
 
 type ImportScreenProps = {
   onApplyParsedPlan: (parse: SyllabusParseResult) => void;
+  foundWorkDraft?: SyllabusParseResult | null;
+  onFoundWorkDraftChange?: (draft: SyllabusParseResult | null) => void;
   captureState?: string | null;
 };
 
@@ -62,12 +64,17 @@ const filters: Array<{ id: ConfidenceFilter; label: string }> = [
 ];
 const bodyTextScale = 1.35;
 
-export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenProps) {
+export function ImportScreen({
+  captureState,
+  foundWorkDraft,
+  onFoundWorkDraftChange,
+  onApplyParsedPlan
+}: ImportScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
   const captureMode = isStoreCaptureEnabled();
-  const [draft, setDraft] = useState<SyllabusParseResult | null>(() =>
+  const [captureDraft, setCaptureDraft] = useState<SyllabusParseResult | null>(() =>
     captureMode ? createDemoSyllabusParseResult() : null
   );
   const [loading, setLoading] = useState(false);
@@ -75,11 +82,21 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
   const [filter, setFilter] = useState<ConfidenceFilter>("all");
   const [expandedAssignmentId, setExpandedAssignmentId] = useState<string | null>(null);
   const [typedText, setTypedText] = useState("");
+  const draft = captureMode ? captureDraft : foundWorkDraft || null;
   const imageParsingReady = supportsSyllabusImageParsing();
   const showPhotoActions = imageParsingReady || (captureMode && captureState === "scan-paper");
   const scanCopy = imageParsingReady
     ? "Upload a text-based PDF, text file, or photo syllabus."
     : "Upload a text-based PDF or text file. Photo OCR needs a configured parser endpoint.";
+
+  const setDraft = (next: SyllabusParseResult | null) => {
+    if (captureMode) {
+      setCaptureDraft(next);
+      return;
+    }
+
+    onFoundWorkDraftChange?.(next);
+  };
 
   useEffect(() => {
     if (!captureMode) return;
@@ -87,7 +104,7 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
     setErrorMessage(null);
 
     if (captureState === "scan-paper" || captureState === "upload-file") {
-      setDraft(null);
+      setCaptureDraft(null);
       setLoading(false);
       setFilter("all");
       setExpandedAssignmentId(null);
@@ -95,7 +112,7 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
     }
 
     if (captureState === "parser-processing") {
-      setDraft(null);
+      setCaptureDraft(null);
       setLoading(true);
       setFilter("all");
       setExpandedAssignmentId(null);
@@ -103,7 +120,7 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
     }
 
     if (captureState === "duplicate-found-work" || captureState === "imported-found-work") {
-      setDraft(createCaptureImportDraft(captureState));
+      setCaptureDraft(createCaptureImportDraft(captureState));
       setLoading(false);
       setFilter("all");
       setExpandedAssignmentId(null);
@@ -111,7 +128,7 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
     }
 
     if (captureState === "edit-found-work") {
-      setDraft(createDemoSyllabusParseResult());
+      setCaptureDraft(createDemoSyllabusParseResult());
       setLoading(false);
       setFilter("all");
       setExpandedAssignmentId("problem-set-4");
@@ -175,7 +192,7 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
     assignmentId: string,
     patch: Parameters<typeof updateParsedAssignment>[2]
   ) => {
-    setDraft((current) => (current ? updateParsedAssignment(current, assignmentId, patch) : current));
+    updateDraft((current) => updateParsedAssignment(current, assignmentId, patch));
   };
 
   const applyAcceptedPlan = () => {
@@ -256,7 +273,8 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
   };
 
   const updateDraft = (mapper: (current: SyllabusParseResult) => SyllabusParseResult) => {
-    setDraft((current) => (current ? mapper(current) : current));
+    if (!draft) return;
+    setDraft(mapper(draft));
   };
 
   const pickPdf = async () => {
@@ -321,9 +339,15 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
   return (
     <PremiumScreen>
       <PremiumHeader
-        eyebrow="Found work. You check."
-        title="Check New Work"
-        subtitle="Look over found coursework before it touches your semester."
+        eyebrow={loading ? "2. AI Parses It" : draft ? "5. Review & Improve" : "1. Scan Anything"}
+        title={loading ? "AI Parses It" : draft ? "Found Work" : "Scan Anything"}
+        subtitle={
+          loading
+            ? "Finding assignments, dates, and classes."
+            : draft
+              ? "Review and confirm found coursework before it touches your planner."
+              : "Syllabus, slides, docs, handouts, and photos can become a plan."
+        }
       />
 
       <GlassCard tint="hero">
@@ -332,7 +356,7 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
             <Sparkles color={colors.heroText} size={20} />
           </View>
           <View style={styles.scanHeroCopy}>
-            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.scanHeroTitle}>Add School Stuff</Text>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.scanHeroTitle}>Scan Anything</Text>
             <Text maxFontSizeMultiplier={bodyTextScale} style={styles.scanHeroMeta}>{scanCopy}</Text>
           </View>
         </View>
@@ -582,7 +606,7 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
         </>
       ) : (
         <GlassCard>
-          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyTitle}>No syllabus scanned yet.</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyTitle}>Nothing in Found Work yet.</Text>
           <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyCopy}>{messySyllabusExample.slice(0, 138)}...</Text>
         </GlassCard>
       )}
@@ -874,7 +898,7 @@ function captureImportProof(
   if (captureState === "upload-file") {
     return {
       title: "Upload a syllabus file",
-      copy: "Start with a text-based PDF or plain text file. Found work stays in Check New Work until you approve it."
+      copy: "Start with a text-based PDF or plain text file. Found Work stays in the review inbox until you approve it."
     };
   }
 

@@ -42,6 +42,7 @@ export type PlannerData = {
   semester: Semester;
   courses: Course[];
   assignments: Assignment[];
+  foundWorkDraft?: SyllabusParseResult | null;
   gradeItems: GradeItem[];
   syllabusSources: SyllabusSource[];
   widgetSnapshot?: WidgetSnapshot;

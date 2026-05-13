@@ -26,7 +26,7 @@ import Svg, {
 } from "react-native-svg";
 
 import { Assignment, Course, WidgetSnapshot, WidgetSnapshotStyle } from "../models";
-import { AppTheme } from "../theme";
+import { AppTheme, readableAccentOnBackground, readableColorOnBackground } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { daysUntil, formatShortDate } from "../logic/planner";
 
@@ -371,7 +371,9 @@ export function TaskRow({
         </TouchableOpacity>
       ) : null}
       <View style={[styles.taskMark, { backgroundColor: course?.color || colors.brandPurple }]}>
-        <Text style={styles.taskMarkText}>{(course?.code || assignment.courseName || "SP").slice(0, 1)}</Text>
+        <Text style={[styles.taskMarkText, { color: readableColorOnBackground(course?.color || colors.brandPurple) }]}>
+          {(course?.code || assignment.courseName || "SP").slice(0, 1)}
+        </Text>
       </View>
       <View style={styles.taskBody}>
         <Text style={[styles.taskCourse, done ? styles.doneText : null]} numberOfLines={1}>
@@ -459,7 +461,7 @@ export function CourseCard({
     >
       <View pointerEvents="none" style={[styles.courseAccentRail, { backgroundColor: course.color }]} />
       <View style={[styles.courseGlyph, { backgroundColor: course.color }]}>
-        <Text style={styles.courseGlyphText}>{course.code.slice(0, 1)}</Text>
+        <Text style={[styles.courseGlyphText, { color: readableColorOnBackground(course.color) }]}>{course.code.slice(0, 1)}</Text>
       </View>
       <View style={styles.courseBody}>
         <Text style={styles.courseTitle}>{course.code}</Text>
@@ -526,6 +528,8 @@ export function WidgetPreviewSmall({
   const styles = createStyles(theme);
   const item = snapshot.surfaces.small.item;
   const visual = widgetPreviewVisual(snapshot, widgetStyle, colors);
+  const iconBackground = item?.courseColor || visual.accent;
+  const dueColor = readableAccentOnBackground([visual.accent, visual.secondary], visual.background, visual.text);
 
   return (
     <View style={[styles.smallWidget, { backgroundColor: visual.background }]}>
@@ -535,8 +539,8 @@ export function WidgetPreviewSmall({
         <Text style={[styles.widgetLabel, { color: visual.text }]}>Next Due</Text>
         <Text style={[styles.widgetBadge, { color: visual.text }]} numberOfLines={1}>{item?.dueLabel || "Clear"}</Text>
       </View>
-      <View style={[styles.widgetIcon, { backgroundColor: item?.courseColor || visual.accent }]}>
-        <CalendarClock color={colors.heroText} size={16} />
+      <View style={[styles.widgetIcon, { backgroundColor: iconBackground }]}>
+        <CalendarClock color={readableColorOnBackground(iconBackground)} size={16} />
       </View>
       <Text style={[styles.smallWidgetTitle, { color: visual.text }]} numberOfLines={2}>
         {item?.title || snapshot.emptyState.title}
@@ -544,7 +548,7 @@ export function WidgetPreviewSmall({
       <Text style={[styles.widgetMeta, { color: visual.muted }]} numberOfLines={1}>
         {item?.courseName || snapshot.emptyState.message}
       </Text>
-      <Text style={[styles.widgetCountdown, { color: visual.accent }]}>{item?.dueLabel || "All set"}</Text>
+      <Text style={[styles.widgetCountdown, { color: dueColor }]}>{item?.dueLabel || "All set"}</Text>
     </View>
   );
 }
@@ -561,6 +565,7 @@ export function WidgetPreviewMedium({
   const styles = createStyles(theme);
   const items = snapshot.surfaces.medium.items;
   const visual = widgetPreviewVisual(snapshot, widgetStyle, colors);
+  const dueColor = readableAccentOnBackground([visual.accent, visual.secondary], visual.background, visual.text);
 
   return (
     <View style={[styles.mediumWidget, { backgroundColor: visual.background }]}>
@@ -576,7 +581,7 @@ export function WidgetPreviewMedium({
         items.map((item) => (
           <View key={item.assignmentId} style={styles.mediumWidgetRow}>
             <View style={[styles.widgetRowIcon, styles[`${widgetTone(item.urgency)}WidgetIcon`], item.courseColor ? { backgroundColor: item.courseColor } : null]}>
-              <CalendarClock color={colors.heroText} size={12} />
+              <CalendarClock color={readableColorOnBackground(item.courseColor || visual.accent)} size={12} />
             </View>
             <View style={styles.widgetRowCopy}>
               <Text style={[styles.widgetRowTitle, { color: visual.text }]} numberOfLines={1}>
@@ -589,8 +594,7 @@ export function WidgetPreviewMedium({
             <Text
               style={[
                 styles.widgetDue,
-                { color: visual.accent },
-                item.urgency === "today" || item.urgency === "soon" ? styles.widgetDueHot : null
+                { color: dueColor }
               ]}
             >
               {item.dueLabel}
@@ -1758,7 +1762,6 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     widgetDueHot: {
-      color: "#FF8A7A"
     },
     monthlyWidgetGrid: {
       flexDirection: "row",

@@ -28,6 +28,7 @@ type SettingsScreenProps = {
   semester: Semester;
   courses: Course[];
   assignments: Assignment[];
+  needsReviewCount?: number;
   onOpenImport: () => void;
   onOpenPaywall: () => void;
   onOpenWidgetSetup: () => void;
@@ -37,6 +38,7 @@ export function SettingsScreen({
   semester,
   courses,
   assignments,
+  needsReviewCount: needsReviewCountOverride,
   onOpenImport,
   onOpenPaywall,
   onOpenWidgetSetup
@@ -46,7 +48,8 @@ export function SettingsScreen({
   const { colors } = theme;
   const styles = createStyles(theme);
   const confirmedCount = assignments.filter(isAssignmentConfirmed).length;
-  const needsCheckCount = assignments.filter(isAssignmentNeedsReview).length;
+  const needsCheckCount =
+    needsReviewCountOverride ?? assignments.filter(isAssignmentNeedsReview).length;
   const supportUrl = purchaseConfig.supportUrl;
 
   return (
@@ -79,7 +82,7 @@ export function SettingsScreen({
           <StatusBadge label={subscription.isPremium ? "Plus active" : "Free planner"} tone={subscription.isPremium ? "purple" : "blue"} />
         </View>
         {needsCheckCount > 0 ? (
-          <AppButton label="Check New Work" variant="secondary" onPress={onOpenImport} />
+          <AppButton label="Review Found Work" variant="secondary" onPress={onOpenImport} />
         ) : null}
       </GlassCard>
 

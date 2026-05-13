@@ -121,36 +121,36 @@ const onboardingSteps: Array<{
 }> = [
   {
     id: "syllabus",
-    eyebrow: "Start calm",
-    title: "Turn school chaos into one trusted plan.",
-    copy: "Add school stuff by scanning a syllabus, uploading a file, or typing classes in by hand.",
+    eyebrow: "1. Scan",
+    title: "Scan anything school gives you.",
+    copy: "Syllabi, slides, docs, handouts, and typed notes can become found work to check.",
     icon: FileScan
   },
   {
     id: "review",
-    eyebrow: "Check New Work",
-    title: "Check what StudyPlanner found.",
+    eyebrow: "2. AI Parses It",
+    title: "Found Work waits for your approval.",
     copy: "Nothing becomes a due date until you mark it Looks Good. Unclear dates stay editable.",
     icon: CheckCircle2
   },
   {
     id: "today",
-    eyebrow: "Today",
-    title: "Know the next thing to do.",
+    eyebrow: "3. Plan It All",
+    title: "Your checked work powers every view.",
     copy: "Today, Week Plan, Calendar, reminders, and widgets all use the same checked assignments.",
     icon: Target
   },
   {
     id: "widgets",
-    eyebrow: "Widget Setup",
-    title: "See what is due without opening the app.",
+    eyebrow: "4. Focus Daily",
+    title: "See the next thing and get it done.",
     copy: "Small shows Next Due. Medium shows This Week. Both stay tied to your confirmed planner.",
     icon: Crown
   },
   {
     id: "palette",
-    eyebrow: "Make it yours",
-    title: "Choose a study style and start.",
+    eyebrow: "5. Review & Improve",
+    title: "Choose your style and keep improving.",
     copy: "Your colors carry through classes, calendar dots, workload bars, and widget previews.",
     icon: Sparkles
   }
@@ -496,7 +496,7 @@ function ReviewInboxPreview({ motion }: { motion: Animated.Value }) {
           <CheckCircle2 color={colors.heroText} size={18} />
         </View>
         <View style={styles.previewCopy}>
-          <Text style={styles.previewKicker}>Check New Work</Text>
+          <Text style={styles.previewKicker}>Found Work</Text>
           <Text style={styles.previewTitle}>Approve with confidence</Text>
           <Text style={styles.previewMeta}>Nothing reaches Today, Calendar, or widgets until you say yes.</Text>
         </View>

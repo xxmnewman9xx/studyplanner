@@ -580,7 +580,7 @@ struct DuePill: View {
 
   var body: some View {
     let urgency = relativeUrgency(item.dueAt, from: date, fallback: item.urgency)
-    let dueColor = colorFromHex(item.courseColor) ?? style?.accentColor ?? urgencyColor(urgency)
+    let dueColor = style?.accentColor ?? urgencyColor(urgency)
 
     HStack(spacing: 5) {
       UrgencyDot(urgency: urgency, color: colorFromHex(item.courseColor))

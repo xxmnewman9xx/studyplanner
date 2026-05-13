@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   classColorPalette,
+  createWidgetStyleSnapshot,
   getTheme,
   themePalettes,
   widgetStylePresets
@@ -93,5 +94,17 @@ test("widget presets keep readable text in small native surfaces", () => {
     assertContrast(preset.text, preset.background, 4.5, `${preset.id} widget text`);
     assertContrast(preset.muted, preset.background, 4.5, `${preset.id} widget muted text`);
     assertContrast(preset.accent, preset.background, 3, `${preset.id} widget accent`);
+  }
+});
+
+test("widget snapshots keep palette customization readable on every preset", () => {
+  for (const palette of themePalettes) {
+    for (const preset of widgetStylePresets) {
+      const snapshot = createWidgetStyleSnapshot(palette.id, preset.id);
+      assertContrast(snapshot.text, snapshot.background, 4.5, `${palette.id}/${preset.id} text`);
+      assertContrast(snapshot.muted, snapshot.background, 4.5, `${palette.id}/${preset.id} muted`);
+      assertContrast(snapshot.accent, snapshot.background, 3, `${palette.id}/${preset.id} accent`);
+      assertContrast(snapshot.secondary, snapshot.background, 3, `${palette.id}/${preset.id} secondary`);
+    }
   }
 });

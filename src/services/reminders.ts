@@ -47,3 +47,15 @@ export async function scheduleSmartReminders(assignments: Assignment[], courses:
 
   return { count: scheduled, reminderIdsByAssignment };
 }
+
+export async function cancelScheduledAssignmentReminders(reminderIds: string[] | undefined) {
+  if (!reminderIds?.length) return 0;
+
+  let cancelled = 0;
+  for (const reminderId of reminderIds) {
+    await Notifications.cancelScheduledNotificationAsync(reminderId);
+    cancelled += 1;
+  }
+
+  return cancelled;
+}
