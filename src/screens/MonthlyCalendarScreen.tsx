@@ -10,6 +10,7 @@ import {
 } from "../components/InsightCards";
 import {
   GlassCard,
+  LoopStepper,
   MetricPill,
   PillFilter,
   PremiumHeader,
@@ -114,7 +115,7 @@ export function MonthlyCalendarScreen({
     <PremiumScreen>
       <PremiumHeader
         eyebrow={semester.name}
-        title="Calendar"
+        title="Plan Month"
         subtitle="Tap any day to see its assignments and exams."
         right={
           <View style={styles.navButtons}>
@@ -127,6 +128,8 @@ export function MonthlyCalendarScreen({
           </View>
         }
       />
+
+      <LoopStepper activeIndex={2} compact />
 
       <GlassCard tint="hero" style={styles.monthHero}>
         <View pointerEvents="none" style={styles.heroBand} />

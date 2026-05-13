@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import {
   GlassCard,
+  LoopStepper,
   MetricPill,
   PremiumHeader,
   PremiumScreen,
@@ -67,9 +68,11 @@ export function WeekPlannerScreen({
     <PremiumScreen>
       <PremiumHeader
         eyebrow={semester.name}
-        title="This Week"
+        title="Plan Week"
         subtitle="See every deadline for the next seven days."
       />
+
+      <LoopStepper activeIndex={2} compact />
 
       <GlassCard style={styles.rangeCard}>
         <View pointerEvents="none" style={styles.rangeBand} />

@@ -11,6 +11,7 @@ import { AppButton } from "../components/AppButton";
 import {
   CommandCenterHero,
   GlassCard,
+  LoopStepper,
   MetricPill,
   PremiumHeader,
   PremiumScreen,
@@ -140,8 +141,8 @@ export function TodayScreen({
     <PremiumScreen>
       <PremiumHeader
         eyebrow={semester.name}
-        title={captureMode ? "Good morning, Alex" : "Today"}
-        subtitle={captureMode ? "Let's make it a productive day." : "See what is due and what to do next."}
+        title={captureMode ? "Good morning, Alex" : "Plan Today"}
+        subtitle={captureMode ? "Pick what to do now, then focus." : "Pick what to do now, then focus."}
         right={
           captureMode ? null : (
             <View style={styles.headerActions}>
@@ -158,6 +159,8 @@ export function TodayScreen({
           )
         }
       />
+
+      <LoopStepper activeIndex={heroAssignment ? 3 : needsCheckCount > 0 ? 1 : 2} compact />
 
       <CommandCenterHero
         assignment={heroAssignment}
@@ -226,9 +229,9 @@ export function TodayScreen({
 
       {needsCheckCount > 0 ? (
         <WarningCard
-          title="Found Work"
+          title="2 Parse: Check Found Work"
           message={`${needsCheckCount} found item${needsCheckCount === 1 ? "" : "s"} need your check before they show as due dates.`}
-          actionLabel="Review"
+          actionLabel="Check Work"
           onPress={onOpenImport}
         />
       ) : null}

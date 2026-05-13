@@ -131,6 +131,14 @@ export type ColorTokens = typeof lightColors;
 export type ThemeMode = "light" | "dark";
 
 export type ThemePaletteId =
+  | "aurora"
+  | "ocean"
+  | "sunset"
+  | "forest"
+  | "lavender"
+  | "midnight"
+  | "minimal"
+  | "candy"
   | "oceanBlue"
   | "violetGlow"
   | "emeraldFocus"
@@ -171,7 +179,7 @@ export type ThemePalette = {
 export const themePalettes: ThemePalette[] = [
   {
     id: "oceanBlue",
-    name: "Ocean Blue",
+    name: "Ocean",
     shortName: "Ocean",
     accent: "#2563EB",
     secondary: "#0E7490",
@@ -197,8 +205,8 @@ export const themePalettes: ThemePalette[] = [
   },
   {
     id: "violetGlow",
-    name: "Violet Glow",
-    shortName: "Violet",
+    name: "Aurora",
+    shortName: "Aurora",
     accent: "#6C5CE7",
     secondary: "#2563EB",
     tertiary: "#BE123C",
@@ -223,8 +231,8 @@ export const themePalettes: ThemePalette[] = [
   },
   {
     id: "emeraldFocus",
-    name: "Emerald Focus",
-    shortName: "Emerald",
+    name: "Forest",
+    shortName: "Forest",
     accent: "#047857",
     secondary: "#0F766E",
     tertiary: "#7C3AED",
@@ -249,7 +257,7 @@ export const themePalettes: ThemePalette[] = [
   },
   {
     id: "sunsetStudy",
-    name: "Sunset Study",
+    name: "Sunset",
     shortName: "Sunset",
     accent: "#C2410C",
     secondary: "#B91C1C",
@@ -275,8 +283,8 @@ export const themePalettes: ThemePalette[] = [
   },
   {
     id: "graphitePro",
-    name: "Graphite Pro",
-    shortName: "Graphite",
+    name: "Midnight",
+    shortName: "Midnight",
     accent: "#334155",
     secondary: "#64748B",
     tertiary: "#0F766E",
@@ -301,8 +309,8 @@ export const themePalettes: ThemePalette[] = [
   },
   {
     id: "roseQuartz",
-    name: "Rose Quartz",
-    shortName: "Rose",
+    name: "Lavender",
+    shortName: "Lavender",
     accent: "#BE123C",
     secondary: "#7E22CE",
     tertiary: "#0369A1",
@@ -327,8 +335,8 @@ export const themePalettes: ThemePalette[] = [
   },
   {
     id: "cyberTeal",
-    name: "Cyber Teal",
-    shortName: "Cyber",
+    name: "Candy",
+    shortName: "Candy",
     accent: "#0E7490",
     secondary: "#15803D",
     tertiary: "#4F46E5",
@@ -379,8 +387,8 @@ export const themePalettes: ThemePalette[] = [
   },
   {
     id: "cleanStudy",
-    name: "Clean",
-    shortName: "Clean",
+    name: "Minimal",
+    shortName: "Minimal",
     accent: "#2563EB",
     secondary: "#0F766E",
     tertiary: "#BE123C",
@@ -405,9 +413,23 @@ export const themePalettes: ThemePalette[] = [
   }
 ];
 
-export const defaultThemePaletteId: ThemePaletteId = "violetGlow";
+const themePaletteAliases: Record<string, ThemePaletteId> = {
+  aurora: "violetGlow",
+  ocean: "oceanBlue",
+  sunset: "sunsetStudy",
+  forest: "emeraldFocus",
+  lavender: "roseQuartz",
+  midnight: "graphitePro",
+  candy: "cyberTeal",
+  minimal: "cleanStudy"
+};
+
+export const defaultThemePaletteId: ThemePaletteId = "aurora";
 
 export type WidgetStylePresetId =
+  | "glass"
+  | "softGradient"
+  | "cleanCard"
   | "darkGlass"
   | "cleanWhite"
   | "ocean"
@@ -427,6 +449,33 @@ export type WidgetStylePreset = {
 };
 
 export const widgetStylePresets: WidgetStylePreset[] = [
+  {
+    id: "glass",
+    name: "Glass",
+    background: "#20104A",
+    text: "#F8FAFC",
+    muted: "#D8D2F1",
+    accent: "#C4B5FD",
+    secondary: "#60A5FA"
+  },
+  {
+    id: "softGradient",
+    name: "Soft Gradient",
+    background: "#12356B",
+    text: "#F8FAFC",
+    muted: "#CDE4FF",
+    accent: "#93C5FD",
+    secondary: "#22D3EE"
+  },
+  {
+    id: "cleanCard",
+    name: "Clean Card",
+    background: "#F8FBFF",
+    text: "#111827",
+    muted: "#475467",
+    accent: "#1D4ED8",
+    secondary: "#6D28D9"
+  },
   {
     id: "darkGlass",
     name: "Dark Glass",
@@ -493,11 +542,12 @@ export const widgetStylePresets: WidgetStylePreset[] = [
 ];
 
 export function resolveThemePalette(id?: string): ThemePalette {
-  return themePalettes.find((palette) => palette.id === id) || themePalettes[0]!;
+  const resolvedId = id && themePaletteAliases[id] ? themePaletteAliases[id] : id;
+  return themePalettes.find((palette) => palette.id === resolvedId) || themePalettes[0]!;
 }
 
 export function isThemePaletteId(id: string): id is ThemePaletteId {
-  return themePalettes.some((palette) => palette.id === id);
+  return themePalettes.some((palette) => palette.id === id) || Boolean(themePaletteAliases[id]);
 }
 
 export function resolveWidgetStylePreset(id?: string): WidgetStylePreset {
@@ -508,6 +558,17 @@ export function createWidgetStyleSnapshot(paletteId?: string, styleId?: string) 
   const palette = resolveThemePalette(paletteId);
   const style = styleId ? resolveWidgetStylePreset(styleId) : null;
   const background = style?.background || palette.widgetDark;
+  const text = style?.text && isReadableColor(style.text, background, 4.5)
+    ? style.text
+    : readableColorOnBackground(background);
+  const muted = style?.muted && isReadableColor(style.muted, background, 4.5)
+    ? style.muted
+    : readableAccentOnBackground(
+        [text === "#F8FAFC" ? "#D8D2F1" : "#475467", text === "#F8FAFC" ? "#BCC7D8" : "#667085"],
+        background,
+        text,
+        4.5
+      );
   const accent = readableAccentOnBackground(
     [palette.widgetAccent, palette.accent, palette.secondary, style?.accent],
     background,
@@ -525,8 +586,8 @@ export function createWidgetStyleSnapshot(paletteId?: string, styleId?: string) 
     styleId: style?.id || "palette",
     styleName: style?.name || palette.name,
     background,
-    text: style?.text || "#F8FAFC",
-    muted: style?.muted || "#BCC7D8",
+    text,
+    muted,
     accent,
     secondary
   };

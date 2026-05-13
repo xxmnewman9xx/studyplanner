@@ -47,6 +47,26 @@ test("widget snapshot has a useful empty state", () => {
   assert.equal(snapshot.thisWeek.length, 0);
 });
 
+test("widget snapshot can scope small and medium surfaces to one class", () => {
+  const seed = createDemoSemesterSeed();
+  const snapshot = buildWidgetSnapshot(
+    {
+      ...seed,
+      courseFocusId: "chem-101",
+      layoutId: "compact"
+    },
+    storeCaptureNow
+  );
+
+  assert.equal(snapshot.scope?.courseFocusId, "chem-101");
+  assert.equal(snapshot.scope?.courseName, "Chemistry 101");
+  assert.equal(snapshot.scope?.layoutId, "compact");
+  assert.ok(snapshot.thisWeek.length > 0);
+  assert.ok(snapshot.thisWeek.every((item) => item.courseId === "chem-101"));
+  assert.equal(snapshot.surfaces.small.item?.courseId, "chem-101");
+  assert.ok(snapshot.surfaces.medium.items.every((item) => item.courseId === "chem-101"));
+});
+
 test("demo widget snapshot is deterministic", () => {
   const seed = createDemoSemesterSeed();
   const first = buildWidgetSnapshot(seed, storeCaptureNow);

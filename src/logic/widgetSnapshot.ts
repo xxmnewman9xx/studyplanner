@@ -18,6 +18,8 @@ export type WidgetSnapshotInput = {
   assignments: Assignment[];
   paletteId?: string;
   widgetStyleId?: string;
+  courseFocusId?: string;
+  layoutId?: string;
   reviewQueueCount?: number;
   demoState?: WidgetSnapshot["demoState"];
 };
@@ -26,21 +28,27 @@ export function buildWidgetSnapshot(
   input: WidgetSnapshotInput,
   now = new Date()
 ): WidgetSnapshot {
-  const openAssignments = input.assignments
+  const scopedCourse =
+    input.courseFocusId && input.courseFocusId !== "all"
+      ? input.courses.find((course) => course.id === input.courseFocusId)
+      : undefined;
+  const scopedAssignments = scopedCourse
+    ? input.assignments.filter((assignment) => assignment.courseId === scopedCourse.id)
+    : input.assignments;
+  const openAssignments = scopedAssignments
     .filter((assignment) => isAssignmentOpen(assignment))
     .filter((assignment) => parseValidDate(assignment.dueAt))
     .sort((a, b) => parseValidDate(a.dueAt)!.getTime() - parseValidDate(b.dueAt)!.getTime());
-  const weekPlan = buildWeekPlan(input.assignments, now);
+  const weekPlan = buildWeekPlan(scopedAssignments, now);
   const thisWeek = weekPlan.days.flatMap((day) => day.items).map((assignment) =>
     toWidgetItem(assignment, input.courses, now)
   );
   const overdueCount = openAssignments.filter((assignment) => daysUntil(assignment.dueAt, now) < 0)
     .length;
-  const reviewQueueCount =
-    input.reviewQueueCount ??
-    input.assignments.filter(
-      (assignment) => assignment.reviewStatus === "needsReview" && !isAssignmentArchived(assignment)
-    ).length;
+  const scopedReviewQueueCount = scopedAssignments.filter(
+    (assignment) => assignment.reviewStatus === "needsReview" && !isAssignmentArchived(assignment)
+  ).length;
+  const reviewQueueCount = scopedCourse ? scopedReviewQueueCount : input.reviewQueueCount ?? scopedReviewQueueCount;
   const nextDue = openAssignments[0]
     ? toWidgetItem(openAssignments[0], input.courses, now)
     : undefined;
@@ -54,15 +62,15 @@ export function buildWidgetSnapshot(
     : undefined;
   const emptyState = {
     isEmpty: openAssignments.length === 0,
-    title: "No upcoming deadlines",
+    title: scopedCourse ? `No ${scopedCourse.code} deadlines` : "No upcoming deadlines",
     message:
-      input.assignments.length === 0
+      scopedAssignments.length === 0
         ? "Add school stuff to see what is due next."
         : "Everything due is complete."
   };
   const generatedAt = now.toISOString();
-  const insights = buildSemesterInsights(input.assignments, input.courses, now);
-  const monthly = buildWidgetMonthlySnapshot(input.assignments, input.courses, now);
+  const insights = buildSemesterInsights(scopedAssignments, input.courses, now);
+  const monthly = buildWidgetMonthlySnapshot(scopedAssignments, input.courses, now);
   const widgetStyle = createWidgetStyleSnapshot(
     input.paletteId || defaultThemePaletteId,
     input.widgetStyleId
@@ -74,6 +82,11 @@ export function buildWidgetSnapshot(
     lastUpdated: generatedAt,
     semesterId: input.semester.id,
     semesterName: input.semester.name,
+    scope: {
+      courseFocusId: scopedCourse?.id || "all",
+      courseName: scopedCourse?.code || scopedCourse?.name,
+      layoutId: input.layoutId || "standard"
+    },
     nextDue,
     thisWeek,
     overdueCount,

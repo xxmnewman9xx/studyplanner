@@ -23,6 +23,7 @@ import {
 
 import {
   GlassCard,
+  LoopStepper,
   MetricPill,
   StatusBadge,
   StudyPlannerBrand,
@@ -121,37 +122,37 @@ const onboardingSteps: Array<{
 }> = [
   {
     id: "syllabus",
-    eyebrow: "1. Scan",
-    title: "Scan anything school gives you.",
-    copy: "Syllabi, slides, docs, handouts, and typed notes can become found work to check.",
+    eyebrow: "1. Scan Anything",
+    title: "Turn school chaos into a plan.",
+    copy: "Take a photo, upload a file, or paste the class notes your teacher gives you.",
     icon: FileScan
   },
   {
     id: "review",
     eyebrow: "2. AI Parses It",
-    title: "Found Work waits for your approval.",
-    copy: "Nothing becomes a due date until you mark it Looks Good. Unclear dates stay editable.",
+    title: "The app finds the homework.",
+    copy: "It pulls out the class, title, and due date, then waits for your check.",
     icon: CheckCircle2
   },
   {
     id: "today",
     eyebrow: "3. Plan It All",
-    title: "Your checked work powers every view.",
-    copy: "Today, Week Plan, Calendar, reminders, and widgets all use the same checked assignments.",
+    title: "Checked work becomes your plan.",
+    copy: "Today, Week, Calendar, Classes, reminders, and widgets all use the same approved work.",
     icon: Target
   },
   {
     id: "widgets",
     eyebrow: "4. Focus Daily",
-    title: "See the next thing and get it done.",
-    copy: "Small shows Next Due. Medium shows This Week. Both stay tied to your confirmed planner.",
+    title: "Do the next thing.",
+    copy: "Start one task, stay in the zone, and mark it done when it is finished.",
     icon: Crown
   },
   {
     id: "palette",
     eyebrow: "5. Review & Improve",
-    title: "Choose your style and keep improving.",
-    copy: "Your colors carry through classes, calendar dots, workload bars, and widget previews.",
+    title: "See what changed.",
+    copy: "Check progress, busy days, anything that still needs a look, and the widgets that keep you honest.",
     icon: Sparkles
   }
 ];
@@ -162,6 +163,9 @@ const widgetFocusOptions: Array<{ id: WidgetFocusId; label: string; description:
 ];
 
 const onboardingWidgetStyles: WidgetStylePresetId[] = [
+  "glass",
+  "softGradient",
+  "cleanCard",
   "ocean",
   "violet",
   "emerald",
@@ -251,7 +255,7 @@ export function OnboardingScreen({ initialStep = 0, onFinish }: OnboardingScreen
 
   const goNext = () => {
     if (isFinal) {
-      onFinish();
+      onFinish(supportsSyllabusImageParsing() ? "scan" : "upload");
       return;
     }
     setIndex((current) => Math.min(onboardingSteps.length - 1, current + 1));
@@ -291,6 +295,7 @@ export function OnboardingScreen({ initialStep = 0, onFinish }: OnboardingScreen
         </View>
         <Text style={styles.title}>{step.title}</Text>
         <Text style={styles.copy}>{step.copy}</Text>
+        <LoopStepper activeIndex={index} compact />
         <StepProgress activeIndex={index} />
       </View>
 
@@ -327,7 +332,7 @@ export function OnboardingScreen({ initialStep = 0, onFinish }: OnboardingScreen
           style={styles.nextButton}
           onPress={goNext}
         >
-          <Text style={styles.nextText}>{isFinal ? "Start Planning" : "Next"}</Text>
+          <Text style={styles.nextText}>{isFinal ? "Start with Scan" : "Next"}</Text>
           <ChevronRight color={colors.heroText} size={18} />
         </TouchableOpacity>
       </View>
@@ -996,7 +1001,7 @@ function createStyles(theme: AppTheme) {
     hero: {
       position: "relative",
       overflow: "hidden",
-      minHeight: 238,
+      minHeight: 270,
       borderRadius: 31,
       padding: spacing.lg,
       gap: spacing.sm,
@@ -1058,8 +1063,8 @@ function createStyles(theme: AppTheme) {
     },
     title: {
       color: colors.ink,
-      fontSize: 33,
-      lineHeight: 38,
+      fontSize: 28,
+      lineHeight: 33,
       fontWeight: "900"
     },
     copy: {

@@ -26,7 +26,12 @@ import Svg, {
 } from "react-native-svg";
 
 import { Assignment, Course, WidgetSnapshot, WidgetSnapshotStyle } from "../models";
-import { AppTheme, readableAccentOnBackground, readableColorOnBackground } from "../theme";
+import {
+  AppTheme,
+  ThemePalette,
+  readableAccentOnBackground,
+  readableColorOnBackground
+} from "../theme";
 import { useAppTheme } from "../themeContext";
 import { daysUntil, formatShortDate } from "../logic/planner";
 
@@ -169,6 +174,269 @@ export function GlassCard({
   );
 }
 
+export function LoopStepper({
+  activeIndex = 0,
+  compact = false
+}: {
+  activeIndex?: number;
+  compact?: boolean;
+}) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  const steps = ["Scan", "Parse", "Plan", "Focus", "Review"];
+
+  return (
+    <View
+      accessible
+      accessibilityRole="summary"
+      accessibilityLabel={`Study loop: ${steps.join(", ")}. Current step ${steps[Math.max(0, Math.min(steps.length - 1, activeIndex))]}.`}
+      style={[styles.loopStepper, compact ? styles.loopStepperCompact : null]}
+    >
+      {steps.map((step, index) => {
+        const active = index === activeIndex;
+        const complete = index < activeIndex;
+        return (
+          <View key={step} style={styles.loopStepWrap}>
+            <View style={[styles.loopNode, active ? styles.loopNodeActive : null, complete ? styles.loopNodeComplete : null]}>
+              <Text style={[styles.loopNodeText, active || complete ? styles.loopNodeTextActive : null]}>
+                {index + 1}
+              </Text>
+            </View>
+            <Text
+              maxFontSizeMultiplier={dockTextScale}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              style={[styles.loopLabel, active ? styles.loopLabelActive : null]}
+            >
+              {step}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+export function ActionTile({
+  title,
+  subtitle,
+  icon: Icon,
+  tone = "purple",
+  onPress
+}: {
+  title: string;
+  subtitle?: string;
+  icon: React.ComponentType<{ color: string; size: number }>;
+  tone?: Tone;
+  onPress: () => void;
+}) {
+  const { theme } = useAppTheme();
+  const { colors } = theme;
+  const styles = createStyles(theme);
+  const iconColor = tone === "blue" ? colors.brandBlue : tone === "green" ? colors.green : tone === "gold" ? colors.gold : tone === "red" ? colors.red : colors.brandPurple;
+
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
+      activeOpacity={0.84}
+      style={styles.actionTile}
+      onPress={onPress}
+    >
+      <View style={[styles.actionTileIcon, { backgroundColor: `${iconColor}18` }]}>
+        <Icon color={iconColor} size={18} />
+      </View>
+      <View style={styles.actionTileCopy}>
+        <Text maxFontSizeMultiplier={bodyTextScale} style={styles.actionTileTitle}>{title}</Text>
+        {subtitle ? <Text maxFontSizeMultiplier={bodyTextScale} style={styles.actionTileSubtitle}>{subtitle}</Text> : null}
+      </View>
+      <ChevronRight color={colors.faint} size={16} />
+    </TouchableOpacity>
+  );
+}
+
+export function PremiumHero({
+  eyebrow,
+  title,
+  subtitle,
+  children,
+  style
+}: {
+  eyebrow?: string;
+  title: string;
+  subtitle?: string;
+  children?: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <GlassCard tint="hero" style={[styles.premiumHero, style]}>
+      <View pointerEvents="none" style={styles.premiumHeroBand} />
+      {eyebrow ? <Text maxFontSizeMultiplier={bodyTextScale} style={styles.premiumHeroEyebrow}>{eyebrow}</Text> : null}
+      <Text maxFontSizeMultiplier={displayTextScale} style={styles.premiumHeroTitle}>{title}</Text>
+      {subtitle ? <Text maxFontSizeMultiplier={bodyTextScale} style={styles.premiumHeroSubtitle}>{subtitle}</Text> : null}
+      {children}
+    </GlassCard>
+  );
+}
+
+export function FeaturePreviewCard({
+  title,
+  subtitle,
+  children
+}: {
+  title: string;
+  subtitle?: string;
+  children?: React.ReactNode;
+}) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <GlassCard style={styles.featurePreviewCard}>
+      <Text maxFontSizeMultiplier={bodyTextScale} style={styles.featurePreviewTitle}>{title}</Text>
+      {subtitle ? <Text maxFontSizeMultiplier={bodyTextScale} style={styles.featurePreviewSubtitle}>{subtitle}</Text> : null}
+      {children}
+    </GlassCard>
+  );
+}
+
+export function WidgetPreviewCard({
+  title,
+  selected,
+  children,
+  onPress
+}: {
+  title: string;
+  selected?: boolean;
+  children: React.ReactNode;
+  onPress?: () => void;
+}) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  const body = (
+    <View style={[styles.widgetPreviewCard, selected ? styles.widgetPreviewCardSelected : null]}>
+      {children}
+      <Text maxFontSizeMultiplier={bodyTextScale} style={[styles.widgetPreviewCardTitle, selected ? styles.widgetPreviewCardTitleSelected : null]}>
+        {title}
+      </Text>
+    </View>
+  );
+
+  if (!onPress) return body;
+
+  return (
+    <TouchableOpacity accessibilityRole="button" accessibilityLabel={title} activeOpacity={0.84} onPress={onPress}>
+      {body}
+    </TouchableOpacity>
+  );
+}
+
+export function PalettePicker({
+  palettes,
+  activeId,
+  onSelect
+}: {
+  palettes: ThemePalette[];
+  activeId: string;
+  onSelect: (id: ThemePalette["id"]) => void;
+}) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.palettePicker}>
+      {palettes.map((palette) => (
+        <ThemePresetCard
+          key={palette.id}
+          palette={palette}
+          selected={palette.id === activeId}
+          onPress={() => onSelect(palette.id)}
+        />
+      ))}
+    </View>
+  );
+}
+
+export function ThemePresetCard({
+  palette,
+  selected,
+  onPress
+}: {
+  palette: ThemePalette;
+  selected?: boolean;
+  onPress: () => void;
+}) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel={`Use ${palette.name} theme`}
+      accessibilityState={{ selected }}
+      activeOpacity={0.84}
+      style={[styles.themePresetCard, selected ? styles.themePresetCardSelected : null]}
+      onPress={onPress}
+    >
+      <View style={styles.themePresetSwatches}>
+        <View style={[styles.themePresetSwatchLarge, { backgroundColor: palette.accent }]} />
+        <View style={[styles.themePresetSwatch, { backgroundColor: palette.secondary }]} />
+        <View style={[styles.themePresetSwatch, { backgroundColor: palette.tertiary }]} />
+      </View>
+      <Text maxFontSizeMultiplier={bodyTextScale} style={[styles.themePresetName, selected ? styles.themePresetNameSelected : null]}>
+        {palette.shortName}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
+export function PremiumEmptyState({
+  title,
+  copy,
+  actionLabel,
+  onAction
+}: {
+  title: string;
+  copy: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <GlassCard style={styles.emptyStateCard}>
+      <Sparkles color={theme.colors.brandPurple} size={18} />
+      <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyStateTitle}>{title}</Text>
+      <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyStateCopy}>{copy}</Text>
+      {actionLabel && onAction ? (
+        <ModernPrimaryButton label={actionLabel} onPress={onAction} />
+      ) : null}
+    </GlassCard>
+  );
+}
+
+export function ModernPrimaryButton({
+  label,
+  onPress
+}: {
+  label: string;
+  onPress: () => void;
+}) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <TouchableOpacity accessibilityRole="button" accessibilityLabel={label} activeOpacity={0.82} style={styles.modernPrimaryButton} onPress={onPress}>
+      <Text maxFontSizeMultiplier={bodyTextScale} style={styles.modernPrimaryButtonText}>{label}</Text>
+      <ChevronRight color={theme.colors.heroText} size={15} />
+    </TouchableOpacity>
+  );
+}
+
 export function CommandCenterHero({
   assignment,
   course,
@@ -198,7 +466,7 @@ export function CommandCenterHero({
           <Target color={colors.heroText} size={20} />
         </View>
         <View style={styles.heroTopCopy}>
-          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroKicker}>NEXT DUE</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroKicker}>4 FOCUS - NEXT TASK</Text>
           <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroDueLabel}>
             {dueLabel || "Your plan is clear"}
           </Text>
@@ -237,7 +505,7 @@ export function CommandCenterHero({
               style={styles.heroSecondaryButton}
               onPress={onStart}
             >
-              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroSecondaryText}>Focus</Text>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroSecondaryText}>Start Focus</Text>
             </TouchableOpacity>
             <TouchableOpacity
               accessibilityRole="button"
@@ -246,7 +514,7 @@ export function CommandCenterHero({
               style={styles.heroPrimaryButton}
               onPress={onComplete}
             >
-              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroPrimaryText}>Done</Text>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroPrimaryText}>Mark Done</Text>
               <ChevronRight color={colors.heroText} size={15} />
             </TouchableOpacity>
           </View>
@@ -529,7 +797,7 @@ export function WidgetPreviewSmall({
   const item = snapshot.surfaces.small.item;
   const visual = widgetPreviewVisual(snapshot, widgetStyle, colors);
   const iconBackground = item?.courseColor || visual.accent;
-  const dueColor = readableAccentOnBackground([visual.accent, visual.secondary], visual.background, visual.text);
+  const dueColor = readableAccentOnBackground([visual.accent, visual.secondary], visual.background, visual.text, 4.5);
 
   return (
     <View style={[styles.smallWidget, { backgroundColor: visual.background }]}>
@@ -565,7 +833,7 @@ export function WidgetPreviewMedium({
   const styles = createStyles(theme);
   const items = snapshot.surfaces.medium.items;
   const visual = widgetPreviewVisual(snapshot, widgetStyle, colors);
-  const dueColor = readableAccentOnBackground([visual.accent, visual.secondary], visual.background, visual.text);
+  const dueColor = readableAccentOnBackground([visual.accent, visual.secondary], visual.background, visual.text, 4.5);
 
   return (
     <View style={[styles.mediumWidget, { backgroundColor: visual.background }]}>
@@ -1074,6 +1342,252 @@ function createStyles(theme: AppTheme) {
     glassCardHero: {
       borderColor: "rgba(108,92,231,0.16)",
       backgroundColor: colors.surface
+    },
+    loopStepper: {
+      minHeight: 70,
+      borderRadius: 22,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: theme.isDark ? colors.glass : "rgba(255,255,255,0.88)",
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 4,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.18 : 0.07,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 2
+    },
+    loopStepperCompact: {
+      minHeight: 58
+    },
+    loopStepWrap: {
+      flex: 1,
+      alignItems: "center",
+      gap: 4,
+      minWidth: 0
+    },
+    loopNode: {
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.surfaceAlt,
+      borderWidth: 1,
+      borderColor: colors.line
+    },
+    loopNodeActive: {
+      backgroundColor: colors.brandPurple,
+      borderColor: colors.brandPurple
+    },
+    loopNodeComplete: {
+      backgroundColor: colors.brandBlue,
+      borderColor: colors.brandBlue
+    },
+    loopNodeText: {
+      color: colors.faint,
+      fontSize: 11,
+      fontWeight: "900"
+    },
+    loopNodeTextActive: {
+      color: colors.heroText
+    },
+    loopLabel: {
+      color: colors.muted,
+      fontSize: 9,
+      lineHeight: 12,
+      fontWeight: "900"
+    },
+    loopLabelActive: {
+      color: colors.ink
+    },
+    actionTile: {
+      minHeight: 70,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.18 : 0.06,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 2
+    },
+    actionTileIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    actionTileCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    actionTileTitle: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 18,
+      fontWeight: "900"
+    },
+    actionTileSubtitle: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "700"
+    },
+    premiumHero: {
+      overflow: "hidden",
+      gap: spacing.xs,
+      borderColor: `${colors.brandBlue}26`
+    },
+    premiumHeroBand: {
+      position: "absolute",
+      top: -36,
+      right: -42,
+      width: 210,
+      height: 92,
+      borderRadius: 34,
+      backgroundColor: `${colors.brandBlue}14`,
+      transform: [{ rotate: "22deg" }]
+    },
+    premiumHeroEyebrow: {
+      color: colors.brandPurple,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900"
+    },
+    premiumHeroTitle: {
+      color: colors.ink,
+      fontSize: 22,
+      lineHeight: 28,
+      fontWeight: "900"
+    },
+    premiumHeroSubtitle: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
+    },
+    featurePreviewCard: {
+      overflow: "hidden"
+    },
+    featurePreviewTitle: {
+      color: colors.ink,
+      fontSize: 16,
+      lineHeight: 21,
+      fontWeight: "900"
+    },
+    featurePreviewSubtitle: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 16,
+      fontWeight: "700"
+    },
+    widgetPreviewCard: {
+      minWidth: 112,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.xs,
+      gap: 6
+    },
+    widgetPreviewCardSelected: {
+      borderColor: colors.brandPurple,
+      backgroundColor: colors.purpleSoft
+    },
+    widgetPreviewCardTitle: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900"
+    },
+    widgetPreviewCardTitleSelected: {
+      color: colors.ink
+    },
+    palettePicker: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    themePresetCard: {
+      width: "31.8%",
+      minHeight: 78,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.xs,
+      justifyContent: "space-between",
+      gap: 6
+    },
+    themePresetCardSelected: {
+      borderColor: colors.brandPurple,
+      backgroundColor: colors.purpleSoft
+    },
+    themePresetSwatches: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      gap: 4
+    },
+    themePresetSwatchLarge: {
+      width: 28,
+      height: 28,
+      borderRadius: 10
+    },
+    themePresetSwatch: {
+      width: 18,
+      height: 18,
+      borderRadius: 7
+    },
+    themePresetName: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    themePresetNameSelected: {
+      color: colors.ink
+    },
+    emptyStateCard: {
+      alignItems: "flex-start"
+    },
+    emptyStateTitle: {
+      color: colors.ink,
+      fontSize: 17,
+      lineHeight: 22,
+      fontWeight: "900"
+    },
+    emptyStateCopy: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
+    },
+    modernPrimaryButton: {
+      minHeight: 42,
+      borderRadius: radii.round,
+      backgroundColor: colors.brandPurple,
+      paddingHorizontal: spacing.md,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 3
+    },
+    modernPrimaryButtonText: {
+      color: colors.heroText,
+      fontSize: 12,
+      fontWeight: "900"
     },
     commandHero: {
       minHeight: 150,
@@ -1914,8 +2428,8 @@ function createStyles(theme: AppTheme) {
       justifyContent: "space-between",
       borderRadius: 25,
       borderWidth: 1,
-      borderColor: "rgba(148,163,184,0.24)",
-      backgroundColor: "rgba(255,255,255,0.96)",
+      borderColor: theme.isDark ? "rgba(203,213,225,0.16)" : "rgba(148,163,184,0.24)",
+      backgroundColor: theme.isDark ? "rgba(17,23,34,0.96)" : "rgba(255,255,255,0.96)",
       padding: 5,
       shadowColor: colors.shadow,
       shadowOpacity: 0.12,

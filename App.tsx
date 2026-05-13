@@ -379,6 +379,8 @@ function AppContent() {
         assignments: widgetSnapshotAssignments,
         paletteId: theme.palette.id,
         widgetStyleId: widgetPreferences.styleId,
+        courseFocusId: widgetPreferences.courseFocusId,
+        layoutId: widgetPreferences.layoutId,
         reviewQueueCount: foundWorkReviewQueueCount,
         demoState: storeCaptureEnabled
           ? {
@@ -398,6 +400,8 @@ function AppContent() {
     storeCaptureEnabled,
     theme.palette.id,
     widgetSnapshotAssignments,
+    widgetPreferences.courseFocusId,
+    widgetPreferences.layoutId,
     widgetPreferences.styleId
   ]);
 

@@ -25,6 +25,7 @@ import {
 import { AppButton } from "../components/AppButton";
 import {
   GlassCard,
+  LoopStepper,
   MetricPill,
   PillFilter,
   PremiumHeader,
@@ -58,9 +59,9 @@ const priorities: Priority[] = ["low", "medium", "high"];
 const kinds: AssignmentKind[] = ["assignment", "exam", "quiz", "project", "reading", "other"];
 const filters: Array<{ id: ConfidenceFilter; label: string }> = [
   { id: "all", label: "All" },
-  { id: "high", label: "Looks good" },
+  { id: "high", label: "Ready" },
   { id: "medium", label: "Check date" },
-  { id: "low", label: "Needs check" }
+  { id: "low", label: "Needs help" }
 ];
 const bodyTextScale = 1.35;
 
@@ -147,7 +148,10 @@ export function ImportScreen({
       ignored: assignments.filter((assignment) => assignment.reviewStatus === "ignored").length,
       high: assignments.filter((assignment) => confidenceBucket(assignment.confidence) === "high").length,
       medium: assignments.filter((assignment) => confidenceBucket(assignment.confidence) === "medium").length,
-      low: assignments.filter((assignment) => confidenceBucket(assignment.confidence) === "low").length
+      low: assignments.filter((assignment) => confidenceBucket(assignment.confidence) === "low").length,
+      assignments: assignments.filter((assignment) => assignment.kind === "assignment").length,
+      exams: assignments.filter((assignment) => assignment.kind === "exam" || assignment.kind === "quiz").length,
+      projects: assignments.filter((assignment) => assignment.kind === "project").length
     };
   }, [draft]);
 
@@ -198,7 +202,7 @@ export function ImportScreen({
   const applyAcceptedPlan = () => {
     if (!draft) return;
     if (acceptedAssignments.length === 0) {
-      Alert.alert("Check one item first", "Tap Looks good on at least one found assignment before adding it.");
+      Alert.alert("Check one item first", "Mark at least one found assignment Ready before adding it.");
       return;
     }
     onApplyParsedPlan({
@@ -251,7 +255,7 @@ export function ImportScreen({
         `${riskyCount} shown item${riskyCount === 1 ? "" : "s"} may have a date or title to check. Add them anyway?`,
         [
           { text: "Keep checking", style: "cancel" },
-          { text: "Looks good", onPress: accept }
+          { text: "Add ready work", onPress: accept }
         ]
       );
       return;
@@ -339,8 +343,8 @@ export function ImportScreen({
   return (
     <PremiumScreen>
       <PremiumHeader
-        eyebrow={loading ? "2. AI Parses It" : draft ? "5. Review & Improve" : "1. Scan Anything"}
-        title={loading ? "AI Parses It" : draft ? "Found Work" : "Scan Anything"}
+        eyebrow={loading ? "2. Parse" : draft ? "2. Parse" : "1. Scan"}
+        title={loading ? "Finding Homework" : draft ? "Check Found Work" : "Scan School Work"}
         subtitle={
           loading
             ? "Finding assignments, dates, and classes."
@@ -349,6 +353,8 @@ export function ImportScreen({
               : "Syllabus, slides, docs, handouts, and photos can become a plan."
         }
       />
+
+      <LoopStepper activeIndex={loading || draft ? 1 : 0} compact />
 
       <GlassCard tint="hero">
         <View style={styles.scanHeroTop}>
@@ -362,7 +368,7 @@ export function ImportScreen({
         </View>
         <View style={styles.importGrid}>
           <AppButton
-            label="Upload"
+            label="Upload File"
             icon={FileText}
             variant="secondary"
             style={styles.importButton}
@@ -380,7 +386,7 @@ export function ImportScreen({
                 onPress={pickPhoto}
               />
               <AppButton
-                label="Scan"
+                label="Scan Document"
                 icon={Camera}
                 variant="secondary"
                 style={styles.importButton}
@@ -460,10 +466,10 @@ export function ImportScreen({
                 <Sparkles color={colors.heroText} size={20} />
               </View>
               <View style={styles.aiHeroCopy}>
-                <Text maxFontSizeMultiplier={bodyTextScale} style={styles.aiHeroKicker}>Needs Check</Text>
+                <Text maxFontSizeMultiplier={bodyTextScale} style={styles.aiHeroKicker}>2 Parse - Needs Check</Text>
                 <Text maxFontSizeMultiplier={bodyTextScale} style={styles.aiHeroTitle}>{reviewStats.needsReview} waiting for approval</Text>
                 <Text maxFontSizeMultiplier={bodyTextScale} style={styles.aiHeroMeta}>
-                  {reviewStats.high} look ready, but you choose what goes into Today, Calendar, Classes, and widgets.
+                  {reviewStats.assignments} assignments, {reviewStats.exams} exams or quizzes, {reviewStats.projects} projects. You choose what goes into Today, Calendar, Classes, and widgets.
                 </Text>
               </View>
               <StatusBadge label={reviewStats.low > 0 ? "Needs check" : "Clean"} tone={reviewStats.low > 0 ? "gold" : "green"} />
@@ -486,9 +492,9 @@ export function ImportScreen({
               <StatusBadge label={`${reviewStats.needsReview} waiting`} tone="purple" />
             </View>
             <View style={styles.statRow}>
-              <MetricPill label="Looks Good" value={String(reviewStats.high)} tone="green" />
+              <MetricPill label="Ready" value={String(reviewStats.high)} tone="green" />
               <MetricPill label="Check Date" value={String(reviewStats.medium)} tone="gold" />
-              <MetricPill label="Needs Check" value={String(reviewStats.low)} tone="red" />
+              <MetricPill label="Needs Help" value={String(reviewStats.low)} tone="red" />
             </View>
           </GlassCard>
 
@@ -513,7 +519,7 @@ export function ImportScreen({
             </GlassCard>
           ) : (
             <>
-              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.filterCaption}>How sure</Text>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.filterCaption}>AI confidence</Text>
               <View style={styles.filterRow}>
                 {filters.map((option) => (
                   <PillFilter
@@ -527,7 +533,7 @@ export function ImportScreen({
               </View>
 
               <AppButton
-                label={`Mark ${reviewStats.high} looks good`}
+                label={`Add ${reviewStats.high} ready item${reviewStats.high === 1 ? "" : "s"}`}
                 icon={CheckCheck}
                 disabled={reviewStats.high === 0}
                 onPress={acceptAllHighConfidence}
@@ -536,14 +542,14 @@ export function ImportScreen({
               <View style={styles.secondaryActions}>
                 <TouchableOpacity
                   accessibilityRole="button"
-                  accessibilityLabel={`Mark ${visibleAssignments.length} shown item${visibleAssignments.length === 1 ? "" : "s"} looks good`}
+                  accessibilityLabel={`Add ${visibleAssignments.length} shown item${visibleAssignments.length === 1 ? "" : "s"} to plan`}
                   accessibilityHint="Adds the currently filtered found work to the planner after review."
                   accessibilityState={{ disabled: visibleAssignments.length === 0 }}
                   disabled={visibleAssignments.length === 0}
                   onPress={acceptVisible}
                 >
                   <Text maxFontSizeMultiplier={bodyTextScale} style={[styles.secondaryActionText, visibleAssignments.length === 0 ? styles.secondaryActionTextDisabled : null]}>
-                    Approve Shown
+                    Add shown to Plan
                   </Text>
                 </TouchableOpacity>
                 {reviewStats.ignored > 0 ? (
@@ -597,7 +603,7 @@ export function ImportScreen({
               </View>
 
               <AppButton
-                label="Add to Planner"
+                label="Add checked work to Plan"
                 disabled={acceptedAssignments.length === 0}
                 onPress={applyAcceptedPlan}
               />
@@ -660,7 +666,7 @@ function ReviewRow({
 
   const acceptIfDateValid = () => {
     if (dateError || !isValidDateKey(draftDate)) {
-      Alert.alert("Fix the date first", "Use a real date before marking this found work Looks Good.");
+      Alert.alert("Fix the date first", "Use a real date before marking this found work Ready.");
       return;
     }
 
@@ -672,7 +678,7 @@ function ReviewRow({
       <View style={styles.reviewRow}>
         <TouchableOpacity
           accessibilityRole="button"
-          accessibilityLabel={accepted ? `${assignment.title} already marked looks good` : `Mark ${assignment.title} looks good`}
+          accessibilityLabel={accepted ? `${assignment.title} already marked ready` : `Mark ${assignment.title} ready`}
           accessibilityState={{ checked: accepted }}
           style={styles.checkButton}
           onPress={acceptIfDateValid}
@@ -689,7 +695,7 @@ function ReviewRow({
         <StatusBadge label={confidenceLabel(assignment.confidence)} tone={confidenceTone(assignment.confidence)} />
       </View>
       <View style={styles.reviewActionRow}>
-        <MicroAction label="Looks good" onPress={acceptIfDateValid}>
+        <MicroAction label="Ready" onPress={acceptIfDateValid}>
           <CheckCircle2 color={colors.green} size={16} />
         </MicroAction>
         <MicroAction label="Remove" onPress={onIgnore}>
@@ -811,7 +817,7 @@ function confidenceBucket(confidence: number): Exclude<ConfidenceFilter, "all"> 
 }
 
 function confidenceLabel(confidence: number) {
-  if (confidence >= 0.85) return "Looks good";
+  if (confidence >= 0.85) return "Ready";
   if (confidence >= 0.7) return "Check date";
   return "Needs check";
 }

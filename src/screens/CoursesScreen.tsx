@@ -7,6 +7,7 @@ import { CourseBalanceCard, CompletionInsightCard } from "../components/InsightC
 import {
   CourseCard,
   GlassCard,
+  LoopStepper,
   MetricPill,
   PremiumHeader,
   PremiumScreen,
@@ -203,8 +204,8 @@ export function CoursesScreen({
     <PremiumScreen>
       <PremiumHeader
         eyebrow={`${formatDateOnly(semester.startDate)} - ${formatDateOnly(semester.endDate)}`}
-        title="My Classes"
-        subtitle="Everything for each class. All in one place."
+        title="Plan by Class"
+        subtitle="See each class color, next due item, and quick actions."
         right={
           captureMode ? null : (
             <TouchableOpacity
@@ -218,6 +219,8 @@ export function CoursesScreen({
           )
         }
       />
+
+      <LoopStepper activeIndex={2} compact />
 
       <View style={styles.courseList}>
         {courses.length === 0 ? (

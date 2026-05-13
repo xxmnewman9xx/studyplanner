@@ -244,6 +244,11 @@ export type WidgetSnapshot = {
   lastUpdated: string;
   semesterId: string;
   semesterName: string;
+  scope?: {
+    courseFocusId?: string;
+    courseName?: string;
+    layoutId?: string;
+  };
   nextDue?: WidgetSnapshotItem;
   thisWeek: WidgetSnapshotItem[];
   overdueCount: number;

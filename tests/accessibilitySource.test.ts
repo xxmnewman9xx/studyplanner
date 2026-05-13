@@ -45,9 +45,9 @@ test("core action screens expose labels and bounded text scaling", () => {
   assert.ok(appButton.includes("maxFontSizeMultiplier={buttonTextScale}"));
   assert.ok(appButton.includes("numberOfLines={2}"));
 
-  assert.ok(importScreen.includes("Mark ${visibleAssignments.length} shown item"));
+  assert.ok(importScreen.includes("Add ${visibleAssignments.length} shown item"));
   assert.ok(importScreen.includes("Edit first shown found item"));
-  assert.ok(importScreen.includes("Mark ${assignment.title} looks good"));
+  assert.ok(importScreen.includes("Mark ${assignment.title} ready"));
   assert.ok(importScreen.includes("Set found work option to ${label}"));
   assert.ok(importScreen.includes("maxFontSizeMultiplier={bodyTextScale}"));
 
