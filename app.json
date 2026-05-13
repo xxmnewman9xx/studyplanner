@@ -3,7 +3,7 @@
     "name": "Study Planner: Syllabus AI",
     "slug": "study-planner-syllabus-ai",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/app/study-planner-icon.png",
     "scheme": "studyplanner",

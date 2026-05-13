@@ -1,13 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Plus } from "lucide-react-native";
+import { Edit3, Plus } from "lucide-react-native";
+import {
+  AssignmentRow,
+  ClassIdentityCard,
+  EmojiBadge,
+  GlassCard,
+  SegmentedControl
+} from "../components/AppleComponents";
 import { AppButton } from "../components/AppButton";
-import { AssignmentCard } from "../components/AssignmentCard";
-import { Badge } from "../components/Badge";
 import { SectionHeader } from "../components/SectionHeader";
 import { Assignment, AssignmentKind, Course, Semester } from "../models";
-import { formatDateOnly, groupMeetingsByDay } from "../logic/planner";
-import { AppTheme } from "../theme";
+import {
+  formatDateOnly,
+  getClassAssignmentCounts,
+  groupMeetingsByDay
+} from "../logic/planner";
+import { AppTheme, classColors } from "../theme";
 import { useAppTheme } from "../themeContext";
 
 type CoursesScreenProps = {
@@ -47,6 +56,7 @@ export function CoursesScreen({
   const [newCourseName, setNewCourseName] = useState("");
   const [newCourseInstructor, setNewCourseInstructor] = useState("");
   const weekly = groupMeetingsByDay(courses);
+  const counts = getClassAssignmentCounts(courses, assignments);
   const selectedCourse = courses.find((course) => course.id === selectedCourseId) || courses[0];
   const selectedAssignments = selectedCourse
     ? assignments
@@ -59,7 +69,6 @@ export function CoursesScreen({
       setSelectedCourseId("");
       return;
     }
-
     if (!courses.some((course) => course.id === selectedCourseId)) {
       setSelectedCourseId(courses[0]?.id || "");
     }
@@ -74,123 +83,157 @@ export function CoursesScreen({
 
   return (
     <View>
-      <View style={styles.header}>
-        <Text style={styles.kicker}>Semester setup</Text>
-        <TextInput
-          value={semester.name}
-          onChangeText={(name) => onUpdateSemester({ name })}
-          placeholder="Semester name"
-          placeholderTextColor={colors.faint}
-          style={styles.titleInput}
-        />
-        <Text style={styles.subtitle}>
-          {formatDateOnly(semester.startDate)} to {formatDateOnly(semester.endDate)}
-        </Text>
-      </View>
-
-      <View style={styles.semesterCard}>
-        <View style={styles.twoColumn}>
-          <View style={styles.fieldHalf}>
-            <Text style={styles.inputLabel}>Start</Text>
-            <TextInput
-              value={semester.startDate}
-              onChangeText={(startDate) => onUpdateSemester({ startDate })}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.faint}
-              style={styles.input}
-            />
+      <GlassCard tone="hero" style={styles.hero}>
+        <View style={styles.heroTop}>
+          <View>
+            <Text style={styles.kicker}>Classes</Text>
+            <Text style={styles.heroTitle}>{semester.name}</Text>
+            <Text style={styles.heroCopy}>
+              {formatDateOnly(semester.startDate)} to {formatDateOnly(semester.endDate)}
+            </Text>
           </View>
-          <View style={styles.fieldHalf}>
-            <Text style={styles.inputLabel}>End</Text>
-            <TextInput
-              value={semester.endDate}
-              onChangeText={(endDate) => onUpdateSemester({ endDate })}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.faint}
-              style={styles.input}
-            />
-          </View>
+          <EmojiBadge name="study" label={`${courses.length} classes`} tone="violet" />
         </View>
-      </View>
+        <View style={styles.semesterDates}>
+          <TextInput
+            value={semester.startDate}
+            onChangeText={(startDate) => onUpdateSemester({ startDate })}
+            placeholder="YYYY-MM-DD"
+            placeholderTextColor={colors.faint}
+            style={styles.dateInput}
+          />
+          <TextInput
+            value={semester.endDate}
+            onChangeText={(endDate) => onUpdateSemester({ endDate })}
+            placeholder="YYYY-MM-DD"
+            placeholderTextColor={colors.faint}
+            style={styles.dateInput}
+          />
+        </View>
+      </GlassCard>
 
-      <SectionHeader title="Courses" note={`${courses.length} active courses`} />
+      <SectionHeader title="Class Customization" note="Color, teacher, period, and room" />
       <View style={styles.courseList}>
-        {courses.length === 0 ? (
-          <Text style={styles.emptyCard}>Add your first course to start building the semester.</Text>
-        ) : null}
-        {courses.map((course) => {
-          const openCount = assignments.filter(
-            (assignment) => assignment.courseId === course.id && assignment.status !== "done"
-          ).length;
-          return (
-            <TouchableOpacity
-              accessibilityRole="button"
-              key={course.id}
-              style={[
-                styles.courseCard,
-                selectedCourse?.id === course.id ? styles.courseCardSelected : null
-              ]}
-              onPress={() => setSelectedCourseId(course.id)}
-            >
-              <View style={[styles.colorDot, { backgroundColor: course.color }]} />
-              <View style={styles.courseBody}>
-                <Text style={styles.courseCode}>{course.code}</Text>
-                <Text style={styles.courseName}>{course.name}</Text>
-                <Text style={styles.courseMeta}>
-                  {course.instructor || "Instructor"} · {openCount} open
-                </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+        {courses.map((course) => (
+          <ClassIdentityCard
+            key={course.id}
+            course={course}
+            openCount={counts[course.id]?.open || 0}
+            doneCount={counts[course.id]?.done || 0}
+            onPress={() => setSelectedCourseId(course.id)}
+          />
+        ))}
       </View>
 
       {selectedCourse ? (
         <>
-          <SectionHeader title="Edit Course" note={selectedCourse.code} />
-          <View style={styles.addCard}>
-            <Text style={styles.inputLabel}>Code</Text>
-            <TextInput
-              value={selectedCourse.code}
-              onChangeText={(code) => onUpdateCourse(selectedCourse.id, { code })}
-              placeholder="BIO 101"
-              placeholderTextColor={colors.faint}
-              style={styles.input}
-            />
-            <Text style={styles.inputLabel}>Name</Text>
-            <TextInput
-              value={selectedCourse.name}
-              onChangeText={(name) => onUpdateCourse(selectedCourse.id, { name })}
-              placeholder="Course name"
-              placeholderTextColor={colors.faint}
-              style={styles.input}
-            />
-            <Text style={styles.inputLabel}>Instructor</Text>
-            <TextInput
-              value={selectedCourse.instructor || ""}
-              onChangeText={(instructor) => onUpdateCourse(selectedCourse.id, { instructor })}
-              placeholder="Instructor"
-              placeholderTextColor={colors.faint}
-              style={styles.input}
-            />
+          <SectionHeader title={selectedCourse.code} note="Class home and settings" />
+          <GlassCard style={styles.detailCard}>
+            <View style={[styles.classHero, { backgroundColor: selectedCourse.color }]}>
+              <Text style={styles.classHeroTitle}>{selectedCourse.name}</Text>
+              <Text style={styles.classHeroMeta}>
+                {selectedCourse.teacher || selectedCourse.instructor} · {selectedCourse.period} · {selectedCourse.room}
+              </Text>
+            </View>
+            <View style={styles.editGrid}>
+              <Field label="Class">
+                <TextInput
+                  value={selectedCourse.code}
+                  onChangeText={(code) => onUpdateCourse(selectedCourse.id, { code })}
+                  placeholder="Algebra II"
+                  placeholderTextColor={colors.faint}
+                  style={styles.input}
+                />
+              </Field>
+              <Field label="Teacher">
+                <TextInput
+                  value={selectedCourse.teacher || selectedCourse.instructor || ""}
+                  onChangeText={(teacher) =>
+                    onUpdateCourse(selectedCourse.id, { teacher, instructor: teacher })
+                  }
+                  placeholder="Teacher"
+                  placeholderTextColor={colors.faint}
+                  style={styles.input}
+                />
+              </Field>
+            </View>
+            <View style={styles.editGrid}>
+              <Field label="Period">
+                <TextInput
+                  value={selectedCourse.period || ""}
+                  onChangeText={(period) => onUpdateCourse(selectedCourse.id, { period })}
+                  placeholder="Period 4"
+                  placeholderTextColor={colors.faint}
+                  style={styles.input}
+                />
+              </Field>
+              <Field label="Room">
+                <TextInput
+                  value={selectedCourse.room || ""}
+                  onChangeText={(room) => onUpdateCourse(selectedCourse.id, { room })}
+                  placeholder="Room"
+                  placeholderTextColor={colors.faint}
+                  style={styles.input}
+                />
+              </Field>
+            </View>
+            <View style={styles.colorRail}>
+              {classColors.map((color) => (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: selectedCourse.color === color }}
+                  key={color}
+                  style={[
+                    styles.colorSwatch,
+                    { backgroundColor: color },
+                    selectedCourse.color === color ? styles.colorSwatchActive : null
+                  ]}
+                  onPress={() => onUpdateCourse(selectedCourse.id, { color })}
+                />
+              ))}
+            </View>
+          </GlassCard>
+
+          <SectionHeader title="Upcoming Work" note={`${counts[selectedCourse.id]?.open || 0} open items`} />
+          <View style={styles.workList}>
+            {selectedAssignments.length === 0 ? (
+              <Text style={styles.emptyDay}>No assignments yet.</Text>
+            ) : (
+              selectedAssignments.slice(0, 5).map((assignment) => (
+                <AssignmentRow
+                  key={assignment.id}
+                  assignment={assignment}
+                  course={selectedCourse}
+                  onPress={() => onOpenAssignment(assignment.id)}
+                />
+              ))
+            )}
+          </View>
+
+          <SectionHeader title="Class Widget Shortcut" note="Open Widget Studio from More to use this class focus." />
+          <View style={styles.widgetShortcut}>
+            <Text style={styles.widgetShortcutTitle}>{selectedCourse.code}</Text>
+            <Text style={styles.widgetShortcutCopy}>
+              {counts[selectedCourse.id]?.open || 0} open · color and metadata ready for class widgets.
+            </Text>
           </View>
         </>
       ) : null}
 
-      <SectionHeader title="Add Course" note="Defaults include editable grade weights" />
-      <View style={styles.addCard}>
-        <View style={styles.twoColumn}>
+      <SectionHeader title="Add Class" note="Defaults include editable identity and grade weights" />
+      <GlassCard style={styles.addCard}>
+        <View style={styles.editGrid}>
           <TextInput
             value={newCourseCode}
             onChangeText={setNewCourseCode}
-            placeholder="Code"
+            placeholder="Class"
             placeholderTextColor={colors.faint}
             style={[styles.input, styles.fieldHalf]}
           />
           <TextInput
             value={newCourseInstructor}
             onChangeText={setNewCourseInstructor}
-            placeholder="Instructor"
+            placeholder="Teacher"
             placeholderTextColor={colors.faint}
             style={[styles.input, styles.fieldHalf]}
           />
@@ -203,7 +246,7 @@ export function CoursesScreen({
           style={styles.input}
         />
         <AppButton
-          label="Add course"
+          label="Add Class"
           icon={Plus}
           onPress={() => {
             onAddCourse({
@@ -216,44 +259,15 @@ export function CoursesScreen({
             setNewCourseInstructor("");
           }}
         />
-      </View>
+      </GlassCard>
 
-      {selectedCourse ? (
-        <>
-          <SectionHeader title="Course Work" note={selectedCourse.code} />
-          <View style={styles.workList}>
-            {selectedAssignments.length === 0 ? (
-              <Text style={styles.emptyDay}>No assignments yet.</Text>
-            ) : (
-              selectedAssignments.map((assignment) => (
-                <AssignmentCard
-                  key={assignment.id}
-                  assignment={assignment}
-                  course={selectedCourse}
-                  onOpen={() => onOpenAssignment(assignment.id)}
-                />
-              ))
-            )}
-          </View>
-        </>
-      ) : null}
-
-      <SectionHeader title="Quick Add" note="Minimal typing for manual entry" />
-      <View style={styles.addCard}>
-        <View style={styles.segmented}>
-          {(["assignment", "exam"] as AssignmentKind[]).map((option) => (
-            <TouchableOpacity
-              accessibilityRole="button"
-              key={option}
-              style={[styles.segment, kind === option ? styles.segmentActive : null]}
-              onPress={() => setKind(option)}
-            >
-              <Text style={[styles.segmentText, kind === option ? styles.segmentTextActive : null]}>
-                {option === "exam" ? "Exam" : "Assignment"}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+      <SectionHeader title="Quick Add" note="Manual work when you do not need a scan" />
+      <GlassCard style={styles.addCard}>
+        <SegmentedControl
+          options={["assignment", "worksheet", "reading", "project", "exam"] as AssignmentKind[]}
+          value={kind}
+          onChange={setKind}
+        />
         <TextInput
           value={title}
           onChangeText={setTitle}
@@ -269,12 +283,12 @@ export function CoursesScreen({
           style={styles.input}
         />
         <AppButton
-          label="Add"
-          icon={Plus}
+          label="Add Work"
+          icon={Edit3}
           disabled={!selectedCourse || !title.trim() || !dueDate.trim()}
           onPress={addItem}
         />
-      </View>
+      </GlassCard>
 
       <SectionHeader title="Weekly Schedule" note="Class blocks by day" />
       <View style={styles.week}>
@@ -287,11 +301,9 @@ export function CoursesScreen({
               ) : (
                 meetings.map((meeting) => (
                   <View key={meeting.id} style={styles.meeting}>
-                    <Badge label={meeting.course.code} tone="green" />
+                    <View style={[styles.meetingDot, { backgroundColor: meeting.course.color }]} />
                     <View style={styles.meetingCopy}>
-                      <Text style={styles.meetingTime}>
-                        {meeting.startTime} to {meeting.endTime}
-                      </Text>
+                      <Text style={styles.meetingTime}>{meeting.course.code} · {meeting.startTime} to {meeting.endTime}</Text>
                       <Text style={styles.meetingPlace}>{meeting.location}</Text>
                     </View>
                   </View>
@@ -303,161 +315,166 @@ export function CoursesScreen({
       </View>
     </View>
   );
+
+  function Field({ label, children }: { label: string; children: React.ReactNode }) {
+    return (
+      <View style={styles.fieldHalf}>
+        <Text style={styles.inputLabel}>{label}</Text>
+        {children}
+      </View>
+    );
+  }
 }
 
 function createStyles(theme: AppTheme) {
   const { colors, radii, spacing, typography } = theme;
 
   return StyleSheet.create({
-    header: {
-      gap: spacing.xs
+    hero: {
+      gap: spacing.md
+    },
+    heroTop: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: spacing.md
     },
     kicker: {
-      color: colors.accent,
+      color: colors.heroMuted,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    heroTitle: {
+      ...typography.title,
+      color: colors.heroText
+    },
+    heroCopy: {
+      ...typography.body,
+      color: colors.heroMuted
+    },
+    semesterDates: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    dateInput: {
+      flex: 1,
+      minHeight: 42,
+      borderRadius: radii.md,
+      backgroundColor: "rgba(255,255,255,0.16)",
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.18)",
+      color: colors.heroText,
+      paddingHorizontal: spacing.sm,
       fontSize: 13,
       fontWeight: "900"
-    },
-    title: {
-      ...typography.title
-    },
-    titleInput: {
-      color: colors.ink,
-      fontSize: 28,
-      lineHeight: 34,
-      fontWeight: "900",
-      padding: 0
-    },
-    subtitle: {
-      ...typography.body
-    },
-    semesterCard: {
-      marginTop: spacing.lg,
-      borderRadius: radii.md,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.md,
-      gap: spacing.sm
     },
     courseList: {
       gap: spacing.sm
     },
-    emptyCard: {
-      overflow: "hidden",
-      borderRadius: radii.md,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.md,
-      color: colors.muted,
-      fontSize: 14,
-      lineHeight: 20,
-      fontWeight: "700"
+    detailCard: {
+      gap: spacing.md
     },
-    courseCard: {
-      minHeight: 96,
-      borderRadius: radii.md,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.md,
-      flexDirection: "row",
-      gap: spacing.sm
+    classHero: {
+      minHeight: 112,
+      borderRadius: radii.xl,
+      padding: spacing.lg,
+      justifyContent: "flex-end"
     },
-    courseCardSelected: {
-      borderColor: colors.accent,
-      backgroundColor: colors.surfaceAlt
+    classHeroTitle: {
+      color: "#FFFFFF",
+      fontSize: 22,
+      lineHeight: 28,
+      fontWeight: "900"
     },
-    colorDot: {
-      width: 12,
-      height: 12,
-      borderRadius: 6,
-      marginTop: 4
-    },
-    courseBody: {
-      flex: 1,
-      gap: 2
-    },
-    courseCode: {
-      color: colors.ink,
+    classHeroMeta: {
+      color: "rgba(255,255,255,0.82)",
       fontSize: 13,
-      fontWeight: "900"
+      lineHeight: 18,
+      fontWeight: "800"
     },
-    courseName: {
-      color: colors.ink,
-      fontSize: 17,
-      lineHeight: 23,
-      fontWeight: "900"
-    },
-    courseMeta: {
-      color: colors.muted,
-      fontSize: 13,
-      lineHeight: 18
-    },
-    addCard: {
-      borderRadius: radii.md,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.md,
-      gap: spacing.sm
-    },
-    workList: {
-      gap: spacing.sm
-    },
-    segmented: {
-      minHeight: 44,
-      flexDirection: "row",
-      borderRadius: radii.md,
-      backgroundColor: colors.canvas,
-      padding: 4,
-      gap: 4
-    },
-    segment: {
-      flex: 1,
-      borderRadius: radii.sm,
-      alignItems: "center",
-      justifyContent: "center"
-    },
-    segmentActive: {
-      backgroundColor: colors.surface
-    },
-    segmentText: {
-      color: colors.muted,
-      fontSize: 13,
-      fontWeight: "900"
-    },
-    segmentTextActive: {
-      color: colors.ink
-    },
-    input: {
-      minWidth: 0,
-      minHeight: 46,
-      borderRadius: radii.sm,
-      borderWidth: 1,
-      borderColor: colors.line,
-      color: colors.ink,
-      backgroundColor: colors.canvas,
-      paddingHorizontal: spacing.sm,
-      fontSize: 15,
-      fontWeight: "700"
-    },
-    inputLabel: {
-      color: colors.faint,
-      fontSize: 12,
-      fontWeight: "900"
-    },
-    twoColumn: {
+    editGrid: {
       flexDirection: "row",
       gap: spacing.sm,
       alignItems: "stretch"
     },
     fieldHalf: {
       flex: 1,
-      minWidth: 0
+      minWidth: 0,
+      gap: spacing.xs
+    },
+    inputLabel: {
+      color: colors.faint,
+      fontSize: 12,
+      fontWeight: "900"
+    },
+    input: {
+      minWidth: 0,
+      minHeight: 46,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.line,
+      color: colors.ink,
+      backgroundColor: colors.canvas,
+      paddingHorizontal: spacing.sm,
+      fontSize: 15,
+      fontWeight: "800"
+    },
+    colorRail: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    colorSwatch: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      borderWidth: 3,
+      borderColor: "transparent"
+    },
+    colorSwatchActive: {
+      borderColor: colors.ink
+    },
+    workList: {
+      gap: spacing.sm
+    },
+    emptyDay: {
+      overflow: "hidden",
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      color: colors.faint,
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "800"
+    },
+    widgetShortcut: {
+      borderRadius: radii.xl,
+      backgroundColor: colors.accentSoft,
+      borderWidth: 1,
+      borderColor: colors.line,
+      padding: spacing.lg,
+      gap: 4
+    },
+    widgetShortcutTitle: {
+      color: colors.ink,
+      fontSize: 19,
+      lineHeight: 25,
+      fontWeight: "900"
+    },
+    widgetShortcutCopy: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "700"
+    },
+    addCard: {
+      gap: spacing.sm
     },
     week: {
-      borderRadius: radii.md,
+      borderRadius: radii.xl,
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: colors.surface,
@@ -486,23 +503,23 @@ function createStyles(theme: AppTheme) {
       alignItems: "center",
       gap: spacing.sm
     },
+    meetingDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5
+    },
     meetingCopy: {
       flex: 1
     },
     meetingTime: {
       color: colors.ink,
       fontSize: 13,
-      fontWeight: "800"
+      fontWeight: "900"
     },
     meetingPlace: {
       color: colors.muted,
       fontSize: 12,
       lineHeight: 17
-    },
-    emptyDay: {
-      color: colors.faint,
-      fontSize: 13,
-      lineHeight: 19
     }
   });
 }

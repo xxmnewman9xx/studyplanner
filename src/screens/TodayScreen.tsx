@@ -1,10 +1,14 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { Bell, CalendarPlus, ChevronRight, Crown, Target } from "lucide-react-native";
+import { Bell, CalendarPlus, ChevronRight, Crown, Timer } from "lucide-react-native";
+import {
+  AppLogo,
+  AssignmentRow,
+  EmptyState,
+  GlassCard,
+  StatPill
+} from "../components/AppleComponents";
 import { AppButton } from "../components/AppButton";
-import { AssignmentCard } from "../components/AssignmentCard";
-import { Badge } from "../components/Badge";
-import { MetricCard } from "../components/MetricCard";
 import { SectionHeader } from "../components/SectionHeader";
 import { Assignment, Course, Semester } from "../models";
 import {
@@ -20,24 +24,36 @@ type TodayScreenProps = {
   assignments: Assignment[];
   courses: Course[];
   semester: Semester;
+  studentName: string;
   onUpdateStatus: (assignmentId: string, status: "not_started" | "in_progress" | "done") => void;
   onOpenAssignment: (assignmentId: string) => void;
   onScheduleReminders: () => void;
   onCalendarSync: () => void;
   premiumAutomationLocked: boolean;
   onOpenPaywall: () => void;
+  onOpenFocus: () => void;
+  onOpenScan: () => void;
+  onOpenPlan: () => void;
+  onOpenClasses: () => void;
+  onOpenWidgets: () => void;
 };
 
 export function TodayScreen({
   assignments,
   courses,
   semester,
+  studentName,
   onUpdateStatus,
   onOpenAssignment,
   onScheduleReminders,
   onCalendarSync,
   premiumAutomationLocked,
-  onOpenPaywall
+  onOpenPaywall,
+  onOpenFocus,
+  onOpenScan,
+  onOpenPlan,
+  onOpenClasses,
+  onOpenWidgets
 }: TodayScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
@@ -46,304 +62,256 @@ export function TodayScreen({
   const nextCourse = plan.nextAction
     ? getCourseForAssignment(courses, plan.nextAction)
     : undefined;
-  const totalTracked = plan.openCount + plan.doneCount;
-  const completionPercent = totalTracked > 0 ? plan.doneCount / totalTracked : 0;
   const semesterPercent = Math.round(plan.semesterProgress * 100);
-  const semesterProgressWidth = `${Math.max(0, Math.min(100, semesterPercent))}%` as `${number}%`;
+  const nextDueDays = plan.nextAction ? daysUntil(plan.nextAction.dueAt) : 0;
 
   return (
-    <View>
-      <View style={styles.heroCard}>
-        <View style={styles.header}>
-          <Text style={styles.kicker}>{semester.name}</Text>
-          <Text style={styles.title}>Today</Text>
-          <Text style={styles.subtitle}>
-            A calm priority stack sorted by urgency, grade pressure, and time needed.
-          </Text>
-        </View>
-        <View style={styles.heroProgressRow}>
-          <View style={styles.heroProgressCopy}>
-            <Text style={styles.heroProgressValue}>{semesterPercent}%</Text>
-            <Text style={styles.heroProgressLabel}>semester complete</Text>
-          </View>
-          <View style={styles.heroProgressTrack}>
-            <View style={[styles.heroProgressFill, { width: semesterProgressWidth }]} />
-          </View>
-        </View>
+    <View style={styles.screen}>
+      <View style={styles.identityRow}>
+        <AppLogo showWordmark size={42} />
+        <TouchableOpacity accessibilityRole="button" style={styles.scanButton} onPress={onOpenScan}>
+          <Text style={styles.scanButtonText}>Scan</Text>
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.metricRow}>
-        <MetricCard
-          label="Open"
-          value={String(plan.openCount)}
-          detail={`${plan.doneCount} finished`}
-          tone="green"
-        />
-        <MetricCard
-          label="Term"
-          value={`${semesterPercent}%`}
-          detail={`${formatDateOnly(semester.endDate)} end`}
-          tone="gold"
-        />
-        <MetricCard
-          label="Done"
-          value={`${Math.round(completionPercent * 100)}%`}
-          detail="tracked work"
-          tone="blue"
-        />
-      </View>
-
-      <View style={styles.nextCard}>
-        <View style={styles.nextHeader}>
-          <Target color={colors.accent} size={22} />
-          <Text style={styles.nextLabel}>What should I do next?</Text>
-        </View>
+      <GlassCard tone="hero" style={styles.heroCard}>
+        <Text style={styles.heroKicker}>Good morning, {studentName.split(" ")[0] || "Alex"}</Text>
+        <Text style={styles.heroTitle}>You’ve got this.</Text>
         {plan.nextAction ? (
-          <>
-            <Text style={styles.nextTitle}>{plan.nextAction.title}</Text>
-            <Text style={styles.nextMeta}>
-              {nextCourse?.code} · {plan.nextAction.estimatedMinutes} minutes · due in{" "}
-              {daysUntil(plan.nextAction.dueAt)} days
-            </Text>
-            <View style={styles.nextActions}>
-              <AppButton
-                label="Start"
-                icon={ChevronRight}
-                variant="secondary"
-                onPress={() => onUpdateStatus(plan.nextAction!.id, "in_progress")}
-              />
-              <AppButton
-                label="Done"
-                variant="quiet"
-                onPress={() => onUpdateStatus(plan.nextAction!.id, "done")}
-              />
+          <View style={styles.nextHero}>
+            <View style={styles.nextHeroCopy}>
+              <Text style={styles.nextKicker}>
+                Next up {nextDueDays <= 0 ? "today" : `in ${nextDueDays} days`}
+              </Text>
+              <Text style={styles.nextTitle}>{nextCourse?.code} - {plan.nextAction.title}</Text>
+              <Text style={styles.nextMeta}>
+                Due {formatDateOnly(plan.nextAction.dueAt.slice(0, 10))} · {plan.nextAction.estimatedMinutes}m · {nextCourse?.period || "class"}
+              </Text>
             </View>
-          </>
+            <AppButton
+              label="Start now"
+              icon={ChevronRight}
+              onPress={() => onUpdateStatus(plan.nextAction!.id, "in_progress")}
+              style={styles.startButton}
+            />
+          </View>
         ) : (
-          <Text style={styles.nextMeta}>Nothing urgent. Your plan is clear for now.</Text>
+          <EmptyState title="All caught up" copy="No urgent work in the planner right now." emoji="complete" />
         )}
+      </GlassCard>
+
+      <View style={styles.statsRow}>
+        <StatPill label="Due Today" value={String(plan.dueToday.length)} tone="pink" />
+        <StatPill label="Due Soon" value={String(plan.dueSoon.length)} tone="gold" />
+        <StatPill label="Needs Check" value={String(plan.needsReview.length)} tone="plain" />
+      </View>
+
+      <View style={styles.quickGrid}>
+        <QuickAction title="Plan" copy="Calendar + week load" onPress={onOpenPlan} />
+        <QuickAction title="Classes" copy={`${courses.length} active`} onPress={onOpenClasses} />
+        <QuickAction title="Widgets" copy="Studio + themes" onPress={onOpenWidgets} />
       </View>
 
       <View style={styles.actionRow}>
+        <AppButton label="Start Focus" icon={Timer} onPress={onOpenFocus} style={styles.actionButton} />
         <AppButton
           label="Remind"
           icon={premiumAutomationLocked ? Crown : Bell}
           variant="secondary"
-          style={styles.halfButton}
+          style={styles.actionButton}
           onPress={premiumAutomationLocked ? onOpenPaywall : onScheduleReminders}
         />
         <AppButton
           label="Sync"
           icon={premiumAutomationLocked ? Crown : CalendarPlus}
           variant="secondary"
-          style={styles.halfButton}
+          style={styles.actionButton}
           onPress={premiumAutomationLocked ? onOpenPaywall : onCalendarSync}
         />
       </View>
 
-      <SectionHeader title="Upcoming" note="One place for assignments and exams" />
+      <SectionHeader title="Today" note="Agenda sorted by urgency and class color" />
       <View style={styles.list}>
         {plan.upcoming.length === 0 ? (
-          <Text style={styles.emptyCard}>Add coursework from Courses to build your day.</Text>
+          <EmptyState title="A clear day" copy="Scan a syllabus or add a class to start planning." emoji="calendar" />
         ) : (
-          plan.upcoming.map((assignment) => (
-            <AssignmentCard
+          plan.upcoming.slice(0, 5).map((assignment) => (
+            <AssignmentRow
               key={assignment.id}
               assignment={assignment}
               course={getCourseForAssignment(courses, assignment)}
-              onOpen={() => onOpenAssignment(assignment.id)}
-              onPressStatus={() =>
-                onUpdateStatus(
-                  assignment.id,
-                  assignment.status === "done" ? "not_started" : "done"
-                )
-              }
+              onPress={() => onOpenAssignment(assignment.id)}
+              trailing={<Text style={styles.doneButtonText}>{assignment.status === "done" ? "Done" : "Open"}</Text>}
             />
           ))
         )}
       </View>
 
-      <SectionHeader title="Exam Countdown" note="Study pressure without panic" />
-      <View style={styles.examRail}>
-        {plan.exams.length === 0 ? (
-          <Text style={styles.emptyCard}>No exams added yet.</Text>
+      <SectionHeader title="Needs Review" note="Missing dates, low confidence, possible duplicates" />
+      <View style={styles.list}>
+        {plan.needsReview.length === 0 ? (
+          <EmptyState title="Nothing to review" copy="Parsed work looks clean." emoji="complete" />
         ) : (
-          plan.exams.map((assignment) => (
-            <TouchableOpacity
-              accessibilityRole="button"
+          plan.needsReview.slice(0, 3).map((assignment) => (
+            <AssignmentRow
               key={assignment.id}
-              style={styles.examCard}
+              assignment={assignment}
+              course={getCourseForAssignment(courses, assignment)}
               onPress={() => onOpenAssignment(assignment.id)}
-            >
-              <Badge label={`${daysUntil(assignment.dueAt)} days`} tone="red" />
-              <Text style={styles.examTitle}>{assignment.title}</Text>
-              <Text style={styles.examCourse}>
-                {getCourseForAssignment(courses, assignment)?.code}
-              </Text>
-            </TouchableOpacity>
+              trailing={<Text style={styles.reviewFlag}>{assignment.duplicateOf ? "Duplicate?" : "Check"}</Text>}
+            />
           ))
         )}
       </View>
     </View>
   );
+
+  function QuickAction({ title, copy, onPress }: { title: string; copy: string; onPress: () => void }) {
+    return (
+      <TouchableOpacity accessibilityRole="button" style={styles.quickAction} onPress={onPress}>
+        <Text style={styles.quickTitle}>{title}</Text>
+        <Text style={styles.quickCopy}>{copy}</Text>
+      </TouchableOpacity>
+    );
+  }
 }
 
 function createStyles(theme: AppTheme) {
   const { colors, radii, spacing, typography } = theme;
 
   return StyleSheet.create({
-    header: {
-      gap: spacing.xs
+    screen: {
+      gap: 0
     },
-    heroCard: {
-      borderRadius: radii.xl,
-      backgroundColor: colors.heroSurface,
-      padding: spacing.lg,
-      gap: spacing.lg,
-      shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.32 : 0.14,
-      shadowRadius: 22,
-      shadowOffset: { width: 0, height: 12 },
-      elevation: 6
+    identityRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: spacing.lg,
+      gap: spacing.md
     },
-    kicker: {
-      color: colors.accent,
+    scanButton: {
+      minHeight: 38,
+      borderRadius: radii.round,
+      backgroundColor: colors.accent,
+      paddingHorizontal: spacing.md,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    scanButtonText: {
+      color: colors.heroText,
       fontSize: 13,
       fontWeight: "900"
     },
-    title: {
-      ...typography.hero,
+    heroCard: {
+      gap: spacing.md
+    },
+    heroKicker: {
+      color: colors.heroMuted,
+      fontSize: 14,
+      lineHeight: 19,
+      fontWeight: "800"
+    },
+    heroTitle: {
+      ...typography.title,
       color: colors.heroText
     },
-    subtitle: {
-      ...typography.body,
-      color: colors.heroMuted
+    nextHero: {
+      borderRadius: radii.xl,
+      backgroundColor: "rgba(255,255,255,0.16)",
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.2)",
+      padding: spacing.md,
+      gap: spacing.md
     },
-    heroProgressRow: {
-      gap: spacing.sm
+    nextHeroCopy: {
+      gap: 3
     },
-    heroProgressCopy: {
-      flexDirection: "row",
-      alignItems: "baseline",
-      justifyContent: "space-between",
-      gap: spacing.sm
+    nextKicker: {
+      color: colors.heroMuted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      textTransform: "uppercase"
     },
-    heroProgressValue: {
+    nextTitle: {
       color: colors.heroText,
-      fontSize: 26,
-      lineHeight: 31,
+      fontSize: 20,
+      lineHeight: 26,
       fontWeight: "900"
     },
-    heroProgressLabel: {
+    nextMeta: {
       color: colors.heroMuted,
       fontSize: 12,
       lineHeight: 17,
-      fontWeight: "900"
+      fontWeight: "800"
     },
-    heroProgressTrack: {
-      height: 10,
-      borderRadius: radii.round,
-      backgroundColor: theme.isDark ? "rgba(7,17,29,0.2)" : "rgba(255,255,255,0.16)",
-      overflow: "hidden"
+    startButton: {
+      alignSelf: "flex-start",
+      backgroundColor: colors.brandPink
     },
-    heroProgressFill: {
-      height: "100%",
-      borderRadius: radii.round,
-      backgroundColor: colors.accent
-    },
-    metricRow: {
+    statsRow: {
       flexDirection: "row",
       gap: spacing.sm,
       marginTop: spacing.lg
     },
-    nextCard: {
-      marginTop: spacing.lg,
-      borderRadius: radii.xl,
-      backgroundColor: colors.elevated,
+    quickGrid: {
+      flexDirection: "row",
+      gap: spacing.sm,
+      marginTop: spacing.md
+    },
+    quickAction: {
+      flex: 1,
+      minHeight: 68,
+      borderRadius: radii.lg,
       borderWidth: 1,
       borderColor: colors.line,
-      padding: spacing.lg,
-      gap: spacing.sm,
-      shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.18 : 0.08,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 10 },
-      elevation: 4
+      backgroundColor: colors.surface,
+      padding: spacing.sm,
+      justifyContent: "center"
     },
-    nextHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.sm
-    },
-    nextLabel: {
-      color: colors.accent,
-      fontSize: 13,
-      fontWeight: "900"
-    },
-    nextTitle: {
+    quickTitle: {
       color: colors.ink,
-      fontSize: 22,
-      lineHeight: 28,
+      fontSize: 14,
+      lineHeight: 19,
       fontWeight: "900"
     },
-    nextMeta: {
+    quickCopy: {
       color: colors.muted,
-      fontSize: 14,
-      lineHeight: 20
-    },
-    nextActions: {
-      flexDirection: "row",
-      gap: spacing.sm,
-      marginTop: spacing.xs
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
     },
     actionRow: {
       flexDirection: "row",
       gap: spacing.sm,
       marginTop: spacing.md
     },
-    halfButton: {
-      flex: 1
+    actionButton: {
+      flex: 1,
+      paddingHorizontal: spacing.xs
     },
     list: {
       gap: spacing.sm
     },
-    emptyCard: {
-      overflow: "hidden",
-      borderRadius: radii.md,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.md,
-      color: colors.muted,
+    doneButton: {
+      minWidth: 36,
+      height: 36,
+      borderRadius: radii.round,
+      backgroundColor: colors.accentSoft,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    doneButtonText: {
+      color: colors.accent,
       fontSize: 14,
-      lineHeight: 20,
-      fontWeight: "700"
-    },
-    examRail: {
-      flexDirection: "row",
-      gap: spacing.sm,
-      flexWrap: "wrap"
-    },
-    examCard: {
-      flexBasis: "48%",
-      minHeight: 122,
-      borderRadius: radii.md,
-      padding: spacing.md,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      gap: spacing.sm
-    },
-    examTitle: {
-      color: colors.ink,
-      fontSize: 15,
-      lineHeight: 20,
       fontWeight: "900"
     },
-    examCourse: {
-      color: colors.muted,
+    reviewFlag: {
+      color: colors.brandPink,
       fontSize: 12,
-      fontWeight: "800"
+      lineHeight: 16,
+      fontWeight: "900"
     }
   });
 }

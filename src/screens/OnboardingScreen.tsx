@@ -1,15 +1,8 @@
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import {
-  Bell,
-  CalendarCheck2,
-  ChevronRight,
-  Crown,
-  FileScan,
-  Sparkles
-} from "lucide-react-native";
+import { CalendarCheck2, CheckCircle2, FileScan, Sparkles, WandSparkles } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
-import { Badge } from "../components/Badge";
+import { AppLogo, EmojiAccent, GlassCard } from "../components/AppleComponents";
 import { ModeToggle } from "../components/ModeToggle";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -20,35 +13,40 @@ type OnboardingScreenProps = {
 
 const slides = [
   {
-    badge: "Welcome",
-    title: "Make the semester feel manageable",
-    copy: "Study Planner turns courses, deadlines, exams, and grades into one calm daily plan.",
-    icon: Sparkles
+    eyebrow: "01 · Welcome",
+    title: "Meet your Syllabus AI",
+    copy: "Snap a photo of any syllabus and we’ll quietly pull out every assignment, reading, and date.",
+    icon: FileScan,
+    accent: "scan" as const
   },
   {
-    badge: "Plan",
-    title: "Know what matters next",
-    copy: "See urgent work first, track progress, and keep assignments moving without a messy checklist.",
-    icon: CalendarCheck2
+    eyebrow: "02 · What we find",
+    title: "Everything, organized",
+    copy: "Assignments, exams, readings, projects, and grade weights appear in one editable review.",
+    icon: WandSparkles,
+    accent: "ai" as const
   },
   {
-    badge: "Personalize",
-    title: "Shape it around your classes",
-    copy: "Add courses, deadlines, grade weights, and focus sessions that match your actual semester.",
-    icon: Bell
+    eyebrow: "03 · Plan view",
+    title: "Your week, made calm",
+    copy: "See busy weeks before they happen. Catch overlaps. Move things around.",
+    icon: CalendarCheck2,
+    accent: "calendar" as const
   },
   {
-    badge: "Plus",
-    title: "Unlock the time-saving tools",
-    copy: "Plus adds syllabus scan, calendar sync, smart reminders, and grade forecasting when you are ready.",
-    icon: Crown
+    eyebrow: "04 · Widgets",
+    title: "Beautiful widgets, your way",
+    copy: "Pin Due Next, Today, Week, or Class Focus to any Home or Lock Screen style.",
+    icon: Sparkles,
+    accent: "widget" as const
+  },
+  {
+    eyebrow: "05 · Ready",
+    title: "You’re set, Alex",
+    copy: "Add your first syllabus to begin. We’ll do the heavy lifting from here.",
+    icon: CheckCircle2,
+    accent: "complete" as const
   }
-];
-
-const flowSteps = [
-  ["Set up", "Add courses and the dates that define your term."],
-  ["Plan", "Use Today to decide the next useful move."],
-  ["Unlock", "Add Plus automation when setup work starts to pile up."]
 ];
 
 export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
@@ -65,87 +63,72 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
       onFinish();
       return;
     }
-
     setIndex((current) => current + 1);
   };
 
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={styles.brandRow}>
-        <View style={styles.brandLeft}>
-          <View style={styles.logoMark}>
-            <FileScan color={colors.heroText} size={20} />
-          </View>
-          <Text style={styles.brand}>Study Planner: Syllabus AI</Text>
-        </View>
+        <AppLogo showWordmark size={46} />
         <ModeToggle />
       </View>
 
-      <View style={styles.hero}>
-        <View style={styles.iconMark}>
-          <Icon color={colors.heroText} size={30} />
+      <GlassCard style={styles.illustrationCard}>
+        <View style={styles.illustration}>
+          <View style={styles.paper}>
+            <View style={styles.paperLineWide} />
+            <View style={styles.paperLine} />
+            <View style={styles.paperLineShort} />
+          </View>
+          <View style={styles.checkBubble}>
+            <Icon color={colors.heroText} size={22} />
+          </View>
         </View>
-        <Badge label={slide.badge} tone={slide.badge === "Plus" ? "gold" : "blue"} />
+        <View style={styles.emojiRow}>
+          <EmojiAccent name={slide.accent} label={slide.title} decorative={false} size={20} />
+        </View>
+      </GlassCard>
+
+      <View style={styles.copyBlock}>
+        <Text style={styles.eyebrow}>{slide.eyebrow}</Text>
         <Text style={styles.title}>{slide.title}</Text>
         <Text style={styles.copy}>{slide.copy}</Text>
-        <View style={styles.heroStats}>
-          <View style={styles.heroStat}>
-            <Text style={styles.heroStatValue}>1</Text>
-            <Text style={styles.heroStatLabel}>daily plan</Text>
-          </View>
-          <View style={styles.heroStat}>
-            <Text style={styles.heroStatValue}>4</Text>
-            <Text style={styles.heroStatLabel}>core tools</Text>
-          </View>
-          <View style={styles.heroStat}>
-            <Text style={styles.heroStatValue}>+</Text>
-            <Text style={styles.heroStatLabel}>Plus</Text>
-          </View>
-        </View>
       </View>
 
-      <View style={styles.flowPanel}>
-        {flowSteps.map(([title, text], stepIndex) => (
-          <View key={title} style={styles.flowRow}>
-            <View style={styles.flowNumber}>
-              <Text style={styles.flowNumberText}>{stepIndex + 1}</Text>
+      <View style={styles.dots} accessibilityRole="progressbar">
+        {slides.map((item, dotIndex) => (
+          <View key={item.title} style={[styles.dot, dotIndex === index ? styles.dotActive : null]} />
+        ))}
+      </View>
+
+      <View style={styles.loopCard}>
+        {["Scan", "Parse", "Plan", "Focus", "Review"].map((step, stepIndex) => (
+          <View key={step} style={styles.loopRow}>
+            <View style={[styles.loopNumber, { backgroundColor: stepColors[stepIndex] || colors.accent }]}>
+              <Text style={styles.loopNumberText}>{stepIndex + 1}</Text>
             </View>
-            <View style={styles.flowCopy}>
-              <Text style={styles.flowTitle}>{title}</Text>
-              <Text style={styles.flowText}>{text}</Text>
+            <View style={styles.loopCopy}>
+              <Text style={styles.loopTitle}>{step}</Text>
+              <Text style={styles.loopText}>{loopCopy[stepIndex]}</Text>
             </View>
           </View>
         ))}
       </View>
 
-      <View style={styles.footerPanel}>
-        <View style={styles.dots} accessibilityRole="progressbar">
-          {slides.map((item, dotIndex) => (
-            <View
-              key={item.title}
-              style={[styles.dot, dotIndex === index ? styles.dotActive : null]}
-            />
-          ))}
-        </View>
-        <AppButton
-          label={isFinal ? "Continue" : "Next"}
-          icon={ChevronRight}
-          onPress={continueOnboarding}
-        />
-      </View>
-
-      <View style={styles.promiseRow}>
-        <Text style={styles.promise}>No ads</Text>
-        <Text style={styles.promise}>Editable planner</Text>
-        <Text style={styles.promise}>Private by default</Text>
-      </View>
+      <AppButton label={isFinal ? "Get started" : "Continue"} onPress={continueOnboarding} style={styles.cta} />
+      <Text style={styles.promise}>Private by default · Built for students · Widget-ready</Text>
     </ScrollView>
   );
 }
+
+const stepColors = ["#6C5CE7", "#2F80ED", "#10B981", "#F59E0B", "#FF4FA3"];
+const loopCopy = [
+  "Scan or upload anything your teacher gives you.",
+  "AI reads, understands, and finds your work.",
+  "We organize everything into your schedule.",
+  "See what’s next and stay on track.",
+  "Check in, adjust, and keep improving."
+];
 
 function createStyles(theme: AppTheme) {
   const { colors, radii, spacing, typography } = theme;
@@ -166,129 +149,80 @@ function createStyles(theme: AppTheme) {
       justifyContent: "space-between",
       gap: spacing.sm
     },
-    brandLeft: {
-      flex: 1,
-      flexDirection: "row",
+    illustrationCard: {
       alignItems: "center",
-      gap: spacing.sm
+      gap: spacing.sm,
+      backgroundColor: theme.isDark ? "#17142A" : "#F1ECFF"
     },
-    logoMark: {
-      width: 40,
-      height: 40,
-      borderRadius: radii.lg,
-      backgroundColor: colors.accent,
-      alignItems: "center",
-      justifyContent: "center",
-      shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.32 : 0.14,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 7 },
-      elevation: 4
-    },
-    brand: {
-      flex: 1,
-      color: colors.ink,
-      fontSize: 15,
-      fontWeight: "900"
-    },
-    hero: {
-      gap: spacing.md,
-      borderRadius: radii.xl,
-      backgroundColor: colors.heroSurface,
-      padding: spacing.lg,
-      borderWidth: theme.isDark ? 0 : 1,
-      borderColor: colors.line
-    },
-    iconMark: {
-      width: 62,
-      height: 62,
-      borderRadius: radii.lg,
-      backgroundColor: theme.isDark ? "rgba(7,17,29,0.12)" : "rgba(255,255,255,0.1)",
-      borderWidth: 1,
-      borderColor: theme.isDark ? "rgba(7,17,29,0.18)" : "rgba(255,255,255,0.16)",
+    illustration: {
+      width: 210,
+      height: 210,
+      borderRadius: 34,
+      backgroundColor: theme.isDark ? "#241D3E" : "#EFE9FF",
       alignItems: "center",
       justifyContent: "center"
     },
+    paper: {
+      width: 74,
+      height: 94,
+      borderRadius: 10,
+      backgroundColor: colors.surface,
+      padding: spacing.sm,
+      gap: 7,
+      justifyContent: "center"
+    },
+    paperLineWide: {
+      width: "90%",
+      height: 5,
+      borderRadius: 3,
+      backgroundColor: colors.ink
+    },
+    paperLine: {
+      width: "72%",
+      height: 5,
+      borderRadius: 3,
+      backgroundColor: colors.lineStrong
+    },
+    paperLineShort: {
+      width: "52%",
+      height: 5,
+      borderRadius: 3,
+      backgroundColor: colors.lineStrong
+    },
+    checkBubble: {
+      position: "absolute",
+      right: 54,
+      bottom: 54,
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: colors.accent,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    emojiRow: {
+      height: 24,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    copyBlock: {
+      alignItems: "center",
+      gap: spacing.xs
+    },
+    eyebrow: {
+      color: colors.faint,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
     title: {
-      ...typography.hero,
-      color: colors.heroText
+      ...typography.title,
+      textAlign: "center"
     },
     copy: {
       ...typography.body,
-      color: colors.heroMuted
-    },
-    heroStats: {
-      flexDirection: "row",
-      gap: spacing.sm
-    },
-    heroStat: {
-      flex: 1,
-      minHeight: 74,
-      borderRadius: radii.lg,
-      backgroundColor: theme.isDark ? "rgba(7,17,29,0.12)" : "rgba(255,255,255,0.1)",
-      borderWidth: 1,
-      borderColor: theme.isDark ? "rgba(7,17,29,0.18)" : "rgba(255,255,255,0.16)",
-      padding: spacing.sm,
-      justifyContent: "center"
-    },
-    heroStatValue: {
-      color: colors.heroText,
-      fontSize: 22,
-      lineHeight: 27,
-      fontWeight: "900"
-    },
-    heroStatLabel: {
-      color: colors.heroMuted,
-      fontSize: 11,
-      lineHeight: 15,
-      fontWeight: "900"
-    },
-    flowPanel: {
-      borderRadius: radii.xl,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.lg,
-      gap: spacing.md
-    },
-    flowRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.md
-    },
-    flowNumber: {
-      width: 34,
-      height: 34,
-      borderRadius: 17,
-      backgroundColor: colors.accent,
-      alignItems: "center",
-      justifyContent: "center"
-    },
-    flowNumberText: {
-      color: colors.heroText,
-      fontSize: 14,
-      fontWeight: "900"
-    },
-    flowCopy: {
-      flex: 1
-    },
-    flowTitle: {
-      color: colors.ink,
-      fontSize: 16,
-      lineHeight: 21,
-      fontWeight: "900"
-    },
-    flowText: {
-      ...typography.small,
-      color: colors.muted
-    },
-    footerPanel: {
-      borderRadius: radii.xl,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.lg,
-      gap: spacing.md
+      textAlign: "center"
     },
     dots: {
       flexDirection: "row",
@@ -297,26 +231,62 @@ function createStyles(theme: AppTheme) {
       justifyContent: "center"
     },
     dot: {
-      width: 8,
-      height: 8,
+      width: 7,
+      height: 7,
       borderRadius: 4,
-      backgroundColor: colors.line
+      backgroundColor: colors.lineStrong
     },
     dotActive: {
       width: 24,
       backgroundColor: colors.accent
     },
-    promiseRow: {
+    loopCard: {
+      borderRadius: radii.xl,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.lg,
+      gap: spacing.md
+    },
+    loopRow: {
       flexDirection: "row",
-      justifyContent: "center",
-      flexWrap: "wrap",
-      gap: spacing.sm
+      alignItems: "center",
+      gap: spacing.md
+    },
+    loopNumber: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    loopNumberText: {
+      color: "#FFFFFF",
+      fontSize: 14,
+      fontWeight: "900"
+    },
+    loopCopy: {
+      flex: 1
+    },
+    loopTitle: {
+      color: colors.ink,
+      fontSize: 16,
+      lineHeight: 21,
+      fontWeight: "900"
+    },
+    loopText: {
+      ...typography.small,
+      color: colors.muted
+    },
+    cta: {
+      backgroundColor: colors.brandPink
     },
     promise: {
       color: colors.faint,
       fontSize: 12,
       lineHeight: 17,
-      fontWeight: "900"
+      fontWeight: "900",
+      textAlign: "center"
     }
   });
 }

@@ -10,28 +10,55 @@ import {
 } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { Camera, CheckCircle2, FileText, Sparkles, Upload } from "lucide-react-native";
+import { Camera, CheckCircle2, FileText, Keyboard, Sparkles, Upload } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
+import {
+  EmojiBadge,
+  GlassCard,
+  SegmentedControl
+} from "../components/AppleComponents";
 import { SectionHeader } from "../components/SectionHeader";
-import { AssignmentKind, Priority, SyllabusImportSource, SyllabusParseResult } from "../models";
-import { parseSyllabus, supportsSyllabusImageParsing, updateParsedAssignment } from "../services/syllabusParser";
+import {
+  AssignmentKind,
+  ParsedImport,
+  ParsedItem,
+  Priority,
+  SyllabusImportSource,
+  SyllabusParseResult
+} from "../models";
+import {
+  parseSyllabus,
+  supportsSyllabusImageParsing,
+  updateParsedAssignment
+} from "../services/syllabusParser";
+import {
+  marketingCaptureParseResult,
+  marketingCaptureScreen
+} from "../services/marketingCapture";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 
 type ImportScreenProps = {
+  parsedImports: ParsedImport[];
+  parsedItems: ParsedItem[];
   onApplyParsedPlan: (parse: SyllabusParseResult) => void;
 };
 
 const priorities: Priority[] = ["low", "medium", "high"];
-const kinds: AssignmentKind[] = ["assignment", "exam"];
+const kinds: AssignmentKind[] = ["assignment", "worksheet", "reading", "project", "exam"];
 
-export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
+export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: ImportScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
-  const [draft, setDraft] = useState<SyllabusParseResult | null>(null);
-  const [loading, setLoading] = useState(false);
+  const captureDraft =
+    marketingCaptureScreen === "extracted" || marketingCaptureScreen === "review_edit";
+  const [draft, setDraft] = useState<SyllabusParseResult | null>(
+    captureDraft ? marketingCaptureParseResult : null
+  );
+  const [loading, setLoading] = useState(marketingCaptureScreen === "processing");
+  const [typedText, setTypedText] = useState("");
   const imageParsingReady = supportsSyllabusImageParsing();
 
   const runParse = async (source: SyllabusImportSource) => {
@@ -40,7 +67,7 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
       const result = await parseSyllabus(source);
       setDraft(result);
     } catch (error) {
-      Alert.alert("Could not parse syllabus", errorMessage(error));
+      Alert.alert("Could not parse school material", errorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -76,7 +103,7 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
       await runParse({
         kind: "photo",
         uri: asset.uri,
-        name: asset.fileName || "syllabus photo",
+        name: asset.fileName || "school material photo",
         mimeType: asset.mimeType
       });
     }
@@ -89,10 +116,7 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
       return;
     }
 
-    const result = await ImagePicker.launchCameraAsync({
-      quality: 0.85
-    });
-
+    const result = await ImagePicker.launchCameraAsync({ quality: 0.85 });
     if (!result.canceled) {
       const asset = result.assets[0];
       if (!asset) return;
@@ -105,87 +129,100 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
     }
   };
 
+  const typeItIn = async () => {
+    if (!typedText.trim()) {
+      Alert.alert("Type a little material", "Paste syllabus lines, handout text, or homework notes first.");
+      return;
+    }
+
+    await runParse({
+      kind: "typed",
+      name: "Typed school material",
+      text: typedText
+    });
+  };
+
+  const counts = draft ? summarizeDraft(draft) : null;
+  const needsReviewCount = draft?.assignments.filter((assignment) => assignment.needsReview || (assignment.confidence || 1) < 0.75).length || parsedItems.filter((item) => item.needsReview).length;
+
   return (
     <View>
       <View style={styles.header}>
-        <Text style={styles.kicker}>Syllabus import</Text>
-        <Text style={styles.title}>Import without losing control.</Text>
+        <Text style={styles.kicker}>Scan</Text>
+        <Text style={styles.title}>Scan anything your teacher gives you.</Text>
         <Text style={styles.subtitle}>
-          The scanner never silently edits the planner. Every detected course, date, and
-          grade category stays editable before it touches your semester.
+          Syllabus, slides, docs, handouts, photos, or typed notes. AI finds the work, then you approve it.
         </Text>
       </View>
 
-      <View style={styles.guideCard}>
-        <View style={styles.guideHeader}>
-          <View style={styles.guideIcon}>
-            <Sparkles color={colors.heroText} size={19} />
-          </View>
-          <View style={styles.guideCopy}>
-            <Text style={styles.guideTitle}>Guided syllabus review</Text>
-            <Text style={styles.guideMeta}>Upload a PDF or text syllabus, review, then apply.</Text>
-          </View>
+      <GlassCard style={styles.scanHero}>
+        <View style={styles.dropIcon}>
+          <Sparkles color={colors.heroText} size={25} />
         </View>
-        <View style={styles.stepRail}>
-          {["Upload", "Review", "Apply"].map((step, index) => (
-            <View key={step} style={styles.stepCard}>
-              <Text style={styles.stepNumber}>0{index + 1}</Text>
-              <Text style={styles.stepLabel}>{step}</Text>
-            </View>
-          ))}
+        <Text style={styles.dropTitle}>Drop or scan anything</Text>
+        <Text style={styles.dropCopy}>Your plan changes only after review.</Text>
+        <View style={styles.scanActions}>
+          <AppButton label="Scan Document" icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
+          <AppButton label="Upload File" icon={Upload} variant="secondary" onPress={imageParsingReady ? pickPhoto : pickPdf} />
+          <AppButton label="Type It In" icon={Keyboard} variant="secondary" onPress={typeItIn} />
         </View>
-      </View>
-
-      <View style={styles.importGrid}>
-        <AppButton
-          label="File"
-          icon={FileText}
-          variant="secondary"
-          style={styles.importButton}
-          disabled={loading}
-          onPress={pickPdf}
+        <TextInput
+          value={typedText}
+          onChangeText={setTypedText}
+          multiline
+          placeholder="Paste: Chapter 4 worksheet due May 13, lab report due Friday..."
+          placeholderTextColor={colors.faint}
+          style={styles.typeBox}
         />
-        {imageParsingReady ? (
-          <>
-            <AppButton
-              label="Photo"
-              icon={Upload}
-              variant="secondary"
-              style={styles.importButton}
-              disabled={loading}
-              onPress={pickPhoto}
-            />
-            <AppButton
-              label="Camera"
-              icon={Camera}
-              variant="secondary"
-              style={styles.importButton}
-              disabled={loading}
-              onPress={capturePhoto}
-            />
-          </>
-        ) : null}
-      </View>
+        <View style={styles.privacyRow}>
+          <EmojiBadge name="privacy" label="Private until you add it" tone="green" />
+        </View>
+      </GlassCard>
 
-      {loading ? <ActivityIndicator style={styles.loader} color={colors.ink} /> : null}
+      {loading ? (
+        <View style={styles.processingCard}>
+          <View style={styles.processingIcon}>
+            <ActivityIndicator color={colors.heroText} />
+          </View>
+          <View style={styles.processingCopy}>
+            <Text style={styles.processingTitle}>AI is parsing it</Text>
+            <Text style={styles.processingMeta}>Finding assignments, dates, classes, and grade weights.</Text>
+          </View>
+        </View>
+      ) : null}
+
+      <SectionHeader title="Recent Scans" note="Open a scan to review the found work" />
+      <View style={styles.recentList}>
+        {parsedImports.map((item) => (
+          <TouchableOpacity
+            accessibilityRole="button"
+            key={item.id}
+            style={styles.recentRow}
+            onPress={() => {
+              if (!draft && parsedItems.length > 0) setDraft(marketingCaptureParseResult);
+            }}
+          >
+            <View style={styles.recentIcon}>
+              <FileText color={colors.accent} size={18} />
+            </View>
+            <View style={styles.recentCopy}>
+              <Text style={styles.recentTitle}>{item.title}</Text>
+              <Text style={styles.recentMeta}>{item.itemCount} found · {labelize(item.status)}</Text>
+            </View>
+            <Badge label={labelize(item.sourceType)} tone={item.status === "ready" ? "blue" : "green"} />
+          </TouchableOpacity>
+        ))}
+      </View>
 
       {draft ? (
         <>
-          <SectionHeader title="Review Results" note={draft.sourceName} />
-          <View style={styles.resultCard}>
+          <SectionHeader title={`Found ${draft.assignments.length + draft.courses.length + draft.gradeItems.length} things`} note="Review and confirm" />
+          <GlassCard style={styles.resultCard}>
             <View style={styles.resultStats}>
-              <View style={styles.resultStat}>
-                <Text style={styles.resultStatValue}>{draft.courses.length}</Text>
-                <Text style={styles.resultStatLabel}>course</Text>
-              </View>
-              <View style={styles.resultStat}>
-                <Text style={styles.resultStatValue}>{draft.assignments.length}</Text>
-                <Text style={styles.resultStatLabel}>deadlines</Text>
-              </View>
-              <View style={styles.resultStat}>
-                <Text style={styles.resultStatValue}>{draft.gradeItems.length}</Text>
-                <Text style={styles.resultStatLabel}>scores</Text>
-              </View>
+              <ResultStat value={String(counts?.assignments || 0)} label="Assignments" tone="blue" />
+              <ResultStat value={String(counts?.exams || 0)} label="Exams" tone="pink" />
+              <ResultStat value={String(counts?.projects || 0)} label="Projects" tone="gold" />
+              <ResultStat value={String(needsReviewCount)} label="Needs review" tone="plain" />
             </View>
             <View style={styles.findings}>
               {draft.findings.map((finding) => (
@@ -195,57 +232,58 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
                   tone={finding.severity === "needs_review" ? "red" : "green"}
                 />
               ))}
+              {needsReviewCount > 0 ? <Badge label="Missing date or duplicate possible" tone="red" /> : null}
             </View>
+          </GlassCard>
 
-            {draft.courses.map((course) => (
-              <View key={course.id} style={styles.coursePreview}>
-                <View style={styles.coursePreviewTop}>
-                  <CheckCircle2 color={colors.green} size={18} />
-                  <Text style={styles.courseCode}>{course.code}</Text>
-                </View>
-                <Text style={styles.courseName}>{course.name}</Text>
-                <Text style={styles.courseMeta}>
-                  {course.meetings.length} class meetings · {course.gradeCategories.length} grade
-                  categories
-                </Text>
-              </View>
-            ))}
-          </View>
-
-          <SectionHeader title="Editable Deadlines" />
+          <SectionHeader title="Needs Review" note="Editable rows before adding to your planner" />
           <View style={styles.editList}>
-            {draft.assignments.map((assignment) => (
-              <View key={assignment.id} style={styles.editCard}>
-                <Text style={styles.editLabel}>Title</Text>
-                <TextInput
-                  value={assignment.title}
-                  style={styles.input}
-                  placeholderTextColor={colors.faint}
-                  onChangeText={(title) =>
-                    setDraft(updateParsedAssignment(draft, assignment.id, { title }))
-                  }
-                />
-                <Text style={styles.editLabel}>Due date</Text>
-                <TextInput
-                  value={assignment.dueAt.slice(0, 10)}
-                  style={styles.input}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor={colors.faint}
-                  onChangeText={(date) =>
-                    setDraft(
-                      updateParsedAssignment(draft, assignment.id, {
-                        dueAt: `${date}T23:59:00`
-                      })
-                    )
-                  }
-                />
-                <View style={styles.twoColumn}>
-                  <View style={styles.fieldHalf}>
-                    <Text style={styles.editLabel}>Estimate</Text>
+            {draft.assignments.map((assignment) => {
+              const courseCode =
+                draft.courses.find((course) => course.id === assignment.courseId)?.code || "Class";
+              return (
+                <View key={assignment.id} style={styles.editCard}>
+                  <View style={styles.editCardTop}>
+                    <View style={styles.statusDot}>
+                      <CheckCircle2 color={colors.heroText} size={16} />
+                    </View>
+                    <View style={styles.editHeaderCopy}>
+                      <TextInput
+                        value={assignment.title}
+                        style={styles.titleInput}
+                        placeholderTextColor={colors.faint}
+                        onChangeText={(title) =>
+                          setDraft(updateParsedAssignment(draft, assignment.id, { title }))
+                        }
+                      />
+                      <Text style={styles.editMeta}>
+                        {courseCode} · confidence {Math.round((assignment.confidence || 0.88) * 100)}%
+                      </Text>
+                    </View>
+                    {assignment.needsReview || assignment.duplicateOf ? (
+                      <Badge label={assignment.duplicateOf ? "Duplicate?" : "Check"} tone="red" />
+                    ) : null}
+                  </View>
+
+                  <View style={styles.twoColumn}>
+                    <TextInput
+                      value={assignment.dueAt.slice(0, 10)}
+                      style={[styles.input, styles.fieldHalf]}
+                      placeholder="YYYY-MM-DD"
+                      placeholderTextColor={colors.faint}
+                      onChangeText={(date) =>
+                        setDraft(
+                          updateParsedAssignment(draft, assignment.id, {
+                            dueAt: `${date}T23:59:00`,
+                            needsReview: !date
+                          })
+                        )
+                      }
+                    />
                     <TextInput
                       keyboardType="numeric"
                       value={String(assignment.estimatedMinutes)}
-                      style={styles.input}
+                      style={[styles.input, styles.fieldHalf]}
                       placeholder="Minutes"
                       placeholderTextColor={colors.faint}
                       onChangeText={(estimatedMinutes) =>
@@ -257,73 +295,67 @@ export function ImportScreen({ onApplyParsedPlan }: ImportScreenProps) {
                       }
                     />
                   </View>
-                  <View style={styles.fieldHalf}>
-                    <Text style={styles.editLabel}>Course</Text>
-                    <View style={styles.lockedField}>
-                      <Text style={styles.lockedText}>
-                        {draft.courses.find((course) => course.id === assignment.courseId)?.code}
-                      </Text>
-                    </View>
-                  </View>
+
+                  <SegmentedControl
+                    options={kinds}
+                    value={assignment.kind}
+                    onChange={(kind) => setDraft(updateParsedAssignment(draft, assignment.id, { kind, type: kind }))}
+                    labelForOption={labelize}
+                  />
+                  <SegmentedControl
+                    options={priorities}
+                    value={assignment.priority}
+                    onChange={(priority) => setDraft(updateParsedAssignment(draft, assignment.id, { priority }))}
+                    labelForOption={labelize}
+                  />
                 </View>
-                <Text style={styles.editLabel}>Kind</Text>
-                <View style={styles.choiceRow}>
-                  {kinds.map((kind) => (
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      key={kind}
-                      style={[styles.choice, assignment.kind === kind ? styles.choiceActive : null]}
-                      onPress={() =>
-                        setDraft(updateParsedAssignment(draft, assignment.id, { kind }))
-                      }
-                    >
-                      <Text
-                        style={[
-                          styles.choiceText,
-                          assignment.kind === kind ? styles.choiceTextActive : null
-                        ]}
-                      >
-                        {kind}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-                <Text style={styles.editLabel}>Priority</Text>
-                <View style={styles.choiceRow}>
-                  {priorities.map((priority) => (
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      key={priority}
-                      style={[
-                        styles.choice,
-                        assignment.priority === priority ? styles.choiceActive : null
-                      ]}
-                      onPress={() =>
-                        setDraft(updateParsedAssignment(draft, assignment.id, { priority }))
-                      }
-                    >
-                      <Text
-                        style={[
-                          styles.choiceText,
-                          assignment.priority === priority ? styles.choiceTextActive : null
-                        ]}
-                      >
-                        {priority}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
 
           <View style={styles.applyBar}>
-            <AppButton label="Apply parsed plan" onPress={() => onApplyParsedPlan(draft)} />
+            <AppButton label={`Add all ${draft.assignments.length}`} onPress={() => onApplyParsedPlan(draft)} />
+            <AppButton label="Revise" variant="secondary" onPress={() => setDraft(null)} />
           </View>
         </>
       ) : null}
     </View>
   );
+
+  function ResultStat({
+    value,
+    label,
+    tone
+  }: {
+    value: string;
+    label: string;
+    tone: "blue" | "pink" | "gold" | "plain";
+  }) {
+    const toneStyle = {
+      blue: styles.blueStat,
+      pink: styles.pinkStat,
+      gold: styles.goldStat,
+      plain: styles.plainStat
+    }[tone];
+    return (
+      <View style={[styles.resultStat, toneStyle]}>
+        <Text style={styles.resultValue}>{value}</Text>
+        <Text style={styles.resultLabel}>{label}</Text>
+      </View>
+    );
+  }
+}
+
+function summarizeDraft(draft: SyllabusParseResult) {
+  return {
+    assignments: draft.assignments.filter((item) => item.kind === "assignment" || item.kind === "worksheet" || item.kind === "reading").length,
+    exams: draft.assignments.filter((item) => item.kind === "exam").length,
+    projects: draft.assignments.filter((item) => item.kind === "project").length
+  };
+}
+
+function labelize(value: string) {
+  return value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function errorMessage(error: unknown) {
@@ -340,7 +372,8 @@ function createStyles(theme: AppTheme) {
     kicker: {
       color: colors.accent,
       fontSize: 13,
-      fontWeight: "900"
+      fontWeight: "900",
+      textTransform: "uppercase"
     },
     title: {
       ...typography.title
@@ -348,11 +381,65 @@ function createStyles(theme: AppTheme) {
     subtitle: {
       ...typography.body
     },
-    guideCard: {
+    scanHero: {
       marginTop: spacing.lg,
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    dropIcon: {
+      width: 78,
+      height: 78,
+      borderRadius: 24,
+      backgroundColor: colors.accent,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    dropTitle: {
+      color: colors.ink,
+      fontSize: 18,
+      lineHeight: 24,
+      fontWeight: "900"
+    },
+    dropCopy: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "700",
+      textAlign: "center"
+    },
+    scanActions: {
+      alignSelf: "stretch",
+      gap: spacing.sm,
+      marginTop: spacing.sm
+    },
+    scanActionPrimary: {
+      backgroundColor: colors.brandPink
+    },
+    typeBox: {
+      alignSelf: "stretch",
+      minHeight: 92,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      color: colors.ink,
+      padding: spacing.md,
+      fontSize: 14,
+      lineHeight: 20,
+      fontWeight: "700",
+      textAlignVertical: "top"
+    },
+    privacyRow: {
+      alignSelf: "stretch",
+      alignItems: "center"
+    },
+    processingCard: {
+      marginTop: spacing.md,
       borderRadius: radii.xl,
       backgroundColor: colors.heroSurface,
       padding: spacing.lg,
+      flexDirection: "row",
+      alignItems: "center",
       gap: spacing.md,
       shadowColor: colors.shadow,
       shadowOpacity: theme.isDark ? 0.26 : 0.12,
@@ -360,105 +447,108 @@ function createStyles(theme: AppTheme) {
       shadowOffset: { width: 0, height: 10 },
       elevation: 5
     },
-    guideHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.md
-    },
-    guideIcon: {
-      width: 42,
-      height: 42,
+    processingIcon: {
+      width: 44,
+      height: 44,
       borderRadius: radii.round,
-      backgroundColor: colors.accent,
+      backgroundColor: colors.brandPink,
       alignItems: "center",
       justifyContent: "center"
     },
-    guideCopy: {
+    processingCopy: {
       flex: 1,
-      gap: 2
+      gap: 3
     },
-    guideTitle: {
+    processingTitle: {
       color: colors.heroText,
       fontSize: 17,
       lineHeight: 22,
       fontWeight: "900"
     },
-    guideMeta: {
+    processingMeta: {
       color: colors.heroMuted,
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "800"
     },
-    stepRail: {
-      flexDirection: "row",
+    recentList: {
       gap: spacing.sm
     },
-    stepCard: {
-      flex: 1,
-      minHeight: 64,
+    recentRow: {
+      minHeight: 70,
       borderRadius: radii.lg,
-      backgroundColor: theme.isDark ? "rgba(7,17,29,0.12)" : "rgba(255,255,255,0.1)",
       borderWidth: 1,
-      borderColor: theme.isDark ? "rgba(7,17,29,0.18)" : "rgba(255,255,255,0.16)",
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
       padding: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    recentIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 13,
+      backgroundColor: colors.accentSoft,
+      alignItems: "center",
       justifyContent: "center"
     },
-    stepNumber: {
-      color: colors.accent,
-      fontSize: 11,
-      lineHeight: 15,
-      fontWeight: "900"
+    recentCopy: {
+      flex: 1,
+      gap: 2
     },
-    stepLabel: {
-      color: colors.heroText,
+    recentTitle: {
+      color: colors.ink,
       fontSize: 14,
       lineHeight: 19,
       fontWeight: "900"
     },
-    importGrid: {
-      flexDirection: "row",
-      gap: spacing.sm,
-      marginTop: spacing.lg,
-      marginBottom: spacing.sm
-    },
-    importButton: {
-      flex: 1
-    },
-    loader: {
-      marginTop: spacing.md
+    recentMeta: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "800"
     },
     resultCard: {
-      borderRadius: radii.xl,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.md,
-      gap: spacing.md,
-      shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.16 : 0.06,
-      shadowRadius: 14,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 3
+      gap: spacing.md
     },
     resultStats: {
       flexDirection: "row",
+      flexWrap: "wrap",
       gap: spacing.sm
     },
     resultStat: {
       flex: 1,
+      minWidth: "45%",
       minHeight: 70,
       borderRadius: radii.lg,
-      backgroundColor: colors.surfaceAlt,
       padding: spacing.sm,
-      justifyContent: "center"
+      justifyContent: "center",
+      borderWidth: 1
     },
-    resultStatValue: {
+    blueStat: {
+      backgroundColor: theme.isDark ? "#17243F" : "#E8F0FF",
+      borderColor: theme.isDark ? "#324A77" : "#C9D9FF"
+    },
+    pinkStat: {
+      backgroundColor: theme.isDark ? "#35162B" : "#FFE8F3",
+      borderColor: theme.isDark ? "#71325B" : "#FFC9E3"
+    },
+    goldStat: {
+      backgroundColor: colors.softGold,
+      borderColor: theme.isDark ? "#5B4618" : "#F1D991"
+    },
+    plainStat: {
+      backgroundColor: colors.surfaceAlt,
+      borderColor: colors.line
+    },
+    resultValue: {
       color: colors.ink,
-      fontSize: 23,
-      lineHeight: 29,
+      fontSize: 24,
+      lineHeight: 30,
       fontWeight: "900"
     },
-    resultStatLabel: {
+    resultLabel: {
       color: colors.muted,
       fontSize: 11,
       lineHeight: 15,
@@ -469,120 +559,69 @@ function createStyles(theme: AppTheme) {
       flexWrap: "wrap",
       gap: spacing.xs
     },
-    coursePreview: {
-      borderTopWidth: 1,
-      borderTopColor: colors.line,
-      paddingTop: spacing.md,
-      gap: 2
-    },
-    coursePreviewTop: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.xs
-    },
-    courseCode: {
-      color: colors.accent,
-      fontSize: 13,
-      fontWeight: "900"
-    },
-    courseName: {
-      color: colors.ink,
-      fontSize: 17,
-      lineHeight: 23,
-      fontWeight: "900"
-    },
-    courseMeta: {
-      color: colors.muted,
-      fontSize: 13,
-      lineHeight: 18
-    },
     editList: {
       gap: spacing.sm
     },
     editCard: {
-      borderRadius: radii.md,
+      borderRadius: radii.xl,
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: colors.surface,
       padding: spacing.md,
-      gap: spacing.xs
+      gap: spacing.sm
     },
-    editLabel: {
-      color: colors.faint,
+    editCardTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    statusDot: {
+      width: 34,
+      height: 34,
+      borderRadius: 12,
+      backgroundColor: colors.accent,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    editHeaderCopy: {
+      flex: 1,
+      minWidth: 0
+    },
+    titleInput: {
+      color: colors.ink,
+      fontSize: 15,
+      lineHeight: 20,
+      fontWeight: "900",
+      padding: 0
+    },
+    editMeta: {
+      color: colors.muted,
       fontSize: 12,
-      fontWeight: "900"
+      lineHeight: 16,
+      fontWeight: "800"
+    },
+    twoColumn: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    fieldHalf: {
+      flex: 1
     },
     input: {
       minWidth: 0,
       minHeight: 44,
-      borderRadius: radii.sm,
+      borderRadius: radii.md,
       borderWidth: 1,
       borderColor: colors.line,
       paddingHorizontal: spacing.sm,
       color: colors.ink,
-      fontSize: 15,
-      fontWeight: "700",
+      fontSize: 14,
+      fontWeight: "800",
       backgroundColor: colors.canvas
-    },
-    row: {
-      flexDirection: "row",
-      gap: spacing.xs,
-      flexWrap: "wrap",
-      marginTop: spacing.xs
-    },
-    twoColumn: {
-      flexDirection: "row",
-      gap: spacing.sm,
-      alignItems: "stretch"
-    },
-    fieldHalf: {
-      flex: 1,
-      minWidth: 0,
-      gap: spacing.xs
-    },
-    lockedField: {
-      minHeight: 44,
-      borderRadius: radii.sm,
-      borderWidth: 1,
-      borderColor: colors.line,
-      paddingHorizontal: spacing.sm,
-      justifyContent: "center",
-      backgroundColor: colors.canvas
-    },
-    lockedText: {
-      color: colors.ink,
-      fontSize: 15,
-      fontWeight: "900"
-    },
-    choiceRow: {
-      flexDirection: "row",
-      gap: spacing.xs,
-      flexWrap: "wrap"
-    },
-    choice: {
-      minHeight: 36,
-      borderRadius: radii.sm,
-      borderWidth: 1,
-      borderColor: colors.line,
-      paddingHorizontal: spacing.sm,
-      alignItems: "center",
-      justifyContent: "center"
-    },
-    choiceActive: {
-      backgroundColor: colors.softGold,
-      borderColor: colors.gold
-    },
-    choiceText: {
-      color: colors.muted,
-      fontSize: 12,
-      fontWeight: "900",
-      textTransform: "capitalize"
-    },
-    choiceTextActive: {
-      color: colors.ink
     },
     applyBar: {
-      marginTop: spacing.lg
+      marginTop: spacing.lg,
+      gap: spacing.sm
     }
   });
 }
