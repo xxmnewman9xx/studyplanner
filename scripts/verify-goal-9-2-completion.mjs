@@ -165,6 +165,7 @@ checkFile(
   path.join(postGoalArtifactRoot, "37-paywall-products-loaded.png"),
   "Missing products-loaded StoreKit paywall screenshot. Use docs/STOREKIT_TESTING_RUNBOOK.md; tooling/setup attempts are recorded in storekit-sandbox-attempt.md."
 );
+checkProductsLoadedObservation();
 checkProof({
   label: "StoreKit sandbox purchase/restore proof exists",
   fileName: "storekit-sandbox-proof.md",
@@ -326,6 +327,35 @@ function checkProof({ label, fileName, requiredTerms, detail }) {
     source.trim().length >= 120 && missingTerms.length === 0 && !placeholderTerm,
     label,
     `${detail} Missing terms: ${missingTerms.join(", ") || "none"}. Placeholder term: ${placeholderTerm || "none"}.`
+  );
+}
+
+function checkProductsLoadedObservation() {
+  const filePath = path.join(proofRoot, "storekit-sandbox-attempt.md");
+  if (!fs.existsSync(filePath)) {
+    check(
+      false,
+      "Products-loaded paywall observation records returned products and Lifetime caveat",
+      `Missing observation log: ${path.relative(root, filePath)}.`
+    );
+    return;
+  }
+
+  const source = fs.readFileSync(filePath, "utf8").toLowerCase();
+  const requiredTerms = [
+    "observed visible returned products",
+    "yearly plus",
+    "$24.99",
+    "plus monthly",
+    "$3.99",
+    "does not prove lifetime",
+    "not local storekit testing proof"
+  ];
+  const missingTerms = requiredTerms.filter((term) => !source.includes(term));
+  check(
+    missingTerms.length === 0,
+    "Products-loaded paywall observation records returned products and Lifetime caveat",
+    `The products-loaded screenshot must be paired with a written observation of returned products and caveats. Missing terms: ${missingTerms.join(", ") || "none"}.`
   );
 }
 

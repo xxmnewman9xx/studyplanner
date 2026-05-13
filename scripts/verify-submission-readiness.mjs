@@ -72,6 +72,7 @@ checkFile(
   "37-paywall-products-loaded.png",
   "A products-loaded paywall screenshot must be captured from real StoreKit products before submit."
 );
+checkProductsLoadedObservation();
 
 checkProof({
   label: "StoreKit monthly/yearly/Lifetime/restore proof is recorded",
@@ -218,6 +219,35 @@ function checkProof({ label, fileName, requiredTerms, blockerMessage }) {
     passed,
     label,
     `${blockerMessage} Proof file is too thin, contains placeholder language, or is missing terms. Missing terms: ${missingTerms.join(", ") || "none"}. Placeholder term: ${placeholderTerm || "none"}.`
+  );
+}
+
+function checkProductsLoadedObservation() {
+  const filePath = path.join(proofRoot, "storekit-sandbox-attempt.md");
+  if (!fs.existsSync(filePath)) {
+    check(
+      false,
+      "Products-loaded paywall observation records returned products and Lifetime caveat",
+      `Missing observation log: ${path.relative(root, filePath)}`
+    );
+    return;
+  }
+
+  const source = fs.readFileSync(filePath, "utf8").toLowerCase();
+  const requiredTerms = [
+    "observed visible returned products",
+    "yearly plus",
+    "$24.99",
+    "plus monthly",
+    "$3.99",
+    "does not prove lifetime",
+    "not local storekit testing proof"
+  ];
+  const missingTerms = requiredTerms.filter((term) => !source.includes(term));
+  check(
+    missingTerms.length === 0,
+    "Products-loaded paywall observation records returned products and Lifetime caveat",
+    `The screenshot must be paired with a written observation of returned products and caveats. Missing terms: ${missingTerms.join(", ") || "none"}.`
   );
 }
 

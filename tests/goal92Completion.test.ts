@@ -18,6 +18,7 @@ test("goal 9.2 completion gate verifies artifacts but keeps the goal open for pr
   assert.match(output, /PASS\s+Required 9\.2 screenshot set exists/);
   assert.match(output, /PASS\s+StoreKit source handoff audit has no local blockers/);
   assert.match(output, /PASS\s+StoreKit testing runbook and attempt log exist/);
+  assert.match(output, /PASS\s+Products-loaded paywall observation records returned products and Lifetime caveat/);
   assert.match(output, /PASS\s+VoiceOver traversal runbook and attempt log exist/);
   assert.match(output, /BLOCKER\s+Final readiness report marks 9\.2 reached/);
   assert.match(output, /BLOCKER\s+StoreKit sandbox purchase\/restore proof exists/);
@@ -42,6 +43,12 @@ test("goal 9.2 completion gate exposes structured JSON for audit tooling", () =>
   assert.ok(
     audit.checks.some((check: { label: string; status: string }) =>
       check.label === "Products-loaded paywall proof exists" &&
+      check.status === "PASS"
+    )
+  );
+  assert.ok(
+    audit.checks.some((check: { label: string; status: string }) =>
+      check.label === "Products-loaded paywall observation records returned products and Lifetime caveat" &&
       check.status === "PASS"
     )
   );

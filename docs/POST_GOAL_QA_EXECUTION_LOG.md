@@ -258,5 +258,10 @@
 | npm run test | Passed | 55/55 | Re-run after StoreKit proof-path documentation update |
 | npm run verify:goal92 | Failed as intended | GOAL-OPEN: 3 blockers, 0 warnings | Re-run after StoreKit proof-path documentation; StoreKit proof and final-doc state blockers remain |
 | npm run verify:submission | Failed as intended | NO-SUBMIT: 6 blockers, 1 warning | Re-run after StoreKit proof-path documentation; submission blockers remain unchanged |
+| Products-loaded observation verifier | Passed | `verify:goal92` and `verify:submission` now require `storekit-sandbox-attempt.md` to record returned Yearly Plus `$24.99`, Plus Monthly `$3.99`, the local StoreKit price mismatch, and the Lifetime caveat | Prevents a bare PNG from being treated as complete StoreKit evidence |
+| npm run typecheck | Passed | exit 0 | Re-run after products-loaded observation verifier |
+| npm run test | Passed | 55/55 | Updated goal/submission tests for products-loaded observation gate |
+| npm run verify:goal92 | Failed as intended | GOAL-OPEN: 3 blockers, 0 warnings; includes observation PASS | StoreKit proof and final-doc state blockers remain |
+| npm run verify:submission | Failed as intended | NO-SUBMIT: 6 blockers, 1 warning; includes observation PASS | Submission blockers remain unchanged |
 
 Unrun/blocked: StoreKit sandbox purchase/restore and Lifetime transaction proof, manual App Store Connect screenshot upload acceptance, full translated UI/string extraction/native localization review for localized submission, restore purchase success proof, signed archive entitlement proof. Optional: physical-device VoiceOver repeat and overnight widget rollover screenshot.

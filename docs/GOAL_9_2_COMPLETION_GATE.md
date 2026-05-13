@@ -1,6 +1,6 @@
 # Goal 9.2 Completion Gate
 
-Generated: 2026-05-12T23:57:23.940Z
+Generated: 2026-05-13T00:02:30.565Z
 
 The v1-2 goal branch is an ancestor of the current v1-3 ASO/submission branch.
 
@@ -28,6 +28,7 @@ Functionality matrix rows inspected: 440
 | VoiceOver traversal runbook and attempt log exist | PASS |  |
 | Submission gate blocks only after local source audits pass | PASS |  |
 | Products-loaded paywall proof exists | PASS |  |
+| Products-loaded paywall observation records returned products and Lifetime caveat | PASS |  |
 | StoreKit sandbox purchase/restore proof exists | BLOCKER | StoreKit monthly/yearly/Lifetime purchase and restore proof must be recorded before the 9.2 goal can be closed. Use docs/STOREKIT_TESTING_RUNBOOK.md; setup attempts are recorded in storekit-sandbox-attempt.md. Missing: artifacts/post-goal-aso-submission/external-proof/storekit-sandbox-proof.md. |
 | Full VoiceOver traversal proof exists | PASS |  |
 | Localized UI/native review proof exists or is explicitly deferred | PASS |  |
