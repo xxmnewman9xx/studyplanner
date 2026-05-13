@@ -66,14 +66,18 @@ Additional investigation on 2026-05-12:
    - Inference: the products-loaded screenshot appears to show returned App Store Connect/sandbox products rather than the local `.storekit` file. The screenshot is still useful returned-product proof, but it is not local StoreKit Testing proof and it does not prove Lifetime availability.
 
 3. Tried to exercise `SKTestSession` from a standalone iOS simulator binary.
-   - Result: a temporary Swift binary could compile when pointed at the iPhoneOS `StoreKitTest.framework`, but `simctl spawn` aborted with a StoreKit service connection failure to `com.apple.storekitd`.
+   - Correct simulator framework path: `/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/Developer/Library/Frameworks/StoreKitTest.framework`.
+   - Result: a temporary Swift binary could typecheck and compile when pointed at the iPhone Simulator `StoreKitTest.framework`, but `simctl spawn` aborted with a StoreKit service connection failure to `com.apple.storekitd`.
    - Impact: standalone simulator binaries are not a valid proof path on this machine.
 
-4. Tried to restore the missing Xcode XCTest target long enough to run a local StoreKit proof.
-   - Temporary files/target were backed out after the attempt.
-   - Result: `xcodebuild test` could see the restored `StudyPlannerSyllabusAITests` target, but linking failed because this Xcode install exposes `StoreKitTest.framework` for iPhoneOS and macOS, not iPhone Simulator. Pointing the simulator test target at the iPhoneOS framework caused the linker to reject an iOS `XCTest.framework` while building for `iOS-simulator`.
-   - Failure: `Building for 'iOS-simulator', but linking in dylib ... XCTest.framework/XCTest built for 'iOS'`.
-   - Impact: iOS simulator XCTest StoreKit proof is blocked with the currently available framework layout.
+4. Tried an ignored/generated native XCTest target long enough to run a local StoreKit proof.
+   - Temporary target: `StudyPlannerSyllabusAITests` with `StoreKitLocalConfigurationTests`.
+   - Command: `xcodebuild test -workspace ios/StudyPlannerSyllabusAI.xcworkspace -scheme StudyPlannerSyllabusAI -destination 'platform=iOS Simulator,id=6CBE6A7A-1778-406F-9F5B-3FDAA45310CE' -only-testing:StudyPlannerSyllabusAITests/StoreKitLocalConfigurationTests`.
+   - Result: the test target built and executed after adding app-hosted test wiring and the iPhone Simulator `StoreKitTest.framework` search path, but `SKTestSession` failed before any purchase assertion with `SKInternalErrorDomain Code=3`.
+   - Variants tried: direct file URL, app-hosted unit test, bundled test resource copied to a temporary `.storekit` path, top-level `type: local` with version 3, and `SKTestSession(configurationFileNamed:)`.
+   - Failure text from `.xcresult`: both tests failed with `failed: caught error: "Error Domain=SKInternalErrorDomain Code=3 "(null)""`.
+   - Cleanup: tracked `.storekit` and scheme experiments were reverted; the ignored/generated native target was not committed as proof.
+   - Impact: local iOS XCTest StoreKit transaction proof is blocked by StoreKitTest runtime behavior on this machine, not by app product ID source code.
 
 5. Tried a temporary macOS SwiftPM XCTest proof harness against the same `.storekit` file.
    - Result: the test bundle built, but `SKTestSession` failed at runtime with `SKInternalErrorDomain Code=3` while saving configuration, clearing overrides, setting `disableDialogs`, and deleting transactions.
