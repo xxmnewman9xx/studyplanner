@@ -79,7 +79,7 @@ export function SettingsScreen({
           <StatusBadge label={subscription.isPremium ? "Plus active" : "Free planner"} tone={subscription.isPremium ? "purple" : "blue"} />
         </View>
         {needsCheckCount > 0 ? (
-          <AppButton label="Check New Work" variant="secondary" onPress={onOpenImport} />
+          <AppButton label="Review Found Work" variant="secondary" onPress={onOpenImport} />
         ) : null}
       </GlassCard>
 

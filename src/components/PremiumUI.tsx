@@ -26,7 +26,7 @@ import Svg, {
 } from "react-native-svg";
 
 import { Assignment, Course, WidgetSnapshot, WidgetSnapshotStyle } from "../models";
-import { AppTheme } from "../theme";
+import { AppTheme, ensureReadableColor, readableTextColor } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { daysUntil, formatShortDate } from "../logic/planner";
 
@@ -96,7 +96,7 @@ export function StudyPlannerBrand({ compact = false }: { compact?: boolean }) {
         <Text style={[styles.brandWordmark, compact ? styles.brandWordmarkCompact : null]}>
           StudyPlanner
         </Text>
-        <Text style={styles.brandSubtitle}>SYLLABUS AI</Text>
+        <Text style={styles.brandSubtitle}>AI HOMEWORK PLANNER</Text>
       </View>
     </View>
   );
@@ -198,7 +198,7 @@ export function CommandCenterHero({
           <Target color={colors.heroText} size={20} />
         </View>
         <View style={styles.heroTopCopy}>
-          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroKicker}>NEXT DUE</Text>
+        <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroKicker}>4. FOCUS</Text>
           <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroDueLabel}>
             {dueLabel || "Your plan is clear"}
           </Text>
@@ -237,7 +237,7 @@ export function CommandCenterHero({
               style={styles.heroSecondaryButton}
               onPress={onStart}
             >
-              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroSecondaryText}>Start</Text>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroSecondaryText}>Start Focus</Text>
             </TouchableOpacity>
             <TouchableOpacity
               accessibilityRole="button"
@@ -246,7 +246,7 @@ export function CommandCenterHero({
               style={styles.heroPrimaryButton}
               onPress={onComplete}
             >
-              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroPrimaryText}>Complete</Text>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroPrimaryText}>Done</Text>
               <ChevronRight color={colors.heroText} size={15} />
             </TouchableOpacity>
           </View>
@@ -350,6 +350,7 @@ export function TaskRow({
   const { colors } = theme;
   const styles = createStyles(theme);
   const done = assignment.completionStatus === "completed" || assignment.status === "done";
+  const markColor = course?.color || colors.brandPurple;
 
   return (
     <TouchableOpacity
@@ -368,8 +369,10 @@ export function TaskRow({
       >
         {done ? <CheckCircle2 color={colors.green} size={20} /> : <Circle color={colors.brandPurple} size={20} />}
       </TouchableOpacity>
-      <View style={[styles.taskMark, { backgroundColor: course?.color || colors.brandPurple }]}>
-        <Text style={styles.taskMarkText}>{(course?.code || assignment.courseName || "SP").slice(0, 1)}</Text>
+      <View style={[styles.taskMark, { backgroundColor: markColor }]}>
+        <Text style={[styles.taskMarkText, { color: readableTextColor(markColor) }]}>
+          {(course?.code || assignment.courseName || "SP").slice(0, 1)}
+        </Text>
       </View>
       <View style={styles.taskBody}>
         <Text style={[styles.taskCourse, done ? styles.doneText : null]} numberOfLines={1}>
@@ -445,6 +448,7 @@ export function CourseCard({
 }) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
+  const glyphText = readableTextColor(course.color);
 
   return (
     <TouchableOpacity
@@ -457,7 +461,7 @@ export function CourseCard({
     >
       <View pointerEvents="none" style={[styles.courseAccentRail, { backgroundColor: course.color }]} />
       <View style={[styles.courseGlyph, { backgroundColor: course.color }]}>
-        <Text style={styles.courseGlyphText}>{course.code.slice(0, 1)}</Text>
+        <Text style={[styles.courseGlyphText, { color: glyphText }]}>{course.code.slice(0, 1)}</Text>
       </View>
       <View style={styles.courseBody}>
         <Text style={styles.courseTitle}>{course.code}</Text>
@@ -534,7 +538,7 @@ export function WidgetPreviewSmall({
         <Text style={[styles.widgetBadge, { color: visual.text }]} numberOfLines={1}>{item?.dueLabel || "Clear"}</Text>
       </View>
       <View style={[styles.widgetIcon, { backgroundColor: visual.accent }]}>
-        <CalendarClock color={colors.heroText} size={16} />
+        <CalendarClock color={visual.iconText} size={16} />
       </View>
       <Text style={[styles.smallWidgetTitle, { color: visual.text }]} numberOfLines={2}>
         {item?.title || snapshot.emptyState.title}
@@ -542,7 +546,7 @@ export function WidgetPreviewSmall({
       <Text style={[styles.widgetMeta, { color: visual.muted }]} numberOfLines={1}>
         {item?.courseName || snapshot.emptyState.message}
       </Text>
-      <Text style={[styles.widgetCountdown, { color: visual.accent }]}>{item?.dueLabel || "All set"}</Text>
+      <Text style={[styles.widgetCountdown, { color: visual.dueText }]}>{item?.dueLabel || "All set"}</Text>
     </View>
   );
 }
@@ -571,10 +575,12 @@ export function WidgetPreviewMedium({
       {items.length === 0 ? (
         <Text style={[styles.widgetMeta, { color: visual.muted }]}>{snapshot.emptyState.message}</Text>
       ) : (
-        items.map((item) => (
+        items.map((item) => {
+          const iconBackground = widgetToneColor(item.urgency, colors);
+          return (
           <View key={item.assignmentId} style={styles.mediumWidgetRow}>
-            <View style={[styles.widgetRowIcon, styles[`${widgetTone(item.urgency)}WidgetIcon`]]}>
-              <CalendarClock color={colors.heroText} size={12} />
+            <View style={[styles.widgetRowIcon, { backgroundColor: iconBackground }]}>
+              <CalendarClock color={readableTextColor(iconBackground)} size={12} />
             </View>
             <View style={styles.widgetRowCopy}>
               <Text style={[styles.widgetRowTitle, { color: visual.text }]} numberOfLines={1}>
@@ -587,14 +593,14 @@ export function WidgetPreviewMedium({
             <Text
               style={[
                 styles.widgetDue,
-                { color: visual.accent },
-                item.urgency === "today" || item.urgency === "soon" ? styles.widgetDueHot : null
+                { color: visual.dueText }
               ]}
             >
               {item.dueLabel}
             </Text>
           </View>
-        ))
+          );
+        })
       )}
     </View>
   );
@@ -619,7 +625,7 @@ export function WidgetPreviewMonthly({
       <View pointerEvents="none" style={[styles.widgetBandOne, { backgroundColor: `${visual.secondary}45` }]} />
       <View style={styles.widgetTop}>
         <Text style={[styles.widgetLabel, { color: visual.text }]}>Monthly Calendar</Text>
-        <Text style={[styles.widgetDue, { color: visual.accent }]}>{month?.dueThisMonth || 0} due</Text>
+        <Text style={[styles.widgetDue, { color: visual.dueText }]}>{month?.dueThisMonth || 0} due</Text>
       </View>
       <View style={styles.monthlyWidgetGrid}>
         {days.map((day) => (
@@ -631,7 +637,7 @@ export function WidgetPreviewMonthly({
               day.isHeavy ? { borderColor: visual.accent } : null
             ]}
           >
-            <Text style={[styles.monthlyWidgetDayText, { color: day.isToday ? colors.heroText : visual.text }]}>
+            <Text style={[styles.monthlyWidgetDayText, { color: day.isToday ? visual.iconText : visual.text }]}>
               {day.dayNumber}
             </Text>
             <View style={styles.monthlyWidgetDots}>
@@ -716,7 +722,7 @@ export function WidgetPreviewCourseFocus({
           <Text style={[styles.widgetRowTitle, { color: visual.text }]} numberOfLines={1}>
             {course.courseName}
           </Text>
-          <Text style={[styles.widgetDue, { color: visual.accent }]}>{course.openCount}</Text>
+          <Text style={[styles.widgetDue, { color: visual.dueText }]}>{course.openCount}</Text>
         </View>
       ))}
     </View>
@@ -872,13 +878,19 @@ function widgetPreviewVisual(
   colors: AppTheme["colors"]
 ) {
   const visual = override || snapshot.widgetStyle;
+  const background = visual?.background || colors.widgetDark;
+  const text = ensureReadableColor(visual?.text || colors.heroText, background, 4.5, readableTextColor(background));
+  const muted = ensureReadableColor(visual?.muted || colors.heroMuted, background, 4.5, text);
+  const accent = ensureReadableColor(visual?.accent || colors.widgetAccent, background, 3, text);
 
   return {
-    background: visual?.background || colors.widgetDark,
-    text: visual?.text || colors.heroText,
-    muted: visual?.muted || colors.heroMuted,
-    accent: visual?.accent || colors.widgetAccent,
-    secondary: visual?.secondary || colors.brandBlue
+    background,
+    text,
+    muted,
+    accent,
+    secondary: ensureReadableColor(visual?.secondary || colors.brandBlue, background, 3, accent),
+    dueText: ensureReadableColor(visual?.dueText || accent, background, 4.5, text),
+    iconText: visual?.iconText || readableTextColor(accent)
   };
 }
 
@@ -935,6 +947,14 @@ function widgetTone(urgency: string): "purple" | "blue" | "gold" | "red" {
   if (urgency === "today" || urgency === "soon") return "gold";
   if (urgency === "upcoming") return "blue";
   return "purple";
+}
+
+function widgetToneColor(urgency: string, colors: AppTheme["colors"]) {
+  const tone = widgetTone(urgency);
+  if (tone === "red") return colors.brandCoral;
+  if (tone === "gold") return "#B45309";
+  if (tone === "blue") return colors.brandBlue;
+  return colors.brandPurple;
 }
 
 function createStyles(theme: AppTheme) {
@@ -1303,7 +1323,7 @@ function createStyles(theme: AppTheme) {
       borderRadius: 18,
       borderWidth: 1,
       borderColor: colors.line,
-      backgroundColor: "rgba(255,255,255,0.97)",
+      backgroundColor: colors.surface,
       padding: spacing.sm,
       flexDirection: "row",
       alignItems: "center",
@@ -1334,7 +1354,6 @@ function createStyles(theme: AppTheme) {
       justifyContent: "center"
     },
     taskMarkText: {
-      color: colors.heroText,
       fontSize: 13,
       fontWeight: "900"
     },
@@ -1378,7 +1397,7 @@ function createStyles(theme: AppTheme) {
       alignItems: "center",
       justifyContent: "center",
       gap: 1,
-      backgroundColor: "rgba(255,255,255,0.56)"
+      backgroundColor: colors.surfaceAlt
     },
     weekPillActive: {
       backgroundColor: colors.brandPurple,
@@ -1417,7 +1436,7 @@ function createStyles(theme: AppTheme) {
       borderRadius: 19,
       borderWidth: 1,
       borderColor: colors.line,
-      backgroundColor: "rgba(255,255,255,0.97)",
+      backgroundColor: colors.surface,
       padding: spacing.md,
       flexDirection: "row",
       alignItems: "center",
@@ -1430,8 +1449,8 @@ function createStyles(theme: AppTheme) {
       elevation: 3
     },
     courseCardActive: {
-      borderColor: "rgba(108,92,231,0.38)",
-      backgroundColor: "#FFFFFF"
+      borderColor: `${colors.brandPurple}61`,
+      backgroundColor: colors.elevated
     },
     courseAccentRail: {
       position: "absolute",
@@ -1449,7 +1468,6 @@ function createStyles(theme: AppTheme) {
       justifyContent: "center"
     },
     courseGlyphText: {
-      color: colors.heroText,
       fontSize: 13,
       fontWeight: "900"
     },
@@ -1496,9 +1514,9 @@ function createStyles(theme: AppTheme) {
     warningCard: {
       minHeight: 92,
       borderRadius: 22,
-      backgroundColor: "#FFF3DA",
+      backgroundColor: colors.warningSurface,
       borderWidth: 1,
-      borderColor: "rgba(245,158,11,0.36)",
+      borderColor: theme.isDark ? "rgba(244,201,93,0.28)" : "rgba(245,158,11,0.36)",
       padding: spacing.md,
       flexDirection: "row",
       alignItems: "center",
@@ -1753,9 +1771,6 @@ function createStyles(theme: AppTheme) {
       fontSize: 10,
       fontWeight: "900"
     },
-    widgetDueHot: {
-      color: "#FF8A7A"
-    },
     monthlyWidgetGrid: {
       flexDirection: "row",
       flexWrap: "wrap",
@@ -1901,14 +1916,14 @@ function createStyles(theme: AppTheme) {
       fontWeight: "700"
     },
     bottomDock: {
-      minHeight: 72,
+      minHeight: 68,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      borderRadius: 25,
+      borderRadius: 23,
       borderWidth: 1,
-      borderColor: "rgba(148,163,184,0.24)",
-      backgroundColor: "rgba(255,255,255,0.96)",
+      borderColor: theme.isDark ? "rgba(148,163,184,0.18)" : "rgba(148,163,184,0.24)",
+      backgroundColor: colors.glassStrong,
       padding: 5,
       shadowColor: colors.shadow,
       shadowOpacity: 0.12,
@@ -1918,8 +1933,8 @@ function createStyles(theme: AppTheme) {
     },
     dockButton: {
       flex: 1,
-      minHeight: 56,
-      borderRadius: 20,
+      minHeight: 52,
+      borderRadius: 18,
       alignItems: "center",
       justifyContent: "center",
       gap: 3
@@ -1929,7 +1944,7 @@ function createStyles(theme: AppTheme) {
     },
     dockLabel: {
       color: colors.faint,
-      fontSize: 8,
+      fontSize: 9,
       lineHeight: 11,
       fontWeight: "900"
     },

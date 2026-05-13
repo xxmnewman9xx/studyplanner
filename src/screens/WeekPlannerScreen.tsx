@@ -65,15 +65,15 @@ export function WeekPlannerScreen({
     <PremiumScreen>
       <PremiumHeader
         eyebrow={semester.name}
-        title="This Week"
-        subtitle="See every deadline for the next seven days."
+        title="Plan Week"
+        subtitle="Pick the heavy days first and keep the week calm."
       />
 
       <GlassCard style={styles.rangeCard}>
         <View pointerEvents="none" style={styles.rangeBand} />
         <View style={styles.weekRangeTop}>
           <View>
-            <Text style={styles.rangeKicker}>This week</Text>
+            <Text style={styles.rangeKicker}>3. Plan It All</Text>
             <Text style={styles.rangeTitle}>{formatRange(weekPlan.startsAt, weekPlan.endsAt)}</Text>
             <Text style={styles.rangeMeta}>{weekPlan.itemCount} deadlines across seven days</Text>
           </View>

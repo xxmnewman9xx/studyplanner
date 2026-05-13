@@ -28,7 +28,7 @@ export function parseSyllabusText(rawText: string, sourceName: string): Syllabus
   const semester = inferSemester(text, inferredYear);
   const course = inferCourse(lines, sourceName);
   const inferredAssignments = inferAssignments(lines, course, inferredYear);
-  const assignments = inferredAssignments.slice(0, assignmentReviewLimit);
+  const assignments = inferredAssignments.assignments.slice(0, assignmentReviewLimit);
   const gradeCategories = inferGradeCategories(lines, course.id);
   const courseWithGrades = {
     ...course,
@@ -58,12 +58,30 @@ export function parseSyllabusText(rawText: string, sourceName: string): Syllabus
             }
           ]
         : []),
-      ...(inferredAssignments.length > assignmentReviewLimit
+      ...(inferredAssignments.assignments.length > assignmentReviewLimit
         ? [
             {
               id: "deadline-review-limit",
               severity: "needs_review" as const,
-              message: `More than ${assignmentReviewLimit} dated items were found. The first ${assignmentReviewLimit} are ready to check; add any extras manually.`
+              message: `More than ${assignmentReviewLimit} dated items were found. The first ${assignmentReviewLimit} are ready to check; split very long syllabi into smaller files for the rest.`
+            }
+          ]
+        : []),
+      ...(inferredAssignments.undatedCount > 0
+        ? [
+            {
+              id: "undated-work-found",
+              severity: "needs_review" as const,
+              message: `${inferredAssignments.undatedCount} possible work item${inferredAssignments.undatedCount === 1 ? "" : "s"} had no clear date and were not added.`
+            }
+          ]
+        : []),
+      ...(inferredAssignments.duplicateCount > 0
+        ? [
+            {
+              id: "possible-duplicates-merged",
+              severity: "needs_review" as const,
+              message: `${inferredAssignments.duplicateCount} possible duplicate deadline${inferredAssignments.duplicateCount === 1 ? "" : "s"} were merged before review.`
             }
           ]
         : [])
@@ -115,13 +133,16 @@ function buildLines(text: string) {
     const nextHasDate = datePattern.test(next);
     const nextHasAssignment = assignmentKeywords.test(next);
 
-    if ((lineHasDate && !lineHasAssignment && nextHasAssignment) || (lineHasAssignment && !lineHasDate && nextHasDate)) {
+    if (
+      (lineHasDate && !lineHasAssignment && nextHasAssignment) ||
+      (lineHasAssignment && !nextHasAssignment && !lineHasDate && nextHasDate)
+    ) {
       return [line, `${line} ${next}`];
     }
     return [line];
   });
 
-  return Array.from(new Set(combined));
+  return combined;
 }
 
 function inferYear(text: string) {
@@ -246,13 +267,21 @@ function inferGradeCategories(lines: string[], courseId: string): GradeCategory[
   return categories;
 }
 
-function inferAssignments(lines: string[], course: Course, inferredYear: number): Assignment[] {
+function inferAssignments(lines: string[], course: Course, inferredYear: number) {
   const assignments: Assignment[] = [];
   const seen = new Set<string>();
+  let undatedCount = 0;
+  let duplicateCount = 0;
 
   for (const line of lines) {
+    const hasAssignmentKeyword = assignmentKeywords.test(line);
+    if (!hasAssignmentKeyword) continue;
+
     const date = line.match(datePattern)?.[0];
-    if (!date || !assignmentKeywords.test(line)) continue;
+    if (!date) {
+      undatedCount += 1;
+      continue;
+    }
 
     const dueDate = parseDateToken(date, inferredYear);
     if (!dueDate) continue;
@@ -266,7 +295,10 @@ function inferAssignments(lines: string[], course: Course, inferredYear: number)
     if (!title || title.length < 3) continue;
 
     const key = `${title.toLowerCase()}-${dueDate}`;
-    if (seen.has(key)) continue;
+    if (seen.has(key)) {
+      duplicateCount += 1;
+      continue;
+    }
     seen.add(key);
 
     const kind = examKeywords.test(title) ? "exam" : "assignment";
@@ -298,7 +330,11 @@ function inferAssignments(lines: string[], course: Course, inferredYear: number)
     );
   }
 
-  return assignments;
+  return {
+    assignments,
+    undatedCount,
+    duplicateCount
+  };
 }
 
 function parseDateToken(token: string, inferredYear: number) {

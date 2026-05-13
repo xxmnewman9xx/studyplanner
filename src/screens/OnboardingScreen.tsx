@@ -120,38 +120,38 @@ const onboardingSteps: Array<{
 }> = [
   {
     id: "syllabus",
-    eyebrow: "Start calm",
-    title: "Turn school chaos into one trusted plan.",
-    copy: "Add school stuff by scanning a syllabus, uploading a file, or typing classes in by hand.",
+    eyebrow: "1. Scan Anything",
+    title: "From syllabus to success.",
+    copy: "Take a photo, upload a file, or type one assignment.",
     icon: FileScan
   },
   {
     id: "review",
-    eyebrow: "Check New Work",
-    title: "Check what StudyPlanner found.",
-    copy: "Nothing becomes a due date until you mark it Looks Good. Unclear dates stay editable.",
-    icon: CheckCircle2
+    eyebrow: "2. AI Reads It",
+    title: "StudyPlanner finds the work.",
+    copy: "It looks for classes, homework, tests, projects, notes, and due dates.",
+    icon: Sparkles
+  },
+  {
+    id: "calendar",
+    eyebrow: "3. Plan It All",
+    title: "Checked work lands everywhere.",
+    copy: "Today, Week, Calendar, Classes, and widgets all use the same reviewed plan.",
+    icon: CalendarRange
   },
   {
     id: "today",
-    eyebrow: "Today",
-    title: "Know the next thing to do.",
-    copy: "Today, Week Plan, Calendar, reminders, and widgets all use the same checked assignments.",
+    eyebrow: "4. Focus Daily",
+    title: "See the next thing first.",
+    copy: "Start with one clear assignment, mark it done, then move on calmly.",
     icon: Target
   },
   {
-    id: "widgets",
-    eyebrow: "Widget Setup",
-    title: "See what is due without opening the app.",
-    copy: "Small shows Next Due. Medium shows This Week. Both stay tied to your confirmed planner.",
-    icon: Crown
-  },
-  {
-    id: "palette",
-    eyebrow: "Make it yours",
-    title: "Choose a study style and start.",
-    copy: "Your colors carry through classes, calendar dots, workload bars, and widget previews.",
-    icon: Sparkles
+    id: "review",
+    eyebrow: "5. Review & Improve",
+    title: "You stay in control.",
+    copy: "Check found work, fix dates, remove mistakes, and improve the plan.",
+    icon: CheckCircle2
   }
 ];
 
@@ -326,7 +326,7 @@ export function OnboardingScreen({ initialStep = 0, onFinish }: OnboardingScreen
           style={styles.nextButton}
           onPress={goNext}
         >
-          <Text style={styles.nextText}>{isFinal ? "Start Planning" : "Next"}</Text>
+          <Text style={styles.nextText}>{isFinal ? "Start" : "Next"}</Text>
           <ChevronRight color={colors.heroText} size={18} />
         </TouchableOpacity>
       </View>
@@ -391,7 +391,7 @@ function StartPathChooser({ onChoose }: { onChoose: (path: OnboardingStartPath) 
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
   const choices: Array<{ id: OnboardingStartPath; title: string; copy: string }> = [
-    { id: "scan", title: "Scan Paper", copy: "Use the camera when photo parsing is available." },
+    { id: "scan", title: "Scan Paper", copy: "Take a photo when image reading is available." },
     { id: "upload", title: "Upload File", copy: "Start with a text-based PDF or class file." },
     { id: "manual", title: "Add Classes", copy: "Build your plan by hand." },
     { id: "sample", title: "Try Sample", copy: "Explore a safe preview semester." }
@@ -435,8 +435,8 @@ function SyllabusToPlanPreview({ motion }: { motion: Animated.Value }) {
           <FileScan color={colors.heroText} size={18} />
         </View>
         <View style={styles.previewCopy}>
-          <Text style={styles.previewKicker}>Upload flow</Text>
-          <Text style={styles.previewTitle}>Messy syllabus to clean plan</Text>
+          <Text style={styles.previewKicker}>Scan</Text>
+          <Text style={styles.previewTitle}>Anything your teacher gives you</Text>
         </View>
         <StatusBadge label="Private" tone="green" />
       </View>
@@ -491,8 +491,8 @@ function ReviewInboxPreview({ motion }: { motion: Animated.Value }) {
           <CheckCircle2 color={colors.heroText} size={18} />
         </View>
         <View style={styles.previewCopy}>
-          <Text style={styles.previewKicker}>Check New Work</Text>
-          <Text style={styles.previewTitle}>Approve with confidence</Text>
+          <Text style={styles.previewKicker}>Found Work</Text>
+          <Text style={styles.previewTitle}>Check before it joins your plan</Text>
           <Text style={styles.previewMeta}>Nothing reaches Today, Calendar, or widgets until you say yes.</Text>
         </View>
       </View>
@@ -524,7 +524,7 @@ function ReviewInboxPreview({ motion }: { motion: Animated.Value }) {
               <Text style={styles.rowMeta}>{meta}</Text>
             </View>
             <View style={styles.reviewChips}>
-              <Text style={styles.acceptChip}>Accept</Text>
+              <Text style={styles.acceptChip}>Looks Good</Text>
               <Text style={styles.editChip}>Edit</Text>
             </View>
           </Animated.View>

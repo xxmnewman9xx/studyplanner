@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { Crown, Sparkles } from "lucide-react-native";
+import { BookOpen, CalendarDays, Crown, FlaskConical, LayoutGrid, Palette, Sparkles } from "lucide-react-native";
 
 import { AppButton } from "../components/AppButton";
 import {
@@ -8,6 +8,8 @@ import {
   PremiumHeader,
   PremiumScreen,
   StatusBadge,
+  WidgetPreviewCourseFocus,
+  WidgetPreviewHeavyWeek,
   WidgetPreviewMedium,
   WidgetPreviewSmall,
 } from "../components/PremiumUI";
@@ -45,9 +47,19 @@ const widgetFocusOptions: Array<{
   label: string;
   description: string;
 }> = [
-  { id: "nextDue", label: "Next Due", description: "Answers what is due next without opening the app." },
-  { id: "thisWeek", label: "This Week", description: "Shows the next several deadlines and overflow count." }
+  { id: "nextDue", label: "Due Next", description: "Answers what is due next without opening the app." },
+  { id: "thisWeek", label: "Week", description: "Shows the next several deadlines and overflow count." },
+  { id: "heavyWeek", label: "Busy Week", description: "Shows where the week is heaviest." },
+  { id: "courseFocus", label: "Class Focus", description: "Shows which classes need attention." }
 ];
+const backgroundOptions = ["Solid", "Gradient", "Glass"];
+const iconOptions = [
+  { label: "Book", icon: BookOpen },
+  { label: "Lab", icon: FlaskConical },
+  { label: "Week", icon: CalendarDays },
+  { label: "Grid", icon: LayoutGrid }
+];
+const layoutOptions = ["Stack", "List", "Split", "Grid"];
 const bodyTextScale = 1.35;
 
 export function WidgetShowcaseScreen({
@@ -88,9 +100,9 @@ export function WidgetShowcaseScreen({
   const selectedStats = getSelectedWidgetStats(snapshot, safeWidgetFocus);
   const updatePreferences = (patch: Partial<WidgetPreferences>) => {
     const nativePair =
-      patch.focus === "nextDue" || patch.size === "small"
+      patch.focus === "nextDue"
         ? ({ focus: "nextDue", size: "small" } as const)
-        : patch.focus === "thisWeek" || patch.size === "medium"
+        : patch.focus === "thisWeek"
           ? ({ focus: "thisWeek", size: "medium" } as const)
           : {};
     onPreferencesChange(normalizeWidgetPreferences({ ...preferences, ...patch, ...nativePair }));
@@ -103,9 +115,9 @@ export function WidgetShowcaseScreen({
   return (
     <PremiumScreen>
       <PremiumHeader
-        eyebrow="Widget Setup"
-        title={captureState === "widget-empty" ? "Empty Widget" : captureState === "widget-needs-check" ? "Needs Check Widget" : "Widget Setup"}
-        subtitle="Set up the supported Home Screen widgets: Small Next Due and Medium This Week."
+        eyebrow="Widget Studio"
+        title={captureState === "widget-empty" ? "Empty Widget" : captureState === "widget-needs-check" ? "Needs Check Widget" : "Design Widgets"}
+        subtitle="Pick a style for the supported Home Screen widgets: Small Due Next and Medium Week."
       />
 
       <GlassCard tint="hero" style={styles.heroCard}>
@@ -115,24 +127,45 @@ export function WidgetShowcaseScreen({
             <Sparkles color={colors.heroText} size={20} />
           </View>
           <View style={styles.heroCopy}>
-            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroTitle}>Your widget preview</Text>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroTitle}>Live Home Screen preview</Text>
             <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroMeta}>
-              {snapshot.surfaces.monthly.monthLabel} - {snapshot.surfaces.monthly.dueThisMonth} due - {snapshot.surfaces.heavyWeek.warning?.label || "steady week"}
+              Style, theme, and class colors update the preview and snapshot used by supported widgets.
             </Text>
           </View>
           <StatusBadge label={widgetStyle.styleName} tone="purple" />
         </View>
       </GlassCard>
 
+      <View
+        accessible
+        accessibilityRole="summary"
+        accessibilityLabel={`Live widget preview. ${selectedFocus.label}, ${sizeLabel(widgetSize)}. ${selectedStats.value} ${selectedStats.label}.`}
+        style={styles.livePreviewStage}
+      >
+        <View pointerEvents="none" style={styles.stageBandTop} />
+        <View pointerEvents="none" style={styles.stageBandBottom} />
+        <View style={styles.previewMetaRow}>
+          <StatusBadge label={widgetStyle.styleName} tone="purple" />
+          <StatusBadge label={theme.palette.name} tone="blue" />
+          <StatusBadge label={sizeLabel(widgetSize)} tone="green" />
+        </View>
+        <SelectedWidgetPreview
+          focus={safeWidgetFocus}
+          size={widgetSize}
+          snapshot={snapshot}
+          widgetStyle={widgetStyle}
+        />
+      </View>
+
       <GlassCard style={styles.customizerCard}>
         <View style={styles.customizerTop}>
           <View>
-            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.panelTitle}>Customize</Text>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.panelTitle}>Studio controls</Text>
             <Text maxFontSizeMultiplier={bodyTextScale} style={styles.panelMeta}>
               {sizeLabel(widgetSize)} - {selectedFocus.label}
             </Text>
             <Text maxFontSizeMultiplier={bodyTextScale} style={styles.panelFinePrint}>
-              These previews use confirmed assignments only. Widgets refresh after planner changes on iOS timing.
+              Uses checked assignments only. iOS refreshes native widgets on system timing.
             </Text>
           </View>
           <View style={[styles.swatchLarge, { backgroundColor: widgetStyle.accent }]} />
@@ -159,7 +192,7 @@ export function WidgetShowcaseScreen({
         </View>
 
         <View style={styles.controlGroup}>
-          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.controlLabel}>Shows</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.controlLabel}>Widget type</Text>
           <View style={styles.chipRow}>
             {widgetFocusOptions.map((focus) => (
               <TouchableOpacity
@@ -181,7 +214,7 @@ export function WidgetShowcaseScreen({
         </View>
 
         <View style={styles.controlGroup}>
-          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.controlLabel}>Style</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.controlLabel}>Style preset</Text>
           <View style={styles.chipRow}>
             {widgetStylePresets.map((style) => (
               <TouchableOpacity
@@ -202,7 +235,7 @@ export function WidgetShowcaseScreen({
         </View>
 
         <View style={styles.controlGroup}>
-          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.controlLabel}>Color</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.controlLabel}>Theme</Text>
           <View style={styles.paletteDotRow}>
             {palettes.map((palette) => (
               <TouchableOpacity
@@ -219,6 +252,58 @@ export function WidgetShowcaseScreen({
               >
                 <View style={[styles.paletteDot, { backgroundColor: palette.accent }]} />
               </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.controlGroup}>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.controlLabel}>Background</Text>
+          <View style={styles.optionGrid}>
+            {backgroundOptions.map((option, index) => (
+              <View key={option} style={[styles.optionTile, index === 1 ? styles.optionTileActive : null]}>
+                <Palette color={index === 1 ? colors.brandPurple : colors.faint} size={16} />
+                <Text maxFontSizeMultiplier={bodyTextScale} style={[styles.optionTileText, index === 1 ? styles.optionTileTextActive : null]}>{option}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.controlGroup}>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.controlLabel}>Icons</Text>
+          <View style={styles.iconGrid}>
+            {iconOptions.map((option, index) => {
+              const Icon = option.icon;
+              return (
+                <View key={option.label} style={[styles.iconTile, index === 0 ? styles.optionTileActive : null]}>
+                  <Icon color={index === 0 ? colors.brandPurple : colors.faint} size={18} />
+                </View>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.controlGroup}>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.controlLabel}>Layouts</Text>
+          <View style={styles.optionGrid}>
+            {layoutOptions.map((option, index) => (
+              <View key={option} style={[styles.optionTile, index === 1 ? styles.optionTileActive : null]}>
+                <LayoutGrid color={index === 1 ? colors.brandPurple : colors.faint} size={16} />
+                <Text maxFontSizeMultiplier={bodyTextScale} style={[styles.optionTileText, index === 1 ? styles.optionTileTextActive : null]}>{option}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.controlGroup}>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.controlLabel}>Class colors</Text>
+          <View style={styles.classColorGrid}>
+            {courses.slice(0, 6).map((course) => (
+              <View key={course.id} style={styles.classColorChip}>
+                <View style={[styles.classColorDot, { backgroundColor: course.color }]} />
+                <Text maxFontSizeMultiplier={bodyTextScale} numberOfLines={1} style={styles.classColorText}>
+                  {course.code}
+                </Text>
+              </View>
             ))}
           </View>
         </View>
@@ -261,8 +346,8 @@ export function WidgetShowcaseScreen({
         <View pointerEvents="none" style={styles.stageBandTop} />
         <View pointerEvents="none" style={styles.stageBandBottom} />
         <View style={styles.galleryHeader}>
-          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.galleryKicker}>Widget setup</Text>
-          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.galleryTitle}>Small and medium widgets use your latest deadlines.</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.galleryKicker}>Supported widgets</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.galleryTitle}>Small Due Next and Medium Week use checked planner data.</Text>
         </View>
         <View style={styles.widgetPair}>
           <WidgetPreviewSmall snapshot={snapshot} widgetStyle={widgetStyle} />
@@ -307,6 +392,22 @@ function SelectedWidgetPreview({
     return (
       <View style={size === "small" ? styles.selectedSmallFrame : styles.selectedMediumFrame}>
         <WidgetPreviewSmall snapshot={snapshot} widgetStyle={widgetStyle} />
+      </View>
+    );
+  }
+
+  if (focus === "heavyWeek") {
+    return (
+      <View style={styles.selectedMediumFrame}>
+        <WidgetPreviewHeavyWeek snapshot={snapshot} widgetStyle={widgetStyle} />
+      </View>
+    );
+  }
+
+  if (focus === "courseFocus") {
+    return (
+      <View style={styles.selectedMediumFrame}>
+        <WidgetPreviewCourseFocus snapshot={snapshot} widgetStyle={widgetStyle} />
       </View>
     );
   }
@@ -424,6 +525,78 @@ function createStyles(theme: AppTheme) {
       lineHeight: 13,
       fontWeight: "900",
       textTransform: "uppercase"
+    },
+    optionGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    optionTile: {
+      minHeight: 44,
+      minWidth: 86,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      paddingHorizontal: spacing.sm,
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+      gap: 6
+    },
+    optionTileActive: {
+      borderColor: colors.brandPurple,
+      backgroundColor: colors.purpleSoft
+    },
+    optionTileText: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900"
+    },
+    optionTileTextActive: {
+      color: colors.brandPurple
+    },
+    iconGrid: {
+      flexDirection: "row",
+      gap: spacing.xs
+    },
+    iconTile: {
+      width: 44,
+      height: 44,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    classColorGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    classColorChip: {
+      minHeight: 34,
+      borderRadius: radii.round,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      paddingHorizontal: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6
+    },
+    classColorDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5
+    },
+    classColorText: {
+      color: colors.ink,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
     },
     chipRow: {
       flexDirection: "row",

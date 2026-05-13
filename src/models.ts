@@ -190,6 +190,8 @@ export type WidgetSnapshotStyle = {
   muted: string;
   accent: string;
   secondary: string;
+  dueText?: string;
+  iconText?: string;
 };
 
 export type WidgetSnapshotInsight = {

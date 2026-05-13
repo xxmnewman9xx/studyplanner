@@ -1,0 +1,369 @@
+{
+  "created_at": "2026-05-13T02:25:00-04:00",
+  "branch": "v1-4-reference-one-to-one-uiux-revamp",
+  "starting_commit": "12a560c54436117ef6d021cbf4aa1d23a0402d7c",
+  "reference_image_path": "/Users/mattnewman/Documents/studyplanner_ui_reference.png",
+  "root_folder": "artifacts/reference-one-to-one-revamp",
+  "total_png_count": 34,
+  "iphone_simulator": {
+    "name": "StudyPlanner-Codex-iPhone",
+    "udid": "6CBE6A7A-1778-406F-9F5B-3FDAA45310CE"
+  },
+  "ipad_simulator": {
+    "name": "iPad Pro 13-inch (M5)",
+    "udid": "33ABAD0A-B7C8-4FF7-9EE1-710B8360688B"
+  },
+  "screenshots": [
+    {
+      "path": "artifacts/reference-one-to-one-revamp/01-onboarding-reference.png",
+      "screen": "onboarding",
+      "mode": "light",
+      "theme": "apple-clean",
+      "native_widget_or_preview": "app-screen",
+      "notes": "Reference-style five-step loop: Scan, AI Reads, Plan, Focus, Review.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/02-today-reference.png",
+      "screen": "today",
+      "mode": "light",
+      "theme": "apple-clean",
+      "native_widget_or_preview": "app-screen",
+      "notes": "Home base with focus hero, due states, and review prompt.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/03-scan-reference.png",
+      "screen": "scan",
+      "mode": "light",
+      "theme": "apple-clean",
+      "native_widget_or_preview": "app-screen",
+      "notes": "Scan entry point with upload/type actions and honest paper scan setup copy.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/04-found-work-reference.png",
+      "screen": "found-work",
+      "mode": "light",
+      "theme": "apple-clean",
+      "native_widget_or_preview": "app-screen",
+      "notes": "Review state for found possible work before adding to planner.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/05-calendar-reference.png",
+      "screen": "calendar-plan",
+      "mode": "light",
+      "theme": "apple-clean",
+      "native_widget_or_preview": "app-screen",
+      "notes": "Plan calendar with class colors and selected day agenda.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/06-week-plan-reference.png",
+      "screen": "week-plan",
+      "mode": "light",
+      "theme": "apple-clean",
+      "native_widget_or_preview": "app-screen",
+      "notes": "Weekly workload planning proof.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/07-classes-reference.png",
+      "screen": "classes",
+      "mode": "light",
+      "theme": "apple-clean",
+      "native_widget_or_preview": "app-screen",
+      "notes": "Class organization proof.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/08-class-detail-reference.png",
+      "screen": "class-detail",
+      "mode": "light",
+      "theme": "apple-clean",
+      "native_widget_or_preview": "app-screen",
+      "notes": "One class hub proof.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/09-assignment-detail-reference.png",
+      "screen": "assignment-detail",
+      "mode": "light",
+      "theme": "apple-clean",
+      "native_widget_or_preview": "app-screen",
+      "notes": "Assignment detail proof.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/10-widget-studio-reference.png",
+      "screen": "widget-studio",
+      "mode": "light",
+      "theme": "ocean",
+      "native_widget_or_preview": "widget-setup-preview",
+      "notes": "Preview-first Widget Studio with supported small/medium controls.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/11-theme-customization-reference.png",
+      "screen": "theme-customization",
+      "mode": "light",
+      "theme": "apple-clean",
+      "native_widget_or_preview": "app-screen",
+      "notes": "Theme customization proof.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/12-paywall-reference.png",
+      "screen": "paywall",
+      "mode": "light",
+      "theme": "apple-clean",
+      "native_widget_or_preview": "app-screen",
+      "notes": "Premium paywall visual polish proof; no purchase faked.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/13-widget-due-next.png",
+      "screen": "widget-due-next",
+      "mode": "light",
+      "theme": "apple-clean",
+      "native_widget_or_preview": "widget-setup-preview",
+      "notes": "Supported widget preview proof, not native Home Screen placement.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/14-widget-today.png",
+      "screen": "widget-today",
+      "mode": "light",
+      "theme": "ocean",
+      "native_widget_or_preview": "widget-setup-preview",
+      "notes": "Medium Today/Week widget preview proof.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/15-widget-needs-check.png",
+      "screen": "widget-needs-check",
+      "mode": "light",
+      "theme": "sunset",
+      "native_widget_or_preview": "widget-setup-preview",
+      "notes": "Needs Check preview proof using supported widget surfaces.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/16-widget-week.png",
+      "screen": "widget-week",
+      "mode": "light",
+      "theme": "lavender",
+      "native_widget_or_preview": "widget-setup-preview",
+      "notes": "Medium Week preview proof.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/17-widget-class-focus.png",
+      "screen": "widget-class-focus",
+      "mode": "light",
+      "theme": "forest",
+      "native_widget_or_preview": "widget-setup-preview",
+      "notes": "Class Focus preview proof.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/18-widget-empty.png",
+      "screen": "widget-empty",
+      "mode": "light",
+      "theme": "minimal",
+      "native_widget_or_preview": "widget-setup-preview",
+      "notes": "Empty widget preview proof.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/19-theme-sunset.png",
+      "screen": "theme-sunset",
+      "mode": "light",
+      "theme": "sunset",
+      "native_widget_or_preview": "widget-setup-preview",
+      "notes": "Theme proof showing Sunset widget styling.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/20-theme-ocean.png",
+      "screen": "theme-ocean",
+      "mode": "light",
+      "theme": "ocean",
+      "native_widget_or_preview": "widget-setup-preview",
+      "notes": "Theme proof showing Ocean widget styling.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/21-theme-forest.png",
+      "screen": "theme-forest",
+      "mode": "light",
+      "theme": "forest",
+      "native_widget_or_preview": "widget-setup-preview",
+      "notes": "Theme proof showing Forest widget styling.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/22-theme-lavender.png",
+      "screen": "theme-lavender",
+      "mode": "light",
+      "theme": "lavender",
+      "native_widget_or_preview": "widget-setup-preview",
+      "notes": "Theme proof showing Lavender widget styling.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/23-theme-midnight.png",
+      "screen": "theme-midnight",
+      "mode": "light",
+      "theme": "midnight",
+      "native_widget_or_preview": "widget-setup-preview",
+      "notes": "Theme proof showing Midnight widget styling.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/24-theme-candy.png",
+      "screen": "theme-candy",
+      "mode": "light",
+      "theme": "candy",
+      "native_widget_or_preview": "widget-setup-preview",
+      "notes": "Theme proof showing Candy widget styling.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/25-theme-minimal.png",
+      "screen": "theme-minimal",
+      "mode": "light",
+      "theme": "minimal",
+      "native_widget_or_preview": "widget-setup-preview",
+      "notes": "Theme proof showing Minimal widget styling.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/26-theme-create-your-own.png",
+      "screen": "theme-create-your-own",
+      "mode": "light",
+      "theme": "create-your-own",
+      "native_widget_or_preview": "app-screen",
+      "notes": "Create Your Own entry proof using supported customization controls.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/27-dark-today.png",
+      "screen": "today",
+      "mode": "dark",
+      "theme": "midnight",
+      "native_widget_or_preview": "app-screen",
+      "notes": "Dark mode Today proof.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/28-dark-scan.png",
+      "screen": "scan",
+      "mode": "dark",
+      "theme": "midnight",
+      "native_widget_or_preview": "app-screen",
+      "notes": "Dark mode Scan proof.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/29-dark-calendar.png",
+      "screen": "calendar-plan",
+      "mode": "dark",
+      "theme": "midnight",
+      "native_widget_or_preview": "app-screen",
+      "notes": "Dark mode Plan calendar proof.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/30-dark-widget-studio.png",
+      "screen": "widget-studio",
+      "mode": "dark",
+      "theme": "midnight",
+      "native_widget_or_preview": "widget-setup-preview",
+      "notes": "Dark mode Widget Studio proof.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/31-dark-widget-today.png",
+      "screen": "widget-today",
+      "mode": "dark",
+      "theme": "midnight",
+      "native_widget_or_preview": "widget-setup-preview",
+      "notes": "Dark mode widget preview proof.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/32-ipad-today.png",
+      "screen": "ipad-today",
+      "mode": "light",
+      "theme": "apple-clean",
+      "native_widget_or_preview": "ipad-app-screen",
+      "notes": "iPad Today layout proof.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/33-ipad-calendar.png",
+      "screen": "ipad-calendar",
+      "mode": "light",
+      "theme": "apple-clean",
+      "native_widget_or_preview": "ipad-app-screen",
+      "notes": "iPad Plan calendar proof.",
+      "missing_states": []
+    },
+    {
+      "path": "artifacts/reference-one-to-one-revamp/34-ipad-widget-studio.png",
+      "screen": "ipad-widget-studio",
+      "mode": "light",
+      "theme": "ocean",
+      "native_widget_or_preview": "ipad-widget-setup-preview",
+      "notes": "iPad Widget Studio proof.",
+      "missing_states": []
+    }
+  ],
+  "native_widget_screenshots": [],
+  "widget_setup_previews": [
+    "artifacts/reference-one-to-one-revamp/10-widget-studio-reference.png",
+    "artifacts/reference-one-to-one-revamp/13-widget-due-next.png",
+    "artifacts/reference-one-to-one-revamp/14-widget-today.png",
+    "artifacts/reference-one-to-one-revamp/15-widget-needs-check.png",
+    "artifacts/reference-one-to-one-revamp/16-widget-week.png",
+    "artifacts/reference-one-to-one-revamp/17-widget-class-focus.png",
+    "artifacts/reference-one-to-one-revamp/18-widget-empty.png",
+    "artifacts/reference-one-to-one-revamp/19-theme-sunset.png",
+    "artifacts/reference-one-to-one-revamp/20-theme-ocean.png",
+    "artifacts/reference-one-to-one-revamp/21-theme-forest.png",
+    "artifacts/reference-one-to-one-revamp/22-theme-lavender.png",
+    "artifacts/reference-one-to-one-revamp/23-theme-midnight.png",
+    "artifacts/reference-one-to-one-revamp/24-theme-candy.png",
+    "artifacts/reference-one-to-one-revamp/25-theme-minimal.png",
+    "artifacts/reference-one-to-one-revamp/30-dark-widget-studio.png",
+    "artifacts/reference-one-to-one-revamp/31-dark-widget-today.png",
+    "artifacts/reference-one-to-one-revamp/34-ipad-widget-studio.png"
+  ],
+  "unsupported_screenshots_intentionally_excluded": [
+    "large widgets",
+    "lock-screen widgets",
+    "fake StoreKit purchase states",
+    "fake native widget placements"
+  ],
+  "missing_or_skipped": [
+    {
+      "item": "35-reference-comparison-notes.png",
+      "reason": "Skipped to keep output as raw app screenshots only; the saved reference path is documented instead."
+    },
+    {
+      "item": "native Home Screen widget screenshots",
+      "reason": "Not captured in this pass; widget proofs are live Widget Studio previews and WidgetKit snapshot styling was verified separately."
+    },
+    {
+      "item": "true page-by-page 80-page source provenance",
+      "reason": "Parser trust copy and duplicate/no-date tests were improved; chunk/page provenance remains future hardening."
+    }
+  ],
+  "notes": [
+    "All screenshots use safe synthetic capture data.",
+    "Screenshots are raw simulator PNGs, not marketing composites or videos.",
+    "Widget captures show supported small/medium preview states only."
+  ]
+}
