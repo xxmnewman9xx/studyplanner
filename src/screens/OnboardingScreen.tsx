@@ -30,6 +30,7 @@ import {
   WidgetPreviewSmall
 } from "../components/PremiumUI";
 import { WidgetSnapshotService } from "../services/widgetSnapshotService";
+import { supportsSyllabusImageParsing } from "../services/syllabusParser";
 import { Assignment, Course, Semester } from "../models";
 import {
   AppTheme,
@@ -46,7 +47,7 @@ type OnboardingScreenProps = {
   onFinish: (path?: OnboardingStartPath) => void;
 };
 
-export type OnboardingStartPath = "scan" | "upload" | "manual" | "sample";
+export type OnboardingStartPath = "scan" | "upload" | "type" | "manual" | "sample";
 
 type OnboardingStepId =
   | "syllabus"
@@ -390,9 +391,13 @@ function FeaturePreview({
 function StartPathChooser({ onChoose }: { onChoose: (path: OnboardingStartPath) => void }) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
+  const imageParsingReady = supportsSyllabusImageParsing();
   const choices: Array<{ id: OnboardingStartPath; title: string; copy: string }> = [
-    { id: "scan", title: "Scan Paper", copy: "Use the camera when photo parsing is available." },
+    ...(imageParsingReady
+      ? [{ id: "scan" as const, title: "Scan Paper", copy: "Use the camera to find class work." }]
+      : []),
     { id: "upload", title: "Upload File", copy: "Start with a text-based PDF or class file." },
+    { id: "type", title: "Type It In", copy: "Paste syllabus lines yourself." },
     { id: "manual", title: "Add Classes", copy: "Build your plan by hand." },
     { id: "sample", title: "Try Sample", copy: "Explore a safe preview semester." }
   ];

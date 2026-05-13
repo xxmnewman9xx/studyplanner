@@ -34,7 +34,7 @@ export function ModeToggle() {
 
 const styles = StyleSheet.create({
   toggle: {
-    minHeight: 38,
+    minHeight: 44,
     borderWidth: 1,
     flexDirection: "row",
     alignItems: "center",

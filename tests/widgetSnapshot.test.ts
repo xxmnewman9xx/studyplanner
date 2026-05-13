@@ -22,6 +22,7 @@ test("widget snapshot prepares this-week surfaces and heavy warning", () => {
   assert.equal(snapshot.surfaces.small.kind, "nextDue");
   assert.equal(snapshot.surfaces.medium.items.length, 4);
   assert.equal(snapshot.surfaces.medium.overflowCount, 1);
+  assert.equal(snapshot.nextDue?.courseColor, seed.courses.find((course) => course.id === "chem-101")?.color);
   assert.equal(snapshot.surfaces.large.heavyWeekWarning?.isHeavy, true);
   assert.equal(snapshot.surfaces.lockScreen.countdownLabel, "Tomorrow");
   assert.equal(snapshot.surfaces.monthly.dueThisMonth, snapshot.monthly?.dueThisMonth);

@@ -105,7 +105,7 @@ export function WidgetShowcaseScreen({
       <PremiumHeader
         eyebrow="Widget Setup"
         title={captureState === "widget-empty" ? "Empty Widget" : captureState === "widget-needs-check" ? "Needs Check Widget" : "Widget Setup"}
-        subtitle="Set up the supported Home Screen widgets: Small Next Due and Medium This Week."
+        subtitle="Preview the supported Home Screen widgets: Small Next Due and Medium This Week."
       />
 
       <GlassCard tint="hero" style={styles.heroCard}>
@@ -132,7 +132,7 @@ export function WidgetShowcaseScreen({
               {sizeLabel(widgetSize)} - {selectedFocus.label}
             </Text>
             <Text maxFontSizeMultiplier={bodyTextScale} style={styles.panelFinePrint}>
-              These previews use confirmed assignments only. Widgets refresh after planner changes on iOS timing.
+              These previews use checked assignments only. iOS refreshes installed widgets on its own timing.
             </Text>
           </View>
           <View style={[styles.swatchLarge, { backgroundColor: widgetStyle.accent }]} />

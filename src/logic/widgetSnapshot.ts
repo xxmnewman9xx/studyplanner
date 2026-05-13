@@ -136,6 +136,7 @@ function toWidgetItem(
     title: assignment.title,
     courseId: assignment.courseId,
     courseName: assignment.courseName || course?.name || course?.code || "Course",
+    courseColor: course?.color,
     dueAt: assignment.dueAt,
     type: assignment.type,
     dueLabel: dueLabel(days),

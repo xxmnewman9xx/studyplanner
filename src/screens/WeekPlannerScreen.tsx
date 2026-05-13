@@ -25,6 +25,7 @@ type WeekPlannerScreenProps = {
   assignments: Assignment[];
   courses: Course[];
   onUpdateStatus: (assignmentId: string, status: "not_started" | "in_progress" | "done") => void;
+  onToggleDone: (assignmentId: string) => void;
   onOpenAssignment: (assignmentId: string) => void;
 };
 
@@ -33,6 +34,7 @@ export function WeekPlannerScreen({
   assignments,
   courses,
   onUpdateStatus,
+  onToggleDone,
   onOpenAssignment
 }: WeekPlannerScreenProps) {
   const { theme } = useAppTheme();
@@ -152,7 +154,7 @@ export function WeekPlannerScreen({
                       now={now}
                       compact
                       onOpen={() => onOpenAssignment(assignment.id)}
-                      onComplete={() => onUpdateStatus(assignment.id, "done")}
+                      onComplete={() => onToggleDone(assignment.id)}
                       right={
                         <StatusBadge
                           label={assignment.kind === "exam" ? "Exam" : assignment.kind}

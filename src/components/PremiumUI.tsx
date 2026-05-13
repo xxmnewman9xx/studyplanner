@@ -232,21 +232,21 @@ export function CommandCenterHero({
           <View style={styles.heroActions}>
             <TouchableOpacity
               accessibilityRole="button"
-              accessibilityLabel={`Start ${assignment.title}`}
-              accessibilityHint="Opens the assignment so you can begin working."
+              accessibilityLabel={`Start working on ${assignment.title}`}
+              accessibilityHint="Marks this assignment as in progress."
               style={styles.heroSecondaryButton}
               onPress={onStart}
             >
-              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroSecondaryText}>Start</Text>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroSecondaryText}>Focus</Text>
             </TouchableOpacity>
             <TouchableOpacity
               accessibilityRole="button"
-              accessibilityLabel={`Mark ${assignment.title} complete`}
+              accessibilityLabel={`Mark ${assignment.title} done`}
               accessibilityHint="Marks this assignment done and refreshes planner surfaces."
               style={styles.heroPrimaryButton}
               onPress={onComplete}
             >
-              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroPrimaryText}>Complete</Text>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.heroPrimaryText}>Done</Text>
               <ChevronRight color={colors.heroText} size={15} />
             </TouchableOpacity>
           </View>
@@ -360,14 +360,16 @@ export function TaskRow({
       style={[styles.taskRow, compact ? styles.taskRowCompact : null, done ? styles.taskRowDone : null]}
       onPress={onOpen}
     >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessibilityLabel={done ? `Mark ${assignment.title} not done` : `Mark ${assignment.title} done`}
-        style={styles.taskCheck}
-        onPress={onComplete}
-      >
-        {done ? <CheckCircle2 color={colors.green} size={20} /> : <Circle color={colors.brandPurple} size={20} />}
-      </TouchableOpacity>
+      {onComplete ? (
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={done ? `Mark ${assignment.title} not done` : `Mark ${assignment.title} done`}
+          style={styles.taskCheck}
+          onPress={onComplete}
+        >
+          {done ? <CheckCircle2 color={colors.green} size={20} /> : <Circle color={colors.brandPurple} size={20} />}
+        </TouchableOpacity>
+      ) : null}
       <View style={[styles.taskMark, { backgroundColor: course?.color || colors.brandPurple }]}>
         <Text style={styles.taskMarkText}>{(course?.code || assignment.courseName || "SP").slice(0, 1)}</Text>
       </View>
@@ -533,7 +535,7 @@ export function WidgetPreviewSmall({
         <Text style={[styles.widgetLabel, { color: visual.text }]}>Next Due</Text>
         <Text style={[styles.widgetBadge, { color: visual.text }]} numberOfLines={1}>{item?.dueLabel || "Clear"}</Text>
       </View>
-      <View style={[styles.widgetIcon, { backgroundColor: visual.accent }]}>
+      <View style={[styles.widgetIcon, { backgroundColor: item?.courseColor || visual.accent }]}>
         <CalendarClock color={colors.heroText} size={16} />
       </View>
       <Text style={[styles.smallWidgetTitle, { color: visual.text }]} numberOfLines={2}>
@@ -573,7 +575,7 @@ export function WidgetPreviewMedium({
       ) : (
         items.map((item) => (
           <View key={item.assignmentId} style={styles.mediumWidgetRow}>
-            <View style={[styles.widgetRowIcon, styles[`${widgetTone(item.urgency)}WidgetIcon`]]}>
+            <View style={[styles.widgetRowIcon, styles[`${widgetTone(item.urgency)}WidgetIcon`], item.courseColor ? { backgroundColor: item.courseColor } : null]}>
               <CalendarClock color={colors.heroText} size={12} />
             </View>
             <View style={styles.widgetRowCopy}>
@@ -913,6 +915,7 @@ function ProgressRing({ value, color }: { value: number; color: string }) {
 }
 
 function badgeLabel(assignment: Assignment, now = new Date()) {
+  if (assignment.status === "in_progress") return "In progress";
   if (assignment.kind === "exam" || assignment.type === "exam") return "High";
   const days = daysUntil(assignment.dueAt, now);
   if (days < 0) return "Overdue";
@@ -923,6 +926,7 @@ function badgeLabel(assignment: Assignment, now = new Date()) {
 }
 
 function badgeTone(assignment: Assignment, now = new Date()): Tone {
+  if (assignment.status === "in_progress") return "blue";
   if (assignment.kind === "exam" || assignment.type === "exam" || assignment.priority === "high") return "red";
   const days = daysUntil(assignment.dueAt, now);
   if (days <= 1) return "gold";
@@ -1303,7 +1307,7 @@ function createStyles(theme: AppTheme) {
       borderRadius: 18,
       borderWidth: 1,
       borderColor: colors.line,
-      backgroundColor: "rgba(255,255,255,0.97)",
+      backgroundColor: colors.surface,
       padding: spacing.sm,
       flexDirection: "row",
       alignItems: "center",
@@ -1318,7 +1322,7 @@ function createStyles(theme: AppTheme) {
       minHeight: 66
     },
     taskRowDone: {
-      opacity: 0.58
+      backgroundColor: colors.surfaceAlt
     },
     taskCheck: {
       width: 44,
@@ -1378,7 +1382,7 @@ function createStyles(theme: AppTheme) {
       alignItems: "center",
       justifyContent: "center",
       gap: 1,
-      backgroundColor: "rgba(255,255,255,0.56)"
+      backgroundColor: colors.surfaceAlt
     },
     weekPillActive: {
       backgroundColor: colors.brandPurple,
@@ -1417,7 +1421,7 @@ function createStyles(theme: AppTheme) {
       borderRadius: 19,
       borderWidth: 1,
       borderColor: colors.line,
-      backgroundColor: "rgba(255,255,255,0.97)",
+      backgroundColor: colors.surface,
       padding: spacing.md,
       flexDirection: "row",
       alignItems: "center",
@@ -1431,7 +1435,7 @@ function createStyles(theme: AppTheme) {
     },
     courseCardActive: {
       borderColor: "rgba(108,92,231,0.38)",
-      backgroundColor: "#FFFFFF"
+      backgroundColor: colors.elevated
     },
     courseAccentRail: {
       position: "absolute",
@@ -1496,7 +1500,7 @@ function createStyles(theme: AppTheme) {
     warningCard: {
       minHeight: 92,
       borderRadius: 22,
-      backgroundColor: "#FFF3DA",
+      backgroundColor: colors.warningSurface,
       borderWidth: 1,
       borderColor: "rgba(245,158,11,0.36)",
       padding: spacing.md,
@@ -1534,7 +1538,7 @@ function createStyles(theme: AppTheme) {
       fontWeight: "700"
     },
     warningButton: {
-      minHeight: 36,
+      minHeight: 44,
       borderRadius: radii.round,
       backgroundColor: colors.brandCoral,
       paddingHorizontal: spacing.sm,

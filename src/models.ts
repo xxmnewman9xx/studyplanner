@@ -135,10 +135,11 @@ export type SyllabusSource = {
 };
 
 export type SyllabusImportSource = {
-  kind: "pdf" | "photo";
+  kind: "pdf" | "photo" | "text";
   uri?: string;
   name?: string;
   mimeType?: string;
+  text?: string;
 };
 
 export type SyllabusParseResult = {
@@ -171,6 +172,7 @@ export type WidgetSnapshotItem = {
   title: string;
   courseId: string;
   courseName: string;
+  courseColor?: string;
   dueAt: string;
   type: AssignmentType;
   dueLabel: string;

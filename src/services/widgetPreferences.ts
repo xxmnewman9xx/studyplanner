@@ -2,12 +2,7 @@ import { WidgetStylePresetId, widgetStylePresets } from "../theme";
 import { loadJson, saveJson } from "./storage";
 
 export type WidgetSizePreference = "small" | "medium";
-export type WidgetFocusPreference =
-  | "nextDue"
-  | "thisWeek"
-  | "monthly"
-  | "heavyWeek"
-  | "courseFocus";
+export type WidgetFocusPreference = "nextDue" | "thisWeek";
 
 export type WidgetPreferences = {
   size: WidgetSizePreference;
@@ -24,13 +19,7 @@ export const defaultWidgetPreferences: WidgetPreferences = {
 };
 
 const widgetSizes: WidgetSizePreference[] = ["small", "medium"];
-const widgetFocuses: WidgetFocusPreference[] = [
-  "nextDue",
-  "thisWeek",
-  "monthly",
-  "heavyWeek",
-  "courseFocus"
-];
+const widgetFocuses: WidgetFocusPreference[] = ["nextDue", "thisWeek"];
 
 export function normalizeWidgetPreferences(
   value: Partial<WidgetPreferences> | null | undefined

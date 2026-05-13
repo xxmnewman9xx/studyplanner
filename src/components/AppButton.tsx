@@ -27,8 +27,13 @@ export function AppButton({
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
   const { colors } = theme;
-  const foreground =
-    variant === "primary" ? colors.heroText : variant === "secondary" ? colors.ink : colors.muted;
+  const foreground = disabled
+    ? colors.muted
+    : variant === "primary"
+      ? colors.heroText
+      : variant === "secondary"
+        ? colors.ink
+        : colors.muted;
 
   return (
     <TouchableOpacity
@@ -85,7 +90,11 @@ function createStyles(theme: AppTheme) {
       backgroundColor: "transparent"
     },
     disabled: {
-      opacity: 0.45
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      shadowOpacity: 0,
+      elevation: 0
     },
     label: {
       fontSize: 14,

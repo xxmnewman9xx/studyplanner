@@ -45,6 +45,7 @@ type CoursesScreenProps = {
     kind: AssignmentKind
   ) => void;
   onOpenAssignment: (assignmentId: string) => void;
+  onUpdateStatus: (assignmentId: string, status: "not_started" | "in_progress" | "done") => void;
   onUpdateSemester: (patch: Partial<Semester>) => void;
   onAddCourse: (course: Pick<Course, "code" | "name" | "instructor"> & { color?: string }) => void;
   onUpdateCourse: (courseId: string, patch: Partial<Course>) => void;
@@ -59,6 +60,7 @@ export function CoursesScreen({
   syllabusSources,
   onAddQuickAssignment,
   onOpenAssignment,
+  onUpdateStatus,
   onUpdateSemester,
   onAddCourse,
   onUpdateCourse,
@@ -365,6 +367,7 @@ export function CoursesScreen({
                   course={getCourseForAssignment(courses, assignment)}
                   now={now}
                   onOpen={() => onOpenAssignment(assignment.id)}
+                  onComplete={() => onUpdateStatus(assignment.id, "done")}
                   compact
                   right={<StatusBadge label={urgencyLabel(assignment, now)} tone={assignment.kind === "exam" ? "red" : "blue"} />}
                 />

@@ -31,6 +31,7 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
   const captureMode = isStoreCaptureEnabled();
   const [mode, setMode] = useState<ThemeMode>("light");
   const [paletteId, setPaletteId] = useState<ThemePaletteId>(defaultThemePaletteId);
+  const [hydrated, setHydrated] = useState(captureMode);
   const theme = useMemo(() => getTheme(mode, paletteId), [mode, paletteId]);
 
   useEffect(() => {
@@ -51,6 +52,8 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
       if (storedPaletteId && isThemePaletteId(storedPaletteId)) {
         setPaletteId(storedPaletteId);
       }
+
+      setHydrated(true);
     });
 
     return () => {
@@ -59,14 +62,14 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
   }, [captureMode]);
 
   useEffect(() => {
-    if (captureMode) return;
+    if (captureMode || !hydrated) return;
     saveJson(themeStorageKey, mode);
-  }, [captureMode, mode]);
+  }, [captureMode, hydrated, mode]);
 
   useEffect(() => {
-    if (captureMode) return;
+    if (captureMode || !hydrated) return;
     saveJson(paletteStorageKey, paletteId);
-  }, [captureMode, paletteId]);
+  }, [captureMode, hydrated, paletteId]);
 
   const value = useMemo(
     () => ({

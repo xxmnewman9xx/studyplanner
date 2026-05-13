@@ -18,6 +18,7 @@ import {
   Pencil,
   Sparkles,
   Upload,
+  Keyboard,
   XCircle
 } from "lucide-react-native";
 
@@ -73,6 +74,7 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [filter, setFilter] = useState<ConfidenceFilter>("all");
   const [expandedAssignmentId, setExpandedAssignmentId] = useState<string | null>(null);
+  const [typedText, setTypedText] = useState("");
   const imageParsingReady = supportsSyllabusImageParsing();
   const showPhotoActions = imageParsingReady || (captureMode && captureState === "scan-paper");
   const scanCopy = imageParsingReady
@@ -185,6 +187,20 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
     onApplyParsedPlan({
       ...draft,
       assignments: acceptedAssignments
+    });
+  };
+
+  const parseTypedText = async () => {
+    if (typedText.trim().length < 20) {
+      Alert.alert("Type a little more", "Paste or type a few syllabus lines with class work and dates.");
+      return;
+    }
+
+    await runParse({
+      kind: "text",
+      name: "Typed syllabus",
+      mimeType: "text/plain",
+      text: typedText
     });
   };
 
@@ -322,7 +338,7 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
         </View>
         <View style={styles.importGrid}>
           <AppButton
-            label="File"
+            label="Upload"
             icon={FileText}
             variant="secondary"
             style={styles.importButton}
@@ -332,7 +348,7 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
           {showPhotoActions ? (
             <>
               <AppButton
-                label="Photo"
+                label="Choose Photo"
                 icon={Upload}
                 variant="secondary"
                 style={styles.importButton}
@@ -340,7 +356,7 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
                 onPress={pickPhoto}
               />
               <AppButton
-                label="Camera"
+                label="Scan"
                 icon={Camera}
                 variant="secondary"
                 style={styles.importButton}
@@ -350,6 +366,38 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
             </>
           ) : null}
         </View>
+      </GlassCard>
+
+      <GlassCard>
+        <View style={styles.typedHeader}>
+          <View style={styles.typedIcon}>
+            <Keyboard color={colors.heroText} size={18} />
+          </View>
+          <View style={styles.typedCopy}>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyTitle}>Type It In</Text>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyCopy}>
+              Paste syllabus lines here when a file is not handy.
+            </Text>
+          </View>
+        </View>
+        <TextInput
+          value={typedText}
+          multiline
+          textAlignVertical="top"
+          placeholder="Example: BIO 101 Lab Report due Sep 18, 2026"
+          accessibilityLabel="Typed syllabus text"
+          accessibilityHint="Paste or type syllabus lines to find class work."
+          placeholderTextColor={colors.faint}
+          maxFontSizeMultiplier={bodyTextScale}
+          style={styles.typedInput}
+          onChangeText={setTypedText}
+        />
+        <AppButton
+          label="Find Work"
+          icon={Sparkles}
+          disabled={loading || typedText.trim().length < 20}
+          onPress={parseTypedText}
+        />
       </GlassCard>
 
       {captureProof ? (
@@ -466,9 +514,13 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
                   accessibilityRole="button"
                   accessibilityLabel={`Mark ${visibleAssignments.length} shown item${visibleAssignments.length === 1 ? "" : "s"} looks good`}
                   accessibilityHint="Adds the currently filtered found work to the planner after review."
+                  accessibilityState={{ disabled: visibleAssignments.length === 0 }}
+                  disabled={visibleAssignments.length === 0}
                   onPress={acceptVisible}
                 >
-                  <Text maxFontSizeMultiplier={bodyTextScale} style={styles.secondaryActionText}>Looks good shown</Text>
+                  <Text maxFontSizeMultiplier={bodyTextScale} style={[styles.secondaryActionText, visibleAssignments.length === 0 ? styles.secondaryActionTextDisabled : null]}>
+                    Approve Shown
+                  </Text>
                 </TouchableOpacity>
                 {reviewStats.ignored > 0 ? (
                   <TouchableOpacity
@@ -483,9 +535,13 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
                   accessibilityRole="button"
                   accessibilityLabel="Edit first shown found item"
                   accessibilityHint="Opens the first visible found assignment for title, date, type, and priority edits."
+                  accessibilityState={{ disabled: visibleAssignments.length === 0 }}
+                  disabled={visibleAssignments.length === 0}
                   onPress={() => setExpandedAssignmentId(visibleAssignments[0]?.id || null)}
                 >
-                  <Text maxFontSizeMultiplier={bodyTextScale} style={styles.secondaryActionText}>Edit first</Text>
+                  <Text maxFontSizeMultiplier={bodyTextScale} style={[styles.secondaryActionText, visibleAssignments.length === 0 ? styles.secondaryActionTextDisabled : null]}>
+                    Edit First
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -567,6 +623,7 @@ function ReviewRow({
     setDraftDate(date);
     if (!isValidDateKey(date)) {
       setDateError("Use a real date like 2026-09-18.");
+      onPatch({ reviewStatus: "needsReview" });
       return;
     }
 
@@ -577,6 +634,15 @@ function ReviewRow({
     }
   };
 
+  const acceptIfDateValid = () => {
+    if (dateError || !isValidDateKey(draftDate)) {
+      Alert.alert("Fix the date first", "Use a real date before marking this found work Looks Good.");
+      return;
+    }
+
+    onAccept();
+  };
+
   return (
     <GlassCard style={styles.reviewCard}>
       <View style={styles.reviewRow}>
@@ -585,7 +651,7 @@ function ReviewRow({
           accessibilityLabel={accepted ? `${assignment.title} already marked looks good` : `Mark ${assignment.title} looks good`}
           accessibilityState={{ checked: accepted }}
           style={styles.checkButton}
-          onPress={onAccept}
+          onPress={acceptIfDateValid}
         >
           <CheckCircle2 color={accepted ? colors.green : colors.brandPurple} size={21} />
         </TouchableOpacity>
@@ -599,7 +665,7 @@ function ReviewRow({
         <StatusBadge label={confidenceLabel(assignment.confidence)} tone={confidenceTone(assignment.confidence)} />
       </View>
       <View style={styles.reviewActionRow}>
-        <MicroAction label="Looks good" onPress={onAccept}>
+        <MicroAction label="Looks good" onPress={acceptIfDateValid}>
           <CheckCircle2 color={colors.green} size={16} />
         </MicroAction>
         <MicroAction label="Remove" onPress={onIgnore}>
@@ -876,6 +942,37 @@ function createStyles(theme: AppTheme) {
     importButton: {
       flex: 1
     },
+    typedHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    typedIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.brandPurple
+    },
+    typedCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    typedInput: {
+      minHeight: 116,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.canvas,
+      color: colors.ink,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.sm,
+      fontSize: 14,
+      lineHeight: 20,
+      fontWeight: "700"
+    },
     captureProofCard: {
       borderColor: `${colors.brandPurple}24`,
       backgroundColor: colors.surface
@@ -1040,6 +1137,9 @@ function createStyles(theme: AppTheme) {
       fontSize: 13,
       lineHeight: 18,
       fontWeight: "900"
+    },
+    secondaryActionTextDisabled: {
+      color: colors.faint
     },
     findingTitle: {
       color: colors.ink,

@@ -22,6 +22,7 @@ import {
 } from "../components/PremiumUI";
 import { isStoreCaptureEnabled } from "../config/storeCapture";
 import { storeCaptureNow } from "../data/demoSemester";
+import { isAssignmentConfirmed } from "../logic/assignmentModel";
 import { buildMonthCalendarPlan, buildSemesterInsights, MonthCalendarDay } from "../logic/semesterInsights";
 import { buildWeekPlan, getCourseForAssignment } from "../logic/planner";
 import { Assignment, Course, Semester } from "../models";
@@ -33,6 +34,7 @@ type MonthlyCalendarScreenProps = {
   assignments: Assignment[];
   courses: Course[];
   onUpdateStatus: (assignmentId: string, status: "not_started" | "in_progress" | "done") => void;
+  onToggleDone: (assignmentId: string) => void;
   onOpenAssignment: (assignmentId: string) => void;
   captureState?: string | null;
 };
@@ -44,6 +46,7 @@ export function MonthlyCalendarScreen({
   assignments,
   courses,
   onUpdateStatus,
+  onToggleDone,
   onOpenAssignment,
   captureState
 }: MonthlyCalendarScreenProps) {
@@ -56,6 +59,10 @@ export function MonthlyCalendarScreen({
   const [selectedDate, setSelectedDate] = useState(toDateKey(now));
   const [courseFilterId, setCourseFilterId] = useState("all");
   const weekPlan = useMemo(() => buildWeekPlan(assignments, now), [assignments, now]);
+  const confirmedAssignments = useMemo(
+    () => assignments.filter(isAssignmentConfirmed),
+    [assignments]
+  );
   const monthPlan = useMemo(
     () =>
       buildMonthCalendarPlan({
@@ -187,7 +194,7 @@ export function MonthlyCalendarScreen({
           <PillFilter
             label="All"
             active={courseFilterId === "all"}
-            count={assignments.length}
+            count={confirmedAssignments.length}
             onPress={() => setCourseFilterId("all")}
           />
           {courses.map((course) => (
@@ -195,7 +202,7 @@ export function MonthlyCalendarScreen({
               key={course.id}
               label={course.code}
               active={courseFilterId === course.id}
-              count={assignments.filter((assignment) => assignment.courseId === course.id).length}
+              count={confirmedAssignments.filter((assignment) => assignment.courseId === course.id).length}
               onPress={() => setCourseFilterId(course.id)}
             />
           ))}
@@ -256,7 +263,7 @@ export function MonthlyCalendarScreen({
                   now={now}
                   compact
                   onOpen={() => onOpenAssignment(assignment.id)}
-                  onComplete={() => onUpdateStatus(assignment.id, "done")}
+                  onComplete={() => onToggleDone(assignment.id)}
                   right={
                     <StatusBadge
                       label={assignment.kind === "exam" ? "Exam" : assignment.completionStatus === "completed" ? "Done" : assignment.priority}
@@ -312,7 +319,7 @@ export function MonthlyCalendarScreen({
                       now={now}
                       compact
                       onOpen={() => onOpenAssignment(assignment.id)}
-                      onComplete={() => onUpdateStatus(assignment.id, "done")}
+                      onComplete={() => onToggleDone(assignment.id)}
                       right={
                         <StatusBadge
                           label={assignment.kind === "exam" ? "Exam" : assignment.kind}

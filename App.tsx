@@ -150,15 +150,17 @@ function AppContent() {
   const [onboardingStep, setOnboardingStep] = useState(0);
   const [capturePaywallVisible, setCapturePaywallVisible] = useState(false);
   const [captureState, setCaptureState] = useState<CaptureState>(null);
+  const [captureThemeMode, setCaptureThemeMode] = useState<"light" | "dark">("light");
   const [widgetPreferences, setWidgetPreferences] = useState<WidgetPreferences>(defaultWidgetPreferences);
   const [widgetPreferencesHydrated, setWidgetPreferencesHydrated] = useState(storeCaptureEnabled);
   const [hydrated, setHydrated] = useState(false);
+  const [automationBusy, setAutomationBusy] = useState<"reminders" | "calendar" | null>(null);
 
   useEffect(() => {
-    if (storeCaptureEnabled && theme.mode !== "light") {
-      setMode("light");
+    if (storeCaptureEnabled && theme.mode !== captureThemeMode) {
+      setMode(captureThemeMode);
     }
-  }, [setMode, storeCaptureEnabled, theme.mode]);
+  }, [captureThemeMode, setMode, storeCaptureEnabled, theme.mode]);
 
   useEffect(() => {
     if (storeCaptureEnabled) {
@@ -219,8 +221,12 @@ function AppContent() {
       const requestedCaptureState = captureStateFromQuery(
         stateMatch?.[1] ? decodeURIComponent(stateMatch[1]) : null
       );
+      const modeMatch = /[?&](?:mode|theme)=([^&]+)/.exec(url);
+      const requestedThemeMode =
+        modeMatch?.[1] && decodeURIComponent(modeMatch[1]) === "dark" ? "dark" : "light";
 
       if (requestedTabRaw === "onboarding") {
+        setCaptureThemeMode(requestedThemeMode);
         setSelectedAssignmentId(null);
         setCapturePaywallVisible(false);
         setCaptureState(requestedCaptureState);
@@ -231,6 +237,7 @@ function AppContent() {
       }
 
       if (requestedTabRaw === "paywall") {
+        setCaptureThemeMode(requestedThemeMode);
         setSelectedAssignmentId(null);
         setCaptureState(requestedCaptureState);
         setOnboarded(true);
@@ -245,6 +252,7 @@ function AppContent() {
       const scrollY = scrollMatch?.[1] ? Number(scrollMatch[1]) : 0;
       const assignmentMatch = /[?&]assignment=([^&]+)/.exec(url);
       const requestedAssignmentId = assignmentMatch?.[1] ? decodeURIComponent(assignmentMatch[1]) : null;
+      setCaptureThemeMode(requestedThemeMode);
       setSelectedAssignmentId(requestedAssignmentId);
       setCaptureState(requestedCaptureState);
       setCapturePaywallVisible(false);
@@ -396,6 +404,15 @@ function AppContent() {
     );
   };
 
+  const toggleAssignmentDone = (assignmentId: string) => {
+    const assignment = assignments.find((item) => item.id === assignmentId);
+    const nextStatus =
+      assignment && (assignment.status === "done" || assignment.completionStatus === "completed")
+        ? "not_started"
+        : "done";
+    updateAssignmentStatus(assignmentId, nextStatus);
+  };
+
   const addQuickAssignment = (
     courseId: string,
     title: string,
@@ -509,6 +526,8 @@ function AppContent() {
       return;
     }
 
+    if (automationBusy) return;
+    setAutomationBusy("reminders");
     try {
       const { count, reminderIdsByAssignment } = await scheduleSmartReminders(
         confirmedAssignments,
@@ -527,6 +546,8 @@ function AppContent() {
       Alert.alert("Reminders queued", `${count} smart reminders were scheduled.`);
     } catch (error) {
       Alert.alert("Reminder setup paused", messageFromError(error));
+    } finally {
+      setAutomationBusy(null);
     }
   };
 
@@ -536,6 +557,8 @@ function AppContent() {
       return;
     }
 
+    if (automationBusy) return;
+    setAutomationBusy("calendar");
     try {
       const { count, calendarEventIdsByAssignment } = await syncAssignmentsToDeviceCalendar(
         confirmedAssignments,
@@ -553,6 +576,8 @@ function AppContent() {
       Alert.alert("Calendar synced", `${count} deadlines were sent to your device calendar.`);
     } catch (error) {
       Alert.alert("Calendar sync paused", messageFromError(error));
+    } finally {
+      setAutomationBusy(null);
     }
   };
 
@@ -573,7 +598,7 @@ function AppContent() {
       return;
     }
 
-    if (path === "scan" || path === "upload") {
+    if (path === "scan" || path === "upload" || path === "type") {
       setActiveTab("import");
       return;
     }
@@ -663,6 +688,7 @@ function AppContent() {
                   courses={courses}
                   semester={semester}
                   onUpdateStatus={updateAssignmentStatus}
+                  onToggleDone={toggleAssignmentDone}
                   onOpenAssignment={setSelectedAssignmentId}
                   onScheduleReminders={handleScheduleReminders}
                   onCalendarSync={handleCalendarSync}
@@ -671,6 +697,7 @@ function AppContent() {
                   onOpenCalendar={() => openTab("calendar")}
                   widgetStyleId={widgetPreferences.styleId}
                   premiumAutomationLocked={premiumLocked}
+                  automationBusy={automationBusy}
                   onOpenPaywall={() => openTab("upgrade")}
                   captureState={captureState}
                 />
@@ -694,6 +721,7 @@ function AppContent() {
                   syllabusSources={syllabusSources}
                   onAddQuickAssignment={addQuickAssignment}
                   onOpenAssignment={setSelectedAssignmentId}
+                  onUpdateStatus={updateAssignmentStatus}
                   onUpdateSemester={updateSemester}
                   onAddCourse={addCourse}
                   onUpdateCourse={updateCourse}
@@ -726,6 +754,7 @@ function AppContent() {
                   assignments={activeAssignments}
                   courses={courses}
                   onUpdateStatus={updateAssignmentStatus}
+                  onToggleDone={toggleAssignmentDone}
                   onOpenAssignment={setSelectedAssignmentId}
                   captureState={captureState}
                 />
@@ -736,6 +765,7 @@ function AppContent() {
                   assignments={activeAssignments}
                   courses={courses}
                   onUpdateStatus={updateAssignmentStatus}
+                  onToggleDone={toggleAssignmentDone}
                   onOpenAssignment={setSelectedAssignmentId}
                 />
               ) : null}
@@ -902,8 +932,8 @@ function createStyles(theme: AppTheme) {
       alignItems: "center"
     },
     topIconButton: {
-      width: 38,
-      height: 38,
+      width: 44,
+      height: 44,
       borderRadius: radii.md,
       borderWidth: 1,
       borderColor: colors.line,

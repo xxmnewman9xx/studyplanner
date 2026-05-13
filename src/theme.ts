@@ -517,8 +517,8 @@ export function createWidgetStyleSnapshot(paletteId?: string, styleId?: string) 
     background,
     text: style?.text || "#F8FAFC",
     muted: style?.muted || "#BCC7D8",
-    accent: style?.accent || palette.widgetAccent,
-    secondary: style?.secondary || palette.secondary
+    accent: palette.widgetAccent || style?.accent || "#B7A7FF",
+    secondary: palette.secondary || style?.secondary || "#3B82F6"
   };
 }
 

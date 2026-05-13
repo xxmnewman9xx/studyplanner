@@ -41,6 +41,7 @@ type TodayScreenProps = {
   courses: Course[];
   semester: Semester;
   onUpdateStatus: (assignmentId: string, status: "not_started" | "in_progress" | "done") => void;
+  onToggleDone: (assignmentId: string) => void;
   onOpenAssignment: (assignmentId: string) => void;
   onScheduleReminders: () => void;
   onCalendarSync: () => void;
@@ -49,6 +50,7 @@ type TodayScreenProps = {
   onOpenCalendar: () => void;
   widgetStyleId?: WidgetStylePresetId;
   premiumAutomationLocked: boolean;
+  automationBusy?: "reminders" | "calendar" | null;
   onOpenPaywall: () => void;
   captureState?: string | null;
 };
@@ -58,6 +60,7 @@ export function TodayScreen({
   courses,
   semester,
   onUpdateStatus,
+  onToggleDone,
   onOpenAssignment,
   onScheduleReminders,
   onCalendarSync,
@@ -66,6 +69,7 @@ export function TodayScreen({
   onOpenCalendar,
   widgetStyleId,
   premiumAutomationLocked,
+  automationBusy,
   onOpenPaywall,
   captureState
 }: TodayScreenProps) {
@@ -115,6 +119,7 @@ export function TodayScreen({
   const showAutomationCard = !captureMode || captureState === "reminders";
 
   const automationPress = (kind: "reminders" | "calendar") => {
+    if (automationBusy) return;
     if (premiumAutomationLocked) {
       onOpenPaywall();
       return;
@@ -189,16 +194,18 @@ export function TodayScreen({
           </View>
           <View style={styles.automationActions}>
             <AppButton
-              label="Queue Reminders"
+              label={automationBusy === "reminders" ? "Reminding" : "Remind Me"}
               icon={Bell}
               onPress={() => automationPress("reminders")}
+              disabled={Boolean(automationBusy)}
               style={styles.automationButton}
             />
             <AppButton
-              label="Sync Calendar"
+              label={automationBusy === "calendar" ? "Adding" : "Add to Calendar"}
               icon={CalendarPlus}
               variant="secondary"
               onPress={() => automationPress("calendar")}
+              disabled={Boolean(automationBusy)}
               style={styles.automationButton}
             />
           </View>
@@ -247,7 +254,7 @@ export function TodayScreen({
                 course={getCourseForAssignment(courses, assignment)}
                 now={now}
                 onOpen={() => onOpenAssignment(assignment.id)}
-                onComplete={() => onUpdateStatus(assignment.id, "done")}
+                onComplete={() => onToggleDone(assignment.id)}
               />
             </View>
           ))
@@ -303,7 +310,7 @@ export function TodayScreen({
                 course={getCourseForAssignment(courses, assignment)}
                 now={now}
                 onOpen={() => onOpenAssignment(assignment.id)}
-                onComplete={() => onUpdateStatus(assignment.id, "done")}
+                onComplete={() => onToggleDone(assignment.id)}
                 compact
               />
             ))}

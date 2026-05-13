@@ -566,8 +566,8 @@ function createStyles(theme: AppTheme) {
       gap: spacing.md
     },
     closeButton: {
-      width: 40,
-      height: 40,
+      width: 44,
+      height: 44,
       borderRadius: radii.md,
       borderWidth: 1,
       borderColor: colors.line,

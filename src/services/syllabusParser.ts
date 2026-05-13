@@ -35,7 +35,7 @@ export function supportsSyllabusImageParsing() {
 }
 
 export async function parseSyllabus(source: SyllabusImportSource): Promise<SyllabusParseResult> {
-  if (!source.uri) {
+  if (!source.uri && !source.text) {
     throw new Error("Choose a syllabus file or photo before scanning.");
   }
 
@@ -97,6 +97,10 @@ async function parseSyllabusOnDevice(source: SyllabusImportSource) {
 }
 
 async function readSourceText(source: SyllabusImportSource) {
+  if (source.kind === "text" && source.text?.trim()) {
+    return source.text;
+  }
+
   if (!source.uri) {
     throw new Error("Choose a syllabus file or photo before scanning.");
   }
@@ -142,14 +146,18 @@ export function updateParsedAssignment(
 function buildUploadBody(source: SyllabusImportSource) {
   const body = new FormData();
   const name = source.name || (source.kind === "pdf" ? "syllabus.pdf" : "syllabus-photo.jpg");
-  const type = source.mimeType || (source.kind === "pdf" ? "application/pdf" : "image/jpeg");
+  const type = source.mimeType || (source.kind === "pdf" ? "application/pdf" : source.kind === "text" ? "text/plain" : "image/jpeg");
 
   body.append("kind", source.kind);
-  body.append("file", {
-    uri: source.uri,
-    name,
-    type
-  } as unknown as Blob);
+  if (source.kind === "text") {
+    body.append("text", source.text || "");
+  } else {
+    body.append("file", {
+      uri: source.uri,
+      name,
+      type
+    } as unknown as Blob);
+  }
 
   return body;
 }

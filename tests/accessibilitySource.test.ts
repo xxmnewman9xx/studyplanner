@@ -107,8 +107,8 @@ test("capture routes expose honest screenshot proof states", () => {
   assert.ok(importScreen.includes("setExpandedAssignmentId(\"problem-set-4\")"));
 
   assert.ok(todayScreen.includes("captureState === \"reminders\""));
-  assert.ok(todayScreen.includes("Queue Reminders"));
-  assert.ok(todayScreen.includes("Sync Calendar"));
+  assert.ok(todayScreen.includes("Remind Me"));
+  assert.ok(todayScreen.includes("Add to Calendar"));
 
   assert.ok(coursesScreen.includes("showCaptureManualAdd"));
   assert.ok(coursesScreen.includes("setTitle(\"Field Notes\")"));

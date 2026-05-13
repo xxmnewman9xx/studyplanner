@@ -406,7 +406,7 @@ struct SmallWidgetView: View {
               .lineLimit(2)
               .minimumScaleFactor(0.78)
             Spacer(minLength: 0)
-            DuePill(item: item, date: date)
+            DuePill(item: item, date: date, style: style)
             if let overdueCount = snapshot?.overdueCount, overdueCount > 1 {
               Text("\\(overdueCount) overdue")
                 .font(.system(size: 9, weight: .semibold))
@@ -451,7 +451,7 @@ struct MediumWidgetView: View {
           VStack(alignment: .leading, spacing: 5) {
             ForEach(items.prefix(4)) { item in
               HStack(alignment: .center, spacing: 7) {
-                UrgencyDot(urgency: relativeUrgency(item.dueAt, from: date, fallback: item.urgency))
+                UrgencyDot(urgency: relativeUrgency(item.dueAt, from: date, fallback: item.urgency), color: colorFromHex(item.courseColor))
                 VStack(alignment: .leading, spacing: 1) {
                   Text(item.title)
                     .font(.system(size: 12, weight: .bold))
@@ -564,10 +564,11 @@ struct EmptyStateView: View {
 
 struct UrgencyDot: View {
   let urgency: String
+  let color: Color?
 
   var body: some View {
     Circle()
-      .fill(urgencyColor(urgency))
+      .fill(color ?? urgencyColor(urgency))
       .frame(width: 7, height: 7)
   }
 }
@@ -575,15 +576,17 @@ struct UrgencyDot: View {
 struct DuePill: View {
   let item: StudyPlannerWidgetSnapshotItem
   let date: Date
+  let style: WidgetStyle?
 
   var body: some View {
     let urgency = relativeUrgency(item.dueAt, from: date, fallback: item.urgency)
+    let dueColor = colorFromHex(item.courseColor) ?? style?.accentColor ?? urgencyColor(urgency)
 
     HStack(spacing: 5) {
-      UrgencyDot(urgency: urgency)
+      UrgencyDot(urgency: urgency, color: colorFromHex(item.courseColor))
       Text(relativeDueLabel(item.dueAt, from: date))
         .font(.system(size: 12, weight: .black))
-        .foregroundStyle(urgencyColor(urgency))
+        .foregroundStyle(dueColor)
         .lineLimit(1)
     }
     .padding(.horizontal, 8)
@@ -815,6 +818,7 @@ struct StudyPlannerWidgetSnapshotItem: Decodable, Identifiable {
   let title: String
   let courseId: String
   let courseName: String
+  let courseColor: String?
   let dueAt: String
   let type: String
   let dueLabel: String
