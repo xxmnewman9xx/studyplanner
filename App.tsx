@@ -13,13 +13,12 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import {
-  CalendarDays,
   CalendarRange,
-  Crown,
   FileScan,
   GraduationCap,
   Home,
-  Settings
+  Settings,
+  Sparkles
 } from "lucide-react-native";
 
 import {
@@ -34,7 +33,13 @@ import {
   SyllabusSource,
   SyllabusParseResult
 } from "./src/models";
-import { AppTheme, courseColorAt } from "./src/theme";
+import {
+  AppTheme,
+  courseColorAt,
+  defaultThemePaletteId,
+  isThemePaletteId,
+  ThemeMode
+} from "./src/theme";
 import { AppThemeProvider, useAppTheme } from "./src/themeContext";
 import { ModeToggle } from "./src/components/ModeToggle";
 import { PremiumGate } from "./src/components/PremiumGate";
@@ -61,6 +66,7 @@ import { WidgetSnapshotService } from "./src/services/widgetSnapshotService";
 import {
   defaultWidgetPreferences,
   loadWidgetPreferences,
+  normalizeWidgetPreferences,
   saveWidgetPreferences,
   WidgetPreferences
 } from "./src/services/widgetPreferences";
@@ -93,13 +99,12 @@ const tabs: Array<{
   icon: React.ComponentType<{ color: string; size: number }>;
 }> = [
   { id: "today", label: "Today", icon: Home },
-  { id: "calendar", label: "Calendar", icon: CalendarRange },
-  { id: "week", label: "Week", icon: CalendarDays },
+  { id: "import", label: "Scan", icon: FileScan },
+  { id: "calendar", label: "Plan", icon: CalendarRange },
   { id: "courses", label: "Classes", icon: GraduationCap },
-  { id: "import", label: "Check Work", icon: FileScan },
-  { id: "upgrade", label: "Widgets", icon: Crown }
+  { id: "upgrade", label: "More", icon: Sparkles }
 ];
-const knownTabs: NavTab[] = [...tabs.map((tab) => tab.id), "grades", "settings"];
+const knownTabs: NavTab[] = [...tabs.map((tab) => tab.id), "week", "grades", "settings"];
 
 type CaptureState =
   | "calendar-filtered"
@@ -126,7 +131,7 @@ export default function App() {
 }
 
 function AppContent() {
-  const { theme, setMode } = useAppTheme();
+  const { theme, setMode, setPalette } = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const subscription = useSubscription();
   const scrollRef = useRef<ScrollView>(null);
@@ -153,12 +158,6 @@ function AppContent() {
   const [widgetPreferences, setWidgetPreferences] = useState<WidgetPreferences>(defaultWidgetPreferences);
   const [widgetPreferencesHydrated, setWidgetPreferencesHydrated] = useState(storeCaptureEnabled);
   const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    if (storeCaptureEnabled && theme.mode !== "light") {
-      setMode("light");
-    }
-  }, [setMode, storeCaptureEnabled, theme.mode]);
 
   useEffect(() => {
     if (storeCaptureEnabled) {
@@ -212,15 +211,35 @@ function AppContent() {
     const openCaptureUrl = (url: string | null) => {
       if (!url || !url.includes("capture")) return;
       const match = /[?&]tab=([^&]+)/.exec(url);
+      const screenMatch = /[?&]screen=([^&]+)/.exec(url);
       const requestedTabRaw = match?.[1] ? decodeURIComponent(match[1]) : null;
+      const requestedScreenRaw = screenMatch?.[1] ? decodeURIComponent(screenMatch[1]) : null;
       const stepMatch = /[?&]step=([0-9]+)/.exec(url);
       const requestedStep = stepMatch?.[1] ? Number(stepMatch[1]) : 0;
       const stateMatch = /[?&]state=([^&]+)/.exec(url);
       const requestedCaptureState = captureStateFromQuery(
-        stateMatch?.[1] ? decodeURIComponent(stateMatch[1]) : null
+        stateMatch?.[1] ? decodeURIComponent(stateMatch[1]) : requestedScreenRaw
       );
+      const modeMatch = /[?&]mode=([^&]+)/.exec(url);
+      const requestedMode = captureModeFromQuery(
+        modeMatch?.[1] ? decodeURIComponent(modeMatch[1]) : null
+      );
+      const paletteMatch = /[?&](?:palette|theme)=([^&]+)/.exec(url);
+      const requestedPalette = capturePaletteFromQuery(
+        paletteMatch?.[1] ? decodeURIComponent(paletteMatch[1]) : null
+      );
+      const requestedTabFromQuery = captureTabFromQuery(requestedScreenRaw || requestedTabRaw);
+      const requestedWidgetPreferences = captureWidgetPreferencesFromUrl(url);
 
-      if (requestedTabRaw === "onboarding") {
+      setMode(requestedMode ?? "light");
+      setPalette(requestedPalette ?? defaultThemePaletteId);
+      if (requestedWidgetPreferences) {
+        setWidgetPreferences((current) =>
+          normalizeWidgetPreferences({ ...current, ...requestedWidgetPreferences })
+        );
+      }
+
+      if (requestedTabFromQuery === "onboarding") {
         setSelectedAssignmentId(null);
         setCapturePaywallVisible(false);
         setCaptureState(requestedCaptureState);
@@ -230,7 +249,7 @@ function AppContent() {
         return;
       }
 
-      if (requestedTabRaw === "paywall") {
+      if (requestedTabFromQuery === "paywall") {
         setSelectedAssignmentId(null);
         setCaptureState(requestedCaptureState);
         setOnboarded(true);
@@ -239,7 +258,7 @@ function AppContent() {
         return;
       }
 
-      const requestedTab = (requestedTabRaw === "focus" ? "calendar" : requestedTabRaw) as NavTab | null;
+      const requestedTab = requestedTabFromQuery as NavTab | null;
       if (!requestedTab || !knownTabs.includes(requestedTab)) return;
       const scrollMatch = /[?&](?:scroll|y)=([0-9]+)/.exec(url);
       const scrollY = scrollMatch?.[1] ? Number(scrollMatch[1]) : 0;
@@ -256,7 +275,7 @@ function AppContent() {
     Linking.getInitialURL().then(openCaptureUrl).catch(() => undefined);
     const subscription = Linking.addEventListener("url", ({ url }) => openCaptureUrl(url));
     return () => subscription.remove();
-  }, [storeCaptureEnabled]);
+  }, [setMode, setPalette, storeCaptureEnabled]);
 
   useEffect(() => {
     let mounted = true;
@@ -774,16 +793,92 @@ function AppContent() {
 function captureStateFromQuery(value: string | null): CaptureState {
   if (value === "calendar-filtered" || value === "filtered-class") return "calendar-filtered";
   if (value === "duplicate-found-work" || value === "duplicate") return "duplicate-found-work";
-  if (value === "edit-found-work" || value === "edit") return "edit-found-work";
+  if (value === "edit-found-work" || value === "check-new-work-edit" || value === "found-work-edit" || value === "edit") return "edit-found-work";
   if (value === "imported-found-work" || value === "imported") return "imported-found-work";
   if (value === "manual-add" || value === "manual") return "manual-add";
-  if (value === "parser-processing" || value === "processing") return "parser-processing";
+  if (value === "parser-processing" || value === "ai-reading" || value === "processing") return "parser-processing";
   if (value === "reminders" || value === "reminder") return "reminders";
-  if (value === "scan-paper" || value === "scan") return "scan-paper";
+  if (value === "scan-paper" || value === "scan-document" || value === "scan") return "scan-paper";
   if (value === "upload-file" || value === "upload") return "upload-file";
   if (value === "widget-empty" || value === "empty-widget") return "widget-empty";
   if (value === "widget-needs-check" || value === "needs-check-widget") return "widget-needs-check";
   return null;
+}
+
+function captureTabFromQuery(value: string | null): NavTab | "onboarding" | "paywall" | null {
+  if (!value) return null;
+  const normalized = value.toLowerCase();
+
+  if (normalized === "onboarding" || normalized.startsWith("onboarding-")) return "onboarding";
+  if (normalized === "paywall" || normalized.includes("paywall")) return "paywall";
+  if (normalized === "today" || normalized.includes("focus")) return "today";
+  if (
+    normalized === "scan" ||
+    normalized.includes("scan") ||
+    normalized.includes("found-work") ||
+    normalized.includes("check-new-work") ||
+    normalized.includes("upload") ||
+    normalized.includes("type-it-in") ||
+    normalized.includes("parser")
+  ) {
+    return "import";
+  }
+  if (normalized === "plan" || normalized.includes("calendar")) return "calendar";
+  if (normalized.includes("week") || normalized.includes("busy")) return "week";
+  if (normalized.includes("class")) return "courses";
+  if (normalized.includes("widget") || normalized.includes("theme") || normalized === "more") return "upgrade";
+  if (normalized.includes("settings")) return "settings";
+  if (knownTabs.includes(normalized as NavTab)) return normalized as NavTab;
+  return null;
+}
+
+function captureModeFromQuery(value: string | null): ThemeMode | null {
+  if (value === "light" || value === "dark") return value;
+  return null;
+}
+
+function capturePaletteFromQuery(value: string | null) {
+  if (value && isThemePaletteId(value)) return value;
+  const alias = value?.toLowerCase();
+  if (alias === "apple-clean" || alias === "apple" || alias === "clean") return "cleanStudy";
+  if (alias === "ocean") return "oceanBlue";
+  if (alias === "forest") return "emeraldFocus";
+  if (alias === "lavender" || alias === "study-pastel" || alias === "pastel") return "violetGlow";
+  if (alias === "sunset") return "sunsetStudy";
+  if (alias === "candy") return "roseQuartz";
+  if (alias === "minimal" || alias === "minimal-gray") return "graphitePro";
+  if (alias === "bright-student") return "goldSemester";
+  if (alias === "dark-aurora" || alias === "aurora") return "cyberTeal";
+  if (alias === "dark-midnight" || alias === "midnight") return "midnight";
+  if (alias === "create-your-own" || alias === "custom") return "cleanStudy";
+  return null;
+}
+
+function captureWidgetPreferencesFromUrl(url: string): Partial<WidgetPreferences> | null {
+  const sizeMatch = /[?&]size=([^&]+)/.exec(url);
+  const focusMatch = /[?&](?:focus|widget)=([^&]+)/.exec(url);
+  const styleMatch = /[?&]style=([^&]+)/.exec(url);
+  const sizeRaw = sizeMatch?.[1] ? decodeURIComponent(sizeMatch[1]) : null;
+  const focusRaw = focusMatch?.[1] ? decodeURIComponent(focusMatch[1]) : null;
+  const styleRaw = styleMatch?.[1] ? decodeURIComponent(styleMatch[1]) : null;
+  const preferences: Partial<WidgetPreferences> = {};
+
+  if (sizeRaw === "small" || sizeRaw === "medium") preferences.size = sizeRaw;
+
+  const focus = focusRaw?.toLowerCase();
+  if (focus === "nextdue" || focus === "next-due" || focus === "due-next" || focus === "today" || focus === "needs-check") {
+    preferences.focus = "nextDue";
+  } else if (focus === "thisweek" || focus === "this-week" || focus === "week") {
+    preferences.focus = "thisWeek";
+  } else if (focus === "busy-week" || focus === "heavy-week") {
+    preferences.focus = "heavyWeek";
+  } else if (focus === "class-focus" || focus === "course-focus") {
+    preferences.focus = "courseFocus";
+  }
+
+  if (styleRaw) preferences.styleId = styleRaw as WidgetPreferences["styleId"];
+
+  return Object.keys(preferences).length > 0 ? preferences : null;
 }
 
 function widgetAssignmentsForCapture(assignments: Assignment[], captureState: CaptureState) {
@@ -915,11 +1010,11 @@ function createStyles(theme: AppTheme) {
       width: "100%",
       paddingHorizontal: 16,
       paddingTop: 22,
-      paddingBottom: 176
+      paddingBottom: 224
     },
     captureContent: {
       paddingTop: 22,
-      paddingBottom: 190
+      paddingBottom: 236
     },
     scrollArea: {
       flex: 1
@@ -940,7 +1035,7 @@ function createStyles(theme: AppTheme) {
       position: "absolute",
       left: 14,
       right: 14,
-      bottom: 14
+      bottom: 18
     }
   });
 }

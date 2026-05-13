@@ -28,3 +28,29 @@ test("local parser skips impossible due dates", () => {
   assert.equal(result.assignments[0]?.title, "Quiz");
   assert.equal(result.assignments[0]?.dueAt, "2026-03-03T09:00:00");
 });
+
+test("local parser reports possible work with no clear date", () => {
+  const result = parseSyllabusText(
+    "BIO 101 - Biology\nFall 2026\nLab report due TBD\nQuiz due Mar 03, 2026",
+    "BIO 101 syllabus.txt"
+  );
+
+  assert.equal(result.assignments.length, 1);
+  assert.ok(result.findings.some((finding) => finding.id === "undated-work-found"));
+});
+
+test("local parser reports duplicate dated work before review", () => {
+  const result = parseSyllabusText(
+    [
+      "BIO 101 - Biology",
+      "Fall 2026",
+      "Lab Report due Mar 03, 2026",
+      "Lab Report due Mar 03, 2026",
+      "Quiz due Mar 05, 2026"
+    ].join("\n"),
+    "BIO 101 syllabus.txt"
+  );
+
+  assert.equal(result.assignments.length, 2);
+  assert.ok(result.findings.some((finding) => finding.id === "possible-duplicates-merged"));
+});

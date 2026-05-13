@@ -59,6 +59,7 @@ const filters: Array<{ id: ConfidenceFilter; label: string }> = [
   { id: "medium", label: "Check date" },
   { id: "low", label: "Needs check" }
 ];
+const studyLoop = ["Scan", "AI Reads", "Plan", "Focus", "Review"];
 const bodyTextScale = 1.35;
 
 export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenProps) {
@@ -76,8 +77,8 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
   const imageParsingReady = supportsSyllabusImageParsing();
   const showPhotoActions = imageParsingReady || (captureMode && captureState === "scan-paper");
   const scanCopy = imageParsingReady
-    ? "Upload a text-based PDF, text file, or photo syllabus."
-    : "Upload a text-based PDF or text file. Photo OCR needs a configured parser endpoint.";
+    ? "Scan a photo, upload a file, or type work in by hand."
+    : "Upload a text-based PDF or text file. Photo reading needs a configured parser endpoint.";
 
   useEffect(() => {
     if (!captureMode) return;
@@ -305,10 +306,23 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
   return (
     <PremiumScreen>
       <PremiumHeader
-        eyebrow="Found work. You check."
-        title="Check New Work"
-        subtitle="Look over found coursework before it touches your semester."
+        eyebrow="1. Scan"
+        title="Scan Anything"
+        subtitle="Add what your teacher gives you. StudyPlanner finds possible work, then you check it."
       />
+
+      <GlassCard style={styles.loopCard}>
+        {studyLoop.map((step, index) => (
+          <View key={step} style={styles.loopStep}>
+            <View style={[styles.loopNumber, index === 0 ? styles.loopNumberActive : null]}>
+              <Text style={[styles.loopNumberText, index === 0 ? styles.loopNumberTextActive : null]}>{index + 1}</Text>
+            </View>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={[styles.loopLabel, index === 0 ? styles.loopLabelActive : null]}>
+              {step}
+            </Text>
+          </View>
+        ))}
+      </GlassCard>
 
       <GlassCard tint="hero">
         <View style={styles.scanHeroTop}>
@@ -316,13 +330,13 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
             <Sparkles color={colors.heroText} size={20} />
           </View>
           <View style={styles.scanHeroCopy}>
-            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.scanHeroTitle}>Add School Stuff</Text>
+            <Text maxFontSizeMultiplier={bodyTextScale} style={styles.scanHeroTitle}>Scan or add work</Text>
             <Text maxFontSizeMultiplier={bodyTextScale} style={styles.scanHeroMeta}>{scanCopy}</Text>
           </View>
         </View>
         <View style={styles.importGrid}>
           <AppButton
-            label="File"
+            label="Upload File"
             icon={FileText}
             variant="secondary"
             style={styles.importButton}
@@ -340,7 +354,7 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
                 onPress={pickPhoto}
               />
               <AppButton
-                label="Camera"
+                label="Scan Document"
                 icon={Camera}
                 variant="secondary"
                 style={styles.importButton}
@@ -349,6 +363,14 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
               />
             </>
           ) : null}
+          <AppButton
+            label="Type It In"
+            icon={Pencil}
+            variant="secondary"
+            style={styles.importButton}
+            disabled={loading}
+            onPress={() => Alert.alert("Type it in", "Open Classes to add a class or assignment by hand.")}
+          />
         </View>
       </GlassCard>
 
@@ -364,9 +386,9 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
           <View style={styles.processingRow}>
             <ActivityIndicator color={colors.ink} />
             <View style={styles.processingCopy}>
-              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyTitle}>Reading syllabus</Text>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyTitle}>2. AI is reading</Text>
               <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyCopy}>
-                StudyPlanner is looking for classes, dates, and work that still needs your check.
+                StudyPlanner is looking for classes, dates, and possible work. Long syllabi may take time and still need your review.
               </Text>
             </View>
           </View>
@@ -388,10 +410,10 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
                 <Sparkles color={colors.heroText} size={20} />
               </View>
               <View style={styles.aiHeroCopy}>
-                <Text maxFontSizeMultiplier={bodyTextScale} style={styles.aiHeroKicker}>Needs Check</Text>
-                <Text maxFontSizeMultiplier={bodyTextScale} style={styles.aiHeroTitle}>{reviewStats.needsReview} waiting for approval</Text>
+                <Text maxFontSizeMultiplier={bodyTextScale} style={styles.aiHeroKicker}>5. Review Found Work</Text>
+                <Text maxFontSizeMultiplier={bodyTextScale} style={styles.aiHeroTitle}>{reviewStats.needsReview} need your check</Text>
                 <Text maxFontSizeMultiplier={bodyTextScale} style={styles.aiHeroMeta}>
-                  {reviewStats.high} look ready, but you choose what goes into Today, Calendar, Classes, and widgets.
+                  {reviewStats.high} look ready, but only checked work goes into Today, Plan, Classes, and widgets.
                 </Text>
               </View>
               <StatusBadge label={reviewStats.low > 0 ? "Needs check" : "Clean"} tone={reviewStats.low > 0 ? "gold" : "green"} />
@@ -406,8 +428,8 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
                   <Sparkles color={colors.heroText} size={18} />
                 </View>
                 <View style={styles.summaryCopy}>
-                  <Text maxFontSizeMultiplier={bodyTextScale} style={styles.summaryKicker}>Found from syllabus</Text>
-                  <Text maxFontSizeMultiplier={bodyTextScale} style={styles.summaryTitle}>Found {reviewStats.total} items</Text>
+                  <Text maxFontSizeMultiplier={bodyTextScale} style={styles.summaryKicker}>Found Work</Text>
+                  <Text maxFontSizeMultiplier={bodyTextScale} style={styles.summaryTitle}>Found {reviewStats.total} things</Text>
                   <Text maxFontSizeMultiplier={bodyTextScale} style={styles.summaryMeta}>Sorted by how sure the app is. You choose what gets added.</Text>
                 </View>
               </View>
@@ -441,7 +463,7 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
             </GlassCard>
           ) : (
             <>
-              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.filterCaption}>How sure</Text>
+              <Text maxFontSizeMultiplier={bodyTextScale} style={styles.filterCaption}>Review items</Text>
               <View style={styles.filterRow}>
                 {filters.map((option) => (
                   <PillFilter
@@ -455,7 +477,7 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
               </View>
 
               <AppButton
-                label={`Mark ${reviewStats.high} looks good`}
+                label={`Mark ${reviewStats.high} Looks Good`}
                 icon={CheckCheck}
                 disabled={reviewStats.high === 0}
                 onPress={acceptAllHighConfidence}
@@ -468,7 +490,7 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
                   accessibilityHint="Adds the currently filtered found work to the planner after review."
                   onPress={acceptVisible}
                 >
-                  <Text maxFontSizeMultiplier={bodyTextScale} style={styles.secondaryActionText}>Looks good shown</Text>
+                  <Text maxFontSizeMultiplier={bodyTextScale} style={styles.secondaryActionText}>Looks Good Shown</Text>
                 </TouchableOpacity>
                 {reviewStats.ignored > 0 ? (
                   <TouchableOpacity
@@ -517,7 +539,7 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
               </View>
 
               <AppButton
-                label="Add to Planner"
+                label="Add Checked Work to Plan"
                 disabled={acceptedAssignments.length === 0}
                 onPress={applyAcceptedPlan}
               />
@@ -526,7 +548,7 @@ export function ImportScreen({ captureState, onApplyParsedPlan }: ImportScreenPr
         </>
       ) : (
         <GlassCard>
-          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyTitle}>No syllabus scanned yet.</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyTitle}>No scan yet.</Text>
           <Text maxFontSizeMultiplier={bodyTextScale} style={styles.emptyCopy}>{messySyllabusExample.slice(0, 138)}...</Text>
         </GlassCard>
       )}
@@ -611,7 +633,7 @@ function ReviewRow({
       </View>
       {assignment.sourceText ? (
         <View style={styles.sourceEvidence}>
-          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.sourceEvidenceLabel}>Found in syllabus</Text>
+          <Text maxFontSizeMultiplier={bodyTextScale} style={styles.sourceEvidenceLabel}>Source to check</Text>
           <Text maxFontSizeMultiplier={bodyTextScale} style={styles.sourceEvidenceText}>{assignment.sourceText}</Text>
         </View>
       ) : null}
@@ -808,7 +830,7 @@ function captureImportProof(
   if (captureState === "upload-file") {
     return {
       title: "Upload a syllabus file",
-      copy: "Start with a text-based PDF or plain text file. Found work stays in Check New Work until you approve it."
+      copy: "Start with a text-based PDF or plain text file. Found work stays in Review until you approve it."
     };
   }
 
@@ -840,6 +862,50 @@ function createStyles(theme: AppTheme) {
   const { colors, radii, spacing } = theme;
 
   return StyleSheet.create({
+    loopCard: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: 5,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.sm
+    },
+    loopStep: {
+      flex: 1,
+      alignItems: "center",
+      gap: 5
+    },
+    loopNumber: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    loopNumberActive: {
+      borderColor: colors.brandPurple,
+      backgroundColor: colors.brandPurple
+    },
+    loopNumberText: {
+      color: colors.muted,
+      fontSize: 10,
+      fontWeight: "900"
+    },
+    loopNumberTextActive: {
+      color: colors.heroText
+    },
+    loopLabel: {
+      color: colors.muted,
+      fontSize: 9,
+      lineHeight: 12,
+      fontWeight: "900",
+      textAlign: "center"
+    },
+    loopLabelActive: {
+      color: colors.brandPurple
+    },
     scanHeroTop: {
       flexDirection: "row",
       alignItems: "center",
@@ -871,10 +937,12 @@ function createStyles(theme: AppTheme) {
     },
     importGrid: {
       flexDirection: "row",
+      flexWrap: "wrap",
       gap: spacing.sm
     },
     importButton: {
-      flex: 1
+      flexGrow: 1,
+      flexBasis: "47%"
     },
     captureProofCard: {
       borderColor: `${colors.brandPurple}24`,

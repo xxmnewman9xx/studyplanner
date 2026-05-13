@@ -36,7 +36,7 @@ test("native widget swift computes due labels at render time", () => {
     const source = fs.readFileSync(sourcePath, "utf8");
 
     assert.ok(source.includes("func relativeDueLabel"), sourcePath);
-    assert.ok(source.includes("DuePill(item: item, date: date)"), sourcePath);
+    assert.ok(source.includes("DuePill(item: item, date: date"), sourcePath);
     assert.ok(source.includes("relativeDueLabel(item.dueAt, from: date)"), sourcePath);
   }
 });

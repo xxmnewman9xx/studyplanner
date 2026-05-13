@@ -406,7 +406,7 @@ struct SmallWidgetView: View {
               .lineLimit(2)
               .minimumScaleFactor(0.78)
             Spacer(minLength: 0)
-            DuePill(item: item, date: date)
+            DuePill(item: item, date: date, style: style)
             if let overdueCount = snapshot?.overdueCount, overdueCount > 1 {
               Text("\\(overdueCount) overdue")
                 .font(.system(size: 9, weight: .semibold))
@@ -575,15 +575,17 @@ struct UrgencyDot: View {
 struct DuePill: View {
   let item: StudyPlannerWidgetSnapshotItem
   let date: Date
+  let style: WidgetStyle?
 
   var body: some View {
     let urgency = relativeUrgency(item.dueAt, from: date, fallback: item.urgency)
+    let dueColor = style?.accentColor ?? urgencyColor(urgency)
 
     HStack(spacing: 5) {
       UrgencyDot(urgency: urgency)
       Text(relativeDueLabel(item.dueAt, from: date))
         .font(.system(size: 12, weight: .black))
-        .foregroundStyle(urgencyColor(urgency))
+        .foregroundStyle(dueColor)
         .lineLimit(1)
     }
     .padding(.horizontal, 8)

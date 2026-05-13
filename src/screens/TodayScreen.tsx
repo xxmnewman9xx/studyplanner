@@ -133,7 +133,7 @@ export function TodayScreen({
       <PremiumHeader
         eyebrow={semester.name}
         title={captureMode ? "Good morning, Alex" : "Today"}
-        subtitle={captureMode ? "Let's make it a productive day." : "See what is due and what to do next."}
+        subtitle={captureMode ? "Focus on the next thing and keep moving." : "See what is due, what is next, and what needs review."}
         right={
           captureMode ? null : (
             <View style={styles.headerActions}>
@@ -164,7 +164,7 @@ export function TodayScreen({
       <View style={styles.metricRow}>
         <MetricPill label="Due Today" value={String(plan.dueToday.length)} tone="purple" />
         <MetricPill label="Due This Week" value={String(weekPlan.itemCount)} tone="blue" />
-        <MetricPill label="Past Due" value={String(plan.overdue.length)} tone={plan.overdue.length > 0 ? "red" : "green"} />
+        <MetricPill label="Overdue" value={String(plan.overdue.length)} tone={plan.overdue.length > 0 ? "red" : "green"} />
       </View>
 
       {showAutomationCard ? (
@@ -209,16 +209,16 @@ export function TodayScreen({
         <WarningCard
           title="Busy week ahead"
           message={`${weekPlan.heavyWorkloadWarning}. Open Week Plan to pick calmer study blocks.`}
-          actionLabel="Open Week"
+          actionLabel="Plan Week"
           onPress={onOpenWeek}
         />
       ) : null}
 
       {needsCheckCount > 0 ? (
         <WarningCard
-          title="Check new work"
+          title="Review found work"
           message={`${needsCheckCount} found item${needsCheckCount === 1 ? "" : "s"} need your check before they show as due dates.`}
-          actionLabel="Check Work"
+          actionLabel="Scan"
           onPress={onOpenImport}
         />
       ) : null}
@@ -236,7 +236,7 @@ export function TodayScreen({
           <GlassCard>
             <Text style={styles.emptyTitle}>No deadlines today.</Text>
             <Text style={styles.emptyCopy}>
-              Start the next item above, or check the week plan when you have extra time.
+              Start the next focus item above, or scan new work when school sends more.
             </Text>
           </GlassCard>
         ) : (
@@ -259,7 +259,7 @@ export function TodayScreen({
       <GlassCard style={styles.weekCard}>
         <View style={styles.sectionTop}>
           <View>
-            <Text style={styles.sectionTitle}>Due this week</Text>
+            <Text style={styles.sectionTitle}>Plan this week</Text>
             <Text style={styles.sectionMeta}>{weekPlan.itemCount} deadlines in the next seven days</Text>
           </View>
           <Text style={styles.sectionAccent}>{weekPlan.examCount} exams</Text>

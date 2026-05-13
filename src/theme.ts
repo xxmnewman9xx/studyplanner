@@ -139,7 +139,8 @@ export type ThemePaletteId =
   | "roseQuartz"
   | "cyberTeal"
   | "goldSemester"
-  | "cleanStudy";
+  | "cleanStudy"
+  | "midnight";
 
 export type ThemePalette = {
   id: ThemePaletteId;
@@ -171,7 +172,7 @@ export type ThemePalette = {
 export const themePalettes: ThemePalette[] = [
   {
     id: "oceanBlue",
-    name: "Ocean Blue",
+    name: "Ocean",
     shortName: "Ocean",
     accent: "#2563EB",
     secondary: "#0E7490",
@@ -197,8 +198,8 @@ export const themePalettes: ThemePalette[] = [
   },
   {
     id: "violetGlow",
-    name: "Violet Glow",
-    shortName: "Violet",
+    name: "Lavender",
+    shortName: "Lavender",
     accent: "#6C5CE7",
     secondary: "#2563EB",
     tertiary: "#BE123C",
@@ -223,8 +224,8 @@ export const themePalettes: ThemePalette[] = [
   },
   {
     id: "emeraldFocus",
-    name: "Emerald Focus",
-    shortName: "Emerald",
+    name: "Forest",
+    shortName: "Forest",
     accent: "#047857",
     secondary: "#0F766E",
     tertiary: "#7C3AED",
@@ -249,7 +250,7 @@ export const themePalettes: ThemePalette[] = [
   },
   {
     id: "sunsetStudy",
-    name: "Sunset Study",
+    name: "Sunset",
     shortName: "Sunset",
     accent: "#C2410C",
     secondary: "#B91C1C",
@@ -275,8 +276,8 @@ export const themePalettes: ThemePalette[] = [
   },
   {
     id: "graphitePro",
-    name: "Graphite Pro",
-    shortName: "Graphite",
+    name: "Minimal",
+    shortName: "Minimal",
     accent: "#334155",
     secondary: "#64748B",
     tertiary: "#0F766E",
@@ -301,8 +302,8 @@ export const themePalettes: ThemePalette[] = [
   },
   {
     id: "roseQuartz",
-    name: "Rose Quartz",
-    shortName: "Rose",
+    name: "Candy",
+    shortName: "Candy",
     accent: "#BE123C",
     secondary: "#7E22CE",
     tertiary: "#0369A1",
@@ -327,8 +328,8 @@ export const themePalettes: ThemePalette[] = [
   },
   {
     id: "cyberTeal",
-    name: "Cyber Teal",
-    shortName: "Cyber",
+    name: "Aurora",
+    shortName: "Aurora",
     accent: "#0E7490",
     secondary: "#15803D",
     tertiary: "#4F46E5",
@@ -353,8 +354,8 @@ export const themePalettes: ThemePalette[] = [
   },
   {
     id: "goldSemester",
-    name: "Gold Semester",
-    shortName: "Gold",
+    name: "Bright Student",
+    shortName: "Bright",
     accent: "#8A5A12",
     secondary: "#2563EB",
     tertiary: "#15803D",
@@ -379,8 +380,8 @@ export const themePalettes: ThemePalette[] = [
   },
   {
     id: "cleanStudy",
-    name: "Clean",
-    shortName: "Clean",
+    name: "Apple Clean",
+    shortName: "Apple",
     accent: "#2563EB",
     secondary: "#0F766E",
     tertiary: "#BE123C",
@@ -402,10 +403,36 @@ export const themePalettes: ThemePalette[] = [
     darkCanvasTint: "#101827",
     darkSurfaceTint: "#111827",
     darkHeroSurface: "#FFFFFF"
+  },
+  {
+    id: "midnight",
+    name: "Midnight",
+    shortName: "Midnight",
+    accent: "#1D4ED8",
+    secondary: "#7C3AED",
+    tertiary: "#0F766E",
+    soft: "#EAF1FF",
+    softBlue: "#F0EEFF",
+    softRed: "#E6FAF8",
+    canvas: "#F6F8FC",
+    canvasTint: "#E9EEF8",
+    surfaceTint: "#FFFFFF",
+    heroSurface: "#101A33",
+    widgetDark: "#081225",
+    widgetAccent: "#93C5FD",
+    lockWidget: "#0B1B36",
+    darkAccent: "#93C5FD",
+    darkSecondary: "#C4B5FD",
+    darkTertiary: "#5EEAD4",
+    darkSoft: "#15223B",
+    darkCanvas: "#050914",
+    darkCanvasTint: "#0B1224",
+    darkSurfaceTint: "#111A2D",
+    darkHeroSurface: "#EAF3FF"
   }
 ];
 
-export const defaultThemePaletteId: ThemePaletteId = "oceanBlue";
+export const defaultThemePaletteId: ThemePaletteId = "cleanStudy";
 
 export type WidgetStylePresetId =
   | "darkGlass"
@@ -508,6 +535,11 @@ export function createWidgetStyleSnapshot(paletteId?: string, styleId?: string) 
   const palette = resolveThemePalette(paletteId);
   const style = styleId ? resolveWidgetStylePreset(styleId) : null;
   const background = style?.background || palette.widgetDark;
+  const safeText = readableTextColor(background);
+  const text = ensureReadableColor(style?.text || safeText, background, 4.5, safeText);
+  const muted = ensureReadableColor(style?.muted || text, background, 4.5, text);
+  const accent = ensureReadableColor(style?.accent || palette.widgetAccent, background, 3, text);
+  const secondary = ensureReadableColor(style?.secondary || palette.secondary, background, 3, accent);
 
   return {
     paletteId: palette.id,
@@ -515,11 +547,58 @@ export function createWidgetStyleSnapshot(paletteId?: string, styleId?: string) 
     styleId: style?.id || "palette",
     styleName: style?.name || palette.name,
     background,
-    text: style?.text || "#F8FAFC",
-    muted: style?.muted || "#BCC7D8",
-    accent: style?.accent || palette.widgetAccent,
-    secondary: style?.secondary || palette.secondary
+    text,
+    muted,
+    accent,
+    secondary,
+    dueText: accent,
+    iconText: readableTextColor(accent)
   };
+}
+
+type Rgb = [number, number, number];
+
+export function readableTextColor(background: string, light = "#F8FAFC", dark = "#111827") {
+  if (!isHexColor(background)) return light;
+  return contrastRatio(light, background) >= contrastRatio(dark, background) ? light : dark;
+}
+
+export function ensureReadableColor(
+  foreground: string,
+  background: string,
+  minimumRatio = 4.5,
+  fallback = readableTextColor(background)
+) {
+  if (!isHexColor(foreground) || !isHexColor(background)) return fallback;
+  if (contrastRatio(foreground, background) >= minimumRatio) return foreground;
+  return fallback;
+}
+
+export function contrastRatio(foreground: string, background: string) {
+  const foregroundLuminance = relativeLuminance(foreground);
+  const backgroundLuminance = relativeLuminance(background);
+  const lighter = Math.max(foregroundLuminance, backgroundLuminance);
+  const darker = Math.min(foregroundLuminance, backgroundLuminance);
+
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function relativeLuminance(hex: string) {
+  const channels = rgbFromHex(hex).map((channel) =>
+    channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4)
+  ) as Rgb;
+  const [red, green, blue] = channels;
+
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+}
+
+function rgbFromHex(hex: string): Rgb {
+  const value = hex.replace("#", "");
+  return [0, 2, 4].map((offset) => Number.parseInt(value.slice(offset, offset + 2), 16) / 255) as Rgb;
+}
+
+function isHexColor(value: string) {
+  return /^#[0-9a-f]{6}$/i.test(value);
 }
 
 export function createTypography(themeColors: ColorTokens) {

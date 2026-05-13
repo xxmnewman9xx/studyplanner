@@ -107,8 +107,8 @@ export function MonthlyCalendarScreen({
     <PremiumScreen>
       <PremiumHeader
         eyebrow={semester.name}
-        title="Calendar"
-        subtitle="Tap any day to see its assignments and exams."
+        title="Plan"
+        subtitle="Checked work appears here by day, week, and month."
         right={
           <View style={styles.navButtons}>
             <IconButton label="Previous month" onPress={() => setCursorMonth(monthPlan.previousMonthDate)}>
@@ -128,7 +128,7 @@ export function MonthlyCalendarScreen({
             <CalendarRange color={colors.heroText} size={20} />
           </View>
           <View style={styles.heroCopy}>
-            <Text style={styles.heroKicker}>Month view</Text>
+            <Text style={styles.heroKicker}>3. Plan It All</Text>
             <Text style={styles.heroTitle}>{monthPlan.monthLabel}</Text>
             <Text style={styles.heroMeta}>
               This week: {monthPlan.summary.currentWeekCount} open - {monthPlan.summary.heavyWeekLabel || "steady workload"}
