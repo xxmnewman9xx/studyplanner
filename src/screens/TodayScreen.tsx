@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Bell, CalendarPlus, ChevronRight, Crown, Plus, Timer } from "lucide-react-native";
+import { Bell, CalendarPlus, ChevronRight, Crown, FileScan, GraduationCap, PanelsTopLeft, Plus, Timer } from "lucide-react-native";
 import {
   AppLogo,
   AssignmentRow,
@@ -49,6 +49,10 @@ export function TodayScreen({
   premiumAutomationLocked,
   onOpenPaywall,
   onOpenFocus,
+  onOpenScan,
+  onOpenPlan,
+  onOpenClasses,
+  onOpenWidgets,
   onAddQuickAssignment
 }: TodayScreenProps) {
   const { theme } = useAppTheme();
@@ -64,6 +68,7 @@ export function TodayScreen({
   const [quickTitle, setQuickTitle] = useState("");
   const [quickDueDate, setQuickDueDate] = useState(todayDateInput());
   const quickCourse = courses.find((course) => course.id === quickCourseId) || courses[0];
+  const liveBrief = buildLiveBrief(plan, courses.length);
 
   useEffect(() => {
     if (!courses.length) {
@@ -90,8 +95,9 @@ export function TodayScreen({
       </View>
 
       <GlassCard tone="hero" style={styles.heroCard}>
-        <Text style={styles.heroKicker}>Up next</Text>
-        <Text style={styles.heroTitle}>Focus on this first</Text>
+        <Text style={styles.heroKicker}>Live plan</Text>
+        <Text style={styles.heroTitle}>{liveBrief.title}</Text>
+        <Text style={styles.heroSubtitle}>{liveBrief.detail}</Text>
         {plan.nextAction ? (
           <View style={styles.nextHero}>
             <View style={styles.nextHeroCopy}>
@@ -107,7 +113,10 @@ export function TodayScreen({
               <AppButton
                 label="Start"
                 icon={ChevronRight}
-                onPress={() => onUpdateStatus(plan.nextAction!.id, "in_progress")}
+                onPress={() => {
+                  onUpdateStatus(plan.nextAction!.id, "in_progress");
+                  onOpenAssignment(plan.nextAction!.id);
+                }}
                 style={styles.startButton}
               />
               <AppButton
@@ -123,6 +132,38 @@ export function TodayScreen({
           <EmptyState title="All caught up" copy="No urgent work in the planner right now." emoji="complete" />
         )}
       </GlassCard>
+
+      <SectionHeader title="Command Center" note="Every card opens a real planner workflow" />
+      <View style={styles.commandGrid}>
+        <CommandTile
+          title="Scan syllabus"
+          detail="Turn class handouts into reviewable homework."
+          icon={FileScan}
+          onPress={onOpenScan}
+          tone="pink"
+        />
+        <CommandTile
+          title="Plan week"
+          detail={`${plan.dueSoon.length} due soon · ${semesterPercent}% term`}
+          icon={CalendarPlus}
+          onPress={onOpenPlan}
+          tone="blue"
+        />
+        <CommandTile
+          title="Classes + notes"
+          detail={`${courses.length} classes with assignments and notes`}
+          icon={GraduationCap}
+          onPress={onOpenClasses}
+          tone="green"
+        />
+        <CommandTile
+          title="Widgets + focus"
+          detail="Build daily surfaces and start study sessions."
+          icon={PanelsTopLeft}
+          onPress={onOpenWidgets}
+          tone="purple"
+        />
+      </View>
 
       <SectionHeader title="Quick Homework" note="Capture what a teacher just assigned" />
       <GlassCard style={styles.quickAddCard}>
@@ -233,6 +274,64 @@ export function TodayScreen({
 
 }
 
+function buildLiveBrief(plan: ReturnType<typeof buildTodayPlan>, courseCount: number) {
+  if (plan.needsReview.length > 0) {
+    return {
+      title: "Review imported work",
+      detail: `${plan.needsReview.length} item${plan.needsReview.length === 1 ? "" : "s"} need a date, duplicate check, or confidence pass before the plan is trusted.`
+    };
+  }
+
+  if (plan.nextAction) {
+    const days = daysUntil(plan.nextAction.dueAt);
+    return {
+      title: days <= 0 ? "Due today — start here" : `Next deadline in ${days} day${days === 1 ? "" : "s"}`,
+      detail: "Open the assignment, start focus, or capture new homework before it becomes invisible."
+    };
+  }
+
+  if (courseCount === 0) {
+    return {
+      title: "Build your school command center",
+      detail: "Add classes or scan a syllabus so Today can tell you what matters next."
+    };
+  }
+
+  return {
+    title: "Clear right now",
+    detail: "Your current plan has no urgent work. Add homework when class ends or scan the next syllabus."
+  };
+}
+
+type CommandTileProps = {
+  title: string;
+  detail: string;
+  icon: React.ComponentType<{ color: string; size: number }>;
+  onPress: () => void;
+  tone: "pink" | "blue" | "green" | "purple";
+};
+
+function CommandTile({ title, detail, icon: Icon, onPress, tone }: CommandTileProps) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  const toneColor = {
+    pink: theme.colors.brandPink,
+    blue: theme.colors.accent,
+    green: theme.colors.green,
+    purple: theme.colors.brandViolet
+  }[tone];
+
+  return (
+    <TouchableOpacity accessibilityRole="button" style={styles.commandTile} onPress={onPress}>
+      <View style={[styles.commandIcon, { backgroundColor: `${toneColor}22` }]}>
+        <Icon color={toneColor} size={20} />
+      </View>
+      <Text style={styles.commandTitle}>{title}</Text>
+      <Text style={styles.commandDetail}>{detail}</Text>
+    </TouchableOpacity>
+  );
+}
+
 function todayDateInput() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -266,6 +365,13 @@ function createStyles(theme: AppTheme) {
       fontSize: 23,
       lineHeight: 29,
       fontWeight: "900"
+    },
+    heroSubtitle: {
+      color: colors.heroMuted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "800",
+      marginTop: -2
     },
     nextHero: {
       borderRadius: radii.xl,
@@ -308,6 +414,40 @@ function createStyles(theme: AppTheme) {
     nextActions: {
       flexDirection: "row",
       gap: spacing.sm
+    },
+    commandGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm
+    },
+    commandTile: {
+      width: "48%",
+      minHeight: 136,
+      borderRadius: radii.xl,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.sm,
+      gap: spacing.xs
+    },
+    commandIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: radii.round,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    commandTitle: {
+      color: colors.ink,
+      fontSize: 15,
+      lineHeight: 20,
+      fontWeight: "900"
+    },
+    commandDetail: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
     },
     quickAddCard: {
       gap: spacing.sm
