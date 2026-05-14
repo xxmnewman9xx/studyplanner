@@ -12,20 +12,20 @@ type OnboardingScreenProps = {
 
 const slides = [
   {
-    title: "Turn syllabi into a calm plan",
-    copy: "Scan a syllabus and StudyPlanner pulls out the assignments, readings, dates, and grade weights for review.",
+    title: "Scan your syllabus with Syllabus AI",
+    copy: "StudyPlanner finds assignments, readings, dates, and grade weights so you can review them before they save.",
     icon: FileScan,
     accent: "scan" as const
   },
   {
-    title: "Review before anything changes",
-    copy: "Found work appears in one editable list, so you can fix dates, classes, and duplicates before adding it.",
+    title: "Catch missing dates before they hurt",
+    copy: "Found work appears in one editable list, including low-confidence rows and possible assignments with no clear due date.",
     icon: WandSparkles,
     accent: "ai" as const
   },
   {
-    title: "See the week before it gets heavy",
-    copy: "Spot busy days, upcoming exams, and overlapping deadlines while there’s still time to adjust.",
+    title: "Know what to do today",
+    copy: "Spot busy days, upcoming exams, and overlapping deadlines while there is still time to adjust.",
     icon: CalendarCheck2,
     accent: "calendar" as const
   },
@@ -37,7 +37,7 @@ const slides = [
   },
   {
     title: "Ready when you are",
-    copy: "Add your first syllabus to begin. You stay in control of what gets saved.",
+    copy: "Add your first syllabus, paste homework notes, or start manually. You stay in control of what gets saved.",
     icon: CheckCircle2,
     accent: "complete" as const
   }
