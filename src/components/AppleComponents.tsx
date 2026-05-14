@@ -1,7 +1,5 @@
 import React from "react";
 import {
-  Image,
-  ImageStyle,
   StyleProp,
   StyleSheet,
   Text,
@@ -15,34 +13,38 @@ import {
   Check,
   CheckCircle2,
   ChevronRight,
+  FileScan,
   FlaskConical,
+  Globe2,
+  Lock,
   Palette,
   PenLine,
   Plus,
   Sparkles,
-  Timer
+  Timer,
+  TriangleAlert
 } from "lucide-react-native";
 import { Assignment, Course, WidgetBackground, WidgetPalette, WidgetSize, WidgetType } from "../models";
 import { AppTheme, themePalettes } from "../theme";
 import { useAppTheme } from "../themeContext";
 
 export const emojiMap = {
-  study: "📚",
-  science: "🧪",
-  writing: "✏️",
-  calendar: "🗓️",
-  ai: "🧠",
-  complete: "✅",
-  warning: "⚠️",
-  focus: "🌙",
-  streak: "🔥",
-  art: "🎨",
-  history: "🌎",
-  scan: "📄",
-  theme: "🎨",
-  privacy: "🔒",
-  pro: "✨",
-  widget: "🧩"
+  study: BookOpen,
+  science: FlaskConical,
+  writing: PenLine,
+  calendar: CalendarDays,
+  ai: Sparkles,
+  complete: CheckCircle2,
+  warning: TriangleAlert,
+  focus: Timer,
+  streak: Sparkles,
+  art: Palette,
+  history: Globe2,
+  scan: FileScan,
+  theme: Palette,
+  privacy: Lock,
+  pro: Sparkles,
+  widget: CalendarDays
 } as const;
 
 export type EmojiKey = keyof typeof emojiMap;
@@ -66,12 +68,12 @@ export function AppLogo({
 
   return (
     <View style={[styles.logoWrap, style]}>
-      <Image
-        accessibilityLabel="StudyPlanner app icon"
-        resizeMode="cover"
-        source={require("../../assets/app/study-planner-icon.png")}
-        style={[styles.logoImage, { width: size, height: size, borderRadius: size * 0.22 } as ImageStyle]}
-      />
+      <View
+        accessibilityLabel="StudyPlanner mark"
+        style={[styles.logoMark, { width: size, height: size, borderRadius: size * 0.26 } as ViewStyle]}
+      >
+        <FileScan color={theme.colors.heroText} size={Math.round(size * 0.48)} />
+      </View>
       {showWordmark ? (
         <View style={styles.logoCopy}>
           <Text style={styles.logoTitle}>StudyPlanner</Text>
@@ -93,15 +95,18 @@ export function EmojiAccent({
   size?: number;
   decorative?: boolean;
 }) {
+  const { theme } = useAppTheme();
+  const Icon = emojiMap[name] || Sparkles;
+
   return (
-    <Text
+    <View
       accessibilityLabel={decorative ? undefined : label || name}
       accessible={!decorative}
       importantForAccessibility={decorative ? "no" : "auto"}
-      style={{ fontSize: size, lineHeight: Math.ceil(size * 1.25) }}
+      style={{ width: Math.ceil(size * 1.25), height: Math.ceil(size * 1.25), alignItems: "center", justifyContent: "center" }}
     >
-      {emojiMap[name]}
-    </Text>
+      <Icon color={theme.colors.accent} size={size} />
+    </View>
   );
 }
 
@@ -548,6 +553,17 @@ function createStyles(theme: AppTheme) {
       borderColor: theme.isDark ? "rgba(255,255,255,0.24)" : "rgba(255,255,255,0.92)",
       shadowColor: colors.shadow,
       shadowOpacity: theme.isDark ? 0.42 : 0.24,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 }
+    },
+    logoMark: {
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.accent,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.24)" : "rgba(255,255,255,0.92)",
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.42 : 0.20,
       shadowRadius: 18,
       shadowOffset: { width: 0, height: 10 }
     },
