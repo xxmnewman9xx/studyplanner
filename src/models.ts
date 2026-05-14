@@ -105,6 +105,7 @@ export type Course = {
   teacher?: string;
   period?: string;
   room?: string;
+  notes?: string;
   color: string;
   iconKey?: string;
   emojiKey?: string;

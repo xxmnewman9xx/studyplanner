@@ -192,6 +192,17 @@ export function CoursesScreen({
                 />
               ))}
             </View>
+            <Field label="Class notes">
+              <TextInput
+                value={selectedCourse.notes || ""}
+                onChangeText={(notes) => onUpdateCourse(selectedCourse.id, { notes })}
+                placeholder="Things to remember, teacher preferences, links, or quick class notes"
+                placeholderTextColor={colors.faint}
+                style={[styles.input, styles.notesInput]}
+                multiline
+                textAlignVertical="top"
+              />
+            </Field>
           </GlassCard>
 
           <SectionHeader title="Upcoming Work" note={`${counts[selectedCourse.id]?.open || 0} open items`} />
@@ -420,6 +431,12 @@ function createStyles(theme: AppTheme) {
       paddingHorizontal: spacing.sm,
       fontSize: 15,
       fontWeight: "800"
+    },
+    notesInput: {
+      minHeight: 92,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.sm,
+      lineHeight: 20
     },
     colorRail: {
       flexDirection: "row",
