@@ -224,11 +224,19 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
             </View>
             <View style={styles.findings}>
               {draft.findings.map((finding) => (
-                <Badge
-                  key={finding.id}
-                  label={finding.message}
-                  tone={finding.severity === "needs_review" ? "red" : "green"}
-                />
+                <View key={finding.id} style={styles.findingBlock}>
+                  <Badge
+                    label={finding.message}
+                    tone={finding.severity === "needs_review" ? "red" : "green"}
+                  />
+                  {finding.examples?.length ? (
+                    <View style={styles.findingExamples}>
+                      {finding.examples.map((example) => (
+                        <Text key={example} style={styles.findingExampleText}>Missing date: {example}</Text>
+                      ))}
+                    </View>
+                  ) : null}
+                </View>
               ))}
               {needsReviewCount > 0 ? <Badge label="Missing date or duplicate possible" tone="red" /> : null}
             </View>
@@ -678,9 +686,26 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     findings: {
-      flexDirection: "row",
-      flexWrap: "wrap",
       gap: spacing.xs
+    },
+    findingBlock: {
+      alignItems: "flex-start",
+      gap: spacing.xs
+    },
+    findingExamples: {
+      alignSelf: "stretch",
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.sm,
+      gap: 4
+    },
+    findingExampleText: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "800"
     },
     editList: {
       gap: spacing.sm

@@ -173,6 +173,7 @@ export type ParserFinding = {
   id: string;
   severity: "info" | "needs_review";
   message: string;
+  examples?: string[];
 };
 
 export type SyllabusParseResult = {

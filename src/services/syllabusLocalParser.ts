@@ -60,7 +60,8 @@ export function parseSyllabusText(rawText: string, sourceName: string): Syllabus
             {
               id: "possible-undated-work",
               severity: "needs_review" as const,
-              message: `${possibleUndatedAssignments.length} possible assignments had no clear due date. Check the syllabus before applying.`
+              message: `${possibleUndatedAssignments.length} possible assignments had no clear due date. Check the syllabus before applying.`,
+              examples: possibleUndatedAssignments.slice(0, 4)
             }
           ]
         : [])
