@@ -65,6 +65,17 @@ assert(
 );
 assert(includesAssignment(weekdayHomework.assignments.map((item) => item.title), "Homework 7"), "Expected Homework 7 from weekday line");
 
+const relativeHomework = parseSyllabusText(
+  `SCI 210 - Earth Science\nLab reflection due tomorrow\nReading check due today`,
+  "science-homework-note.txt"
+);
+assert(relativeHomework.assignments.length === 2, "Expected relative homework lines to parse");
+assert(
+  relativeHomework.assignments.every((item) => item.needsReview && item.confidence === 0.7),
+  "Expected relative-date assignments to stay review-gated"
+);
+assert(includesAssignment(relativeHomework.assignments.map((item) => item.title), "Lab reflection"), "Expected Lab reflection from relative date line");
+
 const noDeadlines = parseSyllabusText(
   `MATH 120 - Algebra\nFall 2026\nHomework is assigned weekly in class. Quizzes happen throughout the term.`,
   "math120.txt"

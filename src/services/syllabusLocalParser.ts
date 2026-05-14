@@ -12,6 +12,7 @@ const examKeywords = /\b(exam|midterm|final|quiz|test)\b/i;
 const datePattern =
   /\b(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[/. -]\d{1,2}(?:[/. -]\d{2,4})?|(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+\d{4})?)\b/i;
 const weekdayDuePattern = /\b(?:due\s+)?(?:next\s+)?(mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?)\b/i;
+const relativeDuePattern = /\b(?:due\s+)?(today|tomorrow)\b/i;
 
 export function parseSyllabusText(rawText: string, sourceName: string): SyllabusParseResult {
   const text = normalizeSyllabusText(rawText);
@@ -251,11 +252,16 @@ function inferAssignments(lines: string[], courseId: string, inferredYear: numbe
 
   for (const line of lines) {
     const explicitDate = line.match(datePattern)?.[0];
-    const weekdayDate = explicitDate ? undefined : line.match(weekdayDuePattern)?.[0];
-    const date = explicitDate || weekdayDate;
+    const relativeDate = explicitDate ? undefined : line.match(relativeDuePattern)?.[0];
+    const weekdayDate = explicitDate || relativeDate ? undefined : line.match(weekdayDuePattern)?.[0];
+    const date = explicitDate || relativeDate || weekdayDate;
     if (!date || !assignmentKeywords.test(line)) continue;
 
-    const dueDate = explicitDate ? parseDateToken(date, inferredYear) : parseWeekdayToken(date);
+    const dueDate = explicitDate
+      ? parseDateToken(date, inferredYear)
+      : relativeDate
+        ? parseRelativeDateToken(date)
+        : parseWeekdayToken(date);
     if (!dueDate) continue;
 
     const title = cleanupTitle(
@@ -282,8 +288,8 @@ function inferAssignments(lines: string[], courseId: string, inferredYear: numbe
       estimatedMinutes: kind === "exam" ? 180 : 60,
       status: "not_started",
       source: "syllabus",
-      needsReview: Boolean(weekdayDate),
-      confidence: weekdayDate ? 0.7 : 0.88
+      needsReview: Boolean(weekdayDate || relativeDate),
+      confidence: weekdayDate || relativeDate ? 0.7 : 0.88
     });
   }
 
@@ -321,6 +327,18 @@ function parseDateToken(token: string, inferredYear: number) {
   const parsed = new Date(`${normalized}${/\b\d{4}\b/.test(normalized) ? "" : `, ${inferredYear}`}`);
   if (Number.isNaN(parsed.getTime())) return undefined;
   return formatDateParts(parsed.getFullYear(), parsed.getMonth() + 1, parsed.getDate());
+}
+
+function parseRelativeDateToken(token: string) {
+  const match = token.match(relativeDuePattern);
+  if (!match?.[1]) return undefined;
+
+  const target = new Date();
+  if (match[1].toLowerCase() === "tomorrow") {
+    target.setDate(target.getDate() + 1);
+  }
+
+  return formatDateParts(target.getFullYear(), target.getMonth() + 1, target.getDate());
 }
 
 function parseWeekdayToken(token: string) {
