@@ -1,6 +1,6 @@
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Bell, CalendarPlus, ChevronRight, Crown, Timer } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Bell, CalendarPlus, ChevronRight, Crown, Plus, Timer } from "lucide-react-native";
 import {
   AppLogo,
   AssignmentRow,
@@ -35,6 +35,7 @@ type TodayScreenProps = {
   onOpenPlan: () => void;
   onOpenClasses: () => void;
   onOpenWidgets: () => void;
+  onAddQuickAssignment: (courseId: string, title: string, dueDate: string, kind: "assignment") => void;
 };
 
 export function TodayScreen({
@@ -47,7 +48,8 @@ export function TodayScreen({
   onCalendarSync,
   premiumAutomationLocked,
   onOpenPaywall,
-  onOpenFocus
+  onOpenFocus,
+  onAddQuickAssignment
 }: TodayScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
@@ -58,6 +60,28 @@ export function TodayScreen({
     : undefined;
   const semesterPercent = Math.round(plan.semesterProgress * 100);
   const nextDueDays = plan.nextAction ? daysUntil(plan.nextAction.dueAt) : 0;
+  const [quickCourseId, setQuickCourseId] = useState(courses[0]?.id || "");
+  const [quickTitle, setQuickTitle] = useState("");
+  const [quickDueDate, setQuickDueDate] = useState(todayDateInput());
+  const quickCourse = courses.find((course) => course.id === quickCourseId) || courses[0];
+
+  useEffect(() => {
+    if (!courses.length) {
+      setQuickCourseId("");
+      return;
+    }
+
+    if (!courses.some((course) => course.id === quickCourseId)) {
+      setQuickCourseId(courses[0]?.id || "");
+    }
+  }, [courses, quickCourseId]);
+
+  const addHomework = () => {
+    if (!quickCourse || !quickTitle.trim() || !quickDueDate.trim()) return;
+    onAddQuickAssignment(quickCourse.id, quickTitle, quickDueDate, "assignment");
+    setQuickTitle("");
+    setQuickDueDate(todayDateInput());
+  };
 
   return (
     <View style={styles.screen}>
@@ -98,6 +122,59 @@ export function TodayScreen({
         ) : (
           <EmptyState title="All caught up" copy="No urgent work in the planner right now." emoji="complete" />
         )}
+      </GlassCard>
+
+      <SectionHeader title="Quick Homework" note="Capture what a teacher just assigned" />
+      <GlassCard style={styles.quickAddCard}>
+        <View style={styles.courseRail}>
+          {courses.slice(0, 4).map((course) => (
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityState={{ selected: quickCourse?.id === course.id }}
+              key={course.id}
+              style={[
+                styles.coursePill,
+                quickCourse?.id === course.id ? styles.coursePillActive : null
+              ]}
+              onPress={() => setQuickCourseId(course.id)}
+            >
+              <Text
+                style={[
+                  styles.coursePillText,
+                  quickCourse?.id === course.id ? styles.coursePillTextActive : null
+                ]}
+              >
+                {course.code}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <View style={styles.quickInputRow}>
+          <TextInput
+            value={quickTitle}
+            onChangeText={setQuickTitle}
+            placeholder="Add homework"
+            placeholderTextColor={colors.faint}
+            style={[styles.quickInput, styles.quickTitleInput]}
+            returnKeyType="done"
+            onSubmitEditing={addHomework}
+          />
+          <TextInput
+            value={quickDueDate}
+            onChangeText={setQuickDueDate}
+            placeholder="YYYY-MM-DD"
+            placeholderTextColor={colors.faint}
+            style={[styles.quickInput, styles.quickDateInput]}
+            returnKeyType="done"
+            onSubmitEditing={addHomework}
+          />
+        </View>
+        <AppButton
+          label="Add homework"
+          icon={Plus}
+          disabled={!quickCourse || !quickTitle.trim() || !quickDueDate.trim()}
+          onPress={addHomework}
+        />
       </GlassCard>
 
       <SectionHeader title="Today" note={`${plan.dueToday.length} due today · ${plan.dueSoon.length} due soon · ${plan.needsReview.length} to review`} />
@@ -154,6 +231,10 @@ export function TodayScreen({
     </View>
   );
 
+}
+
+function todayDateInput() {
+  return new Date().toISOString().slice(0, 10);
 }
 
 function createStyles(theme: AppTheme) {
@@ -227,6 +308,55 @@ function createStyles(theme: AppTheme) {
     nextActions: {
       flexDirection: "row",
       gap: spacing.sm
+    },
+    quickAddCard: {
+      gap: spacing.sm
+    },
+    courseRail: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    coursePill: {
+      borderRadius: radii.round,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 7
+    },
+    coursePillActive: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accentSoft
+    },
+    coursePillText: {
+      color: colors.muted,
+      fontSize: 12,
+      fontWeight: "900"
+    },
+    coursePillTextActive: {
+      color: colors.accent
+    },
+    quickInputRow: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    quickInput: {
+      minHeight: 46,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.line,
+      color: colors.ink,
+      backgroundColor: colors.canvas,
+      paddingHorizontal: spacing.sm,
+      fontSize: 15,
+      fontWeight: "800"
+    },
+    quickTitleInput: {
+      flex: 1
+    },
+    quickDateInput: {
+      width: 124
     },
     actionRow: {
       flexDirection: "row",

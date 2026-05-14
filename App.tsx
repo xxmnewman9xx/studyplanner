@@ -619,6 +619,7 @@ function AppContent() {
                   onOpenPlan={() => openTab("plan")}
                   onOpenClasses={() => openTab("courses")}
                   onOpenWidgets={() => openTab("more")}
+                  onAddQuickAssignment={addQuickAssignment}
                 />
               ) : null}
               {activeTab === "import" ? (
