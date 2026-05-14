@@ -10,11 +10,10 @@ import {
 } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { Camera, CheckCircle2, FileText, Keyboard, Sparkles, Upload } from "lucide-react-native";
+import { Camera, CheckCircle2, FileText, Keyboard, Upload } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
 import {
-  EmojiBadge,
   GlassCard,
   SegmentedControl
 } from "../components/AppleComponents";
@@ -149,23 +148,20 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
   return (
     <View>
       <View style={styles.header}>
-        <Text style={styles.kicker}>Scan</Text>
-        <Text style={styles.title}>Scan anything your teacher gives you.</Text>
+        <Text style={styles.kicker}>Import</Text>
+        <Text style={styles.title}>Add school material.</Text>
         <Text style={styles.subtitle}>
-          Syllabus, slides, docs, handouts, photos, or typed notes. AI finds the work, then you approve it.
+          Scan, upload, or paste syllabus text. StudyPlanner finds the work, then you approve what gets saved.
         </Text>
       </View>
 
       <GlassCard style={styles.scanHero}>
-        <View style={styles.dropIcon}>
-          <Sparkles color={colors.heroText} size={25} />
-        </View>
-        <Text style={styles.dropTitle}>Drop or scan anything</Text>
-        <Text style={styles.dropCopy}>Your plan changes only after review.</Text>
+        <Text style={styles.dropTitle}>Choose a source</Text>
+        <Text style={styles.dropCopy}>Nothing changes until you review it.</Text>
         <View style={styles.scanActions}>
-          <AppButton label="Scan Document" icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
-          <AppButton label="Upload File" icon={Upload} variant="secondary" onPress={pickPdf} />
-          <AppButton label="Type It In" icon={Keyboard} variant="secondary" onPress={typeItIn} />
+          <AppButton label="Scan" icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
+          <AppButton label="Upload" icon={Upload} variant="secondary" onPress={pickPdf} style={styles.scanActionSecondary} />
+          <AppButton label="Paste" icon={Keyboard} variant="secondary" onPress={typeItIn} style={styles.scanActionSecondary} />
         </View>
         <TextInput
           value={typedText}
@@ -175,9 +171,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
           placeholderTextColor={colors.faint}
           style={styles.typeBox}
         />
-        <View style={styles.privacyRow}>
-          <EmojiBadge name="privacy" label="Private until you add it" tone="green" />
-        </View>
+        <Text style={styles.privacyNote}>Private until you add it.</Text>
       </GlassCard>
 
       {loading ? (
@@ -192,7 +186,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
         </View>
       ) : null}
 
-      <SectionHeader title="Recent Scans" note="Open a scan to review the found work" />
+      <SectionHeader title="Recent imports" note="Open one to review found work" />
       <View style={styles.recentList}>
         {parsedImports.map((item) => (
           <TouchableOpacity
@@ -210,7 +204,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
               <Text style={styles.recentTitle}>{item.title}</Text>
               <Text style={styles.recentMeta}>{item.itemCount} found · {labelize(item.status)}</Text>
               {imageParsingReady ? null : (
-                <Text style={styles.recentSubtle}>Photo parsing needs the configured AI endpoint; files and typed text work on device.</Text>
+                <Text style={styles.recentSubtle}>Photo parsing needs AI setup; files and pasted text work on device.</Text>
               )}
             </View>
             <Badge label={labelize(item.sourceType)} tone={item.status === "ready" ? "blue" : "green"} />
@@ -507,20 +501,12 @@ function createStyles(theme: AppTheme) {
       marginTop: spacing.md,
       alignItems: "center",
       gap: spacing.xs,
-      padding: spacing.md
-    },
-    dropIcon: {
-      width: 62,
-      height: 62,
-      borderRadius: 20,
-      backgroundColor: colors.accent,
-      alignItems: "center",
-      justifyContent: "center"
+      padding: spacing.sm
     },
     dropTitle: {
       color: colors.ink,
-      fontSize: 18,
-      lineHeight: 24,
+      fontSize: 17,
+      lineHeight: 23,
       fontWeight: "900"
     },
     dropCopy: {
@@ -532,29 +518,37 @@ function createStyles(theme: AppTheme) {
     },
     scanActions: {
       alignSelf: "stretch",
-      gap: spacing.sm,
+      flexDirection: "row",
+      gap: spacing.xs,
       marginTop: spacing.xs
     },
     scanActionPrimary: {
-      backgroundColor: colors.brandPink
+      backgroundColor: colors.accent,
+      flex: 1
+    },
+    scanActionSecondary: {
+      flex: 1
     },
     typeBox: {
       alignSelf: "stretch",
-      minHeight: 72,
+      minHeight: 52,
       borderRadius: radii.lg,
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: colors.surfaceAlt,
       color: colors.ink,
       padding: spacing.md,
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 13,
+      lineHeight: 18,
       fontWeight: "700",
       textAlignVertical: "top"
     },
-    privacyRow: {
-      alignSelf: "stretch",
-      alignItems: "center"
+    privacyNote: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700",
+      textAlign: "center"
     },
     processingCard: {
       marginTop: spacing.md,
