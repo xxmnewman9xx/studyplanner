@@ -38,6 +38,12 @@ export function PlanScreen({ assignments, courses, onOpenAssignment }: PlanScree
   const insight = getBusyWeekInsight(assignments, today);
   const monthDays = buildMonthDays(monthCursor);
   const maxLoad = Math.max(...weekLoad.map((day) => day.score), 1);
+  const primarySuggestion = insight.suggestions.find((suggestion) => suggestion.assignmentId);
+  const primaryAssignmentId = selectedEvents[0]?.assignment.id || primarySuggestion?.assignmentId;
+  const primaryActionLabel = selectedEvents[0] ? "Open selected work" : primarySuggestion ? "Open priority work" : "Review classes";
+  const primaryActionDetail = selectedEvents[0]
+    ? `${selectedEvents.length} item${selectedEvents.length === 1 ? "" : "s"} due on the selected day.`
+    : primarySuggestion?.copy || "No urgent work selected. Check classes and notes to keep the plan current.";
 
   const moveMonth = (offset: number) => {
     setMonthCursor((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
@@ -56,8 +62,24 @@ export function PlanScreen({ assignments, courses, onOpenAssignment }: PlanScree
           </View>
         </View>
         <Text style={styles.heroCopy}>
-          Month dots show due dates. Week load spots the heavy days before they sneak up.
+          See the week, spot risk early, and jump straight into the work that protects your grade.
         </Text>
+        <TouchableOpacity
+          accessibilityRole="button"
+          style={styles.primaryPlanAction}
+          onPress={() => {
+            if (primaryAssignmentId) {
+              onOpenAssignment(primaryAssignmentId);
+            }
+          }}
+        >
+          <View>
+            <Text style={styles.primaryPlanKicker}>Next planning move</Text>
+            <Text style={styles.primaryPlanTitle}>{primaryActionLabel}</Text>
+            <Text style={styles.primaryPlanDetail}>{primaryActionDetail}</Text>
+          </View>
+          <ChevronRight color={colors.heroText} size={18} />
+        </TouchableOpacity>
         <View style={styles.heroStats}>
           <MiniStat label="Due Today" value={String(weekLoad.find((day) => day.dateKey === dateKey(today))?.items.length || 0)} tone="pink" />
           <MiniStat label="Heavy Days" value={String(insight.heavyDays.length)} tone="gold" />
@@ -279,6 +301,37 @@ function createStyles(theme: AppTheme) {
       color: colors.heroMuted,
       fontSize: 13,
       lineHeight: 19,
+      fontWeight: "800"
+    },
+    primaryPlanAction: {
+      minHeight: 88,
+      borderRadius: radii.xl,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.22)",
+      backgroundColor: "rgba(255,255,255,0.14)",
+      padding: spacing.md,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.md
+    },
+    primaryPlanKicker: {
+      color: colors.heroMuted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    primaryPlanTitle: {
+      color: colors.heroText,
+      fontSize: 17,
+      lineHeight: 22,
+      fontWeight: "900"
+    },
+    primaryPlanDetail: {
+      color: colors.heroMuted,
+      fontSize: 12,
+      lineHeight: 17,
       fontWeight: "800"
     },
     heroStats: {
