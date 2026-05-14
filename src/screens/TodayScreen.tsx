@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Bell, CalendarPlus, ChevronRight, Crown, FileScan, GraduationCap, PanelsTopLeft, Plus, Timer } from "lucide-react-native";
+import { Bell, CalendarPlus, ChevronRight, Crown, FileScan, GraduationCap, Plus, Timer } from "lucide-react-native";
 import {
   AppLogo,
   AssignmentRow,
@@ -52,7 +52,6 @@ export function TodayScreen({
   onOpenScan,
   onOpenPlan,
   onOpenClasses,
-  onOpenWidgets,
   onAddQuickAssignment
 }: TodayScreenProps) {
   const { theme } = useAppTheme();
@@ -133,7 +132,7 @@ export function TodayScreen({
         )}
       </GlassCard>
 
-      <SectionHeader title="Command Center" note="Every card opens a real planner workflow" />
+      <SectionHeader title="Every school day" note="Scan, plan, study, and review without hunting." />
       <View style={styles.commandGrid}>
         <CommandTile
           title="Scan syllabus"
@@ -157,10 +156,10 @@ export function TodayScreen({
           tone="green"
         />
         <CommandTile
-          title="Widgets + focus"
-          detail="Build daily surfaces and start study sessions."
-          icon={PanelsTopLeft}
-          onPress={onOpenWidgets}
+          title="Focus session"
+          detail="Start a timed study block from the current plan."
+          icon={Timer}
+          onPress={() => onOpenFocus(plan.nextAction?.id)}
           tone="purple"
         />
       </View>
