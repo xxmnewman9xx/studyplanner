@@ -9,6 +9,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
+    "test:parser": "rm -rf /tmp/studyplanner-parser-test-build && tsc scripts/check-syllabus-parser.ts src/services/syllabusLocalParser.ts src/models.ts --outDir /tmp/studyplanner-parser-test-build --module commonjs --target ES2020 --esModuleInterop --skipLibCheck && node /tmp/studyplanner-parser-test-build/scripts/check-syllabus-parser.js",
     "check:iap": "node scripts/check-iap-config.mjs",
     "export:web": "expo export --platform web"
   },

@@ -25,6 +25,7 @@ export function parseSyllabusText(rawText: string, sourceName: string): Syllabus
   const semester = inferSemester(text, inferredYear);
   const course = inferCourse(lines, sourceName);
   const assignments = inferAssignments(lines, course.id, inferredYear);
+  const possibleUndatedAssignments = inferPossibleUndatedAssignments(lines, assignments);
   const gradeCategories = inferGradeCategories(lines, course.id);
   const courseWithGrades = {
     ...course,
@@ -51,6 +52,15 @@ export function parseSyllabusText(rawText: string, sourceName: string): Syllabus
               id: "no-deadlines-found",
               severity: "needs_review" as const,
               message: "No dated deadlines were found. You can still apply the course and add deadlines manually."
+            }
+          ]
+        : []),
+      ...(possibleUndatedAssignments.length > 0
+        ? [
+            {
+              id: "possible-undated-work",
+              severity: "needs_review" as const,
+              message: `${possibleUndatedAssignments.length} possible assignments had no clear due date. Check the syllabus before applying.`
             }
           ]
         : [])
@@ -272,6 +282,21 @@ function inferAssignments(lines: string[], courseId: string, inferredYear: numbe
   }
 
   return assignments.slice(0, 30);
+}
+
+function inferPossibleUndatedAssignments(lines: string[], assignments: Assignment[]) {
+  const parsedTitles = new Set(assignments.map((assignment) => assignment.title.toLowerCase()));
+  const likelyUndated = lines.filter((line) => {
+    if (datePattern.test(line)) return false;
+    if (!assignmentKeywords.test(line)) return false;
+    if (/\b(grading|grade|policy|late|attendance|office hours|email|textbook)\b/i.test(line)) return false;
+
+    const cleaned = cleanupTitle(line).toLowerCase();
+    if (cleaned.length < 6) return false;
+    return !Array.from(parsedTitles).some((title) => title.includes(cleaned) || cleaned.includes(title));
+  });
+
+  return Array.from(new Set(likelyUndated)).slice(0, 8);
 }
 
 function parseDateToken(token: string, inferredYear: number) {
