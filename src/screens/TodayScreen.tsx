@@ -30,7 +30,7 @@ type TodayScreenProps = {
   onCalendarSync: () => void;
   premiumAutomationLocked: boolean;
   onOpenPaywall: () => void;
-  onOpenFocus: () => void;
+  onOpenFocus: (assignmentId?: string) => void;
   onOpenScan: () => void;
   onOpenPlan: () => void;
   onOpenClasses: () => void;
@@ -123,7 +123,7 @@ export function TodayScreen({
                 label="Focus timer"
                 icon={Timer}
                 variant="secondary"
-                onPress={onOpenFocus}
+                onPress={() => onOpenFocus(plan.nextAction!.id)}
                 style={styles.focusButton}
               />
             </View>
