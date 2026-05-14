@@ -11,6 +11,7 @@ const assignmentKeywords =
 const examKeywords = /\b(exam|midterm|final|quiz|test)\b/i;
 const datePattern =
   /\b(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[/. -]\d{1,2}(?:[/. -]\d{2,4})?|(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+\d{4})?)\b/i;
+const weekdayDuePattern = /\b(?:due\s+)?(?:next\s+)?(mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?)\b/i;
 
 export function parseSyllabusText(rawText: string, sourceName: string): SyllabusParseResult {
   const text = normalizeSyllabusText(rawText);
@@ -249,10 +250,12 @@ function inferAssignments(lines: string[], courseId: string, inferredYear: numbe
   const seen = new Set<string>();
 
   for (const line of lines) {
-    const date = line.match(datePattern)?.[0];
+    const explicitDate = line.match(datePattern)?.[0];
+    const weekdayDate = explicitDate ? undefined : line.match(weekdayDuePattern)?.[0];
+    const date = explicitDate || weekdayDate;
     if (!date || !assignmentKeywords.test(line)) continue;
 
-    const dueDate = parseDateToken(date, inferredYear);
+    const dueDate = explicitDate ? parseDateToken(date, inferredYear) : parseWeekdayToken(date);
     if (!dueDate) continue;
 
     const title = cleanupTitle(
@@ -278,7 +281,9 @@ function inferAssignments(lines: string[], courseId: string, inferredYear: numbe
       priority: kind === "exam" ? "high" : "medium",
       estimatedMinutes: kind === "exam" ? 180 : 60,
       status: "not_started",
-      source: "syllabus"
+      source: "syllabus",
+      needsReview: Boolean(weekdayDate),
+      confidence: weekdayDate ? 0.7 : 0.88
     });
   }
 
@@ -316,6 +321,35 @@ function parseDateToken(token: string, inferredYear: number) {
   const parsed = new Date(`${normalized}${/\b\d{4}\b/.test(normalized) ? "" : `, ${inferredYear}`}`);
   if (Number.isNaN(parsed.getTime())) return undefined;
   return formatDateParts(parsed.getFullYear(), parsed.getMonth() + 1, parsed.getDate());
+}
+
+function parseWeekdayToken(token: string) {
+  const match = token.match(weekdayDuePattern);
+  if (!match?.[1]) return undefined;
+  const weekdayIndex = weekdayToIndex(match[1]);
+  if (weekdayIndex === undefined) return undefined;
+
+  const reference = new Date();
+  const currentIndex = reference.getDay();
+  let daysToAdd = (weekdayIndex - currentIndex + 7) % 7;
+  if (daysToAdd === 0 || /\bnext\s+/i.test(token)) daysToAdd += 7;
+
+  const target = new Date(reference);
+  target.setDate(reference.getDate() + daysToAdd);
+  return formatDateParts(target.getFullYear(), target.getMonth() + 1, target.getDate());
+}
+
+function weekdayToIndex(value: string) {
+  const lower = value.toLowerCase().slice(0, 3);
+  return {
+    sun: 0,
+    mon: 1,
+    tue: 2,
+    wed: 3,
+    thu: 4,
+    fri: 5,
+    sat: 6
+  }[lower];
 }
 
 function normalizeYear(value: string | undefined, fallback: number) {

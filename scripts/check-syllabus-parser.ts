@@ -54,6 +54,17 @@ assert(
   "Expected student-facing possible assignments warning"
 );
 
+const weekdayHomework = parseSyllabusText(
+  `MATH 120 - Algebra\nHomework 7 due Friday\nQuiz next Monday`,
+  "math120-homework-note.txt"
+);
+assert(weekdayHomework.assignments.length === 2, "Expected weekday homework lines to parse");
+assert(
+  weekdayHomework.assignments.every((item) => item.needsReview && item.confidence === 0.7),
+  "Expected weekday-derived dates to stay review-gated"
+);
+assert(includesAssignment(weekdayHomework.assignments.map((item) => item.title), "Homework 7"), "Expected Homework 7 from weekday line");
+
 const noDeadlines = parseSyllabusText(
   `MATH 120 - Algebra\nFall 2026\nHomework is assigned weekly in class. Quizzes happen throughout the term.`,
   "math120.txt"
