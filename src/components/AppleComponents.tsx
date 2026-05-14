@@ -620,28 +620,28 @@ function createStyles(theme: AppTheme) {
     },
     glassCard: {
       borderRadius: radii.xl,
-      borderWidth: 1,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.12)" : "rgba(119,107,255,0.12)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(17,24,39,0.08)",
       padding: spacing.lg,
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.34 : 0.14,
-      shadowRadius: 28,
-      shadowOffset: { width: 0, height: 16 },
-      elevation: 7
+      shadowOpacity: theme.isDark ? 0.34 : 0.10,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 14 },
+      elevation: 6
     },
     plainGlassCard: {
-      backgroundColor: theme.isDark ? "rgba(18,18,31,0.92)" : "rgba(255,255,255,0.92)"
+      backgroundColor: theme.isDark ? "rgba(18,24,39,0.94)" : "rgba(255,255,255,0.96)"
     },
     heroGlassCard: {
       backgroundColor: colors.heroSurface,
-      borderColor: theme.isDark ? "#3B3270" : "#8075FF"
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(17,24,39,0.16)"
     },
     softGlassCard: {
       backgroundColor: colors.surfaceTint
     },
     darkGlassCard: {
-      backgroundColor: "#101024",
-      borderColor: "#2A2851"
+      backgroundColor: "#111827",
+      borderColor: "rgba(255,255,255,0.14)"
     },
     statPill: {
       flex: 1,
@@ -733,20 +733,29 @@ function createStyles(theme: AppTheme) {
     assignmentRow: {
       minHeight: 78,
       borderRadius: radii.lg,
-      borderWidth: 1,
+      borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.line,
       backgroundColor: colors.surface,
       padding: spacing.sm,
       flexDirection: "row",
       alignItems: "center",
-      gap: spacing.sm
+      gap: spacing.sm,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.16 : 0.05,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 5 },
+      elevation: 1
     },
     classTile: {
       width: 42,
       height: 42,
       borderRadius: 13,
       alignItems: "center",
-      justifyContent: "center"
+      justifyContent: "center",
+      shadowColor: colors.shadow,
+      shadowOpacity: 0.14,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 5 }
     },
     classTileText: {
       color: "#FFFFFF",
@@ -780,18 +789,23 @@ function createStyles(theme: AppTheme) {
     progressFill: {
       height: "100%",
       borderRadius: radii.round,
-      backgroundColor: colors.brandPink
+      backgroundColor: colors.accent
     },
     classCard: {
       minHeight: 78,
       borderRadius: radii.lg,
-      borderWidth: 1,
+      borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.line,
       backgroundColor: colors.surface,
       padding: spacing.sm,
       flexDirection: "row",
       alignItems: "center",
-      gap: spacing.sm
+      gap: spacing.sm,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.16 : 0.05,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 5 },
+      elevation: 1
     },
     classLargeIcon: {
       width: 44,

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { CalendarCheck2, CheckCircle2, FileScan, Sparkles, WandSparkles } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
-import { AppLogo, EmojiAccent, GlassCard } from "../components/AppleComponents";
+import { AppLogo, GlassCard } from "../components/AppleComponents";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 
@@ -68,17 +68,25 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
 
       <GlassCard style={styles.illustrationCard}>
         <View style={styles.illustration}>
-          <View style={styles.paper}>
-            <View style={styles.paperLineWide} />
-            <View style={styles.paperLine} />
-            <View style={styles.paperLineShort} />
+          <View style={styles.scanFrame}>
+            <View style={styles.scanCornerTop} />
+            <View style={styles.scanCornerBottom} />
+            <View style={styles.paper}>
+              <View style={styles.paperHeader} />
+              <View style={styles.paperLineWide} />
+              <View style={styles.paperLine} />
+              <View style={styles.paperLineShort} />
+              <View style={styles.paperDateRow} />
+            </View>
           </View>
           <View style={styles.checkBubble}>
             <Icon color={colors.heroText} size={22} />
           </View>
         </View>
-        <View style={styles.emojiRow}>
-          <EmojiAccent name={slide.accent} label={slide.title} decorative={false} size={20} />
+        <View style={styles.statusRow}>
+          <Text style={styles.statusText}>Review-first import</Text>
+          <Text style={styles.statusDot}>•</Text>
+          <Text style={styles.statusText}>Private on device</Text>
         </View>
       </GlassCard>
 
@@ -119,59 +127,121 @@ function createStyles(theme: AppTheme) {
     },
     illustrationCard: {
       alignItems: "center",
-      gap: spacing.sm,
-      backgroundColor: theme.isDark ? "#17142A" : "#F1ECFF"
+      gap: spacing.md,
+      backgroundColor: theme.isDark ? "#121827" : "#FFFFFF"
     },
     illustration: {
-      width: 156,
-      height: 156,
-      borderRadius: 30,
-      backgroundColor: theme.isDark ? "#241D3E" : "#EFE9FF",
+      width: 176,
+      height: 176,
+      borderRadius: 36,
+      backgroundColor: theme.isDark ? "#182033" : "#F2F2F7",
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line
+    },
+    scanFrame: {
+      width: 108,
+      height: 130,
+      borderRadius: 22,
+      borderWidth: 1,
+      borderColor: colors.accent,
       alignItems: "center",
       justifyContent: "center"
     },
+    scanCornerTop: {
+      position: "absolute",
+      top: -1,
+      left: 18,
+      right: 18,
+      height: 2,
+      backgroundColor: theme.isDark ? "#182033" : "#F2F2F7"
+    },
+    scanCornerBottom: {
+      position: "absolute",
+      bottom: -1,
+      left: 18,
+      right: 18,
+      height: 2,
+      backgroundColor: theme.isDark ? "#182033" : "#F2F2F7"
+    },
     paper: {
-      width: 74,
-      height: 94,
-      borderRadius: 10,
+      width: 78,
+      height: 102,
+      borderRadius: 12,
       backgroundColor: colors.surface,
       padding: spacing.sm,
       gap: 7,
-      justifyContent: "center"
+      justifyContent: "center",
+      shadowColor: colors.shadow,
+      shadowOpacity: 0.16,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 8 }
+    },
+    paperHeader: {
+      width: 34,
+      height: 6,
+      borderRadius: 4,
+      backgroundColor: colors.accent
     },
     paperLineWide: {
-      width: "90%",
-      height: 5,
+      width: "92%",
+      height: 4,
       borderRadius: 3,
       backgroundColor: colors.ink
     },
     paperLine: {
-      width: "72%",
-      height: 5,
+      width: "76%",
+      height: 4,
       borderRadius: 3,
       backgroundColor: colors.lineStrong
     },
     paperLineShort: {
-      width: "52%",
-      height: 5,
+      width: "54%",
+      height: 4,
       borderRadius: 3,
       backgroundColor: colors.lineStrong
     },
+    paperDateRow: {
+      width: "64%",
+      height: 12,
+      borderRadius: 7,
+      backgroundColor: colors.accentSoft
+    },
     checkBubble: {
       position: "absolute",
-      right: 42,
-      bottom: 42,
-      width: 42,
-      height: 42,
-      borderRadius: 21,
+      right: 30,
+      bottom: 30,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
       backgroundColor: colors.accent,
       alignItems: "center",
-      justifyContent: "center"
+      justifyContent: "center",
+      shadowColor: colors.shadow,
+      shadowOpacity: 0.22,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 8 }
     },
-    emojiRow: {
-      height: 24,
+    statusRow: {
+      minHeight: 32,
+      borderRadius: 16,
+      paddingHorizontal: spacing.sm,
+      flexDirection: "row",
       alignItems: "center",
-      justifyContent: "center"
+      gap: spacing.xs,
+      backgroundColor: colors.surfaceAlt
+    },
+    statusText: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "800"
+    },
+    statusDot: {
+      color: colors.faint,
+      fontSize: 12,
+      fontWeight: "900"
     },
     copyBlock: {
       alignItems: "center",
