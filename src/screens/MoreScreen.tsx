@@ -191,11 +191,11 @@ export function MoreScreen({
       <GlassCard tone="hero" style={styles.studioHero}>
         <View style={styles.heroHeader}>
           <View style={styles.heroCopy}>
-            <AppLogo showWordmark size={44} />
+            <AppLogo showWordmark size={36} />
             <Text style={styles.kicker}>Widget Studio</Text>
-            <Text style={styles.heroTitle}>Build your Apple-style widget.</Text>
+            <Text style={styles.heroTitle}>Customize your widgets.</Text>
             <Text style={styles.heroText}>
-              Size, type, color, class focus, icon, and layout update the preview live.
+              Adjust size, style, class focus, and layout while the preview updates.
             </Text>
           </View>
           <View style={styles.livePill}>
@@ -221,7 +221,7 @@ export function MoreScreen({
         </View>
       </GlassCard>
 
-      <SectionHeader title="Live Controls" note="Native-feeling choices, no mock-only state" />
+      <SectionHeader title="Controls" note="Changes update the preview above" />
       <GlassCard style={styles.controlsCard}>
         <ControlLabel title="Size" />
         <SegmentedControl
@@ -232,7 +232,7 @@ export function MoreScreen({
         />
 
         <ControlLabel title="Type" />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRail}>
+        <ScrollView horizontal showsHorizontalScrollIndicator contentContainerStyle={styles.chipRail}>
           {widgetTypes.map((option) => (
             <ChoiceChip
               key={option}
@@ -593,13 +593,13 @@ function createStyles(theme: AppTheme) {
 
   return StyleSheet.create({
     studioHero: {
-      gap: spacing.md,
-      padding: spacing.md
+      gap: spacing.sm,
+      padding: spacing.sm
     },
     heroHeader: {
       flexDirection: "row",
       alignItems: "flex-start",
-      gap: spacing.md
+      gap: spacing.sm
     },
     heroCopy: {
       flex: 1,
@@ -614,18 +614,18 @@ function createStyles(theme: AppTheme) {
     },
     heroTitle: {
       color: colors.heroText,
-      fontSize: 27,
-      lineHeight: 32,
+      fontSize: 23,
+      lineHeight: 28,
       fontWeight: "900"
     },
     heroText: {
       color: colors.heroMuted,
-      fontSize: 13,
-      lineHeight: 19,
+      fontSize: 12,
+      lineHeight: 17,
       fontWeight: "800"
     },
     livePill: {
-      minHeight: 32,
+      minHeight: 28,
       borderRadius: radii.round,
       backgroundColor: "rgba(255,255,255,0.15)",
       borderWidth: 1,
@@ -651,7 +651,7 @@ function createStyles(theme: AppTheme) {
       alignItems: "center"
     },
     controlsCard: {
-      gap: spacing.sm
+      gap: spacing.xs
     },
     controlLabel: {
       marginTop: spacing.xs,
@@ -666,7 +666,7 @@ function createStyles(theme: AppTheme) {
       paddingRight: spacing.md
     },
     choiceChip: {
-      minHeight: 36,
+      minHeight: 34,
       borderRadius: radii.round,
       borderWidth: 1,
       borderColor: colors.line,

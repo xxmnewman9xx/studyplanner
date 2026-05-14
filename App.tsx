@@ -763,7 +763,7 @@ function createStyles(theme: AppTheme, tablet = false) {
       alignSelf: tablet ? "center" : undefined,
       paddingHorizontal: spacing.lg,
       paddingTop: tablet ? spacing.xl : spacing.lg,
-      paddingBottom: tablet ? spacing.xxl : 104
+      paddingBottom: tablet ? spacing.xxl : 136
     },
     scrollArea: {
       flex: 1
