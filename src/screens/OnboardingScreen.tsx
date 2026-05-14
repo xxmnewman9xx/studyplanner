@@ -12,37 +12,32 @@ type OnboardingScreenProps = {
 
 const slides = [
   {
-    eyebrow: "01 · Welcome",
-    title: "Meet your Syllabus AI",
-    copy: "Snap a photo of any syllabus and we’ll quietly pull out every assignment, reading, and date.",
+    title: "Turn syllabi into a calm plan",
+    copy: "Scan a syllabus and StudyPlanner pulls out the assignments, readings, dates, and grade weights for review.",
     icon: FileScan,
     accent: "scan" as const
   },
   {
-    eyebrow: "02 · What we find",
-    title: "Everything, organized",
-    copy: "Assignments, exams, readings, projects, and grade weights appear in one editable review.",
+    title: "Review before anything changes",
+    copy: "Found work appears in one editable list, so you can fix dates, classes, and duplicates before adding it.",
     icon: WandSparkles,
     accent: "ai" as const
   },
   {
-    eyebrow: "03 · Plan view",
-    title: "Your week, made calm",
-    copy: "See busy weeks before they happen. Catch overlaps. Move things around.",
+    title: "See the week before it gets heavy",
+    copy: "Spot busy days, upcoming exams, and overlapping deadlines while there’s still time to adjust.",
     icon: CalendarCheck2,
     accent: "calendar" as const
   },
   {
-    eyebrow: "04 · Widgets",
-    title: "Beautiful widgets, your way",
-    copy: "Pin Due Next, Today, Week, or Class Focus to any Home or Lock Screen style.",
+    title: "Keep the right work visible",
+    copy: "Use calm widgets and focus views to keep today’s assignments close without opening the whole planner.",
     icon: Sparkles,
     accent: "widget" as const
   },
   {
-    eyebrow: "05 · Ready",
-    title: "You’re set, Alex",
-    copy: "Add your first syllabus to begin. We’ll do the heavy lifting from here.",
+    title: "Ready when you are",
+    copy: "Add your first syllabus to begin. You stay in control of what gets saved.",
     icon: CheckCircle2,
     accent: "complete" as const
   }
@@ -88,7 +83,6 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
       </GlassCard>
 
       <View style={styles.copyBlock}>
-        <Text style={styles.eyebrow}>{slide.eyebrow}</Text>
         <Text style={styles.title}>{slide.title}</Text>
         <Text style={styles.copy}>{slide.copy}</Text>
       </View>
@@ -100,7 +94,7 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
       </View>
 
       <View style={styles.bottomBar}>
-        <Text style={styles.promise}>Private by default · Built for students · Widget-ready</Text>
+        <Text style={styles.promise}>Private by default. Saved only after review.</Text>
         <AppButton label={isFinal ? "Get started" : "Continue"} onPress={continueOnboarding} style={styles.cta} />
       </View>
     </View>
@@ -129,9 +123,9 @@ function createStyles(theme: AppTheme) {
       backgroundColor: theme.isDark ? "#17142A" : "#F1ECFF"
     },
     illustration: {
-      width: 190,
-      height: 190,
-      borderRadius: 34,
+      width: 156,
+      height: 156,
+      borderRadius: 30,
       backgroundColor: theme.isDark ? "#241D3E" : "#EFE9FF",
       alignItems: "center",
       justifyContent: "center"
@@ -165,8 +159,8 @@ function createStyles(theme: AppTheme) {
     },
     checkBubble: {
       position: "absolute",
-      right: 54,
-      bottom: 54,
+      right: 42,
+      bottom: 42,
       width: 42,
       height: 42,
       borderRadius: 21,
@@ -182,13 +176,6 @@ function createStyles(theme: AppTheme) {
     copyBlock: {
       alignItems: "center",
       gap: spacing.xs
-    },
-    eyebrow: {
-      color: colors.faint,
-      fontSize: 11,
-      lineHeight: 15,
-      fontWeight: "900",
-      textTransform: "uppercase"
     },
     title: {
       ...typography.title,
@@ -220,7 +207,7 @@ function createStyles(theme: AppTheme) {
       gap: spacing.sm
     },
     cta: {
-      backgroundColor: colors.brandPink
+      backgroundColor: colors.accent
     },
     promise: {
       color: colors.faint,

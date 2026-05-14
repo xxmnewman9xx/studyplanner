@@ -1,12 +1,11 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Bell, CalendarPlus, ChevronRight, Crown, Timer } from "lucide-react-native";
 import {
   AppLogo,
   AssignmentRow,
   EmptyState,
   GlassCard,
-  StatPill
 } from "../components/AppleComponents";
 import { AppButton } from "../components/AppButton";
 import { SectionHeader } from "../components/SectionHeader";
@@ -42,15 +41,13 @@ export function TodayScreen({
   assignments,
   courses,
   semester,
-  studentName,
   onUpdateStatus,
   onOpenAssignment,
   onScheduleReminders,
   onCalendarSync,
   premiumAutomationLocked,
   onOpenPaywall,
-  onOpenFocus,
-  onOpenScan
+  onOpenFocus
 }: TodayScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
@@ -66,19 +63,16 @@ export function TodayScreen({
     <View style={styles.screen}>
       <View style={styles.identityRow}>
         <AppLogo showWordmark size={42} />
-        <TouchableOpacity accessibilityRole="button" style={styles.scanButton} onPress={onOpenScan}>
-          <Text style={styles.scanButtonText}>Scan</Text>
-        </TouchableOpacity>
       </View>
 
       <GlassCard tone="hero" style={styles.heroCard}>
-        <Text style={styles.heroKicker}>Good morning, {studentName.split(" ")[0] || "Alex"}</Text>
-        <Text style={styles.heroTitle}>You’ve got this.</Text>
+        <Text style={styles.heroKicker}>Up next</Text>
+        <Text style={styles.heroTitle}>Focus on this first</Text>
         {plan.nextAction ? (
           <View style={styles.nextHero}>
             <View style={styles.nextHeroCopy}>
               <Text style={styles.nextKicker}>
-                Next up {nextDueDays <= 0 ? "today" : `in ${nextDueDays} days`}
+                Due {nextDueDays <= 0 ? "today" : `in ${nextDueDays} days`}
               </Text>
               <Text style={styles.nextTitle}>{nextCourse?.code} - {plan.nextAction.title}</Text>
               <Text style={styles.nextMeta}>
@@ -87,13 +81,13 @@ export function TodayScreen({
             </View>
             <View style={styles.nextActions}>
               <AppButton
-                label="Start now"
+                label="Start"
                 icon={ChevronRight}
                 onPress={() => onUpdateStatus(plan.nextAction!.id, "in_progress")}
                 style={styles.startButton}
               />
               <AppButton
-                label="Focus"
+                label="Focus timer"
                 icon={Timer}
                 variant="secondary"
                 onPress={onOpenFocus}
@@ -106,13 +100,7 @@ export function TodayScreen({
         )}
       </GlassCard>
 
-      <View style={styles.statsRow}>
-        <StatPill label="Due Today" value={String(plan.dueToday.length)} tone="pink" />
-        <StatPill label="Due Soon" value={String(plan.dueSoon.length)} tone="gold" />
-        <StatPill label="Needs Check" value={String(plan.needsReview.length)} tone="plain" />
-      </View>
-
-      <SectionHeader title="Today" note="Agenda sorted by urgency and class color" />
+      <SectionHeader title="Today" note={`${plan.dueToday.length} due today · ${plan.dueSoon.length} due soon · ${plan.needsReview.length} to review`} />
       <View style={styles.list}>
         {plan.upcoming.length === 0 ? (
           <EmptyState title="A clear day" copy="Scan a syllabus or add a class to start planning." emoji="calendar" />
@@ -123,7 +111,7 @@ export function TodayScreen({
               assignment={assignment}
               course={getCourseForAssignment(courses, assignment)}
               onPress={() => onOpenAssignment(assignment.id)}
-              trailing={<Text style={styles.doneButtonText}>{assignment.status === "done" ? "Done" : "Open"}</Text>}
+              trailing={<Text style={styles.doneButtonText}>{assignment.status === "done" ? "Done" : "Details"}</Text>}
             />
           ))
         )}
@@ -182,21 +170,8 @@ function createStyles(theme: AppTheme) {
       marginBottom: spacing.md,
       gap: spacing.md
     },
-    scanButton: {
-      minHeight: 38,
-      borderRadius: radii.round,
-      backgroundColor: colors.accent,
-      paddingHorizontal: spacing.md,
-      alignItems: "center",
-      justifyContent: "center"
-    },
-    scanButtonText: {
-      color: colors.heroText,
-      fontSize: 13,
-      fontWeight: "900"
-    },
     heroCard: {
-      gap: spacing.sm,
+      gap: spacing.xs,
       padding: spacing.md
     },
     heroKicker: {
@@ -207,8 +182,8 @@ function createStyles(theme: AppTheme) {
     },
     heroTitle: {
       color: colors.heroText,
-      fontSize: 29,
-      lineHeight: 35,
+      fontSize: 23,
+      lineHeight: 29,
       fontWeight: "900"
     },
     nextHero: {
@@ -252,11 +227,6 @@ function createStyles(theme: AppTheme) {
     nextActions: {
       flexDirection: "row",
       gap: spacing.sm
-    },
-    statsRow: {
-      flexDirection: "row",
-      gap: spacing.sm,
-      marginTop: spacing.md
     },
     actionRow: {
       flexDirection: "row",

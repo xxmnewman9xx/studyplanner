@@ -16,7 +16,6 @@ import {
   Crown,
   FileScan,
   GraduationCap,
-  Image as ImageIcon,
   PanelsTopLeft,
   Sparkles,
   Timer
@@ -84,7 +83,7 @@ const tabs: Array<{
   label: string;
   icon: React.ComponentType<{ color: string; size: number }>;
 }> = [
-  { id: "today", label: "Today", icon: ImageIcon },
+  { id: "today", label: "Today", icon: CalendarDays },
   { id: "import", label: "Scan", icon: FileScan },
   { id: "plan", label: "Plan", icon: CalendarDays },
   { id: "courses", label: "Classes", icon: GraduationCap },
@@ -764,7 +763,7 @@ function createStyles(theme: AppTheme, tablet = false) {
       alignSelf: tablet ? "center" : undefined,
       paddingHorizontal: spacing.lg,
       paddingTop: tablet ? spacing.xl : spacing.lg,
-      paddingBottom: tablet ? spacing.xxl : 196
+      paddingBottom: tablet ? spacing.xxl : spacing.lg
     },
     scrollArea: {
       flex: 1
@@ -826,28 +825,26 @@ function createStyles(theme: AppTheme, tablet = false) {
       fontWeight: "800"
     },
     tabBar: {
-      position: "absolute",
-      left: spacing.md,
-      right: spacing.md,
-      bottom: spacing.md,
-      minHeight: 70,
+      minHeight: 66,
+      marginHorizontal: spacing.md,
+      marginBottom: spacing.md,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      borderRadius: 26,
+      borderRadius: 24,
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: theme.isDark ? "rgba(17, 23, 34, 0.98)" : "rgba(255, 255, 255, 0.985)",
       padding: spacing.xs,
       shadowColor: colors.shadow,
       shadowOpacity: theme.isDark ? 0.42 : 0.16,
-      shadowRadius: 24,
-      shadowOffset: { width: 0, height: 12 },
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 8 },
       elevation: 9
     },
     tabButton: {
       width: "19.4%",
-      minHeight: 56,
+      minHeight: 52,
       alignItems: "center",
       justifyContent: "center",
       borderRadius: 20,
@@ -856,9 +853,9 @@ function createStyles(theme: AppTheme, tablet = false) {
     tabButtonActive: {
       backgroundColor: colors.accent,
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.28 : 0.16,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: theme.isDark ? 0.2 : 0.1,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 4 },
       elevation: 4
     },
     tabLabel: {
