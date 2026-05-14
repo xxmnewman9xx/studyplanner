@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { Camera, CheckCircle2, FileText, Keyboard, Upload } from "lucide-react-native";
+import { Camera, CheckCircle2, FileText, Keyboard, Plus, Upload } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
 import {
@@ -145,6 +145,45 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
   const counts = draft ? summarizeDraft(draft) : null;
   const needsReviewCount = draft?.assignments.filter((assignment) => assignment.needsReview || (assignment.confidence || 1) < 0.75).length || parsedItems.filter((item) => item.needsReview).length;
 
+  const addUndatedExampleDraft = (example: string) => {
+    if (!draft) return;
+    const course = draft.courses[0];
+    if (!course) return;
+    const title = cleanupExampleTitle(example);
+    if (!title) return;
+    const dueDate = new Date().toISOString().slice(0, 10);
+    setDraft({
+      ...draft,
+      assignments: [
+        ...draft.assignments,
+        {
+          id: `undated-${Date.now()}-${slugify(title)}`,
+          courseId: course.id,
+          title,
+          kind: "assignment",
+          type: "assignment",
+          dueAt: `${dueDate}T23:59:00`,
+          tags: ["needs-date", "syllabus"],
+          priority: "high",
+          estimatedMinutes: 60,
+          status: "not_started",
+          source: "syllabus",
+          sourceId: draft.sourceName,
+          progress: 0,
+          needsReview: true,
+          confidence: 0.45,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ]
+    });
+  };
+
+  const hasDraftForExample = (example: string) => {
+    const title = cleanupExampleTitle(example).toLowerCase();
+    return draft?.assignments.some((assignment) => assignment.title.toLowerCase() === title) || false;
+  };
+
   return (
     <View>
       <View style={styles.header}>
@@ -231,9 +270,25 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
                   />
                   {finding.examples?.length ? (
                     <View style={styles.findingExamples}>
-                      {finding.examples.map((example) => (
-                        <Text key={example} style={styles.findingExampleText}>Missing date: {example}</Text>
-                      ))}
+                      {finding.examples.map((example) => {
+                        const added = hasDraftForExample(example);
+                        return (
+                          <View key={example} style={styles.findingExampleRow}>
+                            <Text style={styles.findingExampleText}>Missing date: {example}</Text>
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              disabled={added}
+                              style={[styles.exampleAddButton, added ? styles.exampleAddButtonDisabled : null]}
+                              onPress={() => addUndatedExampleDraft(example)}
+                            >
+                              <Plus color={added ? colors.faint : colors.accent} size={14} />
+                              <Text style={[styles.exampleAddText, added ? styles.exampleAddTextDisabled : null]}>
+                                {added ? "Added" : "Draft"}
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        );
+                      })}
                     </View>
                   ) : null}
                 </View>
@@ -482,6 +537,18 @@ function labelize(value: string) {
   return value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function cleanupExampleTitle(value: string) {
+  return value
+    .replace(/\b(due date|deadline|due)\b\s*:*/gi, "")
+    .replace(/\s+/g, " ")
+    .replace(/^[-:–| ]+|[-:–| ]+$/g, "")
+    .trim();
+}
+
+function slugify(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 36);
+}
+
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : "The import could not be read.";
 }
@@ -701,11 +768,41 @@ function createStyles(theme: AppTheme) {
       padding: spacing.sm,
       gap: 4
     },
+    findingExampleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs
+    },
     findingExampleText: {
+      flex: 1,
       color: colors.muted,
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "800"
+    },
+    exampleAddButton: {
+      minHeight: 30,
+      borderRadius: radii.round,
+      borderWidth: 1,
+      borderColor: colors.accent,
+      backgroundColor: colors.accentSoft,
+      paddingHorizontal: spacing.xs,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4
+    },
+    exampleAddButtonDisabled: {
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt
+    },
+    exampleAddText: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    exampleAddTextDisabled: {
+      color: colors.faint
     },
     editList: {
       gap: spacing.sm
