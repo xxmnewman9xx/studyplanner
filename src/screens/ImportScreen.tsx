@@ -143,7 +143,9 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
   };
 
   const counts = draft ? summarizeDraft(draft) : null;
+  const invalidDateCount = draft?.assignments.filter((assignment) => !isValidDateInput(assignment.dueAt.slice(0, 10))).length || 0;
   const needsReviewCount = draft?.assignments.filter((assignment) => assignment.needsReview || (assignment.confidence || 1) < 0.75).length || parsedItems.filter((item) => item.needsReview).length;
+  const canApplyDraft = Boolean(draft && draft.assignments.length > 0 && invalidDateCount === 0);
 
   const addUndatedExampleDraft = (example: string) => {
     if (!draft) return;
@@ -305,6 +307,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
                 </View>
               ))}
               {needsReviewCount > 0 ? <Badge label="Missing date or duplicate possible" tone="red" /> : null}
+              {invalidDateCount > 0 ? <Badge label={`${invalidDateCount} invalid date${invalidDateCount === 1 ? "" : "s"} to fix`} tone="red" /> : null}
             </View>
           </GlassCard>
 
@@ -347,7 +350,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
                         setDraft(
                           updateParsedAssignment(draft, assignment.id, {
                             dueAt: `${date}T23:59:00`,
-                            needsReview: !date
+                            needsReview: !isValidDateInput(date)
                           })
                         )
                       }
@@ -386,7 +389,14 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
           </View>
 
           <View style={styles.applyBar}>
-            <AppButton label={`Add all ${draft.assignments.length}`} onPress={() => onApplyParsedPlan(draft)} />
+            <AppButton
+              label={invalidDateCount > 0 ? "Fix dates first" : `Add all ${draft.assignments.length}`}
+              disabled={!canApplyDraft}
+              onPress={() => {
+                if (!canApplyDraft) return;
+                onApplyParsedPlan(draft);
+              }}
+            />
             <AppButton label="Revise" variant="secondary" onPress={() => setDraft(null)} />
           </View>
         </>
@@ -425,6 +435,20 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
       </View>
     );
   }
+}
+
+function isValidDateInput(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parts = value.split("-").map(Number);
+  const yearValue = parts[0] || 0;
+  const monthValue = parts[1] || 0;
+  const dayValue = parts[2] || 0;
+  const date = new Date(yearValue, monthValue - 1, dayValue);
+  return (
+    date.getFullYear() === yearValue &&
+    date.getMonth() === monthValue - 1 &&
+    date.getDate() === dayValue
+  );
 }
 
 function summarizeDraft(draft: SyllabusParseResult) {
