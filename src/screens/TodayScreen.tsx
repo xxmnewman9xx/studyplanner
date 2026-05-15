@@ -219,7 +219,7 @@ export function TodayScreen({
 
       {plan.overdue.length > 0 ? (
         <>
-          <SectionHeader title="Catch up" note={`${plan.overdue.length} overdue · start with the smallest save`} />
+          <SectionHeader title="Catch up" note={`${plan.overdue.length} overdue · smallest saves first`} />
           <View style={styles.list}>
             {plan.overdue.slice(0, 3).map((assignment) => (
               <AssignmentRow
@@ -227,7 +227,7 @@ export function TodayScreen({
                 assignment={assignment}
                 course={getCourseForAssignment(courses, assignment)}
                 onPress={() => onOpenAssignment(assignment.id)}
-                trailing={<Text style={styles.overdueFlag}>Reset</Text>}
+                trailing={<Text style={styles.overdueFlag}>Start</Text>}
               />
             ))}
           </View>

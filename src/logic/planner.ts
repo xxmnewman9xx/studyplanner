@@ -119,7 +119,7 @@ export function getOverdue(assignments: Assignment[], now = new Date()) {
   return assignments
     .filter((item) => item.status !== "done" && item.status !== "archived")
     .filter((item) => daysUntil(item.dueAt, now) < 0)
-    .sort(sortByDueDate);
+    .sort(sortBySmallestCatchUp);
 }
 
 export function getNeedsReview(assignments: Assignment[]) {
@@ -508,6 +508,12 @@ function isPast(due: Date, now: Date) {
 
 function sortByDueDate(a: Assignment, b: Assignment) {
   return new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime();
+}
+
+function sortBySmallestCatchUp(a: Assignment, b: Assignment) {
+  const timeDifference = a.estimatedMinutes - b.estimatedMinutes;
+  if (timeDifference !== 0) return timeDifference;
+  return sortByDueDate(a, b);
 }
 
 function dateKeyFromIso(iso: string) {
