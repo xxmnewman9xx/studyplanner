@@ -355,14 +355,19 @@ export function WidgetPreviewCard({
         style
       ]}
     >
+      <View style={[styles.widgetAura, { backgroundColor: paletteColors[1] }]} />
+      <View style={[styles.widgetSheen, { backgroundColor: paletteColors[2] || paletteColors[1] }]} />
+      <View style={[styles.widgetAccentRail, { backgroundColor: paletteColors[1] }]} />
       {background === "gradient" ? (
         <View style={[styles.widgetGlow, { backgroundColor: paletteColors[1] }]} />
       ) : null}
       <View style={styles.widgetTop}>
         <Text style={[styles.widgetLabel, labelTone, fontStyle]}>{title}</Text>
-        <Text style={[styles.widgetTiny, labelTone]}>
-          {type === "due_next" ? "2h" : "May 13"}
-        </Text>
+        <View style={[styles.widgetStatusCapsule, isTinted ? styles.widgetStatusCapsuleTinted : null]}>
+          <Text style={[styles.widgetTiny, labelTone]}>
+            {type === "due_next" ? "2h" : "May 13"}
+          </Text>
+        </View>
       </View>
       <View style={styles.widgetMainRow}>
         <View style={styles.widgetCopy}>
@@ -847,16 +852,16 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800"
     },
     widget: {
-      borderRadius: 22,
+      borderRadius: 26,
       padding: spacing.md,
       overflow: "hidden",
-      borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.45)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.18)" : "rgba(16,24,40,0.10)",
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.28 : 0.16,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 10 },
-      elevation: 4
+      shadowOpacity: theme.isDark ? 0.36 : 0.18,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 14 },
+      elevation: 6
     },
     widgetSmall: {
       width: 126,
@@ -871,14 +876,40 @@ function createStyles(theme: AppTheme) {
       minHeight: 164
     },
     widgetSolid: {
-      backgroundColor: colors.surface
+      backgroundColor: theme.isDark ? "#121A2A" : "#FFFFFF"
     },
     widgetGlass: {
-      backgroundColor: theme.isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.78)"
+      backgroundColor: theme.isDark ? "rgba(24,36,66,0.82)" : "rgba(255,255,255,0.86)"
     },
     widgetDark: {
-      backgroundColor: "#111024",
-      borderColor: "#2C2855"
+      backgroundColor: "#090E1F",
+      borderColor: "rgba(124,156,255,0.28)"
+    },
+    widgetAura: {
+      position: "absolute",
+      right: -52,
+      top: -58,
+      width: 142,
+      height: 142,
+      borderRadius: 71,
+      opacity: theme.isDark ? 0.28 : 0.16
+    },
+    widgetSheen: {
+      position: "absolute",
+      left: -36,
+      bottom: -48,
+      width: 118,
+      height: 118,
+      borderRadius: 59,
+      opacity: theme.isDark ? 0.16 : 0.11
+    },
+    widgetAccentRail: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 4,
+      opacity: 0.92
     },
     widgetGlow: {
       position: "absolute",
@@ -887,7 +918,7 @@ function createStyles(theme: AppTheme) {
       width: 132,
       height: 132,
       borderRadius: 66,
-      opacity: 0.65
+      opacity: 0.48
     },
     widgetTop: {
       flexDirection: "row",
@@ -897,10 +928,22 @@ function createStyles(theme: AppTheme) {
     },
     widgetLabel: {
       color: colors.ink,
-      fontSize: 11,
-      lineHeight: 14,
+      fontSize: 10,
+      lineHeight: 13,
       fontWeight: "900",
+      letterSpacing: 0.5,
       textTransform: "uppercase"
+    },
+    widgetStatusCapsule: {
+      minHeight: 22,
+      borderRadius: 11,
+      paddingHorizontal: 8,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.09)" : "rgba(16,24,40,0.06)"
+    },
+    widgetStatusCapsuleTinted: {
+      backgroundColor: "rgba(255,255,255,0.18)"
     },
     widgetTiny: {
       color: colors.muted,
@@ -911,15 +954,17 @@ function createStyles(theme: AppTheme) {
     widgetValue: {
       marginTop: spacing.xs,
       color: colors.ink,
-      fontSize: 32,
-      lineHeight: 38,
-      fontWeight: "900"
+      fontSize: 34,
+      lineHeight: 39,
+      fontWeight: "900",
+      letterSpacing: -0.7
     },
     widgetDetail: {
       color: colors.ink,
       fontSize: 13,
       lineHeight: 18,
-      fontWeight: "800"
+      fontWeight: "800",
+      opacity: 0.86
     },
     widgetMainRow: {
       marginTop: spacing.xs,
@@ -932,12 +977,18 @@ function createStyles(theme: AppTheme) {
       minWidth: 0
     },
     widgetIconOrb: {
-      width: 34,
-      height: 34,
-      borderRadius: 13,
+      width: 38,
+      height: 38,
+      borderRadius: 15,
       alignItems: "center",
       justifyContent: "center",
-      opacity: 0.95
+      opacity: 0.96,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.55)",
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.30 : 0.14,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 6 }
     },
     widgetMono: {
       fontVariant: ["tabular-nums"]
