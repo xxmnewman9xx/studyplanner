@@ -8,6 +8,7 @@ import { SectionHeader } from "../components/SectionHeader";
 import { Assignment, Course, GradeItem } from "../models";
 import {
   calculateNeededOnRemaining,
+  calculateNeededOnSingleFutureScore,
   formatPercent,
   letterFromPercent,
   summarizeCourseGrade
@@ -43,6 +44,7 @@ export function GradesScreen({
   const [newTitle, setNewTitle] = useState("");
   const [newEarned, setNewEarned] = useState("");
   const [newPossible, setNewPossible] = useState("100");
+  const [whatIfWeight, setWhatIfWeight] = useState("20");
   const selectedCourse = courses.find((course) => course.id === selectedCourseId) || courses[0];
   const selectedCourseGradeItems = selectedCourse
     ? gradeItems.filter((item) => item.courseId === selectedCourse.id)
@@ -67,6 +69,13 @@ export function GradesScreen({
         summary.currentPercent,
         summary.completedWeight,
         targetGradePercent
+      )
+    : 0;
+  const nextScoreNeeded = summary
+    ? calculateNeededOnSingleFutureScore(
+        summary.currentPercent,
+        targetGradePercent,
+        Number.parseFloat(whatIfWeight) || 0
       )
     : 0;
   const gradePressure = needed > 100 ? "High" : needed > 92 ? "Watch" : "Manageable";
@@ -161,6 +170,24 @@ export function GradesScreen({
               placeholderTextColor={colors.faint}
               style={styles.targetInput}
             />
+            <View style={styles.whatIfCard}>
+              <Text style={styles.whatIfLabel}>Next test what-if</Text>
+              <Text style={styles.targetCopy}>
+                If the next score is worth
+                <Text style={styles.targetNumber}> {whatIfWeight || "0"}% </Text>
+                of the course, you need about
+                <Text style={styles.targetNumber}> {formatPercent(nextScoreNeeded)} </Text>
+                on it to stay on target.
+              </Text>
+              <TextInput
+                keyboardType="numeric"
+                value={whatIfWeight}
+                onChangeText={setWhatIfWeight}
+                placeholder="Next score weight"
+                placeholderTextColor={colors.faint}
+                style={styles.targetInput}
+              />
+            </View>
           </View>
 
           <SectionHeader title="Weighted Categories" note={selectedCourse.name} />
@@ -417,6 +444,19 @@ function createStyles(theme: AppTheme) {
       paddingHorizontal: spacing.sm,
       fontSize: 15,
       fontWeight: "800"
+    },
+    whatIfCard: {
+      borderRadius: radii.sm,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.canvas,
+      padding: spacing.sm,
+      gap: spacing.xs
+    },
+    whatIfLabel: {
+      color: colors.ink,
+      fontSize: 13,
+      fontWeight: "900"
     },
     categoryList: {
       borderRadius: radii.md,

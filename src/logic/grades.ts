@@ -65,6 +65,20 @@ export function calculateNeededOnRemaining(
   return Math.max(0, needed);
 }
 
+export function calculateNeededOnSingleFutureScore(
+  currentPercent: number,
+  targetPercent: number,
+  futureWeightPercent: number
+) {
+  const futureWeight = futureWeightPercent / 100;
+
+  if (futureWeight <= 0) return Number.POSITIVE_INFINITY;
+  if (futureWeight >= 1) return Math.max(0, targetPercent);
+
+  const steadyCurrentContribution = currentPercent * (1 - futureWeight);
+  return Math.max(0, (targetPercent - steadyCurrentContribution) / futureWeight);
+}
+
 export function letterFromPercent(percent: number) {
   if (percent >= 93) return "A";
   if (percent >= 90) return "A-";
