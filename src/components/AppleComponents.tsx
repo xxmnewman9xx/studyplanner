@@ -280,8 +280,8 @@ export function ClassIdentityCard({
   const styles = createStyles(theme);
   const content = (
     <>
-      <View style={[styles.classLargeIcon, { backgroundColor: course.color }]}>
-        <EmojiAccent name={(course.emojiKey as EmojiKey) || "study"} label={course.name} decorative={false} />
+      <View style={[styles.classLargeIcon, { backgroundColor: course.color }]}> 
+        <Text style={styles.classLargeInitial}>{course.code.slice(0, 1).toUpperCase()}</Text>
       </View>
       <View style={styles.classCardCopy}>
         <Text style={styles.classCardTitle}>{course.code}</Text>
@@ -812,7 +812,17 @@ function createStyles(theme: AppTheme) {
       height: 44,
       borderRadius: 14,
       alignItems: "center",
-      justifyContent: "center"
+      justifyContent: "center",
+      shadowColor: colors.shadow,
+      shadowOpacity: 0.14,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 5 }
+    },
+    classLargeInitial: {
+      color: "#FFFFFF",
+      fontSize: 17,
+      lineHeight: 21,
+      fontWeight: "900"
     },
     classCardCopy: {
       flex: 1,
