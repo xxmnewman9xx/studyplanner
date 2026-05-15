@@ -212,7 +212,7 @@ export function GradesScreen({
               value={newTitle}
               onChangeText={setNewTitle}
               placeholder="Score title"
-              placeholderTextColor={colors.faint}
+              placeholderTextColor={colors.heroMuted}
               style={styles.targetInput}
             />
             <View style={styles.chipRow}>
@@ -245,7 +245,7 @@ export function GradesScreen({
                 value={newEarned}
                 onChangeText={setNewEarned}
                 placeholder="Earned"
-                placeholderTextColor={colors.faint}
+                placeholderTextColor={colors.heroMuted}
                 style={[styles.targetInput, styles.scoreInput]}
               />
               <TextInput
@@ -253,7 +253,7 @@ export function GradesScreen({
                 value={newPossible}
                 onChangeText={setNewPossible}
                 placeholder="Possible"
-                placeholderTextColor={colors.faint}
+                placeholderTextColor={colors.heroMuted}
                 style={[styles.targetInput, styles.scoreInput]}
               />
             </View>
@@ -288,7 +288,7 @@ export function GradesScreen({
                       value={item.title}
                       onChangeText={(title) => onUpdateGradeItem(item.id, { title })}
                       placeholder="Score title"
-                      placeholderTextColor={colors.faint}
+                      placeholderTextColor={colors.heroMuted}
                       style={styles.scoreTitleInput}
                     />
                     <Text style={styles.categoryMeta}>
@@ -382,7 +382,7 @@ function createStyles(theme: AppTheme) {
       minHeight: 38,
       borderRadius: radii.sm,
       borderWidth: 1,
-      borderColor: colors.line,
+      borderColor: "rgba(255,255,255,0.18)",
       paddingHorizontal: spacing.sm,
       alignItems: "center",
       justifyContent: "center",
@@ -444,9 +444,9 @@ function createStyles(theme: AppTheme) {
       minHeight: 46,
       borderRadius: radii.sm,
       borderWidth: 1,
-      borderColor: colors.line,
-      color: colors.ink,
-      backgroundColor: colors.canvas,
+      borderColor: "rgba(255,255,255,0.18)",
+      color: colors.heroText,
+      backgroundColor: "rgba(255,255,255,0.1)",
       paddingHorizontal: spacing.sm,
       fontSize: 15,
       fontWeight: "800"
@@ -472,15 +472,15 @@ function createStyles(theme: AppTheme) {
     categoryList: {
       borderRadius: radii.md,
       borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.42)",
+      backgroundColor: colors.heroSurface,
       overflow: "hidden"
     },
     categoryRow: {
       minHeight: 72,
       padding: spacing.md,
       borderBottomWidth: 1,
-      borderBottomColor: colors.line,
+      borderBottomColor: "rgba(255,255,255,0.12)",
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
@@ -490,21 +490,21 @@ function createStyles(theme: AppTheme) {
       flex: 1
     },
     categoryName: {
-      color: colors.ink,
+      color: colors.heroText,
       fontSize: 15,
       lineHeight: 20,
       fontWeight: "900"
     },
     categoryMeta: {
-      color: colors.muted,
+      color: colors.heroMuted,
       fontSize: 12,
       lineHeight: 17
     },
     addGradeCard: {
       borderRadius: radii.md,
       borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.42)",
+      backgroundColor: colors.heroSurface,
       padding: spacing.md,
       gap: spacing.sm
     },
@@ -517,7 +517,7 @@ function createStyles(theme: AppTheme) {
       minHeight: 36,
       borderRadius: radii.sm,
       borderWidth: 1,
-      borderColor: colors.line,
+      borderColor: "rgba(255,255,255,0.18)",
       paddingHorizontal: spacing.sm,
       alignItems: "center",
       justifyContent: "center"
@@ -527,7 +527,7 @@ function createStyles(theme: AppTheme) {
       borderColor: colors.gold
     },
     categoryChipText: {
-      color: colors.muted,
+      color: colors.heroMuted,
       fontSize: 12,
       fontWeight: "900"
     },
@@ -545,15 +545,15 @@ function createStyles(theme: AppTheme) {
     scoreList: {
       borderRadius: radii.md,
       borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.42)",
+      backgroundColor: colors.heroSurface,
       overflow: "hidden"
     },
     scoreRow: {
       minHeight: 74,
       padding: spacing.md,
       borderBottomWidth: 1,
-      borderBottomColor: colors.line,
+      borderBottomColor: "rgba(255,255,255,0.12)",
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.sm
@@ -563,7 +563,7 @@ function createStyles(theme: AppTheme) {
       gap: 2
     },
     scoreTitleInput: {
-      color: colors.ink,
+      color: colors.heroText,
       fontSize: 15,
       lineHeight: 20,
       fontWeight: "900",
@@ -579,36 +579,38 @@ function createStyles(theme: AppTheme) {
       minHeight: 38,
       borderRadius: radii.sm,
       borderWidth: 1,
-      borderColor: colors.line,
-      color: colors.ink,
-      backgroundColor: colors.canvas,
+      borderColor: "rgba(255,255,255,0.18)",
+      color: colors.heroText,
+      backgroundColor: "rgba(255,255,255,0.1)",
       textAlign: "center",
       fontSize: 13,
       fontWeight: "900"
     },
     scoreSlash: {
-      color: colors.faint,
+      color: colors.heroMuted,
       fontWeight: "900"
     },
     emptyCopy: {
-      color: colors.muted,
+      color: colors.heroMuted,
       fontSize: 14,
       lineHeight: 21,
       padding: spacing.md
     },
     alertCard: {
       borderRadius: radii.md,
-      backgroundColor: theme.isDark ? "#2A2616" : "#FBF2D5",
+      borderWidth: 1,
+      borderColor: "rgba(246,184,75,0.32)",
+      backgroundColor: theme.isDark ? "rgba(246,184,75,0.12)" : "rgba(246,184,75,0.18)",
       padding: spacing.md,
       gap: spacing.xs
     },
     alertTitle: {
-      color: colors.ink,
+      color: colors.heroText,
       fontSize: 18,
       fontWeight: "900"
     },
     alertCopy: {
-      color: colors.muted,
+      color: colors.heroMuted,
       fontSize: 14,
       lineHeight: 21
     }
