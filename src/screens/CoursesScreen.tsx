@@ -99,14 +99,14 @@ export function CoursesScreen({
             value={semester.startDate}
             onChangeText={(startDate) => onUpdateSemester({ startDate })}
             placeholder="YYYY-MM-DD"
-            placeholderTextColor={colors.faint}
+            placeholderTextColor={colors.heroMuted}
             style={styles.dateInput}
           />
           <TextInput
             value={semester.endDate}
             onChangeText={(endDate) => onUpdateSemester({ endDate })}
             placeholder="YYYY-MM-DD"
-            placeholderTextColor={colors.faint}
+            placeholderTextColor={colors.heroMuted}
             style={styles.dateInput}
           />
         </View>
@@ -141,7 +141,7 @@ export function CoursesScreen({
                   value={selectedCourse.code}
                   onChangeText={(code) => onUpdateCourse(selectedCourse.id, { code })}
                   placeholder="Algebra II"
-                  placeholderTextColor={colors.faint}
+                  placeholderTextColor={colors.heroMuted}
                   style={styles.input}
                 />
               </Field>
@@ -152,7 +152,7 @@ export function CoursesScreen({
                     onUpdateCourse(selectedCourse.id, { teacher, instructor: teacher })
                   }
                   placeholder="Teacher"
-                  placeholderTextColor={colors.faint}
+                  placeholderTextColor={colors.heroMuted}
                   style={styles.input}
                 />
               </Field>
@@ -163,7 +163,7 @@ export function CoursesScreen({
                   value={selectedCourse.period || ""}
                   onChangeText={(period) => onUpdateCourse(selectedCourse.id, { period })}
                   placeholder="Period 4"
-                  placeholderTextColor={colors.faint}
+                  placeholderTextColor={colors.heroMuted}
                   style={styles.input}
                 />
               </Field>
@@ -172,7 +172,7 @@ export function CoursesScreen({
                   value={selectedCourse.room || ""}
                   onChangeText={(room) => onUpdateCourse(selectedCourse.id, { room })}
                   placeholder="Room"
-                  placeholderTextColor={colors.faint}
+                  placeholderTextColor={colors.heroMuted}
                   style={styles.input}
                 />
               </Field>
@@ -197,7 +197,7 @@ export function CoursesScreen({
                 value={selectedCourse.notes || ""}
                 onChangeText={(notes) => onUpdateCourse(selectedCourse.id, { notes })}
                 placeholder="Things to remember, teacher preferences, links, or quick class notes"
-                placeholderTextColor={colors.faint}
+                placeholderTextColor={colors.heroMuted}
                 style={[styles.input, styles.notesInput]}
                 multiline
                 textAlignVertical="top"
@@ -238,14 +238,14 @@ export function CoursesScreen({
             value={newCourseCode}
             onChangeText={setNewCourseCode}
             placeholder="Class"
-            placeholderTextColor={colors.faint}
+            placeholderTextColor={colors.heroMuted}
             style={[styles.input, styles.fieldHalf]}
           />
           <TextInput
             value={newCourseInstructor}
             onChangeText={setNewCourseInstructor}
             placeholder="Teacher"
-            placeholderTextColor={colors.faint}
+            placeholderTextColor={colors.heroMuted}
             style={[styles.input, styles.fieldHalf]}
           />
         </View>
@@ -253,7 +253,7 @@ export function CoursesScreen({
           value={newCourseName}
           onChangeText={setNewCourseName}
           placeholder="Course name"
-          placeholderTextColor={colors.faint}
+          placeholderTextColor={colors.heroMuted}
           style={styles.input}
         />
         <AppButton
@@ -283,14 +283,14 @@ export function CoursesScreen({
           value={title}
           onChangeText={setTitle}
           placeholder="Title"
-          placeholderTextColor={colors.faint}
+          placeholderTextColor={colors.heroMuted}
           style={styles.input}
         />
         <TextInput
           value={dueDate}
           onChangeText={setDueDate}
           placeholder="YYYY-MM-DD"
-          placeholderTextColor={colors.faint}
+          placeholderTextColor={colors.heroMuted}
           style={styles.input}
         />
         <AppButton
@@ -435,9 +435,9 @@ function createStyles(theme: AppTheme) {
       minHeight: 46,
       borderRadius: radii.md,
       borderWidth: 1,
-      borderColor: colors.line,
-      color: colors.ink,
-      backgroundColor: colors.canvas,
+      borderColor: "rgba(255,255,255,0.18)",
+      color: colors.heroText,
+      backgroundColor: "rgba(255,255,255,0.1)",
       paddingHorizontal: spacing.sm,
       fontSize: 15,
       fontWeight: "800"
@@ -469,10 +469,10 @@ function createStyles(theme: AppTheme) {
       overflow: "hidden",
       borderRadius: radii.lg,
       borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
+      borderColor: "rgba(255,255,255,0.16)",
+      backgroundColor: colors.heroSurface,
       padding: spacing.md,
-      color: colors.faint,
+      color: colors.heroMuted,
       fontSize: 13,
       lineHeight: 19,
       fontWeight: "800"
@@ -503,7 +503,9 @@ function createStyles(theme: AppTheme) {
       fontWeight: "700"
     },
     addCard: {
-      gap: spacing.sm
+      gap: spacing.sm,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.42)",
+      backgroundColor: colors.heroSurface
     },
     week: {
       borderRadius: radii.xl,
