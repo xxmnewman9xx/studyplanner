@@ -141,7 +141,10 @@ export function scoreWork(assignment: Assignment, now = new Date()) {
   const priorityBoost = assignment.priority === "high" ? 22 : assignment.priority === "medium" ? 10 : 0;
   const timeBoost = Math.min(assignment.estimatedMinutes / 20, 12);
   const startedBoost = assignment.status === "in_progress" ? 7 : 0;
-  return urgency + kindBoost + priorityBoost + timeBoost + startedBoost;
+  const reviewBoost = assignment.needsReview ? 34 : 0;
+  const duplicateBoost = assignment.duplicateOf ? 12 : 0;
+  const confidenceBoost = typeof assignment.confidence === "number" && assignment.confidence < 0.65 ? 10 : 0;
+  return urgency + kindBoost + priorityBoost + timeBoost + startedBoost + reviewBoost + duplicateBoost + confidenceBoost;
 }
 
 export function daysUntil(iso: string, now = new Date()) {
