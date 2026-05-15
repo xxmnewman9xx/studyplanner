@@ -4,7 +4,6 @@ import { Edit3, Plus } from "lucide-react-native";
 import {
   AssignmentRow,
   ClassIdentityCard,
-  EmojiBadge,
   GlassCard,
   SegmentedControl
 } from "../components/AppleComponents";
@@ -84,15 +83,24 @@ export function CoursesScreen({
   return (
     <View>
       <GlassCard tone="hero" style={styles.hero}>
+        <View style={styles.heroOrbPrimary} />
+        <View style={styles.heroOrbSecondary} />
         <View style={styles.heroTop}>
           <View>
-            <Text style={styles.kicker}>Classes</Text>
+            <Text style={styles.kicker}>Class library</Text>
             <Text style={styles.heroTitle}>{semester.name}</Text>
             <Text style={styles.heroCopy}>
-              {formatDateOnly(semester.startDate)} to {formatDateOnly(semester.endDate)}
+              Personal journals, teacher context, notes, and open work for every class.
             </Text>
           </View>
-          <EmojiBadge name="study" label={`${courses.length} classes`} tone="violet" />
+          <View style={styles.classCountBadge}>
+            <Text style={styles.classCountValue}>{courses.length}</Text>
+            <Text style={styles.classCountLabel}>Classes</Text>
+          </View>
+        </View>
+        <View style={styles.semesterMetaRow}>
+          <Text style={styles.semesterMetaText}>{formatDateOnly(semester.startDate)} → {formatDateOnly(semester.endDate)}</Text>
+          <Text style={styles.semesterMetaText}>{assignments.filter((assignment) => assignment.status !== "done" && assignment.status !== "archived").length} open items</Text>
         </View>
         <View style={styles.semesterDates}>
           <TextInput
@@ -112,7 +120,7 @@ export function CoursesScreen({
         </View>
       </GlassCard>
 
-      <SectionHeader title="Class Customization" note="Color, teacher, period, and room" />
+      <SectionHeader title="Class shelf" note="Each class becomes a small academic journal" />
       <View style={styles.courseList}>
         {courses.map((course) => (
           <ClassIdentityCard
@@ -127,9 +135,13 @@ export function CoursesScreen({
 
       {selectedCourse ? (
         <>
-          <SectionHeader title={selectedCourse.code} note="Class home and settings" />
+          <SectionHeader title={selectedCourse.code} note="Journal, settings, notes, and upcoming work" />
           <GlassCard style={styles.detailCard}>
-            <View style={[styles.classHero, { backgroundColor: selectedCourse.color }]}>
+            <View style={[styles.classHero, { backgroundColor: selectedCourse.color }]}> 
+              <View style={styles.classHeroTexture} />
+              <View style={styles.classHeroInitialWrap}>
+                <Text style={styles.classHeroInitial}>{selectedCourse.code.slice(0, 1).toUpperCase()}</Text>
+              </View>
               <Text style={styles.classHeroTitle}>{selectedCourse.name}</Text>
               <Text style={styles.classHeroMeta}>
                 {selectedCourse.teacher || selectedCourse.instructor} · {selectedCourse.period} · {selectedCourse.room}
@@ -221,7 +233,7 @@ export function CoursesScreen({
             )}
           </View>
 
-          <SectionHeader title="Class Widget Shortcut" note="Open Widget Studio from More to use this class focus." />
+          <SectionHeader title="Widget identity" note="This class is ready for focused lock-screen surfaces" />
           <View style={styles.widgetShortcut}>
             <Text style={styles.widgetShortcutTitle}>{selectedCourse.code}</Text>
             <Text style={styles.widgetShortcutCopy}>
@@ -342,7 +354,28 @@ function createStyles(theme: AppTheme) {
 
   return StyleSheet.create({
     hero: {
-      gap: spacing.md
+      gap: spacing.md,
+      overflow: "hidden"
+    },
+    heroOrbPrimary: {
+      position: "absolute",
+      right: -62,
+      top: -80,
+      width: 180,
+      height: 180,
+      borderRadius: 90,
+      backgroundColor: colors.accent,
+      opacity: theme.isDark ? 0.18 : 0.08
+    },
+    heroOrbSecondary: {
+      position: "absolute",
+      left: -54,
+      bottom: -72,
+      width: 150,
+      height: 150,
+      borderRadius: 75,
+      backgroundColor: colors.brandViolet,
+      opacity: theme.isDark ? 0.14 : 0.07
     },
     heroTop: {
       flexDirection: "row",
@@ -352,18 +385,63 @@ function createStyles(theme: AppTheme) {
     },
     kicker: {
       color: colors.heroMuted,
-      fontSize: 12,
-      lineHeight: 16,
+      fontSize: 11,
+      lineHeight: 15,
       fontWeight: "900",
+      letterSpacing: 0.8,
       textTransform: "uppercase"
     },
     heroTitle: {
       ...typography.title,
-      color: colors.heroText
+      color: colors.heroText,
+      letterSpacing: -0.7
     },
     heroCopy: {
       ...typography.body,
-      color: colors.heroMuted
+      color: colors.heroMuted,
+      fontWeight: "600"
+    },
+    classCountBadge: {
+      width: 70,
+      minHeight: 58,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.18)",
+      backgroundColor: "rgba(255,255,255,0.10)",
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    classCountValue: {
+      color: colors.heroText,
+      fontSize: 21,
+      lineHeight: 25,
+      fontWeight: "900"
+    },
+    classCountLabel: {
+      color: colors.heroMuted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      letterSpacing: 0.6,
+      textTransform: "uppercase"
+    },
+    semesterMetaRow: {
+      minHeight: 42,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.16)",
+      backgroundColor: "rgba(255,255,255,0.08)",
+      paddingHorizontal: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    semesterMetaText: {
+      color: colors.heroMuted,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "800"
     },
     semesterDates: {
       flexDirection: "row",
@@ -373,8 +451,8 @@ function createStyles(theme: AppTheme) {
       flex: 1,
       minHeight: 42,
       borderRadius: radii.md,
-      backgroundColor: "rgba(255,255,255,0.16)",
-      borderWidth: 1,
+      backgroundColor: "rgba(255,255,255,0.10)",
+      borderWidth: StyleSheet.hairlineWidth,
       borderColor: "rgba(255,255,255,0.18)",
       color: colors.heroText,
       paddingHorizontal: spacing.sm,
@@ -391,17 +469,43 @@ function createStyles(theme: AppTheme) {
       backgroundColor: colors.heroSurface
     },
     classHero: {
-      minHeight: 112,
+      minHeight: 132,
       borderRadius: radii.xl,
       padding: spacing.lg,
-      justifyContent: "flex-end",
-      borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.2)",
+      justifyContent: "space-between",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.24)",
+      overflow: "hidden",
       shadowColor: colors.shadow,
       shadowOpacity: theme.isDark ? 0.32 : 0.18,
       shadowRadius: 20,
       shadowOffset: { width: 0, height: 12 },
       elevation: 5
+    },
+    classHeroTexture: {
+      position: "absolute",
+      right: -34,
+      top: -42,
+      width: 118,
+      height: 118,
+      borderRadius: 59,
+      backgroundColor: "rgba(255,255,255,0.18)"
+    },
+    classHeroInitialWrap: {
+      width: 46,
+      height: 46,
+      borderRadius: 17,
+      backgroundColor: "rgba(255,255,255,0.18)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.28)",
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    classHeroInitial: {
+      color: "#FFFFFF",
+      fontSize: 19,
+      lineHeight: 24,
+      fontWeight: "900"
     },
     classHeroTitle: {
       color: "#FFFFFF",
@@ -427,8 +531,10 @@ function createStyles(theme: AppTheme) {
     },
     inputLabel: {
       color: colors.heroMuted,
-      fontSize: 12,
-      fontWeight: "900"
+      fontSize: 11,
+      fontWeight: "900",
+      letterSpacing: 0.5,
+      textTransform: "uppercase"
     },
     input: {
       minWidth: 0,
@@ -457,7 +563,11 @@ function createStyles(theme: AppTheme) {
       height: 34,
       borderRadius: 17,
       borderWidth: 3,
-      borderColor: "transparent"
+      borderColor: "transparent",
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.28 : 0.12,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 5 }
     },
     colorSwatchActive: {
       borderColor: colors.heroText
