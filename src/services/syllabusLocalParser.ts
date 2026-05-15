@@ -55,7 +55,11 @@ export function parseSyllabusText(rawText: string, sourceName: string): Syllabus
   const assignments = inferAssignments(lines, course.id, inferredYear);
   const reviewDateAssignments = assignments.filter((assignment) => assignment.needsReview);
   const possibleUndatedAssignments = inferPossibleUndatedAssignments(lines, assignments, inferredYear);
-  const gradeCategories = inferGradeCategories(lines, course.id);
+  const inferredGradeCategories = inferGradeCategories(lines, course.id);
+  const usedFallbackGradeCategories = inferredGradeCategories.length === 0;
+  const gradeCategories = usedFallbackGradeCategories
+    ? defaultGradeCategories(course.id)
+    : inferredGradeCategories;
   const courseWithGrades = {
     ...course,
     gradeCategories
@@ -91,6 +95,16 @@ export function parseSyllabusText(rawText: string, sourceName: string): Syllabus
               severity: "needs_review" as const,
               message: `${reviewDateAssignments.length} assignments used relative or weekday dates. Confirm the exact dates before applying.`,
               examples: reviewDateAssignments.slice(0, 4).map((assignment) => assignment.title)
+            }
+          ]
+        : []),
+      ...(usedFallbackGradeCategories
+        ? [
+            {
+              id: "grade-weights-missing",
+              severity: "needs_review" as const,
+              message: "No grade weights were found, so editable default categories were added for grade tracking.",
+              examples: gradeCategories.map((category) => `${category.name} ${category.weight}%`)
             }
           ]
         : []),
@@ -281,6 +295,14 @@ function inferGradeCategories(lines: string[], courseId: string): GradeCategory[
   }
 
   return categories;
+}
+
+function defaultGradeCategories(courseId: string): GradeCategory[] {
+  return [
+    { id: `${courseId}-assignments`, name: "Assignments", weight: 40 },
+    { id: `${courseId}-exams`, name: "Exams", weight: 40 },
+    { id: `${courseId}-participation`, name: "Participation", weight: 20 }
+  ];
 }
 
 function inferAssignments(lines: string[], courseId: string, inferredYear: number): Assignment[] {

@@ -94,6 +94,16 @@ assert(
   "Expected impossible dated work to remain review-visible as possible undated work"
 );
 
+const noGradeWeights = parseSyllabusText(
+  `HIST 101 - World History\nFall 2027\nEssay due October 12\nFinal exam due December 4`,
+  "hist101.txt"
+);
+assert(noGradeWeights.courses[0]?.gradeCategories.length === 3, "Expected editable fallback grade categories");
+assert(
+  noGradeWeights.findings.some((finding) => finding.id === "grade-weights-missing"),
+  "Expected review finding when grade weights are missing"
+);
+
 const noDeadlines = parseSyllabusText(
   `MATH 120 - Algebra\nFall 2026\nHomework is assigned weekly in class. Quizzes happen throughout the term.`,
   "math120.txt"
