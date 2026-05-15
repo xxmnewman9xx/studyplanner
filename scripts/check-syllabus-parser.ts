@@ -63,6 +63,10 @@ assert(
   weekdayHomework.assignments.every((item) => item.needsReview && item.confidence === 0.7),
   "Expected weekday-derived dates to stay review-gated"
 );
+assert(
+  weekdayHomework.findings.some((finding) => finding.id === "relative-dates-need-review"),
+  "Expected review finding for weekday-derived dates"
+);
 assert(includesAssignment(weekdayHomework.assignments.map((item) => item.title), "Homework 7"), "Expected Homework 7 from weekday line");
 
 const relativeHomework = parseSyllabusText(
@@ -73,6 +77,10 @@ assert(relativeHomework.assignments.length === 2, "Expected relative homework li
 assert(
   relativeHomework.assignments.every((item) => item.needsReview && item.confidence === 0.7),
   "Expected relative-date assignments to stay review-gated"
+);
+assert(
+  relativeHomework.findings.some((finding) => finding.id === "relative-dates-need-review"),
+  "Expected review finding for relative dates"
 );
 assert(includesAssignment(relativeHomework.assignments.map((item) => item.title), "Lab reflection"), "Expected Lab reflection from relative date line");
 

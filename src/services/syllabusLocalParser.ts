@@ -53,6 +53,7 @@ export function parseSyllabusText(rawText: string, sourceName: string): Syllabus
   const semester = inferSemester(text, inferredYear);
   const course = inferCourse(lines, sourceName);
   const assignments = inferAssignments(lines, course.id, inferredYear);
+  const reviewDateAssignments = assignments.filter((assignment) => assignment.needsReview);
   const possibleUndatedAssignments = inferPossibleUndatedAssignments(lines, assignments, inferredYear);
   const gradeCategories = inferGradeCategories(lines, course.id);
   const courseWithGrades = {
@@ -80,6 +81,16 @@ export function parseSyllabusText(rawText: string, sourceName: string): Syllabus
               id: "no-deadlines-found",
               severity: "needs_review" as const,
               message: "No dated deadlines were found. You can still apply the course and add deadlines manually."
+            }
+          ]
+        : []),
+      ...(reviewDateAssignments.length > 0
+        ? [
+            {
+              id: "relative-dates-need-review",
+              severity: "needs_review" as const,
+              message: `${reviewDateAssignments.length} assignments used relative or weekday dates. Confirm the exact dates before applying.`,
+              examples: reviewDateAssignments.slice(0, 4).map((assignment) => assignment.title)
             }
           ]
         : []),
