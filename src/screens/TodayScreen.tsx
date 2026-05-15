@@ -101,7 +101,7 @@ export function TodayScreen({
           <View style={styles.nextHero}>
             <View style={styles.nextHeroCopy}>
               <Text style={styles.nextKicker}>
-                Due {nextDueDays <= 0 ? "today" : `in ${nextDueDays} days`}
+                {formatDueUrgency(nextDueDays)}
               </Text>
               <Text style={styles.nextTitle}>{nextCourse?.code} - {plan.nextAction.title}</Text>
               <Text style={styles.nextMeta}>
@@ -217,6 +217,23 @@ export function TodayScreen({
         />
       </GlassCard>
 
+      {plan.overdue.length > 0 ? (
+        <>
+          <SectionHeader title="Catch up" note={`${plan.overdue.length} overdue · start with the smallest save`} />
+          <View style={styles.list}>
+            {plan.overdue.slice(0, 3).map((assignment) => (
+              <AssignmentRow
+                key={assignment.id}
+                assignment={assignment}
+                course={getCourseForAssignment(courses, assignment)}
+                onPress={() => onOpenAssignment(assignment.id)}
+                trailing={<Text style={styles.overdueFlag}>Reset</Text>}
+              />
+            ))}
+          </View>
+        </>
+      ) : null}
+
       <SectionHeader title="Today" note={`${plan.dueToday.length} due today · ${plan.dueSoon.length} due soon · ${plan.needsReview.length} to review`} />
       <View style={styles.list}>
         {plan.upcoming.length === 0 ? (
@@ -274,6 +291,13 @@ export function TodayScreen({
 }
 
 function buildLiveBrief(plan: ReturnType<typeof buildTodayPlan>, courseCount: number) {
+  if (plan.overdue.length > 0) {
+    return {
+      title: "Catch-up mode",
+      detail: `${plan.overdue.length} overdue item${plan.overdue.length === 1 ? "" : "s"}. No shame spiral — open one, reset the next step, then keep moving.`
+    };
+  }
+
   if (plan.needsReview.length > 0) {
     return {
       title: "Review imported work",
@@ -284,7 +308,7 @@ function buildLiveBrief(plan: ReturnType<typeof buildTodayPlan>, courseCount: nu
   if (plan.nextAction) {
     const days = daysUntil(plan.nextAction.dueAt);
     return {
-      title: days <= 0 ? "Due today — start here" : `Next deadline in ${days} day${days === 1 ? "" : "s"}`,
+      title: days < 0 ? `Overdue by ${Math.abs(days)} day${Math.abs(days) === 1 ? "" : "s"}` : days === 0 ? "Due today — start here" : `Next deadline in ${days} day${days === 1 ? "" : "s"}`,
       detail: "Open the assignment, start focus, or capture new homework before it becomes invisible."
     };
   }
@@ -333,6 +357,12 @@ function CommandTile({ title, detail, icon: Icon, onPress, tone }: CommandTilePr
 
 function todayDateInput() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function formatDueUrgency(days: number) {
+  if (days < 0) return `Overdue by ${Math.abs(days)} day${Math.abs(days) === 1 ? "" : "s"}`;
+  if (days === 0) return "Due today";
+  return `Due in ${days} day${days === 1 ? "" : "s"}`;
 }
 
 function createStyles(theme: AppTheme) {
@@ -523,6 +553,12 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     reviewFlag: {
+      color: colors.brandPink,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
+    },
+    overdueFlag: {
       color: colors.brandPink,
       fontSize: 12,
       lineHeight: 16,

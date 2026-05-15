@@ -20,6 +20,7 @@ export type TodayPlan = {
   exams: Assignment[];
   dueSoon: Assignment[];
   needsReview: Assignment[];
+  overdue: Assignment[];
   doneCount: number;
   openCount: number;
   semesterProgress: number;
@@ -73,6 +74,7 @@ export function buildTodayPlan(
     .filter((item) => item.status !== "done" && item.status !== "archived")
     .sort((a, b) => scoreWork(b, now) - scoreWork(a, now));
   const dueToday = open.filter((item) => isSameDay(new Date(item.dueAt), now));
+  const overdue = getOverdue(assignments, now);
   const upcoming = open
     .filter((item) => !isPast(new Date(item.dueAt), now))
     .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
@@ -89,6 +91,7 @@ export function buildTodayPlan(
     exams,
     dueSoon: getDueSoon(assignments, now),
     needsReview: getNeedsReview(assignments),
+    overdue,
     doneCount: assignments.filter((item) => item.status === "done").length,
     openCount: open.length,
     semesterProgress: calculateSemesterProgress(semester, now)
@@ -109,6 +112,13 @@ export function getDueSoon(assignments: Assignment[], now = new Date(), days = 5
       const until = daysUntil(item.dueAt, now);
       return until > 0 && until <= days;
     })
+    .sort(sortByDueDate);
+}
+
+export function getOverdue(assignments: Assignment[], now = new Date()) {
+  return assignments
+    .filter((item) => item.status !== "done" && item.status !== "archived")
+    .filter((item) => daysUntil(item.dueAt, now) < 0)
     .sort(sortByDueDate);
 }
 
