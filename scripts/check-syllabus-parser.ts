@@ -76,6 +76,16 @@ assert(
 );
 assert(includesAssignment(relativeHomework.assignments.map((item) => item.title), "Lab reflection"), "Expected Lab reflection from relative date line");
 
+const invalidCalendarDates = parseSyllabusText(
+  `CHEM 150 - Chemistry\nSpring 2027\nQuiz due 2/31\nLab report due April 31`,
+  "chem150.txt"
+);
+assert(invalidCalendarDates.assignments.length === 0, "Expected impossible calendar dates to stay out of the plan");
+assert(
+  invalidCalendarDates.findings.some((finding) => finding.id === "possible-undated-work"),
+  "Expected impossible dated work to remain review-visible as possible undated work"
+);
+
 const noDeadlines = parseSyllabusText(
   `MATH 120 - Algebra\nFall 2026\nHomework is assigned weekly in class. Quizzes happen throughout the term.`,
   "math120.txt"

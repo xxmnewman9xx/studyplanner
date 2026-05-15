@@ -13,6 +13,32 @@ const datePattern =
   /\b(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[/. -]\d{1,2}(?:[/. -]\d{2,4})?|(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+\d{4})?)\b/i;
 const weekdayDuePattern = /\b(?:due\s+)?(?:next\s+)?(mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?)\b/i;
 const relativeDuePattern = /\b(?:due\s+)?(today|tomorrow)\b/i;
+const monthIndexes: Record<string, number> = {
+  jan: 1,
+  january: 1,
+  feb: 2,
+  february: 2,
+  mar: 3,
+  march: 3,
+  apr: 4,
+  april: 4,
+  may: 5,
+  jun: 6,
+  june: 6,
+  jul: 7,
+  july: 7,
+  aug: 8,
+  august: 8,
+  sep: 9,
+  sept: 9,
+  september: 9,
+  oct: 10,
+  october: 10,
+  nov: 11,
+  november: 11,
+  dec: 12,
+  december: 12
+};
 
 export function parseSyllabusText(rawText: string, sourceName: string): SyllabusParseResult {
   const text = normalizeSyllabusText(rawText);
@@ -27,7 +53,7 @@ export function parseSyllabusText(rawText: string, sourceName: string): Syllabus
   const semester = inferSemester(text, inferredYear);
   const course = inferCourse(lines, sourceName);
   const assignments = inferAssignments(lines, course.id, inferredYear);
-  const possibleUndatedAssignments = inferPossibleUndatedAssignments(lines, assignments);
+  const possibleUndatedAssignments = inferPossibleUndatedAssignments(lines, assignments, inferredYear);
   const gradeCategories = inferGradeCategories(lines, course.id);
   const courseWithGrades = {
     ...course,
@@ -296,10 +322,11 @@ function inferAssignments(lines: string[], courseId: string, inferredYear: numbe
   return assignments.slice(0, 30);
 }
 
-function inferPossibleUndatedAssignments(lines: string[], assignments: Assignment[]) {
+function inferPossibleUndatedAssignments(lines: string[], assignments: Assignment[], inferredYear: number) {
   const parsedTitles = new Set(assignments.map((assignment) => assignment.title.toLowerCase()));
   const likelyUndated = lines.filter((line) => {
-    if (datePattern.test(line)) return false;
+    const explicitDate = line.match(datePattern)?.[0];
+    if (explicitDate && parseDateToken(explicitDate, inferredYear)) return false;
     if (!assignmentKeywords.test(line)) return false;
     if (/\b(grading|grade|policy|late|attendance|office hours|email|textbook)\b/i.test(line)) return false;
 
@@ -322,6 +349,16 @@ function parseDateToken(token: string, inferredYear: number) {
   if (numeric) {
     const year = normalizeYear(numeric[3], inferredYear);
     return formatDateParts(year, Number(numeric[1]), Number(numeric[2]));
+  }
+
+  const named = normalized.match(
+    /^(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+(\d{1,2})(?:,?\s+(\d{4}))?$/i
+  );
+  if (named?.[1] && named[2]) {
+    const month = monthIndexes[named[1].replace(/\.$/, "").toLowerCase()];
+    if (!month) return undefined;
+    const year = normalizeYear(named[3], inferredYear);
+    return formatDateParts(year, month, Number(named[2]));
   }
 
   const parsed = new Date(`${normalized}${/\b\d{4}\b/.test(normalized) ? "" : `, ${inferredYear}`}`);
@@ -378,6 +415,12 @@ function normalizeYear(value: string | undefined, fallback: number) {
 
 function formatDateParts(year: number, month: number, day: number) {
   if (!year || !month || !day || month > 12 || day > 31) return undefined;
+
+  const parsed = new Date(year, month - 1, day);
+  const isRealCalendarDate =
+    parsed.getFullYear() === year && parsed.getMonth() === month - 1 && parsed.getDate() === day;
+  if (!isRealCalendarDate) return undefined;
+
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
