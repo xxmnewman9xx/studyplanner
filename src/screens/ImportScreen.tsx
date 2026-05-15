@@ -187,21 +187,26 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
   return (
     <View>
       <View style={styles.header}>
-        <Text style={styles.kicker}>Import</Text>
-        <Text style={styles.title}>Add school material.</Text>
+        <Text style={styles.kicker}>Import cockpit</Text>
+        <Text style={styles.title}>Turn class chaos into a trusted plan.</Text>
         <Text style={styles.subtitle}>
-          Scan, upload, or paste syllabus text. StudyPlanner finds the work, then you approve what gets saved.
+          Scan, upload, or paste. StudyPlanner extracts the work, flags uncertainty, then waits for your approval.
         </Text>
       </View>
 
       <GlassCard style={styles.scanHero}>
         <View style={styles.scanHeroGlow} />
+        <View style={styles.scanHeroGlowTwo} />
+        <View style={styles.scanFrame}>
+          <View style={styles.scanLine} />
+        </View>
         <Text style={styles.dropKicker}>Syllabus AI</Text>
         <Text style={styles.dropTitle}>Scan school chaos into a plan.</Text>
-        <Text style={styles.dropCopy}>Find assignments, exams, readings, and suspicious missing dates before anything touches Today.</Text>
+        <Text style={styles.dropCopy}>Find assignments, exams, readings, and missing dates before anything touches Today.</Text>
         <View style={styles.trustRow}>
           <TrustChip label="Review first" />
-          <TrustChip label="Missing-date checks" />
+          <TrustChip label="Confidence flags" />
+          <TrustChip label="Dates checked" />
         </View>
         <View style={styles.scanActions}>
           <AppButton label="Scan" icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
@@ -259,7 +264,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
 
       {draft ? (
         <>
-          <SectionHeader title={`Found ${draft.assignments.length + draft.courses.length + draft.gradeItems.length} things`} note="Review and confirm" />
+          <SectionHeader title="Import review" note={`${draft.assignments.length + draft.courses.length + draft.gradeItems.length} extracted items waiting for approval`} />
           <GlassCard style={styles.resultCard}>
             <View style={styles.resultStats}>
               <ResultStat value={String(counts?.assignments || 0)} label="Assignments" tone="blue" />
@@ -598,33 +603,66 @@ function createStyles(theme: AppTheme) {
     },
     scanHeroGlow: {
       position: "absolute",
-      top: -52,
-      right: -44,
-      width: 150,
-      height: 150,
+      top: -58,
+      right: -48,
+      width: 168,
+      height: 168,
       borderRadius: 999,
-      backgroundColor: `${colors.brandViolet}55`
+      backgroundColor: colors.accent,
+      opacity: theme.isDark ? 0.20 : 0.10
+    },
+    scanHeroGlowTwo: {
+      position: "absolute",
+      bottom: -62,
+      left: -44,
+      width: 144,
+      height: 144,
+      borderRadius: 999,
+      backgroundColor: colors.brandViolet,
+      opacity: theme.isDark ? 0.14 : 0.08
+    },
+    scanFrame: {
+      width: 82,
+      height: 82,
+      borderRadius: 26,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.22)",
+      backgroundColor: "rgba(255,255,255,0.08)",
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: spacing.xs
+    },
+    scanLine: {
+      width: 52,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: colors.accent,
+      shadowColor: colors.accent,
+      shadowOpacity: 0.52,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 0 }
     },
     dropKicker: {
       color: colors.accent,
-      fontSize: 12,
-      lineHeight: 16,
+      fontSize: 11,
+      lineHeight: 15,
       fontWeight: "900",
       textTransform: "uppercase",
-      letterSpacing: 0.5
+      letterSpacing: 0.8
     },
     dropTitle: {
       color: colors.heroText,
-      fontSize: 22,
-      lineHeight: 27,
+      fontSize: 25,
+      lineHeight: 30,
       fontWeight: "900",
+      letterSpacing: -0.5,
       textAlign: "center"
     },
     dropCopy: {
       color: colors.heroMuted,
       fontSize: 13,
       lineHeight: 18,
-      fontWeight: "800",
+      fontWeight: "600",
       textAlign: "center"
     },
     trustRow: {
@@ -637,7 +675,7 @@ function createStyles(theme: AppTheme) {
     trustChip: {
       minHeight: 28,
       borderRadius: radii.round,
-      borderWidth: 1,
+      borderWidth: StyleSheet.hairlineWidth,
       borderColor: "rgba(255,255,255,0.18)",
       backgroundColor: "rgba(255,255,255,0.08)",
       paddingHorizontal: spacing.sm,
@@ -773,33 +811,27 @@ function createStyles(theme: AppTheme) {
     resultStats: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: spacing.sm
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      overflow: "hidden"
     },
     resultStat: {
       flex: 1,
       minWidth: "45%",
       minHeight: 70,
-      borderRadius: radii.lg,
       padding: spacing.sm,
       justifyContent: "center",
-      borderWidth: 1
+      borderRightWidth: StyleSheet.hairlineWidth,
+      borderRightColor: colors.line,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.line
     },
-    blueStat: {
-      backgroundColor: theme.isDark ? "#17243F" : "#E8F0FF",
-      borderColor: theme.isDark ? "#324A77" : "#C9D9FF"
-    },
-    pinkStat: {
-      backgroundColor: theme.isDark ? "#35162B" : "#FFE8F3",
-      borderColor: theme.isDark ? "#71325B" : "#FFC9E3"
-    },
-    goldStat: {
-      backgroundColor: colors.softGold,
-      borderColor: theme.isDark ? "#5B4618" : "#F1D991"
-    },
-    plainStat: {
-      backgroundColor: colors.surfaceAlt,
-      borderColor: colors.line
-    },
+    blueStat: {},
+    pinkStat: {},
+    goldStat: {},
+    plainStat: {},
     resultValue: {
       color: colors.ink,
       fontSize: 24,
@@ -869,11 +901,16 @@ function createStyles(theme: AppTheme) {
     },
     editCard: {
       borderRadius: radii.xl,
-      borderWidth: 1,
+      borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.line,
       backgroundColor: colors.surface,
       padding: spacing.md,
-      gap: spacing.sm
+      gap: spacing.sm,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.18 : 0.06,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 2
     },
     editCardTop: {
       flexDirection: "row",
