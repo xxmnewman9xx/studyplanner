@@ -32,16 +32,16 @@ export const lightColors = {
 };
 
 export const darkColors = {
-  canvas: "#0C0F0E",
-  canvasTint: "#141A18",
-  surface: "#151A18",
-  surfaceAlt: "#1D2421",
-  surfaceTint: "#1A2B27",
-  ink: "#F7F2E8",
-  muted: "#C0C8C1",
-  faint: "#858F89",
-  line: "#2B3430",
-  lineStrong: "#465149",
+  canvas: "#080A10",
+  canvasTint: "#101522",
+  surface: "#111723",
+  surfaceAlt: "#182132",
+  surfaceTint: "#112B2D",
+  ink: "#F7F4EA",
+  muted: "#C3CBD2",
+  faint: "#858FA0",
+  line: "#273244",
+  lineStrong: "#46546A",
   softGold: "#342711",
   gold: "#F4C95D",
   mint: "#102D26",
@@ -51,16 +51,16 @@ export const darkColors = {
   red: "#FF7A86",
   green: "#61D394",
   lavender: "#2B2544",
-  accent: "#4DD7C8",
-  accentSoft: "#173431",
-  brandPink: "#E08B73",
-  brandViolet: "#92A8D1",
-  brandIndigo: "#78B7D8",
-  brandOrange: "#DFA64A",
+  accent: "#35F2D0",
+  accentSoft: "#113D3C",
+  brandPink: "#FF7A90",
+  brandViolet: "#A78BFA",
+  brandIndigo: "#69C7FF",
+  brandOrange: "#F6B84B",
   elevated: "#151D2A",
-  heroSurface: "#101614",
+  heroSurface: "#0D111C",
   heroText: "#FFF8EA",
-  heroMuted: "#B9C7BE",
+  heroMuted: "#B9C8D2",
   shadow: "#000000"
 };
 
@@ -86,22 +86,22 @@ export const radii = {
 };
 
 export const classColors = [
-  "#006C67",
-  "#2F7D5F",
-  "#4C5F85",
-  "#B97822",
-  "#2F5F7A",
-  "#B45A4A"
+  "#35F2D0",
+  "#7EE787",
+  "#A78BFA",
+  "#F6B84B",
+  "#69C7FF",
+  "#FF7A90"
 ];
 
 export const themePalettes = {
-  sunset: ["#2A1815", "#E08B73", "#DFA64A", "#FFF1D6"],
-  ocean: ["#102022", "#4DD7C8", "#78B7D8", "#E2F6F1"],
-  forest: ["#101C18", "#4BA879", "#A9D8B8", "#E8F1E6"],
-  lavender: ["#171A24", "#92A8D1", "#C7B7D8", "#F1ECF7"],
-  midnight: ["#0C0F0E", "#2F5F7A", "#4DD7C8", "#FFF8EA"],
-  candy: ["#241513", "#B45A4A", "#DFA64A", "#FFF1D6"],
-  minimal: ["#161A1D", "#606866", "#DDD6CA", "#FFFDF8"]
+  sunset: ["#140D18", "#FF7A90", "#F6B84B", "#FFF1D6"],
+  ocean: ["#07131F", "#35F2D0", "#69C7FF", "#E2F8FF"],
+  forest: ["#07150F", "#7EE787", "#35F2D0", "#E9FFE8"],
+  lavender: ["#11101F", "#A78BFA", "#69C7FF", "#F1ECFF"],
+  midnight: ["#080A10", "#35F2D0", "#A78BFA", "#FFF8EA"],
+  candy: ["#180B16", "#FF7A90", "#A78BFA", "#FFE7F0"],
+  minimal: ["#0D111C", "#858FA0", "#273244", "#FFF8EA"]
 };
 
 export type ColorTokens = typeof lightColors;

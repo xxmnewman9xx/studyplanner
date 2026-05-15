@@ -95,6 +95,9 @@ export function TodayScreen({
       </View>
 
       <GlassCard tone="hero" style={styles.heroCard}>
+        <View style={styles.heroOrbPrimary} />
+        <View style={styles.heroOrbSecondary} />
+        <View style={styles.heroGridWash} />
         <Text style={styles.heroKicker}>Live plan</Text>
         <Text style={styles.heroTitle}>{liveBrief.title}</Text>
         <Text style={styles.heroSubtitle}>{liveBrief.detail}</Text>
@@ -106,9 +109,10 @@ export function TodayScreen({
         {plan.nextAction ? (
           <View style={styles.nextHero}>
             <View style={styles.nextHeroCopy}>
-              <Text style={styles.nextKicker}>
-                {formatDueUrgency(nextDueDays)}
-              </Text>
+              <View style={styles.nextKickerRow}>
+                <Text style={styles.nextKicker}>{formatDueUrgency(nextDueDays)}</Text>
+                <Text style={styles.xpChip}>+{Math.max(10, Math.round((plan.nextAction.estimatedMinutes || 25) / 5))} XP</Text>
+              </View>
               <Text style={styles.nextTitle}>{nextCourse?.code} - {plan.nextAction.title}</Text>
               <Text style={styles.nextMeta}>
                 Due {formatDateOnly(plan.nextAction.dueAt.slice(0, 10))} · {plan.nextAction.estimatedMinutes}m · {nextCourse?.period || "class"}
@@ -409,6 +413,39 @@ function createStyles(theme: AppTheme) {
       padding: spacing.md,
       overflow: "hidden"
     },
+    heroOrbPrimary: {
+      position: "absolute",
+      right: -56,
+      top: -70,
+      width: 180,
+      height: 180,
+      borderRadius: 90,
+      backgroundColor: colors.accent,
+      opacity: theme.isDark ? 0.20 : 0.10
+    },
+    heroOrbSecondary: {
+      position: "absolute",
+      left: -46,
+      bottom: -68,
+      width: 150,
+      height: 150,
+      borderRadius: 75,
+      backgroundColor: colors.brandViolet,
+      opacity: theme.isDark ? 0.16 : 0.08
+    },
+    heroGridWash: {
+      position: "absolute",
+      right: 18,
+      bottom: 18,
+      width: 96,
+      height: 96,
+      borderRadius: 28,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.18)",
+      backgroundColor: "rgba(255,255,255,0.04)",
+      opacity: 0.75,
+      transform: [{ rotate: "8deg" }]
+    },
     heroKicker: {
       color: colors.heroMuted,
       fontSize: 11,
@@ -474,12 +511,34 @@ function createStyles(theme: AppTheme) {
     nextHeroCopy: {
       gap: 3
     },
+    nextKickerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
     nextKicker: {
       color: colors.heroMuted,
       fontSize: 11,
       lineHeight: 15,
       fontWeight: "900",
-      textTransform: "uppercase"
+      textTransform: "uppercase",
+      letterSpacing: 0.5
+    },
+    xpChip: {
+      minHeight: 22,
+      borderRadius: 11,
+      paddingHorizontal: 8,
+      paddingTop: 3,
+      overflow: "hidden",
+      color: colors.heroText,
+      backgroundColor: "rgba(53,242,208,0.18)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(53,242,208,0.34)",
+      fontSize: 10,
+      lineHeight: 14,
+      fontWeight: "900",
+      letterSpacing: 0.4
     },
     nextTitle: {
       color: colors.heroText,
