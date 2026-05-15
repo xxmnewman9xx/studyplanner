@@ -230,6 +230,12 @@ export function TodayScreen({
       {plan.overdue.length > 0 ? (
         <>
           <SectionHeader title="Catch up" note={`${plan.overdue.length} overdue · smallest saves first`} />
+          <CatchUpSprintCard
+            overdue={plan.overdue}
+            courses={courses}
+            onOpenAssignment={onOpenAssignment}
+            onOpenPlan={onOpenPlan}
+          />
           <View style={styles.list}>
             {plan.overdue.slice(0, 3).map((assignment) => (
               <AssignmentRow
@@ -340,6 +346,56 @@ type MetricPillProps = {
   label: string;
   value: string;
 };
+
+type CatchUpSprintCardProps = {
+  overdue: Assignment[];
+  courses: Course[];
+  onOpenAssignment: (assignmentId: string) => void;
+  onOpenPlan: () => void;
+};
+
+function CatchUpSprintCard({ overdue, courses, onOpenAssignment, onOpenPlan }: CatchUpSprintCardProps) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  const sprintItems = overdue.slice(0, 3);
+  const first = sprintItems[0];
+  const firstCourse = first ? getCourseForAssignment(courses, first) : undefined;
+  const sprintMinutes = sprintItems.reduce((sum, item) => sum + Math.min(item.estimatedMinutes || 25, 45), 0);
+  const hiddenCount = Math.max(overdue.length - sprintItems.length, 0);
+
+  if (!first) return null;
+
+  return (
+    <GlassCard style={styles.catchUpCard}>
+      <View style={styles.catchUpGlow} />
+      <View style={styles.catchUpHeaderRow}>
+        <View style={styles.catchUpBadge}>
+          <Text style={styles.catchUpBadgeText}>Reset sprint</Text>
+        </View>
+        <Text style={styles.catchUpMeta}>{sprintMinutes}m rescue plan</Text>
+      </View>
+      <Text style={styles.catchUpTitle}>Start with {firstCourse?.code ? `${firstCourse.code}: ` : ""}{first.title}</Text>
+      <Text style={styles.catchUpCopy}>
+        Knock out the smallest overdue work first. {hiddenCount > 0 ? `${hiddenCount} more item${hiddenCount === 1 ? "" : "s"} stay queued after this sprint.` : "This clears the visible backlog."}
+      </Text>
+      <View style={styles.catchUpSteps}>
+        {sprintItems.map((item, index) => {
+          const course = getCourseForAssignment(courses, item);
+          return (
+            <View key={item.id} style={styles.catchUpStep}>
+              <Text style={styles.catchUpStepNumber}>{index + 1}</Text>
+              <Text style={styles.catchUpStepText} numberOfLines={1}>{course?.code ? `${course.code} · ` : ""}{item.title}</Text>
+            </View>
+          );
+        })}
+      </View>
+      <View style={styles.catchUpActions}>
+        <AppButton label="Start smallest" icon={Timer} onPress={() => onOpenAssignment(first.id)} style={styles.catchUpPrimaryAction} />
+        <AppButton label="Replan week" icon={CalendarPlus} variant="secondary" onPress={onOpenPlan} style={styles.catchUpSecondaryAction} />
+      </View>
+    </GlassCard>
+  );
+}
 
 function MetricPill({ label, value }: MetricPillProps) {
   const { theme } = useAppTheme();
@@ -676,6 +732,104 @@ function createStyles(theme: AppTheme) {
       marginTop: spacing.sm
     },
     actionButton: {
+      flex: 1,
+      paddingHorizontal: spacing.xs
+    },
+    catchUpCard: {
+      gap: spacing.sm,
+      overflow: "hidden"
+    },
+    catchUpGlow: {
+      position: "absolute",
+      right: -52,
+      top: -58,
+      width: 142,
+      height: 142,
+      borderRadius: 71,
+      backgroundColor: colors.brandPink,
+      opacity: theme.isDark ? 0.18 : 0.09
+    },
+    catchUpHeaderRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    catchUpBadge: {
+      borderRadius: radii.round,
+      backgroundColor: `${colors.brandPink}1F`,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: `${colors.brandPink}55`,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 6
+    },
+    catchUpBadgeText: {
+      color: colors.brandPink,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase",
+      letterSpacing: 0.6
+    },
+    catchUpMeta: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
+    },
+    catchUpTitle: {
+      color: colors.ink,
+      fontSize: 18,
+      lineHeight: 23,
+      fontWeight: "900",
+      letterSpacing: -0.2
+    },
+    catchUpCopy: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "700"
+    },
+    catchUpSteps: {
+      gap: spacing.xs
+    },
+    catchUpStep: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
+      borderRadius: radii.md,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.06)" : "rgba(15,23,42,0.04)",
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 8
+    },
+    catchUpStepNumber: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      overflow: "hidden",
+      backgroundColor: colors.accentSoft,
+      color: colors.accent,
+      textAlign: "center",
+      paddingTop: 3,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900"
+    },
+    catchUpStepText: {
+      flex: 1,
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "800"
+    },
+    catchUpActions: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    catchUpPrimaryAction: {
+      flex: 1
+    },
+    catchUpSecondaryAction: {
       flex: 1,
       paddingHorizontal: spacing.xs
     },
