@@ -62,6 +62,7 @@ export function TodayScreen({
     ? getCourseForAssignment(courses, plan.nextAction)
     : undefined;
   const semesterPercent = Math.round(plan.semesterProgress * 100);
+  const completionPercent = assignments.length > 0 ? Math.round((plan.doneCount / assignments.length) * 100) : 0;
   const nextDueDays = plan.nextAction ? daysUntil(plan.nextAction.dueAt) : 0;
   const [quickCourseId, setQuickCourseId] = useState(courses[0]?.id || "");
   const [quickTitle, setQuickTitle] = useState("");
@@ -97,6 +98,11 @@ export function TodayScreen({
         <Text style={styles.heroKicker}>Live plan</Text>
         <Text style={styles.heroTitle}>{liveBrief.title}</Text>
         <Text style={styles.heroSubtitle}>{liveBrief.detail}</Text>
+        <View style={styles.heroMetrics}>
+          <MetricPill label="Open" value={`${plan.openCount}`} />
+          <MetricPill label="Done" value={`${completionPercent}%`} />
+          <MetricPill label="Term" value={`${semesterPercent}%`} />
+        </View>
         {plan.nextAction ? (
           <View style={styles.nextHero}>
             <View style={styles.nextHeroCopy}>
@@ -143,7 +149,7 @@ export function TodayScreen({
         />
         <CommandTile
           title="Plan week"
-          detail={`${plan.dueSoon.length} due soon · ${semesterPercent}% term`}
+          detail={`${plan.dueSoon.length} due soon · rebalance the week`}
           icon={CalendarPlus}
           onPress={onOpenPlan}
           tone="blue"
@@ -326,6 +332,23 @@ function buildLiveBrief(plan: ReturnType<typeof buildTodayPlan>, courseCount: nu
   };
 }
 
+type MetricPillProps = {
+  label: string;
+  value: string;
+};
+
+function MetricPill({ label, value }: MetricPillProps) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.metricPill}>
+      <Text style={styles.metricValue}>{value}</Text>
+      <Text style={styles.metricLabel}>{label}</Text>
+    </View>
+  );
+}
+
 type CommandTileProps = {
   title: string;
   detail: string;
@@ -346,6 +369,8 @@ function CommandTile({ title, detail, icon: Icon, onPress, tone }: CommandTilePr
 
   return (
     <TouchableOpacity accessibilityRole="button" style={styles.commandTile} onPress={onPress}>
+      <View style={[styles.commandAccent, { backgroundColor: toneColor }]} />
+      <View style={[styles.commandGlow, { backgroundColor: toneColor }]} />
       <View style={[styles.commandIcon, { backgroundColor: `${toneColor}22` }]}>
         <Icon color={toneColor} size={20} />
       </View>
@@ -380,33 +405,69 @@ function createStyles(theme: AppTheme) {
       gap: spacing.md
     },
     heroCard: {
-      gap: spacing.xs,
-      padding: spacing.md
+      gap: spacing.sm,
+      padding: spacing.md,
+      overflow: "hidden"
     },
     heroKicker: {
       color: colors.heroMuted,
-      fontSize: 14,
-      lineHeight: 19,
-      fontWeight: "800"
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      letterSpacing: 0.8,
+      textTransform: "uppercase"
     },
     heroTitle: {
       color: colors.heroText,
-      fontSize: 23,
-      lineHeight: 29,
-      fontWeight: "900"
+      fontSize: 25,
+      lineHeight: 30,
+      fontWeight: "900",
+      letterSpacing: -0.5
     },
     heroSubtitle: {
       color: colors.heroMuted,
       fontSize: 13,
       lineHeight: 18,
-      fontWeight: "800",
+      fontWeight: "600",
       marginTop: -2
+    },
+    heroMetrics: {
+      flexDirection: "row",
+      borderRadius: radii.lg,
+      backgroundColor: "rgba(255,255,255,0.11)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.16)",
+      overflow: "hidden"
+    },
+    metricPill: {
+      flex: 1,
+      minHeight: 52,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 2,
+      borderRightWidth: StyleSheet.hairlineWidth,
+      borderRightColor: "rgba(255,255,255,0.13)"
+    },
+    metricValue: {
+      color: colors.heroText,
+      fontSize: 18,
+      lineHeight: 22,
+      fontWeight: "900",
+      letterSpacing: -0.3
+    },
+    metricLabel: {
+      color: colors.heroMuted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "800",
+      textTransform: "uppercase",
+      letterSpacing: 0.6
     },
     nextHero: {
       borderRadius: radii.xl,
-      backgroundColor: "rgba(255,255,255,0.16)",
-      borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.2)",
+      backgroundColor: "rgba(255,255,255,0.14)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.20)",
       padding: spacing.sm,
       gap: spacing.sm
     },
@@ -434,7 +495,7 @@ function createStyles(theme: AppTheme) {
     },
     startButton: {
       flex: 1,
-      backgroundColor: colors.brandPink
+      backgroundColor: colors.accent
     },
     focusButton: {
       flex: 1,
@@ -453,11 +514,34 @@ function createStyles(theme: AppTheme) {
       width: "48%",
       minHeight: 136,
       borderRadius: radii.xl,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.13)" : "rgba(16,24,40,0.08)",
+      backgroundColor: theme.isDark ? "rgba(17,24,39,0.96)" : "rgba(255,255,255,0.96)",
       padding: spacing.sm,
-      gap: spacing.xs
+      gap: spacing.xs,
+      overflow: "hidden",
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.24 : 0.08,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 3
+    },
+    commandAccent: {
+      position: "absolute",
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: 3,
+      opacity: 0.92
+    },
+    commandGlow: {
+      position: "absolute",
+      right: -28,
+      top: -36,
+      width: 88,
+      height: 88,
+      borderRadius: 44,
+      opacity: theme.isDark ? 0.18 : 0.10
     },
     commandIcon: {
       width: 36,
@@ -470,7 +554,7 @@ function createStyles(theme: AppTheme) {
       color: colors.ink,
       fontSize: 15,
       lineHeight: 20,
-      fontWeight: "900"
+      fontWeight: "800"
     },
     commandDetail: {
       color: colors.muted,
