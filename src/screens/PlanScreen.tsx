@@ -64,7 +64,7 @@ export function PlanScreen({ assignments, courses, onOpenAssignment }: PlanScree
           </View>
         </View>
         <Text style={styles.heroCopy}>
-          A clean mission map for deadlines, heavy days, and the next move that protects your grade.
+          A clean mission map for deadlines, focus lifts, and the next move that protects your grade.
         </Text>
         <TouchableOpacity
           accessibilityRole="button"
@@ -84,7 +84,7 @@ export function PlanScreen({ assignments, courses, onOpenAssignment }: PlanScree
         </TouchableOpacity>
         <View style={styles.heroStats}>
           <MiniStat label="Today" value={String(weekLoad.find((day) => day.dateKey === dateKey(today))?.items.length || 0)} />
-          <MiniStat label="Heavy" value={String(insight.heavyDays.length)} />
+          <MiniStat label="Power" value={String(insight.heavyDays.length)} />
           <MiniStat label="Week" value={String(weekLoad.reduce((sum, day) => sum + day.items.length, 0))} />
         </View>
       </GlassCard>

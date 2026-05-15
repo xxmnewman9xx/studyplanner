@@ -224,7 +224,7 @@ export function getWeekLoad(assignments: Assignment[], now = new Date()) {
 export function getBusyWeekInsight(assignments: Assignment[], now = new Date()): BusyWeekInsight {
   const week = getWeekLoad(assignments, now);
   const heavyDays = week.filter((day) => day.heavy);
-  const heaviest = [...week].sort((a, b) => b.score - a.score)[0];
+  const peakDay = [...week].sort((a, b) => b.score - a.score)[0];
   const movable = assignments
     .filter((item) => item.status !== "done" && item.status !== "archived")
     .sort(sortByDueDate)
@@ -237,20 +237,20 @@ export function getBusyWeekInsight(assignments: Assignment[], now = new Date()):
     copy: `${assignment.title} · ${assignment.estimatedMinutes}m suggested.`
   }));
 
-  if (heaviest && heaviest.score > 0) {
+  if (peakDay && peakDay.score > 0) {
     suggestions.push({
       id: "free-time-hint",
-      title: "Protect a lighter day",
-      copy: `${heaviest.label} carries the most load. Move review work earlier if you can.`
+      title: "Create a power pocket",
+      copy: `${peakDay.label} is your biggest focus opportunity. Move one review block earlier and keep energy high.`
     });
   }
 
   return {
-    title: heavyDays.length > 0 ? `${formatDayList(heavyDays.map((day) => day.label))} ${heavyDays.length === 1 ? "is" : "are"} heavy` : "This week is balanced",
+    title: heavyDays.length > 0 ? `${formatDayList(heavyDays.map((day) => day.label))} ${heavyDays.length === 1 ? "is" : "are"} a focus lift` : "This week is balanced",
     copy:
       heavyDays.length > 0
-        ? `${heavyDays.length} dense day${heavyDays.length === 1 ? "" : "s"} ahead. Start one item early so the week stays calm.`
-        : "No overloaded days detected. Keep the next small step moving.",
+        ? `${heavyDays.length} power day${heavyDays.length === 1 ? "" : "s"} ahead. Start one item early and keep the week feeling light.`
+        : "Clean energy across the week. Keep the next small step moving.",
     heavyDays,
     suggestions
   };
