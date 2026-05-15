@@ -289,6 +289,7 @@ export function getWidgetData(
   const dueToday = getDueToday(assignments, now);
   const dueSoon = getDueSoon(assignments, now);
   const needsReview = getNeedsReview(assignments);
+  const completionStreak = calculateCompletionStreak(assignments, now);
   const course = preset.classFocusCourseId
     ? courses.find((item) => item.id === preset.classFocusCourseId)
     : undefined;
@@ -344,13 +345,31 @@ export function getWidgetData(
     },
     streak: {
       headline: "Streak",
-      value: "7",
-      detail: "days",
+      value: String(completionStreak),
+      detail: completionStreak === 1 ? "day" : "days",
       items: []
     }
   };
 
   return byType[preset.type];
+}
+
+export function calculateCompletionStreak(assignments: Assignment[], now = new Date()) {
+  const completedDates = new Set(
+    assignments
+      .filter((assignment) => assignment.status === "done")
+      .map((assignment) => dateKeyFromIso(assignment.updatedAt || assignment.dueAt))
+  );
+
+  let streak = 0;
+  const cursor = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  while (completedDates.has(dateKeyFromDate(cursor))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
 }
 
 export function convertParsedItemsToAssignments(
