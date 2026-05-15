@@ -52,17 +52,19 @@ export function PlanScreen({ assignments, courses, onOpenAssignment }: PlanScree
   return (
     <View style={styles.screen}>
       <GlassCard tone="hero" style={styles.hero}>
+        <View style={styles.heroOrbPrimary} />
+        <View style={styles.heroOrbSecondary} />
         <View style={styles.heroTop}>
           <View>
             <Text style={styles.kicker}>Plan</Text>
-            <Text style={styles.title}>Your week made calm.</Text>
+            <Text style={styles.title}>Week strategy board.</Text>
           </View>
           <View style={styles.heroIcon}>
             <Sparkles color={colors.heroText} size={19} />
           </View>
         </View>
         <Text style={styles.heroCopy}>
-          See the week, spot risk early, and jump straight into the work that protects your grade.
+          A clean mission map for deadlines, heavy days, and the next move that protects your grade.
         </Text>
         <TouchableOpacity
           accessibilityRole="button"
@@ -81,9 +83,9 @@ export function PlanScreen({ assignments, courses, onOpenAssignment }: PlanScree
           <ChevronRight color={colors.heroText} size={18} />
         </TouchableOpacity>
         <View style={styles.heroStats}>
-          <MiniStat label="Due Today" value={String(weekLoad.find((day) => day.dateKey === dateKey(today))?.items.length || 0)} tone="pink" />
-          <MiniStat label="Heavy Days" value={String(insight.heavyDays.length)} tone="gold" />
-          <MiniStat label="This Week" value={String(weekLoad.reduce((sum, day) => sum + day.items.length, 0))} tone="violet" />
+          <MiniStat label="Today" value={String(weekLoad.find((day) => day.dateKey === dateKey(today))?.items.length || 0)} />
+          <MiniStat label="Heavy" value={String(insight.heavyDays.length)} />
+          <MiniStat label="Week" value={String(weekLoad.reduce((sum, day) => sum + day.items.length, 0))} />
         </View>
       </GlassCard>
 
@@ -210,22 +212,9 @@ export function PlanScreen({ assignments, courses, onOpenAssignment }: PlanScree
     </View>
   );
 
-  function MiniStat({
-    label,
-    value,
-    tone
-  }: {
-    label: string;
-    value: string;
-    tone: "pink" | "gold" | "violet";
-  }) {
-    const toneStyle = {
-      pink: styles.miniStatPink,
-      gold: styles.miniStatGold,
-      violet: styles.miniStatViolet
-    }[tone];
+  function MiniStat({ label, value }: { label: string; value: string }) {
     return (
-      <View style={[styles.miniStat, toneStyle]}>
+      <View style={styles.miniStat}>
         <Text style={styles.miniStatValue}>{value}</Text>
         <Text style={styles.miniStatLabel}>{label}</Text>
       </View>
@@ -268,7 +257,28 @@ function createStyles(theme: AppTheme) {
     },
     hero: {
       gap: spacing.sm,
-      padding: spacing.md
+      padding: spacing.md,
+      overflow: "hidden"
+    },
+    heroOrbPrimary: {
+      position: "absolute",
+      right: -60,
+      top: -78,
+      width: 176,
+      height: 176,
+      borderRadius: 88,
+      backgroundColor: colors.brandViolet,
+      opacity: theme.isDark ? 0.17 : 0.08
+    },
+    heroOrbSecondary: {
+      position: "absolute",
+      left: -52,
+      bottom: -70,
+      width: 146,
+      height: 146,
+      borderRadius: 73,
+      backgroundColor: colors.accent,
+      opacity: theme.isDark ? 0.15 : 0.08
     },
     heroTop: {
       flexDirection: "row",
@@ -280,35 +290,39 @@ function createStyles(theme: AppTheme) {
       width: 42,
       height: 42,
       borderRadius: 15,
-      backgroundColor: "rgba(255,255,255,0.18)",
+      backgroundColor: "rgba(255,255,255,0.12)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.18)",
       alignItems: "center",
       justifyContent: "center"
     },
     kicker: {
       color: colors.heroMuted,
-      fontSize: 12,
-      lineHeight: 16,
+      fontSize: 11,
+      lineHeight: 15,
       fontWeight: "900",
+      letterSpacing: 0.8,
       textTransform: "uppercase"
     },
     title: {
       color: colors.heroText,
-      fontSize: 29,
+      fontSize: 30,
       lineHeight: 35,
-      fontWeight: "900"
+      fontWeight: "900",
+      letterSpacing: -0.7
     },
     heroCopy: {
       color: colors.heroMuted,
       fontSize: 13,
       lineHeight: 19,
-      fontWeight: "800"
+      fontWeight: "600"
     },
     primaryPlanAction: {
       minHeight: 88,
       borderRadius: radii.xl,
-      borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.22)",
-      backgroundColor: "rgba(255,255,255,0.14)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.20)",
+      backgroundColor: "rgba(255,255,255,0.12)",
       padding: spacing.md,
       flexDirection: "row",
       alignItems: "center",
@@ -336,27 +350,19 @@ function createStyles(theme: AppTheme) {
     },
     heroStats: {
       flexDirection: "row",
-      gap: spacing.sm
+      borderRadius: radii.lg,
+      backgroundColor: "rgba(255,255,255,0.10)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.16)",
+      overflow: "hidden"
     },
     miniStat: {
       flex: 1,
-      minHeight: 62,
-      borderRadius: radii.lg,
-      padding: spacing.sm,
+      minHeight: 56,
+      alignItems: "center",
       justifyContent: "center",
-      borderWidth: 1
-    },
-    miniStatPink: {
-      backgroundColor: "rgba(255,122,144,0.16)",
-      borderColor: "rgba(255,122,144,0.34)"
-    },
-    miniStatGold: {
-      backgroundColor: "rgba(246,184,75,0.16)",
-      borderColor: "rgba(246,184,75,0.34)"
-    },
-    miniStatViolet: {
-      backgroundColor: "rgba(167,139,250,0.16)",
-      borderColor: "rgba(167,139,250,0.34)"
+      borderRightWidth: StyleSheet.hairlineWidth,
+      borderRightColor: "rgba(255,255,255,0.12)"
     },
     miniStatValue: {
       color: colors.heroText,
@@ -366,9 +372,11 @@ function createStyles(theme: AppTheme) {
     },
     miniStatLabel: {
       color: colors.heroMuted,
-      fontSize: 11,
-      lineHeight: 14,
-      fontWeight: "900"
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      letterSpacing: 0.6,
+      textTransform: "uppercase"
     },
     calendarCard: {
       padding: spacing.md,
@@ -491,15 +499,18 @@ function createStyles(theme: AppTheme) {
     },
     insightCard: {
       borderRadius: radii.lg,
-      backgroundColor: theme.isDark ? "#332029" : "#FFE2E5",
+      backgroundColor: theme.isDark ? "rgba(53,242,208,0.10)" : colors.accentSoft,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(53,242,208,0.22)" : colors.line,
       padding: spacing.md,
       gap: 3
     },
     insightKicker: {
-      color: colors.brandPink,
+      color: colors.accent,
       fontSize: 11,
       lineHeight: 15,
       fontWeight: "900",
+      letterSpacing: 0.6,
       textTransform: "uppercase"
     },
     insightTitle: {
