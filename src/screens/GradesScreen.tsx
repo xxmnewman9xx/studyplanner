@@ -149,7 +149,7 @@ export function GradesScreen({
 
           <View style={styles.targetCard}>
             <View style={styles.targetHeader}>
-              <TrendingUp color={colors.ink} size={20} />
+              <TrendingUp color={colors.heroText} size={20} />
               <Text style={styles.targetTitle}>Target-grade calculator</Text>
             </View>
             <Text style={styles.targetCopy}>
@@ -167,8 +167,8 @@ export function GradesScreen({
                 onTargetGradeChange(Number.parseFloat(value) || 0);
               }}
               placeholder="Target percent"
-              placeholderTextColor={colors.faint}
-              style={styles.targetInput}
+              placeholderTextColor={colors.heroMuted}
+              style={[styles.targetInput, styles.targetHeroInput]}
             />
             <View style={styles.whatIfCard}>
               <Text style={styles.whatIfLabel}>Next test what-if</Text>
@@ -184,8 +184,8 @@ export function GradesScreen({
                 value={whatIfWeight}
                 onChangeText={setWhatIfWeight}
                 placeholder="Next score weight"
-                placeholderTextColor={colors.faint}
-                style={styles.targetInput}
+                placeholderTextColor={colors.heroMuted}
+                style={[styles.targetInput, styles.targetHeroInput]}
               />
             </View>
           </View>
@@ -407,12 +407,17 @@ function createStyles(theme: AppTheme) {
     },
     targetCard: {
       marginTop: spacing.lg,
-      borderRadius: radii.md,
+      borderRadius: radii.xl,
       borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.42)",
+      backgroundColor: colors.heroSurface,
       padding: spacing.md,
-      gap: spacing.sm
+      gap: spacing.sm,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.32 : 0.18,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 14 },
+      elevation: 6
     },
     targetHeader: {
       flexDirection: "row",
@@ -420,17 +425,18 @@ function createStyles(theme: AppTheme) {
       gap: spacing.sm
     },
     targetTitle: {
-      color: colors.ink,
+      color: colors.heroText,
       fontSize: 16,
       fontWeight: "900"
     },
     targetCopy: {
-      color: colors.muted,
+      color: colors.heroMuted,
       fontSize: 14,
-      lineHeight: 21
+      lineHeight: 21,
+      fontWeight: "700"
     },
     targetNumber: {
-      color: colors.ink,
+      color: colors.heroText,
       fontWeight: "900"
     },
     targetInput: {
@@ -445,16 +451,21 @@ function createStyles(theme: AppTheme) {
       fontSize: 15,
       fontWeight: "800"
     },
+    targetHeroInput: {
+      borderColor: "rgba(255,255,255,0.22)",
+      backgroundColor: "rgba(255,255,255,0.12)",
+      color: colors.heroText
+    },
     whatIfCard: {
-      borderRadius: radii.sm,
+      borderRadius: radii.lg,
       borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.canvas,
+      borderColor: "rgba(255,255,255,0.18)",
+      backgroundColor: "rgba(255,255,255,0.08)",
       padding: spacing.sm,
       gap: spacing.xs
     },
     whatIfLabel: {
-      color: colors.ink,
+      color: colors.heroText,
       fontSize: 13,
       fontWeight: "900"
     },
