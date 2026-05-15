@@ -385,13 +385,23 @@ function createStyles(theme: AppTheme) {
       gap: spacing.sm
     },
     detailCard: {
-      gap: spacing.md
+      gap: spacing.md,
+      overflow: "hidden",
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.42)",
+      backgroundColor: colors.heroSurface
     },
     classHero: {
       minHeight: 112,
       borderRadius: radii.xl,
       padding: spacing.lg,
-      justifyContent: "flex-end"
+      justifyContent: "flex-end",
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.2)",
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.32 : 0.18,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 12 },
+      elevation: 5
     },
     classHeroTitle: {
       color: "#FFFFFF",
@@ -416,7 +426,7 @@ function createStyles(theme: AppTheme) {
       gap: spacing.xs
     },
     inputLabel: {
-      color: colors.faint,
+      color: colors.heroMuted,
       fontSize: 12,
       fontWeight: "900"
     },
@@ -450,7 +460,7 @@ function createStyles(theme: AppTheme) {
       borderColor: "transparent"
     },
     colorSwatchActive: {
-      borderColor: colors.ink
+      borderColor: colors.heroText
     },
     workList: {
       gap: spacing.sm
@@ -469,20 +479,25 @@ function createStyles(theme: AppTheme) {
     },
     widgetShortcut: {
       borderRadius: radii.xl,
-      backgroundColor: colors.accentSoft,
+      backgroundColor: colors.heroSurface,
       borderWidth: 1,
-      borderColor: colors.line,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.42)",
       padding: spacing.lg,
-      gap: 4
+      gap: 4,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.28 : 0.14,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 4
     },
     widgetShortcutTitle: {
-      color: colors.ink,
+      color: colors.heroText,
       fontSize: 19,
       lineHeight: 25,
       fontWeight: "900"
     },
     widgetShortcutCopy: {
-      color: colors.muted,
+      color: colors.heroMuted,
       fontSize: 13,
       lineHeight: 18,
       fontWeight: "700"
@@ -493,21 +508,21 @@ function createStyles(theme: AppTheme) {
     week: {
       borderRadius: radii.xl,
       borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.42)",
+      backgroundColor: colors.heroSurface,
       overflow: "hidden"
     },
     dayRow: {
       minHeight: 64,
       flexDirection: "row",
       borderBottomWidth: 1,
-      borderBottomColor: colors.line,
+      borderBottomColor: "rgba(255,255,255,0.12)",
       padding: spacing.sm,
       gap: spacing.sm
     },
     day: {
       width: 38,
-      color: colors.ink,
+      color: colors.heroText,
       fontSize: 13,
       fontWeight: "900"
     },
@@ -529,12 +544,12 @@ function createStyles(theme: AppTheme) {
       flex: 1
     },
     meetingTime: {
-      color: colors.ink,
+      color: colors.heroText,
       fontSize: 13,
       fontWeight: "900"
     },
     meetingPlace: {
-      color: colors.muted,
+      color: colors.heroMuted,
       fontSize: 12,
       lineHeight: 17
     }
