@@ -91,13 +91,13 @@ export function PlanScreen({ assignments, courses, onOpenAssignment }: PlanScree
       <GlassCard style={styles.calendarCard}>
         <View style={styles.monthHeader}>
           <TouchableOpacity accessibilityRole="button" style={styles.monthButton} onPress={() => moveMonth(-1)}>
-            <ChevronLeft color={colors.ink} size={18} />
+            <ChevronLeft color={colors.heroText} size={18} />
           </TouchableOpacity>
           <Text style={styles.monthTitle}>
             {monthCursor.toLocaleString("en-US", { month: "long", year: "numeric" })}
           </Text>
           <TouchableOpacity accessibilityRole="button" style={styles.monthButton} onPress={() => moveMonth(1)}>
-            <ChevronRight color={colors.ink} size={18} />
+            <ChevronRight color={colors.heroText} size={18} />
           </TouchableOpacity>
         </View>
         <View style={styles.weekdayRow}>
@@ -347,31 +347,34 @@ function createStyles(theme: AppTheme) {
       borderWidth: 1
     },
     miniStatPink: {
-      backgroundColor: "#FFE8F3",
-      borderColor: "#FFC9E3"
+      backgroundColor: "rgba(255,122,144,0.16)",
+      borderColor: "rgba(255,122,144,0.34)"
     },
     miniStatGold: {
-      backgroundColor: colors.softGold,
-      borderColor: "#F1D991"
+      backgroundColor: "rgba(246,184,75,0.16)",
+      borderColor: "rgba(246,184,75,0.34)"
     },
     miniStatViolet: {
-      backgroundColor: "rgba(255,255,255,0.18)",
-      borderColor: "rgba(255,255,255,0.22)"
+      backgroundColor: "rgba(167,139,250,0.16)",
+      borderColor: "rgba(167,139,250,0.34)"
     },
     miniStatValue: {
-      color: colors.ink,
+      color: colors.heroText,
       fontSize: 22,
       lineHeight: 27,
       fontWeight: "900"
     },
     miniStatLabel: {
-      color: colors.muted,
+      color: colors.heroMuted,
       fontSize: 11,
       lineHeight: 14,
       fontWeight: "900"
     },
     calendarCard: {
-      padding: spacing.md
+      padding: spacing.md,
+      overflow: "hidden",
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.42)",
+      backgroundColor: colors.heroSurface
     },
     monthHeader: {
       flexDirection: "row",
@@ -383,12 +386,14 @@ function createStyles(theme: AppTheme) {
       width: 38,
       height: 38,
       borderRadius: radii.md,
-      backgroundColor: colors.surfaceAlt,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.18)",
+      backgroundColor: "rgba(255,255,255,0.1)",
       alignItems: "center",
       justifyContent: "center"
     },
     monthTitle: {
-      color: colors.ink,
+      color: colors.heroText,
       fontSize: 18,
       lineHeight: 24,
       fontWeight: "900"
@@ -400,7 +405,7 @@ function createStyles(theme: AppTheme) {
     weekday: {
       flex: 1,
       textAlign: "center",
-      color: colors.faint,
+      color: colors.heroMuted,
       fontSize: 11,
       fontWeight: "900"
     },
@@ -421,13 +426,14 @@ function createStyles(theme: AppTheme) {
     },
     dayCellToday: {
       borderWidth: 1,
-      borderColor: colors.brandPink
+      borderColor: colors.brandPink,
+      backgroundColor: "rgba(255,122,144,0.1)"
     },
     dayCellMuted: {
       opacity: 0.35
     },
     dayNumber: {
-      color: colors.ink,
+      color: colors.heroText,
       fontSize: 13,
       fontWeight: "900"
     },
