@@ -195,8 +195,14 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
       </View>
 
       <GlassCard style={styles.scanHero}>
-        <Text style={styles.dropTitle}>Choose a source</Text>
-        <Text style={styles.dropCopy}>Nothing changes until you review it.</Text>
+        <View style={styles.scanHeroGlow} />
+        <Text style={styles.dropKicker}>Syllabus AI</Text>
+        <Text style={styles.dropTitle}>Scan school chaos into a plan.</Text>
+        <Text style={styles.dropCopy}>Find assignments, exams, readings, and suspicious missing dates before anything touches Today.</Text>
+        <View style={styles.trustRow}>
+          <TrustChip label="Review first" />
+          <TrustChip label="Missing-date checks" />
+        </View>
         <View style={styles.scanActions}>
           <AppButton label="Scan" icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
           <AppButton label="Upload" icon={Upload} variant="secondary" onPress={pickPdf} style={styles.scanActionSecondary} />
@@ -207,10 +213,10 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
           onChangeText={setTypedText}
           multiline
           placeholder="Paste: Chapter 4 worksheet due May 13, lab report due Friday..."
-          placeholderTextColor={colors.faint}
+          placeholderTextColor={colors.heroMuted}
           style={styles.typeBox}
         />
-        <Text style={styles.privacyNote}>Private until you add it.</Text>
+        <Text style={styles.privacyNote}>Private until you approve the plan.</Text>
       </GlassCard>
 
       {loading ? (
@@ -382,6 +388,15 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
       ) : null}
     </View>
   );
+
+  function TrustChip({ label }: { label: string }) {
+    return (
+      <View style={styles.trustChip}>
+        <CheckCircle2 color={colors.accent} size={13} />
+        <Text style={styles.trustChipText}>{label}</Text>
+      </View>
+    );
+  }
 
   function ResultStat({
     value,
@@ -576,20 +591,65 @@ function createStyles(theme: AppTheme) {
       marginTop: spacing.md,
       alignItems: "center",
       gap: spacing.xs,
-      padding: spacing.sm
+      padding: spacing.md,
+      overflow: "hidden",
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.42)",
+      backgroundColor: colors.heroSurface
+    },
+    scanHeroGlow: {
+      position: "absolute",
+      top: -52,
+      right: -44,
+      width: 150,
+      height: 150,
+      borderRadius: 999,
+      backgroundColor: `${colors.brandViolet}55`
+    },
+    dropKicker: {
+      color: colors.accent,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900",
+      textTransform: "uppercase",
+      letterSpacing: 0.5
     },
     dropTitle: {
-      color: colors.ink,
-      fontSize: 17,
-      lineHeight: 23,
-      fontWeight: "900"
+      color: colors.heroText,
+      fontSize: 22,
+      lineHeight: 27,
+      fontWeight: "900",
+      textAlign: "center"
     },
     dropCopy: {
-      color: colors.muted,
+      color: colors.heroMuted,
       fontSize: 13,
       lineHeight: 18,
-      fontWeight: "700",
+      fontWeight: "800",
       textAlign: "center"
+    },
+    trustRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      gap: spacing.xs,
+      marginTop: spacing.xs
+    },
+    trustChip: {
+      minHeight: 28,
+      borderRadius: radii.round,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.18)",
+      backgroundColor: "rgba(255,255,255,0.08)",
+      paddingHorizontal: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5
+    },
+    trustChipText: {
+      color: colors.heroText,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900"
     },
     scanActions: {
       alignSelf: "stretch",
@@ -606,12 +666,12 @@ function createStyles(theme: AppTheme) {
     },
     typeBox: {
       alignSelf: "stretch",
-      minHeight: 52,
+      minHeight: 56,
       borderRadius: radii.lg,
       borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surfaceAlt,
-      color: colors.ink,
+      borderColor: "rgba(255,255,255,0.18)",
+      backgroundColor: "rgba(255,255,255,0.1)",
+      color: colors.heroText,
       padding: spacing.md,
       fontSize: 13,
       lineHeight: 18,
@@ -619,7 +679,7 @@ function createStyles(theme: AppTheme) {
       textAlignVertical: "top"
     },
     privacyNote: {
-      color: colors.muted,
+      color: colors.heroMuted,
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "700",
