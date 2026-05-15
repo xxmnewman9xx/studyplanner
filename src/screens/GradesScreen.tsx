@@ -78,7 +78,7 @@ export function GradesScreen({
         Number.parseFloat(whatIfWeight) || 0
       )
     : 0;
-  const gradePressure = needed > 100 ? "High" : needed > 92 ? "Watch" : "Manageable";
+  const gradeMomentum = needed > 100 ? "Stretch" : needed > 92 ? "Focus" : "On track";
   const courseDeadlines = selectedCourse
     ? assignments.filter((assignment) => assignment.courseId === selectedCourse.id)
     : [];
@@ -97,10 +97,10 @@ export function GradesScreen({
   return (
     <View>
       <View style={styles.header}>
-        <Text style={styles.kicker}>Grade tracker</Text>
-        <Text style={styles.title}>Know the target before finals week.</Text>
+        <Text style={styles.kicker}>Performance dashboard</Text>
+        <Text style={styles.title}>Keep every class on target.</Text>
         <Text style={styles.subtitle}>
-          Weighted categories, current pace, and the score needed on remaining work.
+          Weighted categories, grade momentum, and clean what-if math before finals week.
         </Text>
       </View>
 
@@ -140,9 +140,9 @@ export function GradesScreen({
               tone="green"
             />
             <MetricCard
-              label="Needed"
+              label="Target pace"
               value={formatPercent(needed)}
-              detail={`${gradePressure} pressure`}
+              detail={`${gradeMomentum} momentum`}
               tone={needed > 100 ? "gold" : "blue"}
             />
           </View>
@@ -206,7 +206,7 @@ export function GradesScreen({
             ))}
           </View>
 
-          <SectionHeader title="Add Score" note="Keep grade pressure current" />
+          <SectionHeader title="Add Score" note="Keep grade momentum current" />
           <View style={styles.addGradeCard}>
             <TextInput
               value={newTitle}
@@ -327,12 +327,11 @@ export function GradesScreen({
             )}
           </View>
 
-          <SectionHeader title="Grade Pressure Alerts" />
+          <SectionHeader title="Momentum Signals" />
           <View style={styles.alertCard}>
-            <Text style={styles.alertTitle}>{gradePressure}</Text>
+            <Text style={styles.alertTitle}>{gradeMomentum}</Text>
             <Text style={styles.alertCopy}>
-              {courseDeadlines.length} upcoming grade-related items are connected to this
-              course. Reminder intensity should rise when the target grade is at risk.
+              {courseDeadlines.length} upcoming grade-connected items can help this class stay aligned with the target.
             </Text>
           </View>
         </>
@@ -346,18 +345,31 @@ function createStyles(theme: AppTheme) {
 
   return StyleSheet.create({
     header: {
-      gap: spacing.xs
+      borderRadius: radii.xl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : colors.line,
+      backgroundColor: colors.heroSurface,
+      padding: spacing.md,
+      gap: spacing.xs,
+      overflow: "hidden"
     },
     kicker: {
       color: colors.accent,
-      fontSize: 13,
-      fontWeight: "900"
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      letterSpacing: 0.8,
+      textTransform: "uppercase"
     },
     title: {
-      ...typography.title
+      ...typography.title,
+      color: colors.heroText,
+      letterSpacing: -0.7
     },
     subtitle: {
-      ...typography.body
+      ...typography.body,
+      color: colors.heroMuted,
+      fontWeight: "600"
     },
     courseTabs: {
       flexDirection: "row",
@@ -380,17 +392,17 @@ function createStyles(theme: AppTheme) {
     },
     courseTab: {
       minHeight: 38,
-      borderRadius: radii.sm,
-      borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.18)",
+      borderRadius: radii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
       paddingHorizontal: spacing.sm,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: colors.surface
     },
     courseTabActive: {
-      backgroundColor: colors.softGold,
-      borderColor: colors.gold
+      backgroundColor: colors.accentSoft,
+      borderColor: colors.accent
     },
     courseTabText: {
       color: colors.muted,
@@ -398,7 +410,7 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     courseTabTextActive: {
-      color: colors.ink
+      color: colors.accent
     },
     metricRow: {
       flexDirection: "row",
@@ -408,7 +420,7 @@ function createStyles(theme: AppTheme) {
     targetCard: {
       marginTop: spacing.lg,
       borderRadius: radii.xl,
-      borderWidth: 1,
+      borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.42)",
       backgroundColor: colors.heroSurface,
       padding: spacing.md,
@@ -427,13 +439,14 @@ function createStyles(theme: AppTheme) {
     targetTitle: {
       color: colors.heroText,
       fontSize: 16,
-      fontWeight: "900"
+      fontWeight: "900",
+      letterSpacing: -0.2
     },
     targetCopy: {
       color: colors.heroMuted,
       fontSize: 14,
       lineHeight: 21,
-      fontWeight: "700"
+      fontWeight: "600"
     },
     targetNumber: {
       color: colors.heroText,
@@ -523,8 +536,8 @@ function createStyles(theme: AppTheme) {
       justifyContent: "center"
     },
     categoryChipActive: {
-      backgroundColor: colors.softGold,
-      borderColor: colors.gold
+      backgroundColor: "rgba(53,242,208,0.14)",
+      borderColor: colors.accent
     },
     categoryChipText: {
       color: colors.heroMuted,
@@ -532,7 +545,7 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     categoryChipTextActive: {
-      color: colors.ink
+      color: colors.heroText
     },
     scoreInputs: {
       flexDirection: "row",
@@ -598,19 +611,19 @@ function createStyles(theme: AppTheme) {
     },
     alertCard: {
       borderRadius: radii.md,
-      borderWidth: 1,
-      borderColor: "rgba(246,184,75,0.32)",
-      backgroundColor: theme.isDark ? "rgba(246,184,75,0.12)" : "rgba(246,184,75,0.18)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(53,242,208,0.24)" : colors.line,
+      backgroundColor: theme.isDark ? "rgba(53,242,208,0.10)" : colors.accentSoft,
       padding: spacing.md,
       gap: spacing.xs
     },
     alertTitle: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 18,
       fontWeight: "900"
     },
     alertCopy: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 14,
       lineHeight: 21
     }
