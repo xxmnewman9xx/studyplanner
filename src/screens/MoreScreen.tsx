@@ -141,18 +141,32 @@ export function MoreScreen({
   const focusedCourse = classFocusCourseId
     ? courses.find((course) => course.id === classFocusCourseId)
     : undefined;
-  const libraryCombos = widgetTypes.flatMap((widgetType, typeIndex) => {
-    const sizes: WidgetSize[] = widgetType === "week" ? ["small", "medium", "large"] : ["small", "medium"];
-    return sizes.map((widgetSize, sizeIndex) => ({
-      type: widgetType,
-      size: widgetSize,
-      background: backgrounds[(typeIndex + sizeIndex) % backgrounds.length],
-      palette: widgetPaletteOptions[(typeIndex + sizeIndex) % widgetPaletteOptions.length],
-      layout: layouts[(typeIndex + sizeIndex) % layouts.length],
-      iconKey: iconKeys[(typeIndex + sizeIndex) % iconKeys.length],
-      classFocusCourseId: courses[typeIndex % Math.max(courses.length, 1)]?.id
-    }));
-  });
+  const starterTemplates: Array<{
+    label: string;
+    detail: string;
+    preset: Pick<WidgetPreset, "type" | "size" | "background" | "palette" | "layout" | "iconKey">;
+  }> = [
+    {
+      label: "Next task",
+      detail: "Homework urgency without opening the app.",
+      preset: { type: "due_next", size: "medium", background: "glass", palette: "ocean", layout: "list", iconKey: "calendar" }
+    },
+    {
+      label: "Today stack",
+      detail: "A clean queue for the next few moves.",
+      preset: { type: "today", size: "large", background: "gradient", palette: "sunset", layout: "list", iconKey: "check" }
+    },
+    {
+      label: "Class glance",
+      detail: "One subject, one focused command surface.",
+      preset: { type: "class_focus", size: "medium", background: "solid", palette: "forest", layout: "compact", iconKey: "book" }
+    },
+    {
+      label: "Focus lock",
+      detail: "A quiet focus widget for study sessions.",
+      preset: { type: "focus", size: "small", background: "dark", palette: "midnight", layout: "ring", iconKey: "timer" }
+    }
+  ];
 
   const savePreset = () => {
     const timestamp = new Date().toISOString();
@@ -180,6 +194,16 @@ export function MoreScreen({
     setEditingPresetId(preset.id);
   };
 
+  const applyTemplate = (template: Pick<WidgetPreset, "type" | "size" | "background" | "palette" | "layout" | "iconKey">) => {
+    setType(template.type);
+    setSize(template.size);
+    setBackground(template.background);
+    setPalette(template.palette);
+    setLayout(template.layout);
+    setIconKey(template.iconKey);
+    setEditingPresetId(`preset-${template.type}-${template.size}`);
+  };
+
   const resetStudio = () => {
     onResetWidgetPresets();
     const defaultPreset = defaultWidgetPresets[0];
@@ -193,9 +217,9 @@ export function MoreScreen({
           <View style={styles.heroCopy}>
             <AppLogo showWordmark size={36} />
             <Text style={styles.kicker}>Widget Studio</Text>
-            <Text style={styles.heroTitle}>Customize your widgets.</Text>
+            <Text style={styles.heroTitle}>Choose what your widget should show.</Text>
             <Text style={styles.heroText}>
-              Adjust size, style, class focus, and layout while the preview updates.
+              Pick one job first: next task, today, one class, or focus timer. Then adjust the look.
             </Text>
           </View>
           <View style={styles.livePill}>
@@ -221,9 +245,28 @@ export function MoreScreen({
         </View>
       </GlassCard>
 
-      <SectionHeader title="Controls" note="Changes update the preview above" />
+      <SectionHeader title="Step 1: choose a widget job" note="Tap the card that matches what you want on your Home Screen." />
+      <View style={styles.templateGrid}>
+        {starterTemplates.map((template) => (
+          <TouchableOpacity
+            accessibilityRole="button"
+            key={template.label}
+            style={[
+              styles.templateCard,
+              template.preset.type === type && template.preset.size === size ? styles.templateCardActive : null
+            ]}
+            onPress={() => applyTemplate(template.preset)}
+          >
+            <Text style={styles.templateTitle}>{template.label}</Text>
+            <Text style={styles.templateDetail}>{template.detail}</Text>
+            <Text style={styles.templateMeta}>{labelize(template.preset.type)} · {labelize(template.preset.size)}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <SectionHeader title="Step 2: change the look" note="These buttons only change the preview above." />
       <GlassCard style={styles.controlsCard}>
-        <ControlLabel title="Size" />
+        <ControlLabel title="How big" />
         <SegmentedControl
           options={widgetSizes}
           value={size}
@@ -231,8 +274,8 @@ export function MoreScreen({
           labelForOption={labelize}
         />
 
-        <ControlLabel title="Type" />
-        <ScrollView horizontal showsHorizontalScrollIndicator contentContainerStyle={styles.chipRail}>
+        <ControlLabel title="What it shows" />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRail}>
           {widgetTypes.map((option) => (
             <ChoiceChip
               key={option}
@@ -243,7 +286,7 @@ export function MoreScreen({
           ))}
         </ScrollView>
 
-        <ControlLabel title="Background" />
+        <ControlLabel title="Background style" />
         <SegmentedControl
           options={backgrounds}
           value={background}
@@ -283,7 +326,7 @@ export function MoreScreen({
         <ControlLabel title="Font" />
         <SegmentedControl options={fonts} value={font} onChange={setFont} />
 
-        <ControlLabel title="Class Focus" />
+        <ControlLabel title="Class to show" />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRail}>
           {courses.map((course) => (
             <ChoiceChip
@@ -296,7 +339,7 @@ export function MoreScreen({
           ))}
         </ScrollView>
 
-        <ControlLabel title="Layout" />
+        <ControlLabel title="Layout shape" />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.layoutRail}>
           {layouts.map((option) => (
             <TouchableOpacity
@@ -316,7 +359,7 @@ export function MoreScreen({
           ))}
         </ScrollView>
 
-        <ControlLabel title="Icon" />
+        <ControlLabel title="Icon picture" />
         <View style={styles.iconGrid}>
           {iconKeys.map((option) => (
             <IconChoice key={option} option={option} />
@@ -324,9 +367,9 @@ export function MoreScreen({
         </View>
 
         <View style={styles.controlActions}>
-          <AppButton label="Save preset" icon={Save} onPress={savePreset} style={styles.actionButton} />
+          <AppButton label="Save this widget" icon={Save} onPress={savePreset} style={styles.actionButton} />
           <AppButton
-            label="Reset"
+            label="Start over"
             icon={RotateCcw}
             variant="secondary"
             onPress={resetStudio}
@@ -335,71 +378,37 @@ export function MoreScreen({
         </View>
       </GlassCard>
 
-      <SectionHeader title="Saved Presets" note="Tap to load a setup" />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.savedRail}>
-        {widgetPresets.map((preset) => {
+      <SectionHeader title="Saved widgets" note="Tap one to edit it again." />
+      <GlassCard style={styles.savedCard}>
+        {widgetPresets.slice(0, 5).map((preset) => {
           const data = getWidgetData(preset, assignments, courses);
+          const active = preset.id === editingPresetId;
           return (
-            <TouchableOpacity accessibilityRole="button" key={preset.id} onPress={() => loadPreset(preset)}>
-              <WidgetPreviewCard
-                title={data.headline}
-                value={data.value}
-                detail={data.detail}
-                background={preset.background}
-                palette={preset.palette}
-                size="small"
-                type={preset.type}
-                course={data.course}
-                font={preset.font}
-                layout={preset.layout}
-                iconKey={preset.iconKey}
-                items={data.items}
-              />
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              key={preset.id}
+              style={[styles.savedRow, active ? styles.savedRowActive : null]}
+              onPress={() => loadPreset(preset)}
+            >
+              <View style={[styles.savedIcon, { backgroundColor: themePalettes[preset.palette][1] }]}>
+                <Text style={styles.savedIconText}>{preset.type === "class_focus" ? "📚" : preset.type === "focus" ? "⏱" : "✓"}</Text>
+              </View>
+              <View style={styles.savedCopy}>
+                <Text style={styles.savedTitle}>{data.headline}</Text>
+                <Text style={styles.savedMeta}>{labelize(preset.type)} · {labelize(preset.size)} · {labelize(preset.background)}</Text>
+              </View>
+              <Text style={styles.savedAction}>{active ? "Editing" : "Load"}</Text>
             </TouchableOpacity>
           );
         })}
-        <TouchableOpacity accessibilityRole="button" style={styles.newPresetCard} onPress={savePreset}>
-          <Text style={styles.newPresetPlus}>+</Text>
-          <Text style={styles.newPresetText}>New preset</Text>
+        <TouchableOpacity accessibilityRole="button" style={styles.saveCurrentRow} onPress={savePreset}>
+          <Text style={styles.saveCurrentText}>Save current design</Text>
+          <Text style={styles.saveCurrentPlus}>+</Text>
         </TouchableOpacity>
-      </ScrollView>
+      </GlassCard>
 
-      <SectionHeader title="Widget Library" note="Small, medium, glass, gradient, solid, dark" />
-      <View style={styles.libraryGrid}>
-        {libraryCombos.map((combo) => {
-          const libraryPreset: WidgetPreset = {
-            ...previewPreset,
-            type: combo.type,
-            size: combo.size,
-            background: combo.background || "solid",
-            palette: combo.palette || "sunset",
-            layout: combo.layout || "compact",
-            iconKey: combo.iconKey || "calendar",
-            classFocusCourseId: combo.classFocusCourseId
-          };
-          const data = getWidgetData(libraryPreset, assignments, courses);
-          return (
-            <WidgetPreviewCard
-              key={`${combo.type}-${combo.size}`}
-              title={data.headline}
-              value={data.value}
-              detail={data.detail}
-              background={libraryPreset.background}
-              palette={libraryPreset.palette}
-              size={libraryPreset.size}
-              type={combo.type}
-              course={data.course}
-              font={libraryPreset.font}
-              layout={libraryPreset.layout}
-              iconKey={libraryPreset.iconKey}
-              items={data.items}
-              style={libraryPreset.size === "medium" ? styles.libraryWide : undefined}
-            />
-          );
-        })}
-      </View>
-
-      <SectionHeader title="Home & Lock Screen" note="Realistic in-app previews for Apple contexts" />
+      <SectionHeader title="Preview on phone" note="See how the widget will feel on Home Screen and Lock Screen." />
       <View style={styles.devicePreviewRow}>
         <View style={styles.homeScreen}>
           <WidgetPreviewCard
@@ -650,6 +659,45 @@ function createStyles(theme: AppTheme) {
     previewStage: {
       alignItems: "center"
     },
+    templateGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm
+    },
+    templateCard: {
+      width: "48%",
+      minHeight: 118,
+      borderRadius: radii.xl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.045)" : colors.surface,
+      padding: spacing.md,
+      gap: spacing.xs,
+      justifyContent: "space-between"
+    },
+    templateCardActive: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accentSoft
+    },
+    templateTitle: {
+      color: colors.ink,
+      fontSize: 16,
+      lineHeight: 21,
+      fontWeight: "900"
+    },
+    templateDetail: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
+    },
+    templateMeta: {
+      color: colors.faint,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
     controlsCard: {
       gap: spacing.xs
     },
@@ -798,40 +846,76 @@ function createStyles(theme: AppTheme) {
     actionButton: {
       flex: 1
     },
-    savedRail: {
-      gap: spacing.md,
-      paddingRight: spacing.lg
+    savedCard: {
+      gap: spacing.xs,
+      padding: spacing.sm
     },
-    newPresetCard: {
-      width: 126,
-      minHeight: 126,
-      borderRadius: 22,
-      borderWidth: 1,
-      borderStyle: "dashed",
-      borderColor: colors.lineStrong,
-      backgroundColor: colors.surface,
+    savedRow: {
+      minHeight: 58,
+      borderRadius: radii.lg,
+      padding: spacing.sm,
+      flexDirection: "row",
       alignItems: "center",
-      justifyContent: "center",
-      gap: spacing.xs
+      gap: spacing.sm,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.04)" : colors.surfaceAlt
     },
-    newPresetPlus: {
-      color: colors.accent,
-      fontSize: 26,
-      lineHeight: 31,
+    savedRowActive: {
+      backgroundColor: colors.accentSoft
+    },
+    savedIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    savedIconText: {
+      fontSize: 16,
+      lineHeight: 20
+    },
+    savedCopy: {
+      flex: 1,
+      minWidth: 0
+    },
+    savedTitle: {
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 18,
       fontWeight: "900"
     },
-    newPresetText: {
+    savedMeta: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "700"
+    },
+    savedAction: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900"
+    },
+    saveCurrentRow: {
+      minHeight: 48,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderStyle: "dashed",
+      borderColor: colors.lineStrong,
+      paddingHorizontal: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between"
+    },
+    saveCurrentText: {
       color: colors.muted,
       fontSize: 12,
       fontWeight: "900"
     },
-    libraryGrid: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: spacing.md
-    },
-    libraryWide: {
-      width: "100%"
+    saveCurrentPlus: {
+      color: colors.accent,
+      fontSize: 22,
+      lineHeight: 26,
+      fontWeight: "900"
     },
     devicePreviewRow: {
       flexDirection: "row",

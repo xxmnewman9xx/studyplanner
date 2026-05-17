@@ -12,6 +12,7 @@ declare const __DEV__: boolean;
 export type MarketingCaptureScreen = "processing" | "extracted" | "review_edit" | "agenda";
 
 const screen = process.env.EXPO_PUBLIC_MARKETING_CAPTURE_SCREEN;
+const initialTab = process.env.EXPO_PUBLIC_MARKETING_CAPTURE_INITIAL_TAB;
 
 export const marketingCaptureEnabled =
   typeof __DEV__ !== "undefined" && __DEV__ && process.env.EXPO_PUBLIC_MARKETING_CAPTURE === "1";
@@ -209,6 +210,8 @@ export const marketingCaptureParseResult: SyllabusParseResult = {
 };
 
 export function getMarketingCaptureInitialTab(): NavTab {
+  if (marketingCaptureEnabled && isNavTab(initialTab)) return initialTab;
+
   return marketingCaptureScreen === "processing" ||
     marketingCaptureScreen === "extracted" ||
     marketingCaptureScreen === "review_edit"
@@ -221,6 +224,19 @@ export function getMarketingCaptureScrollY() {
   if (marketingCaptureScreen === "review_edit") return 920;
   if (marketingCaptureScreen === "agenda") return 560;
   return 0;
+}
+
+function isNavTab(value: string | undefined): value is NavTab {
+  return (
+    value === "today" ||
+    value === "import" ||
+    value === "plan" ||
+    value === "courses" ||
+    value === "more" ||
+    value === "focus" ||
+    value === "grades" ||
+    value === "upgrade"
+  );
 }
 
 function isMarketingCaptureScreen(value: string | undefined): value is MarketingCaptureScreen {

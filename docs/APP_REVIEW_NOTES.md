@@ -1,6 +1,6 @@
 # App Review Notes
 
-StudyPlanner Plus is available through the in-app subscription screen. To test Syllabus Scan, open the app, complete onboarding, choose Study Planner Plus, subscribe using Apple's sandbox purchase flow, then open Syllabus Scan from the Scan tab. Restore Purchases is available on the paywall.
+StudyPlanner Plus is available through the in-app subscription screen. To test premium flows, open the app, complete onboarding, choose StudyPlanner Plus, subscribe using Apple's sandbox purchase flow, then use the Scan, calendar sync, reminders, and grade planning surfaces. Restore Purchases is available on the paywall.
 
 The app uses Apple's standard EULA:
 https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
@@ -8,11 +8,32 @@ https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 Privacy Policy:
 https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408
 
-Supported syllabus upload flow for this build:
+## Supported syllabus import flow for this build
 
-1. Use the Scan tab after Plus is active.
-2. Choose File to select a text-based PDF or plain-text syllabus from Files.
-3. Review detected courses, deadlines, and grade categories.
-4. Apply the parsed plan only after review.
+1. Open the Scan tab after Plus is active.
+2. Choose Upload for a text-based PDF or plain-text syllabus from Files, or Paste syllabus/handout text directly.
+3. Review detected courses, deadlines, due times, effort estimates, possible duplicates, and grade categories.
+4. Fix any items marked Needs Review. Invalid dates or times cannot be applied to the planner.
+5. Apply the parsed plan only after review.
 
-Photo and camera OCR entry points are shown only when a production online parser endpoint is configured. This build keeps the Scan feature available through Files instead of showing an unavailable photo/OCR feature.
+Camera scan entry points are visible. Photo/image parsing requires `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT`; without that production endpoint, text-based PDFs and pasted text remain supported, and photo attempts show a clear device-parser limitation message instead of applying uncertain data.
+
+## Planner trust behavior
+
+StudyPlanner keeps deadline data reviewable before it affects planning or device integrations:
+
+- Manual homework and assignment edits validate real dates and `HH:MM` due times.
+- Import review validates complete deadlines and preserves parsed due times when dates are edited.
+- Invalid legacy deadlines are routed to Needs Review instead of Today, Due Soon, widgets, week load, reminders, or calendar sync.
+- Effort estimates are normalized so planning math stays useful.
+- Calendar sync and reminders skip archived items and invalid deadlines.
+
+## Release QA command
+
+Before TestFlight/App Store packaging, run:
+
+```bash
+npm run qa:release
+```
+
+This runs typecheck, syllabus parser fixtures, planner trust fixtures, IAP/premium gate checks, and web export.

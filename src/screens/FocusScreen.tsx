@@ -39,12 +39,18 @@ export function FocusScreen({
     [assignments]
   );
   const [selectedId, setSelectedId] = useState(preferredAssignmentId || focusableAssignments[0]?.id || "");
-  const [secondsLeft, setSecondsLeft] = useState(defaultMinutes * 60);
+  const [selectedPlannedDuration, setSelectedPlannedDuration] = useState<number | null>(null);
+  const activeDurationMinutes = selectedPlannedDuration || defaultMinutes;
+  const [secondsLeft, setSecondsLeft] = useState(activeDurationMinutes * 60);
   const [running, setRunning] = useState(false);
   const [startedAt, setStartedAt] = useState<string | null>(null);
   const [pauseRecorded, setPauseRecorded] = useState(false);
   const selected = focusableAssignments.find((assignment) => assignment.id === selectedId);
   const selectedCourse = selected ? getCourseForAssignment(courses, selected) : undefined;
+  const plannedSessions = sessions
+    .filter((session) => session.status === "planned")
+    .slice()
+    .sort((a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime());
   const sessionNumber = sessions.length + 1;
   const startedRef = useRef(startedAt);
   startedRef.current = startedAt;
@@ -54,8 +60,8 @@ export function FocusScreen({
   }, [preferredAssignmentId]);
 
   useEffect(() => {
-    setSecondsLeft(defaultMinutes * 60);
-  }, [defaultMinutes, selectedId]);
+    setSecondsLeft(activeDurationMinutes * 60);
+  }, [activeDurationMinutes, selectedId]);
 
   useEffect(() => {
     if (!running) return;
@@ -63,7 +69,7 @@ export function FocusScreen({
       setSecondsLeft((current) => {
         if (current <= 1) {
           setRunning(false);
-          record("completed", defaultMinutes);
+          record("completed", activeDurationMinutes);
           return 0;
         }
         return current - 1;
@@ -71,7 +77,7 @@ export function FocusScreen({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [running]);
+  }, [running, activeDurationMinutes]);
 
   const startPause = () => {
     if (!selected) return;
@@ -95,7 +101,7 @@ export function FocusScreen({
     const hadStarted = Boolean(startedRef.current);
     setRunning(false);
     if (hadStarted) record("stopped");
-    setSecondsLeft(defaultMinutes * 60);
+    setSecondsLeft(activeDurationMinutes * 60);
     setStartedAt(null);
     setPauseRecorded(false);
   };
@@ -103,19 +109,20 @@ export function FocusScreen({
   const complete = () => {
     if (!selected) return;
     setRunning(false);
-    record("completed", startedRef.current ? undefined : defaultMinutes);
+    record("completed", startedRef.current ? undefined : activeDurationMinutes);
     onMarkComplete?.(selected.id);
-    setSecondsLeft(defaultMinutes * 60);
+    setSecondsLeft(activeDurationMinutes * 60);
     setStartedAt(null);
     setPauseRecorded(false);
   };
 
-  const elapsedMinutes = Math.max(0, defaultMinutes - Math.ceil(secondsLeft / 60));
+  const elapsedMinutes = Math.max(0, activeDurationMinutes - Math.ceil(secondsLeft / 60));
 
   return (
     <View>
       <View style={styles.focusStage}>
         <View style={styles.focusGlow} />
+        <View style={styles.focusGlowSecondary} />
         <View style={styles.stageHeader}>
           <Text style={styles.stageKicker}>Focus Mode</Text>
           <Badge label={`Session ${sessionNumber}`} tone="blue" />
@@ -134,16 +141,50 @@ export function FocusScreen({
             {running ? <Pause color="#FFFFFF" size={18} /> : <Play color="#FFFFFF" size={18} />}
           </TouchableOpacity>
           <TouchableOpacity accessibilityRole="button" style={styles.primaryControl} onPress={startPause} disabled={!selected}>
-            <Text style={styles.primaryControlText}>{running ? "Pause" : "Start"}</Text>
+            <Text style={styles.primaryControlText}>{running ? "Pause timer" : "Start timer for this task"}</Text>
           </TouchableOpacity>
           <TouchableOpacity accessibilityRole="button" style={styles.roundControl} onPress={stop}>
             <Square color="#FFFFFF" size={16} />
           </TouchableOpacity>
         </View>
-        <Text style={styles.silencedCopy}>Notifications silenced · Lock Screen dimmed</Text>
+        <Text style={styles.silencedCopy}>Pick a task → start the timer → tap Done to save time and complete it.</Text>
       </View>
 
-      <SectionHeader title="Tie Timer To" note="Pick the task that matters next" />
+      {plannedSessions.length > 0 ? (
+        <>
+          <SectionHeader title="Saved study blocks" note="These were saved from your busy week helper." />
+          <View style={styles.plannedList}>
+            {plannedSessions.slice(0, 5).map((session) => {
+              const assignment = assignments.find((item) => item.id === session.assignmentId);
+              const course = assignment ? getCourseForAssignment(courses, assignment) : undefined;
+              return (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  key={session.id}
+                  style={styles.plannedRow}
+                  onPress={() => {
+                    if (!assignment) return;
+                    setSelectedId(assignment.id);
+                    setSelectedPlannedDuration(session.durationMinutes);
+                    setRunning(false);
+                    setStartedAt(null);
+                    setPauseRecorded(false);
+                  }}
+                >
+                  <View style={[styles.classDot, { backgroundColor: course?.color || colors.accent }]} />
+                  <View style={styles.plannedCopy}>
+                    <Text style={styles.plannedTitle}>{assignment?.title || "Planned focus"}</Text>
+                    <Text style={styles.plannedMeta}>{course?.code || "Class"} · {formatFocusDate(session.startedAt)} · {session.durationMinutes}m</Text>
+                  </View>
+                  <Badge label="Planned" tone="blue" />
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </>
+      ) : null}
+
+      <SectionHeader title="Choose what to study" note="The timer will be attached to this task." />
       <View style={styles.assignmentList}>
         {focusableAssignments.length === 0 ? (
           <Text style={styles.emptyCard}>Add an assignment to start a focus session.</Text>
@@ -158,6 +199,7 @@ export function FocusScreen({
               style={[styles.assignmentRow, active ? styles.assignmentRowActive : null]}
               onPress={() => {
                 setSelectedId(assignment.id);
+                setSelectedPlannedDuration(null);
                 setRunning(false);
                 setStartedAt(null);
                 setPauseRecorded(false);
@@ -181,14 +223,14 @@ export function FocusScreen({
 
       <View style={styles.bottomActions}>
         <AppButton
-          label="Mark Complete"
+          label="Done — save time and complete task"
           icon={Power}
           disabled={!selected}
           onPress={complete}
           style={styles.bottomButton}
         />
         <AppButton
-          label={`${elapsedMinutes} min logged`}
+          label={`Save ${elapsedMinutes} min only`}
           variant="secondary"
           onPress={() => {
             if (selected && startedRef.current && !pauseRecorded) {
@@ -208,7 +250,7 @@ export function FocusScreen({
     if (!startedRef.current && status !== "completed") return;
     const durationMinutes =
       durationOverride ??
-      (status === "completed" && secondsLeft === 0 ? defaultMinutes : elapsedMinutes);
+      (status === "completed" && secondsLeft === 0 ? activeDurationMinutes : elapsedMinutes);
     onRecordSession({
       id: `focus-${Date.now()}`,
       assignmentId: selected.id,
@@ -228,6 +270,15 @@ function formatTimer(seconds: number) {
   return `${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
 }
 
+function formatFocusDate(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    weekday: "short",
+    hour: "numeric"
+  }).format(new Date(value));
+}
+
 function createStyles(theme: AppTheme) {
   const { colors, radii, spacing } = theme;
 
@@ -235,6 +286,8 @@ function createStyles(theme: AppTheme) {
     focusStage: {
       minHeight: 520,
       borderRadius: 34,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.16)",
       backgroundColor: "#101024",
       padding: spacing.lg,
       alignItems: "center",
@@ -253,7 +306,17 @@ function createStyles(theme: AppTheme) {
       height: 240,
       borderRadius: 120,
       backgroundColor: "#7C3AED",
-      opacity: 0.45
+      opacity: 0.38
+    },
+    focusGlowSecondary: {
+      position: "absolute",
+      left: -80,
+      bottom: -95,
+      width: 230,
+      height: 230,
+      borderRadius: 115,
+      backgroundColor: "#38BDF8",
+      opacity: 0.16
     },
     stageHeader: {
       alignSelf: "stretch",
@@ -273,11 +336,12 @@ function createStyles(theme: AppTheme) {
       height: 220,
       borderRadius: 110,
       borderWidth: 12,
-      borderColor: "#7C3AED",
+      borderColor: "#8B5CF6",
+      backgroundColor: "rgba(255,255,255,0.035)",
       alignItems: "center",
       justifyContent: "center",
       shadowColor: "#FF4FA3",
-      shadowOpacity: 0.7,
+      shadowOpacity: 0.56,
       shadowRadius: 24,
       shadowOffset: { width: 0, height: 0 }
     },
@@ -354,6 +418,36 @@ function createStyles(theme: AppTheme) {
       marginTop: "auto",
       color: "#8F8AB8",
       fontSize: 11,
+      lineHeight: 16,
+      fontWeight: "800"
+    },
+    plannedList: {
+      gap: spacing.sm
+    },
+    plannedRow: {
+      minHeight: 68,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      padding: spacing.md,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    plannedCopy: {
+      flex: 1,
+      gap: 2
+    },
+    plannedTitle: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    plannedMeta: {
+      color: colors.muted,
+      fontSize: 12,
       lineHeight: 16,
       fontWeight: "800"
     },

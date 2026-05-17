@@ -27,6 +27,7 @@ import {
 import { Assignment, Course, WidgetBackground, WidgetPalette, WidgetSize, WidgetType } from "../models";
 import { AppTheme, themePalettes } from "../theme";
 import { useAppTheme } from "../themeContext";
+import { courseEmoji } from "../utils/courseVisuals";
 
 export const emojiMap = {
   study: BookOpen,
@@ -153,7 +154,13 @@ export function GlassCard({
     soft: styles.softGlassCard,
     dark: styles.darkGlassCard
   }[tone];
-  return <View style={[styles.glassCard, toneStyle, style]}>{children}</View>;
+  return (
+    <View style={[styles.glassCard, toneStyle, style]}>
+      <View pointerEvents="none" style={styles.liquidGlassHighlight} />
+      <View pointerEvents="none" style={styles.liquidGlassInnerGlow} />
+      {children}
+    </View>
+  );
 }
 
 export function StatPill({
@@ -238,8 +245,8 @@ export function AssignmentRow({
   const progress = Math.round((assignment.progress || 0) * 100);
   const content = (
     <>
-      <View style={[styles.classTile, { backgroundColor: course?.color || theme.colors.accent }]}>
-        <Text style={styles.classTileText}>{course?.code.slice(0, 1) || "S"}</Text>
+      <View style={[styles.classTile, { backgroundColor: course?.color || theme.colors.accent }]}> 
+        <Text style={styles.classTileText}>{courseEmoji(course)}</Text>
       </View>
       <View style={styles.assignmentRowCopy}>
         <Text style={styles.assignmentRowTitle}>{assignment.title}</Text>
@@ -280,8 +287,8 @@ export function ClassIdentityCard({
   const styles = createStyles(theme);
   const content = (
     <>
-      <View style={[styles.classLargeIcon, { backgroundColor: course.color }]}> 
-        <Text style={styles.classLargeInitial}>{course.code.slice(0, 1).toUpperCase()}</Text>
+      <View style={[styles.classLargeIcon, { backgroundColor: course.color }]}>
+        <Text style={styles.classLargeInitial}>{courseEmoji(course)}</Text>
       </View>
       <View style={styles.classCardCopy}>
         <Text style={styles.classCardTitle}>{course.code}</Text>
@@ -355,14 +362,16 @@ export function WidgetPreviewCard({
         style
       ]}
     >
+      <View style={[styles.widgetBackplate, { borderColor: paletteColors[1] }]} />
       <View style={[styles.widgetAura, { backgroundColor: paletteColors[1] }]} />
       <View style={[styles.widgetSheen, { backgroundColor: paletteColors[2] || paletteColors[1] }]} />
+      <View style={styles.widgetGridTexture} />
       <View style={[styles.widgetAccentRail, { backgroundColor: paletteColors[1] }]} />
       {background === "gradient" ? (
         <View style={[styles.widgetGlow, { backgroundColor: paletteColors[1] }]} />
       ) : null}
       <View style={styles.widgetTop}>
-        <Text style={[styles.widgetLabel, labelTone, fontStyle]}>{title}</Text>
+        <Text style={[styles.widgetLabel, labelTone, fontStyle]} numberOfLines={1}>{title}</Text>
         <View style={[styles.widgetStatusCapsule, isTinted ? styles.widgetStatusCapsuleTinted : null]}>
           <Text style={[styles.widgetTiny, labelTone]}>
             {type === "due_next" ? "2h" : "May 13"}
@@ -371,8 +380,8 @@ export function WidgetPreviewCard({
       </View>
       <View style={styles.widgetMainRow}>
         <View style={styles.widgetCopy}>
-          <Text style={[styles.widgetValue, labelTone, fontStyle]}>{value}</Text>
-          <Text style={[styles.widgetDetail, labelTone]} numberOfLines={2}>
+          <Text style={[styles.widgetValue, labelTone, fontStyle]} numberOfLines={1}>{value}</Text>
+          <Text style={[styles.widgetDetail, labelTone]} numberOfLines={isMedium ? 2 : 1}>
             {detail}
           </Text>
         </View>
@@ -564,7 +573,7 @@ function createStyles(theme: AppTheme) {
     logoMark: {
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: colors.accent,
+      backgroundColor: colors.heroSurface,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.isDark ? "rgba(255,255,255,0.24)" : "rgba(255,255,255,0.92)",
       shadowColor: colors.shadow,
@@ -626,27 +635,47 @@ function createStyles(theme: AppTheme) {
     glassCard: {
       borderRadius: radii.xl,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(17,24,39,0.08)",
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.72)",
       padding: spacing.lg,
+      overflow: "hidden",
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.34 : 0.10,
+      shadowOpacity: theme.isDark ? 0.30 : 0.13,
       shadowRadius: 24,
       shadowOffset: { width: 0, height: 14 },
       elevation: 6
     },
+    liquidGlassHighlight: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      height: "42%",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : "rgba(255,255,255,0.42)",
+      opacity: 0.86
+    },
+    liquidGlassInnerGlow: {
+      position: "absolute",
+      right: -48,
+      top: -52,
+      width: 132,
+      height: 132,
+      borderRadius: 66,
+      backgroundColor: theme.isDark ? "rgba(53,242,208,0.085)" : "rgba(255,255,255,0.48)",
+      opacity: 0.80
+    },
     plainGlassCard: {
-      backgroundColor: theme.isDark ? "rgba(18,24,39,0.94)" : "rgba(255,255,255,0.96)"
+      backgroundColor: theme.isDark ? "rgba(18,25,42,0.72)" : "rgba(255,255,255,0.76)"
     },
     heroGlassCard: {
-      backgroundColor: colors.heroSurface,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(17,24,39,0.16)"
+      backgroundColor: theme.isDark ? "rgba(10,15,26,0.88)" : "rgba(17,24,26,0.92)",
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.24)"
     },
     softGlassCard: {
-      backgroundColor: colors.surfaceTint
+      backgroundColor: theme.isDark ? "rgba(16,54,55,0.54)" : "rgba(232,244,240,0.78)"
     },
     darkGlassCard: {
-      backgroundColor: "#111827",
-      borderColor: "rgba(255,255,255,0.14)"
+      backgroundColor: "rgba(17,24,39,0.82)",
+      borderColor: "rgba(255,255,255,0.18)"
     },
     statPill: {
       flex: 1,
@@ -704,25 +733,27 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800"
     },
     segmented: {
-      minHeight: 42,
+      minHeight: 44,
       flexDirection: "row",
-      borderRadius: radii.lg,
-      backgroundColor: colors.surfaceAlt,
+      borderRadius: radii.xl,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : colors.surfaceAlt,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.72)",
       padding: 4,
       gap: 4
     },
     segment: {
       flex: 1,
       minWidth: 0,
-      borderRadius: radii.md,
+      borderRadius: radii.lg,
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: spacing.xs
     },
     segmentActive: {
-      backgroundColor: colors.surface,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.12)" : colors.surface,
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.18 : 0.08,
+      shadowOpacity: theme.isDark ? 0.16 : 0.08,
       shadowRadius: 8,
       shadowOffset: { width: 0, height: 4 }
     },
@@ -736,20 +767,20 @@ function createStyles(theme: AppTheme) {
       color: colors.ink
     },
     assignmentRow: {
-      minHeight: 78,
-      borderRadius: radii.lg,
+      minHeight: 82,
+      borderRadius: radii.xl,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.12)" : colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.045)" : colors.surface,
       padding: spacing.sm,
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.sm,
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.16 : 0.05,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 5 },
-      elevation: 1
+      shadowOpacity: theme.isDark ? 0.18 : 0.06,
+      shadowRadius: 13,
+      shadowOffset: { width: 0, height: 7 },
+      elevation: 2
     },
     classTile: {
       width: 42,
@@ -777,7 +808,8 @@ function createStyles(theme: AppTheme) {
       color: colors.ink,
       fontSize: 15,
       lineHeight: 20,
-      fontWeight: "900"
+      fontWeight: "900",
+      letterSpacing: -0.12
     },
     assignmentRowMeta: {
       color: colors.muted,
@@ -852,16 +884,16 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800"
     },
     widget: {
-      borderRadius: 26,
+      borderRadius: 30,
       padding: spacing.md,
       overflow: "hidden",
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.18)" : "rgba(16,24,40,0.10)",
+      borderColor: theme.isDark ? "rgba(255,255,255,0.18)" : "rgba(18,20,23,0.08)",
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.36 : 0.18,
-      shadowRadius: 24,
-      shadowOffset: { width: 0, height: 14 },
-      elevation: 6
+      shadowOpacity: theme.isDark ? 0.48 : 0.18,
+      shadowRadius: 26,
+      shadowOffset: { width: 0, height: 16 },
+      elevation: 8
     },
     widgetSmall: {
       width: 126,
@@ -876,14 +908,25 @@ function createStyles(theme: AppTheme) {
       minHeight: 164
     },
     widgetSolid: {
-      backgroundColor: theme.isDark ? "#121A2A" : "#FFFFFF"
+      backgroundColor: theme.isDark ? "#111827" : "#FFFDF4"
     },
     widgetGlass: {
-      backgroundColor: theme.isDark ? "rgba(24,36,66,0.82)" : "rgba(255,255,255,0.86)"
+      backgroundColor: theme.isDark ? "rgba(17,24,39,0.72)" : "rgba(255,253,244,0.74)",
+      borderColor: theme.isDark ? "rgba(255,255,255,0.24)" : "rgba(255,255,255,0.88)"
     },
     widgetDark: {
-      backgroundColor: "#090E1F",
-      borderColor: "rgba(124,156,255,0.28)"
+      backgroundColor: "#070A12",
+      borderColor: "rgba(53,242,208,0.22)"
+    },
+    widgetBackplate: {
+      position: "absolute",
+      left: 9,
+      right: 9,
+      bottom: -7,
+      height: 22,
+      borderRadius: 18,
+      borderWidth: 1,
+      opacity: 0.16
     },
     widgetAura: {
       position: "absolute",
@@ -892,7 +935,7 @@ function createStyles(theme: AppTheme) {
       width: 142,
       height: 142,
       borderRadius: 71,
-      opacity: theme.isDark ? 0.28 : 0.16
+      opacity: theme.isDark ? 0.34 : 0.22
     },
     widgetSheen: {
       position: "absolute",
@@ -901,14 +944,26 @@ function createStyles(theme: AppTheme) {
       width: 118,
       height: 118,
       borderRadius: 59,
-      opacity: theme.isDark ? 0.16 : 0.11
+      opacity: theme.isDark ? 0.22 : 0.18
+    },
+    widgetGridTexture: {
+      position: "absolute",
+      right: 14,
+      top: 38,
+      width: 74,
+      height: 74,
+      borderRadius: 22,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.18)",
+      backgroundColor: "rgba(255,255,255,0.035)",
+      transform: [{ rotate: "8deg" }]
     },
     widgetAccentRail: {
       position: "absolute",
       top: 0,
       left: 0,
-      right: 0,
-      height: 4,
+      bottom: 0,
+      width: 5,
       opacity: 0.92
     },
     widgetGlow: {
@@ -927,11 +982,12 @@ function createStyles(theme: AppTheme) {
       gap: spacing.sm
     },
     widgetLabel: {
+      flex: 1,
       color: colors.ink,
       fontSize: 10,
       lineHeight: 13,
       fontWeight: "900",
-      letterSpacing: 0.5,
+      letterSpacing: 0.6,
       textTransform: "uppercase"
     },
     widgetStatusCapsule: {
@@ -954,15 +1010,15 @@ function createStyles(theme: AppTheme) {
     widgetValue: {
       marginTop: spacing.xs,
       color: colors.ink,
-      fontSize: 34,
-      lineHeight: 39,
+      fontSize: 32,
+      lineHeight: 37,
       fontWeight: "900",
-      letterSpacing: -0.7
+      letterSpacing: -0.8
     },
     widgetDetail: {
       color: colors.ink,
-      fontSize: 13,
-      lineHeight: 18,
+      fontSize: 12,
+      lineHeight: 16,
       fontWeight: "800",
       opacity: 0.86
     },
@@ -977,9 +1033,9 @@ function createStyles(theme: AppTheme) {
       minWidth: 0
     },
     widgetIconOrb: {
-      width: 38,
-      height: 38,
-      borderRadius: 15,
+      width: 34,
+      height: 34,
+      borderRadius: 13,
       alignItems: "center",
       justifyContent: "center",
       opacity: 0.96,

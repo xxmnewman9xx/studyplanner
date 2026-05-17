@@ -70,8 +70,8 @@ export function buildTodayPlan(
   semester: Semester,
   now = new Date()
 ): TodayPlan {
-  const open = assignments
-    .filter((item) => item.status !== "done" && item.status !== "archived")
+  const active = assignments.filter(isActiveAssignment);
+  const open = getSchedulableAssignments(active)
     .sort((a, b) => scoreWork(b, now) - scoreWork(a, now));
   const dueToday = open.filter((item) => isSameDay(new Date(item.dueAt), now));
   const overdue = getOverdue(assignments, now);
@@ -93,21 +93,20 @@ export function buildTodayPlan(
     needsReview: getNeedsReview(assignments),
     overdue,
     doneCount: assignments.filter((item) => item.status === "done").length,
-    openCount: open.length,
+    openCount: active.length,
     semesterProgress: calculateSemesterProgress(semester, now)
   };
 }
 
 export function getDueToday(assignments: Assignment[], now = new Date()) {
-  return assignments
-    .filter((item) => item.status !== "done" && item.status !== "archived")
+  return getSchedulableAssignments(assignments)
     .filter((item) => isSameDay(new Date(item.dueAt), now))
     .sort(sortByDueDate);
 }
 
 export function getDueSoon(assignments: Assignment[], now = new Date(), days = 5) {
   return assignments
-    .filter((item) => item.status !== "done" && item.status !== "archived")
+    .filter(isActiveAssignment)
     .filter((item) => {
       const until = daysUntil(item.dueAt, now);
       return until > 0 && until <= days;
@@ -117,37 +116,47 @@ export function getDueSoon(assignments: Assignment[], now = new Date(), days = 5
 
 export function getOverdue(assignments: Assignment[], now = new Date()) {
   return assignments
-    .filter((item) => item.status !== "done" && item.status !== "archived")
+    .filter(isActiveAssignment)
     .filter((item) => daysUntil(item.dueAt, now) < 0)
     .sort(sortBySmallestCatchUp);
 }
 
 export function getNeedsReview(assignments: Assignment[]) {
   return assignments
-    .filter((item) => item.status !== "archived" && (item.needsReview || item.duplicateOf))
+    .filter(
+      (item) =>
+        item.status !== "archived" &&
+        (item.needsReview || item.duplicateOf || !isValidDeadline(item.dueAt))
+    )
     .sort(sortByDueDate);
 }
 
+export function getSchedulableAssignments(assignments: Assignment[]) {
+  return assignments.filter((item) => isActiveAssignment(item) && isValidDeadline(item.dueAt));
+}
+
 export function getNextUp(assignments: Assignment[], now = new Date()) {
-  return assignments
-    .filter((item) => item.status !== "done" && item.status !== "archived")
+  return getSchedulableAssignments(assignments)
     .sort((a, b) => scoreWork(b, now) - scoreWork(a, now))[0];
 }
 
 export function scoreWork(assignment: Assignment, now = new Date()) {
-  const dueInDays = Math.max(daysUntil(assignment.dueAt, now), -2);
-  const urgency = dueInDays <= 0 ? 100 : 70 / (dueInDays + 1);
+  const validDeadline = isValidDeadline(assignment.dueAt);
+  const dueInDays = validDeadline ? Math.max(daysUntil(assignment.dueAt, now), -2) : 14;
+  const urgency = validDeadline ? (dueInDays <= 0 ? 100 : 70 / (dueInDays + 1)) : 0;
   const kindBoost = assignment.kind === "exam" ? 25 : 0;
   const priorityBoost = assignment.priority === "high" ? 22 : assignment.priority === "medium" ? 10 : 0;
-  const timeBoost = Math.min(assignment.estimatedMinutes / 20, 12);
+  const timeBoost = Math.min(normalizeEstimatedMinutes(assignment.estimatedMinutes) / 20, 12);
   const startedBoost = assignment.status === "in_progress" ? 7 : 0;
-  const reviewBoost = assignment.needsReview ? 34 : 0;
+  const reviewBoost = assignment.needsReview || !validDeadline ? 34 : 0;
   const duplicateBoost = assignment.duplicateOf ? 12 : 0;
   const confidenceBoost = typeof assignment.confidence === "number" && assignment.confidence < 0.65 ? 10 : 0;
   return urgency + kindBoost + priorityBoost + timeBoost + startedBoost + reviewBoost + duplicateBoost + confidenceBoost;
 }
 
 export function daysUntil(iso: string, now = new Date()) {
+  if (!isValidDeadline(iso)) return Number.POSITIVE_INFINITY;
+
   const due = new Date(iso);
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   const dueDay = new Date(due.getFullYear(), due.getMonth(), due.getDate()).getTime();
@@ -155,6 +164,8 @@ export function daysUntil(iso: string, now = new Date()) {
 }
 
 export function formatShortDate(iso: string) {
+  if (!isValidDeadline(iso)) return "Check deadline";
+
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
@@ -164,6 +175,8 @@ export function formatShortDate(iso: string) {
 }
 
 export function formatDateOnly(iso: string) {
+  if (!isValidDateInput(iso.slice(0, 10))) return "Check date";
+
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
@@ -177,7 +190,7 @@ export function getCourseForAssignment(courses: Course[], assignment: Assignment
 
 export function getCalendarEventsByDay(assignments: Assignment[], courses: Course[]) {
   return assignments
-    .filter((assignment) => assignment.status !== "archived" && assignment.status !== "done")
+    .filter((assignment) => isActiveAssignment(assignment) && isValidDeadline(assignment.dueAt))
     .reduce<Record<string, CalendarEvent[]>>((events, assignment) => {
       const dateKey = dateKeyFromIso(assignment.dueAt);
       const event: CalendarEvent = {
@@ -201,8 +214,8 @@ export function getWeekLoad(assignments: Assignment[], now = new Date()) {
     const dateKey = dateKeyFromDate(date);
     const items = assignments.filter(
       (assignment) =>
-        assignment.status !== "archived" &&
-        assignment.status !== "done" &&
+        isActiveAssignment(assignment) &&
+        isValidDeadline(assignment.dueAt) &&
         dateKeyFromIso(assignment.dueAt) === dateKey
     );
     const score = items.reduce((sum, item) => {
@@ -225,8 +238,7 @@ export function getBusyWeekInsight(assignments: Assignment[], now = new Date()):
   const week = getWeekLoad(assignments, now);
   const heavyDays = week.filter((day) => day.heavy);
   const peakDay = [...week].sort((a, b) => b.score - a.score)[0];
-  const movable = assignments
-    .filter((item) => item.status !== "done" && item.status !== "archived")
+  const movable = getSchedulableAssignments(assignments)
     .sort(sortByDueDate)
     .slice(0, 2);
 
@@ -271,7 +283,9 @@ export function getClassAssignmentCounts(courses: Course[], assignments: Assignm
           (assignment) => assignment.status !== "done" && assignment.status !== "archived"
         ).length,
         done: courseAssignments.filter((assignment) => assignment.status === "done").length,
-        needsReview: courseAssignments.filter((assignment) => assignment.needsReview).length
+        needsReview: courseAssignments.filter(
+          (assignment) => assignment.needsReview || !isValidDeadline(assignment.dueAt)
+        ).length
       };
       return counts;
     },
@@ -522,6 +536,10 @@ export function groupMeetingsByDay(courses: Course[]) {
   }));
 }
 
+function isActiveAssignment(assignment: Assignment) {
+  return assignment.status !== "done" && assignment.status !== "archived";
+}
+
 function isSameDay(a: Date, b: Date) {
   return (
     a.getFullYear() === b.getFullYear() &&
@@ -535,7 +553,15 @@ function isPast(due: Date, now: Date) {
 }
 
 function sortByDueDate(a: Assignment, b: Assignment) {
-  return new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime();
+  const aTime = new Date(a.dueAt).getTime();
+  const bTime = new Date(b.dueAt).getTime();
+  const aValid = Number.isFinite(aTime);
+  const bValid = Number.isFinite(bTime);
+
+  if (!aValid && !bValid) return 0;
+  if (!aValid) return -1;
+  if (!bValid) return 1;
+  return aTime - bTime;
 }
 
 function sortBySmallestCatchUp(a: Assignment, b: Assignment) {
@@ -545,6 +571,7 @@ function sortBySmallestCatchUp(a: Assignment, b: Assignment) {
 }
 
 function dateKeyFromIso(iso: string) {
+  if (!isValidDeadline(iso)) return "needs-review";
   return dateKeyFromDate(new Date(iso));
 }
 
@@ -565,6 +592,7 @@ function startOfWeek(now: Date) {
 
 function timeUntilLabel(iso: string, now: Date) {
   const days = daysUntil(iso, now);
+  if (!Number.isFinite(days)) return "Check deadline";
   if (days <= 0) return "Today";
   if (days === 1) return "Tomorrow";
   return `${days} days`;
@@ -596,4 +624,36 @@ function parseDateOnlyAsLocal(value: string) {
 
   const [, year, month, day] = match;
   return new Date(Number(year), Number(month) - 1, Number(day));
+}
+
+export function isValidDateInput(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+
+  const [year = 0, month = 0, day = 0] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+
+  return (
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
+  );
+}
+
+export function isValidTimeInput(value: string) {
+  if (!/^\d{2}:\d{2}$/.test(value)) return false;
+
+  const [hour = -1, minute = -1] = value.split(":").map(Number);
+  return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
+}
+
+export function normalizeEstimatedMinutes(value: string | number, fallback = 60) {
+  const parsed = typeof value === "number" ? value : Number.parseInt(value, 10);
+  const safeFallback = Number.isFinite(fallback) && fallback > 0 ? fallback : 60;
+
+  if (!Number.isFinite(parsed) || parsed <= 0) return safeFallback;
+  return Math.min(Math.round(parsed), 480);
+}
+
+export function isValidDeadline(value: string) {
+  return isValidDateInput(value.slice(0, 10)) && isValidTimeInput(value.slice(11, 16));
 }

@@ -38,6 +38,12 @@ import {
 } from "../services/marketingCapture";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
+import {
+  isValidDateInput,
+  isValidDeadline,
+  isValidTimeInput,
+  normalizeEstimatedMinutes
+} from "../logic/planner";
 
 type ImportScreenProps = {
   parsedImports: ParsedImport[];
@@ -110,6 +116,14 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
   };
 
   const capturePhoto = async () => {
+    if (!imageParsingReady) {
+      Alert.alert(
+        "Photo scan needs AI setup",
+        "Upload a text-based PDF or paste syllabus text for now. Photo parsing turns on when the production parser endpoint is configured."
+      );
+      return;
+    }
+
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
       Alert.alert("Camera permission needed", "Camera access lets you photograph syllabus pages.");
@@ -143,9 +157,35 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
   };
 
   const counts = draft ? summarizeDraft(draft) : null;
-  const invalidDateCount = draft?.assignments.filter((assignment) => !isValidDateInput(assignment.dueAt.slice(0, 10))).length || 0;
+  const invalidDeadlineCount = draft?.assignments.filter((assignment) => !isValidDeadline(assignment.dueAt)).length || 0;
   const needsReviewCount = draft?.assignments.filter((assignment) => assignment.needsReview || (assignment.confidence || 1) < 0.75).length || parsedItems.filter((item) => item.needsReview).length;
-  const canApplyDraft = Boolean(draft && draft.assignments.length > 0 && invalidDateCount === 0);
+  const canApplyDraft = Boolean(draft && draft.assignments.length > 0 && invalidDeadlineCount === 0);
+  const firstActionTitle = draft?.assignments
+    .slice()
+    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())[0]?.title;
+  const firstMoves = draft
+    ? [
+        {
+          label: "1",
+          title: needsReviewCount > 0 ? `Review ${needsReviewCount} flagged item${needsReviewCount === 1 ? "" : "s"}` : "Trust check is clean",
+          copy: needsReviewCount > 0
+            ? "Fix missing dates, low-confidence rows, or duplicates before they touch Today."
+            : "No obvious import flags. Approve the plan when the extracted work looks right."
+        },
+        {
+          label: "2",
+          title: invalidDeadlineCount > 0 ? "Fix deadlines first" : `Add ${draft.assignments.length} approved item${draft.assignments.length === 1 ? "" : "s"}`,
+          copy: invalidDeadlineCount > 0
+            ? "StudyPlanner blocks the handoff until every deadline is usable."
+            : "Approved work lands in Today with classes, priorities, reminders, and focus steps."
+        },
+        {
+          label: "3",
+          title: firstActionTitle ? `Start: ${firstActionTitle}` : "Open Today’s first move",
+          copy: "After approval, Today shows the next best task so the import turns into action."
+        }
+      ]
+    : [];
 
   const addUndatedExampleDraft = (example: string) => {
     if (!draft) return;
@@ -189,10 +229,10 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
   return (
     <View>
       <View style={styles.header}>
-        <Text style={styles.kicker}>Import cockpit</Text>
-        <Text style={styles.title}>Turn class chaos into a trusted plan.</Text>
+        <Text style={styles.kicker}>Add schoolwork</Text>
+        <Text style={styles.title}>Scan or paste. Then approve.</Text>
         <Text style={styles.subtitle}>
-          Scan, upload, or paste. StudyPlanner extracts the work, flags uncertainty, then waits for your approval.
+          Nothing is added to your planner until you review it first.
         </Text>
       </View>
 
@@ -202,18 +242,18 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
         <View style={styles.scanFrame}>
           <View style={styles.scanLine} />
         </View>
-        <Text style={styles.dropKicker}>Syllabus AI</Text>
-        <Text style={styles.dropTitle}>Scan school chaos into a plan.</Text>
-        <Text style={styles.dropCopy}>Find assignments, exams, readings, and missing dates before anything touches Today.</Text>
+        <Text style={styles.dropKicker}>Step 1</Text>
+        <Text style={styles.dropTitle}>Add a syllabus or homework list.</Text>
+        <Text style={styles.dropCopy}>We find homework, tests, dates, and classes. You approve everything before it appears on Today.</Text>
         <View style={styles.trustRow}>
-          <TrustChip label="Review first" />
-          <TrustChip label="Confidence flags" />
-          <TrustChip label="Dates checked" />
+          <TrustChip label="You review first" />
+          <TrustChip label="We mark unsure items" />
+          <TrustChip label="Dates are checked" />
         </View>
         <View style={styles.scanActions}>
-          <AppButton label="Scan" icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
-          <AppButton label="Upload" icon={Upload} variant="secondary" onPress={pickPdf} style={styles.scanActionSecondary} />
-          <AppButton label="Paste" icon={Keyboard} variant="secondary" onPress={typeItIn} style={styles.scanActionSecondary} />
+          <AppButton label="Take photo" icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
+          <AppButton label="Upload file" icon={Upload} variant="secondary" onPress={pickPdf} style={styles.scanActionSecondary} />
+          <AppButton label="Paste text" icon={Keyboard} variant="secondary" onPress={typeItIn} style={styles.scanActionSecondary} />
         </View>
         <TextInput
           value={typedText}
@@ -223,7 +263,11 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
           placeholderTextColor={colors.heroMuted}
           style={styles.typeBox}
         />
-        <Text style={styles.privacyNote}>Private until you approve the plan.</Text>
+        <Text style={styles.privacyNote}>
+          {imageParsingReady
+            ? "Private until you approve the plan."
+            : "Upload and Paste work now. Photo scan turns on when the production parser endpoint is configured."}
+        </Text>
       </GlassCard>
 
       {loading ? (
@@ -266,13 +310,30 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
 
       {draft ? (
         <>
-          <SectionHeader title="Import review" note={`${draft.assignments.length + draft.courses.length + draft.gradeItems.length} extracted items waiting for approval`} />
+          <SectionHeader title="Review draft — nothing is added yet" note={`${draft.assignments.length + draft.courses.length + draft.gradeItems.length} items found. Fix anything wrong, then add approved work to Today.`} />
           <GlassCard style={styles.resultCard}>
             <View style={styles.resultStats}>
               <ResultStat value={String(counts?.assignments || 0)} label="Assignments" tone="blue" />
               <ResultStat value={String(counts?.exams || 0)} label="Exams" tone="pink" />
               <ResultStat value={String(counts?.projects || 0)} label="Projects" tone="gold" />
               <ResultStat value={String(needsReviewCount)} label="Needs review" tone="plain" />
+            </View>
+            <View style={styles.firstMovesCard}>
+              <Text style={styles.firstMovesKicker}>What happens next</Text>
+              <Text style={styles.firstMovesTitle}>Review draft → add to Today → start studying.</Text>
+              <View style={styles.firstMovesList}>
+                {firstMoves.map((move) => (
+                  <View key={move.label} style={styles.firstMoveRow}>
+                    <View style={styles.firstMoveNumber}>
+                      <Text style={styles.firstMoveNumberText}>{move.label}</Text>
+                    </View>
+                    <View style={styles.firstMoveCopy}>
+                      <Text style={styles.firstMoveTitle}>{move.title}</Text>
+                      <Text style={styles.firstMoveDetail}>{move.copy}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
             </View>
             <View style={styles.findings}>
               {draft.findings.map((finding) => (
@@ -296,7 +357,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
                             >
                               <Plus color={added ? colors.faint : colors.accent} size={14} />
                               <Text style={[styles.exampleAddText, added ? styles.exampleAddTextDisabled : null]}>
-                                {added ? "Added" : "Draft"}
+                                {added ? "Added" : "Make draft"}
                               </Text>
                             </TouchableOpacity>
                           </View>
@@ -307,15 +368,17 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
                 </View>
               ))}
               {needsReviewCount > 0 ? <Badge label="Missing date or duplicate possible" tone="red" /> : null}
-              {invalidDateCount > 0 ? <Badge label={`${invalidDateCount} invalid date${invalidDateCount === 1 ? "" : "s"} to fix`} tone="red" /> : null}
+              {invalidDeadlineCount > 0 ? <Badge label={`${invalidDeadlineCount} invalid deadline${invalidDeadlineCount === 1 ? "" : "s"} to fix`} tone="red" /> : null}
             </View>
           </GlassCard>
 
-          <SectionHeader title="Needs Review" note="Editable rows before adding to your planner" />
+          <SectionHeader title="Edit found homework" note="These are drafts. Tap text or dates to fix them." />
           <View style={styles.editList}>
             {draft.assignments.map((assignment) => {
               const courseCode =
                 draft.courses.find((course) => course.id === assignment.courseId)?.code || "Class";
+              const dueDate = assignment.dueAt.slice(0, 10);
+              const dueTime = normalizedDueTime(assignment.dueAt, assignment.kind);
               return (
                 <View key={assignment.id} style={styles.editCard}>
                   <View style={styles.editCardTop}>
@@ -342,15 +405,29 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
 
                   <View style={styles.twoColumn}>
                     <TextInput
-                      value={assignment.dueAt.slice(0, 10)}
+                      value={dueDate}
                       style={[styles.input, styles.fieldHalf]}
                       placeholder="YYYY-MM-DD"
                       placeholderTextColor={colors.faint}
                       onChangeText={(date) =>
                         setDraft(
                           updateParsedAssignment(draft, assignment.id, {
-                            dueAt: `${date}T23:59:00`,
-                            needsReview: !isValidDateInput(date)
+                            dueAt: `${date}T${dueTime}:00`,
+                            needsReview: !isValidDateInput(date) || !isValidTimeInput(dueTime)
+                          })
+                        )
+                      }
+                    />
+                    <TextInput
+                      value={dueTime}
+                      style={[styles.input, styles.fieldHalf]}
+                      placeholder="HH:MM"
+                      placeholderTextColor={colors.faint}
+                      onChangeText={(time) =>
+                        setDraft(
+                          updateParsedAssignment(draft, assignment.id, {
+                            dueAt: `${dueDate}T${time}:00`,
+                            needsReview: !isValidDateInput(dueDate) || !isValidTimeInput(time)
                           })
                         )
                       }
@@ -364,7 +441,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
                       onChangeText={(estimatedMinutes) =>
                         setDraft(
                           updateParsedAssignment(draft, assignment.id, {
-                            estimatedMinutes: Number.parseInt(estimatedMinutes, 10) || 0
+                            estimatedMinutes: normalizeEstimatedMinutes(estimatedMinutes, assignment.estimatedMinutes)
                           })
                         )
                       }
@@ -390,14 +467,14 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
 
           <View style={styles.applyBar}>
             <AppButton
-              label={invalidDateCount > 0 ? "Fix dates first" : `Add all ${draft.assignments.length}`}
+              label={invalidDeadlineCount > 0 ? "Fix dates before adding" : `Add ${draft.assignments.length} reviewed item${draft.assignments.length === 1 ? "" : "s"} to Today`}
               disabled={!canApplyDraft}
               onPress={() => {
                 if (!canApplyDraft) return;
                 onApplyParsedPlan(draft);
               }}
             />
-            <AppButton label="Revise" variant="secondary" onPress={() => setDraft(null)} />
+            <AppButton label="Start over" variant="secondary" onPress={() => setDraft(null)} />
           </View>
         </>
       ) : null}
@@ -437,18 +514,11 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
   }
 }
 
-function isValidDateInput(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const parts = value.split("-").map(Number);
-  const yearValue = parts[0] || 0;
-  const monthValue = parts[1] || 0;
-  const dayValue = parts[2] || 0;
-  const date = new Date(yearValue, monthValue - 1, dayValue);
-  return (
-    date.getFullYear() === yearValue &&
-    date.getMonth() === monthValue - 1 &&
-    date.getDate() === dayValue
-  );
+
+function normalizedDueTime(value: string, kind: AssignmentKind) {
+  const time = value.slice(11, 16);
+  if (isValidTimeInput(time)) return time;
+  return kind === "exam" ? "09:00" : "23:59";
 }
 
 function summarizeDraft(draft: SyllabusParseResult) {
@@ -867,6 +937,65 @@ function createStyles(theme: AppTheme) {
       fontSize: 11,
       lineHeight: 15,
       fontWeight: "900"
+    },
+    firstMovesCard: {
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      gap: spacing.sm
+    },
+    firstMovesKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      letterSpacing: 0.6,
+      textTransform: "uppercase"
+    },
+    firstMovesTitle: {
+      color: colors.ink,
+      fontSize: 18,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    firstMovesList: {
+      gap: spacing.sm
+    },
+    firstMoveRow: {
+      flexDirection: "row",
+      gap: spacing.sm,
+      alignItems: "flex-start"
+    },
+    firstMoveNumber: {
+      width: 25,
+      height: 25,
+      borderRadius: 13,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.accentSoft
+    },
+    firstMoveNumberText: {
+      color: colors.accent,
+      fontSize: 12,
+      fontWeight: "900"
+    },
+    firstMoveCopy: {
+      flex: 1,
+      gap: 2
+    },
+    firstMoveTitle: {
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "900"
+    },
+    firstMoveDetail: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
     },
     findings: {
       gap: spacing.xs

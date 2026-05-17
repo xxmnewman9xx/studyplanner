@@ -15,7 +15,8 @@ Turn a messy semester into a clear daily execution plan. Students upload or phot
 ### Included
 
 - Course and semester setup.
-- PDF/photo syllabus import with editable parsing results.
+- Text-based PDF and pasted-text syllabus import with editable parsing results.
+- Photo syllabus parsing when a production parser endpoint is configured.
 - Assignments and exams with due dates, tags, priority, estimates, and status.
 - Weekly class schedule.
 - Today view with a ranked next action.
@@ -44,11 +45,12 @@ Turn a messy semester into a clear daily execution plan. Students upload or phot
 
 ### Syllabus Import
 
-1. Capture PDF/photo.
-2. OCR and parse on backend.
+1. Upload a text-based PDF, paste syllabus text, or capture a photo when the production parser endpoint is configured.
+2. Parse locally when possible; use the configured parser endpoint for image/photo parsing.
 3. Return structured JSON with confidence and review flags.
-4. Show editable fields before applying.
-5. Merge into planner objects only after confirmation.
+4. Show editable title, kind, priority, due date, due time, and effort fields before applying.
+5. Block invalid deadlines from application and route uncertain work into Needs Review.
+6. Merge into planner objects only after confirmation.
 
 ### Daily Use Loop
 
@@ -77,8 +79,9 @@ The Today view ranks open work using:
 - Priority.
 - Estimated work time.
 - Whether the task has already been started.
+- Review/duplicate/confidence flags.
 
-This keeps the app planner-first: AI creates structure, but daily execution logic stays deterministic and explainable.
+This keeps the app planner-first: AI creates structure, but daily execution logic stays deterministic and explainable. Invalid legacy deadlines are treated as review work instead of schedulable work, so Today, widgets, reminders, calendar sync, and week load stay trustworthy.
 
 ## Monetization Gates
 
@@ -112,6 +115,7 @@ The first paid value should appear at a natural save-time moment: scanning a syl
 ## Launch Risks
 
 - AI date extraction must be reviewable and reversible.
+- Deadline validation must prevent impossible dates/times from entering schedulable surfaces.
 - Calendar sync must store external event IDs before production release to avoid duplicates.
 - App Store metadata should not claim Canvas support unless the shipped build actually supports it.
 - Syllabus photos may contain student, school, and instructor data, so backend retention and deletion policies need to be explicit.

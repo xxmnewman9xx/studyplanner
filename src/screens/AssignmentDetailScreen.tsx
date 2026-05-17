@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Archive, CheckCircle2, Save, Timer, X } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
@@ -9,7 +9,13 @@ import {
   SegmentedControl
 } from "../components/AppleComponents";
 import { Assignment, AssignmentKind, AssignmentStatus, ChecklistItem, Course, Priority } from "../models";
-import { formatShortDate, getCourseForAssignment } from "../logic/planner";
+import {
+  formatShortDate,
+  getCourseForAssignment,
+  isValidDateInput,
+  isValidTimeInput,
+  normalizeEstimatedMinutes
+} from "../logic/planner";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 
@@ -76,6 +82,20 @@ export function AssignmentDetailScreen({
   );
 
   const save = (override?: Partial<Assignment>) => {
+    const cleanDueDate = dueDate || assignment.dueAt.slice(0, 10);
+
+    const cleanDueTime = dueTime || "23:59";
+
+    if (!isValidDateInput(cleanDueDate)) {
+      Alert.alert("Check the date", "Use a real date in YYYY-MM-DD format before saving this assignment.");
+      return;
+    }
+
+    if (!isValidTimeInput(cleanDueTime)) {
+      Alert.alert("Check the time", "Use a real time in HH:MM format before saving this assignment.");
+      return;
+    }
+
     const nextChecklist = override?.checklist || checklist;
     const nextStatus = override?.status || status;
     const nextProgress = override?.progress ?? (
@@ -87,8 +107,8 @@ export function AssignmentDetailScreen({
     );
     onSave({
       title: title.trim() || assignment.title,
-      dueAt: `${dueDate || assignment.dueAt.slice(0, 10)}T${dueTime || "23:59"}:00`,
-      estimatedMinutes: Number.parseInt(estimatedMinutes, 10) || assignment.estimatedMinutes,
+      dueAt: `${cleanDueDate}T${cleanDueTime}:00`,
+      estimatedMinutes: normalizeEstimatedMinutes(estimatedMinutes, assignment.estimatedMinutes),
       tags: tags
         .split(",")
         .map((tag) => tag.trim())
@@ -142,9 +162,9 @@ export function AssignmentDetailScreen({
         </View>
         <Text style={styles.progressText}>{progressPercent}% complete</Text>
         <View style={styles.heroActions}>
-          <AppButton label="Start Focus" icon={Timer} onPress={onStartFocus} style={styles.heroButton} />
+          <AppButton label="Study this now" icon={Timer} onPress={onStartFocus} style={styles.heroButton} />
           <AppButton
-            label="Mark Complete"
+            label="Mark task done"
             icon={CheckCircle2}
             variant="secondary"
             onPress={() => {
@@ -282,8 +302,8 @@ export function AssignmentDetailScreen({
       </Section>
 
       <View style={styles.actionRow}>
-        <AppButton label="Save" icon={Save} disabled={!dirty} onPress={() => save()} style={styles.actionButton} />
-        <AppButton label="Archive" icon={Archive} variant="secondary" onPress={onArchive} style={styles.actionButton} />
+        <AppButton label="Save changes" icon={Save} disabled={!dirty} onPress={() => save()} style={styles.actionButton} />
+        <AppButton label="Hide task" icon={Archive} variant="secondary" onPress={onArchive} style={styles.actionButton} />
       </View>
     </View>
   );

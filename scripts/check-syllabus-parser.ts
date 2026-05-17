@@ -20,7 +20,7 @@ Mon Wed 9:00 AM - 10:15 AM Room 204
 Aug 30 Homework 1 due
 September 14 Lab report due
 10/03 Midterm Exam
-Final Project due Dec 7, 2026
+Final Project due Dec 7, 2026 by 11:59 PM
 `;
 
 const dated = parseSyllabusText(datedMessySyllabus, "BIO101-syllabus.pdf");
@@ -30,7 +30,25 @@ assert(dated.assignments.length >= 4, `Expected at least 4 assignments, got ${da
 assert(includesAssignment(datedTitles, "Homework 1"), "Expected Homework 1 assignment");
 assert(includesAssignment(datedTitles, "Lab report"), "Expected Lab report assignment");
 assert(dated.assignments.some((item) => item.kind === "exam"), "Expected an exam assignment");
+assert(
+  dated.assignments.some((item) => item.title === "Final Project" && item.dueAt === "2026-12-07T23:59:00"),
+  "Expected explicit due times to parse without polluting assignment titles"
+);
 assert(dated.courses[0]?.gradeCategories.length === 3, "Expected grade categories to parse");
+assert(
+  dated.courses[0]?.meetings.map((meeting) => `${meeting.day} ${meeting.startTime}-${meeting.endTime}`).join(",") ===
+    "Mon 09:00-10:15,Wed 09:00-10:15",
+  "Expected class meeting days and times to parse without corrupting weekday labels"
+);
+
+const invalidDueTime = parseSyllabusText(
+  `BIO 101 - Biology Foundations\nFall 2026\nProblem set due Sep 20 by 13:90 PM`,
+  "bio101-invalid-time.txt"
+);
+assert(
+  invalidDueTime.assignments.some((item) => item.title === "Problem set" && item.dueAt === "2026-09-20T23:59:00"),
+  "Expected invalid explicit due times to fall back safely without polluting assignment titles"
+);
 
 const undatedSyllabus = `
 ENG 220 - Modern Literature

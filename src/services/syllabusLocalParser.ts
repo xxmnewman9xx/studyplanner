@@ -13,6 +13,7 @@ const datePattern =
   /\b(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[/. -]\d{1,2}(?:[/. -]\d{2,4})?|(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+\d{4})?)\b/i;
 const weekdayDuePattern = /\b(?:due\s+)?(?:next\s+)?(mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?)\b/i;
 const relativeDuePattern = /\b(?:due\s+)?(today|tomorrow)\b/i;
+const dueTimePattern = /\b(?:at|by|before)?\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/i;
 const monthIndexes: Record<string, number> = {
   jan: 1,
   january: 1,
@@ -323,9 +324,11 @@ function inferAssignments(lines: string[], courseId: string, inferredYear: numbe
         : parseWeekdayToken(date);
     if (!dueDate) continue;
 
+    const dueTime = parseDueTimeToken(line);
     const title = cleanupTitle(
       line
         .replace(date, "")
+        .replace(dueTime.raw, "")
         .replace(/\b(due|date|deadline)\b\s*:?\s*/gi, "")
         .replace(/\s*[-–|]\s*$/, "")
     );
@@ -341,7 +344,7 @@ function inferAssignments(lines: string[], courseId: string, inferredYear: numbe
       courseId,
       title,
       kind,
-      dueAt: `${dueDate}T${kind === "exam" ? "09:00" : "23:59"}:00`,
+      dueAt: `${dueDate}T${dueTime.value || (kind === "exam" ? "09:00" : "23:59")}:00`,
       tags: kind === "exam" ? ["exam", "study"] : ["syllabus"],
       priority: kind === "exam" ? "high" : "medium",
       estimatedMinutes: kind === "exam" ? 180 : 60,
@@ -369,6 +372,21 @@ function inferPossibleUndatedAssignments(lines: string[], assignments: Assignmen
   });
 
   return Array.from(new Set(likelyUndated)).slice(0, 8);
+}
+
+function parseDueTimeToken(line: string) {
+  const match = line.match(dueTimePattern);
+  if (!match) return { raw: "", value: undefined };
+
+  const hour = Number.parseInt(match[1] || "", 10);
+  const minute = Number.parseInt(match[2] || "0", 10);
+  const isValidClockTime = hour >= 1 && hour <= 12 && minute >= 0 && minute <= 59;
+  if (!isValidClockTime) {
+    return { raw: match[0], value: undefined };
+  }
+
+  const value = toTimeString(match[1], match[2], match[3]);
+  return { raw: match[0], value };
 }
 
 function parseDateToken(token: string, inferredYear: number) {

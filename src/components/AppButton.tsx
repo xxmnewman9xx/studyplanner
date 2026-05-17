@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, ViewStyle } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 
@@ -30,7 +30,7 @@ export function AppButton({
     <TouchableOpacity
       accessibilityRole="button"
       accessibilityLabel={label}
-      activeOpacity={0.78}
+      activeOpacity={0.72}
       disabled={disabled}
       style={[
         styles.button,
@@ -42,8 +42,11 @@ export function AppButton({
       ]}
       onPress={onPress}
     >
+      {variant === "primary" ? <View pointerEvents="none" style={styles.primarySheen} /> : null}
       {Icon ? <Icon color={foreground} size={18} /> : null}
-      <Text style={[styles.label, { color: foreground }]}>{label}</Text>
+      <Text style={[styles.label, { color: foreground }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82}>
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -53,35 +56,54 @@ function createStyles(theme: AppTheme) {
 
   return StyleSheet.create({
     button: {
-      minHeight: 50,
-      borderRadius: radii.lg,
-      paddingHorizontal: spacing.md,
+      minHeight: 52,
+      borderRadius: radii.xl,
+      paddingHorizontal: spacing.lg,
       alignItems: "center",
       justifyContent: "center",
       flexDirection: "row",
-      gap: spacing.xs
+      gap: spacing.xs,
+      overflow: "hidden"
     },
     primary: {
       backgroundColor: colors.accent,
-      shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.35 : 0.18,
-      shadowRadius: 14,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 5
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.24)" : "rgba(255,255,255,0.64)",
+      shadowColor: colors.accent,
+      shadowOpacity: theme.isDark ? 0.32 : 0.22,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 6
+    },
+    primarySheen: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      height: "48%",
+      backgroundColor: "rgba(255,255,255,0.18)"
     },
     secondary: {
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.elevated
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : colors.elevated,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.12 : 0.06,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 5 },
+      elevation: 2
     },
     quiet: {
-      backgroundColor: "transparent"
+      minHeight: 44,
+      backgroundColor: "transparent",
+      paddingHorizontal: spacing.sm
     },
     disabled: {
       opacity: 0.45
     },
     label: {
       fontSize: 14,
+      letterSpacing: -0.1,
       fontWeight: "900"
     }
   });

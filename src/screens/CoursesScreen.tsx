@@ -15,8 +15,10 @@ import {
   getClassAssignmentCounts,
   groupMeetingsByDay
 } from "../logic/planner";
+import { parseQuickHomeworkInput } from "../services/quickHomeworkParser";
 import { AppTheme, classColors } from "../theme";
 import { useAppTheme } from "../themeContext";
+import { courseEmoji } from "../utils/courseVisuals";
 
 type CoursesScreenProps = {
   semester: Semester;
@@ -27,7 +29,7 @@ type CoursesScreenProps = {
     title: string,
     dueDate: string,
     kind: AssignmentKind
-  ) => void;
+  ) => boolean;
   onOpenAssignment: (assignmentId: string) => void;
   onUpdateSemester: (patch: Partial<Semester>) => void;
   onAddCourse: (course: Pick<Course, "code" | "name" | "instructor">) => void;
@@ -57,6 +59,7 @@ export function CoursesScreen({
   const weekly = groupMeetingsByDay(courses);
   const counts = getClassAssignmentCounts(courses, assignments);
   const selectedCourse = courses.find((course) => course.id === selectedCourseId) || courses[0];
+  const parsedQuickWork = parseQuickHomeworkInput(title, courses, selectedCourse, dueDate);
   const selectedAssignments = selectedCourse
     ? assignments
         .filter((assignment) => assignment.courseId === selectedCourse.id)
@@ -74,8 +77,11 @@ export function CoursesScreen({
   }, [courses, selectedCourseId]);
 
   const addItem = () => {
-    if (!selectedCourse) return;
-    onAddQuickAssignment(selectedCourse.id, title, dueDate, kind);
+    if (!parsedQuickWork.course || !parsedQuickWork.title.trim() || !parsedQuickWork.dueDate.trim()) return;
+    const added = onAddQuickAssignment(parsedQuickWork.course.id, parsedQuickWork.title, parsedQuickWork.dueDate, kind);
+    if (!added) return;
+
+    setSelectedCourseId(parsedQuickWork.course.id);
     setTitle("");
     setDueDate("");
   };
@@ -120,7 +126,7 @@ export function CoursesScreen({
         </View>
       </GlassCard>
 
-      <SectionHeader title="Class shelf" note="Each class becomes a small academic journal" />
+      <SectionHeader title="Your classes" note="Tap a class to see homework, teacher, room, and notes." />
       <View style={styles.courseList}>
         {courses.map((course) => (
           <ClassIdentityCard
@@ -135,12 +141,12 @@ export function CoursesScreen({
 
       {selectedCourse ? (
         <>
-          <SectionHeader title={selectedCourse.code} note="Journal, settings, notes, and upcoming work" />
+          <SectionHeader title={selectedCourse.code} note="Edit this class and see what is due." />
           <GlassCard style={styles.detailCard}>
             <View style={[styles.classHero, { backgroundColor: selectedCourse.color }]}> 
               <View style={styles.classHeroTexture} />
               <View style={styles.classHeroInitialWrap}>
-                <Text style={styles.classHeroInitial}>{selectedCourse.code.slice(0, 1).toUpperCase()}</Text>
+                <Text style={styles.classHeroInitial}>{courseEmoji(selectedCourse)}</Text>
               </View>
               <Text style={styles.classHeroTitle}>{selectedCourse.name}</Text>
               <Text style={styles.classHeroMeta}>
@@ -217,7 +223,7 @@ export function CoursesScreen({
             </Field>
           </GlassCard>
 
-          <SectionHeader title="Upcoming Work" note={`${counts[selectedCourse.id]?.open || 0} open items`} />
+          <SectionHeader title="Homework for this class" note={`${counts[selectedCourse.id]?.open || 0} still open`} />
           <View style={styles.workList}>
             {selectedAssignments.length === 0 ? (
               <Text style={styles.emptyDay}>No assignments yet.</Text>
@@ -233,7 +239,7 @@ export function CoursesScreen({
             )}
           </View>
 
-          <SectionHeader title="Widget identity" note="This class is ready for focused lock-screen surfaces" />
+          <SectionHeader title="Class widget look" note="This is how the class can appear in widgets." />
           <View style={styles.widgetShortcut}>
             <Text style={styles.widgetShortcutTitle}>{selectedCourse.code}</Text>
             <Text style={styles.widgetShortcutCopy}>
@@ -243,7 +249,7 @@ export function CoursesScreen({
         </>
       ) : null}
 
-      <SectionHeader title="Add Class" note="Defaults include editable identity and grade weights" />
+      <SectionHeader title="Add a class" note="Type the class name, teacher, and room." />
       <GlassCard style={styles.addCard}>
         <View style={styles.editGrid}>
           <TextInput
@@ -269,7 +275,7 @@ export function CoursesScreen({
           style={styles.input}
         />
         <AppButton
-          label="Add Class"
+          label="Add this class"
           icon={Plus}
           onPress={() => {
             onAddCourse({
@@ -284,7 +290,7 @@ export function CoursesScreen({
         />
       </GlassCard>
 
-      <SectionHeader title="Quick Add" note="Manual work when you do not need a scan" />
+      <SectionHeader title="Add homework to a class" note="Example: HIST chapter 4 notes tomorrow" />
       <GlassCard style={styles.addCard}>
         <SegmentedControl
           options={["assignment", "worksheet", "reading", "project", "exam"] as AssignmentKind[]}
@@ -294,7 +300,7 @@ export function CoursesScreen({
         <TextInput
           value={title}
           onChangeText={setTitle}
-          placeholder="Title"
+          placeholder="HIST chapter 4 notes tomorrow"
           placeholderTextColor={colors.heroMuted}
           style={styles.input}
         />
@@ -305,15 +311,20 @@ export function CoursesScreen({
           placeholderTextColor={colors.heroMuted}
           style={styles.input}
         />
+        {title.trim() ? (
+          <Text style={styles.quickParsePreview}>
+            Will add {parsedQuickWork.course?.code || selectedCourse?.code || "class"} · {parsedQuickWork.title || "work"} · due {formatDateOnly(parsedQuickWork.dueDate)}
+          </Text>
+        ) : null}
         <AppButton
-          label="Add Work"
+          label="Add homework"
           icon={Edit3}
-          disabled={!selectedCourse || !title.trim() || !dueDate.trim()}
+          disabled={!parsedQuickWork.course || !parsedQuickWork.title.trim() || !parsedQuickWork.dueDate.trim()}
           onPress={addItem}
         />
       </GlassCard>
 
-      <SectionHeader title="Weekly Schedule" note="Class blocks by day" />
+      <SectionHeader title="Weekly schedule" note="When and where each class meets." />
       <View style={styles.week}>
         {weekly.map(({ day, meetings }) => (
           <View key={day} style={styles.dayRow}>
@@ -324,7 +335,9 @@ export function CoursesScreen({
               ) : (
                 meetings.map((meeting) => (
                   <View key={meeting.id} style={styles.meeting}>
-                    <View style={[styles.meetingDot, { backgroundColor: meeting.course.color }]} />
+                    <View style={[styles.meetingDot, { backgroundColor: meeting.course.color }]}>
+                      <Text style={styles.meetingDotEmoji}>{courseEmoji(meeting.course)}</Text>
+                    </View>
                     <View style={styles.meetingCopy}>
                       <Text style={styles.meetingTime}>{meeting.course.code} · {meeting.startTime} to {meeting.endTime}</Text>
                       <Text style={styles.meetingPlace}>{meeting.location}</Text>
@@ -503,8 +516,8 @@ function createStyles(theme: AppTheme) {
     },
     classHeroInitial: {
       color: "#FFFFFF",
-      fontSize: 19,
-      lineHeight: 24,
+      fontSize: 23,
+      lineHeight: 28,
       fontWeight: "900"
     },
     classHeroTitle: {
@@ -553,6 +566,12 @@ function createStyles(theme: AppTheme) {
       paddingTop: spacing.sm,
       paddingBottom: spacing.sm,
       lineHeight: 20
+    },
+    quickParsePreview: {
+      color: colors.heroMuted,
+      fontSize: 12,
+      fontWeight: "800",
+      lineHeight: 17
     },
     colorRail: {
       flexDirection: "row",
@@ -648,9 +667,15 @@ function createStyles(theme: AppTheme) {
       gap: spacing.sm
     },
     meetingDot: {
-      width: 10,
-      height: 10,
-      borderRadius: 5
+      width: 24,
+      height: 24,
+      borderRadius: 9,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    meetingDotEmoji: {
+      fontSize: 12,
+      lineHeight: 16
     },
     meetingCopy: {
       flex: 1

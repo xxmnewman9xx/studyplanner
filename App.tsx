@@ -52,7 +52,7 @@ import {
   defaultWidgetPresets
 } from "./src/data/defaultPlanner";
 import { OnboardingScreen } from "./src/screens/OnboardingScreen";
-import { TodayScreen } from "./src/screens/TodayScreen";
+import { TodayScreen, ImportHandoffSummary } from "./src/screens/TodayScreen";
 import { ImportScreen } from "./src/screens/ImportScreen";
 import { CoursesScreen } from "./src/screens/CoursesScreen";
 import { GradesScreen } from "./src/screens/GradesScreen";
@@ -61,7 +61,11 @@ import { UpgradeScreen } from "./src/screens/UpgradeScreen";
 import { AssignmentDetailScreen } from "./src/screens/AssignmentDetailScreen";
 import { PlanScreen } from "./src/screens/PlanScreen";
 import { MoreScreen } from "./src/screens/MoreScreen";
-import { completeAssignment, saveWidgetPreset as saveWidgetPresetState } from "./src/logic/planner";
+import {
+  completeAssignment,
+  isValidDateInput,
+  saveWidgetPreset as saveWidgetPresetState
+} from "./src/logic/planner";
 import { scheduleSmartReminders } from "./src/services/reminders";
 import { syncAssignmentsToDeviceCalendar } from "./src/services/calendarSync";
 import { loadJson, saveJson } from "./src/services/storage";
@@ -87,7 +91,7 @@ const tabs: Array<{
   { id: "import", label: "Scan", icon: FileScan },
   { id: "plan", label: "Plan", icon: CalendarDays },
   { id: "courses", label: "Classes", icon: GraduationCap },
-  { id: "more", label: "More", icon: PanelsTopLeft }
+  { id: "more", label: "Widgets", icon: PanelsTopLeft }
 ];
 
 export default function App() {
@@ -129,6 +133,7 @@ function AppContent() {
   const [parsedItems, setParsedItems] = useState<ParsedItem[]>(defaultParsedItems);
   const [widgetPresets, setWidgetPresets] = useState<WidgetPreset[]>(defaultWidgetPresets);
   const [focusSessions, setFocusSessions] = useState<FocusSession[]>(defaultFocusSessions);
+  const [importHandoff, setImportHandoff] = useState<ImportHandoffSummary | null>(null);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
   const [focusAssignmentId, setFocusAssignmentId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
@@ -261,6 +266,21 @@ function AppContent() {
       )
     );
     setGradeItems((current) => mergeById(current, parse.gradeItems));
+    const handoffAssignments = parse.assignments
+      .slice()
+      .sort((a, b) => {
+        const reviewDelta = Number(Boolean(b.needsReview || !isValidDateInput(b.dueAt.slice(0, 10)))) - Number(Boolean(a.needsReview || !isValidDateInput(a.dueAt.slice(0, 10))));
+        if (reviewDelta !== 0) return reviewDelta;
+        return new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime();
+      });
+    const handoffAssignment = handoffAssignments[0];
+    setImportHandoff({
+      sourceName: parse.sourceName,
+      addedCount: parse.assignments.length,
+      reviewCount: parse.assignments.filter((assignment) => assignment.needsReview || !isValidDateInput(assignment.dueAt.slice(0, 10))).length,
+      nextTitle: handoffAssignment?.title,
+      nextAssignmentId: handoffAssignment?.id
+    });
     setParsedImports((current) => {
       const existing = current.find((item) => item.title === parse.sourceName);
       const itemCount = parse.assignments.length + parse.courses.length + parse.gradeItems.length;
@@ -324,7 +344,14 @@ function AppContent() {
   ) => {
     if (!title.trim() || !dueDate.trim()) {
       Alert.alert("Add a little more", "Title and due date are both needed.");
-      return;
+      return false;
+    }
+
+    const cleanDueDate = dueDate.trim();
+
+    if (!isValidDateInput(cleanDueDate)) {
+      Alert.alert("Check the date", "Use a real date in YYYY-MM-DD format before adding this work.");
+      return false;
     }
 
     setAssignments((current) => [
@@ -335,7 +362,7 @@ function AppContent() {
         title: title.trim(),
         kind,
         type: kind,
-        dueAt: `${dueDate.trim()}T23:59:00`,
+        dueAt: `${cleanDueDate}T23:59:00`,
         tags: kind === "exam" ? ["exam"] : ["homework"],
         priority: kind === "exam" ? "high" : "medium",
         estimatedMinutes: kind === "exam" ? 150 : 60,
@@ -346,6 +373,7 @@ function AppContent() {
         updatedAt: new Date().toISOString()
       }
     ]);
+    return true;
   };
 
   const updateSemester = (patch: Partial<Semester>) => {
@@ -441,7 +469,20 @@ function AppContent() {
   };
 
   const recordFocusSession = (session: FocusSession) => {
-    setFocusSessions((current) => [session, ...current].slice(0, 24));
+    setFocusSessions((current) => {
+      const withoutCompletedPlan = session.status === "completed"
+        ? current.filter(
+            (item) => !(item.status === "planned" && item.assignmentId === session.assignmentId)
+          )
+        : current;
+      const withoutDuplicatePlan = session.status === "planned"
+        ? withoutCompletedPlan.filter(
+            (item) => !(item.status === "planned" && item.assignmentId === session.assignmentId && focusSessionDateKey(item.startedAt) === focusSessionDateKey(session.startedAt))
+          )
+        : withoutCompletedPlan;
+
+      return [session, ...withoutDuplicatePlan].slice(0, 24);
+    });
   };
 
   const handleScheduleReminders = async () => {
@@ -608,13 +649,14 @@ function AppContent() {
                   courses={courses}
                   semester={semester}
                   studentName={settings.studentName}
+                  importHandoff={importHandoff}
                   onUpdateStatus={updateAssignmentStatus}
                   onOpenAssignment={setSelectedAssignmentId}
                   onScheduleReminders={handleScheduleReminders}
                   onCalendarSync={handleCalendarSync}
                   premiumAutomationLocked={premiumLocked}
                   onOpenPaywall={() => openTab("upgrade")}
-                  onOpenFocus={() => openFocusForAssignment()}
+                  onOpenFocus={(assignmentId) => openFocusForAssignment(assignmentId)}
                   onOpenScan={() => openTab("import")}
                   onOpenPlan={() => openTab("plan")}
                   onOpenClasses={() => openTab("courses")}
@@ -633,7 +675,12 @@ function AppContent() {
                 <PlanScreen
                   assignments={activeAssignments}
                   courses={courses}
+                  sessions={focusSessions}
                   onOpenAssignment={setSelectedAssignmentId}
+                  onOpenFocus={openFocusForAssignment}
+                  onUpdateStatus={updateAssignmentStatus}
+                  onRecordSession={recordFocusSession}
+                  onAddQuickAssignment={addQuickAssignment}
                 />
               ) : null}
               {activeTab === "courses" ? (
@@ -743,13 +790,17 @@ function messageFromError(error: unknown) {
   return error instanceof Error ? error.message : "The device permission flow did not complete.";
 }
 
+function focusSessionDateKey(value: string) {
+  return value.slice(0, 10);
+}
+
 function createStyles(theme: AppTheme, tablet = false) {
   const { colors, radii, spacing } = theme;
 
   return StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: colors.canvas,
+      backgroundColor: colors.canvasTint,
       overflow: "hidden"
     },
     appShell: {
@@ -762,9 +813,9 @@ function createStyles(theme: AppTheme, tablet = false) {
       width: "100%",
       maxWidth: tablet ? 980 : undefined,
       alignSelf: tablet ? "center" : undefined,
-      paddingHorizontal: spacing.lg,
-      paddingTop: tablet ? spacing.xl : spacing.lg,
-      paddingBottom: tablet ? spacing.xxl : 136
+      paddingHorizontal: tablet ? spacing.xl : spacing.md,
+      paddingTop: tablet ? spacing.xl : spacing.md,
+      paddingBottom: tablet ? spacing.xxl : 256
     },
     scrollArea: {
       flex: 1
@@ -826,16 +877,16 @@ function createStyles(theme: AppTheme, tablet = false) {
       fontWeight: "800"
     },
     tabBar: {
-      minHeight: 66,
+      minHeight: 62,
       marginHorizontal: spacing.md,
-      marginBottom: spacing.md,
+      marginBottom: spacing.sm,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      borderRadius: 24,
+      borderRadius: 26,
       borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: theme.isDark ? "rgba(17, 23, 34, 0.98)" : "rgba(255, 255, 255, 0.985)",
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(18,20,23,0.08)",
+      backgroundColor: theme.isDark ? "rgba(10, 15, 26, 0.98)" : "rgba(255, 253, 244, 0.96)",
       padding: spacing.xs,
       shadowColor: colors.shadow,
       shadowOpacity: theme.isDark ? 0.42 : 0.16,
@@ -845,14 +896,14 @@ function createStyles(theme: AppTheme, tablet = false) {
     },
     tabButton: {
       width: "19.4%",
-      minHeight: 52,
+      minHeight: 48,
       alignItems: "center",
       justifyContent: "center",
       borderRadius: 20,
       gap: 4
     },
     tabButtonActive: {
-      backgroundColor: colors.accent,
+      backgroundColor: colors.heroSurface,
       shadowColor: colors.shadow,
       shadowOpacity: theme.isDark ? 0.2 : 0.1,
       shadowRadius: 8,

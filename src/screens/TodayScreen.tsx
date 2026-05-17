@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Bell, CalendarPlus, ChevronRight, Crown, FileScan, GraduationCap, Plus, Timer } from "lucide-react-native";
+import { Bell, CalendarPlus, CheckCircle2, ChevronRight, Crown, FileScan, GraduationCap, Plus, Sparkles, Timer } from "lucide-react-native";
 import {
   AppLogo,
   AssignmentRow,
@@ -16,14 +16,25 @@ import {
   formatDateOnly,
   getCourseForAssignment
 } from "../logic/planner";
+import { parseQuickHomeworkInput, todayDateInput } from "../services/quickHomeworkParser";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
+import { courseEmoji } from "../utils/courseVisuals";
+
+export type ImportHandoffSummary = {
+  sourceName: string;
+  addedCount: number;
+  reviewCount: number;
+  nextTitle?: string;
+  nextAssignmentId?: string;
+};
 
 type TodayScreenProps = {
   assignments: Assignment[];
   courses: Course[];
   semester: Semester;
   studentName: string;
+  importHandoff?: ImportHandoffSummary | null;
   onUpdateStatus: (assignmentId: string, status: "not_started" | "in_progress" | "done") => void;
   onOpenAssignment: (assignmentId: string) => void;
   onScheduleReminders: () => void;
@@ -35,13 +46,14 @@ type TodayScreenProps = {
   onOpenPlan: () => void;
   onOpenClasses: () => void;
   onOpenWidgets: () => void;
-  onAddQuickAssignment: (courseId: string, title: string, dueDate: string, kind: "assignment") => void;
+  onAddQuickAssignment: (courseId: string, title: string, dueDate: string, kind: "assignment") => boolean;
 };
 
 export function TodayScreen({
   assignments,
   courses,
   semester,
+  importHandoff,
   onUpdateStatus,
   onOpenAssignment,
   onScheduleReminders,
@@ -52,6 +64,7 @@ export function TodayScreen({
   onOpenScan,
   onOpenPlan,
   onOpenClasses,
+  onOpenWidgets,
   onAddQuickAssignment
 }: TodayScreenProps) {
   const { theme } = useAppTheme();
@@ -67,7 +80,9 @@ export function TodayScreen({
   const [quickCourseId, setQuickCourseId] = useState(courses[0]?.id || "");
   const [quickTitle, setQuickTitle] = useState("");
   const [quickDueDate, setQuickDueDate] = useState(todayDateInput());
+  const quickDuePresets = buildQuickDuePresets();
   const quickCourse = courses.find((course) => course.id === quickCourseId) || courses[0];
+  const parsedQuickHomework = parseQuickHomeworkInput(quickTitle, courses, quickCourse, quickDueDate);
   const liveBrief = buildLiveBrief(plan, courses.length);
 
   useEffect(() => {
@@ -82,8 +97,16 @@ export function TodayScreen({
   }, [courses, quickCourseId]);
 
   const addHomework = () => {
-    if (!quickCourse || !quickTitle.trim() || !quickDueDate.trim()) return;
-    onAddQuickAssignment(quickCourse.id, quickTitle, quickDueDate, "assignment");
+    if (!parsedQuickHomework.course || !parsedQuickHomework.title.trim() || !parsedQuickHomework.dueDate.trim()) return;
+    const added = onAddQuickAssignment(
+      parsedQuickHomework.course.id,
+      parsedQuickHomework.title,
+      parsedQuickHomework.dueDate,
+      "assignment"
+    );
+    if (!added) return;
+
+    setQuickCourseId(parsedQuickHomework.course.id);
     setQuickTitle("");
     setQuickDueDate(todayDateInput());
   };
@@ -102,37 +125,36 @@ export function TodayScreen({
         <Text style={styles.heroTitle}>{liveBrief.title}</Text>
         <Text style={styles.heroSubtitle}>{liveBrief.detail}</Text>
         <View style={styles.heroMetrics}>
-          <MetricPill label="Open" value={`${plan.openCount}`} />
+          <MetricPill label="Open tasks" value={`${plan.openCount}`} />
           <MetricPill label="Done" value={`${completionPercent}%`} />
-          <MetricPill label="Term" value={`${semesterPercent}%`} />
+          <MetricPill label="Semester" value={`${semesterPercent}%`} />
         </View>
         {plan.nextAction ? (
           <View style={styles.nextHero}>
             <View style={styles.nextHeroCopy}>
               <View style={styles.nextKickerRow}>
                 <Text style={styles.nextKicker}>{formatDueUrgency(nextDueDays)}</Text>
-                <Text style={styles.xpChip}>+{Math.max(10, Math.round((plan.nextAction.estimatedMinutes || 25) / 5))} XP</Text>
+                <Text style={styles.timeChip}>{plan.nextAction.estimatedMinutes || 25} min</Text>
               </View>
-              <Text style={styles.nextTitle}>{nextCourse?.code} - {plan.nextAction.title}</Text>
-              <Text style={styles.nextMeta}>
+              <Text style={styles.nextTitle} numberOfLines={2}>{nextCourse?.code} · {plan.nextAction.title}</Text>
+              <Text style={styles.nextMeta} numberOfLines={1}>
                 Due {formatDateOnly(plan.nextAction.dueAt.slice(0, 10))} · {plan.nextAction.estimatedMinutes}m · {nextCourse?.period || "class"}
               </Text>
             </View>
             <View style={styles.nextActions}>
               <AppButton
-                label="Start"
-                icon={ChevronRight}
+                label="Study this now"
+                icon={Timer}
                 onPress={() => {
                   onUpdateStatus(plan.nextAction!.id, "in_progress");
-                  onOpenAssignment(plan.nextAction!.id);
+                  onOpenFocus(plan.nextAction!.id);
                 }}
                 style={styles.startButton}
               />
               <AppButton
-                label="Focus timer"
-                icon={Timer}
-                variant="secondary"
-                onPress={() => onOpenFocus(plan.nextAction!.id)}
+                label="See task details"
+                variant="quiet"
+                onPress={() => onOpenAssignment(plan.nextAction!.id)}
                 style={styles.focusButton}
               />
             </View>
@@ -142,39 +164,88 @@ export function TodayScreen({
         )}
       </GlassCard>
 
-      <SectionHeader title="Every school day" note="Scan, plan, study, and review without hunting." />
+      {importHandoff ? (
+        <GlassCard style={styles.importHandoffCard}>
+          <View style={styles.importHandoffHeader}>
+            <View style={styles.importHandoffIcon}>
+              <CheckCircle2 color={colors.accent} size={18} />
+            </View>
+            <View style={styles.importHandoffCopy}>
+              <Text style={styles.importHandoffKicker}>Import added</Text>
+              <Text style={styles.importHandoffTitle}>
+                {importHandoff.addedCount} added from {importHandoff.sourceName}
+              </Text>
+              <Text style={styles.importHandoffDetail}>
+                {importHandoff.reviewCount > 0
+                  ? `${importHandoff.reviewCount} still need review. Open ${importHandoff.nextTitle || "the first item"}, then approve the plan.`
+                  : `Today is updated. Open ${importHandoff.nextTitle || "the first task"} or jump straight into focus.`}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.importHandoffActions}>
+            <AppButton
+              label={importHandoff.reviewCount > 0 ? "Review first item" : "Open first task"}
+              variant="secondary"
+              onPress={() => {
+                if (importHandoff.nextAssignmentId) {
+                  onOpenAssignment(importHandoff.nextAssignmentId);
+                } else {
+                  onOpenPlan();
+                }
+              }}
+              style={styles.importHandoffButton}
+            />
+            <AppButton
+              label="Start focus"
+              icon={Timer}
+              disabled={!importHandoff.nextAssignmentId && !plan.nextAction?.id}
+              onPress={() => onOpenFocus(importHandoff.nextAssignmentId || plan.nextAction?.id)}
+              style={styles.importHandoffButton}
+            />
+          </View>
+        </GlassCard>
+      ) : null}
+
+      <SectionHeader title="Big actions" note="Every button says exactly where it goes." />
       <View style={styles.commandGrid}>
         <CommandTile
-          title="Scan syllabus"
-          detail="Turn class handouts into reviewable homework."
+          title="Add from syllabus"
+          detail="Scan or paste a syllabus. Review before anything is added."
           icon={FileScan}
           onPress={onOpenScan}
           tone="pink"
         />
         <CommandTile
-          title="Plan week"
-          detail={`${plan.dueSoon.length} due soon · rebalance the week`}
+          title="Open weekly plan"
+          detail={`${plan.dueSoon.length} due soon · move work around`}
           icon={CalendarPlus}
           onPress={onOpenPlan}
           tone="blue"
         />
         <CommandTile
-          title="Classes + notes"
-          detail={`${courses.length} classes with assignments and notes`}
+          title="See classes"
+          detail={`${courses.length} classes · rooms, teachers, homework`}
           icon={GraduationCap}
           onPress={onOpenClasses}
           tone="green"
         />
         <CommandTile
-          title="Focus session"
-          detail="Start a timed study block from the current plan."
+          title="Edit widgets"
+          detail="Choose what your Home Screen shows."
+          icon={Sparkles}
+          onPress={onOpenWidgets}
+          tone="purple"
+        />
+        <CommandTile
+          title="Start focus timer"
+          detail="Study with a timer for the next task."
           icon={Timer}
           onPress={() => onOpenFocus(plan.nextAction?.id)}
-          tone="purple"
+          tone="blue"
         />
       </View>
 
-      <SectionHeader title="Quick Homework" note="Capture what a teacher just assigned" />
+      <SectionHeader title="Add one homework" note="Pick a class, type the work, choose the due date." />
       <GlassCard style={styles.quickAddCard}>
         <View style={styles.courseRail}>
           {courses.slice(0, 4).map((course) => (
@@ -194,7 +265,7 @@ export function TodayScreen({
                   quickCourse?.id === course.id ? styles.coursePillTextActive : null
                 ]}
               >
-                {course.code}
+                {courseEmoji(course)} {course.code}
               </Text>
             </TouchableOpacity>
           ))}
@@ -203,7 +274,7 @@ export function TodayScreen({
           <TextInput
             value={quickTitle}
             onChangeText={setQuickTitle}
-            placeholder="Add homework"
+            placeholder="Bio worksheet due Friday"
             placeholderTextColor={colors.faint}
             style={[styles.quickInput, styles.quickTitleInput]}
             returnKeyType="done"
@@ -219,10 +290,31 @@ export function TodayScreen({
             onSubmitEditing={addHomework}
           />
         </View>
+        {quickTitle.trim() ? (
+          <Text style={styles.quickParsePreview}>
+            Will add {parsedQuickHomework.course?.code || "class"} · {parsedQuickHomework.title || "homework"} · due {formatDateOnly(parsedQuickHomework.dueDate)}
+          </Text>
+        ) : null}
+        <View style={styles.quickDueRail}>
+          {quickDuePresets.map((preset) => {
+            const active = quickDueDate === preset.value;
+            return (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+                key={preset.label}
+                style={[styles.quickDuePill, active ? styles.quickDuePillActive : null]}
+                onPress={() => setQuickDueDate(preset.value)}
+              >
+                <Text style={[styles.quickDuePillText, active ? styles.quickDuePillTextActive : null]}>{preset.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
         <AppButton
           label="Add homework"
           icon={Plus}
-          disabled={!quickCourse || !quickTitle.trim() || !quickDueDate.trim()}
+          disabled={!parsedQuickHomework.course || !parsedQuickHomework.title.trim() || !parsedQuickHomework.dueDate.trim()}
           onPress={addHomework}
         />
       </GlassCard>
@@ -234,7 +326,9 @@ export function TodayScreen({
             overdue={plan.overdue}
             courses={courses}
             onOpenAssignment={onOpenAssignment}
+            onOpenFocus={onOpenFocus}
             onOpenPlan={onOpenPlan}
+            onUpdateStatus={onUpdateStatus}
           />
           <View style={styles.list}>
             {plan.overdue.slice(0, 3).map((assignment) => (
@@ -243,14 +337,14 @@ export function TodayScreen({
                 assignment={assignment}
                 course={getCourseForAssignment(courses, assignment)}
                 onPress={() => onOpenAssignment(assignment.id)}
-                trailing={<Text style={styles.overdueFlag}>Start</Text>}
+                trailing={<Text style={styles.overdueFlag}>Study now</Text>}
               />
             ))}
           </View>
         </>
       ) : null}
 
-      <SectionHeader title="Today" note={`${plan.dueToday.length} due today · ${plan.dueSoon.length} due soon · ${plan.needsReview.length} to review`} />
+      <SectionHeader title="Today — tap a task, then Study this now" note={`${plan.dueToday.length} due today · ${plan.dueSoon.length} due soon · ${plan.needsReview.length} to review`} />
       <View style={styles.list}>
         {plan.upcoming.length === 0 ? (
           <EmptyState title="A clear day" copy="Scan a syllabus or add a class to start planning." emoji="calendar" />
@@ -261,7 +355,7 @@ export function TodayScreen({
               assignment={assignment}
               course={getCourseForAssignment(courses, assignment)}
               onPress={() => onOpenAssignment(assignment.id)}
-              trailing={<Text style={styles.doneButtonText}>{assignment.status === "done" ? "Done" : "Details"}</Text>}
+              trailing={<Text style={styles.doneButtonText}>{assignment.status === "done" ? "Done" : "Open task"}</Text>}
             />
           ))
         )}
@@ -287,14 +381,14 @@ export function TodayScreen({
       <SectionHeader title="Automation" note="Premium reminder and calendar workflows" />
       <View style={styles.actionRow}>
         <AppButton
-          label="Remind"
+          label="Set reminders"
           icon={premiumAutomationLocked ? Crown : Bell}
           variant="secondary"
           style={styles.actionButton}
           onPress={premiumAutomationLocked ? onOpenPaywall : onScheduleReminders}
         />
         <AppButton
-          label="Sync"
+          label="Add to calendar"
           icon={premiumAutomationLocked ? Crown : CalendarPlus}
           variant="secondary"
           style={styles.actionButton}
@@ -351,16 +445,19 @@ type CatchUpSprintCardProps = {
   overdue: Assignment[];
   courses: Course[];
   onOpenAssignment: (assignmentId: string) => void;
+  onOpenFocus: (assignmentId?: string) => void;
   onOpenPlan: () => void;
+  onUpdateStatus: (assignmentId: string, status: "not_started" | "in_progress" | "done") => void;
 };
 
-function CatchUpSprintCard({ overdue, courses, onOpenAssignment, onOpenPlan }: CatchUpSprintCardProps) {
+function CatchUpSprintCard({ overdue, courses, onOpenAssignment, onOpenFocus, onOpenPlan, onUpdateStatus }: CatchUpSprintCardProps) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
   const sprintItems = overdue.slice(0, 3);
   const first = sprintItems[0];
   const firstCourse = first ? getCourseForAssignment(courses, first) : undefined;
   const sprintMinutes = sprintItems.reduce((sum, item) => sum + Math.min(item.estimatedMinutes || 25, 45), 0);
+  const rescueMinutes = Math.min(first?.estimatedMinutes || 25, 15);
   const hiddenCount = Math.max(overdue.length - sprintItems.length, 0);
 
   if (!first) return null;
@@ -372,11 +469,11 @@ function CatchUpSprintCard({ overdue, courses, onOpenAssignment, onOpenPlan }: C
         <View style={styles.catchUpBadge}>
           <Text style={styles.catchUpBadgeText}>Reset sprint</Text>
         </View>
-        <Text style={styles.catchUpMeta}>{sprintMinutes}m rescue plan</Text>
+        <Text style={styles.catchUpMeta}>{sprintMinutes}m rescue queue</Text>
       </View>
       <Text style={styles.catchUpTitle}>Start with {firstCourse?.code ? `${firstCourse.code}: ` : ""}{first.title}</Text>
       <Text style={styles.catchUpCopy}>
-        Knock out the smallest overdue work first. {hiddenCount > 0 ? `${hiddenCount} more item${hiddenCount === 1 ? "" : "s"} stay queued after this sprint.` : "This clears the visible backlog."}
+        No shame spiral. Do the first {rescueMinutes}-minute save, mark momentum, then decide whether to finish or replan. {hiddenCount > 0 ? `${hiddenCount} more item${hiddenCount === 1 ? "" : "s"} stay queued after this sprint.` : "This clears the visible backlog."}
       </Text>
       <View style={styles.catchUpSteps}>
         {sprintItems.map((item, index) => {
@@ -390,9 +487,18 @@ function CatchUpSprintCard({ overdue, courses, onOpenAssignment, onOpenPlan }: C
         })}
       </View>
       <View style={styles.catchUpActions}>
-        <AppButton label="Start smallest" icon={Timer} onPress={() => onOpenAssignment(first.id)} style={styles.catchUpPrimaryAction} />
-        <AppButton label="Replan week" icon={CalendarPlus} variant="secondary" onPress={onOpenPlan} style={styles.catchUpSecondaryAction} />
+        <AppButton
+          label={`${rescueMinutes}m focus save`}
+          icon={Timer}
+          onPress={() => {
+            onUpdateStatus(first.id, "in_progress");
+            onOpenFocus(first.id);
+          }}
+          style={styles.catchUpPrimaryAction}
+        />
+        <AppButton label="Open details" variant="secondary" onPress={() => onOpenAssignment(first.id)} style={styles.catchUpSecondaryAction} />
       </View>
+      <AppButton label="Replan week" icon={CalendarPlus} variant="quiet" onPress={onOpenPlan} />
     </GlassCard>
   );
 }
@@ -434,14 +540,19 @@ function CommandTile({ title, detail, icon: Icon, onPress, tone }: CommandTilePr
       <View style={[styles.commandIcon, { backgroundColor: `${toneColor}22` }]}>
         <Icon color={toneColor} size={20} />
       </View>
-      <Text style={styles.commandTitle}>{title}</Text>
-      <Text style={styles.commandDetail}>{detail}</Text>
+      <Text style={styles.commandTitle} numberOfLines={1}>{title}</Text>
+      <Text style={styles.commandDetail} numberOfLines={2}>{detail}</Text>
     </TouchableOpacity>
   );
 }
 
-function todayDateInput() {
-  return new Date().toISOString().slice(0, 10);
+function buildQuickDuePresets() {
+  return [
+    { label: "Today", value: todayDateInput(0) },
+    { label: "Tomorrow", value: todayDateInput(1) },
+    { label: "+3 days", value: todayDateInput(3) },
+    { label: "Next week", value: todayDateInput(7) }
+  ];
 }
 
 function formatDueUrgency(days: number) {
@@ -467,7 +578,8 @@ function createStyles(theme: AppTheme) {
     heroCard: {
       gap: spacing.sm,
       padding: spacing.md,
-      overflow: "hidden"
+      overflow: "hidden",
+      marginBottom: spacing.xs
     },
     heroOrbPrimary: {
       position: "absolute",
@@ -497,9 +609,9 @@ function createStyles(theme: AppTheme) {
       height: 96,
       borderRadius: 28,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(255,255,255,0.18)",
-      backgroundColor: "rgba(255,255,255,0.04)",
-      opacity: 0.75,
+      borderColor: "rgba(255,255,255,0.10)",
+      backgroundColor: "rgba(255,255,255,0.025)",
+      opacity: 0.36,
       transform: [{ rotate: "8deg" }]
     },
     heroKicker: {
@@ -558,10 +670,10 @@ function createStyles(theme: AppTheme) {
     },
     nextHero: {
       borderRadius: radii.xl,
-      backgroundColor: "rgba(255,255,255,0.14)",
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(255,255,255,0.20)",
-      padding: spacing.sm,
+      backgroundColor: "rgba(255,255,255,0.16)",
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.24)",
+      padding: spacing.md,
       gap: spacing.sm
     },
     nextHeroCopy: {
@@ -581,20 +693,20 @@ function createStyles(theme: AppTheme) {
       textTransform: "uppercase",
       letterSpacing: 0.5
     },
-    xpChip: {
+    timeChip: {
       minHeight: 22,
       borderRadius: 11,
       paddingHorizontal: 8,
       paddingTop: 3,
       overflow: "hidden",
       color: colors.heroText,
-      backgroundColor: "rgba(53,242,208,0.18)",
+      backgroundColor: "rgba(255,255,255,0.10)",
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(53,242,208,0.34)",
+      borderColor: "rgba(255,255,255,0.18)",
       fontSize: 10,
       lineHeight: 14,
-      fontWeight: "900",
-      letterSpacing: 0.4
+      fontWeight: "800",
+      letterSpacing: 0.2
     },
     nextTitle: {
       color: colors.heroText,
@@ -609,16 +721,68 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800"
     },
     startButton: {
-      flex: 1,
+      flex: 1.35,
+      minHeight: 48,
       backgroundColor: colors.accent
     },
     focusButton: {
-      flex: 1,
-      backgroundColor: "rgba(255,255,255,0.96)"
+      flex: 0.72,
+      minHeight: 48,
+      backgroundColor: "rgba(255,255,255,0.08)",
+      borderColor: "rgba(255,255,255,0.12)"
     },
     nextActions: {
       flexDirection: "row",
+      gap: spacing.xs
+    },
+    importHandoffCard: {
+      gap: spacing.sm,
+      borderColor: `${colors.accent}44`
+    },
+    importHandoffHeader: {
+      flexDirection: "row",
+      gap: spacing.sm,
+      alignItems: "flex-start"
+    },
+    importHandoffIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: radii.round,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.accentSoft
+    },
+    importHandoffCopy: {
+      flex: 1,
+      gap: 2
+    },
+    importHandoffKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase",
+      letterSpacing: 0.6
+    },
+    importHandoffTitle: {
+      color: colors.ink,
+      fontSize: 16,
+      lineHeight: 21,
+      fontWeight: "900"
+    },
+    importHandoffDetail: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "700"
+    },
+    importHandoffActions: {
+      flexDirection: "row",
       gap: spacing.sm
+    },
+    importHandoffButton: {
+      flex: 1,
+      paddingHorizontal: spacing.xs
     },
     commandGrid: {
       flexDirection: "row",
@@ -627,7 +791,7 @@ function createStyles(theme: AppTheme) {
     },
     commandTile: {
       width: "48%",
-      minHeight: 136,
+      minHeight: 118,
       borderRadius: radii.xl,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.isDark ? "rgba(255,255,255,0.13)" : "rgba(16,24,40,0.08)",
@@ -667,9 +831,9 @@ function createStyles(theme: AppTheme) {
     },
     commandTitle: {
       color: colors.ink,
-      fontSize: 15,
-      lineHeight: 20,
-      fontWeight: "800"
+      fontSize: 14,
+      lineHeight: 18,
+      fontWeight: "900"
     },
     commandDetail: {
       color: colors.muted,
@@ -725,6 +889,38 @@ function createStyles(theme: AppTheme) {
     },
     quickDateInput: {
       width: 124
+    },
+    quickParsePreview: {
+      color: colors.muted,
+      fontSize: 12,
+      fontWeight: "800",
+      lineHeight: 17
+    },
+    quickDueRail: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs,
+      marginTop: -2
+    },
+    quickDuePill: {
+      borderRadius: radii.round,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 7
+    },
+    quickDuePillActive: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accentSoft
+    },
+    quickDuePillText: {
+      color: colors.muted,
+      fontSize: 12,
+      fontWeight: "900"
+    },
+    quickDuePillTextActive: {
+      color: colors.accent
     },
     actionRow: {
       flexDirection: "row",

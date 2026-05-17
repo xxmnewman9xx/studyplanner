@@ -1,7 +1,8 @@
-import { Assignment, Course, GradeItem, SyllabusImportSource, SyllabusParseResult } from "../models";
+import { Assignment, SyllabusImportSource, SyllabusParseResult } from "../models";
 import * as FileSystem from "expo-file-system/legacy";
 import { extractTextFromPdfBase64 } from "./pdfText";
 import { parseSyllabusText } from "./syllabusLocalParser";
+import { normalizeParseResult } from "./syllabusParseNormalizer";
 
 declare const process:
   | {
@@ -141,36 +142,6 @@ function buildUploadBody(source: SyllabusImportSource) {
   } as unknown as Blob);
 
   return body;
-}
-
-function normalizeParseResult(value: unknown, source: SyllabusImportSource): SyllabusParseResult {
-  if (!value || typeof value !== "object") {
-    throw new Error("The scan service returned an unreadable result.");
-  }
-
-  const result = value as Partial<SyllabusParseResult>;
-  const courses = ensureArray<Course>(result.courses, "courses");
-  const assignments = ensureArray<Assignment>(result.assignments, "assignments");
-  const gradeItems = ensureArray<GradeItem>(result.gradeItems, "grade items");
-
-  return {
-    sourceName: result.sourceName || source.name || "Syllabus scan",
-    semesterName: result.semesterName,
-    semesterStartDate: result.semesterStartDate,
-    semesterEndDate: result.semesterEndDate,
-    courses,
-    assignments,
-    gradeItems,
-    findings: Array.isArray(result.findings) ? result.findings : []
-  };
-}
-
-function ensureArray<T>(value: unknown, label: string): T[] {
-  if (!Array.isArray(value)) {
-    throw new Error(`The scan service did not return ${label}.`);
-  }
-
-  return value as T[];
 }
 
 function readEnv(name: string) {

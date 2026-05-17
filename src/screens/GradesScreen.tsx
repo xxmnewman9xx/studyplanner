@@ -190,7 +190,7 @@ export function GradesScreen({
             </View>
           </View>
 
-          <SectionHeader title="Weighted Categories" note={selectedCourse.name} />
+          <SectionHeader title="Grade weights" note={`${selectedCourse.name}: how much each category counts.`} />
           <View style={styles.categoryList}>
             {summary.categorySummaries.map((category) => (
               <View key={category.id} style={styles.categoryRow}>
@@ -206,7 +206,7 @@ export function GradesScreen({
             ))}
           </View>
 
-          <SectionHeader title="Add Score" note="Keep grade momentum current" />
+          <SectionHeader title="Add a grade" note="Enter a score from a test, quiz, paper, or homework." />
           <View style={styles.addGradeCard}>
             <TextInput
               value={newTitle}
@@ -258,7 +258,7 @@ export function GradesScreen({
               />
             </View>
             <AppButton
-              label="Add score"
+              label="Add this grade"
               icon={Plus}
               onPress={() => {
                 if (!newTitle.trim() || !selectedCategoryId) return;
@@ -276,7 +276,7 @@ export function GradesScreen({
             />
           </View>
 
-          <SectionHeader title="Recent Scores" note="Tap values to correct them" />
+          <SectionHeader title="Recent grades" note="Tap a grade if you need to fix it." />
           <View style={styles.scoreList}>
             {selectedCourseGradeItems.length === 0 ? (
               <Text style={styles.emptyCopy}>No grade entries yet.</Text>
@@ -327,7 +327,7 @@ export function GradesScreen({
             )}
           </View>
 
-          <SectionHeader title="Momentum Signals" />
+          <SectionHeader title="What this means" />
           <View style={styles.alertCard}>
             <Text style={styles.alertTitle}>{gradeMomentum}</Text>
             <Text style={styles.alertCopy}>
