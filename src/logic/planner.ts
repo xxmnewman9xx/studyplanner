@@ -313,15 +313,15 @@ export function getWidgetData(
 
   const byType: Record<WidgetType, WidgetData> = {
     due_next: {
-      headline: "Due Next",
+      headline: "Next Homework",
       value: next ? timeUntilLabel(next.dueAt, now) : "Clear",
       detail: next?.title || "All caught up",
       items: next ? [next] : []
     },
     today: {
-      headline: "Today",
+      headline: "Today Plan",
       value: String(dueToday.length),
-      detail: `${dueSoon.length} due soon`,
+      detail: dueToday.length === 1 ? "task due today" : `${dueToday.length} tasks due today`,
       items: dueToday
     },
     needs_check: {
@@ -331,14 +331,14 @@ export function getWidgetData(
       items: needsReview
     },
     week: {
-      headline: "Week",
+      headline: "Deadline Map",
       value: String(getWeekLoad(assignments, now).reduce((sum, day) => sum + day.items.length, 0)),
       detail: getBusyWeekInsight(assignments, now).heavyDays.length > 0 ? "busy week" : "balanced",
       items: dueSoon,
       weekLoad: getWeekLoad(assignments, now)
     },
     class_focus: {
-      headline: "Class Focus",
+      headline: "Class Risk",
       value: course?.code || "Class",
       detail: `${classItems.filter((item) => item.status !== "done").length} open`,
       items: classItems,
@@ -352,7 +352,7 @@ export function getWidgetData(
       items: []
     },
     focus: {
-      headline: "Focus",
+      headline: "Focus Block",
       value: "25m",
       detail: next?.title || "Choose a task",
       items: next ? [next] : []

@@ -349,6 +349,7 @@ export function WidgetPreviewCard({
   const previewItems = items.slice(0, isMedium ? 3 : 2);
   const fontStyle = font === "Mono" ? styles.widgetMono : font === "Rounded" ? styles.widgetRounded : null;
   const WidgetIcon = iconForKey(iconKey);
+  const statusText = widgetStatusText(type, value, detail, previewItems);
 
   return (
     <View
@@ -373,9 +374,7 @@ export function WidgetPreviewCard({
       <View style={styles.widgetTop}>
         <Text style={[styles.widgetLabel, labelTone, fontStyle]} numberOfLines={1}>{title}</Text>
         <View style={[styles.widgetStatusCapsule, isTinted ? styles.widgetStatusCapsuleTinted : null]}>
-          <Text style={[styles.widgetTiny, labelTone]}>
-            {type === "due_next" ? "2h" : "May 13"}
-          </Text>
+          <Text style={[styles.widgetTiny, labelTone]} numberOfLines={1}>{statusText}</Text>
         </View>
       </View>
       <View style={styles.widgetMainRow}>
@@ -437,6 +436,17 @@ export function WidgetPreviewCard({
       ) : null}
     </View>
   );
+}
+
+function widgetStatusText(type: WidgetType, value: string, detail: string, items: Assignment[]) {
+  if (items.length === 0) return "Preview";
+  if (type === "due_next") return value || "Next";
+  if (type === "today") return items.length === 1 ? "1 task" : `${items.length} tasks`;
+  if (type === "focus") return "25m";
+  if (type === "class_focus") return "Class";
+  if (type === "needs_check") return "Review";
+  if (type === "week") return "Week";
+  return detail || "Live";
 }
 
 export function ThemeCard({

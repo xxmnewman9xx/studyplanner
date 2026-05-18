@@ -113,26 +113,31 @@ export function MoreScreen({
   const starterTemplates: Array<{
     label: string;
     detail: string;
+    moment: string;
     preset: Pick<WidgetPreset, "type" | "size" | "background" | "palette" | "layout" | "iconKey">;
   }> = [
     {
       label: "Next Homework",
       detail: "One task to do now",
+      moment: "Home Screen",
       preset: { type: "due_next", size: "medium", background: "glass", palette: "ocean", layout: "list", iconKey: "calendar" }
     },
     {
       label: "Today Plan",
       detail: "Classes + homework",
+      moment: "Morning stack",
       preset: { type: "today", size: "large", background: "gradient", palette: "sunset", layout: "list", iconKey: "check" }
     },
     {
       label: "Class Risk",
       detail: "One class status",
+      moment: "Before class",
       preset: { type: "class_focus", size: "medium", background: "glass", palette: "forest", layout: "compact", iconKey: "book" }
     },
     {
       label: "Focus Block",
       detail: "Start studying fast",
+      moment: "Study time",
       preset: { type: "focus", size: "small", background: "dark", palette: "midnight", layout: "ring", iconKey: "timer" }
     }
   ];
@@ -194,10 +199,20 @@ export function MoreScreen({
           >
             <Text style={styles.templateTitle} numberOfLines={1}>{template.label}</Text>
             <Text style={styles.templateDetail} numberOfLines={1}>{template.detail}</Text>
-            <Text style={styles.templateMeta} numberOfLines={1}>{template.preset.size === "large" ? "Big" : template.preset.size === "small" ? "Small" : "Medium"}</Text>
+            <Text style={styles.templateMeta} numberOfLines={1}>{template.moment} · {template.preset.size === "large" ? "Big" : template.preset.size === "small" ? "Small" : "Medium"}</Text>
           </TouchableOpacity>
         ))}
       </View>
+
+      <SectionHeader title="Widgetsmith lesson" note="Personal, useful, and tied to the school day." />
+      <GlassCard style={styles.packCard}>
+        <Text style={styles.packTitle}>Daily widget stack</Text>
+        <Text style={styles.packCopy}>Morning: Today Plan. Between classes: Next Homework. Study time: Focus Block. Before grades slip: Class Risk.</Text>
+      </GlassCard>
+      <GlassCard style={styles.packCard}>
+        <Text style={styles.packTitle}>Why this is Pro</Text>
+        <Text style={styles.packCopy}>The value is live school context on the Home Screen, not decoration. Free can preview it; Pro should own the real widgets.</Text>
+      </GlassCard>
 
       <SectionHeader title="Install status" note="Honest until native widgets are live." />
       <GlassCard style={styles.helpCard}>
@@ -560,6 +575,22 @@ function createStyles(theme: AppTheme) {
     },
     actionButton: {
       flex: 1
+    },
+    packCard: {
+      gap: spacing.xs,
+      padding: spacing.md
+    },
+    packTitle: {
+      color: colors.ink,
+      fontSize: 15,
+      lineHeight: 20,
+      fontWeight: "900"
+    },
+    packCopy: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "800"
     },
     helpCard: {
       gap: spacing.sm,
