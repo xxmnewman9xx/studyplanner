@@ -16,16 +16,16 @@ type UpgradeScreenProps = {
 type LegalDocument = "terms" | "privacy";
 
 const paidFeatures = [
-  "Scan a syllabus into courses and deadlines",
-  "Sync assignments and exams to your calendar",
-  "Queue smart reminders before due dates",
-  "Forecast grades from weighted categories"
+  "Scan syllabi into classes, assignments, exams, and grade weights",
+  "Unlimited classes, homework, projects, and exams",
+  "Weekly plan, focus timer, calendar sync, reminders, widgets, and grades",
+  "The full school loop: scan → review → today → focus → finish"
 ];
 
 const freeFeatures = [
-  "Manual courses and assignments",
-  "Today plan and focus timer",
-  "Editable semester setup"
+  "1 class",
+  "2 homework items",
+  "Basic Today list only"
 ];
 
 export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
@@ -55,9 +55,9 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
       <View style={styles.header}>
         <AppLogo showWordmark size={44} />
         <Text style={styles.kicker}>StudyPlanner Pro</Text>
-        <Text style={styles.title}>Unlimited syllabus-to-plan power.</Text>
+        <Text style={styles.title}>The useful app is Pro.</Text>
         <Text style={styles.subtitle}>
-          Scan more, save every widget preset, unlock every theme, and keep school moving with calm automation.
+          Free is only a tiny preview. Pro unlocks the real loop: scan your syllabus, review the plan, know what to do today, focus, and finish.
         </Text>
       </View>
 
@@ -71,7 +71,7 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
             <Text style={styles.valueSubtitle}>
               {subscription.isPremium
                 ? "Premium tools are available on this device."
-                : "Syllabus scan, calendar sync, reminders, and grade forecasting."}
+                : "Unlock the complete student workflow after onboarding."}
             </Text>
           </View>
         </View>
@@ -163,7 +163,7 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
               }}
             />
             {onContinueFree ? (
-              <AppButton label="Continue with Free Planner" variant="quiet" onPress={onContinueFree} />
+              <AppButton label="Try tiny free preview" variant="quiet" onPress={onContinueFree} />
             ) : null}
           </View>
         </>
@@ -171,7 +171,7 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
 
       <View style={styles.freeCard}>
         <Badge label="Included" tone="green" />
-        <Text style={styles.freeTitle}>Free planner</Text>
+        <Text style={styles.freeTitle}>Tiny free preview</Text>
         {freeFeatures.map((feature) => (
           <FeatureRow key={feature} text={feature} />
         ))}

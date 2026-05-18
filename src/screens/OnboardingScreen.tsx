@@ -12,7 +12,7 @@ type OnboardingScreenProps = {
 
 const slides = [
   {
-    title: "Scan your syllabus with Syllabus AI",
+    title: "1. Scan or type school work",
     copy: "Take a picture, paste notes, or type one task. Nothing saves until you approve it.",
     previewTitle: "1. Add school work",
     previewRows: ["Scan syllabus", "Paste homework", "Type a task"],
@@ -20,7 +20,7 @@ const slides = [
     accent: "scan" as const
   },
   {
-    title: "Catch missing dates before they hurt",
+    title: "2. Review before it saves",
     copy: "StudyPlanner highlights anything confusing, like missing dates or duplicate homework.",
     previewTitle: "2. Check the list",
     previewRows: ["Essay — Friday", "Quiz — needs date", "Project — maybe duplicate"],
@@ -28,7 +28,7 @@ const slides = [
     accent: "ai" as const
   },
   {
-    title: "Know what to do today",
+    title: "3. Today tells you what matters",
     copy: "Today shows the next best move first, so you do not have to hunt through a calendar.",
     previewTitle: "3. Do this next",
     previewRows: ["Finish lab report", "Review quiz notes", "Pack tomorrow"],
@@ -36,18 +36,18 @@ const slides = [
     accent: "calendar" as const
   },
   {
-    title: "Keep the right work visible",
-    copy: "Widget Studio is simple: pick what it shows, choose the size, save it.",
-    previewTitle: "4. Make a widget",
-    previewRows: ["Next task", "Today stack", "One class"],
+    title: "4. Focus, finish, repeat",
+    copy: "Open the next task, start a focus session, mark it done, then let Today pick the next move.",
+    previewTitle: "4. Finish work",
+    previewRows: ["Start focus", "Mark done", "Next task appears"],
     icon: Sparkles,
     accent: "widget" as const
   },
   {
-    title: "Ready when you are",
-    copy: "Start empty. Add your real classes and real work — no fake courses in your planner.",
+    title: "The loop is simple",
+    copy: "Scan → review → Today → focus → done. Free is just a tiny preview; Pro unlocks the real planner.",
     previewTitle: "Ready",
-    previewRows: ["Empty planner", "Your classes", "Your widgets"],
+    previewRows: ["Tiny free preview", "Pro unlocks scans", "Pro unlocks automation"],
     icon: CheckCircle2,
     accent: "complete" as const
   }

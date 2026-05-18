@@ -76,6 +76,9 @@ import {
 } from "./src/services/marketingCapture";
 
 const plannerStorageKey = "study-planner-data-v3";
+const freeCourseLimit = 1;
+const freeAssignmentLimit = 2;
+const premiumTabs = new Set<NavTab>(["import", "plan", "focus", "grades", "more"]);
 
 const tabs: Array<{
   id: NavTab;
@@ -143,12 +146,24 @@ function AppContent() {
   );
 
   const openTab = (tab: NavTab) => {
+    if (!marketingCaptureEnabled && premiumTabs.has(tab) && !subscription.isPremium) {
+      setSelectedAssignmentId(null);
+      setActiveTab("upgrade");
+      scrollRef.current?.scrollTo({ y: 0, animated: false });
+      return;
+    }
+
     setSelectedAssignmentId(null);
     setActiveTab(tab);
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   };
 
   const openFocusForAssignment = (assignmentId?: string) => {
+    if (!marketingCaptureEnabled && !subscription.isPremium) {
+      openTab("upgrade");
+      return;
+    }
+
     setSelectedAssignmentId(null);
     setFocusAssignmentId(assignmentId || selectedAssignmentId);
     setActiveTab("focus");
@@ -341,6 +356,14 @@ function AppContent() {
     dueDate: string,
     kind: AssignmentKind
   ) => {
+    if (!marketingCaptureEnabled && !subscription.isPremium && activeAssignments.length >= freeAssignmentLimit) {
+      Alert.alert("Unlock StudyPlanner Pro", `Free is limited to ${freeAssignmentLimit} homework items. Upgrade to add unlimited work, scans, reminders, focus, widgets, and grade tools.`, [
+        { text: "Not now", style: "cancel" },
+        { text: "See Pro", onPress: () => openTab("upgrade") }
+      ]);
+      return false;
+    }
+
     if (!title.trim() || !dueDate.trim()) {
       Alert.alert("Add a little more", "Title and due date are both needed.");
       return false;
@@ -380,6 +403,14 @@ function AppContent() {
   };
 
   const addCourse = (course: Pick<Course, "code" | "name" | "instructor">) => {
+    if (!marketingCaptureEnabled && !subscription.isPremium && courses.length >= freeCourseLimit) {
+      Alert.alert("Unlock StudyPlanner Pro", `Free is limited to ${freeCourseLimit} class. Upgrade to plan every class, scan syllabi, and use automation.`, [
+        { text: "Not now", style: "cancel" },
+        { text: "See Pro", onPress: () => openTab("upgrade") }
+      ]);
+      return;
+    }
+
     if (!course.code.trim() || !course.name.trim()) {
       Alert.alert("Add course details", "Course code and course name are both needed.");
       return;
@@ -545,7 +576,8 @@ function AppContent() {
 
   const premiumLocked =
     !marketingCaptureEnabled && (subscription.status !== "ready" || !subscription.isPremium);
-  const showInitialPaywall = false;
+  const showInitialPaywall =
+    !marketingCaptureEnabled && !paywallSeen && !subscription.isPremium && subscription.status !== "checking";
 
   if (!hydrated) {
     return <LoadingScreen label="Loading StudyPlanner" />;
@@ -555,7 +587,10 @@ function AppContent() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <StatusBar style={theme.isDark ? "light" : "dark"} />
-        <OnboardingScreen onFinish={() => setOnboarded(true)} />
+        <OnboardingScreen onFinish={() => {
+          setOnboarded(true);
+          setPaywallSeen(false);
+        }} />
       </SafeAreaView>
     );
   }
@@ -672,7 +707,7 @@ function AppContent() {
                   parsedImports={parsedImports}
                   parsedItems={parsedItems}
                   onApplyParsedPlan={applyParsedPlan}
-                  premiumImportLocked={premiumLocked && parsedImports.length >= 1}
+                  premiumImportLocked={premiumLocked}
                   onOpenPaywall={() => openTab("upgrade")}
                 />
               ) : null}
