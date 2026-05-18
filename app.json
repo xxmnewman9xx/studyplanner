@@ -16,7 +16,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.mattnewman.studyplanner",
       "icon": "./assets/app/study-planner-icon.png",
-      "buildNumber": "14",
+      "buildNumber": "15",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "Scan syllabus pages so StudyPlanner can help create your course plan.",
