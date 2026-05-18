@@ -81,6 +81,8 @@ assert(upgrade.includes('"1 class"') && upgrade.includes('"2 homework items"') &
 assert(app.includes("setImportHandoff") && app.includes("openTab(\"today\")") && app.includes('recordReviewEvent("import_applied")'), "Scan/import should hand off into Today after value is created.");
 assert(reviewPrompt.includes("assignment_completed") && reviewPrompt.includes("focus_completed") && reviewPrompt.includes("widget_saved"), "Review prompt policy should stay value-gated.");
 assert(more.includes("These are previews only"), "Widget surface must be honest until native widgets are live.");
+assert(more.includes("Widgetsmith-style templates") && more.includes("pick template → add widget → open homework"), "Widget surface should define the real native widget loop, not generic settings.");
+assert(more.includes("Next Homework") && more.includes("Today Plan") && more.includes("Focus Block") && more.includes("Class Risk"), "Widget templates should be student-outcome first.");
 assert(!more.includes("Algebra II - Worksheet") && !more.includes("Week 11") && !more.includes("Wednesday, May 13"), "Widget surface must not show fake sample school data.");
 assert(!more.includes("Save widget") && !more.includes("Save current design"), "Widget surface must not expose fake save/configuration controls.");
 assert(defaultPlanner.includes("defaultWidgetPresets"), "Default widget presets may exist for data compatibility, but UI must not imply native support.");

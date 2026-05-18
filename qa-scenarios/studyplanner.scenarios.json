@@ -66,9 +66,9 @@
     "risk": "trust",
     "state": "empty app",
     "trigger": "opens any widget surface",
-    "expected": ["no fake settings", "no fake Algebra examples", "preview-only if native widgets are not live"],
+    "expected": ["no fake settings", "no fake Algebra examples", "preview-only if native widgets are not live", "Widgetsmith-style templates are student-outcome first"],
     "automation": "static",
-    "evidence": ["MoreScreen preview-only copy", "no save controls", "no sample school text"],
+    "evidence": ["MoreScreen preview-only copy", "student widget template names", "native widget loop copy", "no save controls", "no sample school text"],
     "failureMeans": "Fake controls create trust debt and App Store review risk."
   },
   {

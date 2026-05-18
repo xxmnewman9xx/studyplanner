@@ -18,7 +18,7 @@ type LegalDocument = "terms" | "privacy";
 const paidFeatures = [
   "Scan syllabi into classes, assignments, exams, and grade weights",
   "Unlimited classes, homework, projects, and exams",
-  "Weekly plan, focus timer, calendar sync, reminders, widgets, and grades",
+  "Weekly plan, focus timer, calendar sync, reminders, grades, and real student widget templates",
   "The full school loop: scan → review → today → focus → finish"
 ];
 

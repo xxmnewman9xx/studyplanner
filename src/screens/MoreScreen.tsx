@@ -116,23 +116,23 @@ export function MoreScreen({
     preset: Pick<WidgetPreset, "type" | "size" | "background" | "palette" | "layout" | "iconKey">;
   }> = [
     {
-      label: "Next",
-      detail: "Next due task",
+      label: "Next Homework",
+      detail: "One task to do now",
       preset: { type: "due_next", size: "medium", background: "glass", palette: "ocean", layout: "list", iconKey: "calendar" }
     },
     {
-      label: "Today",
-      detail: "Due today count",
+      label: "Today Plan",
+      detail: "Classes + homework",
       preset: { type: "today", size: "large", background: "gradient", palette: "sunset", layout: "list", iconKey: "check" }
     },
     {
-      label: "Class",
-      detail: "One class only",
+      label: "Class Risk",
+      detail: "One class status",
       preset: { type: "class_focus", size: "medium", background: "glass", palette: "forest", layout: "compact", iconKey: "book" }
     },
     {
-      label: "Focus",
-      detail: "25-minute timer",
+      label: "Focus Block",
+      detail: "Start studying fast",
       preset: { type: "focus", size: "small", background: "dark", palette: "midnight", layout: "ring", iconKey: "timer" }
     }
   ];
@@ -153,13 +153,13 @@ export function MoreScreen({
         <View style={styles.heroHeader}>
           <View style={styles.heroCopy}>
             <AppLogo showWordmark size={36} />
-            <Text style={styles.kicker}>Widget Preview</Text>
-            <Text style={styles.heroTitle}>No fake controls.</Text>
-            <Text style={styles.heroText} numberOfLines={2}>Real iPhone widget controls are not enabled in this build yet.</Text>
+            <Text style={styles.kicker}>Widget Lab</Text>
+            <Text style={styles.heroTitle}>Student widgets, not fake settings.</Text>
+            <Text style={styles.heroText} numberOfLines={2}>Preview the real iOS widgets we are building: homework, deadlines, focus, and class risk.</Text>
           </View>
           <View style={styles.livePill}>
             <View style={styles.liveDot} />
-            <Text style={styles.liveText}>Preview</Text>
+            <Text style={styles.liveText}>Coming soon</Text>
           </View>
         </View>
         <View style={styles.previewStage}>
@@ -180,7 +180,7 @@ export function MoreScreen({
         </View>
       </GlassCard>
 
-      <SectionHeader title="Pick one" note="Preview updates above." />
+      <SectionHeader title="Pick a student widget" note="Widgetsmith-style templates, built around school outcomes." />
       <View style={styles.templateGrid}>
         {starterTemplates.map((template) => (
           <TouchableOpacity
@@ -199,15 +199,19 @@ export function MoreScreen({
         ))}
       </View>
 
-      <SectionHeader title="Status" note="Honest until native widgets are live." />
+      <SectionHeader title="Install status" note="Honest until native widgets are live." />
       <GlassCard style={styles.helpCard}>
         <View style={styles.helpStep}>
-          <Text style={styles.helpNumber}>!</Text>
+          <Text style={styles.helpNumber}>1</Text>
           <Text style={styles.helpText}>These are previews only. They do not create iPhone widgets yet.</Text>
         </View>
         <View style={styles.helpStep}>
-          <Text style={styles.helpNumber}>→</Text>
-          <Text style={styles.helpText}>Next build should add real iOS widget support or remove this tab.</Text>
+          <Text style={styles.helpNumber}>2</Text>
+          <Text style={styles.helpText}>The native build should ship this exact loop: pick template → add widget → open homework from your Home Screen.</Text>
+        </View>
+        <View style={styles.helpStep}>
+          <Text style={styles.helpNumber}>3</Text>
+          <Text style={styles.helpText}>Best Pro widgets: next homework, deadline countdown, focus block, grade risk, and one-class view.</Text>
         </View>
       </GlassCard>
     </View>
