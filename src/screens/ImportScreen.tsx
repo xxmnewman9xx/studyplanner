@@ -49,12 +49,14 @@ type ImportScreenProps = {
   parsedImports: ParsedImport[];
   parsedItems: ParsedItem[];
   onApplyParsedPlan: (parse: SyllabusParseResult) => void;
+  premiumImportLocked?: boolean;
+  onOpenPaywall?: () => void;
 };
 
 const priorities: Priority[] = ["low", "medium", "high"];
 const kinds: AssignmentKind[] = ["assignment", "worksheet", "reading", "project", "exam"];
 
-export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: ImportScreenProps) {
+export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, premiumImportLocked = false, onOpenPaywall }: ImportScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
@@ -159,7 +161,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
   const counts = draft ? summarizeDraft(draft) : null;
   const invalidDeadlineCount = draft?.assignments.filter((assignment) => !isValidDeadline(assignment.dueAt)).length || 0;
   const needsReviewCount = draft?.assignments.filter((assignment) => assignment.needsReview || (assignment.confidence || 1) < 0.75).length || parsedItems.filter((item) => item.needsReview).length;
-  const canApplyDraft = Boolean(draft && draft.assignments.length > 0 && invalidDeadlineCount === 0);
+  const canApplyDraft = Boolean(draft && draft.assignments.length > 0 && invalidDeadlineCount === 0 && !premiumImportLocked);
   const firstActionTitle = draft?.assignments
     .slice()
     .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())[0]?.title;
@@ -467,9 +469,13 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan }: 
 
           <View style={styles.applyBar}>
             <AppButton
-              label={invalidDeadlineCount > 0 ? "Fix dates before adding" : `Add ${draft.assignments.length} reviewed item${draft.assignments.length === 1 ? "" : "s"} to Today`}
-              disabled={!canApplyDraft}
+              label={premiumImportLocked ? "Upgrade for unlimited imports" : invalidDeadlineCount > 0 ? "Fix dates before adding" : `Add ${draft.assignments.length} reviewed item${draft.assignments.length === 1 ? "" : "s"} to Today`}
+              disabled={!canApplyDraft && !premiumImportLocked}
               onPress={() => {
+                if (premiumImportLocked) {
+                  onOpenPaywall?.();
+                  return;
+                }
                 if (!canApplyDraft) return;
                 onApplyParsedPlan(draft);
               }}

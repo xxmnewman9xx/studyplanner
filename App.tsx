@@ -41,12 +41,6 @@ import { AppTheme } from "./src/theme";
 import { AppThemeProvider, useAppTheme } from "./src/themeContext";
 import { AppLogo } from "./src/components/AppleComponents";
 import {
-  defaultAssignments,
-  defaultCourses,
-  defaultFocusSessions,
-  defaultGradeItems,
-  defaultParsedImports,
-  defaultParsedItems,
   defaultSemester,
   defaultSettings,
   defaultWidgetPresets
@@ -70,6 +64,7 @@ import { scheduleSmartReminders } from "./src/services/reminders";
 import { syncAssignmentsToDeviceCalendar } from "./src/services/calendarSync";
 import { loadJson, saveJson } from "./src/services/storage";
 import { SubscriptionProvider, useSubscription } from "./src/services/subscriptions";
+import { recordReviewEvent } from "./src/services/reviewPrompt";
 import {
   getMarketingCaptureInitialTab,
   getMarketingCaptureScrollY,
@@ -119,20 +114,20 @@ function AppContent() {
     marketingCaptureEnabled ? marketingCaptureSemester : defaultSemester
   );
   const [courses, setCourses] = useState<Course[]>(
-    marketingCaptureEnabled ? marketingCaptureCourses : defaultCourses
+    marketingCaptureEnabled ? marketingCaptureCourses : []
   );
   const [assignments, setAssignments] = useState<Assignment[]>(
-    marketingCaptureEnabled ? marketingCaptureAssignments : defaultAssignments
+    marketingCaptureEnabled ? marketingCaptureAssignments : []
   );
-  const [gradeItems, setGradeItems] = useState(
-    marketingCaptureEnabled ? marketingCaptureGradeItems : defaultGradeItems
+  const [gradeItems, setGradeItems] = useState<GradeItem[]>(
+    marketingCaptureEnabled ? marketingCaptureGradeItems : []
   );
   const [targetGradePercent, setTargetGradePercent] = useState(90);
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
-  const [parsedImports, setParsedImports] = useState<ParsedImport[]>(defaultParsedImports);
-  const [parsedItems, setParsedItems] = useState<ParsedItem[]>(defaultParsedItems);
+  const [parsedImports, setParsedImports] = useState<ParsedImport[]>([]);
+  const [parsedItems, setParsedItems] = useState<ParsedItem[]>([]);
   const [widgetPresets, setWidgetPresets] = useState<WidgetPreset[]>(defaultWidgetPresets);
-  const [focusSessions, setFocusSessions] = useState<FocusSession[]>(defaultFocusSessions);
+  const [focusSessions, setFocusSessions] = useState<FocusSession[]>([]);
   const [importHandoff, setImportHandoff] = useState<ImportHandoffSummary | null>(null);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
   const [focusAssignmentId, setFocusAssignmentId] = useState<string | null>(null);
@@ -175,15 +170,15 @@ function AppContent() {
         setOnboarded(Boolean(stored.onboarded));
         setPaywallSeen(Boolean(stored.paywallSeen));
         setSemester(stored.semester || defaultSemester);
-        setCourses(stored.courses?.length ? stored.courses : defaultCourses);
-        setAssignments(stored.assignments?.length ? stored.assignments : defaultAssignments);
-        setGradeItems(stored.gradeItems?.length ? stored.gradeItems : defaultGradeItems);
+        setCourses(stored.courses || []);
+        setAssignments(stored.assignments || []);
+        setGradeItems(stored.gradeItems || []);
         setTargetGradePercent(stored.targetGradePercent || 90);
         setSettings({ ...defaultSettings, ...(stored.settings || {}), onboardingComplete: Boolean(stored.onboarded) });
-        setParsedImports(stored.parsedImports?.length ? stored.parsedImports : defaultParsedImports);
-        setParsedItems(stored.parsedItems?.length ? stored.parsedItems : defaultParsedItems);
+        setParsedImports(stored.parsedImports || []);
+        setParsedItems(stored.parsedItems || []);
         setWidgetPresets(stored.widgetPresets?.length ? stored.widgetPresets : defaultWidgetPresets);
-        setFocusSessions(stored.focusSessions?.length ? stored.focusSessions : defaultFocusSessions);
+        setFocusSessions(stored.focusSessions || []);
       }
 
       setHydrated(true);
@@ -318,6 +313,7 @@ function AppContent() {
       startDate: parse.semesterStartDate || current.startDate,
       endDate: parse.semesterEndDate || current.endDate
     }));
+    void recordReviewEvent("import_applied");
     openTab("today");
   };
 
@@ -334,6 +330,9 @@ function AppContent() {
               : assignment
           )
     );
+    if (status === "done") {
+      void recordReviewEvent("assignment_completed");
+    }
   };
 
   const addQuickAssignment = (
@@ -462,6 +461,7 @@ function AppContent() {
 
   const saveWidgetPreset = (preset: WidgetPreset) => {
     setWidgetPresets((current) => saveWidgetPresetState(current, preset));
+    void recordReviewEvent("widget_saved");
   };
 
   const resetWidgetPresets = () => {
@@ -483,6 +483,9 @@ function AppContent() {
 
       return [session, ...withoutDuplicatePlan].slice(0, 24);
     });
+    if (session.status === "completed") {
+      void recordReviewEvent("focus_completed");
+    }
   };
 
   const handleScheduleReminders = async () => {
@@ -669,6 +672,8 @@ function AppContent() {
                   parsedImports={parsedImports}
                   parsedItems={parsedItems}
                   onApplyParsedPlan={applyParsedPlan}
+                  premiumImportLocked={premiumLocked && parsedImports.length >= 1}
+                  onOpenPaywall={() => openTab("upgrade")}
                 />
               ) : null}
               {activeTab === "plan" ? (

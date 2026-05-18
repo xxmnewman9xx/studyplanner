@@ -55,18 +55,9 @@ type MoreScreenProps = {
   onOpenPaywall: () => void;
 };
 
-const widgetTypes: WidgetType[] = [
-  "due_next",
-  "today",
-  "needs_check",
-  "week",
-  "class_focus",
-  "empty",
-  "focus",
-  "streak"
-];
+const widgetTypes: WidgetType[] = ["due_next", "today", "class_focus", "focus"];
 const widgetSizes: WidgetSize[] = ["small", "medium", "large"];
-const backgrounds: WidgetBackground[] = ["solid", "gradient", "glass", "dark"];
+const backgrounds: WidgetBackground[] = ["glass", "gradient", "dark"];
 const widgetPaletteOptions: WidgetPalette[] = [
   "sunset",
   "ocean",
@@ -76,19 +67,10 @@ const widgetPaletteOptions: WidgetPalette[] = [
   "candy",
   "minimal"
 ];
-const palettes: Array<WidgetPalette | "custom"> = [
-  "sunset",
-  "ocean",
-  "forest",
-  "lavender",
-  "midnight",
-  "candy",
-  "minimal",
-  "custom"
-];
-const fonts: WidgetPreset["font"][] = ["SF Pro", "Rounded", "New York", "Mono"];
-const layouts: WidgetPreset["layout"][] = ["compact", "list", "ring", "calendar", "grid"];
-const iconKeys = ["book", "calendar", "flask", "pen", "spark", "check", "timer", "palette"];
+const palettes: Array<WidgetPalette | "custom"> = ["ocean", "sunset", "lavender", "midnight", "custom"];
+const fonts: WidgetPreset["font"][] = ["SF Pro", "Rounded"];
+const layouts: WidgetPreset["layout"][] = ["compact", "list", "ring"];
+const iconKeys = ["book", "calendar", "spark", "check", "timer"];
 
 export function MoreScreen({
   assignments,
@@ -217,9 +199,9 @@ export function MoreScreen({
           <View style={styles.heroCopy}>
             <AppLogo showWordmark size={36} />
             <Text style={styles.kicker}>Widget Studio</Text>
-            <Text style={styles.heroTitle}>Choose what your widget should show.</Text>
+            <Text style={styles.heroTitle}>Make a widget in 4 taps.</Text>
             <Text style={styles.heroText}>
-              Pick one job first: next task, today, one class, or focus timer. Then adjust the look.
+              Pick the job, choose a size, preview it live, then save. No confusing setup.
             </Text>
           </View>
           <View style={styles.livePill}>
@@ -245,7 +227,16 @@ export function MoreScreen({
         </View>
       </GlassCard>
 
-      <SectionHeader title="Step 1: choose a widget job" note="Tap the card that matches what you want on your Home Screen." />
+      <GlassCard style={styles.tutorialCard}>
+        {["1. Pick what it shows", "2. Choose the size", "3. Check the preview", "4. Save the widget"].map((step) => (
+          <View key={step} style={styles.tutorialRow}>
+            <CheckCircle2 color={colors.accent} size={16} />
+            <Text style={styles.tutorialText}>{step}</Text>
+          </View>
+        ))}
+      </GlassCard>
+
+      <SectionHeader title="Step 1: choose a widget job" note="Start here. Most students only need one of these." />
       <View style={styles.templateGrid}>
         {starterTemplates.map((template) => (
           <TouchableOpacity
@@ -264,7 +255,7 @@ export function MoreScreen({
         ))}
       </View>
 
-      <SectionHeader title="Step 2: change the look" note="These buttons only change the preview above." />
+      <SectionHeader title="Step 2: size and style" note="Keep it simple. The preview updates instantly." />
       <GlassCard style={styles.controlsCard}>
         <ControlLabel title="How big" />
         <SegmentedControl
@@ -274,7 +265,7 @@ export function MoreScreen({
           labelForOption={labelize}
         />
 
-        <ControlLabel title="What it shows" />
+        <ControlLabel title="Widget job" />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRail}>
           {widgetTypes.map((option) => (
             <ChoiceChip
@@ -654,6 +645,21 @@ function createStyles(theme: AppTheme) {
       color: colors.heroText,
       fontSize: 12,
       lineHeight: 16,
+      fontWeight: "900"
+    },
+    tutorialCard: {
+      gap: spacing.xs,
+      padding: spacing.md
+    },
+    tutorialRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    tutorialText: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 19,
       fontWeight: "900"
     },
     previewStage: {

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, StyleSheet, Text, View } from "react-native";
 import { CalendarCheck2, CheckCircle2, FileScan, Sparkles, WandSparkles } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { AppLogo, GlassCard } from "../components/AppleComponents";
@@ -13,31 +13,41 @@ type OnboardingScreenProps = {
 const slides = [
   {
     title: "Scan your syllabus with Syllabus AI",
-    copy: "StudyPlanner finds assignments, readings, dates, and grade weights so you can review them before they save.",
+    copy: "Take a picture, paste notes, or type one task. Nothing saves until you approve it.",
+    previewTitle: "1. Add school work",
+    previewRows: ["Scan syllabus", "Paste homework", "Type a task"],
     icon: FileScan,
     accent: "scan" as const
   },
   {
     title: "Catch missing dates before they hurt",
-    copy: "Found work appears in one editable list, including low-confidence rows and possible assignments with no clear due date.",
+    copy: "StudyPlanner highlights anything confusing, like missing dates or duplicate homework.",
+    previewTitle: "2. Check the list",
+    previewRows: ["Essay — Friday", "Quiz — needs date", "Project — maybe duplicate"],
     icon: WandSparkles,
     accent: "ai" as const
   },
   {
     title: "Know what to do today",
-    copy: "Spot busy days, upcoming exams, and overlapping deadlines while there is still time to adjust.",
+    copy: "Today shows the next best move first, so you do not have to hunt through a calendar.",
+    previewTitle: "3. Do this next",
+    previewRows: ["Finish lab report", "Review quiz notes", "Pack tomorrow"],
     icon: CalendarCheck2,
     accent: "calendar" as const
   },
   {
     title: "Keep the right work visible",
-    copy: "Use calm widgets and focus views to keep today’s assignments close without opening the whole planner.",
+    copy: "Widget Studio is simple: pick what it shows, choose the size, save it.",
+    previewTitle: "4. Make a widget",
+    previewRows: ["Next task", "Today stack", "One class"],
     icon: Sparkles,
     accent: "widget" as const
   },
   {
     title: "Ready when you are",
-    copy: "Add your first syllabus, paste homework notes, or start manually. You stay in control of what gets saved.",
+    copy: "Start empty. Add your real classes and real work — no fake courses in your planner.",
+    previewTitle: "Ready",
+    previewRows: ["Empty planner", "Your classes", "Your widgets"],
     icon: CheckCircle2,
     accent: "complete" as const
   }
@@ -50,7 +60,19 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
   const [index, setIndex] = useState(0);
   const slide = slides[index] ?? slides[0]!;
   const Icon = slide.icon;
+  const motion = useRef(new Animated.Value(1)).current;
   const isFinal = index === slides.length - 1;
+
+  useEffect(() => {
+    motion.setValue(0);
+    Animated.spring(motion, {
+      toValue: 1,
+      damping: 18,
+      stiffness: 130,
+      mass: 0.7,
+      useNativeDriver: true
+    }).start();
+  }, [index, motion]);
 
   const continueOnboarding = () => {
     if (isFinal) {
@@ -66,6 +88,7 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
         <AppLogo showWordmark size={46} />
       </View>
 
+      <Animated.View style={{ opacity: motion, transform: [{ translateY: motion.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }] }}>
       <GlassCard style={styles.illustrationCard}>
         <View style={styles.illustration}>
           <View style={styles.scanFrame}>
@@ -83,12 +106,22 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
             <Icon color={colors.heroText} size={22} />
           </View>
         </View>
+        <View style={styles.previewList}>
+          <Text style={styles.previewTitle}>{slide.previewTitle}</Text>
+          {slide.previewRows.map((row) => (
+            <View key={row} style={styles.previewRow}>
+              <View style={styles.previewCheck} />
+              <Text style={styles.previewText}>{row}</Text>
+            </View>
+          ))}
+        </View>
         <View style={styles.statusRow}>
           <Text style={styles.statusText}>Review-first import</Text>
           <Text style={styles.statusDot}>•</Text>
           <Text style={styles.statusText}>Private on device</Text>
         </View>
       </GlassCard>
+      </Animated.View>
 
       <View style={styles.copyBlock}>
         <Text style={styles.title}>{slide.title}</Text>
@@ -222,6 +255,36 @@ function createStyles(theme: AppTheme) {
       shadowOpacity: 0.22,
       shadowRadius: 12,
       shadowOffset: { width: 0, height: 8 }
+    },
+    previewList: {
+      width: "100%",
+      borderRadius: 18,
+      padding: spacing.md,
+      gap: spacing.xs,
+      backgroundColor: colors.surfaceAlt
+    },
+    previewTitle: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 18,
+      fontWeight: "900"
+    },
+    previewRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs
+    },
+    previewCheck: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.accent
+    },
+    previewText: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "800"
     },
     statusRow: {
       minHeight: 32,
