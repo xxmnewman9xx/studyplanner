@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Bell, CalendarPlus, CheckCircle2, ChevronRight, Crown, FileScan, GraduationCap, Plus, Sparkles, Timer } from "lucide-react-native";
+import { Bell, CalendarPlus, CheckCircle2, ChevronRight, Crown, FileScan, GraduationCap, Plus, Timer } from "lucide-react-native";
 import {
   AppLogo,
   AssignmentRow,
@@ -45,7 +45,6 @@ type TodayScreenProps = {
   onOpenScan: () => void;
   onOpenPlan: () => void;
   onOpenClasses: () => void;
-  onOpenWidgets: () => void;
   onAddQuickAssignment: (courseId: string, title: string, dueDate: string, kind: "assignment") => boolean;
 };
 
@@ -64,7 +63,6 @@ export function TodayScreen({
   onOpenScan,
   onOpenPlan,
   onOpenClasses,
-  onOpenWidgets,
   onAddQuickAssignment
 }: TodayScreenProps) {
   const { theme } = useAppTheme();
@@ -209,17 +207,17 @@ export function TodayScreen({
       <SectionHeader title="Big actions" note="Every button says exactly where it goes." />
       <View style={styles.commandGrid}>
         <CommandTile
-          title="Add from syllabus"
-          detail="Scan or paste a syllabus. Review before anything is added."
-          icon={FileScan}
-          onPress={onOpenScan}
+          title={premiumAutomationLocked ? "Unlock syllabus scan" : "Add from syllabus"}
+          detail={premiumAutomationLocked ? "Pro turns syllabi into a plan." : "Scan or paste a syllabus. Review before anything is added."}
+          icon={premiumAutomationLocked ? Crown : FileScan}
+          onPress={premiumAutomationLocked ? onOpenPaywall : onOpenScan}
           tone="pink"
         />
         <CommandTile
-          title="Open weekly plan"
-          detail={`${plan.dueSoon.length} due soon · move work around`}
-          icon={CalendarPlus}
-          onPress={onOpenPlan}
+          title={premiumAutomationLocked ? "Unlock weekly plan" : "Open weekly plan"}
+          detail={premiumAutomationLocked ? "Pro organizes the whole week." : `${plan.dueSoon.length} due soon · move work around`}
+          icon={premiumAutomationLocked ? Crown : CalendarPlus}
+          onPress={premiumAutomationLocked ? onOpenPaywall : onOpenPlan}
           tone="blue"
         />
         <CommandTile
@@ -230,17 +228,10 @@ export function TodayScreen({
           tone="green"
         />
         <CommandTile
-          title="Edit widgets"
-          detail="Choose what your Home Screen shows."
-          icon={Sparkles}
-          onPress={onOpenWidgets}
-          tone="purple"
-        />
-        <CommandTile
-          title="Start focus timer"
-          detail="Study with a timer for the next task."
-          icon={Timer}
-          onPress={() => onOpenFocus(plan.nextAction?.id)}
+          title={premiumAutomationLocked ? "Unlock focus" : "Start focus timer"}
+          detail={premiumAutomationLocked ? "Pro includes focus sessions." : "Study with a timer for the next task."}
+          icon={premiumAutomationLocked ? Crown : Timer}
+          onPress={premiumAutomationLocked ? onOpenPaywall : () => onOpenFocus(plan.nextAction?.id)}
           tone="blue"
         />
       </View>

@@ -16,7 +16,6 @@ import {
   Crown,
   FileScan,
   GraduationCap,
-  PanelsTopLeft,
   Sparkles,
   Timer
 } from "lucide-react-native";
@@ -80,7 +79,7 @@ const freeCourseLimit = 1;
 const freeAssignmentLimit = 2;
 const premiumTabs = new Set<NavTab>(["import", "plan", "focus", "grades", "more"]);
 
-const tabs: Array<{
+const proTabs: Array<{
   id: NavTab;
   label: string;
   icon: React.ComponentType<{ color: string; size: number }>;
@@ -89,7 +88,13 @@ const tabs: Array<{
   { id: "import", label: "Scan", icon: FileScan },
   { id: "plan", label: "Plan", icon: CalendarDays },
   { id: "courses", label: "Classes", icon: GraduationCap },
-  { id: "more", label: "Widgets", icon: PanelsTopLeft }
+  { id: "focus", label: "Focus", icon: Timer }
+];
+
+const freeTabs: typeof proTabs = [
+  { id: "today", label: "Today", icon: CalendarDays },
+  { id: "courses", label: "Classes", icon: GraduationCap },
+  { id: "upgrade", label: "Pro", icon: Crown }
 ];
 
 export default function App() {
@@ -144,6 +149,7 @@ function AppContent() {
     () => assignments.find((assignment) => assignment.id === selectedAssignmentId),
     [assignments, selectedAssignmentId]
   );
+  const visibleTabs = marketingCaptureEnabled || subscription.isPremium ? proTabs : freeTabs;
 
   const openTab = (tab: NavTab) => {
     if (!marketingCaptureEnabled && premiumTabs.has(tab) && !subscription.isPremium) {
@@ -623,7 +629,7 @@ function AppContent() {
           <View style={styles.sidebar}>
             <AppLogo showWordmark size={34} />
             <View style={styles.sidebarNav}>
-              {tabs.map((tab) => {
+              {visibleTabs.map((tab) => {
                 const Icon = tab.icon;
                 const active = activeTab === tab.id;
                 return (
@@ -698,7 +704,6 @@ function AppContent() {
                   onOpenScan={() => openTab("import")}
                   onOpenPlan={() => openTab("plan")}
                   onOpenClasses={() => openTab("courses")}
-                  onOpenWidgets={() => openTab("more")}
                   onAddQuickAssignment={addQuickAssignment}
                 />
               ) : null}
@@ -777,7 +782,7 @@ function AppContent() {
         </ScrollView>
 
         {!tablet ? <View style={styles.tabBar}>
-          {tabs.map((tab) => {
+          {visibleTabs.map((tab) => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
             return (
