@@ -7,18 +7,14 @@ import {
   FlaskConical,
   Palette,
   PenLine,
-  RotateCcw,
-  Save,
   Sparkles,
   Timer
 } from "lucide-react-native";
 import {
   AppLogo,
   GlassCard,
-  SegmentedControl,
   WidgetPreviewCard
 } from "../components/AppleComponents";
-import { AppButton } from "../components/AppButton";
 import { SectionHeader } from "../components/SectionHeader";
 import {
   Assignment,
@@ -31,7 +27,6 @@ import {
   WidgetType
 } from "../models";
 import { getWidgetData } from "../logic/planner";
-import { defaultWidgetPresets } from "../data/defaultPlanner";
 import { AppTheme, themePalettes } from "../theme";
 import { useAppTheme } from "../themeContext";
 
@@ -48,22 +43,8 @@ type MoreScreenProps = {
   onOpenPaywall: () => void;
 };
 
-const widgetTypes: WidgetType[] = ["due_next", "today", "class_focus", "focus"];
 const widgetSizes: WidgetSize[] = ["small", "medium", "large"];
-const backgrounds: WidgetBackground[] = ["glass", "gradient", "dark"];
-const widgetPaletteOptions: WidgetPalette[] = [
-  "sunset",
-  "ocean",
-  "forest",
-  "lavender",
-  "midnight",
-  "candy",
-  "minimal"
-];
-const palettes: Array<WidgetPalette | "custom"> = ["ocean", "sunset", "lavender", "midnight", "custom"];
-const fonts: WidgetPreset["font"][] = ["SF Pro", "Rounded"];
-const layouts: WidgetPreset["layout"][] = ["compact", "list", "ring"];
-const iconKeys = ["book", "calendar", "spark", "check", "timer"];
+const palettes: WidgetPalette[] = ["ocean", "sunset", "lavender", "midnight"];
 
 export function MoreScreen({
   assignments,
@@ -156,32 +137,6 @@ export function MoreScreen({
     }
   ];
 
-  const savePreset = () => {
-    const timestamp = new Date().toISOString();
-    const existingPreset = widgetPresets.find((preset) => preset.id === editingPresetId);
-    const savedPreset: WidgetPreset = {
-      ...previewPreset,
-      id: editingPresetId || `preset-${Date.now()}`,
-      name: labelize(type),
-      createdAt: existingPreset?.createdAt || timestamp,
-      updatedAt: timestamp
-    };
-    setEditingPresetId(savedPreset.id);
-    onSaveWidgetPreset(savedPreset);
-  };
-
-  const loadPreset = (preset: WidgetPreset) => {
-    setType(preset.type);
-    setSize(preset.size);
-    setBackground(preset.background);
-    setPalette(preset.palette);
-    setFont(preset.font);
-    setClassFocusCourseId(preset.classFocusCourseId || courses[0]?.id);
-    setLayout(preset.layout);
-    setIconKey(preset.iconKey);
-    setEditingPresetId(preset.id);
-  };
-
   const applyTemplate = (template: Pick<WidgetPreset, "type" | "size" | "background" | "palette" | "layout" | "iconKey">) => {
     setType(template.type);
     setSize(template.size);
@@ -192,25 +147,19 @@ export function MoreScreen({
     setEditingPresetId(`preset-${template.type}-${template.size}`);
   };
 
-  const resetStudio = () => {
-    onResetWidgetPresets();
-    const defaultPreset = defaultWidgetPresets[0];
-    if (defaultPreset) loadPreset(defaultPreset);
-  };
-
   return (
     <View>
       <GlassCard tone="hero" style={styles.studioHero}>
         <View style={styles.heroHeader}>
           <View style={styles.heroCopy}>
             <AppLogo showWordmark size={36} />
-            <Text style={styles.kicker}>Widget Studio</Text>
-            <Text style={styles.heroTitle}>Pick a widget.</Text>
-            <Text style={styles.heroText} numberOfLines={2}>{studioHint}</Text>
+            <Text style={styles.kicker}>Widget Preview</Text>
+            <Text style={styles.heroTitle}>No fake controls.</Text>
+            <Text style={styles.heroText} numberOfLines={2}>Real iPhone widget controls are not enabled in this build yet.</Text>
           </View>
           <View style={styles.livePill}>
             <View style={styles.liveDot} />
-            <Text style={styles.liveText}>Live</Text>
+            <Text style={styles.liveText}>Preview</Text>
           </View>
         </View>
         <View style={styles.previewStage}>
@@ -250,115 +199,15 @@ export function MoreScreen({
         ))}
       </View>
 
-      <SectionHeader title="Customize" note="Size and color." />
-      <GlassCard style={styles.controlsCard}>
-        <ControlLabel title="Size" />
-        <SegmentedControl
-          options={widgetSizes}
-          value={size}
-          onChange={setSize}
-          labelForOption={(value) => (value === "large" ? "Big" : value === "small" ? "Small" : "Medium")}
-        />
-
-        {type === "class_focus" ? (
-          <>
-            <ControlLabel title="Class" />
-            {hasCourses ? (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRail}>
-                {courses.map((course) => (
-                  <ChoiceChip
-                    key={course.id}
-                    label={course.code}
-                    active={course.id === classFocusCourseId}
-                    color={course.color}
-                    onPress={() => setClassFocusCourseId(course.id)}
-                  />
-                ))}
-              </ScrollView>
-            ) : (
-              <Text style={styles.emptyHelper}>Add a class in the Classes tab before saving this widget.</Text>
-            )}
-          </>
-        ) : null}
-
-        <ControlLabel title="Color" />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.paletteRail}>
-          {palettes.filter((option) => option !== "custom").map((option) => (
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityState={{ selected: option === palette }}
-              key={option}
-              style={[styles.paletteButton, option === palette ? styles.paletteButtonActive : null]}
-              onPress={() => {
-                setPalette(option);
-                onUpdateSettings({ selectedTheme: option });
-              }}
-            >
-              <View style={styles.paletteDots}>
-                {themePalettes[option].slice(0, 4).map((color) => (
-                  <View key={color} style={[styles.paletteDot, { backgroundColor: color }]} />
-                ))}
-              </View>
-              <Text style={styles.paletteName}>{labelize(option)}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        <View style={styles.controlActions}>
-          <AppButton label="Save widget" icon={Save} onPress={savePreset} style={styles.actionButton} />
-          <AppButton
-            label="Reset"
-            icon={RotateCcw}
-            variant="secondary"
-            onPress={resetStudio}
-            style={styles.actionButton}
-          />
-        </View>
-      </GlassCard>
-
-      <SectionHeader title="Saved" note="Tap to edit." />
-      <GlassCard style={styles.savedCard}>
-        {widgetPresets.slice(0, 5).map((preset) => {
-          const data = getWidgetData(preset, assignments, courses);
-          const active = preset.id === editingPresetId;
-          return (
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-              key={preset.id}
-              style={[styles.savedRow, active ? styles.savedRowActive : null]}
-              onPress={() => loadPreset(preset)}
-            >
-              <View style={[styles.savedIcon, { backgroundColor: themePalettes[preset.palette][1] }]}>
-                <Text style={styles.savedIconText}>{preset.type === "class_focus" ? "📚" : preset.type === "focus" ? "⏱" : "✓"}</Text>
-              </View>
-              <View style={styles.savedCopy}>
-                <Text style={styles.savedTitle}>{data.headline}</Text>
-                <Text style={styles.savedMeta} numberOfLines={1}>{labelForWidgetType(preset.type)} · {labelize(preset.size)}</Text>
-              </View>
-              <Text style={styles.savedAction}>{active ? "Editing" : "Load"}</Text>
-            </TouchableOpacity>
-          );
-        })}
-        <TouchableOpacity accessibilityRole="button" style={styles.saveCurrentRow} onPress={savePreset}>
-          <Text style={styles.saveCurrentText}>Save current design</Text>
-          <Text style={styles.saveCurrentPlus}>+</Text>
-        </TouchableOpacity>
-      </GlassCard>
-
-      <SectionHeader title="Add to iPhone" note="Save here, place from iOS." />
+      <SectionHeader title="Status" note="Honest until native widgets are live." />
       <GlassCard style={styles.helpCard}>
         <View style={styles.helpStep}>
-          <Text style={styles.helpNumber}>1</Text>
-          <Text style={styles.helpText}>Save the widget you want.</Text>
+          <Text style={styles.helpNumber}>!</Text>
+          <Text style={styles.helpText}>These are previews only. They do not create iPhone widgets yet.</Text>
         </View>
         <View style={styles.helpStep}>
-          <Text style={styles.helpNumber}>2</Text>
-          <Text style={styles.helpText}>Long-press your iPhone Home Screen.</Text>
-        </View>
-        <View style={styles.helpStep}>
-          <Text style={styles.helpNumber}>3</Text>
-          <Text style={styles.helpText}>Tap + and choose StudyPlanner.</Text>
+          <Text style={styles.helpNumber}>→</Text>
+          <Text style={styles.helpText}>Next build should add real iOS widget support or remove this tab.</Text>
         </View>
       </GlassCard>
     </View>
