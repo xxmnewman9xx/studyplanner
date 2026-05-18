@@ -4,36 +4,36 @@
     "app": "StudyPlanner",
     "persona": "new student deciding whether to pay",
     "risk": "conversion",
-    "state": "fresh install, normal mode, onboarding complete, not Pro",
+    "state": "fresh install, normal mode, onboarding complete, not Plus",
     "trigger": "enters app",
-    "expected": ["paywall appears", "free is described as tiny preview", "Pro loop is scan -> review -> today -> focus -> done"],
+    "expected": ["no forced paywall appears before value", "student can scan/import or try demo", "Plus is introduced after value or at advanced feature gates"],
     "automation": "static",
-    "evidence": ["App.tsx showInitialPaywall", "UpgradeScreen tiny preview copy", "Onboarding loop copy"],
-    "failureMeans": "The user reaches value without understanding/paying for Pro."
+    "evidence": ["App.tsx no showInitialPaywall", "Onboarding scan/demo CTAs", "UpgradeScreen useful free copy"],
+    "failureMeans": "The user is asked to pay before seeing the semester-plan value."
   },
   {
     "id": "sp-free-limit",
     "app": "StudyPlanner",
     "persona": "free user testing limits",
     "risk": "revenue",
-    "state": "not Pro with 1 class and 2 homework items",
-    "trigger": "adds more work or opens Pro tabs",
-    "expected": ["upsell appears", "no silent failure", "CTA explains unlimited classes/homework/scans"],
+    "state": "not Plus with 2 classes, 12 homework items, or 1 used import",
+    "trigger": "adds more work, imports another syllabus, or opens advanced automation",
+    "expected": ["upsell appears at the limit", "no silent failure", "CTA explains expanded classes/homework/scans and automation"],
     "automation": "static",
-    "evidence": ["freeCourseLimit", "freeAssignmentLimit", "premiumTabs"],
-    "failureMeans": "Free becomes useful enough to avoid upgrading."
+    "evidence": ["freeCourseLimit", "freeAssignmentLimit", "freeImportLimit", "premiumTabs"],
+    "failureMeans": "Free feels either punitive too early or unbounded enough to remove Plus leverage."
   },
   {
-    "id": "sp-pro-tab-surface",
+    "id": "sp-plus-tab-surface",
     "app": "StudyPlanner",
     "persona": "free student exploring navigation",
     "risk": "conversion",
-    "state": "not Pro after dismissing paywall",
+    "state": "not Plus after onboarding or demo",
     "trigger": "looks at bottom navigation and command tiles",
-    "expected": ["free tab bar only exposes Today, Classes, Pro", "premium command tiles route to Upgrade", "no fake Widgets tab"],
+    "expected": ["free tab bar exposes Today, Scan, Plan, Classes, Widgets", "scan and plan are usable", "focus, grades, advanced widgets, reminders, and calendar sync route to Plus"],
     "automation": "static",
-    "evidence": ["freeTabs", "premiumAutomationLocked command tiles", "no Widgets free tab"],
-    "failureMeans": "Free user sees dead/fake/pro screens instead of the upgrade path."
+    "evidence": ["freeTabs", "importLimitLocked", "premiumAutomationLocked command tiles", "Widget Studio Plus labels"],
+    "failureMeans": "Free users cannot reach the core loop or see confusing fake premium surfaces."
   },
   {
     "id": "sp-first-run-empty",
@@ -50,9 +50,9 @@
   {
     "id": "sp-scan-review-handoff",
     "app": "StudyPlanner",
-    "persona": "Pro student importing syllabus",
+    "persona": "student importing syllabus",
     "risk": "retention",
-    "state": "Pro user with syllabus parse result",
+    "state": "user with syllabus parse result and import allowance",
     "trigger": "applies parsed plan",
     "expected": ["courses and assignments merge", "review handoff appears", "Today opens", "review prompt event records value"],
     "automation": "static",
@@ -66,7 +66,7 @@
     "risk": "trust",
     "state": "empty app",
     "trigger": "opens any widget surface",
-    "expected": ["no fake settings", "no fake Algebra examples", "no hard-coded fake dates/times", "preview-only if native widgets are not live", "Widgetsmith-style templates are student-outcome first", "daily widget stack explains student value"],
+    "expected": ["no fake settings", "no fake Algebra examples", "no hard-coded fake dates/times", "preview-only if native widgets are not live", "templates are student-outcome first", "daily widget stack explains student value"],
     "automation": "static",
     "evidence": ["MoreScreen preview-only copy", "student widget template names", "daily widget stack copy", "native widget loop copy", "WidgetPreviewCard status text", "no save controls", "no sample school text"],
     "failureMeans": "Fake controls create trust debt and App Store review risk."

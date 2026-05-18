@@ -32,7 +32,7 @@ export function PremiumGate({ title, copy, onUpgrade }: PremiumGateProps) {
             <LockKeyhole color={colors.heroText} size={17} />
           </View>
         </View>
-        <Text style={styles.cardTitle}>Unlock with StudyPlanner Pro</Text>
+        <Text style={styles.cardTitle}>Unlock with StudyPlanner Plus</Text>
         <Text style={styles.cardCopy}>
           These tools open after Plus is active on your store account.
         </Text>

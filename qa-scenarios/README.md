@@ -22,24 +22,24 @@ Top 50 requested changes captured by these scenarios:
 7. StudyPlanner marketing/demo capture can preserve demo state separately.
 8. StudyPlanner onboarding must show the core loop clearly.
 9. StudyPlanner loop: scan/type -> review -> Today -> focus -> done.
-10. StudyPlanner should start with a Pro upsell after onboarding.
-11. StudyPlanner free version should be intentionally tiny.
-12. StudyPlanner free limit: about one class.
-13. StudyPlanner free limit: about two homework items.
-14. StudyPlanner free should be basic Today only.
-15. StudyPlanner Pro should unlock syllabus scanning.
-16. StudyPlanner Pro should unlock weekly plan.
-17. StudyPlanner Pro should unlock focus sessions.
-18. StudyPlanner Pro should unlock grades.
-19. StudyPlanner Pro should unlock widgets only when honest/real.
-20. StudyPlanner Pro should unlock reminders and calendar sync.
-21. StudyPlanner paywall copy should say Free is just a preview.
-22. StudyPlanner paywall should sell the complete workflow, not vague features.
+10. StudyPlanner should not force a paywall before value.
+11. StudyPlanner free version should be useful but bounded.
+12. StudyPlanner free limit: about two classes.
+13. StudyPlanner free limit: about twelve homework items.
+14. StudyPlanner free should include one reviewed syllabus import.
+15. StudyPlanner free should expose Scan, Plan, Classes, Today, and Widget previews.
+16. StudyPlanner Plus should unlock expanded scans/re-imports.
+17. StudyPlanner Plus should unlock focus sessions and focus history.
+18. StudyPlanner Plus should unlock grades and premium semester controls.
+19. StudyPlanner Plus should unlock advanced widgets only when honest/real.
+20. StudyPlanner Plus should unlock smart reminders and calendar sync.
+21. StudyPlanner paywall copy should frame Free as useful but bounded.
+22. StudyPlanner paywall should sell leverage, not punishment.
 23. StudyPlanner should trigger review prompt only after value moments.
-24. StudyPlanner Widget Studio should not contain fake controls.
+24. StudyPlanner Widget Studio should not contain fake native-widget controls.
 25. StudyPlanner Widget Studio should not show fake Algebra/Week examples.
 26. StudyPlanner widgets should be removed/hidden or labeled preview-only until native support exists.
-27. StudyPlanner tab bar should not overexpose premium/fake tabs to free users.
+27. StudyPlanner tab bar should expose the core loop while gating advanced actions fairly.
 28. StudyPlanner app icon should be minimalist and mainly white.
 29. StudyPlanner UI should avoid crayon/emoji visual artifacts.
 30. StudyPlanner copy should be short and not wrap aggressively.

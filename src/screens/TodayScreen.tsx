@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Bell, CalendarPlus, CheckCircle2, ChevronRight, Crown, FileScan, GraduationCap, Plus, Timer } from "lucide-react-native";
+import { Bell, CalendarPlus, CheckCircle2, ChevronRight, Crown, FileScan, GraduationCap, Plus, Sparkles, Timer } from "lucide-react-native";
 import {
   AppLogo,
   AssignmentRow,
@@ -35,6 +35,7 @@ type TodayScreenProps = {
   semester: Semester;
   studentName: string;
   importHandoff?: ImportHandoffSummary | null;
+  demoMode?: boolean;
   onUpdateStatus: (assignmentId: string, status: "not_started" | "in_progress" | "done") => void;
   onOpenAssignment: (assignmentId: string) => void;
   onScheduleReminders: () => void;
@@ -45,6 +46,8 @@ type TodayScreenProps = {
   onOpenScan: () => void;
   onOpenPlan: () => void;
   onOpenClasses: () => void;
+  onTryDemo: () => void;
+  onReplaceDemo: () => void;
   onAddQuickAssignment: (courseId: string, title: string, dueDate: string, kind: "assignment") => boolean;
 };
 
@@ -53,6 +56,7 @@ export function TodayScreen({
   courses,
   semester,
   importHandoff,
+  demoMode = false,
   onUpdateStatus,
   onOpenAssignment,
   onScheduleReminders,
@@ -63,6 +67,8 @@ export function TodayScreen({
   onOpenScan,
   onOpenPlan,
   onOpenClasses,
+  onTryDemo,
+  onReplaceDemo,
   onAddQuickAssignment
 }: TodayScreenProps) {
   const { theme } = useAppTheme();
@@ -115,6 +121,21 @@ export function TodayScreen({
         <AppLogo showWordmark size={42} />
       </View>
 
+      {demoMode ? (
+        <GlassCard style={styles.demoCard}>
+          <View style={styles.demoHeader}>
+            <View style={styles.demoIcon}>
+              <Sparkles color={colors.accent} size={18} />
+            </View>
+            <View style={styles.demoCopy}>
+              <Text style={styles.demoTitle}>Demo planner</Text>
+              <Text style={styles.demoText}>This is sample schoolwork so you can inspect Today, Plan, and Widget Studio before importing your own syllabus.</Text>
+            </View>
+          </View>
+          <AppButton label="Replace with my syllabus" icon={FileScan} onPress={onReplaceDemo} />
+        </GlassCard>
+      ) : null}
+
       <GlassCard tone="hero" style={styles.heroCard}>
         <View style={styles.heroOrbPrimary} />
         <View style={styles.heroOrbSecondary} />
@@ -162,6 +183,19 @@ export function TodayScreen({
         )}
       </GlassCard>
 
+      {!assignments.length ? (
+        <GlassCard style={styles.starterCard}>
+          <Text style={styles.starterKicker}>Start here</Text>
+          <Text style={styles.starterTitle}>Build your first plan.</Text>
+          <Text style={styles.starterCopy}>Scan a syllabus, try a realistic demo, or add a class manually. Today becomes useful as soon as one assignment exists.</Text>
+          <View style={styles.starterActions}>
+            <AppButton label="Scan syllabus" icon={FileScan} onPress={onOpenScan} style={styles.starterButton} />
+            <AppButton label="Try demo" icon={Sparkles} variant="secondary" onPress={onTryDemo} style={styles.starterButton} />
+          </View>
+          <AppButton label="Add class manually" variant="quiet" onPress={onOpenClasses} />
+        </GlassCard>
+      ) : null}
+
       {importHandoff ? (
         <GlassCard style={styles.importHandoffCard}>
           <View style={styles.importHandoffHeader}>
@@ -207,17 +241,17 @@ export function TodayScreen({
       <SectionHeader title="Big actions" note="Every button says exactly where it goes." />
       <View style={styles.commandGrid}>
         <CommandTile
-          title={premiumAutomationLocked ? "Unlock syllabus scan" : "Add from syllabus"}
-          detail={premiumAutomationLocked ? "Pro turns syllabi into a plan." : "Scan or paste a syllabus. Review before anything is added."}
-          icon={premiumAutomationLocked ? Crown : FileScan}
-          onPress={premiumAutomationLocked ? onOpenPaywall : onOpenScan}
+          title="Add from syllabus"
+          detail="Scan or paste a syllabus. Review before anything is added."
+          icon={FileScan}
+          onPress={onOpenScan}
           tone="pink"
         />
         <CommandTile
-          title={premiumAutomationLocked ? "Unlock weekly plan" : "Open weekly plan"}
-          detail={premiumAutomationLocked ? "Pro organizes the whole week." : `${plan.dueSoon.length} due soon · move work around`}
-          icon={premiumAutomationLocked ? Crown : CalendarPlus}
-          onPress={premiumAutomationLocked ? onOpenPaywall : onOpenPlan}
+          title="Open weekly plan"
+          detail={`${plan.dueSoon.length} due soon · move work around`}
+          icon={CalendarPlus}
+          onPress={onOpenPlan}
           tone="blue"
         />
         <CommandTile
@@ -229,7 +263,7 @@ export function TodayScreen({
         />
         <CommandTile
           title={premiumAutomationLocked ? "Unlock focus" : "Start focus timer"}
-          detail={premiumAutomationLocked ? "Pro includes focus sessions." : "Study with a timer for the next task."}
+          detail={premiumAutomationLocked ? "Plus includes focus sessions." : "Study with a timer for the next task."}
           icon={premiumAutomationLocked ? Crown : Timer}
           onPress={premiumAutomationLocked ? onOpenPaywall : () => onOpenFocus(plan.nextAction?.id)}
           tone="blue"
@@ -238,29 +272,37 @@ export function TodayScreen({
 
       <SectionHeader title="Add one homework" note="Pick a class, type the work, choose the due date." />
       <GlassCard style={styles.quickAddCard}>
-        <View style={styles.courseRail}>
-          {courses.slice(0, 4).map((course) => (
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityState={{ selected: quickCourse?.id === course.id }}
-              key={course.id}
-              style={[
-                styles.coursePill,
-                quickCourse?.id === course.id ? styles.coursePillActive : null
-              ]}
-              onPress={() => setQuickCourseId(course.id)}
-            >
-              <Text
+        {courses.length ? (
+          <View style={styles.courseRail}>
+            {courses.slice(0, 4).map((course) => (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityState={{ selected: quickCourse?.id === course.id }}
+                key={course.id}
                 style={[
-                  styles.coursePillText,
-                  quickCourse?.id === course.id ? styles.coursePillTextActive : null
+                  styles.coursePill,
+                  quickCourse?.id === course.id ? styles.coursePillActive : null
                 ]}
+                onPress={() => setQuickCourseId(course.id)}
               >
-                {courseEmoji(course)} {course.code}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+                <Text
+                  style={[
+                    styles.coursePillText,
+                    quickCourse?.id === course.id ? styles.coursePillTextActive : null
+                  ]}
+                >
+                  {courseEmoji(course)} {course.code}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.noClassBlock}>
+            <Text style={styles.noClassTitle}>Add a class first</Text>
+            <Text style={styles.noClassCopy}>Homework needs a class so reminders, widgets, and the weekly plan have context.</Text>
+            <AppButton label="Add class" variant="secondary" onPress={onOpenClasses} />
+          </View>
+        )}
         <View style={styles.quickInputRow}>
           <TextInput
             value={quickTitle}
@@ -369,7 +411,7 @@ export function TodayScreen({
         )}
       </View>
 
-      <SectionHeader title="Automation" note="Premium reminder and calendar workflows" />
+      <SectionHeader title="Automation" note="Plus reminder and calendar workflows" />
       <View style={styles.actionRow}>
         <AppButton
           label="Set reminders"
@@ -566,6 +608,39 @@ function createStyles(theme: AppTheme) {
       marginBottom: spacing.md,
       gap: spacing.md
     },
+    demoCard: {
+      gap: spacing.sm,
+      marginBottom: spacing.sm
+    },
+    demoHeader: {
+      flexDirection: "row",
+      gap: spacing.sm,
+      alignItems: "flex-start"
+    },
+    demoIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: radii.round,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.accentSoft
+    },
+    demoCopy: {
+      flex: 1,
+      gap: 2
+    },
+    demoTitle: {
+      color: colors.ink,
+      fontSize: 16,
+      lineHeight: 21,
+      fontWeight: "900"
+    },
+    demoText: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "700"
+    },
     heroCard: {
       gap: spacing.sm,
       padding: spacing.md,
@@ -726,6 +801,37 @@ function createStyles(theme: AppTheme) {
       flexDirection: "row",
       gap: spacing.xs
     },
+    starterCard: {
+      gap: spacing.sm,
+      marginTop: spacing.sm,
+      marginBottom: spacing.xs
+    },
+    starterKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    starterTitle: {
+      color: colors.ink,
+      fontSize: 22,
+      lineHeight: 28,
+      fontWeight: "900"
+    },
+    starterCopy: {
+      color: colors.muted,
+      fontSize: 14,
+      lineHeight: 20,
+      fontWeight: "700"
+    },
+    starterActions: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    starterButton: {
+      flex: 1
+    },
     importHandoffCard: {
       gap: spacing.sm,
       borderColor: `${colors.accent}44`
@@ -834,6 +940,26 @@ function createStyles(theme: AppTheme) {
     },
     quickAddCard: {
       gap: spacing.sm
+    },
+    noClassBlock: {
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      padding: spacing.md,
+      gap: spacing.xs
+    },
+    noClassTitle: {
+      color: colors.ink,
+      fontSize: 15,
+      lineHeight: 20,
+      fontWeight: "900"
+    },
+    noClassCopy: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "700"
     },
     courseRail: {
       flexDirection: "row",

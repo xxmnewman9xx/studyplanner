@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { Camera, CheckCircle2, FileText, Keyboard, Plus, Upload } from "lucide-react-native";
+import { Camera, CheckCircle2, Crown, FileText, Keyboard, Plus, Sparkles, Upload } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
 import {
@@ -51,12 +51,13 @@ type ImportScreenProps = {
   onApplyParsedPlan: (parse: SyllabusParseResult) => void;
   premiumImportLocked?: boolean;
   onOpenPaywall?: () => void;
+  onTryDemo?: () => void;
 };
 
 const priorities: Priority[] = ["low", "medium", "high"];
 const kinds: AssignmentKind[] = ["assignment", "worksheet", "reading", "project", "exam"];
 
-export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, premiumImportLocked = false, onOpenPaywall }: ImportScreenProps) {
+export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, premiumImportLocked = false, onOpenPaywall, onTryDemo }: ImportScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
@@ -68,6 +69,17 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   const [loading, setLoading] = useState(marketingCaptureScreen === "processing");
   const [typedText, setTypedText] = useState("");
   const imageParsingReady = supportsSyllabusImageParsing();
+
+  const handleLockedImport = () => {
+    Alert.alert(
+      "Free import used",
+      "Free includes one reviewed syllabus import. Plus unlocks expanded scans, uploads, and re-imports for the rest of the semester.",
+      [
+        { text: "Not now", style: "cancel" },
+        { text: "See Plus", onPress: onOpenPaywall }
+      ]
+    );
+  };
 
   const runParse = async (source: SyllabusImportSource) => {
     try {
@@ -82,6 +94,11 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   };
 
   const pickPdf = async () => {
+    if (premiumImportLocked) {
+      handleLockedImport();
+      return;
+    }
+
     const result = await DocumentPicker.getDocumentAsync({
       type: ["application/pdf", "text/plain"],
       copyToCacheDirectory: true
@@ -100,6 +117,11 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   };
 
   const pickPhoto = async () => {
+    if (premiumImportLocked) {
+      handleLockedImport();
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       quality: 0.85,
       allowsMultipleSelection: false
@@ -118,6 +140,11 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   };
 
   const capturePhoto = async () => {
+    if (premiumImportLocked) {
+      handleLockedImport();
+      return;
+    }
+
     if (!imageParsingReady) {
       Alert.alert(
         "Photo scan needs AI setup",
@@ -146,6 +173,11 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   };
 
   const typeItIn = async () => {
+    if (premiumImportLocked) {
+      handleLockedImport();
+      return;
+    }
+
     if (!typedText.trim()) {
       Alert.alert("Type a little material", "Paste syllabus lines, handout text, or homework notes first.");
       return;
@@ -234,9 +266,22 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
         <Text style={styles.kicker}>Add schoolwork</Text>
         <Text style={styles.title}>Scan or paste. Then approve.</Text>
         <Text style={styles.subtitle}>
-          Nothing is added to your planner until you review it first.
+          Free includes one reviewed import. Nothing is added to your planner until you approve it first.
         </Text>
       </View>
+
+      {premiumImportLocked ? (
+        <GlassCard style={styles.limitCard}>
+          <View style={styles.limitIcon}>
+            <Crown color={colors.accent} size={18} />
+          </View>
+          <View style={styles.limitCopy}>
+            <Text style={styles.limitTitle}>More imports are a Plus upgrade</Text>
+            <Text style={styles.limitText}>Keep editing your current planner for free, or unlock expanded scans, uploads, and re-imports when your semester gets busy.</Text>
+          </View>
+          <AppButton label="Unlock Plus" icon={Crown} onPress={onOpenPaywall || (() => undefined)} />
+        </GlassCard>
+      ) : null}
 
       <GlassCard style={styles.scanHero}>
         <View style={styles.scanHeroGlow} />
@@ -270,6 +315,9 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
             ? "Private until you approve the plan."
             : "Upload and Paste work now. Photo scan turns on when the production parser endpoint is configured."}
         </Text>
+        {onTryDemo ? (
+          <AppButton label="Try demo syllabus" icon={Sparkles} variant="quiet" onPress={onTryDemo} />
+        ) : null}
       </GlassCard>
 
       {loading ? (
@@ -691,6 +739,33 @@ function createStyles(theme: AppTheme) {
     },
     subtitle: {
       ...typography.body
+    },
+    limitCard: {
+      marginTop: spacing.md,
+      gap: spacing.sm
+    },
+    limitIcon: {
+      width: 38,
+      height: 38,
+      borderRadius: radii.round,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.accentSoft
+    },
+    limitCopy: {
+      gap: 3
+    },
+    limitTitle: {
+      color: colors.ink,
+      fontSize: 17,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    limitText: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "700"
     },
     scanHero: {
       marginTop: spacing.md,

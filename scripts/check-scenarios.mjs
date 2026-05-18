@@ -24,7 +24,7 @@ const allowedAutomation = new Set(["static", "unit", "integration", "simulator",
 const requiredScenarioIds = [
   "sp-free-after-onboarding",
   "sp-free-limit",
-  "sp-pro-tab-surface",
+  "sp-plus-tab-surface",
   "sp-first-run-empty",
   "sp-scan-review-handoff",
   "sp-no-fake-widgets",
@@ -60,36 +60,38 @@ if (fs.existsSync(scenarioPath)) {
   }
 }
 
-assert(app.includes("const freeCourseLimit = 1"), "Free tier must stay intentionally tiny: one class.");
-assert(app.includes("const freeAssignmentLimit = 2"), "Free tier must stay intentionally tiny: two homework items.");
-assert(app.includes('premiumTabs = new Set<NavTab>(["import", "plan", "focus", "grades", "more"])'), "Premium tab gate must include Scan, Plan, Focus, Grades, and Widgets.");
-assert(app.includes("const showInitialPaywall =") && app.includes("!paywallSeen") && app.includes("!subscription.isPremium"), "After onboarding, non-Pro users should hit the paywall.");
-assert(app.includes("const freeTabs") && app.includes('{ id: "upgrade", label: "Pro"'), "Free users should see a small nav with a clear Pro destination.");
-assert(app.includes("const freeTabs") && !app.match(/freeTabs[\s\S]*id: "import"/)?.[0]?.includes("];"), "Free tabs must not expose Scan.");
-assert(app.includes("visibleTabs = marketingCaptureEnabled || subscription.isPremium ? proTabs : freeTabs"), "Navigation should switch by entitlement.");
-assert(today.includes("premiumAutomationLocked ? onOpenPaywall : onOpenScan"), "Free Scan command tile should route to Pro upsell.");
-assert(today.includes("premiumAutomationLocked ? onOpenPaywall : onOpenPlan"), "Free weekly plan command tile should route to Pro upsell.");
-assert(today.includes("premiumAutomationLocked ? onOpenPaywall : () => onOpenFocus"), "Free focus command tile should route to Pro upsell.");
-assert(!today.includes("onOpenWidgets") && !today.includes("Edit widgets"), "Today must not route users to fake widget controls.");
+assert(app.includes("const freeCourseLimit = 2"), "Free tier should allow two useful classes.");
+assert(app.includes("const freeAssignmentLimit = 12"), "Free tier should allow enough homework to prove value.");
+assert(app.includes("const freeImportLimit = 1"), "Free tier should include one reviewed syllabus import.");
+assert(app.includes('premiumTabs = new Set<NavTab>(["focus", "grades"])'), "Premium tab gate should focus on advanced Focus and Grades surfaces.");
+assert(!app.includes("const showInitialPaywall ="), "Non-Plus users should not hit a forced paywall before value.");
+assert(app.includes("const freeTabs: typeof proTabs = proTabs"), "Free users should see the core Scan, Plan, Classes, and Widgets navigation.");
+assert(app.includes('{ id: "import", label: "Scan"') && app.includes('{ id: "plan", label: "Plan"') && app.includes('{ id: "more", label: "Widgets"'), "Free tab bar must expose Scan, Plan, and Widget Studio.");
+assert(app.includes("importLimitLocked") && app.includes("freeImportLimit"), "Import monetization should be bounded by usage, not pre-value navigation.");
+assert(today.includes('title="Add from syllabus"') && today.includes("onPress={onOpenScan}"), "Free Scan command tile should route to scan/import.");
+assert(today.includes('title="Open weekly plan"') && today.includes("onPress={onOpenPlan}"), "Free weekly plan command tile should open the planner.");
+assert(today.includes("premiumAutomationLocked ? onOpenPaywall : () => onOpenFocus"), "Free focus command tile should route to Plus upsell.");
+assert(today.includes("onTryDemo") && today.includes("demoMode"), "Today should support a truthful demo path and demo banner.");
 assert(app.includes("marketingCaptureEnabled ? marketingCaptureCourses : []"), "Normal first-run courses must be empty.");
 assert(app.includes("marketingCaptureEnabled ? marketingCaptureAssignments : []"), "Normal first-run assignments must be empty.");
 assert(app.includes("marketingCaptureEnabled ? marketingCaptureGradeItems : []"), "Normal first-run grade items must be empty.");
 assert(app.includes("setParsedImports(stored.parsedImports || [])"), "Stored parsed imports should not fall back to demo imports.");
 assert(app.includes("setFocusSessions(stored.focusSessions || [])"), "Stored focus sessions should not fall back to demo focus sessions.");
-assert(onboarding.includes("Scan → review → Today → focus → done"), "Onboarding must teach the core loop verbatim.");
-assert(upgrade.includes("Free is only a tiny preview") || upgrade.includes("Free is just a tiny preview"), "Paywall must explicitly position Free as a tiny preview.");
-assert(upgrade.includes("scan → review → today → focus → finish") || upgrade.includes("scan → review → today → focus → done") || upgrade.includes("scan your syllabus, review the plan"), "Paywall should sell the full workflow loop.");
-assert(upgrade.includes('"1 class"') && upgrade.includes('"2 homework items"') && upgrade.includes('"Basic Today list only"'), "Paywall free feature list must match the minimum free tier.");
+assert(onboarding.includes("Turn any syllabus into a semester plan") && onboarding.includes("Review before it touches your planner"), "Onboarding must be short, value-first, and review-first.");
+assert(onboarding.includes("Try demo planner") && onboarding.includes("Scan or upload syllabus"), "Onboarding must offer scan/import and demo paths immediately.");
+assert(upgrade.includes("Free lets you try the planner with real utility"), "Paywall must position Free as useful but bounded.");
+assert(upgrade.includes("Plus expands scans, automation, widgets, and semester controls"), "Paywall should sell Plus as leverage, not punishment.");
+assert(upgrade.includes('"1 active semester"') && upgrade.includes('"2 classes and 12 homework items"') && upgrade.includes('"1 reviewed syllabus import"'), "Paywall free feature list must match the useful bounded free tier.");
 assert(app.includes("setImportHandoff") && app.includes("openTab(\"today\")") && app.includes('recordReviewEvent("import_applied")'), "Scan/import should hand off into Today after value is created.");
 assert(reviewPrompt.includes("assignment_completed") && reviewPrompt.includes("focus_completed") && reviewPrompt.includes("widget_saved"), "Review prompt policy should stay value-gated.");
 assert(more.includes("These are previews only"), "Widget surface must be honest until native widgets are live.");
-assert(more.includes("Widgetsmith-style templates") && more.includes("pick template → add widget → open homework"), "Widget surface should define the real native widget loop, not generic settings.");
-assert(more.includes("Daily widget stack") && more.includes("Morning: Today Plan") && more.includes("Free can preview it; Pro should own the real widgets"), "Widget surface should borrow Widgetsmith's daily-stack/value model without faking native widgets.");
+assert(more.includes("Template gallery") && more.includes("pick template → add widget → open homework"), "Widget surface should define the real native widget loop, not generic settings.");
+assert(more.includes("Daily widget stack") && more.includes("Morning: Today Plan") && more.includes("Free can preview real widget states"), "Widget surface should borrow Widgetsmith's daily-stack/value model without faking native widgets.");
 assert(more.includes("Next Homework") && more.includes("Today Plan") && more.includes("Focus Block") && more.includes("Class Risk"), "Widget templates should be student-outcome first.");
 assert(planner.includes("Next Homework") && planner.includes("Today Plan") && planner.includes("Focus Block") && planner.includes("Class Risk"), "Widget data labels should match student-outcome templates.");
 assert(!more.includes("Algebra II - Worksheet") && !more.includes("Week 11") && !more.includes("Wednesday, May 13"), "Widget surface must not show fake sample school data.");
 assert(!components.includes("May 13") && !components.includes('"2h"'), "Widget preview components must not hard-code fake dates or fake due times.");
-assert(!more.includes("Save widget") && !more.includes("Save current design"), "Widget surface must not expose fake save/configuration controls.");
+assert(more.includes("Save preview preset") && more.includes("Unlock advanced widget"), "Widget surface may save honest in-app preview presets while gating advanced widgets.");
 assert(defaultPlanner.includes("defaultWidgetPresets"), "Default widget presets may exist for data compatibility, but UI must not imply native support.");
 assert(fs.existsSync(path.join(root, "assets/app/study-planner-icon.png")), "StudyPlanner icon asset must exist.");
 

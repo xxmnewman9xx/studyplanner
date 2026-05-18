@@ -54,6 +54,7 @@ export type Semester = {
 export type PlannerData = {
   onboarded: boolean;
   paywallSeen: boolean;
+  demoMode?: boolean;
   semester: Semester;
   courses: Course[];
   assignments: Assignment[];

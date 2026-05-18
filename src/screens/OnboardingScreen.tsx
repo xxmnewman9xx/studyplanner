@@ -1,55 +1,68 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Animated, StyleSheet, Text, View } from "react-native";
-import { CalendarCheck2, CheckCircle2, FileScan, Sparkles, WandSparkles } from "lucide-react-native";
+import React, { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Bell,
+  CalendarCheck2,
+  CheckCircle2,
+  FileScan,
+  ListChecks,
+  Sparkles,
+  WandSparkles
+} from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { AppLogo, GlassCard } from "../components/AppleComponents";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
+import { UserSettings } from "../models";
+
+export type OnboardingDestination = "import" | "demo" | "manual";
 
 type OnboardingScreenProps = {
-  onFinish: () => void;
+  onFinish: (
+    destination: OnboardingDestination,
+    settingsPatch?: Partial<UserSettings>
+  ) => void;
 };
 
 const slides = [
   {
-    title: "1. Scan or type school work",
-    copy: "Take a picture, paste notes, or type one task. Nothing saves until you approve it.",
-    previewTitle: "1. Add school work",
-    previewRows: ["Scan syllabus", "Paste homework", "Type a task"],
+    eyebrow: "First minute",
+    title: "Turn any syllabus into a semester plan.",
+    copy: "Scan or upload a syllabus, review every deadline, then let Today pick the next move.",
     icon: FileScan,
-    accent: "scan" as const
+    rows: ["Upload PDF, photo, or pasted text", "Extract classes and deadlines", "Approve before anything saves"]
   },
   {
-    title: "2. Review before it saves",
-    copy: "StudyPlanner highlights anything confusing, like missing dates or duplicate homework.",
-    previewTitle: "2. Check the list",
-    previewRows: ["Essay — Friday", "Quiz — needs date", "Project — maybe duplicate"],
+    eyebrow: "Trust check",
+    title: "Review before it touches your planner.",
+    copy: "StudyPlanner flags missing dates, low confidence items, and possible duplicates so the plan feels trustworthy.",
     icon: WandSparkles,
-    accent: "ai" as const
+    rows: ["Lab report - Fri", "Midterm - Oct 12", "Reading notes - needs review"]
   },
   {
-    title: "3. Today tells you what matters",
-    copy: "Today shows the next best move first, so you do not have to hunt through a calendar.",
-    previewTitle: "3. Do this next",
-    previewRows: ["Finish lab report", "Review quiz notes", "Pack tomorrow"],
-    icon: CalendarCheck2,
-    accent: "calendar" as const
+    eyebrow: "Setup",
+    title: "Pick the reminder style you actually want.",
+    copy: "No notification prompt yet. We ask only after you have real assignments and choose to set reminders.",
+    icon: Bell,
+    rows: ["Minimal: major deadlines", "Balanced: deadlines and prep", "Intensive: study blocks too"]
+  }
+];
+
+const reminderChoices = [
+  {
+    label: "Balanced",
+    value: "Balanced reminders",
+    detail: "Deadlines plus one calm prep nudge."
   },
   {
-    title: "4. Focus, finish, repeat",
-    copy: "Open the next task, start a focus session, mark it done, then let Today pick the next move.",
-    previewTitle: "4. Finish work",
-    previewRows: ["Start focus", "Mark done", "Next task appears"],
-    icon: Sparkles,
-    accent: "widget" as const
+    label: "Minimal",
+    value: "Major deadlines only",
+    detail: "Only exams, projects, and final due dates."
   },
   {
-    title: "The loop is simple",
-    copy: "Scan → review → Today → focus → done. Free is just a tiny preview; Pro unlocks the real planner.",
-    previewTitle: "Ready",
-    previewRows: ["Tiny free preview", "Pro unlocks scans", "Pro unlocks automation"],
-    icon: CheckCircle2,
-    accent: "complete" as const
+    label: "Intensive",
+    value: "Study plan reminders",
+    detail: "Prep blocks, deadline nudges, and focus prompts."
   }
 ];
 
@@ -58,75 +71,86 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
   const { colors } = theme;
   const styles = createStyles(theme);
   const [index, setIndex] = useState(0);
+  const [reminderStyle, setReminderStyle] = useState(reminderChoices[0]!.value);
   const slide = slides[index] ?? slides[0]!;
   const Icon = slide.icon;
-  const motion = useRef(new Animated.Value(1)).current;
   const isFinal = index === slides.length - 1;
 
-  useEffect(() => {
-    motion.setValue(0);
-    Animated.spring(motion, {
-      toValue: 1,
-      damping: 18,
-      stiffness: 130,
-      mass: 0.7,
-      useNativeDriver: true
-    }).start();
-  }, [index, motion]);
-
-  const continueOnboarding = () => {
-    if (isFinal) {
-      onFinish();
-      return;
-    }
-    setIndex((current) => current + 1);
+  const finish = (destination: OnboardingDestination) => {
+    onFinish(destination, { notificationDefault: reminderStyle });
   };
 
   return (
     <View style={styles.screen}>
       <View style={styles.brandRow}>
-        <AppLogo showWordmark size={46} />
+        <AppLogo showWordmark size={44} />
       </View>
 
-      <Animated.View style={{ opacity: motion, transform: [{ translateY: motion.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }] }}>
-      <GlassCard style={styles.illustrationCard}>
-        <View style={styles.illustration}>
-          <View style={styles.scanFrame}>
-            <View style={styles.scanCornerTop} />
-            <View style={styles.scanCornerBottom} />
-            <View style={styles.paper}>
-              <View style={styles.paperHeader} />
-              <View style={styles.paperLineWide} />
-              <View style={styles.paperLine} />
-              <View style={styles.paperLineShort} />
-              <View style={styles.paperDateRow} />
-            </View>
+      <GlassCard tone="hero" style={styles.heroCard}>
+        <View style={styles.heroTopRow}>
+          <View style={styles.heroIcon}>
+            <Icon color={colors.heroText} size={24} />
           </View>
-          <View style={styles.checkBubble}>
-            <Icon color={colors.heroText} size={22} />
-          </View>
+          <Text style={styles.stepText}>Step {index + 1} of {slides.length}</Text>
         </View>
-        <View style={styles.previewList}>
-          <Text style={styles.previewTitle}>{slide.previewTitle}</Text>
-          {slide.previewRows.map((row) => (
+        <Text style={styles.eyebrow}>{slide.eyebrow}</Text>
+        <Text style={styles.title}>{slide.title}</Text>
+        <Text style={styles.copy}>{slide.copy}</Text>
+
+        <View style={styles.previewPanel}>
+          {slide.rows.map((row, rowIndex) => (
             <View key={row} style={styles.previewRow}>
-              <View style={styles.previewCheck} />
+              <View style={[styles.previewDot, rowIndex === 2 && index === 1 ? styles.previewDotReview : null]}>
+                {rowIndex < 2 || index !== 1 ? <CheckCircle2 color={colors.heroText} size={13} /> : null}
+              </View>
               <Text style={styles.previewText}>{row}</Text>
             </View>
           ))}
         </View>
-        <View style={styles.statusRow}>
-          <Text style={styles.statusText}>Review-first import</Text>
-          <Text style={styles.statusDot}>•</Text>
-          <Text style={styles.statusText}>Private on device</Text>
-        </View>
       </GlassCard>
-      </Animated.View>
 
-      <View style={styles.copyBlock}>
-        <Text style={styles.title}>{slide.title}</Text>
-        <Text style={styles.copy}>{slide.copy}</Text>
-      </View>
+      {isFinal ? (
+        <GlassCard style={styles.choiceCard}>
+          <Text style={styles.choiceTitle}>Reminder preset</Text>
+          <View style={styles.choiceStack}>
+            {reminderChoices.map((choice) => {
+              const active = reminderStyle === choice.value;
+              return (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  key={choice.value}
+                  style={[styles.reminderChoice, active ? styles.reminderChoiceActive : null]}
+                  onPress={() => setReminderStyle(choice.value)}
+                >
+                  <View style={[styles.choiceRadio, active ? styles.choiceRadioActive : null]} />
+                  <View style={styles.choiceCopy}>
+                    <Text style={styles.choiceLabel}>{choice.label}</Text>
+                    <Text style={styles.choiceDetail}>{choice.detail}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </GlassCard>
+      ) : (
+        <GlassCard style={styles.proofCard}>
+          <View style={styles.proofRow}>
+            <FileScan color={colors.accent} size={18} />
+            <Text style={styles.proofText}>Scan or upload</Text>
+          </View>
+          <View style={styles.proofDivider} />
+          <View style={styles.proofRow}>
+            <ListChecks color={colors.brandPink} size={18} />
+            <Text style={styles.proofText}>Review draft</Text>
+          </View>
+          <View style={styles.proofDivider} />
+          <View style={styles.proofRow}>
+            <CalendarCheck2 color={colors.green} size={18} />
+            <Text style={styles.proofText}>Use Today</Text>
+          </View>
+        </GlassCard>
+      )}
 
       <View style={styles.dots} accessibilityRole="progressbar">
         {slides.map((item, dotIndex) => (
@@ -135,195 +159,227 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
       </View>
 
       <View style={styles.bottomBar}>
-        <Text style={styles.promise}>Private by default. Saved only after review.</Text>
-        <AppButton label={isFinal ? "Get started" : "Continue"} onPress={continueOnboarding} style={styles.cta} />
+        {index === 0 ? (
+          <View style={styles.secondaryActions}>
+            <TouchableOpacity accessibilityRole="button" style={styles.secondaryButton} onPress={() => finish("demo")}>
+              <Sparkles color={colors.accent} size={16} />
+              <Text style={styles.secondaryText}>Try demo planner</Text>
+            </TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" style={styles.secondaryButton} onPress={() => finish("manual")}>
+              <ListChecks color={colors.muted} size={16} />
+              <Text style={styles.secondaryText}>Add manually</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <Text style={styles.freeNote}>
+            Free includes a first import, manual planning, and basic widget previews. Plus expands volume, automation, and customization.
+          </Text>
+        )}
+        <AppButton
+          label={index === 0 || isFinal ? "Scan or upload syllabus" : "Continue"}
+          icon={index === 0 || isFinal ? FileScan : undefined}
+          onPress={() => {
+            if (index === 0 || isFinal) {
+              finish("import");
+              return;
+            }
+            setIndex((current) => current + 1);
+          }}
+        />
+        {index === 0 ? (
+          <TouchableOpacity accessibilityRole="button" style={styles.learnButton} onPress={() => setIndex(1)}>
+            <Text style={styles.learnText}>Preview review and reminders</Text>
+          </TouchableOpacity>
+        ) : null}
+        {index > 0 ? (
+          <View style={styles.secondaryActions}>
+            <TouchableOpacity accessibilityRole="button" style={styles.secondaryButton} onPress={() => finish("demo")}>
+              <Sparkles color={colors.accent} size={16} />
+              <Text style={styles.secondaryText}>Try demo planner</Text>
+            </TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" style={styles.secondaryButton} onPress={() => finish("manual")}>
+              <ListChecks color={colors.muted} size={16} />
+              <Text style={styles.secondaryText}>Add manually</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
       </View>
     </View>
   );
 }
 
 function createStyles(theme: AppTheme) {
-  const { colors, spacing, typography } = theme;
+  const { colors, radii, spacing, typography } = theme;
 
   return StyleSheet.create({
     screen: {
       flex: 1,
       backgroundColor: colors.canvas,
       padding: spacing.lg,
-      gap: spacing.lg
+      gap: spacing.md
     },
     brandRow: {
       flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: spacing.sm
-    },
-    illustrationCard: {
-      alignItems: "center",
-      gap: spacing.md,
-      backgroundColor: theme.isDark ? "#121827" : "#FFFFFF"
-    },
-    illustration: {
-      width: 176,
-      height: 176,
-      borderRadius: 36,
-      backgroundColor: theme.isDark ? "#182033" : "#F2F2F7",
-      alignItems: "center",
-      justifyContent: "center",
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.line
-    },
-    scanFrame: {
-      width: 108,
-      height: 130,
-      borderRadius: 22,
-      borderWidth: 1,
-      borderColor: colors.accent,
-      alignItems: "center",
       justifyContent: "center"
     },
-    scanCornerTop: {
-      position: "absolute",
-      top: -1,
-      left: 18,
-      right: 18,
-      height: 2,
-      backgroundColor: theme.isDark ? "#182033" : "#F2F2F7"
+    heroCard: {
+      gap: spacing.sm,
+      padding: spacing.lg
     },
-    scanCornerBottom: {
-      position: "absolute",
-      bottom: -1,
-      left: 18,
-      right: 18,
-      height: 2,
-      backgroundColor: theme.isDark ? "#182033" : "#F2F2F7"
+    heroTopRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.sm
     },
-    paper: {
-      width: 78,
-      height: 102,
-      borderRadius: 12,
-      backgroundColor: colors.surface,
-      padding: spacing.sm,
-      gap: 7,
-      justifyContent: "center",
-      shadowColor: colors.shadow,
-      shadowOpacity: 0.16,
-      shadowRadius: 14,
-      shadowOffset: { width: 0, height: 8 }
-    },
-    paperHeader: {
-      width: 34,
-      height: 6,
-      borderRadius: 4,
-      backgroundColor: colors.accent
-    },
-    paperLineWide: {
-      width: "92%",
-      height: 4,
-      borderRadius: 3,
-      backgroundColor: colors.ink
-    },
-    paperLine: {
-      width: "76%",
-      height: 4,
-      borderRadius: 3,
-      backgroundColor: colors.lineStrong
-    },
-    paperLineShort: {
-      width: "54%",
-      height: 4,
-      borderRadius: 3,
-      backgroundColor: colors.lineStrong
-    },
-    paperDateRow: {
-      width: "64%",
-      height: 12,
-      borderRadius: 7,
-      backgroundColor: colors.accentSoft
-    },
-    checkBubble: {
-      position: "absolute",
-      right: 30,
-      bottom: 30,
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: colors.accent,
+    heroIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: radii.lg,
       alignItems: "center",
       justifyContent: "center",
-      shadowColor: colors.shadow,
-      shadowOpacity: 0.22,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 8 }
+      backgroundColor: "rgba(255,255,255,0.12)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.18)"
     },
-    previewList: {
-      width: "100%",
-      borderRadius: 18,
-      padding: spacing.md,
-      gap: spacing.xs,
-      backgroundColor: colors.surfaceAlt
-    },
-    previewTitle: {
-      color: colors.ink,
-      fontSize: 14,
-      lineHeight: 18,
+    stepText: {
+      color: colors.heroMuted,
+      fontSize: 12,
+      lineHeight: 16,
       fontWeight: "900"
+    },
+    eyebrow: {
+      color: colors.accent,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    title: {
+      color: colors.heroText,
+      fontSize: 30,
+      lineHeight: 35,
+      fontWeight: "900"
+    },
+    copy: {
+      color: colors.heroMuted,
+      fontSize: 15,
+      lineHeight: 22,
+      fontWeight: "700"
+    },
+    previewPanel: {
+      marginTop: spacing.xs,
+      borderRadius: radii.lg,
+      backgroundColor: "rgba(255,255,255,0.10)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.16)",
+      padding: spacing.md,
+      gap: spacing.sm
     },
     previewRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: spacing.xs
+      gap: spacing.sm
     },
-    previewCheck: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
+    previewDot: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
       backgroundColor: colors.accent
     },
+    previewDotReview: {
+      backgroundColor: colors.brandOrange
+    },
     previewText: {
-      color: colors.muted,
-      fontSize: 13,
-      lineHeight: 18,
+      flex: 1,
+      color: colors.heroText,
+      fontSize: 14,
+      lineHeight: 19,
       fontWeight: "800"
     },
-    statusRow: {
-      minHeight: 32,
-      borderRadius: 16,
-      paddingHorizontal: spacing.sm,
+    proofCard: {
       flexDirection: "row",
       alignItems: "center",
+      justifyContent: "space-between",
       gap: spacing.xs,
-      backgroundColor: colors.surfaceAlt
+      padding: spacing.sm
     },
-    statusText: {
-      color: colors.muted,
-      fontSize: 12,
-      lineHeight: 16,
-      fontWeight: "800"
-    },
-    statusDot: {
-      color: colors.faint,
-      fontSize: 12,
-      fontWeight: "900"
-    },
-    copyBlock: {
+    proofRow: {
+      flex: 1,
       alignItems: "center",
-      gap: spacing.xs
+      gap: 6
     },
-    title: {
-      ...typography.title,
+    proofText: {
+      color: colors.ink,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
       textAlign: "center"
     },
-    copy: {
-      ...typography.body,
-      textAlign: "center",
-      maxWidth: 330
+    proofDivider: {
+      width: StyleSheet.hairlineWidth,
+      height: 44,
+      backgroundColor: colors.line
+    },
+    choiceCard: {
+      gap: spacing.sm,
+      padding: spacing.md
+    },
+    choiceTitle: {
+      ...typography.h2
+    },
+    choiceStack: {
+      gap: spacing.xs
+    },
+    reminderChoice: {
+      minHeight: 62,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    reminderChoiceActive: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accentSoft
+    },
+    choiceRadio: {
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      borderWidth: 2,
+      borderColor: colors.lineStrong
+    },
+    choiceRadioActive: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accent
+    },
+    choiceCopy: {
+      flex: 1,
+      gap: 2
+    },
+    choiceLabel: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    choiceDetail: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
     },
     dots: {
       flexDirection: "row",
-      gap: spacing.xs,
+      justifyContent: "center",
       alignItems: "center",
-      justifyContent: "center"
+      gap: spacing.xs
     },
     dot: {
       width: 7,
@@ -332,22 +388,53 @@ function createStyles(theme: AppTheme) {
       backgroundColor: colors.lineStrong
     },
     dotActive: {
-      width: 24,
+      width: 26,
       backgroundColor: colors.accent
     },
     bottomBar: {
       marginTop: "auto",
       gap: spacing.sm
     },
-    cta: {
-      backgroundColor: colors.accent
-    },
-    promise: {
-      color: colors.faint,
+    freeNote: {
+      color: colors.muted,
       fontSize: 12,
       lineHeight: 17,
-      fontWeight: "900",
+      fontWeight: "800",
       textAlign: "center"
+    },
+    secondaryActions: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    learnButton: {
+      minHeight: 34,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    learnText: {
+      color: colors.accent,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "900"
+    },
+    secondaryButton: {
+      flex: 1,
+      minHeight: 44,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: spacing.xs,
+      paddingHorizontal: spacing.xs
+    },
+    secondaryText: {
+      color: colors.ink,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
     }
   });
 }

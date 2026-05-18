@@ -17,3 +17,6 @@ yarn-error.log*
 build/
 build-*.ipa
 *.ipa
+
+# Local simulator QA captures
+qa-screenshots/

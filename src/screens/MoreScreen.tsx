@@ -13,8 +13,10 @@ import {
 import {
   AppLogo,
   GlassCard,
+  SegmentedControl,
   WidgetPreviewCard
 } from "../components/AppleComponents";
+import { AppButton } from "../components/AppButton";
 import { SectionHeader } from "../components/SectionHeader";
 import {
   Assignment,
@@ -41,10 +43,13 @@ type MoreScreenProps = {
   onOpenFocus: () => void;
   onOpenGrades: () => void;
   onOpenPaywall: () => void;
+  premiumWidgetsLocked?: boolean;
 };
 
 const widgetSizes: WidgetSize[] = ["small", "medium", "large"];
-const palettes: WidgetPalette[] = ["ocean", "sunset", "lavender", "midnight"];
+const palettes: WidgetPalette[] = ["ocean", "sunset", "forest", "lavender", "midnight", "minimal"];
+const backgrounds: WidgetBackground[] = ["glass", "solid", "gradient", "dark"];
+const layouts: WidgetPreset["layout"][] = ["compact", "list", "ring", "calendar", "grid"];
 
 export function MoreScreen({
   assignments,
@@ -56,7 +61,8 @@ export function MoreScreen({
   onResetWidgetPresets,
   onOpenFocus,
   onOpenGrades,
-  onOpenPaywall
+  onOpenPaywall,
+  premiumWidgetsLocked = false
 }: MoreScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
@@ -114,33 +120,62 @@ export function MoreScreen({
     label: string;
     detail: string;
     moment: string;
+    data: string;
+    entitlement: "free" | "plus";
     preset: Pick<WidgetPreset, "type" | "size" | "background" | "palette" | "layout" | "iconKey">;
   }> = [
     {
       label: "Next Homework",
       detail: "One task to do now",
       moment: "Home Screen",
+      data: "Next due assignment",
+      entitlement: "free",
       preset: { type: "due_next", size: "medium", background: "glass", palette: "ocean", layout: "list", iconKey: "calendar" }
     },
     {
       label: "Today Plan",
       detail: "Classes + homework",
       moment: "Morning stack",
+      data: "Due today",
+      entitlement: "free",
       preset: { type: "today", size: "large", background: "gradient", palette: "sunset", layout: "list", iconKey: "check" }
+    },
+    {
+      label: "Deadline Map",
+      detail: "Week workload",
+      moment: "Weekly review",
+      data: "Due soon",
+      entitlement: "plus",
+      preset: { type: "week", size: "large", background: "glass", palette: "lavender", layout: "calendar", iconKey: "calendar" }
     },
     {
       label: "Class Risk",
       detail: "One class status",
       moment: "Before class",
+      data: "Class-specific",
+      entitlement: "plus",
       preset: { type: "class_focus", size: "medium", background: "glass", palette: "forest", layout: "compact", iconKey: "book" }
     },
     {
       label: "Focus Block",
       detail: "Start studying fast",
       moment: "Study time",
+      data: "Next focus task",
+      entitlement: "plus",
       preset: { type: "focus", size: "small", background: "dark", palette: "midnight", layout: "ring", iconKey: "timer" }
+    },
+    {
+      label: "Needs Check",
+      detail: "Flagged import items",
+      moment: "After import",
+      data: "Review queue",
+      entitlement: "plus",
+      preset: { type: "needs_check", size: "medium", background: "solid", palette: "minimal", layout: "list", iconKey: "check" }
     }
   ];
+  const selectedTemplate =
+    starterTemplates.find((template) => template.preset.type === type) || starterTemplates[0]!;
+  const selectedTemplateLocked = selectedTemplate.entitlement === "plus" && premiumWidgetsLocked;
 
   const applyTemplate = (template: Pick<WidgetPreset, "type" | "size" | "background" | "palette" | "layout" | "iconKey">) => {
     setType(template.type);
@@ -152,19 +187,32 @@ export function MoreScreen({
     setEditingPresetId(`preset-${template.type}-${template.size}`);
   };
 
+  const saveCurrentPreset = () => {
+    if (selectedTemplateLocked) {
+      onOpenPaywall();
+      return;
+    }
+
+    onUpdateSettings({
+      selectedTheme: palette,
+      defaultWidgetStyle: background
+    });
+    onSaveWidgetPreset(previewPreset);
+  };
+
   return (
     <View>
       <GlassCard tone="hero" style={styles.studioHero}>
         <View style={styles.heroHeader}>
           <View style={styles.heroCopy}>
             <AppLogo showWordmark size={36} />
-            <Text style={styles.kicker}>Widget Lab</Text>
-            <Text style={styles.heroTitle}>Student widgets, not fake settings.</Text>
-            <Text style={styles.heroText} numberOfLines={2}>Preview the real iOS widgets we are building: homework, deadlines, focus, and class risk.</Text>
+            <Text style={styles.kicker}>Widget Studio</Text>
+            <Text style={styles.heroTitle}>Pick the school-day moment.</Text>
+            <Text style={styles.heroText} numberOfLines={2}>Preview real homework states before native widgets ship. Plus owns saved advanced presets and customization.</Text>
           </View>
           <View style={styles.livePill}>
             <View style={styles.liveDot} />
-            <Text style={styles.liveText}>Coming soon</Text>
+            <Text style={styles.liveText}>Preview only</Text>
           </View>
         </View>
         <View style={styles.previewStage}>
@@ -182,10 +230,11 @@ export function MoreScreen({
             iconKey={iconKey}
             items={displayWidgetData.items}
           />
+          <Text style={styles.previewHint}>{studioHint}</Text>
         </View>
       </GlassCard>
 
-      <SectionHeader title="Pick a student widget" note="Widgetsmith-style templates, built around school outcomes." />
+      <SectionHeader title="Template gallery" note="Choose the outcome first. Size and theme come after." />
       <View style={styles.templateGrid}>
         {starterTemplates.map((template) => (
           <TouchableOpacity
@@ -197,12 +246,146 @@ export function MoreScreen({
             ]}
             onPress={() => applyTemplate(template.preset)}
           >
-            <Text style={styles.templateTitle} numberOfLines={1}>{template.label}</Text>
+            <View style={styles.templateTopRow}>
+              <Text style={styles.templateTitle} numberOfLines={1}>{template.label}</Text>
+              <Text style={[styles.templateEntitlement, template.entitlement === "plus" ? styles.templateEntitlementPlus : null]}>
+                {template.entitlement === "plus" ? "Plus" : "Free"}
+              </Text>
+            </View>
             <Text style={styles.templateDetail} numberOfLines={1}>{template.detail}</Text>
-            <Text style={styles.templateMeta} numberOfLines={1}>{template.moment} · {template.preset.size === "large" ? "Big" : template.preset.size === "small" ? "Small" : "Medium"}</Text>
+            <Text style={styles.templateMeta} numberOfLines={1}>{template.moment} | {template.data} | {template.preset.size === "large" ? "Large" : template.preset.size === "small" ? "Small" : "Medium"}</Text>
           </TouchableOpacity>
         ))}
       </View>
+
+      <SectionHeader title="Preview controls" note="Small answers one question. Medium adds context. Large carries a day or week." />
+      <GlassCard style={styles.controlsCard}>
+        <ControlLabel title="Size intent" />
+        <View style={styles.sizeGrid}>
+          {widgetSizes.map((option) => {
+            const active = option === size;
+            return (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+                key={option}
+                style={[styles.sizeCard, active ? styles.sizeCardActive : null]}
+                onPress={() => setSize(option)}
+              >
+                <Text style={styles.sizeTitle}>{labelize(option)}</Text>
+                <Text style={styles.sizeDetail}>{sizeMentalModel(option)}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        <ControlLabel title="Palette" />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.paletteRail}>
+          {palettes.map((option) => {
+            const swatches = themePalettes[option];
+            const active = option === palette;
+            return (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+                key={option}
+                style={[styles.paletteButton, active ? styles.paletteButtonActive : null]}
+                onPress={() => setPalette(option)}
+              >
+                <View style={styles.paletteDots}>
+                  {swatches.map((swatch) => (
+                    <View key={swatch} style={[styles.paletteDot, { backgroundColor: swatch }]} />
+                  ))}
+                </View>
+                <Text style={styles.paletteName}>{labelize(option)}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        <ControlLabel title="Background" />
+        <SegmentedControl options={backgrounds} value={background} onChange={setBackground} labelForOption={labelize} />
+
+        <ControlLabel title="Layout" />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.layoutRail}>
+          {layouts.map((option) => (
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityState={{ selected: option === layout }}
+              key={option}
+              style={[styles.layoutOption, option === layout ? styles.layoutOptionActive : null]}
+              onPress={() => setLayout(option)}
+            >
+              <Text style={styles.layoutLabel}>{labelize(option)}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {type === "class_focus" ? (
+          <>
+            <ControlLabel title="Class" />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRail}>
+              {courses.map((course) => (
+                <ChoiceChip
+                  key={course.id}
+                  label={course.code}
+                  active={classFocusCourseId === course.id}
+                  color={course.color}
+                  onPress={() => setClassFocusCourseId(course.id)}
+                />
+              ))}
+            </ScrollView>
+          </>
+        ) : null}
+
+        <ControlLabel title="Icon" />
+        <View style={styles.iconGrid}>
+          {["book", "calendar", "check", "timer", "flask", "pen", "spark", "palette"].map((option) => (
+            <IconChoice key={option} option={option} />
+          ))}
+        </View>
+
+        <View style={styles.controlActions}>
+          <AppButton
+            label={selectedTemplateLocked ? "Unlock advanced widget" : "Save preview preset"}
+            icon={selectedTemplateLocked ? Sparkles : CheckCircle2}
+            onPress={saveCurrentPreset}
+            style={styles.actionButton}
+          />
+          <AppButton label="Reset" variant="secondary" onPress={onResetWidgetPresets} style={styles.actionButton} />
+        </View>
+      </GlassCard>
+
+      <SectionHeader title="Saved presets" note="These are in-app previews until native widgets are available." />
+      <GlassCard style={styles.savedCard}>
+        {widgetPresets.slice(0, 5).map((preset) => (
+          <TouchableOpacity
+            accessibilityRole="button"
+            key={preset.id}
+            style={[styles.savedRow, preset.id === editingPresetId ? styles.savedRowActive : null]}
+            onPress={() => {
+              setType(preset.type);
+              setSize(preset.size);
+              setBackground(preset.background);
+              setPalette(preset.palette);
+              setFont(preset.font);
+              setClassFocusCourseId(preset.classFocusCourseId || courses[0]?.id);
+              setLayout(preset.layout);
+              setIconKey(preset.iconKey);
+              setEditingPresetId(preset.id);
+            }}
+          >
+            <View style={[styles.savedIcon, { backgroundColor: themePalettes[preset.palette][1] || colors.accent }]}>
+              <Text style={styles.savedIconText}>{preset.size === "large" ? "L" : preset.size === "medium" ? "M" : "S"}</Text>
+            </View>
+            <View style={styles.savedCopy}>
+              <Text style={styles.savedTitle}>{preset.name}</Text>
+              <Text style={styles.savedMeta}>{labelForWidgetType(preset.type)} | {labelize(preset.size)} | {labelize(preset.palette)}</Text>
+            </View>
+            <Text style={styles.savedAction}>Edit</Text>
+          </TouchableOpacity>
+        ))}
+      </GlassCard>
 
       <SectionHeader title="Widgetsmith lesson" note="Personal, useful, and tied to the school day." />
       <GlassCard style={styles.packCard}>
@@ -210,8 +393,12 @@ export function MoreScreen({
         <Text style={styles.packCopy}>Morning: Today Plan. Between classes: Next Homework. Study time: Focus Block. Before grades slip: Class Risk.</Text>
       </GlassCard>
       <GlassCard style={styles.packCard}>
-        <Text style={styles.packTitle}>Why this is Pro</Text>
-        <Text style={styles.packCopy}>The value is live school context on the Home Screen, not decoration. Free can preview it; Pro should own the real widgets.</Text>
+        <Text style={styles.packTitle}>Fair Plus boundary</Text>
+        <Text style={styles.packCopy}>Free can preview real widget states. Plus owns saved advanced presets, themes, class-specific widgets, and focus widgets.</Text>
+        <View style={styles.controlActions}>
+          <AppButton label="Open focus" variant="secondary" onPress={onOpenFocus} style={styles.actionButton} />
+          <AppButton label="Open grades" variant="secondary" onPress={onOpenGrades} style={styles.actionButton} />
+        </View>
       </GlassCard>
 
       <SectionHeader title="Install status" note="Honest until native widgets are live." />
@@ -226,7 +413,7 @@ export function MoreScreen({
         </View>
         <View style={styles.helpStep}>
           <Text style={styles.helpNumber}>3</Text>
-          <Text style={styles.helpText}>Best Pro widgets: next homework, deadline countdown, focus block, grade risk, and one-class view.</Text>
+          <Text style={styles.helpText}>Best Plus widgets: next homework, deadline countdown, focus block, grade risk, and one-class view.</Text>
         </View>
       </GlassCard>
     </View>
@@ -293,6 +480,13 @@ function labelForWidgetType(value: WidgetType) {
 
 function labelize(value: string) {
   return value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function sizeMentalModel(value: WidgetSize) {
+  if (value === "small") return "One answer";
+  if (value === "medium") return "Context + next";
+  if (value === "large") return "Day or week";
+  return "Lock Screen";
 }
 
 function studioIconForKey(value: string) {
@@ -384,7 +578,15 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     previewStage: {
-      alignItems: "center"
+      alignItems: "center",
+      gap: spacing.xs
+    },
+    previewHint: {
+      color: colors.heroMuted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "800",
+      textAlign: "center"
     },
     templateGrid: {
       gap: spacing.xs
@@ -402,11 +604,34 @@ function createStyles(theme: AppTheme) {
       borderColor: colors.accent,
       backgroundColor: colors.accentSoft
     },
+    templateTopRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
     templateTitle: {
+      flex: 1,
       color: colors.ink,
       fontSize: 15,
       lineHeight: 19,
       fontWeight: "900"
+    },
+    templateEntitlement: {
+      overflow: "hidden",
+      borderRadius: 10,
+      backgroundColor: colors.mint,
+      color: colors.sage,
+      paddingHorizontal: 8,
+      paddingTop: 2,
+      fontSize: 10,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    templateEntitlementPlus: {
+      backgroundColor: colors.softGold,
+      color: colors.gold
     },
     templateDetail: {
       color: colors.muted,
@@ -422,7 +647,7 @@ function createStyles(theme: AppTheme) {
       textTransform: "uppercase"
     },
     controlsCard: {
-      gap: spacing.xs
+      gap: spacing.sm
     },
     controlLabel: {
       marginTop: spacing.xs,
@@ -431,6 +656,39 @@ function createStyles(theme: AppTheme) {
       lineHeight: 16,
       fontWeight: "900",
       textTransform: "uppercase"
+    },
+    sizeGrid: {
+      flexDirection: "row",
+      gap: spacing.xs
+    },
+    sizeCard: {
+      flex: 1,
+      minHeight: 70,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.xs,
+      justifyContent: "center",
+      gap: 3
+    },
+    sizeCardActive: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accentSoft
+    },
+    sizeTitle: {
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900",
+      textAlign: "center"
+    },
+    sizeDetail: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 14,
+      fontWeight: "800",
+      textAlign: "center"
     },
     chipRail: {
       gap: spacing.xs,

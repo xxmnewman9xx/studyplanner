@@ -16,16 +16,17 @@ type UpgradeScreenProps = {
 type LegalDocument = "terms" | "privacy";
 
 const paidFeatures = [
-  "Scan syllabi into classes, assignments, exams, and grade weights",
-  "Unlimited classes, homework, projects, and exams",
-  "Weekly plan, focus timer, calendar sync, reminders, grades, and real student widget templates",
-  "The full school loop: scan → review → today → focus → finish"
+  "Expanded syllabus scans, uploads, and re-imports",
+  "More classes, semesters, homework, projects, and exams",
+  "Smart reminders, calendar sync, focus sessions, grades, and workload planning",
+  "Advanced Widget Studio saves, themes, class widgets, and focus widgets"
 ];
 
 const freeFeatures = [
-  "1 class",
-  "2 homework items",
-  "Basic Today list only"
+  "1 active semester",
+  "2 classes and 12 homework items",
+  "1 reviewed syllabus import",
+  "Basic Today, Plan, Classes, and widget previews"
 ];
 
 export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
@@ -54,10 +55,10 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
     <View>
       <View style={styles.header}>
         <AppLogo showWordmark size={44} />
-        <Text style={styles.kicker}>StudyPlanner Pro</Text>
-        <Text style={styles.title}>The useful app is Pro.</Text>
+        <Text style={styles.kicker}>StudyPlanner Plus</Text>
+        <Text style={styles.title}>Unlock the full school loop.</Text>
         <Text style={styles.subtitle}>
-          Free is only a tiny preview. Pro unlocks the real loop: scan your syllabus, review the plan, know what to do today, focus, and finish.
+          Free lets you try the planner with real utility. Plus expands scans, automation, widgets, and semester controls when school gets busy.
         </Text>
       </View>
 
@@ -70,8 +71,8 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
             </Text>
             <Text style={styles.valueSubtitle}>
               {subscription.isPremium
-                ? "Premium tools are available on this device."
-                : "Unlock the complete student workflow after onboarding."}
+                ? "Plus tools are available on this device."
+                : "Upgrade after you have seen the plan and want more leverage."}
             </Text>
           </View>
         </View>
@@ -163,7 +164,7 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
               }}
             />
             {onContinueFree ? (
-              <AppButton label="Try tiny free preview" variant="quiet" onPress={onContinueFree} />
+              <AppButton label="Continue with free planner" variant="quiet" onPress={onContinueFree} />
             ) : null}
           </View>
         </>
@@ -171,7 +172,7 @@ export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
 
       <View style={styles.freeCard}>
         <Badge label="Included" tone="green" />
-        <Text style={styles.freeTitle}>Tiny free preview</Text>
+        <Text style={styles.freeTitle}>Free planner</Text>
         {freeFeatures.map((feature) => (
           <FeatureRow key={feature} text={feature} />
         ))}
@@ -292,7 +293,7 @@ function LegalNotice({
       <View style={styles.legalCard}>
         <Text style={styles.legalBody}>
           {isTerms
-            ? "Subscriptions are billed by the App Store or Google Play account used at purchase. Apple's standard EULA applies on iOS. Manage or cancel renewal from your store account settings. Premium access remains tied to valid store entitlement status."
+            ? "Subscriptions are billed by the App Store or Google Play account used at purchase. Apple's standard EULA applies on iOS. Manage or cancel renewal from your store account settings. Plus access remains tied to valid store entitlement status."
             : "StudyPlanner stores planner details on your device unless you choose services that require upload, such as syllabus scan. Syllabus files are sent only for parsing, and the app does not sell personal planner data."}
         </Text>
         <View style={styles.legalFeature}>

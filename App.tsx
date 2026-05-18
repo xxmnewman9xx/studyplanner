@@ -40,11 +40,15 @@ import { AppTheme } from "./src/theme";
 import { AppThemeProvider, useAppTheme } from "./src/themeContext";
 import { AppLogo } from "./src/components/AppleComponents";
 import {
+  defaultAssignments,
+  defaultCourses,
+  defaultFocusSessions,
+  defaultGradeItems,
   defaultSemester,
   defaultSettings,
   defaultWidgetPresets
 } from "./src/data/defaultPlanner";
-import { OnboardingScreen } from "./src/screens/OnboardingScreen";
+import { OnboardingDestination, OnboardingScreen } from "./src/screens/OnboardingScreen";
 import { TodayScreen, ImportHandoffSummary } from "./src/screens/TodayScreen";
 import { ImportScreen } from "./src/screens/ImportScreen";
 import { CoursesScreen } from "./src/screens/CoursesScreen";
@@ -75,9 +79,10 @@ import {
 } from "./src/services/marketingCapture";
 
 const plannerStorageKey = "study-planner-data-v3";
-const freeCourseLimit = 1;
-const freeAssignmentLimit = 2;
-const premiumTabs = new Set<NavTab>(["import", "plan", "focus", "grades", "more"]);
+const freeCourseLimit = 2;
+const freeAssignmentLimit = 12;
+const freeImportLimit = 1;
+const premiumTabs = new Set<NavTab>(["focus", "grades"]);
 
 const proTabs: Array<{
   id: NavTab;
@@ -88,14 +93,10 @@ const proTabs: Array<{
   { id: "import", label: "Scan", icon: FileScan },
   { id: "plan", label: "Plan", icon: CalendarDays },
   { id: "courses", label: "Classes", icon: GraduationCap },
-  { id: "focus", label: "Focus", icon: Timer }
+  { id: "more", label: "Widgets", icon: Sparkles }
 ];
 
-const freeTabs: typeof proTabs = [
-  { id: "today", label: "Today", icon: CalendarDays },
-  { id: "courses", label: "Classes", icon: GraduationCap },
-  { id: "upgrade", label: "Pro", icon: Crown }
-];
+const freeTabs: typeof proTabs = proTabs;
 
 export default function App() {
   return (
@@ -136,6 +137,7 @@ function AppContent() {
   const [parsedItems, setParsedItems] = useState<ParsedItem[]>([]);
   const [widgetPresets, setWidgetPresets] = useState<WidgetPreset[]>(defaultWidgetPresets);
   const [focusSessions, setFocusSessions] = useState<FocusSession[]>([]);
+  const [demoMode, setDemoMode] = useState(false);
   const [importHandoff, setImportHandoff] = useState<ImportHandoffSummary | null>(null);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
   const [focusAssignmentId, setFocusAssignmentId] = useState<string | null>(null);
@@ -200,6 +202,7 @@ function AppContent() {
         setParsedItems(stored.parsedItems || []);
         setWidgetPresets(stored.widgetPresets?.length ? stored.widgetPresets : defaultWidgetPresets);
         setFocusSessions(stored.focusSessions || []);
+        setDemoMode(Boolean(stored.demoMode));
       }
 
       setHydrated(true);
@@ -226,7 +229,8 @@ function AppContent() {
       parsedImports,
       parsedItems,
       widgetPresets,
-      focusSessions
+      focusSessions,
+      demoMode
     });
   }, [
     assignments,
@@ -234,6 +238,7 @@ function AppContent() {
     focusSessions,
     gradeItems,
     hydrated,
+    demoMode,
     onboarded,
     parsedImports,
     parsedItems,
@@ -334,6 +339,7 @@ function AppContent() {
       startDate: parse.semesterStartDate || current.startDate,
       endDate: parse.semesterEndDate || current.endDate
     }));
+    setDemoMode(false);
     void recordReviewEvent("import_applied");
     openTab("today");
   };
@@ -363,9 +369,9 @@ function AppContent() {
     kind: AssignmentKind
   ) => {
     if (!marketingCaptureEnabled && !subscription.isPremium && activeAssignments.length >= freeAssignmentLimit) {
-      Alert.alert("Unlock StudyPlanner Pro", `Free is limited to ${freeAssignmentLimit} homework items. Upgrade to add unlimited work, scans, reminders, focus, widgets, and grade tools.`, [
+      Alert.alert("Free planner limit reached", `Free includes ${freeAssignmentLimit} homework items. Plus expands planning volume, reminders, focus, widgets, and grade tools.`, [
         { text: "Not now", style: "cancel" },
-        { text: "See Pro", onPress: () => openTab("upgrade") }
+        { text: "See Plus", onPress: () => openTab("upgrade") }
       ]);
       return false;
     }
@@ -410,9 +416,9 @@ function AppContent() {
 
   const addCourse = (course: Pick<Course, "code" | "name" | "instructor">) => {
     if (!marketingCaptureEnabled && !subscription.isPremium && courses.length >= freeCourseLimit) {
-      Alert.alert("Unlock StudyPlanner Pro", `Free is limited to ${freeCourseLimit} class. Upgrade to plan every class, scan syllabi, and use automation.`, [
+      Alert.alert("Free planner limit reached", `Free includes ${freeCourseLimit} classes. Plus unlocks more classes, semesters, scans, and automation.`, [
         { text: "Not now", style: "cancel" },
-        { text: "See Pro", onPress: () => openTab("upgrade") }
+        { text: "See Plus", onPress: () => openTab("upgrade") }
       ]);
       return;
     }
@@ -505,6 +511,47 @@ function AppContent() {
     setWidgetPresets(defaultWidgetPresets);
   };
 
+  const startWithDemoPlanner = (settingsPatch?: Partial<UserSettings>) => {
+    const demo = buildDemoPlannerData();
+    setSemester(demo.semester);
+    setCourses(demo.courses);
+    setAssignments(demo.assignments);
+    setGradeItems(demo.gradeItems);
+    setParsedImports([]);
+    setParsedItems([]);
+    setWidgetPresets(defaultWidgetPresets);
+    setFocusSessions(demo.focusSessions);
+    setDemoMode(true);
+    setSettings((current) => ({ ...current, ...settingsPatch }));
+    setImportHandoff({
+      sourceName: "Demo syllabus",
+      addedCount: demo.assignments.length,
+      reviewCount: demo.assignments.filter((assignment) => assignment.needsReview).length,
+      nextTitle: demo.assignments[0]?.title,
+      nextAssignmentId: demo.assignments[0]?.id
+    });
+    setOnboarded(true);
+    setPaywallSeen(true);
+    setActiveTab("today");
+  };
+
+  const finishOnboarding = (
+    destination: OnboardingDestination,
+    settingsPatch?: Partial<UserSettings>
+  ) => {
+    if (destination === "demo") {
+      startWithDemoPlanner(settingsPatch);
+      return;
+    }
+
+    setSettings((current) => ({ ...current, ...settingsPatch }));
+    setOnboarded(true);
+    setPaywallSeen(true);
+    setDemoMode(false);
+    setActiveTab(destination === "manual" ? "courses" : "import");
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  };
+
   const recordFocusSession = (session: FocusSession) => {
     setFocusSessions((current) => {
       const withoutCompletedPlan = session.status === "completed"
@@ -582,8 +629,9 @@ function AppContent() {
 
   const premiumLocked =
     !marketingCaptureEnabled && (subscription.status !== "ready" || !subscription.isPremium);
-  const showInitialPaywall =
-    !marketingCaptureEnabled && !paywallSeen && !subscription.isPremium && subscription.status !== "checking";
+  const freeImportCount = parsedImports.filter((item) => !item.id.startsWith("demo-")).length;
+  const importLimitLocked =
+    !marketingCaptureEnabled && !subscription.isPremium && freeImportCount >= freeImportLimit;
 
   if (!hydrated) {
     return <LoadingScreen label="Loading StudyPlanner" />;
@@ -593,30 +641,7 @@ function AppContent() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <StatusBar style={theme.isDark ? "light" : "dark"} />
-        <OnboardingScreen onFinish={() => {
-          setOnboarded(true);
-          setPaywallSeen(false);
-        }} />
-      </SafeAreaView>
-    );
-  }
-
-  if (
-    !marketingCaptureEnabled &&
-    !paywallSeen &&
-    !subscription.isPremium &&
-    subscription.status === "checking"
-  ) {
-    return <LoadingScreen label="Checking Plus access" />;
-  }
-
-  if (showInitialPaywall) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar style={theme.isDark ? "light" : "dark"} />
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <UpgradeScreen onContinueFree={() => setPaywallSeen(true)} />
-        </ScrollView>
+        <OnboardingScreen onFinish={finishOnboarding} />
       </SafeAreaView>
     );
   }
@@ -661,7 +686,7 @@ function AppContent() {
                 onPress={() => openTab("upgrade")}
               >
                 <Crown color={colors.muted} size={18} />
-                <Text style={styles.sidebarLabel}>Pro</Text>
+                <Text style={styles.sidebarLabel}>Plus</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.sidebarPro}>
@@ -694,6 +719,7 @@ function AppContent() {
                   semester={semester}
                   studentName={settings.studentName}
                   importHandoff={importHandoff}
+                  demoMode={demoMode}
                   onUpdateStatus={updateAssignmentStatus}
                   onOpenAssignment={setSelectedAssignmentId}
                   onScheduleReminders={handleScheduleReminders}
@@ -704,6 +730,19 @@ function AppContent() {
                   onOpenScan={() => openTab("import")}
                   onOpenPlan={() => openTab("plan")}
                   onOpenClasses={() => openTab("courses")}
+                  onTryDemo={() => startWithDemoPlanner()}
+                  onReplaceDemo={() => {
+                    setSemester(defaultSemester);
+                    setCourses([]);
+                    setAssignments([]);
+                    setGradeItems([]);
+                    setParsedImports([]);
+                    setParsedItems([]);
+                    setFocusSessions([]);
+                    setImportHandoff(null);
+                    setDemoMode(false);
+                    openTab("import");
+                  }}
                   onAddQuickAssignment={addQuickAssignment}
                 />
               ) : null}
@@ -712,8 +751,9 @@ function AppContent() {
                   parsedImports={parsedImports}
                   parsedItems={parsedItems}
                   onApplyParsedPlan={applyParsedPlan}
-                  premiumImportLocked={premiumLocked}
+                  premiumImportLocked={importLimitLocked}
                   onOpenPaywall={() => openTab("upgrade")}
+                  onTryDemo={() => startWithDemoPlanner()}
                 />
               ) : null}
               {activeTab === "plan" ? (
@@ -774,6 +814,7 @@ function AppContent() {
                   onOpenFocus={() => openFocusForAssignment()}
                   onOpenGrades={() => openTab("grades")}
                   onOpenPaywall={() => openTab("upgrade")}
+                  premiumWidgetsLocked={!marketingCaptureEnabled && !subscription.isPremium}
                 />
               ) : null}
               {activeTab === "upgrade" ? <UpgradeScreen /> : null}
@@ -837,6 +878,60 @@ function messageFromError(error: unknown) {
 
 function focusSessionDateKey(value: string) {
   return value.slice(0, 10);
+}
+
+function buildDemoPlannerData(now = new Date()) {
+  const demoCourses = defaultCourses.slice(0, 2);
+  const demoSemester = {
+    ...defaultSemester,
+    id: "demo-semester",
+    name: "Demo Semester",
+    startDate: dateOffset(now, -28),
+    endDate: dateOffset(now, 84)
+  };
+  const demoAssignments = defaultAssignments.slice(0, 6).map((assignment, index) => {
+    const course = demoCourses[index % demoCourses.length] || demoCourses[0];
+    const offsets = [0, 1, 2, 4, 7, 10];
+    const dueDate = dateOffset(now, offsets[index] ?? index + 1);
+    const dueTime = assignment.kind === "exam" ? "09:00:00" : index % 2 === 0 ? "20:00:00" : "23:59:00";
+    return {
+      ...assignment,
+      id: `demo-${assignment.id}`,
+      courseId: course?.id || assignment.courseId,
+      dueAt: `${dueDate}T${dueTime}`,
+      status: index === 0 ? "in_progress" as const : index === 5 ? "done" as const : "not_started" as const,
+      source: "syllabus" as const,
+      sourceId: "demo-syllabus",
+      needsReview: index === 2,
+      duplicateOf: index === 2 ? undefined : assignment.duplicateOf,
+      progress: index === 0 ? 0.35 : index === 5 ? 1 : 0,
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString()
+    };
+  });
+
+  return {
+    semester: demoSemester,
+    courses: demoCourses,
+    assignments: demoAssignments,
+    gradeItems: defaultGradeItems.filter((item) => demoCourses.some((course) => course.id === item.courseId)),
+    focusSessions: defaultFocusSessions.map((session) => ({
+      ...session,
+      id: `demo-${session.id}`,
+      assignmentId: `demo-${session.assignmentId}`,
+      startedAt: `${dateOffset(now, -1)}T16:00:00`,
+      endedAt: `${dateOffset(now, -1)}T16:25:00`
+    }))
+  };
+}
+
+function dateOffset(now: Date, offsetDays: number) {
+  const date = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  date.setDate(date.getDate() + offsetDays);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function createStyles(theme: AppTheme, tablet = false) {
