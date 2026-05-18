@@ -2,7 +2,7 @@
   "expo": {
     "name": "StudyPlanner: Syllabus AI",
     "slug": "study-planner-syllabus-ai",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "default",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/app/study-planner-icon.png",
@@ -16,7 +16,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.mattnewman.studyplanner",
       "icon": "./assets/app/study-planner-icon.png",
-      "buildNumber": "12",
+      "buildNumber": "13",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "Scan syllabus pages so StudyPlanner can help create your course plan.",
