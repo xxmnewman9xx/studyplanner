@@ -135,23 +135,23 @@ export function MoreScreen({
     preset: Pick<WidgetPreset, "type" | "size" | "background" | "palette" | "layout" | "iconKey">;
   }> = [
     {
-      label: "Next task",
-      detail: "Shows the next assignment and how soon it is due.",
+      label: "Next",
+      detail: "Next due task",
       preset: { type: "due_next", size: "medium", background: "glass", palette: "ocean", layout: "list", iconKey: "calendar" }
     },
     {
-      label: "Today stack",
-      detail: "Shows how many assignments are due today.",
+      label: "Today",
+      detail: "Due today count",
       preset: { type: "today", size: "large", background: "gradient", palette: "sunset", layout: "list", iconKey: "check" }
     },
     {
-      label: "Class glance",
-      detail: "Shows open work for one class.",
+      label: "Class",
+      detail: "One class only",
       preset: { type: "class_focus", size: "medium", background: "glass", palette: "forest", layout: "compact", iconKey: "book" }
     },
     {
-      label: "Focus lock",
-      detail: "Shows a simple 25-minute focus timer.",
+      label: "Focus",
+      detail: "25-minute timer",
       preset: { type: "focus", size: "small", background: "dark", palette: "midnight", layout: "ring", iconKey: "timer" }
     }
   ];
@@ -205,8 +205,8 @@ export function MoreScreen({
           <View style={styles.heroCopy}>
             <AppLogo showWordmark size={36} />
             <Text style={styles.kicker}>Widget Studio</Text>
-            <Text style={styles.heroTitle}>Choose what shows on your Home Screen.</Text>
-            <Text style={styles.heroText}>{studioHint}</Text>
+            <Text style={styles.heroTitle}>Pick a widget.</Text>
+            <Text style={styles.heroText} numberOfLines={2}>{studioHint}</Text>
           </View>
           <View style={styles.livePill}>
             <View style={styles.liveDot} />
@@ -231,7 +231,7 @@ export function MoreScreen({
         </View>
       </GlassCard>
 
-      <SectionHeader title="Pick one widget" note="Each option has one clear job. The preview above changes immediately." />
+      <SectionHeader title="Pick one" note="Preview updates above." />
       <View style={styles.templateGrid}>
         {starterTemplates.map((template) => (
           <TouchableOpacity
@@ -243,14 +243,14 @@ export function MoreScreen({
             ]}
             onPress={() => applyTemplate(template.preset)}
           >
-            <Text style={styles.templateTitle}>{template.label}</Text>
-            <Text style={styles.templateDetail}>{template.detail}</Text>
-            <Text style={styles.templateMeta}>{template.preset.size === "large" ? "Big" : template.preset.size === "small" ? "Small" : "Medium"} widget</Text>
+            <Text style={styles.templateTitle} numberOfLines={1}>{template.label}</Text>
+            <Text style={styles.templateDetail} numberOfLines={1}>{template.detail}</Text>
+            <Text style={styles.templateMeta} numberOfLines={1}>{template.preset.size === "large" ? "Big" : template.preset.size === "small" ? "Small" : "Medium"}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      <SectionHeader title="Customize" note="Only the choices that matter are here." />
+      <SectionHeader title="Customize" note="Size and color." />
       <GlassCard style={styles.controlsCard}>
         <ControlLabel title="Size" />
         <SegmentedControl
@@ -316,7 +316,7 @@ export function MoreScreen({
         </View>
       </GlassCard>
 
-      <SectionHeader title="Saved widgets" note="Tap one to edit it again." />
+      <SectionHeader title="Saved" note="Tap to edit." />
       <GlassCard style={styles.savedCard}>
         {widgetPresets.slice(0, 5).map((preset) => {
           const data = getWidgetData(preset, assignments, courses);
@@ -334,7 +334,7 @@ export function MoreScreen({
               </View>
               <View style={styles.savedCopy}>
                 <Text style={styles.savedTitle}>{data.headline}</Text>
-                <Text style={styles.savedMeta}>{labelize(preset.type)} · {labelize(preset.size)} · {labelize(preset.background)}</Text>
+                <Text style={styles.savedMeta} numberOfLines={1}>{labelForWidgetType(preset.type)} · {labelize(preset.size)}</Text>
               </View>
               <Text style={styles.savedAction}>{active ? "Editing" : "Load"}</Text>
             </TouchableOpacity>
@@ -346,7 +346,7 @@ export function MoreScreen({
         </TouchableOpacity>
       </GlassCard>
 
-      <SectionHeader title="How to use it" note="Saving here creates the design. iOS controls placing the widget." />
+      <SectionHeader title="Add to iPhone" note="Save here, place from iOS." />
       <GlassCard style={styles.helpCard}>
         <View style={styles.helpStep}>
           <Text style={styles.helpNumber}>1</Text>
@@ -467,8 +467,8 @@ function createStyles(theme: AppTheme) {
     },
     heroTitle: {
       color: colors.heroText,
-      fontSize: 23,
-      lineHeight: 28,
+      fontSize: 22,
+      lineHeight: 26,
       fontWeight: "900"
     },
     heroText: {
@@ -519,20 +519,16 @@ function createStyles(theme: AppTheme) {
       alignItems: "center"
     },
     templateGrid: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: spacing.sm
+      gap: spacing.xs
     },
     templateCard: {
-      width: "48%",
-      minHeight: 118,
+      minHeight: 68,
       borderRadius: radii.xl,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.line,
       backgroundColor: theme.isDark ? "rgba(255,255,255,0.045)" : colors.surface,
-      padding: spacing.md,
-      gap: spacing.xs,
-      justifyContent: "space-between"
+      padding: spacing.sm,
+      gap: 2
     },
     templateCardActive: {
       borderColor: colors.accent,
@@ -540,14 +536,14 @@ function createStyles(theme: AppTheme) {
     },
     templateTitle: {
       color: colors.ink,
-      fontSize: 16,
-      lineHeight: 21,
+      fontSize: 15,
+      lineHeight: 19,
       fontWeight: "900"
     },
     templateDetail: {
       color: colors.muted,
       fontSize: 12,
-      lineHeight: 17,
+      lineHeight: 16,
       fontWeight: "700"
     },
     templateMeta: {
