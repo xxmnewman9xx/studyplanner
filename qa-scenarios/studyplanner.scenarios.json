@@ -1,0 +1,26 @@
+[
+  {
+    "id": "sp-free-after-onboarding",
+    "app": "StudyPlanner",
+    "persona": "new student deciding whether to pay",
+    "state": "fresh install, normal mode, onboarding complete, not Pro",
+    "trigger": "enters app",
+    "expected": ["paywall appears", "free is described as tiny preview", "Pro loop is scan -> review -> today -> focus -> done"]
+  },
+  {
+    "id": "sp-free-limit",
+    "app": "StudyPlanner",
+    "persona": "free user testing limits",
+    "state": "not Pro with 1 class and 2 homework items",
+    "trigger": "adds more work or opens Pro tabs",
+    "expected": ["upsell appears", "no silent failure", "CTA explains unlimited classes/homework/scans"]
+  },
+  {
+    "id": "sp-no-fake-widgets",
+    "app": "StudyPlanner",
+    "persona": "skeptical first-time user",
+    "state": "empty app",
+    "trigger": "opens any widget surface",
+    "expected": ["no fake settings", "no fake Algebra examples", "preview-only if native widgets are not live"]
+  }
+]
