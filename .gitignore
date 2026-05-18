@@ -12,3 +12,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 *.tsbuildinfo
+
+# Local EAS/TestFlight artifacts
+build/
+build-*.ipa
+*.ipa
