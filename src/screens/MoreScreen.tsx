@@ -1,28 +1,21 @@
 import React, { useMemo, useState } from "react";
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
-  Bell,
   BookOpen,
   CalendarDays,
   CheckCircle2,
-  Crown,
   FlaskConical,
   Palette,
   PenLine,
   RotateCcw,
   Save,
-  Settings,
-  ShieldCheck,
   Sparkles,
-  Timer,
-  WandSparkles
+  Timer
 } from "lucide-react-native";
 import {
   AppLogo,
   GlassCard,
   SegmentedControl,
-  SettingsRow,
-  ThemeCard,
   WidgetPreviewCard
 } from "../components/AppleComponents";
 import { AppButton } from "../components/AppButton";
@@ -84,7 +77,7 @@ export function MoreScreen({
   onOpenGrades,
   onOpenPaywall
 }: MoreScreenProps) {
-  const { theme, setMode } = useAppTheme();
+  const { theme } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
   const firstPreset = widgetPresets[0];
@@ -120,6 +113,19 @@ export function MoreScreen({
     [background, classFocusCourseId, editingPresetId, font, iconKey, layout, palette, size, type]
   );
   const widgetData = getWidgetData(previewPreset, assignments, courses);
+  const hasAssignments = assignments.length > 0;
+  const hasCourses = courses.length > 0;
+  const needsClassFirst = type === "class_focus" && !hasCourses;
+  const displayWidgetData = needsClassFirst
+    ? { ...widgetData, headline: "One Class", value: "+", detail: "Add a class first", items: [] }
+    : !hasAssignments && type !== "class_focus"
+      ? { ...widgetData, headline: labelForWidgetType(type), value: "+", detail: "Add homework to preview", items: [] }
+      : widgetData;
+  const studioHint = needsClassFirst
+    ? "This widget needs a class. Add one in Classes, then come back."
+    : !hasAssignments && type !== "class_focus"
+      ? "Your real homework will appear here after you add or scan it."
+      : "This is the widget content students will see at a glance.";
   const focusedCourse = classFocusCourseId
     ? courses.find((course) => course.id === classFocusCourseId)
     : undefined;
@@ -130,22 +136,22 @@ export function MoreScreen({
   }> = [
     {
       label: "Next task",
-      detail: "Homework urgency without opening the app.",
+      detail: "Shows the next assignment and how soon it is due.",
       preset: { type: "due_next", size: "medium", background: "glass", palette: "ocean", layout: "list", iconKey: "calendar" }
     },
     {
       label: "Today stack",
-      detail: "A clean queue for the next few moves.",
+      detail: "Shows how many assignments are due today.",
       preset: { type: "today", size: "large", background: "gradient", palette: "sunset", layout: "list", iconKey: "check" }
     },
     {
       label: "Class glance",
-      detail: "One subject, one focused command surface.",
-      preset: { type: "class_focus", size: "medium", background: "solid", palette: "forest", layout: "compact", iconKey: "book" }
+      detail: "Shows open work for one class.",
+      preset: { type: "class_focus", size: "medium", background: "glass", palette: "forest", layout: "compact", iconKey: "book" }
     },
     {
       label: "Focus lock",
-      detail: "A quiet focus widget for study sessions.",
+      detail: "Shows a simple 25-minute focus timer.",
       preset: { type: "focus", size: "small", background: "dark", palette: "midnight", layout: "ring", iconKey: "timer" }
     }
   ];
@@ -199,10 +205,8 @@ export function MoreScreen({
           <View style={styles.heroCopy}>
             <AppLogo showWordmark size={36} />
             <Text style={styles.kicker}>Widget Studio</Text>
-            <Text style={styles.heroTitle}>Make a widget in 4 taps.</Text>
-            <Text style={styles.heroText}>
-              Pick the job, choose a size, preview it live, then save. No confusing setup.
-            </Text>
+            <Text style={styles.heroTitle}>Choose what shows on your Home Screen.</Text>
+            <Text style={styles.heroText}>{studioHint}</Text>
           </View>
           <View style={styles.livePill}>
             <View style={styles.liveDot} />
@@ -211,32 +215,23 @@ export function MoreScreen({
         </View>
         <View style={styles.previewStage}>
           <WidgetPreviewCard
-            title={widgetData.headline}
-            value={widgetData.value}
-            detail={widgetData.detail}
+            title={displayWidgetData.headline}
+            value={displayWidgetData.value}
+            detail={displayWidgetData.detail}
             background={background}
             palette={palette}
             size={size}
             type={type}
-            course={widgetData.course || focusedCourse}
+            course={displayWidgetData.course || focusedCourse}
             font={font}
             layout={layout}
             iconKey={iconKey}
-            items={widgetData.items}
+            items={displayWidgetData.items}
           />
         </View>
       </GlassCard>
 
-      <GlassCard style={styles.tutorialCard}>
-        {["1. Pick what it shows", "2. Choose the size", "3. Check the preview", "4. Save the widget"].map((step) => (
-          <View key={step} style={styles.tutorialRow}>
-            <CheckCircle2 color={colors.accent} size={16} />
-            <Text style={styles.tutorialText}>{step}</Text>
-          </View>
-        ))}
-      </GlassCard>
-
-      <SectionHeader title="Step 1: choose a widget job" note="Start here. Most students only need one of these." />
+      <SectionHeader title="Pick one widget" note="Each option has one clear job. The preview above changes immediately." />
       <View style={styles.templateGrid}>
         {starterTemplates.map((template) => (
           <TouchableOpacity
@@ -250,62 +245,57 @@ export function MoreScreen({
           >
             <Text style={styles.templateTitle}>{template.label}</Text>
             <Text style={styles.templateDetail}>{template.detail}</Text>
-            <Text style={styles.templateMeta}>{labelize(template.preset.type)} · {labelize(template.preset.size)}</Text>
+            <Text style={styles.templateMeta}>{template.preset.size === "large" ? "Big" : template.preset.size === "small" ? "Small" : "Medium"} widget</Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      <SectionHeader title="Step 2: size and style" note="Keep it simple. The preview updates instantly." />
+      <SectionHeader title="Customize" note="Only the choices that matter are here." />
       <GlassCard style={styles.controlsCard}>
-        <ControlLabel title="How big" />
+        <ControlLabel title="Size" />
         <SegmentedControl
           options={widgetSizes}
           value={size}
           onChange={setSize}
-          labelForOption={labelize}
+          labelForOption={(value) => (value === "large" ? "Big" : value === "small" ? "Small" : "Medium")}
         />
 
-        <ControlLabel title="Widget job" />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRail}>
-          {widgetTypes.map((option) => (
-            <ChoiceChip
-              key={option}
-              label={labelize(option)}
-              active={option === type}
-              onPress={() => setType(option)}
-            />
-          ))}
-        </ScrollView>
+        {type === "class_focus" ? (
+          <>
+            <ControlLabel title="Class" />
+            {hasCourses ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRail}>
+                {courses.map((course) => (
+                  <ChoiceChip
+                    key={course.id}
+                    label={course.code}
+                    active={course.id === classFocusCourseId}
+                    color={course.color}
+                    onPress={() => setClassFocusCourseId(course.id)}
+                  />
+                ))}
+              </ScrollView>
+            ) : (
+              <Text style={styles.emptyHelper}>Add a class in the Classes tab before saving this widget.</Text>
+            )}
+          </>
+        ) : null}
 
-        <ControlLabel title="Background style" />
-        <SegmentedControl
-          options={backgrounds}
-          value={background}
-          onChange={(value) => {
-            setBackground(value);
-            onUpdateSettings({ defaultWidgetStyle: value });
-          }}
-          labelForOption={labelize}
-        />
-
-        <ControlLabel title="Palette" />
+        <ControlLabel title="Color" />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.paletteRail}>
-          {palettes.map((option) => (
+          {palettes.filter((option) => option !== "custom").map((option) => (
             <TouchableOpacity
               accessibilityRole="button"
-              accessibilityState={{ selected: option === palette || option === settings.selectedTheme }}
+              accessibilityState={{ selected: option === palette }}
               key={option}
-              style={[
-                styles.paletteButton,
-                (option === palette || option === settings.selectedTheme) ? styles.paletteButtonActive : null
-              ]}
+              style={[styles.paletteButton, option === palette ? styles.paletteButtonActive : null]}
               onPress={() => {
-                if (option !== "custom") setPalette(option);
+                setPalette(option);
                 onUpdateSettings({ selectedTheme: option });
               }}
             >
               <View style={styles.paletteDots}>
-                {(option === "custom" ? settings.customPalette : themePalettes[option]).slice(0, 4).map((color) => (
+                {themePalettes[option].slice(0, 4).map((color) => (
                   <View key={color} style={[styles.paletteDot, { backgroundColor: color }]} />
                 ))}
               </View>
@@ -314,53 +304,10 @@ export function MoreScreen({
           ))}
         </ScrollView>
 
-        <ControlLabel title="Font" />
-        <SegmentedControl options={fonts} value={font} onChange={setFont} />
-
-        <ControlLabel title="Class to show" />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRail}>
-          {courses.map((course) => (
-            <ChoiceChip
-              key={course.id}
-              label={course.code}
-              active={course.id === classFocusCourseId}
-              color={course.color}
-              onPress={() => setClassFocusCourseId(course.id)}
-            />
-          ))}
-        </ScrollView>
-
-        <ControlLabel title="Layout shape" />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.layoutRail}>
-          {layouts.map((option) => (
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityState={{ selected: option === layout }}
-              key={option}
-              style={[styles.layoutOption, option === layout ? styles.layoutOptionActive : null]}
-              onPress={() => setLayout(option)}
-            >
-              <View style={styles.layoutLines}>
-                <View style={styles.layoutLineStrong} />
-                <View style={styles.layoutLine} />
-                <View style={option === "grid" ? styles.layoutGrid : styles.layoutLine} />
-              </View>
-              <Text style={styles.layoutLabel}>{labelize(option)}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        <ControlLabel title="Icon picture" />
-        <View style={styles.iconGrid}>
-          {iconKeys.map((option) => (
-            <IconChoice key={option} option={option} />
-          ))}
-        </View>
-
         <View style={styles.controlActions}>
-          <AppButton label="Save this widget" icon={Save} onPress={savePreset} style={styles.actionButton} />
+          <AppButton label="Save widget" icon={Save} onPress={savePreset} style={styles.actionButton} />
           <AppButton
-            label="Start over"
+            label="Reset"
             icon={RotateCcw}
             variant="secondary"
             onPress={resetStudio}
@@ -399,128 +346,20 @@ export function MoreScreen({
         </TouchableOpacity>
       </GlassCard>
 
-      <SectionHeader title="Preview on phone" note="See how the widget will feel on Home Screen and Lock Screen." />
-      <View style={styles.devicePreviewRow}>
-        <View style={styles.homeScreen}>
-          <WidgetPreviewCard
-            title="Due Next"
-            value="2h"
-            detail="Algebra II - Worksheet"
-            background="glass"
-            palette="ocean"
-            size="medium"
-            type="due_next"
-            course={courses[0]}
-            font={font}
-            layout="list"
-            iconKey="calendar"
-            items={assignments.slice(0, 3)}
-          />
-          <View style={styles.appIconGrid}>
-            {["brand", "#10B981", "#FFFFFF", "#FDBA2D", "#2F80ED", "#8B5CF6"].map((color, index) => (
-              color === "brand" ? (
-                <Image
-                  accessibilityLabel="StudyPlanner app icon"
-                  key="brand-icon"
-                  source={require("../../assets/app/study-planner-icon.png")}
-                  style={styles.fakeAppIcon}
-                />
-              ) : (
-                <View key={`${color}-${index}`} style={[styles.fakeAppIcon, { backgroundColor: color }]} />
-              )
-            ))}
-          </View>
+      <SectionHeader title="How to use it" note="Saving here creates the design. iOS controls placing the widget." />
+      <GlassCard style={styles.helpCard}>
+        <View style={styles.helpStep}>
+          <Text style={styles.helpNumber}>1</Text>
+          <Text style={styles.helpText}>Save the widget you want.</Text>
         </View>
-        <View style={styles.lockScreen}>
-          <Text style={styles.lockDate}>Wednesday, May 13</Text>
-          <Text style={styles.lockTime}>9:41</Text>
-          <View style={styles.lockWidgets}>
-            <Text style={styles.lockPill}>Due next · 2h</Text>
-            <Text style={styles.lockCircle}>3</Text>
-            <Text style={styles.lockCircle}>7</Text>
-          </View>
+        <View style={styles.helpStep}>
+          <Text style={styles.helpNumber}>2</Text>
+          <Text style={styles.helpText}>Long-press your iPhone Home Screen.</Text>
         </View>
-      </View>
-
-      <View style={styles.lockShapeStrip}>
-        {[
-          ["Round", "3"],
-          ["Inline", "Algebra · 11:30"],
-          ["Rectangle", "Week 11"],
-          ["Circular", "7"]
-        ].map(([label, value]) => (
-          <View key={label} style={styles.lockShape}>
-            <Text style={styles.lockShapeValue}>{value}</Text>
-            <Text style={styles.lockShapeLabel}>{label}</Text>
-          </View>
-        ))}
-      </View>
-
-      <SectionHeader title="Themes" note="Eight curated vibes plus your own" />
-      <GlassCard style={styles.modeCard}>
-        <View>
-          <Text style={styles.modeTitle}>App appearance</Text>
-          <Text style={styles.modeCopy}>Light for day planning, Midnight for late-night study.</Text>
+        <View style={styles.helpStep}>
+          <Text style={styles.helpNumber}>3</Text>
+          <Text style={styles.helpText}>Tap + and choose StudyPlanner.</Text>
         </View>
-        <SegmentedControl
-          options={["light", "dark"]}
-          value={theme.mode}
-          onChange={(mode) => setMode(mode)}
-          labelForOption={labelize}
-        />
-      </GlassCard>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.themeRail}>
-        {palettes.map((option) => (
-          <ThemeCard
-            key={option}
-            name={labelize(option)}
-            palette={option}
-            selected={settings.selectedTheme === option}
-            onPress={() => {
-              onUpdateSettings({ selectedTheme: option });
-              if (option !== "custom") setPalette(option);
-              if (option === "midnight") setMode("dark");
-              if (option !== "midnight" && option !== "custom") setMode("light");
-            }}
-          />
-        ))}
-      </ScrollView>
-
-      <SectionHeader title="Settings" note="Short, clean, and student-focused" />
-      <View style={styles.settingsList}>
-        <SettingsRow icon={Palette} title="Theme" value={labelize(settings.selectedTheme)} />
-        <SettingsRow icon={WandSparkles} title="Default widget style" value={labelize(settings.defaultWidgetStyle)} />
-        <SettingsRow icon={Bell} title="Notifications" value={settings.notificationDefault} />
-        <SettingsRow icon={Timer} title="Focus mode default" value={`${settings.focusDefaultMinutes} min`} onPress={onOpenFocus} />
-        <SettingsRow icon={Crown} title="Grade forecast" value="Weighted targets" onPress={onOpenGrades} />
-        <SettingsRow
-          icon={ShieldCheck}
-          title="Privacy mode"
-          value={settings.privacyMode ? "On" : "Off"}
-          onPress={() => onUpdateSettings({ privacyMode: !settings.privacyMode })}
-        />
-        <SettingsRow icon={Settings} title="Sync" value={settings.syncEnabled ? "iCloud ready" : "Off"} />
-      </View>
-
-      <SectionHeader title="StudyPlanner Pro" note="Unlimited scans, widgets, themes, sync, insights" />
-      <GlassCard tone="dark" style={styles.paywallCard}>
-        <Text style={styles.paywallKicker}>Two tiers · 7-day trial</Text>
-        <Text style={styles.paywallTitle}>Unlimited Study Power</Text>
-        <Text style={styles.paywallCopy}>
-          Save every preset, unlock all themes, sync across devices, and scan without limits.
-        </Text>
-        <View style={styles.planRow}>
-          <View style={styles.planCard}>
-            <Text style={styles.planTitle}>Monthly</Text>
-            <Text style={styles.planPrice}>$4.99</Text>
-          </View>
-          <View style={[styles.planCard, styles.planCardBest]}>
-            <Text style={styles.bestBadge}>BEST VALUE</Text>
-            <Text style={styles.planTitle}>Yearly</Text>
-            <Text style={styles.planPrice}>$29.99</Text>
-          </View>
-        </View>
-        <AppButton label="Open Pro options" icon={Crown} onPress={onOpenPaywall} />
       </GlassCard>
     </View>
   );
@@ -568,6 +407,20 @@ export function MoreScreen({
       </TouchableOpacity>
     );
   }
+}
+
+function labelForWidgetType(value: WidgetType) {
+  const labels: Record<WidgetType, string> = {
+    due_next: "Next Task",
+    today: "Today",
+    needs_check: "Needs Check",
+    week: "This Week",
+    class_focus: "One Class",
+    empty: "All Done",
+    focus: "Focus Timer",
+    streak: "Streak"
+  };
+  return labels[value];
 }
 
 function labelize(value: string) {
@@ -844,6 +697,13 @@ function createStyles(theme: AppTheme) {
       borderColor: colors.accent,
       backgroundColor: colors.accentSoft
     },
+    emptyHelper: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "800",
+      paddingVertical: spacing.xs
+    },
     controlActions: {
       flexDirection: "row",
       gap: spacing.sm,
@@ -851,6 +711,34 @@ function createStyles(theme: AppTheme) {
     },
     actionButton: {
       flex: 1
+    },
+    helpCard: {
+      gap: spacing.sm,
+      padding: spacing.md
+    },
+    helpStep: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    helpNumber: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      overflow: "hidden",
+      backgroundColor: colors.accent,
+      color: colors.heroText,
+      textAlign: "center",
+      fontSize: 13,
+      lineHeight: 24,
+      fontWeight: "900"
+    },
+    helpText: {
+      flex: 1,
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 19,
+      fontWeight: "800"
     },
     savedCard: {
       gap: spacing.xs,
