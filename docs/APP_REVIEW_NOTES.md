@@ -28,6 +28,12 @@ StudyPlanner keeps deadline data reviewable before it affects planning or device
 - Effort estimates are normalized so planning math stays useful.
 - Calendar sync and reminders skip archived items and invalid deadlines.
 
+## WidgetKit behavior
+
+iOS builds include small and medium WidgetKit Home Screen widgets for StudyPlanner Today and StudyPlanner Upcoming. The widgets are backed by the app group `group.com.mattnewman.studyplanner` and receive compact timeline snapshots from the app, not the full planner database.
+
+The widget snapshot includes reviewed assignment display fields only: local assignment ID, title, course code/color, due label, priority, assignment type, semester name, widget state, generated time, colors, and display copy. It excludes raw syllabus text, parsed raw text, teacher names, rooms, grades, notes, checklist details, reminder identifiers, calendar event identifiers, purchase state, and student name. Demo coursework and unreviewed or invalid scan results are not written to native widgets.
+
 ## Release QA command
 
 Before TestFlight/App Store packaging, run:

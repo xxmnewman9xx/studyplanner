@@ -15,13 +15,15 @@ Study Planner: Syllabus AI is designed as a local-first planner. Courses, assign
 
 Planner content is used to display your schedule, deadlines, grades, reminders, calendar sync, and focus tools. Syllabus files are used only to extract editable courses and deadlines. Store entitlement status is used to unlock Plus features.
 
+On iOS, basic Home Screen widgets use a small WidgetKit snapshot stored in an App Group shared by the app and its widget extension. The snapshot includes only the reviewed assignment display fields needed for Today and Upcoming widgets: local assignment ID, title, course code/color, due label, priority, assignment type, semester name, widget state, generated time, colors, and widget display text. It does not include raw syllabus text, teacher names, rooms, grades, notes, checklist details, purchase state, reminder IDs, calendar event IDs, or the full planner database. Demo coursework and unreviewed scan results are not written to native widgets.
+
 ## Syllabus Import
 
 When a syllabus parse endpoint is configured for the production app, selected syllabus files may be uploaded over HTTPS for parsing. The app does not sell syllabus content or planner data. If the online parser is unavailable, the app may try to read text-based syllabi on device and returns editable results for review before anything is applied to your planner.
 
 ## Third-Party Services
 
-The app uses Apple App Store or Google Play billing for purchases. Optional device calendar and notification features use the operating system services on your device.
+The app uses Apple App Store or Google Play billing for purchases. Optional device calendar and notification features use the operating system services on your device. iOS widgets use Apple's WidgetKit and App Groups on device.
 
 ## Data Sharing
 

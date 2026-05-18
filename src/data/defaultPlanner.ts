@@ -374,7 +374,7 @@ export const defaultParsedItems: ParsedItem[] = [
 export const defaultWidgetPresets: WidgetPreset[] = [
   {
     id: "preset-due-next",
-    name: "Due Next",
+    name: "Upcoming",
     type: "due_next",
     size: "medium",
     background: "gradient",

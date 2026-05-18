@@ -313,13 +313,13 @@ export function getWidgetData(
 
   const byType: Record<WidgetType, WidgetData> = {
     due_next: {
-      headline: "Next Homework",
+      headline: "Upcoming",
       value: next ? timeUntilLabel(next.dueAt, now) : "Clear",
       detail: next?.title || "All caught up",
       items: next ? [next] : []
     },
     today: {
-      headline: "Today Plan",
+      headline: "Today",
       value: String(dueToday.length),
       detail: dueToday.length === 1 ? "task due today" : `${dueToday.length} tasks due today`,
       items: dueToday

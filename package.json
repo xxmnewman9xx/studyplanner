@@ -5,8 +5,8 @@
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "test:parser": "rm -rf /tmp/studyplanner-parser-test-build && tsc scripts/check-syllabus-parser.ts src/services/syllabusLocalParser.ts src/models.ts --outDir /tmp/studyplanner-parser-test-build --module commonjs --target ES2020 --esModuleInterop --skipLibCheck && node /tmp/studyplanner-parser-test-build/scripts/check-syllabus-parser.js",
@@ -20,6 +20,7 @@
     "check:scenarios": "node scripts/check-scenarios.mjs"
   },
   "dependencies": {
+    "@expo/ui": "~55.0.16",
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~55.0.24",
@@ -32,6 +33,7 @@
     "expo-notifications": "~55.0.23",
     "expo-status-bar": "~55.0.6",
     "expo-store-review": "~55.0.14",
+    "expo-widgets": "^55.0.18",
     "lucide-react-native": "^1.14.0",
     "pako": "^2.1.0",
     "react": "19.2.0",

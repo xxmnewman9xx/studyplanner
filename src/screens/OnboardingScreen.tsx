@@ -172,7 +172,7 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
           </View>
         ) : (
           <Text style={styles.freeNote}>
-            Free includes a first import, manual planning, and basic widget previews. Plus expands volume, automation, and customization.
+            Free includes a first import, manual planning, and basic Today and Upcoming widgets. Plus expands volume, automation, and customization.
           </Text>
         )}
         <AppButton

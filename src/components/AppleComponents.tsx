@@ -310,6 +310,14 @@ export function ClassIdentityCard({
   );
 }
 
+type WidgetPreviewItem = Assignment | {
+  id: string;
+  title: string;
+  courseCode?: string;
+  courseColor?: string;
+  dueLabel?: string;
+};
+
 export function WidgetPreviewCard({
   title,
   value,
@@ -323,6 +331,11 @@ export function WidgetPreviewCard({
   layout = "compact",
   iconKey = "calendar",
   items = [],
+  nativeMode = false,
+  nativeAccentColor,
+  nativeBackgroundColor,
+  footnote,
+  semesterName,
   style
 }: {
   title: string;
@@ -336,7 +349,12 @@ export function WidgetPreviewCard({
   font?: "SF Pro" | "New York" | "Rounded" | "Mono";
   layout?: "compact" | "list" | "ring" | "calendar" | "grid";
   iconKey?: string;
-  items?: Assignment[];
+  items?: WidgetPreviewItem[];
+  nativeMode?: boolean;
+  nativeAccentColor?: string;
+  nativeBackgroundColor?: string;
+  footnote?: string;
+  semesterName?: string;
   style?: StyleProp<ViewStyle>;
 }) {
   const { theme } = useAppTheme();
@@ -350,6 +368,48 @@ export function WidgetPreviewCard({
   const fontStyle = font === "Mono" ? styles.widgetMono : font === "Rounded" ? styles.widgetRounded : null;
   const WidgetIcon = iconForKey(iconKey);
   const statusText = widgetStatusText(type, value, detail, previewItems);
+  const nativeAccent = nativeAccentColor || course?.color || paletteColors[1] || theme.colors.accent;
+
+  if (nativeMode) {
+    return (
+      <View
+        style={[
+          styles.widget,
+          isLarge ? styles.widgetLarge : isMedium ? styles.widgetMedium : styles.widgetSmall,
+          styles.nativeWidget,
+          { backgroundColor: nativeBackgroundColor || "#FFFDF4" },
+          style
+        ]}
+      >
+        <View style={styles.nativeWidgetTop}>
+          <View style={styles.nativeWidgetHeading}>
+            <Text style={styles.nativeWidgetBrand} numberOfLines={1}>StudyPlanner</Text>
+            <Text style={[styles.nativeWidgetKicker, { color: nativeAccent }]} numberOfLines={1}>{title}</Text>
+          </View>
+          <View style={[styles.nativeWidgetDot, { backgroundColor: nativeAccent }]} />
+        </View>
+        <Text style={styles.nativeWidgetValue} numberOfLines={1}>{value}</Text>
+        <Text style={styles.nativeWidgetDetail} numberOfLines={isMedium ? 2 : 1}>{detail}</Text>
+        {previewItems.length > 0 ? (
+          <View style={styles.nativeWidgetList}>
+            {previewItems.map((item) => (
+              <View key={item.id} style={styles.nativeWidgetRow}>
+                <View style={[styles.nativeWidgetMiniDot, { backgroundColor: widgetItemColor(item, course, nativeAccent) }]} />
+                <Text style={styles.nativeWidgetRowText} numberOfLines={1}>
+                  {widgetItemLabel(item)}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <Text style={styles.nativeWidgetFootnote} numberOfLines={2}>{footnote || "Open StudyPlanner to add homework."}</Text>
+        )}
+        <Text style={styles.nativeWidgetFooter} numberOfLines={1}>
+          {previewItems.length > 0 ? footnote || "Reviewed planner data" : semesterName || "Current semester"}
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View
@@ -392,9 +452,9 @@ export function WidgetPreviewCard({
         <View style={styles.widgetMiniList}>
           {previewItems.map((item) => (
             <View key={item.id} style={styles.widgetMiniRow}>
-              <View style={[styles.widgetMiniDot, { backgroundColor: course?.color || paletteColors[1] }]} />
+              <View style={[styles.widgetMiniDot, { backgroundColor: widgetItemColor(item, course, paletteColors[1] || theme.colors.accent) }]} />
               <Text style={[styles.widgetMiniText, labelTone]} numberOfLines={1}>
-                {item.title}
+                {widgetItemLabel(item)}
               </Text>
             </View>
           ))}
@@ -438,7 +498,7 @@ export function WidgetPreviewCard({
   );
 }
 
-function widgetStatusText(type: WidgetType, value: string, detail: string, items: Assignment[]) {
+function widgetStatusText(type: WidgetType, value: string, detail: string, items: WidgetPreviewItem[]) {
   if (items.length === 0) return "Preview";
   if (type === "due_next") return value || "Next";
   if (type === "today") return items.length === 1 ? "1 task" : `${items.length} tasks`;
@@ -447,6 +507,18 @@ function widgetStatusText(type: WidgetType, value: string, detail: string, items
   if (type === "needs_check") return "Review";
   if (type === "week") return "Week";
   return detail || "Live";
+}
+
+function widgetItemColor(item: WidgetPreviewItem, course: Course | undefined, fallback: string) {
+  return "courseColor" in item && item.courseColor ? item.courseColor : course?.color || fallback;
+}
+
+function widgetItemLabel(item: WidgetPreviewItem) {
+  if ("courseCode" in item && item.courseCode) {
+    return item.dueLabel ? `${item.courseCode} - ${item.title} - ${item.dueLabel}` : `${item.courseCode} - ${item.title}`;
+  }
+
+  return item.title;
 }
 
 export function ThemeCard({
@@ -927,6 +999,90 @@ function createStyles(theme: AppTheme) {
     widgetDark: {
       backgroundColor: "#070A12",
       borderColor: "rgba(53,242,208,0.22)"
+    },
+    nativeWidget: {
+      borderRadius: 30,
+      padding: spacing.md,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(18,20,23,0.08)",
+      shadowOpacity: theme.isDark ? 0.28 : 0.12,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 12 },
+      gap: 4
+    },
+    nativeWidgetTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    nativeWidgetHeading: {
+      flex: 1,
+      minWidth: 0
+    },
+    nativeWidgetBrand: {
+      color: colors.faint,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    nativeWidgetKicker: {
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    nativeWidgetDot: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      opacity: 0.95
+    },
+    nativeWidgetValue: {
+      marginTop: spacing.xs,
+      color: "#171A20",
+      fontSize: 32,
+      lineHeight: 37,
+      fontWeight: "900",
+      fontVariant: ["tabular-nums"]
+    },
+    nativeWidgetDetail: {
+      color: "#171A20",
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    nativeWidgetList: {
+      marginTop: spacing.xs,
+      gap: 5
+    },
+    nativeWidgetRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6
+    },
+    nativeWidgetMiniDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3
+    },
+    nativeWidgetRowText: {
+      flex: 1,
+      color: "#69707D",
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "800"
+    },
+    nativeWidgetFootnote: {
+      marginTop: spacing.xs,
+      color: "#69707D",
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
+    },
+    nativeWidgetFooter: {
+      marginTop: "auto",
+      color: "#8A93A3",
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "800"
     },
     widgetBackplate: {
       position: "absolute",

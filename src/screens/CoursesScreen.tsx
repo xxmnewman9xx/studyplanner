@@ -239,11 +239,11 @@ export function CoursesScreen({
             )}
           </View>
 
-          <SectionHeader title="Class widget look" note="This is how the class can appear in widgets." />
+          <SectionHeader title="Class widget preview" note="This is how the class can appear in Widget Studio." />
           <View style={styles.widgetShortcut}>
             <Text style={styles.widgetShortcutTitle}>{selectedCourse.code}</Text>
             <Text style={styles.widgetShortcutCopy}>
-              {counts[selectedCourse.id]?.open || 0} open · color and metadata ready for class widgets.
+              {counts[selectedCourse.id]?.open || 0} open · color and metadata ready for Plus class templates.
             </Text>
           </View>
         </>

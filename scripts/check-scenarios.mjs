@@ -84,14 +84,14 @@ assert(upgrade.includes("Plus expands scans, automation, widgets, and semester c
 assert(upgrade.includes('"1 active semester"') && upgrade.includes('"2 classes and 12 homework items"') && upgrade.includes('"1 reviewed syllabus import"'), "Paywall free feature list must match the useful bounded free tier.");
 assert(app.includes("setImportHandoff") && app.includes("openTab(\"today\")") && app.includes('recordReviewEvent("import_applied")'), "Scan/import should hand off into Today after value is created.");
 assert(reviewPrompt.includes("assignment_completed") && reviewPrompt.includes("focus_completed") && reviewPrompt.includes("widget_saved"), "Review prompt policy should stay value-gated.");
-assert(more.includes("These are previews only"), "Widget surface must be honest until native widgets are live.");
-assert(more.includes("Template gallery") && more.includes("pick template → add widget → open homework"), "Widget surface should define the real native widget loop, not generic settings.");
-assert(more.includes("Daily widget stack") && more.includes("Morning: Today Plan") && more.includes("Free can preview real widget states"), "Widget surface should borrow Widgetsmith's daily-stack/value model without faking native widgets.");
-assert(more.includes("Next Homework") && more.includes("Today Plan") && more.includes("Focus Block") && more.includes("Class Risk"), "Widget templates should be student-outcome first.");
-assert(planner.includes("Next Homework") && planner.includes("Today Plan") && planner.includes("Focus Block") && planner.includes("Class Risk"), "Widget data labels should match student-outcome templates.");
+assert(app.includes("syncStudyPlannerWidgets") && app.includes("nativeWidgetStatus"), "WidgetKit snapshots should refresh from real planner persistence.");
+assert(more.includes("Real widgets, real planner data") && more.includes("Add StudyPlanner Today or StudyPlanner Upcoming"), "Widget surface should describe the real native widget loop.");
+assert(more.includes("Daily widget stack") && more.includes("Morning: Today") && more.includes("Free includes basic Today and Upcoming widgets"), "Widget surface should explain the free native widget value without faking advanced widgets.");
+assert(more.includes("Upcoming") && more.includes("Today") && more.includes("Focus Block") && more.includes("Class Risk"), "Widget templates should be student-outcome first.");
+assert(planner.includes('headline: "Upcoming"') && planner.includes('headline: "Today"') && planner.includes("Focus Block") && planner.includes("Class Risk"), "Widget data labels should match student-outcome templates.");
 assert(!more.includes("Algebra II - Worksheet") && !more.includes("Week 11") && !more.includes("Wednesday, May 13"), "Widget surface must not show fake sample school data.");
 assert(!components.includes("May 13") && !components.includes('"2h"'), "Widget preview components must not hard-code fake dates or fake due times.");
-assert(more.includes("Save preview preset") && more.includes("Unlock advanced widget"), "Widget surface may save honest in-app preview presets while gating advanced widgets.");
+assert(more.includes("Save widget preset") && more.includes("Unlock advanced widget"), "Widget surface may save basic presets while gating advanced widgets.");
 assert(defaultPlanner.includes("defaultWidgetPresets"), "Default widget presets may exist for data compatibility, but UI must not imply native support.");
 assert(fs.existsSync(path.join(root, "assets/app/study-planner-icon.png")), "StudyPlanner icon asset must exist.");
 

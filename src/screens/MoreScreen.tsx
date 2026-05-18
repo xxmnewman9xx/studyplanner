@@ -21,6 +21,8 @@ import { SectionHeader } from "../components/SectionHeader";
 import {
   Assignment,
   Course,
+  ParsedImport,
+  Semester,
   UserSettings,
   WidgetBackground,
   WidgetPalette,
@@ -29,14 +31,20 @@ import {
   WidgetType
 } from "../models";
 import { getWidgetData } from "../logic/planner";
+import { buildStudyPlannerWidgetSnapshots } from "../services/widgetSnapshot";
+import type { WidgetSyncStatus } from "../services/widgetSnapshot";
 import { AppTheme, themePalettes } from "../theme";
 import { useAppTheme } from "../themeContext";
 
 type MoreScreenProps = {
   assignments: Assignment[];
   courses: Course[];
+  semester: Semester;
+  parsedImports: ParsedImport[];
+  demoMode?: boolean;
   settings: UserSettings;
   widgetPresets: WidgetPreset[];
+  nativeWidgetStatus: WidgetSyncStatus;
   onUpdateSettings: (patch: Partial<UserSettings>) => void;
   onSaveWidgetPreset: (preset: WidgetPreset) => void;
   onResetWidgetPresets: () => void;
@@ -54,8 +62,12 @@ const layouts: WidgetPreset["layout"][] = ["compact", "list", "ring", "calendar"
 export function MoreScreen({
   assignments,
   courses,
+  semester,
+  parsedImports,
+  demoMode = false,
   settings,
   widgetPresets,
+  nativeWidgetStatus,
   onUpdateSettings,
   onSaveWidgetPreset,
   onResetWidgetPresets,
@@ -100,19 +112,42 @@ export function MoreScreen({
     [background, classFocusCourseId, editingPresetId, font, iconKey, layout, palette, size, type]
   );
   const widgetData = getWidgetData(previewPreset, assignments, courses);
+  const nativeSnapshots = useMemo(
+    () =>
+      buildStudyPlannerWidgetSnapshots({
+        semester,
+        courses,
+        assignments,
+        parsedImports,
+        demoMode
+      }),
+    [assignments, courses, demoMode, parsedImports, semester]
+  );
+  const nativePreview =
+    type === "today" ? nativeSnapshots.today : type === "due_next" ? nativeSnapshots.upcoming : undefined;
   const hasAssignments = assignments.length > 0;
   const hasCourses = courses.length > 0;
   const needsClassFirst = type === "class_focus" && !hasCourses;
-  const displayWidgetData = needsClassFirst
+  const displayWidgetData = nativePreview
+    ? {
+        headline: nativePreview.headline,
+        value: nativePreview.value,
+        detail: nativePreview.detail,
+        items: nativePreview.items,
+        course: undefined
+      }
+    : needsClassFirst
     ? { ...widgetData, headline: "One Class", value: "+", detail: "Add a class first", items: [] }
     : !hasAssignments && type !== "class_focus"
       ? { ...widgetData, headline: labelForWidgetType(type), value: "+", detail: "Add homework to preview", items: [] }
       : widgetData;
-  const studioHint = needsClassFirst
+  const studioHint = nativePreview
+    ? nativePreview.footnote
+    : needsClassFirst
     ? "This widget needs a class. Add one in Classes, then come back."
     : !hasAssignments && type !== "class_focus"
       ? "Your real homework will appear here after you add or scan it."
-      : "This is the widget content students will see at a glance.";
+      : "This is the preview content students can tune before saving a Plus preset.";
   const focusedCourse = classFocusCourseId
     ? courses.find((course) => course.id === classFocusCourseId)
     : undefined;
@@ -125,20 +160,20 @@ export function MoreScreen({
     preset: Pick<WidgetPreset, "type" | "size" | "background" | "palette" | "layout" | "iconKey">;
   }> = [
     {
-      label: "Next Homework",
-      detail: "One task to do now",
+      label: "Upcoming",
+      detail: "Next reviewed deadline",
       moment: "Home Screen",
-      data: "Next due assignment",
+      data: "Reviewed deadlines",
       entitlement: "free",
       preset: { type: "due_next", size: "medium", background: "glass", palette: "ocean", layout: "list", iconKey: "calendar" }
     },
     {
-      label: "Today Plan",
-      detail: "Classes + homework",
+      label: "Today",
+      detail: "Due today",
       moment: "Morning stack",
-      data: "Due today",
+      data: "Reviewed work",
       entitlement: "free",
-      preset: { type: "today", size: "large", background: "gradient", palette: "sunset", layout: "list", iconKey: "check" }
+      preset: { type: "today", size: "medium", background: "glass", palette: "sunset", layout: "list", iconKey: "check" }
     },
     {
       label: "Deadline Map",
@@ -175,7 +210,23 @@ export function MoreScreen({
   ];
   const selectedTemplate =
     starterTemplates.find((template) => template.preset.type === type) || starterTemplates[0]!;
-  const selectedTemplateLocked = selectedTemplate.entitlement === "plus" && premiumWidgetsLocked;
+  const basicNativeTemplate = selectedTemplate.entitlement === "free" && (type === "today" || type === "due_next");
+  const advancedCustomizationSelected =
+    size === "large" ||
+    background !== selectedTemplate.preset.background ||
+    palette !== selectedTemplate.preset.palette ||
+    layout !== selectedTemplate.preset.layout ||
+    iconKey !== selectedTemplate.preset.iconKey ||
+    font !== "SF Pro";
+  const selectedTemplateLocked =
+    premiumWidgetsLocked &&
+    (selectedTemplate.entitlement === "plus" || (basicNativeTemplate && advancedCustomizationSelected));
+  const nativeStatusLabel =
+    nativeWidgetStatus.state === "synced"
+      ? "Native ready"
+      : nativeWidgetStatus.state === "unavailable"
+        ? "Build needed"
+        : "WidgetKit";
 
   const applyTemplate = (template: Pick<WidgetPreset, "type" | "size" | "background" | "palette" | "layout" | "iconKey">) => {
     setType(template.type);
@@ -207,12 +258,12 @@ export function MoreScreen({
           <View style={styles.heroCopy}>
             <AppLogo showWordmark size={36} />
             <Text style={styles.kicker}>Widget Studio</Text>
-            <Text style={styles.heroTitle}>Pick the school-day moment.</Text>
-            <Text style={styles.heroText} numberOfLines={2}>Preview real homework states before native widgets ship. Plus owns saved advanced presets and customization.</Text>
+            <Text style={styles.heroTitle}>Real widgets, real planner data.</Text>
+            <Text style={styles.heroText} numberOfLines={2}>Small and medium Today and Upcoming widgets sync reviewed homework. Plus owns advanced templates and customization.</Text>
           </View>
           <View style={styles.livePill}>
             <View style={styles.liveDot} />
-            <Text style={styles.liveText}>Preview only</Text>
+            <Text style={styles.liveText}>{nativeStatusLabel}</Text>
           </View>
         </View>
         <View style={styles.previewStage}>
@@ -229,12 +280,17 @@ export function MoreScreen({
             layout={layout}
             iconKey={iconKey}
             items={displayWidgetData.items}
+            nativeMode={Boolean(nativePreview)}
+            nativeAccentColor={nativePreview?.accentColor}
+            nativeBackgroundColor={nativePreview?.backgroundColor}
+            footnote={nativePreview?.footnote}
+            semesterName={nativePreview?.semesterName}
           />
           <Text style={styles.previewHint}>{studioHint}</Text>
         </View>
       </GlassCard>
 
-      <SectionHeader title="Template gallery" note="Choose the outcome first. Size and theme come after." />
+      <SectionHeader title="Template gallery" note="Today and Upcoming are native on iOS. Advanced templates are Plus." />
       <View style={styles.templateGrid}>
         {starterTemplates.map((template) => (
           <TouchableOpacity
@@ -258,7 +314,7 @@ export function MoreScreen({
         ))}
       </View>
 
-      <SectionHeader title="Preview controls" note="Small answers one question. Medium adds context. Large carries a day or week." />
+      <SectionHeader title="Preview controls" note="Small and medium match the native widgets. Large stays a Plus preview." />
       <GlassCard style={styles.controlsCard}>
         <ControlLabel title="Size intent" />
         <View style={styles.sizeGrid}>
@@ -347,7 +403,7 @@ export function MoreScreen({
 
         <View style={styles.controlActions}>
           <AppButton
-            label={selectedTemplateLocked ? "Unlock advanced widget" : "Save preview preset"}
+            label={selectedTemplateLocked ? "Unlock advanced widget" : "Save widget preset"}
             icon={selectedTemplateLocked ? Sparkles : CheckCircle2}
             onPress={saveCurrentPreset}
             style={styles.actionButton}
@@ -356,7 +412,7 @@ export function MoreScreen({
         </View>
       </GlassCard>
 
-      <SectionHeader title="Saved presets" note="These are in-app previews until native widgets are available." />
+      <SectionHeader title="Saved presets" note="Basic native widgets stay free. Plus saves advanced template looks." />
       <GlassCard style={styles.savedCard}>
         {widgetPresets.slice(0, 5).map((preset) => (
           <TouchableOpacity
@@ -387,33 +443,33 @@ export function MoreScreen({
         ))}
       </GlassCard>
 
-      <SectionHeader title="Widgetsmith lesson" note="Personal, useful, and tied to the school day." />
+      <SectionHeader title="Widget stack" note="Personal, useful, and tied to the school day." />
       <GlassCard style={styles.packCard}>
         <Text style={styles.packTitle}>Daily widget stack</Text>
-        <Text style={styles.packCopy}>Morning: Today Plan. Between classes: Next Homework. Study time: Focus Block. Before grades slip: Class Risk.</Text>
+        <Text style={styles.packCopy}>Morning: Today. Between classes: Upcoming. Study time: Focus Block. Before grades slip: Class Risk.</Text>
       </GlassCard>
       <GlassCard style={styles.packCard}>
         <Text style={styles.packTitle}>Fair Plus boundary</Text>
-        <Text style={styles.packCopy}>Free can preview real widget states. Plus owns saved advanced presets, themes, class-specific widgets, and focus widgets.</Text>
+        <Text style={styles.packCopy}>Free includes basic Today and Upcoming widgets. Plus owns saved advanced presets, themes, class templates, and focus templates.</Text>
         <View style={styles.controlActions}>
           <AppButton label="Open focus" variant="secondary" onPress={onOpenFocus} style={styles.actionButton} />
           <AppButton label="Open grades" variant="secondary" onPress={onOpenGrades} style={styles.actionButton} />
         </View>
       </GlassCard>
 
-      <SectionHeader title="Install status" note="Honest until native widgets are live." />
+      <SectionHeader title="Install status" note={nativeWidgetStatus.message} />
       <GlassCard style={styles.helpCard}>
         <View style={styles.helpStep}>
           <Text style={styles.helpNumber}>1</Text>
-          <Text style={styles.helpText}>These are previews only. They do not create iPhone widgets yet.</Text>
+          <Text style={styles.helpText}>Add StudyPlanner Today or StudyPlanner Upcoming from the iOS widget gallery.</Text>
         </View>
         <View style={styles.helpStep}>
           <Text style={styles.helpNumber}>2</Text>
-          <Text style={styles.helpText}>The native build should ship this exact loop: pick template → add widget → open homework from your Home Screen.</Text>
+          <Text style={styles.helpText}>Widgets show reviewed planner data only. Demo and unreviewed scan text stay inside the app.</Text>
         </View>
         <View style={styles.helpStep}>
           <Text style={styles.helpNumber}>3</Text>
-          <Text style={styles.helpText}>Best Plus widgets: next homework, deadline countdown, focus block, grade risk, and one-class view.</Text>
+          <Text style={styles.helpText}>Notification permission is only needed for reminders; basic widgets work from the shared WidgetKit snapshot.</Text>
         </View>
       </GlassCard>
     </View>
@@ -466,7 +522,7 @@ export function MoreScreen({
 
 function labelForWidgetType(value: WidgetType) {
   const labels: Record<WidgetType, string> = {
-    due_next: "Next Task",
+    due_next: "Upcoming",
     today: "Today",
     needs_check: "Needs Check",
     week: "This Week",

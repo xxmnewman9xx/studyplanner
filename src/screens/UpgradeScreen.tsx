@@ -19,14 +19,14 @@ const paidFeatures = [
   "Expanded syllabus scans, uploads, and re-imports",
   "More classes, semesters, homework, projects, and exams",
   "Smart reminders, calendar sync, focus sessions, grades, and workload planning",
-  "Advanced Widget Studio saves, themes, class widgets, and focus widgets"
+  "Advanced Widget Studio saves, themes, class templates, and focus templates"
 ];
 
 const freeFeatures = [
   "1 active semester",
   "2 classes and 12 homework items",
   "1 reviewed syllabus import",
-  "Basic Today, Plan, Classes, and widget previews"
+  "Basic Today and Upcoming widgets"
 ];
 
 export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {

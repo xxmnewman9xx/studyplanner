@@ -68,6 +68,8 @@ import { syncAssignmentsToDeviceCalendar } from "./src/services/calendarSync";
 import { loadJson, saveJson } from "./src/services/storage";
 import { SubscriptionProvider, useSubscription } from "./src/services/subscriptions";
 import { recordReviewEvent } from "./src/services/reviewPrompt";
+import { syncStudyPlannerWidgets } from "./src/services/widgetSnapshot";
+import type { WidgetSyncStatus } from "./src/services/widgetSnapshot";
 import {
   getMarketingCaptureInitialTab,
   getMarketingCaptureScrollY,
@@ -142,6 +144,10 @@ function AppContent() {
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
   const [focusAssignmentId, setFocusAssignmentId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [nativeWidgetStatus, setNativeWidgetStatus] = useState<WidgetSyncStatus>({
+    state: "idle",
+    message: "Native widgets sync after your planner loads."
+  });
 
   const activeAssignments = useMemo(
     () => assignments.filter((item) => item.status !== "archived"),
@@ -217,7 +223,7 @@ function AppContent() {
     if (marketingCaptureEnabled) return;
     if (!hydrated) return;
 
-    saveJson<PlannerData>(plannerStorageKey, {
+    const nextPlannerData: PlannerData = {
       onboarded,
       paywallSeen,
       semester,
@@ -231,7 +237,16 @@ function AppContent() {
       widgetPresets,
       focusSessions,
       demoMode
-    });
+    };
+
+    void saveJson<PlannerData>(plannerStorageKey, nextPlannerData);
+    void syncStudyPlannerWidgets({
+      semester,
+      courses,
+      assignments,
+      parsedImports,
+      demoMode
+    }).then(setNativeWidgetStatus);
   }, [
     assignments,
     courses,
@@ -248,6 +263,19 @@ function AppContent() {
     targetGradePercent,
     widgetPresets
   ]);
+
+  useEffect(() => {
+    if (!marketingCaptureEnabled) return;
+    if (!hydrated) return;
+
+    void syncStudyPlannerWidgets({
+      semester,
+      courses: [],
+      assignments: [],
+      parsedImports: [],
+      demoMode: true
+    }).then(setNativeWidgetStatus);
+  }, [hydrated, semester]);
 
   useEffect(() => {
     if (marketingCaptureEnabled) return;
@@ -806,8 +834,12 @@ function AppContent() {
                 <MoreScreen
                   assignments={activeAssignments}
                   courses={courses}
+                  semester={semester}
+                  parsedImports={parsedImports}
+                  demoMode={demoMode}
                   settings={settings}
                   widgetPresets={widgetPresets}
+                  nativeWidgetStatus={nativeWidgetStatus}
                   onUpdateSettings={updateSettings}
                   onSaveWidgetPreset={saveWidgetPreset}
                   onResetWidgetPresets={resetWidgetPresets}

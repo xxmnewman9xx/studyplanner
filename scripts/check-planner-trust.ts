@@ -106,7 +106,7 @@ assert(!isValidDeadline(invalidTime.dueAt), "Expected impossible time deadline t
 
 assert(plan.openCount === 3, "Expected active open count to include review-needed invalid rows");
 assert(plan.nextAction?.id === "valid-tomorrow", "Expected valid scheduled work to lead Today");
-assert(getWidgetData({ id: "preset-next", name: "Due Next", type: "due_next", size: "small", palette: "ocean", background: "solid", font: "SF Pro", layout: "compact", iconKey: "calendar", createdAt: "2026-05-15T00:00:00", updatedAt: "2026-05-15T00:00:00" }, [invalidDate, invalidTime], courses, now).value === "Clear", "Expected Due Next widget to ignore invalid-only deadlines");
+assert(getWidgetData({ id: "preset-next", name: "Upcoming", type: "due_next", size: "small", palette: "ocean", background: "solid", font: "SF Pro", layout: "compact", iconKey: "calendar", createdAt: "2026-05-15T00:00:00", updatedAt: "2026-05-15T00:00:00" }, [invalidDate, invalidTime], courses, now).value === "Clear", "Expected Upcoming widget to ignore invalid-only deadlines");
 assert(!plan.upcoming.some((item) => item.id === invalidDate.id), "Expected invalid date out of upcoming");
 assert(!plan.upcoming.some((item) => item.id === invalidTime.id), "Expected invalid time out of upcoming");
 assert(plan.needsReview.some((item) => item.id === invalidDate.id), "Expected invalid date in Needs Review");
