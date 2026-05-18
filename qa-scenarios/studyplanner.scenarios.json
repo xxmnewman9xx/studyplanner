@@ -3,24 +3,96 @@
     "id": "sp-free-after-onboarding",
     "app": "StudyPlanner",
     "persona": "new student deciding whether to pay",
+    "risk": "conversion",
     "state": "fresh install, normal mode, onboarding complete, not Pro",
     "trigger": "enters app",
-    "expected": ["paywall appears", "free is described as tiny preview", "Pro loop is scan -> review -> today -> focus -> done"]
+    "expected": ["paywall appears", "free is described as tiny preview", "Pro loop is scan -> review -> today -> focus -> done"],
+    "automation": "static",
+    "evidence": ["App.tsx showInitialPaywall", "UpgradeScreen tiny preview copy", "Onboarding loop copy"],
+    "failureMeans": "The user reaches value without understanding/paying for Pro."
   },
   {
     "id": "sp-free-limit",
     "app": "StudyPlanner",
     "persona": "free user testing limits",
+    "risk": "revenue",
     "state": "not Pro with 1 class and 2 homework items",
     "trigger": "adds more work or opens Pro tabs",
-    "expected": ["upsell appears", "no silent failure", "CTA explains unlimited classes/homework/scans"]
+    "expected": ["upsell appears", "no silent failure", "CTA explains unlimited classes/homework/scans"],
+    "automation": "static",
+    "evidence": ["freeCourseLimit", "freeAssignmentLimit", "premiumTabs"],
+    "failureMeans": "Free becomes useful enough to avoid upgrading."
+  },
+  {
+    "id": "sp-pro-tab-surface",
+    "app": "StudyPlanner",
+    "persona": "free student exploring navigation",
+    "risk": "conversion",
+    "state": "not Pro after dismissing paywall",
+    "trigger": "looks at bottom navigation and command tiles",
+    "expected": ["free tab bar only exposes Today, Classes, Pro", "premium command tiles route to Upgrade", "no fake Widgets tab"],
+    "automation": "static",
+    "evidence": ["freeTabs", "premiumAutomationLocked command tiles", "no Widgets free tab"],
+    "failureMeans": "Free user sees dead/fake/pro screens instead of the upgrade path."
+  },
+  {
+    "id": "sp-first-run-empty",
+    "app": "StudyPlanner",
+    "persona": "skeptical first-time user",
+    "risk": "trust",
+    "state": "normal fresh install",
+    "trigger": "opens Today/Classes before adding anything",
+    "expected": ["no demo courses", "no demo assignments", "no demo grade items", "no demo focus sessions"],
+    "automation": "static",
+    "evidence": ["App.tsx empty initial arrays", "storage does not fall back to defaults"],
+    "failureMeans": "The app looks fake and violates student trust."
+  },
+  {
+    "id": "sp-scan-review-handoff",
+    "app": "StudyPlanner",
+    "persona": "Pro student importing syllabus",
+    "risk": "retention",
+    "state": "Pro user with syllabus parse result",
+    "trigger": "applies parsed plan",
+    "expected": ["courses and assignments merge", "review handoff appears", "Today opens", "review prompt event records value"],
+    "automation": "static",
+    "evidence": ["applyParsedPlan", "importHandoff", "recordReviewEvent(import_applied)"],
+    "failureMeans": "The parser wedge does not turn into a daily plan."
   },
   {
     "id": "sp-no-fake-widgets",
     "app": "StudyPlanner",
     "persona": "skeptical first-time user",
+    "risk": "trust",
     "state": "empty app",
     "trigger": "opens any widget surface",
-    "expected": ["no fake settings", "no fake Algebra examples", "preview-only if native widgets are not live"]
+    "expected": ["no fake settings", "no fake Algebra examples", "preview-only if native widgets are not live"],
+    "automation": "static",
+    "evidence": ["MoreScreen preview-only copy", "no save controls", "no sample school text"],
+    "failureMeans": "Fake controls create trust debt and App Store review risk."
+  },
+  {
+    "id": "sp-review-prompt-value-only",
+    "app": "StudyPlanner",
+    "persona": "student who just got value",
+    "risk": "shipping",
+    "state": "user completes real action",
+    "trigger": "import applied, assignment completed, focus completed, or widget saved",
+    "expected": ["review events are value-gated", "no first-launch begging", "prompt throttled by service policy"],
+    "automation": "static",
+    "evidence": ["reviewPrompt service", "recordReviewEvent callsites"],
+    "failureMeans": "Review prompt annoys users before value."
+  },
+  {
+    "id": "sp-minimal-white-icon",
+    "app": "StudyPlanner",
+    "persona": "App Store browser",
+    "risk": "clarity",
+    "state": "app icon visible at small size",
+    "trigger": "compares icon in TestFlight/App Store",
+    "expected": ["mainly white", "minimal", "no text", "not glossy/crayon"],
+    "automation": "manual",
+    "evidence": ["assets/app/study-planner-icon.png"],
+    "failureMeans": "The icon fights the premium academic positioning."
   }
 ]
