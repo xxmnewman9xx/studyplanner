@@ -106,7 +106,7 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
         <View style={styles.heroOrbPrimary} />
         <View style={styles.heroOrbSecondary} />
         <View style={styles.heroTop}>
-          <View>
+          <View style={styles.heroTitleBlock}>
             <Text style={styles.kicker}>Plan</Text>
             <Text style={styles.title}>Week strategy board.</Text>
           </View>
@@ -126,7 +126,7 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
             }
           }}
         >
-          <View>
+          <View style={styles.primaryPlanCopy}>
             <Text style={styles.primaryPlanKicker}>Next planning move</Text>
             <Text style={styles.primaryPlanTitle}>{primaryActionLabel}</Text>
             <Text style={styles.primaryPlanDetail}>{primaryActionDetail}</Text>
@@ -517,6 +517,10 @@ function createStyles(theme: AppTheme) {
       justifyContent: "space-between",
       gap: spacing.md
     },
+    heroTitleBlock: {
+      flex: 1,
+      minWidth: 0
+    },
     heroIcon: {
       width: 42,
       height: 42,
@@ -537,10 +541,10 @@ function createStyles(theme: AppTheme) {
     },
     title: {
       color: colors.heroText,
-      fontSize: 30,
-      lineHeight: 35,
+      fontSize: 28,
+      lineHeight: 34,
       fontWeight: "900",
-      letterSpacing: -0.7
+      letterSpacing: -0.5
     },
     heroCopy: {
       color: colors.heroMuted,
@@ -558,7 +562,12 @@ function createStyles(theme: AppTheme) {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      gap: spacing.md
+      gap: spacing.sm,
+      overflow: "hidden"
+    },
+    primaryPlanCopy: {
+      flex: 1,
+      minWidth: 0
     },
     primaryPlanKicker: {
       color: colors.heroMuted,

@@ -75,6 +75,7 @@ export type UserSettings = {
   studentName: string;
   selectedTheme: WidgetPalette | "custom";
   customPalette: string[];
+  appTheme: "campus" | "classic" | "slate" | "mint";
   defaultWidgetStyle: WidgetBackground;
   onboardingComplete: boolean;
   notificationDefault: string;

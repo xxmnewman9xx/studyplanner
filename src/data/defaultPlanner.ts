@@ -22,8 +22,9 @@ export const defaultSemester: Semester = {
 
 export const defaultSettings: UserSettings = {
   studentName: "Alex Kim",
-  selectedTheme: "sunset",
-  customPalette: ["#6C5CE7", "#FF5DA2", "#2DD4BF", "#FDBA2D"],
+  selectedTheme: "ocean",
+  customPalette: ["#315BFF", "#35CDA8", "#5D5FEF", "#C98316"],
+  appTheme: "campus",
   defaultWidgetStyle: "glass",
   onboardingComplete: false,
   notificationDefault: "2 hours before due",

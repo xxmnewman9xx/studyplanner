@@ -33,7 +33,7 @@ import {
 import { getWidgetData } from "../logic/planner";
 import { buildStudyPlannerWidgetSnapshots } from "../services/widgetSnapshot";
 import type { WidgetSyncStatus } from "../services/widgetSnapshot";
-import { AppTheme, themePalettes } from "../theme";
+import { AppTheme, ThemeAccent, appThemePalettes, themePalettes } from "../theme";
 import { useAppTheme } from "../themeContext";
 
 type MoreScreenProps = {
@@ -58,6 +58,7 @@ const widgetSizes: WidgetSize[] = ["small", "medium", "large"];
 const palettes: WidgetPalette[] = ["ocean", "sunset", "forest", "lavender", "midnight", "minimal"];
 const backgrounds: WidgetBackground[] = ["glass", "solid", "gradient", "dark"];
 const layouts: WidgetPreset["layout"][] = ["compact", "list", "ring", "calendar", "grid"];
+const appThemeOptions: ThemeAccent[] = ["campus", "classic", "slate", "mint"];
 
 export function MoreScreen({
   assignments,
@@ -76,7 +77,7 @@ export function MoreScreen({
   onOpenPaywall,
   premiumWidgetsLocked = false
 }: MoreScreenProps) {
-  const { theme } = useAppTheme();
+  const { theme, setAccent } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
   const firstPreset = widgetPresets[0];
@@ -287,6 +288,45 @@ export function MoreScreen({
             semesterName={nativePreview?.semesterName}
           />
           <Text style={styles.previewHint}>{studioHint}</Text>
+        </View>
+      </GlassCard>
+
+      <SectionHeader title="App appearance" note="A small global color tune-up for the actual app UI." />
+      <GlassCard style={styles.appearanceCard}>
+        <View style={styles.appearanceTopRow}>
+          <View style={styles.appearanceCopy}>
+            <Text style={styles.appearanceTitle}>Theme color</Text>
+            <Text style={styles.appearanceText}>Keep the app professional or make it a little brighter without changing your planner data.</Text>
+          </View>
+          <View style={styles.appearanceBadge}>
+            <Palette color={colors.accent} size={15} />
+            <Text style={styles.appearanceBadgeText}>{appThemePalettes[settings.appTheme || "campus"].label}</Text>
+          </View>
+        </View>
+        <View style={styles.appThemeGrid}>
+          {appThemeOptions.map((option) => {
+            const optionMeta = appThemePalettes[option];
+            const active = (settings.appTheme || "campus") === option;
+            return (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+                key={option}
+                style={[styles.appThemeButton, active ? styles.appThemeButtonActive : null]}
+                onPress={() => {
+                  setAccent(option);
+                  onUpdateSettings({ appTheme: option });
+                }}
+              >
+                <View style={styles.appThemeSwatches}>
+                  {optionMeta.swatches.map((swatch) => (
+                    <View key={swatch} style={[styles.appThemeSwatch, { backgroundColor: swatch }]} />
+                  ))}
+                </View>
+                <Text style={styles.appThemeName}>{optionMeta.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </GlassCard>
 
@@ -643,6 +683,81 @@ function createStyles(theme: AppTheme) {
       lineHeight: 17,
       fontWeight: "800",
       textAlign: "center"
+    },
+    appearanceCard: {
+      gap: spacing.sm,
+      padding: spacing.md
+    },
+    appearanceTopRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    appearanceCopy: {
+      flex: 1,
+      gap: 3
+    },
+    appearanceTitle: {
+      color: colors.ink,
+      fontSize: 16,
+      lineHeight: 21,
+      fontWeight: "900"
+    },
+    appearanceText: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
+    },
+    appearanceBadge: {
+      minHeight: 30,
+      borderRadius: radii.round,
+      backgroundColor: colors.accentSoft,
+      paddingHorizontal: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6
+    },
+    appearanceBadgeText: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900"
+    },
+    appThemeGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    appThemeButton: {
+      width: "48.5%",
+      minHeight: 72,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.xs,
+      gap: spacing.xs
+    },
+    appThemeButtonActive: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accentSoft
+    },
+    appThemeSwatches: {
+      flexDirection: "row",
+      gap: 4
+    },
+    appThemeSwatch: {
+      flex: 1,
+      height: 26,
+      borderRadius: 9
+    },
+    appThemeName: {
+      color: colors.ink,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
     },
     templateGrid: {
       gap: spacing.xs

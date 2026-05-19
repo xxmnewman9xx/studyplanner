@@ -111,7 +111,7 @@ export default function App() {
 }
 
 function AppContent() {
-  const { theme } = useAppTheme();
+  const { theme, setAccent } = useAppTheme();
   const { colors } = theme;
   const { width } = useWindowDimensions();
   const tablet = width >= 760;
@@ -158,6 +158,11 @@ function AppContent() {
     [assignments, selectedAssignmentId]
   );
   const visibleTabs = marketingCaptureEnabled || subscription.isPremium ? proTabs : freeTabs;
+
+  useEffect(() => {
+    if (!hydrated) return;
+    setAccent(settings.appTheme || "campus");
+  }, [hydrated, setAccent, settings.appTheme]);
 
   const openTab = (tab: NavTab) => {
     if (!marketingCaptureEnabled && premiumTabs.has(tab) && !subscription.isPremium) {
