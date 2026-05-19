@@ -1,11 +1,9 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
   Bell,
-  CalendarCheck2,
   CheckCircle2,
   FileScan,
-  ListChecks,
   Sparkles,
   WandSparkles
 } from "lucide-react-native";
@@ -81,9 +79,13 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
   };
 
   return (
-    <View style={styles.screen}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.screenContent}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.brandRow}>
-        <AppLogo showWordmark size={44} />
+        <AppLogo showWordmark size={40} />
       </View>
 
       <GlassCard tone="hero" style={styles.heroCard}>
@@ -134,47 +136,13 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
           </View>
         </GlassCard>
       ) : (
-        <GlassCard style={styles.proofCard}>
-          <View style={styles.proofRow}>
-            <FileScan color={colors.accent} size={18} />
-            <Text style={styles.proofText}>Scan or upload</Text>
-          </View>
-          <View style={styles.proofDivider} />
-          <View style={styles.proofRow}>
-            <ListChecks color={colors.brandPink} size={18} />
-            <Text style={styles.proofText}>Review draft</Text>
-          </View>
-          <View style={styles.proofDivider} />
-          <View style={styles.proofRow}>
-            <CalendarCheck2 color={colors.green} size={18} />
-            <Text style={styles.proofText}>Use Today</Text>
-          </View>
-        </GlassCard>
+        <View style={styles.trustLine}>
+          <CheckCircle2 color={colors.accent} size={15} />
+          <Text style={styles.trustLineText}>You review every deadline before anything saves.</Text>
+        </View>
       )}
 
-      <View style={styles.dots} accessibilityRole="progressbar">
-        {slides.map((item, dotIndex) => (
-          <View key={item.title} style={[styles.dot, dotIndex === index ? styles.dotActive : null]} />
-        ))}
-      </View>
-
       <View style={styles.bottomBar}>
-        {index === 0 ? (
-          <View style={styles.secondaryActions}>
-            <TouchableOpacity accessibilityRole="button" style={styles.secondaryButton} onPress={() => finish("demo")}>
-              <Sparkles color={colors.accent} size={16} />
-              <Text style={styles.secondaryText}>Try demo planner</Text>
-            </TouchableOpacity>
-            <TouchableOpacity accessibilityRole="button" style={styles.secondaryButton} onPress={() => finish("manual")}>
-              <ListChecks color={colors.muted} size={16} />
-              <Text style={styles.secondaryText}>Add manually</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <Text style={styles.freeNote}>
-            Free includes a first import, manual planning, and basic Today and Upcoming widgets. Plus expands volume, automation, and customization.
-          </Text>
-        )}
         <AppButton
           label={index === 0 || isFinal ? "Scan or upload syllabus" : "Continue"}
           icon={index === 0 || isFinal ? FileScan : undefined}
@@ -187,24 +155,28 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
           }}
         />
         {index === 0 ? (
-          <TouchableOpacity accessibilityRole="button" style={styles.learnButton} onPress={() => setIndex(1)}>
-            <Text style={styles.learnText}>Preview review and reminders</Text>
+          <TouchableOpacity accessibilityRole="button" style={styles.demoButton} onPress={() => finish("demo")}>
+            <Sparkles color={colors.accent} size={16} />
+            <Text style={styles.demoButtonText}>Try demo planner first</Text>
           </TouchableOpacity>
-        ) : null}
-        {index > 0 ? (
+        ) : (
           <View style={styles.secondaryActions}>
+            <TouchableOpacity accessibilityRole="button" style={styles.secondaryButton} onPress={() => setIndex(Math.max(0, index - 1))}>
+              <Text style={styles.secondaryText}>Back</Text>
+            </TouchableOpacity>
             <TouchableOpacity accessibilityRole="button" style={styles.secondaryButton} onPress={() => finish("demo")}>
               <Sparkles color={colors.accent} size={16} />
-              <Text style={styles.secondaryText}>Try demo planner</Text>
-            </TouchableOpacity>
-            <TouchableOpacity accessibilityRole="button" style={styles.secondaryButton} onPress={() => finish("manual")}>
-              <ListChecks color={colors.muted} size={16} />
-              <Text style={styles.secondaryText}>Add manually</Text>
+              <Text style={styles.secondaryText}>Try demo</Text>
             </TouchableOpacity>
           </View>
-        ) : null}
+        )}
+        <View style={styles.stepRail} accessibilityRole="progressbar">
+          {slides.map((item, dotIndex) => (
+            <View key={item.title} style={[styles.stepDot, dotIndex === index ? styles.stepDotActive : null]} />
+          ))}
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -214,17 +186,22 @@ function createStyles(theme: AppTheme) {
   return StyleSheet.create({
     screen: {
       flex: 1,
-      backgroundColor: colors.canvas,
-      padding: spacing.lg,
-      gap: spacing.md
+      backgroundColor: colors.canvas
+    },
+    screenContent: {
+      flexGrow: 1,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.xs,
+      paddingBottom: spacing.xl,
+      gap: spacing.sm
     },
     brandRow: {
       flexDirection: "row",
       justifyContent: "center"
     },
     heroCard: {
-      gap: spacing.sm,
-      padding: spacing.lg
+      gap: spacing.xs,
+      padding: spacing.sm
     },
     heroTopRow: {
       flexDirection: "row",
@@ -233,8 +210,8 @@ function createStyles(theme: AppTheme) {
       gap: spacing.sm
     },
     heroIcon: {
-      width: 48,
-      height: 48,
+      width: 42,
+      height: 42,
       borderRadius: radii.lg,
       alignItems: "center",
       justifyContent: "center",
@@ -257,24 +234,24 @@ function createStyles(theme: AppTheme) {
     },
     title: {
       color: colors.heroText,
-      fontSize: 30,
-      lineHeight: 35,
+      fontSize: 24,
+      lineHeight: 29,
       fontWeight: "900"
     },
     copy: {
       color: colors.heroMuted,
-      fontSize: 15,
-      lineHeight: 22,
+      fontSize: 14,
+      lineHeight: 20,
       fontWeight: "700"
     },
     previewPanel: {
-      marginTop: spacing.xs,
+      marginTop: 2,
       borderRadius: radii.lg,
       backgroundColor: "rgba(255,255,255,0.10)",
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: "rgba(255,255,255,0.16)",
-      padding: spacing.md,
-      gap: spacing.sm
+      padding: spacing.sm,
+      gap: spacing.xs
     },
     previewRow: {
       flexDirection: "row",
@@ -282,9 +259,9 @@ function createStyles(theme: AppTheme) {
       gap: spacing.sm
     },
     previewDot: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
+      width: 20,
+      height: 20,
+      borderRadius: 10,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: colors.accent
@@ -295,9 +272,28 @@ function createStyles(theme: AppTheme) {
     previewText: {
       flex: 1,
       color: colors.heroText,
-      fontSize: 14,
-      lineHeight: 19,
+      fontSize: 13,
+      lineHeight: 18,
       fontWeight: "800"
+    },
+    trustLine: {
+      minHeight: 40,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: spacing.xs,
+      paddingHorizontal: spacing.sm
+    },
+    trustLineText: {
+      color: colors.ink,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "800",
+      textAlign: "center"
     },
     proofCard: {
       flexDirection: "row",
@@ -393,7 +389,8 @@ function createStyles(theme: AppTheme) {
     },
     bottomBar: {
       marginTop: "auto",
-      gap: spacing.sm
+      gap: spacing.xs,
+      paddingTop: spacing.sm
     },
     freeNote: {
       color: colors.muted,
@@ -406,16 +403,39 @@ function createStyles(theme: AppTheme) {
       flexDirection: "row",
       gap: spacing.sm
     },
-    learnButton: {
-      minHeight: 34,
+    demoButton: {
+      minHeight: 42,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      flexDirection: "row",
       alignItems: "center",
-      justifyContent: "center"
+      justifyContent: "center",
+      gap: spacing.xs
     },
-    learnText: {
-      color: colors.accent,
+    demoButtonText: {
+      color: colors.ink,
       fontSize: 13,
       lineHeight: 18,
       fontWeight: "900"
+    },
+    stepRail: {
+      height: 18,
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: spacing.xs
+    },
+    stepDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: colors.lineStrong
+    },
+    stepDotActive: {
+      width: 22,
+      backgroundColor: colors.accent
     },
     secondaryButton: {
       flex: 1,

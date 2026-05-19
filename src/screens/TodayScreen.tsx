@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Bell, CalendarPlus, CheckCircle2, ChevronRight, Crown, FileScan, GraduationCap, Plus, Sparkles, Timer } from "lucide-react-native";
+import { Bell, CalendarPlus, CheckCircle2, ChevronRight, Crown, FileScan, Plus, Sparkles, Timer } from "lucide-react-native";
 import {
   AppLogo,
   AssignmentRow,
@@ -81,6 +81,7 @@ export function TodayScreen({
   const semesterPercent = Math.round(plan.semesterProgress * 100);
   const completionPercent = assignments.length > 0 ? Math.round((plan.doneCount / assignments.length) * 100) : 0;
   const nextDueDays = plan.nextAction ? daysUntil(plan.nextAction.dueAt) : 0;
+  const secondaryUpcoming = plan.upcoming.filter((assignment) => assignment.id !== plan.nextAction?.id);
   const [quickCourseId, setQuickCourseId] = useState(courses[0]?.id || "");
   const [quickTitle, setQuickTitle] = useState("");
   const [quickDueDate, setQuickDueDate] = useState(todayDateInput());
@@ -88,6 +89,7 @@ export function TodayScreen({
   const quickCourse = courses.find((course) => course.id === quickCourseId) || courses[0];
   const parsedQuickHomework = parseQuickHomeworkInput(quickTitle, courses, quickCourse, quickDueDate);
   const liveBrief = buildLiveBrief(plan, courses.length);
+  const focusUpsellHandler = premiumAutomationLocked ? onOpenPaywall : () => onOpenFocus(plan.nextAction?.id);
 
   useEffect(() => {
     if (!courses.length) {
@@ -137,17 +139,9 @@ export function TodayScreen({
       ) : null}
 
       <GlassCard tone="hero" style={styles.heroCard}>
-        <View style={styles.heroOrbPrimary} />
-        <View style={styles.heroOrbSecondary} />
-        <View style={styles.heroGridWash} />
-        <Text style={styles.heroKicker}>Live plan</Text>
+        <Text style={styles.heroKicker}>Next move</Text>
         <Text style={styles.heroTitle}>{liveBrief.title}</Text>
         <Text style={styles.heroSubtitle}>{liveBrief.detail}</Text>
-        <View style={styles.heroMetrics}>
-          <MetricPill label="Open tasks" value={`${plan.openCount}`} />
-          <MetricPill label="Done" value={`${completionPercent}%`} />
-          <MetricPill label="Semester" value={`${semesterPercent}%`} />
-        </View>
         {plan.nextAction ? (
           <View style={styles.nextHero}>
             <View style={styles.nextHeroCopy}>
@@ -181,6 +175,11 @@ export function TodayScreen({
         ) : (
           <EmptyState title="All caught up" copy="No urgent work in the planner right now." emoji="complete" />
         )}
+        <View style={styles.heroMetrics}>
+          <MetricPill label="Open" value={`${plan.openCount}`} />
+          <MetricPill label="Urgent" value={`${plan.overdue.length + plan.dueSoon.length}`} />
+          <MetricPill label="Done" value={`${completionPercent}%`} />
+        </View>
       </GlassCard>
 
       {!assignments.length ? (
@@ -238,39 +237,89 @@ export function TodayScreen({
         </GlassCard>
       ) : null}
 
-      <SectionHeader title="Big actions" note="Every button says exactly where it goes." />
+      <SectionHeader title="Next actions" note="Only the shortcuts that help this plan move." />
       <View style={styles.commandGrid}>
         <CommandTile
           title="Add from syllabus"
-          detail="Scan or paste a syllabus. Review before anything is added."
+          detail="Upload or paste. Review before saving."
           icon={FileScan}
           onPress={onOpenScan}
           tone="pink"
         />
         <CommandTile
           title="Open weekly plan"
-          detail={`${plan.dueSoon.length} due soon · move work around`}
+          detail={`${plan.dueSoon.length} due soon · balance workload`}
           icon={CalendarPlus}
           onPress={onOpenPlan}
           tone="blue"
         />
-        <CommandTile
-          title="See classes"
-          detail={`${courses.length} classes · rooms, teachers, homework`}
-          icon={GraduationCap}
-          onPress={onOpenClasses}
-          tone="green"
-        />
-        <CommandTile
-          title={premiumAutomationLocked ? "Unlock focus" : "Start focus timer"}
-          detail={premiumAutomationLocked ? "Plus includes focus sessions." : "Study with a timer for the next task."}
-          icon={premiumAutomationLocked ? Crown : Timer}
-          onPress={premiumAutomationLocked ? onOpenPaywall : () => onOpenFocus(plan.nextAction?.id)}
-          tone="blue"
-        />
       </View>
+      {plan.nextAction ? <View style={styles.viewportBreak} /> : null}
 
-      <SectionHeader title="Add one homework" note="Pick a class, type the work, choose the due date." />
+      {plan.overdue.length > 1 ? (
+        <>
+          <SectionHeader title="Catch up" note={`${plan.overdue.length} overdue · smallest saves first`} />
+          <CatchUpSprintCard
+            overdue={plan.overdue.slice(1)}
+            courses={courses}
+            onOpenAssignment={onOpenAssignment}
+            onOpenFocus={onOpenFocus}
+            onOpenPlan={onOpenPlan}
+            onUpdateStatus={onUpdateStatus}
+          />
+          <View style={styles.list}>
+            {plan.overdue.slice(0, 3).map((assignment) => (
+              <AssignmentRow
+                key={assignment.id}
+                assignment={assignment}
+                course={getCourseForAssignment(courses, assignment)}
+                onPress={() => onOpenAssignment(assignment.id)}
+                trailing={<Text style={styles.overdueFlag}>Study now</Text>}
+              />
+            ))}
+          </View>
+        </>
+      ) : null}
+
+      {secondaryUpcoming.length > 0 || !plan.nextAction ? (
+        <>
+          <SectionHeader title="Today" note={`${plan.dueToday.length} due today · ${plan.dueSoon.length} due soon · ${plan.needsReview.length} to review`} />
+          <View style={styles.list}>
+            {secondaryUpcoming.length === 0 ? (
+              <EmptyState title="A clear day" copy="Scan a syllabus or add a class to start planning." emoji="calendar" />
+            ) : (
+              secondaryUpcoming.slice(0, 5).map((assignment) => (
+                <AssignmentRow
+                  key={assignment.id}
+                  assignment={assignment}
+                  course={getCourseForAssignment(courses, assignment)}
+                  onPress={() => onOpenAssignment(assignment.id)}
+                  trailing={<Text style={styles.doneButtonText}>{assignment.status === "done" ? "Done" : "Open task"}</Text>}
+                />
+              ))
+            )}
+          </View>
+        </>
+      ) : null}
+
+      {plan.needsReview.length > 0 ? (
+        <>
+          <SectionHeader title="Needs Review" note="Missing dates, low confidence, possible duplicates" />
+          <View style={styles.list}>
+            {plan.needsReview.slice(0, 3).map((assignment) => (
+              <AssignmentRow
+                key={assignment.id}
+                assignment={assignment}
+                course={getCourseForAssignment(courses, assignment)}
+                onPress={() => onOpenAssignment(assignment.id)}
+                trailing={<Text style={styles.reviewFlag}>{assignment.duplicateOf ? "Duplicate?" : "Check"}</Text>}
+              />
+            ))}
+          </View>
+        </>
+      ) : null}
+
+      <SectionHeader title="Capture homework" note="Type it like a student would: Bio worksheet due Friday." />
       <GlassCard style={styles.quickAddCard}>
         {courses.length ? (
           <View style={styles.courseRail}>
@@ -307,7 +356,7 @@ export function TodayScreen({
           <TextInput
             value={quickTitle}
             onChangeText={setQuickTitle}
-            placeholder="Bio worksheet due Friday"
+            placeholder="Bio worksheet due Friday or 5/20"
             placeholderTextColor={colors.faint}
             style={[styles.quickInput, styles.quickTitleInput]}
             returnKeyType="done"
@@ -352,64 +401,6 @@ export function TodayScreen({
         />
       </GlassCard>
 
-      {plan.overdue.length > 0 ? (
-        <>
-          <SectionHeader title="Catch up" note={`${plan.overdue.length} overdue · smallest saves first`} />
-          <CatchUpSprintCard
-            overdue={plan.overdue}
-            courses={courses}
-            onOpenAssignment={onOpenAssignment}
-            onOpenFocus={onOpenFocus}
-            onOpenPlan={onOpenPlan}
-            onUpdateStatus={onUpdateStatus}
-          />
-          <View style={styles.list}>
-            {plan.overdue.slice(0, 3).map((assignment) => (
-              <AssignmentRow
-                key={assignment.id}
-                assignment={assignment}
-                course={getCourseForAssignment(courses, assignment)}
-                onPress={() => onOpenAssignment(assignment.id)}
-                trailing={<Text style={styles.overdueFlag}>Study now</Text>}
-              />
-            ))}
-          </View>
-        </>
-      ) : null}
-
-      <SectionHeader title="Today — tap a task, then Study this now" note={`${plan.dueToday.length} due today · ${plan.dueSoon.length} due soon · ${plan.needsReview.length} to review`} />
-      <View style={styles.list}>
-        {plan.upcoming.length === 0 ? (
-          <EmptyState title="A clear day" copy="Scan a syllabus or add a class to start planning." emoji="calendar" />
-        ) : (
-          plan.upcoming.slice(0, 5).map((assignment) => (
-            <AssignmentRow
-              key={assignment.id}
-              assignment={assignment}
-              course={getCourseForAssignment(courses, assignment)}
-              onPress={() => onOpenAssignment(assignment.id)}
-              trailing={<Text style={styles.doneButtonText}>{assignment.status === "done" ? "Done" : "Open task"}</Text>}
-            />
-          ))
-        )}
-      </View>
-
-      <SectionHeader title="Needs Review" note="Missing dates, low confidence, possible duplicates" />
-      <View style={styles.list}>
-        {plan.needsReview.length === 0 ? (
-          <EmptyState title="Nothing to review" copy="Parsed work looks clean." emoji="complete" />
-        ) : (
-          plan.needsReview.slice(0, 3).map((assignment) => (
-            <AssignmentRow
-              key={assignment.id}
-              assignment={assignment}
-              course={getCourseForAssignment(courses, assignment)}
-              onPress={() => onOpenAssignment(assignment.id)}
-              trailing={<Text style={styles.reviewFlag}>{assignment.duplicateOf ? "Duplicate?" : "Check"}</Text>}
-            />
-          ))
-        )}
-      </View>
 
       <SectionHeader title="Automation" note="Plus reminder and calendar workflows" />
       <View style={styles.actionRow}>
@@ -419,6 +410,13 @@ export function TodayScreen({
           variant="secondary"
           style={styles.actionButton}
           onPress={premiumAutomationLocked ? onOpenPaywall : onScheduleReminders}
+        />
+        <AppButton
+          label="Focus timer"
+          icon={premiumAutomationLocked ? Crown : Timer}
+          variant="secondary"
+          style={styles.actionButton}
+          onPress={focusUpsellHandler}
         />
         <AppButton
           label="Add to calendar"
@@ -605,7 +603,7 @@ function createStyles(theme: AppTheme) {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: spacing.md,
+      marginBottom: spacing.sm,
       gap: spacing.md
     },
     demoCard: {
@@ -642,7 +640,7 @@ function createStyles(theme: AppTheme) {
       fontWeight: "700"
     },
     heroCard: {
-      gap: spacing.sm,
+      gap: spacing.xs,
       padding: spacing.md,
       overflow: "hidden",
       marginBottom: spacing.xs
@@ -690,16 +688,16 @@ function createStyles(theme: AppTheme) {
     },
     heroTitle: {
       color: colors.heroText,
-      fontSize: 25,
-      lineHeight: 30,
+      fontSize: 21,
+      lineHeight: 26,
       fontWeight: "900",
-      letterSpacing: -0.5
+      letterSpacing: -0.35
     },
     heroSubtitle: {
       color: colors.heroMuted,
-      fontSize: 13,
-      lineHeight: 18,
-      fontWeight: "600",
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700",
       marginTop: -2
     },
     heroMetrics: {
@@ -712,7 +710,7 @@ function createStyles(theme: AppTheme) {
     },
     metricPill: {
       flex: 1,
-      minHeight: 52,
+      minHeight: 40,
       alignItems: "center",
       justifyContent: "center",
       gap: 2,
@@ -721,8 +719,8 @@ function createStyles(theme: AppTheme) {
     },
     metricValue: {
       color: colors.heroText,
-      fontSize: 18,
-      lineHeight: 22,
+      fontSize: 15,
+      lineHeight: 19,
       fontWeight: "900",
       letterSpacing: -0.3
     },
@@ -739,8 +737,8 @@ function createStyles(theme: AppTheme) {
       backgroundColor: "rgba(255,255,255,0.16)",
       borderWidth: 1,
       borderColor: "rgba(255,255,255,0.24)",
-      padding: spacing.md,
-      gap: spacing.sm
+      padding: spacing.sm,
+      gap: spacing.xs
     },
     nextHeroCopy: {
       gap: 3
@@ -776,8 +774,8 @@ function createStyles(theme: AppTheme) {
     },
     nextTitle: {
       color: colors.heroText,
-      fontSize: 18,
-      lineHeight: 23,
+      fontSize: 17,
+      lineHeight: 22,
       fontWeight: "900"
     },
     nextMeta: {
@@ -787,15 +785,15 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800"
     },
     startButton: {
-      flex: 1.35,
-      minHeight: 48,
+      flex: 1.3,
+      minHeight: 46,
       backgroundColor: colors.accent
     },
     focusButton: {
-      flex: 0.72,
-      minHeight: 48,
-      backgroundColor: "rgba(255,255,255,0.08)",
-      borderColor: "rgba(255,255,255,0.12)"
+      flex: 0.9,
+      minHeight: 46,
+      backgroundColor: "rgba(255,255,255,0.18)",
+      borderColor: "rgba(255,255,255,0.26)"
     },
     nextActions: {
       flexDirection: "row",
@@ -886,9 +884,12 @@ function createStyles(theme: AppTheme) {
       flexWrap: "wrap",
       gap: spacing.sm
     },
+    viewportBreak: {
+      height: 92
+    },
     commandTile: {
       width: "48%",
-      minHeight: 118,
+      minHeight: 92,
       borderRadius: radii.xl,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.isDark ? "rgba(255,255,255,0.13)" : "rgba(16,24,40,0.08)",
@@ -897,10 +898,10 @@ function createStyles(theme: AppTheme) {
       gap: spacing.xs,
       overflow: "hidden",
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.24 : 0.08,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 10 },
-      elevation: 3
+      shadowOpacity: theme.isDark ? 0.14 : 0.04,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 5 },
+      elevation: 1
     },
     commandAccent: {
       position: "absolute",
@@ -920,8 +921,8 @@ function createStyles(theme: AppTheme) {
       opacity: theme.isDark ? 0.18 : 0.10
     },
     commandIcon: {
-      width: 36,
-      height: 36,
+      width: 32,
+      height: 32,
       borderRadius: radii.round,
       alignItems: "center",
       justifyContent: "center"

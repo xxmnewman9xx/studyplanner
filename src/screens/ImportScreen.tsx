@@ -298,9 +298,19 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
           <TrustChip label="Dates are checked" />
         </View>
         <View style={styles.scanActions}>
-          <AppButton label="Take photo" icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
-          <AppButton label="Upload file" icon={Upload} variant="secondary" onPress={pickPdf} style={styles.scanActionSecondary} />
-          <AppButton label="Paste text" icon={Keyboard} variant="secondary" onPress={typeItIn} style={styles.scanActionSecondary} />
+          {imageParsingReady ? (
+            <>
+              <AppButton label="Take photo" icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
+              <AppButton label="Upload file" icon={Upload} variant="secondary" onPress={pickPdf} style={styles.scanActionSecondary} />
+              <AppButton label="Paste text" icon={Keyboard} variant="secondary" onPress={typeItIn} style={styles.scanActionSecondary} />
+            </>
+          ) : (
+            <>
+              <AppButton label="Upload file" icon={Upload} onPress={pickPdf} style={styles.scanActionPrimary} />
+              <AppButton label="Paste text" icon={Keyboard} variant="secondary" onPress={typeItIn} style={styles.scanActionSecondary} />
+              <AppButton label="Photo later" icon={Camera} variant="quiet" onPress={capturePhoto} style={styles.scanActionSecondary} />
+            </>
+          )}
         </View>
         <TextInput
           value={typedText}

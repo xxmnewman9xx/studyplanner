@@ -24,7 +24,7 @@ export function AppButton({
   const styles = createStyles(theme);
   const { colors } = theme;
   const foreground =
-    variant === "primary" ? colors.heroText : variant === "secondary" ? colors.ink : colors.muted;
+    variant === "primary" ? colors.heroSurface : variant === "secondary" ? colors.ink : colors.ink;
 
   return (
     <TouchableOpacity
@@ -95,11 +95,13 @@ function createStyles(theme: AppTheme) {
     },
     quiet: {
       minHeight: 44,
-      backgroundColor: "transparent",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.075)" : colors.surfaceAlt,
       paddingHorizontal: spacing.sm
     },
     disabled: {
-      opacity: 0.45
+      opacity: 0.56
     },
     label: {
       fontSize: 14,

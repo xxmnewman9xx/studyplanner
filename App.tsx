@@ -987,7 +987,7 @@ function createStyles(theme: AppTheme, tablet = false) {
       alignSelf: tablet ? "center" : undefined,
       paddingHorizontal: tablet ? spacing.xl : spacing.md,
       paddingTop: tablet ? spacing.xl : spacing.md,
-      paddingBottom: tablet ? spacing.xxl : 256
+      paddingBottom: tablet ? spacing.xxl : 96
     },
     scrollArea: {
       flex: 1
@@ -1049,42 +1049,42 @@ function createStyles(theme: AppTheme, tablet = false) {
       fontWeight: "800"
     },
     tabBar: {
-      minHeight: 62,
+      minHeight: 54,
       marginHorizontal: spacing.md,
-      marginBottom: spacing.sm,
+      marginBottom: spacing.xs,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      borderRadius: 26,
+      borderRadius: 22,
       borderWidth: 1,
       borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(18,20,23,0.08)",
       backgroundColor: theme.isDark ? "rgba(10, 15, 26, 0.98)" : "rgba(255, 253, 244, 0.96)",
       padding: spacing.xs,
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.42 : 0.16,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 9
+      shadowOpacity: theme.isDark ? 0.24 : 0.08,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 3
     },
     tabButton: {
       width: "19.4%",
-      minHeight: 48,
+      minHeight: 42,
       alignItems: "center",
       justifyContent: "center",
-      borderRadius: 20,
-      gap: 4
+      borderRadius: 16,
+      gap: 2
     },
     tabButtonActive: {
       backgroundColor: colors.heroSurface,
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.2 : 0.1,
-      shadowRadius: 8,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 4
+      shadowOpacity: theme.isDark ? 0.12 : 0.04,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 1
     },
     tabLabel: {
       color: colors.muted,
-      fontSize: 10,
+      fontSize: 9,
       fontWeight: "900"
     },
     tabLabelActive: {
