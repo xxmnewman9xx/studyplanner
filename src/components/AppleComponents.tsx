@@ -1,5 +1,7 @@
 import React from "react";
 import {
+  Image,
+  ImageStyle,
   StyleProp,
   StyleSheet,
   Text,
@@ -69,12 +71,11 @@ export function AppLogo({
 
   return (
     <View style={[styles.logoWrap, style]}>
-      <View
+      <Image
         accessibilityLabel="StudyPlanner mark"
-        style={[styles.logoMark, { width: size, height: size, borderRadius: size * 0.26 } as ViewStyle]}
-      >
-        <FileScan color={theme.colors.heroText} size={Math.round(size * 0.48)} />
-      </View>
+        source={require("../../assets/app/study-planner-icon.png")}
+        style={[styles.logoImage, { width: size, height: size, borderRadius: size * 0.24 } as ImageStyle]}
+      />
       {showWordmark ? (
         <View style={styles.logoCopy}>
           <Text style={styles.logoTitle}>StudyPlanner</Text>

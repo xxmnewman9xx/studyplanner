@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
   Bell,
+  CalendarDays,
   CheckCircle2,
   FileScan,
+  Palette,
   Sparkles,
   WandSparkles
 } from "lucide-react-native";
@@ -24,25 +26,25 @@ type OnboardingScreenProps = {
 
 const slides = [
   {
-    eyebrow: "First minute",
+    eyebrow: "Scan → review → plan",
     title: "Turn any syllabus into a semester plan.",
-    copy: "Scan or upload a syllabus, review every deadline, then let Today pick the next move.",
+    copy: "Upload class material, review what StudyPlanner finds, then send approved work into Today, Plan, and Widget Studio.",
     icon: FileScan,
-    rows: ["Upload PDF, photo, or pasted text", "Extract classes and deadlines", "Approve before anything saves"]
+    rows: ["Scan or paste class material", "Review every found deadline", "Build Today + widgets from approved work"]
   },
   {
     eyebrow: "Trust check",
     title: "Review before it touches your planner.",
-    copy: "StudyPlanner flags missing dates, low confidence items, and possible duplicates so the plan feels trustworthy.",
+    copy: "Missing dates, low-confidence rows, and duplicates are flagged before they touch your planner.",
     icon: WandSparkles,
-    rows: ["Lab report - Fri", "Midterm - Oct 12", "Reading notes - needs review"]
+    rows: ["Lab report · needs date", "Midterm · Oct 12", "Reading notes · duplicate check"]
   },
   {
-    eyebrow: "Setup",
-    title: "Pick the reminder style you actually want.",
-    copy: "No notification prompt yet. We ask only after you have real assignments and choose to set reminders.",
-    icon: Bell,
-    rows: ["Minimal: major deadlines", "Balanced: deadlines and prep", "Intensive: study blocks too"]
+    eyebrow: "Your school, your phone",
+    title: "Classes, colors, reminders, widgets.",
+    copy: "Start free with a useful planner. Plus only appears when you want more volume or advanced automation.",
+    icon: Palette,
+    rows: ["2 free classes", "12 free homework items", "Basic Today + Upcoming widgets"]
   }
 ];
 
@@ -111,9 +113,26 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
         </View>
       </GlassCard>
 
+      <GlassCard style={styles.flowCard}>
+        <View style={styles.flowStep}>
+          <View style={styles.flowIcon}><FileScan color={colors.accent} size={17} /></View>
+          <Text style={styles.flowText}>Scan</Text>
+        </View>
+        <View style={styles.flowLine} />
+        <View style={styles.flowStep}>
+          <View style={styles.flowIcon}><CheckCircle2 color={colors.sage} size={17} /></View>
+          <Text style={styles.flowText}>Review</Text>
+        </View>
+        <View style={styles.flowLine} />
+        <View style={styles.flowStep}>
+          <View style={styles.flowIcon}><CalendarDays color={colors.brandPink} size={17} /></View>
+          <Text style={styles.flowText}>Plan</Text>
+        </View>
+      </GlassCard>
+
       {isFinal ? (
         <GlassCard style={styles.choiceCard}>
-          <Text style={styles.choiceTitle}>Reminder preset</Text>
+          <Text style={styles.choiceTitle}>Reminder preset for later</Text>
           <View style={styles.choiceStack}>
             {reminderChoices.map((choice) => {
               const active = reminderStyle === choice.value;
@@ -155,10 +174,16 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
           }}
         />
         {index === 0 ? (
-          <TouchableOpacity accessibilityRole="button" style={styles.demoButton} onPress={() => finish("demo")}>
-            <Sparkles color={colors.accent} size={16} />
-            <Text style={styles.demoButtonText}>Try demo planner first</Text>
-          </TouchableOpacity>
+          <View style={styles.firstActions}>
+            <TouchableOpacity accessibilityRole="button" style={styles.demoButton} onPress={() => finish("demo")}>
+              <Sparkles color={colors.accent} size={16} />
+              <Text style={styles.demoButtonText}>Try demo planner</Text>
+            </TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" style={styles.demoButton} onPress={() => finish("manual")}>
+              <Palette color={colors.brandPink} size={16} />
+              <Text style={styles.demoButtonText}>Add manually</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           <View style={styles.secondaryActions}>
             <TouchableOpacity accessibilityRole="button" style={styles.secondaryButton} onPress={() => setIndex(Math.max(0, index - 1))}>
@@ -295,29 +320,40 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800",
       textAlign: "center"
     },
-    proofCard: {
+    flowCard: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       gap: spacing.xs,
       padding: spacing.sm
     },
-    proofRow: {
+    flowStep: {
       flex: 1,
       alignItems: "center",
       gap: 6
     },
-    proofText: {
+    flowIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      backgroundColor: colors.surfaceTint,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line
+    },
+    flowText: {
       color: colors.ink,
-      fontSize: 11,
-      lineHeight: 15,
+      fontSize: 12,
+      lineHeight: 16,
       fontWeight: "900",
       textAlign: "center"
     },
-    proofDivider: {
-      width: StyleSheet.hairlineWidth,
-      height: 44,
-      backgroundColor: colors.line
+    flowLine: {
+      width: 24,
+      height: 2,
+      borderRadius: 1,
+      backgroundColor: colors.lineStrong
     },
     choiceCard: {
       gap: spacing.sm,
@@ -399,11 +435,16 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800",
       textAlign: "center"
     },
+    firstActions: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
     secondaryActions: {
       flexDirection: "row",
       gap: spacing.sm
     },
     demoButton: {
+      flex: 1,
       minHeight: 42,
       borderRadius: radii.lg,
       borderWidth: StyleSheet.hairlineWidth,

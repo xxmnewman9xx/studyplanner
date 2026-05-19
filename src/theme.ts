@@ -1,34 +1,34 @@
 export const lightColors = {
-  canvas: "#F2F0E8",
-  canvasTint: "#E6E1D2",
-  surface: "#FFFDF4",
-  surfaceAlt: "#EDE7D7",
-  surfaceTint: "#E7F5EF",
-  ink: "#121417",
-  muted: "#5B625E",
-  faint: "#8E928A",
-  line: "#D9D0BE",
-  lineStrong: "#BFAF96",
-  softGold: "#FFF2C6",
-  gold: "#C68613",
-  mint: "#DFF8EC",
-  sage: "#128A62",
-  coral: "#E35169",
-  blue: "#2563EB",
-  red: "#D92D3E",
-  green: "#20A667",
-  lavender: "#E8E2FF",
-  accent: "#00A884",
-  accentSoft: "#D8F5EB",
-  brandPink: "#FF4D6D",
-  brandViolet: "#7157FF",
-  brandIndigo: "#1B6BFF",
-  brandOrange: "#F29F05",
+  canvas: "#F8F3FF",
+  canvasTint: "#EFE5FF",
+  surface: "#FFFDF8",
+  surfaceAlt: "#F0E8FF",
+  surfaceTint: "#E4FBF4",
+  ink: "#181223",
+  muted: "#665C73",
+  faint: "#9187A0",
+  line: "#DED2EF",
+  lineStrong: "#BFADE0",
+  softGold: "#FFF0C8",
+  gold: "#B8730D",
+  mint: "#DFFBF2",
+  sage: "#0E8E72",
+  coral: "#E44572",
+  blue: "#2F6BFF",
+  red: "#D92D4B",
+  green: "#16A66E",
+  lavender: "#ECE4FF",
+  accent: "#6D44FF",
+  accentSoft: "#E9E2FF",
+  brandPink: "#FF4FA8",
+  brandViolet: "#6D44FF",
+  brandIndigo: "#2F6BFF",
+  brandOrange: "#F5A524",
   elevated: "#FFFFFF",
-  heroSurface: "#10151E",
-  heroText: "#FFFDF4",
-  heroMuted: "#C8D6CE",
-  shadow: "#0A0F1A"
+  heroSurface: "#21143E",
+  heroText: "#FFFDF8",
+  heroMuted: "#DACFF3",
+  shadow: "#21143E"
 };
 
 export const darkColors = {
@@ -86,12 +86,12 @@ export const radii = {
 };
 
 export const classColors = [
+  "#6D44FF",
   "#35F2D0",
-  "#7EE787",
-  "#A78BFA",
-  "#F6B84B",
+  "#FF4FA8",
+  "#F5B84B",
   "#69C7FF",
-  "#FF7A90"
+  "#7EE787"
 ];
 
 export const themePalettes = {

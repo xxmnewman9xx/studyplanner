@@ -26,7 +26,7 @@ const freeFeatures = [
   "1 active semester",
   "2 classes and 12 homework items",
   "1 reviewed syllabus import",
-  "Basic Today and Upcoming widgets"
+  "Manual add/edit plus basic Today and Upcoming widgets"
 ];
 
 export function UpgradeScreen({ onContinueFree }: UpgradeScreenProps) {
