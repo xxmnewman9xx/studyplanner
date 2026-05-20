@@ -36,13 +36,13 @@ assert(!subtitle.includes("canvas"), "Subtitle must not claim Canvas support bef
 assert(!keywords.includes("canvas"), "Keywords must not include Canvas before a shipped Canvas workflow exists");
 assert(description.includes("editable"), "Description should preserve editable/review-before-apply positioning");
 assert(guardrails.includes("do not mention canvas"), "Metadata guardrails must explicitly block unsupported Canvas claims");
-assert(guardrails.includes("photo/image parsing requires `expo_public_syllabus_parse_endpoint`"), "Metadata guardrails must disclose photo parsing endpoint dependency");
+assert(guardrails.includes("photo/image parsing uses the configured parser endpoint") && guardrails.includes("on-device text recognition"), "Metadata guardrails must disclose real photo parsing and on-device fallback");
 
 const reviewLower = reviewNotes.toLowerCase();
 assert(reviewLower.includes("invalid dates or times cannot be applied"), "App Review notes must preserve invalid-deadline application guardrail");
-assert(reviewLower.includes("expo_public_syllabus_parse_endpoint"), "App Review notes must disclose parser endpoint dependency");
-assert(reviewLower.includes("text-based pdfs and pasted text remain supported"), "App Review notes must explain supported import paths without the parser endpoint");
-assert(reviewLower.includes("do not apply uncertain data") || reviewLower.includes("instead of applying uncertain data"), "App Review notes must state uncertain photo data is not applied without endpoint support");
+assert(reviewLower.includes("camera scan is active"), "App Review notes must state camera scan is active");
+assert(reviewLower.includes("on-device photo text recognition"), "App Review notes must disclose on-device photo OCR fallback");
+assert(reviewLower.includes("instead of applying uncertain data"), "App Review notes must state unclear photo data is not applied");
 
 const prdLower = prd.toLowerCase();
 assert(prdLower.includes("direct canvas sync"), "PRD must keep Canvas out of V1 scope");

@@ -75,7 +75,7 @@ export type UserSettings = {
   studentName: string;
   selectedTheme: WidgetPalette | "custom";
   customPalette: string[];
-  appTheme: "campus" | "classic" | "slate" | "mint";
+  appTheme: "campus" | "classic" | "slate" | "mint" | "aura" | "rose" | "graphite" | "solar";
   defaultWidgetStyle: WidgetBackground;
   onboardingComplete: boolean;
   notificationDefault: string;
@@ -229,6 +229,9 @@ export type WidgetPreset = {
   classFocusCourseId?: string;
   layout: "compact" | "list" | "ring" | "calendar" | "grid";
   iconKey: string;
+  smartStackSlot?: "morning" | "between_classes" | "study_time" | "night_review";
+  scheduleLabel?: string;
+  themePackId?: string;
   createdAt: string;
   updatedAt: string;
 };

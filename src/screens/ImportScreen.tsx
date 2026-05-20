@@ -29,7 +29,6 @@ import {
 } from "../models";
 import {
   parseSyllabus,
-  supportsSyllabusImageParsing,
   updateParsedAssignment
 } from "../services/syllabusParser";
 import {
@@ -68,7 +67,6 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   );
   const [loading, setLoading] = useState(marketingCaptureScreen === "processing");
   const [typedText, setTypedText] = useState("");
-  const imageParsingReady = supportsSyllabusImageParsing();
 
   const handleLockedImport = () => {
     Alert.alert(
@@ -142,14 +140,6 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   const capturePhoto = async () => {
     if (premiumImportLocked) {
       handleLockedImport();
-      return;
-    }
-
-    if (!imageParsingReady) {
-      Alert.alert(
-        "Photo scan needs AI setup",
-        "Upload a text-based PDF or paste syllabus text for now. Photo parsing turns on when the production parser endpoint is configured."
-      );
       return;
     }
 
@@ -298,19 +288,9 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
           <TrustChip label="Dates are checked" />
         </View>
         <View style={styles.scanActions}>
-          {imageParsingReady ? (
-            <>
-              <AppButton label="Take photo" icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
-              <AppButton label="Upload file" icon={Upload} variant="secondary" onPress={pickPdf} style={styles.scanActionSecondary} />
-              <AppButton label="Paste text" icon={Keyboard} variant="secondary" onPress={typeItIn} style={styles.scanActionSecondary} />
-            </>
-          ) : (
-            <>
-              <AppButton label="Upload file" icon={Upload} onPress={pickPdf} style={styles.scanActionPrimary} />
-              <AppButton label="Paste text" icon={Keyboard} variant="secondary" onPress={typeItIn} style={styles.scanActionSecondary} />
-              <AppButton label="Photo later" icon={Camera} variant="quiet" onPress={capturePhoto} style={styles.scanActionSecondary} />
-            </>
-          )}
+          <AppButton label="Take photo" icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
+          <AppButton label="Upload file" icon={Upload} variant="secondary" onPress={pickPdf} style={styles.scanActionSecondary} />
+          <AppButton label="Paste text" icon={Keyboard} variant="secondary" onPress={typeItIn} style={styles.scanActionSecondary} />
         </View>
         <TextInput
           value={typedText}
@@ -321,9 +301,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
           style={styles.typeBox}
         />
         <Text style={styles.privacyNote}>
-          {imageParsingReady
-            ? "Private until you approve the plan."
-            : "Upload and Paste work now. Photo scan turns on when the production parser endpoint is configured."}
+          Take a clear photo, upload a file, or paste text. You review every item before it reaches Today.
         </Text>
         {onTryDemo ? (
           <AppButton label="Try demo syllabus" icon={Sparkles} variant="quiet" onPress={onTryDemo} />
@@ -359,9 +337,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
             <View style={styles.recentCopy}>
               <Text style={styles.recentTitle}>{item.title}</Text>
               <Text style={styles.recentMeta}>{item.itemCount} found · {labelize(item.status)}</Text>
-              {imageParsingReady ? null : (
-                <Text style={styles.recentSubtle}>Photo parsing needs AI setup; files and pasted text work on device.</Text>
-              )}
+              <Text style={styles.recentSubtle}>Photos, files, and pasted text create editable drafts for review.</Text>
             </View>
             <Badge label={labelize(item.sourceType)} tone={item.status === "ready" ? "blue" : "green"} />
           </TouchableOpacity>

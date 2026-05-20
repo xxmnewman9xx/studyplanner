@@ -53,8 +53,8 @@ https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Polic
 
 - Explain that AI/parser results are editable before application.
 - StudyPlanner Plus is available through the in-app subscription screen. To test premium flows, complete onboarding, choose StudyPlanner Plus, subscribe using Apple's sandbox purchase flow, then use Scan, reminders, calendar sync, and grade planning surfaces.
-- Supported syllabus files for App Review: text-based PDF or plain-text syllabus from Files; pasted syllabus text is also supported.
-- Photo/image parsing requires `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT`; without that endpoint, photo attempts show a clear limitation message and do not apply uncertain data.
+- Supported import paths for App Review: camera photo, photo library image, text-based PDF/plain-text file, and pasted syllabus text.
+- Photo/image parsing uses the configured parser endpoint when available and falls back to on-device text recognition; unclear photos show a retry/fallback message and do not apply uncertain data.
 - The app uses Apple's standard EULA: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 - Do not mention Canvas in metadata unless the app supports a clear Canvas-related feature.
 - Document notification, calendar, camera, and photo usage with concrete purpose strings.

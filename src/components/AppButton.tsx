@@ -24,7 +24,7 @@ export function AppButton({
   const styles = createStyles(theme);
   const { colors } = theme;
   const foreground =
-    variant === "primary" ? colors.heroSurface : variant === "secondary" ? colors.ink : colors.ink;
+    variant === "primary" ? colors.heroText : variant === "secondary" ? colors.ink : colors.ink;
 
   return (
     <TouchableOpacity

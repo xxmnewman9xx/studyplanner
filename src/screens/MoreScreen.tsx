@@ -5,6 +5,8 @@ import {
   CalendarDays,
   CheckCircle2,
   FlaskConical,
+  Layers3,
+  Moon,
   Palette,
   PenLine,
   Sparkles,
@@ -58,7 +60,7 @@ const widgetSizes: WidgetSize[] = ["small", "medium", "large"];
 const palettes: WidgetPalette[] = ["ocean", "sunset", "forest", "lavender", "midnight", "minimal"];
 const backgrounds: WidgetBackground[] = ["glass", "solid", "gradient", "dark"];
 const layouts: WidgetPreset["layout"][] = ["compact", "list", "ring", "calendar", "grid"];
-const appThemeOptions: ThemeAccent[] = ["campus", "classic", "slate", "mint"];
+const appThemeOptions: ThemeAccent[] = ["campus", "classic", "mint", "aura", "rose", "graphite", "solar", "slate"];
 
 export function MoreScreen({
   assignments,
@@ -94,6 +96,8 @@ export function MoreScreen({
   const [layout, setLayout] = useState<WidgetPreset["layout"]>(firstPreset?.layout || "compact");
   const [iconKey, setIconKey] = useState(firstPreset?.iconKey || "book");
   const [editingPresetId, setEditingPresetId] = useState(firstPreset?.id || "preset-due-next");
+  const [selectedThemePackId, setSelectedThemePackId] = useState<string | undefined>(firstPreset?.themePackId);
+
 
   const previewPreset = useMemo<WidgetPreset>(
     () => ({
@@ -107,10 +111,13 @@ export function MoreScreen({
       classFocusCourseId,
       layout,
       iconKey,
+      smartStackSlot: smartSlotFromPresetId(editingPresetId),
+      scheduleLabel: scheduleLabelForSlot(smartSlotFromPresetId(editingPresetId)),
+      themePackId: selectedThemePackId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }),
-    [background, classFocusCourseId, editingPresetId, font, iconKey, layout, palette, size, type]
+    [background, classFocusCourseId, editingPresetId, font, iconKey, layout, palette, selectedThemePackId, size, type]
   );
   const widgetData = getWidgetData(previewPreset, assignments, courses);
   const nativeSnapshots = useMemo(
@@ -152,6 +159,55 @@ export function MoreScreen({
   const focusedCourse = classFocusCourseId
     ? courses.find((course) => course.id === classFocusCourseId)
     : undefined;
+  const smartStackSlots: Array<{
+    id: NonNullable<WidgetPreset["smartStackSlot"]>;
+    label: string;
+    time: string;
+    promise: string;
+    preset: Pick<WidgetPreset, "type" | "size" | "background" | "palette" | "layout" | "iconKey" | "font">;
+  }> = [
+    {
+      id: "morning",
+      label: "Morning Brief",
+      time: "7–10 AM",
+      promise: "What is due today before school starts.",
+      preset: { type: "today", size: "medium", background: "glass", palette: "sunset", layout: "list", iconKey: "check", font: "SF Pro" }
+    },
+    {
+      id: "between_classes",
+      label: "Between Classes",
+      time: "10 AM–3 PM",
+      promise: "Next class-specific thing to remember.",
+      preset: { type: "class_focus", size: "small", background: "glass", palette: "forest", layout: "compact", iconKey: "book", font: "Rounded" }
+    },
+    {
+      id: "study_time",
+      label: "Study Block",
+      time: "3–9 PM",
+      promise: "The next focus task, tuned for action.",
+      preset: { type: "focus", size: "small", background: "dark", palette: "midnight", layout: "ring", iconKey: "timer", font: "Mono" }
+    },
+    {
+      id: "night_review",
+      label: "Night Review",
+      time: "9 PM+",
+      promise: "Tomorrow and week load before bed.",
+      preset: { type: "week", size: "medium", background: "glass", palette: "lavender", layout: "calendar", iconKey: "calendar", font: "SF Pro" }
+    }
+  ];
+  const themePacks: Array<{
+    id: string;
+    label: string;
+    detail: string;
+    appTheme: ThemeAccent;
+    widgetPalette: WidgetPalette;
+    widgetBackground: WidgetBackground;
+  }> = [
+    { id: "aura-glass", label: "Aura Glass", detail: "Widgetsmith-style purple/pink identity system.", appTheme: "aura", widgetPalette: "lavender", widgetBackground: "glass" },
+    { id: "exam-graphite", label: "Exam Graphite", detail: "High-contrast study mode for deadline weeks.", appTheme: "graphite", widgetPalette: "midnight", widgetBackground: "dark" },
+    { id: "solar-campus", label: "Solar Campus", detail: "Warm morning widgets for daily planning.", appTheme: "solar", widgetPalette: "sunset", widgetBackground: "glass" }
+  ];
+
   const starterTemplates: Array<{
     label: string;
     detail: string;
@@ -228,6 +284,10 @@ export function MoreScreen({
       : nativeWidgetStatus.state === "unavailable"
         ? "Build needed"
         : "WidgetKit";
+  const smartPresetCount = widgetPresets.filter((preset) => preset.smartStackSlot).length;
+  const studioScore = [hasAssignments, hasCourses, nativeWidgetStatus.state === "synced", smartPresetCount >= 4, Boolean(settings.appTheme)].filter(Boolean).length;
+  const dataSourceLabel = nativePreview ? "Native WidgetKit snapshot" : type === "class_focus" ? "Class-specific planner data" : "Live planner data";
+  const selectedSmartSlot = smartStackSlots.find((slot) => `smart-${slot.id}` === editingPresetId || smartSlotFromPresetId(editingPresetId) === slot.id);
 
   const applyTemplate = (template: Pick<WidgetPreset, "type" | "size" | "background" | "palette" | "layout" | "iconKey">) => {
     setType(template.type);
@@ -237,6 +297,45 @@ export function MoreScreen({
     setLayout(template.layout);
     setIconKey(template.iconKey);
     setEditingPresetId(`preset-${template.type}-${template.size}`);
+  };
+
+  const applyThemePack = (pack: typeof themePacks[number]) => {
+    if (premiumWidgetsLocked) {
+      onOpenPaywall();
+      return;
+    }
+    setAccent(pack.appTheme);
+    setSelectedThemePackId(pack.id);
+    setPalette(pack.widgetPalette);
+    setBackground(pack.widgetBackground);
+    onUpdateSettings({ appTheme: pack.appTheme, selectedTheme: pack.widgetPalette, defaultWidgetStyle: pack.widgetBackground });
+  };
+
+  const saveSmartStack = () => {
+    if (premiumWidgetsLocked) {
+      onOpenPaywall();
+      return;
+    }
+    const timestamp = new Date().toISOString();
+    smartStackSlots.forEach((slot) => {
+      onSaveWidgetPreset({
+        id: `smart-${slot.id}`,
+        name: slot.label,
+        type: slot.preset.type,
+        size: slot.preset.size,
+        background: slot.preset.background,
+        palette: slot.preset.palette,
+        font: slot.preset.font,
+        classFocusCourseId: slot.preset.type === "class_focus" ? classFocusCourseId : undefined,
+        layout: slot.preset.layout,
+        iconKey: slot.preset.iconKey,
+        smartStackSlot: slot.id,
+        scheduleLabel: slot.time,
+        themePackId: selectedThemePackId || settings.appTheme || "campus",
+        createdAt: timestamp,
+        updatedAt: timestamp
+      });
+    });
   };
 
   const saveCurrentPreset = () => {
@@ -291,12 +390,123 @@ export function MoreScreen({
         </View>
       </GlassCard>
 
-      <SectionHeader title="App appearance" note="A small global color tune-up for the actual app UI." />
+      <GlassCard style={styles.commandCard}>
+        <View style={styles.commandHeader}>
+          <View>
+            <Text style={styles.commandKicker}>Customization path</Text>
+            <Text style={styles.commandTitle}>Pick a template. Tune the preview. Save the system.</Text>
+          </View>
+          <View style={styles.commandScorePill}>
+            <Text style={styles.commandScoreValue}>{studioScore}/5</Text>
+            <Text style={styles.commandScoreLabel}>ready</Text>
+          </View>
+        </View>
+        <View style={styles.commandGrid}>
+          <View style={styles.commandStep}>
+            <Text style={styles.commandStepNumber}>1</Text>
+            <Text style={styles.commandStepText}>Free native Today + Upcoming stay useful.</Text>
+          </View>
+          <View style={styles.commandStep}>
+            <Text style={styles.commandStepNumber}>2</Text>
+            <Text style={styles.commandStepText}>{dataSourceLabel} powers the current preview.</Text>
+          </View>
+          <View style={styles.commandStep}>
+            <Text style={styles.commandStepNumber}>3</Text>
+            <Text style={styles.commandStepText}>Plus unlocks saved Smart Stack and advanced styles.</Text>
+          </View>
+        </View>
+      </GlassCard>
+
+      <SectionHeader title="Smart Stack schedule" note="The highest-leverage Widgetsmith pattern: one widget system for each school-day moment." />
+      <GlassCard style={styles.smartStackCard}>
+        <View style={styles.smartStackHeader}>
+          <View style={styles.smartStackIcon}>
+            <Layers3 color={colors.heroText} size={18} />
+          </View>
+          <View style={styles.smartStackCopy}>
+            <Text style={styles.smartStackTitle}>Build the day’s widget rotation.</Text>
+            <Text style={styles.smartStackText}>Save four presets for Morning, Between Classes, Study Time, and Night Review — each powered by real planner data.</Text>
+          </View>
+          <Text style={styles.smartStackPlus}>Plus</Text>
+        </View>
+        <View style={styles.scheduleGrid}>
+          {smartStackSlots.map((slot) => {
+            const slotData = getWidgetData(
+              {
+                id: `preview-${slot.id}`,
+                name: slot.label,
+                type: slot.preset.type,
+                size: slot.preset.size,
+                background: slot.preset.background,
+                palette: slot.preset.palette,
+                font: slot.preset.font,
+                classFocusCourseId: slot.preset.type === "class_focus" ? classFocusCourseId : undefined,
+                layout: slot.preset.layout,
+                iconKey: slot.preset.iconKey,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              },
+              assignments,
+              courses
+            );
+            return (
+              <TouchableOpacity
+                accessibilityRole="button"
+                key={slot.id}
+                style={[styles.scheduleSlot, selectedSmartSlot?.id === slot.id ? styles.scheduleSlotActive : null]}
+                onPress={() => {
+                  setType(slot.preset.type);
+                  setSize(slot.preset.size);
+                  setBackground(slot.preset.background);
+                  setPalette(slot.preset.palette);
+                  setLayout(slot.preset.layout);
+                  setIconKey(slot.preset.iconKey);
+                  setFont(slot.preset.font);
+                  setEditingPresetId(`smart-${slot.id}`);
+                }}
+              >
+                <View style={styles.scheduleTopRow}>
+                  <Text style={styles.scheduleTime}>{slot.time}</Text>
+                  <Text style={styles.scheduleMiniValue}>{slotData.value}</Text>
+                </View>
+                <Text style={styles.scheduleLabel}>{slot.label}</Text>
+                <Text style={styles.schedulePromise} numberOfLines={2}>{slot.promise}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        <AppButton
+          label={premiumWidgetsLocked ? "Unlock Smart Stack" : "Save Smart Stack presets"}
+          icon={premiumWidgetsLocked ? Sparkles : Layers3}
+          onPress={saveSmartStack}
+        />
+      </GlassCard>
+
+      <SectionHeader title="One-tap theme packs" note="Widgetsmith wins because the phone feels cohesive. These pair app theme + widget material." />
+      <View style={styles.themePackGrid}>
+        {themePacks.map((pack) => {
+          const meta = appThemePalettes[pack.appTheme];
+          return (
+            <TouchableOpacity accessibilityRole="button" accessibilityState={{ selected: selectedThemePackId === pack.id, disabled: premiumWidgetsLocked }} key={pack.id} style={[styles.themePackCard, selectedThemePackId === pack.id ? styles.themePackCardActive : null, premiumWidgetsLocked ? styles.themePackCardLocked : null]} onPress={() => applyThemePack(pack)}>
+              <View style={styles.themePackSwatches}>
+                {meta.swatches.map((swatch) => <View key={swatch} style={[styles.themePackSwatch, { backgroundColor: swatch }]} />)}
+              </View>
+              <View style={styles.themePackTitleRow}>
+                <Text style={styles.themePackTitle}>{pack.label}</Text>
+                <Text style={styles.themePlus}>Plus</Text>
+              </View>
+              <Text style={styles.themePackDetail}>{pack.detail}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      <SectionHeader title="App appearance" note="Premium themes now restyle the whole app shell, not just one accent." />
       <GlassCard style={styles.appearanceCard}>
         <View style={styles.appearanceTopRow}>
           <View style={styles.appearanceCopy}>
-            <Text style={styles.appearanceTitle}>Theme color</Text>
-            <Text style={styles.appearanceText}>Keep the app professional or make it a little brighter without changing your planner data.</Text>
+            <Text style={styles.appearanceTitle}>Premium app themes</Text>
+            <Text style={styles.appearanceText}>Change the app atmosphere: canvas, glass cards, hero surfaces, accents, widget defaults, and class energy.</Text>
           </View>
           <View style={styles.appearanceBadge}>
             <Palette color={colors.accent} size={15} />
@@ -307,13 +517,19 @@ export function MoreScreen({
           {appThemeOptions.map((option) => {
             const optionMeta = appThemePalettes[option];
             const active = (settings.appTheme || "campus") === option;
+            const premiumTheme = option !== "campus";
+            const locked = premiumWidgetsLocked && premiumTheme;
             return (
               <TouchableOpacity
                 accessibilityRole="button"
-                accessibilityState={{ selected: active }}
+                accessibilityState={{ selected: active, disabled: locked }}
                 key={option}
-                style={[styles.appThemeButton, active ? styles.appThemeButtonActive : null]}
+                style={[styles.appThemeButton, active ? styles.appThemeButtonActive : null, locked ? styles.appThemeButtonLocked : null]}
                 onPress={() => {
+                  if (locked) {
+                    onOpenPaywall();
+                    return;
+                  }
                   setAccent(option);
                   onUpdateSettings({ appTheme: option });
                 }}
@@ -323,7 +539,10 @@ export function MoreScreen({
                     <View key={swatch} style={[styles.appThemeSwatch, { backgroundColor: swatch }]} />
                   ))}
                 </View>
-                <Text style={styles.appThemeName}>{optionMeta.label}</Text>
+                <View style={styles.appThemeNameRow}>
+                  <Text style={styles.appThemeName}>{optionMeta.label}</Text>
+                  {premiumTheme ? <Text style={styles.themePlus}>Plus</Text> : <Text style={styles.themeFree}>Free</Text>}
+                </View>
               </TouchableOpacity>
             );
           })}
@@ -356,6 +575,36 @@ export function MoreScreen({
 
       <SectionHeader title="Preview controls" note="Small and medium match the native widgets. Large stays a Plus preview." />
       <GlassCard style={styles.controlsCard}>
+        <View style={styles.liveWorkbench}>
+          <View style={styles.liveWorkbenchPreview}>
+            <WidgetPreviewCard
+              title={displayWidgetData.headline}
+              value={displayWidgetData.value}
+              detail={displayWidgetData.detail}
+              background={background}
+              palette={palette}
+              size="small"
+              type={type}
+              course={displayWidgetData.course || focusedCourse}
+              font={font}
+              layout={layout}
+              iconKey={iconKey}
+              items={displayWidgetData.items}
+              nativeMode={Boolean(nativePreview && size !== "large")}
+              nativeAccentColor={nativePreview?.accentColor}
+              nativeBackgroundColor={nativePreview?.backgroundColor}
+              footnote={nativePreview?.footnote}
+              semesterName={nativePreview?.semesterName}
+              style={styles.liveMiniWidget}
+            />
+          </View>
+          <View style={styles.liveWorkbenchCopy}>
+            <Text style={styles.liveWorkbenchKicker}>Live editing</Text>
+            <Text style={styles.liveWorkbenchTitle}>Every tap updates this widget.</Text>
+            <Text style={styles.liveWorkbenchText}>Tune the look here, then save it as the preset students actually add to Home Screen.</Text>
+          </View>
+        </View>
+
         <ControlLabel title="Size intent" />
         <View style={styles.sizeGrid}>
           {widgetSizes.map((option) => {
@@ -399,8 +648,8 @@ export function MoreScreen({
           })}
         </ScrollView>
 
-        <ControlLabel title="Background" />
-        <SegmentedControl options={backgrounds} value={background} onChange={setBackground} labelForOption={labelize} />
+        <ControlLabel title="Liquid Glass background" />
+        <SegmentedControl options={backgrounds} value={background} onChange={setBackground} labelForOption={(value) => value === "glass" ? "Liquid Glass" : labelize(value)} />
 
         <ControlLabel title="Layout" />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.layoutRail}>
@@ -441,9 +690,16 @@ export function MoreScreen({
           ))}
         </View>
 
+        {selectedTemplateLocked ? (
+          <View style={styles.lockNotice}>
+            <Text style={styles.lockNoticeTitle}>This edit is Plus-only.</Text>
+            <Text style={styles.lockNoticeText}>Free keeps real Today and Upcoming widgets. Plus unlocks advanced templates, Smart Stack presets, and saved visual systems.</Text>
+          </View>
+        ) : null}
+
         <View style={styles.controlActions}>
           <AppButton
-            label={selectedTemplateLocked ? "Unlock advanced widget" : "Save widget preset"}
+            label={selectedTemplateLocked ? "Unlock advanced widget" : "Save widget preset — live preview"}
             icon={selectedTemplateLocked ? Sparkles : CheckCircle2}
             onPress={saveCurrentPreset}
             style={styles.actionButton}
@@ -468,6 +724,7 @@ export function MoreScreen({
               setClassFocusCourseId(preset.classFocusCourseId || courses[0]?.id);
               setLayout(preset.layout);
               setIconKey(preset.iconKey);
+              setSelectedThemePackId(preset.themePackId);
               setEditingPresetId(preset.id);
             }}
           >
@@ -476,7 +733,7 @@ export function MoreScreen({
             </View>
             <View style={styles.savedCopy}>
               <Text style={styles.savedTitle}>{preset.name}</Text>
-              <Text style={styles.savedMeta}>{labelForWidgetType(preset.type)} | {labelize(preset.size)} | {labelize(preset.palette)}</Text>
+              <Text style={styles.savedMeta}>{preset.scheduleLabel ? `${preset.scheduleLabel} | ` : ""}{labelForWidgetType(preset.type)} | {labelize(preset.size)} | {labelize(preset.palette)}</Text>
             </View>
             <Text style={styles.savedAction}>Edit</Text>
           </TouchableOpacity>
@@ -490,7 +747,14 @@ export function MoreScreen({
       </GlassCard>
       <GlassCard style={styles.packCard}>
         <Text style={styles.packTitle}>Fair Plus boundary</Text>
-        <Text style={styles.packCopy}>Free includes basic Today and Upcoming widgets. Plus owns saved advanced presets, themes, class templates, and focus templates.</Text>
+        <Text style={styles.packCopy}>Free includes basic Today and Upcoming widgets. Plus owns premium app themes, saved advanced widget presets, class templates, focus templates, and Liquid Glass customization.</Text>
+        {selectedTemplateLocked ? (
+          <View style={styles.lockNotice}>
+            <Text style={styles.lockNoticeTitle}>This edit is Plus-only.</Text>
+            <Text style={styles.lockNoticeText}>Free keeps real Today and Upcoming widgets. Plus unlocks advanced templates, Smart Stack presets, and saved visual systems.</Text>
+          </View>
+        ) : null}
+
         <View style={styles.controlActions}>
           <AppButton label="Open focus" variant="secondary" onPress={onOpenFocus} style={styles.actionButton} />
           <AppButton label="Open grades" variant="secondary" onPress={onOpenGrades} style={styles.actionButton} />
@@ -515,7 +779,33 @@ export function MoreScreen({
     </View>
   );
 
-  function ControlLabel({ title }: { title: string }) {
+function AuditPill({ label, active }: { label: string; active: boolean }) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  return (
+    <View style={[styles.auditPill, active ? styles.auditPillActive : null]}>
+      <Text style={[styles.auditPillText, active ? styles.auditPillTextActive : null]}>{active ? "✓" : "•"} {label}</Text>
+    </View>
+  );
+}
+
+function smartSlotFromPresetId(id?: string): WidgetPreset["smartStackSlot"] | undefined {
+  if (!id?.startsWith("smart-")) return undefined;
+  const slot = id.replace("smart-", "");
+  return ["morning", "between_classes", "study_time", "night_review"].includes(slot)
+    ? (slot as NonNullable<WidgetPreset["smartStackSlot"]>)
+    : undefined;
+}
+
+function scheduleLabelForSlot(slot?: WidgetPreset["smartStackSlot"]) {
+  if (slot === "morning") return "7–10 AM";
+  if (slot === "between_classes") return "10 AM–3 PM";
+  if (slot === "study_time") return "3–9 PM";
+  if (slot === "night_review") return "9 PM+";
+  return undefined;
+}
+
+function ControlLabel({ title }: { title: string }) {
     return <Text style={styles.controlLabel}>{title}</Text>;
   }
 
@@ -684,6 +974,342 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800",
       textAlign: "center"
     },
+
+    auditCard: {
+      gap: spacing.sm,
+      padding: spacing.md
+    },
+    auditTopRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    auditKicker: {
+      color: colors.accent,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    auditTitle: {
+      color: colors.ink,
+      fontSize: 18,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    auditStatus: {
+      color: colors.heroText,
+      backgroundColor: colors.heroSurface,
+      borderRadius: radii.round,
+      overflow: "hidden",
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 5,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    auditGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 6
+    },
+    auditPill: {
+      borderRadius: radii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.04)" : colors.surfaceAlt,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 5
+    },
+    auditPillActive: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accentSoft
+    },
+    auditPillText: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    auditPillTextActive: {
+      color: colors.ink
+    },
+    auditNote: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
+    },
+    installCard: {
+      gap: spacing.sm,
+      padding: spacing.md
+    },
+    installHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    installIcon: {
+      width: 38,
+      height: 38,
+      borderRadius: 14,
+      backgroundColor: colors.heroSurface,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    installCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    installTitle: {
+      color: colors.ink,
+      fontSize: 16,
+      lineHeight: 21,
+      fontWeight: "900"
+    },
+    installText: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
+    },
+    installSteps: {
+      flexDirection: "row",
+      gap: 6
+    },
+    installStep: {
+      flex: 1,
+      color: colors.ink,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : colors.surfaceAlt,
+      borderRadius: radii.lg,
+      overflow: "hidden",
+      paddingHorizontal: 8,
+      paddingVertical: 8,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textAlign: "center"
+    },
+    commandCard: {
+      gap: spacing.md,
+      padding: spacing.md,
+      borderColor: colors.accentSoft
+    },
+    commandHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    commandKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    commandTitle: {
+      color: colors.ink,
+      fontSize: 18,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    commandScorePill: {
+      minWidth: 58,
+      alignItems: "center",
+      borderRadius: radii.lg,
+      backgroundColor: colors.accentSoft,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs
+    },
+    commandScoreValue: {
+      color: colors.ink,
+      fontSize: 15,
+      lineHeight: 18,
+      fontWeight: "900"
+    },
+    commandScoreLabel: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    commandGrid: {
+      gap: spacing.xs
+    },
+    commandStep: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      padding: spacing.sm,
+      borderRadius: radii.lg,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.05)" : colors.surfaceAlt
+    },
+    commandStepNumber: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      overflow: "hidden",
+      color: colors.heroText,
+      backgroundColor: colors.heroSurface,
+      textAlign: "center",
+      lineHeight: 24,
+      fontSize: 12,
+      fontWeight: "900"
+    },
+    commandStepText: {
+      flex: 1,
+      color: colors.ink,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "800"
+    },
+    smartStackCard: {
+      gap: spacing.md
+    },
+    smartStackHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    smartStackIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 15,
+      backgroundColor: colors.heroSurface,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    smartStackCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    smartStackTitle: {
+      color: colors.ink,
+      fontSize: 18,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    smartStackText: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
+    },
+    smartStackPlus: {
+      color: colors.heroText,
+      backgroundColor: colors.heroSurface,
+      borderRadius: radii.round,
+      overflow: "hidden",
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 5,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    scheduleGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    scheduleSlot: {
+      width: "48.5%",
+      minHeight: 112,
+      borderRadius: radii.xl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.78)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : "rgba(255,255,255,0.72)",
+      padding: spacing.sm,
+      gap: 4,
+      overflow: "hidden"
+    },
+    scheduleSlotActive: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accentSoft
+    },
+    scheduleTopRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.xs
+    },
+    scheduleTime: {
+      color: colors.accent,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    scheduleMiniValue: {
+      color: colors.ink,
+      fontSize: 15,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    scheduleLabel: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 18,
+      fontWeight: "900"
+    },
+    schedulePromise: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "700"
+    },
+    themePackGrid: {
+      gap: spacing.xs
+    },
+    themePackCard: {
+      borderRadius: radii.xl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.13)" : colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.05)" : colors.surface,
+      padding: spacing.sm,
+      gap: spacing.xs,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.14 : 0.06,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 2
+    },
+    themePackCardActive: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accentSoft
+    },
+    themePackCardLocked: {
+      opacity: 0.74
+    },
+    themePackSwatches: {
+      flexDirection: "row",
+      gap: 4
+    },
+    themePackSwatch: {
+      flex: 1,
+      height: 30,
+      borderRadius: 11
+    },
+    themePackTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    themePackTitle: {
+      color: colors.ink,
+      fontSize: 15,
+      lineHeight: 20,
+      fontWeight: "900"
+    },
+    themePackDetail: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "700"
+    },
     appearanceCard: {
       gap: spacing.sm,
       padding: spacing.md
@@ -744,6 +1370,9 @@ function createStyles(theme: AppTheme) {
       borderColor: colors.accent,
       backgroundColor: colors.accentSoft
     },
+    appThemeButtonLocked: {
+      opacity: 0.72
+    },
     appThemeSwatches: {
       flexDirection: "row",
       gap: 4
@@ -753,10 +1382,33 @@ function createStyles(theme: AppTheme) {
       height: 26,
       borderRadius: 9
     },
+    appThemeNameRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.xs
+    },
     appThemeName: {
       color: colors.ink,
       fontSize: 12,
       lineHeight: 16,
+      fontWeight: "900"
+    },
+    themePlus: {
+      color: colors.heroText,
+      backgroundColor: colors.heroSurface,
+      borderRadius: radii.round,
+      overflow: "hidden",
+      paddingHorizontal: 7,
+      paddingVertical: 2,
+      fontSize: 9,
+      lineHeight: 12,
+      fontWeight: "900"
+    },
+    themeFree: {
+      color: colors.muted,
+      fontSize: 9,
+      lineHeight: 12,
       fontWeight: "900"
     },
     templateGrid: {
@@ -819,6 +1471,50 @@ function createStyles(theme: AppTheme) {
     },
     controlsCard: {
       gap: spacing.sm
+    },
+    liveWorkbench: {
+      borderRadius: radii.xxl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.82)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : "rgba(255,255,255,0.74)",
+      padding: spacing.md,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.md,
+      overflow: "hidden"
+    },
+    liveWorkbenchPreview: {
+      width: 112,
+      alignItems: "center",
+      transform: [{ scale: 0.84 }]
+    },
+    liveMiniWidget: {
+      marginLeft: -10,
+      marginRight: -10
+    },
+    liveWorkbenchCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 3
+    },
+    liveWorkbenchKicker: {
+      color: colors.accent,
+      fontSize: 10,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    liveWorkbenchTitle: {
+      color: colors.ink,
+      fontSize: 17,
+      lineHeight: 22,
+      fontWeight: "900"
+    },
+    liveWorkbenchText: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
     },
     controlLabel: {
       marginTop: spacing.xs,
@@ -996,6 +1692,26 @@ function createStyles(theme: AppTheme) {
       lineHeight: 18,
       fontWeight: "800",
       paddingVertical: spacing.xs
+    },
+    lockNotice: {
+      borderRadius: radii.xl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : colors.surfaceAlt,
+      padding: spacing.sm,
+      gap: 3
+    },
+    lockNoticeTitle: {
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    lockNoticeText: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
     },
     controlActions: {
       flexDirection: "row",

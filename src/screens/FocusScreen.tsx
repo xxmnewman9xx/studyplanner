@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Pause, Play, Power, Square } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
@@ -45,6 +45,11 @@ export function FocusScreen({
   const [running, setRunning] = useState(false);
   const [startedAt, setStartedAt] = useState<string | null>(null);
   const [pauseRecorded, setPauseRecorded] = useState(false);
+  const [classNote, setClassNote] = useState("");
+  const recentNotes = sessions
+    .filter((session) => session.notes && !session.notes.startsWith("Focus block"))
+    .slice(-3)
+    .reverse();
   const selected = focusableAssignments.find((assignment) => assignment.id === selectedId);
   const selectedCourse = selected ? getCourseForAssignment(courses, selected) : undefined;
   const plannedSessions = sessions
@@ -114,6 +119,7 @@ export function FocusScreen({
     setSecondsLeft(activeDurationMinutes * 60);
     setStartedAt(null);
     setPauseRecorded(false);
+    setClassNote("");
   };
 
   const elapsedMinutes = Math.max(0, activeDurationMinutes - Math.ceil(secondsLeft / 60));
@@ -148,6 +154,32 @@ export function FocusScreen({
           </TouchableOpacity>
         </View>
         <Text style={styles.silencedCopy}>Pick a task → start the timer → tap Done to save time and complete it.</Text>
+      </View>
+
+      <View style={styles.notesCard}>
+        <View style={styles.notesHeader}>
+          <Text style={styles.notesKicker}>Retention loop</Text>
+          <Text style={styles.notesBadge}>Class notes</Text>
+        </View>
+        <Text style={styles.notesTitle}>Capture the thing you’ll forget later.</Text>
+        <Text style={styles.notesCopy}>Optional notes attach to this focus block, so studying creates useful history instead of just a timer log.</Text>
+        <TextInput
+          multiline
+          value={classNote}
+          onChangeText={setClassNote}
+          placeholder="Example: Prof said quiz pulls from slides 18–24. Review enzyme chart."
+          placeholderTextColor={colors.faint}
+          style={styles.notesInput}
+          textAlignVertical="top"
+        />
+        {recentNotes.length > 0 ? (
+          <View style={styles.recentNotes}>
+            <Text style={styles.recentNotesTitle}>Recent saved notes</Text>
+            {recentNotes.map((session) => (
+              <Text key={session.id} style={styles.recentNote} numberOfLines={2}>• {session.notes}</Text>
+            ))}
+          </View>
+        ) : null}
       </View>
 
       {plannedSessions.length > 0 ? (
@@ -259,7 +291,7 @@ export function FocusScreen({
       endedAt: new Date().toISOString(),
       status,
       sessionNumber,
-      notes: status === "completed" ? "Focus block completed." : "Focus block ended."
+      notes: classNote.trim() || (status === "completed" ? "Focus block completed." : "Focus block ended.")
     });
   }
 }
@@ -420,6 +452,82 @@ function createStyles(theme: AppTheme) {
       fontSize: 11,
       lineHeight: 16,
       fontWeight: "800"
+    },
+    notesCard: {
+      marginTop: spacing.lg,
+      borderRadius: radii.xxl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.78)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : "rgba(255,255,255,0.80)",
+      padding: spacing.lg,
+      gap: spacing.sm,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.22 : 0.09,
+      shadowRadius: 22,
+      shadowOffset: { width: 0, height: 14 },
+      elevation: 4
+    },
+    notesHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between"
+    },
+    notesKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    notesBadge: {
+      color: colors.heroText,
+      backgroundColor: colors.heroSurface,
+      borderRadius: radii.round,
+      overflow: "hidden",
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 4,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    notesTitle: {
+      color: colors.ink,
+      fontSize: 20,
+      lineHeight: 25,
+      fontWeight: "900"
+    },
+    notesCopy: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "700"
+    },
+    notesInput: {
+      minHeight: 112,
+      borderRadius: radii.xl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: theme.isDark ? "rgba(0,0,0,0.18)" : "rgba(255,255,255,0.72)",
+      color: colors.ink,
+      padding: spacing.md,
+      fontSize: 14,
+      lineHeight: 20,
+      fontWeight: "700"
+    },
+    recentNotes: {
+      gap: 5
+    },
+    recentNotesTitle: {
+      color: colors.ink,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
+    },
+    recentNote: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
     },
     plannedList: {
       gap: spacing.sm

@@ -9,6 +9,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
+    "test": "npm run qa:release",
+    "lint": "npm run typecheck",
     "test:parser": "rm -rf /tmp/studyplanner-parser-test-build && tsc scripts/check-syllabus-parser.ts src/services/syllabusLocalParser.ts src/models.ts --outDir /tmp/studyplanner-parser-test-build --module commonjs --target ES2020 --esModuleInterop --skipLibCheck && node /tmp/studyplanner-parser-test-build/scripts/check-syllabus-parser.js",
     "check:iap": "node scripts/check-iap-config.mjs",
     "export:web": "expo export --platform web",
@@ -20,14 +22,16 @@
     "check:scenarios": "node scripts/check-scenarios.mjs"
   },
   "dependencies": {
-    "@expo/ui": "~55.0.16",
+    "@expo/ui": "~55.0.17",
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
-    "expo": "~55.0.24",
-    "expo-calendar": "~55.0.14",
+    "@react-native-ml-kit/text-recognition": "^2.0.0",
+    "expo": "~55.0.25",
+    "expo-build-properties": "~55.0.14",
+    "expo-calendar": "~55.0.15",
     "expo-document-picker": "~55.0.13",
-    "expo-file-system": "~55.0.20",
-    "expo-font": "~55.0.7",
+    "expo-file-system": "~55.0.21",
+    "expo-font": "~55.0.8",
     "expo-iap": "^4.2.4",
     "expo-image-picker": "~55.0.20",
     "expo-notifications": "~55.0.23",
@@ -47,5 +51,15 @@
     "@types/react": "~19.2.0",
     "babel-preset-expo": "~55.0.19",
     "typescript": "~5.9.2"
+  },
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "@react-native-ml-kit/text-recognition",
+          "expo-widgets"
+        ]
+      }
+    }
   }
 }

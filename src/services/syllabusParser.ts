@@ -1,5 +1,6 @@
 import { Assignment, SyllabusImportSource, SyllabusParseResult } from "../models";
 import * as FileSystem from "expo-file-system/legacy";
+import { extractTextFromImage } from "./imageTextRecognition";
 import { extractTextFromPdfBase64 } from "./pdfText";
 import { parseSyllabusText } from "./syllabusLocalParser";
 import { normalizeParseResult } from "./syllabusParseNormalizer";
@@ -17,7 +18,7 @@ export function isSyllabusParsingConfigured() {
 }
 
 export function supportsSyllabusImageParsing() {
-  return Boolean(parseEndpoint);
+  return true;
 }
 
 export async function parseSyllabus(source: SyllabusImportSource): Promise<SyllabusParseResult> {
@@ -88,9 +89,7 @@ async function readSourceText(source: SyllabusImportSource) {
   }
 
   if (source.kind === "photo" || source.mimeType?.startsWith("image/")) {
-    throw new Error(
-      "The photo was selected, but text could not be read on this device. Choose a text-based PDF or plain-text syllabus from Files and try again."
-    );
+    return extractTextFromImage(source.uri);
   }
 
   const isPdf = source.mimeType === "application/pdf" || /\.pdf$/i.test(source.name || "");

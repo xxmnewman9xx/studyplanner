@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -11,6 +12,7 @@ import {
   View
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { File, Paths } from "expo-file-system";
 import {
   CalendarDays,
   Crown,
@@ -84,6 +86,7 @@ const plannerStorageKey = "study-planner-data-v3";
 const freeCourseLimit = 2;
 const freeAssignmentLimit = 12;
 const freeImportLimit = 1;
+const marketingCaptureTabFileName = "studyplanner-capture-tab.json";
 const premiumTabs = new Set<NavTab>(["focus", "grades"]);
 
 const proTabs: Array<{
@@ -99,6 +102,41 @@ const proTabs: Array<{
 ];
 
 const freeTabs: typeof proTabs = proTabs;
+
+function parseCaptureTab(raw: string): NavTab | null {
+  try {
+    const value = JSON.parse(raw) as { tab?: unknown };
+    return isCaptureNavTab(value.tab) ? value.tab : null;
+  } catch {
+    const trimmed = raw.trim();
+    return isCaptureNavTab(trimmed) ? trimmed : null;
+  }
+}
+
+function isCaptureNavTab(value: unknown): value is NavTab {
+  return (
+    value === "today" ||
+    value === "import" ||
+    value === "plan" ||
+    value === "courses" ||
+    value === "more" ||
+    value === "focus" ||
+    value === "grades" ||
+    value === "upgrade"
+  );
+}
+
+function routeTabFromUrl(url: string): NavTab | null {
+  if (url.includes("widgets") || url.includes("widget-studio")) return "more";
+  if (url.includes("scan") || url.includes("import")) return "import";
+  if (url.includes("plan")) return "plan";
+  if (url.includes("classes") || url.includes("courses")) return "courses";
+  if (url.includes("focus")) return "focus";
+  if (url.includes("grades")) return "grades";
+  if (url.includes("plus") || url.includes("upgrade")) return "upgrade";
+  if (url.includes("today")) return "today";
+  return null;
+}
 
 export default function App() {
   return (
@@ -164,6 +202,38 @@ function AppContent() {
     setAccent(settings.appTheme || "campus");
   }, [hydrated, setAccent, settings.appTheme]);
 
+  useEffect(() => {
+    if (!hydrated) return;
+    if (typeof __DEV__ === "undefined" || !__DEV__) return;
+    if (!Paths.document) return;
+
+    let mounted = true;
+    const captureTabFile = new File(Paths.document, marketingCaptureTabFileName);
+
+    captureTabFile.text()
+      .then((raw) => {
+        if (!mounted) return;
+        const requestedTab = parseCaptureTab(raw);
+        if (!requestedTab) return;
+
+        setOnboarded(true);
+        setPaywallSeen(true);
+        if (!courses.length) setCourses(marketingCaptureCourses);
+        if (!assignments.length) setAssignments(marketingCaptureAssignments);
+        if (!gradeItems.length) setGradeItems(marketingCaptureGradeItems);
+        setSemester(marketingCaptureSemester);
+        setSelectedAssignmentId(null);
+        setFocusAssignmentId(null);
+        setActiveTab(requestedTab);
+        requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: 0, animated: false }));
+      })
+      .catch(() => undefined);
+
+    return () => {
+      mounted = false;
+    };
+  }, [assignments.length, courses.length, gradeItems.length, hydrated]);
+
   const openTab = (tab: NavTab) => {
     if (!marketingCaptureEnabled && premiumTabs.has(tab) && !subscription.isPremium) {
       setSelectedAssignmentId(null);
@@ -188,6 +258,24 @@ function AppContent() {
     setActiveTab("focus");
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   };
+
+  useEffect(() => {
+    if (!hydrated) return;
+
+    const openRoute = (url: string | null) => {
+      if (!url) return;
+      const normalized = url.toLowerCase();
+      const requestedTab = routeTabFromUrl(normalized);
+      if (requestedTab) {
+        setOnboarded(true);
+        openTab(requestedTab);
+      }
+    };
+
+    void Linking.getInitialURL().then(openRoute);
+    const subscription = Linking.addEventListener("url", ({ url }) => openRoute(url));
+    return () => subscription.remove();
+  }, [hydrated, subscription.isPremium]);
 
   useEffect(() => {
     if (marketingCaptureEnabled) {
