@@ -44,7 +44,7 @@ export function AppButton({
     >
       {variant === "primary" ? <View pointerEvents="none" style={styles.primarySheen} /> : null}
       {Icon ? <Icon color={foreground} size={18} /> : null}
-      <Text style={[styles.label, { color: foreground }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82}>
+      <Text style={[styles.label, { color: foreground }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -104,9 +104,13 @@ function createStyles(theme: AppTheme) {
       opacity: 0.56
     },
     label: {
+      flexShrink: 1,
+      maxWidth: "100%",
       fontSize: 14,
+      lineHeight: 18,
       letterSpacing: -0.1,
-      fontWeight: "900"
+      fontWeight: "900",
+      textAlign: "center"
     }
   });
 }

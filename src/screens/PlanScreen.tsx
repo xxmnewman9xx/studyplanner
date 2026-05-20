@@ -297,7 +297,7 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
                       <Text style={styles.survivalDayText}>{block.label}</Text>
                     </View>
                     <View style={styles.survivalBlockCopy}>
-                      <Text style={styles.survivalBlockTitle} numberOfLines={1}>{course?.code ? `${course.code} · ` : ""}{block.assignment.title}</Text>
+                      <Text style={styles.survivalBlockTitle}>{course?.code ? `${course.code} · ` : ""}{block.assignment.title}</Text>
                       <Text style={styles.survivalBlockMeta}>{block.minutes}m focus block · due {formatSelectedDate(block.assignment.dueAt.slice(0, 10))}</Text>
                     </View>
                   </View>

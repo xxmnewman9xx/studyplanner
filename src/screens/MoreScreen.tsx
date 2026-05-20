@@ -359,7 +359,7 @@ export function MoreScreen({
             <AppLogo showWordmark size={36} />
             <Text style={styles.kicker}>Widget Studio</Text>
             <Text style={styles.heroTitle}>Real widgets, real planner data.</Text>
-            <Text style={styles.heroText} numberOfLines={2}>Small and medium Today and Upcoming widgets sync reviewed homework. Plus owns advanced templates and customization.</Text>
+            <Text style={styles.heroText}>Small and medium Today and Upcoming widgets sync reviewed homework. Plus unlocks saved themes, Smart Stack presets, and visual customization.</Text>
           </View>
           <View style={styles.livePill}>
             <View style={styles.liveDot} />
@@ -562,13 +562,13 @@ export function MoreScreen({
             onPress={() => applyTemplate(template.preset)}
           >
             <View style={styles.templateTopRow}>
-              <Text style={styles.templateTitle} numberOfLines={1}>{template.label}</Text>
+              <Text style={styles.templateTitle}>{template.label}</Text>
               <Text style={[styles.templateEntitlement, template.entitlement === "plus" ? styles.templateEntitlementPlus : null]}>
                 {template.entitlement === "plus" ? "Plus" : "Free"}
               </Text>
             </View>
-            <Text style={styles.templateDetail} numberOfLines={1}>{template.detail}</Text>
-            <Text style={styles.templateMeta} numberOfLines={1}>{template.moment} | {template.data} | {template.preset.size === "large" ? "Large" : template.preset.size === "small" ? "Small" : "Medium"}</Text>
+            <Text style={styles.templateDetail}>{template.detail}</Text>
+            <Text style={styles.templateMeta}>{template.moment} | {template.data} | {template.preset.size === "large" ? "Large" : template.preset.size === "small" ? "Small" : "Medium"}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -894,8 +894,8 @@ function createStyles(theme: AppTheme) {
 
   return StyleSheet.create({
     studioHero: {
-      gap: spacing.sm,
-      padding: spacing.sm
+      gap: spacing.md,
+      padding: spacing.md
     },
     heroHeader: {
       flexDirection: "row",
@@ -915,14 +915,14 @@ function createStyles(theme: AppTheme) {
     },
     heroTitle: {
       color: colors.heroText,
-      fontSize: 22,
-      lineHeight: 26,
+      fontSize: 27,
+      lineHeight: 32,
       fontWeight: "900"
     },
     heroText: {
       color: colors.heroMuted,
-      fontSize: 12,
-      lineHeight: 17,
+      fontSize: 14,
+      lineHeight: 20,
       fontWeight: "800"
     },
     livePill: {
@@ -965,7 +965,8 @@ function createStyles(theme: AppTheme) {
     },
     previewStage: {
       alignItems: "center",
-      gap: spacing.xs
+      gap: spacing.sm,
+      paddingTop: spacing.xs
     },
     previewHint: {
       color: colors.heroMuted,
@@ -1415,7 +1416,7 @@ function createStyles(theme: AppTheme) {
       gap: spacing.xs
     },
     templateCard: {
-      minHeight: 68,
+      minHeight: 92,
       borderRadius: radii.xl,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.line,
@@ -1459,13 +1460,13 @@ function createStyles(theme: AppTheme) {
     templateDetail: {
       color: colors.muted,
       fontSize: 12,
-      lineHeight: 16,
+      lineHeight: 17,
       fontWeight: "700"
     },
     templateMeta: {
       color: colors.faint,
       fontSize: 10,
-      lineHeight: 13,
+      lineHeight: 14,
       fontWeight: "900",
       textTransform: "uppercase"
     },

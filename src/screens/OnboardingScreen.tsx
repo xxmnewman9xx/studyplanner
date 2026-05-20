@@ -195,10 +195,10 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
 
       <View style={styles.bottomBar}>
         <AppButton
-          label={index === 0 || isFinal ? "Scan or upload syllabus" : "Continue"}
-          icon={index === 0 || isFinal ? FileScan : undefined}
+          label={isFinal ? "Scan or upload syllabus" : "Continue"}
+          icon={isFinal ? FileScan : undefined}
           onPress={() => {
-            if (index === 0 || isFinal) {
+            if (isFinal) {
               finish("import");
               return;
             }
@@ -247,7 +247,7 @@ function createStyles(theme: AppTheme) {
     },
     screenContent: {
       flexGrow: 1,
-      paddingHorizontal: spacing.lg,
+      paddingHorizontal: spacing.md,
       paddingTop: spacing.xs,
       paddingBottom: spacing.xl,
       gap: spacing.sm
@@ -257,8 +257,8 @@ function createStyles(theme: AppTheme) {
       justifyContent: "center"
     },
     heroCard: {
-      gap: spacing.xs,
-      padding: spacing.sm
+      gap: spacing.sm,
+      padding: spacing.md
     },
     heroTopRow: {
       flexDirection: "row",
@@ -291,14 +291,14 @@ function createStyles(theme: AppTheme) {
     },
     title: {
       color: colors.heroText,
-      fontSize: 24,
-      lineHeight: 29,
+      fontSize: 27,
+      lineHeight: 32,
       fontWeight: "900"
     },
     copy: {
       color: colors.heroMuted,
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 15,
+      lineHeight: 22,
       fontWeight: "700"
     },
     previewPanel: {

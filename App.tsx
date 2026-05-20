@@ -158,6 +158,7 @@ function AppContent() {
   const scrollRef = useRef<ScrollView>(null);
   const [onboarded, setOnboarded] = useState(marketingCaptureEnabled);
   const [paywallSeen, setPaywallSeen] = useState(marketingCaptureEnabled);
+  const [postPaywallTab, setPostPaywallTab] = useState<NavTab>("import");
   const [activeTab, setActiveTab] = useState<NavTab>(getMarketingCaptureInitialTab());
   const [semester, setSemester] = useState(
     marketingCaptureEnabled ? marketingCaptureSemester : defaultSemester
@@ -652,7 +653,8 @@ function AppContent() {
       nextAssignmentId: demo.assignments[0]?.id
     });
     setOnboarded(true);
-    setPaywallSeen(true);
+    setPaywallSeen(false);
+    setPostPaywallTab("today");
     setActiveTab("today");
   };
 
@@ -665,11 +667,13 @@ function AppContent() {
       return;
     }
 
+    const destinationTab: NavTab = destination === "manual" ? "courses" : "import";
     setSettings((current) => ({ ...current, ...settingsPatch }));
     setOnboarded(true);
-    setPaywallSeen(true);
+    setPaywallSeen(false);
+    setPostPaywallTab(destinationTab);
     setDemoMode(false);
-    setActiveTab(destination === "manual" ? "courses" : "import");
+    setActiveTab(destinationTab);
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   };
 
@@ -763,6 +767,24 @@ function AppContent() {
       <SafeAreaView style={styles.safeArea}>
         <StatusBar style={theme.isDark ? "light" : "dark"} />
         <OnboardingScreen onFinish={finishOnboarding} />
+      </SafeAreaView>
+    );
+  }
+
+  if (!marketingCaptureEnabled && !subscription.isPremium && !paywallSeen) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar style={theme.isDark ? "light" : "dark"} />
+        <ScrollView style={styles.scrollArea} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          <UpgradeScreen
+            hardMode
+            onContinueFree={() => {
+              setPaywallSeen(true);
+              setActiveTab(postPaywallTab);
+              scrollRef.current?.scrollTo({ y: 0, animated: false });
+            }}
+          />
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -942,7 +964,7 @@ function AppContent() {
                   premiumWidgetsLocked={!marketingCaptureEnabled && !subscription.isPremium}
                 />
               ) : null}
-              {activeTab === "upgrade" ? <UpgradeScreen /> : null}
+              {activeTab === "upgrade" ? <UpgradeScreen onContinueFree={() => openTab(postPaywallTab)} /> : null}
             </>
           )}
         </ScrollView>

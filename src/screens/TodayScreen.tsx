@@ -149,8 +149,8 @@ export function TodayScreen({
                 <Text style={styles.nextKicker}>{formatDueUrgency(nextDueDays)}</Text>
                 <Text style={styles.timeChip}>{plan.nextAction.estimatedMinutes || 25} min</Text>
               </View>
-              <Text style={styles.nextTitle} numberOfLines={2}>{nextCourse?.code} · {plan.nextAction.title}</Text>
-              <Text style={styles.nextMeta} numberOfLines={1}>
+              <Text style={styles.nextTitle}>{nextCourse?.code} · {plan.nextAction.title}</Text>
+              <Text style={styles.nextMeta}>
                 Due {formatDateOnly(plan.nextAction.dueAt.slice(0, 10))} · {plan.nextAction.estimatedMinutes}m · {nextCourse?.period || "class"}
               </Text>
             </View>
@@ -512,7 +512,7 @@ function CatchUpSprintCard({ overdue, courses, onOpenAssignment, onOpenFocus, on
           return (
             <View key={item.id} style={styles.catchUpStep}>
               <Text style={styles.catchUpStepNumber}>{index + 1}</Text>
-              <Text style={styles.catchUpStepText} numberOfLines={1}>{course?.code ? `${course.code} · ` : ""}{item.title}</Text>
+              <Text style={styles.catchUpStepText}>{course?.code ? `${course.code} · ` : ""}{item.title}</Text>
             </View>
           );
         })}
@@ -571,8 +571,8 @@ function CommandTile({ title, detail, icon: Icon, onPress, tone }: CommandTilePr
       <View style={[styles.commandIcon, { backgroundColor: `${toneColor}22` }]}>
         <Icon color={toneColor} size={20} />
       </View>
-      <Text style={styles.commandTitle} numberOfLines={1}>{title}</Text>
-      <Text style={styles.commandDetail} numberOfLines={2}>{detail}</Text>
+      <Text style={styles.commandTitle}>{title}</Text>
+      <Text style={styles.commandDetail}>{detail}</Text>
     </TouchableOpacity>
   );
 }
