@@ -16,7 +16,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.mattnewman.studyplanner",
       "icon": "./assets/app/study-planner-icon.png",
-      "buildNumber": "20",
+      "buildNumber": "21",
       "entitlements": {
         "com.apple.security.application-groups": [
           "group.com.mattnewman.studyplanner"

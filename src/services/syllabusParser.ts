@@ -18,7 +18,7 @@ export function isSyllabusParsingConfigured() {
 }
 
 export function supportsSyllabusImageParsing() {
-  return true;
+  return Boolean(parseEndpoint);
 }
 
 export async function parseSyllabus(source: SyllabusImportSource): Promise<SyllabusParseResult> {
