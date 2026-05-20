@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Bell, CalendarPlus, CheckCircle2, ChevronRight, Crown, FileScan, Plus, Sparkles, Timer } from "lucide-react-native";
+import { Bell, CalendarDays, CalendarPlus, CheckCircle2, ChevronRight, Crown, FileScan, NotebookPen, Palette, Plus, Sparkles, Timer } from "lucide-react-native";
 import {
   AppLogo,
   AssignmentRow,
@@ -139,7 +139,10 @@ export function TodayScreen({
       ) : null}
 
       <GlassCard tone="hero" style={styles.heroCard}>
-        <Text style={styles.heroKicker}>Next move</Text>
+        <View pointerEvents="none" style={styles.heroOrbPrimary} />
+        <View pointerEvents="none" style={styles.heroOrbSecondary} />
+        <View pointerEvents="none" style={styles.heroGridWash} />
+        <Text style={styles.heroKicker}>Apple School OS</Text>
         <Text style={styles.heroTitle}>{liveBrief.title}</Text>
         <Text style={styles.heroSubtitle}>{liveBrief.detail}</Text>
         {plan.nextAction ? (
@@ -181,6 +184,17 @@ export function TodayScreen({
           <MetricPill label="Done" value={`${completionPercent}%`} />
         </View>
       </GlassCard>
+
+      <AppleSchoolDashboard
+        courses={courses}
+        assignments={assignments}
+        semesterPercent={semesterPercent}
+        openCount={plan.openCount}
+        urgentCount={plan.overdue.length + plan.dueSoon.length}
+        onOpenPlan={onOpenPlan}
+        onOpenClasses={onOpenClasses}
+        onOpenScan={onOpenScan}
+      />
 
       {!assignments.length ? (
         <GlassCard style={styles.starterCard}>
@@ -546,6 +560,88 @@ function MetricPill({ label, value }: MetricPillProps) {
   );
 }
 
+type AppleSchoolDashboardProps = {
+  courses: Course[];
+  assignments: Assignment[];
+  semesterPercent: number;
+  openCount: number;
+  urgentCount: number;
+  onOpenPlan: () => void;
+  onOpenClasses: () => void;
+  onOpenScan: () => void;
+};
+
+function AppleSchoolDashboard({
+  courses,
+  assignments,
+  semesterPercent,
+  openCount,
+  urgentCount,
+  onOpenPlan,
+  onOpenClasses,
+  onOpenScan
+}: AppleSchoolDashboardProps) {
+  const { theme } = useAppTheme();
+  const { colors } = theme;
+  const styles = createStyles(theme);
+  const nextClass = courses[0];
+  const noteCourses = courses.filter((course) => course.notes?.trim()).slice(0, 2);
+  const noteCount = courses.filter((course) => course.notes?.trim()).length;
+  const activeClasses = courses.length;
+
+  return (
+    <GlassCard style={styles.osCard}>
+      <View style={styles.osHeader}>
+        <View style={styles.osHeaderCopy}>
+          <Text style={styles.osKicker}>Live student dashboard</Text>
+          <Text style={styles.osTitle}>Schedule, classwork, notes, and widgets in one place.</Text>
+        </View>
+        <View style={styles.osBadge}>
+          <Sparkles color={colors.accent} size={14} />
+          <Text style={styles.osBadgeText}>AI organized</Text>
+        </View>
+      </View>
+
+      <View style={styles.osGrid}>
+        <TouchableOpacity accessibilityRole="button" style={styles.osTileLarge} onPress={onOpenPlan}>
+          <View style={styles.osTileIcon}><CalendarDays color={colors.accent} size={18} /></View>
+          <Text style={styles.osTileLabel}>Agenda</Text>
+          <Text style={styles.osTileValue}>{urgentCount ? `${urgentCount} urgent` : `${openCount} open`}</Text>
+          <Text style={styles.osTileDetail}>{semesterPercent}% through the semester</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity accessibilityRole="button" style={styles.osTile} onPress={onOpenClasses}>
+          <View style={styles.osTileIcon}><Palette color={colors.brandPink} size={18} /></View>
+          <Text style={styles.osTileLabel}>Classes</Text>
+          <Text style={styles.osTileValue}>{activeClasses || "Set up"}</Text>
+          <Text style={styles.osTileDetail}>{nextClass ? `${courseEmoji(nextClass)} ${nextClass.code || nextClass.name}` : "Add your schedule"}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity accessibilityRole="button" style={styles.osTile} onPress={onOpenClasses}>
+          <View style={styles.osTileIcon}><NotebookPen color={colors.sage} size={18} /></View>
+          <Text style={styles.osTileLabel}>Notes</Text>
+          <Text style={styles.osTileValue}>{noteCount || "Ready"}</Text>
+          <Text style={styles.osTileDetail}>{noteCourses[0]?.notes?.slice(0, 42) || "Pin class notes and context"}</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.osTimeline}>
+        <View style={styles.osTimelineRail} />
+        <View style={styles.osTimelineItem}>
+          <Text style={styles.osTimelineTime}>Now</Text>
+          <Text style={styles.osTimelineText}>{assignments.length ? "Workload is live from your planner." : "Scan a syllabus to generate your semester."}</Text>
+        </View>
+        <View style={styles.osTimelineItem}>
+          <Text style={styles.osTimelineTime}>Next</Text>
+          <Text style={styles.osTimelineText}>{nextClass ? `${nextClass.code || nextClass.name} dashboard ready.` : "Classes, notes, and widgets unlock as you add data."}</Text>
+        </View>
+      </View>
+
+      {!assignments.length ? <AppButton label="Scan syllabus into dashboard" icon={FileScan} onPress={onOpenScan} /> : null}
+    </GlassCard>
+  );
+}
+
 type CommandTileProps = {
   title: string;
   detail: string;
@@ -878,6 +974,140 @@ function createStyles(theme: AppTheme) {
     importHandoffButton: {
       flex: 1,
       paddingHorizontal: spacing.xs
+    },
+    osCard: {
+      gap: spacing.md,
+      marginBottom: spacing.sm,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(49,91,255,0.16)"
+    },
+    osHeader: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    osHeaderCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 3
+    },
+    osKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      textTransform: "uppercase",
+      letterSpacing: 0.7
+    },
+    osTitle: {
+      color: colors.ink,
+      fontSize: 20,
+      lineHeight: 25,
+      fontWeight: "900",
+      letterSpacing: -0.35
+    },
+    osBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      borderRadius: radii.round,
+      backgroundColor: colors.accentSoft,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 7
+    },
+    osBadgeText: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    osGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm
+    },
+    osTileLarge: {
+      flexBasis: "100%",
+      borderRadius: radii.xl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : colors.surfaceAlt,
+      padding: spacing.md,
+      gap: spacing.xs
+    },
+    osTile: {
+      flexBasis: "47%",
+      flexGrow: 1,
+      minHeight: 132,
+      borderRadius: radii.xl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.elevated,
+      padding: spacing.md,
+      gap: spacing.xs
+    },
+    osTileIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: radii.md,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.accentSoft
+    },
+    osTileLabel: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase",
+      letterSpacing: 0.5
+    },
+    osTileValue: {
+      color: colors.ink,
+      fontSize: 22,
+      lineHeight: 27,
+      fontWeight: "900"
+    },
+    osTileDetail: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
+    },
+    osTimeline: {
+      position: "relative",
+      borderRadius: radii.xl,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.05)" : "rgba(49,91,255,0.055)",
+      padding: spacing.md,
+      gap: spacing.sm,
+      overflow: "hidden"
+    },
+    osTimelineRail: {
+      position: "absolute",
+      left: 71,
+      top: spacing.md,
+      bottom: spacing.md,
+      width: 2,
+      backgroundColor: colors.line
+    },
+    osTimelineItem: {
+      flexDirection: "row",
+      gap: spacing.md,
+      alignItems: "flex-start"
+    },
+    osTimelineTime: {
+      width: 42,
+      color: colors.accent,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    osTimelineText: {
+      flex: 1,
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "800"
     },
     commandGrid: {
       flexDirection: "row",

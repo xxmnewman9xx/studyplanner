@@ -11,7 +11,7 @@ import {
 } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { AppLogo, GlassCard } from "../components/AppleComponents";
-import { AppTheme } from "../theme";
+import { AppTheme, appThemePalettes, ThemeAccent } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { UserSettings } from "../models";
 
@@ -81,12 +81,13 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
   const styles = createStyles(theme);
   const [index, setIndex] = useState(0);
   const [reminderStyle, setReminderStyle] = useState(reminderChoices[0]!.value);
+  const [appTheme, setAppTheme] = useState<ThemeAccent>("campus");
   const slide = slides[index] ?? slides[0]!;
   const Icon = slide.icon;
   const isFinal = index === slides.length - 1;
 
   const finish = (destination: OnboardingDestination) => {
-    onFinish(destination, { notificationDefault: reminderStyle });
+    onFinish(destination, { notificationDefault: reminderStyle, appTheme });
   };
 
   return (
@@ -164,6 +165,28 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
 
       {isFinal ? (
         <GlassCard style={styles.choiceCard}>
+          <Text style={styles.choiceTitle}>Make it feel like your semester</Text>
+          <Text style={styles.choiceIntro}>Pick a dashboard atmosphere now. You can change it later in Widget Studio.</Text>
+          <View style={styles.themeChoiceGrid}>
+            {(["campus", "aura", "mint", "graphite"] as ThemeAccent[]).map((themeKey) => {
+              const meta = appThemePalettes[themeKey];
+              const active = appTheme === themeKey;
+              return (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  key={themeKey}
+                  style={[styles.themeChoice, active ? styles.themeChoiceActive : null]}
+                  onPress={() => setAppTheme(themeKey)}
+                >
+                  <View style={styles.themeSwatches}>
+                    {meta.swatches.slice(0, 3).map((swatch) => <View key={swatch} style={[styles.themeSwatch, { backgroundColor: swatch }]} />)}
+                  </View>
+                  <Text style={styles.themeChoiceLabel}>{meta.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
           <Text style={styles.choiceTitle}>Reminder preset for later</Text>
           <View style={styles.choiceStack}>
             {reminderChoices.map((choice) => {
@@ -479,6 +502,49 @@ function createStyles(theme: AppTheme) {
     },
     choiceTitle: {
       ...typography.h2
+    },
+    choiceIntro: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "700"
+    },
+    themeChoiceGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    themeChoice: {
+      flexBasis: "47%",
+      flexGrow: 1,
+      minHeight: 78,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.sm,
+      gap: spacing.xs
+    },
+    themeChoiceActive: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accentSoft
+    },
+    themeSwatches: {
+      flexDirection: "row",
+      gap: 5
+    },
+    themeSwatch: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.7)"
+    },
+    themeChoiceLabel: {
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
     },
     choiceStack: {
       gap: spacing.xs
