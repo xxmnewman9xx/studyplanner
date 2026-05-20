@@ -19,7 +19,8 @@
     "test:quick-homework": "rm -rf /tmp/studyplanner-quick-homework-test-build && tsc scripts/check-quick-homework-parser.ts src/services/quickHomeworkParser.ts src/models.ts --outDir /tmp/studyplanner-quick-homework-test-build --module commonjs --target ES2020 --esModuleInterop --skipLibCheck && node /tmp/studyplanner-quick-homework-test-build/scripts/check-quick-homework-parser.js",
     "check:release-docs": "node scripts/check-release-docs.mjs",
     "test:parser-endpoint": "rm -rf /tmp/studyplanner-endpoint-normalizer-test-build && tsc scripts/check-syllabus-endpoint-normalizer.ts src/services/syllabusParseNormalizer.ts src/logic/planner.ts src/models.ts --outDir /tmp/studyplanner-endpoint-normalizer-test-build --module commonjs --target ES2020 --esModuleInterop --skipLibCheck && node /tmp/studyplanner-endpoint-normalizer-test-build/scripts/check-syllabus-endpoint-normalizer.js",
-    "check:scenarios": "node scripts/check-scenarios.mjs"
+    "check:scenarios": "node scripts/check-scenarios.mjs",
+    "qa:sim-product-depth": "node scripts/sim-qa-product-depth.mjs"
   },
   "dependencies": {
     "@expo/ui": "~55.0.17",

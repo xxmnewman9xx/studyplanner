@@ -9,7 +9,7 @@ import {
 } from "../components/AppleComponents";
 import { AppButton } from "../components/AppButton";
 import { SectionHeader } from "../components/SectionHeader";
-import { Assignment, Course, Semester } from "../models";
+import { Assignment, Course, Semester, StudyNote } from "../models";
 import {
   buildTodayPlan,
   daysUntil,
@@ -34,6 +34,7 @@ type TodayScreenProps = {
   courses: Course[];
   semester: Semester;
   studentName: string;
+  notes: StudyNote[];
   importHandoff?: ImportHandoffSummary | null;
   demoMode?: boolean;
   onUpdateStatus: (assignmentId: string, status: "not_started" | "in_progress" | "done") => void;
@@ -46,6 +47,7 @@ type TodayScreenProps = {
   onOpenScan: () => void;
   onOpenPlan: () => void;
   onOpenClasses: () => void;
+  onOpenNotes: () => void;
   onTryDemo: () => void;
   onReplaceDemo: () => void;
   onAddQuickAssignment: (courseId: string, title: string, dueDate: string, kind: "assignment") => boolean;
@@ -55,6 +57,7 @@ export function TodayScreen({
   assignments,
   courses,
   semester,
+  notes,
   importHandoff,
   demoMode = false,
   onUpdateStatus,
@@ -67,6 +70,7 @@ export function TodayScreen({
   onOpenScan,
   onOpenPlan,
   onOpenClasses,
+  onOpenNotes,
   onTryDemo,
   onReplaceDemo,
   onAddQuickAssignment
@@ -188,13 +192,17 @@ export function TodayScreen({
       <AppleSchoolDashboard
         courses={courses}
         assignments={assignments}
+        notes={notes}
         semesterPercent={semesterPercent}
         openCount={plan.openCount}
         urgentCount={plan.overdue.length + plan.dueSoon.length}
         onOpenPlan={onOpenPlan}
         onOpenClasses={onOpenClasses}
+        onOpenNotes={onOpenNotes}
         onOpenScan={onOpenScan}
       />
+
+      <WeekWorkloadMap assignments={assignments} courses={courses} onOpenPlan={onOpenPlan} />
 
       {!assignments.length ? (
         <GlassCard style={styles.starterCard}>
@@ -560,33 +568,82 @@ function MetricPill({ label, value }: MetricPillProps) {
   );
 }
 
+function WeekWorkloadMap({ assignments, courses, onOpenPlan }: { assignments: Assignment[]; courses: Course[]; onOpenPlan: () => void }) {
+  const { theme } = useAppTheme();
+  const { colors } = theme;
+  const styles = createStyles(theme);
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date();
+    date.setDate(date.getDate() + index);
+    const key = date.toISOString().slice(0, 10);
+    const items = assignments.filter((assignment) => assignment.status !== "archived" && assignment.dueAt.startsWith(key));
+    return { key, label: index === 0 ? "Today" : date.toLocaleDateString(undefined, { weekday: "short" }), items };
+  });
+  const maxCount = Math.max(1, ...days.map((day) => day.items.length));
+
+  return (
+    <GlassCard style={styles.scheduleCard}>
+      <View style={styles.scheduleHeader}>
+        <View>
+          <Text style={styles.scheduleKicker}>Schedule map</Text>
+          <Text style={styles.scheduleTitle}>Due-date density for the next 7 days.</Text>
+        </View>
+        <TouchableOpacity accessibilityRole="button" style={styles.scheduleOpenButton} onPress={onOpenPlan}>
+          <Text style={styles.scheduleOpenText}>Open Plan</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.weekBars}>
+        {days.map((day) => {
+          const height = 26 + Math.round((day.items.length / maxCount) * 58);
+          const course = courses.find((item) => item.id === day.items[0]?.courseId);
+          return (
+            <View key={day.key} style={styles.weekBarColumn}>
+              <View style={styles.weekBarTrack}>
+                <View style={[styles.weekBarFill, { height, backgroundColor: course?.color || colors.accent }]} />
+              </View>
+              <Text style={styles.weekBarCount}>{day.items.length}</Text>
+              <Text style={styles.weekBarLabel}>{day.label}</Text>
+            </View>
+          );
+        })}
+      </View>
+      <Text style={styles.scheduleHint}>{assignments.length ? "Tap Plan to rebalance heavy days or start a focus block." : "Your schedule map fills in after scanning a syllabus or adding assignments."}</Text>
+    </GlassCard>
+  );
+}
+
 type AppleSchoolDashboardProps = {
   courses: Course[];
   assignments: Assignment[];
+  notes: StudyNote[];
   semesterPercent: number;
   openCount: number;
   urgentCount: number;
   onOpenPlan: () => void;
   onOpenClasses: () => void;
+  onOpenNotes: () => void;
   onOpenScan: () => void;
 };
 
 function AppleSchoolDashboard({
   courses,
   assignments,
+  notes,
   semesterPercent,
   openCount,
   urgentCount,
   onOpenPlan,
   onOpenClasses,
+  onOpenNotes,
   onOpenScan
 }: AppleSchoolDashboardProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
   const nextClass = courses[0];
-  const noteCourses = courses.filter((course) => course.notes?.trim()).slice(0, 2);
-  const noteCount = courses.filter((course) => course.notes?.trim()).length;
+  const pinnedNotes = notes.filter((note) => note.pinned).slice(0, 2);
+  const recentNotes = (pinnedNotes.length ? pinnedNotes : notes).slice(0, 2);
+  const noteCount = notes.length;
   const activeClasses = courses.length;
 
   return (
@@ -617,11 +674,11 @@ function AppleSchoolDashboard({
           <Text style={styles.osTileDetail}>{nextClass ? `${courseEmoji(nextClass)} ${nextClass.code || nextClass.name}` : "Add your schedule"}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity accessibilityRole="button" style={styles.osTile} onPress={onOpenClasses}>
+        <TouchableOpacity accessibilityRole="button" style={styles.osTile} onPress={onOpenNotes}>
           <View style={styles.osTileIcon}><NotebookPen color={colors.sage} size={18} /></View>
           <Text style={styles.osTileLabel}>Notes</Text>
           <Text style={styles.osTileValue}>{noteCount || "Ready"}</Text>
-          <Text style={styles.osTileDetail}>{noteCourses[0]?.notes?.slice(0, 42) || "Pin class notes and context"}</Text>
+          <Text style={styles.osTileDetail}>{recentNotes[0]?.title || "Pin class notes and context"}</Text>
         </TouchableOpacity>
       </View>
 
@@ -974,6 +1031,91 @@ function createStyles(theme: AppTheme) {
     importHandoffButton: {
       flex: 1,
       paddingHorizontal: spacing.xs
+    },
+    scheduleCard: {
+      gap: spacing.md,
+      marginBottom: spacing.sm,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(49,91,255,0.14)"
+    },
+    scheduleHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      gap: spacing.sm
+    },
+    scheduleKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      textTransform: "uppercase",
+      letterSpacing: 0.7
+    },
+    scheduleTitle: {
+      color: colors.ink,
+      fontSize: 18,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    scheduleOpenButton: {
+      borderRadius: radii.round,
+      backgroundColor: colors.accentSoft,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 8
+    },
+    scheduleOpenText: {
+      color: colors.accent,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
+    },
+    weekBars: {
+      minHeight: 128,
+      flexDirection: "row",
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+      gap: spacing.xs,
+      borderRadius: radii.xl,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.045)" : colors.surfaceAlt,
+      padding: spacing.sm
+    },
+    weekBarColumn: {
+      flex: 1,
+      alignItems: "center",
+      gap: 4
+    },
+    weekBarTrack: {
+      width: "100%",
+      maxWidth: 30,
+      height: 92,
+      borderRadius: 15,
+      backgroundColor: colors.surface,
+      alignItems: "center",
+      justifyContent: "flex-end",
+      overflow: "hidden"
+    },
+    weekBarFill: {
+      width: "100%",
+      minHeight: 12,
+      borderRadius: 15
+    },
+    weekBarCount: {
+      color: colors.ink,
+      fontSize: 12,
+      lineHeight: 15,
+      fontWeight: "900"
+    },
+    weekBarLabel: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    scheduleHint: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
     },
     osCard: {
       gap: spacing.md,

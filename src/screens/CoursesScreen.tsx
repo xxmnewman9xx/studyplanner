@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Edit3, Plus } from "lucide-react-native";
+import { Edit3, NotebookPen, Plus } from "lucide-react-native";
 import {
   AssignmentRow,
   ClassIdentityCard,
@@ -9,7 +9,7 @@ import {
 } from "../components/AppleComponents";
 import { AppButton } from "../components/AppButton";
 import { SectionHeader } from "../components/SectionHeader";
-import { Assignment, AssignmentKind, Course, Semester } from "../models";
+import { Assignment, AssignmentKind, Course, Semester, StudyNote } from "../models";
 import {
   formatDateOnly,
   getClassAssignmentCounts,
@@ -24,6 +24,7 @@ type CoursesScreenProps = {
   semester: Semester;
   courses: Course[];
   assignments: Assignment[];
+  notes?: StudyNote[];
   onAddQuickAssignment: (
     courseId: string,
     title: string,
@@ -31,6 +32,7 @@ type CoursesScreenProps = {
     kind: AssignmentKind
   ) => boolean;
   onOpenAssignment: (assignmentId: string) => void;
+  onOpenNotes?: () => void;
   onUpdateSemester: (patch: Partial<Semester>) => void;
   onAddCourse: (course: Pick<Course, "code" | "name" | "instructor">) => void;
   onUpdateCourse: (courseId: string, patch: Partial<Course>) => void;
@@ -40,8 +42,10 @@ export function CoursesScreen({
   semester,
   courses,
   assignments,
+  notes = [],
   onAddQuickAssignment,
   onOpenAssignment,
+  onOpenNotes,
   onUpdateSemester,
   onAddCourse,
   onUpdateCourse
@@ -64,6 +68,11 @@ export function CoursesScreen({
     ? assignments
         .filter((assignment) => assignment.courseId === selectedCourse.id)
         .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
+    : [];
+  const selectedNotes = selectedCourse
+    ? notes
+        .filter((note) => note.courseId === selectedCourse.id)
+        .sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)) || new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     : [];
 
   useEffect(() => {
@@ -221,6 +230,24 @@ export function CoursesScreen({
                 textAlignVertical="top"
               />
             </Field>
+          </GlassCard>
+
+          <SectionHeader title="Linked notes" note="Real Notes records attached to this class." />
+          <GlassCard style={styles.linkedNotesCard}>
+            {selectedNotes.length ? selectedNotes.slice(0, 3).map((note) => (
+              <TouchableOpacity key={note.id} accessibilityRole="button" style={styles.linkedNoteRow} onPress={onOpenNotes}>
+                <View style={styles.linkedNoteIcon}><NotebookPen color={colors.accent} size={16} /></View>
+                <View style={styles.linkedNoteCopy}>
+                  <Text style={styles.linkedNoteTitle}>{note.pinned ? "Pinned · " : ""}{note.title}</Text>
+                  <Text style={styles.linkedNoteBody}>{note.body}</Text>
+                </View>
+              </TouchableOpacity>
+            )) : (
+              <TouchableOpacity accessibilityRole="button" style={styles.linkedNoteEmpty} onPress={onOpenNotes}>
+                <Text style={styles.linkedNoteTitle}>No linked notes yet</Text>
+                <Text style={styles.linkedNoteBody}>Open Notes to add teacher preferences, rubric clues, links, or lecture context for {selectedCourse.code}.</Text>
+              </TouchableOpacity>
+            )}
           </GlassCard>
 
           <SectionHeader title="Homework for this class" note={`${counts[selectedCourse.id]?.open || 0} still open`} />
@@ -590,6 +617,51 @@ function createStyles(theme: AppTheme) {
     },
     colorSwatchActive: {
       borderColor: colors.heroText
+    },
+    linkedNotesCard: {
+      gap: spacing.xs
+    },
+    linkedNoteRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      padding: spacing.sm
+    },
+    linkedNoteEmpty: {
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      padding: spacing.md,
+      gap: 3
+    },
+    linkedNoteIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.accentSoft
+    },
+    linkedNoteCopy: {
+      flex: 1,
+      minWidth: 0
+    },
+    linkedNoteTitle: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    linkedNoteBody: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
     },
     workList: {
       gap: spacing.sm

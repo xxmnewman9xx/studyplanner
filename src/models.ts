@@ -3,6 +3,7 @@ export type NavTab =
   | "import"
   | "plan"
   | "courses"
+  | "notes"
   | "more"
   | "focus"
   | "grades"
@@ -65,6 +66,7 @@ export type PlannerData = {
   parsedItems?: ParsedItem[];
   widgetPresets?: WidgetPreset[];
   focusSessions?: FocusSession[];
+  notes?: StudyNote[];
 };
 
 export type PlannerSettings = {
@@ -232,6 +234,17 @@ export type WidgetPreset = {
   smartStackSlot?: "morning" | "between_classes" | "study_time" | "night_review";
   scheduleLabel?: string;
   themePackId?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type StudyNote = {
+  id: string;
+  courseId?: string;
+  title: string;
+  body: string;
+  tags: string[];
+  pinned?: boolean;
   createdAt: string;
   updatedAt: string;
 };

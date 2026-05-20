@@ -354,6 +354,15 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
               <ResultStat value={String(counts?.projects || 0)} label="Projects" tone="gold" />
               <ResultStat value={String(needsReviewCount)} label="Needs review" tone="plain" />
             </View>
+            <View style={styles.confidencePanel}>
+              <Text style={styles.confidenceKicker}>AI confidence review</Text>
+              <Text style={styles.confidenceCopy}>Every extracted row stays editable. Low-confidence or missing-date items are highlighted before they can touch your planner.</Text>
+              <View style={styles.confidenceLegend}>
+                <ConfidenceLegend label="High" tone="high" />
+                <ConfidenceLegend label="Check" tone="medium" />
+                <ConfidenceLegend label="Fix" tone="low" />
+              </View>
+            </View>
             <View style={styles.firstMovesCard}>
               <Text style={styles.firstMovesKicker}>What happens next</Text>
               <Text style={styles.firstMovesTitle}>Review draft → add to Today → start studying.</Text>
@@ -434,9 +443,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                         {courseCode} · confidence {Math.round((assignment.confidence || 0.88) * 100)}%
                       </Text>
                     </View>
-                    {assignment.needsReview || assignment.duplicateOf ? (
-                      <Badge label={assignment.duplicateOf ? "Duplicate?" : "Check"} tone="red" />
-                    ) : null}
+                    <ConfidenceBadge confidence={assignment.confidence || 0.88} needsReview={Boolean(assignment.needsReview || assignment.duplicateOf)} />
                   </View>
 
                   <View style={styles.twoColumn}>
@@ -484,6 +491,11 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                     />
                   </View>
 
+                  <View style={styles.trustRail}>
+                    <View style={[styles.trustRailFill, { width: `${Math.max(12, Math.round((assignment.confidence || 0.88) * 100))}%` }]} />
+                  </View>
+                  <Text style={styles.trustExplanation}>{trustExplanation(assignment.confidence || 0.88, Boolean(assignment.needsReview || assignment.duplicateOf))}</Text>
+
                   <SegmentedControl
                     options={kinds}
                     value={assignment.kind}
@@ -530,6 +542,21 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
     );
   }
 
+  function ConfidenceLegend({ label, tone }: { label: string; tone: "high" | "medium" | "low" }) {
+    const toneStyle = tone === "high" ? styles.confidenceHigh : tone === "medium" ? styles.confidenceMedium : styles.confidenceLow;
+    return (
+      <View style={[styles.confidenceLegendPill, toneStyle]}>
+        <Text style={styles.confidenceLegendText}>{label}</Text>
+      </View>
+    );
+  }
+
+  function ConfidenceBadge({ confidence, needsReview }: { confidence: number; needsReview: boolean }) {
+    const label = needsReview || confidence < 0.62 ? "Fix" : confidence < 0.82 ? "Check" : "High";
+    const tone = label === "High" ? "green" : label === "Check" ? "gold" : "red";
+    return <Badge label={`${label} ${Math.round(confidence * 100)}%`} tone={tone} />;
+  }
+
   function ResultStat({
     value,
     label,
@@ -554,6 +581,13 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   }
 }
 
+
+function trustExplanation(confidence: number, needsReview: boolean) {
+  if (needsReview) return "Needs a human check: edit title, date, or time before adding to Today.";
+  if (confidence < 0.62) return "Low confidence: verify this row carefully.";
+  if (confidence < 0.82) return "Medium confidence: looks plausible, but worth a quick scan.";
+  return "High confidence: still editable before it touches your planner.";
+}
 
 function normalizedDueTime(value: string, kind: AssignmentKind) {
   const time = value.slice(11, 16);
@@ -1005,6 +1039,47 @@ function createStyles(theme: AppTheme) {
       lineHeight: 15,
       fontWeight: "900"
     },
+    confidencePanel: {
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.72)",
+      padding: spacing.md,
+      gap: spacing.xs
+    },
+    confidenceKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      textTransform: "uppercase",
+      letterSpacing: 0.7
+    },
+    confidenceCopy: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "800"
+    },
+    confidenceLegend: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    confidenceLegendPill: {
+      borderRadius: radii.round,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 7
+    },
+    confidenceLegendText: {
+      color: colors.heroText,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    confidenceHigh: { backgroundColor: colors.green },
+    confidenceMedium: { backgroundColor: colors.gold },
+    confidenceLow: { backgroundColor: colors.red },
     firstMovesCard: {
       borderRadius: radii.lg,
       borderWidth: 1,
@@ -1180,6 +1255,23 @@ function createStyles(theme: AppTheme) {
       fontSize: 14,
       fontWeight: "800",
       backgroundColor: colors.canvas
+    },
+    trustRail: {
+      height: 8,
+      borderRadius: radii.round,
+      backgroundColor: colors.surfaceAlt,
+      overflow: "hidden"
+    },
+    trustRailFill: {
+      height: "100%",
+      borderRadius: radii.round,
+      backgroundColor: colors.accent
+    },
+    trustExplanation: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "800"
     },
     applyBar: {
       marginTop: spacing.lg,

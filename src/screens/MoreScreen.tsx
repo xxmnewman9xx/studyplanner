@@ -25,6 +25,7 @@ import {
   Course,
   ParsedImport,
   Semester,
+  StudyNote,
   UserSettings,
   WidgetBackground,
   WidgetPalette,
@@ -41,6 +42,7 @@ import { useAppTheme } from "../themeContext";
 type MoreScreenProps = {
   assignments: Assignment[];
   courses: Course[];
+  notes?: StudyNote[];
   semester: Semester;
   parsedImports: ParsedImport[];
   demoMode?: boolean;
@@ -65,6 +67,7 @@ const appThemeOptions: ThemeAccent[] = ["campus", "classic", "mint", "aura", "ro
 export function MoreScreen({
   assignments,
   courses,
+  notes = [],
   semester,
   parsedImports,
   demoMode = false,
@@ -285,7 +288,7 @@ export function MoreScreen({
         ? "Build needed"
         : "WidgetKit";
   const smartPresetCount = widgetPresets.filter((preset) => preset.smartStackSlot).length;
-  const studioScore = [hasAssignments, hasCourses, nativeWidgetStatus.state === "synced", smartPresetCount >= 4, Boolean(settings.appTheme)].filter(Boolean).length;
+  const studioScore = [hasAssignments, hasCourses, notes.length > 0, nativeWidgetStatus.state === "synced", smartPresetCount >= 4, Boolean(settings.appTheme)].filter(Boolean).length;
   const dataSourceLabel = nativePreview ? "Native WidgetKit snapshot" : type === "class_focus" ? "Class-specific planner data" : "Live planner data";
   const selectedSmartSlot = smartStackSlots.find((slot) => `smart-${slot.id}` === editingPresetId || smartSlotFromPresetId(editingPresetId) === slot.id);
 
@@ -397,7 +400,7 @@ export function MoreScreen({
             <Text style={styles.commandTitle}>Pick a template. Tune the preview. Save the system.</Text>
           </View>
           <View style={styles.commandScorePill}>
-            <Text style={styles.commandScoreValue}>{studioScore}/5</Text>
+            <Text style={styles.commandScoreValue}>{studioScore}/6</Text>
             <Text style={styles.commandScoreLabel}>ready</Text>
           </View>
         </View>
@@ -416,6 +419,23 @@ export function MoreScreen({
           </View>
         </View>
       </GlassCard>
+
+      <SectionHeader title="Dashboard data connections" note="Widget Studio reads the same agenda, schedule, class, and note context as Apple School OS." />
+      <View style={styles.dataConnectionGrid}>
+        <View style={styles.dataConnectionCard}>
+          <Text style={styles.dataConnectionValue}>{assignments.length}</Text>
+          <Text style={styles.dataConnectionLabel}>agenda items</Text>
+        </View>
+        <View style={styles.dataConnectionCard}>
+          <Text style={styles.dataConnectionValue}>{courses.length}</Text>
+          <Text style={styles.dataConnectionLabel}>classes</Text>
+        </View>
+        <View style={styles.dataConnectionCard}>
+          <Text style={styles.dataConnectionValue}>{notes.length}</Text>
+          <Text style={styles.dataConnectionLabel}>class notes</Text>
+        </View>
+      </View>
+      <Text style={styles.dataConnectionHint}>{notes[0] ? `Pinned context available for widget copy: ${notes[0].title}` : "Add a class note from Notes to unlock richer widget copy and dashboard context."}</Text>
 
       <SectionHeader title="Smart Stack schedule" note="The highest-leverage Widgetsmith pattern: one widget system for each school-day moment." />
       <GlassCard style={styles.smartStackCard}>
@@ -1166,6 +1186,39 @@ function createStyles(theme: AppTheme) {
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "800"
+    },
+    dataConnectionGrid: {
+      flexDirection: "row",
+      gap: spacing.sm,
+      marginBottom: spacing.xs
+    },
+    dataConnectionCard: {
+      flex: 1,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      padding: spacing.sm,
+      gap: 2
+    },
+    dataConnectionValue: {
+      color: colors.ink,
+      fontSize: 22,
+      lineHeight: 27,
+      fontWeight: "900"
+    },
+    dataConnectionLabel: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    dataConnectionHint: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "800",
+      marginBottom: spacing.md
     },
     smartStackCard: {
       gap: spacing.md

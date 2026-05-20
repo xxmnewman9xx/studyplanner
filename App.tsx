@@ -18,6 +18,7 @@ import {
   Crown,
   FileScan,
   GraduationCap,
+  NotebookPen,
   Sparkles,
   Timer
 } from "lucide-react-native";
@@ -34,6 +35,7 @@ import {
   ParsedItem,
   PlannerData,
   Semester,
+  StudyNote,
   SyllabusParseResult,
   UserSettings,
   WidgetPreset
@@ -60,6 +62,7 @@ import { UpgradeScreen } from "./src/screens/UpgradeScreen";
 import { AssignmentDetailScreen } from "./src/screens/AssignmentDetailScreen";
 import { PlanScreen } from "./src/screens/PlanScreen";
 import { MoreScreen } from "./src/screens/MoreScreen";
+import { NotesScreen } from "./src/screens/NotesScreen";
 import {
   completeAssignment,
   isValidDateInput,
@@ -98,6 +101,7 @@ const proTabs: Array<{
   { id: "import", label: "Scan", icon: FileScan },
   { id: "plan", label: "Plan", icon: CalendarDays },
   { id: "courses", label: "Classes", icon: GraduationCap },
+  { id: "notes", label: "Notes", icon: NotebookPen },
   { id: "more", label: "Widgets", icon: Sparkles }
 ];
 
@@ -119,6 +123,7 @@ function isCaptureNavTab(value: unknown): value is NavTab {
     value === "import" ||
     value === "plan" ||
     value === "courses" ||
+    value === "notes" ||
     value === "more" ||
     value === "focus" ||
     value === "grades" ||
@@ -131,6 +136,7 @@ function routeTabFromUrl(url: string): NavTab | null {
   if (url.includes("scan") || url.includes("import")) return "import";
   if (url.includes("plan")) return "plan";
   if (url.includes("classes") || url.includes("courses")) return "courses";
+  if (url.includes("notes")) return "notes";
   if (url.includes("focus")) return "focus";
   if (url.includes("grades")) return "grades";
   if (url.includes("plus") || url.includes("upgrade")) return "upgrade";
@@ -178,6 +184,7 @@ function AppContent() {
   const [parsedItems, setParsedItems] = useState<ParsedItem[]>([]);
   const [widgetPresets, setWidgetPresets] = useState<WidgetPreset[]>(defaultWidgetPresets);
   const [focusSessions, setFocusSessions] = useState<FocusSession[]>([]);
+  const [notes, setNotes] = useState<StudyNote[]>([]);
   const [demoMode, setDemoMode] = useState(false);
   const [importHandoff, setImportHandoff] = useState<ImportHandoffSummary | null>(null);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
@@ -222,6 +229,7 @@ function AppContent() {
         if (!courses.length) setCourses(marketingCaptureCourses);
         if (!assignments.length) setAssignments(marketingCaptureAssignments);
         if (!gradeItems.length) setGradeItems(marketingCaptureGradeItems);
+        if (!notes.length) setNotes(buildDemoNotes(marketingCaptureCourses));
         setSemester(marketingCaptureSemester);
         setSelectedAssignmentId(null);
         setFocusAssignmentId(null);
@@ -233,7 +241,7 @@ function AppContent() {
     return () => {
       mounted = false;
     };
-  }, [assignments.length, courses.length, gradeItems.length, hydrated]);
+  }, [assignments.length, courses.length, gradeItems.length, hydrated, notes.length]);
 
   const openTab = (tab: NavTab) => {
     if (!marketingCaptureEnabled && premiumTabs.has(tab) && !subscription.isPremium) {
@@ -302,6 +310,7 @@ function AppContent() {
         setParsedItems(stored.parsedItems || []);
         setWidgetPresets(stored.widgetPresets?.length ? stored.widgetPresets : defaultWidgetPresets);
         setFocusSessions(stored.focusSessions || []);
+        setNotes(stored.notes || []);
         setDemoMode(Boolean(stored.demoMode));
       }
 
@@ -330,6 +339,7 @@ function AppContent() {
       parsedItems,
       widgetPresets,
       focusSessions,
+      notes,
       demoMode
     };
 
@@ -347,6 +357,7 @@ function AppContent() {
     focusSessions,
     gradeItems,
     hydrated,
+    notes,
     demoMode,
     onboarded,
     parsedImports,
@@ -589,6 +600,31 @@ function AppContent() {
     );
   };
 
+  const addNote = (note: Omit<StudyNote, "id" | "createdAt" | "updatedAt">) => {
+    const timestamp = new Date().toISOString();
+    setNotes((current) => [
+      {
+        ...note,
+        id: `note-${Date.now()}`,
+        createdAt: timestamp,
+        updatedAt: timestamp
+      },
+      ...current
+    ]);
+  };
+
+  const updateNote = (noteId: string, patch: Partial<StudyNote>) => {
+    setNotes((current) =>
+      current.map((note) =>
+        note.id === noteId ? { ...note, ...patch, updatedAt: new Date().toISOString() } : note
+      )
+    );
+  };
+
+  const deleteNote = (noteId: string) => {
+    setNotes((current) => current.filter((note) => note.id !== noteId));
+  };
+
   const updateAssignment = (assignmentId: string, patch: Partial<Assignment>) => {
     setAssignments((current) =>
       current.map((assignment) =>
@@ -643,6 +679,7 @@ function AppContent() {
     setParsedItems([]);
     setWidgetPresets(defaultWidgetPresets);
     setFocusSessions(demo.focusSessions);
+    setNotes(buildDemoNotes(demo.courses));
     setDemoMode(true);
     setSettings((current) => ({ ...current, ...settingsPatch }));
     setImportHandoff({
@@ -861,6 +898,7 @@ function AppContent() {
                   courses={courses}
                   semester={semester}
                   studentName={settings.studentName}
+                  notes={notes}
                   importHandoff={importHandoff}
                   demoMode={demoMode}
                   onUpdateStatus={updateAssignmentStatus}
@@ -873,6 +911,7 @@ function AppContent() {
                   onOpenScan={() => openTab("import")}
                   onOpenPlan={() => openTab("plan")}
                   onOpenClasses={() => openTab("courses")}
+                  onOpenNotes={() => openTab("notes")}
                   onTryDemo={() => startWithDemoPlanner()}
                   onReplaceDemo={() => {
                     setSemester(defaultSemester);
@@ -882,6 +921,7 @@ function AppContent() {
                     setParsedImports([]);
                     setParsedItems([]);
                     setFocusSessions([]);
+                    setNotes([]);
                     setImportHandoff(null);
                     setDemoMode(false);
                     openTab("import");
@@ -916,11 +956,23 @@ function AppContent() {
                   semester={semester}
                   courses={courses}
                   assignments={activeAssignments}
+                  notes={notes}
                   onAddQuickAssignment={addQuickAssignment}
                   onOpenAssignment={setSelectedAssignmentId}
+                  onOpenNotes={() => openTab("notes")}
                   onUpdateSemester={updateSemester}
                   onAddCourse={addCourse}
                   onUpdateCourse={updateCourse}
+                />
+              ) : null}
+              {activeTab === "notes" ? (
+                <NotesScreen
+                  courses={courses}
+                  notes={notes}
+                  onAddNote={addNote}
+                  onUpdateNote={updateNote}
+                  onDeleteNote={deleteNote}
+                  onOpenClasses={() => openTab("courses")}
                 />
               ) : null}
               {activeTab === "grades" ? (
@@ -949,6 +1001,7 @@ function AppContent() {
                 <MoreScreen
                   assignments={activeAssignments}
                   courses={courses}
+                  notes={notes}
                   semester={semester}
                   parsedImports={parsedImports}
                   demoMode={demoMode}
@@ -1072,6 +1125,24 @@ function buildDemoPlannerData(now = new Date()) {
   };
 }
 
+function buildDemoNotes(courses: Course[]): StudyNote[] {
+  const now = new Date().toISOString();
+  return courses.slice(0, 3).map((course, index) => ({
+    id: `demo-note-${course.id}`,
+    courseId: course.id,
+    title: index === 0 ? "Teacher preferences" : index === 1 ? "Exam study plan" : "Project rubric clues",
+    body: index === 0
+      ? "Prefers concise answers, show work, and submit lab reflections before class starts."
+      : index === 1
+        ? "Make a one-page formula sheet, redo missed quiz questions, then run a 25-minute focus block."
+        : "Rubric rewards source quality, clean outline, and a short reflection paragraph.",
+    tags: ["demo", "class-context"],
+    pinned: index === 0,
+    createdAt: now,
+    updatedAt: now
+  }));
+}
+
 function dateOffset(now: Date, offsetDays: number) {
   const date = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   date.setDate(date.getDate() + offsetDays);
@@ -1182,7 +1253,7 @@ function createStyles(theme: AppTheme, tablet = false) {
       elevation: 3
     },
     tabButton: {
-      width: "19.4%",
+      width: "16.1%",
       minHeight: 42,
       alignItems: "center",
       justifyContent: "center",
@@ -1199,7 +1270,7 @@ function createStyles(theme: AppTheme, tablet = false) {
     },
     tabLabel: {
       color: colors.muted,
-      fontSize: 9,
+      fontSize: 8,
       fontWeight: "900"
     },
     tabLabelActive: {
