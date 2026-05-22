@@ -5,7 +5,7 @@ import { useAppTheme } from "../themeContext";
 
 type BadgeProps = {
   label: string;
-  tone?: "neutral" | "gold" | "green" | "red" | "blue";
+  tone?: "neutral" | "gold" | "green" | "red" | "blue" | "warning";
 };
 
 export function Badge({ label, tone = "neutral" }: BadgeProps) {
@@ -16,19 +16,23 @@ export function Badge({ label, tone = "neutral" }: BadgeProps) {
     gold: styles.goldBadge,
     green: styles.greenBadge,
     red: styles.redBadge,
-    blue: styles.blueBadge
+    blue: styles.blueBadge,
+    warning: styles.warningBadge
   };
   const labelStyles = {
     neutral: styles.neutralLabel,
     gold: styles.goldLabel,
     green: styles.greenLabel,
     red: styles.redLabel,
-    blue: styles.blueLabel
+    blue: styles.blueLabel,
+    warning: styles.warningLabel
   };
 
   return (
     <View style={[styles.badge, badgeStyles[tone]]}>
-      <Text style={[styles.label, labelStyles[tone]]}>{label}</Text>
+      <Text style={[styles.label, labelStyles[tone]]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>
+        {label}
+      </Text>
     </View>
   );
 }
@@ -61,6 +65,10 @@ function createStyles(theme: AppTheme) {
       backgroundColor: theme.isDark ? "#3A201D" : "#FFE0D8",
       borderColor: theme.isDark ? "#6B322A" : "#F3B7A9"
     },
+    warningBadge: {
+      backgroundColor: theme.isDark ? "#35270B" : "#FFF4D6",
+      borderColor: theme.isDark ? "#6A541C" : "#EBCB72"
+    },
     blueBadge: {
       backgroundColor: theme.isDark ? "#1B2844" : "#E3ECFF",
       borderColor: theme.isDark ? "#35517F" : "#C8D7FF"
@@ -77,11 +85,15 @@ function createStyles(theme: AppTheme) {
     redLabel: {
       color: theme.isDark ? colors.red : "#9F2D24"
     },
+    warningLabel: {
+      color: theme.isDark ? colors.gold : "#7A4B00"
+    },
     blueLabel: {
       color: theme.isDark ? colors.blue : "#2146B2"
     },
     label: {
       fontSize: 12,
+      lineHeight: 16,
       fontWeight: "900"
     }
   });

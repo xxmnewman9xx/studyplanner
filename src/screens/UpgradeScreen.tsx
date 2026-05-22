@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ActivityIndicator, Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { Bell, CalendarSync, Check, Crown, FileScan, Layers3, ShieldCheck, WandSparkles, X } from "lucide-react-native";
+import { Bell, CalendarSync, Check, Crown, FileScan, Layers3, Palette, ShieldCheck, Timer, TrendingUp, X } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { AppLogo, GlassCard } from "../components/AppleComponents";
 import { Badge } from "../components/Badge";
@@ -17,10 +17,12 @@ type UpgradeScreenProps = {
 type LegalDocument = "terms" | "privacy";
 
 const paidFeatures = [
-  { icon: FileScan, title: "Syllabus scanning", detail: "Import scans, uploads, and re-imports when classes change." },
-  { icon: WandSparkles, title: "Smart planning", detail: "Turn approved deadlines into Today, Plan, workload, and focus blocks." },
-  { icon: Bell, title: "Calm reminders", detail: "Prep nudges, deadline alerts, and calendar sync without noise." },
-  { icon: Layers3, title: "Widget Studio", detail: "Save premium themes, Smart Stack presets, class looks, and widget styles." }
+  { icon: FileScan, title: "Unlimited imports", detail: "Scan, upload, paste, and re-import supported syllabus files when teachers change the plan." },
+  { icon: TrendingUp, title: "Grade forecast", detail: "Use entered scores and course weights to model the target grade before finals week." },
+  { icon: Timer, title: "Focus loop", detail: "Turn Tonight's work into timers, prep blocks, and calm deadline nudges." },
+  { icon: Layers3, title: "Premium widgets", detail: "Save named Smart Stack presets, class looks, and supported widget styles." },
+  { icon: Palette, title: "Custom themes", detail: "Unlock expressive class colors and dashboard personalization." },
+  { icon: Bell, title: "Automation", detail: "Reminders and calendar sync options are available where the device and permissions support them." }
 ];
 
 const freeFeatures = [
@@ -47,6 +49,30 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
     subscription.products.length === 0 &&
     subscription.status !== "checking" &&
     subscription.flowState !== "loading";
+  const loadingPlans = subscription.status === "checking" || subscription.flowState === "loading";
+  const hasProducts = subscription.products.length > 0;
+  const planStateTitle = subscription.isPremium
+    ? "Plus is active"
+    : subscription.flowState === "purchasing"
+      ? "Opening the store"
+      : subscription.flowState === "restoring"
+        ? "Checking purchases"
+        : loadingPlans
+          ? "Loading current plans"
+          : hasProducts
+            ? `${subscription.products.length} plan${subscription.products.length === 1 ? "" : "s"} available`
+            : "Free planner remains available";
+  const planStateDetail = subscription.isPremium
+    ? "Premium widgets, themes, scans, focus, and grade tools are unlocked on this device."
+    : plansUnavailable
+      ? unavailableCopy(subscription.status, subscription.hasConfiguredProducts)
+      : loadingPlans
+        ? "Prices, trials, and renewal periods come from the store before checkout."
+        : hasProducts
+          ? "Choose a store-backed product below. Restore stays available for existing subscribers."
+          : "You can continue with the free planner while products load.";
+  const freeValueLine = "Free lets you try the planner with real utility";
+  const plusLeverageLine = "Plus expands scans, automation, widgets, and semester controls";
 
   if (legalDocument) {
     return <LegalNotice document={legalDocument} onClose={() => setLegalDocument(null)} />;
@@ -61,39 +87,32 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
           <Badge label={hardMode ? "Before your planner" : "StudyPlanner Plus"} tone="gold" />
         </View>
         <Text style={styles.kicker}>{hardMode ? "Your semester command center" : "StudyPlanner Plus"}</Text>
-        <Text style={styles.title}>{hardMode ? "Unlock the full school loop." : "Upgrade the planner that keeps up."}</Text>
+        <Text style={styles.title}>{hardMode ? "Unlock the full school loop." : "Make school feel beatable."}</Text>
         <Text style={styles.subtitle}>
-          Free lets you try the planner with real utility. Plus expands scans, automation, widgets, and semester controls when school gets busy.
+          {plusLeverageLine}. Store-backed Plus unlocks higher limits, grade forecasting, focus tools, calendar/reminder options, and premium widget customization.
         </Text>
 
         <View style={styles.phonePreview}>
           <View style={styles.phoneHeader}>
             <View>
-              <Text style={styles.phoneKicker}>Today widget</Text>
-              <Text style={styles.phoneTitle}>3 deadlines handled</Text>
+              <Text style={styles.phoneKicker}>Illustrative Plus flow</Text>
+              <Text style={styles.phoneTitle}>Planner, grades, widgets</Text>
             </View>
             <View style={styles.phoneBadge}><Text style={styles.phoneBadgeText}>Plus</Text></View>
           </View>
           <View style={styles.phoneRows}>
             <PreviewRow color={colors.accent} title="Bio lab" detail="Prep block at 4:00" />
-            <PreviewRow color={colors.brandPink} title="Calc set" detail="Reminder tonight" />
-            <PreviewRow color={colors.sage} title="English essay" detail="Widget-ready" />
+            <PreviewRow color={colors.brandPink} title="Calc forecast" detail="Need 88% on quiz" />
+            <PreviewRow color={colors.sage} title="English essay" detail="Widget-ready countdown" />
           </View>
         </View>
+        <View style={styles.payoffRail}>
+          <PayoffPill icon={TrendingUp} label="Grades" />
+          <PayoffPill icon={FileScan} label="Imports" />
+          <PayoffPill icon={Timer} label="Focus" />
+          <PayoffPill icon={Palette} label="Themes" />
+        </View>
       </GlassCard>
-
-      <View style={styles.valueGrid}>
-        {paidFeatures.map((feature) => {
-          const Icon = feature.icon;
-          return (
-            <View key={feature.title} style={styles.valueTile}>
-              <View style={styles.valueIcon}><Icon color={colors.accent} size={18} /></View>
-              <Text style={styles.valueTitle}>{feature.title}</Text>
-              <Text style={styles.valueDetail}>{feature.detail}</Text>
-            </View>
-          );
-        })}
-      </View>
 
       {subscription.message ? (
         <View style={styles.noticeSuccess}>
@@ -105,8 +124,20 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
       {subscription.errorMessage && !plansUnavailable ? (
         <View style={styles.noticeError}>
           <Text style={styles.noticeText}>{subscription.errorMessage}</Text>
+          <AppButton label="Try Again" variant="secondary" onPress={() => void subscription.refresh()} />
         </View>
       ) : null}
+
+      <View style={[styles.planStateCard, subscription.errorMessage || plansUnavailable ? styles.planStateCardWarning : hasProducts || subscription.isPremium ? styles.planStateCardReady : null]}>
+        <View style={styles.planStateTopRow}>
+          <View style={styles.planStateCopy}>
+            <Text style={styles.planStateKicker}>Plan state</Text>
+            <Text style={styles.planStateTitle}>{planStateTitle}</Text>
+          </View>
+          {busy || loadingPlans ? <ActivityIndicator color={colors.accent} /> : <ShieldCheck color={hasProducts || subscription.isPremium ? colors.green : colors.muted} size={19} />}
+        </View>
+        <Text style={styles.planStateDetail}>{planStateDetail}</Text>
+      </View>
 
       {subscription.isPremium ? (
         <View style={styles.actionStack}>
@@ -116,10 +147,17 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
       ) : (
         <>
           <View style={styles.planList}>
-            {subscription.status === "checking" || subscription.flowState === "loading" ? (
+            {loadingPlans ? (
               <View style={styles.loadingCard}>
                 <ActivityIndicator color={colors.ink} />
-                <Text style={styles.loadingText}>Loading App Store plans</Text>
+                <Text style={styles.loadingText}>Loading current store pricing</Text>
+              </View>
+            ) : null}
+
+            {hasProducts ? (
+              <View style={styles.productIntro}>
+                <Text style={styles.productIntroTitle}>Choose Plus</Text>
+                <Text style={styles.productIntroText}>Product names and prices below are returned by the store.</Text>
               </View>
             ) : null}
 
@@ -160,17 +198,31 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
               onPress={() => void subscription.restore()}
             />
             {onContinueFree ? (
-              <AppButton label="Continue with limited free planner" variant="quiet" onPress={onContinueFree} />
+              <AppButton label="Continue with free planner" variant="quiet" onPress={onContinueFree} />
             ) : null}
           </View>
         </>
       )}
+
+      <View style={styles.valueGrid}>
+        {paidFeatures.map((feature) => {
+          const Icon = feature.icon;
+          return (
+            <View key={feature.title} style={styles.valueTile}>
+              <View style={styles.valueIcon}><Icon color={colors.accent} size={18} /></View>
+              <Text style={styles.valueTitle}>{feature.title}</Text>
+              <Text style={styles.valueDetail}>{feature.detail}</Text>
+            </View>
+          );
+        })}
+      </View>
 
       <View style={styles.freeCard}>
         <View style={styles.freeHeader}>
           <Badge label="Included free" tone="green" />
           <Text style={styles.freeTitle}>Try the basics first</Text>
         </View>
+        <Text style={styles.freeIntro}>{freeValueLine}: one real semester starter, basic widgets, and manual planning even when store products are unavailable.</Text>
         {freeFeatures.map((feature) => <FeatureRow key={feature} text={feature} />)}
       </View>
 
@@ -199,6 +251,17 @@ function PreviewRow({ color, title, detail }: { color: string; title: string; de
         <Text style={styles.previewDetail}>{detail}</Text>
       </View>
       <Check color={theme.colors.green} size={15} />
+    </View>
+  );
+}
+
+function PayoffPill({ icon: Icon, label }: { icon: React.ComponentType<{ color: string; size: number }>; label: string }) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  return (
+    <View style={styles.payoffPill}>
+      <Icon color={theme.colors.heroText} size={15} />
+      <Text style={styles.payoffText}>{label}</Text>
     </View>
   );
 }
@@ -346,7 +409,7 @@ function createStyles(theme: AppTheme) {
       fontSize: 34,
       lineHeight: 39,
       fontWeight: "900",
-      letterSpacing: -1.1
+      letterSpacing: 0
     },
     subtitle: {
       color: colors.heroMuted,
@@ -396,6 +459,30 @@ function createStyles(theme: AppTheme) {
     },
     phoneRows: {
       gap: spacing.xs
+    },
+    payoffRail: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    payoffPill: {
+      flexGrow: 1,
+      minHeight: 34,
+      borderRadius: radii.round,
+      backgroundColor: "rgba(255,255,255,0.12)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.18)",
+      paddingHorizontal: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 5
+    },
+    payoffText: {
+      color: colors.heroText,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
     },
     previewRow: {
       flexDirection: "row",
@@ -481,12 +568,59 @@ function createStyles(theme: AppTheme) {
       borderWidth: 1,
       borderColor: colors.red,
       backgroundColor: theme.isDark ? "rgba(255,113,130,0.12)" : "#FFF0F3",
-      padding: spacing.md
+      padding: spacing.md,
+      gap: spacing.sm
     },
     noticeText: {
       flex: 1,
       color: colors.ink,
       fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "800"
+    },
+    planStateCard: {
+      borderRadius: radii.xl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      padding: spacing.md,
+      gap: spacing.xs
+    },
+    planStateCardReady: {
+      borderColor: colors.green,
+      backgroundColor: theme.isDark ? "rgba(89,211,153,0.10)" : colors.mint
+    },
+    planStateCardWarning: {
+      borderColor: colors.gold,
+      backgroundColor: theme.isDark ? "rgba(248,195,85,0.10)" : colors.softGold
+    },
+    planStateTopRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    planStateCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    planStateKicker: {
+      color: colors.accent,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    planStateTitle: {
+      color: colors.ink,
+      fontSize: 16,
+      lineHeight: 21,
+      fontWeight: "900"
+    },
+    planStateDetail: {
+      color: colors.muted,
+      fontSize: 12,
       lineHeight: 18,
       fontWeight: "800"
     },
@@ -506,6 +640,22 @@ function createStyles(theme: AppTheme) {
     loadingText: {
       ...typography.small,
       fontWeight: "800"
+    },
+    productIntro: {
+      gap: 2,
+      paddingHorizontal: 2
+    },
+    productIntroTitle: {
+      color: colors.ink,
+      fontSize: 16,
+      lineHeight: 21,
+      fontWeight: "900"
+    },
+    productIntroText: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
     },
     productCard: {
       borderRadius: radii.xl,
@@ -601,6 +751,12 @@ function createStyles(theme: AppTheme) {
       fontSize: 18,
       lineHeight: 23,
       fontWeight: "900"
+    },
+    freeIntro: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "700"
     },
     featureRow: {
       flexDirection: "row",

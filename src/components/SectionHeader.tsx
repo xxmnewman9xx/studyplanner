@@ -14,8 +14,8 @@ export function SectionHeader({ title, note }: SectionHeaderProps) {
 
   return (
     <View style={styles.header}>
-      <Text style={styles.title}>{title}</Text>
-      {note ? <Text style={styles.note}>{note}</Text> : null}
+      <Text style={styles.title} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.86}>{title}</Text>
+      {note ? <Text style={styles.note} numberOfLines={2}>{note}</Text> : null}
     </View>
   );
 }

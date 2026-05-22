@@ -3,6 +3,8 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
+  LogBox,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -20,7 +22,8 @@ import {
   GraduationCap,
   NotebookPen,
   Sparkles,
-  Timer
+  Timer,
+  TrendingUp
 } from "lucide-react-native";
 
 import {
@@ -85,11 +88,14 @@ import {
   marketingCaptureSemester
 } from "./src/services/marketingCapture";
 
+LogBox.ignoreLogs(["SafeAreaView has been deprecated"]);
+
 const plannerStorageKey = "study-planner-data-v3";
 const freeCourseLimit = 2;
 const freeAssignmentLimit = 12;
 const freeImportLimit = 1;
 const marketingCaptureTabFileName = "studyplanner-capture-tab.json";
+const simulatorCaptureFileRoutingEnabled = process.env.EXPO_PUBLIC_SIM_QA_CAPTURE === "1";
 const premiumTabs = new Set<NavTab>(["focus", "grades"]);
 
 const proTabs: Array<{
@@ -102,10 +108,18 @@ const proTabs: Array<{
   { id: "plan", label: "Plan", icon: CalendarDays },
   { id: "courses", label: "Classes", icon: GraduationCap },
   { id: "notes", label: "Notes", icon: NotebookPen },
+  { id: "focus", label: "Study", icon: Timer },
+  { id: "grades", label: "Grades", icon: TrendingUp },
   { id: "more", label: "Widgets", icon: Sparkles }
 ];
 
 const freeTabs: typeof proTabs = proTabs;
+const mobilePrimaryTabIds = new Set<NavTab>(["today", "import", "plan", "courses", "more"]);
+const moreGroupTabIds = new Set<NavTab>(["more", "notes", "focus", "grades", "upgrade"]);
+
+function mobileTabLabel(tab: NavTab, fallback: string) {
+  return tab === "more" ? "More" : fallback;
+}
 
 function parseCaptureTab(raw: string): NavTab | null {
   try {
@@ -204,6 +218,9 @@ function AppContent() {
     [assignments, selectedAssignmentId]
   );
   const visibleTabs = marketingCaptureEnabled || subscription.isPremium ? proTabs : freeTabs;
+  const bottomTabs = tablet
+    ? visibleTabs
+    : visibleTabs.filter((tab) => mobilePrimaryTabIds.has(tab.id));
 
   useEffect(() => {
     if (!hydrated) return;
@@ -212,7 +229,8 @@ function AppContent() {
 
   useEffect(() => {
     if (!hydrated) return;
-    if (typeof __DEV__ === "undefined" || !__DEV__) return;
+    if (Platform.OS === "web") return;
+    if ((typeof __DEV__ === "undefined" || !__DEV__) && !simulatorCaptureFileRoutingEnabled) return;
     if (!Paths.document) return;
 
     let mounted = true;
@@ -400,7 +418,25 @@ function AppContent() {
   }, [activeTab, hydrated]);
 
   const applyParsedPlan = (parse: SyllabusParseResult) => {
+    const blockedAssignments = parse.assignments.filter(
+      (assignment) =>
+        assignment.needsReview ||
+        assignment.duplicateOf ||
+        !isValidDateInput(assignment.dueAt.slice(0, 10)) ||
+        (assignment.confidence || 1) < 0.75
+    );
+    if (blockedAssignments.length > 0) {
+      Alert.alert(
+        "Review flagged items first",
+        "Fix or mark every low-confidence, duplicate, or missing-date item before it touches your real planner."
+      );
+      return;
+    }
+
     const timestamp = new Date().toISOString();
+    const parsedImportId = `import-${timestamp}`;
+    const sourceType =
+      parse.assignments.some((assignment) => assignment.source === "typed") ? "typed" : "scan";
     const parsedAssignmentIds = new Set(
       parse.assignments.map((assignment) => assignment.sourceId).filter(Boolean)
     );
@@ -448,9 +484,9 @@ function AppContent() {
 
       return [
         {
-          id: `import-${timestamp}`,
+          id: parsedImportId,
           title: parse.sourceName,
-          sourceType: "scan",
+          sourceType,
           status: "applied",
           itemCount,
           createdAt: timestamp,
@@ -460,11 +496,28 @@ function AppContent() {
       ];
     });
     setParsedItems((current) =>
-      current.map((item) =>
-        parsedAssignmentIds.has(item.parsedImportId)
-          ? { ...item, acceptedAt: timestamp, reviewStatus: "accepted" }
-          : item
-      )
+      [
+        ...parse.assignments.map((assignment) => ({
+          id: `item-${assignment.id}`,
+          parsedImportId,
+          title: assignment.title,
+          courseName:
+            parse.courses.find((course) => course.id === assignment.courseId)?.name || "Study Hall",
+          type: assignment.kind,
+          dueAt: assignment.dueAt,
+          confidence: assignment.confidence || 0.88,
+          needsReview: Boolean(assignment.needsReview),
+          duplicateCandidateId: assignment.duplicateOf,
+          rawText: assignment.sourceId || assignment.title,
+          acceptedAt: timestamp,
+          reviewStatus: "accepted" as const
+        })),
+        ...current.map((item) =>
+          parsedAssignmentIds.has(item.parsedImportId)
+            ? { ...item, acceptedAt: timestamp, reviewStatus: "accepted" as const }
+            : item
+        )
+      ].slice(0, 200)
     );
     setSemester((current) => ({
       ...current,
@@ -690,7 +743,7 @@ function AppContent() {
       nextAssignmentId: demo.assignments[0]?.id
     });
     setOnboarded(true);
-    setPaywallSeen(false);
+    setPaywallSeen(true);
     setPostPaywallTab("today");
     setActiveTab("today");
   };
@@ -837,11 +890,12 @@ function AppContent() {
               {visibleTabs.map((tab) => {
                 const Icon = tab.icon;
                 const active = activeTab === tab.id;
+                const locked = !marketingCaptureEnabled && premiumTabs.has(tab.id) && !subscription.isPremium;
                 return (
                   <TouchableOpacity
                     key={tab.id}
                     accessibilityRole="button"
-                    accessibilityState={{ selected: active }}
+                    accessibilityState={{ selected: active, disabled: locked }}
                     style={[styles.sidebarButton, active ? styles.sidebarButtonActive : null]}
                     onPress={() => openTab(tab.id)}
                   >
@@ -849,17 +903,10 @@ function AppContent() {
                     <Text style={[styles.sidebarLabel, active ? styles.sidebarLabelActive : null]}>
                       {tab.label}
                     </Text>
+                    {locked ? <Crown color={colors.faint} size={13} /> : null}
                   </TouchableOpacity>
                 );
               })}
-              <TouchableOpacity
-                accessibilityRole="button"
-                style={styles.sidebarButton}
-                onPress={() => openFocusForAssignment()}
-              >
-                <Timer color={colors.muted} size={18} />
-                <Text style={styles.sidebarLabel}>Focus</Text>
-              </TouchableOpacity>
               <TouchableOpacity
                 accessibilityRole="button"
                 style={styles.sidebarButton}
@@ -912,6 +959,7 @@ function AppContent() {
                   onOpenPlan={() => openTab("plan")}
                   onOpenClasses={() => openTab("courses")}
                   onOpenNotes={() => openTab("notes")}
+                  onOpenGrades={() => openTab("grades")}
                   onTryDemo={() => startWithDemoPlanner()}
                   onReplaceDemo={() => {
                     setSemester(defaultSemester);
@@ -1011,6 +1059,7 @@ function AppContent() {
                   onUpdateSettings={updateSettings}
                   onSaveWidgetPreset={saveWidgetPreset}
                   onResetWidgetPresets={resetWidgetPresets}
+                  onOpenNotes={() => openTab("notes")}
                   onOpenFocus={() => openFocusForAssignment()}
                   onOpenGrades={() => openTab("grades")}
                   onOpenPaywall={() => openTab("upgrade")}
@@ -1023,14 +1072,15 @@ function AppContent() {
         </ScrollView>
 
         {!tablet ? <View style={styles.tabBar}>
-          {visibleTabs.map((tab) => {
+          {bottomTabs.map((tab) => {
             const Icon = tab.icon;
-            const active = activeTab === tab.id;
+            const active = activeTab === tab.id || (tab.id === "more" && moreGroupTabIds.has(activeTab));
+            const locked = !marketingCaptureEnabled && premiumTabs.has(tab.id) && !subscription.isPremium;
             return (
               <TouchableOpacity
                 key={tab.id}
                 accessibilityRole="button"
-                accessibilityState={{ selected: active }}
+                accessibilityState={{ selected: active, disabled: locked }}
                 style={[styles.tabButton, active ? styles.tabButtonActive : null]}
                 onPress={() => {
                   openTab(tab.id);
@@ -1038,8 +1088,9 @@ function AppContent() {
               >
                 <Icon color={active ? colors.heroText : colors.faint} size={20} />
                 <Text style={[styles.tabLabel, active ? styles.tabLabelActive : null]}>
-                  {tab.label}
+                  {mobileTabLabel(tab.id, tab.label)}
                 </Text>
+                {locked ? <View style={styles.lockDot} /> : null}
               </TouchableOpacity>
             );
           })}
@@ -1173,7 +1224,7 @@ function createStyles(theme: AppTheme, tablet = false) {
       alignSelf: tablet ? "center" : undefined,
       paddingHorizontal: tablet ? spacing.xl : spacing.md,
       paddingTop: tablet ? spacing.xl : spacing.md,
-      paddingBottom: tablet ? spacing.xxl : 96
+      paddingBottom: tablet ? spacing.xxl : 156
     },
     scrollArea: {
       flex: 1
@@ -1235,13 +1286,13 @@ function createStyles(theme: AppTheme, tablet = false) {
       fontWeight: "800"
     },
     tabBar: {
-      minHeight: 54,
+      minHeight: 62,
       marginHorizontal: spacing.md,
-      marginBottom: spacing.xs,
+      marginBottom: spacing.md,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      borderRadius: 22,
+      borderRadius: 24,
       borderWidth: 1,
       borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(18,20,23,0.08)",
       backgroundColor: theme.isDark ? "rgba(10, 15, 26, 0.98)" : "rgba(255, 253, 244, 0.96)",
@@ -1253,11 +1304,12 @@ function createStyles(theme: AppTheme, tablet = false) {
       elevation: 3
     },
     tabButton: {
-      width: "16.1%",
-      minHeight: 42,
+      flex: 1,
+      minWidth: 0,
+      minHeight: 48,
       alignItems: "center",
       justifyContent: "center",
-      borderRadius: 16,
+      borderRadius: 17,
       gap: 2
     },
     tabButtonActive: {
@@ -1271,10 +1323,20 @@ function createStyles(theme: AppTheme, tablet = false) {
     tabLabel: {
       color: colors.muted,
       fontSize: 8,
+      lineHeight: 10,
       fontWeight: "900"
     },
     tabLabelActive: {
       color: colors.heroText
+    },
+    lockDot: {
+      position: "absolute",
+      top: 5,
+      right: 7,
+      width: 5,
+      height: 5,
+      borderRadius: 3,
+      backgroundColor: colors.gold
     }
   });
 }

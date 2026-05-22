@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Pause, Play, Power, Square } from "lucide-react-native";
+import { CheckCircle2, Clock3, Pause, Play, Power, Square, TimerReset } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
 import { SectionHeader } from "../components/SectionHeader";
@@ -52,6 +52,11 @@ export function FocusScreen({
     .reverse();
   const selected = focusableAssignments.find((assignment) => assignment.id === selectedId);
   const selectedCourse = selected ? getCourseForAssignment(courses, selected) : undefined;
+  const completedSessions = sessions.filter((session) => session.status === "completed");
+  const recentStudyHistory = sessions
+    .filter((session) => session.status !== "planned")
+    .slice(-3)
+    .reverse();
   const plannedSessions = sessions
     .filter((session) => session.status === "planned")
     .slice()
@@ -65,6 +70,27 @@ export function FocusScreen({
   }, [preferredAssignmentId]);
 
   useEffect(() => {
+    if (focusableAssignments.length === 0) {
+      setSelectedId("");
+      setSelectedPlannedDuration(null);
+      setRunning(false);
+      setStartedAt(null);
+      setPauseRecorded(false);
+      return;
+    }
+
+    if (!focusableAssignments.some((assignment) => assignment.id === selectedId)) {
+      const firstAssignment = focusableAssignments[0];
+      if (!firstAssignment) return;
+      setSelectedId(firstAssignment.id);
+      setSelectedPlannedDuration(null);
+      setRunning(false);
+      setStartedAt(null);
+      setPauseRecorded(false);
+    }
+  }, [focusableAssignments, selectedId]);
+
+  useEffect(() => {
     setSecondsLeft(activeDurationMinutes * 60);
   }, [activeDurationMinutes, selectedId]);
 
@@ -75,6 +101,8 @@ export function FocusScreen({
         if (current <= 1) {
           setRunning(false);
           record("completed", activeDurationMinutes);
+          setStartedAt(null);
+          setPauseRecorded(false);
           return 0;
         }
         return current - 1;
@@ -89,6 +117,7 @@ export function FocusScreen({
     if (!startedAt) {
       setStartedAt(new Date().toISOString());
       setPauseRecorded(false);
+      if (secondsLeft === 0) setSecondsLeft(activeDurationMinutes * 60);
       setRunning(true);
       return;
     }
@@ -113,8 +142,9 @@ export function FocusScreen({
 
   const complete = () => {
     if (!selected) return;
+    const hadStarted = Boolean(startedRef.current);
     setRunning(false);
-    record("completed", startedRef.current ? undefined : activeDurationMinutes);
+    if (hadStarted) record("completed");
     onMarkComplete?.(selected.id);
     setSecondsLeft(activeDurationMinutes * 60);
     setStartedAt(null);
@@ -123,6 +153,10 @@ export function FocusScreen({
   };
 
   const elapsedMinutes = Math.max(0, activeDurationMinutes - Math.ceil(secondsLeft / 60));
+  const progressPercent = activeDurationMinutes > 0
+    ? Math.min(100, Math.max(0, Math.round(((activeDurationMinutes * 60 - secondsLeft) / (activeDurationMinutes * 60)) * 100)))
+    : 0;
+  const dueLabel = selected ? formatDueLabel(selected.dueAt) : "No task";
 
   return (
     <View>
@@ -130,56 +164,141 @@ export function FocusScreen({
         <View style={styles.focusGlow} />
         <View style={styles.focusGlowSecondary} />
         <View style={styles.stageHeader}>
-          <Text style={styles.stageKicker}>Focus Mode</Text>
+          <View style={styles.stageTitleBlock}>
+            <Text style={styles.stageKicker}>Study cockpit</Text>
+            <Text style={styles.stageSubcopy} numberOfLines={1}>
+              {selected ? `${activeDurationMinutes} min block · ${dueLabel}` : "Open work appears here"}
+            </Text>
+          </View>
           <Badge label={`Session ${sessionNumber}`} tone="blue" />
         </View>
         <View style={styles.timerRing}>
           <View style={styles.timerRingInner}>
             <Text style={styles.timer}>{formatTimer(secondsLeft)}</Text>
-            <Text style={styles.timerMeta}>{running ? "Focused" : "Ready"}</Text>
+            <Text style={styles.timerMeta}>
+              {running ? "Focused" : selected ? (startedAt ? "Paused" : "Ready") : "No task"}
+            </Text>
           </View>
         </View>
-        <Text style={styles.focusingOn}>Focusing on</Text>
-        <Text style={styles.timerTask}>{selected?.title || "Choose an assignment"}</Text>
-        <Text style={styles.timerCourse}>{selectedCourse?.code || "No class selected"}</Text>
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
+        </View>
+        <Text style={styles.focusingOn}>{selected ? "Focusing on" : "Ready when there is a task"}</Text>
+        <Text style={styles.timerTask} numberOfLines={2}>
+          {selected?.title || "No open assignments"}
+        </Text>
+        <Text style={styles.timerCourse} numberOfLines={1}>
+          {selectedCourse?.code || (focusableAssignments.length > 0 ? "Choose an assignment" : "Add or reopen an assignment")}
+        </Text>
+        <View style={styles.cockpitStats}>
+          <CockpitStat icon={Clock3} value={`${elapsedMinutes}m`} label="logged" />
+          <CockpitStat icon={TimerReset} value={`${activeDurationMinutes}m`} label="target" />
+          <CockpitStat icon={CheckCircle2} value={String(completedSessions.length)} label="done" />
+        </View>
+        {selected ? (
+          <View style={styles.durationRow}>
+            {[15, defaultMinutes, 45].filter((value, index, values) => values.indexOf(value) === index).map((minutes) => {
+              const active = activeDurationMinutes === minutes;
+              return (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  key={minutes}
+                  style={[styles.durationChip, active ? styles.durationChipActive : null]}
+                  onPress={() => {
+                    setSelectedPlannedDuration(minutes);
+                    setRunning(false);
+                    setStartedAt(null);
+                    setPauseRecorded(false);
+                  }}
+                >
+                  <Text style={[styles.durationText, active ? styles.durationTextActive : null]}>{minutes}m</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ) : null}
         <View style={styles.controlRow}>
-          <TouchableOpacity accessibilityRole="button" style={styles.roundControl} onPress={startPause} disabled={!selected}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            style={[styles.roundControl, !selected ? styles.controlDisabled : null]}
+            onPress={startPause}
+            disabled={!selected}
+          >
             {running ? <Pause color="#FFFFFF" size={18} /> : <Play color="#FFFFFF" size={18} />}
           </TouchableOpacity>
-          <TouchableOpacity accessibilityRole="button" style={styles.primaryControl} onPress={startPause} disabled={!selected}>
-            <Text style={styles.primaryControlText}>{running ? "Pause timer" : "Start timer for this task"}</Text>
+          <TouchableOpacity
+            accessibilityRole="button"
+            style={[styles.primaryControl, !selected ? styles.controlDisabled : null]}
+            onPress={startPause}
+            disabled={!selected}
+          >
+            <Text style={styles.primaryControlText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.78}>
+              {running ? "Pause timer" : selected ? "Start timer" : "Choose task"}
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity accessibilityRole="button" style={styles.roundControl} onPress={stop}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            style={[styles.roundControl, !startedAt ? styles.controlDisabled : null]}
+            onPress={stop}
+            disabled={!startedAt}
+          >
             <Square color="#FFFFFF" size={16} />
           </TouchableOpacity>
         </View>
-        <Text style={styles.silencedCopy}>Pick a task → start the timer → tap Done to save time and complete it.</Text>
+        <Text style={styles.silencedCopy}>
+          {selected
+            ? "Start the timer, add optional notes, then save the real time spent."
+            : "Add an assignment to start a focus session."}
+        </Text>
       </View>
 
       <View style={styles.notesCard}>
         <View style={styles.notesHeader}>
-          <Text style={styles.notesKicker}>Retention loop</Text>
-          <Text style={styles.notesBadge}>Class notes</Text>
+          <View style={styles.notesTitleBlock}>
+            <Text style={styles.notesKicker}>Retention loop</Text>
+            <Text style={styles.notesTitle}>Capture the thing you'll forget later.</Text>
+          </View>
+          <Text style={styles.notesBadge}>Notes</Text>
         </View>
-        <Text style={styles.notesTitle}>Capture the thing you’ll forget later.</Text>
         <Text style={styles.notesCopy}>Optional notes attach to this focus block, so studying creates useful history instead of just a timer log.</Text>
         <TextInput
           multiline
           value={classNote}
           onChangeText={setClassNote}
-          placeholder="Example: Prof said quiz pulls from slides 18–24. Review enzyme chart."
+          editable={Boolean(selected)}
+          placeholder={
+            selected
+              ? "Example: Prof said quiz pulls from slides 18-24. Review enzyme chart."
+              : "Choose an assignment before adding notes."
+          }
           placeholderTextColor={colors.faint}
-          style={styles.notesInput}
+          style={[styles.notesInput, !selected ? styles.notesInputDisabled : null]}
           textAlignVertical="top"
         />
         {recentNotes.length > 0 ? (
           <View style={styles.recentNotes}>
             <Text style={styles.recentNotesTitle}>Recent saved notes</Text>
-            {recentNotes.map((session) => (
-              <Text key={session.id} style={styles.recentNote} numberOfLines={2}>• {session.notes}</Text>
-            ))}
+            {recentNotes.map((session) => {
+              const assignment = assignments.find((item) => item.id === session.assignmentId);
+              return (
+                <View key={session.id} style={styles.recentNoteRow}>
+                  <Text style={styles.recentNoteMeta} numberOfLines={1}>
+                    {assignment?.title || "Focus note"} · {formatFocusDate(session.startedAt)}
+                  </Text>
+                  <Text style={styles.recentNote} numberOfLines={3}>
+                    {session.notes}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
-        ) : null}
+        ) : (
+          <View style={styles.recentEmpty}>
+            <Text style={styles.recentEmptyTitle}>No saved focus notes yet</Text>
+            <Text style={styles.recentEmptyCopy}>Start a task, write a note, then save the session. Recent notes will appear here.</Text>
+          </View>
+        )}
       </View>
 
       {plannedSessions.length > 0 ? (
@@ -205,8 +324,12 @@ export function FocusScreen({
                 >
                   <View style={[styles.classDot, { backgroundColor: course?.color || colors.accent }]} />
                   <View style={styles.plannedCopy}>
-                    <Text style={styles.plannedTitle}>{assignment?.title || "Planned focus"}</Text>
-                    <Text style={styles.plannedMeta}>{course?.code || "Class"} · {formatFocusDate(session.startedAt)} · {session.durationMinutes}m</Text>
+                    <Text style={styles.plannedTitle} numberOfLines={2}>
+                      {assignment?.title || "Planned focus"}
+                    </Text>
+                    <Text style={styles.plannedMeta} numberOfLines={1}>
+                      {course?.code || "Class"} · {formatFocusDate(session.startedAt)} · {session.durationMinutes}m
+                    </Text>
                   </View>
                   <Badge label="Planned" tone="blue" />
                 </TouchableOpacity>
@@ -219,7 +342,10 @@ export function FocusScreen({
       <SectionHeader title="Choose what to study" note="The timer will be attached to this task." />
       <View style={styles.assignmentList}>
         {focusableAssignments.length === 0 ? (
-          <Text style={styles.emptyCard}>Add an assignment to start a focus session.</Text>
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyTitle}>No open assignments</Text>
+            <Text style={styles.emptyCopy}>Add homework from Today, Scan, or Classes. When work is active, it becomes the focus queue here.</Text>
+          </View>
         ) : null}
         {focusableAssignments.map((assignment) => {
           const active = assignment.id === selectedId;
@@ -239,10 +365,12 @@ export function FocusScreen({
             >
               <View style={[styles.classDot, { backgroundColor: getCourseForAssignment(courses, assignment)?.color || colors.accent }]} />
               <View style={styles.assignmentCopy}>
-                <Text style={styles.assignmentCourse}>
-                  {getCourseForAssignment(courses, assignment)?.code}
+                <Text style={styles.assignmentCourse} numberOfLines={1}>
+                  {getCourseForAssignment(courses, assignment)?.code || "Class"}
                 </Text>
-                <Text style={styles.assignmentTitle}>{assignment.title}</Text>
+                <Text style={styles.assignmentTitle} numberOfLines={2}>
+                  {assignment.title}
+                </Text>
               </View>
               <Badge
                 label={`${assignment.estimatedMinutes} min`}
@@ -253,9 +381,32 @@ export function FocusScreen({
         })}
       </View>
 
+      {recentStudyHistory.length > 0 ? (
+        <>
+          <SectionHeader title="Recent focus" note={`${recentStudyHistory.length} latest sessions`} />
+          <View style={styles.historyList}>
+            {recentStudyHistory.map((session) => {
+              const assignment = assignments.find((item) => item.id === session.assignmentId);
+              const course = assignment ? getCourseForAssignment(courses, assignment) : undefined;
+              return (
+                <View key={session.id} style={styles.historyRow}>
+                  <View style={[styles.historyDot, { backgroundColor: course?.color || colors.accent }]} />
+                  <View style={styles.historyCopy}>
+                    <Text style={styles.historyTitle} numberOfLines={1}>{assignment?.title || "Focus session"}</Text>
+                    <Text style={styles.historyMeta} numberOfLines={1}>
+                      {session.durationMinutes}m · {labelizeStatus(session.status)} · {formatFocusDate(session.startedAt)}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        </>
+      ) : null}
+
       <View style={styles.bottomActions}>
         <AppButton
-          label="Done — save time and complete task"
+          label={startedAt ? "Done - save time and complete task" : "Complete task"}
           icon={Power}
           disabled={!selected}
           onPress={complete}
@@ -264,6 +415,7 @@ export function FocusScreen({
         <AppButton
           label={`Save ${elapsedMinutes} min only`}
           variant="secondary"
+          disabled={!selected || !startedAt || pauseRecorded}
           onPress={() => {
             if (selected && startedRef.current && !pauseRecorded) {
               record("paused");
@@ -291,9 +443,29 @@ export function FocusScreen({
       endedAt: new Date().toISOString(),
       status,
       sessionNumber,
-      notes: classNote.trim() || (status === "completed" ? "Focus block completed." : "Focus block ended.")
+      notes: classNote.trim() || undefined
     });
   }
+}
+
+function CockpitStat({
+  icon: Icon,
+  value,
+  label
+}: {
+  icon: React.ComponentType<{ color: string; size: number }>;
+  value: string;
+  label: string;
+}) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  return (
+    <View style={styles.cockpitStat}>
+      <Icon color="#BDB7FF" size={15} />
+      <Text style={styles.cockpitValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.74}>{value}</Text>
+      <Text style={styles.cockpitLabel} numberOfLines={1}>{label}</Text>
+    </View>
+  );
 }
 
 function formatTimer(seconds: number) {
@@ -309,6 +481,16 @@ function formatFocusDate(value: string) {
     weekday: "short",
     hour: "numeric"
   }).format(new Date(value));
+}
+
+function formatDueLabel(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "date not set";
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(date);
+}
+
+function labelizeStatus(status: FocusSession["status"]) {
+  return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
 function createStyles(theme: AppTheme) {
@@ -354,13 +536,25 @@ function createStyles(theme: AppTheme) {
       alignSelf: "stretch",
       flexDirection: "row",
       justifyContent: "space-between",
-      alignItems: "center"
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    stageTitleBlock: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
     },
     stageKicker: {
       color: "#FFFFFF",
       fontSize: 13,
       lineHeight: 18,
       fontWeight: "900"
+    },
+    stageSubcopy: {
+      color: "#BDB7FF",
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
     },
     timerRing: {
       marginTop: spacing.xl,
@@ -397,6 +591,20 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900",
       textTransform: "uppercase"
     },
+    progressTrack: {
+      width: "100%",
+      maxWidth: 230,
+      height: 8,
+      borderRadius: 4,
+      marginTop: spacing.md,
+      backgroundColor: "rgba(255,255,255,0.12)",
+      overflow: "hidden"
+    },
+    progressFill: {
+      height: "100%",
+      borderRadius: 4,
+      backgroundColor: "#35F2D0"
+    },
     focusingOn: {
       marginTop: spacing.lg,
       color: "#BDB7FF",
@@ -419,10 +627,69 @@ function createStyles(theme: AppTheme) {
       lineHeight: 18,
       fontWeight: "800"
     },
+    cockpitStats: {
+      alignSelf: "stretch",
+      flexDirection: "row",
+      gap: spacing.xs,
+      marginTop: spacing.md
+    },
+    cockpitStat: {
+      flex: 1,
+      minWidth: 0,
+      borderRadius: 18,
+      backgroundColor: "rgba(255,255,255,0.08)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.12)",
+      padding: spacing.sm,
+      gap: 3
+    },
+    cockpitValue: {
+      color: "#FFFFFF",
+      fontSize: 16,
+      lineHeight: 20,
+      fontWeight: "900"
+    },
+    cockpitLabel: {
+      color: "#BDB7FF",
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    durationRow: {
+      alignSelf: "stretch",
+      flexDirection: "row",
+      gap: spacing.xs,
+      marginTop: spacing.sm
+    },
+    durationChip: {
+      flex: 1,
+      minHeight: 36,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "rgba(255,255,255,0.08)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.13)"
+    },
+    durationChipActive: {
+      backgroundColor: "rgba(53,242,208,0.18)",
+      borderColor: "rgba(53,242,208,0.44)"
+    },
+    durationText: {
+      color: "#BDB7FF",
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
+    },
+    durationTextActive: {
+      color: "#FFFFFF"
+    },
     controlRow: {
       marginTop: spacing.xl,
       flexDirection: "row",
       alignItems: "center",
+      alignSelf: "stretch",
       gap: spacing.sm
     },
     roundControl: {
@@ -435,23 +702,31 @@ function createStyles(theme: AppTheme) {
     },
     primaryControl: {
       minWidth: 118,
+      flex: 1,
       height: 56,
       borderRadius: 20,
       backgroundColor: "#7C3AED",
       alignItems: "center",
-      justifyContent: "center"
+      justifyContent: "center",
+      paddingHorizontal: spacing.sm
     },
     primaryControlText: {
       color: "#FFFFFF",
       fontSize: 14,
-      fontWeight: "900"
+      lineHeight: 18,
+      fontWeight: "900",
+      textAlign: "center"
+    },
+    controlDisabled: {
+      opacity: 0.45
     },
     silencedCopy: {
       marginTop: "auto",
       color: "#8F8AB8",
       fontSize: 11,
       lineHeight: 16,
-      fontWeight: "800"
+      fontWeight: "800",
+      textAlign: "center"
     },
     notesCard: {
       marginTop: spacing.lg,
@@ -470,7 +745,13 @@ function createStyles(theme: AppTheme) {
     notesHeader: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between"
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    notesTitleBlock: {
+      flex: 1,
+      minWidth: 0,
+      gap: 4
     },
     notesKicker: {
       color: colors.accent,
@@ -514,8 +795,11 @@ function createStyles(theme: AppTheme) {
       lineHeight: 20,
       fontWeight: "700"
     },
+    notesInputDisabled: {
+      opacity: 0.72
+    },
     recentNotes: {
-      gap: 5
+      gap: spacing.xs
     },
     recentNotesTitle: {
       color: colors.ink,
@@ -524,6 +808,40 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     recentNote: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
+    },
+    recentNoteRow: {
+      borderRadius: radii.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: theme.isDark ? "rgba(0,0,0,0.16)" : "rgba(255,255,255,0.58)",
+      padding: spacing.sm,
+      gap: 3
+    },
+    recentNoteMeta: {
+      color: colors.faint,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900"
+    },
+    recentEmpty: {
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      padding: spacing.md,
+      gap: 4
+    },
+    recentEmptyTitle: {
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "900"
+    },
+    recentEmptyCopy: {
       color: colors.muted,
       fontSize: 12,
       lineHeight: 17,
@@ -545,7 +863,8 @@ function createStyles(theme: AppTheme) {
     },
     plannedCopy: {
       flex: 1,
-      gap: 2
+      gap: 2,
+      minWidth: 0
     },
     plannedTitle: {
       color: colors.ink,
@@ -563,15 +882,23 @@ function createStyles(theme: AppTheme) {
       gap: spacing.sm
     },
     emptyCard: {
-      overflow: "hidden",
       borderRadius: radii.md,
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: colors.surface,
       padding: spacing.md,
-      color: colors.muted,
-      fontSize: 14,
+      gap: 4
+    },
+    emptyTitle: {
+      color: colors.ink,
+      fontSize: 15,
       lineHeight: 20,
+      fontWeight: "900"
+    },
+    emptyCopy: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
       fontWeight: "700"
     },
     assignmentRow: {
@@ -596,7 +923,8 @@ function createStyles(theme: AppTheme) {
     },
     assignmentCopy: {
       flex: 1,
-      gap: 2
+      gap: 2,
+      minWidth: 0
     },
     assignmentCourse: {
       color: colors.muted,
@@ -609,8 +937,43 @@ function createStyles(theme: AppTheme) {
       lineHeight: 20,
       fontWeight: "900"
     },
-    bottomActions: {
+    historyList: {
+      gap: spacing.sm
+    },
+    historyRow: {
+      minHeight: 64,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      padding: spacing.md,
       flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    historyDot: {
+      width: 10,
+      height: 36,
+      borderRadius: 6
+    },
+    historyCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    historyTitle: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    historyMeta: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "800"
+    },
+    bottomActions: {
       gap: spacing.sm,
       marginTop: spacing.lg
     },

@@ -45,6 +45,7 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
   const selectedEvents = eventsByDay[selectedDate] || [];
   const weekLoad = getWeekLoad(assignments, today);
   const insight = getBusyWeekInsight(assignments, today);
+  const weekSummary = buildWeekLoadSummary(weekLoad, sessions);
   const overdue = buildPlanCatchUpQueue(assignments, today);
   const survivalPlan = buildDeadlineSurvivalPlan(assignments, today);
   const savedSurvivalKeys = new Set(
@@ -65,10 +66,17 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
   const primarySuggestion = insight.suggestions.find((suggestion) => suggestion.assignmentId);
   const parsedPlanCapture = parseQuickHomeworkInput(quickPlanText, courses, courses[0], selectedDate);
   const primaryAssignmentId = selectedEvents[0]?.assignment.id || primarySuggestion?.assignmentId;
-  const primaryActionLabel = selectedEvents[0] ? "Open selected work" : primarySuggestion ? "Open priority work" : "Review classes";
+  const primaryActionLabel = selectedEvents[0]
+    ? "Open selected work"
+    : primarySuggestion
+      ? "Open priority work"
+      : courses.length
+        ? "Add a deadline below"
+        : "Add a class, then plan";
   const primaryActionDetail = selectedEvents[0]
     ? `${selectedEvents.length} item${selectedEvents.length === 1 ? "" : "s"} due on the selected day.`
-    : primarySuggestion?.copy || "No urgent work selected. Check classes and notes to keep the plan current.";
+    : primarySuggestion?.copy || "The week stays empty until real assignments have due dates.";
+  const planState = buildPlanState(assignments, courses, overdue.length, weekSummary.totalItems);
 
   const moveMonth = (offset: number) => {
     setMonthCursor((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
@@ -103,8 +111,6 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
   return (
     <View style={styles.screen}>
       <GlassCard tone="hero" style={styles.hero}>
-        <View style={styles.heroOrbPrimary} />
-        <View style={styles.heroOrbSecondary} />
         <View style={styles.heroTop}>
           <View style={styles.heroTitleBlock}>
             <Text style={styles.kicker}>Plan</Text>
@@ -119,7 +125,9 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
         </Text>
         <TouchableOpacity
           accessibilityRole="button"
-          style={styles.primaryPlanAction}
+          accessibilityState={{ disabled: !primaryAssignmentId }}
+          disabled={!primaryAssignmentId}
+          style={[styles.primaryPlanAction, !primaryAssignmentId ? styles.primaryPlanActionIdle : null]}
           onPress={() => {
             if (primaryAssignmentId) {
               onOpenAssignment(primaryAssignmentId);
@@ -131,12 +139,28 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
             <Text style={styles.primaryPlanTitle}>{primaryActionLabel}</Text>
             <Text style={styles.primaryPlanDetail}>{primaryActionDetail}</Text>
           </View>
-          <ChevronRight color={colors.heroText} size={18} />
+          {primaryAssignmentId ? <ChevronRight color={colors.heroText} size={18} /> : null}
         </TouchableOpacity>
         <View style={styles.heroStats}>
           <MiniStat label="Today" value={String(weekLoad.find((day) => day.dateKey === dateKey(today))?.items.length || 0)} />
-          <MiniStat label="Power" value={String(insight.heavyDays.length)} />
+          <MiniStat label="Hours" value={formatHoursValue(weekSummary.totalMinutes)} />
           <MiniStat label="Week" value={String(weekLoad.reduce((sum, day) => sum + day.items.length, 0))} />
+        </View>
+      </GlassCard>
+
+      <GlassCard style={styles.stateCard}>
+        <View style={styles.stateHeader}>
+          <View style={styles.stateHeaderCopy}>
+            <Text style={styles.stateKicker}>Planner state</Text>
+            <Text style={styles.stateTitle}>{planState.title}</Text>
+          </View>
+          <Text style={styles.stateBadge}>{planState.badge}</Text>
+        </View>
+        <Text style={styles.stateCopy}>{planState.copy}</Text>
+        <View style={styles.stateGrid}>
+          <PlanStateTile label="Calendar" value={weekSummary.totalItems ? `${weekSummary.totalItems} due` : "Empty"} detail={weekSummary.peakDay ? `${weekSummary.peakDay.label} is peak` : "No loaded days"} tone="blue" />
+          <PlanStateTile label="Catch up" value={overdue.length ? `${overdue.length} late` : "Clear"} detail={catchUpFirst?.title || "No overdue work"} tone="pink" />
+          <PlanStateTile label="Focus" value={weekSummary.plannedBlocks ? `${weekSummary.plannedBlocks} saved` : "Not saved"} detail={weekSummary.totalMinutes ? `${formatHoursValue(weekSummary.totalMinutes)} open load` : "No blocks needed"} tone="green" />
         </View>
       </GlassCard>
 
@@ -182,7 +206,7 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
         <TextInput
           value={quickPlanText}
           onChangeText={setQuickPlanText}
-          placeholder="BIO lab report due Friday"
+          placeholder={courses.length ? "BIO lab report due Friday" : "Add a class first, then capture homework"}
           placeholderTextColor={colors.heroMuted}
           style={styles.captureInput}
         />
@@ -335,24 +359,41 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
 
       <SectionHeader title="This week" note="See which days are crowded." />
       <GlassCard style={styles.weekCard}>
+        <View style={styles.weekSummaryGrid}>
+          <WeekSummaryTile label="Deadlines" value={String(weekSummary.totalItems)} detail={`${weekSummary.quietDays} quiet day${weekSummary.quietDays === 1 ? "" : "s"}`} tone="blue" />
+          <WeekSummaryTile label="Workload" value={formatHoursValue(weekSummary.totalMinutes)} detail={`${weekSummary.plannedBlocks} focus block${weekSummary.plannedBlocks === 1 ? "" : "s"} saved`} tone="green" />
+          <WeekSummaryTile label="Peak" value={weekSummary.peakDay?.label || "None"} detail={weekSummary.peakDay ? `${weekSummary.peakDay.items.length} due` : "no loaded day"} tone="pink" />
+        </View>
+        {weekSummary.totalItems === 0 ? (
+          <View style={styles.emptyWeekPanel}>
+            <Text style={styles.emptyWeekTitle}>No weekly load yet</Text>
+            <Text style={styles.emptyWeekCopy}>Add real homework above or import assignments elsewhere. Empty days stay visually empty until due dates exist.</Text>
+          </View>
+        ) : null}
         <View style={styles.loadRow}>
           {weekLoad.map((day) => {
-            const height = Math.max(12, Math.round((day.score / maxLoad) * 74));
+            const height = day.score > 0 ? Math.max(14, Math.round((day.score / maxLoad) * 74)) : 0;
+            const minutes = day.items.reduce((sum, assignment) => sum + (assignment.estimatedMinutes || 25), 0);
             return (
               <View key={day.dateKey} style={styles.loadColumn}>
                 <View style={styles.loadTrack}>
-                  <View
-                    style={[
-                      styles.loadBar,
-                      {
-                        height,
-                        backgroundColor: day.heavy ? colors.brandPink : colors.accent
-                      }
-                    ]}
-                  />
+                  {height > 0 ? (
+                    <View
+                      style={[
+                        styles.loadBar,
+                        {
+                          height,
+                          backgroundColor: day.heavy ? colors.brandPink : colors.accent
+                        }
+                      ]}
+                    />
+                  ) : (
+                    <View style={styles.loadEmptyMark} />
+                  )}
                 </View>
                 <Text style={styles.loadLabel}>{day.label.slice(0, 1)}</Text>
                 <Text style={styles.loadCount}>{day.items.length}</Text>
+                <Text style={styles.loadMinutes} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{minutes ? `${minutes}m` : "open"}</Text>
               </View>
             );
           })}
@@ -393,6 +434,91 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
   }
 }
 
+type WeekSummaryTileProps = {
+  label: string;
+  value: string;
+  detail: string;
+  tone: "blue" | "green" | "pink";
+};
+
+function buildPlanState(assignments: Assignment[], courses: Course[], overdueCount: number, weekItems: number) {
+  if (courses.length === 0) {
+    return {
+      title: "Add a class before the calendar can work.",
+      copy: "Plan does not invent subjects. Create a class or scan a syllabus, then deadlines can land on the week.",
+      badge: "Setup"
+    };
+  }
+
+  if (assignments.length === 0) {
+    return {
+      title: "Calendar is ready, but no homework is loaded.",
+      copy: "Capture one assignment above or import a syllabus. Empty weeks stay empty until real due dates exist.",
+      badge: "Empty"
+    };
+  }
+
+  if (overdueCount > 0) {
+    return {
+      title: "Catch-up work is blocking the week.",
+      copy: "Start with the smallest overdue task, then use the week load to spread the rest.",
+      badge: "Busy"
+    };
+  }
+
+  if (weekItems >= 5) {
+    return {
+      title: "Busy week detected.",
+      copy: "Use saved focus blocks for the heavy days before everything compresses into one night.",
+      badge: "Loaded"
+    };
+  }
+
+  return {
+    title: "Week is under control.",
+    copy: "The calendar has real work and no overdue pile. Keep capturing homework as it appears.",
+    badge: "Clean"
+  };
+}
+
+function WeekSummaryTile({ label, value, detail, tone }: WeekSummaryTileProps) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  const toneColor = {
+    blue: theme.colors.accent,
+    green: theme.colors.green,
+    pink: theme.colors.brandPink
+  }[tone];
+
+  return (
+    <View style={styles.weekSummaryTile}>
+      <View style={[styles.weekSummaryRail, { backgroundColor: toneColor }]} />
+      <Text style={styles.weekSummaryLabel}>{label}</Text>
+      <Text style={styles.weekSummaryValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{value}</Text>
+      <Text style={styles.weekSummaryDetail} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>{detail}</Text>
+    </View>
+  );
+}
+
+function PlanStateTile({ label, value, detail, tone }: WeekSummaryTileProps) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  const toneColor = {
+    blue: theme.colors.accent,
+    green: theme.colors.green,
+    pink: theme.colors.brandPink
+  }[tone];
+
+  return (
+    <View style={styles.planStateTile}>
+      <View style={[styles.planStateDot, { backgroundColor: toneColor }]} />
+      <Text style={styles.planStateLabel}>{label}</Text>
+      <Text style={styles.planStateValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{value}</Text>
+      <Text style={styles.planStateDetail} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.74}>{detail}</Text>
+    </View>
+  );
+}
+
 function buildMonthDays(cursor: Date) {
   const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
   const start = new Date(first);
@@ -402,6 +528,37 @@ function buildMonthDays(cursor: Date) {
     date.setDate(start.getDate() + index);
     return { date };
   });
+}
+
+function buildWeekLoadSummary(weekLoad: ReturnType<typeof getWeekLoad>, sessions: FocusSession[]) {
+  const totalItems = weekLoad.reduce((sum, day) => sum + day.items.length, 0);
+  const totalMinutes = weekLoad.reduce(
+    (sum, day) => sum + day.items.reduce((daySum, assignment) => daySum + (assignment.estimatedMinutes || 25), 0),
+    0
+  );
+  const loadedDays = weekLoad.filter((day) => day.items.length > 0);
+  const peakDay = loadedDays.slice().sort((a, b) => b.score - a.score)[0];
+  const weekStart = weekLoad[0]?.dateKey || "";
+  const weekEnd = weekLoad[weekLoad.length - 1]?.dateKey || "";
+  const plannedBlocks = sessions.filter((session) => {
+    const sessionDate = session.startedAt.slice(0, 10);
+    return session.status === "planned" && sessionDate >= weekStart && sessionDate <= weekEnd;
+  }).length;
+
+  return {
+    totalItems,
+    totalMinutes,
+    peakDay,
+    quietDays: Math.max(weekLoad.length - loadedDays.length, 0),
+    plannedBlocks
+  };
+}
+
+function formatHoursValue(minutes: number) {
+  if (minutes <= 0) return "0h";
+  if (minutes < 60) return `${minutes}m`;
+  const hours = minutes / 60;
+  return `${hours % 1 === 0 ? hours.toFixed(0) : hours.toFixed(1)}h`;
 }
 
 function buildDeadlineSurvivalPlan(assignments: Assignment[], now: Date) {
@@ -491,26 +648,6 @@ function createStyles(theme: AppTheme) {
       padding: spacing.md,
       overflow: "hidden"
     },
-    heroOrbPrimary: {
-      position: "absolute",
-      right: -60,
-      top: -78,
-      width: 176,
-      height: 176,
-      borderRadius: 88,
-      backgroundColor: colors.brandViolet,
-      opacity: theme.isDark ? 0.17 : 0.08
-    },
-    heroOrbSecondary: {
-      position: "absolute",
-      left: -52,
-      bottom: -70,
-      width: 146,
-      height: 146,
-      borderRadius: 73,
-      backgroundColor: colors.accent,
-      opacity: theme.isDark ? 0.15 : 0.08
-    },
     heroTop: {
       flexDirection: "row",
       alignItems: "flex-start",
@@ -544,7 +681,7 @@ function createStyles(theme: AppTheme) {
       fontSize: 28,
       lineHeight: 34,
       fontWeight: "900",
-      letterSpacing: -0.5
+      letterSpacing: 0
     },
     heroCopy: {
       color: colors.heroMuted,
@@ -564,6 +701,9 @@ function createStyles(theme: AppTheme) {
       justifyContent: "space-between",
       gap: spacing.sm,
       overflow: "hidden"
+    },
+    primaryPlanActionIdle: {
+      opacity: 0.86
     },
     primaryPlanCopy: {
       flex: 1,
@@ -595,6 +735,96 @@ function createStyles(theme: AppTheme) {
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: "rgba(255,255,255,0.16)",
       overflow: "hidden"
+    },
+    stateCard: {
+      gap: spacing.sm,
+      padding: spacing.md,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(49,91,255,0.16)",
+      backgroundColor: colors.heroSurface
+    },
+    stateHeader: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    stateHeaderCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    stateKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      letterSpacing: 0.6,
+      textTransform: "uppercase"
+    },
+    stateTitle: {
+      color: colors.heroText,
+      fontSize: 18,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    stateBadge: {
+      borderRadius: radii.round,
+      overflow: "hidden",
+      backgroundColor: colors.accentSoft,
+      color: colors.accent,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 7,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    stateCopy: {
+      color: colors.heroMuted,
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "700"
+    },
+    stateGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    planStateTile: {
+      flex: 1,
+      minWidth: 96,
+      minHeight: 78,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.16)",
+      backgroundColor: "rgba(255,255,255,0.08)",
+      padding: spacing.sm,
+      gap: 3
+    },
+    planStateDot: {
+      width: 24,
+      height: 4,
+      borderRadius: 2
+    },
+    planStateLabel: {
+      color: colors.heroMuted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase",
+      letterSpacing: 0.4
+    },
+    planStateValue: {
+      color: colors.heroText,
+      fontSize: 18,
+      lineHeight: 22,
+      fontWeight: "900"
+    },
+    planStateDetail: {
+      color: colors.heroMuted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
     },
     miniStat: {
       flex: 1,
@@ -661,10 +891,12 @@ function createStyles(theme: AppTheme) {
     },
     catchUpActions: {
       flexDirection: "row",
+      flexWrap: "wrap",
       gap: spacing.sm
     },
     catchUpButton: {
-      flex: 1
+      flex: 1,
+      minWidth: 136
     },
     captureCard: {
       gap: spacing.sm,
@@ -860,10 +1092,12 @@ function createStyles(theme: AppTheme) {
     },
     survivalActions: {
       flexDirection: "row",
+      flexWrap: "wrap",
       gap: spacing.sm
     },
     survivalButton: {
-      flex: 1
+      flex: 1,
+      minWidth: 136
     },
     survivalSavedNote: {
       color: colors.accent,
@@ -874,11 +1108,72 @@ function createStyles(theme: AppTheme) {
     weekCard: {
       gap: spacing.md
     },
+    weekSummaryGrid: {
+      flexDirection: "row",
+      gap: spacing.xs
+    },
+    weekSummaryTile: {
+      flex: 1,
+      minWidth: 0,
+      minHeight: 84,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.045)" : colors.surfaceAlt,
+      padding: spacing.sm,
+      gap: 3,
+      overflow: "hidden"
+    },
+    weekSummaryRail: {
+      width: 28,
+      height: 4,
+      borderRadius: 2
+    },
+    weekSummaryLabel: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase",
+      letterSpacing: 0.4
+    },
+    weekSummaryValue: {
+      color: colors.ink,
+      fontSize: 20,
+      lineHeight: 24,
+      fontWeight: "900"
+    },
+    weekSummaryDetail: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
+    },
+    emptyWeekPanel: {
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.05)" : "rgba(49,91,255,0.055)",
+      padding: spacing.md,
+      gap: 4
+    },
+    emptyWeekTitle: {
+      color: colors.ink,
+      fontSize: 15,
+      lineHeight: 20,
+      fontWeight: "900"
+    },
+    emptyWeekCopy: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
+    },
     loadRow: {
       minHeight: 110,
       flexDirection: "row",
       alignItems: "flex-end",
-      gap: spacing.sm
+      gap: spacing.xs
     },
     loadColumn: {
       flex: 1,
@@ -889,13 +1184,21 @@ function createStyles(theme: AppTheme) {
       width: "100%",
       height: 82,
       borderRadius: radii.round,
-      backgroundColor: colors.surfaceAlt,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : colors.surfaceAlt,
       justifyContent: "flex-end",
+      alignItems: "center",
       overflow: "hidden"
     },
     loadBar: {
       width: "100%",
       borderRadius: radii.round
+    },
+    loadEmptyMark: {
+      width: "48%",
+      height: 4,
+      borderRadius: 2,
+      marginBottom: 6,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.18)" : colors.line
     },
     loadLabel: {
       color: colors.faint,
@@ -905,6 +1208,12 @@ function createStyles(theme: AppTheme) {
     loadCount: {
       color: colors.ink,
       fontSize: 12,
+      fontWeight: "900"
+    },
+    loadMinutes: {
+      color: colors.faint,
+      fontSize: 9,
+      lineHeight: 12,
       fontWeight: "900"
     },
     insightCard: {

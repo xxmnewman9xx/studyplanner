@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 
@@ -8,6 +8,7 @@ type AppButtonProps = {
   onPress: () => void;
   variant?: "primary" | "secondary" | "quiet";
   disabled?: boolean;
+  loading?: boolean;
   icon?: React.ComponentType<{ color: string; size: number }>;
   style?: ViewStyle;
 };
@@ -17,6 +18,7 @@ export function AppButton({
   onPress,
   variant = "primary",
   disabled = false,
+  loading = false,
   icon: Icon,
   style
 }: AppButtonProps) {
@@ -25,25 +27,27 @@ export function AppButton({
   const { colors } = theme;
   const foreground =
     variant === "primary" ? colors.heroText : variant === "secondary" ? colors.ink : colors.ink;
+  const inactive = disabled || loading;
 
   return (
     <TouchableOpacity
       accessibilityRole="button"
       accessibilityLabel={label}
-      activeOpacity={0.72}
-      disabled={disabled}
+      accessibilityState={{ disabled: inactive, busy: loading }}
+      activeOpacity={inactive ? 1 : 0.7}
+      disabled={inactive}
       style={[
         styles.button,
         variant === "primary" ? styles.primary : null,
         variant === "secondary" ? styles.secondary : null,
         variant === "quiet" ? styles.quiet : null,
-        disabled ? styles.disabled : null,
+        inactive ? styles.disabled : null,
         style
       ]}
       onPress={onPress}
     >
       {variant === "primary" ? <View pointerEvents="none" style={styles.primarySheen} /> : null}
-      {Icon ? <Icon color={foreground} size={18} /> : null}
+      {loading ? <ActivityIndicator color={foreground} size="small" /> : Icon ? <Icon color={foreground} size={18} /> : null}
       <Text style={[styles.label, { color: foreground }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>
         {label}
       </Text>
@@ -56,9 +60,9 @@ function createStyles(theme: AppTheme) {
 
   return StyleSheet.create({
     button: {
-      minHeight: 52,
-      borderRadius: radii.xl,
-      paddingHorizontal: spacing.lg,
+      minHeight: 48,
+      borderRadius: radii.lg,
+      paddingHorizontal: spacing.md,
       alignItems: "center",
       justifyContent: "center",
       flexDirection: "row",
@@ -70,10 +74,10 @@ function createStyles(theme: AppTheme) {
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.isDark ? "rgba(255,255,255,0.24)" : "rgba(255,255,255,0.64)",
       shadowColor: colors.accent,
-      shadowOpacity: theme.isDark ? 0.32 : 0.22,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 10 },
-      elevation: 6
+      shadowOpacity: theme.isDark ? 0.24 : 0.16,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 7 },
+      elevation: 4
     },
     primarySheen: {
       position: "absolute",
@@ -88,13 +92,13 @@ function createStyles(theme: AppTheme) {
       borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : colors.line,
       backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : colors.elevated,
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.12 : 0.06,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 5 },
+      shadowOpacity: theme.isDark ? 0.10 : 0.04,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 4 },
       elevation: 2
     },
     quiet: {
-      minHeight: 44,
+      minHeight: 42,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : colors.line,
       backgroundColor: theme.isDark ? "rgba(255,255,255,0.075)" : colors.surfaceAlt,
@@ -108,8 +112,8 @@ function createStyles(theme: AppTheme) {
       maxWidth: "100%",
       fontSize: 14,
       lineHeight: 18,
-      letterSpacing: -0.1,
-      fontWeight: "900",
+      letterSpacing: 0,
+      fontWeight: "800",
       textAlign: "center"
     }
   });

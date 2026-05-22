@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Bell, CalendarDays, CalendarPlus, CheckCircle2, ChevronRight, Crown, FileScan, NotebookPen, Palette, Plus, Sparkles, Timer } from "lucide-react-native";
+import { Bell, CalendarDays, CalendarPlus, CheckCircle2, ChevronRight, Crown, FileScan, NotebookPen, Palette, Plus, Sparkles, Timer, TrendingUp } from "lucide-react-native";
 import {
   AppLogo,
   AssignmentRow,
@@ -48,6 +48,7 @@ type TodayScreenProps = {
   onOpenPlan: () => void;
   onOpenClasses: () => void;
   onOpenNotes: () => void;
+  onOpenGrades: () => void;
   onTryDemo: () => void;
   onReplaceDemo: () => void;
   onAddQuickAssignment: (courseId: string, title: string, dueDate: string, kind: "assignment") => boolean;
@@ -71,6 +72,7 @@ export function TodayScreen({
   onOpenPlan,
   onOpenClasses,
   onOpenNotes,
+  onOpenGrades,
   onTryDemo,
   onReplaceDemo,
   onAddQuickAssignment
@@ -93,7 +95,11 @@ export function TodayScreen({
   const quickCourse = courses.find((course) => course.id === quickCourseId) || courses[0];
   const parsedQuickHomework = parseQuickHomeworkInput(quickTitle, courses, quickCourse, quickDueDate);
   const liveBrief = buildLiveBrief(plan, courses.length);
+  const handoffState = buildHandoffState(Boolean(importHandoff), plan.needsReview.length, plan.nextAction?.id);
   const focusUpsellHandler = premiumAutomationLocked ? onOpenPaywall : () => onOpenFocus(plan.nextAction?.id);
+  const currentLoadMinutes = plan.upcoming
+    .slice(0, 5)
+    .reduce((sum, assignment) => sum + (assignment.estimatedMinutes || 25), 0);
 
   useEffect(() => {
     if (!courses.length) {
@@ -143,10 +149,8 @@ export function TodayScreen({
       ) : null}
 
       <GlassCard tone="hero" style={styles.heroCard}>
-        <View pointerEvents="none" style={styles.heroOrbPrimary} />
-        <View pointerEvents="none" style={styles.heroOrbSecondary} />
         <View pointerEvents="none" style={styles.heroGridWash} />
-        <Text style={styles.heroKicker}>Apple School OS</Text>
+        <Text style={styles.heroKicker}>Today Dashboard</Text>
         <Text style={styles.heroTitle}>{liveBrief.title}</Text>
         <Text style={styles.heroSubtitle}>{liveBrief.detail}</Text>
         {plan.nextAction ? (
@@ -156,7 +160,7 @@ export function TodayScreen({
                 <Text style={styles.nextKicker}>{formatDueUrgency(nextDueDays)}</Text>
                 <Text style={styles.timeChip}>{plan.nextAction.estimatedMinutes || 25} min</Text>
               </View>
-              <Text style={styles.nextTitle}>{nextCourse?.code} · {plan.nextAction.title}</Text>
+              <Text style={styles.nextTitle}>{formatAssignmentTitle(nextCourse, plan.nextAction)}</Text>
               <Text style={styles.nextMeta}>
                 Due {formatDateOnly(plan.nextAction.dueAt.slice(0, 10))} · {plan.nextAction.estimatedMinutes}m · {nextCourse?.period || "class"}
               </Text>
@@ -189,20 +193,29 @@ export function TodayScreen({
         </View>
       </GlassCard>
 
-      <AppleSchoolDashboard
-        courses={courses}
-        assignments={assignments}
-        notes={notes}
-        semesterPercent={semesterPercent}
-        openCount={plan.openCount}
-        urgentCount={plan.overdue.length + plan.dueSoon.length}
-        onOpenPlan={onOpenPlan}
-        onOpenClasses={onOpenClasses}
-        onOpenNotes={onOpenNotes}
-        onOpenScan={onOpenScan}
-      />
-
-      <WeekWorkloadMap assignments={assignments} courses={courses} onOpenPlan={onOpenPlan} />
+      <GlassCard style={styles.commandCenterCard}>
+        <View style={styles.commandCenterHeader}>
+          <View style={styles.commandCenterCopy}>
+            <Text style={styles.commandCenterKicker}>Command center</Text>
+            <Text style={styles.commandCenterTitle}>
+              {plan.nextAction ? "Real workload, next move, fast capture." : "Ready when real schoolwork lands."}
+            </Text>
+          </View>
+          <TouchableOpacity accessibilityRole="button" style={styles.commandCenterButton} onPress={onOpenPlan}>
+            <Text style={styles.commandCenterButtonText}>Open Plan</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.commandSignalGrid}>
+          <SignalTile label="Load" value={assignments.length ? `${currentLoadMinutes}m` : "0m"} detail={`${plan.upcoming.length} live item${plan.upcoming.length === 1 ? "" : "s"}`} tone="blue" />
+          <SignalTile label="Review" value={`${plan.needsReview.length}`} detail={plan.needsReview.length ? "check imports" : "clean"} tone="pink" />
+          <SignalTile label="Classes" value={`${courses.length}`} detail={courses.length ? "ready" : "add first"} tone="green" />
+        </View>
+        <View style={styles.handoffRail}>
+          <HandoffStep label="Scan" detail={importHandoff ? importHandoff.sourceName : assignments.length ? "Available anytime" : "Import first"} active={Boolean(importHandoff) || assignments.length === 0} />
+          <HandoffStep label="Review" detail={plan.needsReview.length ? `${plan.needsReview.length} to approve` : "No flags"} active={plan.needsReview.length > 0} />
+          <HandoffStep label="Today" detail={handoffState} active={Boolean(plan.nextAction)} />
+        </View>
+      </GlassCard>
 
       {!assignments.length ? (
         <GlassCard style={styles.starterCard}>
@@ -215,6 +228,31 @@ export function TodayScreen({
           </View>
           <AppButton label="Add class manually" variant="quiet" onPress={onOpenClasses} />
         </GlassCard>
+      ) : null}
+
+      {plan.overdue.length > 1 ? (
+        <>
+          <SectionHeader title="Catch up" note={`${plan.overdue.length} overdue · smallest saves first`} />
+          <CatchUpSprintCard
+            overdue={plan.overdue}
+            courses={courses}
+            onOpenAssignment={onOpenAssignment}
+            onOpenFocus={onOpenFocus}
+            onOpenPlan={onOpenPlan}
+            onUpdateStatus={onUpdateStatus}
+          />
+          <View style={styles.list}>
+            {plan.overdue.slice(0, 3).map((assignment) => (
+              <AssignmentRow
+                key={assignment.id}
+                assignment={assignment}
+                course={getCourseForAssignment(courses, assignment)}
+                onPress={() => onOpenAssignment(assignment.id)}
+                trailing={<Text style={styles.overdueFlag}>Study now</Text>}
+              />
+            ))}
+          </View>
+        </>
       ) : null}
 
       {importHandoff ? (
@@ -263,45 +301,47 @@ export function TodayScreen({
       <View style={styles.commandGrid}>
         <CommandTile
           title="Add from syllabus"
-          detail="Upload or paste. Review before saving."
+          detail="Photo, file, or paste → reviewed plan."
           icon={FileScan}
           onPress={onOpenScan}
           tone="pink"
         />
         <CommandTile
           title="Open weekly plan"
-          detail={`${plan.dueSoon.length} due soon · balance workload`}
+          detail={`${plan.dueSoon.length} due soon · move the load`}
           icon={CalendarPlus}
           onPress={onOpenPlan}
           tone="blue"
         />
+        <CommandTile
+          title="Add note"
+          detail={`${notes.length || "Fresh"} class note${notes.length === 1 ? "" : "s"} · keep context`}
+          icon={NotebookPen}
+          onPress={onOpenNotes}
+          tone="green"
+        />
+        <CommandTile
+          title="Customize classes"
+          detail={`${courses.length || "Pick"} classes · colors · emojis`}
+          icon={Palette}
+          onPress={onOpenClasses}
+          tone="purple"
+        />
+        <CommandTile
+          title="Focus now"
+          detail={plan.nextAction ? `${plan.nextAction.estimatedMinutes || 25}m · ${plan.nextAction.title}` : "Pick one task and start."}
+          icon={Timer}
+          onPress={() => onOpenFocus(plan.nextAction?.id)}
+          tone="gold"
+        />
+        <CommandTile
+          title="Grade check"
+          detail="Forecast targets before finals week."
+          icon={TrendingUp}
+          onPress={onOpenGrades}
+          tone="green"
+        />
       </View>
-      {plan.nextAction ? <View style={styles.viewportBreak} /> : null}
-
-      {plan.overdue.length > 1 ? (
-        <>
-          <SectionHeader title="Catch up" note={`${plan.overdue.length} overdue · smallest saves first`} />
-          <CatchUpSprintCard
-            overdue={plan.overdue.slice(1)}
-            courses={courses}
-            onOpenAssignment={onOpenAssignment}
-            onOpenFocus={onOpenFocus}
-            onOpenPlan={onOpenPlan}
-            onUpdateStatus={onUpdateStatus}
-          />
-          <View style={styles.list}>
-            {plan.overdue.slice(0, 3).map((assignment) => (
-              <AssignmentRow
-                key={assignment.id}
-                assignment={assignment}
-                course={getCourseForAssignment(courses, assignment)}
-                onPress={() => onOpenAssignment(assignment.id)}
-                trailing={<Text style={styles.overdueFlag}>Study now</Text>}
-              />
-            ))}
-          </View>
-        </>
-      ) : null}
 
       {secondaryUpcoming.length > 0 || !plan.nextAction ? (
         <>
@@ -323,6 +363,31 @@ export function TodayScreen({
           </View>
         </>
       ) : null}
+
+      <AppleSchoolDashboard
+        courses={courses}
+        assignments={assignments}
+        notes={notes}
+        semesterPercent={semesterPercent}
+        openCount={plan.openCount}
+        urgentCount={plan.overdue.length + plan.dueSoon.length}
+        onOpenPlan={onOpenPlan}
+        onOpenClasses={onOpenClasses}
+        onOpenNotes={onOpenNotes}
+        onOpenScan={onOpenScan}
+      />
+
+      <SchoolLoopPanel
+        plan={plan}
+        courses={courses}
+        notes={notes}
+        onOpenScan={onOpenScan}
+        onOpenPlan={onOpenPlan}
+        onOpenNotes={onOpenNotes}
+        onOpenFocus={() => onOpenFocus(plan.nextAction?.id)}
+      />
+
+      <WeekWorkloadMap assignments={assignments} courses={courses} onOpenPlan={onOpenPlan} />
 
       {plan.needsReview.length > 0 ? (
         <>
@@ -453,6 +518,12 @@ export function TodayScreen({
 
 }
 
+function buildHandoffState(hasImport: boolean, reviewCount: number, nextAssignmentId?: string) {
+  if (reviewCount > 0) return "Waiting on review";
+  if (nextAssignmentId) return hasImport ? "Updated plan" : "Next task ready";
+  return "Clear";
+}
+
 function buildLiveBrief(plan: ReturnType<typeof buildTodayPlan>, courseCount: number) {
   if (plan.overdue.length > 0) {
     return {
@@ -487,6 +558,18 @@ function buildLiveBrief(plan: ReturnType<typeof buildTodayPlan>, courseCount: nu
     title: "Clear right now",
     detail: "Your current plan has no urgent work. Add homework when class ends or scan the next syllabus."
   };
+}
+
+function HandoffStep({ label, detail, active }: { label: string; detail: string; active: boolean }) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={[styles.handoffStep, active ? styles.handoffStepActive : null]}>
+      <Text style={[styles.handoffLabel, active ? styles.handoffLabelActive : null]}>{label}</Text>
+      <Text style={styles.handoffDetail} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>{detail}</Text>
+    </View>
+  );
 }
 
 type MetricPillProps = {
@@ -568,6 +651,32 @@ function MetricPill({ label, value }: MetricPillProps) {
   );
 }
 
+type SignalTileProps = {
+  label: string;
+  value: string;
+  detail: string;
+  tone: "blue" | "pink" | "green";
+};
+
+function SignalTile({ label, value, detail, tone }: SignalTileProps) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  const toneColor = {
+    blue: theme.colors.accent,
+    pink: theme.colors.brandPink,
+    green: theme.colors.green
+  }[tone];
+
+  return (
+    <View style={styles.signalTile}>
+      <View style={[styles.signalRail, { backgroundColor: toneColor }]} />
+      <Text style={styles.signalLabel}>{label}</Text>
+      <Text style={styles.signalValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{value}</Text>
+      <Text style={styles.signalDetail} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>{detail}</Text>
+    </View>
+  );
+}
+
 function WeekWorkloadMap({ assignments, courses, onOpenPlan }: { assignments: Assignment[]; courses: Course[]; onOpenPlan: () => void }) {
   const { theme } = useAppTheme();
   const { colors } = theme;
@@ -580,26 +689,47 @@ function WeekWorkloadMap({ assignments, courses, onOpenPlan }: { assignments: As
     return { key, label: index === 0 ? "Today" : date.toLocaleDateString(undefined, { weekday: "short" }), items };
   });
   const maxCount = Math.max(1, ...days.map((day) => day.items.length));
+  const totalItems = days.reduce((sum, day) => sum + day.items.length, 0);
+  const totalMinutes = days.reduce(
+    (sum, day) => sum + day.items.reduce((daySum, assignment) => daySum + (assignment.estimatedMinutes || 25), 0),
+    0
+  );
+  const busiestDay =
+    days.slice().sort((a, b) => b.items.length - a.items.length)[0] || days[0];
 
   return (
     <GlassCard style={styles.scheduleCard}>
       <View style={styles.scheduleHeader}>
         <View>
           <Text style={styles.scheduleKicker}>Schedule map</Text>
-          <Text style={styles.scheduleTitle}>Due-date density for the next 7 days.</Text>
+          <Text style={styles.scheduleTitle}>
+            {totalItems ? `${totalItems} deadline${totalItems === 1 ? "" : "s"} in the next 7 days.` : "No deadlines in the next 7 days."}
+          </Text>
         </View>
         <TouchableOpacity accessibilityRole="button" style={styles.scheduleOpenButton} onPress={onOpenPlan}>
           <Text style={styles.scheduleOpenText}>Open Plan</Text>
         </TouchableOpacity>
       </View>
+      <View style={styles.scheduleSummaryRow}>
+        <Text style={styles.scheduleSummaryText}>{totalMinutes}m planned load</Text>
+        <Text style={styles.scheduleSummaryText}>
+          {totalItems && busiestDay
+            ? `${busiestDay.label}: ${busiestDay.items.length}`
+            : "Bars stay empty until real due dates exist"}
+        </Text>
+      </View>
       <View style={styles.weekBars}>
         {days.map((day) => {
-          const height = 26 + Math.round((day.items.length / maxCount) * 58);
+          const height = day.items.length > 0 ? Math.max(18, Math.round((day.items.length / maxCount) * 84)) : 0;
           const course = courses.find((item) => item.id === day.items[0]?.courseId);
           return (
             <View key={day.key} style={styles.weekBarColumn}>
               <View style={styles.weekBarTrack}>
-                <View style={[styles.weekBarFill, { height, backgroundColor: course?.color || colors.accent }]} />
+                {height > 0 ? (
+                  <View style={[styles.weekBarFill, { height, backgroundColor: course?.color || colors.accent }]} />
+                ) : (
+                  <View style={styles.weekBarEmptyMark} />
+                )}
               </View>
               <Text style={styles.weekBarCount}>{day.items.length}</Text>
               <Text style={styles.weekBarLabel}>{day.label}</Text>
@@ -699,12 +829,106 @@ function AppleSchoolDashboard({
   );
 }
 
+function SchoolLoopPanel({
+  plan,
+  courses,
+  notes,
+  onOpenScan,
+  onOpenPlan,
+  onOpenNotes,
+  onOpenFocus
+}: {
+  plan: ReturnType<typeof buildTodayPlan>;
+  courses: Course[];
+  notes: StudyNote[];
+  onOpenScan: () => void;
+  onOpenPlan: () => void;
+  onOpenNotes: () => void;
+  onOpenFocus: () => void;
+}) {
+  const { theme } = useAppTheme();
+  const { colors } = theme;
+  const styles = createStyles(theme);
+  const nextCourse = plan.nextAction ? getCourseForAssignment(courses, plan.nextAction) : undefined;
+  const loopItems = [
+    {
+      emoji: "☀️",
+      phase: "Before school",
+      title: plan.nextAction ? `${nextCourse?.code || "Next"} is ready` : "Scan first",
+      detail: plan.nextAction ? `${formatDueUrgency(daysUntil(plan.nextAction.dueAt))} · ${plan.nextAction.estimatedMinutes || 25}m` : "Build the semester dashboard.",
+      icon: CalendarDays,
+      onPress: plan.nextAction ? onOpenPlan : onOpenScan,
+      color: colors.accent
+    },
+    {
+      emoji: "🎒",
+      phase: "During school",
+      title: notes.length ? `${notes.length} note${notes.length === 1 ? "" : "s"} saved` : "Capture notes",
+      detail: "Class-linked notes keep homework from disappearing.",
+      icon: NotebookPen,
+      onPress: onOpenNotes,
+      color: colors.sage
+    },
+    {
+      emoji: "🌙",
+      phase: "After school",
+      title: plan.nextAction ? "Start focus mode" : "Make tomorrow easy",
+      detail: plan.nextAction ? "One timer, one assignment, one win." : "Add work now so Today wakes up useful.",
+      icon: Timer,
+      onPress: plan.nextAction ? onOpenFocus : onOpenScan,
+      color: colors.brandPink
+    }
+  ];
+
+  return (
+    <GlassCard style={styles.loopCard}>
+      <View style={styles.loopHeader}>
+        <View>
+          <Text style={styles.loopKicker}>Daily retention loop</Text>
+          <Text style={styles.loopTitle}>Before, during, and after school.</Text>
+        </View>
+        <View style={styles.loopLiveBadge}>
+          <Sparkles color={colors.accent} size={13} />
+          <Text style={styles.loopLiveText}>Live</Text>
+        </View>
+      </View>
+      <View style={styles.loopGrid}>
+        {loopItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <TouchableOpacity accessibilityRole="button" key={item.phase} style={styles.loopTile} onPress={item.onPress}>
+              <View style={[styles.loopIcon, { backgroundColor: `${item.color}22` }]}>
+                <Text style={styles.loopEmoji}>{item.emoji}</Text>
+                <Icon color={item.color} size={16} />
+              </View>
+              <Text style={styles.loopPhase} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82}>{item.phase}</Text>
+              <Text style={styles.loopItemTitle} numberOfLines={2}>{item.title}</Text>
+              <Text style={styles.loopDetail} numberOfLines={2}>{item.detail}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      <View style={styles.widgetTease}>
+        <View style={styles.widgetTeasePhone}>
+          <View style={styles.widgetTeaseBar} />
+          <Text style={styles.widgetTeaseTitle} numberOfLines={2}>{plan.nextAction?.title || "Scan syllabus"}</Text>
+          <Text style={styles.widgetTeaseMeta} numberOfLines={2}>{plan.nextAction ? "Countdown widget ready" : "Build live widgets from real work"}</Text>
+        </View>
+        <View style={styles.widgetTeaseCopy}>
+          <Text style={styles.widgetTeaseKicker}>Widget Studio</Text>
+          <Text style={styles.widgetTeaseText}>Every deadline can become a lock-screen style agenda, countdown, or class widget.</Text>
+        </View>
+      </View>
+    </GlassCard>
+  );
+}
+
 type CommandTileProps = {
   title: string;
   detail: string;
   icon: React.ComponentType<{ color: string; size: number }>;
   onPress: () => void;
-  tone: "pink" | "blue" | "green" | "purple";
+  tone: "pink" | "blue" | "green" | "purple" | "gold";
 };
 
 function CommandTile({ title, detail, icon: Icon, onPress, tone }: CommandTileProps) {
@@ -714,7 +938,8 @@ function CommandTile({ title, detail, icon: Icon, onPress, tone }: CommandTilePr
     pink: theme.colors.brandPink,
     blue: theme.colors.accent,
     green: theme.colors.green,
-    purple: theme.colors.brandViolet
+    purple: theme.colors.brandViolet,
+    gold: theme.colors.gold
   }[tone];
 
   return (
@@ -743,6 +968,10 @@ function formatDueUrgency(days: number) {
   if (days < 0) return `Overdue by ${Math.abs(days)} day${Math.abs(days) === 1 ? "" : "s"}`;
   if (days === 0) return "Due today";
   return `Due in ${days} day${days === 1 ? "" : "s"}`;
+}
+
+function formatAssignmentTitle(course: Course | undefined, assignment: Assignment) {
+  return course?.code ? `${course.code} · ${assignment.title}` : assignment.title;
 }
 
 function createStyles(theme: AppTheme) {
@@ -798,26 +1027,6 @@ function createStyles(theme: AppTheme) {
       overflow: "hidden",
       marginBottom: spacing.xs
     },
-    heroOrbPrimary: {
-      position: "absolute",
-      right: -56,
-      top: -70,
-      width: 180,
-      height: 180,
-      borderRadius: 90,
-      backgroundColor: colors.accent,
-      opacity: theme.isDark ? 0.20 : 0.10
-    },
-    heroOrbSecondary: {
-      position: "absolute",
-      left: -46,
-      bottom: -68,
-      width: 150,
-      height: 150,
-      borderRadius: 75,
-      backgroundColor: colors.brandViolet,
-      opacity: theme.isDark ? 0.16 : 0.08
-    },
     heroGridWash: {
       position: "absolute",
       right: 18,
@@ -844,7 +1053,7 @@ function createStyles(theme: AppTheme) {
       fontSize: 21,
       lineHeight: 26,
       fontWeight: "900",
-      letterSpacing: -0.35
+      letterSpacing: 0
     },
     heroSubtitle: {
       color: colors.heroMuted,
@@ -875,7 +1084,7 @@ function createStyles(theme: AppTheme) {
       fontSize: 15,
       lineHeight: 19,
       fontWeight: "900",
-      letterSpacing: -0.3
+      letterSpacing: 0
     },
     metricLabel: {
       color: colors.heroMuted,
@@ -939,17 +1148,20 @@ function createStyles(theme: AppTheme) {
     },
     startButton: {
       flex: 1.3,
+      minWidth: 148,
       minHeight: 46,
       backgroundColor: colors.accent
     },
     focusButton: {
       flex: 0.9,
+      minWidth: 132,
       minHeight: 46,
       backgroundColor: "rgba(255,255,255,0.18)",
       borderColor: "rgba(255,255,255,0.26)"
     },
     nextActions: {
       flexDirection: "row",
+      flexWrap: "wrap",
       gap: spacing.xs
     },
     starterCard: {
@@ -978,10 +1190,134 @@ function createStyles(theme: AppTheme) {
     },
     starterActions: {
       flexDirection: "row",
+      flexWrap: "wrap",
       gap: spacing.sm
     },
     starterButton: {
-      flex: 1
+      flex: 1,
+      minWidth: 136
+    },
+    commandCenterCard: {
+      gap: spacing.sm,
+      marginBottom: spacing.xs,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(49,91,255,0.14)"
+    },
+    commandCenterHeader: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    commandCenterCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    commandCenterKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      letterSpacing: 0.7,
+      textTransform: "uppercase"
+    },
+    commandCenterTitle: {
+      color: colors.ink,
+      fontSize: 18,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    commandCenterButton: {
+      borderRadius: radii.round,
+      backgroundColor: colors.accentSoft,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 8
+    },
+    commandCenterButtonText: {
+      color: colors.accent,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
+    },
+    commandSignalGrid: {
+      flexDirection: "row",
+      gap: spacing.xs
+    },
+    handoffRail: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    handoffStep: {
+      flex: 1,
+      minWidth: 96,
+      minHeight: 54,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.035)" : colors.surface,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 8,
+      justifyContent: "center",
+      gap: 2
+    },
+    handoffStepActive: {
+      borderColor: `${colors.accent}55`,
+      backgroundColor: colors.accentSoft
+    },
+    handoffLabel: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase",
+      letterSpacing: 0.5
+    },
+    handoffLabelActive: {
+      color: colors.accent
+    },
+    handoffDetail: {
+      color: colors.ink,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "800"
+    },
+    signalTile: {
+      flex: 1,
+      minWidth: 0,
+      minHeight: 82,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.045)" : colors.surfaceAlt,
+      padding: spacing.sm,
+      gap: 3,
+      overflow: "hidden"
+    },
+    signalRail: {
+      width: 26,
+      height: 4,
+      borderRadius: 2
+    },
+    signalLabel: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase",
+      letterSpacing: 0.4
+    },
+    signalValue: {
+      color: colors.ink,
+      fontSize: 20,
+      lineHeight: 24,
+      fontWeight: "900"
+    },
+    signalDetail: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
     },
     importHandoffCard: {
       gap: spacing.sm,
@@ -1026,10 +1362,12 @@ function createStyles(theme: AppTheme) {
     },
     importHandoffActions: {
       flexDirection: "row",
+      flexWrap: "wrap",
       gap: spacing.sm
     },
     importHandoffButton: {
       flex: 1,
+      minWidth: 132,
       paddingHorizontal: spacing.xs
     },
     scheduleCard: {
@@ -1089,7 +1427,7 @@ function createStyles(theme: AppTheme) {
       maxWidth: 30,
       height: 92,
       borderRadius: 15,
-      backgroundColor: colors.surface,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.065)" : colors.surface,
       alignItems: "center",
       justifyContent: "flex-end",
       overflow: "hidden"
@@ -1098,6 +1436,13 @@ function createStyles(theme: AppTheme) {
       width: "100%",
       minHeight: 12,
       borderRadius: 15
+    },
+    weekBarEmptyMark: {
+      width: "52%",
+      height: 4,
+      borderRadius: 2,
+      marginBottom: 6,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.18)" : colors.line
     },
     weekBarCount: {
       color: colors.ink,
@@ -1116,6 +1461,167 @@ function createStyles(theme: AppTheme) {
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "700"
+    },
+    scheduleSummaryRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    scheduleSummaryText: {
+      borderRadius: radii.round,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.06)" : colors.surfaceAlt,
+      color: colors.muted,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 6,
+      overflow: "hidden",
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    loopCard: {
+      gap: spacing.md,
+      marginBottom: spacing.sm,
+      overflow: "hidden"
+    },
+    loopHeader: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    loopKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      textTransform: "uppercase",
+      letterSpacing: 0.7
+    },
+    loopTitle: {
+      color: colors.ink,
+      fontSize: 19,
+      lineHeight: 24,
+      fontWeight: "900"
+    },
+    loopLiveBadge: {
+      borderRadius: radii.round,
+      backgroundColor: colors.accentSoft,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 7,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5
+    },
+    loopLiveText: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    loopGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    loopTile: {
+      flexBasis: "31%",
+      flexGrow: 1,
+      minWidth: 96,
+      minHeight: 134,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.045)" : colors.surfaceAlt,
+      padding: spacing.sm,
+      gap: 5
+    },
+    loopIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: 16,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    loopEmoji: {
+      fontSize: 15,
+      lineHeight: 18
+    },
+    loopPhase: {
+      color: colors.faint,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase",
+      letterSpacing: 0.4
+    },
+    loopItemTitle: {
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    loopDetail: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "700"
+    },
+    widgetTease: {
+      borderRadius: radii.xl,
+      backgroundColor: colors.heroSurface,
+      padding: spacing.sm,
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "center",
+      gap: spacing.sm,
+      overflow: "hidden"
+    },
+    widgetTeasePhone: {
+      width: 104,
+      minHeight: 92,
+      borderRadius: 24,
+      backgroundColor: "rgba(255,255,255,0.13)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.20)",
+      padding: spacing.sm,
+      justifyContent: "center",
+      gap: 5
+    },
+    widgetTeaseBar: {
+      width: 40,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: colors.accent
+    },
+    widgetTeaseTitle: {
+      color: colors.heroText,
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    widgetTeaseMeta: {
+      color: colors.heroMuted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "800"
+    },
+    widgetTeaseCopy: {
+      flex: 1,
+      minWidth: 150,
+      gap: 3
+    },
+    widgetTeaseKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    widgetTeaseText: {
+      color: colors.heroText,
+      fontSize: 14,
+      lineHeight: 19,
+      fontWeight: "800"
     },
     osCard: {
       gap: spacing.md,
@@ -1146,7 +1652,7 @@ function createStyles(theme: AppTheme) {
       fontSize: 20,
       lineHeight: 25,
       fontWeight: "900",
-      letterSpacing: -0.35
+      letterSpacing: 0
     },
     osBadge: {
       flexDirection: "row",
@@ -1256,11 +1762,10 @@ function createStyles(theme: AppTheme) {
       flexWrap: "wrap",
       gap: spacing.sm
     },
-    viewportBreak: {
-      height: 92
-    },
     commandTile: {
-      width: "48%",
+      flexBasis: "47%",
+      flexGrow: 1,
+      minWidth: 136,
       minHeight: 92,
       borderRadius: radii.xl,
       borderWidth: StyleSheet.hairlineWidth,
@@ -1361,6 +1866,7 @@ function createStyles(theme: AppTheme) {
     },
     quickInputRow: {
       flexDirection: "row",
+      flexWrap: "wrap",
       gap: spacing.sm
     },
     quickInput: {
@@ -1378,7 +1884,8 @@ function createStyles(theme: AppTheme) {
       flex: 1
     },
     quickDateInput: {
-      width: 124
+      width: 124,
+      flexGrow: 0
     },
     quickParsePreview: {
       color: colors.muted,
@@ -1414,11 +1921,13 @@ function createStyles(theme: AppTheme) {
     },
     actionRow: {
       flexDirection: "row",
+      flexWrap: "wrap",
       gap: spacing.sm,
       marginTop: spacing.sm
     },
     actionButton: {
       flex: 1,
+      minWidth: 112,
       paddingHorizontal: spacing.xs
     },
     catchUpCard: {
@@ -1468,7 +1977,7 @@ function createStyles(theme: AppTheme) {
       fontSize: 18,
       lineHeight: 23,
       fontWeight: "900",
-      letterSpacing: -0.2
+      letterSpacing: 0
     },
     catchUpCopy: {
       color: colors.muted,
@@ -1510,13 +2019,16 @@ function createStyles(theme: AppTheme) {
     },
     catchUpActions: {
       flexDirection: "row",
+      flexWrap: "wrap",
       gap: spacing.sm
     },
     catchUpPrimaryAction: {
-      flex: 1
+      flex: 1,
+      minWidth: 136
     },
     catchUpSecondaryAction: {
       flex: 1,
+      minWidth: 116,
       paddingHorizontal: spacing.xs
     },
     list: {

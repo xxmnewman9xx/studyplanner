@@ -65,6 +65,7 @@ export function AssignmentDetailScreen({
     ? checklist.filter((item) => item.done).length / checklist.length
     : assignment.progress || (status === "done" ? 1 : 0);
   const progressPercent = Math.round(progress * 100);
+  const trustState = buildAssignmentTrustState(assignment);
 
   const dirty = useMemo(
     () =>
@@ -105,6 +106,16 @@ export function AssignmentDetailScreen({
           ? nextChecklist.filter((item) => item.done).length / nextChecklist.length
           : progress
     );
+    const reviewCleared =
+      assignment.needsReview ||
+      assignment.duplicateOf ||
+      (assignment.confidence || 1) < 0.75
+        ? {
+            needsReview: false,
+            duplicateOf: undefined,
+            confidence: Math.max(assignment.confidence || 0, 0.86)
+          }
+        : {};
     onSave({
       title: title.trim() || assignment.title,
       dueAt: `${cleanDueDate}T${cleanDueTime}:00`,
@@ -120,6 +131,7 @@ export function AssignmentDetailScreen({
       courseId,
       checklist: nextChecklist,
       progress: nextProgress,
+      ...reviewCleared,
       ...override
     });
   };
@@ -135,7 +147,7 @@ export function AssignmentDetailScreen({
       <View style={styles.headerRow}>
         <View style={styles.headerCopy}>
           <Text style={styles.kicker}>Assignment</Text>
-          <Text style={styles.title}>{assignment.title}</Text>
+          <Text style={styles.title} numberOfLines={2}>{assignment.title}</Text>
           <Text style={styles.subtitle}>
             {course?.code || "Course"} · {formatShortDate(assignment.dueAt)}
           </Text>
@@ -144,6 +156,17 @@ export function AssignmentDetailScreen({
           <X color={colors.ink} size={20} />
         </TouchableOpacity>
       </View>
+
+      <GlassCard style={styles.trustCard}>
+        <View style={styles.trustHeader}>
+          <View style={styles.trustCopy}>
+            <Text style={styles.trustKicker}>Task state</Text>
+            <Text style={styles.trustTitle}>{trustState.title}</Text>
+          </View>
+          <Text style={styles.trustBadge}>{trustState.badge}</Text>
+        </View>
+        <Text style={styles.trustDetail}>{trustState.detail}</Text>
+      </GlassCard>
 
       <GlassCard tone="hero" style={styles.hero}>
         <View style={styles.heroTop}>
@@ -269,6 +292,14 @@ export function AssignmentDetailScreen({
           <Meta label="Confidence" value={assignment.confidence ? `${Math.round(assignment.confidence * 100)}%` : "Manual"} />
         </View>
 
+        {assignment.needsReview || assignment.duplicateOf || (assignment.confidence || 1) < 0.75 ? (
+          <View style={styles.reviewCallout}>
+            <Text style={styles.reviewTitle}>Needs a human check</Text>
+            <Text style={styles.reviewCopy}>Saving valid edits marks this task reviewed so it can appear in widgets and trusted Today views.</Text>
+            <AppButton label="Mark reviewed" variant="secondary" onPress={() => save()} />
+          </View>
+        ) : null}
+
         <Field label="Tags">
           <TextInput
             value={tags}
@@ -340,6 +371,46 @@ function labelize(value: string) {
   return value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function buildAssignmentTrustState(assignment: Assignment) {
+  if (assignment.duplicateOf) {
+    return {
+      title: "Possible duplicate",
+      detail: "Confirm this is a real separate task before saving it into the active plan.",
+      badge: "Review"
+    };
+  }
+
+  if (assignment.needsReview) {
+    return {
+      title: "Needs review before it is trusted",
+      detail: "Check the class, due date, and title. Saving valid edits clears the review flag.",
+      badge: "Needs check"
+    };
+  }
+
+  if (typeof assignment.confidence === "number" && assignment.confidence < 0.75) {
+    return {
+      title: "Low-confidence import",
+      detail: "The parser was unsure about this item. Confirm the details before relying on reminders.",
+      badge: `${Math.round(assignment.confidence * 100)}%`
+    };
+  }
+
+  if (assignment.status === "done") {
+    return {
+      title: "Complete and still editable",
+      detail: "This task is done. Reopen details only if the plan or grade context changed.",
+      badge: "Done"
+    };
+  }
+
+  return {
+    title: "Ready for Today and Plan",
+    detail: "This assignment has enough trusted detail to show up in the active school operating system.",
+    badge: "Trusted"
+  };
+}
+
 function createStyles(theme: AppTheme) {
   const { colors, radii, spacing, typography } = theme;
 
@@ -377,6 +448,54 @@ function createStyles(theme: AppTheme) {
       backgroundColor: colors.surface,
       alignItems: "center",
       justifyContent: "center"
+    },
+    trustCard: {
+      gap: spacing.sm,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(49,91,255,0.16)",
+      backgroundColor: colors.heroSurface
+    },
+    trustHeader: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    trustCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    trustKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      letterSpacing: 0.6,
+      textTransform: "uppercase"
+    },
+    trustTitle: {
+      color: colors.heroText,
+      fontSize: 18,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    trustBadge: {
+      borderRadius: radii.round,
+      overflow: "hidden",
+      backgroundColor: colors.accentSoft,
+      color: colors.accent,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 7,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    trustDetail: {
+      color: colors.heroMuted,
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "700"
     },
     hero: {
       gap: spacing.md
@@ -438,10 +557,12 @@ function createStyles(theme: AppTheme) {
     },
     heroActions: {
       flexDirection: "row",
+      flexWrap: "wrap",
       gap: spacing.sm
     },
     heroButton: {
       flex: 1,
+      minWidth: 136,
       paddingHorizontal: spacing.xs
     },
     formCard: {
@@ -531,6 +652,26 @@ function createStyles(theme: AppTheme) {
       lineHeight: 19,
       fontWeight: "900"
     },
+    reviewCallout: {
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.gold,
+      backgroundColor: theme.isDark ? "rgba(245,158,11,0.14)" : "rgba(245,158,11,0.10)",
+      padding: spacing.md,
+      gap: spacing.sm
+    },
+    reviewTitle: {
+      color: colors.ink,
+      fontSize: 15,
+      lineHeight: 20,
+      fontWeight: "900"
+    },
+    reviewCopy: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "800"
+    },
     sectionCard: {
       gap: spacing.sm
     },
@@ -568,10 +709,12 @@ function createStyles(theme: AppTheme) {
     },
     actionRow: {
       flexDirection: "row",
+      flexWrap: "wrap",
       gap: spacing.sm
     },
     actionButton: {
-      flex: 1
+      flex: 1,
+      minWidth: 136
     }
   });
 }

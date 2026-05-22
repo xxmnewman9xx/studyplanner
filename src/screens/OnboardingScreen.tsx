@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
-  Bell,
   CalendarDays,
   CheckCircle2,
   FileScan,
@@ -26,29 +25,29 @@ type OnboardingScreenProps = {
 
 const slides = [
   {
-    eyebrow: "Scan → review → plan",
-    title: "Turn any syllabus into a semester plan.",
-    copy: "Upload class material, review what StudyPlanner finds, then send approved work into Today, Plan, and Widget Studio.",
+    eyebrow: "Import → review → plan",
+    title: "Turn any syllabus into a semester plan",
+    copy: "Take a photo, choose a PDF/text file, use a saved image, or paste notes. StudyPlanner drafts likely assignments for you to check.",
     icon: FileScan,
-    previewTitle: "Syllabus scan",
-    previewMetric: "18 found",
-    previewDetail: "3 classes · 15 assignments",
-    rows: ["Scan or paste class material", "Review every found deadline", "Build Today + widgets from approved work"]
+    previewTitle: "Import sources",
+    previewMetric: "4 ways in",
+    previewDetail: "Camera · photo · PDF · paste",
+    rows: ["Pick the source you have", "OCR/parser drafts likely rows", "Review creates your first Today list"]
   },
   {
     eyebrow: "Trust check",
     title: "Review before it touches your planner.",
-    copy: "Missing dates, low-confidence rows, and duplicates are flagged before they touch your planner.",
+    copy: "Missing dates, invalid dates, low-confidence rows, and possible duplicates are flagged before saving.",
     icon: WandSparkles,
     previewTitle: "Review queue",
-    previewMetric: "3 checks",
-    previewDetail: "Approve before saving",
-    rows: ["Lab report · needs date", "Midterm · Oct 12", "Reading notes · duplicate check"]
+    previewMetric: "Blocked",
+    previewDetail: "Fix dates, then approve",
+    rows: ["Lab report · needs a date", "Midterm · Oct 12 · high trust", "Reading notes · duplicate check"]
   },
   {
-    eyebrow: "Your school, your phone",
-    title: "Classes, colors, reminders, widgets.",
-    copy: "Start free with a useful planner. Plus only appears when you want more volume or advanced automation.",
+    eyebrow: "First value",
+    title: "Approve work once. Today becomes useful.",
+    copy: "After review, approved assignments can show up as agenda items, countdowns, notes, reminders, and focus sessions.",
     icon: Palette,
     previewTitle: "Widget Studio",
     previewMetric: "Today",
@@ -75,6 +74,15 @@ const reminderChoices = [
   }
 ];
 
+const firstValueDeck = [
+  { label: "Classes", detail: "free starter setup" },
+  { label: "Today", detail: "real approved work" },
+  { label: "Widgets", detail: "planner-backed" },
+  { label: "Focus", detail: "study sessions" }
+];
+
+const importMethods = ["Camera", "Photo", "PDF/text", "Paste"];
+
 export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
@@ -91,11 +99,12 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
   };
 
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.screenContent}
-      showsVerticalScrollIndicator={false}
-    >
+    <View style={styles.screen}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.screenContent}
+        showsVerticalScrollIndicator={false}
+      >
       <View style={styles.brandRow}>
         <AppLogo showWordmark size={40} />
       </View>
@@ -110,6 +119,30 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
         <Text style={styles.eyebrow}>{slide.eyebrow}</Text>
         <Text style={styles.title}>{slide.title}</Text>
         <Text style={styles.copy}>{slide.copy}</Text>
+
+        {index === 0 ? (
+          <View style={styles.methodDeck}>
+            {importMethods.map((method) => (
+              <View key={method} style={styles.methodChip}>
+                <Text style={styles.methodText}>{method}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
+        {index === slides.length - 1 ? (
+          <View style={styles.valueDeck}>
+            {firstValueDeck.map((item, itemIndex) => (
+              <View key={item.label} style={styles.valueChip}>
+                <View style={[styles.valueMarker, itemIndex === 1 ? styles.valueMarkerAccent : itemIndex === 2 ? styles.valueMarkerPink : null]} />
+                <View style={styles.valueCopy}>
+                  <Text style={styles.valueLabel}>{item.label}</Text>
+                  <Text style={styles.valueDetail}>{item.detail}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : null}
 
         <View style={styles.previewPanel}>
           {slide.rows.map((row, rowIndex) => (
@@ -129,7 +162,7 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
               <Text style={styles.appPreviewTitle}>{slide.previewTitle}</Text>
             </View>
             <View style={styles.appPreviewBadge}>
-              <Text style={styles.appPreviewBadgeText}>{index === 0 ? "Scan" : index === 1 ? "Review" : "Widgets"}</Text>
+              <Text style={styles.appPreviewBadgeText}>{index === 0 ? "Import" : index === 1 ? "Review" : "Today"}</Text>
             </View>
           </View>
           <View style={styles.appPreviewBody}>
@@ -140,7 +173,7 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
             <View style={styles.miniWidgetPreview}>
               <View style={styles.miniWidgetDot} />
               <Text style={styles.miniWidgetTitle}>{index === 0 ? "Imported work" : index === 1 ? "Needs review" : "Due today"}</Text>
-              <Text style={styles.miniWidgetText}>{index === 0 ? "Everything lands in one plan." : index === 1 ? "You approve what matters." : "Widgets stay planner-backed."}</Text>
+              <Text style={styles.miniWidgetText}>{index === 0 ? "Drafts stay editable." : index === 1 ? "Bad dates block saving." : "Planner-backed, not placeholder."}</Text>
             </View>
           </View>
         </View>
@@ -149,7 +182,7 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
       <GlassCard style={styles.flowCard}>
         <View style={styles.flowStep}>
           <View style={styles.flowIcon}><FileScan color={colors.accent} size={17} /></View>
-          <Text style={styles.flowText}>Scan</Text>
+          <Text style={styles.flowText}>Import</Text>
         </View>
         <View style={styles.flowLine} />
         <View style={styles.flowStep}>
@@ -215,6 +248,7 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
           <Text style={styles.trustLineText}>You review every deadline before anything saves.</Text>
         </View>
       )}
+      </ScrollView>
 
       <View style={styles.bottomBar}>
         <AppButton
@@ -256,7 +290,7 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
           ))}
         </View>
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -268,11 +302,14 @@ function createStyles(theme: AppTheme) {
       flex: 1,
       backgroundColor: colors.canvas
     },
+    scroll: {
+      flex: 1
+    },
     screenContent: {
       flexGrow: 1,
       paddingHorizontal: spacing.md,
       paddingTop: spacing.xs,
-      paddingBottom: spacing.xl,
+      paddingBottom: spacing.lg,
       gap: spacing.sm
     },
     brandRow: {
@@ -281,7 +318,8 @@ function createStyles(theme: AppTheme) {
     },
     heroCard: {
       gap: spacing.sm,
-      padding: spacing.md
+      padding: spacing.md,
+      overflow: "hidden"
     },
     heroTopRow: {
       flexDirection: "row",
@@ -323,6 +361,76 @@ function createStyles(theme: AppTheme) {
       fontSize: 15,
       lineHeight: 22,
       fontWeight: "700"
+    },
+    methodDeck: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    methodChip: {
+      minHeight: 30,
+      borderRadius: radii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.18)",
+      backgroundColor: "rgba(255,255,255,0.10)",
+      paddingHorizontal: spacing.sm,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    methodText: {
+      color: colors.heroText,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    valueDeck: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    valueChip: {
+      flexBasis: "47%",
+      flexGrow: 1,
+      minHeight: 46,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.16)",
+      backgroundColor: "rgba(255,255,255,0.10)",
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 8,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs
+    },
+    valueMarker: {
+      width: 17,
+      height: 17,
+      borderRadius: 9,
+      backgroundColor: colors.accent,
+      borderWidth: 2,
+      borderColor: "rgba(255,255,255,0.35)"
+    },
+    valueMarkerAccent: {
+      backgroundColor: colors.sage
+    },
+    valueMarkerPink: {
+      backgroundColor: colors.brandPink
+    },
+    valueCopy: {
+      flex: 1,
+      minWidth: 0
+    },
+    valueLabel: {
+      color: colors.heroText,
+      fontSize: 12,
+      lineHeight: 15,
+      fontWeight: "900"
+    },
+    valueDetail: {
+      color: colors.heroMuted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "800"
     },
     previewPanel: {
       marginTop: 2,
@@ -608,9 +716,13 @@ function createStyles(theme: AppTheme) {
       backgroundColor: colors.accent
     },
     bottomBar: {
-      marginTop: "auto",
       gap: spacing.xs,
-      paddingTop: spacing.sm
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.line,
+      backgroundColor: colors.canvas,
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.md
     },
     freeNote: {
       color: colors.muted,

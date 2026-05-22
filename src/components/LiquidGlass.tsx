@@ -11,8 +11,8 @@ export function LiquidGlassSurface({ children, tone = "default", style }: { chil
   const styles = createStyles(theme);
   return (
     <View style={[styles.surface, tone === "hero" ? styles.hero : tone === "accent" ? styles.accent : null, style]}>
-      <View pointerEvents="none" style={styles.orbPrimary} />
-      <View pointerEvents="none" style={styles.orbSecondary} />
+      <View pointerEvents="none" style={styles.topHighlight} />
+      <View pointerEvents="none" style={styles.bottomHairline} />
       {children}
     </View>
   );
@@ -63,8 +63,8 @@ function createStyles(theme: AppTheme) {
     surface: { borderRadius: radii.xl, borderWidth: 1, borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.82)", backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : "rgba(255,255,255,0.72)", padding: spacing.md, overflow: "hidden", shadowColor: colors.shadow, shadowOpacity: theme.isDark ? 0.20 : 0.08, shadowRadius: 22, shadowOffset: { width: 0, height: 14 }, elevation: 2 },
     hero: { backgroundColor: colors.heroSurface, borderColor: theme.isDark ? "rgba(255,255,255,0.18)" : "rgba(49,91,255,0.18)" },
     accent: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
-    orbPrimary: { position: "absolute", right: -46, top: -58, width: 132, height: 132, borderRadius: 66, backgroundColor: colors.brandViolet, opacity: theme.isDark ? 0.18 : 0.10 },
-    orbSecondary: { position: "absolute", left: -34, bottom: -50, width: 112, height: 112, borderRadius: 56, backgroundColor: colors.accent, opacity: theme.isDark ? 0.12 : 0.07 },
+    topHighlight: { position: "absolute", top: 0, left: 0, right: 0, height: "42%", backgroundColor: theme.isDark ? "rgba(255,255,255,0.045)" : "rgba(255,255,255,0.34)" },
+    bottomHairline: { position: "absolute", left: 12, right: 12, bottom: 0, height: StyleSheet.hairlineWidth, backgroundColor: theme.isDark ? "rgba(255,255,255,0.12)" : "rgba(17,24,39,0.08)" },
     badge: { alignSelf: "flex-start", borderRadius: radii.round, paddingHorizontal: spacing.sm, paddingVertical: 6 },
     badgeText: { color: colors.heroText, fontSize: 11, lineHeight: 14, fontWeight: "900" },
     defaultBadge: { backgroundColor: colors.surfaceAlt },
@@ -75,7 +75,7 @@ function createStyles(theme: AppTheme) {
     rail: { height: 8, borderRadius: radii.round, backgroundColor: colors.surfaceAlt, overflow: "hidden" },
     railFill: { height: "100%", borderRadius: radii.round },
     accentFill: { backgroundColor: colors.accent },
-    cta: { minHeight: 42, borderRadius: radii.round, paddingHorizontal: spacing.md, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.xs },
+    cta: { minHeight: 42, borderRadius: radii.round, paddingHorizontal: spacing.md, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.xs, overflow: "hidden" },
     ctaText: { color: colors.heroText, fontSize: 13, lineHeight: 17, fontWeight: "900" }
   });
 }
