@@ -13,6 +13,9 @@ yarn-debug.log*
 yarn-error.log*
 *.tsbuildinfo
 
+# Local FounderOS app guidance; canonical coordination lives in FounderVault.
+.founderos/
+
 # Local EAS/TestFlight artifacts
 build/
 build-*.ipa

@@ -106,13 +106,17 @@ export const themePalettes = {
 
 export type ColorTokens = typeof lightColors;
 export type ThemeMode = "light" | "dark";
-export type ThemeAccent = "campus" | "classic" | "slate" | "mint";
+export type ThemeAccent = "campus" | "classic" | "slate" | "mint" | "aura" | "rose" | "graphite" | "solar";
 
 export const appThemePalettes: Record<ThemeAccent, { label: string; swatches: string[] }> = {
   campus: { label: "Campus", swatches: ["#15233A", "#315BFF", "#35CDA8", "#F6F8FC"] },
   classic: { label: "Classic", swatches: ["#21143E", "#6D44FF", "#D84B7B", "#F8F3FF"] },
   slate: { label: "Slate", swatches: ["#111827", "#64748B", "#D8E0EA", "#FFFFFF"] },
-  mint: { label: "Mint", swatches: ["#0F2F2A", "#0F8A6A", "#35CDA8", "#F1FBF7"] }
+  mint: { label: "Mint", swatches: ["#0F2F2A", "#0F8A6A", "#35CDA8", "#F1FBF7"] },
+  aura: { label: "Aura", swatches: ["#201238", "#6D44FF", "#FF5FC8", "#F3EAFF"] },
+  rose: { label: "Rose", swatches: ["#2A0F1F", "#E11D8F", "#FF8EC7", "#FFF1F8"] },
+  graphite: { label: "Graphite", swatches: ["#06070A", "#A3E635", "#38BDF8", "#F8FAFC"] },
+  solar: { label: "Solar", swatches: ["#281405", "#F97316", "#FACC15", "#FFF7ED"] }
 };
 
 const lightAccentOverrides: Record<ThemeAccent, Partial<ColorTokens>> = {
@@ -157,6 +161,67 @@ const lightAccentOverrides: Record<ThemeAccent, Partial<ColorTokens>> = {
     brandIndigo: "#0F8A6A",
     heroSurface: "#0F2F2A",
     heroMuted: "#CFE8E0"
+  },
+  aura: {
+    canvas: "#F7F0FF",
+    canvasTint: "#E7DBFF",
+    surfaceAlt: "#EFE5FF",
+    surfaceTint: "#FFE5F5",
+    line: "#D8C5FF",
+    lineStrong: "#B99AFF",
+    accent: "#6D44FF",
+    accentSoft: "#E8DEFF",
+    brandPink: "#FF4FB8",
+    brandViolet: "#6D44FF",
+    brandIndigo: "#7C3AED",
+    heroSurface: "#201238",
+    heroMuted: "#E7D9FF",
+    shadow: "#201238"
+  },
+  rose: {
+    canvas: "#FFF1F8",
+    canvasTint: "#FFE0F0",
+    surfaceAlt: "#FFE8F4",
+    surfaceTint: "#FFF2DA",
+    line: "#FAC7DF",
+    accent: "#D61F86",
+    accentSoft: "#FFD8EC",
+    brandPink: "#E11D8F",
+    brandViolet: "#A21CAF",
+    brandIndigo: "#BE185D",
+    heroSurface: "#2A0F1F",
+    heroMuted: "#FFD9EC",
+    shadow: "#2A0F1F"
+  },
+  graphite: {
+    canvas: "#F6F8FA",
+    canvasTint: "#E8EEF4",
+    surfaceAlt: "#EDF2F7",
+    surfaceTint: "#E5F7FF",
+    line: "#CBD5E1",
+    accent: "#0F172A",
+    accentSoft: "#E2E8F0",
+    brandPink: "#38BDF8",
+    brandViolet: "#334155",
+    brandIndigo: "#0F172A",
+    heroSurface: "#06070A",
+    heroMuted: "#DCE8F4",
+    shadow: "#06070A"
+  },
+  solar: {
+    canvas: "#FFF7ED",
+    canvasTint: "#FFEDD5",
+    surfaceAlt: "#FFEBD5",
+    surfaceTint: "#FEF3C7",
+    line: "#FED7AA",
+    accent: "#EA580C",
+    accentSoft: "#FFEDD5",
+    brandPink: "#F97316",
+    brandViolet: "#B45309",
+    brandIndigo: "#C2410C",
+    heroSurface: "#281405",
+    heroMuted: "#FFE8C2",
+    shadow: "#281405"
   }
 };
 
@@ -185,6 +250,71 @@ const darkAccentOverrides: Record<ThemeAccent, Partial<ColorTokens>> = {
     brandViolet: "#48E5A4",
     brandIndigo: "#35F2D0",
     heroSurface: "#07150F"
+  },
+  aura: {
+    canvas: "#10091F",
+    canvasTint: "#1E1236",
+    surface: "#1A102B",
+    surfaceAlt: "#25153F",
+    surfaceTint: "#311747",
+    line: "#4B3273",
+    lineStrong: "#7450B6",
+    accent: "#C4B5FD",
+    accentSoft: "#34205C",
+    brandPink: "#FF5FC8",
+    brandViolet: "#A78BFA",
+    brandIndigo: "#7C3AED",
+    heroSurface: "#080511",
+    heroText: "#FFF7FF",
+    heroMuted: "#DCCBFF"
+  },
+  rose: {
+    canvas: "#120711",
+    canvasTint: "#261022",
+    surface: "#21101D",
+    surfaceAlt: "#321429",
+    surfaceTint: "#3D1728",
+    line: "#66304C",
+    accent: "#FF8EC7",
+    accentSoft: "#4C1734",
+    brandPink: "#FF4FA3",
+    brandViolet: "#F0ABFC",
+    brandIndigo: "#E879F9",
+    heroSurface: "#09040A",
+    heroText: "#FFF4FA",
+    heroMuted: "#FFCFE8"
+  },
+  graphite: {
+    canvas: "#05070B",
+    canvasTint: "#0C1118",
+    surface: "#111827",
+    surfaceAlt: "#1E293B",
+    surfaceTint: "#0E2A35",
+    line: "#334155",
+    accent: "#A3E635",
+    accentSoft: "#1F2F19",
+    brandPink: "#38BDF8",
+    brandViolet: "#CBD5E1",
+    brandIndigo: "#7DD3FC",
+    heroSurface: "#02040A",
+    heroText: "#F8FAFC",
+    heroMuted: "#CBD5E1"
+  },
+  solar: {
+    canvas: "#140A02",
+    canvasTint: "#241205",
+    surface: "#211407",
+    surfaceAlt: "#34200A",
+    surfaceTint: "#3A2509",
+    line: "#6A3A0A",
+    accent: "#FACC15",
+    accentSoft: "#422908",
+    brandPink: "#FB7185",
+    brandViolet: "#F97316",
+    brandIndigo: "#F59E0B",
+    heroSurface: "#090501",
+    heroText: "#FFF7ED",
+    heroMuted: "#FED7AA"
   }
 };
 

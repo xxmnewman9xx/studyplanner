@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
-  Bell,
   CalendarDays,
   CheckCircle2,
   FileScan,
@@ -11,7 +10,7 @@ import {
 } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { AppLogo, GlassCard } from "../components/AppleComponents";
-import { AppTheme } from "../theme";
+import { AppTheme, appThemePalettes, ThemeAccent } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { UserSettings } from "../models";
 
@@ -26,24 +25,33 @@ type OnboardingScreenProps = {
 
 const slides = [
   {
-    eyebrow: "Scan → review → plan",
-    title: "Turn any syllabus into a semester plan.",
-    copy: "Upload class material, review what StudyPlanner finds, then send approved work into Today, Plan, and Widget Studio.",
+    eyebrow: "Import → review → plan",
+    title: "Turn any syllabus into a semester plan",
+    copy: "Take a photo, choose a PDF/text file, use a saved image, or paste notes. StudyPlanner drafts likely assignments for you to check.",
     icon: FileScan,
-    rows: ["Scan or paste class material", "Review every found deadline", "Build Today + widgets from approved work"]
+    previewTitle: "Import sources",
+    previewMetric: "4 ways in",
+    previewDetail: "Camera · photo · PDF · paste",
+    rows: ["Pick the source you have", "OCR/parser drafts likely rows", "Review creates your first Today list"]
   },
   {
     eyebrow: "Trust check",
     title: "Review before it touches your planner.",
-    copy: "Missing dates, low-confidence rows, and duplicates are flagged before they touch your planner.",
+    copy: "Missing dates, invalid dates, low-confidence rows, and possible duplicates are flagged before saving.",
     icon: WandSparkles,
-    rows: ["Lab report · needs date", "Midterm · Oct 12", "Reading notes · duplicate check"]
+    previewTitle: "Review queue",
+    previewMetric: "Blocked",
+    previewDetail: "Fix dates, then approve",
+    rows: ["Lab report · needs a date", "Midterm · Oct 12 · high trust", "Reading notes · duplicate check"]
   },
   {
-    eyebrow: "Your school, your phone",
-    title: "Classes, colors, reminders, widgets.",
-    copy: "Start free with a useful planner. Plus only appears when you want more volume or advanced automation.",
+    eyebrow: "First value",
+    title: "Approve work once. Today becomes useful.",
+    copy: "After review, approved assignments can show up as agenda items, countdowns, notes, reminders, and focus sessions.",
     icon: Palette,
+    previewTitle: "Widget Studio",
+    previewMetric: "Today",
+    previewDetail: "Real deadlines, not fake placeholders",
     rows: ["2 free classes", "12 free homework items", "Basic Today + Upcoming widgets"]
   }
 ];
@@ -66,26 +74,37 @@ const reminderChoices = [
   }
 ];
 
+const firstValueDeck = [
+  { label: "Classes", detail: "free starter setup" },
+  { label: "Today", detail: "real approved work" },
+  { label: "Widgets", detail: "planner-backed" },
+  { label: "Focus", detail: "study sessions" }
+];
+
+const importMethods = ["Camera", "Photo", "PDF/text", "Paste"];
+
 export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
   const [index, setIndex] = useState(0);
   const [reminderStyle, setReminderStyle] = useState(reminderChoices[0]!.value);
+  const [appTheme, setAppTheme] = useState<ThemeAccent>("campus");
   const slide = slides[index] ?? slides[0]!;
   const Icon = slide.icon;
   const isFinal = index === slides.length - 1;
 
   const finish = (destination: OnboardingDestination) => {
-    onFinish(destination, { notificationDefault: reminderStyle });
+    onFinish(destination, { notificationDefault: reminderStyle, appTheme });
   };
 
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.screenContent}
-      showsVerticalScrollIndicator={false}
-    >
+    <View style={styles.screen}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.screenContent}
+        showsVerticalScrollIndicator={false}
+      >
       <View style={styles.brandRow}>
         <AppLogo showWordmark size={40} />
       </View>
@@ -101,6 +120,30 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
         <Text style={styles.title}>{slide.title}</Text>
         <Text style={styles.copy}>{slide.copy}</Text>
 
+        {index === 0 ? (
+          <View style={styles.methodDeck}>
+            {importMethods.map((method) => (
+              <View key={method} style={styles.methodChip}>
+                <Text style={styles.methodText}>{method}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
+        {index === slides.length - 1 ? (
+          <View style={styles.valueDeck}>
+            {firstValueDeck.map((item, itemIndex) => (
+              <View key={item.label} style={styles.valueChip}>
+                <View style={[styles.valueMarker, itemIndex === 1 ? styles.valueMarkerAccent : itemIndex === 2 ? styles.valueMarkerPink : null]} />
+                <View style={styles.valueCopy}>
+                  <Text style={styles.valueLabel}>{item.label}</Text>
+                  <Text style={styles.valueDetail}>{item.detail}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
         <View style={styles.previewPanel}>
           {slide.rows.map((row, rowIndex) => (
             <View key={row} style={styles.previewRow}>
@@ -111,12 +154,35 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
             </View>
           ))}
         </View>
+
+        <View style={styles.appPreviewCard}>
+          <View style={styles.appPreviewHeader}>
+            <View>
+              <Text style={styles.appPreviewKicker}>Live product preview</Text>
+              <Text style={styles.appPreviewTitle}>{slide.previewTitle}</Text>
+            </View>
+            <View style={styles.appPreviewBadge}>
+              <Text style={styles.appPreviewBadgeText}>{index === 0 ? "Import" : index === 1 ? "Review" : "Today"}</Text>
+            </View>
+          </View>
+          <View style={styles.appPreviewBody}>
+            <View style={styles.appPreviewMetric}>
+              <Text style={styles.appPreviewMetricValue}>{slide.previewMetric}</Text>
+              <Text style={styles.appPreviewMetricLabel}>{slide.previewDetail}</Text>
+            </View>
+            <View style={styles.miniWidgetPreview}>
+              <View style={styles.miniWidgetDot} />
+              <Text style={styles.miniWidgetTitle}>{index === 0 ? "Imported work" : index === 1 ? "Needs review" : "Due today"}</Text>
+              <Text style={styles.miniWidgetText}>{index === 0 ? "Drafts stay editable." : index === 1 ? "Bad dates block saving." : "Planner-backed, not placeholder."}</Text>
+            </View>
+          </View>
+        </View>
       </GlassCard>
 
       <GlassCard style={styles.flowCard}>
         <View style={styles.flowStep}>
           <View style={styles.flowIcon}><FileScan color={colors.accent} size={17} /></View>
-          <Text style={styles.flowText}>Scan</Text>
+          <Text style={styles.flowText}>Import</Text>
         </View>
         <View style={styles.flowLine} />
         <View style={styles.flowStep}>
@@ -132,6 +198,28 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
 
       {isFinal ? (
         <GlassCard style={styles.choiceCard}>
+          <Text style={styles.choiceTitle}>Make it feel like your semester</Text>
+          <Text style={styles.choiceIntro}>Pick a dashboard atmosphere now. You can change it later in Widget Studio.</Text>
+          <View style={styles.themeChoiceGrid}>
+            {(["campus", "aura", "mint", "graphite"] as ThemeAccent[]).map((themeKey) => {
+              const meta = appThemePalettes[themeKey];
+              const active = appTheme === themeKey;
+              return (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  key={themeKey}
+                  style={[styles.themeChoice, active ? styles.themeChoiceActive : null]}
+                  onPress={() => setAppTheme(themeKey)}
+                >
+                  <View style={styles.themeSwatches}>
+                    {meta.swatches.slice(0, 3).map((swatch) => <View key={swatch} style={[styles.themeSwatch, { backgroundColor: swatch }]} />)}
+                  </View>
+                  <Text style={styles.themeChoiceLabel}>{meta.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
           <Text style={styles.choiceTitle}>Reminder preset for later</Text>
           <View style={styles.choiceStack}>
             {reminderChoices.map((choice) => {
@@ -160,13 +248,14 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
           <Text style={styles.trustLineText}>You review every deadline before anything saves.</Text>
         </View>
       )}
+      </ScrollView>
 
       <View style={styles.bottomBar}>
         <AppButton
-          label={index === 0 || isFinal ? "Scan or upload syllabus" : "Continue"}
-          icon={index === 0 || isFinal ? FileScan : undefined}
+          label={isFinal ? "Scan or upload syllabus" : "Continue"}
+          icon={isFinal ? FileScan : undefined}
           onPress={() => {
-            if (index === 0 || isFinal) {
+            if (isFinal) {
               finish("import");
               return;
             }
@@ -201,7 +290,7 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
           ))}
         </View>
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -213,11 +302,14 @@ function createStyles(theme: AppTheme) {
       flex: 1,
       backgroundColor: colors.canvas
     },
+    scroll: {
+      flex: 1
+    },
     screenContent: {
       flexGrow: 1,
-      paddingHorizontal: spacing.lg,
+      paddingHorizontal: spacing.md,
       paddingTop: spacing.xs,
-      paddingBottom: spacing.xl,
+      paddingBottom: spacing.lg,
       gap: spacing.sm
     },
     brandRow: {
@@ -225,8 +317,9 @@ function createStyles(theme: AppTheme) {
       justifyContent: "center"
     },
     heroCard: {
-      gap: spacing.xs,
-      padding: spacing.sm
+      gap: spacing.sm,
+      padding: spacing.md,
+      overflow: "hidden"
     },
     heroTopRow: {
       flexDirection: "row",
@@ -259,15 +352,85 @@ function createStyles(theme: AppTheme) {
     },
     title: {
       color: colors.heroText,
-      fontSize: 24,
-      lineHeight: 29,
+      fontSize: 27,
+      lineHeight: 32,
       fontWeight: "900"
     },
     copy: {
       color: colors.heroMuted,
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 15,
+      lineHeight: 22,
       fontWeight: "700"
+    },
+    methodDeck: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    methodChip: {
+      minHeight: 30,
+      borderRadius: radii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.18)",
+      backgroundColor: "rgba(255,255,255,0.10)",
+      paddingHorizontal: spacing.sm,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    methodText: {
+      color: colors.heroText,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    valueDeck: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    valueChip: {
+      flexBasis: "47%",
+      flexGrow: 1,
+      minHeight: 46,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.16)",
+      backgroundColor: "rgba(255,255,255,0.10)",
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 8,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs
+    },
+    valueMarker: {
+      width: 17,
+      height: 17,
+      borderRadius: 9,
+      backgroundColor: colors.accent,
+      borderWidth: 2,
+      borderColor: "rgba(255,255,255,0.35)"
+    },
+    valueMarkerAccent: {
+      backgroundColor: colors.sage
+    },
+    valueMarkerPink: {
+      backgroundColor: colors.brandPink
+    },
+    valueCopy: {
+      flex: 1,
+      minWidth: 0
+    },
+    valueLabel: {
+      color: colors.heroText,
+      fontSize: 12,
+      lineHeight: 15,
+      fontWeight: "900"
+    },
+    valueDetail: {
+      color: colors.heroMuted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "800"
     },
     previewPanel: {
       marginTop: 2,
@@ -300,6 +463,92 @@ function createStyles(theme: AppTheme) {
       fontSize: 13,
       lineHeight: 18,
       fontWeight: "800"
+    },
+    appPreviewCard: {
+      padding: spacing.sm,
+      borderRadius: radii.xl,
+      backgroundColor: "rgba(255,255,255,0.12)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.18)",
+      gap: spacing.sm
+    },
+    appPreviewHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    appPreviewKicker: {
+      color: colors.heroMuted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    appPreviewTitle: {
+      color: colors.heroText,
+      fontSize: 16,
+      lineHeight: 20,
+      fontWeight: "900"
+    },
+    appPreviewBadge: {
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 6,
+      borderRadius: radii.round,
+      backgroundColor: "rgba(255,255,255,0.16)"
+    },
+    appPreviewBadgeText: {
+      color: colors.heroText,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    appPreviewBody: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    appPreviewMetric: {
+      flex: 0.9,
+      padding: spacing.sm,
+      borderRadius: radii.lg,
+      backgroundColor: "rgba(255,255,255,0.15)"
+    },
+    appPreviewMetricValue: {
+      color: colors.heroText,
+      fontSize: 24,
+      lineHeight: 30,
+      fontWeight: "900"
+    },
+    appPreviewMetricLabel: {
+      color: colors.heroMuted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
+    },
+    miniWidgetPreview: {
+      flex: 1.1,
+      padding: spacing.sm,
+      borderRadius: radii.lg,
+      backgroundColor: colors.heroText,
+      gap: 3
+    },
+    miniWidgetDot: {
+      width: 18,
+      height: 5,
+      borderRadius: radii.round,
+      backgroundColor: colors.accent
+    },
+    miniWidgetTitle: {
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 16,
+      fontWeight: "900"
+    },
+    miniWidgetText: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "700"
     },
     trustLine: {
       minHeight: 40,
@@ -361,6 +610,49 @@ function createStyles(theme: AppTheme) {
     },
     choiceTitle: {
       ...typography.h2
+    },
+    choiceIntro: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "700"
+    },
+    themeChoiceGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    themeChoice: {
+      flexBasis: "47%",
+      flexGrow: 1,
+      minHeight: 78,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.sm,
+      gap: spacing.xs
+    },
+    themeChoiceActive: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accentSoft
+    },
+    themeSwatches: {
+      flexDirection: "row",
+      gap: 5
+    },
+    themeSwatch: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.7)"
+    },
+    themeChoiceLabel: {
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
     },
     choiceStack: {
       gap: spacing.xs
@@ -424,9 +716,13 @@ function createStyles(theme: AppTheme) {
       backgroundColor: colors.accent
     },
     bottomBar: {
-      marginTop: "auto",
       gap: spacing.xs,
-      paddingTop: spacing.sm
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.line,
+      backgroundColor: colors.canvas,
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.md
     },
     freeNote: {
       color: colors.muted,

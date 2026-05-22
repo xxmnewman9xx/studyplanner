@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { Camera, CheckCircle2, Crown, FileText, Keyboard, Plus, Sparkles, Upload } from "lucide-react-native";
+import { AlertTriangle, Camera, CheckCircle2, Crown, FileText, Keyboard, Plus, Search, Sparkles, Upload } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
 import {
@@ -29,7 +29,6 @@ import {
 } from "../models";
 import {
   parseSyllabus,
-  supportsSyllabusImageParsing,
   updateParsedAssignment
 } from "../services/syllabusParser";
 import {
@@ -56,6 +55,7 @@ type ImportScreenProps = {
 
 const priorities: Priority[] = ["low", "medium", "high"];
 const kinds: AssignmentKind[] = ["assignment", "worksheet", "reading", "project", "exam"];
+type ImportSourceMode = "camera" | "photo" | "file" | "paste";
 
 export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, premiumImportLocked = false, onOpenPaywall, onTryDemo }: ImportScreenProps) {
   const { theme } = useAppTheme();
@@ -68,12 +68,12 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   );
   const [loading, setLoading] = useState(marketingCaptureScreen === "processing");
   const [typedText, setTypedText] = useState("");
-  const imageParsingReady = supportsSyllabusImageParsing();
+  const [sourceMode, setSourceMode] = useState<ImportSourceMode>("camera");
 
   const handleLockedImport = () => {
     Alert.alert(
       "Free import used",
-      "Free includes one reviewed syllabus import. Plus unlocks expanded scans, uploads, and re-imports for the rest of the semester.",
+      "Free includes one reviewed syllabus import. Plus unlocks more photos, files, pasted text, and re-imports for the rest of the semester.",
       [
         { text: "Not now", style: "cancel" },
         { text: "See Plus", onPress: onOpenPaywall }
@@ -145,14 +145,6 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
       return;
     }
 
-    if (!imageParsingReady) {
-      Alert.alert(
-        "Photo scan needs AI setup",
-        "Upload a text-based PDF or paste syllabus text for now. Photo parsing turns on when the production parser endpoint is configured."
-      );
-      return;
-    }
-
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
       Alert.alert("Camera permission needed", "Camera access lets you photograph syllabus pages.");
@@ -166,7 +158,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
       await runParse({
         kind: "photo",
         uri: asset.uri,
-        name: asset.fileName || "camera scan",
+        name: asset.fileName || "camera photo",
         mimeType: asset.mimeType
       });
     }
@@ -191,9 +183,12 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   };
 
   const counts = draft ? summarizeDraft(draft) : null;
-  const invalidDeadlineCount = draft?.assignments.filter((assignment) => !isValidDeadline(assignment.dueAt)).length || 0;
-  const needsReviewCount = draft?.assignments.filter((assignment) => assignment.needsReview || (assignment.confidence || 1) < 0.75).length || parsedItems.filter((item) => item.needsReview).length;
-  const canApplyDraft = Boolean(draft && draft.assignments.length > 0 && invalidDeadlineCount === 0 && !premiumImportLocked);
+  const invalidDeadlineCount = draft ? draft.assignments.filter((assignment) => !isValidDeadline(assignment.dueAt)).length : 0;
+  const needsReviewCount = draft
+    ? draft.assignments.filter(isDraftAssignmentFlagged).length
+    : parsedItems.filter((item) => item.needsReview).length;
+  const confidenceCounts = draft ? summarizeConfidence(draft) : null;
+  const canApplyDraft = Boolean(draft && draft.assignments.length > 0 && invalidDeadlineCount === 0 && needsReviewCount === 0 && !premiumImportLocked);
   const firstActionTitle = draft?.assignments
     .slice()
     .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())[0]?.title;
@@ -264,9 +259,9 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
     <View>
       <View style={styles.header}>
         <Text style={styles.kicker}>Add schoolwork</Text>
-        <Text style={styles.title}>Scan or paste. Then approve.</Text>
+        <Text style={styles.title}>Import from camera, file, photo, or paste.</Text>
         <Text style={styles.subtitle}>
-          Free includes one reviewed import. Nothing is added to your planner until you approve it first.
+          StudyPlanner reads the source it can access, drafts likely work, and blocks the handoff until you review dates and flagged rows.
         </Text>
       </View>
 
@@ -277,7 +272,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
           </View>
           <View style={styles.limitCopy}>
             <Text style={styles.limitTitle}>More imports are a Plus upgrade</Text>
-            <Text style={styles.limitText}>Keep editing your current planner for free, or unlock expanded scans, uploads, and re-imports when your semester gets busy.</Text>
+            <Text style={styles.limitText}>Keep editing your current planner for free, or unlock more photos, files, pasted text, and re-imports when your semester gets busy.</Text>
           </View>
           <AppButton label="Unlock Plus" icon={Crown} onPress={onOpenPaywall || (() => undefined)} />
         </GlassCard>
@@ -289,41 +284,69 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
         <View style={styles.scanFrame}>
           <View style={styles.scanLine} />
         </View>
-        <Text style={styles.dropKicker}>Step 1</Text>
-        <Text style={styles.dropTitle}>Add a syllabus or homework list.</Text>
-        <Text style={styles.dropCopy}>We find homework, tests, dates, and classes. You approve everything before it appears on Today.</Text>
+        <Text style={styles.dropKicker}>Step 1 · capture source</Text>
+        <Text style={styles.dropTitle}>Get from material to first plan.</Text>
+        <Text style={styles.dropCopy}>Take a photo, choose a PDF/text file, use a library photo, or paste class notes. OCR and the syllabus parser draft likely rows for review.</Text>
+        <View style={styles.magicPreview}>
+          <MagicPreviewStep icon={FileText} title="Source" detail="PDF/photo/text" />
+          <View style={styles.magicArrow} />
+          <MagicPreviewStep icon={Search} title="Extract" detail="OCR + parser" />
+          <View style={styles.magicArrow} />
+          <MagicPreviewStep icon={CheckCircle2} title="Review" detail="dates + trust" />
+        </View>
         <View style={styles.trustRow}>
-          <TrustChip label="You review first" />
-          <TrustChip label="We mark unsure items" />
-          <TrustChip label="Dates are checked" />
+          <TrustChip label="Nothing saves automatically" />
+          <TrustChip label="Low confidence is marked" />
+          <TrustChip label="Invalid dates are blocked" />
         </View>
-        <View style={styles.scanActions}>
-          {imageParsingReady ? (
-            <>
-              <AppButton label="Take photo" icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
-              <AppButton label="Upload file" icon={Upload} variant="secondary" onPress={pickPdf} style={styles.scanActionSecondary} />
-              <AppButton label="Paste text" icon={Keyboard} variant="secondary" onPress={typeItIn} style={styles.scanActionSecondary} />
-            </>
-          ) : (
-            <>
-              <AppButton label="Upload file" icon={Upload} onPress={pickPdf} style={styles.scanActionPrimary} />
-              <AppButton label="Paste text" icon={Keyboard} variant="secondary" onPress={typeItIn} style={styles.scanActionSecondary} />
-              <AppButton label="Photo later" icon={Camera} variant="quiet" onPress={capturePhoto} style={styles.scanActionSecondary} />
-            </>
-          )}
+        <View style={styles.sourcePicker}>
+          <SourceOption mode="camera" label="Camera" icon={Camera} />
+          <SourceOption mode="photo" label="Photo" icon={FileText} />
+          <SourceOption mode="file" label="PDF/text" icon={Upload} />
+          <SourceOption mode="paste" label="Paste" icon={Keyboard} />
         </View>
-        <TextInput
-          value={typedText}
-          onChangeText={setTypedText}
-          multiline
-          placeholder="Paste: Chapter 4 worksheet due May 13, lab report due Friday..."
-          placeholderTextColor={colors.heroMuted}
-          style={styles.typeBox}
-        />
+        {sourceMode === "camera" ? (
+          <View style={styles.sourcePanel}>
+            <Text style={styles.sourcePanelTitle}>Use the camera for one clear page.</Text>
+            <Text style={styles.sourcePanelCopy}>Best for a syllabus page, worksheet, or board photo. Text recognition runs first, then the parser drafts editable work.</Text>
+            <AppButton label="Take photo" icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
+          </View>
+        ) : null}
+        {sourceMode === "photo" ? (
+          <View style={styles.sourcePanel}>
+            <Text style={styles.sourcePanelTitle}>Use a saved photo.</Text>
+            <Text style={styles.sourcePanelCopy}>Pick a clear syllabus page, worksheet, board photo, or handout image from your library.</Text>
+            <AppButton label="Choose photo" icon={FileText} onPress={pickPhoto} style={styles.scanActionPrimary} />
+          </View>
+        ) : null}
+        {sourceMode === "file" ? (
+          <View style={styles.sourcePanel}>
+            <Text style={styles.sourcePanelTitle}>Upload a PDF or text handout.</Text>
+            <Text style={styles.sourcePanelCopy}>Choose text-based PDFs or plain text files. Image-only PDFs may need the photo option instead.</Text>
+            <AppButton label="Choose file" icon={Upload} onPress={pickPdf} style={styles.scanActionPrimary} />
+          </View>
+        ) : null}
+        {sourceMode === "paste" ? (
+          <View style={styles.sourcePanel}>
+            <TextInput
+              value={typedText}
+              onChangeText={setTypedText}
+              multiline
+              placeholder="Paste: Chapter 4 worksheet due May 13, lab report due Friday..."
+              placeholderTextColor={colors.heroMuted}
+              style={styles.typeBox}
+            />
+            <AppButton
+              label="Parse pasted text"
+              icon={Keyboard}
+              variant="secondary"
+              onPress={typeItIn}
+              style={styles.pasteAction}
+            />
+          </View>
+        ) : null}
         <Text style={styles.privacyNote}>
-          {imageParsingReady
-            ? "Private until you approve the plan."
-            : "Upload and Paste work now. Photo scan turns on when the production parser endpoint is configured."}
+          First value: approve one clean draft and Today immediately gets the next school task to start.
         </Text>
         {onTryDemo ? (
           <AppButton label="Try demo syllabus" icon={Sparkles} variant="quiet" onPress={onTryDemo} />
@@ -336,37 +359,39 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
             <ActivityIndicator color={colors.heroText} />
           </View>
           <View style={styles.processingCopy}>
-            <Text style={styles.processingTitle}>AI is parsing it</Text>
+            <Text style={styles.processingTitle}>Reading your import</Text>
             <Text style={styles.processingMeta}>Finding assignments, dates, classes, and grade weights.</Text>
           </View>
         </View>
       ) : null}
 
-      <SectionHeader title="Recent imports" note="Open one to review found work" />
-      <View style={styles.recentList}>
-        {parsedImports.map((item) => (
-          <TouchableOpacity
-            accessibilityRole="button"
-            key={item.id}
-            style={styles.recentRow}
-            onPress={() => {
-              setDraft(buildDraftFromRecentImport(item, parsedItems));
-            }}
-          >
-            <View style={styles.recentIcon}>
-              <FileText color={colors.accent} size={18} />
-            </View>
-            <View style={styles.recentCopy}>
-              <Text style={styles.recentTitle}>{item.title}</Text>
-              <Text style={styles.recentMeta}>{item.itemCount} found · {labelize(item.status)}</Text>
-              {imageParsingReady ? null : (
-                <Text style={styles.recentSubtle}>Photo parsing needs AI setup; files and pasted text work on device.</Text>
-              )}
-            </View>
-            <Badge label={labelize(item.sourceType)} tone={item.status === "ready" ? "blue" : "green"} />
-          </TouchableOpacity>
-        ))}
-      </View>
+      {parsedImports.length > 0 ? (
+        <>
+          <SectionHeader title="Recent imports" note="Open one to review found work" />
+          <View style={styles.recentList}>
+            {parsedImports.map((item) => (
+              <TouchableOpacity
+                accessibilityRole="button"
+                key={item.id}
+                style={styles.recentRow}
+                onPress={() => {
+                  setDraft(buildDraftFromRecentImport(item, parsedItems));
+                }}
+              >
+                <View style={styles.recentIcon}>
+                  <FileText color={colors.accent} size={18} />
+                </View>
+                <View style={styles.recentCopy}>
+                  <Text style={styles.recentTitle}>{item.title}</Text>
+                  <Text style={styles.recentMeta}>{item.itemCount} found · {labelize(item.status)}</Text>
+                  <Text style={styles.recentSubtle}>Photos, files, and pasted text create editable drafts for review.</Text>
+                </View>
+                <Badge label={labelize(item.sourceType)} tone={item.status === "ready" ? "blue" : "green"} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </>
+      ) : null}
 
       {draft ? (
         <>
@@ -377,6 +402,34 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
               <ResultStat value={String(counts?.exams || 0)} label="Exams" tone="pink" />
               <ResultStat value={String(counts?.projects || 0)} label="Projects" tone="gold" />
               <ResultStat value={String(needsReviewCount)} label="Needs review" tone="plain" />
+            </View>
+            <View style={[styles.reviewGateCard, canApplyDraft ? styles.reviewGateReady : styles.reviewGateBlocked]}>
+              <View style={styles.reviewGateHeader}>
+                <View style={styles.reviewGateIcon}>
+                  {canApplyDraft ? (
+                    <CheckCircle2 color={colors.green} size={18} />
+                  ) : (
+                    <AlertTriangle color={colors.red} size={18} />
+                  )}
+                </View>
+                <View style={styles.reviewGateCopy}>
+                  <Text style={styles.reviewGateTitle}>{canApplyDraft ? "Ready to add to Today" : "Review required before adding"}</Text>
+                  <Text style={styles.reviewGateText}>
+                    {canApplyDraft
+                      ? "Dates are valid and no confidence flags remain."
+                      : reviewGateMessage(invalidDeadlineCount, needsReviewCount)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <View style={styles.confidencePanel}>
+              <Text style={styles.confidenceKicker}>Confidence review</Text>
+              <Text style={styles.confidenceCopy}>Every extracted row stays editable. The parser highlights low-confidence rows, possible duplicates, and missing or invalid dates before they can touch your planner.</Text>
+              <View style={styles.confidenceLegend}>
+                <ConfidenceLegend label={`High ${confidenceCounts?.high || 0}`} tone="high" />
+                <ConfidenceLegend label={`Check ${confidenceCounts?.check || 0}`} tone="medium" />
+                <ConfidenceLegend label={`Fix ${confidenceCounts?.fix || 0}`} tone="low" />
+              </View>
             </View>
             <View style={styles.firstMovesCard}>
               <Text style={styles.firstMovesKicker}>What happens next</Text>
@@ -439,11 +492,14 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                 draft.courses.find((course) => course.id === assignment.courseId)?.code || "Class";
               const dueDate = assignment.dueAt.slice(0, 10);
               const dueTime = normalizedDueTime(assignment.dueAt, assignment.kind);
+              const hasInvalidDate = !isValidDateInput(dueDate);
+              const hasInvalidTime = !isValidTimeInput(dueTime);
+              const hasInvalidDeadline = !isValidDeadline(assignment.dueAt);
               return (
-                <View key={assignment.id} style={styles.editCard}>
+                <View key={assignment.id} style={[styles.editCard, hasInvalidDeadline ? styles.editCardBlocked : null]}>
                   <View style={styles.editCardTop}>
-                    <View style={styles.statusDot}>
-                      <CheckCircle2 color={colors.heroText} size={16} />
+                    <View style={[styles.statusDot, isDraftAssignmentFlagged(assignment) ? styles.statusDotReview : null]}>
+                      <CheckCircle2 color={isDraftAssignmentFlagged(assignment) ? colors.ink : colors.heroText} size={16} />
                     </View>
                     <View style={styles.editHeaderCopy}>
                       <TextInput
@@ -451,43 +507,43 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                         style={styles.titleInput}
                         placeholderTextColor={colors.faint}
                         onChangeText={(title) =>
-                          setDraft(updateParsedAssignment(draft, assignment.id, { title }))
+                          setDraft(updateParsedAssignment(draft, assignment.id, { title, updatedAt: new Date().toISOString() }))
                         }
                       />
                       <Text style={styles.editMeta}>
                         {courseCode} · confidence {Math.round((assignment.confidence || 0.88) * 100)}%
                       </Text>
                     </View>
-                    {assignment.needsReview || assignment.duplicateOf ? (
-                      <Badge label={assignment.duplicateOf ? "Duplicate?" : "Check"} tone="red" />
-                    ) : null}
+                    <ConfidenceBadge confidence={assignment.confidence || 0.88} needsReview={Boolean(assignment.needsReview || assignment.duplicateOf)} />
                   </View>
 
                   <View style={styles.twoColumn}>
                     <TextInput
                       value={dueDate}
-                      style={[styles.input, styles.fieldHalf]}
+                      style={[styles.input, styles.fieldHalf, hasInvalidDate ? styles.inputInvalid : null]}
                       placeholder="YYYY-MM-DD"
                       placeholderTextColor={colors.faint}
                       onChangeText={(date) =>
                         setDraft(
                           updateParsedAssignment(draft, assignment.id, {
                             dueAt: `${date}T${dueTime}:00`,
-                            needsReview: !isValidDateInput(date) || !isValidTimeInput(dueTime)
+                            needsReview: !isValidDateInput(date) || !isValidTimeInput(dueTime),
+                            updatedAt: new Date().toISOString()
                           })
                         )
                       }
                     />
                     <TextInput
                       value={dueTime}
-                      style={[styles.input, styles.fieldHalf]}
+                      style={[styles.input, styles.fieldHalf, hasInvalidTime ? styles.inputInvalid : null]}
                       placeholder="HH:MM"
                       placeholderTextColor={colors.faint}
                       onChangeText={(time) =>
                         setDraft(
                           updateParsedAssignment(draft, assignment.id, {
                             dueAt: `${dueDate}T${time}:00`,
-                            needsReview: !isValidDateInput(dueDate) || !isValidTimeInput(time)
+                            needsReview: !isValidDateInput(dueDate) || !isValidTimeInput(time),
+                            updatedAt: new Date().toISOString()
                           })
                         )
                       }
@@ -507,6 +563,33 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                       }
                     />
                   </View>
+                  {hasInvalidDeadline ? (
+                    <Text style={styles.dateBlockerText}>
+                      Enter a real date and 24-hour time before this row can be marked reviewed.
+                    </Text>
+                  ) : null}
+
+                  <View style={styles.trustRail}>
+                    <View style={[styles.trustRailFill, { width: `${Math.max(12, Math.round((assignment.confidence || 0.88) * 100))}%` }]} />
+                  </View>
+                  <Text style={styles.trustExplanation}>{trustExplanation(assignment.confidence || 0.88, Boolean(assignment.needsReview || assignment.duplicateOf))}</Text>
+                  {isDraftAssignmentFlagged(assignment) ? (
+                    <AppButton
+                      label="Mark reviewed"
+                      variant="secondary"
+                      disabled={!isValidDeadline(assignment.dueAt)}
+                      onPress={() =>
+                        setDraft(
+                          updateParsedAssignment(draft, assignment.id, {
+                            needsReview: false,
+                            duplicateOf: undefined,
+                            confidence: Math.max(assignment.confidence || 0, 0.86),
+                            updatedAt: new Date().toISOString()
+                          })
+                        )
+                      }
+                    />
+                  ) : null}
 
                   <SegmentedControl
                     options={kinds}
@@ -527,7 +610,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
 
           <View style={styles.applyBar}>
             <AppButton
-              label={premiumImportLocked ? "Upgrade for unlimited imports" : invalidDeadlineCount > 0 ? "Fix dates before adding" : `Add ${draft.assignments.length} reviewed item${draft.assignments.length === 1 ? "" : "s"} to Today`}
+              label={premiumImportLocked ? "Upgrade for unlimited imports" : invalidDeadlineCount > 0 ? "Fix dates before adding" : needsReviewCount > 0 ? "Review flagged items first" : `Add ${draft.assignments.length} reviewed item${draft.assignments.length === 1 ? "" : "s"} to Today`}
               disabled={!canApplyDraft && !premiumImportLocked}
               onPress={() => {
                 if (premiumImportLocked) {
@@ -554,6 +637,44 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
     );
   }
 
+  function SourceOption({
+    mode,
+    label,
+    icon: Icon
+  }: {
+    mode: ImportSourceMode;
+    label: string;
+    icon: React.ComponentType<{ color: string; size: number }>;
+  }) {
+    const selected = sourceMode === mode;
+    return (
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityState={{ selected }}
+        style={[styles.sourceOption, selected ? styles.sourceOptionSelected : null]}
+        onPress={() => setSourceMode(mode)}
+      >
+        <Icon color={selected ? colors.heroText : colors.heroMuted} size={16} />
+        <Text style={[styles.sourceOptionText, selected ? styles.sourceOptionTextSelected : null]}>{label}</Text>
+      </TouchableOpacity>
+    );
+  }
+
+  function ConfidenceLegend({ label, tone }: { label: string; tone: "high" | "medium" | "low" }) {
+    const toneStyle = tone === "high" ? styles.confidenceHigh : tone === "medium" ? styles.confidenceMedium : styles.confidenceLow;
+    return (
+      <View style={[styles.confidenceLegendPill, toneStyle]}>
+        <Text style={styles.confidenceLegendText}>{label}</Text>
+      </View>
+    );
+  }
+
+  function ConfidenceBadge({ confidence, needsReview }: { confidence: number; needsReview: boolean }) {
+    const label = needsReview || confidence < 0.62 ? "Fix" : confidence < 0.82 ? "Check" : "High";
+    const tone = label === "High" ? "green" : label === "Check" ? "gold" : "red";
+    return <Badge label={`${label} ${Math.round(confidence * 100)}%`} tone={tone} />;
+  }
+
   function ResultStat({
     value,
     label,
@@ -576,8 +697,44 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
       </View>
     );
   }
+
+  function MagicPreviewStep({ icon: Icon, title, detail }: { icon: React.ComponentType<{ color: string; size: number }>; title: string; detail: string }) {
+    return (
+      <View style={styles.magicStep}>
+        <Icon color={colors.heroText} size={24} />
+        <Text style={styles.magicTitle} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>{title}</Text>
+        <Text style={styles.magicDetail} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>{detail}</Text>
+      </View>
+    );
+  }
 }
 
+
+function trustExplanation(confidence: number, needsReview: boolean) {
+  if (needsReview) return "Needs a human check: edit title, date, or time before adding to Today.";
+  if (confidence < 0.62) return "Low confidence: verify this row carefully.";
+  if (confidence < 0.82) return "Medium confidence: looks plausible, but worth a quick read.";
+  return "High confidence: still editable before it touches your planner.";
+}
+
+function reviewGateMessage(invalidDeadlineCount: number, needsReviewCount: number) {
+  if (invalidDeadlineCount > 0) {
+    return `${invalidDeadlineCount} invalid deadline${invalidDeadlineCount === 1 ? "" : "s"} must be fixed.`;
+  }
+  if (needsReviewCount > 0) {
+    return `${needsReviewCount} flagged row${needsReviewCount === 1 ? "" : "s"} need a quick trust check.`;
+  }
+  return "Add at least one reviewed item before sending work to Today.";
+}
+
+function isDraftAssignmentFlagged(assignment: SyllabusParseResult["assignments"][number]) {
+  return Boolean(
+    assignment.needsReview ||
+      assignment.duplicateOf ||
+      !isValidDeadline(assignment.dueAt) ||
+      (assignment.confidence || 1) < 0.75
+  );
+}
 
 function normalizedDueTime(value: string, kind: AssignmentKind) {
   const time = value.slice(11, 16);
@@ -591,6 +748,23 @@ function summarizeDraft(draft: SyllabusParseResult) {
     exams: draft.assignments.filter((item) => item.kind === "exam").length,
     projects: draft.assignments.filter((item) => item.kind === "project").length
   };
+}
+
+function summarizeConfidence(draft: SyllabusParseResult) {
+  return draft.assignments.reduce(
+    (counts, assignment) => {
+      const confidence = assignment.confidence || 0.88;
+      if (isDraftAssignmentFlagged(assignment) || confidence < 0.62) {
+        counts.fix += 1;
+      } else if (confidence < 0.82) {
+        counts.check += 1;
+      } else {
+        counts.high += 1;
+      }
+      return counts;
+    },
+    { high: 0, check: 0, fix: 0 }
+  );
 }
 
 function buildDraftFromRecentImport(
@@ -840,7 +1014,7 @@ function createStyles(theme: AppTheme) {
       fontSize: 25,
       lineHeight: 30,
       fontWeight: "900",
-      letterSpacing: -0.5,
+      letterSpacing: 0,
       textAlign: "center"
     },
     dropCopy: {
@@ -849,6 +1023,51 @@ function createStyles(theme: AppTheme) {
       lineHeight: 18,
       fontWeight: "600",
       textAlign: "center"
+    },
+    magicPreview: {
+      alignSelf: "stretch",
+      borderRadius: radii.xl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.18)",
+      backgroundColor: "rgba(255,255,255,0.09)",
+      padding: spacing.sm,
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.xs,
+      marginTop: spacing.xs
+    },
+    magicStep: {
+      flex: 1,
+      minWidth: 72,
+      minHeight: 70,
+      borderRadius: radii.lg,
+      backgroundColor: "rgba(255,255,255,0.10)",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: spacing.xs,
+      gap: 2
+    },
+    magicTitle: {
+      color: colors.heroText,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textAlign: "center"
+    },
+    magicDetail: {
+      color: colors.heroMuted,
+      fontSize: 9,
+      lineHeight: 12,
+      fontWeight: "800",
+      textAlign: "center"
+    },
+    magicArrow: {
+      width: 10,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: colors.accent
     },
     trustRow: {
       flexDirection: "row",
@@ -874,6 +1093,61 @@ function createStyles(theme: AppTheme) {
       lineHeight: 15,
       fontWeight: "900"
     },
+    sourcePicker: {
+      alignSelf: "stretch",
+      minHeight: 44,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.18)",
+      backgroundColor: "rgba(255,255,255,0.08)",
+      padding: 4,
+      flexDirection: "row",
+      gap: 4
+    },
+    sourceOption: {
+      flex: 1,
+      minHeight: 36,
+      borderRadius: radii.md,
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+      gap: 6
+    },
+    sourceOptionSelected: {
+      backgroundColor: colors.accent
+    },
+    sourceOptionText: {
+      color: colors.heroMuted,
+      fontSize: 12,
+      lineHeight: 15,
+      fontWeight: "900"
+    },
+    sourceOptionTextSelected: {
+      color: colors.heroText
+    },
+    sourcePanel: {
+      alignSelf: "stretch",
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.18)",
+      backgroundColor: "rgba(255,255,255,0.08)",
+      padding: spacing.sm,
+      gap: spacing.sm
+    },
+    sourcePanelTitle: {
+      color: colors.heroText,
+      fontSize: 14,
+      lineHeight: 19,
+      fontWeight: "900",
+      textAlign: "center"
+    },
+    sourcePanelCopy: {
+      color: colors.heroMuted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "800",
+      textAlign: "center"
+    },
     scanActions: {
       alignSelf: "stretch",
       flexDirection: "row",
@@ -886,6 +1160,9 @@ function createStyles(theme: AppTheme) {
     },
     scanActionSecondary: {
       flex: 1
+    },
+    pasteAction: {
+      alignSelf: "stretch"
     },
     typeBox: {
       alignSelf: "stretch",
@@ -993,6 +1270,48 @@ function createStyles(theme: AppTheme) {
     resultCard: {
       gap: spacing.md
     },
+    reviewGateCard: {
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      padding: spacing.md
+    },
+    reviewGateReady: {
+      borderColor: theme.isDark ? "#1D5A3D" : "#BFEBD4",
+      backgroundColor: colors.mint
+    },
+    reviewGateBlocked: {
+      borderColor: theme.isDark ? "#6B322A" : "#F3B7A9",
+      backgroundColor: theme.isDark ? "#3A201D" : "#FFE0D8"
+    },
+    reviewGateHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    reviewGateIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: colors.surface,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    reviewGateCopy: {
+      flex: 1,
+      gap: 2
+    },
+    reviewGateTitle: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    reviewGateText: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "800"
+    },
     resultStats: {
       flexDirection: "row",
       flexWrap: "wrap",
@@ -1029,6 +1348,47 @@ function createStyles(theme: AppTheme) {
       lineHeight: 15,
       fontWeight: "900"
     },
+    confidencePanel: {
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.72)",
+      padding: spacing.md,
+      gap: spacing.xs
+    },
+    confidenceKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      textTransform: "uppercase",
+      letterSpacing: 0.7
+    },
+    confidenceCopy: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "800"
+    },
+    confidenceLegend: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    confidenceLegendPill: {
+      borderRadius: radii.round,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 7
+    },
+    confidenceLegendText: {
+      color: colors.heroText,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    confidenceHigh: { backgroundColor: colors.green },
+    confidenceMedium: { backgroundColor: colors.gold },
+    confidenceLow: { backgroundColor: colors.red },
     firstMovesCard: {
       borderRadius: radii.lg,
       borderWidth: 1,
@@ -1156,6 +1516,10 @@ function createStyles(theme: AppTheme) {
       shadowOffset: { width: 0, height: 8 },
       elevation: 2
     },
+    editCardBlocked: {
+      borderColor: colors.red,
+      backgroundColor: theme.isDark ? "#21151A" : "#FFF8F6"
+    },
     editCardTop: {
       flexDirection: "row",
       alignItems: "center",
@@ -1168,6 +1532,9 @@ function createStyles(theme: AppTheme) {
       backgroundColor: colors.accent,
       alignItems: "center",
       justifyContent: "center"
+    },
+    statusDotReview: {
+      backgroundColor: colors.softGold
     },
     editHeaderCopy: {
       flex: 1,
@@ -1204,6 +1571,33 @@ function createStyles(theme: AppTheme) {
       fontSize: 14,
       fontWeight: "800",
       backgroundColor: colors.canvas
+    },
+    inputInvalid: {
+      borderColor: colors.red,
+      backgroundColor: theme.isDark ? "#21151A" : "#FFF8F6"
+    },
+    dateBlockerText: {
+      color: colors.red,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    trustRail: {
+      height: 8,
+      borderRadius: radii.round,
+      backgroundColor: colors.surfaceAlt,
+      overflow: "hidden"
+    },
+    trustRailFill: {
+      height: "100%",
+      borderRadius: radii.round,
+      backgroundColor: colors.accent
+    },
+    trustExplanation: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "800"
     },
     applyBar: {
       marginTop: spacing.lg,

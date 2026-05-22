@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Edit3, Plus } from "lucide-react-native";
+import { Edit3, NotebookPen, Plus } from "lucide-react-native";
 import {
   AssignmentRow,
   ClassIdentityCard,
@@ -9,7 +9,7 @@ import {
 } from "../components/AppleComponents";
 import { AppButton } from "../components/AppButton";
 import { SectionHeader } from "../components/SectionHeader";
-import { Assignment, AssignmentKind, Course, Semester } from "../models";
+import { Assignment, AssignmentKind, Course, Semester, StudyNote } from "../models";
 import {
   formatDateOnly,
   getClassAssignmentCounts,
@@ -24,6 +24,7 @@ type CoursesScreenProps = {
   semester: Semester;
   courses: Course[];
   assignments: Assignment[];
+  notes?: StudyNote[];
   onAddQuickAssignment: (
     courseId: string,
     title: string,
@@ -31,6 +32,7 @@ type CoursesScreenProps = {
     kind: AssignmentKind
   ) => boolean;
   onOpenAssignment: (assignmentId: string) => void;
+  onOpenNotes?: () => void;
   onUpdateSemester: (patch: Partial<Semester>) => void;
   onAddCourse: (course: Pick<Course, "code" | "name" | "instructor">) => void;
   onUpdateCourse: (courseId: string, patch: Partial<Course>) => void;
@@ -40,8 +42,10 @@ export function CoursesScreen({
   semester,
   courses,
   assignments,
+  notes = [],
   onAddQuickAssignment,
   onOpenAssignment,
+  onOpenNotes,
   onUpdateSemester,
   onAddCourse,
   onUpdateCourse
@@ -59,12 +63,26 @@ export function CoursesScreen({
   const weekly = groupMeetingsByDay(courses);
   const counts = getClassAssignmentCounts(courses, assignments);
   const selectedCourse = courses.find((course) => course.id === selectedCourseId) || courses[0];
+  const selectedCourseTitle = selectedCourse?.code || selectedCourse?.name || "Class";
+  const selectedCourseMeta = selectedCourse
+    ? [selectedCourse.teacher || selectedCourse.instructor, selectedCourse.period, selectedCourse.room]
+        .filter(Boolean)
+        .join(" · ") || "Add teacher, period, and room."
+    : "";
+  const openAssignmentCount = assignments.filter((assignment) => assignment.status !== "done" && assignment.status !== "archived").length;
   const parsedQuickWork = parseQuickHomeworkInput(title, courses, selectedCourse, dueDate);
   const selectedAssignments = selectedCourse
     ? assignments
         .filter((assignment) => assignment.courseId === selectedCourse.id)
         .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
     : [];
+  const selectedNotes = selectedCourse
+    ? notes
+        .filter((note) => note.courseId === selectedCourse.id)
+        .sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)) || new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    : [];
+  const needsReviewCount = Object.values(counts).reduce((sum, item) => sum + item.needsReview, 0);
+  const classHealth = buildClassHealth(courses.length, openAssignmentCount, needsReviewCount);
 
   useEffect(() => {
     if (courses.length === 0) {
@@ -89,14 +107,12 @@ export function CoursesScreen({
   return (
     <View>
       <GlassCard tone="hero" style={styles.hero}>
-        <View style={styles.heroOrbPrimary} />
-        <View style={styles.heroOrbSecondary} />
         <View style={styles.heroTop}>
-          <View>
+          <View style={styles.heroTitleBlock}>
             <Text style={styles.kicker}>Class library</Text>
             <Text style={styles.heroTitle}>{semester.name}</Text>
             <Text style={styles.heroCopy}>
-              Personal journals, teacher context, notes, and open work for every class.
+              Classes, rooms, notes, and open work in one place.
             </Text>
           </View>
           <View style={styles.classCountBadge}>
@@ -106,7 +122,7 @@ export function CoursesScreen({
         </View>
         <View style={styles.semesterMetaRow}>
           <Text style={styles.semesterMetaText}>{formatDateOnly(semester.startDate)} → {formatDateOnly(semester.endDate)}</Text>
-          <Text style={styles.semesterMetaText}>{assignments.filter((assignment) => assignment.status !== "done" && assignment.status !== "archived").length} open items</Text>
+          <Text style={styles.semesterMetaText}>{openAssignmentCount} open</Text>
         </View>
         <View style={styles.semesterDates}>
           <TextInput
@@ -126,9 +142,30 @@ export function CoursesScreen({
         </View>
       </GlassCard>
 
+      <GlassCard style={styles.opsCard}>
+        <View style={styles.opsHeader}>
+          <View style={styles.opsHeaderCopy}>
+            <Text style={styles.opsKicker}>Classes state</Text>
+            <Text style={styles.opsTitle}>{classHealth.title}</Text>
+          </View>
+          <Text style={styles.opsBadge}>{classHealth.badge}</Text>
+        </View>
+        <Text style={styles.opsCopy}>{classHealth.copy}</Text>
+        <View style={styles.opsGrid}>
+          <ClassStateTile label="Open" value={String(openAssignmentCount)} detail="across classes" />
+          <ClassStateTile label="Review" value={String(needsReviewCount)} detail={needsReviewCount ? "check imports" : "clean"} />
+          <ClassStateTile label="Notes" value={String(notes.length)} detail={notes.length ? "linked context" : "ready"} />
+        </View>
+      </GlassCard>
+
       <SectionHeader title="Your classes" note="Tap a class to see homework, teacher, room, and notes." />
       <View style={styles.courseList}>
-        {courses.map((course) => (
+        {courses.length === 0 ? (
+          <GlassCard style={styles.emptyClassCard}>
+            <Text style={styles.emptyClassTitle}>No classes yet</Text>
+            <Text style={styles.emptyClassCopy}>Add one class below. Notes and homework will link to it.</Text>
+          </GlassCard>
+        ) : courses.map((course) => (
           <ClassIdentityCard
             key={course.id}
             course={course}
@@ -141,17 +178,29 @@ export function CoursesScreen({
 
       {selectedCourse ? (
         <>
-          <SectionHeader title={selectedCourse.code} note="Edit this class and see what is due." />
+          <SectionHeader title={selectedCourseTitle} note="Edit details and see what is due." />
           <GlassCard style={styles.detailCard}>
             <View style={[styles.classHero, { backgroundColor: selectedCourse.color }]}> 
               <View style={styles.classHeroTexture} />
               <View style={styles.classHeroInitialWrap}>
                 <Text style={styles.classHeroInitial}>{courseEmoji(selectedCourse)}</Text>
               </View>
-              <Text style={styles.classHeroTitle}>{selectedCourse.name}</Text>
-              <Text style={styles.classHeroMeta}>
-                {selectedCourse.teacher || selectedCourse.instructor} · {selectedCourse.period} · {selectedCourse.room}
-              </Text>
+              <Text style={styles.classHeroTitle} numberOfLines={2}>{selectedCourse.name || selectedCourseTitle}</Text>
+              <Text style={styles.classHeroMeta}>{selectedCourseMeta}</Text>
+            </View>
+            <View style={styles.detailStats}>
+              <View style={styles.detailStat}>
+                <Text style={styles.detailStatValue}>{counts[selectedCourse.id]?.open || 0}</Text>
+                <Text style={styles.detailStatLabel}>Open</Text>
+              </View>
+              <View style={styles.detailStat}>
+                <Text style={styles.detailStatValue}>{selectedNotes.length}</Text>
+                <Text style={styles.detailStatLabel}>Notes</Text>
+              </View>
+              <View style={styles.detailStat}>
+                <Text style={styles.detailStatValue}>{selectedCourse.meetings?.length || "0"}</Text>
+                <Text style={styles.detailStatLabel}>Meets</Text>
+              </View>
             </View>
             <View style={styles.editGrid}>
               <Field label="Class">
@@ -223,6 +272,24 @@ export function CoursesScreen({
             </Field>
           </GlassCard>
 
+          <SectionHeader title="Linked notes" note="Notes attached to this class." />
+          <GlassCard style={styles.linkedNotesCard}>
+            {selectedNotes.length ? selectedNotes.slice(0, 3).map((note) => (
+              <TouchableOpacity key={note.id} accessibilityRole="button" style={styles.linkedNoteRow} onPress={onOpenNotes}>
+                <View style={styles.linkedNoteIcon}><NotebookPen color={colors.accent} size={16} /></View>
+                <View style={styles.linkedNoteCopy}>
+                  <Text style={styles.linkedNoteTitle} numberOfLines={1}>{note.pinned ? "Pinned · " : ""}{note.title}</Text>
+                  <Text style={styles.linkedNoteBody} numberOfLines={2}>{note.body}</Text>
+                </View>
+              </TouchableOpacity>
+            )) : (
+              <TouchableOpacity accessibilityRole="button" style={styles.linkedNoteEmpty} onPress={onOpenNotes}>
+                <Text style={styles.linkedNoteTitle}>No linked notes yet</Text>
+                <Text style={styles.linkedNoteBody}>Open Notes to save agenda context for {selectedCourseTitle}.</Text>
+              </TouchableOpacity>
+            )}
+          </GlassCard>
+
           <SectionHeader title="Homework for this class" note={`${counts[selectedCourse.id]?.open || 0} still open`} />
           <View style={styles.workList}>
             {selectedAssignments.length === 0 ? (
@@ -239,11 +306,11 @@ export function CoursesScreen({
             )}
           </View>
 
-          <SectionHeader title="Class widget preview" note="This is how the class can appear in Widget Studio." />
+          <SectionHeader title="Class widget preview" note="Ready for class templates." />
           <View style={styles.widgetShortcut}>
-            <Text style={styles.widgetShortcutTitle}>{selectedCourse.code}</Text>
+            <Text style={styles.widgetShortcutTitle}>{selectedCourseTitle}</Text>
             <Text style={styles.widgetShortcutCopy}>
-              {counts[selectedCourse.id]?.open || 0} open · color and metadata ready for Plus class templates.
+              {counts[selectedCourse.id]?.open || 0} open · {selectedNotes.length} note{selectedNotes.length === 1 ? "" : "s"}
             </Text>
           </View>
         </>
@@ -362,6 +429,51 @@ export function CoursesScreen({
   }
 }
 
+function buildClassHealth(courseCount: number, openCount: number, reviewCount: number) {
+  if (courseCount === 0) {
+    return {
+      title: "No class library yet.",
+      copy: "Add a class manually or scan a syllabus. Homework, notes, grades, and widgets need class context.",
+      badge: "Setup"
+    };
+  }
+
+  if (reviewCount > 0) {
+    return {
+      title: "Imported classwork needs review.",
+      copy: "Open flagged assignments from Today or the class list before trusting reminders and widgets.",
+      badge: "Review"
+    };
+  }
+
+  if (openCount > 0) {
+    return {
+      title: "Classes are carrying live work.",
+      copy: "Use each class detail to adjust teacher, period, room, notes, and the next homework items.",
+      badge: "Live"
+    };
+  }
+
+  return {
+    title: "Classes are clean right now.",
+    copy: "Your class shells are ready. Capture homework after class or import the next syllabus.",
+    badge: "Clear"
+  };
+}
+
+function ClassStateTile({ label, value, detail }: { label: string; value: string; detail: string }) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.classStateTile}>
+      <Text style={styles.classStateLabel}>{label}</Text>
+      <Text style={styles.classStateValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{value}</Text>
+      <Text style={styles.classStateDetail} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.74}>{detail}</Text>
+    </View>
+  );
+}
+
 function createStyles(theme: AppTheme) {
   const { colors, radii, spacing, typography } = theme;
 
@@ -370,31 +482,15 @@ function createStyles(theme: AppTheme) {
       gap: spacing.md,
       overflow: "hidden"
     },
-    heroOrbPrimary: {
-      position: "absolute",
-      right: -62,
-      top: -80,
-      width: 180,
-      height: 180,
-      borderRadius: 90,
-      backgroundColor: colors.accent,
-      opacity: theme.isDark ? 0.18 : 0.08
-    },
-    heroOrbSecondary: {
-      position: "absolute",
-      left: -54,
-      bottom: -72,
-      width: 150,
-      height: 150,
-      borderRadius: 75,
-      backgroundColor: colors.brandViolet,
-      opacity: theme.isDark ? 0.14 : 0.07
-    },
     heroTop: {
       flexDirection: "row",
       alignItems: "flex-start",
       justifyContent: "space-between",
       gap: spacing.md
+    },
+    heroTitleBlock: {
+      flex: 1,
+      minWidth: 0
     },
     kicker: {
       color: colors.heroMuted,
@@ -407,7 +503,7 @@ function createStyles(theme: AppTheme) {
     heroTitle: {
       ...typography.title,
       color: colors.heroText,
-      letterSpacing: -0.7
+      letterSpacing: 0
     },
     heroCopy: {
       ...typography.body,
@@ -417,6 +513,7 @@ function createStyles(theme: AppTheme) {
     classCountBadge: {
       width: 70,
       minHeight: 58,
+      flexShrink: 0,
       borderRadius: radii.lg,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: "rgba(255,255,255,0.18)",
@@ -472,8 +569,110 @@ function createStyles(theme: AppTheme) {
       fontSize: 13,
       fontWeight: "900"
     },
+    opsCard: {
+      gap: spacing.sm,
+      marginTop: spacing.sm,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(49,91,255,0.16)",
+      backgroundColor: colors.heroSurface
+    },
+    opsHeader: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    opsHeaderCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    opsKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      letterSpacing: 0.6,
+      textTransform: "uppercase"
+    },
+    opsTitle: {
+      color: colors.heroText,
+      fontSize: 18,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    opsBadge: {
+      borderRadius: radii.round,
+      overflow: "hidden",
+      backgroundColor: colors.accentSoft,
+      color: colors.accent,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 7,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    opsCopy: {
+      color: colors.heroMuted,
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "700"
+    },
+    opsGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    classStateTile: {
+      flex: 1,
+      minWidth: 92,
+      minHeight: 72,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.16)",
+      backgroundColor: "rgba(255,255,255,0.08)",
+      padding: spacing.sm,
+      gap: 3
+    },
+    classStateLabel: {
+      color: colors.heroMuted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase",
+      letterSpacing: 0.4
+    },
+    classStateValue: {
+      color: colors.heroText,
+      fontSize: 19,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    classStateDetail: {
+      color: colors.heroMuted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
+    },
     courseList: {
       gap: spacing.sm
+    },
+    emptyClassCard: {
+      gap: spacing.xs,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.42)",
+      backgroundColor: colors.heroSurface
+    },
+    emptyClassTitle: {
+      color: colors.heroText,
+      fontSize: 17,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    emptyClassCopy: {
+      color: colors.heroMuted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "700"
     },
     detailCard: {
       gap: spacing.md,
@@ -531,6 +730,33 @@ function createStyles(theme: AppTheme) {
       fontSize: 13,
       lineHeight: 18,
       fontWeight: "800"
+    },
+    detailStats: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    detailStat: {
+      flex: 1,
+      minWidth: 0,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.16)",
+      backgroundColor: "rgba(255,255,255,0.08)",
+      padding: spacing.sm
+    },
+    detailStatValue: {
+      color: colors.heroText,
+      fontSize: 17,
+      lineHeight: 22,
+      fontWeight: "900"
+    },
+    detailStatLabel: {
+      color: colors.heroMuted,
+      fontSize: 10,
+      lineHeight: 14,
+      fontWeight: "900",
+      letterSpacing: 0.5,
+      textTransform: "uppercase"
     },
     editGrid: {
       flexDirection: "row",
@@ -590,6 +816,51 @@ function createStyles(theme: AppTheme) {
     },
     colorSwatchActive: {
       borderColor: colors.heroText
+    },
+    linkedNotesCard: {
+      gap: spacing.xs
+    },
+    linkedNoteRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      padding: spacing.sm
+    },
+    linkedNoteEmpty: {
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      padding: spacing.md,
+      gap: 3
+    },
+    linkedNoteIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.accentSoft
+    },
+    linkedNoteCopy: {
+      flex: 1,
+      minWidth: 0
+    },
+    linkedNoteTitle: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    linkedNoteBody: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
     },
     workList: {
       gap: spacing.sm

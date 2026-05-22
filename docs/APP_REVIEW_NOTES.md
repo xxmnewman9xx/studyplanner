@@ -11,12 +11,13 @@ https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Polic
 ## Supported syllabus import flow for this build
 
 1. Open the Scan tab after Plus is active.
-2. Choose Upload for a text-based PDF or plain-text syllabus from Files, or Paste syllabus/handout text directly.
-3. Review detected courses, deadlines, due times, effort estimates, possible duplicates, and grade categories.
-4. Fix any items marked Needs Review. Invalid dates or times cannot be applied to the planner.
-5. Apply the parsed plan only after review.
+2. Choose Take Photo for a syllabus page, Upload for a text-based PDF/plain-text syllabus from Files, or Paste syllabus/handout text directly.
+3. The app reads camera/photo text on device when possible, uses the configured parser endpoint when available, then creates an editable draft.
+4. Review detected courses, deadlines, due times, effort estimates, possible duplicates, and grade categories.
+5. Fix any items marked Needs Review. Invalid dates or times cannot be applied to the planner.
+6. Apply the parsed plan only after review.
 
-Camera scan entry points are visible. Photo/image parsing requires `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT`; without that production endpoint, text-based PDFs and pasted text remain supported, and photo attempts show a clear device-parser limitation message instead of applying uncertain data.
+Camera scan is active in this build. If the online parser endpoint is unavailable, the app attempts on-device photo text recognition first. If a photo cannot be read clearly, the app shows a clear retry/fallback message instead of applying uncertain data.
 
 ## Planner trust behavior
 

@@ -16,9 +16,9 @@ export function MetricCard({ label, value, detail, tone = "plain" }: MetricCardP
 
   return (
     <View style={[styles.card, styles[tone]]}>
-      <Text style={styles.label}>{label}</Text>
-      <Text style={styles.value}>{value}</Text>
-      {detail ? <Text style={styles.detail}>{detail}</Text> : null}
+      <Text style={styles.label} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>{label}</Text>
+      <Text style={styles.value} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{value}</Text>
+      {detail ? <Text style={styles.detail} numberOfLines={2}>{detail}</Text> : null}
     </View>
   );
 }
@@ -29,6 +29,7 @@ function createStyles(theme: AppTheme) {
   return StyleSheet.create({
     card: {
       flex: 1,
+      minWidth: 0,
       minHeight: 104,
       borderRadius: radii.lg,
       padding: spacing.md,

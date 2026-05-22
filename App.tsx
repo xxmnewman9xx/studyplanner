@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Linking,
+  LogBox,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -11,13 +14,16 @@ import {
   View
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { File, Paths } from "expo-file-system";
 import {
   CalendarDays,
   Crown,
   FileScan,
   GraduationCap,
+  NotebookPen,
   Sparkles,
-  Timer
+  Timer,
+  TrendingUp
 } from "lucide-react-native";
 
 import {
@@ -32,6 +38,7 @@ import {
   ParsedItem,
   PlannerData,
   Semester,
+  StudyNote,
   SyllabusParseResult,
   UserSettings,
   WidgetPreset
@@ -58,6 +65,7 @@ import { UpgradeScreen } from "./src/screens/UpgradeScreen";
 import { AssignmentDetailScreen } from "./src/screens/AssignmentDetailScreen";
 import { PlanScreen } from "./src/screens/PlanScreen";
 import { MoreScreen } from "./src/screens/MoreScreen";
+import { NotesScreen } from "./src/screens/NotesScreen";
 import {
   completeAssignment,
   isValidDateInput,
@@ -80,10 +88,14 @@ import {
   marketingCaptureSemester
 } from "./src/services/marketingCapture";
 
+LogBox.ignoreLogs(["SafeAreaView has been deprecated"]);
+
 const plannerStorageKey = "study-planner-data-v3";
 const freeCourseLimit = 2;
 const freeAssignmentLimit = 12;
 const freeImportLimit = 1;
+const marketingCaptureTabFileName = "studyplanner-capture-tab.json";
+const simulatorCaptureFileRoutingEnabled = process.env.EXPO_PUBLIC_SIM_QA_CAPTURE === "1";
 const premiumTabs = new Set<NavTab>(["focus", "grades"]);
 
 const proTabs: Array<{
@@ -95,10 +107,56 @@ const proTabs: Array<{
   { id: "import", label: "Scan", icon: FileScan },
   { id: "plan", label: "Plan", icon: CalendarDays },
   { id: "courses", label: "Classes", icon: GraduationCap },
+  { id: "notes", label: "Notes", icon: NotebookPen },
+  { id: "focus", label: "Study", icon: Timer },
+  { id: "grades", label: "Grades", icon: TrendingUp },
   { id: "more", label: "Widgets", icon: Sparkles }
 ];
 
 const freeTabs: typeof proTabs = proTabs;
+const mobilePrimaryTabIds = new Set<NavTab>(["today", "import", "plan", "courses", "more"]);
+const moreGroupTabIds = new Set<NavTab>(["more", "notes", "focus", "grades", "upgrade"]);
+
+function mobileTabLabel(tab: NavTab, fallback: string) {
+  return tab === "more" ? "More" : fallback;
+}
+
+function parseCaptureTab(raw: string): NavTab | null {
+  try {
+    const value = JSON.parse(raw) as { tab?: unknown };
+    return isCaptureNavTab(value.tab) ? value.tab : null;
+  } catch {
+    const trimmed = raw.trim();
+    return isCaptureNavTab(trimmed) ? trimmed : null;
+  }
+}
+
+function isCaptureNavTab(value: unknown): value is NavTab {
+  return (
+    value === "today" ||
+    value === "import" ||
+    value === "plan" ||
+    value === "courses" ||
+    value === "notes" ||
+    value === "more" ||
+    value === "focus" ||
+    value === "grades" ||
+    value === "upgrade"
+  );
+}
+
+function routeTabFromUrl(url: string): NavTab | null {
+  if (url.includes("widgets") || url.includes("widget-studio")) return "more";
+  if (url.includes("scan") || url.includes("import")) return "import";
+  if (url.includes("plan")) return "plan";
+  if (url.includes("classes") || url.includes("courses")) return "courses";
+  if (url.includes("notes")) return "notes";
+  if (url.includes("focus")) return "focus";
+  if (url.includes("grades")) return "grades";
+  if (url.includes("plus") || url.includes("upgrade")) return "upgrade";
+  if (url.includes("today")) return "today";
+  return null;
+}
 
 export default function App() {
   return (
@@ -120,6 +178,7 @@ function AppContent() {
   const scrollRef = useRef<ScrollView>(null);
   const [onboarded, setOnboarded] = useState(marketingCaptureEnabled);
   const [paywallSeen, setPaywallSeen] = useState(marketingCaptureEnabled);
+  const [postPaywallTab, setPostPaywallTab] = useState<NavTab>("import");
   const [activeTab, setActiveTab] = useState<NavTab>(getMarketingCaptureInitialTab());
   const [semester, setSemester] = useState(
     marketingCaptureEnabled ? marketingCaptureSemester : defaultSemester
@@ -139,6 +198,7 @@ function AppContent() {
   const [parsedItems, setParsedItems] = useState<ParsedItem[]>([]);
   const [widgetPresets, setWidgetPresets] = useState<WidgetPreset[]>(defaultWidgetPresets);
   const [focusSessions, setFocusSessions] = useState<FocusSession[]>([]);
+  const [notes, setNotes] = useState<StudyNote[]>([]);
   const [demoMode, setDemoMode] = useState(false);
   const [importHandoff, setImportHandoff] = useState<ImportHandoffSummary | null>(null);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
@@ -158,11 +218,48 @@ function AppContent() {
     [assignments, selectedAssignmentId]
   );
   const visibleTabs = marketingCaptureEnabled || subscription.isPremium ? proTabs : freeTabs;
+  const bottomTabs = tablet
+    ? visibleTabs
+    : visibleTabs.filter((tab) => mobilePrimaryTabIds.has(tab.id));
 
   useEffect(() => {
     if (!hydrated) return;
     setAccent(settings.appTheme || "campus");
   }, [hydrated, setAccent, settings.appTheme]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (Platform.OS === "web") return;
+    if ((typeof __DEV__ === "undefined" || !__DEV__) && !simulatorCaptureFileRoutingEnabled) return;
+    if (!Paths.document) return;
+
+    let mounted = true;
+    const captureTabFile = new File(Paths.document, marketingCaptureTabFileName);
+
+    captureTabFile.text()
+      .then((raw) => {
+        if (!mounted) return;
+        const requestedTab = parseCaptureTab(raw);
+        if (!requestedTab) return;
+
+        setOnboarded(true);
+        setPaywallSeen(true);
+        if (!courses.length) setCourses(marketingCaptureCourses);
+        if (!assignments.length) setAssignments(marketingCaptureAssignments);
+        if (!gradeItems.length) setGradeItems(marketingCaptureGradeItems);
+        if (!notes.length) setNotes(buildDemoNotes(marketingCaptureCourses));
+        setSemester(marketingCaptureSemester);
+        setSelectedAssignmentId(null);
+        setFocusAssignmentId(null);
+        setActiveTab(requestedTab);
+        requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: 0, animated: false }));
+      })
+      .catch(() => undefined);
+
+    return () => {
+      mounted = false;
+    };
+  }, [assignments.length, courses.length, gradeItems.length, hydrated, notes.length]);
 
   const openTab = (tab: NavTab) => {
     if (!marketingCaptureEnabled && premiumTabs.has(tab) && !subscription.isPremium) {
@@ -190,6 +287,24 @@ function AppContent() {
   };
 
   useEffect(() => {
+    if (!hydrated) return;
+
+    const openRoute = (url: string | null) => {
+      if (!url) return;
+      const normalized = url.toLowerCase();
+      const requestedTab = routeTabFromUrl(normalized);
+      if (requestedTab) {
+        setOnboarded(true);
+        openTab(requestedTab);
+      }
+    };
+
+    void Linking.getInitialURL().then(openRoute);
+    const subscription = Linking.addEventListener("url", ({ url }) => openRoute(url));
+    return () => subscription.remove();
+  }, [hydrated, subscription.isPremium]);
+
+  useEffect(() => {
     if (marketingCaptureEnabled) {
       setHydrated(true);
       return;
@@ -213,6 +328,7 @@ function AppContent() {
         setParsedItems(stored.parsedItems || []);
         setWidgetPresets(stored.widgetPresets?.length ? stored.widgetPresets : defaultWidgetPresets);
         setFocusSessions(stored.focusSessions || []);
+        setNotes(stored.notes || []);
         setDemoMode(Boolean(stored.demoMode));
       }
 
@@ -241,6 +357,7 @@ function AppContent() {
       parsedItems,
       widgetPresets,
       focusSessions,
+      notes,
       demoMode
     };
 
@@ -258,6 +375,7 @@ function AppContent() {
     focusSessions,
     gradeItems,
     hydrated,
+    notes,
     demoMode,
     onboarded,
     parsedImports,
@@ -300,7 +418,25 @@ function AppContent() {
   }, [activeTab, hydrated]);
 
   const applyParsedPlan = (parse: SyllabusParseResult) => {
+    const blockedAssignments = parse.assignments.filter(
+      (assignment) =>
+        assignment.needsReview ||
+        assignment.duplicateOf ||
+        !isValidDateInput(assignment.dueAt.slice(0, 10)) ||
+        (assignment.confidence || 1) < 0.75
+    );
+    if (blockedAssignments.length > 0) {
+      Alert.alert(
+        "Review flagged items first",
+        "Fix or mark every low-confidence, duplicate, or missing-date item before it touches your real planner."
+      );
+      return;
+    }
+
     const timestamp = new Date().toISOString();
+    const parsedImportId = `import-${timestamp}`;
+    const sourceType =
+      parse.assignments.some((assignment) => assignment.source === "typed") ? "typed" : "scan";
     const parsedAssignmentIds = new Set(
       parse.assignments.map((assignment) => assignment.sourceId).filter(Boolean)
     );
@@ -348,9 +484,9 @@ function AppContent() {
 
       return [
         {
-          id: `import-${timestamp}`,
+          id: parsedImportId,
           title: parse.sourceName,
-          sourceType: "scan",
+          sourceType,
           status: "applied",
           itemCount,
           createdAt: timestamp,
@@ -360,11 +496,28 @@ function AppContent() {
       ];
     });
     setParsedItems((current) =>
-      current.map((item) =>
-        parsedAssignmentIds.has(item.parsedImportId)
-          ? { ...item, acceptedAt: timestamp, reviewStatus: "accepted" }
-          : item
-      )
+      [
+        ...parse.assignments.map((assignment) => ({
+          id: `item-${assignment.id}`,
+          parsedImportId,
+          title: assignment.title,
+          courseName:
+            parse.courses.find((course) => course.id === assignment.courseId)?.name || "Study Hall",
+          type: assignment.kind,
+          dueAt: assignment.dueAt,
+          confidence: assignment.confidence || 0.88,
+          needsReview: Boolean(assignment.needsReview),
+          duplicateCandidateId: assignment.duplicateOf,
+          rawText: assignment.sourceId || assignment.title,
+          acceptedAt: timestamp,
+          reviewStatus: "accepted" as const
+        })),
+        ...current.map((item) =>
+          parsedAssignmentIds.has(item.parsedImportId)
+            ? { ...item, acceptedAt: timestamp, reviewStatus: "accepted" as const }
+            : item
+        )
+      ].slice(0, 200)
     );
     setSemester((current) => ({
       ...current,
@@ -500,6 +653,31 @@ function AppContent() {
     );
   };
 
+  const addNote = (note: Omit<StudyNote, "id" | "createdAt" | "updatedAt">) => {
+    const timestamp = new Date().toISOString();
+    setNotes((current) => [
+      {
+        ...note,
+        id: `note-${Date.now()}`,
+        createdAt: timestamp,
+        updatedAt: timestamp
+      },
+      ...current
+    ]);
+  };
+
+  const updateNote = (noteId: string, patch: Partial<StudyNote>) => {
+    setNotes((current) =>
+      current.map((note) =>
+        note.id === noteId ? { ...note, ...patch, updatedAt: new Date().toISOString() } : note
+      )
+    );
+  };
+
+  const deleteNote = (noteId: string) => {
+    setNotes((current) => current.filter((note) => note.id !== noteId));
+  };
+
   const updateAssignment = (assignmentId: string, patch: Partial<Assignment>) => {
     setAssignments((current) =>
       current.map((assignment) =>
@@ -554,6 +732,7 @@ function AppContent() {
     setParsedItems([]);
     setWidgetPresets(defaultWidgetPresets);
     setFocusSessions(demo.focusSessions);
+    setNotes(buildDemoNotes(demo.courses));
     setDemoMode(true);
     setSettings((current) => ({ ...current, ...settingsPatch }));
     setImportHandoff({
@@ -565,6 +744,7 @@ function AppContent() {
     });
     setOnboarded(true);
     setPaywallSeen(true);
+    setPostPaywallTab("today");
     setActiveTab("today");
   };
 
@@ -577,11 +757,13 @@ function AppContent() {
       return;
     }
 
+    const destinationTab: NavTab = destination === "manual" ? "courses" : "import";
     setSettings((current) => ({ ...current, ...settingsPatch }));
     setOnboarded(true);
-    setPaywallSeen(true);
+    setPaywallSeen(false);
+    setPostPaywallTab(destinationTab);
     setDemoMode(false);
-    setActiveTab(destination === "manual" ? "courses" : "import");
+    setActiveTab(destinationTab);
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   };
 
@@ -679,6 +861,24 @@ function AppContent() {
     );
   }
 
+  if (!marketingCaptureEnabled && !subscription.isPremium && !paywallSeen) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar style={theme.isDark ? "light" : "dark"} />
+        <ScrollView style={styles.scrollArea} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          <UpgradeScreen
+            hardMode
+            onContinueFree={() => {
+              setPaywallSeen(true);
+              setActiveTab(postPaywallTab);
+              scrollRef.current?.scrollTo({ y: 0, animated: false });
+            }}
+          />
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style={theme.isDark ? "light" : "dark"} />
@@ -690,11 +890,12 @@ function AppContent() {
               {visibleTabs.map((tab) => {
                 const Icon = tab.icon;
                 const active = activeTab === tab.id;
+                const locked = !marketingCaptureEnabled && premiumTabs.has(tab.id) && !subscription.isPremium;
                 return (
                   <TouchableOpacity
                     key={tab.id}
                     accessibilityRole="button"
-                    accessibilityState={{ selected: active }}
+                    accessibilityState={{ selected: active, disabled: locked }}
                     style={[styles.sidebarButton, active ? styles.sidebarButtonActive : null]}
                     onPress={() => openTab(tab.id)}
                   >
@@ -702,17 +903,10 @@ function AppContent() {
                     <Text style={[styles.sidebarLabel, active ? styles.sidebarLabelActive : null]}>
                       {tab.label}
                     </Text>
+                    {locked ? <Crown color={colors.faint} size={13} /> : null}
                   </TouchableOpacity>
                 );
               })}
-              <TouchableOpacity
-                accessibilityRole="button"
-                style={styles.sidebarButton}
-                onPress={() => openFocusForAssignment()}
-              >
-                <Timer color={colors.muted} size={18} />
-                <Text style={styles.sidebarLabel}>Focus</Text>
-              </TouchableOpacity>
               <TouchableOpacity
                 accessibilityRole="button"
                 style={styles.sidebarButton}
@@ -751,6 +945,7 @@ function AppContent() {
                   courses={courses}
                   semester={semester}
                   studentName={settings.studentName}
+                  notes={notes}
                   importHandoff={importHandoff}
                   demoMode={demoMode}
                   onUpdateStatus={updateAssignmentStatus}
@@ -763,6 +958,8 @@ function AppContent() {
                   onOpenScan={() => openTab("import")}
                   onOpenPlan={() => openTab("plan")}
                   onOpenClasses={() => openTab("courses")}
+                  onOpenNotes={() => openTab("notes")}
+                  onOpenGrades={() => openTab("grades")}
                   onTryDemo={() => startWithDemoPlanner()}
                   onReplaceDemo={() => {
                     setSemester(defaultSemester);
@@ -772,6 +969,7 @@ function AppContent() {
                     setParsedImports([]);
                     setParsedItems([]);
                     setFocusSessions([]);
+                    setNotes([]);
                     setImportHandoff(null);
                     setDemoMode(false);
                     openTab("import");
@@ -806,11 +1004,23 @@ function AppContent() {
                   semester={semester}
                   courses={courses}
                   assignments={activeAssignments}
+                  notes={notes}
                   onAddQuickAssignment={addQuickAssignment}
                   onOpenAssignment={setSelectedAssignmentId}
+                  onOpenNotes={() => openTab("notes")}
                   onUpdateSemester={updateSemester}
                   onAddCourse={addCourse}
                   onUpdateCourse={updateCourse}
+                />
+              ) : null}
+              {activeTab === "notes" ? (
+                <NotesScreen
+                  courses={courses}
+                  notes={notes}
+                  onAddNote={addNote}
+                  onUpdateNote={updateNote}
+                  onDeleteNote={deleteNote}
+                  onOpenClasses={() => openTab("courses")}
                 />
               ) : null}
               {activeTab === "grades" ? (
@@ -839,6 +1049,7 @@ function AppContent() {
                 <MoreScreen
                   assignments={activeAssignments}
                   courses={courses}
+                  notes={notes}
                   semester={semester}
                   parsedImports={parsedImports}
                   demoMode={demoMode}
@@ -848,26 +1059,28 @@ function AppContent() {
                   onUpdateSettings={updateSettings}
                   onSaveWidgetPreset={saveWidgetPreset}
                   onResetWidgetPresets={resetWidgetPresets}
+                  onOpenNotes={() => openTab("notes")}
                   onOpenFocus={() => openFocusForAssignment()}
                   onOpenGrades={() => openTab("grades")}
                   onOpenPaywall={() => openTab("upgrade")}
                   premiumWidgetsLocked={!marketingCaptureEnabled && !subscription.isPremium}
                 />
               ) : null}
-              {activeTab === "upgrade" ? <UpgradeScreen /> : null}
+              {activeTab === "upgrade" ? <UpgradeScreen onContinueFree={() => openTab(postPaywallTab)} /> : null}
             </>
           )}
         </ScrollView>
 
         {!tablet ? <View style={styles.tabBar}>
-          {visibleTabs.map((tab) => {
+          {bottomTabs.map((tab) => {
             const Icon = tab.icon;
-            const active = activeTab === tab.id;
+            const active = activeTab === tab.id || (tab.id === "more" && moreGroupTabIds.has(activeTab));
+            const locked = !marketingCaptureEnabled && premiumTabs.has(tab.id) && !subscription.isPremium;
             return (
               <TouchableOpacity
                 key={tab.id}
                 accessibilityRole="button"
-                accessibilityState={{ selected: active }}
+                accessibilityState={{ selected: active, disabled: locked }}
                 style={[styles.tabButton, active ? styles.tabButtonActive : null]}
                 onPress={() => {
                   openTab(tab.id);
@@ -875,8 +1088,9 @@ function AppContent() {
               >
                 <Icon color={active ? colors.heroText : colors.faint} size={20} />
                 <Text style={[styles.tabLabel, active ? styles.tabLabelActive : null]}>
-                  {tab.label}
+                  {mobileTabLabel(tab.id, tab.label)}
                 </Text>
+                {locked ? <View style={styles.lockDot} /> : null}
               </TouchableOpacity>
             );
           })}
@@ -962,6 +1176,24 @@ function buildDemoPlannerData(now = new Date()) {
   };
 }
 
+function buildDemoNotes(courses: Course[]): StudyNote[] {
+  const now = new Date().toISOString();
+  return courses.slice(0, 3).map((course, index) => ({
+    id: `demo-note-${course.id}`,
+    courseId: course.id,
+    title: index === 0 ? "Teacher preferences" : index === 1 ? "Exam study plan" : "Project rubric clues",
+    body: index === 0
+      ? "Prefers concise answers, show work, and submit lab reflections before class starts."
+      : index === 1
+        ? "Make a one-page formula sheet, redo missed quiz questions, then run a 25-minute focus block."
+        : "Rubric rewards source quality, clean outline, and a short reflection paragraph.",
+    tags: ["demo", "class-context"],
+    pinned: index === 0,
+    createdAt: now,
+    updatedAt: now
+  }));
+}
+
 function dateOffset(now: Date, offsetDays: number) {
   const date = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   date.setDate(date.getDate() + offsetDays);
@@ -992,7 +1224,7 @@ function createStyles(theme: AppTheme, tablet = false) {
       alignSelf: tablet ? "center" : undefined,
       paddingHorizontal: tablet ? spacing.xl : spacing.md,
       paddingTop: tablet ? spacing.xl : spacing.md,
-      paddingBottom: tablet ? spacing.xxl : 96
+      paddingBottom: tablet ? spacing.xxl : 156
     },
     scrollArea: {
       flex: 1
@@ -1054,13 +1286,13 @@ function createStyles(theme: AppTheme, tablet = false) {
       fontWeight: "800"
     },
     tabBar: {
-      minHeight: 54,
+      minHeight: 62,
       marginHorizontal: spacing.md,
-      marginBottom: spacing.xs,
+      marginBottom: spacing.md,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      borderRadius: 22,
+      borderRadius: 24,
       borderWidth: 1,
       borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(18,20,23,0.08)",
       backgroundColor: theme.isDark ? "rgba(10, 15, 26, 0.98)" : "rgba(255, 253, 244, 0.96)",
@@ -1072,11 +1304,12 @@ function createStyles(theme: AppTheme, tablet = false) {
       elevation: 3
     },
     tabButton: {
-      width: "19.4%",
-      minHeight: 42,
+      flex: 1,
+      minWidth: 0,
+      minHeight: 48,
       alignItems: "center",
       justifyContent: "center",
-      borderRadius: 16,
+      borderRadius: 17,
       gap: 2
     },
     tabButtonActive: {
@@ -1089,11 +1322,21 @@ function createStyles(theme: AppTheme, tablet = false) {
     },
     tabLabel: {
       color: colors.muted,
-      fontSize: 9,
+      fontSize: 8,
+      lineHeight: 10,
       fontWeight: "900"
     },
     tabLabelActive: {
       color: colors.heroText
+    },
+    lockDot: {
+      position: "absolute",
+      top: 5,
+      right: 7,
+      width: 5,
+      height: 5,
+      borderRadius: 3,
+      backgroundColor: colors.gold
     }
   });
 }

@@ -74,7 +74,7 @@ export function AppLogo({
       <Image
         accessibilityLabel="StudyPlanner mark"
         source={require("../../assets/app/study-planner-icon.png")}
-        style={[styles.logoImage, { width: size, height: size, borderRadius: size * 0.24 } as ImageStyle]}
+        style={[styles.logoImage as ImageStyle, { width: size, height: size, borderRadius: size * 0.24 } as ImageStyle]}
       />
       {showWordmark ? (
         <View style={styles.logoCopy}>
@@ -133,7 +133,9 @@ export function EmojiBadge({
   return (
     <View style={[styles.emojiBadge, toneStyle]}>
       <EmojiAccent name={name} label={label} decorative={false} />
-      <Text style={styles.emojiBadgeText}>{label}</Text>
+      <Text style={styles.emojiBadgeText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82}>
+        {label}
+      </Text>
     </View>
   );
 }
@@ -158,7 +160,6 @@ export function GlassCard({
   return (
     <View style={[styles.glassCard, toneStyle, style]}>
       <View pointerEvents="none" style={styles.liquidGlassHighlight} />
-      <View pointerEvents="none" style={styles.liquidGlassInnerGlow} />
       {children}
     </View>
   );
@@ -187,9 +188,13 @@ export function StatPill({
   }[tone];
   return (
     <View style={[styles.statPill, toneStyle]}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-      {detail ? <Text style={styles.statDetail}>{detail}</Text> : null}
+      <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.74}>
+        {value}
+      </Text>
+      <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82}>
+        {label}
+      </Text>
+      {detail ? <Text style={styles.statDetail} numberOfLines={1}>{detail}</Text> : null}
     </View>
   );
 }
@@ -220,7 +225,12 @@ export function SegmentedControl<T extends string>({
             style={[styles.segment, active ? styles.segmentActive : null]}
             onPress={() => onChange(option)}
           >
-            <Text style={[styles.segmentText, active ? styles.segmentTextActive : null]}>
+            <Text
+              style={[styles.segmentText, active ? styles.segmentTextActive : null]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.78}
+            >
               {labelForOption ? labelForOption(option) : labelize(option)}
             </Text>
           </TouchableOpacity>
@@ -243,15 +253,17 @@ export function AssignmentRow({
 }) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
-  const progress = Math.round((assignment.progress || 0) * 100);
+  const progress = Math.min(100, Math.max(0, Math.round((assignment.progress || 0) * 100)));
   const content = (
     <>
-      <View style={[styles.classTile, { backgroundColor: course?.color || theme.colors.accent }]}> 
+      <View style={[styles.classTile, { backgroundColor: course?.color || theme.colors.accent }]}>
         <Text style={styles.classTileText}>{courseEmoji(course)}</Text>
       </View>
       <View style={styles.assignmentRowCopy}>
-        <Text style={styles.assignmentRowTitle}>{assignment.title}</Text>
-        <Text style={styles.assignmentRowMeta}>
+        <Text style={styles.assignmentRowTitle} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82}>
+          {assignment.title}
+        </Text>
+        <Text style={styles.assignmentRowMeta} numberOfLines={1}>
           {course?.code || "Course"} · {labelize(assignment.kind)} · {assignment.estimatedMinutes}m
         </Text>
         <View style={styles.progressTrack}>
@@ -292,11 +304,13 @@ export function ClassIdentityCard({
         <Text style={styles.classLargeInitial}>{courseEmoji(course)}</Text>
       </View>
       <View style={styles.classCardCopy}>
-        <Text style={styles.classCardTitle}>{course.code}</Text>
-        <Text style={styles.classCardMeta}>
+        <Text style={styles.classCardTitle} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82}>
+          {course.code}
+        </Text>
+        <Text style={styles.classCardMeta} numberOfLines={1}>
           {course.teacher || course.instructor || "Teacher"} · {course.period || "Period"}
         </Text>
-        <Text style={styles.classCardSubtle}>{openCount} open · {doneCount} completed</Text>
+        <Text style={styles.classCardSubtle} numberOfLines={1}>{openCount} open · {doneCount} completed</Text>
       </View>
       <ChevronRight color={theme.colors.faint} size={18} />
     </>
@@ -389,7 +403,7 @@ export function WidgetPreviewCard({
           </View>
           <View style={[styles.nativeWidgetDot, { backgroundColor: nativeAccent }]} />
         </View>
-        <Text style={styles.nativeWidgetValue} numberOfLines={1}>{value}</Text>
+        <Text style={styles.nativeWidgetValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{value}</Text>
         <Text style={styles.nativeWidgetDetail} numberOfLines={isMedium ? 2 : 1}>{detail}</Text>
         {previewItems.length > 0 ? (
           <View style={styles.nativeWidgetList}>
@@ -406,7 +420,7 @@ export function WidgetPreviewCard({
           <Text style={styles.nativeWidgetFootnote} numberOfLines={2}>{footnote || "Open StudyPlanner to add homework."}</Text>
         )}
         <Text style={styles.nativeWidgetFooter} numberOfLines={1}>
-          {previewItems.length > 0 ? footnote || "Reviewed planner data" : semesterName || "Current semester"}
+          {previewItems.length > 0 ? footnote || "Planner data" : semesterName || "Current semester"}
         </Text>
       </View>
     );
@@ -440,7 +454,7 @@ export function WidgetPreviewCard({
       </View>
       <View style={styles.widgetMainRow}>
         <View style={styles.widgetCopy}>
-          <Text style={[styles.widgetValue, labelTone, fontStyle]} numberOfLines={1}>{value}</Text>
+          <Text style={[styles.widgetValue, labelTone, fontStyle]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{value}</Text>
           <Text style={[styles.widgetDetail, labelTone]} numberOfLines={isMedium ? 2 : 1}>
             {detail}
           </Text>
@@ -507,7 +521,7 @@ function widgetStatusText(type: WidgetType, value: string, detail: string, items
   if (type === "class_focus") return "Class";
   if (type === "needs_check") return "Review";
   if (type === "week") return "Week";
-  return detail || "Live";
+  return detail || "Planner";
 }
 
 function widgetItemColor(item: WidgetPreviewItem, course: Course | undefined, fallback: string) {
@@ -557,7 +571,7 @@ export function ThemeCard({
         ))}
       </View>
       <View style={styles.themeFooter}>
-        <Text style={styles.themeName}>{name}</Text>
+        <Text style={styles.themeName} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>{name}</Text>
         {selected ? <Check color={theme.colors.accent} size={15} /> : null}
       </View>
     </TouchableOpacity>
@@ -582,8 +596,8 @@ export function SettingsRow({
       <View style={styles.settingsIcon}>
         <Icon color={theme.colors.accent} size={18} />
       </View>
-      <Text style={styles.settingsTitle}>{title}</Text>
-      {value ? <Text style={styles.settingsValue}>{value}</Text> : null}
+      <Text style={styles.settingsTitle} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82}>{title}</Text>
+      {value ? <Text style={styles.settingsValue} numberOfLines={1}>{value}</Text> : null}
       <ChevronRight color={theme.colors.faint} size={17} />
     </>
   );
@@ -599,20 +613,36 @@ export function SettingsRow({
 export function EmptyState({
   title,
   copy,
-  emoji = "complete"
+  emoji = "complete",
+  tone = "plain"
 }: {
   title: string;
   copy: string;
   emoji?: EmojiKey;
+  tone?: "plain" | "loading" | "error" | "permission" | "review";
 }) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
+  const toneStyle = {
+    plain: styles.emptyStatePlain,
+    loading: styles.emptyStateLoading,
+    error: styles.emptyStateError,
+    permission: styles.emptyStatePermission,
+    review: styles.emptyStateReview
+  }[tone];
+  const iconToneStyle = {
+    plain: styles.emptyIconPlain,
+    loading: styles.emptyIconLoading,
+    error: styles.emptyIconError,
+    permission: styles.emptyIconPermission,
+    review: styles.emptyIconReview
+  }[tone];
   return (
-    <View style={styles.emptyState}>
-      <View style={styles.emptyIcon}>
+    <View style={[styles.emptyState, toneStyle]}>
+      <View style={[styles.emptyIcon, iconToneStyle]}>
         <EmojiAccent name={emoji} label={title} decorative={false} size={22} />
       </View>
-      <Text style={styles.emptyTitle}>{title}</Text>
+      <Text style={styles.emptyTitle} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.84}>{title}</Text>
       <Text style={styles.emptyCopy}>{copy}</Text>
     </View>
   );
@@ -716,16 +746,16 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     glassCard: {
-      borderRadius: radii.xl,
+      borderRadius: radii.lg,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.72)",
-      padding: spacing.lg,
+      padding: spacing.md,
       overflow: "hidden",
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.30 : 0.13,
-      shadowRadius: 24,
-      shadowOffset: { width: 0, height: 14 },
-      elevation: 6
+      shadowOpacity: theme.isDark ? 0.24 : 0.09,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 9 },
+      elevation: 4
     },
     liquidGlassHighlight: {
       position: "absolute",
@@ -762,15 +792,15 @@ function createStyles(theme: AppTheme) {
     },
     statPill: {
       flex: 1,
-      minHeight: 88,
-      borderRadius: radii.lg,
-      padding: spacing.md,
+      minHeight: 78,
+      borderRadius: radii.md,
+      padding: spacing.sm,
       borderWidth: 1,
       justifyContent: "center",
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.18 : 0.07,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 7 },
+      shadowOpacity: theme.isDark ? 0.14 : 0.05,
+      shadowRadius: 9,
+      shadowOffset: { width: 0, height: 5 },
       elevation: 2
     },
     plainStatPill: {
@@ -816,9 +846,9 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800"
     },
     segmented: {
-      minHeight: 44,
+      minHeight: 40,
       flexDirection: "row",
-      borderRadius: radii.xl,
+      borderRadius: radii.lg,
       backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : colors.surfaceAlt,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.isDark ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.72)",
@@ -828,7 +858,7 @@ function createStyles(theme: AppTheme) {
     segment: {
       flex: 1,
       minWidth: 0,
-      borderRadius: radii.lg,
+      borderRadius: radii.md,
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: spacing.xs
@@ -850,8 +880,8 @@ function createStyles(theme: AppTheme) {
       color: colors.ink
     },
     assignmentRow: {
-      minHeight: 82,
-      borderRadius: radii.xl,
+      minHeight: 74,
+      borderRadius: radii.lg,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.isDark ? "rgba(255,255,255,0.12)" : colors.line,
       backgroundColor: theme.isDark ? "rgba(255,255,255,0.045)" : colors.surface,
@@ -860,9 +890,9 @@ function createStyles(theme: AppTheme) {
       alignItems: "center",
       gap: spacing.sm,
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.18 : 0.06,
-      shadowRadius: 13,
-      shadowOffset: { width: 0, height: 7 },
+      shadowOpacity: theme.isDark ? 0.14 : 0.04,
+      shadowRadius: 9,
+      shadowOffset: { width: 0, height: 5 },
       elevation: 2
     },
     classTile: {
@@ -892,7 +922,7 @@ function createStyles(theme: AppTheme) {
       fontSize: 15,
       lineHeight: 20,
       fontWeight: "900",
-      letterSpacing: -0.12
+      letterSpacing: 0
     },
     assignmentRowMeta: {
       color: colors.muted,
@@ -912,7 +942,7 @@ function createStyles(theme: AppTheme) {
       backgroundColor: colors.accent
     },
     classCard: {
-      minHeight: 78,
+      minHeight: 72,
       borderRadius: radii.lg,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.line,
@@ -922,9 +952,9 @@ function createStyles(theme: AppTheme) {
       alignItems: "center",
       gap: spacing.sm,
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.16 : 0.05,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 5 },
+      shadowOpacity: theme.isDark ? 0.12 : 0.04,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 4 },
       elevation: 1
     },
     classLargeIcon: {
@@ -946,6 +976,7 @@ function createStyles(theme: AppTheme) {
     },
     classCardCopy: {
       flex: 1,
+      minWidth: 0,
       gap: 2
     },
     classCardTitle: {
@@ -967,16 +998,16 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800"
     },
     widget: {
-      borderRadius: 30,
+      borderRadius: 24,
       padding: spacing.md,
       overflow: "hidden",
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.isDark ? "rgba(255,255,255,0.18)" : "rgba(18,20,23,0.08)",
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.48 : 0.18,
-      shadowRadius: 26,
-      shadowOffset: { width: 0, height: 16 },
-      elevation: 8
+      shadowOpacity: theme.isDark ? 0.34 : 0.12,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 5
     },
     widgetSmall: {
       width: 126,
@@ -1002,12 +1033,12 @@ function createStyles(theme: AppTheme) {
       borderColor: "rgba(53,242,208,0.22)"
     },
     nativeWidget: {
-      borderRadius: 30,
+      borderRadius: 24,
       padding: spacing.md,
       borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(18,20,23,0.08)",
-      shadowOpacity: theme.isDark ? 0.28 : 0.12,
-      shadowRadius: 20,
-      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: theme.isDark ? 0.22 : 0.08,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 8 },
       gap: 4
     },
     nativeWidgetTop: {
@@ -1180,7 +1211,7 @@ function createStyles(theme: AppTheme) {
       fontSize: 32,
       lineHeight: 37,
       fontWeight: "900",
-      letterSpacing: -0.8
+      letterSpacing: 0
     },
     widgetDetail: {
       color: colors.ink,
@@ -1366,6 +1397,7 @@ function createStyles(theme: AppTheme) {
     },
     settingsTitle: {
       flex: 1,
+      minWidth: 0,
       color: colors.ink,
       fontSize: 14,
       lineHeight: 19,
@@ -1380,20 +1412,52 @@ function createStyles(theme: AppTheme) {
     emptyState: {
       borderRadius: radii.xl,
       borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
       padding: spacing.lg,
       alignItems: "center",
       gap: spacing.xs
+    },
+    emptyStatePlain: {
+      borderColor: colors.line,
+      backgroundColor: colors.surface
+    },
+    emptyStateLoading: {
+      borderColor: theme.isDark ? "#334155" : "#CBD5E1",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.045)" : "#F8FAFC"
+    },
+    emptyStateError: {
+      borderColor: theme.isDark ? "#6B322A" : "#F3B7A9",
+      backgroundColor: theme.isDark ? "#231415" : "#FFF7F5"
+    },
+    emptyStatePermission: {
+      borderColor: theme.isDark ? "#35517F" : "#C8D7FF",
+      backgroundColor: theme.isDark ? "#111B2F" : "#F4F7FF"
+    },
+    emptyStateReview: {
+      borderColor: theme.isDark ? "#6A541C" : "#EBCB72",
+      backgroundColor: theme.isDark ? "#241D0C" : "#FFFBEB"
     },
     emptyIcon: {
       width: 52,
       height: 52,
       borderRadius: 18,
-      backgroundColor: colors.accentSoft,
       alignItems: "center",
       justifyContent: "center",
       marginBottom: spacing.xs
+    },
+    emptyIconPlain: {
+      backgroundColor: colors.accentSoft
+    },
+    emptyIconLoading: {
+      backgroundColor: theme.isDark ? "#1E293B" : "#E2E8F0"
+    },
+    emptyIconError: {
+      backgroundColor: theme.isDark ? "#3A201D" : "#FFE0D8"
+    },
+    emptyIconPermission: {
+      backgroundColor: theme.isDark ? "#1B2844" : "#E3ECFF"
+    },
+    emptyIconReview: {
+      backgroundColor: colors.softGold
     },
     emptyTitle: {
       color: colors.ink,

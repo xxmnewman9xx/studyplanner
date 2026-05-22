@@ -49,10 +49,16 @@ export function GradesScreen({
   const selectedCourseGradeItems = selectedCourse
     ? gradeItems.filter((item) => item.courseId === selectedCourse.id)
     : [];
+  const hasGradeEntries = selectedCourseGradeItems.some((item) => item.possible > 0);
+  const hasGradeCategories = Boolean(selectedCourse?.gradeCategories.length);
 
   useEffect(() => {
     if (!selectedCourse) return;
-    setSelectedCategoryId((current) => current || selectedCourse.gradeCategories[0]?.id || "");
+    setSelectedCategoryId((current) =>
+      selectedCourse.gradeCategories.some((category) => category.id === current)
+        ? current
+        : selectedCourse.gradeCategories[0]?.id || ""
+    );
   }, [selectedCourse]);
 
   useEffect(() => {
@@ -63,24 +69,48 @@ export function GradesScreen({
     () => (selectedCourse ? summarizeCourseGrade(selectedCourse, gradeItems) : null),
     [selectedCourse, gradeItems]
   );
+  const targetPercent = Number.parseFloat(target) || targetGradePercent || 0;
 
   const needed = summary
     ? calculateNeededOnRemaining(
         summary.currentPercent,
         summary.completedWeight,
-        targetGradePercent
+        targetPercent
       )
     : 0;
   const nextScoreNeeded = summary
     ? calculateNeededOnSingleFutureScore(
         summary.currentPercent,
-        targetGradePercent,
+        targetPercent,
         Number.parseFloat(whatIfWeight) || 0
       )
     : 0;
-  const gradeMomentum = needed > 100 ? "Stretch" : needed > 92 ? "Focus" : "On track";
-  const courseDeadlines = selectedCourse
-    ? assignments.filter((assignment) => assignment.courseId === selectedCourse.id)
+  const remainingWeight = summary ? Math.max(100 - summary.completedWeight, 0) : 0;
+  const categoryCount = summary?.categorySummaries.length || 0;
+  const scoredCategoryCount =
+    summary?.categorySummaries.filter((category) => category.average !== null).length || 0;
+  const weakestCategory = summary?.categorySummaries
+    .filter((category) => category.average !== null)
+    .sort((left, right) => (left.average || 0) - (right.average || 0))[0];
+  const targetDelta = summary ? targetPercent - summary.currentPercent : 0;
+  const gradeMomentum = !hasGradeEntries
+    ? "Waiting for scores"
+    : !Number.isFinite(needed)
+      ? summary && summary.currentPercent >= targetPercent
+        ? "Target held"
+        : "Target out of reach"
+    : needed > 100
+      ? "Stretch"
+      : needed > 92
+        ? "Focus"
+        : "On track";
+  const openCourseAssignments = selectedCourse
+    ? assignments.filter(
+        (assignment) =>
+          assignment.courseId === selectedCourse.id &&
+          assignment.status !== "done" &&
+          assignment.status !== "archived"
+      )
     : [];
 
   useEffect(() => {
@@ -130,20 +160,30 @@ export function GradesScreen({
         ))}
       </View>
 
+      {!selectedCourse ? (
+        <View style={styles.setupCard}>
+          <Text style={styles.setupTitle}>Grades need a course first.</Text>
+          <Text style={styles.setupCopy}>
+            Import a syllabus or add a course, then this screen will show real category weights,
+            score history, and target math.
+          </Text>
+        </View>
+      ) : null}
+
       {selectedCourse && summary ? (
         <>
           <View style={styles.metricRow}>
             <MetricCard
               label="Current"
-              value={formatPercent(summary.currentPercent)}
-              detail={letterFromPercent(summary.currentPercent)}
+              value={hasGradeEntries ? formatPercent(summary.currentPercent) : "--"}
+              detail={hasGradeEntries ? letterFromPercent(summary.currentPercent) : "No scores yet"}
               tone="green"
             />
             <MetricCard
               label="Target pace"
-              value={formatPercent(needed)}
-              detail={`${gradeMomentum} momentum`}
-              tone={needed > 100 ? "gold" : "blue"}
+              value={hasGradeEntries ? formatPercent(needed) : "--"}
+              detail={hasGradeEntries ? `${gradeMomentum} momentum` : "Waiting on first grade"}
+              tone={hasGradeEntries && needed > 100 ? "gold" : "blue"}
             />
           </View>
 
@@ -152,13 +192,20 @@ export function GradesScreen({
               <TrendingUp color={colors.heroText} size={20} />
               <Text style={styles.targetTitle}>Target-grade calculator</Text>
             </View>
-            <Text style={styles.targetCopy}>
-              Aim for
-              <Text style={styles.targetNumber}> {target || "0"}% </Text>
-              overall. Remaining work needs about
-              <Text style={styles.targetNumber}> {formatPercent(needed)} </Text>
-              on average.
-            </Text>
+            {hasGradeEntries ? (
+              <Text style={styles.targetCopy}>
+                Aim for
+                <Text style={styles.targetNumber}> {formatPercent(targetPercent)} </Text>
+                overall. Remaining work needs about
+                <Text style={styles.targetNumber}> {formatPercent(needed)} </Text>
+                on average.
+              </Text>
+            ) : (
+              <Text style={styles.targetCopy}>
+                Set the goal now. After the first real score is added, StudyPlanner will calculate
+                the remaining average needed without guessing.
+              </Text>
+            )}
             <TextInput
               keyboardType="numeric"
               value={target}
@@ -170,44 +217,88 @@ export function GradesScreen({
               placeholderTextColor={colors.heroMuted}
               style={[styles.targetInput, styles.targetHeroInput]}
             />
-            <View style={styles.whatIfCard}>
-              <Text style={styles.whatIfLabel}>Next test what-if</Text>
-              <Text style={styles.targetCopy}>
-                If the next score is worth
-                <Text style={styles.targetNumber}> {whatIfWeight || "0"}% </Text>
-                of the course, you need about
-                <Text style={styles.targetNumber}> {formatPercent(nextScoreNeeded)} </Text>
-                on it to stay on target.
-              </Text>
-              <TextInput
-                keyboardType="numeric"
-                value={whatIfWeight}
-                onChangeText={setWhatIfWeight}
-                placeholder="Next score weight"
-                placeholderTextColor={colors.heroMuted}
-                style={[styles.targetInput, styles.targetHeroInput]}
-              />
+            {hasGradeEntries ? (
+              <View style={styles.whatIfCard}>
+                <Text style={styles.whatIfLabel}>Next test what-if</Text>
+                <Text style={styles.targetCopy}>
+                  If the next score is worth
+                  <Text style={styles.targetNumber}> {whatIfWeight || "0"}% </Text>
+                  of the course, you need about
+                  <Text style={styles.targetNumber}> {formatPercent(nextScoreNeeded)} </Text>
+                  on it to stay on target.
+                </Text>
+                <TextInput
+                  keyboardType="numeric"
+                  value={whatIfWeight}
+                  onChangeText={setWhatIfWeight}
+                  placeholder="Next score weight"
+                  placeholderTextColor={colors.heroMuted}
+                  style={[styles.targetInput, styles.targetHeroInput]}
+                />
+              </View>
+            ) : (
+              <View style={styles.whatIfCard}>
+                <Text style={styles.whatIfLabel}>Next test what-if</Text>
+                <Text style={styles.targetCopy}>
+                  Add one scored item first, then this will show the score needed on a future test.
+                </Text>
+              </View>
+            )}
+            <View style={styles.targetFacts}>
+              <View style={styles.targetFact}>
+                <Text style={styles.factValue}>{formatPercent(summary.completedWeight)}</Text>
+                <Text style={styles.factLabel}>graded weight</Text>
+              </View>
+              <View style={styles.targetFact}>
+                <Text style={styles.factValue}>{formatPercent(remainingWeight)}</Text>
+                <Text style={styles.factLabel}>still open</Text>
+              </View>
+              <View style={styles.targetFact}>
+                <Text style={styles.factValue}>
+                  {hasGradeEntries ? formatSignedPercent(targetDelta) : "--"}
+                </Text>
+                <Text style={styles.factLabel}>target gap</Text>
+              </View>
             </View>
           </View>
 
           <SectionHeader title="Grade weights" note={`${selectedCourse.name}: how much each category counts.`} />
           <View style={styles.categoryList}>
-            {summary.categorySummaries.map((category) => (
-              <View key={category.id} style={styles.categoryRow}>
-                <View style={styles.categoryCopy}>
-                  <Text style={styles.categoryName}>{category.name}</Text>
-                  <Text style={styles.categoryMeta}>{category.weight}% of grade</Text>
-                </View>
-                <Badge
-                  label={formatPercent(category.average)}
-                  tone={category.average === null ? "neutral" : "green"}
-                />
+            {summary.categorySummaries.length === 0 ? (
+              <View style={styles.inlineEmpty}>
+                <Text style={styles.inlineEmptyTitle}>No grade weights yet</Text>
+                <Text style={styles.inlineEmptyCopy}>
+                  Add grade categories to this course before the calculator can weight scores.
+                </Text>
               </View>
-            ))}
+            ) : (
+              summary.categorySummaries.map((category) => (
+                <View key={category.id} style={styles.categoryRow}>
+                  <View style={styles.categoryCopy}>
+                    <Text style={styles.categoryName}>{category.name}</Text>
+                    <Text style={styles.categoryMeta}>
+                      {category.weight}% of grade - {category.average === null ? "no scores yet" : `${formatPercent(category.contribution)} toward course`}
+                    </Text>
+                  </View>
+                  <Badge
+                    label={formatPercent(category.average)}
+                    tone={category.average === null ? "neutral" : "green"}
+                  />
+                </View>
+              ))
+            )}
           </View>
 
           <SectionHeader title="Add a grade" note="Enter a score from a test, quiz, paper, or homework." />
           <View style={styles.addGradeCard}>
+            {!hasGradeCategories ? (
+              <View style={styles.inlineEmpty}>
+                <Text style={styles.inlineEmptyTitle}>No grade categories yet</Text>
+                <Text style={styles.inlineEmptyCopy}>
+                  Add categories to this course before entering scores.
+                </Text>
+              </View>
+            ) : null}
             <TextInput
               value={newTitle}
               onChangeText={setNewTitle}
@@ -260,6 +351,7 @@ export function GradesScreen({
             <AppButton
               label="Add this grade"
               icon={Plus}
+              disabled={!newTitle.trim() || !selectedCategoryId}
               onPress={() => {
                 if (!newTitle.trim() || !selectedCategoryId) return;
                 onAddGradeItem({
@@ -279,7 +371,12 @@ export function GradesScreen({
           <SectionHeader title="Recent grades" note="Tap a grade if you need to fix it." />
           <View style={styles.scoreList}>
             {selectedCourseGradeItems.length === 0 ? (
-              <Text style={styles.emptyCopy}>No grade entries yet.</Text>
+              <View style={styles.inlineEmpty}>
+                <Text style={styles.inlineEmptyTitle}>No grade entries yet</Text>
+                <Text style={styles.inlineEmptyCopy}>
+                  Add the first real score to turn on current grade and target pace.
+                </Text>
+              </View>
             ) : (
               selectedCourseGradeItems.map((item) => (
                 <View key={item.id} style={styles.scoreRow}>
@@ -290,6 +387,7 @@ export function GradesScreen({
                       placeholder="Score title"
                       placeholderTextColor={colors.heroMuted}
                       style={styles.scoreTitleInput}
+                      numberOfLines={1}
                     />
                     <Text style={styles.categoryMeta}>
                       {
@@ -331,13 +429,23 @@ export function GradesScreen({
           <View style={styles.alertCard}>
             <Text style={styles.alertTitle}>{gradeMomentum}</Text>
             <Text style={styles.alertCopy}>
-              {courseDeadlines.length} upcoming grade-connected items can help this class stay aligned with the target.
+              {!hasGradeEntries
+                ? "Add one real score before StudyPlanner summarizes momentum for this class."
+                : Number.isFinite(needed)
+                  ? `${openCourseAssignments.length} open course ${openCourseAssignments.length === 1 ? "item" : "items"} remain. ${scoredCategoryCount}/${categoryCount || 0} weighted categories have scores${weakestCategory ? `; lowest current area is ${weakestCategory.name} at ${formatPercent(weakestCategory.average)}.` : "."}`
+                  : "This class has no remaining category weight in the calculator, so compare the current grade directly with the target."}
             </Text>
           </View>
         </>
       ) : null}
     </View>
   );
+}
+
+function formatSignedPercent(value: number) {
+  if (!Number.isFinite(value)) return "--";
+  const prefix = value > 0 ? "+" : "";
+  return `${prefix}${value.toFixed(1)}%`;
 }
 
 function createStyles(theme: AppTheme) {
@@ -364,7 +472,7 @@ function createStyles(theme: AppTheme) {
     title: {
       ...typography.title,
       color: colors.heroText,
-      letterSpacing: -0.7
+      letterSpacing: 0
     },
     subtitle: {
       ...typography.body,
@@ -388,6 +496,27 @@ function createStyles(theme: AppTheme) {
       color: colors.muted,
       fontSize: 14,
       lineHeight: 20,
+      fontWeight: "700"
+    },
+    setupCard: {
+      marginTop: spacing.lg,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.lg,
+      gap: spacing.xs
+    },
+    setupTitle: {
+      color: colors.ink,
+      fontSize: 18,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    setupCopy: {
+      color: colors.muted,
+      fontSize: 14,
+      lineHeight: 21,
       fontWeight: "700"
     },
     courseTab: {
@@ -415,7 +544,8 @@ function createStyles(theme: AppTheme) {
     metricRow: {
       flexDirection: "row",
       gap: spacing.sm,
-      marginTop: spacing.lg
+      marginTop: spacing.lg,
+      minWidth: 0
     },
     targetCard: {
       marginTop: spacing.lg,
@@ -440,7 +570,7 @@ function createStyles(theme: AppTheme) {
       color: colors.heroText,
       fontSize: 16,
       fontWeight: "900",
-      letterSpacing: -0.2
+      letterSpacing: 0
     },
     targetCopy: {
       color: colors.heroMuted,
@@ -481,6 +611,36 @@ function createStyles(theme: AppTheme) {
       color: colors.heroText,
       fontSize: 13,
       fontWeight: "900"
+    },
+    targetFacts: {
+      flexDirection: "row",
+      gap: spacing.xs
+    },
+    targetFact: {
+      flex: 1,
+      minHeight: 66,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.16)",
+      backgroundColor: "rgba(255,255,255,0.08)",
+      padding: spacing.xs,
+      justifyContent: "center",
+      gap: 2
+    },
+    factValue: {
+      color: colors.heroText,
+      fontSize: 17,
+      lineHeight: 22,
+      fontWeight: "900",
+      textAlign: "center"
+    },
+    factLabel: {
+      color: colors.heroMuted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textAlign: "center",
+      textTransform: "uppercase"
     },
     categoryList: {
       borderRadius: radii.md,
@@ -549,7 +709,8 @@ function createStyles(theme: AppTheme) {
     },
     scoreInputs: {
       flexDirection: "row",
-      gap: spacing.sm
+      gap: spacing.sm,
+      minWidth: 0
     },
     scoreInput: {
       flex: 1,
@@ -573,7 +734,8 @@ function createStyles(theme: AppTheme) {
     },
     scoreCopy: {
       flex: 1,
-      gap: 2
+      gap: 2,
+      minWidth: 0
     },
     scoreTitleInput: {
       color: colors.heroText,
@@ -585,7 +747,8 @@ function createStyles(theme: AppTheme) {
     inlineScores: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 4
+      gap: 4,
+      flexShrink: 0
     },
     inlineScoreInput: {
       width: 46,
@@ -608,6 +771,22 @@ function createStyles(theme: AppTheme) {
       fontSize: 14,
       lineHeight: 21,
       padding: spacing.md
+    },
+    inlineEmpty: {
+      padding: spacing.md,
+      gap: spacing.xs
+    },
+    inlineEmptyTitle: {
+      color: colors.heroText,
+      fontSize: 15,
+      lineHeight: 20,
+      fontWeight: "900"
+    },
+    inlineEmptyCopy: {
+      color: colors.heroMuted,
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "700"
     },
     alertCard: {
       borderRadius: radii.md,

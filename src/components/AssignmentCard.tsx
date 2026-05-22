@@ -62,16 +62,18 @@ export function AssignmentCard({
             />
           </View>
         </View>
-        <Text style={[styles.title, done ? styles.doneTitle : null]}>{assignment.title}</Text>
+        <Text style={[styles.title, done ? styles.doneTitle : null]} numberOfLines={2}>
+          {assignment.title}
+        </Text>
         <View style={styles.metaRow}>
           <Clock3 color={colors.faint} size={14} />
-          <Text style={styles.meta}>
+          <Text style={styles.meta} numberOfLines={1}>
             Due {formatShortDate(assignment.dueAt)} · {assignment.estimatedMinutes} min
           </Text>
         </View>
         <View style={styles.tagRow}>
           {assignment.tags.slice(0, 3).map((tag) => (
-            <Text key={tag} style={styles.tag}>
+            <Text key={tag} style={styles.tag} numberOfLines={1}>
               {tag}
             </Text>
           ))}
@@ -118,6 +120,7 @@ function createStyles(theme: AppTheme) {
     },
     body: {
       flex: 1,
+      minWidth: 0,
       gap: spacing.xs
     },
     topRow: {
@@ -143,6 +146,7 @@ function createStyles(theme: AppTheme) {
     course: {
       color: colors.muted,
       fontSize: 12,
+      lineHeight: 16,
       fontWeight: "900"
     },
     title: {
@@ -161,6 +165,8 @@ function createStyles(theme: AppTheme) {
       gap: 5
     },
     meta: {
+      flex: 1,
+      minWidth: 0,
       color: colors.muted,
       fontSize: 13,
       lineHeight: 18
@@ -173,6 +179,7 @@ function createStyles(theme: AppTheme) {
     tag: {
       color: colors.muted,
       fontSize: 12,
+      lineHeight: 16,
       fontWeight: "700"
     }
   });
