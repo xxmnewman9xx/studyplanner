@@ -400,16 +400,17 @@ export function WidgetPreviewCard({
   const WidgetIcon = iconForKey(iconKey);
   const statusText = widgetStatusText(type, value, detail, previewItems);
   const nativeAccent = nativeAccentColor || course?.color || paletteColors[1] || theme.colors.accent;
-  const nativeBackground = nativeBackgroundColor || "#FFFDF4";
-  const nativeDark = ["#171A20", "#101723", "#070A12"].includes(nativeBackground.toUpperCase());
-  const nativeInk = nativeDark ? "#F8F6EF" : "#171A20";
-  const nativeMuted = nativeDark ? "#D4D8E2" : "#69707D";
-  const nativeQuiet = nativeDark ? "#AEB6C7" : "#8A93A3";
+  const nativeBackground = nativeBackgroundColor || "#101723";
+  const nativeDark = ["#171A20", "#101723", "#0D1422", "#061827", "#070A12", "#05070B"].includes(nativeBackground.toUpperCase());
+  const nativeInk = nativeDark ? "#F8FAFC" : "#171A20";
+  const nativeMuted = nativeDark ? "#D7DEE9" : "#69707D";
+  const nativeQuiet = nativeDark ? "#A8B3C5" : "#8A93A3";
   const nativeSignal = nativeSignalLabel || (previewItems.length > 0 ? "Live plan" : "Setup");
   const nativeMetric = nativeMetricLabel || statusText;
   const nativeNext = nativeNextLabel || footnote || "Open StudyPlanner";
   const nativeTimeline = nativeTimelineLabel || (type === "today" ? "Today" : "Next");
   const nativeProgressValue = Math.max(0, Math.min(1, nativeProgress ?? (previewItems.length > 0 ? 0.6 : 0.2)));
+  const nativeWeekDots = ["M", "T", "W", "T", "F", "S", "S"];
 
   if (nativeMode) {
     if (isLockInline) {
@@ -479,6 +480,19 @@ export function WidgetPreviewCard({
             </View>
           ) : null}
         </View>
+        {isMedium ? (
+          <View style={[styles.nativeWidgetWeekRail, { backgroundColor: nativeDark ? "#172132" : "#FFFFFF" }]}>
+            {nativeWeekDots.map((label, index) => {
+              const active = nativeProgressValue >= (index + 1) / nativeWeekDots.length;
+              return (
+                <View key={`${label}-${index}`} style={styles.nativeWidgetWeekDotWrap}>
+                  <View style={[styles.nativeWidgetWeekDot, { backgroundColor: active ? nativeAccent : nativeDark ? "#263245" : "#E7EAF0" }]} />
+                  <Text style={[styles.nativeWidgetWeekLabel, { color: nativeQuiet }]}>{label}</Text>
+                </View>
+              );
+            })}
+          </View>
+        ) : null}
         <View style={styles.nativeWidgetProgressRow}>
           <Text style={[styles.nativeWidgetMetric, { color: nativeQuiet }]} numberOfLines={1}>{nativeMetric}</Text>
           <View style={styles.nativeWidgetProgressDots}>
@@ -656,7 +670,7 @@ export function ThemeCard({
 }) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
-  const colors = palette === "custom" ? ["#FFFFFF", "#FCE7F3", "#E0E7FF", "#FFEDD5"] : themePalettes[palette];
+  const colors = palette === "custom" ? ["#F8FAFC", "#2F80ED", "#35F2D0", "#A3E635"] : themePalettes[palette];
 
   return (
     <TouchableOpacity
@@ -883,7 +897,7 @@ function createStyles(theme: AppTheme) {
       height: 28,
       borderRadius: radii.round,
       backgroundColor: theme.isDark ? "rgba(255,255,255,0.085)" : "rgba(255,255,255,0.50)",
-      opacity: 0.72
+      opacity: 0
     },
     liquidGlassLowerEdge: {
       position: "absolute",
@@ -1307,7 +1321,7 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     nativeWidgetNextBox: {
-      width: 96,
+      width: 88,
       borderRadius: 18,
       paddingHorizontal: 8,
       paddingVertical: 7,
@@ -1323,6 +1337,31 @@ function createStyles(theme: AppTheme) {
     nativeWidgetNextText: {
       fontSize: 10,
       lineHeight: 13,
+      fontWeight: "900"
+    },
+    nativeWidgetWeekRail: {
+      marginTop: spacing.xs,
+      borderRadius: 16,
+      paddingHorizontal: 9,
+      paddingVertical: 6,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.12)" : "rgba(17,24,39,0.06)"
+    },
+    nativeWidgetWeekDotWrap: {
+      alignItems: "center",
+      gap: 2
+    },
+    nativeWidgetWeekDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3
+    },
+    nativeWidgetWeekLabel: {
+      fontSize: 7,
+      lineHeight: 9,
       fontWeight: "900"
     },
     nativeWidgetMetric: {
@@ -1362,22 +1401,22 @@ function createStyles(theme: AppTheme) {
       borderRadius: 3
     },
     nativeWidgetRowCourse: {
-      width: 44,
-      fontSize: 10,
-      lineHeight: 13,
+      width: 48,
+      fontSize: 9,
+      lineHeight: 12,
       fontWeight: "900"
     },
     nativeWidgetRowText: {
       flex: 1,
       color: "#69707D",
-      fontSize: 10,
-      lineHeight: 13,
+      fontSize: 9,
+      lineHeight: 12,
       fontWeight: "800"
     },
     nativeWidgetRowDue: {
-      maxWidth: 54,
-      fontSize: 10,
-      lineHeight: 13,
+      maxWidth: 50,
+      fontSize: 9,
+      lineHeight: 12,
       fontWeight: "800"
     },
     nativeWidgetFootnote: {

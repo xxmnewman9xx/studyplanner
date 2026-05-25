@@ -92,19 +92,22 @@ const defaultBackground = "#101723";
 const paletteAccents: Record<WidgetPalette | "custom", string> = {
   sunset: "#E06C2E",
   ocean: "#2F80ED",
-  forest: "#1F8A5B",
-  lavender: "#8B5CF6",
-  midnight: "#5263FF",
-  candy: "#EC4899",
-  minimal: "#111827",
+  forest: "#35F2D0",
+  lavender: "#56A8FF",
+  midnight: "#56A8FF",
+  candy: "#38BDF8",
+  minimal: "#94A3B8",
+  graphite: "#A3E635",
+  aurora: "#35F2D0",
+  paper: "#2F80ED",
   custom: defaultAccent
 };
 
 const backgroundColors: Record<WidgetBackground, string> = {
   glass: "#101723",
-  solid: "#F5F7FB",
-  gradient: "#FFF3E7",
-  dark: "#070A12"
+  solid: "#0D1422",
+  gradient: "#061827",
+  dark: "#05070B"
 };
 
 export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
@@ -334,7 +337,7 @@ export async function syncStudyPlannerWidgets(input: WidgetSnapshotInput): Promi
     if (!widgets) {
       return {
         state: "unavailable",
-        message: "Install a native iOS build with the WidgetKit extension to add widgets."
+        message: "Install a native iOS build with the widget extension to add widgets."
       };
     }
 
@@ -349,7 +352,7 @@ export async function syncStudyPlannerWidgets(input: WidgetSnapshotInput): Promi
   } catch {
     return {
       state: "unavailable",
-      message: "Install a native iOS build with the WidgetKit extension to add widgets."
+      message: "Install a native iOS build with the widget extension to add widgets."
     };
   }
 }
@@ -435,7 +438,7 @@ function toWidgetItem(
     id: assignment.id,
     title: assignmentDisplayTitle(assignment, privacyMode),
     courseCode: privacyMode ? "Class" : course?.code || "Class",
-    courseColor: privacyMode ? fallbackColor : course?.color || defaultAccent,
+    courseColor: privacyMode ? fallbackColor : readableWidgetAccent(course?.color, fallbackColor),
     dueLabel: formatDueLabel(assignment.dueAt, now),
     priority: assignment.priority,
     kind: assignment.kind
@@ -444,7 +447,17 @@ function toWidgetItem(
 
 function colorForAssignment(assignment: Assignment | undefined, courses: Course[], fallback = defaultAccent) {
   if (!assignment) return fallback;
-  return courses.find((course) => course.id === assignment.courseId)?.color || fallback;
+  return readableWidgetAccent(courses.find((course) => course.id === assignment.courseId)?.color, fallback);
+}
+
+function readableWidgetAccent(color: string | undefined, fallback = defaultAccent) {
+  if (!color || !/^#[0-9a-f]{6}$/i.test(color)) return fallback;
+
+  const red = parseInt(color.slice(1, 3), 16) / 255;
+  const green = parseInt(color.slice(3, 5), 16) / 255;
+  const blue = parseInt(color.slice(5, 7), 16) / 255;
+  const luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+  return luminance < 0.34 ? fallback : color;
 }
 
 function assignmentDisplayTitle(assignment: Assignment, privacyMode: boolean) {

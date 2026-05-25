@@ -6,34 +6,34 @@
     "risk": "conversion",
     "state": "fresh install, normal mode, onboarding complete, not Plus",
     "trigger": "enters app",
-    "expected": ["no forced paywall appears before value", "student can scan/import or try demo", "Plus is introduced after value or at advanced feature gates"],
+    "expected": ["onboarding previews Scan, Review, Today, Widgets, and customization first", "completion routes to a hard Plus paywall", "main app access requires purchase or restore"],
     "automation": "static",
-    "evidence": ["App.tsx no showInitialPaywall", "Onboarding scan/demo CTAs", "UpgradeScreen useful free copy"],
-    "failureMeans": "The user is asked to pay before seeing the semester-plan value."
+    "evidence": ["App.tsx hard paywall branch", "Onboarding current UI preview copy", "UpgradeScreen hardMode copy"],
+    "failureMeans": "The user reaches the planner without a valid Plus entitlement or gets asked to pay before seeing product-value previews."
   },
   {
     "id": "sp-free-limit",
     "app": "StudyPlanner",
-    "persona": "free user testing limits",
+    "persona": "student deciding whether Plus is worth it",
     "risk": "revenue",
-    "state": "not Plus with 2 classes, 12 homework items, or 1 used import",
-    "trigger": "adds more work, imports another syllabus, or opens advanced automation",
-    "expected": ["upsell appears at the limit", "no silent failure", "CTA explains expanded classes/homework/scans and automation"],
+    "state": "not Plus after onboarding",
+    "trigger": "hard paywall loads store plans or an unavailable-store state",
+    "expected": ["store-loaded plans, Restore Purchases, Terms, and Privacy stay visible", "no silent unlock when products fail to load", "CTA explains scans, widgets, reminders, and calendar sync"],
     "automation": "static",
     "evidence": ["freeCourseLimit", "freeAssignmentLimit", "freeImportLimit", "premiumTabs"],
-    "failureMeans": "Free feels either punitive too early or unbounded enough to remove Plus leverage."
+    "failureMeans": "The hard paywall either blocks legitimate purchasers without recovery or unlocks without a valid entitlement."
   },
   {
     "id": "sp-plus-tab-surface",
     "app": "StudyPlanner",
-    "persona": "free student exploring navigation",
+    "persona": "Plus student exploring navigation",
     "risk": "conversion",
-    "state": "not Plus after onboarding or demo",
+    "state": "Plus active or simulator capture route for proof",
     "trigger": "looks at bottom navigation and command tiles",
-    "expected": ["free tab bar exposes Today, Scan, Plan, Classes, Widgets", "scan and plan are usable", "focus, grades, advanced widgets, reminders, and calendar sync route to Plus"],
+    "expected": ["bottom navigation exposes Today, Scan, Plan, and Widgets", "scan and plan are usable", "focus, grades, reminders, and calendar sync remain premium-gated outside capture/proof mode"],
     "automation": "static",
     "evidence": ["freeTabs", "importLimitLocked", "premiumAutomationLocked command tiles", "Widget Studio Plus labels"],
-    "failureMeans": "Free users cannot reach the core loop or see confusing fake premium surfaces."
+    "failureMeans": "The simplified IA is confusing, or premium-only surfaces bypass entitlement checks."
   },
   {
     "id": "sp-first-run-empty",

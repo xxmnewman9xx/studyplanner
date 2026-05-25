@@ -16,7 +16,7 @@ Turn a messy semester into a clear daily execution plan. Students upload or phot
 
 - Course and semester setup.
 - Text-based PDF and pasted-text syllabus import with editable parsing results.
-- Real photo syllabus parsing through the camera/photo library with on-device OCR fallback and optional production parser endpoint.
+- Real photo syllabus parsing through the camera/photo library when the production parser endpoint is configured.
 - Assignments and exams with due dates, tags, priority, estimates, and status.
 - Weekly class schedule.
 - Today view with a ranked next action.
@@ -24,7 +24,7 @@ Turn a messy semester into a clear daily execution plan. Students upload or phot
 - Smart local reminders for deadlines and exams.
 - Device calendar sync.
 - Focus timer tied to a specific assignment.
-- Onboarding that explains value quickly and routes into the Plus paywall or planner.
+- Onboarding that explains value quickly, previews customization, and routes into the Plus paywall.
 
 ### Not Included In V1
 
@@ -40,13 +40,13 @@ Turn a messy semester into a clear daily execution plan. Students upload or phot
 1. Student sees the product promise and trust cues.
 2. Student completes onboarding.
 3. App presents Plus value and store-backed purchase options.
-4. Student subscribes, restores purchases, or continues with the free planner.
-5. App lands on Today with manual planning available and Plus features gated.
+4. Student subscribes or restores purchases.
+5. App lands on the selected Scan, demo, or manual setup destination after Plus is active.
 
 ### Syllabus Import
 
 1. Upload a text-based PDF, paste syllabus text, or capture a syllabus photo.
-2. Parse locally when possible, including on-device text recognition for photos; use the configured parser endpoint when available.
+2. Parse text-based PDFs and pasted text locally when possible; send camera/photo sources to the configured parser endpoint.
 3. Return structured JSON with confidence and review flags.
 4. Show editable title, kind, priority, due date, due time, and effort fields before applying.
 5. Block invalid deadlines from application and route uncertain work into Needs Review.
@@ -87,14 +87,14 @@ This keeps the app planner-first: AI creates structure, but daily execution logi
 
 ### Free
 
-- One semester.
+- Current semester planner.
 - Limited course count.
 - Manual assignment/exam entry.
-- Basic reminders.
+- Basic Today and Upcoming widgets.
 
 ### Paid
 
-- Unlimited semesters and courses.
+- Expanded course, assignment, and import limits.
 - Syllabus scan.
 - Advanced reminders.
 - Calendar sync.

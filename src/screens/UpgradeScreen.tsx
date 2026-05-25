@@ -17,19 +17,9 @@ type UpgradeScreenProps = {
 type LegalDocument = "terms" | "privacy";
 
 const paidFeatures = [
-  { icon: FileScan, title: "Unlimited imports", detail: "Scan, upload, paste, and re-import supported syllabus files when teachers change the plan." },
-  { icon: TrendingUp, title: "Grade forecast", detail: "Use entered scores and course weights to model the target grade before finals week." },
-  { icon: Timer, title: "Focus loop", detail: "Turn Tonight's work into timers, prep blocks, and calm deadline nudges." },
-  { icon: Layers3, title: "Premium widgets", detail: "Save named Smart Stack presets, class looks, and supported widget styles." },
-  { icon: Palette, title: "Custom themes", detail: "Unlock expressive class colors and dashboard personalization." },
-  { icon: Bell, title: "Automation", detail: "Reminders and calendar sync options are available where the device and permissions support them." }
-];
-
-const freeFeatures = [
-  "1 active semester",
-  "2 classes and 12 homework items",
-  "1 reviewed syllabus import",
-  "Manual add/edit plus basic Today and Upcoming widgets"
+  { icon: FileScan, title: "More syllabus scans", detail: "Scan, upload, paste, and re-import when classes change." },
+  { icon: Layers3, title: "More widget styles", detail: "Save extra widget presets and custom looks." },
+  { icon: Bell, title: "Reminders + calendar", detail: "Send reviewed deadlines to device reminders and calendar." }
 ];
 
 export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScreenProps) {
@@ -61,18 +51,24 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
           ? "Loading current plans"
           : hasProducts
             ? `${subscription.products.length} plan${subscription.products.length === 1 ? "" : "s"} available`
-            : "Free planner remains available";
+            : hardMode
+              ? "Plus plans are unavailable"
+              : "Waiting for store plans";
   const planStateDetail = subscription.isPremium
     ? "Premium widgets, themes, scans, focus, and grade tools are unlocked on this device."
     : plansUnavailable
-      ? unavailableCopy(subscription.status, subscription.hasConfiguredProducts)
+      ? unavailableCopy(subscription.status, subscription.hasConfiguredProducts, hardMode)
       : loadingPlans
         ? "Prices, trials, and renewal periods come from the store before checkout."
         : hasProducts
-          ? "Choose a store-backed product below. Restore stays available for existing subscribers."
-          : "You can continue with the free planner while products load.";
-  const freeValueLine = "Free lets you try the planner with real utility";
-  const plusLeverageLine = "Plus expands scans, automation, widgets, and semester controls";
+          ? "Choose a plan below. Restore stays available."
+        : hardMode
+            ? "Plans could not load. Restore Purchases stays available, and this screen will not unlock the planner without a valid store entitlement."
+            : "Plans could not load yet. Restore Purchases stays available for existing subscribers.";
+  const heroTitle = hardMode ? "StudyPlanner Plus" : "Plus for busy semesters.";
+  const heroSubtitle = hardMode
+    ? "Unlock syllabus scans, Home Screen widgets, reminders, and calendar sync."
+    : "Keep the full scan-to-plan workflow ready for a busy semester.";
 
   if (legalDocument) {
     return <LegalNotice document={legalDocument} onClose={() => setLegalDocument(null)} />;
@@ -84,33 +80,15 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
         <View style={styles.heroGlow} />
         <View style={styles.heroTopRow}>
           <AppLogo showWordmark size={42} />
-          <Badge label={hardMode ? "Before your planner" : "StudyPlanner Plus"} tone="gold" />
+          <Badge label="Plus" tone="gold" />
         </View>
-        <Text style={styles.kicker}>{hardMode ? "Your semester command center" : "StudyPlanner Plus"}</Text>
-        <Text style={styles.title}>{hardMode ? "Unlock the full school loop." : "Make school feel beatable."}</Text>
-        <Text style={styles.subtitle}>
-          {plusLeverageLine}. Store-backed Plus unlocks higher limits, grade forecasting, focus tools, calendar/reminder options, and premium widget customization.
-        </Text>
-
-        <View style={styles.phonePreview}>
-          <View style={styles.phoneHeader}>
-            <View>
-              <Text style={styles.phoneKicker}>Illustrative Plus flow</Text>
-              <Text style={styles.phoneTitle}>Planner, grades, widgets</Text>
-            </View>
-            <View style={styles.phoneBadge}><Text style={styles.phoneBadgeText}>Plus</Text></View>
-          </View>
-          <View style={styles.phoneRows}>
-            <PreviewRow color={colors.accent} title="Bio lab" detail="Prep block at 4:00" />
-            <PreviewRow color={colors.brandPink} title="Calc forecast" detail="Need 88% on quiz" />
-            <PreviewRow color={colors.sage} title="English essay" detail="Widget-ready countdown" />
-          </View>
-        </View>
+        {!hardMode ? <Text style={styles.kicker}>StudyPlanner Plus</Text> : null}
+        <Text style={styles.title}>{heroTitle}</Text>
+        <Text style={styles.subtitle}>{heroSubtitle}</Text>
         <View style={styles.payoffRail}>
-          <PayoffPill icon={TrendingUp} label="Grades" />
-          <PayoffPill icon={FileScan} label="Imports" />
-          <PayoffPill icon={Timer} label="Focus" />
-          <PayoffPill icon={Palette} label="Themes" />
+          <PayoffPill icon={FileScan} label="Scans" />
+          <PayoffPill icon={Layers3} label="Widgets" />
+          <PayoffPill icon={Bell} label="Reminders" />
         </View>
       </GlassCard>
 
@@ -131,12 +109,18 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
       <View style={[styles.planStateCard, subscription.errorMessage || plansUnavailable ? styles.planStateCardWarning : hasProducts || subscription.isPremium ? styles.planStateCardReady : null]}>
         <View style={styles.planStateTopRow}>
           <View style={styles.planStateCopy}>
-            <Text style={styles.planStateKicker}>Plan state</Text>
+            <Text style={styles.planStateKicker}>App Store</Text>
             <Text style={styles.planStateTitle}>{planStateTitle}</Text>
           </View>
           {busy || loadingPlans ? <ActivityIndicator color={colors.accent} /> : <ShieldCheck color={hasProducts || subscription.isPremium ? colors.green : colors.muted} size={19} />}
         </View>
         <Text style={styles.planStateDetail}>{planStateDetail}</Text>
+      </View>
+
+      <View style={styles.legalRail}>
+        <LegalLink label="Terms of Use (EULA)" document="terms" onOpen={setLegalDocument} />
+        <Text style={styles.legalDivider}>·</Text>
+        <LegalLink label="Privacy Policy" document="privacy" onOpen={setLegalDocument} />
       </View>
 
       {subscription.isPremium ? (
@@ -154,13 +138,6 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
               </View>
             ) : null}
 
-            {hasProducts ? (
-              <View style={styles.productIntro}>
-                <Text style={styles.productIntroTitle}>Choose Plus</Text>
-                <Text style={styles.productIntroText}>Product names and prices below are returned by the store.</Text>
-              </View>
-            ) : null}
-
             {subscription.products.map((product, productIndex) => (
               <ProductOption
                 key={product.id}
@@ -175,7 +152,7 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
           {plansUnavailable ? (
             <View style={styles.unavailableCard}>
               <Text style={styles.unavailableTitle}>Purchases are unavailable</Text>
-              <Text style={styles.unavailableCopy}>{unavailableCopy(subscription.status, subscription.hasConfiguredProducts)}</Text>
+              <Text style={styles.unavailableCopy}>{unavailableCopy(subscription.status, subscription.hasConfiguredProducts, hardMode)}</Text>
               {subscription.status !== "unavailable" ? (
                 <AppButton label="Try Again" variant="secondary" onPress={() => void subscription.refresh()} />
               ) : null}
@@ -187,6 +164,7 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
               label={ctaLabel(selectedProduct, subscription.flowState)}
               icon={Crown}
               disabled={!selectedProduct || busy}
+              style={styles.actionButton}
               onPress={() => {
                 if (selectedProduct) void subscription.purchase(selectedProduct.id);
               }}
@@ -195,11 +173,15 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
               label={subscription.flowState === "restoring" ? "Restoring" : "Restore Purchases"}
               variant="secondary"
               disabled={busy}
+              style={styles.actionButton}
               onPress={() => void subscription.restore()}
             />
-            {onContinueFree ? (
-              <AppButton label="Continue with free planner" variant="quiet" onPress={onContinueFree} />
-            ) : null}
+          </View>
+
+          <View style={styles.trustRail}>
+            <TrustPill icon={ShieldCheck} label="Apple checkout" />
+            <TrustPill icon={Check} label="Restore purchases" />
+            <TrustPill icon={Check} label="No account needed" />
           </View>
         </>
       )}
@@ -217,18 +199,9 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
         })}
       </View>
 
-      <View style={styles.freeCard}>
-        <View style={styles.freeHeader}>
-          <Badge label="Included free" tone="green" />
-          <Text style={styles.freeTitle}>Try the basics first</Text>
-        </View>
-        <Text style={styles.freeIntro}>{freeValueLine}: one real semester starter, basic widgets, and manual planning even when store products are unavailable.</Text>
-        {freeFeatures.map((feature) => <FeatureRow key={feature} text={feature} />)}
-      </View>
-
       <View style={styles.trustCard}>
         <ShieldCheck color={colors.sage} size={18} />
-        <Text style={styles.trustText}>High trust by design: store pricing, clear restore, clear legal, no fake urgency, no dark patterns.</Text>
+        <Text style={styles.trustText}>App Store prices, Restore Purchases, Terms, and Privacy stay visible before checkout.</Text>
       </View>
 
       <View style={styles.legalRow}>
@@ -262,6 +235,17 @@ function PayoffPill({ icon: Icon, label }: { icon: React.ComponentType<{ color: 
     <View style={styles.payoffPill}>
       <Icon color={theme.colors.heroText} size={15} />
       <Text style={styles.payoffText}>{label}</Text>
+    </View>
+  );
+}
+
+function TrustPill({ icon: Icon, label }: { icon: React.ComponentType<{ color: string; size: number }>; label: string }) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  return (
+    <View style={styles.trustPill}>
+      <Icon color={theme.colors.accent} size={14} />
+      <Text style={styles.trustPillText}>{label}</Text>
     </View>
   );
 }
@@ -345,7 +329,7 @@ function LegalNotice({ document, onClose }: { document: LegalDocument; onClose: 
         </Text>
         <View style={styles.legalFeature}>
           {isTerms ? <CalendarSync color={colors.accent} size={18} /> : <FileScan color={colors.accent} size={18} />}
-          <Text style={styles.legalBody}>{isTerms ? "Prices, trials, and renewal periods shown on the paywall come from the store." : "You can continue using the planner manually without creating an account or purchasing Plus."}</Text>
+          <Text style={styles.legalBody}>{isTerms ? "Prices, trials, and renewal periods shown on the paywall come from the store." : "Planner content is stored locally unless you choose a service that requires upload, such as syllabus parsing."}</Text>
         </View>
         <AppButton label="Back to Plus" onPress={onClose} />
       </View>
@@ -356,16 +340,27 @@ function LegalNotice({ document, onClose }: { document: LegalDocument; onClose: 
 function ctaLabel(product: PaywallProduct | undefined, flowState: string) {
   if (flowState === "purchasing") return "Opening Store";
   if (!product) return "Choose a Plan";
+  if (product.kind === "lifetime") return "Buy Lifetime";
   return product.hasFreeTrial ? "Start Free Trial" : "Subscribe";
 }
 
-function unavailableCopy(status: string, hasConfiguredProducts: boolean) {
+function unavailableCopy(status: string, hasConfiguredProducts: boolean, hardMode = false) {
+  if (hardMode) {
+    if (status === "unavailable" && hasConfiguredProducts) {
+      return Platform.OS === "web"
+      ? "Subscriptions must be purchased in the iOS or Android app. This web screen cannot unlock Plus."
+        : "Store purchases are unavailable on this device right now. Restore remains available, and Plus will not unlock without a valid store entitlement.";
+    }
+    if (!hasConfiguredProducts) return "No Plus product IDs are configured for this build. Restore remains available, but the planner stays locked until products load in a configured build.";
+    return "The store could not load active Plus plans. Restore remains available, and the planner stays locked until a valid entitlement is found.";
+  }
+
   if (status === "unavailable" && hasConfiguredProducts) {
     return Platform.OS === "web"
-      ? "Subscriptions are available in the iOS or Android app. You can keep using the free planner here."
-      : "Store purchases are unavailable on this device right now. You can keep using the free planner.";
+      ? "Subscriptions are available in the iOS or Android app."
+      : "Store purchases are unavailable on this device right now.";
   }
-  if (!hasConfiguredProducts) return "Subscription plans are not available right now. You can keep using the free planner.";
+  if (!hasConfiguredProducts) return "Subscription plans are not available right now.";
   return "The store could not load active Plus plans. Please try again shortly.";
 }
 
@@ -377,8 +372,8 @@ function createStyles(theme: AppTheme) {
       gap: spacing.md
     },
     heroCard: {
-      padding: spacing.lg,
-      gap: spacing.sm,
+      padding: spacing.md,
+      gap: spacing.xs,
       overflow: "hidden"
     },
     heroGlow: {
@@ -406,25 +401,25 @@ function createStyles(theme: AppTheme) {
     },
     title: {
       color: colors.heroText,
-      fontSize: 34,
-      lineHeight: 39,
+      fontSize: 30,
+      lineHeight: 35,
       fontWeight: "900",
       letterSpacing: 0
     },
     subtitle: {
       color: colors.heroMuted,
-      fontSize: 16,
-      lineHeight: 24,
+      fontSize: 14,
+      lineHeight: 20,
       fontWeight: "700"
     },
     phonePreview: {
       marginTop: spacing.xs,
-      borderRadius: radii.xxl,
+      borderRadius: radii.xl,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: "rgba(255,255,255,0.20)",
       backgroundColor: "rgba(255,255,255,0.12)",
-      padding: spacing.md,
-      gap: spacing.sm
+      padding: spacing.sm,
+      gap: spacing.xs
     },
     phoneHeader: {
       flexDirection: "row",
@@ -441,8 +436,8 @@ function createStyles(theme: AppTheme) {
     },
     phoneTitle: {
       color: colors.heroText,
-      fontSize: 20,
-      lineHeight: 25,
+      fontSize: 17,
+      lineHeight: 22,
       fontWeight: "900"
     },
     phoneBadge: {
@@ -464,6 +459,37 @@ function createStyles(theme: AppTheme) {
       flexDirection: "row",
       flexWrap: "wrap",
       gap: spacing.xs
+    },
+    trustRail: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    legalRail: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      gap: spacing.xs,
+      marginTop: -spacing.xs
+    },
+    trustPill: {
+      flexGrow: 1,
+      minHeight: 34,
+      borderRadius: radii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      paddingHorizontal: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 5
+    },
+    trustPillText: {
+      color: colors.ink,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
     },
     payoffPill: {
       flexGrow: 1,
@@ -662,7 +688,7 @@ function createStyles(theme: AppTheme) {
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: colors.elevated,
-      padding: spacing.md,
+      padding: spacing.sm,
       gap: spacing.xs
     },
     productCardSelected: {
@@ -688,8 +714,8 @@ function createStyles(theme: AppTheme) {
     },
     productTitle: {
       color: colors.ink,
-      fontSize: 18,
-      lineHeight: 23,
+      fontSize: 17,
+      lineHeight: 22,
       fontWeight: "900"
     },
     productMeta: {
@@ -700,20 +726,26 @@ function createStyles(theme: AppTheme) {
     },
     productPrice: {
       color: colors.ink,
-      fontSize: 18,
-      lineHeight: 23,
+      fontSize: 17,
+      lineHeight: 22,
       fontWeight: "900",
       textAlign: "right",
       flexShrink: 0
     },
     productDescription: {
       color: colors.muted,
-      fontSize: 13,
-      lineHeight: 19,
+      fontSize: 12,
+      lineHeight: 17,
       fontWeight: "700"
     },
     actionStack: {
+      flexDirection: "row",
+      flexWrap: "wrap",
       gap: spacing.sm
+    },
+    actionButton: {
+      flex: 1,
+      minWidth: 156
     },
     unavailableCard: {
       borderRadius: radii.xl,

@@ -11,13 +11,13 @@ https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Polic
 ## Supported syllabus import flow for this build
 
 1. Open the Scan tab after Plus is active.
-2. Choose Take Photo for a syllabus page, Upload for a text-based PDF/plain-text syllabus from Files, or Paste syllabus/handout text directly.
-3. The app reads camera/photo text on device when possible, uses the configured parser endpoint when available, then creates an editable draft.
+2. Choose Take photo for a new syllabus photo, Choose photo for a saved image, Upload for a text-based PDF/plain-text syllabus from Files, or Paste syllabus/handout text directly.
+3. The app sends camera/photo sources to the configured parser endpoint, while text-based PDFs, plain-text files, and pasted text can parse locally, then creates an editable draft.
 4. Review detected courses, deadlines, due times, effort estimates, possible duplicates, and grade categories.
 5. Fix any items marked Needs Review. Invalid dates or times cannot be applied to the planner.
 6. Apply the parsed plan only after review.
 
-Camera scan is active in this build. If the online parser endpoint is unavailable, the app attempts on-device photo text recognition first. If a photo cannot be read clearly, the app shows a clear retry/fallback message instead of applying uncertain data.
+Camera scan is active in this build when the production parser endpoint is configured. If the online parser endpoint is unavailable or a photo cannot be read clearly, the app shows a clear retry/fallback message instead of applying uncertain data.
 
 ## Planner trust behavior
 
@@ -31,7 +31,7 @@ StudyPlanner keeps deadline data reviewable before it affects planning or device
 
 ## WidgetKit behavior
 
-iOS builds include small and medium WidgetKit Home Screen widgets for StudyPlanner Today and StudyPlanner Upcoming. The widgets are backed by the app group `group.com.mattnewman.studyplanner` and receive compact timeline snapshots from the app, not the full planner database.
+iOS builds include small and medium WidgetKit Home Screen widgets plus Lock Screen accessory families for StudyPlanner Today and StudyPlanner Upcoming. The widgets are backed by the app group `group.com.mattnewman.studyplanner` and receive compact timeline snapshots from the app, not the full planner database.
 
 The widget snapshot includes reviewed assignment display fields only: local assignment ID, title, course code/color, due label, priority, assignment type, semester name, widget state, generated time, colors, and display copy. It excludes raw syllabus text, parsed raw text, teacher names, rooms, grades, notes, checklist details, reminder identifiers, calendar event identifiers, purchase state, and student name. Demo coursework and unreviewed or invalid scan results are not written to native widgets.
 
@@ -44,3 +44,11 @@ npm run qa:release
 ```
 
 This runs typecheck, syllabus parser fixtures, planner trust fixtures, IAP/premium gate checks, and web export.
+
+Also confirm the production EAS environment does not set the simulator-only capture bypass:
+
+```bash
+eas env:list --environment production | grep EXPO_PUBLIC_SIM_QA_CAPTURE
+```
+
+Expected result: no `EXPO_PUBLIC_SIM_QA_CAPTURE=1` entry in production.

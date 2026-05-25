@@ -33,7 +33,8 @@ import {
 } from "../services/syllabusParser";
 import {
   marketingCaptureParseResult,
-  marketingCaptureScreen
+  marketingCaptureScreen,
+  type MarketingCaptureScreen
 } from "../services/marketingCapture";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -51,29 +52,31 @@ type ImportScreenProps = {
   premiumImportLocked?: boolean;
   onOpenPaywall?: () => void;
   onTryDemo?: () => void;
+  captureScreenOverride?: MarketingCaptureScreen;
 };
 
 const priorities: Priority[] = ["low", "medium", "high"];
 const kinds: AssignmentKind[] = ["assignment", "worksheet", "reading", "project", "exam"];
 type ImportSourceMode = "camera" | "photo" | "file" | "paste";
 
-export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, premiumImportLocked = false, onOpenPaywall, onTryDemo }: ImportScreenProps) {
+export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, premiumImportLocked = false, onOpenPaywall, onTryDemo, captureScreenOverride }: ImportScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
+  const activeCaptureScreen = captureScreenOverride || marketingCaptureScreen;
   const captureDraft =
-    marketingCaptureScreen === "extracted" || marketingCaptureScreen === "review_edit";
+    activeCaptureScreen === "extracted" || activeCaptureScreen === "review_edit";
   const [draft, setDraft] = useState<SyllabusParseResult | null>(
     captureDraft ? marketingCaptureParseResult : null
   );
-  const [loading, setLoading] = useState(marketingCaptureScreen === "processing");
+  const [loading, setLoading] = useState(activeCaptureScreen === "processing");
   const [typedText, setTypedText] = useState("");
   const [sourceMode, setSourceMode] = useState<ImportSourceMode>("camera");
 
   const handleLockedImport = () => {
     Alert.alert(
-      "Free import used",
-      "Free includes one reviewed syllabus import. Plus unlocks more photos, files, pasted text, and re-imports for the rest of the semester.",
+      "Plus required",
+      "Unlock Plus to scan photos, files, pasted text, and re-imports for the rest of the semester.",
       [
         { text: "Not now", style: "cancel" },
         { text: "See Plus", onPress: onOpenPaywall }
@@ -187,34 +190,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   const needsReviewCount = draft
     ? draft.assignments.filter(isDraftAssignmentFlagged).length
     : parsedItems.filter((item) => item.needsReview).length;
-  const confidenceCounts = draft ? summarizeConfidence(draft) : null;
   const canApplyDraft = Boolean(draft && draft.assignments.length > 0 && invalidDeadlineCount === 0 && needsReviewCount === 0 && !premiumImportLocked);
-  const firstActionTitle = draft?.assignments
-    .slice()
-    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())[0]?.title;
-  const firstMoves = draft
-    ? [
-        {
-          label: "1",
-          title: needsReviewCount > 0 ? `Review ${needsReviewCount} flagged item${needsReviewCount === 1 ? "" : "s"}` : "Trust check is clean",
-          copy: needsReviewCount > 0
-            ? "Fix missing dates, low-confidence rows, or duplicates before they touch Today."
-            : "No obvious import flags. Approve the plan when the extracted work looks right."
-        },
-        {
-          label: "2",
-          title: invalidDeadlineCount > 0 ? "Fix deadlines first" : `Add ${draft.assignments.length} approved item${draft.assignments.length === 1 ? "" : "s"}`,
-          copy: invalidDeadlineCount > 0
-            ? "StudyPlanner blocks the handoff until every deadline is usable."
-            : "Approved work lands in Today with classes, priorities, reminders, and focus steps."
-        },
-        {
-          label: "3",
-          title: firstActionTitle ? `Start: ${firstActionTitle}` : "Open Today’s first move",
-          copy: "After approval, Today shows the next best task so the import turns into action."
-        }
-      ]
-    : [];
 
   const addUndatedExampleDraft = (example: string) => {
     if (!draft) return;
@@ -258,10 +234,10 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   return (
     <View>
       <View style={styles.header}>
-        <Text style={styles.kicker}>Add schoolwork</Text>
-        <Text style={styles.title}>Import from camera, file, photo, or paste.</Text>
+        <Text style={styles.kicker}>Scan</Text>
+        <Text style={styles.title}>Scan your syllabus.</Text>
         <Text style={styles.subtitle}>
-          StudyPlanner reads the source it can access, drafts likely work, and blocks the handoff until you review dates and flagged rows.
+          Turn paper, saved photos, PDFs, or pasted text into reviewed assignments.
         </Text>
       </View>
 
@@ -271,8 +247,8 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
             <Crown color={colors.accent} size={18} />
           </View>
           <View style={styles.limitCopy}>
-            <Text style={styles.limitTitle}>More imports are a Plus upgrade</Text>
-            <Text style={styles.limitText}>Keep editing your current planner for free, or unlock more photos, files, pasted text, and re-imports when your semester gets busy.</Text>
+            <Text style={styles.limitTitle}>Plus unlocks syllabus imports</Text>
+            <Text style={styles.limitText}>Scan photos, files, pasted text, and re-imports when your semester gets busy.</Text>
           </View>
           <AppButton label="Unlock Plus" icon={Crown} onPress={onOpenPaywall || (() => undefined)} />
         </GlassCard>
@@ -284,32 +260,30 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
         <View style={styles.scanFrame}>
           <View style={styles.scanLine} />
         </View>
-        <Text style={styles.dropKicker}>Step 1 · capture source</Text>
-        <Text style={styles.dropTitle}>Get from material to first plan.</Text>
-        <Text style={styles.dropCopy}>Take a photo, choose a PDF/text file, use a library photo, or paste class notes. OCR and the syllabus parser draft likely rows for review.</Text>
+        <Text style={styles.dropKicker}>Step 1 · choose a source</Text>
+        <Text style={styles.dropTitle}>Turn a syllabus into assignments.</Text>
+        <Text style={styles.dropCopy}>Pick one path. You review every assignment before it reaches Today.</Text>
         <View style={styles.magicPreview}>
-          <MagicPreviewStep icon={FileText} title="Source" detail="PDF/photo/text" />
+          <MagicPreviewStep icon={FileText} title="Scan" detail="Source" />
           <View style={styles.magicArrow} />
-          <MagicPreviewStep icon={Search} title="Extract" detail="OCR + parser" />
+          <MagicPreviewStep icon={Search} title="Review" detail="Draft" />
           <View style={styles.magicArrow} />
-          <MagicPreviewStep icon={CheckCircle2} title="Review" detail="dates + trust" />
-        </View>
-        <View style={styles.trustRow}>
-          <TrustChip label="Nothing saves automatically" />
-          <TrustChip label="Low confidence is marked" />
-          <TrustChip label="Invalid dates are blocked" />
+          <MagicPreviewStep icon={CheckCircle2} title="Add" detail="Today" />
         </View>
         <View style={styles.sourcePicker}>
           <SourceOption mode="camera" label="Camera" icon={Camera} />
           <SourceOption mode="photo" label="Photo" icon={FileText} />
-          <SourceOption mode="file" label="PDF/text" icon={Upload} />
+          <SourceOption mode="file" label="PDF" icon={Upload} />
           <SourceOption mode="paste" label="Paste" icon={Keyboard} />
         </View>
         {sourceMode === "camera" ? (
           <View style={styles.sourcePanel}>
-            <Text style={styles.sourcePanelTitle}>Use the camera for one clear page.</Text>
-            <Text style={styles.sourcePanelCopy}>Best for a syllabus page, worksheet, or board photo. Text recognition runs first, then the parser drafts editable work.</Text>
-            <AppButton label="Take photo" icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
+            <Text style={styles.sourcePanelTitle}>Use a syllabus photo.</Text>
+            <Text style={styles.sourcePanelCopy}>Take a new photo or choose a saved page from your library.</Text>
+            <View style={styles.scanActions}>
+              <AppButton label="Take photo" icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
+              <AppButton label="Choose photo" icon={FileText} variant="secondary" onPress={pickPhoto} style={styles.scanActionSecondary} />
+            </View>
           </View>
         ) : null}
         {sourceMode === "photo" ? (
@@ -321,9 +295,9 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
         ) : null}
         {sourceMode === "file" ? (
           <View style={styles.sourcePanel}>
-            <Text style={styles.sourcePanelTitle}>Upload a PDF or text handout.</Text>
-            <Text style={styles.sourcePanelCopy}>Choose text-based PDFs or plain text files. Image-only PDFs may need the photo option instead.</Text>
-            <AppButton label="Choose file" icon={Upload} onPress={pickPdf} style={styles.scanActionPrimary} />
+            <Text style={styles.sourcePanelTitle}>Upload a syllabus PDF.</Text>
+            <Text style={styles.sourcePanelCopy}>Text-based PDFs and text files work best.</Text>
+            <AppButton label="Upload PDF" icon={Upload} onPress={pickPdf} style={styles.scanActionPrimary} />
           </View>
         ) : null}
         {sourceMode === "paste" ? (
@@ -332,12 +306,12 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
               value={typedText}
               onChangeText={setTypedText}
               multiline
-              placeholder="Paste: Chapter 4 worksheet due May 13, lab report due Friday..."
+              placeholder="Paste syllabus lines or assignment dates..."
               placeholderTextColor={colors.heroMuted}
               style={styles.typeBox}
             />
             <AppButton
-              label="Parse pasted text"
+              label="Review pasted text"
               icon={Keyboard}
               variant="secondary"
               onPress={typeItIn}
@@ -346,11 +320,8 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
           </View>
         ) : null}
         <Text style={styles.privacyNote}>
-          First value: approve one clean draft and Today immediately gets the next school task to start.
+          Nothing is added until you confirm the review list.
         </Text>
-        {onTryDemo ? (
-          <AppButton label="Try demo syllabus" icon={Sparkles} variant="quiet" onPress={onTryDemo} />
-        ) : null}
       </GlassCard>
 
       {loading ? (
@@ -365,7 +336,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
         </View>
       ) : null}
 
-      {parsedImports.length > 0 ? (
+      {false && parsedImports.length > 0 ? (
         <>
           <SectionHeader title="Recent imports" note="Open one to review found work" />
           <View style={styles.recentList}>
@@ -395,97 +366,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
 
       {draft ? (
         <>
-          <SectionHeader title="Review draft — nothing is added yet" note={`${draft.assignments.length + draft.courses.length + draft.gradeItems.length} items found. Fix anything wrong, then add approved work to Today.`} />
-          <GlassCard style={styles.resultCard}>
-            <View style={styles.resultStats}>
-              <ResultStat value={String(counts?.assignments || 0)} label="Assignments" tone="blue" />
-              <ResultStat value={String(counts?.exams || 0)} label="Exams" tone="pink" />
-              <ResultStat value={String(counts?.projects || 0)} label="Projects" tone="gold" />
-              <ResultStat value={String(needsReviewCount)} label="Needs review" tone="plain" />
-            </View>
-            <View style={[styles.reviewGateCard, canApplyDraft ? styles.reviewGateReady : styles.reviewGateBlocked]}>
-              <View style={styles.reviewGateHeader}>
-                <View style={styles.reviewGateIcon}>
-                  {canApplyDraft ? (
-                    <CheckCircle2 color={colors.green} size={18} />
-                  ) : (
-                    <AlertTriangle color={colors.red} size={18} />
-                  )}
-                </View>
-                <View style={styles.reviewGateCopy}>
-                  <Text style={styles.reviewGateTitle}>{canApplyDraft ? "Ready to add to Today" : "Review required before adding"}</Text>
-                  <Text style={styles.reviewGateText}>
-                    {canApplyDraft
-                      ? "Dates are valid and no confidence flags remain."
-                      : reviewGateMessage(invalidDeadlineCount, needsReviewCount)}
-                  </Text>
-                </View>
-              </View>
-            </View>
-            <View style={styles.confidencePanel}>
-              <Text style={styles.confidenceKicker}>Confidence review</Text>
-              <Text style={styles.confidenceCopy}>Every extracted row stays editable. The parser highlights low-confidence rows, possible duplicates, and missing or invalid dates before they can touch your planner.</Text>
-              <View style={styles.confidenceLegend}>
-                <ConfidenceLegend label={`High ${confidenceCounts?.high || 0}`} tone="high" />
-                <ConfidenceLegend label={`Check ${confidenceCounts?.check || 0}`} tone="medium" />
-                <ConfidenceLegend label={`Fix ${confidenceCounts?.fix || 0}`} tone="low" />
-              </View>
-            </View>
-            <View style={styles.firstMovesCard}>
-              <Text style={styles.firstMovesKicker}>What happens next</Text>
-              <Text style={styles.firstMovesTitle}>Review draft → add to Today → start studying.</Text>
-              <View style={styles.firstMovesList}>
-                {firstMoves.map((move) => (
-                  <View key={move.label} style={styles.firstMoveRow}>
-                    <View style={styles.firstMoveNumber}>
-                      <Text style={styles.firstMoveNumberText}>{move.label}</Text>
-                    </View>
-                    <View style={styles.firstMoveCopy}>
-                      <Text style={styles.firstMoveTitle}>{move.title}</Text>
-                      <Text style={styles.firstMoveDetail}>{move.copy}</Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            </View>
-            <View style={styles.findings}>
-              {draft.findings.map((finding) => (
-                <View key={finding.id} style={styles.findingBlock}>
-                  <Badge
-                    label={finding.message}
-                    tone={finding.severity === "needs_review" ? "red" : "green"}
-                  />
-                  {finding.examples?.length ? (
-                    <View style={styles.findingExamples}>
-                      {finding.examples.map((example) => {
-                        const added = hasDraftForExample(example);
-                        return (
-                          <View key={example} style={styles.findingExampleRow}>
-                            <Text style={styles.findingExampleText}>Missing date: {example}</Text>
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              disabled={added}
-                              style={[styles.exampleAddButton, added ? styles.exampleAddButtonDisabled : null]}
-                              onPress={() => addUndatedExampleDraft(example)}
-                            >
-                              <Plus color={added ? colors.faint : colors.accent} size={14} />
-                              <Text style={[styles.exampleAddText, added ? styles.exampleAddTextDisabled : null]}>
-                                {added ? "Added" : "Make draft"}
-                              </Text>
-                            </TouchableOpacity>
-                          </View>
-                        );
-                      })}
-                    </View>
-                  ) : null}
-                </View>
-              ))}
-              {needsReviewCount > 0 ? <Badge label="Missing date or duplicate possible" tone="red" /> : null}
-              {invalidDeadlineCount > 0 ? <Badge label={`${invalidDeadlineCount} invalid deadline${invalidDeadlineCount === 1 ? "" : "s"} to fix`} tone="red" /> : null}
-            </View>
-          </GlassCard>
-
-          <SectionHeader title="Edit found homework" note="These are drafts. Tap text or dates to fix them." />
+          <SectionHeader title="Review work" note={`${draft.assignments.length} found. Edit, confirm, then add to Today.`} />
           <View style={styles.editList}>
             {draft.assignments.map((assignment) => {
               const courseCode =
@@ -493,13 +374,13 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
               const dueDate = assignment.dueAt.slice(0, 10);
               const dueTime = normalizedDueTime(assignment.dueAt, assignment.kind);
               const hasInvalidDate = !isValidDateInput(dueDate);
-              const hasInvalidTime = !isValidTimeInput(dueTime);
               const hasInvalidDeadline = !isValidDeadline(assignment.dueAt);
+              const reviewed = !isDraftAssignmentFlagged(assignment);
               return (
                 <View key={assignment.id} style={[styles.editCard, hasInvalidDeadline ? styles.editCardBlocked : null]}>
                   <View style={styles.editCardTop}>
-                    <View style={[styles.statusDot, isDraftAssignmentFlagged(assignment) ? styles.statusDotReview : null]}>
-                      <CheckCircle2 color={isDraftAssignmentFlagged(assignment) ? colors.ink : colors.heroText} size={16} />
+                    <View style={[styles.statusDot, reviewed ? null : styles.statusDotReview]}>
+                      <CheckCircle2 color={reviewed ? colors.heroText : colors.ink} size={16} />
                     </View>
                     <View style={styles.editHeaderCopy}>
                       <TextInput
@@ -511,13 +392,16 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                         }
                       />
                       <Text style={styles.editMeta}>
-                        {courseCode} · confidence {Math.round((assignment.confidence || 0.88) * 100)}%
+                        {courseCode} · due {formatReviewDate(dueDate)}
                       </Text>
                     </View>
-                    <ConfidenceBadge confidence={assignment.confidence || 0.88} needsReview={Boolean(assignment.needsReview || assignment.duplicateOf)} />
                   </View>
 
                   <View style={styles.twoColumn}>
+                    <View style={[styles.input, styles.fieldHalf]}>
+                      <Text style={styles.fieldLabel}>Class</Text>
+                      <Text style={styles.fieldValue}>{courseCode}</Text>
+                    </View>
                     <TextInput
                       value={dueDate}
                       style={[styles.input, styles.fieldHalf, hasInvalidDate ? styles.inputInvalid : null]}
@@ -533,49 +417,16 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                         )
                       }
                     />
-                    <TextInput
-                      value={dueTime}
-                      style={[styles.input, styles.fieldHalf, hasInvalidTime ? styles.inputInvalid : null]}
-                      placeholder="HH:MM"
-                      placeholderTextColor={colors.faint}
-                      onChangeText={(time) =>
-                        setDraft(
-                          updateParsedAssignment(draft, assignment.id, {
-                            dueAt: `${dueDate}T${time}:00`,
-                            needsReview: !isValidDateInput(dueDate) || !isValidTimeInput(time),
-                            updatedAt: new Date().toISOString()
-                          })
-                        )
-                      }
-                    />
-                    <TextInput
-                      keyboardType="numeric"
-                      value={String(assignment.estimatedMinutes)}
-                      style={[styles.input, styles.fieldHalf]}
-                      placeholder="Minutes"
-                      placeholderTextColor={colors.faint}
-                      onChangeText={(estimatedMinutes) =>
-                        setDraft(
-                          updateParsedAssignment(draft, assignment.id, {
-                            estimatedMinutes: normalizeEstimatedMinutes(estimatedMinutes, assignment.estimatedMinutes)
-                          })
-                        )
-                      }
-                    />
                   </View>
                   {hasInvalidDeadline ? (
                     <Text style={styles.dateBlockerText}>
-                      Enter a real date and 24-hour time before this row can be marked reviewed.
+                      Enter a real due date before this row can be confirmed.
                     </Text>
                   ) : null}
 
-                  <View style={styles.trustRail}>
-                    <View style={[styles.trustRailFill, { width: `${Math.max(12, Math.round((assignment.confidence || 0.88) * 100))}%` }]} />
-                  </View>
-                  <Text style={styles.trustExplanation}>{trustExplanation(assignment.confidence || 0.88, Boolean(assignment.needsReview || assignment.duplicateOf))}</Text>
-                  {isDraftAssignmentFlagged(assignment) ? (
+                  {!reviewed ? (
                     <AppButton
-                      label="Mark reviewed"
+                      label="Confirm"
                       variant="secondary"
                       disabled={!isValidDeadline(assignment.dueAt)}
                       onPress={() =>
@@ -589,20 +440,9 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                         )
                       }
                     />
-                  ) : null}
-
-                  <SegmentedControl
-                    options={kinds}
-                    value={assignment.kind}
-                    onChange={(kind) => setDraft(updateParsedAssignment(draft, assignment.id, { kind, type: kind }))}
-                    labelForOption={labelize}
-                  />
-                  <SegmentedControl
-                    options={priorities}
-                    value={assignment.priority}
-                    onChange={(priority) => setDraft(updateParsedAssignment(draft, assignment.id, { priority }))}
-                    labelForOption={labelize}
-                  />
+                  ) : (
+                    <Text style={styles.confirmedText}>Confirmed</Text>
+                  )}
                 </View>
               );
             })}
@@ -657,15 +497,6 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
         <Icon color={selected ? colors.heroText : colors.heroMuted} size={16} />
         <Text style={[styles.sourceOptionText, selected ? styles.sourceOptionTextSelected : null]}>{label}</Text>
       </TouchableOpacity>
-    );
-  }
-
-  function ConfidenceLegend({ label, tone }: { label: string; tone: "high" | "medium" | "low" }) {
-    const toneStyle = tone === "high" ? styles.confidenceHigh : tone === "medium" ? styles.confidenceMedium : styles.confidenceLow;
-    return (
-      <View style={[styles.confidenceLegendPill, toneStyle]}>
-        <Text style={styles.confidenceLegendText}>{label}</Text>
-      </View>
     );
   }
 
@@ -742,29 +573,17 @@ function normalizedDueTime(value: string, kind: AssignmentKind) {
   return kind === "exam" ? "09:00" : "23:59";
 }
 
+function formatReviewDate(value: string) {
+  if (!isValidDateInput(value)) return "needs date";
+  return value;
+}
+
 function summarizeDraft(draft: SyllabusParseResult) {
   return {
     assignments: draft.assignments.filter((item) => item.kind === "assignment" || item.kind === "worksheet" || item.kind === "reading").length,
     exams: draft.assignments.filter((item) => item.kind === "exam").length,
     projects: draft.assignments.filter((item) => item.kind === "project").length
   };
-}
-
-function summarizeConfidence(draft: SyllabusParseResult) {
-  return draft.assignments.reduce(
-    (counts, assignment) => {
-      const confidence = assignment.confidence || 0.88;
-      if (isDraftAssignmentFlagged(assignment) || confidence < 0.62) {
-        counts.fix += 1;
-      } else if (confidence < 0.82) {
-        counts.check += 1;
-      } else {
-        counts.high += 1;
-      }
-      return counts;
-    },
-    { high: 0, check: 0, fix: 0 }
-  );
 }
 
 function buildDraftFromRecentImport(
@@ -1568,6 +1387,19 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800",
       backgroundColor: colors.canvas
     },
+    fieldLabel: {
+      color: colors.faint,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    fieldValue: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 18,
+      fontWeight: "900"
+    },
     inputInvalid: {
       borderColor: colors.red,
       backgroundColor: theme.isDark ? "#21151A" : "#FFF8F6"
@@ -1594,6 +1426,12 @@ function createStyles(theme: AppTheme) {
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "800"
+    },
+    confirmedText: {
+      color: colors.green,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "900"
     },
     applyBar: {
       marginTop: spacing.lg,

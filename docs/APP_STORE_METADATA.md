@@ -2,7 +2,7 @@
 
 ## Title
 
-Study Planner: Syllabus AI
+StudyPlanner: Syllabus AI
 
 ## Subtitle
 
@@ -27,7 +27,7 @@ Scan a syllabus, review every class and deadline, then start each day with a cal
 
 ## Long Description Draft
 
-Study Planner: Syllabus AI helps high-school and college students turn syllabi, assignments, exams, class schedules, and grades into one daily plan.
+StudyPlanner: Syllabus AI helps high-school and college students turn syllabi, assignments, exams, class schedules, and grades into one daily plan.
 
 Upload a text-based syllabus PDF or paste class material, review the detected courses, deadlines, due times, and grade categories, then see what matters today. Track weighted grades, calculate what you need on remaining work, start a focus session for one assignment, and set reminders before exams and due dates.
 
@@ -54,7 +54,7 @@ https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Polic
 - Explain that AI/parser results are editable before application.
 - StudyPlanner Plus is available through the in-app subscription screen. To test premium flows, complete onboarding, choose StudyPlanner Plus, subscribe using Apple's sandbox purchase flow, then use Scan, reminders, calendar sync, and grade planning surfaces.
 - Supported import paths for App Review: camera photo, photo library image, text-based PDF/plain-text file, and pasted syllabus text.
-- Photo/image parsing uses the configured parser endpoint when available and falls back to on-device text recognition; unclear photos show a retry/fallback message and do not apply uncertain data.
+- Photo/image parsing uses the configured parser endpoint. If that endpoint is unavailable, photo imports show a clear retry/fallback message instead of applying uncertain data; text-based PDFs and pasted text can still parse on device.
 - The app uses Apple's standard EULA: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 - Do not mention Canvas in metadata unless the app supports a clear Canvas-related feature.
 - Document notification, calendar, camera, and photo usage with concrete purpose strings.

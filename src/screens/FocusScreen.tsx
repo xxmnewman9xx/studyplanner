@@ -165,7 +165,7 @@ export function FocusScreen({
         <View style={styles.focusGlowSecondary} />
         <View style={styles.stageHeader}>
           <View style={styles.stageTitleBlock}>
-            <Text style={styles.stageKicker}>Study cockpit</Text>
+            <Text style={styles.stageKicker}>Focus session</Text>
             <Text style={styles.stageSubcopy} numberOfLines={1}>
               {selected ? `${activeDurationMinutes} min block · ${dueLabel}` : "Open work appears here"}
             </Text>

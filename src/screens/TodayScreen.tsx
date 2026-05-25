@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Bell, CalendarDays, CalendarPlus, CheckCircle2, ChevronRight, Crown, FileScan, NotebookPen, Palette, Plus, Sparkles, Timer, TrendingUp } from "lucide-react-native";
+import { Bell, CalendarPlus, CalendarSync, CheckCircle2, FileScan, Plus, Sparkles, Timer } from "lucide-react-native";
 import {
-  AppLogo,
   AssignmentRow,
   EmptyState,
   GlassCard,
@@ -50,7 +49,7 @@ type TodayScreenProps = {
   onOpenNotes: () => void;
   onOpenGrades: () => void;
   onOpenWidgets: () => void;
-  onTryDemo: () => void;
+  onTryDemo?: () => void;
   onReplaceDemo: () => void;
   onAddQuickAssignment: (courseId: string, title: string, dueDate: string, kind: "assignment") => boolean;
 };
@@ -86,7 +85,6 @@ export function TodayScreen({
   const nextCourse = plan.nextAction
     ? getCourseForAssignment(courses, plan.nextAction)
     : undefined;
-  const semesterPercent = Math.round(plan.semesterProgress * 100);
   const completionPercent = assignments.length > 0 ? Math.round((plan.doneCount / assignments.length) * 100) : 0;
   const nextDueDays = plan.nextAction ? daysUntil(plan.nextAction.dueAt) : 0;
   const secondaryUpcoming = plan.upcoming.filter((assignment) => assignment.id !== plan.nextAction?.id);
@@ -97,12 +95,11 @@ export function TodayScreen({
   const quickCourse = courses.find((course) => course.id === quickCourseId) || courses[0];
   const parsedQuickHomework = parseQuickHomeworkInput(quickTitle, courses, quickCourse, quickDueDate);
   const liveBrief = buildLiveBrief(plan, courses.length);
-  const handoffState = buildHandoffState(Boolean(importHandoff), plan.needsReview.length, plan.nextAction?.id);
-  const focusUpsellHandler = premiumAutomationLocked ? onOpenPaywall : () => onOpenFocus(plan.nextAction?.id);
-  const currentLoadMinutes = assignments
-    .filter((assignment) => assignment.status !== "done" && assignment.status !== "archived")
-    .reduce((sum, assignment) => sum + (assignment.estimatedMinutes || 25), 0);
-  const sourceContract = buildSourceContract(assignments, courses.length, plan.needsReview.length);
+  const plannerHasData = assignments.length > 0 || courses.length > 0;
+  const todayItems = plan.dueToday.filter((assignment) => assignment.id !== plan.nextAction?.id);
+  const weekItems = plan.upcoming
+    .filter((assignment) => assignment.id !== plan.nextAction?.id && assignment.dueAt.slice(0, 10) !== todayDateInput())
+    .slice(0, 4);
 
   useEffect(() => {
     if (!courses.length) {
@@ -132,10 +129,6 @@ export function TodayScreen({
 
   return (
     <View style={styles.screen}>
-      <View style={styles.identityRow}>
-        <AppLogo showWordmark size={42} />
-      </View>
-
       {demoMode ? (
         <GlassCard style={styles.demoCard}>
           <View style={styles.demoHeader}>
@@ -143,8 +136,8 @@ export function TodayScreen({
               <Sparkles color={colors.accent} size={18} />
             </View>
             <View style={styles.demoCopy}>
-              <Text style={styles.demoTitle}>Demo planner</Text>
-              <Text style={styles.demoText}>This is sample schoolwork so you can inspect Today, Plan, and Widget Studio before importing your own syllabus.</Text>
+              <Text style={styles.demoTitle}>Sample planner</Text>
+              <Text style={styles.demoText}>Replace this with your own syllabus when you are ready.</Text>
             </View>
           </View>
           <AppButton label="Replace with my syllabus" icon={FileScan} onPress={onReplaceDemo} />
@@ -152,8 +145,7 @@ export function TodayScreen({
       ) : null}
 
       <GlassCard tone="hero" style={styles.heroCard}>
-        <View pointerEvents="none" style={styles.heroGridWash} />
-        <Text style={styles.heroKicker}>Today Dashboard</Text>
+        <Text style={styles.heroKicker}>Today</Text>
         <Text style={styles.heroTitle}>{liveBrief.title}</Text>
         <Text style={styles.heroSubtitle}>{liveBrief.detail}</Text>
         {plan.nextAction ? (
@@ -170,99 +162,70 @@ export function TodayScreen({
             </View>
             <View style={styles.nextActions}>
               <AppButton
-                label="Study now"
-                icon={Timer}
-                onPress={() => {
-                  onUpdateStatus(plan.nextAction!.id, "in_progress");
-                  onOpenFocus(plan.nextAction!.id);
-                }}
+                label="Open task"
+                onPress={() => onOpenAssignment(plan.nextAction!.id)}
                 style={styles.startButton}
               />
               <AppButton
-                label="Details"
+                label="Done"
                 variant="quiet"
-                onPress={() => onOpenAssignment(plan.nextAction!.id)}
+                onPress={() => onUpdateStatus(plan.nextAction!.id, "done")}
                 style={styles.focusButton}
               />
             </View>
           </View>
         ) : (
-          <EmptyState title="All caught up" copy="No urgent work in the planner right now." emoji="complete" />
+          <EmptyState
+            title={plannerHasData ? "All caught up" : "No schoolwork added yet"}
+            copy={plannerHasData ? "No urgent work in the planner right now." : "Scan a syllabus or add one class so Today can show your next task."}
+            emoji={plannerHasData ? "complete" : "calendar"}
+          />
         )}
-        <View style={styles.heroMetrics}>
-          <MetricPill label="Open" value={`${plan.openCount}`} />
-          <MetricPill label="Urgent" value={`${plan.overdue.length + plan.dueSoon.length}`} />
-          <MetricPill label="Done" value={`${completionPercent}%`} />
-        </View>
+        {!plannerHasData ? <AppButton label="Scan syllabus" icon={FileScan} onPress={onOpenScan} /> : null}
       </GlassCard>
 
-      <GlassCard style={styles.commandCenterCard}>
-        <View style={styles.commandCenterHeader}>
-          <View style={styles.commandCenterCopy}>
-            <Text style={styles.commandCenterKicker}>Command center</Text>
-            <Text style={styles.commandCenterTitle}>
-              {plan.nextAction ? "Real workload, next move, fast capture." : "Ready when real schoolwork lands."}
-            </Text>
+      {plannerHasData ? (
+        <GlassCard style={styles.automationCard}>
+          <View style={styles.automationHeader}>
+            <View style={styles.automationIcon}>
+              <Bell color={colors.accent} size={18} />
+            </View>
+            <View style={styles.automationCopy}>
+              <Text style={styles.automationTitle}>Keep deadlines from slipping.</Text>
+              <Text style={styles.automationText}>Set reminders or sync reviewed due dates to your calendar.</Text>
+            </View>
           </View>
-          <TouchableOpacity accessibilityRole="button" style={styles.commandCenterButton} onPress={onOpenPlan}>
-            <Text style={styles.commandCenterButtonText}>Open Plan</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.commandSignalGrid}>
-          <SignalTile label="Load" value={plan.openCount ? `${currentLoadMinutes}m` : "0m"} detail={`${plan.openCount} active item${plan.openCount === 1 ? "" : "s"}`} tone="blue" />
-          <SignalTile label="Review" value={`${plan.needsReview.length}`} detail={plan.needsReview.length ? "check imports" : "clean"} tone="pink" />
-          <SignalTile label="Classes" value={`${courses.length}`} detail={courses.length ? "ready" : "add first"} tone="green" />
-        </View>
-        <View style={styles.handoffRail}>
-          <HandoffStep label="Scan" detail={importHandoff ? importHandoff.sourceName : assignments.length ? "Available anytime" : "Import first"} active={Boolean(importHandoff) || assignments.length === 0} />
-          <HandoffStep label="Review" detail={plan.needsReview.length ? `${plan.needsReview.length} to approve` : "No flags"} active={plan.needsReview.length > 0} />
-          <HandoffStep label="Today" detail={handoffState} active={Boolean(plan.nextAction)} />
-        </View>
-      </GlassCard>
-
-      <SourceContractCard
-        contract={sourceContract}
-        onOpenScan={onOpenScan}
-        onOpenPlan={onOpenPlan}
-        onOpenWidgets={onOpenWidgets}
-      />
+          <View style={styles.automationActions}>
+            <AppButton
+              label="Set reminders"
+              icon={Bell}
+              variant="secondary"
+              onPress={premiumAutomationLocked ? onOpenPaywall : onScheduleReminders}
+              style={styles.automationButton}
+            />
+            <AppButton
+              label="Sync calendar"
+              icon={CalendarSync}
+              variant="secondary"
+              onPress={premiumAutomationLocked ? onOpenPaywall : onCalendarSync}
+              style={styles.automationButton}
+            />
+          </View>
+        </GlassCard>
+      ) : null}
 
       {!assignments.length ? (
         <GlassCard style={styles.starterCard}>
           <Text style={styles.starterKicker}>Start here</Text>
-          <Text style={styles.starterTitle}>Build your first plan.</Text>
-          <Text style={styles.starterCopy}>Scan a syllabus, try a realistic demo, or add a class manually. Today becomes useful as soon as one assignment exists.</Text>
+          <Text style={styles.starterTitle}>Start with your syllabus.</Text>
+          <Text style={styles.starterCopy}>Scan a syllabus, review the draft, then Today shows what to do first.</Text>
           <View style={styles.starterActions}>
             <AppButton label="Scan syllabus" icon={FileScan} onPress={onOpenScan} style={styles.starterButton} />
-            <AppButton label="Try demo" icon={Sparkles} variant="secondary" onPress={onTryDemo} style={styles.starterButton} />
+            {onTryDemo ? (
+              <AppButton label="Preview sample plan" icon={Sparkles} variant="secondary" onPress={onTryDemo} style={styles.starterButton} />
+            ) : null}
           </View>
-          <AppButton label="Add class manually" variant="quiet" onPress={onOpenClasses} />
         </GlassCard>
-      ) : null}
-
-      {plan.overdue.length > 1 ? (
-        <>
-          <SectionHeader title="Catch up" note={`${plan.overdue.length} overdue · smallest saves first`} />
-          <CatchUpSprintCard
-            overdue={plan.overdue}
-            courses={courses}
-            onOpenAssignment={onOpenAssignment}
-            onOpenFocus={onOpenFocus}
-            onOpenPlan={onOpenPlan}
-            onUpdateStatus={onUpdateStatus}
-          />
-          <View style={styles.list}>
-            {plan.overdue.slice(0, 3).map((assignment) => (
-              <AssignmentRow
-                key={assignment.id}
-                assignment={assignment}
-                course={getCourseForAssignment(courses, assignment)}
-                onPress={() => onOpenAssignment(assignment.id)}
-                trailing={<Text style={styles.overdueFlag}>Study now</Text>}
-              />
-            ))}
-          </View>
-        </>
       ) : null}
 
       {importHandoff ? (
@@ -272,22 +235,26 @@ export function TodayScreen({
               <CheckCircle2 color={colors.accent} size={18} />
             </View>
             <View style={styles.importHandoffCopy}>
-              <Text style={styles.importHandoffKicker}>Import added</Text>
+              <Text style={styles.importHandoffKicker}>Added from Scan</Text>
               <Text style={styles.importHandoffTitle}>
                 {importHandoff.addedCount} added from {importHandoff.sourceName}
               </Text>
               <Text style={styles.importHandoffDetail}>
                 {importHandoff.reviewCount > 0
-                  ? `${importHandoff.reviewCount} still need review. Open ${importHandoff.nextTitle || "the first item"}, then approve the plan.`
-                  : `Today is updated. Open ${importHandoff.nextTitle || "the first task"} or jump straight into focus.`}
+                  ? `${importHandoff.reviewCount} still need review in Scan.`
+                  : "Today is updated with reviewed work."}
               </Text>
             </View>
           </View>
           <View style={styles.importHandoffActions}>
             <AppButton
-              label={importHandoff.reviewCount > 0 ? "Review first item" : "Open first task"}
+              label={importHandoff.reviewCount > 0 ? "Review in Scan" : "Open first task"}
               variant="secondary"
               onPress={() => {
+                if (importHandoff.reviewCount > 0) {
+                  onOpenScan();
+                  return;
+                }
                 if (importHandoff.nextAssignmentId) {
                   onOpenAssignment(importHandoff.nextAssignmentId);
                 } else {
@@ -296,77 +263,24 @@ export function TodayScreen({
               }}
               style={styles.importHandoffButton}
             />
-            <AppButton
-              label="Start focus"
-              icon={Timer}
-              disabled={!importHandoff.nextAssignmentId && !plan.nextAction?.id}
-              onPress={() => onOpenFocus(importHandoff.nextAssignmentId || plan.nextAction?.id)}
-              style={styles.importHandoffButton}
-            />
           </View>
         </GlassCard>
       ) : null}
 
-      <SectionHeader title="Next actions" note="Only the shortcuts that help this plan move." />
-      <View style={styles.commandGrid}>
-        <CommandTile
-          title="Add from syllabus"
-          detail="Photo, file, or paste → reviewed plan."
-          icon={FileScan}
-          onPress={onOpenScan}
-          tone="pink"
-        />
-        <CommandTile
-          title="Open weekly plan"
-          detail={`${plan.dueSoon.length} due soon · move the load`}
-          icon={CalendarPlus}
-          onPress={onOpenPlan}
-          tone="blue"
-        />
-        <CommandTile
-          title="Add note"
-          detail={`${notes.length || "Fresh"} class note${notes.length === 1 ? "" : "s"} · keep context`}
-          icon={NotebookPen}
-          onPress={onOpenNotes}
-          tone="green"
-        />
-        <CommandTile
-          title="Customize classes"
-          detail={`${courses.length || "Pick"} classes · colors · emojis`}
-          icon={Palette}
-          onPress={onOpenClasses}
-          tone="purple"
-        />
-        <CommandTile
-          title="Focus now"
-          detail={plan.nextAction ? `${plan.nextAction.estimatedMinutes || 25}m · ${plan.nextAction.title}` : "Pick one task and start."}
-          icon={Timer}
-          onPress={() => onOpenFocus(plan.nextAction?.id)}
-          tone="gold"
-        />
-        <CommandTile
-          title="Grade check"
-          detail="Forecast targets before finals week."
-          icon={TrendingUp}
-          onPress={onOpenGrades}
-          tone="green"
-        />
-      </View>
-
-      {secondaryUpcoming.length > 0 || !plan.nextAction ? (
+      {todayItems.length > 0 || !plan.nextAction ? (
         <>
-          <SectionHeader title="Today" note={`${plan.dueToday.length} due today · ${plan.dueSoon.length} due soon · ${plan.needsReview.length} to review`} />
+          <SectionHeader title="Due today" note={todayItems.length ? `${todayItems.length} more today` : "Only what needs attention now"} />
           <View style={styles.list}>
-            {secondaryUpcoming.length === 0 ? (
-              <EmptyState title="A clear day" copy="Scan a syllabus or add a class to start planning." emoji="calendar" />
+            {todayItems.length === 0 ? (
+              <EmptyState title="Nothing else today" copy={plannerHasData ? "Scan new work when you get it." : "Scan a syllabus to build Today."} emoji="calendar" />
             ) : (
-              secondaryUpcoming.slice(0, 5).map((assignment) => (
+              todayItems.map((assignment) => (
                 <AssignmentRow
                   key={assignment.id}
                   assignment={assignment}
                   course={getCourseForAssignment(courses, assignment)}
                   onPress={() => onOpenAssignment(assignment.id)}
-                  trailing={<Text style={styles.doneButtonText}>{assignment.status === "done" ? "Done" : "Open task"}</Text>}
+                  trailing={<Text style={styles.doneButtonText}>Open</Text>}
                 />
               ))
             )}
@@ -374,171 +288,46 @@ export function TodayScreen({
         </>
       ) : null}
 
-      <AppleSchoolDashboard
-        courses={courses}
-        assignments={assignments}
-        notes={notes}
-        semesterPercent={semesterPercent}
-        openCount={plan.openCount}
-        urgentCount={plan.overdue.length + plan.dueSoon.length}
-        onOpenPlan={onOpenPlan}
-        onOpenClasses={onOpenClasses}
-        onOpenNotes={onOpenNotes}
-        onOpenScan={onOpenScan}
-      />
-
-      <SchoolLoopPanel
-        plan={plan}
-        courses={courses}
-        notes={notes}
-        onOpenScan={onOpenScan}
-        onOpenPlan={onOpenPlan}
-        onOpenNotes={onOpenNotes}
-        onOpenFocus={() => onOpenFocus(plan.nextAction?.id)}
-      />
-
-      <WeekWorkloadMap assignments={assignments} courses={courses} onOpenPlan={onOpenPlan} />
-
-      {plan.needsReview.length > 0 ? (
+      {weekItems.length > 0 || !plannerHasData ? (
         <>
-          <SectionHeader title="Needs Review" note="Missing dates, low confidence, possible duplicates" />
+          <SectionHeader title="This week" note="A small preview, not another dashboard" />
           <View style={styles.list}>
-            {plan.needsReview.slice(0, 3).map((assignment) => (
-              <AssignmentRow
-                key={assignment.id}
-                assignment={assignment}
-                course={getCourseForAssignment(courses, assignment)}
-                onPress={() => onOpenAssignment(assignment.id)}
-                trailing={<Text style={styles.reviewFlag}>{assignment.duplicateOf ? "Duplicate?" : "Check"}</Text>}
-              />
-            ))}
+            {weekItems.length === 0 ? (
+              <EmptyState title="No upcoming work loaded" copy="Scan a syllabus to fill this week." emoji="calendar" />
+            ) : (
+              weekItems.map((assignment) => (
+                <AssignmentRow
+                  key={assignment.id}
+                  assignment={assignment}
+                  course={getCourseForAssignment(courses, assignment)}
+                  onPress={() => onOpenAssignment(assignment.id)}
+                  trailing={<Text style={styles.doneButtonText}>Open</Text>}
+                />
+              ))
+            )}
           </View>
         </>
       ) : null}
 
-      <SectionHeader title="Capture homework" note="Type it like a student would: Bio worksheet due Friday." />
-      <GlassCard style={styles.quickAddCard}>
-        {courses.length ? (
-          <View style={styles.courseRail}>
-            {courses.slice(0, 4).map((course) => (
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityState={{ selected: quickCourse?.id === course.id }}
-                key={course.id}
-                style={[
-                  styles.coursePill,
-                  quickCourse?.id === course.id ? styles.coursePillActive : null
-                ]}
-                onPress={() => setQuickCourseId(course.id)}
-              >
-                <Text
-                  style={[
-                    styles.coursePillText,
-                    quickCourse?.id === course.id ? styles.coursePillTextActive : null
-                  ]}
-                >
-                  {courseEmoji(course)} {course.code}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        ) : (
-          <View style={styles.noClassBlock}>
-            <Text style={styles.noClassTitle}>Add a class first</Text>
-            <Text style={styles.noClassCopy}>Homework needs a class so reminders, widgets, and the weekly plan have context.</Text>
-            <AppButton label="Add class" variant="secondary" onPress={onOpenClasses} />
-          </View>
-        )}
-        <View style={styles.quickInputRow}>
-          <TextInput
-            value={quickTitle}
-            onChangeText={setQuickTitle}
-            placeholder="Bio worksheet due Friday or 5/20"
-            placeholderTextColor={colors.faint}
-            style={[styles.quickInput, styles.quickTitleInput]}
-            returnKeyType="done"
-            onSubmitEditing={addHomework}
-          />
-          <TextInput
-            value={quickDueDate}
-            onChangeText={setQuickDueDate}
-            placeholder="YYYY-MM-DD"
-            placeholderTextColor={colors.faint}
-            style={[styles.quickInput, styles.quickDateInput]}
-            returnKeyType="done"
-            onSubmitEditing={addHomework}
-          />
-        </View>
-        {quickTitle.trim() ? (
-          <Text style={styles.quickParsePreview}>
-            Will add {parsedQuickHomework.course?.code || "class"} · {parsedQuickHomework.title || "homework"} · due {formatDateOnly(parsedQuickHomework.dueDate)}
-          </Text>
-        ) : null}
-        <View style={styles.quickDueRail}>
-          {quickDuePresets.map((preset) => {
-            const active = quickDueDate === preset.value;
-            return (
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityState={{ selected: active }}
-                key={preset.label}
-                style={[styles.quickDuePill, active ? styles.quickDuePillActive : null]}
-                onPress={() => setQuickDueDate(preset.value)}
-              >
-                <Text style={[styles.quickDuePillText, active ? styles.quickDuePillTextActive : null]}>{preset.label}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-        <AppButton
-          label="Add homework"
-          icon={Plus}
-          disabled={!parsedQuickHomework.course || !parsedQuickHomework.title.trim() || !parsedQuickHomework.dueDate.trim()}
-          onPress={addHomework}
-        />
-      </GlassCard>
+      {assignments.length ? (
+        <GlassCard style={styles.starterCard}>
+          <Text style={styles.starterKicker}>Add more work</Text>
+          <Text style={styles.starterTitle}>Scan another syllabus.</Text>
+          <Text style={styles.starterCopy}>New work goes to Scan for review before it changes Today.</Text>
+          <AppButton label="Scan syllabus" icon={FileScan} variant="secondary" onPress={onOpenScan} />
+        </GlassCard>
+      ) : null}
 
-
-      <SectionHeader title="Automation" note="Plus reminder and calendar workflows" />
-      <View style={styles.actionRow}>
-        <AppButton
-          label="Set reminders"
-          icon={premiumAutomationLocked ? Crown : Bell}
-          variant="secondary"
-          style={styles.actionButton}
-          onPress={premiumAutomationLocked ? onOpenPaywall : onScheduleReminders}
-        />
-        <AppButton
-          label="Focus timer"
-          icon={premiumAutomationLocked ? Crown : Timer}
-          variant="secondary"
-          style={styles.actionButton}
-          onPress={focusUpsellHandler}
-        />
-        <AppButton
-          label="Add to calendar"
-          icon={premiumAutomationLocked ? Crown : CalendarPlus}
-          variant="secondary"
-          style={styles.actionButton}
-          onPress={premiumAutomationLocked ? onOpenPaywall : onCalendarSync}
-        />
-      </View>
     </View>
   );
 
 }
 
-function buildHandoffState(hasImport: boolean, reviewCount: number, nextAssignmentId?: string) {
-  if (reviewCount > 0) return "Waiting on review";
-  if (nextAssignmentId) return hasImport ? "Updated plan" : "Next task ready";
-  return "Clear";
-}
-
 function buildLiveBrief(plan: ReturnType<typeof buildTodayPlan>, courseCount: number) {
   if (plan.overdue.length > 0) {
     return {
-      title: "Catch-up mode",
-      detail: `${plan.overdue.length} overdue item${plan.overdue.length === 1 ? "" : "s"}. No shame spiral — open one, reset the next step, then keep moving.`
+      title: "Overdue work first",
+      detail: `${plan.overdue.length} overdue item${plan.overdue.length === 1 ? "" : "s"}. Open the first task and clear it.`
     };
   }
 
@@ -552,141 +341,22 @@ function buildLiveBrief(plan: ReturnType<typeof buildTodayPlan>, courseCount: nu
   if (plan.nextAction) {
     const days = daysUntil(plan.nextAction.dueAt);
     return {
-      title: days < 0 ? `Overdue by ${Math.abs(days)} day${Math.abs(days) === 1 ? "" : "s"}` : days === 0 ? "Due today — start here" : `Next deadline in ${days} day${days === 1 ? "" : "s"}`,
-      detail: "Open the assignment, start focus, or capture new homework before it becomes invisible."
+      title: days < 0 ? `Overdue by ${Math.abs(days)} day${Math.abs(days) === 1 ? "" : "s"}` : days === 0 ? "Due today. Start here." : `Next deadline in ${days} day${days === 1 ? "" : "s"}`,
+      detail: "This is the one thing to look at first."
     };
   }
 
   if (courseCount === 0) {
     return {
-      title: "Build your school command center",
-      detail: "Add classes or scan a syllabus so Today can tell you what matters next."
+      title: "Scan your first syllabus",
+      detail: "Today stays empty until real schoolwork is reviewed."
     };
   }
 
   return {
     title: "Clear right now",
-    detail: "Your current plan has no urgent work. Add homework when class ends or scan the next syllabus."
+    detail: "No urgent work is loaded. Scan new work when you get it."
   };
-}
-
-function buildSourceContract(assignments: Assignment[], courseCount: number, reviewCount: number) {
-  const sourceCounts = assignments.reduce(
-    (counts, assignment) => {
-      if (assignment.source === "syllabus" || assignment.source === "scan" || assignment.source === "typed") {
-        counts.imported += 1;
-      } else if (assignment.source === "manual") {
-        counts.manual += 1;
-      } else {
-        counts.connected += 1;
-      }
-      return counts;
-    },
-    { imported: 0, manual: 0, connected: 0 }
-  );
-  const trusted = assignments.filter(
-    (assignment) => assignment.status !== "archived" && !assignment.needsReview && !assignment.duplicateOf
-  ).length;
-
-  return {
-    trusted,
-    reviewCount,
-    courseCount,
-    sourceCounts,
-    title:
-      assignments.length === 0
-        ? "No fake dashboard data."
-        : reviewCount > 0
-          ? "Review is blocking the live system."
-          : "One data model powers every surface.",
-    detail:
-      assignments.length === 0
-        ? "Scan, paste, or manually add work before Today, Plan, and widgets become specific."
-        : reviewCount > 0
-          ? "Flagged work stays visible for review, but it should not silently become a trusted widget row."
-          : `${trusted} reviewed item${trusted === 1 ? "" : "s"} can drive Today, planning pressure, and widget previews.`
-  };
-}
-
-function SourceContractCard({
-  contract,
-  onOpenScan,
-  onOpenPlan,
-  onOpenWidgets
-}: {
-  contract: ReturnType<typeof buildSourceContract>;
-  onOpenScan: () => void;
-  onOpenPlan: () => void;
-  onOpenWidgets: () => void;
-}) {
-  const { theme } = useAppTheme();
-  const { colors } = theme;
-  const styles = createStyles(theme);
-  const steps = [
-    {
-      label: "Source",
-      value: contract.sourceCounts.imported ? `${contract.sourceCounts.imported} imported` : contract.sourceCounts.manual ? `${contract.sourceCounts.manual} manual` : "Empty",
-      detail: contract.courseCount ? `${contract.courseCount} class${contract.courseCount === 1 ? "" : "es"}` : "Add first class",
-      icon: FileScan,
-      onPress: onOpenScan
-    },
-    {
-      label: "Trust",
-      value: contract.reviewCount ? `${contract.reviewCount} flagged` : `${contract.trusted} reviewed`,
-      detail: contract.reviewCount ? "Needs review" : "Planner-safe",
-      icon: CheckCircle2,
-      onPress: onOpenPlan
-    },
-    {
-      label: "Surfaces",
-      value: contract.trusted ? "Live" : "Waiting",
-      detail: "Today + Plan + widgets",
-      icon: Sparkles,
-      onPress: onOpenWidgets
-    }
-  ];
-
-  return (
-    <GlassCard style={styles.sourceContractCard}>
-      <View style={styles.sourceContractHeader}>
-        <View style={styles.sourceContractCopy}>
-          <Text style={styles.sourceContractKicker}>Source-to-surface contract</Text>
-          <Text style={styles.sourceContractTitle}>{contract.title}</Text>
-          <Text style={styles.sourceContractDetail}>{contract.detail}</Text>
-        </View>
-        <View style={styles.sourceContractBadge}>
-          <Text style={styles.sourceContractBadgeText}>{contract.reviewCount ? "Check" : "Real"}</Text>
-        </View>
-      </View>
-      <View style={styles.sourceStepRow}>
-        {steps.map((step) => {
-          const Icon = step.icon;
-          return (
-            <TouchableOpacity accessibilityRole="button" key={step.label} style={styles.sourceStep} onPress={step.onPress}>
-              <View style={styles.sourceStepIcon}>
-                <Icon color={colors.accent} size={16} />
-              </View>
-              <Text style={styles.sourceStepLabel}>{step.label}</Text>
-              <Text style={styles.sourceStepValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{step.value}</Text>
-              <Text style={styles.sourceStepDetail} numberOfLines={1}>{step.detail}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </GlassCard>
-  );
-}
-
-function HandoffStep({ label, detail, active }: { label: string; detail: string; active: boolean }) {
-  const { theme } = useAppTheme();
-  const styles = createStyles(theme);
-
-  return (
-    <View style={[styles.handoffStep, active ? styles.handoffStepActive : null]}>
-      <Text style={[styles.handoffLabel, active ? styles.handoffLabelActive : null]}>{label}</Text>
-      <Text style={styles.handoffDetail} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>{detail}</Text>
-    </View>
-  );
 }
 
 type MetricPillProps = {
@@ -720,13 +390,13 @@ function CatchUpSprintCard({ overdue, courses, onOpenAssignment, onOpenFocus, on
       <View style={styles.catchUpGlow} />
       <View style={styles.catchUpHeaderRow}>
         <View style={styles.catchUpBadge}>
-          <Text style={styles.catchUpBadgeText}>Reset sprint</Text>
+          <Text style={styles.catchUpBadgeText}>Start here</Text>
         </View>
-        <Text style={styles.catchUpMeta}>{sprintMinutes}m rescue queue</Text>
+        <Text style={styles.catchUpMeta}>{sprintMinutes}m total</Text>
       </View>
       <Text style={styles.catchUpTitle}>Start with {firstCourse?.code ? `${firstCourse.code}: ` : ""}{first.title}</Text>
       <Text style={styles.catchUpCopy}>
-        No shame spiral. Do the first {rescueMinutes}-minute save, mark momentum, then decide whether to finish or replan. {hiddenCount > 0 ? `${hiddenCount} more item${hiddenCount === 1 ? "" : "s"} stay queued after this sprint.` : "This clears the visible backlog."}
+        Work for {rescueMinutes} minutes, then decide whether to finish it or move it in Plan. {hiddenCount > 0 ? `${hiddenCount} more item${hiddenCount === 1 ? "" : "s"} stay below.` : "This clears the visible list."}
       </Text>
       <View style={styles.catchUpSteps}>
         {sprintItems.map((item, index) => {
@@ -741,7 +411,7 @@ function CatchUpSprintCard({ overdue, courses, onOpenAssignment, onOpenFocus, on
       </View>
       <View style={styles.catchUpActions}>
         <AppButton
-          label={`${rescueMinutes}m focus save`}
+          label={`${rescueMinutes}m focus`}
           icon={Timer}
           onPress={() => {
             onUpdateStatus(first.id, "in_progress");
@@ -765,310 +435,6 @@ function MetricPill({ label, value }: MetricPillProps) {
       <Text style={styles.metricValue}>{value}</Text>
       <Text style={styles.metricLabel}>{label}</Text>
     </View>
-  );
-}
-
-type SignalTileProps = {
-  label: string;
-  value: string;
-  detail: string;
-  tone: "blue" | "pink" | "green";
-};
-
-function SignalTile({ label, value, detail, tone }: SignalTileProps) {
-  const { theme } = useAppTheme();
-  const styles = createStyles(theme);
-  const toneColor = {
-    blue: theme.colors.accent,
-    pink: theme.colors.brandPink,
-    green: theme.colors.green
-  }[tone];
-
-  return (
-    <View style={styles.signalTile}>
-      <View style={[styles.signalRail, { backgroundColor: toneColor }]} />
-      <Text style={styles.signalLabel}>{label}</Text>
-      <Text style={styles.signalValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{value}</Text>
-      <Text style={styles.signalDetail} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>{detail}</Text>
-    </View>
-  );
-}
-
-function WeekWorkloadMap({ assignments, courses, onOpenPlan }: { assignments: Assignment[]; courses: Course[]; onOpenPlan: () => void }) {
-  const { theme } = useAppTheme();
-  const { colors } = theme;
-  const styles = createStyles(theme);
-  const days = Array.from({ length: 7 }, (_, index) => {
-    const date = new Date();
-    date.setDate(date.getDate() + index);
-    const key = date.toISOString().slice(0, 10);
-    const items = assignments.filter((assignment) => assignment.status !== "archived" && assignment.dueAt.startsWith(key));
-    return { key, label: index === 0 ? "Today" : date.toLocaleDateString(undefined, { weekday: "short" }), items };
-  });
-  const maxCount = Math.max(1, ...days.map((day) => day.items.length));
-  const totalItems = days.reduce((sum, day) => sum + day.items.length, 0);
-  const totalMinutes = days.reduce(
-    (sum, day) => sum + day.items.reduce((daySum, assignment) => daySum + (assignment.estimatedMinutes || 25), 0),
-    0
-  );
-  const busiestDay =
-    days.slice().sort((a, b) => b.items.length - a.items.length)[0] || days[0];
-
-  return (
-    <GlassCard style={styles.scheduleCard}>
-      <View style={styles.scheduleHeader}>
-        <View>
-          <Text style={styles.scheduleKicker}>Schedule map</Text>
-          <Text style={styles.scheduleTitle}>
-            {totalItems ? `${totalItems} deadline${totalItems === 1 ? "" : "s"} in the next 7 days.` : "No deadlines in the next 7 days."}
-          </Text>
-        </View>
-        <TouchableOpacity accessibilityRole="button" style={styles.scheduleOpenButton} onPress={onOpenPlan}>
-          <Text style={styles.scheduleOpenText}>Open Plan</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.scheduleSummaryRow}>
-        <Text style={styles.scheduleSummaryText}>{totalMinutes}m planned load</Text>
-        <Text style={styles.scheduleSummaryText}>
-          {totalItems && busiestDay
-            ? `${busiestDay.label}: ${busiestDay.items.length}`
-            : "Bars stay empty until real due dates exist"}
-        </Text>
-      </View>
-      <View style={styles.weekBars}>
-        {days.map((day) => {
-          const height = day.items.length > 0 ? Math.max(18, Math.round((day.items.length / maxCount) * 84)) : 0;
-          const course = courses.find((item) => item.id === day.items[0]?.courseId);
-          return (
-            <View key={day.key} style={styles.weekBarColumn}>
-              <View style={styles.weekBarTrack}>
-                {height > 0 ? (
-                  <View style={[styles.weekBarFill, { height, backgroundColor: course?.color || colors.accent }]} />
-                ) : (
-                  <View style={styles.weekBarEmptyMark} />
-                )}
-              </View>
-              <Text style={styles.weekBarCount}>{day.items.length}</Text>
-              <Text style={styles.weekBarLabel}>{day.label}</Text>
-            </View>
-          );
-        })}
-      </View>
-      <Text style={styles.scheduleHint}>{assignments.length ? "Tap Plan to rebalance heavy days or start a focus block." : "Your schedule map fills in after scanning a syllabus or adding assignments."}</Text>
-    </GlassCard>
-  );
-}
-
-type AppleSchoolDashboardProps = {
-  courses: Course[];
-  assignments: Assignment[];
-  notes: StudyNote[];
-  semesterPercent: number;
-  openCount: number;
-  urgentCount: number;
-  onOpenPlan: () => void;
-  onOpenClasses: () => void;
-  onOpenNotes: () => void;
-  onOpenScan: () => void;
-};
-
-function AppleSchoolDashboard({
-  courses,
-  assignments,
-  notes,
-  semesterPercent,
-  openCount,
-  urgentCount,
-  onOpenPlan,
-  onOpenClasses,
-  onOpenNotes,
-  onOpenScan
-}: AppleSchoolDashboardProps) {
-  const { theme } = useAppTheme();
-  const { colors } = theme;
-  const styles = createStyles(theme);
-  const nextClass = courses[0];
-  const pinnedNotes = notes.filter((note) => note.pinned).slice(0, 2);
-  const recentNotes = (pinnedNotes.length ? pinnedNotes : notes).slice(0, 2);
-  const noteCount = notes.length;
-  const activeClasses = courses.length;
-
-  return (
-    <GlassCard style={styles.osCard}>
-      <View style={styles.osHeader}>
-        <View style={styles.osHeaderCopy}>
-          <Text style={styles.osKicker}>Live student dashboard</Text>
-          <Text style={styles.osTitle}>Schedule, classwork, notes, and widgets in one place.</Text>
-        </View>
-        <View style={styles.osBadge}>
-          <Sparkles color={colors.accent} size={14} />
-          <Text style={styles.osBadgeText}>AI organized</Text>
-        </View>
-      </View>
-
-      <View style={styles.osGrid}>
-        <TouchableOpacity accessibilityRole="button" style={styles.osTileLarge} onPress={onOpenPlan}>
-          <View style={styles.osTileIcon}><CalendarDays color={colors.accent} size={18} /></View>
-          <Text style={styles.osTileLabel}>Agenda</Text>
-          <Text style={styles.osTileValue}>{urgentCount ? `${urgentCount} urgent` : `${openCount} open`}</Text>
-          <Text style={styles.osTileDetail}>{semesterPercent}% through the semester</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity accessibilityRole="button" style={styles.osTile} onPress={onOpenClasses}>
-          <View style={styles.osTileIcon}><Palette color={colors.brandPink} size={18} /></View>
-          <Text style={styles.osTileLabel}>Classes</Text>
-          <Text style={styles.osTileValue}>{activeClasses || "Set up"}</Text>
-          <Text style={styles.osTileDetail}>{nextClass ? `${courseEmoji(nextClass)} ${nextClass.code || nextClass.name}` : "Add your schedule"}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity accessibilityRole="button" style={styles.osTile} onPress={onOpenNotes}>
-          <View style={styles.osTileIcon}><NotebookPen color={colors.sage} size={18} /></View>
-          <Text style={styles.osTileLabel}>Notes</Text>
-          <Text style={styles.osTileValue}>{noteCount || "Ready"}</Text>
-          <Text style={styles.osTileDetail}>{recentNotes[0]?.title || "Pin class notes and context"}</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.osTimeline}>
-        <View style={styles.osTimelineRail} />
-        <View style={styles.osTimelineItem}>
-          <Text style={styles.osTimelineTime}>Now</Text>
-          <Text style={styles.osTimelineText}>{assignments.length ? "Workload is live from your planner." : "Scan a syllabus to generate your semester."}</Text>
-        </View>
-        <View style={styles.osTimelineItem}>
-          <Text style={styles.osTimelineTime}>Next</Text>
-          <Text style={styles.osTimelineText}>{nextClass ? `${nextClass.code || nextClass.name} dashboard ready.` : "Classes, notes, and widgets unlock as you add data."}</Text>
-        </View>
-      </View>
-
-      {!assignments.length ? <AppButton label="Scan syllabus into dashboard" icon={FileScan} onPress={onOpenScan} /> : null}
-    </GlassCard>
-  );
-}
-
-function SchoolLoopPanel({
-  plan,
-  courses,
-  notes,
-  onOpenScan,
-  onOpenPlan,
-  onOpenNotes,
-  onOpenFocus
-}: {
-  plan: ReturnType<typeof buildTodayPlan>;
-  courses: Course[];
-  notes: StudyNote[];
-  onOpenScan: () => void;
-  onOpenPlan: () => void;
-  onOpenNotes: () => void;
-  onOpenFocus: () => void;
-}) {
-  const { theme } = useAppTheme();
-  const { colors } = theme;
-  const styles = createStyles(theme);
-  const nextCourse = plan.nextAction ? getCourseForAssignment(courses, plan.nextAction) : undefined;
-  const loopItems = [
-    {
-      emoji: "☀️",
-      phase: "Before school",
-      title: plan.nextAction ? `${nextCourse?.code || "Next"} is ready` : "Scan first",
-      detail: plan.nextAction ? `${formatDueUrgency(daysUntil(plan.nextAction.dueAt))} · ${plan.nextAction.estimatedMinutes || 25}m` : "Build the semester dashboard.",
-      icon: CalendarDays,
-      onPress: plan.nextAction ? onOpenPlan : onOpenScan,
-      color: colors.accent
-    },
-    {
-      emoji: "🎒",
-      phase: "During school",
-      title: notes.length ? `${notes.length} note${notes.length === 1 ? "" : "s"} saved` : "Capture notes",
-      detail: "Class-linked notes keep homework from disappearing.",
-      icon: NotebookPen,
-      onPress: onOpenNotes,
-      color: colors.sage
-    },
-    {
-      emoji: "🌙",
-      phase: "After school",
-      title: plan.nextAction ? "Start focus mode" : "Make tomorrow easy",
-      detail: plan.nextAction ? "One timer, one assignment, one win." : "Add work now so Today wakes up useful.",
-      icon: Timer,
-      onPress: plan.nextAction ? onOpenFocus : onOpenScan,
-      color: colors.brandPink
-    }
-  ];
-
-  return (
-    <GlassCard style={styles.loopCard}>
-      <View style={styles.loopHeader}>
-        <View>
-          <Text style={styles.loopKicker}>Daily retention loop</Text>
-          <Text style={styles.loopTitle}>Before, during, and after school.</Text>
-        </View>
-        <View style={styles.loopLiveBadge}>
-          <Sparkles color={colors.accent} size={13} />
-          <Text style={styles.loopLiveText}>Live</Text>
-        </View>
-      </View>
-      <View style={styles.loopGrid}>
-        {loopItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <TouchableOpacity accessibilityRole="button" key={item.phase} style={styles.loopTile} onPress={item.onPress}>
-              <View style={[styles.loopIcon, { backgroundColor: `${item.color}22` }]}>
-                <Text style={styles.loopEmoji}>{item.emoji}</Text>
-                <Icon color={item.color} size={16} />
-              </View>
-              <Text style={styles.loopPhase} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82}>{item.phase}</Text>
-              <Text style={styles.loopItemTitle} numberOfLines={2}>{item.title}</Text>
-              <Text style={styles.loopDetail} numberOfLines={2}>{item.detail}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-      <View style={styles.widgetTease}>
-        <View style={styles.widgetTeasePhone}>
-          <View style={styles.widgetTeaseBar} />
-          <Text style={styles.widgetTeaseTitle} numberOfLines={2}>{plan.nextAction?.title || "Scan syllabus"}</Text>
-          <Text style={styles.widgetTeaseMeta} numberOfLines={2}>{plan.nextAction ? "Countdown widget ready" : "Build live widgets from real work"}</Text>
-        </View>
-        <View style={styles.widgetTeaseCopy}>
-          <Text style={styles.widgetTeaseKicker}>Widget Studio</Text>
-          <Text style={styles.widgetTeaseText}>Every deadline can become a lock-screen style agenda, countdown, or class widget.</Text>
-        </View>
-      </View>
-    </GlassCard>
-  );
-}
-
-type CommandTileProps = {
-  title: string;
-  detail: string;
-  icon: React.ComponentType<{ color: string; size: number }>;
-  onPress: () => void;
-  tone: "pink" | "blue" | "green" | "purple" | "gold";
-};
-
-function CommandTile({ title, detail, icon: Icon, onPress, tone }: CommandTileProps) {
-  const { theme } = useAppTheme();
-  const styles = createStyles(theme);
-  const toneColor = {
-    pink: theme.colors.brandPink,
-    blue: theme.colors.accent,
-    green: theme.colors.green,
-    purple: theme.colors.brandViolet,
-    gold: theme.colors.gold
-  }[tone];
-
-  return (
-    <TouchableOpacity accessibilityRole="button" style={styles.commandTile} onPress={onPress}>
-      <View style={[styles.commandAccent, { backgroundColor: toneColor }]} />
-      <View style={[styles.commandGlow, { backgroundColor: toneColor }]} />
-      <View style={[styles.commandIcon, { backgroundColor: `${toneColor}22` }]}>
-        <Icon color={toneColor} size={20} />
-      </View>
-      <Text style={styles.commandTitle}>{title}</Text>
-      <Text style={styles.commandDetail}>{detail}</Text>
-    </TouchableOpacity>
   );
 }
 
@@ -1097,13 +463,6 @@ function createStyles(theme: AppTheme) {
   return StyleSheet.create({
     screen: {
       gap: 0
-    },
-    identityRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: spacing.sm,
-      gap: spacing.md
     },
     demoCard: {
       gap: spacing.sm,
@@ -1262,6 +621,50 @@ function createStyles(theme: AppTheme) {
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "800"
+    },
+    automationCard: {
+      gap: spacing.sm,
+      marginTop: spacing.sm,
+      marginBottom: spacing.sm
+    },
+    automationHeader: {
+      flexDirection: "row",
+      gap: spacing.sm,
+      alignItems: "flex-start"
+    },
+    automationIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: radii.round,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.accentSoft
+    },
+    automationCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    automationTitle: {
+      color: colors.ink,
+      fontSize: 16,
+      lineHeight: 21,
+      fontWeight: "900"
+    },
+    automationText: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "700"
+    },
+    automationActions: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm
+    },
+    automationButton: {
+      flexGrow: 1,
+      flexBasis: "47%"
     },
     startButton: {
       flex: 1.3,

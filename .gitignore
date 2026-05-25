@@ -23,3 +23,14 @@ build-*.ipa
 
 # Local simulator QA captures
 qa-screenshots/
+
+# Local launch/proof artifacts
+AppStore/
+marketing/
+memory/
+.claude/
+.openclaw/
+CLAUDE.md
+studyplanner-new-ui-iphone.png
+scripts/capture-final-preview-pack.mjs
+scripts/generate-first-app-preview.mjs

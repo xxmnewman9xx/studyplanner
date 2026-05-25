@@ -247,7 +247,7 @@ function renderLockStrip(snapshot) {
   return `
     <g transform="translate(${x} ${y})">
       <rect x="0" y="0" width="1688" height="344" rx="20" fill="#FFFFFF" stroke="#DCE3EE" />
-      ${renderText("In-app Lock Screen parity", 28, 48, { size: 17, weight: 900, fill: "#677084", maxChars: 32 })}
+      ${renderText("In-app Lock Screen widgets", 28, 48, { size: 17, weight: 900, fill: "#677084", maxChars: 32 })}
       ${renderText("Same snapshot, three compact families.", 28, 88, { size: 31, weight: 950, fill: "#172033", maxChars: 36 })}
       ${renderText("Rendered here as preview parity only. This does not prove real placement on an iOS Lock Screen.", 28, 130, { size: 20, weight: 700, fill: "#677084", maxChars: 64, maxLines: 2, lineHeight: 26 })}
 
@@ -337,7 +337,7 @@ function lockParityStripHtml(snapshot) {
   return `
     <section class="lock-strip">
       <div class="lock-copy">
-        <p class="state-kicker">In-app Lock Screen parity</p>
+        <p class="state-kicker">In-app Lock Screen widgets</p>
         <h2>Same snapshot, three compact families.</h2>
         <p>Rendered here as preview parity only. This does not prove the widgets were placed on a real iOS Lock Screen.</p>
       </div>
@@ -745,7 +745,7 @@ function buildHtml() {
   </div>
   ${lockParityStripHtml(lockParitySnapshot)}
   <footer>
-    <div class="note"><strong>Generated from repo tooling</strong> The generator compiles <code>src/services/widgetSnapshot.ts</code> and <code>src/logic/planner.ts</code>, verifies the Studio proof meter and native progress dots, then rasterizes this contact sheet when a safe local renderer is available.</div>
+    <div class="note"><strong>Generated from repo tooling</strong> The generator compiles <code>src/services/widgetSnapshot.ts</code> and <code>src/logic/planner.ts</code>, verifies the Studio readiness meter and native progress dots, then rasterizes this contact sheet when a safe local renderer is available.</div>
     <div class="note"><strong>Scope guardrail</strong> No release settings, secrets, push state, signed/native build workflows, or OpenClaw routing are touched by this fixture proof.</div>
   </footer>
 </main>
@@ -1013,13 +1013,13 @@ const plusNeedles = [
   "Class Risk",
   "Focus Block",
   "Needs Check",
-  "This edit is Plus-only.",
-  "Free keeps real Today and Upcoming widgets"
+  "Unlock this preset",
+  "Basic native widgets stay free"
 ];
 const plusLockEvidence = plusNeedles.every((needle) => moreSource.includes(needle));
 const studioProofNeedles = [
-  "Studio proof score",
-  "No placement proof",
+  "Widget setup",
+  "Install native app",
   "nativeProgress={nativePreview?.progress}",
   "proofSignalRow",
   "nativeTruthScore"
@@ -1310,7 +1310,7 @@ const stateCards = states
 const lockParitySnapshot = states.find((state) => state.id === "upcoming-heavy")?.snapshot;
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${sheetWidth}" height="${sheetHeight}" viewBox="0 0 ${sheetWidth} ${sheetHeight}" role="img" aria-labelledby="title desc">
   <title id="title">StudyPlanner widget fixture contact sheet</title>
-  <desc id="desc">Eight repo-generated StudyPlanner widget fixture states with a Lock Screen parity strip. This is not real iOS Lock Screen placement proof.</desc>
+  <desc id="desc">Eight repo-generated StudyPlanner widget fixture states with a Lock Screen widget strip. This is not real iOS Lock Screen placement proof.</desc>
   <rect width="${sheetWidth}" height="${sheetHeight}" fill="#F4F7FB" />
   ${renderText("StudyPlanner widget fixture contact sheet", 56, 92, { size: 52, weight: 950, maxChars: 48 })}
   ${renderText("Repo-owned fixture proof for eight visual states: empty, needs-review, overdue, today-clear, upcoming-heavy, privacy-mode, class-focus, and Plus-locked.", 56, 136, { size: 24, weight: 720, fill: "#677084", maxChars: 104 })}

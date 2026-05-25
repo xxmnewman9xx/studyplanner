@@ -41,9 +41,11 @@ import {
   StudyNote,
   SyllabusParseResult,
   UserSettings,
+  WidgetBackground,
+  WidgetPalette,
   WidgetPreset
 } from "./src/models";
-import { AppTheme } from "./src/theme";
+import { AppTheme, ThemeAccent, ThemeMode } from "./src/theme";
 import { AppThemeProvider, useAppTheme } from "./src/themeContext";
 import { AppLogo } from "./src/components/AppleComponents";
 import { ModeToggle } from "./src/components/ModeToggle";
@@ -86,7 +88,8 @@ import {
   marketingCaptureCourses,
   marketingCaptureEnabled,
   marketingCaptureGradeItems,
-  marketingCaptureSemester
+  marketingCaptureSemester,
+  type MarketingCaptureScreen
 } from "./src/services/marketingCapture";
 
 LogBox.ignoreLogs(["SafeAreaView has been deprecated"]);
@@ -97,6 +100,9 @@ const freeAssignmentLimit = 12;
 const freeImportLimit = 1;
 const marketingCaptureTabFileName = "studyplanner-capture-tab.json";
 const simulatorCaptureFileRoutingEnabled = process.env.EXPO_PUBLIC_SIM_QA_CAPTURE === "1";
+const simulatorLoadingDelayMs = simulatorCaptureFileRoutingEnabled
+  ? Math.max(0, Number(process.env.EXPO_PUBLIC_SIM_QA_LOADING_DELAY_MS || 0))
+  : 0;
 const premiumTabs = new Set<NavTab>(["focus", "grades"]);
 
 const proTabs: Array<{
@@ -107,28 +113,67 @@ const proTabs: Array<{
   { id: "today", label: "Today", icon: CalendarDays },
   { id: "import", label: "Scan", icon: FileScan },
   { id: "plan", label: "Plan", icon: CalendarDays },
-  { id: "courses", label: "Classes", icon: GraduationCap },
-  { id: "notes", label: "Notes", icon: NotebookPen },
-  { id: "focus", label: "Study", icon: Timer },
-  { id: "grades", label: "Grades", icon: TrendingUp },
   { id: "more", label: "Widgets", icon: Sparkles }
 ];
 
 const freeTabs: typeof proTabs = proTabs;
-const mobilePrimaryTabIds = new Set<NavTab>(["today", "import", "plan", "courses", "more"]);
+const mobilePrimaryTabIds = new Set<NavTab>(["today", "import", "plan", "more"]);
 const moreGroupTabIds = new Set<NavTab>(["more", "notes", "focus", "grades", "upgrade"]);
 
 function mobileTabLabel(tab: NavTab, fallback: string) {
-  return tab === "more" ? "More" : fallback;
+  return tab === "more" ? "Widgets" : fallback;
 }
 
-function parseCaptureTab(raw: string): NavTab | null {
+type CaptureRoute = {
+  tab: NavTab | null;
+  screen?: MarketingCaptureScreen;
+  onboardingIndex?: number;
+  appTheme?: ThemeAccent;
+  widgetBackground?: WidgetBackground;
+  widgetPalette?: WidgetPalette;
+  widgetType?: WidgetPreset["type"];
+  widgetSize?: WidgetPreset["size"];
+  widgetLayout?: WidgetPreset["layout"];
+  workloadState?: "standard" | "clean" | "urgent";
+  hardPaywall?: boolean;
+  themeMode?: ThemeMode;
+};
+
+function parseCaptureRoute(raw: string): CaptureRoute {
   try {
-    const value = JSON.parse(raw) as { tab?: unknown };
-    return isCaptureNavTab(value.tab) ? value.tab : null;
+    const value = JSON.parse(raw) as {
+      tab?: unknown;
+      screen?: unknown;
+      onboardingIndex?: unknown;
+      appTheme?: unknown;
+      widgetBackground?: unknown;
+      widgetPalette?: unknown;
+      widgetType?: unknown;
+      widgetSize?: unknown;
+      widgetLayout?: unknown;
+      workloadState?: unknown;
+      hardPaywall?: unknown;
+      themeMode?: unknown;
+    };
+    return {
+      tab: isCaptureNavTab(value.tab) ? value.tab : null,
+      screen: isCaptureScreen(value.screen) ? value.screen : undefined,
+      onboardingIndex: isCaptureOnboardingIndex(value.onboardingIndex) ? value.onboardingIndex : undefined,
+      appTheme: isCaptureThemeAccent(value.appTheme) ? value.appTheme : undefined,
+      widgetBackground: isCaptureWidgetBackground(value.widgetBackground) ? value.widgetBackground : undefined,
+      widgetPalette: isCaptureWidgetPalette(value.widgetPalette) ? value.widgetPalette : undefined,
+      widgetType: isCaptureWidgetType(value.widgetType) ? value.widgetType : undefined,
+      widgetSize: isCaptureWidgetSize(value.widgetSize) ? value.widgetSize : undefined,
+      widgetLayout: isCaptureWidgetLayout(value.widgetLayout) ? value.widgetLayout : undefined,
+      workloadState: isCaptureWorkloadState(value.workloadState) ? value.workloadState : undefined,
+      hardPaywall: value.hardPaywall === true,
+      themeMode: isCaptureThemeMode(value.themeMode) ? value.themeMode : undefined
+    };
   } catch {
     const trimmed = raw.trim();
-    return isCaptureNavTab(trimmed) ? trimmed : null;
+    return {
+      tab: isCaptureNavTab(trimmed) ? trimmed : null
+    };
   }
 }
 
@@ -146,7 +191,90 @@ function isCaptureNavTab(value: unknown): value is NavTab {
   );
 }
 
+function isCaptureScreen(value: unknown): value is MarketingCaptureScreen {
+  return (
+    value === "processing" ||
+    value === "extracted" ||
+    value === "review_edit" ||
+    value === "agenda"
+  );
+}
+
+function isCaptureOnboardingIndex(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 3;
+}
+
+function isCaptureThemeAccent(value: unknown): value is ThemeAccent {
+  return (
+    value === "campus" ||
+    value === "classic" ||
+    value === "slate" ||
+    value === "mint" ||
+    value === "aura" ||
+    value === "rose" ||
+    value === "graphite" ||
+    value === "solar"
+  );
+}
+
+function isCaptureWidgetBackground(value: unknown): value is WidgetBackground {
+  return value === "solid" || value === "gradient" || value === "glass" || value === "dark";
+}
+
+function isCaptureWidgetPalette(value: unknown): value is WidgetPalette {
+  return (
+    value === "sunset" ||
+    value === "ocean" ||
+    value === "forest" ||
+    value === "lavender" ||
+    value === "midnight" ||
+    value === "candy" ||
+    value === "minimal" ||
+    value === "graphite" ||
+    value === "aurora" ||
+    value === "paper"
+  );
+}
+
+function isCaptureWidgetType(value: unknown): value is WidgetPreset["type"] {
+  return (
+    value === "due_next" ||
+    value === "today" ||
+    value === "needs_check" ||
+    value === "week" ||
+    value === "class_focus" ||
+    value === "empty" ||
+    value === "focus" ||
+    value === "streak"
+  );
+}
+
+function isCaptureWidgetSize(value: unknown): value is WidgetPreset["size"] {
+  return (
+    value === "small" ||
+    value === "medium" ||
+    value === "large" ||
+    value === "lock_round" ||
+    value === "lock_inline" ||
+    value === "lock_rect"
+  );
+}
+
+function isCaptureWidgetLayout(value: unknown): value is WidgetPreset["layout"] {
+  return value === "compact" || value === "list" || value === "ring" || value === "calendar" || value === "grid";
+}
+
+function isCaptureWorkloadState(value: unknown): value is NonNullable<CaptureRoute["workloadState"]> {
+  return value === "standard" || value === "clean" || value === "urgent";
+}
+
+function isCaptureThemeMode(value: unknown): value is ThemeMode {
+  return value === "light" || value === "dark";
+}
+
 function routeTabFromUrl(url: string): NavTab | null {
+  if (url.includes("expo-development-client")) return null;
+
   if (url.includes("widgets") || url.includes("widget-studio")) return "more";
   if (url.includes("scan") || url.includes("import")) return "import";
   if (url.includes("plan")) return "plan";
@@ -157,6 +285,49 @@ function routeTabFromUrl(url: string): NavTab | null {
   if (url.includes("plus") || url.includes("upgrade")) return "upgrade";
   if (url.includes("today")) return "today";
   return null;
+}
+
+function scrollYForCaptureScreen(screen: MarketingCaptureScreen | undefined) {
+  if (screen === "extracted") return 520;
+  if (screen === "review_edit") return 820;
+  if (screen === "agenda") return 560;
+  return null;
+}
+
+function assignmentsForCaptureWorkload(state: CaptureRoute["workloadState"]) {
+  if (state === "clean") {
+    const cleanDates = ["2026-06-03T23:59:00", "2026-06-05T17:00:00"];
+    return marketingCaptureAssignments.slice(0, 2).map((assignment, index) => ({
+      ...assignment,
+      dueAt: cleanDates[index] || assignment.dueAt,
+      priority: "medium" as Assignment["priority"],
+      status: "not_started" as Assignment["status"],
+      needsReview: false,
+      duplicateOf: undefined,
+      confidence: 0.96
+    }));
+  }
+
+  if (state === "urgent") {
+    const urgentDates = [
+      "2026-05-25T11:30:00",
+      "2026-05-25T17:00:00",
+      "2026-05-25T23:59:00",
+      "2026-05-26T09:00:00",
+      "2026-05-26T20:00:00"
+    ];
+    return marketingCaptureAssignments.map((assignment, index) => ({
+      ...assignment,
+      dueAt: urgentDates[index] || assignment.dueAt,
+      priority: "high" as Assignment["priority"],
+      status: index === 0 ? "in_progress" as Assignment["status"] : "not_started" as Assignment["status"],
+      needsReview: false,
+      duplicateOf: undefined,
+      confidence: 0.94
+    }));
+  }
+
+  return marketingCaptureAssignments;
 }
 
 export default function App() {
@@ -170,7 +341,7 @@ export default function App() {
 }
 
 function AppContent() {
-  const { theme, setAccent } = useAppTheme();
+  const { theme, setAccent, setMode } = useAppTheme();
   const { colors } = theme;
   const { width } = useWindowDimensions();
   const tablet = width >= 760;
@@ -209,6 +380,10 @@ function AppContent() {
     state: "idle",
     message: "Native widgets sync after your planner loads."
   });
+  const [captureScreenOverride, setCaptureScreenOverride] = useState<MarketingCaptureScreen | undefined>();
+  const [captureScrollY, setCaptureScrollY] = useState<number | null>(null);
+  const [captureOnboardingIndex, setCaptureOnboardingIndex] = useState(0);
+  const [captureHardPaywall, setCaptureHardPaywall] = useState(false);
 
   const activeAssignments = useMemo(
     () => assignments.filter((item) => item.status !== "archived"),
@@ -218,7 +393,8 @@ function AppContent() {
     () => assignments.find((assignment) => assignment.id === selectedAssignmentId),
     [assignments, selectedAssignmentId]
   );
-  const visibleTabs = marketingCaptureEnabled || subscription.isPremium ? proTabs : freeTabs;
+  const captureBypassEnabled = marketingCaptureEnabled || simulatorCaptureFileRoutingEnabled;
+  const visibleTabs = captureBypassEnabled || subscription.isPremium ? proTabs : freeTabs;
   const bottomTabs = tablet
     ? visibleTabs
     : visibleTabs.filter((tab) => mobilePrimaryTabIds.has(tab.id));
@@ -244,16 +420,61 @@ function AppContent() {
     captureTabFile.text()
       .then((raw) => {
         if (!mounted) return;
-        const requestedTab = parseCaptureTab(raw);
+        const requestedRoute = parseCaptureRoute(raw);
+        const requestedTab = requestedRoute.tab;
+        if (requestedRoute.onboardingIndex !== undefined) {
+          setCaptureOnboardingIndex(requestedRoute.onboardingIndex);
+          setCaptureHardPaywall(false);
+          if (requestedRoute.themeMode) setMode(requestedRoute.themeMode);
+          setOnboarded(false);
+          setPaywallSeen(false);
+          return;
+        }
         if (!requestedTab) return;
 
         setOnboarded(true);
         setPaywallSeen(true);
-        if (!courses.length) setCourses(marketingCaptureCourses);
-        if (!assignments.length) setAssignments(marketingCaptureAssignments);
-        if (!gradeItems.length) setGradeItems(marketingCaptureGradeItems);
-        if (!notes.length) setNotes(buildDemoNotes(marketingCaptureCourses));
+        setCaptureHardPaywall(Boolean(requestedRoute.hardPaywall));
+        setCaptureScreenOverride(requestedRoute.screen);
+        setCaptureScrollY(scrollYForCaptureScreen(requestedRoute.screen));
+        setCaptureOnboardingIndex(0);
+        if (requestedRoute.themeMode) setMode(requestedRoute.themeMode);
+        setCourses(marketingCaptureCourses);
+        setAssignments(assignmentsForCaptureWorkload(requestedRoute.workloadState));
+        setGradeItems(marketingCaptureGradeItems);
+        setNotes(buildDemoNotes(marketingCaptureCourses));
         setSemester(marketingCaptureSemester);
+        const captureAppTheme = requestedRoute.appTheme || "campus";
+        const captureWidgetPalette = requestedRoute.widgetPalette || "ocean";
+        const captureWidgetBackground = requestedRoute.widgetBackground || "glass";
+        setSettings({
+          ...defaultSettings,
+          onboardingComplete: true,
+          privacyMode: false,
+          syncEnabled: true,
+          selectedTheme: captureWidgetPalette,
+          defaultWidgetStyle: captureWidgetBackground,
+          appTheme: captureAppTheme
+        });
+        setWidgetPresets(
+          defaultWidgetPresets.map((preset, index) =>
+            index === 0
+              ? {
+                  ...preset,
+                  type: requestedRoute.widgetType || preset.type,
+                  size: requestedRoute.widgetSize || preset.size,
+                  background: captureWidgetBackground,
+                  palette: captureWidgetPalette,
+                  layout: requestedRoute.widgetLayout || preset.layout,
+                  classFocusCourseId:
+                    requestedRoute.widgetType === "class_focus"
+                      ? marketingCaptureCourses[0]?.id
+                      : preset.classFocusCourseId,
+                  themePackId: captureAppTheme
+                }
+              : preset
+          )
+        );
         setSelectedAssignmentId(null);
         setFocusAssignmentId(null);
         setActiveTab(requestedTab);
@@ -266,11 +487,19 @@ function AppContent() {
     };
   }, [assignments.length, courses.length, gradeItems.length, hydrated, notes.length]);
 
+  useEffect(() => {
+    if (!hydrated || captureScrollY === null) return;
+
+    const timeout = setTimeout(() => {
+      scrollRef.current?.scrollTo({ y: captureScrollY, animated: false });
+    }, 650);
+
+    return () => clearTimeout(timeout);
+  }, [activeTab, captureScrollY, hydrated]);
+
   const openTab = (tab: NavTab) => {
-    if (!marketingCaptureEnabled && premiumTabs.has(tab) && !subscription.isPremium) {
-      setSelectedAssignmentId(null);
-      setActiveTab("upgrade");
-      scrollRef.current?.scrollTo({ y: 0, animated: false });
+    if (!captureBypassEnabled && premiumTabs.has(tab) && !subscription.isPremium) {
+      openPaywall(tab);
       return;
     }
 
@@ -279,8 +508,15 @@ function AppContent() {
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   };
 
+  const openPaywall = (returnTab: NavTab = activeTab === "upgrade" ? postPaywallTab : activeTab) => {
+    setSelectedAssignmentId(null);
+    setPostPaywallTab(returnTab);
+    setActiveTab("upgrade");
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  };
+
   const openFocusForAssignment = (assignmentId?: string) => {
-    if (!marketingCaptureEnabled && !subscription.isPremium) {
+    if (!captureBypassEnabled && !subscription.isPremium) {
       openTab("upgrade");
       return;
     }
@@ -337,7 +573,13 @@ function AppContent() {
         setDemoMode(Boolean(stored.demoMode));
       }
 
-      setHydrated(true);
+      if (simulatorLoadingDelayMs > 0) {
+        setTimeout(() => {
+          if (mounted) setHydrated(true);
+        }, simulatorLoadingDelayMs);
+      } else {
+        setHydrated(true);
+      }
     });
 
     return () => {
@@ -411,10 +653,11 @@ function AppContent() {
 
   useEffect(() => {
     if (marketingCaptureEnabled) return;
-    if (subscription.isPremium && !paywallSeen) {
+    if (subscription.isPremium && onboarded && !paywallSeen) {
       setPaywallSeen(true);
+      setActiveTab(postPaywallTab);
     }
-  }, [paywallSeen, subscription.isPremium]);
+  }, [onboarded, paywallSeen, postPaywallTab, subscription.isPremium]);
 
   useEffect(() => {
     if (!marketingCaptureEnabled || !hydrated) return;
@@ -427,6 +670,32 @@ function AppContent() {
   }, [activeTab, hydrated]);
 
   const applyParsedPlan = (parse: SyllabusParseResult) => {
+    if (!captureBypassEnabled && !subscription.isPremium) {
+      const existingCourseIds = new Set(courses.map((course) => course.id));
+      const existingAssignmentIds = new Set(activeAssignments.map((assignment) => assignment.id));
+      const incomingCourseCount = parse.courses.filter((course) => !existingCourseIds.has(course.id)).length;
+      const incomingAssignmentCount = parse.assignments.filter(
+        (assignment) => !existingAssignmentIds.has(assignment.id)
+      ).length;
+      const usedImportCount = parsedImports.filter((item) => !item.id.startsWith("demo-")).length;
+      const wouldExceedFreeLimits =
+        usedImportCount >= freeImportLimit ||
+        courses.length + incomingCourseCount > freeCourseLimit ||
+        activeAssignments.length + incomingAssignmentCount > freeAssignmentLimit;
+
+      if (wouldExceedFreeLimits) {
+        Alert.alert(
+          "Plus is needed for this import",
+          "Unlock Plus to apply scanned coursework to your planner.",
+          [
+            { text: "Not now", style: "cancel" },
+            { text: "See Plus", onPress: () => openPaywall("import") }
+          ]
+        );
+        return;
+      }
+    }
+
     const blockedAssignments = parse.assignments.filter(
       (assignment) =>
         assignment.needsReview ||
@@ -563,10 +832,10 @@ function AppContent() {
     dueDate: string,
     kind: AssignmentKind
   ) => {
-    if (!marketingCaptureEnabled && !subscription.isPremium && activeAssignments.length >= freeAssignmentLimit) {
-      Alert.alert("Free planner limit reached", `Free includes ${freeAssignmentLimit} homework items. Plus expands planning volume, reminders, focus, widgets, and grade tools.`, [
+    if (!captureBypassEnabled && !subscription.isPremium && activeAssignments.length >= freeAssignmentLimit) {
+      Alert.alert("Plus required", "Unlock Plus to add more homework, reminders, focus sessions, widgets, and grade tools.", [
         { text: "Not now", style: "cancel" },
-        { text: "See Plus", onPress: () => openTab("upgrade") }
+        { text: "See Plus", onPress: () => openPaywall("today") }
       ]);
       return false;
     }
@@ -610,10 +879,10 @@ function AppContent() {
   };
 
   const addCourse = (course: Pick<Course, "code" | "name" | "instructor">) => {
-    if (!marketingCaptureEnabled && !subscription.isPremium && courses.length >= freeCourseLimit) {
-      Alert.alert("Free planner limit reached", `Free includes ${freeCourseLimit} classes. Plus unlocks more classes, semesters, scans, and automation.`, [
+    if (!captureBypassEnabled && !subscription.isPremium && courses.length >= freeCourseLimit) {
+      Alert.alert("Plus required", "Unlock Plus to add more classes, scans, focus sessions, grades, and automation.", [
         { text: "Not now", style: "cancel" },
-        { text: "See Plus", onPress: () => openTab("upgrade") }
+        { text: "See Plus", onPress: () => openPaywall("courses") }
       ]);
       return;
     }
@@ -729,7 +998,10 @@ function AppContent() {
     setWidgetPresets(defaultWidgetPresets);
   };
 
-  const startWithDemoPlanner = (settingsPatch?: Partial<UserSettings>) => {
+  const startWithDemoPlanner = (
+    settingsPatch?: Partial<UserSettings>,
+    requirePostOnboardingPaywall = false
+  ) => {
     const demo = buildDemoPlannerData();
     setSemester(demo.semester);
     setCourses(demo.courses);
@@ -750,8 +1022,8 @@ function AppContent() {
       nextAssignmentId: demo.assignments[0]?.id
     });
     setOnboarded(true);
-    setPaywallSeen(true);
     setPostPaywallTab("today");
+    setPaywallSeen(!requirePostOnboardingPaywall);
     setActiveTab("today");
   };
 
@@ -759,18 +1031,12 @@ function AppContent() {
     destination: OnboardingDestination,
     settingsPatch?: Partial<UserSettings>
   ) => {
-    if (destination === "demo") {
-      startWithDemoPlanner(settingsPatch);
-      return;
-    }
-
-    const destinationTab: NavTab = destination === "manual" ? "courses" : "import";
     setSettings((current) => ({ ...current, ...settingsPatch }));
     setOnboarded(true);
     setPaywallSeen(false);
-    setPostPaywallTab(destinationTab);
+    setPostPaywallTab("import");
     setDemoMode(false);
-    setActiveTab(destinationTab);
+    setActiveTab("upgrade");
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   };
 
@@ -796,7 +1062,7 @@ function AppContent() {
 
   const handleScheduleReminders = async () => {
     if (!subscription.isPremium) {
-      openTab("upgrade");
+      openPaywall("today");
       return;
     }
 
@@ -824,7 +1090,7 @@ function AppContent() {
 
   const handleCalendarSync = async () => {
     if (!subscription.isPremium) {
-      openTab("upgrade");
+      openPaywall("today");
       return;
     }
 
@@ -850,10 +1116,12 @@ function AppContent() {
   };
 
   const premiumLocked =
-    !marketingCaptureEnabled && (subscription.status !== "ready" || !subscription.isPremium);
+    !captureBypassEnabled && (subscription.status !== "ready" || !subscription.isPremium);
   const freeImportCount = parsedImports.filter((item) => !item.id.startsWith("demo-")).length;
   const importLimitLocked =
-    !marketingCaptureEnabled && !subscription.isPremium && freeImportCount >= freeImportLimit;
+    !captureBypassEnabled && !subscription.isPremium && freeImportCount >= freeImportLimit;
+  const appAccessLocked =
+    (!captureBypassEnabled || captureHardPaywall) && onboarded && !subscription.isPremium;
 
   if (!hydrated) {
     return <LoadingScreen label="Loading StudyPlanner" />;
@@ -863,25 +1131,29 @@ function AppContent() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <StatusBar style={theme.isDark ? "light" : "dark"} />
-        <OnboardingScreen onFinish={finishOnboarding} />
+        <OnboardingScreen onFinish={finishOnboarding} initialIndex={captureOnboardingIndex} />
       </SafeAreaView>
     );
   }
 
-  if (!marketingCaptureEnabled && !subscription.isPremium && !paywallSeen) {
+  if (appAccessLocked) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <StatusBar style={theme.isDark ? "light" : "dark"} />
-        <ScrollView style={styles.scrollArea} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <UpgradeScreen
-            hardMode
-            onContinueFree={() => {
-              setPaywallSeen(true);
-              setActiveTab(postPaywallTab);
-              scrollRef.current?.scrollTo({ y: 0, animated: false });
-            }}
-          />
-        </ScrollView>
+        <View style={styles.appShell}>
+          <ScrollView
+            ref={scrollRef}
+            style={styles.scrollArea}
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.mobileTopBar}>
+              <AppLogo showWordmark={width >= 360} size={28} />
+              <ModeToggle compact style={styles.mobileModeToggle} />
+            </View>
+            <UpgradeScreen hardMode />
+          </ScrollView>
+        </View>
       </SafeAreaView>
     );
   }
@@ -898,7 +1170,7 @@ function AppContent() {
               {visibleTabs.map((tab) => {
                 const Icon = tab.icon;
                 const active = activeTab === tab.id;
-                const locked = !marketingCaptureEnabled && premiumTabs.has(tab.id) && !subscription.isPremium;
+                const locked = !captureBypassEnabled && premiumTabs.has(tab.id) && !subscription.isPremium;
                 return (
                   <TouchableOpacity
                     key={tab.id}
@@ -918,7 +1190,7 @@ function AppContent() {
               <TouchableOpacity
                 accessibilityRole="button"
                 style={styles.sidebarButton}
-                onPress={() => openTab("upgrade")}
+                onPress={() => openPaywall(activeTab)}
               >
                 <Crown color={colors.muted} size={18} />
                 <Text style={styles.sidebarLabel}>Plus</Text>
@@ -942,17 +1214,19 @@ function AppContent() {
               <ModeToggle compact style={styles.mobileModeToggle} />
             </View>
           ) : null}
-          <StudySystemHeader
-            activeTab={activeTab}
-            state={systemState}
-            styles={styles}
-            onPrimaryAction={() => {
-              if (systemState.action === "scan") openTab("import");
-              if (systemState.action === "review") openTab("plan");
-              if (systemState.action === "today") openTab("today");
-              if (systemState.action === "widgets") openTab("more");
-            }}
-          />
+          {tablet ? (
+            <StudySystemHeader
+              activeTab={activeTab}
+              state={systemState}
+              styles={styles}
+              onPrimaryAction={() => {
+                if (systemState.action === "scan") openTab("import");
+                if (systemState.action === "review") openTab("plan");
+                if (systemState.action === "today") openTab("today");
+                if (systemState.action === "widgets") openTab("more");
+              }}
+            />
+          ) : null}
           {selectedAssignment ? (
             <AssignmentDetailScreen
               assignment={selectedAssignment}
@@ -978,7 +1252,7 @@ function AppContent() {
                   onScheduleReminders={handleScheduleReminders}
                   onCalendarSync={handleCalendarSync}
                   premiumAutomationLocked={premiumLocked}
-                  onOpenPaywall={() => openTab("upgrade")}
+                onOpenPaywall={() => openPaywall("today")}
                   onOpenFocus={(assignmentId) => openFocusForAssignment(assignmentId)}
                   onOpenScan={() => openTab("import")}
                   onOpenPlan={() => openTab("plan")}
@@ -986,7 +1260,7 @@ function AppContent() {
                   onOpenNotes={() => openTab("notes")}
                   onOpenGrades={() => openTab("grades")}
                   onOpenWidgets={() => openTab("more")}
-                  onTryDemo={() => startWithDemoPlanner()}
+                  onTryDemo={captureBypassEnabled ? () => startWithDemoPlanner() : undefined}
                   onReplaceDemo={() => {
                     setSemester(defaultSemester);
                     setCourses([]);
@@ -1009,8 +1283,8 @@ function AppContent() {
                   parsedItems={parsedItems}
                   onApplyParsedPlan={applyParsedPlan}
                   premiumImportLocked={importLimitLocked}
-                  onOpenPaywall={() => openTab("upgrade")}
-                  onTryDemo={() => startWithDemoPlanner()}
+                  onOpenPaywall={() => openPaywall("import")}
+                  captureScreenOverride={captureScreenOverride}
                 />
               ) : null}
               {activeTab === "plan" ? (
@@ -1023,6 +1297,7 @@ function AppContent() {
                   onUpdateStatus={updateAssignmentStatus}
                   onRecordSession={recordFocusSession}
                   onAddQuickAssignment={addQuickAssignment}
+                  onOpenScan={() => openTab("import")}
                 />
               ) : null}
               {activeTab === "courses" ? (
@@ -1088,11 +1363,16 @@ function AppContent() {
                   onOpenNotes={() => openTab("notes")}
                   onOpenFocus={() => openFocusForAssignment()}
                   onOpenGrades={() => openTab("grades")}
-                  onOpenPaywall={() => openTab("upgrade")}
-                  premiumWidgetsLocked={!marketingCaptureEnabled && !subscription.isPremium}
+                  onOpenPaywall={() => openPaywall("more")}
+                  premiumWidgetsLocked={!captureBypassEnabled && !subscription.isPremium}
                 />
               ) : null}
-              {activeTab === "upgrade" ? <UpgradeScreen onContinueFree={() => openTab(postPaywallTab)} /> : null}
+              {activeTab === "upgrade" ? (
+                <UpgradeScreen
+                  hardMode={!subscription.isPremium}
+                  onContinueFree={subscription.isPremium ? () => openTab(postPaywallTab) : undefined}
+                />
+              ) : null}
             </>
           )}
         </ScrollView>
@@ -1101,7 +1381,7 @@ function AppContent() {
           {bottomTabs.map((tab) => {
             const Icon = tab.icon;
             const active = activeTab === tab.id || (tab.id === "more" && moreGroupTabIds.has(activeTab));
-            const locked = !marketingCaptureEnabled && premiumTabs.has(tab.id) && !subscription.isPremium;
+            const locked = !captureBypassEnabled && premiumTabs.has(tab.id) && !subscription.isPremium;
             return (
               <TouchableOpacity
                 key={tab.id}
@@ -1136,10 +1416,56 @@ function LoadingScreen({ label }: { label: string }) {
       <StatusBar style={theme.isDark ? "light" : "dark"} />
       <View style={styles.loadingScreen}>
         <AppLogo showWordmark size={74} />
-        <ActivityIndicator color={colors.ink} />
         <Text style={styles.loadingText}>{label}</Text>
+        <View style={styles.skeletonStack} accessibilityLabel="Loading planner preview">
+          <View style={styles.skeletonHero}>
+            <View style={styles.skeletonTopRow}>
+              <SkeletonBar width="34%" />
+              <SkeletonBar width={54} />
+            </View>
+            <SkeletonBar width="76%" height={30} />
+            <SkeletonBar width="58%" />
+            <View style={styles.skeletonMetricRow}>
+              <SkeletonBlock />
+              <SkeletonBlock />
+              <SkeletonBlock />
+            </View>
+          </View>
+          <View style={styles.skeletonList}>
+            <SkeletonBar width="42%" height={18} />
+            <SkeletonRow />
+            <SkeletonRow />
+          </View>
+        </View>
+        <ActivityIndicator color={colors.ink} />
       </View>
     </SafeAreaView>
+  );
+}
+
+function SkeletonBar({ width, height = 14 }: { width: number | `${number}%`; height?: number }) {
+  const { theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  return <View style={[styles.skeletonBar, { width, height }]} />;
+}
+
+function SkeletonBlock() {
+  const { theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  return <View style={styles.skeletonBlock} />;
+}
+
+function SkeletonRow() {
+  const { theme } = useAppTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  return (
+    <View style={styles.skeletonRow}>
+      <View style={styles.skeletonDot} />
+      <View style={styles.skeletonRowCopy}>
+        <SkeletonBar width="74%" />
+        <SkeletonBar width="48%" height={11} />
+      </View>
+    </View>
   );
 }
 
@@ -1261,9 +1587,9 @@ function StudySystemHeader({
     <View style={styles.systemHeader}>
       <View style={styles.systemHeaderTop}>
         <View style={styles.systemHeaderCopy}>
-          <Text style={styles.systemEyebrow}>Study OS · {labelForTab(activeTab)}</Text>
-          <Text style={styles.systemTitle}>{state.title}</Text>
-          <Text style={styles.systemDetail}>{state.detail}</Text>
+          <Text style={styles.systemEyebrow}>StudyPlanner · {labelForTab(activeTab)}</Text>
+          <Text style={styles.systemTitle} numberOfLines={2}>{state.title}</Text>
+          <Text style={styles.systemDetail} numberOfLines={2}>{state.detail}</Text>
         </View>
         <TouchableOpacity accessibilityRole="button" style={styles.systemAction} onPress={onPrimaryAction}>
           <Text style={styles.systemActionBadge}>{state.badge}</Text>
@@ -1393,12 +1719,20 @@ function createStyles(theme: AppTheme, tablet = false) {
       paddingTop: tablet ? spacing.xl : spacing.md,
       paddingBottom: tablet ? spacing.xxl : 156
     },
+    hardPaywallContent: {
+      width: "100%",
+      maxWidth: tablet ? 760 : undefined,
+      alignSelf: tablet ? "center" : undefined,
+      paddingHorizontal: tablet ? spacing.xl : spacing.md,
+      paddingTop: spacing.md,
+      paddingBottom: spacing.xxl
+    },
     scrollArea: {
       flex: 1
     },
     mobileTopBar: {
       minHeight: 44,
-      marginBottom: spacing.md,
+      marginBottom: spacing.sm,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
@@ -1408,17 +1742,17 @@ function createStyles(theme: AppTheme, tablet = false) {
       flexShrink: 0
     },
     systemHeader: {
-      marginBottom: spacing.md,
-      borderRadius: radii.xl,
+      marginBottom: spacing.sm,
+      borderRadius: radii.lg,
       borderWidth: 1,
       borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(21,35,58,0.10)",
       backgroundColor: theme.isDark ? "rgba(10,15,26,0.94)" : "rgba(255,255,255,0.76)",
-      padding: spacing.md,
-      gap: spacing.sm,
+      padding: tablet ? spacing.md : spacing.sm,
+      gap: spacing.xs,
       shadowColor: colors.shadow,
       shadowOpacity: theme.isDark ? 0.18 : 0.06,
-      shadowRadius: 16,
-      shadowOffset: { width: 0, height: 8 },
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 6 },
       elevation: 2
     },
     systemHeaderTop: {
@@ -1442,20 +1776,20 @@ function createStyles(theme: AppTheme, tablet = false) {
     },
     systemTitle: {
       color: colors.ink,
-      fontSize: tablet ? 24 : 19,
-      lineHeight: tablet ? 29 : 24,
+      fontSize: tablet ? 24 : 17,
+      lineHeight: tablet ? 29 : 21,
       fontWeight: "900"
     },
     systemDetail: {
       color: colors.muted,
-      fontSize: 13,
-      lineHeight: 18,
+      fontSize: tablet ? 13 : 12,
+      lineHeight: tablet ? 18 : 16,
       fontWeight: "700"
     },
     systemAction: {
-      width: tablet ? 146 : 104,
-      minHeight: 70,
-      borderRadius: radii.lg,
+      width: tablet ? 146 : 88,
+      minHeight: tablet ? 70 : 56,
+      borderRadius: radii.md,
       backgroundColor: colors.heroSurface,
       padding: spacing.sm,
       justifyContent: "center",
@@ -1470,11 +1804,12 @@ function createStyles(theme: AppTheme, tablet = false) {
     },
     systemActionLabel: {
       color: colors.heroText,
-      fontSize: 13,
-      lineHeight: 17,
+      fontSize: tablet ? 13 : 12,
+      lineHeight: tablet ? 17 : 15,
       fontWeight: "900"
     },
     systemFactRow: {
+      display: tablet ? "flex" : "none",
       flexDirection: "row",
       flexWrap: "wrap",
       gap: spacing.xs
@@ -1482,12 +1817,12 @@ function createStyles(theme: AppTheme, tablet = false) {
     systemFact: {
       flex: 1,
       minWidth: 88,
-      minHeight: 64,
+      minHeight: tablet ? 64 : 50,
       borderRadius: radii.md,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.isDark ? "rgba(255,255,255,0.12)" : "rgba(21,35,58,0.08)",
       backgroundColor: theme.isDark ? "rgba(255,255,255,0.06)" : "rgba(21,35,58,0.04)",
-      padding: spacing.sm,
+      padding: tablet ? spacing.sm : spacing.xs,
       gap: 1
     },
     systemFactLabel: {
@@ -1499,14 +1834,14 @@ function createStyles(theme: AppTheme, tablet = false) {
     },
     systemFactValue: {
       color: colors.ink,
-      fontSize: 18,
-      lineHeight: 22,
+      fontSize: tablet ? 18 : 15,
+      lineHeight: tablet ? 22 : 18,
       fontWeight: "900"
     },
     systemFactDetail: {
       color: colors.muted,
-      fontSize: 11,
-      lineHeight: 14,
+      fontSize: tablet ? 11 : 10,
+      lineHeight: tablet ? 14 : 12,
       fontWeight: "800"
     },
     sidebar: {
@@ -1564,6 +1899,67 @@ function createStyles(theme: AppTheme, tablet = false) {
       fontSize: 14,
       lineHeight: 20,
       fontWeight: "800"
+    },
+    skeletonStack: {
+      width: "100%",
+      maxWidth: 360,
+      gap: spacing.sm
+    },
+    skeletonHero: {
+      borderRadius: radii.xl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.elevated,
+      padding: spacing.md,
+      gap: spacing.sm
+    },
+    skeletonTopRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    skeletonMetricRow: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    skeletonList: {
+      borderRadius: radii.xl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      gap: spacing.sm
+    },
+    skeletonBar: {
+      borderRadius: radii.round,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.12)" : "#DDE6F2"
+    },
+    skeletonBlock: {
+      flex: 1,
+      height: 62,
+      borderRadius: radii.lg,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.10)" : "#EEF3FA"
+    },
+    skeletonRow: {
+      minHeight: 54,
+      borderRadius: radii.lg,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.08)" : "#F3F6FB",
+      padding: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    skeletonDot: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: colors.accentSoft
+    },
+    skeletonRowCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: spacing.xs
     },
     tabBar: {
       minHeight: 62,

@@ -16,6 +16,7 @@ import { loadJson, removeJson, saveJson } from "./storage";
 import { allPremiumProductIds, hasConfiguredPurchases, purchaseConfig } from "./purchaseConfig";
 
 const subscriptionStorageKey = "study-planner-premium-entitlement-v1";
+const entitlementGracePeriodMs = 24 * 60 * 60 * 1000;
 
 type ProductKind = "subscription" | "lifetime";
 type PurchaseStatus = "checking" | "ready" | "unavailable" | "error";
@@ -138,6 +139,14 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
         await removeJson(subscriptionStorageKey);
       }
     } catch (error) {
+      const stored = await loadJson<EntitlementRecord>(subscriptionStorageKey);
+      if (storedEntitlementIsFresh(stored)) {
+        setIsPremium(Boolean(stored?.isPremium));
+        setStatus("ready");
+        setErrorMessage("The store could not be reached. Recently verified Plus access is being used for now.");
+        return;
+      }
+
       setIsPremium(false);
       setStatus("error");
       setErrorMessage(userMessageFromError(error));
@@ -160,7 +169,13 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
 
         if (knownProduct && resolvedEntitlement.isPremium) {
           await saveJson<EntitlementRecord>(subscriptionStorageKey, resolvedEntitlement);
-          await finishTransaction({ purchase: purchaseResult, isConsumable: false });
+          try {
+            await finishTransaction({ purchase: purchaseResult, isConsumable: false });
+          } catch {
+            setMessage("Plus is active. The store receipt will be reconciled again on the next refresh.");
+            setFlowState("success");
+            return;
+          }
           setMessage("Plus is active. Premium features are unlocked.");
           setFlowState("success");
         } else if (purchaseResult.purchaseState === "pending") {
@@ -203,8 +218,8 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     loadJson<EntitlementRecord>(subscriptionStorageKey).then((stored) => {
-      if (stored?.isPremium) {
-        setIsPremium(true);
+      if (storedEntitlementIsFresh(stored)) {
+        setIsPremium(Boolean(stored?.isPremium));
         setMessage("Checking your Plus access with the store.");
       }
     });
@@ -214,24 +229,34 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
     setFlowState("loading");
     setErrorMessage(undefined);
 
-    const [subscriptions, lifetimeProducts] = await Promise.all([
-      purchaseConfig.subscriptionIds.length
-        ? fetchProducts({ skus: purchaseConfig.subscriptionIds, type: "subs" })
-        : Promise.resolve([]),
-      purchaseConfig.lifetimeProductIds.length
-        ? fetchProducts({ skus: purchaseConfig.lifetimeProductIds, type: "in-app" })
-        : Promise.resolve([])
-    ]);
+    try {
+      const [subscriptions, lifetimeProducts] = await Promise.all([
+        purchaseConfig.subscriptionIds.length
+          ? fetchProducts({ skus: purchaseConfig.subscriptionIds, type: "subs" })
+          : Promise.resolve([]),
+        purchaseConfig.lifetimeProductIds.length
+          ? fetchProducts({ skus: purchaseConfig.lifetimeProductIds, type: "in-app" })
+          : Promise.resolve([])
+      ]);
 
-    const mapped = [...(subscriptions ?? []), ...(lifetimeProducts ?? [])]
-      .map(mapStoreProduct)
-      .sort(sortProducts);
-    setProducts(mapped);
-    setSelectedProductId((current) => current || mapped[0]?.id);
-    setFlowState("idle");
+      const mapped = [...(subscriptions ?? []), ...(lifetimeProducts ?? [])]
+        .map(mapStoreProduct)
+        .sort(sortProducts);
+      setProducts(mapped);
+      setSelectedProductId((current) => current || mapped[0]?.id);
 
-    if (mapped.length === 0) {
-      setErrorMessage("The store did not return any available Plus plans.");
+      if (mapped.length === 0) {
+        setFlowState("error");
+        setErrorMessage("The store did not return any available Plus plans.");
+      } else {
+        setFlowState("idle");
+      }
+    } catch (error) {
+      setProducts([]);
+      setSelectedProductId(undefined);
+      setStatus("error");
+      setFlowState("error");
+      setErrorMessage(userMessageFromError(error));
     }
   }, []);
 
@@ -339,6 +364,15 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
     }
   }, [products, selectedProductId]);
 
+  const refreshStore = useCallback(async () => {
+    setMessage(undefined);
+    setErrorMessage(undefined);
+    setStatus("checking");
+    const results = await Promise.allSettled([loadProducts(), refreshEntitlement()]);
+    const failed = results.some((result) => result.status === "rejected");
+    setStatus((current) => (failed ? "error" : current === "checking" ? "ready" : current));
+  }, [loadProducts, refreshEntitlement]);
+
   const value = useMemo<SubscriptionContextValue>(
     () => ({
       status,
@@ -351,7 +385,7 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
       hasConfiguredProducts: true,
       purchase: purchaseProduct,
       restore,
-      refresh: refreshEntitlement,
+      refresh: refreshStore,
       manageSubscriptions,
       setSelectedProductId,
       clearMessage: () => {
@@ -367,7 +401,7 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
       message,
       products,
       purchaseProduct,
-      refreshEntitlement,
+      refreshStore,
       restore,
       selectedProductId,
       status
@@ -429,6 +463,13 @@ function entitlementFromPurchase(purchase: Purchase): EntitlementRecord {
     productId: purchase.productId,
     checkedAt: new Date().toISOString()
   };
+}
+
+function storedEntitlementIsFresh(stored: EntitlementRecord | null | undefined) {
+  if (!stored?.isPremium || !stored.checkedAt) return false;
+  const checkedAt = new Date(stored.checkedAt).getTime();
+  if (Number.isNaN(checkedAt)) return false;
+  return Date.now() - checkedAt <= entitlementGracePeriodMs;
 }
 
 function mapStoreProduct(product: Product | ProductSubscription): PaywallProduct {

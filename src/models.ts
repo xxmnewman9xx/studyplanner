@@ -40,7 +40,10 @@ export type WidgetPalette =
   | "lavender"
   | "midnight"
   | "candy"
-  | "minimal";
+  | "minimal"
+  | "graphite"
+  | "aurora"
+  | "paper";
 
 export type FocusSessionStatus = "planned" | "running" | "paused" | "completed" | "stopped";
 

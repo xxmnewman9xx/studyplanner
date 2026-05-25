@@ -28,11 +28,12 @@ type PlanScreenProps = {
   onUpdateStatus: (assignmentId: string, status: "not_started" | "in_progress" | "done") => void;
   onRecordSession: (session: FocusSession) => void;
   onAddQuickAssignment: (courseId: string, title: string, dueDate: string, kind: "assignment") => boolean;
+  onOpenScan: () => void;
 };
 
 const weekdays = ["S", "M", "T", "W", "T", "F", "S"];
 
-export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, onOpenFocus, onUpdateStatus, onRecordSession, onAddQuickAssignment }: PlanScreenProps) {
+export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, onOpenFocus, onUpdateStatus, onRecordSession, onAddQuickAssignment, onOpenScan }: PlanScreenProps) {
   const { theme } = useAppTheme();
   const { colors } = theme;
   const styles = createStyles(theme);
@@ -47,6 +48,14 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
   const insight = getBusyWeekInsight(assignments, today);
   const weekSummary = buildWeekLoadSummary(weekLoad, sessions);
   const overdue = buildPlanCatchUpQueue(assignments, today);
+  const openAssignments = assignments.filter(
+    (assignment) => assignment.status !== "done" && assignment.status !== "archived"
+  );
+  const totalOpenMinutes = openAssignments.reduce(
+    (sum, assignment) => sum + (assignment.estimatedMinutes || 25),
+    0
+  );
+  const dueTodayCount = openAssignments.filter((assignment) => assignment.dueAt.slice(0, 10) === dateKey(today)).length;
   const survivalPlan = buildDeadlineSurvivalPlan(assignments, today);
   const savedSurvivalKeys = new Set(
     sessions
@@ -77,6 +86,7 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
     ? `${selectedEvents.length} item${selectedEvents.length === 1 ? "" : "s"} due on the selected day.`
     : primarySuggestion?.copy || "The week stays empty until real assignments have due dates.";
   const planState = buildPlanState(assignments, courses, overdue.length, weekSummary.totalItems);
+  const weekGroups = buildSimpleWeekGroups(openAssignments, today);
 
   const moveMonth = (offset: number) => {
     setMonthCursor((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
@@ -114,313 +124,93 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
         <View style={styles.heroTop}>
           <View style={styles.heroTitleBlock}>
             <Text style={styles.kicker}>Plan</Text>
-            <Text style={styles.title}>Week strategy board.</Text>
+            <Text style={styles.title}>See your weekly workload.</Text>
           </View>
           <View style={styles.heroIcon}>
             <Sparkles color={colors.heroText} size={19} />
           </View>
         </View>
         <Text style={styles.heroCopy}>
-          A clean mission map for deadlines, focus lifts, and the next move that protects your grade.
+          Weeks are grouped by urgency so you can see where school gets heavy.
         </Text>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityState={{ disabled: !primaryAssignmentId }}
-          disabled={!primaryAssignmentId}
-          style={[styles.primaryPlanAction, !primaryAssignmentId ? styles.primaryPlanActionIdle : null]}
-          onPress={() => {
-            if (primaryAssignmentId) {
-              onOpenAssignment(primaryAssignmentId);
-            }
-          }}
-        >
-          <View style={styles.primaryPlanCopy}>
-            <Text style={styles.primaryPlanKicker}>Next planning move</Text>
-            <Text style={styles.primaryPlanTitle}>{primaryActionLabel}</Text>
-            <Text style={styles.primaryPlanDetail}>{primaryActionDetail}</Text>
-          </View>
-          {primaryAssignmentId ? <ChevronRight color={colors.heroText} size={18} /> : null}
-        </TouchableOpacity>
         <View style={styles.heroStats}>
-          <MiniStat label="Today" value={String(weekLoad.find((day) => day.dateKey === dateKey(today))?.items.length || 0)} />
-          <MiniStat label="Hours" value={formatHoursValue(weekSummary.totalMinutes)} />
-          <MiniStat label="Week" value={String(weekLoad.reduce((sum, day) => sum + day.items.length, 0))} />
+          <MiniStat label="Open" value={String(openAssignments.length)} />
+          <MiniStat label="Load" value={formatHoursValue(totalOpenMinutes || weekSummary.totalMinutes)} />
+          <MiniStat label="Late" value={String(overdue.length)} />
         </View>
       </GlassCard>
 
-      <GlassCard style={styles.stateCard}>
-        <View style={styles.stateHeader}>
-          <View style={styles.stateHeaderCopy}>
-            <Text style={styles.stateKicker}>Planner state</Text>
-            <Text style={styles.stateTitle}>{planState.title}</Text>
-          </View>
-          <Text style={styles.stateBadge}>{planState.badge}</Text>
-        </View>
-        <Text style={styles.stateCopy}>{planState.copy}</Text>
-        <View style={styles.stateGrid}>
-          <PlanStateTile label="Calendar" value={weekSummary.totalItems ? `${weekSummary.totalItems} due` : "Empty"} detail={weekSummary.peakDay ? `${weekSummary.peakDay.label} is peak` : "No loaded days"} tone="blue" />
-          <PlanStateTile label="Catch up" value={overdue.length ? `${overdue.length} late` : "Clear"} detail={catchUpFirst?.title || "No overdue"} tone="pink" />
-          <PlanStateTile label="Focus" value={weekSummary.plannedBlocks ? `${weekSummary.plannedBlocks} saved` : "0 saved"} detail={weekSummary.totalMinutes ? `${formatHoursValue(weekSummary.totalMinutes)} open load` : "No blocks needed"} tone="green" />
-        </View>
-      </GlassCard>
-
-      {catchUpFirst ? (
-        <>
-          <SectionHeader title="Catch up" note={`${overdue.length} late · start with the smallest task`} />
-          <GlassCard style={styles.catchUpCard}>
-            <View style={styles.catchUpTopRow}>
-              <View style={styles.catchUpBadge}>
-                <Text style={styles.catchUpBadgeText}>No shame reset</Text>
-              </View>
-              <Text style={styles.catchUpMeta}>{catchUpMinutes}m save</Text>
-            </View>
-            <Text style={styles.catchUpTitle}>
-              Start with {catchUpCourse?.code ? `${catchUpCourse.code}: ` : ""}{catchUpFirst.title}
-            </Text>
-            <Text style={styles.catchUpCopy}>
-              Plan shows the whole backlog, but recovery starts with one small focus block. Finish this, then re-check the week.
-            </Text>
-            <View style={styles.catchUpActions}>
-              <AppButton
-                label="Study this now"
-                icon={Timer}
-                onPress={() => {
-                  onUpdateStatus(catchUpFirst.id, "in_progress");
-                  onOpenFocus(catchUpFirst.id);
-                }}
-                style={styles.catchUpButton}
-              />
-              <AppButton
-                label="See task details"
-                variant="secondary"
-                onPress={() => onOpenAssignment(catchUpFirst.id)}
-                style={styles.catchUpButton}
-              />
-            </View>
-          </GlassCard>
-        </>
+      {openAssignments.length === 0 ? (
+        <GlassCard style={styles.stateCard}>
+          <Text style={styles.stateKicker}>Empty plan</Text>
+          <Text style={styles.stateTitle}>Scan a syllabus to build your plan.</Text>
+          <Text style={styles.stateCopy}>Plan fills in after you review assignments in Scan.</Text>
+          <AppButton label="Scan syllabus" onPress={onOpenScan} />
+        </GlassCard>
       ) : null}
 
-      <SectionHeader title="Add one homework" note="Type the task. It lands on this calendar." />
-      <GlassCard style={styles.captureCard}>
-        <TextInput
-          value={quickPlanText}
-          onChangeText={setQuickPlanText}
-          placeholder={courses.length ? "BIO lab report due Friday" : "Add a class first, then capture homework"}
-          placeholderTextColor={colors.heroMuted}
-          style={styles.captureInput}
-        />
-        {quickPlanText.trim() ? (
-          <Text style={styles.capturePreview}>
-            Will add {parsedPlanCapture.course?.code || "class"} · {parsedPlanCapture.title || "work"} · due {formatSelectedDate(parsedPlanCapture.dueDate)}
-          </Text>
-        ) : (
-          <Text style={styles.captureHint}>Defaults to the selected calendar day unless you type a due date.</Text>
-        )}
-        <AppButton
-          label="Add to calendar"
-          icon={Plus}
-          disabled={!parsedPlanCapture.course || !parsedPlanCapture.title.trim() || !parsedPlanCapture.dueDate.trim()}
-          onPress={addPlanCapture}
-        />
-      </GlassCard>
-
-      <SectionHeader title={`${monthCursor.toLocaleString("en-US", { month: "long" })} calendar`} note="Dots mean homework is due that day." />
-      <GlassCard style={styles.calendarCard}>
-        <View style={styles.monthHeader}>
-          <TouchableOpacity accessibilityRole="button" style={styles.monthButton} onPress={() => moveMonth(-1)}>
-            <ChevronLeft color={colors.heroText} size={18} />
-          </TouchableOpacity>
-          <Text style={styles.monthTitle}>
-            {monthCursor.toLocaleString("en-US", { month: "long", year: "numeric" })}
-          </Text>
-          <TouchableOpacity accessibilityRole="button" style={styles.monthButton} onPress={() => moveMonth(1)}>
-            <ChevronRight color={colors.heroText} size={18} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.weekdayRow}>
-          {weekdays.map((day, index) => (
-            <Text key={`${day}-${index}`} style={styles.weekday}>
-              {day}
-            </Text>
-          ))}
-        </View>
-        <View style={styles.monthGrid}>
-          {monthDays.map((day) => {
-            const key = dateKey(day.date);
-            const events = eventsByDay[key] || [];
-            const active = key === selectedDate;
-            const inMonth = day.date.getMonth() === monthCursor.getMonth();
-            const isToday = key === dateKey(today);
-            return (
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityState={{ selected: active }}
-                key={key}
-                style={[
-                  styles.dayCell,
-                  active ? styles.dayCellActive : null,
-                  isToday ? styles.dayCellToday : null,
-                  !inMonth ? styles.dayCellMuted : null
-                ]}
-                onPress={() => setSelectedDate(key)}
-              >
-                <Text style={[styles.dayNumber, active ? styles.dayNumberActive : null]}>
-                  {day.date.getDate()}
-                </Text>
-                <View style={styles.eventDots}>
-                  {events.slice(0, 3).map((event) => (
-                    <View
-                      key={event.id}
-                      style={[styles.eventDot, { backgroundColor: event.course?.color || colors.accent }]}
-                    />
-                  ))}
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </GlassCard>
-
-      <SectionHeader title="Day you picked" note={formatSelectedDate(selectedDate)} />
-      <View style={styles.list}>
-        {selectedEvents.length === 0 ? (
-          <EmptyState title="Nothing due here" copy="Pick another date or enjoy the breathing room." emoji="calendar" />
-        ) : (
-          selectedEvents.map((event) => (
-            <AssignmentRow
-              key={event.id}
-              assignment={event.assignment}
-              course={event.course}
-              onPress={() => onOpenAssignment(event.assignment.id)}
-            />
-          ))
-        )}
-      </View>
-
-      {survivalPlan.active && survivalFirst ? (
-        <>
-          <SectionHeader title="Busy week helper" note={`${survivalPlan.items.length} deadlines in the next ${survivalPlan.windowDays} days`} />
-          <GlassCard style={styles.survivalCard}>
-            <View style={styles.survivalHeaderRow}>
-              <View>
-                <Text style={styles.survivalKicker}>Cram protection</Text>
-                <Text style={styles.survivalTitle}>Spread the pressure before it stacks.</Text>
-              </View>
-              <Text style={styles.survivalCount}>{survivalPlan.totalMinutes}m</Text>
-            </View>
-            <Text style={styles.survivalCopy}>
-              Start with {survivalCourse?.code ? `${survivalCourse.code}: ` : ""}{survivalFirst.title}, then split the rest into small blocks across the week.
-            </Text>
-            <View style={styles.survivalBlockList}>
-              {survivalPlan.blocks.map((block) => {
-                const course = getCourseForAssignment(courses, block.assignment);
-                return (
-                  <View key={`${block.dateKey}-${block.assignment.id}`} style={styles.survivalBlockRow}>
-                    <View style={styles.survivalDayPill}>
-                      <Text style={styles.survivalDayText}>{block.label}</Text>
-                    </View>
-                    <View style={styles.survivalBlockCopy}>
-                      <Text style={styles.survivalBlockTitle}>{course?.code ? `${course.code} · ` : ""}{block.assignment.title}</Text>
-                      <Text style={styles.survivalBlockMeta}>{block.minutes}m focus block · due {formatSelectedDate(block.assignment.dueAt.slice(0, 10))}</Text>
-                    </View>
-                  </View>
-                );
-              })}
-            </View>
-            <View style={styles.survivalActions}>
-              <AppButton
-                label="Study first block"
-                icon={Timer}
-                onPress={() => {
-                  onUpdateStatus(survivalFirst.id, "in_progress");
-                  onOpenFocus(survivalFirst.id);
-                }}
-                style={styles.survivalButton}
-              />
-              <AppButton
-                label={unsavedSurvivalBlocks.length === 0 ? "Study blocks saved" : `Save ${unsavedSurvivalBlocks.length} study blocks`}
-                variant="secondary"
-                disabled={unsavedSurvivalBlocks.length === 0}
-                onPress={saveSurvivalBlocks}
-                style={styles.survivalButton}
-              />
-            </View>
-            {savedSurvivalCount > 0 || unsavedSurvivalBlocks.length === 0 ? (
-              <Text style={styles.survivalSavedNote}>
-                {savedSurvivalCount > 0
-                  ? `${savedSurvivalCount} focus block${savedSurvivalCount === 1 ? "" : "s"} saved to Focus.`
-                  : "All survival blocks are already saved in Focus."}
-              </Text>
-            ) : null}
-          </GlassCard>
-        </>
-      ) : null}
-
-      <SectionHeader title="This week" note="See which days are crowded." />
+      <SectionHeader title="This week" note="Workload by day" />
       <GlassCard style={styles.weekCard}>
-        <View style={styles.weekSummaryGrid}>
-          <WeekSummaryTile label="Deadlines" value={String(weekSummary.totalItems)} detail={`${weekSummary.quietDays} quiet day${weekSummary.quietDays === 1 ? "" : "s"}`} tone="blue" />
-          <WeekSummaryTile label="Workload" value={formatHoursValue(weekSummary.totalMinutes)} detail={`${weekSummary.plannedBlocks} focus block${weekSummary.plannedBlocks === 1 ? "" : "s"} saved`} tone="green" />
-          <WeekSummaryTile label="Peak" value={weekSummary.peakDay?.label || "None"} detail={weekSummary.peakDay ? `${weekSummary.peakDay.items.length} due` : "no loaded day"} tone="pink" />
-        </View>
         {weekSummary.totalItems === 0 ? (
           <View style={styles.emptyWeekPanel}>
-            <Text style={styles.emptyWeekTitle}>No weekly load yet</Text>
-            <Text style={styles.emptyWeekCopy}>Add real homework above or import assignments elsewhere. Empty days stay visually empty until due dates exist.</Text>
+            <Text style={styles.emptyWeekTitle}>{openAssignments.length ? "No deadlines this week" : "No weekly load yet"}</Text>
+            <Text style={styles.emptyWeekCopy}>{openAssignments.length ? "Late or future work is grouped below." : "Scan a syllabus to build your plan."}</Text>
           </View>
         ) : null}
-        <View style={styles.loadRow}>
-          {weekLoad.map((day) => {
-            const height = day.score > 0 ? Math.max(14, Math.round((day.score / maxLoad) * 74)) : 0;
-            const minutes = day.items.reduce((sum, assignment) => sum + (assignment.estimatedMinutes || 25), 0);
-            return (
-              <View key={day.dateKey} style={styles.loadColumn}>
-                <View style={styles.loadTrack}>
-                  {height > 0 ? (
-                    <View
-                      style={[
-                        styles.loadBar,
-                        {
-                          height,
-                          backgroundColor: day.heavy ? colors.brandPink : colors.accent
-                        }
-                      ]}
-                    />
-                  ) : (
-                    <View style={styles.loadEmptyMark} />
-                  )}
+        {weekSummary.totalItems > 0 ? (
+          <View style={styles.loadRow}>
+            {weekLoad.map((day) => {
+              const height = day.score > 0 ? Math.max(14, Math.round((day.score / maxLoad) * 74)) : 0;
+              const minutes = day.items.reduce((sum, assignment) => sum + (assignment.estimatedMinutes || 25), 0);
+              return (
+                <View key={day.dateKey} style={styles.loadColumn}>
+                  <View style={styles.loadTrack}>
+                    {height > 0 ? (
+                      <View
+                        style={[
+                          styles.loadBar,
+                          {
+                            height,
+                            backgroundColor: day.heavy ? colors.brandPink : colors.accent
+                          }
+                        ]}
+                      />
+                    ) : (
+                      <View style={styles.loadEmptyMark} />
+                    )}
+                  </View>
+                  <Text style={styles.loadLabel}>{day.label.slice(0, 1)}</Text>
+                  <Text style={styles.loadCount}>{day.items.length}</Text>
+                  <Text style={styles.loadMinutes} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{minutes ? `${minutes}m` : "open"}</Text>
                 </View>
-                <Text style={styles.loadLabel}>{day.label.slice(0, 1)}</Text>
-                <Text style={styles.loadCount}>{day.items.length}</Text>
-                <Text style={styles.loadMinutes} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{minutes ? `${minutes}m` : "open"}</Text>
-              </View>
-            );
-          })}
-        </View>
-
-        <View style={styles.insightCard}>
-          <Text style={styles.insightKicker}>Busy week insight</Text>
-          <Text style={styles.insightTitle}>{insight.title}</Text>
-          <Text style={styles.insightCopy}>{insight.copy}</Text>
-        </View>
-
-        <View style={styles.suggestionList}>
-          {insight.suggestions.slice(0, 2).map((suggestion) => (
-            <TouchableOpacity
-              accessibilityRole="button"
-              key={suggestion.id}
-              style={styles.suggestionRow}
-              onPress={() => {
-                if (suggestion.assignmentId) onOpenAssignment(suggestion.assignmentId);
-              }}
-            >
-              <Text style={styles.suggestionTitle}>{suggestion.title}</Text>
-              <Text style={styles.suggestionCopy}>{suggestion.copy}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+              );
+            })}
+          </View>
+        ) : null}
       </GlassCard>
+
+      <SectionHeader title="Upcoming weeks" note="Grouped by urgency" />
+      <View style={styles.list}>
+        {weekGroups.map((group) => (
+          <GlassCard key={group.key} style={styles.weekGroupCard}>
+            <View style={styles.weekGroupHeader}>
+              <View>
+                <Text style={styles.weekGroupKicker}>{group.urgency}</Text>
+                <Text style={styles.weekGroupTitle}>{group.label}</Text>
+              </View>
+              <Text style={styles.weekGroupCount}>{group.items.length}</Text>
+            </View>
+            {group.items.slice(0, 4).map((assignment) => (
+              <AssignmentRow
+                key={assignment.id}
+                assignment={assignment}
+                course={getCourseForAssignment(courses, assignment)}
+                onPress={() => onOpenAssignment(assignment.id)}
+              />
+            ))}
+          </GlassCard>
+        ))}
+      </View>
     </View>
   );
 
@@ -460,8 +250,8 @@ function buildPlanState(assignments: Assignment[], courses: Course[], overdueCou
 
   if (overdueCount > 0) {
     return {
-      title: "Catch-up work is blocking the week.",
-      copy: "Start with the smallest overdue task, then use the week load to spread the rest.",
+      title: "Catch-up is blocking the week.",
+      copy: "Start with the smallest overdue task, then spread the rest across open days.",
       badge: "Busy"
     };
   }
@@ -517,6 +307,42 @@ function PlanStateTile({ label, value, detail, tone }: WeekSummaryTileProps) {
       <Text style={styles.planStateDetail} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.74}>{detail}</Text>
     </View>
   );
+}
+
+function buildSimpleWeekGroups(assignments: Assignment[], now: Date) {
+  const today = dateKey(now);
+  const groups = new Map<string, { key: string; label: string; urgency: string; items: Assignment[] }>();
+
+  assignments
+    .slice()
+    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
+    .forEach((assignment) => {
+      const dueKey = assignment.dueAt.slice(0, 10);
+      const dueDate = new Date(`${dueKey}T12:00:00`);
+      const weekStart = new Date(dueDate);
+      weekStart.setDate(dueDate.getDate() - dueDate.getDay());
+      const key = dateKey(weekStart);
+      const diffDays = Math.ceil((dueDate.getTime() - new Date(`${today}T12:00:00`).getTime()) / 86400000);
+      const urgency =
+        diffDays < 0
+          ? "Late"
+          : diffDays <= 7
+            ? "This week"
+            : diffDays <= 14
+              ? "Next week"
+              : "Later";
+      const existing = groups.get(key) || {
+        key,
+        label: `Week of ${formatSelectedDate(key)}`,
+        urgency,
+        items: []
+      };
+      existing.items.push(assignment);
+      if (urgency === "Late") existing.urgency = "Late";
+      groups.set(key, existing);
+    });
+
+  return Array.from(groups.values()).slice(0, 6);
 }
 
 function buildMonthDays(cursor: Date) {
@@ -644,7 +470,7 @@ function createStyles(theme: AppTheme) {
       gap: 0
     },
     hero: {
-      gap: spacing.sm,
+      gap: spacing.xs,
       padding: spacing.md,
       overflow: "hidden"
     },
@@ -678,8 +504,8 @@ function createStyles(theme: AppTheme) {
     },
     title: {
       color: colors.heroText,
-      fontSize: 28,
-      lineHeight: 34,
+      fontSize: 25,
+      lineHeight: 30,
       fontWeight: "900",
       letterSpacing: 0
     },
@@ -690,12 +516,12 @@ function createStyles(theme: AppTheme) {
       fontWeight: "600"
     },
     primaryPlanAction: {
-      minHeight: 88,
+      minHeight: 68,
       borderRadius: radii.xl,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: "rgba(255,255,255,0.20)",
       backgroundColor: "rgba(255,255,255,0.12)",
-      padding: spacing.md,
+      padding: spacing.sm,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
@@ -718,14 +544,14 @@ function createStyles(theme: AppTheme) {
     },
     primaryPlanTitle: {
       color: colors.heroText,
-      fontSize: 17,
-      lineHeight: 22,
+      fontSize: 16,
+      lineHeight: 21,
       fontWeight: "900"
     },
     primaryPlanDetail: {
       color: colors.heroMuted,
-      fontSize: 12,
-      lineHeight: 17,
+      fontSize: 11,
+      lineHeight: 16,
       fontWeight: "800"
     },
     heroStats: {
@@ -763,8 +589,8 @@ function createStyles(theme: AppTheme) {
     },
     stateTitle: {
       color: colors.heroText,
-      fontSize: 18,
-      lineHeight: 23,
+      fontSize: 17,
+      lineHeight: 22,
       fontWeight: "900"
     },
     stateBadge: {
@@ -781,8 +607,8 @@ function createStyles(theme: AppTheme) {
     },
     stateCopy: {
       color: colors.heroMuted,
-      fontSize: 13,
-      lineHeight: 19,
+      fontSize: 12,
+      lineHeight: 18,
       fontWeight: "700"
     },
     stateGrid: {
@@ -793,7 +619,7 @@ function createStyles(theme: AppTheme) {
     planStateTile: {
       flex: 1,
       minWidth: 96,
-      minHeight: 78,
+      minHeight: 68,
       borderRadius: radii.lg,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: "rgba(255,255,255,0.16)",
@@ -828,7 +654,7 @@ function createStyles(theme: AppTheme) {
     },
     miniStat: {
       flex: 1,
-      minHeight: 56,
+      minHeight: 44,
       alignItems: "center",
       justifyContent: "center",
       borderRightWidth: StyleSheet.hairlineWidth,
@@ -836,8 +662,8 @@ function createStyles(theme: AppTheme) {
     },
     miniStatValue: {
       color: colors.heroText,
-      fontSize: 22,
-      lineHeight: 27,
+      fontSize: 21,
+      lineHeight: 25,
       fontWeight: "900"
     },
     miniStatLabel: {
@@ -1009,6 +835,42 @@ function createStyles(theme: AppTheme) {
     },
     list: {
       gap: spacing.sm
+    },
+    weekGroupCard: {
+      gap: spacing.sm,
+      padding: spacing.md
+    },
+    weekGroupHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    weekGroupKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    weekGroupTitle: {
+      color: colors.ink,
+      fontSize: 17,
+      lineHeight: 22,
+      fontWeight: "900"
+    },
+    weekGroupCount: {
+      minWidth: 34,
+      textAlign: "center",
+      overflow: "hidden",
+      borderRadius: radii.round,
+      paddingVertical: 7,
+      paddingHorizontal: 10,
+      color: colors.heroText,
+      backgroundColor: colors.accent,
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
     },
     survivalCard: {
       gap: spacing.sm,

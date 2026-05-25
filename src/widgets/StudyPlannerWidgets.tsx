@@ -32,13 +32,13 @@ function StudyPlannerWidgetLayout(props, environment) {
   var items = (props.items || []).slice(0, isMedium ? 3 : 1);
   var accent = props.accentColor || "#2F80ED";
   var backgroundColor = props.backgroundColor || "#101723";
-  var isDark = backgroundColor === "#171A20" || backgroundColor === "#101723" || backgroundColor === "#070A12";
-  var ink = isDark ? "#F8F6EF" : "#171A20";
-  var muted = isDark ? "#D4D8E2" : "#69707D";
-  var quiet = isDark ? "#AEB6C7" : "#8A93A3";
-  var soft = isDark ? "#2A303B" : "#E7EAF0";
-  var surface = isDark ? "#202633" : "#FFFFFF";
-  var highlight = isDark ? "#1A2233" : "#FFFFFF";
+  var isDark = backgroundColor === "#171A20" || backgroundColor === "#101723" || backgroundColor === "#0D1422" || backgroundColor === "#061827" || backgroundColor === "#070A12" || backgroundColor === "#05070B";
+  var ink = isDark ? "#F8FAFC" : "#171A20";
+  var muted = isDark ? "#D7DEE9" : "#69707D";
+  var quiet = isDark ? "#A8B3C5" : "#8A93A3";
+  var soft = isDark ? "#263245" : "#E7EAF0";
+  var surface = isDark ? "#172132" : "#FFFFFF";
+  var highlight = isDark ? "#111B2B" : "#FFFFFF";
   var signalLabel = props.signalLabel || (props.state === "ready" ? "Live plan" : props.state === "needs_review" ? "Review first" : "Setup");
   var metricLabel = props.metricLabel || props.progressLabel || "Planner";
   var nextLabel = props.nextLabel || props.footnote || "Open StudyPlanner";
@@ -48,10 +48,26 @@ function StudyPlannerWidgetLayout(props, environment) {
   var detailLines = isMedium ? 2 : 1;
   var progress = Math.max(0, Math.min(1, props.progress || 0));
   var progressDots = [];
+  var weekDots = [];
   var rowNodes = [];
 
   for (var progressIndex = 0; progressIndex < 5; progressIndex += 1) {
     progressDots.push(circle(5, progress >= (progressIndex + 1) / 5 ? accent : soft));
+  }
+
+  for (var weekIndex = 0; weekIndex < 7; weekIndex += 1) {
+    weekDots.push(view("VStackView", {
+      alignment: "center",
+      spacing: 2,
+      children: [
+        circle(weekIndex < Math.max(1, Math.round(progress * 7)) ? 6 : 4, weekIndex < Math.max(1, Math.round(progress * 7)) ? accent : soft),
+        text(["M", "T", "W", "T", "F", "S", "S"][weekIndex], [
+          font({ size: 7, weight: "black" }),
+          foregroundStyle(quiet),
+          lineLimit(1)
+        ])
+      ]
+    }, "week-" + String(weekIndex)));
   }
 
   for (var index = 0; index < items.length; index += 1) {
@@ -308,10 +324,12 @@ function StudyPlannerWidgetLayout(props, environment) {
           view("HStackView", {
             alignment: "center",
             spacing: isMedium ? 12 : 8,
+            modifiers: [frame({ maxWidth: 400 })],
             children: [
               view("VStackView", {
                 alignment: "leading",
                 spacing: 2,
+                modifiers: [frame({ maxWidth: isMedium ? 142 : 160 })],
                 children: [
                   text(props.value, [
                     font({ size: valueSize, weight: "black", design: "rounded" }),
@@ -349,6 +367,18 @@ function StudyPlannerWidgetLayout(props, environment) {
                 : view("SpacerView", { minLength: 1 })
             ]
           }),
+          isMedium
+            ? view("HStackView", {
+                alignment: "center",
+                spacing: 5,
+                modifiers: [
+                  frame({ maxWidth: 400 }),
+                  padding({ all: 6 }),
+                  background(surface)
+                ],
+                children: weekDots
+              })
+            : view("SpacerView", { minLength: 1 }),
           view("HStackView", {
             alignment: "center",
             spacing: 5,

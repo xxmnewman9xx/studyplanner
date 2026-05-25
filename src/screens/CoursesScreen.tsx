@@ -60,6 +60,7 @@ export function CoursesScreen({
   const [newCourseCode, setNewCourseCode] = useState("");
   const [newCourseName, setNewCourseName] = useState("");
   const [newCourseInstructor, setNewCourseInstructor] = useState("");
+  const [editingSemesterDates, setEditingSemesterDates] = useState(false);
   const weekly = groupMeetingsByDay(courses);
   const counts = getClassAssignmentCounts(courses, assignments);
   const selectedCourse = courses.find((course) => course.id === selectedCourseId) || courses[0];
@@ -76,6 +77,10 @@ export function CoursesScreen({
         .filter((assignment) => assignment.courseId === selectedCourse.id)
         .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
     : [];
+  const selectedOpenAssignments = selectedAssignments.filter(
+    (assignment) => assignment.status !== "done" && assignment.status !== "archived"
+  );
+  const selectedNextAssignment = selectedOpenAssignments[0];
   const selectedNotes = selectedCourse
     ? notes
         .filter((note) => note.courseId === selectedCourse.id)
@@ -124,46 +129,89 @@ export function CoursesScreen({
           <Text style={styles.semesterMetaText}>{formatDateOnly(semester.startDate)} → {formatDateOnly(semester.endDate)}</Text>
           <Text style={styles.semesterMetaText}>{openAssignmentCount} open</Text>
         </View>
-        <View style={styles.semesterDates}>
-          <TextInput
-            value={semester.startDate}
-            onChangeText={(startDate) => onUpdateSemester({ startDate })}
-            placeholder="YYYY-MM-DD"
-            placeholderTextColor={colors.heroMuted}
-            style={styles.dateInput}
-          />
-          <TextInput
-            value={semester.endDate}
-            onChangeText={(endDate) => onUpdateSemester({ endDate })}
-            placeholder="YYYY-MM-DD"
-            placeholderTextColor={colors.heroMuted}
-            style={styles.dateInput}
-          />
-        </View>
+        <TouchableOpacity
+          accessibilityRole="button"
+          style={styles.semesterDateSummary}
+          onPress={() => setEditingSemesterDates((current) => !current)}
+        >
+          <View style={styles.dateSummaryItem}>
+            <Text style={styles.dateSummaryLabel}>Starts</Text>
+            <Text style={styles.dateSummaryValue}>{formatDateOnly(semester.startDate)}</Text>
+          </View>
+          <View style={styles.dateSummaryItem}>
+            <Text style={styles.dateSummaryLabel}>Ends</Text>
+            <Text style={styles.dateSummaryValue}>{formatDateOnly(semester.endDate)}</Text>
+          </View>
+          <Text style={styles.editDatesText}>{editingSemesterDates ? "Done" : "Edit"}</Text>
+        </TouchableOpacity>
+        {editingSemesterDates ? (
+          <View style={styles.semesterDates}>
+            <TextInput
+              value={semester.startDate}
+              onChangeText={(startDate) => onUpdateSemester({ startDate })}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor={colors.heroMuted}
+              style={styles.dateInput}
+            />
+            <TextInput
+              value={semester.endDate}
+              onChangeText={(endDate) => onUpdateSemester({ endDate })}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor={colors.heroMuted}
+              style={styles.dateInput}
+            />
+          </View>
+        ) : null}
       </GlassCard>
 
-      <GlassCard style={styles.opsCard}>
-        <View style={styles.opsHeader}>
-          <View style={styles.opsHeaderCopy}>
-            <Text style={styles.opsKicker}>Classes state</Text>
-            <Text style={styles.opsTitle}>{classHealth.title}</Text>
+      {selectedCourse ? (
+        <GlassCard style={styles.courseHubCard}>
+          <View style={styles.courseHubTop}>
+            <View style={[styles.courseHubIcon, { backgroundColor: selectedCourse.color }]}>
+              <Text style={styles.courseHubEmoji}>{courseEmoji(selectedCourse)}</Text>
+            </View>
+            <View style={styles.courseHubCopy}>
+              <Text style={styles.courseHubKicker}>Course hub</Text>
+              <Text style={styles.courseHubTitle} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>
+                {selectedCourse.code} · {selectedCourse.name || "Class"}
+              </Text>
+              <Text style={styles.courseHubMeta} numberOfLines={1}>
+                {selectedCourseMeta}
+              </Text>
+            </View>
           </View>
-          <Text style={styles.opsBadge}>{classHealth.badge}</Text>
-        </View>
-        <Text style={styles.opsCopy}>{classHealth.copy}</Text>
-        <View style={styles.opsGrid}>
-          <ClassStateTile label="Open" value={String(openAssignmentCount)} detail="across classes" />
-          <ClassStateTile label="Review" value={String(needsReviewCount)} detail={needsReviewCount ? "check imports" : "clean"} />
-          <ClassStateTile label="Notes" value={String(notes.length)} detail={notes.length ? "linked context" : "ready"} />
-        </View>
-      </GlassCard>
+          <View style={styles.courseHubStats}>
+            <ClassStateTile label="Open" value={String(selectedOpenAssignments.length)} detail={selectedNextAssignment?.title || "no homework"} />
+            <ClassStateTile label="Notes" value={String(selectedNotes.length)} detail={selectedNotes[0]?.title || "ready"} />
+            <ClassStateTile label="Meets" value={String(selectedCourse.meetings?.length || 0)} detail={selectedCourse.meetings?.[0]?.location || "add schedule"} />
+          </View>
+        </GlassCard>
+      ) : null}
+
+      {courses.length === 0 || needsReviewCount > 0 ? (
+        <GlassCard style={styles.opsCard}>
+          <View style={styles.opsHeader}>
+            <View style={styles.opsHeaderCopy}>
+              <Text style={styles.opsKicker}>Classes state</Text>
+              <Text style={styles.opsTitle}>{classHealth.title}</Text>
+            </View>
+            <Text style={styles.opsBadge}>{classHealth.badge}</Text>
+          </View>
+          <Text style={styles.opsCopy}>{classHealth.copy}</Text>
+          <View style={styles.opsGrid}>
+            <ClassStateTile label="Open" value={String(openAssignmentCount)} detail="across classes" />
+            <ClassStateTile label="Review" value={String(needsReviewCount)} detail={needsReviewCount ? "check imports" : "clean"} />
+            <ClassStateTile label="Notes" value={String(notes.length)} detail={notes.length ? "linked context" : "ready"} />
+          </View>
+        </GlassCard>
+      ) : null}
 
       <SectionHeader title="Your classes" note="Tap a class to see homework, teacher, room, and notes." />
       <View style={styles.courseList}>
         {courses.length === 0 ? (
           <GlassCard style={styles.emptyClassCard}>
-            <Text style={styles.emptyClassTitle}>No classes yet</Text>
-            <Text style={styles.emptyClassCopy}>Add one class below. Notes and homework will link to it.</Text>
+            <Text style={styles.emptyClassTitle}>Add your first class</Text>
+            <Text style={styles.emptyClassCopy}>Homework needs a class so Today, reminders, and widgets know where it belongs.</Text>
           </GlassCard>
         ) : courses.map((course) => (
           <ClassIdentityCard
@@ -293,7 +341,7 @@ export function CoursesScreen({
           <SectionHeader title="Homework for this class" note={`${counts[selectedCourse.id]?.open || 0} still open`} />
           <View style={styles.workList}>
             {selectedAssignments.length === 0 ? (
-              <Text style={styles.emptyDay}>No assignments yet.</Text>
+              <Text style={styles.emptyDay}>No homework for this class yet. Add one below or scan a syllabus from the Scan tab.</Text>
             ) : (
               selectedAssignments.slice(0, 5).map((assignment) => (
                 <AssignmentRow
@@ -306,13 +354,6 @@ export function CoursesScreen({
             )}
           </View>
 
-          <SectionHeader title="Class widget preview" note="Ready for class templates." />
-          <View style={styles.widgetShortcut}>
-            <Text style={styles.widgetShortcutTitle}>{selectedCourseTitle}</Text>
-            <Text style={styles.widgetShortcutCopy}>
-              {counts[selectedCourse.id]?.open || 0} open · {selectedNotes.length} note{selectedNotes.length === 1 ? "" : "s"}
-            </Text>
-          </View>
         </>
       ) : null}
 
@@ -322,7 +363,7 @@ export function CoursesScreen({
           <TextInput
             value={newCourseCode}
             onChangeText={setNewCourseCode}
-            placeholder="Class"
+            placeholder="BIO 101 or Algebra II"
             placeholderTextColor={colors.heroMuted}
             style={[styles.input, styles.fieldHalf]}
           />
@@ -475,11 +516,12 @@ function ClassStateTile({ label, value, detail }: { label: string; value: string
 }
 
 function createStyles(theme: AppTheme) {
-  const { colors, radii, spacing, typography } = theme;
+  const { colors, radii, spacing } = theme;
 
   return StyleSheet.create({
     hero: {
-      gap: spacing.md,
+      gap: spacing.sm,
+      padding: spacing.md,
       overflow: "hidden"
     },
     heroTop: {
@@ -501,18 +543,21 @@ function createStyles(theme: AppTheme) {
       textTransform: "uppercase"
     },
     heroTitle: {
-      ...typography.title,
       color: colors.heroText,
+      fontSize: 29,
+      lineHeight: 34,
+      fontWeight: "900",
       letterSpacing: 0
     },
     heroCopy: {
-      ...typography.body,
       color: colors.heroMuted,
+      fontSize: 14,
+      lineHeight: 20,
       fontWeight: "600"
     },
     classCountBadge: {
-      width: 70,
-      minHeight: 58,
+      width: 64,
+      minHeight: 52,
       flexShrink: 0,
       borderRadius: radii.lg,
       borderWidth: StyleSheet.hairlineWidth,
@@ -557,9 +602,45 @@ function createStyles(theme: AppTheme) {
       flexDirection: "row",
       gap: spacing.sm
     },
+    semesterDateSummary: {
+      minHeight: 50,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.16)",
+      backgroundColor: "rgba(255,255,255,0.08)",
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    dateSummaryItem: {
+      flex: 1,
+      minWidth: 0
+    },
+    dateSummaryLabel: {
+      color: colors.heroMuted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      letterSpacing: 0.5,
+      textTransform: "uppercase"
+    },
+    dateSummaryValue: {
+      color: colors.heroText,
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    editDatesText: {
+      color: colors.accent,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
+    },
     dateInput: {
       flex: 1,
-      minHeight: 42,
+      minHeight: 38,
       borderRadius: radii.md,
       backgroundColor: "rgba(255,255,255,0.10)",
       borderWidth: StyleSheet.hairlineWidth,
@@ -568,6 +649,62 @@ function createStyles(theme: AppTheme) {
       paddingHorizontal: spacing.sm,
       fontSize: 13,
       fontWeight: "900"
+    },
+    courseHubCard: {
+      gap: spacing.md,
+      marginTop: spacing.sm,
+      padding: spacing.md,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(49,91,255,0.16)",
+      backgroundColor: colors.heroSurface
+    },
+    courseHubTop: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: spacing.sm
+    },
+    courseHubIcon: {
+      width: 52,
+      height: 52,
+      borderRadius: 18,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.24)"
+    },
+    courseHubEmoji: {
+      fontSize: 24,
+      lineHeight: 30
+    },
+    courseHubCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 1
+    },
+    courseHubKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "900",
+      letterSpacing: 0.6,
+      textTransform: "uppercase"
+    },
+    courseHubTitle: {
+      color: colors.heroText,
+      fontSize: 19,
+      lineHeight: 24,
+      fontWeight: "900"
+    },
+    courseHubMeta: {
+      color: colors.heroMuted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "800"
+    },
+    courseHubStats: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs,
+      marginTop: 2
     },
     opsCard: {
       gap: spacing.sm,
