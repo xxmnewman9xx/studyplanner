@@ -14,7 +14,7 @@ declare const process:
 const parseEndpoint = readEnv("EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT");
 
 export function isSyllabusParsingConfigured() {
-  return true;
+  return Boolean(parseEndpoint);
 }
 
 export function supportsSyllabusImageParsing() {

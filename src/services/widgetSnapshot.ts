@@ -310,7 +310,7 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
             signalLabel: "Clear week",
             metricLabel: reviewCount > 0 ? `${reviewCount} to review` : "No open work",
             nextLabel: reviewCount > 0 ? "Approve scanned items first" : "Add homework when it appears",
-            timelineLabel: "Next 7 days"
+            timelineLabel: "Upcoming"
           })
   };
 }
@@ -543,7 +543,7 @@ function getNativeWidgetStyle(
             ? "9 PM+"
             : kind === "today"
               ? "Today"
-              : "Next 7 days");
+              : "Upcoming");
   const layout = preset?.layout || "list";
   const densityLabel = preset?.size === "small" ? "Calm" : layout === "compact" || layout === "list" ? "Compact" : "Visual";
 

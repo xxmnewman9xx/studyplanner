@@ -152,6 +152,15 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
           </View>
 
           {plansUnavailable ? (
+            <PaywallActions
+              busy={busy}
+              selectedProduct={selectedProduct}
+              subscription={subscription}
+              styles={styles}
+            />
+          ) : null}
+
+          {plansUnavailable ? (
             <View style={styles.unavailableCard}>
               <Text style={styles.unavailableTitle}>Purchases are unavailable</Text>
               <Text style={styles.unavailableCopy}>{unavailableCopy(subscription.status, subscription.hasConfiguredProducts, hardMode)}</Text>
@@ -161,24 +170,14 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
             </View>
           ) : null}
 
-          <View style={styles.actionStack}>
-            <AppButton
-              label={ctaLabel(selectedProduct, subscription.flowState)}
-              icon={Crown}
-              disabled={!selectedProduct || busy}
-              style={styles.actionButton}
-              onPress={() => {
-                if (selectedProduct) void subscription.purchase(selectedProduct.id);
-              }}
+          {!plansUnavailable ? (
+            <PaywallActions
+              busy={busy}
+              selectedProduct={selectedProduct}
+              subscription={subscription}
+              styles={styles}
             />
-            <AppButton
-              label={subscription.flowState === "restoring" ? "Restoring" : "Restore Purchases"}
-              variant="secondary"
-              disabled={busy}
-              style={styles.actionButton}
-              onPress={() => void subscription.restore()}
-            />
-          </View>
+          ) : null}
 
           <View style={styles.trustRail}>
             <TrustPill icon={ShieldCheck} label="Apple checkout" />
@@ -211,6 +210,39 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
         <Text style={styles.legalDivider}>·</Text>
         <LegalLink label="Privacy Policy" document="privacy" onOpen={setLegalDocument} />
       </View>
+    </View>
+  );
+}
+
+function PaywallActions({
+  busy,
+  selectedProduct,
+  subscription,
+  styles
+}: {
+  busy: boolean;
+  selectedProduct: PaywallProduct | undefined;
+  subscription: ReturnType<typeof useSubscription>;
+  styles: ReturnType<typeof createStyles>;
+}) {
+  return (
+    <View style={styles.actionStack}>
+      <AppButton
+        label={ctaLabel(selectedProduct, subscription.flowState)}
+        icon={Crown}
+        disabled={!selectedProduct || busy}
+        style={styles.actionButton}
+        onPress={() => {
+          if (selectedProduct) void subscription.purchase(selectedProduct.id);
+        }}
+      />
+      <AppButton
+        label={subscription.flowState === "restoring" ? "Restoring" : "Restore Purchases"}
+        variant="secondary"
+        disabled={busy}
+        style={styles.actionButton}
+        onPress={() => void subscription.restore()}
+      />
     </View>
   );
 }

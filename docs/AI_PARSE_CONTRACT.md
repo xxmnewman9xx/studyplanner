@@ -2,22 +2,17 @@
 
 The app posts PDF/photo uploads to `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT`. The endpoint should perform OCR, extract structured dates, and return the contract below.
 
-## Request
+## Client Request
 
-```json
-{
-  "source": {
-    "kind": "pdf",
-    "uri": "file-or-upload-url",
-    "name": "BIO 101 syllabus.pdf"
-  },
-  "studentContext": {
-    "timezone": "America/New_York",
-    "schoolLevel": "college",
-    "semesterHint": "Fall 2026"
-  }
-}
+The current mobile client sends `multipart/form-data`, not JSON:
+
+```text
+kind=pdf|photo|typed
+file=<uploaded PDF/image>   # omitted for typed text
+text=<pasted syllabus text> # only for typed text
 ```
+
+The endpoint must infer timezone/date context from the document or server defaults until the client is extended to send `studentContext`.
 
 ## Response
 

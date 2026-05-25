@@ -209,6 +209,28 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
     ? draft.assignments.filter(isDraftAssignmentFlagged).length
     : parsedItems.filter((item) => item.needsReview).length;
   const canApplyDraft = Boolean(draft && draft.assignments.length > 0 && invalidDeadlineCount === 0 && needsReviewCount === 0 && !premiumImportLocked);
+  const confirmableDraftCount = draft
+    ? draft.assignments.filter((assignment) => isValidDeadline(assignment.dueAt)).length
+    : 0;
+
+  const confirmAllValid = () => {
+    if (!draft) return;
+    const updatedAt = new Date().toISOString();
+    setDraft({
+      ...draft,
+      assignments: draft.assignments.map((assignment) =>
+        isValidDeadline(assignment.dueAt)
+          ? {
+              ...assignment,
+              needsReview: false,
+              duplicateOf: undefined,
+              confidence: Math.max(assignment.confidence || 0, 0.86),
+              updatedAt
+            }
+          : assignment
+      )
+    });
+  };
 
   const addUndatedExampleDraft = (example: string) => {
     if (!draft) return;
@@ -387,6 +409,69 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
       {draft ? (
         <>
           <SectionHeader title="Review work" note={`${draft.assignments.length} found. Edit, confirm, then add to Today.`} />
+          <GlassCard style={styles.resultCard}>
+            <View style={[
+              styles.reviewGateCard,
+              canApplyDraft ? styles.reviewGateReady : styles.reviewGateBlocked
+            ]}>
+              <View style={styles.reviewGateHeader}>
+                <View style={styles.reviewGateIcon}>
+                  {canApplyDraft ? (
+                    <CheckCircle2 color={colors.green} size={18} />
+                  ) : (
+                    <AlertTriangle color={colors.red} size={18} />
+                  )}
+                </View>
+                <View style={styles.reviewGateCopy}>
+                  <Text style={styles.reviewGateTitle}>
+                    {canApplyDraft ? "Ready to add to Today" : "Review before adding"}
+                  </Text>
+                  <Text style={styles.reviewGateText}>
+                    {canApplyDraft
+                      ? "Every row has a valid date and has been confirmed."
+                      : reviewGateMessage(invalidDeadlineCount, needsReviewCount)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+            {counts ? (
+              <View style={styles.resultStats}>
+                <ResultStat value={String(counts.assignments)} label="Assignments" tone="blue" />
+                <ResultStat value={String(counts.exams)} label="Exams" tone="gold" />
+                <ResultStat value={String(counts.projects)} label="Projects" tone="pink" />
+                <ResultStat value={String(confirmableDraftCount)} label="Valid dates" tone="plain" />
+              </View>
+            ) : null}
+            <View style={styles.confidencePanel}>
+              <Text style={styles.confidenceKicker}>Trust check</Text>
+              <Text style={styles.confidenceCopy}>
+                Confirmed rows can reach Today, Calendar, reminders, and widgets. Invalid dates stay blocked until edited.
+              </Text>
+              <View style={styles.confidenceLegend}>
+                <View style={[styles.confidenceLegendPill, styles.confidenceHigh]}>
+                  <Text style={styles.confidenceLegendText}>High confidence</Text>
+                </View>
+                <View style={[styles.confidenceLegendPill, styles.confidenceMedium]}>
+                  <Text style={styles.confidenceLegendText}>Check</Text>
+                </View>
+                <View style={[styles.confidenceLegendPill, styles.confidenceLow]}>
+                  <Text style={styles.confidenceLegendText}>Fix required</Text>
+                </View>
+              </View>
+            </View>
+            <View style={styles.trustRow}>
+              <TrustChip label="Editable before save" />
+              <TrustChip label="Widgets use reviewed work" />
+              <TrustChip label="No silent import" />
+            </View>
+            <AppButton
+              label={invalidDeadlineCount > 0 ? "Confirm valid rows only" : "Confirm all valid rows"}
+              icon={CheckCircle2}
+              variant="secondary"
+              disabled={confirmableDraftCount === 0}
+              onPress={confirmAllValid}
+            />
+          </GlassCard>
           <View style={styles.editList}>
             {draft.assignments.map((assignment) => {
               const courseCode =
@@ -414,6 +499,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                       <Text style={styles.editMeta}>
                         {courseCode} · due {formatReviewDate(dueDate)}
                       </Text>
+                      <ConfidenceBadge confidence={assignment.confidence || 0.9} needsReview={!reviewed} />
                     </View>
                   </View>
 
@@ -443,6 +529,17 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                       Enter a real due date before this row can be confirmed.
                     </Text>
                   ) : null}
+                  <View style={styles.trustRail}>
+                    <View
+                      style={[
+                        styles.trustRailFill,
+                        { width: `${Math.min(100, Math.max(12, Math.round((assignment.confidence || 0.9) * 100)))}%` }
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.trustExplanation}>
+                    {trustExplanation(assignment.confidence || 0.9, !reviewed)}
+                  </Text>
 
                   {!reviewed ? (
                     <AppButton

@@ -203,7 +203,7 @@ function isCaptureScreen(value: unknown): value is MarketingCaptureScreen {
 }
 
 function isCaptureOnboardingIndex(value: unknown): value is number {
-  return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 5;
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 6;
 }
 
 function isCaptureThemeAccent(value: unknown): value is ThemeAccent {
@@ -1224,7 +1224,7 @@ function AppContent() {
               styles={styles}
               onPrimaryAction={() => {
                 if (systemState.action === "scan") openTab("import");
-                if (systemState.action === "review") openTab("plan");
+                if (systemState.action === "review") openTab("import");
                 if (systemState.action === "today") openTab("today");
                 if (systemState.action === "widgets") openTab("more");
               }}

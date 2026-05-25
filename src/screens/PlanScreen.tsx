@@ -141,6 +141,77 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
         </View>
       </GlassCard>
 
+      <GlassCard style={styles.captureCard}>
+        <Text style={styles.catchUpBadgeText}>Capture</Text>
+        <Text style={styles.catchUpTitle}>Put new work on the selected day.</Text>
+        <Text style={styles.catchUpCopy}>Type a quick note after class. It becomes real planner data, not a decorative calendar event.</Text>
+        <TextInput
+          value={quickPlanText}
+          onChangeText={setQuickPlanText}
+          placeholder="BIO lab worksheet Friday"
+          placeholderTextColor={colors.heroMuted}
+          style={styles.captureInput}
+        />
+        {quickPlanText.trim() ? (
+          <Text style={styles.capturePreview}>
+            Will add {parsedPlanCapture.course?.code || courses[0]?.code || "class"} · {parsedPlanCapture.title || "work"} · due {formatSelectedDate(parsedPlanCapture.dueDate || selectedDate)}
+          </Text>
+        ) : (
+          <Text style={styles.captureHint}>Selected day: {formatSelectedDate(selectedDate)}</Text>
+        )}
+        <View style={styles.catchUpActions}>
+          <AppButton
+            label={courses.length ? "Add to calendar" : "Scan syllabus"}
+            icon={Plus}
+            disabled={courses.length > 0 && (!parsedPlanCapture.course || !parsedPlanCapture.title.trim() || !parsedPlanCapture.dueDate.trim())}
+            onPress={courses.length ? addPlanCapture : onOpenScan}
+            style={styles.catchUpButton}
+          />
+          <AppButton label="Scan instead" variant="secondary" onPress={onOpenScan} style={styles.catchUpButton} />
+        </View>
+      </GlassCard>
+
+      {survivalPlan.active ? (
+        <GlassCard style={styles.catchUpCard}>
+          <View style={styles.catchUpTopRow}>
+            <View style={styles.catchUpBadge}>
+              <Text style={styles.catchUpBadgeText}>Survival plan</Text>
+            </View>
+            <Text style={styles.catchUpMeta}>{formatHoursValue(survivalPlan.totalMinutes)} due soon</Text>
+          </View>
+          <Text style={styles.catchUpTitle}>
+            {survivalCourse?.code ? `${survivalCourse.code}: ` : ""}{survivalFirst?.title || "This week is getting heavy."}
+          </Text>
+          <Text style={styles.catchUpCopy}>
+            Split the next {survivalPlan.windowDays} days into focus blocks before the busy days stack up.
+          </Text>
+          <View style={styles.survivalList}>
+            {survivalPlan.blocks.slice(0, 4).map((block) => {
+              const course = getCourseForAssignment(courses, block.assignment);
+              const saved = savedSurvivalKeys.has(survivalBlockKey(block.assignment.id, block.dateKey));
+              return (
+                <View key={`${block.assignment.id}-${block.dateKey}`} style={styles.survivalRow}>
+                  <Text style={styles.survivalDay}>{block.label}</Text>
+                  <View style={styles.survivalItemCopy}>
+                    <Text style={styles.survivalItemTitle} numberOfLines={1}>{course?.code ? `${course.code} · ` : ""}{block.assignment.title}</Text>
+                    <Text style={styles.survivalMeta}>{block.minutes}m block · {saved ? "saved" : formatSelectedDate(block.dateKey)}</Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+          {savedSurvivalCount > 0 ? (
+            <Text style={styles.savedPlanText}>{savedSurvivalCount} focus block{savedSurvivalCount === 1 ? "" : "s"} saved.</Text>
+          ) : null}
+          <AppButton
+            label={unsavedSurvivalBlocks.length ? "Save focus blocks" : "Focus blocks saved"}
+            icon={Timer}
+            disabled={unsavedSurvivalBlocks.length === 0}
+            onPress={saveSurvivalBlocks}
+          />
+        </GlassCard>
+      ) : null}
+
       <SectionHeader title="Month" note="Tap a day to inspect due work" />
       <GlassCard style={styles.calendarCard}>
         <View style={styles.monthHeader}>
@@ -861,6 +932,50 @@ function createStyles(theme: AppTheme) {
       fontSize: 12,
       fontWeight: "700",
       lineHeight: 17
+    },
+    survivalList: {
+      gap: spacing.xs
+    },
+    survivalRow: {
+      minHeight: 48,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.16)",
+      backgroundColor: "rgba(255,255,255,0.08)",
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 8,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    survivalDay: {
+      width: 76,
+      color: colors.accent,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
+    },
+    survivalItemCopy: {
+      flex: 1,
+      minWidth: 0
+    },
+    survivalItemTitle: {
+      color: colors.heroText,
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    survivalMeta: {
+      color: colors.heroMuted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
+    },
+    savedPlanText: {
+      color: colors.heroMuted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "900"
     },
     calendarCard: {
       padding: spacing.md,

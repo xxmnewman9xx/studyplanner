@@ -15,7 +15,7 @@ export async function syncAssignmentsToDeviceCalendar(
 
   const calendarId = await getOrCreatePlannerCalendar();
   const openAssignments = getSchedulableAssignments(assignments).filter(
-    (assignment) => !assignment.externalCalendarEventId
+    (assignment) => isReviewedForAutomation(assignment) && !assignment.externalCalendarEventId
   );
   const calendarEventIdsByAssignment: Record<string, string> = {};
 
@@ -36,6 +36,10 @@ export async function syncAssignmentsToDeviceCalendar(
   }
 
   return { count: Object.keys(calendarEventIdsByAssignment).length, calendarEventIdsByAssignment };
+}
+
+function isReviewedForAutomation(assignment: Assignment) {
+  return !assignment.needsReview && !assignment.duplicateOf;
 }
 
 async function getOrCreatePlannerCalendar() {

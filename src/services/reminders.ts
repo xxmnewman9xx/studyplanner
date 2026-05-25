@@ -8,7 +8,7 @@ export async function scheduleSmartReminders(assignments: Assignment[], courses:
     throw new Error("Notifications permission was not granted.");
   }
 
-  const openAssignments = getSchedulableAssignments(assignments);
+  const openAssignments = getSchedulableAssignments(assignments).filter(isReviewedForAutomation);
   let scheduled = 0;
   const reminderIdsByAssignment: Record<string, string[]> = {};
 
@@ -46,4 +46,8 @@ export async function scheduleSmartReminders(assignments: Assignment[], courses:
   }
 
   return { count: scheduled, reminderIdsByAssignment };
+}
+
+function isReviewedForAutomation(assignment: Assignment) {
+  return !assignment.needsReview && !assignment.duplicateOf;
 }

@@ -7,6 +7,7 @@ import {
   FileScan,
   GraduationCap,
   ListChecks,
+  NotebookPen,
   Sparkles,
   Timer
 } from "lucide-react-native";
@@ -42,7 +43,7 @@ type OnboardingScreenProps = {
   initialIndex?: number;
 };
 
-type SlideId = "scan" | "review" | "calendar" | "classes" | "focus" | "widgets";
+type SlideId = "scan" | "review" | "calendar" | "today" | "classes" | "focus" | "widgets";
 
 const slides: Array<{
   id: SlideId;
@@ -70,6 +71,13 @@ const slides: Array<{
     eyebrow: "Calendar",
     title: "See the semester shape.",
     copy: "Workload, due days, and progress stay visible without another spreadsheet.",
+    cta: "Next"
+  },
+  {
+    id: "today",
+    eyebrow: "Today",
+    title: "Know what to do first.",
+    copy: "One next task, a quick capture box, and progress live in the daily command center.",
     cta: "Next"
   },
   {
@@ -218,6 +226,7 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
               {slide.id === "scan" ? <FileScan color={colors.heroText} size={22} /> : null}
               {slide.id === "review" ? <ListChecks color={colors.heroText} size={22} /> : null}
               {slide.id === "calendar" ? <CalendarDays color={colors.heroText} size={22} /> : null}
+              {slide.id === "today" ? <NotebookPen color={colors.heroText} size={22} /> : null}
               {slide.id === "classes" ? <GraduationCap color={colors.heroText} size={22} /> : null}
               {slide.id === "focus" ? <Timer color={colors.heroText} size={22} /> : null}
               {slide.id === "widgets" ? <Sparkles color={colors.heroText} size={22} /> : null}
@@ -234,6 +243,7 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
           {slide.id === "scan" ? <ScanPreview styles={styles} /> : null}
           {slide.id === "review" ? <ReviewPreview styles={styles} /> : null}
           {slide.id === "calendar" ? <CalendarPreview styles={styles} /> : null}
+          {slide.id === "today" ? <TodayPreview styles={styles} /> : null}
           {slide.id === "classes" ? <ClassesPreview styles={styles} /> : null}
           {slide.id === "focus" ? <FocusPreview styles={styles} /> : null}
           {slide.id === "widgets" ? (

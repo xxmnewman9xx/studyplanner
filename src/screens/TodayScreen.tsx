@@ -100,6 +100,36 @@ export function TodayScreen({
   const weekItems = plan.upcoming
     .filter((assignment) => assignment.id !== plan.nextAction?.id && assignment.dueAt.slice(0, 10) !== todayDateInput())
     .slice(0, 4);
+  const commandTiles = [
+    {
+      label: "Scan",
+      value: imageActionLabel(plannerHasData),
+      detail: "Add paper, PDF, or text",
+      icon: FileScan,
+      action: onOpenScan
+    },
+    {
+      label: "Review",
+      value: String(plan.needsReview.length),
+      detail: plan.needsReview.length ? "items need trust check" : "planner is clean",
+      icon: CheckCircle2,
+      action: onOpenScan
+    },
+    {
+      label: "Calendar",
+      value: `${plan.dueToday.length}/${plan.upcoming.length}`,
+      detail: "today / upcoming",
+      icon: CalendarPlus,
+      action: onOpenPlan
+    },
+    {
+      label: "Widgets",
+      value: assignments.length ? `${Math.min(99, assignments.length)}` : "Set up",
+      detail: assignments.length ? "reviewed source rows" : "needs planner data",
+      icon: Sparkles,
+      action: onOpenWidgets
+    }
+  ];
 
   useEffect(() => {
     if (!courses.length) {
@@ -190,6 +220,118 @@ export function TodayScreen({
           />
         )}
         {!plannerHasData ? <AppButton label="Scan syllabus" icon={FileScan} onPress={onOpenScan} /> : null}
+      </GlassCard>
+
+      <View style={styles.commandRail}>
+        {commandTiles.map((tile) => {
+          const Icon = tile.icon;
+          return (
+            <TouchableOpacity
+              accessibilityRole="button"
+              key={tile.label}
+              style={styles.commandTile}
+              onPress={tile.action}
+            >
+              <View style={styles.commandTileTop}>
+                <View style={styles.commandTileIcon}>
+                  <Icon color={colors.accent} size={16} />
+                </View>
+                <Text style={styles.commandTileLabel}>{tile.label}</Text>
+              </View>
+              <Text style={styles.commandTileValue} numberOfLines={1}>{tile.value}</Text>
+              <Text style={styles.commandTileDetail} numberOfLines={2}>{tile.detail}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      <GlassCard style={styles.quickAddCard}>
+        <View style={styles.commandCenterHeader}>
+          <View style={styles.commandCenterCopy}>
+            <Text style={styles.commandCenterKicker}>Quick capture</Text>
+            <Text style={styles.commandCenterTitle}>Add homework before it slips.</Text>
+          </View>
+          <TouchableOpacity accessibilityRole="button" style={styles.commandCenterButton} onPress={onOpenScan}>
+            <Text style={styles.commandCenterButtonText}>Scan</Text>
+          </TouchableOpacity>
+        </View>
+
+        {courses.length ? (
+          <>
+            <View style={styles.courseRail}>
+              {courses.slice(0, 5).map((course) => {
+                const active = course.id === quickCourseId;
+                return (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                    key={course.id}
+                    style={[styles.coursePill, active ? styles.coursePillActive : null]}
+                    onPress={() => setQuickCourseId(course.id)}
+                  >
+                    <Text style={[styles.coursePillText, active ? styles.coursePillTextActive : null]}>
+                      {courseEmoji(course)} {course.code || course.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            <View style={styles.quickInputRow}>
+              <TextInput
+                value={quickTitle}
+                onChangeText={setQuickTitle}
+                placeholder="Chapter 4 notes tomorrow"
+                placeholderTextColor={colors.faint}
+                style={[styles.quickInput, styles.quickTitleInput]}
+              />
+              <TextInput
+                value={quickDueDate}
+                onChangeText={setQuickDueDate}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={colors.faint}
+                style={[styles.quickInput, styles.quickDateInput]}
+              />
+            </View>
+            <AppButton
+              label="Add to Today"
+              icon={Plus}
+              disabled={!parsedQuickHomework.course || !parsedQuickHomework.title.trim() || !parsedQuickHomework.dueDate.trim()}
+              onPress={addHomework}
+            />
+            <View style={styles.quickDueRail}>
+              {quickDuePresets.slice(0, 3).map((preset) => {
+                const active = quickDueDate === preset.value;
+                return (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                    key={preset.label}
+                    style={[styles.quickDuePill, active ? styles.quickDuePillActive : null]}
+                    onPress={() => setQuickDueDate(preset.value)}
+                  >
+                    <Text style={[styles.quickDuePillText, active ? styles.quickDuePillTextActive : null]}>
+                      {preset.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            {quickTitle.trim() ? (
+              <Text style={styles.quickParsePreview}>
+                Will add {parsedQuickHomework.course?.code || quickCourse?.code || "class"} · {parsedQuickHomework.title || "homework"} · due {formatDateOnly(parsedQuickHomework.dueDate)}
+              </Text>
+            ) : null}
+          </>
+        ) : (
+          <View style={styles.noClassBlock}>
+            <Text style={styles.noClassTitle}>Add a class first.</Text>
+            <Text style={styles.noClassCopy}>Homework needs a class so Today, Calendar, and widgets know where it belongs.</Text>
+            <View style={styles.actionRow}>
+              <AppButton label="Classes" variant="secondary" onPress={onOpenClasses} style={styles.actionButton} />
+              <AppButton label="Scan syllabus" icon={FileScan} onPress={onOpenScan} style={styles.actionButton} />
+            </View>
+          </View>
+        )}
       </GlassCard>
 
       {plan.overdue.length > 0 ? (
@@ -376,6 +518,10 @@ function buildLiveBrief(plan: ReturnType<typeof buildTodayPlan>, courseCount: nu
     title: "Clear right now",
     detail: "No urgent work is loaded. Scan new work when you get it."
   };
+}
+
+function imageActionLabel(plannerHasData: boolean) {
+  return plannerHasData ? "Add" : "Start";
 }
 
 type MetricPillProps = {
@@ -588,6 +734,45 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800",
       textTransform: "uppercase",
       letterSpacing: 0.6
+    },
+    commandRail: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs,
+      marginBottom: spacing.sm
+    },
+    commandTileTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.xs
+    },
+    commandTileIcon: {
+      width: 28,
+      height: 28,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.accentSoft
+    },
+    commandTileLabel: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    commandTileValue: {
+      color: colors.ink,
+      fontSize: 18,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    commandTileDetail: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
     },
     nextHero: {
       borderRadius: radii.xl,

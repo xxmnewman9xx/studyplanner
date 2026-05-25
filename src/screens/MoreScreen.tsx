@@ -293,19 +293,27 @@ export function MoreScreen({
       preset: { type: "needs_check", size: "medium", background: "solid", palette: "minimal", layout: "list", iconKey: "check" }
     }
   ];
-  const selectedTemplate =
-    starterTemplates.find((template) => template.preset.type === type) || starterTemplates[0]!;
-  const basicNativeTemplate = selectedTemplate.entitlement === "free" && (type === "today" || type === "due_next");
+  const selectedTemplate = starterTemplates.find((template) => template.preset.type === type);
+  const selectedTemplatePreset = selectedTemplate?.preset || {
+    type,
+    size,
+    background,
+    palette,
+    layout,
+    iconKey
+  };
+  const selectedTemplateEntitlement = selectedTemplate?.entitlement || "plus";
+  const basicNativeTemplate = selectedTemplateEntitlement === "free" && (type === "today" || type === "due_next");
   const advancedCustomizationSelected =
     size === "large" ||
-    background !== selectedTemplate.preset.background ||
-    palette !== selectedTemplate.preset.palette ||
-    layout !== selectedTemplate.preset.layout ||
-    iconKey !== selectedTemplate.preset.iconKey ||
+    background !== selectedTemplatePreset.background ||
+    palette !== selectedTemplatePreset.palette ||
+    layout !== selectedTemplatePreset.layout ||
+    iconKey !== selectedTemplatePreset.iconKey ||
     font !== "SF Pro";
   const selectedTemplateLocked =
     premiumWidgetsLocked &&
-    (selectedTemplate.entitlement === "plus" || (basicNativeTemplate && advancedCustomizationSelected));
+    (selectedTemplateEntitlement === "plus" || (basicNativeTemplate && advancedCustomizationSelected));
   const nativeStatusLabel =
     nativeWidgetStatus.state === "synced"
       ? "Synced"
@@ -333,7 +341,7 @@ export function MoreScreen({
     { label: "Source rows", value: String(reviewedWidgetItems), detail: reviewedWidgetItems > 0 ? "Reviewed only" : "No reviewed rows" },
     { label: "Sync", value: nativeWidgetStatus.state === "synced" ? "Ready" : "Needs build", detail: nativeWidgetStatus.state === "synced" ? "Phone widget data" : "Install native app" }
   ];
-  const dataSourceLabel = nativePreview ? "Native widget snapshot" : type === "class_focus" ? "Class-specific planner data" : "Live planner data";
+  const dataSourceLabel = nativePreview ? "Native data" : type === "class_focus" ? "Class data" : "Planner preview";
   const topPreviewItems = displayWidgetData.items.slice(0, 4);
   const selectedTemplateLabel = labelForWidgetType(type);
   const lockPreviewSnapshot = nativePreview || nativeSnapshots.today;
@@ -365,6 +373,16 @@ export function MoreScreen({
     "Agenda rows in medium widgets",
     "Privacy can hide titles",
     "Reviewed work only"
+  ];
+  const studioSteps = [
+    { label: "Widget", detail: selectedTemplateLabel, active: true },
+    { label: "Data", detail: dataSourceLabel, active: hasAssignments || type === "class_focus" },
+    { label: "Style", detail: `${labelize(size)} / ${labelize(palette)}`, active: true },
+    {
+      label: "Place",
+      detail: nativePreview ? nativeStatusLabel : "In-app preset",
+      active: nativePreview ? nativeWidgetStatus.state === "synced" : true
+    }
   ];
   const moreDestinations = [
     { label: "Notes", detail: "Class context", icon: NotebookPen, action: onOpenNotes, locked: false },
@@ -440,6 +458,45 @@ export function MoreScreen({
     onSaveWidgetPreset(previewPreset);
   };
 
+  const moreHub = (
+    <GlassCard style={styles.moreHubCard}>
+      <View style={styles.moreHubTopRow}>
+        <View style={styles.moreHubCopy}>
+          <Text style={styles.moreHubKicker}>More</Text>
+          <Text style={styles.moreHubTitle}>Notes, study, grades, and settings.</Text>
+          <Text style={styles.moreHubText}>Open the secondary tools before you tune widgets.</Text>
+        </View>
+        <View style={styles.moreHubIcon}>
+          <Settings2 color={colors.heroText} size={20} />
+        </View>
+      </View>
+      <View style={styles.destinationGrid}>
+        {moreDestinations.map((item) => {
+          const Icon = item.icon;
+          return (
+            <TouchableOpacity
+              accessibilityRole="button"
+              key={item.label}
+              style={styles.destinationCard}
+              onPress={item.locked ? onOpenPaywall : item.action}
+            >
+              <View style={styles.destinationIcon}>
+                <Icon color={colors.accent} size={18} />
+              </View>
+              <View style={styles.destinationCopy}>
+                <View style={styles.destinationTitleRow}>
+                  <Text style={styles.destinationTitle}>{item.label}</Text>
+                  {item.locked ? <Text numberOfLines={1} style={styles.destinationLock}>Plus</Text> : null}
+                </View>
+                <Text style={styles.destinationDetail} numberOfLines={2}>{item.detail}</Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </GlassCard>
+  );
+
   return (
     <View>
       <View style={styles.studioShell}>
@@ -453,6 +510,21 @@ export function MoreScreen({
               <View style={[styles.nativeStatusDot, nativeWidgetStatus.state === "synced" ? styles.nativeStatusDotSynced : null]} />
               <Text style={styles.nativeStatusText}>{nativeStatusLabel}</Text>
             </View>
+          </View>
+
+          <View style={styles.studioStepRail}>
+            {studioSteps.map((step, stepIndex) => (
+              <View
+                key={step.label}
+                style={[styles.studioStep, step.active ? styles.studioStepActive : null]}
+              >
+                <Text style={styles.studioStepIndex}>{stepIndex + 1}</Text>
+                <View style={styles.studioStepCopy}>
+                  <Text style={styles.studioStepLabel}>{step.label}</Text>
+                  <Text style={styles.studioStepDetail} numberOfLines={1}>{step.detail}</Text>
+                </View>
+              </View>
+            ))}
           </View>
 
           <View style={styles.studioCanvas}>
@@ -529,6 +601,17 @@ export function MoreScreen({
                   ))}
                 </View>
               </View>
+              <View style={styles.placementGuide}>
+                <Text style={styles.placementGuideKicker}>Home Screen handoff</Text>
+                <Text style={styles.placementGuideTitle}>
+                  {nativePreview ? "Save here. Place in iOS." : "Preview here. Native widgets use Today and Upcoming."}
+                </Text>
+                <Text style={styles.placementGuideCopy}>
+                  {nativePreview
+                    ? "StudyPlanner writes the reviewed snapshot. The student still adds the widget from the iOS widget gallery."
+                    : "Advanced looks stay as saved StudyPlanner presets; iOS only renders the native Today and Upcoming families."}
+                </Text>
+              </View>
               <View style={styles.primaryActionRow}>
                 <AppButton
                   label={primaryActionLabel}
@@ -579,7 +662,7 @@ export function MoreScreen({
 
           <ControlLabel title="Size" />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.instantSizeRail}>
-            {widgetSizes.slice(0, 5).map((option) => {
+            {widgetSizes.map((option) => {
               const active = option === size;
               return (
                 <TouchableOpacity
@@ -705,42 +788,7 @@ export function MoreScreen({
         </View>
       </View>
 
-      <GlassCard style={styles.moreHubCard}>
-        <View style={styles.moreHubTopRow}>
-          <View style={styles.moreHubCopy}>
-            <Text style={styles.moreHubKicker}>More</Text>
-            <Text style={styles.moreHubTitle}>Notes, study, grades, and settings.</Text>
-            <Text style={styles.moreHubText}>Open the secondary tools from one place after your daily plan is clear.</Text>
-          </View>
-          <View style={styles.moreHubIcon}>
-            <Settings2 color={colors.heroText} size={20} />
-          </View>
-        </View>
-        <View style={styles.destinationGrid}>
-          {moreDestinations.map((item) => {
-            const Icon = item.icon;
-            return (
-              <TouchableOpacity
-                accessibilityRole="button"
-                key={item.label}
-                style={styles.destinationCard}
-                onPress={item.locked ? onOpenPaywall : item.action}
-              >
-                <View style={styles.destinationIcon}>
-                  <Icon color={colors.accent} size={18} />
-                </View>
-                <View style={styles.destinationCopy}>
-                  <View style={styles.destinationTitleRow}>
-                    <Text style={styles.destinationTitle}>{item.label}</Text>
-                    {item.locked ? <Text numberOfLines={1} style={styles.destinationLock}>Plus</Text> : null}
-                  </View>
-                  <Text style={styles.destinationDetail} numberOfLines={2}>{item.detail}</Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </GlassCard>
+      {moreHub}
 
       <SectionHeader title="Settings and trust" note="Local controls, permissions, legal links, and data boundaries in one place." />
       <GlassCard style={styles.settingsCard}>
@@ -1177,6 +1225,58 @@ function createStyles(theme: AppTheme) {
       justifyContent: "space-between",
       gap: spacing.sm
     },
+    studioStepRail: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    studioStep: {
+      flexGrow: 1,
+      flexBasis: 132,
+      minHeight: 58,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.12)" : "rgba(15,23,42,0.08)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.54)",
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs
+    },
+    studioStepActive: {
+      borderColor: colors.accent,
+      backgroundColor: theme.isDark ? "rgba(86,168,255,0.16)" : colors.accentSoft
+    },
+    studioStepIndex: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      overflow: "hidden",
+      textAlign: "center",
+      color: colors.heroText,
+      backgroundColor: colors.accent,
+      fontSize: 12,
+      lineHeight: 24,
+      fontWeight: "900"
+    },
+    studioStepCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    studioStepLabel: {
+      color: theme.isDark ? "#FFFFFF" : colors.ink,
+      fontSize: 12,
+      lineHeight: 15,
+      fontWeight: "900"
+    },
+    studioStepDetail: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "800"
+    },
     studioTitleBlock: {
       flex: 1,
       minWidth: 0,
@@ -1458,6 +1558,33 @@ function createStyles(theme: AppTheme) {
       color: colors.muted,
       fontSize: 9,
       lineHeight: 12,
+      fontWeight: "800"
+    },
+    placementGuide: {
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.12)" : "rgba(15,23,42,0.08)",
+      backgroundColor: theme.isDark ? "rgba(4,8,16,0.58)" : "rgba(248,250,252,0.82)",
+      padding: spacing.sm,
+      gap: 4
+    },
+    placementGuideKicker: {
+      color: colors.accent,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    placementGuideTitle: {
+      color: theme.isDark ? "#FFFFFF" : colors.ink,
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    placementGuideCopy: {
+      color: theme.isDark ? "#C5CFDD" : colors.muted,
+      fontSize: 11,
+      lineHeight: 16,
       fontWeight: "800"
     },
     primaryActionRow: {
