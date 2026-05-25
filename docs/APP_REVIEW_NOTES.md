@@ -2,6 +2,8 @@
 
 StudyPlanner Plus is available through the in-app subscription screen. To test premium flows, open the app, complete onboarding, choose StudyPlanner Plus, subscribe using Apple's sandbox purchase flow, then use the Scan, calendar sync, reminders, and grade planning surfaces. Restore Purchases is available on the paywall.
 
+Purchase entitlement is checked with native `expo-iap` store APIs. If `EXPO_PUBLIC_IAP_VALIDATION_ENDPOINT` is configured, the app also sends store transaction candidates to the server validation endpoint before treating Plus as active. This repo includes the validation contract but does not include production Apple server credentials.
+
 The app uses Apple's standard EULA:
 https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 
@@ -11,13 +13,13 @@ https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Polic
 ## Supported syllabus import flow for this build
 
 1. Open the Scan tab after Plus is active.
-2. Choose Take photo for a new syllabus photo, Choose photo for a saved image, Upload for a text-based PDF/plain-text syllabus from Files, or Paste syllabus/handout text directly.
-3. The app sends camera/photo sources to the configured parser endpoint, while text-based PDFs, plain-text files, and pasted text can parse locally, then creates an editable draft.
+2. Choose Upload for a text-based PDF/plain-text syllabus from Files, or Paste syllabus/handout text directly. Camera/photo options appear only when a configured HTTPS parser endpoint and `EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1` are present in the native build.
+3. Pasted text always parses locally. Text-based PDFs and plain-text files can parse locally when no endpoint is configured, and can use the configured parser endpoint when present. Camera/photo sources require the configured parser endpoint plus image parsing support, then create an editable draft.
 4. Review detected courses, deadlines, due times, effort estimates, possible duplicates, and grade categories.
 5. Fix any items marked Needs Review. Invalid dates or times cannot be applied to the planner.
 6. Apply the parsed plan only after review.
 
-Camera scan is active in this build when the production parser endpoint is configured. If the online parser endpoint is unavailable or a photo cannot be read clearly, the app shows a clear retry/fallback message instead of applying uncertain data.
+Camera scan is active in this build only when the production parser endpoint is configured over HTTPS and image parsing is explicitly enabled for the build. There is no local image OCR fallback. If the online parser endpoint is unavailable or a photo cannot be read clearly, the app shows a retry/fallback message instead of applying uncertain data.
 
 ## Planner trust behavior
 

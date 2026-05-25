@@ -19,7 +19,7 @@ On iOS, basic Home Screen widgets use a small WidgetKit snapshot stored in an Ap
 
 ## Syllabus Import
 
-When a syllabus parse endpoint is configured for the production app, selected syllabus files may be uploaded over HTTPS for parsing. The app does not sell syllabus content or planner data. If the online parser is unavailable, the app may try to read text-based syllabi on device and returns editable results for review before anything is applied to your planner.
+When a syllabus parse endpoint is configured for the production app, selected syllabus files may be uploaded over HTTPS for parsing. Photo/camera imports require that endpoint plus explicit image parsing support; there is no local image OCR fallback. The app does not sell syllabus content or planner data. If the online parser is unavailable, the app may try to read text-based syllabi on device and returns editable results for review before anything is applied to your planner.
 
 ## Third-Party Services
 
@@ -31,7 +31,7 @@ Study Planner does not sell personal information. Planner data is not shared wit
 
 ## Your Choices
 
-You can use the free planner without purchasing Plus. You can decline camera, photo library, calendar, or notification permissions and continue using manual planning features. You can delete planner content by removing it in the app or uninstalling the app from your device.
+This build presents Plus after onboarding before the full planner unlocks. You can decline camera, photo library, calendar, or notification permissions and continue using supported planner features after access is unlocked. You can delete planner content by removing it in the app or uninstalling the app from your device.
 
 ## Contact
 

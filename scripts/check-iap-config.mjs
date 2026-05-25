@@ -61,7 +61,8 @@ for (const name of [
   "EXPO_PUBLIC_IAP_LIFETIME_PRODUCT_IDS",
   "EXPO_PUBLIC_TERMS_URL",
   "EXPO_PUBLIC_PRIVACY_URL",
-  "EXPO_PUBLIC_SUPPORT_URL"
+  "EXPO_PUBLIC_SUPPORT_URL",
+  "EXPO_PUBLIC_IAP_VALIDATION_ENDPOINT"
 ]) {
   assert(purchaseConfig.includes(name), `purchaseConfig must read ${name}.`);
 }
@@ -86,6 +87,10 @@ for (const api of [
 ]) {
   assert(subscriptions.includes(api), `subscriptions service must use ${api}.`);
 }
+assert(
+  subscriptions.includes("validateEntitlementWithServer"),
+  "subscriptions service must support optional server-side purchase validation."
+);
 
 assert(upgrade.includes("Restore Purchases"), "Paywall must expose Restore Purchases.");
 assert(upgrade.includes("Terms of Use"), "Paywall must expose Terms of Use.");

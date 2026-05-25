@@ -7,8 +7,8 @@ Date: 2026-05-25
 - App name: `StudyPlanner: Syllabus AI`
 - Bundle ID: `com.mattnewman.studyplanner`
 - ASC App ID: `6766181202`
-- Version/build: `1.0.2` / `25`
-- TestFlight upload receipt: `AppStore/FinalSweep-2026-05-25/testflight-upload-receipt.md`
+- Target version/build: `1.0.2` / `25`
+- Last committed TestFlight upload receipt: `docs/launch/2026-05-25/testflight-upload-receipt.md` (build `24`; upload a new build before claiming build `25` is in TestFlight)
 
 ## Assets
 
@@ -32,8 +32,9 @@ Date: 2026-05-25
 
 ## Blocking Checks Before App Review Submission
 
-- Production EAS env currently does not show `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT` at project scope. Build 25 softens/disables photo scan paths when the image parser is unavailable; add the endpoint before using photo-parser claims in App Review copy.
+- Production EAS env currently does not show `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT` at project scope. This build disables photo scan paths unless a trusted HTTPS parser endpoint and `EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1` are both configured; add both before using photo-parser claims in App Review copy.
 - Confirm App Store Connect IAP product status, pricing, localization, subscription group, and cleared-for-sale state.
+- If server-side purchase validation is deployed, set `EXPO_PUBLIC_IAP_VALIDATION_ENDPOINT` to the HTTPS validation route and verify Apple server credentials are present on the server. If it is not deployed, do not claim server receipt validation in App Review notes.
 - Run a real TestFlight sandbox purchase and restore pass.
 - Capture Lock Screen accessory placement if Lock Screen placement is used in submission copy.
 
@@ -44,6 +45,13 @@ npx eas-cli env:create production \
   --scope project \
   --name EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT \
   --value '<https endpoint>' \
+  --visibility plaintext \
+  --non-interactive
+
+npx eas-cli env:create production \
+  --scope project \
+  --name EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED \
+  --value '1' \
   --visibility plaintext \
   --non-interactive
 ```

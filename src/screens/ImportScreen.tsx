@@ -90,7 +90,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   const handleImageParserUnavailable = () => {
     Alert.alert(
       "Photo scanning is not configured",
-      "Use a text-based PDF or paste syllabus text in this build."
+      "This build has no local image OCR. Use a text-based PDF or paste syllabus text, or configure the hosted parser with image parsing enabled."
     );
   };
 
@@ -290,7 +290,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
           </View>
           <View style={styles.limitCopy}>
             <Text style={styles.limitTitle}>Plus unlocks syllabus imports</Text>
-            <Text style={styles.limitText}>Scan photos, files, pasted text, and re-imports when your semester gets busy.</Text>
+            <Text style={styles.limitText}>{imageParsingAvailable ? "Scan photos, files, pasted text, and re-imports when your semester gets busy." : "Upload text-based PDFs, paste text, and re-import when your semester gets busy."}</Text>
           </View>
           <AppButton label="Unlock Plus" icon={Crown} onPress={onOpenPaywall || (() => undefined)} />
         </GlassCard>

@@ -215,6 +215,103 @@ const demoSnapshots = buildStudyPlannerWidgetSnapshots({
 assert(demoSnapshots.today.state === "demo", "Demo mode should produce a demo Today state.");
 assert(demoSnapshots.today.items.length === 0 && demoSnapshots.upcoming.items.length === 0, "Demo mode must not include coursework rows.");
 
+const mixedRealAndDemoSnapshots = buildStudyPlannerWidgetSnapshots({
+  semester,
+  courses,
+  assignments: [
+    {
+      ...baseAssignment,
+      id: "demo-leftover",
+      courseId: "chemistry",
+      title: "Demo essay that should not leak",
+      dueAt: "2026-05-22T10:00:00",
+      priority: "high",
+      estimatedMinutes: 120
+    } as Assignment,
+    {
+      ...baseAssignment,
+      id: "real-homework",
+      courseId: "history",
+      title: "Real homework",
+      dueAt: "2026-05-22T12:00:00",
+      priority: "medium",
+      estimatedMinutes: 45
+    } as Assignment
+  ],
+  parsedImports,
+  settings,
+  widgetPresets: [],
+  demoMode: false,
+  now
+});
+
+assert(
+  !JSON.stringify(mixedRealAndDemoSnapshots).includes("demo-leftover"),
+  "Non-demo native snapshots must filter leftover demo assignments after real setup."
+);
+assert(
+  mixedRealAndDemoSnapshots.today.items[0]?.id === "real-homework",
+  "Real work should remain after stale demo rows are filtered."
+);
+
+const noClassesSnapshots = buildStudyPlannerWidgetSnapshots({
+  semester,
+  courses: [],
+  assignments: [],
+  parsedImports: [],
+  settings,
+  widgetPresets: [],
+  demoMode: false,
+  now
+});
+assert(noClassesSnapshots.today.state === "no_classes", "Empty setup should ask for a class first.");
+
+const classOnlySnapshots = buildStudyPlannerWidgetSnapshots({
+  semester,
+  courses,
+  assignments: [],
+  parsedImports: [],
+  settings,
+  widgetPresets: [],
+  demoMode: false,
+  now
+});
+assert(classOnlySnapshots.today.state === "no_reviewed_syllabus", "Class-only setup should wait for reviewed planner data.");
+assert(classOnlySnapshots.today.items.length === 0, "Class-only setup should not emit stale rows.");
+
+const appliedNoHomeworkSnapshots = buildStudyPlannerWidgetSnapshots({
+  semester,
+  courses,
+  assignments: [],
+  parsedImports,
+  settings,
+  widgetPresets: [],
+  demoMode: false,
+  now
+});
+assert(appliedNoHomeworkSnapshots.today.state === "no_assignments", "Applied import with no homework should show no-assignments state.");
+
+const cleanSnapshots = buildStudyPlannerWidgetSnapshots({
+  semester,
+  courses,
+  assignments: [
+    {
+      ...baseAssignment,
+      id: "future-only",
+      courseId: "history",
+      title: "Future-only homework",
+      dueAt: "2026-05-28T12:00:00"
+    } as Assignment
+  ],
+  parsedImports,
+  settings,
+  widgetPresets: [],
+  demoMode: false,
+  now
+});
+assert(cleanSnapshots.today.state === "no_due_today", "Clean day should show no-due-today state.");
+assert(cleanSnapshots.upcoming.state === "ready", "Clean day with future work should still keep Upcoming ready.");
+
 const needsReviewSnapshots = buildStudyPlannerWidgetSnapshots({
   semester,
   courses,

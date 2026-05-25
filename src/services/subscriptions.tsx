@@ -14,6 +14,7 @@ import type { ActiveSubscription, Product, ProductSubscription, Purchase } from 
 
 import { loadJson, removeJson, saveJson } from "./storage";
 import { allPremiumProductIds, hasConfiguredPurchases, purchaseConfig } from "./purchaseConfig";
+import { validateEntitlementWithServer } from "./purchaseValidation";
 
 const subscriptionStorageKey = "study-planner-premium-entitlement-v1";
 const entitlementGracePeriodMs = 24 * 60 * 60 * 1000;
@@ -128,7 +129,12 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
       setStatus("checking");
       const activeSubscriptions = await loadActiveSubscriptions();
       const availablePurchases = await loadAvailablePurchases();
-      const entitlement = resolveEntitlement(activeSubscriptions, availablePurchases);
+      const entitlement =
+        (await validateEntitlementWithServer(
+          entitlementCandidates(activeSubscriptions, availablePurchases),
+          "refresh",
+          allPremiumProductIds
+        )) || resolveEntitlement(activeSubscriptions, availablePurchases);
 
       setIsPremium(entitlement.isPremium);
       setStatus("ready");
@@ -159,7 +165,7 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
         setFlowState("purchasing");
         const knownProduct = allPremiumProductIds.includes(purchaseResult.productId);
         const purchasedKnownProduct = knownProduct && purchaseResult.purchaseState === "purchased";
-        const entitlement = await refreshEntitlementAfterPurchase();
+        const entitlement = await refreshEntitlementAfterPurchase("purchase");
         const resolvedEntitlement =
           entitlement.isPremium || !purchasedKnownProduct
             ? entitlement
@@ -172,7 +178,7 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
           try {
             await finishTransaction({ purchase: purchaseResult, isConsumable: false });
           } catch {
-            setMessage("Plus is active. The store receipt will be reconciled again on the next refresh.");
+            setMessage("Plus is active. Purchase status will be checked again on the next refresh.");
             setFlowState("success");
             return;
           }
@@ -336,7 +342,7 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
       setMessage(undefined);
       setErrorMessage(undefined);
       await restorePurchases();
-      const entitlement = await refreshEntitlementAfterPurchase();
+      const entitlement = await refreshEntitlementAfterPurchase("restore");
       setIsPremium(entitlement.isPremium);
       setStatus("ready");
 
@@ -411,10 +417,15 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
   return <SubscriptionContext.Provider value={value}>{children}</SubscriptionContext.Provider>;
 }
 
-async function refreshEntitlementAfterPurchase() {
+async function refreshEntitlementAfterPurchase(source: "purchase" | "restore" = "purchase") {
   const activeSubscriptions = await loadActiveSubscriptions();
   const availablePurchases = await loadAvailablePurchases();
-  const entitlement = resolveEntitlement(activeSubscriptions, availablePurchases);
+  const entitlement =
+    (await validateEntitlementWithServer(
+      entitlementCandidates(activeSubscriptions, availablePurchases),
+      source,
+      allPremiumProductIds
+    )) || resolveEntitlement(activeSubscriptions, availablePurchases);
 
   if (entitlement.isPremium) {
     await saveJson<EntitlementRecord>(subscriptionStorageKey, entitlement);
@@ -423,6 +434,16 @@ async function refreshEntitlementAfterPurchase() {
   }
 
   return entitlement;
+}
+
+function entitlementCandidates(activeSubscriptions: ActiveSubscription[], purchases: Purchase[]) {
+  return [...activeSubscriptions, ...purchases].map((candidate) => ({
+    productId: candidate.productId,
+    transactionId: candidate.transactionId,
+    purchaseToken: candidate.purchaseToken,
+    platform: "platform" in candidate ? candidate.platform : undefined,
+    store: "store" in candidate ? candidate.store : undefined
+  }));
 }
 
 async function loadActiveSubscriptions() {

@@ -11,14 +11,15 @@ declare const process:
     }
   | undefined;
 
-const parseEndpoint = readEnv("EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT");
+const parseEndpoint = readEndpointEnv("EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT");
+const imageParsingEnabled = readBooleanEnv("EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED");
 
 export function isSyllabusParsingConfigured() {
   return Boolean(parseEndpoint);
 }
 
 export function supportsSyllabusImageParsing() {
-  return Boolean(parseEndpoint);
+  return Boolean(parseEndpoint && imageParsingEnabled);
 }
 
 export async function parseSyllabus(source: SyllabusImportSource): Promise<SyllabusParseResult> {
@@ -145,4 +146,20 @@ function buildUploadBody(source: SyllabusImportSource) {
 
 function readEnv(name: string) {
   return typeof process !== "undefined" ? process.env?.[name] : undefined;
+}
+
+function readEndpointEnv(name: string) {
+  const value = readEnv(name)?.trim();
+  if (!value) return undefined;
+  return isTrustedParserEndpoint(value) ? value : undefined;
+}
+
+function readBooleanEnv(name: string) {
+  const value = readEnv(name)?.trim().toLowerCase();
+  return value === "1" || value === "true" || value === "yes";
+}
+
+function isTrustedParserEndpoint(value: string) {
+  if (value.startsWith("https://")) return true;
+  return /^http:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:\/|$)/i.test(value);
 }

@@ -21,6 +21,7 @@ const publicEnv =
         termsUrl: process.env.EXPO_PUBLIC_TERMS_URL,
         privacyUrl: process.env.EXPO_PUBLIC_PRIVACY_URL,
         supportUrl: process.env.EXPO_PUBLIC_SUPPORT_URL,
+        iapValidationEndpoint: process.env.EXPO_PUBLIC_IAP_VALIDATION_ENDPOINT,
         androidPackageName: process.env.EXPO_PUBLIC_ANDROID_PACKAGE_NAME
       }
     : {};
@@ -31,6 +32,7 @@ export const purchaseConfig = {
   termsUrl: publicEnv.termsUrl || appleStandardEulaUrl,
   privacyUrl: publicEnv.privacyUrl || studyPlannerPrivacyUrl,
   supportUrl: publicEnv.supportUrl || studyPlannerPrivacyUrl,
+  iapValidationEndpoint: publicEnv.iapValidationEndpoint,
   androidPackageName: publicEnv.androidPackageName || defaultAndroidPackageName
 };
 

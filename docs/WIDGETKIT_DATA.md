@@ -25,3 +25,11 @@ The app may write only these fields into the widget timeline snapshot:
 Widgets must not receive syllabus raw text, parsed item raw text, teacher names, rooms, class meeting locations, grade scores, checklist details, notes, student name, purchase state, reminder IDs, calendar event IDs, or the full AsyncStorage planner record.
 
 Demo planner coursework is not written into native widget snapshots. Unreviewed, duplicate, or invalid-deadline scan results stay out of Today and Upcoming widgets until the student reviews them in the app.
+
+## Refresh And Sync Limits
+
+- Widget snapshots refresh when the app opens or planner/settings state changes.
+- Widget timelines are compact one-entry snapshots, not a continuously running planner database.
+- Day-boundary urgency can become stale until the next app sync.
+- Turning Widget sync off writes a private `sync_disabled` snapshot so old planner data is not left visible on the Home Screen.
+- Privacy mode only affects native widgets after the app can write a new snapshot. In native iOS builds, the sync-off path writes a private off-state snapshot; non-iOS builds cannot update WidgetKit.

@@ -2,7 +2,7 @@
 
 ## Product Promise
 
-Turn a messy semester into a clear daily execution plan. Students upload or photograph a syllabus, review the detected plan, and immediately see courses, assignments, exams, reminders, grades, and what to do today.
+Turn a messy semester into a clear daily execution plan. Students upload a text-based syllabus or paste class material, review the detected plan, and immediately see courses, assignments, exams, reminders, grades, and what to do today. Photo import is available only in builds with a configured parser endpoint and image parsing enabled.
 
 ## Audience
 
@@ -16,7 +16,7 @@ Turn a messy semester into a clear daily execution plan. Students upload or phot
 
 - Course and semester setup.
 - Text-based PDF and pasted-text syllabus import with editable parsing results.
-- Real photo syllabus parsing through the camera/photo library when the production parser endpoint is configured.
+- Real photo syllabus parsing through the camera/photo library only when the production parser endpoint is configured and `EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1`.
 - Assignments and exams with due dates, tags, priority, estimates, and status.
 - Weekly class schedule.
 - Today view with a ranked next action.
@@ -45,8 +45,8 @@ Turn a messy semester into a clear daily execution plan. Students upload or phot
 
 ### Syllabus Import
 
-1. Upload a text-based PDF, paste syllabus text, or capture a syllabus photo.
-2. Parse text-based PDFs and pasted text locally when possible; send camera/photo sources to the configured parser endpoint.
+1. Upload a text-based PDF, paste syllabus text, or, when enabled, capture a syllabus photo.
+2. Parse pasted text locally. Parse text-based PDFs locally when no endpoint is configured, and use the configured parser endpoint first when present. Send camera/photo sources only when the configured endpoint and image parsing flag are both enabled.
 3. Return structured JSON with confidence and review flags.
 4. Show editable title, kind, priority, due date, due time, and effort fields before applying.
 5. Block invalid deadlines from application and route uncertain work into Needs Review.
@@ -85,12 +85,9 @@ This keeps the app planner-first: AI creates structure, but daily execution logi
 
 ## Monetization Gates
 
-### Free
+### Hard-Gated Build
 
-- Current semester planner.
-- Limited course count.
-- Manual assignment/exam entry.
-- Basic Today and Upcoming widgets.
+This release routes students through Plus after onboarding. Free-limit code still exists in the app for lower-friction builds, but the current product shell requires a valid Plus entitlement after onboarding unless simulator capture is active.
 
 ### Paid
 

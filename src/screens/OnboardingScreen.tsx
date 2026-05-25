@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
   CalendarDays,
   CheckCircle2,
@@ -32,6 +32,7 @@ import {
 } from "../services/marketingCapture";
 import { supportsSyllabusImageParsing } from "../services/syllabusParser";
 import { buildStudyPlannerWidgetSnapshots } from "../services/widgetSnapshot";
+import { MotionFadeUpView } from "../motion";
 
 export type OnboardingDestination = "paywall";
 
@@ -127,23 +128,12 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
   const [appTheme, setAppTheme] = useState<ThemeAccent>("campus");
   const [widgetPalette, setWidgetPalette] = useState<WidgetPalette>("ocean");
   const [widgetStyle, setWidgetStyle] = useState<WidgetBackground>("glass");
-  const transition = useRef(new Animated.Value(1)).current;
   const slide = slides[index] ?? slides[0]!;
   const isFinal = index === slides.length - 1;
 
   useEffect(() => {
     setIndex(normalizedIndex(initialIndex));
   }, [initialIndex]);
-
-  useEffect(() => {
-    transition.setValue(0);
-    Animated.timing(transition, {
-      toValue: 1,
-      duration: 240,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true
-    }).start();
-  }, [index, transition]);
 
   const widgetPresets = useMemo<WidgetPreset[]>(
     () =>
@@ -195,18 +185,6 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
 
     finish();
   };
-  const transitionStyle = {
-    opacity: transition,
-    transform: [
-      {
-        translateY: transition.interpolate({
-          inputRange: [0, 1],
-          outputRange: [12, 0]
-        })
-      }
-    ]
-  };
-
   return (
     <View style={styles.screen}>
       <ScrollView
@@ -219,7 +197,7 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
           <ModeToggle compact />
         </View>
 
-        <Animated.View style={transitionStyle}>
+        <MotionFadeUpView trigger={index}>
         <GlassCard tone="hero" style={styles.heroCard}>
           <View style={styles.heroTopRow}>
             <View style={styles.heroIcon}>
@@ -237,9 +215,9 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
           <Text style={styles.title}>{slide.title}</Text>
           <Text style={styles.copy}>{slide.copy}</Text>
         </GlassCard>
-        </Animated.View>
+        </MotionFadeUpView>
 
-        <Animated.View key={slide.id} style={[styles.previewStage, transitionStyle]}>
+        <MotionFadeUpView key={slide.id} trigger={index} style={styles.previewStage}>
           {slide.id === "scan" ? <ScanPreview styles={styles} /> : null}
           {slide.id === "review" ? <ReviewPreview styles={styles} /> : null}
           {slide.id === "calendar" ? <CalendarPreview styles={styles} /> : null}
@@ -260,7 +238,7 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
               }}
             />
           ) : null}
-        </Animated.View>
+        </MotionFadeUpView>
       </ScrollView>
 
       <View style={styles.bottomBar}>

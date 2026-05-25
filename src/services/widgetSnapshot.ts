@@ -26,7 +26,8 @@ export type StudyPlannerNativeWidgetState =
   | "no_assignments"
   | "needs_review"
   | "no_due_today"
-  | "no_upcoming";
+  | "no_upcoming"
+  | "sync_disabled";
 
 export type StudyPlannerNativeWidgetItem = {
   id: string;
@@ -114,9 +115,11 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
   const now = input.now || new Date();
   const generatedAt = now.toISOString();
   const hasClasses = input.courses.length > 0;
-  const reviewedAssignments = getReviewedAssignments(input.assignments, now);
-  const reviewCount = getNeedsReview(input.assignments).length;
-  const hasReviewedSyllabus = getHasReviewedSyllabus(input.assignments, input.parsedImports);
+  const assignments = input.demoMode ? input.assignments : input.assignments.filter(isRealWidgetAssignment);
+  const parsedImports = input.demoMode ? input.parsedImports : input.parsedImports.filter(isRealParsedImport);
+  const reviewedAssignments = getReviewedAssignments(assignments, now);
+  const reviewCount = getNeedsReview(assignments).length;
+  const hasReviewedSyllabus = getHasReviewedSyllabus(assignments, parsedImports);
   const privacyMode = input.settings?.privacyMode === true;
   const todayPreset = findNativePreset("today", input.widgetPresets || []);
   const upcomingPreset = findNativePreset("upcoming", input.widgetPresets || []);
@@ -183,7 +186,7 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
     };
   }
 
-  if (input.assignments.length === 0) {
+  if (assignments.length === 0) {
     const state = hasReviewedSyllabus ? "no_assignments" : "no_reviewed_syllabus";
     const detail = hasReviewedSyllabus ? "No homework in your plan yet" : "Review a syllabus first";
     const footnote = hasReviewedSyllabus ? "Add homework when it appears" : "Scans stay private until approved";
@@ -317,6 +320,20 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
 
 export async function syncStudyPlannerWidgets(input: WidgetSnapshotInput): Promise<WidgetSyncStatus> {
   if (input.settings?.syncEnabled === false) {
+    if (getPlatformOS() === "ios") {
+      const snapshots = buildSyncDisabledWidgetSnapshots(input);
+      const widgets = loadNativeWidgetModule();
+      if (widgets) {
+        widgets.StudyPlannerTodayWidget.updateSnapshot(snapshots.today);
+        widgets.StudyPlannerUpcomingWidget.updateSnapshot(snapshots.upcoming);
+        return {
+          state: "skipped",
+          message: "Widget sync is off. Native widgets were cleared to a private off state.",
+          updatedAt: snapshots.today.generatedAt
+        };
+      }
+    }
+
     return {
       state: "skipped",
       message: "Widget sync is off in StudyPlanner settings."
@@ -355,6 +372,52 @@ export async function syncStudyPlannerWidgets(input: WidgetSnapshotInput): Promi
       message: "Install a native iOS build with the widget extension to add widgets."
     };
   }
+}
+
+function buildSyncDisabledWidgetSnapshots(input: WidgetSnapshotInput) {
+  const now = input.now || new Date();
+  const generatedAt = now.toISOString();
+  const base = {
+    version: 1 as const,
+    generatedAt,
+    semesterName: input.semester.name,
+    openURL: "studyplanner://widgets"
+  };
+  const todayStyle = getNativeWidgetStyle("today", findNativePreset("today", input.widgetPresets || []), input.settings);
+  const upcomingStyle = getNativeWidgetStyle("upcoming", findNativePreset("upcoming", input.widgetPresets || []), input.settings);
+
+  return {
+    today: emptySnapshot({
+      ...base,
+      kind: "today",
+      state: "sync_disabled" as const,
+      headline: "Today",
+      value: "Off",
+      detail: "Widget sync is off",
+      footnote: "Turn sync on in StudyPlanner",
+      ...todayStyle,
+      progress: 0,
+      signalLabel: "Sync off",
+      metricLabel: "No planner data shared",
+      nextLabel: "Open Widgets settings",
+      timelineLabel: "Private"
+    }),
+    upcoming: emptySnapshot({
+      ...base,
+      kind: "upcoming",
+      state: "sync_disabled" as const,
+      headline: "Upcoming",
+      value: "Off",
+      detail: "Widget sync is off",
+      footnote: "Native widgets were cleared",
+      ...upcomingStyle,
+      progress: 0,
+      signalLabel: "Sync off",
+      metricLabel: "No planner data shared",
+      nextLabel: "Open Widgets settings",
+      timelineLabel: "Private"
+    })
+  };
 }
 
 function loadNativeWidgetModule() {
@@ -424,6 +487,14 @@ function getHasReviewedSyllabus(assignments: Assignment[], parsedImports: Parsed
     parsedImports.some((item) => item.status === "applied" && !item.id.startsWith("demo-")) ||
     assignments.some((assignment) => assignment.source === "scan" || assignment.source === "syllabus")
   );
+}
+
+function isRealWidgetAssignment(assignment: Assignment) {
+  return !assignment.id.startsWith("demo-") && !assignment.sourceId?.startsWith("demo-");
+}
+
+function isRealParsedImport(parsedImport: ParsedImport) {
+  return !parsedImport.id.startsWith("demo-");
 }
 
 function toWidgetItem(
