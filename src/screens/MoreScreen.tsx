@@ -123,7 +123,6 @@ export function MoreScreen({
   const [iconKey, setIconKey] = useState(firstPreset?.iconKey || "book");
   const [editingPresetId, setEditingPresetId] = useState(firstPreset?.id || "preset-due-next");
   const [selectedThemePackId, setSelectedThemePackId] = useState<string | undefined>(firstPreset?.themePackId);
-  const [showCustomize, setShowCustomize] = useState(false);
 
 
   const previewPreset = useMemo<WidgetPreset>(
@@ -441,195 +440,6 @@ export function MoreScreen({
     onSaveWidgetPreset(previewPreset);
   };
 
-  const simpleWidgetTemplates: Array<{
-    label: string;
-    detail: string;
-    preset: Pick<WidgetPreset, "type" | "size" | "background" | "palette" | "layout" | "iconKey">;
-  }> = [
-    {
-      label: "Today",
-      detail: "What is due now",
-      preset: { type: "today", size: "medium", background: "glass", palette: "ocean", layout: "list", iconKey: "check" }
-    },
-    {
-      label: "Upcoming",
-      detail: "Next reviewed deadline",
-      preset: { type: "due_next", size: "medium", background: "glass", palette: "ocean", layout: "list", iconKey: "calendar" }
-    },
-    {
-      label: "Week",
-      detail: "This week's load",
-      preset: { type: "week", size: "medium", background: "glass", palette: "graphite", layout: "calendar", iconKey: "calendar" }
-    }
-  ];
-
-  return (
-    <View>
-      <View style={styles.studioShell}>
-        <View style={styles.studioWorkbench}>
-          <View style={styles.studioTopBar}>
-            <View style={styles.studioTitleBlock}>
-              <Text style={styles.studioEyebrow}>Widgets</Text>
-              <Text style={styles.studioTitle}>Add your plan to the Home Screen.</Text>
-            </View>
-            <View style={styles.nativeStatusChip}>
-              <View style={[styles.nativeStatusDot, nativeWidgetStatus.state === "synced" ? styles.nativeStatusDotSynced : null]} />
-              <Text style={styles.nativeStatusText}>{nativeWidgetStatus.state === "synced" ? "Synced" : "Preview"}</Text>
-            </View>
-          </View>
-
-          <View style={styles.studioCanvas}>
-            <View style={styles.phoneFrame}>
-              <View style={styles.phoneStatusBar}>
-                <Text style={styles.phoneTime}>7:42</Text>
-                <View style={styles.phoneSignalGroup}>
-                  <View style={styles.phoneSignal} />
-                  <View style={styles.phoneBattery} />
-                </View>
-              </View>
-              <View style={styles.phoneWidgetSlot}>
-                <View style={styles.simpleWidgetCard}>
-                  <Text style={styles.simpleWidgetKicker}>{selectedTemplateLabel}</Text>
-                  <Text style={styles.simpleWidgetValue}>{displayWidgetData.value}</Text>
-                  <Text style={styles.simpleWidgetDetail} numberOfLines={2}>{displayWidgetData.detail}</Text>
-                </View>
-              </View>
-              <View style={styles.homeScreenDock}>
-                <View style={styles.homeIcon} />
-                <View style={styles.homeIcon} />
-                <View style={styles.homeIcon} />
-                <View style={styles.homeIconActive} />
-              </View>
-            </View>
-
-            <View style={styles.studioInspector}>
-              <View style={styles.inspectorHeader}>
-                <Text style={styles.inspectorKicker}>{selectedTemplateLabel}</Text>
-                <Text style={styles.inspectorTitle}>{displayWidgetData.value} · {displayWidgetData.detail}</Text>
-                <Text style={styles.inspectorCopy}>Choose one widget type, pick a look, and save it.</Text>
-              </View>
-              <View style={styles.primaryActionRow}>
-                <AppButton
-                  label={selectedTemplateLocked ? "Unlock this widget" : "Save widget"}
-                  icon={selectedTemplateLocked ? Sparkles : CheckCircle2}
-                  onPress={saveCurrentPreset}
-                  style={styles.primaryStudioAction}
-                />
-                <AppButton
-                  label={showCustomize ? "Hide" : "Customize"}
-                  variant="secondary"
-                  icon={SlidersHorizontal}
-                  onPress={() => setShowCustomize((current) => !current)}
-                  style={styles.secondaryStudioAction}
-                />
-              </View>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.studioPickerRail}>
-          {simpleWidgetTemplates.map((template) => {
-            const Icon = template.preset.type === "today" ? ListChecks : template.preset.type === "due_next" ? Clock3 : CalendarDays;
-            const active = template.preset.type === type;
-            return (
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityState={{ selected: active }}
-                key={template.label}
-                style={[styles.studioTemplateTile, active ? styles.studioTemplateTileActive : null]}
-                onPress={() => applyTemplate(template.preset)}
-              >
-                <View style={styles.studioTemplateTop}>
-                  <View style={[styles.studioTemplateIcon, active ? styles.studioTemplateIconActive : null]}>
-                    <Icon color={active ? colors.heroText : colors.accent} size={16} />
-                  </View>
-                </View>
-                <Text style={styles.studioTemplateTitle}>{template.label}</Text>
-                <Text style={styles.studioTemplateDetail} numberOfLines={2}>{template.detail}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-
-      <SectionHeader title="Themes" note="Pick a look" />
-      <View style={styles.themePackGrid}>
-        {themePacks.map((pack) => {
-          const meta = appThemePalettes[pack.appTheme];
-          const active = selectedThemePackId === pack.id || palette === pack.widgetPalette;
-          return (
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-              key={pack.id}
-              style={[styles.themePackCard, active ? styles.themePackCardActive : null]}
-              onPress={() => applyThemePack(pack)}
-            >
-              <View style={styles.themePackSwatches}>
-                {meta.swatches.slice(0, 4).map((swatch) => <View key={swatch} style={[styles.themePackSwatch, { backgroundColor: swatch }]} />)}
-              </View>
-              <Text style={styles.themePackTitle}>{pack.label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      {showCustomize ? (
-        <GlassCard style={styles.instantControlsCard}>
-          <View style={styles.instantControlsHeader}>
-            <View>
-              <Text style={styles.instantControlsKicker}>Customize</Text>
-              <Text style={styles.instantControlsTitle}>Size and palette.</Text>
-            </View>
-          </View>
-          <ControlLabel title="Size" />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.instantSizeRail}>
-            {["small", "medium", "large"].map((option) => {
-              const widgetSize = option as WidgetSize;
-              const active = widgetSize === size;
-              return (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: active }}
-                  key={option}
-                  style={[styles.instantSizeCard, active ? styles.sizeCardActive : null]}
-                  onPress={() => setSize(widgetSize)}
-                >
-                  <Text style={styles.sizeTitle}>{labelize(option)}</Text>
-                  <Text style={styles.sizeDetail}>{sizeMentalModel(widgetSize)}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-          <ControlLabel title="Palette" />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.paletteRail}>
-            {["ocean", "graphite", "forest"].map((option) => {
-              const widgetPalette = option as WidgetPalette;
-              const swatches = themePalettes[widgetPalette];
-              const active = widgetPalette === palette;
-              return (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: active }}
-                  key={option}
-                  style={[styles.paletteButton, active ? styles.paletteButtonActive : null]}
-                  onPress={() => setPalette(widgetPalette)}
-                >
-                  <View style={styles.paletteDots}>
-                    {swatches.map((swatch) => (
-                      <View key={swatch} style={[styles.paletteDot, { backgroundColor: swatch }]} />
-                    ))}
-                  </View>
-                  <Text style={styles.paletteName}>{labelize(option)}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </GlassCard>
-      ) : null}
-    </View>
-  );
-
   return (
     <View>
       <View style={styles.studioShell}>
@@ -637,7 +447,7 @@ export function MoreScreen({
           <View style={styles.studioTopBar}>
             <View style={styles.studioTitleBlock}>
               <Text style={styles.studioEyebrow}>Widget Studio</Text>
-              <Text style={styles.studioTitle}>Make widgets worth placing.</Text>
+              <Text style={styles.studioTitle}>Choose widget, data, and style.</Text>
             </View>
             <View style={styles.nativeStatusChip}>
               <View style={[styles.nativeStatusDot, nativeWidgetStatus.state === "synced" ? styles.nativeStatusDotSynced : null]} />
@@ -706,7 +516,7 @@ export function MoreScreen({
               </View>
               <View style={styles.proofMeter}>
                 <View style={styles.proofMeterTop}>
-                  <Text style={styles.proofMeterTitle}>Widget setup</Text>
+                  <Text style={styles.proofMeterTitle}>Ready for Home Screen</Text>
                   <Text style={styles.proofMeterScore}>{nativeTruthScore}/{widgetReadiness.length}</Text>
                 </View>
                 <View style={styles.proofSignalRow}>
@@ -761,13 +571,13 @@ export function MoreScreen({
         <GlassCard style={styles.instantControlsCard}>
           <View style={styles.instantControlsHeader}>
             <View>
-              <Text style={styles.instantControlsKicker}>Edit in place</Text>
+              <Text style={styles.instantControlsKicker}>What style?</Text>
               <Text style={styles.instantControlsTitle}>Size, privacy, class, look.</Text>
             </View>
             <ArrowRight color={colors.accent} size={18} />
           </View>
 
-          <ControlLabel title="Size intent" />
+          <ControlLabel title="Size" />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.instantSizeRail}>
             {widgetSizes.slice(0, 5).map((option) => {
               const active = option === size;
@@ -821,7 +631,7 @@ export function MoreScreen({
 
         <View style={styles.agendaBoard}>
           <View style={styles.agendaColumn}>
-            <Text style={styles.agendaColumnKicker}>Widget rows</Text>
+            <Text style={styles.agendaColumnKicker}>What shows</Text>
             <Text style={styles.agendaColumnTitle}>{topPreviewItems.length ? "What a student sees first" : "Setup path"}</Text>
             {topPreviewItems.length ? topPreviewItems.map((item) => (
               <View key={item.id} style={styles.agendaItem}>
@@ -836,9 +646,9 @@ export function MoreScreen({
             )}
           </View>
           <View style={styles.agendaColumn}>
-            <Text style={styles.agendaColumnKicker}>Widget data</Text>
-            <Text style={styles.agendaColumnTitle}>{nativePreview ? "Today and Upcoming are real" : "Advanced presets are app-side"}</Text>
-            <Text style={styles.agendaEmptyText}>{nativePreview ? "StudyPlanner sends reviewed planner rows to the phone widget. Students still place widgets from iOS." : "This preset saves an in-app look for advanced widget concepts."}</Text>
+            <Text style={styles.agendaColumnKicker}>What data</Text>
+            <Text style={styles.agendaColumnTitle}>{nativePreview ? "Today and Upcoming use live planner data" : "Advanced presets preview inside StudyPlanner"}</Text>
+            <Text style={styles.agendaEmptyText}>{nativePreview ? "StudyPlanner sends reviewed planner rows to the phone widget. Students still place widgets from iOS." : "Save this look for inside StudyPlanner. Today and Upcoming are the native Home Screen widgets."}</Text>
             <View style={styles.nativeTruthGrid}>
               {widgetReadiness.slice(0, 4).map((item) => (
                 <View key={item.label} style={styles.nativeTruthPill}>
@@ -855,7 +665,7 @@ export function MoreScreen({
               <Text style={styles.lockPreviewKicker}>Lock Screen widgets</Text>
               <Text style={styles.lockPreviewTitle}>Compact views for quick checks.</Text>
             </View>
-            <Text style={styles.lockPreviewNote}>In-app preview only. Students still add and place Lock Screen widgets in iOS.</Text>
+            <Text style={styles.lockPreviewNote}>Preview here. Students still add and place Lock Screen widgets in iOS.</Text>
           </View>
           <View style={styles.lockPreviewRail}>
             {[

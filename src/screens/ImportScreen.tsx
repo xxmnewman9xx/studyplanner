@@ -29,6 +29,7 @@ import {
 } from "../models";
 import {
   parseSyllabus,
+  supportsSyllabusImageParsing,
   updateParsedAssignment
 } from "../services/syllabusParser";
 import {
@@ -66,12 +67,15 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   const activeCaptureScreen = captureScreenOverride || marketingCaptureScreen;
   const captureDraft =
     activeCaptureScreen === "extracted" || activeCaptureScreen === "review_edit";
+  const imageParsingAvailable = supportsSyllabusImageParsing();
   const [draft, setDraft] = useState<SyllabusParseResult | null>(
     captureDraft ? marketingCaptureParseResult : null
   );
   const [loading, setLoading] = useState(activeCaptureScreen === "processing");
   const [typedText, setTypedText] = useState("");
-  const [sourceMode, setSourceMode] = useState<ImportSourceMode>("camera");
+  const [sourceMode, setSourceMode] = useState<ImportSourceMode>(() =>
+    imageParsingAvailable ? "camera" : "file"
+  );
 
   const handleLockedImport = () => {
     Alert.alert(
@@ -81,6 +85,12 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
         { text: "Not now", style: "cancel" },
         { text: "See Plus", onPress: onOpenPaywall }
       ]
+    );
+  };
+  const handleImageParserUnavailable = () => {
+    Alert.alert(
+      "Photo scanning is not configured",
+      "Use a text-based PDF or paste syllabus text in this build."
     );
   };
 
@@ -124,6 +134,10 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
       handleLockedImport();
       return;
     }
+    if (!imageParsingAvailable) {
+      handleImageParserUnavailable();
+      return;
+    }
 
     const result = await ImagePicker.launchImageLibraryAsync({
       quality: 0.85,
@@ -145,6 +159,10 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   const capturePhoto = async () => {
     if (premiumImportLocked) {
       handleLockedImport();
+      return;
+    }
+    if (!imageParsingAvailable) {
+      handleImageParserUnavailable();
       return;
     }
 
@@ -237,7 +255,9 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
         <Text style={styles.kicker}>Scan</Text>
         <Text style={styles.title}>Scan your syllabus.</Text>
         <Text style={styles.subtitle}>
-          Turn paper, saved photos, PDFs, or pasted text into reviewed assignments.
+          {imageParsingAvailable
+            ? "Turn paper, saved photos, PDFs, or pasted text into reviewed assignments."
+            : "Turn text-based PDFs or pasted syllabus text into reviewed assignments."}
         </Text>
       </View>
 
@@ -271,8 +291,8 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
           <MagicPreviewStep icon={CheckCircle2} title="Add" detail="Today" />
         </View>
         <View style={styles.sourcePicker}>
-          <SourceOption mode="camera" label="Camera" icon={Camera} />
-          <SourceOption mode="photo" label="Photo" icon={FileText} />
+          <SourceOption mode="camera" label="Camera" icon={Camera} disabled={!imageParsingAvailable} />
+          <SourceOption mode="photo" label="Photo" icon={FileText} disabled={!imageParsingAvailable} />
           <SourceOption mode="file" label="PDF" icon={Upload} />
           <SourceOption mode="paste" label="Paste" icon={Keyboard} />
         </View>
@@ -336,7 +356,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
         </View>
       ) : null}
 
-      {false && parsedImports.length > 0 ? (
+      {parsedImports.length > 0 ? (
         <>
           <SectionHeader title="Recent imports" note="Open one to review found work" />
           <View style={styles.recentList}>
@@ -355,7 +375,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                 <View style={styles.recentCopy}>
                   <Text style={styles.recentTitle}>{item.title}</Text>
                   <Text style={styles.recentMeta}>{item.itemCount} found · {labelize(item.status)}</Text>
-                  <Text style={styles.recentSubtle}>Photos, files, and pasted text create editable drafts for review.</Text>
+                  <Text style={styles.recentSubtle}>{imageParsingAvailable ? "Photos, files, and pasted text create editable drafts for review." : "PDFs and pasted text create editable drafts for review."}</Text>
                 </View>
                 <Badge label={labelize(item.sourceType)} tone={item.status === "ready" ? "blue" : "green"} />
               </TouchableOpacity>
@@ -480,22 +500,30 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   function SourceOption({
     mode,
     label,
-    icon: Icon
+    icon: Icon,
+    disabled = false
   }: {
     mode: ImportSourceMode;
     label: string;
     icon: React.ComponentType<{ color: string; size: number }>;
+    disabled?: boolean;
   }) {
     const selected = sourceMode === mode;
     return (
       <TouchableOpacity
         accessibilityRole="button"
-        accessibilityState={{ selected }}
-        style={[styles.sourceOption, selected ? styles.sourceOptionSelected : null]}
-        onPress={() => setSourceMode(mode)}
+        accessibilityState={{ selected, disabled }}
+        style={[styles.sourceOption, selected ? styles.sourceOptionSelected : null, disabled ? styles.sourceOptionDisabled : null]}
+        onPress={() => {
+          if (disabled) {
+            handleImageParserUnavailable();
+            return;
+          }
+          setSourceMode(mode);
+        }}
       >
-        <Icon color={selected ? colors.heroText : colors.heroMuted} size={16} />
-        <Text style={[styles.sourceOptionText, selected ? styles.sourceOptionTextSelected : null]}>{label}</Text>
+        <Icon color={selected ? colors.heroText : disabled ? colors.faint : colors.heroMuted} size={16} />
+        <Text style={[styles.sourceOptionText, selected ? styles.sourceOptionTextSelected : null, disabled ? styles.sourceOptionTextDisabled : null]}>{label}</Text>
       </TouchableOpacity>
     );
   }
@@ -931,6 +959,9 @@ function createStyles(theme: AppTheme) {
     sourceOptionSelected: {
       backgroundColor: colors.accent
     },
+    sourceOptionDisabled: {
+      opacity: 0.48
+    },
     sourceOptionText: {
       color: colors.heroMuted,
       fontSize: 12,
@@ -939,6 +970,9 @@ function createStyles(theme: AppTheme) {
     },
     sourceOptionTextSelected: {
       color: colors.heroText
+    },
+    sourceOptionTextDisabled: {
+      color: colors.faint
     },
     sourcePanel: {
       alignSelf: "stretch",

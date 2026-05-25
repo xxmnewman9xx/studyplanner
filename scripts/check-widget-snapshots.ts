@@ -273,7 +273,7 @@ assert(
   "Widget Studio native preview should render the same five-dot progress signal used by the native layout."
 );
 assert(
-  widgetStudioSource.includes("Widget setup") &&
+  widgetStudioSource.includes("Ready for Home Screen") &&
     widgetStudioSource.includes("Install native app") &&
     widgetStudioSource.includes("nativeProgress={nativePreview?.progress}"),
   "Widget Studio should show a truthful proof score and pass native progress into preview cards."

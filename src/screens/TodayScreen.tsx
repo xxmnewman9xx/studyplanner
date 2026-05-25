@@ -148,6 +148,13 @@ export function TodayScreen({
         <Text style={styles.heroKicker}>Today</Text>
         <Text style={styles.heroTitle}>{liveBrief.title}</Text>
         <Text style={styles.heroSubtitle}>{liveBrief.detail}</Text>
+        {plannerHasData ? (
+          <View style={styles.heroMetrics}>
+            <MetricPill label="Done" value={`${completionPercent}%`} />
+            <MetricPill label="Open" value={String(plan.openCount)} />
+            <MetricPill label="Review" value={String(plan.needsReview.length)} />
+          </View>
+        ) : null}
         {plan.nextAction ? (
           <View style={styles.nextHero}>
             <View style={styles.nextHeroCopy}>
@@ -162,14 +169,15 @@ export function TodayScreen({
             </View>
             <View style={styles.nextActions}>
               <AppButton
-                label="Open task"
-                onPress={() => onOpenAssignment(plan.nextAction!.id)}
+                label="Start focus"
+                icon={Timer}
+                onPress={() => onOpenFocus(plan.nextAction!.id)}
                 style={styles.startButton}
               />
               <AppButton
-                label="Done"
+                label="Open task"
                 variant="quiet"
-                onPress={() => onUpdateStatus(plan.nextAction!.id, "done")}
+                onPress={() => onOpenAssignment(plan.nextAction!.id)}
                 style={styles.focusButton}
               />
             </View>
@@ -183,6 +191,17 @@ export function TodayScreen({
         )}
         {!plannerHasData ? <AppButton label="Scan syllabus" icon={FileScan} onPress={onOpenScan} /> : null}
       </GlassCard>
+
+      {plan.overdue.length > 0 ? (
+        <CatchUpSprintCard
+          overdue={plan.overdue}
+          courses={courses}
+          onOpenAssignment={onOpenAssignment}
+          onOpenFocus={onOpenFocus}
+          onOpenPlan={onOpenPlan}
+          onUpdateStatus={onUpdateStatus}
+        />
+      ) : null}
 
       {plannerHasData ? (
         <GlassCard style={styles.automationCard}>

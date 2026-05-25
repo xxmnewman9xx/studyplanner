@@ -101,6 +101,7 @@ export function FocusScreen({
         if (current <= 1) {
           setRunning(false);
           record("completed", activeDurationMinutes);
+          if (selected?.id) onMarkComplete?.(selected.id);
           setStartedAt(null);
           setPauseRecorded(false);
           return 0;
@@ -110,7 +111,7 @@ export function FocusScreen({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [running, activeDurationMinutes]);
+  }, [running, activeDurationMinutes, onMarkComplete, selected?.id]);
 
   const startPause = () => {
     if (!selected) return;
@@ -122,8 +123,6 @@ export function FocusScreen({
       return;
     }
     if (running) {
-      record("paused");
-      setPauseRecorded(true);
       setRunning(false);
       return;
     }
@@ -234,7 +233,7 @@ export function FocusScreen({
             disabled={!selected}
           >
             <Text style={styles.primaryControlText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.78}>
-              {running ? "Pause timer" : selected ? "Start timer" : "Choose task"}
+              {running ? "Pause timer" : selected ? (startedAt ? "Resume timer" : "Start timer") : "Choose task"}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -415,7 +414,7 @@ export function FocusScreen({
         <AppButton
           label={`Save ${elapsedMinutes} min only`}
           variant="secondary"
-          disabled={!selected || !startedAt || pauseRecorded}
+          disabled={!selected || !startedAt || pauseRecorded || elapsedMinutes <= 0}
           onPress={() => {
             if (selected && startedRef.current && !pauseRecorded) {
               record("paused");
@@ -502,7 +501,7 @@ function createStyles(theme: AppTheme) {
       borderRadius: 34,
       borderWidth: 1,
       borderColor: "rgba(255,255,255,0.16)",
-      backgroundColor: "#101024",
+      backgroundColor: "#071827",
       padding: spacing.md,
       alignItems: "center",
       overflow: "hidden",
@@ -519,8 +518,8 @@ function createStyles(theme: AppTheme) {
       width: 240,
       height: 240,
       borderRadius: 120,
-      backgroundColor: "#7C3AED",
-      opacity: 0.38
+      backgroundColor: "#0EA5E9",
+      opacity: 0.32
     },
     focusGlowSecondary: {
       position: "absolute",
@@ -529,7 +528,7 @@ function createStyles(theme: AppTheme) {
       width: 230,
       height: 230,
       borderRadius: 115,
-      backgroundColor: "#38BDF8",
+      backgroundColor: "#14B8A6",
       opacity: 0.16
     },
     stageHeader: {
@@ -551,7 +550,7 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     stageSubcopy: {
-      color: "#BDB7FF",
+      color: "#B9E7F6",
       fontSize: 11,
       lineHeight: 15,
       fontWeight: "800"
@@ -562,12 +561,12 @@ function createStyles(theme: AppTheme) {
       height: 180,
       borderRadius: 90,
       borderWidth: 10,
-      borderColor: "#8B5CF6",
+      borderColor: "#38BDF8",
       backgroundColor: "rgba(255,255,255,0.035)",
       alignItems: "center",
       justifyContent: "center",
-      shadowColor: "#FF4FA3",
-      shadowOpacity: 0.56,
+      shadowColor: "#22D3EE",
+      shadowOpacity: 0.46,
       shadowRadius: 24,
       shadowOffset: { width: 0, height: 0 }
     },
@@ -586,7 +585,7 @@ function createStyles(theme: AppTheme) {
       fontWeight: "300"
     },
     timerMeta: {
-      color: "#BDB7FF",
+      color: "#B9E7F6",
       fontSize: 11,
       fontWeight: "900",
       textTransform: "uppercase"
@@ -607,7 +606,7 @@ function createStyles(theme: AppTheme) {
     },
     focusingOn: {
       marginTop: spacing.md,
-      color: "#BDB7FF",
+      color: "#B9E7F6",
       fontSize: 10,
       lineHeight: 14,
       fontWeight: "900",
@@ -622,7 +621,7 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     timerCourse: {
-      color: "#BDB7FF",
+      color: "#B9E7F6",
       fontSize: 13,
       lineHeight: 18,
       fontWeight: "800"
@@ -650,7 +649,7 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     cockpitLabel: {
-      color: "#BDB7FF",
+      color: "#B9E7F6",
       fontSize: 10,
       lineHeight: 13,
       fontWeight: "900",
@@ -705,7 +704,7 @@ function createStyles(theme: AppTheme) {
       flex: 1,
       height: 56,
       borderRadius: 20,
-      backgroundColor: "#7C3AED",
+      backgroundColor: "#2563EB",
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: spacing.sm
@@ -722,7 +721,7 @@ function createStyles(theme: AppTheme) {
     },
     silencedCopy: {
       marginTop: spacing.sm,
-      color: "#8F8AB8",
+      color: "#9BC8DA",
       fontSize: 11,
       lineHeight: 16,
       fontWeight: "800",

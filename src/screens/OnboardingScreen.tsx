@@ -1,13 +1,14 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Animated, Easing, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
   CalendarDays,
   CheckCircle2,
   Crown,
   FileScan,
+  GraduationCap,
   ListChecks,
-  Palette,
-  Sparkles
+  Sparkles,
+  Timer
 } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { AppLogo, GlassCard, WidgetPreviewCard } from "../components/AppleComponents";
@@ -28,6 +29,7 @@ import {
   marketingCaptureParseResult,
   marketingCaptureSemester
 } from "../services/marketingCapture";
+import { supportsSyllabusImageParsing } from "../services/syllabusParser";
 import { buildStudyPlannerWidgetSnapshots } from "../services/widgetSnapshot";
 
 export type OnboardingDestination = "paywall";
@@ -40,7 +42,7 @@ type OnboardingScreenProps = {
   initialIndex?: number;
 };
 
-type SlideId = "scan" | "review" | "today" | "widgets";
+type SlideId = "scan" | "review" | "calendar" | "classes" | "focus" | "widgets";
 
 const slides: Array<{
   id: SlideId;
@@ -53,7 +55,7 @@ const slides: Array<{
     id: "scan",
     eyebrow: "Scan",
     title: "Turn a syllabus into a draft.",
-    copy: "Photo, PDF, or pasted text becomes organized coursework ready for review.",
+    copy: "PDFs or pasted syllabus text become organized coursework ready for review.",
     cta: "Next"
   },
   {
@@ -64,10 +66,24 @@ const slides: Array<{
     cta: "Next"
   },
   {
-    id: "today",
-    eyebrow: "Today",
-    title: "Know what needs attention now.",
-    copy: "One next task, today's list, and a readable week preview.",
+    id: "calendar",
+    eyebrow: "Calendar",
+    title: "See the semester shape.",
+    copy: "Workload, due days, and progress stay visible without another spreadsheet.",
+    cta: "Next"
+  },
+  {
+    id: "classes",
+    eyebrow: "Classes",
+    title: "Keep each course useful.",
+    copy: "Open work, notes, meetings, and class progress stay grouped by course.",
+    cta: "Next"
+  },
+  {
+    id: "focus",
+    eyebrow: "Focus",
+    title: "Start the next task.",
+    copy: "Today points to the work, then Focus logs the session and moves progress.",
     cta: "Next"
   },
   {
@@ -103,12 +119,23 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
   const [appTheme, setAppTheme] = useState<ThemeAccent>("campus");
   const [widgetPalette, setWidgetPalette] = useState<WidgetPalette>("ocean");
   const [widgetStyle, setWidgetStyle] = useState<WidgetBackground>("glass");
+  const transition = useRef(new Animated.Value(1)).current;
   const slide = slides[index] ?? slides[0]!;
   const isFinal = index === slides.length - 1;
 
   useEffect(() => {
     setIndex(normalizedIndex(initialIndex));
   }, [initialIndex]);
+
+  useEffect(() => {
+    transition.setValue(0);
+    Animated.timing(transition, {
+      toValue: 1,
+      duration: 240,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true
+    }).start();
+  }, [index, transition]);
 
   const widgetPresets = useMemo<WidgetPreset[]>(
     () =>
@@ -160,6 +187,17 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
 
     finish();
   };
+  const transitionStyle = {
+    opacity: transition,
+    transform: [
+      {
+        translateY: transition.interpolate({
+          inputRange: [0, 1],
+          outputRange: [12, 0]
+        })
+      }
+    ]
+  };
 
   return (
     <View style={styles.screen}>
@@ -173,12 +211,15 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
           <ModeToggle compact />
         </View>
 
+        <Animated.View style={transitionStyle}>
         <GlassCard tone="hero" style={styles.heroCard}>
           <View style={styles.heroTopRow}>
             <View style={styles.heroIcon}>
               {slide.id === "scan" ? <FileScan color={colors.heroText} size={22} /> : null}
               {slide.id === "review" ? <ListChecks color={colors.heroText} size={22} /> : null}
-              {slide.id === "today" ? <CalendarDays color={colors.heroText} size={22} /> : null}
+              {slide.id === "calendar" ? <CalendarDays color={colors.heroText} size={22} /> : null}
+              {slide.id === "classes" ? <GraduationCap color={colors.heroText} size={22} /> : null}
+              {slide.id === "focus" ? <Timer color={colors.heroText} size={22} /> : null}
               {slide.id === "widgets" ? <Sparkles color={colors.heroText} size={22} /> : null}
             </View>
             <Text style={styles.stepText}>{index + 1} / {slides.length}</Text>
@@ -187,11 +228,14 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
           <Text style={styles.title}>{slide.title}</Text>
           <Text style={styles.copy}>{slide.copy}</Text>
         </GlassCard>
+        </Animated.View>
 
-        <View style={styles.previewStage}>
+        <Animated.View key={slide.id} style={[styles.previewStage, transitionStyle]}>
           {slide.id === "scan" ? <ScanPreview styles={styles} /> : null}
           {slide.id === "review" ? <ReviewPreview styles={styles} /> : null}
-          {slide.id === "today" ? <TodayPreview styles={styles} /> : null}
+          {slide.id === "calendar" ? <CalendarPreview styles={styles} /> : null}
+          {slide.id === "classes" ? <ClassesPreview styles={styles} /> : null}
+          {slide.id === "focus" ? <FocusPreview styles={styles} /> : null}
           {slide.id === "widgets" ? (
             <WidgetsPreview
               styles={styles}
@@ -206,7 +250,7 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
               }}
             />
           ) : null}
-        </View>
+        </Animated.View>
       </ScrollView>
 
       <View style={styles.bottomBar}>
@@ -229,6 +273,10 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
 }
 
 function ScanPreview({ styles }: { styles: ReturnType<typeof createStyles> }) {
+  const imageParsingAvailable = supportsSyllabusImageParsing();
+  const methods = imageParsingAvailable
+    ? ["Scan paper", "Upload PDF", "Paste text"]
+    : ["Upload PDF", "Paste text", "Review draft"];
   return (
     <GlassCard style={styles.appPreviewCard}>
       <View style={styles.appPreviewHeader}>
@@ -237,11 +285,11 @@ function ScanPreview({ styles }: { styles: ReturnType<typeof createStyles> }) {
           <Text style={styles.appPreviewTitle}>Add syllabus</Text>
         </View>
         <View style={styles.appPreviewBadge}>
-          <Text style={styles.appPreviewBadgeText}>3 ways</Text>
+          <Text style={styles.appPreviewBadgeText}>Sample</Text>
         </View>
       </View>
       <View style={styles.methodGrid}>
-        {["Scan paper", "Upload PDF", "Paste text"].map((method) => (
+        {methods.map((method) => (
           <View key={method} style={styles.methodChip}>
             <Text style={styles.methodText}>{method}</Text>
           </View>
@@ -270,7 +318,7 @@ function ReviewPreview({ styles }: { styles: ReturnType<typeof createStyles> }) 
           <Text style={styles.appPreviewTitle}>Confirm before adding</Text>
         </View>
         <View style={styles.appPreviewBadge}>
-          <Text style={styles.appPreviewBadgeText}>Edit</Text>
+          <Text style={styles.appPreviewBadgeText}>Sample</Text>
         </View>
       </View>
       <View style={styles.reviewList}>
@@ -319,6 +367,106 @@ function TodayPreview({ styles }: { styles: ReturnType<typeof createStyles> }) {
   );
 }
 
+function CalendarPreview({ styles }: { styles: ReturnType<typeof createStyles> }) {
+  const weekItems = marketingCaptureAssignments.slice(0, 5);
+  const totalMinutes = weekItems.reduce((sum, item) => sum + (item.estimatedMinutes || 30), 0);
+  const doneCount = marketingCaptureAssignments.filter((item) => item.status === "done").length;
+
+  return (
+    <GlassCard style={styles.appPreviewCard}>
+      <View style={styles.appPreviewHeader}>
+        <View>
+          <Text style={styles.appPreviewKicker}>Calendar</Text>
+          <Text style={styles.appPreviewTitle}>Week at a glance</Text>
+        </View>
+        <View style={styles.appPreviewBadge}>
+          <Text style={styles.appPreviewBadgeText}>Sample</Text>
+        </View>
+      </View>
+      <View style={styles.calendarPreviewGrid}>
+        {weekItems.map((assignment, index) => {
+          const course = marketingCaptureCourses.find((item) => item.id === assignment.courseId);
+          const height = Math.max(18, Math.min(74, Math.round(((assignment.estimatedMinutes || 30) / 180) * 74)));
+          return (
+            <View key={assignment.id} style={styles.calendarDay}>
+              <View style={styles.calendarTrack}>
+                <View style={[styles.calendarBar, { height, backgroundColor: course?.color || "#2F80ED" }]} />
+              </View>
+              <Text style={styles.calendarDayLabel}>{["M", "T", "W", "T", "F"][index]}</Text>
+              <Text style={styles.calendarDayCount}>1</Text>
+            </View>
+          );
+        })}
+      </View>
+      <View style={styles.progressPreviewRow}>
+        <PreviewStat label="Progress" value={`${Math.round((doneCount / Math.max(marketingCaptureAssignments.length, 1)) * 100)}%`} styles={styles} />
+        <PreviewStat label="Load" value={formatHours(totalMinutes)} styles={styles} />
+        <PreviewStat label="Open" value={String(marketingCaptureAssignments.length - doneCount)} styles={styles} />
+      </View>
+    </GlassCard>
+  );
+}
+
+function ClassesPreview({ styles }: { styles: ReturnType<typeof createStyles> }) {
+  return (
+    <GlassCard style={styles.appPreviewCard}>
+      <View style={styles.appPreviewHeader}>
+        <View>
+          <Text style={styles.appPreviewKicker}>Classes</Text>
+          <Text style={styles.appPreviewTitle}>Course hubs</Text>
+        </View>
+        <View style={styles.appPreviewBadge}>
+          <Text style={styles.appPreviewBadgeText}>Sample</Text>
+        </View>
+      </View>
+      <View style={styles.classPreviewList}>
+        {marketingCaptureCourses.slice(0, 3).map((course) => {
+          const courseAssignments = marketingCaptureAssignments.filter((item) => item.courseId === course.id);
+          const done = courseAssignments.filter((item) => item.status === "done").length;
+          return (
+            <View key={course.id} style={styles.classPreviewRow}>
+              <View style={[styles.classPreviewIcon, { backgroundColor: course.color || "#2F80ED" }]} />
+              <View style={styles.classPreviewCopy}>
+                <Text style={styles.classPreviewTitle}>{course.code}</Text>
+                <Text style={styles.classPreviewMeta} numberOfLines={1}>{course.name}</Text>
+              </View>
+              <Text style={styles.classPreviewCount}>{courseAssignments.length - done} open</Text>
+            </View>
+          );
+        })}
+      </View>
+    </GlassCard>
+  );
+}
+
+function FocusPreview({ styles }: { styles: ReturnType<typeof createStyles> }) {
+  const assignment = marketingCaptureAssignments[0]!;
+  const course = marketingCaptureCourses.find((item) => item.id === assignment.courseId);
+
+  return (
+    <GlassCard style={styles.appPreviewCard}>
+      <View style={styles.appPreviewHeader}>
+        <View>
+          <Text style={styles.appPreviewKicker}>Focus</Text>
+          <Text style={styles.appPreviewTitle}>25-minute block</Text>
+        </View>
+        <View style={styles.appPreviewBadge}>
+          <Text style={styles.appPreviewBadgeText}>Sample</Text>
+        </View>
+      </View>
+      <View style={styles.focusPreviewStage}>
+        <View style={styles.focusPreviewRing}>
+          <Text style={styles.focusPreviewTime}>25:00</Text>
+          <Text style={styles.focusPreviewState}>Ready</Text>
+        </View>
+        <Text style={styles.focusPreviewKicker}>Focusing on</Text>
+        <Text style={styles.focusPreviewTitleText} numberOfLines={2}>{assignment.title}</Text>
+        <Text style={styles.focusPreviewMeta}>{course?.code || "Class"} · logs progress when complete</Text>
+      </View>
+    </GlassCard>
+  );
+}
+
 function WidgetsPreview({
   styles,
   appTheme,
@@ -342,7 +490,7 @@ function WidgetsPreview({
           <Text style={styles.appPreviewTitle}>Upcoming widget</Text>
         </View>
         <View style={styles.appPreviewBadge}>
-          <Text style={styles.appPreviewBadgeText}>{labelize(widgetPalette)}</Text>
+          <Text style={styles.appPreviewBadgeText}>Sample</Text>
         </View>
       </View>
       <WidgetPreviewCard
@@ -396,6 +544,15 @@ function WidgetsPreview({
   );
 }
 
+function PreviewStat({ label, value, styles }: { label: string; value: string; styles: ReturnType<typeof createStyles> }) {
+  return (
+    <View style={styles.previewStat}>
+      <Text style={styles.previewStatValue}>{value}</Text>
+      <Text style={styles.previewStatLabel}>{label}</Text>
+    </View>
+  );
+}
+
 function ReviewRow({
   assignment,
   styles
@@ -428,6 +585,12 @@ function dueShort(value: string) {
 
 function labelize(value: string) {
   return value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatHours(minutes: number) {
+  if (minutes < 60) return `${minutes}m`;
+  const hours = minutes / 60;
+  return `${hours % 1 === 0 ? hours.toFixed(0) : hours.toFixed(1)}h`;
 }
 
 function createStyles(theme: AppTheme) {
@@ -695,6 +858,167 @@ function createStyles(theme: AppTheme) {
       fontSize: 11,
       lineHeight: 14,
       fontWeight: "900"
+    },
+    calendarPreviewGrid: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      gap: spacing.xs,
+      borderRadius: radii.xl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.sm
+    },
+    calendarDay: {
+      flex: 1,
+      minWidth: 0,
+      alignItems: "center",
+      gap: 5
+    },
+    calendarTrack: {
+      width: "100%",
+      height: 78,
+      borderRadius: radii.lg,
+      backgroundColor: colors.surfaceAlt,
+      justifyContent: "flex-end",
+      overflow: "hidden"
+    },
+    calendarBar: {
+      width: "100%",
+      borderRadius: radii.lg
+    },
+    calendarDayLabel: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    calendarDayCount: {
+      color: colors.ink,
+      fontSize: 12,
+      lineHeight: 15,
+      fontWeight: "900"
+    },
+    progressPreviewRow: {
+      flexDirection: "row",
+      gap: spacing.xs
+    },
+    previewStat: {
+      flex: 1,
+      minHeight: 54,
+      borderRadius: radii.lg,
+      backgroundColor: colors.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    previewStatValue: {
+      color: colors.ink,
+      fontSize: 17,
+      lineHeight: 21,
+      fontWeight: "900"
+    },
+    previewStatLabel: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    classPreviewList: {
+      gap: spacing.xs
+    },
+    classPreviewRow: {
+      minHeight: 58,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      paddingHorizontal: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    classPreviewIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: radii.lg
+    },
+    classPreviewCopy: {
+      flex: 1,
+      minWidth: 0
+    },
+    classPreviewTitle: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 18,
+      fontWeight: "900"
+    },
+    classPreviewMeta: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "800"
+    },
+    classPreviewCount: {
+      color: colors.accent,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
+    },
+    focusPreviewStage: {
+      borderRadius: radii.xl,
+      backgroundColor: theme.isDark ? "#071827" : "#0F2940",
+      padding: spacing.md,
+      alignItems: "center",
+      gap: 6,
+      overflow: "hidden"
+    },
+    focusPreviewRing: {
+      width: 132,
+      height: 132,
+      borderRadius: 66,
+      borderWidth: 9,
+      borderColor: "#38BDF8",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "rgba(255,255,255,0.06)"
+    },
+    focusPreviewTime: {
+      color: "#FFFFFF",
+      fontSize: 31,
+      lineHeight: 37,
+      fontWeight: "400"
+    },
+    focusPreviewState: {
+      color: "#B9E7F6",
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    focusPreviewKicker: {
+      marginTop: spacing.xs,
+      color: "#B9E7F6",
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    focusPreviewTitleText: {
+      color: "#FFFFFF",
+      fontSize: 16,
+      lineHeight: 21,
+      fontWeight: "900",
+      textAlign: "center"
+    },
+    focusPreviewMeta: {
+      color: "#B9E7F6",
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "800",
+      textAlign: "center"
     },
     widgetPreview: {
       alignSelf: "center",

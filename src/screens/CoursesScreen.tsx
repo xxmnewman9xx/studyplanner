@@ -34,7 +34,7 @@ type CoursesScreenProps = {
   onOpenAssignment: (assignmentId: string) => void;
   onOpenNotes?: () => void;
   onUpdateSemester: (patch: Partial<Semester>) => void;
-  onAddCourse: (course: Pick<Course, "code" | "name" | "instructor">) => void;
+  onAddCourse: (course: Pick<Course, "code" | "name" | "instructor">) => boolean;
   onUpdateCourse: (courseId: string, patch: Partial<Course>) => void;
 };
 
@@ -386,11 +386,12 @@ export function CoursesScreen({
           label="Add this class"
           icon={Plus}
           onPress={() => {
-            onAddCourse({
+            const added = onAddCourse({
               code: newCourseCode,
               name: newCourseName,
               instructor: newCourseInstructor
             });
+            if (!added) return;
             setNewCourseCode("");
             setNewCourseName("");
             setNewCourseInstructor("");

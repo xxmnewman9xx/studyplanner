@@ -112,15 +112,17 @@ const proTabs: Array<{
 }> = [
   { id: "today", label: "Today", icon: CalendarDays },
   { id: "import", label: "Scan", icon: FileScan },
-  { id: "plan", label: "Plan", icon: CalendarDays },
+  { id: "plan", label: "Calendar", icon: CalendarDays },
+  { id: "courses", label: "Classes", icon: GraduationCap },
   { id: "more", label: "Widgets", icon: Sparkles }
 ];
 
 const freeTabs: typeof proTabs = proTabs;
-const mobilePrimaryTabIds = new Set<NavTab>(["today", "import", "plan", "more"]);
-const moreGroupTabIds = new Set<NavTab>(["more", "notes", "focus", "grades", "upgrade"]);
+const mobilePrimaryTabIds = new Set<NavTab>(["today", "import", "plan", "courses", "more"]);
+const moreGroupTabIds = new Set<NavTab>(["more", "notes", "grades", "upgrade"]);
 
 function mobileTabLabel(tab: NavTab, fallback: string) {
+  if (tab === "plan") return "Calendar";
   return tab === "more" ? "Widgets" : fallback;
 }
 
@@ -201,7 +203,7 @@ function isCaptureScreen(value: unknown): value is MarketingCaptureScreen {
 }
 
 function isCaptureOnboardingIndex(value: unknown): value is number {
-  return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 3;
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 5;
 }
 
 function isCaptureThemeAccent(value: unknown): value is ThemeAccent {
@@ -277,7 +279,7 @@ function routeTabFromUrl(url: string): NavTab | null {
 
   if (url.includes("widgets") || url.includes("widget-studio")) return "more";
   if (url.includes("scan") || url.includes("import")) return "import";
-  if (url.includes("plan")) return "plan";
+  if (url.includes("calendar") || url.includes("plan")) return "plan";
   if (url.includes("classes") || url.includes("courses")) return "courses";
   if (url.includes("notes")) return "notes";
   if (url.includes("focus")) return "focus";
@@ -884,12 +886,12 @@ function AppContent() {
         { text: "Not now", style: "cancel" },
         { text: "See Plus", onPress: () => openPaywall("courses") }
       ]);
-      return;
+      return false;
     }
 
     if (!course.code.trim() || !course.name.trim()) {
       Alert.alert("Add course details", "Course code and course name are both needed.");
-      return;
+      return false;
     }
 
     const id = `course-${Date.now()}`;
@@ -917,6 +919,7 @@ function AppContent() {
         ]
       }
     ]);
+    return true;
   };
 
   const updateCourse = (courseId: string, patch: Partial<Course>) => {
@@ -1380,7 +1383,10 @@ function AppContent() {
         {!tablet ? <View style={styles.tabBar}>
           {bottomTabs.map((tab) => {
             const Icon = tab.icon;
-            const active = activeTab === tab.id || (tab.id === "more" && moreGroupTabIds.has(activeTab));
+            const active =
+              activeTab === tab.id ||
+              (tab.id === "today" && activeTab === "focus") ||
+              (tab.id === "more" && moreGroupTabIds.has(activeTab));
             const locked = !captureBypassEnabled && premiumTabs.has(tab.id) && !subscription.isPremium;
             return (
               <TouchableOpacity
@@ -1613,11 +1619,11 @@ function labelForTab(tab: NavTab) {
   const labels: Record<NavTab, string> = {
     today: "Today",
     import: "Scan",
-    plan: "Plan",
+    plan: "Calendar",
     courses: "Classes",
     notes: "Notes",
     more: "Widgets",
-    focus: "Study",
+    focus: "Focus",
     grades: "Grades",
     upgrade: "Plus"
   };

@@ -80,13 +80,14 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
     : primarySuggestion
       ? "Open priority work"
       : courses.length
-        ? "Add a deadline below"
+        ? "Scan syllabus or paste work"
         : "Add a class, then plan";
   const primaryActionDetail = selectedEvents[0]
     ? `${selectedEvents.length} item${selectedEvents.length === 1 ? "" : "s"} due on the selected day.`
     : primarySuggestion?.copy || "The week stays empty until real assignments have due dates.";
   const planState = buildPlanState(assignments, courses, overdue.length, weekSummary.totalItems);
   const weekGroups = buildSimpleWeekGroups(openAssignments, today);
+  const monthTitle = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(monthCursor);
 
   const moveMonth = (offset: number) => {
     setMonthCursor((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
@@ -123,8 +124,8 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
       <GlassCard tone="hero" style={styles.hero}>
         <View style={styles.heroTop}>
           <View style={styles.heroTitleBlock}>
-            <Text style={styles.kicker}>Plan</Text>
-            <Text style={styles.title}>See your weekly workload.</Text>
+            <Text style={styles.kicker}>Calendar</Text>
+            <Text style={styles.title}>See your semester workload.</Text>
           </View>
           <View style={styles.heroIcon}>
             <Sparkles color={colors.heroText} size={19} />
@@ -139,6 +140,114 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
           <MiniStat label="Late" value={String(overdue.length)} />
         </View>
       </GlassCard>
+
+      <SectionHeader title="Month" note="Tap a day to inspect due work" />
+      <GlassCard style={styles.calendarCard}>
+        <View style={styles.monthHeader}>
+          <TouchableOpacity accessibilityRole="button" style={styles.monthButton} onPress={() => moveMonth(-1)}>
+            <ChevronLeft color={colors.heroText} size={18} />
+          </TouchableOpacity>
+          <Text style={styles.monthTitle}>{monthTitle}</Text>
+          <TouchableOpacity accessibilityRole="button" style={styles.monthButton} onPress={() => moveMonth(1)}>
+            <ChevronRight color={colors.heroText} size={18} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.weekdayRow}>
+          {weekdays.map((day, index) => (
+            <Text key={`${day}-${index}`} style={styles.weekday}>{day}</Text>
+          ))}
+        </View>
+        <View style={styles.monthGrid}>
+          {monthDays.map(({ date }) => {
+            const key = dateKey(date);
+            const events = eventsByDay[key] || [];
+            const active = key === selectedDate;
+            const isToday = key === dateKey(today);
+            const muted = date.getMonth() !== monthCursor.getMonth();
+            return (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+                key={key}
+                style={[
+                  styles.dayCell,
+                  active ? styles.dayCellActive : null,
+                  isToday && !active ? styles.dayCellToday : null,
+                  muted ? styles.dayCellMuted : null
+                ]}
+                onPress={() => setSelectedDate(key)}
+              >
+                <Text style={[styles.dayNumber, active ? styles.dayNumberActive : null]}>{date.getDate()}</Text>
+                <View style={styles.eventDots}>
+                  {events.slice(0, 3).map((event) => (
+                    <View
+                      key={event.id}
+                      style={[styles.eventDot, { backgroundColor: event.course?.color || colors.accent }]}
+                    />
+                  ))}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        <View style={styles.selectedDayPanel}>
+          <Text style={styles.selectedDayTitle}>{formatSelectedDate(selectedDate)}</Text>
+          <Text style={styles.selectedDayMeta}>
+            {selectedEvents.length
+              ? `${selectedEvents.length} due item${selectedEvents.length === 1 ? "" : "s"}`
+              : "No due work on this day"}
+          </Text>
+          {selectedEvents.slice(0, 2).map((event) => (
+            <TouchableOpacity
+              accessibilityRole="button"
+              key={event.id}
+              style={styles.selectedDayRow}
+              onPress={() => onOpenAssignment(event.assignment.id)}
+            >
+              <View style={[styles.selectedDayDot, { backgroundColor: event.course?.color || colors.accent }]} />
+              <Text style={styles.selectedDayText} numberOfLines={1}>{event.assignment.title}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </GlassCard>
+
+      {openAssignments.length > 0 ? (
+        <GlassCard style={styles.catchUpCard}>
+          <View style={styles.catchUpTopRow}>
+            <View style={styles.catchUpBadge}>
+              <Text style={styles.catchUpBadgeText}>{planState.badge}</Text>
+            </View>
+            <Text style={styles.catchUpMeta}>
+              {selectedEvents.length ? formatSelectedDate(selectedDate) : `${weekSummary.totalItems} this week`}
+            </Text>
+          </View>
+          <Text style={styles.catchUpTitle}>{planState.title}</Text>
+          <Text style={styles.catchUpCopy}>{primaryActionDetail}</Text>
+          <View style={styles.catchUpActions}>
+            <AppButton
+              label={primaryActionLabel}
+              icon={Timer}
+              onPress={() => {
+                if (primaryAssignmentId) {
+                  onOpenAssignment(primaryAssignmentId);
+                } else {
+                  onOpenScan();
+                }
+              }}
+              style={styles.catchUpButton}
+            />
+            {catchUpFirst ? (
+              <AppButton
+                label="Start focus"
+                icon={Timer}
+                variant="secondary"
+                onPress={() => onOpenFocus(catchUpFirst.id)}
+                style={styles.catchUpButton}
+              />
+            ) : null}
+          </View>
+        </GlassCard>
+      ) : null}
 
       {openAssignments.length === 0 ? (
         <GlassCard style={styles.stateCard}>
@@ -832,6 +941,46 @@ function createStyles(theme: AppTheme) {
       width: 5,
       height: 5,
       borderRadius: 3
+    },
+    selectedDayPanel: {
+      marginTop: spacing.sm,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.16)",
+      backgroundColor: "rgba(255,255,255,0.08)",
+      padding: spacing.sm,
+      gap: 5
+    },
+    selectedDayTitle: {
+      color: colors.heroText,
+      fontSize: 14,
+      lineHeight: 18,
+      fontWeight: "900"
+    },
+    selectedDayMeta: {
+      color: colors.heroMuted,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "800"
+    },
+    selectedDayRow: {
+      minHeight: 30,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs
+    },
+    selectedDayDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4
+    },
+    selectedDayText: {
+      flex: 1,
+      minWidth: 0,
+      color: colors.heroText,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "800"
     },
     list: {
       gap: spacing.sm

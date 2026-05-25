@@ -7,8 +7,8 @@ Date: 2026-05-25
 - App name: `StudyPlanner: Syllabus AI`
 - Bundle ID: `com.mattnewman.studyplanner`
 - ASC App ID: `6766181202`
-- Version/build: `1.0.2` / `24`
-- TestFlight upload receipt: `docs/launch/2026-05-25/testflight-upload-receipt.md`
+- Version/build: `1.0.2` / `25`
+- TestFlight upload receipt: `AppStore/FinalSweep-2026-05-25/testflight-upload-receipt.md`
 
 ## Assets
 
@@ -32,7 +32,7 @@ Date: 2026-05-25
 
 ## Blocking Checks Before App Review Submission
 
-- Production EAS env currently does not show `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT` at project or account scope. Add it before submitting with `Syllabus AI` and photo/parser claims, or soften those claims.
+- Production EAS env currently does not show `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT` at project scope. Build 25 softens/disables photo scan paths when the image parser is unavailable; add the endpoint before using photo-parser claims in App Review copy.
 - Confirm App Store Connect IAP product status, pricing, localization, subscription group, and cleared-for-sale state.
 - Run a real TestFlight sandbox purchase and restore pass.
 - Capture Lock Screen accessory placement if Lock Screen placement is used in submission copy.

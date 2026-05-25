@@ -9,13 +9,27 @@ const device = process.env.STUDYPLANNER_SIMULATOR || "booted";
 const devClientUrl = process.env.STUDYPLANNER_DEV_CLIENT_URL || "";
 const launchWaitMs = Number(process.env.STUDYPLANNER_SIM_CAPTURE_WAIT_MS || 14000);
 const captureTargets = [
-  { key: "onboarding", route: { onboardingIndex: 0 }, name: "00-onboarding" },
-  { key: "today", route: { tab: "today" }, name: "01-today" },
-  { key: "scan", route: { tab: "import" }, name: "02-scan" },
-  { key: "review", route: { tab: "import", screen: "review_edit" }, name: "03-review" },
-  { key: "plan", route: { tab: "plan" }, name: "04-plan" },
-  { key: "widgets", route: { tab: "more" }, name: "05-widgets" },
-  { key: "plus", route: { tab: "upgrade" }, name: "06-plus" }
+  { key: "onboarding", route: { onboardingIndex: 0 }, name: "00-onboarding-scan" },
+  { key: "onboarding-review", route: { onboardingIndex: 1 }, name: "01-onboarding-review" },
+  { key: "onboarding-calendar", route: { onboardingIndex: 2 }, name: "02-onboarding-calendar" },
+  { key: "onboarding-classes", route: { onboardingIndex: 3 }, name: "03-onboarding-classes" },
+  { key: "onboarding-focus", route: { onboardingIndex: 4 }, name: "04-onboarding-focus" },
+  { key: "onboarding-widgets", route: { onboardingIndex: 5 }, name: "05-onboarding-widgets" },
+  { key: "today", route: { tab: "today" }, name: "10-today-light" },
+  { key: "today-dark", route: { tab: "today", themeMode: "dark" }, name: "11-today-dark" },
+  { key: "scan", route: { tab: "import" }, name: "12-scan" },
+  { key: "review", route: { tab: "import", screen: "review_edit" }, name: "13-review" },
+  { key: "calendar", route: { tab: "plan" }, name: "14-calendar" },
+  { key: "calendar-clean", route: { tab: "plan", workloadState: "clean" }, name: "15-calendar-clean" },
+  { key: "calendar-urgent", route: { tab: "plan", workloadState: "urgent" }, name: "16-calendar-urgent" },
+  { key: "classes", route: { tab: "courses" }, name: "17-classes" },
+  { key: "focus", route: { tab: "focus" }, name: "18-focus" },
+  { key: "widgets", route: { tab: "more" }, name: "19-widgets-ocean" },
+  { key: "widgets-graphite", route: { tab: "more", appTheme: "graphite", widgetPalette: "graphite", widgetBackground: "dark" }, name: "20-widgets-graphite" },
+  { key: "widgets-forest", route: { tab: "more", appTheme: "mint", widgetPalette: "forest", widgetBackground: "glass" }, name: "21-widgets-forest" },
+  { key: "widgets-week", route: { tab: "more", widgetType: "week", widgetSize: "large", widgetPalette: "graphite", widgetBackground: "glass" }, name: "22-widgets-week" },
+  { key: "widgets-progress", route: { tab: "more", widgetType: "streak", widgetSize: "small", widgetPalette: "forest", widgetBackground: "glass" }, name: "23-widgets-progress" },
+  { key: "plus", route: { tab: "upgrade" }, name: "24-plus" }
 ];
 const requestedTargets = (process.env.STUDYPLANNER_SIM_CAPTURE_TABS || "")
   .split(",")

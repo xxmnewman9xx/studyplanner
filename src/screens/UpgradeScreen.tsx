@@ -19,6 +19,7 @@ type LegalDocument = "terms" | "privacy";
 const paidFeatures = [
   { icon: FileScan, title: "More syllabus scans", detail: "Scan, upload, paste, and re-import when classes change." },
   { icon: Layers3, title: "More widget styles", detail: "Save extra widget presets and custom looks." },
+  { icon: Timer, title: "Focus + progress", detail: "Start timed study sessions and keep completion feedback visible." },
   { icon: Bell, title: "Reminders + calendar", detail: "Send reviewed deadlines to device reminders and calendar." }
 ];
 
@@ -67,7 +68,7 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
             : "Plans could not load yet. Restore Purchases stays available for existing subscribers.";
   const heroTitle = hardMode ? "StudyPlanner Plus" : "Plus for busy semesters.";
   const heroSubtitle = hardMode
-    ? "Unlock syllabus scans, Home Screen widgets, reminders, and calendar sync."
+    ? "Unlock syllabus scans, calendar planning, focus, widgets, reminders, and sync."
     : "Keep the full scan-to-plan workflow ready for a busy semester.";
 
   if (legalDocument) {
@@ -87,6 +88,7 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
         <Text style={styles.subtitle}>{heroSubtitle}</Text>
         <View style={styles.payoffRail}>
           <PayoffPill icon={FileScan} label="Scans" />
+          <PayoffPill icon={Timer} label="Focus" />
           <PayoffPill icon={Layers3} label="Widgets" />
           <PayoffPill icon={Bell} label="Reminders" />
         </View>
