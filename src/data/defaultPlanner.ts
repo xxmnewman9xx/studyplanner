@@ -21,7 +21,7 @@ export const defaultSemester: Semester = {
 };
 
 export const defaultSettings: UserSettings = {
-  studentName: "Alex Kim",
+  studentName: "",
   selectedTheme: "ocean",
   customPalette: ["#315BFF", "#35CDA8", "#5D5FEF", "#C98316"],
   appTheme: "campus",

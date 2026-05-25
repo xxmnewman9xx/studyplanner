@@ -49,6 +49,7 @@ type TodayScreenProps = {
   onOpenClasses: () => void;
   onOpenNotes: () => void;
   onOpenGrades: () => void;
+  onOpenWidgets: () => void;
   onTryDemo: () => void;
   onReplaceDemo: () => void;
   onAddQuickAssignment: (courseId: string, title: string, dueDate: string, kind: "assignment") => boolean;
@@ -73,6 +74,7 @@ export function TodayScreen({
   onOpenClasses,
   onOpenNotes,
   onOpenGrades,
+  onOpenWidgets,
   onTryDemo,
   onReplaceDemo,
   onAddQuickAssignment
@@ -97,9 +99,10 @@ export function TodayScreen({
   const liveBrief = buildLiveBrief(plan, courses.length);
   const handoffState = buildHandoffState(Boolean(importHandoff), plan.needsReview.length, plan.nextAction?.id);
   const focusUpsellHandler = premiumAutomationLocked ? onOpenPaywall : () => onOpenFocus(plan.nextAction?.id);
-  const currentLoadMinutes = plan.upcoming
-    .slice(0, 5)
+  const currentLoadMinutes = assignments
+    .filter((assignment) => assignment.status !== "done" && assignment.status !== "archived")
     .reduce((sum, assignment) => sum + (assignment.estimatedMinutes || 25), 0);
+  const sourceContract = buildSourceContract(assignments, courses.length, plan.needsReview.length);
 
   useEffect(() => {
     if (!courses.length) {
@@ -167,7 +170,7 @@ export function TodayScreen({
             </View>
             <View style={styles.nextActions}>
               <AppButton
-                label="Study this now"
+                label="Study now"
                 icon={Timer}
                 onPress={() => {
                   onUpdateStatus(plan.nextAction!.id, "in_progress");
@@ -176,7 +179,7 @@ export function TodayScreen({
                 style={styles.startButton}
               />
               <AppButton
-                label="See task details"
+                label="Details"
                 variant="quiet"
                 onPress={() => onOpenAssignment(plan.nextAction!.id)}
                 style={styles.focusButton}
@@ -206,7 +209,7 @@ export function TodayScreen({
           </TouchableOpacity>
         </View>
         <View style={styles.commandSignalGrid}>
-          <SignalTile label="Load" value={assignments.length ? `${currentLoadMinutes}m` : "0m"} detail={`${plan.upcoming.length} live item${plan.upcoming.length === 1 ? "" : "s"}`} tone="blue" />
+          <SignalTile label="Load" value={plan.openCount ? `${currentLoadMinutes}m` : "0m"} detail={`${plan.openCount} active item${plan.openCount === 1 ? "" : "s"}`} tone="blue" />
           <SignalTile label="Review" value={`${plan.needsReview.length}`} detail={plan.needsReview.length ? "check imports" : "clean"} tone="pink" />
           <SignalTile label="Classes" value={`${courses.length}`} detail={courses.length ? "ready" : "add first"} tone="green" />
         </View>
@@ -216,6 +219,13 @@ export function TodayScreen({
           <HandoffStep label="Today" detail={handoffState} active={Boolean(plan.nextAction)} />
         </View>
       </GlassCard>
+
+      <SourceContractCard
+        contract={sourceContract}
+        onOpenScan={onOpenScan}
+        onOpenPlan={onOpenPlan}
+        onOpenWidgets={onOpenWidgets}
+      />
 
       {!assignments.length ? (
         <GlassCard style={styles.starterCard}>
@@ -558,6 +568,113 @@ function buildLiveBrief(plan: ReturnType<typeof buildTodayPlan>, courseCount: nu
     title: "Clear right now",
     detail: "Your current plan has no urgent work. Add homework when class ends or scan the next syllabus."
   };
+}
+
+function buildSourceContract(assignments: Assignment[], courseCount: number, reviewCount: number) {
+  const sourceCounts = assignments.reduce(
+    (counts, assignment) => {
+      if (assignment.source === "syllabus" || assignment.source === "scan" || assignment.source === "typed") {
+        counts.imported += 1;
+      } else if (assignment.source === "manual") {
+        counts.manual += 1;
+      } else {
+        counts.connected += 1;
+      }
+      return counts;
+    },
+    { imported: 0, manual: 0, connected: 0 }
+  );
+  const trusted = assignments.filter(
+    (assignment) => assignment.status !== "archived" && !assignment.needsReview && !assignment.duplicateOf
+  ).length;
+
+  return {
+    trusted,
+    reviewCount,
+    courseCount,
+    sourceCounts,
+    title:
+      assignments.length === 0
+        ? "No fake dashboard data."
+        : reviewCount > 0
+          ? "Review is blocking the live system."
+          : "One data model powers every surface.",
+    detail:
+      assignments.length === 0
+        ? "Scan, paste, or manually add work before Today, Plan, and widgets become specific."
+        : reviewCount > 0
+          ? "Flagged work stays visible for review, but it should not silently become a trusted widget row."
+          : `${trusted} reviewed item${trusted === 1 ? "" : "s"} can drive Today, planning pressure, and widget previews.`
+  };
+}
+
+function SourceContractCard({
+  contract,
+  onOpenScan,
+  onOpenPlan,
+  onOpenWidgets
+}: {
+  contract: ReturnType<typeof buildSourceContract>;
+  onOpenScan: () => void;
+  onOpenPlan: () => void;
+  onOpenWidgets: () => void;
+}) {
+  const { theme } = useAppTheme();
+  const { colors } = theme;
+  const styles = createStyles(theme);
+  const steps = [
+    {
+      label: "Source",
+      value: contract.sourceCounts.imported ? `${contract.sourceCounts.imported} imported` : contract.sourceCounts.manual ? `${contract.sourceCounts.manual} manual` : "Empty",
+      detail: contract.courseCount ? `${contract.courseCount} class${contract.courseCount === 1 ? "" : "es"}` : "Add first class",
+      icon: FileScan,
+      onPress: onOpenScan
+    },
+    {
+      label: "Trust",
+      value: contract.reviewCount ? `${contract.reviewCount} flagged` : `${contract.trusted} reviewed`,
+      detail: contract.reviewCount ? "Needs review" : "Planner-safe",
+      icon: CheckCircle2,
+      onPress: onOpenPlan
+    },
+    {
+      label: "Surfaces",
+      value: contract.trusted ? "Live" : "Waiting",
+      detail: "Today + Plan + widgets",
+      icon: Sparkles,
+      onPress: onOpenWidgets
+    }
+  ];
+
+  return (
+    <GlassCard style={styles.sourceContractCard}>
+      <View style={styles.sourceContractHeader}>
+        <View style={styles.sourceContractCopy}>
+          <Text style={styles.sourceContractKicker}>Source-to-surface contract</Text>
+          <Text style={styles.sourceContractTitle}>{contract.title}</Text>
+          <Text style={styles.sourceContractDetail}>{contract.detail}</Text>
+        </View>
+        <View style={styles.sourceContractBadge}>
+          <Text style={styles.sourceContractBadgeText}>{contract.reviewCount ? "Check" : "Real"}</Text>
+        </View>
+      </View>
+      <View style={styles.sourceStepRow}>
+        {steps.map((step) => {
+          const Icon = step.icon;
+          return (
+            <TouchableOpacity accessibilityRole="button" key={step.label} style={styles.sourceStep} onPress={step.onPress}>
+              <View style={styles.sourceStepIcon}>
+                <Icon color={colors.accent} size={16} />
+              </View>
+              <Text style={styles.sourceStepLabel}>{step.label}</Text>
+              <Text style={styles.sourceStepValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{step.value}</Text>
+              <Text style={styles.sourceStepDetail} numberOfLines={1}>{step.detail}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </GlassCard>
+  );
 }
 
 function HandoffStep({ label, detail, active }: { label: string; detail: string; active: boolean }) {
@@ -1317,6 +1434,100 @@ function createStyles(theme: AppTheme) {
       color: colors.muted,
       fontSize: 11,
       lineHeight: 15,
+      fontWeight: "800"
+    },
+    sourceContractCard: {
+      gap: spacing.sm,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(21,35,58,0.10)",
+      backgroundColor: theme.isDark ? "rgba(10,15,26,0.88)" : "rgba(255,255,255,0.70)"
+    },
+    sourceContractHeader: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    sourceContractCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    sourceContractKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      letterSpacing: 0.5,
+      textTransform: "uppercase"
+    },
+    sourceContractTitle: {
+      color: colors.ink,
+      fontSize: 18,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    sourceContractDetail: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "700"
+    },
+    sourceContractBadge: {
+      minWidth: 58,
+      borderRadius: radii.round,
+      backgroundColor: colors.heroSurface,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 8,
+      alignItems: "center"
+    },
+    sourceContractBadgeText: {
+      color: colors.heroText,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    sourceStepRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    sourceStep: {
+      flex: 1,
+      minWidth: 96,
+      minHeight: 94,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.05)" : colors.surfaceAlt,
+      padding: spacing.sm,
+      gap: 3
+    },
+    sourceStepIcon: {
+      width: 28,
+      height: 28,
+      borderRadius: 10,
+      backgroundColor: colors.accentSoft,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    sourceStepLabel: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    sourceStepValue: {
+      color: colors.ink,
+      fontSize: 17,
+      lineHeight: 21,
+      fontWeight: "900"
+    },
+    sourceStepDetail: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 14,
       fontWeight: "800"
     },
     importHandoffCard: {

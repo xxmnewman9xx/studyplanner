@@ -26,35 +26,220 @@ function StudyPlannerWidgetLayout(props, environment) {
   }
 
   var isMedium = environment.widgetFamily === "systemMedium";
+  var isAccessoryCircular = environment.widgetFamily === "accessoryCircular";
+  var isAccessoryRectangular = environment.widgetFamily === "accessoryRectangular";
+  var isAccessoryInline = environment.widgetFamily === "accessoryInline";
   var items = (props.items || []).slice(0, isMedium ? 3 : 1);
   var accent = props.accentColor || "#2F80ED";
-  var backgroundColor = props.backgroundColor || "#FFFDF4";
-  var ink = "#171A20";
-  var muted = "#69707D";
-  var quiet = "#8A93A3";
+  var backgroundColor = props.backgroundColor || "#101723";
+  var isDark = backgroundColor === "#171A20" || backgroundColor === "#101723" || backgroundColor === "#070A12";
+  var ink = isDark ? "#F8F6EF" : "#171A20";
+  var muted = isDark ? "#D4D8E2" : "#69707D";
+  var quiet = isDark ? "#AEB6C7" : "#8A93A3";
+  var soft = isDark ? "#2A303B" : "#E7EAF0";
+  var surface = isDark ? "#202633" : "#FFFFFF";
+  var highlight = isDark ? "#1A2233" : "#FFFFFF";
+  var signalLabel = props.signalLabel || (props.state === "ready" ? "Live plan" : props.state === "needs_review" ? "Review first" : "Setup");
+  var metricLabel = props.metricLabel || props.progressLabel || "Planner";
+  var nextLabel = props.nextLabel || props.footnote || "Open StudyPlanner";
+  var timelineLabel = props.timelineLabel || props.windowLabel || (props.kind === "today" ? "Today" : "Next");
   var titleSize = isMedium ? 12 : 11;
-  var valueSize = isMedium ? 34 : 32;
+  var valueSize = isMedium ? 34 : 31;
   var detailLines = isMedium ? 2 : 1;
+  var progress = Math.max(0, Math.min(1, props.progress || 0));
+  var progressDots = [];
   var rowNodes = [];
+
+  for (var progressIndex = 0; progressIndex < 5; progressIndex += 1) {
+    progressDots.push(circle(5, progress >= (progressIndex + 1) / 5 ? accent : soft));
+  }
 
   for (var index = 0; index < items.length; index += 1) {
     var item = items[index];
-    var label = isMedium
-      ? (item.courseCode + " - " + item.title + " - " + item.dueLabel)
-      : (item.courseCode + " - " + item.title);
     rowNodes.push(view("HStackView", {
       alignment: "center",
-      spacing: 6,
+      spacing: 7,
       modifiers: [frame({ maxWidth: 400 })],
       children: [
         circle(6, item.courseColor || accent),
-        text(label, [
+        text(item.courseCode || "Class", [
+          font({ size: 10, weight: "black" }),
+          foregroundStyle(item.courseColor || accent),
+          lineLimit(1)
+        ]),
+        text(item.title || "Homework", [
           font({ size: isMedium ? 11 : 10, weight: "semibold" }),
+          foregroundStyle(ink),
+          lineLimit(1)
+        ]),
+        view("SpacerView", { minLength: 2 }),
+        text(item.dueLabel || timelineLabel, [
+          font({ size: 10, weight: "bold" }),
           foregroundStyle(muted),
           lineLimit(1)
         ])
       ]
     }, item.id || String(index)));
+  }
+
+  if (isAccessoryInline) {
+    return text(
+      signalLabel + ": " + props.value + " - " + props.detail,
+      [
+        font({ size: 13, weight: "semibold" }),
+        foregroundStyle(ink),
+        lineLimit(1),
+        widgetURL(props.openURL || "studyplanner://widgets")
+      ]
+    );
+  }
+
+  if (isAccessoryCircular) {
+    return view("ZStackView", {
+      alignment: "center",
+      modifiers: [
+        frame({ maxWidth: 80, maxHeight: 80, alignment: "center" }),
+        widgetURL(props.openURL || "studyplanner://widgets")
+      ],
+      children: [
+      view("CircleView", {
+        modifiers: [
+          frame({ width: 62, height: 62 }),
+          background(backgroundColor, shapes.circle())
+        ]
+      }),
+      view("CircleView", {
+        modifiers: [
+          frame({ width: 48, height: 48 }),
+          background(accent, shapes.circle())
+        ]
+      }),
+        view("VStackView", {
+          alignment: "center",
+          spacing: 1,
+          children: [
+            text(props.value, [
+              font({ size: 18, weight: "black", design: "rounded" }),
+              foregroundStyle("#FFFFFF"),
+              lineLimit(1)
+            ]),
+            text(props.kind === "today" ? "Today" : "Next", [
+              font({ size: 9, weight: "bold" }),
+              foregroundStyle("#FFFFFF"),
+              lineLimit(1)
+            ])
+          ]
+        })
+      ]
+    });
+  }
+
+  if (isAccessoryRectangular) {
+    return view("VStackView", {
+      alignment: "leading",
+      spacing: 3,
+      modifiers: [
+        frame({ maxWidth: 180, maxHeight: 72, alignment: "leading" }),
+        widgetURL(props.openURL || "studyplanner://widgets")
+      ],
+      children: [
+        text(props.headline + " - " + signalLabel, [
+          font({ size: 11, weight: "black" }),
+          foregroundStyle(accent),
+          lineLimit(1)
+        ]),
+        text(props.value + " " + props.detail, [
+          font({ size: 14, weight: "bold", design: "rounded" }),
+          foregroundStyle(ink),
+          lineLimit(1)
+        ]),
+        text(items.length > 0 ? (items[0].courseCode + " - " + items[0].title + " - " + items[0].dueLabel) : nextLabel, [
+          font({ size: 11, weight: "semibold" }),
+          foregroundStyle(muted),
+          lineLimit(1)
+        ])
+      ]
+    });
+  }
+
+  if (!isMedium) {
+    return view("ZStackView", {
+      alignment: "topLeading",
+      modifiers: [
+        frame({ maxWidth: 220, maxHeight: 220, alignment: "topLeading" }),
+        background(backgroundColor),
+        widgetURL(props.openURL || "studyplanner://widgets")
+      ],
+      children: [
+        view("VStackView", {
+          modifiers: [
+            frame({ maxWidth: 220, maxHeight: 58, alignment: "topLeading" }),
+            background(highlight)
+          ],
+          children: []
+        }),
+        view("VStackView", {
+          alignment: "leading",
+          spacing: 8,
+          modifiers: [
+            frame({ maxWidth: 220, maxHeight: 220, alignment: "topLeading" }),
+            padding({ all: 14 })
+          ],
+          children: [
+            view("HStackView", {
+              alignment: "center",
+              spacing: 6,
+              modifiers: [frame({ maxWidth: 220 })],
+              children: [
+                view("VStackView", {
+                  alignment: "leading",
+                  spacing: 2,
+                  children: [
+                    text("StudyPlanner", [
+                      font({ size: titleSize, weight: "black" }),
+                      foregroundStyle(quiet),
+                      lineLimit(1)
+                    ]),
+                    text(signalLabel, [
+                      font({ size: 11, weight: "bold" }),
+                      foregroundStyle(accent),
+                      lineLimit(1)
+                    ])
+                  ]
+                }),
+                view("SpacerView", { minLength: 3 }),
+                text(timelineLabel, [
+                  font({ size: 10, weight: "black" }),
+                  foregroundStyle(ink),
+                  lineLimit(1)
+                ])
+              ]
+            }),
+            text(props.value, [
+              font({ size: 32, weight: "black", design: "rounded" }),
+              foregroundStyle(ink),
+              lineLimit(1)
+            ]),
+            text(props.detail, [
+              font({ size: 13, weight: "bold" }),
+              foregroundStyle(ink),
+              lineLimit(1)
+            ]),
+            text(items.length > 0 ? nextLabel : props.footnote, [
+              font({ size: 11, weight: "semibold" }),
+              foregroundStyle(muted),
+              lineLimit(2)
+            ]),
+            view("SpacerView", { minLength: 1 }),
+            text(metricLabel, [
+              font({ size: 10, weight: "bold" }),
+              foregroundStyle(quiet),
+              lineLimit(1)
+            ])
+          ]
+        })
+      ]
+    });
   }
 
   return view("ZStackView", {
@@ -65,6 +250,13 @@ function StudyPlannerWidgetLayout(props, environment) {
       widgetURL(props.openURL || "studyplanner://widgets")
     ],
     children: [
+      view("VStackView", {
+        modifiers: [
+          frame({ maxWidth: 400, maxHeight: isMedium ? 92 : 72, alignment: "topLeading" }),
+          background(highlight)
+        ],
+        children: []
+      }),
       view("VStackView", {
         alignment: "leading",
         spacing: isMedium ? 9 : 8,
@@ -87,7 +279,7 @@ function StudyPlannerWidgetLayout(props, environment) {
                     foregroundStyle(quiet),
                     lineLimit(1)
                   ]),
-                  text(props.headline, [
+                  text(signalLabel, [
                     font({ size: 11, weight: "bold" }),
                     foregroundStyle(accent),
                     lineLimit(1)
@@ -95,29 +287,87 @@ function StudyPlannerWidgetLayout(props, environment) {
                 ]
               }),
               view("SpacerView", { minLength: 4 }),
-              view("CircleView", {
-                modifiers: [
-                  frame({ width: 20, height: 20 }),
-                  background(accent, shapes.circle()),
-                  opacity(0.95)
+              view("VStackView", {
+                alignment: "trailing",
+                spacing: 2,
+                children: [
+                  text(props.windowLabel || "Today", [
+                    font({ size: 10, weight: "black" }),
+                    foregroundStyle(ink),
+                    lineLimit(1)
+                  ]),
+                  text(metricLabel, [
+                    font({ size: 9, weight: "bold" }),
+                    foregroundStyle(quiet),
+                    lineLimit(1)
+                  ])
                 ]
               })
             ]
           }),
-          view("VStackView", {
-            alignment: "leading",
-            spacing: 2,
+          view("HStackView", {
+            alignment: "center",
+            spacing: isMedium ? 12 : 8,
             children: [
-              text(props.value, [
-                font({ size: valueSize, weight: "black", design: "rounded" }),
-                foregroundStyle(ink),
+              view("VStackView", {
+                alignment: "leading",
+                spacing: 2,
+                children: [
+                  text(props.value, [
+                    font({ size: valueSize, weight: "black", design: "rounded" }),
+                    foregroundStyle(ink),
+                    lineLimit(1)
+                  ]),
+                  text(props.detail, [
+                    font({ size: isMedium ? 14 : 13, weight: "bold" }),
+                    foregroundStyle(ink),
+                    lineLimit(detailLines)
+                  ])
+                ]
+              }),
+              isMedium
+                ? view("VStackView", {
+                    alignment: "trailing",
+                    spacing: 3,
+                    modifiers: [
+                      padding({ all: 8 }),
+                      background(surface)
+                    ],
+                    children: [
+                      text("NEXT", [
+                        font({ size: 8, weight: "black" }),
+                        foregroundStyle(quiet),
+                        lineLimit(1)
+                      ]),
+                      text(nextLabel, [
+                        font({ size: 10, weight: "bold" }),
+                        foregroundStyle(ink),
+                        lineLimit(2)
+                      ])
+                    ]
+                  })
+                : view("SpacerView", { minLength: 1 })
+            ]
+          }),
+          view("HStackView", {
+            alignment: "center",
+            spacing: 5,
+            modifiers: [
+              frame({ maxWidth: 400 }),
+              padding({ all: 2 })
+            ],
+            children: [
+              text(metricLabel, [
+                font({ size: 10, weight: "bold" }),
+                foregroundStyle(quiet),
                 lineLimit(1)
               ]),
-              text(props.detail, [
-                font({ size: isMedium ? 14 : 13, weight: "bold" }),
-                foregroundStyle(ink),
-                lineLimit(detailLines)
-              ])
+              view("SpacerView", { minLength: 4 }),
+              view("HStackView", {
+                alignment: "center",
+                spacing: 3,
+                children: progressDots
+              })
             ]
           }),
           items.length > 0
@@ -133,11 +383,24 @@ function StudyPlannerWidgetLayout(props, environment) {
                 lineLimit(2)
               ]),
           view("SpacerView", { minLength: 1 }),
-          text(items.length > 0 ? props.footnote : props.semesterName, [
-            font({ size: 10, weight: "semibold" }),
-            foregroundStyle(quiet),
-            lineLimit(1)
-          ])
+          view("HStackView", {
+            alignment: "center",
+            spacing: 5,
+            modifiers: [frame({ maxWidth: 400 })],
+            children: [
+              text(items.length > 0 ? props.footnote : props.semesterName, [
+                font({ size: 10, weight: "semibold" }),
+                foregroundStyle(quiet),
+                lineLimit(1)
+              ]),
+              view("SpacerView", { minLength: 3 }),
+              text(props.layoutLabel || props.styleLabel || "Widget", [
+                font({ size: 9, weight: "bold" }),
+                foregroundStyle(accent),
+                lineLimit(1)
+              ])
+            ]
+          })
         ]
       })
     ]

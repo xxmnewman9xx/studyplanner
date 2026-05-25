@@ -1,30 +1,35 @@
 import React, { useMemo, useState } from "react";
 import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
+  ArrowRight,
   Bell,
   BookOpen,
   CalendarDays,
   CheckCircle2,
+  Clock3,
   FileText,
   FlaskConical,
   GraduationCap,
+  LifeBuoy,
   Layers3,
+  ListChecks,
   NotebookPen,
   Palette,
   PenLine,
   Settings2,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
   Timer,
   TrendingUp
 } from "lucide-react-native";
 import {
-  AppLogo,
   GlassCard,
   SegmentedControl,
   WidgetPreviewCard
 } from "../components/AppleComponents";
 import { AppButton } from "../components/AppButton";
+import { ModeToggle } from "../components/ModeToggle";
 import { SectionHeader } from "../components/SectionHeader";
 import {
   Assignment,
@@ -66,10 +71,11 @@ type MoreScreenProps = {
   premiumWidgetsLocked?: boolean;
 };
 
-const widgetSizes: WidgetSize[] = ["small", "medium", "large"];
+const widgetSizes: WidgetSize[] = ["small", "medium", "lock_rect", "lock_round", "lock_inline", "large"];
 const palettes: WidgetPalette[] = ["ocean", "sunset", "forest", "lavender", "midnight", "minimal"];
 const backgrounds: WidgetBackground[] = ["glass", "solid", "gradient", "dark"];
 const layouts: WidgetPreset["layout"][] = ["compact", "list", "ring", "calendar", "grid"];
+const fonts: WidgetPreset["font"][] = ["SF Pro", "Rounded", "New York", "Mono"];
 const appThemeOptions: ThemeAccent[] = ["campus", "classic", "mint", "aura", "rose", "graphite", "solar", "slate"];
 
 export function MoreScreen({
@@ -139,9 +145,11 @@ export function MoreScreen({
         courses,
         assignments,
         parsedImports,
+        settings,
+        widgetPresets,
         demoMode
       }),
-    [assignments, courses, demoMode, parsedImports, semester]
+    [assignments, courses, demoMode, parsedImports, semester, settings, widgetPresets]
   );
   const nativePreview =
     type === "today" ? nativeSnapshots.today : type === "due_next" ? nativeSnapshots.upcoming : undefined;
@@ -296,19 +304,62 @@ export function MoreScreen({
       : nativeWidgetStatus.state === "unavailable"
         ? "Build needed"
         : "WidgetKit";
-  const smartPresetCount = widgetPresets.filter((preset) => preset.smartStackSlot).length;
   const hasSavedPresets = widgetPresets.length > 0;
-  const studioScore = [hasAssignments, hasCourses, notes.length > 0, nativeWidgetStatus.state === "synced", smartPresetCount >= 4, Boolean(settings.appTheme)].filter(Boolean).length;
-  const dataSourceLabel = nativePreview ? "Native WidgetKit snapshot" : type === "class_focus" ? "Class-specific planner data" : "Live planner data";
+  const smartPresetCount = widgetPresets.filter((preset) => preset.smartStackSlot).length;
   const selectedSmartSlot = smartStackSlots.find((slot) => `smart-${slot.id}` === editingPresetId || smartSlotFromPresetId(editingPresetId) === slot.id);
-  const studioStateCopy = !hasAssignments && !hasCourses
-    ? "Empty state: previews use clear placeholders until a class or homework item exists. Free students still see Today and Upcoming setup guidance."
-    : `Populated state: previews are using ${assignments.length} homework item${assignments.length === 1 ? "" : "s"} and ${courses.length} class${courses.length === 1 ? "" : "es"}.`;
+  const reviewedWidgetItems = nativeSnapshots.today.items.length + nativeSnapshots.upcoming.items.length;
+  const widgetReadiness = [
+    { label: "Real classes", active: hasCourses, detail: hasCourses ? `${courses.length} connected` : "Add a class" },
+    { label: "Reviewed work", active: reviewedWidgetItems > 0 || nativeSnapshots.today.state === "no_due_today", detail: reviewedWidgetItems > 0 ? `${reviewedWidgetItems} widget rows` : "Review or add homework" },
+    { label: "Sync enabled", active: settings.syncEnabled, detail: settings.syncEnabled ? "Allowed" : "Turn on sync" },
+    { label: "Native build", active: nativeWidgetStatus.state === "synced", detail: nativeStatusLabel },
+    { label: "Smart presets", active: smartPresetCount >= 4, detail: `${smartPresetCount}/4 saved` },
+    { label: "Privacy clear", active: true, detail: settings.privacyMode ? "Sensitive text hidden" : "Normal detail" }
+  ];
+  const nativeTruthScore = widgetReadiness.filter((item) => item.active).length;
+  const proofSignals = [
+    { label: "Score", value: `${nativeTruthScore}/${widgetReadiness.length}`, detail: nativeTruthScore >= 5 ? "Studio ready" : "Needs setup" },
+    { label: "Source rows", value: String(reviewedWidgetItems), detail: reviewedWidgetItems > 0 ? "Reviewed only" : "No reviewed rows" },
+    { label: "Placement", value: nativeWidgetStatus.state === "synced" ? "Synced" : "Unproven", detail: nativeWidgetStatus.state === "synced" ? "WidgetKit data" : "No placement proof" }
+  ];
+  const dataSourceLabel = nativePreview ? "Native WidgetKit snapshot" : type === "class_focus" ? "Class-specific planner data" : "Live planner data";
+  const topPreviewItems = displayWidgetData.items.slice(0, 4);
+  const selectedTemplateLabel = labelForWidgetType(type);
+  const lockPreviewSnapshot = nativePreview || nativeSnapshots.today;
+  const lockPreviewType: WidgetType = lockPreviewSnapshot.kind === "today" ? "today" : "due_next";
+  const primaryActionLabel = selectedTemplateLocked
+    ? "Unlock this preset"
+    : nativePreview
+      ? "Save native look"
+      : "Save preset";
+  const quickFacts = [
+    {
+      label: "Now",
+      value: nativeSnapshots.today.signalLabel || nativeSnapshots.today.value,
+      detail: nativeSnapshots.today.detail
+    },
+    {
+      label: "Next",
+      value: nativeSnapshots.upcoming.timelineLabel || nativeSnapshots.upcoming.value,
+      detail: nativeSnapshots.upcoming.detail
+    },
+    {
+      label: "Source",
+      value: nativePreview ? "WidgetKit" : type === "class_focus" ? "Class data" : "Planner",
+      detail: nativePreview ? "Native snapshot" : nativeStatusLabel
+    }
+  ];
+  const studioRules = [
+    "One fact in small widgets",
+    "Agenda rows in medium widgets",
+    "Lock Screen can hide titles",
+    "Reviewed work only"
+  ];
   const moreDestinations = [
-    { label: "Notes", detail: "Agenda notes and class context", icon: NotebookPen, action: onOpenNotes, locked: false },
-    { label: "Study", detail: "Focus sessions and prep blocks", icon: Timer, action: onOpenFocus, locked: premiumWidgetsLocked },
-    { label: "Grades", detail: "Weights, scores, and target math", icon: TrendingUp, action: onOpenGrades, locked: premiumWidgetsLocked },
-    { label: "Plus", detail: "Limits, pricing, and restore", icon: Sparkles, action: onOpenPaywall, locked: false }
+    { label: "Notes", detail: "Class context", icon: NotebookPen, action: onOpenNotes, locked: false },
+    { label: "Study", detail: "Focus sessions", icon: Timer, action: onOpenFocus, locked: premiumWidgetsLocked },
+    { label: "Grades", detail: "Grade targets", icon: TrendingUp, action: onOpenGrades, locked: premiumWidgetsLocked },
+    { label: "Plus", detail: "Pricing + restore", icon: Sparkles, action: onOpenPaywall, locked: false }
   ];
   const privacyFacts = [
     "Imports stay in review until accepted.",
@@ -380,6 +431,269 @@ export function MoreScreen({
 
   return (
     <View>
+      <View style={styles.studioShell}>
+        <View style={styles.studioWorkbench}>
+          <View style={styles.studioTopBar}>
+            <View style={styles.studioTitleBlock}>
+              <Text style={styles.studioEyebrow}>Widget Studio</Text>
+              <Text style={styles.studioTitle}>Build the Home Screen that gets school done.</Text>
+            </View>
+            <View style={styles.nativeStatusChip}>
+              <View style={[styles.nativeStatusDot, nativeWidgetStatus.state === "synced" ? styles.nativeStatusDotSynced : null]} />
+              <Text style={styles.nativeStatusText}>{nativeStatusLabel}</Text>
+            </View>
+          </View>
+
+          <View style={styles.studioCanvas}>
+            <View style={styles.phoneFrame}>
+              <View style={styles.phoneStatusBar}>
+                <Text style={styles.phoneTime}>7:42</Text>
+                <View style={styles.phoneSignalGroup}>
+                  <View style={styles.phoneSignal} />
+                  <View style={styles.phoneBattery} />
+                </View>
+              </View>
+              <View style={styles.phoneWidgetSlot}>
+                <WidgetPreviewCard
+                  title={displayWidgetData.headline}
+                  value={displayWidgetData.value}
+                  detail={displayWidgetData.detail}
+                  background={background}
+                  palette={palette}
+                  size={size}
+                  type={type}
+                  course={displayWidgetData.course || focusedCourse}
+                  font={font}
+                  layout={layout}
+                  iconKey={iconKey}
+                  items={displayWidgetData.items}
+                  nativeMode={Boolean(nativePreview && size !== "large")}
+                  nativeAccentColor={nativePreview?.accentColor}
+                  nativeBackgroundColor={nativePreview?.backgroundColor}
+                  nativeSignalLabel={nativePreview?.signalLabel}
+                  nativeMetricLabel={nativePreview?.metricLabel}
+                  nativeNextLabel={nativePreview?.nextLabel}
+                  nativeTimelineLabel={nativePreview?.timelineLabel}
+                  nativeProgress={nativePreview?.progress}
+                  footnote={nativePreview?.footnote}
+                  semesterName={nativePreview?.semesterName}
+                  style={styles.heroWidgetPreview}
+                />
+              </View>
+              <View style={styles.homeScreenDock}>
+                <View style={styles.homeIcon} />
+                <View style={styles.homeIcon} />
+                <View style={styles.homeIcon} />
+                <View style={styles.homeIconActive} />
+              </View>
+            </View>
+
+            <View style={styles.studioInspector}>
+              <View style={styles.inspectorHeader}>
+                <Text style={styles.inspectorKicker}>{selectedTemplateLabel}</Text>
+                <Text style={styles.inspectorTitle}>{displayWidgetData.value} · {displayWidgetData.detail}</Text>
+                <Text style={styles.inspectorCopy}>{studioHint}</Text>
+              </View>
+              <View style={styles.quickFactGrid}>
+                {quickFacts.map((fact) => (
+                  <View key={fact.label} style={styles.quickFact}>
+                    <Text style={styles.quickFactLabel}>{fact.label}</Text>
+                    <Text style={styles.quickFactValue} numberOfLines={1}>{fact.value}</Text>
+                    <Text style={styles.quickFactDetail} numberOfLines={2}>{fact.detail}</Text>
+                  </View>
+                ))}
+              </View>
+              <View style={styles.proofMeter}>
+                <View style={styles.proofMeterTop}>
+                  <Text style={styles.proofMeterTitle}>Studio proof score</Text>
+                  <Text style={styles.proofMeterScore}>{nativeTruthScore}/{widgetReadiness.length}</Text>
+                </View>
+                <View style={styles.proofSignalRow}>
+                  {proofSignals.map((signal) => (
+                    <View key={signal.label} style={styles.proofSignal}>
+                      <Text style={styles.proofSignalLabel}>{signal.label}</Text>
+                      <Text style={styles.proofSignalValue} numberOfLines={1}>{signal.value}</Text>
+                      <Text style={styles.proofSignalDetail} numberOfLines={1}>{signal.detail}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+              <View style={styles.primaryActionRow}>
+                <AppButton
+                  label={primaryActionLabel}
+                  icon={selectedTemplateLocked ? Sparkles : CheckCircle2}
+                  onPress={saveCurrentPreset}
+                  style={styles.primaryStudioAction}
+                />
+                <AppButton label="Reset" variant="secondary" icon={SlidersHorizontal} onPress={onResetWidgetPresets} style={styles.secondaryStudioAction} />
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.studioPickerRail}>
+          {starterTemplates.slice(0, 4).map((template) => {
+            const Icon = template.preset.type === "today" ? ListChecks : template.preset.type === "due_next" ? Clock3 : template.preset.type === "class_focus" ? BookOpen : CalendarDays;
+            const active = template.preset.type === type && template.preset.size === size;
+            const templateLocked = premiumWidgetsLocked && template.entitlement === "plus";
+            return (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityState={{ selected: active, disabled: templateLocked }}
+                key={template.label}
+                style={[styles.studioTemplateTile, active ? styles.studioTemplateTileActive : null, templateLocked ? styles.studioTemplateTileLocked : null]}
+                onPress={() => applyTemplate(template.preset)}
+              >
+                <View style={styles.studioTemplateTop}>
+                  <View style={[styles.studioTemplateIcon, active ? styles.studioTemplateIconActive : null]}>
+                    <Icon color={active ? colors.heroText : colors.accent} size={16} />
+                  </View>
+                  <Text style={[styles.studioTemplateBadge, template.entitlement === "plus" ? styles.studioTemplateBadgePlus : null]}>{template.entitlement === "plus" ? "Plus" : "Free"}</Text>
+                </View>
+                <Text style={styles.studioTemplateTitle}>{template.label}</Text>
+                <Text style={styles.studioTemplateDetail} numberOfLines={2}>{template.detail}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        <GlassCard style={styles.instantControlsCard}>
+          <View style={styles.instantControlsHeader}>
+            <View>
+              <Text style={styles.instantControlsKicker}>Edit in place</Text>
+              <Text style={styles.instantControlsTitle}>Size, privacy, class, look.</Text>
+            </View>
+            <ArrowRight color={colors.accent} size={18} />
+          </View>
+
+          <ControlLabel title="Size intent" />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.instantSizeRail}>
+            {widgetSizes.slice(0, 5).map((option) => {
+              const active = option === size;
+              return (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  key={option}
+                  style={[styles.instantSizeCard, active ? styles.sizeCardActive : null]}
+                  onPress={() => setSize(option)}
+                >
+                  <Text style={styles.sizeTitle} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>{labelize(option)}</Text>
+                  <Text style={styles.sizeDetail}>{sizeMentalModel(option)}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          <ControlLabel title="Palette" />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.paletteRail}>
+            {palettes.map((option) => {
+              const swatches = themePalettes[option];
+              const active = option === palette;
+              return (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  key={option}
+                  style={[styles.paletteButton, active ? styles.paletteButtonActive : null]}
+                  onPress={() => setPalette(option)}
+                >
+                  <View style={styles.paletteDots}>
+                    {swatches.map((swatch) => (
+                      <View key={swatch} style={[styles.paletteDot, { backgroundColor: swatch }]} />
+                    ))}
+                  </View>
+                  <Text style={styles.paletteName}>{labelize(option)}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          <View style={styles.ruleRail}>
+            {studioRules.map((rule) => (
+              <View key={rule} style={styles.rulePill}>
+                <Text style={styles.rulePillText}>{rule}</Text>
+              </View>
+            ))}
+          </View>
+        </GlassCard>
+
+        <View style={styles.agendaBoard}>
+          <View style={styles.agendaColumn}>
+            <Text style={styles.agendaColumnKicker}>Widget rows</Text>
+            <Text style={styles.agendaColumnTitle}>{topPreviewItems.length ? "What a student sees first" : "Setup path"}</Text>
+            {topPreviewItems.length ? topPreviewItems.map((item) => (
+              <View key={item.id} style={styles.agendaItem}>
+                <View style={[styles.agendaColorRail, { backgroundColor: "courseColor" in item ? item.courseColor : colors.accent }]} />
+                <View style={styles.agendaItemCopy}>
+                  <Text style={styles.agendaItemTitle} numberOfLines={1}>{widgetItemTitleForStudio(item)}</Text>
+                  <Text style={styles.agendaItemMeta} numberOfLines={1}>{widgetItemMetaForStudio(item)}</Text>
+                </View>
+              </View>
+            )) : (
+              <Text style={styles.agendaEmptyText}>{studioHint}</Text>
+            )}
+          </View>
+          <View style={styles.agendaColumn}>
+            <Text style={styles.agendaColumnKicker}>Native truth</Text>
+            <Text style={styles.agendaColumnTitle}>{nativePreview ? "Today and Upcoming are real" : "Advanced presets are app-side"}</Text>
+            <Text style={styles.agendaEmptyText}>{nativePreview ? "StudyPlanner sends reviewed snapshots to WidgetKit. Students still place widgets from iOS." : "This preset can be saved as an in-app look until a native extension exists."}</Text>
+            <View style={styles.nativeTruthGrid}>
+              {widgetReadiness.slice(0, 4).map((item) => (
+                <View key={item.label} style={styles.nativeTruthPill}>
+                  <Text style={[styles.nativeTruthText, item.active ? styles.nativeTruthTextActive : null]}>{item.active ? "Ready" : "Fix"} · {item.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.lockParityBoard}>
+          <View style={styles.lockPreviewHeader}>
+            <View style={styles.lockPreviewTitleBlock}>
+              <Text style={styles.lockPreviewKicker}>Lock Screen parity</Text>
+              <Text style={styles.lockPreviewTitle}>Same snapshot, three compact families.</Text>
+            </View>
+            <Text style={styles.lockPreviewNote}>In-app preview only. Students still add and place Lock Screen widgets in iOS.</Text>
+          </View>
+          <View style={styles.lockPreviewRail}>
+            {[
+              { label: "Rectangular", size: "lock_rect" as WidgetSize },
+              { label: "Circular", size: "lock_round" as WidgetSize },
+              { label: "Inline", size: "lock_inline" as WidgetSize }
+            ].map((preview) => (
+              <View key={preview.size} style={styles.lockPreviewFamily}>
+                <Text style={styles.lockPreviewFamilyLabel}>{preview.label}</Text>
+                <View style={styles.lockPreviewWidgetSlot}>
+                  <WidgetPreviewCard
+                    title={lockPreviewSnapshot.headline}
+                    value={lockPreviewSnapshot.value}
+                    detail={lockPreviewSnapshot.detail}
+                    background={background}
+                    palette={palette}
+                    size={preview.size}
+                    type={lockPreviewType}
+                    font={font}
+                    layout={layout}
+                    iconKey={lockPreviewSnapshot.iconKey}
+                    items={lockPreviewSnapshot.items}
+                    nativeMode
+                    nativeAccentColor={lockPreviewSnapshot.accentColor}
+                    nativeBackgroundColor={lockPreviewSnapshot.backgroundColor}
+                    nativeSignalLabel={lockPreviewSnapshot.signalLabel}
+                    nativeMetricLabel={lockPreviewSnapshot.metricLabel}
+                    nativeNextLabel={lockPreviewSnapshot.nextLabel}
+                    nativeTimelineLabel={lockPreviewSnapshot.timelineLabel}
+                    footnote={lockPreviewSnapshot.footnote}
+                    semesterName={lockPreviewSnapshot.semesterName}
+                  />
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+      </View>
+
       <GlassCard style={styles.moreHubCard}>
         <View style={styles.moreHubTopRow}>
           <View style={styles.moreHubCopy}>
@@ -407,7 +721,7 @@ export function MoreScreen({
                 <View style={styles.destinationCopy}>
                   <View style={styles.destinationTitleRow}>
                     <Text style={styles.destinationTitle}>{item.label}</Text>
-                    {item.locked ? <Text style={styles.destinationLock}>Plus</Text> : null}
+                    {item.locked ? <Text numberOfLines={1} style={styles.destinationLock}>Plus</Text> : null}
                   </View>
                   <Text style={styles.destinationDetail} numberOfLines={2}>{item.detail}</Text>
                 </View>
@@ -483,106 +797,14 @@ export function MoreScreen({
             detail="Open the configured StudyPlanner privacy policy."
             onPress={() => void Linking.openURL(purchaseConfig.privacyUrl)}
           />
-        </View>
-      </GlassCard>
-
-      <GlassCard tone="hero" style={styles.studioHero}>
-        <View style={styles.heroHeader}>
-          <View style={styles.heroCopy}>
-            <AppLogo showWordmark size={36} />
-            <Text style={styles.kicker}>Widget Studio</Text>
-            <Text style={styles.heroTitle}>Real widgets, real planner data.</Text>
-            <Text style={styles.heroText}>Small and medium Today and Upcoming widgets sync reviewed homework. Plus unlocks saved themes, named Smart Stack presets, and visual customization inside StudyPlanner.</Text>
-          </View>
-          <View style={styles.livePill}>
-            <View style={styles.liveDot} />
-            <Text style={styles.liveText}>{nativeStatusLabel}</Text>
-          </View>
-        </View>
-        <View style={styles.previewStage}>
-          <WidgetPreviewCard
-            title={displayWidgetData.headline}
-            value={displayWidgetData.value}
-            detail={displayWidgetData.detail}
-            background={background}
-            palette={palette}
-            size={size}
-            type={type}
-            course={displayWidgetData.course || focusedCourse}
-            font={font}
-            layout={layout}
-            iconKey={iconKey}
-            items={displayWidgetData.items}
-            nativeMode={Boolean(nativePreview)}
-            nativeAccentColor={nativePreview?.accentColor}
-            nativeBackgroundColor={nativePreview?.backgroundColor}
-            footnote={nativePreview?.footnote}
-            semesterName={nativePreview?.semesterName}
+          <LegalCard
+            icon={LifeBuoy}
+            title="Support"
+            detail="Open the configured support contact for this build."
+            onPress={() => void Linking.openURL(purchaseConfig.supportUrl)}
           />
-          <Text style={styles.previewHint}>{studioHint}</Text>
         </View>
       </GlassCard>
-
-      <GlassCard style={styles.commandCard}>
-        <View style={styles.commandHeader}>
-          <View>
-            <Text style={styles.commandKicker}>Customization path</Text>
-            <Text style={styles.commandTitle}>Pick a template. Tune the preview. Save the system.</Text>
-          </View>
-          <View style={styles.commandScorePill}>
-            <Text style={styles.commandScoreValue}>{studioScore}/6</Text>
-            <Text style={styles.commandScoreLabel}>ready</Text>
-          </View>
-        </View>
-        <View style={styles.commandGrid}>
-          <View style={styles.commandStep}>
-            <Text style={styles.commandStepNumber}>1</Text>
-            <Text style={styles.commandStepText}>Free native Today + Upcoming stay useful.</Text>
-          </View>
-          <View style={styles.commandStep}>
-            <Text style={styles.commandStepNumber}>2</Text>
-            <Text style={styles.commandStepText}>{dataSourceLabel} powers the current preview.</Text>
-          </View>
-          <View style={styles.commandStep}>
-            <Text style={styles.commandStepNumber}>3</Text>
-            <Text style={styles.commandStepText}>Plus saves named looks students can add or arrange from iOS.</Text>
-          </View>
-        </View>
-      </GlassCard>
-
-      <GlassCard style={styles.auditCard}>
-        <View style={styles.auditTopRow}>
-          <View>
-            <Text style={styles.auditKicker}>Studio state</Text>
-            <Text style={styles.auditTitle}>{premiumWidgetsLocked ? "Free widgets are available" : "Plus widget studio is open"}</Text>
-          </View>
-          <Text style={styles.auditStatus}>{hasSavedPresets ? `${widgetPresets.length} saved` : "Empty"}</Text>
-        </View>
-        <View style={styles.auditGrid}>
-          <AuditPill label={hasAssignments ? "Planner data" : "No homework yet"} active={hasAssignments} />
-          <AuditPill label={hasCourses ? "Class context" : "No classes yet"} active={hasCourses} />
-          <AuditPill label={nativeWidgetStatus.state === "synced" ? "Native snapshot" : "WidgetKit pending"} active={nativeWidgetStatus.state === "synced"} />
-          <AuditPill label={premiumWidgetsLocked ? "Plus styles locked" : "Plus styles unlocked"} active={!premiumWidgetsLocked} />
-        </View>
-        <Text style={styles.auditNote}>{studioStateCopy}</Text>
-      </GlassCard>
-
-      <SectionHeader title="Dashboard data connections" note="Widget Studio reads the same agenda, schedule, class, and note context as Today." />
-      <View style={styles.dataConnectionGrid}>
-        <View style={styles.dataConnectionCard}>
-          <Text style={styles.dataConnectionValue}>{assignments.length}</Text>
-          <Text style={styles.dataConnectionLabel}>agenda items</Text>
-        </View>
-        <View style={styles.dataConnectionCard}>
-          <Text style={styles.dataConnectionValue}>{courses.length}</Text>
-          <Text style={styles.dataConnectionLabel}>classes</Text>
-        </View>
-        <View style={styles.dataConnectionCard}>
-          <Text style={styles.dataConnectionValue}>{notes.length}</Text>
-          <Text style={styles.dataConnectionLabel}>class notes</Text>
-        </View>
-      </View>
-      <Text style={styles.dataConnectionHint}>{notes[0] ? `Pinned context available for widget copy: ${notes[0].title}` : "Add a class note from Notes to unlock richer widget copy and dashboard context."}</Text>
 
       <SectionHeader title="Smart Stack presets" note="Save named looks for school-day moments. Students still place and order them in iOS." />
       <GlassCard style={styles.smartStackCard}>
@@ -670,6 +892,7 @@ export function MoreScreen({
 
       <SectionHeader title="App appearance" note="Premium themes now restyle the whole app shell, not just one accent." />
       <GlassCard style={styles.appearanceCard}>
+        <ModeToggle />
         <View style={styles.appearanceTopRow}>
           <View style={styles.appearanceCopy}>
             <Text style={styles.appearanceTitle}>Premium app themes</Text>
@@ -765,6 +988,11 @@ export function MoreScreen({
               nativeMode={Boolean(nativePreview && size !== "large")}
               nativeAccentColor={nativePreview?.accentColor}
               nativeBackgroundColor={nativePreview?.backgroundColor}
+              nativeSignalLabel={nativePreview?.signalLabel}
+              nativeMetricLabel={nativePreview?.metricLabel}
+              nativeNextLabel={nativePreview?.nextLabel}
+              nativeTimelineLabel={nativePreview?.timelineLabel}
+              nativeProgress={nativePreview?.progress}
               footnote={nativePreview?.footnote}
               semesterName={nativePreview?.semesterName}
               style={styles.liveMiniWidget}
@@ -835,6 +1063,18 @@ export function MoreScreen({
             >
               <Text style={styles.layoutLabel}>{labelize(option)}</Text>
             </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        <ControlLabel title="Font" />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRail}>
+          {fonts.map((option) => (
+            <ChoiceChip
+              key={option}
+              label={option}
+              active={font === option}
+              onPress={() => setFont(option)}
+            />
           ))}
         </ScrollView>
 
@@ -956,16 +1196,6 @@ export function MoreScreen({
       </GlassCard>
     </View>
   );
-
-function AuditPill({ label, active }: { label: string; active: boolean }) {
-  const { theme } = useAppTheme();
-  const styles = createStyles(theme);
-  return (
-    <View style={[styles.auditPill, active ? styles.auditPillActive : null]}>
-      <Text style={[styles.auditPillText, active ? styles.auditPillTextActive : null]}>{active ? "✓" : "•"} {label}</Text>
-    </View>
-  );
-}
 
 function smartSlotFromPresetId(id?: string): WidgetPreset["smartStackSlot"] | undefined {
   if (!id?.startsWith("smart-")) return undefined;
@@ -1104,6 +1334,16 @@ function labelize(value: string) {
   return value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function widgetItemTitleForStudio(item: { title: string }) {
+  return item.title;
+}
+
+function widgetItemMetaForStudio(item: { courseCode?: string; dueLabel?: string; priority?: Assignment["priority"] }) {
+  return [item.courseCode, item.dueLabel, item.priority === "high" ? "High priority" : undefined]
+    .filter(Boolean)
+    .join(" / ");
+}
+
 function sizeMentalModel(value: WidgetSize) {
   if (value === "small") return "One answer";
   if (value === "medium") return "Context + next";
@@ -1129,6 +1369,558 @@ function createStyles(theme: AppTheme) {
   const { colors, radii, spacing } = theme;
 
   return StyleSheet.create({
+    studioShell: {
+      gap: spacing.md,
+      marginBottom: spacing.md
+    },
+    studioWorkbench: {
+      borderRadius: radii.xl,
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.20)" : "rgba(255,255,255,0.86)",
+      backgroundColor: theme.isDark ? "rgba(8,12,22,0.92)" : "rgba(255,255,255,0.76)",
+      padding: spacing.md,
+      gap: spacing.md,
+      overflow: "hidden",
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.34 : 0.12,
+      shadowRadius: 28,
+      shadowOffset: { width: 0, height: 18 },
+      elevation: 6
+    },
+    studioTopBar: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    studioTitleBlock: {
+      flex: 1,
+      minWidth: 0,
+      gap: 4
+    },
+    studioEyebrow: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    studioTitle: {
+      color: theme.isDark ? "#FFFFFF" : colors.ink,
+      fontSize: 25,
+      lineHeight: 30,
+      fontWeight: "900"
+    },
+    nativeStatusChip: {
+      minHeight: 30,
+      borderRadius: radii.round,
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.20)" : "rgba(255,255,255,0.80)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.72)",
+      paddingHorizontal: 9,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6
+    },
+    nativeStatusDot: {
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      backgroundColor: colors.gold
+    },
+    nativeStatusDotSynced: {
+      backgroundColor: colors.green
+    },
+    nativeStatusText: {
+      color: theme.isDark ? "#FFFFFF" : colors.ink,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    studioCanvas: {
+      gap: spacing.md
+    },
+    phoneFrame: {
+      borderRadius: radii.xxl,
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.20)" : "rgba(255,255,255,0.78)",
+      backgroundColor: theme.isDark ? "#070A12" : "#E7EEF8",
+      padding: spacing.sm,
+      gap: spacing.sm,
+      alignItems: "center",
+      shadowColor: "#000000",
+      shadowOpacity: theme.isDark ? 0.42 : 0.16,
+      shadowRadius: 26,
+      shadowOffset: { width: 0, height: 18 },
+      elevation: 7
+    },
+    phoneStatusBar: {
+      width: "100%",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: spacing.xs
+    },
+    phoneTime: {
+      color: theme.isDark ? "#F8FAFC" : colors.ink,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
+    },
+    phoneSignalGroup: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5
+    },
+    phoneSignal: {
+      width: 18,
+      height: 10,
+      borderRadius: 3,
+      backgroundColor: theme.isDark ? "#D7DEE9" : "#111827"
+    },
+    phoneBattery: {
+      width: 22,
+      height: 10,
+      borderRadius: 3,
+      borderWidth: 1,
+      borderColor: theme.isDark ? "#D7DEE9" : "#111827"
+    },
+    phoneWidgetSlot: {
+      minHeight: 188,
+      width: "100%",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: spacing.sm,
+      borderRadius: radii.xl,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.035)" : "rgba(255,255,255,0.36)"
+    },
+    heroWidgetPreview: {
+      shadowColor: "#000000",
+      shadowOpacity: theme.isDark ? 0.35 : 0.16,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 12 },
+      elevation: 5
+    },
+    homeScreenDock: {
+      width: "100%",
+      borderRadius: radii.xl,
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.72)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.11)" : "rgba(255,255,255,0.66)",
+      padding: 8,
+      flexDirection: "row",
+      justifyContent: "space-around"
+    },
+    homeIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: 8,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.22)" : "rgba(17,24,39,0.18)"
+    },
+    homeIconActive: {
+      width: 34,
+      height: 34,
+      borderRadius: 8,
+      backgroundColor: colors.accent
+    },
+    studioInspector: {
+      gap: spacing.sm
+    },
+    inspectorHeader: {
+      gap: 4
+    },
+    inspectorKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    inspectorTitle: {
+      color: theme.isDark ? "#FFFFFF" : colors.ink,
+      fontSize: 20,
+      lineHeight: 25,
+      fontWeight: "900"
+    },
+    inspectorCopy: {
+      color: theme.isDark ? "#C5CFDD" : colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "800"
+    },
+    quickFactGrid: {
+      flexDirection: "row",
+      gap: spacing.xs
+    },
+    quickFact: {
+      flex: 1,
+      minHeight: 84,
+      borderRadius: radii.lg,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.085)" : "rgba(255,255,255,0.76)",
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.78)",
+      padding: spacing.xs,
+      gap: 2
+    },
+    quickFactLabel: {
+      color: colors.accent,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    quickFactValue: {
+      color: theme.isDark ? "#FFFFFF" : colors.ink,
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    quickFactDetail: {
+      color: theme.isDark ? "#C5CFDD" : colors.muted,
+      fontSize: 10,
+      lineHeight: 14,
+      fontWeight: "800"
+    },
+    proofMeter: {
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.78)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.065)" : "rgba(255,255,255,0.74)",
+      padding: spacing.xs,
+      gap: spacing.xs
+    },
+    proofMeterTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.xs
+    },
+    proofMeterTitle: {
+      color: theme.isDark ? "#FFFFFF" : colors.ink,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
+    },
+    proofMeterScore: {
+      color: colors.accent,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
+    },
+    proofSignalRow: {
+      flexDirection: "row",
+      gap: 6
+    },
+    proofSignal: {
+      flex: 1,
+      minWidth: 0,
+      borderRadius: radii.md,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : colors.surfaceAlt,
+      paddingHorizontal: 7,
+      paddingVertical: 6,
+      gap: 1
+    },
+    proofSignalLabel: {
+      color: colors.accent,
+      fontSize: 9,
+      lineHeight: 12,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    proofSignalValue: {
+      color: colors.ink,
+      fontSize: 12,
+      lineHeight: 15,
+      fontWeight: "900"
+    },
+    proofSignalDetail: {
+      color: colors.muted,
+      fontSize: 9,
+      lineHeight: 12,
+      fontWeight: "800"
+    },
+    primaryActionRow: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    primaryStudioAction: {
+      flex: 1.35,
+      borderRadius: radii.round
+    },
+    secondaryStudioAction: {
+      flex: 1,
+      borderRadius: radii.round
+    },
+    studioPickerRail: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    studioTemplateTile: {
+      width: "48.5%",
+      minHeight: 118,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.13)" : "rgba(255,255,255,0.76)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.065)" : "rgba(255,255,255,0.74)",
+      padding: spacing.sm,
+      gap: 5
+    },
+    studioTemplateTileActive: {
+      borderColor: colors.accent,
+      backgroundColor: theme.isDark ? "rgba(53,242,208,0.16)" : colors.accentSoft
+    },
+    studioTemplateTileLocked: {
+      opacity: 0.72
+    },
+    studioTemplateTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.xs
+    },
+    studioTemplateIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 13,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.accentSoft
+    },
+    studioTemplateIconActive: {
+      backgroundColor: colors.accent
+    },
+    studioTemplateBadge: {
+      color: colors.sage,
+      backgroundColor: colors.mint,
+      borderRadius: 8,
+      overflow: "hidden",
+      paddingHorizontal: 7,
+      paddingVertical: 2,
+      fontSize: 9,
+      lineHeight: 12,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    studioTemplateBadgePlus: {
+      color: colors.gold,
+      backgroundColor: colors.softGold
+    },
+    studioTemplateTitle: {
+      color: colors.ink,
+      fontSize: 15,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    studioTemplateDetail: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
+    },
+    instantControlsCard: {
+      gap: spacing.sm,
+      padding: spacing.md
+    },
+    instantControlsHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    instantControlsKicker: {
+      color: colors.accent,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    instantControlsTitle: {
+      color: colors.ink,
+      fontSize: 17,
+      lineHeight: 22,
+      fontWeight: "900"
+    },
+    instantSizeRail: {
+      gap: spacing.xs,
+      paddingRight: spacing.md
+    },
+    instantSizeCard: {
+      width: 94,
+      minHeight: 70,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.13)" : colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : colors.surface,
+      padding: spacing.xs,
+      justifyContent: "center",
+      gap: 3
+    },
+    ruleRail: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 6
+    },
+    rulePill: {
+      borderRadius: radii.round,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.06)" : colors.surfaceAlt,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      paddingHorizontal: 8,
+      paddingVertical: 6
+    },
+    rulePillText: {
+      color: colors.ink,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    agendaBoard: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm
+    },
+    agendaColumn: {
+      flexGrow: 1,
+      flexBasis: "47%",
+      minWidth: 158,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.13)" : "rgba(255,255,255,0.76)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : "rgba(255,255,255,0.74)",
+      padding: spacing.sm,
+      gap: spacing.xs
+    },
+    agendaColumnKicker: {
+      color: colors.accent,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    agendaColumnTitle: {
+      color: colors.ink,
+      fontSize: 15,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    agendaItem: {
+      minHeight: 48,
+      borderRadius: radii.md,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.07)" : colors.surfaceAlt,
+      flexDirection: "row",
+      overflow: "hidden"
+    },
+    agendaColorRail: {
+      width: 5
+    },
+    agendaItemCopy: {
+      flex: 1,
+      minWidth: 0,
+      paddingHorizontal: spacing.xs,
+      paddingVertical: 7,
+      gap: 2
+    },
+    agendaItemTitle: {
+      color: colors.ink,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
+    },
+    agendaItemMeta: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "800"
+    },
+    agendaEmptyText: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "800"
+    },
+    nativeTruthGrid: {
+      gap: 6
+    },
+    nativeTruthPill: {
+      borderRadius: 8,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : colors.surfaceAlt,
+      paddingHorizontal: 8,
+      paddingVertical: 6
+    },
+    nativeTruthText: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    nativeTruthTextActive: {
+      color: colors.ink
+    },
+    lockParityBoard: {
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.13)" : "rgba(255,255,255,0.76)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : "rgba(255,255,255,0.74)",
+      padding: spacing.sm,
+      gap: spacing.sm
+    },
+    lockPreviewHeader: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    lockPreviewTitleBlock: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    lockPreviewKicker: {
+      color: colors.accent,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    lockPreviewTitle: {
+      color: colors.ink,
+      fontSize: 15,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    lockPreviewNote: {
+      flex: 1,
+      minWidth: 132,
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800",
+      textAlign: "right"
+    },
+    lockPreviewRail: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "flex-end",
+      gap: spacing.sm
+    },
+    lockPreviewFamily: {
+      minWidth: 92,
+      flexGrow: 1,
+      gap: 6
+    },
+    lockPreviewFamilyLabel: {
+      color: colors.faint,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    lockPreviewWidgetSlot: {
+      minHeight: 76,
+      alignItems: "center",
+      justifyContent: "center"
+    },
     moreHubCard: {
       gap: spacing.md,
       padding: spacing.md
@@ -1215,11 +2007,14 @@ function createStyles(theme: AppTheme) {
       backgroundColor: colors.gold,
       borderRadius: radii.round,
       overflow: "hidden",
+      minWidth: 36,
       paddingHorizontal: 7,
       paddingVertical: 2,
       fontSize: 9,
       lineHeight: 12,
-      fontWeight: "900"
+      fontWeight: "900",
+      textAlign: "center",
+      flexShrink: 0
     },
     destinationDetail: {
       color: colors.muted,
@@ -1596,6 +2391,10 @@ function createStyles(theme: AppTheme) {
       alignItems: "center",
       gap: spacing.sm
     },
+    commandCopy: {
+      flex: 1,
+      minWidth: 0
+    },
     commandKicker: {
       color: colors.accent,
       fontSize: 11,
@@ -1691,6 +2490,122 @@ function createStyles(theme: AppTheme) {
       lineHeight: 17,
       fontWeight: "800",
       marginBottom: spacing.md
+    },
+    leverageCard: {
+      gap: spacing.md,
+      padding: spacing.md
+    },
+    leverageTopRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    leverageIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: 15,
+      backgroundColor: colors.heroSurface,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    leverageCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 3
+    },
+    leverageTitle: {
+      color: colors.ink,
+      fontSize: 17,
+      lineHeight: 22,
+      fontWeight: "900"
+    },
+    leverageText: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
+    },
+    leverageGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 6
+    },
+    leveragePill: {
+      maxWidth: "48.5%",
+      flexGrow: 1,
+      borderRadius: radii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.045)" : colors.surfaceAlt,
+      paddingHorizontal: 9,
+      paddingVertical: 6
+    },
+    leveragePillActive: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accentSoft
+    },
+    leveragePillText: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    leveragePillTextActive: {
+      color: colors.ink
+    },
+    readinessCard: {
+      gap: spacing.xs,
+      padding: spacing.sm
+    },
+    readinessRow: {
+      minHeight: 56,
+      borderRadius: radii.lg,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.045)" : colors.surfaceAlt,
+      padding: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    readinessIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 12,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    readinessIconActive: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accent
+    },
+    readinessCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    readinessTitle: {
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    readinessDetail: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "700"
+    },
+    readinessStatus: {
+      color: colors.accent,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    readinessStatusActive: {
+      color: colors.green
     },
     smartStackCard: {
       gap: spacing.md
@@ -2385,120 +3300,6 @@ function createStyles(theme: AppTheme) {
       fontSize: 22,
       lineHeight: 26,
       fontWeight: "900"
-    },
-    devicePreviewRow: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: spacing.md
-    },
-    homeScreen: {
-      flex: 1,
-      minWidth: 260,
-      minHeight: 360,
-      borderRadius: 34,
-      backgroundColor: "#DCEBFF",
-      padding: spacing.md,
-      alignItems: "center",
-      justifyContent: "center",
-      gap: spacing.lg,
-      borderWidth: 6,
-      borderColor: colors.ink
-    },
-    appIconGrid: {
-      width: 200,
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: spacing.sm,
-      justifyContent: "center"
-    },
-    fakeAppIcon: {
-      width: 42,
-      height: 42,
-      borderRadius: 13
-    },
-    lockScreen: {
-      flex: 1,
-      minWidth: 220,
-      minHeight: 360,
-      borderRadius: 34,
-      backgroundColor: "#101024",
-      padding: spacing.lg,
-      alignItems: "center",
-      borderWidth: 6,
-      borderColor: colors.ink
-    },
-    lockDate: {
-      color: "#D9D6FF",
-      fontSize: 12,
-      fontWeight: "800"
-    },
-    lockTime: {
-      marginTop: spacing.xs,
-      color: "#FFFFFF",
-      fontSize: 58,
-      lineHeight: 66,
-      fontWeight: "300"
-    },
-    lockWidgets: {
-      marginTop: "auto",
-      width: "100%",
-      gap: spacing.sm
-    },
-    lockPill: {
-      overflow: "hidden",
-      borderRadius: radii.lg,
-      backgroundColor: "rgba(255,255,255,0.16)",
-      color: "#FFFFFF",
-      padding: spacing.sm,
-      fontSize: 12,
-      fontWeight: "900"
-    },
-    lockCircle: {
-      alignSelf: "center",
-      overflow: "hidden",
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      backgroundColor: "rgba(255,255,255,0.16)",
-      color: "#FFFFFF",
-      textAlign: "center",
-      lineHeight: 48,
-      fontSize: 17,
-      fontWeight: "900"
-    },
-    lockShapeStrip: {
-      marginTop: spacing.md,
-      borderRadius: radii.xl,
-      backgroundColor: "#25205F",
-      padding: spacing.md,
-      flexDirection: "row",
-      flexWrap: "wrap",
-      justifyContent: "space-between",
-      gap: spacing.sm
-    },
-    lockShape: {
-      flex: 1,
-      minWidth: 86,
-      minHeight: 72,
-      borderRadius: radii.lg,
-      backgroundColor: "rgba(255,255,255,0.1)",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 3
-    },
-    lockShapeValue: {
-      color: "#FFFFFF",
-      fontSize: 15,
-      lineHeight: 20,
-      fontWeight: "900",
-      textAlign: "center"
-    },
-    lockShapeLabel: {
-      color: "#C9C4FF",
-      fontSize: 10,
-      lineHeight: 13,
-      fontWeight: "900",
-      textTransform: "uppercase"
     },
     themeRail: {
       gap: spacing.sm,

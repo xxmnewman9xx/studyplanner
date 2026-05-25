@@ -22,23 +22,46 @@ assert(app.includes("handleScheduleReminders"), "Reminder entrypoint must check 
 assert(app.includes("handleCalendarSync"), "Calendar sync entrypoint must check Plus.");
 
 assert(
-  appConfig.plugins.includes("expo-iap"),
+  hasPlugin(appConfig.plugins, "expo-iap"),
   "app.json must include the expo-iap config plugin."
+);
+assert(
+  hasPlugin(appConfig.plugins, "expo-widgets"),
+  "app.json must include the expo-widgets config plugin for native WidgetKit support."
 );
 assert(
   appConfig.ios?.bundleIdentifier === "com.mattnewman.studyplanner",
   "iOS bundle identifier must target the existing StudyPlanner app."
 );
 assert(
+  appConfig.ios?.entitlements?.["com.apple.security.application-groups"]?.includes("group.com.mattnewman.studyplanner"),
+  "iOS app entitlements must include the StudyPlanner app group for widgets."
+);
+assert(
   appConfig.extra?.eas?.projectId === "69335c75-753e-424e-8a76-c8bd2455a112",
   "EAS project ID must match the Build 8 App Dev project."
+);
+const widgetPlugin = getPluginConfig(appConfig.plugins, "expo-widgets");
+assert(
+  widgetPlugin?.bundleIdentifier === "com.mattnewman.studyplanner.widgets",
+  "expo-widgets bundle identifier must match the documented widget extension."
+);
+assert(
+  widgetPlugin?.groupIdentifier === "group.com.mattnewman.studyplanner",
+  "expo-widgets group identifier must match the StudyPlanner app group."
+);
+assert(
+  widgetPlugin?.widgets?.some((widget) => widget.name === "StudyPlannerTodayWidget") &&
+    widgetPlugin?.widgets?.some((widget) => widget.name === "StudyPlannerUpcomingWidget"),
+  "expo-widgets must register Today and Upcoming widgets."
 );
 
 for (const name of [
   "EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS",
   "EXPO_PUBLIC_IAP_LIFETIME_PRODUCT_IDS",
   "EXPO_PUBLIC_TERMS_URL",
-  "EXPO_PUBLIC_PRIVACY_URL"
+  "EXPO_PUBLIC_PRIVACY_URL",
+  "EXPO_PUBLIC_SUPPORT_URL"
 ]) {
   assert(purchaseConfig.includes(name), `purchaseConfig must read ${name}.`);
 }
@@ -98,4 +121,13 @@ function assert(condition, message) {
     console.error(message);
     process.exit(1);
   }
+}
+
+function hasPlugin(plugins, name) {
+  return plugins.some((plugin) => Array.isArray(plugin) ? plugin[0] === name : plugin === name);
+}
+
+function getPluginConfig(plugins, name) {
+  const plugin = plugins.find((plugin) => Array.isArray(plugin) && plugin[0] === name);
+  return plugin?.[1];
 }

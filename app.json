@@ -59,22 +59,28 @@
             {
               "name": "StudyPlannerTodayWidget",
               "displayName": "StudyPlanner Today",
-              "description": "Shows reviewed homework due today from your StudyPlanner plan.",
-              "contentMarginsDisabled": true,
+              "description": "Shows reviewed work due today from StudyPlanner.",
               "supportedFamilies": [
                 "systemSmall",
-                "systemMedium"
-              ]
+                "systemMedium",
+                "accessoryCircular",
+                "accessoryRectangular",
+                "accessoryInline"
+              ],
+              "contentMarginsDisabled": true
             },
             {
               "name": "StudyPlannerUpcomingWidget",
               "displayName": "StudyPlanner Upcoming",
-              "description": "Shows the next reviewed deadlines from your StudyPlanner plan.",
-              "contentMarginsDisabled": true,
+              "description": "Shows upcoming reviewed deadlines from StudyPlanner.",
               "supportedFamilies": [
                 "systemSmall",
-                "systemMedium"
-              ]
+                "systemMedium",
+                "accessoryCircular",
+                "accessoryRectangular",
+                "accessoryInline"
+              ],
+              "contentMarginsDisabled": true
             }
           ]
         }

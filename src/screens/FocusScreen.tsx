@@ -498,12 +498,12 @@ function createStyles(theme: AppTheme) {
 
   return StyleSheet.create({
     focusStage: {
-      minHeight: 520,
+      minHeight: 0,
       borderRadius: 34,
       borderWidth: 1,
       borderColor: "rgba(255,255,255,0.16)",
       backgroundColor: "#101024",
-      padding: spacing.lg,
+      padding: spacing.md,
       alignItems: "center",
       overflow: "hidden",
       shadowColor: colors.shadow,
@@ -557,11 +557,11 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800"
     },
     timerRing: {
-      marginTop: spacing.xl,
-      width: 220,
-      height: 220,
-      borderRadius: 110,
-      borderWidth: 12,
+      marginTop: spacing.lg,
+      width: 180,
+      height: 180,
+      borderRadius: 90,
+      borderWidth: 10,
       borderColor: "#8B5CF6",
       backgroundColor: "rgba(255,255,255,0.035)",
       alignItems: "center",
@@ -572,17 +572,17 @@ function createStyles(theme: AppTheme) {
       shadowOffset: { width: 0, height: 0 }
     },
     timerRingInner: {
-      width: 168,
-      height: 168,
-      borderRadius: 84,
+      width: 138,
+      height: 138,
+      borderRadius: 69,
       backgroundColor: "rgba(255,255,255,0.04)",
       alignItems: "center",
       justifyContent: "center"
     },
     timer: {
       color: "#FFFFFF",
-      fontSize: 48,
-      lineHeight: 56,
+      fontSize: 40,
+      lineHeight: 48,
       fontWeight: "300"
     },
     timerMeta: {
@@ -593,10 +593,10 @@ function createStyles(theme: AppTheme) {
     },
     progressTrack: {
       width: "100%",
-      maxWidth: 230,
+      maxWidth: 210,
       height: 8,
       borderRadius: 4,
-      marginTop: spacing.md,
+      marginTop: spacing.sm,
       backgroundColor: "rgba(255,255,255,0.12)",
       overflow: "hidden"
     },
@@ -606,7 +606,7 @@ function createStyles(theme: AppTheme) {
       backgroundColor: "#35F2D0"
     },
     focusingOn: {
-      marginTop: spacing.lg,
+      marginTop: spacing.md,
       color: "#BDB7FF",
       fontSize: 10,
       lineHeight: 14,
@@ -616,8 +616,8 @@ function createStyles(theme: AppTheme) {
     timerTask: {
       marginTop: 3,
       color: "#FFFFFF",
-      fontSize: 18,
-      lineHeight: 24,
+      fontSize: 17,
+      lineHeight: 22,
       textAlign: "center",
       fontWeight: "900"
     },
@@ -631,7 +631,7 @@ function createStyles(theme: AppTheme) {
       alignSelf: "stretch",
       flexDirection: "row",
       gap: spacing.xs,
-      marginTop: spacing.md
+      marginTop: spacing.sm
     },
     cockpitStat: {
       flex: 1,
@@ -640,7 +640,7 @@ function createStyles(theme: AppTheme) {
       backgroundColor: "rgba(255,255,255,0.08)",
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: "rgba(255,255,255,0.12)",
-      padding: spacing.sm,
+      padding: spacing.xs,
       gap: 3
     },
     cockpitValue: {
@@ -660,7 +660,7 @@ function createStyles(theme: AppTheme) {
       alignSelf: "stretch",
       flexDirection: "row",
       gap: spacing.xs,
-      marginTop: spacing.sm
+      marginTop: spacing.xs
     },
     durationChip: {
       flex: 1,
@@ -686,7 +686,7 @@ function createStyles(theme: AppTheme) {
       color: "#FFFFFF"
     },
     controlRow: {
-      marginTop: spacing.xl,
+      marginTop: spacing.md,
       flexDirection: "row",
       alignItems: "center",
       alignSelf: "stretch",
@@ -721,7 +721,7 @@ function createStyles(theme: AppTheme) {
       opacity: 0.45
     },
     silencedCopy: {
-      marginTop: "auto",
+      marginTop: spacing.sm,
       color: "#8F8AB8",
       fontSize: 11,
       lineHeight: 16,

@@ -4,17 +4,19 @@ StudyPlanner widgets use a compact WidgetKit snapshot generated from reviewed pl
 
 ## Native Widgets
 
-- `StudyPlannerTodayWidget`: small and medium Home Screen widget for work due today.
-- `StudyPlannerUpcomingWidget`: small and medium Home Screen widget for upcoming reviewed deadlines.
+- `StudyPlannerTodayWidget`: small and medium Home Screen widget, plus circular, rectangular, and inline Lock Screen accessories for work due today.
+- `StudyPlannerUpcomingWidget`: small and medium Home Screen widget, plus circular, rectangular, and inline Lock Screen accessories for upcoming reviewed deadlines.
 - App Group: `group.com.mattnewman.studyplanner`.
 - Widget extension bundle id: `com.mattnewman.studyplanner.widgets`.
+
+The native extension supports only Today and Upcoming. Larger dashboard, focus, week, streak, needs-check, and class-focus templates remain in-app customization presets unless a future native widget kind is added.
 
 ## Shared Fields
 
 The app may write only these fields into the widget timeline snapshot:
 
 - Snapshot metadata: version, kind, state, generated time, semester name, open URL.
-- Display copy: headline, value, detail, footnote.
+- Display copy: headline, value, detail, footnote, signal label, metric label, next label, and timeline label.
 - Visual tokens: accent color and background color.
 - Assignment display rows: assignment id, title, course code, course color, due label, priority, and assignment kind.
 

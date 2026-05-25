@@ -12,6 +12,7 @@ export function LiquidGlassSurface({ children, tone = "default", style }: { chil
   return (
     <View style={[styles.surface, tone === "hero" ? styles.hero : tone === "accent" ? styles.accent : null, style]}>
       <View pointerEvents="none" style={styles.topHighlight} />
+      <View pointerEvents="none" style={styles.innerLens} />
       <View pointerEvents="none" style={styles.bottomHairline} />
       {children}
     </View>
@@ -60,11 +61,12 @@ function railTone(styles: ReturnType<typeof createStyles>, tone: Tone) {
 function createStyles(theme: AppTheme) {
   const { colors, radii, spacing } = theme;
   return StyleSheet.create({
-    surface: { borderRadius: radii.xl, borderWidth: 1, borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.82)", backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : "rgba(255,255,255,0.72)", padding: spacing.md, overflow: "hidden", shadowColor: colors.shadow, shadowOpacity: theme.isDark ? 0.20 : 0.08, shadowRadius: 22, shadowOffset: { width: 0, height: 14 }, elevation: 2 },
-    hero: { backgroundColor: colors.heroSurface, borderColor: theme.isDark ? "rgba(255,255,255,0.18)" : "rgba(49,91,255,0.18)" },
-    accent: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
-    topHighlight: { position: "absolute", top: 0, left: 0, right: 0, height: "42%", backgroundColor: theme.isDark ? "rgba(255,255,255,0.045)" : "rgba(255,255,255,0.34)" },
-    bottomHairline: { position: "absolute", left: 12, right: 12, bottom: 0, height: StyleSheet.hairlineWidth, backgroundColor: theme.isDark ? "rgba(255,255,255,0.12)" : "rgba(17,24,39,0.08)" },
+    surface: { borderRadius: radii.xl, borderWidth: 1, borderColor: theme.isDark ? "rgba(255,255,255,0.20)" : "rgba(255,255,255,0.88)", backgroundColor: theme.isDark ? "rgba(18,25,42,0.76)" : "rgba(255,255,255,0.80)", padding: spacing.md, overflow: "hidden", shadowColor: colors.shadow, shadowOpacity: theme.isDark ? 0.36 : 0.13, shadowRadius: 24, shadowOffset: { width: 0, height: 16 }, elevation: 4 },
+    hero: { backgroundColor: theme.isDark ? "rgba(8,12,22,0.92)" : colors.heroSurface, borderColor: theme.isDark ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.28)" },
+    accent: { backgroundColor: theme.isDark ? "rgba(53,242,208,0.14)" : colors.accentSoft, borderColor: colors.accent },
+    topHighlight: { position: "absolute", top: 0, left: 0, right: 0, height: "46%", backgroundColor: theme.isDark ? "rgba(255,255,255,0.085)" : "rgba(255,255,255,0.56)" },
+    innerLens: { position: "absolute", right: 12, top: 10, width: "58%", height: 28, borderRadius: radii.round, backgroundColor: theme.isDark ? "rgba(255,255,255,0.085)" : "rgba(255,255,255,0.50)", opacity: 0.72 },
+    bottomHairline: { position: "absolute", left: 14, right: 14, bottom: 0, height: StyleSheet.hairlineWidth, backgroundColor: theme.isDark ? "rgba(255,255,255,0.18)" : "rgba(17,24,39,0.08)" },
     badge: { alignSelf: "flex-start", borderRadius: radii.round, paddingHorizontal: spacing.sm, paddingVertical: 6 },
     badgeText: { color: colors.heroText, fontSize: 11, lineHeight: 14, fontWeight: "900" },
     defaultBadge: { backgroundColor: colors.surfaceAlt },

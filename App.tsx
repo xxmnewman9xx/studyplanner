@@ -46,6 +46,7 @@ import {
 import { AppTheme } from "./src/theme";
 import { AppThemeProvider, useAppTheme } from "./src/themeContext";
 import { AppLogo } from "./src/components/AppleComponents";
+import { ModeToggle } from "./src/components/ModeToggle";
 import {
   defaultAssignments,
   defaultCourses,
@@ -221,6 +222,10 @@ function AppContent() {
   const bottomTabs = tablet
     ? visibleTabs
     : visibleTabs.filter((tab) => mobilePrimaryTabIds.has(tab.id));
+  const systemState = useMemo(
+    () => buildAppSystemState(activeAssignments, courses, parsedImports, nativeWidgetStatus, demoMode),
+    [activeAssignments, courses, demoMode, nativeWidgetStatus, parsedImports]
+  );
 
   useEffect(() => {
     if (!hydrated) return;
@@ -367,6 +372,8 @@ function AppContent() {
       courses,
       assignments,
       parsedImports,
+      settings,
+      widgetPresets,
       demoMode
     }).then(setNativeWidgetStatus);
   }, [
@@ -396,9 +403,11 @@ function AppContent() {
       courses: [],
       assignments: [],
       parsedImports: [],
+      settings,
+      widgetPresets,
       demoMode: true
     }).then(setNativeWidgetStatus);
-  }, [hydrated, semester]);
+  }, [hydrated, semester, settings, widgetPresets]);
 
   useEffect(() => {
     if (marketingCaptureEnabled) return;
@@ -623,8 +632,6 @@ function AppContent() {
         name: course.name.trim(),
         instructor: course.instructor?.trim(),
         teacher: course.instructor?.trim(),
-        period: `Period ${current.length + 1}`,
-        room: "Room TBD",
         color: ["#2F80ED", "#10B981", "#8B5CF6", "#F59E0B", "#14B8A6", "#EC4899"][
           current.length % 6
         ] || colors.accent,
@@ -886,6 +893,7 @@ function AppContent() {
         {tablet ? (
           <View style={styles.sidebar}>
             <AppLogo showWordmark size={34} />
+            <ModeToggle />
             <View style={styles.sidebarNav}>
               {visibleTabs.map((tab) => {
                 const Icon = tab.icon;
@@ -928,6 +936,23 @@ function AppContent() {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
+          {!tablet ? (
+            <View style={styles.mobileTopBar}>
+              <AppLogo showWordmark={width >= 360} size={28} />
+              <ModeToggle compact style={styles.mobileModeToggle} />
+            </View>
+          ) : null}
+          <StudySystemHeader
+            activeTab={activeTab}
+            state={systemState}
+            styles={styles}
+            onPrimaryAction={() => {
+              if (systemState.action === "scan") openTab("import");
+              if (systemState.action === "review") openTab("plan");
+              if (systemState.action === "today") openTab("today");
+              if (systemState.action === "widgets") openTab("more");
+            }}
+          />
           {selectedAssignment ? (
             <AssignmentDetailScreen
               assignment={selectedAssignment}
@@ -960,6 +985,7 @@ function AppContent() {
                   onOpenClasses={() => openTab("courses")}
                   onOpenNotes={() => openTab("notes")}
                   onOpenGrades={() => openTab("grades")}
+                  onOpenWidgets={() => openTab("more")}
                   onTryDemo={() => startWithDemoPlanner()}
                   onReplaceDemo={() => {
                     setSemester(defaultSemester);
@@ -1131,6 +1157,147 @@ function focusSessionDateKey(value: string) {
   return value.slice(0, 10);
 }
 
+type AppSystemState = {
+  title: string;
+  detail: string;
+  badge: string;
+  actionLabel: string;
+  action: "scan" | "review" | "today" | "widgets";
+  facts: Array<{ label: string; value: string; detail: string }>;
+};
+
+function buildAppSystemState(
+  assignments: Assignment[],
+  courses: Course[],
+  parsedImports: ParsedImport[],
+  nativeWidgetStatus: WidgetSyncStatus,
+  demoMode: boolean
+): AppSystemState {
+  const openAssignments = assignments.filter((assignment) => assignment.status !== "done" && assignment.status !== "archived");
+  const flaggedAssignments = openAssignments.filter(
+    (assignment) => assignment.needsReview || assignment.duplicateOf || !isValidDateInput(assignment.dueAt.slice(0, 10))
+  );
+  const reviewedRows = openAssignments.filter((assignment) => !assignment.needsReview && !assignment.duplicateOf).length;
+  const importCount = parsedImports.filter((item) => !item.id.startsWith("demo-")).length;
+  const widgetStatus =
+    nativeWidgetStatus.state === "synced"
+      ? "Synced"
+      : nativeWidgetStatus.state === "unavailable"
+        ? "Build"
+        : "Ready";
+  const facts = [
+    {
+      label: "Classes",
+      value: String(courses.length),
+      detail: courses.length ? "connected" : "needed"
+    },
+    {
+      label: "Reviewed",
+      value: String(reviewedRows),
+      detail: reviewedRows ? "planner rows" : "none yet"
+    },
+    {
+      label: "Widgets",
+      value: widgetStatus,
+      detail: nativeWidgetStatus.state === "synced" ? "snapshot" : "preview"
+    }
+  ];
+
+  if (courses.length === 0 && assignments.length === 0) {
+    return {
+      title: "Start with real school material.",
+      detail: "Scan a syllabus, paste class notes, or add the first class. The app stays empty until the student gives it real work.",
+      badge: demoMode ? "Demo" : "Setup",
+      actionLabel: "Scan or add",
+      action: "scan",
+      facts
+    };
+  }
+
+  if (flaggedAssignments.length > 0) {
+    return {
+      title: "Review before it powers the plan.",
+      detail: `${flaggedAssignments.length} item${flaggedAssignments.length === 1 ? "" : "s"} still need a date, duplicate check, or confidence pass before they should drive Today and widgets.`,
+      badge: "Review",
+      actionLabel: "Review work",
+      action: "review",
+      facts
+    };
+  }
+
+  if (openAssignments.length > 0) {
+    return {
+      title: "Planner is live.",
+      detail: `${openAssignments.length} open item${openAssignments.length === 1 ? "" : "s"} are powering Today, Plan, and Widget Studio from the same reviewed data.`,
+      badge: importCount ? "Imported" : "Manual",
+      actionLabel: "Open Today",
+      action: "today",
+      facts
+    };
+  }
+
+  return {
+    title: "Clean slate, widget proof ready.",
+    detail: "No open work is due right now. Widget Studio can still show the real empty state and guide the next import.",
+    badge: "Clear",
+    actionLabel: "Open Widgets",
+    action: "widgets",
+    facts
+  };
+}
+
+function StudySystemHeader({
+  activeTab,
+  state,
+  styles,
+  onPrimaryAction
+}: {
+  activeTab: NavTab;
+  state: AppSystemState;
+  styles: ReturnType<typeof createStyles>;
+  onPrimaryAction: () => void;
+}) {
+  return (
+    <View style={styles.systemHeader}>
+      <View style={styles.systemHeaderTop}>
+        <View style={styles.systemHeaderCopy}>
+          <Text style={styles.systemEyebrow}>Study OS · {labelForTab(activeTab)}</Text>
+          <Text style={styles.systemTitle}>{state.title}</Text>
+          <Text style={styles.systemDetail}>{state.detail}</Text>
+        </View>
+        <TouchableOpacity accessibilityRole="button" style={styles.systemAction} onPress={onPrimaryAction}>
+          <Text style={styles.systemActionBadge}>{state.badge}</Text>
+          <Text style={styles.systemActionLabel}>{state.actionLabel}</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.systemFactRow}>
+        {state.facts.map((fact) => (
+          <View key={fact.label} style={styles.systemFact}>
+            <Text style={styles.systemFactLabel}>{fact.label}</Text>
+            <Text style={styles.systemFactValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{fact.value}</Text>
+            <Text style={styles.systemFactDetail} numberOfLines={1}>{fact.detail}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function labelForTab(tab: NavTab) {
+  const labels: Record<NavTab, string> = {
+    today: "Today",
+    import: "Scan",
+    plan: "Plan",
+    courses: "Classes",
+    notes: "Notes",
+    more: "Widgets",
+    focus: "Study",
+    grades: "Grades",
+    upgrade: "Plus"
+  };
+  return labels[tab];
+}
+
 function buildDemoPlannerData(now = new Date()) {
   const demoCourses = defaultCourses.slice(0, 2);
   const demoSemester = {
@@ -1228,6 +1395,119 @@ function createStyles(theme: AppTheme, tablet = false) {
     },
     scrollArea: {
       flex: 1
+    },
+    mobileTopBar: {
+      minHeight: 44,
+      marginBottom: spacing.md,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    mobileModeToggle: {
+      flexShrink: 0
+    },
+    systemHeader: {
+      marginBottom: spacing.md,
+      borderRadius: radii.xl,
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(21,35,58,0.10)",
+      backgroundColor: theme.isDark ? "rgba(10,15,26,0.94)" : "rgba(255,255,255,0.76)",
+      padding: spacing.md,
+      gap: spacing.sm,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.18 : 0.06,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 2
+    },
+    systemHeaderTop: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    systemHeaderCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 3
+    },
+    systemEyebrow: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      letterSpacing: 0.6,
+      textTransform: "uppercase"
+    },
+    systemTitle: {
+      color: colors.ink,
+      fontSize: tablet ? 24 : 19,
+      lineHeight: tablet ? 29 : 24,
+      fontWeight: "900"
+    },
+    systemDetail: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "700"
+    },
+    systemAction: {
+      width: tablet ? 146 : 104,
+      minHeight: 70,
+      borderRadius: radii.lg,
+      backgroundColor: colors.heroSurface,
+      padding: spacing.sm,
+      justifyContent: "center",
+      gap: 3
+    },
+    systemActionBadge: {
+      color: colors.heroMuted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    systemActionLabel: {
+      color: colors.heroText,
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    systemFactRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    systemFact: {
+      flex: 1,
+      minWidth: 88,
+      minHeight: 64,
+      borderRadius: radii.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.12)" : "rgba(21,35,58,0.08)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.06)" : "rgba(21,35,58,0.04)",
+      padding: spacing.sm,
+      gap: 1
+    },
+    systemFactLabel: {
+      color: colors.faint,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    systemFactValue: {
+      color: colors.ink,
+      fontSize: 18,
+      lineHeight: 22,
+      fontWeight: "900"
+    },
+    systemFactDetail: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "800"
     },
     sidebar: {
       width: 218,

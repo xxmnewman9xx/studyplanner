@@ -65,7 +65,16 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
 }
 
 function isThemeAccent(value: unknown): value is ThemeAccent {
-  return value === "campus" || value === "classic" || value === "slate" || value === "mint";
+  return (
+    value === "campus" ||
+    value === "classic" ||
+    value === "slate" ||
+    value === "mint" ||
+    value === "aura" ||
+    value === "rose" ||
+    value === "graphite" ||
+    value === "solar"
+  );
 }
 
 export function useAppTheme() {

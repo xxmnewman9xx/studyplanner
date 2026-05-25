@@ -35,4 +35,4 @@ You can use the free planner without purchasing Plus. You can decline camera, ph
 
 ## Contact
 
-For privacy questions, contact the developer through the support contact listed in App Store Connect for Study Planner: Syllabus AI.
+For privacy questions, contact the developer through the support contact listed in App Store Connect or the Support link in StudyPlanner settings.

@@ -160,6 +160,8 @@ export function GlassCard({
   return (
     <View style={[styles.glassCard, toneStyle, style]}>
       <View pointerEvents="none" style={styles.liquidGlassHighlight} />
+      <View pointerEvents="none" style={styles.liquidGlassInnerGlow} />
+      <View pointerEvents="none" style={styles.liquidGlassLowerEdge} />
       {children}
     </View>
   );
@@ -349,6 +351,11 @@ export function WidgetPreviewCard({
   nativeMode = false,
   nativeAccentColor,
   nativeBackgroundColor,
+  nativeSignalLabel,
+  nativeMetricLabel,
+  nativeNextLabel,
+  nativeTimelineLabel,
+  nativeProgress,
   footnote,
   semesterName,
   style
@@ -368,6 +375,11 @@ export function WidgetPreviewCard({
   nativeMode?: boolean;
   nativeAccentColor?: string;
   nativeBackgroundColor?: string;
+  nativeSignalLabel?: string;
+  nativeMetricLabel?: string;
+  nativeNextLabel?: string;
+  nativeTimelineLabel?: string;
+  nativeProgress?: number;
   footnote?: string;
   semesterName?: string;
   style?: StyleProp<ViewStyle>;
@@ -376,6 +388,10 @@ export function WidgetPreviewCard({
   const styles = createStyles(theme);
   const paletteColors = themePalettes[palette] || themePalettes.sunset;
   const isTinted = background === "dark" || background === "gradient";
+  const isLockRound = size === "lock_round";
+  const isLockInline = size === "lock_inline";
+  const isLockRect = size === "lock_rect";
+  const isLock = isLockRound || isLockInline || isLockRect;
   const isLarge = size === "large";
   const isMedium = size === "medium" || size === "large";
   const labelTone = isTinted ? styles.widgetTextDark : null;
@@ -384,42 +400,120 @@ export function WidgetPreviewCard({
   const WidgetIcon = iconForKey(iconKey);
   const statusText = widgetStatusText(type, value, detail, previewItems);
   const nativeAccent = nativeAccentColor || course?.color || paletteColors[1] || theme.colors.accent;
+  const nativeBackground = nativeBackgroundColor || "#FFFDF4";
+  const nativeDark = ["#171A20", "#101723", "#070A12"].includes(nativeBackground.toUpperCase());
+  const nativeInk = nativeDark ? "#F8F6EF" : "#171A20";
+  const nativeMuted = nativeDark ? "#D4D8E2" : "#69707D";
+  const nativeQuiet = nativeDark ? "#AEB6C7" : "#8A93A3";
+  const nativeSignal = nativeSignalLabel || (previewItems.length > 0 ? "Live plan" : "Setup");
+  const nativeMetric = nativeMetricLabel || statusText;
+  const nativeNext = nativeNextLabel || footnote || "Open StudyPlanner";
+  const nativeTimeline = nativeTimelineLabel || (type === "today" ? "Today" : "Next");
+  const nativeProgressValue = Math.max(0, Math.min(1, nativeProgress ?? (previewItems.length > 0 ? 0.6 : 0.2)));
 
   if (nativeMode) {
+    if (isLockInline) {
+      return (
+        <View style={[styles.lockInlineWidget, style]}>
+          <Text style={[styles.lockInlineText, { color: nativeInk }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>
+            {nativeSignal}: {value} - {detail}
+          </Text>
+        </View>
+      );
+    }
+
+    if (isLockRound) {
+      return (
+        <View style={[styles.lockRoundWidget, { backgroundColor: nativeAccent }, style]}>
+          <Text style={styles.lockRoundValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{value}</Text>
+          <Text style={styles.lockRoundLabel} numberOfLines={1}>{type === "today" ? "Today" : "Next"}</Text>
+        </View>
+      );
+    }
+
+    if (isLockRect) {
+      return (
+        <View style={[styles.lockRectWidget, { backgroundColor: nativeBackground }, style]}>
+          <Text style={[styles.lockRectKicker, { color: nativeAccent }]} numberOfLines={1}>{title} / {nativeSignal}</Text>
+          <Text style={[styles.lockRectTitle, { color: nativeInk }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>
+            {value} {detail}
+          </Text>
+          <Text style={[styles.lockRectDetail, { color: nativeMuted }]} numberOfLines={1}>
+            {previewItems[0] ? widgetItemLabel(previewItems[0]) : nativeNext}
+          </Text>
+        </View>
+      );
+    }
+
     return (
       <View
         style={[
           styles.widget,
           isLarge ? styles.widgetLarge : isMedium ? styles.widgetMedium : styles.widgetSmall,
           styles.nativeWidget,
-          { backgroundColor: nativeBackgroundColor || "#FFFDF4" },
+          { backgroundColor: nativeBackground },
           style
         ]}
       >
+        <View pointerEvents="none" style={[styles.nativeWidgetGlassWash, { backgroundColor: nativeDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.58)" }]} />
+        <View pointerEvents="none" style={[styles.nativeWidgetBottomLens, { borderColor: nativeDark ? "rgba(255,255,255,0.10)" : "rgba(17,24,39,0.06)" }]} />
+        <View pointerEvents="none" style={[styles.nativeWidgetAccent, { backgroundColor: nativeAccent }]} />
         <View style={styles.nativeWidgetTop}>
           <View style={styles.nativeWidgetHeading}>
             <Text style={styles.nativeWidgetBrand} numberOfLines={1}>StudyPlanner</Text>
-            <Text style={[styles.nativeWidgetKicker, { color: nativeAccent }]} numberOfLines={1}>{title}</Text>
+            <Text style={[styles.nativeWidgetKicker, { color: nativeAccent }]} numberOfLines={1}>{nativeSignal}</Text>
           </View>
-          <View style={[styles.nativeWidgetDot, { backgroundColor: nativeAccent }]} />
+          <View style={[styles.nativeWidgetSignalPill, { backgroundColor: nativeDark ? "#202633" : "#FFFFFF" }]}>
+            <Text style={[styles.nativeWidgetSignalText, { color: nativeAccent }]} numberOfLines={1}>{nativeTimeline}</Text>
+          </View>
         </View>
-        <Text style={styles.nativeWidgetValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{value}</Text>
-        <Text style={styles.nativeWidgetDetail} numberOfLines={isMedium ? 2 : 1}>{detail}</Text>
+        <View style={styles.nativeWidgetMainRow}>
+          <View style={styles.nativeWidgetPrimaryCopy}>
+            <Text style={[styles.nativeWidgetValue, { color: nativeInk }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{value}</Text>
+            <Text style={[styles.nativeWidgetDetail, { color: nativeInk }]} numberOfLines={isMedium ? 2 : 1}>{detail}</Text>
+          </View>
+          {isMedium ? (
+            <View style={[styles.nativeWidgetNextBox, { backgroundColor: nativeDark ? "#202633" : "#FFFFFF" }]}>
+              <Text style={[styles.nativeWidgetNextKicker, { color: nativeQuiet }]} numberOfLines={1}>NEXT</Text>
+              <Text style={[styles.nativeWidgetNextText, { color: nativeInk }]} numberOfLines={2}>{nativeNext}</Text>
+            </View>
+          ) : null}
+        </View>
+        <View style={styles.nativeWidgetProgressRow}>
+          <Text style={[styles.nativeWidgetMetric, { color: nativeQuiet }]} numberOfLines={1}>{nativeMetric}</Text>
+          <View style={styles.nativeWidgetProgressDots}>
+            {[0, 1, 2, 3, 4].map((index) => (
+              <View
+                key={index}
+                style={[
+                  styles.nativeWidgetProgressDot,
+                  { backgroundColor: nativeProgressValue >= (index + 1) / 5 ? nativeAccent : nativeDark ? "#2A303B" : "#E7EAF0" }
+                ]}
+              />
+            ))}
+          </View>
+        </View>
         {previewItems.length > 0 ? (
           <View style={styles.nativeWidgetList}>
             {previewItems.map((item) => (
               <View key={item.id} style={styles.nativeWidgetRow}>
                 <View style={[styles.nativeWidgetMiniDot, { backgroundColor: widgetItemColor(item, course, nativeAccent) }]} />
-                <Text style={styles.nativeWidgetRowText} numberOfLines={1}>
-                  {widgetItemLabel(item)}
+                <Text style={[styles.nativeWidgetRowCourse, { color: widgetItemColor(item, course, nativeAccent) }]} numberOfLines={1}>
+                  {widgetItemCourse(item)}
+                </Text>
+                <Text style={[styles.nativeWidgetRowText, { color: nativeInk }]} numberOfLines={1}>
+                  {widgetItemTitle(item)}
+                </Text>
+                <Text style={[styles.nativeWidgetRowDue, { color: nativeMuted }]} numberOfLines={1}>
+                  {widgetItemDue(item, nativeTimeline)}
                 </Text>
               </View>
             ))}
           </View>
         ) : (
-          <Text style={styles.nativeWidgetFootnote} numberOfLines={2}>{footnote || "Open StudyPlanner to add homework."}</Text>
+          <Text style={[styles.nativeWidgetFootnote, { color: nativeMuted }]} numberOfLines={2}>{footnote || "Open StudyPlanner to add homework."}</Text>
         )}
-        <Text style={styles.nativeWidgetFooter} numberOfLines={1}>
+        <Text style={[styles.nativeWidgetFooter, { color: nativeQuiet }]} numberOfLines={1}>
           {previewItems.length > 0 ? footnote || "Planner data" : semesterName || "Current semester"}
         </Text>
       </View>
@@ -429,8 +523,8 @@ export function WidgetPreviewCard({
   return (
     <View
       style={[
-        styles.widget,
-        isLarge ? styles.widgetLarge : isMedium ? styles.widgetMedium : styles.widgetSmall,
+          styles.widget,
+        isLock ? styles.widgetSmall : isLarge ? styles.widgetLarge : isMedium ? styles.widgetMedium : styles.widgetSmall,
         background === "solid" ? styles.widgetSolid : null,
         background === "glass" ? styles.widgetGlass : null,
         background === "dark" ? styles.widgetDark : null,
@@ -441,6 +535,7 @@ export function WidgetPreviewCard({
       <View style={[styles.widgetBackplate, { borderColor: paletteColors[1] }]} />
       <View style={[styles.widgetAura, { backgroundColor: paletteColors[1] }]} />
       <View style={[styles.widgetSheen, { backgroundColor: paletteColors[2] || paletteColors[1] }]} />
+      <View style={styles.widgetLiquidFace} />
       <View style={styles.widgetGridTexture} />
       <View style={[styles.widgetAccentRail, { backgroundColor: paletteColors[1] }]} />
       {background === "gradient" ? (
@@ -534,6 +629,18 @@ function widgetItemLabel(item: WidgetPreviewItem) {
   }
 
   return item.title;
+}
+
+function widgetItemCourse(item: WidgetPreviewItem) {
+  return "courseCode" in item && item.courseCode ? item.courseCode : "Class";
+}
+
+function widgetItemTitle(item: WidgetPreviewItem) {
+  return item.title;
+}
+
+function widgetItemDue(item: WidgetPreviewItem, fallback: string) {
+  return "dueLabel" in item && item.dueLabel ? item.dueLabel : fallback;
 }
 
 export function ThemeCard({
@@ -746,15 +853,15 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     glassCard: {
-      borderRadius: radii.lg,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.72)",
+      borderRadius: radii.xl,
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.82)",
       padding: spacing.md,
       overflow: "hidden",
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.24 : 0.09,
-      shadowRadius: 16,
-      shadowOffset: { width: 0, height: 9 },
+      shadowOpacity: theme.isDark ? 0.36 : 0.13,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 16 },
       elevation: 4
     },
     liquidGlassHighlight: {
@@ -762,33 +869,43 @@ function createStyles(theme: AppTheme) {
       top: 0,
       left: 0,
       right: 0,
-      height: "42%",
-      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : "rgba(255,255,255,0.42)",
-      opacity: 0.86
+      height: "46%",
+      borderTopLeftRadius: radii.xl,
+      borderTopRightRadius: radii.xl,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.085)" : "rgba(255,255,255,0.56)",
+      opacity: 0.92
     },
     liquidGlassInnerGlow: {
       position: "absolute",
-      right: -48,
-      top: -52,
-      width: 132,
-      height: 132,
-      borderRadius: 66,
-      backgroundColor: theme.isDark ? "rgba(53,242,208,0.085)" : "rgba(255,255,255,0.48)",
-      opacity: 0.80
+      right: 12,
+      top: 10,
+      width: "58%",
+      height: 28,
+      borderRadius: radii.round,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.085)" : "rgba(255,255,255,0.50)",
+      opacity: 0.72
+    },
+    liquidGlassLowerEdge: {
+      position: "absolute",
+      left: 14,
+      right: 14,
+      bottom: 0,
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.18)" : "rgba(17,24,39,0.08)"
     },
     plainGlassCard: {
-      backgroundColor: theme.isDark ? "rgba(18,25,42,0.72)" : "rgba(255,255,255,0.76)"
+      backgroundColor: theme.isDark ? "rgba(18,25,42,0.76)" : "rgba(255,255,255,0.80)"
     },
     heroGlassCard: {
-      backgroundColor: theme.isDark ? "rgba(10,15,26,0.88)" : "rgba(17,24,26,0.92)",
-      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.24)"
+      backgroundColor: theme.isDark ? "rgba(8,12,22,0.92)" : "rgba(17,24,26,0.93)",
+      borderColor: theme.isDark ? "rgba(255,255,255,0.20)" : "rgba(255,255,255,0.28)"
     },
     softGlassCard: {
-      backgroundColor: theme.isDark ? "rgba(16,54,55,0.54)" : "rgba(232,244,240,0.78)"
+      backgroundColor: theme.isDark ? "rgba(16,54,55,0.58)" : "rgba(232,244,240,0.82)"
     },
     darkGlassCard: {
-      backgroundColor: "rgba(17,24,39,0.82)",
-      borderColor: "rgba(255,255,255,0.18)"
+      backgroundColor: "rgba(9,13,23,0.90)",
+      borderColor: "rgba(255,255,255,0.20)"
     },
     statPill: {
       flex: 1,
@@ -998,15 +1115,15 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800"
     },
     widget: {
-      borderRadius: 24,
+      borderRadius: 27,
       padding: spacing.md,
       overflow: "hidden",
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.18)" : "rgba(18,20,23,0.08)",
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.82)",
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.34 : 0.12,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: theme.isDark ? 0.46 : 0.16,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 16 },
       elevation: 5
     },
     widgetSmall: {
@@ -1025,21 +1142,106 @@ function createStyles(theme: AppTheme) {
       backgroundColor: theme.isDark ? "#111827" : "#FFFDF4"
     },
     widgetGlass: {
-      backgroundColor: theme.isDark ? "rgba(17,24,39,0.72)" : "rgba(255,253,244,0.74)",
-      borderColor: theme.isDark ? "rgba(255,255,255,0.24)" : "rgba(255,255,255,0.88)"
+      backgroundColor: theme.isDark ? "rgba(13,19,33,0.84)" : "rgba(255,255,255,0.76)",
+      borderColor: theme.isDark ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.94)"
     },
     widgetDark: {
       backgroundColor: "#070A12",
       borderColor: "rgba(53,242,208,0.22)"
     },
     nativeWidget: {
-      borderRadius: 24,
+      borderRadius: 27,
       padding: spacing.md,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(18,20,23,0.08)",
-      shadowOpacity: theme.isDark ? 0.22 : 0.08,
-      shadowRadius: 14,
-      shadowOffset: { width: 0, height: 8 },
+      borderColor: theme.isDark ? "rgba(255,255,255,0.24)" : "rgba(255,255,255,0.90)",
+      shadowOpacity: theme.isDark ? 0.38 : 0.13,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 15 },
       gap: 4
+    },
+    nativeWidgetGlassWash: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      height: "48%"
+    },
+    nativeWidgetBottomLens: {
+      position: "absolute",
+      right: -24,
+      bottom: -24,
+      width: 118,
+      height: 74,
+      borderRadius: 28,
+      borderWidth: StyleSheet.hairlineWidth,
+      backgroundColor: "rgba(255,255,255,0.035)",
+      transform: [{ rotate: "-8deg" }]
+    },
+    nativeWidgetAccent: {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      left: 0,
+      width: 5,
+      opacity: 0.95
+    },
+    lockInlineWidget: {
+      width: 220,
+      minHeight: 28,
+      justifyContent: "center",
+      paddingHorizontal: spacing.xs
+    },
+    lockInlineText: {
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    lockRoundWidget: {
+      width: 68,
+      height: 68,
+      borderRadius: 34,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.42)"
+    },
+    lockRoundValue: {
+      color: "#FFFFFF",
+      fontSize: 18,
+      lineHeight: 22,
+      fontWeight: "900",
+      fontVariant: ["tabular-nums"]
+    },
+    lockRoundLabel: {
+      color: "#FFFFFF",
+      fontSize: 9,
+      lineHeight: 12,
+      fontWeight: "900"
+    },
+    lockRectWidget: {
+      width: 176,
+      minHeight: 72,
+      borderRadius: 18,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+      justifyContent: "center",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.18)" : "rgba(18,20,23,0.08)",
+      gap: 1
+    },
+    lockRectKicker: {
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    lockRectTitle: {
+      fontSize: 14,
+      lineHeight: 18,
+      fontWeight: "900"
+    },
+    lockRectDetail: {
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "800"
     },
     nativeWidgetTop: {
       flexDirection: "row",
@@ -1067,11 +1269,34 @@ function createStyles(theme: AppTheme) {
       borderRadius: 10,
       opacity: 0.95
     },
-    nativeWidgetValue: {
+    nativeWidgetSignalPill: {
+      minHeight: 24,
+      borderRadius: 13,
+      paddingHorizontal: 8,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.70)"
+    },
+    nativeWidgetSignalText: {
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    nativeWidgetMainRow: {
       marginTop: spacing.xs,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    nativeWidgetPrimaryCopy: {
+      flex: 1,
+      minWidth: 0
+    },
+    nativeWidgetValue: {
       color: "#171A20",
-      fontSize: 32,
-      lineHeight: 37,
+      fontSize: 34,
+      lineHeight: 38,
       fontWeight: "900",
       fontVariant: ["tabular-nums"]
     },
@@ -1080,6 +1305,47 @@ function createStyles(theme: AppTheme) {
       fontSize: 13,
       lineHeight: 17,
       fontWeight: "900"
+    },
+    nativeWidgetNextBox: {
+      width: 96,
+      borderRadius: 18,
+      paddingHorizontal: 8,
+      paddingVertical: 7,
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.68)",
+      gap: 2
+    },
+    nativeWidgetNextKicker: {
+      fontSize: 8,
+      lineHeight: 11,
+      fontWeight: "900"
+    },
+    nativeWidgetNextText: {
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    nativeWidgetMetric: {
+      flex: 1,
+      minWidth: 0,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    nativeWidgetProgressRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6
+    },
+    nativeWidgetProgressDots: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 3
+    },
+    nativeWidgetProgressDot: {
+      width: 5,
+      height: 5,
+      borderRadius: 3
     },
     nativeWidgetList: {
       marginTop: spacing.xs,
@@ -1095,9 +1361,21 @@ function createStyles(theme: AppTheme) {
       height: 6,
       borderRadius: 3
     },
+    nativeWidgetRowCourse: {
+      width: 44,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
     nativeWidgetRowText: {
       flex: 1,
       color: "#69707D",
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "800"
+    },
+    nativeWidgetRowDue: {
+      maxWidth: 54,
       fontSize: 10,
       lineHeight: 13,
       fontWeight: "800"
@@ -1124,25 +1402,35 @@ function createStyles(theme: AppTheme) {
       height: 22,
       borderRadius: 18,
       borderWidth: 1,
-      opacity: 0.16
+      opacity: 0.22
     },
     widgetAura: {
       position: "absolute",
-      right: -52,
-      top: -58,
-      width: 142,
-      height: 142,
-      borderRadius: 71,
-      opacity: theme.isDark ? 0.34 : 0.22
+      right: -34,
+      top: 18,
+      width: 132,
+      height: 62,
+      borderRadius: 28,
+      opacity: theme.isDark ? 0.30 : 0.18,
+      transform: [{ rotate: "-12deg" }]
     },
     widgetSheen: {
       position: "absolute",
-      left: -36,
-      bottom: -48,
-      width: 118,
-      height: 118,
-      borderRadius: 59,
-      opacity: theme.isDark ? 0.22 : 0.18
+      left: -30,
+      bottom: 14,
+      width: 138,
+      height: 42,
+      borderRadius: 24,
+      opacity: theme.isDark ? 0.20 : 0.16,
+      transform: [{ rotate: "-18deg" }]
+    },
+    widgetLiquidFace: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      height: "46%",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.48)"
     },
     widgetGridTexture: {
       position: "absolute",

@@ -159,8 +159,8 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
         <Text style={styles.stateCopy}>{planState.copy}</Text>
         <View style={styles.stateGrid}>
           <PlanStateTile label="Calendar" value={weekSummary.totalItems ? `${weekSummary.totalItems} due` : "Empty"} detail={weekSummary.peakDay ? `${weekSummary.peakDay.label} is peak` : "No loaded days"} tone="blue" />
-          <PlanStateTile label="Catch up" value={overdue.length ? `${overdue.length} late` : "Clear"} detail={catchUpFirst?.title || "No overdue work"} tone="pink" />
-          <PlanStateTile label="Focus" value={weekSummary.plannedBlocks ? `${weekSummary.plannedBlocks} saved` : "Not saved"} detail={weekSummary.totalMinutes ? `${formatHoursValue(weekSummary.totalMinutes)} open load` : "No blocks needed"} tone="green" />
+          <PlanStateTile label="Catch up" value={overdue.length ? `${overdue.length} late` : "Clear"} detail={catchUpFirst?.title || "No overdue"} tone="pink" />
+          <PlanStateTile label="Focus" value={weekSummary.plannedBlocks ? `${weekSummary.plannedBlocks} saved` : "0 saved"} detail={weekSummary.totalMinutes ? `${formatHoursValue(weekSummary.totalMinutes)} open load` : "No blocks needed"} tone="green" />
         </View>
       </GlassCard>
 

@@ -149,11 +149,17 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
       try {
         setFlowState("purchasing");
         const knownProduct = allPremiumProductIds.includes(purchaseResult.productId);
+        const purchasedKnownProduct = knownProduct && purchaseResult.purchaseState === "purchased";
         const entitlement = await refreshEntitlementAfterPurchase();
-        setIsPremium(entitlement.isPremium);
+        const resolvedEntitlement =
+          entitlement.isPremium || !purchasedKnownProduct
+            ? entitlement
+            : entitlementFromPurchase(purchaseResult);
+        setIsPremium(resolvedEntitlement.isPremium);
         setStatus("ready");
 
-        if (knownProduct && entitlement.isPremium) {
+        if (knownProduct && resolvedEntitlement.isPremium) {
+          await saveJson<EntitlementRecord>(subscriptionStorageKey, resolvedEntitlement);
           await finishTransaction({ purchase: purchaseResult, isConsumable: false });
           setMessage("Plus is active. Premium features are unlocked.");
           setFlowState("success");
@@ -198,6 +204,7 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
   useEffect(() => {
     loadJson<EntitlementRecord>(subscriptionStorageKey).then((stored) => {
       if (stored?.isPremium) {
+        setIsPremium(true);
         setMessage("Checking your Plus access with the store.");
       }
     });
@@ -412,6 +419,14 @@ function resolveEntitlement(activeSubscriptions: ActiveSubscription[], purchases
   return {
     isPremium: Boolean(productId),
     productId,
+    checkedAt: new Date().toISOString()
+  };
+}
+
+function entitlementFromPurchase(purchase: Purchase): EntitlementRecord {
+  return {
+    isPremium: purchase.purchaseState === "purchased",
+    productId: purchase.productId,
     checkedAt: new Date().toISOString()
   };
 }

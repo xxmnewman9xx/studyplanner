@@ -10,6 +10,7 @@ import {
 } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { AppLogo, GlassCard } from "../components/AppleComponents";
+import { ModeToggle } from "../components/ModeToggle";
 import { AppTheme, appThemePalettes, ThemeAccent } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { UserSettings } from "../models";
@@ -51,7 +52,7 @@ const slides = [
     icon: Palette,
     previewTitle: "Widget Studio",
     previewMetric: "Today",
-    previewDetail: "Real deadlines, not fake placeholders",
+    previewDetail: "Real deadlines after review",
     rows: ["2 free classes", "12 free homework items", "Basic Today + Upcoming widgets"]
   }
 ];
@@ -106,7 +107,8 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
         showsVerticalScrollIndicator={false}
       >
       <View style={styles.brandRow}>
-        <AppLogo showWordmark size={40} />
+        <AppLogo size={36} />
+        <ModeToggle compact />
       </View>
 
       <GlassCard tone="hero" style={styles.heroCard}>
@@ -173,7 +175,7 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
             <View style={styles.miniWidgetPreview}>
               <View style={styles.miniWidgetDot} />
               <Text style={styles.miniWidgetTitle}>{index === 0 ? "Imported work" : index === 1 ? "Needs review" : "Due today"}</Text>
-              <Text style={styles.miniWidgetText}>{index === 0 ? "Drafts stay editable." : index === 1 ? "Bad dates block saving." : "Planner-backed, not placeholder."}</Text>
+              <Text style={styles.miniWidgetText}>{index === 0 ? "Drafts stay editable." : index === 1 ? "Bad dates block saving." : "Planner-backed when work exists."}</Text>
             </View>
           </View>
         </View>
@@ -314,7 +316,9 @@ function createStyles(theme: AppTheme) {
     },
     brandRow: {
       flexDirection: "row",
-      justifyContent: "center"
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.sm
     },
     heroCard: {
       gap: spacing.sm,

@@ -20,6 +20,7 @@ const publicEnv =
           process.env.EXPO_PUBLIC_IAP_LIFETIME_PRODUCT_ID,
         termsUrl: process.env.EXPO_PUBLIC_TERMS_URL,
         privacyUrl: process.env.EXPO_PUBLIC_PRIVACY_URL,
+        supportUrl: process.env.EXPO_PUBLIC_SUPPORT_URL,
         androidPackageName: process.env.EXPO_PUBLIC_ANDROID_PACKAGE_NAME
       }
     : {};
@@ -29,6 +30,7 @@ export const purchaseConfig = {
   lifetimeProductIds: readListEnv(publicEnv.lifetimeProductIds),
   termsUrl: publicEnv.termsUrl || appleStandardEulaUrl,
   privacyUrl: publicEnv.privacyUrl || studyPlannerPrivacyUrl,
+  supportUrl: publicEnv.supportUrl || studyPlannerPrivacyUrl,
   androidPackageName: publicEnv.androidPackageName || defaultAndroidPackageName
 };
 

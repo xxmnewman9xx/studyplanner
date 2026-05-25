@@ -9,6 +9,10 @@ const upgrade = read("src/screens/UpgradeScreen.tsx");
 const more = read("src/screens/MoreScreen.tsx");
 const components = read("src/components/AppleComponents.tsx");
 const planner = read("src/logic/planner.ts");
+const nativeWidgetLayout = read("src/widgets/StudyPlannerWidgets.tsx");
+const todayWidgetSwift = read("ios/ExpoWidgetsTarget/StudyPlannerTodayWidget.swift");
+const upcomingWidgetSwift = read("ios/ExpoWidgetsTarget/StudyPlannerUpcomingWidget.swift");
+const appJson = read("app.json");
 const today = read("src/screens/TodayScreen.tsx");
 const reviewPrompt = read("src/services/reviewPrompt.ts");
 const defaultPlanner = read("src/data/defaultPlanner.ts");
@@ -85,14 +89,21 @@ assert(upgrade.includes('"1 active semester"') && upgrade.includes('"2 classes a
 assert(app.includes("setImportHandoff") && app.includes("openTab(\"today\")") && app.includes('recordReviewEvent("import_applied")'), "Scan/import should hand off into Today after value is created.");
 assert(reviewPrompt.includes("assignment_completed") && reviewPrompt.includes("focus_completed") && reviewPrompt.includes("widget_saved"), "Review prompt policy should stay value-gated.");
 assert(app.includes("syncStudyPlannerWidgets") && app.includes("nativeWidgetStatus"), "WidgetKit snapshots should refresh from real planner persistence.");
-assert(more.includes("Real widgets, real planner data") && more.includes("Add StudyPlanner Today or StudyPlanner Upcoming"), "Widget surface should describe the real native widget loop.");
+assert(more.includes("Build the Home Screen that gets school done") && more.includes("Add StudyPlanner Today or StudyPlanner Upcoming"), "Widget surface should lead with a useful native widget workbench.");
 assert(more.includes("Daily widget stack") && more.includes("Morning: Today") && more.includes("Free includes basic Today and Upcoming widgets"), "Widget surface should explain the free native widget value without faking advanced widgets.");
 assert(more.includes("Upcoming") && more.includes("Today") && more.includes("Focus Block") && more.includes("Class Risk"), "Widget templates should be student-outcome first.");
+assert(more.includes('"lock_rect"') && more.includes('"lock_round"') && more.includes('"lock_inline"'), "Widget Studio should expose lock-screen size intent for customization QA.");
+assert(more.includes("One fact in small widgets") && more.includes("Agenda rows in medium widgets"), "Widget Studio first viewport should expose research-backed widget rules.");
+assert(!more.includes("top-20") && !more.includes("active in this studio") && !more.includes("3/6 ready") && !more.includes("Studio state"), "Widget Studio must not expose internal QA scoring language.");
 assert(planner.includes('headline: "Upcoming"') && planner.includes('headline: "Today"') && planner.includes("Focus Block") && planner.includes("Class Risk"), "Widget data labels should match student-outcome templates.");
 assert(!more.includes("Algebra II - Worksheet") && !more.includes("Week 11") && !more.includes("Wednesday, May 13"), "Widget surface must not show fake sample school data.");
 assert(!components.includes("May 13") && !components.includes('"2h"'), "Widget preview components must not hard-code fake dates or fake due times.");
 assert(more.includes("Save widget preset") && more.includes("Unlock advanced widget"), "Widget surface may save basic presets while gating advanced widgets.");
 assert(defaultPlanner.includes("defaultWidgetPresets"), "Default widget presets may exist for data compatibility, but UI must not imply native support.");
+assert(appJson.includes('"accessoryCircular"') && appJson.includes('"accessoryRectangular"') && appJson.includes('"accessoryInline"'), "Expo widget config should include Lock Screen accessory families.");
+assert(todayWidgetSwift.includes(".accessoryCircular") && todayWidgetSwift.includes(".accessoryRectangular") && todayWidgetSwift.includes(".accessoryInline"), "Today native widget should support Lock Screen families.");
+assert(upcomingWidgetSwift.includes(".accessoryCircular") && upcomingWidgetSwift.includes(".accessoryRectangular") && upcomingWidgetSwift.includes(".accessoryInline"), "Upcoming native widget should support Lock Screen families.");
+assert(nativeWidgetLayout.includes('environment.widgetFamily === "accessoryCircular"') && nativeWidgetLayout.includes('environment.widgetFamily === "accessoryRectangular"') && nativeWidgetLayout.includes('environment.widgetFamily === "accessoryInline"'), "Native widget layout should render dedicated Lock Screen variants.");
 assert(fs.existsSync(path.join(root, "assets/app/study-planner-icon.png")), "StudyPlanner icon asset must exist.");
 
 if (failures.length) {
