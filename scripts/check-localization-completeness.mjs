@@ -4,6 +4,7 @@ const catalog = JSON.parse(readFileSync("localized-app-strings/core-launch-strin
 const sourceFiles = {
   app: readFileSync("App.tsx", "utf8"),
   i18n: readFileSync("src/i18n.tsx", "utf8"),
+  today: readFileSync("src/screens/TodayScreen.tsx", "utf8"),
   onboarding: readFileSync("src/screens/OnboardingScreen.tsx", "utf8"),
   importScreen: readFileSync("src/screens/ImportScreen.tsx", "utf8"),
   paywall: readFileSync("src/screens/UpgradeScreen.tsx", "utf8"),
@@ -109,6 +110,7 @@ for (const locale of requiredLocales) {
 
 assert(sourceFiles.app.includes("<I18nProvider>"), "App must wrap runtime UI in I18nProvider.");
 assert(sourceFiles.app.includes("t(tab.labelKey)"), "Navigation labels must use runtime localization keys.");
+assert(sourceFiles.today.includes("useI18n") && sourceFiles.today.includes("today.quick_capture"), "Today screen must consume runtime localization keys.");
 assert(sourceFiles.onboarding.includes("useI18n") && sourceFiles.onboarding.includes("slide.titleKey"), "Onboarding must consume runtime localization keys.");
 assert(sourceFiles.importScreen.includes("useI18n") && sourceFiles.importScreen.includes("import.photo_disabled_message"), "Import screen must consume runtime localization keys.");
 assert(sourceFiles.paywall.includes("useI18n") && sourceFiles.paywall.includes("paywall.hard_subtitle"), "Paywall must consume runtime localization keys.");
@@ -117,6 +119,30 @@ assert(sourceFiles.widgets.includes("Native style fields"), "Widget Studio must 
 assert(sourceFiles.i18n.includes("EXPO_PUBLIC_STUDYPLANNER_LOCALE"), "Localization override must exist for screenshot QA.");
 
 const hardcodedLaunchStrings = [
+  {
+    file: "src/screens/TodayScreen.tsx",
+    source: sourceFiles.today,
+    phrases: [
+      "Sample planner",
+      "Replace with my syllabus",
+      "Add homework before it slips.",
+      "Chapter 4 notes tomorrow",
+      "Add a class first.",
+      "Set reminders",
+      "Sync calendar",
+      "Start with your syllabus.",
+      "Added from Scan",
+      "Due today",
+      "This week",
+      "No upcoming work loaded",
+      "Scan another syllabus.",
+      "Overdue work first",
+      "Review imported work",
+      "Next deadline in",
+      "Open details",
+      "Replan week"
+    ]
+  },
   {
     file: "src/screens/ImportScreen.tsx",
     source: sourceFiles.importScreen,

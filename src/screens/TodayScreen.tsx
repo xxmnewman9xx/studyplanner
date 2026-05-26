@@ -12,13 +12,13 @@ import { Assignment, Course, Semester, StudyNote } from "../models";
 import {
   buildTodayPlan,
   daysUntil,
-  formatDateOnly,
   getCourseForAssignment
 } from "../logic/planner";
 import { parseQuickHomeworkInput, todayDateInput } from "../services/quickHomeworkParser";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { courseEmoji } from "../utils/courseVisuals";
+import { useI18n } from "../i18n";
 
 export type ImportHandoffSummary = {
   sourceName: string;
@@ -27,6 +27,8 @@ export type ImportHandoffSummary = {
   nextTitle?: string;
   nextAssignmentId?: string;
 };
+
+type TranslateFn = (key: string, fallback?: string) => string;
 
 type TodayScreenProps = {
   assignments: Assignment[];
@@ -79,6 +81,7 @@ export function TodayScreen({
   onAddQuickAssignment
 }: TodayScreenProps) {
   const { theme } = useAppTheme();
+  const { t, locale } = useI18n();
   const { colors } = theme;
   const styles = createStyles(theme);
   const plan = buildTodayPlan(assignments, semester);
@@ -87,14 +90,19 @@ export function TodayScreen({
     : undefined;
   const completionPercent = assignments.length > 0 ? Math.round((plan.doneCount / assignments.length) * 100) : 0;
   const nextDueDays = plan.nextAction ? daysUntil(plan.nextAction.dueAt) : 0;
+  const nextActionDuration = plan.nextAction
+    ? formatLocalized(t("today.minutes_short", "{minutes} min"), {
+        minutes: String(plan.nextAction.estimatedMinutes || 25)
+      })
+    : "";
   const secondaryUpcoming = plan.upcoming.filter((assignment) => assignment.id !== plan.nextAction?.id);
   const [quickCourseId, setQuickCourseId] = useState(courses[0]?.id || "");
   const [quickTitle, setQuickTitle] = useState("");
   const [quickDueDate, setQuickDueDate] = useState(todayDateInput());
-  const quickDuePresets = buildQuickDuePresets();
+  const quickDuePresets = buildQuickDuePresets(t);
   const quickCourse = courses.find((course) => course.id === quickCourseId) || courses[0];
   const parsedQuickHomework = parseQuickHomeworkInput(quickTitle, courses, quickCourse, quickDueDate);
-  const liveBrief = buildLiveBrief(plan, courses.length);
+  const liveBrief = buildLiveBrief(plan, courses.length, t);
   const plannerHasData = assignments.length > 0 || courses.length > 0;
   const todayItems = plan.dueToday.filter((assignment) => assignment.id !== plan.nextAction?.id);
   const weekItems = plan.upcoming
@@ -102,30 +110,30 @@ export function TodayScreen({
     .slice(0, 4);
   const commandTiles = [
     {
-      label: "Scan",
-      value: imageActionLabel(plannerHasData),
-      detail: "Add paper, PDF, or text",
+      label: t("today.command_scan", "Scan"),
+      value: imageActionLabel(plannerHasData, t),
+      detail: t("today.command_scan_detail", "Add paper, PDF, or text"),
       icon: FileScan,
       action: onOpenScan
     },
     {
-      label: "Review",
+      label: t("today.command_review", "Review"),
       value: String(plan.needsReview.length),
-      detail: plan.needsReview.length ? "items need trust check" : "planner is clean",
+      detail: plan.needsReview.length ? t("today.command_review_needed", "items need trust check") : t("today.command_review_clean", "planner is clean"),
       icon: CheckCircle2,
       action: onOpenScan
     },
     {
-      label: "Calendar",
+      label: t("today.command_calendar", "Calendar"),
       value: `${plan.dueToday.length}/${plan.upcoming.length}`,
-      detail: "today / upcoming",
+      detail: t("today.command_calendar_detail", "today / upcoming"),
       icon: CalendarPlus,
       action: onOpenPlan
     },
     {
-      label: "Widgets",
-      value: assignments.length ? `${Math.min(99, assignments.length)}` : "Set up",
-      detail: assignments.length ? "reviewed source rows" : "needs planner data",
+      label: t("today.command_widgets", "Widgets"),
+      value: assignments.length ? `${Math.min(99, assignments.length)}` : t("today.set_up", "Set up"),
+      detail: assignments.length ? t("today.reviewed_source_rows", "reviewed source rows") : t("today.needs_planner_data", "needs planner data"),
       icon: Sparkles,
       action: onOpenWidgets
     }
@@ -166,46 +174,53 @@ export function TodayScreen({
               <Sparkles color={colors.accent} size={18} />
             </View>
             <View style={styles.demoCopy}>
-              <Text style={styles.demoTitle}>Sample planner</Text>
-              <Text style={styles.demoText}>Replace this with your own syllabus when you are ready.</Text>
+              <Text style={styles.demoTitle}>{t("today.sample_planner", "Sample planner")}</Text>
+              <Text style={styles.demoText}>{t("today.sample_replace_copy", "Replace this with your own syllabus when you are ready.")}</Text>
             </View>
           </View>
-          <AppButton label="Replace with my syllabus" icon={FileScan} onPress={onReplaceDemo} />
+          <AppButton label={t("today.replace_with_syllabus", "Replace with my syllabus")} icon={FileScan} onPress={onReplaceDemo} />
         </GlassCard>
       ) : null}
 
       <GlassCard tone="hero" style={styles.heroCard}>
-        <Text style={styles.heroKicker}>Today</Text>
+        <Text style={styles.heroKicker}>{t("tabs.today", "Today")}</Text>
         <Text style={styles.heroTitle}>{liveBrief.title}</Text>
         <Text style={styles.heroSubtitle}>{liveBrief.detail}</Text>
         {plannerHasData ? (
           <View style={styles.heroMetrics}>
-            <MetricPill label="Done" value={`${completionPercent}%`} />
-            <MetricPill label="Open" value={String(plan.openCount)} />
-            <MetricPill label="Review" value={String(plan.needsReview.length)} />
+            <MetricPill label={t("today.metric_done", "Done")} value={`${completionPercent}%`} />
+            <MetricPill label={t("today.metric_open", "Open")} value={String(plan.openCount)} />
+            <MetricPill label={t("today.metric_review", "Review")} value={String(plan.needsReview.length)} />
           </View>
         ) : null}
         {plan.nextAction ? (
           <View style={styles.nextHero}>
             <View style={styles.nextHeroCopy}>
               <View style={styles.nextKickerRow}>
-                <Text style={styles.nextKicker}>{formatDueUrgency(nextDueDays)}</Text>
-                <Text style={styles.timeChip}>{plan.nextAction.estimatedMinutes || 25} min</Text>
+                <Text style={styles.nextKicker}>{formatDueUrgency(nextDueDays, t)}</Text>
+                <Text style={styles.timeChip}>{nextActionDuration}</Text>
               </View>
               <Text style={styles.nextTitle}>{formatAssignmentTitle(nextCourse, plan.nextAction)}</Text>
               <Text style={styles.nextMeta}>
-                Due {formatDateOnly(plan.nextAction.dueAt.slice(0, 10))} · {plan.nextAction.estimatedMinutes}m · {nextCourse?.period || "class"}
+                {formatLocalized(
+                  t("today.next_meta", "Due {date} · {duration} · {period}"),
+                  {
+                    date: formatTodayDate(plan.nextAction.dueAt.slice(0, 10), locale, t),
+                    duration: nextActionDuration,
+                    period: nextCourse?.period || t("today.class_fallback", "class")
+                  }
+                )}
               </Text>
             </View>
             <View style={styles.nextActions}>
               <AppButton
-                label="Start focus"
+                label={t("today.start_focus", "Start focus")}
                 icon={Timer}
                 onPress={() => onOpenFocus(plan.nextAction!.id)}
                 style={styles.startButton}
               />
               <AppButton
-                label="Open task"
+                label={t("today.open_task", "Open task")}
                 variant="quiet"
                 onPress={() => onOpenAssignment(plan.nextAction!.id)}
                 style={styles.focusButton}
@@ -214,12 +229,12 @@ export function TodayScreen({
           </View>
         ) : (
           <EmptyState
-            title={plannerHasData ? "All caught up" : "No schoolwork added yet"}
-            copy={plannerHasData ? "No urgent work in the planner right now." : "Scan a syllabus or add one class so Today can show your next task."}
+            title={plannerHasData ? t("today.all_caught_up", "All caught up") : t("today.no_schoolwork_added", "No schoolwork added yet")}
+            copy={plannerHasData ? t("today.no_urgent_work", "No urgent work in the planner right now.") : t("today.scan_or_add_class", "Scan a syllabus or add one class so Today can show your next task.")}
             emoji={plannerHasData ? "complete" : "calendar"}
           />
         )}
-        {!plannerHasData ? <AppButton label="Scan syllabus" icon={FileScan} onPress={onOpenScan} /> : null}
+        {!plannerHasData ? <AppButton label={t("today.scan_syllabus", "Scan syllabus")} icon={FileScan} onPress={onOpenScan} /> : null}
       </GlassCard>
 
       <View style={styles.commandRail}>
@@ -248,11 +263,11 @@ export function TodayScreen({
       <GlassCard style={styles.quickAddCard}>
         <View style={styles.commandCenterHeader}>
           <View style={styles.commandCenterCopy}>
-            <Text style={styles.commandCenterKicker}>Quick capture</Text>
-            <Text style={styles.commandCenterTitle}>Add homework before it slips.</Text>
+            <Text style={styles.commandCenterKicker}>{t("today.quick_capture", "Quick capture")}</Text>
+            <Text style={styles.commandCenterTitle}>{t("today.quick_capture_title", "Add homework before it slips.")}</Text>
           </View>
           <TouchableOpacity accessibilityRole="button" style={styles.commandCenterButton} onPress={onOpenScan}>
-            <Text style={styles.commandCenterButtonText}>Scan</Text>
+            <Text style={styles.commandCenterButtonText}>{t("today.command_scan", "Scan")}</Text>
           </TouchableOpacity>
         </View>
 
@@ -280,7 +295,7 @@ export function TodayScreen({
               <TextInput
                 value={quickTitle}
                 onChangeText={setQuickTitle}
-                placeholder="Chapter 4 notes tomorrow"
+                placeholder={t("today.quick_title_placeholder", "Chapter 4 notes tomorrow")}
                 placeholderTextColor={colors.faint}
                 style={[styles.quickInput, styles.quickTitleInput]}
               />
@@ -293,7 +308,7 @@ export function TodayScreen({
               />
             </View>
             <AppButton
-              label="Add to Today"
+              label={t("today.add_to_today", "Add to Today")}
               icon={Plus}
               disabled={!parsedQuickHomework.course || !parsedQuickHomework.title.trim() || !parsedQuickHomework.dueDate.trim()}
               onPress={addHomework}
@@ -318,17 +333,21 @@ export function TodayScreen({
             </View>
             {quickTitle.trim() ? (
               <Text style={styles.quickParsePreview}>
-                Will add {parsedQuickHomework.course?.code || quickCourse?.code || "class"} · {parsedQuickHomework.title || "homework"} · due {formatDateOnly(parsedQuickHomework.dueDate)}
+                {formatLocalized(t("today.quick_parse_preview", "Will add {course} · {title} · due {date}"), {
+                  course: parsedQuickHomework.course?.code || quickCourse?.code || t("today.class_fallback", "class"),
+                  title: parsedQuickHomework.title || t("today.homework_fallback", "homework"),
+                  date: formatTodayDate(parsedQuickHomework.dueDate, locale, t)
+                })}
               </Text>
             ) : null}
           </>
         ) : (
           <View style={styles.noClassBlock}>
-            <Text style={styles.noClassTitle}>Add a class first.</Text>
-            <Text style={styles.noClassCopy}>Homework needs a class so Today, Calendar, and widgets know where it belongs.</Text>
+            <Text style={styles.noClassTitle}>{t("today.add_class_first", "Add a class first.")}</Text>
+            <Text style={styles.noClassCopy}>{t("today.homework_needs_class", "Homework needs a class so Today, Calendar, and widgets know where it belongs.")}</Text>
             <View style={styles.actionRow}>
-              <AppButton label="Classes" variant="secondary" onPress={onOpenClasses} style={styles.actionButton} />
-              <AppButton label="Scan syllabus" icon={FileScan} onPress={onOpenScan} style={styles.actionButton} />
+              <AppButton label={t("tabs.classes", "Classes")} variant="secondary" onPress={onOpenClasses} style={styles.actionButton} />
+              <AppButton label={t("today.scan_syllabus", "Scan syllabus")} icon={FileScan} onPress={onOpenScan} style={styles.actionButton} />
             </View>
           </View>
         )}
@@ -352,20 +371,20 @@ export function TodayScreen({
               <Bell color={colors.accent} size={18} />
             </View>
             <View style={styles.automationCopy}>
-              <Text style={styles.automationTitle}>Keep deadlines from slipping.</Text>
-              <Text style={styles.automationText}>Set reminders or sync reviewed due dates to your calendar.</Text>
+              <Text style={styles.automationTitle}>{t("today.automation_title", "Keep deadlines from slipping.")}</Text>
+              <Text style={styles.automationText}>{t("today.automation_copy", "Set reminders or sync reviewed due dates to your calendar.")}</Text>
             </View>
           </View>
           <View style={styles.automationActions}>
             <AppButton
-              label="Set reminders"
+              label={t("today.set_reminders", "Set reminders")}
               icon={Bell}
               variant="secondary"
               onPress={premiumAutomationLocked ? onOpenPaywall : onScheduleReminders}
               style={styles.automationButton}
             />
             <AppButton
-              label="Sync calendar"
+              label={t("today.sync_calendar", "Sync calendar")}
               icon={CalendarSync}
               variant="secondary"
               onPress={premiumAutomationLocked ? onOpenPaywall : onCalendarSync}
@@ -377,13 +396,13 @@ export function TodayScreen({
 
       {!assignments.length ? (
         <GlassCard style={styles.starterCard}>
-          <Text style={styles.starterKicker}>Start here</Text>
-          <Text style={styles.starterTitle}>Start with your syllabus.</Text>
-          <Text style={styles.starterCopy}>Scan a syllabus, review the draft, then Today shows what to do first.</Text>
+          <Text style={styles.starterKicker}>{t("today.start_here", "Start here")}</Text>
+          <Text style={styles.starterTitle}>{t("today.start_with_syllabus", "Start with your syllabus.")}</Text>
+          <Text style={styles.starterCopy}>{t("today.start_with_syllabus_copy", "Scan a syllabus, review the draft, then Today shows what to do first.")}</Text>
           <View style={styles.starterActions}>
-            <AppButton label="Scan syllabus" icon={FileScan} onPress={onOpenScan} style={styles.starterButton} />
+            <AppButton label={t("today.scan_syllabus", "Scan syllabus")} icon={FileScan} onPress={onOpenScan} style={styles.starterButton} />
             {onTryDemo ? (
-              <AppButton label="Preview sample plan" icon={Sparkles} variant="secondary" onPress={onTryDemo} style={styles.starterButton} />
+              <AppButton label={t("today.preview_sample_plan", "Preview sample plan")} icon={Sparkles} variant="secondary" onPress={onTryDemo} style={styles.starterButton} />
             ) : null}
           </View>
         </GlassCard>
@@ -396,20 +415,23 @@ export function TodayScreen({
               <CheckCircle2 color={colors.accent} size={18} />
             </View>
             <View style={styles.importHandoffCopy}>
-              <Text style={styles.importHandoffKicker}>Added from Scan</Text>
+              <Text style={styles.importHandoffKicker}>{t("today.added_from_scan", "Added from Scan")}</Text>
               <Text style={styles.importHandoffTitle}>
-                {importHandoff.addedCount} added from {importHandoff.sourceName}
+                {formatLocalized(t("today.added_from_source", "{count} added from {source}"), {
+                  count: String(importHandoff.addedCount),
+                  source: importHandoff.sourceName
+                })}
               </Text>
               <Text style={styles.importHandoffDetail}>
                 {importHandoff.reviewCount > 0
-                  ? `${importHandoff.reviewCount} still need review in Scan.`
-                  : "Today is updated with reviewed work."}
+                  ? formatLocalized(t("today.still_need_review", "{count} still need review in Scan."), { count: String(importHandoff.reviewCount) })
+                  : t("today.updated_with_reviewed_work", "Today is updated with reviewed work.")}
               </Text>
             </View>
           </View>
           <View style={styles.importHandoffActions}>
             <AppButton
-              label={importHandoff.reviewCount > 0 ? "Review in Scan" : "Open first task"}
+              label={importHandoff.reviewCount > 0 ? t("today.review_in_scan", "Review in Scan") : t("today.open_first_task", "Open first task")}
               variant="secondary"
               onPress={() => {
                 if (importHandoff.reviewCount > 0) {
@@ -430,10 +452,17 @@ export function TodayScreen({
 
       {todayItems.length > 0 || !plan.nextAction ? (
         <>
-          <SectionHeader title="Due today" note={todayItems.length ? `${todayItems.length} more today` : "Only what needs attention now"} />
+          <SectionHeader
+            title={t("today.due_today", "Due today")}
+            note={todayItems.length ? formatLocalized(t("today.more_today", "{count} more today"), { count: String(todayItems.length) }) : t("today.only_attention_now", "Only what needs attention now")}
+          />
           <View style={styles.list}>
             {todayItems.length === 0 ? (
-              <EmptyState title="Nothing else today" copy={plannerHasData ? "Scan new work when you get it." : "Scan a syllabus to build Today."} emoji="calendar" />
+              <EmptyState
+                title={t("today.nothing_else_today", "Nothing else today")}
+                copy={plannerHasData ? t("today.scan_new_work", "Scan new work when you get it.") : t("today.scan_to_build_today", "Scan a syllabus to build Today.")}
+                emoji="calendar"
+              />
             ) : (
               todayItems.map((assignment) => (
                 <AssignmentRow
@@ -441,7 +470,7 @@ export function TodayScreen({
                   assignment={assignment}
                   course={getCourseForAssignment(courses, assignment)}
                   onPress={() => onOpenAssignment(assignment.id)}
-                  trailing={<Text style={styles.doneButtonText}>Open</Text>}
+                  trailing={<Text style={styles.doneButtonText}>{t("today.open", "Open")}</Text>}
                 />
               ))
             )}
@@ -451,10 +480,10 @@ export function TodayScreen({
 
       {weekItems.length > 0 || !plannerHasData ? (
         <>
-          <SectionHeader title="This week" note="A small preview, not another dashboard" />
+          <SectionHeader title={t("today.this_week", "This week")} note={t("today.week_preview_note", "A small preview, not another dashboard")} />
           <View style={styles.list}>
             {weekItems.length === 0 ? (
-              <EmptyState title="No upcoming work loaded" copy="Scan a syllabus to fill this week." emoji="calendar" />
+              <EmptyState title={t("today.no_upcoming_work", "No upcoming work loaded")} copy={t("today.scan_to_fill_week", "Scan a syllabus to fill this week.")} emoji="calendar" />
             ) : (
               weekItems.map((assignment) => (
                 <AssignmentRow
@@ -462,7 +491,7 @@ export function TodayScreen({
                   assignment={assignment}
                   course={getCourseForAssignment(courses, assignment)}
                   onPress={() => onOpenAssignment(assignment.id)}
-                  trailing={<Text style={styles.doneButtonText}>Open</Text>}
+                  trailing={<Text style={styles.doneButtonText}>{t("today.open", "Open")}</Text>}
                 />
               ))
             )}
@@ -472,10 +501,10 @@ export function TodayScreen({
 
       {assignments.length ? (
         <GlassCard style={styles.starterCard}>
-          <Text style={styles.starterKicker}>Add more work</Text>
-          <Text style={styles.starterTitle}>Scan another syllabus.</Text>
-          <Text style={styles.starterCopy}>New work goes to Scan for review before it changes Today.</Text>
-          <AppButton label="Scan syllabus" icon={FileScan} variant="secondary" onPress={onOpenScan} />
+          <Text style={styles.starterKicker}>{t("today.add_more_work", "Add more work")}</Text>
+          <Text style={styles.starterTitle}>{t("today.scan_another_syllabus", "Scan another syllabus.")}</Text>
+          <Text style={styles.starterCopy}>{t("today.scan_another_copy", "New work goes to Scan for review before it changes Today.")}</Text>
+          <AppButton label={t("today.scan_syllabus", "Scan syllabus")} icon={FileScan} variant="secondary" onPress={onOpenScan} />
         </GlassCard>
       ) : null}
 
@@ -484,44 +513,53 @@ export function TodayScreen({
 
 }
 
-function buildLiveBrief(plan: ReturnType<typeof buildTodayPlan>, courseCount: number) {
+function buildLiveBrief(plan: ReturnType<typeof buildTodayPlan>, courseCount: number, t: TranslateFn) {
   if (plan.overdue.length > 0) {
     return {
-      title: "Overdue work first",
-      detail: `${plan.overdue.length} overdue item${plan.overdue.length === 1 ? "" : "s"}. Open the first task and clear it.`
+      title: t("today.live_overdue_title", "Overdue work first"),
+      detail: formatLocalized(t("today.live_overdue_detail", "{count} overdue item(s). Open the first task and clear it."), {
+        count: String(plan.overdue.length)
+      })
     };
   }
 
   if (plan.needsReview.length > 0) {
     return {
-      title: "Review imported work",
-      detail: `${plan.needsReview.length} item${plan.needsReview.length === 1 ? "" : "s"} need a date, duplicate check, or confidence pass before the plan is trusted.`
+      title: t("today.live_review_title", "Review imported work"),
+      detail: formatLocalized(t("today.live_review_detail", "{count} item(s) need a date, duplicate check, or confidence pass before the plan is trusted."), {
+        count: String(plan.needsReview.length)
+      })
     };
   }
 
   if (plan.nextAction) {
     const days = daysUntil(plan.nextAction.dueAt);
     return {
-      title: days < 0 ? `Overdue by ${Math.abs(days)} day${Math.abs(days) === 1 ? "" : "s"}` : days === 0 ? "Due today. Start here." : `Next deadline in ${days} day${days === 1 ? "" : "s"}`,
-      detail: "This is the one thing to look at first."
+      title:
+        days < 0
+          ? formatLocalized(t("today.live_overdue_by_days", "Overdue by {count} day(s)"), { count: String(Math.abs(days)) })
+          : days === 0
+            ? t("today.live_due_today", "Due today. Start here.")
+            : formatLocalized(t("today.live_next_deadline_days", "Next deadline in {count} day(s)"), { count: String(days) }),
+      detail: t("today.live_next_detail", "This is the one thing to look at first.")
     };
   }
 
   if (courseCount === 0) {
     return {
-      title: "Scan your first syllabus",
-      detail: "Today stays empty until real schoolwork is reviewed."
+      title: t("today.live_first_syllabus", "Scan your first syllabus"),
+      detail: t("today.live_empty_until_reviewed", "Today stays empty until real schoolwork is reviewed.")
     };
   }
 
   return {
-    title: "Clear right now",
-    detail: "No urgent work is loaded. Scan new work when you get it."
+    title: t("today.live_clear_title", "Clear right now"),
+    detail: t("today.live_clear_detail", "No urgent work is loaded. Scan new work when you get it.")
   };
 }
 
-function imageActionLabel(plannerHasData: boolean) {
-  return plannerHasData ? "Add" : "Start";
+function imageActionLabel(plannerHasData: boolean, t: TranslateFn) {
+  return plannerHasData ? t("today.command_scan_add", "Add") : t("today.command_scan_start", "Start");
 }
 
 type MetricPillProps = {
@@ -540,6 +578,7 @@ type CatchUpSprintCardProps = {
 
 function CatchUpSprintCard({ overdue, courses, onOpenAssignment, onOpenFocus, onOpenPlan, onUpdateStatus }: CatchUpSprintCardProps) {
   const { theme } = useAppTheme();
+  const { t } = useI18n();
   const styles = createStyles(theme);
   const sprintItems = overdue.slice(0, 3);
   const first = sprintItems[0];
@@ -555,13 +594,24 @@ function CatchUpSprintCard({ overdue, courses, onOpenAssignment, onOpenFocus, on
       <View style={styles.catchUpGlow} />
       <View style={styles.catchUpHeaderRow}>
         <View style={styles.catchUpBadge}>
-          <Text style={styles.catchUpBadgeText}>Start here</Text>
+          <Text style={styles.catchUpBadgeText}>{t("today.start_here", "Start here")}</Text>
         </View>
-        <Text style={styles.catchUpMeta}>{sprintMinutes}m total</Text>
+        <Text style={styles.catchUpMeta}>{formatLocalized(t("today.total_minutes", "{minutes}m total"), { minutes: String(sprintMinutes) })}</Text>
       </View>
-      <Text style={styles.catchUpTitle}>Start with {firstCourse?.code ? `${firstCourse.code}: ` : ""}{first.title}</Text>
+      <Text style={styles.catchUpTitle}>
+        {formatLocalized(t("today.catch_up_title", "Start with {course}{title}"), {
+          course: firstCourse?.code ? `${firstCourse.code}: ` : "",
+          title: first.title
+        })}
+      </Text>
       <Text style={styles.catchUpCopy}>
-        Work for {rescueMinutes} minutes, then decide whether to finish it or move it in Plan. {hiddenCount > 0 ? `${hiddenCount} more item${hiddenCount === 1 ? "" : "s"} stay below.` : "This clears the visible list."}
+        {formatLocalized(t("today.catch_up_copy", "Work for {minutes} minutes, then decide whether to finish it or move it in Plan. {tail}"), {
+          minutes: String(rescueMinutes),
+          tail:
+            hiddenCount > 0
+              ? formatLocalized(t("today.catch_up_hidden_tail", "{count} more item(s) stay below."), { count: String(hiddenCount) })
+              : t("today.catch_up_clear_tail", "This clears the visible list.")
+        })}
       </Text>
       <View style={styles.catchUpSteps}>
         {sprintItems.map((item, index) => {
@@ -576,7 +626,7 @@ function CatchUpSprintCard({ overdue, courses, onOpenAssignment, onOpenFocus, on
       </View>
       <View style={styles.catchUpActions}>
         <AppButton
-          label={`${rescueMinutes}m focus`}
+          label={formatLocalized(t("today.focus_minutes", "{minutes}m focus"), { minutes: String(rescueMinutes) })}
           icon={Timer}
           onPress={() => {
             onUpdateStatus(first.id, "in_progress");
@@ -584,9 +634,9 @@ function CatchUpSprintCard({ overdue, courses, onOpenAssignment, onOpenFocus, on
           }}
           style={styles.catchUpPrimaryAction}
         />
-        <AppButton label="Open details" variant="secondary" onPress={() => onOpenAssignment(first.id)} style={styles.catchUpSecondaryAction} />
+        <AppButton label={t("today.open_details", "Open details")} variant="secondary" onPress={() => onOpenAssignment(first.id)} style={styles.catchUpSecondaryAction} />
       </View>
-      <AppButton label="Replan week" icon={CalendarPlus} variant="quiet" onPress={onOpenPlan} />
+      <AppButton label={t("today.replan_week", "Replan week")} icon={CalendarPlus} variant="quiet" onPress={onOpenPlan} />
     </GlassCard>
   );
 }
@@ -603,23 +653,47 @@ function MetricPill({ label, value }: MetricPillProps) {
   );
 }
 
-function buildQuickDuePresets() {
+function buildQuickDuePresets(t: TranslateFn) {
   return [
-    { label: "Today", value: todayDateInput(0) },
-    { label: "Tomorrow", value: todayDateInput(1) },
-    { label: "+3 days", value: todayDateInput(3) },
-    { label: "Next week", value: todayDateInput(7) }
+    { label: t("today.quick_due_today", "Today"), value: todayDateInput(0) },
+    { label: t("today.quick_due_tomorrow", "Tomorrow"), value: todayDateInput(1) },
+    { label: t("today.quick_due_plus_3", "+3 days"), value: todayDateInput(3) },
+    { label: t("today.quick_due_next_week", "Next week"), value: todayDateInput(7) }
   ];
 }
 
-function formatDueUrgency(days: number) {
-  if (days < 0) return `Overdue by ${Math.abs(days)} day${Math.abs(days) === 1 ? "" : "s"}`;
-  if (days === 0) return "Due today";
-  return `Due in ${days} day${days === 1 ? "" : "s"}`;
+function formatDueUrgency(days: number, t: TranslateFn) {
+  if (days < 0) return formatLocalized(t("today.overdue_by_days", "Overdue by {count} day(s)"), { count: String(Math.abs(days)) });
+  if (days === 0) return t("today.due_today_short", "Due today");
+  return formatLocalized(t("today.due_in_days", "Due in {count} day(s)"), { count: String(days) });
+}
+
+function formatLocalized(template: string, values: Record<string, string>) {
+  return Object.entries(values).reduce((text, [key, value]) => text.split(`{${key}}`).join(value), template);
 }
 
 function formatAssignmentTitle(course: Course | undefined, assignment: Assignment) {
   return course?.code ? `${course.code} · ${assignment.title}` : assignment.title;
+}
+
+function formatTodayDate(iso: string, locale: string, t: TranslateFn) {
+  if (!/^\d{4}-\d{2}-\d{2}/.test(iso)) return t("today.check_date", "Check date");
+  const [year, month, day] = iso.slice(0, 10).split("-").map((part) => Number.parseInt(part, 10));
+  if (!year || !month || !day) return t("today.check_date", "Check date");
+
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    }).format(new Date(year, month - 1, day));
+  } catch {
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    }).format(new Date(year, month - 1, day));
+  }
 }
 
 function createStyles(theme: AppTheme) {
