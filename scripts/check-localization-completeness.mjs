@@ -529,7 +529,20 @@ const hardcodedLaunchStrings = [
       "deadlines were sent to your device calendar",
       "Calendar sync paused",
       "Plan less. Stress less.",
-      "The device permission flow did not complete."
+      "The device permission flow did not complete.",
+      "Start with real school material.",
+      "Scan a syllabus, paste class notes, or add the first class. The app stays empty until the student gives it real work.",
+      "Review before it powers the plan.",
+      "still need a date, duplicate check, or confidence pass",
+      "Planner is live.",
+      "are powering Today, Plan, and Widget Studio from the same reviewed data.",
+      "Clean slate, widget proof ready.",
+      "No open work is due right now. Widget Studio can still show the real empty state and guide the next import.",
+      "Scan or add",
+      "Review work",
+      "Open Widgets",
+      "planner rows",
+      "none yet"
     ]
   },
   {

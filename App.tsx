@@ -404,8 +404,8 @@ function AppContent() {
     ? visibleTabs
     : visibleTabs.filter((tab) => mobilePrimaryTabIds.has(tab.id));
   const systemState = useMemo(
-    () => buildAppSystemState(activeAssignments, courses, parsedImports, nativeWidgetStatus, demoMode),
-    [activeAssignments, courses, demoMode, nativeWidgetStatus, parsedImports]
+    () => buildAppSystemState(activeAssignments, courses, parsedImports, nativeWidgetStatus, demoMode, t),
+    [activeAssignments, courses, demoMode, nativeWidgetStatus, parsedImports, t]
   );
 
   useEffect(() => {
@@ -1526,7 +1526,8 @@ function buildAppSystemState(
   courses: Course[],
   parsedImports: ParsedImport[],
   nativeWidgetStatus: WidgetSyncStatus,
-  demoMode: boolean
+  demoMode: boolean,
+  t: (key: string, fallback?: string) => string
 ): AppSystemState {
   const openAssignments = assignments.filter((assignment) => assignment.status !== "done" && assignment.status !== "archived");
   const flaggedAssignments = openAssignments.filter(
@@ -1536,34 +1537,34 @@ function buildAppSystemState(
   const importCount = parsedImports.filter((item) => !item.id.startsWith("demo-")).length;
   const widgetStatus =
     nativeWidgetStatus.state === "synced"
-      ? "Synced"
+      ? t("app.system_widget_synced", "Synced")
       : nativeWidgetStatus.state === "unavailable"
-        ? "Build"
-        : "Ready";
+        ? t("app.system_widget_build", "Build")
+        : t("app.system_widget_ready", "Ready");
   const facts = [
     {
-      label: "Classes",
+      label: t("tabs.classes", "Classes"),
       value: String(courses.length),
-      detail: courses.length ? "connected" : "needed"
+      detail: courses.length ? t("app.system_connected", "connected") : t("app.system_needed", "needed")
     },
     {
-      label: "Reviewed",
+      label: t("app.system_reviewed", "Reviewed"),
       value: String(reviewedRows),
-      detail: reviewedRows ? "planner rows" : "none yet"
+      detail: reviewedRows ? t("app.system_planner_rows", "planner rows") : t("app.system_none_yet", "none yet")
     },
     {
-      label: "Widgets",
+      label: t("tabs.widgets", "Widgets"),
       value: widgetStatus,
-      detail: nativeWidgetStatus.state === "synced" ? "snapshot" : "preview"
+      detail: nativeWidgetStatus.state === "synced" ? t("app.system_snapshot", "snapshot") : t("app.system_preview", "preview")
     }
   ];
 
   if (courses.length === 0 && assignments.length === 0) {
     return {
-      title: "Start with real school material.",
-      detail: "Scan a syllabus, paste class notes, or add the first class. The app stays empty until the student gives it real work.",
-      badge: demoMode ? "Demo" : "Setup",
-      actionLabel: "Scan or add",
+      title: t("app.system_empty_title", "Start with real school material."),
+      detail: t("app.system_empty_detail", "Scan a syllabus, paste class notes, or add the first class. The app stays empty until the student gives it real work."),
+      badge: demoMode ? t("app.system_demo", "Demo") : t("app.system_setup", "Setup"),
+      actionLabel: t("app.system_scan_or_add", "Scan or add"),
       action: "scan",
       facts
     };
@@ -1571,10 +1572,15 @@ function buildAppSystemState(
 
   if (flaggedAssignments.length > 0) {
     return {
-      title: "Review before it powers the plan.",
-      detail: `${flaggedAssignments.length} item${flaggedAssignments.length === 1 ? "" : "s"} still need a date, duplicate check, or confidence pass before they should drive Today and widgets.`,
-      badge: "Review",
-      actionLabel: "Review work",
+      title: t("app.system_review_title", "Review before it powers the plan."),
+      detail: formatAppText(
+        flaggedAssignments.length === 1
+          ? t("app.system_review_detail_one", "{count} item still needs a date, duplicate check, or confidence pass before it should drive Today and widgets.")
+          : t("app.system_review_detail_count", "{count} items still need a date, duplicate check, or confidence pass before they should drive Today and widgets."),
+        { count: flaggedAssignments.length }
+      ),
+      badge: t("today.metric_review", "Review"),
+      actionLabel: t("app.system_review_work", "Review work"),
       action: "review",
       facts
     };
@@ -1582,20 +1588,25 @@ function buildAppSystemState(
 
   if (openAssignments.length > 0) {
     return {
-      title: "Planner is live.",
-      detail: `${openAssignments.length} open item${openAssignments.length === 1 ? "" : "s"} are powering Today, Plan, and Widget Studio from the same reviewed data.`,
-      badge: importCount ? "Imported" : "Manual",
-      actionLabel: "Open Today",
+      title: t("app.system_live_title", "Planner is live."),
+      detail: formatAppText(
+        openAssignments.length === 1
+          ? t("app.system_live_detail_one", "{count} open item is powering Today, Plan, and Widget Studio from the same reviewed data.")
+          : t("app.system_live_detail_count", "{count} open items are powering Today, Plan, and Widget Studio from the same reviewed data."),
+        { count: openAssignments.length }
+      ),
+      badge: importCount ? t("app.system_imported", "Imported") : t("assignment_detail.source_manual", "Manual"),
+      actionLabel: t("app.system_open_today", "Open Today"),
       action: "today",
       facts
     };
   }
 
   return {
-    title: "Clean slate, widget proof ready.",
-    detail: "No open work is due right now. Widget Studio can still show the real empty state and guide the next import.",
-    badge: "Clear",
-    actionLabel: "Open Widgets",
+    title: t("app.system_clear_title", "Clean slate, widget proof ready."),
+    detail: t("app.system_clear_detail", "No open work is due right now. Widget Studio can still show the real empty state and guide the next import."),
+    badge: t("app.system_clear", "Clear"),
+    actionLabel: t("app.system_open_widgets", "Open Widgets"),
     action: "widgets",
     facts
   };
@@ -1614,11 +1625,12 @@ function StudySystemHeader({
   label: string;
   onPrimaryAction: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <View style={styles.systemHeader}>
       <View style={styles.systemHeaderTop}>
         <View style={styles.systemHeaderCopy}>
-          <Text style={styles.systemEyebrow}>StudyPlanner · {label}</Text>
+          <Text style={styles.systemEyebrow}>{formatAppText(t("app.system_eyebrow", "StudyPlanner · {label}"), { label })}</Text>
           <Text style={styles.systemTitle} numberOfLines={2}>{state.title}</Text>
           <Text style={styles.systemDetail} numberOfLines={2}>{state.detail}</Text>
         </View>
