@@ -5,6 +5,7 @@ const sourceFiles = {
   app: readFileSync("App.tsx", "utf8"),
   i18n: readFileSync("src/i18n.tsx", "utf8"),
   today: readFileSync("src/screens/TodayScreen.tsx", "utf8"),
+  plan: readFileSync("src/screens/PlanScreen.tsx", "utf8"),
   onboarding: readFileSync("src/screens/OnboardingScreen.tsx", "utf8"),
   importScreen: readFileSync("src/screens/ImportScreen.tsx", "utf8"),
   paywall: readFileSync("src/screens/UpgradeScreen.tsx", "utf8"),
@@ -111,6 +112,7 @@ for (const locale of requiredLocales) {
 assert(sourceFiles.app.includes("<I18nProvider>"), "App must wrap runtime UI in I18nProvider.");
 assert(sourceFiles.app.includes("t(tab.labelKey)"), "Navigation labels must use runtime localization keys.");
 assert(sourceFiles.today.includes("useI18n") && sourceFiles.today.includes("today.quick_capture"), "Today screen must consume runtime localization keys.");
+assert(sourceFiles.plan.includes("useI18n") && sourceFiles.plan.includes("plan.capture_title"), "Calendar screen must consume runtime localization keys.");
 assert(sourceFiles.onboarding.includes("useI18n") && sourceFiles.onboarding.includes("slide.titleKey"), "Onboarding must consume runtime localization keys.");
 assert(sourceFiles.importScreen.includes("useI18n") && sourceFiles.importScreen.includes("import.photo_disabled_message"), "Import screen must consume runtime localization keys.");
 assert(sourceFiles.paywall.includes("useI18n") && sourceFiles.paywall.includes("paywall.hard_subtitle"), "Paywall must consume runtime localization keys.");
@@ -141,6 +143,32 @@ const hardcodedLaunchStrings = [
       "Next deadline in",
       "Open details",
       "Replan week"
+    ]
+  },
+  {
+    file: "src/screens/PlanScreen.tsx",
+    source: sourceFiles.plan,
+    phrases: [
+      "Open selected work",
+      "Open priority work",
+      "Scan syllabus or paste work",
+      "Add a class, then plan",
+      "See your semester workload.",
+      "Put new work on the selected day.",
+      "BIO lab worksheet Friday",
+      "Add to calendar",
+      "Scan instead",
+      "Survival plan",
+      "Tap a day to inspect due work",
+      "No due work on this day",
+      "Empty plan",
+      "Scan a syllabus to build your plan.",
+      "Workload by day",
+      "No deadlines this week",
+      "Upcoming weeks",
+      "Grouped by urgency",
+      "Busy week detected.",
+      "Week is under control."
     ]
   },
   {

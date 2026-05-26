@@ -18,6 +18,7 @@ import {
 import { parseQuickHomeworkInput } from "../services/quickHomeworkParser";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
+import { useI18n } from "../i18n";
 
 type PlanScreenProps = {
   assignments: Assignment[];
@@ -31,10 +32,11 @@ type PlanScreenProps = {
   onOpenScan: () => void;
 };
 
-const weekdays = ["S", "M", "T", "W", "T", "F", "S"];
+type TranslateFn = (key: string, fallback?: string) => string;
 
 export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, onOpenFocus, onUpdateStatus, onRecordSession, onAddQuickAssignment, onOpenScan }: PlanScreenProps) {
   const { theme } = useAppTheme();
+  const { t, locale } = useI18n();
   const { colors } = theme;
   const styles = createStyles(theme);
   const today = useMemo(() => new Date(), []);
@@ -56,7 +58,7 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
     0
   );
   const dueTodayCount = openAssignments.filter((assignment) => assignment.dueAt.slice(0, 10) === dateKey(today)).length;
-  const survivalPlan = buildDeadlineSurvivalPlan(assignments, today);
+  const survivalPlan = buildDeadlineSurvivalPlan(assignments, today, t);
   const savedSurvivalKeys = new Set(
     sessions
       .filter((session) => session.status === "planned")
@@ -76,18 +78,26 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
   const parsedPlanCapture = parseQuickHomeworkInput(quickPlanText, courses, courses[0], selectedDate);
   const primaryAssignmentId = selectedEvents[0]?.assignment.id || primarySuggestion?.assignmentId;
   const primaryActionLabel = selectedEvents[0]
-    ? "Open selected work"
+    ? t("plan.open_selected_work", "Open selected work")
     : primarySuggestion
-      ? "Open priority work"
+      ? t("plan.open_priority_work", "Open priority work")
       : courses.length
-        ? "Scan syllabus or paste work"
-        : "Add a class, then plan";
+        ? t("plan.scan_or_paste_work", "Scan syllabus or paste work")
+        : t("plan.add_class_then_plan", "Add a class, then plan");
   const primaryActionDetail = selectedEvents[0]
-    ? `${selectedEvents.length} item${selectedEvents.length === 1 ? "" : "s"} due on the selected day.`
-    : primarySuggestion?.copy || "The week stays empty until real assignments have due dates.";
-  const planState = buildPlanState(assignments, courses, overdue.length, weekSummary.totalItems);
-  const weekGroups = buildSimpleWeekGroups(openAssignments, today);
-  const monthTitle = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(monthCursor);
+    ? formatLocalized(
+        selectedEvents.length === 1
+          ? t("plan.selected_due_item", "{count} item due on the selected day.")
+          : t("plan.selected_due_items", "{count} items due on the selected day."),
+        { count: String(selectedEvents.length) }
+      )
+    : primarySuggestion
+      ? t("plan.priority_work_detail", "This week's priority work is ready to inspect.")
+      : t("plan.empty_week_detail", "The week stays empty until real assignments have due dates.");
+  const planState = buildPlanState(assignments, courses, overdue.length, weekSummary.totalItems, t);
+  const weekGroups = buildSimpleWeekGroups(openAssignments, today, locale, t);
+  const monthTitle = formatMonthTitle(monthCursor, locale);
+  const weekdayLabels = buildWeekdayLabels(locale);
 
   const moveMonth = (offset: number) => {
     setMonthCursor((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
@@ -113,7 +123,7 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
         startedAt: `${block.dateKey}T16:00:00`,
         status: "planned",
         sessionNumber: timestamp + index,
-        notes: "Planned from Survival Plan."
+        notes: t("plan.survival_session_note", "Planned from Survival Plan.")
       });
     });
     setSavedSurvivalCount(unsavedSurvivalBlocks.length);
@@ -124,50 +134,58 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
       <GlassCard tone="hero" style={styles.hero}>
         <View style={styles.heroTop}>
           <View style={styles.heroTitleBlock}>
-            <Text style={styles.kicker}>Calendar</Text>
-            <Text style={styles.title}>See your semester workload.</Text>
+            <Text style={styles.kicker}>{t("tabs.calendar", "Calendar")}</Text>
+            <Text style={styles.title}>{t("plan.title", "See your semester workload.")}</Text>
           </View>
           <View style={styles.heroIcon}>
             <Sparkles color={colors.heroText} size={19} />
           </View>
         </View>
         <Text style={styles.heroCopy}>
-          Weeks are grouped by urgency so you can see where school gets heavy.
+          {t("plan.hero_copy", "Weeks are grouped by urgency so you can see where school gets heavy.")}
         </Text>
         <View style={styles.heroStats}>
-          <MiniStat label="Open" value={String(openAssignments.length)} />
-          <MiniStat label="Load" value={formatHoursValue(totalOpenMinutes || weekSummary.totalMinutes)} />
-          <MiniStat label="Late" value={String(overdue.length)} />
+          <MiniStat label={t("plan.stat_open", "Open")} value={String(openAssignments.length)} />
+          <MiniStat label={t("plan.stat_load", "Load")} value={formatHoursValue(totalOpenMinutes || weekSummary.totalMinutes, t)} />
+          <MiniStat label={t("plan.stat_late", "Late")} value={String(overdue.length)} />
         </View>
       </GlassCard>
 
       <GlassCard style={styles.captureCard}>
-        <Text style={styles.catchUpBadgeText}>Capture</Text>
-        <Text style={styles.catchUpTitle}>Put new work on the selected day.</Text>
-        <Text style={styles.catchUpCopy}>Type a quick note after class. It becomes real planner data, not a decorative calendar event.</Text>
+        <Text style={styles.catchUpBadgeText}>{t("plan.capture", "Capture")}</Text>
+        <Text style={styles.catchUpTitle}>{t("plan.capture_title", "Put new work on the selected day.")}</Text>
+        <Text style={styles.catchUpCopy}>{t("plan.capture_copy", "Type a quick note after class. It becomes real planner data, not a decorative calendar event.")}</Text>
         <TextInput
           value={quickPlanText}
           onChangeText={setQuickPlanText}
-          placeholder="BIO lab worksheet Friday"
+          placeholder={t("plan.capture_placeholder", "BIO lab worksheet Friday")}
           placeholderTextColor={colors.heroMuted}
           style={styles.captureInput}
         />
         {quickPlanText.trim() ? (
           <Text style={styles.capturePreview}>
-            Will add {parsedPlanCapture.course?.code || courses[0]?.code || "class"} · {parsedPlanCapture.title || "work"} · due {formatSelectedDate(parsedPlanCapture.dueDate || selectedDate)}
+            {formatLocalized(t("plan.capture_preview", "Will add {course} · {title} · due {date}"), {
+              course: parsedPlanCapture.course?.code || courses[0]?.code || t("today.class_fallback", "class"),
+              title: parsedPlanCapture.title || t("plan.work_fallback", "work"),
+              date: formatSelectedDate(parsedPlanCapture.dueDate || selectedDate, locale, t)
+            })}
           </Text>
         ) : (
-          <Text style={styles.captureHint}>Selected day: {formatSelectedDate(selectedDate)}</Text>
+          <Text style={styles.captureHint}>
+            {formatLocalized(t("plan.selected_day", "Selected day: {date}"), {
+              date: formatSelectedDate(selectedDate, locale, t)
+            })}
+          </Text>
         )}
         <View style={styles.catchUpActions}>
           <AppButton
-            label={courses.length ? "Add to calendar" : "Scan syllabus"}
+            label={courses.length ? t("plan.add_to_calendar", "Add to calendar") : t("today.scan_syllabus", "Scan syllabus")}
             icon={Plus}
             disabled={courses.length > 0 && (!parsedPlanCapture.course || !parsedPlanCapture.title.trim() || !parsedPlanCapture.dueDate.trim())}
             onPress={courses.length ? addPlanCapture : onOpenScan}
             style={styles.catchUpButton}
           />
-          <AppButton label="Scan instead" variant="secondary" onPress={onOpenScan} style={styles.catchUpButton} />
+          <AppButton label={t("plan.scan_instead", "Scan instead")} variant="secondary" onPress={onOpenScan} style={styles.catchUpButton} />
         </View>
       </GlassCard>
 
@@ -175,15 +193,21 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
         <GlassCard style={styles.catchUpCard}>
           <View style={styles.catchUpTopRow}>
             <View style={styles.catchUpBadge}>
-              <Text style={styles.catchUpBadgeText}>Survival plan</Text>
+              <Text style={styles.catchUpBadgeText}>{t("plan.survival_plan", "Survival plan")}</Text>
             </View>
-            <Text style={styles.catchUpMeta}>{formatHoursValue(survivalPlan.totalMinutes)} due soon</Text>
+            <Text style={styles.catchUpMeta}>
+              {formatLocalized(t("plan.due_soon_meta", "{duration} due soon"), {
+                duration: formatHoursValue(survivalPlan.totalMinutes, t)
+              })}
+            </Text>
           </View>
           <Text style={styles.catchUpTitle}>
-            {survivalCourse?.code ? `${survivalCourse.code}: ` : ""}{survivalFirst?.title || "This week is getting heavy."}
+            {survivalCourse?.code ? `${survivalCourse.code}: ` : ""}{survivalFirst?.title || t("plan.heavy_week_fallback", "This week is getting heavy.")}
           </Text>
           <Text style={styles.catchUpCopy}>
-            Split the next {survivalPlan.windowDays} days into focus blocks before the busy days stack up.
+            {formatLocalized(t("plan.survival_copy", "Split the next {days} days into focus blocks before the busy days stack up."), {
+              days: String(survivalPlan.windowDays)
+            })}
           </Text>
           <View style={styles.survivalList}>
             {survivalPlan.blocks.slice(0, 4).map((block) => {
@@ -194,17 +218,29 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
                   <Text style={styles.survivalDay}>{block.label}</Text>
                   <View style={styles.survivalItemCopy}>
                     <Text style={styles.survivalItemTitle} numberOfLines={1}>{course?.code ? `${course.code} · ` : ""}{block.assignment.title}</Text>
-                    <Text style={styles.survivalMeta}>{block.minutes}m block · {saved ? "saved" : formatSelectedDate(block.dateKey)}</Text>
+                    <Text style={styles.survivalMeta}>
+                      {formatLocalized(t("plan.survival_block_meta", "{duration} block · {status}"), {
+                        duration: formatDuration(block.minutes, t),
+                        status: saved ? t("plan.saved", "saved") : formatSelectedDate(block.dateKey, locale, t)
+                      })}
+                    </Text>
                   </View>
                 </View>
               );
             })}
           </View>
           {savedSurvivalCount > 0 ? (
-            <Text style={styles.savedPlanText}>{savedSurvivalCount} focus block{savedSurvivalCount === 1 ? "" : "s"} saved.</Text>
+            <Text style={styles.savedPlanText}>
+              {formatLocalized(
+                savedSurvivalCount === 1
+                  ? t("plan.focus_block_saved", "{count} focus block saved.")
+                  : t("plan.focus_blocks_saved", "{count} focus blocks saved."),
+                { count: String(savedSurvivalCount) }
+              )}
+            </Text>
           ) : null}
           <AppButton
-            label={unsavedSurvivalBlocks.length ? "Save focus blocks" : "Focus blocks saved"}
+            label={unsavedSurvivalBlocks.length ? t("plan.save_focus_blocks", "Save focus blocks") : t("plan.focus_blocks_saved_cta", "Focus blocks saved")}
             icon={Timer}
             disabled={unsavedSurvivalBlocks.length === 0}
             onPress={saveSurvivalBlocks}
@@ -212,7 +248,7 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
         </GlassCard>
       ) : null}
 
-      <SectionHeader title="Month" note="Tap a day to inspect due work" />
+      <SectionHeader title={t("plan.month", "Month")} note={t("plan.month_note", "Tap a day to inspect due work")} />
       <GlassCard style={styles.calendarCard}>
         <View style={styles.monthHeader}>
           <TouchableOpacity accessibilityRole="button" style={styles.monthButton} onPress={() => moveMonth(-1)}>
@@ -224,7 +260,7 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
           </TouchableOpacity>
         </View>
         <View style={styles.weekdayRow}>
-          {weekdays.map((day, index) => (
+          {weekdayLabels.map((day, index) => (
             <Text key={`${day}-${index}`} style={styles.weekday}>{day}</Text>
           ))}
         </View>
@@ -262,11 +298,16 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
           })}
         </View>
         <View style={styles.selectedDayPanel}>
-          <Text style={styles.selectedDayTitle}>{formatSelectedDate(selectedDate)}</Text>
+          <Text style={styles.selectedDayTitle}>{formatSelectedDate(selectedDate, locale, t)}</Text>
           <Text style={styles.selectedDayMeta}>
             {selectedEvents.length
-              ? `${selectedEvents.length} due item${selectedEvents.length === 1 ? "" : "s"}`
-              : "No due work on this day"}
+              ? formatLocalized(
+                  selectedEvents.length === 1
+                    ? t("plan.due_item_count", "{count} due item")
+                    : t("plan.due_items_count", "{count} due items"),
+                  { count: String(selectedEvents.length) }
+                )
+              : t("plan.no_due_work_day", "No due work on this day")}
           </Text>
           {selectedEvents.slice(0, 2).map((event) => (
             <TouchableOpacity
@@ -289,7 +330,9 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
               <Text style={styles.catchUpBadgeText}>{planState.badge}</Text>
             </View>
             <Text style={styles.catchUpMeta}>
-              {selectedEvents.length ? formatSelectedDate(selectedDate) : `${weekSummary.totalItems} this week`}
+              {selectedEvents.length
+                ? formatSelectedDate(selectedDate, locale, t)
+                : formatLocalized(t("plan.this_week_count", "{count} this week"), { count: String(weekSummary.totalItems) })}
             </Text>
           </View>
           <Text style={styles.catchUpTitle}>{planState.title}</Text>
@@ -307,9 +350,9 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
               }}
               style={styles.catchUpButton}
             />
-            {catchUpFirst ? (
+              {catchUpFirst ? (
               <AppButton
-                label="Start focus"
+                label={t("today.start_focus", "Start focus")}
                 icon={Timer}
                 variant="secondary"
                 onPress={() => onOpenFocus(catchUpFirst.id)}
@@ -322,19 +365,19 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
 
       {openAssignments.length === 0 ? (
         <GlassCard style={styles.stateCard}>
-          <Text style={styles.stateKicker}>Empty plan</Text>
-          <Text style={styles.stateTitle}>Scan a syllabus to build your plan.</Text>
-          <Text style={styles.stateCopy}>Plan fills in after you review assignments in Scan.</Text>
-          <AppButton label="Scan syllabus" onPress={onOpenScan} />
+          <Text style={styles.stateKicker}>{t("plan.empty_plan", "Empty plan")}</Text>
+          <Text style={styles.stateTitle}>{t("plan.scan_to_build", "Scan a syllabus to build your plan.")}</Text>
+          <Text style={styles.stateCopy}>{t("plan.plan_fills_after_review", "Plan fills in after you review assignments in Scan.")}</Text>
+          <AppButton label={t("today.scan_syllabus", "Scan syllabus")} onPress={onOpenScan} />
         </GlassCard>
       ) : null}
 
-      <SectionHeader title="This week" note="Workload by day" />
+      <SectionHeader title={t("plan.this_week", "This week")} note={t("plan.workload_by_day", "Workload by day")} />
       <GlassCard style={styles.weekCard}>
         {weekSummary.totalItems === 0 ? (
           <View style={styles.emptyWeekPanel}>
-            <Text style={styles.emptyWeekTitle}>{openAssignments.length ? "No deadlines this week" : "No weekly load yet"}</Text>
-            <Text style={styles.emptyWeekCopy}>{openAssignments.length ? "Late or future work is grouped below." : "Scan a syllabus to build your plan."}</Text>
+            <Text style={styles.emptyWeekTitle}>{openAssignments.length ? t("plan.no_deadlines_week", "No deadlines this week") : t("plan.no_weekly_load", "No weekly load yet")}</Text>
+            <Text style={styles.emptyWeekCopy}>{openAssignments.length ? t("plan.late_or_future_grouped", "Late or future work is grouped below.") : t("plan.scan_to_build", "Scan a syllabus to build your plan.")}</Text>
           </View>
         ) : null}
         {weekSummary.totalItems > 0 ? (
@@ -361,7 +404,7 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
                   </View>
                   <Text style={styles.loadLabel}>{day.label.slice(0, 1)}</Text>
                   <Text style={styles.loadCount}>{day.items.length}</Text>
-                  <Text style={styles.loadMinutes} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{minutes ? `${minutes}m` : "open"}</Text>
+                  <Text style={styles.loadMinutes} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{minutes ? formatDuration(minutes, t) : t("plan.open_short", "open")}</Text>
                 </View>
               );
             })}
@@ -369,7 +412,7 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
         ) : null}
       </GlassCard>
 
-      <SectionHeader title="Upcoming weeks" note="Grouped by urgency" />
+      <SectionHeader title={t("plan.upcoming_weeks", "Upcoming weeks")} note={t("plan.grouped_by_urgency", "Grouped by urgency")} />
       <View style={styles.list}>
         {weekGroups.map((group) => (
           <GlassCard key={group.key} style={styles.weekGroupCard}>
@@ -411,43 +454,43 @@ type WeekSummaryTileProps = {
   tone: "blue" | "green" | "pink";
 };
 
-function buildPlanState(assignments: Assignment[], courses: Course[], overdueCount: number, weekItems: number) {
+function buildPlanState(assignments: Assignment[], courses: Course[], overdueCount: number, weekItems: number, t: TranslateFn) {
   if (courses.length === 0) {
     return {
-      title: "Add a class before the calendar can work.",
-      copy: "Plan does not invent subjects. Create a class or scan a syllabus, then deadlines can land on the week.",
-      badge: "Setup"
+      title: t("plan.state_no_class_title", "Add a class before the calendar can work."),
+      copy: t("plan.state_no_class_copy", "Plan does not invent subjects. Create a class or scan a syllabus, then deadlines can land on the week."),
+      badge: t("plan.state_setup", "Setup")
     };
   }
 
   if (assignments.length === 0) {
     return {
-      title: "Calendar is ready, but no homework is loaded.",
-      copy: "Capture one assignment above or import a syllabus. Empty weeks stay empty until real due dates exist.",
-      badge: "Empty"
+      title: t("plan.state_no_homework_title", "Calendar is ready, but no homework is loaded."),
+      copy: t("plan.state_no_homework_copy", "Capture one assignment above or import a syllabus. Empty weeks stay empty until real due dates exist."),
+      badge: t("plan.state_empty", "Empty")
     };
   }
 
   if (overdueCount > 0) {
     return {
-      title: "Catch-up is blocking the week.",
-      copy: "Start with the smallest overdue task, then spread the rest across open days.",
-      badge: "Busy"
+      title: t("plan.state_overdue_title", "Catch-up is blocking the week."),
+      copy: t("plan.state_overdue_copy", "Start with the smallest overdue task, then spread the rest across open days."),
+      badge: t("plan.state_busy", "Busy")
     };
   }
 
   if (weekItems >= 5) {
     return {
-      title: "Busy week detected.",
-      copy: "Use saved focus blocks for the heavy days before everything compresses into one night.",
-      badge: "Loaded"
+      title: t("plan.state_busy_week_title", "Busy week detected."),
+      copy: t("plan.state_busy_week_copy", "Use saved focus blocks for the heavy days before everything compresses into one night."),
+      badge: t("plan.state_loaded", "Loaded")
     };
   }
 
   return {
-    title: "Week is under control.",
-    copy: "The calendar has real work and no overdue pile. Keep capturing homework as it appears.",
-    badge: "Clean"
+    title: t("plan.state_clean_title", "Week is under control."),
+    copy: t("plan.state_clean_copy", "The calendar has real work and no overdue pile. Keep capturing homework as it appears."),
+    badge: t("plan.state_clean", "Clean")
   };
 }
 
@@ -489,7 +532,7 @@ function PlanStateTile({ label, value, detail, tone }: WeekSummaryTileProps) {
   );
 }
 
-function buildSimpleWeekGroups(assignments: Assignment[], now: Date) {
+function buildSimpleWeekGroups(assignments: Assignment[], now: Date, locale: string, t: TranslateFn) {
   const today = dateKey(now);
   const groups = new Map<string, { key: string; label: string; urgency: string; items: Assignment[] }>();
 
@@ -505,20 +548,22 @@ function buildSimpleWeekGroups(assignments: Assignment[], now: Date) {
       const diffDays = Math.ceil((dueDate.getTime() - new Date(`${today}T12:00:00`).getTime()) / 86400000);
       const urgency =
         diffDays < 0
-          ? "Late"
+          ? t("plan.urgency_late", "Late")
           : diffDays <= 7
-            ? "This week"
+            ? t("plan.urgency_this_week", "This week")
             : diffDays <= 14
-              ? "Next week"
-              : "Later";
+              ? t("plan.urgency_next_week", "Next week")
+              : t("plan.urgency_later", "Later");
       const existing = groups.get(key) || {
         key,
-        label: `Week of ${formatSelectedDate(key)}`,
+        label: formatLocalized(t("plan.week_of", "Week of {date}"), {
+          date: formatSelectedDate(key, locale, t)
+        }),
         urgency,
         items: []
       };
       existing.items.push(assignment);
-      if (urgency === "Late") existing.urgency = "Late";
+      if (diffDays < 0) existing.urgency = t("plan.urgency_late", "Late");
       groups.set(key, existing);
     });
 
@@ -560,14 +605,16 @@ function buildWeekLoadSummary(weekLoad: ReturnType<typeof getWeekLoad>, sessions
   };
 }
 
-function formatHoursValue(minutes: number) {
-  if (minutes <= 0) return "0h";
-  if (minutes < 60) return `${minutes}m`;
+function formatHoursValue(minutes: number, t: TranslateFn) {
+  if (minutes <= 0) return t("plan.hours_zero", "0h");
+  if (minutes < 60) return formatDuration(minutes, t);
   const hours = minutes / 60;
-  return `${hours % 1 === 0 ? hours.toFixed(0) : hours.toFixed(1)}h`;
+  return formatLocalized(t("plan.hours_short", "{hours}h"), {
+    hours: hours % 1 === 0 ? hours.toFixed(0) : hours.toFixed(1)
+  });
 }
 
-function buildDeadlineSurvivalPlan(assignments: Assignment[], now: Date) {
+function buildDeadlineSurvivalPlan(assignments: Assignment[], now: Date, t: TranslateFn) {
   const today = dateKey(now);
   const windowEnd = new Date(now);
   windowEnd.setDate(windowEnd.getDate() + 7);
@@ -583,7 +630,7 @@ function buildDeadlineSurvivalPlan(assignments: Assignment[], now: Date) {
     });
 
   const totalMinutes = items.reduce((sum, item) => sum + (item.estimatedMinutes || 25), 0);
-  const blocks = buildSurvivalBlocks(items, now);
+  const blocks = buildSurvivalBlocks(items, now, t);
   return {
     active: items.length >= 3 || totalMinutes >= 180,
     items,
@@ -597,8 +644,16 @@ function survivalBlockKey(assignmentId: string, dateKeyValue: string) {
   return `${assignmentId}:${dateKeyValue}`;
 }
 
-function buildSurvivalBlocks(items: Assignment[], now: Date) {
-  const dayLabels = ["Today", "Tomorrow", "Day 3", "Day 4", "Day 5", "Day 6", "Day 7"];
+function buildSurvivalBlocks(items: Assignment[], now: Date, t: TranslateFn) {
+  const dayLabels = [
+    t("plan.relative_today", "Today"),
+    t("plan.relative_tomorrow", "Tomorrow"),
+    t("plan.relative_day_3", "Day 3"),
+    t("plan.relative_day_4", "Day 4"),
+    t("plan.relative_day_5", "Day 5"),
+    t("plan.relative_day_6", "Day 6"),
+    t("plan.relative_day_7", "Day 7")
+  ];
   const blocks = items.slice(0, 6).map((assignment, index) => {
     const blockDate = new Date(now);
     blockDate.setDate(blockDate.getDate() + Math.min(index, 6));
@@ -606,7 +661,7 @@ function buildSurvivalBlocks(items: Assignment[], now: Date) {
     return {
       assignment,
       dateKey: dateKey(blockDate),
-      label: dayLabels[index] || `Day ${index + 1}`,
+      label: dayLabels[index] || formatLocalized(t("plan.relative_day_n", "Day {day}"), { day: String(index + 1) }),
       minutes
     };
   });
@@ -634,12 +689,52 @@ function dateKey(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-function formatSelectedDate(key: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    weekday: "short"
-  }).format(new Date(`${key}T12:00:00`));
+function formatSelectedDate(key: string, locale: string, t: TranslateFn) {
+  if (!/^\d{4}-\d{2}-\d{2}/.test(key)) return t("plan.check_date", "Check date");
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      month: "short",
+      day: "numeric",
+      weekday: "short"
+    }).format(new Date(`${key.slice(0, 10)}T12:00:00`));
+  } catch {
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      weekday: "short"
+    }).format(new Date(`${key.slice(0, 10)}T12:00:00`));
+  }
+}
+
+function formatMonthTitle(date: Date, locale: string) {
+  try {
+    return new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(date);
+  } catch {
+    return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(date);
+  }
+}
+
+function buildWeekdayLabels(locale: string) {
+  try {
+    const sunday = new Date("2025-01-05T12:00:00");
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(sunday);
+      date.setDate(sunday.getDate() + index);
+      return new Intl.DateTimeFormat(locale, { weekday: "narrow" }).format(date);
+    });
+  } catch {
+    return ["S", "M", "T", "W", "T", "F", "S"];
+  }
+}
+
+function formatDuration(minutes: number, t: TranslateFn) {
+  return formatLocalized(t("plan.minutes_short", "{minutes}m"), {
+    minutes: String(minutes)
+  });
+}
+
+function formatLocalized(template: string, values: Record<string, string>) {
+  return Object.entries(values).reduce((copy, [key, value]) => copy.split(`{${key}}`).join(value), template);
 }
 
 function createStyles(theme: AppTheme) {

@@ -1,17 +1,18 @@
 # Runtime Localization Proof
 
-Date: 2026-05-26 03:47 EDT / 2026-05-26 07:47 UTC
+Date: 2026-05-26 04:07 EDT / 2026-05-26 08:07 UTC
 
 ## Current Runtime Wiring
 
 - `App.tsx` wraps the app in `I18nProvider`.
 - Runtime locale can be forced with `EXPO_PUBLIC_STUDYPLANNER_LOCALE` for native screenshot QA.
 - The launch catalog contains all 10 required locales: `ar`, `de`, `en-US`, `es`, `fr`, `hi`, `ja`, `ko`, `pt-BR`, and `zh-Hans`.
-- The reviewed runtime catalog now contains 266 flattened entries per locale.
-- Navigation, onboarding headline/copy, Today launch surface, Scan headline/copy/source picker/review shell, photo-disabled errors, Plus paywall headline/copy/features/status/legal/CTA shell, widget sync fallback, and the app theme toggle are wired through runtime keys.
+- The reviewed runtime catalog now contains 348 flattened entries per locale.
+- Navigation, onboarding headline/copy, Today launch surface, Calendar/Plan launch surface, Scan headline/copy/source picker/review shell, photo-disabled errors, Plus paywall headline/copy/features/status/legal/CTA shell, widget sync fallback, and the app theme toggle are wired through runtime keys.
 - `src/components/ModeToggle.tsx` no longer renders app-owned `Light` / `Dark` / `Appearance` strings directly; it uses `theme.*` runtime keys.
 - `src/screens/TodayScreen.tsx` no longer renders app-owned launch text directly for the default Today hero, command tiles, quick capture, import handoff, due lists, and empty states; it uses `today.*` runtime keys.
-- `scripts/check-localization-completeness.mjs` scans the launch files plus `ModeToggle` and `TodayScreen`, verifies required keys in every locale, rejects selected hard-coded launch strings, and rejects non-English values that silently equal `en-US` except intentional product/platform terms.
+- `src/screens/PlanScreen.tsx` no longer renders app-owned launch text directly for the default Calendar hero, capture card, survival plan, month panel, week load, plan state, and urgency groups; it uses `plan.*` runtime keys and locale-aware date/month formatting.
+- `scripts/check-localization-completeness.mjs` scans the launch files plus `ModeToggle`, `TodayScreen`, and `PlanScreen`, verifies required keys in every locale, rejects selected hard-coded launch strings, and rejects non-English values that silently equal `en-US` except intentional product/platform terms.
 
 ## Missing-Key Check
 
@@ -21,7 +22,7 @@ Command:
 npm run check:localization
 ```
 
-Actual result after the Today localization patch:
+Actual result after the Calendar localization patch:
 
 ```text
 runtime localization completeness gate passed
@@ -48,6 +49,7 @@ Each build was compiled with:
 Observed:
 
 - `10-today-light.png` and `11-today-dark.png` for `ar`, `de`, `ja`, and `zh-Hans` show localized Today shell strings, localized theme labels, localized dates, and localized duration units in the native Release bundle. The assignment title/course name remain English because they are fixture data, not app-owned UI copy.
+- `14-calendar.png` for `ar`, `de`, `ja`, and `zh-Hans` shows localized Calendar shell strings, localized theme labels, localized selected-day/month formatting, and localized duration units in the native Release bundle. The assignment title/course name remain English because they are fixture data, not app-owned UI copy.
 - `12-scan.png` for `ar`, `de`, `ja`, and `zh-Hans` shows localized Scan shell, localized theme labels, enabled Camera/Photo controls, and image-capable import copy.
 - `24-plus.png` for `ar`, `de`, `ja`, and `zh-Hans` shows localized Plus/paywall shell, localized theme labels, two loaded products, yearly `$24.99`, monthly `$3.99`, restore visible, and legal links visible.
 
@@ -66,9 +68,8 @@ These strings come from App Store Connect product metadata, not from the runtime
 
 ## Hard-Coded Runtime Gap
 
-Release localization is not complete. A direct hard-coded JSX text audit no longer flags `TodayScreen`, but still finds 117 candidate app-owned English matches in launch-relevant surfaces including:
+Release localization is not complete. A direct hard-coded JSX text audit no longer flags `TodayScreen` or `PlanScreen`, but still finds 108 candidate app-owned English matches in launch-relevant surfaces including:
 
-- `PlanScreen` / Calendar
 - `CoursesScreen` / Classes
 - `FocusScreen`
 - `GradesScreen`
@@ -77,11 +78,11 @@ Release localization is not complete. A direct hard-coded JSX text audit no long
 - `NotesScreen`
 - several alert/error paths in `App.tsx`
 
-The current gate proves all existing static runtime keys are populated and the smoked Today/Scan/Plus/native shell is localized. It does not prove every runtime string in the app has been replaced with reviewed translations.
+The current gate proves all existing static runtime keys are populated and the smoked Today/Calendar/Scan/Plus/native shell is localized. It does not prove every runtime string in the app has been replaced with reviewed translations.
 
 ## RTL Risk
 
-Arabic is marked `direction: "rtl"` and the app shell receives RTL direction. Current Arabic screenshots show right-to-left Today/Scan/Plus shell ordering and localized theme labels, but release still has RTL risk because:
+Arabic is marked `direction: "rtl"` and the app shell receives RTL direction. Current Arabic screenshots show right-to-left Today/Calendar/Scan/Plus shell ordering and localized theme labels, but release still has RTL risk because:
 
 - `I18nManager.allowRTL(true)` does not force a restart-time native RTL flip.
 - Some nested row layouts remain manually left-to-right.
@@ -91,4 +92,4 @@ Arabic is marked `direction: "rtl"` and the app shell receives RTL direction. Cu
 
 ## Release Status
 
-Do not upload a new build from this localization state. Today/Scan/Plus runtime localization is materially improved and proven in current native Release simulator screenshots, but release remains blocked until the remaining app-owned hard-coded launch strings are replaced with reviewed translations, Arabic RTL risk is accepted or fixed, and StoreKit product metadata localizations are verified in App Store Connect/TestFlight.
+Do not upload a new build from this localization state. Today/Calendar/Scan/Plus runtime localization is materially improved and proven in current native Release simulator screenshots, but release remains blocked until the remaining app-owned hard-coded launch strings are replaced with reviewed translations, Arabic RTL risk is accepted or fixed, and StoreKit product metadata localizations are verified in App Store Connect/TestFlight.
