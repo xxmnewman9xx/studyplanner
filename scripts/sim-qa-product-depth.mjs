@@ -30,7 +30,8 @@ const captureTargets = [
   { key: "widgets-forest", route: { tab: "more", appTheme: "mint", widgetPalette: "forest", widgetBackground: "glass" }, name: "21-widgets-forest" },
   { key: "widgets-week", route: { tab: "more", widgetType: "week", widgetSize: "large", widgetPalette: "graphite", widgetBackground: "glass" }, name: "22-widgets-week" },
   { key: "widgets-progress", route: { tab: "more", widgetType: "streak", widgetSize: "small", widgetPalette: "forest", widgetBackground: "glass" }, name: "23-widgets-progress" },
-  { key: "plus", route: { tab: "upgrade" }, name: "24-plus" }
+  { key: "plus", route: { tab: "upgrade" }, name: "24-plus" },
+  { key: "grades", route: { tab: "grades" }, name: "25-grades" }
 ];
 const requestedTargets = (process.env.STUDYPLANNER_SIM_CAPTURE_TABS || "")
   .split(",")

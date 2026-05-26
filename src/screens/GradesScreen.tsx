@@ -7,6 +7,7 @@ import { MetricCard } from "../components/MetricCard";
 import { SectionHeader } from "../components/SectionHeader";
 import { Assignment, Course, GradeItem } from "../models";
 import {
+  GradeSummary,
   calculateNeededOnRemaining,
   calculateNeededOnSingleFutureScore,
   formatPercent,
@@ -15,6 +16,9 @@ import {
 } from "../logic/grades";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
+import { useI18n } from "../i18n";
+
+type TranslateFn = (key: string, fallback?: string) => string;
 
 type GradesScreenProps = {
   courses: Course[];
@@ -36,6 +40,7 @@ export function GradesScreen({
   onUpdateGradeItem
 }: GradesScreenProps) {
   const { theme } = useAppTheme();
+  const { t } = useI18n();
   const { colors } = theme;
   const styles = createStyles(theme);
   const [selectedCourseId, setSelectedCourseId] = useState(courses[0]?.id || "");
@@ -94,16 +99,16 @@ export function GradesScreen({
     .sort((left, right) => (left.average || 0) - (right.average || 0))[0];
   const targetDelta = summary ? targetPercent - summary.currentPercent : 0;
   const gradeMomentum = !hasGradeEntries
-    ? "Waiting for scores"
+    ? t("grades.momentum_waiting", "Waiting for scores")
     : !Number.isFinite(needed)
       ? summary && summary.currentPercent >= targetPercent
-        ? "Target held"
-        : "Target out of reach"
+        ? t("grades.momentum_target_held", "Target held")
+        : t("grades.momentum_out_of_reach", "Target out of reach")
     : needed > 100
-      ? "Stretch"
+      ? t("grades.momentum_stretch", "Stretch")
       : needed > 92
-        ? "Focus"
-        : "On track";
+        ? t("grades.momentum_focus", "Focus")
+        : t("grades.momentum_on_track", "On track");
   const openCourseAssignments = selectedCourse
     ? assignments.filter(
         (assignment) =>
@@ -127,16 +132,16 @@ export function GradesScreen({
   return (
     <View>
       <View style={styles.header}>
-        <Text style={styles.kicker}>Performance dashboard</Text>
-        <Text style={styles.title}>Keep every class on target.</Text>
+        <Text style={styles.kicker}>{t("grades.performance_dashboard", "Performance dashboard")}</Text>
+        <Text style={styles.title}>{t("grades.hero_title", "Keep every class on target.")}</Text>
         <Text style={styles.subtitle}>
-          Weighted categories, grade momentum, and clean what-if math before finals week.
+          {t("grades.hero_copy", "Weighted categories, grade momentum, and clean what-if math before finals week.")}
         </Text>
       </View>
 
       <View style={styles.courseTabs}>
         {courses.length === 0 ? (
-          <Text style={styles.emptyCard}>Add a course before tracking grades.</Text>
+          <Text style={styles.emptyCard}>{t("grades.add_course_first", "Add a course before tracking grades.")}</Text>
         ) : null}
         {courses.map((course) => (
           <TouchableOpacity
@@ -162,10 +167,9 @@ export function GradesScreen({
 
       {!selectedCourse ? (
         <View style={styles.setupCard}>
-          <Text style={styles.setupTitle}>Grades need a course first.</Text>
+          <Text style={styles.setupTitle}>{t("grades.need_course_title", "Grades need a course first.")}</Text>
           <Text style={styles.setupCopy}>
-            Import a syllabus or add a course, then this screen will show real category weights,
-            score history, and target math.
+            {t("grades.need_course_copy", "Import a syllabus or add a course, then this screen will show real category weights, score history, and target math.")}
           </Text>
         </View>
       ) : null}
@@ -174,15 +178,15 @@ export function GradesScreen({
         <>
           <View style={styles.metricRow}>
             <MetricCard
-              label="Current"
-              value={hasGradeEntries ? formatPercent(summary.currentPercent) : "--"}
-              detail={hasGradeEntries ? letterFromPercent(summary.currentPercent) : "No scores yet"}
+              label={t("grades.current", "Current")}
+              value={hasGradeEntries ? formatGradePercent(summary.currentPercent, t) : "--"}
+              detail={hasGradeEntries ? letterFromPercent(summary.currentPercent) : t("grades.no_scores_yet", "No scores yet")}
               tone="green"
             />
             <MetricCard
-              label="Target pace"
-              value={hasGradeEntries ? formatPercent(needed) : "--"}
-              detail={hasGradeEntries ? `${gradeMomentum} momentum` : "Waiting on first grade"}
+              label={t("grades.target_pace", "Target pace")}
+              value={hasGradeEntries ? formatGradePercent(needed, t) : "--"}
+              detail={hasGradeEntries ? formatLocalized(t("grades.momentum_detail", "{state} momentum"), { state: gradeMomentum }) : t("grades.waiting_first_grade", "Waiting on first grade")}
               tone={hasGradeEntries && needed > 100 ? "gold" : "blue"}
             />
           </View>
@@ -190,20 +194,19 @@ export function GradesScreen({
           <View style={styles.targetCard}>
             <View style={styles.targetHeader}>
               <TrendingUp color={colors.heroText} size={20} />
-              <Text style={styles.targetTitle}>Target-grade calculator</Text>
+              <Text style={styles.targetTitle}>{t("grades.target_calculator", "Target-grade calculator")}</Text>
             </View>
             {hasGradeEntries ? (
               <Text style={styles.targetCopy}>
-                Aim for
-                <Text style={styles.targetNumber}> {formatPercent(targetPercent)} </Text>
-                overall. Remaining work needs about
-                <Text style={styles.targetNumber}> {formatPercent(needed)} </Text>
-                on average.
+                {t("grades.aim_for", "Aim for")}
+                <Text style={styles.targetNumber}> {formatGradePercent(targetPercent, t)} </Text>
+                {t("grades.overall_remaining_needs", "overall. Remaining work needs about")}
+                <Text style={styles.targetNumber}> {formatGradePercent(needed, t)} </Text>
+                {t("grades.on_average", "on average.")}
               </Text>
             ) : (
               <Text style={styles.targetCopy}>
-                Set the goal now. After the first real score is added, StudyPlanner will calculate
-                the remaining average needed without guessing.
+                {t("grades.set_goal_copy", "Set the goal now. After the first real score is added, StudyPlanner will calculate the remaining average needed without guessing.")}
               </Text>
             )}
             <TextInput
@@ -213,62 +216,65 @@ export function GradesScreen({
                 setTarget(value);
                 onTargetGradeChange(Number.parseFloat(value) || 0);
               }}
-              placeholder="Target percent"
+              placeholder={t("grades.target_percent", "Target percent")}
               placeholderTextColor={colors.heroMuted}
               style={[styles.targetInput, styles.targetHeroInput]}
             />
             {hasGradeEntries ? (
               <View style={styles.whatIfCard}>
-                <Text style={styles.whatIfLabel}>Next test what-if</Text>
+                <Text style={styles.whatIfLabel}>{t("grades.next_test_what_if", "Next test what-if")}</Text>
                 <Text style={styles.targetCopy}>
-                  If the next score is worth
+                  {t("grades.if_next_score_worth", "If the next score is worth")}
                   <Text style={styles.targetNumber}> {whatIfWeight || "0"}% </Text>
-                  of the course, you need about
-                  <Text style={styles.targetNumber}> {formatPercent(nextScoreNeeded)} </Text>
-                  on it to stay on target.
+                  {t("grades.of_course_need_about", "of the course, you need about")}
+                  <Text style={styles.targetNumber}> {formatGradePercent(nextScoreNeeded, t)} </Text>
+                  {t("grades.to_stay_on_target", "on it to stay on target.")}
                 </Text>
                 <TextInput
                   keyboardType="numeric"
                   value={whatIfWeight}
                   onChangeText={setWhatIfWeight}
-                  placeholder="Next score weight"
+                  placeholder={t("grades.next_score_weight", "Next score weight")}
                   placeholderTextColor={colors.heroMuted}
                   style={[styles.targetInput, styles.targetHeroInput]}
                 />
               </View>
             ) : (
               <View style={styles.whatIfCard}>
-                <Text style={styles.whatIfLabel}>Next test what-if</Text>
+                <Text style={styles.whatIfLabel}>{t("grades.next_test_what_if", "Next test what-if")}</Text>
                 <Text style={styles.targetCopy}>
-                  Add one scored item first, then this will show the score needed on a future test.
+                  {t("grades.add_score_for_what_if", "Add one scored item first, then this will show the score needed on a future test.")}
                 </Text>
               </View>
             )}
             <View style={styles.targetFacts}>
               <View style={styles.targetFact}>
-                <Text style={styles.factValue}>{formatPercent(summary.completedWeight)}</Text>
-                <Text style={styles.factLabel}>graded weight</Text>
+                <Text style={styles.factValue}>{formatGradePercent(summary.completedWeight, t)}</Text>
+                <Text style={styles.factLabel}>{t("grades.graded_weight", "graded weight")}</Text>
               </View>
               <View style={styles.targetFact}>
-                <Text style={styles.factValue}>{formatPercent(remainingWeight)}</Text>
-                <Text style={styles.factLabel}>still open</Text>
+                <Text style={styles.factValue}>{formatGradePercent(remainingWeight, t)}</Text>
+                <Text style={styles.factLabel}>{t("grades.still_open", "still open")}</Text>
               </View>
               <View style={styles.targetFact}>
                 <Text style={styles.factValue}>
                   {hasGradeEntries ? formatSignedPercent(targetDelta) : "--"}
                 </Text>
-                <Text style={styles.factLabel}>target gap</Text>
+                <Text style={styles.factLabel}>{t("grades.target_gap", "target gap")}</Text>
               </View>
             </View>
           </View>
 
-          <SectionHeader title="Grade weights" note={`${selectedCourse.name}: how much each category counts.`} />
+          <SectionHeader
+            title={t("grades.grade_weights", "Grade weights")}
+            note={formatLocalized(t("grades.grade_weights_note", "{course}: how much each category counts."), { course: selectedCourse.name })}
+          />
           <View style={styles.categoryList}>
             {summary.categorySummaries.length === 0 ? (
               <View style={styles.inlineEmpty}>
-                <Text style={styles.inlineEmptyTitle}>No grade weights yet</Text>
+                <Text style={styles.inlineEmptyTitle}>{t("grades.no_grade_weights", "No grade weights yet")}</Text>
                 <Text style={styles.inlineEmptyCopy}>
-                  Add grade categories to this course before the calculator can weight scores.
+                  {t("grades.no_grade_weights_copy", "Add grade categories to this course before the calculator can weight scores.")}
                 </Text>
               </View>
             ) : (
@@ -277,11 +283,16 @@ export function GradesScreen({
                   <View style={styles.categoryCopy}>
                     <Text style={styles.categoryName}>{category.name}</Text>
                     <Text style={styles.categoryMeta}>
-                      {category.weight}% of grade - {category.average === null ? "no scores yet" : `${formatPercent(category.contribution)} toward course`}
+                      {category.average === null
+                        ? formatLocalized(t("grades.category_no_scores", "{weight}% of grade - no scores yet"), { weight: String(category.weight) })
+                        : formatLocalized(t("grades.category_contribution", "{weight}% of grade - {contribution} toward course"), {
+                            weight: String(category.weight),
+                            contribution: formatGradePercent(category.contribution, t)
+                          })}
                     </Text>
                   </View>
                   <Badge
-                    label={formatPercent(category.average)}
+                    label={formatGradePercent(category.average, t)}
                     tone={category.average === null ? "neutral" : "green"}
                   />
                 </View>
@@ -289,20 +300,20 @@ export function GradesScreen({
             )}
           </View>
 
-          <SectionHeader title="Add a grade" note="Enter a score from a test, quiz, paper, or homework." />
+          <SectionHeader title={t("grades.add_grade", "Add a grade")} note={t("grades.add_grade_note", "Enter a score from a test, quiz, paper, or homework.")} />
           <View style={styles.addGradeCard}>
             {!hasGradeCategories ? (
               <View style={styles.inlineEmpty}>
-                <Text style={styles.inlineEmptyTitle}>No grade categories yet</Text>
+                <Text style={styles.inlineEmptyTitle}>{t("grades.no_grade_categories", "No grade categories yet")}</Text>
                 <Text style={styles.inlineEmptyCopy}>
-                  Add categories to this course before entering scores.
+                  {t("grades.no_grade_categories_copy", "Add categories to this course before entering scores.")}
                 </Text>
               </View>
             ) : null}
             <TextInput
               value={newTitle}
               onChangeText={setNewTitle}
-              placeholder="Score title"
+              placeholder={t("grades.score_title", "Score title")}
               placeholderTextColor={colors.heroMuted}
               style={styles.targetInput}
             />
@@ -335,7 +346,7 @@ export function GradesScreen({
                 keyboardType="numeric"
                 value={newEarned}
                 onChangeText={setNewEarned}
-                placeholder="Earned"
+                placeholder={t("grades.earned", "Earned")}
                 placeholderTextColor={colors.heroMuted}
                 style={[styles.targetInput, styles.scoreInput]}
               />
@@ -343,13 +354,13 @@ export function GradesScreen({
                 keyboardType="numeric"
                 value={newPossible}
                 onChangeText={setNewPossible}
-                placeholder="Possible"
+                placeholder={t("grades.possible", "Possible")}
                 placeholderTextColor={colors.heroMuted}
                 style={[styles.targetInput, styles.scoreInput]}
               />
             </View>
             <AppButton
-              label="Add this grade"
+              label={t("grades.add_this_grade", "Add this grade")}
               icon={Plus}
               disabled={!newTitle.trim() || !selectedCategoryId}
               onPress={() => {
@@ -368,13 +379,13 @@ export function GradesScreen({
             />
           </View>
 
-          <SectionHeader title="Recent grades" note="Tap a grade if you need to fix it." />
+          <SectionHeader title={t("grades.recent_grades", "Recent grades")} note={t("grades.recent_grades_note", "Tap a grade if you need to fix it.")} />
           <View style={styles.scoreList}>
             {selectedCourseGradeItems.length === 0 ? (
               <View style={styles.inlineEmpty}>
-                <Text style={styles.inlineEmptyTitle}>No grade entries yet</Text>
+                <Text style={styles.inlineEmptyTitle}>{t("grades.no_grade_entries", "No grade entries yet")}</Text>
                 <Text style={styles.inlineEmptyCopy}>
-                  Add the first real score to turn on current grade and target pace.
+                  {t("grades.no_grade_entries_copy", "Add the first real score to turn on current grade and target pace.")}
                 </Text>
               </View>
             ) : (
@@ -384,7 +395,7 @@ export function GradesScreen({
                     <TextInput
                       value={item.title}
                       onChangeText={(title) => onUpdateGradeItem(item.id, { title })}
-                      placeholder="Score title"
+                      placeholder={t("grades.score_title", "Score title")}
                       placeholderTextColor={colors.heroMuted}
                       style={styles.scoreTitleInput}
                       numberOfLines={1}
@@ -425,15 +436,15 @@ export function GradesScreen({
             )}
           </View>
 
-          <SectionHeader title="What this means" />
+          <SectionHeader title={t("grades.what_this_means", "What this means")} />
           <View style={styles.alertCard}>
             <Text style={styles.alertTitle}>{gradeMomentum}</Text>
             <Text style={styles.alertCopy}>
               {!hasGradeEntries
-                ? "Add one real score before StudyPlanner summarizes momentum for this class."
+                ? t("grades.add_one_score_momentum", "Add one real score before StudyPlanner summarizes momentum for this class.")
                 : Number.isFinite(needed)
-                  ? `${openCourseAssignments.length} open course ${openCourseAssignments.length === 1 ? "item" : "items"} remain. ${scoredCategoryCount}/${categoryCount || 0} weighted categories have scores${weakestCategory ? `; lowest current area is ${weakestCategory.name} at ${formatPercent(weakestCategory.average)}.` : "."}`
-                  : "This class has no remaining category weight in the calculator, so compare the current grade directly with the target."}
+                  ? formatGradeMeaning(openCourseAssignments.length, scoredCategoryCount, categoryCount, weakestCategory, t)
+                  : t("grades.no_remaining_weight", "This class has no remaining category weight in the calculator, so compare the current grade directly with the target.")}
             </Text>
           </View>
         </>
@@ -446,6 +457,35 @@ function formatSignedPercent(value: number) {
   if (!Number.isFinite(value)) return "--";
   const prefix = value > 0 ? "+" : "";
   return `${prefix}${value.toFixed(1)}%`;
+}
+
+function formatGradePercent(value: number | null, t: TranslateFn) {
+  const formatted = formatPercent(value);
+  return formatted === "Not possible" ? t("grades.not_possible", "Not possible") : formatted;
+}
+
+function formatGradeMeaning(
+  openCount: number,
+  scoredCategoryCount: number,
+  categoryCount: number,
+  weakestCategory: GradeSummary["categorySummaries"][number] | undefined,
+  t: TranslateFn
+) {
+  const base = formatLocalized(t("grades.meaning_with_scores", "{count} open course item(s) remain. {scored}/{total} weighted categories have scores."), {
+    count: String(openCount),
+    scored: String(scoredCategoryCount),
+    total: String(categoryCount || 0)
+  });
+  if (!weakestCategory) return base;
+
+  return `${base} ${formatLocalized(t("grades.lowest_area", "Lowest current area is {category} at {percent}."), {
+    category: weakestCategory.name,
+    percent: formatGradePercent(weakestCategory.average, t)
+  })}`;
+}
+
+function formatLocalized(template: string, values: Record<string, string>) {
+  return Object.entries(values).reduce((current, [key, value]) => current.replaceAll(`{${key}}`, value), template);
 }
 
 function createStyles(theme: AppTheme) {

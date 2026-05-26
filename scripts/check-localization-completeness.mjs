@@ -8,6 +8,7 @@ const sourceFiles = {
   plan: readFileSync("src/screens/PlanScreen.tsx", "utf8"),
   courses: readFileSync("src/screens/CoursesScreen.tsx", "utf8"),
   focus: readFileSync("src/screens/FocusScreen.tsx", "utf8"),
+  grades: readFileSync("src/screens/GradesScreen.tsx", "utf8"),
   onboarding: readFileSync("src/screens/OnboardingScreen.tsx", "utf8"),
   importScreen: readFileSync("src/screens/ImportScreen.tsx", "utf8"),
   paywall: readFileSync("src/screens/UpgradeScreen.tsx", "utf8"),
@@ -117,6 +118,7 @@ assert(sourceFiles.today.includes("useI18n") && sourceFiles.today.includes("toda
 assert(sourceFiles.plan.includes("useI18n") && sourceFiles.plan.includes("plan.capture_title"), "Calendar screen must consume runtime localization keys.");
 assert(sourceFiles.courses.includes("useI18n") && sourceFiles.courses.includes("classes.course_hub"), "Classes screen must consume runtime localization keys.");
 assert(sourceFiles.focus.includes("useI18n") && sourceFiles.focus.includes("focus.stage_kicker"), "Focus screen must consume runtime localization keys.");
+assert(sourceFiles.grades.includes("useI18n") && sourceFiles.grades.includes("grades.target_calculator"), "Grades screen must consume runtime localization keys.");
 assert(sourceFiles.onboarding.includes("useI18n") && sourceFiles.onboarding.includes("slide.titleKey"), "Onboarding must consume runtime localization keys.");
 assert(sourceFiles.importScreen.includes("useI18n") && sourceFiles.importScreen.includes("import.photo_disabled_message"), "Import screen must consume runtime localization keys.");
 assert(sourceFiles.paywall.includes("useI18n") && sourceFiles.paywall.includes("paywall.hard_subtitle"), "Paywall must consume runtime localization keys.");
@@ -230,6 +232,45 @@ const hardcodedLaunchStrings = [
       "Done - save time and complete task",
       "Complete task",
       "date not set"
+    ]
+  },
+  {
+    file: "src/screens/GradesScreen.tsx",
+    source: sourceFiles.grades,
+    phrases: [
+      "Performance dashboard",
+      "Keep every class on target.",
+      "Weighted categories, grade momentum, and clean what-if math before finals week.",
+      "Add a course before tracking grades.",
+      "Grades need a course first.",
+      "Import a syllabus or add a course, then this screen will show real category weights",
+      "Waiting for scores",
+      "Target held",
+      "Target out of reach",
+      "Target pace",
+      "Waiting on first grade",
+      "Target-grade calculator",
+      "Set the goal now.",
+      "Target percent",
+      "Next test what-if",
+      "Next score weight",
+      "graded weight",
+      "still open",
+      "target gap",
+      "Grade weights",
+      "No grade weights yet",
+      "Add grade categories to this course before the calculator can weight scores.",
+      "Add a grade",
+      "Enter a score from a test, quiz, paper, or homework.",
+      "No grade categories yet",
+      "Score title",
+      "Add this grade",
+      "Recent grades",
+      "Tap a grade if you need to fix it.",
+      "No grade entries yet",
+      "What this means",
+      "Add one real score before StudyPlanner summarizes momentum for this class.",
+      "This class has no remaining category weight in the calculator"
     ]
   },
   {

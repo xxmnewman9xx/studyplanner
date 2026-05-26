@@ -1,6 +1,6 @@
 # Validation Report
 
-Date: 2026-05-26 05:07 EDT / 2026-05-26 09:07 UTC
+Date: 2026-05-26 05:27 EDT / 2026-05-26 09:27 UTC
 
 ## Passed In This Rescue Cycle
 
@@ -24,16 +24,16 @@ Date: 2026-05-26 05:07 EDT / 2026-05-26 09:07 UTC
 - Fresh native `Release` simulator build `28` launched on `StudyPlanner-QA-iPhone`
 - Fresh native paywall product screenshot captured at `docs/launch/2026-05-26/fresh-native-screenshots/release-rescue/02-release-plus-deeplink.png`
 - Fresh native saved-photo-to-review proof captured at `docs/launch/2026-05-26/fresh-native-screenshots/photo-rescue/`
-- Current native Release localized Today/Calendar/Classes/Focus/Scan/Plus screenshots captured for `ar`, `de`, `ja`, and `zh-Hans` under `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/`
+- Current native Release localized Today/Calendar/Classes/Focus/Grades/Scan/Plus screenshots captured for `ar`, `de`, `ja`, and `zh-Hans` under `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/`
 
 ## Latest Patch Validation
 
-After localizing the app-owned Focus launch surface:
+After localizing the app-owned Grades launch surface:
 
 - `npm run check:localization` passed.
 - `npm run typecheck` passed.
 - Native `Release` simulator builds and screenshot captures completed for `ar`, `de`, `ja`, and `zh-Hans`.
-- Current Focus screenshots show localized timer hero, status/stat labels, duration chips, note instruction copy, date formatting, and localized theme labels.
+- Current Grades screenshots show localized hero, metric labels, target calculator, what-if math, and localized theme labels.
 - Current Plus screenshots still show two real store products and prices.
 
 ## Native Release Proof
@@ -87,14 +87,22 @@ The native Focus screenshots show:
 - Timer status/stat labels, duration chips, date formatting, and note instruction copy localized in the native Release bundle.
 - English assignment title and course code remain fixture/imported planner data, not app-owned runtime UI.
 
+The native Grades screenshots show:
+
+- `25-grades.png` captured per smoked locale.
+- App-owned Grades shell strings localized for `ar`, `de`, `ja`, and `zh-Hans`.
+- Metric labels, target calculator copy, target pace copy, and what-if math localized in the native Release bundle.
+- English course codes and letter grades remain fixture/imported planner data, not app-owned runtime UI.
+
 ## GitNexus
 
-- `npx gitnexus analyze` completed successfully after the Focus patch: 3,074 nodes, 5,567 edges, 99 clusters, 259 flows.
+- `npx gitnexus analyze` completed successfully after the Grades patch: 3,089 nodes, 5,597 edges, 100 clusters, 260 flows.
 - Before editing `TodayScreen`, GitNexus impact was run for `TodayScreen` and the edited helper/render symbols. `TodayScreen` was LOW risk; `buildLiveBrief`, `CatchUpSprintCard`, `formatDueUrgency`, `buildQuickDuePresets`, `imageActionLabel`, and `MetricPill` reported HIGH risk because they feed the default app flow through `TodayScreen` / `AppContent` / `App`.
 - Before editing `PlanScreen`, GitNexus impact was run for `PlanScreen` and the edited helper symbols. `PlanScreen` was LOW risk; `buildPlanState`, `buildSimpleWeekGroups`, `formatSelectedDate`, `formatHoursValue`, `buildSurvivalBlocks`, and `buildWeekLoadSummary` reported HIGH risk because they feed `PlanScreen` / `AppContent` / `App`.
 - Before editing `CoursesScreen`, GitNexus impact was run for `CoursesScreen` and the edited helper/shared symbols. `CoursesScreen` and `EmojiBadge` were LOW risk; `buildClassHealth`, `ClassStateTile`, and `ClassIdentityCard` reported HIGH risk, and `AppLogo` reported CRITICAL risk because they feed the app shell through `CoursesScreen` / `AppContent` / `App` or shared loading/onboarding/paywall paths. The shipped changes are text/date localization only.
 - Before editing `FocusScreen`, GitNexus impact was run for `FocusScreen` and the edited helper/render symbols. `FocusScreen`, `CockpitStat`, `formatFocusDate`, `formatDueLabel`, and `labelizeStatus` were LOW risk, feeding `FocusScreen` / `AppContent` / `App`. The shipped changes are text/date localization only.
-- `npx gitnexus detect-changes --repo studyplanner` reported 8 changed files, 28 symbols, 3 affected execution flows, aggregate risk `medium`. The affected flows are the expected runtime localization paths through `FocusScreen` into locale resolution.
+- Before editing `GradesScreen`, GitNexus impact was run for `GradesScreen` and `formatSignedPercent`. Both reported LOW risk, feeding `GradesScreen` / `AppContent` / `App`. The shipped changes are text localization and deterministic screenshot capture only.
+- `npx gitnexus detect-changes --repo studyplanner` reported 9 changed files, 32 symbols, 3 affected execution flows, aggregate risk `medium`. The affected flows are the expected runtime localization paths through `GradesScreen` into locale resolution.
 
 ## Release Decision
 
@@ -104,5 +112,5 @@ Backend OCR, saved-photo import, and native Plus product loading are now proven 
 
 - Physical-device/TestFlight camera permission and live camera capture are still unproven.
 - StoreKit product title/description/period metadata is still English in localized paywall screenshots; App Store Connect subscription localizations must be entered/verified.
-- Runtime localization is still incomplete outside the smoked Today/Calendar/Classes/Focus/Scan/Plus/native shell. Hard-coded app-owned English remains in Grades, Widgets/settings, detail screens, and alert/error paths.
+- Runtime localization is still incomplete outside the smoked Today/Calendar/Classes/Focus/Grades/Scan/Plus/native shell. Hard-coded app-owned English remains in Widgets/settings, detail screens, and alert/error paths.
 - Arabic RTL risk remains until accepted or fixed.
