@@ -141,7 +141,7 @@ const previewNow = new Date("2026-05-25T09:41:00");
 
 export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScreenProps) {
   const { theme } = useAppTheme();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { colors } = theme;
   const styles = createStyles(theme);
   const [index, setIndex] = useState(() => normalizedIndex(initialIndex));
@@ -184,9 +184,11 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
         },
         widgetPresets,
         demoMode: false,
-        now: previewNow
+        now: previewNow,
+        locale,
+        translate: t
       }),
-    [appTheme, widgetPalette, widgetPresets, widgetStyle]
+    [appTheme, locale, t, widgetPalette, widgetPresets, widgetStyle]
   );
 
   const finish = () => {

@@ -104,7 +104,7 @@ export function MoreScreen({
   premiumWidgetsLocked = false
 }: MoreScreenProps) {
   const { theme, setAccent } = useAppTheme();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { colors } = theme;
   const styles = createStyles(theme);
   const firstPreset =
@@ -232,9 +232,11 @@ export function MoreScreen({
         parsedImports,
         settings,
         widgetPresets: previewWidgetPresets,
-        demoMode
+        demoMode,
+        locale,
+        translate: t
       }),
-    [assignments, courses, demoMode, parsedImports, previewWidgetPresets, semester, settings]
+    [assignments, courses, demoMode, locale, parsedImports, previewWidgetPresets, semester, settings, t]
   );
   const nativePreview =
     type === "today" ? nativeSnapshots.today : type === "due_next" ? nativeSnapshots.upcoming : undefined;

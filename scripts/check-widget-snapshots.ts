@@ -199,6 +199,33 @@ assert(snapshots.upcoming.items[0]?.id === "overdue-high-started", "Overdue high
 assert(snapshots.today.signalLabel === "Catch up", "Overdue Today snapshot should use a catch-up signal.");
 assert(snapshots.upcoming.metricLabel.includes("90m"), "Upcoming metric should surface effort for the top action.");
 
+const localizedSnapshots = buildStudyPlannerWidgetSnapshots({
+  semester,
+  courses,
+  assignments,
+  parsedImports,
+  settings,
+  widgetPresets: [stalePreset],
+  demoMode: false,
+  now,
+  locale: "es",
+  translate: (key, fallback) =>
+    ({
+      "widget_snapshot.today": "Hoy",
+      "widget_snapshot.catch_up": "Ponerse al día",
+      "widget_snapshot.overdue_count": "{count} vencidas",
+      "widget_snapshot.next_assignment": "Siguiente: {title}",
+      "widget_snapshot.overdue": "Vencido",
+      "widget_snapshot.high_priority": "Alta prioridad",
+      "widget_snapshot.minutes_open": "{minutes} min abiertas",
+      "widget_snapshot.high": "Alta",
+      "widget_snapshot.class": "Clase"
+    })[key] || fallback || key
+});
+assert(localizedSnapshots.today.headline === "Hoy", "Native Today snapshot should accept runtime translations.");
+assert(localizedSnapshots.today.detail.includes("vencidas"), "Native Today detail should use translated count templates.");
+assert(localizedSnapshots.today.items[0]?.dueLabel === "Vencido", "Native widget rows should localize due labels.");
+
 const itemIds = [...snapshots.today.items, ...snapshots.upcoming.items].map((item) => item.id);
 for (const blockedId of ["unreviewed", "duplicate", "done", "invalid"]) {
   assert(!itemIds.includes(blockedId), `${blockedId} should stay out of widget rows.`);

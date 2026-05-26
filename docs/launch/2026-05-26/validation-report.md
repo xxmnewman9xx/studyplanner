@@ -1,6 +1,6 @@
 # Validation Report
 
-Date: 2026-05-26 06:22 EDT / 2026-05-26 10:22 UTC
+Date: 2026-05-26 07:11 EDT / 2026-05-26 11:11 UTC
 
 ## Passed In This Rescue Cycle
 
@@ -28,14 +28,14 @@ Date: 2026-05-26 06:22 EDT / 2026-05-26 10:22 UTC
 
 ## Latest Patch Validation
 
-After localizing the app-owned More/Widget Studio launch surface:
+After localizing the app-owned native widget snapshot payloads and Widget Studio native preview fallbacks:
 
 - `npm run check:localization` passed.
 - `npm run typecheck` passed.
-- `npm run test:widgets`, `npm run check:scenarios`, and `npm run check:release-docs` passed.
+- `npm run test:widgets`, `npm run check:scenarios`, `npm run build:syllabus-parser`, and `npm run check:release-docs` passed.
+- `npm run qa:release` passed.
 - Native `Release` simulator builds, explicit installs, build-product cleans, and screenshot captures completed for `ar`, `de`, `ja`, and `zh-Hans`.
-- Current Widgets screenshots show localized Widget Studio hero, step rail, status chip, size/palette labels, theme labels, and tab labels.
-- The embedded widget preview still shows English snapshot labels; this is documented as a remaining widget snapshot service localization blocker.
+- Current Widgets screenshots show localized Widget Studio hero, step rail, status chip, size/palette labels, theme labels, tab labels, and embedded native widget snapshot labels/date/status copy.
 - Current Plus screenshots still show two real store products and prices.
 
 ## Native Release Proof
@@ -100,8 +100,8 @@ The native Widgets screenshots show:
 
 - `19-widgets-ocean.png` captured per smoked locale after explicit `simctl install`.
 - App-owned More/Widget Studio shell strings localized for `ar`, `de`, `ja`, and `zh-Hans`.
-- Step rail labels, status chips, size/palette labels, theme labels, and tab labels localized in the native Release bundle.
-- The embedded native widget preview still includes English snapshot labels such as `Today`, `Next deadline`, `NEXT`, and compact date/status text; widget snapshot service localization remains incomplete.
+- Step rail labels, status chips, size/palette labels, theme labels, tab labels, native widget headline/status/date labels, next-deadline callouts, week rails, metric labels, and open-deadline counts are localized in the native Release bundle.
+- Assignment titles and `BIO 101` remain English because they are fixture/imported planner data, not app-owned runtime UI.
 
 ## GitNexus
 
@@ -112,7 +112,8 @@ The native Widgets screenshots show:
 - Before editing `FocusScreen`, GitNexus impact was run for `FocusScreen` and the edited helper/render symbols. `FocusScreen`, `CockpitStat`, `formatFocusDate`, `formatDueLabel`, and `labelizeStatus` were LOW risk, feeding `FocusScreen` / `AppContent` / `App`. The shipped changes are text/date localization only.
 - Before editing `GradesScreen`, GitNexus impact was run for `GradesScreen` and `formatSignedPercent`. Both reported LOW risk, feeding `GradesScreen` / `AppContent` / `App`. The shipped changes are text localization and deterministic screenshot capture only.
 - Before editing `MoreScreen`, GitNexus impact was run for `MoreScreen`, `labelForWidgetType`, `widgetItemMetaForStudio`, and `sizeMentalModel`. `MoreScreen` was LOW risk through `AppContent` / `App`; the helper symbols reported HIGH risk because they feed `MoreScreen` and then the app shell. The shipped changes localize call-site values without changing those HIGH-risk helper bodies.
-- `npx gitnexus detect-changes --repo studyplanner` reported 8 changed files, 68 symbols, 9 affected execution flows, aggregate risk `high`. The affected flows are expected MoreScreen paths through locale resolution, active-assignment/date/time formatting, planner normalization, and the preview-preset widget label path.
+- Before editing the native widget snapshot flow, GitNexus impact was run for `buildStudyPlannerWidgetSnapshots`, `syncStudyPlannerWidgets`, `buildSyncDisabledWidgetSnapshots`, `WidgetPreviewCard`, `widgetStatusText`, `widgetItemCourse`, `toWidgetItem`, `assignmentSignal`, `assignmentDisplayTitle`, `effortMetricLabel`, `getNativeWidgetStyle`, `formatDueLabel`, `formatWidgetValueLabel`, `weekdayName`, `shortDate`, `cleanTitle`, `AppContent`, `MoreScreen`, and `OnboardingScreen`. The snapshot builder/helpers and preview component reported HIGH or CRITICAL risk because they feed app startup widget sync, More/Widget Studio, onboarding, and widget QA scripts. The shipped changes are additive translation/locale parameters with English fallbacks.
+- `npx gitnexus detect-changes --repo studyplanner` reported 16 changed files, 83 symbols, 37 affected execution flows, aggregate risk `critical`. The affected flows are expected native widget snapshot paths through `buildStudyPlannerWidgetSnapshots`, `syncStudyPlannerWidgets`, More/Widget Studio `nativeSnapshots`, onboarding `widgetSnapshots`, App startup sync, and date/time validation helpers used by widget sorting and labels.
 
 ## Release Decision
 
@@ -122,5 +123,5 @@ Backend OCR, saved-photo import, and native Plus product loading are now proven 
 
 - Physical-device/TestFlight camera permission and live camera capture are still unproven.
 - StoreKit product title/description/period metadata is still English in localized paywall screenshots; App Store Connect subscription localizations must be entered/verified.
-- Runtime localization is still incomplete outside the smoked Today/Calendar/Classes/Focus/Grades/Widgets/Scan/Plus/native shell. Hard-coded app-owned English remains in widget preview services/components, onboarding preview mockups, import review controls, detail screens, notes, and alert/error paths.
+- Runtime localization is still incomplete outside the smoked Today/Calendar/Classes/Focus/Grades/Widgets/Scan/Plus/native shell. Hard-coded app-owned English remains in onboarding preview mockups, import review controls, detail screens, notes, premium gates, and alert/error paths.
 - Arabic RTL risk remains until accepted or fixed.

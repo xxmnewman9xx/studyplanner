@@ -13,7 +13,9 @@ const sourceFiles = {
   importScreen: readFileSync("src/screens/ImportScreen.tsx", "utf8"),
   paywall: readFileSync("src/screens/UpgradeScreen.tsx", "utf8"),
   modeToggle: readFileSync("src/components/ModeToggle.tsx", "utf8"),
-  widgets: readFileSync("src/screens/MoreScreen.tsx", "utf8")
+  widgets: readFileSync("src/screens/MoreScreen.tsx", "utf8"),
+  widgetSnapshot: readFileSync("src/services/widgetSnapshot.ts", "utf8"),
+  appleComponents: readFileSync("src/components/AppleComponents.tsx", "utf8")
 };
 
 const requiredLocales = ["ar", "de", "en-US", "es", "fr", "hi", "ja", "ko", "pt-BR", "zh-Hans"];
@@ -124,6 +126,8 @@ assert(sourceFiles.importScreen.includes("useI18n") && sourceFiles.importScreen.
 assert(sourceFiles.paywall.includes("useI18n") && sourceFiles.paywall.includes("paywall.hard_subtitle"), "Paywall must consume runtime localization keys.");
 assert(sourceFiles.modeToggle.includes("useI18n") && sourceFiles.modeToggle.includes("theme.use_light_mode"), "Theme mode toggle must consume runtime localization keys.");
 assert(sourceFiles.widgets.includes("useI18n") && sourceFiles.widgets.includes("more.native_style_fields"), "Widget Studio must consume runtime localization keys while preserving native/widget truth copy.");
+assert(sourceFiles.widgetSnapshot.includes("translate?: WidgetSnapshotTranslate") && sourceFiles.widgetSnapshot.includes("widget_snapshot.today"), "Native widget snapshot payloads must accept runtime translations.");
+assert(sourceFiles.appleComponents.includes("useI18n") && sourceFiles.appleComponents.includes("widget_preview.next_caps"), "Widget previews must localize native-style fallback labels.");
 assert(sourceFiles.i18n.includes("EXPO_PUBLIC_STUDYPLANNER_LOCALE"), "Localization override must exist for screenshot QA.");
 
 const hardcodedLaunchStrings = [
@@ -302,6 +306,44 @@ const hardcodedLaunchStrings = [
       "Template gallery",
       "Saved presets",
       "Install status"
+    ]
+  },
+  {
+    file: "src/services/widgetSnapshot.ts",
+    source: sourceFiles.widgetSnapshot,
+    phrases: [
+      "Demo work stays inside the app",
+      "Widgets wait for real planner data",
+      "Add a class first",
+      "No homework in your plan yet",
+      "Review a syllabus first",
+      "Check imported dates",
+      "Unreviewed work stays out of widgets",
+      "Next deadline set",
+      "No upcoming deadlines",
+      "Widget sync is off",
+      "No planner data shared",
+      "Open Widgets settings",
+      "Hidden assignment",
+      "Open StudyPlanner",
+      "High priority",
+      "Next deadline",
+      "Open Today",
+      "Open Upcoming"
+    ]
+  },
+  {
+    file: "src/components/AppleComponents.tsx",
+    source: sourceFiles.appleComponents,
+    phrases: [
+      "Open StudyPlanner to add homework.",
+      "Planner data",
+      "Current semester",
+      "Live plan",
+      "Setup",
+      "1 task",
+      "{count} tasks",
+      "NEXT"
     ]
   },
   {

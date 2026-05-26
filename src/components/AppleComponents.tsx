@@ -340,6 +340,8 @@ type WidgetPreviewItem = Assignment | {
   dueLabel?: string;
 };
 
+type ComponentTranslate = (key: string, fallback?: string) => string;
+
 export function WidgetPreviewCard({
   title,
   value,
@@ -390,6 +392,7 @@ export function WidgetPreviewCard({
   style?: StyleProp<ViewStyle>;
 }) {
   const { theme } = useAppTheme();
+  const { t, locale } = useI18n();
   const styles = createStyles(theme);
   const paletteColors = themePalettes[palette] || themePalettes.sunset;
   const isTinted = background === "dark" || background === "gradient";
@@ -403,22 +406,24 @@ export function WidgetPreviewCard({
   const previewItems = items.slice(0, isMedium ? 3 : 2);
   const fontStyle = font === "Mono" ? styles.widgetMono : font === "Rounded" ? styles.widgetRounded : null;
   const WidgetIcon = iconForKey(iconKey);
-  const statusText = widgetStatusText(type, value, detail, previewItems);
+  const statusText = widgetStatusText(type, value, detail, previewItems, t);
   const nativeAccent = nativeAccentColor || course?.color || paletteColors[1] || theme.colors.accent;
   const nativeBackground = nativeBackgroundColor || "#101723";
   const nativeDark = ["#171A20", "#101723", "#0D1422", "#061827", "#070A12", "#05070B"].includes(nativeBackground.toUpperCase());
   const nativeInk = nativeDark ? "#F8FAFC" : "#171A20";
   const nativeMuted = nativeDark ? "#D7DEE9" : "#69707D";
   const nativeQuiet = nativeDark ? "#A8B3C5" : "#8A93A3";
-  const nativeSignal = nativeSignalLabel || (previewItems.length > 0 ? "Live plan" : "Setup");
+  const nativeSignal = nativeSignalLabel || (previewItems.length > 0 ? t("widget_preview.live_plan", "Live plan") : t("widget_preview.setup", "Setup"));
   const nativeMetric = nativeMetricLabel || statusText;
-  const nativeNext = nativeNextLabel || footnote || "Open StudyPlanner";
-  const nativeTimeline = nativeTimelineLabel || (type === "today" ? "Today" : "Next");
+  const nativeNext = nativeNextLabel || footnote || t("widget_snapshot.open_studyplanner", "Open StudyPlanner");
+  const nativeTimeline = nativeTimelineLabel || (type === "today" ? t("widget_snapshot.today", "Today") : t("common.next", "Next"));
   const nativeProgressValue = Math.max(0, Math.min(1, nativeProgress ?? (previewItems.length > 0 ? 0.6 : 0.2)));
-  const nativeWeekDots = ["M", "T", "W", "T", "F", "S", "S"];
+  const nativeWeekDots = localizedWeekdayNarrowLabels(locale);
   const firstNativeItem = previewItems[0];
   const lockRoundValue = firstNativeItem && "courseCode" in firstNativeItem && firstNativeItem.courseCode ? firstNativeItem.courseCode : value;
-  const lockRoundLabel = firstNativeItem ? (type === "today" ? "Do first" : "Next") : type === "today" ? "Today" : "Next";
+  const lockRoundLabel = firstNativeItem
+    ? (type === "today" ? t("widget_snapshot.do_first", "Do first") : t("common.next", "Next"))
+    : type === "today" ? t("widget_snapshot.today", "Today") : t("common.next", "Next");
 
   if (nativeMode) {
     if (isLockInline) {
@@ -483,7 +488,7 @@ export function WidgetPreviewCard({
           </View>
           {isMedium ? (
             <View style={[styles.nativeWidgetNextBox, { backgroundColor: nativeDark ? "#202633" : "#FFFFFF" }]}>
-              <Text style={[styles.nativeWidgetNextKicker, { color: nativeQuiet }]} numberOfLines={1}>NEXT</Text>
+              <Text style={[styles.nativeWidgetNextKicker, { color: nativeQuiet }]} numberOfLines={1}>{t("widget_preview.next_caps", "NEXT")}</Text>
               <Text style={[styles.nativeWidgetNextText, { color: nativeInk }]} numberOfLines={2}>{nativeNext}</Text>
             </View>
           ) : null}
@@ -521,7 +526,7 @@ export function WidgetPreviewCard({
               <View key={item.id} style={styles.nativeWidgetRow}>
                 <View style={[styles.nativeWidgetMiniDot, { backgroundColor: widgetItemColor(item, course, nativeAccent) }]} />
                 <Text style={[styles.nativeWidgetRowCourse, { color: widgetItemColor(item, course, nativeAccent) }]} numberOfLines={1}>
-                  {widgetItemCourse(item)}
+                  {widgetItemCourse(item, t)}
                 </Text>
                 <Text style={[styles.nativeWidgetRowText, { color: nativeInk }]} numberOfLines={1}>
                   {widgetItemTitle(item)}
@@ -533,10 +538,14 @@ export function WidgetPreviewCard({
             ))}
           </View>
         ) : (
-          <Text style={[styles.nativeWidgetFootnote, { color: nativeMuted }]} numberOfLines={2}>{footnote || "Open StudyPlanner to add homework."}</Text>
+          <Text style={[styles.nativeWidgetFootnote, { color: nativeMuted }]} numberOfLines={2}>
+            {footnote || t("widget_preview.open_studyplanner_add_homework", "Open StudyPlanner to add homework.")}
+          </Text>
         )}
         <Text style={[styles.nativeWidgetFooter, { color: nativeQuiet }]} numberOfLines={1}>
-          {previewItems.length > 0 ? footnote || "Planner data" : semesterName || "Current semester"}
+          {previewItems.length > 0
+            ? footnote || t("widget_preview.planner_data", "Planner data")
+            : semesterName || t("widget_preview.current_semester", "Current semester")}
         </Text>
       </View>
     );
@@ -630,15 +639,25 @@ export function WidgetPreviewCard({
   );
 }
 
-function widgetStatusText(type: WidgetType, value: string, detail: string, items: WidgetPreviewItem[]) {
-  if (items.length === 0) return "Preview";
-  if (type === "due_next") return value || "Next";
-  if (type === "today") return items.length === 1 ? "1 task" : `${items.length} tasks`;
-  if (type === "focus") return "25m";
-  if (type === "class_focus") return "Class";
-  if (type === "needs_check") return "Review";
-  if (type === "week") return "Week";
-  return detail || "Planner";
+function widgetStatusText(
+  type: WidgetType,
+  value: string,
+  detail: string,
+  items: WidgetPreviewItem[],
+  t: ComponentTranslate
+) {
+  if (items.length === 0) return t("widget_preview.preview", "Preview");
+  if (type === "due_next") return value || t("common.next", "Next");
+  if (type === "today") {
+    return items.length === 1
+      ? t("widget_preview.one_task", "1 task")
+      : formatComponentTemplate(t("widget_preview.task_count", "{count} tasks"), { count: items.length });
+  }
+  if (type === "focus") return t("widget_preview.focus_minutes", "25m");
+  if (type === "class_focus") return t("widget_snapshot.class", "Class");
+  if (type === "needs_check") return t("widget_snapshot.review", "Review");
+  if (type === "week") return t("widget_preview.week_label", "Week");
+  return detail || t("widget_preview.planner_label", "Planner");
 }
 
 function widgetItemColor(item: WidgetPreviewItem, course: Course | undefined, fallback: string) {
@@ -653,8 +672,8 @@ function widgetItemLabel(item: WidgetPreviewItem) {
   return item.title;
 }
 
-function widgetItemCourse(item: WidgetPreviewItem) {
-  return "courseCode" in item && item.courseCode ? item.courseCode : "Class";
+function widgetItemCourse(item: WidgetPreviewItem, t: ComponentTranslate) {
+  return "courseCode" in item && item.courseCode ? item.courseCode : t("widget_snapshot.class", "Class");
 }
 
 function widgetItemTitle(item: WidgetPreviewItem) {
@@ -663,6 +682,25 @@ function widgetItemTitle(item: WidgetPreviewItem) {
 
 function widgetItemDue(item: WidgetPreviewItem, fallback: string) {
   return "dueLabel" in item && item.dueLabel ? item.dueLabel : fallback;
+}
+
+function localizedWeekdayNarrowLabels(locale: string) {
+  const mondayUtc = Date.UTC(2026, 0, 5);
+  try {
+    const formatter = new Intl.DateTimeFormat(locale, { weekday: "narrow", timeZone: "UTC" });
+    return Array.from({ length: 7 }, (_value, index) =>
+      formatter.format(new Date(mondayUtc + index * 24 * 60 * 60 * 1000))
+    );
+  } catch {
+    return ["M", "T", "W", "T", "F", "S", "S"];
+  }
+}
+
+function formatComponentTemplate(template: string, values: Record<string, string | number>) {
+  return Object.entries(values).reduce(
+    (current, [key, value]) => current.replace(new RegExp(`\\{${key}\\}`, "g"), String(value)),
+    template
+  );
 }
 
 export function ThemeCard({

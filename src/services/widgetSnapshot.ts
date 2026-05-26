@@ -74,6 +74,8 @@ export type WidgetSyncStatus = {
   updatedAt?: string;
 };
 
+export type WidgetSnapshotTranslate = (key: string, fallback?: string) => string;
+
 export type WidgetSnapshotInput = {
   semester: Semester;
   courses: Course[];
@@ -83,6 +85,8 @@ export type WidgetSnapshotInput = {
   widgetPresets?: WidgetPreset[];
   demoMode: boolean;
   now?: Date;
+  locale?: string;
+  translate?: WidgetSnapshotTranslate;
 };
 
 declare const require: (path: string) => any;
@@ -111,8 +115,25 @@ const backgroundColors: Record<WidgetBackground, string> = {
   dark: "#05070B"
 };
 
+const defaultTranslate: WidgetSnapshotTranslate = (_key, fallback) => fallback || _key;
+
+function getSnapshotLocalization(input: Pick<WidgetSnapshotInput, "locale" | "translate">) {
+  return {
+    locale: input.locale || "en-US",
+    t: input.translate || defaultTranslate
+  };
+}
+
+function formatSnapshotTemplate(template: string, values: Record<string, string | number>) {
+  return Object.entries(values).reduce(
+    (current, [key, value]) => current.replace(new RegExp(`\\{${key}\\}`, "g"), String(value)),
+    template
+  );
+}
+
 export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
   const now = input.now || new Date();
+  const { locale, t } = getSnapshotLocalization(input);
   const generatedAt = now.toISOString();
   const hasClasses = input.courses.length > 0;
   const assignments = input.demoMode ? input.assignments : input.assignments.filter(isRealWidgetAssignment);
@@ -127,8 +148,8 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
   const upcomingAssignments = filterAssignmentsForPreset(reviewedAssignments, upcomingPreset, input.courses);
   const upcoming = getUpcomingAssignments(upcomingAssignments, now);
   const dueToday = getTodayWidgetAssignments(todayAssignments, now);
-  const todayStyle = getNativeWidgetStyle("today", todayPreset, input.settings);
-  const upcomingStyle = getNativeWidgetStyle("upcoming", upcomingPreset, input.settings);
+  const todayStyle = getNativeWidgetStyle("today", todayPreset, input.settings, t);
+  const upcomingStyle = getNativeWidgetStyle("upcoming", upcomingPreset, input.settings, t);
   const base = {
     version: 1 as const,
     generatedAt,
@@ -142,20 +163,20 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         ...base,
         kind: "today",
         state: "demo",
-        headline: "Today",
-        value: "Import",
-        detail: "Demo work stays inside the app",
-        footnote: "Import a real syllabus for widgets",
+        headline: t("widget_snapshot.today", "Today"),
+        value: t("widget_snapshot.import", "Import"),
+        detail: t("widget_snapshot.demo_detail_today", "Demo work stays inside the app"),
+        footnote: t("widget_snapshot.demo_footnote_today", "Import a real syllabus for widgets"),
         ...todayStyle
       }),
       upcoming: emptySnapshot({
         ...base,
         kind: "upcoming",
         state: "demo",
-        headline: "Upcoming",
-        value: "Import",
-        detail: "Widgets wait for real planner data",
-        footnote: "Demo coursework is never shared",
+        headline: t("widget_snapshot.upcoming", "Upcoming"),
+        value: t("widget_snapshot.import", "Import"),
+        detail: t("widget_snapshot.demo_detail_upcoming", "Widgets wait for real planner data"),
+        footnote: t("widget_snapshot.demo_footnote_upcoming", "Demo coursework is never shared"),
         ...upcomingStyle
       })
     };
@@ -167,20 +188,20 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         ...base,
         kind: "today",
         state: "no_classes",
-        headline: "Today",
-        value: "Class",
-        detail: "Add a class first",
-        footnote: "Course context makes widgets useful",
+        headline: t("widget_snapshot.today", "Today"),
+        value: t("widget_snapshot.class", "Class"),
+        detail: t("widget_snapshot.add_class_first", "Add a class first"),
+        footnote: t("widget_snapshot.course_context", "Course context makes widgets useful"),
         ...todayStyle
       }),
       upcoming: emptySnapshot({
         ...base,
         kind: "upcoming",
         state: "no_classes",
-        headline: "Upcoming",
-        value: "Class",
-        detail: "Add a class first",
-        footnote: "Then add or import homework",
+        headline: t("widget_snapshot.upcoming", "Upcoming"),
+        value: t("widget_snapshot.class", "Class"),
+        detail: t("widget_snapshot.add_class_first", "Add a class first"),
+        footnote: t("widget_snapshot.then_add_homework", "Then add or import homework"),
         ...upcomingStyle
       })
     };
@@ -188,16 +209,20 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
 
   if (assignments.length === 0) {
     const state = hasReviewedSyllabus ? "no_assignments" : "no_reviewed_syllabus";
-    const detail = hasReviewedSyllabus ? "No homework in your plan yet" : "Review a syllabus first";
-    const footnote = hasReviewedSyllabus ? "Add homework when it appears" : "Imports stay private until approved";
+    const detail = hasReviewedSyllabus
+      ? t("widget_snapshot.no_homework_plan", "No homework in your plan yet")
+      : t("widget_snapshot.review_syllabus_first", "Review a syllabus first");
+    const footnote = hasReviewedSyllabus
+      ? t("widget_snapshot.add_homework_when_appears", "Add homework when it appears")
+      : t("widget_snapshot.imports_private", "Imports stay private until approved");
 
     return {
       today: emptySnapshot({
         ...base,
         kind: "today",
         state,
-        headline: "Today",
-        value: hasReviewedSyllabus ? "Add" : "Scan",
+        headline: t("widget_snapshot.today", "Today"),
+        value: hasReviewedSyllabus ? t("widget_snapshot.add", "Add") : t("widget_snapshot.scan", "Scan"),
         detail,
         footnote,
         ...todayStyle
@@ -206,8 +231,8 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         ...base,
         kind: "upcoming",
         state,
-        headline: "Upcoming",
-        value: hasReviewedSyllabus ? "Add" : "Review",
+        headline: t("widget_snapshot.upcoming", "Upcoming"),
+        value: hasReviewedSyllabus ? t("widget_snapshot.add", "Add") : t("widget_snapshot.review", "Review"),
         detail,
         footnote,
         ...upcomingStyle
@@ -221,10 +246,10 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         ...base,
         kind: "today",
         state: "needs_review",
-        headline: "Today",
+        headline: t("widget_snapshot.today", "Today"),
         value: String(reviewCount),
-        detail: "Check imported dates",
-        footnote: "Unreviewed work stays out of widgets",
+        detail: t("widget_snapshot.check_imported_dates", "Check imported dates"),
+        footnote: t("widget_snapshot.unreviewed_out", "Unreviewed work stays out of widgets"),
         ...todayStyle,
         accentColor: "#F59E0B"
       }),
@@ -232,10 +257,10 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         ...base,
         kind: "upcoming",
         state: "needs_review",
-        headline: "Upcoming",
+        headline: t("widget_snapshot.upcoming", "Upcoming"),
         value: String(reviewCount),
-        detail: "Review before widgets use it",
-        footnote: "Open Scan to approve deadlines",
+        detail: t("widget_snapshot.review_before_widgets", "Review before widgets use it"),
+        footnote: t("widget_snapshot.open_scan_approve", "Open Scan to approve deadlines"),
         ...upcomingStyle,
         accentColor: "#F59E0B"
       })
@@ -256,33 +281,50 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
             ...base,
             kind: "today" as const,
             state: "ready" as const,
-            headline: "Today",
+            headline: t("widget_snapshot.today", "Today"),
             value: String(dueToday.length),
-            detail: overdueToday > 0 ? `${overdueToday} overdue` : dueToday.length === 1 ? "task due today" : "tasks due today",
-            footnote: nextUpcoming ? `Next: ${assignmentDisplayTitle(nextUpcoming, privacyMode)}` : "Keep the day light",
+            detail:
+              overdueToday > 0
+                ? formatSnapshotTemplate(t("widget_snapshot.overdue_count", "{count} overdue"), { count: overdueToday })
+                : dueToday.length === 1
+                  ? t("widget_snapshot.task_due_today", "task due today")
+                  : t("widget_snapshot.tasks_due_today", "tasks due today"),
+            footnote: nextUpcoming
+              ? formatSnapshotTemplate(t("widget_snapshot.next_assignment", "Next: {title}"), {
+                  title: assignmentDisplayTitle(nextUpcoming, privacyMode, t)
+                })
+              : t("widget_snapshot.keep_day_light", "Keep the day light"),
             ...todayStyle,
             accentColor: todayAccent,
             progress: overdueToday > 0 ? 0.86 : Math.min(0.95, Math.max(0.18, 1 / Math.max(dueToday.length, 1))),
-            signalLabel: overdueToday > 0 ? "Catch up" : "Do first",
-            metricLabel: dueToday[0] ? effortMetricLabel(dueToday[0]) : `${dueToday.length} open`,
-            nextLabel: assignmentSignal(dueToday[0], input.courses, now, privacyMode),
-            timelineLabel: "Today",
-            items: dueToday.slice(0, 3).map((assignment) => toWidgetItem(assignment, input.courses, now, privacyMode, todayAccent))
+            signalLabel: overdueToday > 0 ? t("widget_snapshot.catch_up", "Catch up") : t("widget_snapshot.do_first", "Do first"),
+            metricLabel: dueToday[0]
+              ? effortMetricLabel(dueToday[0], t)
+              : formatSnapshotTemplate(t("widget_snapshot.open_count", "{count} open"), { count: dueToday.length }),
+            nextLabel: assignmentSignal(dueToday[0], input.courses, now, privacyMode, t, locale),
+            timelineLabel: t("widget_snapshot.today", "Today"),
+            items: dueToday.slice(0, 3).map((assignment) => toWidgetItem(assignment, input.courses, now, privacyMode, todayAccent, t, locale))
           }
         : emptySnapshot({
             ...base,
             kind: "today",
             state: "no_due_today",
-            headline: "Today",
-            value: "Clear",
-            detail: "Nothing due today",
-            footnote: nextUpcoming ? `Next: ${formatDueLabel(nextUpcoming.dueAt, now)}` : "No deadlines queued",
+            headline: t("widget_snapshot.today", "Today"),
+            value: t("widget_snapshot.clear", "Clear"),
+            detail: t("widget_snapshot.nothing_due_today", "Nothing due today"),
+            footnote: nextUpcoming
+              ? formatSnapshotTemplate(t("widget_snapshot.next_due_label", "Next: {due}"), {
+                  due: formatDueLabel(nextUpcoming.dueAt, now, t, locale)
+                })
+              : t("widget_snapshot.no_deadlines_queued", "No deadlines queued"),
             ...todayStyle,
             accentColor: todayAccent,
-            signalLabel: "Clear today",
-            metricLabel: nextUpcoming ? "Next deadline set" : "No open work",
-            nextLabel: nextUpcoming ? assignmentSignal(nextUpcoming, input.courses, now, privacyMode) : "Add homework when it appears",
-            timelineLabel: "Today"
+            signalLabel: t("widget_snapshot.clear_today", "Clear today"),
+            metricLabel: nextUpcoming ? t("widget_snapshot.next_deadline_set", "Next deadline set") : t("widget_snapshot.no_open_work", "No open work"),
+            nextLabel: nextUpcoming
+              ? assignmentSignal(nextUpcoming, input.courses, now, privacyMode, t, locale)
+              : t("widget_snapshot.add_homework_when_appears", "Add homework when it appears"),
+            timelineLabel: t("widget_snapshot.today", "Today")
           }),
     upcoming:
       upcoming.length > 0 && nextUpcoming
@@ -290,37 +332,50 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
             ...base,
             kind: "upcoming" as const,
             state: "ready" as const,
-            headline: "Upcoming",
-            value: formatWidgetValueLabel(nextUpcoming.dueAt, now),
-            detail: assignmentDisplayTitle(nextUpcoming, privacyMode),
-            footnote: `${upcoming.length} open deadline${upcoming.length === 1 ? "" : "s"}`,
+            headline: t("widget_snapshot.upcoming", "Upcoming"),
+            value: formatWidgetValueLabel(nextUpcoming.dueAt, now, t, locale),
+            detail: assignmentDisplayTitle(nextUpcoming, privacyMode, t),
+            footnote: formatSnapshotTemplate(
+              upcoming.length === 1
+                ? t("widget_snapshot.one_open_deadline", "{count} open deadline")
+                : t("widget_snapshot.open_deadline_count", "{count} open deadlines"),
+              { count: upcoming.length }
+            ),
             ...upcomingStyle,
             accentColor: upcomingAccent,
             progress: Math.min(0.95, Math.max(0.16, 1 / Math.max(upcoming.length, 1))),
-            signalLabel: daysUntil(nextUpcoming.dueAt, now) < 0 ? "Catch up" : "Next deadline",
-            metricLabel: effortMetricLabel(nextUpcoming),
-            nextLabel: assignmentSignal(nextUpcoming, input.courses, now, privacyMode),
-            timelineLabel: formatDueLabel(nextUpcoming.dueAt, now),
-            items: upcoming.slice(0, 3).map((assignment) => toWidgetItem(assignment, input.courses, now, privacyMode, upcomingAccent))
+            signalLabel: daysUntil(nextUpcoming.dueAt, now) < 0 ? t("widget_snapshot.catch_up", "Catch up") : t("widget_snapshot.next_deadline", "Next deadline"),
+            metricLabel: effortMetricLabel(nextUpcoming, t),
+            nextLabel: assignmentSignal(nextUpcoming, input.courses, now, privacyMode, t, locale),
+            timelineLabel: formatDueLabel(nextUpcoming.dueAt, now, t, locale),
+            items: upcoming.slice(0, 3).map((assignment) => toWidgetItem(assignment, input.courses, now, privacyMode, upcomingAccent, t, locale))
           }
         : emptySnapshot({
             ...base,
             kind: "upcoming",
             state: "no_upcoming",
-            headline: "Upcoming",
-            value: "Clear",
-            detail: "No upcoming deadlines",
-            footnote: reviewCount > 0 ? "Review imported items when ready" : "Add homework when it appears",
+            headline: t("widget_snapshot.upcoming", "Upcoming"),
+            value: t("widget_snapshot.clear", "Clear"),
+            detail: t("widget_snapshot.no_upcoming_deadlines", "No upcoming deadlines"),
+            footnote: reviewCount > 0
+              ? t("widget_snapshot.review_imported_ready", "Review imported items when ready")
+              : t("widget_snapshot.add_homework_when_appears", "Add homework when it appears"),
             ...upcomingStyle,
-            signalLabel: "Clear week",
-            metricLabel: reviewCount > 0 ? `${reviewCount} to review` : "No open work",
-            nextLabel: reviewCount > 0 ? "Approve imported items first" : "Add homework when it appears",
-            timelineLabel: "Upcoming"
+            signalLabel: t("widget_snapshot.clear_week", "Clear week"),
+            metricLabel: reviewCount > 0
+              ? formatSnapshotTemplate(t("widget_snapshot.to_review", "{count} to review"), { count: reviewCount })
+              : t("widget_snapshot.no_open_work", "No open work"),
+            nextLabel: reviewCount > 0
+              ? t("widget_snapshot.approve_imported_first", "Approve imported items first")
+              : t("widget_snapshot.add_homework_when_appears", "Add homework when it appears"),
+            timelineLabel: t("widget_snapshot.upcoming", "Upcoming")
           })
   };
 }
 
 export async function syncStudyPlannerWidgets(input: WidgetSnapshotInput): Promise<WidgetSyncStatus> {
+  const { t } = getSnapshotLocalization(input);
+
   if (input.settings?.syncEnabled === false) {
     if (getPlatformOS() === "ios") {
       const snapshots = buildSyncDisabledWidgetSnapshots(input);
@@ -330,7 +385,10 @@ export async function syncStudyPlannerWidgets(input: WidgetSnapshotInput): Promi
         widgets.StudyPlannerUpcomingWidget.updateSnapshot(snapshots.upcoming);
         return {
           state: "skipped",
-          message: "Widget sync is off. Native widgets were cleared to a private off state.",
+          message: t(
+            "widget_snapshot.sync_off_cleared_status",
+            "Widget sync is off. Native widgets were cleared to a private off state."
+          ),
           updatedAt: snapshots.today.generatedAt
         };
       }
@@ -338,14 +396,14 @@ export async function syncStudyPlannerWidgets(input: WidgetSnapshotInput): Promi
 
     return {
       state: "skipped",
-      message: "Widget sync is off in StudyPlanner settings."
+      message: t("widget_snapshot.sync_off_settings_status", "Widget sync is off in StudyPlanner settings.")
     };
   }
 
   if (getPlatformOS() !== "ios") {
     return {
       state: "skipped",
-      message: "Native widgets are available on iOS builds."
+      message: t("widget_snapshot.ios_only_status", "Native widgets are available on iOS builds.")
     };
   }
 
@@ -356,7 +414,7 @@ export async function syncStudyPlannerWidgets(input: WidgetSnapshotInput): Promi
     if (!widgets) {
       return {
         state: "unavailable",
-        message: "Install a native iOS build with the widget extension to add widgets."
+        message: t("widget_snapshot.install_native_status", "Install a native iOS build with the widget extension to add widgets.")
       };
     }
 
@@ -365,19 +423,20 @@ export async function syncStudyPlannerWidgets(input: WidgetSnapshotInput): Promi
 
     return {
       state: "synced",
-      message: "Today and Upcoming widgets are using reviewed planner data.",
+      message: t("widget_snapshot.synced_status", "Today and Upcoming widgets are using reviewed planner data."),
       updatedAt: snapshots.today.generatedAt
     };
   } catch {
     return {
       state: "unavailable",
-      message: "Install a native iOS build with the widget extension to add widgets."
+      message: t("widget_snapshot.install_native_status", "Install a native iOS build with the widget extension to add widgets.")
     };
   }
 }
 
 function buildSyncDisabledWidgetSnapshots(input: WidgetSnapshotInput) {
   const now = input.now || new Date();
+  const { t } = getSnapshotLocalization(input);
   const generatedAt = now.toISOString();
   const base = {
     version: 1 as const,
@@ -385,39 +444,39 @@ function buildSyncDisabledWidgetSnapshots(input: WidgetSnapshotInput) {
     semesterName: input.semester.name,
     openURL: "studyplanner://widgets"
   };
-  const todayStyle = getNativeWidgetStyle("today", findNativePreset("today", input.widgetPresets || []), input.settings);
-  const upcomingStyle = getNativeWidgetStyle("upcoming", findNativePreset("upcoming", input.widgetPresets || []), input.settings);
+  const todayStyle = getNativeWidgetStyle("today", findNativePreset("today", input.widgetPresets || []), input.settings, t);
+  const upcomingStyle = getNativeWidgetStyle("upcoming", findNativePreset("upcoming", input.widgetPresets || []), input.settings, t);
 
   return {
     today: emptySnapshot({
       ...base,
       kind: "today",
       state: "sync_disabled" as const,
-      headline: "Today",
-      value: "Off",
-      detail: "Widget sync is off",
-      footnote: "Turn sync on in StudyPlanner",
+      headline: t("widget_snapshot.today", "Today"),
+      value: t("widget_snapshot.off", "Off"),
+      detail: t("widget_snapshot.widget_sync_off", "Widget sync is off"),
+      footnote: t("widget_snapshot.turn_sync_on", "Turn sync on in StudyPlanner"),
       ...todayStyle,
       progress: 0,
-      signalLabel: "Sync off",
-      metricLabel: "No planner data shared",
-      nextLabel: "Open Widgets settings",
-      timelineLabel: "Private"
+      signalLabel: t("widget_snapshot.sync_off", "Sync off"),
+      metricLabel: t("widget_snapshot.no_planner_data_shared", "No planner data shared"),
+      nextLabel: t("widget_snapshot.open_widgets_settings", "Open Widgets settings"),
+      timelineLabel: t("widget_snapshot.private", "Private")
     }),
     upcoming: emptySnapshot({
       ...base,
       kind: "upcoming",
       state: "sync_disabled" as const,
-      headline: "Upcoming",
-      value: "Off",
-      detail: "Widget sync is off",
-      footnote: "Native widgets were cleared",
+      headline: t("widget_snapshot.upcoming", "Upcoming"),
+      value: t("widget_snapshot.off", "Off"),
+      detail: t("widget_snapshot.widget_sync_off", "Widget sync is off"),
+      footnote: t("widget_snapshot.native_widgets_cleared", "Native widgets were cleared"),
       ...upcomingStyle,
       progress: 0,
-      signalLabel: "Sync off",
-      metricLabel: "No planner data shared",
-      nextLabel: "Open Widgets settings",
-      timelineLabel: "Private"
+      signalLabel: t("widget_snapshot.sync_off", "Sync off"),
+      metricLabel: t("widget_snapshot.no_planner_data_shared", "No planner data shared"),
+      nextLabel: t("widget_snapshot.open_widgets_settings", "Open Widgets settings"),
+      timelineLabel: t("widget_snapshot.private", "Private")
     })
   };
 }
@@ -504,15 +563,17 @@ function toWidgetItem(
   courses: Course[],
   now: Date,
   privacyMode = false,
-  fallbackColor = defaultAccent
+  fallbackColor = defaultAccent,
+  t: WidgetSnapshotTranslate = defaultTranslate,
+  locale = "en-US"
 ): StudyPlannerNativeWidgetItem {
   const course = courses.find((item) => item.id === assignment.courseId);
   return {
     id: assignment.id,
-    title: assignmentDisplayTitle(assignment, privacyMode),
-    courseCode: privacyMode ? "Class" : course?.code || "Class",
+    title: assignmentDisplayTitle(assignment, privacyMode, t),
+    courseCode: privacyMode ? t("widget_snapshot.class", "Class") : course?.code || t("widget_snapshot.class", "Class"),
     courseColor: privacyMode ? fallbackColor : readableWidgetAccent(course?.color, fallbackColor),
-    dueLabel: formatDueLabel(assignment.dueAt, now),
+    dueLabel: formatDueLabel(assignment.dueAt, now, t, locale),
     priority: assignment.priority,
     kind: assignment.kind
   };
@@ -533,34 +594,53 @@ function readableWidgetAccent(color: string | undefined, fallback = defaultAccen
   return luminance < 0.34 ? fallback : color;
 }
 
-function assignmentDisplayTitle(assignment: Assignment, privacyMode: boolean) {
-  return privacyMode ? "Hidden assignment" : cleanTitle(assignment.title);
+function assignmentDisplayTitle(
+  assignment: Assignment,
+  privacyMode: boolean,
+  t: WidgetSnapshotTranslate = defaultTranslate
+) {
+  return privacyMode ? t("widget_snapshot.hidden_assignment", "Hidden assignment") : cleanTitle(assignment.title, t);
 }
 
-function assignmentSignal(assignment: Assignment | undefined, courses: Course[], now: Date, privacyMode = false) {
-  if (!assignment) return "Open StudyPlanner";
+function assignmentSignal(
+  assignment: Assignment | undefined,
+  courses: Course[],
+  now: Date,
+  privacyMode = false,
+  t: WidgetSnapshotTranslate = defaultTranslate,
+  locale = "en-US"
+) {
+  if (!assignment) return t("widget_snapshot.open_studyplanner", "Open StudyPlanner");
 
   if (privacyMode) {
     return [
-      formatDueLabel(assignment.dueAt, now),
-      assignment.priority === "high" ? "High priority" : undefined
+      formatDueLabel(assignment.dueAt, now, t, locale),
+      assignment.priority === "high" ? t("widget_snapshot.high_priority", "High priority") : undefined
     ].filter(Boolean).join(" / ");
   }
 
   const course = courses.find((item) => item.id === assignment.courseId);
   const parts = [
-    course?.code || "Class",
-    formatDueLabel(assignment.dueAt, now),
-    assignment.priority === "high" ? "High priority" : undefined
+    course?.code || t("widget_snapshot.class", "Class"),
+    formatDueLabel(assignment.dueAt, now, t, locale),
+    assignment.priority === "high" ? t("widget_snapshot.high_priority", "High priority") : undefined
   ].filter(Boolean);
 
   return parts.join(" / ");
 }
 
-function effortMetricLabel(assignment: Assignment) {
+function effortMetricLabel(assignment: Assignment, t: WidgetSnapshotTranslate = defaultTranslate) {
   const minutes = Math.max(5, Math.round((assignment.estimatedMinutes || 0) / 5) * 5);
-  const priority = assignment.priority === "high" ? "High" : assignment.priority === "medium" ? "Medium" : undefined;
-  return [minutes ? `${minutes}m open` : undefined, priority].filter(Boolean).join(" / ");
+  const priority =
+    assignment.priority === "high"
+      ? t("widget_snapshot.high", "High")
+      : assignment.priority === "medium"
+        ? t("widget_snapshot.medium", "Medium")
+        : undefined;
+  return [
+    minutes ? formatSnapshotTemplate(t("widget_snapshot.minutes_open", "{minutes}m open"), { minutes }) : undefined,
+    priority
+  ].filter(Boolean).join(" / ");
 }
 
 function dueUrgencyLabel(iso: string, now: Date) {
@@ -582,7 +662,8 @@ function filterAssignmentsForPreset(assignments: Assignment[], preset?: WidgetPr
 function getNativeWidgetStyle(
   kind: StudyPlannerNativeWidgetKind | "upcoming",
   preset?: WidgetPreset,
-  settings?: UserSettings
+  settings?: UserSettings,
+  t: WidgetSnapshotTranslate = defaultTranslate
 ): Pick<
   StudyPlannerNativeWidgetProps,
   | "accentColor"
@@ -607,31 +688,38 @@ function getNativeWidgetStyle(
   const windowLabel =
     preset?.scheduleLabel ||
     (smartSlot === "morning"
-      ? "7-10 AM"
+      ? t("more.smart_morning_time", "7-10 AM")
       : smartSlot === "between_classes"
-        ? "10 AM-3 PM"
+        ? t("more.smart_between_time", "10 AM-3 PM")
         : smartSlot === "study_time"
-          ? "3-9 PM"
+          ? t("more.smart_study_time", "3-9 PM")
           : smartSlot === "night_review"
-            ? "9 PM+"
+            ? t("more.smart_night_time", "9 PM+")
             : kind === "today"
-              ? "Today"
-              : "Upcoming");
+              ? t("widget_snapshot.today", "Today")
+              : t("widget_snapshot.upcoming", "Upcoming"));
   const layout = preset?.layout || "list";
-  const densityLabel = preset?.size === "small" ? "Calm" : layout === "compact" || layout === "list" ? "Compact" : "Visual";
+  const densityLabel =
+    preset?.size === "small"
+      ? t("widget_snapshot.density_calm", "Calm")
+      : layout === "compact" || layout === "list"
+        ? t("widget_snapshot.density_compact", "Compact")
+        : t("widget_snapshot.density_visual", "Visual");
 
   return {
     accentColor,
     backgroundColor: backgroundColors[background] || defaultBackground,
-    styleLabel: `${labelize(background)} / ${labelize(palette)}`,
-    layoutLabel: labelize(layout),
+    styleLabel: `${widgetBackgroundLabel(background, t)} / ${widgetPaletteLabel(palette, t)}`,
+    layoutLabel: widgetLayoutLabel(layout, t),
     densityLabel,
     windowLabel,
-    courseScopeLabel: preset?.classFocusCourseId ? "Pinned class" : "All classes",
-    progressLabel: kind === "today" ? "Day plan" : "Due map",
+    courseScopeLabel: preset?.classFocusCourseId
+      ? t("widget_snapshot.pinned_class", "Pinned class")
+      : t("widget_snapshot.all_classes", "All classes"),
+    progressLabel: kind === "today" ? t("widget_snapshot.day_plan", "Day plan") : t("widget_snapshot.due_map", "Due map"),
     progress: kind === "today" ? 0.62 : 0.44,
     iconKey: preset?.iconKey || (kind === "today" ? "check" : "calendar"),
-    actionLabel: kind === "today" ? "Open Today" : "Open Upcoming"
+    actionLabel: kind === "today" ? t("widget_snapshot.open_today", "Open Today") : t("widget_snapshot.open_upcoming", "Open Upcoming")
   };
 }
 
@@ -650,6 +738,64 @@ function findNativePreset(kind: StudyPlannerNativeWidgetKind | "upcoming", prese
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
 }
 
+function widgetBackgroundLabel(background: WidgetBackground, t: WidgetSnapshotTranslate) {
+  switch (background) {
+    case "solid":
+      return t("widget_snapshot.background_solid", "Solid");
+    case "gradient":
+      return t("widget_snapshot.background_gradient", "Gradient");
+    case "dark":
+      return t("widget_snapshot.background_dark", "Dark");
+    case "glass":
+    default:
+      return t("widget_snapshot.background_glass", "Glass");
+  }
+}
+
+function widgetPaletteLabel(palette: WidgetPalette | "custom", t: WidgetSnapshotTranslate) {
+  switch (palette) {
+    case "sunset":
+      return t("more.palette_sunset", "Sunset");
+    case "forest":
+      return t("more.palette_forest", "Forest");
+    case "lavender":
+      return t("more.palette_lavender", "Lavender");
+    case "midnight":
+      return t("more.palette_midnight", "Midnight");
+    case "candy":
+      return t("more.palette_candy", "Candy");
+    case "minimal":
+      return t("more.palette_minimal", "Minimal");
+    case "graphite":
+      return t("more.palette_graphite", "Graphite");
+    case "aurora":
+      return t("more.palette_aurora", "Aurora");
+    case "paper":
+      return t("more.palette_paper", "Paper");
+    case "custom":
+      return t("widget_snapshot.palette_custom", "Custom");
+    case "ocean":
+    default:
+      return t("more.palette_ocean", "Ocean");
+  }
+}
+
+function widgetLayoutLabel(layout: WidgetPreset["layout"] | undefined, t: WidgetSnapshotTranslate) {
+  switch (layout) {
+    case "compact":
+      return t("widget_snapshot.layout_compact", "Compact");
+    case "ring":
+      return t("widget_snapshot.layout_ring", "Ring");
+    case "calendar":
+      return t("widget_snapshot.layout_calendar", "Calendar");
+    case "grid":
+      return t("widget_snapshot.layout_grid", "Grid");
+    case "list":
+    default:
+      return t("widget_snapshot.layout_list", "List");
+  }
+}
+
 function labelize(value: string) {
   return value
     .split("_")
@@ -657,39 +803,57 @@ function labelize(value: string) {
     .join(" ");
 }
 
-function cleanTitle(value: string) {
-  return value.trim().replace(/\s+/g, " ").slice(0, 72) || "Homework";
+function cleanTitle(value: string, t: WidgetSnapshotTranslate = defaultTranslate) {
+  return value.trim().replace(/\s+/g, " ").slice(0, 72) || t("widget_snapshot.homework", "Homework");
 }
 
-function formatDueLabel(iso: string, now: Date) {
-  if (!isValidDeadline(iso)) return "Review";
+function formatDueLabel(
+  iso: string,
+  now: Date,
+  t: WidgetSnapshotTranslate = defaultTranslate,
+  locale = "en-US"
+) {
+  if (!isValidDeadline(iso)) return t("widget_snapshot.review", "Review");
 
   const days = daysUntil(iso, now);
-  if (days < 0) return "Overdue";
-  if (days === 0) return "Today";
-  if (days === 1) return "Tomorrow";
-  if (days <= 6) return weekdayName(iso);
-  return shortDate(iso);
+  if (days < 0) return t("widget_snapshot.overdue", "Overdue");
+  if (days === 0) return t("widget_snapshot.today", "Today");
+  if (days === 1) return t("widget_snapshot.tomorrow", "Tomorrow");
+  if (days <= 6) return weekdayName(iso, locale);
+  return shortDate(iso, locale);
 }
 
-function formatWidgetValueLabel(iso: string, now: Date) {
-  if (!isValidDeadline(iso)) return "Review";
+function formatWidgetValueLabel(
+  iso: string,
+  now: Date,
+  t: WidgetSnapshotTranslate = defaultTranslate,
+  locale = "en-US"
+) {
+  if (!isValidDeadline(iso)) return t("widget_snapshot.review", "Review");
 
   const days = daysUntil(iso, now);
-  if (days < 0) return "Late";
-  if (days === 0) return "Today";
-  if (days === 1) return "Tmrw";
-  if (days <= 6) return weekdayName(iso);
-  return shortDate(iso);
+  if (days < 0) return t("widget_snapshot.late", "Late");
+  if (days === 0) return t("widget_snapshot.today", "Today");
+  if (days === 1) return t("widget_snapshot.tomorrow_short", "Tmrw");
+  if (days <= 6) return weekdayName(iso, locale);
+  return shortDate(iso, locale);
 }
 
-function weekdayName(iso: string) {
-  return new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(new Date(iso));
+function weekdayName(iso: string, locale = "en-US") {
+  return formatWidgetDate(iso, locale, { weekday: "short" });
 }
 
-function shortDate(iso: string) {
-  return new Intl.DateTimeFormat("en-US", {
+function shortDate(iso: string, locale = "en-US") {
+  return formatWidgetDate(iso, locale, {
     month: "short",
     day: "numeric"
-  }).format(new Date(iso));
+  });
+}
+
+function formatWidgetDate(iso: string, locale: string, options: Intl.DateTimeFormatOptions) {
+  try {
+    return new Intl.DateTimeFormat(locale, options).format(new Date(iso));
+  } catch {
+    return new Intl.DateTimeFormat("en-US", options).format(new Date(iso));
+  }
 }

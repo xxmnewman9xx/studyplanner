@@ -346,7 +346,7 @@ export default function App() {
 
 function AppContent() {
   const { theme, setAccent, setMode } = useAppTheme();
-  const { t, isRTL } = useI18n();
+  const { t, isRTL, locale } = useI18n();
   const { colors } = theme;
   const { width } = useWindowDimensions();
   const tablet = width >= 760;
@@ -621,7 +621,9 @@ function AppContent() {
       parsedImports,
       settings,
       widgetPresets,
-      demoMode
+      demoMode,
+      locale,
+      translate: t
     }).then(setNativeWidgetStatus);
   }, [
     assignments,
@@ -629,6 +631,7 @@ function AppContent() {
     focusSessions,
     gradeItems,
     hydrated,
+    locale,
     notes,
     demoMode,
     onboarded,
@@ -638,6 +641,7 @@ function AppContent() {
     semester,
     settings,
     targetGradePercent,
+    t,
     widgetPresets
   ]);
 
@@ -652,9 +656,11 @@ function AppContent() {
       parsedImports: [],
       settings,
       widgetPresets,
-      demoMode: true
+      demoMode: true,
+      locale,
+      translate: t
     }).then(setNativeWidgetStatus);
-  }, [hydrated, semester, settings, widgetPresets]);
+  }, [hydrated, locale, semester, settings, t, widgetPresets]);
 
   useEffect(() => {
     if (marketingCaptureEnabled) return;
