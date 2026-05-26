@@ -1,6 +1,6 @@
 # Validation Report
 
-Date: 2026-05-26 08:58 EDT / 2026-05-26 12:58 UTC
+Date: 2026-05-26 10:46 EDT / 2026-05-26 14:46 UTC
 
 ## Final Blocker Closure Pass
 
@@ -17,7 +17,14 @@ Scoped validation after those docs:
 - `npm run check:localization` passed.
 - `npm run check:iap` passed.
 
-Final release recommendation remains no release/no upload because physical TestFlight camera proof is unavailable from the current machine, App Store Connect subscription metadata localization was not configured/proven, and Arabic RTL requires either a dedicated hardening recapture or explicit owner acceptance.
+Final release recommendation remains no release. Build `28` was later built locally and uploaded to EAS Submit after explicit owner direction, but the latest observed EAS submission state is `IN_QUEUE`. Physical TestFlight camera proof is still unavailable from the current machine, App Store Connect subscription metadata localization was not configured/proven, and Arabic RTL requires either a dedicated hardening recapture or explicit owner acceptance.
+
+Additional upload validation:
+
+- `npm run qa:release` passed before building build `28`.
+- Local production IPA `builds/StudyPlanner-1.0.2-b28.ipa` was created successfully after clearing generated build/cache artifacts.
+- IPA SHA-256: `b1756fbdc6b8e947e0149502570e9611c309f143b9b6a6f2628a628743295a0a`.
+- EAS submission `86285642-118c-49cb-957d-3ff727e19095` was scheduled and last observed as `IN_QUEUE`.
 
 ## Passed In This Rescue Cycle
 

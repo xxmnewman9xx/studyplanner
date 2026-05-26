@@ -1,12 +1,14 @@
 # Physical Camera Proof
 
-Date: 2026-05-26 08:55 EDT
+Date: 2026-05-26 10:46 EDT
 
 ## Result
 
 Release status: blocked.
 
 No physical iPhone is connected to this machine, so physical camera permission, live camera capture, and TestFlight camera-to-review proof were not produced in this pass.
+
+Build `28` has since been built locally and uploaded to EAS Submit as a TestFlight proof candidate, but the latest observed EAS submission state is `IN_QUEUE`. Apple/App Store Connect completion and physical device proof are still missing.
 
 ## Local Device Check
 
@@ -40,6 +42,8 @@ Current source config:
 - iOS build number: `28`
 - Bundle ID: `com.mattnewman.studyplanner`
 - ASC app ID: `6766181202`
+- EAS submission URL for build `28`: `https://expo.dev/accounts/xxmnewman9xx/projects/study-planner-syllabus-ai/submissions/86285642-118c-49cb-957d-3ff727e19095`
+- Latest observed submission state: `IN_QUEUE`
 
 `eas build:list --platform ios --limit 5 --non-interactive` returned only older remote iOS builds:
 
@@ -49,7 +53,7 @@ Current source config:
 | `93f77597-d52b-42c2-ac0b-0a2b77537c45` | `1.0.0` | `10` | 2026-05-05 19:00 | `a6717d9d0f53d52b2735df3f311b151cf60ad4e0` |
 | `301b0693-b84e-410a-a6fb-f0e34566b0a7` | `1.0.0` | `9` | 2026-05-05 11:00 | `82e748aa9fae244fb2de410bf7f7a71bb70e8979` |
 
-The existing `docs/launch/2026-05-26/testflight-upload-receipt.md` documents build `27` as a historical upload and explicitly says no new TestFlight upload was performed after the 2026-05-26 OCR rescue changes. The latest proven native build is a Release simulator build, not physical TestFlight proof.
+The latest proven native behavior is still Release simulator proof, not physical TestFlight proof. Build `28` must finish EAS Submit, process in App Store Connect, install through TestFlight on a physical iPhone, and complete a live camera scan before this blocker is closed.
 
 ## Already Proven Outside Physical Device
 
@@ -90,4 +94,4 @@ The release still lacks:
 
 ## Recommendation
 
-Do not ship or upload a new build from this machine state. The physical camera blocker remains open until the proof above is captured on real hardware.
+Do not ship from this machine state. The physical camera blocker remains open until the proof above is captured on real hardware.

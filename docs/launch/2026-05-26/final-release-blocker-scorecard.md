@@ -1,12 +1,12 @@
 # Final Release Blocker Scorecard
 
-Date: 2026-05-26 08:55 EDT
+Date: 2026-05-26 10:46 EDT
 
 ## Recommendation
 
-No release. Do not upload a new build from this state.
+No release.
 
-The core simulator/backend proof is strong, but the final release criteria are not met because physical camera proof and App Store Connect subscription metadata localization are externally unproven, and Arabic RTL is not explicitly accepted as release-safe.
+Build `28` was uploaded to EAS Submit as a TestFlight proof candidate after explicit owner direction, but final release criteria are still not met. The core simulator/backend proof is strong, but physical camera proof and App Store Connect subscription metadata localization are externally unproven, and Arabic RTL is not explicitly accepted as release-safe.
 
 ## Scorecard
 
@@ -38,9 +38,14 @@ The core simulator/backend proof is strong, but the final release criteria are n
 
 ## TestFlight Upload
 
-No new TestFlight upload was performed.
+Build `28` was built locally and uploaded to EAS Submit.
 
-The latest EAS remote store build returned by `eas build:list` is an older `1.0.0` build `11` from 2026-05-06. The existing build `27` receipt is historical and already documented as not including the current OCR rescue state. Current source config is `1.0.2` build `28`, but final release blockers are not closed, so uploading would violate the release criteria.
+- IPA: `builds/StudyPlanner-1.0.2-b28.ipa`
+- SHA-256: `b1756fbdc6b8e947e0149502570e9611c309f143b9b6a6f2628a628743295a0a`
+- EAS submission URL: `https://expo.dev/accounts/xxmnewman9xx/projects/study-planner-syllabus-ai/submissions/86285642-118c-49cb-957d-3ff727e19095`
+- Latest observed EAS submission state: `IN_QUEUE`
+
+Apple/App Store Connect completion is not yet proven. This upload does not close the physical camera proof blocker until build `28` is processed, installed through TestFlight on a physical iPhone, and used to create review cards from live camera capture.
 
 ## Final Gate
 
