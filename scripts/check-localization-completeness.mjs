@@ -6,6 +6,7 @@ const sourceFiles = {
   i18n: readFileSync("src/i18n.tsx", "utf8"),
   today: readFileSync("src/screens/TodayScreen.tsx", "utf8"),
   plan: readFileSync("src/screens/PlanScreen.tsx", "utf8"),
+  courses: readFileSync("src/screens/CoursesScreen.tsx", "utf8"),
   onboarding: readFileSync("src/screens/OnboardingScreen.tsx", "utf8"),
   importScreen: readFileSync("src/screens/ImportScreen.tsx", "utf8"),
   paywall: readFileSync("src/screens/UpgradeScreen.tsx", "utf8"),
@@ -113,6 +114,7 @@ assert(sourceFiles.app.includes("<I18nProvider>"), "App must wrap runtime UI in 
 assert(sourceFiles.app.includes("t(tab.labelKey)"), "Navigation labels must use runtime localization keys.");
 assert(sourceFiles.today.includes("useI18n") && sourceFiles.today.includes("today.quick_capture"), "Today screen must consume runtime localization keys.");
 assert(sourceFiles.plan.includes("useI18n") && sourceFiles.plan.includes("plan.capture_title"), "Calendar screen must consume runtime localization keys.");
+assert(sourceFiles.courses.includes("useI18n") && sourceFiles.courses.includes("classes.course_hub"), "Classes screen must consume runtime localization keys.");
 assert(sourceFiles.onboarding.includes("useI18n") && sourceFiles.onboarding.includes("slide.titleKey"), "Onboarding must consume runtime localization keys.");
 assert(sourceFiles.importScreen.includes("useI18n") && sourceFiles.importScreen.includes("import.photo_disabled_message"), "Import screen must consume runtime localization keys.");
 assert(sourceFiles.paywall.includes("useI18n") && sourceFiles.paywall.includes("paywall.hard_subtitle"), "Paywall must consume runtime localization keys.");
@@ -169,6 +171,30 @@ const hardcodedLaunchStrings = [
       "Grouped by urgency",
       "Busy week detected.",
       "Week is under control."
+    ]
+  },
+  {
+    file: "src/screens/CoursesScreen.tsx",
+    source: sourceFiles.courses,
+    phrases: [
+      "Class library",
+      "Classes, rooms, notes, and open work in one place.",
+      "Classes state",
+      "Tap a class to see homework, teacher, room, and notes.",
+      "Add your first class",
+      "Homework needs a class so Today, reminders, and widgets know where it belongs.",
+      "Edit details and see what is due.",
+      "No linked notes yet",
+      "Homework for this class",
+      "No homework for this class yet.",
+      "Add this class",
+      "Add homework to a class",
+      "HIST chapter 4 notes tomorrow",
+      "Weekly schedule",
+      "No classes",
+      "No class library yet.",
+      "Classes are carrying live work.",
+      "Classes are clean right now."
     ]
   },
   {

@@ -301,6 +301,7 @@ export function ClassIdentityCard({
   onPress?: () => void;
 }) {
   const { theme } = useAppTheme();
+  const { t } = useI18n();
   const styles = createStyles(theme);
   const content = (
     <>
@@ -312,9 +313,11 @@ export function ClassIdentityCard({
           {course.code}
         </Text>
         <Text style={styles.classCardMeta} numberOfLines={1}>
-          {course.teacher || course.instructor || "Teacher"} · {course.period || "Period"}
+          {course.teacher || course.instructor || t("classes.teacher_placeholder", "Teacher")} · {course.period || t("classes.field_period", "Period")}
         </Text>
-        <Text style={styles.classCardSubtle} numberOfLines={1}>{openCount} open · {doneCount} completed</Text>
+        <Text style={styles.classCardSubtle} numberOfLines={1}>
+          {openCount} {t("classes.open", "open")} · {doneCount} {t("classes.completed", "completed")}
+        </Text>
       </View>
       <ChevronRight color={theme.colors.faint} size={18} />
     </>

@@ -77,10 +77,10 @@ assert(app.includes("setPaywallSeen(false);") && app.includes("<UpgradeScreen ha
 assert(app.includes("SkeletonBar") && app.includes("skeletonStack"), "App loading must use a real skeleton loader, not only a spinner.");
 assert(app.includes('url.includes("expo-development-client")'), "Dev-client URLs must not trip production deeplink tab routing.");
 assert(!upgrade.includes(`Continue ${oldNoCostPrefix} to Scan`), "Hard paywall must not expose a planner bypass.");
-assert(today.includes('label="Scan syllabus"') && today.includes("onPress={onOpenScan}"), "Scan starter CTA should route to scan/import.");
+assert(today.includes('label={t("today.scan_syllabus", "Scan syllabus")}') && today.includes("onPress={onOpenScan}"), "Scan starter CTA should route to scan/import.");
 assert(today.includes("No schoolwork added yet") && today.includes("Scan a syllabus or add one class"), "Empty Today should teach the first action, not claim the user is caught up.");
 assert(today.includes("onTryDemo") && today.includes("demoMode"), "Today should support a truthful demo path and demo banner.");
-assert(today.includes('label="Set reminders"') && today.includes('label="Sync calendar"') && today.includes("premiumAutomationLocked ? onOpenPaywall : onScheduleReminders") && today.includes("premiumAutomationLocked ? onOpenPaywall : onCalendarSync"), "Today must expose real reminder and calendar actions.");
+assert(today.includes('label={t("today.set_reminders", "Set reminders")}') && today.includes('label={t("today.sync_calendar", "Sync calendar")}') && today.includes("premiumAutomationLocked ? onOpenPaywall : onScheduleReminders") && today.includes("premiumAutomationLocked ? onOpenPaywall : onCalendarSync"), "Today must expose real reminder and calendar actions.");
 assert(app.includes("marketingCaptureEnabled ? marketingCaptureCourses : []"), "Normal first-run courses must be empty.");
 assert(app.includes("marketingCaptureEnabled ? marketingCaptureAssignments : []"), "Normal first-run assignments must be empty.");
 assert(app.includes("marketingCaptureEnabled ? marketingCaptureGradeItems : []"), "Normal first-run grade items must be empty.");

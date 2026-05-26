@@ -11,7 +11,6 @@ import { AppButton } from "../components/AppButton";
 import { SectionHeader } from "../components/SectionHeader";
 import { Assignment, AssignmentKind, Course, Semester, StudyNote } from "../models";
 import {
-  formatDateOnly,
   getClassAssignmentCounts,
   groupMeetingsByDay
 } from "../logic/planner";
@@ -19,6 +18,7 @@ import { parseQuickHomeworkInput } from "../services/quickHomeworkParser";
 import { AppTheme, classColors } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { courseEmoji } from "../utils/courseVisuals";
+import { useI18n } from "../i18n";
 
 type CoursesScreenProps = {
   semester: Semester;
@@ -38,6 +38,8 @@ type CoursesScreenProps = {
   onUpdateCourse: (courseId: string, patch: Partial<Course>) => void;
 };
 
+type TranslateFn = (key: string, fallback?: string) => string;
+
 export function CoursesScreen({
   semester,
   courses,
@@ -51,6 +53,7 @@ export function CoursesScreen({
   onUpdateCourse
 }: CoursesScreenProps) {
   const { theme } = useAppTheme();
+  const { t, locale } = useI18n();
   const { colors } = theme;
   const styles = createStyles(theme);
   const [selectedCourseId, setSelectedCourseId] = useState(courses[0]?.id || "");
@@ -64,11 +67,11 @@ export function CoursesScreen({
   const weekly = groupMeetingsByDay(courses);
   const counts = getClassAssignmentCounts(courses, assignments);
   const selectedCourse = courses.find((course) => course.id === selectedCourseId) || courses[0];
-  const selectedCourseTitle = selectedCourse?.code || selectedCourse?.name || "Class";
+  const selectedCourseTitle = selectedCourse?.code || selectedCourse?.name || t("classes.class_fallback", "Class");
   const selectedCourseMeta = selectedCourse
     ? [selectedCourse.teacher || selectedCourse.instructor, selectedCourse.period, selectedCourse.room]
         .filter(Boolean)
-        .join(" · ") || "Add teacher, period, and room."
+        .join(" · ") || t("classes.add_teacher_period_room", "Add teacher, period, and room.")
     : "";
   const openAssignmentCount = assignments.filter((assignment) => assignment.status !== "done" && assignment.status !== "archived").length;
   const parsedQuickWork = parseQuickHomeworkInput(title, courses, selectedCourse, dueDate);
@@ -87,7 +90,7 @@ export function CoursesScreen({
         .sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)) || new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     : [];
   const needsReviewCount = Object.values(counts).reduce((sum, item) => sum + item.needsReview, 0);
-  const classHealth = buildClassHealth(courses.length, openAssignmentCount, needsReviewCount);
+  const classHealth = buildClassHealth(courses.length, openAssignmentCount, needsReviewCount, t);
 
   useEffect(() => {
     if (courses.length === 0) {
@@ -114,20 +117,22 @@ export function CoursesScreen({
       <GlassCard tone="hero" style={styles.hero}>
         <View style={styles.heroTop}>
           <View style={styles.heroTitleBlock}>
-            <Text style={styles.kicker}>Class library</Text>
+            <Text style={styles.kicker}>{t("classes.library", "Class library")}</Text>
             <Text style={styles.heroTitle}>{semester.name}</Text>
             <Text style={styles.heroCopy}>
-              Classes, rooms, notes, and open work in one place.
+              {t("classes.hero_copy", "Classes, rooms, notes, and open work in one place.")}
             </Text>
           </View>
           <View style={styles.classCountBadge}>
             <Text style={styles.classCountValue}>{courses.length}</Text>
-            <Text style={styles.classCountLabel}>Classes</Text>
+            <Text style={styles.classCountLabel}>{t("tabs.classes", "Classes")}</Text>
           </View>
         </View>
         <View style={styles.semesterMetaRow}>
-          <Text style={styles.semesterMetaText}>{formatDateOnly(semester.startDate)} → {formatDateOnly(semester.endDate)}</Text>
-          <Text style={styles.semesterMetaText}>{openAssignmentCount} open</Text>
+          <Text style={styles.semesterMetaText}>{formatClassDate(semester.startDate, locale, t)} → {formatClassDate(semester.endDate, locale, t)}</Text>
+          <Text style={styles.semesterMetaText}>
+            {formatLocalized(t("classes.open_count", "{count} open"), { count: String(openAssignmentCount) })}
+          </Text>
         </View>
         <TouchableOpacity
           accessibilityRole="button"
@@ -135,28 +140,28 @@ export function CoursesScreen({
           onPress={() => setEditingSemesterDates((current) => !current)}
         >
           <View style={styles.dateSummaryItem}>
-            <Text style={styles.dateSummaryLabel}>Starts</Text>
-            <Text style={styles.dateSummaryValue}>{formatDateOnly(semester.startDate)}</Text>
+            <Text style={styles.dateSummaryLabel}>{t("classes.starts", "Starts")}</Text>
+            <Text style={styles.dateSummaryValue}>{formatClassDate(semester.startDate, locale, t)}</Text>
           </View>
           <View style={styles.dateSummaryItem}>
-            <Text style={styles.dateSummaryLabel}>Ends</Text>
-            <Text style={styles.dateSummaryValue}>{formatDateOnly(semester.endDate)}</Text>
+            <Text style={styles.dateSummaryLabel}>{t("classes.ends", "Ends")}</Text>
+            <Text style={styles.dateSummaryValue}>{formatClassDate(semester.endDate, locale, t)}</Text>
           </View>
-          <Text style={styles.editDatesText}>{editingSemesterDates ? "Done" : "Edit"}</Text>
+          <Text style={styles.editDatesText}>{editingSemesterDates ? t("classes.done", "Done") : t("classes.edit", "Edit")}</Text>
         </TouchableOpacity>
         {editingSemesterDates ? (
           <View style={styles.semesterDates}>
             <TextInput
               value={semester.startDate}
               onChangeText={(startDate) => onUpdateSemester({ startDate })}
-              placeholder="YYYY-MM-DD"
+              placeholder={t("classes.date_placeholder", "YYYY-MM-DD")}
               placeholderTextColor={colors.heroMuted}
               style={styles.dateInput}
             />
             <TextInput
               value={semester.endDate}
               onChangeText={(endDate) => onUpdateSemester({ endDate })}
-              placeholder="YYYY-MM-DD"
+              placeholder={t("classes.date_placeholder", "YYYY-MM-DD")}
               placeholderTextColor={colors.heroMuted}
               style={styles.dateInput}
             />
@@ -171,9 +176,9 @@ export function CoursesScreen({
               <Text style={styles.courseHubEmoji}>{courseEmoji(selectedCourse)}</Text>
             </View>
             <View style={styles.courseHubCopy}>
-              <Text style={styles.courseHubKicker}>Course hub</Text>
+              <Text style={styles.courseHubKicker}>{t("classes.course_hub", "Course hub")}</Text>
               <Text style={styles.courseHubTitle} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>
-                {selectedCourse.code} · {selectedCourse.name || "Class"}
+                {selectedCourse.code} · {selectedCourse.name || t("classes.class_fallback", "Class")}
               </Text>
               <Text style={styles.courseHubMeta} numberOfLines={1}>
                 {selectedCourseMeta}
@@ -181,9 +186,9 @@ export function CoursesScreen({
             </View>
           </View>
           <View style={styles.courseHubStats}>
-            <ClassStateTile label="Open" value={String(selectedOpenAssignments.length)} detail={selectedNextAssignment?.title || "no homework"} />
-            <ClassStateTile label="Notes" value={String(selectedNotes.length)} detail={selectedNotes[0]?.title || "ready"} />
-            <ClassStateTile label="Meets" value={String(selectedCourse.meetings?.length || 0)} detail={selectedCourse.meetings?.[0]?.location || "add schedule"} />
+            <ClassStateTile label={t("classes.open", "Open")} value={String(selectedOpenAssignments.length)} detail={selectedNextAssignment?.title || t("classes.no_homework", "no homework")} />
+            <ClassStateTile label={t("tabs.notes", "Notes")} value={String(selectedNotes.length)} detail={selectedNotes[0]?.title || t("classes.ready", "ready")} />
+            <ClassStateTile label={t("classes.meets", "Meets")} value={String(selectedCourse.meetings?.length || 0)} detail={selectedCourse.meetings?.[0]?.location || t("classes.add_schedule", "add schedule")} />
           </View>
         </GlassCard>
       ) : null}
@@ -192,26 +197,26 @@ export function CoursesScreen({
         <GlassCard style={styles.opsCard}>
           <View style={styles.opsHeader}>
             <View style={styles.opsHeaderCopy}>
-              <Text style={styles.opsKicker}>Classes state</Text>
+              <Text style={styles.opsKicker}>{t("classes.state", "Classes state")}</Text>
               <Text style={styles.opsTitle}>{classHealth.title}</Text>
             </View>
             <Text style={styles.opsBadge}>{classHealth.badge}</Text>
           </View>
           <Text style={styles.opsCopy}>{classHealth.copy}</Text>
           <View style={styles.opsGrid}>
-            <ClassStateTile label="Open" value={String(openAssignmentCount)} detail="across classes" />
-            <ClassStateTile label="Review" value={String(needsReviewCount)} detail={needsReviewCount ? "check imports" : "clean"} />
-            <ClassStateTile label="Notes" value={String(notes.length)} detail={notes.length ? "linked context" : "ready"} />
+            <ClassStateTile label={t("classes.open", "Open")} value={String(openAssignmentCount)} detail={t("classes.across_classes", "across classes")} />
+            <ClassStateTile label={t("today.metric_review", "Review")} value={String(needsReviewCount)} detail={needsReviewCount ? t("classes.check_imports", "check imports") : t("classes.clean", "clean")} />
+            <ClassStateTile label={t("tabs.notes", "Notes")} value={String(notes.length)} detail={notes.length ? t("classes.linked_context", "linked context") : t("classes.ready", "ready")} />
           </View>
         </GlassCard>
       ) : null}
 
-      <SectionHeader title="Your classes" note="Tap a class to see homework, teacher, room, and notes." />
+      <SectionHeader title={t("classes.your_classes", "Your classes")} note={t("classes.your_classes_note", "Tap a class to see homework, teacher, room, and notes.")} />
       <View style={styles.courseList}>
         {courses.length === 0 ? (
           <GlassCard style={styles.emptyClassCard}>
-            <Text style={styles.emptyClassTitle}>Add your first class</Text>
-            <Text style={styles.emptyClassCopy}>Homework needs a class so Today, reminders, and widgets know where it belongs.</Text>
+            <Text style={styles.emptyClassTitle}>{t("classes.add_first_class", "Add your first class")}</Text>
+            <Text style={styles.emptyClassCopy}>{t("classes.homework_needs_class", "Homework needs a class so Today, reminders, and widgets know where it belongs.")}</Text>
           </GlassCard>
         ) : courses.map((course) => (
           <ClassIdentityCard
@@ -226,7 +231,7 @@ export function CoursesScreen({
 
       {selectedCourse ? (
         <>
-          <SectionHeader title={selectedCourseTitle} note="Edit details and see what is due." />
+          <SectionHeader title={selectedCourseTitle} note={t("classes.detail_note", "Edit details and see what is due.")} />
           <GlassCard style={styles.detailCard}>
             <View style={[styles.classHero, { backgroundColor: selectedCourse.color }]}> 
               <View style={styles.classHeroTexture} />
@@ -239,54 +244,54 @@ export function CoursesScreen({
             <View style={styles.detailStats}>
               <View style={styles.detailStat}>
                 <Text style={styles.detailStatValue}>{counts[selectedCourse.id]?.open || 0}</Text>
-                <Text style={styles.detailStatLabel}>Open</Text>
+                <Text style={styles.detailStatLabel}>{t("classes.open", "Open")}</Text>
               </View>
               <View style={styles.detailStat}>
                 <Text style={styles.detailStatValue}>{selectedNotes.length}</Text>
-                <Text style={styles.detailStatLabel}>Notes</Text>
+                <Text style={styles.detailStatLabel}>{t("tabs.notes", "Notes")}</Text>
               </View>
               <View style={styles.detailStat}>
                 <Text style={styles.detailStatValue}>{selectedCourse.meetings?.length || "0"}</Text>
-                <Text style={styles.detailStatLabel}>Meets</Text>
+                <Text style={styles.detailStatLabel}>{t("classes.meets", "Meets")}</Text>
               </View>
             </View>
             <View style={styles.editGrid}>
-              <Field label="Class">
+              <Field label={t("classes.field_class", "Class")}>
                 <TextInput
                   value={selectedCourse.code}
                   onChangeText={(code) => onUpdateCourse(selectedCourse.id, { code })}
-                  placeholder="Algebra II"
+                  placeholder={t("classes.class_placeholder", "Algebra II")}
                   placeholderTextColor={colors.heroMuted}
                   style={styles.input}
                 />
               </Field>
-              <Field label="Teacher">
+              <Field label={t("classes.field_teacher", "Teacher")}>
                 <TextInput
                   value={selectedCourse.teacher || selectedCourse.instructor || ""}
                   onChangeText={(teacher) =>
                     onUpdateCourse(selectedCourse.id, { teacher, instructor: teacher })
                   }
-                  placeholder="Teacher"
+                  placeholder={t("classes.teacher_placeholder", "Teacher")}
                   placeholderTextColor={colors.heroMuted}
                   style={styles.input}
                 />
               </Field>
             </View>
             <View style={styles.editGrid}>
-              <Field label="Period">
+              <Field label={t("classes.field_period", "Period")}>
                 <TextInput
                   value={selectedCourse.period || ""}
                   onChangeText={(period) => onUpdateCourse(selectedCourse.id, { period })}
-                  placeholder="Period 4"
+                  placeholder={t("classes.period_placeholder", "Period 4")}
                   placeholderTextColor={colors.heroMuted}
                   style={styles.input}
                 />
               </Field>
-              <Field label="Room">
+              <Field label={t("classes.field_room", "Room")}>
                 <TextInput
                   value={selectedCourse.room || ""}
                   onChangeText={(room) => onUpdateCourse(selectedCourse.id, { room })}
-                  placeholder="Room"
+                  placeholder={t("classes.room_placeholder", "Room")}
                   placeholderTextColor={colors.heroMuted}
                   style={styles.input}
                 />
@@ -307,11 +312,11 @@ export function CoursesScreen({
                 />
               ))}
             </View>
-            <Field label="Class notes">
+            <Field label={t("classes.field_class_notes", "Class notes")}>
               <TextInput
                 value={selectedCourse.notes || ""}
                 onChangeText={(notes) => onUpdateCourse(selectedCourse.id, { notes })}
-                placeholder="Things to remember, teacher preferences, links, or quick class notes"
+                placeholder={t("classes.notes_placeholder", "Things to remember, teacher preferences, links, or quick class notes")}
                 placeholderTextColor={colors.heroMuted}
                 style={[styles.input, styles.notesInput]}
                 multiline
@@ -320,28 +325,37 @@ export function CoursesScreen({
             </Field>
           </GlassCard>
 
-          <SectionHeader title="Linked notes" note="Notes attached to this class." />
+          <SectionHeader title={t("classes.linked_notes", "Linked notes")} note={t("classes.linked_notes_note", "Notes attached to this class.")} />
           <GlassCard style={styles.linkedNotesCard}>
             {selectedNotes.length ? selectedNotes.slice(0, 3).map((note) => (
               <TouchableOpacity key={note.id} accessibilityRole="button" style={styles.linkedNoteRow} onPress={onOpenNotes}>
                 <View style={styles.linkedNoteIcon}><NotebookPen color={colors.accent} size={16} /></View>
                 <View style={styles.linkedNoteCopy}>
-                  <Text style={styles.linkedNoteTitle} numberOfLines={1}>{note.pinned ? "Pinned · " : ""}{note.title}</Text>
+                  <Text style={styles.linkedNoteTitle} numberOfLines={1}>{note.pinned ? `${t("classes.pinned", "Pinned")} · ` : ""}{note.title}</Text>
                   <Text style={styles.linkedNoteBody} numberOfLines={2}>{note.body}</Text>
                 </View>
               </TouchableOpacity>
             )) : (
               <TouchableOpacity accessibilityRole="button" style={styles.linkedNoteEmpty} onPress={onOpenNotes}>
-                <Text style={styles.linkedNoteTitle}>No linked notes yet</Text>
-                <Text style={styles.linkedNoteBody}>Open Notes to save agenda context for {selectedCourseTitle}.</Text>
+                <Text style={styles.linkedNoteTitle}>{t("classes.no_linked_notes", "No linked notes yet")}</Text>
+                <Text style={styles.linkedNoteBody}>
+                  {formatLocalized(t("classes.open_notes_for_context", "Open Notes to save agenda context for {course}."), {
+                    course: selectedCourseTitle
+                  })}
+                </Text>
               </TouchableOpacity>
             )}
           </GlassCard>
 
-          <SectionHeader title="Homework for this class" note={`${counts[selectedCourse.id]?.open || 0} still open`} />
+          <SectionHeader
+            title={t("classes.homework_for_class", "Homework for this class")}
+            note={formatLocalized(t("classes.still_open_count", "{count} still open"), {
+              count: String(counts[selectedCourse.id]?.open || 0)
+            })}
+          />
           <View style={styles.workList}>
             {selectedAssignments.length === 0 ? (
-              <Text style={styles.emptyDay}>No homework for this class yet. Add one below or scan a syllabus from the Scan tab.</Text>
+              <Text style={styles.emptyDay}>{t("classes.no_homework_for_class", "No homework for this class yet. Add one below or scan a syllabus from the Scan tab.")}</Text>
             ) : (
               selectedAssignments.slice(0, 5).map((assignment) => (
                 <AssignmentRow
@@ -357,20 +371,20 @@ export function CoursesScreen({
         </>
       ) : null}
 
-      <SectionHeader title="Add a class" note="Type the class name, teacher, and room." />
+      <SectionHeader title={t("classes.add_class", "Add a class")} note={t("classes.add_class_note", "Type the class name, teacher, and room.")} />
       <GlassCard style={styles.addCard}>
         <View style={styles.editGrid}>
           <TextInput
             value={newCourseCode}
             onChangeText={setNewCourseCode}
-            placeholder="BIO 101 or Algebra II"
+            placeholder={t("classes.new_code_placeholder", "BIO 101 or Algebra II")}
             placeholderTextColor={colors.heroMuted}
             style={[styles.input, styles.fieldHalf]}
           />
           <TextInput
             value={newCourseInstructor}
             onChangeText={setNewCourseInstructor}
-            placeholder="Teacher"
+            placeholder={t("classes.teacher_placeholder", "Teacher")}
             placeholderTextColor={colors.heroMuted}
             style={[styles.input, styles.fieldHalf]}
           />
@@ -378,12 +392,12 @@ export function CoursesScreen({
         <TextInput
           value={newCourseName}
           onChangeText={setNewCourseName}
-          placeholder="Course name"
+          placeholder={t("classes.course_name_placeholder", "Course name")}
           placeholderTextColor={colors.heroMuted}
           style={styles.input}
         />
         <AppButton
-          label="Add this class"
+          label={t("classes.add_this_class", "Add this class")}
           icon={Plus}
           onPress={() => {
             const added = onAddCourse({
@@ -399,48 +413,53 @@ export function CoursesScreen({
         />
       </GlassCard>
 
-      <SectionHeader title="Add homework to a class" note="Example: HIST chapter 4 notes tomorrow" />
+      <SectionHeader title={t("classes.add_homework_to_class", "Add homework to a class")} note={t("classes.homework_example", "Example: HIST chapter 4 notes tomorrow")} />
       <GlassCard style={styles.addCard}>
         <SegmentedControl
           options={["assignment", "worksheet", "reading", "project", "exam"] as AssignmentKind[]}
           value={kind}
           onChange={setKind}
+          labelForOption={(option) => assignmentKindLabel(option, t)}
         />
         <TextInput
           value={title}
           onChangeText={setTitle}
-          placeholder="HIST chapter 4 notes tomorrow"
+          placeholder={t("classes.homework_placeholder", "HIST chapter 4 notes tomorrow")}
           placeholderTextColor={colors.heroMuted}
           style={styles.input}
         />
         <TextInput
           value={dueDate}
           onChangeText={setDueDate}
-          placeholder="YYYY-MM-DD"
+          placeholder={t("classes.date_placeholder", "YYYY-MM-DD")}
           placeholderTextColor={colors.heroMuted}
           style={styles.input}
         />
         {title.trim() ? (
           <Text style={styles.quickParsePreview}>
-            Will add {parsedQuickWork.course?.code || selectedCourse?.code || "class"} · {parsedQuickWork.title || "work"} · due {formatDateOnly(parsedQuickWork.dueDate)}
+            {formatLocalized(t("classes.quick_parse_preview", "Will add {course} · {title} · due {date}"), {
+              course: parsedQuickWork.course?.code || selectedCourse?.code || t("classes.class_fallback", "class"),
+              title: parsedQuickWork.title || t("classes.work_fallback", "work"),
+              date: formatClassDate(parsedQuickWork.dueDate, locale, t)
+            })}
           </Text>
         ) : null}
         <AppButton
-          label="Add homework"
+          label={t("classes.add_homework", "Add homework")}
           icon={Edit3}
           disabled={!parsedQuickWork.course || !parsedQuickWork.title.trim() || !parsedQuickWork.dueDate.trim()}
           onPress={addItem}
         />
       </GlassCard>
 
-      <SectionHeader title="Weekly schedule" note="When and where each class meets." />
+      <SectionHeader title={t("classes.weekly_schedule", "Weekly schedule")} note={t("classes.weekly_schedule_note", "When and where each class meets.")} />
       <View style={styles.week}>
         {weekly.map(({ day, meetings }) => (
           <View key={day} style={styles.dayRow}>
-            <Text style={styles.day}>{day}</Text>
+            <Text style={styles.day}>{weekdayLabel(day, t)}</Text>
             <View style={styles.meetingColumn}>
               {meetings.length === 0 ? (
-                <Text style={styles.emptyDay}>No classes</Text>
+                <Text style={styles.emptyDay}>{t("classes.no_classes", "No classes")}</Text>
               ) : (
                 meetings.map((meeting) => (
                   <View key={meeting.id} style={styles.meeting}>
@@ -448,7 +467,13 @@ export function CoursesScreen({
                       <Text style={styles.meetingDotEmoji}>{courseEmoji(meeting.course)}</Text>
                     </View>
                     <View style={styles.meetingCopy}>
-                      <Text style={styles.meetingTime}>{meeting.course.code} · {meeting.startTime} to {meeting.endTime}</Text>
+                      <Text style={styles.meetingTime}>
+                        {formatLocalized(t("classes.meeting_time", "{course} · {start} to {end}"), {
+                          course: meeting.course.code,
+                          start: meeting.startTime,
+                          end: meeting.endTime
+                        })}
+                      </Text>
                       <Text style={styles.meetingPlace}>{meeting.location}</Text>
                     </View>
                   </View>
@@ -471,36 +496,73 @@ export function CoursesScreen({
   }
 }
 
-function buildClassHealth(courseCount: number, openCount: number, reviewCount: number) {
+function buildClassHealth(courseCount: number, openCount: number, reviewCount: number, t: TranslateFn) {
   if (courseCount === 0) {
     return {
-      title: "No class library yet.",
-      copy: "Add a class manually or scan a syllabus. Homework, notes, grades, and widgets need class context.",
-      badge: "Setup"
+      title: t("classes.health_no_library_title", "No class library yet."),
+      copy: t("classes.health_no_library_copy", "Add a class manually or scan a syllabus. Homework, notes, grades, and widgets need class context."),
+      badge: t("classes.health_setup", "Setup")
     };
   }
 
   if (reviewCount > 0) {
     return {
-      title: "Imported classwork needs review.",
-      copy: "Open flagged assignments from Today or the class list before trusting reminders and widgets.",
-      badge: "Review"
+      title: t("classes.health_review_title", "Imported classwork needs review."),
+      copy: t("classes.health_review_copy", "Open flagged assignments from Today or the class list before trusting reminders and widgets."),
+      badge: t("today.metric_review", "Review")
     };
   }
 
   if (openCount > 0) {
     return {
-      title: "Classes are carrying live work.",
-      copy: "Use each class detail to adjust teacher, period, room, notes, and the next homework items.",
-      badge: "Live"
+      title: t("classes.health_live_title", "Classes are carrying live work."),
+      copy: t("classes.health_live_copy", "Use each class detail to adjust teacher, period, room, notes, and the next homework items."),
+      badge: t("classes.health_live", "Live")
     };
   }
 
   return {
-    title: "Classes are clean right now.",
-    copy: "Your class shells are ready. Capture homework after class or import the next syllabus.",
-    badge: "Clear"
+    title: t("classes.health_clean_title", "Classes are clean right now."),
+    copy: t("classes.health_clean_copy", "Your class shells are ready. Capture homework after class or import the next syllabus."),
+    badge: t("classes.health_clear", "Clear")
   };
+}
+
+function assignmentKindLabel(kind: AssignmentKind, t: TranslateFn) {
+  const labels: Record<AssignmentKind, string> = {
+    assignment: t("classes.kind_assignment", "Assignment"),
+    worksheet: t("classes.kind_worksheet", "Worksheet"),
+    reading: t("classes.kind_reading", "Reading"),
+    project: t("classes.kind_project", "Project"),
+    exam: t("classes.kind_exam", "Exam")
+  };
+  return labels[kind];
+}
+
+function weekdayLabel(day: string, t: TranslateFn) {
+  const labels: Record<string, string> = {
+    Mon: t("classes.weekday_mon", "Mon"),
+    Tue: t("classes.weekday_tue", "Tue"),
+    Wed: t("classes.weekday_wed", "Wed"),
+    Thu: t("classes.weekday_thu", "Thu"),
+    Fri: t("classes.weekday_fri", "Fri"),
+    Sat: t("classes.weekday_sat", "Sat"),
+    Sun: t("classes.weekday_sun", "Sun")
+  };
+  return labels[day] || day;
+}
+
+function formatClassDate(value: string, locale: string, t: TranslateFn) {
+  if (!/^\d{4}-\d{2}-\d{2}/.test(value || "")) return t("classes.check_date", "Check date");
+  try {
+    return new Intl.DateTimeFormat(locale, { month: "short", day: "numeric", year: "numeric" }).format(new Date(`${value.slice(0, 10)}T12:00:00`));
+  } catch {
+    return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(`${value.slice(0, 10)}T12:00:00`));
+  }
+}
+
+function formatLocalized(template: string, values: Record<string, string>) {
+  return Object.entries(values).reduce((copy, [key, value]) => copy.split(`{${key}}`).join(value), template);
 }
 
 function ClassStateTile({ label, value, detail }: { label: string; value: string; detail: string }) {

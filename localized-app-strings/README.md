@@ -22,6 +22,7 @@ This catalog covers launch-critical student-facing copy:
 - tab labels
 - Today default launch surface
 - Calendar/Plan launch surface
+- Classes/course launch surface
 - onboarding headlines and CTAs
 - import/scanner truth copy
 - paywall/subscription labels
@@ -36,6 +37,6 @@ This catalog covers launch-critical student-facing copy:
 
 ## Runtime Integration Status
 
-The React Native source now includes `src/i18n.tsx` and launch-critical wiring for navigation, onboarding, Today, Calendar, import/scanner truth copy, paywall value copy, brand text, and core widget-sync copy. Current native Release simulator screenshots under `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/` prove Today/Calendar/Scan/Plus shell localization for `ar`, `de`, `ja`, and `zh-Hans`.
+The React Native source now includes `src/i18n.tsx` and launch-critical wiring for navigation, onboarding, Today, Calendar, Classes, import/scanner truth copy, paywall value copy, brand text, and core widget-sync copy. Current native Release simulator screenshots under `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/` prove Today/Calendar/Classes/Scan/Plus shell localization for `ar`, `de`, `ja`, and `zh-Hans`.
 
-This is still not complete runtime localization for the full app. Classes, Focus, Grades, Widgets/settings, detail screens, and some alert/error paths still need app-owned hard-coded strings replaced before release.
+This is still not complete runtime localization for the full app. Focus, Grades, Widgets/settings, detail screens, and some alert/error paths still need app-owned hard-coded strings replaced before release.
