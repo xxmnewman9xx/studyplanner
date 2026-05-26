@@ -124,7 +124,13 @@ assert(sourceFiles.plan.includes("useI18n") && sourceFiles.plan.includes("plan.c
 assert(sourceFiles.courses.includes("useI18n") && sourceFiles.courses.includes("classes.course_hub"), "Classes screen must consume runtime localization keys.");
 assert(sourceFiles.focus.includes("useI18n") && sourceFiles.focus.includes("focus.stage_kicker"), "Focus screen must consume runtime localization keys.");
 assert(sourceFiles.grades.includes("useI18n") && sourceFiles.grades.includes("grades.target_calculator"), "Grades screen must consume runtime localization keys.");
-assert(sourceFiles.onboarding.includes("useI18n") && sourceFiles.onboarding.includes("slide.titleKey"), "Onboarding must consume runtime localization keys.");
+assert(
+  sourceFiles.onboarding.includes("useI18n") &&
+    sourceFiles.onboarding.includes("slide.titleKey") &&
+    sourceFiles.onboarding.includes("onboarding.preview_method_scan_paper") &&
+    sourceFiles.onboarding.includes("onboarding.theme_midnight_blue"),
+  "Onboarding must consume runtime localization keys for slide copy, preview mockups, and theme choices."
+);
 assert(sourceFiles.importScreen.includes("useI18n") && sourceFiles.importScreen.includes("import.photo_disabled_message"), "Import screen must consume runtime localization keys.");
 assert(sourceFiles.assignmentDetail.includes("useI18n") && sourceFiles.assignmentDetail.includes("assignment_detail.trust_ready_title"), "Assignment detail screen must consume runtime localization keys.");
 assert(sourceFiles.notes.includes("useI18n") && sourceFiles.notes.includes("notes.hero_title"), "Notes screen must consume runtime localization keys.");
@@ -137,6 +143,28 @@ assert(sourceFiles.appleComponents.includes("useI18n") && sourceFiles.appleCompo
 assert(sourceFiles.i18n.includes("EXPO_PUBLIC_STUDYPLANNER_LOCALE"), "Localization override must exist for screenshot QA.");
 
 const hardcodedLaunchStrings = [
+  {
+    file: "src/screens/OnboardingScreen.tsx",
+    source: sourceFiles.onboarding,
+    phrases: [
+      "Midnight Blue",
+      "Minimal Light",
+      "Scan paper",
+      "Upload PDF",
+      "Paste text",
+      "Review draft",
+      "Add syllabus",
+      "deadlines found for review",
+      "Confirm before adding",
+      "Next due item",
+      "Week at a glance",
+      "Course hubs",
+      "Focusing on",
+      "logs progress when complete",
+      "Upcoming widget",
+      "Due soon"
+    ]
+  },
   {
     file: "src/screens/TodayScreen.tsx",
     source: sourceFiles.today,

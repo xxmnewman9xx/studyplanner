@@ -1,6 +1,6 @@
 # Validation Report
 
-Date: 2026-05-26 08:26 EDT / 2026-05-26 12:26 UTC
+Date: 2026-05-26 08:44 EDT / 2026-05-26 12:44 UTC
 
 ## Passed In This Rescue Cycle
 
@@ -25,16 +25,19 @@ Date: 2026-05-26 08:26 EDT / 2026-05-26 12:26 UTC
 - Fresh native paywall product screenshot captured at `docs/launch/2026-05-26/fresh-native-screenshots/release-rescue/02-release-plus-deeplink.png`
 - Fresh native saved-photo-to-review proof captured at `docs/launch/2026-05-26/fresh-native-screenshots/photo-rescue/`
 - Current native Release localized Today/Calendar/Classes/Focus/Grades/Widgets/Scan/Review/Plus screenshots captured for `ar`, `de`, `ja`, and `zh-Hans` under `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/`
+- Fresh native Release Arabic onboarding screenshots captured after the final onboarding localization patch at `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/00-onboarding-scan.png` through `06-onboarding-widgets.png`
 
 ## Latest Patch Validation
 
-After localizing the app-owned App system-preview header:
+After localizing the app-owned onboarding preview mockups and theme choices:
 
 - `npm run check:localization` passed.
 - `npm run typecheck` passed.
 - `npm run qa:release` passed.
-- App system-preview state now routes empty/review/live/clear titles, details, badges, actions, facts, and widget status text through `app.system_*` runtime keys.
-- The localization gate now rejects the old hard-coded App system-preview strings.
+- Fresh Arabic native `Release` iphonesimulator build succeeded with image parsing enabled, Railway parser endpoint configured, IAP product IDs configured, and `EXPO_PUBLIC_STUDYPLANNER_LOCALE=ar`.
+- Fresh Arabic onboarding screenshots `00-onboarding-scan.png` through `06-onboarding-widgets.png` were captured from the rebuilt native bundle.
+- Onboarding preview mockups now route method chips, review labels, weekday labels, due-date fallback, duration labels, focus/widget labels, and theme choices through runtime keys.
+- The localization gate now rejects the old hard-coded onboarding preview strings.
 
 ## Native Release Proof
 
@@ -103,6 +106,12 @@ The native Widgets screenshots show:
 - Step rail labels, status chips, size/palette labels, theme labels, tab labels, native widget headline/status/date labels, next-deadline callouts, week rails, metric labels, and open-deadline counts are localized in the native Release bundle.
 - Assignment titles and `BIO 101` remain English because they are fixture/imported planner data, not app-owned runtime UI.
 
+The native Onboarding screenshots show:
+
+- `00-onboarding-scan.png` through `06-onboarding-widgets.png` captured for `ar` after the final onboarding localization patch and a fresh native Release simulator rebuild.
+- App-owned onboarding preview titles, method chips, sample labels, review labels, weekday labels, stats, focus labels, widget labels, and theme choice copy are localized in the native Release bundle.
+- Assignment titles, course codes, and file names remain English because they are fixture/imported planner data, not app-owned runtime UI.
+
 ## GitNexus
 
 - `npx gitnexus analyze` completed successfully before the App system-preview patch: 3,161 nodes, 5,760 edges, 102 clusters, 265 flows.
@@ -118,7 +127,8 @@ The native Widgets screenshots show:
 - Before editing `NotesScreen`, GitNexus impact was run for `NotesScreen`, `NoteRow`, and `Function:src/screens/NotesScreen.tsx:formatShortDate`. `NotesScreen` was LOW risk; `NoteRow` and `formatShortDate` reported HIGH risk because they feed `NotesScreen` / `AppContent` / `App`. The shipped change is text/date/template localization only.
 - Before editing `PremiumGate` and the App alert handlers, GitNexus impact was run for `PremiumGate`, `AppContent`, `applyParsedPlan`, `addQuickAssignment`, `addCourse`, `handleScheduleReminders`, `handleCalendarSync`, and `messageFromError`. All reported LOW risk. The shipped change is alert/gate text localization only.
 - Before editing App system-preview copy, GitNexus impact was run for `buildAppSystemState` and `StudySystemHeader`. Both reported LOW risk. The shipped change is system-preview text localization only.
-- `npx gitnexus detect-changes --repo studyplanner` reported 6 changed files, 20 symbols, 6 affected execution flows, aggregate risk `high`. The high aggregate is expected because `AppContent` now passes runtime translation into the system-preview builder, so affected flows include app locale resolution, nav-tab validation, theme, and subscription hooks. No scanner, parser, OCR, IAP product-loading, or widget behavior was intentionally changed.
+- Before editing onboarding preview copy, GitNexus impact was run for `OnboardingScreen`, `ScanPreview`, `ReviewPreview`, `TodayPreview`, `CalendarPreview`, `ClassesPreview`, `FocusPreview`, `WidgetsPreview`, `PreviewStat`, `ReviewRow`, `dueShort`, `formatHours`, and `themeChoices`. `OnboardingScreen` and `themeChoices` were LOW risk; the preview helpers reported HIGH risk because they feed the first-run app flow through `OnboardingScreen` / `AppContent` / `App`. The shipped change is text/date localization only.
+- `npx gitnexus detect-changes --repo studyplanner` reported 7 indexed text files, 39 symbols, 6 affected execution flows, aggregate risk `high`. The high aggregate is expected because the onboarding preview helpers feed first-run flows into locale resolution. No scanner, parser, OCR, IAP product-loading, planner, or widget behavior was intentionally changed.
 
 ## Release Decision
 
@@ -128,5 +138,5 @@ Backend OCR, saved-photo import, and native Plus product loading are now proven 
 
 - Physical-device/TestFlight camera permission and live camera capture are still unproven.
 - StoreKit product title/description/period metadata is still English in localized paywall screenshots; App Store Connect subscription localizations must be entered/verified.
-- Runtime localization is still incomplete outside the smoked Today/Calendar/Classes/Focus/Grades/Widgets/Scan/Review/Plus/native shell and statically gated Assignment detail/Notes/PremiumGate/App alert/App system-preview surfaces. Hard-coded app-owned English remains in onboarding preview mockups.
+- App-owned launch-critical runtime localization is wired and gated, but StoreKit product metadata localization still requires App Store Connect/TestFlight verification.
 - Arabic RTL risk remains until accepted or fixed.

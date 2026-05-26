@@ -46,6 +46,7 @@ type OnboardingScreenProps = {
 };
 
 type SlideId = "scan" | "review" | "calendar" | "today" | "classes" | "focus" | "widgets";
+type TranslateFn = (key: string, fallback?: string) => string;
 
 const slides: Array<{
   id: SlideId;
@@ -124,17 +125,17 @@ const slides: Array<{
 ];
 
 const themeChoices: Array<{
-  label: string;
+  labelKey: string;
   appTheme: ThemeAccent;
   widgetPalette: WidgetPalette;
   widgetStyle: WidgetBackground;
 }> = [
-  { label: "Midnight Blue", appTheme: "campus", widgetPalette: "midnight", widgetStyle: "dark" },
-  { label: "Ocean", appTheme: "classic", widgetPalette: "ocean", widgetStyle: "glass" },
-  { label: "Graphite", appTheme: "graphite", widgetPalette: "graphite", widgetStyle: "dark" },
-  { label: "Aurora", appTheme: "aura", widgetPalette: "aurora", widgetStyle: "glass" },
-  { label: "Forest", appTheme: "mint", widgetPalette: "forest", widgetStyle: "glass" },
-  { label: "Minimal Light", appTheme: "slate", widgetPalette: "paper", widgetStyle: "solid" }
+  { labelKey: "onboarding.theme_midnight_blue", appTheme: "campus", widgetPalette: "midnight", widgetStyle: "dark" },
+  { labelKey: "onboarding.theme_ocean", appTheme: "classic", widgetPalette: "ocean", widgetStyle: "glass" },
+  { labelKey: "onboarding.theme_graphite", appTheme: "graphite", widgetPalette: "graphite", widgetStyle: "dark" },
+  { labelKey: "onboarding.theme_aurora", appTheme: "aura", widgetPalette: "aurora", widgetStyle: "glass" },
+  { labelKey: "onboarding.theme_forest", appTheme: "mint", widgetPalette: "forest", widgetStyle: "glass" },
+  { labelKey: "onboarding.theme_minimal_light", appTheme: "slate", widgetPalette: "paper", widgetStyle: "solid" }
 ];
 
 const previewNow = new Date("2026-05-25T09:41:00");
@@ -149,6 +150,7 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
   const [widgetPalette, setWidgetPalette] = useState<WidgetPalette>("ocean");
   const [widgetStyle, setWidgetStyle] = useState<WidgetBackground>("glass");
   const slide = slides[index] ?? slides[0]!;
+  const eyebrowKey = slide.id === "review" ? "import.review_short" : `tabs.${slide.id === "calendar" ? "calendar" : slide.id}`;
   const isFinal = index === slides.length - 1;
 
   useEffect(() => {
@@ -233,22 +235,23 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
             </View>
             <Text style={styles.stepText}>{index + 1} / {slides.length}</Text>
           </View>
-          <Text style={styles.eyebrow}>{t(`tabs.${slide.id === "calendar" ? "calendar" : slide.id}`, slide.eyebrow)}</Text>
+          <Text style={styles.eyebrow}>{t(eyebrowKey, slide.eyebrow)}</Text>
           <Text style={styles.title}>{t(slide.titleKey, slide.title)}</Text>
           <Text style={styles.copy}>{t(slide.copyKey, slide.copy)}</Text>
         </GlassCard>
         </MotionFadeUpView>
 
         <MotionFadeUpView key={slide.id} trigger={index} style={styles.previewStage}>
-          {slide.id === "scan" ? <ScanPreview styles={styles} /> : null}
-          {slide.id === "review" ? <ReviewPreview styles={styles} /> : null}
-          {slide.id === "calendar" ? <CalendarPreview styles={styles} /> : null}
-          {slide.id === "today" ? <TodayPreview styles={styles} /> : null}
-          {slide.id === "classes" ? <ClassesPreview styles={styles} /> : null}
-          {slide.id === "focus" ? <FocusPreview styles={styles} /> : null}
+          {slide.id === "scan" ? <ScanPreview styles={styles} t={t} /> : null}
+          {slide.id === "review" ? <ReviewPreview styles={styles} t={t} locale={locale} /> : null}
+          {slide.id === "calendar" ? <CalendarPreview styles={styles} t={t} /> : null}
+          {slide.id === "today" ? <TodayPreview styles={styles} t={t} locale={locale} /> : null}
+          {slide.id === "classes" ? <ClassesPreview styles={styles} t={t} /> : null}
+          {slide.id === "focus" ? <FocusPreview styles={styles} t={t} /> : null}
           {slide.id === "widgets" ? (
             <WidgetsPreview
               styles={styles}
+              t={t}
               appTheme={appTheme}
               widgetPalette={widgetPalette}
               widgetStyle={widgetStyle}
@@ -282,25 +285,33 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
   );
 }
 
-function ScanPreview({ styles }: { styles: ReturnType<typeof createStyles> }) {
+function ScanPreview({ styles, t }: { styles: ReturnType<typeof createStyles>; t: TranslateFn }) {
   const imageParsingAvailable = supportsSyllabusImageParsing();
   const methods = imageParsingAvailable
-    ? ["Scan paper", "Upload PDF", "Paste text"]
-    : ["Upload PDF", "Paste text", "Review draft"];
+    ? [
+        t("onboarding.preview_method_scan_paper", "Scan paper"),
+        t("onboarding.preview_method_upload_pdf", "Upload PDF"),
+        t("onboarding.preview_method_paste_text", "Paste text")
+      ]
+    : [
+        t("onboarding.preview_method_upload_pdf", "Upload PDF"),
+        t("onboarding.preview_method_paste_text", "Paste text"),
+        t("onboarding.preview_method_review_draft", "Review draft")
+      ];
   return (
     <GlassCard style={styles.appPreviewCard}>
       <View style={styles.appPreviewHeader}>
         <View>
-          <Text style={styles.appPreviewKicker}>Scan</Text>
-          <Text style={styles.appPreviewTitle}>Add syllabus</Text>
+          <Text style={styles.appPreviewKicker}>{t("tabs.scan", "Scan")}</Text>
+          <Text style={styles.appPreviewTitle}>{t("onboarding.preview_scan_title", "Add syllabus")}</Text>
         </View>
         <View style={styles.appPreviewBadge}>
-          <Text style={styles.appPreviewBadgeText}>Sample</Text>
+          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_sample", "Sample")}</Text>
         </View>
       </View>
       <View style={styles.methodGrid}>
-        {methods.map((method) => (
-          <View key={method} style={styles.methodChip}>
+        {methods.map((method, methodIndex) => (
+          <View key={`${methodIndex}-${method}`} style={styles.methodChip}>
             <Text style={styles.methodText}>{method}</Text>
           </View>
         ))}
@@ -312,35 +323,37 @@ function ScanPreview({ styles }: { styles: ReturnType<typeof createStyles> }) {
         </View>
         <View style={styles.previewRow}>
           <View style={[styles.previewDot, styles.previewDotReview]}><CheckCircle2 color="#FFFFFF" size={13} /></View>
-          <Text style={styles.previewText}>{marketingCaptureParseResult.assignments.length} deadlines found for review</Text>
+          <Text style={styles.previewText}>
+            {t("onboarding.preview_deadlines_found", "{count} deadlines found for review").replace("{count}", String(marketingCaptureParseResult.assignments.length))}
+          </Text>
         </View>
       </View>
     </GlassCard>
   );
 }
 
-function ReviewPreview({ styles }: { styles: ReturnType<typeof createStyles> }) {
+function ReviewPreview({ styles, t, locale }: { styles: ReturnType<typeof createStyles>; t: TranslateFn; locale: string }) {
   return (
     <GlassCard style={styles.appPreviewCard}>
       <View style={styles.appPreviewHeader}>
         <View>
-          <Text style={styles.appPreviewKicker}>Review</Text>
-          <Text style={styles.appPreviewTitle}>Confirm before adding</Text>
+          <Text style={styles.appPreviewKicker}>{t("import.review_short", "Review")}</Text>
+          <Text style={styles.appPreviewTitle}>{t("onboarding.preview_review_title", "Confirm before adding")}</Text>
         </View>
         <View style={styles.appPreviewBadge}>
-          <Text style={styles.appPreviewBadgeText}>Sample</Text>
+          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_sample", "Sample")}</Text>
         </View>
       </View>
       <View style={styles.reviewList}>
         {marketingCaptureParseResult.assignments.slice(0, 4).map((assignment) => (
-          <ReviewRow key={assignment.id} assignment={assignment} styles={styles} />
+          <ReviewRow key={assignment.id} assignment={assignment} styles={styles} t={t} locale={locale} />
         ))}
       </View>
     </GlassCard>
   );
 }
 
-function TodayPreview({ styles }: { styles: ReturnType<typeof createStyles> }) {
+function TodayPreview({ styles, t, locale }: { styles: ReturnType<typeof createStyles>; t: TranslateFn; locale: string }) {
   const next = marketingCaptureAssignments[0]!;
   const nextCourse = marketingCaptureCourses.find((course) => course.id === next.courseId);
   const weekItems = marketingCaptureAssignments.slice(1, 4);
@@ -349,17 +362,19 @@ function TodayPreview({ styles }: { styles: ReturnType<typeof createStyles> }) {
     <GlassCard style={styles.appPreviewCard}>
       <View style={styles.appPreviewHeader}>
         <View>
-          <Text style={styles.appPreviewKicker}>Today</Text>
-          <Text style={styles.appPreviewTitle}>Next due item</Text>
+          <Text style={styles.appPreviewKicker}>{t("tabs.today", "Today")}</Text>
+          <Text style={styles.appPreviewTitle}>{t("onboarding.preview_today_title", "Next due item")}</Text>
         </View>
         <View style={styles.appPreviewBadge}>
-          <Text style={styles.appPreviewBadgeText}>Clear</Text>
+          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_clear", "Clear")}</Text>
         </View>
       </View>
       <View style={styles.todayHero}>
-        <Text style={styles.todayClass}>{nextCourse?.code || "Class"}</Text>
+        <Text style={styles.todayClass}>{nextCourse?.code || t("classes.class_fallback", "Class")}</Text>
         <Text style={styles.todayTitle}>{next.title}</Text>
-        <Text style={styles.todayMeta}>{dueShort(next.dueAt)} · {next.estimatedMinutes || 45} min</Text>
+        <Text style={styles.todayMeta}>
+          {dueShort(next.dueAt, locale, t)} · {t("today.minutes_short", "{minutes} min").replace("{minutes}", String(next.estimatedMinutes || 45))}
+        </Text>
       </View>
       <View style={styles.weekList}>
         {weekItems.map((assignment) => {
@@ -368,7 +383,7 @@ function TodayPreview({ styles }: { styles: ReturnType<typeof createStyles> }) {
             <View key={assignment.id} style={styles.weekRow}>
               <View style={[styles.courseDot, { backgroundColor: course?.color || "#2F80ED" }]} />
               <Text style={styles.weekText} numberOfLines={1}>{assignment.title}</Text>
-              <Text style={styles.weekDue}>{dueShort(assignment.dueAt)}</Text>
+              <Text style={styles.weekDue}>{dueShort(assignment.dueAt, locale, t)}</Text>
             </View>
           );
         })}
@@ -377,20 +392,27 @@ function TodayPreview({ styles }: { styles: ReturnType<typeof createStyles> }) {
   );
 }
 
-function CalendarPreview({ styles }: { styles: ReturnType<typeof createStyles> }) {
+function CalendarPreview({ styles, t }: { styles: ReturnType<typeof createStyles>; t: TranslateFn }) {
   const weekItems = marketingCaptureAssignments.slice(0, 5);
   const totalMinutes = weekItems.reduce((sum, item) => sum + (item.estimatedMinutes || 30), 0);
   const doneCount = marketingCaptureAssignments.filter((item) => item.status === "done").length;
+  const weekdayLabels = [
+    t("onboarding.preview_weekday_mon", "M"),
+    t("onboarding.preview_weekday_tue", "T"),
+    t("onboarding.preview_weekday_wed", "W"),
+    t("onboarding.preview_weekday_thu", "T"),
+    t("onboarding.preview_weekday_fri", "F")
+  ];
 
   return (
     <GlassCard style={styles.appPreviewCard}>
       <View style={styles.appPreviewHeader}>
         <View>
-          <Text style={styles.appPreviewKicker}>Calendar</Text>
-          <Text style={styles.appPreviewTitle}>Week at a glance</Text>
+          <Text style={styles.appPreviewKicker}>{t("tabs.calendar", "Calendar")}</Text>
+          <Text style={styles.appPreviewTitle}>{t("onboarding.preview_calendar_title", "Week at a glance")}</Text>
         </View>
         <View style={styles.appPreviewBadge}>
-          <Text style={styles.appPreviewBadgeText}>Sample</Text>
+          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_sample", "Sample")}</Text>
         </View>
       </View>
       <View style={styles.calendarPreviewGrid}>
@@ -402,31 +424,31 @@ function CalendarPreview({ styles }: { styles: ReturnType<typeof createStyles> }
               <View style={styles.calendarTrack}>
                 <View style={[styles.calendarBar, { height, backgroundColor: course?.color || "#2F80ED" }]} />
               </View>
-              <Text style={styles.calendarDayLabel}>{["M", "T", "W", "T", "F"][index]}</Text>
+              <Text style={styles.calendarDayLabel}>{weekdayLabels[index]}</Text>
               <Text style={styles.calendarDayCount}>1</Text>
             </View>
           );
         })}
       </View>
       <View style={styles.progressPreviewRow}>
-        <PreviewStat label="Progress" value={`${Math.round((doneCount / Math.max(marketingCaptureAssignments.length, 1)) * 100)}%`} styles={styles} />
-        <PreviewStat label="Load" value={formatHours(totalMinutes)} styles={styles} />
-        <PreviewStat label="Open" value={String(marketingCaptureAssignments.length - doneCount)} styles={styles} />
+        <PreviewStat label={t("onboarding.preview_progress", "Progress")} value={`${Math.round((doneCount / Math.max(marketingCaptureAssignments.length, 1)) * 100)}%`} styles={styles} />
+        <PreviewStat label={t("plan.stat_load", "Load")} value={formatHours(totalMinutes, t)} styles={styles} />
+        <PreviewStat label={t("plan.stat_open", "Open")} value={String(marketingCaptureAssignments.length - doneCount)} styles={styles} />
       </View>
     </GlassCard>
   );
 }
 
-function ClassesPreview({ styles }: { styles: ReturnType<typeof createStyles> }) {
+function ClassesPreview({ styles, t }: { styles: ReturnType<typeof createStyles>; t: TranslateFn }) {
   return (
     <GlassCard style={styles.appPreviewCard}>
       <View style={styles.appPreviewHeader}>
         <View>
-          <Text style={styles.appPreviewKicker}>Classes</Text>
-          <Text style={styles.appPreviewTitle}>Course hubs</Text>
+          <Text style={styles.appPreviewKicker}>{t("tabs.classes", "Classes")}</Text>
+          <Text style={styles.appPreviewTitle}>{t("onboarding.preview_classes_title", "Course hubs")}</Text>
         </View>
         <View style={styles.appPreviewBadge}>
-          <Text style={styles.appPreviewBadgeText}>Sample</Text>
+          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_sample", "Sample")}</Text>
         </View>
       </View>
       <View style={styles.classPreviewList}>
@@ -440,7 +462,9 @@ function ClassesPreview({ styles }: { styles: ReturnType<typeof createStyles> })
                 <Text style={styles.classPreviewTitle}>{course.code}</Text>
                 <Text style={styles.classPreviewMeta} numberOfLines={1}>{course.name}</Text>
               </View>
-              <Text style={styles.classPreviewCount}>{courseAssignments.length - done} open</Text>
+              <Text style={styles.classPreviewCount}>
+                {t("classes.open_count", "{count} open").replace("{count}", String(courseAssignments.length - done))}
+              </Text>
             </View>
           );
         })}
@@ -449,7 +473,7 @@ function ClassesPreview({ styles }: { styles: ReturnType<typeof createStyles> })
   );
 }
 
-function FocusPreview({ styles }: { styles: ReturnType<typeof createStyles> }) {
+function FocusPreview({ styles, t }: { styles: ReturnType<typeof createStyles>; t: TranslateFn }) {
   const assignment = marketingCaptureAssignments[0]!;
   const course = marketingCaptureCourses.find((item) => item.id === assignment.courseId);
 
@@ -457,21 +481,23 @@ function FocusPreview({ styles }: { styles: ReturnType<typeof createStyles> }) {
     <GlassCard style={styles.appPreviewCard}>
       <View style={styles.appPreviewHeader}>
         <View>
-          <Text style={styles.appPreviewKicker}>Focus</Text>
-          <Text style={styles.appPreviewTitle}>25-minute block</Text>
+          <Text style={styles.appPreviewKicker}>{t("tabs.focus", "Focus")}</Text>
+          <Text style={styles.appPreviewTitle}>{t("focus.block_minutes", "{minutes} min block").replace("{minutes}", "25")}</Text>
         </View>
         <View style={styles.appPreviewBadge}>
-          <Text style={styles.appPreviewBadgeText}>Sample</Text>
+          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_sample", "Sample")}</Text>
         </View>
       </View>
       <View style={styles.focusPreviewStage}>
         <View style={styles.focusPreviewRing}>
           <Text style={styles.focusPreviewTime}>25:00</Text>
-          <Text style={styles.focusPreviewState}>Ready</Text>
+          <Text style={styles.focusPreviewState}>{t("focus.status_ready", "Ready")}</Text>
         </View>
-        <Text style={styles.focusPreviewKicker}>Focusing on</Text>
+        <Text style={styles.focusPreviewKicker}>{t("onboarding.preview_focusing_on", "Focusing on")}</Text>
         <Text style={styles.focusPreviewTitleText} numberOfLines={2}>{assignment.title}</Text>
-        <Text style={styles.focusPreviewMeta}>{course?.code || "Class"} · logs progress when complete</Text>
+        <Text style={styles.focusPreviewMeta}>
+          {course?.code || t("classes.class_fallback", "Class")} · {t("onboarding.preview_focus_complete_note", "logs progress when complete")}
+        </Text>
       </View>
     </GlassCard>
   );
@@ -479,6 +505,7 @@ function FocusPreview({ styles }: { styles: ReturnType<typeof createStyles> }) {
 
 function WidgetsPreview({
   styles,
+  t,
   appTheme,
   widgetPalette,
   widgetStyle,
@@ -486,6 +513,7 @@ function WidgetsPreview({
   onSelectTheme
 }: {
   styles: ReturnType<typeof createStyles>;
+  t: TranslateFn;
   appTheme: ThemeAccent;
   widgetPalette: WidgetPalette;
   widgetStyle: WidgetBackground;
@@ -496,11 +524,11 @@ function WidgetsPreview({
     <GlassCard style={styles.appPreviewCard}>
       <View style={styles.appPreviewHeader}>
         <View>
-          <Text style={styles.appPreviewKicker}>Home Screen</Text>
-          <Text style={styles.appPreviewTitle}>Upcoming widget</Text>
+          <Text style={styles.appPreviewKicker}>{t("onboarding.preview_home_screen", "Home Screen")}</Text>
+          <Text style={styles.appPreviewTitle}>{t("onboarding.preview_upcoming_widget", "Upcoming widget")}</Text>
         </View>
         <View style={styles.appPreviewBadge}>
-          <Text style={styles.appPreviewBadgeText}>Sample</Text>
+          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_sample", "Sample")}</Text>
         </View>
       </View>
       <WidgetPreviewCard
@@ -532,9 +560,10 @@ function WidgetsPreview({
             choice.widgetStyle === widgetStyle;
           const appSwatches = appThemePalettes[choice.appTheme].swatches;
           const widgetSwatches = themePalettes[choice.widgetPalette];
+          const choiceLabel = t(choice.labelKey);
           return (
             <TouchableOpacity
-              key={choice.label}
+              key={choice.labelKey}
               accessibilityRole="button"
               accessibilityState={{ selected: active }}
               style={[styles.themeChoice, active ? styles.themeChoiceActive : null]}
@@ -542,10 +571,10 @@ function WidgetsPreview({
             >
               <View style={styles.themeSwatches}>
                 {[appSwatches[0], widgetSwatches[1], widgetSwatches[2]].map((color) => (
-                  <View key={`${choice.label}-${color}`} style={[styles.themeSwatch, { backgroundColor: color }]} />
+                  <View key={`${choice.labelKey}-${color}`} style={[styles.themeSwatch, { backgroundColor: color }]} />
                 ))}
               </View>
-              <Text style={styles.themeChoiceLabel}>{choice.label}</Text>
+              <Text style={styles.themeChoiceLabel}>{choiceLabel}</Text>
             </TouchableOpacity>
           );
         })}
@@ -565,10 +594,14 @@ function PreviewStat({ label, value, styles }: { label: string; value: string; s
 
 function ReviewRow({
   assignment,
-  styles
+  styles,
+  t,
+  locale
 }: {
   assignment: Assignment;
   styles: ReturnType<typeof createStyles>;
+  t: TranslateFn;
+  locale: string;
 }) {
   const course = marketingCaptureCourses.find((item) => item.id === assignment.courseId);
   return (
@@ -576,9 +609,9 @@ function ReviewRow({
       <View style={[styles.courseDot, { backgroundColor: course?.color || "#2F80ED" }]} />
       <View style={styles.reviewCopy}>
         <Text style={styles.reviewTitle} numberOfLines={1}>{assignment.title}</Text>
-        <Text style={styles.reviewMeta}>{course?.code || "Class"} · {dueShort(assignment.dueAt)}</Text>
+        <Text style={styles.reviewMeta}>{course?.code || t("classes.class_fallback", "Class")} · {dueShort(assignment.dueAt, locale, t)}</Text>
       </View>
-      <View style={styles.reviewAction}><Text style={styles.reviewActionText}>Confirm</Text></View>
+      <View style={styles.reviewAction}><Text style={styles.reviewActionText}>{t("import.confirm", "Confirm")}</Text></View>
     </View>
   );
 }
@@ -587,20 +620,20 @@ function normalizedIndex(value: number) {
   return Math.max(0, Math.min(slides.length - 1, value));
 }
 
-function dueShort(value: string) {
+function dueShort(value: string, locale: string, t: TranslateFn) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Due soon";
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  if (Number.isNaN(date.getTime())) return t("onboarding.preview_due_soon", "Due soon");
+  return date.toLocaleDateString(locale, { month: "short", day: "numeric" });
 }
 
 function labelize(value: string) {
   return value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function formatHours(minutes: number) {
-  if (minutes < 60) return `${minutes}m`;
+function formatHours(minutes: number, t: TranslateFn) {
+  if (minutes < 60) return t("plan.minutes_short", "{minutes}m").replace("{minutes}", String(minutes));
   const hours = minutes / 60;
-  return `${hours % 1 === 0 ? hours.toFixed(0) : hours.toFixed(1)}h`;
+  return t("plan.hours_short", "{hours}h").replace("{hours}", hours % 1 === 0 ? hours.toFixed(0) : hours.toFixed(1));
 }
 
 function createStyles(theme: AppTheme) {

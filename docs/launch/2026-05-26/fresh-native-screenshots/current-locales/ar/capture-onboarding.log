@@ -1,0 +1,14 @@
+Release onboarding localization capture proof
+locale: ar
+device: StudyPlanner-QA-iPhone
+command: STUDYPLANNER_SIMULATOR=StudyPlanner-QA-iPhone STUDYPLANNER_SIM_CAPTURE_TABS=onboarding,onboarding-review,onboarding-calendar,onboarding-today,onboarding-classes,onboarding-focus,onboarding-widgets STUDYPLANNER_SIM_CAPTURE_WAIT_MS=9000 npm run qa:sim-product-depth -- docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar
+captured:
+- 00-onboarding-scan.png
+- 01-onboarding-review.png
+- 02-onboarding-calendar.png
+- 03-onboarding-today.png
+- 04-onboarding-classes.png
+- 05-onboarding-focus.png
+- 06-onboarding-widgets.png
+result: Captured 7 deterministic capture-file screenshots in docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar
+visual check: app-owned onboarding preview titles, method chips, review labels, weekday labels, stats, focus labels, widget labels, and theme choice copy render localized in Arabic; imported fixture assignment/course text remains English where it represents planner data.
