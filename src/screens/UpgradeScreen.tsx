@@ -45,29 +45,29 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
   const loadingPlans = subscription.status === "checking" || subscription.flowState === "loading";
   const hasProducts = subscription.products.length > 0;
   const planStateTitle = subscription.isPremium
-    ? "Plus is active"
+    ? t("paywall.plus_active", "Plus is active")
     : subscription.flowState === "purchasing"
-      ? "Opening the store"
+      ? t("paywall.opening_store", "Opening the store")
       : subscription.flowState === "restoring"
-        ? "Checking purchases"
+        ? t("paywall.checking_purchases", "Checking purchases")
         : loadingPlans
-          ? "Loading current plans"
+          ? t("paywall.loading_current_plans", "Loading current plans")
           : hasProducts
-            ? `${subscription.products.length} plan${subscription.products.length === 1 ? "" : "s"} available`
+            ? t("paywall.plans_available", "{count} plans available").replace("{count}", String(subscription.products.length))
             : hardMode
-              ? "Plus plans are unavailable"
-              : "Waiting for store plans";
+              ? t("paywall.plans_unavailable", "Plus plans are unavailable")
+              : t("paywall.waiting_for_store_plans", "Waiting for store plans");
   const planStateDetail = subscription.isPremium
-    ? "Premium widgets, themes, imports, focus, and grade tools are unlocked on this device."
+    ? t("paywall.plus_active_detail", "Premium widgets, themes, imports, focus, and grade tools are unlocked on this device.")
     : plansUnavailable
-      ? unavailableCopy(subscription.status, subscription.hasConfiguredProducts, hardMode)
+      ? unavailableCopy(subscription.status, subscription.hasConfiguredProducts, hardMode, t)
       : loadingPlans
-        ? "Prices, trials, and renewal periods come from the store before checkout."
+        ? t("paywall.loading_prices_detail", "Prices, trials, and renewal periods come from the store before checkout.")
         : hasProducts
-          ? "Choose a plan below. Restore stays available."
+          ? t("paywall.choose_plan_detail", "Choose a plan below. Restore stays available.")
         : hardMode
-            ? "Plans could not load. Restore Purchases stays available, and this screen will not unlock the planner without a valid store entitlement."
-            : "Plans could not load yet. Restore Purchases stays available for existing subscribers.";
+            ? t("paywall.plans_failed_locked_detail", "Plans could not load. Restore Purchases stays available, and this screen will not unlock the planner without a valid store entitlement.")
+            : t("paywall.plans_failed_detail", "Plans could not load yet. Restore Purchases stays available for existing subscribers.");
   const heroTitle = hardMode ? "StudyPlanner Plus" : "Plus for busy semesters.";
   const localizedHeroTitle = hardMode ? "StudyPlanner Plus" : t("paywall.title", heroTitle);
   const heroSubtitle = hardMode
@@ -86,14 +86,14 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
           <AppLogo showWordmark size={42} />
           <Badge label="Plus" tone="gold" />
         </View>
-        {!hardMode ? <Text style={styles.kicker}>StudyPlanner Plus</Text> : null}
+        {!hardMode ? <Text style={styles.kicker}>{t("paywall.product_name", "StudyPlanner Plus")}</Text> : null}
         <Text style={styles.title}>{localizedHeroTitle}</Text>
         <Text style={styles.subtitle}>{heroSubtitle}</Text>
         <View style={styles.payoffRail}>
-          <PayoffPill icon={FileScan} label="Imports" />
-          <PayoffPill icon={Timer} label="Focus" />
-          <PayoffPill icon={Layers3} label="Widgets" />
-          <PayoffPill icon={Bell} label="Reminders" />
+          <PayoffPill icon={FileScan} label={t("paywall.imports", "Imports")} />
+          <PayoffPill icon={Timer} label={t("tabs.focus", "Focus")} />
+          <PayoffPill icon={Layers3} label={t("tabs.widgets", "Widgets")} />
+          <PayoffPill icon={Bell} label={t("paywall.reminders", "Reminders")} />
         </View>
       </GlassCard>
 
@@ -107,14 +107,14 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
       {subscription.errorMessage && !plansUnavailable ? (
         <View style={styles.noticeError}>
           <Text style={styles.noticeText}>{subscription.errorMessage}</Text>
-          <AppButton label="Try Again" variant="secondary" onPress={() => void subscription.refresh()} />
+          <AppButton label={t("errors.try_again", "Try Again")} variant="secondary" onPress={() => void subscription.refresh()} />
         </View>
       ) : null}
 
       <View style={[styles.planStateCard, subscription.errorMessage || plansUnavailable ? styles.planStateCardWarning : hasProducts || subscription.isPremium ? styles.planStateCardReady : null]}>
         <View style={styles.planStateTopRow}>
           <View style={styles.planStateCopy}>
-            <Text style={styles.planStateKicker}>App Store</Text>
+            <Text style={styles.planStateKicker}>{t("paywall.app_store", "App Store")}</Text>
             <Text style={styles.planStateTitle}>{planStateTitle}</Text>
           </View>
           {busy || loadingPlans ? <ActivityIndicator color={colors.accent} /> : <ShieldCheck color={hasProducts || subscription.isPremium ? colors.green : colors.muted} size={19} />}
@@ -130,8 +130,8 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
 
       {subscription.isPremium ? (
         <View style={styles.actionStack}>
-          <AppButton label="Manage Subscription" variant="secondary" onPress={() => void subscription.manageSubscriptions()} />
-          {onContinueAfterPurchase ? <AppButton label="Continue" onPress={onContinueAfterPurchase} /> : null}
+          <AppButton label={t("paywall.manage_subscription", "Manage Subscription")} variant="secondary" onPress={() => void subscription.manageSubscriptions()} />
+          {onContinueAfterPurchase ? <AppButton label={t("common.continue", "Continue")} onPress={onContinueAfterPurchase} /> : null}
         </View>
       ) : (
         <>
@@ -139,7 +139,7 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
             {loadingPlans ? (
               <View style={styles.loadingCard}>
                 <ActivityIndicator color={colors.ink} />
-                <Text style={styles.loadingText}>Loading current store pricing</Text>
+                <Text style={styles.loadingText}>{t("paywall.loading_current_store_pricing", "Loading current store pricing")}</Text>
               </View>
             ) : null}
 
@@ -165,10 +165,10 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
 
           {plansUnavailable ? (
             <View style={styles.unavailableCard}>
-              <Text style={styles.unavailableTitle}>Purchases are unavailable</Text>
-              <Text style={styles.unavailableCopy}>{unavailableCopy(subscription.status, subscription.hasConfiguredProducts, hardMode)}</Text>
+              <Text style={styles.unavailableTitle}>{t("paywall.purchases_unavailable", "Purchases are unavailable")}</Text>
+              <Text style={styles.unavailableCopy}>{unavailableCopy(subscription.status, subscription.hasConfiguredProducts, hardMode, t)}</Text>
               {subscription.status !== "unavailable" ? (
-                <AppButton label="Try Again" variant="secondary" onPress={() => void subscription.refresh()} />
+                <AppButton label={t("errors.try_again", "Try Again")} variant="secondary" onPress={() => void subscription.refresh()} />
               ) : null}
             </View>
           ) : null}
@@ -183,9 +183,9 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
           ) : null}
 
           <View style={styles.trustRail}>
-            <TrustPill icon={ShieldCheck} label="Apple checkout" />
-            <TrustPill icon={Check} label="Restore purchases" />
-            <TrustPill icon={Check} label="No account needed" />
+            <TrustPill icon={ShieldCheck} label={t("paywall.apple_checkout", "Apple checkout")} />
+            <TrustPill icon={Check} label={t("paywall.restore_purchases_short", "Restore purchases")} />
+            <TrustPill icon={Check} label={t("paywall.no_account_needed", "No account needed")} />
           </View>
         </>
       )}
@@ -205,7 +205,7 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
 
       <View style={styles.trustCard}>
         <ShieldCheck color={colors.sage} size={18} />
-        <Text style={styles.trustText}>App Store prices, Restore Purchases, Terms, and Privacy stay visible before checkout.</Text>
+        <Text style={styles.trustText}>{t("paywall.store_trust_copy", "App Store prices, Restore Purchases, Terms, and Privacy stay visible before checkout.")}</Text>
       </View>
 
       <View style={styles.legalRow}>
@@ -232,7 +232,7 @@ function PaywallActions({
   return (
     <View style={styles.actionStack}>
       <AppButton
-        label={ctaLabel(selectedProduct, subscription.flowState)}
+        label={ctaLabel(selectedProduct, subscription.flowState, t)}
         icon={Crown}
         disabled={!selectedProduct || busy}
         style={styles.actionButton}
@@ -241,7 +241,7 @@ function PaywallActions({
         }}
       />
       <AppButton
-        label={subscription.flowState === "restoring" ? "Restoring" : t("paywall.restore", "Restore Purchases")}
+        label={subscription.flowState === "restoring" ? t("paywall.restoring", "Restoring") : t("paywall.restore", "Restore Purchases")}
         variant="secondary"
         disabled={busy}
         style={styles.actionButton}
@@ -290,6 +290,7 @@ function TrustPill({ icon: Icon, label }: { icon: React.ComponentType<{ color: s
 
 function ProductOption({ product, selected, recommended, onPress }: { product: PaywallProduct; selected: boolean; recommended: boolean; onPress: () => void; }) {
   const { theme } = useAppTheme();
+  const { t } = useI18n();
   const styles = createStyles(theme);
 
   return (
@@ -298,7 +299,7 @@ function ProductOption({ product, selected, recommended, onPress }: { product: P
         <View style={styles.productCopy}>
           <View style={styles.productTitleRow}>
             <Text style={styles.productTitle}>{product.title}</Text>
-            {recommended || product.hasFreeTrial ? <Badge label={product.hasFreeTrial ? "Free trial" : "Best value"} tone="gold" /> : null}
+            {recommended || product.hasFreeTrial ? <Badge label={product.hasFreeTrial ? t("paywall.free_trial", "Free trial") : t("paywall.best_value", "Best value")} tone="gold" /> : null}
           </View>
           <Text style={styles.productMeta}>{product.periodLabel}</Text>
         </View>
@@ -344,6 +345,7 @@ function LegalLink({ label, document, onOpen }: { label: string; document: Legal
 
 function LegalNotice({ document, onClose }: { document: LegalDocument; onClose: () => void; }) {
   const { theme } = useAppTheme();
+  const { t } = useI18n();
   const { colors } = theme;
   const styles = createStyles(theme);
   const isTerms = document === "terms";
@@ -352,8 +354,8 @@ function LegalNotice({ document, onClose }: { document: LegalDocument; onClose: 
     <View style={styles.screen}>
       <View style={styles.legalHeader}>
         <View style={styles.legalHeaderCopy}>
-          <Text style={styles.kicker}>{isTerms ? "Terms" : "Privacy"}</Text>
-          <Text style={styles.legalTitle}>{isTerms ? "Terms of Use" : "Privacy Policy"}</Text>
+          <Text style={styles.kicker}>{isTerms ? t("paywall.terms_short", "Terms") : t("paywall.privacy_short", "Privacy")}</Text>
+          <Text style={styles.legalTitle}>{isTerms ? t("paywall.terms_title", "Terms of Use") : t("paywall.privacy_title", "Privacy Policy")}</Text>
         </View>
         <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close legal notice" style={styles.closeButton} onPress={onClose}>
           <X color={colors.ink} size={18} />
@@ -362,44 +364,44 @@ function LegalNotice({ document, onClose }: { document: LegalDocument; onClose: 
       <View style={styles.legalCard}>
         <Text style={styles.legalBody}>
           {isTerms
-            ? "Subscriptions are billed by the App Store or Google Play account used at purchase. Apple's standard EULA applies on iOS. Manage or cancel renewal from your store account settings. Plus access remains tied to valid store entitlement status."
-            : "StudyPlanner stores planner details on your device unless you choose services that require upload, such as syllabus import. Syllabus files are sent only for parsing, and the app does not sell personal planner data."}
+            ? t("paywall.terms_body", "Subscriptions are billed by the App Store or Google Play account used at purchase. Apple's standard EULA applies on iOS. Manage or cancel renewal from your store account settings. Plus access remains tied to valid store entitlement status.")
+            : t("paywall.privacy_body", "StudyPlanner stores planner details on your device unless you choose services that require upload, such as syllabus import. Syllabus files are sent only for parsing, and the app does not sell personal planner data.")}
         </Text>
         <View style={styles.legalFeature}>
           {isTerms ? <CalendarSync color={colors.accent} size={18} /> : <FileScan color={colors.accent} size={18} />}
-          <Text style={styles.legalBody}>{isTerms ? "Prices, trials, and renewal periods shown on the paywall come from the store." : "Planner content is stored locally unless you choose a service that requires upload, such as syllabus parsing."}</Text>
+          <Text style={styles.legalBody}>{isTerms ? t("paywall.terms_feature", "Prices, trials, and renewal periods shown on the paywall come from the store.") : t("paywall.privacy_feature", "Planner content is stored locally unless you choose a service that requires upload, such as syllabus parsing.")}</Text>
         </View>
-        <AppButton label="Back to Plus" onPress={onClose} />
+        <AppButton label={t("paywall.back_to_plus", "Back to Plus")} onPress={onClose} />
       </View>
     </View>
   );
 }
 
-function ctaLabel(product: PaywallProduct | undefined, flowState: string) {
-  if (flowState === "purchasing") return "Opening Store";
-  if (!product) return "Choose a Plan";
-  if (product.kind === "lifetime") return "Buy Lifetime";
-  return product.hasFreeTrial ? "Start Free Trial" : "Subscribe";
+function ctaLabel(product: PaywallProduct | undefined, flowState: string, t: (key: string, fallback?: string) => string) {
+  if (flowState === "purchasing") return t("paywall.opening_store_cta", "Opening Store");
+  if (!product) return t("paywall.choose_plan", "Choose a Plan");
+  if (product.kind === "lifetime") return t("paywall.buy_lifetime", "Buy Lifetime");
+  return product.hasFreeTrial ? t("paywall.start_free_trial", "Start Free Trial") : t("paywall.subscribe", "Subscribe");
 }
 
-function unavailableCopy(status: string, hasConfiguredProducts: boolean, hardMode = false) {
+function unavailableCopy(status: string, hasConfiguredProducts: boolean, hardMode = false, t: (key: string, fallback?: string) => string) {
   if (hardMode) {
     if (status === "unavailable" && hasConfiguredProducts) {
       return Platform.OS === "web"
-      ? "Subscriptions must be purchased in the iOS or Android app. This web screen cannot unlock Plus."
-        : "Store purchases are unavailable on this device right now. Restore remains available, and Plus will not unlock without a valid store entitlement.";
+      ? t("paywall.web_purchase_required", "Subscriptions must be purchased in the iOS or Android app. This web screen cannot unlock Plus.")
+        : t("paywall.store_unavailable_locked", "Store purchases are unavailable on this device right now. Restore remains available, and Plus will not unlock without a valid store entitlement.");
     }
-    if (!hasConfiguredProducts) return "No Plus product IDs are configured for this build. Restore remains available, but the planner stays locked until products load in a configured build.";
-    return "The store could not load active Plus plans. Restore remains available, and the planner stays locked until a valid entitlement is found.";
+    if (!hasConfiguredProducts) return t("paywall.no_product_ids", "No Plus product IDs are configured for this build. Restore remains available, but the planner stays locked until products load in a configured build.");
+    return t("paywall.store_no_plans_locked", "The store could not load active Plus plans. Restore remains available, and the planner stays locked until a valid entitlement is found.");
   }
 
   if (status === "unavailable" && hasConfiguredProducts) {
     return Platform.OS === "web"
-      ? "Subscriptions are available in the iOS or Android app."
-      : "Store purchases are unavailable on this device right now.";
+      ? t("paywall.web_purchase_available", "Subscriptions are available in the iOS or Android app.")
+      : t("paywall.store_unavailable", "Store purchases are unavailable on this device right now.");
   }
-  if (!hasConfiguredProducts) return "Subscription plans are not available right now.";
-  return "The store could not load active Plus plans. Please try again shortly.";
+  if (!hasConfiguredProducts) return t("paywall.subscription_plans_unavailable", "Subscription plans are not available right now.");
+  return t("paywall.store_no_plans", "The store could not load active Plus plans. Please try again shortly.");
 }
 
 function createStyles(theme: AppTheme) {

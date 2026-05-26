@@ -24,6 +24,8 @@ Date: 2026-05-26 02:06 EDT / 2026-05-26 06:06 UTC
 - Fresh native paywall product screenshot captured at `docs/launch/2026-05-26/fresh-native-screenshots/release-rescue/02-release-plus-deeplink.png`
 - App-side native env inlining fix verified by rebuilding Release simulator JavaScript with the production parser endpoint and image parsing flag.
 - Fresh native photo picker proof captured at `docs/launch/2026-05-26/fresh-native-screenshots/photo-rescue/`.
+- Current Arabic native Release simulator build after the Scan/Plus localization expansion succeeded.
+- Current Arabic native Release screenshots captured at `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/`.
 - `npx gitnexus analyze` completed successfully after implementation; a later retry after the final doc-only status patch intermittently crashed with `Napi::Error`.
 - `npx gitnexus detect-changes --repo studyplanner` completed and reported 34 changed files, 156 changed symbols, 128 affected processes, aggregate risk `critical`.
 
@@ -58,4 +60,4 @@ Do not upload a new build from this state. Backend OCR and native Plus product l
 - Runtime localization screenshots are freshly reviewed and accepted for `ar`, `de`, `ja`, and `zh-Hans`.
 - Arabic RTL risk is accepted or fixed.
 
-The current partial locale screenshots are blocker evidence, not release proof, because they still show English inner UI strings and unavailable IAP products in the locale capture builds.
+Current Arabic runtime screenshots are materially improved and show real products/prices, but release remains blocked because current image-enabled/IAP-configured localized screenshots still need to be repeated for `de`, `ja`, and `zh-Hans`, and StoreKit product titles/descriptions still need App Store Connect localization verification.

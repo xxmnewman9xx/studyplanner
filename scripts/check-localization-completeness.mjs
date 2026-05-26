@@ -108,6 +108,134 @@ assert(sourceFiles.paywall.includes("useI18n") && sourceFiles.paywall.includes("
 assert(sourceFiles.widgets.includes("Native style fields"), "Widget Studio must preserve native/widget truth copy.");
 assert(sourceFiles.i18n.includes("EXPO_PUBLIC_STUDYPLANNER_LOCALE"), "Localization override must exist for screenshot QA.");
 
+const hardcodedLaunchStrings = [
+  {
+    file: "src/screens/ImportScreen.tsx",
+    source: sourceFiles.importScreen,
+    phrases: [
+      "Plus unlocks syllabus imports",
+      "Unlock Plus",
+      "Step 1 · choose a source",
+      "Turn a syllabus into an editable plan.",
+      "Pick one path. You review every assignment before it reaches Today.",
+      "Use a syllabus photo.",
+      "Take a new photo or choose a saved page from your library.",
+      "Take photo",
+      "Choose photo",
+      "Use a saved photo.",
+      "Pick a clear syllabus page, worksheet, board photo, or handout image from your library.",
+      "Upload a syllabus PDF.",
+      "Text-based PDFs and text files work best for AI-assisted organization.",
+      "Upload PDF",
+      "Paste syllabus lines or assignment dates...",
+      "Review pasted text",
+      "Nothing is added until you confirm the review list.",
+      "Reading your import",
+      "Finding assignments, dates, classes, and grade weights.",
+      "Recent imports",
+      "Open one to review found work",
+      "Review before adding",
+      "Assignments",
+      "Exams",
+      "Projects",
+      "Valid dates",
+      "Trust check",
+      "Fix required",
+      "Editable before save",
+      "Widgets use reviewed work",
+      "Confirm all valid rows",
+      "Fix dates before adding",
+      "Review flagged items first",
+      "Start over"
+    ]
+  },
+  {
+    file: "src/screens/UpgradeScreen.tsx",
+    source: sourceFiles.paywall,
+    phrases: [
+      "Plus is active",
+      "Opening the store",
+      "Checking purchases",
+      "Loading current plans",
+      "Plus plans are unavailable",
+      "Waiting for store plans",
+      "Premium widgets, themes, imports, focus, and grade tools are unlocked on this device.",
+      "Prices, trials, and renewal periods come from the store before checkout.",
+      "Choose a plan below. Restore stays available.",
+      "Imports",
+      "Widgets",
+      "App Store",
+      "Manage Subscription",
+      "Loading current store pricing",
+      "Purchases are unavailable",
+      "Apple checkout",
+      "Restore purchases",
+      "No account needed",
+      "App Store prices, Restore Purchases, Terms, and Privacy stay visible before checkout.",
+      "Privacy",
+      "Terms of Use",
+      "Privacy Policy",
+      "Back to Plus",
+      "Opening Store",
+      "Choose a Plan",
+      "Buy Lifetime",
+      "Start Free Trial",
+      "Subscribe",
+      "Free trial",
+      "Best value"
+    ]
+  },
+  {
+    file: "App.tsx",
+    source: sourceFiles.app,
+    phrases: [
+      "Next deadline",
+      "This is the one thing to look at first.",
+      "Quick capture",
+      "Add homework before it slips.",
+      "planner is clean",
+      "reviewed source rows",
+      "Use Light mode",
+      "Use Dark mode"
+    ]
+  }
+];
+
+for (const { file, source, phrases } of hardcodedLaunchStrings) {
+  const searchableSource = stripLocalizedFallbacks(source);
+  for (const phrase of phrases) {
+    assert(
+      !searchableSource.includes(phrase),
+      `${file} has unlocalized launch-critical runtime string: "${phrase}".`
+    );
+  }
+}
+
+const englishCatalog = flattenStrings(catalog["en-US"]);
+const allowedSameAsEnglishKeys = new Set([
+  "direction",
+  "brand_name",
+  "brand_subtitle",
+  "tabs.plan",
+  "tabs.focus",
+  "tabs.plus",
+  "tabs.widgets",
+  "paywall.app_store",
+  "paywall.monthly",
+  "paywall.product_name",
+  "paywall.yearly"
+]);
+for (const locale of requiredLocales.filter((locale) => locale !== "en-US")) {
+  const localizedValues = flattenStrings(catalog[locale]);
+  for (const [key, value] of Object.entries(localizedValues)) {
+    if (allowedSameAsEnglishKeys.has(key)) continue;
+    assert(
+      value !== englishCatalog[key],
+      `${locale}.${key} is still identical to en-US; this is not accepted as runtime localization.`
+    );
+  }
+}
+
 if (failures.length) {
   console.error("Localization completeness failures:");
   for (const failure of failures) console.error(`- ${failure}`);
@@ -121,4 +249,20 @@ function valueAtPath(source, key) {
     if (!current || typeof current !== "object") return undefined;
     return current[part];
   }, source);
+}
+
+function stripLocalizedFallbacks(source) {
+  return source.replace(/\bt\(\s*["'][a-z0-9_.-]+["']\s*,\s*(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')\s*\)/gi, "t()");
+}
+
+function flattenStrings(source, prefix = "", target = {}) {
+  for (const [key, value] of Object.entries(source || {})) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (typeof value === "string") {
+      target[path] = value;
+    } else if (value && typeof value === "object") {
+      flattenStrings(value, path, target);
+    }
+  }
+  return target;
 }

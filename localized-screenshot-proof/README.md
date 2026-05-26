@@ -4,14 +4,21 @@ Date: 2026-05-26
 
 ## Status
 
-Partial localized native screenshots are included for four smoke-test locales:
+Partial localized native screenshots are included for four older smoke-test locales:
 
 - `ar`
 - `de`
 - `ja`
 - `zh-Hans`
 
-These screenshots are blocker evidence, not release proof. The current uploaded TestFlight build `27` predates the runtime i18n wiring and the native OCR env inlining fix in source. The simulator locale captures also predate the final image-enabled Release proof and were captured without the production IAP product env, so they cannot prove localized product loading or image-enabled scanning.
+Those older screenshots are blocker evidence, not release proof. The current uploaded TestFlight build `27` predates the runtime i18n wiring and the native OCR env inlining fix in source. The older simulator locale captures also predate the final image-enabled Release proof and were captured without the production IAP product env, so they cannot prove localized product loading or image-enabled scanning.
+
+Current Arabic Release simulator screenshots are included and are stronger proof:
+
+- `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/12-scan.png`
+- `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/24-plus.png`
+
+They were captured from an image-enabled, production-parser, production-IAP-ID Release simulator build with `EXPO_PUBLIC_STUDYPLANNER_LOCALE=ar`.
 
 ## Available Evidence
 
@@ -23,6 +30,8 @@ These screenshots are blocker evidence, not release proof. The current uploaded 
   - `docs/launch/2026-05-26/fresh-native-screenshots/qa-capture/locales/de/`
   - `docs/launch/2026-05-26/fresh-native-screenshots/qa-capture/locales/ja/`
   - `docs/launch/2026-05-26/fresh-native-screenshots/qa-capture/locales/zh-Hans/`
+- Current Arabic Release screenshots:
+  - `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/`
 - Recent English UI screenshot sets from the current design family:
   - `qa-screenshots/2026-05-25-final-release-cycle/final-current-ui-v2/`
   - `qa-screenshots/2026-05-25-final-release-cycle/onboarding-paywall/`
@@ -30,10 +39,10 @@ These screenshots are blocker evidence, not release proof. The current uploaded 
 
 ## Observed Blockers
 
-- Scan and paywall screenshots still contain English inner UI strings.
-- Arabic RTL direction is only partially exercised; mixed English source/product labels remain.
-- Paywall locale screenshots show products unavailable because production subscription IDs were not configured in those locale capture builds.
-- The screenshots do not cover all 10 required locales.
+- Current Arabic Scan and paywall shell runtime strings are localized and RTL.
+- StoreKit product titles/descriptions in the current Arabic paywall are still English, so App Store Connect subscription localization remains unverified.
+- Current image-enabled/IAP-configured screenshots do not yet cover `de`, `ja`, or `zh-Hans`.
+- The screenshot set still does not cover all 10 required locales.
 
 ## Required Before Valid Localized Screenshots
 

@@ -291,10 +291,10 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
             <Crown color={colors.accent} size={18} />
           </View>
           <View style={styles.limitCopy}>
-            <Text style={styles.limitTitle}>Plus unlocks syllabus imports</Text>
-            <Text style={styles.limitText}>{imageParsingAvailable ? "Use camera photos, files, pasted text, and re-imports when OCR is configured." : "Use AI-assisted text/PDF imports, pasted text, and re-imports when your semester gets busy."}</Text>
+            <Text style={styles.limitTitle}>{t("import.plus_unlocks", "Plus unlocks syllabus imports")}</Text>
+            <Text style={styles.limitText}>{imageParsingAvailable ? t("paywall.feature_scans_detail", "Use camera photos, files, pasted text, and re-imports when OCR is configured.") : t("paywall.feature_scans_detail", "Use AI-assisted text/PDF imports, pasted text, and re-imports when your semester gets busy.")}</Text>
           </View>
-          <AppButton label="Unlock Plus" icon={Crown} onPress={onOpenPaywall || (() => undefined)} />
+          <AppButton label={t("import.unlock_plus", "Unlock Plus")} icon={Crown} onPress={onOpenPaywall || (() => undefined)} />
         </GlassCard>
       ) : null}
 
@@ -304,44 +304,44 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
         <View style={styles.scanFrame}>
           <View style={styles.scanLine} />
         </View>
-        <Text style={styles.dropKicker}>Step 1 · choose a source</Text>
-        <Text style={styles.dropTitle}>Turn a syllabus into an editable plan.</Text>
-        <Text style={styles.dropCopy}>Pick one path. You review every assignment before it reaches Today.</Text>
+        <Text style={styles.dropKicker}>{t("import.step_choose_source", "Step 1 · choose a source")}</Text>
+        <Text style={styles.dropTitle}>{t("import.editable_plan_title", "Turn a syllabus into an editable plan.")}</Text>
+        <Text style={styles.dropCopy}>{t("import.source_picker_copy", "Pick one path. You review every assignment before it reaches Today.")}</Text>
         <View style={styles.magicPreview}>
-          <MagicPreviewStep icon={FileText} title="Scan" detail="Source" />
+          <MagicPreviewStep icon={FileText} title={t("tabs.scan", "Scan")} detail={t("import.source", "Source")} />
           <View style={styles.magicArrow} />
-          <MagicPreviewStep icon={Search} title="Review" detail="Draft" />
+          <MagicPreviewStep icon={Search} title={t("import.review_short", "Review")} detail={t("import.draft", "Draft")} />
           <View style={styles.magicArrow} />
-          <MagicPreviewStep icon={CheckCircle2} title="Add" detail="Today" />
+          <MagicPreviewStep icon={CheckCircle2} title={t("import.add", "Add")} detail={t("tabs.today", "Today")} />
         </View>
         <View style={styles.sourcePicker}>
-          <SourceOption mode="camera" label="Camera" icon={Camera} disabled={!imageParsingAvailable} />
-          <SourceOption mode="photo" label="Photo" icon={FileText} disabled={!imageParsingAvailable} />
+          <SourceOption mode="camera" label={t("import.camera", "Camera")} icon={Camera} disabled={!imageParsingAvailable} />
+          <SourceOption mode="photo" label={t("import.photo", "Photo")} icon={FileText} disabled={!imageParsingAvailable} />
           <SourceOption mode="file" label="PDF" icon={Upload} />
-          <SourceOption mode="paste" label="Paste" icon={Keyboard} />
+          <SourceOption mode="paste" label={t("import.paste", "Paste")} icon={Keyboard} />
         </View>
         {sourceMode === "camera" ? (
           <View style={styles.sourcePanel}>
-            <Text style={styles.sourcePanelTitle}>Use a syllabus photo.</Text>
-            <Text style={styles.sourcePanelCopy}>Take a new photo or choose a saved page from your library.</Text>
+            <Text style={styles.sourcePanelTitle}>{t("import.camera_title", "Use a syllabus photo.")}</Text>
+            <Text style={styles.sourcePanelCopy}>{t("import.camera_copy", "Take a new photo or choose a saved page from your library.")}</Text>
             <View style={styles.scanActions}>
-              <AppButton label="Take photo" icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
-              <AppButton label="Choose photo" icon={FileText} variant="secondary" onPress={pickPhoto} style={styles.scanActionSecondary} />
+              <AppButton label={t("import.take_photo", "Take photo")} icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
+              <AppButton label={t("import.choose_photo", "Choose photo")} icon={FileText} variant="secondary" onPress={pickPhoto} style={styles.scanActionSecondary} />
             </View>
           </View>
         ) : null}
         {sourceMode === "photo" ? (
           <View style={styles.sourcePanel}>
-            <Text style={styles.sourcePanelTitle}>Use a saved photo.</Text>
-            <Text style={styles.sourcePanelCopy}>Pick a clear syllabus page, worksheet, board photo, or handout image from your library.</Text>
-            <AppButton label="Choose photo" icon={FileText} onPress={pickPhoto} style={styles.scanActionPrimary} />
+            <Text style={styles.sourcePanelTitle}>{t("import.photo_title", "Use a saved photo.")}</Text>
+            <Text style={styles.sourcePanelCopy}>{t("import.photo_copy", "Pick a clear syllabus page, worksheet, board photo, or handout image from your library.")}</Text>
+            <AppButton label={t("import.choose_photo", "Choose photo")} icon={FileText} onPress={pickPhoto} style={styles.scanActionPrimary} />
           </View>
         ) : null}
         {sourceMode === "file" ? (
           <View style={styles.sourcePanel}>
-            <Text style={styles.sourcePanelTitle}>Upload a syllabus PDF.</Text>
-            <Text style={styles.sourcePanelCopy}>Text-based PDFs and text files work best for AI-assisted organization.</Text>
-            <AppButton label="Upload PDF" icon={Upload} onPress={pickPdf} style={styles.scanActionPrimary} />
+            <Text style={styles.sourcePanelTitle}>{t("import.pdf_title", "Upload a syllabus PDF.")}</Text>
+            <Text style={styles.sourcePanelCopy}>{t("import.pdf_copy", "Text-based PDFs and text files work best for AI-assisted organization.")}</Text>
+            <AppButton label={t("import.upload_pdf", "Upload PDF")} icon={Upload} onPress={pickPdf} style={styles.scanActionPrimary} />
           </View>
         ) : null}
         {sourceMode === "paste" ? (
@@ -350,12 +350,12 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
               value={typedText}
               onChangeText={setTypedText}
               multiline
-              placeholder="Paste syllabus lines or assignment dates..."
+              placeholder={t("import.paste_placeholder", "Paste syllabus lines or assignment dates...")}
               placeholderTextColor={colors.heroMuted}
               style={styles.typeBox}
             />
             <AppButton
-              label="Review pasted text"
+              label={t("import.review_pasted_text", "Review pasted text")}
               icon={Keyboard}
               variant="secondary"
               onPress={typeItIn}
@@ -364,7 +364,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
           </View>
         ) : null}
         <Text style={styles.privacyNote}>
-          Nothing is added until you confirm the review list.
+          {t("import.privacy_note", "Nothing is added until you confirm the review list.")}
         </Text>
       </GlassCard>
 
@@ -374,15 +374,15 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
             <ActivityIndicator color={colors.heroText} />
           </View>
           <View style={styles.processingCopy}>
-            <Text style={styles.processingTitle}>Reading your import</Text>
-            <Text style={styles.processingMeta}>Finding assignments, dates, classes, and grade weights.</Text>
+            <Text style={styles.processingTitle}>{t("import.reading_import", "Reading your import")}</Text>
+            <Text style={styles.processingMeta}>{t("import.finding_work", "Finding assignments, dates, classes, and grade weights.")}</Text>
           </View>
         </View>
       ) : null}
 
       {parsedImports.length > 0 ? (
         <>
-          <SectionHeader title="Recent imports" note="Open one to review found work" />
+          <SectionHeader title={t("import.recent_imports", "Recent imports")} note={t("import.recent_imports_note", "Open one to review found work")} />
           <View style={styles.recentList}>
             {parsedImports.map((item) => (
               <TouchableOpacity
@@ -399,7 +399,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                 <View style={styles.recentCopy}>
                   <Text style={styles.recentTitle}>{item.title}</Text>
                   <Text style={styles.recentMeta}>{item.itemCount} found · {labelize(item.status)}</Text>
-                  <Text style={styles.recentSubtle}>{imageParsingAvailable ? "Photos, files, and pasted text create editable drafts for review." : "PDFs and pasted text create editable drafts for review."}</Text>
+                  <Text style={styles.recentSubtle}>{imageParsingAvailable ? t("import.recent_subtle_images", "Photos, files, and pasted text create editable drafts for review.") : t("import.recent_subtle", "PDFs and pasted text create editable drafts for review.")}</Text>
                 </View>
                 <Badge label={labelize(item.sourceType)} tone={item.status === "ready" ? "blue" : "green"} />
               </TouchableOpacity>
@@ -410,7 +410,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
 
       {draft ? (
         <>
-          <SectionHeader title={t("import.review_work", "Review work")} note={`${draft.assignments.length} found. Edit, confirm, then add to Today.`} />
+          <SectionHeader title={t("import.review_work", "Review work")} note={t("import.review_work_note", "{count} found. Edit, confirm, then add to Today.").replace("{count}", String(draft.assignments.length))} />
           <GlassCard style={styles.resultCard}>
             <View style={[
               styles.reviewGateCard,
@@ -426,7 +426,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                 </View>
                 <View style={styles.reviewGateCopy}>
                   <Text style={styles.reviewGateTitle}>
-                    {canApplyDraft ? t("import.ready_to_add", "Ready to add to Today") : "Review before adding"}
+                    {canApplyDraft ? t("import.ready_to_add", "Ready to add to Today") : t("import.review_before_adding", "Review before adding")}
                   </Text>
                   <Text style={styles.reviewGateText}>
                     {canApplyDraft
@@ -438,36 +438,36 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
             </View>
             {counts ? (
               <View style={styles.resultStats}>
-                <ResultStat value={String(counts.assignments)} label="Assignments" tone="blue" />
-                <ResultStat value={String(counts.exams)} label="Exams" tone="gold" />
-                <ResultStat value={String(counts.projects)} label="Projects" tone="pink" />
-                <ResultStat value={String(confirmableDraftCount)} label="Valid dates" tone="plain" />
+                <ResultStat value={String(counts.assignments)} label={t("import.assignments", "Assignments")} tone="blue" />
+                <ResultStat value={String(counts.exams)} label={t("import.exams", "Exams")} tone="gold" />
+                <ResultStat value={String(counts.projects)} label={t("import.projects", "Projects")} tone="pink" />
+                <ResultStat value={String(confirmableDraftCount)} label={t("import.valid_dates", "Valid dates")} tone="plain" />
               </View>
             ) : null}
             <View style={styles.confidencePanel}>
-              <Text style={styles.confidenceKicker}>Trust check</Text>
+              <Text style={styles.confidenceKicker}>{t("import.trust_check", "Trust check")}</Text>
               <Text style={styles.confidenceCopy}>
-                Confirmed rows can reach Today, Calendar, reminders, and widgets. Invalid dates stay blocked until edited.
+                {t("import.trust_check_copy", "Confirmed rows can reach Today, Calendar, reminders, and widgets. Invalid dates stay blocked until edited.")}
               </Text>
               <View style={styles.confidenceLegend}>
                 <View style={[styles.confidenceLegendPill, styles.confidenceHigh]}>
-                  <Text style={styles.confidenceLegendText}>High confidence</Text>
+                  <Text style={styles.confidenceLegendText}>{t("import.high_confidence", "High confidence")}</Text>
                 </View>
                 <View style={[styles.confidenceLegendPill, styles.confidenceMedium]}>
-                  <Text style={styles.confidenceLegendText}>Check</Text>
+                  <Text style={styles.confidenceLegendText}>{t("import.check", "Check")}</Text>
                 </View>
                 <View style={[styles.confidenceLegendPill, styles.confidenceLow]}>
-                  <Text style={styles.confidenceLegendText}>Fix required</Text>
+                  <Text style={styles.confidenceLegendText}>{t("import.fix_required", "Fix required")}</Text>
                 </View>
               </View>
             </View>
             <View style={styles.trustRow}>
-              <TrustChip label="Editable before save" />
-              <TrustChip label="Widgets use reviewed work" />
+              <TrustChip label={t("import.editable_before_save", "Editable before save")} />
+              <TrustChip label={t("import.widgets_use_reviewed_work", "Widgets use reviewed work")} />
               <TrustChip label={t("import.no_silent_import", "No silent import")} />
             </View>
             <AppButton
-              label={invalidDeadlineCount > 0 ? "Confirm valid rows only" : "Confirm all valid rows"}
+              label={invalidDeadlineCount > 0 ? t("import.confirm_valid_rows_only", "Confirm valid rows only") : t("import.confirm_all_valid_rows", "Confirm all valid rows")}
               icon={CheckCircle2}
               variant="secondary"
               disabled={confirmableDraftCount === 0}
@@ -540,7 +540,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                     />
                   </View>
                   <Text style={styles.trustExplanation}>
-                    {trustExplanation(assignment.confidence || 0.9, !reviewed)}
+                    {trustExplanation(assignment.confidence || 0.9, !reviewed, t)}
                   </Text>
 
                   {!reviewed ? (
@@ -569,7 +569,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
 
           <View style={styles.applyBar}>
             <AppButton
-              label={premiumImportLocked ? "Subscribe for more imports" : invalidDeadlineCount > 0 ? "Fix dates before adding" : needsReviewCount > 0 ? "Review flagged items first" : `Add ${draft.assignments.length} reviewed item${draft.assignments.length === 1 ? "" : "s"} to Today`}
+              label={premiumImportLocked ? t("import.subscribe_for_more_imports", "Subscribe for more imports") : invalidDeadlineCount > 0 ? t("import.fix_dates_before_adding", "Fix dates before adding") : needsReviewCount > 0 ? t("import.review_flagged_items_first", "Review flagged items first") : t("import.add_reviewed_items", "Add {count} reviewed items to Today").replace("{count}", String(draft.assignments.length))}
               disabled={!canApplyDraft && !premiumImportLocked}
               onPress={() => {
                 if (premiumImportLocked) {
@@ -580,7 +580,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                 onApplyParsedPlan(draft);
               }}
             />
-            <AppButton label="Start over" variant="secondary" onPress={() => setDraft(null)} />
+            <AppButton label={t("import.start_over", "Start over")} variant="secondary" onPress={() => setDraft(null)} />
           </View>
         </>
       ) : null}
@@ -668,11 +668,11 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
 }
 
 
-function trustExplanation(confidence: number, needsReview: boolean) {
-  if (needsReview) return "Needs a human check: edit title, date, or time before adding to Today.";
-  if (confidence < 0.62) return "Low confidence: verify this row carefully.";
-  if (confidence < 0.82) return "Medium confidence: looks plausible, but worth a quick read.";
-  return "High confidence: still editable before it touches your planner.";
+function trustExplanation(confidence: number, needsReview: boolean, t: (key: string, fallback?: string) => string) {
+  if (needsReview) return t("import.trust_needs_review", "Needs a human check: edit title, date, or time before adding to Today.");
+  if (confidence < 0.62) return t("import.trust_low", "Low confidence: verify this row carefully.");
+  if (confidence < 0.82) return t("import.trust_medium", "Medium confidence: looks plausible, but worth a quick read.");
+  return t("import.trust_high", "High confidence: still editable before it touches your planner.");
 }
 
 function reviewGateMessage(invalidDeadlineCount: number, needsReviewCount: number) {
