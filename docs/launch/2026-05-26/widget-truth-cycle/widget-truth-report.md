@@ -13,7 +13,7 @@ Native sync uses `expo-widgets`:
 ## Fixes
 
 - Replaced synthetic native progress defaults with completion ratios from saved assignments.
-- Today widgets now carry real due/catch-up completion progress.
+- Today widgets now carry real due-today completion progress while overdue catch-up rows can still lead the action list.
 - Upcoming widgets now carry visible-week completion progress.
 - Small native widgets use the first real assignment/course as the primary answer instead of count-first output.
 - Circular accessory widgets now render state-specific labels such as `Review`, `Class/Add`, `Scan/Start`, `Clear`, or the next real course.
@@ -25,6 +25,8 @@ Native sync uses `expo-widgets`:
 
 Temporary native project: `/tmp/studyplanner-native-qa.MIlPZI`.
 
+Final current-worktree rebuild: `/tmp/studyplanner-native-final-qa.jsqQSY`.
+
 Validated:
 
 - `npx expo prebuild --platform ios --no-install` generated `ios/ExpoWidgetsTarget/StudyPlannerTodayWidget.swift`.
@@ -34,11 +36,24 @@ Validated:
 - Release simulator build succeeded for `StudyPlanner-QA-iPhone`.
 - Installed Release app launched on simulator.
 - App Group plist contains both widget layouts and both widget timelines after launch.
+- Final current-worktree Release build succeeded and embedded `StudyPlannerSyllabusAI.app/PlugIns/ExpoWidgetsTarget.appex`.
 
 Screenshots:
 
 - `screenshots/native-release-launch.png`
 - `screenshots/native-home-screen-after-install.png`
+- `screenshots/native-widget-gallery-studyplanner-search.png`
+- `screenshots/native-widget-gallery-studyplanner-detail.png`
+- `screenshots/native-widget-gallery-medium-preview.png`
+- `screenshots/native-home-screen-small-widget-placed.png`
+- `screenshots/native-home-screen-small-medium-widgets-final.png`
+- `screenshots/native-home-screen-after-relaunch-small-medium-widgets.png`
+- `screenshots/widget-fixtures/widget-fixture-contact-sheet.png`
+
+Fixture proof:
+
+- `screenshots/widget-fixtures/widget-fixture-summary.txt`
+- `screenshots/widget-fixtures/widget-fixture-proof.json`
 
 ## Result
 

@@ -1,0 +1,35 @@
+# StudyPlanner Widget Fixture Contact Sheet
+
+Status: passed
+
+Generated artifacts:
+
+- HTML: /Users/mattnewman/work/StudyPlanner/docs/launch/2026-05-26/widget-truth-cycle/screenshots/widget-fixtures/widget-fixture-contact-sheet.html
+- SVG: /Users/mattnewman/work/StudyPlanner/docs/launch/2026-05-26/widget-truth-cycle/screenshots/widget-fixtures/widget-fixture-contact-sheet.svg
+- PNG: /Users/mattnewman/work/StudyPlanner/docs/launch/2026-05-26/widget-truth-cycle/screenshots/widget-fixtures/widget-fixture-contact-sheet.png
+- Proof JSON: /Users/mattnewman/work/StudyPlanner/docs/launch/2026-05-26/widget-truth-cycle/screenshots/widget-fixtures/widget-fixture-proof.json
+- Summary: /Users/mattnewman/work/StudyPlanner/docs/launch/2026-05-26/widget-truth-cycle/screenshots/widget-fixtures/widget-fixture-summary.txt
+
+Assertions:
+
+- Eight fixture states: passed (empty, needs-review, overdue, today-clear, upcoming-heavy, privacy-mode, class-focus, plus-locked)
+- Privacy redaction: passed
+- Plus-lock evidence: passed
+- Studio proof meter source evidence: passed
+- Native preview progress dots: passed
+- Contrast / legibility checks: passed (52 checks, minimum 3.72:1)
+- Text boundary checks: passed (124 slots)
+- Privacy fixture truth: passed
+- Expected artifact paths: passed
+- PNG dimensions: passed (1800 x 2120)
+
+Claim boundary: fixture/contact-sheet proof only. This is not real iOS Lock Screen placement proof.
+
+SHA-256:
+
+- html: 171c66b817c84949ed572a7217f7359d14a2a778b777d86bb8c67a374bcc1bb1
+- svg: 43ec326109c4d7f5e5646a00ac2384dfb8ffa62113eaad37f5ec67d64e1a6aaa
+- png: 4ac8fc6c405fe85ee914dbbf6ce1ff8d420ed45689eb2b103eebc7a0292c7f72
+- proofJson: 665997caf6b7f2d3dceb3e234322dc5078529dd0a2a060a511a67567551f0c7b
+
+Summary hash is intentionally omitted because this file embeds the artifact hashes above.

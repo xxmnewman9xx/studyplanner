@@ -679,7 +679,7 @@ function widgetStatusText(
       ? t("widget_preview.one_task", "1 task")
       : formatComponentTemplate(t("widget_preview.task_count", "{count} tasks"), { count: items.length });
   }
-  if (type === "focus") return t("widget_preview.focus_minutes", "25m");
+  if (type === "focus") return value || t("widget_preview.focus_next", "Focus next");
   if (type === "class_focus") return t("widget_snapshot.class", "Class");
   if (type === "needs_check") return t("widget_snapshot.review", "Review");
   if (type === "week") return t("widget_preview.week_label", "Week");

@@ -963,7 +963,7 @@ const futureHeavyAssignments = [
 
 const classFocusPreset = {
   id: "class-focus-proof",
-  name: "Class Risk",
+  name: "Class Progress",
   type: "class_focus",
   size: "medium",
   background: "glass",
@@ -1009,16 +1009,16 @@ const moreSource = read("src/screens/MoreScreen.tsx");
 const widgetPreviewSource = read("src/components/AppleComponents.tsx");
 const plusNeedles = [
   "premiumWidgetsLocked",
-  "Deadline Map",
-  "Class Risk",
-  "Focus Block",
+  "Week Workload",
+  "Class Progress",
+  "Focus Next",
   "Needs Check",
   "Unlock this preset",
-  "Today and Upcoming write native widget state"
+  "Today and Upcoming write real native widget state"
 ];
 const plusLockEvidence = plusNeedles.every((needle) => moreSource.includes(needle));
 const studioProofNeedles = [
-  "Widget setup",
+  "Widget Studio",
   "Install native app",
   "nativeProgress={nativePreview?.progress}",
   "proofSignalRow",
@@ -1140,16 +1140,16 @@ const states = [
       detail: plusLockEvidence ? "Advanced widgets" : "Evidence missing",
       footnote: "Today and Upcoming stay backed by real widget snapshots.",
       signalLabel: "Upgrade path",
-      metricLabel: "Deadline Map / Class Risk",
-      nextLabel: "Focus Block, Needs Check",
+      metricLabel: "Week Workload / Class Progress",
+      nextLabel: "Focus Next, Needs Check",
       timelineLabel: "Studio",
       progress: plusLockEvidence ? 1 : 0,
       accentColor: "#C68A19",
       backgroundColor: "#101723",
       items: [
-        { id: "deadline-map", title: "Deadline Map", courseCode: "Plus", courseColor: "#C68A19", dueLabel: "Locked" },
-        { id: "class-risk", title: "Class Risk", courseCode: "Plus", courseColor: "#C68A19", dueLabel: "Locked" },
-        { id: "focus-block", title: "Focus Block", courseCode: "Plus", courseColor: "#C68A19", dueLabel: "Locked" }
+        { id: "week-workload", title: "Week Workload", courseCode: "Plus", courseColor: "#C68A19", dueLabel: "Locked" },
+        { id: "class-progress", title: "Class Progress", courseCode: "Plus", courseColor: "#C68A19", dueLabel: "Locked" },
+        { id: "focus-next", title: "Focus Next", courseCode: "Plus", courseColor: "#C68A19", dueLabel: "Locked" }
       ]
     },
     evidence: "MoreScreen premiumWidgetsLocked source check"

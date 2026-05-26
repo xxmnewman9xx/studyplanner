@@ -107,6 +107,8 @@ assert(more.includes('"lock_rect"') && more.includes('"lock_round"') && more.inc
 assert(more.includes("One fact in small widgets") && more.includes("Agenda rows in medium widgets"), "Widget Studio first viewport should expose research-backed widget rules.");
 assert(!more.includes("top-20") && !more.includes("active in this studio") && !more.includes("3/6 ready") && !more.includes("Studio state"), "Widget Studio must not expose internal QA scoring language.");
 assert(planner.includes('headline: "Upcoming"') && planner.includes('headline: "Today"') && planner.includes("Focus Next") && planner.includes("Class Progress"), "Widget data labels should match student-outcome templates.");
+assert(more.includes("Week Workload") && more.includes("Class Progress") && more.includes("Focus Next"), "Widget Studio templates should use actionable student-outcome labels.");
+assert(!more.includes("Deadline Map") && !more.includes("Class Risk") && !more.includes("Focus Block"), "Widget Studio should not keep stale decorative widget labels.");
 assert(!more.includes("Algebra II - Worksheet") && !more.includes("Week 11") && !more.includes("Wednesday, May 13"), "Widget surface must not show fake sample school data.");
 assert(!components.includes("May 13") && !components.includes('"2h"'), "Widget preview components must not hard-code fake dates or fake due times.");
 assert(more.includes("Save Today preset") && more.includes("Unlock this preset"), "Widget surface may save native presets while gating advanced widgets.");

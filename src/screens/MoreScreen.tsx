@@ -348,7 +348,7 @@ export function MoreScreen({
       preset: { type: "today", size: "medium", background: "glass", palette: "ocean", layout: "list", iconKey: "check" }
     },
     {
-      label: t("more.template_deadline_label", "Deadline Map"),
+      label: t("more.template_deadline_label", "Week Workload"),
       detail: t("more.template_deadline_detail", "Week workload"),
       moment: t("more.template_deadline_moment", "Weekly review"),
       data: t("more.template_deadline_data", "Due soon"),
@@ -356,7 +356,7 @@ export function MoreScreen({
       preset: { type: "week", size: "large", background: "glass", palette: "graphite", layout: "calendar", iconKey: "calendar" }
     },
     {
-      label: t("more.template_class_label", "Class Risk"),
+      label: t("more.template_class_label", "Class Progress"),
       detail: t("more.template_class_detail", "One class status"),
       moment: t("more.template_class_moment", "Before class"),
       data: t("more.template_class_data", "Class-specific"),
@@ -364,7 +364,7 @@ export function MoreScreen({
       preset: { type: "class_focus", size: "medium", background: "glass", palette: "forest", layout: "compact", iconKey: "book" }
     },
     {
-      label: t("more.template_focus_label", "Focus Block"),
+      label: t("more.template_focus_label", "Focus Next"),
       detail: t("more.template_focus_detail", "Start studying fast"),
       moment: t("more.template_focus_moment", "Study time"),
       data: t("more.template_focus_data", "Next focus task"),

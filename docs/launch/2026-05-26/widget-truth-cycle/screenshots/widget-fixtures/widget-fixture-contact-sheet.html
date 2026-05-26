@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StudyPlanner Widget Fixture Contact Sheet</title>
+<style>
+  :root {
+    color-scheme: light;
+    --ink:#172033;
+    --muted:#677084;
+    --paper:#F4F7FB;
+    --line:#DCE3EE;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif;
+  }
+  .sheet {
+    width: 1800px;
+    min-height: 2120px;
+    padding: 56px;
+  }
+  header {
+    display: grid;
+    grid-template-columns: 1fr 520px;
+    gap: 32px;
+    align-items: end;
+    margin-bottom: 34px;
+  }
+  h1 {
+    margin: 0 0 10px;
+    font-size: 50px;
+    letter-spacing: 0;
+    line-height: 1.04;
+  }
+  .lead {
+    margin: 0;
+    max-width: 980px;
+    color: var(--muted);
+    font-size: 24px;
+    line-height: 1.35;
+  }
+  .truth-box {
+    border: 1px solid var(--line);
+    background: white;
+    border-radius: 18px;
+    padding: 22px;
+    font-size: 18px;
+    line-height: 1.35;
+  }
+  .truth-box strong { display: block; margin-bottom: 8px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+  .lock-strip {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: 520px 1fr;
+    gap: 24px;
+    align-items: stretch;
+    border: 1px solid var(--line);
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+  }
+  .lock-copy p:last-child {
+    margin: 12px 0 0;
+    color: var(--muted);
+    font-size: 18px;
+    line-height: 1.35;
+  }
+  .lock-previews {
+    display: grid;
+    grid-template-columns: 1.1fr 0.7fr 1fr;
+    gap: 22px;
+    align-items: center;
+  }
+  .lock-family span {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 850;
+    text-transform: uppercase;
+  }
+  .lock-rect {
+    height: 104px;
+    border-radius: 18px;
+    padding: 16px;
+    background: #101723;
+    color: #F8F6EF;
+  }
+  .lock-rect strong {
+    display: block;
+    color: var(--accent);
+    font-size: 15px;
+    margin-bottom: 7px;
+  }
+  .lock-rect b {
+    display: block;
+    font-size: 21px;
+    margin-bottom: 6px;
+  }
+  .lock-rect p {
+    margin: 0;
+    color: #D4D8E2;
+    font-size: 15px;
+    font-weight: 750;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .lock-circle {
+    width: 104px;
+    height: 104px;
+    border-radius: 50%;
+    display: grid;
+    place-content: center;
+    text-align: center;
+    color: white;
+    background:
+      radial-gradient(circle at center, var(--accent) 0 42%, #101723 43% 100%);
+  }
+  .lock-circle b {
+    display: block;
+    font-size: 25px;
+    line-height: 1;
+  }
+  .lock-circle p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    font-weight: 850;
+  }
+  .lock-inline {
+    min-height: 44px;
+    border-radius: 999px;
+    padding: 12px 16px;
+    color: #172033;
+    background: #EEF3FA;
+    border: 1px solid var(--line);
+    font-size: 18px;
+    font-weight: 850;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .state-card {
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 20px;
+    padding: 22px;
+    min-height: 690px;
+    display: flex;
+    flex-direction: column;
+  }
+  .state-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 86px;
+  }
+  .state-kicker {
+    margin: 0 0 8px;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0;
+  }
+  h2 {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1.08;
+  }
+  .state-header span {
+    height: 30px;
+    max-width: 138px;
+    border-radius: 999px;
+    padding: 7px 10px;
+    background: #EEF3FA;
+    color: #39445B;
+    font-size: 13px;
+    font-weight: 800;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .widget {
+    margin-top: 12px;
+    min-height: 338px;
+    border-radius: 28px;
+    padding: 24px;
+    color: #F8F6EF;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 42%),
+      var(--widget-bg);
+    box-shadow: 0 20px 42px rgba(25, 35, 55, 0.18);
+  }
+  .widget-top,
+  .widget-main,
+  .widget-dots,
+  .widget-row {
+    display: flex;
+    align-items: center;
+  }
+  .widget-top {
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .widget p {
+    margin: 0;
+    color: #B7C0D3;
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .widget-top strong {
+    display: block;
+    margin-top: 4px;
+    color: var(--accent);
+    font-size: 15px;
+  }
+  .widget-meta { text-align: right; }
+  .widget-meta strong {
+    color: #D4D8E2;
+    font-size: 12px;
+  }
+  .widget-main {
+    gap: 16px;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .widget-value {
+    font-size: 48px;
+    font-weight: 950;
+    line-height: 0.95;
+  }
+  .widget-detail {
+    margin-top: 7px;
+    font-size: 19px;
+    font-weight: 850;
+    line-height: 1.1;
+  }
+  .widget-next {
+    width: 138px;
+    min-height: 82px;
+    padding: 12px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.08);
+  }
+  .widget-next strong {
+    display: block;
+    margin-top: 6px;
+    font-size: 14px;
+    line-height: 1.15;
+  }
+  .widget-dots {
+    gap: 5px;
+    padding: 4px 0 14px;
+  }
+  .widget-dots span {
+    margin-right: auto;
+    color: #B7C0D3;
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .widget-dots i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .widget-dots i:nth-last-child(-n+2) { opacity: 0.25; }
+  .widget-rows {
+    display: grid;
+    gap: 9px;
+  }
+  .widget-row {
+    min-height: 28px;
+    gap: 8px;
+    font-size: 13px;
+  }
+  .widget-row b {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+  }
+  .widget-row strong {
+    width: 42px;
+    color: var(--accent);
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .widget-row span {
+    flex: 1;
+    color: #F8F6EF;
+    font-weight: 750;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .widget-row em {
+    color: #D4D8E2;
+    font-style: normal;
+    font-weight: 850;
+    font-size: 12px;
+  }
+  .empty-copy {
+    color: #D4D8E2 !important;
+    font-size: 16px !important;
+    line-height: 1.3;
+  }
+  .summary {
+    margin: 22px 0 0;
+    color: #38445C;
+    font-size: 18px;
+    line-height: 1.35;
+  }
+  .evidence {
+    margin: auto 0 0;
+    padding-top: 18px;
+    color: #667085;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.35;
+  }
+  footer {
+    margin-top: 32px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .note {
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 20px;
+    background: white;
+    color: #3B465D;
+    font-size: 18px;
+    line-height: 1.35;
+  }
+  .note strong { display: block; margin-bottom: 8px; }
+  code {
+    background: #eef3fa;
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+</style>
+</head>
+<body>
+<main class="sheet">
+  <header>
+    <div>
+      <h1>StudyPlanner Widget Eight-State Proof</h1>
+      <p class="lead">Fixture-driven contact sheet generated from current widget snapshot and Widget Studio data surfaces. This is artifact proof, not a release build or live Lock Screen placement claim.</p>
+    </div>
+    <div class="truth-box">
+      <strong>Lock Screen boundary</strong>
+      In-app rectangular, circular, and inline parity exists in Widget Studio. This artifact does not prove real iOS Lock Screen placement because no fresh simulator/device Lock Screen screenshot was captured.
+    </div>
+  </header>
+  <div class="grid">
+
+    <section class="state-card state-empty">
+      <div class="state-header">
+        <div>
+          <p class="state-kicker">Studio empty preset</p>
+          <h2>Empty</h2>
+        </div>
+        <span>empty</span>
+      </div>
+      <div class="widget" style="--accent:#2F80ED; --widget-bg:#101723">
+        <div class="widget-top">
+          <div>
+            <p>StudyPlanner</p>
+            <strong>Clear</strong>
+          </div>
+          <div class="widget-meta">
+            <p>Today</p>
+            <strong>No open work</strong>
+          </div>
+        </div>
+        <div class="widget-main">
+          <div>
+            <div class="widget-value">✓</div>
+            <div class="widget-detail">Enjoy your day</div>
+          </div>
+          <div class="widget-next">
+            <p>NEXT</p>
+            <strong>Enjoy your day</strong>
+          </div>
+        </div>
+        <div class="widget-dots">
+          <span>No open work</span>
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="widget-rows">
+          <p class="empty-copy">In-app empty widget preset; native setup covered by no-assignments snapshots.</p>
+        </div>
+      </div>
+      <p class="summary">All Done: ✓ Enjoy your day</p>
+      <p class="evidence">getWidgetData(type=empty)</p>
+    </section>
+
+
+    <section class="state-card state-needs-review">
+      <div class="state-header">
+        <div>
+          <p class="state-kicker">Native Today snapshot</p>
+          <h2>Needs Review</h2>
+        </div>
+        <span>needs_review</span>
+      </div>
+      <div class="widget" style="--accent:#F59E0B; --widget-bg:#101723">
+        <div class="widget-top">
+          <div>
+            <p>StudyPlanner</p>
+            <strong>Live plan</strong>
+          </div>
+          <div class="widget-meta">
+            <p>Today</p>
+            <strong>Day plan</strong>
+          </div>
+        </div>
+        <div class="widget-main">
+          <div>
+            <div class="widget-value">1</div>
+            <div class="widget-detail">Check imported dates</div>
+          </div>
+          <div class="widget-next">
+            <p>NEXT</p>
+            <strong>Unreviewed work stays out of widgets</strong>
+          </div>
+        </div>
+        <div class="widget-dots">
+          <span>Planner</span>
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="widget-rows">
+          <p class="empty-copy">Unreviewed work stays out of widgets</p>
+        </div>
+      </div>
+      <p class="summary">Only unreviewed work stays out of widgets until approved.</p>
+      <p class="evidence">buildStudyPlannerWidgetSnapshots -&gt; today.state=needs_review</p>
+    </section>
+
+
+    <section class="state-card state-overdue">
+      <div class="state-header">
+        <div>
+          <p class="state-kicker">Native Today snapshot</p>
+          <h2>Overdue</h2>
+        </div>
+        <span>ready</span>
+      </div>
+      <div class="widget" style="--accent:#18A999; --widget-bg:#101723">
+        <div class="widget-top">
+          <div>
+            <p>StudyPlanner</p>
+            <strong>Catch up</strong>
+          </div>
+          <div class="widget-meta">
+            <p>Today</p>
+            <strong>0 of 1 complete</strong>
+          </div>
+        </div>
+        <div class="widget-main">
+          <div>
+            <div class="widget-value">2</div>
+            <div class="widget-detail">1 overdue</div>
+          </div>
+          <div class="widget-next">
+            <p>NEXT</p>
+            <strong>CHEM / Overdue / High priority</strong>
+          </div>
+        </div>
+        <div class="widget-dots">
+          <span>0 of 1 complete</span>
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="widget-rows">
+
+              <div class="widget-row">
+                <b style="background:#18A999"></b>
+                <strong>CHEM</strong>
+                <span>Lab Report: Enzyme</span>
+                <em>Overdue</em>
+              </div>
+              <div class="widget-row">
+                <b style="background:#E56B6F"></b>
+                <strong>HIST</strong>
+                <span>Discussion prep</span>
+                <em>Today</em>
+              </div>
+        </div>
+      </div>
+      <p class="summary">Overdue high-priority work leads Today and gets Catch up urgency.</p>
+      <p class="evidence">buildStudyPlannerWidgetSnapshots -&gt; today.state=ready</p>
+    </section>
+
+
+    <section class="state-card state-today-clear">
+      <div class="state-header">
+        <div>
+          <p class="state-kicker">Native Today snapshot</p>
+          <h2>Today Clear</h2>
+        </div>
+        <span>no_due_today</span>
+      </div>
+      <div class="widget" style="--accent:#18A999; --widget-bg:#101723">
+        <div class="widget-top">
+          <div>
+            <p>StudyPlanner</p>
+            <strong>Clear today</strong>
+          </div>
+          <div class="widget-meta">
+            <p>Today</p>
+            <strong>Next deadline set</strong>
+          </div>
+        </div>
+        <div class="widget-main">
+          <div>
+            <div class="widget-value">Clear</div>
+            <div class="widget-detail">Nothing due today</div>
+          </div>
+          <div class="widget-next">
+            <p>NEXT</p>
+            <strong>CHEM / Tomorrow / High priority</strong>
+          </div>
+        </div>
+        <div class="widget-dots">
+          <span>Next deadline set</span>
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="widget-rows">
+          <p class="empty-copy">Next: Tomorrow</p>
+        </div>
+      </div>
+      <p class="summary">Future reviewed work exists, but no assignment is due today.</p>
+      <p class="evidence">buildStudyPlannerWidgetSnapshots -&gt; today.state=no_due_today</p>
+    </section>
+
+
+    <section class="state-card state-upcoming-heavy">
+      <div class="state-header">
+        <div>
+          <p class="state-kicker">Native Upcoming snapshot</p>
+          <h2>Upcoming Heavy</h2>
+        </div>
+        <span>ready</span>
+      </div>
+      <div class="widget" style="--accent:#18A999; --widget-bg:#101723">
+        <div class="widget-top">
+          <div>
+            <p>StudyPlanner</p>
+            <strong>Next deadline</strong>
+          </div>
+          <div class="widget-meta">
+            <p>Tomorrow</p>
+            <strong>0 of 2 complete</strong>
+          </div>
+        </div>
+        <div class="widget-main">
+          <div>
+            <div class="widget-value">Tmrw</div>
+            <div class="widget-detail">Chapter 12 problem set</div>
+          </div>
+          <div class="widget-next">
+            <p>NEXT</p>
+            <strong>CHEM / Tomorrow / High priority</strong>
+          </div>
+        </div>
+        <div class="widget-dots">
+          <span>0 of 2 complete</span>
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="widget-rows">
+
+              <div class="widget-row">
+                <b style="background:#18A999"></b>
+                <strong>CHEM</strong>
+                <span>Chapter 12 problem set</span>
+                <em>Tomorrow</em>
+              </div>
+              <div class="widget-row">
+                <b style="background:#577590"></b>
+                <strong>ENG</strong>
+                <span>Essay draft</span>
+                <em>Mon</em>
+              </div>
+              <div class="widget-row">
+                <b style="background:#E56B6F"></b>
+                <strong>HIST</strong>
+                <span>Primary source outline</span>
+                <em>Sun</em>
+              </div>
+        </div>
+      </div>
+      <p class="summary">Upcoming exposes the next deadline and up to three agenda rows.</p>
+      <p class="evidence">buildStudyPlannerWidgetSnapshots -&gt; upcoming rows</p>
+    </section>
+
+
+    <section class="state-card state-privacy-mode">
+      <div class="state-header">
+        <div>
+          <p class="state-kicker">Native Upcoming snapshot</p>
+          <h2>Privacy Mode</h2>
+        </div>
+        <span>ready</span>
+      </div>
+      <div class="widget" style="--accent:#2F80ED; --widget-bg:#101723">
+        <div class="widget-top">
+          <div>
+            <p>StudyPlanner</p>
+            <strong>Catch up</strong>
+          </div>
+          <div class="widget-meta">
+            <p>Overdue</p>
+            <strong>0 of 3 complete</strong>
+          </div>
+        </div>
+        <div class="widget-main">
+          <div>
+            <div class="widget-value">Late</div>
+            <div class="widget-detail">Hidden assignment</div>
+          </div>
+          <div class="widget-next">
+            <p>NEXT</p>
+            <strong>Overdue / High priority</strong>
+          </div>
+        </div>
+        <div class="widget-dots">
+          <span>0 of 3 complete</span>
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="widget-rows">
+
+              <div class="widget-row">
+                <b style="background:#2F80ED"></b>
+                <strong>Class</strong>
+                <span>Hidden assignment</span>
+                <em>Overdue</em>
+              </div>
+              <div class="widget-row">
+                <b style="background:#2F80ED"></b>
+                <strong>Class</strong>
+                <span>Hidden assignment</span>
+                <em>Today</em>
+              </div>
+              <div class="widget-row">
+                <b style="background:#2F80ED"></b>
+                <strong>Class</strong>
+                <span>Hidden assignment</span>
+                <em>Tomorrow</em>
+              </div>
+        </div>
+      </div>
+      <p class="summary">Planner titles and course codes are redacted in widget snapshots.</p>
+      <p class="evidence">Widget snapshot privacy-mode source check</p>
+    </section>
+
+
+    <section class="state-card state-class-focus">
+      <div class="state-header">
+        <div>
+          <p class="state-kicker">Widget Studio Plus template</p>
+          <h2>Class Focus</h2>
+        </div>
+        <span>class-focus</span>
+      </div>
+      <div class="widget" style="--accent:#18A999; --widget-bg:#101723">
+        <div class="widget-top">
+          <div>
+            <p>StudyPlanner</p>
+            <strong>Before class</strong>
+          </div>
+          <div class="widget-meta">
+            <p>Class</p>
+            <strong>Class-specific</strong>
+          </div>
+        </div>
+        <div class="widget-main">
+          <div>
+            <div class="widget-value">CHEM</div>
+            <div class="widget-detail">0 of 1 complete</div>
+          </div>
+          <div class="widget-next">
+            <p>NEXT</p>
+            <strong>Lab Report: Enzyme</strong>
+          </div>
+        </div>
+        <div class="widget-dots">
+          <span>Class-specific</span>
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="widget-rows">
+
+              <div class="widget-row">
+                <b style="background:#18A999"></b>
+                <strong>CHEM</strong>
+                <span>Lab Report: Enzyme</span>
+                <em>Overdue</em>
+              </div>
+        </div>
+      </div>
+      <p class="summary">Class Progress: CHEM / 0 of 1 complete</p>
+      <p class="evidence">getWidgetData(type=class_focus)</p>
+    </section>
+
+
+    <section class="state-card state-plus-locked">
+      <div class="state-header">
+        <div>
+          <p class="state-kicker">Widget Studio lock boundary</p>
+          <h2>Plus Locked</h2>
+        </div>
+        <span>plus-locked</span>
+      </div>
+      <div class="widget" style="--accent:#C68A19; --widget-bg:#101723">
+        <div class="widget-top">
+          <div>
+            <p>StudyPlanner</p>
+            <strong>Upgrade path</strong>
+          </div>
+          <div class="widget-meta">
+            <p>Studio</p>
+            <strong>Week Workload / Class Progress</strong>
+          </div>
+        </div>
+        <div class="widget-main">
+          <div>
+            <div class="widget-value">Locked</div>
+            <div class="widget-detail">Advanced widgets</div>
+          </div>
+          <div class="widget-next">
+            <p>NEXT</p>
+            <strong>Focus Next, Needs Check</strong>
+          </div>
+        </div>
+        <div class="widget-dots">
+          <span>Week Workload / Class Progress</span>
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="widget-rows">
+
+              <div class="widget-row">
+                <b style="background:#C68A19"></b>
+                <strong>Plus</strong>
+                <span>Week Workload</span>
+                <em>Locked</em>
+              </div>
+              <div class="widget-row">
+                <b style="background:#C68A19"></b>
+                <strong>Plus</strong>
+                <span>Class Progress</span>
+                <em>Locked</em>
+              </div>
+              <div class="widget-row">
+                <b style="background:#C68A19"></b>
+                <strong>Plus</strong>
+                <span>Focus Next</span>
+                <em>Locked</em>
+              </div>
+        </div>
+      </div>
+      <p class="summary">Advanced templates lock when premiumWidgetsLocked is true; native Today/Upcoming remain available after entitlement.</p>
+      <p class="evidence">MoreScreen premiumWidgetsLocked source check</p>
+    </section>
+
+  </div>
+
+    <section class="lock-strip">
+      <div class="lock-copy">
+        <p class="state-kicker">In-app Lock Screen widgets</p>
+        <h2>Same snapshot, three compact families.</h2>
+        <p>Rendered here as preview parity only. This does not prove the widgets were placed on a real iOS Lock Screen.</p>
+      </div>
+      <div class="lock-previews">
+        <div class="lock-family">
+          <span>Rectangular</span>
+          <div class="lock-rect" style="--accent:#18A999">
+            <strong>Upcoming - Next deadline</strong>
+            <b>Tmrw Chapter 12 problem set</b>
+            <p>CHEM - Chapter 12 problem set</p>
+          </div>
+        </div>
+        <div class="lock-family">
+          <span>Circular</span>
+          <div class="lock-circle" style="--accent:#18A999">
+            <b>Tmrw</b>
+            <p>Next</p>
+          </div>
+        </div>
+        <div class="lock-family lock-inline-family">
+          <span>Inline</span>
+          <div class="lock-inline" style="--accent:#18A999">
+            Next deadline: Tmrw - Chapter 12 problem set
+          </div>
+        </div>
+      </div>
+    </section>
+
+  <footer>
+    <div class="note"><strong>Generated from repo tooling</strong> The generator compiles <code>src/services/widgetSnapshot.ts</code> and <code>src/logic/planner.ts</code>, verifies the Studio readiness meter and native progress dots, then rasterizes this contact sheet when a safe local renderer is available.</div>
+    <div class="note"><strong>Scope guardrail</strong> No release settings, secrets, push state, signed/native build workflows, or OpenClaw routing are touched by this fixture proof.</div>
+  </footer>
+</main>
+</body>
+</html>

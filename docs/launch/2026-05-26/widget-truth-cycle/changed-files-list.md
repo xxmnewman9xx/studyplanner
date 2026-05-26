@@ -5,6 +5,7 @@
 - `scripts/check-scenarios.mjs`
 - `scripts/check-widget-integrity.ts`
 - `scripts/check-widget-snapshots.ts`
+- `scripts/render-widget-fixture-contact-sheet.mjs`
 - `src/components/AppleComponents.tsx`
 - `src/logic/planner.ts`
 - `src/screens/FocusScreen.tsx`
