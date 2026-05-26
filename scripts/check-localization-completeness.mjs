@@ -7,6 +7,7 @@ const sourceFiles = {
   onboarding: readFileSync("src/screens/OnboardingScreen.tsx", "utf8"),
   importScreen: readFileSync("src/screens/ImportScreen.tsx", "utf8"),
   paywall: readFileSync("src/screens/UpgradeScreen.tsx", "utf8"),
+  modeToggle: readFileSync("src/components/ModeToggle.tsx", "utf8"),
   widgets: readFileSync("src/screens/MoreScreen.tsx", "utf8")
 };
 
@@ -16,6 +17,12 @@ const requiredKeys = [
   "brand_subtitle",
   "app.loading",
   "common.next",
+  "theme.appearance",
+  "theme.appearance_mode",
+  "theme.light",
+  "theme.dark",
+  "theme.use_light_mode",
+  "theme.use_dark_mode",
   "tabs.today",
   "tabs.scan",
   "tabs.calendar",
@@ -105,6 +112,7 @@ assert(sourceFiles.app.includes("t(tab.labelKey)"), "Navigation labels must use 
 assert(sourceFiles.onboarding.includes("useI18n") && sourceFiles.onboarding.includes("slide.titleKey"), "Onboarding must consume runtime localization keys.");
 assert(sourceFiles.importScreen.includes("useI18n") && sourceFiles.importScreen.includes("import.photo_disabled_message"), "Import screen must consume runtime localization keys.");
 assert(sourceFiles.paywall.includes("useI18n") && sourceFiles.paywall.includes("paywall.hard_subtitle"), "Paywall must consume runtime localization keys.");
+assert(sourceFiles.modeToggle.includes("useI18n") && sourceFiles.modeToggle.includes("theme.use_light_mode"), "Theme mode toggle must consume runtime localization keys.");
 assert(sourceFiles.widgets.includes("Native style fields"), "Widget Studio must preserve native/widget truth copy.");
 assert(sourceFiles.i18n.includes("EXPO_PUBLIC_STUDYPLANNER_LOCALE"), "Localization override must exist for screenshot QA.");
 
@@ -195,6 +203,18 @@ const hardcodedLaunchStrings = [
       "Add homework before it slips.",
       "planner is clean",
       "reviewed source rows",
+      "Use Light mode",
+      "Use Dark mode"
+    ]
+  },
+  {
+    file: "src/components/ModeToggle.tsx",
+    source: sourceFiles.modeToggle,
+    phrases: [
+      "Appearance",
+      "Appearance mode",
+      "Light",
+      "Dark",
       "Use Light mode",
       "Use Dark mode"
     ]

@@ -3,6 +3,7 @@ import { StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "
 import { Moon, Sun } from "lucide-react-native";
 import { useAppTheme } from "../themeContext";
 import { ThemeMode } from "../theme";
+import { useI18n } from "../i18n";
 
 type ModeToggleProps = {
   compact?: boolean;
@@ -11,20 +12,22 @@ type ModeToggleProps = {
 
 const options: Array<{
   value: ThemeMode;
-  label: string;
+  labelKey: string;
+  accessibilityKey: string;
   icon: typeof Sun;
 }> = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon }
+  { value: "light", labelKey: "theme.light", accessibilityKey: "theme.use_light_mode", icon: Sun },
+  { value: "dark", labelKey: "theme.dark", accessibilityKey: "theme.use_dark_mode", icon: Moon }
 ];
 
 export function ModeToggle({ compact = false, style }: ModeToggleProps) {
   const { mode, theme, setMode } = useAppTheme();
+  const { t } = useI18n();
   const { colors, radii, spacing } = theme;
 
   return (
     <View
-      accessibilityLabel="Appearance mode"
+      accessibilityLabel={t("theme.appearance_mode", "Appearance mode")}
       style={[
         styles.container,
         compact ? styles.containerCompact : null,
@@ -37,16 +40,17 @@ export function ModeToggle({ compact = false, style }: ModeToggleProps) {
         style
       ]}
     >
-      {compact ? null : <Text style={[styles.heading, { color: colors.muted }]}>Appearance</Text>}
+      {compact ? null : <Text style={[styles.heading, { color: colors.muted }]}>{t("theme.appearance", "Appearance")}</Text>}
       <View style={styles.segmentRow}>
         {options.map((option) => {
           const active = mode === option.value;
           const Icon = option.icon;
+          const label = t(option.labelKey);
           return (
             <TouchableOpacity
               accessibilityRole="button"
               accessibilityState={{ selected: active }}
-              accessibilityLabel={`Use ${option.label} mode`}
+              accessibilityLabel={t(option.accessibilityKey)}
               key={option.value}
               style={[
                 styles.segment,
@@ -67,7 +71,7 @@ export function ModeToggle({ compact = false, style }: ModeToggleProps) {
                   { color: active ? colors.heroText : colors.ink }
                 ]}
               >
-                {option.label}
+                {label}
               </Text>
             </TouchableOpacity>
           );

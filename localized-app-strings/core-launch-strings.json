@@ -10,6 +10,14 @@
       "next": "Next",
       "continue": "Continue"
     },
+    "theme": {
+      "appearance": "Appearance",
+      "appearance_mode": "Appearance mode",
+      "light": "Light",
+      "dark": "Dark",
+      "use_light_mode": "Use Light mode",
+      "use_dark_mode": "Use Dark mode"
+    },
     "tabs": {
       "today": "Today",
       "scan": "Scan",
@@ -196,6 +204,14 @@
     "common": {
       "next": "Weiter",
       "continue": "Weiter"
+    },
+    "theme": {
+      "appearance": "Darstellung",
+      "appearance_mode": "Darstellungsmodus",
+      "light": "Hell",
+      "dark": "Dunkel",
+      "use_light_mode": "Hellen Modus verwenden",
+      "use_dark_mode": "Dunklen Modus verwenden"
     },
     "tabs": {
       "today": "Heute",
@@ -384,6 +400,14 @@
       "next": "Siguiente",
       "continue": "Continuar"
     },
+    "theme": {
+      "appearance": "Apariencia",
+      "appearance_mode": "Modo de apariencia",
+      "light": "Claro",
+      "dark": "Oscuro",
+      "use_light_mode": "Usar modo claro",
+      "use_dark_mode": "Usar modo oscuro"
+    },
     "tabs": {
       "today": "Hoy",
       "scan": "Importar",
@@ -570,6 +594,14 @@
     "common": {
       "next": "Suivant",
       "continue": "Continuer"
+    },
+    "theme": {
+      "appearance": "Apparence",
+      "appearance_mode": "Mode d'apparence",
+      "light": "Clair",
+      "dark": "Sombre",
+      "use_light_mode": "Utiliser le mode clair",
+      "use_dark_mode": "Utiliser le mode sombre"
     },
     "tabs": {
       "today": "Aujourd'hui",
@@ -758,6 +790,14 @@
       "next": "Avançar",
       "continue": "Continuar"
     },
+    "theme": {
+      "appearance": "Aparência",
+      "appearance_mode": "Modo de aparência",
+      "light": "Claro",
+      "dark": "Escuro",
+      "use_light_mode": "Usar modo claro",
+      "use_dark_mode": "Usar modo escuro"
+    },
     "tabs": {
       "today": "Hoje",
       "scan": "Importar",
@@ -944,6 +984,14 @@
     "common": {
       "next": "التالي",
       "continue": "متابعة"
+    },
+    "theme": {
+      "appearance": "المظهر",
+      "appearance_mode": "وضع المظهر",
+      "light": "فاتح",
+      "dark": "داكن",
+      "use_light_mode": "استخدام الوضع الفاتح",
+      "use_dark_mode": "استخدام الوضع الداكن"
     },
     "tabs": {
       "today": "اليوم",
@@ -1132,6 +1180,14 @@
       "next": "आगे",
       "continue": "जारी रखें"
     },
+    "theme": {
+      "appearance": "दिखावट",
+      "appearance_mode": "दिखावट मोड",
+      "light": "लाइट",
+      "dark": "डार्क",
+      "use_light_mode": "लाइट मोड इस्तेमाल करें",
+      "use_dark_mode": "डार्क मोड इस्तेमाल करें"
+    },
     "tabs": {
       "today": "आज",
       "scan": "इम्पोर्ट",
@@ -1318,6 +1374,14 @@
     "common": {
       "next": "次へ",
       "continue": "続ける"
+    },
+    "theme": {
+      "appearance": "外観",
+      "appearance_mode": "外観モード",
+      "light": "ライト",
+      "dark": "ダーク",
+      "use_light_mode": "ライトモードを使う",
+      "use_dark_mode": "ダークモードを使う"
     },
     "tabs": {
       "today": "今日",
@@ -1506,6 +1570,14 @@
       "next": "다음",
       "continue": "계속"
     },
+    "theme": {
+      "appearance": "화면 모드",
+      "appearance_mode": "화면 모드",
+      "light": "라이트",
+      "dark": "다크",
+      "use_light_mode": "라이트 모드 사용",
+      "use_dark_mode": "다크 모드 사용"
+    },
     "tabs": {
       "today": "오늘",
       "scan": "가져오기",
@@ -1692,6 +1764,14 @@
     "common": {
       "next": "下一步",
       "continue": "继续"
+    },
+    "theme": {
+      "appearance": "外观",
+      "appearance_mode": "外观模式",
+      "light": "浅色",
+      "dark": "深色",
+      "use_light_mode": "使用浅色模式",
+      "use_dark_mode": "使用深色模式"
     },
     "tabs": {
       "today": "今天",

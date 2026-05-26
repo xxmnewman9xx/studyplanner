@@ -16,6 +16,11 @@ Date: 2026-05-26 01:58 EDT / 2026-05-26 05:58 UTC
 - The native app code path uses `expo-iap` `fetchProducts` for subscriptions and renders store `displayPrice`.
 - Fresh `Release` iphonesimulator build `28` was installed and launched on `StudyPlanner-QA-iPhone`.
 - Screenshot: `docs/launch/2026-05-26/fresh-native-screenshots/release-rescue/02-release-plus-deeplink.png`.
+- Localized Release screenshot proof also exists at:
+  - `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/24-plus.png`
+  - `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/de/24-plus.png`
+  - `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ja/24-plus.png`
+  - `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/zh-Hans/24-plus.png`
 
 Observed in the screenshot:
 
@@ -28,4 +33,6 @@ Observed in the screenshot:
 
 ## Remaining TestFlight Caveat
 
-This is a fresh native `Release` simulator proof, not a processed physical-device TestFlight purchase pass. It proves the app-side product loading path no longer shows "Plus unavailable" in the native release build. A final TestFlight upload still needs physical-device confirmation before release, especially if App Store Connect product state changes.
+This is a fresh native `Release` simulator proof, not a processed physical-device TestFlight purchase pass. It proves the app-side product loading path no longer shows "Plus unavailable" in the native release build.
+
+StoreKit product title, subscription period, and description still render in English in localized screenshots. That is an App Store Connect subscription metadata localization blocker, not an app-owned runtime string. Before release, manually confirm both product IDs have localized product metadata in App Store Connect app `6766181202`, then verify in TestFlight/native sandbox.

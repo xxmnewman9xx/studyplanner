@@ -1,28 +1,16 @@
 # Runtime Localization Proof
 
-Date: 2026-05-26 02:06 EDT / 2026-05-26 06:06 UTC
+Date: 2026-05-26 03:00 EDT / 2026-05-26 07:00 UTC
 
 ## Current Runtime Wiring
 
 - `App.tsx` wraps the app in `I18nProvider`.
-- Runtime locale can be forced with `EXPO_PUBLIC_STUDYPLANNER_LOCALE`.
-- The launch catalog contains all 10 required locales:
-  - `ar`
-  - `de`
-  - `en-US`
-  - `es`
-  - `fr`
-  - `hi`
-  - `ja`
-  - `ko`
-  - `pt-BR`
-  - `zh-Hans`
-- Navigation, onboarding headline/copy, scan headline/copy, photo-disabled errors, paywall headline/copy/features/legal links, and widget sync fallback are wired through runtime keys.
-- `scripts/check-localization-completeness.mjs` now also scans static `t("...")` calls and verifies those keys exist in every locale.
-- The reviewed runtime catalog currently contains 64 keys per locale.
-- The scan/paywall copy for image-capable imports now reuses the reviewed `import.subtitle_images` translation in each locale instead of the older text/PDF-only scan copy.
-- The high-visibility Scan and Plus runtime strings are now keyed instead of hard-coded in `ImportScreen` and `UpgradeScreen`.
-- `npm run check:localization` now also rejects non-English catalog values that are silently identical to `en-US`, except intentional product/platform terms.
+- Runtime locale can be forced with `EXPO_PUBLIC_STUDYPLANNER_LOCALE` for native screenshot QA.
+- The launch catalog contains all 10 required locales: `ar`, `de`, `en-US`, `es`, `fr`, `hi`, `ja`, `ko`, `pt-BR`, and `zh-Hans`.
+- The reviewed runtime catalog now contains 173 flattened strings per locale.
+- Navigation, onboarding headline/copy, Scan headline/copy/source picker/review shell, photo-disabled errors, Plus paywall headline/copy/features/status/legal/CTA shell, widget sync fallback, and the app theme toggle are wired through runtime keys.
+- `src/components/ModeToggle.tsx` no longer renders app-owned `Light` / `Dark` / `Appearance` strings directly; it uses `theme.*` runtime keys.
+- `scripts/check-localization-completeness.mjs` scans the launch files plus `ModeToggle`, verifies required keys in every locale, rejects selected hard-coded launch strings, and rejects non-English values that silently equal `en-US` except intentional product/platform terms.
 
 ## Missing-Key Check
 
@@ -32,68 +20,73 @@ Command:
 npm run check:localization
 ```
 
-Expected result:
+Actual result after the theme-toggle localization patch:
 
 ```text
 runtime localization completeness gate passed
 ```
 
-Actual result after the Scan/Plus i18n expansion:
+## Current Native Screenshot Smoke
 
-```text
-runtime localization completeness gate passed
-```
-
-## Coverage Gap
-
-The reviewed translation source does not contain enough keys to fully localize every deep launch-critical UI string in Today, Calendar, Classes, Focus, Widgets, Settings, and all alert/error paths. Adding machine-generated strings here would fake localization. The current runtime gate proves that existing static `t("...")` calls have all 10 translations; it does not prove that every English runtime string in the app has been replaced.
-
-## Locale Screenshot Smoke
-
-Deterministic native simulator screenshots exist for `ar`, `de`, `ja`, and `zh-Hans` under:
-
-```text
-docs/launch/2026-05-26/fresh-native-screenshots/qa-capture/locales/
-```
-
-Older screenshots under `qa-capture/locales/` are not accepted release proof. They are blocker evidence:
-
-- Scan screen shell strings localize, but the inner source picker/review hero still contains English strings.
-- Arabic reverses several app-level rows, but the scan hero and mixed English product/source terms still need RTL review.
-- Paywall locale screenshots were captured without production IAP env, so they show "Plus plans are unavailable" and cannot prove localized paid-product runtime.
-- Locale screenshots predate the final native OCR env inlining fix and do not prove the current image-enabled Release bundle.
-
-Current Arabic Release simulator proof exists under:
+Current image-enabled/IAP-configured Release simulator screenshots were rebuilt and captured for:
 
 ```text
 docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/
+docs/launch/2026-05-26/fresh-native-screenshots/current-locales/de/
+docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ja/
+docs/launch/2026-05-26/fresh-native-screenshots/current-locales/zh-Hans/
 ```
 
-That current Arabic build was compiled with:
+Each build was compiled with:
 
-- `EXPO_PUBLIC_STUDYPLANNER_LOCALE=ar`
 - `EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1`
-- production parser endpoint
-- production Plus subscription IDs
+- `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT=https://studyplanner-parser-production.up.railway.app/api/syllabus/parse`
+- `EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS=com.mattnewman.studyplanner.plus.monthly,com.mattnewman.studyplanner.plus.yearly`
+- locale-specific `EXPO_PUBLIC_STUDYPLANNER_LOCALE`
 
 Observed:
 
-- `12-scan.png` shows RTL Arabic Scan copy, localized source picker labels, Camera/Photo enabled, and the image-enabled import copy.
-- `24-plus.png` shows RTL Arabic paywall shell copy, real products loaded, yearly `$24.99`, monthly `$3.99`, restore/legal links visible.
+- `12-scan.png` for `ar`, `de`, `ja`, and `zh-Hans` shows localized Scan shell, localized theme labels, enabled Camera/Photo controls, and image-capable import copy.
+- `24-plus.png` for `ar`, `de`, `ja`, and `zh-Hans` shows localized Plus/paywall shell, localized theme labels, two loaded products, yearly `$24.99`, monthly `$3.99`, restore visible, and legal links visible.
 
-Remaining localized runtime proof gap:
+## StoreKit Localization Blocker
 
-- Current image-enabled/IAP-configured Release screenshots still need to be repeated for `de`, `ja`, and `zh-Hans`.
-- App Store product titles/descriptions in the Arabic paywall screenshot still come from StoreKit in English; App Store Connect subscription localizations must be entered/verified for localized product text.
+The app-owned paywall shell is localized, but StoreKit product metadata is still English in localized screenshots:
+
+- `Yearly Plus`
+- `Plus Monthly`
+- `Yearly`
+- `Monthly`
+- `Study Planner Plus Annual Subscription`
+- `Study Planner Plus Monthly Subscription`
+
+These strings come from App Store Connect product metadata, not from the runtime catalog. Before release, manually enter/verify subscription localizations for both products in App Store Connect app `6766181202`, then confirm a processed TestFlight/native sandbox build shows localized product title, period, and description for the target storefronts.
+
+## Hard-Coded Runtime Gap
+
+Release localization is not complete. A direct hard-coded string audit still finds app-owned English UI in launch-relevant surfaces including:
+
+- `TodayScreen`
+- `PlanScreen` / Calendar
+- `CoursesScreen` / Classes
+- `FocusScreen`
+- `GradesScreen`
+- `MoreScreen` / Widgets and secondary settings
+- `AssignmentDetailScreen`
+- `NotesScreen`
+- several alert/error paths in `App.tsx`
+
+The current gate proves all existing static runtime keys are populated and the smoked Scan/Plus/native shell is localized. It does not prove every runtime string in the app has been replaced with reviewed translations.
 
 ## RTL Risk
 
-Arabic is marked `direction: "rtl"` and the app shell receives RTL direction. Release still has RTL risk because:
+Arabic is marked `direction: "rtl"` and the app shell receives RTL direction. Current Arabic screenshots show right-to-left Scan/Plus shell ordering and localized theme labels, but release still has RTL risk because:
 
 - `I18nManager.allowRTL(true)` does not force a restart-time native RTL flip.
 - Some nested row layouts remain manually left-to-right.
-- Widgets and some formatted dates still use English-oriented compact labels.
+- Product metadata from StoreKit is still English.
+- Widgets and some compact date/status labels still use English-oriented formatting.
 
 ## Release Status
 
-Runtime localization is substantially more complete and the high-visibility Scan/Plus runtime gate passes for all 10 locales. Release remains blocked until current image-enabled/IAP-configured Release screenshots for `de`, `ja`, and `zh-Hans` are captured and reviewed, Arabic RTL risks are accepted or fixed, and App Store Connect product localization is verified so StoreKit product text is not English-only in localized storefronts.
+Do not upload a new build from this localization state. Scan/Plus runtime localization is materially improved and proven in current native Release simulator screenshots, but release remains blocked until the remaining app-owned hard-coded launch strings are replaced with reviewed translations, Arabic RTL risk is accepted or fixed, and StoreKit product metadata localizations are verified in App Store Connect/TestFlight.

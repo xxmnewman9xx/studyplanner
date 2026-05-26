@@ -1,8 +1,8 @@
 # Validation Report
 
-Date: 2026-05-26 02:06 EDT / 2026-05-26 06:06 UTC
+Date: 2026-05-26 03:00 EDT / 2026-05-26 07:00 UTC
 
-## Passed In This Pass
+## Passed In This Rescue Cycle
 
 - `npm run typecheck`
 - `npm run check:iap`
@@ -22,42 +22,55 @@ Date: 2026-05-26 02:06 EDT / 2026-05-26 06:06 UTC
 - EAS production env: `EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1`
 - Fresh native `Release` simulator build `28` launched on `StudyPlanner-QA-iPhone`
 - Fresh native paywall product screenshot captured at `docs/launch/2026-05-26/fresh-native-screenshots/release-rescue/02-release-plus-deeplink.png`
-- App-side native env inlining fix verified by rebuilding Release simulator JavaScript with the production parser endpoint and image parsing flag.
-- Fresh native photo picker proof captured at `docs/launch/2026-05-26/fresh-native-screenshots/photo-rescue/`.
-- Current Arabic native Release simulator build after the Scan/Plus localization expansion succeeded.
-- Current Arabic native Release screenshots captured at `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/`.
-- `npx gitnexus analyze` completed successfully after implementation; a later retry after the final doc-only status patch intermittently crashed with `Napi::Error`.
-- `npx gitnexus detect-changes --repo studyplanner` completed and reported 34 changed files, 156 changed symbols, 128 affected processes, aggregate risk `critical`.
+- Fresh native saved-photo-to-review proof captured at `docs/launch/2026-05-26/fresh-native-screenshots/photo-rescue/`
+- Current native Release localized Scan/Plus screenshots captured for `ar`, `de`, `ja`, and `zh-Hans` under `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/`
+
+## Latest Patch Validation
+
+After localizing the app-owned theme toggle:
+
+- `npm run check:localization` passed.
+- `npm run typecheck` passed.
+- Native `Release` simulator builds and screenshot captures completed for `ar`, `de`, `ja`, and `zh-Hans`.
+- Current screenshots show localized theme labels instead of app-owned `Light` / `Dark` text.
+- Current Plus screenshots still show two real store products and prices.
 
 ## Native Release Proof
 
-Release build was compiled with:
+Release builds were compiled with:
 
 - `EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1`
 - `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT=https://studyplanner-parser-production.up.railway.app/api/syllabus/parse`
 - `EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS=com.mattnewman.studyplanner.plus.monthly,com.mattnewman.studyplanner.plus.yearly`
 
-The native paywall screenshot shows:
+The native paywall screenshots show:
 
-- `2 plans available`
+- `2 plans available` or localized equivalent
 - Yearly Plus `$24.99`
 - Plus Monthly `$3.99`
-- Restore Purchases visible
-- Terms of Use (EULA) and Privacy Policy visible
+- Restore button visible
+- Terms/EULA and Privacy visible
 
 The native scanner screenshots show:
 
 - Camera and Photo controls enabled in the Release simulator build.
-- Saved photo selected from the native Photos picker.
+- Saved photo selected from the native Photos picker in the `photo-rescue` proof.
 - Production OCR/parser created `Lab Report` and `Final Exam` review cards.
 - Reviewed rows were applied to Today.
 
+## GitNexus
+
+- `npx gitnexus analyze` completed successfully after the latest patch: 3,027 nodes, 5,459 edges, 99 clusters, 258 flows.
+- `npx gitnexus impact --repo studyplanner --direction upstream ModeToggle` reported HIGH risk before the theme toggle edit: 3 direct callers and 4 affected processes (`App`, `AppContent`, `MoreScreen`, `OnboardingScreen`).
+- `npx gitnexus detect-changes --repo studyplanner` reported 7 changed files, 23 symbols, 3 affected processes, aggregate risk `medium`.
+
 ## Release Decision
 
-Do not upload a new build from this state. Backend OCR and native Plus product loading are now proven, but release remains blocked until:
+Do not upload a new build from this state.
 
-- A physical-device/TestFlight camera capture proves camera permission and image capture creates review cards from a real image. Saved-photo import is proven in Release simulator.
-- Runtime localization screenshots are freshly reviewed and accepted for `ar`, `de`, `ja`, and `zh-Hans`.
-- Arabic RTL risk is accepted or fixed.
+Backend OCR, saved-photo import, and native Plus product loading are now proven in Release-style native builds. Release remains blocked because:
 
-Current Arabic runtime screenshots are materially improved and show real products/prices, but release remains blocked because current image-enabled/IAP-configured localized screenshots still need to be repeated for `de`, `ja`, and `zh-Hans`, and StoreKit product titles/descriptions still need App Store Connect localization verification.
+- Physical-device/TestFlight camera permission and live camera capture are still unproven.
+- StoreKit product title/description/period metadata is still English in localized paywall screenshots; App Store Connect subscription localizations must be entered/verified.
+- Runtime localization is still incomplete outside the smoked Scan/Plus/native shell. Hard-coded app-owned English remains in Today, Calendar, Classes, Focus, Grades, Widgets/settings, detail screens, and alert/error paths.
+- Arabic RTL risk remains until accepted or fixed.
