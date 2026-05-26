@@ -1,0 +1,9 @@
+
+> study-planner-syllabus-ai@1.0.0 qa:sim-product-depth
+> node scripts/sim-qa-product-depth.mjs docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar
+
+com.mattnewman.studyplanner: 79342
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: E4B3D48C-5325-4ED9-B2BA-B9A97D1EBA28 (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/mattnewman/work/StudyPlanner/docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/19-widgets-ocean.png
+Captured 1 deterministic capture-file screenshots in docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar

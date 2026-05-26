@@ -1,6 +1,6 @@
 # Validation Report
 
-Date: 2026-05-26 05:27 EDT / 2026-05-26 09:27 UTC
+Date: 2026-05-26 06:22 EDT / 2026-05-26 10:22 UTC
 
 ## Passed In This Rescue Cycle
 
@@ -24,16 +24,18 @@ Date: 2026-05-26 05:27 EDT / 2026-05-26 09:27 UTC
 - Fresh native `Release` simulator build `28` launched on `StudyPlanner-QA-iPhone`
 - Fresh native paywall product screenshot captured at `docs/launch/2026-05-26/fresh-native-screenshots/release-rescue/02-release-plus-deeplink.png`
 - Fresh native saved-photo-to-review proof captured at `docs/launch/2026-05-26/fresh-native-screenshots/photo-rescue/`
-- Current native Release localized Today/Calendar/Classes/Focus/Grades/Scan/Plus screenshots captured for `ar`, `de`, `ja`, and `zh-Hans` under `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/`
+- Current native Release localized Today/Calendar/Classes/Focus/Grades/Widgets/Scan/Plus screenshots captured for `ar`, `de`, `ja`, and `zh-Hans` under `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/`
 
 ## Latest Patch Validation
 
-After localizing the app-owned Grades launch surface:
+After localizing the app-owned More/Widget Studio launch surface:
 
 - `npm run check:localization` passed.
 - `npm run typecheck` passed.
-- Native `Release` simulator builds and screenshot captures completed for `ar`, `de`, `ja`, and `zh-Hans`.
-- Current Grades screenshots show localized hero, metric labels, target calculator, what-if math, and localized theme labels.
+- `npm run test:widgets`, `npm run check:scenarios`, and `npm run check:release-docs` passed.
+- Native `Release` simulator builds, explicit installs, build-product cleans, and screenshot captures completed for `ar`, `de`, `ja`, and `zh-Hans`.
+- Current Widgets screenshots show localized Widget Studio hero, step rail, status chip, size/palette labels, theme labels, and tab labels.
+- The embedded widget preview still shows English snapshot labels; this is documented as a remaining widget snapshot service localization blocker.
 - Current Plus screenshots still show two real store products and prices.
 
 ## Native Release Proof
@@ -94,15 +96,23 @@ The native Grades screenshots show:
 - Metric labels, target calculator copy, target pace copy, and what-if math localized in the native Release bundle.
 - English course codes and letter grades remain fixture/imported planner data, not app-owned runtime UI.
 
+The native Widgets screenshots show:
+
+- `19-widgets-ocean.png` captured per smoked locale after explicit `simctl install`.
+- App-owned More/Widget Studio shell strings localized for `ar`, `de`, `ja`, and `zh-Hans`.
+- Step rail labels, status chips, size/palette labels, theme labels, and tab labels localized in the native Release bundle.
+- The embedded native widget preview still includes English snapshot labels such as `Today`, `Next deadline`, `NEXT`, and compact date/status text; widget snapshot service localization remains incomplete.
+
 ## GitNexus
 
-- `npx gitnexus analyze` completed successfully after the Grades patch: 3,089 nodes, 5,597 edges, 100 clusters, 260 flows.
+- `npx gitnexus analyze` completed successfully after the More/Widget Studio patch: 3,123 nodes, 5,657 edges, 102 clusters, 263 flows.
 - Before editing `TodayScreen`, GitNexus impact was run for `TodayScreen` and the edited helper/render symbols. `TodayScreen` was LOW risk; `buildLiveBrief`, `CatchUpSprintCard`, `formatDueUrgency`, `buildQuickDuePresets`, `imageActionLabel`, and `MetricPill` reported HIGH risk because they feed the default app flow through `TodayScreen` / `AppContent` / `App`.
 - Before editing `PlanScreen`, GitNexus impact was run for `PlanScreen` and the edited helper symbols. `PlanScreen` was LOW risk; `buildPlanState`, `buildSimpleWeekGroups`, `formatSelectedDate`, `formatHoursValue`, `buildSurvivalBlocks`, and `buildWeekLoadSummary` reported HIGH risk because they feed `PlanScreen` / `AppContent` / `App`.
 - Before editing `CoursesScreen`, GitNexus impact was run for `CoursesScreen` and the edited helper/shared symbols. `CoursesScreen` and `EmojiBadge` were LOW risk; `buildClassHealth`, `ClassStateTile`, and `ClassIdentityCard` reported HIGH risk, and `AppLogo` reported CRITICAL risk because they feed the app shell through `CoursesScreen` / `AppContent` / `App` or shared loading/onboarding/paywall paths. The shipped changes are text/date localization only.
 - Before editing `FocusScreen`, GitNexus impact was run for `FocusScreen` and the edited helper/render symbols. `FocusScreen`, `CockpitStat`, `formatFocusDate`, `formatDueLabel`, and `labelizeStatus` were LOW risk, feeding `FocusScreen` / `AppContent` / `App`. The shipped changes are text/date localization only.
 - Before editing `GradesScreen`, GitNexus impact was run for `GradesScreen` and `formatSignedPercent`. Both reported LOW risk, feeding `GradesScreen` / `AppContent` / `App`. The shipped changes are text localization and deterministic screenshot capture only.
-- `npx gitnexus detect-changes --repo studyplanner` reported 9 changed files, 32 symbols, 3 affected execution flows, aggregate risk `medium`. The affected flows are the expected runtime localization paths through `GradesScreen` into locale resolution.
+- Before editing `MoreScreen`, GitNexus impact was run for `MoreScreen`, `labelForWidgetType`, `widgetItemMetaForStudio`, and `sizeMentalModel`. `MoreScreen` was LOW risk through `AppContent` / `App`; the helper symbols reported HIGH risk because they feed `MoreScreen` and then the app shell. The shipped changes localize call-site values without changing those HIGH-risk helper bodies.
+- `npx gitnexus detect-changes --repo studyplanner` reported 8 changed files, 68 symbols, 9 affected execution flows, aggregate risk `high`. The affected flows are expected MoreScreen paths through locale resolution, active-assignment/date/time formatting, planner normalization, and the preview-preset widget label path.
 
 ## Release Decision
 
@@ -112,5 +122,5 @@ Backend OCR, saved-photo import, and native Plus product loading are now proven 
 
 - Physical-device/TestFlight camera permission and live camera capture are still unproven.
 - StoreKit product title/description/period metadata is still English in localized paywall screenshots; App Store Connect subscription localizations must be entered/verified.
-- Runtime localization is still incomplete outside the smoked Today/Calendar/Classes/Focus/Grades/Scan/Plus/native shell. Hard-coded app-owned English remains in Widgets/settings, detail screens, and alert/error paths.
+- Runtime localization is still incomplete outside the smoked Today/Calendar/Classes/Focus/Grades/Widgets/Scan/Plus/native shell. Hard-coded app-owned English remains in widget preview services/components, onboarding preview mockups, import review controls, detail screens, notes, and alert/error paths.
 - Arabic RTL risk remains until accepted or fixed.

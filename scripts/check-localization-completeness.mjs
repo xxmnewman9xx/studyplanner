@@ -123,7 +123,7 @@ assert(sourceFiles.onboarding.includes("useI18n") && sourceFiles.onboarding.incl
 assert(sourceFiles.importScreen.includes("useI18n") && sourceFiles.importScreen.includes("import.photo_disabled_message"), "Import screen must consume runtime localization keys.");
 assert(sourceFiles.paywall.includes("useI18n") && sourceFiles.paywall.includes("paywall.hard_subtitle"), "Paywall must consume runtime localization keys.");
 assert(sourceFiles.modeToggle.includes("useI18n") && sourceFiles.modeToggle.includes("theme.use_light_mode"), "Theme mode toggle must consume runtime localization keys.");
-assert(sourceFiles.widgets.includes("Native style fields"), "Widget Studio must preserve native/widget truth copy.");
+assert(sourceFiles.widgets.includes("useI18n") && sourceFiles.widgets.includes("more.native_style_fields"), "Widget Studio must consume runtime localization keys while preserving native/widget truth copy.");
 assert(sourceFiles.i18n.includes("EXPO_PUBLIC_STUDYPLANNER_LOCALE"), "Localization override must exist for screenshot QA.");
 
 const hardcodedLaunchStrings = [
@@ -274,6 +274,37 @@ const hardcodedLaunchStrings = [
     ]
   },
   {
+    file: "src/screens/MoreScreen.tsx",
+    source: sourceFiles.widgets,
+    phrases: [
+      "Notes, study, grades, and settings.",
+      "Open the secondary tools before you tune widgets.",
+      "Widget Studio",
+      "Choose widget, data, and style.",
+      "Ready for Home Screen",
+      "Home Screen handoff",
+      "Native style fields",
+      "Advanced looks stay as saved StudyPlanner presets",
+      "What style?",
+      "Size, privacy, class, look.",
+      "What shows",
+      "What data",
+      "Lock Screen widgets",
+      "Settings and trust",
+      "Privacy mode",
+      "Reminder default",
+      "Widget sync",
+      "Trust rules",
+      "Smart Stack presets",
+      "Build the daily preset set.",
+      "One-tap theme packs",
+      "Premium app themes",
+      "Template gallery",
+      "Saved presets",
+      "Install status"
+    ]
+  },
+  {
     file: "src/screens/ImportScreen.tsx",
     source: sourceFiles.importScreen,
     phrases: [
@@ -404,6 +435,11 @@ const allowedSameAsEnglishKeys = new Set([
 for (const locale of requiredLocales.filter((locale) => locale !== "en-US")) {
   const localizedValues = flattenStrings(catalog[locale]);
   for (const [key, value] of Object.entries(localizedValues)) {
+    assert(!value.includes("ZZZSP"), `${locale}.${key} still contains an internal translation token.`);
+    assert(
+      placeholdersFor(value) === placeholdersFor(englishCatalog[key] || ""),
+      `${locale}.${key} placeholder set does not match en-US.`
+    );
     if (allowedSameAsEnglishKeys.has(key)) continue;
     assert(
       value !== englishCatalog[key],
@@ -441,4 +477,11 @@ function flattenStrings(source, prefix = "", target = {}) {
     }
   }
   return target;
+}
+
+function placeholdersFor(value) {
+  return Array.from(String(value).matchAll(/\{[^}]+\}/g))
+    .map((match) => match[0])
+    .sort()
+    .join(",");
 }
