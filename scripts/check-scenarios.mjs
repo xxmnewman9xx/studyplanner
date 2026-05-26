@@ -3,6 +3,10 @@ import path from "node:path";
 
 const root = process.cwd();
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), "utf8");
+const readIfExists = (relativePath) => {
+  const absolutePath = path.join(root, relativePath);
+  return fs.existsSync(absolutePath) ? fs.readFileSync(absolutePath, "utf8") : "";
+};
 const app = read("App.tsx");
 const onboarding = read("src/screens/OnboardingScreen.tsx");
 const upgrade = read("src/screens/UpgradeScreen.tsx");
@@ -10,8 +14,10 @@ const more = read("src/screens/MoreScreen.tsx");
 const components = read("src/components/AppleComponents.tsx");
 const planner = read("src/logic/planner.ts");
 const nativeWidgetLayout = read("src/widgets/StudyPlannerWidgets.tsx");
-const todayWidgetSwift = read("ios/ExpoWidgetsTarget/StudyPlannerTodayWidget.swift");
-const upcomingWidgetSwift = read("ios/ExpoWidgetsTarget/StudyPlannerUpcomingWidget.swift");
+const todayWidgetSwift = readIfExists("ios/ExpoWidgetsTarget/StudyPlannerTodayWidget.swift");
+const upcomingWidgetSwift = readIfExists("ios/ExpoWidgetsTarget/StudyPlannerUpcomingWidget.swift");
+const expoWidgetsProvider = read("node_modules/expo-widgets/ios/Widgets/TimelineProvider.swift");
+const expoWidgetsEntryView = read("node_modules/expo-widgets/ios/Widgets/EntryView.swift");
 const appJson = read("app.json");
 const today = read("src/screens/TodayScreen.tsx");
 const reviewPrompt = read("src/services/reviewPrompt.ts");
@@ -100,14 +106,25 @@ assert(more.includes("Today") && more.includes("Upcoming") && more.includes("Wee
 assert(more.includes('"lock_rect"') && more.includes('"lock_round"') && more.includes('"lock_inline"'), "Widget Studio should expose lock-screen size intent for customization QA.");
 assert(more.includes("One fact in small widgets") && more.includes("Agenda rows in medium widgets"), "Widget Studio first viewport should expose research-backed widget rules.");
 assert(!more.includes("top-20") && !more.includes("active in this studio") && !more.includes("3/6 ready") && !more.includes("Studio state"), "Widget Studio must not expose internal QA scoring language.");
-assert(planner.includes('headline: "Upcoming"') && planner.includes('headline: "Today"') && planner.includes("Focus Block") && planner.includes("Class Risk"), "Widget data labels should match student-outcome templates.");
+assert(planner.includes('headline: "Upcoming"') && planner.includes('headline: "Today"') && planner.includes("Focus Next") && planner.includes("Class Progress"), "Widget data labels should match student-outcome templates.");
 assert(!more.includes("Algebra II - Worksheet") && !more.includes("Week 11") && !more.includes("Wednesday, May 13"), "Widget surface must not show fake sample school data.");
 assert(!components.includes("May 13") && !components.includes('"2h"'), "Widget preview components must not hard-code fake dates or fake due times.");
 assert(more.includes("Save Today preset") && more.includes("Unlock this preset"), "Widget surface may save native presets while gating advanced widgets.");
 assert(defaultPlanner.includes("defaultWidgetPresets"), "Default widget presets may exist for data compatibility, but UI must not imply native support.");
 assert(appJson.includes('"accessoryCircular"') && appJson.includes('"accessoryRectangular"') && appJson.includes('"accessoryInline"'), "Expo widget config should include Lock Screen accessory families.");
-assert(todayWidgetSwift.includes(".accessoryCircular") && todayWidgetSwift.includes(".accessoryRectangular") && todayWidgetSwift.includes(".accessoryInline"), "Today native widget should support Lock Screen families.");
-assert(upcomingWidgetSwift.includes(".accessoryCircular") && upcomingWidgetSwift.includes(".accessoryRectangular") && upcomingWidgetSwift.includes(".accessoryInline"), "Upcoming native widget should support Lock Screen families.");
+assert(
+  todayWidgetSwift
+    ? todayWidgetSwift.includes(".accessoryCircular") && todayWidgetSwift.includes(".accessoryRectangular") && todayWidgetSwift.includes(".accessoryInline")
+    : appJson.includes('"name": "StudyPlannerTodayWidget"') && appJson.includes('"accessoryCircular"') && appJson.includes('"accessoryRectangular"') && appJson.includes('"accessoryInline"'),
+  "Today native widget should support Lock Screen families in generated Swift or app config."
+);
+assert(
+  upcomingWidgetSwift
+    ? upcomingWidgetSwift.includes(".accessoryCircular") && upcomingWidgetSwift.includes(".accessoryRectangular") && upcomingWidgetSwift.includes(".accessoryInline")
+    : appJson.includes('"name": "StudyPlannerUpcomingWidget"') && appJson.includes('"accessoryCircular"') && appJson.includes('"accessoryRectangular"') && appJson.includes('"accessoryInline"'),
+  "Upcoming native widget should support Lock Screen families in generated Swift or app config."
+);
+assert(expoWidgetsProvider.includes("parseTimeline") && expoWidgetsEntryView.includes("WidgetsStorage.getString"), "Expo widget runtime should read App Group timeline/layout storage.");
 assert(nativeWidgetLayout.includes('environment.widgetFamily === "accessoryCircular"') && nativeWidgetLayout.includes('environment.widgetFamily === "accessoryRectangular"') && nativeWidgetLayout.includes('environment.widgetFamily === "accessoryInline"'), "Native widget layout should render dedicated Lock Screen variants.");
 assert(fs.existsSync(path.join(root, "assets/app/study-planner-icon.png")), "StudyPlanner icon asset must exist.");
 

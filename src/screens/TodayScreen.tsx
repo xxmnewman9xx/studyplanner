@@ -88,7 +88,7 @@ export function TodayScreen({
   const nextCourse = plan.nextAction
     ? getCourseForAssignment(courses, plan.nextAction)
     : undefined;
-  const completionPercent = assignments.length > 0 ? Math.round((plan.doneCount / assignments.length) * 100) : 0;
+  const completionPercent = plan.todayTotalCount > 0 ? Math.round(plan.todayProgress * 100) : 0;
   const nextDueDays = plan.nextAction ? daysUntil(plan.nextAction.dueAt) : 0;
   const nextActionDuration = plan.nextAction
     ? formatLocalized(t("today.minutes_short", "{minutes} min"), {
@@ -188,7 +188,7 @@ export function TodayScreen({
         <Text style={styles.heroSubtitle}>{liveBrief.detail}</Text>
         {plannerHasData ? (
           <View style={styles.heroMetrics}>
-            <MetricPill label={t("today.metric_done", "Done")} value={`${completionPercent}%`} />
+            <MetricPill label={t("today.metric_done", "Done")} value={plan.todayTotalCount > 0 ? `${completionPercent}%` : "0%"} />
             <MetricPill label={t("today.metric_open", "Open")} value={String(plan.openCount)} />
             <MetricPill label={t("today.metric_review", "Review")} value={String(plan.needsReview.length)} />
           </View>

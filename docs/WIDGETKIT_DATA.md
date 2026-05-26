@@ -17,7 +17,7 @@ The app may write only these fields into the widget timeline snapshot:
 
 - Snapshot metadata: version, kind, state, generated time, semester name, open URL.
 - Display copy: headline, value, detail, footnote, signal label, metric label, next label, and timeline label.
-- Visual tokens: accent color and background color.
+- Visual tokens: accent color, background color, style label, layout label, density label, window label, course scope label, icon key, action label, progress label, and numeric progress.
 - Assignment display rows: assignment id, title, course code, course color, due label, priority, and assignment kind.
 
 ## Excluded Fields

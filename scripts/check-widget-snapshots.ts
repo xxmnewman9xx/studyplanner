@@ -197,7 +197,10 @@ const snapshots = buildStudyPlannerWidgetSnapshots({
 assert(snapshots.today.items[0]?.id === "overdue-high-started", "Overdue high-priority started work should lead Today.");
 assert(snapshots.upcoming.items[0]?.id === "overdue-high-started", "Overdue high-priority started work should lead Upcoming.");
 assert(snapshots.today.signalLabel === "Catch up", "Overdue Today snapshot should use a catch-up signal.");
-assert(snapshots.upcoming.metricLabel.includes("90m"), "Upcoming metric should surface effort for the top action.");
+assert(snapshots.today.metricLabel === "0 of 1 complete", "Today metric should surface real due-today completion only.");
+assert(snapshots.upcoming.metricLabel === "1 of 4 complete", "Upcoming metric should surface real week completion.");
+assert(snapshots.today.progress === 0, "Today progress should be completed due-today work divided by total due-today work.");
+assert(snapshots.upcoming.progress === 0.25, "Upcoming progress should be completed work divided by total work in the visible week range.");
 
 const localizedSnapshots = buildStudyPlannerWidgetSnapshots({
   semester,
@@ -422,6 +425,10 @@ assert(
 assert(
   nativeWidgetLayoutSource.includes("circularValue") && nativeWidgetLayoutSource.includes("Do first"),
   "Native circular widgets should avoid decorative count-only 'Today' output and point to the next action."
+);
+assert(
+  !nativeWidgetLayoutSource.includes("Math.max(1, Math.round(progress * 7))"),
+  "Native week progress dots must allow true zero progress instead of forcing a decorative active dot."
 );
 assert(
   nativeWidgetLayoutSource.includes("if (!isMedium)") && nativeWidgetLayoutSource.includes("frame({ maxWidth: 220, maxHeight: 220"),

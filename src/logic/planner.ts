@@ -23,6 +23,9 @@ export type TodayPlan = {
   overdue: Assignment[];
   doneCount: number;
   openCount: number;
+  todayDoneCount: number;
+  todayTotalCount: number;
+  todayProgress: number;
   semesterProgress: number;
 };
 
@@ -63,6 +66,16 @@ export type WidgetData = {
   course?: Course;
   accent?: string;
   weekLoad?: DailyLoad[];
+  progress?: number;
+  progressLabel?: string;
+};
+
+export type AssignmentCompletionStats = {
+  total: number;
+  done: number;
+  open: number;
+  progress: number;
+  label: string;
 };
 
 export function buildTodayPlan(
@@ -74,6 +87,16 @@ export function buildTodayPlan(
   const open = getSchedulableAssignments(active)
     .sort((a, b) => scoreWork(b, now) - scoreWork(a, now));
   const dueToday = open.filter((item) => isSameDay(new Date(item.dueAt), now));
+  const todayStats = getAssignmentCompletionStats(
+    assignments.filter(
+      (item) =>
+        item.status !== "archived" &&
+        isValidDeadline(item.dueAt) &&
+        !item.needsReview &&
+        !item.duplicateOf &&
+        isSameDay(new Date(item.dueAt), now)
+    )
+  );
   const overdue = getOverdue(assignments, now);
   const upcoming = open
     .filter((item) => !isPast(new Date(item.dueAt), now))
@@ -94,6 +117,9 @@ export function buildTodayPlan(
     overdue,
     doneCount: assignments.filter((item) => item.status === "done").length,
     openCount: active.length,
+    todayDoneCount: todayStats.done,
+    todayTotalCount: todayStats.total,
+    todayProgress: todayStats.progress,
     semesterProgress: calculateSemesterProgress(semester, now)
   };
 }
@@ -234,6 +260,55 @@ export function getWeekLoad(assignments: Assignment[], now = new Date()) {
   });
 }
 
+export function getWeekCompletionStats(assignments: Assignment[], now = new Date()) {
+  const monday = startOfWeek(now);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const weekStart = dateKeyFromDate(monday);
+  const weekEnd = dateKeyFromDate(sunday);
+
+  return getAssignmentCompletionStats(
+    assignments.filter((assignment) => {
+      if (assignment.status === "archived" || !isValidDeadline(assignment.dueAt)) return false;
+      if (assignment.needsReview || assignment.duplicateOf) return false;
+      const dueKey = dateKeyFromIso(assignment.dueAt);
+      return dueKey >= weekStart && dueKey <= weekEnd;
+    })
+  );
+}
+
+export function getAssignmentCompletionStats(assignments: Assignment[]): AssignmentCompletionStats {
+  const total = assignments.filter((assignment) => assignment.status !== "archived").length;
+  const done = assignments.filter((assignment) => assignment.status === "done").length;
+  const open = Math.max(total - done, 0);
+  const progress = total > 0 ? done / total : 0;
+
+  return {
+    total,
+    done,
+    open,
+    progress,
+    label: `${done} of ${total} complete`
+  };
+}
+
+export function getFocusCompletionStats(sessions: FocusSession[] = [], now = new Date()) {
+  const todayKey = dateKeyFromDate(now);
+  const completed = sessions.filter((session) => session.status === "completed");
+  const completedToday = completed.filter((session) => dateKeyFromIso(session.endedAt || session.startedAt) === todayKey);
+  const completedMinutesToday = completedToday.reduce((sum, session) => sum + Math.max(1, session.durationMinutes || 0), 0);
+
+  return {
+    completedCount: completed.length,
+    completedToday: completedToday.length,
+    completedMinutesToday,
+    label:
+      completedToday.length > 0
+        ? `${completedToday.length} focus ${completedToday.length === 1 ? "session" : "sessions"} done today`
+        : "No focus sessions done today"
+  };
+}
+
 export function getBusyWeekInsight(assignments: Assignment[], now = new Date()): BusyWeekInsight {
   const week = getWeekLoad(assignments, now);
   const heavyDays = week.filter((day) => day.heavy);
@@ -297,12 +372,26 @@ export function getWidgetData(
   preset: WidgetPreset,
   assignments: Assignment[],
   courses: Course[],
-  now = new Date()
+  now = new Date(),
+  focusSessions: FocusSession[] = []
 ): WidgetData {
   const next = getNextUp(assignments, now);
   const dueToday = getDueToday(assignments, now);
   const dueSoon = getDueSoon(assignments, now);
   const needsReview = getNeedsReview(assignments);
+  const todayStats = getAssignmentCompletionStats(
+    assignments.filter(
+      (assignment) =>
+        assignment.status !== "archived" &&
+        isValidDeadline(assignment.dueAt) &&
+        !assignment.needsReview &&
+        !assignment.duplicateOf &&
+        isSameDay(new Date(assignment.dueAt), now)
+    )
+  );
+  const weekStats = getWeekCompletionStats(assignments, now);
+  const weekLoad = getWeekLoad(assignments, now);
+  const focusStats = getFocusCompletionStats(focusSessions, now);
   const completionStreak = calculateCompletionStreak(assignments, now);
   const activeAssignments = assignments.filter(isActiveAssignment);
   const doneAssignments = assignments.filter((assignment) => assignment.status === "done");
@@ -319,13 +408,19 @@ export function getWidgetData(
       headline: "Upcoming",
       value: next ? timeUntilLabel(next.dueAt, now) : "Clear",
       detail: next?.title || "All caught up",
-      items: next ? [next] : []
+      items: next ? [next] : [],
+      progress: weekStats.progress,
+      progressLabel: weekStats.total ? weekStats.label : "No workload this week"
     },
     today: {
       headline: "Today",
-      value: String(dueToday.length),
-      detail: dueToday.length === 1 ? "task due today" : `${dueToday.length} tasks due today`,
-      items: dueToday
+      value: todayStats.total ? `${todayStats.done}/${todayStats.total}` : "Clear",
+      detail:
+        dueToday[0]?.title ||
+        (todayStats.total ? todayStats.label : "Nothing due today"),
+      items: dueToday,
+      progress: todayStats.progress,
+      progressLabel: todayStats.total ? todayStats.label : "No work due today"
     },
     needs_check: {
       headline: "Needs Check",
@@ -334,19 +429,23 @@ export function getWidgetData(
       items: needsReview
     },
     week: {
-      headline: "Deadline Map",
-      value: String(getWeekLoad(assignments, now).reduce((sum, day) => sum + day.items.length, 0)),
-      detail: getBusyWeekInsight(assignments, now).heavyDays.length > 0 ? "busy week" : "balanced",
+      headline: "Week Workload",
+      value: weekStats.total ? `${Math.round(weekStats.progress * 100)}%` : "Clear",
+      detail: weekStats.total ? weekStats.label : "No workload this week",
       items: dueSoon,
-      weekLoad: getWeekLoad(assignments, now)
+      weekLoad,
+      progress: weekStats.progress,
+      progressLabel: weekStats.total ? weekStats.label : "No workload this week"
     },
     class_focus: {
-      headline: "Class Risk",
+      headline: "Class Progress",
       value: course?.code || "Class",
-      detail: `${classItems.filter((item) => item.status !== "done").length} open`,
+      detail: getAssignmentCompletionStats(classItems).label,
       items: classItems,
       course,
-      accent: course?.color
+      accent: course?.color,
+      progress: getAssignmentCompletionStats(classItems).progress,
+      progressLabel: getAssignmentCompletionStats(classItems).label
     },
     empty: {
       headline: "All Done",
@@ -355,16 +454,20 @@ export function getWidgetData(
       items: []
     },
     focus: {
-      headline: "Focus Block",
-      value: "25m",
+      headline: "Focus Next",
+      value: focusStats.completedToday > 0 ? `${focusStats.completedToday} done` : `${preset.size === "small" ? "Start" : "Focus"}`,
       detail: next?.title || "Choose a task",
-      items: next ? [next] : []
+      items: next ? [next] : [],
+      progress: focusStats.completedToday > 0 ? Math.min(1, focusStats.completedToday / 3) : 0,
+      progressLabel: focusStats.label
     },
     streak: {
       headline: "Progress",
       value: `${doneAssignments.length}/${totalProgressItems}`,
       detail: completionStreak > 0 ? `${completionStreak} day streak` : "done this plan",
-      items: []
+      items: [],
+      progress: doneAssignments.length / totalProgressItems,
+      progressLabel: `${doneAssignments.length} of ${totalProgressItems} complete`
     }
   };
 

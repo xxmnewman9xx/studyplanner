@@ -10,8 +10,10 @@ import {
 } from "../models";
 import {
   daysUntil,
+  getAssignmentCompletionStats,
   getNeedsReview,
   getSchedulableAssignments,
+  getWeekCompletionStats,
   isValidDeadline,
   scoreWork
 } from "../logic/planner";
@@ -139,6 +141,7 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
   const assignments = input.demoMode ? input.assignments : input.assignments.filter(isRealWidgetAssignment);
   const parsedImports = input.demoMode ? input.parsedImports : input.parsedImports.filter(isRealParsedImport);
   const reviewedAssignments = getReviewedAssignments(assignments, now);
+  const reviewedProgressAssignments = getReviewedProgressAssignments(assignments);
   const reviewCount = getNeedsReview(assignments).length;
   const hasReviewedSyllabus = getHasReviewedSyllabus(assignments, parsedImports);
   const privacyMode = input.settings?.privacyMode === true;
@@ -148,6 +151,12 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
   const upcomingAssignments = filterAssignmentsForPreset(reviewedAssignments, upcomingPreset, input.courses);
   const upcoming = getUpcomingAssignments(upcomingAssignments, now);
   const dueToday = getTodayWidgetAssignments(todayAssignments, now);
+  const todayProgressStats = getAssignmentCompletionStats(
+    filterAssignmentsForPreset(reviewedProgressAssignments, todayPreset, input.courses).filter(
+      (assignment) => daysUntil(assignment.dueAt, now) === 0
+    )
+  );
+  const weekProgressStats = getWeekCompletionStats(assignments, now);
   const todayStyle = getNativeWidgetStyle("today", todayPreset, input.settings, t);
   const upcomingStyle = getNativeWidgetStyle("upcoming", upcomingPreset, input.settings, t);
   const base = {
@@ -296,10 +305,13 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
               : t("widget_snapshot.keep_day_light", "Keep the day light"),
             ...todayStyle,
             accentColor: todayAccent,
-            progress: overdueToday > 0 ? 0.86 : Math.min(0.95, Math.max(0.18, 1 / Math.max(dueToday.length, 1))),
+            progress: todayProgressStats.total > 0 ? todayProgressStats.progress : 0,
             signalLabel: overdueToday > 0 ? t("widget_snapshot.catch_up", "Catch up") : t("widget_snapshot.do_first", "Do first"),
             metricLabel: dueToday[0]
-              ? effortMetricLabel(dueToday[0], t)
+              ? formatSnapshotTemplate(t("widget_snapshot.complete_count", "{done} of {total} complete"), {
+                  done: todayProgressStats.done,
+                  total: todayProgressStats.total
+                })
               : formatSnapshotTemplate(t("widget_snapshot.open_count", "{count} open"), { count: dueToday.length }),
             nextLabel: assignmentSignal(dueToday[0], input.courses, now, privacyMode, t, locale),
             timelineLabel: t("widget_snapshot.today", "Today"),
@@ -319,8 +331,14 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
               : t("widget_snapshot.no_deadlines_queued", "No deadlines queued"),
             ...todayStyle,
             accentColor: todayAccent,
+            progress: todayProgressStats.total > 0 ? todayProgressStats.progress : 0,
             signalLabel: t("widget_snapshot.clear_today", "Clear today"),
-            metricLabel: nextUpcoming ? t("widget_snapshot.next_deadline_set", "Next deadline set") : t("widget_snapshot.no_open_work", "No open work"),
+            metricLabel: todayProgressStats.total > 0
+              ? formatSnapshotTemplate(t("widget_snapshot.complete_count", "{done} of {total} complete"), {
+                  done: todayProgressStats.done,
+                  total: todayProgressStats.total
+                })
+              : nextUpcoming ? t("widget_snapshot.next_deadline_set", "Next deadline set") : t("widget_snapshot.no_open_work", "No open work"),
             nextLabel: nextUpcoming
               ? assignmentSignal(nextUpcoming, input.courses, now, privacyMode, t, locale)
               : t("widget_snapshot.add_homework_when_appears", "Add homework when it appears"),
@@ -343,9 +361,14 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
             ),
             ...upcomingStyle,
             accentColor: upcomingAccent,
-            progress: Math.min(0.95, Math.max(0.16, 1 / Math.max(upcoming.length, 1))),
+            progress: weekProgressStats.total > 0 ? weekProgressStats.progress : 0,
             signalLabel: daysUntil(nextUpcoming.dueAt, now) < 0 ? t("widget_snapshot.catch_up", "Catch up") : t("widget_snapshot.next_deadline", "Next deadline"),
-            metricLabel: effortMetricLabel(nextUpcoming, t),
+            metricLabel: weekProgressStats.total > 0
+              ? formatSnapshotTemplate(t("widget_snapshot.complete_count", "{done} of {total} complete"), {
+                  done: weekProgressStats.done,
+                  total: weekProgressStats.total
+                })
+              : effortMetricLabel(nextUpcoming, t),
             nextLabel: assignmentSignal(nextUpcoming, input.courses, now, privacyMode, t, locale),
             timelineLabel: formatDueLabel(nextUpcoming.dueAt, now, t, locale),
             items: upcoming.slice(0, 3).map((assignment) => toWidgetItem(assignment, input.courses, now, privacyMode, upcomingAccent, t, locale))
@@ -361,9 +384,15 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
               ? t("widget_snapshot.review_imported_ready", "Review imported items when ready")
               : t("widget_snapshot.add_homework_when_appears", "Add homework when it appears"),
             ...upcomingStyle,
+            progress: weekProgressStats.total > 0 ? weekProgressStats.progress : 0,
             signalLabel: t("widget_snapshot.clear_week", "Clear week"),
             metricLabel: reviewCount > 0
               ? formatSnapshotTemplate(t("widget_snapshot.to_review", "{count} to review"), { count: reviewCount })
+              : weekProgressStats.total > 0
+                ? formatSnapshotTemplate(t("widget_snapshot.complete_count", "{done} of {total} complete"), {
+                    done: weekProgressStats.done,
+                    total: weekProgressStats.total
+                  })
               : t("widget_snapshot.no_open_work", "No open work"),
             nextLabel: reviewCount > 0
               ? t("widget_snapshot.approve_imported_first", "Approve imported items first")
@@ -510,6 +539,16 @@ function getReviewedAssignments(assignments: Assignment[], now: Date) {
   return getSchedulableAssignments(assignments)
     .filter((assignment) => !assignment.needsReview && !assignment.duplicateOf)
     .sort((a, b) => sortWidgetAssignments(a, b, now));
+}
+
+function getReviewedProgressAssignments(assignments: Assignment[]) {
+  return assignments.filter(
+    (assignment) =>
+      assignment.status !== "archived" &&
+      isValidDeadline(assignment.dueAt) &&
+      !assignment.needsReview &&
+      !assignment.duplicateOf
+  );
 }
 
 function getTodayWidgetAssignments(assignments: Assignment[], now: Date) {
@@ -717,7 +756,7 @@ function getNativeWidgetStyle(
       ? t("widget_snapshot.pinned_class", "Pinned class")
       : t("widget_snapshot.all_classes", "All classes"),
     progressLabel: kind === "today" ? t("widget_snapshot.day_plan", "Day plan") : t("widget_snapshot.due_map", "Due map"),
-    progress: kind === "today" ? 0.62 : 0.44,
+    progress: 0,
     iconKey: preset?.iconKey || (kind === "today" ? "check" : "calendar"),
     actionLabel: kind === "today" ? t("widget_snapshot.open_today", "Open Today") : t("widget_snapshot.open_upcoming", "Open Upcoming")
   };

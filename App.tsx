@@ -1054,11 +1054,28 @@ function AppContent() {
 
   const recordFocusSession = (session: FocusSession) => {
     setFocusSessions((current) => {
-      const withoutCompletedPlan = session.status === "completed"
+      const sameAssignmentDay = (item: FocusSession) =>
+        item.assignmentId === session.assignmentId &&
+        focusSessionDateKey(item.startedAt) === focusSessionDateKey(session.startedAt);
+      const replacesTransientSession =
+        session.status === "completed" ||
+        session.status === "stopped" ||
+        session.status === "running" ||
+        session.status === "paused";
+      const withoutTransientSession = replacesTransientSession
         ? current.filter(
-            (item) => !(item.status === "planned" && item.assignmentId === session.assignmentId)
+            (item) =>
+              !(
+                sameAssignmentDay(item) &&
+                (item.status === "running" || item.status === "paused" || item.status === "planned")
+              )
           )
         : current;
+      const withoutCompletedPlan = session.status === "completed"
+        ? withoutTransientSession.filter(
+            (item) => !(item.status === "planned" && item.assignmentId === session.assignmentId)
+          )
+        : withoutTransientSession;
       const withoutDuplicatePlan = session.status === "planned"
         ? withoutCompletedPlan.filter(
             (item) => !(item.status === "planned" && item.assignmentId === session.assignmentId && focusSessionDateKey(item.startedAt) === focusSessionDateKey(session.startedAt))
@@ -1370,6 +1387,7 @@ function AppContent() {
                   assignments={activeAssignments}
                   courses={courses}
                   notes={notes}
+                  focusSessions={focusSessions}
                   semester={semester}
                   parsedImports={parsedImports}
                   demoMode={demoMode}

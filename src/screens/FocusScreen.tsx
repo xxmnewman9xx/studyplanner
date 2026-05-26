@@ -120,14 +120,26 @@ export function FocusScreen({
   const startPause = () => {
     if (!selected) return;
     if (!startedAt) {
-      setStartedAt(new Date().toISOString());
+      const startedAtValue = new Date().toISOString();
+      setStartedAt(startedAtValue);
       setPauseRecorded(false);
       if (secondsLeft === 0) setSecondsLeft(activeDurationMinutes * 60);
+      onRecordSession({
+        id: `focus-${Date.now()}`,
+        assignmentId: selected.id,
+        durationMinutes: activeDurationMinutes,
+        startedAt: startedAtValue,
+        status: "running",
+        sessionNumber,
+        notes: classNote.trim() || undefined
+      });
       setRunning(true);
       return;
     }
     if (running) {
       setRunning(false);
+      record("paused");
+      setPauseRecorded(true);
       return;
     }
     setPauseRecorded(false);

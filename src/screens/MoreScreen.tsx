@@ -31,6 +31,7 @@ import { SectionHeader } from "../components/SectionHeader";
 import {
   Assignment,
   Course,
+  FocusSession,
   ParsedImport,
   Semester,
   StudyNote,
@@ -53,6 +54,7 @@ type MoreScreenProps = {
   assignments: Assignment[];
   courses: Course[];
   notes?: StudyNote[];
+  focusSessions?: FocusSession[];
   semester: Semester;
   parsedImports: ParsedImport[];
   demoMode?: boolean;
@@ -88,6 +90,7 @@ export function MoreScreen({
   assignments,
   courses,
   notes = [],
+  focusSessions = [],
   semester,
   parsedImports,
   demoMode = false,
@@ -215,7 +218,7 @@ export function MoreScreen({
     }),
     [background, classFocusCourseId, editingPresetId, font, iconKey, layout, palette, selectedThemePackId, size, type, widgetTypeLabels]
   );
-  const widgetData = getWidgetData(previewPreset, assignments, courses);
+  const widgetData = getWidgetData(previewPreset, assignments, courses, undefined, focusSessions);
   const previewWidgetPresets = useMemo(
     () =>
       previewPreset.type === "today" || previewPreset.type === "due_next"
@@ -244,12 +247,15 @@ export function MoreScreen({
   const hasCourses = courses.length > 0;
   const needsClassFirst = type === "class_focus" && !hasCourses;
   const displayWidgetData = nativePreview
-    ? {
+      ? {
         headline: nativePreview.headline,
         value: nativePreview.value,
         detail: nativePreview.detail,
         items: nativePreview.items,
-        course: undefined
+        course: undefined,
+        weekLoad: undefined,
+        progress: nativePreview.progress,
+        progressLabel: nativePreview.progressLabel
       }
     : needsClassFirst
     ? { ...widgetData, headline: widgetTypeLabel("class_focus"), value: "+", detail: t("more.add_class_first", "Add a class first"), items: [] }
@@ -649,6 +655,9 @@ export function MoreScreen({
                   layout={layout}
                   iconKey={iconKey}
                   items={displayWidgetData.items}
+                  weekLoad={displayWidgetData.weekLoad}
+                  progress={displayWidgetData.progress}
+                  progressLabel={displayWidgetData.progressLabel}
                   nativeMode={Boolean(nativePreview && size !== "large")}
                   nativeAccentColor={nativePreview?.accentColor}
                   nativeBackgroundColor={nativePreview?.backgroundColor}
@@ -870,6 +879,8 @@ export function MoreScreen({
                     layout={layout}
                     iconKey={lockPreviewSnapshot.iconKey}
                     items={lockPreviewSnapshot.items}
+                    progress={lockPreviewSnapshot.progress}
+                    progressLabel={lockPreviewSnapshot.progressLabel}
                     nativeMode
                     nativeAccentColor={lockPreviewSnapshot.accentColor}
                     nativeBackgroundColor={lockPreviewSnapshot.backgroundColor}

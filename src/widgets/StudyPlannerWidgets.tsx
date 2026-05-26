@@ -44,10 +44,13 @@ function StudyPlannerWidgetLayout(props, environment) {
   var metricLabel = props.metricLabel || props.progressLabel || "Planner";
   var nextLabel = props.nextLabel || props.footnote || "Open StudyPlanner";
   var timelineLabel = props.timelineLabel || props.windowLabel || (props.kind === "today" ? "Today" : "Next");
+  var smallValue = firstItem && firstItem.courseCode ? firstItem.courseCode : props.value;
+  var smallDetail = firstItem ? firstItem.title : props.detail;
   var titleSize = isMedium ? 12 : 11;
   var valueSize = isMedium ? 34 : 31;
   var detailLines = isMedium ? 2 : 1;
   var progress = Math.max(0, Math.min(1, props.progress || 0));
+  var activeWeekDots = Math.round(progress * 7);
   var progressDots = [];
   var weekDots = [];
   var rowNodes = [];
@@ -61,7 +64,7 @@ function StudyPlannerWidgetLayout(props, environment) {
       alignment: "center",
       spacing: 2,
       children: [
-        circle(weekIndex < Math.max(1, Math.round(progress * 7)) ? 6 : 4, weekIndex < Math.max(1, Math.round(progress * 7)) ? accent : soft),
+        circle(weekIndex < activeWeekDots ? 6 : 4, weekIndex < activeWeekDots ? accent : soft),
         text(["M", "T", "W", "T", "F", "S", "S"][weekIndex], [
           font({ size: 7, weight: "black" }),
           foregroundStyle(quiet),
@@ -114,6 +117,24 @@ function StudyPlannerWidgetLayout(props, environment) {
   if (isAccessoryCircular) {
     var circularValue = firstItem && firstItem.courseCode ? firstItem.courseCode : props.value;
     var circularLabel = firstItem ? (props.kind === "today" ? "Do first" : "Next") : (props.kind === "today" ? "Today" : "Next");
+    if (!firstItem) {
+      if (props.state === "needs_review") {
+        circularValue = "Review";
+        circularLabel = props.value;
+      } else if (props.state === "no_classes") {
+        circularValue = "Class";
+        circularLabel = "Add";
+      } else if (props.state === "no_reviewed_syllabus") {
+        circularValue = "Scan";
+        circularLabel = "Start";
+      } else if (props.state === "no_due_today" || props.state === "no_upcoming") {
+        circularValue = "Clear";
+        circularLabel = props.kind === "today" ? "Today" : "Week";
+      } else if (props.state === "sync_disabled") {
+        circularValue = "Off";
+        circularLabel = "Sync";
+      }
+    }
     return view("ZStackView", {
       alignment: "center",
       modifiers: [
@@ -234,12 +255,12 @@ function StudyPlannerWidgetLayout(props, environment) {
                 ])
               ]
             }),
-            text(props.value, [
+            text(smallValue, [
               font({ size: 32, weight: "black", design: "rounded" }),
               foregroundStyle(ink),
               lineLimit(1)
             ]),
-            text(props.detail, [
+            text(smallDetail, [
               font({ size: 13, weight: "bold" }),
               foregroundStyle(ink),
               lineLimit(1)

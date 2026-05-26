@@ -27,6 +27,7 @@ import {
   TriangleAlert
 } from "lucide-react-native";
 import { Assignment, Course, WidgetBackground, WidgetPalette, WidgetSize, WidgetType } from "../models";
+import type { DailyLoad } from "../logic/planner";
 import { AppTheme, themePalettes } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { courseEmoji } from "../utils/courseVisuals";
@@ -363,6 +364,9 @@ export function WidgetPreviewCard({
   nativeNextLabel,
   nativeTimelineLabel,
   nativeProgress,
+  progress,
+  progressLabel,
+  weekLoad,
   footnote,
   semesterName,
   style
@@ -387,6 +391,9 @@ export function WidgetPreviewCard({
   nativeNextLabel?: string;
   nativeTimelineLabel?: string;
   nativeProgress?: number;
+  progress?: number;
+  progressLabel?: string;
+  weekLoad?: DailyLoad[];
   footnote?: string;
   semesterName?: string;
   style?: StyleProp<ViewStyle>;
@@ -417,9 +424,16 @@ export function WidgetPreviewCard({
   const nativeMetric = nativeMetricLabel || statusText;
   const nativeNext = nativeNextLabel || footnote || t("widget_snapshot.open_studyplanner", "Open StudyPlanner");
   const nativeTimeline = nativeTimelineLabel || (type === "today" ? t("widget_snapshot.today", "Today") : t("common.next", "Next"));
-  const nativeProgressValue = Math.max(0, Math.min(1, nativeProgress ?? (previewItems.length > 0 ? 0.6 : 0.2)));
+  const nativeProgressValue = Math.max(0, Math.min(1, nativeProgress ?? progress ?? 0));
+  const previewProgressValue = Math.max(0, Math.min(1, progress ?? nativeProgress ?? 0));
   const nativeWeekDots = localizedWeekdayNarrowLabels(locale);
+  const realWeekLoad = weekLoad || [];
+  const maxWeekLoadScore = Math.max(...realWeekLoad.map((day) => day.score), 1);
   const firstNativeItem = previewItems[0];
+  const nativePrimaryValue = !isMedium && firstNativeItem && "courseCode" in firstNativeItem && firstNativeItem.courseCode
+    ? firstNativeItem.courseCode
+    : value;
+  const nativePrimaryDetail = !isMedium && firstNativeItem ? widgetItemTitle(firstNativeItem) : detail;
   const lockRoundValue = firstNativeItem && "courseCode" in firstNativeItem && firstNativeItem.courseCode ? firstNativeItem.courseCode : value;
   const lockRoundLabel = firstNativeItem
     ? (type === "today" ? t("widget_snapshot.do_first", "Do first") : t("common.next", "Next"))
@@ -483,8 +497,8 @@ export function WidgetPreviewCard({
         </View>
         <View style={styles.nativeWidgetMainRow}>
           <View style={styles.nativeWidgetPrimaryCopy}>
-            <Text style={[styles.nativeWidgetValue, { color: nativeInk }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{value}</Text>
-            <Text style={[styles.nativeWidgetDetail, { color: nativeInk }]} numberOfLines={isMedium ? 2 : 1}>{detail}</Text>
+            <Text style={[styles.nativeWidgetValue, { color: nativeInk }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{nativePrimaryValue}</Text>
+            <Text style={[styles.nativeWidgetDetail, { color: nativeInk }]} numberOfLines={isMedium ? 2 : 1}>{nativePrimaryDetail}</Text>
           </View>
           {isMedium ? (
             <View style={[styles.nativeWidgetNextBox, { backgroundColor: nativeDark ? "#202633" : "#FFFFFF" }]}>
@@ -589,7 +603,7 @@ export function WidgetPreviewCard({
           <WidgetIcon color="#FFFFFF" size={17} />
         </View>
       </View>
-      {layout === "list" || type === "today" || type === "needs_check" ? (
+      {layout === "list" || type === "today" || type === "needs_check" || type === "class_focus" || type === "focus" ? (
         <View style={styles.widgetMiniList}>
           {previewItems.map((item) => (
             <View key={item.id} style={styles.widgetMiniRow}>
@@ -603,27 +617,39 @@ export function WidgetPreviewCard({
       ) : null}
       {layout === "ring" || type === "focus" || type === "streak" ? (
         <View style={[styles.widgetRing, { borderColor: paletteColors[1] || theme.colors.brandPink }]}>
-          <Text style={[styles.widgetRingText, labelTone]}>{type === "streak" ? "7" : "25"}</Text>
+          <Text style={[styles.widgetRingText, labelTone]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.66}>
+            {type === "focus" ? value : progressLabel || value}
+          </Text>
         </View>
       ) : null}
       {layout === "calendar" || type === "week" ? (
         <View style={styles.widgetBars}>
-          {[0.28, 0.6, 0.92, 0.44, 0.72].map((height, index) => (
-            <View key={index} style={styles.widgetBarWrap}>
+          {realWeekLoad.map((day, index) => {
+            const height = day.score / maxWeekLoadScore;
+            return (
+            <View key={day.dateKey} style={styles.widgetBarWrap}>
               <View
                 style={[
                   styles.widgetBar,
                   { height: 12 + height * 34, backgroundColor: paletteColors[index % paletteColors.length] }
                 ]}
               />
+              <Text style={[styles.widgetBarLabel, labelTone]}>{day.items.length}</Text>
             </View>
-          ))}
+          );
+          })}
         </View>
       ) : null}
-      {layout === "grid" || type === "class_focus" ? (
+      {layout === "grid" && type !== "class_focus" ? (
         <View style={styles.widgetGridDots}>
-          {paletteColors.slice(0, 4).map((color) => (
-            <View key={color} style={[styles.widgetGridDot, { backgroundColor: color }]} />
+          {[0, 1, 2, 3].map((index) => (
+            <View
+              key={index}
+              style={[
+                styles.widgetGridDot,
+                { backgroundColor: previewProgressValue >= (index + 1) / 4 ? paletteColors[1] : theme.isDark ? "#2A303B" : "#E7EAF0" }
+              ]}
+            />
           ))}
         </View>
       ) : null}
@@ -1677,6 +1703,14 @@ function createStyles(theme: AppTheme) {
       width: "78%",
       borderRadius: 5,
       opacity: 0.92
+    },
+    widgetBarLabel: {
+      marginTop: 3,
+      color: colors.faint,
+      fontSize: 8,
+      lineHeight: 10,
+      fontWeight: "900",
+      textAlign: "center"
     },
     widgetGridDots: {
       marginTop: spacing.xs,
