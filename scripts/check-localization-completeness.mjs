@@ -383,7 +383,21 @@ const hardcodedLaunchStrings = [
       "Confirm all valid rows",
       "Fix dates before adding",
       "Review flagged items first",
-      "Start over"
+      "Start over",
+      "Plus required",
+      "Could not parse school material",
+      "Camera permission needed",
+      "Type a little material",
+      "Every row has a valid date and has been confirmed.",
+      "invalid deadline",
+      "flagged row",
+      "Add at least one reviewed item before sending work to Today.",
+      "Enter a real due date before this row can be confirmed.",
+      "Everything from this import has already been handled.",
+      "Review instructions",
+      "Block study time",
+      "The import could not be read.",
+      "Spring 2026"
     ]
   },
   {

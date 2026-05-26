@@ -60,6 +60,7 @@ type ImportScreenProps = {
 const priorities: Priority[] = ["low", "medium", "high"];
 const kinds: AssignmentKind[] = ["assignment", "worksheet", "reading", "project", "exam"];
 type ImportSourceMode = "camera" | "photo" | "file" | "paste";
+type TranslateFn = (key: string, fallback?: string) => string;
 
 export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, premiumImportLocked = false, onOpenPaywall, onTryDemo, captureScreenOverride }: ImportScreenProps) {
   const { theme } = useAppTheme();
@@ -81,11 +82,11 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
 
   const handleLockedImport = () => {
     Alert.alert(
-      "Plus required",
-      "Subscribe to Plus for AI-assisted text/PDF imports, pasted text, and re-imports for the rest of the semester.",
+      t("import.plus_required_title", "Plus required"),
+      t("import.plus_required_message", "Subscribe to Plus for AI-assisted text/PDF imports, pasted text, and re-imports for the rest of the semester."),
       [
-        { text: "Not now", style: "cancel" },
-        { text: "See Plus", onPress: onOpenPaywall }
+        { text: t("common.not_now", "Not now"), style: "cancel" },
+        { text: t("paywall.see_plus", "See Plus"), onPress: onOpenPaywall }
       ]
     );
   };
@@ -102,7 +103,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
       const result = await parseSyllabus(source);
       setDraft(result);
     } catch (error) {
-      Alert.alert("Could not parse school material", errorMessage(error));
+      Alert.alert(t("import.parse_failed_school_material", "Could not parse school material"), errorMessage(error, t));
     } finally {
       setLoading(false);
     }
@@ -152,7 +153,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
       await runParse({
         kind: "photo",
         uri: asset.uri,
-        name: asset.fileName || "school material photo",
+        name: asset.fileName || t("import.school_material_photo", "school material photo"),
         mimeType: asset.mimeType
       });
     }
@@ -170,7 +171,10 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
 
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert("Camera permission needed", "Camera access lets you photograph syllabus pages.");
+      Alert.alert(
+        t("import.camera_permission_needed", "Camera permission needed"),
+        t("import.camera_permission_message", "Camera access lets you photograph syllabus pages.")
+      );
       return;
     }
 
@@ -181,7 +185,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
       await runParse({
         kind: "photo",
         uri: asset.uri,
-        name: asset.fileName || "camera photo",
+        name: asset.fileName || t("import.camera_photo", "camera photo"),
         mimeType: asset.mimeType
       });
     }
@@ -194,13 +198,16 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
     }
 
     if (!typedText.trim()) {
-      Alert.alert("Type a little material", "Paste syllabus lines, handout text, or homework notes first.");
+      Alert.alert(
+        t("import.type_material_title", "Type a little material"),
+        t("import.type_material_message", "Paste syllabus lines, handout text, or homework notes first.")
+      );
       return;
     }
 
     await runParse({
       kind: "typed",
-      name: "Typed school material",
+      name: t("import.typed_school_material", "Typed school material"),
       text: typedText
     });
   };
@@ -390,7 +397,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                 key={item.id}
                 style={styles.recentRow}
                 onPress={() => {
-                  setDraft(buildDraftFromRecentImport(item, parsedItems));
+                  setDraft(buildDraftFromRecentImport(item, parsedItems, t));
                 }}
               >
                 <View style={styles.recentIcon}>
@@ -398,10 +405,15 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                 </View>
                 <View style={styles.recentCopy}>
                   <Text style={styles.recentTitle}>{item.title}</Text>
-                  <Text style={styles.recentMeta}>{item.itemCount} found · {labelize(item.status)}</Text>
+                  <Text style={styles.recentMeta}>
+                    {formatImportTemplate(t("import.found_count_status", "{count} found · {status}"), {
+                      count: item.itemCount,
+                      status: labelizeImportStatus(item.status, t)
+                    })}
+                  </Text>
                   <Text style={styles.recentSubtle}>{imageParsingAvailable ? t("import.recent_subtle_images", "Photos, files, and pasted text create editable drafts for review.") : t("import.recent_subtle", "PDFs and pasted text create editable drafts for review.")}</Text>
                 </View>
-                <Badge label={labelize(item.sourceType)} tone={item.status === "ready" ? "blue" : "green"} />
+                <Badge label={labelizeImportSourceType(item.sourceType, t)} tone={item.status === "ready" ? "blue" : "green"} />
               </TouchableOpacity>
             ))}
           </View>
@@ -430,8 +442,8 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                   </Text>
                   <Text style={styles.reviewGateText}>
                     {canApplyDraft
-                      ? "Every row has a valid date and has been confirmed."
-                      : reviewGateMessage(invalidDeadlineCount, needsReviewCount)}
+                      ? t("import.every_row_confirmed", "Every row has a valid date and has been confirmed.")
+                      : reviewGateMessage(invalidDeadlineCount, needsReviewCount, t)}
                   </Text>
                 </View>
               </View>
@@ -477,7 +489,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
           <View style={styles.editList}>
             {draft.assignments.map((assignment) => {
               const courseCode =
-                draft.courses.find((course) => course.id === assignment.courseId)?.code || "Class";
+                draft.courses.find((course) => course.id === assignment.courseId)?.code || t("import.class", "Class");
               const dueDate = assignment.dueAt.slice(0, 10);
               const dueTime = normalizedDueTime(assignment.dueAt, assignment.kind);
               const hasInvalidDate = !isValidDateInput(dueDate);
@@ -499,7 +511,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                         }
                       />
                       <Text style={styles.editMeta}>
-                        {courseCode} · due {formatReviewDate(dueDate)}
+                        {courseCode} · {t("import.due", "due")} {formatReviewDate(dueDate, t)}
                       </Text>
                       <ConfidenceBadge confidence={assignment.confidence || 0.9} needsReview={!reviewed} />
                     </View>
@@ -507,13 +519,13 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
 
                   <View style={styles.twoColumn}>
                     <View style={[styles.input, styles.fieldHalf]}>
-                      <Text style={styles.fieldLabel}>Class</Text>
+                      <Text style={styles.fieldLabel}>{t("import.class", "Class")}</Text>
                       <Text style={styles.fieldValue}>{courseCode}</Text>
                     </View>
                     <TextInput
                       value={dueDate}
                       style={[styles.input, styles.fieldHalf, hasInvalidDate ? styles.inputInvalid : null]}
-                      placeholder="YYYY-MM-DD"
+                      placeholder={t("classes.date_placeholder", "YYYY-MM-DD")}
                       placeholderTextColor={colors.faint}
                       onChangeText={(date) =>
                         setDraft(
@@ -528,7 +540,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                   </View>
                   {hasInvalidDeadline ? (
                     <Text style={styles.dateBlockerText}>
-                      Enter a real due date before this row can be confirmed.
+                      {t("import.enter_due_date_before_confirm", "Enter a real due date before this row can be confirmed.")}
                     </Text>
                   ) : null}
                   <View style={styles.trustRail}>
@@ -545,7 +557,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
 
                   {!reviewed ? (
                     <AppButton
-                      label="Confirm"
+                      label={t("import.confirm", "Confirm")}
                       variant="secondary"
                       disabled={!isValidDeadline(assignment.dueAt)}
                       onPress={() =>
@@ -560,7 +572,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                       }
                     />
                   ) : (
-                    <Text style={styles.confirmedText}>Confirmed</Text>
+                    <Text style={styles.confirmedText}>{t("import.confirmed", "Confirmed")}</Text>
                   )}
                 </View>
               );
@@ -628,8 +640,14 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   }
 
   function ConfidenceBadge({ confidence, needsReview }: { confidence: number; needsReview: boolean }) {
-    const label = needsReview || confidence < 0.62 ? "Fix" : confidence < 0.82 ? "Check" : "High";
-    const tone = label === "High" ? "green" : label === "Check" ? "gold" : "red";
+    const state = needsReview || confidence < 0.62 ? "fix" : confidence < 0.82 ? "check" : "high";
+    const label =
+      state === "high"
+        ? t("import.high", "High")
+        : state === "check"
+          ? t("import.check", "Check")
+          : t("import.fix", "Fix");
+    const tone = state === "high" ? "green" : state === "check" ? "gold" : "red";
     return <Badge label={`${label} ${Math.round(confidence * 100)}%`} tone={tone} />;
   }
 
@@ -675,14 +693,24 @@ function trustExplanation(confidence: number, needsReview: boolean, t: (key: str
   return t("import.trust_high", "High confidence: still editable before it touches your planner.");
 }
 
-function reviewGateMessage(invalidDeadlineCount: number, needsReviewCount: number) {
+function reviewGateMessage(invalidDeadlineCount: number, needsReviewCount: number, t: TranslateFn) {
   if (invalidDeadlineCount > 0) {
-    return `${invalidDeadlineCount} invalid deadline${invalidDeadlineCount === 1 ? "" : "s"} must be fixed.`;
+    return formatImportTemplate(
+      invalidDeadlineCount === 1
+        ? t("import.invalid_deadline_one", "{count} invalid deadline must be fixed.")
+        : t("import.invalid_deadline_count", "{count} invalid deadlines must be fixed."),
+      { count: invalidDeadlineCount }
+    );
   }
   if (needsReviewCount > 0) {
-    return `${needsReviewCount} flagged row${needsReviewCount === 1 ? "" : "s"} need a quick trust check.`;
+    return formatImportTemplate(
+      needsReviewCount === 1
+        ? t("import.flagged_row_one", "{count} flagged row needs a quick trust check.")
+        : t("import.flagged_row_count", "{count} flagged rows need a quick trust check."),
+      { count: needsReviewCount }
+    );
   }
-  return "Add at least one reviewed item before sending work to Today.";
+  return t("import.add_reviewed_before_today", "Add at least one reviewed item before sending work to Today.");
 }
 
 function isDraftAssignmentFlagged(assignment: SyllabusParseResult["assignments"][number]) {
@@ -700,8 +728,8 @@ function normalizedDueTime(value: string, kind: AssignmentKind) {
   return kind === "exam" ? "09:00" : "23:59";
 }
 
-function formatReviewDate(value: string) {
-  if (!isValidDateInput(value)) return "needs date";
+function formatReviewDate(value: string, t: TranslateFn) {
+  if (!isValidDateInput(value)) return t("import.needs_date", "needs date");
   return value;
 }
 
@@ -715,7 +743,8 @@ function summarizeDraft(draft: SyllabusParseResult) {
 
 function buildDraftFromRecentImport(
   parsedImport: ParsedImport,
-  parsedItems: ParsedItem[]
+  parsedItems: ParsedItem[],
+  t: TranslateFn
 ): SyllabusParseResult {
   const items = parsedItems.filter(
     (item) =>
@@ -724,7 +753,7 @@ function buildDraftFromRecentImport(
       item.reviewStatus !== "accepted" &&
       !item.acceptedAt
   );
-  const courseNames = Array.from(new Set(items.map((item) => item.courseName || "Study Hall")));
+  const courseNames = Array.from(new Set(items.map((item) => item.courseName || t("import.study_hall", "Study Hall"))));
   const courses: Course[] = courseNames.map((name, index) => {
     const id = courseIdForName(name);
     return {
@@ -734,14 +763,14 @@ function buildDraftFromRecentImport(
       color: courseColors[index % courseColors.length] || "#6D5CFF",
       iconKey: "book",
       emojiKey: index % 2 === 0 ? "study" : "science",
-      semester: "Spring 2026",
+      semester: t("import.spring_2026", "Spring 2026"),
       createdAt: parsedImport.createdAt,
       updatedAt: parsedImport.updatedAt,
       meetings: [],
       gradeCategories: [
-        { id: `${id}-work`, name: "Coursework", weight: 50 },
-        { id: `${id}-tests`, name: "Tests", weight: 30 },
-        { id: `${id}-participation`, name: "Participation", weight: 20 }
+        { id: `${id}-work`, name: t("import.coursework", "Coursework"), weight: 50 },
+        { id: `${id}-tests`, name: t("import.tests", "Tests"), weight: 30 },
+        { id: `${id}-participation`, name: t("import.participation", "Participation"), weight: 20 }
       ]
     };
   });
@@ -758,7 +787,7 @@ function buildDraftFromRecentImport(
         {
           id: `${parsedImport.id}-empty`,
           severity: "info",
-          message: "Everything from this import has already been handled."
+          message: t("import.recent_import_handled", "Everything from this import has already been handled.")
         }
       ]
     };
@@ -770,7 +799,7 @@ function buildDraftFromRecentImport(
     gradeItems: [],
     assignments: items.map((item) => ({
       id: `review-${item.id}`,
-      courseId: courseIdForName(item.courseName || "Study Hall"),
+      courseId: courseIdForName(item.courseName || t("import.study_hall", "Study Hall")),
       title: item.title,
       kind: item.type,
       type: item.type,
@@ -783,8 +812,8 @@ function buildDraftFromRecentImport(
       sourceId: parsedImport.id,
       progress: 0,
       checklist: [
-        { id: `review-${item.id}-1`, title: "Review instructions", done: false },
-        { id: `review-${item.id}-2`, title: "Block study time", done: false }
+        { id: `review-${item.id}-1`, title: t("import.review_instructions", "Review instructions"), done: false },
+        { id: `review-${item.id}-2`, title: t("import.block_study_time", "Block study time"), done: false }
       ],
       reminder: { enabled: true, leadTimeHours: item.type === "exam" ? 72 : 24 },
       needsReview: item.needsReview || !item.dueAt,
@@ -797,7 +826,10 @@ function buildDraftFromRecentImport(
       {
         id: `${parsedImport.id}-source`,
         severity: "info",
-        message: `${items.length} parsed items from ${parsedImport.title}`
+        message: formatImportTemplate(t("import.parsed_items_from_source", "{count} parsed items from {source}"), {
+          count: items.length,
+          source: parsedImport.title
+        })
       },
       ...items
         .filter((item) => item.needsReview || item.duplicateCandidateId || !item.dueAt)
@@ -806,10 +838,10 @@ function buildDraftFromRecentImport(
           id: `${item.id}-finding-${index}`,
           severity: "needs_review" as const,
           message: item.duplicateCandidateId
-            ? `${item.title} may already be in your planner`
+            ? formatImportTemplate(t("import.may_already_be_in_planner", "{title} may already be in your planner"), { title: item.title })
             : !item.dueAt
-              ? `${item.title} needs a due date`
-              : `${item.title} needs review`
+              ? formatImportTemplate(t("import.item_needs_due_date", "{title} needs a due date"), { title: item.title })
+              : formatImportTemplate(t("import.item_needs_review", "{title} needs review"), { title: item.title })
         }))
     ]
   };
@@ -827,8 +859,26 @@ function initialsForCourse(name: string) {
   return letters.toUpperCase();
 }
 
-function labelize(value: string) {
-  return value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+function labelizeImportStatus(value: ParsedImport["status"], t: TranslateFn) {
+  if (value === "processing") return t("import.status_processing", "Processing");
+  if (value === "applied") return t("import.status_applied", "Applied");
+  if (value === "error") return t("import.status_error", "Error");
+  if (value === "ready") return t("import.status_ready", "Ready");
+  return t("import.status_ready", "Ready");
+}
+
+function labelizeImportSourceType(value: ParsedImport["sourceType"], t: TranslateFn) {
+  if (value === "pdf") return "PDF";
+  if (value === "typed") return t("import.source_typed", "Typed");
+  if (value === "photo") return t("import.source_photo", "Photo");
+  return t("tabs.scan", "Scan");
+}
+
+function formatImportTemplate(template: string, values: Record<string, string | number>) {
+  return Object.entries(values).reduce(
+    (current, [key, value]) => current.replace(new RegExp(`\\{${key}\\}`, "g"), String(value)),
+    template
+  );
 }
 
 function cleanupExampleTitle(value: string) {
@@ -843,8 +893,8 @@ function slugify(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 36);
 }
 
-function errorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "The import could not be read.";
+function errorMessage(error: unknown, t: TranslateFn) {
+  return error instanceof Error ? error.message : t("import.read_failed", "The import could not be read.");
 }
 
 function createStyles(theme: AppTheme) {
