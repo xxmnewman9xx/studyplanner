@@ -7,6 +7,7 @@ const sourceFiles = {
   today: readFileSync("src/screens/TodayScreen.tsx", "utf8"),
   plan: readFileSync("src/screens/PlanScreen.tsx", "utf8"),
   courses: readFileSync("src/screens/CoursesScreen.tsx", "utf8"),
+  focus: readFileSync("src/screens/FocusScreen.tsx", "utf8"),
   onboarding: readFileSync("src/screens/OnboardingScreen.tsx", "utf8"),
   importScreen: readFileSync("src/screens/ImportScreen.tsx", "utf8"),
   paywall: readFileSync("src/screens/UpgradeScreen.tsx", "utf8"),
@@ -115,6 +116,7 @@ assert(sourceFiles.app.includes("t(tab.labelKey)"), "Navigation labels must use 
 assert(sourceFiles.today.includes("useI18n") && sourceFiles.today.includes("today.quick_capture"), "Today screen must consume runtime localization keys.");
 assert(sourceFiles.plan.includes("useI18n") && sourceFiles.plan.includes("plan.capture_title"), "Calendar screen must consume runtime localization keys.");
 assert(sourceFiles.courses.includes("useI18n") && sourceFiles.courses.includes("classes.course_hub"), "Classes screen must consume runtime localization keys.");
+assert(sourceFiles.focus.includes("useI18n") && sourceFiles.focus.includes("focus.stage_kicker"), "Focus screen must consume runtime localization keys.");
 assert(sourceFiles.onboarding.includes("useI18n") && sourceFiles.onboarding.includes("slide.titleKey"), "Onboarding must consume runtime localization keys.");
 assert(sourceFiles.importScreen.includes("useI18n") && sourceFiles.importScreen.includes("import.photo_disabled_message"), "Import screen must consume runtime localization keys.");
 assert(sourceFiles.paywall.includes("useI18n") && sourceFiles.paywall.includes("paywall.hard_subtitle"), "Paywall must consume runtime localization keys.");
@@ -195,6 +197,39 @@ const hardcodedLaunchStrings = [
       "No class library yet.",
       "Classes are carrying live work.",
       "Classes are clean right now."
+    ]
+  },
+  {
+    file: "src/screens/FocusScreen.tsx",
+    source: sourceFiles.focus,
+    phrases: [
+      "Focus session",
+      "Open work appears here",
+      "No task",
+      "Ready when there is a task",
+      "No open assignments",
+      "Choose an assignment",
+      "Add or reopen an assignment",
+      "Pause timer",
+      "Resume timer",
+      "Start timer",
+      "Choose task",
+      "Start the timer, add optional notes, then save the real time spent.",
+      "Add an assignment to start a focus session.",
+      "Retention loop",
+      "Capture the thing you'll forget later.",
+      "Optional notes attach to this focus block, so studying creates useful history instead of just a timer log.",
+      "Recent saved notes",
+      "No saved focus notes yet",
+      "Saved study blocks",
+      "These were saved from your busy week helper.",
+      "Choose what to study",
+      "The timer will be attached to this task.",
+      "Add homework from Today, Scan, or Classes. When work is active, it becomes the focus queue here.",
+      "Recent focus",
+      "Done - save time and complete task",
+      "Complete task",
+      "date not set"
     ]
   },
   {

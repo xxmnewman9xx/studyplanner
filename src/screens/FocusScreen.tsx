@@ -8,6 +8,9 @@ import { Assignment, Course, FocusSession } from "../models";
 import { getCourseForAssignment } from "../logic/planner";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
+import { useI18n } from "../i18n";
+
+type TranslateFn = (key: string, fallback?: string) => string;
 
 type FocusScreenProps = {
   assignments: Assignment[];
@@ -29,6 +32,7 @@ export function FocusScreen({
   onMarkComplete
 }: FocusScreenProps) {
   const { theme } = useAppTheme();
+  const { t, locale } = useI18n();
   const { colors } = theme;
   const styles = createStyles(theme);
   const focusableAssignments = useMemo(
@@ -155,7 +159,7 @@ export function FocusScreen({
   const progressPercent = activeDurationMinutes > 0
     ? Math.min(100, Math.max(0, Math.round(((activeDurationMinutes * 60 - secondsLeft) / (activeDurationMinutes * 60)) * 100)))
     : 0;
-  const dueLabel = selected ? formatDueLabel(selected.dueAt) : "No task";
+  const dueLabel = selected ? formatDueLabel(selected.dueAt, locale, t) : t("focus.no_task", "No task");
 
   return (
     <View>
@@ -164,35 +168,41 @@ export function FocusScreen({
         <View style={styles.focusGlowSecondary} />
         <View style={styles.stageHeader}>
           <View style={styles.stageTitleBlock}>
-            <Text style={styles.stageKicker}>Focus session</Text>
+            <Text style={styles.stageKicker}>{t("focus.stage_kicker", "Focus session")}</Text>
             <Text style={styles.stageSubcopy} numberOfLines={1}>
-              {selected ? `${activeDurationMinutes} min block · ${dueLabel}` : "Open work appears here"}
+              {selected
+                ? `${formatLocalized(t("focus.block_minutes", "{minutes} min block"), { minutes: String(activeDurationMinutes) })} · ${dueLabel}`
+                : t("focus.open_work_appears", "Open work appears here")}
             </Text>
           </View>
-          <Badge label={`Session ${sessionNumber}`} tone="blue" />
+          <Badge label={formatLocalized(t("focus.session_count", "Session {count}"), { count: String(sessionNumber) })} tone="blue" />
         </View>
         <View style={styles.timerRing}>
           <View style={styles.timerRingInner}>
             <Text style={styles.timer}>{formatTimer(secondsLeft)}</Text>
             <Text style={styles.timerMeta}>
-              {running ? "Focused" : selected ? (startedAt ? "Paused" : "Ready") : "No task"}
+              {running
+                ? t("focus.status_focused", "Focused")
+                : selected
+                  ? (startedAt ? t("focus.status_paused", "Paused") : t("focus.status_ready", "Ready"))
+                  : t("focus.no_task", "No task")}
             </Text>
           </View>
         </View>
         <View style={styles.progressTrack}>
           <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
         </View>
-        <Text style={styles.focusingOn}>{selected ? "Focusing on" : "Ready when there is a task"}</Text>
+        <Text style={styles.focusingOn}>{selected ? t("focus.focusing_on", "Focusing on") : t("focus.ready_when_task", "Ready when there is a task")}</Text>
         <Text style={styles.timerTask} numberOfLines={2}>
-          {selected?.title || "No open assignments"}
+          {selected?.title || t("focus.no_open_assignments", "No open assignments")}
         </Text>
         <Text style={styles.timerCourse} numberOfLines={1}>
-          {selectedCourse?.code || (focusableAssignments.length > 0 ? "Choose an assignment" : "Add or reopen an assignment")}
+          {selectedCourse?.code || (focusableAssignments.length > 0 ? t("focus.choose_assignment", "Choose an assignment") : t("focus.add_or_reopen_assignment", "Add or reopen an assignment"))}
         </Text>
         <View style={styles.cockpitStats}>
-          <CockpitStat icon={Clock3} value={`${elapsedMinutes}m`} label="logged" />
-          <CockpitStat icon={TimerReset} value={`${activeDurationMinutes}m`} label="target" />
-          <CockpitStat icon={CheckCircle2} value={String(completedSessions.length)} label="done" />
+          <CockpitStat icon={Clock3} value={formatLocalized(t("focus.minutes_short", "{minutes}m"), { minutes: String(elapsedMinutes) })} label={t("focus.logged", "logged")} />
+          <CockpitStat icon={TimerReset} value={formatLocalized(t("focus.minutes_short", "{minutes}m"), { minutes: String(activeDurationMinutes) })} label={t("focus.target", "target")} />
+          <CockpitStat icon={CheckCircle2} value={String(completedSessions.length)} label={t("focus.done", "done")} />
         </View>
         {selected ? (
           <View style={styles.durationRow}>
@@ -211,7 +221,7 @@ export function FocusScreen({
                     setPauseRecorded(false);
                   }}
                 >
-                  <Text style={[styles.durationText, active ? styles.durationTextActive : null]}>{minutes}m</Text>
+                  <Text style={[styles.durationText, active ? styles.durationTextActive : null]}>{formatLocalized(t("focus.minutes_short", "{minutes}m"), { minutes: String(minutes) })}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -233,7 +243,11 @@ export function FocusScreen({
             disabled={!selected}
           >
             <Text style={styles.primaryControlText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.78}>
-              {running ? "Pause timer" : selected ? (startedAt ? "Resume timer" : "Start timer") : "Choose task"}
+              {running
+                ? t("focus.pause_timer", "Pause timer")
+                : selected
+                  ? (startedAt ? t("focus.resume_timer", "Resume timer") : t("focus.start_timer", "Start timer"))
+                  : t("focus.choose_task", "Choose task")}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -247,20 +261,20 @@ export function FocusScreen({
         </View>
         <Text style={styles.silencedCopy}>
           {selected
-            ? "Start the timer, add optional notes, then save the real time spent."
-            : "Add an assignment to start a focus session."}
+            ? t("focus.timer_instructions", "Start the timer, add optional notes, then save the real time spent.")
+            : t("focus.add_assignment_to_start", "Add an assignment to start a focus session.")}
         </Text>
       </View>
 
       <View style={styles.notesCard}>
         <View style={styles.notesHeader}>
           <View style={styles.notesTitleBlock}>
-            <Text style={styles.notesKicker}>Retention loop</Text>
-            <Text style={styles.notesTitle}>Capture the thing you'll forget later.</Text>
+            <Text style={styles.notesKicker}>{t("focus.retention_loop", "Retention loop")}</Text>
+            <Text style={styles.notesTitle}>{t("focus.notes_title", "Capture the thing you'll forget later.")}</Text>
           </View>
-          <Text style={styles.notesBadge}>Notes</Text>
+          <Text style={styles.notesBadge}>{t("focus.notes_badge", "Notes")}</Text>
         </View>
-        <Text style={styles.notesCopy}>Optional notes attach to this focus block, so studying creates useful history instead of just a timer log.</Text>
+        <Text style={styles.notesCopy}>{t("focus.notes_copy", "Optional notes attach to this focus block, so studying creates useful history instead of just a timer log.")}</Text>
         <TextInput
           multiline
           value={classNote}
@@ -268,8 +282,8 @@ export function FocusScreen({
           editable={Boolean(selected)}
           placeholder={
             selected
-              ? "Example: Prof said quiz pulls from slides 18-24. Review enzyme chart."
-              : "Choose an assignment before adding notes."
+              ? t("focus.notes_placeholder", "Example: Prof said quiz pulls from slides 18-24. Review enzyme chart.")
+              : t("focus.notes_disabled_placeholder", "Choose an assignment before adding notes.")
           }
           placeholderTextColor={colors.faint}
           style={[styles.notesInput, !selected ? styles.notesInputDisabled : null]}
@@ -277,13 +291,13 @@ export function FocusScreen({
         />
         {recentNotes.length > 0 ? (
           <View style={styles.recentNotes}>
-            <Text style={styles.recentNotesTitle}>Recent saved notes</Text>
+            <Text style={styles.recentNotesTitle}>{t("focus.recent_saved_notes", "Recent saved notes")}</Text>
             {recentNotes.map((session) => {
               const assignment = assignments.find((item) => item.id === session.assignmentId);
               return (
                 <View key={session.id} style={styles.recentNoteRow}>
                   <Text style={styles.recentNoteMeta} numberOfLines={1}>
-                    {assignment?.title || "Focus note"} · {formatFocusDate(session.startedAt)}
+                    {assignment?.title || t("focus.focus_note", "Focus note")} · {formatFocusDate(session.startedAt, locale)}
                   </Text>
                   <Text style={styles.recentNote} numberOfLines={3}>
                     {session.notes}
@@ -294,15 +308,15 @@ export function FocusScreen({
           </View>
         ) : (
           <View style={styles.recentEmpty}>
-            <Text style={styles.recentEmptyTitle}>No saved focus notes yet</Text>
-            <Text style={styles.recentEmptyCopy}>Start a task, write a note, then save the session. Recent notes will appear here.</Text>
+            <Text style={styles.recentEmptyTitle}>{t("focus.no_saved_notes", "No saved focus notes yet")}</Text>
+            <Text style={styles.recentEmptyCopy}>{t("focus.no_saved_notes_copy", "Start a task, write a note, then save the session. Recent notes will appear here.")}</Text>
           </View>
         )}
       </View>
 
       {plannedSessions.length > 0 ? (
         <>
-          <SectionHeader title="Saved study blocks" note="These were saved from your busy week helper." />
+          <SectionHeader title={t("focus.saved_study_blocks", "Saved study blocks")} note={t("focus.saved_study_blocks_note", "These were saved from your busy week helper.")} />
           <View style={styles.plannedList}>
             {plannedSessions.slice(0, 5).map((session) => {
               const assignment = assignments.find((item) => item.id === session.assignmentId);
@@ -324,13 +338,13 @@ export function FocusScreen({
                   <View style={[styles.classDot, { backgroundColor: course?.color || colors.accent }]} />
                   <View style={styles.plannedCopy}>
                     <Text style={styles.plannedTitle} numberOfLines={2}>
-                      {assignment?.title || "Planned focus"}
+                      {assignment?.title || t("focus.planned_focus", "Planned focus")}
                     </Text>
                     <Text style={styles.plannedMeta} numberOfLines={1}>
-                      {course?.code || "Class"} · {formatFocusDate(session.startedAt)} · {session.durationMinutes}m
+                      {course?.code || t("today.class_fallback", "class")} · {formatFocusDate(session.startedAt, locale)} · {formatLocalized(t("focus.minutes_short", "{minutes}m"), { minutes: String(session.durationMinutes) })}
                     </Text>
                   </View>
-                  <Badge label="Planned" tone="blue" />
+                  <Badge label={t("focus.status_planned", "Planned")} tone="blue" />
                 </TouchableOpacity>
               );
             })}
@@ -338,12 +352,12 @@ export function FocusScreen({
         </>
       ) : null}
 
-      <SectionHeader title="Choose what to study" note="The timer will be attached to this task." />
+      <SectionHeader title={t("focus.choose_what_to_study", "Choose what to study")} note={t("focus.choose_note", "The timer will be attached to this task.")} />
       <View style={styles.assignmentList}>
         {focusableAssignments.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>No open assignments</Text>
-            <Text style={styles.emptyCopy}>Add homework from Today, Scan, or Classes. When work is active, it becomes the focus queue here.</Text>
+            <Text style={styles.emptyTitle}>{t("focus.no_open_assignments", "No open assignments")}</Text>
+            <Text style={styles.emptyCopy}>{t("focus.empty_queue_copy", "Add homework from Today, Scan, or Classes. When work is active, it becomes the focus queue here.")}</Text>
           </View>
         ) : null}
         {focusableAssignments.map((assignment) => {
@@ -365,14 +379,14 @@ export function FocusScreen({
               <View style={[styles.classDot, { backgroundColor: getCourseForAssignment(courses, assignment)?.color || colors.accent }]} />
               <View style={styles.assignmentCopy}>
                 <Text style={styles.assignmentCourse} numberOfLines={1}>
-                  {getCourseForAssignment(courses, assignment)?.code || "Class"}
+                  {getCourseForAssignment(courses, assignment)?.code || t("today.class_fallback", "class")}
                 </Text>
                 <Text style={styles.assignmentTitle} numberOfLines={2}>
                   {assignment.title}
                 </Text>
               </View>
               <Badge
-                label={`${assignment.estimatedMinutes} min`}
+                label={formatLocalized(t("today.minutes_short", "{minutes} min"), { minutes: String(assignment.estimatedMinutes) })}
                 tone={assignment.priority === "high" ? "red" : "neutral"}
               />
             </TouchableOpacity>
@@ -382,7 +396,10 @@ export function FocusScreen({
 
       {recentStudyHistory.length > 0 ? (
         <>
-          <SectionHeader title="Recent focus" note={`${recentStudyHistory.length} latest sessions`} />
+          <SectionHeader
+            title={t("focus.recent_focus", "Recent focus")}
+            note={formatLocalized(t("focus.latest_sessions", "{count} latest sessions"), { count: String(recentStudyHistory.length) })}
+          />
           <View style={styles.historyList}>
             {recentStudyHistory.map((session) => {
               const assignment = assignments.find((item) => item.id === session.assignmentId);
@@ -391,9 +408,9 @@ export function FocusScreen({
                 <View key={session.id} style={styles.historyRow}>
                   <View style={[styles.historyDot, { backgroundColor: course?.color || colors.accent }]} />
                   <View style={styles.historyCopy}>
-                    <Text style={styles.historyTitle} numberOfLines={1}>{assignment?.title || "Focus session"}</Text>
+                    <Text style={styles.historyTitle} numberOfLines={1}>{assignment?.title || t("focus.stage_kicker", "Focus session")}</Text>
                     <Text style={styles.historyMeta} numberOfLines={1}>
-                      {session.durationMinutes}m · {labelizeStatus(session.status)} · {formatFocusDate(session.startedAt)}
+                      {formatLocalized(t("focus.minutes_short", "{minutes}m"), { minutes: String(session.durationMinutes) })} · {labelizeStatus(session.status, t)} · {formatFocusDate(session.startedAt, locale)}
                     </Text>
                   </View>
                 </View>
@@ -405,14 +422,14 @@ export function FocusScreen({
 
       <View style={styles.bottomActions}>
         <AppButton
-          label={startedAt ? "Done - save time and complete task" : "Complete task"}
+          label={startedAt ? t("focus.done_save_complete", "Done - save time and complete task") : t("focus.complete_task", "Complete task")}
           icon={Power}
           disabled={!selected}
           onPress={complete}
           style={styles.bottomButton}
         />
         <AppButton
-          label={`Save ${elapsedMinutes} min only`}
+          label={formatLocalized(t("focus.save_minutes_only", "Save {minutes} min only"), { minutes: String(elapsedMinutes) })}
           variant="secondary"
           disabled={!selected || !startedAt || pauseRecorded || elapsedMinutes <= 0}
           onPress={() => {
@@ -473,8 +490,8 @@ function formatTimer(seconds: number) {
   return `${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
 }
 
-function formatFocusDate(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
+function formatFocusDate(value: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
     month: "short",
     day: "numeric",
     weekday: "short",
@@ -482,14 +499,22 @@ function formatFocusDate(value: string) {
   }).format(new Date(value));
 }
 
-function formatDueLabel(value: string) {
+function formatDueLabel(value: string, locale: string, t: TranslateFn) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "date not set";
-  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(date);
+  if (Number.isNaN(date.getTime())) return t("focus.date_not_set", "date not set");
+  return new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" }).format(date);
 }
 
-function labelizeStatus(status: FocusSession["status"]) {
-  return status.charAt(0).toUpperCase() + status.slice(1);
+function labelizeStatus(status: FocusSession["status"], t: TranslateFn) {
+  if (status === "completed") return t("focus.status_completed", "Completed");
+  if (status === "paused") return t("focus.status_paused", "Paused");
+  if (status === "planned") return t("focus.status_planned", "Planned");
+  if (status === "stopped") return t("focus.status_stopped", "Stopped");
+  return status;
+}
+
+function formatLocalized(template: string, values: Record<string, string>) {
+  return Object.entries(values).reduce((current, [key, value]) => current.replaceAll(`{${key}}`, value), template);
 }
 
 function createStyles(theme: AppTheme) {

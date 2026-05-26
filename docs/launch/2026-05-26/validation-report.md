@@ -1,6 +1,6 @@
 # Validation Report
 
-Date: 2026-05-26 04:45 EDT / 2026-05-26 08:45 UTC
+Date: 2026-05-26 05:07 EDT / 2026-05-26 09:07 UTC
 
 ## Passed In This Rescue Cycle
 
@@ -24,18 +24,16 @@ Date: 2026-05-26 04:45 EDT / 2026-05-26 08:45 UTC
 - Fresh native `Release` simulator build `28` launched on `StudyPlanner-QA-iPhone`
 - Fresh native paywall product screenshot captured at `docs/launch/2026-05-26/fresh-native-screenshots/release-rescue/02-release-plus-deeplink.png`
 - Fresh native saved-photo-to-review proof captured at `docs/launch/2026-05-26/fresh-native-screenshots/photo-rescue/`
-- Current native Release localized Today/Calendar/Classes/Scan/Plus screenshots captured for `ar`, `de`, `ja`, and `zh-Hans` under `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/`
+- Current native Release localized Today/Calendar/Classes/Focus/Scan/Plus screenshots captured for `ar`, `de`, `ja`, and `zh-Hans` under `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/`
 
 ## Latest Patch Validation
 
-After localizing the app-owned Classes launch surface:
+After localizing the app-owned Focus launch surface:
 
 - `npm run check:localization` passed.
 - `npm run typecheck` passed.
-- `npm run qa:release` passed after updating the scenario gate to recognize localized Today action labels while still asserting the real scan/reminder/calendar handlers.
-- `npm run build:syllabus-parser` passed.
 - Native `Release` simulator builds and screenshot captures completed for `ar`, `de`, `ja`, and `zh-Hans`.
-- Current Classes screenshots show localized hero, course hub, class state, course list, shared class card open/completed labels, date formatting, and localized tab labels.
+- Current Focus screenshots show localized timer hero, status/stat labels, duration chips, note instruction copy, date formatting, and localized theme labels.
 - Current Plus screenshots still show two real store products and prices.
 
 ## Native Release Proof
@@ -82,13 +80,21 @@ The native Classes screenshots show:
 - Date formatting plus class count/open/completed labels localized in the native Release bundle.
 - English course names, teacher names, room names, note titles, and assignment titles remain fixture/imported planner data, not app-owned runtime UI.
 
+The native Focus screenshots show:
+
+- `18-focus.png` captured per smoked locale.
+- App-owned Focus timer shell strings localized for `ar`, `de`, `ja`, and `zh-Hans`.
+- Timer status/stat labels, duration chips, date formatting, and note instruction copy localized in the native Release bundle.
+- English assignment title and course code remain fixture/imported planner data, not app-owned runtime UI.
+
 ## GitNexus
 
-- `npx gitnexus analyze` completed successfully after the Classes patch: 3,066 nodes, 5,550 edges, 100 clusters, 259 flows.
+- `npx gitnexus analyze` completed successfully after the Focus patch: 3,074 nodes, 5,567 edges, 99 clusters, 259 flows.
 - Before editing `TodayScreen`, GitNexus impact was run for `TodayScreen` and the edited helper/render symbols. `TodayScreen` was LOW risk; `buildLiveBrief`, `CatchUpSprintCard`, `formatDueUrgency`, `buildQuickDuePresets`, `imageActionLabel`, and `MetricPill` reported HIGH risk because they feed the default app flow through `TodayScreen` / `AppContent` / `App`.
 - Before editing `PlanScreen`, GitNexus impact was run for `PlanScreen` and the edited helper symbols. `PlanScreen` was LOW risk; `buildPlanState`, `buildSimpleWeekGroups`, `formatSelectedDate`, `formatHoursValue`, `buildSurvivalBlocks`, and `buildWeekLoadSummary` reported HIGH risk because they feed `PlanScreen` / `AppContent` / `App`.
 - Before editing `CoursesScreen`, GitNexus impact was run for `CoursesScreen` and the edited helper/shared symbols. `CoursesScreen` and `EmojiBadge` were LOW risk; `buildClassHealth`, `ClassStateTile`, and `ClassIdentityCard` reported HIGH risk, and `AppLogo` reported CRITICAL risk because they feed the app shell through `CoursesScreen` / `AppContent` / `App` or shared loading/onboarding/paywall paths. The shipped changes are text/date localization only.
-- `npx gitnexus detect-changes --repo studyplanner` reported 10 changed files, 31 symbols, 6 affected execution flows, aggregate risk `high`. The affected flows are the expected runtime localization paths through `CoursesScreen` / `ClassIdentityCard` into locale resolution.
+- Before editing `FocusScreen`, GitNexus impact was run for `FocusScreen` and the edited helper/render symbols. `FocusScreen`, `CockpitStat`, `formatFocusDate`, `formatDueLabel`, and `labelizeStatus` were LOW risk, feeding `FocusScreen` / `AppContent` / `App`. The shipped changes are text/date localization only.
+- `npx gitnexus detect-changes --repo studyplanner` reported 8 changed files, 28 symbols, 3 affected execution flows, aggregate risk `medium`. The affected flows are the expected runtime localization paths through `FocusScreen` into locale resolution.
 
 ## Release Decision
 
@@ -98,5 +104,5 @@ Backend OCR, saved-photo import, and native Plus product loading are now proven 
 
 - Physical-device/TestFlight camera permission and live camera capture are still unproven.
 - StoreKit product title/description/period metadata is still English in localized paywall screenshots; App Store Connect subscription localizations must be entered/verified.
-- Runtime localization is still incomplete outside the smoked Today/Calendar/Classes/Scan/Plus/native shell. Hard-coded app-owned English remains in Focus, Grades, Widgets/settings, detail screens, and alert/error paths.
+- Runtime localization is still incomplete outside the smoked Today/Calendar/Classes/Focus/Scan/Plus/native shell. Hard-coded app-owned English remains in Grades, Widgets/settings, detail screens, and alert/error paths.
 - Arabic RTL risk remains until accepted or fixed.
