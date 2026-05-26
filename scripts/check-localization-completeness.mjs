@@ -12,6 +12,7 @@ const sourceFiles = {
   onboarding: readFileSync("src/screens/OnboardingScreen.tsx", "utf8"),
   importScreen: readFileSync("src/screens/ImportScreen.tsx", "utf8"),
   assignmentDetail: readFileSync("src/screens/AssignmentDetailScreen.tsx", "utf8"),
+  notes: readFileSync("src/screens/NotesScreen.tsx", "utf8"),
   paywall: readFileSync("src/screens/UpgradeScreen.tsx", "utf8"),
   modeToggle: readFileSync("src/components/ModeToggle.tsx", "utf8"),
   widgets: readFileSync("src/screens/MoreScreen.tsx", "utf8"),
@@ -125,6 +126,7 @@ assert(sourceFiles.grades.includes("useI18n") && sourceFiles.grades.includes("gr
 assert(sourceFiles.onboarding.includes("useI18n") && sourceFiles.onboarding.includes("slide.titleKey"), "Onboarding must consume runtime localization keys.");
 assert(sourceFiles.importScreen.includes("useI18n") && sourceFiles.importScreen.includes("import.photo_disabled_message"), "Import screen must consume runtime localization keys.");
 assert(sourceFiles.assignmentDetail.includes("useI18n") && sourceFiles.assignmentDetail.includes("assignment_detail.trust_ready_title"), "Assignment detail screen must consume runtime localization keys.");
+assert(sourceFiles.notes.includes("useI18n") && sourceFiles.notes.includes("notes.hero_title"), "Notes screen must consume runtime localization keys.");
 assert(sourceFiles.paywall.includes("useI18n") && sourceFiles.paywall.includes("paywall.hard_subtitle"), "Paywall must consume runtime localization keys.");
 assert(sourceFiles.modeToggle.includes("useI18n") && sourceFiles.modeToggle.includes("theme.use_light_mode"), "Theme mode toggle must consume runtime localization keys.");
 assert(sourceFiles.widgets.includes("useI18n") && sourceFiles.widgets.includes("more.native_style_fields"), "Widget Studio must consume runtime localization keys while preserving native/widget truth copy.");
@@ -460,6 +462,30 @@ const hardcodedLaunchStrings = [
       "Complete and still editable",
       "Ready for Today and Plan",
       "This assignment has enough trusted detail to show up in the active school operating system."
+    ]
+  },
+  {
+    file: "src/screens/NotesScreen.tsx",
+    source: sourceFiles.notes,
+    phrases: [
+      "Write the agenda note first.",
+      "Agenda notes",
+      "Capture what changes the plan.",
+      "Quick class notes for due dates, asks, links, and study context.",
+      "New agenda note",
+      "Link it to a class.",
+      "Today:\\nDue:\\nAsk:\\nRemember:",
+      "Agenda library",
+      "No saved notes",
+      "No notes yet",
+      "Add one note above. It will show with class context.",
+      "Choose the class.",
+      "Capture what changed.",
+      "Keep it visible.",
+      "Unlinked notes",
+      "Due:\\nWhat changed:\\nNext step:",
+      "Question:\\nWho to ask:\\nNeeded before:",
+      "Remember:\\nWhy it matters:\\nUse this when:"
     ]
   },
   {

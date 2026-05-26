@@ -8,6 +8,7 @@ import { Course, StudyNote } from "../models";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { courseEmoji } from "../utils/courseVisuals";
+import { useI18n } from "../i18n";
 
 type NotesScreenProps = {
   courses: Course[];
@@ -17,9 +18,12 @@ type NotesScreenProps = {
   onDeleteNote: (noteId: string) => void;
   onOpenClasses: () => void;
 };
+type TranslateFn = (key: string, fallback?: string) => string;
+type TemplateKind = "class" | "due" | "ask" | "remember";
 
 export function NotesScreen({ courses, notes, onAddNote, onUpdateNote, onDeleteNote, onOpenClasses }: NotesScreenProps) {
   const { theme } = useAppTheme();
+  const { locale, t } = useI18n();
   const { colors } = theme;
   const styles = createStyles(theme);
   const [selectedCourseId, setSelectedCourseId] = useState<string>(courses[0]?.id || "");
@@ -59,10 +63,12 @@ export function NotesScreen({ courses, notes, onAddNote, onUpdateNote, onDeleteN
   }, [notes, selectedNoteId]);
 
   const createNote = () => {
-    const cleanTitle = title.trim() || `${selectedCourse?.code || "Agenda"} note`;
+    const cleanTitle = title.trim() || formatNotes(t("notes.default_note_title", "{course} note"), {
+      course: selectedCourse?.code || t("notes.agenda", "Agenda")
+    });
     const cleanBody = body.trim();
     if (!cleanBody) {
-      Alert.alert("Add note text", "Write the agenda note first.");
+      Alert.alert(t("notes.add_note_text_title", "Add note text"), t("notes.add_note_text_message", "Write the agenda note first."));
       return;
     }
     onAddNote({ courseId: selectedCourse?.id || selectedCourseId || undefined, title: cleanTitle, body: cleanBody, tags: [], pinned: false });
@@ -76,19 +82,23 @@ export function NotesScreen({ courses, notes, onAddNote, onUpdateNote, onDeleteN
         <View style={styles.heroGlow} />
         <View style={styles.heroTopRow}>
           <View style={styles.heroIcon}><NotebookPen color={colors.heroText} size={22} /></View>
-          <Text style={styles.heroPill}>{notes.length} note{notes.length === 1 ? "" : "s"}</Text>
+          <Text style={styles.heroPill}>
+            {formatNotes(notes.length === 1 ? t("notes.note_count_one", "{count} note") : t("notes.note_count", "{count} notes"), {
+              count: notes.length
+            })}
+          </Text>
         </View>
-        <Text style={styles.kicker}>Agenda notes</Text>
-        <Text style={styles.heroTitle}>Capture what changes the plan.</Text>
-        <Text style={styles.heroText}>Quick class notes for due dates, asks, links, and study context.</Text>
+        <Text style={styles.kicker}>{t("notes.agenda_notes", "Agenda notes")}</Text>
+        <Text style={styles.heroTitle}>{t("notes.hero_title", "Capture what changes the plan.")}</Text>
+        <Text style={styles.heroText}>{t("notes.hero_copy", "Quick class notes for due dates, asks, links, and study context.")}</Text>
         <View style={styles.heroStats}>
-          <MiniStat label="Pinned" value={String(pinnedCount)} />
-          <MiniStat label="Linked" value={String(linkedCount)} />
-          <MiniStat label="Latest" value={latestNote ? formatShortDate(latestNote.updatedAt) : "None"} />
+          <MiniStat label={t("notes.pinned", "Pinned")} value={String(pinnedCount)} />
+          <MiniStat label={t("notes.linked", "Linked")} value={String(linkedCount)} />
+          <MiniStat label={t("notes.latest", "Latest")} value={latestNote ? formatShortDate(latestNote.updatedAt, locale, t) : t("notes.none", "None")} />
         </View>
       </GlassCard>
 
-      <SectionHeader title="New agenda note" note="Link it to a class." />
+      <SectionHeader title={t("notes.new_agenda_note", "New agenda note")} note={t("notes.link_to_class", "Link it to a class.")} />
       <GlassCard style={styles.editorCard}>
         <View style={styles.coursePicker}>
           {courses.length ? courses.map((course) => {
@@ -98,27 +108,30 @@ export function NotesScreen({ courses, notes, onAddNote, onUpdateNote, onDeleteN
                 <Text style={styles.courseChipText} numberOfLines={1}>{courseEmoji(course)} {course.code || course.name}</Text>
               </TouchableOpacity>
             );
-          }) : <AppButton label="Add a class first" variant="secondary" onPress={onOpenClasses} />}
+          }) : <AppButton label={t("notes.add_class_first", "Add a class first")} variant="secondary" onPress={onOpenClasses} />}
         </View>
         <View style={styles.agendaStrip}>
-          <TemplateChip label="Class" onPress={() => applyTemplate("Class")} />
-          <TemplateChip label="Due" onPress={() => applyTemplate("Due")} />
-          <TemplateChip label="Ask" onPress={() => applyTemplate("Ask")} />
-          <TemplateChip label="Remember" onPress={() => applyTemplate("Remember")} />
+          <TemplateChip label={templateKindLabel("class", t)} onPress={() => applyTemplate("class")} />
+          <TemplateChip label={templateKindLabel("due", t)} onPress={() => applyTemplate("due")} />
+          <TemplateChip label={templateKindLabel("ask", t)} onPress={() => applyTemplate("ask")} />
+          <TemplateChip label={templateKindLabel("remember", t)} onPress={() => applyTemplate("remember")} />
         </View>
-        <TextInput value={title} onChangeText={setTitle} placeholder="Short title" placeholderTextColor={colors.faint} style={styles.titleInput} />
-        <TextInput value={body} onChangeText={setBody} placeholder={"Today:\nDue:\nAsk:\nRemember:"} placeholderTextColor={colors.faint} style={styles.bodyInput} multiline textAlignVertical="top" />
-        <AppButton label="Save note" icon={Save} onPress={createNote} />
+        <TextInput value={title} onChangeText={setTitle} placeholder={t("notes.short_title", "Short title")} placeholderTextColor={colors.faint} style={styles.titleInput} />
+        <TextInput value={body} onChangeText={setBody} placeholder={t("notes.default_template", "Today:\nDue:\nAsk:\nRemember:")} placeholderTextColor={colors.faint} style={styles.bodyInput} multiline textAlignVertical="top" />
+        <AppButton label={t("notes.save_note", "Save note")} icon={Save} onPress={createNote} />
       </GlassCard>
 
-      <SectionHeader title="Agenda library" note={notes.length ? `${notes.length} saved` : "No saved notes"} />
+      <SectionHeader
+        title={t("notes.agenda_library", "Agenda library")}
+        note={notes.length ? formatNotes(t("notes.saved_count", "{count} saved"), { count: notes.length }) : t("notes.no_saved_notes", "No saved notes")}
+      />
       {notes.length === 0 ? (
         <GlassCard style={styles.emptyWorkflow}>
-          <EmptyState title="No notes yet" copy="Add one note above. It will show with class context." emoji="writing" />
+          <EmptyState title={t("notes.no_notes_yet", "No notes yet")} copy={t("notes.no_notes_copy", "Add one note above. It will show with class context.")} emoji="writing" />
           <View style={styles.workflowRow}>
-            <WorkflowStep icon={BookOpenCheck} title="Link" copy="Choose the class." />
-            <WorkflowStep icon={Clock3} title="Agenda" copy="Capture what changed." />
-            <WorkflowStep icon={Pin} title="Pin" copy="Keep it visible." />
+            <WorkflowStep icon={BookOpenCheck} title={t("notes.workflow_link", "Link")} copy={t("notes.workflow_link_copy", "Choose the class.")} />
+            <WorkflowStep icon={Clock3} title={t("notes.workflow_agenda", "Agenda")} copy={t("notes.workflow_agenda_copy", "Capture what changed.")} />
+            <WorkflowStep icon={Pin} title={t("notes.workflow_pin", "Pin")} copy={t("notes.workflow_pin_copy", "Keep it visible.")} />
           </View>
         </GlassCard>
       ) : null}
@@ -130,7 +143,7 @@ export function NotesScreen({ courses, notes, onAddNote, onUpdateNote, onDeleteN
       ) : null)}
       {uncategorized.length ? (
         <GlassCard style={styles.noteGroup}>
-          <Text style={styles.groupTitle} numberOfLines={1}>Unlinked notes</Text>
+          <Text style={styles.groupTitle} numberOfLines={1}>{t("notes.unlinked_notes", "Unlinked notes")}</Text>
           {uncategorized.map((note) => <NoteRow key={note.id} note={note} active={selectedNoteId === note.id} onPress={() => setSelectedNoteId(note.id)} onTogglePin={() => onUpdateNote(note.id, { pinned: !note.pinned })} />)}
         </GlassCard>
       ) : null}
@@ -139,47 +152,53 @@ export function NotesScreen({ courses, notes, onAddNote, onUpdateNote, onDeleteN
         <GlassCard style={styles.detailCard}>
           <View style={styles.detailHeader}>
             <View style={styles.detailHeaderCopy}>
-              <Text style={styles.detailKicker}>Editing</Text>
+              <Text style={styles.detailKicker}>{t("notes.editing", "Editing")}</Text>
               <Text style={styles.detailMeta} numberOfLines={1}>
-                {selectedNoteCourse ? `${courseEmoji(selectedNoteCourse)} ${selectedNoteCourse.code || selectedNoteCourse.name}` : "Unlinked"} · {formatShortDate(selectedNote.updatedAt)}
+                {selectedNoteCourse ? `${courseEmoji(selectedNoteCourse)} ${selectedNoteCourse.code || selectedNoteCourse.name}` : t("notes.unlinked", "Unlinked")} · {formatShortDate(selectedNote.updatedAt, locale, t)}
               </Text>
             </View>
             <TouchableOpacity accessibilityRole="button" onPress={() => onUpdateNote(selectedNote.id, { pinned: !selectedNote.pinned })} style={styles.pinButton}>
               <Pin color={selectedNote.pinned ? colors.gold : colors.faint} size={16} />
             </TouchableOpacity>
           </View>
-          <TextInput value={selectedNote.title} onChangeText={(nextTitle) => onUpdateNote(selectedNote.id, { title: nextTitle })} placeholder="Short title" placeholderTextColor={colors.faint} style={styles.titleInput} />
-          <TextInput value={selectedNote.body} onChangeText={(nextBody) => onUpdateNote(selectedNote.id, { body: nextBody })} placeholder={"Today:\nDue:\nAsk:\nRemember:"} placeholderTextColor={colors.faint} style={styles.bodyInput} multiline textAlignVertical="top" />
+          <TextInput value={selectedNote.title} onChangeText={(nextTitle) => onUpdateNote(selectedNote.id, { title: nextTitle })} placeholder={t("notes.short_title", "Short title")} placeholderTextColor={colors.faint} style={styles.titleInput} />
+          <TextInput value={selectedNote.body} onChangeText={(nextBody) => onUpdateNote(selectedNote.id, { body: nextBody })} placeholder={t("notes.default_template", "Today:\nDue:\nAsk:\nRemember:")} placeholderTextColor={colors.faint} style={styles.bodyInput} multiline textAlignVertical="top" />
           <View style={styles.detailActions}>
-            <AppButton label={selectedNote.pinned ? "Unpin" : "Pin"} icon={Pin} variant="secondary" onPress={() => onUpdateNote(selectedNote.id, { pinned: !selectedNote.pinned })} style={styles.actionButton} />
-            <AppButton label="Delete" icon={Trash2} variant="quiet" onPress={() => { const deleteId = selectedNote.id; setSelectedNoteId(null); onDeleteNote(deleteId); }} style={styles.actionButton} />
+            <AppButton label={selectedNote.pinned ? t("notes.unpin", "Unpin") : t("notes.pin", "Pin")} icon={Pin} variant="secondary" onPress={() => onUpdateNote(selectedNote.id, { pinned: !selectedNote.pinned })} style={styles.actionButton} />
+            <AppButton label={t("notes.delete", "Delete")} icon={Trash2} variant="quiet" onPress={() => { const deleteId = selectedNote.id; setSelectedNoteId(null); onDeleteNote(deleteId); }} style={styles.actionButton} />
           </View>
         </GlassCard>
       ) : null}
     </View>
   );
 
-  function applyTemplate(kind: "Class" | "Due" | "Ask" | "Remember") {
-    const courseLabel = selectedCourse?.code || selectedCourse?.name || "Class";
+  function applyTemplate(kind: TemplateKind) {
+    const courseLabel = selectedCourse?.code || selectedCourse?.name || t("notes.class_fallback", "Class");
     const template = {
-      Class: `Today:\nDue:\nAsk:\nRemember:`,
-      Due: `Due:\nWhat changed:\nNext step:`,
-      Ask: `Question:\nWho to ask:\nNeeded before:`,
-      Remember: `Remember:\nWhy it matters:\nUse this when:`
+      class: t("notes.default_template", "Today:\nDue:\nAsk:\nRemember:"),
+      due: t("notes.due_template", "Due:\nWhat changed:\nNext step:"),
+      ask: t("notes.ask_template", "Question:\nWho to ask:\nNeeded before:"),
+      remember: t("notes.remember_template", "Remember:\nWhy it matters:\nUse this when:")
     }[kind];
-    if (!title.trim()) setTitle(`${courseLabel} ${kind.toLowerCase()}`);
+    if (!title.trim()) {
+      setTitle(formatNotes(t("notes.template_title", "{course} {kind}"), {
+        course: courseLabel,
+        kind: templateKindLabel(kind, t)
+      }));
+    }
     setBody((current) => current.trim() ? current : template);
   }
 }
 
 function NoteRow({ note, active, onPress, onTogglePin }: { note: StudyNote; active: boolean; onPress: () => void; onTogglePin: () => void }) {
   const { theme } = useAppTheme();
+  const { t } = useI18n();
   const { colors } = theme;
   const styles = createStyles(theme);
   return (
     <TouchableOpacity accessibilityRole="button" style={[styles.noteRow, active ? styles.noteRowActive : null]} onPress={onPress}>
       <View style={styles.noteCopy}>
-        <Text style={styles.noteTitle} numberOfLines={1}>{note.pinned ? "Pinned · " : ""}{note.title}</Text>
+        <Text style={styles.noteTitle} numberOfLines={1}>{note.pinned ? `${t("notes.pinned", "Pinned")} · ` : ""}{note.title}</Text>
         <Text style={styles.noteBody} numberOfLines={2}>{note.body}</Text>
       </View>
       <TouchableOpacity accessibilityRole="button" onPress={onTogglePin} style={styles.pinButton}>
@@ -237,10 +256,24 @@ function sortNotes(a: StudyNote, b: StudyNote) {
   return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
 }
 
-function formatShortDate(value: string) {
+function templateKindLabel(kind: TemplateKind, t: TranslateFn) {
+  if (kind === "class") return t("notes.template_class", "Class");
+  if (kind === "due") return t("notes.template_due", "Due");
+  if (kind === "ask") return t("notes.template_ask", "Ask");
+  return t("notes.template_remember", "Remember");
+}
+
+function formatNotes(template: string, values: Record<string, string | number>) {
+  return Object.entries(values).reduce(
+    (current, [key, value]) => current.replace(new RegExp(`\\{${key}\\}`, "g"), String(value)),
+    template
+  );
+}
+
+function formatShortDate(value: string, locale: string, t: TranslateFn) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "recent";
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  if (Number.isNaN(date.getTime())) return t("notes.recent", "recent");
+  return date.toLocaleDateString(locale, { month: "short", day: "numeric" });
 }
 
 function createStyles(theme: AppTheme) {
