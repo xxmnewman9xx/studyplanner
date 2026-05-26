@@ -696,11 +696,11 @@ function AppContent() {
 
       if (wouldExceedStarterLimits) {
         Alert.alert(
-          "Plus is needed for this import",
-          "Subscribe to Plus to apply this AI-assisted import to your planner.",
+          t("app.plus_needed_import_title", "Plus is needed for this import"),
+          t("app.plus_needed_import_message", "Subscribe to Plus to apply this AI-assisted import to your planner."),
           [
-            { text: "Not now", style: "cancel" },
-            { text: "See Plus", onPress: () => openPaywall("import") }
+            { text: t("common.not_now", "Not now"), style: "cancel" },
+            { text: t("paywall.see_plus", "See Plus"), onPress: () => openPaywall("import") }
           ]
         );
         return;
@@ -716,8 +716,8 @@ function AppContent() {
     );
     if (blockedAssignments.length > 0) {
       Alert.alert(
-        "Review flagged items first",
-        "Fix or mark every low-confidence, duplicate, or missing-date item before it touches your real planner."
+        t("import.review_flagged_items_first", "Review flagged items first"),
+        t("app.review_flagged_items_message", "Fix or mark every low-confidence, duplicate, or missing-date item before it touches your real planner.")
       );
       return;
     }
@@ -844,22 +844,22 @@ function AppContent() {
     kind: AssignmentKind
   ) => {
     if (!captureBypassEnabled && !subscription.isPremium && activeAssignments.length >= starterAssignmentLimit) {
-      Alert.alert("Plus required", "Unlock Plus to add more homework, reminders, focus sessions, widgets, and grade tools.", [
-        { text: "Not now", style: "cancel" },
-        { text: "See Plus", onPress: () => openPaywall("today") }
+      Alert.alert(t("import.plus_required_title", "Plus required"), t("app.plus_homework_limit_message", "Unlock Plus to add more homework, reminders, focus sessions, widgets, and grade tools."), [
+        { text: t("common.not_now", "Not now"), style: "cancel" },
+        { text: t("paywall.see_plus", "See Plus"), onPress: () => openPaywall("today") }
       ]);
       return false;
     }
 
     if (!title.trim() || !dueDate.trim()) {
-      Alert.alert("Add a little more", "Title and due date are both needed.");
+      Alert.alert(t("app.add_more_title", "Add a little more"), t("app.add_more_message", "Title and due date are both needed."));
       return false;
     }
 
     const cleanDueDate = dueDate.trim();
 
     if (!isValidDateInput(cleanDueDate)) {
-      Alert.alert("Check the date", "Use a real date in YYYY-MM-DD format before adding this work.");
+      Alert.alert(t("assignment_detail.check_date_title", "Check the date"), t("app.check_date_add_work_message", "Use a real date in YYYY-MM-DD format before adding this work."));
       return false;
     }
 
@@ -891,15 +891,15 @@ function AppContent() {
 
   const addCourse = (course: Pick<Course, "code" | "name" | "instructor">) => {
     if (!captureBypassEnabled && !subscription.isPremium && courses.length >= starterCourseLimit) {
-      Alert.alert("Plus required", "Unlock Plus to add more classes, imports, focus sessions, grades, and calendar tools.", [
-        { text: "Not now", style: "cancel" },
-        { text: "See Plus", onPress: () => openPaywall("courses") }
+      Alert.alert(t("import.plus_required_title", "Plus required"), t("app.plus_course_limit_message", "Unlock Plus to add more classes, imports, focus sessions, grades, and calendar tools."), [
+        { text: t("common.not_now", "Not now"), style: "cancel" },
+        { text: t("paywall.see_plus", "See Plus"), onPress: () => openPaywall("courses") }
       ]);
       return false;
     }
 
     if (!course.code.trim() || !course.name.trim()) {
-      Alert.alert("Add course details", "Course code and course name are both needed.");
+      Alert.alert(t("app.add_course_details_title", "Add course details"), t("app.add_course_details_message", "Course code and course name are both needed."));
       return false;
     }
 
@@ -1094,9 +1094,12 @@ function AppContent() {
             : assignment;
         })
       );
-      Alert.alert("Reminders queued", `${count} smart reminders were scheduled.`);
+      Alert.alert(
+        t("app.reminders_queued_title", "Reminders queued"),
+        formatAppText(t("app.reminders_queued_message", "{count} smart reminders were scheduled."), { count })
+      );
     } catch (error) {
-      Alert.alert("Reminder setup paused", messageFromError(error));
+      Alert.alert(t("app.reminder_setup_paused", "Reminder setup paused"), messageFromError(error, t));
     }
   };
 
@@ -1121,9 +1124,12 @@ function AppContent() {
             : assignment
         )
       );
-      Alert.alert("Calendar synced", `${count} deadlines were sent to your device calendar.`);
+      Alert.alert(
+        t("app.calendar_synced_title", "Calendar synced"),
+        formatAppText(t("app.calendar_synced_message", "{count} deadlines were sent to your device calendar."), { count })
+      );
     } catch (error) {
-      Alert.alert("Calendar sync paused", messageFromError(error));
+      Alert.alert(t("app.calendar_sync_paused", "Calendar sync paused"), messageFromError(error, t));
     }
   };
 
@@ -1205,12 +1211,12 @@ function AppContent() {
                 onPress={() => openPaywall(activeTab)}
               >
                 <Crown color={colors.muted} size={18} />
-                <Text style={styles.sidebarLabel}>Plus</Text>
+                <Text style={styles.sidebarLabel}>{t("tabs.plus", "Plus")}</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.sidebarPro}>
               <Sparkles color={colors.brandPink} size={16} />
-              <Text style={styles.sidebarProText}>Plan less. Stress less.</Text>
+              <Text style={styles.sidebarProText}>{t("app.sidebar_pro_text", "Plan less. Stress less.")}</Text>
             </View>
           </View>
         ) : null}
@@ -1491,8 +1497,15 @@ function mergeById<T extends { id: string }>(current: T[], incoming: T[]) {
   return Array.from(existing.values());
 }
 
-function messageFromError(error: unknown) {
-  return error instanceof Error ? error.message : "The device permission flow did not complete.";
+function messageFromError(error: unknown, t: (key: string, fallback?: string) => string) {
+  return error instanceof Error ? error.message : t("app.permission_flow_incomplete", "The device permission flow did not complete.");
+}
+
+function formatAppText(template: string, values: Record<string, string | number>) {
+  return Object.entries(values).reduce(
+    (current, [key, value]) => current.replace(new RegExp(`\\{${key}\\}`, "g"), String(value)),
+    template
+  );
 }
 
 function focusSessionDateKey(value: string) {

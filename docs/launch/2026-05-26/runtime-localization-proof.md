@@ -1,14 +1,14 @@
 # Runtime Localization Proof
 
-Date: 2026-05-26 08:11 EDT / 2026-05-26 12:11 UTC
+Date: 2026-05-26 08:19 EDT / 2026-05-26 12:19 UTC
 
 ## Current Runtime Wiring
 
 - `App.tsx` wraps the app in `I18nProvider`.
 - Runtime locale can be forced with `EXPO_PUBLIC_STUDYPLANNER_LOCALE` for native screenshot QA.
 - The launch catalog contains all 10 required locales: `ar`, `de`, `en-US`, `es`, `fr`, `hi`, `ja`, `ko`, `pt-BR`, and `zh-Hans`.
-- The reviewed runtime catalog now contains 1015 flattened entries per locale.
-- Navigation, onboarding headline/copy, Today launch surface, Calendar/Plan launch surface, Classes launch surface, Focus launch surface, Grades launch surface, More/Widget Studio shell, native widget snapshot payloads, Widget Studio native preview fallbacks, Widgets settings/trust shell, Scan headline/copy/source picker/review shell/review edit controls/review findings, Assignment detail shell/edit/trust controls, Notes shell/editor/library/detail controls, photo-disabled errors, Plus paywall headline/copy/features/status/legal/CTA shell, widget sync fallback, and the app theme toggle are wired through runtime keys.
+- The reviewed runtime catalog now contains 1037 flattened entries per locale.
+- Navigation, onboarding headline/copy, Today launch surface, Calendar/Plan launch surface, Classes launch surface, Focus launch surface, Grades launch surface, More/Widget Studio shell, native widget snapshot payloads, Widget Studio native preview fallbacks, Widgets settings/trust shell, Scan headline/copy/source picker/review shell/review edit controls/review findings, Assignment detail shell/edit/trust controls, Notes shell/editor/library/detail controls, PremiumGate chrome, App alert/error paths, photo-disabled errors, Plus paywall headline/copy/features/status/legal/CTA shell, widget sync fallback, and the app theme toggle are wired through runtime keys.
 - `src/components/ModeToggle.tsx` no longer renders app-owned `Light` / `Dark` / `Appearance` strings directly; it uses `theme.*` runtime keys.
 - `src/screens/TodayScreen.tsx` no longer renders app-owned launch text directly for the default Today hero, command tiles, quick capture, import handoff, due lists, and empty states; it uses `today.*` runtime keys.
 - `src/screens/PlanScreen.tsx` no longer renders app-owned launch text directly for the default Calendar hero, capture card, survival plan, month panel, week load, plan state, and urgency groups; it uses `plan.*` runtime keys and locale-aware date/month formatting.
@@ -19,7 +19,9 @@ Date: 2026-05-26 08:11 EDT / 2026-05-26 12:11 UTC
 - `src/screens/ImportScreen.tsx` no longer renders app-owned Scan review/edit text directly for parse alerts, camera/photo permission alerts, recent import status, review gate messaging, review stats, trust checks, row confidence, add-to-Today blockers, generated review findings/checklist notes, and import-created course fallback semester text; it uses `import.*`, `common.*`, `paywall.*`, and tab runtime keys.
 - `src/screens/AssignmentDetailScreen.tsx` no longer renders app-owned assignment detail/edit/trust text directly for validation alerts, header labels, task-state copy, kind/priority/status/source labels, reminder/confidence meta, review callouts, checklist empty state, and save/archive actions; it uses `assignment_detail.*` plus existing tab/runtime keys and locale-aware date formatting.
 - `src/screens/NotesScreen.tsx` no longer renders app-owned Notes text directly for empty states, note counts, editor actions, templates, pin/delete controls, note detail metadata, and agenda workflow copy; it uses `notes.*` runtime keys and locale-aware date formatting.
-- `scripts/check-localization-completeness.mjs` scans the launch files plus `ModeToggle`, `TodayScreen`, `PlanScreen`, `CoursesScreen`, `FocusScreen`, `GradesScreen`, `MoreScreen`, `ImportScreen`, `AssignmentDetailScreen`, `NotesScreen`, `widgetSnapshot`, and `AppleComponents`, verifies required keys in every locale, rejects selected hard-coded launch strings, and rejects non-English values that silently equal `en-US` except intentional product/platform terms.
+- `src/components/PremiumGate.tsx` no longer renders app-owned Plus lock copy directly; it uses `premium_gate.*` runtime keys.
+- `App.tsx` no longer renders app-owned quick-add, course-add, import-apply, reminder, calendar, sidebar Plus, or device-permission alert copy directly; those paths use `app.*`, `common.*`, `import.*`, `paywall.*`, and tab runtime keys.
+- `scripts/check-localization-completeness.mjs` scans the launch files plus `ModeToggle`, `TodayScreen`, `PlanScreen`, `CoursesScreen`, `FocusScreen`, `GradesScreen`, `MoreScreen`, `ImportScreen`, `AssignmentDetailScreen`, `NotesScreen`, `PremiumGate`, `widgetSnapshot`, and `AppleComponents`, verifies required keys in every locale, rejects selected hard-coded launch strings, and rejects non-English values that silently equal `en-US` except intentional product/platform terms.
 
 ## Missing-Key Check
 
@@ -29,7 +31,7 @@ Command:
 npm run check:localization
 ```
 
-Actual result after the Notes localization patch:
+Actual result after the PremiumGate/App alert localization patch:
 
 ```text
 runtime localization completeness gate passed
@@ -80,13 +82,12 @@ These strings come from App Store Connect product metadata, not from the runtime
 
 ## Hard-Coded Runtime Gap
 
-Release localization is not complete. The static launch gate now covers the native widget snapshot service, Widget Studio preview fallbacks, Scan review controls, Assignment detail, and Notes, but a broader direct hard-coded JSX text audit still finds candidate app-owned English matches in less-smoked surfaces including:
+Release localization is not complete. The static launch gate now covers the native widget snapshot service, Widget Studio preview fallbacks, Scan review controls, Assignment detail, Notes, PremiumGate, and App alert paths, but a broader direct hard-coded JSX text audit still finds candidate app-owned English matches in less-smoked surfaces including:
 
-- `PremiumGate`
 - onboarding preview mockups
-- several alert/error paths in `App.tsx`
+- App system/onboarding preview copy
 
-The current gate proves all existing static runtime keys are populated and the smoked Today/Calendar/Classes/Focus/Grades/More/Scan/Review/Plus/native shell plus Assignment detail and Notes source coverage is localized. It does not prove every runtime string in the app has been replaced with reviewed translations.
+The current gate proves all existing static runtime keys are populated and the smoked Today/Calendar/Classes/Focus/Grades/More/Scan/Review/Plus/native shell plus Assignment detail, Notes, PremiumGate, and App alert source coverage is localized. It does not prove every runtime string in the app has been replaced with reviewed translations.
 
 ## RTL Risk
 
@@ -100,4 +101,4 @@ Arabic is marked `direction: "rtl"` and the app shell receives RTL direction. Cu
 
 ## Release Status
 
-Do not upload a new build from this localization state. Today/Calendar/Classes/Focus/Grades/More/Widgets/Scan/Review/Plus runtime localization is materially improved and proven in current native Release simulator screenshots, and Assignment detail plus Notes are now statically gated through runtime keys, but release remains blocked until the remaining app-owned hard-coded launch strings are replaced with reviewed translations, Arabic RTL risk is accepted or fixed, and StoreKit product metadata localizations are verified in App Store Connect/TestFlight.
+Do not upload a new build from this localization state. Today/Calendar/Classes/Focus/Grades/More/Widgets/Scan/Review/Plus runtime localization is materially improved and proven in current native Release simulator screenshots, and Assignment detail, Notes, PremiumGate, and App alerts are now statically gated through runtime keys, but release remains blocked until the remaining app-owned hard-coded launch strings are replaced with reviewed translations, Arabic RTL risk is accepted or fixed, and StoreKit product metadata localizations are verified in App Store Connect/TestFlight.

@@ -5,6 +5,7 @@ import { AppButton } from "./AppButton";
 import { AppLogo } from "./AppleComponents";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
+import { useI18n } from "../i18n";
 
 type PremiumGateProps = {
   title: string;
@@ -14,13 +15,14 @@ type PremiumGateProps = {
 
 export function PremiumGate({ title, copy, onUpgrade }: PremiumGateProps) {
   const { theme } = useAppTheme();
+  const { t } = useI18n();
   const { colors } = theme;
   const styles = createStyles(theme);
 
   return (
     <View>
       <View style={styles.header}>
-        <Text style={styles.kicker}>Plus feature</Text>
+        <Text style={styles.kicker}>{t("premium_gate.plus_feature", "Plus feature")}</Text>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.subtitle}>{copy}</Text>
       </View>
@@ -32,11 +34,11 @@ export function PremiumGate({ title, copy, onUpgrade }: PremiumGateProps) {
             <LockKeyhole color={colors.heroText} size={17} />
           </View>
         </View>
-        <Text style={styles.cardTitle}>Unlock with StudyPlanner Plus</Text>
+        <Text style={styles.cardTitle}>{t("premium_gate.unlock_title", "Unlock with StudyPlanner Plus")}</Text>
         <Text style={styles.cardCopy}>
-          These tools open after Plus is active on your store account.
+          {t("premium_gate.unlock_copy", "These tools open after Plus is active on your store account.")}
         </Text>
-        <AppButton label="View Plus" icon={Crown} onPress={onUpgrade} />
+        <AppButton label={t("premium_gate.view_plus", "View Plus")} icon={Crown} onPress={onUpgrade} />
       </View>
     </View>
   );

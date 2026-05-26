@@ -4,7 +4,25 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "Loading StudyPlanner"
+      "loading": "Loading StudyPlanner",
+      "plus_homework_limit_message": "Unlock Plus to add more homework, reminders, focus sessions, widgets, and grade tools.",
+      "add_more_title": "Add a little more",
+      "add_more_message": "Title and due date are both needed.",
+      "check_date_add_work_message": "Use a real date in YYYY-MM-DD format before adding this work.",
+      "plus_course_limit_message": "Unlock Plus to add more classes, imports, focus sessions, grades, and calendar tools.",
+      "add_course_details_title": "Add course details",
+      "add_course_details_message": "Course code and course name are both needed.",
+      "reminders_queued_title": "Reminders queued",
+      "reminders_queued_message": "{count} smart reminders were scheduled.",
+      "reminder_setup_paused": "Reminder setup paused",
+      "calendar_synced_title": "Calendar synced",
+      "calendar_synced_message": "{count} deadlines were sent to your device calendar.",
+      "calendar_sync_paused": "Calendar sync paused",
+      "sidebar_pro_text": "Plan less. Stress less.",
+      "permission_flow_incomplete": "The device permission flow did not complete.",
+      "plus_needed_import_title": "Plus is needed for this import",
+      "plus_needed_import_message": "Subscribe to Plus to apply this AI-assisted import to your planner.",
+      "review_flagged_items_message": "Fix or mark every low-confidence, duplicate, or missing-date item before it touches your real planner."
     },
     "common": {
       "next": "Next",
@@ -1054,6 +1072,12 @@
       "remember_template": "Remember:\nWhy it matters:\nUse this when:",
       "template_title": "{course} {kind}",
       "recent": "recent"
+    },
+    "premium_gate": {
+      "plus_feature": "Plus feature",
+      "unlock_title": "Unlock with StudyPlanner Plus",
+      "unlock_copy": "These tools open after Plus is active on your store account.",
+      "view_plus": "View Plus"
     }
   },
   "de": {
@@ -1061,7 +1085,25 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "StudyPlanner wird geladen"
+      "loading": "StudyPlanner wird geladen",
+      "plus_homework_limit_message": "Schalte Plus frei, um mehr Hausaufgaben, Erinnerungen, Fokus-Sitzungen, Widgets und Notentools hinzuzufügen.",
+      "add_more_title": "Etwas mehr hinzufügen",
+      "add_more_message": "Titel und Fälligkeitsdatum werden beide benötigt.",
+      "check_date_add_work_message": "Verwende ein echtes Datum im Format YYYY-MM-DD, bevor du diese Arbeit hinzufügst.",
+      "plus_course_limit_message": "Schalte Plus frei, um mehr Kurse, Importe, Fokus-Sitzungen, Noten und Kalendertools hinzuzufügen.",
+      "add_course_details_title": "Kursdetails hinzufügen",
+      "add_course_details_message": "Kurscode und Kursname werden beide benötigt.",
+      "reminders_queued_title": "Erinnerungen geplant",
+      "reminders_queued_message": "{count} smarte Erinnerungen wurden geplant.",
+      "reminder_setup_paused": "Erinnerungseinrichtung pausiert",
+      "calendar_synced_title": "Kalender synchronisiert",
+      "calendar_synced_message": "{count} Fristen wurden an deinen Gerätekalender gesendet.",
+      "calendar_sync_paused": "Kalendersync pausiert",
+      "sidebar_pro_text": "Weniger planen. Weniger Stress.",
+      "permission_flow_incomplete": "Der Geräteberechtigungsablauf wurde nicht abgeschlossen.",
+      "plus_needed_import_title": "Plus wird für diesen Import benötigt",
+      "plus_needed_import_message": "Abonniere Plus, um diesen KI-gestützten Import auf deinen Planer anzuwenden.",
+      "review_flagged_items_message": "Korrigiere oder markiere jeden Eintrag mit niedriger Sicherheit, Duplikat oder fehlendem Datum, bevor er deinen echten Planer berührt."
     },
     "common": {
       "next": "Weiter",
@@ -2111,6 +2153,12 @@
       "remember_template": "Merken:\nWarum es wichtig ist:\nVerwenden, wenn:",
       "template_title": "{kind} - {course}",
       "recent": "kürzlich"
+    },
+    "premium_gate": {
+      "plus_feature": "Plus-Funktion",
+      "unlock_title": "Mit StudyPlanner Plus freischalten",
+      "unlock_copy": "Diese Tools öffnen sich, nachdem Plus in deinem Store-Konto aktiv ist.",
+      "view_plus": "Plus ansehen"
     }
   },
   "es": {
@@ -2118,7 +2166,25 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "Cargando StudyPlanner"
+      "loading": "Cargando StudyPlanner",
+      "plus_homework_limit_message": "Desbloquea Plus para agregar más tareas, recordatorios, sesiones de enfoque, widgets y herramientas de calificaciones.",
+      "add_more_title": "Agrega un poco más",
+      "add_more_message": "Se necesitan título y fecha límite.",
+      "check_date_add_work_message": "Usa una fecha real en formato YYYY-MM-DD antes de agregar este trabajo.",
+      "plus_course_limit_message": "Desbloquea Plus para agregar más clases, importaciones, sesiones de enfoque, calificaciones y herramientas de calendario.",
+      "add_course_details_title": "Agrega detalles del curso",
+      "add_course_details_message": "Se necesitan el código y el nombre del curso.",
+      "reminders_queued_title": "Recordatorios en cola",
+      "reminders_queued_message": "Se programaron {count} recordatorios inteligentes.",
+      "reminder_setup_paused": "Configuración de recordatorios pausada",
+      "calendar_synced_title": "Calendario sincronizado",
+      "calendar_synced_message": "Se enviaron {count} fechas límite al calendario del dispositivo.",
+      "calendar_sync_paused": "Sincronización de calendario pausada",
+      "sidebar_pro_text": "Planifica menos. Estrésate menos.",
+      "permission_flow_incomplete": "El flujo de permisos del dispositivo no se completó.",
+      "plus_needed_import_title": "Plus es necesario para esta importación",
+      "plus_needed_import_message": "Suscríbete a Plus para aplicar esta importación asistida por IA a tu planificador.",
+      "review_flagged_items_message": "Corrige o marca cada elemento de baja confianza, duplicado o sin fecha antes de que toque tu planificador real."
     },
     "common": {
       "next": "Siguiente",
@@ -3168,6 +3234,12 @@
       "remember_template": "Recordar:\nPor qué importa:\nUsar esto cuando:",
       "template_title": "{kind} de {course}",
       "recent": "reciente"
+    },
+    "premium_gate": {
+      "plus_feature": "Función Plus",
+      "unlock_title": "Desbloquear con StudyPlanner Plus",
+      "unlock_copy": "Estas herramientas se abren después de que Plus esté activo en tu cuenta de la tienda.",
+      "view_plus": "Ver Plus"
     }
   },
   "fr": {
@@ -3175,7 +3247,25 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "Chargement de StudyPlanner"
+      "loading": "Chargement de StudyPlanner",
+      "plus_homework_limit_message": "Débloque Plus pour ajouter plus de devoirs, rappels, sessions de focus, widgets et outils de notes.",
+      "add_more_title": "Ajoute un peu plus",
+      "add_more_message": "Le titre et la date limite sont nécessaires.",
+      "check_date_add_work_message": "Utilise une vraie date au format YYYY-MM-DD avant d’ajouter ce travail.",
+      "plus_course_limit_message": "Débloque Plus pour ajouter plus de cours, imports, sessions de focus, notes et outils calendrier.",
+      "add_course_details_title": "Ajoute les détails du cours",
+      "add_course_details_message": "Le code du cours et le nom du cours sont nécessaires.",
+      "reminders_queued_title": "Rappels planifiés",
+      "reminders_queued_message": "{count} rappels intelligents ont été planifiés.",
+      "reminder_setup_paused": "Configuration des rappels en pause",
+      "calendar_synced_title": "Calendrier synchronisé",
+      "calendar_synced_message": "{count} échéances ont été envoyées au calendrier de ton appareil.",
+      "calendar_sync_paused": "Synchronisation calendrier en pause",
+      "sidebar_pro_text": "Moins planifier. Moins stresser.",
+      "permission_flow_incomplete": "Le flux d’autorisation de l’appareil ne s’est pas terminé.",
+      "plus_needed_import_title": "Plus est nécessaire pour cet import",
+      "plus_needed_import_message": "Abonne-toi à Plus pour appliquer cet import assisté par IA à ton planificateur.",
+      "review_flagged_items_message": "Corrige ou marque chaque élément peu fiable, doublon ou sans date avant qu’il touche ton vrai planificateur."
     },
     "common": {
       "next": "Suivant",
@@ -4225,6 +4315,12 @@
       "remember_template": "À retenir :\nPourquoi c’est important :\nÀ utiliser quand :",
       "template_title": "{kind} - {course}",
       "recent": "récent"
+    },
+    "premium_gate": {
+      "plus_feature": "Fonction Plus",
+      "unlock_title": "Débloquer avec StudyPlanner Plus",
+      "unlock_copy": "Ces outils s’ouvrent une fois Plus actif sur ton compte Store.",
+      "view_plus": "Voir Plus"
     }
   },
   "pt-BR": {
@@ -4232,7 +4328,25 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "Carregando StudyPlanner"
+      "loading": "Carregando StudyPlanner",
+      "plus_homework_limit_message": "Desbloqueie Plus para adicionar mais tarefas, lembretes, sessões de foco, widgets e ferramentas de notas.",
+      "add_more_title": "Adicione um pouco mais",
+      "add_more_message": "Título e data de entrega são necessários.",
+      "check_date_add_work_message": "Use uma data real no formato YYYY-MM-DD antes de adicionar este trabalho.",
+      "plus_course_limit_message": "Desbloqueie Plus para adicionar mais aulas, importações, sessões de foco, notas e ferramentas de calendário.",
+      "add_course_details_title": "Adicione detalhes do curso",
+      "add_course_details_message": "Código e nome do curso são necessários.",
+      "reminders_queued_title": "Lembretes na fila",
+      "reminders_queued_message": "{count} lembretes inteligentes foram agendados.",
+      "reminder_setup_paused": "Configuração de lembretes pausada",
+      "calendar_synced_title": "Calendário sincronizado",
+      "calendar_synced_message": "{count} prazos foram enviados ao calendário do dispositivo.",
+      "calendar_sync_paused": "Sincronização do calendário pausada",
+      "sidebar_pro_text": "Planeje menos. Estresse menos.",
+      "permission_flow_incomplete": "O fluxo de permissão do dispositivo não foi concluído.",
+      "plus_needed_import_title": "Plus é necessário para esta importação",
+      "plus_needed_import_message": "Assine o Plus para aplicar esta importação assistida por IA ao seu planejador.",
+      "review_flagged_items_message": "Corrija ou marque cada item de baixa confiança, duplicado ou sem data antes que ele toque seu planejador real."
     },
     "common": {
       "next": "Avançar",
@@ -5282,6 +5396,12 @@
       "remember_template": "Lembrar:\nPor que importa:\nUsar isto quando:",
       "template_title": "{kind} de {course}",
       "recent": "recente"
+    },
+    "premium_gate": {
+      "plus_feature": "Recurso Plus",
+      "unlock_title": "Desbloquear com StudyPlanner Plus",
+      "unlock_copy": "Essas ferramentas abrem depois que o Plus estiver ativo na sua conta da loja.",
+      "view_plus": "Ver Plus"
     }
   },
   "ar": {
@@ -5289,7 +5409,25 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "جارٍ تحميل StudyPlanner"
+      "loading": "جارٍ تحميل StudyPlanner",
+      "plus_homework_limit_message": "افتح Plus لإضافة المزيد من الواجبات والتذكيرات وجلسات التركيز والويدجت وأدوات الدرجات.",
+      "add_more_title": "أضف معلومات أكثر",
+      "add_more_message": "العنوان وتاريخ التسليم مطلوبان.",
+      "check_date_add_work_message": "استخدم تاريخًا حقيقيًا بتنسيق YYYY-MM-DD قبل إضافة هذا العمل.",
+      "plus_course_limit_message": "افتح Plus لإضافة المزيد من الصفوف والاستيرادات وجلسات التركيز والدرجات وأدوات التقويم.",
+      "add_course_details_title": "أضف تفاصيل المقرر",
+      "add_course_details_message": "رمز المقرر واسم المقرر مطلوبان.",
+      "reminders_queued_title": "تمت جدولة التذكيرات",
+      "reminders_queued_message": "تمت جدولة {count} تذكيرات ذكية.",
+      "reminder_setup_paused": "توقف إعداد التذكيرات مؤقتًا",
+      "calendar_synced_title": "تمت مزامنة التقويم",
+      "calendar_synced_message": "تم إرسال {count} مواعيد نهائية إلى تقويم جهازك.",
+      "calendar_sync_paused": "توقفت مزامنة التقويم مؤقتًا",
+      "sidebar_pro_text": "خطط أقل. توتر أقل.",
+      "permission_flow_incomplete": "لم يكتمل تدفق أذونات الجهاز.",
+      "plus_needed_import_title": "Plus مطلوب لهذا الاستيراد",
+      "plus_needed_import_message": "اشترك في Plus لتطبيق هذا الاستيراد المدعوم بالذكاء الاصطناعي على مخططك.",
+      "review_flagged_items_message": "أصلح أو علّم كل عنصر منخفض الثقة أو مكرر أو ناقص التاريخ قبل أن يلمس مخططك الحقيقي."
     },
     "common": {
       "next": "التالي",
@@ -6339,6 +6477,12 @@
       "remember_template": "تذكّر:\nلماذا يهم:\nاستخدم هذا عند:",
       "template_title": "{kind} - {course}",
       "recent": "حديثًا"
+    },
+    "premium_gate": {
+      "plus_feature": "ميزة Plus",
+      "unlock_title": "افتح باستخدام StudyPlanner Plus",
+      "unlock_copy": "تفتح هذه الأدوات بعد تفعيل Plus على حساب المتجر لديك.",
+      "view_plus": "عرض Plus"
     }
   },
   "hi": {
@@ -6346,7 +6490,25 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "StudyPlanner लोड हो रहा है"
+      "loading": "StudyPlanner लोड हो रहा है",
+      "plus_homework_limit_message": "अधिक होमवर्क, रिमाइंडर, फोकस सत्र, विजेट और ग्रेड टूल जोड़ने के लिए Plus अनलॉक करें।",
+      "add_more_title": "थोड़ा और जोड़ें",
+      "add_more_message": "शीर्षक और अंतिम तिथि दोनों चाहिए।",
+      "check_date_add_work_message": "यह काम जोड़ने से पहले YYYY-MM-DD प्रारूप में वास्तविक तारीख उपयोग करें।",
+      "plus_course_limit_message": "अधिक कक्षाएं, आयात, फोकस सत्र, ग्रेड और कैलेंडर टूल जोड़ने के लिए Plus अनलॉक करें।",
+      "add_course_details_title": "कोर्स विवरण जोड़ें",
+      "add_course_details_message": "कोर्स कोड और कोर्स नाम दोनों चाहिए।",
+      "reminders_queued_title": "रिमाइंडर कतार में",
+      "reminders_queued_message": "{count} स्मार्ट रिमाइंडर शेड्यूल किए गए।",
+      "reminder_setup_paused": "रिमाइंडर सेटअप रुका",
+      "calendar_synced_title": "कैलेंडर सिंक हुआ",
+      "calendar_synced_message": "{count} समयसीमाएं आपके डिवाइस कैलेंडर में भेजी गईं।",
+      "calendar_sync_paused": "कैलेंडर सिंक रुका",
+      "sidebar_pro_text": "कम योजना। कम तनाव।",
+      "permission_flow_incomplete": "डिवाइस अनुमति प्रक्रिया पूरी नहीं हुई।",
+      "plus_needed_import_title": "इस आयात के लिए Plus चाहिए",
+      "plus_needed_import_message": "इस AI-सहायता प्राप्त आयात को अपने प्लानर पर लागू करने के लिए Plus लें।",
+      "review_flagged_items_message": "कम-विश्वास, डुप्लिकेट या बिना तारीख वाले हर आइटम को ठीक या चिह्नित करें, फिर ही वह असली प्लानर में जाए।"
     },
     "common": {
       "next": "आगे",
@@ -7396,6 +7558,12 @@
       "remember_template": "याद रखें:\nक्यों मायने रखता है:\nइसे कब उपयोग करें:",
       "template_title": "{kind} - {course}",
       "recent": "हाल का"
+    },
+    "premium_gate": {
+      "plus_feature": "Plus सुविधा",
+      "unlock_title": "StudyPlanner Plus से अनलॉक करें",
+      "unlock_copy": "ये टूल आपके स्टोर खाते पर Plus सक्रिय होने के बाद खुलते हैं।",
+      "view_plus": "Plus देखें"
     }
   },
   "ja": {
@@ -7403,7 +7571,25 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "StudyPlannerを読み込み中"
+      "loading": "StudyPlannerを読み込み中",
+      "plus_homework_limit_message": "宿題、リマインダー、集中セッション、ウィジェット、成績ツールをさらに追加するにはPlusを解除してください。",
+      "add_more_title": "もう少し追加",
+      "add_more_message": "タイトルと締切日の両方が必要です。",
+      "check_date_add_work_message": "この作業を追加する前に、YYYY-MM-DD形式の実在する日付を使ってください。",
+      "plus_course_limit_message": "授業、インポート、集中セッション、成績、カレンダーツールをさらに追加するにはPlusを解除してください。",
+      "add_course_details_title": "コース詳細を追加",
+      "add_course_details_message": "コースコードとコース名の両方が必要です。",
+      "reminders_queued_title": "リマインダーを予約しました",
+      "reminders_queued_message": "{count}件のスマートリマインダーを予約しました。",
+      "reminder_setup_paused": "リマインダー設定が一時停止しました",
+      "calendar_synced_title": "カレンダーを同期しました",
+      "calendar_synced_message": "{count}件の締切をデバイスカレンダーに送信しました。",
+      "calendar_sync_paused": "カレンダー同期が一時停止しました",
+      "sidebar_pro_text": "計画を少なく。ストレスも少なく。",
+      "permission_flow_incomplete": "デバイス権限フローが完了しませんでした。",
+      "plus_needed_import_title": "このインポートにはPlusが必要です",
+      "plus_needed_import_message": "このAI支援インポートをプランナーに適用するにはPlusに登録してください。",
+      "review_flagged_items_message": "信頼度が低い、重複、または日付がない項目は、実際のプランナーに入る前に修正または確認してください。"
     },
     "common": {
       "next": "次へ",
@@ -8453,6 +8639,12 @@
       "remember_template": "覚えること:\n重要な理由:\n使う場面:",
       "template_title": "{kind}（{course}）",
       "recent": "最近"
+    },
+    "premium_gate": {
+      "plus_feature": "Plus機能",
+      "unlock_title": "StudyPlanner Plusで解除",
+      "unlock_copy": "これらのツールは、ストアアカウントでPlusが有効になると開きます。",
+      "view_plus": "Plusを見る"
     }
   },
   "ko": {
@@ -8460,7 +8652,25 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "StudyPlanner 불러오는 중"
+      "loading": "StudyPlanner 불러오는 중",
+      "plus_homework_limit_message": "더 많은 숙제, 알림, 집중 세션, 위젯, 성적 도구를 추가하려면 Plus를 잠금 해제하세요.",
+      "add_more_title": "조금 더 추가",
+      "add_more_message": "제목과 마감일이 모두 필요합니다.",
+      "check_date_add_work_message": "이 작업을 추가하기 전에 YYYY-MM-DD 형식의 실제 날짜를 사용하세요.",
+      "plus_course_limit_message": "더 많은 수업, 가져오기, 집중 세션, 성적, 캘린더 도구를 추가하려면 Plus를 잠금 해제하세요.",
+      "add_course_details_title": "과목 세부 정보 추가",
+      "add_course_details_message": "과목 코드와 과목 이름이 모두 필요합니다.",
+      "reminders_queued_title": "알림 예약됨",
+      "reminders_queued_message": "{count}개의 스마트 알림이 예약되었습니다.",
+      "reminder_setup_paused": "알림 설정 일시 중지",
+      "calendar_synced_title": "캘린더 동기화됨",
+      "calendar_synced_message": "{count}개의 마감일이 기기 캘린더로 전송되었습니다.",
+      "calendar_sync_paused": "캘린더 동기화 일시 중지",
+      "sidebar_pro_text": "계획은 적게. 스트레스도 적게.",
+      "permission_flow_incomplete": "기기 권한 흐름이 완료되지 않았습니다.",
+      "plus_needed_import_title": "이 가져오기에는 Plus가 필요합니다",
+      "plus_needed_import_message": "이 AI 지원 가져오기를 플래너에 적용하려면 Plus를 구독하세요.",
+      "review_flagged_items_message": "낮은 신뢰도, 중복, 날짜 누락 항목은 실제 플래너에 들어가기 전에 수정하거나 표시하세요."
     },
     "common": {
       "next": "다음",
@@ -9510,6 +9720,12 @@
       "remember_template": "기억:\n중요한 이유:\n사용할 때:",
       "template_title": "{course}의 {kind}",
       "recent": "최근"
+    },
+    "premium_gate": {
+      "plus_feature": "Plus 기능",
+      "unlock_title": "StudyPlanner Plus로 잠금 해제",
+      "unlock_copy": "스토어 계정에서 Plus가 활성화되면 이 도구들이 열립니다.",
+      "view_plus": "Plus 보기"
     }
   },
   "zh-Hans": {
@@ -9517,7 +9733,25 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "正在加载 StudyPlanner"
+      "loading": "正在加载 StudyPlanner",
+      "plus_homework_limit_message": "解锁 Plus 以添加更多作业、提醒、专注会话、小组件和成绩工具。",
+      "add_more_title": "再补充一点",
+      "add_more_message": "标题和截止日期都需要。",
+      "check_date_add_work_message": "添加此任务前，请使用 YYYY-MM-DD 格式的真实日期。",
+      "plus_course_limit_message": "解锁 Plus 以添加更多课程、导入、专注会话、成绩和日历工具。",
+      "add_course_details_title": "添加课程详情",
+      "add_course_details_message": "课程代码和课程名称都需要。",
+      "reminders_queued_title": "提醒已排队",
+      "reminders_queued_message": "已安排 {count} 个智能提醒。",
+      "reminder_setup_paused": "提醒设置已暂停",
+      "calendar_synced_title": "日历已同步",
+      "calendar_synced_message": "已将 {count} 个截止日期发送到设备日历。",
+      "calendar_sync_paused": "日历同步已暂停",
+      "sidebar_pro_text": "少计划。少焦虑。",
+      "permission_flow_incomplete": "设备权限流程未完成。",
+      "plus_needed_import_title": "此导入需要 Plus",
+      "plus_needed_import_message": "订阅 Plus 才能将此 AI 辅助导入应用到你的计划器。",
+      "review_flagged_items_message": "在进入真实计划器前，请修复或标记每个低可信度、重复或缺少日期的项目。"
     },
     "common": {
       "next": "下一步",
@@ -10567,6 +10801,12 @@
       "remember_template": "记住:\n为什么重要:\n何时使用:",
       "template_title": "{course}：{kind}",
       "recent": "最近"
+    },
+    "premium_gate": {
+      "plus_feature": "Plus 功能",
+      "unlock_title": "使用 StudyPlanner Plus 解锁",
+      "unlock_copy": "Plus 在你的商店账户中激活后，这些工具会开放。",
+      "view_plus": "查看 Plus"
     }
   }
 }
