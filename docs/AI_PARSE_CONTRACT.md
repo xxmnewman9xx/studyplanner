@@ -1,12 +1,12 @@
 # AI Parse Contract
 
-The app can post PDF/photo uploads to `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT` when that HTTPS endpoint is configured. Pasted text parses locally in the app before endpoint routing. Text-based PDFs/plain-text files parse locally when no endpoint is configured, and use the endpoint first when one is configured.
+The app can post text-based PDFs to `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT` when that HTTPS endpoint is configured. Pasted text parses locally in the app before endpoint routing. Text-based PDFs/plain-text files parse locally when no endpoint is configured, and use the endpoint first when one is configured.
 
 Photo/camera support is a separate capability. The app only exposes image import when both `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT` and `EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1` are present. This repo does not contain a local image OCR implementation.
 
 ## Client Request
 
-The current mobile client sends `multipart/form-data` for endpoint-backed file/photo parsing:
+The current mobile client sends `multipart/form-data` for endpoint-backed file parsing. Photo/image sources require the image flag and real OCR support:
 
 ```text
 kind=pdf|photo

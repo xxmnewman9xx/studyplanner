@@ -87,7 +87,7 @@ This keeps the app planner-first: AI creates structure, but daily execution logi
 
 ### Hard-Gated Build
 
-This release routes students through Plus after onboarding. Free-limit code still exists in the app for lower-friction builds, but the current product shell requires a valid Plus entitlement after onboarding unless simulator capture is active.
+This release routes students through Plus after onboarding. The current product shell requires a valid Plus entitlement after onboarding unless simulator capture is active; any fallback limits are internal safeguards, not a marketed plan.
 
 ### Paid
 

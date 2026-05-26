@@ -13,11 +13,11 @@ import { isValidDeadline, normalizeEstimatedMinutes } from "../logic/planner";
 
 export function normalizeParseResult(value: unknown, source: SyllabusImportSource): SyllabusParseResult {
   if (!value || typeof value !== "object") {
-    throw new Error("The scan service returned an unreadable result.");
+    throw new Error("The parser service returned an unreadable result.");
   }
 
   const result = value as Partial<SyllabusParseResult>;
-  const sourceName = result.sourceName || source.name || "Syllabus scan";
+  const sourceName = result.sourceName || source.name || "Syllabus import";
   const courses = normalizeEndpointCourses(ensureArray<Course>(result.courses, "courses"), sourceName);
   const knownCourseIds = new Set(courses.map((course) => course.id));
   const rawAssignments = ensureArray<Assignment>(result.assignments, "assignments");
@@ -41,7 +41,7 @@ export function normalizeParseResult(value: unknown, source: SyllabusImportSourc
             {
               id: "endpoint-deadlines-need-review",
               severity: "needs_review" as const,
-              message: `${invalidDeadlineCount} scanned deadline${invalidDeadlineCount === 1 ? "" : "s"} need review before applying.`
+              message: `${invalidDeadlineCount} imported deadline${invalidDeadlineCount === 1 ? "" : "s"} need review before applying.`
             }
           ]
         : [])
@@ -135,7 +135,7 @@ function normalizeEndpointGradeItems(gradeItems: GradeItem[], courses: Course[])
         id: typeof item.id === "string" && item.id.trim() ? item.id.trim() : `scanned-grade-${index + 1}`,
         courseId,
         categoryId,
-        title: typeof item.title === "string" && item.title.trim() ? item.title.trim() : "Scanned grade",
+        title: typeof item.title === "string" && item.title.trim() ? item.title.trim() : "Imported grade",
         earned: Number.isFinite(earned) ? Math.max(0, earned) : 0,
         possible
       };
@@ -149,7 +149,7 @@ function normalizeEndpointAssignment(assignment: Assignment, courses: Course[], 
   const status = normalizeStatus(assignment.status);
   const dueAt = typeof assignment.dueAt === "string" ? assignment.dueAt : "";
   const validDeadline = isValidDeadline(dueAt);
-  const title = typeof assignment.title === "string" && assignment.title.trim() ? assignment.title.trim() : "Scanned assignment";
+  const title = typeof assignment.title === "string" && assignment.title.trim() ? assignment.title.trim() : "Imported assignment";
   const fallbackCourseId = courses[0]?.id || "imported-course";
   const courseId = typeof assignment.courseId === "string" && knownCourseIds.has(assignment.courseId)
     ? assignment.courseId
@@ -206,7 +206,7 @@ function normalizeConfidence(value: unknown, fallback: number) {
 
 function ensureArray<T>(value: unknown, label: string): T[] {
   if (!Array.isArray(value)) {
-    throw new Error(`The scan service did not return ${label}.`);
+    throw new Error(`The parser service did not return ${label}.`);
   }
 
   return value as T[];

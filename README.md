@@ -1,6 +1,6 @@
 # Study Planner: Syllabus AI
 
-An Expo + React Native app for a calm student planner that turns courses, deadlines, grades, reminders, and syllabus scans into a daily execution plan.
+An Expo + React Native app for a calm student planner that turns courses, deadlines, grades, reminders, and AI-assisted syllabus imports into a daily execution plan.
 
 ## Run Locally
 
@@ -13,7 +13,8 @@ npx expo start
 ## What Is Included
 
 - Polished first-run onboarding that leads into the Plus paywall.
-- Editable syllabus import flow for PDF or photo uploads through a configured parse endpoint.
+- Editable syllabus import flow for pasted text and text-based PDFs through the local parser or configured parse endpoint.
+- Camera/photo import stays disabled unless a configured endpoint and verified OCR/image parsing support are present.
 - Course and semester setup with weekly class schedule.
 - Assignment and exam objects with due dates, tags, priority, estimates, and status.
 - Today screen with "what should I do next?" planning logic.
@@ -21,11 +22,11 @@ npx expo start
 - Smart reminders using `expo-notifications`.
 - Device calendar sync using `expo-calendar`.
 - Focus session timer tied to a selected assignment.
-- Store-backed Plus paywall and premium guards for syllabus scan, calendar sync, reminders, and grade forecasting.
+- Store-backed Plus paywall and premium guards for syllabus imports, calendar sync, reminders, and grade forecasting.
 
 ## Configuration
 
-The app does not commit store product IDs, policy URLs, or scan-service endpoints. Set these at build time:
+The app does not commit store product IDs, policy URLs, or parser endpoints. Set these at build time:
 
 ```bash
 EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS=

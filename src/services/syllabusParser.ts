@@ -11,8 +11,16 @@ declare const process:
     }
   | undefined;
 
-const parseEndpoint = readEndpointEnv("EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT");
-const imageParsingEnabled = readBooleanEnv("EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED");
+const publicSyllabusEnv =
+  typeof process !== "undefined" && process.env
+    ? {
+        parseEndpoint: process.env.EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT,
+        imageParsingEnabled: process.env.EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED
+      }
+    : {};
+
+const parseEndpoint = readEndpointEnv(publicSyllabusEnv.parseEndpoint);
+const imageParsingEnabled = readBooleanEnv(publicSyllabusEnv.imageParsingEnabled);
 
 export function isSyllabusParsingConfigured() {
   return Boolean(parseEndpoint);
@@ -28,7 +36,7 @@ export async function parseSyllabus(source: SyllabusImportSource): Promise<Sylla
   }
 
   if (!source.uri) {
-    throw new Error("Choose a syllabus file or photo before scanning.");
+    throw new Error("Choose a syllabus file before importing.");
   }
 
   if (!parseEndpoint) {
@@ -46,7 +54,7 @@ export async function parseSyllabus(source: SyllabusImportSource): Promise<Sylla
           {
             id: "device-parser-used",
             severity: "info",
-            message: "Scanned on device because the online parser did not finish."
+            message: "Parsed on device because the online parser did not finish."
           },
           ...localResult.findings
         ]
@@ -66,8 +74,8 @@ async function parseSyllabusWithEndpoint(source: SyllabusImportSource, endpoint:
   if (!response.ok) {
     throw new Error(
       response.status >= 500
-        ? "The scan service is having trouble right now. Try again in a little while."
-        : "This syllabus could not be scanned. Check the file and try again."
+        ? "The parser service is having trouble right now. Try again in a little while."
+        : "This syllabus could not be imported. Check the file and try again."
     );
   }
 
@@ -75,7 +83,7 @@ async function parseSyllabusWithEndpoint(source: SyllabusImportSource, endpoint:
 }
 
 async function parseSyllabusOnDevice(source: SyllabusImportSource) {
-  const sourceName = source.name || "Syllabus scan";
+  const sourceName = source.name || "Syllabus import";
   const text = await readSourceText(source);
   return parseSyllabusText(text, sourceName);
 }
@@ -86,7 +94,7 @@ async function readSourceText(source: SyllabusImportSource) {
   }
 
   if (!source.uri) {
-    throw new Error("Choose a syllabus file or photo before scanning.");
+    throw new Error("Choose a syllabus file before importing.");
   }
 
   if (source.kind === "photo" || source.mimeType?.startsWith("image/")) {
@@ -144,18 +152,14 @@ function buildUploadBody(source: SyllabusImportSource) {
   return body;
 }
 
-function readEnv(name: string) {
-  return typeof process !== "undefined" ? process.env?.[name] : undefined;
-}
-
-function readEndpointEnv(name: string) {
-  const value = readEnv(name)?.trim();
+function readEndpointEnv(rawValue: string | undefined) {
+  const value = rawValue?.trim();
   if (!value) return undefined;
   return isTrustedParserEndpoint(value) ? value : undefined;
 }
 
-function readBooleanEnv(name: string) {
-  const value = readEnv(name)?.trim().toLowerCase();
+function readBooleanEnv(rawValue: string | undefined) {
+  const value = rawValue?.trim().toLowerCase();
   return value === "1" || value === "true" || value === "yes";
 }
 

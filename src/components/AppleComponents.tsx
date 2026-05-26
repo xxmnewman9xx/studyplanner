@@ -30,6 +30,7 @@ import { Assignment, Course, WidgetBackground, WidgetPalette, WidgetSize, Widget
 import { AppTheme, themePalettes } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { courseEmoji } from "../utils/courseVisuals";
+import { useI18n } from "../i18n";
 
 export const emojiMap = {
   study: BookOpen,
@@ -67,6 +68,7 @@ export function AppLogo({
   style?: StyleProp<ViewStyle>;
 }) {
   const { theme } = useAppTheme();
+  const { t } = useI18n();
   const styles = createStyles(theme);
 
   return (
@@ -78,8 +80,8 @@ export function AppLogo({
       />
       {showWordmark ? (
         <View style={styles.logoCopy}>
-          <Text style={styles.logoTitle}>StudyPlanner</Text>
-          <Text style={styles.logoSubtitle}>Syllabus AI</Text>
+          <Text style={styles.logoTitle}>{t("brand_name", "StudyPlanner")}</Text>
+          <Text style={styles.logoSubtitle}>{t("brand_subtitle", "Syllabus AI")}</Text>
         </View>
       ) : null}
     </View>
@@ -411,6 +413,9 @@ export function WidgetPreviewCard({
   const nativeTimeline = nativeTimelineLabel || (type === "today" ? "Today" : "Next");
   const nativeProgressValue = Math.max(0, Math.min(1, nativeProgress ?? (previewItems.length > 0 ? 0.6 : 0.2)));
   const nativeWeekDots = ["M", "T", "W", "T", "F", "S", "S"];
+  const firstNativeItem = previewItems[0];
+  const lockRoundValue = firstNativeItem && "courseCode" in firstNativeItem && firstNativeItem.courseCode ? firstNativeItem.courseCode : value;
+  const lockRoundLabel = firstNativeItem ? (type === "today" ? "Do first" : "Next") : type === "today" ? "Today" : "Next";
 
   if (nativeMode) {
     if (isLockInline) {
@@ -426,8 +431,8 @@ export function WidgetPreviewCard({
     if (isLockRound) {
       return (
         <View style={[styles.lockRoundWidget, { backgroundColor: nativeAccent }, style]}>
-          <Text style={styles.lockRoundValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{value}</Text>
-          <Text style={styles.lockRoundLabel} numberOfLines={1}>{type === "today" ? "Today" : "Next"}</Text>
+          <Text style={styles.lockRoundValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{lockRoundValue}</Text>
+          <Text style={styles.lockRoundLabel} numberOfLines={1}>{lockRoundLabel}</Text>
         </View>
       );
     }

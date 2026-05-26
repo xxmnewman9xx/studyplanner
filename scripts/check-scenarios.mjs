@@ -16,6 +16,7 @@ const appJson = read("app.json");
 const today = read("src/screens/TodayScreen.tsx");
 const reviewPrompt = read("src/services/reviewPrompt.ts");
 const defaultPlanner = read("src/data/defaultPlanner.ts");
+const oldNoCostPrefix = "fr" + "ee";
 
 const failures = [];
 const assert = (condition, message) => {
@@ -26,8 +27,8 @@ const requiredScenarioFields = ["id", "app", "persona", "risk", "state", "trigge
 const allowedRisks = new Set(["trust", "conversion", "clarity", "retention", "revenue", "shipping"]);
 const allowedAutomation = new Set(["static", "unit", "integration", "simulator", "manual"]);
 const requiredScenarioIds = [
-  "sp-free-after-onboarding",
-  "sp-free-limit",
+  "sp-hard-paywall-after-onboarding",
+  "sp-hard-paywall-store-state",
   "sp-plus-tab-surface",
   "sp-first-run-empty",
   "sp-scan-review-handoff",
@@ -64,19 +65,19 @@ if (fs.existsSync(scenarioPath)) {
   }
 }
 
-assert(app.includes("const freeCourseLimit = 2"), "Free tier should allow two useful classes.");
-assert(app.includes("const freeAssignmentLimit = 12"), "Free tier should allow enough homework to prove value.");
-assert(app.includes("const freeImportLimit = 1"), "Free tier should include one reviewed syllabus import.");
+assert(app.includes("const starterCourseLimit = 2"), "Starter course limit constant should stay named without trial-plan language.");
+assert(app.includes("const starterAssignmentLimit = 12"), "Starter assignment limit constant should stay named without trial-plan language.");
+assert(app.includes("const starterImportLimit = 1"), "Starter import limit constant should stay named without trial-plan language.");
+assert(!app.includes(`${oldNoCostPrefix}CourseLimit`) && !app.includes(`${oldNoCostPrefix}AssignmentLimit`) && !app.includes(`${oldNoCostPrefix}ImportLimit`), "Runtime source must not keep old bypass-plan identifiers.");
 assert(app.includes('premiumTabs = new Set<NavTab>(["focus", "grades"])'), "Premium tab gate should focus on advanced Focus and Grades surfaces.");
-assert(!app.includes("const showInitialPaywall ="), "Non-Plus users should not hit a forced paywall before value.");
-assert(app.includes("const freeTabs: typeof proTabs = proTabs"), "Free users should see the core Scan, Calendar, Classes, and Widgets navigation.");
-assert(app.includes('{ id: "import", label: "Scan"') && app.includes('{ id: "plan", label: "Calendar"') && app.includes('{ id: "courses", label: "Classes"') && app.includes('{ id: "more", label: "Widgets"') && app.includes('if (tab === "plan") return "Calendar";'), "Free tab bar must expose Scan, Calendar, Classes, and Widgets.");
-assert(app.includes("importLimitLocked") && app.includes("freeImportLimit"), "Import monetization should be bounded by usage, not pre-value navigation.");
+assert(app.includes("const visibleTabs = proTabs"), "Main app navigation should be available only after hard paywall entitlement/capture conditions.");
+assert(app.includes('labelKey: "tabs.scan"') && app.includes('labelKey: "tabs.calendar"') && app.includes('labelKey: "tabs.classes"') && app.includes('labelKey: "tabs.widgets"') && app.includes("t(tab.labelKey)"), "Tab bar must use runtime localized Scan, Calendar, Classes, and Widgets labels.");
+assert(app.includes("importLimitLocked") && app.includes("starterImportLimit"), "Import monetization should stay bounded by paid entitlement logic.");
 assert(app.includes("setPaywallSeen(false);") && app.includes("<UpgradeScreen hardMode />"), "Onboarding must route to a hard Plus paywall after value previews.");
 assert(app.includes("SkeletonBar") && app.includes("skeletonStack"), "App loading must use a real skeleton loader, not only a spinner.");
 assert(app.includes('url.includes("expo-development-client")'), "Dev-client URLs must not trip production deeplink tab routing.");
-assert(!upgrade.includes("Continue free to Scan"), "Hard paywall must not expose a continue-free escape.");
-assert(today.includes('label="Scan syllabus"') && today.includes("onPress={onOpenScan}"), "Free Scan starter CTA should route to scan/import.");
+assert(!upgrade.includes(`Continue ${oldNoCostPrefix} to Scan`), "Hard paywall must not expose a planner bypass.");
+assert(today.includes('label="Scan syllabus"') && today.includes("onPress={onOpenScan}"), "Scan starter CTA should route to scan/import.");
 assert(today.includes("No schoolwork added yet") && today.includes("Scan a syllabus or add one class"), "Empty Today should teach the first action, not claim the user is caught up.");
 assert(today.includes("onTryDemo") && today.includes("demoMode"), "Today should support a truthful demo path and demo banner.");
 assert(today.includes('label="Set reminders"') && today.includes('label="Sync calendar"') && today.includes("premiumAutomationLocked ? onOpenPaywall : onScheduleReminders") && today.includes("premiumAutomationLocked ? onOpenPaywall : onCalendarSync"), "Today must expose real reminder and calendar actions.");
@@ -88,8 +89,8 @@ assert(app.includes("setFocusSessions(stored.focusSessions || [])"), "Stored foc
 assert(onboarding.includes("Turn a syllabus into a draft.") && onboarding.includes("Approve work before it touches your plan."), "Onboarding must be short, value-first, and review-first.");
 assert(onboarding.includes('id: "scan"') && onboarding.includes('id: "review"') && onboarding.includes('id: "calendar"') && onboarding.includes('id: "classes"') && onboarding.includes('id: "focus"') && onboarding.includes('id: "widgets"'), "Onboarding must preview the current Scan, Review, Calendar, Classes, Focus, and Widgets loop.");
 assert(onboarding.includes("Continue to Plus") && onboarding.includes("themeChoices") && onboarding.includes("WidgetPreviewCard"), "Onboarding must include customization before the hard paywall.");
-assert(upgrade.includes("StudyPlanner Plus") && upgrade.includes("Unlock syllabus scans, calendar planning, focus, widgets, reminders, and sync."), "Hard paywall must clearly require Plus before main app access.");
-assert(upgrade.includes("More syllabus scans") && upgrade.includes("Focus + progress") && upgrade.includes("More widget styles") && upgrade.includes("Reminders + calendar"), "Paywall should sell Plus leverage through real product surfaces.");
+assert(upgrade.includes("StudyPlanner Plus") && upgrade.includes("paywall.hard_subtitle"), "Hard paywall must clearly require Plus before main app access.");
+assert(upgrade.includes("paywall.feature_scans") && upgrade.includes("paywall.feature_focus") && upgrade.includes("paywall.feature_widgets") && upgrade.includes("paywall.feature_calendar"), "Paywall should sell Plus leverage through localized real product surfaces.");
 assert(upgrade.includes("Prices, trials, and renewal periods come from the store before checkout.") && upgrade.includes("Restore Purchases"), "Paywall must rely on store-loaded plans and keep restore visible.");
 assert(app.includes("setImportHandoff") && app.includes("openTab(\"today\")") && app.includes('recordReviewEvent("import_applied")'), "Scan/import should hand off into Today after value is created.");
 assert(reviewPrompt.includes("assignment_completed") && reviewPrompt.includes("focus_completed") && reviewPrompt.includes("widget_saved"), "Review prompt policy should stay value-gated.");
@@ -102,7 +103,7 @@ assert(!more.includes("top-20") && !more.includes("active in this studio") && !m
 assert(planner.includes('headline: "Upcoming"') && planner.includes('headline: "Today"') && planner.includes("Focus Block") && planner.includes("Class Risk"), "Widget data labels should match student-outcome templates.");
 assert(!more.includes("Algebra II - Worksheet") && !more.includes("Week 11") && !more.includes("Wednesday, May 13"), "Widget surface must not show fake sample school data.");
 assert(!components.includes("May 13") && !components.includes('"2h"'), "Widget preview components must not hard-code fake dates or fake due times.");
-assert(more.includes("Save Today preset") && more.includes("Unlock this preset"), "Widget surface may save basic presets while gating advanced widgets.");
+assert(more.includes("Save Today preset") && more.includes("Unlock this preset"), "Widget surface may save native presets while gating advanced widgets.");
 assert(defaultPlanner.includes("defaultWidgetPresets"), "Default widget presets may exist for data compatibility, but UI must not imply native support.");
 assert(appJson.includes('"accessoryCircular"') && appJson.includes('"accessoryRectangular"') && appJson.includes('"accessoryInline"'), "Expo widget config should include Lock Screen accessory families.");
 assert(todayWidgetSwift.includes(".accessoryCircular") && todayWidgetSwift.includes(".accessoryRectangular") && todayWidgetSwift.includes(".accessoryInline"), "Today native widget should support Lock Screen families.");

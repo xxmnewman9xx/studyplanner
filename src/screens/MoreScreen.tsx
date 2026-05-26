@@ -72,7 +72,7 @@ const widgetSizes: WidgetSize[] = ["small", "medium", "lock_rect", "lock_round",
 const palettes: WidgetPalette[] = ["ocean", "midnight", "aurora", "forest", "graphite", "paper"];
 const appThemeOptions: ThemeAccent[] = ["campus", "graphite", "mint", "slate", "solar"];
 
-function isBasicNativePreset(preset: Pick<WidgetPreset, "type" | "size">) {
+function isNativeEligiblePreset(preset: Pick<WidgetPreset, "type" | "size">) {
   return (
     (preset.type === "today" || preset.type === "due_next") &&
     (preset.size === "small" ||
@@ -107,8 +107,8 @@ export function MoreScreen({
   const styles = createStyles(theme);
   const firstPreset =
     (premiumWidgetsLocked
-      ? widgetPresets.find(isBasicNativePreset)
-      : widgetPresets[0]) || widgetPresets.find(isBasicNativePreset);
+      ? widgetPresets.find(isNativeEligiblePreset)
+      : widgetPresets[0]) || widgetPresets.find(isNativeEligiblePreset);
   const [type, setType] = useState<WidgetType>(firstPreset?.type || "due_next");
   const [size, setSize] = useState<WidgetSize>(firstPreset?.size || "medium");
   const [background, setBackground] = useState<WidgetBackground>(
@@ -146,6 +146,13 @@ export function MoreScreen({
     [background, classFocusCourseId, editingPresetId, font, iconKey, layout, palette, selectedThemePackId, size, type]
   );
   const widgetData = getWidgetData(previewPreset, assignments, courses);
+  const previewWidgetPresets = useMemo(
+    () =>
+      previewPreset.type === "today" || previewPreset.type === "due_next"
+        ? [previewPreset, ...widgetPresets.filter((preset) => preset.id !== previewPreset.id)]
+        : widgetPresets,
+    [previewPreset, widgetPresets]
+  );
   const nativeSnapshots = useMemo(
     () =>
       buildStudyPlannerWidgetSnapshots({
@@ -154,10 +161,10 @@ export function MoreScreen({
         assignments,
         parsedImports,
         settings,
-        widgetPresets,
+        widgetPresets: previewWidgetPresets,
         demoMode
       }),
-    [assignments, courses, demoMode, parsedImports, semester, settings, widgetPresets]
+    [assignments, courses, demoMode, parsedImports, previewWidgetPresets, semester, settings]
   );
   const nativePreview =
     type === "today" ? nativeSnapshots.today : type === "due_next" ? nativeSnapshots.upcoming : undefined;
@@ -178,7 +185,7 @@ export function MoreScreen({
       ? { ...widgetData, headline: labelForWidgetType(type), value: "+", detail: "Add homework to preview", items: [] }
       : widgetData;
   const studioHint = nativePreview
-    ? nativePreview.footnote
+    ? `${nativePreview.footnote} Preview updates as you edit; saving writes the preset to native widget state.`
     : needsClassFirst
     ? "This widget needs a class. Add one in Classes, then come back."
     : !hasAssignments && type !== "class_focus"
@@ -241,7 +248,7 @@ export function MoreScreen({
     detail: string;
     moment: string;
     data: string;
-    entitlement: "free" | "plus";
+    entitlement: "included" | "plus";
     preset: Pick<WidgetPreset, "type" | "size" | "background" | "palette" | "layout" | "iconKey">;
   }> = [
     {
@@ -249,7 +256,7 @@ export function MoreScreen({
       detail: "Next reviewed deadline",
       moment: "Home Screen",
       data: "Reviewed deadlines",
-      entitlement: "free",
+      entitlement: "included",
       preset: { type: "due_next", size: "medium", background: "glass", palette: "ocean", layout: "list", iconKey: "calendar" }
     },
     {
@@ -257,7 +264,7 @@ export function MoreScreen({
       detail: "Due today",
       moment: "Morning stack",
       data: "Reviewed work",
-      entitlement: "free",
+      entitlement: "included",
       preset: { type: "today", size: "medium", background: "glass", palette: "ocean", layout: "list", iconKey: "check" }
     },
     {
@@ -303,7 +310,7 @@ export function MoreScreen({
     iconKey
   };
   const selectedTemplateEntitlement = selectedTemplate?.entitlement || "plus";
-  const basicNativeTemplate = selectedTemplateEntitlement === "free" && (type === "today" || type === "due_next");
+  const basicNativeTemplate = selectedTemplateEntitlement === "included" && (type === "today" || type === "due_next");
   const advancedCustomizationSelected =
     size === "large" ||
     background !== selectedTemplatePreset.background ||
@@ -321,7 +328,7 @@ export function MoreScreen({
         ? "Build needed"
         : "Needs install";
   const savedPresets = premiumWidgetsLocked
-    ? widgetPresets.filter(isBasicNativePreset)
+    ? widgetPresets.filter(isNativeEligiblePreset)
     : widgetPresets;
   const hasSavedPresets = savedPresets.length > 0;
   const smartPresetCount = widgetPresets.filter((preset) => preset.smartStackSlot).length;
@@ -608,7 +615,7 @@ export function MoreScreen({
                 </Text>
                 <Text style={styles.placementGuideCopy}>
                   {nativePreview
-                    ? "StudyPlanner writes the reviewed snapshot. The student still adds the widget from the iOS widget gallery."
+                    ? "Native style fields: palette, background, class filter, and window label. iOS chooses the placed size from the widget gallery."
                     : "Advanced looks stay as saved StudyPlanner presets; iOS only renders the native Today and Upcoming families."}
                 </Text>
               </View>
@@ -642,7 +649,7 @@ export function MoreScreen({
                   <View style={[styles.studioTemplateIcon, active ? styles.studioTemplateIconActive : null]}>
                     <Icon color={active ? colors.heroText : colors.accent} size={16} />
                   </View>
-                  <Text style={[styles.studioTemplateBadge, template.entitlement === "plus" ? styles.studioTemplateBadgePlus : null]}>{template.entitlement === "plus" ? "Plus" : "Free"}</Text>
+                  <Text style={[styles.studioTemplateBadge, template.entitlement === "plus" ? styles.studioTemplateBadgePlus : null]}>{template.entitlement === "plus" ? "Plus" : "Native"}</Text>
                 </View>
                 <Text style={styles.studioTemplateTitle}>{template.label}</Text>
                 <Text style={styles.studioTemplateDetail} numberOfLines={2}>{template.detail}</Text>
@@ -990,7 +997,7 @@ export function MoreScreen({
                 </View>
                 <View style={styles.appThemeNameRow}>
                   <Text style={styles.appThemeName}>{optionMeta.label}</Text>
-                  {premiumTheme ? <Text style={styles.themePlus}>Plus</Text> : <Text style={styles.themeFree}>Free</Text>}
+                  {premiumTheme ? <Text style={styles.themePlus}>Plus</Text> : <Text style={styles.themeIncluded}>Included</Text>}
                 </View>
               </TouchableOpacity>
             );
@@ -1017,7 +1024,7 @@ export function MoreScreen({
               <View style={styles.templateTopRow}>
                 <Text style={styles.templateTitle}>{template.label}</Text>
                 <Text style={[styles.templateEntitlement, template.entitlement === "plus" ? styles.templateEntitlementPlus : null]}>
-                  {templateLocked ? "Locked" : template.entitlement === "plus" ? "Plus" : "Free"}
+                  {templateLocked ? "Locked" : template.entitlement === "plus" ? "Plus" : "Native"}
                 </Text>
               </View>
               <Text style={styles.templateDetail}>{template.detail}</Text>
@@ -1027,12 +1034,12 @@ export function MoreScreen({
         })}
       </View>
 
-      <SectionHeader title="Saved presets" note="Basic native widgets stay free. Plus saves advanced template looks." />
+      <SectionHeader title="Saved presets" note="Today and Upcoming write real native widget state. Plus adds advanced in-app looks." />
       <GlassCard style={styles.savedCard}>
         {!hasSavedPresets ? (
           <View style={styles.savedEmpty}>
             <Text style={styles.savedEmptyTitle}>No saved presets yet</Text>
-            <Text style={styles.savedEmptyText}>Start with free Today or Upcoming, then save a tuned preset when the preview matches the intended school-day use.</Text>
+            <Text style={styles.savedEmptyText}>Start with Today or Upcoming, then save a tuned preset when the preview matches the intended school-day use.</Text>
           </View>
         ) : null}
         {savedPresets.slice(0, 5).map((preset) => (
@@ -1077,7 +1084,7 @@ export function MoreScreen({
         </View>
         <View style={styles.helpStep}>
           <Text style={styles.helpNumber}>3</Text>
-          <Text style={styles.helpText}>Notification permission is only needed for reminders; basic widgets work from the shared reviewed snapshot.</Text>
+          <Text style={styles.helpText}>Notification permission is only needed for reminders; native widgets work from the shared reviewed snapshot.</Text>
         </View>
       </GlassCard>
     </View>
@@ -2794,7 +2801,7 @@ function createStyles(theme: AppTheme) {
       lineHeight: 12,
       fontWeight: "900"
     },
-    themeFree: {
+    themeIncluded: {
       color: colors.muted,
       fontSize: 9,
       lineHeight: 12,

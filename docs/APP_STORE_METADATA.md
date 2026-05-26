@@ -17,13 +17,13 @@ Sources:
 
 ## Keywords
 
-study planner, school planner, student planner, homework tracker, assignment tracker, exam planner, grade tracker, class schedule, timetable, syllabus scanner, college planner
+study planner, school planner, student planner, homework tracker, assignment tracker, exam planner, grade tracker, class schedule, timetable, syllabus ai, college planner
 
 Hold `canvas planner` until a shipped Canvas-compatible workflow exists.
 
 ## Short Description
 
-Scan a syllabus, review every class and deadline, then start each day with a calm plan.
+Import a syllabus with AI assistance, review every class and deadline, then start each day with a calm plan.
 
 ## Long Description Draft
 

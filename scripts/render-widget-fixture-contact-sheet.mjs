@@ -1014,7 +1014,7 @@ const plusNeedles = [
   "Focus Block",
   "Needs Check",
   "Unlock this preset",
-  "Basic native widgets stay free"
+  "Today and Upcoming write native widget state"
 ];
 const plusLockEvidence = plusNeedles.every((needle) => moreSource.includes(needle));
 const studioProofNeedles = [
@@ -1132,13 +1132,13 @@ const states = [
     id: "plus-locked",
     title: "Plus Locked",
     kind: "Widget Studio lock boundary",
-    summary: "Advanced templates lock when premiumWidgetsLocked is true; free keeps native Today/Upcoming.",
+    summary: "Advanced templates lock when premiumWidgetsLocked is true; native Today/Upcoming remain available after entitlement.",
     snapshot: {
       kind: "upcoming",
       headline: "Plus",
       value: "Locked",
       detail: plusLockEvidence ? "Advanced widgets" : "Evidence missing",
-      footnote: "Free keeps real Today and Upcoming widgets.",
+      footnote: "Today and Upcoming stay backed by real widget snapshots.",
       signalLabel: "Upgrade path",
       metricLabel: "Deadline Map / Class Risk",
       nextLabel: "Focus Block, Needs Check",

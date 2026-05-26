@@ -64,8 +64,8 @@ async function checkParserEndpoint() {
     })
   );
   const imageError = await json(imageResponse);
-  assert(imageResponse.status === 422, "Image parser request should fail closed without OCR provider.");
-  assert(imageError.error?.code === "OCR_NOT_CONFIGURED", "Image parser should return explicit OCR_NOT_CONFIGURED code.");
+  assert(imageResponse.status === 422, "Unreadable image parser request should fail closed.");
+  assert(imageError.error?.code === "OCR_TEXT_REQUIRED", "Unreadable image parser should return explicit OCR_TEXT_REQUIRED code.");
 
   const shortResponse = await handleSyllabusParseRequest(
     new Request("https://parser.example.test/v1/syllabus/parse", {

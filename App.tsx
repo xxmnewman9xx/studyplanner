@@ -81,6 +81,7 @@ import { SubscriptionProvider, useSubscription } from "./src/services/subscripti
 import { recordReviewEvent } from "./src/services/reviewPrompt";
 import { syncStudyPlannerWidgets } from "./src/services/widgetSnapshot";
 import type { WidgetSyncStatus } from "./src/services/widgetSnapshot";
+import { I18nProvider, useI18n } from "./src/i18n";
 import {
   getMarketingCaptureInitialTab,
   getMarketingCaptureScrollY,
@@ -95,9 +96,9 @@ import {
 LogBox.ignoreLogs(["SafeAreaView has been deprecated"]);
 
 const plannerStorageKey = "study-planner-data-v3";
-const freeCourseLimit = 2;
-const freeAssignmentLimit = 12;
-const freeImportLimit = 1;
+const starterCourseLimit = 2;
+const starterAssignmentLimit = 12;
+const starterImportLimit = 1;
 const marketingCaptureTabFileName = "studyplanner-capture-tab.json";
 const simulatorCaptureFileRoutingEnabled = process.env.EXPO_PUBLIC_SIM_QA_CAPTURE === "1";
 const simulatorLoadingDelayMs = simulatorCaptureFileRoutingEnabled
@@ -107,23 +108,22 @@ const premiumTabs = new Set<NavTab>(["focus", "grades"]);
 
 const proTabs: Array<{
   id: NavTab;
-  label: string;
+  labelKey: string;
   icon: React.ComponentType<{ color: string; size: number }>;
 }> = [
-  { id: "today", label: "Today", icon: CalendarDays },
-  { id: "import", label: "Scan", icon: FileScan },
-  { id: "plan", label: "Calendar", icon: CalendarDays },
-  { id: "courses", label: "Classes", icon: GraduationCap },
-  { id: "more", label: "Widgets", icon: Sparkles }
+  { id: "today", labelKey: "tabs.today", icon: CalendarDays },
+  { id: "import", labelKey: "tabs.scan", icon: FileScan },
+  { id: "plan", labelKey: "tabs.calendar", icon: CalendarDays },
+  { id: "courses", labelKey: "tabs.classes", icon: GraduationCap },
+  { id: "more", labelKey: "tabs.widgets", icon: Sparkles }
 ];
 
-const freeTabs: typeof proTabs = proTabs;
 const mobilePrimaryTabIds = new Set<NavTab>(["today", "import", "plan", "courses", "more"]);
 const moreGroupTabIds = new Set<NavTab>(["more", "notes", "grades", "upgrade"]);
 
-function mobileTabLabel(tab: NavTab, fallback: string) {
-  if (tab === "plan") return "Calendar";
-  return tab === "more" ? "Widgets" : fallback;
+function mobileTabLabel(tab: NavTab, fallback: string, t: (key: string, fallback?: string) => string) {
+  if (tab === "plan") return t("tabs.calendar", "Calendar");
+  return tab === "more" ? t("tabs.widgets", "Widgets") : fallback;
 }
 
 type CaptureRoute = {
@@ -335,15 +335,18 @@ function assignmentsForCaptureWorkload(state: CaptureRoute["workloadState"]) {
 export default function App() {
   return (
     <AppThemeProvider>
-      <SubscriptionProvider>
-        <AppContent />
-      </SubscriptionProvider>
+      <I18nProvider>
+        <SubscriptionProvider>
+          <AppContent />
+        </SubscriptionProvider>
+      </I18nProvider>
     </AppThemeProvider>
   );
 }
 
 function AppContent() {
   const { theme, setAccent, setMode } = useAppTheme();
+  const { t, isRTL } = useI18n();
   const { colors } = theme;
   const { width } = useWindowDimensions();
   const tablet = width >= 760;
@@ -380,7 +383,7 @@ function AppContent() {
   const [hydrated, setHydrated] = useState(false);
   const [nativeWidgetStatus, setNativeWidgetStatus] = useState<WidgetSyncStatus>({
     state: "idle",
-    message: "Native widgets sync after your planner loads."
+    message: t("widgets.sync_after_load", "Native widgets sync after your planner loads.")
   });
   const [captureScreenOverride, setCaptureScreenOverride] = useState<MarketingCaptureScreen | undefined>();
   const [captureScrollY, setCaptureScrollY] = useState<number | null>(null);
@@ -396,7 +399,7 @@ function AppContent() {
     [assignments, selectedAssignmentId]
   );
   const captureBypassEnabled = marketingCaptureEnabled || simulatorCaptureFileRoutingEnabled;
-  const visibleTabs = captureBypassEnabled || subscription.isPremium ? proTabs : freeTabs;
+  const visibleTabs = proTabs;
   const bottomTabs = tablet
     ? visibleTabs
     : visibleTabs.filter((tab) => mobilePrimaryTabIds.has(tab.id));
@@ -680,15 +683,15 @@ function AppContent() {
         (assignment) => !existingAssignmentIds.has(assignment.id)
       ).length;
       const usedImportCount = parsedImports.filter((item) => !item.id.startsWith("demo-")).length;
-      const wouldExceedFreeLimits =
-        usedImportCount >= freeImportLimit ||
-        courses.length + incomingCourseCount > freeCourseLimit ||
-        activeAssignments.length + incomingAssignmentCount > freeAssignmentLimit;
+      const wouldExceedStarterLimits =
+        usedImportCount >= starterImportLimit ||
+        courses.length + incomingCourseCount > starterCourseLimit ||
+        activeAssignments.length + incomingAssignmentCount > starterAssignmentLimit;
 
-      if (wouldExceedFreeLimits) {
+      if (wouldExceedStarterLimits) {
         Alert.alert(
           "Plus is needed for this import",
-          "Unlock Plus to apply scanned coursework to your planner.",
+          "Subscribe to Plus to apply this AI-assisted import to your planner.",
           [
             { text: "Not now", style: "cancel" },
             { text: "See Plus", onPress: () => openPaywall("import") }
@@ -834,7 +837,7 @@ function AppContent() {
     dueDate: string,
     kind: AssignmentKind
   ) => {
-    if (!captureBypassEnabled && !subscription.isPremium && activeAssignments.length >= freeAssignmentLimit) {
+    if (!captureBypassEnabled && !subscription.isPremium && activeAssignments.length >= starterAssignmentLimit) {
       Alert.alert("Plus required", "Unlock Plus to add more homework, reminders, focus sessions, widgets, and grade tools.", [
         { text: "Not now", style: "cancel" },
         { text: "See Plus", onPress: () => openPaywall("today") }
@@ -881,8 +884,8 @@ function AppContent() {
   };
 
   const addCourse = (course: Pick<Course, "code" | "name" | "instructor">) => {
-    if (!captureBypassEnabled && !subscription.isPremium && courses.length >= freeCourseLimit) {
-      Alert.alert("Plus required", "Unlock Plus to add more classes, scans, focus sessions, grades, and automation.", [
+    if (!captureBypassEnabled && !subscription.isPremium && courses.length >= starterCourseLimit) {
+      Alert.alert("Plus required", "Unlock Plus to add more classes, imports, focus sessions, grades, and calendar tools.", [
         { text: "Not now", style: "cancel" },
         { text: "See Plus", onPress: () => openPaywall("courses") }
       ]);
@@ -1120,14 +1123,14 @@ function AppContent() {
 
   const premiumLocked =
     !captureBypassEnabled && (subscription.status !== "ready" || !subscription.isPremium);
-  const freeImportCount = parsedImports.filter((item) => !item.id.startsWith("demo-")).length;
+  const usedImportCount = parsedImports.filter((item) => !item.id.startsWith("demo-")).length;
   const importLimitLocked =
-    !captureBypassEnabled && !subscription.isPremium && freeImportCount >= freeImportLimit;
+    !captureBypassEnabled && !subscription.isPremium && usedImportCount >= starterImportLimit;
   const appAccessLocked =
     (!captureBypassEnabled || captureHardPaywall) && onboarded && !subscription.isPremium;
 
   if (!hydrated) {
-    return <LoadingScreen label="Loading StudyPlanner" />;
+    return <LoadingScreen label={t("app.loading", "Loading StudyPlanner")} />;
   }
 
   if (!onboarded) {
@@ -1143,7 +1146,7 @@ function AppContent() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <StatusBar style={theme.isDark ? "light" : "dark"} />
-        <View style={styles.appShell}>
+        <View style={[styles.appShell, isRTL ? styles.rtlContainer : null]}>
           <ScrollView
             ref={scrollRef}
             style={styles.scrollArea}
@@ -1164,7 +1167,7 @@ function AppContent() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style={theme.isDark ? "light" : "dark"} />
-      <View style={styles.appShell}>
+      <View style={[styles.appShell, isRTL ? styles.rtlContainer : null]}>
         {tablet ? (
           <View style={styles.sidebar}>
             <AppLogo showWordmark size={34} />
@@ -1184,7 +1187,7 @@ function AppContent() {
                   >
                     <Icon color={active ? colors.heroText : colors.muted} size={18} />
                     <Text style={[styles.sidebarLabel, active ? styles.sidebarLabelActive : null]}>
-                      {tab.label}
+                      {t(tab.labelKey)}
                     </Text>
                     {locked ? <Crown color={colors.faint} size={13} /> : null}
                   </TouchableOpacity>
@@ -1222,6 +1225,7 @@ function AppContent() {
               activeTab={activeTab}
               state={systemState}
               styles={styles}
+              label={labelForTab(activeTab, t)}
               onPrimaryAction={() => {
                 if (systemState.action === "scan") openTab("import");
                 if (systemState.action === "review") openTab("import");
@@ -1373,7 +1377,7 @@ function AppContent() {
               {activeTab === "upgrade" ? (
                 <UpgradeScreen
                   hardMode={!subscription.isPremium}
-                  onContinueFree={subscription.isPremium ? () => openTab(postPaywallTab) : undefined}
+                  onContinueAfterPurchase={subscription.isPremium ? () => openTab(postPaywallTab) : undefined}
                 />
               ) : null}
             </>
@@ -1400,7 +1404,7 @@ function AppContent() {
               >
                 <Icon color={active ? colors.heroText : colors.faint} size={20} />
                 <Text style={[styles.tabLabel, active ? styles.tabLabelActive : null]}>
-                  {mobileTabLabel(tab.id, tab.label)}
+                  {mobileTabLabel(tab.id, t(tab.labelKey), t)}
                 </Text>
                 {locked ? <View style={styles.lockDot} /> : null}
               </TouchableOpacity>
@@ -1582,18 +1586,20 @@ function StudySystemHeader({
   activeTab,
   state,
   styles,
+  label,
   onPrimaryAction
 }: {
   activeTab: NavTab;
   state: AppSystemState;
   styles: ReturnType<typeof createStyles>;
+  label: string;
   onPrimaryAction: () => void;
 }) {
   return (
     <View style={styles.systemHeader}>
       <View style={styles.systemHeaderTop}>
         <View style={styles.systemHeaderCopy}>
-          <Text style={styles.systemEyebrow}>StudyPlanner · {labelForTab(activeTab)}</Text>
+          <Text style={styles.systemEyebrow}>StudyPlanner · {label}</Text>
           <Text style={styles.systemTitle} numberOfLines={2}>{state.title}</Text>
           <Text style={styles.systemDetail} numberOfLines={2}>{state.detail}</Text>
         </View>
@@ -1615,17 +1621,17 @@ function StudySystemHeader({
   );
 }
 
-function labelForTab(tab: NavTab) {
+function labelForTab(tab: NavTab, t: (key: string, fallback?: string) => string) {
   const labels: Record<NavTab, string> = {
-    today: "Today",
-    import: "Scan",
-    plan: "Calendar",
-    courses: "Classes",
-    notes: "Notes",
-    more: "Widgets",
-    focus: "Focus",
-    grades: "Grades",
-    upgrade: "Plus"
+    today: t("tabs.today", "Today"),
+    import: t("tabs.scan", "Scan"),
+    plan: t("tabs.calendar", "Calendar"),
+    courses: t("tabs.classes", "Classes"),
+    notes: t("tabs.notes", "Notes"),
+    more: t("tabs.widgets", "Widgets"),
+    focus: t("tabs.focus", "Focus"),
+    grades: t("tabs.grades", "Grades"),
+    upgrade: t("tabs.plus", "Plus")
   };
   return labels[tab];
 }
@@ -1716,6 +1722,9 @@ function createStyles(theme: AppTheme, tablet = false) {
       backgroundColor: colors.canvas,
       overflow: "hidden",
       flexDirection: tablet ? "row" : "column"
+    },
+    rtlContainer: {
+      direction: "rtl"
     },
     content: {
       width: "100%",

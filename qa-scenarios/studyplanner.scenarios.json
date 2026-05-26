@@ -1,6 +1,6 @@
 [
   {
-    "id": "sp-free-after-onboarding",
+    "id": "sp-hard-paywall-after-onboarding",
     "app": "StudyPlanner",
     "persona": "new student deciding whether to pay",
     "risk": "conversion",
@@ -12,7 +12,7 @@
     "failureMeans": "The user reaches the planner without a valid Plus entitlement or gets asked to pay before seeing product-value previews."
   },
   {
-    "id": "sp-free-limit",
+    "id": "sp-hard-paywall-store-state",
     "app": "StudyPlanner",
     "persona": "student deciding whether Plus is worth it",
     "risk": "revenue",
@@ -20,7 +20,7 @@
     "trigger": "hard paywall loads store plans or an unavailable-store state",
     "expected": ["store-loaded plans, Restore Purchases, Terms, and Privacy stay visible", "no silent unlock when products fail to load", "CTA explains scans, widgets, reminders, and calendar sync"],
     "automation": "static",
-    "evidence": ["freeCourseLimit", "freeAssignmentLimit", "freeImportLimit", "premiumTabs"],
+    "evidence": ["starterCourseLimit", "starterAssignmentLimit", "starterImportLimit", "premiumTabs"],
     "failureMeans": "The hard paywall either blocks legitimate purchasers without recovery or unlocks without a valid entitlement."
   },
   {
@@ -32,7 +32,7 @@
     "trigger": "looks at bottom navigation and command tiles",
     "expected": ["bottom navigation exposes Today, Scan, Plan, and Widgets", "scan and plan are usable", "focus, grades, reminders, and calendar sync remain premium-gated outside capture/proof mode"],
     "automation": "static",
-    "evidence": ["freeTabs", "importLimitLocked", "premiumAutomationLocked command tiles", "Widget Studio Plus labels"],
+    "evidence": ["localized tab labels", "importLimitLocked", "premiumAutomationLocked command tiles", "Widget Studio Plus labels"],
     "failureMeans": "The simplified IA is confusing, or premium-only surfaces bypass entitlement checks."
   },
   {
@@ -68,7 +68,7 @@
     "trigger": "opens any widget surface",
     "expected": ["no fake settings", "no fake Algebra examples", "no hard-coded fake dates/times", "native widgets use reviewed planner data", "templates are student-outcome first", "daily widget stack explains student value"],
     "automation": "static",
-    "evidence": ["MoreScreen native WidgetKit copy", "student widget template names", "daily widget stack copy", "native widget loop copy", "WidgetPreviewCard status text", "basic preset save controls", "no sample school text"],
+    "evidence": ["MoreScreen native WidgetKit copy", "student widget template names", "daily widget stack copy", "native widget loop copy", "WidgetPreviewCard status text", "native preset save controls", "no sample school text"],
     "failureMeans": "Fake controls create trust debt and App Store review risk."
   },
   {

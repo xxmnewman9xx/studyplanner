@@ -14,7 +14,7 @@ Run StudyPlanner like a product review board would: inspect the highest-value sc
 - **Immediate clarity**: user understands what to do in 5 seconds.
 - **Premium feel**: materials, hierarchy, spacing, typography, and dark/light contrast feel app-store-grade.
 - **Retention leverage**: screen creates a reason to return tomorrow.
-- **Monetization honesty**: Free is useful; Plus clearly unlocks leverage/identity/automation.
+- **Monetization honesty**: Included native behavior is clear; Plus unlocks leverage/identity/automation.
 - **Data trust**: no fake widget claims, no fake native behavior, no unexplained AI magic.
 - **Engineering safety**: TypeScript and full release QA pass.
 
@@ -37,7 +37,7 @@ Run StudyPlanner like a product review board would: inspect the highest-value sc
 16. Added explicit install copy that avoids false native auto-rotation claims.
 17. Added “preview source” text to reinforce real planner data.
 18. Added selected preset/moment label in readiness card.
-19. Added smoother premium boundary copy: Free native widgets, Plus advanced systems.
+19. Added smoother premium boundary copy: native Today/Upcoming widgets, Plus advanced systems.
 20. Added this repeatable simulator review cycle document for future QA.
 
 ## 10/10 acceptance bar

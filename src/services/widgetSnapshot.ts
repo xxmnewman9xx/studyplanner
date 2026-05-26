@@ -145,7 +145,7 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         headline: "Today",
         value: "Import",
         detail: "Demo work stays inside the app",
-        footnote: "Scan a real syllabus for widgets",
+        footnote: "Import a real syllabus for widgets",
         ...todayStyle
       }),
       upcoming: emptySnapshot({
@@ -180,7 +180,7 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         headline: "Upcoming",
         value: "Class",
         detail: "Add a class first",
-        footnote: "Then add or scan homework",
+        footnote: "Then add or import homework",
         ...upcomingStyle
       })
     };
@@ -189,7 +189,7 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
   if (assignments.length === 0) {
     const state = hasReviewedSyllabus ? "no_assignments" : "no_reviewed_syllabus";
     const detail = hasReviewedSyllabus ? "No homework in your plan yet" : "Review a syllabus first";
-    const footnote = hasReviewedSyllabus ? "Add homework when it appears" : "Scans stay private until approved";
+    const footnote = hasReviewedSyllabus ? "Add homework when it appears" : "Imports stay private until approved";
 
     return {
       today: emptySnapshot({
@@ -223,7 +223,7 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         state: "needs_review",
         headline: "Today",
         value: String(reviewCount),
-        detail: "Check scanned dates",
+        detail: "Check imported dates",
         footnote: "Unreviewed work stays out of widgets",
         ...todayStyle,
         accentColor: "#F59E0B"
@@ -243,8 +243,10 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
   }
 
   const nextUpcoming = upcoming[0];
-  const todayAccent = privacyMode ? todayStyle.accentColor : colorForAssignment(dueToday[0] || nextUpcoming, input.courses, todayStyle.accentColor);
-  const upcomingAccent = privacyMode ? upcomingStyle.accentColor : colorForAssignment(nextUpcoming, input.courses, upcomingStyle.accentColor);
+  const todayAccent =
+    todayPreset || privacyMode ? todayStyle.accentColor : colorForAssignment(dueToday[0] || nextUpcoming, input.courses, todayStyle.accentColor);
+  const upcomingAccent =
+    upcomingPreset || privacyMode ? upcomingStyle.accentColor : colorForAssignment(nextUpcoming, input.courses, upcomingStyle.accentColor);
   const overdueToday = dueToday.filter((assignment) => daysUntil(assignment.dueAt, now) < 0).length;
 
   return {
@@ -308,11 +310,11 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
             headline: "Upcoming",
             value: "Clear",
             detail: "No upcoming deadlines",
-            footnote: reviewCount > 0 ? "Review scanned items when ready" : "Add homework when it appears",
+            footnote: reviewCount > 0 ? "Review imported items when ready" : "Add homework when it appears",
             ...upcomingStyle,
             signalLabel: "Clear week",
             metricLabel: reviewCount > 0 ? `${reviewCount} to review` : "No open work",
-            nextLabel: reviewCount > 0 ? "Approve scanned items first" : "Add homework when it appears",
+            nextLabel: reviewCount > 0 ? "Approve imported items first" : "Add homework when it appears",
             timelineLabel: "Upcoming"
           })
   };

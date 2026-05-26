@@ -9,7 +9,7 @@ Goal: dramatically improve StudyPlanner without losing the strong core already b
 4. Theme state should affect hero cards, glass cards, buttons, tabs, widgets.
 5. Widget Studio needs live preview first, controls second.
 6. Widget Studio preview should remain visible while editing.
-7. Widget Studio should explain free vs Plus without sounding punitive.
+7. Widget Studio should explain included native behavior vs Plus without sounding punitive.
 8. Native widgets should default to Liquid Glass.
 9. In-app widget previews should look like iOS 26 Liquid Glass surfaces.
 10. Widget editor should feel hands-on, not settings-table-like.
@@ -31,7 +31,7 @@ Goal: dramatically improve StudyPlanner without losing the strong core already b
 26. Import trust remains core; do not hide review.
 27. Scanner promise should stay grounded: AI help, student control.
 28. Premium should avoid gating core trust/review.
-29. Free tier should keep basic Today/Upcoming widgets.
+29. Included native support should keep Today/Upcoming widgets truthful.
 30. Plus should own advanced personalization and retention depth.
 31. Liquid Glass should be consistent across cards and widgets.
 32. Dark themes should feel intentional, not just inverted.
@@ -72,7 +72,7 @@ Goal: dramatically improve StudyPlanner without losing the strong core already b
 67. Improve screenshot QA after every product cycle.
 68. Run simulator in light + at least one premium theme.
 69. Score Today, Import, Focus, Widget Studio, Paywall.
-70. Check no visual regressions in free mode.
+70. Check no visual regressions in hard-paywall mode.
 71. Check premium locked mode clarity.
 72. Check Widget Studio with zero assignments.
 73. Check Widget Studio with demo data.
@@ -106,6 +106,6 @@ Goal: dramatically improve StudyPlanner without losing the strong core already b
 
 ## Highest-leverage implementation this cycle
 1. Premium high-impact app themes: new Aura, Rose, Graphite, Solar palettes + stronger theme overrides.
-2. Theme picker becomes a Plus-feature surface with stronger copy and visible Free/Plus labels.
+2. Theme picker becomes a Plus-feature surface with stronger copy and visible Included/Plus labels.
 3. Widget Studio copy/control update: live preview framing, Liquid Glass background label, save live widget preset.
 4. Focus Mode optional class notes: a lightweight retention loop that saves notes with study sessions and shows recent notes.

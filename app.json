@@ -16,7 +16,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.mattnewman.studyplanner",
       "icon": "./assets/app/study-planner-icon.png",
-      "buildNumber": "25",
+      "buildNumber": "28",
       "entitlements": {
         "com.apple.security.application-groups": [
           "group.com.mattnewman.studyplanner"
@@ -24,8 +24,8 @@
       },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSCameraUsageDescription": "Scan syllabus pages so StudyPlanner can help create your course plan.",
-        "NSPhotoLibraryUsageDescription": "Choose syllabus screenshots or photos to import into your plan.",
+        "NSCameraUsageDescription": "Use the camera only when image import is enabled to attach syllabus pages for manual review.",
+        "NSPhotoLibraryUsageDescription": "Use the photo library only when image import is enabled to attach syllabus images for manual review.",
         "NSCalendarsFullAccessUsageDescription": "Sync assignment and exam dates to your calendar.",
         "NSUserNotificationsUsageDescription": "Send calm reminders before deadlines, exams, and classes."
       }

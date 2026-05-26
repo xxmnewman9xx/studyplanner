@@ -33,6 +33,7 @@ import {
 import { supportsSyllabusImageParsing } from "../services/syllabusParser";
 import { buildStudyPlannerWidgetSnapshots } from "../services/widgetSnapshot";
 import { MotionFadeUpView } from "../motion";
+import { useI18n } from "../i18n";
 
 export type OnboardingDestination = "paywall";
 
@@ -49,6 +50,9 @@ type SlideId = "scan" | "review" | "calendar" | "today" | "classes" | "focus" | 
 const slides: Array<{
   id: SlideId;
   eyebrow: string;
+  titleKey: string;
+  copyKey: string;
+  ctaKey?: string;
   title: string;
   copy: string;
   cta: string;
@@ -56,13 +60,17 @@ const slides: Array<{
   {
     id: "scan",
     eyebrow: "Scan",
+    titleKey: "onboarding.scan_title",
+    copyKey: "onboarding.scan_copy",
     title: "Turn a syllabus into a draft.",
-    copy: "PDFs or pasted syllabus text become organized coursework ready for review.",
+    copy: "AI-assisted text/PDF parsing or pasted syllabus text becomes organized coursework ready for review.",
     cta: "Next"
   },
   {
     id: "review",
     eyebrow: "Review",
+    titleKey: "onboarding.review_title",
+    copyKey: "onboarding.review_copy",
     title: "Approve work before it touches your plan.",
     copy: "Every deadline stays visible, editable, and confirmable first.",
     cta: "Next"
@@ -70,6 +78,8 @@ const slides: Array<{
   {
     id: "calendar",
     eyebrow: "Calendar",
+    titleKey: "onboarding.calendar_title",
+    copyKey: "onboarding.calendar_copy",
     title: "See the semester shape.",
     copy: "Workload, due days, and progress stay visible without another spreadsheet.",
     cta: "Next"
@@ -77,6 +87,8 @@ const slides: Array<{
   {
     id: "today",
     eyebrow: "Today",
+    titleKey: "onboarding.today_title",
+    copyKey: "onboarding.today_copy",
     title: "Know what to do first.",
     copy: "One next task, a quick capture box, and progress live in the daily command center.",
     cta: "Next"
@@ -84,6 +96,8 @@ const slides: Array<{
   {
     id: "classes",
     eyebrow: "Classes",
+    titleKey: "onboarding.classes_title",
+    copyKey: "onboarding.classes_copy",
     title: "Keep each course useful.",
     copy: "Open work, notes, meetings, and class progress stay grouped by course.",
     cta: "Next"
@@ -91,6 +105,8 @@ const slides: Array<{
   {
     id: "focus",
     eyebrow: "Focus",
+    titleKey: "onboarding.focus_title",
+    copyKey: "onboarding.focus_copy",
     title: "Start the next task.",
     copy: "Today points to the work, then Focus logs the session and moves progress.",
     cta: "Next"
@@ -98,6 +114,9 @@ const slides: Array<{
   {
     id: "widgets",
     eyebrow: "Widgets",
+    titleKey: "onboarding.widgets_title",
+    copyKey: "onboarding.widgets_copy",
+    ctaKey: "onboarding.final_cta",
     title: "Make the plan feel like yours.",
     copy: "Choose a theme and put real reviewed work on your Home Screen.",
     cta: "Continue to Plus"
@@ -122,6 +141,7 @@ const previewNow = new Date("2026-05-25T09:41:00");
 
 export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScreenProps) {
   const { theme } = useAppTheme();
+  const { t } = useI18n();
   const { colors } = theme;
   const styles = createStyles(theme);
   const [index, setIndex] = useState(() => normalizedIndex(initialIndex));
@@ -211,9 +231,9 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
             </View>
             <Text style={styles.stepText}>{index + 1} / {slides.length}</Text>
           </View>
-          <Text style={styles.eyebrow}>{slide.eyebrow}</Text>
-          <Text style={styles.title}>{slide.title}</Text>
-          <Text style={styles.copy}>{slide.copy}</Text>
+          <Text style={styles.eyebrow}>{t(`tabs.${slide.id === "calendar" ? "calendar" : slide.id}`, slide.eyebrow)}</Text>
+          <Text style={styles.title}>{t(slide.titleKey, slide.title)}</Text>
+          <Text style={styles.copy}>{t(slide.copyKey, slide.copy)}</Text>
         </GlassCard>
         </MotionFadeUpView>
 
@@ -251,7 +271,7 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
           ))}
         </View>
         <AppButton
-          label={slide.cta}
+          label={slide.ctaKey ? t(slide.ctaKey, slide.cta) : t("common.next", slide.cta)}
           icon={isFinal ? Crown : undefined}
           onPress={continueFlow}
         />

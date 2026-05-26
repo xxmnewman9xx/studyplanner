@@ -1,0 +1,842 @@
+{
+  "en-US": {
+    "direction": "ltr",
+    "brand_name": "StudyPlanner",
+    "brand_subtitle": "Syllabus AI",
+    "app": {
+      "loading": "Loading StudyPlanner"
+    },
+    "common": {
+      "next": "Next"
+    },
+    "tabs": {
+      "today": "Today",
+      "scan": "Scan",
+      "plan": "Plan",
+      "calendar": "Calendar",
+      "classes": "Classes",
+      "notes": "Notes",
+      "focus": "Focus",
+      "grades": "Grades",
+      "widgets": "Widgets",
+      "plus": "Plus"
+    },
+    "onboarding": {
+      "scan_title": "Turn a syllabus into a draft.",
+      "scan_copy": "AI-assisted imports can use camera photos, saved images, text-based PDFs, or pasted syllabus text when OCR is configured.",
+      "review_title": "Approve work before it touches your plan.",
+      "review_copy": "Every deadline stays visible, editable, and confirmable first.",
+      "calendar_title": "See the semester shape.",
+      "calendar_copy": "Workload, due days, and progress stay visible without another spreadsheet.",
+      "today_title": "Know what to do first.",
+      "today_copy": "One next task, quick capture, and progress live in the daily command center.",
+      "classes_title": "Keep each course useful.",
+      "classes_copy": "Open work, notes, meetings, and class progress stay grouped by course.",
+      "focus_title": "Start the next task.",
+      "focus_copy": "Today points to the work, then Focus logs the session and moves progress.",
+      "widgets_title": "Make the plan feel like yours.",
+      "widgets_copy": "Choose a theme and put real reviewed work on your Home Screen.",
+      "final_cta": "Continue to Plus"
+    },
+    "import": {
+      "title": "Turn school material into reviewed assignments.",
+      "subtitle": "AI-assisted text/PDF parsing or pasted syllabus text becomes reviewed assignments. Photo OCR is not enabled in this build.",
+      "subtitle_images": "AI-assisted imports can use camera photos, saved images, text-based PDFs, or pasted syllabus text when OCR is configured.",
+      "photo_disabled_title": "Photo scanning is not configured",
+      "photo_disabled_message": "Use a text-based PDF or paste syllabus text. Photo and image parsing stay off until real OCR is available.",
+      "review_work": "Review work",
+      "ready_to_add": "Ready to add to Today",
+      "no_silent_import": "No silent import"
+    },
+    "paywall": {
+      "title": "Plus for busy semesters.",
+      "subtitle": "Keep the full scan-to-plan workflow ready for a busy semester.",
+      "hard_subtitle": "Unlock AI-assisted syllabus imports, calendar planning, focus, widgets, reminders, and sync.",
+      "monthly": "StudyPlanner Plus Monthly",
+      "yearly": "StudyPlanner Plus Yearly",
+      "feature_scans": "More syllabus imports",
+      "feature_scans_detail": "AI-assisted imports can use camera photos, saved images, text-based PDFs, or pasted syllabus text when OCR is configured.",
+      "feature_widgets": "More widget styles",
+      "feature_widgets_detail": "Save real Today and Upcoming widget presets plus advanced in-app looks.",
+      "feature_focus": "Focus and progress tools",
+      "feature_focus_detail": "Start timed study sessions and keep completion feedback visible.",
+      "feature_calendar": "Reminders and calendar sync",
+      "feature_calendar_detail": "Send reviewed deadlines to device reminders and calendar.",
+      "restore": "Restore Purchases",
+      "terms": "Terms of Use (EULA)",
+      "privacy": "Privacy Policy"
+    },
+    "errors": {
+      "text_required": "Paste syllabus text or upload a readable text file.",
+      "pdf_text_required": "That PDF does not contain readable embedded text.",
+      "ocr_not_configured": "Image OCR is not configured. Use a text-based PDF or paste text.",
+      "parse_failed": "The import could not be read.",
+      "try_again": "Try Again"
+    },
+    "permissions": {
+      "camera": "Use the camera only when image import is enabled to attach syllabus pages for manual review.",
+      "photo_library": "Use the photo library only when image import is enabled to attach syllabus images for manual review.",
+      "calendar": "Sync assignment and exam dates to your calendar.",
+      "notifications": "Send calm reminders before deadlines, exams, and classes."
+    },
+    "widgets": {
+      "sync_after_load": "Native widgets sync after your planner loads."
+    }
+  },
+  "de": {
+    "direction": "ltr",
+    "brand_name": "StudyPlanner",
+    "brand_subtitle": "Syllabus AI",
+    "app": {
+      "loading": "StudyPlanner wird geladen"
+    },
+    "common": {
+      "next": "Weiter"
+    },
+    "tabs": {
+      "today": "Heute",
+      "scan": "Import",
+      "plan": "Plan",
+      "calendar": "Kalender",
+      "classes": "Kurse",
+      "notes": "Notizen",
+      "focus": "Fokus",
+      "grades": "Noten",
+      "widgets": "Widgets",
+      "plus": "Plus"
+    },
+    "onboarding": {
+      "scan_title": "Mach aus einem Syllabus einen Entwurf.",
+      "scan_copy": "KI-gestützte Importe können Kamera, gespeicherte Bilder, Text-PDFs oder eingefügten Text nutzen, wenn OCR eingerichtet ist.",
+      "review_title": "Bestätige Aufgaben, bevor sie in deinem Plan landen.",
+      "review_copy": "Jede Frist bleibt zuerst sichtbar, bearbeitbar und bestätigbar.",
+      "calendar_title": "Sieh die Form des Semesters.",
+      "calendar_copy": "Arbeitslast, Abgabetage und Fortschritt bleiben ohne weitere Tabelle sichtbar.",
+      "today_title": "Wisse, womit du anfangen sollst.",
+      "today_copy": "Die nächste Aufgabe, schnelle Erfassung und Fortschritt leben in Heute.",
+      "classes_title": "Halte jeden Kurs nützlich.",
+      "classes_copy": "Offene Arbeit, Notizen, Termine und Fortschritt bleiben nach Kurs sortiert.",
+      "focus_title": "Starte die nächste Aufgabe.",
+      "focus_copy": "Heute zeigt die Arbeit, Fokus protokolliert die Sitzung und bewegt Fortschritt.",
+      "widgets_title": "Mach deinen Plan zu deinem eigenen.",
+      "widgets_copy": "Wähle ein Theme und lege echte geprüfte Arbeit auf den Home-Bildschirm.",
+      "final_cta": "Weiter zu Plus"
+    },
+    "import": {
+      "title": "Mach aus Schulmaterial geprüfte Aufgaben.",
+      "subtitle": "KI-gestützte Text/PDF-Analyse oder eingefügter Syllabus-Text wird zu geprüften Aufgaben. Foto-OCR ist in diesem Build nicht aktiv.",
+      "subtitle_images": "KI-gestützte Importe können Kamera, gespeicherte Bilder, Text-PDFs oder eingefügten Text nutzen, wenn OCR eingerichtet ist.",
+      "photo_disabled_title": "Fotoscans sind nicht eingerichtet",
+      "photo_disabled_message": "Nutze ein textbasiertes PDF oder füge Syllabus-Text ein. Foto- und Bildanalyse bleiben aus, bis echte OCR verfügbar ist.",
+      "review_work": "Aufgaben prüfen",
+      "ready_to_add": "Bereit für Heute",
+      "no_silent_import": "Kein stiller Import"
+    },
+    "paywall": {
+      "title": "Plus für volle Semester.",
+      "subtitle": "Halte den kompletten Import-bis-Plan-Ablauf für ein volles Semester bereit.",
+      "hard_subtitle": "Schalte KI-gestützte Syllabus-Importe, Kalenderplanung, Fokus, Widgets, Erinnerungen und Sync frei.",
+      "monthly": "StudyPlanner Plus monatlich",
+      "yearly": "StudyPlanner Plus jährlich",
+      "feature_scans": "Mehr Syllabus-Importe",
+      "feature_scans_detail": "KI-gestützte Importe können Kamera, gespeicherte Bilder, Text-PDFs oder eingefügten Text nutzen, wenn OCR eingerichtet ist.",
+      "feature_widgets": "Mehr Widget-Stile",
+      "feature_widgets_detail": "Speichere echte Heute- und Kommende-Widgets plus erweiterte App-Looks.",
+      "feature_focus": "Fokus- und Fortschrittstools",
+      "feature_focus_detail": "Starte Lernsitzungen mit Timer und behalte Fortschritt sichtbar.",
+      "feature_calendar": "Erinnerungen und Kalender-Sync",
+      "feature_calendar_detail": "Sende geprüfte Fristen an Geräteerinnerungen und Kalender.",
+      "restore": "Käufe wiederherstellen",
+      "terms": "Nutzungsbedingungen (EULA)",
+      "privacy": "Datenschutzrichtlinie"
+    },
+    "errors": {
+      "text_required": "Füge Syllabus-Text ein oder lade eine lesbare Textdatei hoch.",
+      "pdf_text_required": "Dieses PDF enthält keinen lesbaren eingebetteten Text.",
+      "ocr_not_configured": "Bild-OCR ist nicht eingerichtet. Nutze ein textbasiertes PDF oder füge Text ein.",
+      "parse_failed": "Der Import konnte nicht gelesen werden.",
+      "try_again": "Erneut versuchen"
+    },
+    "permissions": {
+      "camera": "Kamera nur verwenden, wenn Bildimport aktiviert ist, um Syllabus-Seiten zur manuellen Prüfung anzuhängen.",
+      "photo_library": "Fotomediathek nur verwenden, wenn Bildimport aktiviert ist, um Syllabus-Bilder zur manuellen Prüfung anzuhängen.",
+      "calendar": "Aufgaben- und Prüfungstermine mit deinem Kalender synchronisieren.",
+      "notifications": "Ruhige Erinnerungen vor Abgaben, Prüfungen und Kursen senden."
+    },
+    "widgets": {
+      "sync_after_load": "Native Widgets werden synchronisiert, nachdem dein Plan geladen ist."
+    }
+  },
+  "es": {
+    "direction": "ltr",
+    "brand_name": "StudyPlanner",
+    "brand_subtitle": "Syllabus AI",
+    "app": {
+      "loading": "Cargando StudyPlanner"
+    },
+    "common": {
+      "next": "Siguiente"
+    },
+    "tabs": {
+      "today": "Hoy",
+      "scan": "Importar",
+      "plan": "Plan",
+      "calendar": "Calendario",
+      "classes": "Clases",
+      "notes": "Notas",
+      "focus": "Enfoque",
+      "grades": "Notas",
+      "widgets": "Widgets",
+      "plus": "Plus"
+    },
+    "onboarding": {
+      "scan_title": "Convierte un sílabo en un borrador.",
+      "scan_copy": "Las importaciones con IA pueden usar cámara, imágenes guardadas, PDF con texto o texto pegado cuando el OCR esté configurado.",
+      "review_title": "Aprueba el trabajo antes de añadirlo a tu plan.",
+      "review_copy": "Cada fecha queda visible, editable y confirmable antes de entrar al plan.",
+      "calendar_title": "Mira la forma del semestre.",
+      "calendar_copy": "Carga de trabajo, fechas y progreso quedan visibles sin otra hoja de cálculo.",
+      "today_title": "Sabe qué hacer primero.",
+      "today_copy": "La próxima tarea, captura rápida y progreso viven en Hoy.",
+      "classes_title": "Mantén útil cada clase.",
+      "classes_copy": "Trabajo abierto, notas, horarios y progreso quedan agrupados por clase.",
+      "focus_title": "Empieza la próxima tarea.",
+      "focus_copy": "Hoy señala el trabajo; Enfoque registra la sesión y mueve el progreso.",
+      "widgets_title": "Haz que el plan se sienta tuyo.",
+      "widgets_copy": "Elige un tema y pon trabajo real revisado en tu pantalla de inicio.",
+      "final_cta": "Continuar a Plus"
+    },
+    "import": {
+      "title": "Convierte material de clase en tareas revisadas.",
+      "subtitle": "El análisis con IA de texto/PDF o el texto pegado se convierte en tareas revisadas. El OCR de fotos no está activo en este build.",
+      "subtitle_images": "Las importaciones con IA pueden usar cámara, imágenes guardadas, PDF con texto o texto pegado cuando el OCR esté configurado.",
+      "photo_disabled_title": "El escaneo de fotos no está configurado",
+      "photo_disabled_message": "Usa un PDF con texto o pega el texto del sílabo. El análisis de fotos e imágenes queda desactivado hasta que haya OCR real.",
+      "review_work": "Revisar tareas",
+      "ready_to_add": "Listo para añadir a Hoy",
+      "no_silent_import": "Sin importación automática"
+    },
+    "paywall": {
+      "title": "Plus para semestres intensos.",
+      "subtitle": "Mantén listo el flujo completo de importar, revisar y planificar.",
+      "hard_subtitle": "Desbloquea importaciones de sílabos con IA, calendario, enfoque, widgets, recordatorios y sincronización.",
+      "monthly": "StudyPlanner Plus mensual",
+      "yearly": "StudyPlanner Plus anual",
+      "feature_scans": "Más importaciones de sílabos",
+      "feature_scans_detail": "Las importaciones con IA pueden usar cámara, imágenes guardadas, PDF con texto o texto pegado cuando el OCR esté configurado.",
+      "feature_widgets": "Más estilos de widgets",
+      "feature_widgets_detail": "Guarda widgets reales de Hoy y Próximo, además de estilos avanzados dentro de la app.",
+      "feature_focus": "Herramientas de enfoque y progreso",
+      "feature_focus_detail": "Inicia sesiones cronometradas y mantén visible el progreso.",
+      "feature_calendar": "Recordatorios y sincronización de calendario",
+      "feature_calendar_detail": "Envía fechas revisadas a recordatorios y calendario del dispositivo.",
+      "restore": "Restaurar compras",
+      "terms": "Términos de uso (EULA)",
+      "privacy": "Política de privacidad"
+    },
+    "errors": {
+      "text_required": "Pega texto del sílabo o sube un archivo de texto legible.",
+      "pdf_text_required": "Ese PDF no contiene texto incrustado legible.",
+      "ocr_not_configured": "El OCR de imágenes no está configurado. Usa un PDF con texto o pega texto.",
+      "parse_failed": "No se pudo leer la importación.",
+      "try_again": "Intentar de nuevo"
+    },
+    "permissions": {
+      "camera": "Usar la cámara solo cuando la importación de imágenes esté activada para adjuntar páginas del sílabo para revisión manual.",
+      "photo_library": "Usar la fototeca solo cuando la importación de imágenes esté activada para adjuntar imágenes del sílabo para revisión manual.",
+      "calendar": "Sincroniza fechas de tareas y exámenes con tu calendario.",
+      "notifications": "Envía recordatorios tranquilos antes de entregas, exámenes y clases."
+    },
+    "widgets": {
+      "sync_after_load": "Los widgets nativos se sincronizan cuando carga tu plan."
+    }
+  },
+  "fr": {
+    "direction": "ltr",
+    "brand_name": "StudyPlanner",
+    "brand_subtitle": "Syllabus AI",
+    "app": {
+      "loading": "Chargement de StudyPlanner"
+    },
+    "common": {
+      "next": "Suivant"
+    },
+    "tabs": {
+      "today": "Aujourd'hui",
+      "scan": "Importer",
+      "plan": "Plan",
+      "calendar": "Calendrier",
+      "classes": "Cours",
+      "notes": "Notes",
+      "focus": "Focus",
+      "grades": "Notes",
+      "widgets": "Widgets",
+      "plus": "Plus"
+    },
+    "onboarding": {
+      "scan_title": "Transforme un syllabus en brouillon.",
+      "scan_copy": "Les imports assistés par IA peuvent utiliser caméra, images, PDF textuels ou texte collé quand l'OCR est configuré.",
+      "review_title": "Valide chaque élément avant de l'ajouter au plan.",
+      "review_copy": "Chaque échéance reste visible, modifiable et confirmable d'abord.",
+      "calendar_title": "Vois la forme du semestre.",
+      "calendar_copy": "Charge de travail, jours d'échéance et progrès restent visibles sans autre tableur.",
+      "today_title": "Sais quoi faire en premier.",
+      "today_copy": "La prochaine tâche, la capture rapide et le progrès vivent dans Aujourd'hui.",
+      "classes_title": "Garde chaque cours utile.",
+      "classes_copy": "Travail ouvert, notes, horaires et progression restent regroupés par cours.",
+      "focus_title": "Lance la prochaine tâche.",
+      "focus_copy": "Aujourd'hui indique le travail; Focus enregistre la session et avance le progrès.",
+      "widgets_title": "Adapte le plan à ta façon de travailler.",
+      "widgets_copy": "Choisis un thème et place le vrai travail validé sur l'écran d'accueil.",
+      "final_cta": "Continuer vers Plus"
+    },
+    "import": {
+      "title": "Transforme les documents de cours en devoirs validés.",
+      "subtitle": "L'analyse IA de texte/PDF ou le texte collé devient des devoirs validés. L'OCR photo n'est pas actif dans ce build.",
+      "subtitle_images": "Les imports assistés par IA peuvent utiliser caméra, images, PDF textuels ou texte collé quand l'OCR est configuré.",
+      "photo_disabled_title": "Le scan photo n'est pas configuré",
+      "photo_disabled_message": "Utilise un PDF avec texte ou colle le texte du syllabus. L'analyse des photos et images reste désactivée tant qu'un vrai OCR n'est pas disponible.",
+      "review_work": "Vérifier le travail",
+      "ready_to_add": "Prêt pour Aujourd'hui",
+      "no_silent_import": "Aucun ajout sans validation"
+    },
+    "paywall": {
+      "title": "Plus pour les semestres chargés.",
+      "subtitle": "Garde le parcours importation, vérification et planning prêt quand les cours s'accélèrent.",
+      "hard_subtitle": "Déverrouille les imports de syllabus assistés par IA, calendrier, focus, widgets, rappels et synchronisation.",
+      "monthly": "StudyPlanner Plus mensuel",
+      "yearly": "StudyPlanner Plus annuel",
+      "feature_scans": "Plus d'importations de syllabus",
+      "feature_scans_detail": "Les imports assistés par IA peuvent utiliser caméra, images, PDF textuels ou texte collé quand l'OCR est configuré.",
+      "feature_widgets": "Plus de styles de widgets",
+      "feature_widgets_detail": "Enregistre de vrais widgets Aujourd'hui et À venir plus des styles avancés dans l'app.",
+      "feature_focus": "Outils de concentration et de suivi",
+      "feature_focus_detail": "Lance des sessions chronométrées et garde le progrès visible.",
+      "feature_calendar": "Rappels et synchronisation calendrier",
+      "feature_calendar_detail": "Envoie les échéances validées aux rappels et au calendrier de l'appareil.",
+      "restore": "Restaurer les achats",
+      "terms": "Conditions d'utilisation (EULA)",
+      "privacy": "Politique de confidentialité"
+    },
+    "errors": {
+      "text_required": "Colle du texte de syllabus ou importe un fichier texte lisible.",
+      "pdf_text_required": "Ce PDF ne contient pas de texte intégré lisible.",
+      "ocr_not_configured": "L'OCR d'image n'est pas configuré. Utilise un PDF textuel ou colle du texte.",
+      "parse_failed": "L'importation n'a pas pu être lue.",
+      "try_again": "Réessayer"
+    },
+    "permissions": {
+      "camera": "Utiliser l'appareil photo uniquement si l'import d'images est activé afin de joindre des pages de syllabus pour vérification manuelle.",
+      "photo_library": "Utiliser la photothèque uniquement si l'import d'images est activé afin de joindre des images de syllabus pour vérification manuelle.",
+      "calendar": "Synchroniser les dates de devoirs et d'examens avec ton calendrier.",
+      "notifications": "Envoyer des rappels calmes avant les échéances, examens et cours."
+    },
+    "widgets": {
+      "sync_after_load": "Les widgets natifs se synchronisent après le chargement du planning."
+    }
+  },
+  "pt-BR": {
+    "direction": "ltr",
+    "brand_name": "StudyPlanner",
+    "brand_subtitle": "Syllabus AI",
+    "app": {
+      "loading": "Carregando StudyPlanner"
+    },
+    "common": {
+      "next": "Avançar"
+    },
+    "tabs": {
+      "today": "Hoje",
+      "scan": "Importar",
+      "plan": "Plano",
+      "calendar": "Calendário",
+      "classes": "Aulas",
+      "notes": "Notas",
+      "focus": "Foco",
+      "grades": "Notas",
+      "widgets": "Widgets",
+      "plus": "Plus"
+    },
+    "onboarding": {
+      "scan_title": "Transforme um plano de curso em rascunho.",
+      "scan_copy": "Importações com IA podem usar câmera, imagens salvas, PDFs com texto ou texto colado quando o OCR estiver configurado.",
+      "review_title": "Aprove tudo antes de entrar no seu plano.",
+      "review_copy": "Cada prazo fica visível, editável e confirmável antes de entrar no plano.",
+      "calendar_title": "Veja o formato do semestre.",
+      "calendar_copy": "Carga de trabalho, dias de entrega e progresso ficam visíveis sem outra planilha.",
+      "today_title": "Saiba por onde começar.",
+      "today_copy": "Próxima tarefa, captura rápida e progresso ficam no Hoje.",
+      "classes_title": "Mantenha cada aula útil.",
+      "classes_copy": "Trabalhos, notas, horários e progresso ficam agrupados por aula.",
+      "focus_title": "Comece a próxima tarefa.",
+      "focus_copy": "Hoje aponta o trabalho; Foco registra a sessão e move o progresso.",
+      "widgets_title": "Deixe o plano com a sua cara.",
+      "widgets_copy": "Escolha um tema e coloque trabalho real revisado na tela inicial.",
+      "final_cta": "Continuar para o Plus"
+    },
+    "import": {
+      "title": "Transforme material de aula em tarefas revisadas.",
+      "subtitle": "Análise com IA de texto/PDF ou texto colado vira tarefas revisadas. OCR de fotos não está ativo neste build.",
+      "subtitle_images": "Importações com IA podem usar câmera, imagens salvas, PDFs com texto ou texto colado quando o OCR estiver configurado.",
+      "photo_disabled_title": "Leitura de fotos não configurada",
+      "photo_disabled_message": "Use um PDF com texto ou cole o conteúdo do plano de curso. Fotos e imagens ficam desativadas até existir OCR real.",
+      "review_work": "Revisar tarefas",
+      "ready_to_add": "Pronto para adicionar ao Hoje",
+      "no_silent_import": "Nada entra sem revisão"
+    },
+    "paywall": {
+      "title": "Plus para semestres puxados.",
+      "subtitle": "Mantenha pronto o fluxo completo de importar, revisar e planejar.",
+      "hard_subtitle": "Desbloqueie importações de ementa com IA, calendário, foco, widgets, lembretes e sincronização.",
+      "monthly": "StudyPlanner Plus mensal",
+      "yearly": "StudyPlanner Plus anual",
+      "feature_scans": "Mais importações de planos de curso",
+      "feature_scans_detail": "Importações com IA podem usar câmera, imagens salvas, PDFs com texto ou texto colado quando o OCR estiver configurado.",
+      "feature_widgets": "Mais estilos de widgets",
+      "feature_widgets_detail": "Salve widgets reais de Hoje e Próximo, além de estilos avançados no app.",
+      "feature_focus": "Ferramentas de foco e progresso",
+      "feature_focus_detail": "Inicie sessões com timer e mantenha o progresso visível.",
+      "feature_calendar": "Lembretes e sincronização com calendário",
+      "feature_calendar_detail": "Envie prazos revisados para lembretes e calendário do aparelho.",
+      "restore": "Restaurar compras",
+      "terms": "Termos de uso (EULA)",
+      "privacy": "Política de privacidade"
+    },
+    "errors": {
+      "text_required": "Cole texto do plano de curso ou envie um arquivo de texto legível.",
+      "pdf_text_required": "Esse PDF não contém texto incorporado legível.",
+      "ocr_not_configured": "OCR de imagem não está configurado. Use um PDF com texto ou cole texto.",
+      "parse_failed": "Não foi possível ler a importação.",
+      "try_again": "Tentar de novo"
+    },
+    "permissions": {
+      "camera": "Usar a câmera somente quando a importação de imagens estiver ativada para anexar páginas da ementa para revisão manual.",
+      "photo_library": "Usar a fototeca somente quando a importação de imagens estiver ativada para anexar imagens da ementa para revisão manual.",
+      "calendar": "Sincronizar datas de tarefas e provas com seu calendário.",
+      "notifications": "Enviar lembretes tranquilos antes de prazos, provas e aulas."
+    },
+    "widgets": {
+      "sync_after_load": "Widgets nativos sincronizam depois que seu plano carrega."
+    }
+  },
+  "ar": {
+    "direction": "rtl",
+    "brand_name": "StudyPlanner",
+    "brand_subtitle": "Syllabus AI",
+    "app": {
+      "loading": "جارٍ تحميل StudyPlanner"
+    },
+    "common": {
+      "next": "التالي"
+    },
+    "tabs": {
+      "today": "اليوم",
+      "scan": "استيراد",
+      "plan": "الخطة",
+      "calendar": "التقويم",
+      "classes": "المواد",
+      "notes": "ملاحظات",
+      "focus": "تركيز",
+      "grades": "الدرجات",
+      "widgets": "الويدجت",
+      "plus": "Plus"
+    },
+    "onboarding": {
+      "scan_title": "حوّل خطة المقرر إلى مسودة.",
+      "scan_copy": "يمكن للاستيراد بمساعدة الذكاء الاصطناعي استخدام الكاميرا أو الصور أو PDF النصية أو النص الملصق عند إعداد OCR.",
+      "review_title": "راجِع العمل قبل إضافته إلى خطتك.",
+      "review_copy": "يبقى كل موعد مرئياً وقابلاً للتعديل والتأكيد أولاً.",
+      "calendar_title": "شاهد شكل الفصل الدراسي.",
+      "calendar_copy": "تبقى كثافة العمل وأيام التسليم والتقدم واضحة بلا جدول آخر.",
+      "today_title": "اعرف ما تبدأ به أولاً.",
+      "today_copy": "المهمة التالية والإضافة السريعة والتقدم تظهر في شاشة اليوم.",
+      "classes_title": "اجعل كل مادة مفيدة.",
+      "classes_copy": "الأعمال المفتوحة والملاحظات والمواعيد والتقدم تبقى مجمعة حسب المادة.",
+      "focus_title": "ابدأ المهمة التالية.",
+      "focus_copy": "اليوم يشير إلى العمل، والتركيز يسجل الجلسة ويحرّك التقدم.",
+      "widgets_title": "اجعل الخطة مناسبة لطريقتك.",
+      "widgets_copy": "اختر مظهراً وضع العمل الحقيقي المراجع على الشاشة الرئيسية.",
+      "final_cta": "المتابعة إلى Plus"
+    },
+    "import": {
+      "title": "حوّل مواد الدراسة إلى واجبات تمت مراجعتها.",
+      "subtitle": "تحليل النص أو PDF بمساعدة الذكاء الاصطناعي، أو النص الملصق، يتحول إلى واجبات مراجعة. OCR للصور غير مفعّل في هذا الإصدار.",
+      "subtitle_images": "يمكن للاستيراد بمساعدة الذكاء الاصطناعي استخدام الكاميرا أو الصور أو PDF النصية أو النص الملصق عند إعداد OCR.",
+      "photo_disabled_title": "مسح الصور غير مفعّل",
+      "photo_disabled_message": "استخدم PDF يحتوي على نص أو ألصق نص خطة المقرر. تحليل الصور يبقى متوقفاً حتى يتوفر OCR حقيقي.",
+      "review_work": "مراجعة العمل",
+      "ready_to_add": "جاهز للإضافة إلى اليوم",
+      "no_silent_import": "لا إضافة بدون مراجعة"
+    },
+    "paywall": {
+      "title": "Plus للفصول المزدحمة.",
+      "subtitle": "احتفظ بسير العمل الكامل من الاستيراد إلى الخطة عندما تزداد الدراسة.",
+      "hard_subtitle": "افتح استيراد خطط المقررات بمساعدة الذكاء الاصطناعي، والتقويم، والتركيز، والويدجت، والتذكيرات، والمزامنة.",
+      "monthly": "StudyPlanner Plus شهري",
+      "yearly": "StudyPlanner Plus سنوي",
+      "feature_scans": "استيرادات أكثر لخطط المقررات",
+      "feature_scans_detail": "يمكن للاستيراد بمساعدة الذكاء الاصطناعي استخدام الكاميرا أو الصور أو PDF النصية أو النص الملصق عند إعداد OCR.",
+      "feature_widgets": "أنماط ويدجت أكثر",
+      "feature_widgets_detail": "احفظ ويدجت اليوم والقادم الحقيقية، إضافة إلى مظاهر متقدمة داخل التطبيق.",
+      "feature_focus": "أدوات تركيز وتقدم",
+      "feature_focus_detail": "ابدأ جلسات دراسة مؤقتة واجعل التقدم واضحاً.",
+      "feature_calendar": "تذكيرات ومزامنة التقويم",
+      "feature_calendar_detail": "أرسل المواعيد المراجعة إلى تذكيرات وتقويم الجهاز.",
+      "restore": "استعادة المشتريات",
+      "terms": "شروط الاستخدام (EULA)",
+      "privacy": "سياسة الخصوصية"
+    },
+    "errors": {
+      "text_required": "ألصق نص خطة المقرر أو ارفع ملفاً نصياً قابلاً للقراءة.",
+      "pdf_text_required": "هذا PDF لا يحتوي على نص مضمن قابل للقراءة.",
+      "ocr_not_configured": "OCR للصور غير مفعّل. استخدم PDF نصياً أو ألصق النص.",
+      "parse_failed": "تعذر قراءة الاستيراد.",
+      "try_again": "حاول مرة أخرى"
+    },
+    "permissions": {
+      "camera": "استخدام الكاميرا فقط عند تفعيل استيراد الصور لإرفاق صفحات المنهج للمراجعة اليدوية.",
+      "photo_library": "استخدام مكتبة الصور فقط عند تفعيل استيراد الصور لإرفاق صور المنهج للمراجعة اليدوية.",
+      "calendar": "مزامنة مواعيد الواجبات والاختبارات مع تقويمك.",
+      "notifications": "إرسال تذكيرات هادئة قبل المواعيد والاختبارات والحصص."
+    },
+    "widgets": {
+      "sync_after_load": "تتزامن الويدجت الأصلية بعد تحميل خطتك."
+    }
+  },
+  "hi": {
+    "direction": "ltr",
+    "brand_name": "StudyPlanner",
+    "brand_subtitle": "Syllabus AI",
+    "app": {
+      "loading": "StudyPlanner लोड हो रहा है"
+    },
+    "common": {
+      "next": "आगे"
+    },
+    "tabs": {
+      "today": "आज",
+      "scan": "इम्पोर्ट",
+      "plan": "प्लान",
+      "calendar": "कैलेंडर",
+      "classes": "क्लास",
+      "notes": "नोट्स",
+      "focus": "फोकस",
+      "grades": "ग्रेड",
+      "widgets": "विजेट",
+      "plus": "Plus"
+    },
+    "onboarding": {
+      "scan_title": "सिलेबस को ड्राफ्ट में बदलें।",
+      "scan_copy": "OCR configured होने पर AI-assisted imports camera, saved images, text PDFs या pasted text इस्तेमाल कर सकते हैं।",
+      "review_title": "प्लान में जोड़ने से पहले काम की पुष्टि करें।",
+      "review_copy": "हर डेडलाइन पहले दिखती, संपादित और पुष्टि की जा सकती है।",
+      "calendar_title": "सेमेस्टर का आकार देखें।",
+      "calendar_copy": "वर्कलोड, due days और प्रगति बिना दूसरी शीट के दिखते हैं।",
+      "today_title": "पहले क्या करना है, साफ देखें।",
+      "today_copy": "अगला काम, quick capture और progress आज की स्क्रीन में रहते हैं।",
+      "classes_title": "हर क्लास को उपयोगी रखें।",
+      "classes_copy": "Open work, notes, meetings और progress क्लास के हिसाब से grouped रहते हैं।",
+      "focus_title": "अगला काम शुरू करें।",
+      "focus_copy": "Today काम दिखाता है; Focus session log करता है और progress बढ़ाता है।",
+      "widgets_title": "प्लान को अपने तरीके का बनाएं।",
+      "widgets_copy": "Theme चुनें और reviewed work को Home Screen पर रखें।",
+      "final_cta": "Plus पर जाएं"
+    },
+    "import": {
+      "title": "क्लास सामग्री को समीक्षा की गई असाइनमेंट में बदलें।",
+      "subtitle": "AI-सहायता वाला टेक्स्ट/PDF parsing या चिपकाया गया text reviewed assignments बनाता है। इस build में photo OCR active नहीं है।",
+      "subtitle_images": "OCR configured होने पर AI-assisted imports camera, saved images, text PDFs या pasted text इस्तेमाल कर सकते हैं।",
+      "photo_disabled_title": "फोटो स्कैनिंग सेट नहीं है",
+      "photo_disabled_message": "टेक्स्ट वाला PDF इस्तेमाल करें या सिलेबस टेक्स्ट चिपकाएं। असली OCR आने तक फोटो और इमेज पार्सिंग बंद रहती है।",
+      "review_work": "काम की समीक्षा करें",
+      "ready_to_add": "आज में जोड़ने के लिए तैयार",
+      "no_silent_import": "बिना समीक्षा कुछ नहीं जुड़ता"
+    },
+    "paywall": {
+      "title": "व्यस्त सेमेस्टर के लिए Plus.",
+      "subtitle": "इम्पोर्ट से प्लान तक पूरा वर्कफ्लो तैयार रखें।",
+      "hard_subtitle": "AI-assisted syllabus imports, calendar planning, focus, widgets, reminders और sync unlock करें।",
+      "monthly": "StudyPlanner Plus मासिक",
+      "yearly": "StudyPlanner Plus वार्षिक",
+      "feature_scans": "अधिक सिलेबस इम्पोर्ट",
+      "feature_scans_detail": "OCR configured होने पर AI-assisted imports camera, saved images, text PDFs या pasted text इस्तेमाल कर सकते हैं।",
+      "feature_widgets": "अधिक विजेट स्टाइल",
+      "feature_widgets_detail": "Real Today और Upcoming widgets के presets, साथ में advanced in-app looks save करें।",
+      "feature_focus": "फोकस और प्रगति टूल",
+      "feature_focus_detail": "Timed study sessions शुरू करें और progress visible रखें।",
+      "feature_calendar": "रिमाइंडर और कैलेंडर सिंक",
+      "feature_calendar_detail": "Reviewed deadlines को device reminders और calendar में भेजें।",
+      "restore": "खरीदारी बहाल करें",
+      "terms": "उपयोग की शर्तें (EULA)",
+      "privacy": "गोपनीयता नीति"
+    },
+    "errors": {
+      "text_required": "सिलेबस टेक्स्ट चिपकाएं या पढ़ने योग्य टेक्स्ट फाइल अपलोड करें।",
+      "pdf_text_required": "इस PDF में पढ़ने योग्य एम्बेडेड टेक्स्ट नहीं है।",
+      "ocr_not_configured": "इमेज OCR सेट नहीं है। टेक्स्ट वाला PDF इस्तेमाल करें या टेक्स्ट चिपकाएं।",
+      "parse_failed": "इम्पोर्ट पढ़ा नहीं जा सका।",
+      "try_again": "फिर कोशिश करें"
+    },
+    "permissions": {
+      "camera": "इमेज इम्पोर्ट चालू होने पर ही कैमरा इस्तेमाल करें, ताकि मैन्युअल समीक्षा के लिए सिलेबस पेज जोड़े जा सकें।",
+      "photo_library": "इमेज इम्पोर्ट चालू होने पर ही फोटो लाइब्रेरी इस्तेमाल करें, ताकि मैन्युअल समीक्षा के लिए सिलेबस इमेज जोड़ी जा सकें।",
+      "calendar": "असाइनमेंट और परीक्षा की तारीखें अपने कैलेंडर से सिंक करें।",
+      "notifications": "डेडलाइन, परीक्षा और क्लास से पहले शांत रिमाइंडर भेजें।"
+    },
+    "widgets": {
+      "sync_after_load": "आपका प्लान लोड होने के बाद native widgets sync होते हैं।"
+    }
+  },
+  "ja": {
+    "direction": "ltr",
+    "brand_name": "StudyPlanner",
+    "brand_subtitle": "Syllabus AI",
+    "app": {
+      "loading": "StudyPlannerを読み込み中"
+    },
+    "common": {
+      "next": "次へ"
+    },
+    "tabs": {
+      "today": "今日",
+      "scan": "取込",
+      "plan": "計画",
+      "calendar": "カレンダー",
+      "classes": "授業",
+      "notes": "ノート",
+      "focus": "集中",
+      "grades": "成績",
+      "widgets": "ウィジェット",
+      "plus": "Plus"
+    },
+    "onboarding": {
+      "scan_title": "シラバスを下書きに変換。",
+      "scan_copy": "OCR設定時は、AI支援インポートでカメラ、保存画像、テキストPDF、貼り付けテキストを使えます。",
+      "review_title": "予定に入る前に内容を確認。",
+      "review_copy": "すべての締切は、先に表示・編集・確認できます。",
+      "calendar_title": "学期全体を見渡す。",
+      "calendar_copy": "負荷、締切日、進捗を別の表なしで確認できます。",
+      "today_title": "最初にやることがわかる。",
+      "today_copy": "次の課題、すばやい追加、進捗が今日の画面にまとまります。",
+      "classes_title": "各授業を使いやすく。",
+      "classes_copy": "未完了の課題、ノート、予定、進捗を授業ごとに整理します。",
+      "focus_title": "次の課題を始める。",
+      "focus_copy": "今日が作業を示し、集中がセッションを記録して進捗を動かします。",
+      "widgets_title": "自分に合う計画に整える。",
+      "widgets_copy": "テーマを選び、確認済みの実際の課題をホーム画面に置けます。",
+      "final_cta": "Plusへ進む"
+    },
+    "import": {
+      "title": "授業資料を確認済みの課題に変換。",
+      "subtitle": "AI支援のテキスト/PDF解析や貼り付けテキストを確認済み課題にします。このビルドでは写真OCRは有効ではありません。",
+      "subtitle_images": "OCR設定時は、AI支援インポートでカメラ、保存画像、テキストPDF、貼り付けテキストを使えます。",
+      "photo_disabled_title": "写真スキャンは未設定です",
+      "photo_disabled_message": "テキスト入りPDFを使うか、シラバス文を貼り付けてください。実際のOCRが使えるまで写真・画像解析はオフです。",
+      "review_work": "課題を確認",
+      "ready_to_add": "今日に追加できます",
+      "no_silent_import": "確認なしで追加しません"
+    },
+    "paywall": {
+      "title": "忙しい学期のためのPlus。",
+      "subtitle": "インポートから計画までの流れを、忙しい時期でも使えるようにします。",
+      "hard_subtitle": "AI支援のシラバス取り込み、カレンダー計画、集中、ウィジェット、リマインダー、同期を使えます。",
+      "monthly": "StudyPlanner Plus 月額",
+      "yearly": "StudyPlanner Plus 年額",
+      "feature_scans": "シラバスの追加インポート",
+      "feature_scans_detail": "OCR設定時は、AI支援インポートでカメラ、保存画像、テキストPDF、貼り付けテキストを使えます。",
+      "feature_widgets": "ウィジェットスタイルの追加",
+      "feature_widgets_detail": "実際の今日/今後ウィジェットのプリセットと、アプリ内の高度な見た目を保存。",
+      "feature_focus": "集中と進捗ツール",
+      "feature_focus_detail": "時間付きの学習セッションを始め、進捗を見える状態に保ちます。",
+      "feature_calendar": "リマインダーとカレンダー同期",
+      "feature_calendar_detail": "確認済みの締切をデバイスのリマインダーとカレンダーへ送ります。",
+      "restore": "購入を復元",
+      "terms": "利用規約（EULA）",
+      "privacy": "プライバシーポリシー"
+    },
+    "errors": {
+      "text_required": "シラバス文を貼り付けるか、読めるテキストファイルをアップロードしてください。",
+      "pdf_text_required": "このPDFには読み取れる埋め込みテキストがありません。",
+      "ocr_not_configured": "画像OCRは未設定です。テキスト入りPDFか貼り付けテキストを使ってください。",
+      "parse_failed": "インポートを読み取れませんでした。",
+      "try_again": "もう一度試す"
+    },
+    "permissions": {
+      "camera": "画像の取り込みが有効な場合のみ、手動確認用にシラバスページを添付するためカメラを使用します。",
+      "photo_library": "画像の取り込みが有効な場合のみ、手動確認用にシラバス画像を添付するため写真ライブラリを使用します。",
+      "calendar": "課題と試験の日付をカレンダーに同期します。",
+      "notifications": "締切、試験、授業の前に落ち着いたリマインダーを送ります。"
+    },
+    "widgets": {
+      "sync_after_load": "計画の読み込み後、ネイティブウィジェットが同期されます。"
+    }
+  },
+  "ko": {
+    "direction": "ltr",
+    "brand_name": "StudyPlanner",
+    "brand_subtitle": "Syllabus AI",
+    "app": {
+      "loading": "StudyPlanner 불러오는 중"
+    },
+    "common": {
+      "next": "다음"
+    },
+    "tabs": {
+      "today": "오늘",
+      "scan": "가져오기",
+      "plan": "계획",
+      "calendar": "캘린더",
+      "classes": "수업",
+      "notes": "노트",
+      "focus": "집중",
+      "grades": "성적",
+      "widgets": "위젯",
+      "plus": "Plus"
+    },
+    "onboarding": {
+      "scan_title": "강의계획서를 초안으로 바꾸세요.",
+      "scan_copy": "OCR이 설정되면 AI 지원 가져오기가 카메라, 저장 이미지, 텍스트 PDF, 붙여넣은 텍스트를 사용할 수 있습니다.",
+      "review_title": "계획에 들어가기 전에 먼저 확인하세요.",
+      "review_copy": "모든 마감일은 먼저 보이고, 편집하고, 확인할 수 있습니다.",
+      "calendar_title": "학기 흐름을 확인하세요.",
+      "calendar_copy": "업무량, 마감일, 진행 상황을 다른 스프레드시트 없이 볼 수 있습니다.",
+      "today_title": "먼저 할 일을 바로 확인하세요.",
+      "today_copy": "다음 과제, 빠른 입력, 진행 상황이 오늘 화면에 모입니다.",
+      "classes_title": "각 수업을 유용하게 유지하세요.",
+      "classes_copy": "열린 과제, 노트, 일정, 진행 상황을 수업별로 묶습니다.",
+      "focus_title": "다음 과제를 시작하세요.",
+      "focus_copy": "오늘이 할 일을 보여주고, 집중이 세션을 기록해 진행을 움직입니다.",
+      "widgets_title": "계획을 나에게 맞게 꾸미세요.",
+      "widgets_copy": "테마를 고르고 검토된 실제 과제를 홈 화면에 놓으세요.",
+      "final_cta": "Plus로 계속"
+    },
+    "import": {
+      "title": "수업 자료를 검토된 과제로 바꾸세요.",
+      "subtitle": "AI 지원 텍스트/PDF 분석이나 붙여넣은 텍스트를 검토된 과제로 만듭니다. 이 빌드에서는 사진 OCR이 꺼져 있습니다.",
+      "subtitle_images": "OCR이 설정되면 AI 지원 가져오기가 카메라, 저장 이미지, 텍스트 PDF, 붙여넣은 텍스트를 사용할 수 있습니다.",
+      "photo_disabled_title": "사진 스캔이 설정되지 않았습니다",
+      "photo_disabled_message": "텍스트가 있는 PDF를 사용하거나 강의계획서 텍스트를 붙여넣으세요. 실제 OCR이 준비될 때까지 사진과 이미지 분석은 꺼져 있습니다.",
+      "review_work": "과제 검토",
+      "ready_to_add": "오늘에 추가할 준비 완료",
+      "no_silent_import": "검토 없이 추가하지 않음"
+    },
+    "paywall": {
+      "title": "바쁜 학기를 위한 Plus.",
+      "subtitle": "가져오기부터 계획까지 전체 흐름을 바쁜 학기에도 준비해 둡니다.",
+      "hard_subtitle": "AI 지원 강의계획서 가져오기, 캘린더 계획, 집중, 위젯, 알림, 동기화를 잠금 해제하세요.",
+      "monthly": "StudyPlanner Plus 월간",
+      "yearly": "StudyPlanner Plus 연간",
+      "feature_scans": "더 많은 강의계획서 가져오기",
+      "feature_scans_detail": "OCR이 설정되면 AI 지원 가져오기가 카메라, 저장 이미지, 텍스트 PDF, 붙여넣은 텍스트를 사용할 수 있습니다.",
+      "feature_widgets": "더 많은 위젯 스타일",
+      "feature_widgets_detail": "실제 오늘/다가오는 위젯 프리셋과 앱 안의 고급 스타일을 저장하세요.",
+      "feature_focus": "집중 및 진행 도구",
+      "feature_focus_detail": "시간 제한 학습 세션을 시작하고 진행 상황을 계속 표시합니다.",
+      "feature_calendar": "알림 및 캘린더 동기화",
+      "feature_calendar_detail": "검토된 마감일을 기기 알림과 캘린더로 보냅니다.",
+      "restore": "구입 항목 복원",
+      "terms": "이용 약관(EULA)",
+      "privacy": "개인정보 처리방침"
+    },
+    "errors": {
+      "text_required": "강의계획서 텍스트를 붙여넣거나 읽을 수 있는 텍스트 파일을 업로드하세요.",
+      "pdf_text_required": "이 PDF에는 읽을 수 있는 내장 텍스트가 없습니다.",
+      "ocr_not_configured": "이미지 OCR이 설정되지 않았습니다. 텍스트 PDF를 사용하거나 텍스트를 붙여넣으세요.",
+      "parse_failed": "가져온 내용을 읽을 수 없습니다.",
+      "try_again": "다시 시도"
+    },
+    "permissions": {
+      "camera": "이미지 가져오기가 켜져 있을 때만 수동 검토용 강의계획서 페이지를 첨부하기 위해 카메라를 사용합니다.",
+      "photo_library": "이미지 가져오기가 켜져 있을 때만 수동 검토용 강의계획서 이미지를 첨부하기 위해 사진 보관함을 사용합니다.",
+      "calendar": "과제와 시험 날짜를 캘린더와 동기화합니다.",
+      "notifications": "마감, 시험, 수업 전에 차분한 알림을 보냅니다."
+    },
+    "widgets": {
+      "sync_after_load": "계획이 로드되면 네이티브 위젯이 동기화됩니다."
+    }
+  },
+  "zh-Hans": {
+    "direction": "ltr",
+    "brand_name": "StudyPlanner",
+    "brand_subtitle": "Syllabus AI",
+    "app": {
+      "loading": "正在加载 StudyPlanner"
+    },
+    "common": {
+      "next": "下一步"
+    },
+    "tabs": {
+      "today": "今天",
+      "scan": "导入",
+      "plan": "计划",
+      "calendar": "日历",
+      "classes": "课程",
+      "notes": "笔记",
+      "focus": "专注",
+      "grades": "成绩",
+      "widgets": "小组件",
+      "plus": "Plus"
+    },
+    "onboarding": {
+      "scan_title": "把课程大纲变成草稿。",
+      "scan_copy": "配置 OCR 后，AI 辅助导入可使用相机、保存图片、文本 PDF 或粘贴文字。",
+      "review_title": "加入计划前先确认每一项。",
+      "review_copy": "每个截止日期都会先显示、可编辑、可确认。",
+      "calendar_title": "看清整个学期。",
+      "calendar_copy": "工作量、截止日期和进度无需另一张表也能看见。",
+      "today_title": "清楚知道先做什么。",
+      "today_copy": "下一项任务、快速添加和进度都在今天页。",
+      "classes_title": "让每门课都更有用。",
+      "classes_copy": "未完成任务、笔记、上课时间和进度按课程整理。",
+      "focus_title": "开始下一项任务。",
+      "focus_copy": "今天页指出任务，专注记录学习，并推进进度。",
+      "widgets_title": "让计划更符合你的习惯。",
+      "widgets_copy": "选择主题，把已检查的真实任务放到主屏幕。",
+      "final_cta": "继续了解 Plus"
+    },
+    "import": {
+      "title": "把课堂资料变成已检查的作业。",
+      "subtitle": "AI 辅助的文本/PDF 解析或粘贴文字会变成已检查的作业。本 build 未启用照片 OCR。",
+      "subtitle_images": "配置 OCR 后，AI 辅助导入可使用相机、保存图片、文本 PDF 或粘贴文字。",
+      "photo_disabled_title": "照片扫描尚未配置",
+      "photo_disabled_message": "请使用含文本的 PDF，或粘贴课程大纲文字。真正的 OCR 可用前，照片和图片解析保持关闭。",
+      "review_work": "检查任务",
+      "ready_to_add": "可以添加到今天",
+      "no_silent_import": "不会自动悄悄加入"
+    },
+    "paywall": {
+      "title": "为忙碌学期准备的 Plus。",
+      "subtitle": "让导入、检查、计划的完整流程在忙起来时也能随时使用。",
+      "hard_subtitle": "解锁 AI 辅助课程大纲导入、日历计划、专注、小组件、提醒和同步。",
+      "monthly": "StudyPlanner Plus 月度",
+      "yearly": "StudyPlanner Plus 年度",
+      "feature_scans": "更多课程大纲导入",
+      "feature_scans_detail": "配置 OCR 后，AI 辅助导入可使用相机、保存图片、文本 PDF 或粘贴文字。",
+      "feature_widgets": "更多小组件样式",
+      "feature_widgets_detail": "保存真实的今天和接下来小组件预设，以及应用内高级外观。",
+      "feature_focus": "专注与进度工具",
+      "feature_focus_detail": "开始计时学习，并保持进度可见。",
+      "feature_calendar": "提醒与日历同步",
+      "feature_calendar_detail": "把已检查的截止日期发送到设备提醒和日历。",
+      "restore": "恢复购买",
+      "terms": "使用条款（EULA）",
+      "privacy": "隐私政策"
+    },
+    "errors": {
+      "text_required": "请粘贴课程大纲文字，或上传可读取的文本文件。",
+      "pdf_text_required": "这个 PDF 没有可读取的嵌入文本。",
+      "ocr_not_configured": "图片 OCR 尚未配置。请使用含文本的 PDF 或粘贴文字。",
+      "parse_failed": "无法读取导入内容。",
+      "try_again": "重试"
+    },
+    "permissions": {
+      "camera": "仅在启用图像导入时使用相机，以附加课程大纲页面供手动检查。",
+      "photo_library": "仅在启用图像导入时使用照片图库，以附加课程大纲图像供手动检查。",
+      "calendar": "将作业和考试日期同步到你的日历。",
+      "notifications": "在截止日期、考试和课程前发送温和提醒。"
+    },
+    "widgets": {
+      "sync_after_load": "计划加载后，原生小组件会同步。"
+    }
+  }
+}

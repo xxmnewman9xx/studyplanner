@@ -381,7 +381,6 @@ export const defaultWidgetPresets: WidgetPreset[] = [
     background: "glass",
     palette: "ocean",
     font: "SF Pro",
-    classFocusCourseId: "algebra-ii",
     layout: "compact",
     iconKey: "book",
     createdAt: now,

@@ -8,23 +8,25 @@ import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { purchaseConfig } from "../services/purchaseConfig";
 import { PaywallProduct, useSubscription } from "../services/subscriptions";
+import { useI18n } from "../i18n";
 
 type UpgradeScreenProps = {
-  onContinueFree?: () => void;
+  onContinueAfterPurchase?: () => void;
   hardMode?: boolean;
 };
 
 type LegalDocument = "terms" | "privacy";
 
 const paidFeatures = [
-  { icon: FileScan, title: "More syllabus scans", detail: "Scan, upload, paste, and re-import when classes change." },
-  { icon: Layers3, title: "More widget styles", detail: "Save extra widget presets and custom looks." },
-  { icon: Timer, title: "Focus + progress", detail: "Start timed study sessions and keep completion feedback visible." },
-  { icon: Bell, title: "Reminders + calendar", detail: "Send reviewed deadlines to device reminders and calendar." }
+  { icon: FileScan, titleKey: "paywall.feature_scans", detailKey: "paywall.feature_scans_detail", fallbackTitle: "More syllabus imports", fallbackDetail: "AI-assisted text/PDF imports, pasted text, and re-imports when classes change." },
+  { icon: Layers3, titleKey: "paywall.feature_widgets", detailKey: "paywall.feature_widgets_detail", fallbackTitle: "Advanced widget customization", fallbackDetail: "Save real Today and Upcoming widget presets plus advanced in-app looks." },
+  { icon: Timer, titleKey: "paywall.feature_focus", detailKey: "paywall.feature_focus_detail", fallbackTitle: "Focus and progress tools", fallbackDetail: "Start timed study sessions and keep completion feedback visible." },
+  { icon: Bell, titleKey: "paywall.feature_calendar", detailKey: "paywall.feature_calendar_detail", fallbackTitle: "Reminders and calendar sync", fallbackDetail: "Send reviewed deadlines to device reminders and calendar." }
 ];
 
-export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScreenProps) {
+export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: UpgradeScreenProps) {
   const { theme } = useAppTheme();
+  const { t } = useI18n();
   const { colors } = theme;
   const styles = createStyles(theme);
   const subscription = useSubscription();
@@ -56,7 +58,7 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
               ? "Plus plans are unavailable"
               : "Waiting for store plans";
   const planStateDetail = subscription.isPremium
-    ? "Premium widgets, themes, scans, focus, and grade tools are unlocked on this device."
+    ? "Premium widgets, themes, imports, focus, and grade tools are unlocked on this device."
     : plansUnavailable
       ? unavailableCopy(subscription.status, subscription.hasConfiguredProducts, hardMode)
       : loadingPlans
@@ -67,9 +69,10 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
             ? "Plans could not load. Restore Purchases stays available, and this screen will not unlock the planner without a valid store entitlement."
             : "Plans could not load yet. Restore Purchases stays available for existing subscribers.";
   const heroTitle = hardMode ? "StudyPlanner Plus" : "Plus for busy semesters.";
+  const localizedHeroTitle = hardMode ? "StudyPlanner Plus" : t("paywall.title", heroTitle);
   const heroSubtitle = hardMode
-    ? "Unlock syllabus scans, calendar planning, focus, widgets, reminders, and sync."
-    : "Keep the full scan-to-plan workflow ready for a busy semester.";
+    ? t("paywall.hard_subtitle", "Unlock AI-assisted syllabus imports, calendar planning, focus, widgets, reminders, and sync.")
+    : t("paywall.subtitle", "Keep the full import-to-plan workflow ready for a busy semester.");
 
   if (legalDocument) {
     return <LegalNotice document={legalDocument} onClose={() => setLegalDocument(null)} />;
@@ -84,10 +87,10 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
           <Badge label="Plus" tone="gold" />
         </View>
         {!hardMode ? <Text style={styles.kicker}>StudyPlanner Plus</Text> : null}
-        <Text style={styles.title}>{heroTitle}</Text>
+        <Text style={styles.title}>{localizedHeroTitle}</Text>
         <Text style={styles.subtitle}>{heroSubtitle}</Text>
         <View style={styles.payoffRail}>
-          <PayoffPill icon={FileScan} label="Scans" />
+          <PayoffPill icon={FileScan} label="Imports" />
           <PayoffPill icon={Timer} label="Focus" />
           <PayoffPill icon={Layers3} label="Widgets" />
           <PayoffPill icon={Bell} label="Reminders" />
@@ -120,15 +123,15 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
       </View>
 
       <View style={styles.legalRail}>
-        <LegalLink label="Terms of Use (EULA)" document="terms" onOpen={setLegalDocument} />
+        <LegalLink label={t("paywall.terms", "Terms of Use (EULA)")} document="terms" onOpen={setLegalDocument} />
         <Text style={styles.legalDivider}>·</Text>
-        <LegalLink label="Privacy Policy" document="privacy" onOpen={setLegalDocument} />
+        <LegalLink label={t("paywall.privacy", "Privacy Policy")} document="privacy" onOpen={setLegalDocument} />
       </View>
 
       {subscription.isPremium ? (
         <View style={styles.actionStack}>
           <AppButton label="Manage Subscription" variant="secondary" onPress={() => void subscription.manageSubscriptions()} />
-          {onContinueFree ? <AppButton label="Continue" onPress={onContinueFree} /> : null}
+          {onContinueAfterPurchase ? <AppButton label="Continue" onPress={onContinueAfterPurchase} /> : null}
         </View>
       ) : (
         <>
@@ -191,10 +194,10 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
         {paidFeatures.map((feature) => {
           const Icon = feature.icon;
           return (
-            <View key={feature.title} style={styles.valueTile}>
+            <View key={feature.titleKey} style={styles.valueTile}>
               <View style={styles.valueIcon}><Icon color={colors.accent} size={18} /></View>
-              <Text style={styles.valueTitle}>{feature.title}</Text>
-              <Text style={styles.valueDetail}>{feature.detail}</Text>
+              <Text style={styles.valueTitle}>{t(feature.titleKey, feature.fallbackTitle)}</Text>
+              <Text style={styles.valueDetail}>{t(feature.detailKey, feature.fallbackDetail)}</Text>
             </View>
           );
         })}
@@ -206,9 +209,9 @@ export function UpgradeScreen({ onContinueFree, hardMode = false }: UpgradeScree
       </View>
 
       <View style={styles.legalRow}>
-        <LegalLink label="Terms of Use (EULA)" document="terms" onOpen={setLegalDocument} />
+        <LegalLink label={t("paywall.terms", "Terms of Use (EULA)")} document="terms" onOpen={setLegalDocument} />
         <Text style={styles.legalDivider}>·</Text>
-        <LegalLink label="Privacy Policy" document="privacy" onOpen={setLegalDocument} />
+        <LegalLink label={t("paywall.privacy", "Privacy Policy")} document="privacy" onOpen={setLegalDocument} />
       </View>
     </View>
   );
@@ -225,6 +228,7 @@ function PaywallActions({
   subscription: ReturnType<typeof useSubscription>;
   styles: ReturnType<typeof createStyles>;
 }) {
+  const { t } = useI18n();
   return (
     <View style={styles.actionStack}>
       <AppButton
@@ -237,7 +241,7 @@ function PaywallActions({
         }}
       />
       <AppButton
-        label={subscription.flowState === "restoring" ? "Restoring" : "Restore Purchases"}
+        label={subscription.flowState === "restoring" ? "Restoring" : t("paywall.restore", "Restore Purchases")}
         variant="secondary"
         disabled={busy}
         style={styles.actionButton}
@@ -359,7 +363,7 @@ function LegalNotice({ document, onClose }: { document: LegalDocument; onClose: 
         <Text style={styles.legalBody}>
           {isTerms
             ? "Subscriptions are billed by the App Store or Google Play account used at purchase. Apple's standard EULA applies on iOS. Manage or cancel renewal from your store account settings. Plus access remains tied to valid store entitlement status."
-            : "StudyPlanner stores planner details on your device unless you choose services that require upload, such as syllabus scan. Syllabus files are sent only for parsing, and the app does not sell personal planner data."}
+            : "StudyPlanner stores planner details on your device unless you choose services that require upload, such as syllabus import. Syllabus files are sent only for parsing, and the app does not sell personal planner data."}
         </Text>
         <View style={styles.legalFeature}>
           {isTerms ? <CalendarSync color={colors.accent} size={18} /> : <FileScan color={colors.accent} size={18} />}

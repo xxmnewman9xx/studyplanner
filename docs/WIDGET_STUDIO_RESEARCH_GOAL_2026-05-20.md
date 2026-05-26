@@ -11,7 +11,7 @@ Highest-leverage patterns from Widgetsmith and adjacent apps:
 3. **Live preview while editing** — Widgy’s strongest UX lesson: preview and controls must be together; no back-and-forth.
 4. **Template-first, power-second** — Widgetsmith is approachable because users start from useful templates, then tune color/font/background. StudyPlanner should not become a blank-canvas design tool.
 5. **Real data clarity** — Generic widget apps trade on aesthetics; StudyPlanner should win by proving widgets show real reviewed homework, class risk, focus tasks, and import review queues.
-6. **Premium boundary around identity and advanced systems** — Free should keep Today/Upcoming. Plus should unlock Smart Stack schedules, advanced templates, premium app themes, and saved customization.
+6. **Premium boundary around identity and advanced systems** — Native Today/Upcoming should stay truthful. Plus should unlock Smart Stack schedules, advanced templates, premium app themes, and saved customization.
 
 ## Exact product definition
 A 10/10 Widget Studio must satisfy all of this:
@@ -36,8 +36,8 @@ A 10/10 Widget Studio must satisfy all of this:
 - Controls include a mini live preview that updates as the user changes options.
 - Save copy reinforces “live preview.”
 
-### 4. Premium/Free clarity
-- Free remains genuinely useful: Today and Upcoming native widgets.
+### 4. Premium clarity
+- Native behavior remains genuine: Today and Upcoming native widgets.
 - Plus owns Smart Stack, premium theme packs, advanced templates, and advanced customization.
 
 ### 5. Validation rubric

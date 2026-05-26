@@ -158,6 +158,22 @@ const stalePreset: WidgetPreset = {
   updatedAt: now.toISOString()
 };
 
+const styledTodayPreset: WidgetPreset = {
+  id: "styled-today",
+  name: "Today Forest",
+  type: "today",
+  size: "medium",
+  background: "dark",
+  palette: "forest",
+  font: "Rounded",
+  classFocusCourseId: "history",
+  layout: "list",
+  iconKey: "check",
+  scheduleLabel: "7-10 AM",
+  createdAt: now.toISOString(),
+  updatedAt: "2026-05-22T10:00:00"
+};
+
 const failures: string[] = [];
 const assert = (condition: boolean, message: string) => {
   if (!condition) failures.push(message);
@@ -189,6 +205,26 @@ for (const blockedId of ["unreviewed", "duplicate", "done", "invalid"]) {
 }
 
 assert(snapshots.upcoming.items.length > 0, "Stale class-focus preset must not blank native widget rows.");
+
+const styledSnapshots = buildStudyPlannerWidgetSnapshots({
+  semester,
+  courses,
+  assignments,
+  parsedImports,
+  settings,
+  widgetPresets: [styledTodayPreset],
+  demoMode: false,
+  now
+});
+
+assert(styledSnapshots.today.accentColor === "#35F2D0", "Saved native Today preset palette should affect native accent color.");
+assert(styledSnapshots.today.backgroundColor === "#05070B", "Saved native Today preset background should affect native background color.");
+assert(styledSnapshots.today.layoutLabel === "List", "Saved native Today layout should persist as native layout metadata.");
+assert(styledSnapshots.today.windowLabel === "7-10 AM", "Saved native Today schedule label should persist as native window label.");
+assert(
+  styledSnapshots.today.items.every((item) => item.courseCode === "HIST"),
+  "Saved native Today class filter should restrict native rows to the selected class."
+);
 
 const serialized = JSON.stringify(snapshots);
 for (const privateFragment of [
@@ -357,6 +393,10 @@ assert(
   "Native Home Screen widgets should keep systemSmall to one planner item and systemMedium to three rows."
 );
 assert(
+  nativeWidgetLayoutSource.includes("circularValue") && nativeWidgetLayoutSource.includes("Do first"),
+  "Native circular widgets should avoid decorative count-only 'Today' output and point to the next action."
+);
+assert(
   nativeWidgetLayoutSource.includes("if (!isMedium)") && nativeWidgetLayoutSource.includes("frame({ maxWidth: 220, maxHeight: 220"),
   "Native systemSmall layout should use a dedicated compact branch instead of the medium agenda stack."
 );
@@ -366,14 +406,17 @@ for (const family of ["accessoryCircular", "accessoryRectangular", "accessoryInl
 assert(
   widgetPreviewSource.includes("nativeProgress") &&
     widgetPreviewSource.includes("nativeWidgetProgressDots") &&
-    widgetPreviewSource.includes("[0, 1, 2, 3, 4]"),
+    widgetPreviewSource.includes("[0, 1, 2, 3, 4]") &&
+    widgetPreviewSource.includes("lockRoundValue"),
   "Widget Studio native preview should render the same five-dot progress signal used by the native layout."
 );
 assert(
   widgetStudioSource.includes("Ready for Home Screen") &&
     widgetStudioSource.includes("Install native app") &&
-    widgetStudioSource.includes("nativeProgress={nativePreview?.progress}"),
-  "Widget Studio should show a truthful proof score and pass native progress into preview cards."
+    widgetStudioSource.includes("nativeProgress={nativePreview?.progress}") &&
+    widgetStudioSource.includes("previewWidgetPresets") &&
+    widgetStudioSource.includes("Native style fields"),
+  "Widget Studio should show a truthful proof score, preview draft native presets, and name the real native style fields."
 );
 
 if (failures.length) {

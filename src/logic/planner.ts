@@ -251,7 +251,7 @@ export function getBusyWeekInsight(assignments: Assignment[], now = new Date()):
 
   if (peakDay && peakDay.score > 0) {
     suggestions.push({
-      id: "free-time-hint",
+      id: "focus-window-hint",
       title: "Create a power pocket",
       copy: `${peakDay.label} is your biggest focus opportunity. Move one review block earlier and keep energy high.`
     });
@@ -304,6 +304,9 @@ export function getWidgetData(
   const dueSoon = getDueSoon(assignments, now);
   const needsReview = getNeedsReview(assignments);
   const completionStreak = calculateCompletionStreak(assignments, now);
+  const activeAssignments = assignments.filter(isActiveAssignment);
+  const doneAssignments = assignments.filter((assignment) => assignment.status === "done");
+  const totalProgressItems = Math.max(1, activeAssignments.length + doneAssignments.length);
   const course = preset.classFocusCourseId
     ? courses.find((item) => item.id === preset.classFocusCourseId)
     : undefined;
@@ -358,9 +361,9 @@ export function getWidgetData(
       items: next ? [next] : []
     },
     streak: {
-      headline: "Streak",
-      value: String(completionStreak),
-      detail: completionStreak === 1 ? "day" : "days",
+      headline: "Progress",
+      value: `${doneAssignments.length}/${totalProgressItems}`,
+      detail: completionStreak > 0 ? `${completionStreak} day streak` : "done this plan",
       items: []
     }
   };

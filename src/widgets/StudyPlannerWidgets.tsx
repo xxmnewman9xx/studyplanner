@@ -30,6 +30,7 @@ function StudyPlannerWidgetLayout(props, environment) {
   var isAccessoryRectangular = environment.widgetFamily === "accessoryRectangular";
   var isAccessoryInline = environment.widgetFamily === "accessoryInline";
   var items = (props.items || []).slice(0, isMedium ? 3 : 1);
+  var firstItem = items.length > 0 ? items[0] : null;
   var accent = props.accentColor || "#2F80ED";
   var backgroundColor = props.backgroundColor || "#101723";
   var isDark = backgroundColor === "#171A20" || backgroundColor === "#101723" || backgroundColor === "#0D1422" || backgroundColor === "#061827" || backgroundColor === "#070A12" || backgroundColor === "#05070B";
@@ -111,6 +112,8 @@ function StudyPlannerWidgetLayout(props, environment) {
   }
 
   if (isAccessoryCircular) {
+    var circularValue = firstItem && firstItem.courseCode ? firstItem.courseCode : props.value;
+    var circularLabel = firstItem ? (props.kind === "today" ? "Do first" : "Next") : (props.kind === "today" ? "Today" : "Next");
     return view("ZStackView", {
       alignment: "center",
       modifiers: [
@@ -134,12 +137,12 @@ function StudyPlannerWidgetLayout(props, environment) {
           alignment: "center",
           spacing: 1,
           children: [
-            text(props.value, [
+            text(circularValue, [
               font({ size: 18, weight: "black", design: "rounded" }),
               foregroundStyle("#FFFFFF"),
               lineLimit(1)
             ]),
-            text(props.kind === "today" ? "Today" : "Next", [
+            text(circularLabel, [
               font({ size: 9, weight: "bold" }),
               foregroundStyle("#FFFFFF"),
               lineLimit(1)

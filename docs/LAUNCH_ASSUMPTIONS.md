@@ -34,4 +34,4 @@ Calendar sync stores the external event ID on the assignment after creating each
 
 Syllabi can include personal notes, school names, instructor details, and accommodations language. Upload handling needs retention limits and deletion controls before production.
 
-Decision: the client posts PDF/photo uploads only when a production parse endpoint is configured. Parsed results remain editable before they are applied to the planner.
+Decision: the client posts text-based PDF uploads when a production parse endpoint is configured. Photo/image uploads require both the endpoint and explicit image parsing support. Parsed results remain editable before they are applied to the planner.

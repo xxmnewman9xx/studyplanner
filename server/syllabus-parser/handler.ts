@@ -1,7 +1,8 @@
 import { extractTextFromPdfBase64 } from "../../src/services/pdfText";
 import { parseSyllabusText } from "../../src/services/syllabusLocalParser";
-import { SyllabusParseResult } from "../../src/models";
+import type { SyllabusParseResult } from "../../src/models";
 
+declare const require: any;
 declare const Buffer:
   | {
       from(input: Uint8Array): { toString(encoding: string): string };
@@ -15,6 +16,7 @@ export type SyllabusParseErrorCode =
   | "TEXT_REQUIRED"
   | "PDF_TEXT_REQUIRED"
   | "OCR_NOT_CONFIGURED"
+  | "OCR_TEXT_REQUIRED"
   | "PARSE_FAILED";
 
 export type SyllabusParseErrorResponse = {
@@ -30,6 +32,8 @@ type ParsePayload = {
   text: string;
   sourceName: string;
 };
+
+let ocrWorkerPromise: Promise<any> | null = null;
 
 const jsonHeaders = {
   "content-type": "application/json; charset=utf-8"
@@ -53,6 +57,13 @@ export async function handleSyllabusParseRequest(request: Request): Promise<Resp
       422
     );
   }
+}
+
+export async function closeSyllabusOcrWorkerForTests() {
+  if (!ocrWorkerPromise) return;
+  const worker = await ocrWorkerPromise;
+  ocrWorkerPromise = null;
+  await worker.terminate();
 }
 
 async function readPayload(request: Request): Promise<ParsePayload> {
@@ -106,12 +117,7 @@ async function payloadFromFormData(form: FormData): Promise<ParsePayload> {
   const name = file.name || "Uploaded syllabus";
   const type = file.type || mimeTypeFromName(name);
   if (type.startsWith("image/")) {
-    throw errorResponse(
-      "OCR_NOT_CONFIGURED",
-      "Image OCR is not configured on this parser endpoint. Upload a text-based PDF or paste syllabus text.",
-      false,
-      422
-    );
+    return payloadFromText(await extractTextFromImageFile(file), name);
   }
 
   if (type === "application/pdf" || /\.pdf$/i.test(name)) {
@@ -139,6 +145,108 @@ function payloadFromText(text: string, sourceName: string): ParsePayload {
     text,
     sourceName
   };
+}
+
+async function extractTextFromImageFile(file: File) {
+  const imageBytes = new Uint8Array(await file.arrayBuffer());
+  if (!hasSupportedImageSignature(imageBytes)) {
+    throw errorResponse(
+      "OCR_TEXT_REQUIRED",
+      "That image could not be decoded for text recognition. Try a PNG or JPEG photo with readable school material.",
+      false,
+      422
+    );
+  }
+
+  const text = normalizeOcrText(await recognizeImageBuffer(imageBytes));
+  if (!text.trim()) {
+    throw errorResponse(
+      "OCR_TEXT_REQUIRED",
+      "No readable school material text was found in that image. Try a brighter, flatter photo or paste the text.",
+      false,
+      422
+    );
+  }
+  return text;
+}
+
+async function recognizeImageBuffer(imageBytes: Uint8Array) {
+  if (typeof Buffer === "undefined") {
+    throw new Error("This server runtime cannot decode uploaded image bytes.");
+  }
+
+  try {
+    const worker = await getOcrWorker();
+    const result = await worker.recognize(Buffer.from(imageBytes));
+    return typeof result?.data?.text === "string" ? result.data.text : "";
+  } catch {
+    throw errorResponse(
+      "OCR_TEXT_REQUIRED",
+      "The parser could not recognize readable text in that image. Try a brighter, flatter photo or paste the text.",
+      false,
+      422
+    );
+  }
+}
+
+async function getOcrWorker() {
+  if (!ocrWorkerPromise) {
+    ocrWorkerPromise = createOcrWorker();
+  }
+  return ocrWorkerPromise;
+}
+
+async function createOcrWorker() {
+  const { PSM, createWorker } = require("tesseract.js");
+  const englishData = require("@tesseract.js-data/eng");
+  const worker = await createWorker("eng", undefined, {
+    gzip: englishData.gzip,
+    langPath: englishData.langPath,
+    cacheMethod: "readOnly"
+  });
+  await worker.setParameters({
+    preserve_interword_spaces: "1",
+    tessedit_pageseg_mode: PSM.AUTO,
+    user_defined_dpi: "300"
+  });
+  return worker;
+}
+
+function normalizeOcrText(text: string) {
+  return text
+    .replace(/\r/g, "\n")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function hasSupportedImageSignature(bytes: Uint8Array) {
+  if (bytes.length < 4) return false;
+
+  const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  const isPng =
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47;
+  const isGif =
+    bytes[0] === 0x47 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x38;
+  const isBmp = bytes[0] === 0x42 && bytes[1] === 0x4d;
+  const isWebp =
+    bytes.length > 12 &&
+    bytes[0] === 0x52 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x46 &&
+    bytes[8] === 0x57 &&
+    bytes[9] === 0x45 &&
+    bytes[10] === 0x42 &&
+    bytes[11] === 0x50;
+
+  return isJpeg || isPng || isGif || isBmp || isWebp;
 }
 
 function jsonResponse(value: SyllabusParseResult) {

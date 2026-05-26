@@ -39,6 +39,7 @@ import {
 } from "../services/marketingCapture";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
+import { useI18n } from "../i18n";
 import {
   isValidDateInput,
   isValidDeadline,
@@ -62,6 +63,7 @@ type ImportSourceMode = "camera" | "photo" | "file" | "paste";
 
 export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, premiumImportLocked = false, onOpenPaywall, onTryDemo, captureScreenOverride }: ImportScreenProps) {
   const { theme } = useAppTheme();
+  const { t } = useI18n();
   const { colors } = theme;
   const styles = createStyles(theme);
   const activeCaptureScreen = captureScreenOverride || marketingCaptureScreen;
@@ -80,7 +82,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   const handleLockedImport = () => {
     Alert.alert(
       "Plus required",
-      "Unlock Plus to scan photos, files, pasted text, and re-imports for the rest of the semester.",
+      "Subscribe to Plus for AI-assisted text/PDF imports, pasted text, and re-imports for the rest of the semester.",
       [
         { text: "Not now", style: "cancel" },
         { text: "See Plus", onPress: onOpenPaywall }
@@ -89,8 +91,8 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   };
   const handleImageParserUnavailable = () => {
     Alert.alert(
-      "Photo scanning is not configured",
-      "This build has no local image OCR. Use a text-based PDF or paste syllabus text, or configure the hosted parser with image parsing enabled."
+      t("import.photo_disabled_title", "Photo scanning is not configured"),
+      t("import.photo_disabled_message", "Use a text-based PDF or paste syllabus text. Photo and image parsing stay off until real OCR is available.")
     );
   };
 
@@ -274,12 +276,12 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   return (
     <View>
       <View style={styles.header}>
-        <Text style={styles.kicker}>Scan</Text>
-        <Text style={styles.title}>Scan your syllabus.</Text>
+        <Text style={styles.kicker}>{t("tabs.scan", "Scan")}</Text>
+        <Text style={styles.title}>{t("import.title", "Turn school material into reviewed assignments.")}</Text>
         <Text style={styles.subtitle}>
           {imageParsingAvailable
-            ? "Turn paper, saved photos, PDFs, or pasted text into reviewed assignments."
-            : "Turn text-based PDFs or pasted syllabus text into reviewed assignments."}
+            ? t("import.subtitle_images", "AI-assisted imports can use camera photos, saved images, text-based PDFs, or pasted syllabus text when OCR is configured.")
+            : t("import.subtitle", "AI-assisted text/PDF parsing or pasted syllabus text becomes reviewed assignments. Photo OCR is not enabled in this build.")}
         </Text>
       </View>
 
@@ -290,7 +292,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
           </View>
           <View style={styles.limitCopy}>
             <Text style={styles.limitTitle}>Plus unlocks syllabus imports</Text>
-            <Text style={styles.limitText}>{imageParsingAvailable ? "Scan photos, files, pasted text, and re-imports when your semester gets busy." : "Upload text-based PDFs, paste text, and re-import when your semester gets busy."}</Text>
+            <Text style={styles.limitText}>{imageParsingAvailable ? "Use camera photos, files, pasted text, and re-imports when OCR is configured." : "Use AI-assisted text/PDF imports, pasted text, and re-imports when your semester gets busy."}</Text>
           </View>
           <AppButton label="Unlock Plus" icon={Crown} onPress={onOpenPaywall || (() => undefined)} />
         </GlassCard>
@@ -303,7 +305,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
           <View style={styles.scanLine} />
         </View>
         <Text style={styles.dropKicker}>Step 1 · choose a source</Text>
-        <Text style={styles.dropTitle}>Turn a syllabus into assignments.</Text>
+        <Text style={styles.dropTitle}>Turn a syllabus into an editable plan.</Text>
         <Text style={styles.dropCopy}>Pick one path. You review every assignment before it reaches Today.</Text>
         <View style={styles.magicPreview}>
           <MagicPreviewStep icon={FileText} title="Scan" detail="Source" />
@@ -338,7 +340,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
         {sourceMode === "file" ? (
           <View style={styles.sourcePanel}>
             <Text style={styles.sourcePanelTitle}>Upload a syllabus PDF.</Text>
-            <Text style={styles.sourcePanelCopy}>Text-based PDFs and text files work best.</Text>
+            <Text style={styles.sourcePanelCopy}>Text-based PDFs and text files work best for AI-assisted organization.</Text>
             <AppButton label="Upload PDF" icon={Upload} onPress={pickPdf} style={styles.scanActionPrimary} />
           </View>
         ) : null}
@@ -408,7 +410,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
 
       {draft ? (
         <>
-          <SectionHeader title="Review work" note={`${draft.assignments.length} found. Edit, confirm, then add to Today.`} />
+          <SectionHeader title={t("import.review_work", "Review work")} note={`${draft.assignments.length} found. Edit, confirm, then add to Today.`} />
           <GlassCard style={styles.resultCard}>
             <View style={[
               styles.reviewGateCard,
@@ -424,7 +426,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
                 </View>
                 <View style={styles.reviewGateCopy}>
                   <Text style={styles.reviewGateTitle}>
-                    {canApplyDraft ? "Ready to add to Today" : "Review before adding"}
+                    {canApplyDraft ? t("import.ready_to_add", "Ready to add to Today") : "Review before adding"}
                   </Text>
                   <Text style={styles.reviewGateText}>
                     {canApplyDraft
@@ -462,7 +464,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
             <View style={styles.trustRow}>
               <TrustChip label="Editable before save" />
               <TrustChip label="Widgets use reviewed work" />
-              <TrustChip label="No silent import" />
+              <TrustChip label={t("import.no_silent_import", "No silent import")} />
             </View>
             <AppButton
               label={invalidDeadlineCount > 0 ? "Confirm valid rows only" : "Confirm all valid rows"}
@@ -567,7 +569,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
 
           <View style={styles.applyBar}>
             <AppButton
-              label={premiumImportLocked ? "Upgrade for unlimited imports" : invalidDeadlineCount > 0 ? "Fix dates before adding" : needsReviewCount > 0 ? "Review flagged items first" : `Add ${draft.assignments.length} reviewed item${draft.assignments.length === 1 ? "" : "s"} to Today`}
+              label={premiumImportLocked ? "Subscribe for more imports" : invalidDeadlineCount > 0 ? "Fix dates before adding" : needsReviewCount > 0 ? "Review flagged items first" : `Add ${draft.assignments.length} reviewed item${draft.assignments.length === 1 ? "" : "s"} to Today`}
               disabled={!canApplyDraft && !premiumImportLocked}
               onPress={() => {
                 if (premiumImportLocked) {

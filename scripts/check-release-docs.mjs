@@ -21,6 +21,11 @@ function section(markdown, heading) {
 const metadata = read("docs/APP_STORE_METADATA.md");
 const reviewNotes = read("docs/APP_REVIEW_NOTES.md");
 const prd = read("docs/PRD.md");
+const appSource = read("App.tsx");
+const importSource = read("src/screens/ImportScreen.tsx");
+const paywallSource = read("src/screens/UpgradeScreen.tsx");
+const moreSource = read("src/screens/MoreScreen.tsx");
+const localizedMetadata = read("localized-app-store-metadata.md");
 const appJson = JSON.parse(read("app.json"));
 
 function firstContentLine(text) {
@@ -35,6 +40,7 @@ const guardrails = section(metadata, "## Review Notes To Prepare").toLowerCase()
 assert(!subtitle.includes("canvas"), "Subtitle must not claim Canvas support before a shipped Canvas workflow exists");
 assert(!keywords.includes("canvas"), "Keywords must not include Canvas before a shipped Canvas workflow exists");
 assert(description.includes("editable"), "Description should preserve editable/review-before-apply positioning");
+assert(metadata.includes("StudyPlanner: Syllabus AI"), "Metadata should preserve the Syllabus AI hook for text/PDF organization.");
 assert(guardrails.includes("do not mention canvas"), "Metadata guardrails must explicitly block unsupported Canvas claims");
 assert(guardrails.includes("expo_public_syllabus_image_parsing_enabled=1"), "Metadata guardrails must gate photo parsing behind the image parsing env flag");
 assert(guardrails.includes("no local ocr fallback") && guardrails.includes("text-based pdfs and pasted text can still parse on device"), "Metadata guardrails must disclose real photo parsing and local text/PDF fallback");
@@ -51,11 +57,33 @@ assert(reviewLower.includes("expo_public_iap_validation_endpoint"), "App Review 
 assert(reviewLower.includes("does not include production apple server credentials"), "App Review notes must not overclaim server receipt validation");
 assert(process.env.EXPO_PUBLIC_SIM_QA_CAPTURE !== "1", "Release QA must run without EXPO_PUBLIC_SIM_QA_CAPTURE=1");
 
+const runtimeAndReleaseText = [
+  appSource,
+  importSource,
+  paywallSource,
+  moreSource,
+  metadata,
+  reviewNotes,
+  prd,
+  localizedMetadata,
+  read("README.md")
+].join("\n").toLowerCase();
+
+const oldNoCostPrefix = "fr" + "ee";
+for (const phrase of [`${oldNoCostPrefix}mium`, `${oldNoCostPrefix} plan`, `upgrade from ${oldNoCostPrefix}`, `unlimited ${"imports"}`, "syllabus scanner"]) {
+  assert(!runtimeAndReleaseText.includes(phrase), `Release/runtime copy must not include unsupported phrase: ${phrase}`);
+}
+assert(!runtimeAndReleaseText.includes("photo scanning now uses"), "Photo copy must not imply OCR/photo parsing is available by default.");
+assert(importSource.includes("disabled={!imageParsingAvailable}"), "Camera/photo scanner controls must remain visible but disabled unless OCR is configured.");
+assert(importSource.includes("Photo OCR is not enabled in this build"), "Import copy must clearly say photo OCR is unavailable when disabled.");
+assert(localizedMetadata.includes("AI-assisted text/PDF syllabus organization only"), "Localized metadata must define the AI truth boundary.");
+
 const prdLower = prd.toLowerCase();
 assert(prdLower.includes("direct canvas sync"), "PRD must keep Canvas out of V1 scope");
 assert(prdLower.includes("automatic writes from ai without review"), "PRD must keep AI auto-write out of scope");
 assert(prdLower.includes("invalid legacy deadlines"), "PRD must document invalid-deadline trust behavior");
 assert(prdLower.includes("hard-gated build"), "PRD must document the current Plus-required product shell");
+assert(!prdLower.includes(`${oldNoCostPrefix}-limit`), "PRD must not describe a bypass plan for the hard-paywall build.");
 assert(prdLower.includes("expo_public_syllabus_image_parsing_enabled=1"), "PRD must gate photo parsing behind the image parsing env flag");
 
 const infoPlist = appJson?.expo?.ios?.infoPlist ?? {};
