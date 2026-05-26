@@ -11,6 +11,7 @@ const sourceFiles = {
   grades: readFileSync("src/screens/GradesScreen.tsx", "utf8"),
   onboarding: readFileSync("src/screens/OnboardingScreen.tsx", "utf8"),
   importScreen: readFileSync("src/screens/ImportScreen.tsx", "utf8"),
+  assignmentDetail: readFileSync("src/screens/AssignmentDetailScreen.tsx", "utf8"),
   paywall: readFileSync("src/screens/UpgradeScreen.tsx", "utf8"),
   modeToggle: readFileSync("src/components/ModeToggle.tsx", "utf8"),
   widgets: readFileSync("src/screens/MoreScreen.tsx", "utf8"),
@@ -123,6 +124,7 @@ assert(sourceFiles.focus.includes("useI18n") && sourceFiles.focus.includes("focu
 assert(sourceFiles.grades.includes("useI18n") && sourceFiles.grades.includes("grades.target_calculator"), "Grades screen must consume runtime localization keys.");
 assert(sourceFiles.onboarding.includes("useI18n") && sourceFiles.onboarding.includes("slide.titleKey"), "Onboarding must consume runtime localization keys.");
 assert(sourceFiles.importScreen.includes("useI18n") && sourceFiles.importScreen.includes("import.photo_disabled_message"), "Import screen must consume runtime localization keys.");
+assert(sourceFiles.assignmentDetail.includes("useI18n") && sourceFiles.assignmentDetail.includes("assignment_detail.trust_ready_title"), "Assignment detail screen must consume runtime localization keys.");
 assert(sourceFiles.paywall.includes("useI18n") && sourceFiles.paywall.includes("paywall.hard_subtitle"), "Paywall must consume runtime localization keys.");
 assert(sourceFiles.modeToggle.includes("useI18n") && sourceFiles.modeToggle.includes("theme.use_light_mode"), "Theme mode toggle must consume runtime localization keys.");
 assert(sourceFiles.widgets.includes("useI18n") && sourceFiles.widgets.includes("more.native_style_fields"), "Widget Studio must consume runtime localization keys while preserving native/widget truth copy.");
@@ -434,6 +436,30 @@ const hardcodedLaunchStrings = [
       "Subscribe",
       "Free trial",
       "Best value"
+    ]
+  },
+  {
+    file: "src/screens/AssignmentDetailScreen.tsx",
+    source: sourceFiles.assignmentDetail,
+    phrases: [
+      "Use a real date in YYYY-MM-DD format before saving this assignment.",
+      "Use a real time in HH:MM format before saving this assignment.",
+      "Task state",
+      "Study this now",
+      "Mark task done",
+      "Assignment title",
+      "Due date",
+      "Needs a human check",
+      "Saving valid edits marks this task reviewed so it can appear in widgets and trusted Today views.",
+      "No checklist yet. Parsed subtasks will appear here.",
+      "Save changes",
+      "Hide task",
+      "Possible duplicate",
+      "Needs review before it is trusted",
+      "Low-confidence import",
+      "Complete and still editable",
+      "Ready for Today and Plan",
+      "This assignment has enough trusted detail to show up in the active school operating system."
     ]
   },
   {

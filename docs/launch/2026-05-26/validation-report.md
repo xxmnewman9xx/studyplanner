@@ -1,6 +1,6 @@
 # Validation Report
 
-Date: 2026-05-26 07:51 EDT / 2026-05-26 11:51 UTC
+Date: 2026-05-26 08:03 EDT / 2026-05-26 12:03 UTC
 
 ## Passed In This Rescue Cycle
 
@@ -28,15 +28,14 @@ Date: 2026-05-26 07:51 EDT / 2026-05-26 11:51 UTC
 
 ## Latest Patch Validation
 
-After localizing the app-owned Scan review/edit controls, generated review findings, and import alert/fallback copy:
+After localizing the app-owned Assignment detail/edit/trust surface:
 
 - `npm run check:localization` passed.
 - `npm run typecheck` passed.
-- `npm run test:photo-ocr`, `npm run test:parser-endpoint`, `npm run check:scenarios`, and `npm run check:release-docs` passed.
-- `npm run qa:release` passed after the final import-created semester fallback was localized.
-- Native `Release` simulator builds, explicit installs, build-product cleans, and review screenshot captures completed for `ja` and `zh-Hans` after the final catalog cleanup. The earlier `ar` and `de` review captures from the same Scan review patch remain current.
-- Current Review screenshots show localized Scan review hero, review gate, review stats, trust-check copy, confidence chips, checklist notes, tab labels, and add-to-Today controls.
-- Current Plus screenshots still show two real store products and prices.
+- `npm run qa:release` passed.
+- Assignment detail now routes validation alerts, header/task-state copy, kind/priority/status/source labels, reminder/confidence meta, review callout, checklist empty state, and save/archive actions through `assignment_detail.*` runtime keys.
+- The localization gate now loads `src/screens/AssignmentDetailScreen.tsx`, requires assignment detail runtime keys, and rejects the old hard-coded assignment detail strings.
+- Current native Review screenshots from the previous Scan review patch remain the screenshot proof for the Scan review surface. The deterministic native capture script does not currently include an Assignment detail route.
 
 ## Native Release Proof
 
@@ -107,7 +106,7 @@ The native Widgets screenshots show:
 
 ## GitNexus
 
-- `npx gitnexus analyze` completed successfully before the Scan review patch: 3,143 nodes, 5,693 edges, 104 clusters, 264 flows.
+- `npx gitnexus analyze` completed successfully before the Assignment detail patch: 3,151 nodes, 5,710 edges, 101 clusters, 264 flows.
 - Before editing `TodayScreen`, GitNexus impact was run for `TodayScreen` and the edited helper/render symbols. `TodayScreen` was LOW risk; `buildLiveBrief`, `CatchUpSprintCard`, `formatDueUrgency`, `buildQuickDuePresets`, `imageActionLabel`, and `MetricPill` reported HIGH risk because they feed the default app flow through `TodayScreen` / `AppContent` / `App`.
 - Before editing `PlanScreen`, GitNexus impact was run for `PlanScreen` and the edited helper symbols. `PlanScreen` was LOW risk; `buildPlanState`, `buildSimpleWeekGroups`, `formatSelectedDate`, `formatHoursValue`, `buildSurvivalBlocks`, and `buildWeekLoadSummary` reported HIGH risk because they feed `PlanScreen` / `AppContent` / `App`.
 - Before editing `CoursesScreen`, GitNexus impact was run for `CoursesScreen` and the edited helper/shared symbols. `CoursesScreen` and `EmojiBadge` were LOW risk; `buildClassHealth`, `ClassStateTile`, and `ClassIdentityCard` reported HIGH risk, and `AppLogo` reported CRITICAL risk because they feed the app shell through `CoursesScreen` / `AppContent` / `App` or shared loading/onboarding/paywall paths. The shipped changes are text/date localization only.
@@ -116,7 +115,8 @@ The native Widgets screenshots show:
 - Before editing `MoreScreen`, GitNexus impact was run for `MoreScreen`, `labelForWidgetType`, `widgetItemMetaForStudio`, and `sizeMentalModel`. `MoreScreen` was LOW risk through `AppContent` / `App`; the helper symbols reported HIGH risk because they feed `MoreScreen` and then the app shell. The shipped changes localize call-site values without changing those HIGH-risk helper bodies.
 - Before editing the native widget snapshot flow, GitNexus impact was run for `buildStudyPlannerWidgetSnapshots`, `syncStudyPlannerWidgets`, `buildSyncDisabledWidgetSnapshots`, `WidgetPreviewCard`, `widgetStatusText`, `widgetItemCourse`, `toWidgetItem`, `assignmentSignal`, `assignmentDisplayTitle`, `effortMetricLabel`, `getNativeWidgetStyle`, `formatDueLabel`, `formatWidgetValueLabel`, `weekdayName`, `shortDate`, `cleanTitle`, `AppContent`, `MoreScreen`, and `OnboardingScreen`. The snapshot builder/helpers and preview component reported HIGH or CRITICAL risk because they feed app startup widget sync, More/Widget Studio, onboarding, and widget QA scripts. The shipped changes are additive translation/locale parameters with English fallbacks.
 - Before editing `ImportScreen`, GitNexus impact was run for `ImportScreen`, `reviewGateMessage`, `formatReviewDate`, `buildDraftFromRecentImport`, and `Function:src/screens/ImportScreen.tsx:labelize`. `ImportScreen` was LOW risk through `AppContent` / `App`; the helper symbols reported HIGH risk because they feed the Scan/import review flow. The shipped changes are text localization and source/status label localization only.
-- `npx gitnexus detect-changes --repo studyplanner` reported 7 changed files, 41 symbols, 44 affected execution flows, aggregate risk `critical`. The affected flows are expected scanner/import paths including `PickPhoto`, `CapturePhoto`, `PickPdf`, and `TypeItIn` through `runParse`, `Base64ToBytes`, and image/text parsing helpers; the shipped code change is limited to localization of Scan review text, alerts, source/status labels, and review finding text.
+- Before editing `AssignmentDetailScreen`, GitNexus impact was run for `AssignmentDetailScreen`, `buildAssignmentTrustState`, and `Function:src/screens/AssignmentDetailScreen.tsx:labelize`. All reported LOW risk, flowing through `AppContent` / `App`. The shipped change is text/date/source-label localization only.
+- `npx gitnexus detect-changes --repo studyplanner` reported 6 changed files, 23 symbols, 0 affected execution flows, aggregate risk `low`. The changed symbols are the Assignment detail screen, localization checker coverage, and proof docs; no execution flow impact was detected.
 
 ## Release Decision
 
@@ -126,5 +126,5 @@ Backend OCR, saved-photo import, and native Plus product loading are now proven 
 
 - Physical-device/TestFlight camera permission and live camera capture are still unproven.
 - StoreKit product title/description/period metadata is still English in localized paywall screenshots; App Store Connect subscription localizations must be entered/verified.
-- Runtime localization is still incomplete outside the smoked Today/Calendar/Classes/Focus/Grades/Widgets/Scan/Review/Plus/native shell. Hard-coded app-owned English remains in onboarding preview mockups, detail screens, notes, premium gates, and alert/error paths.
+- Runtime localization is still incomplete outside the smoked Today/Calendar/Classes/Focus/Grades/Widgets/Scan/Review/Plus/native shell and statically gated Assignment detail surface. Hard-coded app-owned English remains in onboarding preview mockups, notes, premium gates, and alert/error paths.
 - Arabic RTL risk remains until accepted or fixed.
