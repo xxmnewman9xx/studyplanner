@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo } from "react";
+import React, { createContext, useContext, useMemo, useState } from "react";
 import { I18nManager } from "react-native";
 
 declare const require: (path: string) => unknown;
@@ -37,13 +37,17 @@ type I18nContextValue = {
   direction: Direction;
   isRTL: boolean;
   t: (key: string, fallback?: string) => string;
+  setLocaleOverride: (locale: SupportedLocale | undefined) => void;
 };
 
 const fallbackLocale: SupportedLocale = "en-US";
 const I18nContext = createContext<I18nContextValue | null>(null);
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const locale = resolveLocale();
+  const [localeOverride, setLocaleOverride] = useState<SupportedLocale | undefined>(() =>
+    normalizeLocale(readLocaleOverride())
+  );
+  const locale = resolveLocale(localeOverride);
   const direction = launchCatalog[locale]?.direction || "ltr";
 
   const value = useMemo<I18nContextValue>(
@@ -51,9 +55,10 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       locale,
       direction,
       isRTL: direction === "rtl",
-      t: (key, fallback) => translate(locale, key, fallback)
+      t: (key, fallback) => translate(locale, key, fallback),
+      setLocaleOverride
     }),
-    [direction, locale]
+    [direction, locale, setLocaleOverride]
   );
 
   I18nManager.allowRTL(true);
@@ -71,7 +76,8 @@ export function useI18n() {
     locale,
     direction,
     isRTL: direction === "rtl",
-    t: (key: string, fallback?: string) => translate(locale, key, fallback)
+    t: (key: string, fallback?: string) => translate(locale, key, fallback),
+    setLocaleOverride: () => undefined
   };
 }
 
@@ -85,9 +91,8 @@ export function translate(locale: SupportedLocale, key: string, fallback?: strin
   return fallback || key;
 }
 
-function resolveLocale(): SupportedLocale {
-  const override = readLocaleOverride();
-  const requested = normalizeLocale(override) || normalizeLocale(getRuntimeLocale());
+function resolveLocale(localeOverride?: SupportedLocale): SupportedLocale {
+  const requested = localeOverride || normalizeLocale(readLocaleOverride()) || normalizeLocale(getRuntimeLocale());
   return requested || fallbackLocale;
 }
 

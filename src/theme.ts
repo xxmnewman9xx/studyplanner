@@ -104,7 +104,8 @@ export const themePalettes = {
   minimal: ["#0A0F1A", "#8B95A7", "#263245", "#FFF8EA"],
   graphite: ["#05070B", "#A3E635", "#38BDF8", "#F8FAFC"],
   aurora: ["#06131B", "#35F2D0", "#56A8FF", "#E5FBFF"],
-  paper: ["#F8FAFC", "#2F80ED", "#14B8A6", "#0F172A"]
+  paper: ["#F8FAFC", "#2F80ED", "#14B8A6", "#0F172A"],
+  contrast: ["#05070B", "#FACC15", "#FFFFFF", "#000000"]
 };
 
 export type ColorTokens = typeof lightColors;

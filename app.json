@@ -81,6 +81,26 @@
                 "accessoryInline"
               ],
               "contentMarginsDisabled": true
+            },
+            {
+              "name": "StudyPlannerWeekWidget",
+              "displayName": "StudyPlanner Week",
+              "description": "Shows this week of reviewed StudyPlanner work.",
+              "supportedFamilies": [
+                "systemSmall",
+                "systemMedium"
+              ],
+              "contentMarginsDisabled": true
+            },
+            {
+              "name": "StudyPlannerClassProgressWidget",
+              "displayName": "StudyPlanner Class Progress",
+              "description": "Shows progress and the next reviewed task for one class.",
+              "supportedFamilies": [
+                "systemSmall",
+                "systemMedium"
+              ],
+              "contentMarginsDisabled": true
             }
           ]
         }

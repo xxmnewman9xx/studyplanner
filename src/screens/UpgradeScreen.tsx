@@ -18,8 +18,8 @@ type UpgradeScreenProps = {
 type LegalDocument = "terms" | "privacy";
 
 const paidFeatures = [
-  { icon: FileScan, titleKey: "paywall.feature_scans", detailKey: "paywall.feature_scans_detail", fallbackTitle: "More syllabus imports", fallbackDetail: "AI-assisted text/PDF imports, pasted text, and re-imports when classes change." },
-  { icon: Layers3, titleKey: "paywall.feature_widgets", detailKey: "paywall.feature_widgets_detail", fallbackTitle: "Advanced widget customization", fallbackDetail: "Save real Today and Upcoming widget presets plus advanced in-app looks." },
+  { icon: FileScan, titleKey: "paywall.feature_scans", detailKey: "paywall.feature_scans_detail", fallbackTitle: "Syllabus imports", fallbackDetail: "AI-assisted text/PDF imports, pasted text, and re-imports when classes change." },
+  { icon: Layers3, titleKey: "paywall.feature_widgets", detailKey: "paywall.feature_widgets_detail", fallbackTitle: "Home Screen widgets", fallbackDetail: "Save real Next Up, Today List, Week, and Class Progress widget presets." },
   { icon: Timer, titleKey: "paywall.feature_focus", detailKey: "paywall.feature_focus_detail", fallbackTitle: "Focus and progress tools", fallbackDetail: "Start timed study sessions and keep completion feedback visible." },
   { icon: Bell, titleKey: "paywall.feature_calendar", detailKey: "paywall.feature_calendar_detail", fallbackTitle: "Reminders and calendar sync", fallbackDetail: "Send reviewed deadlines to device reminders and calendar." }
 ];
@@ -45,7 +45,7 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
   const loadingPlans = subscription.status === "checking" || subscription.flowState === "loading";
   const hasProducts = subscription.products.length > 0;
   const planStateTitle = subscription.isPremium
-    ? t("paywall.plus_active", "Plus is active")
+    ? t("paywall.unlocked", "StudyPlanner is unlocked")
     : subscription.flowState === "purchasing"
       ? t("paywall.opening_store", "Opening the store")
       : subscription.flowState === "restoring"
@@ -55,21 +55,21 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
           : hasProducts
             ? t("paywall.plans_available", "{count} plans available").replace("{count}", String(subscription.products.length))
             : hardMode
-              ? t("paywall.plans_unavailable", "Plus plans are unavailable")
+              ? t("paywall.plans_unavailable", "Plans are unavailable")
               : t("paywall.waiting_for_store_plans", "Waiting for store plans");
   const planStateDetail = subscription.isPremium
-    ? t("paywall.plus_active_detail", "Premium widgets, themes, imports, focus, and grade tools are unlocked on this device.")
+    ? t("paywall.unlocked_detail", "Full planner access is active on this device.")
     : plansUnavailable
       ? unavailableCopy(subscription.status, subscription.hasConfiguredProducts, hardMode, t)
       : loadingPlans
-        ? t("paywall.loading_prices_detail", "Prices, trials, and renewal periods come from the store before checkout.")
+        ? t("paywall.loading_prices_detail", "Prices and renewal periods come from the store before checkout.")
         : hasProducts
           ? t("paywall.choose_plan_detail", "Choose a plan below. Restore stays available.")
         : hardMode
             ? t("paywall.plans_failed_locked_detail", "Plans could not load. Restore Purchases stays available, and this screen will not unlock the planner without a valid store entitlement.")
             : t("paywall.plans_failed_detail", "Plans could not load yet. Restore Purchases stays available for existing subscribers.");
-  const heroTitle = hardMode ? "StudyPlanner Plus" : "Plus for busy semesters.";
-  const localizedHeroTitle = hardMode ? "StudyPlanner Plus" : t("paywall.title", heroTitle);
+  const heroTitle = "Unlock StudyPlanner";
+  const localizedHeroTitle = t("paywall.title", heroTitle);
   const heroSubtitle = hardMode
     ? t("paywall.hard_subtitle", "Unlock AI-assisted syllabus imports, calendar planning, focus, widgets, reminders, and sync.")
     : t("paywall.subtitle", "Keep the full import-to-plan workflow ready for a busy semester.");
@@ -84,9 +84,9 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
         <View style={styles.heroGlow} />
         <View style={styles.heroTopRow}>
           <AppLogo showWordmark size={42} />
-          <Badge label="Plus" tone="gold" />
+          <Badge label={t("paywall.included_with_studyplanner", "Included with StudyPlanner")} tone="gold" />
         </View>
-        {!hardMode ? <Text style={styles.kicker}>{t("paywall.product_name", "StudyPlanner Plus")}</Text> : null}
+        {!hardMode ? <Text style={styles.kicker}>{t("paywall.product_name", "StudyPlanner")}</Text> : null}
         <Text style={styles.title}>{localizedHeroTitle}</Text>
         <Text style={styles.subtitle}>{heroSubtitle}</Text>
         <View style={styles.payoffRail}>
@@ -292,22 +292,39 @@ function ProductOption({ product, selected, recommended, onPress }: { product: P
   const { theme } = useAppTheme();
   const { t } = useI18n();
   const styles = createStyles(theme);
+  const productTitle = localizedProductTitle(product, t);
+  const periodLabel = localizedPeriodLabel(product, t);
+  const productDescription = t("paywall.included_with_studyplanner", "Included with StudyPlanner");
 
   return (
     <TouchableOpacity accessibilityRole="button" accessibilityState={{ selected }} style={[styles.productCard, selected ? styles.productCardSelected : null]} onPress={onPress}>
       <View style={styles.productHeader}>
         <View style={styles.productCopy}>
           <View style={styles.productTitleRow}>
-            <Text style={styles.productTitle}>{product.title}</Text>
-            {recommended || product.hasFreeTrial ? <Badge label={product.hasFreeTrial ? t("paywall.free_trial", "Free trial") : t("paywall.best_value", "Best value")} tone="gold" /> : null}
+            <Text style={styles.productTitle}>{productTitle}</Text>
+            {recommended ? <Badge label={t("paywall.best_value", "Best value")} tone="gold" /> : null}
           </View>
-          <Text style={styles.productMeta}>{product.periodLabel}</Text>
+          <Text style={styles.productMeta}>{periodLabel}</Text>
         </View>
         <Text style={styles.productPrice}>{product.displayPrice}</Text>
       </View>
-      <Text style={styles.productDescription}>{product.description}</Text>
+      <Text style={styles.productDescription}>{productDescription}</Text>
     </TouchableOpacity>
   );
+}
+
+function localizedProductTitle(product: PaywallProduct, t: (key: string, fallback?: string) => string) {
+  if (product.kind === "lifetime") return t("paywall.buy_lifetime", "Buy Lifetime");
+  if (/year/i.test(product.id) || /year/i.test(product.periodLabel)) return t("paywall.yearly", "StudyPlanner Yearly");
+  if (/month/i.test(product.id) || /month/i.test(product.periodLabel)) return t("paywall.monthly", "StudyPlanner Monthly");
+  return product.title;
+}
+
+function localizedPeriodLabel(product: PaywallProduct, t: (key: string, fallback?: string) => string) {
+  if (product.kind === "lifetime") return t("paywall.product_name", "StudyPlanner");
+  if (/year/i.test(product.id) || /year/i.test(product.periodLabel)) return t("paywall.yearly", "StudyPlanner Yearly");
+  if (/month/i.test(product.id) || /month/i.test(product.periodLabel)) return t("paywall.monthly", "StudyPlanner Monthly");
+  return product.periodLabel;
 }
 
 function FeatureRow({ text }: { text: string }) {
@@ -364,14 +381,14 @@ function LegalNotice({ document, onClose }: { document: LegalDocument; onClose: 
       <View style={styles.legalCard}>
         <Text style={styles.legalBody}>
           {isTerms
-            ? t("paywall.terms_body", "Subscriptions are billed by the App Store or Google Play account used at purchase. Apple's standard EULA applies on iOS. Manage or cancel renewal from your store account settings. Plus access remains tied to valid store entitlement status.")
+            ? t("paywall.terms_body", "Subscriptions are billed by the App Store or Google Play account used at purchase. Apple's standard EULA applies on iOS. Manage or cancel renewal from your store account settings. Access remains tied to valid store entitlement status.")
             : t("paywall.privacy_body", "StudyPlanner stores planner details on your device unless you choose services that require upload, such as syllabus import. Syllabus files are sent only for parsing, and the app does not sell personal planner data.")}
         </Text>
         <View style={styles.legalFeature}>
           {isTerms ? <CalendarSync color={colors.accent} size={18} /> : <FileScan color={colors.accent} size={18} />}
-          <Text style={styles.legalBody}>{isTerms ? t("paywall.terms_feature", "Prices, trials, and renewal periods shown on the paywall come from the store.") : t("paywall.privacy_feature", "Planner content is stored locally unless you choose a service that requires upload, such as syllabus parsing.")}</Text>
+          <Text style={styles.legalBody}>{isTerms ? t("paywall.terms_feature", "Prices and renewal periods shown on the paywall come from the store.") : t("paywall.privacy_feature", "Planner content is stored locally unless you choose a service that requires upload, such as syllabus parsing.")}</Text>
         </View>
-        <AppButton label={t("paywall.back_to_plus", "Back to Plus")} onPress={onClose} />
+        <AppButton label={t("paywall.legal_back", "Back")} onPress={onClose} />
       </View>
     </View>
   );
@@ -381,18 +398,18 @@ function ctaLabel(product: PaywallProduct | undefined, flowState: string, t: (ke
   if (flowState === "purchasing") return t("paywall.opening_store_cta", "Opening Store");
   if (!product) return t("paywall.choose_plan", "Choose a Plan");
   if (product.kind === "lifetime") return t("paywall.buy_lifetime", "Buy Lifetime");
-  return product.hasFreeTrial ? t("paywall.start_free_trial", "Start Free Trial") : t("paywall.subscribe", "Subscribe");
+  return t("paywall.subscribe", "Subscribe");
 }
 
 function unavailableCopy(status: string, hasConfiguredProducts: boolean, hardMode = false, t: (key: string, fallback?: string) => string) {
   if (hardMode) {
     if (status === "unavailable" && hasConfiguredProducts) {
       return Platform.OS === "web"
-      ? t("paywall.web_purchase_required", "Subscriptions must be purchased in the iOS or Android app. This web screen cannot unlock Plus.")
-        : t("paywall.store_unavailable_locked", "Store purchases are unavailable on this device right now. Restore remains available, and Plus will not unlock without a valid store entitlement.");
+      ? t("paywall.web_purchase_required", "Subscriptions must be purchased in the iOS or Android app. This web screen cannot unlock StudyPlanner.")
+        : t("paywall.store_unavailable_locked", "Store purchases are unavailable on this device right now. Restore remains available, and StudyPlanner will not unlock without a valid store entitlement.");
     }
-    if (!hasConfiguredProducts) return t("paywall.no_product_ids", "No Plus product IDs are configured for this build. Restore remains available, but the planner stays locked until products load in a configured build.");
-    return t("paywall.store_no_plans_locked", "The store could not load active Plus plans. Restore remains available, and the planner stays locked until a valid entitlement is found.");
+    if (!hasConfiguredProducts) return t("paywall.no_product_ids", "No product IDs are configured for this build. Restore remains available, but the planner stays locked until products load in a configured build.");
+    return t("paywall.store_no_plans_locked", "The store could not load active plans. Restore remains available, and the planner stays locked until a valid entitlement is found.");
   }
 
   if (status === "unavailable" && hasConfiguredProducts) {
@@ -401,7 +418,7 @@ function unavailableCopy(status: string, hasConfiguredProducts: boolean, hardMod
       : t("paywall.store_unavailable", "Store purchases are unavailable on this device right now.");
   }
   if (!hasConfiguredProducts) return t("paywall.subscription_plans_unavailable", "Subscription plans are not available right now.");
-  return t("paywall.store_no_plans", "The store could not load active Plus plans. Please try again shortly.");
+  return t("paywall.store_no_plans", "The store could not load active plans. Please try again shortly.");
 }
 
 function createStyles(theme: AppTheme) {
@@ -427,6 +444,7 @@ function createStyles(theme: AppTheme) {
     },
     heroTopRow: {
       flexDirection: "row",
+      flexWrap: "wrap",
       alignItems: "center",
       justifyContent: "space-between",
       gap: spacing.sm
@@ -807,7 +825,7 @@ function createStyles(theme: AppTheme) {
       lineHeight: 19,
       fontWeight: "700"
     },
-    freeCard: {
+    includedCard: {
       borderRadius: radii.xl,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.line,
@@ -815,16 +833,16 @@ function createStyles(theme: AppTheme) {
       padding: spacing.md,
       gap: spacing.sm
     },
-    freeHeader: {
+    includedHeader: {
       gap: spacing.xs
     },
-    freeTitle: {
+    includedTitle: {
       color: colors.ink,
       fontSize: 18,
       lineHeight: 23,
       fontWeight: "900"
     },
-    freeIntro: {
+    includedIntro: {
       color: colors.muted,
       fontSize: 13,
       lineHeight: 18,

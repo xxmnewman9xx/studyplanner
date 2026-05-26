@@ -40,6 +40,6 @@ This catalog covers launch-critical student-facing copy:
 
 ## Runtime Integration Status
 
-The React Native source now includes `src/i18n.tsx` and launch-critical wiring for navigation, onboarding, Today, Calendar, Classes, Focus, Grades, More/Widget Studio, import/scanner truth copy, paywall value copy, brand text, and core widget-sync copy. Current native Release simulator screenshots under `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/` prove Today/Calendar/Classes/Focus/Grades/Widgets/Scan/Plus shell localization for `ar`, `de`, `ja`, and `zh-Hans`.
+The React Native source now includes `src/i18n.tsx` and launch-critical wiring for navigation, onboarding, Today, Calendar, Classes, Focus, Grades, More/Widget Studio, import/scanner truth copy, paywall value copy, brand text, and core widget-sync copy. Current native Release simulator screenshots under `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/` prove Today/Calendar/Classes/Focus/Grades/Widgets/Scan/subscription shell localization for `ar`, `de`, `ja`, and `zh-Hans`.
 
 This is still not complete runtime localization for the full app. Widget preview services/components, onboarding preview mockups, import review controls, detail screens, notes, and some alert/error paths still need app-owned hard-coded strings replaced before release.

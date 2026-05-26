@@ -5,6 +5,7 @@ import {
   Semester,
   UserSettings,
   WidgetBackground,
+  WidgetDataMode,
   WidgetPalette,
   WidgetPreset
 } from "../models";
@@ -13,12 +14,14 @@ import {
   getAssignmentCompletionStats,
   getNeedsReview,
   getSchedulableAssignments,
+  getWeekLoad,
   getWeekCompletionStats,
   isValidDeadline,
   scoreWork
 } from "../logic/planner";
+import { widgetStyleColors } from "../widgets/widgetThemes";
 
-export type StudyPlannerNativeWidgetKind = "today" | "upcoming";
+export type StudyPlannerNativeWidgetKind = "today" | "upcoming" | "week" | "class_progress";
 
 export type StudyPlannerNativeWidgetState =
   | "ready"
@@ -67,6 +70,7 @@ export type StudyPlannerNativeWidgetProps = {
   metricLabel?: string;
   nextLabel?: string;
   timelineLabel?: string;
+  weekdayLabels?: string[];
   items: StudyPlannerNativeWidgetItem[];
 };
 
@@ -93,31 +97,8 @@ export type WidgetSnapshotInput = {
 
 declare const require: (path: string) => any;
 
-const defaultAccent = "#2F80ED";
-const defaultBackground = "#101723";
-
-const paletteAccents: Record<WidgetPalette | "custom", string> = {
-  sunset: "#E06C2E",
-  ocean: "#2F80ED",
-  forest: "#35F2D0",
-  lavender: "#56A8FF",
-  midnight: "#56A8FF",
-  candy: "#38BDF8",
-  minimal: "#94A3B8",
-  graphite: "#A3E635",
-  aurora: "#35F2D0",
-  paper: "#2F80ED",
-  custom: defaultAccent
-};
-
-const backgroundColors: Record<WidgetBackground, string> = {
-  glass: "#101723",
-  solid: "#0D1422",
-  gradient: "#061827",
-  dark: "#05070B"
-};
-
 const defaultTranslate: WidgetSnapshotTranslate = (_key, fallback) => fallback || _key;
+const defaultAccent = "#2F80ED";
 
 function getSnapshotLocalization(input: Pick<WidgetSnapshotInput, "locale" | "translate">) {
   return {
@@ -147,24 +128,68 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
   const privacyMode = input.settings?.privacyMode === true;
   const todayPreset = findNativePreset("today", input.widgetPresets || []);
   const upcomingPreset = findNativePreset("upcoming", input.widgetPresets || []);
-  const todayAssignments = filterAssignmentsForPreset(reviewedAssignments, todayPreset, input.courses);
-  const upcomingAssignments = filterAssignmentsForPreset(reviewedAssignments, upcomingPreset, input.courses);
+  const weekPreset = findNativePreset("week", input.widgetPresets || []);
+  const classProgressPreset = findNativePreset("class_progress", input.widgetPresets || []);
+  const todayAssignments = filterAssignmentsForPreset(reviewedAssignments, todayPreset, input.courses, now);
+  const upcomingAssignments = filterAssignmentsForPreset(reviewedAssignments, upcomingPreset, input.courses, now);
+  const weekAssignments = filterAssignmentsForPreset(reviewedAssignments, weekPreset, input.courses, now);
+  const classAssignments = filterAssignmentsForPreset(reviewedAssignments, classProgressPreset, input.courses, now);
   const upcoming = getUpcomingAssignments(upcomingAssignments, now);
   const dueToday = getTodayWidgetAssignments(todayAssignments, now);
   const todayProgressStats = getAssignmentCompletionStats(
-    filterAssignmentsForPreset(reviewedProgressAssignments, todayPreset, input.courses).filter(
+    filterAssignmentsForPreset(reviewedProgressAssignments, todayPreset, input.courses, now).filter(
       (assignment) => daysUntil(assignment.dueAt, now) === 0
     )
   );
-  const weekProgressStats = getWeekCompletionStats(assignments, now);
+  const weekProgressStats = getWeekCompletionStats(filterAssignmentsForPreset(reviewedProgressAssignments, weekPreset, input.courses, now), now);
+  const upcomingProgressStats = getWeekCompletionStats(assignments, now);
   const todayStyle = getNativeWidgetStyle("today", todayPreset, input.settings, t);
   const upcomingStyle = getNativeWidgetStyle("upcoming", upcomingPreset, input.settings, t);
+  const weekStyle = getNativeWidgetStyle("week", weekPreset, input.settings, t);
+  const classProgressStyle = getNativeWidgetStyle("class_progress", classProgressPreset, input.settings, t);
+  const fallbackCourse = input.courses[0];
+  const classProgressCourse =
+    classProgressPreset?.classFocusCourseId
+      ? input.courses.find((course) => course.id === classProgressPreset.classFocusCourseId) || fallbackCourse
+      : fallbackCourse;
+  const classProgressAssignments = classProgressCourse
+    ? classAssignments.filter((assignment) => assignment.courseId === classProgressCourse.id)
+    : classAssignments;
+  const classProgressStats = getAssignmentCompletionStats(
+    filterAssignmentsForPreset(reviewedProgressAssignments, classProgressPreset, input.courses, now).filter(
+      (assignment) => !classProgressCourse || assignment.courseId === classProgressCourse.id
+    )
+  );
   const base = {
     version: 1 as const,
     generatedAt,
     semesterName: input.semester.name,
-    openURL: "studyplanner://widgets"
+    openURL: "studyplanner://widgets",
+    weekdayLabels: localizedWeekdayNarrowLabels(locale)
   };
+  const setupSnapshot = (
+    kind: StudyPlannerNativeWidgetKind,
+    state: StudyPlannerNativeWidgetState,
+    headline: string,
+    value: string,
+    detail: string,
+    footnote: string,
+    style: ReturnType<typeof getNativeWidgetStyle>
+  ) =>
+    emptySnapshot({
+      ...base,
+      kind,
+      state,
+      headline,
+      value,
+      detail,
+      footnote,
+      ...style,
+      signalLabel: state === "sync_disabled" ? t("widget_snapshot.sync_off", "Sync off") : t("widget_snapshot.setup", "Setup"),
+      metricLabel: style.progressLabel,
+      nextLabel: footnote,
+      timelineLabel: style.windowLabel
+    });
 
   if (input.demoMode) {
     return {
@@ -187,7 +212,25 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         detail: t("widget_snapshot.demo_detail_upcoming", "Widgets wait for real planner data"),
         footnote: t("widget_snapshot.demo_footnote_upcoming", "Demo coursework is never shared"),
         ...upcomingStyle
-      })
+      }),
+      week: setupSnapshot(
+        "week",
+        "demo",
+        t("widget_snapshot.week", "Week"),
+        t("widget_snapshot.import", "Import"),
+        t("widget_snapshot.demo_detail_upcoming", "Widgets wait for real planner data"),
+        t("widget_snapshot.demo_footnote_upcoming", "Demo coursework is never shared"),
+        weekStyle
+      ),
+      classProgress: setupSnapshot(
+        "class_progress",
+        "demo",
+        t("widget_snapshot.class_progress", "Class Progress"),
+        t("widget_snapshot.import", "Import"),
+        t("widget_snapshot.demo_detail_upcoming", "Widgets wait for real planner data"),
+        t("widget_snapshot.demo_footnote_upcoming", "Demo coursework is never shared"),
+        classProgressStyle
+      )
     };
   }
 
@@ -212,7 +255,25 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         detail: t("widget_snapshot.add_class_first", "Add a class first"),
         footnote: t("widget_snapshot.then_add_homework", "Then add or import homework"),
         ...upcomingStyle
-      })
+      }),
+      week: setupSnapshot(
+        "week",
+        "no_classes",
+        t("widget_snapshot.week", "Week"),
+        t("widget_snapshot.class", "Class"),
+        t("widget_snapshot.add_class_first", "Add a class first"),
+        t("widget_snapshot.course_context", "Course context makes widgets useful"),
+        weekStyle
+      ),
+      classProgress: setupSnapshot(
+        "class_progress",
+        "no_classes",
+        t("widget_snapshot.class_progress", "Class Progress"),
+        t("widget_snapshot.class", "Class"),
+        t("widget_snapshot.add_class_first", "Add a class first"),
+        t("widget_snapshot.course_context", "Course context makes widgets useful"),
+        classProgressStyle
+      )
     };
   }
 
@@ -245,7 +306,25 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         detail,
         footnote,
         ...upcomingStyle
-      })
+      }),
+      week: setupSnapshot(
+        "week",
+        state,
+        t("widget_snapshot.week", "Week"),
+        hasReviewedSyllabus ? t("widget_snapshot.add", "Add") : t("widget_snapshot.review", "Review"),
+        detail,
+        footnote,
+        weekStyle
+      ),
+      classProgress: setupSnapshot(
+        "class_progress",
+        state,
+        t("widget_snapshot.class_progress", "Class Progress"),
+        hasReviewedSyllabus ? t("widget_snapshot.add", "Add") : t("widget_snapshot.review", "Review"),
+        detail,
+        footnote,
+        classProgressStyle
+      )
     };
   }
 
@@ -272,7 +351,31 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         footnote: t("widget_snapshot.open_scan_approve", "Open Scan to approve deadlines"),
         ...upcomingStyle,
         accentColor: "#F59E0B"
-      })
+      }),
+      week: {
+        ...setupSnapshot(
+          "week",
+          "needs_review",
+          t("widget_snapshot.week", "Week"),
+          String(reviewCount),
+          t("widget_snapshot.review_before_widgets", "Review before widgets use it"),
+          t("widget_snapshot.unreviewed_out", "Unreviewed work stays out of widgets"),
+          weekStyle
+        ),
+        accentColor: "#F59E0B"
+      },
+      classProgress: {
+        ...setupSnapshot(
+          "class_progress",
+          "needs_review",
+          t("widget_snapshot.class_progress", "Class Progress"),
+          String(reviewCount),
+          t("widget_snapshot.review_before_widgets", "Review before widgets use it"),
+          t("widget_snapshot.unreviewed_out", "Unreviewed work stays out of widgets"),
+          classProgressStyle
+        ),
+        accentColor: "#F59E0B"
+      }
     };
   }
 
@@ -281,6 +384,13 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
     todayPreset || privacyMode ? todayStyle.accentColor : colorForAssignment(dueToday[0] || nextUpcoming, input.courses, todayStyle.accentColor);
   const upcomingAccent =
     upcomingPreset || privacyMode ? upcomingStyle.accentColor : colorForAssignment(nextUpcoming, input.courses, upcomingStyle.accentColor);
+  const weekWidgetAssignments = getWeekWidgetAssignments(weekAssignments, now);
+  const weekAccent =
+    weekPreset || privacyMode ? weekStyle.accentColor : colorForAssignment(weekWidgetAssignments[0] || nextUpcoming, input.courses, weekStyle.accentColor);
+  const weekLoad = getWeekLoad(weekAssignments, now);
+  const classAccent =
+    classProgressPreset || privacyMode ? classProgressStyle.accentColor : readableWidgetAccent(classProgressCourse?.color, classProgressStyle.accentColor);
+  const classNext = classProgressAssignments[0];
   const overdueToday = dueToday.filter((assignment) => daysUntil(assignment.dueAt, now) < 0).length;
 
   return {
@@ -361,12 +471,12 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
             ),
             ...upcomingStyle,
             accentColor: upcomingAccent,
-            progress: weekProgressStats.total > 0 ? weekProgressStats.progress : 0,
+            progress: upcomingProgressStats.total > 0 ? upcomingProgressStats.progress : 0,
             signalLabel: daysUntil(nextUpcoming.dueAt, now) < 0 ? t("widget_snapshot.catch_up", "Catch up") : t("widget_snapshot.next_deadline", "Next deadline"),
-            metricLabel: weekProgressStats.total > 0
+            metricLabel: upcomingProgressStats.total > 0
               ? formatSnapshotTemplate(t("widget_snapshot.complete_count", "{done} of {total} complete"), {
-                  done: weekProgressStats.done,
-                  total: weekProgressStats.total
+                  done: upcomingProgressStats.done,
+                  total: upcomingProgressStats.total
                 })
               : effortMetricLabel(nextUpcoming, t),
             nextLabel: assignmentSignal(nextUpcoming, input.courses, now, privacyMode, t, locale),
@@ -384,21 +494,125 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
               ? t("widget_snapshot.review_imported_ready", "Review imported items when ready")
               : t("widget_snapshot.add_homework_when_appears", "Add homework when it appears"),
             ...upcomingStyle,
-            progress: weekProgressStats.total > 0 ? weekProgressStats.progress : 0,
+            progress: upcomingProgressStats.total > 0 ? upcomingProgressStats.progress : 0,
             signalLabel: t("widget_snapshot.clear_week", "Clear week"),
             metricLabel: reviewCount > 0
               ? formatSnapshotTemplate(t("widget_snapshot.to_review", "{count} to review"), { count: reviewCount })
-              : weekProgressStats.total > 0
+              : upcomingProgressStats.total > 0
                 ? formatSnapshotTemplate(t("widget_snapshot.complete_count", "{done} of {total} complete"), {
-                    done: weekProgressStats.done,
-                    total: weekProgressStats.total
+                    done: upcomingProgressStats.done,
+                    total: upcomingProgressStats.total
                   })
               : t("widget_snapshot.no_open_work", "No open work"),
             nextLabel: reviewCount > 0
               ? t("widget_snapshot.approve_imported_first", "Approve imported items first")
               : t("widget_snapshot.add_homework_when_appears", "Add homework when it appears"),
             timelineLabel: t("widget_snapshot.upcoming", "Upcoming")
-          })
+          }),
+    week:
+      weekWidgetAssignments.length > 0
+        ? {
+            ...base,
+            kind: "week" as const,
+            state: "ready" as const,
+            headline: t("widget_snapshot.week", "Week"),
+            value: weekProgressStats.total ? `${Math.round(weekProgressStats.progress * 100)}%` : String(weekWidgetAssignments.length),
+            detail: weekProgressStats.total
+              ? formatSnapshotTemplate(t("widget_snapshot.complete_count", "{done} of {total} complete"), {
+                  done: weekProgressStats.done,
+                  total: weekProgressStats.total
+                })
+              : formatSnapshotTemplate(t("widget_snapshot.open_deadline_count", "{count} open deadlines"), {
+                  count: weekWidgetAssignments.length
+                }),
+            footnote: weekWidgetAssignments[0]
+              ? formatSnapshotTemplate(t("widget_snapshot.next_assignment", "Next: {title}"), {
+                  title: assignmentDisplayTitle(weekWidgetAssignments[0], privacyMode, t)
+                })
+              : t("widget_snapshot.no_open_work", "No open work"),
+            ...weekStyle,
+            accentColor: weekAccent,
+            progress: weekProgressStats.total > 0 ? weekProgressStats.progress : 0,
+            signalLabel: t("widget_snapshot.week_plan", "Week plan"),
+            metricLabel: weekProgressStats.total
+              ? formatSnapshotTemplate(t("widget_snapshot.complete_count", "{done} of {total} complete"), {
+                  done: weekProgressStats.done,
+                  total: weekProgressStats.total
+                })
+              : t("widget_snapshot.no_open_work", "No open work"),
+            nextLabel: weekWidgetAssignments[0]
+              ? assignmentSignal(weekWidgetAssignments[0], input.courses, now, privacyMode, t, locale)
+              : t("widget_snapshot.add_homework_when_appears", "Add homework when it appears"),
+            timelineLabel: t("today.this_week", "This week"),
+            items: weekWidgetAssignments.slice(0, 3).map((assignment) => toWidgetItem(assignment, input.courses, now, privacyMode, weekAccent, t, locale))
+          }
+        : emptySnapshot({
+            ...base,
+            kind: "week",
+            state: "no_upcoming",
+            headline: t("widget_snapshot.week", "Week"),
+            value: t("widget_snapshot.clear", "Clear"),
+            detail: t("widget_snapshot.no_work_this_week", "No work this week"),
+            footnote: reviewCount > 0
+              ? t("widget_snapshot.review_imported_ready", "Review imported items when ready")
+              : t("widget_snapshot.add_homework_when_appears", "Add homework when it appears"),
+            ...weekStyle,
+            accentColor: weekAccent,
+            progress: weekProgressStats.total > 0 ? weekProgressStats.progress : 0,
+            signalLabel: t("widget_snapshot.clear_week", "Clear week"),
+            metricLabel: weekProgressStats.total
+              ? formatSnapshotTemplate(t("widget_snapshot.complete_count", "{done} of {total} complete"), {
+                  done: weekProgressStats.done,
+                  total: weekProgressStats.total
+                })
+              : t("widget_snapshot.no_open_work", "No open work"),
+            nextLabel: t("widget_snapshot.add_homework_when_appears", "Add homework when it appears"),
+            timelineLabel: t("today.this_week", "This week")
+          }),
+    classProgress:
+      classProgressCourse
+        ? {
+            ...base,
+            kind: "class_progress" as const,
+            state: "ready" as const,
+            headline: t("widget_snapshot.class_progress", "Class Progress"),
+            value: privacyMode ? t("widget_snapshot.class", "Class") : classProgressCourse.code,
+            detail: classProgressStats.total
+              ? formatSnapshotTemplate(t("widget_snapshot.complete_count", "{done} of {total} complete"), {
+                  done: classProgressStats.done,
+                  total: classProgressStats.total
+                })
+              : t("widget_snapshot.no_open_work", "No open work"),
+            footnote: classNext
+              ? formatSnapshotTemplate(t("widget_snapshot.next_assignment", "Next: {title}"), {
+                  title: assignmentDisplayTitle(classNext, privacyMode, t)
+                })
+              : t("widget_snapshot.add_homework_when_appears", "Add homework when it appears"),
+            ...classProgressStyle,
+            accentColor: classAccent,
+            progress: classProgressStats.total > 0 ? classProgressStats.progress : 0,
+            signalLabel: t("widget_snapshot.class_progress", "Class Progress"),
+            metricLabel: classProgressStats.total
+              ? formatSnapshotTemplate(t("widget_snapshot.complete_count", "{done} of {total} complete"), {
+                  done: classProgressStats.done,
+                  total: classProgressStats.total
+                })
+              : t("widget_snapshot.no_open_work", "No open work"),
+            nextLabel: classNext
+              ? assignmentSignal(classNext, input.courses, now, privacyMode, t, locale)
+              : t("widget_snapshot.add_homework_when_appears", "Add homework when it appears"),
+            timelineLabel: privacyMode ? t("widget_snapshot.class", "Class") : classProgressCourse.code,
+            items: classProgressAssignments.slice(0, 3).map((assignment) => toWidgetItem(assignment, input.courses, now, privacyMode, classAccent, t, locale))
+          }
+        : setupSnapshot(
+            "class_progress",
+            "no_classes",
+            t("widget_snapshot.class_progress", "Class Progress"),
+            t("widget_snapshot.class", "Class"),
+            t("widget_snapshot.add_class_first", "Add a class first"),
+            t("widget_snapshot.course_context", "Course context makes widgets useful"),
+            classProgressStyle
+          )
   };
 }
 
@@ -412,6 +626,8 @@ export async function syncStudyPlannerWidgets(input: WidgetSnapshotInput): Promi
       if (widgets) {
         widgets.StudyPlannerTodayWidget.updateSnapshot(snapshots.today);
         widgets.StudyPlannerUpcomingWidget.updateSnapshot(snapshots.upcoming);
+        widgets.StudyPlannerWeekWidget.updateSnapshot(snapshots.week);
+        widgets.StudyPlannerClassProgressWidget.updateSnapshot(snapshots.classProgress);
         return {
           state: "skipped",
           message: t(
@@ -449,10 +665,12 @@ export async function syncStudyPlannerWidgets(input: WidgetSnapshotInput): Promi
 
     widgets.StudyPlannerTodayWidget.updateSnapshot(snapshots.today);
     widgets.StudyPlannerUpcomingWidget.updateSnapshot(snapshots.upcoming);
+    widgets.StudyPlannerWeekWidget.updateSnapshot(snapshots.week);
+    widgets.StudyPlannerClassProgressWidget.updateSnapshot(snapshots.classProgress);
 
     return {
       state: "synced",
-      message: t("widget_snapshot.synced_status", "Today and Upcoming widgets are using reviewed planner data."),
+      message: t("widget_snapshot.synced_status", "StudyPlanner widgets are using reviewed planner data."),
       updatedAt: snapshots.today.generatedAt
     };
   } catch {
@@ -471,10 +689,13 @@ function buildSyncDisabledWidgetSnapshots(input: WidgetSnapshotInput) {
     version: 1 as const,
     generatedAt,
     semesterName: input.semester.name,
-    openURL: "studyplanner://widgets"
+    openURL: "studyplanner://widgets",
+    weekdayLabels: localizedWeekdayNarrowLabels(input.locale || "en-US")
   };
   const todayStyle = getNativeWidgetStyle("today", findNativePreset("today", input.widgetPresets || []), input.settings, t);
   const upcomingStyle = getNativeWidgetStyle("upcoming", findNativePreset("upcoming", input.widgetPresets || []), input.settings, t);
+  const weekStyle = getNativeWidgetStyle("week", findNativePreset("week", input.widgetPresets || []), input.settings, t);
+  const classProgressStyle = getNativeWidgetStyle("class_progress", findNativePreset("class_progress", input.widgetPresets || []), input.settings, t);
 
   return {
     today: emptySnapshot({
@@ -501,6 +722,36 @@ function buildSyncDisabledWidgetSnapshots(input: WidgetSnapshotInput) {
       detail: t("widget_snapshot.widget_sync_off", "Widget sync is off"),
       footnote: t("widget_snapshot.native_widgets_cleared", "Native widgets were cleared"),
       ...upcomingStyle,
+      progress: 0,
+      signalLabel: t("widget_snapshot.sync_off", "Sync off"),
+      metricLabel: t("widget_snapshot.no_planner_data_shared", "No planner data shared"),
+      nextLabel: t("widget_snapshot.open_widgets_settings", "Open Widgets settings"),
+      timelineLabel: t("widget_snapshot.private", "Private")
+    }),
+    week: emptySnapshot({
+      ...base,
+      kind: "week",
+      state: "sync_disabled" as const,
+      headline: t("widget_snapshot.week", "Week"),
+      value: t("widget_snapshot.off", "Off"),
+      detail: t("widget_snapshot.widget_sync_off", "Widget sync is off"),
+      footnote: t("widget_snapshot.native_widgets_cleared", "Native widgets were cleared"),
+      ...weekStyle,
+      progress: 0,
+      signalLabel: t("widget_snapshot.sync_off", "Sync off"),
+      metricLabel: t("widget_snapshot.no_planner_data_shared", "No planner data shared"),
+      nextLabel: t("widget_snapshot.open_widgets_settings", "Open Widgets settings"),
+      timelineLabel: t("widget_snapshot.private", "Private")
+    }),
+    classProgress: emptySnapshot({
+      ...base,
+      kind: "class_progress",
+      state: "sync_disabled" as const,
+      headline: t("widget_snapshot.class_progress", "Class Progress"),
+      value: t("widget_snapshot.off", "Off"),
+      detail: t("widget_snapshot.widget_sync_off", "Widget sync is off"),
+      footnote: t("widget_snapshot.native_widgets_cleared", "Native widgets were cleared"),
+      ...classProgressStyle,
       progress: 0,
       signalLabel: t("widget_snapshot.sync_off", "Sync off"),
       metricLabel: t("widget_snapshot.no_planner_data_shared", "No planner data shared"),
@@ -559,6 +810,12 @@ function getTodayWidgetAssignments(assignments: Assignment[], now: Date) {
 
 function getUpcomingAssignments(assignments: Assignment[], now = new Date()) {
   return assignments
+    .sort((a, b) => sortWidgetAssignments(a, b, now));
+}
+
+function getWeekWidgetAssignments(assignments: Assignment[], now = new Date()) {
+  return assignments
+    .filter((assignment) => daysUntil(assignment.dueAt, now) <= 6)
     .sort((a, b) => sortWidgetAssignments(a, b, now));
 }
 
@@ -682,6 +939,18 @@ function effortMetricLabel(assignment: Assignment, t: WidgetSnapshotTranslate = 
   ].filter(Boolean).join(" / ");
 }
 
+function localizedWeekdayNarrowLabels(locale: string) {
+  const mondayUtc = Date.UTC(2026, 0, 5);
+  try {
+    const formatter = new Intl.DateTimeFormat(locale, { weekday: "narrow", timeZone: "UTC" });
+    return Array.from({ length: 7 }, (_value, index) =>
+      formatter.format(new Date(mondayUtc + index * 24 * 60 * 60 * 1000))
+    );
+  } catch {
+    return ["M", "T", "W", "T", "F", "S", "S"];
+  }
+}
+
 function dueUrgencyLabel(iso: string, now: Date) {
   const days = daysUntil(iso, now);
   if (days < 0) return "Overdue";
@@ -692,14 +961,31 @@ function dueUrgencyLabel(iso: string, now: Date) {
   return "Later";
 }
 
-function filterAssignmentsForPreset(assignments: Assignment[], preset?: WidgetPreset, courses: Course[] = []) {
-  if (!preset?.classFocusCourseId) return assignments;
-  if (!courses.some((course) => course.id === preset.classFocusCourseId)) return assignments;
-  return assignments.filter((assignment) => assignment.courseId === preset.classFocusCourseId);
+function filterAssignmentsForPreset(assignments: Assignment[], preset?: WidgetPreset, courses: Course[] = [], now = new Date()) {
+  let scoped = assignments;
+  const dataMode: WidgetDataMode = preset?.dataMode || (preset?.type === "today" ? "today" : preset?.type === "week" ? "this_week" : preset?.type === "class_focus" ? "single_class" : "all_classes");
+
+  if ((dataMode === "single_class" || preset?.classFocusCourseId) && preset?.classFocusCourseId && courses.some((course) => course.id === preset.classFocusCourseId)) {
+    scoped = scoped.filter((assignment) => assignment.courseId === preset.classFocusCourseId);
+  }
+
+  if (dataMode === "today") {
+    return scoped.filter((assignment) => daysUntil(assignment.dueAt, now) <= 0);
+  }
+
+  if (dataMode === "this_week") {
+    return scoped.filter((assignment) => daysUntil(assignment.dueAt, now) <= 6);
+  }
+
+  if (dataMode === "urgent_only") {
+    return scoped.filter((assignment) => assignment.priority === "high" || daysUntil(assignment.dueAt, now) <= 1);
+  }
+
+  return scoped;
 }
 
 function getNativeWidgetStyle(
-  kind: StudyPlannerNativeWidgetKind | "upcoming",
+  kind: StudyPlannerNativeWidgetKind,
   preset?: WidgetPreset,
   settings?: UserSettings,
   t: WidgetSnapshotTranslate = defaultTranslate
@@ -719,10 +1005,11 @@ function getNativeWidgetStyle(
 > {
   const palette = preset?.palette || settings?.selectedTheme || "ocean";
   const background = preset?.background || settings?.defaultWidgetStyle || "glass";
-  const accentColor =
-    palette === "custom"
-      ? settings?.customPalette?.[0] || defaultAccent
-      : paletteAccents[palette] || defaultAccent;
+  const { accentColor, backgroundColor } = widgetStyleColors({
+    background,
+    palette,
+    customPalette: settings?.customPalette
+  });
   const smartSlot = preset?.smartStackSlot;
   const windowLabel =
     preset?.scheduleLabel ||
@@ -736,7 +1023,11 @@ function getNativeWidgetStyle(
             ? t("more.smart_night_time", "9 PM+")
             : kind === "today"
               ? t("widget_snapshot.today", "Today")
-              : t("widget_snapshot.upcoming", "Upcoming"));
+              : kind === "week"
+                ? t("today.this_week", "This week")
+                : kind === "class_progress"
+                  ? t("widget_snapshot.class_progress", "Class Progress")
+                  : t("widget_snapshot.upcoming", "Upcoming"));
   const layout = preset?.layout || "list";
   const densityLabel =
     preset?.size === "small"
@@ -747,7 +1038,7 @@ function getNativeWidgetStyle(
 
   return {
     accentColor,
-    backgroundColor: backgroundColors[background] || defaultBackground,
+    backgroundColor,
     styleLabel: `${widgetBackgroundLabel(background, t)} / ${widgetPaletteLabel(palette, t)}`,
     layoutLabel: widgetLayoutLabel(layout, t),
     densityLabel,
@@ -755,30 +1046,49 @@ function getNativeWidgetStyle(
     courseScopeLabel: preset?.classFocusCourseId
       ? t("widget_snapshot.pinned_class", "Pinned class")
       : t("widget_snapshot.all_classes", "All classes"),
-    progressLabel: kind === "today" ? t("widget_snapshot.day_plan", "Day plan") : t("widget_snapshot.due_map", "Due map"),
+    progressLabel:
+      kind === "today"
+        ? t("widget_snapshot.day_plan", "Day plan")
+        : kind === "week"
+          ? t("widget_snapshot.week_plan", "Week plan")
+          : kind === "class_progress"
+            ? t("widget_snapshot.class_progress", "Class Progress")
+            : t("widget_snapshot.due_map", "Due map"),
     progress: 0,
-    iconKey: preset?.iconKey || (kind === "today" ? "check" : "calendar"),
-    actionLabel: kind === "today" ? t("widget_snapshot.open_today", "Open Today") : t("widget_snapshot.open_upcoming", "Open Upcoming")
+    iconKey: preset?.iconKey || (kind === "today" ? "check" : kind === "class_progress" ? "book" : "calendar"),
+    actionLabel:
+      kind === "today"
+        ? t("widget_snapshot.open_today", "Open Today")
+        : kind === "week"
+          ? t("widget_snapshot.open_week", "Open Week")
+          : kind === "class_progress"
+            ? t("widget_snapshot.open_class", "Open Class")
+            : t("widget_snapshot.open_upcoming", "Open Upcoming")
   };
 }
 
-function findNativePreset(kind: StudyPlannerNativeWidgetKind | "upcoming", presets: WidgetPreset[]) {
-  const type = kind === "today" ? "today" : "due_next";
+function findNativePreset(kind: StudyPlannerNativeWidgetKind, presets: WidgetPreset[]) {
+  const type =
+    kind === "today"
+      ? "today"
+      : kind === "week"
+        ? "week"
+        : kind === "class_progress"
+          ? "class_focus"
+          : "due_next";
   return [...presets]
     .filter(
       (preset) =>
         preset.type === type &&
-        (preset.size === "small" ||
-          preset.size === "medium" ||
-          preset.size === "lock_round" ||
-          preset.size === "lock_rect" ||
-          preset.size === "lock_inline")
+        (preset.size === "small" || preset.size === "medium")
     )
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
 }
 
 function widgetBackgroundLabel(background: WidgetBackground, t: WidgetSnapshotTranslate) {
   switch (background) {
+    case "light":
+      return t("theme.light", "Light");
     case "solid":
       return t("widget_snapshot.background_solid", "Solid");
     case "gradient":
@@ -811,6 +1121,8 @@ function widgetPaletteLabel(palette: WidgetPalette | "custom", t: WidgetSnapshot
       return t("more.palette_aurora", "Aurora");
     case "paper":
       return t("more.palette_paper", "Paper");
+    case "contrast":
+      return t("more.style_high_contrast", "High contrast");
     case "custom":
       return t("widget_snapshot.palette_custom", "Custom");
     case "ocean":

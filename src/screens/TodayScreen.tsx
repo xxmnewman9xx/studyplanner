@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Bell, CalendarPlus, CalendarSync, CheckCircle2, FileScan, Plus, Sparkles, Timer } from "lucide-react-native";
+import { Bell, CalendarPlus, CalendarSync, CheckCircle2, CirclePlus, FileScan, Sparkles, Timer } from "lucide-react-native";
 import {
   AssignmentRow,
   EmptyState,
@@ -42,8 +42,6 @@ type TodayScreenProps = {
   onOpenAssignment: (assignmentId: string) => void;
   onScheduleReminders: () => void;
   onCalendarSync: () => void;
-  premiumAutomationLocked: boolean;
-  onOpenPaywall: () => void;
   onOpenFocus: (assignmentId?: string) => void;
   onOpenScan: () => void;
   onOpenPlan: () => void;
@@ -67,8 +65,6 @@ export function TodayScreen({
   onOpenAssignment,
   onScheduleReminders,
   onCalendarSync,
-  premiumAutomationLocked,
-  onOpenPaywall,
   onOpenFocus,
   onOpenScan,
   onOpenPlan,
@@ -309,7 +305,7 @@ export function TodayScreen({
             </View>
             <AppButton
               label={t("today.add_to_today", "Add to Today")}
-              icon={Plus}
+              icon={CirclePlus}
               disabled={!parsedQuickHomework.course || !parsedQuickHomework.title.trim() || !parsedQuickHomework.dueDate.trim()}
               onPress={addHomework}
             />
@@ -380,14 +376,14 @@ export function TodayScreen({
               label={t("today.set_reminders", "Set reminders")}
               icon={Bell}
               variant="secondary"
-              onPress={premiumAutomationLocked ? onOpenPaywall : onScheduleReminders}
+              onPress={onScheduleReminders}
               style={styles.automationButton}
             />
             <AppButton
               label={t("today.sync_calendar", "Sync calendar")}
               icon={CalendarSync}
               variant="secondary"
-              onPress={premiumAutomationLocked ? onOpenPaywall : onCalendarSync}
+              onPress={onCalendarSync}
               style={styles.automationButton}
             />
           </View>
@@ -657,7 +653,7 @@ function buildQuickDuePresets(t: TranslateFn) {
   return [
     { label: t("today.quick_due_today", "Today"), value: todayDateInput(0) },
     { label: t("today.quick_due_tomorrow", "Tomorrow"), value: todayDateInput(1) },
-    { label: t("today.quick_due_plus_3", "+3 days"), value: todayDateInput(3) },
+    { label: t("today.quick_due_in_3", "+3 days"), value: todayDateInput(3) },
     { label: t("today.quick_due_next_week", "Next week"), value: todayDateInput(7) }
   ];
 }

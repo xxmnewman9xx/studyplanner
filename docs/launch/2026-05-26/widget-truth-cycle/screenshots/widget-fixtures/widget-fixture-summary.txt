@@ -12,9 +12,9 @@ Generated artifacts:
 
 Assertions:
 
-- Eight fixture states: passed (empty, needs-review, overdue, today-clear, upcoming-heavy, privacy-mode, class-focus, plus-locked)
+- Eight fixture states: passed (empty, needs-review, overdue, today-clear, upcoming-heavy, privacy-mode, class-focus, entitlement-locked)
 - Privacy redaction: passed
-- Plus-lock evidence: passed
+- Entitlement-lock evidence: passed
 - Studio proof meter source evidence: passed
 - Native preview progress dots: passed
 - Contrast / legibility checks: passed (52 checks, minimum 3.72:1)

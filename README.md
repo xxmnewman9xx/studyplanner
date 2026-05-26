@@ -12,7 +12,7 @@ npx expo start
 
 ## What Is Included
 
-- Polished first-run onboarding that leads into the Plus paywall.
+- Polished first-run onboarding that leads into the subscription paywall.
 - Editable syllabus import flow for pasted text and text-based PDFs through the local parser or configured parse endpoint.
 - Camera/photo import stays disabled unless a configured endpoint and verified OCR/image parsing support are present.
 - Course and semester setup with weekly class schedule.
@@ -22,7 +22,7 @@ npx expo start
 - Smart reminders using `expo-notifications`.
 - Device calendar sync using `expo-calendar`.
 - Focus session timer tied to a selected assignment.
-- Store-backed Plus paywall and premium guards for syllabus imports, calendar sync, reminders, and grade forecasting.
+- Store-backed subscription paywall and app-access guards for syllabus imports, calendar sync, reminders, and grade forecasting.
 
 ## Configuration
 
@@ -39,6 +39,6 @@ EXPO_PUBLIC_SUPPORT_URL=https://political-turtle-752.notion.site/Study-Planner-S
 
 If policy URLs are not provided, the app falls back to Apple's standard EULA and the hosted Study Planner privacy policy. If a support URL is not provided, the in-app Support link falls back to the hosted privacy/contact page. If `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT` is not provided, the Scan tab stays available and uses the on-device text parser for text-based PDFs and plain-text syllabi.
 
-Only include product IDs that exist in App Store Connect or Google Play Console. If no Plus products are configured, the paywall fails closed and does not grant premium access.
+Only include product IDs that exist in App Store Connect or Google Play Console. If no subscription products are configured, the paywall fails closed and does not grant paid access.
 
 Canvas is intentionally not a live V1 integration. Do not claim Canvas sync until OAuth, school-domain handling, and update reconciliation are implemented.

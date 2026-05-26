@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { ChevronLeft, ChevronRight, Plus, Sparkles, Timer } from "lucide-react-native";
+import { ChevronLeft, ChevronRight, CirclePlus, Sparkles, Timer } from "lucide-react-native";
 import {
   AssignmentRow,
   EmptyState,
@@ -180,7 +180,7 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
         <View style={styles.catchUpActions}>
           <AppButton
             label={courses.length ? t("plan.add_to_calendar", "Add to calendar") : t("today.scan_syllabus", "Scan syllabus")}
-            icon={Plus}
+            icon={CirclePlus}
             disabled={courses.length > 0 && (!parsedPlanCapture.course || !parsedPlanCapture.title.trim() || !parsedPlanCapture.dueDate.trim())}
             onPress={courses.length ? addPlanCapture : onOpenScan}
             style={styles.catchUpButton}

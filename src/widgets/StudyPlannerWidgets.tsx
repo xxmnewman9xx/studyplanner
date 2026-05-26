@@ -40,16 +40,18 @@ function StudyPlannerWidgetLayout(props, environment) {
   var soft = isDark ? "#263245" : "#E7EAF0";
   var surface = isDark ? "#172132" : "#FFFFFF";
   var highlight = isDark ? "#111B2B" : "#FFFFFF";
-  var signalLabel = props.signalLabel || (props.state === "ready" ? "Live plan" : props.state === "needs_review" ? "Review first" : "Setup");
-  var metricLabel = props.metricLabel || props.progressLabel || "Planner";
-  var nextLabel = props.nextLabel || props.footnote || "Open StudyPlanner";
+  var signalLabel = props.signalLabel || (props.state === "ready" ? props.headline : props.state === "needs_review" ? props.detail : props.footnote);
+  var metricLabel = props.metricLabel || props.progressLabel || props.headline;
+  var nextLabel = props.nextLabel || props.footnote || props.headline;
   var timelineLabel = props.timelineLabel || props.windowLabel || (props.kind === "today" ? "Today" : "Next");
+  var nextKicker = props.actionLabel || nextLabel;
   var smallValue = firstItem && firstItem.courseCode ? firstItem.courseCode : props.value;
   var smallDetail = firstItem ? firstItem.title : props.detail;
   var titleSize = isMedium ? 12 : 11;
   var valueSize = isMedium ? 34 : 31;
   var detailLines = isMedium ? 2 : 1;
   var progress = Math.max(0, Math.min(1, props.progress || 0));
+  var weekdayLabels = props.weekdayLabels || ["M", "T", "W", "T", "F", "S", "S"];
   var activeWeekDots = Math.round(progress * 7);
   var progressDots = [];
   var weekDots = [];
@@ -65,7 +67,7 @@ function StudyPlannerWidgetLayout(props, environment) {
       spacing: 2,
       children: [
         circle(weekIndex < activeWeekDots ? 6 : 4, weekIndex < activeWeekDots ? accent : soft),
-        text(["M", "T", "W", "T", "F", "S", "S"][weekIndex], [
+        text(weekdayLabels[weekIndex] || "", [
           font({ size: 7, weight: "black" }),
           foregroundStyle(quiet),
           lineLimit(1)
@@ -82,12 +84,12 @@ function StudyPlannerWidgetLayout(props, environment) {
       modifiers: [frame({ maxWidth: 400 })],
       children: [
         circle(6, item.courseColor || accent),
-        text(item.courseCode || "Class", [
+        text(item.courseCode || props.courseScopeLabel || props.headline, [
           font({ size: 10, weight: "black" }),
           foregroundStyle(item.courseColor || accent),
           lineLimit(1)
         ]),
-        text(item.title || "Homework", [
+        text(item.title || props.detail, [
           font({ size: isMedium ? 11 : 10, weight: "semibold" }),
           foregroundStyle(ink),
           lineLimit(1)
@@ -116,23 +118,23 @@ function StudyPlannerWidgetLayout(props, environment) {
 
   if (isAccessoryCircular) {
     var circularValue = firstItem && firstItem.courseCode ? firstItem.courseCode : props.value;
-    var circularLabel = firstItem ? (props.kind === "today" ? "Do first" : "Next") : (props.kind === "today" ? "Today" : "Next");
+    var circularLabel = firstItem ? signalLabel : timelineLabel;
     if (!firstItem) {
       if (props.state === "needs_review") {
-        circularValue = "Review";
+        circularValue = props.detail;
         circularLabel = props.value;
       } else if (props.state === "no_classes") {
-        circularValue = "Class";
-        circularLabel = "Add";
+        circularValue = props.value;
+        circularLabel = props.detail;
       } else if (props.state === "no_reviewed_syllabus") {
-        circularValue = "Scan";
-        circularLabel = "Start";
+        circularValue = props.value;
+        circularLabel = props.detail;
       } else if (props.state === "no_due_today" || props.state === "no_upcoming") {
-        circularValue = "Clear";
-        circularLabel = props.kind === "today" ? "Today" : "Week";
+        circularValue = props.value;
+        circularLabel = timelineLabel;
       } else if (props.state === "sync_disabled") {
-        circularValue = "Off";
-        circularLabel = "Sync";
+        circularValue = props.value;
+        circularLabel = signalLabel;
       }
     }
     return view("ZStackView", {
@@ -376,7 +378,7 @@ function StudyPlannerWidgetLayout(props, environment) {
                       background(surface)
                     ],
                     children: [
-                      text("NEXT", [
+                      text(nextKicker, [
                         font({ size: 8, weight: "black" }),
                         foregroundStyle(quiet),
                         lineLimit(1)
@@ -448,7 +450,7 @@ function StudyPlannerWidgetLayout(props, environment) {
                 lineLimit(1)
               ]),
               view("SpacerView", { minLength: 3 }),
-              text(props.layoutLabel || props.styleLabel || "Widget", [
+              text(props.layoutLabel || props.styleLabel || props.headline, [
                 font({ size: 9, weight: "bold" }),
                 foregroundStyle(accent),
                 lineLimit(1)
@@ -471,5 +473,15 @@ export const StudyPlannerTodayWidget = createWidget<StudyPlannerNativeWidgetProp
 
 export const StudyPlannerUpcomingWidget = createWidget<StudyPlannerNativeWidgetProps>(
   "StudyPlannerUpcomingWidget",
+  StudyPlannerWidgetLayout
+);
+
+export const StudyPlannerWeekWidget = createWidget<StudyPlannerNativeWidgetProps>(
+  "StudyPlannerWeekWidget",
+  StudyPlannerWidgetLayout
+);
+
+export const StudyPlannerClassProgressWidget = createWidget<StudyPlannerNativeWidgetProps>(
+  "StudyPlannerClassProgressWidget",
   StudyPlannerWidgetLayout
 );

@@ -53,15 +53,15 @@ Included gates:
 - widget snapshot gates
 - golden scenarios
 - runtime localization completeness
-- IAP/premium gate configuration
+- IAP/entitlement gate configuration
 - release documentation guardrails
 - web export
 
 ## Build Attempts
 
-1. Local build initially failed during CocoaPods because the machine had roughly 2 GB free and Hermes extraction hit `No space left on device`.
-2. EAS cloud build with auto-submit was attempted, but the Expo account had used its monthly free iOS builds. Reset is reported for 2026-06-01.
-3. Generated local build/cache artifacts were cleared, bringing free space to roughly 26 GB.
+1. Local build initially failed during CocoaPods because the machine had roughly 2 GB available and Hermes extraction hit `disk capacity exhausted`.
+2. EAS cloud build with auto-submit was attempted, but the Expo account had used its monthly included iOS builds. Reset is reported for 2026-06-01.
+3. Generated local build/cache artifacts were cleared, bringing available space to roughly 26 GB.
 4. Local production build was retried and succeeded:
 
 ```sh

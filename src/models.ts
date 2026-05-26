@@ -7,7 +7,7 @@ export type NavTab =
   | "more"
   | "focus"
   | "grades"
-  | "upgrade";
+  | "subscribe";
 
 export type Priority = "low" | "medium" | "high";
 
@@ -31,7 +31,7 @@ export type WidgetType =
 
 export type WidgetSize = "small" | "medium" | "large" | "lock_round" | "lock_inline" | "lock_rect";
 
-export type WidgetBackground = "solid" | "gradient" | "glass" | "dark";
+export type WidgetBackground = "solid" | "gradient" | "glass" | "dark" | "light";
 
 export type WidgetPalette =
   | "sunset"
@@ -43,7 +43,10 @@ export type WidgetPalette =
   | "minimal"
   | "graphite"
   | "aurora"
-  | "paper";
+  | "paper"
+  | "contrast";
+
+export type WidgetDataMode = "all_classes" | "single_class" | "today" | "this_week" | "urgent_only";
 
 export type FocusSessionStatus = "planned" | "running" | "paused" | "completed" | "stopped";
 
@@ -230,6 +233,7 @@ export type WidgetPreset = {
   size: WidgetSize;
   background: WidgetBackground;
   palette: WidgetPalette;
+  dataMode?: WidgetDataMode;
   font: "SF Pro" | "New York" | "Rounded" | "Mono";
   classFocusCourseId?: string;
   layout: "compact" | "list" | "ring" | "calendar" | "grid";

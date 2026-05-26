@@ -4,8 +4,8 @@ Date: 2026-05-26 01:39 EDT / 2026-05-26 05:39 UTC
 
 | Product | Product ID | Source |
 | --- | --- | --- |
-| StudyPlanner Plus Monthly | `com.mattnewman.studyplanner.plus.monthly` | `EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS` |
-| StudyPlanner Plus Yearly | `com.mattnewman.studyplanner.plus.yearly` | `EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS` |
+| StudyPlanner Monthly subscription | `com.mattnewman.studyplanner.plus.monthly` | `EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS` |
+| StudyPlanner Yearly | `com.mattnewman.studyplanner.plus.yearly` | `EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS` |
 
 No lifetime product ID is configured in production EAS env.
 

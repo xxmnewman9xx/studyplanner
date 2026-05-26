@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Plus, TrendingUp } from "lucide-react-native";
+import { CirclePlus, TrendingUp } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
 import { MetricCard } from "../components/MetricCard";
@@ -361,7 +361,7 @@ export function GradesScreen({
             </View>
             <AppButton
               label={t("grades.add_this_grade", "Add this grade")}
-              icon={Plus}
+              icon={CirclePlus}
               disabled={!newTitle.trim() || !selectedCategoryId}
               onPress={() => {
                 if (!newTitle.trim() || !selectedCategoryId) return;

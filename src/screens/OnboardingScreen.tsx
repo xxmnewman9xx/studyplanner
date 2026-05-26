@@ -32,6 +32,12 @@ import {
 } from "../services/marketingCapture";
 import { supportsSyllabusImageParsing } from "../services/syllabusParser";
 import { buildStudyPlannerWidgetSnapshots } from "../services/widgetSnapshot";
+import {
+  resolveWidgetTheme,
+  WidgetThemeChoice,
+  widgetThemeDefinitions,
+  widgetThemeOrder
+} from "../widgets/widgetThemes";
 import { MotionFadeUpView } from "../motion";
 import { useI18n } from "../i18n";
 
@@ -120,25 +126,12 @@ const slides: Array<{
     ctaKey: "onboarding.final_cta",
     title: "Make the plan feel like yours.",
     copy: "Choose a theme and put real reviewed work on your Home Screen.",
-    cta: "Continue to Plus"
+    cta: "Continue"
   }
 ];
 
-const themeChoices: Array<{
-  labelKey: string;
-  appTheme: ThemeAccent;
-  widgetPalette: WidgetPalette;
-  widgetStyle: WidgetBackground;
-}> = [
-  { labelKey: "onboarding.theme_midnight_blue", appTheme: "campus", widgetPalette: "midnight", widgetStyle: "dark" },
-  { labelKey: "onboarding.theme_ocean", appTheme: "classic", widgetPalette: "ocean", widgetStyle: "glass" },
-  { labelKey: "onboarding.theme_graphite", appTheme: "graphite", widgetPalette: "graphite", widgetStyle: "dark" },
-  { labelKey: "onboarding.theme_aurora", appTheme: "aura", widgetPalette: "aurora", widgetStyle: "glass" },
-  { labelKey: "onboarding.theme_forest", appTheme: "mint", widgetPalette: "forest", widgetStyle: "glass" },
-  { labelKey: "onboarding.theme_minimal_light", appTheme: "slate", widgetPalette: "paper", widgetStyle: "solid" }
-];
-
 const previewNow = new Date("2026-05-25T09:41:00");
+const defaultOnboardingWidgetTheme = widgetThemeDefinitions.ocean;
 
 export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScreenProps) {
   const { theme } = useAppTheme();
@@ -146,9 +139,9 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
   const { colors } = theme;
   const styles = createStyles(theme);
   const [index, setIndex] = useState(() => normalizedIndex(initialIndex));
-  const [appTheme, setAppTheme] = useState<ThemeAccent>("campus");
-  const [widgetPalette, setWidgetPalette] = useState<WidgetPalette>("ocean");
-  const [widgetStyle, setWidgetStyle] = useState<WidgetBackground>("glass");
+  const [appTheme, setAppTheme] = useState<ThemeAccent>(defaultOnboardingWidgetTheme.appTheme);
+  const [widgetPalette, setWidgetPalette] = useState<WidgetPalette>(defaultOnboardingWidgetTheme.palette);
+  const [widgetStyle, setWidgetStyle] = useState<WidgetBackground>(defaultOnboardingWidgetTheme.background);
   const slide = slides[index] ?? slides[0]!;
   const eyebrowKey = slide.id === "review" ? "import.review_short" : `tabs.${slide.id === "calendar" ? "calendar" : slide.id}`;
   const isFinal = index === slides.length - 1;
@@ -160,7 +153,7 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
   const widgetPresets = useMemo<WidgetPreset[]>(
     () =>
       defaultWidgetPresets.map((preset, presetIndex) =>
-        presetIndex <= 1
+        presetIndex <= 3
           ? {
               ...preset,
               background: widgetStyle,
@@ -257,9 +250,11 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
               widgetStyle={widgetStyle}
               widgetSnapshot={widgetSnapshots.upcoming}
               onSelectTheme={(choice) => {
-                setAppTheme(choice.appTheme);
-                setWidgetPalette(choice.widgetPalette);
-                setWidgetStyle(choice.widgetStyle);
+                const definition = widgetThemeDefinitions[choice];
+                const widgetTheme = resolveWidgetTheme(choice);
+                setAppTheme(definition.appTheme);
+                setWidgetPalette(widgetTheme.palette);
+                setWidgetStyle(widgetTheme.background);
               }}
             />
           ) : null}
@@ -518,7 +513,7 @@ function WidgetsPreview({
   widgetPalette: WidgetPalette;
   widgetStyle: WidgetBackground;
   widgetSnapshot: ReturnType<typeof buildStudyPlannerWidgetSnapshots>["upcoming"];
-  onSelectTheme: (choice: (typeof themeChoices)[number]) => void;
+  onSelectTheme: (choice: WidgetThemeChoice) => void;
 }) {
   return (
     <GlassCard style={styles.appPreviewCard}>
@@ -553,17 +548,18 @@ function WidgetsPreview({
         style={styles.widgetPreview}
       />
       <View style={styles.themeChoiceGrid}>
-        {themeChoices.map((choice) => {
+        {widgetThemeOrder.map((choice) => {
+          const definition = widgetThemeDefinitions[choice];
           const active =
-            choice.appTheme === appTheme &&
-            choice.widgetPalette === widgetPalette &&
-            choice.widgetStyle === widgetStyle;
-          const appSwatches = appThemePalettes[choice.appTheme].swatches;
-          const widgetSwatches = themePalettes[choice.widgetPalette];
-          const choiceLabel = t(choice.labelKey);
+            definition.appTheme === appTheme &&
+            definition.palette === widgetPalette &&
+            definition.background === widgetStyle;
+          const appSwatches = appThemePalettes[definition.appTheme].swatches;
+          const widgetSwatches = themePalettes[definition.palette];
+          const choiceLabel = t(definition.labelKey, definition.fallbackLabel);
           return (
             <TouchableOpacity
-              key={choice.labelKey}
+              key={choice}
               accessibilityRole="button"
               accessibilityState={{ selected: active }}
               style={[styles.themeChoice, active ? styles.themeChoiceActive : null]}
@@ -571,7 +567,7 @@ function WidgetsPreview({
             >
               <View style={styles.themeSwatches}>
                 {[appSwatches[0], widgetSwatches[1], widgetSwatches[2]].map((color) => (
-                  <View key={`${choice.labelKey}-${color}`} style={[styles.themeSwatch, { backgroundColor: color }]} />
+                  <View key={`${choice}-${color}`} style={[styles.themeSwatch, { backgroundColor: color }]} />
                 ))}
               </View>
               <Text style={styles.themeChoiceLabel}>{choiceLabel}</Text>

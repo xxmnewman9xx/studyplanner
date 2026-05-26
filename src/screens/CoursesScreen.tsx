@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Edit3, NotebookPen, Plus } from "lucide-react-native";
+import { CirclePlus, Edit3, NotebookPen } from "lucide-react-native";
 import {
   AssignmentRow,
   ClassIdentityCard,
@@ -398,7 +398,7 @@ export function CoursesScreen({
         />
         <AppButton
           label={t("classes.add_this_class", "Add this class")}
-          icon={Plus}
+          icon={CirclePlus}
           onPress={() => {
             const added = onAddCourse({
               code: newCourseCode,

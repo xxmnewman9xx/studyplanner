@@ -235,7 +235,7 @@ function isNavTab(value: string | undefined): value is NavTab {
     value === "more" ||
     value === "focus" ||
     value === "grades" ||
-    value === "upgrade"
+    value === "subscribe"
   );
 }
 

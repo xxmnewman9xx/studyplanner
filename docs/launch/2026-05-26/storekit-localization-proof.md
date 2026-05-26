@@ -12,8 +12,8 @@ App-owned paywall strings are localized, and native Release simulator proof show
 
 | Product | Product ID | Proven price in native Release simulator |
 | --- | --- | --- |
-| StudyPlanner Plus Monthly | `com.mattnewman.studyplanner.plus.monthly` | `$3.99` |
-| StudyPlanner Plus Yearly | `com.mattnewman.studyplanner.plus.yearly` | `$24.99` |
+| StudyPlanner Monthly subscription | `com.mattnewman.studyplanner.plus.monthly` | `$3.99` |
+| StudyPlanner Yearly | `com.mattnewman.studyplanner.plus.yearly` | `$24.99` |
 
 Existing mapping proof: `docs/launch/2026-05-26/iap-product-mapping.md`.
 
@@ -27,18 +27,18 @@ Existing proof shows:
 - Restore is visible
 - Terms/EULA and Privacy are visible
 
-Existing proof file: `docs/launch/2026-05-26/plus-product-loading-proof.md`.
+Existing proof file: `docs/launch/2026-05-26/subscription-product-loading-proof.md`.
 
 ## Metadata Blocker
 
 Localized paywall screenshots still show StoreKit-returned product metadata in English:
 
-- `Yearly Plus`
-- `Plus Monthly`
+- `Yearly subscription`
+- `Monthly subscription`
 - `Yearly`
 - `Monthly`
-- `Study Planner Plus Annual Subscription`
-- `Study Planner Plus Monthly Subscription`
+- `StudyPlanner Annual Subscription`
+- `Study Planner Monthly subscription Subscription`
 
 These strings are returned by StoreKit from App Store Connect product metadata. They are not controlled by the runtime localization catalog.
 
@@ -88,4 +88,4 @@ For ASC app `6766181202`:
 
 ## Recommendation
 
-Do not ship or upload a new build from this state. Plus product availability is proven, but subscription metadata localization remains externally blocked until App Store Connect is updated and verified.
+Do not ship or upload a new build from this state. subscription product availability is proven, but subscription metadata localization remains externally blocked until App Store Connect is updated and verified.

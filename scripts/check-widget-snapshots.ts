@@ -7,6 +7,7 @@ import {
   UserSettings,
   WidgetPreset
 } from "../src/models";
+import { resolveWidgetTheme, widgetStyleColors, widgetThemeOrder } from "../src/widgets/widgetThemes";
 
 declare const require: (name: string) => {
   readFileSync(path: string, encoding: string): string;
@@ -256,6 +257,44 @@ assert(
   "Saved native Today class filter should restrict native rows to the selected class."
 );
 
+for (const themeChoice of widgetThemeOrder) {
+  const themePreset = resolveWidgetTheme(themeChoice);
+  const expectedStyle = widgetStyleColors(themePreset);
+  const themedSnapshots = buildStudyPlannerWidgetSnapshots({
+    semester,
+    courses,
+    assignments,
+    parsedImports,
+    settings,
+    widgetPresets: [
+      {
+        id: `theme-${themeChoice}`,
+        name: `Theme ${themeChoice}`,
+        type: "due_next",
+        size: "small",
+        ...themePreset,
+        dataMode: "all_classes",
+        font: "SF Pro",
+        layout: "compact",
+        iconKey: "calendar",
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString()
+      }
+    ],
+    demoMode: false,
+    now
+  });
+
+  assert(
+    themedSnapshots.upcoming.backgroundColor === expectedStyle.backgroundColor,
+    `${themeChoice} theme should drive native widget background color.`
+  );
+  assert(
+    themedSnapshots.upcoming.accentColor === expectedStyle.accentColor,
+    `${themeChoice} theme should drive native widget accent color.`
+  );
+}
+
 const serialized = JSON.stringify(snapshots);
 for (const privateFragment of [
   "Private Teacher",
@@ -423,7 +462,7 @@ assert(
   "Native Home Screen widgets should keep systemSmall to one planner item and systemMedium to three rows."
 );
 assert(
-  nativeWidgetLayoutSource.includes("circularValue") && nativeWidgetLayoutSource.includes("Do first"),
+  nativeWidgetLayoutSource.includes("circularValue") && nativeWidgetLayoutSource.includes("circularLabel = firstItem ? signalLabel : timelineLabel"),
   "Native circular widgets should avoid decorative count-only 'Today' output and point to the next action."
 );
 assert(
@@ -449,8 +488,24 @@ assert(
     widgetStudioSource.includes("Install native app") &&
     widgetStudioSource.includes("nativeProgress={nativePreview?.progress}") &&
     widgetStudioSource.includes("previewWidgetPresets") &&
-    widgetStudioSource.includes("Native style fields"),
-  "Widget Studio should show a truthful proof score, preview draft native presets, and name the real native style fields."
+    widgetStudioSource.includes("Saved fields: widget, data mode, class filter, palette, and background"),
+  "Widget Studio should preview draft native presets and name only real saved native fields."
+);
+
+assert(
+  widgetStudioSource.includes("dataMode") &&
+    widgetStudioSource.includes("styleChoice") &&
+    widgetStudioSource.includes("widgetThemeOrder") &&
+    widgetStudioSource.includes("high_contrast") &&
+    widgetStudioSource.includes("single_class"),
+  "Widget Studio should expose the target four-step data and style controls."
+);
+
+assert(
+  nativeWidgetLayoutSource.includes("weekdayLabels") &&
+    nativeWidgetLayoutSource.includes("StudyPlannerWeekWidget") &&
+    nativeWidgetLayoutSource.includes("StudyPlannerClassProgressWidget"),
+  "Native widgets should localize weekday labels and export Week/Class Progress widgets."
 );
 
 if (failures.length) {

@@ -9,8 +9,13 @@ import {
   UserSettings,
   WidgetPreset
 } from "../models";
+import { resolveWidgetTheme } from "../widgets/widgetThemes";
 
 const now = "2026-05-13T09:41:00";
+const lightWidgetTheme = resolveWidgetTheme("light");
+const oceanWidgetTheme = resolveWidgetTheme("ocean");
+const graphiteWidgetTheme = resolveWidgetTheme("graphite");
+const forestWidgetTheme = resolveWidgetTheme("forest");
 
 export const defaultSemester: Semester = {
   id: "spring-2026",
@@ -377,9 +382,10 @@ export const defaultWidgetPresets: WidgetPreset[] = [
     id: "preset-due-next",
     name: "Upcoming",
     type: "due_next",
-    size: "medium",
-    background: "glass",
-    palette: "ocean",
+    size: "small",
+    background: lightWidgetTheme.background,
+    palette: lightWidgetTheme.palette,
+    dataMode: "all_classes",
     font: "SF Pro",
     layout: "compact",
     iconKey: "book",
@@ -391,11 +397,40 @@ export const defaultWidgetPresets: WidgetPreset[] = [
     name: "Today",
     type: "today",
     size: "medium",
-    background: "glass",
-    palette: "ocean",
+    background: oceanWidgetTheme.background,
+    palette: oceanWidgetTheme.palette,
+    dataMode: "today",
     font: "SF Pro",
     layout: "list",
     iconKey: "calendar",
+    createdAt: now,
+    updatedAt: now
+  },
+  {
+    id: "preset-week",
+    name: "Week",
+    type: "week",
+    size: "medium",
+    background: graphiteWidgetTheme.background,
+    palette: graphiteWidgetTheme.palette,
+    dataMode: "this_week",
+    font: "SF Pro",
+    layout: "calendar",
+    iconKey: "calendar",
+    createdAt: now,
+    updatedAt: now
+  },
+  {
+    id: "preset-class-progress",
+    name: "Class Progress",
+    type: "class_focus",
+    size: "small",
+    background: forestWidgetTheme.background,
+    palette: forestWidgetTheme.palette,
+    dataMode: "single_class",
+    font: "SF Pro",
+    layout: "compact",
+    iconKey: "book",
     createdAt: now,
     updatedAt: now
   }

@@ -22,18 +22,18 @@ Top 50 requested changes captured by these scenarios:
 7. StudyPlanner marketing/demo capture can preserve demo state separately.
 8. StudyPlanner onboarding must show the core loop clearly.
 9. StudyPlanner loop: scan/type -> review -> Today -> focus -> done.
-10. StudyPlanner should show value in onboarding, then route to a hard Plus paywall.
+10. StudyPlanner should show value in onboarding, then route to a hard subscription paywall.
 11. StudyPlanner hard paywall should not provide a main-app bypass.
 12. StudyPlanner fallback limits should be internal, bounded, and not marketed as a plan.
 13. StudyPlanner import gates should preserve purchase/restore recovery.
 14. StudyPlanner should include one reviewed syllabus import path for QA capture only.
 15. StudyPlanner paid navigation should expose Scan, Calendar, Classes, Today, and Widgets.
-16. StudyPlanner Plus should unlock expanded imports/re-imports.
-17. StudyPlanner Plus should unlock focus sessions and focus history.
-18. StudyPlanner Plus should unlock grades and premium semester controls.
-19. StudyPlanner Plus should unlock advanced widgets only when honest/real.
-20. StudyPlanner Plus should unlock smart reminders and calendar sync.
-21. StudyPlanner paywall copy should frame Plus value without bypass-plan language.
+16. StudyPlanner should unlock expanded imports/re-imports.
+17. StudyPlanner should unlock focus sessions and focus history.
+18. StudyPlanner should unlock grades and semester controls.
+19. StudyPlanner should unlock advanced widgets only when honest/real.
+20. StudyPlanner should unlock smart reminders and calendar sync.
+21. StudyPlanner paywall copy should frame subscription value without bypass-plan language.
 22. StudyPlanner paywall should sell leverage, not punishment.
 23. StudyPlanner should trigger review prompt only after value moments.
 24. StudyPlanner Widget Studio should not contain fake native-widget controls.

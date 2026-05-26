@@ -62,7 +62,7 @@ export async function validateEntitlementWithServer(
     });
 
     if (!response.ok) {
-      throw new Error("Plus validation could not be completed. Try again in a moment.");
+      throw new Error("Purchase validation could not be completed. Try again in a moment.");
     }
 
     const result = await response.json();

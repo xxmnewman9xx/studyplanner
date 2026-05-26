@@ -48,5 +48,5 @@ eas env:list production --format long --include-sensitive
 ## Honesty Notes
 
 - Production app builds can call the real HTTPS text parser endpoint.
-- Image parsing is now enabled after Railway deployment `96f1fe35-2f55-4487-8b91-192eea973233` returned HTTP `200` for a generated syllabus PNG and parsed `Lab Report` plus `Final Exam`.
+- Image parsing is now enabled after Railway deployment `96f1fe35-2f55-4487-8b91-192eea973233` returned HTTP `200` for a generated syllabus PNG and parsed `Lab Report` and `Final Exam`.
 - IAP product IDs remain present. Server-side IAP validation is still not configured because no purchase validation endpoint was deployed in this pass.

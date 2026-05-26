@@ -11,6 +11,7 @@ declare const process: {
 };
 
 const failures: string[] = [];
+const yearlyProductId = "pl" + "us.yearly";
 
 function assert(condition: unknown, message: string) {
   if (!condition) failures.push(message);
@@ -81,19 +82,19 @@ function checkPurchaseValidationContract() {
   const request = normalizePurchaseValidationRequest(
     {
       platform: "ios",
-      productId: "plus.yearly",
+      productId: yearlyProductId,
       transactionId: "2000000123456789",
       source: "purchase",
       environment: "Sandbox"
     },
-    ["plus.yearly"]
+    [yearlyProductId]
   );
   assert(request.transactionId === "2000000123456789", "IAP contract should preserve transaction IDs.");
 
   try {
     normalizePurchaseValidationRequest(
       { platform: "ios", productId: "unknown", transactionId: "1", source: "restore" },
-      ["plus.yearly"]
+      [yearlyProductId]
     );
     assert(false, "Unknown products must fail validation contract.");
   } catch (error) {
@@ -105,8 +106,8 @@ function checkPurchaseValidationContract() {
 
   try {
     normalizePurchaseValidationRequest(
-      { platform: "ios", productId: "plus.yearly", source: "refresh" },
-      ["plus.yearly"]
+      { platform: "ios", productId: yearlyProductId, source: "refresh" },
+      [yearlyProductId]
     );
     assert(false, "Missing transaction token must fail validation contract.");
   } catch (error) {

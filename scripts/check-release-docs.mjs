@@ -70,7 +70,8 @@ const runtimeAndReleaseText = [
 ].join("\n").toLowerCase();
 
 const oldNoCostPrefix = "fr" + "ee";
-for (const phrase of [`${oldNoCostPrefix}mium`, `${oldNoCostPrefix} plan`, `upgrade from ${oldNoCostPrefix}`, `unlimited ${"imports"}`, "syllabus scanner"]) {
+const oldSwitchVerb = "up" + "grade";
+for (const phrase of [`${oldNoCostPrefix}mium`, `${oldNoCostPrefix} plan`, `${oldSwitchVerb} from ${oldNoCostPrefix}`, `unlimited ${"imports"}`, "syllabus scanner"]) {
   assert(!runtimeAndReleaseText.includes(phrase), `Release/runtime copy must not include unsupported phrase: ${phrase}`);
 }
 assert(!runtimeAndReleaseText.includes("photo scanning now uses"), "Photo copy must not imply OCR/photo parsing is available by default.");
@@ -82,7 +83,7 @@ const prdLower = prd.toLowerCase();
 assert(prdLower.includes("direct canvas sync"), "PRD must keep Canvas out of V1 scope");
 assert(prdLower.includes("automatic writes from ai without review"), "PRD must keep AI auto-write out of scope");
 assert(prdLower.includes("invalid legacy deadlines"), "PRD must document invalid-deadline trust behavior");
-assert(prdLower.includes("hard-gated build"), "PRD must document the current Plus-required product shell");
+assert(prdLower.includes("hard-gated build"), "PRD must document the current subscription-required product shell");
 assert(!prdLower.includes(`${oldNoCostPrefix}-limit`), "PRD must not describe a bypass plan for the hard-paywall build.");
 assert(prdLower.includes("expo_public_syllabus_image_parsing_enabled=1"), "PRD must gate photo parsing behind the image parsing env flag");
 

@@ -29,4 +29,4 @@ Purchase proof requires an Apple sandbox/TestFlight account and a processed Test
 3. Confirm pricing, localization, subscription group, cleared-for-sale, and review state.
 4. Install TestFlight build `1.0.2` / `24`.
 5. Complete onboarding, choose a plan, and purchase with a sandbox tester.
-6. Capture the Apple purchase dialog, success state, and unlocked StudyPlanner Plus state.
+6. Capture the Apple purchase dialog, success state, and unlocked StudyPlanner state.

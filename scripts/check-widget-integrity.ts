@@ -9,6 +9,7 @@ import {
   UserSettings,
   WidgetPreset
 } from "../src/models";
+import { resolveWidgetTheme, widgetStyleColors, widgetThemeOrder } from "../src/widgets/widgetThemes";
 
 declare const require: (name: string) => {
   readFileSync(path: string, encoding: string): string;
@@ -206,6 +207,48 @@ const reloadedSnapshots = buildStudyPlannerWidgetSnapshots({
 assert(reloadedSnapshots.today.accentColor === "#35F2D0", "Reloaded widget snapshot should preserve the saved preset accent.");
 assert(!JSON.stringify(reloadedSnapshots).includes("demo-leftover"), "Reloaded native snapshots must filter stale demo rows.");
 
+for (const themeChoice of widgetThemeOrder) {
+  const themePreset = resolveWidgetTheme(themeChoice);
+  const expectedStyle = widgetStyleColors(themePreset);
+  const savedThemePreset = saveWidgetPreset(
+    [],
+    {
+      id: `persist-${themeChoice}`,
+      name: `Persist ${themeChoice}`,
+      type: "due_next",
+      size: "small",
+      ...themePreset,
+      dataMode: "all_classes",
+      font: "SF Pro",
+      layout: "compact",
+      iconKey: "calendar",
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString()
+    },
+    now
+  )[0];
+  const reloadedThemePreset = JSON.parse(JSON.stringify(savedThemePreset)) as WidgetPreset;
+  const themedReloadedSnapshots = buildStudyPlannerWidgetSnapshots({
+    semester: persistedPlanner.semester,
+    courses: persistedPlanner.courses,
+    assignments: persistedPlanner.assignments,
+    parsedImports: persistedPlanner.parsedImports || [],
+    settings: persistedPlanner.settings,
+    widgetPresets: [reloadedThemePreset],
+    demoMode: Boolean(persistedPlanner.demoMode),
+    now
+  });
+
+  assert(
+    themedReloadedSnapshots.upcoming.backgroundColor === expectedStyle.backgroundColor,
+    `${themeChoice} saved theme should survive reload and drive native background.`
+  );
+  assert(
+    themedReloadedSnapshots.upcoming.accentColor === expectedStyle.accentColor,
+    `${themeChoice} saved theme should survive reload and drive native accent.`
+  );
+}
+
 const allowedSnapshotKeys = new Set([
   "version",
   "kind",
@@ -232,6 +275,7 @@ const allowedSnapshotKeys = new Set([
   "metricLabel",
   "nextLabel",
   "timelineLabel",
+  "weekdayLabels",
   "items"
 ]);
 const allowedItemKeys = new Set(["id", "title", "courseCode", "courseColor", "dueLabel", "priority", "kind"]);
@@ -254,6 +298,8 @@ const widgetObjectSwift = fs.readFileSync("node_modules/expo-widgets/ios/WidgetO
 
 assert(appJson.includes('"bundleIdentifier": "com.mattnewman.studyplanner.widgets"'), "Widget extension bundle identifier should be configured.");
 assert(appJson.includes('"groupIdentifier": "group.com.mattnewman.studyplanner"'), "Widget App Group identifier should be configured.");
+assert(appJson.includes('"name": "StudyPlannerWeekWidget"'), "Week widget should be registered for native Home Screen output.");
+assert(appJson.includes('"name": "StudyPlannerClassProgressWidget"'), "Class Progress widget should be registered for native Home Screen output.");
 assert(expoWidgetsJs.includes("updateSnapshot(props)") && expoWidgetsJs.includes("updateTimeline"), "updateSnapshot should write a timeline entry.");
 assert(widgetObjectSwift.includes("WidgetCenter.shared.reloadTimelines") && widgetObjectSwift.includes("WidgetsStorage.set(entries.map"), "Native timeline updates should write App Group storage and reload WidgetKit.");
 

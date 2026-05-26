@@ -12,7 +12,7 @@
     "upcoming-heavy",
     "privacy-mode",
     "class-focus",
-    "plus-locked"
+    "entitlement-locked"
   ],
   "states": [
     {
@@ -72,15 +72,15 @@
     {
       "id": "class-focus",
       "title": "Class Focus",
-      "kind": "Widget Studio Plus template",
+      "kind": "Widget Studio included template",
       "snapshotState": null,
       "value": "CHEM",
       "detail": "0 of 1 complete",
       "evidence": "getWidgetData(type=class_focus)"
     },
     {
-      "id": "plus-locked",
-      "title": "Plus Locked",
+      "id": "entitlement-locked",
+      "title": "Entitlement Locked",
       "kind": "Widget Studio lock boundary",
       "snapshotState": null,
       "value": "Locked",
@@ -579,7 +579,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "label": "widget primary text",
         "role": "normal text",
         "foreground": "#F8F6EF",
@@ -589,7 +589,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "label": "widget muted text",
         "role": "normal text",
         "foreground": "#D4D8E2",
@@ -599,7 +599,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "label": "widget header text",
         "role": "normal text",
         "foreground": "#F8F6EF",
@@ -609,7 +609,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "label": "widget panel text",
         "role": "normal text",
         "foreground": "#F8F6EF",
@@ -619,7 +619,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "label": "widget accent signal",
         "role": "large/accent text",
         "foreground": "#C68A19",
@@ -629,8 +629,8 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
-        "label": "row course Plus",
+        "stateId": "entitlement-locked",
+        "label": "row course subscription",
         "role": "compact row label",
         "foreground": "#C68A19",
         "background": "#101723",
@@ -639,8 +639,8 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
-        "label": "row course Plus",
+        "stateId": "entitlement-locked",
+        "label": "row course subscription",
         "role": "compact row label",
         "foreground": "#C68A19",
         "background": "#101723",
@@ -649,8 +649,8 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
-        "label": "row course Plus",
+        "stateId": "entitlement-locked",
+        "label": "row course subscription",
         "role": "compact row label",
         "foreground": "#C68A19",
         "background": "#101723",
@@ -1664,7 +1664,7 @@
       {
         "stateId": "class-focus",
         "slot": "card kind",
-        "text": "Widget Studio Plus template",
+        "text": "Widget Studio included template",
         "maxChars": 34,
         "maxLines": 1,
         "longestWord": 8,
@@ -1805,9 +1805,9 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "card title",
-        "text": "Plus Locked",
+        "text": "Entitlement Locked",
         "maxChars": 20,
         "maxLines": 1,
         "longestWord": 6,
@@ -1816,7 +1816,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "card kind",
         "text": "Widget Studio lock boundary",
         "maxChars": 34,
@@ -1827,9 +1827,9 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "snapshot state badge",
-        "text": "plus-locked",
+        "text": "entitlement-locked",
         "maxChars": 14,
         "maxLines": 1,
         "longestWord": 11,
@@ -1838,9 +1838,9 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "signal label",
-        "text": "Upgrade path",
+        "text": "Unlock path",
         "maxChars": 18,
         "maxLines": 1,
         "longestWord": 7,
@@ -1849,7 +1849,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "timeline label",
         "text": "Studio",
         "maxChars": 16,
@@ -1860,7 +1860,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "metric label",
         "text": "Week Workload / Class Progress",
         "maxChars": 20,
@@ -1871,7 +1871,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "value",
         "text": "Locked",
         "maxChars": 10,
@@ -1882,7 +1882,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "detail",
         "text": "Advanced widgets",
         "maxChars": 20,
@@ -1893,7 +1893,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "next label",
         "text": "Focus Next, Needs Check",
         "maxChars": 17,
@@ -1904,7 +1904,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "summary",
         "text": "Advanced templates lock when premiumWidgetsLocked is true; native Today/Upcoming remain available after entitlement.",
         "maxChars": 42,
@@ -1915,7 +1915,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "evidence",
         "text": "MoreScreen premiumWidgetsLocked source check",
         "maxChars": 48,
@@ -1926,9 +1926,9 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "row course code",
-        "text": "Plus",
+        "text": "subscription",
         "maxChars": 7,
         "maxLines": 1,
         "longestWord": 4,
@@ -1937,7 +1937,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "row title",
         "text": "Week Workload",
         "maxChars": 22,
@@ -1948,7 +1948,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "row due label",
         "text": "Locked",
         "maxChars": 10,
@@ -1959,9 +1959,9 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "row course code",
-        "text": "Plus",
+        "text": "subscription",
         "maxChars": 7,
         "maxLines": 1,
         "longestWord": 4,
@@ -1970,7 +1970,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "row title",
         "text": "Class Progress",
         "maxChars": 22,
@@ -1981,7 +1981,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "row due label",
         "text": "Locked",
         "maxChars": 10,
@@ -1992,9 +1992,9 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "row course code",
-        "text": "Plus",
+        "text": "subscription",
         "maxChars": 7,
         "maxLines": 1,
         "longestWord": 4,
@@ -2003,7 +2003,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "row title",
         "text": "Focus Next",
         "maxChars": 22,
@@ -2014,7 +2014,7 @@
         "pass": true
       },
       {
-        "stateId": "plus-locked",
+        "stateId": "entitlement-locked",
         "slot": "row due label",
         "text": "Locked",
         "maxChars": 10,

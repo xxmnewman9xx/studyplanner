@@ -9,17 +9,17 @@ Study Planner: Syllabus AI is designed as a local-first planner. Courses, assign
 - Planner content you enter, such as courses, assignments, exams, grades, class meetings, and focus sessions.
 - Syllabus files or photos you choose for import.
 - Device permission results for optional calendar, notification, photo library, camera, and document picker features.
-- Store entitlement status from Apple or Google when you purchase or restore Study Planner Plus.
+- Store entitlement status from Apple or Google when you purchase or restore Study Planner.
 
 ## How Information Is Used
 
-Planner content is used to display your schedule, deadlines, grades, reminders, calendar sync, and focus tools. Syllabus files are used only to extract editable courses and deadlines. Store entitlement status is used to unlock Plus features.
+Planner content is used to display your schedule, deadlines, grades, reminders, calendar sync, and focus tools. Syllabus files are used only to extract editable courses and deadlines. Store entitlement status is used to unlock full app features.
 
 On iOS, Home Screen widgets use a small WidgetKit snapshot stored in an App Group shared by the app and its widget extension. The snapshot includes only the reviewed assignment display fields needed for Today and Upcoming widgets: local assignment ID, title, course code/color, due label, priority, assignment type, semester name, widget state, generated time, colors, and widget display text. It does not include raw syllabus text, teacher names, rooms, grades, notes, checklist details, purchase state, reminder IDs, calendar event IDs, or the full planner database. Demo coursework and unreviewed scan results are not written to native widgets.
 
 ## Syllabus Import
 
-When a syllabus parse endpoint is configured for the production app, selected syllabus files may be uploaded over HTTPS for parsing. Photo/camera imports require that endpoint plus explicit image parsing support; there is no local image OCR fallback. The app does not sell syllabus content or planner data. If the online parser is unavailable, the app may try to read text-based syllabi on device and returns editable results for review before anything is applied to your planner.
+When a syllabus parse endpoint is configured for the production app, selected syllabus files may be uploaded over HTTPS for parsing. Photo/camera imports require that endpoint with explicit image parsing support; there is no local image OCR fallback. The app does not sell syllabus content or planner data. If the online parser is unavailable, the app may try to read text-based syllabi on device and returns editable results for review before anything is applied to your planner.
 
 ## Third-Party Services
 
@@ -31,7 +31,7 @@ Study Planner does not sell personal information. Planner data is not shared wit
 
 ## Your Choices
 
-This build presents Plus after onboarding before the full planner unlocks. You can decline camera, photo library, calendar, or notification permissions and continue using supported planner features after access is unlocked. You can delete planner content by removing it in the app or uninstalling the app from your device.
+This build presents StudyPlanner after onboarding before the full planner unlocks. You can decline camera, photo library, calendar, or notification permissions and continue using supported planner features after access is unlocked. You can delete planner content by removing it in the app or uninstalling the app from your device.
 
 ## Contact
 

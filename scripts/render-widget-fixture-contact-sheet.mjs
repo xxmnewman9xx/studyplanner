@@ -1007,7 +1007,7 @@ const classFocusData = getWidgetData(classFocusPreset, richAssignments, courses,
 const emptyData = getWidgetData(emptyStudioPreset, [], courses, now);
 const moreSource = read("src/screens/MoreScreen.tsx");
 const widgetPreviewSource = read("src/components/AppleComponents.tsx");
-const plusNeedles = [
+const subscriptionNeedles = [
   "premiumWidgetsLocked",
   "Week Workload",
   "Class Progress",
@@ -1016,7 +1016,7 @@ const plusNeedles = [
   "Unlock this preset",
   "Today and Upcoming write real native widget state"
 ];
-const plusLockEvidence = plusNeedles.every((needle) => moreSource.includes(needle));
+const subscriptionLockEvidence = subscriptionNeedles.every((needle) => moreSource.includes(needle));
 const studioProofNeedles = [
   "Widget Studio",
   "Install native app",
@@ -1109,7 +1109,7 @@ const states = [
   {
     id: "class-focus",
     title: "Class Focus",
-    kind: "Widget Studio Plus template",
+    kind: "Widget Studio subscriber template",
     summary: `${classFocusData.headline}: ${classFocusData.value} / ${classFocusData.detail}`,
     snapshot: {
       kind: "upcoming",
@@ -1129,27 +1129,27 @@ const states = [
     evidence: "getWidgetData(type=class_focus)"
   },
   {
-    id: "plus-locked",
-    title: "Plus Locked",
+    id: "subscriber-locked",
+    title: "Subscription Locked",
     kind: "Widget Studio lock boundary",
     summary: "Advanced templates lock when premiumWidgetsLocked is true; native Today/Upcoming remain available after entitlement.",
     snapshot: {
       kind: "upcoming",
-      headline: "Plus",
+      headline: "Subscribe",
       value: "Locked",
-      detail: plusLockEvidence ? "Advanced widgets" : "Evidence missing",
+      detail: subscriptionLockEvidence ? "Advanced widgets" : "Evidence missing",
       footnote: "Today and Upcoming stay backed by real widget snapshots.",
-      signalLabel: "Upgrade path",
+      signalLabel: "Subscribe path",
       metricLabel: "Week Workload / Class Progress",
       nextLabel: "Focus Next, Needs Check",
       timelineLabel: "Studio",
-      progress: plusLockEvidence ? 1 : 0,
+      progress: subscriptionLockEvidence ? 1 : 0,
       accentColor: "#C68A19",
       backgroundColor: "#101723",
       items: [
-        { id: "week-workload", title: "Week Workload", courseCode: "Plus", courseColor: "#C68A19", dueLabel: "Locked" },
-        { id: "class-progress", title: "Class Progress", courseCode: "Plus", courseColor: "#C68A19", dueLabel: "Locked" },
-        { id: "focus-next", title: "Focus Next", courseCode: "Plus", courseColor: "#C68A19", dueLabel: "Locked" }
+        { id: "week-workload", title: "Week Workload", courseCode: "Sub", courseColor: "#C68A19", dueLabel: "Locked" },
+        { id: "class-progress", title: "Class Progress", courseCode: "Sub", courseColor: "#C68A19", dueLabel: "Locked" },
+        { id: "focus-next", title: "Focus Next", courseCode: "Sub", courseColor: "#C68A19", dueLabel: "Locked" }
       ]
     },
     evidence: "MoreScreen premiumWidgetsLocked source check"
@@ -1164,7 +1164,7 @@ const expectedStateIds = [
   "upcoming-heavy",
   "privacy-mode",
   "class-focus",
-  "plus-locked"
+  "subscriber-locked"
 ];
 const privacyState = states.find((state) => state.id === "privacy-mode");
 const privacySerialized = JSON.stringify(privacyState?.snapshot);
@@ -1190,7 +1190,7 @@ for (const privateFragment of [
 ]) {
   assert(!privacySerialized.includes(privateFragment), `Privacy-mode fixture leaked planner/private fragment: ${privateFragment}`);
 }
-assert(plusLockEvidence, `Plus-lock evidence missing one of: ${plusNeedles.join(", ")}`);
+assert(subscriptionLockEvidence, `Subscription-lock evidence missing one of: ${subscriptionNeedles.join(", ")}`);
 assert(studioProofEvidence.proofMeter, `Studio proof meter evidence missing one of: ${studioProofNeedles.join(", ")}`);
 assert(studioProofEvidence.nativeProgressDots, `Native preview progress-dot evidence missing one of: ${nativePreviewProgressNeedles.join(", ")}`);
 
@@ -1313,7 +1313,7 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${sheetWidth}" heigh
   <desc id="desc">Eight repo-generated StudyPlanner widget fixture states with a Lock Screen widget strip. This is not real iOS Lock Screen placement proof.</desc>
   <rect width="${sheetWidth}" height="${sheetHeight}" fill="#F4F7FB" />
   ${renderText("StudyPlanner widget fixture contact sheet", 56, 92, { size: 52, weight: 950, maxChars: 48 })}
-  ${renderText("Repo-owned fixture proof for eight visual states: empty, needs-review, overdue, today-clear, upcoming-heavy, privacy-mode, class-focus, and Plus-locked.", 56, 136, { size: 24, weight: 720, fill: "#677084", maxChars: 104 })}
+  ${renderText("Repo-owned fixture proof for eight visual states: empty, needs-review, overdue, today-clear, upcoming-heavy, privacy-mode, class-focus, and Subscription-locked.", 56, 136, { size: 24, weight: 720, fill: "#677084", maxChars: 104 })}
   ${renderText("Boundary: contact-sheet proof only. This does not prove real iOS Lock Screen placement.", 56, 174, { size: 22, weight: 850, fill: "#172033", maxChars: 90 })}
   <rect x="1260" y="56" width="484" height="150" rx="18" fill="#FFFFFF" stroke="#DCE3EE" />
   ${renderText("Generated from current repo code", 1288, 100, { size: 20, weight: 900, fill: "#172033", maxChars: 34 })}
@@ -1391,7 +1391,7 @@ function buildProof(artifactEvidence = artifactPathEvidence()) {
         "private-reminder-id",
         "private-calendar-id"
       ].some((fragment) => privacySerialized.includes(fragment)),
-    plusLockEvidence,
+    subscriptionLockEvidence,
     studioProofEvidence,
     contrastLegibility: accessibilityProof.summary.allContrastPassed,
     textBoundaries: accessibilityProof.summary.allTextBoundariesPassed,
@@ -1444,7 +1444,7 @@ Assertions:
 
 - Eight fixture states: passed (${expectedStateIds.join(", ")})
 - Privacy redaction: passed
-- Plus-lock evidence: passed
+- Subscription-lock evidence: passed
 - Studio proof meter source evidence: passed
 - Native preview progress dots: passed
 - Contrast / legibility checks: passed (${accessibilityProof.summary.contrastChecks} checks, minimum ${accessibilityProof.summary.minimumContrastRatio}:1)

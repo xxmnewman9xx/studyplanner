@@ -9,7 +9,7 @@ const purchaseConfig = read("src/services/purchaseConfig.ts");
 const parser = read("src/services/syllabusParser.ts");
 const importScreen = read("src/screens/ImportScreen.tsx");
 const subscriptions = read("src/services/subscriptions.tsx");
-const upgrade = read("src/screens/UpgradeScreen.tsx");
+const paywall = read("src/screens/UpgradeScreen.tsx");
 const srcSource = walk(path.join(root, "src"))
   .filter((file) => /\.(ts|tsx)$/.test(file))
   .map((file) => [path.relative(root, file), fs.readFileSync(file, "utf8")]);
@@ -18,8 +18,8 @@ assert(app.includes("<SubscriptionProvider>"), "App must wrap screens in Subscri
 assert(app.includes("useSubscription"), "App must read centralized subscription state.");
 assert(app.includes('activeTab === "import"'), "Import tab must be guarded.");
 assert(app.includes('activeTab === "grades"'), "Grades tab must be guarded.");
-assert(app.includes("handleScheduleReminders"), "Reminder entrypoint must check Plus.");
-assert(app.includes("handleCalendarSync"), "Calendar sync entrypoint must check Plus.");
+assert(app.includes("handleScheduleReminders"), "Reminder entrypoint must stay behind app access.");
+assert(app.includes("handleCalendarSync"), "Calendar sync entrypoint must stay behind app access.");
 
 assert(
   hasPlugin(appConfig.plugins, "expo-iap"),
@@ -52,8 +52,10 @@ assert(
 );
 assert(
   widgetPlugin?.widgets?.some((widget) => widget.name === "StudyPlannerTodayWidget") &&
-    widgetPlugin?.widgets?.some((widget) => widget.name === "StudyPlannerUpcomingWidget"),
-  "expo-widgets must register Today and Upcoming widgets."
+    widgetPlugin?.widgets?.some((widget) => widget.name === "StudyPlannerUpcomingWidget") &&
+    widgetPlugin?.widgets?.some((widget) => widget.name === "StudyPlannerWeekWidget") &&
+    widgetPlugin?.widgets?.some((widget) => widget.name === "StudyPlannerClassProgressWidget"),
+  "expo-widgets must register Today, Upcoming, Week, and Class Progress widgets."
 );
 
 for (const name of [
@@ -92,10 +94,10 @@ assert(
   "subscriptions service must support optional server-side purchase validation."
 );
 
-assert(upgrade.includes("Restore Purchases"), "Paywall must expose Restore Purchases.");
-assert(upgrade.includes("Terms of Use"), "Paywall must expose Terms of Use.");
-assert(upgrade.includes("Terms of Use (EULA)"), "Paywall must expose EULA wording.");
-assert(upgrade.includes("Privacy Policy"), "Paywall must expose Privacy Policy.");
+assert(paywall.includes("Restore Purchases"), "Paywall must expose Restore Purchases.");
+assert(paywall.includes("Terms of Use"), "Paywall must expose Terms of Use.");
+assert(paywall.includes("Terms of Use (EULA)"), "Paywall must expose EULA wording.");
+assert(paywall.includes("Privacy Policy"), "Paywall must expose Privacy Policy.");
 assert(!importScreen.includes("Syllabus scan is unavailable"), "Scan UI must not render unavailable copy.");
 assert(!importScreen.includes("disabled={!parserReady"), "Scan buttons must not be disabled by missing endpoint config.");
 
@@ -105,10 +107,10 @@ for (const [file, source] of srcSource) {
   assert(!source.includes("StorePreview"), `Remove store preview source from ${file}.`);
   assert(!source.includes("seedAssignments"), `Remove seeded planner data from ${file}.`);
   assert(!source.includes("seedCourses"), `Remove seeded courses from ${file}.`);
-  assert(!source.includes("isPremium: true"), `Remove hardcoded premium access from ${file}.`);
+  assert(!source.includes("isPremium: true"), `Remove hardcoded paid access from ${file}.`);
 }
 
-console.log("IAP and premium gate configuration passed.");
+console.log("IAP and hard-paywall configuration passed.");
 
 function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), "utf8");

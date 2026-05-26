@@ -22,7 +22,7 @@ export function PremiumGate({ title, copy, onUpgrade }: PremiumGateProps) {
   return (
     <View>
       <View style={styles.header}>
-        <Text style={styles.kicker}>{t("premium_gate.plus_feature", "Plus feature")}</Text>
+        <Text style={styles.kicker}>{t("entitlement_gate.included", "Included with StudyPlanner")}</Text>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.subtitle}>{copy}</Text>
       </View>
@@ -34,11 +34,11 @@ export function PremiumGate({ title, copy, onUpgrade }: PremiumGateProps) {
             <LockKeyhole color={colors.heroText} size={17} />
           </View>
         </View>
-        <Text style={styles.cardTitle}>{t("premium_gate.unlock_title", "Unlock with StudyPlanner Plus")}</Text>
+        <Text style={styles.cardTitle}>{t("entitlement_gate.unlock_title", "Unlock StudyPlanner")}</Text>
         <Text style={styles.cardCopy}>
-          {t("premium_gate.unlock_copy", "These tools open after Plus is active on your store account.")}
+          {t("entitlement_gate.unlock_copy", "Subscribe or restore purchases to use the full app.")}
         </Text>
-        <AppButton label={t("premium_gate.view_plus", "View Plus")} icon={Crown} onPress={onUpgrade} />
+        <AppButton label={t("entitlement_gate.subscribe", "Subscribe")} icon={Crown} onPress={onUpgrade} />
       </View>
     </View>
   );

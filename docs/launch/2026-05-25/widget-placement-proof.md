@@ -7,7 +7,7 @@ Date: 2026-05-25
 - Fresh current SpringBoard capture: `AppStore/OperationalLaunch-2026-05-25/widget-springboard-current.png`
   - Shows a placed StudyPlanner Home Screen widget and the StudyPlanner app icon.
 - Prior real Home Screen placement proof copied into this pass: `AppStore/OperationalLaunch-2026-05-25/widget-home-screen-small-medium-prior-proof.png`
-  - Shows StudyPlanner Today and Upcoming medium widgets plus a small Today widget on SpringBoard.
+  - Shows StudyPlanner Today and Upcoming medium widgets alongside a small Today widget on SpringBoard.
 - Native config registers `StudyPlannerTodayWidget` and `StudyPlannerUpcomingWidget` for `systemSmall`, `systemMedium`, `accessoryCircular`, `accessoryRectangular`, and `accessoryInline`.
 - `npm run test:widgets` passes.
 

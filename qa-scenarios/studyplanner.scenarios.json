@@ -4,36 +4,62 @@
     "app": "StudyPlanner",
     "persona": "new student deciding whether to pay",
     "risk": "conversion",
-    "state": "fresh install, normal mode, onboarding complete, not Plus",
+    "state": "fresh install, normal mode, onboarding complete, not subscribed",
     "trigger": "enters app",
-    "expected": ["onboarding previews Scan, Review, Today, Widgets, and customization first", "completion routes to a hard Plus paywall", "main app access requires purchase or restore"],
+    "expected": [
+      "onboarding previews Scan, Review, Today, Widgets, and customization first",
+      "completion routes to a hard subscription paywall",
+      "main app access requires purchase or restore"
+    ],
     "automation": "static",
-    "evidence": ["App.tsx hard paywall branch", "Onboarding current UI preview copy", "UpgradeScreen hardMode copy"],
-    "failureMeans": "The user reaches the planner without a valid Plus entitlement or gets asked to pay before seeing product-value previews."
+    "evidence": [
+      "App.tsx hard paywall branch",
+      "Onboarding current UI preview copy",
+      "Paywall hardMode copy"
+    ],
+    "failureMeans": "The user reaches the planner without a valid store entitlement or gets asked to pay before seeing product-value previews."
   },
   {
     "id": "sp-hard-paywall-store-state",
     "app": "StudyPlanner",
-    "persona": "student deciding whether Plus is worth it",
+    "persona": "student deciding whether to subscribe",
     "risk": "revenue",
-    "state": "not Plus after onboarding",
+    "state": "not subscribed after onboarding",
     "trigger": "hard paywall loads store plans or an unavailable-store state",
-    "expected": ["store-loaded plans, Restore Purchases, Terms, and Privacy stay visible", "no silent unlock when products fail to load", "CTA explains scans, widgets, reminders, and calendar sync"],
+    "expected": [
+      "store-loaded plans, Restore Purchases, Terms, and Privacy stay visible",
+      "no silent unlock when products fail to load",
+      "CTA explains scans, widgets, reminders, and calendar sync"
+    ],
     "automation": "static",
-    "evidence": ["starterCourseLimit", "starterAssignmentLimit", "starterImportLimit", "premiumTabs"],
+    "evidence": [
+      "hard paywall branch",
+      "store plan state",
+      "restore action",
+      "visible tabs"
+    ],
     "failureMeans": "The hard paywall either blocks legitimate purchasers without recovery or unlocks without a valid entitlement."
   },
   {
-    "id": "sp-plus-tab-surface",
+    "id": "sp-subscription-tab-surface",
     "app": "StudyPlanner",
-    "persona": "Plus student exploring navigation",
+    "persona": "subscribed student exploring navigation",
     "risk": "conversion",
-    "state": "Plus active or simulator capture route for proof",
+    "state": "access active or simulator capture route for proof",
     "trigger": "looks at bottom navigation and command tiles",
-    "expected": ["bottom navigation exposes Today, Scan, Plan, and Widgets", "scan and plan are usable", "focus, grades, reminders, and calendar sync remain premium-gated outside capture/proof mode"],
+    "expected": [
+      "bottom navigation exposes Today, Scan, Plan, and Widgets",
+      "scan and plan are usable",
+      "focus, grades, reminders, and calendar sync remain available after app access"
+    ],
     "automation": "static",
-    "evidence": ["localized tab labels", "importLimitLocked", "premiumAutomationLocked command tiles", "Widget Studio Plus labels"],
-    "failureMeans": "The simplified IA is confusing, or premium-only surfaces bypass entitlement checks."
+    "evidence": [
+      "localized tab labels",
+      "unlocked import flow",
+      "reminder and calendar command tiles",
+      "Widget Studio saved preset labels"
+    ],
+    "failureMeans": "The simplified IA is confusing, or subscriber surfaces bypass entitlement checks."
   },
   {
     "id": "sp-first-run-empty",
@@ -42,9 +68,17 @@
     "risk": "trust",
     "state": "normal fresh install",
     "trigger": "opens Today/Classes before adding anything",
-    "expected": ["no demo courses", "no demo assignments", "no demo grade items", "no demo focus sessions"],
+    "expected": [
+      "no demo courses",
+      "no demo assignments",
+      "no demo grade items",
+      "no demo focus sessions"
+    ],
     "automation": "static",
-    "evidence": ["App.tsx empty initial arrays", "storage does not fall back to defaults"],
+    "evidence": [
+      "App.tsx empty initial arrays",
+      "storage does not fall back to defaults"
+    ],
     "failureMeans": "The app looks fake and violates student trust."
   },
   {
@@ -54,9 +88,18 @@
     "risk": "retention",
     "state": "user with syllabus parse result and import allowance",
     "trigger": "applies parsed plan",
-    "expected": ["courses and assignments merge", "review handoff appears", "Today opens", "review prompt event records value"],
+    "expected": [
+      "courses and assignments merge",
+      "review handoff appears",
+      "Today opens",
+      "review prompt event records value"
+    ],
     "automation": "static",
-    "evidence": ["applyParsedPlan", "importHandoff", "recordReviewEvent(import_applied)"],
+    "evidence": [
+      "applyParsedPlan",
+      "importHandoff",
+      "recordReviewEvent(import_applied)"
+    ],
     "failureMeans": "The parser wedge does not turn into a daily plan."
   },
   {
@@ -66,9 +109,24 @@
     "risk": "trust",
     "state": "empty app",
     "trigger": "opens any widget surface",
-    "expected": ["no fake settings", "no fake Algebra examples", "no hard-coded fake dates/times", "native widgets use reviewed planner data", "templates are student-outcome first", "daily widget stack explains student value"],
+    "expected": [
+      "no fake settings",
+      "no fake Algebra examples",
+      "no hard-coded fake dates/times",
+      "native widgets use reviewed planner data",
+      "templates are student-outcome first",
+      "daily widget stack explains student value"
+    ],
     "automation": "static",
-    "evidence": ["MoreScreen native WidgetKit copy", "student widget template names", "daily widget stack copy", "native widget loop copy", "WidgetPreviewCard status text", "native preset save controls", "no sample school text"],
+    "evidence": [
+      "MoreScreen native WidgetKit copy",
+      "student widget template names",
+      "daily widget stack copy",
+      "native widget loop copy",
+      "WidgetPreviewCard status text",
+      "native preset save controls",
+      "no sample school text"
+    ],
     "failureMeans": "Fake controls create trust debt and App Store review risk."
   },
   {
@@ -78,9 +136,16 @@
     "risk": "shipping",
     "state": "user completes real action",
     "trigger": "import applied, assignment completed, focus completed, or widget saved",
-    "expected": ["review events are value-gated", "no first-launch begging", "prompt throttled by service policy"],
+    "expected": [
+      "review events are value-gated",
+      "no first-launch begging",
+      "prompt throttled by service policy"
+    ],
     "automation": "static",
-    "evidence": ["reviewPrompt service", "recordReviewEvent callsites"],
+    "evidence": [
+      "reviewPrompt service",
+      "recordReviewEvent callsites"
+    ],
     "failureMeans": "Review prompt annoys users before value."
   },
   {
@@ -90,9 +155,16 @@
     "risk": "clarity",
     "state": "app icon visible at small size",
     "trigger": "compares icon in TestFlight/App Store",
-    "expected": ["mainly white", "minimal", "no text", "not glossy/crayon"],
+    "expected": [
+      "mainly white",
+      "minimal",
+      "no text",
+      "not glossy/crayon"
+    ],
     "automation": "manual",
-    "evidence": ["assets/app/study-planner-icon.png"],
-    "failureMeans": "The icon fights the premium academic positioning."
+    "evidence": [
+      "assets/app/study-planner-icon.png"
+    ],
+    "failureMeans": "The icon fights the paid academic positioning."
   }
 ]

@@ -21,7 +21,7 @@ import {
   Lock,
   Palette,
   PenLine,
-  Plus,
+  CirclePlus,
   Sparkles,
   Timer,
   TriangleAlert
@@ -32,6 +32,7 @@ import { AppTheme, themePalettes } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { courseEmoji } from "../utils/courseVisuals";
 import { useI18n } from "../i18n";
+import { widgetStyleColors } from "../widgets/widgetThemes";
 
 export const emojiMap = {
   study: BookOpen,
@@ -414,8 +415,9 @@ export function WidgetPreviewCard({
   const fontStyle = font === "Mono" ? styles.widgetMono : font === "Rounded" ? styles.widgetRounded : null;
   const WidgetIcon = iconForKey(iconKey);
   const statusText = widgetStatusText(type, value, detail, previewItems, t);
-  const nativeAccent = nativeAccentColor || course?.color || paletteColors[1] || theme.colors.accent;
-  const nativeBackground = nativeBackgroundColor || "#101723";
+  const resolvedWidgetStyle = widgetStyleColors({ background, palette });
+  const nativeAccent = nativeAccentColor || course?.color || resolvedWidgetStyle.accentColor || theme.colors.accent;
+  const nativeBackground = nativeBackgroundColor || resolvedWidgetStyle.backgroundColor;
   const nativeDark = ["#171A20", "#101723", "#0D1422", "#061827", "#070A12", "#05070B"].includes(nativeBackground.toUpperCase());
   const nativeInk = nativeDark ? "#F8FAFC" : "#171A20";
   const nativeMuted = nativeDark ? "#D7DEE9" : "#69707D";
@@ -571,6 +573,7 @@ export function WidgetPreviewCard({
           styles.widget,
         isLock ? styles.widgetSmall : isLarge ? styles.widgetLarge : isMedium ? styles.widgetMedium : styles.widgetSmall,
         background === "solid" ? styles.widgetSolid : null,
+        background === "light" ? styles.widgetLight : null,
         background === "glass" ? styles.widgetGlass : null,
         background === "dark" ? styles.widgetDark : null,
         background === "gradient" ? { backgroundColor: paletteColors[0] } : null,
@@ -753,7 +756,7 @@ export function ThemeCard({
     >
       <View style={[styles.themeHero, { backgroundColor: colors[0] }]}>
         {palette === "custom" ? (
-          <Plus color={theme.colors.accent} size={18} />
+          <CirclePlus color={theme.colors.accent} size={18} />
         ) : (
           <View style={[styles.themeHeroGlow, { backgroundColor: colors[1] }]} />
         )}
@@ -1226,6 +1229,10 @@ function createStyles(theme: AppTheme) {
     },
     widgetSolid: {
       backgroundColor: theme.isDark ? "#111827" : "#FFFDF4"
+    },
+    widgetLight: {
+      backgroundColor: "#F8FAFC",
+      borderColor: "rgba(15,23,42,0.08)"
     },
     widgetGlass: {
       backgroundColor: theme.isDark ? "rgba(13,19,33,0.84)" : "rgba(255,255,255,0.76)",

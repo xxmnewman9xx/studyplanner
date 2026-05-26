@@ -16,7 +16,7 @@ Those older screenshots are blocker evidence, not release proof. The current upl
 Current Arabic Release simulator screenshots are included and are stronger proof:
 
 - `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/12-scan.png`
-- `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/24-plus.png`
+- `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/24-paywall.png`
 
 They were captured from an image-enabled, production-parser, production-IAP-ID Release simulator build with `EXPO_PUBLIC_STUDYPLANNER_LOCALE=ar`.
 

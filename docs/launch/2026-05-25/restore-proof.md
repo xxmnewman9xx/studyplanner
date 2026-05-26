@@ -20,5 +20,5 @@ Date: 2026-05-25
 3. Fresh install or clear local app data.
 4. Complete onboarding to the hard paywall.
 5. Tap `Restore Purchases`.
-6. Capture the restored success message and unlocked StudyPlanner Plus state.
+6. Capture the restored success message and unlocked StudyPlanner state.
 7. Repeat with a non-entitled sandbox Apple ID and verify the app remains locked.

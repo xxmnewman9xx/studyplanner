@@ -42,6 +42,7 @@ import {
   SyllabusParseResult,
   UserSettings,
   WidgetBackground,
+  WidgetDataMode,
   WidgetPalette,
   WidgetPreset
 } from "./src/models";
@@ -81,7 +82,7 @@ import { SubscriptionProvider, useSubscription } from "./src/services/subscripti
 import { recordReviewEvent } from "./src/services/reviewPrompt";
 import { syncStudyPlannerWidgets } from "./src/services/widgetSnapshot";
 import type { WidgetSyncStatus } from "./src/services/widgetSnapshot";
-import { I18nProvider, useI18n } from "./src/i18n";
+import { I18nProvider, supportedLocales, useI18n, type SupportedLocale } from "./src/i18n";
 import {
   getMarketingCaptureInitialTab,
   getMarketingCaptureScrollY,
@@ -96,15 +97,11 @@ import {
 LogBox.ignoreLogs(["SafeAreaView has been deprecated"]);
 
 const plannerStorageKey = "study-planner-data-v3";
-const starterCourseLimit = 2;
-const starterAssignmentLimit = 12;
-const starterImportLimit = 1;
 const marketingCaptureTabFileName = "studyplanner-capture-tab.json";
 const simulatorCaptureFileRoutingEnabled = process.env.EXPO_PUBLIC_SIM_QA_CAPTURE === "1";
 const simulatorLoadingDelayMs = simulatorCaptureFileRoutingEnabled
   ? Math.max(0, Number(process.env.EXPO_PUBLIC_SIM_QA_LOADING_DELAY_MS || 0))
   : 0;
-const premiumTabs = new Set<NavTab>(["focus", "grades"]);
 
 const proTabs: Array<{
   id: NavTab;
@@ -119,7 +116,7 @@ const proTabs: Array<{
 ];
 
 const mobilePrimaryTabIds = new Set<NavTab>(["today", "import", "plan", "courses", "more"]);
-const moreGroupTabIds = new Set<NavTab>(["more", "notes", "grades", "upgrade"]);
+const moreGroupTabIds = new Set<NavTab>(["more", "notes", "grades", "subscribe"]);
 
 function mobileTabLabel(tab: NavTab, fallback: string, t: (key: string, fallback?: string) => string) {
   if (tab === "plan") return t("tabs.calendar", "Calendar");
@@ -133,12 +130,14 @@ type CaptureRoute = {
   appTheme?: ThemeAccent;
   widgetBackground?: WidgetBackground;
   widgetPalette?: WidgetPalette;
+  widgetDataMode?: WidgetDataMode;
   widgetType?: WidgetPreset["type"];
   widgetSize?: WidgetPreset["size"];
   widgetLayout?: WidgetPreset["layout"];
   workloadState?: "standard" | "clean" | "urgent";
   hardPaywall?: boolean;
   themeMode?: ThemeMode;
+  locale?: SupportedLocale;
 };
 
 function parseCaptureRoute(raw: string): CaptureRoute {
@@ -150,12 +149,14 @@ function parseCaptureRoute(raw: string): CaptureRoute {
       appTheme?: unknown;
       widgetBackground?: unknown;
       widgetPalette?: unknown;
+      widgetDataMode?: unknown;
       widgetType?: unknown;
       widgetSize?: unknown;
       widgetLayout?: unknown;
       workloadState?: unknown;
       hardPaywall?: unknown;
       themeMode?: unknown;
+      locale?: unknown;
     };
     return {
       tab: isCaptureNavTab(value.tab) ? value.tab : null,
@@ -164,12 +165,14 @@ function parseCaptureRoute(raw: string): CaptureRoute {
       appTheme: isCaptureThemeAccent(value.appTheme) ? value.appTheme : undefined,
       widgetBackground: isCaptureWidgetBackground(value.widgetBackground) ? value.widgetBackground : undefined,
       widgetPalette: isCaptureWidgetPalette(value.widgetPalette) ? value.widgetPalette : undefined,
+      widgetDataMode: isCaptureWidgetDataMode(value.widgetDataMode) ? value.widgetDataMode : undefined,
       widgetType: isCaptureWidgetType(value.widgetType) ? value.widgetType : undefined,
       widgetSize: isCaptureWidgetSize(value.widgetSize) ? value.widgetSize : undefined,
       widgetLayout: isCaptureWidgetLayout(value.widgetLayout) ? value.widgetLayout : undefined,
       workloadState: isCaptureWorkloadState(value.workloadState) ? value.workloadState : undefined,
       hardPaywall: value.hardPaywall === true,
-      themeMode: isCaptureThemeMode(value.themeMode) ? value.themeMode : undefined
+      themeMode: isCaptureThemeMode(value.themeMode) ? value.themeMode : undefined,
+      locale: isCaptureLocale(value.locale) ? value.locale : undefined
     };
   } catch {
     const trimmed = raw.trim();
@@ -189,7 +192,7 @@ function isCaptureNavTab(value: unknown): value is NavTab {
     value === "more" ||
     value === "focus" ||
     value === "grades" ||
-    value === "upgrade"
+    value === "subscribe"
   );
 }
 
@@ -220,7 +223,7 @@ function isCaptureThemeAccent(value: unknown): value is ThemeAccent {
 }
 
 function isCaptureWidgetBackground(value: unknown): value is WidgetBackground {
-  return value === "solid" || value === "gradient" || value === "glass" || value === "dark";
+  return value === "solid" || value === "gradient" || value === "glass" || value === "dark" || value === "light";
 }
 
 function isCaptureWidgetPalette(value: unknown): value is WidgetPalette {
@@ -234,7 +237,51 @@ function isCaptureWidgetPalette(value: unknown): value is WidgetPalette {
     value === "minimal" ||
     value === "graphite" ||
     value === "aurora" ||
-    value === "paper"
+    value === "paper" ||
+    value === "contrast"
+  );
+}
+
+function isCaptureWidgetDataMode(value: unknown): value is WidgetDataMode {
+  return (
+    value === "all_classes" ||
+    value === "single_class" ||
+    value === "today" ||
+    value === "this_week" ||
+    value === "urgent_only"
+  );
+}
+
+function captureDataModeForWidget(type: WidgetPreset["type"]): WidgetDataMode {
+  if (type === "today") return "today";
+  if (type === "week") return "this_week";
+  if (type === "class_focus") return "single_class";
+  return "all_classes";
+}
+
+function shouldApplyOnboardingWidgetTheme(preset: WidgetPreset) {
+  return (
+    (preset.type === "today" || preset.type === "due_next" || preset.type === "week" || preset.type === "class_focus") &&
+    (preset.size === "small" || preset.size === "medium")
+  );
+}
+
+function applyOnboardingWidgetTheme(presets: WidgetPreset[], settingsPatch?: Partial<UserSettings>) {
+  const background = settingsPatch?.defaultWidgetStyle;
+  const palette = settingsPatch?.selectedTheme;
+  if (!isCaptureWidgetBackground(background) || !isCaptureWidgetPalette(palette)) return presets;
+
+  const timestamp = new Date().toISOString();
+  return presets.map((preset) =>
+    shouldApplyOnboardingWidgetTheme(preset)
+      ? {
+          ...preset,
+          background,
+          palette,
+          themePackId: settingsPatch?.appTheme || preset.themePackId,
+          updatedAt: timestamp
+        }
+      : preset
   );
 }
 
@@ -274,6 +321,10 @@ function isCaptureThemeMode(value: unknown): value is ThemeMode {
   return value === "light" || value === "dark";
 }
 
+function isCaptureLocale(value: unknown): value is SupportedLocale {
+  return typeof value === "string" && supportedLocales.includes(value as SupportedLocale);
+}
+
 function routeTabFromUrl(url: string): NavTab | null {
   if (url.includes("expo-development-client")) return null;
 
@@ -284,7 +335,7 @@ function routeTabFromUrl(url: string): NavTab | null {
   if (url.includes("notes")) return "notes";
   if (url.includes("focus")) return "focus";
   if (url.includes("grades")) return "grades";
-  if (url.includes("plus") || url.includes("upgrade")) return "upgrade";
+  if (url.includes("subscribe") || url.includes("paywall")) return "subscribe";
   if (url.includes("today")) return "today";
   return null;
 }
@@ -346,7 +397,7 @@ export default function App() {
 
 function AppContent() {
   const { theme, setAccent, setMode } = useAppTheme();
-  const { t, isRTL, locale } = useI18n();
+  const { t, isRTL, locale, setLocaleOverride } = useI18n();
   const { colors } = theme;
   const { width } = useWindowDimensions();
   const tablet = width >= 760;
@@ -427,6 +478,7 @@ function AppContent() {
         if (!mounted) return;
         const requestedRoute = parseCaptureRoute(raw);
         const requestedTab = requestedRoute.tab;
+        setLocaleOverride(requestedRoute.locale);
         if (requestedRoute.onboardingIndex !== undefined) {
           setCaptureOnboardingIndex(requestedRoute.onboardingIndex);
           setCaptureHardPaywall(false);
@@ -470,9 +522,10 @@ function AppContent() {
                   size: requestedRoute.widgetSize || preset.size,
                   background: captureWidgetBackground,
                   palette: captureWidgetPalette,
+                  dataMode: requestedRoute.widgetDataMode || captureDataModeForWidget(requestedRoute.widgetType || preset.type),
                   layout: requestedRoute.widgetLayout || preset.layout,
                   classFocusCourseId:
-                    requestedRoute.widgetType === "class_focus"
+                    requestedRoute.widgetType === "class_focus" || requestedRoute.widgetDataMode === "single_class"
                       ? marketingCaptureCourses[0]?.id
                       : preset.classFocusCourseId,
                   themePackId: captureAppTheme
@@ -490,7 +543,7 @@ function AppContent() {
     return () => {
       mounted = false;
     };
-  }, [assignments.length, courses.length, gradeItems.length, hydrated, notes.length]);
+  }, [assignments.length, courses.length, gradeItems.length, hydrated, notes.length, setLocaleOverride]);
 
   useEffect(() => {
     if (!hydrated || captureScrollY === null) return;
@@ -503,29 +556,19 @@ function AppContent() {
   }, [activeTab, captureScrollY, hydrated]);
 
   const openTab = (tab: NavTab) => {
-    if (!captureBypassEnabled && premiumTabs.has(tab) && !subscription.isPremium) {
-      openPaywall(tab);
-      return;
-    }
-
     setSelectedAssignmentId(null);
     setActiveTab(tab);
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   };
 
-  const openPaywall = (returnTab: NavTab = activeTab === "upgrade" ? postPaywallTab : activeTab) => {
+  const openPaywall = (returnTab: NavTab = activeTab === "subscribe" ? postPaywallTab : activeTab) => {
     setSelectedAssignmentId(null);
     setPostPaywallTab(returnTab);
-    setActiveTab("upgrade");
+    setActiveTab("subscribe");
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   };
 
   const openFocusForAssignment = (assignmentId?: string) => {
-    if (!captureBypassEnabled && !subscription.isPremium) {
-      openTab("upgrade");
-      return;
-    }
-
     setSelectedAssignmentId(null);
     setFocusAssignmentId(assignmentId || selectedAssignmentId);
     setActiveTab("focus");
@@ -681,32 +724,6 @@ function AppContent() {
   }, [activeTab, hydrated]);
 
   const applyParsedPlan = (parse: SyllabusParseResult) => {
-    if (!captureBypassEnabled && !subscription.isPremium) {
-      const existingCourseIds = new Set(courses.map((course) => course.id));
-      const existingAssignmentIds = new Set(activeAssignments.map((assignment) => assignment.id));
-      const incomingCourseCount = parse.courses.filter((course) => !existingCourseIds.has(course.id)).length;
-      const incomingAssignmentCount = parse.assignments.filter(
-        (assignment) => !existingAssignmentIds.has(assignment.id)
-      ).length;
-      const usedImportCount = parsedImports.filter((item) => !item.id.startsWith("demo-")).length;
-      const wouldExceedStarterLimits =
-        usedImportCount >= starterImportLimit ||
-        courses.length + incomingCourseCount > starterCourseLimit ||
-        activeAssignments.length + incomingAssignmentCount > starterAssignmentLimit;
-
-      if (wouldExceedStarterLimits) {
-        Alert.alert(
-          t("app.plus_needed_import_title", "Plus is needed for this import"),
-          t("app.plus_needed_import_message", "Subscribe to Plus to apply this AI-assisted import to your planner."),
-          [
-            { text: t("common.not_now", "Not now"), style: "cancel" },
-            { text: t("paywall.see_plus", "See Plus"), onPress: () => openPaywall("import") }
-          ]
-        );
-        return;
-      }
-    }
-
     const blockedAssignments = parse.assignments.filter(
       (assignment) =>
         assignment.needsReview ||
@@ -843,14 +860,6 @@ function AppContent() {
     dueDate: string,
     kind: AssignmentKind
   ) => {
-    if (!captureBypassEnabled && !subscription.isPremium && activeAssignments.length >= starterAssignmentLimit) {
-      Alert.alert(t("import.plus_required_title", "Plus required"), t("app.plus_homework_limit_message", "Unlock Plus to add more homework, reminders, focus sessions, widgets, and grade tools."), [
-        { text: t("common.not_now", "Not now"), style: "cancel" },
-        { text: t("paywall.see_plus", "See Plus"), onPress: () => openPaywall("today") }
-      ]);
-      return false;
-    }
-
     if (!title.trim() || !dueDate.trim()) {
       Alert.alert(t("app.add_more_title", "Add a little more"), t("app.add_more_message", "Title and due date are both needed."));
       return false;
@@ -890,14 +899,6 @@ function AppContent() {
   };
 
   const addCourse = (course: Pick<Course, "code" | "name" | "instructor">) => {
-    if (!captureBypassEnabled && !subscription.isPremium && courses.length >= starterCourseLimit) {
-      Alert.alert(t("import.plus_required_title", "Plus required"), t("app.plus_course_limit_message", "Unlock Plus to add more classes, imports, focus sessions, grades, and calendar tools."), [
-        { text: t("common.not_now", "Not now"), style: "cancel" },
-        { text: t("paywall.see_plus", "See Plus"), onPress: () => openPaywall("courses") }
-      ]);
-      return false;
-    }
-
     if (!course.code.trim() || !course.name.trim()) {
       Alert.alert(t("app.add_course_details_title", "Add course details"), t("app.add_course_details_message", "Course code and course name are both needed."));
       return false;
@@ -1044,11 +1045,12 @@ function AppContent() {
     settingsPatch?: Partial<UserSettings>
   ) => {
     setSettings((current) => ({ ...current, ...settingsPatch }));
+    setWidgetPresets((current) => applyOnboardingWidgetTheme(current.length ? current : defaultWidgetPresets, settingsPatch));
     setOnboarded(true);
     setPaywallSeen(false);
     setPostPaywallTab("import");
     setDemoMode(false);
-    setActiveTab("upgrade");
+    setActiveTab("subscribe");
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   };
 
@@ -1090,11 +1092,6 @@ function AppContent() {
   };
 
   const handleScheduleReminders = async () => {
-    if (!subscription.isPremium) {
-      openPaywall("today");
-      return;
-    }
-
     try {
       const { count, reminderIdsByAssignment } = await scheduleSmartReminders(
         activeAssignments,
@@ -1121,11 +1118,6 @@ function AppContent() {
   };
 
   const handleCalendarSync = async () => {
-    if (!subscription.isPremium) {
-      openPaywall("today");
-      return;
-    }
-
     try {
       const { count, calendarEventIdsByAssignment } = await syncAssignmentsToDeviceCalendar(
         activeAssignments,
@@ -1150,11 +1142,6 @@ function AppContent() {
     }
   };
 
-  const premiumLocked =
-    !captureBypassEnabled && (subscription.status !== "ready" || !subscription.isPremium);
-  const usedImportCount = parsedImports.filter((item) => !item.id.startsWith("demo-")).length;
-  const importLimitLocked =
-    !captureBypassEnabled && !subscription.isPremium && usedImportCount >= starterImportLimit;
   const appAccessLocked =
     (!captureBypassEnabled || captureHardPaywall) && onboarded && !subscription.isPremium;
 
@@ -1205,12 +1192,11 @@ function AppContent() {
               {visibleTabs.map((tab) => {
                 const Icon = tab.icon;
                 const active = activeTab === tab.id;
-                const locked = !captureBypassEnabled && premiumTabs.has(tab.id) && !subscription.isPremium;
                 return (
                   <TouchableOpacity
                     key={tab.id}
                     accessibilityRole="button"
-                    accessibilityState={{ selected: active, disabled: locked }}
+                    accessibilityState={{ selected: active }}
                     style={[styles.sidebarButton, active ? styles.sidebarButtonActive : null]}
                     onPress={() => openTab(tab.id)}
                   >
@@ -1218,18 +1204,9 @@ function AppContent() {
                     <Text style={[styles.sidebarLabel, active ? styles.sidebarLabelActive : null]}>
                       {t(tab.labelKey)}
                     </Text>
-                    {locked ? <Crown color={colors.faint} size={13} /> : null}
                   </TouchableOpacity>
                 );
               })}
-              <TouchableOpacity
-                accessibilityRole="button"
-                style={styles.sidebarButton}
-                onPress={() => openPaywall(activeTab)}
-              >
-                <Crown color={colors.muted} size={18} />
-                <Text style={styles.sidebarLabel}>{t("tabs.plus", "Plus")}</Text>
-              </TouchableOpacity>
             </View>
             <View style={styles.sidebarPro}>
               <Sparkles color={colors.brandPink} size={16} />
@@ -1287,8 +1264,6 @@ function AppContent() {
                   onOpenAssignment={setSelectedAssignmentId}
                   onScheduleReminders={handleScheduleReminders}
                   onCalendarSync={handleCalendarSync}
-                  premiumAutomationLocked={premiumLocked}
-                onOpenPaywall={() => openPaywall("today")}
                   onOpenFocus={(assignmentId) => openFocusForAssignment(assignmentId)}
                   onOpenScan={() => openTab("import")}
                   onOpenPlan={() => openTab("plan")}
@@ -1318,8 +1293,6 @@ function AppContent() {
                   parsedImports={parsedImports}
                   parsedItems={parsedItems}
                   onApplyParsedPlan={applyParsedPlan}
-                  premiumImportLocked={importLimitLocked}
-                  onOpenPaywall={() => openPaywall("import")}
                   captureScreenOverride={captureScreenOverride}
                 />
               ) : null}
@@ -1400,11 +1373,9 @@ function AppContent() {
                   onOpenNotes={() => openTab("notes")}
                   onOpenFocus={() => openFocusForAssignment()}
                   onOpenGrades={() => openTab("grades")}
-                  onOpenPaywall={() => openPaywall("more")}
-                  premiumWidgetsLocked={!captureBypassEnabled && !subscription.isPremium}
                 />
               ) : null}
-              {activeTab === "upgrade" ? (
+              {activeTab === "subscribe" ? (
                 <UpgradeScreen
                   hardMode={!subscription.isPremium}
                   onContinueAfterPurchase={subscription.isPremium ? () => openTab(postPaywallTab) : undefined}
@@ -1421,12 +1392,11 @@ function AppContent() {
               activeTab === tab.id ||
               (tab.id === "today" && activeTab === "focus") ||
               (tab.id === "more" && moreGroupTabIds.has(activeTab));
-            const locked = !captureBypassEnabled && premiumTabs.has(tab.id) && !subscription.isPremium;
             return (
               <TouchableOpacity
                 key={tab.id}
                 accessibilityRole="button"
-                accessibilityState={{ selected: active, disabled: locked }}
+                accessibilityState={{ selected: active }}
                 style={[styles.tabButton, active ? styles.tabButtonActive : null]}
                 onPress={() => {
                   openTab(tab.id);
@@ -1436,7 +1406,6 @@ function AppContent() {
                 <Text style={[styles.tabLabel, active ? styles.tabLabelActive : null]}>
                   {mobileTabLabel(tab.id, t(tab.labelKey), t)}
                 </Text>
-                {locked ? <View style={styles.lockDot} /> : null}
               </TouchableOpacity>
             );
           })}
@@ -1680,7 +1649,7 @@ function labelForTab(tab: NavTab, t: (key: string, fallback?: string) => string)
     more: t("tabs.widgets", "Widgets"),
     focus: t("tabs.focus", "Focus"),
     grades: t("tabs.grades", "Grades"),
-    upgrade: t("tabs.plus", "Plus")
+    subscribe: t("tabs.subscribe", "Subscribe")
   };
   return labels[tab];
 }

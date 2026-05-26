@@ -3,7 +3,7 @@
   <desc id="desc">Eight repo-generated StudyPlanner widget fixture states with a Lock Screen widget strip. This is not real iOS Lock Screen placement proof.</desc>
   <rect width="1800" height="2120" fill="#F4F7FB" />
   <text x="56" y="92" font-size="52" font-weight="950" fill="#172033" text-anchor="start"></text>
-  <text x="56" y="136" font-size="24" font-weight="720" fill="#677084" text-anchor="start">upcoming-heavy, privacy-mode, class-focus, and Plus-locked...</text>
+  <text x="56" y="136" font-size="24" font-weight="720" fill="#677084" text-anchor="start">upcoming-heavy, privacy-mode, class-focus, and Entitlement-locked...</text>
   <text x="56" y="174" font-size="22" font-weight="850" fill="#172033" text-anchor="start"></text>
   <rect x="1260" y="56" width="484" height="150" rx="18" fill="#FFFFFF" stroke="#DCE3EE" />
   <text x="1288" y="100" font-size="20" font-weight="900" fill="#172033" text-anchor="start"></text>

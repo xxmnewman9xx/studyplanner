@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { AlertTriangle, Camera, CheckCircle2, Crown, FileText, Keyboard, Plus, Search, Sparkles, Upload } from "lucide-react-native";
+import { AlertTriangle, Camera, CheckCircle2, FileText, Keyboard, Search, Sparkles, Upload } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
 import {
@@ -51,8 +51,6 @@ type ImportScreenProps = {
   parsedImports: ParsedImport[];
   parsedItems: ParsedItem[];
   onApplyParsedPlan: (parse: SyllabusParseResult) => void;
-  premiumImportLocked?: boolean;
-  onOpenPaywall?: () => void;
   onTryDemo?: () => void;
   captureScreenOverride?: MarketingCaptureScreen;
 };
@@ -62,7 +60,7 @@ const kinds: AssignmentKind[] = ["assignment", "worksheet", "reading", "project"
 type ImportSourceMode = "camera" | "photo" | "file" | "paste";
 type TranslateFn = (key: string, fallback?: string) => string;
 
-export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, premiumImportLocked = false, onOpenPaywall, onTryDemo, captureScreenOverride }: ImportScreenProps) {
+export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, onTryDemo, captureScreenOverride }: ImportScreenProps) {
   const { theme } = useAppTheme();
   const { t } = useI18n();
   const { colors } = theme;
@@ -80,16 +78,6 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
     imageParsingAvailable ? "camera" : "file"
   );
 
-  const handleLockedImport = () => {
-    Alert.alert(
-      t("import.plus_required_title", "Plus required"),
-      t("import.plus_required_message", "Subscribe to Plus for AI-assisted text/PDF imports, pasted text, and re-imports for the rest of the semester."),
-      [
-        { text: t("common.not_now", "Not now"), style: "cancel" },
-        { text: t("paywall.see_plus", "See Plus"), onPress: onOpenPaywall }
-      ]
-    );
-  };
   const handleImageParserUnavailable = () => {
     Alert.alert(
       t("import.photo_disabled_title", "Photo scanning is not configured"),
@@ -110,11 +98,6 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   };
 
   const pickPdf = async () => {
-    if (premiumImportLocked) {
-      handleLockedImport();
-      return;
-    }
-
     const result = await DocumentPicker.getDocumentAsync({
       type: ["application/pdf", "text/plain"],
       copyToCacheDirectory: true
@@ -133,10 +116,6 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   };
 
   const pickPhoto = async () => {
-    if (premiumImportLocked) {
-      handleLockedImport();
-      return;
-    }
     if (!imageParsingAvailable) {
       handleImageParserUnavailable();
       return;
@@ -160,10 +139,6 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   };
 
   const capturePhoto = async () => {
-    if (premiumImportLocked) {
-      handleLockedImport();
-      return;
-    }
     if (!imageParsingAvailable) {
       handleImageParserUnavailable();
       return;
@@ -192,11 +167,6 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   };
 
   const typeItIn = async () => {
-    if (premiumImportLocked) {
-      handleLockedImport();
-      return;
-    }
-
     if (!typedText.trim()) {
       Alert.alert(
         t("import.type_material_title", "Type a little material"),
@@ -217,7 +187,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
   const needsReviewCount = draft
     ? draft.assignments.filter(isDraftAssignmentFlagged).length
     : parsedItems.filter((item) => item.needsReview).length;
-  const canApplyDraft = Boolean(draft && draft.assignments.length > 0 && invalidDeadlineCount === 0 && needsReviewCount === 0 && !premiumImportLocked);
+  const canApplyDraft = Boolean(draft && draft.assignments.length > 0 && invalidDeadlineCount === 0 && needsReviewCount === 0);
   const confirmableDraftCount = draft
     ? draft.assignments.filter((assignment) => isValidDeadline(assignment.dueAt)).length
     : 0;
@@ -291,19 +261,6 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
             : t("import.subtitle", "AI-assisted text/PDF parsing or pasted syllabus text becomes reviewed assignments. Photo OCR is not enabled in this build.")}
         </Text>
       </View>
-
-      {premiumImportLocked ? (
-        <GlassCard style={styles.limitCard}>
-          <View style={styles.limitIcon}>
-            <Crown color={colors.accent} size={18} />
-          </View>
-          <View style={styles.limitCopy}>
-            <Text style={styles.limitTitle}>{t("import.plus_unlocks", "Plus unlocks syllabus imports")}</Text>
-            <Text style={styles.limitText}>{imageParsingAvailable ? t("paywall.feature_scans_detail", "Use camera photos, files, pasted text, and re-imports when OCR is configured.") : t("paywall.feature_scans_detail", "Use AI-assisted text/PDF imports, pasted text, and re-imports when your semester gets busy.")}</Text>
-          </View>
-          <AppButton label={t("import.unlock_plus", "Unlock Plus")} icon={Crown} onPress={onOpenPaywall || (() => undefined)} />
-        </GlassCard>
-      ) : null}
 
       <GlassCard style={styles.scanHero}>
         <View style={styles.scanHeroGlow} />
@@ -581,13 +538,9 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, pr
 
           <View style={styles.applyBar}>
             <AppButton
-              label={premiumImportLocked ? t("import.subscribe_for_more_imports", "Subscribe for more imports") : invalidDeadlineCount > 0 ? t("import.fix_dates_before_adding", "Fix dates before adding") : needsReviewCount > 0 ? t("import.review_flagged_items_first", "Review flagged items first") : t("import.add_reviewed_items", "Add {count} reviewed items to Today").replace("{count}", String(draft.assignments.length))}
-              disabled={!canApplyDraft && !premiumImportLocked}
+              label={invalidDeadlineCount > 0 ? t("import.fix_dates_before_adding", "Fix dates before adding") : needsReviewCount > 0 ? t("import.review_flagged_items_first", "Review flagged items first") : t("import.add_reviewed_items", "Add {count} reviewed items to Today").replace("{count}", String(draft.assignments.length))}
+              disabled={!canApplyDraft}
               onPress={() => {
-                if (premiumImportLocked) {
-                  onOpenPaywall?.();
-                  return;
-                }
                 if (!canApplyDraft) return;
                 onApplyParsedPlan(draft);
               }}

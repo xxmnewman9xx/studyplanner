@@ -13,7 +13,7 @@ const sourceFiles = {
   importScreen: readFileSync("src/screens/ImportScreen.tsx", "utf8"),
   assignmentDetail: readFileSync("src/screens/AssignmentDetailScreen.tsx", "utf8"),
   notes: readFileSync("src/screens/NotesScreen.tsx", "utf8"),
-  premiumGate: readFileSync("src/components/PremiumGate.tsx", "utf8"),
+  entitlementGate: readFileSync("src/components/PremiumGate.tsx", "utf8"),
   paywall: readFileSync("src/screens/UpgradeScreen.tsx", "utf8"),
   modeToggle: readFileSync("src/components/ModeToggle.tsx", "utf8"),
   widgets: readFileSync("src/screens/MoreScreen.tsx", "utf8"),
@@ -41,7 +41,7 @@ const requiredKeys = [
   "tabs.focus",
   "tabs.grades",
   "tabs.widgets",
-  "tabs.plus",
+  "tabs.subscribe",
   "onboarding.scan_title",
   "onboarding.scan_copy",
   "onboarding.review_title",
@@ -128,13 +128,13 @@ assert(
   sourceFiles.onboarding.includes("useI18n") &&
     sourceFiles.onboarding.includes("slide.titleKey") &&
     sourceFiles.onboarding.includes("onboarding.preview_method_scan_paper") &&
-    sourceFiles.onboarding.includes("onboarding.theme_midnight_blue"),
+    sourceFiles.onboarding.includes("widgetThemeOrder"),
   "Onboarding must consume runtime localization keys for slide copy, preview mockups, and theme choices."
 );
 assert(sourceFiles.importScreen.includes("useI18n") && sourceFiles.importScreen.includes("import.photo_disabled_message"), "Import screen must consume runtime localization keys.");
 assert(sourceFiles.assignmentDetail.includes("useI18n") && sourceFiles.assignmentDetail.includes("assignment_detail.trust_ready_title"), "Assignment detail screen must consume runtime localization keys.");
 assert(sourceFiles.notes.includes("useI18n") && sourceFiles.notes.includes("notes.hero_title"), "Notes screen must consume runtime localization keys.");
-assert(sourceFiles.premiumGate.includes("useI18n") && sourceFiles.premiumGate.includes("premium_gate.unlock_title"), "Premium gate component must consume runtime localization keys.");
+assert(sourceFiles.entitlementGate.includes("useI18n") && sourceFiles.entitlementGate.includes("entitlement_gate.unlock_title"), "Entitlement gate component must consume runtime localization keys.");
 assert(sourceFiles.paywall.includes("useI18n") && sourceFiles.paywall.includes("paywall.hard_subtitle"), "Paywall must consume runtime localization keys.");
 assert(sourceFiles.modeToggle.includes("useI18n") && sourceFiles.modeToggle.includes("theme.use_light_mode"), "Theme mode toggle must consume runtime localization keys.");
 assert(sourceFiles.widgets.includes("useI18n") && sourceFiles.widgets.includes("more.native_style_fields"), "Widget Studio must consume runtime localization keys while preserving native/widget truth copy.");
@@ -336,7 +336,7 @@ const hardcodedLaunchStrings = [
       "Smart Stack presets",
       "Build the daily preset set.",
       "One-tap theme packs",
-      "Premium app themes",
+      "App themes",
       "Template gallery",
       "Saved presets",
       "Install status"
@@ -384,8 +384,6 @@ const hardcodedLaunchStrings = [
     file: "src/screens/ImportScreen.tsx",
     source: sourceFiles.importScreen,
     phrases: [
-      "Plus unlocks syllabus imports",
-      "Unlock Plus",
       "Step 1 · choose a source",
       "Turn a syllabus into an editable plan.",
       "Pick one path. You review every assignment before it reaches Today.",
@@ -418,7 +416,6 @@ const hardcodedLaunchStrings = [
       "Fix dates before adding",
       "Review flagged items first",
       "Start over",
-      "Plus required",
       "Could not parse school material",
       "Camera permission needed",
       "Type a little material",
@@ -438,14 +435,13 @@ const hardcodedLaunchStrings = [
     file: "src/screens/UpgradeScreen.tsx",
     source: sourceFiles.paywall,
     phrases: [
-      "Plus is active",
       "Opening the store",
       "Checking purchases",
       "Loading current plans",
-      "Plus plans are unavailable",
       "Waiting for store plans",
-      "Premium widgets, themes, imports, focus, and grade tools are unlocked on this device.",
-      "Prices, trials, and renewal periods come from the store before checkout.",
+      "StudyPlanner is unlocked",
+      "Full planner access is active on this device.",
+      "Prices and renewal periods come from the store before checkout.",
       "Choose a plan below. Restore stays available.",
       "Imports",
       "Widgets",
@@ -460,24 +456,21 @@ const hardcodedLaunchStrings = [
       "Privacy",
       "Terms of Use",
       "Privacy Policy",
-      "Back to Plus",
+      "Back",
       "Opening Store",
       "Choose a Plan",
       "Buy Lifetime",
-      "Start Free Trial",
       "Subscribe",
-      "Free trial",
       "Best value"
     ]
   },
   {
     file: "src/components/PremiumGate.tsx",
-    source: sourceFiles.premiumGate,
+    source: sourceFiles.entitlementGate,
     phrases: [
-      "Plus feature",
-      "Unlock with StudyPlanner Plus",
-      "These tools open after Plus is active on your store account.",
-      "View Plus"
+      "Included with StudyPlanner",
+      "Unlock StudyPlanner",
+      "Subscribe or restore purchases to use the full app."
     ]
   },
   {
@@ -540,14 +533,10 @@ const hardcodedLaunchStrings = [
       "reviewed source rows",
       "Use Light mode",
       "Use Dark mode",
-      "Plus is needed for this import",
-      "Subscribe to Plus to apply this AI-assisted import to your planner.",
       "Fix or mark every low-confidence, duplicate, or missing-date item before it touches your real planner.",
-      "Unlock Plus to add more homework, reminders, focus sessions, widgets, and grade tools.",
       "Add a little more",
       "Title and due date are both needed.",
       "Use a real date in YYYY-MM-DD format before adding this work.",
-      "Unlock Plus to add more classes, imports, focus sessions, grades, and calendar tools.",
       "Add course details",
       "Course code and course name are both needed.",
       "Reminders queued",
@@ -604,7 +593,7 @@ const allowedSameAsEnglishKeys = new Set([
   "brand_subtitle",
   "tabs.plan",
   "tabs.focus",
-  "tabs.plus",
+  "tabs.subscribe",
   "tabs.widgets",
   "paywall.app_store",
   "paywall.monthly",

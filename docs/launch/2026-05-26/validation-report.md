@@ -46,9 +46,9 @@ Additional upload validation:
 - Production image OCR smoke: HTTP `200`, parsed `Lab Report` and `Final Exam`
 - EAS production env: `EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1`
 - Fresh native `Release` simulator build `28` launched on `StudyPlanner-QA-iPhone`
-- Fresh native paywall product screenshot captured at `docs/launch/2026-05-26/fresh-native-screenshots/release-rescue/02-release-plus-deeplink.png`
+- Fresh native paywall product screenshot captured at `docs/launch/2026-05-26/fresh-native-screenshots/release-rescue/02-release-paywall-deeplink.png`
 - Fresh native saved-photo-to-review proof captured at `docs/launch/2026-05-26/fresh-native-screenshots/photo-rescue/`
-- Current native Release localized Today/Calendar/Classes/Focus/Grades/Widgets/Scan/Review/Plus screenshots captured for `ar`, `de`, `ja`, and `zh-Hans` under `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/`
+- Current native Release localized Today/Calendar/Classes/Focus/Grades/Widgets/Scan/Review/subscription screenshots captured for `ar`, `de`, `ja`, and `zh-Hans` under `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/`
 - Fresh native Release Arabic onboarding screenshots captured after the final onboarding localization patch at `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/00-onboarding-scan.png` through `06-onboarding-widgets.png`
 
 ## Latest Patch Validation
@@ -74,8 +74,8 @@ Release builds were compiled with:
 The native paywall screenshots show:
 
 - `2 plans available` or localized equivalent
-- Yearly Plus `$24.99`
-- Plus Monthly `$3.99`
+- Yearly subscription `$24.99`
+- Monthly subscription `$3.99`
 - Restore button visible
 - Terms/EULA and Privacy visible
 
@@ -106,7 +106,7 @@ The native Classes screenshots show:
 
 - `17-classes.png` captured per smoked locale.
 - App-owned Classes shell strings localized for `ar`, `de`, `ja`, and `zh-Hans`.
-- Date formatting plus class count/open/completed labels localized in the native Release bundle.
+- Date formatting and class count/open/completed labels localized in the native Release bundle.
 - English course names, teacher names, room names, note titles, and assignment titles remain fixture/imported planner data, not app-owned runtime UI.
 
 The native Focus screenshots show:
@@ -158,7 +158,7 @@ The native Onboarding screenshots show:
 
 Do not upload a new build from this state.
 
-Backend OCR, saved-photo import, and native Plus product loading are now proven in Release-style native builds. Release remains blocked because:
+Backend OCR, saved-photo import, and native subscription product loading are now proven in Release-style native builds. Release remains blocked because:
 
 - Physical-device/TestFlight camera permission and live camera capture are still unproven.
 - StoreKit product title/description/period metadata is still English in localized paywall screenshots; App Store Connect subscription localizations must be entered/verified.

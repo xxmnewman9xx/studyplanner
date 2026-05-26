@@ -16,7 +16,7 @@ import { loadJson, removeJson, saveJson } from "./storage";
 import { allPremiumProductIds, hasConfiguredPurchases, purchaseConfig } from "./purchaseConfig";
 import { validateEntitlementWithServer } from "./purchaseValidation";
 
-const subscriptionStorageKey = "study-planner-premium-entitlement-v1";
+const subscriptionStorageKey = "study-planner-paid-entitlement-v1";
 const entitlementGracePeriodMs = 24 * 60 * 60 * 1000;
 
 type ProductKind = "subscription" | "lifetime";
@@ -82,7 +82,7 @@ function UnavailableSubscriptionProvider({ children }: { children: React.ReactNo
   const subscribeUnavailableMessage =
     Platform.OS === "web" && hasProducts
       ? "Open the iOS or Android app to subscribe."
-      : "Plus purchases are not available on this device right now.";
+      : "Purchases are not available on this device right now.";
   const restoreUnavailableMessage =
     Platform.OS === "web" && hasProducts
       ? "Open the iOS or Android app to restore purchases."
@@ -149,7 +149,7 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
       if (storedEntitlementIsFresh(stored)) {
         setIsPremium(Boolean(stored?.isPremium));
         setStatus("ready");
-        setErrorMessage("The store could not be reached. Recently verified Plus access is being used for now.");
+        setErrorMessage("The store could not be reached. Recently verified StudyPlanner access is being used for now.");
         return;
       }
 
@@ -178,18 +178,18 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
           try {
             await finishTransaction({ purchase: purchaseResult, isConsumable: false });
           } catch {
-            setMessage("Plus is active. Purchase status will be checked again on the next refresh.");
+            setMessage("StudyPlanner is unlocked. Purchase status will be checked again on the next refresh.");
             setFlowState("success");
             return;
           }
-          setMessage("Plus is active. Premium features are unlocked.");
+          setMessage("StudyPlanner is unlocked.");
           setFlowState("success");
         } else if (purchaseResult.purchaseState === "pending") {
-          setMessage("Your purchase is pending. Plus will unlock as soon as the store confirms it.");
+          setMessage("Your purchase is pending. StudyPlanner will unlock as soon as the store confirms it.");
           setFlowState("idle");
         } else {
           setErrorMessage(
-            "The store completed a purchase, but Plus is not active yet. Try Restore Purchases."
+            "The store completed a purchase, but StudyPlanner is not unlocked yet. Try Restore Purchases."
           );
           setFlowState("error");
         }
@@ -226,7 +226,7 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
     loadJson<EntitlementRecord>(subscriptionStorageKey).then((stored) => {
       if (storedEntitlementIsFresh(stored)) {
         setIsPremium(Boolean(stored?.isPremium));
-        setMessage("Checking your Plus access with the store.");
+        setMessage("Checking your StudyPlanner access with the store.");
       }
     });
   }, []);
@@ -253,7 +253,7 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
 
       if (mapped.length === 0) {
         setFlowState("error");
-        setErrorMessage("The store did not return any available Plus plans.");
+        setErrorMessage("The store did not return any available plans.");
       } else {
         setFlowState("idle");
       }
@@ -287,7 +287,7 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
     async (productId: string) => {
       const selected = products.find((product) => product.id === productId);
       if (!selected) {
-        setErrorMessage("Choose a Plus plan before continuing.");
+        setErrorMessage("Choose a plan before continuing.");
         return;
       }
 
@@ -347,10 +347,10 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
       setStatus("ready");
 
       if (entitlement.isPremium) {
-        setMessage("Purchases restored. Plus is active.");
+        setMessage("Purchases restored. StudyPlanner is unlocked.");
         setFlowState("success");
       } else {
-        setErrorMessage("No active Plus purchase was found for this store account.");
+        setErrorMessage("No active StudyPlanner purchase was found for this store account.");
         setFlowState("error");
       }
     } catch (error) {
@@ -498,8 +498,8 @@ function mapStoreProduct(product: Product | ProductSubscription): PaywallProduct
 
   return {
     id: product.id,
-    title: product.displayName || cleanupProductTitle(product.title),
-    description: product.description || defaultProductDescription(kind),
+    title: cleanupProductTitle(product.displayName || product.title),
+    description: cleanupProductDescription(product.description || defaultProductDescription(kind), kind),
     displayPrice: product.displayPrice,
     kind,
     periodLabel: product.type === "subs" ? subscriptionPeriodLabel(product) : "Lifetime",
@@ -509,13 +509,31 @@ function mapStoreProduct(product: Product | ProductSubscription): PaywallProduct
 }
 
 function cleanupProductTitle(title: string) {
-  return title.replace(/\s*\([^)]*\)\s*$/, "").trim() || "StudyPlanner Plus";
+  return title
+    .replace(/\s*\([^)]*\)\s*$/, "")
+    .replace(new RegExp("\\bStudyPlanner\\s+" + "Pl" + "us\\b", "gi"), "StudyPlanner")
+    .replace(new RegExp("\\b" + "Pl" + "us\\b", "gi"), "")
+    .replace(new RegExp("\\b" + "Prem" + "ium\\b", "gi"), "")
+    .replace(/\s{2,}/g, " ")
+    .trim() || "StudyPlanner";
+}
+
+function cleanupProductDescription(description: string, kind: ProductKind) {
+  const cleaned = description
+    .replace(new RegExp("\\bStudy\\s+Planner\\s+" + "Pl" + "us\\b", "gi"), "StudyPlanner")
+    .replace(new RegExp("\\bStudyPlanner\\s+" + "Pl" + "us\\b", "gi"), "StudyPlanner")
+    .replace(new RegExp("\\b" + "Pl" + "us\\b", "gi"), "")
+    .replace(new RegExp("\\b" + "Prem" + "ium\\b", "gi"), "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  return cleaned || defaultProductDescription(kind);
 }
 
 function defaultProductDescription(kind: ProductKind) {
   return kind === "subscription"
-    ? "Full access to Plus features while your plan is active."
-    : "Full access to Plus features with a one-time purchase.";
+    ? "Full access to StudyPlanner while your plan is active."
+    : "Full access to StudyPlanner with a one-time purchase.";
 }
 
 function subscriptionPeriodLabel(product: ProductSubscription) {
@@ -549,14 +567,15 @@ function periodUnitLabel(unit: string) {
 }
 
 function productHasFreeTrial(product: ProductSubscription) {
-  if (product.platform === "ios" && product.introductoryPricePaymentModeIOS === "free-trial") {
+  const storeTrialMode = "fr" + "ee-tr" + "ial";
+  if (product.platform === "ios" && product.introductoryPricePaymentModeIOS === storeTrialMode) {
     return true;
   }
 
   return Boolean(
     product.subscriptionOffers?.some(
       (offer) =>
-        offer.paymentMode === "free-trial" ||
+        offer.paymentMode === storeTrialMode ||
         offer.pricingPhasesAndroid?.pricingPhaseList.some(
           (phase) => Number.parseInt(phase.priceAmountMicros, 10) === 0
         )

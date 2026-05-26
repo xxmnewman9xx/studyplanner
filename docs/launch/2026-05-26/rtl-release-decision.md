@@ -27,13 +27,13 @@ Current Arabic native Release simulator screenshots:
 - `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/17-classes.png`
 - `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/18-focus.png`
 - `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/19-widgets-ocean.png`
-- `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/24-plus.png`
+- `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/24-paywall.png`
 - `docs/launch/2026-05-26/fresh-native-screenshots/current-locales/ar/25-grades.png`
 
 ## What Is Good Enough
 
 - App-owned Arabic strings are present on the smoked launch surfaces.
-- Today, Scan, Review, Calendar, Classes, Focus, Grades, Widgets, and Plus shells render Arabic text.
+- Today, Scan, Review, Calendar, Classes, Focus, Grades, Widgets, and subscription shells render Arabic text.
 - Mixed Latin assignment/course fixture text remains acceptable where it represents user/imported data.
 - Paywall products and prices load in Arabic runtime smoke, though StoreKit metadata is still English.
 
