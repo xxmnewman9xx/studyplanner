@@ -1,6 +1,23 @@
 # Validation Report
 
-Date: 2026-05-26 08:44 EDT / 2026-05-26 12:44 UTC
+Date: 2026-05-26 08:58 EDT / 2026-05-26 12:58 UTC
+
+## Final Blocker Closure Pass
+
+This pass made no runtime code changes and no TestFlight upload. It added final release-blocking proof documents for the three remaining blockers:
+
+- `docs/launch/2026-05-26/physical-camera-proof.md`
+- `docs/launch/2026-05-26/storekit-localization-proof.md`
+- `docs/launch/2026-05-26/rtl-release-decision.md`
+- `docs/launch/2026-05-26/final-release-blocker-scorecard.md`
+
+Scoped validation after those docs:
+
+- `npm run check:release-docs` passed.
+- `npm run check:localization` passed.
+- `npm run check:iap` passed.
+
+Final release recommendation remains no release/no upload because physical TestFlight camera proof is unavailable from the current machine, App Store Connect subscription metadata localization was not configured/proven, and Arabic RTL requires either a dedicated hardening recapture or explicit owner acceptance.
 
 ## Passed In This Rescue Cycle
 
