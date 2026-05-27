@@ -1,0 +1,37 @@
+{
+  "generatedAt": "2026-05-27T03:30:00-04:00",
+  "rawDirectory": "marketing_exports/raw_screenshots",
+  "contactBoard": "/tmp/studyplanner_after_contact_board.png",
+  "primaryCaptureMethod": "Expo web fallback with deterministic marketing capture state",
+  "nativeSimulator": {
+    "attempted": true,
+    "outputDirectory": "marketing_exports/raw_screenshots/native-smoke",
+    "status": "blocked",
+    "blocker": "Booted simulator had Expo Go SDK 56.0.0 while this project uses SDK 55, so native screenshots showed the runtime compatibility message instead of StudyPlanner.",
+    "usedForScoring": false
+  },
+  "screenshots": [
+    { "screen": "Today", "path": "marketing_exports/raw_screenshots/today.png", "width": 390, "height": 844, "scored": true },
+    { "screen": "Capture/Scan", "path": "marketing_exports/raw_screenshots/capture-scan.png", "width": 390, "height": 844, "scored": true },
+    { "screen": "Review/Found Work", "path": "marketing_exports/raw_screenshots/review-found-work.png", "width": 390, "height": 844, "scored": true },
+    { "screen": "Plan Calendar", "path": "marketing_exports/raw_screenshots/plan.png", "width": 390, "height": 844, "scored": true },
+    { "screen": "Week Insight", "path": "marketing_exports/raw_screenshots/week-insight.png", "width": 390, "height": 844, "scored": true },
+    { "screen": "Classes", "path": "marketing_exports/raw_screenshots/courses.png", "width": 390, "height": 844, "scored": true },
+    { "screen": "Assignment Detail", "path": "marketing_exports/raw_screenshots/assignment-detail.png", "width": 390, "height": 844, "scored": true },
+    { "screen": "Notes", "path": "marketing_exports/raw_screenshots/notes.png", "width": 390, "height": 844, "scored": true },
+    { "screen": "Focus", "path": "marketing_exports/raw_screenshots/focus.png", "width": 390, "height": 844, "scored": true },
+    { "screen": "Widget Studio", "path": "marketing_exports/raw_screenshots/widget-studio.png", "width": 390, "height": 844, "scored": true },
+    { "screen": "Widget Library", "path": "marketing_exports/raw_screenshots/widget-library.png", "width": 390, "height": 844, "scored": true },
+    { "screen": "Themes/Settings", "path": "marketing_exports/raw_screenshots/themes-settings.png", "width": 390, "height": 844, "scored": true },
+    { "screen": "Paywall", "path": "marketing_exports/raw_screenshots/paywall.png", "width": 390, "height": 844, "scored": true },
+    { "screen": "Tablet Dashboard", "path": "marketing_exports/raw_screenshots/tablet-dashboard.png", "width": 1180, "height": 820, "scored": true },
+    { "screen": "Tablet Widget Studio", "path": "marketing_exports/raw_screenshots/tablet-widget-studio.png", "width": 1180, "height": 820, "scored": true },
+    { "screen": "Grades", "path": "marketing_exports/raw_screenshots/grades.png", "width": 390, "height": 844, "scored": false, "note": "Secondary surface demoted under More." }
+  ],
+  "excluded": [
+    {
+      "path": "marketing_exports/raw_screenshots/native-smoke",
+      "reason": "Native runtime compatibility blocker; retained locally as evidence, not scored or committed."
+    }
+  ]
+}

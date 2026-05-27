@@ -47,7 +47,8 @@
       "system_clear": "Clear",
       "system_open_widgets": "Open Widgets",
       "system_eyebrow": "StudyPlanner · {label}",
-      "system_open_today": "Open Today"
+      "system_open_today": "Open Today",
+      "note_task_needs_class": "A note needs class context before it can become a task."
     },
     "common": {
       "next": "Next",
@@ -155,7 +156,16 @@
       "overdue_by_days": "Overdue by {count} day(s)",
       "due_today_short": "Due today",
       "due_in_days": "Due in {count} day(s)",
-      "quick_due_in_3": "+3 days"
+      "quick_due_in_3": "+3 days",
+      "brain_kicker": "Planner brain",
+      "relevant_notes": "Relevant notes",
+      "relevant_notes_note": "Pinned or attached to what is due next",
+      "nudge_overdue": "Keep it small: one overdue task, one focus block, then reassess.",
+      "nudge_review": "A two-minute trust check makes every widget and reminder smarter.",
+      "nudge_overwhelmed": "You do not need the whole week right now. Start with the next visible step.",
+      "nudge_busy_week": "This week has weight. Front-load one short block before it stacks.",
+      "nudge_clear": "Clean slate. Capture new work when it appears.",
+      "for_student": "{name}'s Today"
     },
     "tabs": {
       "today": "Today",
@@ -318,7 +328,9 @@
       "source_photo": "Photo",
       "read_failed": "The import could not be read.",
       "spring_2026": "Spring 2026",
-      "subscribe_for_imports": "Subscribe"
+      "subscribe_for_imports": "Subscribe",
+      "source_note_title": "Import review note",
+      "source_note_body": "{count} reviewed item(s) added from {source}."
     },
     "paywall": {
       "title": "Unlock StudyPlanner",
@@ -619,7 +631,8 @@
       "save_minutes_only": "Save {minutes} min only",
       "date_not_set": "date not set",
       "status_completed": "Completed",
-      "status_stopped": "Stopped"
+      "status_stopped": "Stopped",
+      "note_title": "{task} focus note"
     },
     "grades": {
       "performance_dashboard": "Performance dashboard",
@@ -923,7 +936,10 @@
       "layout_ring_detail": "Progress ring",
       "layout_grid_detail": "Status dots",
       "last_synced": "Last synced: {time}",
-      "not_synced_yet": "not synced yet"
+      "not_synced_yet": "not synced yet",
+      "theme": "Theme",
+      "language": "Language",
+      "language_detail": "Current locale: {locale}"
     },
     "widget_snapshot": {
       "today": "Today",
@@ -1117,7 +1133,10 @@
       "trust_done_detail": "This task is done. Reopen details only if the plan or grade context changed.",
       "trust_ready_title": "Ready for Today and Plan",
       "trust_ready_detail": "This assignment has enough trusted detail to show up in the active school operating system.",
-      "trusted": "Trusted"
+      "trusted": "Trusted",
+      "linked_notes": "Linked notes",
+      "no_linked_notes": "No notes attached yet.",
+      "note_placeholder": "Add study context for this task"
     },
     "notes": {
       "default_note_title": "{course} note",
@@ -1165,7 +1184,9 @@
       "ask_template": "Question:\nWho to ask:\nNeeded before:",
       "remember_template": "Remember:\nWhy it matters:\nUse this when:",
       "template_title": "{course} {kind}",
-      "recent": "recent"
+      "recent": "recent",
+      "class_note": "Class note",
+      "convert_to_task": "Make task"
     },
     "entitlement_gate": {
       "included": "Included with StudyPlanner",
@@ -1222,7 +1243,8 @@
       "system_clear": "Klar",
       "system_open_widgets": "Widgets öffnen",
       "system_eyebrow": "{label} · StudyPlanner",
-      "system_open_today": "Heute öffnen"
+      "system_open_today": "Heute öffnen",
+      "note_task_needs_class": "Eine Notiz braucht Klassenkontext, bevor sie zur Aufgabe wird."
     },
     "common": {
       "next": "Weiter",
@@ -1330,7 +1352,16 @@
       "overdue_by_days": "{count} Tage überfällig",
       "due_today_short": "Heute fällig",
       "due_in_days": "Fällig in {count} Tagen",
-      "quick_due_in_3": "+3 Tage"
+      "quick_due_in_3": "+3 Tage",
+      "brain_kicker": "Planer-Gehirn",
+      "relevant_notes": "Relevante Notizen",
+      "relevant_notes_note": "Angeheftet oder mit dem nächsten fälligen Schritt verbunden",
+      "nudge_overdue": "Klein anfangen: eine überfällige Aufgabe, ein Fokusblock, dann neu prüfen.",
+      "nudge_review": "Ein Zwei-Minuten-Vertrauenscheck macht Widgets und Erinnerungen klüger.",
+      "nudge_overwhelmed": "Du brauchst jetzt nicht die ganze Woche. Starte mit dem nächsten sichtbaren Schritt.",
+      "nudge_busy_week": "Diese Woche hat Gewicht. Ziehe einen kurzen Block vor, bevor es sich staut.",
+      "nudge_clear": "Sauberer Stand. Erfasse neue Arbeit, sobald sie auftaucht.",
+      "for_student": "{name}s Heute"
     },
     "tabs": {
       "today": "Heute",
@@ -1493,7 +1524,9 @@
       "source_photo": "Foto",
       "read_failed": "Der Import konnte nicht gelesen werden.",
       "spring_2026": "Frühjahr 2026",
-      "subscribe_for_imports": "Abonnieren"
+      "subscribe_for_imports": "Abonnieren",
+      "source_note_title": "Import-Prüfnotiz",
+      "source_note_body": "{count} geprüfte Elemente aus {source} hinzugefügt."
     },
     "paywall": {
       "title": "StudyPlanner freischalten",
@@ -1794,7 +1827,8 @@
       "save_minutes_only": "Nur {minutes} Min. speichern",
       "date_not_set": "Datum fehlt",
       "status_completed": "Abgeschlossen",
-      "status_stopped": "Gestoppt"
+      "status_stopped": "Gestoppt",
+      "note_title": "Fokusnotiz zu {task}"
     },
     "grades": {
       "performance_dashboard": "Leistungsübersicht",
@@ -2098,7 +2132,10 @@
       "layout_ring_detail": "Fortschrittsring",
       "layout_grid_detail": "Statuspunkte",
       "last_synced": "Zuletzt synchronisiert: {time}",
-      "not_synced_yet": "noch nicht synchronisiert"
+      "not_synced_yet": "noch nicht synchronisiert",
+      "theme": "Design",
+      "language": "Sprache",
+      "language_detail": "Aktuelle Locale: {locale}"
     },
     "widget_snapshot": {
       "today": "Heute",
@@ -2292,7 +2329,10 @@
       "trust_done_detail": "Diese Aufgabe ist erledigt. Öffne Details nur erneut, wenn sich Plan oder Notenkontext geändert haben.",
       "trust_ready_title": "Bereit für Heute und Plan",
       "trust_ready_detail": "Diese Aufgabe hat genug geprüfte Details, um im aktiven Schulsystem zu erscheinen.",
-      "trusted": "Vertrauenswürdig"
+      "trusted": "Vertrauenswürdig",
+      "linked_notes": "Verknüpfte Notizen",
+      "no_linked_notes": "Noch keine Notizen verknüpft.",
+      "note_placeholder": "Lernkontext für diese Aufgabe hinzufügen"
     },
     "notes": {
       "default_note_title": "{course}-Notiz",
@@ -2340,7 +2380,9 @@
       "ask_template": "Frage:\nWen fragen:\nBenötigt bis:",
       "remember_template": "Merken:\nWarum es wichtig ist:\nVerwenden, wenn:",
       "template_title": "{kind} - {course}",
-      "recent": "kürzlich"
+      "recent": "kürzlich",
+      "class_note": "Klassennotiz",
+      "convert_to_task": "Aufgabe erstellen"
     },
     "entitlement_gate": {
       "included": "In StudyPlanner enthalten",
@@ -2397,7 +2439,8 @@
       "system_clear": "Limpio",
       "system_open_widgets": "Abrir widgets",
       "system_eyebrow": "{label} · StudyPlanner",
-      "system_open_today": "Abrir Hoy"
+      "system_open_today": "Abrir Hoy",
+      "note_task_needs_class": "La nota necesita contexto de clase antes de convertirse en tarea."
     },
     "common": {
       "next": "Siguiente",
@@ -2505,7 +2548,16 @@
       "overdue_by_days": "Atrasado por {count} días",
       "due_today_short": "Vence hoy",
       "due_in_days": "Vence en {count} días",
-      "quick_due_in_3": "+3 días"
+      "quick_due_in_3": "+3 días",
+      "brain_kicker": "Cerebro del plan",
+      "relevant_notes": "Notas relevantes",
+      "relevant_notes_note": "Fijadas o conectadas con lo próximo que vence",
+      "nudge_overdue": "Hazlo pequeño: una tarea atrasada, un bloque de enfoque y luego revisa.",
+      "nudge_review": "Una revisión de confianza de dos minutos mejora widgets y recordatorios.",
+      "nudge_overwhelmed": "No necesitas toda la semana ahora. Empieza por el siguiente paso visible.",
+      "nudge_busy_week": "Esta semana pesa. Adelanta un bloque corto antes de que se acumule.",
+      "nudge_clear": "Todo limpio. Captura trabajo nuevo cuando aparezca.",
+      "for_student": "Hoy de {name}"
     },
     "tabs": {
       "today": "Hoy",
@@ -2668,7 +2720,9 @@
       "source_photo": "Foto",
       "read_failed": "No se pudo leer la importación.",
       "spring_2026": "Primavera 2026",
-      "subscribe_for_imports": "Suscribirse"
+      "subscribe_for_imports": "Suscribirse",
+      "source_note_title": "Nota de revisión de importación",
+      "source_note_body": "Se agregaron {count} elemento(s) revisados desde {source}."
     },
     "paywall": {
       "title": "Desbloquear StudyPlanner",
@@ -2969,7 +3023,8 @@
       "save_minutes_only": "Guardar solo {minutes} min",
       "date_not_set": "fecha sin definir",
       "status_completed": "Completado",
-      "status_stopped": "Detenido"
+      "status_stopped": "Detenido",
+      "note_title": "Nota de enfoque: {task}"
     },
     "grades": {
       "performance_dashboard": "Panel de rendimiento",
@@ -3273,7 +3328,10 @@
       "layout_ring_detail": "Anillo de progreso",
       "layout_grid_detail": "Puntos de estado",
       "last_synced": "Ultima sincronizacion: {time}",
-      "not_synced_yet": "aun sin sincronizar"
+      "not_synced_yet": "aun sin sincronizar",
+      "theme": "Tema",
+      "language": "Idioma",
+      "language_detail": "Configuración actual: {locale}"
     },
     "widget_snapshot": {
       "today": "Hoy",
@@ -3467,7 +3525,10 @@
       "trust_done_detail": "Esta tarea está hecha. Reabre detalles solo si cambió el plan o el contexto de notas.",
       "trust_ready_title": "Lista para Hoy y Plan",
       "trust_ready_detail": "Esta tarea tiene suficientes detalles confiables para aparecer en el sistema escolar activo.",
-      "trusted": "Confiable"
+      "trusted": "Confiable",
+      "linked_notes": "Notas vinculadas",
+      "no_linked_notes": "Aún no hay notas vinculadas.",
+      "note_placeholder": "Agrega contexto de estudio para esta tarea"
     },
     "notes": {
       "default_note_title": "nota de {course}",
@@ -3515,7 +3576,9 @@
       "ask_template": "Pregunta:\nA quién preguntar:\nNecesario antes de:",
       "remember_template": "Recordar:\nPor qué importa:\nUsar esto cuando:",
       "template_title": "{kind} de {course}",
-      "recent": "reciente"
+      "recent": "reciente",
+      "class_note": "Nota de clase",
+      "convert_to_task": "Crear tarea"
     },
     "entitlement_gate": {
       "included": "Incluido con StudyPlanner",
@@ -3572,7 +3635,8 @@
       "system_clear": "Net",
       "system_open_widgets": "Ouvrir Widgets",
       "system_eyebrow": "{label} · StudyPlanner",
-      "system_open_today": "Ouvrir Aujourd’hui"
+      "system_open_today": "Ouvrir Aujourd’hui",
+      "note_task_needs_class": "Une note doit être liée à un cours avant de devenir une tâche."
     },
     "common": {
       "next": "Suivant",
@@ -3680,7 +3744,16 @@
       "overdue_by_days": "En retard de {count} jours",
       "due_today_short": "Dû aujourd'hui",
       "due_in_days": "Dû dans {count} jours",
-      "quick_due_in_3": "+3 jours"
+      "quick_due_in_3": "+3 jours",
+      "brain_kicker": "Cerveau du planning",
+      "relevant_notes": "Notes pertinentes",
+      "relevant_notes_note": "Épinglées ou liées à ce qui arrive ensuite",
+      "nudge_overdue": "Reste simple : une tâche en retard, un bloc de concentration, puis on réévalue.",
+      "nudge_review": "Deux minutes de vérification rendent les widgets et rappels plus fiables.",
+      "nudge_overwhelmed": "Pas besoin de gérer toute la semaine maintenant. Commence par l’étape visible.",
+      "nudge_busy_week": "La semaine est chargée. Avance un petit bloc avant l’empilement.",
+      "nudge_clear": "Tableau propre. Capture le nouveau travail quand il arrive.",
+      "for_student": "Aujourd’hui de {name}"
     },
     "tabs": {
       "today": "Aujourd'hui",
@@ -3843,7 +3916,9 @@
       "source_photo": "Image",
       "read_failed": "L’import n’a pas pu être lu.",
       "spring_2026": "Printemps 2026",
-      "subscribe_for_imports": "S’abonner"
+      "subscribe_for_imports": "S’abonner",
+      "source_note_title": "Note de vérification d’import",
+      "source_note_body": "{count} élément(s) vérifiés ajoutés depuis {source}."
     },
     "paywall": {
       "title": "Déverrouiller StudyPlanner",
@@ -4144,7 +4219,8 @@
       "save_minutes_only": "Enregistrer seulement {minutes} min",
       "date_not_set": "date non définie",
       "status_completed": "Terminé",
-      "status_stopped": "Arrêté"
+      "status_stopped": "Arrêté",
+      "note_title": "Note de concentration : {task}"
     },
     "grades": {
       "performance_dashboard": "Tableau de performance",
@@ -4448,7 +4524,10 @@
       "layout_ring_detail": "Anneau de progression",
       "layout_grid_detail": "Points de statut",
       "last_synced": "Derniere synchro: {time}",
-      "not_synced_yet": "pas encore synchronise"
+      "not_synced_yet": "pas encore synchronise",
+      "theme": "Thème",
+      "language": "Langue",
+      "language_detail": "Locale actuelle : {locale}"
     },
     "widget_snapshot": {
       "today": "Aujourd'hui",
@@ -4642,7 +4721,10 @@
       "trust_done_detail": "Cette tâche est faite. Rouvre les détails seulement si le plan ou le contexte de notes a changé.",
       "trust_ready_title": "Prêt pour Aujourd’hui et Plan",
       "trust_ready_detail": "Ce devoir contient assez de détails fiables pour apparaître dans le système scolaire actif.",
-      "trusted": "Fiable"
+      "trusted": "Fiable",
+      "linked_notes": "Notes liées",
+      "no_linked_notes": "Aucune note liée pour l’instant.",
+      "note_placeholder": "Ajoute le contexte d’étude pour cette tâche"
     },
     "notes": {
       "default_note_title": "note {course}",
@@ -4690,7 +4772,9 @@
       "ask_template": "Question :\nÀ qui demander :\nNécessaire avant :",
       "remember_template": "À retenir :\nPourquoi c’est important :\nÀ utiliser quand :",
       "template_title": "{kind} - {course}",
-      "recent": "récent"
+      "recent": "récent",
+      "class_note": "Note de cours",
+      "convert_to_task": "Créer tâche"
     },
     "entitlement_gate": {
       "included": "Inclus avec StudyPlanner",
@@ -4747,7 +4831,8 @@
       "system_clear": "Limpo",
       "system_open_widgets": "Abrir widgets",
       "system_eyebrow": "{label} · StudyPlanner",
-      "system_open_today": "Abrir Hoje"
+      "system_open_today": "Abrir Hoje",
+      "note_task_needs_class": "A nota precisa de contexto da turma antes de virar tarefa."
     },
     "common": {
       "next": "Avançar",
@@ -4855,7 +4940,16 @@
       "overdue_by_days": "Atrasado há {count} dias",
       "due_today_short": "Vence hoje",
       "due_in_days": "Vence em {count} dias",
-      "quick_due_in_3": "+3 dias"
+      "quick_due_in_3": "+3 dias",
+      "brain_kicker": "Cérebro do planner",
+      "relevant_notes": "Notas relevantes",
+      "relevant_notes_note": "Fixadas ou conectadas ao que vence em seguida",
+      "nudge_overdue": "Comece pequeno: uma tarefa atrasada, um bloco de foco e depois reavalie.",
+      "nudge_review": "Uma checagem de confiança de dois minutos deixa widgets e lembretes melhores.",
+      "nudge_overwhelmed": "Você não precisa carregar a semana toda agora. Comece pelo próximo passo visível.",
+      "nudge_busy_week": "A semana está pesada. Antecipe um bloco curto antes de acumular.",
+      "nudge_clear": "Tudo limpo. Capture trabalho novo quando aparecer.",
+      "for_student": "Hoje de {name}"
     },
     "tabs": {
       "today": "Hoje",
@@ -5018,7 +5112,9 @@
       "source_photo": "Foto",
       "read_failed": "A importação não pôde ser lida.",
       "spring_2026": "Primavera de 2026",
-      "subscribe_for_imports": "Assinar"
+      "subscribe_for_imports": "Assinar",
+      "source_note_title": "Nota de revisão da importação",
+      "source_note_body": "{count} item(ns) revisados adicionados de {source}."
     },
     "paywall": {
       "title": "Desbloquear StudyPlanner",
@@ -5319,7 +5415,8 @@
       "save_minutes_only": "Salvar só {minutes} min",
       "date_not_set": "data não definida",
       "status_completed": "Concluído",
-      "status_stopped": "Parado"
+      "status_stopped": "Parado",
+      "note_title": "Nota de foco: {task}"
     },
     "grades": {
       "performance_dashboard": "Painel de desempenho",
@@ -5623,7 +5720,10 @@
       "layout_ring_detail": "Anel de progresso",
       "layout_grid_detail": "Pontos de status",
       "last_synced": "Ultima sincronizacao: {time}",
-      "not_synced_yet": "ainda nao sincronizado"
+      "not_synced_yet": "ainda nao sincronizado",
+      "theme": "Tema",
+      "language": "Idioma",
+      "language_detail": "Localidade atual: {locale}"
     },
     "widget_snapshot": {
       "today": "Hoje",
@@ -5817,7 +5917,10 @@
       "trust_done_detail": "Esta tarefa está concluída. Reabra os detalhes só se o plano ou contexto de notas mudou.",
       "trust_ready_title": "Pronta para Hoje e Plano",
       "trust_ready_detail": "Esta tarefa tem detalhes confiáveis suficientes para aparecer no sistema escolar ativo.",
-      "trusted": "Confiável"
+      "trusted": "Confiável",
+      "linked_notes": "Notas vinculadas",
+      "no_linked_notes": "Ainda não há notas vinculadas.",
+      "note_placeholder": "Adicione contexto de estudo para esta tarefa"
     },
     "notes": {
       "default_note_title": "nota de {course}",
@@ -5865,7 +5968,9 @@
       "ask_template": "Pergunta:\nQuem perguntar:\nNecessário antes de:",
       "remember_template": "Lembrar:\nPor que importa:\nUsar isto quando:",
       "template_title": "{kind} de {course}",
-      "recent": "recente"
+      "recent": "recente",
+      "class_note": "Nota da turma",
+      "convert_to_task": "Criar tarefa"
     },
     "entitlement_gate": {
       "included": "Incluído com StudyPlanner",
@@ -5922,7 +6027,8 @@
       "system_clear": "صافٍ",
       "system_open_widgets": "افتح الويدجت",
       "system_eyebrow": "{label} · StudyPlanner",
-      "system_open_today": "افتح اليوم"
+      "system_open_today": "افتح اليوم",
+      "note_task_needs_class": "تحتاج الملاحظة إلى سياق الصف قبل تحويلها إلى مهمة."
     },
     "common": {
       "next": "التالي",
@@ -6030,7 +6136,16 @@
       "overdue_by_days": "متأخر {count} أيام",
       "due_today_short": "موعده اليوم",
       "due_in_days": "موعده خلال {count} أيام",
-      "quick_due_in_3": "+3 أيام"
+      "quick_due_in_3": "+3 أيام",
+      "brain_kicker": "عقل المخطط",
+      "relevant_notes": "ملاحظات مناسبة",
+      "relevant_notes_note": "مثبتة أو مرتبطة بما يستحق بعد ذلك",
+      "nudge_overdue": "ابدأ بخطوة صغيرة: مهمة متأخرة واحدة، جلسة تركيز واحدة، ثم أعد التقييم.",
+      "nudge_review": "فحص الثقة لدقيقتين يجعل كل ويدجت وتذكير أذكى.",
+      "nudge_overwhelmed": "لا تحتاج إلى رؤية الأسبوع كله الآن. ابدأ بالخطوة التالية الواضحة.",
+      "nudge_busy_week": "هذا الأسبوع ثقيل. أنجز جلسة قصيرة مبكرا قبل أن تتراكم المهام.",
+      "nudge_clear": "صفحة نظيفة. التقط العمل الجديد عندما يظهر.",
+      "for_student": "يوم {name}"
     },
     "tabs": {
       "today": "اليوم",
@@ -6193,7 +6308,9 @@
       "source_photo": "صورة",
       "read_failed": "تعذرت قراءة الاستيراد.",
       "spring_2026": "ربيع 2026",
-      "subscribe_for_imports": "اشترك"
+      "subscribe_for_imports": "اشترك",
+      "source_note_title": "ملاحظة مراجعة الاستيراد",
+      "source_note_body": "تمت إضافة {count} عنصر(عناصر) تمت مراجعتها من {source}."
     },
     "paywall": {
       "title": "فتح StudyPlanner",
@@ -6494,7 +6611,8 @@
       "save_minutes_only": "احفظ {minutes} دقيقة فقط",
       "date_not_set": "لم يتم تحديد التاريخ",
       "status_completed": "مكتمل",
-      "status_stopped": "متوقف"
+      "status_stopped": "متوقف",
+      "note_title": "ملاحظة تركيز: {task}"
     },
     "grades": {
       "performance_dashboard": "لوحة الأداء",
@@ -6798,7 +6916,10 @@
       "layout_ring_detail": "حلقة تقدم",
       "layout_grid_detail": "نقاط الحالة",
       "last_synced": "آخر مزامنة: {time}",
-      "not_synced_yet": "لم تتم المزامنة بعد"
+      "not_synced_yet": "لم تتم المزامنة بعد",
+      "theme": "النمط",
+      "language": "اللغة",
+      "language_detail": "اللغة الحالية: {locale}"
     },
     "widget_snapshot": {
       "today": "اليوم",
@@ -6992,7 +7113,10 @@
       "trust_done_detail": "هذه المهمة منجزة. أعد فتح التفاصيل فقط إذا تغيرت الخطة أو سياق الدرجات.",
       "trust_ready_title": "جاهزة لليوم والخطة",
       "trust_ready_detail": "تملك هذه المهمة تفاصيل موثوقة كافية لتظهر في نظام المدرسة النشط.",
-      "trusted": "موثوقة"
+      "trusted": "موثوقة",
+      "linked_notes": "ملاحظات مرتبطة",
+      "no_linked_notes": "لا توجد ملاحظات مرتبطة بعد.",
+      "note_placeholder": "أضف سياق مذاكرة لهذه المهمة"
     },
     "notes": {
       "default_note_title": "ملاحظة {course}",
@@ -7040,7 +7164,9 @@
       "ask_template": "السؤال:\nمن تسأل:\nمطلوب قبل:",
       "remember_template": "تذكّر:\nلماذا يهم:\nاستخدم هذا عند:",
       "template_title": "{kind} - {course}",
-      "recent": "حديثًا"
+      "recent": "حديثًا",
+      "class_note": "ملاحظة صف",
+      "convert_to_task": "حوّل إلى مهمة"
     },
     "entitlement_gate": {
       "included": "مضمن مع StudyPlanner",
@@ -7097,7 +7223,8 @@
       "system_clear": "साफ़",
       "system_open_widgets": "विजेट खोलें",
       "system_eyebrow": "{label} · StudyPlanner",
-      "system_open_today": "आज खोलें"
+      "system_open_today": "आज खोलें",
+      "note_task_needs_class": "नोट को कार्य बनाने से पहले कक्षा संदर्भ चाहिए।"
     },
     "common": {
       "next": "आगे",
@@ -7205,7 +7332,16 @@
       "overdue_by_days": "{count} दिन ओवरड्यू",
       "due_today_short": "आज देय",
       "due_in_days": "{count} दिन में देय",
-      "quick_due_in_3": "+3 दिन"
+      "quick_due_in_3": "+3 दिन",
+      "brain_kicker": "प्लानर ब्रेन",
+      "relevant_notes": "संबंधित नोट्स",
+      "relevant_notes_note": "पिन किए गए या अगले देय काम से जुड़े",
+      "nudge_overdue": "छोटा शुरू करें: एक देर वाला काम, एक फोकस ब्लॉक, फिर दोबारा देखें।",
+      "nudge_review": "दो मिनट की भरोसा जांच हर विजेट और रिमाइंडर को बेहतर बनाती है।",
+      "nudge_overwhelmed": "अभी पूरा सप्ताह नहीं चाहिए। अगला साफ कदम शुरू करें।",
+      "nudge_busy_week": "यह सप्ताह भारी है। काम जमा होने से पहले एक छोटा ब्लॉक करें।",
+      "nudge_clear": "सब साफ है। नया काम आते ही कैप्चर करें।",
+      "for_student": "{name} का आज"
     },
     "tabs": {
       "today": "आज",
@@ -7368,7 +7504,9 @@
       "source_photo": "फोटो",
       "read_failed": "इम्पोर्ट पढ़ा नहीं जा सका।",
       "spring_2026": "वसंत 2026",
-      "subscribe_for_imports": "सदस्यता लें"
+      "subscribe_for_imports": "सदस्यता लें",
+      "source_note_title": "इंपोर्ट समीक्षा नोट",
+      "source_note_body": "{source} से {count} समीक्षा किए गए आइटम जोड़े गए।"
     },
     "paywall": {
       "title": "StudyPlanner अनलॉक करें",
@@ -7669,7 +7807,8 @@
       "save_minutes_only": "केवल {minutes} मिनट सेव करें",
       "date_not_set": "तारीख सेट नहीं",
       "status_completed": "पूर्ण",
-      "status_stopped": "रोका गया"
+      "status_stopped": "रोका गया",
+      "note_title": "{task} फोकस नोट"
     },
     "grades": {
       "performance_dashboard": "प्रदर्शन डैशबोर्ड",
@@ -7973,7 +8112,10 @@
       "layout_ring_detail": "प्रगति ring",
       "layout_grid_detail": "स्थिति dots",
       "last_synced": "अंतिम sync: {time}",
-      "not_synced_yet": "अभी sync नहीं हुआ"
+      "not_synced_yet": "अभी sync नहीं हुआ",
+      "theme": "थीम",
+      "language": "भाषा",
+      "language_detail": "मौजूदा लोकेल: {locale}"
     },
     "widget_snapshot": {
       "today": "आज",
@@ -8167,7 +8309,10 @@
       "trust_done_detail": "यह कार्य पूरा है। विवरण केवल तब दोबारा खोलें जब योजना या ग्रेड संदर्भ बदला हो।",
       "trust_ready_title": "आज और योजना के लिए तैयार",
       "trust_ready_detail": "इस कार्य में सक्रिय स्कूल सिस्टम में दिखने के लिए पर्याप्त भरोसेमंद विवरण हैं।",
-      "trusted": "भरोसेमंद"
+      "trusted": "भरोसेमंद",
+      "linked_notes": "जुड़े नोट्स",
+      "no_linked_notes": "अभी कोई नोट जुड़ा नहीं है।",
+      "note_placeholder": "इस काम के लिए पढ़ाई संदर्भ जोड़ें"
     },
     "notes": {
       "default_note_title": "{course} नोट",
@@ -8215,7 +8360,9 @@
       "ask_template": "सवाल:\nकिससे पूछें:\nकब तक चाहिए:",
       "remember_template": "याद रखें:\nक्यों मायने रखता है:\nइसे कब उपयोग करें:",
       "template_title": "{kind} - {course}",
-      "recent": "हाल का"
+      "recent": "हाल का",
+      "class_note": "कक्षा नोट",
+      "convert_to_task": "कार्य बनाएं"
     },
     "entitlement_gate": {
       "included": "StudyPlanner में शामिल",
@@ -8272,7 +8419,8 @@
       "system_clear": "クリア",
       "system_open_widgets": "ウィジェットを開く",
       "system_eyebrow": "{label} · StudyPlanner",
-      "system_open_today": "今日を開く"
+      "system_open_today": "今日を開く",
+      "note_task_needs_class": "メモをタスクにするには、先にクラス情報が必要です。"
     },
     "common": {
       "next": "次へ",
@@ -8380,7 +8528,16 @@
       "overdue_by_days": "{count}日遅れ",
       "due_today_short": "今日が期限",
       "due_in_days": "{count}日後が期限",
-      "quick_due_in_3": "+3日"
+      "quick_due_in_3": "+3日",
+      "brain_kicker": "プランナー頭脳",
+      "relevant_notes": "関連メモ",
+      "relevant_notes_note": "ピン留め、または次の締切に関連",
+      "nudge_overdue": "小さく進めよう。遅れた課題を1つ、集中ブロックを1つ、そのあと見直し。",
+      "nudge_review": "2分の確認で、ウィジェットとリマインダーの信頼度が上がります。",
+      "nudge_overwhelmed": "今は週全体を抱えなくて大丈夫。見えている次の一歩から。",
+      "nudge_busy_week": "今週は重めです。積み上がる前に短いブロックを先取りしましょう。",
+      "nudge_clear": "すっきりしています。新しい課題が出たらキャプチャしましょう。",
+      "for_student": "{name}の今日"
     },
     "tabs": {
       "today": "今日",
@@ -8543,7 +8700,9 @@
       "source_photo": "写真",
       "read_failed": "取り込みを読み取れませんでした。",
       "spring_2026": "2026年春",
-      "subscribe_for_imports": "登録"
+      "subscribe_for_imports": "登録",
+      "source_note_title": "インポート確認メモ",
+      "source_note_body": "{source}から確認済み項目を{count}件追加しました。"
     },
     "paywall": {
       "title": "StudyPlannerを解除",
@@ -8844,7 +9003,8 @@
       "save_minutes_only": "{minutes}分だけ保存",
       "date_not_set": "日付未設定",
       "status_completed": "完了",
-      "status_stopped": "停止"
+      "status_stopped": "停止",
+      "note_title": "{task}の集中メモ"
     },
     "grades": {
       "performance_dashboard": "成績ダッシュボード",
@@ -9148,7 +9308,10 @@
       "layout_ring_detail": "進捗リング",
       "layout_grid_detail": "状態ドット",
       "last_synced": "最終同期: {time}",
-      "not_synced_yet": "未同期"
+      "not_synced_yet": "未同期",
+      "theme": "テーマ",
+      "language": "言語",
+      "language_detail": "現在のロケール: {locale}"
     },
     "widget_snapshot": {
       "today": "今日",
@@ -9342,7 +9505,10 @@
       "trust_done_detail": "このタスクは完了しています。計画や成績コンテキストが変わった場合だけ詳細を開き直してください。",
       "trust_ready_title": "今日と計画に準備完了",
       "trust_ready_detail": "この課題には、アクティブな学校システムに表示できる十分な信頼済み詳細があります。",
-      "trusted": "信頼済み"
+      "trusted": "信頼済み",
+      "linked_notes": "リンク済みメモ",
+      "no_linked_notes": "まだメモはリンクされていません。",
+      "note_placeholder": "この課題の学習メモを追加"
     },
     "notes": {
       "default_note_title": "{course}のノート",
@@ -9390,7 +9556,9 @@
       "ask_template": "質問:\n誰に聞くか:\n必要な期限:",
       "remember_template": "覚えること:\n重要な理由:\n使う場面:",
       "template_title": "{kind}（{course}）",
-      "recent": "最近"
+      "recent": "最近",
+      "class_note": "クラスメモ",
+      "convert_to_task": "タスク化"
     },
     "entitlement_gate": {
       "included": "StudyPlannerに含まれます",
@@ -9447,7 +9615,8 @@
       "system_clear": "깨끗함",
       "system_open_widgets": "위젯 열기",
       "system_eyebrow": "{label} · StudyPlanner",
-      "system_open_today": "오늘 열기"
+      "system_open_today": "오늘 열기",
+      "note_task_needs_class": "노트를 과제로 만들려면 먼저 수업 정보가 필요합니다."
     },
     "common": {
       "next": "다음",
@@ -9555,7 +9724,16 @@
       "overdue_by_days": "{count}일 연체",
       "due_today_short": "오늘 마감",
       "due_in_days": "{count}일 후 마감",
-      "quick_due_in_3": "+3일"
+      "quick_due_in_3": "+3일",
+      "brain_kicker": "플래너 브레인",
+      "relevant_notes": "관련 노트",
+      "relevant_notes_note": "고정되었거나 다음 마감과 연결됨",
+      "nudge_overdue": "작게 시작하세요. 늦은 과제 하나, 집중 블록 하나, 그리고 다시 확인.",
+      "nudge_review": "2분 신뢰 확인으로 위젯과 알림이 더 정확해집니다.",
+      "nudge_overwhelmed": "지금 한 주 전체를 볼 필요는 없어요. 보이는 다음 단계부터 시작하세요.",
+      "nudge_busy_week": "이번 주는 무게가 있습니다. 쌓이기 전에 짧은 블록을 먼저 하세요.",
+      "nudge_clear": "깔끔한 상태입니다. 새 과제가 생기면 바로 캡처하세요.",
+      "for_student": "{name}의 오늘"
     },
     "tabs": {
       "today": "오늘",
@@ -9718,7 +9896,9 @@
       "source_photo": "사진",
       "read_failed": "가져오기를 읽을 수 없습니다.",
       "spring_2026": "2026년 봄",
-      "subscribe_for_imports": "구독"
+      "subscribe_for_imports": "구독",
+      "source_note_title": "가져오기 검토 노트",
+      "source_note_body": "{source}에서 검토된 항목 {count}개를 추가했습니다."
     },
     "paywall": {
       "title": "StudyPlanner 잠금 해제",
@@ -10019,7 +10199,8 @@
       "save_minutes_only": "{minutes}분만 저장",
       "date_not_set": "날짜 미설정",
       "status_completed": "완료됨",
-      "status_stopped": "중지됨"
+      "status_stopped": "중지됨",
+      "note_title": "{task} 집중 노트"
     },
     "grades": {
       "performance_dashboard": "성적 대시보드",
@@ -10323,7 +10504,10 @@
       "layout_ring_detail": "진행 링",
       "layout_grid_detail": "상태 점",
       "last_synced": "마지막 동기화: {time}",
-      "not_synced_yet": "아직 동기화 안 됨"
+      "not_synced_yet": "아직 동기화 안 됨",
+      "theme": "테마",
+      "language": "언어",
+      "language_detail": "현재 로케일: {locale}"
     },
     "widget_snapshot": {
       "today": "오늘",
@@ -10517,7 +10701,10 @@
       "trust_done_detail": "이 작업은 완료됐습니다. 계획이나 성적 맥락이 바뀐 경우에만 세부 정보를 다시 여세요.",
       "trust_ready_title": "오늘과 계획에 준비됨",
       "trust_ready_detail": "이 과제는 활성 학교 시스템에 표시될 만큼 신뢰된 세부 정보가 충분합니다.",
-      "trusted": "신뢰됨"
+      "trusted": "신뢰됨",
+      "linked_notes": "연결된 노트",
+      "no_linked_notes": "아직 연결된 노트가 없습니다.",
+      "note_placeholder": "이 과제의 학습 맥락 추가"
     },
     "notes": {
       "default_note_title": "{course} 노트",
@@ -10565,7 +10752,9 @@
       "ask_template": "질문:\n물어볼 사람:\n필요한 시점:",
       "remember_template": "기억:\n중요한 이유:\n사용할 때:",
       "template_title": "{course}의 {kind}",
-      "recent": "최근"
+      "recent": "최근",
+      "class_note": "수업 노트",
+      "convert_to_task": "과제로 만들기"
     },
     "entitlement_gate": {
       "included": "StudyPlanner에 포함",
@@ -10622,7 +10811,8 @@
       "system_clear": "清爽",
       "system_open_widgets": "打开小组件",
       "system_eyebrow": "{label} · StudyPlanner",
-      "system_open_today": "打开今天"
+      "system_open_today": "打开今天",
+      "note_task_needs_class": "笔记需要课程上下文后才能转成任务。"
     },
     "common": {
       "next": "下一步",
@@ -10730,7 +10920,16 @@
       "overdue_by_days": "已逾期 {count} 天",
       "due_today_short": "今天截止",
       "due_in_days": "{count} 天后截止",
-      "quick_due_in_3": "+3 天"
+      "quick_due_in_3": "+3 天",
+      "brain_kicker": "规划大脑",
+      "relevant_notes": "相关笔记",
+      "relevant_notes_note": "已置顶，或关联到下一个到期事项",
+      "nudge_overdue": "从小处开始：一个逾期任务，一个专注块，然后再调整。",
+      "nudge_review": "两分钟可信检查，会让小组件和提醒更准确。",
+      "nudge_overwhelmed": "现在不用处理整周。先做眼前的下一步。",
+      "nudge_busy_week": "这周负担较重。趁任务堆起来前，先完成一个短块。",
+      "nudge_clear": "当前很清爽。有新作业时再捕捉。",
+      "for_student": "{name}的今日"
     },
     "tabs": {
       "today": "今天",
@@ -10893,7 +11092,9 @@
       "source_photo": "照片",
       "read_failed": "无法读取导入内容。",
       "spring_2026": "2026年春季",
-      "subscribe_for_imports": "订阅"
+      "subscribe_for_imports": "订阅",
+      "source_note_title": "导入审核笔记",
+      "source_note_body": "已从 {source} 添加 {count} 个审核项目。"
     },
     "paywall": {
       "title": "解锁 StudyPlanner",
@@ -11194,7 +11395,8 @@
       "save_minutes_only": "只保存 {minutes} 分钟",
       "date_not_set": "未设置日期",
       "status_completed": "已完成",
-      "status_stopped": "已停止"
+      "status_stopped": "已停止",
+      "note_title": "{task} 专注笔记"
     },
     "grades": {
       "performance_dashboard": "成绩面板",
@@ -11498,7 +11700,10 @@
       "layout_ring_detail": "进度环",
       "layout_grid_detail": "状态点",
       "last_synced": "上次同步：{time}",
-      "not_synced_yet": "尚未同步"
+      "not_synced_yet": "尚未同步",
+      "theme": "主题",
+      "language": "语言",
+      "language_detail": "当前区域设置：{locale}"
     },
     "widget_snapshot": {
       "today": "今天",
@@ -11692,7 +11897,10 @@
       "trust_done_detail": "此任务已完成。只有计划或成绩背景改变时才需要重新打开详情。",
       "trust_ready_title": "已准备进入今天和计划",
       "trust_ready_detail": "此任务有足够可信的详情，可显示在活动学校系统中。",
-      "trusted": "可信"
+      "trusted": "可信",
+      "linked_notes": "关联笔记",
+      "no_linked_notes": "还没有关联笔记。",
+      "note_placeholder": "为此任务添加学习上下文"
     },
     "notes": {
       "default_note_title": "{course} 笔记",
@@ -11740,7 +11948,9 @@
       "ask_template": "问题:\n问谁:\n需要在何时前:",
       "remember_template": "记住:\n为什么重要:\n何时使用:",
       "template_title": "{course}：{kind}",
-      "recent": "最近"
+      "recent": "最近",
+      "class_note": "课程笔记",
+      "convert_to_task": "创建任务"
     },
     "entitlement_gate": {
       "included": "StudyPlanner 已包含",

@@ -102,8 +102,36 @@ export type PlannerSettings = {
   themeMode: "light" | "dark";
 };
 
+export type StudentProfile = {
+  name: string;
+  persona?: StudentPersona;
+  stressLevel?: StressLevel;
+  preferredLocale?: string;
+  nightOwl?: boolean;
+};
+
+export type StudentPersona =
+  | "organized_ap"
+  | "overwhelmed"
+  | "athlete"
+  | "artist"
+  | "stem_heavy"
+  | "humanities_heavy"
+  | "adhd_focus_support"
+  | "bilingual"
+  | "night_owl"
+  | "all_caught_up"
+  | "missing_dates_heavy"
+  | "exam_week";
+
+export type StressLevel = "low" | "steady" | "high";
+
 export type UserSettings = {
   studentName: string;
+  profile?: StudentProfile;
+  persona?: StudentPersona;
+  stressLevel?: StressLevel;
+  locale?: string;
   selectedTheme: WidgetPalette | "custom";
   customPalette: string[];
   appTheme: "campus" | "classic" | "slate" | "mint" | "aura" | "rose" | "graphite" | "solar";
@@ -158,6 +186,12 @@ export type ChecklistItem = {
 export type ReminderConfig = {
   enabled: boolean;
   leadTimeHours: number;
+};
+
+export type Reminder = ReminderConfig & {
+  id?: string;
+  assignmentId?: string;
+  channel?: "local" | "calendar" | "widget";
 };
 
 export type Assignment = {
@@ -274,6 +308,10 @@ export type WidgetPreset = {
 export type StudyNote = {
   id: string;
   courseId?: string;
+  assignmentId?: string;
+  sourceId?: string;
+  focusSessionId?: string;
+  kind?: "quick" | "assignment" | "class" | "source" | "focus" | "today";
   title: string;
   body: string;
   tags: string[];
@@ -281,6 +319,8 @@ export type StudyNote = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type Note = StudyNote;
 
 export type FocusSession = {
   id: string;
@@ -291,4 +331,18 @@ export type FocusSession = {
   status: FocusSessionStatus;
   sessionNumber: number;
   notes?: string;
+};
+
+export type ThemePreset = {
+  id: WidgetPalette | "custom";
+  label: string;
+  palette: string[];
+  highContrast?: boolean;
+};
+
+export type AppLocaleState = {
+  locale: string;
+  fallbackLocale: string;
+  direction: "ltr" | "rtl";
+  missingKeys: string[];
 };

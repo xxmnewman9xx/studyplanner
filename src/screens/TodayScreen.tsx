@@ -8,9 +8,9 @@ import {
 } from "../components/AppleComponents";
 import { AppButton } from "../components/AppButton";
 import { SectionHeader } from "../components/SectionHeader";
-import { Assignment, Course, Semester, StudyNote } from "../models";
+import { Assignment, Course, FocusSession, Semester, StudyNote, UserSettings, WidgetPreset } from "../models";
 import {
-  buildTodayPlan,
+  buildTodayBrain,
   daysUntil,
   getCourseForAssignment
 } from "../logic/planner";
@@ -36,6 +36,9 @@ type TodayScreenProps = {
   semester: Semester;
   studentName: string;
   notes: StudyNote[];
+  focusSessions?: FocusSession[];
+  settings?: UserSettings;
+  widgetPresets?: WidgetPreset[];
   importHandoff?: ImportHandoffSummary | null;
   demoMode?: boolean;
   onUpdateStatus: (assignmentId: string, status: "not_started" | "in_progress" | "done") => void;
@@ -58,7 +61,11 @@ export function TodayScreen({
   assignments,
   courses,
   semester,
+  studentName,
   notes,
+  focusSessions = [],
+  settings,
+  widgetPresets = [],
   importHandoff,
   demoMode = false,
   onUpdateStatus,
@@ -80,7 +87,7 @@ export function TodayScreen({
   const { t, locale } = useI18n();
   const { colors } = theme;
   const styles = createStyles(theme);
-  const plan = buildTodayPlan(assignments, semester);
+  const plan = buildTodayBrain({ assignments, courses, semester, notes, focusSessions, widgetPresets, settings });
   const nextCourse = plan.nextAction
     ? getCourseForAssignment(courses, plan.nextAction)
     : undefined;
@@ -99,7 +106,12 @@ export function TodayScreen({
   const quickCourse = courses.find((course) => course.id === quickCourseId) || courses[0];
   const parsedQuickHomework = parseQuickHomeworkInput(quickTitle, courses, quickCourse, quickDueDate);
   const liveBrief = buildLiveBrief(plan, courses.length, t);
+  const workloadNudge = buildWorkloadNudge(plan, settings, t);
+  const heroKicker = studentName?.trim()
+    ? formatLocalized(t("today.for_student", "{name}'s Today"), { name: studentName.trim() })
+    : t("tabs.today", "Today");
   const plannerHasData = assignments.length > 0 || courses.length > 0;
+  const relevantNotes = plan.relevantNotes;
   const todayItems = plan.dueToday.filter((assignment) => assignment.id !== plan.nextAction?.id);
   const weekItems = plan.upcoming
     .filter((assignment) => assignment.id !== plan.nextAction?.id && assignment.dueAt.slice(0, 10) !== todayDateInput())
@@ -179,9 +191,10 @@ export function TodayScreen({
       ) : null}
 
       <GlassCard tone="hero" style={styles.heroCard}>
-        <Text style={styles.heroKicker}>{t("tabs.today", "Today")}</Text>
+        <Text style={styles.heroKicker}>{heroKicker}</Text>
         <Text style={styles.heroTitle}>{liveBrief.title}</Text>
         <Text style={styles.heroSubtitle}>{liveBrief.detail}</Text>
+        {workloadNudge ? <Text style={styles.heroNudge}>{workloadNudge}</Text> : null}
         {plannerHasData ? (
           <View style={styles.heroMetrics}>
             <MetricPill label={t("today.metric_done", "Done")} value={plan.todayTotalCount > 0 ? `${completionPercent}%` : "0%"} />
@@ -255,6 +268,24 @@ export function TodayScreen({
           );
         })}
       </View>
+
+      {plannerHasData ? (
+        <GlassCard style={styles.brainCard}>
+          <View style={styles.brainHeader}>
+            <View style={styles.brainHeaderCopy}>
+              <Text style={styles.brainKicker}>{t("today.brain_kicker", "Planner brain")}</Text>
+              <Text style={styles.brainTitle}>{plan.busyWeekInsight.title}</Text>
+            </View>
+            <Text style={styles.brainBadge}>{formatLocalized(t("today.focus_minutes", "{minutes}m focus"), { minutes: String(plan.recommendedFocusDuration) })}</Text>
+          </View>
+          <Text style={styles.brainCopy}>{plan.busyWeekInsight.copy}</Text>
+          <View style={styles.brainFacts}>
+            <BrainFact label={t("tabs.widgets", "Widgets")} value={plan.recommendedWidgetPreset.name} />
+            <BrainFact label={t("more.theme", "Theme")} value={labelizeTheme(plan.recommendedTheme, t)} />
+            <BrainFact label={t("tabs.notes", "Notes")} value={String(relevantNotes.length)} />
+          </View>
+        </GlassCard>
+      ) : null}
 
       <GlassCard style={styles.quickAddCard}>
         <View style={styles.commandCenterHeader}>
@@ -446,6 +477,26 @@ export function TodayScreen({
         </GlassCard>
       ) : null}
 
+      {relevantNotes.length > 0 ? (
+        <>
+          <SectionHeader title={t("today.relevant_notes", "Relevant notes")} note={t("today.relevant_notes_note", "Pinned or attached to what is due next")} />
+          <View style={styles.noteList}>
+            {relevantNotes.map((note) => {
+              const course = note.courseId ? courses.find((item) => item.id === note.courseId) : undefined;
+              return (
+                <TouchableOpacity accessibilityRole="button" key={note.id} style={styles.noteRow} onPress={onOpenNotes}>
+                  <View style={[styles.noteDot, { backgroundColor: course?.color || colors.accent }]} />
+                  <View style={styles.noteCopy}>
+                    <Text style={styles.noteTitle} numberOfLines={1}>{note.pinned ? `${t("notes.pinned", "Pinned")} · ` : ""}{note.title}</Text>
+                    <Text style={styles.noteBody} numberOfLines={2}>{note.body}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </>
+      ) : null}
+
       {todayItems.length > 0 || !plan.nextAction ? (
         <>
           <SectionHeader
@@ -509,7 +560,7 @@ export function TodayScreen({
 
 }
 
-function buildLiveBrief(plan: ReturnType<typeof buildTodayPlan>, courseCount: number, t: TranslateFn) {
+function buildLiveBrief(plan: ReturnType<typeof buildTodayBrain>, courseCount: number, t: TranslateFn) {
   if (plan.overdue.length > 0) {
     return {
       title: t("today.live_overdue_title", "Overdue work first"),
@@ -552,6 +603,20 @@ function buildLiveBrief(plan: ReturnType<typeof buildTodayPlan>, courseCount: nu
     title: t("today.live_clear_title", "Clear right now"),
     detail: t("today.live_clear_detail", "No urgent work is loaded. Scan new work when you get it.")
   };
+}
+
+function buildWorkloadNudge(plan: ReturnType<typeof buildTodayBrain>, settings: UserSettings | undefined, t: TranslateFn) {
+  const stress = settings?.stressLevel || settings?.profile?.stressLevel;
+  if (plan.overdue.length > 0) return t("today.nudge_overdue", "Keep it small: one overdue task, one focus block, then reassess.");
+  if (plan.needsReview.length > 0) return t("today.nudge_review", "A two-minute trust check makes every widget and reminder smarter.");
+  if (stress === "high") return t("today.nudge_overwhelmed", "You do not need the whole week right now. Start with the next visible step.");
+  if (plan.busyWeekInsight.heavyDays.length > 0) return t("today.nudge_busy_week", "This week has weight. Front-load one short block before it stacks.");
+  if (!plan.nextAction && plan.openCount === 0) return t("today.nudge_clear", "Clean slate. Capture new work when it appears.");
+  return "";
+}
+
+function labelizeTheme(value: string, t: TranslateFn) {
+  return t(`more.palette_${value}`, value.replace(/_/g, " "));
 }
 
 function imageActionLabel(plannerHasData: boolean, t: TranslateFn) {
@@ -645,6 +710,17 @@ function MetricPill({ label, value }: MetricPillProps) {
     <View style={styles.metricPill}>
       <Text style={styles.metricValue}>{value}</Text>
       <Text style={styles.metricLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function BrainFact({ label, value }: { label: string; value: string }) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  return (
+    <View style={styles.brainFact}>
+      <Text style={styles.brainFactLabel}>{label}</Text>
+      <Text style={styles.brainFactValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{value}</Text>
     </View>
   );
 }
@@ -773,6 +849,19 @@ function createStyles(theme: AppTheme) {
       fontWeight: "700",
       marginTop: -2
     },
+    heroNudge: {
+      color: colors.heroText,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "800",
+      borderRadius: radii.lg,
+      backgroundColor: "rgba(255,255,255,0.10)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.14)",
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 8,
+      overflow: "hidden"
+    },
     heroMetrics: {
       flexDirection: "row",
       borderRadius: radii.lg,
@@ -843,6 +932,81 @@ function createStyles(theme: AppTheme) {
       fontSize: 11,
       lineHeight: 15,
       fontWeight: "800"
+    },
+    brainCard: {
+      gap: spacing.sm,
+      marginBottom: spacing.sm,
+      borderColor: `${colors.accent}33`
+    },
+    brainHeader: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    brainHeaderCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    brainKicker: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      letterSpacing: 0.6,
+      textTransform: "uppercase"
+    },
+    brainTitle: {
+      color: colors.ink,
+      fontSize: 17,
+      lineHeight: 22,
+      fontWeight: "900"
+    },
+    brainBadge: {
+      borderRadius: radii.round,
+      backgroundColor: colors.accentSoft,
+      color: colors.accent,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 7,
+      overflow: "hidden",
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    brainCopy: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "700"
+    },
+    brainFacts: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    brainFact: {
+      flex: 1,
+      minWidth: 92,
+      borderRadius: radii.lg,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : colors.surfaceAlt,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      padding: spacing.sm,
+      gap: 2
+    },
+    brainFactLabel: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    brainFactValue: {
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
     },
     nextHero: {
       borderRadius: radii.xl,
@@ -1257,6 +1421,44 @@ function createStyles(theme: AppTheme) {
       flex: 1,
       minWidth: 132,
       paddingHorizontal: spacing.xs
+    },
+    noteList: {
+      gap: spacing.xs,
+      marginBottom: spacing.sm
+    },
+    noteRow: {
+      minHeight: 76,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.045)" : colors.surface,
+      padding: spacing.sm,
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: spacing.sm
+    },
+    noteDot: {
+      width: 10,
+      height: 42,
+      borderRadius: 5,
+      marginTop: 2
+    },
+    noteCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 3
+    },
+    noteTitle: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 18,
+      fontWeight: "900"
+    },
+    noteBody: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
     },
     scheduleCard: {
       gap: spacing.md,

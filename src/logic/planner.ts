@@ -4,13 +4,19 @@ import {
   FocusSession,
   ParsedItem,
   Semester,
+  StudyNote,
   UserSettings,
+  WidgetKind,
   WidgetBackground,
   WidgetPalette,
   WidgetPreset,
   WidgetType
 } from "../models";
-import { replaceCanonicalWidgetPreset } from "../widgets/widgetPresets";
+import {
+  buildCanonicalWidgetPreset,
+  ensureCanonicalWidgetPresets,
+  replaceCanonicalWidgetPreset
+} from "../widgets/widgetPresets";
 
 const dayMs = 24 * 60 * 60 * 1000;
 
@@ -71,6 +77,15 @@ export type WidgetData = {
   progressLabel?: string;
 };
 
+export type TodayBrain = TodayPlan & {
+  relevantNotes: StudyNote[];
+  pinnedNotes: StudyNote[];
+  busyWeekInsight: BusyWeekInsight;
+  recommendedFocusDuration: number;
+  recommendedTheme: WidgetPalette;
+  recommendedWidgetPreset: WidgetPreset;
+};
+
 export type AssignmentCompletionStats = {
   total: number;
   done: number;
@@ -122,6 +137,37 @@ export function buildTodayPlan(
     todayTotalCount: todayStats.total,
     todayProgress: todayStats.progress,
     semesterProgress: calculateSemesterProgress(semester, now)
+  };
+}
+
+export function buildTodayBrain({
+  assignments,
+  courses,
+  semester,
+  notes = [],
+  focusSessions = [],
+  widgetPresets = [],
+  settings,
+  now = new Date()
+}: {
+  assignments: Assignment[];
+  courses: Course[];
+  semester: Semester;
+  notes?: StudyNote[];
+  focusSessions?: FocusSession[];
+  widgetPresets?: WidgetPreset[];
+  settings?: UserSettings;
+  now?: Date;
+}): TodayBrain {
+  const plan = buildTodayPlan(assignments, semester, now);
+  return {
+    ...plan,
+    relevantNotes: getRelevantNotesForToday(notes, assignments, courses, now),
+    pinnedNotes: getPinnedNotes(notes),
+    busyWeekInsight: getBusyWeekInsight(assignments, now),
+    recommendedFocusDuration: getRecommendedFocusDuration(assignments, focusSessions, settings, now),
+    recommendedTheme: getRecommendedTheme(assignments, settings, now),
+    recommendedWidgetPreset: getRecommendedWidgetPreset(assignments, courses, notes, focusSessions, widgetPresets, settings, now)
   };
 }
 
@@ -350,6 +396,16 @@ function formatDayList(labels: string[]) {
   return `${labels.slice(0, -1).join(", ")} & ${labels[labels.length - 1]}`;
 }
 
+function sortNotesByUsefulness(a: StudyNote, b: StudyNote) {
+  const pinned = Number(Boolean(b.pinned)) - Number(Boolean(a.pinned));
+  if (pinned !== 0) return pinned;
+  const attached =
+    Number(Boolean(b.assignmentId || b.focusSessionId || b.sourceId)) -
+    Number(Boolean(a.assignmentId || a.focusSessionId || a.sourceId));
+  if (attached !== 0) return attached;
+  return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+}
+
 export function getClassAssignmentCounts(courses: Course[], assignments: Assignment[]) {
   return courses.reduce<Record<string, { open: number; done: number; needsReview: number }>>(
     (counts, course) => {
@@ -369,12 +425,59 @@ export function getClassAssignmentCounts(courses: Course[], assignments: Assignm
   );
 }
 
+export function getAssignmentNotes(notes: StudyNote[] = [], assignmentId?: string) {
+  if (!assignmentId) return [];
+  return notes
+    .filter((note) => note.assignmentId === assignmentId)
+    .sort(sortNotesByUsefulness);
+}
+
+export function getCourseNotes(notes: StudyNote[] = [], courseId?: string) {
+  if (!courseId) return [];
+  return notes
+    .filter((note) => note.courseId === courseId && !note.assignmentId)
+    .sort(sortNotesByUsefulness);
+}
+
+export function getPinnedNotes(notes: StudyNote[] = []) {
+  return notes.filter((note) => note.pinned).sort(sortNotesByUsefulness);
+}
+
+export function getRelevantNotesForToday(
+  notes: StudyNote[] = [],
+  assignments: Assignment[] = [],
+  courses: Course[] = [],
+  now = new Date()
+) {
+  const todayKey = dateKeyFromDate(now);
+  const next = getNextUp(assignments, now);
+  const todayCourseIds = new Set(
+    getDueToday(assignments, now).map((assignment) => assignment.courseId)
+  );
+  const nextCourseId = next?.courseId;
+  const courseIds = new Set(courses.map((course) => course.id));
+
+  return notes
+    .filter((note) => {
+      if (note.pinned) return true;
+      if (next && note.assignmentId === next.id) return true;
+      if (note.sourceId && next?.sourceId && note.sourceId === next.sourceId) return true;
+      if (note.courseId && (todayCourseIds.has(note.courseId) || note.courseId === nextCourseId)) return true;
+      if (note.kind === "today") return dateKeyFromIso(note.updatedAt) === todayKey;
+      if (!note.courseId && !note.assignmentId && !note.sourceId && !courseIds.size) return true;
+      return false;
+    })
+    .sort(sortNotesByUsefulness)
+    .slice(0, 4);
+}
+
 export function getWidgetData(
   preset: WidgetPreset,
   assignments: Assignment[],
   courses: Course[],
   now = new Date(),
-  focusSessions: FocusSession[] = []
+  focusSessions: FocusSession[] = [],
+  notes: StudyNote[] = []
 ): WidgetData {
   const next = getNextUp(assignments, now);
   const dueToday = getDueToday(assignments, now);
@@ -394,6 +497,7 @@ export function getWidgetData(
   const weekLoad = getWeekLoad(assignments, now);
   const focusStats = getFocusCompletionStats(focusSessions, now);
   const completionStreak = calculateCompletionStreak(assignments, now);
+  const pinnedNotes = getPinnedNotes(notes);
   const activeAssignments = assignments.filter(isActiveAssignment);
   const doneAssignments = assignments.filter((assignment) => assignment.status === "done");
   const totalProgressItems = Math.max(1, activeAssignments.length + doneAssignments.length);
@@ -451,7 +555,7 @@ export function getWidgetData(
     empty: {
       headline: "All Done",
       value: "✓",
-      detail: "Enjoy your day",
+      detail: pinnedNotes[0]?.title || "Enjoy your day",
       items: []
     },
     focus: {
@@ -473,6 +577,87 @@ export function getWidgetData(
   };
 
   return byType[preset.type];
+}
+
+export function getRecommendedWidgetPreset(
+  assignments: Assignment[],
+  courses: Course[],
+  notes: StudyNote[] = [],
+  focusSessions: FocusSession[] = [],
+  presets: WidgetPreset[] = [],
+  settings?: UserSettings,
+  now = new Date()
+): WidgetPreset {
+  const needsReview = getNeedsReview(assignments);
+  const dueToday = getDueToday(assignments, now);
+  const weekLoad = getWeekLoad(assignments, now);
+  const hasHeavyDay = weekLoad.some((day) => day.heavy);
+  const pinnedNotes = getPinnedNotes(notes);
+  const focusStats = getFocusCompletionStats(focusSessions, now);
+  const classCounts = getClassAssignmentCounts(courses, assignments);
+  const busiestCourse = courses
+    .slice()
+    .sort((a, b) => (classCounts[b.id]?.open || 0) - (classCounts[a.id]?.open || 0))[0];
+
+  const type: WidgetType =
+    needsReview.length > 0
+      ? "needs_check"
+      : dueToday.length > 0
+        ? "today"
+        : hasHeavyDay
+          ? "week"
+          : focusStats.completedToday === 0 && getNextUp(assignments, now)
+            ? "focus"
+            : pinnedNotes.length > 0
+              ? "empty"
+              : busiestCourse
+                ? "class_focus"
+                : "due_next";
+  const kind: WidgetKind = type === "week" ? "week" : type === "class_focus" ? "classProgress" : type === "due_next" ? "upcoming" : "today";
+  const existing = presets.find((preset) => preset.type === type);
+
+  return buildCanonicalWidgetPreset(kind, {
+    ...existing,
+    type,
+    name: existing?.name || recommendedWidgetName(type),
+    palette: getRecommendedTheme(assignments, settings, now),
+    background: settings?.defaultWidgetStyle || existing?.background || "glass",
+    classFocusCourseId: type === "class_focus" ? busiestCourse?.id : existing?.classFocusCourseId,
+    dataMode: type === "week" ? "this_week" : type === "class_focus" ? "single_class" : type === "due_next" ? "next3" : "today",
+    layout: type === "focus" ? "ring" : type === "week" ? "strip" : type === "class_focus" ? "progress" : "list",
+    iconKey: type === "focus" ? "timer" : type === "class_focus" ? "book" : type === "needs_check" ? "warning" : "calendar"
+  }, now);
+}
+
+export function getRecommendedFocusDuration(
+  assignments: Assignment[],
+  sessions: FocusSession[] = [],
+  settings?: UserSettings,
+  now = new Date()
+) {
+  const base = settings?.focusDefaultMinutes || 25;
+  const next = getNextUp(assignments, now);
+  const completedToday = getFocusCompletionStats(sessions, now).completedToday;
+  const stress = settings?.stressLevel || settings?.profile?.stressLevel;
+  if (stress === "high") return Math.min(base, 20);
+  if (next?.needsReview) return 10;
+  if (next?.kind === "exam" || next?.kind === "project") return Math.max(base, 35);
+  if ((next?.estimatedMinutes || 0) <= 20) return Math.min(base, 20);
+  if (completedToday >= 2) return Math.min(base, 20);
+  return base;
+}
+
+export function getRecommendedTheme(
+  assignments: Assignment[],
+  settings?: UserSettings,
+  now = new Date()
+): WidgetPalette {
+  if (settings?.selectedTheme && settings.selectedTheme !== "custom") return settings.selectedTheme;
+  if (settings?.stressLevel === "high" || settings?.profile?.stressLevel === "high") return "minimal";
+  if (getOverdue(assignments, now).length > 0) return "sunset";
+  if (getNeedsReview(assignments).length > 0) return "lavender";
+  if (getWeekLoad(assignments, now).some((day) => day.heavy)) return "ocean";
+  return "forest";
 }
 
 export function calculateCompletionStreak(assignments: Assignment[], now = new Date()) {
@@ -546,6 +731,15 @@ export function saveWidgetPreset(
   return replaceCanonicalWidgetPreset(presets, nextPreset, now);
 }
 
+export function loadWidgetPreset(presets: WidgetPreset[] = [], presetId?: string) {
+  const canonical = ensureCanonicalWidgetPresets(presets);
+  return presetId ? canonical.find((preset) => preset.id === presetId) : canonical[0];
+}
+
+export function resetWidgetPreset(defaults: WidgetPreset[] = [], now = new Date()) {
+  return ensureCanonicalWidgetPresets(defaults, now);
+}
+
 export function applyTheme(
   settings: UserSettings,
   selectedTheme: UserSettings["selectedTheme"],
@@ -555,6 +749,57 @@ export function applyTheme(
     ...settings,
     selectedTheme,
     defaultWidgetStyle: defaultWidgetStyle || settings.defaultWidgetStyle
+  };
+}
+
+export function applyLocale(settings: UserSettings, locale: string) {
+  return {
+    ...settings,
+    locale,
+    profile: {
+      ...(settings.profile || { name: settings.studentName }),
+      preferredLocale: locale
+    }
+  };
+}
+
+export function convertNoteToTask(
+  note: StudyNote,
+  courses: Course[],
+  fallbackCourse?: Course,
+  now = new Date()
+): Assignment | null {
+  const course =
+    (note.courseId ? courses.find((candidate) => candidate.id === note.courseId) : undefined) ||
+    fallbackCourse ||
+    courses[0];
+  if (!course) return null;
+
+  const title = inferTaskTitleFromNote(note);
+  if (!title) return null;
+
+  const dueAt = inferDueAtFromNote(note.body, now);
+  return {
+    id: `note-task-${note.id}-${now.getTime()}`,
+    courseId: course.id,
+    title,
+    kind: "assignment",
+    type: "assignment",
+    dueAt,
+    tags: ["note"],
+    priority: note.pinned ? "high" : "medium",
+    estimatedMinutes: 30,
+    status: "not_started",
+    source: "manual",
+    sourceId: note.id,
+    progress: 0,
+    checklist: [
+      { id: "note-review", title: "Review note context", done: false },
+      { id: "note-finish", title: "Finish the task", done: false }
+    ],
+    reminder: { enabled: true, leadTimeHours: 2 },
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString()
   };
 }
 
@@ -598,6 +843,8 @@ export function completeFocusSession(
     notes: status === "completed" ? "Focus block completed." : "Focus block stopped."
   };
 }
+
+export const endFocusSession = completeFocusSession;
 
 export function completeAssignment(
   assignments: Assignment[],
@@ -704,6 +951,45 @@ function timeUntilLabel(iso: string, now: Date) {
   if (days <= 0) return "Today";
   if (days === 1) return "Tomorrow";
   return `${days} days`;
+}
+
+function recommendedWidgetName(type: WidgetType) {
+  if (type === "today") return "Today";
+  if (type === "due_next") return "Due Next";
+  if (type === "needs_check") return "Needs Check";
+  if (type === "week") return "Week";
+  if (type === "class_focus") return "Class Focus";
+  if (type === "focus") return "Focus";
+  if (type === "streak") return "Streak";
+  return "All Done";
+}
+
+function inferTaskTitleFromNote(note: StudyNote) {
+  const lines = note.body
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const explicit = lines.find((line) => /^(task|todo|next step|due):/i.test(line));
+  const raw = explicit || lines[0] || note.title;
+  return raw
+    .replace(/^(task|todo|next step|due):\s*/i, "")
+    .replace(/^[-*]\s*/, "")
+    .trim()
+    .slice(0, 90);
+}
+
+function inferDueAtFromNote(body: string, now: Date) {
+  const isoDate = body.match(/\b(20\d{2}-\d{2}-\d{2})\b/)?.[1];
+  if (isoDate && isValidDateInput(isoDate)) return `${isoDate}T23:59:00`;
+
+  const lower = body.toLowerCase();
+  const due = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 0);
+  if (lower.includes("tomorrow")) {
+    due.setDate(due.getDate() + 1);
+  } else {
+    due.setDate(due.getDate() + 2);
+  }
+  return `${dateKeyFromDate(due)}T23:59:00`;
 }
 
 function buildParsedChecklist(kind: ParsedItem["type"], needsReview: boolean) {

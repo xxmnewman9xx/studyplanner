@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Archive, CheckCircle2, Save, Timer, X } from "lucide-react-native";
+import { Archive, CheckCircle2, NotebookPen, Save, Timer, X } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
 import {
@@ -8,8 +8,9 @@ import {
   GlassCard,
   SegmentedControl
 } from "../components/AppleComponents";
-import { Assignment, AssignmentKind, AssignmentStatus, ChecklistItem, Course, Priority } from "../models";
+import { Assignment, AssignmentKind, AssignmentStatus, ChecklistItem, Course, Priority, StudyNote } from "../models";
 import {
+  getAssignmentNotes,
   getCourseForAssignment,
   isValidDeadline,
   isValidDateInput,
@@ -23,10 +24,12 @@ import { useI18n } from "../i18n";
 type AssignmentDetailScreenProps = {
   assignment: Assignment;
   courses: Course[];
+  notes?: StudyNote[];
   onClose: () => void;
   onSave: (patch: Partial<Assignment>) => void;
   onArchive: () => void;
   onStartFocus: () => void;
+  onAddNote?: (note: Omit<StudyNote, "id" | "createdAt" | "updatedAt">) => void;
 };
 
 const priorities: Priority[] = ["low", "medium", "high"];
@@ -41,10 +44,12 @@ type TranslateFn = (key: string, fallback?: string) => string;
 export function AssignmentDetailScreen({
   assignment,
   courses,
+  notes = [],
   onClose,
   onSave,
   onArchive,
-  onStartFocus
+  onStartFocus,
+  onAddNote
 }: AssignmentDetailScreenProps) {
   const { theme } = useAppTheme();
   const { locale, t } = useI18n();
@@ -63,12 +68,14 @@ export function AssignmentDetailScreen({
   const [kind, setKind] = useState<AssignmentKind>(assignment.kind);
   const [courseId, setCourseId] = useState(assignment.courseId);
   const [checklist, setChecklist] = useState<ChecklistItem[]>(assignment.checklist || []);
+  const [quickNote, setQuickNote] = useState("");
 
   const progress = checklist.length > 0
     ? checklist.filter((item) => item.done).length / checklist.length
     : assignment.progress || (status === "done" ? 1 : 0);
   const progressPercent = Math.round(progress * 100);
   const trustState = buildAssignmentTrustState(assignment, t);
+  const linkedNotes = getAssignmentNotes(notes, assignment.id);
 
   const dirty = useMemo(
     () =>
@@ -353,6 +360,51 @@ export function AssignmentDetailScreen({
             </TouchableOpacity>
           ))
         )}
+      </Section>
+
+      <Section title={t("assignment_detail.linked_notes", "Linked notes")}>
+        {linkedNotes.length ? linkedNotes.slice(0, 3).map((note) => (
+          <View key={note.id} style={styles.noteRow}>
+            <NotebookPen color={colors.accent} size={16} />
+            <View style={styles.noteCopy}>
+              <Text style={styles.noteTitle} numberOfLines={1}>{note.pinned ? `${t("notes.pinned", "Pinned")} · ` : ""}{note.title}</Text>
+              <Text style={styles.noteBody} numberOfLines={2}>{note.body}</Text>
+            </View>
+          </View>
+        )) : (
+          <Text style={styles.emptyChecklist}>{t("assignment_detail.no_linked_notes", "No notes attached yet.")}</Text>
+        )}
+        {onAddNote ? (
+          <View style={styles.quickNoteBox}>
+            <TextInput
+              value={quickNote}
+              onChangeText={setQuickNote}
+              placeholder={t("assignment_detail.note_placeholder", "Add study context for this task")}
+              placeholderTextColor={colors.faint}
+              style={styles.noteInput}
+              multiline
+            />
+            <AppButton
+              label={t("notes.save_note", "Save note")}
+              icon={Save}
+              disabled={!quickNote.trim()}
+              onPress={() => {
+                if (!quickNote.trim()) return;
+                onAddNote({
+                  assignmentId: assignment.id,
+                  courseId: assignment.courseId,
+                  sourceId: assignment.sourceId,
+                  kind: "assignment",
+                  title: assignment.title,
+                  body: quickNote.trim(),
+                  tags: ["assignment"],
+                  pinned: false
+                });
+                setQuickNote("");
+              }}
+            />
+          </View>
+        ) : null}
       </Section>
 
       <View style={styles.actionRow}>
@@ -775,6 +827,46 @@ function createStyles(theme: AppTheme) {
     checklistTextDone: {
       color: colors.faint,
       textDecorationLine: "line-through"
+    },
+    noteRow: {
+      borderRadius: radii.md,
+      backgroundColor: colors.surfaceAlt,
+      padding: spacing.sm,
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: spacing.sm
+    },
+    noteCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    noteTitle: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    noteBody: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
+    },
+    quickNoteBox: {
+      gap: spacing.sm
+    },
+    noteInput: {
+      minHeight: 94,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      color: colors.ink,
+      padding: spacing.md,
+      fontSize: 14,
+      lineHeight: 20,
+      fontWeight: "700"
     },
     actionRow: {
       flexDirection: "row",

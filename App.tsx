@@ -72,7 +72,10 @@ import { MoreScreen } from "./src/screens/MoreScreen";
 import { NotesScreen } from "./src/screens/NotesScreen";
 import {
   completeAssignment,
+  convertNoteToTask,
+  getRecommendedFocusDuration,
   isValidDateInput,
+  applyLocale,
   saveWidgetPreset as saveWidgetPresetState
 } from "./src/logic/planner";
 import { scheduleSmartReminders } from "./src/services/reminders";
@@ -119,11 +122,12 @@ const proTabs: Array<{
   { id: "import", labelKey: "tabs.scan", icon: FileScan },
   { id: "plan", labelKey: "tabs.calendar", icon: CalendarDays },
   { id: "courses", labelKey: "tabs.classes", icon: GraduationCap },
+  { id: "notes", labelKey: "tabs.notes", icon: NotebookPen },
   { id: "more", labelKey: "tabs.widgets", icon: Sparkles }
 ];
 
-const mobilePrimaryTabIds = new Set<NavTab>(["today", "import", "plan", "courses", "more"]);
-const moreGroupTabIds = new Set<NavTab>(["more", "notes", "grades", "subscribe"]);
+const mobilePrimaryTabIds = new Set<NavTab>(["today", "import", "plan", "courses", "notes", "more"]);
+const moreGroupTabIds = new Set<NavTab>(["more", "grades", "subscribe"]);
 
 function mobileTabLabel(tab: NavTab, fallback: string, t: (key: string, fallback?: string) => string) {
   if (tab === "plan") return t("tabs.calendar", "Calendar");
@@ -621,6 +625,7 @@ function AppContent() {
       if (!mounted) return;
 
       if (stored) {
+        const storedSettings = { ...defaultSettings, ...(stored.settings || {}), onboardingComplete: Boolean(stored.onboarded) };
         setOnboarded(Boolean(stored.onboarded));
         setPaywallSeen(Boolean(stored.paywallSeen));
         setSemester(stored.semester || defaultSemester);
@@ -628,7 +633,10 @@ function AppContent() {
         setAssignments(stored.assignments || []);
         setGradeItems(stored.gradeItems || []);
         setTargetGradePercent(stored.targetGradePercent || 90);
-        setSettings({ ...defaultSettings, ...(stored.settings || {}), onboardingComplete: Boolean(stored.onboarded) });
+        setSettings(storedSettings);
+        if (storedSettings.locale && supportedLocales.includes(storedSettings.locale as SupportedLocale)) {
+          setLocaleOverride(storedSettings.locale as SupportedLocale);
+        }
         setParsedImports(stored.parsedImports || []);
         setParsedItems(stored.parsedItems || []);
         setWidgetPresets(stored.widgetPresets?.length ? ensureCanonicalWidgetPresets(stored.widgetPresets) : defaultWidgetPresets);
@@ -841,6 +849,24 @@ function AppContent() {
         )
       ].slice(0, 200)
     );
+    setNotes((current) => [
+      {
+        id: `note-${Date.now()}`,
+        sourceId: parsedImportId,
+        courseId: parse.courses[0]?.id,
+        kind: "source" as const,
+        title: t("import.source_note_title", "Import review note"),
+        body: formatAppText(
+          t("import.source_note_body", "{count} reviewed item(s) added from {source}."),
+          { count: parse.assignments.length, source: parse.sourceName }
+        ),
+        tags: ["source", "import"],
+        pinned: blockedAssignments.length > 0,
+        createdAt: timestamp,
+        updatedAt: timestamp
+      },
+      ...current
+    ].slice(0, 200));
     setSemester((current) => ({
       ...current,
       name: parse.semesterName || current.name,
@@ -983,6 +1009,24 @@ function AppContent() {
     setNotes((current) => current.filter((note) => note.id !== noteId));
   };
 
+  const convertNoteToAssignment = (noteId: string) => {
+    const note = notes.find((item) => item.id === noteId);
+    if (!note) return;
+    const assignment = convertNoteToTask(note, courses);
+    if (!assignment) {
+      Alert.alert(t("notes.add_class_first", "Add a class first"), t("app.note_task_needs_class", "A note needs class context before it can become a task."));
+      return;
+    }
+    setAssignments((current) => [assignment, ...current]);
+    updateNote(noteId, {
+      assignmentId: assignment.id,
+      courseId: assignment.courseId,
+      kind: "assignment",
+      tags: Array.from(new Set([...(note.tags || []), "task"]))
+    });
+    setSelectedAssignmentId(assignment.id);
+  };
+
   const updateAssignment = (assignmentId: string, patch: Partial<Assignment>) => {
     setAssignments((current) =>
       current.map((assignment) =>
@@ -1016,6 +1060,11 @@ function AppContent() {
 
   const updateSettings = (patch: Partial<UserSettings>) => {
     setSettings((current) => ({ ...current, ...patch }));
+  };
+
+  const updateLocale = (nextLocale: SupportedLocale) => {
+    setLocaleOverride(nextLocale);
+    setSettings((current) => applyLocale(current, nextLocale));
   };
 
   const saveWidgetPreset = (preset: WidgetPreset) => {
@@ -1260,10 +1309,12 @@ function AppContent() {
             <AssignmentDetailScreen
               assignment={selectedAssignment}
               courses={courses}
+              notes={notes}
               onClose={() => setSelectedAssignmentId(null)}
               onSave={(patch) => updateAssignment(selectedAssignment.id, patch)}
               onArchive={() => archiveAssignment(selectedAssignment.id)}
               onStartFocus={() => openFocusForAssignment(selectedAssignment.id)}
+              onAddNote={addNote}
             />
           ) : (
             <>
@@ -1274,6 +1325,9 @@ function AppContent() {
                   semester={semester}
                   studentName={settings.studentName}
                   notes={notes}
+                  focusSessions={focusSessions}
+                  settings={settings}
+                  widgetPresets={widgetPresets}
                   importHandoff={importHandoff}
                   demoMode={demoMode}
                   onUpdateStatus={updateAssignmentStatus}
@@ -1342,10 +1396,13 @@ function AppContent() {
               {activeTab === "notes" ? (
                 <NotesScreen
                   courses={courses}
+                  assignments={activeAssignments}
+                  focusSessions={focusSessions}
                   notes={notes}
                   onAddNote={addNote}
                   onUpdateNote={updateNote}
                   onDeleteNote={deleteNote}
+                  onConvertNoteToTask={convertNoteToAssignment}
                   onOpenClasses={() => openTab("courses")}
                 />
               ) : null}
@@ -1364,11 +1421,12 @@ function AppContent() {
                 <FocusScreen
                   assignments={activeAssignments}
                   courses={courses}
-                  defaultMinutes={settings.focusDefaultMinutes}
+                  defaultMinutes={getRecommendedFocusDuration(activeAssignments, focusSessions, settings)}
                   sessions={focusSessions}
                   preferredAssignmentId={focusAssignmentId}
                   onRecordSession={recordFocusSession}
                   onMarkComplete={(assignmentId) => updateAssignmentStatus(assignmentId, "done")}
+                  onAddNote={addNote}
                 />
               ) : null}
               {activeTab === "more" ? (
@@ -1386,6 +1444,8 @@ function AppContent() {
                   onUpdateSettings={updateSettings}
                   onSaveWidgetPreset={saveWidgetPreset}
                   onResetWidgetPresets={resetWidgetPresets}
+                  locale={locale}
+                  onLocaleChange={updateLocale}
                   onOpenNotes={() => openTab("notes")}
                   onOpenFocus={() => openFocusForAssignment()}
                   onOpenGrades={() => openTab("grades")}

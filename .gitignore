@@ -23,6 +23,7 @@ build-*.ipa
 
 # Local simulator QA captures
 qa-screenshots/
+marketing_exports/raw_screenshots/
 
 # Local launch/proof artifacts
 AppStore/

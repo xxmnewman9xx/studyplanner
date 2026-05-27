@@ -4,7 +4,7 @@ import { CheckCircle2, Clock3, Pause, Play, Power, Square, TimerReset } from "lu
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
 import { SectionHeader } from "../components/SectionHeader";
-import { Assignment, Course, FocusSession } from "../models";
+import { Assignment, Course, FocusSession, StudyNote } from "../models";
 import { getCourseForAssignment } from "../logic/planner";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -20,6 +20,7 @@ type FocusScreenProps = {
   preferredAssignmentId?: string | null;
   onRecordSession: (session: FocusSession) => void;
   onMarkComplete?: (assignmentId: string) => void;
+  onAddNote?: (note: Omit<StudyNote, "id" | "createdAt" | "updatedAt">) => void;
 };
 
 export function FocusScreen({
@@ -29,7 +30,8 @@ export function FocusScreen({
   sessions,
   preferredAssignmentId,
   onRecordSession,
-  onMarkComplete
+  onMarkComplete,
+  onAddNote
 }: FocusScreenProps) {
   const { theme } = useAppTheme();
   const { t, locale } = useI18n();
@@ -463,7 +465,7 @@ export function FocusScreen({
     const durationMinutes =
       durationOverride ??
       (status === "completed" && secondsLeft === 0 ? activeDurationMinutes : elapsedMinutes);
-    onRecordSession({
+    const session: FocusSession = {
       id: `focus-${Date.now()}`,
       assignmentId: selected.id,
       durationMinutes: Math.max(1, durationMinutes),
@@ -472,7 +474,20 @@ export function FocusScreen({
       status,
       sessionNumber,
       notes: classNote.trim() || undefined
-    });
+    };
+    onRecordSession(session);
+    if (classNote.trim() && status !== "running") {
+      onAddNote?.({
+        assignmentId: selected.id,
+        courseId: selected.courseId,
+        focusSessionId: session.id,
+        kind: "focus",
+        title: formatLocalized(t("focus.note_title", "{task} focus note"), { task: selected.title }),
+        body: classNote.trim(),
+        tags: ["focus"],
+        pinned: false
+      });
+    }
   }
 }
 
