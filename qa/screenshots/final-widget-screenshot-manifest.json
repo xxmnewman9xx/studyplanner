@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-27T19:10:43.375Z",
+  "generatedAt": "2026-05-27T19:14:15.893Z",
   "outputRoot": "marketing_exports/raw_screenshots/widget_repair_final",
   "rawPngPolicy": "marketing_exports/raw_screenshots is ignored; PNGs are left local and are not committed.",
   "supportedLocales": [
@@ -56,8 +56,8 @@
   ],
   "entries": [
     {
-      "id": "calendar-plan-month-grid.png",
-      "screen": "Calendar Plan Month Grid.png",
+      "id": "calendar-plan-month-grid",
+      "screen": "Calendar Plan Month Grid",
       "classification": "Calendar/Plan repaired panel",
       "nativeHomeScreenAutomated": false,
       "nativeHomeScreenNote": "Actual iOS Home Screen insertion is not automated in this repo; Studio/Home previews are classified separately.",
@@ -77,12 +77,12 @@
       "source": "Calendar/Plan repaired panel",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "97f901e",
-      "timestamp": "2026-05-27T19:10:43.375Z"
+      "gitCommit": "f5d7c03",
+      "timestamp": "2026-05-27T19:14:15.893Z"
     },
     {
-      "id": "calendar-plan-repaired-panel-full.png",
-      "screen": "Calendar Plan Repaired Panel Full.png",
+      "id": "calendar-plan-repaired-panel-full",
+      "screen": "Calendar Plan Repaired Panel Full",
       "classification": "Calendar/Plan repaired panel",
       "nativeHomeScreenAutomated": false,
       "nativeHomeScreenNote": "Actual iOS Home Screen insertion is not automated in this repo; Studio/Home previews are classified separately.",
@@ -102,12 +102,12 @@
       "source": "Calendar/Plan repaired panel",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "97f901e",
-      "timestamp": "2026-05-27T19:10:43.375Z"
+      "gitCommit": "f5d7c03",
+      "timestamp": "2026-05-27T19:14:15.893Z"
     },
     {
-      "id": "calendar-plan-repaired-panel.png",
-      "screen": "Calendar Plan Repaired Panel.png",
+      "id": "calendar-plan-repaired-panel",
+      "screen": "Calendar Plan Repaired Panel",
       "classification": "Calendar/Plan repaired panel",
       "nativeHomeScreenAutomated": false,
       "nativeHomeScreenNote": "Actual iOS Home Screen insertion is not automated in this repo; Studio/Home previews are classified separately.",
@@ -127,12 +127,12 @@
       "source": "Calendar/Plan repaired panel",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "97f901e",
-      "timestamp": "2026-05-27T19:10:43.375Z"
+      "gitCommit": "f5d7c03",
+      "timestamp": "2026-05-27T19:14:15.893Z"
     },
     {
-      "id": "home-preview-variety-stage.png",
-      "screen": "Home Preview Variety Stage.png",
+      "id": "home-preview-variety-stage",
+      "screen": "Home Preview Variety Stage",
       "classification": "in-app Home Screen mock preview",
       "nativeHomeScreenAutomated": false,
       "nativeHomeScreenNote": "Actual iOS Home Screen insertion is not automated in this repo; Studio/Home previews are classified separately.",
@@ -152,12 +152,12 @@
       "source": "in-app Home Screen mock preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "97f901e",
-      "timestamp": "2026-05-27T19:10:43.375Z"
+      "gitCommit": "f5d7c03",
+      "timestamp": "2026-05-27T19:14:15.893Z"
     },
     {
-      "id": "home-preview-variety.png",
-      "screen": "Home Preview Variety.png",
+      "id": "home-preview-variety",
+      "screen": "Home Preview Variety",
       "classification": "in-app Home Screen mock preview",
       "nativeHomeScreenAutomated": false,
       "nativeHomeScreenNote": "Actual iOS Home Screen insertion is not automated in this repo; Studio/Home previews are classified separately.",
@@ -177,12 +177,12 @@
       "source": "in-app Home Screen mock preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "97f901e",
-      "timestamp": "2026-05-27T19:10:43.375Z"
+      "gitCommit": "f5d7c03",
+      "timestamp": "2026-05-27T19:14:15.893Z"
     },
     {
-      "id": "today-widget-data-match-state.png",
-      "screen": "Today Widget Data Match State.png",
+      "id": "today-widget-data-match-state",
+      "screen": "Today Widget Data Match State",
       "classification": "Today widget data match state",
       "nativeHomeScreenAutomated": false,
       "nativeHomeScreenNote": "Actual iOS Home Screen insertion is not automated in this repo; Studio/Home previews are classified separately.",
@@ -202,12 +202,12 @@
       "source": "Today widget data match state",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "97f901e",
-      "timestamp": "2026-05-27T19:10:43.375Z"
+      "gitCommit": "f5d7c03",
+      "timestamp": "2026-05-27T19:14:15.893Z"
     },
     {
-      "id": "widget-library-overview.png",
-      "screen": "Widget Library Overview.png",
+      "id": "widget-library-overview",
+      "screen": "Widget Library Overview",
       "classification": "Widget Library preview",
       "nativeHomeScreenAutomated": false,
       "nativeHomeScreenNote": "Actual iOS Home Screen insertion is not automated in this repo; Studio/Home previews are classified separately.",
@@ -227,12 +227,12 @@
       "source": "Widget Library preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "97f901e",
-      "timestamp": "2026-05-27T19:10:43.375Z"
+      "gitCommit": "f5d7c03",
+      "timestamp": "2026-05-27T19:14:15.893Z"
     },
     {
-      "id": "widget-studio-class-focus-medium.png",
-      "screen": "Widget Studio Class Focus Medium.png",
+      "id": "widget-studio-class-focus-medium",
+      "screen": "Widget Studio Class Focus Medium",
       "classification": "Widget Studio live preview",
       "nativeHomeScreenAutomated": false,
       "nativeHomeScreenNote": "Actual iOS Home Screen insertion is not automated in this repo; Studio/Home previews are classified separately.",
@@ -252,12 +252,12 @@
       "source": "Widget Studio live preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "97f901e",
-      "timestamp": "2026-05-27T19:10:43.375Z"
+      "gitCommit": "f5d7c03",
+      "timestamp": "2026-05-27T19:14:15.893Z"
     },
     {
-      "id": "widget-studio-due-next-small.png",
-      "screen": "Widget Studio Due Next Small.png",
+      "id": "widget-studio-due-next-small",
+      "screen": "Widget Studio Due Next Small",
       "classification": "Widget Studio live preview",
       "nativeHomeScreenAutomated": false,
       "nativeHomeScreenNote": "Actual iOS Home Screen insertion is not automated in this repo; Studio/Home previews are classified separately.",
@@ -277,12 +277,12 @@
       "source": "Widget Studio live preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "97f901e",
-      "timestamp": "2026-05-27T19:10:43.375Z"
+      "gitCommit": "f5d7c03",
+      "timestamp": "2026-05-27T19:14:15.893Z"
     },
     {
-      "id": "widget-studio-empty-state.png",
-      "screen": "Widget Studio Empty State.png",
+      "id": "widget-studio-empty-state",
+      "screen": "Widget Studio Empty State",
       "classification": "Widget Studio live preview",
       "nativeHomeScreenAutomated": false,
       "nativeHomeScreenNote": "Actual iOS Home Screen insertion is not automated in this repo; Studio/Home previews are classified separately.",
@@ -302,12 +302,12 @@
       "source": "Widget Studio live preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "97f901e",
-      "timestamp": "2026-05-27T19:10:43.375Z"
+      "gitCommit": "f5d7c03",
+      "timestamp": "2026-05-27T19:14:15.893Z"
     },
     {
-      "id": "widget-studio-focus-small.png",
-      "screen": "Widget Studio Focus Small.png",
+      "id": "widget-studio-focus-small",
+      "screen": "Widget Studio Focus Small",
       "classification": "Widget Studio live preview",
       "nativeHomeScreenAutomated": false,
       "nativeHomeScreenNote": "Actual iOS Home Screen insertion is not automated in this repo; Studio/Home previews are classified separately.",
@@ -327,12 +327,12 @@
       "source": "Widget Studio live preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "97f901e",
-      "timestamp": "2026-05-27T19:10:43.375Z"
+      "gitCommit": "f5d7c03",
+      "timestamp": "2026-05-27T19:14:15.893Z"
     },
     {
-      "id": "widget-studio-fullpage.png",
-      "screen": "Widget Studio Fullpage.png",
+      "id": "widget-studio-fullpage",
+      "screen": "Widget Studio Fullpage",
       "classification": "Widget Studio live preview",
       "nativeHomeScreenAutomated": false,
       "nativeHomeScreenNote": "Actual iOS Home Screen insertion is not automated in this repo; Studio/Home previews are classified separately.",
@@ -352,12 +352,12 @@
       "source": "Widget Studio live preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "97f901e",
-      "timestamp": "2026-05-27T19:10:43.375Z"
+      "gitCommit": "f5d7c03",
+      "timestamp": "2026-05-27T19:14:15.893Z"
     },
     {
-      "id": "widget-studio-needs-check-small.png",
-      "screen": "Widget Studio Needs Check Small.png",
+      "id": "widget-studio-needs-check-small",
+      "screen": "Widget Studio Needs Check Small",
       "classification": "Widget Studio live preview",
       "nativeHomeScreenAutomated": false,
       "nativeHomeScreenNote": "Actual iOS Home Screen insertion is not automated in this repo; Studio/Home previews are classified separately.",
@@ -377,12 +377,12 @@
       "source": "Widget Studio live preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "97f901e",
-      "timestamp": "2026-05-27T19:10:43.375Z"
+      "gitCommit": "f5d7c03",
+      "timestamp": "2026-05-27T19:14:15.893Z"
     },
     {
-      "id": "widget-studio-streak-small.png",
-      "screen": "Widget Studio Streak Small.png",
+      "id": "widget-studio-streak-small",
+      "screen": "Widget Studio Streak Small",
       "classification": "Widget Studio live preview",
       "nativeHomeScreenAutomated": false,
       "nativeHomeScreenNote": "Actual iOS Home Screen insertion is not automated in this repo; Studio/Home previews are classified separately.",
@@ -402,12 +402,12 @@
       "source": "Widget Studio live preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "97f901e",
-      "timestamp": "2026-05-27T19:10:43.375Z"
+      "gitCommit": "f5d7c03",
+      "timestamp": "2026-05-27T19:14:15.893Z"
     },
     {
-      "id": "widget-studio-today-medium.png",
-      "screen": "Widget Studio Today Medium.png",
+      "id": "widget-studio-today-medium",
+      "screen": "Widget Studio Today Medium",
       "classification": "Widget Studio live preview",
       "nativeHomeScreenAutomated": false,
       "nativeHomeScreenNote": "Actual iOS Home Screen insertion is not automated in this repo; Studio/Home previews are classified separately.",
@@ -427,12 +427,12 @@
       "source": "Widget Studio live preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "97f901e",
-      "timestamp": "2026-05-27T19:10:43.375Z"
+      "gitCommit": "f5d7c03",
+      "timestamp": "2026-05-27T19:14:15.893Z"
     },
     {
-      "id": "widget-studio-week-medium.png",
-      "screen": "Widget Studio Week Medium.png",
+      "id": "widget-studio-week-medium",
+      "screen": "Widget Studio Week Medium",
       "classification": "Widget Studio live preview",
       "nativeHomeScreenAutomated": false,
       "nativeHomeScreenNote": "Actual iOS Home Screen insertion is not automated in this repo; Studio/Home previews are classified separately.",
@@ -452,8 +452,8 @@
       "source": "Widget Studio live preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "97f901e",
-      "timestamp": "2026-05-27T19:10:43.375Z"
+      "gitCommit": "f5d7c03",
+      "timestamp": "2026-05-27T19:14:15.893Z"
     }
   ]
 }

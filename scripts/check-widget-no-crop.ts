@@ -190,7 +190,7 @@ const screenshotFiles = listPngs(screenshotRoot);
 const gitCommit = getGitCommit();
 const timestamp = new Date().toISOString();
 const screenshotEntries = screenshotFiles.map((screenshotPath) => {
-  const id = path.basename(screenshotPath).replace(/\\.png$/, "");
+  const id = path.basename(screenshotPath).replace(/\.png$/, "");
   return {
     id,
     screen: humanizeScreenshotId(id),
