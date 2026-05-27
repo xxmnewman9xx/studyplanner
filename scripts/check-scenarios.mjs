@@ -16,6 +16,8 @@ const planner = read("src/logic/planner.ts");
 const nativeWidgetLayout = read("src/widgets/StudyPlannerWidgets.tsx");
 const todayWidgetSwift = readIfExists("ios/ExpoWidgetsTarget/StudyPlannerTodayWidget.swift");
 const upcomingWidgetSwift = readIfExists("ios/ExpoWidgetsTarget/StudyPlannerUpcomingWidget.swift");
+const weekWidgetSwift = readIfExists("ios/ExpoWidgetsTarget/StudyPlannerWeekWidget.swift");
+const classProgressWidgetSwift = readIfExists("ios/ExpoWidgetsTarget/StudyPlannerClassProgressWidget.swift");
 const expoWidgetsProvider = read("node_modules/expo-widgets/ios/Widgets/TimelineProvider.swift");
 const expoWidgetsEntryView = read("node_modules/expo-widgets/ios/Widgets/EntryView.swift");
 const appJson = read("app.json");
@@ -110,21 +112,34 @@ assert(!more.includes("Algebra II - Worksheet") && !more.includes("Week 11") && 
 assert(!components.includes("May 13") && !components.includes('"2h"'), "Widget preview components must not hard-code fake dates or fake due times.");
 assert(more.includes("Save preset") && more.includes("StudyPlannerWeekWidget") === false, "Widget Studio should save real presets without subscription wording in the primary flow.");
 assert(defaultPlanner.includes("defaultWidgetPresets"), "Default widget presets may exist for data compatibility, but UI must not imply native support.");
-assert(appJson.includes('"accessoryCircular"') && appJson.includes('"accessoryRectangular"') && appJson.includes('"accessoryInline"'), "Expo widget config should include Lock Screen accessory families.");
 assert(
   todayWidgetSwift
-    ? todayWidgetSwift.includes(".accessoryCircular") && todayWidgetSwift.includes(".accessoryRectangular") && todayWidgetSwift.includes(".accessoryInline")
-    : appJson.includes('"name": "StudyPlannerTodayWidget"') && appJson.includes('"accessoryCircular"') && appJson.includes('"accessoryRectangular"') && appJson.includes('"accessoryInline"'),
-  "Today native widget should support Lock Screen families in generated Swift or app config."
+    ? todayWidgetSwift.includes('let name: String = "studyplanner.today"') && todayWidgetSwift.includes(".systemSmall, .systemMedium") && !todayWidgetSwift.includes(".accessory")
+    : appJson.includes('"kind": "studyplanner.today"') && appJson.includes('"systemSmall"') && appJson.includes('"systemMedium"'),
+  "Today native widget should use the stable StudyPlanner Today kind and Home Screen families only."
 );
 assert(
   upcomingWidgetSwift
-    ? upcomingWidgetSwift.includes(".accessoryCircular") && upcomingWidgetSwift.includes(".accessoryRectangular") && upcomingWidgetSwift.includes(".accessoryInline")
-    : appJson.includes('"name": "StudyPlannerUpcomingWidget"') && appJson.includes('"accessoryCircular"') && appJson.includes('"accessoryRectangular"') && appJson.includes('"accessoryInline"'),
-  "Upcoming native widget should support Lock Screen families in generated Swift or app config."
+    ? upcomingWidgetSwift.includes('let name: String = "studyplanner.upcoming"') && upcomingWidgetSwift.includes(".systemSmall, .systemMedium") && !upcomingWidgetSwift.includes(".accessory")
+    : appJson.includes('"kind": "studyplanner.upcoming"') && appJson.includes('"systemSmall"') && appJson.includes('"systemMedium"'),
+  "Upcoming native widget should use the stable StudyPlanner Upcoming kind and Home Screen families only."
+);
+assert(
+  weekWidgetSwift
+    ? weekWidgetSwift.includes('let name: String = "studyplanner.week"') && weekWidgetSwift.includes(".systemMedium") && !weekWidgetSwift.includes(".systemSmall") && !weekWidgetSwift.includes(".accessory")
+    : appJson.includes('"kind": "studyplanner.week"') && appJson.includes('"systemMedium"'),
+  "Week native widget should use the stable StudyPlanner Week kind and medium Home Screen family only."
+);
+assert(
+  classProgressWidgetSwift
+    ? classProgressWidgetSwift.includes('let name: String = "studyplanner.classProgress"') && classProgressWidgetSwift.includes(".systemSmall, .systemMedium") && !classProgressWidgetSwift.includes(".accessory")
+    : appJson.includes('"kind": "studyplanner.classProgress"') && appJson.includes('"systemSmall"') && appJson.includes('"systemMedium"'),
+  "Class Progress native widget should use the stable StudyPlanner Class Progress kind and Home Screen families only."
 );
 assert(expoWidgetsProvider.includes("parseTimeline") && expoWidgetsEntryView.includes("WidgetsStorage.getString"), "Expo widget runtime should read App Group timeline/layout storage.");
-assert(nativeWidgetLayout.includes('environment.widgetFamily === "accessoryCircular"') && nativeWidgetLayout.includes('environment.widgetFamily === "accessoryRectangular"') && nativeWidgetLayout.includes('environment.widgetFamily === "accessoryInline"'), "Native widget layout should render dedicated Lock Screen variants.");
+assert(nativeWidgetLayout.includes('environment.widgetFamily === "systemMedium"'), "Native widget layout should render medium Home Screen widgets and default to compact small widgets.");
+assert(!appJson.includes("accessoryCircular") && !appJson.includes("accessoryRectangular") && !appJson.includes("accessoryInline"), "Widget metadata must not claim unsupported Lock Screen accessory families.");
+assert(appJson.includes('"./plugins/with-widgetkit-kinds"'), "EAS prebuild should patch generated WidgetKit Swift to use stable studyplanner.* kinds.");
 assert(fs.existsSync(path.join(root, "assets/app/study-planner-icon.png")), "StudyPlanner icon asset must exist.");
 
 if (failures.length) {

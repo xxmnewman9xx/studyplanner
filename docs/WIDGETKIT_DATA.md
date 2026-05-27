@@ -4,12 +4,14 @@ StudyPlanner widgets use a compact WidgetKit snapshot generated from reviewed pl
 
 ## Native Widgets
 
-- `StudyPlannerTodayWidget`: small and medium Home Screen widget, plus circular, rectangular, and inline Lock Screen accessories for work due today.
-- `StudyPlannerUpcomingWidget`: small and medium Home Screen widget, plus circular, rectangular, and inline Lock Screen accessories for upcoming reviewed deadlines.
-- `StudyPlannerWeekWidget`: small and medium Home Screen widget for workload by day plus the biggest upcoming deadline.
-- `StudyPlannerClassProgressWidget`: small and medium Home Screen widget for one selected class, class progress, and the next class task.
+- `StudyPlannerTodayWidget`: WidgetKit kind `studyplanner.today`; small and medium Home Screen widget for work due today.
+- `StudyPlannerUpcomingWidget`: WidgetKit kind `studyplanner.upcoming`; small and medium Home Screen widget for upcoming reviewed deadlines.
+- `StudyPlannerWeekWidget`: WidgetKit kind `studyplanner.week`; medium Home Screen widget for workload by day plus the biggest upcoming deadline.
+- `StudyPlannerClassProgressWidget`: WidgetKit kind `studyplanner.classProgress`; small and medium Home Screen widget for one selected class, class progress, and the next class task.
 - App Group: `group.com.mattnewman.studyplanner`.
 - Widget extension bundle id: `com.mattnewman.studyplanner.widgets`.
+
+`expo-widgets` generates Swift structs from the JavaScript-safe widget names. The local `./plugins/with-widgetkit-kinds` config plugin is listed before `expo-widgets` in `app.json` so Expo's mod execution order runs it after generation; it rewrites each generated Swift `let name` to the canonical `studyplanner.*` WidgetKit kind so App Group storage, JS `createWidget(...)`, and `WidgetCenter.reloadTimelines(ofKind:)` stay aligned.
 
 The native extension ships four widget kinds: Today, Upcoming, Week, and Class Progress. Widget Studio is a preset editor for those shipped iPhone widgets; focus, streak, needs-check, and other legacy in-app template types must not be presented as native widget choices.
 

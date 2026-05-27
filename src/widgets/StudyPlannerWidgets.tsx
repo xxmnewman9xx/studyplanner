@@ -549,21 +549,21 @@ function StudyPlannerWidgetLayout(props, environment) {
 const StudyPlannerWidgetLayout = studyPlannerWidgetLayoutSource as unknown as WidgetLayout;
 
 export const StudyPlannerTodayWidget = createWidget<StudyPlannerNativeWidgetProps>(
-  "StudyPlannerTodayWidget",
+  "studyplanner.today",
   StudyPlannerWidgetLayout
 );
 
 export const StudyPlannerUpcomingWidget = createWidget<StudyPlannerNativeWidgetProps>(
-  "StudyPlannerUpcomingWidget",
+  "studyplanner.upcoming",
   StudyPlannerWidgetLayout
 );
 
 export const StudyPlannerWeekWidget = createWidget<StudyPlannerNativeWidgetProps>(
-  "StudyPlannerWeekWidget",
+  "studyplanner.week",
   StudyPlannerWidgetLayout
 );
 
 export const StudyPlannerClassProgressWidget = createWidget<StudyPlannerNativeWidgetProps>(
-  "StudyPlannerClassProgressWidget",
+  "studyplanner.classProgress",
   StudyPlannerWidgetLayout
 );

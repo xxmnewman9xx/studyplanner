@@ -16,7 +16,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.mattnewman.studyplanner",
       "icon": "./assets/app/study-planner-icon.png",
-      "buildNumber": "28",
+      "buildNumber": "29",
       "entitlements": {
         "com.apple.security.application-groups": [
           "group.com.mattnewman.studyplanner"
@@ -50,6 +50,7 @@
       "expo-notifications",
       "expo-iap",
       "expo-font",
+      "./plugins/with-widgetkit-kinds",
       [
         "expo-widgets",
         {
@@ -58,34 +59,9 @@
           "widgets": [
             {
               "name": "StudyPlannerTodayWidget",
+              "kind": "studyplanner.today",
               "displayName": "StudyPlanner Today",
-              "description": "Shows reviewed work due today from StudyPlanner.",
-              "supportedFamilies": [
-                "systemSmall",
-                "systemMedium",
-                "accessoryCircular",
-                "accessoryRectangular",
-                "accessoryInline"
-              ],
-              "contentMarginsDisabled": true
-            },
-            {
-              "name": "StudyPlannerUpcomingWidget",
-              "displayName": "StudyPlanner Upcoming",
-              "description": "Shows upcoming reviewed deadlines from StudyPlanner.",
-              "supportedFamilies": [
-                "systemSmall",
-                "systemMedium",
-                "accessoryCircular",
-                "accessoryRectangular",
-                "accessoryInline"
-              ],
-              "contentMarginsDisabled": true
-            },
-            {
-              "name": "StudyPlannerWeekWidget",
-              "displayName": "StudyPlanner Week",
-              "description": "Shows this week of reviewed StudyPlanner work.",
+              "description": "See what needs your attention today.",
               "supportedFamilies": [
                 "systemSmall",
                 "systemMedium"
@@ -93,9 +69,31 @@
               "contentMarginsDisabled": true
             },
             {
+              "name": "StudyPlannerUpcomingWidget",
+              "kind": "studyplanner.upcoming",
+              "displayName": "StudyPlanner Upcoming",
+              "description": "Preview upcoming assignments and deadlines.",
+              "supportedFamilies": [
+                "systemSmall",
+                "systemMedium"
+              ],
+              "contentMarginsDisabled": true
+            },
+            {
+              "name": "StudyPlannerWeekWidget",
+              "kind": "studyplanner.week",
+              "displayName": "StudyPlanner Week",
+              "description": "Check your weekly workload at a glance.",
+              "supportedFamilies": [
+                "systemMedium"
+              ],
+              "contentMarginsDisabled": true
+            },
+            {
               "name": "StudyPlannerClassProgressWidget",
+              "kind": "studyplanner.classProgress",
               "displayName": "StudyPlanner Class Progress",
-              "description": "Shows progress and the next reviewed task for one class.",
+              "description": "Track progress for a selected class.",
               "supportedFamilies": [
                 "systemSmall",
                 "systemMedium"

@@ -51,7 +51,11 @@ assert(reviewLower.includes("camera scan is active in this build only when the p
 assert(reviewLower.includes("expo_public_syllabus_image_parsing_enabled=1"), "App Review notes must disclose the image parsing env flag");
 assert(reviewLower.includes("there is no local image ocr fallback"), "App Review notes must disclose missing local image OCR");
 assert(reviewLower.includes("instead of applying uncertain data"), "App Review notes must state unclear photo data is not applied");
-assert(reviewLower.includes("lock screen accessory families"), "App Review notes must match the configured WidgetKit accessory families");
+assert(reviewLower.includes("studyplanner today (small, medium)"), "App Review notes must document the StudyPlanner Today Home Screen families");
+assert(reviewLower.includes("studyplanner upcoming (small, medium)"), "App Review notes must document the StudyPlanner Upcoming Home Screen families");
+assert(reviewLower.includes("studyplanner week (medium)"), "App Review notes must document the StudyPlanner Week Home Screen family");
+assert(reviewLower.includes("studyplanner class progress (small, medium)"), "App Review notes must document the StudyPlanner Class Progress Home Screen families");
+assert(!reviewLower.includes("lock screen accessory families"), "App Review notes must not claim unsupported WidgetKit accessory families");
 assert(reviewLower.includes("expo_public_sim_qa_capture"), "App Review notes must include the production capture-bypass env audit");
 assert(reviewLower.includes("expo_public_iap_validation_endpoint"), "App Review notes must disclose optional server-side IAP validation endpoint");
 assert(reviewLower.includes("does not include production apple server credentials"), "App Review notes must not overclaim server receipt validation");

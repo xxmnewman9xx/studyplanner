@@ -220,7 +220,7 @@ This is a starting point. Add your own conventions, style, and rules as you figu
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **studyplanner** (3523 symbols, 6380 relationships, 295 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **studyplanner** (3529 symbols, 6385 relationships, 295 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

@@ -30,6 +30,10 @@ assert(
   "app.json must include the expo-widgets config plugin for native WidgetKit support."
 );
 assert(
+  hasPlugin(appConfig.plugins, "./plugins/with-widgetkit-kinds"),
+  "app.json must patch generated WidgetKit sources to use stable studyplanner.* kinds."
+);
+assert(
   appConfig.ios?.bundleIdentifier === "com.mattnewman.studyplanner",
   "iOS bundle identifier must target the existing StudyPlanner app."
 );
@@ -57,6 +61,10 @@ assert(
     widgetPlugin?.widgets?.some((widget) => widget.name === "StudyPlannerClassProgressWidget"),
   "expo-widgets must register Today, Upcoming, Week, and Class Progress widgets."
 );
+assertWidget("studyplanner.today", "StudyPlanner Today", ["systemSmall", "systemMedium"]);
+assertWidget("studyplanner.upcoming", "StudyPlanner Upcoming", ["systemSmall", "systemMedium"]);
+assertWidget("studyplanner.week", "StudyPlanner Week", ["systemMedium"]);
+assertWidget("studyplanner.classProgress", "StudyPlanner Class Progress", ["systemSmall", "systemMedium"]);
 
 for (const name of [
   "EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS",
@@ -137,4 +145,15 @@ function hasPlugin(plugins, name) {
 function getPluginConfig(plugins, name) {
   const plugin = plugins.find((plugin) => Array.isArray(plugin) && plugin[0] === name);
   return plugin?.[1];
+}
+
+function assertWidget(kind, displayName, supportedFamilies) {
+  const widget = widgetPlugin?.widgets?.find((item) => item.kind === kind);
+  assert(widget, `${kind} widget metadata must be registered.`);
+  if (!widget) return;
+  assert(widget.displayName === displayName, `${kind} display name must be ${displayName}.`);
+  assert(
+    JSON.stringify(widget.supportedFamilies) === JSON.stringify(supportedFamilies),
+    `${kind} supported families must match ${supportedFamilies.join(", ")}.`
+  );
 }

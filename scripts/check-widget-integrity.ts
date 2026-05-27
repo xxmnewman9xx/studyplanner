@@ -411,13 +411,38 @@ for (const snapshot of [before.today, before.upcoming, afterOne.today, afterAll.
 }
 
 const appJson = fs.readFileSync("app.json", "utf8");
+const appConfig = JSON.parse(appJson).expo;
+const expoWidgetsPluginIndex = appConfig.plugins.findIndex((plugin: unknown) => Array.isArray(plugin) && plugin[0] === "expo-widgets");
+const widgetKindPluginIndex = appConfig.plugins.findIndex((plugin: unknown) => plugin === "./plugins/with-widgetkit-kinds");
+const widgetPlugin = appConfig.plugins[expoWidgetsPluginIndex]?.[1];
+const widgetConfigs = widgetPlugin?.widgets || [];
 const expoWidgetsJs = fs.readFileSync("node_modules/expo-widgets/build/Widgets.js", "utf8");
 const widgetObjectSwift = fs.readFileSync("node_modules/expo-widgets/ios/WidgetObject.swift", "utf8");
+const widgetKindPluginSource = fs.readFileSync("plugins/with-widgetkit-kinds.js", "utf8");
+const nativeWidgetJs = fs.readFileSync("src/widgets/StudyPlannerWidgets.tsx", "utf8");
+const nativeWidgetFiles = [
+  fs.readFileSync("ios/ExpoWidgetsTarget/StudyPlannerTodayWidget.swift", "utf8"),
+  fs.readFileSync("ios/ExpoWidgetsTarget/StudyPlannerUpcomingWidget.swift", "utf8"),
+  fs.readFileSync("ios/ExpoWidgetsTarget/StudyPlannerWeekWidget.swift", "utf8"),
+  fs.readFileSync("ios/ExpoWidgetsTarget/StudyPlannerClassProgressWidget.swift", "utf8")
+];
 
 assert(appJson.includes('"bundleIdentifier": "com.mattnewman.studyplanner.widgets"'), "Widget extension bundle identifier should be configured.");
 assert(appJson.includes('"groupIdentifier": "group.com.mattnewman.studyplanner"'), "Widget App Group identifier should be configured.");
 assert(appJson.includes('"name": "StudyPlannerWeekWidget"'), "Week widget should be registered for native Home Screen output.");
 assert(appJson.includes('"name": "StudyPlannerClassProgressWidget"'), "Class Progress widget should be registered for native Home Screen output.");
+assert(expoWidgetsPluginIndex >= 0, "expo-widgets config plugin should be present.");
+assert(widgetKindPluginIndex >= 0 && widgetKindPluginIndex < expoWidgetsPluginIndex, "WidgetKit kind patch plugin should precede expo-widgets in app.json so Expo runs it after generated Swift exists.");
+assert(widgetKindPluginSource.includes("widget.kind") && widgetKindPluginSource.includes("let name: String"), "WidgetKit kind patch plugin should rewrite generated Swift kinds from app.json.");
+assertWidgetMetadata("studyplanner.today", "StudyPlanner Today", "See what needs your attention today.", ["systemSmall", "systemMedium"]);
+assertWidgetMetadata("studyplanner.upcoming", "StudyPlanner Upcoming", "Preview upcoming assignments and deadlines.", ["systemSmall", "systemMedium"]);
+assertWidgetMetadata("studyplanner.week", "StudyPlanner Week", "Check your weekly workload at a glance.", ["systemMedium"]);
+assertWidgetMetadata("studyplanner.classProgress", "StudyPlanner Class Progress", "Track progress for a selected class.", ["systemSmall", "systemMedium"]);
+for (const widgetKind of ["studyplanner.today", "studyplanner.upcoming", "studyplanner.week", "studyplanner.classProgress"]) {
+  assert(nativeWidgetJs.includes(`"${widgetKind}"`), `${widgetKind} should be the JS createWidget storage/reload name.`);
+  assert(nativeWidgetFiles.some((file) => file.includes(`let name: String = "${widgetKind}"`)), `${widgetKind} should be the native StaticConfiguration kind.`);
+}
+assert(!appJson.includes("accessoryCircular") && !appJson.includes("accessoryRectangular") && !appJson.includes("accessoryInline"), "Widget metadata must not claim unsupported Lock Screen families.");
 assert(expoWidgetsJs.includes("updateSnapshot(props)") && expoWidgetsJs.includes("updateTimeline"), "updateSnapshot should write a timeline entry.");
 assert(widgetObjectSwift.includes("WidgetCenter.shared.reloadTimelines") && widgetObjectSwift.includes("WidgetsStorage.set(entries.map"), "Native timeline updates should write App Group storage and reload WidgetKit.");
 
@@ -430,4 +455,16 @@ function isPropertyListSafe(value: unknown): boolean {
   if (Array.isArray(value)) return value.every(isPropertyListSafe);
   if (typeof value === "object") return Object.values(value as Record<string, unknown>).every(isPropertyListSafe);
   return false;
+}
+
+function assertWidgetMetadata(kind: string, displayName: string, description: string, families: string[]) {
+  const config = widgetConfigs.find((widget: { kind?: string }) => widget.kind === kind);
+  assert(config, `${kind} should be present in app.json widget metadata.`);
+  if (!config) return;
+  assert(config.displayName === displayName, `${kind} display name should be ${displayName}.`);
+  assert(config.description === description, `${kind} description should be student-readable.`);
+  assert(
+    JSON.stringify(config.supportedFamilies) === JSON.stringify(families),
+    `${kind} supported families should be ${families.join(", ")}.`
+  );
 }

@@ -14,6 +14,7 @@ export type NativeWidgetSnapshotKind = "today" | "upcoming" | "week" | "class_pr
 export type ShippedWidgetDefinition = {
   kind: WidgetKind;
   nativeKind: NativeWidgetSnapshotKind;
+  widgetKitKind: string;
   nativeModuleName: string;
   nativeName: string;
   job: string;
@@ -33,6 +34,7 @@ export const shippedWidgetDefinitions: Record<WidgetKind, ShippedWidgetDefinitio
   today: {
     kind: "today",
     nativeKind: "today",
+    widgetKitKind: "studyplanner.today",
     nativeModuleName: "StudyPlannerTodayWidget",
     nativeName: "StudyPlanner Today",
     job: "What do I need to do today?",
@@ -48,6 +50,7 @@ export const shippedWidgetDefinitions: Record<WidgetKind, ShippedWidgetDefinitio
   upcoming: {
     kind: "upcoming",
     nativeKind: "upcoming",
+    widgetKitKind: "studyplanner.upcoming",
     nativeModuleName: "StudyPlannerUpcomingWidget",
     nativeName: "StudyPlanner Upcoming",
     job: "What deadline is coming next?",
@@ -63,6 +66,7 @@ export const shippedWidgetDefinitions: Record<WidgetKind, ShippedWidgetDefinitio
   week: {
     kind: "week",
     nativeKind: "week",
+    widgetKitKind: "studyplanner.week",
     nativeModuleName: "StudyPlannerWeekWidget",
     nativeName: "StudyPlanner Week",
     job: "How heavy is this week?",
@@ -78,6 +82,7 @@ export const shippedWidgetDefinitions: Record<WidgetKind, ShippedWidgetDefinitio
   classProgress: {
     kind: "classProgress",
     nativeKind: "class_progress",
+    widgetKitKind: "studyplanner.classProgress",
     nativeModuleName: "StudyPlannerClassProgressWidget",
     nativeName: "StudyPlanner Class Progress",
     job: "How am I doing in this class?",
