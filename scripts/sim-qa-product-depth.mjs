@@ -40,6 +40,10 @@ const captureTargets = [
   { key: "widget-studio-pick-data", route: { tab: "more", widgetType: "today", widgetSize: "medium", widgetPalette: "ocean", widgetBackground: "glass", widgetDataMode: "urgent_only" }, name: "31-widget-studio-pick-data" },
   { key: "widget-studio-pick-style", route: { tab: "more", widgetType: "week", widgetSize: "medium", widgetPalette: "contrast", widgetBackground: "dark", widgetDataMode: "this_week" }, name: "32-widget-studio-pick-style" },
   { key: "widget-studio-saved", route: { tab: "more", widgetType: "class_focus", widgetSize: "small", widgetPalette: "forest", widgetBackground: "glass", widgetDataMode: "single_class" }, name: "33-widget-studio-saved" },
+  { key: "widget-dark-ocean-today", route: { tab: "more", themeMode: "dark", appTheme: "ocean", widgetType: "today", widgetSize: "medium", widgetPalette: "ocean", widgetBackground: "glass", widgetDataMode: "urgent_only" }, name: "34-widget-dark-ocean-today" },
+  { key: "widget-dark-graphite-week", route: { tab: "more", themeMode: "dark", appTheme: "graphite", widgetType: "week", widgetSize: "medium", widgetPalette: "graphite", widgetBackground: "dark", widgetDataMode: "this_week" }, name: "35-widget-dark-graphite-week" },
+  { key: "widget-dark-forest-class", route: { tab: "more", themeMode: "dark", appTheme: "mint", widgetType: "class_focus", widgetSize: "small", widgetPalette: "forest", widgetBackground: "glass", widgetDataMode: "single_class" }, name: "36-widget-dark-forest-class" },
+  { key: "widget-dark-paper-due-next", route: { tab: "more", themeMode: "dark", appTheme: "minimal", widgetType: "due_next", widgetSize: "small", widgetPalette: "paper", widgetBackground: "light", widgetDataMode: "all_classes" }, name: "37-widget-dark-paper-due-next" },
   { key: "paywall", route: { tab: "subscribe" }, name: "24-paywall" },
   { key: "grades", route: { tab: "grades" }, name: "25-grades" }
 ];
@@ -104,7 +108,7 @@ function screenshotPathForTarget(route, name) {
   const widgetType = sanitizePathPart(route.widgetType || route.tab || name);
   const size = sanitizePathPart(route.widgetSize || "screen");
   const customization = sanitizePathPart(name);
-  return join(outDir, locale, safeDevice, appearance, theme, widgetType, size, `${customization}.png`);
+  return join(outDir, locale, appearance, safeDevice, theme, widgetType, size, `${customization}.png`);
 }
 
 function buildSidecar({ route, key, name, screenshotPath, gitCommit, timestamp }) {
