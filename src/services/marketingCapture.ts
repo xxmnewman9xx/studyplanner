@@ -30,160 +30,182 @@ export const marketingCaptureSemester: Semester = {
 
 export const marketingCaptureCourses: Course[] = [
   {
-    id: "marketing-bio-101",
-    code: "BIO 101",
-    name: "Biology in the Real World",
-    instructor: "Dr Patel",
-    color: "#22577A",
-    meetings: [
-      {
-        id: "marketing-bio-101-mon",
-        day: "Mon",
-        startTime: "10:00",
-        endTime: "11:15",
-        location: "Science Hall 204"
-      },
-      {
-        id: "marketing-bio-101-wed",
-        day: "Wed",
-        startTime: "10:00",
-        endTime: "11:15",
-        location: "Science Hall 204"
-      }
-    ],
-    gradeCategories: [
-      { id: "marketing-bio-labs", name: "Labs", weight: 30 },
-      { id: "marketing-bio-exams", name: "Exams", weight: 45 },
-      { id: "marketing-bio-projects", name: "Project", weight: 25 }
-    ]
+    id: "marketing-algebra-ii",
+    code: "Algebra II",
+    name: "Algebra II",
+    instructor: "Ms. Patel",
+    color: "#2F80ED",
+    meetings: [{ id: "marketing-alg-wed", day: "Wed", startTime: "08:30", endTime: "09:20", location: "214" }],
+    gradeCategories: [{ id: "marketing-alg-homework", name: "Homework", weight: 35 }]
   },
   {
-    id: "marketing-psych-214",
-    code: "PSYC 214",
-    name: "Social Psychology",
-    instructor: "Professor Kim",
-    color: "#D49A21",
-    meetings: [
-      {
-        id: "marketing-psych-214-tue",
-        day: "Tue",
-        startTime: "13:30",
-        endTime: "14:45",
-        location: "Mason 118"
-      },
-      {
-        id: "marketing-psych-214-thu",
-        day: "Thu",
-        startTime: "13:30",
-        endTime: "14:45",
-        location: "Mason 118"
-      }
-    ],
-    gradeCategories: [
-      { id: "marketing-psych-quizzes", name: "Quizzes", weight: 20 },
-      { id: "marketing-psych-papers", name: "Papers", weight: 35 },
-      { id: "marketing-psych-final", name: "Final", weight: 45 }
-    ]
+    id: "marketing-chemistry",
+    code: "Chemistry",
+    name: "Chemistry",
+    instructor: "Dr. Lin",
+    color: "#10B981",
+    meetings: [{ id: "marketing-chem-wed", day: "Wed", startTime: "09:30", endTime: "10:20", location: "Lab 5" }],
+    gradeCategories: [{ id: "marketing-chem-labs", name: "Labs", weight: 35 }]
+  },
+  {
+    id: "marketing-english-lit",
+    code: "English Lit",
+    name: "English Literature",
+    instructor: "Mrs. Cho",
+    color: "#8B5CF6",
+    meetings: [{ id: "marketing-eng-thu", day: "Thu", startTime: "10:30", endTime: "11:20", location: "118" }],
+    gradeCategories: [{ id: "marketing-eng-reading", name: "Reading", weight: 30 }]
+  },
+  {
+    id: "marketing-world-history",
+    code: "World History",
+    name: "World History",
+    instructor: "Mr. Ahmed",
+    color: "#F59E0B",
+    meetings: [{ id: "marketing-hist-tue", day: "Tue", startTime: "11:30", endTime: "12:20", location: "302" }],
+    gradeCategories: [{ id: "marketing-hist-essays", name: "Essays", weight: 40 }]
+  },
+  {
+    id: "marketing-biology",
+    code: "Biology",
+    name: "Biology",
+    instructor: "Dr. Rivera",
+    color: "#14B8A6",
+    meetings: [{ id: "marketing-bio-fri", day: "Fri", startTime: "12:35", endTime: "13:25", location: "Lab 2" }],
+    gradeCategories: [{ id: "marketing-bio-quizzes", name: "Quizzes", weight: 25 }]
+  },
+  {
+    id: "marketing-studio-art",
+    code: "Studio Art",
+    name: "Studio Art",
+    instructor: "Ms. Vance",
+    color: "#EC4899",
+    meetings: [{ id: "marketing-art-fri", day: "Fri", startTime: "13:40", endTime: "14:30", location: "Studio 2" }],
+    gradeCategories: [{ id: "marketing-art-projects", name: "Projects", weight: 70 }]
   }
 ];
 
 export const marketingCaptureAssignments: Assignment[] = [
   {
-    id: "marketing-bio-lab-report",
-    courseId: "marketing-bio-101",
-    title: "Lab Report: Enzyme Simulation",
-    kind: "assignment",
-    dueAt: "2026-05-26T17:00:00",
-    tags: ["lab", "syllabus"],
+    id: "marketing-alg-worksheet",
+    courseId: "marketing-algebra-ii",
+    title: "Worksheet Ch. 4 Review",
+    kind: "worksheet",
+    type: "worksheet",
+    dueAt: "2026-05-27T11:30:00",
+    tags: ["worksheet", "review"],
     priority: "high",
-    estimatedMinutes: 95,
-    status: "not_started",
+    estimatedMinutes: 45,
+    status: "in_progress",
     source: "syllabus",
+    progress: 0.35,
     gradeWeight: 8
   },
   {
-    id: "marketing-psych-chapter-quiz",
-    courseId: "marketing-psych-214",
-    title: "Chapter 12 Quiz",
+    id: "marketing-chem-lab",
+    courseId: "marketing-chemistry",
+    title: "Lab Report: Titration",
     kind: "assignment",
-    dueAt: "2026-05-27T09:00:00",
-    tags: ["quiz", "chapter 12"],
-    priority: "medium",
-    estimatedMinutes: 45,
+    dueAt: "2026-05-27T17:00:00",
+    tags: ["lab", "report"],
+    priority: "high",
+    estimatedMinutes: 90,
     status: "not_started",
     source: "syllabus",
-    gradeWeight: 5
-  },
-  {
-    id: "marketing-psych-reflection",
-    courseId: "marketing-psych-214",
-    title: "Research Reflection",
-    kind: "assignment",
-    dueAt: "2026-05-28T23:59:00",
-    tags: ["paper", "reflection"],
-    priority: "medium",
-    estimatedMinutes: 70,
-    status: "in_progress",
-    source: "syllabus",
+    progress: 0,
     gradeWeight: 10
   },
   {
-    id: "marketing-bio-final-project",
-    courseId: "marketing-bio-101",
-    title: "Final Project Checkpoint",
-    kind: "assignment",
-    dueAt: "2026-05-29T23:59:00",
-    tags: ["project", "checkpoint"],
-    priority: "high",
-    estimatedMinutes: 130,
+    id: "marketing-eng-reading",
+    courseId: "marketing-english-lit",
+    title: "Reading Notes Ch. 9-11",
+    kind: "reading",
+    type: "reading",
+    dueAt: "2026-05-28T08:30:00",
+    tags: ["reading", "notes"],
+    priority: "medium",
+    estimatedMinutes: 35,
     status: "not_started",
-    source: "syllabus",
-    gradeWeight: 15
+    source: "scan",
+    needsReview: true,
+    confidence: 0.72,
+    progress: 0
   },
   {
-    id: "marketing-bio-final-exam",
-    courseId: "marketing-bio-101",
-    title: "Cumulative Final Exam",
-    kind: "exam",
-    dueAt: "2026-06-02T14:00:00",
-    tags: ["exam", "final"],
+    id: "marketing-history-essay",
+    courseId: "marketing-world-history",
+    title: "Essay Draft",
+    kind: "assignment",
+    dueAt: "2026-05-26T20:00:00",
+    tags: ["essay", "draft"],
     priority: "high",
-    estimatedMinutes: 180,
+    estimatedMinutes: 55,
+    status: "not_started",
+    source: "manual",
+    progress: 0
+  },
+  {
+    id: "marketing-bio-cell-quiz",
+    courseId: "marketing-biology",
+    title: "Cell Quiz",
+    kind: "exam",
+    type: "exam",
+    dueAt: "not-a-date",
+    tags: ["quiz", "missing date"],
+    priority: "medium",
+    estimatedMinutes: 60,
     status: "not_started",
     source: "syllabus",
-    gradeWeight: 25
+    needsReview: true,
+    duplicateOf: "marketing-eng-reading",
+    confidence: 0.62,
+    progress: 0
+  },
+  {
+    id: "marketing-art-sketchbook",
+    courseId: "marketing-studio-art",
+    title: "Sketchbook Review",
+    kind: "project",
+    dueAt: "2026-05-29T15:00:00",
+    tags: ["sketchbook"],
+    priority: "low",
+    estimatedMinutes: 55,
+    status: "done",
+    source: "manual",
+    progress: 1,
+    gradeWeight: 6
   }
 ];
 
 export const marketingCaptureGradeItems: GradeItem[] = [
   {
-    id: "marketing-bio-lab-score",
-    courseId: "marketing-bio-101",
-    categoryId: "marketing-bio-labs",
+    id: "marketing-alg-ch3-test",
+    courseId: "marketing-algebra-ii",
+    categoryId: "marketing-alg-homework",
+    title: "Chapter 3 Test",
+    earned: 91,
+    possible: 100
+  },
+  {
+    id: "marketing-chem-lab-score",
+    courseId: "marketing-chemistry",
+    categoryId: "marketing-chem-labs",
     title: "Lab Practical",
     earned: 88,
     possible: 100
   },
   {
-    id: "marketing-bio-midterm-score",
-    courseId: "marketing-bio-101",
-    categoryId: "marketing-bio-exams",
-    title: "Midterm Exam",
-    earned: 91,
-    possible: 100
-  },
-  {
-    id: "marketing-psych-paper-score",
-    courseId: "marketing-psych-214",
-    categoryId: "marketing-psych-papers",
-    title: "Observation Paper",
-    earned: 46,
+    id: "marketing-eng-notes-score",
+    courseId: "marketing-english-lit",
+    categoryId: "marketing-eng-reading",
+    title: "Reading Notes",
+    earned: 45,
     possible: 50
   }
 ];
 
 export const marketingCaptureParseResult: SyllabusParseResult = {
-  sourceName: "spring-bio-psych-syllabus.pdf",
+  sourceName: "alex-kim-spring-syllabus.pdf",
   semesterName: marketingCaptureSemester.name,
   semesterStartDate: marketingCaptureSemester.startDate,
   semesterEndDate: marketingCaptureSemester.endDate,
@@ -199,12 +221,12 @@ export const marketingCaptureParseResult: SyllabusParseResult = {
     {
       id: "marketing-deadlines-found",
       severity: "info",
-      message: "Found 5 syllabus deadlines."
+      message: "Found 6 syllabus deadlines."
     },
     {
       id: "marketing-grade-weights-found",
       severity: "info",
-      message: "Found grade weights for 2 courses."
+      message: "Found grade weights for 6 courses."
     }
   ]
 };

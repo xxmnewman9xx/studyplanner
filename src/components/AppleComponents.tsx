@@ -33,7 +33,7 @@ import { useAppTheme } from "../themeContext";
 import { courseEmoji } from "../utils/courseVisuals";
 import { useI18n } from "../i18n";
 import { widgetStyleColors } from "../widgets/widgetThemes";
-import { resolveWidgetLayoutPlan } from "../widgets/widgetLayoutEngine";
+import { ellipsizeWidgetText, resolveWidgetLayoutPlan } from "../widgets/widgetLayoutEngine";
 
 export const emojiMap = {
   study: BookOpen,
@@ -162,11 +162,12 @@ export function GlassCard({
     soft: styles.softGlassCard,
     dark: styles.darkGlassCard
   }[tone];
+  const darkSurface = tone === "hero" || tone === "dark";
   return (
     <View style={[styles.glassCard, toneStyle, style]}>
-      <View pointerEvents="none" style={styles.liquidGlassHighlight} />
-      <View pointerEvents="none" style={styles.liquidGlassInnerGlow} />
-      <View pointerEvents="none" style={styles.liquidGlassLowerEdge} />
+      <View pointerEvents="none" style={[styles.liquidGlassHighlight, darkSurface ? styles.liquidGlassHighlightDark : null]} />
+      <View pointerEvents="none" style={[styles.liquidGlassInnerGlow, darkSurface ? styles.liquidGlassInnerGlowDark : null]} />
+      <View pointerEvents="none" style={[styles.liquidGlassLowerEdge, darkSurface ? styles.liquidGlassLowerEdgeDark : null]} />
       {children}
     </View>
   );
@@ -415,13 +416,21 @@ export function WidgetPreviewCard({
   const layoutPlan = resolveWidgetLayoutPlan({
     widgetType: type,
     size,
+    context: nativeMode ? "native" : "studio_preview",
+    appearance: background === "light" ? "light" : "dark",
     locale,
     layout,
     background,
     palette,
     itemCount: items.length
   });
-  const previewItems = items.slice(0, layoutPlan.maxRows);
+  const previewItems = items.slice(0, layoutPlan.maxRows).map((item) => ({
+    ...item,
+    title: ellipsizeWidgetText(widgetItemTitle(item), layoutPlan.titleMaxChars)
+  }));
+  const displayTitle = ellipsizeWidgetText(title, layoutPlan.subtitleMaxChars);
+  const displayValue = ellipsizeWidgetText(value, size === "small" || isLock ? 12 : 18);
+  const displayDetail = ellipsizeWidgetText(detail, layoutPlan.titleMaxChars);
   const fontStyle = font === "Mono" ? styles.widgetMono : font === "Rounded" ? styles.widgetRounded : null;
   const WidgetIcon = iconForKey(iconKey);
   const statusText = widgetStatusText(type, value, detail, previewItems, t);
@@ -441,20 +450,20 @@ export function WidgetPreviewCard({
   const nativeWeekDots = localizedWeekdayNarrowLabels(locale);
   const realWeekLoad = weekLoad || [];
   const maxWeekLoadScore = Math.max(...realWeekLoad.map((day) => day.score), 1);
-  const nativePreviewItems = items.slice(0, layoutPlan.maxRows);
+  const nativePreviewItems = previewItems;
   const firstNativeItem = nativePreviewItems[0];
   const nativeStripLike = layout === "strip" || layout === "calendar" || type === "week";
   const nativeProgressLike = layout === "progress" || type === "class_focus";
   const nativeWeekTotal = realWeekLoad.reduce((sum, day) => sum + day.items.length, 0);
   const nativePrimaryValue = !isMedium && firstNativeItem && "courseCode" in firstNativeItem && firstNativeItem.courseCode
     ? type === "week" && realWeekLoad.length > 0 ? String(nativeWeekTotal) : firstNativeItem.courseCode
-    : value;
+    : displayValue;
   const nativePrimaryDetail = type === "week" && realWeekLoad.length > 0
     ? nativeWeekTotal === 1
       ? t("widget_snapshot.task_this_week", "task this week")
       : t("widget_snapshot.tasks_this_week", "tasks this week")
-    : !isMedium && firstNativeItem ? widgetItemTitle(firstNativeItem) : detail;
-  const lockRoundValue = firstNativeItem && "courseCode" in firstNativeItem && firstNativeItem.courseCode ? firstNativeItem.courseCode : value;
+    : !isMedium && firstNativeItem ? widgetItemTitle(firstNativeItem) : displayDetail;
+  const lockRoundValue = firstNativeItem && "courseCode" in firstNativeItem && firstNativeItem.courseCode ? firstNativeItem.courseCode : displayValue;
   const lockRoundLabel = firstNativeItem
     ? (type === "today" ? t("widget_snapshot.do_first", "Do first") : t("common.next", "Next"))
     : type === "today" ? t("widget_snapshot.today", "Today") : t("common.next", "Next");
@@ -464,7 +473,7 @@ export function WidgetPreviewCard({
       return (
         <View style={[styles.lockInlineWidget, style]}>
           <Text style={[styles.lockInlineText, { color: nativeInk }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>
-            {nativeSignal}: {value} - {detail}
+            {nativeSignal}: {displayValue} - {displayDetail}
           </Text>
         </View>
       );
@@ -482,9 +491,9 @@ export function WidgetPreviewCard({
     if (isLockRect) {
       return (
         <View style={[styles.lockRectWidget, { backgroundColor: nativeBackground }, style]}>
-          <Text style={[styles.lockRectKicker, { color: nativeAccent }]} numberOfLines={1}>{title} / {nativeSignal}</Text>
+          <Text style={[styles.lockRectKicker, { color: nativeAccent }]} numberOfLines={1}>{displayTitle} / {nativeSignal}</Text>
           <Text style={[styles.lockRectTitle, { color: nativeInk }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>
-            {value} {detail}
+            {displayValue} {displayDetail}
           </Text>
           <Text style={[styles.lockRectDetail, { color: nativeMuted }]} numberOfLines={1}>
             {previewItems[0] ? widgetItemLabel(previewItems[0]) : nativeNext}
@@ -502,7 +511,7 @@ export function WidgetPreviewCard({
           {
             backgroundColor: nativeBackground,
             width: layoutPlan.availableWidth,
-            minHeight: layoutPlan.availableHeight,
+            height: layoutPlan.availableHeight,
             padding: layoutPlan.safePadding
           },
           style
@@ -622,7 +631,7 @@ export function WidgetPreviewCard({
         background === "gradient" ? { backgroundColor: paletteColors[0] } : null,
         {
           width: layoutPlan.availableWidth,
-          minHeight: layoutPlan.availableHeight,
+          height: layoutPlan.availableHeight,
           padding: layoutPlan.safePadding
         },
         style
@@ -638,16 +647,16 @@ export function WidgetPreviewCard({
         <View style={[styles.widgetGlow, { backgroundColor: paletteColors[1] }]} />
       ) : null}
       <View style={styles.widgetTop}>
-        <Text style={[styles.widgetLabel, labelTone, fontStyle]} numberOfLines={1}>{title}</Text>
+        <Text style={[styles.widgetLabel, labelTone, fontStyle]} numberOfLines={1}>{displayTitle}</Text>
         <View style={[styles.widgetStatusCapsule, isTinted ? styles.widgetStatusCapsuleTinted : null]}>
           <Text style={[styles.widgetTiny, labelTone]} numberOfLines={1}>{statusText}</Text>
         </View>
       </View>
       <View style={styles.widgetMainRow}>
         <View style={styles.widgetCopy}>
-          <Text style={[styles.widgetValue, labelTone, fontStyle]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{value}</Text>
+          <Text style={[styles.widgetValue, labelTone, fontStyle]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{displayValue}</Text>
           <Text style={[styles.widgetDetail, labelTone]} numberOfLines={layoutPlan.maxTitleLines}>
-            {detail}
+            {displayDetail}
           </Text>
         </View>
         {layoutPlan.iconVisible ? (
@@ -671,7 +680,7 @@ export function WidgetPreviewCard({
       {layout === "ring" || layout === "progress" || type === "focus" || type === "streak" ? (
         <View style={[styles.widgetRing, { borderColor: paletteColors[1] || theme.colors.brandPink }]}>
           <Text style={[styles.widgetRingText, labelTone]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.66}>
-            {type === "focus" ? value : progressLabel || value}
+            {type === "focus" ? displayValue : progressLabel || displayValue}
           </Text>
         </View>
       ) : null}
@@ -1014,6 +1023,9 @@ function createStyles(theme: AppTheme) {
       backgroundColor: theme.isDark ? "rgba(255,255,255,0.085)" : "rgba(255,255,255,0.56)",
       opacity: 0.92
     },
+    liquidGlassHighlightDark: {
+      backgroundColor: "rgba(255,255,255,0.10)"
+    },
     liquidGlassInnerGlow: {
       position: "absolute",
       right: 12,
@@ -1024,6 +1036,9 @@ function createStyles(theme: AppTheme) {
       backgroundColor: theme.isDark ? "rgba(255,255,255,0.085)" : "rgba(255,255,255,0.50)",
       opacity: 0
     },
+    liquidGlassInnerGlowDark: {
+      backgroundColor: "rgba(255,255,255,0.08)"
+    },
     liquidGlassLowerEdge: {
       position: "absolute",
       left: 14,
@@ -1031,6 +1046,9 @@ function createStyles(theme: AppTheme) {
       bottom: 0,
       height: StyleSheet.hairlineWidth,
       backgroundColor: theme.isDark ? "rgba(255,255,255,0.18)" : "rgba(17,24,39,0.08)"
+    },
+    liquidGlassLowerEdgeDark: {
+      backgroundColor: "rgba(255,255,255,0.16)"
     },
     plainGlassCard: {
       backgroundColor: theme.isDark ? "rgba(18,25,42,0.76)" : "rgba(255,255,255,0.80)"

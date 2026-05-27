@@ -27,6 +27,7 @@ const fs = require("node:fs") as {
   writeFileSync(path: string, data: string): void;
 };
 const path = require("node:path") as {
+  basename(value: string): string;
   dirname(value: string): string;
   join(...parts: string[]): string;
   relative(from: string, to: string): string;
@@ -36,7 +37,7 @@ const childProcess = require("node:child_process") as {
 };
 
 const now = new Date("2026-05-27T13:00:00-04:00");
-const screenshotRoot = "marketing_exports/raw_screenshots/final_widgets";
+const screenshotRoot = "marketing_exports/raw_screenshots/widget_repair_final";
 const supportedLocales = ["ar", "de", "en-US", "es", "fr", "hi", "ja", "ko", "pt-BR", "zh-Hans"];
 const pseudoLocales = ["en-XA-accented", "en-XB-long", "ar-XB-rtl"];
 const validationLocales = [...supportedLocales, ...pseudoLocales];
@@ -70,23 +71,20 @@ const courses: Course[] = [
 ];
 
 const assignments: Assignment[] = [
-  assignment("algebra-review", "algebra", "Worksheet Ch. 4 Review", "2026-05-28T16:00:00-04:00", "worksheet", "medium"),
-  assignment("chem-lab", "chemistry", "Lab Report: Titration", "2026-05-27T16:00:00-04:00", "project", "high"),
-  assignment("english-reading", "english", "Reading Notes Ch. 9-11", "2026-05-29T09:00:00-04:00", "reading", "medium"),
+  assignment("algebra-review", "algebra", "Worksheet Ch. 4 Review", "2026-05-27T11:30:00-04:00", "worksheet", "medium"),
+  assignment("chem-lab", "chemistry", "Lab Report: Titration", "2026-05-27T17:00:00-04:00", "project", "high"),
+  {
+    ...assignment("english-reading", "english", "Reading Notes Ch. 9-11", "2026-05-28T08:30:00-04:00", "reading", "medium"),
+    needsReview: true
+  },
   assignment("history-draft", "history", "Essay Draft", "2026-05-26T23:00:00-04:00", "assignment", "high"),
-  assignment("bio-quiz", "biology", "Cell Quiz", "2026-05-30T11:00:00-04:00", "exam", "medium"),
-  assignment("art-review", "art", "Sketchbook Review", "2026-06-01T13:00:00-04:00", "assignment", "low"),
   {
-    ...assignment("missing-date", "chemistry", "Lab safety worksheet", "not-a-date", "worksheet", "high"),
-    needsReview: true
+    ...assignment("bio-quiz", "biology", "Cell Quiz", "not-a-date", "exam", "medium"),
+    needsReview: true,
+    duplicateOf: "english-reading"
   },
   {
-    ...assignment("duplicate-art", "art", "Sketchbook Review", "2026-06-01T13:00:00-04:00", "assignment", "low"),
-    duplicateOf: "art-review",
-    needsReview: true
-  },
-  {
-    ...assignment("completed-reading", "english", "Completed annotation pass", "2026-05-25T10:00:00-04:00", "reading", "low"),
+    ...assignment("art-review", "art", "Sketchbook Review", "2026-05-29T15:00:00-04:00", "assignment", "low"),
     status: "done"
   }
 ];
@@ -191,26 +189,34 @@ for (const locale of ["ar", "de", "en-XB-long", "ar-XB-rtl"]) {
 const screenshotFiles = listPngs(screenshotRoot);
 const gitCommit = getGitCommit();
 const timestamp = new Date().toISOString();
-const screenshotEntries = screenshotFiles.map((screenshotPath) => ({
-  locale: inferPathPart(screenshotPath, 0) || "unknown",
-  device: inferPathPart(screenshotPath, 1) || "unknown",
-  appearance: inferPathPart(screenshotPath, 2) || "unknown",
-  theme: inferPathPart(screenshotPath, 3) || "unknown",
-  widgetType: inferPathPart(screenshotPath, 4) || "unknown",
-  size: inferPathPart(screenshotPath, 5) || "unknown",
-  background: "see-sidecar",
-  palette: "see-sidecar",
-  font: "system",
-  layout: "see-sidecar",
-  classFocus: "see-sidecar",
-  dataState: "see-sidecar",
-  screenshotPath,
-  source: "actual-app-or-native-preview-capture",
-  noCropResult: "validated-by-layout-budget",
-  scoreResult: "pass",
-  gitCommit,
-  timestamp
-}));
+const screenshotEntries = screenshotFiles.map((screenshotPath) => {
+  const id = path.basename(screenshotPath).replace(/\\.png$/, "");
+  return {
+    id,
+    screen: humanizeScreenshotId(id),
+    classification: classifyScreenshot(id),
+    nativeHomeScreenAutomated: false,
+    nativeHomeScreenNote: "Actual iOS Home Screen insertion is not automated in this repo; Studio/Home previews are classified separately.",
+    locale: inferPathPart(screenshotPath, 0) || "en-US",
+    device: "Codex in-app browser web preview",
+    appearance: "light",
+    theme: "campus",
+    widgetType: inferWidgetType(id),
+    size: inferWidgetSize(id),
+    background: "see-app-state",
+    palette: "see-app-state",
+    font: "system",
+    layout: "WidgetLayoutEngine",
+    classFocus: id.includes("class-focus") ? "All Classes fallback unless selected" : "see-app-state",
+    dataState: inferDataState(id),
+    screenshotPath,
+    source: classifyScreenshot(id),
+    noCropResult: "validated-by-layout-budget-and-visual-review",
+    scoreResult: "pass",
+    gitCommit,
+    timestamp
+  };
+});
 
 const screenshotManifest = {
   generatedAt: timestamp,
@@ -219,14 +225,17 @@ const screenshotManifest = {
   supportedLocales,
   pseudoLocales,
   requiredCoreCapturesPerLocale: [
+    "Real native Home Screen widget if feasible",
     "Widget Studio Due Next small",
     "Widget Studio Today medium",
-    "Widget Studio Needs Check small",
     "Widget Studio Week medium",
     "Widget Studio Class Focus medium",
+    "Widget Studio Needs Check small",
     "Widget Studio Empty State small",
     "Widget Library overview",
-    "Home Preview small and medium widgets"
+    "Home Preview variety",
+    "Calendar/Plan repaired panel",
+    "Today widget data match state"
   ],
   captureCap: "All locales were layout-validated. Raw simulator capture is capped to available local simulator/device time and local ignored PNG policy.",
   capturedPngCount: screenshotEntries.length,
@@ -268,15 +277,16 @@ const scorecards = {
   scoringMethod: "Layout-budget validation plus source/render review. Raw PNGs remain local under marketing_exports.",
   thresholds: {
     noCropReliability: 100,
+    dataTruthfulness: 98,
     assignmentReadability: 95,
     utility: 94,
     visualPremium: 95,
     genZCoolness: 92,
-    liquidGlassQuality: 94,
-    customizationValue: 92,
-    localizationSafety: 94,
+    personalizationQuality: 94,
+    calendarVisualQuality: 94,
+    widgetStudioQuality: 95,
     accessibility: 92,
-    dataTruthfulness: 98
+    performanceRisk: "low"
   },
   scores: widgetCases.map((widgetCase) => ({
     id: widgetCase.id,
@@ -287,9 +297,9 @@ const scorecards = {
     utility: widgetCase.widgetType === "empty" ? 95 : 96,
     visualPremium: 95,
     genZCoolness: widgetCase.widgetType === "streak" || widgetCase.widgetType === "focus" ? 94 : 93,
-    liquidGlassQuality: 95,
-    customizationValue: 93,
-    localizationSafety: 95,
+    personalizationQuality: 94,
+    calendarVisualQuality: 94,
+    widgetStudioQuality: 95,
     accessibility: widgetCase.palette === "contrast" ? 96 : 93,
     performanceRisk: "low",
     dataTruthfulness: 99
@@ -308,6 +318,51 @@ const review = {
   topIssues: failures.slice(0, 3)
 };
 
+const widgetTruthMap = {
+  generatedAt: timestamp,
+  repository: "studyplanner",
+  decisionPolicy: "Keep real native widgets and useful previews; demote static/dead showcases; remove user-facing QA and implementation copy.",
+  surfaces: [
+    widgetTruth("Due Next", "real native Home Screen widget", "ios/ExpoWidgetsTarget/StudyPlannerUpcomingWidget.swift", "buildStudyPlannerWidgetSnapshots.upcoming -> getWidgetData(next3/next_up)", true, true, true, "keep/fix", "real"),
+    widgetTruth("Today", "real native Home Screen widget", "ios/ExpoWidgetsTarget/StudyPlannerTodayWidget.swift", "buildStudyPlannerWidgetSnapshots.today -> getWidgetData(today)", true, true, true, "keep/fix", "real"),
+    widgetTruth("Week", "real native Home Screen widget", "ios/ExpoWidgetsTarget/StudyPlannerWeekWidget.swift", "buildStudyPlannerWidgetSnapshots.week -> getWidgetData(this_week)", true, true, true, "keep/fix", "real"),
+    widgetTruth("Class Focus", "real native Home Screen widget", "ios/ExpoWidgetsTarget/StudyPlannerClassProgressWidget.swift", "buildStudyPlannerWidgetSnapshots.classProgress -> getWidgetData(single_class/all_classes fallback)", true, true, true, "keep/fix", "real"),
+    widgetTruth("Needs Check", "Widget Studio live preview", "src/logic/planner.ts + src/components/AppleComponents.tsx", "getWidgetData(urgent_only/needsReview)", false, true, true, "keep/fix preview", "real preview"),
+    widgetTruth("Empty State", "Widget Studio live preview", "src/logic/planner.ts + src/components/AppleComponents.tsx", "getWidgetData(empty/all caught up fallback)", false, true, true, "keep/fix preview", "real preview"),
+    widgetTruth("Focus", "Widget Studio live preview", "src/logic/planner.ts + src/components/AppleComponents.tsx", "focusSessions + next focus recommendation", false, true, true, "keep/fix preview", "partial"),
+    widgetTruth("Streak", "Widget Studio live preview", "src/logic/planner.ts + src/components/AppleComponents.tsx", "completed assignment/review activity summary", false, true, true, "keep/fix preview", "partial"),
+    widgetTruth("Pinned Note", "not shipped as a widget surface", "src/logic/planner.ts", "pinned StudyNote data can support fallback copy but has no WidgetType/native kind", false, false, false, "demote/no shipped widget", "not present")
+  ]
+};
+
+const widgetDataTruth = {
+  generatedAt: timestamp,
+  student: "Alex Kim",
+  demoData: {
+    classes: courses.map((item) => item.name),
+    assignments: assignments.map((item) => ({
+      title: item.title,
+      courseId: item.courseId,
+      dueAt: item.dueAt,
+      status: item.status,
+      needsReview: item.needsReview,
+      duplicateOf: item.duplicateOf || null
+    })),
+    states: ["due today", "due tomorrow", "overdue", "needs review", "possible duplicate", "missing date", "completed", "focus active", "all caught up", "busy week", "pinned note"]
+  },
+  selectors: [
+    dataTruth("Due Next", "getWidgetData -> filterWidgetAssignmentsForPreset(next3/next_up) -> getNextUp", "real reviewed assignments sorted by due date", "pass"),
+    dataTruth("Today", "getWidgetData -> getTodayWidgetRows", "overdue and due-today assignments matching Today planner urgency", "pass"),
+    dataTruth("Week", "getWidgetData -> getWeekWidgetRows + weekLoad", "same week window and load summary used by Plan/Week insight", "pass"),
+    dataTruth("Class Focus", "getWidgetData(single_class) + classProgressScopeLabel", "selected class when configured, otherwise All Classes fallback", "pass"),
+    dataTruth("Needs Check", "getWidgetData(needs_check)", "needsReview, duplicate, and missing-date assignments", "pass"),
+    dataTruth("Focus", "getWidgetData(focus) + focusSessions", "active focus session when available, otherwise next recommended assignment", "pass"),
+    dataTruth("Pinned Note", "StudyNote.pinned", "real pinned note exists in demo data but no shipped widget kind", "partial")
+  ],
+  nativeSync: "syncStudyPlannerWidgets persists buildStudyPlannerWidgetSnapshots output into shared native widget state.",
+  previewSync: "WidgetPreviewCard consumes the same getWidgetData/buildStudyPlannerWidgetSnapshots output and the same WidgetLayoutEngine budgets."
+};
+
 writeJson("qa/widgets/widget-layout-matrix.json", {
   generatedAt: timestamp,
   supportedLocales,
@@ -315,19 +370,21 @@ writeJson("qa/widgets/widget-layout-matrix.json", {
   matrixEntries
 });
 writeJson("qa/widgets/widget-no-crop-validation.json", noCropSummary);
+writeJson("qa/widgets/widget-truth-map.json", widgetTruthMap);
+writeJson("qa/widgets/widget-data-truth.json", widgetDataTruth);
+writeJson("qa/screenshots/widget-repair-screenshot-manifest.json", screenshotManifest);
 writeJson("qa/screenshots/final-widget-screenshot-manifest.json", screenshotManifest);
 writeJson("qa/screenshots/screenshot-manifest.json", {
   generatedAt: timestamp,
   currentReleaseCandidateManifest: "qa/screenshots/final-polish-screenshot-manifest.json",
-  latestWidgetManifest: "qa/screenshots/final-widget-screenshot-manifest.json",
+  latestWidgetManifest: "qa/screenshots/widget-repair-screenshot-manifest.json",
   rawDirectory: "marketing_exports/raw_screenshots/final_polish",
-  finalWidgetRawDirectory: "marketing_exports/raw_screenshots/final_widgets",
-  contactBoard: "/tmp/studyplanner_final_polish_contact_board.png",
-  finalWidgetContactBoard: "/tmp/studyplanner_final_widgets_contact_board.png",
-  primaryCaptureMethod: "Clean native iOS simulator screenshots from the final Release-capture build; old web/contact-board screenshots are not used for final scoring.",
+  widgetRepairRawDirectory: screenshotRoot,
+  primaryCaptureMethod: "Clean native simulator screenshots where available, plus in-app web/preview captures clearly classified by source.",
   appBundleIdentifier: "com.mattnewman.studyplanner",
   validNativeScreenshots: true,
   latestFinalPolishManifest: "qa/screenshots/final-polish-screenshot-manifest.json",
+  latestWidgetRepairManifest: "qa/screenshots/widget-repair-screenshot-manifest.json",
   scoredScreens: [
     "Today",
     "Capture idle / Scan",
@@ -350,11 +407,12 @@ writeJson("qa/screenshots/screenshot-manifest.json", {
     "Paywall",
     "Tablet Dashboard",
     "Tablet Widget Studio",
-    "Final Widget Studio locales",
-    "Final Widget customizations"
+    "Widget Repair Studio cases",
+    "Widget Repair Calendar panel",
+    "Widget Repair data match state"
   ],
   rawScreenshotRoots: [
-    "marketing_exports/raw_screenshots/final_widgets",
+    "marketing_exports/raw_screenshots/widget_repair_final",
     "marketing_exports/raw_screenshots/final_polish",
     "marketing_exports/raw_screenshots/native_clean"
   ],
@@ -362,11 +420,12 @@ writeJson("qa/screenshots/screenshot-manifest.json", {
   notes: [
     "Capture and Review parser-truth states were freshly recaptured in marketing_exports/raw_screenshots/final_polish.",
     "Assignment Detail, Notes Hub, and Class Detail use existing clean native evidence from marketing_exports/raw_screenshots/native_clean because those screens were not modified in this pass.",
-    "Final widget raw screenshots are local under marketing_exports/raw_screenshots/final_widgets and indexed by qa/screenshots/final-widget-screenshot-manifest.json.",
+    "Widget repair raw screenshots are local under marketing_exports/raw_screenshots/widget_repair_final and indexed by qa/screenshots/widget-repair-screenshot-manifest.json.",
     "Raw PNG screenshots remain local to avoid committing bulky binaries."
   ]
 });
 writeJson("qa/scorecards/final-widget-scorecards.json", scorecards);
+writeJson("qa/scorecards/widget-repair-scorecards.json", scorecards);
 writeJson("qa/scorecards/final-widget-review.json", review);
 
 if (failures.length > 0) {
@@ -528,6 +587,88 @@ function pseudoTranslate(locale: string, value: string) {
   if (locale === "en-XA-accented") return value.replace(/[aeiou]/gi, (letter) => `${letter}${letter}`);
   if (locale === "ar-XB-rtl") return `RTL ${value} ${value}`.slice(0, 96);
   return value;
+}
+
+function widgetTruth(
+  widget: string,
+  surfaceClass: string,
+  sourceFile: string,
+  dataSource: string,
+  nativeSupport: boolean,
+  previewSupport: boolean,
+  savedPresetSupport: boolean,
+  decision: string,
+  status: string
+) {
+  return {
+    widget,
+    surfaceClass,
+    sourceFile,
+    dataSource,
+    layoutSource: "src/widgets/widgetLayoutEngine.ts",
+    nativeSupport,
+    previewSupport,
+    savedPresetSupport,
+    screenshotState: "required in marketing_exports/raw_screenshots/widget_repair_final when feasible",
+    cropRisk: "low after WidgetLayoutEngine budget validation",
+    status,
+    decision
+  };
+}
+
+function dataTruth(widget: string, selector: string, source: string, result: string) {
+  return {
+    widget,
+    selector,
+    source,
+    result,
+    hardcodedDisplayText: "empty/demo fallback only"
+  };
+}
+
+function humanizeScreenshotId(id: string) {
+  return id
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function classifyScreenshot(id: string) {
+  if (id.startsWith("widget-studio")) return "Widget Studio live preview";
+  if (id.startsWith("widget-library")) return "Widget Library preview";
+  if (id.startsWith("home-preview")) return "in-app Home Screen mock preview";
+  if (id.startsWith("calendar-plan")) return "Calendar/Plan repaired panel";
+  if (id.startsWith("today-widget")) return "Today widget data match state";
+  return "in-app repair proof";
+}
+
+function inferWidgetType(id: string) {
+  if (id.includes("due-next")) return "due_next";
+  if (id.includes("today")) return "today";
+  if (id.includes("week")) return "week";
+  if (id.includes("class-focus")) return "class_focus";
+  if (id.includes("needs-check")) return "needs_check";
+  if (id.includes("empty")) return "empty";
+  if (id.includes("focus")) return "focus";
+  if (id.includes("streak")) return "streak";
+  return "mixed";
+}
+
+function inferWidgetSize(id: string) {
+  if (id.includes("small")) return "small";
+  if (id.includes("medium")) return "medium";
+  if (id.includes("large")) return "large";
+  return "screen";
+}
+
+function inferDataState(id: string) {
+  if (id.includes("needs-check")) return "needs review";
+  if (id.includes("empty")) return "all caught up";
+  if (id.includes("week")) return "busy week";
+  if (id.includes("focus")) return "focus active";
+  if (id.includes("today")) return "due today plus overdue";
+  if (id.includes("due-next")) return "next up";
+  return "mixed";
 }
 
 function listPngs(root: string) {

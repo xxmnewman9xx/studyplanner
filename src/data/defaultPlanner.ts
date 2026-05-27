@@ -11,7 +11,7 @@ import {
 } from "../models";
 import { buildCanonicalWidgetPreset } from "../widgets/widgetPresets";
 
-const now = "2026-05-13T09:41:00";
+const now = "2026-05-27T09:41:00";
 
 export const defaultSemester: Semester = {
   id: "spring-2026",
@@ -22,7 +22,7 @@ export const defaultSemester: Semester = {
 };
 
 export const defaultSettings: UserSettings = {
-  studentName: "",
+  studentName: "Alex Kim",
   selectedTheme: "ocean",
   customPalette: ["#2F80ED", "#35F2D0", "#A3E635", "#F97316"],
   appTheme: "campus",
@@ -189,7 +189,7 @@ export const defaultAssignments: Assignment[] = [
     title: "Worksheet Ch. 4 Review",
     kind: "worksheet",
     type: "worksheet",
-    dueAt: "2026-05-13T11:30:00",
+    dueAt: "2026-05-27T11:30:00",
     tags: ["worksheet", "review"],
     priority: "high",
     estimatedMinutes: 45,
@@ -212,7 +212,7 @@ export const defaultAssignments: Assignment[] = [
     courseId: "chemistry",
     title: "Lab Report: Titration",
     kind: "assignment",
-    dueAt: "2026-05-13T17:00:00",
+    dueAt: "2026-05-27T17:00:00",
     tags: ["lab", "report"],
     priority: "high",
     estimatedMinutes: 90,
@@ -232,10 +232,10 @@ export const defaultAssignments: Assignment[] = [
   {
     id: "eng-reading-notes",
     courseId: "english-lit",
-    title: "Reading Notes: Act II",
+    title: "Reading Notes Ch. 9-11",
     kind: "reading",
     type: "reading",
-    dueAt: "2026-05-14T08:30:00",
+    dueAt: "2026-05-28T08:30:00",
     tags: ["reading", "notes"],
     priority: "medium",
     estimatedMinutes: 35,
@@ -250,11 +250,11 @@ export const defaultAssignments: Assignment[] = [
   {
     id: "hist-dbq-outline",
     courseId: "world-history",
-    title: "Front-load DBQ Outline",
+    title: "Essay Draft",
     kind: "project",
-    dueAt: "2026-05-14T20:00:00",
+    dueAt: "2026-05-26T20:00:00",
     tags: ["essay", "outline"],
-    priority: "medium",
+    priority: "high",
     estimatedMinutes: 45,
     status: "not_started",
     source: "manual",
@@ -263,50 +263,35 @@ export const defaultAssignments: Assignment[] = [
     updatedAt: now
   },
   {
-    id: "bio-study-guide",
+    id: "bio-cell-quiz",
     courseId: "biology",
-    title: "Study Guide: Cell Energy",
-    kind: "assignment",
-    dueAt: "2026-05-15T23:59:00",
-    tags: ["study guide"],
+    title: "Cell Quiz",
+    kind: "exam",
+    type: "exam",
+    dueAt: "not-a-date",
+    tags: ["quiz", "missing date"],
     priority: "medium",
     estimatedMinutes: 60,
     status: "not_started",
     source: "syllabus",
     progress: 0,
-    duplicateOf: "chem-lab-report",
     needsReview: true,
     confidence: 0.64,
     createdAt: now,
     updatedAt: now
   },
   {
-    id: "art-portfolio",
+    id: "art-sketchbook-review",
     courseId: "studio-art",
-    title: "Portfolio Selects",
+    title: "Sketchbook Review",
     kind: "project",
-    dueAt: "2026-05-16T15:00:00",
-    tags: ["portfolio"],
+    dueAt: "2026-05-29T15:00:00",
+    tags: ["sketchbook"],
     priority: "low",
     estimatedMinutes: 55,
     status: "done",
     source: "manual",
     progress: 1,
-    createdAt: now,
-    updatedAt: now
-  },
-  {
-    id: "alg-quiz",
-    courseId: "algebra-ii",
-    title: "Quadratics Quiz",
-    kind: "exam",
-    dueAt: "2026-05-18T09:00:00",
-    tags: ["quiz"],
-    priority: "high",
-    estimatedMinutes: 120,
-    status: "not_started",
-    source: "calendar",
-    progress: 0,
     createdAt: now,
     updatedAt: now
   }
@@ -319,8 +304,8 @@ export const defaultParsedImports: ParsedImport[] = [
     sourceType: "pdf",
     status: "ready",
     itemCount: 24,
-    createdAt: "2026-05-13T08:31:00",
-    updatedAt: "2026-05-13T08:32:00"
+    createdAt: "2026-05-27T08:31:00",
+    updatedAt: "2026-05-27T08:32:00"
   },
   {
     id: "scan-chem-photo",
@@ -328,8 +313,8 @@ export const defaultParsedImports: ParsedImport[] = [
     sourceType: "photo",
     status: "applied",
     itemCount: 7,
-    createdAt: "2026-05-12T16:05:00",
-    updatedAt: "2026-05-12T16:08:00"
+    createdAt: "2026-05-27T08:05:00",
+    updatedAt: "2026-05-27T08:08:00"
   }
 ];
 
@@ -340,22 +325,22 @@ export const defaultParsedItems: ParsedItem[] = [
     title: "Reading Notes",
     courseName: "English Lit",
     type: "reading",
-    dueAt: "2026-05-14T08:30:00",
+    dueAt: "2026-05-28T08:30:00",
     confidence: 0.72,
     needsReview: true,
-    rawText: "Reading notes due May 14.",
+    rawText: "Reading Notes Ch. 9-11 due May 28.",
     reviewStatus: "needs_review"
   },
   {
-    id: "parsed-bio-study",
+    id: "parsed-bio-cell-quiz",
     parsedImportId: "scan-english-syllabus",
-    title: "Study Guide",
+    title: "Cell Quiz",
     courseName: "Biology",
-    type: "assignment",
+    type: "exam",
     confidence: 0.64,
     needsReview: true,
-    duplicateCandidateId: "chem-lab-report",
-    rawText: "Study guide - no date found.",
+    duplicateCandidateId: "bio-cell-quiz",
+    rawText: "Cell quiz - no date found.",
     reviewStatus: "needs_review"
   },
   {
@@ -364,11 +349,11 @@ export const defaultParsedItems: ParsedItem[] = [
     title: "Lab Report",
     courseName: "Chemistry",
     type: "assignment",
-    dueAt: "2026-05-13T17:00:00",
+    dueAt: "2026-05-27T17:00:00",
     confidence: 0.9,
     needsReview: false,
     rawText: "Titration lab report due Wednesday.",
-    acceptedAt: "2026-05-12T16:08:00",
+    acceptedAt: "2026-05-27T08:08:00",
     reviewStatus: "accepted"
   }
 ];
@@ -385,9 +370,8 @@ export const defaultFocusSessions: FocusSession[] = [
     id: "focus-seed-1",
     assignmentId: "alg-worksheet-ch4",
     durationMinutes: 25,
-    startedAt: "2026-05-13T08:00:00",
-    endedAt: "2026-05-13T08:25:00",
-    status: "completed",
+    startedAt: "2026-05-27T09:00:00",
+    status: "running",
     sessionNumber: 7,
     notes: "Finished first half of worksheet."
   }

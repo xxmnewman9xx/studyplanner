@@ -131,7 +131,7 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
 
   return (
     <View style={styles.screen}>
-      <GlassCard tone="hero" style={styles.hero}>
+      <View style={[styles.planPanel, styles.hero]}>
         <View style={styles.heroTop}>
           <View style={styles.heroTitleBlock}>
             <Text style={styles.kicker}>{t("tabs.calendar", "Calendar")}</Text>
@@ -149,9 +149,9 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
           <MiniStat label={t("plan.stat_load", "Load")} value={formatHoursValue(totalOpenMinutes || weekSummary.totalMinutes, t)} />
           <MiniStat label={t("plan.stat_late", "Late")} value={String(overdue.length)} />
         </View>
-      </GlassCard>
+      </View>
 
-      <GlassCard style={styles.captureCard}>
+      <View style={[styles.planPanel, styles.captureCard]}>
         <Text style={styles.catchUpBadgeText}>{t("plan.capture", "Capture")}</Text>
         <Text style={styles.catchUpTitle}>{t("plan.capture_title", "Put new work on the selected day.")}</Text>
         <Text style={styles.catchUpCopy}>{t("plan.capture_copy", "Type a quick note after class. It becomes real planner data, not a decorative calendar event.")}</Text>
@@ -187,10 +187,10 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
           />
           <AppButton label={t("plan.scan_instead", "Scan instead")} variant="secondary" onPress={onOpenScan} style={styles.catchUpButton} />
         </View>
-      </GlassCard>
+      </View>
 
       {survivalPlan.active ? (
-        <GlassCard style={styles.catchUpCard}>
+        <View style={[styles.planPanel, styles.catchUpCard]}>
           <View style={styles.catchUpTopRow}>
             <View style={styles.catchUpBadge}>
               <Text style={styles.catchUpBadgeText}>{t("plan.survival_plan", "Survival plan")}</Text>
@@ -245,11 +245,11 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
             disabled={unsavedSurvivalBlocks.length === 0}
             onPress={saveSurvivalBlocks}
           />
-        </GlassCard>
+        </View>
       ) : null}
 
       <SectionHeader title={t("plan.month", "Month")} note={t("plan.month_note", "Tap a day to inspect due work")} />
-      <GlassCard style={styles.calendarCard}>
+      <View style={[styles.planPanel, styles.calendarCard]}>
         <View style={styles.monthHeader}>
           <TouchableOpacity accessibilityRole="button" style={styles.monthButton} onPress={() => moveMonth(-1)}>
             <ChevronLeft color={colors.heroText} size={18} />
@@ -321,10 +321,10 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
             </TouchableOpacity>
           ))}
         </View>
-      </GlassCard>
+      </View>
 
       {openAssignments.length > 0 ? (
-        <GlassCard style={styles.catchUpCard}>
+        <View style={[styles.planPanel, styles.catchUpCard]}>
           <View style={styles.catchUpTopRow}>
             <View style={styles.catchUpBadge}>
               <Text style={styles.catchUpBadgeText}>{planState.badge}</Text>
@@ -360,7 +360,7 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
               />
             ) : null}
           </View>
-        </GlassCard>
+        </View>
       ) : null}
 
       {openAssignments.length === 0 ? (
@@ -744,10 +744,22 @@ function createStyles(theme: AppTheme) {
     screen: {
       gap: 0
     },
+    planPanel: {
+      borderRadius: radii.xl,
+      borderWidth: 1,
+      overflow: "hidden",
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.28 : 0.16,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 12 },
+      elevation: 4
+    },
     hero: {
       gap: spacing.xs,
       padding: spacing.md,
-      overflow: "hidden"
+      overflow: "hidden",
+      borderColor: theme.isDark ? "rgba(86,168,255,0.24)" : "rgba(255,255,255,0.34)",
+      backgroundColor: theme.isDark ? "#07111F" : "#0B1B2B"
     },
     heroTop: {
       flexDirection: "row",
@@ -952,8 +964,8 @@ function createStyles(theme: AppTheme) {
     catchUpCard: {
       gap: spacing.sm,
       padding: spacing.md,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.42)",
-      backgroundColor: colors.heroSurface
+      borderColor: theme.isDark ? "rgba(86,168,255,0.24)" : "rgba(255,255,255,0.36)",
+      backgroundColor: theme.isDark ? "#07111F" : "#0B1B2B"
     },
     catchUpTopRow: {
       flexDirection: "row",
@@ -1002,8 +1014,8 @@ function createStyles(theme: AppTheme) {
     captureCard: {
       gap: spacing.sm,
       padding: spacing.md,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.42)",
-      backgroundColor: colors.heroSurface
+      borderColor: theme.isDark ? "rgba(86,168,255,0.24)" : "rgba(255,255,255,0.36)",
+      backgroundColor: theme.isDark ? "#07111F" : "#0B1B2B"
     },
     captureInput: {
       minHeight: 46,
@@ -1075,8 +1087,8 @@ function createStyles(theme: AppTheme) {
     calendarCard: {
       padding: spacing.md,
       overflow: "hidden",
-      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.42)",
-      backgroundColor: colors.heroSurface
+      borderColor: theme.isDark ? "rgba(86,168,255,0.24)" : "rgba(255,255,255,0.34)",
+      backgroundColor: theme.isDark ? "#07111F" : "#0B1B2B"
     },
     monthHeader: {
       flexDirection: "row",
@@ -1089,8 +1101,8 @@ function createStyles(theme: AppTheme) {
       height: 38,
       borderRadius: radii.md,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.18)",
-      backgroundColor: "rgba(255,255,255,0.1)",
+      borderColor: "rgba(255,255,255,0.22)",
+      backgroundColor: "rgba(255,255,255,0.13)",
       alignItems: "center",
       justifyContent: "center"
     },
@@ -1121,18 +1133,23 @@ function createStyles(theme: AppTheme) {
       alignItems: "center",
       justifyContent: "center",
       borderRadius: radii.md,
-      gap: 4
+      gap: 4,
+      backgroundColor: "rgba(255,255,255,0.065)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.08)"
     },
     dayCellActive: {
-      backgroundColor: colors.accent
+      backgroundColor: colors.accent,
+      borderColor: "rgba(255,255,255,0.50)"
     },
     dayCellToday: {
       borderWidth: 1,
       borderColor: colors.brandPink,
-      backgroundColor: "rgba(255,122,144,0.1)"
+      backgroundColor: "rgba(255,77,141,0.16)"
     },
     dayCellMuted: {
-      opacity: 0.35
+      opacity: 0.48,
+      backgroundColor: "rgba(255,255,255,0.025)"
     },
     dayNumber: {
       color: colors.heroText,
@@ -1148,16 +1165,18 @@ function createStyles(theme: AppTheme) {
       gap: 3
     },
     eventDot: {
-      width: 5,
-      height: 5,
-      borderRadius: 3
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.55)"
     },
     selectedDayPanel: {
       marginTop: spacing.sm,
       borderRadius: radii.lg,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(255,255,255,0.16)",
-      backgroundColor: "rgba(255,255,255,0.08)",
+      borderColor: "rgba(255,255,255,0.20)",
+      backgroundColor: "rgba(255,255,255,0.12)",
       padding: spacing.sm,
       gap: 5
     },

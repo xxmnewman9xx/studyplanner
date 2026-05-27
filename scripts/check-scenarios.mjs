@@ -105,9 +105,9 @@ assert(read("src/screens/ImportScreen.tsx").includes("retryParsedImport") && rea
 assert(read("src/services/parserContract.ts").includes("createParsedImportFromCameraAsset") && read("src/services/parserContract.ts").includes("normalizeParsedItems"), "Capture parser contract should cover camera, document, typed, normalization, and review flags.");
 assert(reviewPrompt.includes("assignment_completed") && reviewPrompt.includes("focus_completed") && reviewPrompt.includes("widget_saved"), "Review prompt policy should stay value-gated.");
 assert(app.includes("syncStudyPlannerWidgets") && app.includes("nativeWidgetStatus"), "Native widget snapshots should refresh from real planner persistence.");
-assert(more.includes("Pick a shipped widget, then save its preset.") && more.includes("Saved fields: widget, data mode, class filter, theme, layout, and last sync"), "Widget surface should lead with an organized native widget workbench.");
+assert(more.includes("Design the widget you want to see at a glance.") && more.includes("Tune the look, then save it as your Home Screen preset."), "Widget surface should lead with a product-facing customization studio.");
 assert(more.includes("What do I need to do today?") && more.includes("What deadline is coming next?") && more.includes("How heavy is this week?"), "Widget templates should be student-outcome first.");
-assert(more.includes("single_class") && more.includes("urgent_only") && more.includes("high_contrast"), "Widget Studio should expose the target data and style choices.");
+assert(more.includes("single_class") && more.includes("urgent_only") && more.includes("Pink Glass") && more.includes("Minimal Cream") && more.includes("stageWallpaper"), "Widget Studio should expose the target data, wallpaper, and palette choices.");
 assert(more.includes("One fact in small widgets") && more.includes("Agenda rows in medium widgets"), "Widget Studio first viewport should expose research-backed widget rules.");
 assert(!more.includes("top-20") && !more.includes("active in this studio") && !more.includes("3/6 ready") && !more.includes("Studio state"), "Widget Studio must not expose internal QA scoring language.");
 assert(planner.includes('headline: "Upcoming"') && planner.includes('headline: "Today"') && planner.includes("Class Progress"), "Widget data labels should match student-outcome templates.");

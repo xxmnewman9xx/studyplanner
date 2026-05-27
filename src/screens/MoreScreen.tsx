@@ -51,10 +51,7 @@ import { AppTheme, ThemeAccent, appThemePalettes, themePalettes } from "../theme
 import { useAppTheme } from "../themeContext";
 import { supportedLocales, useI18n, type SupportedLocale } from "../i18n";
 import {
-  resolveWidgetTheme,
   widgetThemeChoiceFromPreset,
-  widgetThemeDefinitions,
-  widgetThemeOrder,
   WidgetThemeChoice
 } from "../widgets/widgetThemes";
 import {
@@ -148,6 +145,7 @@ export function MoreScreen({
   const [iconKey, setIconKey] = useState(firstPreset?.iconKey || "book");
   const [editingPresetId, setEditingPresetId] = useState(firstPreset?.id || "preset-due-next");
   const [selectedThemePackId, setSelectedThemePackId] = useState<string | undefined>(firstPreset?.themePackId);
+  const [stageWallpaper, setStageWallpaper] = useState<"ink" | "soft">("ink");
 
   useEffect(() => {
     if (!firstPreset) return;
@@ -166,12 +164,12 @@ export function MoreScreen({
   }, [firstPreset?.id, firstPreset?.updatedAt]);
 
   const selectedWidgetKind = widgetKindForType(type);
+  const isNativeStudioType = type === "today" || type === "due_next" || type === "week" || type === "class_focus";
   const selectedWidgetDefinition = shippedWidgetDefinitions[selectedWidgetKind];
   const selectedNativeName = nativeNameForWidgetKind(selectedWidgetKind);
   const allowedDataModes = selectedWidgetDefinition.dataModes;
   const allowedLayouts = selectedWidgetDefinition.layouts;
-  const requiresClassSelection = dataMode === "single_class" || selectedWidgetKind === "classProgress";
-  const classSelectionMissing = requiresClassSelection && !classFocusCourseId;
+  const requiresClassSelection = dataMode === "single_class" || type === "class_focus";
 
   useEffect(() => {
     if (!isValidDataModeForWidgetKind(selectedWidgetKind, dataMode)) {
@@ -187,7 +185,7 @@ export function MoreScreen({
     }
   }, [dataMode, layout, selectedWidgetKind]);
 
-  const nativeLabel = t("more.native", "Native");
+  const nativeLabel = t("more.native", "Home screen");
   const includedLabel = t("more.included", "Included with StudyPlanner");
   const readyLabel = t("more.ready", "Ready");
   const fixLabel = t("more.fix", "Fix");
@@ -201,6 +199,7 @@ export function MoreScreen({
     focus: t("more.widget_type_focus", "Focus Timer"),
     streak: t("more.widget_type_streak", "Streak")
   };
+  const selectedWidgetName = isNativeStudioType ? selectedNativeName : widgetTypeLabels[type];
   const sizeLabels: Record<WidgetSize, string> = {
     small: t("more.size_small", "Small"),
     medium: t("more.size_medium", "Medium"),
@@ -251,12 +250,25 @@ export function MoreScreen({
     summary: t("widget_snapshot.layout_summary", "Summary"),
     next_task: t("widget_snapshot.layout_next_task", "Next task")
   };
-  const styleChoiceLabels: Record<WidgetThemeChoice, string> = Object.fromEntries(
-    widgetThemeOrder.map((choice) => {
-      const definition = widgetThemeDefinitions[choice];
-      return [choice, t(definition.labelKey, definition.fallbackLabel)];
-    })
-  ) as Record<WidgetThemeChoice, string>;
+  const focusedCourse = classFocusCourseId
+    ? courses.find((course) => course.id === classFocusCourseId)
+    : undefined;
+  const studioPaletteOptions: Array<{
+    id: string;
+    label: string;
+    detail: string;
+    background: WidgetBackground;
+    palette: WidgetPalette;
+  }> = [
+    { id: "pink-glass", label: t("more.palette_pink_glass", "Pink Glass"), detail: t("more.palette_pink_glass_detail", "Best for busy weeks"), background: "glass", palette: "candy" },
+    { id: "midnight", label: t("more.palette_midnight", "Midnight"), detail: t("more.palette_midnight_detail", "Best at night"), background: "dark", palette: "midnight" },
+    { id: "ocean", label: t("more.palette_ocean", "Ocean"), detail: t("more.palette_ocean_detail", "Best for next up"), background: "glass", palette: "ocean" },
+    { id: "forest", label: t("more.palette_forest", "Forest"), detail: t("more.palette_forest_detail", "Best for one class"), background: "glass", palette: "forest" },
+    { id: "amber", label: t("more.palette_amber_review", "Amber Review"), detail: t("more.palette_amber_review_detail", "Best for review"), background: "solid", palette: "sunset" },
+    { id: "cream", label: t("more.palette_minimal_cream", "Minimal Cream"), detail: t("more.palette_minimal_cream_detail", "Best when caught up"), background: "light", palette: "paper" },
+    { id: "candy", label: t("more.palette_candy", "Candy"), detail: t("more.palette_candy_detail", "Best for focus"), background: "gradient", palette: "candy" },
+    { id: "class-color", label: t("more.palette_class_color", "Class Color"), detail: t("more.palette_class_color_detail", "Best for class focus"), background: "glass", palette: focusedCourse ? "forest" : "aurora" }
+  ];
   const appThemeLabels: Record<ThemeAccent, string> = {
     campus: t("more.app_theme_campus", appThemePalettes.campus.label),
     classic: t("more.app_theme_classic", appThemePalettes.classic.label),
@@ -290,8 +302,8 @@ export function MoreScreen({
         : t("more.notification_standard", "Standard");
 
   const previewPreset = useMemo<WidgetPreset>(
-    () =>
-      buildCanonicalWidgetPreset(selectedWidgetKind, {
+    () => {
+      const patch = {
         id: editingPresetId || "preview",
         name: widgetTypeLabel(type),
         type,
@@ -305,8 +317,20 @@ export function MoreScreen({
         layout,
         iconKey,
         themePackId: selectedThemePackId
-      }),
-    [background, classFocusCourseId, dataMode, editingPresetId, font, iconKey, layout, palette, requiresClassSelection, selectedThemePackId, selectedWidgetKind, size, styleChoice, type, widgetTypeLabels]
+      };
+      const canonical = buildCanonicalWidgetPreset(selectedWidgetKind, patch);
+      if (isNativeStudioType) return canonical;
+      return {
+        ...canonical,
+        ...patch,
+        widgetKind: selectedWidgetKind,
+        smartStackSlot: undefined,
+        scheduleLabel: undefined,
+        createdAt: canonical.createdAt,
+        updatedAt: canonical.updatedAt
+      };
+    },
+    [background, classFocusCourseId, dataMode, editingPresetId, font, iconKey, isNativeStudioType, layout, palette, requiresClassSelection, selectedThemePackId, selectedWidgetKind, size, styleChoice, type, widgetTypeLabels]
   );
   const widgetData = getWidgetData(previewPreset, assignments, courses, undefined, focusSessions, notes, locale);
   const previewWidgetPresets = useMemo(
@@ -331,17 +355,17 @@ export function MoreScreen({
       }),
     [assignments, courses, demoMode, locale, parsedImports, previewWidgetPresets, semester, settings, t]
   );
-  const nativePreview =
-    selectedWidgetKind === "today"
+  const nativePreview = isNativeStudioType
+    ? selectedWidgetKind === "today"
       ? nativeSnapshots.today
       : selectedWidgetKind === "upcoming"
         ? nativeSnapshots.upcoming
         : selectedWidgetKind === "week"
           ? nativeSnapshots.week
-          : nativeSnapshots.classProgress;
+          : nativeSnapshots.classProgress
+    : undefined;
   const hasAssignments = assignments.length > 0;
   const hasCourses = courses.length > 0;
-  const needsClassFirst = requiresClassSelection && (!hasCourses || !classFocusCourseId);
   const displayWidgetData = nativePreview
       ? {
         headline: nativePreview.headline,
@@ -353,23 +377,16 @@ export function MoreScreen({
         progress: nativePreview.progress,
         progressLabel: nativePreview.progressLabel
       }
-    : needsClassFirst
-    ? { ...widgetData, headline: selectedNativeName, value: "+", detail: t("more.choose_class_first", "Choose a class first"), items: [] }
     : !hasAssignments && type !== "class_focus"
       ? { ...widgetData, headline: widgetTypeLabel(type), value: "+", detail: t("more.add_homework_to_preview", "Add homework to preview"), items: [] }
       : widgetData;
-  const studioHint = needsClassFirst
-    ? t("more.class_needed_hint", "This widget needs one selected class before it can be saved.")
-    : nativePreview
-    ? formatMore(t("more.native_studio_hint", "{footnote} Preview updates as you edit; saving writes the preset to native widget state."), {
+  const studioHint = nativePreview
+    ? formatMore(t("more.native_studio_hint", "{footnote} Tune the look, then save it as your Home Screen preset."), {
         footnote: nativePreview.footnote
       })
     : !hasAssignments && type !== "class_focus"
       ? t("more.homework_hint", "Your real homework will appear here after you add or scan it.")
-      : t("more.planner_preview_hint", "This preview uses planner data. iOS placement and Smart Stack ordering still happen in the system widget gallery.");
-  const focusedCourse = classFocusCourseId
-    ? courses.find((course) => course.id === classFocusCourseId)
-    : undefined;
+      : t("more.planner_preview_hint", "This preview uses the same planner rows your widget will use.");
   const starterTemplates: Array<{
     label: string;
     detail: string;
@@ -404,6 +421,34 @@ export function MoreScreen({
       moment: t("more.template_class_moment", "Before class"),
       data: t("more.template_class_data", "Class-specific"),
       preset: { type: "class_focus", size: "small", background: "glass", palette: "forest", dataMode: "single_class", layout: "progress", iconKey: "book" }
+    },
+    {
+      label: t("more.widget_type_needs_check", "Needs Check"),
+      detail: t("more.needs_check_widget_job", "What needs review before it lands?"),
+      moment: t("more.template_review_moment", "Review pass"),
+      data: t("more.template_review_data", "Review flags"),
+      preset: { type: "needs_check", size: "small", background: "solid", palette: "sunset", dataMode: "urgent_only", layout: "compact", iconKey: "alert" }
+    },
+    {
+      label: t("more.widget_type_empty", "All Done"),
+      detail: t("more.empty_widget_job", "What should I see when I am caught up?"),
+      moment: t("more.template_empty_moment", "Clear day"),
+      data: t("more.template_empty_data", "Caught up"),
+      preset: { type: "empty", size: "small", background: "light", palette: "minimal", dataMode: "today", layout: "compact", iconKey: "check" }
+    },
+    {
+      label: t("more.widget_type_focus", "Focus Timer"),
+      detail: t("more.focus_widget_job", "What should I work on now?"),
+      moment: t("more.template_focus_moment", "Study block"),
+      data: t("more.template_focus_data", "Active focus"),
+      preset: { type: "focus", size: "small", background: "dark", palette: "graphite", dataMode: "next_up", layout: "ring", iconKey: "timer" }
+    },
+    {
+      label: t("more.widget_type_streak", "Streak"),
+      detail: t("more.streak_widget_job", "How consistent have I been?"),
+      moment: t("more.template_streak_moment", "Night review"),
+      data: t("more.template_streak_data", "Completed work"),
+      preset: { type: "streak", size: "small", background: "gradient", palette: "candy", dataMode: "today", layout: "ring", iconKey: "spark" }
     }
   ];
   const nativeStatusLabel =
@@ -414,10 +459,10 @@ export function MoreScreen({
         : t("more.status_needs_install", "Needs install");
   const nativeStatusMessage =
     nativeWidgetStatus.state === "synced"
-      ? t("more.install_status_synced_message", "StudyPlanner widgets are using reviewed planner data.")
+      ? t("more.install_status_synced_message", "StudyPlanner widgets match reviewed planner work.")
       : nativeWidgetStatus.state === "unavailable"
-        ? t("more.install_status_unavailable_message", "Install a native iOS build with the widget extension to add widgets.")
-        : t("more.install_status_needs_install_message", "Native widgets sync after your planner loads.");
+        ? t("more.install_status_unavailable_message", "Install the iPhone app build to add Home Screen widgets.")
+        : t("more.install_status_needs_install_message", "Home Screen widgets update after your planner loads.");
   const savedPresets = canonicalWidgetPresets;
   const hasSavedPresets = savedPresets.length > 0;
   const smartPresetCount = canonicalWidgetPresets.length;
@@ -445,9 +490,6 @@ export function MoreScreen({
   const dataSourceLabel = dataModeLabels[dataMode];
   const topPreviewItems = displayWidgetData.items.slice(0, 4);
   const selectedTemplateLabel = widgetTypeLabel(type);
-  const primaryActionLabel = classSelectionMissing
-      ? t("more.choose_class_first", "Choose a class first")
-      : t("more.save_preset", "Save preset");
   const quickFacts = [
     {
       label: t("more.now", "Now"),
@@ -462,7 +504,7 @@ export function MoreScreen({
     {
       label: t("more.source", "Source"),
       value: nativePreview ? nativeLabel : type === "class_focus" ? t("more.class_data", "Class data") : t("more.planner", "Planner"),
-      detail: nativePreview ? t("more.native_snapshot", "Native snapshot") : nativeStatusLabel
+      detail: nativePreview ? t("more.native_snapshot", "Phone preview") : nativeStatusLabel
     }
   ];
   const studioRules = [
@@ -474,11 +516,11 @@ export function MoreScreen({
   const studioSteps = [
     { label: t("more.step_widget", "Pick widget"), detail: selectedTemplateLabel, active: true },
     { label: t("more.step_data", "Pick data"), detail: dataSourceLabel, active: hasAssignments || type === "class_focus" },
-    { label: t("more.step_style", "Pick style"), detail: `${styleChoiceLabels[styleChoice]} / ${layoutLabels[layout]}`, active: true },
+    { label: t("more.step_style", "Pick style"), detail: `${paletteLabel(palette)} / ${layoutLabels[layout]}`, active: true },
     {
       label: t("more.step_place", "Save preset"),
-      detail: selectedNativeName,
-      active: !classSelectionMissing
+      detail: selectedWidgetName,
+      active: true
     }
   ];
   const moreDestinations = [
@@ -488,7 +530,7 @@ export function MoreScreen({
   ];
   const privacyFacts = [
     t("more.privacy_fact_imports", "Imports stay in review until accepted."),
-    t("more.privacy_fact_widgets", "Widgets use reviewed planner snapshots."),
+    t("more.privacy_fact_widgets", "Widgets show reviewed planner work."),
     t("more.privacy_fact_permissions", "Reminder and calendar permissions are optional.")
   ];
 
@@ -508,15 +550,14 @@ export function MoreScreen({
     setEditingPresetId(`preset-${nextKind}`);
   };
 
-  const applyStyleChoice = (choice: WidgetThemeChoice) => {
-    const stylePreset = resolveWidgetTheme(choice);
-    setStyleChoice(choice);
-    setBackground(stylePreset.background);
-    setPalette(stylePreset.palette);
+  const applyStudioPalette = (option: (typeof studioPaletteOptions)[number]) => {
+    setBackground(option.background);
+    setPalette(option.palette);
+    setStyleChoice(widgetThemeChoiceFromPreset(option));
+    setSelectedThemePackId(option.id);
   };
 
   const saveCurrentPreset = () => {
-    if (classSelectionMissing) return;
     onUpdateSettings({
       selectedTheme: palette,
       defaultWidgetStyle: background
@@ -569,7 +610,7 @@ export function MoreScreen({
           <View style={styles.studioTopBar}>
             <View style={styles.studioTitleBlock}>
               <Text style={styles.studioEyebrow}>{t("more.widget_studio", "Customize your iPhone widgets")}</Text>
-              <Text style={styles.studioTitle}>{t("more.studio_title", "Pick a shipped widget, then save its preset.")}</Text>
+              <Text style={styles.studioTitle}>{t("more.studio_title", "Design the widget you want to see at a glance.")}</Text>
             </View>
             <View style={styles.nativeStatusChip}>
               <View style={[styles.nativeStatusDot, nativeWidgetStatus.state === "synced" ? styles.nativeStatusDotSynced : null]} />
@@ -593,11 +634,29 @@ export function MoreScreen({
           </View>
 
           <View style={styles.studioCanvas}>
+            <View style={styles.wallpaperToggle}>
+              {(["ink", "soft"] as const).map((option) => {
+                const active = stageWallpaper === option;
+                return (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                    key={option}
+                    style={[styles.wallpaperChip, active ? styles.wallpaperChipActive : null]}
+                    onPress={() => setStageWallpaper(option)}
+                  >
+                    <Text style={[styles.wallpaperChipText, active ? styles.wallpaperChipTextActive : null]}>
+                      {option === "ink" ? t("more.wallpaper_ink", "Ink") : t("more.wallpaper_soft", "Soft")}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
             <LiquidGlassWidgetPreview
               label={`${selectedTemplateLabel}. ${displayWidgetData.value}. ${displayWidgetData.detail}`}
               style={styles.phoneStage}
             >
-            <View style={styles.phoneFrame}>
+            <View style={[styles.phoneFrame, stageWallpaper === "soft" ? styles.phoneFrameSoft : styles.phoneFrameInk]}>
               <View style={styles.phoneStatusBar}>
                 <Text style={styles.phoneTime}>7:42</Text>
                 <View style={styles.phoneSignalGroup}>
@@ -660,18 +719,24 @@ export function MoreScreen({
                 ))}
               </View>
               <View style={styles.placementGuide}>
-                <Text style={styles.placementGuideKicker}>{t("more.home_screen_handoff", "Home Screen handoff")}</Text>
+                <Text style={styles.placementGuideKicker}>{isNativeStudioType ? t("more.home_screen_handoff", "Home Screen") : t("more.in_app_preset", "In-app preset")}</Text>
                 <View style={styles.nativeReadyRow}>
-                  <Text style={styles.nativeReadyText}>{t("more.ready_for_home_screen", "Ready for Home Screen")}</Text>
+                  <Text style={styles.nativeReadyText}>{isNativeStudioType ? t("more.ready_for_home_screen", "Ready for Home Screen") : t("more.ready_for_preview", "Ready for preview")}</Text>
                   <Text style={styles.nativeInstallText}>
-                    {nativeWidgetStatus.state === "synced" ? t("more.phone_widget_data", "Phone widget data") : t("more.install_native_app", "Install native app")}
+                    {isNativeStudioType
+                      ? nativeWidgetStatus.state === "synced" ? t("more.phone_widget_data", "Phone widget data") : t("more.install_native_app", "Install native app")
+                      : t("more.studio_preview", "Studio preview")}
                   </Text>
                 </View>
                 <Text style={styles.placementGuideTitle}>
-                  {formatMore(t("more.place_ios_title", "Save preset. Add {name} from iOS."), { name: selectedNativeName })}
+                  {isNativeStudioType
+                    ? formatMore(t("more.place_ios_title", "Save this look, then add {name} on iPhone."), { name: selectedWidgetName })
+                    : t("more.place_studio_title", "Save this look for your in-app widget set.")}
                 </Text>
                 <Text style={styles.placementGuideCopy}>
-                  {formatMore(t("more.native_style_fields", "Saved fields: widget, data mode, class filter, theme, layout, and last sync. Add exactly {name} from the iOS widget gallery."), { name: selectedNativeName })}
+                  {isNativeStudioType
+                    ? formatMore(t("more.native_style_fields", "Your saved {name} keeps this data, class focus, palette, and layout together."), { name: selectedWidgetName })
+                    : t("more.studio_style_fields", "Your saved preset keeps this data, palette, and layout together.")}
                 </Text>
                 <Text style={styles.placementGuideCopy}>
                   {formatMore(t("more.last_synced", "Last synced: {time}"), {
@@ -681,10 +746,9 @@ export function MoreScreen({
               </View>
               <View style={styles.primaryActionRow}>
                 <AppButton
-                  label={primaryActionLabel}
+                  label={t("more.save_preset", "Save preset")}
                   icon={CheckCircle2}
                   onPress={saveCurrentPreset}
-                  disabled={classSelectionMissing}
                   style={styles.primaryStudioAction}
                 />
                 <AppButton label={t("more.reset", "Reset")} variant="secondary" icon={SlidersHorizontal} onPress={onResetWidgetPresets} style={styles.secondaryStudioAction} />
@@ -694,8 +758,23 @@ export function MoreScreen({
         </View>
 
         <View style={styles.studioPickerRail}>
-          {starterTemplates.slice(0, 4).map((template) => {
-            const Icon = template.preset.type === "today" ? ListChecks : template.preset.type === "due_next" ? Clock3 : template.preset.type === "class_focus" ? BookOpen : CalendarDays;
+          {starterTemplates.map((template) => {
+            const Icon =
+              template.preset.type === "today"
+                ? ListChecks
+                : template.preset.type === "due_next"
+                  ? Clock3
+                  : template.preset.type === "class_focus"
+                    ? BookOpen
+                    : template.preset.type === "needs_check"
+                      ? Bell
+                      : template.preset.type === "empty"
+                        ? CheckCircle2
+                        : template.preset.type === "focus"
+                          ? Timer
+                          : template.preset.type === "streak"
+                            ? TrendingUp
+                            : CalendarDays;
             const active = template.preset.type === type;
             return (
               <TouchableOpacity
@@ -721,11 +800,30 @@ export function MoreScreen({
         <GlassCard style={styles.instantControlsCard}>
           <View style={styles.instantControlsHeader}>
             <View>
-              <Text style={styles.instantControlsKicker}>{t("more.step_data", "Data")}</Text>
-              <Text style={styles.instantControlsTitle}>{t("more.data_style_title", "Choose real rows, layout, and saved widget style.")}</Text>
+              <Text style={styles.instantControlsKicker}>{t("more.personalization", "Personalization")}</Text>
+              <Text style={styles.instantControlsTitle}>{t("more.data_style_title", "Choose what it shows, how big it is, and the vibe.")}</Text>
             </View>
             <ArrowRight color={colors.accent} size={18} />
           </View>
+
+          <ControlLabel title={t("more.widget_size", "Size")} />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.instantSizeRail}>
+            {widgetSizes.map((option) => {
+              const active = option === size;
+              return (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  key={option}
+                  style={[styles.instantSizeCard, active ? styles.sizeCardActive : null]}
+                  onPress={() => setSize(option)}
+                >
+                  <Text style={styles.sizeTitle} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>{sizeLabel(option)}</Text>
+                  <Text style={styles.sizeDetail}>{sizeDetails[option]}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
 
           <ControlLabel title={t("more.what_data", "What data")} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.instantSizeRail}>
@@ -792,26 +890,50 @@ export function MoreScreen({
             })}
           </ScrollView>
 
-          <ControlLabel title={t("more.step_style", "Style")} />
+          <ControlLabel title={t("more.step_style", "Palette")} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.paletteRail}>
-            {widgetThemeOrder.map((option) => {
-              const stylePreset = resolveWidgetTheme(option);
-              const swatches = themePalettes[stylePreset.palette];
-              const active = option === styleChoice;
+            {studioPaletteOptions.map((option) => {
+              const swatches = themePalettes[option.palette];
+              const active = option.background === background && option.palette === palette;
               return (
                 <TouchableOpacity
                   accessibilityRole="button"
                   accessibilityState={{ selected: active }}
-                  key={option}
+                  key={option.id}
                   style={[styles.paletteButton, active ? styles.paletteButtonActive : null]}
-                  onPress={() => applyStyleChoice(option)}
+                  onPress={() => applyStudioPalette(option)}
                 >
+                  <View style={[styles.paletteMiniWidget, { backgroundColor: option.background === "light" ? "#FFF8EA" : swatches[0] }]}>
+                    <View style={[styles.paletteMiniTop, { backgroundColor: swatches[1] }]} />
+                    <View style={[styles.paletteMiniLine, { backgroundColor: option.background === "light" ? "#172033" : "#FFFFFF" }]} />
+                    <View style={[styles.paletteMiniLineShort, { backgroundColor: swatches[2] || swatches[1] }]} />
+                  </View>
                   <View style={styles.paletteDots}>
                     {swatches.map((swatch) => (
                       <View key={swatch} style={[styles.paletteDot, { backgroundColor: swatch }]} />
                     ))}
                   </View>
-                  <Text style={styles.paletteName} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{styleChoiceLabels[option]}</Text>
+                  <Text style={styles.paletteName} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{option.label}</Text>
+                  <Text style={styles.paletteDetail} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{option.detail}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          <ControlLabel title={t("more.type_feel", "Type feel")} />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.instantSizeRail}>
+            {(["SF Pro", "Rounded", "New York", "Mono"] as WidgetPreset["font"][]).map((option) => {
+              const active = option === font;
+              return (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  key={option}
+                  style={[styles.instantSizeCard, active ? styles.sizeCardActive : null]}
+                  onPress={() => setFont(option)}
+                >
+                  <Text style={styles.sizeTitle} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>{option}</Text>
+                  <Text style={styles.sizeDetail}>{option === "Mono" ? t("more.font_mono_detail", "Numbers") : option === "Rounded" ? t("more.font_rounded_detail", "Soft") : t("more.font_default_detail", "Readable")}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -845,7 +967,7 @@ export function MoreScreen({
           <View style={styles.agendaColumn}>
             <Text style={styles.agendaColumnKicker}>{t("more.what_data", "What data")}</Text>
             <Text style={styles.agendaColumnTitle}>{t("more.native_data_title", "Widgets use live planner data")}</Text>
-            <Text style={styles.agendaEmptyText}>{t("more.native_data_copy", "StudyPlanner sends reviewed planner rows to WidgetKit. Students still place widgets from iOS.")}</Text>
+            <Text style={styles.agendaEmptyText}>{t("more.native_data_copy", "Reviewed planner work powers this preview and the Home Screen widget.")}</Text>
             <View style={styles.nativeTruthGrid}>
               {widgetReadiness.slice(0, 4).map((item) => (
                 <View key={item.label} style={styles.nativeTruthPill}>
@@ -890,7 +1012,7 @@ export function MoreScreen({
           <SettingToggle
             icon={GraduationCap}
             title={t("more.widget_sync", "Widget sync")}
-            detail={t("more.widget_sync_detail", "Share reviewed planner snapshots with native widgets.")}
+            detail={t("more.widget_sync_detail", "Keep Home Screen widgets matched to reviewed planner work.")}
             active={settings.syncEnabled}
             onPress={() => onUpdateSettings({ syncEnabled: !settings.syncEnabled })}
           />
@@ -984,7 +1106,7 @@ export function MoreScreen({
           })}
         </View>
       </GlassCard>
-      <SectionHeader title={t("more.saved_presets", "Saved presets")} note={t("more.saved_presets_note", "Saved presets write real native widget state for the Home Screen.")} />
+      <SectionHeader title={t("more.saved_presets", "Saved presets")} note={t("more.saved_presets_note", "Mini widgets you can load, tune, and save again.")} />
       <GlassCard style={styles.savedCard}>
         {!hasSavedPresets ? (
           <View style={styles.savedEmpty}>
@@ -1012,8 +1134,10 @@ export function MoreScreen({
               setEditingPresetId(preset.id);
             }}
           >
-            <View style={[styles.savedIcon, { backgroundColor: themePalettes[preset.palette][1] || colors.accent }]}>
-              <Text style={styles.savedIconText}>{preset.size === "large" ? "L" : preset.size === "medium" ? "M" : "S"}</Text>
+            <View style={[styles.savedMiniWidget, { backgroundColor: preset.background === "light" ? "#FFF8EA" : themePalettes[preset.palette][0] }]}>
+              <View style={[styles.savedMiniRail, { backgroundColor: themePalettes[preset.palette][1] || colors.accent }]} />
+              <Text style={[styles.savedMiniValue, { color: preset.background === "light" ? "#172033" : "#FFFFFF" }]}>{preset.size === "medium" ? "2" : "1"}</Text>
+              <View style={[styles.savedMiniLine, { backgroundColor: themePalettes[preset.palette][2] || colors.accent }]} />
             </View>
             <View style={styles.savedCopy}>
               <Text style={styles.savedTitle}>{preset.name}</Text>
@@ -1028,7 +1152,7 @@ export function MoreScreen({
       <GlassCard style={styles.helpCard}>
         <View style={styles.helpStep}>
           <Text style={styles.helpNumber}>1</Text>
-          <Text style={styles.helpText}>{t("more.help_add_widgets", "Add StudyPlanner Today, Upcoming, Week, or Class Progress from the iOS widget gallery.")}</Text>
+          <Text style={styles.helpText}>{t("more.help_add_widgets", "Choose StudyPlanner Today, Upcoming, Week, or Class Progress from iPhone widgets.")}</Text>
         </View>
         <View style={styles.helpStep}>
           <Text style={styles.helpNumber}>2</Text>
@@ -1036,7 +1160,7 @@ export function MoreScreen({
         </View>
         <View style={styles.helpStep}>
           <Text style={styles.helpNumber}>3</Text>
-          <Text style={styles.helpText}>{t("more.help_notifications", "Notification permission is only needed for reminders; native widgets work from the shared reviewed snapshot.")}</Text>
+          <Text style={styles.helpText}>{t("more.help_notifications", "Notification permission is only needed for reminders; widgets use reviewed planner work.")}</Text>
         </View>
       </GlassCard>
     </View>
@@ -1341,11 +1465,40 @@ function createStyles(theme: AppTheme) {
     studioCanvas: {
       gap: spacing.sm
     },
+    wallpaperToggle: {
+      alignSelf: "flex-start",
+      minHeight: 34,
+      borderRadius: radii.round,
+      padding: 4,
+      flexDirection: "row",
+      gap: 4,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.70)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(15,23,42,0.08)"
+    },
+    wallpaperChip: {
+      minHeight: 26,
+      borderRadius: radii.round,
+      paddingHorizontal: 11,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    wallpaperChipActive: {
+      backgroundColor: colors.accent
+    },
+    wallpaperChipText: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    wallpaperChipTextActive: {
+      color: colors.accentText
+    },
     phoneFrame: {
       borderRadius: radii.xl,
       borderWidth: 1,
       borderColor: theme.isDark ? "rgba(255,255,255,0.20)" : "rgba(255,255,255,0.78)",
-      backgroundColor: theme.isDark ? "#070A12" : "#E7EEF8",
       padding: spacing.sm,
       gap: spacing.xs,
       alignItems: "center",
@@ -1354,6 +1507,12 @@ function createStyles(theme: AppTheme) {
       shadowRadius: 16,
       shadowOffset: { width: 0, height: 10 },
       elevation: 7
+    },
+    phoneFrameInk: {
+      backgroundColor: theme.isDark ? "#05070B" : "#172033"
+    },
+    phoneFrameSoft: {
+      backgroundColor: theme.isDark ? "#111827" : "#EAF0F8"
     },
     phoneStage: {
       padding: spacing.xs
@@ -1396,7 +1555,9 @@ function createStyles(theme: AppTheme) {
       justifyContent: "center",
       paddingVertical: spacing.sm,
       borderRadius: radii.xl,
-      backgroundColor: theme.isDark ? "rgba(255,255,255,0.035)" : "rgba(255,255,255,0.36)"
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.035)" : "rgba(3,10,24,0.20)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.28)"
     },
     simpleWidgetCard: {
       width: "78%",
@@ -2965,7 +3126,7 @@ function createStyles(theme: AppTheme) {
       paddingRight: spacing.md
     },
     paletteButton: {
-      width: 96,
+      width: 128,
       borderRadius: radii.lg,
       borderWidth: 1,
       borderColor: colors.line,
@@ -2983,14 +3144,46 @@ function createStyles(theme: AppTheme) {
     },
     paletteDot: {
       flex: 1,
-      height: 28,
-      borderRadius: 10
+      height: 10,
+      borderRadius: 5
+    },
+    paletteMiniWidget: {
+      height: 56,
+      borderRadius: radii.md,
+      padding: 8,
+      overflow: "hidden",
+      gap: 5,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.18)" : "rgba(15,23,42,0.08)"
+    },
+    paletteMiniTop: {
+      width: 30,
+      height: 5,
+      borderRadius: 3
+    },
+    paletteMiniLine: {
+      width: "74%",
+      height: 7,
+      borderRadius: 4,
+      opacity: 0.88
+    },
+    paletteMiniLineShort: {
+      width: "48%",
+      height: 6,
+      borderRadius: 4,
+      opacity: 0.9
     },
     paletteName: {
       color: colors.ink,
       fontSize: 12,
       lineHeight: 16,
       fontWeight: "900"
+    },
+    paletteDetail: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "800"
     },
     layoutRail: {
       gap: spacing.xs,
@@ -3173,16 +3366,32 @@ function createStyles(theme: AppTheme) {
     savedRowActive: {
       backgroundColor: colors.accentSoft
     },
-    savedIcon: {
-      width: 34,
-      height: 34,
-      borderRadius: 12,
-      alignItems: "center",
-      justifyContent: "center"
+    savedMiniWidget: {
+      width: 52,
+      height: 40,
+      borderRadius: 13,
+      padding: 7,
+      gap: 3,
+      overflow: "hidden",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(15,23,42,0.08)"
     },
-    savedIconText: {
-      fontSize: 16,
-      lineHeight: 20
+    savedMiniRail: {
+      position: "absolute",
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: 4
+    },
+    savedMiniValue: {
+      fontSize: 15,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    savedMiniLine: {
+      width: "72%",
+      height: 5,
+      borderRadius: 3
     },
     savedCopy: {
       flex: 1,

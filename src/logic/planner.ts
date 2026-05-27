@@ -14,8 +14,10 @@ import {
 } from "../models";
 import {
   buildCanonicalWidgetPreset,
+  defaultDataModeForWidgetKind,
   ensureCanonicalWidgetPresets,
-  replaceCanonicalWidgetPreset
+  replaceCanonicalWidgetPreset,
+  widgetKindForType
 } from "../widgets/widgetPresets";
 import { resolveWidgetLayoutPlan, WidgetLayoutPlan } from "../widgets/widgetLayoutEngine";
 
@@ -482,34 +484,40 @@ export function getWidgetData(
   notes: StudyNote[] = [],
   locale = "en-US"
 ): WidgetData {
-  const next = getNextUp(assignments, now);
-  const dueToday = getDueToday(assignments, now);
-  const dueSoon = getDueSoon(assignments, now);
-  const needsReview = getNeedsReview(assignments);
+  const scopedAssignments = filterWidgetAssignmentsForPreset(assignments, courses, preset, now);
+  const progressAssignments = filterWidgetProgressAssignments(assignments, courses, preset, now);
+  const next = getNextUp(scopedAssignments, now);
+  const dueToday = getTodayWidgetRows(scopedAssignments, now);
+  const needsReview = getNeedsReview(scopedAssignments);
   const todayStats = getAssignmentCompletionStats(
-    assignments.filter(
+    progressAssignments.filter(
       (assignment) =>
         assignment.status !== "archived" &&
         isValidDeadline(assignment.dueAt) &&
         !assignment.needsReview &&
         !assignment.duplicateOf &&
-        isSameDay(new Date(assignment.dueAt), now)
+        daysUntil(assignment.dueAt, now) <= 0
     )
   );
-  const weekStats = getWeekCompletionStats(assignments, now);
-  const weekLoad = getWeekLoad(assignments, now);
+  const weekStats = getWeekCompletionStats(progressAssignments, now);
+  const weekLoad = getWeekLoad(scopedAssignments, now);
   const focusStats = getFocusCompletionStats(focusSessions, now);
-  const completionStreak = calculateCompletionStreak(assignments, now);
+  const completionStreak = calculateCompletionStreak(progressAssignments, now);
   const pinnedNotes = getPinnedNotes(notes);
-  const activeAssignments = assignments.filter(isActiveAssignment);
-  const doneAssignments = assignments.filter((assignment) => assignment.status === "done");
+  const activeAssignments = scopedAssignments.filter(isActiveAssignment);
+  const doneAssignments = progressAssignments.filter((assignment) => assignment.status === "done");
   const totalProgressItems = Math.max(1, activeAssignments.length + doneAssignments.length);
   const course = preset.classFocusCourseId
     ? courses.find((item) => item.id === preset.classFocusCourseId)
     : undefined;
   const classItems = course
-    ? assignments.filter((assignment) => assignment.courseId === course.id && assignment.status !== "archived")
-    : [];
+    ? scopedAssignments.filter((assignment) => assignment.courseId === course.id && assignment.status !== "archived")
+    : scopedAssignments.filter((assignment) => assignment.status !== "archived");
+  const classStats = getAssignmentCompletionStats(
+    (course ? progressAssignments.filter((assignment) => assignment.courseId === course.id) : progressAssignments)
+      .filter((assignment) => !assignment.needsReview && !assignment.duplicateOf)
+  );
+  const classLabel = course?.code || "All";
 
   const byType: Record<WidgetType, WidgetData> = {
     due_next: {
@@ -540,20 +548,20 @@ export function getWidgetData(
       headline: "Week Workload",
       value: weekStats.total ? `${Math.round(weekStats.progress * 100)}%` : "Clear",
       detail: weekStats.total ? weekStats.label : "No workload this week",
-      items: dueSoon,
+      items: getWeekWidgetRows(scopedAssignments, now),
       weekLoad,
       progress: weekStats.progress,
       progressLabel: weekStats.total ? weekStats.label : "No workload this week"
     },
     class_focus: {
-      headline: "Class Progress",
-      value: course?.code || "Class",
-      detail: getAssignmentCompletionStats(classItems).label,
+      headline: course ? "Class Progress" : "All Classes",
+      value: classLabel,
+      detail: classStats.total ? classStats.label : "No open work",
       items: classItems,
       course,
       accent: course?.color,
-      progress: getAssignmentCompletionStats(classItems).progress,
-      progressLabel: getAssignmentCompletionStats(classItems).label
+      progress: classStats.progress,
+      progressLabel: classStats.total ? classStats.label : "No open work"
     },
     empty: {
       headline: "All Done",
@@ -595,6 +603,83 @@ export function getWidgetData(
     items: widgetData.items.slice(0, layoutPlan.maxRows),
     layoutPlan
   };
+}
+
+function filterWidgetAssignmentsForPreset(
+  assignments: Assignment[],
+  courses: Course[],
+  preset: WidgetPreset,
+  now: Date
+) {
+  const dataMode = preset.dataMode || defaultDataModeForWidgetKind(widgetKindForType(preset.type));
+  let scoped = assignments.filter((assignment) => assignment.status !== "archived");
+  const selectedCourseExists = Boolean(
+    preset.classFocusCourseId && courses.some((course) => course.id === preset.classFocusCourseId)
+  );
+
+  if ((dataMode === "single_class" || preset.classFocusCourseId) && selectedCourseExists) {
+    scoped = scoped.filter((assignment) => assignment.courseId === preset.classFocusCourseId);
+  }
+
+  if (preset.type === "needs_check" || preset.type === "class_focus") {
+    return scoped.slice().sort((a, b) => scoreWork(b, now) - scoreWork(a, now));
+  }
+
+  if (dataMode === "today") return getTodayWidgetRows(scoped, now);
+  if (dataMode === "this_week") return getWeekWidgetRows(scoped, now);
+  if (dataMode === "urgent_only") {
+    return scoped
+      .filter((assignment) => {
+        if (assignment.needsReview || assignment.duplicateOf || !isValidDeadline(assignment.dueAt)) return true;
+        return assignment.priority === "high" || daysUntil(assignment.dueAt, now) <= 1;
+      })
+      .sort((a, b) => scoreWork(b, now) - scoreWork(a, now));
+  }
+
+  const sorted = scoped.slice().sort((a, b) => scoreWork(b, now) - scoreWork(a, now));
+  if (dataMode === "next_up") return sorted.slice(0, 1);
+  if (dataMode === "next3") return sorted.slice(0, 3);
+  return sorted;
+}
+
+function filterWidgetProgressAssignments(
+  assignments: Assignment[],
+  courses: Course[],
+  preset: WidgetPreset,
+  now: Date
+) {
+  const dataMode = preset.dataMode || defaultDataModeForWidgetKind(widgetKindForType(preset.type));
+  let scoped = assignments.filter((assignment) => assignment.status !== "archived");
+  const selectedCourseExists = Boolean(
+    preset.classFocusCourseId && courses.some((course) => course.id === preset.classFocusCourseId)
+  );
+
+  if ((dataMode === "single_class" || preset.classFocusCourseId) && selectedCourseExists) {
+    scoped = scoped.filter((assignment) => assignment.courseId === preset.classFocusCourseId);
+  }
+
+  if (dataMode === "today") {
+    return scoped.filter((assignment) => isValidDeadline(assignment.dueAt) && daysUntil(assignment.dueAt, now) <= 0);
+  }
+  if (dataMode === "this_week") return getWeekWidgetRows(scoped, now);
+  if (dataMode === "urgent_only") {
+    return scoped.filter(
+      (assignment) => assignment.priority === "high" || (isValidDeadline(assignment.dueAt) && daysUntil(assignment.dueAt, now) <= 1)
+    );
+  }
+  return scoped;
+}
+
+function getTodayWidgetRows(assignments: Assignment[], now: Date) {
+  return assignments
+    .filter((assignment) => isActiveAssignment(assignment) && isValidDeadline(assignment.dueAt) && daysUntil(assignment.dueAt, now) <= 0)
+    .sort((a, b) => scoreWork(b, now) - scoreWork(a, now));
+}
+
+function getWeekWidgetRows(assignments: Assignment[], now: Date) {
+  return assignments
+    .filter((assignment) => isActiveAssignment(assignment) && isValidDeadline(assignment.dueAt) && daysUntil(assignment.dueAt, now) <= 6)
+    .sort((a, b) => scoreWork(b, now) - scoreWork(a, now));
 }
 
 export function getRecommendedWidgetPreset(

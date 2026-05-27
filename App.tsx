@@ -1674,11 +1674,11 @@ function buildAppSystemState(
 
   if (flaggedAssignments.length > 0) {
     return {
-      title: t("app.system_review_title", "Review before it powers the plan."),
+      title: t("app.system_review_title", "A few items need a quick look."),
       detail: formatAppText(
         flaggedAssignments.length === 1
-          ? t("app.system_review_detail_one", "{count} item still needs a date, duplicate check, or confidence pass before it should drive Today and widgets.")
-          : t("app.system_review_detail_count", "{count} items still need a date, duplicate check, or confidence pass before they should drive Today and widgets."),
+          ? t("app.system_review_detail_one", "{count} item needs a date or duplicate check before it appears in Today and widgets.")
+          : t("app.system_review_detail_count", "{count} items need a date or duplicate check before they appear in Today and widgets."),
         { count: flaggedAssignments.length }
       ),
       badge: t("today.metric_review", "Review"),

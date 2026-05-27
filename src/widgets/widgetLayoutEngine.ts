@@ -8,22 +8,41 @@ import type {
 
 export type WidgetCompressionMode = "standard" | "compact" | "tight" | "fallback";
 export type WidgetRowDensity = "calm" | "standard" | "dense";
+export type WidgetLayoutContext =
+  | "native"
+  | "studio_preview"
+  | "library_preview"
+  | "home_mock"
+  | "lock_mock"
+  | "screenshot_validation";
+export type WidgetAppearance = "light" | "dark";
+export type WidgetMetadataPriority = "none" | "status" | "class_due" | "insight";
 
 export type WidgetLayoutPlan = {
   version: 1;
   widgetType: WidgetType;
   size: WidgetSize;
+  context: WidgetLayoutContext;
+  appearance: WidgetAppearance;
   locale: string;
   availableWidth: number;
   availableHeight: number;
   maxRows: number;
+  rowBudget: number;
   maxTitleLines: number;
+  titleLineLimit: number;
+  subtitleLineLimit: number;
   metadataVisible: boolean;
+  metadataPriority: WidgetMetadataPriority;
   ctaVisible: boolean;
   iconVisible: boolean;
   weekRailVisible: boolean;
   progressVisible: boolean;
   footerVisible: boolean;
+  showClassChip: boolean;
+  showDueTime: boolean;
+  showFooter: boolean;
+  showInsightText: boolean;
   fontScale: number;
   compressionMode: WidgetCompressionMode;
   rowDensity: WidgetRowDensity;
@@ -31,18 +50,32 @@ export type WidgetLayoutPlan = {
   topSafeInset: number;
   bottomSafeInset: number;
   titleMaxChars: number;
+  subtitleMaxChars: number;
   emptyState: boolean;
+  emptyMode: boolean;
+  fallbackMode: boolean;
+  compactMode: boolean;
   overflowState: boolean;
+  contentHeightBudget: number;
+  rowHeight: number;
+  headerHeight: number;
+  titleBlockHeight: number;
+  metadataHeight: number;
+  footerHeight: number;
   noCropGuarantee: true;
 };
 
 type ResolveWidgetLayoutPlanInput = {
   widgetType: WidgetType;
   size: WidgetSize;
+  context?: WidgetLayoutContext;
+  appearance?: WidgetAppearance;
   locale?: string;
   layout?: WidgetLayout;
   background?: WidgetBackground;
   palette?: WidgetPalette;
+  theme?: string;
+  classFocus?: string;
   availableWidth?: number;
   availableHeight?: number;
   itemCount?: number;
@@ -64,6 +97,8 @@ const pseudoLocalePrefixes = ["en-xa", "en-xb", "ar-xb"];
 
 export function resolveWidgetLayoutPlan(input: ResolveWidgetLayoutPlanInput): WidgetLayoutPlan {
   const frame = widgetFrameBySize[input.size] || widgetFrameBySize.medium;
+  const context = input.context || (input.size.startsWith("lock") ? "lock_mock" : "studio_preview");
+  const appearance = input.appearance || (input.background === "light" ? "light" : "dark");
   const locale = input.locale || "en-US";
   const availableWidth = input.availableWidth || frame.width;
   const availableHeight = input.availableHeight || frame.height;
@@ -82,32 +117,49 @@ export function resolveWidgetLayoutPlan(input: ResolveWidgetLayoutPlanInput): Wi
   const density = resolveRowDensity(input.layout, input.size, localePressure);
   const compressionMode = resolveCompressionMode(input.size, localePressure, itemCount, input.widgetType);
   const maxRows = lockSize ? 0 : resolveMaxRows(input.widgetType, input.size, itemCount, localePressure, density);
-  const maxTitleLines = lockSize ? 1 : small ? 2 : input.widgetType === "due_next" ? 2 : 1;
-  const metadataVisible = !lockSize && !small && compressionMode !== "tight" && !emptyState;
+  const fallbackMode = compressionMode === "fallback" || (small && itemCount > 1 && localePressure > 0);
+  const compactMode = compressionMode === "compact" || compressionMode === "tight" || fallbackMode;
+  const maxTitleLines = lockSize ? 1 : small ? 2 : large ? 2 : input.widgetType === "due_next" ? 2 : 1;
+  const metadataVisible = !lockSize && !small && compressionMode !== "tight" && !emptyState && maxRows > 0;
   const progressVisible = !lockSize && !emptyState && (large || (medium && progressType)) && compressionMode !== "tight";
   const weekRailVisible = !lockSize && week && (medium || large) && compressionMode !== "fallback";
-  const footerVisible = !lockSize && large;
-  const ctaVisible = !lockSize && large && compressionMode === "standard";
+  const footerVisible = !lockSize && large && !week && maxRows < 4 && compressionMode === "standard";
+  const ctaVisible = !lockSize && large && compressionMode === "standard" && maxRows <= 3;
   const iconVisible = !lockSize && !medium && !week && !progressType && compressionMode === "standard";
   const fontScale = resolveFontScale(input.size, compressionMode, compactLocale);
   const safePadding = resolveSafePadding(input.size, compressionMode);
   const titleMaxChars = resolveTitleMaxChars(input.widgetType, input.size, compressionMode, localePressure);
+  const rowHeight = resolveRowHeight(input.size, density, compressionMode);
+  const headerHeight = lockSize ? 0 : small ? 25 : 27;
+  const titleBlockHeight = Math.ceil(maxTitleLines * (small ? 17 : medium ? 16 : 18) * fontScale);
+  const metadataHeight = metadataVisible || small ? Math.ceil((small ? 14 : 13) * fontScale) : 0;
+  const footerHeight = footerVisible ? 14 : 0;
 
   return {
     version: 1,
     widgetType: input.widgetType,
     size: input.size,
+    context,
+    appearance,
     locale,
     availableWidth,
     availableHeight,
     maxRows,
+    rowBudget: maxRows,
     maxTitleLines,
+    titleLineLimit: maxTitleLines,
+    subtitleLineLimit: lockSize ? 1 : small ? 1 : 2,
     metadataVisible,
+    metadataPriority: resolveMetadataPriority(input.widgetType, input.size, maxRows, emptyState),
     ctaVisible,
     iconVisible,
     weekRailVisible,
     progressVisible,
     footerVisible,
+    showClassChip: !lockSize && maxRows > 0 && input.widgetType !== "week" && input.widgetType !== "streak",
+    showDueTime: !lockSize && maxRows > 0 && input.widgetType !== "streak",
+    showFooter: footerVisible,
+    showInsightText: !lockSize && (week || large) && !emptyState,
     fontScale,
     compressionMode,
     rowDensity: density,
@@ -115,8 +167,18 @@ export function resolveWidgetLayoutPlan(input: ResolveWidgetLayoutPlanInput): Wi
     topSafeInset: safePadding,
     bottomSafeInset: Math.max(8, safePadding - 2),
     titleMaxChars,
+    subtitleMaxChars: Math.max(24, titleMaxChars - 8),
     emptyState,
+    emptyMode: emptyState,
+    fallbackMode,
+    compactMode,
     overflowState: itemCount > maxRows,
+    contentHeightBudget: Math.max(0, availableHeight - safePadding * 2),
+    rowHeight,
+    headerHeight,
+    titleBlockHeight,
+    metadataHeight,
+    footerHeight,
     noCropGuarantee: true
   };
 }
@@ -183,7 +245,7 @@ function resolveMaxRows(
   if (size === "large") {
     if (widgetType === "week") return 0;
     if (widgetType === "empty" || widgetType === "streak") return 0;
-    return Math.min(itemCount, localePressure > 0 ? 4 : 5);
+    return Math.min(itemCount, 4);
   }
 
   return 0;
@@ -220,6 +282,25 @@ function resolveTitleMaxChars(
         : 64;
   const pressure = compressionMode === "tight" ? 8 : compressionMode === "compact" ? 4 : 0;
   return Math.max(22, base - pressure - localePressure * 4);
+}
+
+function resolveRowHeight(size: WidgetSize, density: WidgetRowDensity, compressionMode: WidgetCompressionMode) {
+  if (size.startsWith("lock")) return 0;
+  if (size === "small") return compressionMode === "tight" ? 15 : 16;
+  if (size === "medium") return density === "dense" ? 17 : 18;
+  return density === "dense" ? 20 : 22;
+}
+
+function resolveMetadataPriority(
+  widgetType: WidgetType,
+  size: WidgetSize,
+  maxRows: number,
+  emptyState: boolean
+): WidgetMetadataPriority {
+  if (size.startsWith("lock") || emptyState) return "none";
+  if (widgetType === "week") return "insight";
+  if (maxRows > 0) return "class_due";
+  return "status";
 }
 
 function normalizeLocaleForLayout(locale: string) {

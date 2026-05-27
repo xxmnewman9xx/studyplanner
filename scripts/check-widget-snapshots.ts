@@ -454,8 +454,10 @@ const classProgressRequiredSnapshots = buildStudyPlannerWidgetSnapshots({
   now
 });
 assert(
-  classProgressRequiredSnapshots.classProgress.detail === "Choose a class first",
-  "Class Progress without a selected class should show a required-class state."
+  classProgressRequiredSnapshots.classProgress.state === "ready" &&
+    classProgressRequiredSnapshots.classProgress.timelineLabel === "All classes" &&
+    classProgressRequiredSnapshots.classProgress.items.length > 0,
+  "Class Progress without a selected class should fall back to useful All Classes data."
 );
 
 const needsReviewSnapshots = buildStudyPlannerWidgetSnapshots({
@@ -533,8 +535,8 @@ assert(
     widgetStudioSource.includes("Install native app") &&
     widgetStudioSource.includes("nativeProgress={nativePreview?.progress}") &&
     widgetStudioSource.includes("previewWidgetPresets") &&
-    widgetStudioSource.includes("Saved fields: widget, data mode, class filter, theme, layout, and last sync"),
-  "Widget Studio should preview draft native presets and name only real saved native fields."
+    widgetStudioSource.includes("Your saved {name} keeps this data, class focus, palette, and layout together."),
+  "Widget Studio should preview draft native presets with product-facing saved-preset copy."
 );
 
 assert(
@@ -542,10 +544,11 @@ assert(
     widgetStudioSource.includes("allowedDataModes") &&
     widgetStudioSource.includes("allowedLayouts") &&
     widgetStudioSource.includes("styleChoice") &&
-    widgetStudioSource.includes("widgetThemeOrder") &&
-    widgetStudioSource.includes("high_contrast") &&
+    widgetStudioSource.includes("studioPaletteOptions") &&
+    widgetStudioSource.includes("stageWallpaper") &&
+    widgetStudioSource.includes("setFont(option)") &&
     widgetStudioSource.includes("single_class"),
-  "Widget Studio should expose the target four-step data and style controls."
+  "Widget Studio should expose real data, size, palette, wallpaper, font, class, and layout controls."
 );
 
 assert(

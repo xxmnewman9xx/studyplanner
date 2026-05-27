@@ -214,6 +214,9 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
   const classProgressAssignments = classProgressCourse
     ? classAssignments.filter((assignment) => assignment.courseId === classProgressCourse.id)
     : classAssignments;
+  const classProgressScopeLabel = classProgressCourse
+    ? classProgressCourse.code
+    : t("widget_snapshot.all_classes", "All classes");
   const classProgressStats = getAssignmentCompletionStats(
     filterAssignmentsForPreset(reviewedProgressAssignments, classProgressPreset, input.courses, now).filter(
       (assignment) => !classProgressCourse || assignment.courseId === classProgressCourse.id
@@ -636,13 +639,15 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
             weekdayCounts: weekLoad.map((day) => day.items.length)
           }),
     classProgress:
-      classProgressCourse
+      classProgressAssignments.length > 0 || classProgressStats.total > 0
         ? {
             ...base,
             kind: "class_progress" as const,
             state: "ready" as const,
-            headline: t("widget_snapshot.class_progress", "Class Progress"),
-            value: privacyMode ? t("widget_snapshot.class", "Class") : classProgressCourse.code,
+            headline: classProgressCourse
+              ? t("widget_snapshot.class_progress", "Class Progress")
+              : t("widget_snapshot.all_classes", "All classes"),
+            value: privacyMode ? t("widget_snapshot.class", "Class") : classProgressCourse?.code || t("widget_snapshot.all", "All"),
             detail: classProgressStats.total
               ? formatSnapshotTemplate(t("widget_snapshot.complete_count", "{done} of {total} complete"), {
                   done: classProgressStats.done,
@@ -657,7 +662,9 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
             ...classProgressStyle,
             accentColor: classAccent,
             progress: classProgressStats.total > 0 ? classProgressStats.progress : 0,
-            signalLabel: t("widget_snapshot.class_progress", "Class Progress"),
+            signalLabel: classProgressCourse
+              ? t("widget_snapshot.class_progress", "Class Progress")
+              : t("widget_snapshot.class_focus", "Class Focus"),
             metricLabel: classProgressStats.total
               ? formatSnapshotTemplate(t("widget_snapshot.complete_count", "{done} of {total} complete"), {
                   done: classProgressStats.done,
@@ -667,18 +674,29 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
             nextLabel: classNext
               ? assignmentSignal(classNext, input.courses, now, privacyMode, t, locale)
               : t("widget_snapshot.add_homework_when_appears", "Add homework when it appears"),
-            timelineLabel: privacyMode ? t("widget_snapshot.class", "Class") : classProgressCourse.code,
+            timelineLabel: privacyMode ? t("widget_snapshot.class", "Class") : classProgressScopeLabel,
             items: classProgressAssignments.slice(0, 3).map((assignment) => toWidgetItem(assignment, input.courses, now, privacyMode, classAccent, t, locale))
           }
-        : setupSnapshot(
-            "class_progress",
-            "no_classes",
-            t("widget_snapshot.class_progress", "Class Progress"),
-            t("widget_snapshot.class", "Class"),
-            t("widget_snapshot.choose_class_first", "Choose a class first"),
-            t("widget_snapshot.class_progress_requires_class", "Class Progress needs one selected class"),
-            classProgressStyle
-          )
+        : emptySnapshot({
+            ...base,
+            kind: "class_progress",
+            state: "no_upcoming",
+            headline: t("widget_snapshot.all_classes", "All classes"),
+            value: t("widget_snapshot.clear", "Clear"),
+            detail: t("widget_snapshot.no_open_work", "No open work"),
+            footnote: t("widget_snapshot.add_homework_when_appears", "Add homework when it appears"),
+            ...classProgressStyle,
+            progress: classProgressStats.total > 0 ? classProgressStats.progress : 0,
+            signalLabel: t("widget_snapshot.class_focus", "Class Focus"),
+            metricLabel: classProgressStats.total
+              ? formatSnapshotTemplate(t("widget_snapshot.complete_count", "{done} of {total} complete"), {
+                  done: classProgressStats.done,
+                  total: classProgressStats.total
+                })
+              : t("widget_snapshot.no_open_work", "No open work"),
+            nextLabel: t("widget_snapshot.add_homework_when_appears", "Add homework when it appears"),
+            timelineLabel: classProgressScopeLabel
+          })
   });
 }
 
@@ -1132,10 +1150,6 @@ function filterAssignmentsForPreset(assignments: Assignment[], preset?: WidgetPr
   let scoped = assignments;
   const kind = preset ? widgetKindForPreset(preset) : "upcoming";
   const dataMode: WidgetDataMode = preset?.dataMode || defaultDataModeForWidgetKind(kind);
-
-  if (dataMode === "single_class" && !preset?.classFocusCourseId) {
-    return [];
-  }
 
   if ((dataMode === "single_class" || preset?.classFocusCourseId) && preset?.classFocusCourseId && courses.some((course) => course.id === preset.classFocusCourseId)) {
     scoped = scoped.filter((assignment) => assignment.courseId === preset.classFocusCourseId);

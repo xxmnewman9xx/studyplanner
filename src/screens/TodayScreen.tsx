@@ -573,7 +573,7 @@ function buildLiveBrief(plan: ReturnType<typeof buildTodayBrain>, courseCount: n
   if (plan.needsReview.length > 0) {
     return {
       title: t("today.live_review_title", "Review imported work"),
-      detail: formatLocalized(t("today.live_review_detail", "{count} item(s) need a date, duplicate check, or confidence pass before the plan is trusted."), {
+      detail: formatLocalized(t("today.live_review_detail", "{count} item(s) need a date or duplicate check before they appear in your plan."), {
         count: String(plan.needsReview.length)
       })
     };

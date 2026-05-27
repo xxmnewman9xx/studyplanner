@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-27T16:28:54.035Z",
+  "generatedAt": "2026-05-27T19:10:43.375Z",
   "rootCause": "Native and preview layouts used independent fixed stacks and rendered optional rails/metrics/footer after assignment text. Tight Home Screen bounds clipped the bottom of overpacked widget content.",
   "decision": "Shared WidgetLayoutEngine now owns row counts, title lines, safe padding, compression mode, and optional metadata visibility. Native snapshots carry the resolved budgets; previews and QA use the same engine.",
   "result": "No core widget crop risk detected by layout-budget validation.",

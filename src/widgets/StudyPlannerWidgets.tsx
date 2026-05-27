@@ -40,7 +40,7 @@ function StudyPlannerWidgetLayout(props, environment) {
   var safePadding = isMedium ? (props.mediumSafePadding || 12) : (props.smallSafePadding || 10);
   var showFooter = isMedium ? props.mediumShowFooter === true : props.smallShowFooter === true;
   var showWeekRail = isMedium ? props.mediumShowWeekRail === true : props.smallShowWeekRail === true;
-  var showMetric = isMedium && props.kind === "class_progress";
+  var showMetric = isMedium && props.kind === "class_progress" && rowLimit === 0;
   var items = (props.items || []).slice(0, rowLimit);
   var firstItem = items.length > 0 ? items[0] : null;
   var accent = props.accentColor || "#2F80ED";
