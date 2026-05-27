@@ -121,7 +121,7 @@
   "nativeStatus": {
     "result": "partial",
     "build": "Clean temporary Expo prebuild, CocoaPods install, Debug build, and Release simulator build succeeded for SDK 55.",
-    "launch": "Release simulator app rendered StudyPlanner UI, including the existing pink logo, behind a lingering iOS URL handoff prompt on the reused simulator.",
+    "launch": "Release simulator app rendered StudyPlanner UI, including the existing verified StudyPlanner logo asset, behind a lingering iOS URL handoff prompt on the reused simulator.",
     "screenshotLimitation": "Deterministic route screenshots in marketing_exports/raw_screenshots/native_validation are invalid because the prompt/Expo Go mismatch overlay remained; they are not used for scoring."
   }
 }
