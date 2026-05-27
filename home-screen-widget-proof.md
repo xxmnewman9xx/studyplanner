@@ -1,24 +1,45 @@
 # Home Screen Widget Proof
 
-Date: 2026-05-26
+Proof folder: `AppStore/Real4WidgetStudio-2026-05-26/screenshots`
 
-Result: pass.
+## Studio screenshots
 
-The proof was captured from the native iOS simulator, not mocked overlays. Widgets were added through SpringBoard's real WidgetKit gallery after the app wrote native-readable presets.
+- `30-widget-studio-pick-widget.png`
+- `31-widget-studio-pick-data.png`
+- `32-widget-studio-pick-style.png`
+- `33-widget-studio-saved.png`
 
-Proof folder:
-`AppStore/RawScreenshots-FinalWidgetLocalization-NoFree-2026-05-26/home-screen-proof`
+## iOS widget gallery
 
-Key screenshots:
-- `01-widget-gallery-today-medium-ocean.png`: StudyPlanner Today medium in WidgetKit gallery.
-- `02-widget-gallery-upcoming-small-light.png`: StudyPlanner Upcoming small using the light style.
-- `03-widget-gallery-week-medium-graphite.png`: StudyPlanner Week medium using the graphite style.
-- `04-widget-gallery-class-progress-small-forest.png`: StudyPlanner Class Progress small using the forest style.
-- `05-home-screen-multiple-customized-widgets.png`: multiple customized StudyPlanner widgets placed on SpringBoard.
-- `06-app-task-before-completion.png`: in-app task detail before completion.
-- `07-app-task-after-completion.png`: in-app task detail after completion at 100%.
-- `08-home-screen-after-task-completion.png`: Home Screen widgets refreshed after marking a task done in-app.
-- `09-home-screen-after-app-relaunch-persistence.png`: after deleting the capture route, terminating the app, relaunching it, and returning to SpringBoard page 1, the customized widgets are still placed and still show the completed state.
+- `50-widget-gallery-studyplanner-today.png`
+- `51-widget-gallery-studyplanner-upcoming.png`
+- `52-widget-gallery-studyplanner-week.png`
+- `53-widget-gallery-studyplanner-class-progress.png`
+- `50-widget-gallery-all-four-studyplanner-widgets.png`
 
-Important note:
-`08-home-screen-after-task-completion.png` is the progress-refresh proof. `09-home-screen-after-app-relaunch-persistence.png` is the placement/preset persistence proof after a real app relaunch without the capture route.
+## Home Screen widgets
+
+- `60-home-screen-today-widget.png`
+- `61-home-screen-upcoming-widget.png`
+- `62-home-screen-week-widget.png`
+- `63-home-screen-class-progress-widget.png`
+
+The Today, Upcoming, and Week files are cropped directly from the real Home Screen before-state screenshot so each named proof focuses on a distinct live widget while preserving native pixels.
+
+## Update proof
+
+- `70-before-task-completion-home-widgets.png`
+- `71-after-task-completion-home-widgets.png`
+- `73-after-task-completion-closeup.png`
+
+The before screenshot shows the Home Screen widgets before completing tasks: Week shows 4 tasks this week, Today shows the overdue BIO lab, and Upcoming shows the same overdue deadline. Tasks were completed through the native app focus flow. The after screenshots show Today clear for the day, Week reduced to 2 tasks with `2 of 4 complete`, and Upcoming moved to the next BIO final deadline.
+
+## Negative proof
+
+- `72-class-progress-required-class-state.png`
+
+Class Progress without a selected class renders a clear required-class state instead of falling back to a fake or arbitrary class.
+
+## Contact sheet
+
+- `99-contact-sheet.png`

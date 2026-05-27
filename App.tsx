@@ -82,6 +82,13 @@ import { SubscriptionProvider, useSubscription } from "./src/services/subscripti
 import { recordReviewEvent } from "./src/services/reviewPrompt";
 import { syncStudyPlannerWidgets } from "./src/services/widgetSnapshot";
 import type { WidgetSyncStatus } from "./src/services/widgetSnapshot";
+import {
+  buildCanonicalWidgetPreset,
+  defaultDataModeForWidgetKind,
+  ensureCanonicalWidgetPresets,
+  isNativeWidgetPreset,
+  widgetKindForType
+} from "./src/widgets/widgetPresets";
 import { I18nProvider, supportedLocales, useI18n, type SupportedLocale } from "./src/i18n";
 import {
   getMarketingCaptureInitialTab,
@@ -248,22 +255,18 @@ function isCaptureWidgetDataMode(value: unknown): value is WidgetDataMode {
     value === "single_class" ||
     value === "today" ||
     value === "this_week" ||
-    value === "urgent_only"
+    value === "urgent_only" ||
+    value === "next_up" ||
+    value === "next3"
   );
 }
 
 function captureDataModeForWidget(type: WidgetPreset["type"]): WidgetDataMode {
-  if (type === "today") return "today";
-  if (type === "week") return "this_week";
-  if (type === "class_focus") return "single_class";
-  return "all_classes";
+  return defaultDataModeForWidgetKind(widgetKindForType(type));
 }
 
 function shouldApplyOnboardingWidgetTheme(preset: WidgetPreset) {
-  return (
-    (preset.type === "today" || preset.type === "due_next" || preset.type === "week" || preset.type === "class_focus") &&
-    (preset.size === "small" || preset.size === "medium")
-  );
+  return isNativeWidgetPreset(preset);
 }
 
 function applyOnboardingWidgetTheme(presets: WidgetPreset[], settingsPatch?: Partial<UserSettings>) {
@@ -272,13 +275,14 @@ function applyOnboardingWidgetTheme(presets: WidgetPreset[], settingsPatch?: Par
   if (!isCaptureWidgetBackground(background) || !isCaptureWidgetPalette(palette)) return presets;
 
   const timestamp = new Date().toISOString();
-  return presets.map((preset) =>
+  return ensureCanonicalWidgetPresets(presets).map((preset) =>
     shouldApplyOnboardingWidgetTheme(preset)
       ? {
           ...preset,
           background,
           palette,
           themePackId: settingsPatch?.appTheme || preset.themePackId,
+          lastSyncedAt: timestamp,
           updatedAt: timestamp
         }
       : preset
@@ -310,7 +314,18 @@ function isCaptureWidgetSize(value: unknown): value is WidgetPreset["size"] {
 }
 
 function isCaptureWidgetLayout(value: unknown): value is WidgetPreset["layout"] {
-  return value === "compact" || value === "list" || value === "ring" || value === "calendar" || value === "grid";
+  return (
+    value === "compact" ||
+    value === "list" ||
+    value === "ring" ||
+    value === "calendar" ||
+    value === "grid" ||
+    value === "progress" ||
+    value === "timeline" ||
+    value === "strip" ||
+    value === "summary" ||
+    value === "next_task"
+  );
 }
 
 function isCaptureWorkloadState(value: unknown): value is NonNullable<CaptureRoute["workloadState"]> {
@@ -513,26 +528,27 @@ function AppContent() {
           defaultWidgetStyle: captureWidgetBackground,
           appTheme: captureAppTheme
         });
-        setWidgetPresets(
-          defaultWidgetPresets.map((preset, index) =>
-            index === 0
-              ? {
-                  ...preset,
-                  type: requestedRoute.widgetType || preset.type,
-                  size: requestedRoute.widgetSize || preset.size,
-                  background: captureWidgetBackground,
-                  palette: captureWidgetPalette,
-                  dataMode: requestedRoute.widgetDataMode || captureDataModeForWidget(requestedRoute.widgetType || preset.type),
-                  layout: requestedRoute.widgetLayout || preset.layout,
-                  classFocusCourseId:
-                    requestedRoute.widgetType === "class_focus" || requestedRoute.widgetDataMode === "single_class"
-                      ? marketingCaptureCourses[0]?.id
-                      : preset.classFocusCourseId,
-                  themePackId: captureAppTheme
-                }
-              : preset
+        const requestedWidgetType = requestedRoute.widgetType || "today";
+        const requestedWidgetKind = widgetKindForType(requestedWidgetType);
+        const requestedPreset = buildCanonicalWidgetPreset(requestedWidgetKind, {
+          type: requestedWidgetType,
+          size: requestedRoute.widgetSize,
+          background: captureWidgetBackground,
+          palette: captureWidgetPalette,
+          dataMode: requestedRoute.widgetDataMode || captureDataModeForWidget(requestedWidgetType),
+          layout: requestedRoute.widgetLayout,
+          classFocusCourseId:
+            requestedWidgetType === "class_focus" || requestedRoute.widgetDataMode === "single_class"
+              ? marketingCaptureCourses[0]?.id
+              : undefined,
+          themePackId: captureAppTheme
+        });
+        setWidgetPresets([
+          requestedPreset,
+          ...ensureCanonicalWidgetPresets(defaultWidgetPresets).filter(
+            (preset) => widgetKindForType(preset.type) !== requestedWidgetKind
           )
-        );
+        ]);
         setSelectedAssignmentId(null);
         setFocusAssignmentId(null);
         setActiveTab(requestedTab);
@@ -615,7 +631,7 @@ function AppContent() {
         setSettings({ ...defaultSettings, ...(stored.settings || {}), onboardingComplete: Boolean(stored.onboarded) });
         setParsedImports(stored.parsedImports || []);
         setParsedItems(stored.parsedItems || []);
-        setWidgetPresets(stored.widgetPresets?.length ? stored.widgetPresets : defaultWidgetPresets);
+        setWidgetPresets(stored.widgetPresets?.length ? ensureCanonicalWidgetPresets(stored.widgetPresets) : defaultWidgetPresets);
         setFocusSessions(stored.focusSessions || []);
         setNotes(stored.notes || []);
         setDemoMode(Boolean(stored.demoMode));
@@ -1008,7 +1024,7 @@ function AppContent() {
   };
 
   const resetWidgetPresets = () => {
-    setWidgetPresets(defaultWidgetPresets);
+    setWidgetPresets(ensureCanonicalWidgetPresets(defaultWidgetPresets));
   };
 
   const startWithDemoPlanner = (
@@ -1022,7 +1038,7 @@ function AppContent() {
     setGradeItems(demo.gradeItems);
     setParsedImports([]);
     setParsedItems([]);
-    setWidgetPresets(defaultWidgetPresets);
+    setWidgetPresets(ensureCanonicalWidgetPresets(defaultWidgetPresets));
     setFocusSessions(demo.focusSessions);
     setNotes(buildDemoNotes(demo.courses));
     setDemoMode(true);

@@ -9,13 +9,9 @@ import {
   UserSettings,
   WidgetPreset
 } from "../models";
-import { resolveWidgetTheme } from "../widgets/widgetThemes";
+import { buildCanonicalWidgetPreset } from "../widgets/widgetPresets";
 
 const now = "2026-05-13T09:41:00";
-const lightWidgetTheme = resolveWidgetTheme("light");
-const oceanWidgetTheme = resolveWidgetTheme("ocean");
-const graphiteWidgetTheme = resolveWidgetTheme("graphite");
-const forestWidgetTheme = resolveWidgetTheme("forest");
 
 export const defaultSemester: Semester = {
   id: "spring-2026",
@@ -378,62 +374,10 @@ export const defaultParsedItems: ParsedItem[] = [
 ];
 
 export const defaultWidgetPresets: WidgetPreset[] = [
-  {
-    id: "preset-due-next",
-    name: "Upcoming",
-    type: "due_next",
-    size: "small",
-    background: lightWidgetTheme.background,
-    palette: lightWidgetTheme.palette,
-    dataMode: "all_classes",
-    font: "SF Pro",
-    layout: "compact",
-    iconKey: "book",
-    createdAt: now,
-    updatedAt: now
-  },
-  {
-    id: "preset-today",
-    name: "Today",
-    type: "today",
-    size: "medium",
-    background: oceanWidgetTheme.background,
-    palette: oceanWidgetTheme.palette,
-    dataMode: "today",
-    font: "SF Pro",
-    layout: "list",
-    iconKey: "calendar",
-    createdAt: now,
-    updatedAt: now
-  },
-  {
-    id: "preset-week",
-    name: "Week",
-    type: "week",
-    size: "medium",
-    background: graphiteWidgetTheme.background,
-    palette: graphiteWidgetTheme.palette,
-    dataMode: "this_week",
-    font: "SF Pro",
-    layout: "calendar",
-    iconKey: "calendar",
-    createdAt: now,
-    updatedAt: now
-  },
-  {
-    id: "preset-class-progress",
-    name: "Class Progress",
-    type: "class_focus",
-    size: "small",
-    background: forestWidgetTheme.background,
-    palette: forestWidgetTheme.palette,
-    dataMode: "single_class",
-    font: "SF Pro",
-    layout: "compact",
-    iconKey: "book",
-    createdAt: now,
-    updatedAt: now
-  }
+  buildCanonicalWidgetPreset("today", { theme: "light", layout: "list", dataMode: "today", size: "medium" }, new Date(now)),
+  buildCanonicalWidgetPreset("upcoming", { theme: "ocean", layout: "timeline", dataMode: "next3", size: "small" }, new Date(now)),
+  buildCanonicalWidgetPreset("week", { theme: "graphite", layout: "strip", dataMode: "this_week", size: "medium" }, new Date(now)),
+  buildCanonicalWidgetPreset("classProgress", { theme: "forest", layout: "progress", dataMode: "single_class", size: "small" }, new Date(now))
 ];
 
 export const defaultFocusSessions: FocusSession[] = [

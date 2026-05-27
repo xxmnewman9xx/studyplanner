@@ -249,9 +249,125 @@ for (const themeChoice of widgetThemeOrder) {
   );
 }
 
+let fourWidgetPresets: WidgetPreset[] = [];
+fourWidgetPresets = saveWidgetPreset(
+  fourWidgetPresets,
+  {
+    id: "matrix-today",
+    name: "Today",
+    widgetKind: "today",
+    type: "today",
+    size: "medium",
+    theme: "light",
+    background: "light",
+    palette: "paper",
+    dataMode: "today",
+    font: "SF Pro",
+    layout: "list",
+    iconKey: "check",
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString()
+  },
+  now
+);
+fourWidgetPresets = saveWidgetPreset(
+  fourWidgetPresets,
+  {
+    id: "matrix-upcoming",
+    name: "Upcoming",
+    widgetKind: "upcoming",
+    type: "due_next",
+    size: "small",
+    theme: "ocean",
+    background: "glass",
+    palette: "ocean",
+    dataMode: "this_week",
+    font: "SF Pro",
+    layout: "timeline",
+    iconKey: "calendar",
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString()
+  },
+  now
+);
+fourWidgetPresets = saveWidgetPreset(
+  fourWidgetPresets,
+  {
+    id: "matrix-week",
+    name: "Week",
+    widgetKind: "week",
+    type: "week",
+    size: "medium",
+    theme: "graphite",
+    background: "dark",
+    palette: "graphite",
+    dataMode: "this_week",
+    font: "SF Pro",
+    layout: "strip",
+    iconKey: "calendar",
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString()
+  },
+  now
+);
+fourWidgetPresets = saveWidgetPreset(
+  fourWidgetPresets,
+  {
+    id: "matrix-class-progress",
+    name: "Class Progress",
+    widgetKind: "classProgress",
+    type: "class_focus",
+    size: "small",
+    theme: "forest",
+    background: "glass",
+    palette: "forest",
+    dataMode: "single_class",
+    font: "SF Pro",
+    classFocusCourseId: "history",
+    layout: "progress",
+    iconKey: "book",
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString()
+  },
+  now
+);
+
+const fourWidgetReloaded = JSON.parse(JSON.stringify(fourWidgetPresets)) as WidgetPreset[];
+const fourWidgetSnapshots = buildStudyPlannerWidgetSnapshots({
+  semester,
+  courses,
+  assignments: dueTodayAssignments,
+  parsedImports,
+  settings,
+  widgetPresets: fourWidgetReloaded,
+  demoMode: false,
+  now
+});
+
+assert(fourWidgetReloaded.length === 4, "Saving four native presets should persist exactly one preset per shipped widget.");
+assert(fourWidgetSnapshots.today.presetTheme === "light", "Today should preserve light theme after reload.");
+assert(fourWidgetSnapshots.today.presetLayout === "list", "Today should preserve list layout after reload.");
+assert(fourWidgetSnapshots.today.presetDataMode === "today", "Today should preserve today data mode after reload.");
+assert(fourWidgetSnapshots.upcoming.presetTheme === "ocean", "Upcoming should preserve ocean theme after reload.");
+assert(fourWidgetSnapshots.upcoming.presetLayout === "timeline", "Upcoming should preserve timeline layout after reload.");
+assert(fourWidgetSnapshots.upcoming.presetDataMode === "this_week", "Upcoming should preserve this-week data mode after reload.");
+assert(fourWidgetSnapshots.week.presetTheme === "graphite", "Week should preserve graphite theme after reload.");
+assert(fourWidgetSnapshots.week.presetLayout === "strip", "Week should preserve strip layout after reload.");
+assert(fourWidgetSnapshots.week.weekdayCounts?.length === 7, "Week should write native-readable workload counts.");
+assert(fourWidgetSnapshots.classProgress.presetTheme === "forest", "Class Progress should preserve forest theme after reload.");
+assert(fourWidgetSnapshots.classProgress.presetLayout === "progress", "Class Progress should preserve progress layout after reload.");
+assert(fourWidgetSnapshots.classProgress.presetClassId === "history", "Class Progress should preserve selected class id after reload.");
+
 const allowedSnapshotKeys = new Set([
   "version",
   "kind",
+  "nativeName",
+  "presetKind",
+  "presetTheme",
+  "presetLayout",
+  "presetDataMode",
+  "presetClassId",
+  "lastSyncedAt",
   "state",
   "generatedAt",
   "semesterName",
@@ -276,6 +392,8 @@ const allowedSnapshotKeys = new Set([
   "nextLabel",
   "timelineLabel",
   "weekdayLabels",
+  "weekdayCounts",
+  "biggestDeadlineLabel",
   "items"
 ]);
 const allowedItemKeys = new Set(["id", "title", "courseCode", "courseColor", "dueLabel", "priority", "kind"]);

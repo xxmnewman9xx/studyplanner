@@ -33,6 +33,8 @@ export type WidgetSize = "small" | "medium" | "large" | "lock_round" | "lock_inl
 
 export type WidgetBackground = "solid" | "gradient" | "glass" | "dark" | "light";
 
+export type WidgetKind = "today" | "upcoming" | "week" | "classProgress";
+
 export type WidgetPalette =
   | "sunset"
   | "ocean"
@@ -46,7 +48,28 @@ export type WidgetPalette =
   | "paper"
   | "contrast";
 
-export type WidgetDataMode = "all_classes" | "single_class" | "today" | "this_week" | "urgent_only";
+export type WidgetTheme = "light" | "dark" | "ocean" | "graphite" | "forest" | "high_contrast";
+
+export type WidgetDataMode =
+  | "all_classes"
+  | "single_class"
+  | "today"
+  | "this_week"
+  | "urgent_only"
+  | "next_up"
+  | "next3";
+
+export type WidgetLayout =
+  | "compact"
+  | "list"
+  | "ring"
+  | "calendar"
+  | "grid"
+  | "progress"
+  | "timeline"
+  | "strip"
+  | "summary"
+  | "next_task";
 
 export type FocusSessionStatus = "planned" | "running" | "paused" | "completed" | "stopped";
 
@@ -229,18 +252,21 @@ export type ParsedItem = {
 export type WidgetPreset = {
   id: string;
   name: string;
+  widgetKind?: WidgetKind;
   type: WidgetType;
   size: WidgetSize;
+  theme?: WidgetTheme;
   background: WidgetBackground;
   palette: WidgetPalette;
   dataMode?: WidgetDataMode;
   font: "SF Pro" | "New York" | "Rounded" | "Mono";
   classFocusCourseId?: string;
-  layout: "compact" | "list" | "ring" | "calendar" | "grid";
+  layout: WidgetLayout;
   iconKey: string;
   smartStackSlot?: "morning" | "between_classes" | "study_time" | "night_review";
   scheduleLabel?: string;
   themePackId?: string;
+  lastSyncedAt?: string;
   createdAt: string;
   updatedAt: string;
 };

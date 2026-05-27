@@ -10,6 +10,7 @@ import {
   WidgetPreset,
   WidgetType
 } from "../models";
+import { replaceCanonicalWidgetPreset } from "../widgets/widgetPresets";
 
 const dayMs = 24 * 60 * 60 * 1000;
 
@@ -538,10 +539,11 @@ export function saveWidgetPreset(
   const nextPreset: WidgetPreset = {
     ...preset,
     createdAt: preset.createdAt || timestamp,
-    updatedAt: timestamp
+    updatedAt: timestamp,
+    lastSyncedAt: timestamp
   };
 
-  return [nextPreset, ...presets.filter((item) => item.id !== nextPreset.id)];
+  return replaceCanonicalWidgetPreset(presets, nextPreset, now);
 }
 
 export function applyTheme(

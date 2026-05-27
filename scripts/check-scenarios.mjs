@@ -98,13 +98,13 @@ assert(paywall.includes("Prices and renewal periods come from the store before c
 assert(app.includes("setImportHandoff") && app.includes("openTab(\"today\")") && app.includes('recordReviewEvent("import_applied")'), "Scan/import should hand off into Today after value is created.");
 assert(reviewPrompt.includes("assignment_completed") && reviewPrompt.includes("focus_completed") && reviewPrompt.includes("widget_saved"), "Review prompt policy should stay value-gated.");
 assert(app.includes("syncStudyPlannerWidgets") && app.includes("nativeWidgetStatus"), "Native widget snapshots should refresh from real planner persistence.");
-assert(more.includes("Choose widget, data, and style.") && more.includes("Saved fields: widget, data mode, class filter, palette, and background"), "Widget surface should lead with an organized native widget workbench.");
-assert(more.includes("Today List") && more.includes("Next Up") && more.includes("This week of work"), "Widget templates should be student-outcome first.");
+assert(more.includes("Pick a shipped widget, then save its preset.") && more.includes("Saved fields: widget, data mode, class filter, theme, layout, and last sync"), "Widget surface should lead with an organized native widget workbench.");
+assert(more.includes("What do I need to do today?") && more.includes("What deadline is coming next?") && more.includes("How heavy is this week?"), "Widget templates should be student-outcome first.");
 assert(more.includes("single_class") && more.includes("urgent_only") && more.includes("high_contrast"), "Widget Studio should expose the target data and style choices.");
 assert(more.includes("One fact in small widgets") && more.includes("Agenda rows in medium widgets"), "Widget Studio first viewport should expose research-backed widget rules.");
 assert(!more.includes("top-20") && !more.includes("active in this studio") && !more.includes("3/6 ready") && !more.includes("Studio state"), "Widget Studio must not expose internal QA scoring language.");
 assert(planner.includes('headline: "Upcoming"') && planner.includes('headline: "Today"') && planner.includes("Class Progress"), "Widget data labels should match student-outcome templates.");
-assert(more.includes("Next Up") && more.includes("Today List") && more.includes("Week") && more.includes("Class Progress"), "Widget Studio templates should use actionable student-outcome labels.");
+assert(more.includes("Upcoming") && more.includes("Today") && more.includes("Week") && more.includes("Class Progress"), "Widget Studio templates should use actionable student-outcome labels.");
 assert(!more.includes("Deadline Map") && !more.includes("Class Risk") && !more.includes("Focus Block"), "Widget Studio should not keep stale decorative widget labels.");
 assert(!more.includes("Algebra II - Worksheet") && !more.includes("Week 11") && !more.includes("Wednesday, May 13"), "Widget surface must not show fake sample school data.");
 assert(!components.includes("May 13") && !components.includes('"2h"'), "Widget preview components must not hard-code fake dates or fake due times.");

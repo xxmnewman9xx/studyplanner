@@ -26,7 +26,7 @@ import {
   Timer,
   TriangleAlert
 } from "lucide-react-native";
-import { Assignment, Course, WidgetBackground, WidgetPalette, WidgetSize, WidgetType } from "../models";
+import { Assignment, Course, WidgetBackground, WidgetLayout, WidgetPalette, WidgetSize, WidgetType } from "../models";
 import type { DailyLoad } from "../logic/planner";
 import { AppTheme, themePalettes } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -381,7 +381,7 @@ export function WidgetPreviewCard({
   type: WidgetType;
   course?: Course;
   font?: "SF Pro" | "New York" | "Rounded" | "Mono";
-  layout?: "compact" | "list" | "ring" | "calendar" | "grid";
+  layout?: WidgetLayout;
   iconKey?: string;
   items?: WidgetPreviewItem[];
   nativeMode?: boolean;
@@ -431,11 +431,19 @@ export function WidgetPreviewCard({
   const nativeWeekDots = localizedWeekdayNarrowLabels(locale);
   const realWeekLoad = weekLoad || [];
   const maxWeekLoadScore = Math.max(...realWeekLoad.map((day) => day.score), 1);
-  const firstNativeItem = previewItems[0];
+  const nativePreviewItems = items.slice(0, 1);
+  const firstNativeItem = nativePreviewItems[0];
+  const nativeStripLike = layout === "strip" || layout === "calendar" || type === "week";
+  const nativeProgressLike = layout === "progress" || type === "class_focus";
+  const nativeWeekTotal = realWeekLoad.reduce((sum, day) => sum + day.items.length, 0);
   const nativePrimaryValue = !isMedium && firstNativeItem && "courseCode" in firstNativeItem && firstNativeItem.courseCode
-    ? firstNativeItem.courseCode
+    ? type === "week" && realWeekLoad.length > 0 ? String(nativeWeekTotal) : firstNativeItem.courseCode
     : value;
-  const nativePrimaryDetail = !isMedium && firstNativeItem ? widgetItemTitle(firstNativeItem) : detail;
+  const nativePrimaryDetail = type === "week" && realWeekLoad.length > 0
+    ? nativeWeekTotal === 1
+      ? t("widget_snapshot.task_this_week", "task this week")
+      : t("widget_snapshot.tasks_this_week", "tasks this week")
+    : !isMedium && firstNativeItem ? widgetItemTitle(firstNativeItem) : detail;
   const lockRoundValue = firstNativeItem && "courseCode" in firstNativeItem && firstNativeItem.courseCode ? firstNativeItem.courseCode : value;
   const lockRoundLabel = firstNativeItem
     ? (type === "today" ? t("widget_snapshot.do_first", "Do first") : t("common.next", "Next"))
@@ -500,7 +508,14 @@ export function WidgetPreviewCard({
         <View style={styles.nativeWidgetMainRow}>
           <View style={styles.nativeWidgetPrimaryCopy}>
             <Text style={[styles.nativeWidgetValue, { color: nativeInk }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{nativePrimaryValue}</Text>
-            <Text style={[styles.nativeWidgetDetail, { color: nativeInk }]} numberOfLines={isMedium ? 2 : 1}>{nativePrimaryDetail}</Text>
+            <Text
+              style={[styles.nativeWidgetDetail, { color: nativeInk }]}
+              numberOfLines={isMedium ? 2 : 1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.72}
+            >
+              {nativePrimaryDetail}
+            </Text>
           </View>
           {isMedium ? (
             <View style={[styles.nativeWidgetNextBox, { backgroundColor: nativeDark ? "#202633" : "#FFFFFF" }]}>
@@ -509,7 +524,7 @@ export function WidgetPreviewCard({
             </View>
           ) : null}
         </View>
-        {isMedium ? (
+        {(isMedium || nativeStripLike) && !nativeProgressLike ? (
           <View style={[styles.nativeWidgetWeekRail, { backgroundColor: nativeDark ? "#172132" : "#FFFFFF" }]}>
             {nativeWeekDots.map((label, index) => {
               const active = nativeProgressValue >= (index + 1) / nativeWeekDots.length;
@@ -536,9 +551,18 @@ export function WidgetPreviewCard({
             ))}
           </View>
         </View>
-        {previewItems.length > 0 ? (
+        {nativeProgressLike ? (
+          <View style={styles.nativeWidgetProgressSummary}>
+            <Text style={[styles.nativeWidgetProgressTitle, { color: nativeInk }]} numberOfLines={1}>
+              {progressLabel || nativeMetric}
+            </Text>
+            <Text style={[styles.nativeWidgetProgressCopy, { color: nativeMuted }]} numberOfLines={1}>
+              {nativeNext}
+            </Text>
+          </View>
+        ) : nativePreviewItems.length > 0 && !nativeStripLike ? (
           <View style={styles.nativeWidgetList}>
-            {previewItems.map((item) => (
+            {nativePreviewItems.map((item) => (
               <View key={item.id} style={styles.nativeWidgetRow}>
                 <View style={[styles.nativeWidgetMiniDot, { backgroundColor: widgetItemColor(item, course, nativeAccent) }]} />
                 <Text style={[styles.nativeWidgetRowCourse, { color: widgetItemColor(item, course, nativeAccent) }]} numberOfLines={1}>
@@ -555,7 +579,7 @@ export function WidgetPreviewCard({
           </View>
         ) : (
           <Text style={[styles.nativeWidgetFootnote, { color: nativeMuted }]} numberOfLines={2}>
-            {footnote || t("widget_preview.open_studyplanner_add_homework", "Open StudyPlanner to add homework.")}
+            {footnote || nativeNext || t("widget_preview.open_studyplanner_add_homework", "Open StudyPlanner to add homework.")}
           </Text>
         )}
         <Text style={[styles.nativeWidgetFooter, { color: nativeQuiet }]} numberOfLines={1}>
@@ -606,7 +630,7 @@ export function WidgetPreviewCard({
           <WidgetIcon color="#FFFFFF" size={17} />
         </View>
       </View>
-      {layout === "list" || type === "today" || type === "needs_check" || type === "class_focus" || type === "focus" ? (
+      {layout === "list" || layout === "timeline" || layout === "next_task" || type === "today" || type === "needs_check" || type === "class_focus" || type === "focus" ? (
         <View style={styles.widgetMiniList}>
           {previewItems.map((item) => (
             <View key={item.id} style={styles.widgetMiniRow}>
@@ -618,14 +642,14 @@ export function WidgetPreviewCard({
           ))}
         </View>
       ) : null}
-      {layout === "ring" || type === "focus" || type === "streak" ? (
+      {layout === "ring" || layout === "progress" || type === "focus" || type === "streak" ? (
         <View style={[styles.widgetRing, { borderColor: paletteColors[1] || theme.colors.brandPink }]}>
           <Text style={[styles.widgetRingText, labelTone]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.66}>
             {type === "focus" ? value : progressLabel || value}
           </Text>
         </View>
       ) : null}
-      {layout === "calendar" || type === "week" ? (
+      {layout === "calendar" || layout === "strip" || type === "week" ? (
         <View style={styles.widgetBars}>
           {realWeekLoad.map((day, index) => {
             const height = day.score / maxWeekLoadScore;
@@ -643,7 +667,7 @@ export function WidgetPreviewCard({
           })}
         </View>
       ) : null}
-      {layout === "grid" && type !== "class_focus" ? (
+      {(layout === "grid" || layout === "summary") && type !== "class_focus" ? (
         <View style={styles.widgetGridDots}>
           {[0, 1, 2, 3].map((index) => (
             <View
@@ -1216,8 +1240,8 @@ function createStyles(theme: AppTheme) {
       elevation: 5
     },
     widgetSmall: {
-      width: 126,
-      minHeight: 126
+      width: 158,
+      minHeight: 158
     },
     widgetMedium: {
       width: 252,
@@ -1466,8 +1490,8 @@ function createStyles(theme: AppTheme) {
       borderRadius: 3
     },
     nativeWidgetList: {
-      marginTop: spacing.xs,
-      gap: 5
+      marginTop: 2,
+      gap: 3
     },
     nativeWidgetRow: {
       flexDirection: "row",
@@ -1510,6 +1534,20 @@ function createStyles(theme: AppTheme) {
       color: "#8A93A3",
       fontSize: 10,
       lineHeight: 13,
+      fontWeight: "800"
+    },
+    nativeWidgetProgressSummary: {
+      marginTop: 2,
+      gap: 2
+    },
+    nativeWidgetProgressTitle: {
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    nativeWidgetProgressCopy: {
+      fontSize: 9,
+      lineHeight: 12,
       fontWeight: "800"
     },
     widgetBackplate: {

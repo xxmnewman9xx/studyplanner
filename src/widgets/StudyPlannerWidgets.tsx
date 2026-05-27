@@ -29,7 +29,13 @@ function StudyPlannerWidgetLayout(props, environment) {
   var isAccessoryCircular = environment.widgetFamily === "accessoryCircular";
   var isAccessoryRectangular = environment.widgetFamily === "accessoryRectangular";
   var isAccessoryInline = environment.widgetFamily === "accessoryInline";
-  var items = (props.items || []).slice(0, isMedium ? 3 : 1);
+  var layout = props.presetLayout || "";
+  var isStripLayout = layout === "strip";
+  var isProgressLayout = layout === "progress";
+  var isSummaryLayout = layout === "summary";
+  var isNextTaskLayout = layout === "next_task";
+  var rowLimit = 1;
+  var items = (props.items || []).slice(0, rowLimit);
   var firstItem = items.length > 0 ? items[0] : null;
   var accent = props.accentColor || "#2F80ED";
   var backgroundColor = props.backgroundColor || "#101723";
@@ -47,15 +53,32 @@ function StudyPlannerWidgetLayout(props, environment) {
   var nextKicker = props.actionLabel || nextLabel;
   var smallValue = firstItem && firstItem.courseCode ? firstItem.courseCode : props.value;
   var smallDetail = firstItem ? firstItem.title : props.detail;
-  var titleSize = isMedium ? 12 : 11;
-  var valueSize = isMedium ? 34 : 31;
-  var detailLines = isMedium ? 2 : 1;
+  var titleSize = isMedium ? 11 : 10;
+  var valueSize = isMedium ? 28 : 27;
+  var detailLines = 1;
   var progress = Math.max(0, Math.min(1, props.progress || 0));
   var weekdayLabels = props.weekdayLabels || ["M", "T", "W", "T", "F", "S", "S"];
+  var weekdayCounts = props.weekdayCounts || [];
+  var maxWeekdayCount = 1;
+  for (var weekdayCountIndex = 0; weekdayCountIndex < weekdayCounts.length; weekdayCountIndex += 1) {
+    maxWeekdayCount = Math.max(maxWeekdayCount, weekdayCounts[weekdayCountIndex] || 0);
+  }
   var activeWeekDots = Math.round(progress * 7);
   var progressDots = [];
   var weekDots = [];
   var rowNodes = [];
+  var weekTotalCount = 0;
+  for (var weekTotalIndex = 0; weekTotalIndex < weekdayCounts.length; weekTotalIndex += 1) {
+    weekTotalCount += weekdayCounts[weekTotalIndex] || 0;
+  }
+  var smallWeekFootnote = props.biggestDeadlineLabel
+    ? "Biggest: " + props.biggestDeadlineLabel
+    : props.footnote || props.detail;
+
+  if (props.kind === "week" && weekdayCounts.length > 0) {
+    smallValue = String(weekTotalCount);
+    smallDetail = weekTotalCount === 1 ? "task this week" : "tasks this week";
+  }
 
   for (var progressIndex = 0; progressIndex < 5; progressIndex += 1) {
     progressDots.push(circle(5, progress >= (progressIndex + 1) / 5 ? accent : soft));
@@ -66,7 +89,14 @@ function StudyPlannerWidgetLayout(props, environment) {
       alignment: "center",
       spacing: 2,
       children: [
-        circle(weekIndex < activeWeekDots ? 6 : 4, weekIndex < activeWeekDots ? accent : soft),
+        circle(
+          props.kind === "week" && weekdayCounts.length > 0
+            ? Math.max(4, Math.min(10, 4 + ((weekdayCounts[weekIndex] || 0) / maxWeekdayCount) * 6))
+            : weekIndex < activeWeekDots ? 6 : 4,
+          props.kind === "week" && (weekdayCounts[weekIndex] || 0) > 0
+            ? accent
+            : weekIndex < activeWeekDots ? accent : soft
+        ),
         text(weekdayLabels[weekIndex] || "", [
           font({ size: 7, weight: "black" }),
           foregroundStyle(quiet),
@@ -258,7 +288,7 @@ function StudyPlannerWidgetLayout(props, environment) {
               ]
             }),
             text(smallValue, [
-              font({ size: 32, weight: "black", design: "rounded" }),
+              font({ size: 27, weight: "black", design: "rounded" }),
               foregroundStyle(ink),
               lineLimit(1)
             ]),
@@ -267,17 +297,34 @@ function StudyPlannerWidgetLayout(props, environment) {
               foregroundStyle(ink),
               lineLimit(1)
             ]),
-            text(items.length > 0 ? nextLabel : props.footnote, [
-              font({ size: 11, weight: "semibold" }),
-              foregroundStyle(muted),
-              lineLimit(2)
-            ]),
-            view("SpacerView", { minLength: 1 }),
+            props.kind === "week" && weekdayCounts.length > 0
+              ? view("HStackView", {
+                  alignment: "center",
+                  spacing: 5,
+                  modifiers: [
+                    frame({ maxWidth: 220 }),
+                    padding({ all: 5 }),
+                    background(surface)
+                  ],
+                  children: weekDots
+                })
+              : text(items.length > 0 ? nextLabel : props.footnote, [
+                font({ size: 11, weight: "semibold" }),
+                foregroundStyle(muted),
+                lineLimit(2)
+              ]),
             text(metricLabel, [
               font({ size: 10, weight: "bold" }),
               foregroundStyle(quiet),
               lineLimit(1)
-            ])
+            ]),
+            props.kind === "week" && weekdayCounts.length > 0
+              ? text(smallWeekFootnote, [
+                  font({ size: 10, weight: "semibold" }),
+                  foregroundStyle(muted),
+                  lineLimit(1)
+                ])
+              : view("SpacerView", { minLength: 1 })
           ]
         })
       ]
@@ -287,24 +334,24 @@ function StudyPlannerWidgetLayout(props, environment) {
   return view("ZStackView", {
     alignment: "topLeading",
     modifiers: [
-      frame({ maxWidth: 400, maxHeight: 220, alignment: "topLeading" }),
+      frame({ maxWidth: 400, maxHeight: 170, alignment: "topLeading" }),
       background(backgroundColor),
       widgetURL(props.openURL || "studyplanner://widgets")
     ],
     children: [
       view("VStackView", {
         modifiers: [
-          frame({ maxWidth: 400, maxHeight: isMedium ? 92 : 72, alignment: "topLeading" }),
+          frame({ maxWidth: 400, maxHeight: isMedium ? 72 : 58, alignment: "topLeading" }),
           background(highlight)
         ],
         children: []
       }),
       view("VStackView", {
         alignment: "leading",
-        spacing: isMedium ? 9 : 8,
+        spacing: isMedium ? 6 : 8,
         modifiers: [
-          frame({ maxWidth: 400, maxHeight: 220, alignment: "topLeading" }),
-          padding({ all: isMedium ? 16 : 14 })
+          frame({ maxWidth: 400, maxHeight: 170, alignment: "topLeading" }),
+          padding({ all: isMedium ? 13 : 14 })
         ],
         children: [
           view("HStackView", {
@@ -355,7 +402,7 @@ function StudyPlannerWidgetLayout(props, environment) {
               view("VStackView", {
                 alignment: "leading",
                 spacing: 2,
-                modifiers: [frame({ maxWidth: isMedium ? 142 : 160 })],
+                modifiers: [frame({ maxWidth: isMedium ? 134 : 160 })],
                 children: [
                   text(props.value, [
                     font({ size: valueSize, weight: "black", design: "rounded" }),
@@ -372,19 +419,19 @@ function StudyPlannerWidgetLayout(props, environment) {
               isMedium
                 ? view("VStackView", {
                     alignment: "trailing",
-                    spacing: 3,
+                    spacing: 2,
                     modifiers: [
-                      padding({ all: 8 }),
+                      padding({ all: 6 }),
                       background(surface)
                     ],
                     children: [
                       text(nextKicker, [
-                        font({ size: 8, weight: "black" }),
+                        font({ size: 7, weight: "black" }),
                         foregroundStyle(quiet),
                         lineLimit(1)
                       ]),
                       text(nextLabel, [
-                        font({ size: 10, weight: "bold" }),
+                        font({ size: 9, weight: "bold" }),
                         foregroundStyle(ink),
                         lineLimit(2)
                       ])
@@ -393,13 +440,13 @@ function StudyPlannerWidgetLayout(props, environment) {
                 : view("SpacerView", { minLength: 1 })
             ]
           }),
-          isMedium
+          isMedium && !isProgressLayout
             ? view("HStackView", {
                 alignment: "center",
                 spacing: 5,
                 modifiers: [
                   frame({ maxWidth: 400 }),
-                  padding({ all: 6 }),
+                  padding({ all: 4 }),
                   background(surface)
                 ],
                 children: weekDots
@@ -426,19 +473,54 @@ function StudyPlannerWidgetLayout(props, environment) {
               })
             ]
           }),
-          items.length > 0
-            ? view("VStackView", {
-                alignment: "leading",
-                spacing: 5,
-                modifiers: [frame({ maxWidth: 400 })],
-                children: rowNodes
-              })
-            : text(props.footnote, [
-                font({ size: isMedium ? 12 : 11, weight: "semibold" }),
-                foregroundStyle(muted),
-                lineLimit(2)
-              ]),
-          view("SpacerView", { minLength: 1 }),
+          isProgressLayout
+              ? view("VStackView", {
+                  alignment: "leading",
+                  spacing: 2,
+                  modifiers: [frame({ maxWidth: 400 })],
+                  children: [
+                    text(props.progressLabel || props.metricLabel || props.detail, [
+                      font({ size: 11, weight: "black" }),
+                      foregroundStyle(ink),
+                      lineLimit(1)
+                    ]),
+                    text(props.nextLabel || props.footnote, [
+                      font({ size: 9, weight: "semibold" }),
+                      foregroundStyle(muted),
+                      lineLimit(1)
+                    ])
+                  ]
+                })
+              : firstItem
+                ? view("HStackView", {
+                    alignment: "center",
+                    spacing: 5,
+                    modifiers: [frame({ maxWidth: 400 })],
+                    children: [
+                      circle(5, firstItem.courseColor || accent),
+                      text(firstItem.courseCode || props.courseScopeLabel || props.headline, [
+                        font({ size: 9, weight: "black" }),
+                        foregroundStyle(firstItem.courseColor || accent),
+                        lineLimit(1)
+                      ]),
+                      text(firstItem.title || props.footnote, [
+                        font({ size: 9, weight: "semibold" }),
+                        foregroundStyle(muted),
+                        lineLimit(1)
+                      ]),
+                      view("SpacerView", { minLength: 2 }),
+                      text(firstItem.dueLabel || timelineLabel, [
+                        font({ size: 9, weight: "bold" }),
+                        foregroundStyle(quiet),
+                        lineLimit(1)
+                      ])
+                    ]
+                  })
+                : text(props.footnote, [
+                  font({ size: isMedium ? 10 : 11, weight: "semibold" }),
+                  foregroundStyle(muted),
+                  lineLimit(1)
+                ]),
           view("HStackView", {
             alignment: "center",
             spacing: 5,

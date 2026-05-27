@@ -162,17 +162,20 @@ const stalePreset: WidgetPreset = {
 const styledTodayPreset: WidgetPreset = {
   id: "styled-today",
   name: "Today Forest",
+  widgetKind: "today",
   type: "today",
   size: "medium",
+  theme: "forest",
   background: "dark",
   palette: "forest",
+  dataMode: "single_class",
   font: "Rounded",
   classFocusCourseId: "history",
   layout: "list",
   iconKey: "check",
-  scheduleLabel: "7-10 AM",
   createdAt: now.toISOString(),
-  updatedAt: "2026-05-22T10:00:00"
+  updatedAt: "2026-05-22T10:00:00",
+  lastSyncedAt: "2026-05-22T10:00:00"
 };
 
 const failures: string[] = [];
@@ -251,7 +254,13 @@ const styledSnapshots = buildStudyPlannerWidgetSnapshots({
 assert(styledSnapshots.today.accentColor === "#35F2D0", "Saved native Today preset palette should affect native accent color.");
 assert(styledSnapshots.today.backgroundColor === "#05070B", "Saved native Today preset background should affect native background color.");
 assert(styledSnapshots.today.layoutLabel === "List", "Saved native Today layout should persist as native layout metadata.");
-assert(styledSnapshots.today.windowLabel === "7-10 AM", "Saved native Today schedule label should persist as native window label.");
+assert(styledSnapshots.today.nativeName === "StudyPlanner Today", "Native Today snapshot should carry the exact iOS gallery name.");
+assert(styledSnapshots.today.presetKind === "today", "Native Today snapshot should carry canonical preset kind.");
+assert(styledSnapshots.today.presetTheme === "forest", "Native Today snapshot should carry canonical preset theme.");
+assert(styledSnapshots.today.presetLayout === "list", "Native Today snapshot should carry canonical preset layout.");
+assert(styledSnapshots.today.presetDataMode === "single_class", "Native Today snapshot should carry canonical preset data mode.");
+assert(styledSnapshots.today.presetClassId === "history", "Native Today snapshot should carry native-readable class id.");
+assert(styledSnapshots.today.lastSyncedAt === "2026-05-22T10:00:00", "Native Today snapshot should carry last synced timestamp.");
 assert(
   styledSnapshots.today.items.every((item) => item.courseCode === "HIST"),
   "Saved native Today class filter should restrict native rows to the selected class."
@@ -417,6 +426,38 @@ const cleanSnapshots = buildStudyPlannerWidgetSnapshots({
 assert(cleanSnapshots.today.state === "no_due_today", "Clean day should show no-due-today state.");
 assert(cleanSnapshots.upcoming.state === "ready", "Clean day with future work should still keep Upcoming ready.");
 
+const classProgressRequiredSnapshots = buildStudyPlannerWidgetSnapshots({
+  semester,
+  courses,
+  assignments,
+  parsedImports,
+  settings,
+  widgetPresets: [
+    {
+      id: "class-progress-no-class",
+      name: "Class Progress",
+      widgetKind: "classProgress",
+      type: "class_focus",
+      size: "small",
+      theme: "forest",
+      background: "glass",
+      palette: "forest",
+      dataMode: "single_class",
+      font: "SF Pro",
+      layout: "progress",
+      iconKey: "book",
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString()
+    }
+  ],
+  demoMode: false,
+  now
+});
+assert(
+  classProgressRequiredSnapshots.classProgress.detail === "Choose a class first",
+  "Class Progress without a selected class should show a required-class state."
+);
+
 const needsReviewSnapshots = buildStudyPlannerWidgetSnapshots({
   semester,
   courses,
@@ -458,7 +499,7 @@ for (const privateFragment of [
 }
 
 assert(
-  nativeWidgetLayoutSource.includes("slice(0, isMedium ? 3 : 1)"),
+  nativeWidgetLayoutSource.includes("var rowLimit") && nativeWidgetLayoutSource.includes("isNextTaskLayout"),
   "Native Home Screen widgets should keep systemSmall to one planner item and systemMedium to three rows."
 );
 assert(
@@ -473,11 +514,15 @@ assert(
   nativeWidgetLayoutSource.includes("if (!isMedium)") && nativeWidgetLayoutSource.includes("frame({ maxWidth: 220, maxHeight: 220"),
   "Native systemSmall layout should use a dedicated compact branch instead of the medium agenda stack."
 );
+assert(
+  nativeWidgetLayoutSource.includes("weekdayCounts") && nativeWidgetLayoutSource.includes("maxWeekdayCount"),
+  "Native Week widget should render real workload-by-day counts."
+);
 for (const family of ["accessoryCircular", "accessoryRectangular", "accessoryInline"]) {
   assert(nativeWidgetLayoutSource.includes(`environment.widgetFamily === "${family}"`), `Native widget layout should keep ${family} coverage.`);
 }
 assert(
-  widgetPreviewSource.includes("nativeProgress") &&
+    widgetPreviewSource.includes("nativeProgress") &&
     widgetPreviewSource.includes("nativeWidgetProgressDots") &&
     widgetPreviewSource.includes("[0, 1, 2, 3, 4]") &&
     widgetPreviewSource.includes("lockRoundValue"),
@@ -488,12 +533,14 @@ assert(
     widgetStudioSource.includes("Install native app") &&
     widgetStudioSource.includes("nativeProgress={nativePreview?.progress}") &&
     widgetStudioSource.includes("previewWidgetPresets") &&
-    widgetStudioSource.includes("Saved fields: widget, data mode, class filter, palette, and background"),
+    widgetStudioSource.includes("Saved fields: widget, data mode, class filter, theme, layout, and last sync"),
   "Widget Studio should preview draft native presets and name only real saved native fields."
 );
 
 assert(
   widgetStudioSource.includes("dataMode") &&
+    widgetStudioSource.includes("allowedDataModes") &&
+    widgetStudioSource.includes("allowedLayouts") &&
     widgetStudioSource.includes("styleChoice") &&
     widgetStudioSource.includes("widgetThemeOrder") &&
     widgetStudioSource.includes("high_contrast") &&
