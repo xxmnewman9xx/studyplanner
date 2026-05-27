@@ -33,6 +33,7 @@ import { useAppTheme } from "../themeContext";
 import { courseEmoji } from "../utils/courseVisuals";
 import { useI18n } from "../i18n";
 import { widgetStyleColors } from "../widgets/widgetThemes";
+import { resolveWidgetLayoutPlan } from "../widgets/widgetLayoutEngine";
 
 export const emojiMap = {
   study: BookOpen,
@@ -411,7 +412,16 @@ export function WidgetPreviewCard({
   const isLarge = size === "large";
   const isMedium = size === "medium" || size === "large";
   const labelTone = isTinted ? styles.widgetTextDark : null;
-  const previewItems = items.slice(0, isMedium ? 3 : 2);
+  const layoutPlan = resolveWidgetLayoutPlan({
+    widgetType: type,
+    size,
+    locale,
+    layout,
+    background,
+    palette,
+    itemCount: items.length
+  });
+  const previewItems = items.slice(0, layoutPlan.maxRows);
   const fontStyle = font === "Mono" ? styles.widgetMono : font === "Rounded" ? styles.widgetRounded : null;
   const WidgetIcon = iconForKey(iconKey);
   const statusText = widgetStatusText(type, value, detail, previewItems, t);
@@ -431,7 +441,7 @@ export function WidgetPreviewCard({
   const nativeWeekDots = localizedWeekdayNarrowLabels(locale);
   const realWeekLoad = weekLoad || [];
   const maxWeekLoadScore = Math.max(...realWeekLoad.map((day) => day.score), 1);
-  const nativePreviewItems = items.slice(0, 1);
+  const nativePreviewItems = items.slice(0, layoutPlan.maxRows);
   const firstNativeItem = nativePreviewItems[0];
   const nativeStripLike = layout === "strip" || layout === "calendar" || type === "week";
   const nativeProgressLike = layout === "progress" || type === "class_focus";
@@ -489,7 +499,12 @@ export function WidgetPreviewCard({
           styles.widget,
           isLarge ? styles.widgetLarge : isMedium ? styles.widgetMedium : styles.widgetSmall,
           styles.nativeWidget,
-          { backgroundColor: nativeBackground },
+          {
+            backgroundColor: nativeBackground,
+            width: layoutPlan.availableWidth,
+            minHeight: layoutPlan.availableHeight,
+            padding: layoutPlan.safePadding
+          },
           style
         ]}
       >
@@ -510,21 +525,21 @@ export function WidgetPreviewCard({
             <Text style={[styles.nativeWidgetValue, { color: nativeInk }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{nativePrimaryValue}</Text>
             <Text
               style={[styles.nativeWidgetDetail, { color: nativeInk }]}
-              numberOfLines={isMedium ? 2 : 1}
+              numberOfLines={layoutPlan.maxTitleLines}
               adjustsFontSizeToFit
               minimumFontScale={0.72}
             >
               {nativePrimaryDetail}
             </Text>
           </View>
-          {isMedium ? (
+          {isMedium && layoutPlan.ctaVisible ? (
             <View style={[styles.nativeWidgetNextBox, { backgroundColor: nativeDark ? "#202633" : "#FFFFFF" }]}>
               <Text style={[styles.nativeWidgetNextKicker, { color: nativeQuiet }]} numberOfLines={1}>{t("widget_preview.next_caps", "NEXT")}</Text>
               <Text style={[styles.nativeWidgetNextText, { color: nativeInk }]} numberOfLines={2}>{nativeNext}</Text>
             </View>
           ) : null}
         </View>
-        {(isMedium || nativeStripLike) && !nativeProgressLike ? (
+        {layoutPlan.weekRailVisible && !nativeProgressLike ? (
           <View style={[styles.nativeWidgetWeekRail, { backgroundColor: nativeDark ? "#172132" : "#FFFFFF" }]}>
             {nativeWeekDots.map((label, index) => {
               const active = nativeProgressValue >= (index + 1) / nativeWeekDots.length;
@@ -537,20 +552,22 @@ export function WidgetPreviewCard({
             })}
           </View>
         ) : null}
-        <View style={styles.nativeWidgetProgressRow}>
-          <Text style={[styles.nativeWidgetMetric, { color: nativeQuiet }]} numberOfLines={1}>{nativeMetric}</Text>
-          <View style={styles.nativeWidgetProgressDots}>
-            {[0, 1, 2, 3, 4].map((index) => (
-              <View
-                key={index}
-                style={[
-                  styles.nativeWidgetProgressDot,
-                  { backgroundColor: nativeProgressValue >= (index + 1) / 5 ? nativeAccent : nativeDark ? "#2A303B" : "#E7EAF0" }
-                ]}
-              />
-            ))}
+        {layoutPlan.progressVisible ? (
+          <View style={styles.nativeWidgetProgressRow}>
+            <Text style={[styles.nativeWidgetMetric, { color: nativeQuiet }]} numberOfLines={1}>{nativeMetric}</Text>
+            <View style={styles.nativeWidgetProgressDots}>
+              {[0, 1, 2, 3, 4].map((index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.nativeWidgetProgressDot,
+                    { backgroundColor: nativeProgressValue >= (index + 1) / 5 ? nativeAccent : nativeDark ? "#2A303B" : "#E7EAF0" }
+                  ]}
+                />
+              ))}
+            </View>
           </View>
-        </View>
+        ) : null}
         {nativeProgressLike ? (
           <View style={styles.nativeWidgetProgressSummary}>
             <Text style={[styles.nativeWidgetProgressTitle, { color: nativeInk }]} numberOfLines={1}>
@@ -582,11 +599,13 @@ export function WidgetPreviewCard({
             {footnote || nativeNext || t("widget_preview.open_studyplanner_add_homework", "Open StudyPlanner to add homework.")}
           </Text>
         )}
-        <Text style={[styles.nativeWidgetFooter, { color: nativeQuiet }]} numberOfLines={1}>
-          {previewItems.length > 0
-            ? footnote || t("widget_preview.planner_data", "Planner data")
-            : semesterName || t("widget_preview.current_semester", "Current semester")}
-        </Text>
+        {layoutPlan.footerVisible ? (
+          <Text style={[styles.nativeWidgetFooter, { color: nativeQuiet }]} numberOfLines={1}>
+            {previewItems.length > 0
+              ? footnote || t("widget_preview.planner_data", "Planner data")
+              : semesterName || t("widget_preview.current_semester", "Current semester")}
+          </Text>
+        ) : null}
       </View>
     );
   }
@@ -601,6 +620,11 @@ export function WidgetPreviewCard({
         background === "glass" ? styles.widgetGlass : null,
         background === "dark" ? styles.widgetDark : null,
         background === "gradient" ? { backgroundColor: paletteColors[0] } : null,
+        {
+          width: layoutPlan.availableWidth,
+          minHeight: layoutPlan.availableHeight,
+          padding: layoutPlan.safePadding
+        },
         style
       ]}
     >
@@ -622,13 +646,15 @@ export function WidgetPreviewCard({
       <View style={styles.widgetMainRow}>
         <View style={styles.widgetCopy}>
           <Text style={[styles.widgetValue, labelTone, fontStyle]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>{value}</Text>
-          <Text style={[styles.widgetDetail, labelTone]} numberOfLines={isMedium ? 2 : 1}>
+          <Text style={[styles.widgetDetail, labelTone]} numberOfLines={layoutPlan.maxTitleLines}>
             {detail}
           </Text>
         </View>
-        <View style={[styles.widgetIconOrb, { backgroundColor: paletteColors[2] || paletteColors[1] }]}>
+        {layoutPlan.iconVisible ? (
+          <View style={[styles.widgetIconOrb, { backgroundColor: paletteColors[2] || paletteColors[1] }]}>
           <WidgetIcon color="#FFFFFF" size={17} />
-        </View>
+          </View>
+        ) : null}
       </View>
       {layout === "list" || layout === "timeline" || layout === "next_task" || type === "today" || type === "needs_check" || type === "class_focus" || type === "focus" ? (
         <View style={styles.widgetMiniList}>

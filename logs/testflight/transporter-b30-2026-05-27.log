@@ -1,0 +1,19 @@
+[2026-05-27 11:10:06 EDT] <main> DEBUG: SMART-CLIENT: initializing data center locking ops: [authenticateForSession, validateAssets]
+[2026-05-27 11:10:06 EDT] <main> DEBUG: SMART-CLIENT: initializing data centers with: [contentdelivery02.itunes.apple.com, contentdelivery01.itunes.apple.com]
+[2026-05-27 11:10:06 EDT] <main>  INFO: iTMSTransporter : iTunes Store Transporter [4.1.0]
+[2026-05-27 11:10:06 EDT] <main>  INFO: OS identifier: Mac OS X 26.4.1 (aarch64); jvm=21.0.6+7-iTunesOpenJDK-1; jre=21.0.6+7-iTunesOpenJDK-1; arch=arm64
+[2026-05-27 11:10:06 EDT] <main>  INFO: Memory: [JVM] 974M free, 1G total, 2G max [System] (Physical) 342M free, 17G total (Swap) 856M free, 8G total
+[2026-05-27 11:10:06 EDT] <main> DEBUG: SMART-CLIENT: getCurrent(); current data center is null
+[2026-05-27 11:10:06 EDT] <main> DEBUG: SMART-CLIENT: getCurrent(); iterator was null, setting it
+[2026-05-27 11:10:06 EDT] <main> DEBUG: SMART-CLIENT: getCurrent(); setting current data center to: contentdelivery02.itunes.apple.com
+[2026-05-27 11:10:10 EDT] <main>  INFO:
+
+
+Package Summary:
+[2026-05-27 11:10:10 EDT] <main>  INFO:
+[2026-05-27 11:10:10 EDT] <main>  INFO: 1 package was uploaded successfully:
+	/Users/mattnewman/work/StudyPlanner/builds/StudyPlanner-1.0.2-b30.ipa
+[2026-05-27 11:10:10 EDT] <main>  INFO:
+[2026-05-27 11:10:10 EDT] <main>  INFO: The successful package(s) throughput information is:
+[2026-05-27 11:10:10 EDT] <main>  INFO: 	/Users/mattnewman/work/StudyPlanner/builds/StudyPlanner-1.0.2-b30.ipa			0 seconds, 0 bytes, 0 bytes/sec
+[2026-05-27 11:10:10 EDT] <main> DBG-X: Returning 0

@@ -1,11 +1,15 @@
 {
-  "generatedAt": "2026-05-27T13:42:02Z",
+  "generatedAt": "2026-05-27T16:15:47.340Z",
   "currentReleaseCandidateManifest": "qa/screenshots/final-polish-screenshot-manifest.json",
+  "latestWidgetManifest": "qa/screenshots/final-widget-screenshot-manifest.json",
   "rawDirectory": "marketing_exports/raw_screenshots/final_polish",
+  "finalWidgetRawDirectory": "marketing_exports/raw_screenshots/final_widgets",
   "contactBoard": "/tmp/studyplanner_final_polish_contact_board.png",
+  "finalWidgetContactBoard": "/tmp/studyplanner_final_widgets_contact_board.png",
   "primaryCaptureMethod": "Clean native iOS simulator screenshots from the final Release-capture build; old web/contact-board screenshots are not used for final scoring.",
   "appBundleIdentifier": "com.mattnewman.studyplanner",
   "validNativeScreenshots": true,
+  "latestFinalPolishManifest": "qa/screenshots/final-polish-screenshot-manifest.json",
   "scoredScreens": [
     "Today",
     "Capture idle / Scan",
@@ -27,11 +31,20 @@
     "Settings / More",
     "Paywall",
     "Tablet Dashboard",
-    "Tablet Widget Studio"
+    "Tablet Widget Studio",
+    "Final Widget Studio locales",
+    "Final Widget customizations"
   ],
+  "rawScreenshotRoots": [
+    "marketing_exports/raw_screenshots/final_widgets",
+    "marketing_exports/raw_screenshots/final_polish",
+    "marketing_exports/raw_screenshots/native_clean"
+  ],
+  "pngCommitPolicy": "Do not commit bulky raw PNGs from ignored marketing_exports roots.",
   "notes": [
     "Capture and Review parser-truth states were freshly recaptured in marketing_exports/raw_screenshots/final_polish.",
     "Assignment Detail, Notes Hub, and Class Detail use existing clean native evidence from marketing_exports/raw_screenshots/native_clean because those screens were not modified in this pass.",
+    "Final widget raw screenshots are local under marketing_exports/raw_screenshots/final_widgets and indexed by qa/screenshots/final-widget-screenshot-manifest.json.",
     "Raw PNG screenshots remain local to avoid committing bulky binaries."
   ]
 }

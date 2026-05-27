@@ -308,7 +308,7 @@ export function MoreScreen({
       }),
     [background, classFocusCourseId, dataMode, editingPresetId, font, iconKey, layout, palette, requiresClassSelection, selectedThemePackId, selectedWidgetKind, size, styleChoice, type, widgetTypeLabels]
   );
-  const widgetData = getWidgetData(previewPreset, assignments, courses, undefined, focusSessions, notes);
+  const widgetData = getWidgetData(previewPreset, assignments, courses, undefined, focusSessions, notes, locale);
   const previewWidgetPresets = useMemo(
     () =>
       isNativeEligiblePreset(previewPreset)

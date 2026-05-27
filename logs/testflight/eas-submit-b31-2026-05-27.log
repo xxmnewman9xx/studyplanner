@@ -1,0 +1,28 @@
+★ eas-cli@19.1.0 is now available.
+To upgrade, run:
+npm install -g eas-cli
+Proceeding with outdated version.
+
+
+Uploading your app archive to EAS Submit
+- Uploading to EAS Submit 0%
+✔ Uploaded to EAS Submit 5s
+Looking up credentials configuration for com.mattnewman.studyplanner...
+✔ App Store Connect API Key already set up.
+Using Api Key ID: HDR783736G ([Expo] EAS Submit 7wvN1fH3pS)
+
+ASC App ID:                 6766181202
+Project ID:                 69335c75-753e-424e-8a76-c8bd2455a112
+App Store Connect API Key:
+    Key Name  :  [Expo] EAS Submit 7wvN1fH3pS
+    Key ID    :  HDR783736G
+    Key Source:  EAS servers
+Archive Path:               builds/StudyPlanner-1.0.2-b31.ipa
+
+- Scheduling iOS submission
+✔ Scheduled iOS submission
+
+Submission details: https://expo.dev/accounts/xxmnewman9xx/projects/study-planner-syllabus-ai/submissions/df13c940-12af-41b5-9015-7ffbe6891560
+
+Waiting for submission to complete. You can press Ctrl+C to exit.
+- Submitting

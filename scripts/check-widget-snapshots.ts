@@ -500,7 +500,7 @@ for (const privateFragment of [
 
 assert(
   nativeWidgetLayoutSource.includes("var rowLimit") && nativeWidgetLayoutSource.includes("isNextTaskLayout"),
-  "Native Home Screen widgets should keep systemSmall to one planner item and systemMedium to three rows."
+  "Native Home Screen widgets should keep systemSmall to one planner item and systemMedium to two verified rows."
 );
 assert(
   nativeWidgetLayoutSource.includes("circularValue") && nativeWidgetLayoutSource.includes("circularLabel = firstItem ? signalLabel : timelineLabel"),
@@ -511,7 +511,7 @@ assert(
   "Native week progress dots must allow true zero progress instead of forcing a decorative active dot."
 );
 assert(
-  nativeWidgetLayoutSource.includes("if (!isMedium)") && nativeWidgetLayoutSource.includes("frame({ maxWidth: 220, maxHeight: 220"),
+  nativeWidgetLayoutSource.includes("if (!isMedium)") && nativeWidgetLayoutSource.includes("frame({ maxWidth: 158, maxHeight: 158"),
   "Native systemSmall layout should use a dedicated compact branch instead of the medium agenda stack."
 );
 assert(

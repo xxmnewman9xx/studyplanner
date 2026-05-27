@@ -10,7 +10,8 @@ import {
   WidgetLayout,
   WidgetPalette,
   WidgetPreset,
-  WidgetTheme
+  WidgetTheme,
+  WidgetType
 } from "../models";
 import {
   daysUntil,
@@ -23,6 +24,11 @@ import {
   scoreWork
 } from "../logic/planner";
 import { widgetStyleColors } from "../widgets/widgetThemes";
+import {
+  ellipsizeWidgetText,
+  resolveWidgetLayoutPlan,
+  WidgetCompressionMode
+} from "../widgets/widgetLayoutEngine";
 import {
   buildCanonicalWidgetPreset,
   defaultDataModeForWidgetKind,
@@ -92,7 +98,40 @@ export type StudyPlannerNativeWidgetProps = {
   weekdayLabels?: string[];
   weekdayCounts?: number[];
   biggestDeadlineLabel?: string;
+  layoutLocale?: string;
+  smallMaxRows?: number;
+  mediumMaxRows?: number;
+  largeMaxRows?: number;
+  smallTitleLines?: number;
+  mediumTitleLines?: number;
+  largeTitleLines?: number;
+  smallFontScale?: number;
+  mediumFontScale?: number;
+  largeFontScale?: number;
+  smallCompressionMode?: WidgetCompressionMode;
+  mediumCompressionMode?: WidgetCompressionMode;
+  largeCompressionMode?: WidgetCompressionMode;
+  smallShowMetadata?: boolean;
+  mediumShowMetadata?: boolean;
+  largeShowMetadata?: boolean;
+  smallShowFooter?: boolean;
+  mediumShowFooter?: boolean;
+  largeShowFooter?: boolean;
+  smallShowWeekRail?: boolean;
+  mediumShowWeekRail?: boolean;
+  largeShowWeekRail?: boolean;
+  smallSafePadding?: number;
+  mediumSafePadding?: number;
+  largeSafePadding?: number;
+  noCropGuarantee?: boolean;
   items: StudyPlannerNativeWidgetItem[];
+};
+
+export type StudyPlannerNativeWidgetSnapshots = {
+  today: StudyPlannerNativeWidgetProps;
+  upcoming: StudyPlannerNativeWidgetProps;
+  week: StudyPlannerNativeWidgetProps;
+  classProgress: StudyPlannerNativeWidgetProps;
 };
 
 export type WidgetSyncStatus = {
@@ -185,8 +224,10 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
     generatedAt,
     semesterName: input.semester.name,
     openURL: "studyplanner://widgets",
+    layoutLocale: locale,
     weekdayLabels: localizedWeekdayNarrowLabels(locale)
   };
+  const finalize = (snapshots: StudyPlannerNativeWidgetSnapshots) => finalizeNativeWidgetSnapshots(snapshots, locale);
   const setupSnapshot = (
     kind: StudyPlannerNativeWidgetKind,
     state: StudyPlannerNativeWidgetState,
@@ -212,7 +253,7 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
     });
 
   if (input.demoMode) {
-    return {
+    return finalize({
       today: emptySnapshot({
         ...base,
         kind: "today",
@@ -251,11 +292,11 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         t("widget_snapshot.demo_footnote_upcoming", "Demo coursework is never shared"),
         classProgressStyle
       )
-    };
+    });
   }
 
   if (!hasClasses) {
-    return {
+    return finalize({
       today: emptySnapshot({
         ...base,
         kind: "today",
@@ -294,7 +335,7 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         t("widget_snapshot.course_context", "Course context makes widgets useful"),
         classProgressStyle
       )
-    };
+    });
   }
 
   if (assignments.length === 0) {
@@ -306,7 +347,7 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
       ? t("widget_snapshot.add_homework_when_appears", "Add homework when it appears")
       : t("widget_snapshot.imports_private", "Imports stay private until approved");
 
-    return {
+    return finalize({
       today: emptySnapshot({
         ...base,
         kind: "today",
@@ -345,11 +386,11 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         footnote,
         classProgressStyle
       )
-    };
+    });
   }
 
   if (reviewedAssignments.length === 0 && reviewCount > 0) {
-    return {
+    return finalize({
       today: emptySnapshot({
         ...base,
         kind: "today",
@@ -396,7 +437,7 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         ),
         accentColor: "#F59E0B"
       }
-    };
+    });
   }
 
   const nextUpcoming = upcoming[0];
@@ -413,7 +454,7 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
   const classNext = classProgressAssignments[0];
   const overdueToday = dueToday.filter((assignment) => daysUntil(assignment.dueAt, now) < 0).length;
 
-  return {
+  return finalize({
     today:
       dueToday.length > 0
         ? {
@@ -638,7 +679,7 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
             t("widget_snapshot.class_progress_requires_class", "Class Progress needs one selected class"),
             classProgressStyle
           )
-  };
+  });
 }
 
 export async function syncStudyPlannerWidgets(input: WidgetSnapshotInput): Promise<WidgetSyncStatus> {
@@ -708,14 +749,15 @@ export async function syncStudyPlannerWidgets(input: WidgetSnapshotInput): Promi
 
 function buildSyncDisabledWidgetSnapshots(input: WidgetSnapshotInput) {
   const now = input.now || new Date();
-  const { t } = getSnapshotLocalization(input);
+  const { locale, t } = getSnapshotLocalization(input);
   const generatedAt = now.toISOString();
   const base = {
     version: 1 as const,
     generatedAt,
     semesterName: input.semester.name,
     openURL: "studyplanner://widgets",
-    weekdayLabels: localizedWeekdayNarrowLabels(input.locale || "en-US")
+    layoutLocale: locale,
+    weekdayLabels: localizedWeekdayNarrowLabels(locale)
   };
   const canonicalPresets = ensureCanonicalWidgetPresets(input.widgetPresets || [], now);
   const todayStyle = getNativeWidgetStyle("today", findNativePreset("today", canonicalPresets), input.settings, t);
@@ -723,7 +765,7 @@ function buildSyncDisabledWidgetSnapshots(input: WidgetSnapshotInput) {
   const weekStyle = getNativeWidgetStyle("week", findNativePreset("week", canonicalPresets), input.settings, t);
   const classProgressStyle = getNativeWidgetStyle("class_progress", findNativePreset("class_progress", canonicalPresets), input.settings, t);
 
-  return {
+  return finalizeNativeWidgetSnapshots({
     today: emptySnapshot({
       ...base,
       kind: "today",
@@ -784,7 +826,7 @@ function buildSyncDisabledWidgetSnapshots(input: WidgetSnapshotInput) {
       nextLabel: t("widget_snapshot.open_widgets_settings", "Open Widgets settings"),
       timelineLabel: t("widget_snapshot.private", "Private")
     })
-  };
+  }, locale);
 }
 
 function loadNativeWidgetModule() {
@@ -810,6 +852,100 @@ function emptySnapshot(
     ...value,
     items: []
   };
+}
+
+function finalizeNativeWidgetSnapshots(
+  snapshots: StudyPlannerNativeWidgetSnapshots,
+  locale: string
+): StudyPlannerNativeWidgetSnapshots {
+  return {
+    today: finalizeNativeWidgetSnapshot(snapshots.today, locale),
+    upcoming: finalizeNativeWidgetSnapshot(snapshots.upcoming, locale),
+    week: finalizeNativeWidgetSnapshot(snapshots.week, locale),
+    classProgress: finalizeNativeWidgetSnapshot(snapshots.classProgress, locale)
+  };
+}
+
+function finalizeNativeWidgetSnapshot(
+  snapshot: StudyPlannerNativeWidgetProps,
+  locale: string
+): StudyPlannerNativeWidgetProps {
+  const widgetType = widgetTypeForNativeSnapshotKind(snapshot.kind);
+  const smallPlan = resolveWidgetLayoutPlan({
+    widgetType,
+    size: "small",
+    locale,
+    layout: snapshot.presetLayout,
+    itemCount: snapshot.items.length,
+    dataState: snapshot.state
+  });
+  const mediumPlan = resolveWidgetLayoutPlan({
+    widgetType,
+    size: "medium",
+    locale,
+    layout: snapshot.presetLayout,
+    itemCount: snapshot.items.length,
+    dataState: snapshot.state
+  });
+  const largePlan = resolveWidgetLayoutPlan({
+    widgetType,
+    size: "large",
+    locale,
+    layout: snapshot.presetLayout,
+    itemCount: snapshot.items.length,
+    dataState: snapshot.state
+  });
+  const maxRows = Math.max(smallPlan.maxRows, mediumPlan.maxRows, largePlan.maxRows);
+  const titleMaxChars = Math.max(smallPlan.titleMaxChars, mediumPlan.titleMaxChars);
+  const summaryMaxChars = mediumPlan.compressionMode === "tight" ? 48 : 64;
+
+  return {
+    ...snapshot,
+    layoutLocale: locale,
+    detail: ellipsizeWidgetText(snapshot.detail, summaryMaxChars),
+    footnote: ellipsizeWidgetText(snapshot.footnote, summaryMaxChars),
+    metricLabel: snapshot.metricLabel ? ellipsizeWidgetText(snapshot.metricLabel, summaryMaxChars) : snapshot.metricLabel,
+    nextLabel: snapshot.nextLabel ? ellipsizeWidgetText(snapshot.nextLabel, summaryMaxChars) : snapshot.nextLabel,
+    biggestDeadlineLabel: snapshot.biggestDeadlineLabel
+      ? ellipsizeWidgetText(snapshot.biggestDeadlineLabel, titleMaxChars)
+      : snapshot.biggestDeadlineLabel,
+    smallMaxRows: smallPlan.maxRows,
+    mediumMaxRows: mediumPlan.maxRows,
+    largeMaxRows: largePlan.maxRows,
+    smallTitleLines: smallPlan.maxTitleLines,
+    mediumTitleLines: mediumPlan.maxTitleLines,
+    largeTitleLines: largePlan.maxTitleLines,
+    smallFontScale: smallPlan.fontScale,
+    mediumFontScale: mediumPlan.fontScale,
+    largeFontScale: largePlan.fontScale,
+    smallCompressionMode: smallPlan.compressionMode,
+    mediumCompressionMode: mediumPlan.compressionMode,
+    largeCompressionMode: largePlan.compressionMode,
+    smallShowMetadata: smallPlan.metadataVisible,
+    mediumShowMetadata: mediumPlan.metadataVisible,
+    largeShowMetadata: largePlan.metadataVisible,
+    smallShowFooter: smallPlan.footerVisible,
+    mediumShowFooter: mediumPlan.footerVisible,
+    largeShowFooter: largePlan.footerVisible,
+    smallShowWeekRail: smallPlan.weekRailVisible,
+    mediumShowWeekRail: mediumPlan.weekRailVisible,
+    largeShowWeekRail: largePlan.weekRailVisible,
+    smallSafePadding: smallPlan.safePadding,
+    mediumSafePadding: mediumPlan.safePadding,
+    largeSafePadding: largePlan.safePadding,
+    noCropGuarantee: true,
+    items: snapshot.items.slice(0, maxRows).map((item) => ({
+      ...item,
+      title: ellipsizeWidgetText(item.title, titleMaxChars)
+    }))
+  };
+}
+
+function widgetTypeForNativeSnapshotKind(kind: StudyPlannerNativeWidgetKind): WidgetType {
+  if (kind === "today") return "today";
+  if (kind === "week") return "week";
+  if (kind === "class_progress") return "class_focus";
+  return "due_next";
 }
 
 function getReviewedAssignments(assignments: Assignment[], now: Date) {

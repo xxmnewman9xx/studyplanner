@@ -17,6 +17,7 @@ import {
   ensureCanonicalWidgetPresets,
   replaceCanonicalWidgetPreset
 } from "../widgets/widgetPresets";
+import { resolveWidgetLayoutPlan, WidgetLayoutPlan } from "../widgets/widgetLayoutEngine";
 
 const dayMs = 24 * 60 * 60 * 1000;
 
@@ -75,6 +76,7 @@ export type WidgetData = {
   weekLoad?: DailyLoad[];
   progress?: number;
   progressLabel?: string;
+  layoutPlan?: WidgetLayoutPlan;
 };
 
 export type TodayBrain = TodayPlan & {
@@ -477,7 +479,8 @@ export function getWidgetData(
   courses: Course[],
   now = new Date(),
   focusSessions: FocusSession[] = [],
-  notes: StudyNote[] = []
+  notes: StudyNote[] = [],
+  locale = "en-US"
 ): WidgetData {
   const next = getNextUp(assignments, now);
   const dueToday = getDueToday(assignments, now);
@@ -576,7 +579,22 @@ export function getWidgetData(
     }
   };
 
-  return byType[preset.type];
+  const widgetData = byType[preset.type];
+  const layoutPlan = resolveWidgetLayoutPlan({
+    widgetType: preset.type,
+    size: preset.size,
+    locale,
+    layout: preset.layout,
+    background: preset.background,
+    palette: preset.palette,
+    itemCount: widgetData.items.length
+  });
+
+  return {
+    ...widgetData,
+    items: widgetData.items.slice(0, layoutPlan.maxRows),
+    layoutPlan
+  };
 }
 
 export function getRecommendedWidgetPreset(

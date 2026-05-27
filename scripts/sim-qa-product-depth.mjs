@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { execFileSync } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const outDir = process.argv[2] || "qa-screenshots/apple-school-product-depth/after";
@@ -49,6 +50,8 @@ const requestedTargets = (process.env.STUDYPLANNER_SIM_CAPTURE_TABS || "")
 const targets = requestedTargets.length
   ? captureTargets.filter((target) => requestedTargets.includes(target.key) || requestedTargets.includes(target.route.tab))
   : captureTargets;
+const finalWidgetMode = outDir.includes("final_widgets");
+const manifestEntries = [];
 function run(cmd, args, opts = {}) { return execFileSync(cmd, args, { stdio: opts.capture ? "pipe" : "inherit", encoding: "utf8" }); }
 function runOptional(cmd, args) {
   try {
@@ -60,7 +63,9 @@ function runOptional(cmd, args) {
 function sleep(ms) { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms); }
 mkdirSync(outDir, { recursive: true });
 const dataRoot = run("xcrun", ["simctl", "get_app_container", device, bundleId, "data"], { capture: true }).trim();
-for (const { route, name } of targets) {
+const gitCommit = gitShortSha();
+const timestamp = new Date().toISOString();
+for (const { route, name, key } of targets) {
   writeFileSync(
     join(dataRoot, "Documents", "studyplanner-capture-tab.json"),
     JSON.stringify(captureLocale ? { ...route, locale: captureLocale } : route)
@@ -72,6 +77,81 @@ for (const { route, name } of targets) {
     run("xcrun", ["simctl", "launch", device, bundleId]);
   }
   sleep(launchWaitMs);
-  run("xcrun", ["simctl", "io", device, "screenshot", join(outDir, `${name}.png`)]);
+  const screenshotPath = screenshotPathForTarget(route, name);
+  mkdirSync(dirname(screenshotPath), { recursive: true });
+  run("xcrun", ["simctl", "io", device, "screenshot", screenshotPath]);
+  const sidecar = buildSidecar({ route, key, name, screenshotPath, gitCommit, timestamp });
+  writeFileSync(screenshotPath.replace(/\.png$/, ".json"), JSON.stringify(sidecar, null, 2) + "\n");
+  manifestEntries.push(sidecar);
 }
+writeFileSync(join(outDir, "manifest.json"), JSON.stringify({
+  generatedAt: timestamp,
+  outputRoot: outDir,
+  device,
+  bundleId,
+  locale: captureLocale || "runtime",
+  screenshotCount: manifestEntries.length,
+  entries: manifestEntries
+}, null, 2) + "\n");
 console.log(`Captured ${targets.length} deterministic capture-file screenshots in ${outDir}`);
+
+function screenshotPathForTarget(route, name) {
+  if (!finalWidgetMode) return join(outDir, `${name}.png`);
+  const locale = sanitizePathPart(captureLocale || route.locale || "en-US");
+  const safeDevice = sanitizePathPart(device === "booted" ? "booted-simulator" : device);
+  const appearance = sanitizePathPart(route.themeMode || "light");
+  const theme = sanitizePathPart(route.appTheme || route.widgetPalette || "default");
+  const widgetType = sanitizePathPart(route.widgetType || route.tab || name);
+  const size = sanitizePathPart(route.widgetSize || "screen");
+  const customization = sanitizePathPart(name);
+  return join(outDir, locale, safeDevice, appearance, theme, widgetType, size, `${customization}.png`);
+}
+
+function buildSidecar({ route, key, name, screenshotPath, gitCommit, timestamp }) {
+  const stats = statSync(screenshotPath);
+  return {
+    locale: captureLocale || route.locale || "runtime",
+    device,
+    appearance: route.themeMode || "light",
+    theme: route.appTheme || route.widgetPalette || "default",
+    widgetType: route.widgetType || route.tab || key,
+    size: route.widgetSize || "screen",
+    background: route.widgetBackground || "default",
+    palette: route.widgetPalette || "default",
+    font: route.widgetFont || "system",
+    layout: route.widgetLayout || "default",
+    classFocus: route.classFocusCourseId || "all",
+    dataState: route.workloadState || route.screen || route.widgetDataMode || "normal",
+    route,
+    source: "actual-app-simulator-preview",
+    screenshotPath,
+    bytes: stats.size,
+    sha256: sha256File(screenshotPath),
+    noCropResult: "pending-layout-manifest-validation",
+    scoreResult: "pending-scorecard",
+    gitCommit,
+    timestamp
+  };
+}
+
+function sha256File(filePath) {
+  return createHash("sha256").update(readFileSync(filePath)).digest("hex");
+}
+
+function gitShortSha() {
+  try {
+    return run("git", ["rev-parse", "--short", "HEAD"], { capture: true }).trim();
+  } catch {
+    return "unknown";
+  }
+}
+
+function sanitizePathPart(value) {
+  return String(value || "unknown").replace(/[^a-z0-9._-]+/gi, "-");
+}
+
+function dirname(filePath) {
+  const parts = filePath.split("/");
+  parts.pop();
+  return parts.join("/") || ".";
+}
