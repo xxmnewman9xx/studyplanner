@@ -40,6 +40,7 @@ const requiredScenarioIds = [
   "sp-subscription-tab-surface",
   "sp-first-run-empty",
   "sp-scan-review-handoff",
+  "sp-brain-core-loop-truth",
   "sp-no-fake-widgets",
   "sp-review-prompt-value-only",
   "sp-minimal-white-icon"

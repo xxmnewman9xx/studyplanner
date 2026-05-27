@@ -1,0 +1,61 @@
+{
+  "generatedAt": "2026-05-27T07:55:00-04:00",
+  "repo": "/Users/mattnewman/work/StudyPlanner",
+  "gitnexus": {
+    "analyzeCommand": "npx --no-install gitnexus analyze",
+    "finalDetectCommand": "npx --no-install gitnexus detect-changes --repo studyplanner",
+    "finalDetectResult": {
+      "changedFiles": 8,
+      "changedSymbols": 5,
+      "affectedProcesses": 0,
+      "riskLevel": "low"
+    },
+    "changedSymbols": [
+      "AGENTS.md GitNexus Code Intelligence metadata",
+      "scripts/check-planner-trust.ts now",
+      "scripts/check-planner-trust.ts semester",
+      "scripts/check-planner-trust.ts assert",
+      "scripts/check-scenarios.mjs requiredScenarioIds"
+    ],
+    "note": "New QA JSON artifacts are release evidence files and do not add executable app flows."
+  },
+  "riskReduction": {
+    "startingPoint": {
+      "source": "npx --no-install gitnexus detect-changes --repo studyplanner --scope compare --base-ref 4bda59b^",
+      "riskLevel": "critical",
+      "affectedProcesses": 78,
+      "changedSymbols": 121
+    },
+    "endingPoint": {
+      "riskLevel": "low",
+      "affectedProcesses": 0,
+      "changedSymbols": 5
+    },
+    "interpretation": "The original revamp remains broad, but this stabilization commit deliberately avoids additional app-surface churn and adds regression/QA coverage around the highest-risk shared Brain and Widget paths."
+  },
+  "coverageAddedOrStrengthened": [
+    "StudyPlannerBrain core-loop fixture in npm run test:planner",
+    "Golden scenario sp-brain-core-loop-truth",
+    "qa/blast-radius/gitnexus-flow-risk.json",
+    "qa/regression/core-flow-smoke.json",
+    "Updated screenshot manifest and scorecard method to distinguish valid web scoring from invalid native prompt captures"
+  ],
+  "nativeRisk": {
+    "status": "partial",
+    "build": "SDK 55 native build path succeeded in a clean temporary prebuild and Release simulator build.",
+    "remainingLimitation": "Clean deterministic native screenshot capture is still blocked by simulator prompt/overlay behavior and a fresh-simulator install failure under low disk/entitlement conditions.",
+    "usedForScoring": false
+  },
+  "checksPassed": [
+    "npm run qa:release",
+    "npm run test:planner",
+    "npm run test:widgets",
+    "npm run test:widget-integrity",
+    "npm run check:scenarios",
+    "npm run check:localization",
+    "npm run check:iap",
+    "npm run export:web",
+    "git diff --check",
+    "logo SHA-256 verification"
+  ]
+}

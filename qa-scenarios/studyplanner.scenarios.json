@@ -103,6 +103,26 @@
     "failureMeans": "The parser wedge does not turn into a daily plan."
   },
   {
+    "id": "sp-brain-core-loop-truth",
+    "app": "StudyPlanner",
+    "persona": "overwhelmed student with captured work, notes, and focus history",
+    "risk": "trust",
+    "state": "parsed import contains valid work, missing-date review work, assignment notes, pinned notes, focus sessions, and saved widget presets",
+    "trigger": "shared StudyPlannerBrain selectors build Today, widgets, recommendations, focus, and completion state",
+    "expected": [
+      "review flags, duplicate flags, source links, notes, widget data, focus sessions, theme, locale, and completion all read/write the same assignment truth",
+      "invalid or missing dates surface as needs-review work instead of corrupting calendar/week/upcoming views",
+      "widget preset save/load/reset and note-to-task conversion stay covered by release regression checks"
+    ],
+    "automation": "unit",
+    "evidence": [
+      "npm run test:planner",
+      "scripts/check-planner-trust.ts StudyPlannerBrain regression fixture",
+      "qa/regression/core-flow-smoke.json"
+    ],
+    "failureMeans": "The post-revamp shared Brain can drift into disconnected screen state without a release gate."
+  },
+  {
     "id": "sp-no-fake-widgets",
     "app": "StudyPlanner",
     "persona": "skeptical first-time user",

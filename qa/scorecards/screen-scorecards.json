@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-05-27T03:30:00-04:00",
-  "method": "Expo web fallback screenshots plus targeted code review; native simulator attempt excluded because the installed Expo Go runtime reported SDK 56 while the project uses SDK 55.",
+  "generatedAt": "2026-05-27T07:42:00-04:00",
+  "method": "Expo web fallback screenshots plus targeted code review; clean SDK 55 native build/Release launch was validated, but native screenshots remain excluded because the simulator captured a handoff/Expo Go overlay rather than clean StudyPlanner states.",
   "thresholds": {
     "accessibility": 90,
     "utility": 92,

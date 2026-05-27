@@ -1,14 +1,21 @@
 {
-  "generatedAt": "2026-05-27T03:30:00-04:00",
+  "generatedAt": "2026-05-27T07:42:00-04:00",
   "rawDirectory": "marketing_exports/raw_screenshots",
   "contactBoard": "/tmp/studyplanner_after_contact_board.png",
-  "primaryCaptureMethod": "Expo web fallback with deterministic marketing capture state",
+  "primaryCaptureMethod": "Expo web fallback with deterministic marketing capture state; native Release build launch validated separately.",
   "nativeSimulator": {
     "attempted": true,
-    "outputDirectory": "marketing_exports/raw_screenshots/native-smoke",
-    "status": "blocked",
-    "blocker": "Booted simulator had Expo Go SDK 56.0.0 while this project uses SDK 55, so native screenshots showed the runtime compatibility message instead of StudyPlanner.",
-    "usedForScoring": false
+    "outputDirectory": "marketing_exports/raw_screenshots/native_validation",
+    "status": "partial-build-launch-only",
+    "blocker": "A clean temporary SDK 55 native prebuild and Release simulator build succeeded, but deterministic screenshots stayed blocked by an iOS URL handoff prompt/old Expo Go mismatch overlay on the reused simulator. A fresh simulator install then failed while the host was critically low on disk with an IXPromisedInMemoryDictionary entitlement error.",
+    "buildEvidence": [
+      "CI=1 npx expo prebuild --platform ios --no-install in a temporary clean worktree",
+      "CI=1 npx pod-install ios",
+      "CI=1 npx expo run:ios --device AD74774F-12B8-4492-B7A2-B085759E7212 --configuration Release --no-bundler"
+    ],
+    "usedForScoring": false,
+    "validNativeScreenshots": false,
+    "note": "Native build/render was validated, but raw native_validation screenshots are retained as invalid blocker evidence rather than scored app screenshots."
   },
   "screenshots": [
     { "screen": "Today", "path": "marketing_exports/raw_screenshots/today.png", "width": 390, "height": 844, "scored": true },
@@ -32,6 +39,10 @@
     {
       "path": "marketing_exports/raw_screenshots/native-smoke",
       "reason": "Native runtime compatibility blocker; retained locally as evidence, not scored or committed."
+    },
+    {
+      "path": "marketing_exports/raw_screenshots/native_validation",
+      "reason": "Post-stabilization native route capture reached simulator screenshot tooling but captured iOS handoff/Expo Go mismatch overlays, not clean app states."
     }
   ]
 }

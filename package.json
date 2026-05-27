@@ -16,7 +16,7 @@
     "check:iap": "node scripts/check-iap-config.mjs",
     "export:web": "expo export --platform web",
     "qa:release": "npm run typecheck && npm run test:quick-homework && npm run test:parser && npm run test:parser-endpoint && npm run test:backend-platform && npm run test:photo-ocr && npm run test:planner && npm run test:widgets && npm run test:widget-integrity && npm run check:scenarios && npm run check:localization && npm run check:iap && npm run check:release-docs && npm run export:web",
-    "test:planner": "rm -rf /tmp/studyplanner-trust-test-build && tsc scripts/check-planner-trust.ts src/logic/planner.ts src/models.ts --outDir /tmp/studyplanner-trust-test-build --module commonjs --target ES2020 --esModuleInterop --skipLibCheck && node /tmp/studyplanner-trust-test-build/scripts/check-planner-trust.js",
+    "test:planner": "rm -rf /tmp/studyplanner-trust-test-build && tsc scripts/check-planner-trust.ts src/logic/studyPlannerBrain.ts src/logic/planner.ts src/models.ts --outDir /tmp/studyplanner-trust-test-build --module commonjs --target ES2020 --esModuleInterop --skipLibCheck && node /tmp/studyplanner-trust-test-build/scripts/check-planner-trust.js",
     "test:quick-homework": "rm -rf /tmp/studyplanner-quick-homework-test-build && tsc scripts/check-quick-homework-parser.ts src/services/quickHomeworkParser.ts src/models.ts --outDir /tmp/studyplanner-quick-homework-test-build --module commonjs --target ES2020 --esModuleInterop --skipLibCheck && node /tmp/studyplanner-quick-homework-test-build/scripts/check-quick-homework-parser.js",
     "check:release-docs": "node scripts/check-release-docs.mjs",
     "check:localization": "node scripts/check-localization-completeness.mjs",
