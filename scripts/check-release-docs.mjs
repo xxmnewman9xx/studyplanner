@@ -47,7 +47,8 @@ assert(guardrails.includes("no local ocr fallback") && guardrails.includes("text
 
 const reviewLower = reviewNotes.toLowerCase();
 assert(reviewLower.includes("invalid dates or times cannot be applied"), "App Review notes must preserve invalid-deadline application guardrail");
-assert(reviewLower.includes("camera scan is active in this build only when the production parser endpoint is configured over https"), "App Review notes must disclose photo parsing endpoint dependency");
+assert(reviewLower.includes("camera/photo source capture is visible in this build"), "App Review notes must disclose visible camera/photo capture.");
+assert(reviewLower.includes("ocr parsing is active only when the production parser endpoint is configured over https"), "App Review notes must disclose photo parsing endpoint dependency");
 assert(reviewLower.includes("expo_public_syllabus_image_parsing_enabled=1"), "App Review notes must disclose the image parsing env flag");
 assert(reviewLower.includes("there is no local image ocr fallback"), "App Review notes must disclose missing local image OCR");
 assert(reviewLower.includes("instead of applying uncertain data"), "App Review notes must state unclear photo data is not applied");
@@ -79,8 +80,8 @@ for (const phrase of [`${oldNoCostPrefix}mium`, `${oldNoCostPrefix} plan`, `${ol
   assert(!runtimeAndReleaseText.includes(phrase), `Release/runtime copy must not include unsupported phrase: ${phrase}`);
 }
 assert(!runtimeAndReleaseText.includes("photo scanning now uses"), "Photo copy must not imply OCR/photo parsing is available by default.");
-assert(importSource.includes("disabled={!imageParsingAvailable}"), "Camera/photo scanner controls must remain visible but disabled unless OCR is configured.");
-assert(importSource.includes("Photo OCR is not enabled in this build"), "Import copy must clearly say photo OCR is unavailable when disabled.");
+assert(importSource.includes("onPress={capturePhoto}") && importSource.includes("onPress={pickPhoto}"), "Camera/photo controls must stay wired to real capture and picker actions.");
+assert(importSource.includes("Photo capture is available, but OCR review is not enabled in this build"), "Import copy must clearly say photo capture is available while OCR review is unavailable when disabled.");
 assert(localizedMetadata.includes("AI-assisted text/PDF syllabus organization only"), "Localized metadata must define the AI truth boundary.");
 
 const prdLower = prd.toLowerCase();
@@ -90,6 +91,7 @@ assert(prdLower.includes("invalid legacy deadlines"), "PRD must document invalid
 assert(prdLower.includes("hard-gated build"), "PRD must document the current subscription-required product shell");
 assert(!prdLower.includes(`${oldNoCostPrefix}-limit`), "PRD must not describe a bypass plan for the hard-paywall build.");
 assert(prdLower.includes("expo_public_syllabus_image_parsing_enabled=1"), "PRD must gate photo parsing behind the image parsing env flag");
+assert(prdLower.includes("photo import can save a review source"), "PRD must describe the honest photo source fallback.");
 
 const infoPlist = appJson?.expo?.ios?.infoPlist ?? {};
 assert(

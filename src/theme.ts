@@ -19,6 +19,7 @@ export const lightColors = {
   green: "#16A66E",
   lavender: "#E9E7FF",
   accent: "#315BFF",
+  accentText: "#FFFFFF",
   accentSoft: "#E5EBFF",
   brandPink: "#D84B7B",
   brandViolet: "#5D5FEF",
@@ -52,6 +53,7 @@ export const darkColors = {
   green: "#4ADE80",
   lavender: "#11253D",
   accent: "#56A8FF",
+  accentText: "#07111F",
   accentSoft: "#112B4A",
   brandPink: "#FF4D8D",
   brandViolet: "#38D8FF",
@@ -371,6 +373,50 @@ export function createTypography(themeColors: ColorTokens) {
 
 export const typography = createTypography(colors);
 
+export function createGlassTokens(themeColors: ColorTokens, mode: ThemeMode) {
+  const isDark = mode === "dark";
+
+  return {
+    blurAmount: {
+      thin: 12,
+      standard: 20,
+      hero: 28
+    },
+    opacity: {
+      surface: isDark ? 0.76 : 0.8,
+      hero: isDark ? 0.9 : 0.86,
+      control: isDark ? 0.68 : 0.74,
+      reducedTransparency: isDark ? 0.96 : 0.98,
+      texture: isDark ? 0.05 : 0.035
+    },
+    tint: {
+      surface: isDark ? "rgba(18,25,42,0.76)" : "rgba(255,255,255,0.80)",
+      hero: isDark ? "rgba(8,12,22,0.92)" : "rgba(255,255,255,0.84)",
+      control: isDark ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.70)",
+      reducedTransparency: isDark ? themeColors.surface : themeColors.surface
+    },
+    border: {
+      alpha: isDark ? 0.22 : 0.82,
+      highContrastAlpha: isDark ? 0.42 : 1
+    },
+    rimHighlight: isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.72)",
+    innerGlow: isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.46)",
+    ambientSpill: isDark ? "rgba(86,168,255,0.18)" : "rgba(49,91,255,0.12)",
+    depth: {
+      surfaceShadowOpacity: isDark ? 0.34 : 0.12,
+      heroShadowOpacity: isDark ? 0.42 : 0.16,
+      controlShadowOpacity: isDark ? 0.22 : 0.08,
+      shadowRadius: 24,
+      shadowY: 16
+    },
+    gradientStops: {
+      top: isDark ? "rgba(255,255,255,0.09)" : "rgba(255,255,255,0.58)",
+      mid: isDark ? "rgba(255,255,255,0.035)" : "rgba(255,255,255,0.22)",
+      bottom: isDark ? "rgba(0,0,0,0.12)" : "rgba(17,24,39,0.035)"
+    }
+  };
+}
+
 export function getTheme(mode: ThemeMode, accent: ThemeAccent = "campus") {
   const baseColors = mode === "dark" ? darkColors : lightColors;
   const overrides = mode === "dark" ? darkAccentOverrides[accent] : lightAccentOverrides[accent];
@@ -383,7 +429,8 @@ export function getTheme(mode: ThemeMode, accent: ThemeAccent = "campus") {
     colors: themeColors,
     spacing,
     radii,
-    typography: createTypography(themeColors)
+    typography: createTypography(themeColors),
+    glass: createGlassTokens(themeColors, mode)
   };
 }
 

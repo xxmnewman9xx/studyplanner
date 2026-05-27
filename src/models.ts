@@ -245,6 +245,8 @@ export type ParserFinding = {
 };
 
 export type SyllabusParseResult = {
+  sourceImportId?: string;
+  sourceType?: ParsedImport["sourceType"];
   sourceName: string;
   semesterName?: string;
   semesterStartDate?: string;
@@ -260,7 +262,22 @@ export type ParsedImport = {
   title: string;
   sourceType: "pdf" | "photo" | "typed" | "scan";
   sourceUri?: string;
-  status: "processing" | "ready" | "error" | "applied";
+  sourceText?: string;
+  mimeType?: string;
+  status:
+    | "idle"
+    | "picking"
+    | "captured"
+    | "queued"
+    | "parsing"
+    | "parsed"
+    | "failed"
+    | "retrying"
+    | "reviewed"
+    | "processing"
+    | "ready"
+    | "error"
+    | "applied";
   itemCount: number;
   createdAt: string;
   updatedAt: string;

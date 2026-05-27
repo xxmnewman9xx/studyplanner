@@ -9,7 +9,7 @@ import {
 
 declare const __DEV__: boolean;
 
-export type MarketingCaptureScreen = "processing" | "extracted" | "review_edit" | "agenda";
+export type MarketingCaptureScreen = "processing" | "extracted" | "review_edit" | "failed" | "agenda";
 
 const screen = process.env.EXPO_PUBLIC_MARKETING_CAPTURE_SCREEN;
 const initialTab = process.env.EXPO_PUBLIC_MARKETING_CAPTURE_INITIAL_TAB;

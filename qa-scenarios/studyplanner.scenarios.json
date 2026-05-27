@@ -103,6 +103,27 @@
     "failureMeans": "The parser wedge does not turn into a daily plan."
   },
   {
+    "id": "sp-capture-camera-parser-truth",
+    "app": "StudyPlanner",
+    "persona": "student capturing real school material",
+    "risk": "trust",
+    "state": "Capture can scan, upload, type, parse, retry, review, and add without fake parser claims",
+    "trigger": "uses Scan, Upload, Type It In, Recent, Retry, Review, and Add All",
+    "expected": [
+      "camera/photo paths either use the configured OCR endpoint or show an honest unavailable/failed state",
+      "typed text and text-based documents create ParsedImport plus ParsedItem rows before Add All",
+      "missing dates, duplicates, low confidence, and parser failures stay visible and retryable",
+      "Add All converts reviewed rows once and updates Today, Plan, Classes, Notes, Widgets, and Focus data"
+    ],
+    "automation": "unit",
+    "evidence": [
+      "npm run test:capture-parser",
+      "src/services/parserContract.ts",
+      "ImportScreen persisted parser status and retry UI"
+    ],
+    "failureMeans": "The Capture surface implies fake OCR/parser success or loses parsed rows before review."
+  },
+  {
     "id": "sp-brain-core-loop-truth",
     "app": "StudyPlanner",
     "persona": "overwhelmed student with captured work, notes, and focus history",

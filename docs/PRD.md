@@ -2,7 +2,7 @@
 
 ## Product Promise
 
-Turn a messy semester into a clear daily execution plan. Students upload a text-based syllabus or paste class material, review the detected plan, and immediately see courses, assignments, exams, reminders, grades, and what to do today. Photo import is available only in builds with a configured parser endpoint and image parsing enabled.
+Turn a messy semester into a clear daily execution plan. Students upload a text-based syllabus or paste class material, review the detected plan, and immediately see courses, assignments, exams, reminders, grades, and what to do today. Photo import can save a review source, while automatic photo OCR is available only in builds with a configured parser endpoint and image parsing enabled.
 
 ## Audience
 
@@ -16,7 +16,7 @@ Turn a messy semester into a clear daily execution plan. Students upload a text-
 
 - Course and semester setup.
 - Text-based PDF and pasted-text syllabus import with editable parsing results.
-- Real photo syllabus parsing through the camera/photo library only when the production parser endpoint is configured and `EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1`.
+- Real photo syllabus parsing through the camera/photo library only when the production parser endpoint is configured and `EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1`; without OCR support, photo capture saves an honest source for review instead of claiming extraction.
 - Assignments and exams with due dates, tags, priority, estimates, and status.
 - Weekly class schedule.
 - Today view with a ranked next action.
@@ -45,8 +45,8 @@ Turn a messy semester into a clear daily execution plan. Students upload a text-
 
 ### Syllabus Import
 
-1. Upload a text-based PDF, paste syllabus text, or, when enabled, capture a syllabus photo.
-2. Parse pasted text locally. Parse text-based PDFs locally when no endpoint is configured, and use the configured parser endpoint first when present. Send camera/photo sources only when the configured endpoint and image parsing flag are both enabled.
+1. Upload a text-based PDF, paste syllabus text, or capture a syllabus photo as a review source.
+2. Parse pasted text locally. Parse text-based PDFs locally when no endpoint is configured, and use the configured parser endpoint first when present. Send camera/photo sources to OCR only when the configured endpoint and image parsing flag are both enabled.
 3. Return structured JSON with confidence and review flags.
 4. Show editable title, kind, priority, due date, due time, and effort fields before applying.
 5. Block invalid deadlines from application and route uncertain work into Needs Review.

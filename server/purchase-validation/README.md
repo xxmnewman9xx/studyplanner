@@ -7,7 +7,7 @@
 ```json
 {
   "platform": "ios",
-  "productId": "com.mattnewman.studyplanner.plus.yearly",
+  "productId": "<one of src/config/iap.ts product IDs>",
   "transactionId": "2000000123456789",
   "purchaseToken": "optional-store-token-or-jws",
   "source": "purchase"
@@ -21,7 +21,7 @@
 ```json
 {
   "isPremium": true,
-  "productId": "com.mattnewman.studyplanner.plus.yearly",
+  "productId": "<validated StudyPlanner product ID>",
   "validatedAt": "2026-05-25T13:00:00.000Z",
   "environment": "Sandbox",
   "expiresAt": "2026-06-25T13:00:00.000Z",

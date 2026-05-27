@@ -13,13 +13,13 @@ https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Polic
 ## Supported syllabus import flow for this build
 
 1. Open the Scan tab after access is active.
-2. Choose Upload for a text-based PDF/plain-text syllabus from Files, or Paste syllabus/handout text directly. Camera/photo options appear only when a configured HTTPS parser endpoint and `EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1` are present in the native build.
-3. Pasted text always parses locally. Text-based PDFs and plain-text files can parse locally when no endpoint is configured, and can use the configured parser endpoint when present. Camera/photo sources require the configured parser endpoint with image parsing support, then create an editable draft.
+2. Choose Upload for a text-based PDF/plain-text syllabus from Files, Paste syllabus/handout text directly, or use Scan/Choose Photo to save a photo source for review.
+3. Pasted text always parses locally. Text-based PDFs and plain-text files can parse locally when no endpoint is configured, and can use the configured parser endpoint when present. Camera/photo sources can be captured and saved as sources, but automatic OCR parsing requires the configured HTTPS parser endpoint and `EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1`.
 4. Review detected courses, deadlines, due times, effort estimates, possible duplicates, and grade categories.
 5. Fix any items marked Needs Review. Invalid dates or times cannot be applied to the planner.
 6. Apply the parsed plan only after review.
 
-Camera scan is active in this build only when the production parser endpoint is configured over HTTPS and image parsing is explicitly enabled for the build. There is no local image OCR fallback. If the online parser endpoint is unavailable or a photo cannot be read clearly, the app shows a retry/fallback message instead of applying uncertain data.
+Camera/photo source capture is visible in this build, and it does not apply planner data by itself. OCR parsing is active only when the production parser endpoint is configured over HTTPS and image parsing is explicitly enabled for the build. There is no local image OCR fallback. If the online parser endpoint is unavailable or a photo cannot be read clearly, the app shows a retry/fallback message instead of applying uncertain data.
 
 ## Planner trust behavior
 

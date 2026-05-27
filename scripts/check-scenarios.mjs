@@ -40,6 +40,7 @@ const requiredScenarioIds = [
   "sp-subscription-tab-surface",
   "sp-first-run-empty",
   "sp-scan-review-handoff",
+  "sp-capture-camera-parser-truth",
   "sp-brain-core-loop-truth",
   "sp-no-fake-widgets",
   "sp-review-prompt-value-only",
@@ -99,6 +100,9 @@ assert(paywall.includes("Unlock StudyPlanner") && paywall.includes("paywall.hard
 assert(paywall.includes("paywall.feature_scans") && paywall.includes("paywall.feature_focus") && paywall.includes("paywall.feature_widgets") && paywall.includes("paywall.feature_calendar"), "Paywall should sell full-app value through localized real product surfaces.");
 assert(paywall.includes("Prices and renewal periods come from the store before checkout.") && paywall.includes("Restore Purchases"), "Paywall must rely on store-loaded plans and keep restore visible.");
 assert(app.includes("setImportHandoff") && app.includes("openTab(\"today\")") && app.includes('recordReviewEvent("import_applied")'), "Scan/import should hand off into Today after value is created.");
+assert(app.includes("onUpsertParsedImport") && app.includes("onUpsertParsedItemsForImport"), "Capture parser should persist import sessions and parsed rows before Add All.");
+assert(read("src/screens/ImportScreen.tsx").includes("retryParsedImport") && read("src/screens/ImportScreen.tsx").includes("buildDraftFromParsedImport"), "Capture screen should support retry and real recent-import review.");
+assert(read("src/services/parserContract.ts").includes("createParsedImportFromCameraAsset") && read("src/services/parserContract.ts").includes("normalizeParsedItems"), "Capture parser contract should cover camera, document, typed, normalization, and review flags.");
 assert(reviewPrompt.includes("assignment_completed") && reviewPrompt.includes("focus_completed") && reviewPrompt.includes("widget_saved"), "Review prompt policy should stay value-gated.");
 assert(app.includes("syncStudyPlannerWidgets") && app.includes("nativeWidgetStatus"), "Native widget snapshots should refresh from real planner persistence.");
 assert(more.includes("Pick a shipped widget, then save its preset.") && more.includes("Saved fields: widget, data mode, class filter, theme, layout, and last sync"), "Widget surface should lead with an organized native widget workbench.");

@@ -689,7 +689,10 @@ export function convertParsedItemsToAssignments(
       const course =
         courses.find((candidate) => candidate.name === item.courseName || candidate.code === item.courseName) ||
         courses[0];
-      const dueAt = item.dueAt || `${dateKeyFromDate(now)}T23:59:00`;
+      const missingDueAt = !item.dueAt || !isValidDeadline(item.dueAt);
+      const fallbackDueAt = `${dateKeyFromDate(now)}T23:59:00`;
+      const dueAt = missingDueAt || !item.dueAt ? fallbackDueAt : item.dueAt;
+      const needsReview = item.needsReview || missingDueAt;
       return {
         id: `parsed-${item.id}`,
         courseId: course?.id || "unassigned",
@@ -698,17 +701,17 @@ export function convertParsedItemsToAssignments(
         type: item.type,
         dueAt,
         tags: ["parsed"],
-        priority: item.needsReview ? "high" : "medium",
+        priority: needsReview ? "high" : "medium",
         estimatedMinutes: item.type === "exam" ? 120 : 45,
         status: "not_started",
         source: "scan",
         sourceId: item.parsedImportId,
-        needsReview: item.needsReview,
+        needsReview,
         duplicateOf: item.duplicateCandidateId,
         confidence: item.confidence,
         progress: 0,
-        checklist: buildParsedChecklist(item.type, item.needsReview),
-        reminder: { enabled: Boolean(item.dueAt), leadTimeHours: item.type === "exam" ? 24 : 2 },
+        checklist: buildParsedChecklist(item.type, needsReview),
+        reminder: { enabled: !missingDueAt, leadTimeHours: item.type === "exam" ? 24 : 2 },
         createdAt: now.toISOString(),
         updatedAt: now.toISOString()
       } satisfies Assignment;

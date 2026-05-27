@@ -44,6 +44,10 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
     subscription.flowState !== "loading";
   const loadingPlans = subscription.status === "checking" || subscription.flowState === "loading";
   const hasProducts = subscription.products.length > 0;
+  const productIdSourceLabel =
+    purchaseConfig.productIdSource === "environment"
+      ? t("paywall.product_source_build_env", "Build products")
+      : t("paywall.product_source_release_manifest", "Release manifest");
   const planStateTitle = subscription.isPremium
     ? t("paywall.unlocked", "StudyPlanner is unlocked")
     : subscription.flowState === "purchasing"
@@ -114,7 +118,7 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
       <View style={[styles.planStateCard, subscription.errorMessage || plansUnavailable ? styles.planStateCardWarning : hasProducts || subscription.isPremium ? styles.planStateCardReady : null]}>
         <View style={styles.planStateTopRow}>
           <View style={styles.planStateCopy}>
-            <Text style={styles.planStateKicker}>{t("paywall.app_store", "App Store")}</Text>
+            <Text style={styles.planStateKicker}>{t("paywall.app_store", "App Store")} · {productIdSourceLabel}</Text>
             <Text style={styles.planStateTitle}>{planStateTitle}</Text>
           </View>
           {busy || loadingPlans ? <ActivityIndicator color={colors.accent} /> : <ShieldCheck color={hasProducts || subscription.isPremium ? colors.green : colors.muted} size={19} />}
@@ -206,12 +210,6 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
       <View style={styles.trustCard}>
         <ShieldCheck color={colors.sage} size={18} />
         <Text style={styles.trustText}>{t("paywall.store_trust_copy", "App Store prices, Restore Purchases, Terms, and Privacy stay visible before checkout.")}</Text>
-      </View>
-
-      <View style={styles.legalRow}>
-        <LegalLink label={t("paywall.terms", "Terms of Use (EULA)")} document="terms" onOpen={setLegalDocument} />
-        <Text style={styles.legalDivider}>·</Text>
-        <LegalLink label={t("paywall.privacy", "Privacy Policy")} document="privacy" onOpen={setLegalDocument} />
       </View>
     </View>
   );
@@ -440,7 +438,7 @@ function createStyles(theme: AppTheme) {
       width: 190,
       height: 190,
       borderRadius: 95,
-      backgroundColor: theme.isDark ? "rgba(53,242,208,0.16)" : "rgba(255,255,255,0.18)"
+      backgroundColor: theme.isDark ? "rgba(53,242,208,0.08)" : "rgba(255,255,255,0.12)"
     },
     heroTopRow: {
       flexDirection: "row",

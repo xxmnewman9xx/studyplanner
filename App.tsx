@@ -75,6 +75,7 @@ import {
   convertNoteToTask,
   getRecommendedFocusDuration,
   isValidDateInput,
+  isValidDeadline,
   applyLocale,
   saveWidgetPreset as saveWidgetPresetState
 } from "./src/logic/planner";
@@ -85,6 +86,7 @@ import { SubscriptionProvider, useSubscription } from "./src/services/subscripti
 import { recordReviewEvent } from "./src/services/reviewPrompt";
 import { syncStudyPlannerWidgets } from "./src/services/widgetSnapshot";
 import type { WidgetSyncStatus } from "./src/services/widgetSnapshot";
+import { normalizeParsedItems } from "./src/services/parserContract";
 import {
   buildCanonicalWidgetPreset,
   defaultDataModeForWidgetKind,
@@ -137,6 +139,7 @@ function mobileTabLabel(tab: NavTab, fallback: string, t: (key: string, fallback
 type CaptureRoute = {
   tab: NavTab | null;
   screen?: MarketingCaptureScreen;
+  importSourceMode?: "camera" | "file" | "paste";
   onboardingIndex?: number;
   appTheme?: ThemeAccent;
   widgetBackground?: WidgetBackground;
@@ -156,6 +159,7 @@ function parseCaptureRoute(raw: string): CaptureRoute {
     const value = JSON.parse(raw) as {
       tab?: unknown;
       screen?: unknown;
+      importSourceMode?: unknown;
       onboardingIndex?: unknown;
       appTheme?: unknown;
       widgetBackground?: unknown;
@@ -172,6 +176,7 @@ function parseCaptureRoute(raw: string): CaptureRoute {
     return {
       tab: isCaptureNavTab(value.tab) ? value.tab : null,
       screen: isCaptureScreen(value.screen) ? value.screen : undefined,
+      importSourceMode: isCaptureImportSourceMode(value.importSourceMode) ? value.importSourceMode : undefined,
       onboardingIndex: isCaptureOnboardingIndex(value.onboardingIndex) ? value.onboardingIndex : undefined,
       appTheme: isCaptureThemeAccent(value.appTheme) ? value.appTheme : undefined,
       widgetBackground: isCaptureWidgetBackground(value.widgetBackground) ? value.widgetBackground : undefined,
@@ -212,8 +217,13 @@ function isCaptureScreen(value: unknown): value is MarketingCaptureScreen {
     value === "processing" ||
     value === "extracted" ||
     value === "review_edit" ||
+    value === "failed" ||
     value === "agenda"
   );
+}
+
+function isCaptureImportSourceMode(value: unknown): value is NonNullable<CaptureRoute["importSourceMode"]> {
+  return value === "camera" || value === "file" || value === "paste";
 }
 
 function isCaptureOnboardingIndex(value: unknown): value is number {
@@ -360,6 +370,7 @@ function routeTabFromUrl(url: string): NavTab | null {
 }
 
 function scrollYForCaptureScreen(screen: MarketingCaptureScreen | undefined) {
+  if (screen === "processing" || screen === "failed") return 620;
   if (screen === "extracted") return 520;
   if (screen === "review_edit") return 820;
   if (screen === "agenda") return 560;
@@ -456,6 +467,7 @@ function AppContent() {
     message: t("widgets.sync_after_load", "Native widgets sync after your planner loads.")
   });
   const [captureScreenOverride, setCaptureScreenOverride] = useState<MarketingCaptureScreen | undefined>();
+  const [captureImportSourceMode, setCaptureImportSourceMode] = useState<CaptureRoute["importSourceMode"]>();
   const [captureScrollY, setCaptureScrollY] = useState<number | null>(null);
   const [captureOnboardingIndex, setCaptureOnboardingIndex] = useState(0);
   const [captureHardPaywall, setCaptureHardPaywall] = useState(false);
@@ -512,6 +524,7 @@ function AppContent() {
         setPaywallSeen(true);
         setCaptureHardPaywall(Boolean(requestedRoute.hardPaywall));
         setCaptureScreenOverride(requestedRoute.screen);
+        setCaptureImportSourceMode(requestedRoute.importSourceMode);
         setCaptureScrollY(scrollYForCaptureScreen(requestedRoute.screen));
         setCaptureOnboardingIndex(0);
         if (requestedRoute.themeMode) setMode(requestedRoute.themeMode);
@@ -752,7 +765,7 @@ function AppContent() {
       (assignment) =>
         assignment.needsReview ||
         assignment.duplicateOf ||
-        !isValidDateInput(assignment.dueAt.slice(0, 10)) ||
+        !isValidDeadline(assignment.dueAt) ||
         (assignment.confidence || 1) < 0.75
     );
     if (blockedAssignments.length > 0) {
@@ -764,11 +777,12 @@ function AppContent() {
     }
 
     const timestamp = new Date().toISOString();
-    const parsedImportId = `import-${timestamp}`;
+    const parsedImportId = parse.sourceImportId || `import-${Date.now()}`;
     const sourceType =
-      parse.assignments.some((assignment) => assignment.source === "typed") ? "typed" : "scan";
+      parse.sourceType ||
+      (parse.assignments.some((assignment) => assignment.source === "typed") ? "typed" : "scan");
     const parsedAssignmentIds = new Set(
-      parse.assignments.map((assignment) => assignment.sourceId).filter(Boolean)
+      [parsedImportId, ...parse.assignments.map((assignment) => assignment.sourceId).filter(Boolean)]
     );
     setCourses((current) => mergeById(current, parse.courses));
     setAssignments((current) =>
@@ -777,7 +791,8 @@ function AppContent() {
         parse.assignments.map((assignment) => ({
           ...assignment,
           type: assignment.type || assignment.kind,
-          sourceId: assignment.sourceId || `import-${timestamp}`,
+          source: sourceType === "typed" ? "typed" : assignment.source,
+          sourceId: assignment.sourceId || parsedImportId,
           progress: assignment.progress || 0,
           confidence: assignment.confidence || 0.88,
           createdAt: assignment.createdAt || timestamp,
@@ -789,7 +804,7 @@ function AppContent() {
     const handoffAssignments = parse.assignments
       .slice()
       .sort((a, b) => {
-        const reviewDelta = Number(Boolean(b.needsReview || !isValidDateInput(b.dueAt.slice(0, 10)))) - Number(Boolean(a.needsReview || !isValidDateInput(a.dueAt.slice(0, 10))));
+        const reviewDelta = Number(Boolean(b.needsReview || !isValidDeadline(b.dueAt))) - Number(Boolean(a.needsReview || !isValidDeadline(a.dueAt)));
         if (reviewDelta !== 0) return reviewDelta;
         return new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime();
       });
@@ -797,12 +812,12 @@ function AppContent() {
     setImportHandoff({
       sourceName: parse.sourceName,
       addedCount: parse.assignments.length,
-      reviewCount: parse.assignments.filter((assignment) => assignment.needsReview || !isValidDateInput(assignment.dueAt.slice(0, 10))).length,
+      reviewCount: parse.assignments.filter((assignment) => assignment.needsReview || !isValidDeadline(assignment.dueAt)).length,
       nextTitle: handoffAssignment?.title,
       nextAssignmentId: handoffAssignment?.id
     });
     setParsedImports((current) => {
-      const existing = current.find((item) => item.title === parse.sourceName);
+      const existing = current.find((item) => item.id === parsedImportId || item.title === parse.sourceName);
       const itemCount = parse.assignments.length + parse.courses.length + parse.gradeItems.length;
       if (existing) {
         return current.map((item) =>
@@ -825,20 +840,26 @@ function AppContent() {
         ...current
       ];
     });
-    setParsedItems((current) =>
-      [
-        ...parse.assignments.map((assignment) => ({
-          id: `item-${assignment.id}`,
-          parsedImportId,
-          title: assignment.title,
-          courseName:
-            parse.courses.find((course) => course.id === assignment.courseId)?.name || "Study Hall",
-          type: assignment.kind,
-          dueAt: assignment.dueAt,
-          confidence: assignment.confidence || 0.88,
-          needsReview: Boolean(assignment.needsReview),
-          duplicateCandidateId: assignment.duplicateOf,
-          rawText: assignment.sourceId || assignment.title,
+    setParsedItems((current) => {
+      const currentHasSource = current.some((item) => item.parsedImportId === parsedImportId);
+      const sourceImport = {
+        id: parsedImportId,
+        title: parse.sourceName,
+        sourceType,
+        status: "parsed" as const,
+        itemCount: parse.assignments.length,
+        createdAt: timestamp,
+        updatedAt: timestamp
+      } satisfies ParsedImport;
+      const newItems = currentHasSource
+        ? []
+        : normalizeParsedItems(parse, sourceImport, {
+            existingAssignments: assignments,
+            existingParsedItems: current
+          });
+      return [
+        ...newItems.map((item) => ({
+          ...item,
           acceptedAt: timestamp,
           reviewStatus: "accepted" as const
         })),
@@ -847,8 +868,8 @@ function AppContent() {
             ? { ...item, acceptedAt: timestamp, reviewStatus: "accepted" as const }
             : item
         )
-      ].slice(0, 200)
-    );
+      ].slice(0, 200);
+    });
     setNotes((current) => [
       {
         id: `note-${Date.now()}`,
@@ -876,6 +897,20 @@ function AppContent() {
     setDemoMode(false);
     void recordReviewEvent("import_applied");
     openTab("today");
+  };
+
+  const upsertParsedImport = (parsedImport: ParsedImport) => {
+    setParsedImports((current) => [
+      parsedImport,
+      ...current.filter((item) => item.id !== parsedImport.id)
+    ].slice(0, 100));
+  };
+
+  const upsertParsedItemsForImport = (parsedImportId: string, items: ParsedItem[]) => {
+    setParsedItems((current) => [
+      ...items,
+      ...current.filter((item) => item.parsedImportId !== parsedImportId)
+    ].slice(0, 200));
   };
 
   const updateAssignmentStatus = (
@@ -1360,10 +1395,14 @@ function AppContent() {
               ) : null}
               {activeTab === "import" ? (
                 <ImportScreen
+                  assignments={activeAssignments}
                   parsedImports={parsedImports}
                   parsedItems={parsedItems}
                   onApplyParsedPlan={applyParsedPlan}
+                  onUpsertParsedImport={upsertParsedImport}
+                  onUpsertParsedItemsForImport={upsertParsedItemsForImport}
                   captureScreenOverride={captureScreenOverride}
+                  captureSourceModeOverride={captureImportSourceMode}
                 />
               ) : null}
               {activeTab === "plan" ? (
@@ -1594,7 +1633,7 @@ function buildAppSystemState(
 ): AppSystemState {
   const openAssignments = assignments.filter((assignment) => assignment.status !== "done" && assignment.status !== "archived");
   const flaggedAssignments = openAssignments.filter(
-    (assignment) => assignment.needsReview || assignment.duplicateOf || !isValidDateInput(assignment.dueAt.slice(0, 10))
+    (assignment) => assignment.needsReview || assignment.duplicateOf || !isValidDeadline(assignment.dueAt)
   );
   const reviewedRows = openAssignments.filter((assignment) => !assignment.needsReview && !assignment.duplicateOf).length;
   const importCount = parsedImports.filter((item) => !item.id.startsWith("demo-")).length;

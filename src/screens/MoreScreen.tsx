@@ -24,6 +24,7 @@ import {
   WidgetPreviewCard
 } from "../components/AppleComponents";
 import { AppButton } from "../components/AppButton";
+import { LiquidGlassWidgetPreview } from "../components/LiquidGlass";
 import { ModeToggle } from "../components/ModeToggle";
 import { SectionHeader } from "../components/SectionHeader";
 import {
@@ -592,6 +593,10 @@ export function MoreScreen({
           </View>
 
           <View style={styles.studioCanvas}>
+            <LiquidGlassWidgetPreview
+              label={`${selectedTemplateLabel}. ${displayWidgetData.value}. ${displayWidgetData.detail}`}
+              style={styles.phoneStage}
+            >
             <View style={styles.phoneFrame}>
               <View style={styles.phoneStatusBar}>
                 <Text style={styles.phoneTime}>7:42</Text>
@@ -637,6 +642,7 @@ export function MoreScreen({
                 <View style={styles.homeIconActive} />
               </View>
             </View>
+            </LiquidGlassWidgetPreview>
 
             <View style={styles.studioInspector}>
               <View style={styles.inspectorHeader}>
@@ -701,7 +707,7 @@ export function MoreScreen({
               >
                 <View style={styles.studioTemplateTop}>
                   <View style={[styles.studioTemplateIcon, active ? styles.studioTemplateIconActive : null]}>
-                    <Icon color={active ? colors.heroText : colors.accent} size={16} />
+                    <Icon color={active ? colors.accentText : colors.accent} size={16} />
                   </View>
                   <Text style={styles.studioTemplateBadge}>{sizeLabel(template.preset.size)}</Text>
                 </View>
@@ -1060,9 +1066,9 @@ function ControlLabel({ title }: { title: string }) {
         style={[styles.settingToggle, active ? styles.settingToggleActive : null]}
         onPress={onPress}
       >
-        <View style={styles.settingToggleTop}>
+          <View style={styles.settingToggleTop}>
           <View style={styles.settingIcon}>
-            <Icon color={active ? colors.heroText : colors.accent} size={17} />
+            <Icon color={active ? colors.accentText : colors.accent} size={17} />
           </View>
           <View style={[styles.toggleTrack, active ? styles.toggleTrackActive : null]}>
             <View style={[styles.toggleThumb, active ? styles.toggleThumbActive : null]} />
@@ -1265,7 +1271,7 @@ function createStyles(theme: AppTheme) {
       borderRadius: 11,
       overflow: "hidden",
       textAlign: "center",
-      color: colors.heroText,
+      color: colors.accentText,
       backgroundColor: colors.accent,
       fontSize: 12,
       lineHeight: 22,
@@ -1348,6 +1354,9 @@ function createStyles(theme: AppTheme) {
       shadowRadius: 16,
       shadowOffset: { width: 0, height: 10 },
       elevation: 7
+    },
+    phoneStage: {
+      padding: spacing.xs
     },
     phoneStatusBar: {
       width: "100%",
@@ -2944,7 +2953,7 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     choiceChipTextActive: {
-      color: colors.heroText
+      color: colors.accentText
     },
     choiceDot: {
       width: 8,
@@ -3114,7 +3123,7 @@ function createStyles(theme: AppTheme) {
       borderRadius: 12,
       overflow: "hidden",
       backgroundColor: colors.accent,
-      color: colors.heroText,
+      color: colors.accentText,
       textAlign: "center",
       fontSize: 13,
       lineHeight: 24,

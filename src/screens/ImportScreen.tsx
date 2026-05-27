@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -10,20 +10,16 @@ import {
 } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { AlertTriangle, Camera, CheckCircle2, FileText, Keyboard, Search, Sparkles, Upload } from "lucide-react-native";
+import { AlertTriangle, Camera, CheckCircle2, FileText, Keyboard, RefreshCw, Upload } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
-import {
-  GlassCard,
-  SegmentedControl
-} from "../components/AppleComponents";
+import { GlassCard } from "../components/AppleComponents";
 import { SectionHeader } from "../components/SectionHeader";
 import {
+  Assignment,
   AssignmentKind,
-  Course,
   ParsedImport,
   ParsedItem,
-  Priority,
   SyllabusImportSource,
   SyllabusParseResult
 } from "../models";
@@ -43,24 +39,47 @@ import { useI18n } from "../i18n";
 import {
   isValidDateInput,
   isValidDeadline,
-  isValidTimeInput,
-  normalizeEstimatedMinutes
+  isValidTimeInput
 } from "../logic/planner";
+import {
+  buildDraftFromParsedImport,
+  createParsedImportFromCameraAsset,
+  createParsedImportFromDocumentAsset,
+  createParsedImportFromTypedText,
+  normalizeParserError,
+  parseCapturedSource,
+  retryParsedImport,
+  sourceForParsedImport,
+  validateDocumentAsset
+} from "../services/parserContract";
 
 type ImportScreenProps = {
+  assignments: Assignment[];
   parsedImports: ParsedImport[];
   parsedItems: ParsedItem[];
   onApplyParsedPlan: (parse: SyllabusParseResult) => void;
+  onUpsertParsedImport: (parsedImport: ParsedImport) => void;
+  onUpsertParsedItemsForImport: (parsedImportId: string, items: ParsedItem[]) => void;
   onTryDemo?: () => void;
   captureScreenOverride?: MarketingCaptureScreen;
+  captureSourceModeOverride?: Extract<ImportSourceMode, "camera" | "file" | "paste">;
 };
 
-const priorities: Priority[] = ["low", "medium", "high"];
-const kinds: AssignmentKind[] = ["assignment", "worksheet", "reading", "project", "exam"];
 type ImportSourceMode = "camera" | "photo" | "file" | "paste";
 type TranslateFn = (key: string, fallback?: string) => string;
+type CaptureUiStatus = ParsedImport["status"] | "requesting_permission" | "permission_denied" | "cancelled" | "unavailable";
 
-export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, onTryDemo, captureScreenOverride }: ImportScreenProps) {
+export function ImportScreen({
+  assignments,
+  parsedImports,
+  parsedItems,
+  onApplyParsedPlan,
+  onUpsertParsedImport,
+  onUpsertParsedItemsForImport,
+  onTryDemo,
+  captureScreenOverride,
+  captureSourceModeOverride
+}: ImportScreenProps) {
   const { theme } = useAppTheme();
   const { t } = useI18n();
   const { colors } = theme;
@@ -73,79 +92,202 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, on
     captureDraft ? marketingCaptureParseResult : null
   );
   const [loading, setLoading] = useState(activeCaptureScreen === "processing");
+  const [captureStatus, setCaptureStatus] = useState<CaptureUiStatus>(
+    activeCaptureScreen === "processing" ? "parsing" : "idle"
+  );
+  const [statusMessage, setStatusMessage] = useState("");
+  const [activeImport, setActiveImport] = useState<ParsedImport | null>(null);
   const [typedText, setTypedText] = useState("");
   const [sourceMode, setSourceMode] = useState<ImportSourceMode>(() =>
-    imageParsingAvailable ? "camera" : "file"
+    captureSourceModeOverride || "camera"
   );
 
+  useEffect(() => {
+    if (captureSourceModeOverride) setSourceMode(captureSourceModeOverride);
+  }, [captureSourceModeOverride]);
+
+  useEffect(() => {
+    if (activeCaptureScreen === "processing") {
+      setLoading(true);
+      setCaptureStatus("parsing");
+      setStatusMessage(t("import.finding_work", "Finding assignments, dates, classes, and grade weights."));
+    } else if (activeCaptureScreen === "failed") {
+      setLoading(false);
+      setDraft(null);
+      setCaptureStatus("failed");
+      setStatusMessage(t("import.capture_failed_truth", "The parser could not read this source. Retry or use Type It In; no work was added."));
+    } else if (activeCaptureScreen === "extracted" || activeCaptureScreen === "review_edit") {
+      setLoading(false);
+      setDraft(marketingCaptureParseResult);
+      setCaptureStatus("parsed");
+      setStatusMessage(t("import.ready_to_review_truth", "Ready to review. Every row below came from parser output or an explicit needs-date finding."));
+    }
+  }, [activeCaptureScreen, t]);
+
   const handleImageParserUnavailable = () => {
+    setCaptureStatus("unavailable");
+    setStatusMessage(t("import.photo_disabled_message", "Use a text-based PDF or paste syllabus text. Photo and image parsing stay off until real OCR is available."));
     Alert.alert(
       t("import.photo_disabled_title", "Photo scanning is not configured"),
       t("import.photo_disabled_message", "Use a text-based PDF or paste syllabus text. Photo and image parsing stay off until real OCR is available.")
     );
   };
 
-  const runParse = async (source: SyllabusImportSource) => {
+  const updateImport = (nextImport: ParsedImport) => {
+    setActiveImport(nextImport);
+    onUpsertParsedImport(nextImport);
+  };
+
+  const runParse = async (parsedImport: ParsedImport, source: SyllabusImportSource) => {
+    const queuedImport = {
+      ...parsedImport,
+      status: "queued" as const,
+      updatedAt: new Date().toISOString()
+    };
+    updateImport(queuedImport);
+    setDraft(null);
+    setCaptureStatus("queued");
+    setStatusMessage(t("import.status_queued_detail", "Queued for parser review."));
+
     try {
       setLoading(true);
-      const result = await parseSyllabus(source);
-      setDraft(result);
+      const parsingImport = {
+        ...queuedImport,
+        status: "parsing" as const,
+        updatedAt: new Date().toISOString()
+      };
+      updateImport(parsingImport);
+      setCaptureStatus("parsing");
+      setStatusMessage(t("import.finding_work", "Finding assignments, dates, classes, and grade weights."));
+      const result = await parseCapturedSource(parsingImport, source, {
+        parseSyllabusSource: parseSyllabus,
+        existingWork: assignments,
+        existingParsedItems: parsedItems
+      });
+      onUpsertParsedImport(result.parsedImport);
+      onUpsertParsedItemsForImport(result.parsedImport.id, result.parsedItems);
+      setActiveImport(result.parsedImport);
+      setCaptureStatus("parsed");
+      setStatusMessage(t("import.ready_to_review_truth", "Ready to review. Every row below came from parser output or an explicit needs-date finding."));
+      setDraft(result.parseResult);
     } catch (error) {
-      Alert.alert(t("import.parse_failed_school_material", "Could not parse school material"), errorMessage(error, t));
+      const errorText = normalizeParserError(error);
+      const failedImport = {
+        ...parsedImport,
+        status: "failed" as const,
+        itemCount: 0,
+        errorMessage: errorText,
+        updatedAt: new Date().toISOString()
+      };
+      updateImport(failedImport);
+      setDraft(null);
+      setCaptureStatus("failed");
+      setStatusMessage(errorText);
+      Alert.alert(t("import.parse_failed_school_material", "Could not parse school material"), errorText);
     } finally {
       setLoading(false);
     }
   };
 
   const pickPdf = async () => {
+    setCaptureStatus("picking");
+    setStatusMessage(t("import.pick_file_status", "Choose a PDF, text file, or image."));
     const result = await DocumentPicker.getDocumentAsync({
-      type: ["application/pdf", "text/plain"],
+      type: ["application/pdf", "text/plain", "image/*"],
       copyToCacheDirectory: true
     });
 
-    if (!result.canceled) {
+    if (result.canceled) {
+      setCaptureStatus("cancelled");
+      setStatusMessage(t("import.picker_cancelled", "Import cancelled. No planner data changed."));
+      return;
+    }
+
+    try {
       const asset = result.assets[0];
       if (!asset) return;
-      await runParse({
-        kind: "pdf",
+      validateDocumentAsset({
+        uri: asset.uri,
+        name: asset.name,
+        mimeType: asset.mimeType,
+        size: (asset as { size?: number }).size
+      });
+      const parsedImport = createParsedImportFromDocumentAsset({
+        uri: asset.uri,
+        name: asset.name,
+        mimeType: asset.mimeType,
+        size: (asset as { size?: number }).size
+      });
+      await runParse(parsedImport, {
+        kind: parsedImport.sourceType === "photo" ? "photo" : "pdf",
         uri: asset.uri,
         name: asset.name,
         mimeType: asset.mimeType
       });
+    } catch (error) {
+      const errorText = normalizeParserError(error);
+      setCaptureStatus("failed");
+      setStatusMessage(errorText);
+      Alert.alert(t("import.file_not_supported", "Could not use that file"), errorText);
     }
   };
 
   const pickPhoto = async () => {
-    if (!imageParsingAvailable) {
-      handleImageParserUnavailable();
+    setCaptureStatus("requesting_permission");
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      setCaptureStatus("permission_denied");
+      setStatusMessage(t("import.photo_permission_message", "Photo access is needed to choose syllabus images. You can still paste text or upload a text-based PDF."));
+      Alert.alert(
+        t("import.photo_permission_needed", "Photo access needed"),
+        t("import.photo_permission_message", "Photo access is needed to choose syllabus images. You can still paste text or upload a text-based PDF.")
+      );
       return;
     }
 
+    setCaptureStatus("picking");
+    setStatusMessage(t("import.pick_photo_status", "Choose a clear syllabus or handout image."));
     const result = await ImagePicker.launchImageLibraryAsync({
       quality: 0.85,
       allowsMultipleSelection: false
     });
 
-    if (!result.canceled) {
+    if (result.canceled) {
+      setCaptureStatus("cancelled");
+      setStatusMessage(t("import.picker_cancelled", "Import cancelled. No planner data changed."));
+      return;
+    }
+
+    try {
       const asset = result.assets[0];
       if (!asset) return;
-      await runParse({
+      const parsedImport = createParsedImportFromCameraAsset({
+        uri: asset.uri,
+        name: asset.fileName || t("import.school_material_photo", "school material photo"),
+        mimeType: asset.mimeType,
+        size: (asset as { fileSize?: number }).fileSize
+      });
+      await runParse(parsedImport, {
         kind: "photo",
         uri: asset.uri,
         name: asset.fileName || t("import.school_material_photo", "school material photo"),
         mimeType: asset.mimeType
       });
+    } catch (error) {
+      const errorText = normalizeParserError(error);
+      setCaptureStatus("failed");
+      setStatusMessage(errorText);
+      Alert.alert(t("import.parse_failed_school_material", "Could not parse school material"), errorText);
     }
   };
 
   const capturePhoto = async () => {
-    if (!imageParsingAvailable) {
-      handleImageParserUnavailable();
-      return;
-    }
-
+    setCaptureStatus("requesting_permission");
+    setStatusMessage(t("import.requesting_camera", "Requesting camera access."));
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
+      setCaptureStatus("permission_denied");
+      setStatusMessage(t("import.camera_permission_message", "Camera access lets you photograph syllabus pages."));
       Alert.alert(
         t("import.camera_permission_needed", "Camera permission needed"),
         t("import.camera_permission_message", "Camera access lets you photograph syllabus pages.")
@@ -153,16 +295,34 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, on
       return;
     }
 
-    const result = await ImagePicker.launchCameraAsync({ quality: 0.85 });
-    if (!result.canceled) {
+    try {
+      setCaptureStatus("picking");
+      setStatusMessage(t("import.camera_opening", "Opening camera."));
+      const result = await ImagePicker.launchCameraAsync({ quality: 0.85 });
+      if (result.canceled) {
+        setCaptureStatus("cancelled");
+        setStatusMessage(t("import.camera_cancelled", "Camera closed. No planner data changed."));
+        return;
+      }
       const asset = result.assets[0];
       if (!asset) return;
-      await runParse({
+      const parsedImport = createParsedImportFromCameraAsset({
+        uri: asset.uri,
+        name: asset.fileName || t("import.camera_photo", "camera photo"),
+        mimeType: asset.mimeType,
+        size: (asset as { fileSize?: number }).fileSize
+      });
+      await runParse(parsedImport, {
         kind: "photo",
         uri: asset.uri,
         name: asset.fileName || t("import.camera_photo", "camera photo"),
         mimeType: asset.mimeType
       });
+    } catch (error) {
+      const errorText = normalizeParserError(error);
+      setCaptureStatus("unavailable");
+      setStatusMessage(errorText);
+      Alert.alert(t("import.camera_unavailable", "Camera unavailable"), errorText);
     }
   };
 
@@ -175,11 +335,29 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, on
       return;
     }
 
-    await runParse({
+    const parsedImport = createParsedImportFromTypedText(
+      typedText,
+      t("import.typed_school_material", "Typed school material")
+    );
+    await runParse(parsedImport, {
       kind: "typed",
       name: t("import.typed_school_material", "Typed school material"),
       text: typedText
     });
+  };
+
+  const retryImport = async (parsedImport: ParsedImport) => {
+    const source = sourceForParsedImport(parsedImport);
+    if (!source) {
+      Alert.alert(
+        t("import.retry_unavailable", "Retry unavailable"),
+        t("import.retry_unavailable_message", "This import no longer has a local source. Upload or paste it again.")
+      );
+      return;
+    }
+    const retryingImport = retryParsedImport(parsedImport);
+    updateImport(retryingImport);
+    await runParse(retryingImport, source);
   };
 
   const counts = draft ? summarizeDraft(draft) : null;
@@ -198,56 +376,16 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, on
     setDraft({
       ...draft,
       assignments: draft.assignments.map((assignment) =>
-        isValidDeadline(assignment.dueAt)
+        isValidDeadline(assignment.dueAt) && !assignment.duplicateOf && (assignment.confidence || 1) >= 0.75
           ? {
               ...assignment,
               needsReview: false,
-              duplicateOf: undefined,
-              confidence: Math.max(assignment.confidence || 0, 0.86),
+              confidence: Math.max(assignment.confidence || 0, 0.78),
               updatedAt
             }
           : assignment
       )
     });
-  };
-
-  const addUndatedExampleDraft = (example: string) => {
-    if (!draft) return;
-    const course = draft.courses[0];
-    if (!course) return;
-    const title = cleanupExampleTitle(example);
-    if (!title) return;
-    const dueDate = new Date().toISOString().slice(0, 10);
-    setDraft({
-      ...draft,
-      assignments: [
-        ...draft.assignments,
-        {
-          id: `undated-${Date.now()}-${slugify(title)}`,
-          courseId: course.id,
-          title,
-          kind: "assignment",
-          type: "assignment",
-          dueAt: `${dueDate}T23:59:00`,
-          tags: ["needs-date", "syllabus"],
-          priority: "high",
-          estimatedMinutes: 60,
-          status: "not_started",
-          source: "syllabus",
-          sourceId: draft.sourceName,
-          progress: 0,
-          needsReview: true,
-          confidence: 0.45,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ]
-    });
-  };
-
-  const hasDraftForExample = (example: string) => {
-    const title = cleanupExampleTitle(example).toLowerCase();
-    return draft?.assignments.some((assignment) => assignment.title.toLowerCase() === title) || false;
   };
 
   return (
@@ -258,39 +396,34 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, on
         <Text style={styles.subtitle}>
           {imageParsingAvailable
             ? t("import.subtitle_images", "AI-assisted imports can use camera photos, saved images, text-based PDFs, or pasted syllabus text when OCR is configured.")
-            : t("import.subtitle", "AI-assisted text/PDF parsing or pasted syllabus text becomes reviewed assignments. Photo OCR is not enabled in this build.")}
+            : t("import.subtitle", "Text/PDF parsing is ready. Photo capture is available, but OCR review is not enabled in this build.")}
         </Text>
       </View>
 
-      <GlassCard style={styles.scanHero}>
+      <View style={styles.scanHero}>
+        <View style={styles.scanHeroBaseTint} />
         <View style={styles.scanHeroGlow} />
         <View style={styles.scanHeroGlowTwo} />
+        <View style={styles.scanHeroTopSheen} />
+        <View style={styles.scanHeroRim} />
         <View style={styles.scanFrame}>
           <View style={styles.scanLine} />
         </View>
         <Text style={styles.dropKicker}>{t("import.step_choose_source", "Step 1 · choose a source")}</Text>
         <Text style={styles.dropTitle}>{t("import.editable_plan_title", "Turn a syllabus into an editable plan.")}</Text>
         <Text style={styles.dropCopy}>{t("import.source_picker_copy", "Pick one path. You review every assignment before it reaches Today.")}</Text>
-        <View style={styles.magicPreview}>
-          <MagicPreviewStep icon={FileText} title={t("tabs.scan", "Scan")} detail={t("import.source", "Source")} />
-          <View style={styles.magicArrow} />
-          <MagicPreviewStep icon={Search} title={t("import.review_short", "Review")} detail={t("import.draft", "Draft")} />
-          <View style={styles.magicArrow} />
-          <MagicPreviewStep icon={CheckCircle2} title={t("import.add", "Add")} detail={t("tabs.today", "Today")} />
-        </View>
         <View style={styles.sourcePicker}>
-          <SourceOption mode="camera" label={t("import.camera", "Camera")} icon={Camera} disabled={!imageParsingAvailable} />
-          <SourceOption mode="photo" label={t("import.photo", "Photo")} icon={FileText} disabled={!imageParsingAvailable} />
-          <SourceOption mode="file" label="PDF" icon={Upload} />
-          <SourceOption mode="paste" label={t("import.paste", "Paste")} icon={Keyboard} />
+          <SourceOption mode="camera" label={t("import.scan", "Scan")} icon={Camera} />
+          <SourceOption mode="file" label={t("import.upload", "Upload")} icon={Upload} />
+          <SourceOption mode="paste" label={t("import.type_it_in", "Type It In")} icon={Keyboard} />
         </View>
         {sourceMode === "camera" ? (
           <View style={styles.sourcePanel}>
             <Text style={styles.sourcePanelTitle}>{t("import.camera_title", "Use a syllabus photo.")}</Text>
-            <Text style={styles.sourcePanelCopy}>{t("import.camera_copy", "Take a new photo or choose a saved page from your library.")}</Text>
+            <Text style={styles.sourcePanelCopy}>{t("import.camera_copy", "Take a photo or choose a page. Nothing is added unless OCR returns parsed rows; Upload or Type It In for full parsing today.")}</Text>
             <View style={styles.scanActions}>
-              <AppButton label={t("import.take_photo", "Take photo")} icon={Camera} onPress={capturePhoto} style={styles.scanActionPrimary} />
-              <AppButton label={t("import.choose_photo", "Choose photo")} icon={FileText} variant="secondary" onPress={pickPhoto} style={styles.scanActionSecondary} />
+              <CaptureActionButton label={t("import.take_photo", "Take photo")} icon={Camera} onPress={capturePhoto} variant="primary" />
+              <CaptureActionButton label={t("import.choose_photo", "Choose photo")} icon={FileText} onPress={pickPhoto} variant="secondary" />
             </View>
           </View>
         ) : null}
@@ -298,14 +431,14 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, on
           <View style={styles.sourcePanel}>
             <Text style={styles.sourcePanelTitle}>{t("import.photo_title", "Use a saved photo.")}</Text>
             <Text style={styles.sourcePanelCopy}>{t("import.photo_copy", "Pick a clear syllabus page, worksheet, board photo, or handout image from your library.")}</Text>
-            <AppButton label={t("import.choose_photo", "Choose photo")} icon={FileText} onPress={pickPhoto} style={styles.scanActionPrimary} />
+            <CaptureActionButton label={t("import.choose_photo", "Choose photo")} icon={FileText} onPress={pickPhoto} variant="primary" />
           </View>
         ) : null}
         {sourceMode === "file" ? (
           <View style={styles.sourcePanel}>
-            <Text style={styles.sourcePanelTitle}>{t("import.pdf_title", "Upload a syllabus PDF.")}</Text>
-            <Text style={styles.sourcePanelCopy}>{t("import.pdf_copy", "Text-based PDFs and text files work best for AI-assisted organization.")}</Text>
-            <AppButton label={t("import.upload_pdf", "Upload PDF")} icon={Upload} onPress={pickPdf} style={styles.scanActionPrimary} />
+            <Text style={styles.sourcePanelTitle}>{t("import.pdf_title", "Upload school material.")}</Text>
+            <Text style={styles.sourcePanelCopy}>{t("import.pdf_copy", "Text-based PDFs and text files parse locally. Image files require the configured OCR endpoint.")}</Text>
+            <CaptureActionButton label={t("import.upload_file", "Upload file")} icon={Upload} onPress={pickPdf} variant="primary" />
           </View>
         ) : null}
         {sourceMode === "paste" ? (
@@ -321,7 +454,7 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, on
             <AppButton
               label={t("import.review_pasted_text", "Review pasted text")}
               icon={Keyboard}
-              variant="secondary"
+              variant="primary"
               onPress={typeItIn}
               style={styles.pasteAction}
             />
@@ -330,7 +463,41 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, on
         <Text style={styles.privacyNote}>
           {t("import.privacy_note", "Nothing is added until you confirm the review list.")}
         </Text>
-      </GlassCard>
+      </View>
+
+      <View style={[
+        styles.parserStatusCard,
+        captureStatus === "failed" || captureStatus === "permission_denied" || captureStatus === "unavailable"
+          ? styles.parserStatusError
+          : captureStatus === "parsed"
+            ? styles.parserStatusReady
+            : null
+      ]}>
+        <View style={styles.parserStatusIcon}>
+          {loading ? (
+            <ActivityIndicator color={colors.heroText} />
+          ) : captureStatus === "failed" || captureStatus === "permission_denied" || captureStatus === "unavailable" ? (
+            <AlertTriangle color={colors.red} size={17} />
+          ) : (
+            <CheckCircle2 color={captureStatus === "parsed" ? colors.green : colors.accent} size={17} />
+          )}
+        </View>
+        <View style={styles.parserStatusCopy}>
+          <Text style={styles.parserStatusTitle}>{captureStatusLabel(captureStatus, t)}</Text>
+          <Text style={styles.parserStatusText}>{statusMessage || captureStatusDetail(captureStatus, imageParsingAvailable, t)}</Text>
+        </View>
+        {activeImport?.status === "failed" ? (
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t("import.retry_parse", "Retry parse")}
+            style={styles.retryMiniButton}
+            onPress={() => retryImport(activeImport)}
+          >
+            <RefreshCw color={colors.accent} size={15} />
+            <Text style={styles.retryMiniText}>{t("import.retry", "Retry")}</Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
 
       {loading ? (
         <View style={styles.processingCard}>
@@ -354,7 +521,15 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, on
                 key={item.id}
                 style={styles.recentRow}
                 onPress={() => {
-                  setDraft(buildDraftFromRecentImport(item, parsedItems, t));
+                  setActiveImport(item);
+                  if (item.status === "failed") {
+                    setCaptureStatus("failed");
+                    setStatusMessage(item.errorMessage || t("import.parse_failed_school_material", "Could not parse school material"));
+                    return;
+                  }
+                  setDraft(buildDraftFromParsedImport(item, parsedItems, parsedDraftLabels(t)));
+                  setCaptureStatus(item.status === "applied" ? "applied" : "parsed");
+                  setStatusMessage(t("import.opened_recent_review", "Opened the saved parsed rows for review."));
                 }}
               >
                 <View style={styles.recentIcon}>
@@ -370,7 +545,24 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, on
                   </Text>
                   <Text style={styles.recentSubtle}>{imageParsingAvailable ? t("import.recent_subtle_images", "Photos, files, and pasted text create editable drafts for review.") : t("import.recent_subtle", "PDFs and pasted text create editable drafts for review.")}</Text>
                 </View>
-                <Badge label={labelizeImportSourceType(item.sourceType, t)} tone={item.status === "ready" ? "blue" : "green"} />
+                <View style={styles.recentActions}>
+                  <Badge label={labelizeImportStatus(item.status, t)} tone={item.status === "failed" || item.status === "error" ? "red" : item.status === "parsed" || item.status === "ready" ? "blue" : "green"} />
+                  <Badge label={labelizeImportSourceType(item.sourceType, t)} tone="green" />
+                  {item.status === "failed" ? (
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityLabel={t("import.retry_parse", "Retry parse")}
+                      style={styles.retryMiniButton}
+                      onPress={(event) => {
+                        event.stopPropagation();
+                        void retryImport(item);
+                      }}
+                    >
+                      <RefreshCw color={colors.accent} size={15} />
+                      <Text style={styles.retryMiniText}>{t("import.retry", "Retry")}</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
               </TouchableOpacity>
             ))}
           </View>
@@ -430,6 +622,29 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, on
                 </View>
               </View>
             </View>
+            {draft.findings.length > 0 ? (
+              <View style={styles.findings}>
+                {draft.findings.map((finding) => (
+                  <View key={finding.id} style={styles.findingBlock}>
+                    <Badge
+                      label={finding.severity === "needs_review" ? t("import.needs_review", "Needs review") : t("import.info", "Info")}
+                      tone={finding.severity === "needs_review" ? "warning" : "blue"}
+                    />
+                    <Text style={styles.findingExampleText}>{finding.message}</Text>
+                    {finding.examples?.length ? (
+                      <View style={styles.findingExamples}>
+                        {finding.examples.slice(0, 3).map((example) => (
+                          <View key={example} style={styles.findingExampleRow}>
+                            <AlertTriangle color={colors.gold} size={13} />
+                            <Text style={styles.findingExampleText}>{example}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    ) : null}
+                  </View>
+                ))}
+              </View>
+            ) : null}
             <View style={styles.trustRow}>
               <TrustChip label={t("import.editable_before_save", "Editable before save")} />
               <TrustChip label={t("import.widgets_use_reviewed_work", "Widgets use reviewed work")} />
@@ -592,6 +807,36 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, on
     );
   }
 
+  function CaptureActionButton({
+    label,
+    icon: Icon,
+    onPress,
+    variant
+  }: {
+    label: string;
+    icon: React.ComponentType<{ color: string; size: number }>;
+    onPress: () => void;
+    variant: "primary" | "secondary";
+  }) {
+    const primary = variant === "primary";
+    const foreground = primary ? "#FFFFFF" : "#EAF2FF";
+    return (
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        activeOpacity={0.78}
+        onPress={onPress}
+        style={[styles.captureActionButton, primary ? styles.captureActionButtonPrimary : styles.captureActionButtonSecondary]}
+      >
+        <View pointerEvents="none" style={primary ? styles.captureActionPrimarySheen : styles.captureActionSecondarySheen} />
+        <Icon color={foreground} size={18} />
+        <Text style={[styles.captureActionText, { color: foreground }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>
+          {label}
+        </Text>
+      </TouchableOpacity>
+    );
+  }
+
   function ConfidenceBadge({ confidence, needsReview }: { confidence: number; needsReview: boolean }) {
     const state = needsReview || confidence < 0.62 ? "fix" : confidence < 0.82 ? "check" : "high";
     const label =
@@ -627,15 +872,6 @@ export function ImportScreen({ parsedImports, parsedItems, onApplyParsedPlan, on
     );
   }
 
-  function MagicPreviewStep({ icon: Icon, title, detail }: { icon: React.ComponentType<{ color: string; size: number }>; title: string; detail: string }) {
-    return (
-      <View style={styles.magicStep}>
-        <Icon color={colors.heroText} size={24} />
-        <Text style={styles.magicTitle} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>{title}</Text>
-        <Text style={styles.magicDetail} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>{detail}</Text>
-      </View>
-    );
-  }
 }
 
 
@@ -694,125 +930,16 @@ function summarizeDraft(draft: SyllabusParseResult) {
   };
 }
 
-function buildDraftFromRecentImport(
-  parsedImport: ParsedImport,
-  parsedItems: ParsedItem[],
-  t: TranslateFn
-): SyllabusParseResult {
-  const items = parsedItems.filter(
-    (item) =>
-      item.parsedImportId === parsedImport.id &&
-      item.reviewStatus !== "dismissed" &&
-      item.reviewStatus !== "accepted" &&
-      !item.acceptedAt
-  );
-  const courseNames = Array.from(new Set(items.map((item) => item.courseName || t("import.study_hall", "Study Hall"))));
-  const courses: Course[] = courseNames.map((name, index) => {
-    const id = courseIdForName(name);
-    return {
-      id,
-      code: initialsForCourse(name),
-      name,
-      color: courseColors[index % courseColors.length] || "#6D5CFF",
-      iconKey: "book",
-      emojiKey: index % 2 === 0 ? "study" : "science",
-      semester: t("import.spring_2026", "Spring 2026"),
-      createdAt: parsedImport.createdAt,
-      updatedAt: parsedImport.updatedAt,
-      meetings: [],
-      gradeCategories: [
-        { id: `${id}-work`, name: t("import.coursework", "Coursework"), weight: 50 },
-        { id: `${id}-tests`, name: t("import.tests", "Tests"), weight: 30 },
-        { id: `${id}-participation`, name: t("import.participation", "Participation"), weight: 20 }
-      ]
-    };
-  });
-  const fallbackDate = new Date(parsedImport.createdAt || Date.now());
-  fallbackDate.setDate(fallbackDate.getDate() + 2);
-  const fallbackDueAt = `${fallbackDate.toISOString().slice(0, 10)}T23:59:00`;
-  if (items.length === 0) {
-    return {
-      sourceName: parsedImport.title,
-      courses,
-      gradeItems: [],
-      assignments: [],
-      findings: [
-        {
-          id: `${parsedImport.id}-empty`,
-          severity: "info",
-          message: t("import.recent_import_handled", "Everything from this import has already been handled.")
-        }
-      ]
-    };
-  }
-
-  return {
-    sourceName: parsedImport.title,
-    courses,
-    gradeItems: [],
-    assignments: items.map((item) => ({
-      id: `review-${item.id}`,
-      courseId: courseIdForName(item.courseName || t("import.study_hall", "Study Hall")),
-      title: item.title,
-      kind: item.type,
-      type: item.type,
-      dueAt: item.dueAt || fallbackDueAt,
-      tags: ["imported", item.type],
-      priority: item.needsReview ? "high" : "medium",
-      estimatedMinutes: item.type === "exam" ? 120 : item.type === "reading" ? 35 : 55,
-      status: "not_started",
-      source: parsedImport.sourceType === "typed" ? "typed" : "scan",
-      sourceId: parsedImport.id,
-      progress: 0,
-      checklist: [
-        { id: `review-${item.id}-1`, title: t("import.review_instructions", "Review instructions"), done: false },
-        { id: `review-${item.id}-2`, title: t("import.block_study_time", "Block study time"), done: false }
-      ],
-      reminder: { enabled: true, leadTimeHours: item.type === "exam" ? 72 : 24 },
-      needsReview: item.needsReview || !item.dueAt,
-      duplicateOf: item.duplicateCandidateId,
-      confidence: item.confidence,
-      createdAt: parsedImport.createdAt,
-      updatedAt: parsedImport.updatedAt || new Date().toISOString()
-    })),
-    findings: [
-      {
-        id: `${parsedImport.id}-source`,
-        severity: "info",
-        message: formatImportTemplate(t("import.parsed_items_from_source", "{count} parsed items from {source}"), {
-          count: items.length,
-          source: parsedImport.title
-        })
-      },
-      ...items
-        .filter((item) => item.needsReview || item.duplicateCandidateId || !item.dueAt)
-        .slice(0, 3)
-        .map((item, index) => ({
-          id: `${item.id}-finding-${index}`,
-          severity: "needs_review" as const,
-          message: item.duplicateCandidateId
-            ? formatImportTemplate(t("import.may_already_be_in_planner", "{title} may already be in your planner"), { title: item.title })
-            : !item.dueAt
-              ? formatImportTemplate(t("import.item_needs_due_date", "{title} needs a due date"), { title: item.title })
-              : formatImportTemplate(t("import.item_needs_review", "{title} needs review"), { title: item.title })
-        }))
-    ]
-  };
-}
-
-const courseColors = ["#6D5CFF", "#FF4FA8", "#2F80ED", "#20A66B", "#F97316", "#8B5CF6"];
-
-function courseIdForName(name: string) {
-  return `parsed-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "course"}`;
-}
-
-function initialsForCourse(name: string) {
-  const words = name.split(/\s+/).filter(Boolean);
-  const letters = words.length > 1 ? words.slice(0, 2).map((word) => word[0]).join("") : name.slice(0, 3);
-  return letters.toUpperCase();
-}
-
 function labelizeImportStatus(value: ParsedImport["status"], t: TranslateFn) {
+  if (value === "idle") return t("import.status_idle", "Idle");
+  if (value === "picking") return t("import.status_picking", "Picking");
+  if (value === "captured") return t("import.status_captured", "Captured");
+  if (value === "queued") return t("import.status_queued", "Queued");
+  if (value === "parsing") return t("import.status_parsing", "Parsing");
+  if (value === "parsed") return t("import.status_parsed", "Parsed");
+  if (value === "failed") return t("import.status_failed", "Failed");
+  if (value === "retrying") return t("import.status_retrying", "Retrying");
+  if (value === "reviewed") return t("import.status_reviewed", "Reviewed");
   if (value === "processing") return t("import.status_processing", "Processing");
   if (value === "applied") return t("import.status_applied", "Applied");
   if (value === "error") return t("import.status_error", "Error");
@@ -827,6 +954,45 @@ function labelizeImportSourceType(value: ParsedImport["sourceType"], t: Translat
   return t("tabs.scan", "Scan");
 }
 
+function parsedDraftLabels(t: TranslateFn) {
+  return {
+    studyHall: t("import.study_hall", "Study Hall"),
+    spring2026: t("import.spring_2026", "Spring 2026"),
+    coursework: t("import.coursework", "Coursework"),
+    tests: t("import.tests", "Tests"),
+    participation: t("import.participation", "Participation"),
+    reviewInstructions: t("import.review_instructions", "Review instructions"),
+    blockStudyTime: t("import.block_study_time", "Block study time"),
+    recentImportHandled: t("import.recent_import_handled", "Everything from this import has already been handled."),
+    parsedItemsFromSource: t("import.parsed_items_from_source", "{count} parsed items from {source}"),
+    mayAlreadyBeInPlanner: t("import.may_already_be_in_planner", "{title} may already be in your planner"),
+    itemNeedsDueDate: t("import.item_needs_due_date", "{title} needs a due date"),
+    itemNeedsReview: t("import.item_needs_review", "{title} needs review")
+  };
+}
+
+function captureStatusLabel(value: CaptureUiStatus, t: TranslateFn) {
+  if (value === "requesting_permission") return t("import.status_requesting_permission", "Requesting permission");
+  if (value === "permission_denied") return t("import.status_permission_denied", "Permission denied");
+  if (value === "cancelled") return t("import.status_cancelled", "Cancelled");
+  if (value === "unavailable") return t("import.status_unavailable", "Unavailable");
+  return labelizeImportStatus(value, t);
+}
+
+function captureStatusDetail(value: CaptureUiStatus, imageParsingAvailable: boolean, t: TranslateFn) {
+  if (value === "idle") {
+    return imageParsingAvailable
+      ? t("import.status_idle_images_detail", "Scan, upload, or type school material. Nothing is added until review.")
+      : t("import.status_idle_detail", "Upload a text-based PDF or type/paste material. Photo OCR is off in this build.");
+  }
+  if (value === "parsed") return t("import.status_parsed_detail", "Review parser rows before adding them to Today.");
+  if (value === "failed") return t("import.status_failed_detail", "Retry with the same source or choose a clearer text-based file.");
+  if (value === "permission_denied") return t("import.status_permission_denied_detail", "Use Upload or Type It In, or enable permission in Settings.");
+  if (value === "cancelled") return t("import.status_cancelled_detail", "No planner data changed.");
+  if (value === "unavailable") return t("import.status_unavailable_detail", "This path is unavailable on the current platform or build.");
+  return t("import.status_working_detail", "The parser status appears here and updates Recent imports.");
+}
+
 function formatImportTemplate(template: string, values: Record<string, string | number>) {
   return Object.entries(values).reduce(
     (current, [key, value]) => current.replace(new RegExp(`\\{${key}\\}`, "g"), String(value)),
@@ -834,24 +1000,28 @@ function formatImportTemplate(template: string, values: Record<string, string | 
   );
 }
 
-function cleanupExampleTitle(value: string) {
-  return value
-    .replace(/\b(due date|deadline|due)\b\s*:*/gi, "")
-    .replace(/\s+/g, " ")
-    .replace(/^[-:–| ]+|[-:–| ]+$/g, "")
-    .trim();
-}
-
-function slugify(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 36);
-}
-
-function errorMessage(error: unknown, t: TranslateFn) {
-  return error instanceof Error ? error.message : t("import.read_failed", "The import could not be read.");
-}
-
 function createStyles(theme: AppTheme) {
   const { colors, radii, spacing, typography } = theme;
+  const captureGlass = {
+    base: theme.isDark ? "#050B17" : "#081632",
+    topTint: "rgba(113,132,255,0.15)",
+    lowerTint: "rgba(7,17,35,0.76)",
+    border: "rgba(204,222,255,0.34)",
+    rim: "rgba(255,255,255,0.16)",
+    highlight: "rgba(255,255,255,0.085)",
+    glowPink: "rgba(216,75,123,0.28)",
+    glowIndigo: "rgba(93,95,239,0.34)",
+    glowBlue: "rgba(49,91,255,0.28)",
+    textPrimary: "#F8FBFF",
+    textSecondary: "#D7E2F3",
+    textTertiary: "#B9C7DA",
+    control: "rgba(10,23,47,0.82)",
+    controlBorder: "rgba(197,216,255,0.22)",
+    panel: "rgba(13,28,55,0.82)",
+    panelBorder: "rgba(210,226,255,0.24)",
+    activeControl: "#315BFF",
+    inactiveControl: "rgba(255,255,255,0.08)"
+  };
 
   return StyleSheet.create({
     header: {
@@ -899,45 +1069,78 @@ function createStyles(theme: AppTheme) {
     scanHero: {
       marginTop: spacing.md,
       alignItems: "center",
-      gap: spacing.xs,
-      padding: spacing.md,
+      gap: 6,
+      padding: spacing.sm,
       overflow: "hidden",
-      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.42)",
-      backgroundColor: colors.heroSurface
+      borderRadius: radii.xl,
+      borderWidth: 1,
+      borderColor: captureGlass.border,
+      backgroundColor: captureGlass.base,
+      shadowColor: "#061225",
+      shadowOpacity: theme.isDark ? 0.46 : 0.26,
+      shadowRadius: 26,
+      shadowOffset: { width: 0, height: 18 },
+      elevation: 5
+    },
+    scanHeroBaseTint: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: "43%",
+      backgroundColor: captureGlass.lowerTint
     },
     scanHeroGlow: {
       position: "absolute",
-      top: -58,
-      right: -48,
-      width: 168,
-      height: 168,
+      top: -74,
+      right: -50,
+      width: 184,
+      height: 184,
       borderRadius: 999,
-      backgroundColor: colors.accent,
-      opacity: theme.isDark ? 0.20 : 0.10
+      backgroundColor: captureGlass.glowIndigo
     },
     scanHeroGlowTwo: {
       position: "absolute",
-      bottom: -62,
-      left: -44,
-      width: 144,
-      height: 144,
+      bottom: -74,
+      left: -42,
+      width: 156,
+      height: 156,
       borderRadius: 999,
-      backgroundColor: colors.brandViolet,
-      opacity: theme.isDark ? 0.14 : 0.08
+      backgroundColor: captureGlass.glowPink
+    },
+    scanHeroTopSheen: {
+      position: "absolute",
+      top: 1,
+      left: 1,
+      right: 1,
+      height: 86,
+      borderTopLeftRadius: radii.xl,
+      borderTopRightRadius: radii.xl,
+      backgroundColor: captureGlass.highlight
+    },
+    scanHeroRim: {
+      position: "absolute",
+      top: 1,
+      left: 1,
+      right: 1,
+      bottom: 1,
+      borderRadius: radii.xl - 1,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: captureGlass.rim
     },
     scanFrame: {
-      width: 82,
-      height: 82,
-      borderRadius: 26,
+      width: 52,
+      height: 52,
+      borderRadius: 18,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(255,255,255,0.22)",
-      backgroundColor: "rgba(255,255,255,0.08)",
+      borderColor: "rgba(235,242,255,0.28)",
+      backgroundColor: "rgba(255,255,255,0.075)",
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: spacing.xs
+      marginBottom: 2
     },
     scanLine: {
-      width: 52,
+      width: 36,
       height: 3,
       borderRadius: 2,
       backgroundColor: colors.accent,
@@ -947,7 +1150,7 @@ function createStyles(theme: AppTheme) {
       shadowOffset: { width: 0, height: 0 }
     },
     dropKicker: {
-      color: colors.accent,
+      color: "#8EA8FF",
       fontSize: 11,
       lineHeight: 15,
       fontWeight: "900",
@@ -955,64 +1158,19 @@ function createStyles(theme: AppTheme) {
       letterSpacing: 0.8
     },
     dropTitle: {
-      color: colors.heroText,
-      fontSize: 25,
-      lineHeight: 30,
+      color: captureGlass.textPrimary,
+      fontSize: 21,
+      lineHeight: 26,
       fontWeight: "900",
       letterSpacing: 0,
       textAlign: "center"
     },
     dropCopy: {
-      color: colors.heroMuted,
+      color: captureGlass.textSecondary,
       fontSize: 13,
       lineHeight: 18,
-      fontWeight: "600",
+      fontWeight: "700",
       textAlign: "center"
-    },
-    magicPreview: {
-      alignSelf: "stretch",
-      borderRadius: radii.xl,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(255,255,255,0.18)",
-      backgroundColor: "rgba(255,255,255,0.09)",
-      padding: spacing.sm,
-      flexDirection: "row",
-      flexWrap: "wrap",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: spacing.xs,
-      marginTop: spacing.xs
-    },
-    magicStep: {
-      flex: 1,
-      minWidth: 72,
-      minHeight: 70,
-      borderRadius: radii.lg,
-      backgroundColor: "rgba(255,255,255,0.10)",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: spacing.xs,
-      gap: 2
-    },
-    magicTitle: {
-      color: colors.heroText,
-      fontSize: 11,
-      lineHeight: 14,
-      fontWeight: "900",
-      textAlign: "center"
-    },
-    magicDetail: {
-      color: colors.heroMuted,
-      fontSize: 9,
-      lineHeight: 12,
-      fontWeight: "800",
-      textAlign: "center"
-    },
-    magicArrow: {
-      width: 10,
-      height: 3,
-      borderRadius: 2,
-      backgroundColor: colors.accent
     },
     trustRow: {
       flexDirection: "row",
@@ -1042,12 +1200,16 @@ function createStyles(theme: AppTheme) {
       alignSelf: "stretch",
       minHeight: 44,
       borderRadius: radii.lg,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(255,255,255,0.18)",
-      backgroundColor: "rgba(255,255,255,0.08)",
+      borderWidth: 1,
+      borderColor: captureGlass.controlBorder,
+      backgroundColor: captureGlass.control,
       padding: 4,
       flexDirection: "row",
-      gap: 4
+      gap: 4,
+      shadowColor: "#000000",
+      shadowOpacity: 0.18,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 8 }
     },
     sourceOption: {
       flex: 1,
@@ -1059,19 +1221,23 @@ function createStyles(theme: AppTheme) {
       gap: 6
     },
     sourceOptionSelected: {
-      backgroundColor: colors.accent
+      backgroundColor: captureGlass.activeControl,
+      shadowColor: captureGlass.glowBlue,
+      shadowOpacity: 0.55,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 6 }
     },
     sourceOptionDisabled: {
       opacity: 0.48
     },
     sourceOptionText: {
-      color: colors.heroMuted,
+      color: captureGlass.textSecondary,
       fontSize: 12,
       lineHeight: 15,
       fontWeight: "900"
     },
     sourceOptionTextSelected: {
-      color: colors.heroText
+      color: captureGlass.textPrimary
     },
     sourceOptionTextDisabled: {
       color: colors.faint
@@ -1079,21 +1245,21 @@ function createStyles(theme: AppTheme) {
     sourcePanel: {
       alignSelf: "stretch",
       borderRadius: radii.lg,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(255,255,255,0.18)",
-      backgroundColor: "rgba(255,255,255,0.08)",
+      borderWidth: 1,
+      borderColor: captureGlass.panelBorder,
+      backgroundColor: captureGlass.panel,
       padding: spacing.sm,
-      gap: spacing.sm
+      gap: spacing.xs
     },
     sourcePanelTitle: {
-      color: colors.heroText,
+      color: captureGlass.textPrimary,
       fontSize: 14,
       lineHeight: 19,
       fontWeight: "900",
       textAlign: "center"
     },
     sourcePanelCopy: {
-      color: colors.heroMuted,
+      color: captureGlass.textSecondary,
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "800",
@@ -1103,26 +1269,71 @@ function createStyles(theme: AppTheme) {
       alignSelf: "stretch",
       flexDirection: "row",
       gap: spacing.xs,
-      marginTop: spacing.xs
-    },
-    scanActionPrimary: {
-      backgroundColor: colors.accent,
-      flex: 1
-    },
-    scanActionSecondary: {
-      flex: 1
+      marginTop: 0
     },
     pasteAction: {
-      alignSelf: "stretch"
+      alignSelf: "stretch",
+      backgroundColor: captureGlass.activeControl
+    },
+    captureActionButton: {
+      flex: 1,
+      minHeight: 52,
+      borderRadius: radii.lg,
+      paddingHorizontal: spacing.sm,
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+      gap: spacing.xs,
+      overflow: "hidden"
+    },
+    captureActionButtonPrimary: {
+      backgroundColor: captureGlass.activeControl,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.26)",
+      shadowColor: "#315BFF",
+      shadowOpacity: 0.34,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 4
+    },
+    captureActionButtonSecondary: {
+      backgroundColor: "rgba(255,255,255,0.12)",
+      borderWidth: 1,
+      borderColor: "rgba(222,235,255,0.32)"
+    },
+    captureActionPrimarySheen: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      height: "48%",
+      backgroundColor: "rgba(255,255,255,0.16)"
+    },
+    captureActionSecondarySheen: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      height: "42%",
+      backgroundColor: "rgba(255,255,255,0.08)"
+    },
+    captureActionText: {
+      flexShrink: 1,
+      maxWidth: "100%",
+      fontSize: 14,
+      lineHeight: 18,
+      letterSpacing: 0,
+      fontWeight: "900",
+      textAlign: "center"
     },
     typeBox: {
       alignSelf: "stretch",
       minHeight: 56,
       borderRadius: radii.lg,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.18)",
-      backgroundColor: "rgba(255,255,255,0.1)",
-      color: colors.heroText,
+      borderColor: "rgba(222,235,255,0.24)",
+      backgroundColor: "rgba(255,255,255,0.10)",
+      color: captureGlass.textPrimary,
       padding: spacing.md,
       fontSize: 13,
       lineHeight: 18,
@@ -1130,11 +1341,72 @@ function createStyles(theme: AppTheme) {
       textAlignVertical: "top"
     },
     privacyNote: {
-      color: colors.heroMuted,
+      color: captureGlass.textTertiary,
       fontSize: 12,
       lineHeight: 17,
       fontWeight: "700",
       textAlign: "center"
+    },
+    parserStatusCard: {
+      marginTop: spacing.md,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    parserStatusReady: {
+      borderColor: theme.isDark ? "#1D5A3D" : "#BFEBD4",
+      backgroundColor: colors.mint
+    },
+    parserStatusError: {
+      borderColor: theme.isDark ? "#6B322A" : "#F3B7A9",
+      backgroundColor: theme.isDark ? "#3A201D" : "#FFF1EC"
+    },
+    parserStatusIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: radii.round,
+      backgroundColor: colors.surfaceAlt,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    parserStatusCopy: {
+      flex: 1,
+      gap: 2
+    },
+    parserStatusTitle: {
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "900"
+    },
+    parserStatusText: {
+      color: colors.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "700"
+    },
+    retryMiniButton: {
+      minHeight: 34,
+      borderRadius: radii.round,
+      borderWidth: 1,
+      borderColor: colors.line,
+      backgroundColor: colors.surfaceAlt,
+      paddingHorizontal: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 5
+    },
+    retryMiniText: {
+      color: colors.accent,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "900"
     },
     processingCard: {
       marginTop: spacing.md,
@@ -1199,6 +1471,11 @@ function createStyles(theme: AppTheme) {
     recentCopy: {
       flex: 1,
       gap: 2
+    },
+    recentActions: {
+      alignItems: "flex-end",
+      gap: 5,
+      maxWidth: 120
     },
     recentTitle: {
       color: colors.ink,

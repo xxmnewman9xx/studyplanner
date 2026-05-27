@@ -1,324 +1,37 @@
 {
-  "generatedAt": "2026-05-27T12:02:07.752Z",
-  "rawDirectory": "marketing_exports/raw_screenshots",
-  "contactBoard": "/tmp/studyplanner_after_contact_board.png",
-  "primaryCaptureMethod": "Clean native iOS simulator screenshots captured via direct native app install/launch; previous Expo web fallback screenshots remain retained as historical fallback evidence.",
-  "nativeSimulator": {
-    "attempted": true,
-    "outputDirectory": "marketing_exports/raw_screenshots/native_clean",
-    "status": "clean-native-captured",
-    "usedForScoring": true,
-    "validNativeScreenshots": true,
-    "appBundleIdentifier": "com.mattnewman.studyplanner",
-    "devices": [
-      {
-        "deviceName": "StudyPlanner-QA-iPhone",
-        "simulatorUdid": "05C1E308-8F44-4BF9-AB8E-C1A5579D4B95"
-      },
-      {
-        "deviceName": "StudyPlanner-QA-iPad",
-        "simulatorUdid": "635FF784-C718-4E06-9B90-BAF2ACE3F86A"
-      }
-    ],
-    "strategy": {
-      "primary": "Dedicated simulator direct native app install and bundle-id launch.",
-      "simulatorState": "Used existing StudyPlanner-QA-iPhone and newly created StudyPlanner-QA-iPad only; no unrelated simulators erased.",
-      "appInstall": "xcrun simctl install /tmp/studyplanner-native-qa/rebundle/StudyPlannerSyllabusAI.app",
-      "launch": "xcrun simctl launch <udid> com.mattnewman.studyplanner",
-      "expoGoUsed": false,
-      "devLauncherUsed": false,
-      "urlHandoffUsed": false,
-      "localQaBundle": "Existing Release simulator .app was copied to /tmp and re-bundled with EXPO_PUBLIC_SIM_QA_CAPTURE=1 after a full Xcode rebuild was blocked by duplicate ExpoWidgetsTarget outputs.",
-      "xcodeRebuildBlocker": "xcodebuild failed with Multiple commands produce for ExpoWidgetsTarget.appex/__preview.dylib and ExpoWidgetsTarget.appex/ExpoWidgetsTarget.debug.dylib.",
-      "diskFreeObserved": "3.6 GiB before install/build inspection; 6.3 GiB before iPad capture. No user files were deleted."
-    },
-    "note": "Invalid previous overlay screenshots remain excluded; native_clean screenshots are clean StudyPlanner UI."
-  },
-  "screenshots": [
-    {
-      "screen": "Today",
-      "path": "marketing_exports/raw_screenshots/today.png",
-      "width": 390,
-      "height": 844,
-      "scored": true
-    },
-    {
-      "screen": "Capture/Scan",
-      "path": "marketing_exports/raw_screenshots/capture-scan.png",
-      "width": 390,
-      "height": 844,
-      "scored": true
-    },
-    {
-      "screen": "Review/Found Work",
-      "path": "marketing_exports/raw_screenshots/review-found-work.png",
-      "width": 390,
-      "height": 844,
-      "scored": true
-    },
-    {
-      "screen": "Plan Calendar",
-      "path": "marketing_exports/raw_screenshots/plan.png",
-      "width": 390,
-      "height": 844,
-      "scored": true
-    },
-    {
-      "screen": "Week Insight",
-      "path": "marketing_exports/raw_screenshots/week-insight.png",
-      "width": 390,
-      "height": 844,
-      "scored": true
-    },
-    {
-      "screen": "Classes",
-      "path": "marketing_exports/raw_screenshots/courses.png",
-      "width": 390,
-      "height": 844,
-      "scored": true
-    },
-    {
-      "screen": "Assignment Detail",
-      "path": "marketing_exports/raw_screenshots/assignment-detail.png",
-      "width": 390,
-      "height": 844,
-      "scored": true
-    },
-    {
-      "screen": "Notes",
-      "path": "marketing_exports/raw_screenshots/notes.png",
-      "width": 390,
-      "height": 844,
-      "scored": true
-    },
-    {
-      "screen": "Focus",
-      "path": "marketing_exports/raw_screenshots/focus.png",
-      "width": 390,
-      "height": 844,
-      "scored": true
-    },
-    {
-      "screen": "Widget Studio",
-      "path": "marketing_exports/raw_screenshots/widget-studio.png",
-      "width": 390,
-      "height": 844,
-      "scored": true
-    },
-    {
-      "screen": "Widget Library",
-      "path": "marketing_exports/raw_screenshots/widget-library.png",
-      "width": 390,
-      "height": 844,
-      "scored": true
-    },
-    {
-      "screen": "Themes/Settings",
-      "path": "marketing_exports/raw_screenshots/themes-settings.png",
-      "width": 390,
-      "height": 844,
-      "scored": true
-    },
-    {
-      "screen": "Paywall",
-      "path": "marketing_exports/raw_screenshots/paywall.png",
-      "width": 390,
-      "height": 844,
-      "scored": true
-    },
-    {
-      "screen": "Tablet Dashboard",
-      "path": "marketing_exports/raw_screenshots/tablet-dashboard.png",
-      "width": 1180,
-      "height": 820,
-      "scored": true
-    },
-    {
-      "screen": "Tablet Widget Studio",
-      "path": "marketing_exports/raw_screenshots/tablet-widget-studio.png",
-      "width": 1180,
-      "height": 820,
-      "scored": true
-    },
-    {
-      "screen": "Grades",
-      "path": "marketing_exports/raw_screenshots/grades.png",
-      "width": 390,
-      "height": 844,
-      "scored": false,
-      "note": "Secondary surface demoted under More."
-    }
+  "generatedAt": "2026-05-27T13:42:02Z",
+  "currentReleaseCandidateManifest": "qa/screenshots/final-polish-screenshot-manifest.json",
+  "rawDirectory": "marketing_exports/raw_screenshots/final_polish",
+  "contactBoard": "/tmp/studyplanner_final_polish_contact_board.png",
+  "primaryCaptureMethod": "Clean native iOS simulator screenshots from the final Release-capture build; old web/contact-board screenshots are not used for final scoring.",
+  "appBundleIdentifier": "com.mattnewman.studyplanner",
+  "validNativeScreenshots": true,
+  "scoredScreens": [
+    "Today",
+    "Capture idle / Scan",
+    "Capture Upload tab",
+    "Typed import composer",
+    "Capture parsing state",
+    "Capture failed / retry state",
+    "Review / Found Work",
+    "Plan Calendar",
+    "Week Insight",
+    "Classes",
+    "Class Detail",
+    "Assignment Detail",
+    "Notes Hub",
+    "Focus",
+    "Widget Studio",
+    "Widget Library",
+    "Themes",
+    "Settings / More",
+    "Paywall",
+    "Tablet Dashboard",
+    "Tablet Widget Studio"
   ],
-  "excluded": [
-    {
-      "path": "marketing_exports/raw_screenshots/native-smoke",
-      "reason": "Native runtime compatibility blocker; retained locally as evidence, not scored or committed."
-    },
-    {
-      "path": "marketing_exports/raw_screenshots/native_validation",
-      "reason": "Post-stabilization native route capture reached simulator screenshot tooling but captured iOS handoff/Expo Go mismatch overlays, not clean app states."
-    }
-  ],
-  "nativeCleanScreenshots": [
-    {
-      "screen": "Today",
-      "path": "marketing_exports/raw_screenshots/native_clean/10-today-light.png",
-      "width": 1206,
-      "height": 2622,
-      "deviceName": "StudyPlanner-QA-iPhone",
-      "simulatorUdid": "05C1E308-8F44-4BF9-AB8E-C1A5579D4B95",
-      "scored": true,
-      "cleanNative": true
-    },
-    {
-      "screen": "Capture / Scan",
-      "path": "marketing_exports/raw_screenshots/native_clean/12-scan.png",
-      "width": 1206,
-      "height": 2622,
-      "deviceName": "StudyPlanner-QA-iPhone",
-      "simulatorUdid": "05C1E308-8F44-4BF9-AB8E-C1A5579D4B95",
-      "scored": true,
-      "cleanNative": true
-    },
-    {
-      "screen": "Review / Found Work",
-      "path": "marketing_exports/raw_screenshots/native_clean/13-review.png",
-      "width": 1206,
-      "height": 2622,
-      "deviceName": "StudyPlanner-QA-iPhone",
-      "simulatorUdid": "05C1E308-8F44-4BF9-AB8E-C1A5579D4B95",
-      "scored": true,
-      "cleanNative": true
-    },
-    {
-      "screen": "Plan Calendar",
-      "path": "marketing_exports/raw_screenshots/native_clean/14-calendar.png",
-      "width": 1206,
-      "height": 2622,
-      "deviceName": "StudyPlanner-QA-iPhone",
-      "simulatorUdid": "05C1E308-8F44-4BF9-AB8E-C1A5579D4B95",
-      "scored": true,
-      "cleanNative": true
-    },
-    {
-      "screen": "Week Insight",
-      "path": "marketing_exports/raw_screenshots/native_clean/42-week-insight.png",
-      "width": 1206,
-      "height": 2622,
-      "deviceName": "StudyPlanner-QA-iPhone",
-      "simulatorUdid": "05C1E308-8F44-4BF9-AB8E-C1A5579D4B95",
-      "scored": true,
-      "cleanNative": true
-    },
-    {
-      "screen": "Classes",
-      "path": "marketing_exports/raw_screenshots/native_clean/17-classes.png",
-      "width": 1206,
-      "height": 2622,
-      "deviceName": "StudyPlanner-QA-iPhone",
-      "simulatorUdid": "05C1E308-8F44-4BF9-AB8E-C1A5579D4B95",
-      "scored": true,
-      "cleanNative": true
-    },
-    {
-      "screen": "Assignment Detail",
-      "path": "marketing_exports/raw_screenshots/native_clean/40-assignment-detail.png",
-      "width": 1206,
-      "height": 2622,
-      "deviceName": "StudyPlanner-QA-iPhone",
-      "simulatorUdid": "05C1E308-8F44-4BF9-AB8E-C1A5579D4B95",
-      "scored": true,
-      "cleanNative": true
-    },
-    {
-      "screen": "Notes Hub",
-      "path": "marketing_exports/raw_screenshots/native_clean/41-notes-hub.png",
-      "width": 1206,
-      "height": 2622,
-      "deviceName": "StudyPlanner-QA-iPhone",
-      "simulatorUdid": "05C1E308-8F44-4BF9-AB8E-C1A5579D4B95",
-      "scored": true,
-      "cleanNative": true
-    },
-    {
-      "screen": "Focus",
-      "path": "marketing_exports/raw_screenshots/native_clean/18-focus.png",
-      "width": 1206,
-      "height": 2622,
-      "deviceName": "StudyPlanner-QA-iPhone",
-      "simulatorUdid": "05C1E308-8F44-4BF9-AB8E-C1A5579D4B95",
-      "scored": true,
-      "cleanNative": true
-    },
-    {
-      "screen": "Widget Studio",
-      "path": "marketing_exports/raw_screenshots/native_clean/19-widgets-ocean.png",
-      "width": 1206,
-      "height": 2622,
-      "deviceName": "StudyPlanner-QA-iPhone",
-      "simulatorUdid": "05C1E308-8F44-4BF9-AB8E-C1A5579D4B95",
-      "scored": true,
-      "cleanNative": true
-    },
-    {
-      "screen": "Widget Library",
-      "path": "marketing_exports/raw_screenshots/native_clean/43-widget-library-lower.png",
-      "width": 1206,
-      "height": 2622,
-      "deviceName": "StudyPlanner-QA-iPhone",
-      "simulatorUdid": "05C1E308-8F44-4BF9-AB8E-C1A5579D4B95",
-      "scored": true,
-      "cleanNative": true
-    },
-    {
-      "screen": "Themes",
-      "path": "marketing_exports/raw_screenshots/native_clean/46-themes.png",
-      "width": 1206,
-      "height": 2622,
-      "deviceName": "StudyPlanner-QA-iPhone",
-      "simulatorUdid": "05C1E308-8F44-4BF9-AB8E-C1A5579D4B95",
-      "scored": true,
-      "cleanNative": true
-    },
-    {
-      "screen": "Settings / More",
-      "path": "marketing_exports/raw_screenshots/native_clean/45-settings-more.png",
-      "width": 1206,
-      "height": 2622,
-      "deviceName": "StudyPlanner-QA-iPhone",
-      "simulatorUdid": "05C1E308-8F44-4BF9-AB8E-C1A5579D4B95",
-      "scored": true,
-      "cleanNative": true
-    },
-    {
-      "screen": "Paywall",
-      "path": "marketing_exports/raw_screenshots/native_clean/24-paywall.png",
-      "width": 1206,
-      "height": 2622,
-      "deviceName": "StudyPlanner-QA-iPhone",
-      "simulatorUdid": "05C1E308-8F44-4BF9-AB8E-C1A5579D4B95",
-      "scored": true,
-      "cleanNative": true
-    },
-    {
-      "screen": "Tablet Layout / Dashboard",
-      "path": "marketing_exports/raw_screenshots/native_clean/50-tablet-today.png",
-      "width": 1640,
-      "height": 2360,
-      "deviceName": "StudyPlanner-QA-iPad",
-      "simulatorUdid": "635FF784-C718-4E06-9B90-BAF2ACE3F86A",
-      "scored": true,
-      "cleanNative": true
-    },
-    {
-      "screen": "Tablet Layout / Widget Studio",
-      "path": "marketing_exports/raw_screenshots/native_clean/51-tablet-widget-studio.png",
-      "width": 1640,
-      "height": 2360,
-      "deviceName": "StudyPlanner-QA-iPad",
-      "simulatorUdid": "635FF784-C718-4E06-9B90-BAF2ACE3F86A",
-      "scored": true,
-      "cleanNative": true
-    }
+  "notes": [
+    "Capture and Review parser-truth states were freshly recaptured in marketing_exports/raw_screenshots/final_polish.",
+    "Assignment Detail, Notes Hub, and Class Detail use existing clean native evidence from marketing_exports/raw_screenshots/native_clean because those screens were not modified in this pass.",
+    "Raw PNG screenshots remain local to avoid committing bulky binaries."
   ]
 }

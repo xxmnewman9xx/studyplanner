@@ -14,7 +14,7 @@ npx expo start
 
 - Polished first-run onboarding that leads into the subscription paywall.
 - Editable syllabus import flow for pasted text and text-based PDFs through the local parser or configured parse endpoint.
-- Camera/photo import stays disabled unless a configured endpoint and verified OCR/image parsing support are present.
+- Camera/photo import can save a source for review; automatic OCR parsing only runs with a configured endpoint and verified image parsing support.
 - Course and semester setup with weekly class schedule.
 - Assignment and exam objects with due dates, tags, priority, estimates, and status.
 - Today screen with "what should I do next?" planning logic.
@@ -26,7 +26,7 @@ npx expo start
 
 ## Configuration
 
-The app does not commit store product IDs, policy URLs, or parser endpoints. Set these at build time:
+The release product manifest records the known StudyPlanner StoreKit product IDs so code, local StoreKit QA, and drift checks agree. Build-time env can still override product IDs for sandbox or store-console validation:
 
 ```bash
 EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS=
@@ -39,6 +39,6 @@ EXPO_PUBLIC_SUPPORT_URL=https://political-turtle-752.notion.site/Study-Planner-S
 
 If policy URLs are not provided, the app falls back to Apple's standard EULA and the hosted Study Planner privacy policy. If a support URL is not provided, the in-app Support link falls back to the hosted privacy/contact page. If `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT` is not provided, the Scan tab stays available and uses the on-device text parser for text-based PDFs and plain-text syllabi.
 
-Only include product IDs that exist in App Store Connect or Google Play Console. If no subscription products are configured, the paywall fails closed and does not grant paid access.
+Only include product IDs that exist in App Store Connect or Google Play Console. If no env product IDs are provided, the app uses `src/config/iap.ts` release manifest IDs; if the store does not return those products, the paywall fails closed and does not grant paid access.
 
 Canvas is intentionally not a live V1 integration. Do not claim Canvas sync until OAuth, school-domain handling, and update reconciliation are implemented.
