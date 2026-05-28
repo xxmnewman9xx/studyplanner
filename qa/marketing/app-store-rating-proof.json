@@ -1,0 +1,21 @@
+{
+  "source": "App Store public listing via Apple iTunes Search API lookup",
+  "sourceUrl": "https://itunes.apple.com/lookup?id=6766181202&country=us",
+  "trackViewUrl": "https://apps.apple.com/us/app/study-planner-syllabus-ai/id6766181202?uo=4",
+  "appId": "6766181202",
+  "trackName": "Study Planner: Syllabus AI",
+  "bundleId": "com.mattnewman.studyplanner",
+  "rating": 5.0,
+  "displayedRatingText": "5.0",
+  "territory": "US",
+  "storefront": "United States App Store",
+  "reviewCount": 1,
+  "reviewCountApprovedForUse": true,
+  "dateChecked": "2026-05-28T06:25:37-04:00",
+  "exactApprovedClaimText": "★★★★★ 5.0 on the App Store",
+  "claimsNotApproved": [
+    "ranking claims",
+    "large unverified review totals",
+    "review count unless exact count is explicitly needed"
+  ]
+}

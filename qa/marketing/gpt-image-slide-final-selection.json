@@ -1,0 +1,366 @@
+{
+  "generatedAt": "2026-05-28T06:25:37-04:00",
+  "recommendedIphoneSlidesPerLocale": {
+    "ar": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/01_today.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/02_scan.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/03_review.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/04_calendar.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/05_assignment.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/06_focus.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/07_notes.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/08_widget_studio.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/09_widgets.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/10_themes.png"
+    ],
+    "de": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/01_today.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/02_scan.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/03_review.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/04_calendar.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/05_assignment.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/06_focus.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/07_notes.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/08_widget_studio.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/09_widgets.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/10_themes.png"
+    ],
+    "en-US": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/01_today.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/02_scan.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/03_review.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/04_calendar.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/05_assignment.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/06_focus.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/07_notes.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/08_widget_studio.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/09_widgets.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/10_themes.png"
+    ],
+    "es": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/01_today.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/02_scan.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/03_review.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/04_calendar.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/05_assignment.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/06_focus.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/07_notes.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/08_widget_studio.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/09_widgets.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/10_themes.png"
+    ],
+    "fr": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/01_today.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/02_scan.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/03_review.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/04_calendar.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/05_assignment.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/06_focus.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/07_notes.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/08_widget_studio.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/09_widgets.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/10_themes.png"
+    ],
+    "hi": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/01_today.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/02_scan.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/03_review.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/04_calendar.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/05_assignment.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/06_focus.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/07_notes.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/08_widget_studio.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/09_widgets.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/10_themes.png"
+    ],
+    "ja": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/01_today.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/02_scan.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/03_review.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/04_calendar.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/05_assignment.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/06_focus.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/07_notes.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/08_widget_studio.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/09_widgets.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/10_themes.png"
+    ],
+    "ko": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/01_today.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/02_scan.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/03_review.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/04_calendar.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/05_assignment.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/06_focus.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/07_notes.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/08_widget_studio.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/09_widgets.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/10_themes.png"
+    ],
+    "pt-BR": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/01_today.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/02_scan.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/03_review.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/04_calendar.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/05_assignment.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/06_focus.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/07_notes.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/08_widget_studio.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/09_widgets.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/10_themes.png"
+    ],
+    "zh-Hans": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/01_today.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/02_scan.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/03_review.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/04_calendar.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/05_assignment.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/06_focus.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/07_notes.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/08_widget_studio.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/09_widgets.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/10_themes.png"
+    ]
+  },
+  "recommendedIpadSlidesPerLocale": {
+    "ar": [],
+    "de": [],
+    "en-US": [],
+    "es": [],
+    "fr": [],
+    "hi": [],
+    "ja": [],
+    "ko": [],
+    "pt-BR": [],
+    "zh-Hans": []
+  },
+  "recommendedWidgetShowcaseSlides": {
+    "ar": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/widget_showcase/due_next_pink_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/widget_showcase/today_violet_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/widget_showcase/week_midnight.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/widget_showcase/class_focus_ocean.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/widget_showcase/needs_check_amber.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/widget_showcase/empty_minimal.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/widget_showcase/widget_studio_overview.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/widget_showcase/home_preview_variety.png"
+    ],
+    "de": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/de/widget_showcase/due_next_pink_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/de/widget_showcase/today_violet_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/de/widget_showcase/week_midnight.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/de/widget_showcase/class_focus_ocean.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/de/widget_showcase/needs_check_amber.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/de/widget_showcase/empty_minimal.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/de/widget_showcase/widget_studio_overview.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/de/widget_showcase/home_preview_variety.png"
+    ],
+    "en-US": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/widget_showcase/due_next_pink_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/widget_showcase/today_violet_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/widget_showcase/week_midnight.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/widget_showcase/class_focus_ocean.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/widget_showcase/needs_check_amber.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/widget_showcase/empty_minimal.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/widget_showcase/widget_studio_overview.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/widget_showcase/home_preview_variety.png"
+    ],
+    "es": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/es/widget_showcase/due_next_pink_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/es/widget_showcase/today_violet_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/es/widget_showcase/week_midnight.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/es/widget_showcase/class_focus_ocean.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/es/widget_showcase/needs_check_amber.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/es/widget_showcase/empty_minimal.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/es/widget_showcase/widget_studio_overview.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/es/widget_showcase/home_preview_variety.png"
+    ],
+    "fr": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/widget_showcase/due_next_pink_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/widget_showcase/today_violet_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/widget_showcase/week_midnight.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/widget_showcase/class_focus_ocean.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/widget_showcase/needs_check_amber.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/widget_showcase/empty_minimal.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/widget_showcase/widget_studio_overview.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/widget_showcase/home_preview_variety.png"
+    ],
+    "hi": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/widget_showcase/due_next_pink_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/widget_showcase/today_violet_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/widget_showcase/week_midnight.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/widget_showcase/class_focus_ocean.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/widget_showcase/needs_check_amber.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/widget_showcase/empty_minimal.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/widget_showcase/widget_studio_overview.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/widget_showcase/home_preview_variety.png"
+    ],
+    "ja": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/widget_showcase/due_next_pink_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/widget_showcase/today_violet_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/widget_showcase/week_midnight.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/widget_showcase/class_focus_ocean.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/widget_showcase/needs_check_amber.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/widget_showcase/empty_minimal.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/widget_showcase/widget_studio_overview.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/widget_showcase/home_preview_variety.png"
+    ],
+    "ko": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/widget_showcase/due_next_pink_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/widget_showcase/today_violet_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/widget_showcase/week_midnight.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/widget_showcase/class_focus_ocean.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/widget_showcase/needs_check_amber.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/widget_showcase/empty_minimal.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/widget_showcase/widget_studio_overview.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/widget_showcase/home_preview_variety.png"
+    ],
+    "pt-BR": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/widget_showcase/due_next_pink_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/widget_showcase/today_violet_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/widget_showcase/week_midnight.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/widget_showcase/class_focus_ocean.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/widget_showcase/needs_check_amber.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/widget_showcase/empty_minimal.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/widget_showcase/widget_studio_overview.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/widget_showcase/home_preview_variety.png"
+    ],
+    "zh-Hans": [
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/widget_showcase/due_next_pink_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/widget_showcase/today_violet_glass.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/widget_showcase/week_midnight.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/widget_showcase/class_focus_ocean.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/widget_showcase/needs_check_amber.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/widget_showcase/empty_minimal.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/widget_showcase/widget_studio_overview.png",
+      "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/widget_showcase/home_preview_variety.png"
+    ]
+  },
+  "lightDarkCoverageSummary": {
+    "ar": {
+      "light": 5,
+      "dark": 5,
+      "passesRequirement": true
+    },
+    "de": {
+      "light": 5,
+      "dark": 5,
+      "passesRequirement": true
+    },
+    "en-US": {
+      "light": 5,
+      "dark": 5,
+      "passesRequirement": true
+    },
+    "es": {
+      "light": 5,
+      "dark": 5,
+      "passesRequirement": true
+    },
+    "fr": {
+      "light": 5,
+      "dark": 5,
+      "passesRequirement": true
+    },
+    "hi": {
+      "light": 5,
+      "dark": 5,
+      "passesRequirement": true
+    },
+    "ja": {
+      "light": 5,
+      "dark": 5,
+      "passesRequirement": true
+    },
+    "ko": {
+      "light": 5,
+      "dark": 5,
+      "passesRequirement": true
+    },
+    "pt-BR": {
+      "light": 5,
+      "dark": 5,
+      "passesRequirement": true
+    },
+    "zh-Hans": {
+      "light": 5,
+      "dark": 5,
+      "passesRequirement": true
+    }
+  },
+  "customizationCoverageSummary": {
+    "ar": {
+      "iphoneCustomizationSlides": 3,
+      "widgetShowcaseSlides": 8,
+      "passesRequirement": true
+    },
+    "de": {
+      "iphoneCustomizationSlides": 3,
+      "widgetShowcaseSlides": 8,
+      "passesRequirement": true
+    },
+    "en-US": {
+      "iphoneCustomizationSlides": 3,
+      "widgetShowcaseSlides": 8,
+      "passesRequirement": true
+    },
+    "es": {
+      "iphoneCustomizationSlides": 3,
+      "widgetShowcaseSlides": 8,
+      "passesRequirement": true
+    },
+    "fr": {
+      "iphoneCustomizationSlides": 3,
+      "widgetShowcaseSlides": 8,
+      "passesRequirement": true
+    },
+    "hi": {
+      "iphoneCustomizationSlides": 3,
+      "widgetShowcaseSlides": 8,
+      "passesRequirement": true
+    },
+    "ja": {
+      "iphoneCustomizationSlides": 3,
+      "widgetShowcaseSlides": 8,
+      "passesRequirement": true
+    },
+    "ko": {
+      "iphoneCustomizationSlides": 3,
+      "widgetShowcaseSlides": 8,
+      "passesRequirement": true
+    },
+    "pt-BR": {
+      "iphoneCustomizationSlides": 3,
+      "widgetShowcaseSlides": 8,
+      "passesRequirement": true
+    },
+    "zh-Hans": {
+      "iphoneCustomizationSlides": 3,
+      "widgetShowcaseSlides": 8,
+      "passesRequirement": true
+    }
+  },
+  "fiveStarProofPath": "qa/marketing/app-store-rating-proof.json",
+  "exactFiveStarClaimTextUsed": "★★★★★ 5.0 on the App Store",
+  "rejectedSlides": [],
+  "translationHumanReviewNotes": {
+    "ar": "Machine/localized marketing copy needs native-speaker review before store upload.",
+    "de": "Machine/localized marketing copy needs native-speaker review before store upload.",
+    "en-US": "English source copy; no human review needed.",
+    "es": "Machine/localized marketing copy needs native-speaker review before store upload.",
+    "fr": "Machine/localized marketing copy needs native-speaker review before store upload.",
+    "hi": "Machine/localized marketing copy needs native-speaker review before store upload.",
+    "ja": "Machine/localized marketing copy needs native-speaker review before store upload.",
+    "ko": "Machine/localized marketing copy needs native-speaker review before store upload.",
+    "pt-BR": "Machine/localized marketing copy needs native-speaker review before store upload.",
+    "zh-Hans": "Machine/localized marketing copy needs native-speaker review before store upload."
+  },
+  "widgetNativePreviewClassification": "Home/widget screenshots are honestly classified as previews unless the raw source is a real installed widget capture.",
+  "contactSheetPaths": {
+    "iphone": "/tmp/studyplanner_gpt_image_slides_iphone_contact.png",
+    "ipad": "/tmp/studyplanner_gpt_image_slides_ipad_contact.png",
+    "widgets": "/tmp/studyplanner_gpt_image_slides_widgets_contact.png",
+    "lightDark": "/tmp/studyplanner_gpt_image_slides_light_dark_contact.png",
+    "customizations": "/tmp/studyplanner_gpt_image_slides_customizations_contact.png"
+  }
+}

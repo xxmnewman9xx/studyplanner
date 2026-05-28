@@ -1,0 +1,1724 @@
+{
+  "generatedAt": "2026-05-28T06:25:37-04:00",
+  "sourceRoot": "marketing_exports/raw_screenshots/app_previews_localized",
+  "outputRoot": "marketing_exports/app_preview_slides_gpt_image_2/localized",
+  "locales": [
+    "ar",
+    "de",
+    "en-US",
+    "es",
+    "fr",
+    "hi",
+    "ja",
+    "ko",
+    "pt-BR",
+    "zh-Hans"
+  ],
+  "sets": {
+    "ar": {
+      "iphone": [
+        {
+          "slide": "01_today",
+          "feature": "today",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/ar/01-today-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/01_today.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "02_scan",
+          "feature": "scan",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/ar/03-calendar-plan.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/02_scan.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "03_review",
+          "feature": "review",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/ar/02-scan-review-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/03_review.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "04_calendar",
+          "feature": "calendar",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/ar/03-calendar-plan-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/04_calendar.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "05_assignment",
+          "feature": "assignment",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/ar/04-classes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/05_assignment.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "06_focus",
+          "feature": "focus",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/ar/07-focus-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/06_focus.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "07_notes",
+          "feature": "notes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/ar/05-notes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/07_notes.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "08_widget_studio",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/ar/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/08_widget_studio.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "09_widgets",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ar/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/09_widgets.png",
+          "appearance": "light",
+          "themeCustomization": "ocean",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "10_themes",
+          "feature": "themes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/theme_variants/ar/dark/mint.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/iphone/10_themes.png",
+          "appearance": "dark",
+          "themeCustomization": "mint",
+          "widgetClassification": null
+        }
+      ],
+      "widgetShowcase": [
+        {
+          "slide": "due_next_pink_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ar/01-due-next-paper.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/widget_showcase/due_next_pink_glass.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream / pink glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "today_violet_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ar/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/widget_showcase/today_violet_glass.png",
+          "appearance": "light",
+          "themeCustomization": "ocean / violet glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "week_midnight",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ar/04-week-graphite.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/widget_showcase/week_midnight.png",
+          "appearance": "dark",
+          "themeCustomization": "midnight graphite",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "class_focus_ocean",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ar/05-class-focus-forest.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/widget_showcase/class_focus_ocean.png",
+          "appearance": "light",
+          "themeCustomization": "forest source / ocean glass treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "needs_check_amber",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ar/03-needs-check-candy.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/widget_showcase/needs_check_amber.png",
+          "appearance": "light",
+          "themeCustomization": "candy source / amber treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "empty_minimal",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ar/06-empty-minimal.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/widget_showcase/empty_minimal.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "widget_studio_overview",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/ar/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/widget_showcase/widget_studio_overview.png",
+          "appearance": "dark",
+          "themeCustomization": "Widget Studio",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "home_preview_variety",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/ar/07-widget-customization-library.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ar/widget_showcase/home_preview_variety.png",
+          "appearance": "dark",
+          "themeCustomization": "widget library preview",
+          "widgetClassification": "in-app widget preview/library"
+        }
+      ],
+      "ipad": [],
+      "ipadReason": "No localized iPad screenshots exist under the requested primary source folder."
+    },
+    "de": {
+      "iphone": [
+        {
+          "slide": "01_today",
+          "feature": "today",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/de/01-today-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/01_today.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "02_scan",
+          "feature": "scan",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/de/03-calendar-plan.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/02_scan.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "03_review",
+          "feature": "review",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/de/02-scan-review-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/03_review.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "04_calendar",
+          "feature": "calendar",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/de/03-calendar-plan-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/04_calendar.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "05_assignment",
+          "feature": "assignment",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/de/04-classes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/05_assignment.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "06_focus",
+          "feature": "focus",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/de/07-focus-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/06_focus.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "07_notes",
+          "feature": "notes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/de/05-notes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/07_notes.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "08_widget_studio",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/de/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/08_widget_studio.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "09_widgets",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/de/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/09_widgets.png",
+          "appearance": "light",
+          "themeCustomization": "ocean",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "10_themes",
+          "feature": "themes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/theme_variants/de/dark/mint.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/de/iphone/10_themes.png",
+          "appearance": "dark",
+          "themeCustomization": "mint",
+          "widgetClassification": null
+        }
+      ],
+      "widgetShowcase": [
+        {
+          "slide": "due_next_pink_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/de/01-due-next-paper.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/de/widget_showcase/due_next_pink_glass.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream / pink glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "today_violet_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/de/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/de/widget_showcase/today_violet_glass.png",
+          "appearance": "light",
+          "themeCustomization": "ocean / violet glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "week_midnight",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/de/04-week-graphite.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/de/widget_showcase/week_midnight.png",
+          "appearance": "dark",
+          "themeCustomization": "midnight graphite",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "class_focus_ocean",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/de/05-class-focus-forest.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/de/widget_showcase/class_focus_ocean.png",
+          "appearance": "light",
+          "themeCustomization": "forest source / ocean glass treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "needs_check_amber",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/de/03-needs-check-candy.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/de/widget_showcase/needs_check_amber.png",
+          "appearance": "light",
+          "themeCustomization": "candy source / amber treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "empty_minimal",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/de/06-empty-minimal.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/de/widget_showcase/empty_minimal.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "widget_studio_overview",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/de/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/de/widget_showcase/widget_studio_overview.png",
+          "appearance": "dark",
+          "themeCustomization": "Widget Studio",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "home_preview_variety",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/de/07-widget-customization-library.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/de/widget_showcase/home_preview_variety.png",
+          "appearance": "dark",
+          "themeCustomization": "widget library preview",
+          "widgetClassification": "in-app widget preview/library"
+        }
+      ],
+      "ipad": [],
+      "ipadReason": "No localized iPad screenshots exist under the requested primary source folder."
+    },
+    "en-US": {
+      "iphone": [
+        {
+          "slide": "01_today",
+          "feature": "today",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/en-US/01-today-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/01_today.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "02_scan",
+          "feature": "scan",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/en-US/03-calendar-plan.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/02_scan.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "03_review",
+          "feature": "review",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/en-US/02-scan-review-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/03_review.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "04_calendar",
+          "feature": "calendar",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/en-US/03-calendar-plan-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/04_calendar.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "05_assignment",
+          "feature": "assignment",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/en-US/04-classes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/05_assignment.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "06_focus",
+          "feature": "focus",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/en-US/07-focus-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/06_focus.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "07_notes",
+          "feature": "notes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/en-US/05-notes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/07_notes.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "08_widget_studio",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/en-US/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/08_widget_studio.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "09_widgets",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/en-US/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/09_widgets.png",
+          "appearance": "light",
+          "themeCustomization": "ocean",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "10_themes",
+          "feature": "themes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/theme_variants/en-US/dark/mint.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/iphone/10_themes.png",
+          "appearance": "dark",
+          "themeCustomization": "mint",
+          "widgetClassification": null
+        }
+      ],
+      "widgetShowcase": [
+        {
+          "slide": "due_next_pink_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/en-US/01-due-next-paper.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/widget_showcase/due_next_pink_glass.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream / pink glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "today_violet_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/en-US/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/widget_showcase/today_violet_glass.png",
+          "appearance": "light",
+          "themeCustomization": "ocean / violet glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "week_midnight",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/en-US/04-week-graphite.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/widget_showcase/week_midnight.png",
+          "appearance": "dark",
+          "themeCustomization": "midnight graphite",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "class_focus_ocean",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/en-US/05-class-focus-forest.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/widget_showcase/class_focus_ocean.png",
+          "appearance": "light",
+          "themeCustomization": "forest source / ocean glass treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "needs_check_amber",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/en-US/03-needs-check-candy.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/widget_showcase/needs_check_amber.png",
+          "appearance": "light",
+          "themeCustomization": "candy source / amber treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "empty_minimal",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/en-US/06-empty-minimal.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/widget_showcase/empty_minimal.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "widget_studio_overview",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/en-US/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/widget_showcase/widget_studio_overview.png",
+          "appearance": "dark",
+          "themeCustomization": "Widget Studio",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "home_preview_variety",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/en-US/07-widget-customization-library.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/en-US/widget_showcase/home_preview_variety.png",
+          "appearance": "dark",
+          "themeCustomization": "widget library preview",
+          "widgetClassification": "in-app widget preview/library"
+        }
+      ],
+      "ipad": [],
+      "ipadReason": "No localized iPad screenshots exist under the requested primary source folder."
+    },
+    "es": {
+      "iphone": [
+        {
+          "slide": "01_today",
+          "feature": "today",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/es/01-today-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/01_today.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "02_scan",
+          "feature": "scan",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/es/03-calendar-plan.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/02_scan.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "03_review",
+          "feature": "review",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/es/02-scan-review-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/03_review.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "04_calendar",
+          "feature": "calendar",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/es/03-calendar-plan-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/04_calendar.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "05_assignment",
+          "feature": "assignment",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/es/04-classes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/05_assignment.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "06_focus",
+          "feature": "focus",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/es/07-focus-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/06_focus.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "07_notes",
+          "feature": "notes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/es/05-notes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/07_notes.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "08_widget_studio",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/es/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/08_widget_studio.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "09_widgets",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/es/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/09_widgets.png",
+          "appearance": "light",
+          "themeCustomization": "ocean",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "10_themes",
+          "feature": "themes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/theme_variants/es/dark/mint.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/es/iphone/10_themes.png",
+          "appearance": "dark",
+          "themeCustomization": "mint",
+          "widgetClassification": null
+        }
+      ],
+      "widgetShowcase": [
+        {
+          "slide": "due_next_pink_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/es/01-due-next-paper.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/es/widget_showcase/due_next_pink_glass.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream / pink glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "today_violet_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/es/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/es/widget_showcase/today_violet_glass.png",
+          "appearance": "light",
+          "themeCustomization": "ocean / violet glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "week_midnight",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/es/04-week-graphite.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/es/widget_showcase/week_midnight.png",
+          "appearance": "dark",
+          "themeCustomization": "midnight graphite",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "class_focus_ocean",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/es/05-class-focus-forest.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/es/widget_showcase/class_focus_ocean.png",
+          "appearance": "light",
+          "themeCustomization": "forest source / ocean glass treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "needs_check_amber",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/es/03-needs-check-candy.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/es/widget_showcase/needs_check_amber.png",
+          "appearance": "light",
+          "themeCustomization": "candy source / amber treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "empty_minimal",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/es/06-empty-minimal.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/es/widget_showcase/empty_minimal.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "widget_studio_overview",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/es/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/es/widget_showcase/widget_studio_overview.png",
+          "appearance": "dark",
+          "themeCustomization": "Widget Studio",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "home_preview_variety",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/es/07-widget-customization-library.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/es/widget_showcase/home_preview_variety.png",
+          "appearance": "dark",
+          "themeCustomization": "widget library preview",
+          "widgetClassification": "in-app widget preview/library"
+        }
+      ],
+      "ipad": [],
+      "ipadReason": "No localized iPad screenshots exist under the requested primary source folder."
+    },
+    "fr": {
+      "iphone": [
+        {
+          "slide": "01_today",
+          "feature": "today",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/fr/01-today-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/01_today.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "02_scan",
+          "feature": "scan",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/fr/03-calendar-plan.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/02_scan.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "03_review",
+          "feature": "review",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/fr/02-scan-review-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/03_review.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "04_calendar",
+          "feature": "calendar",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/fr/03-calendar-plan-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/04_calendar.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "05_assignment",
+          "feature": "assignment",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/fr/04-classes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/05_assignment.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "06_focus",
+          "feature": "focus",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/fr/07-focus-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/06_focus.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "07_notes",
+          "feature": "notes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/fr/05-notes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/07_notes.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "08_widget_studio",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/fr/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/08_widget_studio.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "09_widgets",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/fr/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/09_widgets.png",
+          "appearance": "light",
+          "themeCustomization": "ocean",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "10_themes",
+          "feature": "themes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/theme_variants/fr/dark/mint.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/iphone/10_themes.png",
+          "appearance": "dark",
+          "themeCustomization": "mint",
+          "widgetClassification": null
+        }
+      ],
+      "widgetShowcase": [
+        {
+          "slide": "due_next_pink_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/fr/01-due-next-paper.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/widget_showcase/due_next_pink_glass.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream / pink glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "today_violet_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/fr/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/widget_showcase/today_violet_glass.png",
+          "appearance": "light",
+          "themeCustomization": "ocean / violet glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "week_midnight",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/fr/04-week-graphite.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/widget_showcase/week_midnight.png",
+          "appearance": "dark",
+          "themeCustomization": "midnight graphite",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "class_focus_ocean",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/fr/05-class-focus-forest.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/widget_showcase/class_focus_ocean.png",
+          "appearance": "light",
+          "themeCustomization": "forest source / ocean glass treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "needs_check_amber",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/fr/03-needs-check-candy.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/widget_showcase/needs_check_amber.png",
+          "appearance": "light",
+          "themeCustomization": "candy source / amber treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "empty_minimal",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/fr/06-empty-minimal.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/widget_showcase/empty_minimal.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "widget_studio_overview",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/fr/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/widget_showcase/widget_studio_overview.png",
+          "appearance": "dark",
+          "themeCustomization": "Widget Studio",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "home_preview_variety",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/fr/07-widget-customization-library.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/fr/widget_showcase/home_preview_variety.png",
+          "appearance": "dark",
+          "themeCustomization": "widget library preview",
+          "widgetClassification": "in-app widget preview/library"
+        }
+      ],
+      "ipad": [],
+      "ipadReason": "No localized iPad screenshots exist under the requested primary source folder."
+    },
+    "hi": {
+      "iphone": [
+        {
+          "slide": "01_today",
+          "feature": "today",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/hi/01-today-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/01_today.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "02_scan",
+          "feature": "scan",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/hi/03-calendar-plan.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/02_scan.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "03_review",
+          "feature": "review",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/hi/02-scan-review-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/03_review.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "04_calendar",
+          "feature": "calendar",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/hi/03-calendar-plan-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/04_calendar.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "05_assignment",
+          "feature": "assignment",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/hi/04-classes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/05_assignment.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "06_focus",
+          "feature": "focus",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/hi/07-focus-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/06_focus.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "07_notes",
+          "feature": "notes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/hi/05-notes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/07_notes.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "08_widget_studio",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/hi/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/08_widget_studio.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "09_widgets",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/hi/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/09_widgets.png",
+          "appearance": "light",
+          "themeCustomization": "ocean",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "10_themes",
+          "feature": "themes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/theme_variants/hi/dark/mint.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/iphone/10_themes.png",
+          "appearance": "dark",
+          "themeCustomization": "mint",
+          "widgetClassification": null
+        }
+      ],
+      "widgetShowcase": [
+        {
+          "slide": "due_next_pink_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/hi/01-due-next-paper.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/widget_showcase/due_next_pink_glass.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream / pink glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "today_violet_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/hi/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/widget_showcase/today_violet_glass.png",
+          "appearance": "light",
+          "themeCustomization": "ocean / violet glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "week_midnight",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/hi/04-week-graphite.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/widget_showcase/week_midnight.png",
+          "appearance": "dark",
+          "themeCustomization": "midnight graphite",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "class_focus_ocean",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/hi/05-class-focus-forest.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/widget_showcase/class_focus_ocean.png",
+          "appearance": "light",
+          "themeCustomization": "forest source / ocean glass treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "needs_check_amber",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/hi/03-needs-check-candy.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/widget_showcase/needs_check_amber.png",
+          "appearance": "light",
+          "themeCustomization": "candy source / amber treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "empty_minimal",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/hi/06-empty-minimal.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/widget_showcase/empty_minimal.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "widget_studio_overview",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/hi/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/widget_showcase/widget_studio_overview.png",
+          "appearance": "dark",
+          "themeCustomization": "Widget Studio",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "home_preview_variety",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/hi/07-widget-customization-library.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/hi/widget_showcase/home_preview_variety.png",
+          "appearance": "dark",
+          "themeCustomization": "widget library preview",
+          "widgetClassification": "in-app widget preview/library"
+        }
+      ],
+      "ipad": [],
+      "ipadReason": "No localized iPad screenshots exist under the requested primary source folder."
+    },
+    "ja": {
+      "iphone": [
+        {
+          "slide": "01_today",
+          "feature": "today",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/ja/01-today-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/01_today.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "02_scan",
+          "feature": "scan",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/ja/03-calendar-plan.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/02_scan.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "03_review",
+          "feature": "review",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/ja/02-scan-review-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/03_review.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "04_calendar",
+          "feature": "calendar",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/ja/03-calendar-plan-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/04_calendar.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "05_assignment",
+          "feature": "assignment",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/ja/04-classes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/05_assignment.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "06_focus",
+          "feature": "focus",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/ja/07-focus-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/06_focus.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "07_notes",
+          "feature": "notes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/ja/05-notes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/07_notes.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "08_widget_studio",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/ja/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/08_widget_studio.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "09_widgets",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ja/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/09_widgets.png",
+          "appearance": "light",
+          "themeCustomization": "ocean",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "10_themes",
+          "feature": "themes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/theme_variants/ja/dark/mint.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/iphone/10_themes.png",
+          "appearance": "dark",
+          "themeCustomization": "mint",
+          "widgetClassification": null
+        }
+      ],
+      "widgetShowcase": [
+        {
+          "slide": "due_next_pink_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ja/01-due-next-paper.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/widget_showcase/due_next_pink_glass.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream / pink glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "today_violet_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ja/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/widget_showcase/today_violet_glass.png",
+          "appearance": "light",
+          "themeCustomization": "ocean / violet glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "week_midnight",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ja/04-week-graphite.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/widget_showcase/week_midnight.png",
+          "appearance": "dark",
+          "themeCustomization": "midnight graphite",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "class_focus_ocean",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ja/05-class-focus-forest.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/widget_showcase/class_focus_ocean.png",
+          "appearance": "light",
+          "themeCustomization": "forest source / ocean glass treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "needs_check_amber",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ja/03-needs-check-candy.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/widget_showcase/needs_check_amber.png",
+          "appearance": "light",
+          "themeCustomization": "candy source / amber treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "empty_minimal",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ja/06-empty-minimal.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/widget_showcase/empty_minimal.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "widget_studio_overview",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/ja/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/widget_showcase/widget_studio_overview.png",
+          "appearance": "dark",
+          "themeCustomization": "Widget Studio",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "home_preview_variety",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/ja/07-widget-customization-library.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ja/widget_showcase/home_preview_variety.png",
+          "appearance": "dark",
+          "themeCustomization": "widget library preview",
+          "widgetClassification": "in-app widget preview/library"
+        }
+      ],
+      "ipad": [],
+      "ipadReason": "No localized iPad screenshots exist under the requested primary source folder."
+    },
+    "ko": {
+      "iphone": [
+        {
+          "slide": "01_today",
+          "feature": "today",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/ko/01-today-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/01_today.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "02_scan",
+          "feature": "scan",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/ko/03-calendar-plan.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/02_scan.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "03_review",
+          "feature": "review",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/ko/02-scan-review-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/03_review.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "04_calendar",
+          "feature": "calendar",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/ko/03-calendar-plan-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/04_calendar.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "05_assignment",
+          "feature": "assignment",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/ko/04-classes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/05_assignment.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "06_focus",
+          "feature": "focus",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/ko/07-focus-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/06_focus.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "07_notes",
+          "feature": "notes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/ko/05-notes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/07_notes.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "08_widget_studio",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/ko/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/08_widget_studio.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "09_widgets",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ko/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/09_widgets.png",
+          "appearance": "light",
+          "themeCustomization": "ocean",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "10_themes",
+          "feature": "themes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/theme_variants/ko/dark/mint.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/iphone/10_themes.png",
+          "appearance": "dark",
+          "themeCustomization": "mint",
+          "widgetClassification": null
+        }
+      ],
+      "widgetShowcase": [
+        {
+          "slide": "due_next_pink_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ko/01-due-next-paper.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/widget_showcase/due_next_pink_glass.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream / pink glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "today_violet_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ko/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/widget_showcase/today_violet_glass.png",
+          "appearance": "light",
+          "themeCustomization": "ocean / violet glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "week_midnight",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ko/04-week-graphite.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/widget_showcase/week_midnight.png",
+          "appearance": "dark",
+          "themeCustomization": "midnight graphite",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "class_focus_ocean",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ko/05-class-focus-forest.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/widget_showcase/class_focus_ocean.png",
+          "appearance": "light",
+          "themeCustomization": "forest source / ocean glass treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "needs_check_amber",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ko/03-needs-check-candy.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/widget_showcase/needs_check_amber.png",
+          "appearance": "light",
+          "themeCustomization": "candy source / amber treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "empty_minimal",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/ko/06-empty-minimal.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/widget_showcase/empty_minimal.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "widget_studio_overview",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/ko/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/widget_showcase/widget_studio_overview.png",
+          "appearance": "dark",
+          "themeCustomization": "Widget Studio",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "home_preview_variety",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/ko/07-widget-customization-library.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/ko/widget_showcase/home_preview_variety.png",
+          "appearance": "dark",
+          "themeCustomization": "widget library preview",
+          "widgetClassification": "in-app widget preview/library"
+        }
+      ],
+      "ipad": [],
+      "ipadReason": "No localized iPad screenshots exist under the requested primary source folder."
+    },
+    "pt-BR": {
+      "iphone": [
+        {
+          "slide": "01_today",
+          "feature": "today",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/pt-BR/01-today-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/01_today.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "02_scan",
+          "feature": "scan",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/pt-BR/03-calendar-plan.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/02_scan.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "03_review",
+          "feature": "review",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/pt-BR/02-scan-review-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/03_review.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "04_calendar",
+          "feature": "calendar",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/pt-BR/03-calendar-plan-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/04_calendar.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "05_assignment",
+          "feature": "assignment",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/pt-BR/04-classes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/05_assignment.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "06_focus",
+          "feature": "focus",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/pt-BR/07-focus-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/06_focus.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "07_notes",
+          "feature": "notes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/pt-BR/05-notes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/07_notes.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "08_widget_studio",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/pt-BR/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/08_widget_studio.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "09_widgets",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/pt-BR/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/09_widgets.png",
+          "appearance": "light",
+          "themeCustomization": "ocean",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "10_themes",
+          "feature": "themes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/theme_variants/pt-BR/dark/mint.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/iphone/10_themes.png",
+          "appearance": "dark",
+          "themeCustomization": "mint",
+          "widgetClassification": null
+        }
+      ],
+      "widgetShowcase": [
+        {
+          "slide": "due_next_pink_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/pt-BR/01-due-next-paper.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/widget_showcase/due_next_pink_glass.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream / pink glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "today_violet_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/pt-BR/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/widget_showcase/today_violet_glass.png",
+          "appearance": "light",
+          "themeCustomization": "ocean / violet glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "week_midnight",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/pt-BR/04-week-graphite.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/widget_showcase/week_midnight.png",
+          "appearance": "dark",
+          "themeCustomization": "midnight graphite",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "class_focus_ocean",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/pt-BR/05-class-focus-forest.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/widget_showcase/class_focus_ocean.png",
+          "appearance": "light",
+          "themeCustomization": "forest source / ocean glass treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "needs_check_amber",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/pt-BR/03-needs-check-candy.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/widget_showcase/needs_check_amber.png",
+          "appearance": "light",
+          "themeCustomization": "candy source / amber treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "empty_minimal",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/pt-BR/06-empty-minimal.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/widget_showcase/empty_minimal.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "widget_studio_overview",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/pt-BR/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/widget_showcase/widget_studio_overview.png",
+          "appearance": "dark",
+          "themeCustomization": "Widget Studio",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "home_preview_variety",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/pt-BR/07-widget-customization-library.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/pt-BR/widget_showcase/home_preview_variety.png",
+          "appearance": "dark",
+          "themeCustomization": "widget library preview",
+          "widgetClassification": "in-app widget preview/library"
+        }
+      ],
+      "ipad": [],
+      "ipadReason": "No localized iPad screenshots exist under the requested primary source folder."
+    },
+    "zh-Hans": {
+      "iphone": [
+        {
+          "slide": "01_today",
+          "feature": "today",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/zh-Hans/01-today-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/01_today.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "02_scan",
+          "feature": "scan",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/zh-Hans/03-calendar-plan.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/02_scan.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "03_review",
+          "feature": "review",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/zh-Hans/02-scan-review-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/03_review.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "04_calendar",
+          "feature": "calendar",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/zh-Hans/03-calendar-plan-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/04_calendar.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "05_assignment",
+          "feature": "assignment",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/zh-Hans/04-classes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/05_assignment.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "06_focus",
+          "feature": "focus",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/light/zh-Hans/07-focus-light.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/06_focus.png",
+          "appearance": "light",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "07_notes",
+          "feature": "notes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/zh-Hans/05-notes.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/07_notes.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": null
+        },
+        {
+          "slide": "08_widget_studio",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/zh-Hans/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/08_widget_studio.png",
+          "appearance": "dark",
+          "themeCustomization": "default",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "09_widgets",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/zh-Hans/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/09_widgets.png",
+          "appearance": "light",
+          "themeCustomization": "ocean",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "10_themes",
+          "feature": "themes",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/theme_variants/zh-Hans/dark/mint.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/iphone/10_themes.png",
+          "appearance": "dark",
+          "themeCustomization": "mint",
+          "widgetClassification": null
+        }
+      ],
+      "widgetShowcase": [
+        {
+          "slide": "due_next_pink_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/zh-Hans/01-due-next-paper.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/widget_showcase/due_next_pink_glass.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream / pink glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "today_violet_glass",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/zh-Hans/02-today-ocean.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/widget_showcase/today_violet_glass.png",
+          "appearance": "light",
+          "themeCustomization": "ocean / violet glass",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "week_midnight",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/zh-Hans/04-week-graphite.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/widget_showcase/week_midnight.png",
+          "appearance": "dark",
+          "themeCustomization": "midnight graphite",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "class_focus_ocean",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/zh-Hans/05-class-focus-forest.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/widget_showcase/class_focus_ocean.png",
+          "appearance": "light",
+          "themeCustomization": "forest source / ocean glass treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "needs_check_amber",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/zh-Hans/03-needs-check-candy.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/widget_showcase/needs_check_amber.png",
+          "appearance": "light",
+          "themeCustomization": "candy source / amber treatment",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "empty_minimal",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/homescreen_widgets/zh-Hans/06-empty-minimal.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/widget_showcase/empty_minimal.png",
+          "appearance": "light",
+          "themeCustomization": "minimal cream",
+          "widgetClassification": "honestly labeled Home Screen/widget preview screenshot"
+        },
+        {
+          "slide": "widget_studio_overview",
+          "feature": "widget_studio",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/zh-Hans/06-widget-studio.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/widget_showcase/widget_studio_overview.png",
+          "appearance": "dark",
+          "themeCustomization": "Widget Studio",
+          "widgetClassification": "Widget Studio preview"
+        },
+        {
+          "slide": "home_preview_variety",
+          "feature": "widgets",
+          "source": "marketing_exports/raw_screenshots/app_previews_localized/zh-Hans/07-widget-customization-library.png",
+          "output": "marketing_exports/app_preview_slides_gpt_image_2/localized/zh-Hans/widget_showcase/home_preview_variety.png",
+          "appearance": "dark",
+          "themeCustomization": "widget library preview",
+          "widgetClassification": "in-app widget preview/library"
+        }
+      ],
+      "ipad": [],
+      "ipadReason": "No localized iPad screenshots exist under the requested primary source folder."
+    }
+  },
+  "requirements": {
+    "iphoneSlidesPerLocale": 10,
+    "widgetShowcaseSlidesPerLocale": 8,
+    "ipadSlides": "not feasible from primary localized source folder"
+  }
+}
