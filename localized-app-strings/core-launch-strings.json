@@ -177,7 +177,9 @@
       "focus": "Focus",
       "grades": "Grades",
       "widgets": "Widgets",
-      "subscribe": "Subscribe"
+      "subscribe": "Subscribe",
+      "feed": "Feed",
+      "life": "Life"
     },
     "onboarding": {
       "scan_title": "Turn a syllabus into a draft.",
@@ -1454,7 +1456,9 @@
       "focus": "Fokus",
       "grades": "Noten",
       "widgets": "Widgets",
-      "subscribe": "Abonnieren"
+      "subscribe": "Abonnieren",
+      "feed": "Start",
+      "life": "Leben"
     },
     "onboarding": {
       "scan_title": "Mach aus einem Syllabus einen Entwurf.",
@@ -2731,7 +2735,9 @@
       "focus": "Enfoque",
       "grades": "Notas",
       "widgets": "Widgets",
-      "subscribe": "Suscribirse"
+      "subscribe": "Suscribirse",
+      "feed": "Inicio",
+      "life": "Vida"
     },
     "onboarding": {
       "scan_title": "Convierte un sílabo en un borrador.",
@@ -4008,7 +4014,9 @@
       "focus": "Focus",
       "grades": "Notes",
       "widgets": "Widgets",
-      "subscribe": "S’abonner"
+      "subscribe": "S’abonner",
+      "feed": "Flux",
+      "life": "Vie"
     },
     "onboarding": {
       "scan_title": "Transforme un syllabus en brouillon.",
@@ -5285,7 +5293,9 @@
       "focus": "Foco",
       "grades": "Notas",
       "widgets": "Widgets",
-      "subscribe": "Assinar"
+      "subscribe": "Assinar",
+      "feed": "Início",
+      "life": "Vida"
     },
     "onboarding": {
       "scan_title": "Transforme um plano de curso em rascunho.",
@@ -6562,7 +6572,9 @@
       "focus": "تركيز",
       "grades": "الدرجات",
       "widgets": "الويدجت",
-      "subscribe": "اشترك"
+      "subscribe": "اشترك",
+      "feed": "الموجز",
+      "life": "الحياة"
     },
     "onboarding": {
       "scan_title": "حوّل خطة المقرر إلى مسودة.",
@@ -7839,7 +7851,9 @@
       "focus": "फोकस",
       "grades": "ग्रेड",
       "widgets": "विजेट",
-      "subscribe": "सदस्यता लें"
+      "subscribe": "सदस्यता लें",
+      "feed": "फ़ीड",
+      "life": "जीवन"
     },
     "onboarding": {
       "scan_title": "सिलेबस को ड्राफ्ट में बदलें।",
@@ -9116,7 +9130,9 @@
       "focus": "集中",
       "grades": "成績",
       "widgets": "ウィジェット",
-      "subscribe": "登録"
+      "subscribe": "登録",
+      "feed": "フィード",
+      "life": "ライフ"
     },
     "onboarding": {
       "scan_title": "シラバスを下書きに変換。",
@@ -10393,7 +10409,9 @@
       "focus": "집중",
       "grades": "성적",
       "widgets": "위젯",
-      "subscribe": "구독"
+      "subscribe": "구독",
+      "feed": "피드",
+      "life": "라이프"
     },
     "onboarding": {
       "scan_title": "강의계획서를 초안으로 바꾸세요.",
@@ -11670,7 +11688,9 @@
       "focus": "专注",
       "grades": "成绩",
       "widgets": "小组件",
-      "subscribe": "订阅"
+      "subscribe": "订阅",
+      "feed": "动态",
+      "life": "生活"
     },
     "onboarding": {
       "scan_title": "把课程大纲变成草稿。",

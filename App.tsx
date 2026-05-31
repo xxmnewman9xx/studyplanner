@@ -120,20 +120,23 @@ const proTabs: Array<{
   labelKey: string;
   icon: React.ComponentType<{ color: string; size: number }>;
 }> = [
-  { id: "today", labelKey: "tabs.today", icon: CalendarDays },
+  { id: "today", labelKey: "tabs.today", icon: Sparkles },
+  { id: "courses", labelKey: "tabs.classes", icon: GraduationCap },
+  { id: "focus", labelKey: "tabs.focus", icon: Timer },
+  { id: "more", labelKey: "tabs.widgets", icon: Sparkles },
   { id: "import", labelKey: "tabs.scan", icon: FileScan },
   { id: "plan", labelKey: "tabs.calendar", icon: CalendarDays },
-  { id: "courses", labelKey: "tabs.classes", icon: GraduationCap },
   { id: "notes", labelKey: "tabs.notes", icon: NotebookPen },
-  { id: "more", labelKey: "tabs.widgets", icon: Sparkles }
+  { id: "subscribe", labelKey: "tabs.subscribe", icon: Crown }
 ];
 
-const mobilePrimaryTabIds = new Set<NavTab>(["today", "import", "plan", "courses", "notes", "more"]);
+const mobilePrimaryTabIds = new Set<NavTab>(["today", "courses", "focus", "more", "import"]);
 const moreGroupTabIds = new Set<NavTab>(["more", "grades", "subscribe"]);
 
 function mobileTabLabel(tab: NavTab, fallback: string, t: (key: string, fallback?: string) => string) {
-  if (tab === "plan") return t("tabs.calendar", "Calendar");
-  return tab === "more" ? t("tabs.widgets", "Widgets") : fallback;
+  if (tab === "today") return t("tabs.feed", "Feed");
+  if (tab === "more") return t("tabs.life", "Life");
+  return fallback;
 }
 
 type CaptureRoute = {
@@ -1847,12 +1850,12 @@ function createStyles(theme: AppTheme, tablet = false) {
   return StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: colors.canvasTint,
+      backgroundColor: "#FFFFFF",
       overflow: "hidden"
     },
     appShell: {
       flex: 1,
-      backgroundColor: colors.canvas,
+      backgroundColor: "#F7F9FD",
       overflow: "hidden",
       flexDirection: tablet ? "row" : "column"
     },
@@ -2119,7 +2122,7 @@ function createStyles(theme: AppTheme, tablet = false) {
       borderRadius: 24,
       borderWidth: 1,
       borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(18,20,23,0.08)",
-      backgroundColor: theme.isDark ? "rgba(10, 15, 26, 0.98)" : "rgba(255, 253, 244, 0.96)",
+      backgroundColor: theme.isDark ? "rgba(10, 15, 26, 0.98)" : "rgba(255,255,255,0.96)",
       padding: spacing.xs,
       shadowColor: colors.shadow,
       shadowOpacity: theme.isDark ? 0.24 : 0.08,
@@ -2137,7 +2140,7 @@ function createStyles(theme: AppTheme, tablet = false) {
       gap: 2
     },
     tabButtonActive: {
-      backgroundColor: colors.heroSurface,
+      backgroundColor: colors.ink,
       shadowColor: colors.shadow,
       shadowOpacity: theme.isDark ? 0.12 : 0.04,
       shadowRadius: 4,
@@ -2151,7 +2154,7 @@ function createStyles(theme: AppTheme, tablet = false) {
       fontWeight: "900"
     },
     tabLabelActive: {
-      color: colors.heroText
+      color: "#FFFFFF"
     },
     lockDot: {
       position: "absolute",

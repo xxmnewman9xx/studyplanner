@@ -14,6 +14,7 @@ import {
 import { AppButton } from "../components/AppButton";
 import { AppLogo, GlassCard, WidgetPreviewCard } from "../components/AppleComponents";
 import { ModeToggle } from "../components/ModeToggle";
+import { LifeStudioSetup } from "../components/LifeStudioUI";
 import { AppTheme, appThemePalettes, ThemeAccent, themePalettes } from "../theme";
 import { useAppTheme } from "../themeContext";
 import {
@@ -142,6 +143,13 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
   const [appTheme, setAppTheme] = useState<ThemeAccent>(defaultOnboardingWidgetTheme.appTheme);
   const [widgetPalette, setWidgetPalette] = useState<WidgetPalette>(defaultOnboardingWidgetTheme.palette);
   const [widgetStyle, setWidgetStyle] = useState<WidgetBackground>(defaultOnboardingWidgetTheme.background);
+  const [lifeSettings, setLifeSettings] = useState<Partial<UserSettings>>({
+    studentDNA: defaultSettings.studentDNA,
+    osBehavior: defaultSettings.osBehavior,
+    frictionPoints: defaultSettings.frictionPoints,
+    widgetDNA: defaultSettings.widgetDNA,
+    watchDNA: defaultSettings.watchDNA
+  });
   const slide = slides[index] ?? slides[0]!;
   const eyebrowKey = slide.id === "review" ? "import.review_short" : `tabs.${slide.id === "calendar" ? "calendar" : slide.id}`;
   const isFinal = index === slides.length - 1;
@@ -190,7 +198,8 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
     onFinish("paywall", {
       appTheme,
       selectedTheme: widgetPalette,
-      defaultWidgetStyle: widgetStyle
+      defaultWidgetStyle: widgetStyle,
+      ...lifeSettings
     });
   };
 
@@ -213,6 +222,18 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
           <AppLogo size={38} showWordmark />
           <ModeToggle compact />
         </View>
+
+        <LifeStudioSetup
+          compact
+          settings={{
+            ...defaultSettings,
+            appTheme,
+            selectedTheme: widgetPalette,
+            defaultWidgetStyle: widgetStyle,
+            ...lifeSettings
+          }}
+          onUpdateSettings={(patch) => setLifeSettings((current) => ({ ...current, ...patch }))}
+        />
 
         <MotionFadeUpView trigger={index}>
         <GlassCard tone="hero" style={styles.heroCard}>

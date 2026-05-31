@@ -14,6 +14,7 @@ import {
   daysUntil,
   getCourseForAssignment
 } from "../logic/planner";
+import { lifeStudioReason, osBehaviorOptions, studentDNAOptions } from "../logic/lifeStudio";
 import { parseQuickHomeworkInput, todayDateInput } from "../services/quickHomeworkParser";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -146,6 +147,9 @@ export function TodayScreen({
       action: onOpenWidgets
     }
   ];
+  const selectedIdentity = studentDNAOptions.find((item) => item.id === settings?.studentDNA) || studentDNAOptions[0]!;
+  const selectedBehavior = osBehaviorOptions.find((item) => item.id === settings?.osBehavior) || osBehaviorOptions[0]!;
+  const lifeReason = lifeStudioReason(settings, assignments, courses);
 
   useEffect(() => {
     if (!courses.length) {
@@ -175,6 +179,26 @@ export function TodayScreen({
 
   return (
     <View style={styles.screen}>
+      <View style={styles.lifeOSHero}>
+        <View style={styles.lifeOSHeader}>
+          <View style={styles.lifeOSMark}>
+            <View style={[styles.lifeOSLine, { backgroundColor: "#0A84FF" }]} />
+            <View style={[styles.lifeOSLine, { backgroundColor: "#30D158" }]} />
+            <View style={[styles.lifeOSLine, { backgroundColor: "#FF2D55" }]} />
+            <View style={[styles.lifeOSLine, { backgroundColor: "#FF9F0A" }]} />
+          </View>
+          <View style={styles.lifeOSCopy}>
+            <Text style={styles.lifeOSEyebrow}>Student Life OS</Text>
+            <Text style={styles.lifeOSTitle}>{selectedIdentity.label}</Text>
+            <Text style={styles.lifeOSDetail}>{selectedBehavior.label} mode · {lifeReason}</Text>
+          </View>
+        </View>
+        <View style={styles.lifeMetricRow}>
+          <LifeMetric label={t("tabs.classes", "Classes")} value={String(courses.length)} color="#2563EB" />
+          <LifeMetric label={t("today.metric_open", "Open")} value={String(plan.openCount)} color="#DB2777" />
+          <LifeMetric label={t("tabs.focus", "Focus")} value={`${settings?.focusDefaultMinutes || 25}m`} color="#16A34A" />
+        </View>
+      </View>
       {demoMode ? (
         <GlassCard style={styles.demoCard}>
           <View style={styles.demoHeader}>
@@ -714,6 +738,18 @@ function MetricPill({ label, value }: MetricPillProps) {
   );
 }
 
+function LifeMetric({ label, value, color }: { label: string; value: string; color: string }) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  return (
+    <View style={styles.lifeMetric}>
+      <View style={[styles.lifeMetricDot, { backgroundColor: color }]} />
+      <Text style={styles.lifeMetricValue}>{value}</Text>
+      <Text style={styles.lifeMetricLabel}>{label}</Text>
+    </View>
+  );
+}
+
 function BrainFact({ label, value }: { label: string; value: string }) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
@@ -774,6 +810,94 @@ function createStyles(theme: AppTheme) {
   return StyleSheet.create({
     screen: {
       gap: 0
+    },
+    lifeOSHero: {
+      borderRadius: 28,
+      backgroundColor: "#FFFFFF",
+      borderWidth: 1,
+      borderColor: "rgba(17,24,39,0.08)",
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+      gap: spacing.sm,
+      shadowColor: colors.shadow,
+      shadowOpacity: 0.07,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 2
+    },
+    lifeOSHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    lifeOSMark: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      backgroundColor: "#05070B",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 3
+    },
+    lifeOSLine: {
+      width: 24,
+      height: 4,
+      borderRadius: 4
+    },
+    lifeOSCopy: {
+      flex: 1,
+      minWidth: 0
+    },
+    lifeOSEyebrow: {
+      color: colors.faint,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    lifeOSTitle: {
+      color: colors.ink,
+      fontSize: 28,
+      lineHeight: 32,
+      fontWeight: "900"
+    },
+    lifeOSDetail: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "800"
+    },
+    lifeMetricRow: {
+      flexDirection: "row",
+      gap: spacing.xs
+    },
+    lifeMetric: {
+      flex: 1,
+      minHeight: 68,
+      borderRadius: 18,
+      backgroundColor: "#F6F8FC",
+      borderWidth: 1,
+      borderColor: "rgba(17,24,39,0.07)",
+      padding: spacing.sm,
+      justifyContent: "center",
+      gap: 2
+    },
+    lifeMetricDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4
+    },
+    lifeMetricValue: {
+      color: colors.ink,
+      fontSize: 18,
+      lineHeight: 22,
+      fontWeight: "900"
+    },
+    lifeMetricLabel: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
     },
     demoCard: {
       gap: spacing.sm,

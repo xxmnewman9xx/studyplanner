@@ -32,7 +32,12 @@ export const defaultSettings: UserSettings = {
   focusDefaultMinutes: 25,
   syncEnabled: true,
   privacyMode: false,
-  emojiAccentEnabled: true
+  emojiAccentEnabled: true,
+  studentDNA: "focused_scholar",
+  osBehavior: "highest_gpa",
+  frictionPoints: ["procrastination"],
+  widgetDNA: ["exam_countdown", "grade_impact", "free_time_forecast"],
+  watchDNA: ["next_class", "focus_window", "exam_risk"]
 };
 
 export const defaultCourses: Course[] = [

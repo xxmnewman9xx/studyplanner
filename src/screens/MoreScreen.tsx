@@ -26,6 +26,7 @@ import {
 import { AppButton } from "../components/AppButton";
 import { LiquidGlassWidgetPreview } from "../components/LiquidGlass";
 import { ModeToggle } from "../components/ModeToggle";
+import { LifeStudioSetup } from "../components/LifeStudioUI";
 import { SectionHeader } from "../components/SectionHeader";
 import {
   Assignment,
@@ -605,12 +606,13 @@ export function MoreScreen({
 
   return (
     <View>
+      <LifeStudioSetup settings={settings} onUpdateSettings={onUpdateSettings} />
       <View style={styles.studioShell}>
         <View style={styles.studioWorkbench}>
           <View style={styles.studioTopBar}>
             <View style={styles.studioTitleBlock}>
-              <Text style={styles.studioEyebrow}>{t("more.widget_studio", "Customize your iPhone widgets")}</Text>
-              <Text style={styles.studioTitle}>{t("more.studio_title", "Design the widget you want to see at a glance.")}</Text>
+              <Text style={styles.studioEyebrow}>{t("more.widget_studio", "Widget DNA")}</Text>
+              <Text style={styles.studioTitle}>{t("more.studio_title", "Tune the widgets and watch signals your Student Life OS should surface.")}</Text>
             </View>
             <View style={styles.nativeStatusChip}>
               <View style={[styles.nativeStatusDot, nativeWidgetStatus.state === "synced" ? styles.nativeStatusDotSynced : null]} />
