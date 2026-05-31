@@ -1,6 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Bell, CalendarPlus, CalendarSync, CheckCircle2, CirclePlus, FileScan, Sparkles, Timer } from "lucide-react-native";
+import {
+  BatteryCharging,
+  Bell,
+  BookOpen,
+  BriefcaseBusiness,
+  CalendarPlus,
+  CalendarSync,
+  CheckCircle2,
+  CirclePlus,
+  Clock,
+  Dumbbell,
+  FileScan,
+  Gauge,
+  ShieldAlert,
+  Sparkles,
+  Target,
+  Timer,
+  Zap
+} from "lucide-react-native";
 import {
   AssignmentRow,
   EmptyState,
@@ -30,6 +48,15 @@ export type ImportHandoffSummary = {
 };
 
 type TranslateFn = (key: string, fallback?: string) => string;
+type FeedIconType = React.ComponentType<{ color?: string; size?: number; strokeWidth?: number }>;
+type StudentLifeFeedCardModel = {
+  title: string;
+  meta: string;
+  reason: string;
+  color: string;
+  accent: string;
+  Icon: FeedIconType;
+};
 
 type TodayScreenProps = {
   assignments: Assignment[];
@@ -150,6 +177,8 @@ export function TodayScreen({
   const selectedIdentity = studentDNAOptions.find((item) => item.id === settings?.studentDNA) || studentDNAOptions[0]!;
   const selectedBehavior = osBehaviorOptions.find((item) => item.id === settings?.osBehavior) || osBehaviorOptions[0]!;
   const lifeReason = lifeStudioReason(settings, assignments, courses);
+  const feedVisual = feedVisualForBehavior(settings?.osBehavior);
+  const studentLifeCards = buildStudentLifeFeedCards(plan, courses, settings, t);
 
   useEffect(() => {
     if (!courses.length) {
@@ -179,7 +208,8 @@ export function TodayScreen({
 
   return (
     <View style={styles.screen}>
-      <View style={styles.lifeOSHero}>
+      <View style={[styles.lifeOSHero, { borderColor: `${feedVisual.accent}24` }]}>
+        <View style={[styles.lifeOSGlow, { backgroundColor: feedVisual.accent }]} />
         <View style={styles.lifeOSHeader}>
           <View style={styles.lifeOSMark}>
             <View style={[styles.lifeOSLine, { backgroundColor: "#0A84FF" }]} />
@@ -188,9 +218,9 @@ export function TodayScreen({
             <View style={[styles.lifeOSLine, { backgroundColor: "#FF9F0A" }]} />
           </View>
           <View style={styles.lifeOSCopy}>
-            <Text style={styles.lifeOSEyebrow}>Student Life OS</Text>
-            <Text style={styles.lifeOSTitle}>{selectedIdentity.label}</Text>
-            <Text style={styles.lifeOSDetail}>{selectedBehavior.label} mode · {lifeReason}</Text>
+            <Text style={[styles.lifeOSEyebrow, { color: feedVisual.accent }]}>Student Life OS</Text>
+            <Text style={styles.lifeOSTitle}>Good morning, {studentName?.trim() || "there"}</Text>
+            <Text style={styles.lifeOSDetail}>{selectedIdentity.label} · {selectedBehavior.label}: {lifeReason}</Text>
           </View>
         </View>
         <View style={styles.lifeMetricRow}>
@@ -198,6 +228,12 @@ export function TodayScreen({
           <LifeMetric label={t("today.metric_open", "Open")} value={String(plan.openCount)} color="#DB2777" />
           <LifeMetric label={t("tabs.focus", "Focus")} value={`${settings?.focusDefaultMinutes || 25}m`} color="#16A34A" />
         </View>
+      </View>
+
+      <View style={styles.studentLifeFeed}>
+        {studentLifeCards.map((card, cardIndex) => (
+          <StudentLifeFeedCard key={`${cardIndex}-${card.title}-${card.meta}`} card={card} />
+        ))}
       </View>
       {demoMode ? (
         <GlassCard style={styles.demoCard}>
@@ -584,6 +620,123 @@ export function TodayScreen({
 
 }
 
+function feedVisualForBehavior(osBehavior: UserSettings["osBehavior"]) {
+  switch (osBehavior) {
+    case "less_stress":
+      return { accent: "#0F8A6A", calm: "#E6FAF1" };
+    case "athletic_performance":
+      return { accent: "#16A34A", calm: "#E8FBEF" };
+    case "life_balance":
+      return { accent: "#0F8A9D", calm: "#E8FBFF" };
+    case "high_achievement":
+      return { accent: "#7C3AED", calm: "#F4E8FF" };
+    case "highest_gpa":
+    default:
+      return { accent: "#D92D4B", calm: "#FFE8ED" };
+  }
+}
+
+function buildStudentLifeFeedCards(
+  plan: ReturnType<typeof buildTodayBrain>,
+  courses: Course[],
+  settings: UserSettings | undefined,
+  t: TranslateFn
+): StudentLifeFeedCardModel[] {
+  const next = plan.nextAction;
+  const nextCourse = next ? getCourseForAssignment(courses, next) : undefined;
+  const nextTitle = next ? formatAssignmentTitle(nextCourse, next) : t("today.start_with_syllabus", "Start with your syllabus.");
+  const nextMeta = next ? formatDueUrgency(daysUntil(next.dueAt), t) : t("today.scan_syllabus", "Scan syllabus");
+  const exam = plan.upcoming.find((item) => item.kind === "exam");
+  const examCourse = exam ? getCourseForAssignment(courses, exam) : undefined;
+
+  const assignmentCard: StudentLifeFeedCardModel = {
+    title: nextTitle,
+    meta: nextMeta,
+    reason: next ? "Recommended because this is the highest-impact item in your current plan." : "Import a syllabus and the feed becomes personalized.",
+    color: "#6337E8",
+    accent: "#A78BFA",
+    Icon: BookOpen
+  };
+  const examCard: StudentLifeFeedCardModel = {
+    title: exam ? formatAssignmentTitle(examCourse, exam) : "Chemistry Midterm",
+    meta: exam ? formatDueUrgency(daysUntil(exam.dueAt), t) : "Thu · 8:00 AM",
+    reason: "Start earlier because exam risk compounds across the week.",
+    color: "#C81E5B",
+    accent: "#FF7AA8",
+    Icon: ShieldAlert
+  };
+  const focusCard: StudentLifeFeedCardModel = {
+    title: "Focus Window",
+    meta: `${settings?.focusDefaultMinutes || 25} min · Best next slot`,
+    reason: plan.nextAction ? "This block protects your next deadline." : "Ready once your first syllabus is added.",
+    color: "#1557D8",
+    accent: "#5AC8FA",
+    Icon: Timer
+  };
+  const sportCard: StudentLifeFeedCardModel = {
+    title: "Soccer Practice",
+    meta: "Today · 4:00 PM",
+    reason: "Recovery is easier when practice is visible beside schoolwork.",
+    color: "#087A3F",
+    accent: "#30D158",
+    Icon: Dumbbell
+  };
+  const workCard: StudentLifeFeedCardModel = {
+    title: "Work Shift",
+    meta: "Wed · 5:30 PM",
+    reason: "Study before the shift, not after your energy drops.",
+    color: "#B45309",
+    accent: "#FFB020",
+    Icon: BriefcaseBusiness
+  };
+  const freeTimeCard: StudentLifeFeedCardModel = {
+    title: "Free Time Forecast",
+    meta: "2.4 hrs this week",
+    reason: "Use one calm window before the week gets noisy.",
+    color: "#0F8A6A",
+    accent: "#34C759",
+    Icon: Clock
+  };
+  const recoveryCard: StudentLifeFeedCardModel = {
+    title: "Recovery Window",
+    meta: "Tonight · 35 min",
+    reason: "Protect recovery before late-week load increases.",
+    color: "#0E7490",
+    accent: "#5AC8FA",
+    Icon: BatteryCharging
+  };
+  const balanceCard: StudentLifeFeedCardModel = {
+    title: "Life Balance Ring",
+    meta: "72 · balanced",
+    reason: "Classes, practice, work, and rest are all in view.",
+    color: "#0F8A9D",
+    accent: "#32D7C8",
+    Icon: Gauge
+  };
+  const futureRiskCard: StudentLifeFeedCardModel = {
+    title: "Future Risk",
+    meta: "2 overloaded days",
+    reason: "Move one task now before Thursday stacks up.",
+    color: "#7C3AED",
+    accent: "#BF5AF2",
+    Icon: Zap
+  };
+
+  switch (settings?.osBehavior) {
+    case "less_stress":
+      return [freeTimeCard, assignmentCard, recoveryCard, examCard];
+    case "athletic_performance":
+      return [sportCard, recoveryCard, examCard, assignmentCard];
+    case "life_balance":
+      return [balanceCard, assignmentCard, workCard, sportCard];
+    case "high_achievement":
+      return [futureRiskCard, assignmentCard, examCard, focusCard];
+    case "highest_gpa":
+    default:
+      return [examCard, assignmentCard, focusCard, sportCard];
+  }
+}
+
 function buildLiveBrief(plan: ReturnType<typeof buildTodayBrain>, courseCount: number, t: TranslateFn) {
   if (plan.overdue.length > 0) {
     return {
@@ -750,6 +903,25 @@ function LifeMetric({ label, value, color }: { label: string; value: string; col
   );
 }
 
+function StudentLifeFeedCard({ card }: { card: StudentLifeFeedCardModel }) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  const Icon = card.Icon;
+  return (
+    <TouchableOpacity accessibilityRole="button" style={[styles.studentLifeCard, { backgroundColor: card.color }]}>
+      <View style={[styles.studentLifeCardGlow, { backgroundColor: card.accent }]} />
+      <View style={styles.studentLifeCardTop}>
+        <View style={styles.studentLifeCardIcon}>
+          <Icon color="#FFFFFF" size={18} strokeWidth={2.8} />
+        </View>
+        <Text style={styles.studentLifeCardMeta} numberOfLines={1}>{card.meta}</Text>
+      </View>
+      <Text style={styles.studentLifeCardTitle} numberOfLines={2}>{card.title}</Text>
+      <Text style={styles.studentLifeCardReason} numberOfLines={2}>{card.reason}</Text>
+    </TouchableOpacity>
+  );
+}
+
 function BrainFact({ label, value }: { label: string; value: string }) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
@@ -820,10 +992,20 @@ function createStyles(theme: AppTheme) {
       marginBottom: spacing.sm,
       gap: spacing.sm,
       shadowColor: colors.shadow,
-      shadowOpacity: 0.07,
-      shadowRadius: 20,
-      shadowOffset: { width: 0, height: 10 },
-      elevation: 2
+      shadowOpacity: 0.09,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 12 },
+      elevation: 2,
+      overflow: "hidden"
+    },
+    lifeOSGlow: {
+      position: "absolute",
+      right: -54,
+      top: -58,
+      width: 170,
+      height: 170,
+      borderRadius: 85,
+      opacity: 0.12
     },
     lifeOSHeader: {
       flexDirection: "row",
@@ -857,8 +1039,8 @@ function createStyles(theme: AppTheme) {
     },
     lifeOSTitle: {
       color: colors.ink,
-      fontSize: 28,
-      lineHeight: 32,
+      fontSize: 30,
+      lineHeight: 34,
       fontWeight: "900"
     },
     lifeOSDetail: {
@@ -898,6 +1080,70 @@ function createStyles(theme: AppTheme) {
       fontSize: 10,
       lineHeight: 13,
       fontWeight: "900"
+    },
+    studentLifeFeed: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm,
+      marginBottom: spacing.sm
+    },
+    studentLifeCard: {
+      flexGrow: 1,
+      flexBasis: "47%",
+      minWidth: 150,
+      minHeight: 148,
+      borderRadius: 25,
+      padding: spacing.md,
+      gap: spacing.xs,
+      overflow: "hidden",
+      shadowColor: "#15233A",
+      shadowOpacity: 0.14,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 2
+    },
+    studentLifeCardGlow: {
+      position: "absolute",
+      right: -36,
+      top: -42,
+      width: 112,
+      height: 112,
+      borderRadius: 56,
+      opacity: 0.26
+    },
+    studentLifeCardTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.xs
+    },
+    studentLifeCardIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 15,
+      backgroundColor: "rgba(255,255,255,0.18)",
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    studentLifeCardMeta: {
+      flex: 1,
+      textAlign: "right",
+      color: "rgba(255,255,255,0.78)",
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    studentLifeCardTitle: {
+      color: "#FFFFFF",
+      fontSize: 18,
+      lineHeight: 22,
+      fontWeight: "900"
+    },
+    studentLifeCardReason: {
+      color: "rgba(255,255,255,0.84)",
+      fontSize: 12,
+      lineHeight: 17,
+      fontWeight: "800"
     },
     demoCard: {
       gap: spacing.sm,
