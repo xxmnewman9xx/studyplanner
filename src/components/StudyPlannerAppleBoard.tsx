@@ -1,5 +1,7 @@
 import React from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
+import { ScrollView, StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
+import { BlurView } from "expo-blur";
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import Svg, { Circle } from "react-native-svg";
 import { Activity, Beaker, CalendarDays, CheckCircle2, CirclePlay, GraduationCap, Timer } from "lucide-react-native";
 
@@ -56,14 +58,9 @@ export function SPHeroCard({ greeting, name, detail }: { greeting: string; name:
 
 export function SPColorCard({ tone, kicker, title, subtitle, meta, icon: Icon, children, onPress }: SPColorCardProps) {
   const palette = tonePalette[tone];
-  const Wrapper = onPress ? TouchableOpacity : View;
-  return (
-    <Wrapper
-      accessibilityRole={onPress ? "button" : undefined}
-      activeOpacity={0.88}
-      onPress={onPress}
-      style={[styles.colorCard, { backgroundColor: palette.background }, tone === "white" || tone === "soft" ? styles.lightCardBorder : null]}
-    >
+  const light = tone === "white" || tone === "soft";
+  const content = (
+    <>
       <View style={styles.colorCardCopy}>
         {kicker ? <Text style={[styles.cardKicker, { color: palette.kicker }]}>{kicker}</Text> : null}
         <Text style={[styles.cardTitle, { color: palette.text }]} numberOfLines={2}>{title}</Text>
@@ -73,10 +70,40 @@ export function SPColorCard({ tone, kicker, title, subtitle, meta, icon: Icon, c
       </View>
       {Icon ? (
         <View style={[styles.cardIconShell, { borderColor: palette.iconBorder }]}>
-          <Icon color={palette.icon} size={32} strokeWidth={1.8} />
+          <Icon color={palette.icon} size={30} strokeWidth={1.8} />
         </View>
       ) : null}
-    </Wrapper>
+    </>
+  );
+
+  if (light) {
+    const card = (
+      <SPGlassSurface
+        intensity={82}
+        interactive={!!onPress}
+        tintColor={tone === "soft" ? "rgba(245,245,247,0.72)" : "rgba(255,255,255,0.72)"}
+        style={[styles.colorCard, { backgroundColor: palette.background }, styles.lightCardBorder]}
+      >
+        {content}
+      </SPGlassSurface>
+    );
+    return onPress ? (
+      <TouchableOpacity accessibilityRole="button" activeOpacity={0.9} onPress={onPress}>
+        {card}
+      </TouchableOpacity>
+    ) : card;
+  }
+
+  return (
+    <TouchableOpacity
+      accessibilityRole={onPress ? "button" : "none"}
+      activeOpacity={0.88}
+      onPress={onPress}
+      disabled={!onPress}
+      style={[styles.colorCard, { backgroundColor: palette.background }]}
+    >
+      {content}
+    </TouchableOpacity>
   );
 }
 
@@ -156,6 +183,8 @@ export function SPWidgetTile({
   detail,
   progress,
   compact,
+  mini,
+  showLabel = true,
   style
 }: {
   tone: SPCardTone;
@@ -165,18 +194,26 @@ export function SPWidgetTile({
   detail?: string;
   progress?: number;
   compact?: boolean;
+  mini?: boolean;
+  showLabel?: boolean;
   style?: ViewStyle;
 }) {
   const palette = tonePalette[tone];
   const dark = tone !== "white" && tone !== "soft";
-  return (
-    <View style={[styles.widgetTile, compact ? styles.widgetTileCompact : null, { backgroundColor: palette.background }, !dark ? styles.lightCardBorder : null, style]}>
+  const content = (
+    <>
       <Text style={[styles.widgetValue, { color: palette.text }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{value}</Text>
       <Text style={[styles.widgetTitle, { color: palette.text }]} numberOfLines={2}>{title}</Text>
       {detail ? <Text style={[styles.widgetDetail, { color: palette.subtle }]} numberOfLines={2}>{detail}</Text> : null}
-      {typeof progress === "number" ? <View style={styles.widgetRingSlot}><SPMiniRing progress={progress} color={dark ? "#FFFFFF" : palette.icon} /></View> : null}
-      <Text style={[styles.widgetLabel, { color: dark ? "rgba(255,255,255,0.70)" : SPBoardColors.muted }]}>{label}</Text>
-    </View>
+      {typeof progress === "number" ? <View style={mini ? styles.widgetRingSlotMini : styles.widgetRingSlot}><SPMiniRing progress={progress} color={dark ? "#FFFFFF" : palette.icon} trackColor={dark ? undefined : "#E9EAEE"} size={mini ? 34 : 46} stroke={mini ? 5 : 6} /></View> : null}
+      {showLabel ? <Text style={[styles.widgetLabel, { color: dark ? "rgba(255,255,255,0.70)" : SPBoardColors.muted }]}>{label}</Text> : null}
+    </>
+  );
+  const tileStyle = [styles.widgetTile, compact ? styles.widgetTileCompact : null, mini ? styles.widgetTileMini : null, { backgroundColor: palette.background }, !dark ? styles.lightCardBorder : null, style];
+  return dark ? (
+    <View style={tileStyle}>{content}</View>
+  ) : (
+    <SPGlassSurface intensity={76} style={tileStyle}>{content}</SPGlassSurface>
   );
 }
 
@@ -236,7 +273,7 @@ export function SPBottomTabBar({
   onPress: (id: string) => void;
 }) {
   return (
-    <View style={styles.bottomTabBar}>
+    <SPGlassSurface intensity={88} style={styles.bottomTabBar}>
       {items.map((item) => {
         const Icon = item.icon;
         const active = isActive(item.id);
@@ -255,7 +292,7 @@ export function SPBottomTabBar({
           </TouchableOpacity>
         );
       })}
-    </View>
+    </SPGlassSurface>
   );
 }
 
@@ -311,12 +348,52 @@ function SPInlineRing({ progress, color, label }: { progress: number; color: str
   );
 }
 
-function SPMiniRing({ progress, color, size = 46, stroke = 6 }: { progress: number; color: string; size?: number; stroke?: number }) {
+let liquidGlassAvailable: boolean | undefined;
+
+function SPGlassSurface({
+  children,
+  style,
+  interactive,
+  tintColor = "rgba(255,255,255,0.68)",
+  intensity = 80
+}: {
+  children: React.ReactNode;
+  style: StyleProp<ViewStyle>;
+  interactive?: boolean;
+  tintColor?: string;
+  intensity?: number;
+}) {
+  if (canUseLiquidGlass()) {
+    return (
+      <GlassView colorScheme="light" glassEffectStyle="regular" isInteractive={interactive} tintColor={tintColor} style={style}>
+        {children}
+      </GlassView>
+    );
+  }
+
+  return (
+    <BlurView intensity={intensity} tint="systemChromeMaterialLight" style={style}>
+      {children}
+    </BlurView>
+  );
+}
+
+function canUseLiquidGlass() {
+  if (liquidGlassAvailable !== undefined) return liquidGlassAvailable;
+  try {
+    liquidGlassAvailable = isLiquidGlassAvailable();
+  } catch {
+    liquidGlassAvailable = false;
+  }
+  return liquidGlassAvailable;
+}
+
+function SPMiniRing({ progress, color, size = 46, stroke = 6, trackColor = "rgba(255,255,255,0.28)" }: { progress: number; color: string; size?: number; stroke?: number; trackColor?: string }) {
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   return (
     <Svg width={size} height={size}>
-      <Circle cx={size / 2} cy={size / 2} r={radius} stroke="rgba(255,255,255,0.28)" strokeWidth={stroke} fill="none" />
+      <Circle cx={size / 2} cy={size / 2} r={radius} stroke={trackColor} strokeWidth={stroke} fill="none" />
       <Circle
         cx={size / 2}
         cy={size / 2}
@@ -455,24 +532,25 @@ const styles = StyleSheet.create({
     fontWeight: "900"
   },
   colorCard: {
-    minHeight: 84,
-    borderRadius: 15,
-    padding: 14,
+    minHeight: 80,
+    borderRadius: 18,
+    borderCurve: "continuous",
+    padding: 13,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
     overflow: "hidden",
     shadowColor: "#000000",
-    shadowOpacity: 0.10,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 7 },
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
     elevation: 2
   },
   lightCardBorder: {
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: SPBoardColors.line,
-    shadowOpacity: 0.06
+    borderColor: "rgba(210,212,218,0.72)",
+    shadowOpacity: 0.05
   },
   colorCardCopy: {
     flex: 1,
@@ -505,10 +583,12 @@ const styles = StyleSheet.create({
     fontWeight: "700"
   },
   cardIconShell: {
-    width: 46,
-    height: 46,
+    width: 42,
+    height: 42,
     borderRadius: 14,
+    borderCurve: "continuous",
     borderWidth: 1,
+    backgroundColor: "rgba(255,255,255,0.08)",
     alignItems: "center",
     justifyContent: "center"
   },
@@ -548,7 +628,8 @@ const styles = StyleSheet.create({
   widgetTile: {
     width: 94,
     height: 118,
-    borderRadius: 18,
+    borderRadius: 20,
+    borderCurve: "continuous",
     padding: 12,
     justifyContent: "space-between",
     shadowColor: "#000000",
@@ -559,6 +640,11 @@ const styles = StyleSheet.create({
   },
   widgetTileCompact: {
     width: 88
+  },
+  widgetTileMini: {
+    width: 86,
+    height: 106,
+    padding: 10
   },
   widgetValue: {
     fontSize: 29,
@@ -588,14 +674,20 @@ const styles = StyleSheet.create({
     right: 10,
     bottom: 24
   },
+  widgetRingSlotMini: {
+    position: "absolute",
+    right: 8,
+    bottom: 11
+  },
   watchFrame: {
     width: "100%",
-    maxWidth: 260,
+    maxWidth: 232,
     alignSelf: "center",
-    borderRadius: 38,
+    borderRadius: 36,
+    borderCurve: "continuous",
     backgroundColor: "#050505",
-    padding: 16,
-    gap: 9,
+    padding: 13,
+    gap: 8,
     shadowColor: "#000000",
     shadowOpacity: 0.28,
     shadowRadius: 20,
@@ -603,7 +695,7 @@ const styles = StyleSheet.create({
     elevation: 4
   },
   watchTop: {
-    minHeight: 34,
+    minHeight: 30,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between"
@@ -613,30 +705,31 @@ const styles = StyleSheet.create({
   },
   watchTime: {
     color: "#FFFFFF",
-    fontSize: 17,
-    lineHeight: 20,
+    fontSize: 15,
+    lineHeight: 18,
     fontWeight: "800"
   },
   watchDate: {
     color: SPBoardColors.red,
-    fontSize: 13,
-    lineHeight: 16,
+    fontSize: 11,
+    lineHeight: 14,
     fontWeight: "900"
   },
   watchCard: {
-    borderRadius: 12,
-    padding: 12
+    borderRadius: 14,
+    borderCurve: "continuous",
+    padding: 10
   },
   watchKicker: {
     color: "rgba(255,255,255,0.72)",
-    fontSize: 10,
-    lineHeight: 12,
+    fontSize: 9,
+    lineHeight: 11,
     fontWeight: "900"
   },
   watchTitle: {
     color: "#FFFFFF",
-    fontSize: 16,
-    lineHeight: 20,
+    fontSize: 14,
+    lineHeight: 17,
     fontWeight: "900"
   },
   watchFocusRow: {
@@ -652,33 +745,36 @@ const styles = StyleSheet.create({
     textAlign: "center"
   },
   bottomTabBar: {
-    minHeight: 62,
-    marginHorizontal: 16,
-    marginBottom: 14,
+    minHeight: 58,
+    marginHorizontal: 18,
+    marginBottom: 12,
     borderRadius: 24,
-    backgroundColor: "rgba(255,255,255,0.96)",
+    borderCurve: "continuous",
+    overflow: "hidden",
+    backgroundColor: "rgba(255,255,255,0.72)",
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: "#E2E3E7",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: 6,
+    padding: 5,
     shadowColor: "#000000",
-    shadowOpacity: 0.10,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.09,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 10 },
     elevation: 4
   },
   bottomTab: {
     flex: 1,
-    minHeight: 48,
-    borderRadius: 18,
+    minHeight: 46,
+    borderRadius: 19,
+    borderCurve: "continuous",
     alignItems: "center",
     justifyContent: "center",
     gap: 2
   },
   bottomTabActive: {
-    backgroundColor: "#F0F1F4"
+    backgroundColor: "rgba(239,240,244,0.82)"
   },
   bottomTabLabel: {
     color: SPBoardColors.faint,

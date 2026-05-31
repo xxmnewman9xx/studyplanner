@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-31T22:13:05.946Z",
+  "generatedAt": "2026-05-31T22:34:23.549Z",
   "outputRoot": "artifacts/student-board-implementation/screenshots",
   "device": "StudyPlanner QA Vertical",
   "bundleId": "com.mattnewman.studyplanner",
@@ -25,12 +25,12 @@
       },
       "source": "actual-app-simulator-preview",
       "screenshotPath": "artifacts/student-board-implementation/screenshots/10-today-light.png",
-      "bytes": 256553,
-      "sha256": "27dbd5a9e928c143d61634b8a2d6acab2143495e999049b250beff01d2cafa3e",
+      "bytes": 275717,
+      "sha256": "65c851eeadca53a8dbcf4386eb8a6d698a8eaa22e0722efb05ff3ccbcd83a7f5",
       "noCropResult": "pending-layout-manifest-validation",
       "scoreResult": "pending-scorecard",
-      "gitCommit": "c83c5d2",
-      "timestamp": "2026-05-31T22:13:05.946Z"
+      "gitCommit": "147788e",
+      "timestamp": "2026-05-31T22:34:23.549Z"
     },
     {
       "locale": "runtime",
@@ -51,12 +51,12 @@
       },
       "source": "actual-app-simulator-preview",
       "screenshotPath": "artifacts/student-board-implementation/screenshots/11-today-dark.png",
-      "bytes": 250641,
-      "sha256": "515400dcbc34df25e6caac8b81005ac0c5f09062fddfaceed59a037345ea411b",
+      "bytes": 268822,
+      "sha256": "b44e435e6d0b04dc16cd8e48f2419fd820ae7d504c5ff6edf8afec4079adc249",
       "noCropResult": "pending-layout-manifest-validation",
       "scoreResult": "pending-scorecard",
-      "gitCommit": "c83c5d2",
-      "timestamp": "2026-05-31T22:13:05.946Z"
+      "gitCommit": "147788e",
+      "timestamp": "2026-05-31T22:34:23.549Z"
     },
     {
       "locale": "runtime",
@@ -76,12 +76,12 @@
       },
       "source": "actual-app-simulator-preview",
       "screenshotPath": "artifacts/student-board-implementation/screenshots/14-calendar.png",
-      "bytes": 242671,
-      "sha256": "c7169ce9dc5160ae31ba232c72eda112972425a0679f15eb10847a751553dc8e",
+      "bytes": 249222,
+      "sha256": "c074e33895c9417549d1b6b155bb34abf727ea01e6393de2c7dc44cdf128ce81",
       "noCropResult": "pending-layout-manifest-validation",
       "scoreResult": "pending-scorecard",
-      "gitCommit": "c83c5d2",
-      "timestamp": "2026-05-31T22:13:05.946Z"
+      "gitCommit": "147788e",
+      "timestamp": "2026-05-31T22:34:23.549Z"
     },
     {
       "locale": "runtime",
@@ -101,12 +101,12 @@
       },
       "source": "actual-app-simulator-preview",
       "screenshotPath": "artifacts/student-board-implementation/screenshots/17-classes.png",
-      "bytes": 248588,
-      "sha256": "8b11f294fdacf82e4b3ee61c0b29b2adfb8d8de74cdb6c2603e356084af16a7d",
+      "bytes": 236720,
+      "sha256": "0bbb2dae9b8f53a87c198bf88d08de8de2408b0bfebd3c7531e5c8d9a20366e2",
       "noCropResult": "pending-layout-manifest-validation",
       "scoreResult": "pending-scorecard",
-      "gitCommit": "c83c5d2",
-      "timestamp": "2026-05-31T22:13:05.946Z"
+      "gitCommit": "147788e",
+      "timestamp": "2026-05-31T22:34:23.549Z"
     },
     {
       "locale": "runtime",
@@ -126,12 +126,12 @@
       },
       "source": "actual-app-simulator-preview",
       "screenshotPath": "artifacts/student-board-implementation/screenshots/19-widgets-ocean.png",
-      "bytes": 752051,
-      "sha256": "b4549968bb17a25ddf4ac42428af3eac354e09e7084eba40071a4ba8080be451",
+      "bytes": 636841,
+      "sha256": "53ee9eea0cb74642f845e1ac48fc34e1d647c22aa7e47d8afb82f84fbf5975cd",
       "noCropResult": "pending-layout-manifest-validation",
       "scoreResult": "pending-scorecard",
-      "gitCommit": "c83c5d2",
-      "timestamp": "2026-05-31T22:13:05.946Z"
+      "gitCommit": "147788e",
+      "timestamp": "2026-05-31T22:34:23.549Z"
     }
   ]
 }

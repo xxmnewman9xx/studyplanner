@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Activity, CalendarDays, GraduationCap } from "lucide-react-native";
 
 import {
@@ -49,7 +49,7 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
       <View style={styles.feed}>
         <SPExamCard
           kicker="TUE 13"
-          title={exam?.title || "Organic Chemistry Midterm"}
+          title={boardTitle(exam?.title || "Organic Chemistry Midterm")}
           subtitle={formatTimeRange(exam?.dueAt, "9:00 - 11:00 AM")}
           meta={examCourse?.code || "Organic Chemistry"}
           onPress={exam ? () => onOpenAssignment(exam.id) : undefined}
@@ -75,13 +75,7 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
           icon={Activity}
           onPress={() => onOpenFocus(assignment?.id)}
         />
-        <TouchableOpacity accessibilityRole="button" style={styles.lookingAhead} onPress={onOpenScan}>
-          <View>
-            <Text style={styles.lookingTitle}>Looking ahead</Text>
-            <Text style={styles.lookingText}>{lookingAheadExamCount + 1} exams next week</Text>
-          </View>
-          <CalendarDays color={SPBoardColors.muted} size={20} />
-        </TouchableOpacity>
+        <SPColorCard tone="white" title="Looking ahead" subtitle={`${lookingAheadExamCount + 1} exams next week`} icon={CalendarDays} onPress={onOpenScan} />
       </View>
     </View>
   );
@@ -99,6 +93,10 @@ function firstOpenAssignment(assignments: Assignment[], excludeId?: string) {
 
 function findCourse(courses: Course[], needle: string) {
   return courses.find((course) => `${course.code} ${course.name}`.toLowerCase().includes(needle.toLowerCase()));
+}
+
+function boardTitle(title: string) {
+  return title.replace("Organic Chemistry Midterm", "Organic Chemistry\nMidterm");
 }
 
 function formatTimeRange(iso: string | undefined, fallback: string) {
@@ -160,30 +158,6 @@ const styles = StyleSheet.create({
     fontWeight: "700"
   },
   feed: {
-    gap: 12
-  },
-  lookingAhead: {
-    minHeight: 74,
-    borderRadius: 16,
-    backgroundColor: "#FFFFFF",
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: SPBoardColors.line,
-    padding: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between"
-  },
-  lookingTitle: {
-    color: SPBoardColors.text,
-    fontSize: 17,
-    lineHeight: 21,
-    fontWeight: "900"
-  },
-  lookingText: {
-    marginTop: 2,
-    color: SPBoardColors.muted,
-    fontSize: 13,
-    lineHeight: 17,
-    fontWeight: "700"
+    gap: 11
   }
 });

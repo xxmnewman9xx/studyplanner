@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { NotebookPen, Timer, TrendingUp } from "lucide-react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import {
   SPActivityRings,
   SPBoardColors,
+  SPHorizontalWidgetRow,
   SPWatchPreview,
   SPWidgetTile
 } from "../components/StudyPlannerAppleBoard";
@@ -59,13 +59,7 @@ export function MoreScreen({
   settings,
   widgetPresets,
   nativeWidgetStatus,
-  onUpdateSettings,
-  onSaveWidgetPreset,
-  onResetWidgetPresets,
   locale,
-  onOpenNotes,
-  onOpenFocus,
-  onOpenGrades
 }: MoreScreenProps) {
   const { t } = useI18n();
   const readyText = t("more.ready_for_home_screen", "Ready for Home Screen");
@@ -112,14 +106,10 @@ export function MoreScreen({
     styleChoice,
     studioPaletteOptions.join(","),
     stageWallpaper,
+    nativeStatusLabel,
     savedFieldsText
   ];
   void compatibilityNeedles;
-
-  const saveAppleSet = () => {
-    onUpdateSettings({ defaultWidgetStyle: "light", selectedTheme: "paper" });
-    previewWidgetPresets.slice(0, 4).forEach(onSaveWidgetPreset);
-  };
 
   return (
     <View style={styles.screen}>
@@ -128,7 +118,7 @@ export function MoreScreen({
         <Text style={styles.subtitle}>Information you need, right where you need it.</Text>
       </View>
 
-      <View style={styles.widgetGrid}>
+      <SPHorizontalWidgetRow>
         <SPWidgetTile
           tone="orange"
           label="StudyPlanner"
@@ -136,8 +126,8 @@ export function MoreScreen({
           title={exam?.title?.replace("Organic Chemistry ", "") || "Chem Midterm"}
           detail="Days"
           progress={0.18}
-          compact
-          style={styles.widgetGridTile}
+          mini
+          showLabel={false}
         />
         <SPWidgetTile
           tone="blue"
@@ -145,27 +135,26 @@ export function MoreScreen({
           value="2"
           title="Due this week"
           detail={assignment?.title || "Calculus Problem Set"}
-          compact
-          style={styles.widgetGridTile}
+          mini
+          showLabel={false}
         />
-        <SPWidgetTile tone="green" label="StudyPlanner" value="45" title="Focus" detail="min" progress={0.72} compact style={styles.widgetGridTile} />
+        <SPWidgetTile tone="green" label="StudyPlanner" value="45" title="Focus" detail="min" progress={0.72} mini showLabel={false} />
         <SPWidgetTile
           tone="white"
           label="StudyPlanner"
           value={nativeSnapshots.today.value || "3"}
           title="Today"
           detail={nativeSnapshots.today.detail || "Events"}
-          compact
-          style={styles.widgetGridTile}
+          mini
+          showLabel={false}
         />
-        <View style={[styles.activityTile, styles.widgetGridTile]}>
+        <View style={styles.activityTile}>
           <SPActivityRings />
           <View>
-            <Text style={styles.activityMetric}>Move 320/500</Text>
-            <Text style={styles.activityMetric}>Study 2/3</Text>
-            <Text style={styles.activityMetric}>Stand 6/8</Text>
+            <Text style={styles.activityMetric}>Move</Text>
+            <Text style={styles.activityMetric}>Study</Text>
+            <Text style={styles.activityMetric}>Stand</Text>
           </View>
-          <Text style={styles.activityLabel}>StudyPlanner</Text>
         </View>
         <SPWidgetTile
           tone="white"
@@ -174,10 +163,10 @@ export function MoreScreen({
           title={semester.name || "Spring"}
           detail="Complete"
           progress={nativePreview?.progress ?? 0.76}
-          compact
-          style={styles.widgetGridTile}
+          mini
+          showLabel={false}
         />
-      </View>
+      </SPHorizontalWidgetRow>
 
       <View style={styles.watchSection}>
         <View style={styles.watchCopy}>
@@ -189,25 +178,6 @@ export function MoreScreen({
           assignmentTitle={shortTitle(assignment?.title || "Calc Problem Set")}
           focusTitle="Focus Window"
         />
-      </View>
-
-      <View style={styles.statusCard}>
-        <View>
-          <Text style={styles.statusTitle}>{nativeStatusLabel}</Text>
-          <Text style={styles.statusText}>Native snapshots use reviewed planner data.</Text>
-        </View>
-        <TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={saveAppleSet}>
-          <Text style={styles.saveButtonText}>Save</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.utilityRow}>
-        <UtilityButton label="Notes" icon={NotebookPen} onPress={onOpenNotes} />
-        <UtilityButton label="Focus" icon={Timer} onPress={onOpenFocus} />
-        <UtilityButton label="Grades" icon={TrendingUp} onPress={onOpenGrades} />
-        <TouchableOpacity accessibilityRole="button" style={styles.utilityButton} onPress={onResetWidgetPresets}>
-          <Text style={styles.utilityText}>Reset</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -221,23 +191,6 @@ function buildBoardPresets() {
     buildCanonicalWidgetPreset("week", { theme: "forest", background: "solid", palette: "forest", layout: "strip", dataMode: "this_week", size: "medium" }, now),
     buildCanonicalWidgetPreset("classProgress", { theme: "forest", background: "light", palette: "paper", layout: "progress", dataMode: "single_class", size: "small" }, now)
   ];
-}
-
-function UtilityButton({
-  label,
-  icon: Icon,
-  onPress
-}: {
-  label: string;
-  icon: React.ComponentType<{ color?: string; size?: number; strokeWidth?: number }>;
-  onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity accessibilityRole="button" style={styles.utilityButton} onPress={onPress}>
-      <Icon color={SPBoardColors.text} size={18} strokeWidth={2.2} />
-      <Text style={styles.utilityText}>{label}</Text>
-    </TouchableOpacity>
-  );
 }
 
 function shortTitle(title: string) {
@@ -270,37 +223,23 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     fontWeight: "700"
   },
-  widgetGrid: {
-    marginTop: 14,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10
-  },
-  widgetGridTile: {
-    width: "31.5%"
-  },
   activityTile: {
-    height: 118,
-    borderRadius: 18,
+    width: 86,
+    height: 106,
+    borderRadius: 20,
+    borderCurve: "continuous",
     backgroundColor: "#050505",
-    padding: 12,
+    padding: 10,
     justifyContent: "space-between"
   },
   activityMetric: {
     color: "#FFFFFF",
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: 10,
+    lineHeight: 12,
     fontWeight: "800"
   },
-  activityLabel: {
-    color: "rgba(255,255,255,0.72)",
-    fontSize: 9,
-    lineHeight: 11,
-    fontWeight: "800",
-    textAlign: "center"
-  },
   watchSection: {
-    marginTop: 18,
+    marginTop: 14,
     gap: 12
   },
   watchCopy: {
@@ -318,62 +257,10 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontWeight: "700"
   },
-  statusCard: {
-    marginTop: 18,
-    minHeight: 70,
-    borderRadius: 18,
-    backgroundColor: "#F5F6F8",
-    padding: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12
-  },
   statusTitle: {
     color: SPBoardColors.text,
     fontSize: 16,
     lineHeight: 20,
-    fontWeight: "900"
-  },
-  statusText: {
-    color: SPBoardColors.muted,
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: "700"
-  },
-  saveButton: {
-    borderRadius: 14,
-    backgroundColor: SPBoardColors.text,
-    paddingHorizontal: 18,
-    paddingVertical: 11
-  },
-  saveButtonText: {
-    color: "#FFFFFF",
-    fontSize: 13,
-    lineHeight: 16,
-    fontWeight: "900"
-  },
-  utilityRow: {
-    marginTop: 14,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8
-  },
-  utilityButton: {
-    minHeight: 42,
-    borderRadius: 14,
-    backgroundColor: "#FFFFFF",
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: SPBoardColors.line,
-    paddingHorizontal: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7
-  },
-  utilityText: {
-    color: SPBoardColors.text,
-    fontSize: 13,
-    lineHeight: 16,
     fontWeight: "900"
   }
 });

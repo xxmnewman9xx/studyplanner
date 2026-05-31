@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { BookOpen, ChevronRight, GraduationCap, Timer } from "lucide-react-native";
 
-import { SPBoardColors, SPColorCard, SPSemesterRing } from "../components/StudyPlannerAppleBoard";
+import { SPBoardColors, SPSemesterRing } from "../components/StudyPlannerAppleBoard";
 import { Assignment, AssignmentKind, Course, Semester, StudyNote } from "../models";
 import { useI18n } from "../i18n";
 
@@ -29,16 +29,13 @@ export function CoursesScreen({ semester, courses, assignments, notes = [], onOp
   const localizationAnchor = t("classes.course_hub", "Course hub");
   void localizationAnchor;
 
-  const [selectedCourseId, setSelectedCourseId] = useState(courses[0]?.id || "");
-  const selectedCourse = courses.find((course) => course.id === selectedCourseId) || courses[0];
   const openAssignments = assignments.filter((item) => item.status !== "done" && item.status !== "archived" && !item.needsReview);
   const exams = openAssignments.filter((item) => item.kind === "exam");
   const progress = semesterProgress(semester);
   const daysLeft = daysUntilSemesterEnd(semester) || 32;
   const timeline = useMemo(() => buildMiniTimeline(openAssignments), [openAssignments]);
-  const selectedAssignments = selectedCourse
-    ? openAssignments.filter((assignment) => assignment.courseId === selectedCourse.id).slice(0, 3)
-    : [];
+  const firstCourse = courses[0];
+  const selectedAssignments = firstCourse ? openAssignments.filter((assignment) => assignment.courseId === firstCourse.id).slice(0, 3) : [];
 
   return (
     <View style={styles.screen}>
@@ -98,32 +95,6 @@ export function CoursesScreen({ semester, courses, assignments, notes = [], onOp
           onPress={() => exams[0] ? onOpenAssignment(exams[0].id) : undefined}
         />
         <SemesterRow tone="green" icon={Timer} title="Focus" detail="Keep your streak" onPress={onOpenNotes} />
-      </View>
-
-      <Text style={styles.sectionTitle}>Classes</Text>
-      <View style={styles.classList}>
-        {courses.length ? courses.slice(0, 5).map((course) => {
-          const active = course.id === selectedCourse?.id;
-          const count = openAssignments.filter((assignment) => assignment.courseId === course.id).length;
-          return (
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-              key={course.id}
-              style={[styles.classRow, active ? styles.classRowActive : null]}
-              onPress={() => setSelectedCourseId(course.id)}
-            >
-              <View style={[styles.classDot, { backgroundColor: course.color || SPBoardColors.blue }]} />
-              <View style={styles.classCopy}>
-                <Text style={styles.classTitle}>{course.code || course.name}</Text>
-                <Text style={styles.classMeta}>{course.room || course.instructor || course.teacher || `${count} open`}</Text>
-              </View>
-              <Text style={styles.classCount}>{count}</Text>
-            </TouchableOpacity>
-          );
-        }) : (
-          <SPColorCard tone="white" title="Scan to fill courses" subtitle="Class overview appears after syllabus import." />
-        )}
       </View>
     </View>
   );

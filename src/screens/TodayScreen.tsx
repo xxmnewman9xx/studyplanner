@@ -1,6 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { CalendarDays } from "lucide-react-native";
+import { StyleSheet, View } from "react-native";
 
 import {
   SPAssignmentCard,
@@ -63,10 +62,8 @@ export function TodayScreen({
   demoMode = false,
   onOpenAssignment,
   onOpenFocus,
-  onOpenScan,
   onOpenPlan,
-  onOpenClasses,
-  onOpenWidgets
+  onOpenClasses
 }: TodayScreenProps) {
   const { t } = useI18n();
   const localizationAnchor = t("today.quick_capture", "Quick capture");
@@ -93,7 +90,7 @@ export function TodayScreen({
       <View style={styles.stack}>
         <SPExamCard
           kicker={`EXAM IN ${examDays || 7} DAYS`}
-          title={exam?.title || "Organic Chemistry Midterm"}
+          title={boardTitle(exam?.title || "Organic Chemistry Midterm")}
           subtitle={examCourse?.code || "Organic Chemistry"}
           meta="High impact"
           onPress={exam ? () => onOpenAssignment(exam.id) : undefined}
@@ -126,20 +123,6 @@ export function TodayScreen({
           </View>
         </SPColorCard>
       </View>
-
-      <TouchableOpacity accessibilityRole="button" style={styles.importRow} onPress={onOpenScan}>
-        <View style={styles.importIcon}>
-          <CalendarDays color={SPBoardColors.blue} size={18} />
-        </View>
-        <View style={styles.importCopy}>
-          <Text style={styles.importTitle}>Review inbox</Text>
-          <Text style={styles.importText}>{reviewCount ? `${reviewCount} items need review` : "Syllabus parser is ready"}</Text>
-        </View>
-      </TouchableOpacity>
-
-      <TouchableOpacity accessibilityRole="button" style={styles.widgetsLink} onPress={onOpenWidgets}>
-        <Text style={styles.widgetsLinkText}>Widgets use these same planner rows</Text>
-      </TouchableOpacity>
     </View>
   );
 }
@@ -160,6 +143,10 @@ function findCourse(courses: Course[], needle: string) {
 
 function firstNameFor(name: string) {
   return name.trim().split(/\s+/)[0] || "Alex";
+}
+
+function boardTitle(title: string) {
+  return title.replace("Organic Chemistry Midterm", "Organic Chemistry\nMidterm");
 }
 
 function greetingForNow() {
@@ -200,11 +187,11 @@ const styles = StyleSheet.create({
     backgroundColor: SPBoardColors.canvas
   },
   stack: {
-    gap: 12
+    gap: 11
   },
   heavyBars: {
-    marginTop: 12,
-    height: 52,
+    marginTop: 10,
+    height: 44,
     flexDirection: "row",
     alignItems: "flex-end",
     gap: 9
@@ -212,51 +199,5 @@ const styles = StyleSheet.create({
   heavyBar: {
     width: 8,
     borderRadius: 5
-  },
-  importRow: {
-    marginTop: 18,
-    minHeight: 64,
-    borderRadius: 16,
-    backgroundColor: "#FFFFFF",
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: SPBoardColors.line,
-    padding: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12
-  },
-  importIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: "#EEF4FF",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  importCopy: {
-    flex: 1,
-    minWidth: 0
-  },
-  importTitle: {
-    color: SPBoardColors.text,
-    fontSize: 16,
-    lineHeight: 20,
-    fontWeight: "900"
-  },
-  importText: {
-    color: SPBoardColors.muted,
-    fontSize: 13,
-    lineHeight: 17,
-    fontWeight: "700"
-  },
-  widgetsLink: {
-    marginTop: 12,
-    alignItems: "center"
-  },
-  widgetsLinkText: {
-    color: SPBoardColors.muted,
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: "800"
   }
 });
