@@ -15,101 +15,6 @@ export type AssignmentStatus = "not_started" | "in_progress" | "done" | "archive
 
 export type AssignmentKind = "assignment" | "exam" | "project" | "reading" | "worksheet";
 
-export type LifeItemType =
-  | "assignment"
-  | "exam"
-  | "class"
-  | "project"
-  | "reading"
-  | "sport"
-  | "music"
-  | "club"
-  | "work"
-  | "focus"
-  | "personal";
-
-export type LifePriority = "low" | "medium" | "high" | "critical";
-
-export type LifeItem = {
-  id: string;
-  title: string;
-  type: LifeItemType;
-  startsAt?: string;
-  endsAt?: string;
-  dueAt?: string;
-  courseId?: string;
-  sourceAssignmentId?: string;
-  location?: string;
-  priority: LifePriority;
-  estimatedMinutes?: number;
-  progress?: number;
-  color?: string;
-  iconKey?: string;
-  reason?: string;
-  isFlexible?: boolean;
-  conflictsWith?: string[];
-};
-
-export type LifeInsight = {
-  id: string;
-  title: string;
-  detail: string;
-  reason: string;
-  priority: LifePriority;
-  itemIds?: string[];
-};
-
-export type StudentDNAIdentity =
-  | "focused_scholar"
-  | "active_athlete"
-  | "creative_artist"
-  | "competitive_leader"
-  | "balanced_wellness"
-  | "working_professional"
-  | "curious_explorer"
-  | "research_driven";
-
-export type StudentDNALayout = "feed_first" | "timeline" | "focus_first" | "split_view" | "minimal";
-
-export type StudentDNA = {
-  identity: StudentDNAIdentity;
-  layout: StudentDNALayout;
-  colorVibe: WidgetPalette | "custom";
-};
-
-export type OSBehavior =
-  | "highest_gpa"
-  | "less_stress"
-  | "athletic_performance"
-  | "life_balance"
-  | "high_achievement";
-
-export type FrictionPoint =
-  | "procrastination"
-  | "exam_anxiety"
-  | "overcommitment"
-  | "focus_issues"
-  | "forgetfulness";
-
-export type WidgetDNA = {
-  priorities: Array<
-    | "exam_countdown"
-    | "free_time_forecast"
-    | "next_class"
-    | "practice_countdown"
-    | "life_balance_ring"
-    | "grade_impact"
-    | "future_risk"
-    | "focus_window"
-  >;
-  adaptiveOrdering: boolean;
-};
-
-export type WatchDNA = {
-  complications: Array<"next_class" | "focus_window" | "exam_risk" | "semester_progress" | "free_time">;
-  glanceDensity: "quiet" | "standard" | "dense";
-};
-
 export type SourceType = "manual" | "syllabus" | "calendar" | "canvas" | "scan" | "typed";
 
 export type ReviewStatus = "needs_review" | "accepted" | "dismissed";
@@ -191,8 +96,6 @@ export type PlannerData = {
   widgetPresets?: WidgetPreset[];
   focusSessions?: FocusSession[];
   notes?: StudyNote[];
-  lifeItems?: LifeItem[];
-  lifeInsights?: LifeInsight[];
 };
 
 export type PlannerSettings = {
@@ -239,11 +142,6 @@ export type UserSettings = {
   syncEnabled: boolean;
   privacyMode: boolean;
   emojiAccentEnabled: boolean;
-  studentDNA?: StudentDNA;
-  osBehavior?: OSBehavior;
-  frictionPoints?: FrictionPoint[];
-  widgetDNA?: WidgetDNA;
-  watchDNA?: WatchDNA;
 };
 
 export type ClassMeeting = {
