@@ -126,45 +126,6 @@ export type StudentPersona =
 
 export type StressLevel = "low" | "steady" | "high";
 
-export type StudentDNA =
-  | "focused_scholar"
-  | "active_athlete"
-  | "creative_artist"
-  | "competitive_leader"
-  | "balanced_wellness"
-  | "working_professional"
-  | "curious_explorer"
-  | "research_driven";
-
-export type OSBehavior =
-  | "highest_gpa"
-  | "less_stress"
-  | "athletic_performance"
-  | "life_balance"
-  | "high_achievement";
-
-export type FrictionPoint =
-  | "procrastination"
-  | "exam_anxiety"
-  | "overcommitment"
-  | "focus_issues"
-  | "forgetfulness";
-
-export type WidgetDNA =
-  | "exam_countdown"
-  | "grade_impact"
-  | "future_risk"
-  | "free_time_forecast"
-  | "recovery_window"
-  | "life_balance";
-
-export type WatchDNA =
-  | "next_class"
-  | "focus_window"
-  | "exam_risk"
-  | "semester_progress"
-  | "free_time";
-
 export type UserSettings = {
   studentName: string;
   profile?: StudentProfile;
@@ -181,11 +142,6 @@ export type UserSettings = {
   syncEnabled: boolean;
   privacyMode: boolean;
   emojiAccentEnabled: boolean;
-  studentDNA?: StudentDNA;
-  osBehavior?: OSBehavior;
-  frictionPoints?: FrictionPoint[];
-  widgetDNA?: WidgetDNA[];
-  watchDNA?: WatchDNA[];
 };
 
 export type ClassMeeting = {

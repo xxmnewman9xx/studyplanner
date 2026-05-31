@@ -31,31 +31,26 @@ import {
   AssignmentKind,
   AssignmentStatus,
   Course,
-  FrictionPoint,
   FocusSession,
   GradeItem,
   NavTab,
-  OSBehavior,
   ParsedImport,
   ParsedItem,
   PlannerData,
   Semester,
-  StudentDNA,
   StudyNote,
   SyllabusParseResult,
   UserSettings,
   WidgetBackground,
   WidgetDataMode,
-  WidgetDNA,
   WidgetPalette,
-  WidgetPreset,
-  WatchDNA
+  WidgetPreset
 } from "./src/models";
 import { AppTheme, ThemeAccent, ThemeMode } from "./src/theme";
 import { AppThemeProvider, useAppTheme } from "./src/themeContext";
 import { AppLogo } from "./src/components/AppleComponents";
 import { ModeToggle } from "./src/components/ModeToggle";
-import { lifeTabBarTokens } from "./src/components/StudentLifeSystem";
+import { SPBottomTabBar } from "./src/components/StudyPlannerAppleBoard";
 import {
   defaultAssignments,
   defaultCourses,
@@ -126,23 +121,21 @@ const proTabs: Array<{
   labelKey: string;
   icon: React.ComponentType<{ color: string; size: number }>;
 }> = [
-  { id: "today", labelKey: "tabs.today", icon: Sparkles },
-  { id: "courses", labelKey: "tabs.classes", icon: GraduationCap },
-  { id: "focus", labelKey: "tabs.focus", icon: Timer },
-  { id: "more", labelKey: "tabs.widgets", icon: Sparkles },
+  { id: "today", labelKey: "tabs.today", icon: CalendarDays },
   { id: "import", labelKey: "tabs.scan", icon: FileScan },
   { id: "plan", labelKey: "tabs.calendar", icon: CalendarDays },
+  { id: "courses", labelKey: "tabs.classes", icon: GraduationCap },
   { id: "notes", labelKey: "tabs.notes", icon: NotebookPen },
-  { id: "subscribe", labelKey: "tabs.subscribe", icon: Crown }
+  { id: "more", labelKey: "tabs.widgets", icon: Sparkles }
 ];
 
-const mobilePrimaryTabIds = new Set<NavTab>(["today", "courses", "focus", "more", "import"]);
+const mobilePrimaryTabIds = new Set<NavTab>(["today", "import", "plan", "courses", "notes", "more"]);
 const moreGroupTabIds = new Set<NavTab>(["more", "grades", "subscribe"]);
 
 function mobileTabLabel(tab: NavTab, fallback: string, t: (key: string, fallback?: string) => string) {
-  if (tab === "today") return t("tabs.feed", "Feed");
-  if (tab === "more") return t("tabs.life", "Life");
-  return fallback;
+  if (tab === "plan") return "Forecast";
+  if (tab === "courses") return "Semester";
+  return tab === "more" ? t("tabs.widgets", "Widgets") : fallback;
 }
 
 type CaptureRoute = {
@@ -157,11 +150,6 @@ type CaptureRoute = {
   widgetType?: WidgetPreset["type"];
   widgetSize?: WidgetPreset["size"];
   widgetLayout?: WidgetPreset["layout"];
-  studentDNA?: StudentDNA;
-  osBehavior?: OSBehavior;
-  frictionPoints?: FrictionPoint[];
-  widgetDNA?: WidgetDNA[];
-  watchDNA?: WatchDNA[];
   workloadState?: "standard" | "clean" | "urgent";
   hardPaywall?: boolean;
   themeMode?: ThemeMode;
@@ -182,11 +170,6 @@ function parseCaptureRoute(raw: string): CaptureRoute {
       widgetType?: unknown;
       widgetSize?: unknown;
       widgetLayout?: unknown;
-      studentDNA?: unknown;
-      osBehavior?: unknown;
-      frictionPoints?: unknown;
-      widgetDNA?: unknown;
-      watchDNA?: unknown;
       workloadState?: unknown;
       hardPaywall?: unknown;
       themeMode?: unknown;
@@ -204,11 +187,6 @@ function parseCaptureRoute(raw: string): CaptureRoute {
       widgetType: isCaptureWidgetType(value.widgetType) ? value.widgetType : undefined,
       widgetSize: isCaptureWidgetSize(value.widgetSize) ? value.widgetSize : undefined,
       widgetLayout: isCaptureWidgetLayout(value.widgetLayout) ? value.widgetLayout : undefined,
-      studentDNA: isCaptureStudentDNA(value.studentDNA) ? value.studentDNA : undefined,
-      osBehavior: isCaptureOSBehavior(value.osBehavior) ? value.osBehavior : undefined,
-      frictionPoints: captureFrictionPoints(value.frictionPoints),
-      widgetDNA: captureWidgetDNA(value.widgetDNA),
-      watchDNA: captureWatchDNA(value.watchDNA),
       workloadState: isCaptureWorkloadState(value.workloadState) ? value.workloadState : undefined,
       hardPaywall: value.hardPaywall === true,
       themeMode: isCaptureThemeMode(value.themeMode) ? value.themeMode : undefined,
@@ -366,78 +344,6 @@ function isCaptureWidgetLayout(value: unknown): value is WidgetPreset["layout"] 
   );
 }
 
-function isCaptureStudentDNA(value: unknown): value is StudentDNA {
-  return (
-    value === "focused_scholar" ||
-    value === "active_athlete" ||
-    value === "creative_artist" ||
-    value === "competitive_leader" ||
-    value === "balanced_wellness" ||
-    value === "working_professional" ||
-    value === "curious_explorer" ||
-    value === "research_driven"
-  );
-}
-
-function isCaptureOSBehavior(value: unknown): value is OSBehavior {
-  return (
-    value === "highest_gpa" ||
-    value === "less_stress" ||
-    value === "athletic_performance" ||
-    value === "life_balance" ||
-    value === "high_achievement"
-  );
-}
-
-function isCaptureFrictionPoint(value: unknown): value is FrictionPoint {
-  return (
-    value === "procrastination" ||
-    value === "exam_anxiety" ||
-    value === "overcommitment" ||
-    value === "focus_issues" ||
-    value === "forgetfulness"
-  );
-}
-
-function isCaptureWidgetDNA(value: unknown): value is WidgetDNA {
-  return (
-    value === "exam_countdown" ||
-    value === "grade_impact" ||
-    value === "future_risk" ||
-    value === "free_time_forecast" ||
-    value === "recovery_window" ||
-    value === "life_balance"
-  );
-}
-
-function isCaptureWatchDNA(value: unknown): value is WatchDNA {
-  return (
-    value === "next_class" ||
-    value === "focus_window" ||
-    value === "exam_risk" ||
-    value === "semester_progress" ||
-    value === "free_time"
-  );
-}
-
-function captureFrictionPoints(value: unknown): FrictionPoint[] | undefined {
-  if (!Array.isArray(value)) return undefined;
-  const result = value.filter(isCaptureFrictionPoint);
-  return result.length ? result : undefined;
-}
-
-function captureWidgetDNA(value: unknown): WidgetDNA[] | undefined {
-  if (!Array.isArray(value)) return undefined;
-  const result = value.filter(isCaptureWidgetDNA);
-  return result.length ? result : undefined;
-}
-
-function captureWatchDNA(value: unknown): WatchDNA[] | undefined {
-  if (!Array.isArray(value)) return undefined;
-  const result = value.filter(isCaptureWatchDNA);
-  return result.length ? result : undefined;
-}
-
 function isCaptureWorkloadState(value: unknown): value is NonNullable<CaptureRoute["workloadState"]> {
   return value === "standard" || value === "clean" || value === "urgent";
 }
@@ -470,7 +376,7 @@ function scrollYForCaptureScreen(screen: MarketingCaptureScreen | undefined) {
   if (screen === "extracted") return 520;
   if (screen === "review_edit") return 820;
   if (screen === "agenda") return 560;
-  return 0;
+  return null;
 }
 
 function assignmentsForCaptureWorkload(state: CaptureRoute["workloadState"]) {
@@ -548,8 +454,6 @@ function AppContent() {
   );
   const [targetGradePercent, setTargetGradePercent] = useState(90);
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
-  const studentFirstName = settings.studentName?.trim().split(/\s+/)[0] || "";
-  const studentLifeTitle = studentFirstName ? `${studentFirstName}'s Life OS` : "Student Life OS";
   const [parsedImports, setParsedImports] = useState<ParsedImport[]>([]);
   const [parsedItems, setParsedItems] = useState<ParsedItem[]>([]);
   const [widgetPresets, setWidgetPresets] = useState<WidgetPreset[]>(defaultWidgetPresets);
@@ -641,12 +545,7 @@ function AppContent() {
           syncEnabled: true,
           selectedTheme: captureWidgetPalette,
           defaultWidgetStyle: captureWidgetBackground,
-          appTheme: captureAppTheme,
-          studentDNA: requestedRoute.studentDNA || defaultSettings.studentDNA,
-          osBehavior: requestedRoute.osBehavior || defaultSettings.osBehavior,
-          frictionPoints: requestedRoute.frictionPoints || defaultSettings.frictionPoints,
-          widgetDNA: requestedRoute.widgetDNA || defaultSettings.widgetDNA,
-          watchDNA: requestedRoute.watchDNA || defaultSettings.watchDNA
+          appTheme: captureAppTheme
         });
         const requestedWidgetType = requestedRoute.widgetType || "today";
         const requestedWidgetKind = widgetKindForType(requestedWidgetType);
@@ -1373,13 +1272,10 @@ function AppContent() {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.mobileTopBar}>
-              <AppLogo showWordmark={false} size={28} />
-              <View style={styles.mobileNavCopy}>
-                <Text style={styles.mobileNavEyebrow}>StudyPlanner Plus</Text>
-                <Text style={styles.mobileNavTitle}>Student Life OS</Text>
-              </View>
+              <AppLogo showWordmark={width >= 360} size={28} />
+              <ModeToggle compact style={styles.mobileModeToggle} />
             </View>
-            {settings ? <UpgradeScreen settings={settings} hardMode /> : <UpgradeScreen hardMode />}
+            <UpgradeScreen hardMode />
           </ScrollView>
         </View>
       </SafeAreaView>
@@ -1426,18 +1322,6 @@ function AppContent() {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          {!tablet ? (
-            <View style={styles.mobileTopBar}>
-              <AppLogo showWordmark={false} size={28} />
-              <View style={styles.mobileNavCopy}>
-                <Text style={styles.mobileNavEyebrow}>StudyPlanner: Syllabus AI</Text>
-                <Text style={styles.mobileNavTitle}>{labelForTab(activeTab, t)}</Text>
-              </View>
-              <TouchableOpacity accessibilityRole="button" style={styles.mobileLifeButton} onPress={() => openTab("more")}>
-                <Sparkles color={colors.ink} size={17} />
-              </TouchableOpacity>
-            </View>
-          ) : null}
           {tablet ? (
             <StudySystemHeader
               activeTab={activeTab}
@@ -1507,7 +1391,6 @@ function AppContent() {
               ) : null}
               {activeTab === "import" ? (
                 <ImportScreen
-                  settings={settings}
                   assignments={activeAssignments}
                   parsedImports={parsedImports}
                   parsedItems={parsedItems}
@@ -1520,7 +1403,6 @@ function AppContent() {
               ) : null}
               {activeTab === "plan" ? (
                 <PlanScreen
-                  settings={settings}
                   assignments={activeAssignments}
                   courses={courses}
                   sessions={focusSessions}
@@ -1534,7 +1416,6 @@ function AppContent() {
               ) : null}
               {activeTab === "courses" ? (
                 <CoursesScreen
-                  settings={settings}
                   semester={semester}
                   courses={courses}
                   assignments={activeAssignments}
@@ -1549,7 +1430,6 @@ function AppContent() {
               ) : null}
               {activeTab === "notes" ? (
                 <NotesScreen
-                  settings={settings}
                   courses={courses}
                   assignments={activeAssignments}
                   focusSessions={focusSessions}
@@ -1563,7 +1443,6 @@ function AppContent() {
               ) : null}
               {activeTab === "grades" ? (
                 <GradesScreen
-                  settings={settings}
                   courses={courses}
                   assignments={activeAssignments}
                   gradeItems={gradeItems}
@@ -1575,7 +1454,6 @@ function AppContent() {
               ) : null}
               {activeTab === "focus" ? (
                 <FocusScreen
-                  settings={settings}
                   assignments={activeAssignments}
                   courses={courses}
                   defaultMinutes={getRecommendedFocusDuration(activeAssignments, focusSessions, settings)}
@@ -1610,7 +1488,6 @@ function AppContent() {
               ) : null}
               {activeTab === "subscribe" ? (
                 <UpgradeScreen
-                  settings={settings}
                   hardMode={!subscription.isPremium}
                   onContinueAfterPurchase={subscription.isPremium ? () => openTab(postPaywallTab) : undefined}
                 />
@@ -1619,31 +1496,21 @@ function AppContent() {
           )}
         </ScrollView>
 
-        {!tablet ? <View style={styles.tabBar}>
-          {bottomTabs.map((tab) => {
-            const Icon = tab.icon;
-            const active =
-              activeTab === tab.id ||
-              (tab.id === "today" && activeTab === "focus") ||
-              (tab.id === "more" && moreGroupTabIds.has(activeTab));
-            return (
-              <TouchableOpacity
-                key={tab.id}
-                accessibilityRole="button"
-                accessibilityState={{ selected: active }}
-                style={[styles.tabButton, active ? styles.tabButtonActive : null]}
-                onPress={() => {
-                  openTab(tab.id);
-                }}
-              >
-                <Icon color={active ? (theme.isDark ? colors.heroText : colors.ink) : colors.faint} size={20} />
-                <Text style={[styles.tabLabel, active ? styles.tabLabelActive : null]}>
-                  {mobileTabLabel(tab.id, t(tab.labelKey), t)}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View> : null}
+        {!tablet ? (
+          <SPBottomTabBar
+            items={bottomTabs.map((tab) => ({
+              id: tab.id,
+              label: mobileTabLabel(tab.id, t(tab.labelKey), t),
+              icon: tab.icon
+            }))}
+            isActive={(id) =>
+              activeTab === id ||
+              (id === "today" && activeTab === "focus") ||
+              (id === "more" && moreGroupTabIds.has(activeTab))
+            }
+            onPress={(id) => openTab(id as NavTab)}
+          />
+        ) : null}
       </View>
     </SafeAreaView>
   );
@@ -1982,8 +1849,8 @@ function createStyles(theme: AppTheme, tablet = false) {
       width: "100%",
       maxWidth: tablet ? 980 : undefined,
       alignSelf: tablet ? "center" : undefined,
-      paddingHorizontal: tablet ? spacing.xl : 18,
-      paddingTop: tablet ? spacing.xl : 10,
+      paddingHorizontal: tablet ? spacing.xl : spacing.md,
+      paddingTop: tablet ? spacing.xl : 18,
       paddingBottom: tablet ? spacing.xxl : 156
     },
     hardPaywallContent: {
@@ -1998,40 +1865,12 @@ function createStyles(theme: AppTheme, tablet = false) {
       flex: 1
     },
     mobileTopBar: {
-      minHeight: 42,
-      marginBottom: 14,
+      minHeight: 44,
+      marginBottom: spacing.sm,
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "flex-start",
+      justifyContent: "space-between",
       gap: spacing.sm
-    },
-    mobileNavCopy: {
-      flex: 1,
-      minWidth: 0,
-      gap: 1
-    },
-    mobileNavEyebrow: {
-      color: colors.faint,
-      fontSize: 11,
-      lineHeight: 14,
-      fontWeight: "900",
-      textTransform: "uppercase"
-    },
-    mobileNavTitle: {
-      color: colors.ink,
-      fontSize: 17,
-      lineHeight: 21,
-      fontWeight: "900"
-    },
-    mobileLifeButton: {
-      width: 38,
-      height: 38,
-      borderRadius: 19,
-      backgroundColor: "#F3F6FB",
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(17,24,39,0.08)",
-      alignItems: "center",
-      justifyContent: "center"
     },
     mobileModeToggle: {
       flexShrink: 0
@@ -2257,21 +2096,21 @@ function createStyles(theme: AppTheme, tablet = false) {
       gap: spacing.xs
     },
     tabBar: {
-      minHeight: lifeTabBarTokens.height,
+      minHeight: 62,
       marginHorizontal: spacing.md,
-      marginBottom: 12,
+      marginBottom: spacing.md,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      borderRadius: lifeTabBarTokens.radius,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(17,24,39,0.08)",
-      backgroundColor: theme.isDark ? "rgba(10, 15, 26, 0.98)" : lifeTabBarTokens.background,
-      padding: 7,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(18,20,23,0.08)",
+      backgroundColor: theme.isDark ? "rgba(10, 15, 26, 0.98)" : "rgba(255, 253, 244, 0.96)",
+      padding: spacing.xs,
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.18 : 0.08,
-      shadowRadius: 16,
-      shadowOffset: { width: 0, height: 9 },
+      shadowOpacity: theme.isDark ? 0.24 : 0.08,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 4 },
       elevation: 3
     },
     tabButton: {
@@ -2280,25 +2119,25 @@ function createStyles(theme: AppTheme, tablet = false) {
       minHeight: 48,
       alignItems: "center",
       justifyContent: "center",
-      borderRadius: 22,
+      borderRadius: 17,
       gap: 2
     },
     tabButtonActive: {
-      backgroundColor: theme.isDark ? "rgba(255,255,255,0.12)" : lifeTabBarTokens.activeBackground,
+      backgroundColor: colors.heroSurface,
       shadowColor: colors.shadow,
-      shadowOpacity: 0,
-      shadowRadius: 0,
-      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: theme.isDark ? 0.12 : 0.04,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 2 },
       elevation: 1
     },
     tabLabel: {
-      color: theme.isDark ? colors.muted : lifeTabBarTokens.inactive,
+      color: colors.muted,
       fontSize: 8,
       lineHeight: 10,
       fontWeight: "900"
     },
     tabLabelActive: {
-      color: theme.isDark ? "#FFFFFF" : colors.ink
+      color: colors.heroText
     },
     lockDot: {
       position: "absolute",

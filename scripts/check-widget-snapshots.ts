@@ -206,47 +206,6 @@ assert(snapshots.upcoming.metricLabel === "1 of 4 complete", "Upcoming metric sh
 assert(snapshots.today.progress === 0, "Today progress should be completed due-today work divided by total due-today work.");
 assert(snapshots.upcoming.progress === 0.25, "Upcoming progress should be completed work divided by total work in the visible week range.");
 
-const gpaPersonalizedSnapshots = buildStudyPlannerWidgetSnapshots({
-  semester,
-  courses,
-  assignments,
-  parsedImports,
-  settings: {
-    ...settings,
-    osBehavior: "highest_gpa",
-    widgetDNA: ["grade_impact"],
-    frictionPoints: ["procrastination"]
-  },
-  widgetPresets: [stalePreset],
-  demoMode: false,
-  now
-});
-
-const calmPersonalizedSnapshots = buildStudyPlannerWidgetSnapshots({
-  semester,
-  courses,
-  assignments,
-  parsedImports,
-  settings: {
-    ...settings,
-    osBehavior: "less_stress",
-    widgetDNA: ["free_time_forecast"],
-    frictionPoints: ["forgetfulness"]
-  },
-  widgetPresets: [stalePreset],
-  demoMode: false,
-  now
-});
-
-assert(gpaPersonalizedSnapshots.today.signalLabel === "Grade impact", "Highest GPA Widget DNA should change native Today signal copy.");
-assert(gpaPersonalizedSnapshots.today.nextLabel === "Start tonight", "Procrastination should change native widget nudge copy.");
-assert(calmPersonalizedSnapshots.today.signalLabel === "Free time", "Less Stress Widget DNA should change native Today signal copy.");
-assert(calmPersonalizedSnapshots.today.nextLabel === "Keep reminders visible", "Forgetfulness should change native widget nudge copy.");
-assert(
-  gpaPersonalizedSnapshots.today.footnote !== calmPersonalizedSnapshots.today.footnote,
-  "Native widget snapshot output should visibly differ by OS behavior and Widget DNA."
-);
-
 const localizedSnapshots = buildStudyPlannerWidgetSnapshots({
   semester,
   courses,

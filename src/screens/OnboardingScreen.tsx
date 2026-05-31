@@ -14,7 +14,6 @@ import {
 import { AppButton } from "../components/AppButton";
 import { AppLogo, GlassCard, WidgetPreviewCard } from "../components/AppleComponents";
 import { ModeToggle } from "../components/ModeToggle";
-import { LifeStudioOnboardingScreen } from "../components/LifeStudioUI";
 import { AppTheme, appThemePalettes, ThemeAccent, themePalettes } from "../theme";
 import { useAppTheme } from "../themeContext";
 import {
@@ -134,65 +133,150 @@ const slides: Array<{
 const previewNow = new Date("2026-05-25T09:41:00");
 const defaultOnboardingWidgetTheme = widgetThemeDefinitions.ocean;
 
-export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
-  const { t } = useI18n();
+export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScreenProps) {
+  const { theme } = useAppTheme();
+  const { t, locale } = useI18n();
+  const { colors } = theme;
+  const styles = createStyles(theme);
+  const [index, setIndex] = useState(() => normalizedIndex(initialIndex));
   const [appTheme, setAppTheme] = useState<ThemeAccent>(defaultOnboardingWidgetTheme.appTheme);
   const [widgetPalette, setWidgetPalette] = useState<WidgetPalette>(defaultOnboardingWidgetTheme.palette);
   const [widgetStyle, setWidgetStyle] = useState<WidgetBackground>(defaultOnboardingWidgetTheme.background);
-  const [lifeSettings, setLifeSettings] = useState<Partial<UserSettings>>({
-    studentDNA: defaultSettings.studentDNA,
-    osBehavior: defaultSettings.osBehavior,
-    frictionPoints: defaultSettings.frictionPoints,
-    widgetDNA: defaultSettings.widgetDNA,
-    watchDNA: defaultSettings.watchDNA
-  });
-  const localizedSlides = useMemo(
+  const slide = slides[index] ?? slides[0]!;
+  const eyebrowKey = slide.id === "review" ? "import.review_short" : `tabs.${slide.id === "calendar" ? "calendar" : slide.id}`;
+  const isFinal = index === slides.length - 1;
+
+  useEffect(() => {
+    setIndex(normalizedIndex(initialIndex));
+  }, [initialIndex]);
+
+  const widgetPresets = useMemo<WidgetPreset[]>(
     () =>
-      slides.map((slide) => ({
-        ...slide,
-        title: t(slide.titleKey, slide.title),
-        copy: t(slide.copyKey, slide.copy),
-        cta: t(slide.ctaKey || "common.next", slide.cta)
-      })),
-    [t]
+      defaultWidgetPresets.map((preset, presetIndex) =>
+        presetIndex <= 3
+          ? {
+              ...preset,
+              background: widgetStyle,
+              palette: widgetPalette,
+              themePackId: appTheme
+            }
+          : preset
+      ),
+    [appTheme, widgetPalette, widgetStyle]
   );
-  const localizedThemeChoices = useMemo(
+  const widgetSnapshots = useMemo(
     () =>
-      widgetThemeOrder.map((themeId) => ({
-        themeId,
-        label: t(widgetThemeDefinitions[themeId].labelKey, widgetThemeDefinitions[themeId].fallbackLabel)
-      })),
-    [t]
+      buildStudyPlannerWidgetSnapshots({
+        semester: marketingCaptureSemester,
+        courses: marketingCaptureCourses,
+        assignments: marketingCaptureAssignments,
+        parsedImports: [],
+        settings: {
+          ...defaultSettings,
+          appTheme,
+          selectedTheme: widgetPalette,
+          defaultWidgetStyle: widgetStyle
+        },
+        widgetPresets,
+        demoMode: false,
+        now: previewNow,
+        locale,
+        translate: t
+      }),
+    [appTheme, locale, t, widgetPalette, widgetPresets, widgetStyle]
   );
-  void localizedSlides;
-  void localizedThemeChoices;
 
   const finish = () => {
     onFinish("paywall", {
       appTheme,
       selectedTheme: widgetPalette,
-      defaultWidgetStyle: widgetStyle,
-      ...lifeSettings
+      defaultWidgetStyle: widgetStyle
     });
   };
 
+  const continueFlow = () => {
+    if (!isFinal) {
+      setIndex((current) => Math.min(slides.length - 1, current + 1));
+      return;
+    }
+
+    finish();
+  };
   return (
-    <LifeStudioOnboardingScreen
-      settings={{
-        ...defaultSettings,
-        appTheme,
-        selectedTheme: widgetPalette,
-        defaultWidgetStyle: widgetStyle,
-        ...lifeSettings
-      }}
-      onUpdateSettings={(patch) => {
-        if (patch.appTheme) setAppTheme(patch.appTheme);
-        if (patch.selectedTheme && patch.selectedTheme !== "custom") setWidgetPalette(patch.selectedTheme);
-        if (patch.defaultWidgetStyle) setWidgetStyle(patch.defaultWidgetStyle);
-        setLifeSettings((current) => ({ ...current, ...patch }));
-      }}
-      onContinue={finish}
-    />
+    <View style={styles.screen}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.screenContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.brandRow}>
+          <AppLogo size={38} showWordmark />
+          <ModeToggle compact />
+        </View>
+
+        <MotionFadeUpView trigger={index}>
+        <GlassCard tone="hero" style={styles.heroCard}>
+          <View style={styles.heroTopRow}>
+            <View style={styles.heroIcon}>
+              {slide.id === "scan" ? <FileScan color={colors.heroText} size={22} /> : null}
+              {slide.id === "review" ? <ListChecks color={colors.heroText} size={22} /> : null}
+              {slide.id === "calendar" ? <CalendarDays color={colors.heroText} size={22} /> : null}
+              {slide.id === "today" ? <NotebookPen color={colors.heroText} size={22} /> : null}
+              {slide.id === "classes" ? <GraduationCap color={colors.heroText} size={22} /> : null}
+              {slide.id === "focus" ? <Timer color={colors.heroText} size={22} /> : null}
+              {slide.id === "widgets" ? <Sparkles color={colors.heroText} size={22} /> : null}
+            </View>
+            <Text style={styles.stepText}>{index + 1} / {slides.length}</Text>
+          </View>
+          <Text style={styles.eyebrow}>{t(eyebrowKey, slide.eyebrow)}</Text>
+          <Text style={styles.title}>{t(slide.titleKey, slide.title)}</Text>
+          <Text style={styles.copy}>{t(slide.copyKey, slide.copy)}</Text>
+        </GlassCard>
+        </MotionFadeUpView>
+
+        <MotionFadeUpView key={slide.id} trigger={index} style={styles.previewStage}>
+          {slide.id === "scan" ? <ScanPreview styles={styles} t={t} /> : null}
+          {slide.id === "review" ? <ReviewPreview styles={styles} t={t} locale={locale} /> : null}
+          {slide.id === "calendar" ? <CalendarPreview styles={styles} t={t} /> : null}
+          {slide.id === "today" ? <TodayPreview styles={styles} t={t} locale={locale} /> : null}
+          {slide.id === "classes" ? <ClassesPreview styles={styles} t={t} /> : null}
+          {slide.id === "focus" ? <FocusPreview styles={styles} t={t} /> : null}
+          {slide.id === "widgets" ? (
+            <WidgetsPreview
+              styles={styles}
+              t={t}
+              appTheme={appTheme}
+              widgetPalette={widgetPalette}
+              widgetStyle={widgetStyle}
+              widgetSnapshot={widgetSnapshots.upcoming}
+              onSelectTheme={(choice) => {
+                const definition = widgetThemeDefinitions[choice];
+                const widgetTheme = resolveWidgetTheme(choice);
+                setAppTheme(definition.appTheme);
+                setWidgetPalette(widgetTheme.palette);
+                setWidgetStyle(widgetTheme.background);
+              }}
+            />
+          ) : null}
+        </MotionFadeUpView>
+      </ScrollView>
+
+      <View style={styles.bottomBar}>
+        <View style={styles.stepRail}>
+          {slides.map((item, itemIndex) => (
+            <View
+              key={item.id}
+              style={[styles.stepDot, itemIndex === index ? styles.stepDotActive : null]}
+            />
+          ))}
+        </View>
+        <AppButton
+          label={slide.ctaKey ? t(slide.ctaKey, slide.cta) : t("common.next", slide.cta)}
+          icon={isFinal ? Crown : undefined}
+          onPress={continueFlow}
+        />
+      </View>
+    </View>
   );
 }
 

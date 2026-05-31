@@ -5,8 +5,7 @@ import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
 import { MetricCard } from "../components/MetricCard";
 import { SectionHeader } from "../components/SectionHeader";
-import { StudentLifeShell } from "../components/StudentLifeSystem";
-import { Assignment, Course, GradeItem, UserSettings } from "../models";
+import { Assignment, Course, GradeItem } from "../models";
 import {
   GradeSummary,
   calculateNeededOnRemaining,
@@ -22,7 +21,6 @@ import { useI18n } from "../i18n";
 type TranslateFn = (key: string, fallback?: string) => string;
 
 type GradesScreenProps = {
-  settings?: UserSettings;
   courses: Course[];
   assignments: Assignment[];
   gradeItems: GradeItem[];
@@ -33,7 +31,6 @@ type GradesScreenProps = {
 };
 
 export function GradesScreen({
-  settings,
   courses,
   assignments,
   gradeItems,
@@ -134,15 +131,13 @@ export function GradesScreen({
 
   return (
     <View>
-      <StudentLifeShell
-        settings={settings}
-        surface="grades"
-        metrics={[
-          { label: t("grades.target_percent", "Target percent"), value: `${Math.round(targetPercent)}%`, color: "#6D3DF2" },
-          { label: t("grades.target_gap", "target gap"), value: summary ? `${Math.round(targetDelta)}%` : "0%", color: targetDelta > 0 ? "#FF9F0A" : "#30D158" },
-          { label: t("grades.still_open", "still open"), value: String(openCourseAssignments.length), color: "#0A84FF" }
-        ]}
-      />
+      <View style={styles.header}>
+        <Text style={styles.kicker}>{t("grades.performance_dashboard", "Performance dashboard")}</Text>
+        <Text style={styles.title}>{t("grades.hero_title", "Keep every class on target.")}</Text>
+        <Text style={styles.subtitle}>
+          {t("grades.hero_copy", "Weighted categories, grade momentum, and clean what-if math before finals week.")}
+        </Text>
+      </View>
 
       <View style={styles.courseTabs}>
         {courses.length === 0 ? (

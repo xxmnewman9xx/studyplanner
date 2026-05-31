@@ -1,0 +1,25 @@
+{
+  "locale": "runtime",
+  "device": "StudyPlanner QA Vertical",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "courses",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "courses"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/student-board-implementation/screenshots/17-classes.png",
+  "bytes": 248588,
+  "sha256": "8b11f294fdacf82e4b3ee61c0b29b2adfb8d8de74cdb6c2603e356084af16a7d",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "c83c5d2",
+  "timestamp": "2026-05-31T22:13:05.946Z"
+}

@@ -4,16 +4,13 @@ import { Bell, CalendarSync, Check, Crown, FileScan, Layers3, Palette, ShieldChe
 import { AppButton } from "../components/AppButton";
 import { AppLogo, GlassCard } from "../components/AppleComponents";
 import { Badge } from "../components/Badge";
-import { LifeWatchPreview, LifeWidgetPreview, StudentLifeShell } from "../components/StudentLifeSystem";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { purchaseConfig } from "../services/purchaseConfig";
 import { PaywallProduct, useSubscription } from "../services/subscriptions";
 import { useI18n } from "../i18n";
-import { UserSettings } from "../models";
 
 type UpgradeScreenProps = {
-  settings?: UserSettings;
   onContinueAfterPurchase?: () => void;
   hardMode?: boolean;
 };
@@ -21,15 +18,13 @@ type UpgradeScreenProps = {
 type LegalDocument = "terms" | "privacy";
 
 const paidFeatures = [
-  { icon: FileScan, titleKey: "paywall.feature_scans", detailKey: "paywall.feature_scans_detail", fallbackTitle: "Unlimited syllabus imports", fallbackDetail: "AI-assisted text/PDF imports, pasted text, and re-imports when classes change." },
-  { icon: Palette, titleKey: "paywall.feature_life_studio", detailKey: "paywall.feature_life_studio_detail", fallbackTitle: "Full Life Studio", fallbackDetail: "Identity, OS behavior, friction points, Widget DNA, and Watch DNA personalization." },
-  { icon: Timer, titleKey: "paywall.feature_focus", detailKey: "paywall.feature_focus_detail", fallbackTitle: "Smart focus", fallbackDetail: "Recommended focus windows, shorter blocks, and session history adapt to the student's OS." },
-  { icon: TrendingUp, titleKey: "paywall.feature_forecast", detailKey: "paywall.feature_forecast_detail", fallbackTitle: "Advanced forecasting", fallbackDetail: "Busiest week, grade impact, future risk, and focus-window recommendations." },
-  { icon: Layers3, titleKey: "paywall.feature_widgets", detailKey: "paywall.feature_widgets_detail", fallbackTitle: "Adaptive widgets and watch", fallbackDetail: "Save real Next Up, Today List, Week, Class Progress, and watch-ready presets." },
-  { icon: Bell, titleKey: "paywall.feature_calendar", detailKey: "paywall.feature_calendar_detail", fallbackTitle: "Smart reminders", fallbackDetail: "Send reviewed deadlines to reminders and calendar with Student Life OS timing." }
+  { icon: FileScan, titleKey: "paywall.feature_scans", detailKey: "paywall.feature_scans_detail", fallbackTitle: "Syllabus imports", fallbackDetail: "AI-assisted text/PDF imports, pasted text, and re-imports when classes change." },
+  { icon: Layers3, titleKey: "paywall.feature_widgets", detailKey: "paywall.feature_widgets_detail", fallbackTitle: "Home Screen widgets", fallbackDetail: "Save real Next Up, Today List, Week, and Class Progress widget presets." },
+  { icon: Timer, titleKey: "paywall.feature_focus", detailKey: "paywall.feature_focus_detail", fallbackTitle: "Focus and progress tools", fallbackDetail: "Start timed study sessions and keep completion feedback visible." },
+  { icon: Bell, titleKey: "paywall.feature_calendar", detailKey: "paywall.feature_calendar_detail", fallbackTitle: "Reminders and calendar sync", fallbackDetail: "Send reviewed deadlines to device reminders and calendar." }
 ];
 
-export function UpgradeScreen({ settings, onContinueAfterPurchase, hardMode = false }: UpgradeScreenProps) {
+export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: UpgradeScreenProps) {
   const { theme } = useAppTheme();
   const { t } = useI18n();
   const { colors } = theme;
@@ -77,11 +72,11 @@ export function UpgradeScreen({ settings, onContinueAfterPurchase, hardMode = fa
         : hardMode
             ? t("paywall.plans_failed_locked_detail", "Plans could not load. Restore Purchases stays available, and this screen will not unlock the planner without a valid store entitlement.")
             : t("paywall.plans_failed_detail", "Plans could not load yet. Restore Purchases stays available for existing subscribers.");
-  const heroTitle = hardMode ? "Unlock StudyPlanner" : "Unlock your Student Life OS";
+  const heroTitle = "Unlock StudyPlanner";
   const localizedHeroTitle = t("paywall.title", heroTitle);
   const heroSubtitle = hardMode
-    ? t("paywall.hard_subtitle", "Unlock unlimited syllabus imports, full Life Studio, adaptive widgets, watch signals, smart reminders, and forecasting.")
-    : t("paywall.subtitle", "Keep the full syllabus-to-life-OS workflow ready for a busy semester.");
+    ? t("paywall.hard_subtitle", "Unlock AI-assisted syllabus imports, calendar planning, focus, widgets, reminders, and sync.")
+    : t("paywall.subtitle", "Keep the full import-to-plan workflow ready for a busy semester.");
 
   if (legalDocument) {
     return <LegalNotice document={legalDocument} onClose={() => setLegalDocument(null)} />;
@@ -89,31 +84,6 @@ export function UpgradeScreen({ settings, onContinueAfterPurchase, hardMode = fa
 
   return (
     <View style={styles.screen}>
-      <StudentLifeShell
-        settings={settings}
-        surface="paywall"
-        metrics={[
-          { label: t("paywall.imports", "Imports"), value: "Plus", color: "#0A84FF" },
-          { label: t("tabs.widgets", "Widgets"), value: "Live", color: "#30D158" },
-          { label: t("tabs.focus", "Focus"), value: "Smart", color: "#FF9F0A" }
-        ]}
-      />
-      <View style={styles.unlockComparison}>
-        <View style={styles.beforeTile}>
-          <Text style={styles.compareKicker}>{t("paywall.before_plus", "Before Plus")}</Text>
-          <Text style={styles.compareTitle}>{t("paywall.before_plus_title", "Deadlines stay inside the app.")}</Text>
-          <Text style={styles.compareCopy}>{t("paywall.before_plus_copy", "You can review imports, but the OS does not stay live across your week.")}</Text>
-        </View>
-        <View style={styles.afterTile}>
-          <Text style={[styles.compareKicker, styles.compareOnDarkMuted]}>{t("paywall.with_plus", "With Plus")}</Text>
-          <Text style={[styles.compareTitle, styles.compareOnDark]}>{t("paywall.with_plus_title", "Your OS follows you.")}</Text>
-          <Text style={[styles.compareCopy, styles.compareOnDarkMuted]}>{t("paywall.with_plus_copy", "Widgets, forecast, focus timing, and reminders adapt around your classes.")}</Text>
-        </View>
-      </View>
-      <View style={styles.previewStrip}>
-        <LifeWidgetPreview settings={settings} />
-        <LifeWatchPreview settings={settings} />
-      </View>
       <GlassCard tone="hero" style={styles.heroCard}>
         <View style={styles.heroGlow} />
         <View style={styles.heroTopRow}>
@@ -456,57 +426,6 @@ function createStyles(theme: AppTheme) {
     screen: {
       gap: spacing.md
     },
-    previewStrip: {
-      gap: spacing.sm
-    },
-    unlockComparison: {
-      flexDirection: "row",
-      gap: spacing.sm
-    },
-    beforeTile: {
-      flex: 1,
-      minHeight: 118,
-      borderRadius: 22,
-      backgroundColor: theme.isDark ? "rgba(255,255,255,0.06)" : "#F7F8FB",
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.line,
-      padding: spacing.sm,
-      gap: 4
-    },
-    afterTile: {
-      flex: 1,
-      minHeight: 118,
-      borderRadius: 22,
-      backgroundColor: "#07113A",
-      padding: spacing.sm,
-      gap: 4,
-      overflow: "hidden"
-    },
-    compareKicker: {
-      color: theme.isDark ? colors.faint : "#6B7280",
-      fontSize: 10,
-      lineHeight: 13,
-      fontWeight: "900",
-      textTransform: "uppercase"
-    },
-    compareTitle: {
-      color: colors.ink,
-      fontSize: 14,
-      lineHeight: 18,
-      fontWeight: "900"
-    },
-    compareCopy: {
-      color: colors.muted,
-      fontSize: 11,
-      lineHeight: 15,
-      fontWeight: "800"
-    },
-    compareOnDark: {
-      color: "#FFFFFF"
-    },
-    compareOnDarkMuted: {
-      color: "rgba(255,255,255,0.72)"
-    },
     heroCard: {
       padding: spacing.md,
       gap: spacing.xs,
@@ -514,11 +433,12 @@ function createStyles(theme: AppTheme) {
     },
     heroGlow: {
       position: "absolute",
-      left: 0,
-      right: 0,
-      top: 0,
-      height: 8,
-      backgroundColor: theme.isDark ? "rgba(53,242,208,0.20)" : "rgba(17,24,39,0.08)"
+      right: -50,
+      top: -70,
+      width: 190,
+      height: 190,
+      borderRadius: 95,
+      backgroundColor: theme.isDark ? "rgba(53,242,208,0.08)" : "rgba(255,255,255,0.12)"
     },
     heroTopRow: {
       flexDirection: "row",

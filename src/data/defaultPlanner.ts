@@ -17,7 +17,7 @@ export const defaultSemester: Semester = {
   id: "spring-2026",
   name: "Spring Semester",
   startDate: "2026-01-12",
-  endDate: "2026-05-22",
+  endDate: "2026-07-12",
   targetGpa: 3.7
 };
 
@@ -32,86 +32,81 @@ export const defaultSettings: UserSettings = {
   focusDefaultMinutes: 25,
   syncEnabled: true,
   privacyMode: false,
-  emojiAccentEnabled: true,
-  studentDNA: "focused_scholar",
-  osBehavior: "highest_gpa",
-  frictionPoints: ["procrastination"],
-  widgetDNA: ["exam_countdown", "grade_impact", "free_time_forecast"],
-  watchDNA: ["next_class", "focus_window", "exam_risk"]
+  emojiAccentEnabled: true
 };
 
 export const defaultCourses: Course[] = [
   {
-    id: "algebra-ii",
-    code: "Algebra II",
-    name: "Algebra II",
-    instructor: "Ms. Patel",
-    teacher: "Ms. Patel",
+    id: "calculus",
+    code: "Calculus",
+    name: "Calculus I",
+    instructor: "Prof. Patel",
+    teacher: "Prof. Patel",
     period: "Period 3",
     room: "Room 214",
-    color: "#2F80ED",
+    color: "#1476FF",
     iconKey: "calculator",
     emojiKey: "study",
     semester: defaultSemester.name,
     createdAt: now,
     updatedAt: now,
     meetings: [
-      { id: "alg-mon", day: "Mon", startTime: "08:30", endTime: "09:20", location: "214" },
-      { id: "alg-wed", day: "Wed", startTime: "08:30", endTime: "09:20", location: "214" },
-      { id: "alg-fri", day: "Fri", startTime: "08:30", endTime: "09:20", location: "214" }
+      { id: "calc-mon", day: "Mon", startTime: "08:30", endTime: "09:20", location: "214" },
+      { id: "calc-wed", day: "Wed", startTime: "08:30", endTime: "09:20", location: "214" },
+      { id: "calc-fri", day: "Fri", startTime: "08:30", endTime: "09:20", location: "214" }
     ],
     gradeCategories: [
-      { id: "alg-homework", name: "Homework", weight: 35 },
-      { id: "alg-tests", name: "Tests", weight: 45 },
-      { id: "alg-classwork", name: "Classwork", weight: 20 }
+      { id: "calc-homework", name: "Homework", weight: 35 },
+      { id: "calc-exams", name: "Exams", weight: 45 },
+      { id: "calc-classwork", name: "Classwork", weight: 20 }
     ]
   },
   {
-    id: "chemistry",
-    code: "Chemistry",
-    name: "Chemistry",
+    id: "organic-chemistry",
+    code: "Organic Chemistry",
+    name: "Organic Chemistry",
     instructor: "Dr. Lin",
     teacher: "Dr. Lin",
     period: "Period 4",
     room: "Lab 5",
-    color: "#10B981",
+    color: "#FF5A1F",
     iconKey: "flask",
     emojiKey: "science",
     semester: defaultSemester.name,
     createdAt: now,
     updatedAt: now,
     meetings: [
-      { id: "chem-tue", day: "Tue", startTime: "09:30", endTime: "10:20", location: "Lab 5" },
-      { id: "chem-thu", day: "Thu", startTime: "09:30", endTime: "10:20", location: "Lab 5" }
+      { id: "ochem-tue", day: "Tue", startTime: "09:30", endTime: "10:20", location: "Lab 5" },
+      { id: "ochem-thu", day: "Thu", startTime: "09:30", endTime: "10:20", location: "Lab 5" }
     ],
     gradeCategories: [
-      { id: "chem-labs", name: "Labs", weight: 35 },
-      { id: "chem-tests", name: "Tests", weight: 40 },
-      { id: "chem-notes", name: "Notes", weight: 25 }
+      { id: "ochem-labs", name: "Labs", weight: 35 },
+      { id: "ochem-exams", name: "Exams", weight: 40 },
+      { id: "ochem-notes", name: "Notes", weight: 25 }
     ]
   },
   {
-    id: "english-lit",
-    code: "English Lit",
-    name: "English Literature",
-    instructor: "Mrs. Cho",
-    teacher: "Mrs. Cho",
+    id: "physics-201",
+    code: "Physics 201",
+    name: "Physics 201",
+    instructor: "Dr. Cho",
+    teacher: "Dr. Cho",
     period: "Period 5",
-    room: "Room 118",
-    color: "#8B5CF6",
+    room: "Room 4A",
+    color: "#21B8A7",
     iconKey: "book",
     emojiKey: "writing",
     semester: defaultSemester.name,
     createdAt: now,
     updatedAt: now,
     meetings: [
-      { id: "eng-mon", day: "Mon", startTime: "10:30", endTime: "11:20", location: "118" },
-      { id: "eng-wed", day: "Wed", startTime: "10:30", endTime: "11:20", location: "118" }
+      { id: "phys-mon", day: "Mon", startTime: "10:00", endTime: "10:50", location: "4A" },
+      { id: "phys-wed", day: "Wed", startTime: "10:00", endTime: "10:50", location: "4A" }
     ],
     gradeCategories: [
-      { id: "eng-essays", name: "Essays", weight: 45 },
-      { id: "eng-reading", name: "Reading", weight: 30 },
-      { id: "eng-discussion", name: "Discussion", weight: 25 }
+      { id: "phys-labs", name: "Labs", weight: 35 },
+      { id: "phys-exams", name: "Exams", weight: 45 },
+      { id: "phys-problems", name: "Problem sets", weight: 20 }
     ]
   },
   {
@@ -189,23 +184,23 @@ export const defaultCourses: Course[] = [
 
 export const defaultAssignments: Assignment[] = [
   {
-    id: "alg-worksheet-ch4",
-    courseId: "algebra-ii",
-    title: "Worksheet Ch. 4 Review",
-    kind: "worksheet",
-    type: "worksheet",
-    dueAt: "2026-05-27T11:30:00",
-    tags: ["worksheet", "review"],
+    id: "calc-problem-set",
+    courseId: "calculus",
+    title: "Calculus Problem Set",
+    kind: "assignment",
+    type: "assignment",
+    dueAt: "2026-06-05T23:59:00",
+    tags: ["problem-set", "calculus"],
     priority: "high",
-    estimatedMinutes: 45,
+    estimatedMinutes: 180,
     status: "in_progress",
     source: "syllabus",
-    sourceId: "scan-english-syllabus",
+    sourceId: "scan-spring-syllabus",
     progress: 0.35,
     checklist: [
-      { id: "alg-1", title: "Problems 1-12", done: true },
-      { id: "alg-2", title: "Problems 13-24", done: false },
-      { id: "alg-3", title: "Check odd answers", done: false }
+      { id: "calc-1", title: "Problems 1-12", done: true },
+      { id: "calc-2", title: "Problems 13-24", done: false },
+      { id: "calc-3", title: "Check odd answers", done: false }
     ],
     reminder: { enabled: true, leadTimeHours: 2 },
     confidence: 0.94,
@@ -213,21 +208,22 @@ export const defaultAssignments: Assignment[] = [
     updatedAt: now
   },
   {
-    id: "chem-lab-report",
-    courseId: "chemistry",
-    title: "Lab Report: Titration",
-    kind: "assignment",
-    dueAt: "2026-05-27T17:00:00",
-    tags: ["lab", "report"],
+    id: "organic-chem-midterm",
+    courseId: "organic-chemistry",
+    title: "Organic Chemistry Midterm",
+    kind: "exam",
+    type: "exam",
+    dueAt: "2026-06-07T09:00:00",
+    tags: ["exam", "midterm"],
     priority: "high",
-    estimatedMinutes: 90,
+    estimatedMinutes: 120,
     status: "not_started",
     source: "syllabus",
     progress: 0,
     checklist: [
-      { id: "chem-1", title: "Results table", done: false },
-      { id: "chem-2", title: "Error analysis", done: false },
-      { id: "chem-3", title: "Conclusion", done: false }
+      { id: "ochem-1", title: "Reaction mechanisms", done: false },
+      { id: "ochem-2", title: "Spectroscopy review", done: false },
+      { id: "ochem-3", title: "Practice set", done: false }
     ],
     reminder: { enabled: true, leadTimeHours: 3 },
     confidence: 0.9,
@@ -235,13 +231,13 @@ export const defaultAssignments: Assignment[] = [
     updatedAt: now
   },
   {
-    id: "eng-reading-notes",
-    courseId: "english-lit",
-    title: "Reading Notes Ch. 9-11",
+    id: "physics-lab-preview",
+    courseId: "physics-201",
+    title: "Physics Lab Preview",
     kind: "reading",
     type: "reading",
-    dueAt: "2026-05-28T08:30:00",
-    tags: ["reading", "notes"],
+    dueAt: "2026-06-03T10:00:00",
+    tags: ["lab", "preview"],
     priority: "medium",
     estimatedMinutes: 35,
     status: "not_started",
@@ -255,7 +251,7 @@ export const defaultAssignments: Assignment[] = [
   {
     id: "hist-dbq-outline",
     courseId: "world-history",
-    title: "Essay Draft",
+    title: "Research Essay Draft",
     kind: "project",
     dueAt: "2026-05-26T20:00:00",
     tags: ["essay", "outline"],
@@ -270,7 +266,7 @@ export const defaultAssignments: Assignment[] = [
   {
     id: "bio-cell-quiz",
     courseId: "biology",
-    title: "Cell Quiz",
+    title: "Organic Chemistry Quiz",
     kind: "exam",
     type: "exam",
     dueAt: "not-a-date",
@@ -304,8 +300,8 @@ export const defaultAssignments: Assignment[] = [
 
 export const defaultParsedImports: ParsedImport[] = [
   {
-    id: "scan-english-syllabus",
-    title: "English Syllabus.pdf",
+    id: "scan-spring-syllabus",
+    title: "Spring Syllabus.pdf",
     sourceType: "pdf",
     status: "ready",
     itemCount: 24,
@@ -313,8 +309,8 @@ export const defaultParsedImports: ParsedImport[] = [
     updatedAt: "2026-05-27T08:32:00"
   },
   {
-    id: "scan-chem-photo",
-    title: "Chemistry handout photo",
+    id: "scan-ochem-photo",
+    title: "Organic Chemistry handout photo",
     sourceType: "photo",
     status: "applied",
     itemCount: 7,
@@ -325,22 +321,22 @@ export const defaultParsedImports: ParsedImport[] = [
 
 export const defaultParsedItems: ParsedItem[] = [
   {
-    id: "parsed-eng-reading",
-    parsedImportId: "scan-english-syllabus",
-    title: "Reading Notes",
-    courseName: "English Lit",
+    id: "parsed-physics-preview",
+    parsedImportId: "scan-spring-syllabus",
+    title: "Physics Lab Preview",
+    courseName: "Physics 201",
     type: "reading",
-    dueAt: "2026-05-28T08:30:00",
+    dueAt: "2026-06-03T10:00:00",
     confidence: 0.72,
     needsReview: true,
-    rawText: "Reading Notes Ch. 9-11 due May 28.",
+    rawText: "Physics lab preview due June 3.",
     reviewStatus: "needs_review"
   },
   {
     id: "parsed-bio-cell-quiz",
-    parsedImportId: "scan-english-syllabus",
-    title: "Cell Quiz",
-    courseName: "Biology",
+    parsedImportId: "scan-spring-syllabus",
+    title: "Organic Chemistry Quiz",
+    courseName: "Organic Chemistry",
     type: "exam",
     confidence: 0.64,
     needsReview: true,
@@ -349,15 +345,15 @@ export const defaultParsedItems: ParsedItem[] = [
     reviewStatus: "needs_review"
   },
   {
-    id: "parsed-chem-lab",
-    parsedImportId: "scan-chem-photo",
-    title: "Lab Report",
-    courseName: "Chemistry",
-    type: "assignment",
-    dueAt: "2026-05-27T17:00:00",
+    id: "parsed-ochem-midterm",
+    parsedImportId: "scan-ochem-photo",
+    title: "Organic Chemistry Midterm",
+    courseName: "Organic Chemistry",
+    type: "exam",
+    dueAt: "2026-06-07T09:00:00",
     confidence: 0.9,
     needsReview: false,
-    rawText: "Titration lab report due Wednesday.",
+    rawText: "Organic Chemistry midterm on June 7.",
     acceptedAt: "2026-05-27T08:08:00",
     reviewStatus: "accepted"
   }
@@ -373,7 +369,7 @@ export const defaultWidgetPresets: WidgetPreset[] = [
 export const defaultFocusSessions: FocusSession[] = [
   {
     id: "focus-seed-1",
-    assignmentId: "alg-worksheet-ch4",
+    assignmentId: "calc-problem-set",
     durationMinutes: 25,
     startedAt: "2026-05-27T09:00:00",
     status: "running",
@@ -384,26 +380,26 @@ export const defaultFocusSessions: FocusSession[] = [
 
 export const defaultGradeItems: GradeItem[] = [
   {
-    id: "alg-ch3-test",
-    courseId: "algebra-ii",
-    categoryId: "alg-tests",
-    title: "Chapter 3 Test",
+    id: "calc-ch3-test",
+    courseId: "calculus",
+    categoryId: "calc-exams",
+    title: "Limits Test",
     earned: 91,
     possible: 100
   },
   {
-    id: "chem-lab-practical",
-    courseId: "chemistry",
-    categoryId: "chem-labs",
+    id: "ochem-lab-practical",
+    courseId: "organic-chemistry",
+    categoryId: "ochem-labs",
     title: "Lab Practical",
     earned: 88,
     possible: 100
   },
   {
-    id: "eng-essay",
-    courseId: "english-lit",
-    categoryId: "eng-essays",
-    title: "Poetry Essay",
+    id: "phys-lab-score",
+    courseId: "physics-201",
+    categoryId: "phys-labs",
+    title: "Motion Lab",
     earned: 45,
     possible: 50
   }

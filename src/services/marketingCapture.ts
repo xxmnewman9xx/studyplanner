@@ -24,37 +24,37 @@ export const marketingCaptureSemester: Semester = {
   id: "marketing-spring-2026",
   name: "Spring 2026",
   startDate: "2026-01-12",
-  endDate: "2026-06-12",
+  endDate: "2026-07-12",
   targetGpa: 3.6
 };
 
 export const marketingCaptureCourses: Course[] = [
   {
-    id: "marketing-algebra-ii",
-    code: "Algebra II",
-    name: "Algebra II",
-    instructor: "Ms. Patel",
-    color: "#2F80ED",
-    meetings: [{ id: "marketing-alg-wed", day: "Wed", startTime: "08:30", endTime: "09:20", location: "214" }],
-    gradeCategories: [{ id: "marketing-alg-homework", name: "Homework", weight: 35 }]
+    id: "marketing-calculus",
+    code: "Calculus",
+    name: "Calculus I",
+    instructor: "Prof. Patel",
+    color: "#1476FF",
+    meetings: [{ id: "marketing-calc-wed", day: "Wed", startTime: "08:30", endTime: "09:20", location: "214" }],
+    gradeCategories: [{ id: "marketing-calc-homework", name: "Homework", weight: 35 }]
   },
   {
-    id: "marketing-chemistry",
-    code: "Chemistry",
-    name: "Chemistry",
+    id: "marketing-organic-chemistry",
+    code: "Organic Chemistry",
+    name: "Organic Chemistry",
     instructor: "Dr. Lin",
-    color: "#10B981",
-    meetings: [{ id: "marketing-chem-wed", day: "Wed", startTime: "09:30", endTime: "10:20", location: "Lab 5" }],
-    gradeCategories: [{ id: "marketing-chem-labs", name: "Labs", weight: 35 }]
+    color: "#FF5A1F",
+    meetings: [{ id: "marketing-ochem-wed", day: "Wed", startTime: "09:30", endTime: "10:20", location: "Lab 5" }],
+    gradeCategories: [{ id: "marketing-ochem-labs", name: "Labs", weight: 35 }]
   },
   {
-    id: "marketing-english-lit",
-    code: "English Lit",
-    name: "English Literature",
-    instructor: "Mrs. Cho",
-    color: "#8B5CF6",
-    meetings: [{ id: "marketing-eng-thu", day: "Thu", startTime: "10:30", endTime: "11:20", location: "118" }],
-    gradeCategories: [{ id: "marketing-eng-reading", name: "Reading", weight: 30 }]
+    id: "marketing-physics-201",
+    code: "Physics 201",
+    name: "Physics 201",
+    instructor: "Dr. Cho",
+    color: "#21B8A7",
+    meetings: [{ id: "marketing-phys-thu", day: "Thu", startTime: "10:00", endTime: "10:50", location: "4A" }],
+    gradeCategories: [{ id: "marketing-phys-labs", name: "Labs", weight: 30 }]
   },
   {
     id: "marketing-world-history",
@@ -87,41 +87,42 @@ export const marketingCaptureCourses: Course[] = [
 
 export const marketingCaptureAssignments: Assignment[] = [
   {
-    id: "marketing-alg-worksheet",
-    courseId: "marketing-algebra-ii",
-    title: "Worksheet Ch. 4 Review",
-    kind: "worksheet",
-    type: "worksheet",
-    dueAt: "2026-05-27T11:30:00",
-    tags: ["worksheet", "review"],
+    id: "marketing-calc-problem-set",
+    courseId: "marketing-calculus",
+    title: "Calculus Problem Set",
+    kind: "assignment",
+    type: "assignment",
+    dueAt: "2026-06-05T23:59:00",
+    tags: ["problem-set", "calculus"],
     priority: "high",
-    estimatedMinutes: 45,
+    estimatedMinutes: 180,
     status: "in_progress",
     source: "syllabus",
     progress: 0.35,
     gradeWeight: 8
   },
   {
-    id: "marketing-chem-lab",
-    courseId: "marketing-chemistry",
-    title: "Lab Report: Titration",
-    kind: "assignment",
-    dueAt: "2026-05-27T17:00:00",
-    tags: ["lab", "report"],
+    id: "marketing-ochem-midterm",
+    courseId: "marketing-organic-chemistry",
+    title: "Organic Chemistry Midterm",
+    kind: "exam",
+    type: "exam",
+    dueAt: "2026-06-07T09:00:00",
+    tags: ["exam", "midterm"],
     priority: "high",
-    estimatedMinutes: 90,
+    estimatedMinutes: 120,
     status: "not_started",
     source: "syllabus",
     progress: 0,
     gradeWeight: 10
   },
   {
-    id: "marketing-eng-reading",
-    courseId: "marketing-english-lit",
-    title: "Reading Notes Ch. 9-11",
+    id: "marketing-physics-preview",
+    courseId: "marketing-physics-201",
+    title: "Physics Lab Preview",
     kind: "reading",
     type: "reading",
-    dueAt: "2026-05-28T08:30:00",
+    dueAt: "2026-06-03T10:00:00",
     tags: ["reading", "notes"],
     priority: "medium",
     estimatedMinutes: 35,
@@ -179,26 +180,26 @@ export const marketingCaptureAssignments: Assignment[] = [
 
 export const marketingCaptureGradeItems: GradeItem[] = [
   {
-    id: "marketing-alg-ch3-test",
-    courseId: "marketing-algebra-ii",
-    categoryId: "marketing-alg-homework",
-    title: "Chapter 3 Test",
+    id: "marketing-calc-ch3-test",
+    courseId: "marketing-calculus",
+    categoryId: "marketing-calc-homework",
+    title: "Limits Test",
     earned: 91,
     possible: 100
   },
   {
-    id: "marketing-chem-lab-score",
-    courseId: "marketing-chemistry",
-    categoryId: "marketing-chem-labs",
+    id: "marketing-ochem-lab-score",
+    courseId: "marketing-organic-chemistry",
+    categoryId: "marketing-ochem-labs",
     title: "Lab Practical",
     earned: 88,
     possible: 100
   },
   {
-    id: "marketing-eng-notes-score",
-    courseId: "marketing-english-lit",
-    categoryId: "marketing-eng-reading",
-    title: "Reading Notes",
+    id: "marketing-phys-lab-score",
+    courseId: "marketing-physics-201",
+    categoryId: "marketing-phys-labs",
+    title: "Motion Lab",
     earned: 45,
     possible: 50
   }

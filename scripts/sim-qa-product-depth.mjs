@@ -31,7 +31,6 @@ const captureTargets = [
   { key: "calendar-urgent", route: { tab: "plan", workloadState: "urgent" }, name: "16-calendar-urgent" },
   { key: "classes", route: { tab: "courses" }, name: "17-classes" },
   { key: "focus", route: { tab: "focus" }, name: "18-focus" },
-  { key: "notes", route: { tab: "notes" }, name: "18a-notes" },
   { key: "widgets", route: { tab: "more" }, name: "19-widgets-ocean" },
   { key: "widgets-graphite", route: { tab: "more", appTheme: "graphite", widgetPalette: "graphite", widgetBackground: "dark" }, name: "20-widgets-graphite" },
   { key: "widgets-forest", route: { tab: "more", appTheme: "mint", widgetPalette: "forest", widgetBackground: "glass" }, name: "21-widgets-forest" },
@@ -45,11 +44,6 @@ const captureTargets = [
   { key: "widget-dark-graphite-week", route: { tab: "more", themeMode: "dark", appTheme: "graphite", widgetType: "week", widgetSize: "medium", widgetPalette: "graphite", widgetBackground: "dark", widgetDataMode: "this_week" }, name: "35-widget-dark-graphite-week" },
   { key: "widget-dark-forest-class", route: { tab: "more", themeMode: "dark", appTheme: "mint", widgetType: "class_focus", widgetSize: "small", widgetPalette: "forest", widgetBackground: "glass", widgetDataMode: "single_class" }, name: "36-widget-dark-forest-class" },
   { key: "widget-dark-paper-due-next", route: { tab: "more", themeMode: "dark", appTheme: "minimal", widgetType: "due_next", widgetSize: "small", widgetPalette: "paper", widgetBackground: "light", widgetDataMode: "all_classes" }, name: "37-widget-dark-paper-due-next" },
-  { key: "widget-studio-default", route: { tab: "more", appTheme: "campus", widgetType: "today", widgetSize: "medium", widgetPalette: "ocean", widgetBackground: "glass", osBehavior: "highest_gpa", widgetDNA: ["grade_impact", "exam_countdown"], watchDNA: ["exam_risk"], frictionPoints: ["procrastination"], studentDNA: "focused_scholar" }, name: "40-widget-studio-default" },
-  { key: "widget-studio-highest-gpa", route: { tab: "more", appTheme: "solar", widgetType: "due_next", widgetSize: "medium", widgetPalette: "sunset", widgetBackground: "dark", widgetDataMode: "urgent_only", osBehavior: "highest_gpa", widgetDNA: ["exam_countdown", "grade_impact"], watchDNA: ["exam_risk"], frictionPoints: ["exam_anxiety"], studentDNA: "focused_scholar", workloadState: "urgent" }, name: "41-widget-studio-highest-gpa" },
-  { key: "widget-studio-less-stress", route: { tab: "more", appTheme: "mint", widgetType: "week", widgetSize: "medium", widgetPalette: "forest", widgetBackground: "light", widgetDataMode: "this_week", widgetLayout: "summary", osBehavior: "less_stress", widgetDNA: ["free_time_forecast", "recovery_window"], watchDNA: ["free_time"], frictionPoints: ["forgetfulness"], studentDNA: "balanced_wellness", workloadState: "clean" }, name: "42-widget-studio-less-stress" },
-  { key: "widget-studio-athletic", route: { tab: "more", appTheme: "mint", widgetType: "due_next", widgetSize: "small", widgetPalette: "forest", widgetBackground: "glass", widgetDataMode: "next_up", widgetLayout: "next_task", osBehavior: "athletic_performance", widgetDNA: ["recovery_window", "free_time_forecast"], watchDNA: ["focus_window"], frictionPoints: ["overcommitment"], studentDNA: "active_athlete" }, name: "43-widget-studio-athletic-performance" },
-  { key: "widget-snapshot-proof", route: { tab: "more", appTheme: "graphite", widgetType: "week", widgetSize: "medium", widgetPalette: "graphite", widgetBackground: "dark", widgetDataMode: "this_week", widgetLayout: "strip", osBehavior: "high_achievement", widgetDNA: ["future_risk"], watchDNA: ["semester_progress"], frictionPoints: ["focus_issues"], studentDNA: "competitive_leader", workloadState: "urgent" }, name: "44-native-widget-snapshot-proof" },
   { key: "paywall", route: { tab: "subscribe" }, name: "24-paywall" },
   { key: "grades", route: { tab: "grades" }, name: "25-grades" }
 ];
@@ -58,7 +52,7 @@ const requestedTargets = (process.env.STUDYPLANNER_SIM_CAPTURE_TABS || "")
   .map((target) => target.trim())
   .filter(Boolean);
 const targets = requestedTargets.length
-  ? captureTargets.filter((target) => requestedTargets.includes(target.key) || requestedTargets.includes(`tab:${target.route.tab}`))
+  ? captureTargets.filter((target) => requestedTargets.includes(target.key) || requestedTargets.includes(target.route.tab))
   : captureTargets;
 const finalWidgetMode = outDir.includes("final_widgets");
 const manifestEntries = [];
@@ -76,7 +70,6 @@ const dataRoot = run("xcrun", ["simctl", "get_app_container", device, bundleId, 
 const gitCommit = gitShortSha();
 const timestamp = new Date().toISOString();
 for (const { route, name, key } of targets) {
-  runOptional("xcrun", ["simctl", "ui", device, "orientation", "portrait"]);
   writeFileSync(
     join(dataRoot, "Documents", "studyplanner-capture-tab.json"),
     JSON.stringify(captureLocale ? { ...route, locale: captureLocale } : route)
@@ -88,8 +81,6 @@ for (const { route, name, key } of targets) {
     run("xcrun", ["simctl", "launch", device, bundleId]);
   }
   sleep(launchWaitMs);
-  runOptional("xcrun", ["simctl", "ui", device, "orientation", "portrait"]);
-  sleep(500);
   const screenshotPath = screenshotPathForTarget(route, name);
   mkdirSync(dirname(screenshotPath), { recursive: true });
   run("xcrun", ["simctl", "io", device, "screenshot", screenshotPath]);
@@ -135,10 +126,6 @@ function buildSidecar({ route, key, name, screenshotPath, gitCommit, timestamp }
     layout: route.widgetLayout || "default",
     classFocus: route.classFocusCourseId || "all",
     dataState: route.workloadState || route.screen || route.widgetDataMode || "normal",
-    osBehavior: route.osBehavior || "default",
-    widgetDNA: route.widgetDNA || [],
-    watchDNA: route.watchDNA || [],
-    frictionPoints: route.frictionPoints || [],
     route,
     source: "actual-app-simulator-preview",
     screenshotPath,

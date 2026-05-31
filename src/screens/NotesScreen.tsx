@@ -4,8 +4,7 @@ import { BookOpenCheck, CirclePlus, Clock3, NotebookPen, Pin, Save, Trash2 } fro
 import { AppButton } from "../components/AppButton";
 import { GlassCard, EmptyState } from "../components/AppleComponents";
 import { SectionHeader } from "../components/SectionHeader";
-import { StudentLifeShell } from "../components/StudentLifeSystem";
-import { Assignment, Course, FocusSession, StudyNote, UserSettings } from "../models";
+import { Assignment, Course, FocusSession, StudyNote } from "../models";
 import { getCourseForAssignment, getPinnedNotes, getRelevantNotesForToday } from "../logic/planner";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -13,7 +12,6 @@ import { courseEmoji } from "../utils/courseVisuals";
 import { useI18n } from "../i18n";
 
 type NotesScreenProps = {
-  settings?: UserSettings;
   courses: Course[];
   assignments?: Assignment[];
   focusSessions?: FocusSession[];
@@ -29,7 +27,6 @@ type TemplateKind = "class" | "due" | "ask" | "remember";
 type NoteFilter = "today" | "pinned" | "classes" | "focus";
 
 export function NotesScreen({
-  settings,
   courses,
   assignments = [],
   focusSessions = [],
@@ -120,16 +117,6 @@ export function NotesScreen({
 
   return (
     <View style={styles.screen}>
-      <StudentLifeShell
-        settings={settings}
-        surface="notes"
-        metrics={[
-          { label: t("notes.pinned", "Pinned"), value: String(pinnedCount), color: "#FF9F0A" },
-          { label: t("notes.linked", "Linked"), value: String(linkedCount), color: "#0A84FF" },
-          { label: t("tabs.classes", "Classes"), value: String(courses.length), color: "#30D158" }
-        ]}
-        action={{ label: t("notes.save_note", "Save note"), onPress: createNote }}
-      />
       <GlassCard tone="hero" style={styles.heroCard}>
         <View style={styles.heroGlow} />
         <View style={styles.heroTopRow}>

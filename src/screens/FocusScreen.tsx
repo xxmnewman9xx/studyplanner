@@ -4,8 +4,7 @@ import { CheckCircle2, Clock3, Pause, Play, Power, Square, TimerReset } from "lu
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
 import { SectionHeader } from "../components/SectionHeader";
-import { StudentLifeShell } from "../components/StudentLifeSystem";
-import { Assignment, Course, FocusSession, StudyNote, UserSettings } from "../models";
+import { Assignment, Course, FocusSession, StudyNote } from "../models";
 import { getCourseForAssignment } from "../logic/planner";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -14,7 +13,6 @@ import { useI18n } from "../i18n";
 type TranslateFn = (key: string, fallback?: string) => string;
 
 type FocusScreenProps = {
-  settings?: UserSettings;
   assignments: Assignment[];
   courses: Course[];
   defaultMinutes: number;
@@ -26,7 +24,6 @@ type FocusScreenProps = {
 };
 
 export function FocusScreen({
-  settings,
   assignments,
   courses,
   defaultMinutes,
@@ -180,16 +177,6 @@ export function FocusScreen({
 
   return (
     <View>
-      <StudentLifeShell
-        settings={settings}
-        surface="focus"
-        metrics={[
-          { label: t("focus.target", "target"), value: formatLocalized(t("focus.minutes_short", "{minutes}m"), { minutes: String(activeDurationMinutes) }), color: "#0A84FF" },
-          { label: t("focus.done", "done"), value: String(completedSessions.length), color: "#30D158" },
-          { label: t("focus.status_ready", "Ready"), value: String(focusableAssignments.length), color: "#FF9F0A" }
-        ]}
-        action={{ label: running ? t("focus.pause_timer", "Pause timer") : t("focus.start_timer", "Start timer"), onPress: startPause }}
-      />
       <View style={styles.focusStage}>
         <View style={styles.focusGlow} />
         <View style={styles.focusGlowSecondary} />
