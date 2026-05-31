@@ -272,10 +272,28 @@ export function LifeStudioOnboardingScreen({ settings, onUpdateSettings, onConti
 
         <View style={styles.heroCopy}>
           <Text style={styles.heroTitle}>Design your life OS.</Text>
-          <Text style={styles.heroSubtitle}>Every choice reshapes the preview.</Text>
+          <Text style={styles.heroSubtitle}>Choose what drives you. StudyPlanner adapts the feed, widgets, and watch.</Text>
         </View>
 
-        <LifeOSPreviewPhone settings={settings} />
+        <View style={styles.livePreviewStrip}>
+          {(["highest_gpa", "less_stress", "athletic_performance"] as OSBehavior[]).map((id) => {
+            const optionVisual = behaviorVisuals[id];
+            const active = selectedBehavior === id;
+            return (
+              <TouchableOpacity
+                key={id}
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+                style={[styles.livePreviewTile, active ? { borderColor: optionVisual.accent, backgroundColor: optionVisual.chip } : null]}
+                onPress={() => onUpdateSettings({ osBehavior: id })}
+              >
+                <View style={[styles.livePreviewColor, { backgroundColor: optionVisual.accent }]} />
+                <Text style={styles.livePreviewLabel} numberOfLines={2}>{optionVisual.title}</Text>
+                <Text style={styles.livePreviewMeta} numberOfLines={1}>{optionVisual.layout}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
         <LifeStudioSection number="1" title="Choose your identity">
           <View style={styles.identityGrid}>
@@ -292,7 +310,7 @@ export function LifeStudioOnboardingScreen({ settings, onUpdateSettings, onConti
           </View>
         </LifeStudioSection>
 
-        <LifeStudioSection number="2" title="Pick your layout">
+        <LifeStudioSection number="2" title="Choose your OS behavior">
           <View style={styles.layoutGrid}>
             {osBehaviorOptions.slice(0, 5).map((item) => {
               const itemVisual = behaviorVisuals[item.id];
@@ -315,7 +333,9 @@ export function LifeStudioOnboardingScreen({ settings, onUpdateSettings, onConti
           </View>
         </LifeStudioSection>
 
-        <LifeStudioSection number="3" title="OS behavior">
+        <LifeOSPreviewPhone settings={settings} />
+
+        <LifeStudioSection number="3" title="Fine tune behavior">
           <View style={styles.behaviorStack}>
             {osBehaviorOptions.map((item) => (
               <OSBehaviorCard
@@ -623,7 +643,7 @@ export function LifeStudioSetup({ settings, onUpdateSettings, compact = false }:
         </View>
       </View>
 
-      <SPPreviewPhone settings={settings} compact={compact} />
+      <LifeStudioOutputPreview visual={visual} />
 
       <View style={compact ? styles.compactGrid : styles.grid}>
         <View style={styles.panel}>
@@ -688,6 +708,68 @@ export function LifeStudioSetup({ settings, onUpdateSettings, compact = false }:
             })}
           </View>
         </View>
+      </View>
+
+      <SPPreviewPhone settings={settings} compact={compact} />
+    </View>
+  );
+}
+
+function LifeStudioOutputPreview({ visual }: { visual: BehaviorVisual }) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  const primary = visual.cards[0]!;
+  const secondary = visual.cards[1] || primary;
+  const PrimaryIcon = primary.icon;
+  const SecondaryIcon = secondary.icon;
+
+  return (
+    <View style={styles.outputPreview}>
+      <View style={[styles.outputIsland, { backgroundColor: visual.surface }]}>
+        <View style={styles.outputIslandTop}>
+          <Text style={styles.outputIslandKicker}>Dynamic Island</Text>
+          <Text style={[styles.outputLiveDot, { backgroundColor: visual.accent }]}>Live</Text>
+        </View>
+        <Text style={styles.outputIslandTitle} numberOfLines={1}>{primary.title}</Text>
+        <Text style={styles.outputIslandMeta} numberOfLines={1}>{primary.meta} · {visual.layout}</Text>
+      </View>
+
+      <View style={styles.outputRow}>
+        <View style={styles.outputWatch}>
+          <Text style={styles.outputWatchDate}>THU 11</Text>
+          <Text style={styles.outputWatchTime}>10:09</Text>
+          <Text style={styles.outputWatchLabel}>Next</Text>
+          <Text style={styles.outputWatchValue} numberOfLines={1}>{secondary.title}</Text>
+          <View style={[styles.outputWatchRing, { borderColor: visual.accent }]}>
+            <Text style={[styles.outputWatchRingText, { color: visual.accent }]}>72</Text>
+          </View>
+        </View>
+
+        <View style={styles.outputWidgets}>
+          {visual.widgets.slice(0, 3).map((widget) => {
+            const Icon = widget.icon;
+            return (
+              <View key={widget.title} style={styles.outputWidget}>
+                <Icon color={widget.color} size={15} strokeWidth={2.8} />
+                <View style={styles.outputWidgetCopy}>
+                  <Text style={styles.outputWidgetValue}>{widget.value}</Text>
+                  <Text style={styles.outputWidgetLabel} numberOfLines={1}>{widget.title}</Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      </View>
+
+      <View style={[styles.outputLockCard, { backgroundColor: primary.color }]}>
+        <View style={styles.outputLockIcon}>
+          <PrimaryIcon color="#FFFFFF" size={16} strokeWidth={2.8} />
+        </View>
+        <View style={styles.outputLockCopy}>
+          <Text style={styles.outputLockTitle} numberOfLines={1}>{primary.title}</Text>
+          <Text style={styles.outputLockMeta} numberOfLines={1}>{primary.reason}</Text>
+        </View>
+        <SecondaryIcon color="rgba(255,255,255,0.76)" size={17} strokeWidth={2.7} />
       </View>
     </View>
   );
@@ -989,8 +1071,8 @@ function createOnboardingStyles(theme: AppTheme) {
     },
     heroTitle: {
       color: ink,
-      fontSize: 38,
-      lineHeight: 40,
+      fontSize: 34,
+      lineHeight: 37,
       fontWeight: "900",
       letterSpacing: 0
     },
@@ -998,6 +1080,37 @@ function createOnboardingStyles(theme: AppTheme) {
       color: muted,
       fontSize: 14,
       lineHeight: 19,
+      fontWeight: "800"
+    },
+    livePreviewStrip: {
+      flexDirection: "row",
+      gap: spacing.xs
+    },
+    livePreviewTile: {
+      flex: 1,
+      minHeight: 84,
+      borderRadius: 18,
+      backgroundColor: "#FFFFFF",
+      borderWidth: 1,
+      borderColor: "rgba(17,24,39,0.08)",
+      padding: 9,
+      justifyContent: "space-between"
+    },
+    livePreviewColor: {
+      width: 30,
+      height: 5,
+      borderRadius: 99
+    },
+    livePreviewLabel: {
+      color: ink,
+      fontSize: 11,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    livePreviewMeta: {
+      color: muted,
+      fontSize: 9,
+      lineHeight: 11,
       fontWeight: "800"
     },
     previewFrame: {
@@ -1460,6 +1573,75 @@ function createStyles(theme: AppTheme) {
     subtitle: { color: muted, fontSize: 13, lineHeight: 18, fontWeight: "800" },
     livePill: { borderRadius: 999, paddingHorizontal: 11, paddingVertical: 7 },
     livePillText: { fontSize: 11, fontWeight: "900" },
+    outputPreview: {
+      borderRadius: 28,
+      backgroundColor: "#FFFFFF",
+      borderWidth: 1,
+      borderColor: "rgba(17,24,39,0.07)",
+      padding: spacing.sm,
+      gap: spacing.sm,
+      shadowColor: shadow,
+      shadowOpacity: 0.06,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 }
+    },
+    outputIsland: {
+      minHeight: 84,
+      borderRadius: 24,
+      padding: spacing.sm,
+      justifyContent: "space-between",
+      overflow: "hidden"
+    },
+    outputIslandTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.xs },
+    outputIslandKicker: { color: "rgba(255,255,255,0.62)", fontSize: 10, fontWeight: "900", textTransform: "uppercase" },
+    outputLiveDot: { overflow: "hidden", borderRadius: 999, color: "#FFFFFF", paddingHorizontal: 9, paddingVertical: 4, fontSize: 10, fontWeight: "900" },
+    outputIslandTitle: { color: "#FFFFFF", fontSize: 18, lineHeight: 22, fontWeight: "900" },
+    outputIslandMeta: { color: "rgba(255,255,255,0.74)", fontSize: 11, lineHeight: 14, fontWeight: "800" },
+    outputRow: { flexDirection: "row", gap: spacing.sm },
+    outputWatch: {
+      width: 112,
+      minHeight: 140,
+      borderRadius: 32,
+      backgroundColor: "#05070B",
+      borderWidth: 4,
+      borderColor: "#1F2937",
+      padding: spacing.sm,
+      alignItems: "center",
+      gap: 3
+    },
+    outputWatchDate: { color: "rgba(255,255,255,0.54)", fontSize: 9, fontWeight: "900" },
+    outputWatchTime: { color: "#FFFFFF", fontSize: 22, lineHeight: 25, fontWeight: "900" },
+    outputWatchLabel: { color: "rgba(255,255,255,0.58)", fontSize: 9, fontWeight: "900" },
+    outputWatchValue: { color: "#FFFFFF", fontSize: 11, lineHeight: 14, fontWeight: "900", maxWidth: 82 },
+    outputWatchRing: { marginTop: 3, width: 38, height: 38, borderRadius: 19, borderWidth: 3, alignItems: "center", justifyContent: "center" },
+    outputWatchRingText: { fontSize: 13, fontWeight: "900" },
+    outputWidgets: { flex: 1, gap: spacing.xs },
+    outputWidget: {
+      minHeight: 42,
+      borderRadius: 15,
+      backgroundColor: "#F8FAFD",
+      borderWidth: 1,
+      borderColor: "rgba(17,24,39,0.06)",
+      paddingHorizontal: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs
+    },
+    outputWidgetCopy: { flex: 1, minWidth: 0 },
+    outputWidgetValue: { color: ink, fontSize: 15, lineHeight: 18, fontWeight: "900" },
+    outputWidgetLabel: { color: muted, fontSize: 10, lineHeight: 12, fontWeight: "900" },
+    outputLockCard: {
+      minHeight: 64,
+      borderRadius: 21,
+      padding: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    outputLockIcon: { width: 34, height: 34, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center" },
+    outputLockCopy: { flex: 1, minWidth: 0 },
+    outputLockTitle: { color: "#FFFFFF", fontSize: 14, lineHeight: 18, fontWeight: "900" },
+    outputLockMeta: { color: "rgba(255,255,255,0.78)", fontSize: 11, lineHeight: 14, fontWeight: "800" },
     grid: { gap: spacing.md },
     compactGrid: { gap: spacing.sm },
     panel: {

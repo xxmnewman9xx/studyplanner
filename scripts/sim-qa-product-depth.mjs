@@ -31,6 +31,7 @@ const captureTargets = [
   { key: "calendar-urgent", route: { tab: "plan", workloadState: "urgent" }, name: "16-calendar-urgent" },
   { key: "classes", route: { tab: "courses" }, name: "17-classes" },
   { key: "focus", route: { tab: "focus" }, name: "18-focus" },
+  { key: "notes", route: { tab: "notes" }, name: "18a-notes" },
   { key: "widgets", route: { tab: "more" }, name: "19-widgets-ocean" },
   { key: "widgets-graphite", route: { tab: "more", appTheme: "graphite", widgetPalette: "graphite", widgetBackground: "dark" }, name: "20-widgets-graphite" },
   { key: "widgets-forest", route: { tab: "more", appTheme: "mint", widgetPalette: "forest", widgetBackground: "glass" }, name: "21-widgets-forest" },
@@ -52,7 +53,7 @@ const requestedTargets = (process.env.STUDYPLANNER_SIM_CAPTURE_TABS || "")
   .map((target) => target.trim())
   .filter(Boolean);
 const targets = requestedTargets.length
-  ? captureTargets.filter((target) => requestedTargets.includes(target.key) || requestedTargets.includes(target.route.tab))
+  ? captureTargets.filter((target) => requestedTargets.includes(target.key) || requestedTargets.includes(`tab:${target.route.tab}`))
   : captureTargets;
 const finalWidgetMode = outDir.includes("final_widgets");
 const manifestEntries = [];

@@ -378,7 +378,7 @@ function scrollYForCaptureScreen(screen: MarketingCaptureScreen | undefined) {
   if (screen === "extracted") return 520;
   if (screen === "review_edit") return 820;
   if (screen === "agenda") return 560;
-  return null;
+  return 0;
 }
 
 function assignmentsForCaptureWorkload(state: CaptureRoute["workloadState"]) {
@@ -456,6 +456,8 @@ function AppContent() {
   );
   const [targetGradePercent, setTargetGradePercent] = useState(90);
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
+  const studentFirstName = settings.studentName?.trim().split(/\s+/)[0] || "";
+  const studentLifeTitle = studentFirstName ? `${studentFirstName}'s Life OS` : "Student Life OS";
   const [parsedImports, setParsedImports] = useState<ParsedImport[]>([]);
   const [parsedItems, setParsedItems] = useState<ParsedItem[]>([]);
   const [widgetPresets, setWidgetPresets] = useState<WidgetPreset[]>(defaultWidgetPresets);
@@ -1274,8 +1276,11 @@ function AppContent() {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.mobileTopBar}>
-              <AppLogo showWordmark={width >= 360} size={28} />
-              <ModeToggle compact style={styles.mobileModeToggle} />
+              <AppLogo showWordmark={false} size={28} />
+              <View style={styles.mobileNavCopy}>
+                <Text style={styles.mobileNavEyebrow}>StudyPlanner Plus</Text>
+                <Text style={styles.mobileNavTitle}>Student Life OS</Text>
+              </View>
             </View>
             {settings ? <UpgradeScreen settings={settings} hardMode /> : <UpgradeScreen hardMode />}
           </ScrollView>
@@ -1326,8 +1331,14 @@ function AppContent() {
         >
           {!tablet ? (
             <View style={styles.mobileTopBar}>
-              <AppLogo showWordmark={width >= 360} size={28} />
-              <ModeToggle compact style={styles.mobileModeToggle} />
+              <AppLogo showWordmark={false} size={28} />
+              <View style={styles.mobileNavCopy}>
+                <Text style={styles.mobileNavEyebrow}>StudyPlanner: Syllabus AI</Text>
+                <Text style={styles.mobileNavTitle}>{labelForTab(activeTab, t)}</Text>
+              </View>
+              <TouchableOpacity accessibilityRole="button" style={styles.mobileLifeButton} onPress={() => openTab("more")}>
+                <Sparkles color={colors.ink} size={17} />
+              </TouchableOpacity>
             </View>
           ) : null}
           {tablet ? (
@@ -1894,8 +1905,36 @@ function createStyles(theme: AppTheme, tablet = false) {
       marginBottom: 14,
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
+      justifyContent: "flex-start",
       gap: spacing.sm
+    },
+    mobileNavCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 1
+    },
+    mobileNavEyebrow: {
+      color: colors.faint,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    mobileNavTitle: {
+      color: colors.ink,
+      fontSize: 17,
+      lineHeight: 21,
+      fontWeight: "900"
+    },
+    mobileLifeButton: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      backgroundColor: "#F3F6FB",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(17,24,39,0.08)",
+      alignItems: "center",
+      justifyContent: "center"
     },
     mobileModeToggle: {
       flexShrink: 0

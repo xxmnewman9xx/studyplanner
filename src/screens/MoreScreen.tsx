@@ -28,7 +28,6 @@ import { LiquidGlassWidgetPreview } from "../components/LiquidGlass";
 import { ModeToggle } from "../components/ModeToggle";
 import { LifeStudioSetup } from "../components/LifeStudioUI";
 import { SectionHeader } from "../components/SectionHeader";
-import { StudentLifeShell } from "../components/StudentLifeSystem";
 import {
   Assignment,
   Course,
@@ -607,16 +606,6 @@ export function MoreScreen({
 
   return (
     <View>
-      <StudentLifeShell
-        settings={settings}
-        surface="life"
-        metrics={[
-          { label: t("tabs.widgets", "Widgets"), value: String(canonicalWidgetPresets.length), color: "#0A84FF" },
-          { label: t("tabs.notes", "Notes"), value: String(notes.length), color: "#FF9F0A" },
-          { label: t("tabs.focus", "Focus"), value: String(focusSessions.length), color: "#30D158" }
-        ]}
-        action={{ label: t("more.widget_studio", "Widget DNA") }}
-      />
       <LifeStudioSetup settings={settings} onUpdateSettings={onUpdateSettings} />
       <View style={styles.studioShell}>
         <View style={styles.studioWorkbench}>
@@ -1355,6 +1344,10 @@ function createStyles(theme: AppTheme) {
   const { colors, radii, spacing } = theme;
 
   return StyleSheet.create({
+    lifePreviewStrip: {
+      gap: spacing.sm,
+      marginBottom: spacing.md
+    },
     studioShell: {
       gap: spacing.md,
       marginBottom: spacing.md

@@ -1,0 +1,25 @@
+{
+  "locale": "runtime",
+  "device": "D2F3CBA7-D21B-41FD-8ACC-71E250A2B9B9",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "focus",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "focus"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/student-life-os-2026-05-31-v5/18-focus.png",
+  "bytes": 360301,
+  "sha256": "61bb57b4bac4dbd8a63ccff22a7d1cd6c5be8aa63b4f8fec30e3e28997dc2b2a",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "1e25641",
+  "timestamp": "2026-05-31T17:44:11.963Z"
+}

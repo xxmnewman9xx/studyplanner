@@ -906,7 +906,7 @@ function StudentLifeFeedCard({ card }: { card: StudentLifeFeedCardModel }) {
   const Icon = card.Icon;
   return (
     <TouchableOpacity accessibilityRole="button" style={[styles.studentLifeCard, { backgroundColor: card.color }]}>
-      <View style={[styles.studentLifeCardGlow, { backgroundColor: card.accent }]} />
+      <View style={[styles.studentLifeCardBand, { backgroundColor: card.accent }]} />
       <View style={styles.studentLifeCardTop}>
         <View style={styles.studentLifeCardIcon}>
           <Icon color="#FFFFFF" size={18} strokeWidth={2.8} />
@@ -915,6 +915,7 @@ function StudentLifeFeedCard({ card }: { card: StudentLifeFeedCardModel }) {
       </View>
       <Text style={styles.studentLifeCardTitle} numberOfLines={2}>{card.title}</Text>
       <Text style={styles.studentLifeCardReason} numberOfLines={2}>{card.reason}</Text>
+      <Text style={styles.studentLifeCardAction}>Open signal →</Text>
     </TouchableOpacity>
   );
 }
@@ -1083,8 +1084,8 @@ function createStyles(theme: AppTheme) {
       marginBottom: spacing.sm
     },
     studentLifeCard: {
-      minHeight: 132,
-      borderRadius: 26,
+      minHeight: 142,
+      borderRadius: 20,
       padding: spacing.lg,
       gap: spacing.xs,
       overflow: "hidden",
@@ -1094,14 +1095,13 @@ function createStyles(theme: AppTheme) {
       shadowOffset: { width: 0, height: 10 },
       elevation: 2
     },
-    studentLifeCardGlow: {
+    studentLifeCardBand: {
       position: "absolute",
-      right: -42,
-      top: -54,
-      width: 142,
-      height: 142,
-      borderRadius: 71,
-      opacity: 0.24
+      right: 0,
+      top: 0,
+      bottom: 0,
+      width: 9,
+      opacity: 0.92
     },
     studentLifeCardTop: {
       flexDirection: "row",
@@ -1136,6 +1136,13 @@ function createStyles(theme: AppTheme) {
       fontSize: 14,
       lineHeight: 19,
       fontWeight: "800"
+    },
+    studentLifeCardAction: {
+      marginTop: 2,
+      color: "#FFFFFF",
+      fontSize: 13,
+      lineHeight: 16,
+      fontWeight: "900"
     },
     demoCard: {
       gap: spacing.sm,

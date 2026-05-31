@@ -4,7 +4,7 @@ import { Bell, CalendarSync, Check, Crown, FileScan, Layers3, Palette, ShieldChe
 import { AppButton } from "../components/AppButton";
 import { AppLogo, GlassCard } from "../components/AppleComponents";
 import { Badge } from "../components/Badge";
-import { StudentLifeShell } from "../components/StudentLifeSystem";
+import { LifeWatchPreview, LifeWidgetPreview, StudentLifeShell } from "../components/StudentLifeSystem";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { purchaseConfig } from "../services/purchaseConfig";
@@ -98,6 +98,22 @@ export function UpgradeScreen({ settings, onContinueAfterPurchase, hardMode = fa
           { label: t("tabs.focus", "Focus"), value: "Smart", color: "#FF9F0A" }
         ]}
       />
+      <View style={styles.unlockComparison}>
+        <View style={styles.beforeTile}>
+          <Text style={styles.compareKicker}>{t("paywall.before_plus", "Before Plus")}</Text>
+          <Text style={styles.compareTitle}>{t("paywall.before_plus_title", "Deadlines stay inside the app.")}</Text>
+          <Text style={styles.compareCopy}>{t("paywall.before_plus_copy", "You can review imports, but the OS does not stay live across your week.")}</Text>
+        </View>
+        <View style={styles.afterTile}>
+          <Text style={[styles.compareKicker, styles.compareOnDarkMuted]}>{t("paywall.with_plus", "With Plus")}</Text>
+          <Text style={[styles.compareTitle, styles.compareOnDark]}>{t("paywall.with_plus_title", "Your OS follows you.")}</Text>
+          <Text style={[styles.compareCopy, styles.compareOnDarkMuted]}>{t("paywall.with_plus_copy", "Widgets, forecast, focus timing, and reminders adapt around your classes.")}</Text>
+        </View>
+      </View>
+      <View style={styles.previewStrip}>
+        <LifeWidgetPreview settings={settings} />
+        <LifeWatchPreview settings={settings} />
+      </View>
       <GlassCard tone="hero" style={styles.heroCard}>
         <View style={styles.heroGlow} />
         <View style={styles.heroTopRow}>
@@ -440,6 +456,57 @@ function createStyles(theme: AppTheme) {
     screen: {
       gap: spacing.md
     },
+    previewStrip: {
+      gap: spacing.sm
+    },
+    unlockComparison: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    beforeTile: {
+      flex: 1,
+      minHeight: 118,
+      borderRadius: 22,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.06)" : "#F7F8FB",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      padding: spacing.sm,
+      gap: 4
+    },
+    afterTile: {
+      flex: 1,
+      minHeight: 118,
+      borderRadius: 22,
+      backgroundColor: "#07113A",
+      padding: spacing.sm,
+      gap: 4,
+      overflow: "hidden"
+    },
+    compareKicker: {
+      color: theme.isDark ? colors.faint : "#6B7280",
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    compareTitle: {
+      color: colors.ink,
+      fontSize: 14,
+      lineHeight: 18,
+      fontWeight: "900"
+    },
+    compareCopy: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
+    },
+    compareOnDark: {
+      color: "#FFFFFF"
+    },
+    compareOnDarkMuted: {
+      color: "rgba(255,255,255,0.72)"
+    },
     heroCard: {
       padding: spacing.md,
       gap: spacing.xs,
@@ -447,12 +514,11 @@ function createStyles(theme: AppTheme) {
     },
     heroGlow: {
       position: "absolute",
-      right: -50,
-      top: -70,
-      width: 190,
-      height: 190,
-      borderRadius: 95,
-      backgroundColor: theme.isDark ? "rgba(53,242,208,0.08)" : "rgba(255,255,255,0.12)"
+      left: 0,
+      right: 0,
+      top: 0,
+      height: 8,
+      backgroundColor: theme.isDark ? "rgba(53,242,208,0.20)" : "rgba(17,24,39,0.08)"
     },
     heroTopRow: {
       flexDirection: "row",

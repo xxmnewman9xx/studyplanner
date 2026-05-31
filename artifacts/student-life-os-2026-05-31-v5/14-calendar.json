@@ -1,0 +1,25 @@
+{
+  "locale": "runtime",
+  "device": "D2F3CBA7-D21B-41FD-8ACC-71E250A2B9B9",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "plan",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "plan"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/student-life-os-2026-05-31-v5/14-calendar.png",
+  "bytes": 296184,
+  "sha256": "194129ce34c9c1d645e5d6e9d323a9195e93773774328e95a7c3cb3db95dce18",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "1e25641",
+  "timestamp": "2026-05-31T17:44:11.963Z"
+}
