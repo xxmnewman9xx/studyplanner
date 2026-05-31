@@ -1,0 +1,25 @@
+{
+  "locale": "runtime",
+  "device": "77573299-A148-49D7-95B6-DB5855B9305A",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "grades",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "grades"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/student-life-os-captures-vertical/25-grades.png",
+  "bytes": 460999,
+  "sha256": "6fcee44962aba331b1e46655830df65e1aed0d88338c38ae144fe0757fe629e2",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "64c3672",
+  "timestamp": "2026-05-31T16:24:53.751Z"
+}

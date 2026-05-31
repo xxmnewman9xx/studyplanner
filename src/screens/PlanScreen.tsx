@@ -8,7 +8,8 @@ import {
 } from "../components/AppleComponents";
 import { AppButton } from "../components/AppButton";
 import { SectionHeader } from "../components/SectionHeader";
-import { Assignment, Course, FocusSession } from "../models";
+import { StudentLifeShell } from "../components/StudentLifeSystem";
+import { Assignment, Course, FocusSession, UserSettings } from "../models";
 import {
   getBusyWeekInsight,
   getCalendarEventsByDay,
@@ -21,6 +22,7 @@ import { useAppTheme } from "../themeContext";
 import { useI18n } from "../i18n";
 
 type PlanScreenProps = {
+  settings?: UserSettings;
   assignments: Assignment[];
   courses: Course[];
   sessions: FocusSession[];
@@ -34,7 +36,7 @@ type PlanScreenProps = {
 
 type TranslateFn = (key: string, fallback?: string) => string;
 
-export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, onOpenFocus, onUpdateStatus, onRecordSession, onAddQuickAssignment, onOpenScan }: PlanScreenProps) {
+export function PlanScreen({ settings, assignments, courses, sessions, onOpenAssignment, onOpenFocus, onUpdateStatus, onRecordSession, onAddQuickAssignment, onOpenScan }: PlanScreenProps) {
   const { theme } = useAppTheme();
   const { t, locale } = useI18n();
   const { colors } = theme;
@@ -131,25 +133,16 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.planPanel, styles.hero]}>
-        <View style={styles.heroTop}>
-          <View style={styles.heroTitleBlock}>
-            <Text style={styles.kicker}>{t("tabs.calendar", "Calendar")}</Text>
-            <Text style={styles.title}>{t("plan.title", "See your semester workload.")}</Text>
-          </View>
-          <View style={styles.heroIcon}>
-            <Sparkles color={colors.heroText} size={19} />
-          </View>
-        </View>
-        <Text style={styles.heroCopy}>
-          {t("plan.hero_copy", "Weeks are grouped by urgency so you can see where school gets heavy.")}
-        </Text>
-        <View style={styles.heroStats}>
-          <MiniStat label={t("plan.stat_open", "Open")} value={String(openAssignments.length)} />
-          <MiniStat label={t("plan.stat_load", "Load")} value={formatHoursValue(totalOpenMinutes || weekSummary.totalMinutes, t)} />
-          <MiniStat label={t("plan.stat_late", "Late")} value={String(overdue.length)} />
-        </View>
-      </View>
+      <StudentLifeShell
+        settings={settings}
+        surface="forecast"
+        metrics={[
+          { label: t("plan.stat_open", "Open"), value: String(openAssignments.length), color: "#0A84FF" },
+          { label: t("plan.stat_load", "Load"), value: formatHoursValue(totalOpenMinutes || weekSummary.totalMinutes, t), color: "#FF9F0A" },
+          { label: t("plan.stat_late", "Late"), value: String(overdue.length), color: overdue.length ? "#FF375F" : "#30D158" }
+        ]}
+        action={{ label: primaryActionLabel, onPress: primaryAssignmentId ? () => onOpenAssignment(primaryAssignmentId) : onOpenScan }}
+      />
 
       <View style={[styles.planPanel, styles.captureCard]}>
         <Text style={styles.catchUpBadgeText}>{t("plan.capture", "Capture")}</Text>

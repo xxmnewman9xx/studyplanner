@@ -1,0 +1,25 @@
+{
+  "locale": "runtime",
+  "device": "77573299-A148-49D7-95B6-DB5855B9305A",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "subscribe",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "subscribe"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/student-life-os-captures-vertical/24-paywall.png",
+  "bytes": 357958,
+  "sha256": "3b8ca337d6d18e4d9fd783105db0175d353e77a05278511cb0c86119c0a8292f",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "64c3672",
+  "timestamp": "2026-05-31T16:24:53.751Z"
+}

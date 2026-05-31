@@ -15,13 +15,15 @@ import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
 import { GlassCard } from "../components/AppleComponents";
 import { SectionHeader } from "../components/SectionHeader";
+import { StudentLifeShell } from "../components/StudentLifeSystem";
 import {
   Assignment,
   AssignmentKind,
   ParsedImport,
   ParsedItem,
   SyllabusImportSource,
-  SyllabusParseResult
+  SyllabusParseResult,
+  UserSettings
 } from "../models";
 import {
   parseSyllabus,
@@ -54,6 +56,7 @@ import {
 } from "../services/parserContract";
 
 type ImportScreenProps = {
+  settings?: UserSettings;
   assignments: Assignment[];
   parsedImports: ParsedImport[];
   parsedItems: ParsedItem[];
@@ -70,6 +73,7 @@ type TranslateFn = (key: string, fallback?: string) => string;
 type CaptureUiStatus = ParsedImport["status"] | "requesting_permission" | "permission_denied" | "cancelled" | "unavailable";
 
 export function ImportScreen({
+  settings,
   assignments,
   parsedImports,
   parsedItems,
@@ -390,15 +394,28 @@ export function ImportScreen({
 
   return (
     <View>
-      <View style={styles.header}>
-        <Text style={styles.kicker}>{t("tabs.scan", "Scan")}</Text>
-        <Text style={styles.title}>{t("import.title", "Turn school material into reviewed assignments.")}</Text>
-        <Text style={styles.subtitle}>
-          {imageParsingAvailable
-            ? t("import.subtitle_images", "AI-assisted imports can use camera photos, saved images, text-based PDFs, or pasted syllabus text when OCR is configured.")
-            : t("import.subtitle", "Text/PDF parsing is ready. Photo capture is available, but OCR review is not enabled in this build.")}
-        </Text>
-      </View>
+      <StudentLifeShell
+        settings={settings}
+        surface={needsReviewCount > 0 ? "review" : "scan"}
+        copy={
+          needsReviewCount > 0
+            ? {
+                title: t("import.review_work", "Fix imported work before it appears."),
+                detail: t("import.no_silent_import", "Nothing is added until you confirm the review list.")
+              }
+            : {
+                title: t("import.title", "Import your syllabus safely."),
+                detail: imageParsingAvailable
+                  ? t("import.subtitle_images", "Take a photo, upload a file, or paste syllabus text. You review every row before it reaches Today.")
+                  : t("import.photo_disabled_message", "Photo capture is available, but OCR review is not enabled in this build. Upload a text PDF or paste syllabus text instead.")
+              }
+        }
+        metrics={[
+          { label: t("import.assignments", "Assignments"), value: String(counts?.assignments || parsedItems.length || 0), color: "#0A84FF" },
+          { label: t("today.metric_review", "Review"), value: String(needsReviewCount), color: needsReviewCount ? "#FF375F" : "#30D158" },
+          { label: t("import.valid_dates", "Valid dates"), value: String(confirmableDraftCount), color: "#FF9F0A" }
+        ]}
+      />
 
       <View style={styles.scanHero}>
         <View style={styles.scanHeroBaseTint} />

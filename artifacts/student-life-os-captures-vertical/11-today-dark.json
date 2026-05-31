@@ -1,0 +1,26 @@
+{
+  "locale": "runtime",
+  "device": "77573299-A148-49D7-95B6-DB5855B9305A",
+  "appearance": "dark",
+  "theme": "default",
+  "widgetType": "today",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "today",
+    "themeMode": "dark"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/student-life-os-captures-vertical/11-today-dark.png",
+  "bytes": 285197,
+  "sha256": "be66004bee61913869af3ad753326ee06d86b97956ad70d6037f998cc54e8886",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "64c3672",
+  "timestamp": "2026-05-31T16:24:53.751Z"
+}

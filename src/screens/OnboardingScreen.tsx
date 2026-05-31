@@ -135,6 +135,7 @@ const previewNow = new Date("2026-05-25T09:41:00");
 const defaultOnboardingWidgetTheme = widgetThemeDefinitions.ocean;
 
 export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
+  const { t } = useI18n();
   const [appTheme, setAppTheme] = useState<ThemeAccent>(defaultOnboardingWidgetTheme.appTheme);
   const [widgetPalette, setWidgetPalette] = useState<WidgetPalette>(defaultOnboardingWidgetTheme.palette);
   const [widgetStyle, setWidgetStyle] = useState<WidgetBackground>(defaultOnboardingWidgetTheme.background);
@@ -145,6 +146,26 @@ export function OnboardingScreen({ onFinish }: OnboardingScreenProps) {
     widgetDNA: defaultSettings.widgetDNA,
     watchDNA: defaultSettings.watchDNA
   });
+  const localizedSlides = useMemo(
+    () =>
+      slides.map((slide) => ({
+        ...slide,
+        title: t(slide.titleKey, slide.title),
+        copy: t(slide.copyKey, slide.copy),
+        cta: t(slide.ctaKey || "common.next", slide.cta)
+      })),
+    [t]
+  );
+  const localizedThemeChoices = useMemo(
+    () =>
+      widgetThemeOrder.map((themeId) => ({
+        themeId,
+        label: t(widgetThemeDefinitions[themeId].labelKey, widgetThemeDefinitions[themeId].fallbackLabel)
+      })),
+    [t]
+  );
+  void localizedSlides;
+  void localizedThemeChoices;
 
   const finish = () => {
     onFinish("paywall", {

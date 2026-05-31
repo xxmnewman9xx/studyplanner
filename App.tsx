@@ -50,6 +50,7 @@ import { AppTheme, ThemeAccent, ThemeMode } from "./src/theme";
 import { AppThemeProvider, useAppTheme } from "./src/themeContext";
 import { AppLogo } from "./src/components/AppleComponents";
 import { ModeToggle } from "./src/components/ModeToggle";
+import { lifeTabBarTokens } from "./src/components/StudentLifeSystem";
 import {
   defaultAssignments,
   defaultCourses,
@@ -1276,7 +1277,7 @@ function AppContent() {
               <AppLogo showWordmark={width >= 360} size={28} />
               <ModeToggle compact style={styles.mobileModeToggle} />
             </View>
-            <UpgradeScreen hardMode />
+            {settings ? <UpgradeScreen settings={settings} hardMode /> : <UpgradeScreen hardMode />}
           </ScrollView>
         </View>
       </SafeAreaView>
@@ -1398,6 +1399,7 @@ function AppContent() {
               ) : null}
               {activeTab === "import" ? (
                 <ImportScreen
+                  settings={settings}
                   assignments={activeAssignments}
                   parsedImports={parsedImports}
                   parsedItems={parsedItems}
@@ -1410,6 +1412,7 @@ function AppContent() {
               ) : null}
               {activeTab === "plan" ? (
                 <PlanScreen
+                  settings={settings}
                   assignments={activeAssignments}
                   courses={courses}
                   sessions={focusSessions}
@@ -1423,6 +1426,7 @@ function AppContent() {
               ) : null}
               {activeTab === "courses" ? (
                 <CoursesScreen
+                  settings={settings}
                   semester={semester}
                   courses={courses}
                   assignments={activeAssignments}
@@ -1437,6 +1441,7 @@ function AppContent() {
               ) : null}
               {activeTab === "notes" ? (
                 <NotesScreen
+                  settings={settings}
                   courses={courses}
                   assignments={activeAssignments}
                   focusSessions={focusSessions}
@@ -1450,6 +1455,7 @@ function AppContent() {
               ) : null}
               {activeTab === "grades" ? (
                 <GradesScreen
+                  settings={settings}
                   courses={courses}
                   assignments={activeAssignments}
                   gradeItems={gradeItems}
@@ -1461,6 +1467,7 @@ function AppContent() {
               ) : null}
               {activeTab === "focus" ? (
                 <FocusScreen
+                  settings={settings}
                   assignments={activeAssignments}
                   courses={courses}
                   defaultMinutes={getRecommendedFocusDuration(activeAssignments, focusSessions, settings)}
@@ -1495,6 +1502,7 @@ function AppContent() {
               ) : null}
               {activeTab === "subscribe" ? (
                 <UpgradeScreen
+                  settings={settings}
                   hardMode={!subscription.isPremium}
                   onContinueAfterPurchase={subscription.isPremium ? () => openTab(postPaywallTab) : undefined}
                 />
@@ -1520,7 +1528,7 @@ function AppContent() {
                   openTab(tab.id);
                 }}
               >
-                <Icon color={active ? colors.heroText : colors.faint} size={20} />
+                <Icon color={active ? (theme.isDark ? colors.heroText : colors.ink) : colors.faint} size={20} />
                 <Text style={[styles.tabLabel, active ? styles.tabLabelActive : null]}>
                   {mobileTabLabel(tab.id, t(tab.labelKey), t)}
                 </Text>
@@ -1855,7 +1863,7 @@ function createStyles(theme: AppTheme, tablet = false) {
     },
     appShell: {
       flex: 1,
-      backgroundColor: "#F7F9FD",
+      backgroundColor: "#FFFFFF",
       overflow: "hidden",
       flexDirection: tablet ? "row" : "column"
     },
@@ -1866,8 +1874,8 @@ function createStyles(theme: AppTheme, tablet = false) {
       width: "100%",
       maxWidth: tablet ? 980 : undefined,
       alignSelf: tablet ? "center" : undefined,
-      paddingHorizontal: tablet ? spacing.xl : spacing.md,
-      paddingTop: tablet ? spacing.xl : spacing.md,
+      paddingHorizontal: tablet ? spacing.xl : 18,
+      paddingTop: tablet ? spacing.xl : 10,
       paddingBottom: tablet ? spacing.xxl : 156
     },
     hardPaywallContent: {
@@ -1882,8 +1890,8 @@ function createStyles(theme: AppTheme, tablet = false) {
       flex: 1
     },
     mobileTopBar: {
-      minHeight: 44,
-      marginBottom: spacing.sm,
+      minHeight: 42,
+      marginBottom: 14,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
@@ -2113,21 +2121,21 @@ function createStyles(theme: AppTheme, tablet = false) {
       gap: spacing.xs
     },
     tabBar: {
-      minHeight: 62,
+      minHeight: lifeTabBarTokens.height,
       marginHorizontal: spacing.md,
-      marginBottom: spacing.md,
+      marginBottom: 12,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      borderRadius: 24,
-      borderWidth: 1,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(18,20,23,0.08)",
-      backgroundColor: theme.isDark ? "rgba(10, 15, 26, 0.98)" : "rgba(255,255,255,0.96)",
-      padding: spacing.xs,
+      borderRadius: lifeTabBarTokens.radius,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(17,24,39,0.08)",
+      backgroundColor: theme.isDark ? "rgba(10, 15, 26, 0.98)" : lifeTabBarTokens.background,
+      padding: 7,
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.24 : 0.08,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: theme.isDark ? 0.18 : 0.08,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 9 },
       elevation: 3
     },
     tabButton: {
@@ -2136,25 +2144,25 @@ function createStyles(theme: AppTheme, tablet = false) {
       minHeight: 48,
       alignItems: "center",
       justifyContent: "center",
-      borderRadius: 17,
+      borderRadius: 22,
       gap: 2
     },
     tabButtonActive: {
-      backgroundColor: colors.ink,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.12)" : lifeTabBarTokens.activeBackground,
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.12 : 0.04,
-      shadowRadius: 4,
-      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0,
+      shadowRadius: 0,
+      shadowOffset: { width: 0, height: 0 },
       elevation: 1
     },
     tabLabel: {
-      color: colors.muted,
+      color: theme.isDark ? colors.muted : lifeTabBarTokens.inactive,
       fontSize: 8,
       lineHeight: 10,
       fontWeight: "900"
     },
     tabLabelActive: {
-      color: "#FFFFFF"
+      color: theme.isDark ? "#FFFFFF" : colors.ink
     },
     lockDot: {
       position: "absolute",

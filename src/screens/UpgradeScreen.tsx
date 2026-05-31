@@ -4,13 +4,16 @@ import { Bell, CalendarSync, Check, Crown, FileScan, Layers3, Palette, ShieldChe
 import { AppButton } from "../components/AppButton";
 import { AppLogo, GlassCard } from "../components/AppleComponents";
 import { Badge } from "../components/Badge";
+import { StudentLifeShell } from "../components/StudentLifeSystem";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { purchaseConfig } from "../services/purchaseConfig";
 import { PaywallProduct, useSubscription } from "../services/subscriptions";
 import { useI18n } from "../i18n";
+import { UserSettings } from "../models";
 
 type UpgradeScreenProps = {
+  settings?: UserSettings;
   onContinueAfterPurchase?: () => void;
   hardMode?: boolean;
 };
@@ -20,12 +23,13 @@ type LegalDocument = "terms" | "privacy";
 const paidFeatures = [
   { icon: FileScan, titleKey: "paywall.feature_scans", detailKey: "paywall.feature_scans_detail", fallbackTitle: "Unlimited syllabus imports", fallbackDetail: "AI-assisted text/PDF imports, pasted text, and re-imports when classes change." },
   { icon: Palette, titleKey: "paywall.feature_life_studio", detailKey: "paywall.feature_life_studio_detail", fallbackTitle: "Full Life Studio", fallbackDetail: "Identity, OS behavior, friction points, Widget DNA, and Watch DNA personalization." },
+  { icon: Timer, titleKey: "paywall.feature_focus", detailKey: "paywall.feature_focus_detail", fallbackTitle: "Smart focus", fallbackDetail: "Recommended focus windows, shorter blocks, and session history adapt to the student's OS." },
   { icon: TrendingUp, titleKey: "paywall.feature_forecast", detailKey: "paywall.feature_forecast_detail", fallbackTitle: "Advanced forecasting", fallbackDetail: "Busiest week, grade impact, future risk, and focus-window recommendations." },
   { icon: Layers3, titleKey: "paywall.feature_widgets", detailKey: "paywall.feature_widgets_detail", fallbackTitle: "Adaptive widgets and watch", fallbackDetail: "Save real Next Up, Today List, Week, Class Progress, and watch-ready presets." },
   { icon: Bell, titleKey: "paywall.feature_calendar", detailKey: "paywall.feature_calendar_detail", fallbackTitle: "Smart reminders", fallbackDetail: "Send reviewed deadlines to reminders and calendar with Student Life OS timing." }
 ];
 
-export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: UpgradeScreenProps) {
+export function UpgradeScreen({ settings, onContinueAfterPurchase, hardMode = false }: UpgradeScreenProps) {
   const { theme } = useAppTheme();
   const { t } = useI18n();
   const { colors } = theme;
@@ -73,7 +77,7 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
         : hardMode
             ? t("paywall.plans_failed_locked_detail", "Plans could not load. Restore Purchases stays available, and this screen will not unlock the planner without a valid store entitlement.")
             : t("paywall.plans_failed_detail", "Plans could not load yet. Restore Purchases stays available for existing subscribers.");
-  const heroTitle = "Unlock your Student Life OS";
+  const heroTitle = hardMode ? "Unlock StudyPlanner" : "Unlock your Student Life OS";
   const localizedHeroTitle = t("paywall.title", heroTitle);
   const heroSubtitle = hardMode
     ? t("paywall.hard_subtitle", "Unlock unlimited syllabus imports, full Life Studio, adaptive widgets, watch signals, smart reminders, and forecasting.")
@@ -85,6 +89,15 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
 
   return (
     <View style={styles.screen}>
+      <StudentLifeShell
+        settings={settings}
+        surface="paywall"
+        metrics={[
+          { label: t("paywall.imports", "Imports"), value: "Plus", color: "#0A84FF" },
+          { label: t("tabs.widgets", "Widgets"), value: "Live", color: "#30D158" },
+          { label: t("tabs.focus", "Focus"), value: "Smart", color: "#FF9F0A" }
+        ]}
+      />
       <GlassCard tone="hero" style={styles.heroCard}>
         <View style={styles.heroGlow} />
         <View style={styles.heroTopRow}>

@@ -9,7 +9,8 @@ import {
 } from "../components/AppleComponents";
 import { AppButton } from "../components/AppButton";
 import { SectionHeader } from "../components/SectionHeader";
-import { Assignment, AssignmentKind, Course, Semester, StudyNote } from "../models";
+import { StudentLifeShell } from "../components/StudentLifeSystem";
+import { Assignment, AssignmentKind, Course, Semester, StudyNote, UserSettings } from "../models";
 import {
   getClassAssignmentCounts,
   groupMeetingsByDay
@@ -21,6 +22,7 @@ import { courseEmoji } from "../utils/courseVisuals";
 import { useI18n } from "../i18n";
 
 type CoursesScreenProps = {
+  settings?: UserSettings;
   semester: Semester;
   courses: Course[];
   assignments: Assignment[];
@@ -41,6 +43,7 @@ type CoursesScreenProps = {
 type TranslateFn = (key: string, fallback?: string) => string;
 
 export function CoursesScreen({
+  settings,
   semester,
   courses,
   assignments,
@@ -114,6 +117,16 @@ export function CoursesScreen({
 
   return (
     <View>
+      <StudentLifeShell
+        settings={settings}
+        surface="classes"
+        metrics={[
+          { label: t("tabs.classes", "Classes"), value: String(courses.length), color: "#0A84FF" },
+          { label: t("classes.open", "Open"), value: String(openAssignmentCount), color: "#FF9F0A" },
+          { label: t("today.metric_review", "Review"), value: String(needsReviewCount), color: needsReviewCount ? "#FF375F" : "#30D158" }
+        ]}
+        action={{ label: courses.length ? t("classes.add_homework", "Add homework") : t("classes.add_first_class", "Add first class") }}
+      />
       <GlassCard tone="hero" style={styles.hero}>
         <View style={styles.heroTop}>
           <View style={styles.heroTitleBlock}>

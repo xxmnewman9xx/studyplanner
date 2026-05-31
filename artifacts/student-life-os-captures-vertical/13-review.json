@@ -1,0 +1,26 @@
+{
+  "locale": "runtime",
+  "device": "77573299-A148-49D7-95B6-DB5855B9305A",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "import",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "review_edit",
+  "route": {
+    "tab": "import",
+    "screen": "review_edit"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/student-life-os-captures-vertical/13-review.png",
+  "bytes": 285796,
+  "sha256": "067bd136a17eb111863ba8a167fc05da95b881edc8376fa783f0ac3d2d7baf32",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "64c3672",
+  "timestamp": "2026-05-31T16:24:53.751Z"
+}

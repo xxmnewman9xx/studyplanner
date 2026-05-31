@@ -28,6 +28,7 @@ import { LiquidGlassWidgetPreview } from "../components/LiquidGlass";
 import { ModeToggle } from "../components/ModeToggle";
 import { LifeStudioSetup } from "../components/LifeStudioUI";
 import { SectionHeader } from "../components/SectionHeader";
+import { StudentLifeShell } from "../components/StudentLifeSystem";
 import {
   Assignment,
   Course,
@@ -606,13 +607,23 @@ export function MoreScreen({
 
   return (
     <View>
+      <StudentLifeShell
+        settings={settings}
+        surface="life"
+        metrics={[
+          { label: t("tabs.widgets", "Widgets"), value: String(canonicalWidgetPresets.length), color: "#0A84FF" },
+          { label: t("tabs.notes", "Notes"), value: String(notes.length), color: "#FF9F0A" },
+          { label: t("tabs.focus", "Focus"), value: String(focusSessions.length), color: "#30D158" }
+        ]}
+        action={{ label: t("more.widget_studio", "Widget DNA") }}
+      />
       <LifeStudioSetup settings={settings} onUpdateSettings={onUpdateSettings} />
       <View style={styles.studioShell}>
         <View style={styles.studioWorkbench}>
           <View style={styles.studioTopBar}>
             <View style={styles.studioTitleBlock}>
               <Text style={styles.studioEyebrow}>{t("more.widget_studio", "Widget DNA")}</Text>
-              <Text style={styles.studioTitle}>{t("more.studio_title", "Tune the widgets and watch signals your Student Life OS should surface.")}</Text>
+              <Text style={styles.studioTitle}>{t("more.studio_title", "Design the widget you want to see at a glance.")}</Text>
             </View>
             <View style={styles.nativeStatusChip}>
               <View style={[styles.nativeStatusDot, nativeWidgetStatus.state === "synced" ? styles.nativeStatusDotSynced : null]} />

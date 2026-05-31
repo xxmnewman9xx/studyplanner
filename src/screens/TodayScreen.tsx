@@ -26,6 +26,7 @@ import {
 } from "../components/AppleComponents";
 import { AppButton } from "../components/AppButton";
 import { SectionHeader } from "../components/SectionHeader";
+import { StudentLifeShell } from "../components/StudentLifeSystem";
 import { Assignment, Course, FocusSession, Semester, StudyNote, UserSettings, WidgetPreset } from "../models";
 import {
   buildTodayBrain,
@@ -208,27 +209,23 @@ export function TodayScreen({
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.lifeOSHero, { borderColor: `${feedVisual.accent}24` }]}>
-        <View style={[styles.lifeOSGlow, { backgroundColor: feedVisual.accent }]} />
-        <View style={styles.lifeOSHeader}>
-          <View style={styles.lifeOSMark}>
-            <View style={[styles.lifeOSLine, { backgroundColor: "#0A84FF" }]} />
-            <View style={[styles.lifeOSLine, { backgroundColor: "#30D158" }]} />
-            <View style={[styles.lifeOSLine, { backgroundColor: "#FF2D55" }]} />
-            <View style={[styles.lifeOSLine, { backgroundColor: "#FF9F0A" }]} />
-          </View>
-          <View style={styles.lifeOSCopy}>
-            <Text style={[styles.lifeOSEyebrow, { color: feedVisual.accent }]}>Student Life OS</Text>
-            <Text style={styles.lifeOSTitle}>Good morning, {studentName?.trim() || "there"}</Text>
-            <Text style={styles.lifeOSDetail}>{selectedIdentity.label} · {selectedBehavior.label}: {lifeReason}</Text>
-          </View>
-        </View>
-        <View style={styles.lifeMetricRow}>
-          <LifeMetric label={t("tabs.classes", "Classes")} value={String(courses.length)} color="#2563EB" />
-          <LifeMetric label={t("today.metric_open", "Open")} value={String(plan.openCount)} color="#DB2777" />
-          <LifeMetric label={t("tabs.focus", "Focus")} value={`${settings?.focusDefaultMinutes || 25}m`} color="#16A34A" />
-        </View>
-      </View>
+      <StudentLifeShell
+        settings={settings}
+        surface="feed"
+        metrics={[
+          { label: t("tabs.classes", "Classes"), value: String(courses.length), color: "#0A84FF" },
+          { label: t("today.metric_open", "Open"), value: String(plan.openCount), color: "#FF375F" },
+          { label: t("tabs.focus", "Focus"), value: `${settings?.focusDefaultMinutes || 25}m`, color: "#30D158" }
+        ]}
+        action={{
+          label: plannerHasData ? t("today.open_details", "Open details") : t("today.scan_syllabus", "Scan syllabus"),
+          onPress: plannerHasData
+            ? () => {
+                if (plan.nextAction) onOpenAssignment(plan.nextAction.id);
+              }
+            : onOpenScan
+        }}
+      />
 
       <View style={styles.studentLifeFeed}>
         {studentLifeCards.map((card, cardIndex) => (
@@ -1082,18 +1079,13 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     studentLifeFeed: {
-      flexDirection: "row",
-      flexWrap: "wrap",
       gap: spacing.sm,
       marginBottom: spacing.sm
     },
     studentLifeCard: {
-      flexGrow: 1,
-      flexBasis: "47%",
-      minWidth: 150,
-      minHeight: 148,
-      borderRadius: 25,
-      padding: spacing.md,
+      minHeight: 132,
+      borderRadius: 26,
+      padding: spacing.lg,
       gap: spacing.xs,
       overflow: "hidden",
       shadowColor: "#15233A",
@@ -1104,12 +1096,12 @@ function createStyles(theme: AppTheme) {
     },
     studentLifeCardGlow: {
       position: "absolute",
-      right: -36,
-      top: -42,
-      width: 112,
-      height: 112,
-      borderRadius: 56,
-      opacity: 0.26
+      right: -42,
+      top: -54,
+      width: 142,
+      height: 142,
+      borderRadius: 71,
+      opacity: 0.24
     },
     studentLifeCardTop: {
       flexDirection: "row",
@@ -1118,9 +1110,9 @@ function createStyles(theme: AppTheme) {
       gap: spacing.xs
     },
     studentLifeCardIcon: {
-      width: 36,
-      height: 36,
-      borderRadius: 15,
+      width: 42,
+      height: 42,
+      borderRadius: 17,
       backgroundColor: "rgba(255,255,255,0.18)",
       alignItems: "center",
       justifyContent: "center"
@@ -1129,20 +1121,20 @@ function createStyles(theme: AppTheme) {
       flex: 1,
       textAlign: "right",
       color: "rgba(255,255,255,0.78)",
-      fontSize: 10,
-      lineHeight: 13,
+      fontSize: 12,
+      lineHeight: 15,
       fontWeight: "900"
     },
     studentLifeCardTitle: {
       color: "#FFFFFF",
-      fontSize: 18,
-      lineHeight: 22,
+      fontSize: 25,
+      lineHeight: 29,
       fontWeight: "900"
     },
     studentLifeCardReason: {
       color: "rgba(255,255,255,0.84)",
-      fontSize: 12,
-      lineHeight: 17,
+      fontSize: 14,
+      lineHeight: 19,
       fontWeight: "800"
     },
     demoCard: {

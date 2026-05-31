@@ -1,0 +1,25 @@
+{
+  "locale": "runtime",
+  "device": "77573299-A148-49D7-95B6-DB5855B9305A",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "courses",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "courses"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/student-life-os-captures-vertical/17-classes.png",
+  "bytes": 323937,
+  "sha256": "5f64edbfd26bd0a5becffc8dded93fee6fe31033c7b7893a41e3e503068d7258",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "64c3672",
+  "timestamp": "2026-05-31T16:24:53.751Z"
+}
