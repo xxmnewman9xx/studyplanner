@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
   Activity,
   Atom,
@@ -58,6 +58,12 @@ type BehaviorVisual = {
   previewMeta: string;
   cards: Array<{ title: string; meta: string; reason: string; color: string; icon: IconType }>;
   widgets: Array<{ title: string; value: string; detail: string; color: string; icon: IconType }>;
+};
+
+type LifeStudioOnboardingProps = {
+  settings: UserSettings;
+  onUpdateSettings: (patch: Partial<UserSettings>) => void;
+  onContinue: () => void;
 };
 
 const identityIcons: Record<StudentDNA, IconType> = {
@@ -218,6 +224,362 @@ const behaviorVisuals: Record<OSBehavior, BehaviorVisual> = {
     ]
   }
 };
+
+export function LifeStudioOnboardingScreen({ settings, onUpdateSettings, onContinue }: LifeStudioOnboardingProps) {
+  const { theme } = useAppTheme();
+  const styles = createOnboardingStyles(theme);
+  const selectedIdentity = settings.studentDNA || "focused_scholar";
+  const selectedBehavior = settings.osBehavior || "highest_gpa";
+  const selectedWidgets = settings.widgetDNA || ["exam_countdown", "grade_impact", "future_risk"];
+  const selectedWatch = settings.watchDNA || ["next_class", "focus_window", "exam_risk"];
+  const visual = behaviorVisuals[selectedBehavior];
+
+  const toggleWidget = (id: WidgetDNA) =>
+    onUpdateSettings({
+      widgetDNA: selectedWidgets.includes(id)
+        ? selectedWidgets.filter((item) => item !== id)
+        : [...selectedWidgets, id]
+    });
+  const toggleWatch = (id: WatchDNA) =>
+    onUpdateSettings({
+      watchDNA: selectedWatch.includes(id)
+        ? selectedWatch.filter((item) => item !== id)
+        : [...selectedWatch, id]
+    });
+
+  return (
+    <View style={styles.screen}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.topBar}>
+          <View style={styles.brandMark}>
+            <View style={[styles.brandLine, { backgroundColor: "#0A84FF" }]} />
+            <View style={[styles.brandLine, { backgroundColor: "#30D158" }]} />
+            <View style={[styles.brandLine, { backgroundColor: "#FF2D55" }]} />
+            <View style={[styles.brandLine, { backgroundColor: "#FF9F0A" }]} />
+          </View>
+          <View style={styles.brandCopy}>
+            <Text style={styles.brandTitle}>Life Studio</Text>
+            <Text style={styles.brandSubtitle}>StudyPlanner: Syllabus AI</Text>
+          </View>
+          <View style={styles.liveCapsule}>
+            <Text style={styles.liveCapsuleText}>Live</Text>
+          </View>
+        </View>
+
+        <View style={styles.heroCopy}>
+          <Text style={styles.heroTitle}>Design your life OS.</Text>
+          <Text style={styles.heroSubtitle}>Every choice reshapes the preview.</Text>
+        </View>
+
+        <LifeOSPreviewPhone settings={settings} />
+
+        <LifeStudioSection number="1" title="Choose your identity">
+          <View style={styles.identityGrid}>
+            {studentDNAOptions.map((item) => (
+              <LifeStudioTile
+                key={item.id}
+                label={item.label}
+                color={item.color}
+                Icon={identityIcons[item.id]}
+                active={selectedIdentity === item.id}
+                onPress={() => onUpdateSettings({ studentDNA: item.id })}
+              />
+            ))}
+          </View>
+        </LifeStudioSection>
+
+        <LifeStudioSection number="2" title="Pick your layout">
+          <View style={styles.layoutGrid}>
+            {osBehaviorOptions.slice(0, 5).map((item) => {
+              const itemVisual = behaviorVisuals[item.id];
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: selectedBehavior === item.id }}
+                  style={[
+                    styles.layoutTile,
+                    selectedBehavior === item.id ? { borderColor: itemVisual.accent, backgroundColor: itemVisual.chip } : null
+                  ]}
+                  onPress={() => onUpdateSettings({ osBehavior: item.id })}
+                >
+                  <LayoutGrid color={itemVisual.accent} size={18} strokeWidth={2.7} />
+                  <Text style={styles.layoutTileText}>{itemVisual.layout}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </LifeStudioSection>
+
+        <LifeStudioSection number="3" title="OS behavior">
+          <View style={styles.behaviorStack}>
+            {osBehaviorOptions.map((item) => (
+              <OSBehaviorCard
+                key={item.id}
+                label={item.label}
+                detail={behaviorVisuals[item.id].detail}
+                color={behaviorVisuals[item.id].accent}
+                Icon={behaviorIcons[item.id]}
+                active={selectedBehavior === item.id}
+                onPress={() => onUpdateSettings({ osBehavior: item.id })}
+              />
+            ))}
+          </View>
+        </LifeStudioSection>
+
+        <LifeStudioSection number="4" title="Widget DNA">
+          <View style={styles.pillRow}>
+            {widgetDNAOptions.slice(0, 6).map((item) => (
+              <WidgetDNAPill
+                key={item.id}
+                label={item.label}
+                color={item.color}
+                Icon={widgetIcons[item.id]}
+                active={selectedWidgets.includes(item.id)}
+                onPress={() => toggleWidget(item.id)}
+              />
+            ))}
+          </View>
+        </LifeStudioSection>
+
+        <LifeStudioSection number="5" title="Watch DNA">
+          <View style={styles.pillRow}>
+            {watchDNAOptions.map((item) => (
+              <WatchDNAPill
+                key={item.id}
+                label={item.label}
+                color={item.color}
+                Icon={watchIcons[item.id]}
+                active={selectedWatch.includes(item.id)}
+                onPress={() => toggleWatch(item.id)}
+              />
+            ))}
+          </View>
+        </LifeStudioSection>
+
+        <View style={styles.miniPreviewRow}>
+          <View style={styles.watchPreview}>
+            <Text style={styles.watchTime}>10:09</Text>
+            <Text style={styles.watchLabel}>Next Class</Text>
+            <Text style={styles.watchValue}>Calculus II</Text>
+            <View style={[styles.watchRing, { borderColor: visual.accent }]}>
+              <Text style={[styles.watchRingText, { color: visual.accent }]}>72</Text>
+            </View>
+          </View>
+          <View style={styles.lockPreview}>
+            <Text style={styles.lockTitle}>Chemistry Midterm</Text>
+            <Text style={styles.lockMeta}>3 days · High impact</Text>
+          </View>
+        </View>
+      </ScrollView>
+
+      <View style={styles.bottomBar}>
+        <TouchableOpacity accessibilityRole="button" style={styles.continueButton} onPress={onContinue}>
+          <Text style={styles.continueText}>Continue</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+export function LifeOSPreviewPhone({ settings }: { settings: UserSettings }) {
+  const { theme } = useAppTheme();
+  const styles = createOnboardingStyles(theme);
+  const behavior = settings.osBehavior || "highest_gpa";
+  const identity = settings.studentDNA || "focused_scholar";
+  const identityOption = studentDNAOptions.find((item) => item.id === identity) || studentDNAOptions[0]!;
+  const visual = behaviorVisuals[behavior];
+
+  return (
+    <View style={styles.previewFrame}>
+      <View style={[styles.previewScreen, { backgroundColor: visual.surface }]}>
+        <View style={styles.previewStatus}>
+          <Text style={styles.previewTime}>9:41</Text>
+          <View style={styles.previewIsland} />
+          <Text style={styles.previewSignal}>5G</Text>
+        </View>
+        <View style={styles.previewHeader}>
+          <View>
+            <Text style={styles.previewEyebrow}>Your Life OS Preview</Text>
+            <Text style={styles.previewTitle}>{visual.previewTitle}</Text>
+          </View>
+          <View style={[styles.previewLive, { backgroundColor: visual.accent }]}>
+            <Text style={styles.previewLiveText}>Live</Text>
+          </View>
+        </View>
+        <Text style={styles.previewMeta}>{identityOption.label} · {visual.previewMeta}</Text>
+        <View style={styles.previewWeek}>
+          {["Mon", "Tue", "Wed", "Thu", "Fri"].map((day, index) => (
+            <View key={day} style={[styles.previewDay, index === 3 ? { backgroundColor: visual.accent } : null]}>
+              <Text style={[styles.previewDayText, index === 3 ? styles.previewDayTextActive : null]}>{day}</Text>
+              <Text style={[styles.previewDayNumber, index === 3 ? styles.previewDayTextActive : null]}>{8 + index}</Text>
+            </View>
+          ))}
+        </View>
+        <View style={styles.previewWidgetRow}>
+          {visual.widgets.map((widget) => {
+            const Icon = widget.icon;
+            return (
+              <View key={widget.title} style={styles.previewWidget}>
+                <Icon color={widget.color} size={15} strokeWidth={2.7} />
+                <Text style={styles.previewWidgetValue}>{widget.value}</Text>
+                <Text style={styles.previewWidgetLabel} numberOfLines={1}>{shortWidgetLabel(widget.title)}</Text>
+              </View>
+            );
+          })}
+        </View>
+        <View style={styles.previewCards}>
+          {visual.cards.slice(0, 2).map((card, index) => {
+            const Icon = card.icon;
+            return (
+              <View key={card.title} style={[styles.previewCard, { backgroundColor: card.color }]}>
+                <View style={styles.previewCardIcon}>
+                  <Icon color="#FFFFFF" size={15} strokeWidth={2.7} />
+                </View>
+                <View style={styles.previewCardCopy}>
+                  <View style={styles.previewCardTop}>
+                    <Text style={styles.previewCardTitle} numberOfLines={1}>{card.title}</Text>
+                    <Text style={styles.previewImpact}>{index === 0 ? "High" : "Smart"}</Text>
+                  </View>
+                  <Text style={styles.previewCardMeta}>{card.meta}</Text>
+                  <Text style={styles.previewCardReason} numberOfLines={1}>{card.reason}</Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+        <View style={styles.previewTabs}>
+          {["Feed", "Classes", "Focus", "Life"].map((item, index) => (
+            <Text key={item} style={[styles.previewTabText, index === 0 ? { color: "#FFFFFF" } : null]}>{item}</Text>
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+}
+
+export function LifeStudioSection({ number, title, children }: { number: string; title: string; children: React.ReactNode }) {
+  const { theme } = useAppTheme();
+  const styles = createOnboardingStyles(theme);
+  return (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionNumber}>{number}</Text>
+        <Text style={styles.sectionTitle}>{title}</Text>
+      </View>
+      {children}
+    </View>
+  );
+}
+
+export function LifeStudioTile({
+  label,
+  color,
+  Icon,
+  active,
+  onPress
+}: {
+  label: string;
+  color: string;
+  Icon: IconType;
+  active: boolean;
+  onPress: () => void;
+}) {
+  const { theme } = useAppTheme();
+  const styles = createOnboardingStyles(theme);
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      style={[styles.identityTile, active ? { borderColor: color, backgroundColor: `${color}12` } : null]}
+      onPress={onPress}
+    >
+      <View style={[styles.identityIcon, { backgroundColor: active ? color : `${color}18` }]}>
+        <Icon color={active ? "#FFFFFF" : color} size={20} strokeWidth={2.7} />
+      </View>
+      <Text style={styles.identityText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.82}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
+export function OSBehaviorCard({
+  label,
+  detail,
+  color,
+  Icon,
+  active,
+  onPress
+}: {
+  label: string;
+  detail: string;
+  color: string;
+  Icon: IconType;
+  active: boolean;
+  onPress: () => void;
+}) {
+  const { theme } = useAppTheme();
+  const styles = createOnboardingStyles(theme);
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      style={[styles.osCard, active ? { borderColor: color, backgroundColor: `${color}12` } : null]}
+      onPress={onPress}
+    >
+      <View style={[styles.osIcon, { backgroundColor: active ? color : `${color}18` }]}>
+        <Icon color={active ? "#FFFFFF" : color} size={19} strokeWidth={2.7} />
+      </View>
+      <View style={styles.osCopy}>
+        <Text style={styles.osTitle}>{label}</Text>
+        <Text style={styles.osDetail} numberOfLines={1}>{detail}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+export function WidgetDNAPill({
+  label,
+  color,
+  Icon,
+  active,
+  onPress
+}: {
+  label: string;
+  color: string;
+  Icon: IconType;
+  active: boolean;
+  onPress: () => void;
+}) {
+  const { theme } = useAppTheme();
+  const styles = createOnboardingStyles(theme);
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      style={[styles.dnaPill, active ? { borderColor: color, backgroundColor: `${color}12` } : null]}
+      onPress={onPress}
+    >
+      <Icon color={color} size={15} strokeWidth={2.7} />
+      <Text style={styles.dnaPillText}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
+export function WatchDNAPill(props: React.ComponentProps<typeof WidgetDNAPill>) {
+  return <WidgetDNAPill {...props} />;
+}
+
+function shortWidgetLabel(label: string) {
+  if (label === "Exam Countdown") return "Exam";
+  if (label === "Grade Impact") return "Grade";
+  if (label === "Future Risk") return "Risk";
+  if (label === "Free Time") return "Free";
+  return label.split(" ")[0] || label;
+}
 
 export function LifeStudioSetup({ settings, onUpdateSettings, compact = false }: Props) {
   const { theme } = useAppTheme();
@@ -553,6 +915,520 @@ function ChoiceTile({
       <Text style={styles.choiceText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.78}>{label}</Text>
     </TouchableOpacity>
   );
+}
+
+function createOnboardingStyles(theme: AppTheme) {
+  const { spacing } = theme;
+  const ink = "#05070B";
+  const muted = "#5D6678";
+  return StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: "#F7F9FD"
+    },
+    scroll: {
+      flex: 1
+    },
+    content: {
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.sm,
+      paddingBottom: 128,
+      gap: spacing.md
+    },
+    topBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      minHeight: 48
+    },
+    brandMark: {
+      width: 44,
+      height: 44,
+      borderRadius: 13,
+      backgroundColor: "#05070B",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 4
+    },
+    brandLine: {
+      width: 24,
+      height: 4,
+      borderRadius: 4
+    },
+    brandCopy: {
+      flex: 1,
+      gap: 1
+    },
+    brandTitle: {
+      color: ink,
+      fontSize: 18,
+      lineHeight: 22,
+      fontWeight: "900"
+    },
+    brandSubtitle: {
+      color: muted,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "800"
+    },
+    liveCapsule: {
+      borderRadius: 999,
+      backgroundColor: "#FFFFFF",
+      borderWidth: 1,
+      borderColor: "rgba(17,24,39,0.08)",
+      paddingHorizontal: 12,
+      paddingVertical: 8
+    },
+    liveCapsuleText: {
+      color: "#6D3DF2",
+      fontSize: 12,
+      fontWeight: "900"
+    },
+    heroCopy: {
+      gap: 3
+    },
+    heroTitle: {
+      color: ink,
+      fontSize: 38,
+      lineHeight: 40,
+      fontWeight: "900",
+      letterSpacing: 0
+    },
+    heroSubtitle: {
+      color: muted,
+      fontSize: 14,
+      lineHeight: 19,
+      fontWeight: "800"
+    },
+    previewFrame: {
+      alignSelf: "center",
+      width: "100%",
+      maxWidth: 410,
+      borderRadius: 40,
+      backgroundColor: "#05070B",
+      padding: 6,
+      shadowColor: "#05070B",
+      shadowOpacity: 0.18,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 14 }
+    },
+    previewScreen: {
+      height: 360,
+      borderRadius: 34,
+      padding: spacing.sm,
+      gap: spacing.xs,
+      overflow: "hidden"
+    },
+    previewStatus: {
+      height: 32,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between"
+    },
+    previewTime: {
+      color: "#FFFFFF",
+      fontSize: 12,
+      fontWeight: "900"
+    },
+    previewIsland: {
+      width: 96,
+      height: 25,
+      borderRadius: 999,
+      backgroundColor: "#000000"
+    },
+    previewSignal: {
+      color: "rgba(255,255,255,0.72)",
+      fontSize: 10,
+      fontWeight: "900"
+    },
+    previewHeader: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: spacing.xs
+    },
+    previewEyebrow: {
+      color: "rgba(255,255,255,0.62)",
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    previewTitle: {
+      color: "#FFFFFF",
+      fontSize: 22,
+      lineHeight: 25,
+      fontWeight: "900"
+    },
+    previewLive: {
+      borderRadius: 999,
+      paddingHorizontal: 10,
+      paddingVertical: 6
+    },
+    previewLiveText: {
+      color: "#FFFFFF",
+      fontSize: 10,
+      fontWeight: "900"
+    },
+    previewMeta: {
+      color: "rgba(255,255,255,0.70)",
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
+    },
+    previewWeek: {
+      flexDirection: "row",
+      gap: 5
+    },
+    previewDay: {
+      flex: 1,
+      borderRadius: 13,
+      backgroundColor: "rgba(255,255,255,0.08)",
+      alignItems: "center",
+      paddingVertical: 5
+    },
+    previewDayText: {
+      color: "rgba(255,255,255,0.58)",
+      fontSize: 8,
+      fontWeight: "900"
+    },
+    previewDayNumber: {
+      color: "rgba(255,255,255,0.78)",
+      fontSize: 12,
+      fontWeight: "900"
+    },
+    previewDayTextActive: {
+      color: "#FFFFFF"
+    },
+    previewWidgetRow: {
+      flexDirection: "row",
+      gap: 6
+    },
+    previewWidget: {
+      flex: 1,
+      minHeight: 66,
+      borderRadius: 16,
+      backgroundColor: "rgba(255,255,255,0.10)",
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.12)",
+      padding: 8,
+      gap: 1
+    },
+    previewWidgetValue: {
+      color: "#FFFFFF",
+      fontSize: 16,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    previewWidgetLabel: {
+      color: "rgba(255,255,255,0.66)",
+      fontSize: 9,
+      lineHeight: 12,
+      fontWeight: "900"
+    },
+    previewCards: {
+      gap: 7
+    },
+    previewCard: {
+      minHeight: 54,
+      borderRadius: 17,
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: 9,
+      padding: 10
+    },
+    previewCardIcon: {
+      width: 31,
+      height: 31,
+      borderRadius: 12,
+      backgroundColor: "rgba(255,255,255,0.18)",
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    previewCardCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 1
+    },
+    previewCardTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6
+    },
+    previewCardTitle: {
+      flex: 1,
+      color: "#FFFFFF",
+      fontSize: 13,
+      lineHeight: 16,
+      fontWeight: "900"
+    },
+    previewImpact: {
+      borderRadius: 999,
+      overflow: "hidden",
+      backgroundColor: "rgba(255,255,255,0.18)",
+      color: "#FFFFFF",
+      paddingHorizontal: 7,
+      paddingVertical: 2,
+      fontSize: 8,
+      fontWeight: "900"
+    },
+    previewCardMeta: {
+      color: "rgba(255,255,255,0.78)",
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "800"
+    },
+    previewCardReason: {
+      color: "#FFFFFF",
+      fontSize: 9,
+      lineHeight: 12,
+      fontWeight: "900"
+    },
+    previewTabs: {
+      marginTop: "auto",
+      minHeight: 38,
+      borderRadius: 18,
+      backgroundColor: "rgba(0,0,0,0.28)",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-around"
+    },
+    previewTabText: {
+      color: "rgba(255,255,255,0.54)",
+      fontSize: 10,
+      fontWeight: "900"
+    },
+    section: {
+      gap: spacing.sm
+    },
+    sectionHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs
+    },
+    sectionNumber: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: ink,
+      color: "#FFFFFF",
+      textAlign: "center",
+      lineHeight: 24,
+      fontSize: 11,
+      fontWeight: "900"
+    },
+    sectionTitle: {
+      color: ink,
+      fontSize: 17,
+      lineHeight: 21,
+      fontWeight: "900"
+    },
+    identityGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    identityTile: {
+      width: "23.4%",
+      minHeight: 86,
+      borderRadius: 18,
+      backgroundColor: "#FFFFFF",
+      borderWidth: 1,
+      borderColor: "rgba(17,24,39,0.08)",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 7,
+      gap: 6
+    },
+    identityIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    identityText: {
+      color: ink,
+      fontSize: 9,
+      lineHeight: 11,
+      fontWeight: "900",
+      textAlign: "center"
+    },
+    layoutGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    layoutTile: {
+      flexGrow: 1,
+      flexBasis: "30%",
+      minHeight: 58,
+      borderRadius: 17,
+      backgroundColor: "#FFFFFF",
+      borderWidth: 1,
+      borderColor: "rgba(17,24,39,0.08)",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 8,
+      gap: 5
+    },
+    layoutTileText: {
+      color: ink,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textAlign: "center"
+    },
+    behaviorStack: {
+      gap: spacing.xs
+    },
+    osCard: {
+      minHeight: 64,
+      borderRadius: 18,
+      backgroundColor: "#FFFFFF",
+      borderWidth: 1,
+      borderColor: "rgba(17,24,39,0.08)",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      padding: spacing.sm
+    },
+    osIcon: {
+      width: 38,
+      height: 38,
+      borderRadius: 15,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    osCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2
+    },
+    osTitle: {
+      color: ink,
+      fontSize: 14,
+      lineHeight: 18,
+      fontWeight: "900"
+    },
+    osDetail: {
+      color: muted,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "800"
+    },
+    pillRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    dnaPill: {
+      minHeight: 38,
+      borderRadius: 999,
+      backgroundColor: "#FFFFFF",
+      borderWidth: 1,
+      borderColor: "rgba(17,24,39,0.08)",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      paddingHorizontal: 11,
+      paddingVertical: 8
+    },
+    dnaPillText: {
+      color: ink,
+      fontSize: 11,
+      fontWeight: "900"
+    },
+    miniPreviewRow: {
+      flexDirection: "row",
+      gap: spacing.sm
+    },
+    watchPreview: {
+      width: 118,
+      minHeight: 140,
+      borderRadius: 30,
+      backgroundColor: "#08090D",
+      padding: spacing.sm,
+      gap: 5
+    },
+    watchTime: {
+      color: "#FFFFFF",
+      fontSize: 22,
+      lineHeight: 25,
+      fontWeight: "900"
+    },
+    watchLabel: {
+      color: "rgba(255,255,255,0.58)",
+      fontSize: 10,
+      fontWeight: "900"
+    },
+    watchValue: {
+      color: "#FFFFFF",
+      fontSize: 12,
+      fontWeight: "900"
+    },
+    watchRing: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      borderWidth: 3,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    watchRingText: {
+      fontSize: 14,
+      fontWeight: "900"
+    },
+    lockPreview: {
+      flex: 1,
+      minHeight: 80,
+      alignSelf: "center",
+      borderRadius: 24,
+      backgroundColor: "#C81E5B",
+      padding: spacing.sm,
+      justifyContent: "center",
+      shadowColor: "#C81E5B",
+      shadowOpacity: 0.16,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 8 }
+    },
+    lockTitle: {
+      color: "#FFFFFF",
+      fontSize: 15,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    lockMeta: {
+      color: "rgba(255,255,255,0.78)",
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
+    },
+    bottomBar: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.md,
+      backgroundColor: "rgba(247,249,253,0.96)",
+      borderTopWidth: 1,
+      borderTopColor: "rgba(17,24,39,0.06)"
+    },
+    continueButton: {
+      minHeight: 58,
+      borderRadius: 24,
+      backgroundColor: "#05070B",
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    continueText: {
+      color: "#FFFFFF",
+      fontSize: 18,
+      lineHeight: 22,
+      fontWeight: "900"
+    }
+  });
 }
 
 function createStyles(theme: AppTheme) {
