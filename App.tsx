@@ -31,20 +31,25 @@ import {
   AssignmentKind,
   AssignmentStatus,
   Course,
+  FrictionPoint,
   FocusSession,
   GradeItem,
   NavTab,
+  OSBehavior,
   ParsedImport,
   ParsedItem,
   PlannerData,
   Semester,
+  StudentDNA,
   StudyNote,
   SyllabusParseResult,
   UserSettings,
   WidgetBackground,
   WidgetDataMode,
+  WidgetDNA,
   WidgetPalette,
-  WidgetPreset
+  WidgetPreset,
+  WatchDNA
 } from "./src/models";
 import { AppTheme, ThemeAccent, ThemeMode } from "./src/theme";
 import { AppThemeProvider, useAppTheme } from "./src/themeContext";
@@ -152,6 +157,11 @@ type CaptureRoute = {
   widgetType?: WidgetPreset["type"];
   widgetSize?: WidgetPreset["size"];
   widgetLayout?: WidgetPreset["layout"];
+  studentDNA?: StudentDNA;
+  osBehavior?: OSBehavior;
+  frictionPoints?: FrictionPoint[];
+  widgetDNA?: WidgetDNA[];
+  watchDNA?: WatchDNA[];
   workloadState?: "standard" | "clean" | "urgent";
   hardPaywall?: boolean;
   themeMode?: ThemeMode;
@@ -172,6 +182,11 @@ function parseCaptureRoute(raw: string): CaptureRoute {
       widgetType?: unknown;
       widgetSize?: unknown;
       widgetLayout?: unknown;
+      studentDNA?: unknown;
+      osBehavior?: unknown;
+      frictionPoints?: unknown;
+      widgetDNA?: unknown;
+      watchDNA?: unknown;
       workloadState?: unknown;
       hardPaywall?: unknown;
       themeMode?: unknown;
@@ -189,6 +204,11 @@ function parseCaptureRoute(raw: string): CaptureRoute {
       widgetType: isCaptureWidgetType(value.widgetType) ? value.widgetType : undefined,
       widgetSize: isCaptureWidgetSize(value.widgetSize) ? value.widgetSize : undefined,
       widgetLayout: isCaptureWidgetLayout(value.widgetLayout) ? value.widgetLayout : undefined,
+      studentDNA: isCaptureStudentDNA(value.studentDNA) ? value.studentDNA : undefined,
+      osBehavior: isCaptureOSBehavior(value.osBehavior) ? value.osBehavior : undefined,
+      frictionPoints: captureFrictionPoints(value.frictionPoints),
+      widgetDNA: captureWidgetDNA(value.widgetDNA),
+      watchDNA: captureWatchDNA(value.watchDNA),
       workloadState: isCaptureWorkloadState(value.workloadState) ? value.workloadState : undefined,
       hardPaywall: value.hardPaywall === true,
       themeMode: isCaptureThemeMode(value.themeMode) ? value.themeMode : undefined,
@@ -344,6 +364,78 @@ function isCaptureWidgetLayout(value: unknown): value is WidgetPreset["layout"] 
     value === "summary" ||
     value === "next_task"
   );
+}
+
+function isCaptureStudentDNA(value: unknown): value is StudentDNA {
+  return (
+    value === "focused_scholar" ||
+    value === "active_athlete" ||
+    value === "creative_artist" ||
+    value === "competitive_leader" ||
+    value === "balanced_wellness" ||
+    value === "working_professional" ||
+    value === "curious_explorer" ||
+    value === "research_driven"
+  );
+}
+
+function isCaptureOSBehavior(value: unknown): value is OSBehavior {
+  return (
+    value === "highest_gpa" ||
+    value === "less_stress" ||
+    value === "athletic_performance" ||
+    value === "life_balance" ||
+    value === "high_achievement"
+  );
+}
+
+function isCaptureFrictionPoint(value: unknown): value is FrictionPoint {
+  return (
+    value === "procrastination" ||
+    value === "exam_anxiety" ||
+    value === "overcommitment" ||
+    value === "focus_issues" ||
+    value === "forgetfulness"
+  );
+}
+
+function isCaptureWidgetDNA(value: unknown): value is WidgetDNA {
+  return (
+    value === "exam_countdown" ||
+    value === "grade_impact" ||
+    value === "future_risk" ||
+    value === "free_time_forecast" ||
+    value === "recovery_window" ||
+    value === "life_balance"
+  );
+}
+
+function isCaptureWatchDNA(value: unknown): value is WatchDNA {
+  return (
+    value === "next_class" ||
+    value === "focus_window" ||
+    value === "exam_risk" ||
+    value === "semester_progress" ||
+    value === "free_time"
+  );
+}
+
+function captureFrictionPoints(value: unknown): FrictionPoint[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const result = value.filter(isCaptureFrictionPoint);
+  return result.length ? result : undefined;
+}
+
+function captureWidgetDNA(value: unknown): WidgetDNA[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const result = value.filter(isCaptureWidgetDNA);
+  return result.length ? result : undefined;
+}
+
+function captureWatchDNA(value: unknown): WatchDNA[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const result = value.filter(isCaptureWatchDNA);
+  return result.length ? result : undefined;
 }
 
 function isCaptureWorkloadState(value: unknown): value is NonNullable<CaptureRoute["workloadState"]> {
@@ -549,7 +641,12 @@ function AppContent() {
           syncEnabled: true,
           selectedTheme: captureWidgetPalette,
           defaultWidgetStyle: captureWidgetBackground,
-          appTheme: captureAppTheme
+          appTheme: captureAppTheme,
+          studentDNA: requestedRoute.studentDNA || defaultSettings.studentDNA,
+          osBehavior: requestedRoute.osBehavior || defaultSettings.osBehavior,
+          frictionPoints: requestedRoute.frictionPoints || defaultSettings.frictionPoints,
+          widgetDNA: requestedRoute.widgetDNA || defaultSettings.widgetDNA,
+          watchDNA: requestedRoute.watchDNA || defaultSettings.watchDNA
         });
         const requestedWidgetType = requestedRoute.widgetType || "today";
         const requestedWidgetKind = widgetKindForType(requestedWidgetType);

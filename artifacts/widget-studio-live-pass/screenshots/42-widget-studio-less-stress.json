@@ -1,0 +1,56 @@
+{
+  "locale": "runtime",
+  "device": "booted",
+  "appearance": "light",
+  "theme": "mint",
+  "widgetType": "week",
+  "size": "medium",
+  "background": "light",
+  "palette": "forest",
+  "font": "system",
+  "layout": "summary",
+  "classFocus": "all",
+  "dataState": "clean",
+  "osBehavior": "less_stress",
+  "widgetDNA": [
+    "free_time_forecast",
+    "recovery_window"
+  ],
+  "watchDNA": [
+    "free_time"
+  ],
+  "frictionPoints": [
+    "forgetfulness"
+  ],
+  "route": {
+    "tab": "more",
+    "appTheme": "mint",
+    "widgetType": "week",
+    "widgetSize": "medium",
+    "widgetPalette": "forest",
+    "widgetBackground": "light",
+    "widgetDataMode": "this_week",
+    "widgetLayout": "summary",
+    "osBehavior": "less_stress",
+    "widgetDNA": [
+      "free_time_forecast",
+      "recovery_window"
+    ],
+    "watchDNA": [
+      "free_time"
+    ],
+    "frictionPoints": [
+      "forgetfulness"
+    ],
+    "studentDNA": "balanced_wellness",
+    "workloadState": "clean"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/widget-studio-live-pass/screenshots/42-widget-studio-less-stress.png",
+  "bytes": 672402,
+  "sha256": "9ccad90b454248f12f37e0bffb8a215e62a1ea74be46f897701848b1c886366f",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "6dac46e",
+  "timestamp": "2026-05-31T18:29:11.430Z"
+}

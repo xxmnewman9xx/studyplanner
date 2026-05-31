@@ -230,7 +230,8 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
     layoutLocale: locale,
     weekdayLabels: localizedWeekdayNarrowLabels(locale)
   };
-  const finalize = (snapshots: StudyPlannerNativeWidgetSnapshots) => finalizeNativeWidgetSnapshots(snapshots, locale);
+  const finalize = (snapshots: StudyPlannerNativeWidgetSnapshots) =>
+    finalizeNativeWidgetSnapshots(personalizeNativeWidgetSnapshots(snapshots, input.settings), locale);
   const setupSnapshot = (
     kind: StudyPlannerNativeWidgetKind,
     state: StudyPlannerNativeWidgetState,
@@ -882,6 +883,165 @@ function finalizeNativeWidgetSnapshots(
     week: finalizeNativeWidgetSnapshot(snapshots.week, locale),
     classProgress: finalizeNativeWidgetSnapshot(snapshots.classProgress, locale)
   };
+}
+
+function personalizeNativeWidgetSnapshots(
+  snapshots: StudyPlannerNativeWidgetSnapshots,
+  settings?: UserSettings
+): StudyPlannerNativeWidgetSnapshots {
+  if (!settings?.osBehavior && !settings?.widgetDNA?.length && !settings?.frictionPoints?.length) {
+    return snapshots;
+  }
+
+  return {
+    today: personalizeNativeWidgetSnapshot(snapshots.today, settings),
+    upcoming: personalizeNativeWidgetSnapshot(snapshots.upcoming, settings),
+    week: personalizeNativeWidgetSnapshot(snapshots.week, settings),
+    classProgress: personalizeNativeWidgetSnapshot(snapshots.classProgress, settings)
+  };
+}
+
+function personalizeNativeWidgetSnapshot(
+  snapshot: StudyPlannerNativeWidgetProps,
+  settings: UserSettings
+): StudyPlannerNativeWidgetProps {
+  if (snapshot.state === "sync_disabled") return snapshot;
+
+  const tone = widgetSnapshotTone(snapshot.kind, settings);
+  if (!tone) return snapshot;
+
+  const friction = widgetFrictionNudge(settings);
+  const footnote = friction ? `${tone.footnote} · ${friction}` : tone.footnote;
+
+  return {
+    ...snapshot,
+    signalLabel: tone.signalLabel,
+    footnote,
+    nextLabel: friction || snapshot.nextLabel,
+    progressLabel: tone.progressLabel || snapshot.progressLabel,
+    styleLabel: tone.styleLabel || snapshot.styleLabel,
+    actionLabel: tone.actionLabel || snapshot.actionLabel
+  };
+}
+
+function widgetSnapshotTone(
+  kind: StudyPlannerNativeWidgetKind,
+  settings: UserSettings
+): {
+  signalLabel: string;
+  footnote: string;
+  progressLabel?: string;
+  styleLabel?: string;
+  actionLabel?: string;
+} | undefined {
+  const primaryDNA = settings.widgetDNA?.[0];
+
+  if (primaryDNA === "exam_countdown" && kind === "upcoming") {
+    return {
+      signalLabel: "Exam countdown",
+      footnote: "High-impact exams stay visible",
+      progressLabel: "Study path",
+      actionLabel: "Open exam plan"
+    };
+  }
+  if (primaryDNA === "grade_impact" && (kind === "today" || kind === "class_progress")) {
+    return {
+      signalLabel: "Grade impact",
+      footnote: "High-impact coursework first",
+      progressLabel: "Grade path",
+      actionLabel: "Open grade plan"
+    };
+  }
+  if (primaryDNA === "future_risk" && (kind === "week" || kind === "upcoming")) {
+    return {
+      signalLabel: "Future risk",
+      footnote: "Risk is caught before it stacks",
+      progressLabel: "Risk map",
+      actionLabel: "Open forecast"
+    };
+  }
+  if (primaryDNA === "free_time_forecast" && (kind === "today" || kind === "week")) {
+    return {
+      signalLabel: "Free time",
+      footnote: "Protect the next open window",
+      progressLabel: "Free time",
+      actionLabel: "Open forecast"
+    };
+  }
+  if (primaryDNA === "recovery_window" && (kind === "today" || kind === "week")) {
+    return {
+      signalLabel: "Recovery",
+      footnote: "Build recovery into the plan",
+      progressLabel: "Recovery map",
+      actionLabel: "Open focus"
+    };
+  }
+  if (primaryDNA === "life_balance" && kind === "week") {
+    return {
+      signalLabel: "Life balance",
+      footnote: "School, activities, work, and rest stay mixed",
+      progressLabel: "Life mix",
+      actionLabel: "Open life plan"
+    };
+  }
+
+  switch (settings.osBehavior) {
+    case "highest_gpa":
+      return {
+        signalLabel: kind === "upcoming" ? "Exam countdown" : kind === "week" ? "Grade risk" : "Grade impact",
+        footnote: "High-impact coursework first",
+        progressLabel: kind === "week" ? "Risk map" : "Grade path",
+        styleLabel: "Academic priority"
+      };
+    case "less_stress":
+      return {
+        signalLabel: kind === "upcoming" ? "Calm next" : kind === "week" ? "Recovery map" : "Free time",
+        footnote: "Keep the week calm and recoverable",
+        progressLabel: "Calm load",
+        styleLabel: "Calm mode"
+      };
+    case "athletic_performance":
+      return {
+        signalLabel: kind === "class_progress" ? "Class fit" : kind === "week" ? "Recovery map" : "Practice fit",
+        footnote: "Protect practice, recovery, and the next deadline",
+        progressLabel: "Practice fit",
+        styleLabel: "Athlete mode"
+      };
+    case "life_balance":
+      return {
+        signalLabel: kind === "week" ? "Life mix" : kind === "upcoming" ? "Next class" : "Balance",
+        footnote: "Academics, activities, work, and wellness stay even",
+        progressLabel: "Weekly mix",
+        styleLabel: "Balanced mode"
+      };
+    case "high_achievement":
+      return {
+        signalLabel: kind === "week" ? "Semester pace" : "Future risk",
+        footnote: "Plan before risk stacks",
+        progressLabel: "Ahead plan",
+        styleLabel: "Proactive mode"
+      };
+    default:
+      return undefined;
+  }
+}
+
+function widgetFrictionNudge(settings: UserSettings) {
+  const friction = settings.frictionPoints?.[0];
+  switch (friction) {
+    case "procrastination":
+      return "Start tonight";
+    case "exam_anxiety":
+      return "Split into study sessions";
+    case "overcommitment":
+      return "Watch load";
+    case "focus_issues":
+      return "Short focus windows";
+    case "forgetfulness":
+      return "Keep reminders visible";
+    default:
+      return undefined;
+  }
 }
 
 function finalizeNativeWidgetSnapshot(

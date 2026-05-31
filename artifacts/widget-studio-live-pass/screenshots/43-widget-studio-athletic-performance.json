@@ -1,0 +1,55 @@
+{
+  "locale": "runtime",
+  "device": "booted",
+  "appearance": "light",
+  "theme": "mint",
+  "widgetType": "due_next",
+  "size": "small",
+  "background": "glass",
+  "palette": "forest",
+  "font": "system",
+  "layout": "next_task",
+  "classFocus": "all",
+  "dataState": "next_up",
+  "osBehavior": "athletic_performance",
+  "widgetDNA": [
+    "recovery_window",
+    "free_time_forecast"
+  ],
+  "watchDNA": [
+    "focus_window"
+  ],
+  "frictionPoints": [
+    "overcommitment"
+  ],
+  "route": {
+    "tab": "more",
+    "appTheme": "mint",
+    "widgetType": "due_next",
+    "widgetSize": "small",
+    "widgetPalette": "forest",
+    "widgetBackground": "glass",
+    "widgetDataMode": "next_up",
+    "widgetLayout": "next_task",
+    "osBehavior": "athletic_performance",
+    "widgetDNA": [
+      "recovery_window",
+      "free_time_forecast"
+    ],
+    "watchDNA": [
+      "focus_window"
+    ],
+    "frictionPoints": [
+      "overcommitment"
+    ],
+    "studentDNA": "active_athlete"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/widget-studio-live-pass/screenshots/43-widget-studio-athletic-performance.png",
+  "bytes": 677808,
+  "sha256": "aaa0686611d2cae8c545e12da1836f4b62b10fb5e3f0dc2ac3f0ea4c812d7e86",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "6dac46e",
+  "timestamp": "2026-05-31T18:29:11.430Z"
+}

@@ -31,23 +31,27 @@ import { SectionHeader } from "../components/SectionHeader";
 import {
   Assignment,
   Course,
+  FrictionPoint,
   FocusSession,
+  OSBehavior,
   ParsedImport,
   Semester,
   StudyNote,
   UserSettings,
   WidgetBackground,
   WidgetDataMode,
+  WidgetDNA,
   WidgetLayout,
   WidgetPalette,
   WidgetPreset,
   WidgetSize,
-  WidgetType
+  WidgetType,
+  WatchDNA
 } from "../models";
 import { getWidgetData } from "../logic/planner";
 import { purchaseConfig } from "../services/purchaseConfig";
 import { buildStudyPlannerWidgetSnapshots } from "../services/widgetSnapshot";
-import type { WidgetSyncStatus } from "../services/widgetSnapshot";
+import type { StudyPlannerNativeWidgetSnapshots, WidgetSyncStatus } from "../services/widgetSnapshot";
 import { AppTheme, ThemeAccent, appThemePalettes, themePalettes } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { supportedLocales, useI18n, type SupportedLocale } from "../i18n";
@@ -93,8 +97,284 @@ type MoreScreenProps = {
 const widgetSizes: WidgetSize[] = ["small", "medium"];
 const appThemeOptions: ThemeAccent[] = ["campus", "graphite", "mint", "slate", "solar"];
 
+type StudioTemplatePatch = Pick<
+  WidgetPreset,
+  "type" | "size" | "background" | "palette" | "layout" | "iconKey" | "dataMode" | "classFocusCourseId"
+>;
+
+type StarterTemplate = {
+  label: string;
+  detail: string;
+  moment: string;
+  data: string;
+  preset: StudioTemplatePatch;
+};
+
+type LifeWidgetRecommendation = StarterTemplate & {
+  reason: string;
+  device: string;
+  accent: string;
+};
+
 function isNativeEligiblePreset(preset: Pick<WidgetPreset, "type" | "size">) {
   return isNativeWidgetPreset({ ...preset, widgetKind: widgetKindForType(preset.type) });
+}
+
+function behaviorLabel(value?: OSBehavior) {
+  const labels: Record<OSBehavior, string> = {
+    highest_gpa: "Highest GPA",
+    less_stress: "Less Stress",
+    athletic_performance: "Athletic Performance",
+    life_balance: "Life Balance",
+    high_achievement: "High Achievement"
+  };
+  return labels[value || "highest_gpa"];
+}
+
+function widgetDNALabel(value?: WidgetDNA) {
+  const labels: Record<WidgetDNA, string> = {
+    exam_countdown: "Exam countdown",
+    grade_impact: "Grade impact",
+    future_risk: "Future risk",
+    free_time_forecast: "Free time forecast",
+    recovery_window: "Recovery window",
+    life_balance: "Life balance"
+  };
+  return value ? labels[value] : "Widget DNA";
+}
+
+function watchDNALabel(value?: WatchDNA) {
+  const labels: Record<WatchDNA, string> = {
+    next_class: "Next class",
+    focus_window: "Focus window",
+    exam_risk: "Exam risk",
+    semester_progress: "Semester progress",
+    free_time: "Free time"
+  };
+  return value ? labels[value] : "Watch DNA";
+}
+
+function frictionLabel(value?: FrictionPoint) {
+  const labels: Record<FrictionPoint, string> = {
+    procrastination: "Start tonight",
+    exam_anxiety: "Smaller study sessions",
+    overcommitment: "Load warnings",
+    focus_issues: "Short focus windows",
+    forgetfulness: "Reminder-forward"
+  };
+  return value ? labels[value] : "No friction selected";
+}
+
+function lifeWidgetProfile(settings: UserSettings, hasRealData: boolean) {
+  const behavior = settings.osBehavior || "highest_gpa";
+  const copy: Record<OSBehavior, string> = {
+    highest_gpa: "Widgets bias toward exams, grade impact, and the first high-value action.",
+    less_stress: "Widgets soften the week, surface free time, and keep recovery visible.",
+    athletic_performance: "Widgets protect practice, recovery, and the next school conflict.",
+    life_balance: "Widgets keep academics, activities, work, and wellness in the same frame.",
+    high_achievement: "Widgets push future risk, semester pace, and proactive focus windows."
+  };
+
+  return {
+    behavior,
+    title: `${behaviorLabel(behavior)} widgets`,
+    copy: copy[behavior],
+    dataLabel: hasRealData ? "Live planner data" : "Sample until your syllabus is reviewed",
+    dnaLabel: [widgetDNALabel(settings.widgetDNA?.[0]), watchDNALabel(settings.watchDNA?.[0]), frictionLabel(settings.frictionPoints?.[0])]
+      .filter(Boolean)
+      .join(" / ")
+  };
+}
+
+function buildLifeWidgetRecommendations(
+  settings: UserSettings,
+  courses: Course[],
+  snapshots: StudyPlannerNativeWidgetSnapshots
+): LifeWidgetRecommendation[] {
+  const behavior = settings.osBehavior || "highest_gpa";
+  const firstCourse = courses[0];
+  const courseScope = firstCourse ? firstCourse.code : "All classes";
+  const nextValue = snapshots.upcoming.value;
+  const weekValue = snapshots.week.value;
+  const friction = frictionLabel(settings.frictionPoints?.[0]);
+
+  const recommendations: Record<OSBehavior, LifeWidgetRecommendation[]> = {
+    highest_gpa: [
+      {
+        label: "Exam Countdown",
+        detail: `${nextValue} · ${snapshots.upcoming.detail}`,
+        moment: "Home Screen",
+        data: "High-impact deadlines",
+        reason: `${friction}; keep the grade mover visible.`,
+        device: "Home Screen + Lock Screen",
+        accent: "#FF5A52",
+        preset: { type: "due_next", size: "medium", background: "dark", palette: "sunset", dataMode: "urgent_only", layout: "timeline", iconKey: "timer" }
+      },
+      {
+        label: "Grade Impact",
+        detail: `${courseScope} · ${snapshots.classProgress.detail}`,
+        moment: "Before class",
+        data: "Class progress",
+        reason: "Best when GPA is the OS priority.",
+        device: "Apple Watch",
+        accent: "#FF8A00",
+        preset: { type: "class_focus", size: "small", background: "glass", palette: "forest", dataMode: "single_class", layout: "progress", iconKey: "book", classFocusCourseId: firstCourse?.id }
+      },
+      {
+        label: "Focus Window",
+        detail: "One next action, not the whole backlog.",
+        moment: "Study block",
+        data: "Next up",
+        reason: "Turns pressure into a short startable block.",
+        device: "StandBy",
+        accent: "#2F80ED",
+        preset: { type: "focus", size: "small", background: "glass", palette: "ocean", dataMode: "next_up", layout: "ring", iconKey: "timer" }
+      }
+    ],
+    less_stress: [
+      {
+        label: "Free Time Forecast",
+        detail: `${weekValue} · ${snapshots.week.detail}`,
+        moment: "Lock Screen",
+        data: "This week",
+        reason: "Shows the next safe window before the task list.",
+        device: "Lock Screen + StandBy",
+        accent: "#2FB282",
+        preset: { type: "week", size: "medium", background: "light", palette: "forest", dataMode: "this_week", layout: "summary", iconKey: "calendar" }
+      },
+      {
+        label: "Recovery Window",
+        detail: "A calm widget for lighter days.",
+        moment: "Evening",
+        data: "Today",
+        reason: `${friction}; keep reminders calm and visible.`,
+        device: "Apple Watch",
+        accent: "#35F2D0",
+        preset: { type: "today", size: "small", background: "glass", palette: "ocean", dataMode: "today", layout: "compact", iconKey: "check" }
+      },
+      {
+        label: "Life Balance",
+        detail: "A weekly mix instead of a deadline wall.",
+        moment: "Sunday reset",
+        data: "All classes",
+        reason: "Best for lowering planner noise.",
+        device: "Home Screen",
+        accent: "#7ED957",
+        preset: { type: "week", size: "medium", background: "light", palette: "paper", dataMode: "this_week", layout: "ring", iconKey: "spark" }
+      }
+    ],
+    athletic_performance: [
+      {
+        label: "Practice Countdown",
+        detail: "Practice, recovery, then schoolwork.",
+        moment: "After school",
+        data: "Activity fit",
+        reason: "Prioritizes conflicts around training time.",
+        device: "Apple Watch + Lock Screen",
+        accent: "#2FB282",
+        preset: { type: "due_next", size: "small", background: "glass", palette: "forest", dataMode: "next_up", layout: "next_task", iconKey: "timer" }
+      },
+      {
+        label: "Recovery Window",
+        detail: `${weekValue} · ${snapshots.week.detail}`,
+        moment: "StandBy",
+        data: "This week",
+        reason: `${friction}; protect recovery before load spikes.`,
+        device: "StandBy",
+        accent: "#35F2D0",
+        preset: { type: "week", size: "medium", background: "dark", palette: "forest", dataMode: "this_week", layout: "strip", iconKey: "calendar" }
+      },
+      {
+        label: "Next Assignment",
+        detail: `${nextValue} · ${snapshots.upcoming.detail}`,
+        moment: "Between practice",
+        data: "Reviewed deadlines",
+        reason: "Keeps the next school move clear.",
+        device: "Home Screen",
+        accent: "#2F80ED",
+        preset: { type: "due_next", size: "medium", background: "glass", palette: "ocean", dataMode: "next3", layout: "timeline", iconKey: "calendar" }
+      }
+    ],
+    life_balance: [
+      {
+        label: "Life Balance Ring",
+        detail: "School, work, activities, wellness.",
+        moment: "Home Screen",
+        data: "Weekly mix",
+        reason: "Makes the OS feel like your actual life.",
+        device: "Home Screen",
+        accent: "#35F2D0",
+        preset: { type: "week", size: "medium", background: "glass", palette: "aurora", dataMode: "this_week", layout: "ring", iconKey: "spark" }
+      },
+      {
+        label: "Weekly Mix",
+        detail: `${weekValue} · ${snapshots.week.detail}`,
+        moment: "Sunday reset",
+        data: "This week",
+        reason: `${friction}; keep all commitments in view.`,
+        device: "StandBy",
+        accent: "#2FB282",
+        preset: { type: "week", size: "medium", background: "light", palette: "forest", dataMode: "this_week", layout: "summary", iconKey: "calendar" }
+      },
+      {
+        label: "Next Class",
+        detail: `${courseScope} focus`,
+        moment: "Before class",
+        data: "Class-specific",
+        reason: "Keeps the next place to be obvious.",
+        device: "Apple Watch",
+        accent: "#2F80ED",
+        preset: { type: "class_focus", size: "small", background: "glass", palette: "ocean", dataMode: "single_class", layout: "progress", iconKey: "book", classFocusCourseId: firstCourse?.id }
+      }
+    ],
+    high_achievement: [
+      {
+        label: "Future Risk",
+        detail: `${weekValue} · ${snapshots.week.detail}`,
+        moment: "Home Screen",
+        data: "This week",
+        reason: "Shows risk before it becomes urgent.",
+        device: "Home Screen + StandBy",
+        accent: "#FF5A52",
+        preset: { type: "week", size: "medium", background: "dark", palette: "graphite", dataMode: "this_week", layout: "strip", iconKey: "alert" }
+      },
+      {
+        label: "Semester Progress",
+        detail: `${courseScope} · ${snapshots.classProgress.detail}`,
+        moment: "Weekly review",
+        data: "Class progress",
+        reason: "Keeps long-range execution visible.",
+        device: "Apple Watch",
+        accent: "#FF8A00",
+        preset: { type: "class_focus", size: "small", background: "glass", palette: "forest", dataMode: "single_class", layout: "progress", iconKey: "book", classFocusCourseId: firstCourse?.id }
+      },
+      {
+        label: "Focus Window",
+        detail: "Short sprint against the highest leverage task.",
+        moment: "Study block",
+        data: "Next up",
+        reason: `${friction}; planning stays aggressive but startable.`,
+        device: "Dynamic Island preview",
+        accent: "#2F80ED",
+        preset: { type: "focus", size: "small", background: "glass", palette: "ocean", dataMode: "next_up", layout: "ring", iconKey: "timer" }
+      }
+    ]
+  };
+
+  return recommendations[behavior];
+}
+
+function rankWidgetStudioTemplates<T extends StarterTemplate>(templates: T[], settings: UserSettings) {
+  const behavior = settings.osBehavior || "highest_gpa";
+  const priority: Record<OSBehavior, WidgetType[]> = {
+    highest_gpa: ["due_next", "class_focus", "focus", "week", "today", "needs_check", "streak", "empty"],
+    less_stress: ["week", "today", "empty", "focus", "due_next", "class_focus", "streak", "needs_check"],
+    athletic_performance: ["due_next", "week", "today", "focus", "class_focus", "streak", "needs_check", "empty"],
+    life_balance: ["week", "class_focus", "today", "due_next", "focus", "streak", "empty", "needs_check"],
+    high_achievement: ["week", "class_focus", "focus", "due_next", "today", "needs_check", "streak", "empty"]
+  };
+  const order = priority[behavior];
+  return [...templates].sort((a, b) => order.indexOf(a.preset.type) - order.indexOf(b.preset.type));
 }
 
 export function MoreScreen({
@@ -388,13 +668,7 @@ export function MoreScreen({
     : !hasAssignments && type !== "class_focus"
       ? t("more.homework_hint", "Your real homework will appear here after you add or scan it.")
       : t("more.planner_preview_hint", "This preview uses the same planner rows your widget will use.");
-  const starterTemplates: Array<{
-    label: string;
-    detail: string;
-    moment: string;
-    data: string;
-    preset: Pick<WidgetPreset, "type" | "size" | "background" | "palette" | "layout" | "iconKey" | "dataMode">;
-  }> = [
+  const starterTemplates: StarterTemplate[] = [
     {
       label: t("more.widget_type_today", "Today"),
       detail: t("more.today_widget_job", "What do I need to do today?"),
@@ -534,8 +808,43 @@ export function MoreScreen({
     t("more.privacy_fact_widgets", "Widgets show reviewed planner work."),
     t("more.privacy_fact_permissions", "Reminder and calendar permissions are optional.")
   ];
+  const liveProfile = lifeWidgetProfile(settings, hasAssignments && hasCourses);
+  const liveRecommendations = buildLifeWidgetRecommendations(settings, courses, nativeSnapshots);
+  const rankedStarterTemplates = rankWidgetStudioTemplates(starterTemplates, settings);
+  const devicePreviews = [
+    {
+      label: "Home Screen",
+      value: nativeSnapshots.today.signalLabel || nativeSnapshots.today.value,
+      detail: nativeSnapshots.today.detail,
+      accent: nativeSnapshots.today.accentColor
+    },
+    {
+      label: "Lock Screen",
+      value: nativeSnapshots.upcoming.value,
+      detail: nativeSnapshots.upcoming.signalLabel || nativeSnapshots.upcoming.detail,
+      accent: nativeSnapshots.upcoming.accentColor
+    },
+    {
+      label: "Apple Watch",
+      value: watchDNALabel(settings.watchDNA?.[0]),
+      detail: nativeSnapshots.upcoming.nextLabel || nativeSnapshots.upcoming.detail,
+      accent: "#35F2D0"
+    },
+    {
+      label: "StandBy",
+      value: nativeSnapshots.week.signalLabel || nativeSnapshots.week.value,
+      detail: nativeSnapshots.week.detail,
+      accent: nativeSnapshots.week.accentColor
+    },
+    {
+      label: "Dynamic Island",
+      value: "Preview",
+      detail: "Preview only until Live Activities ship.",
+      accent: "#FF8A00"
+    }
+  ];
 
-  const applyTemplate = (template: Pick<WidgetPreset, "type" | "size" | "background" | "palette" | "layout" | "iconKey" | "dataMode">) => {
+  const applyTemplate = (template: StudioTemplatePatch) => {
     const nextKind = widgetKindForType(template.type);
     setType(template.type);
     setSize(template.size);
@@ -545,6 +854,9 @@ export function MoreScreen({
     setStyleChoice(widgetThemeChoiceFromPreset(template));
     setLayout(template.layout);
     setIconKey(template.iconKey);
+    if (template.classFocusCourseId) {
+      setClassFocusCourseId(template.classFocusCourseId);
+    }
     if (template.dataMode !== "single_class" && nextKind !== "classProgress") {
       setClassFocusCourseId(undefined);
     }
@@ -606,6 +918,128 @@ export function MoreScreen({
 
   return (
     <View>
+      <View style={styles.lifeWidgetStudio}>
+        <View style={styles.lifeWidgetHeader}>
+          <View style={styles.lifeWidgetTitleBlock}>
+            <Text style={styles.lifeWidgetEyebrow}>{t("more.widget_studio_name", "Widgets")}</Text>
+            <Text style={styles.lifeWidgetTitle}>{liveProfile.title}</Text>
+            <Text style={styles.lifeWidgetCopy}>{liveProfile.copy}</Text>
+          </View>
+          <View style={styles.lifeWidgetDataPill}>
+            <View style={styles.lifeWidgetLiveDot} />
+            <Text style={styles.lifeWidgetDataText}>{liveProfile.dataLabel}</Text>
+          </View>
+        </View>
+
+        <View style={styles.lifeWidgetDNARow}>
+          <View style={styles.lifeWidgetDNAPill}>
+            <Text style={styles.lifeWidgetDNALabel}>Student DNA</Text>
+            <Text style={styles.lifeWidgetDNAValue} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.72}>{settings.studentDNA ? labelize(settings.studentDNA) : "Focused Scholar"}</Text>
+          </View>
+          <View style={styles.lifeWidgetDNAPill}>
+            <Text style={styles.lifeWidgetDNALabel}>Behavior</Text>
+            <Text style={styles.lifeWidgetDNAValue} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.72}>{behaviorLabel(settings.osBehavior)}</Text>
+          </View>
+          <View style={styles.lifeWidgetDNAPill}>
+            <Text style={styles.lifeWidgetDNALabel}>Widget / Watch / Friction</Text>
+            <Text style={styles.lifeWidgetDNAValue} numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.68}>{liveProfile.dnaLabel}</Text>
+          </View>
+        </View>
+
+        <View style={styles.lifeWidgetPreviewPanel}>
+          <View style={styles.lifeWidgetPreviewCopy}>
+            <Text style={styles.lifeWidgetPreviewKicker}>Current OS Preview</Text>
+            <Text style={styles.lifeWidgetPreviewTitle}>{selectedWidgetName}</Text>
+            <Text style={styles.lifeWidgetPreviewText} numberOfLines={3}>
+              {nativePreview?.footnote || studioHint}
+            </Text>
+            <View style={styles.lifeWidgetPreviewPillRow}>
+              <Text style={styles.lifeWidgetPreviewPill}>{behaviorLabel(settings.osBehavior)}</Text>
+              <Text style={styles.lifeWidgetPreviewPill}>Plus adaptive stack</Text>
+            </View>
+          </View>
+          <View style={styles.lifeWidgetPreviewWidgetFrame}>
+            <WidgetPreviewCard
+              title={displayWidgetData.headline}
+              value={displayWidgetData.value}
+              detail={displayWidgetData.detail}
+              background={background}
+              palette={palette}
+              size="small"
+              type={type}
+              course={displayWidgetData.course || focusedCourse}
+              font={font}
+              layout={layout}
+              iconKey={iconKey}
+              items={displayWidgetData.items}
+              weekLoad={displayWidgetData.weekLoad}
+              progress={displayWidgetData.progress}
+              progressLabel={displayWidgetData.progressLabel}
+              nativeMode={Boolean(nativePreview)}
+              nativeAccentColor={nativePreview?.accentColor}
+              nativeBackgroundColor={nativePreview?.backgroundColor}
+              nativeSignalLabel={nativePreview?.signalLabel}
+              nativeMetricLabel={nativePreview?.metricLabel}
+              nativeNextLabel={nativePreview?.nextLabel}
+              nativeTimelineLabel={nativePreview?.timelineLabel}
+              nativeProgress={nativePreview?.progress}
+              footnote={nativePreview?.footnote}
+              semesterName={nativePreview?.semesterName}
+              style={styles.lifeWidgetPreviewWidget}
+            />
+          </View>
+        </View>
+
+        <View style={styles.lifeWidgetSectionHeader}>
+          <Text style={styles.lifeWidgetSectionTitle}>Recommended for You</Text>
+          <Text style={styles.lifeWidgetSectionNote}>Tap one and the live preview below changes immediately.</Text>
+        </View>
+        <View style={styles.liveRecommendationGrid}>
+          {liveRecommendations.map((recommendation) => (
+            <TouchableOpacity
+              accessibilityRole="button"
+              key={recommendation.label}
+              style={[styles.liveRecommendationCard, { borderColor: recommendation.accent }]}
+              onPress={() => applyTemplate(recommendation.preset)}
+            >
+              <View style={styles.liveRecommendationTop}>
+                <View style={[styles.liveRecommendationSwatch, { backgroundColor: recommendation.accent }]} />
+                <Text style={styles.liveRecommendationDevice} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.72}>{recommendation.device}</Text>
+              </View>
+              <Text style={styles.liveRecommendationTitle} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.72}>{recommendation.label}</Text>
+              <Text style={styles.liveRecommendationDetail} numberOfLines={2}>{recommendation.detail}</Text>
+              <Text style={styles.liveRecommendationReason} numberOfLines={2}>{recommendation.reason}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.lifeWidgetSectionHeader}>
+          <Text style={styles.lifeWidgetSectionTitle}>Live surfaces</Text>
+          <Text style={styles.lifeWidgetSectionNote}>Home, Lock Screen, Watch, StandBy, and Live Activity proof points use the same snapshot model.</Text>
+        </View>
+        <View style={styles.lifeWidgetDeviceGrid}>
+          {devicePreviews.map((item) => (
+            <View key={item.label} style={styles.lifeWidgetDeviceCard}>
+              <View style={styles.lifeWidgetDeviceTop}>
+                <Text style={styles.lifeWidgetDeviceLabel}>{item.label}</Text>
+                <View style={[styles.lifeWidgetDeviceDot, { backgroundColor: item.accent }]} />
+              </View>
+              <Text style={styles.lifeWidgetDeviceValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>{item.value}</Text>
+              <Text style={styles.lifeWidgetDeviceDetail} numberOfLines={2}>{item.detail}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.lifeWidgetSetupSummary}>
+          <View>
+            <Text style={styles.lifeWidgetSetupKicker}>Saved Setup / Current OS Setup</Text>
+            <Text style={styles.lifeWidgetSetupTitle}>{selectedTemplateLabel} · {sizeLabel(size)} · {paletteLabel(palette)}</Text>
+          </View>
+          <Text style={styles.lifeWidgetSetupCopy}>
+            {dataSourceLabel} · {focusedCourse?.code || t("widget_snapshot.all_classes", "All classes")} · {layoutLabels[layout]} · {settings.syncEnabled ? t("more.widget_sync_on", "Sync on") : t("more.widget_sync_off", "Sync off")}
+          </Text>
+        </View>
+      </View>
       <LifeStudioSetup settings={settings} onUpdateSettings={onUpdateSettings} />
       <View style={styles.studioShell}>
         <View style={styles.studioWorkbench}>
@@ -760,7 +1194,7 @@ export function MoreScreen({
         </View>
 
         <View style={styles.studioPickerRail}>
-          {starterTemplates.map((template) => {
+          {rankedStarterTemplates.map((template) => {
             const Icon =
               template.preset.type === "today"
                 ? ListChecks
@@ -1347,6 +1781,308 @@ function createStyles(theme: AppTheme) {
     lifePreviewStrip: {
       gap: spacing.sm,
       marginBottom: spacing.md
+    },
+    lifeWidgetStudio: {
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(15,23,42,0.08)",
+      backgroundColor: theme.isDark ? "rgba(8,12,22,0.92)" : "#FFFFFF",
+      padding: spacing.md,
+      gap: spacing.md,
+      marginBottom: spacing.md,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.22 : 0.08,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 5
+    },
+    lifeWidgetHeader: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: spacing.sm
+    },
+    lifeWidgetTitleBlock: {
+      flex: 1,
+      minWidth: 0,
+      gap: 5
+    },
+    lifeWidgetEyebrow: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    lifeWidgetTitle: {
+      color: colors.ink,
+      fontSize: 27,
+      lineHeight: 32,
+      fontWeight: "900"
+    },
+    lifeWidgetCopy: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "800"
+    },
+    lifeWidgetDataPill: {
+      maxWidth: 122,
+      minHeight: 32,
+      borderRadius: radii.round,
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : colors.line,
+      backgroundColor: colors.accentSoft,
+      paddingHorizontal: 9,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6
+    },
+    lifeWidgetLiveDot: {
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      backgroundColor: colors.green
+    },
+    lifeWidgetDataText: {
+      flexShrink: 1,
+      color: colors.accent,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textAlign: "center"
+    },
+    lifeWidgetDNARow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    lifeWidgetDNAPill: {
+      flexGrow: 1,
+      flexBasis: "31%",
+      minWidth: 0,
+      minHeight: 92,
+      borderRadius: radii.md,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.06)" : colors.surfaceAlt,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+      gap: 2
+    },
+    lifeWidgetDNALabel: {
+      color: colors.muted,
+      fontSize: 9,
+      lineHeight: 12,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    lifeWidgetDNAValue: {
+      color: colors.ink,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900"
+    },
+    lifeWidgetPreviewPanel: {
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : colors.surfaceAlt,
+      padding: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm
+    },
+    lifeWidgetPreviewCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 5
+    },
+    lifeWidgetPreviewKicker: {
+      color: colors.accent,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    lifeWidgetPreviewTitle: {
+      color: colors.ink,
+      fontSize: 18,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    lifeWidgetPreviewText: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
+    },
+    lifeWidgetPreviewPillRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 5
+    },
+    lifeWidgetPreviewPill: {
+      borderRadius: radii.round,
+      overflow: "hidden",
+      backgroundColor: colors.accentSoft,
+      color: colors.accent,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      fontSize: 9,
+      lineHeight: 12,
+      fontWeight: "900"
+    },
+    lifeWidgetPreviewWidgetFrame: {
+      width: 132,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    lifeWidgetPreviewWidget: {
+      transform: [{ scale: 0.82 }]
+    },
+    lifeWidgetSectionHeader: {
+      gap: 2
+    },
+    lifeWidgetSectionTitle: {
+      color: colors.ink,
+      fontSize: 18,
+      lineHeight: 23,
+      fontWeight: "900"
+    },
+    lifeWidgetSectionNote: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
+    },
+    liveRecommendationGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    liveRecommendationCard: {
+      flexGrow: 1,
+      flexBasis: "48%",
+      minWidth: 148,
+      minHeight: 142,
+      borderRadius: radii.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : colors.surface,
+      padding: spacing.sm,
+      gap: 5
+    },
+    liveRecommendationTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.xs
+    },
+    liveRecommendationSwatch: {
+      width: 28,
+      height: 28,
+      borderRadius: 10
+    },
+    liveRecommendationDevice: {
+      flex: 1,
+      color: colors.muted,
+      fontSize: 9,
+      lineHeight: 12,
+      fontWeight: "900",
+      textAlign: "right"
+    },
+    liveRecommendationTitle: {
+      color: colors.ink,
+      fontSize: 16,
+      lineHeight: 20,
+      fontWeight: "900"
+    },
+    liveRecommendationDetail: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
+    },
+    liveRecommendationReason: {
+      color: colors.ink,
+      fontSize: 10,
+      lineHeight: 14,
+      fontWeight: "800"
+    },
+    lifeWidgetDeviceGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    lifeWidgetDeviceCard: {
+      flexGrow: 1,
+      flexBasis: "31%",
+      minWidth: 104,
+      minHeight: 92,
+      borderRadius: radii.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.line,
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.05)" : colors.surfaceAlt,
+      padding: spacing.sm,
+      gap: 3
+    },
+    lifeWidgetDeviceTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.xs
+    },
+    lifeWidgetDeviceLabel: {
+      color: colors.muted,
+      fontSize: 9,
+      lineHeight: 12,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    lifeWidgetDeviceDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4
+    },
+    lifeWidgetDeviceValue: {
+      color: colors.ink,
+      fontSize: 15,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    lifeWidgetDeviceDetail: {
+      color: colors.muted,
+      fontSize: 10,
+      lineHeight: 14,
+      fontWeight: "800"
+    },
+    lifeWidgetSetupSummary: {
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.accent,
+      backgroundColor: colors.accentSoft,
+      padding: spacing.sm,
+      gap: 5
+    },
+    lifeWidgetSetupKicker: {
+      color: colors.accent,
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900",
+      textTransform: "uppercase"
+    },
+    lifeWidgetSetupTitle: {
+      color: colors.ink,
+      fontSize: 15,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    lifeWidgetSetupCopy: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
     },
     studioShell: {
       gap: spacing.md,
