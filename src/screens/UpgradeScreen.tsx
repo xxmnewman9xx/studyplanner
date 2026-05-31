@@ -18,10 +18,12 @@ type UpgradeScreenProps = {
 type LegalDocument = "terms" | "privacy";
 
 const paidFeatures = [
-  { icon: FileScan, titleKey: "paywall.feature_scans", detailKey: "paywall.feature_scans_detail", fallbackTitle: "Syllabus imports", fallbackDetail: "AI-assisted text/PDF imports, pasted text, and re-imports when classes change." },
-  { icon: Layers3, titleKey: "paywall.feature_widgets", detailKey: "paywall.feature_widgets_detail", fallbackTitle: "Home Screen widgets", fallbackDetail: "Save real Next Up, Today List, Week, and Class Progress widget presets." },
-  { icon: Timer, titleKey: "paywall.feature_focus", detailKey: "paywall.feature_focus_detail", fallbackTitle: "Focus and progress tools", fallbackDetail: "Start timed study sessions and keep completion feedback visible." },
-  { icon: Bell, titleKey: "paywall.feature_calendar", detailKey: "paywall.feature_calendar_detail", fallbackTitle: "Reminders and calendar sync", fallbackDetail: "Send reviewed deadlines to device reminders and calendar." }
+  { icon: FileScan, titleKey: "paywall.feature_scans", detailKey: "paywall.feature_scans_detail", fallbackTitle: "Unlimited syllabus imports", fallbackDetail: "Scan, paste, and re-import every class while review gates protect your real planner." },
+  { icon: Palette, titleKey: "paywall.feature_life_studio", detailKey: "paywall.feature_life_studio_detail", fallbackTitle: "Full Life Studio", fallbackDetail: "Tune identity, layout, Widget DNA, Watch DNA, OS behavior, and friction points." },
+  { icon: TrendingUp, titleKey: "paywall.feature_forecasting", detailKey: "paywall.feature_forecasting_detail", fallbackTitle: "Advanced forecasting", fallbackDetail: "See load, risk, free time, focus windows, exam clusters, and grade-impact priorities." },
+  { icon: Layers3, titleKey: "paywall.feature_widgets", detailKey: "paywall.feature_widgets_detail", fallbackTitle: "Adaptive widgets and Watch", fallbackDetail: "Save real Home Screen widgets today, with clean watch complication architecture ready for native targets." },
+  { icon: Bell, titleKey: "paywall.feature_calendar", detailKey: "paywall.feature_calendar_detail", fallbackTitle: "Smart reminders", fallbackDetail: "Queue local reminders and calendar sync from reviewed StudyPlanner deadlines." },
+  { icon: Timer, titleKey: "paywall.feature_focus", detailKey: "paywall.feature_focus_detail", fallbackTitle: "Student Life OS personalization", fallbackDetail: "Make StudyPlanner adapt ordering, cards, widgets, colors, and recommendations to your student life." }
 ];
 
 export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: UpgradeScreenProps) {
@@ -75,8 +77,8 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
   const heroTitle = "Unlock StudyPlanner";
   const localizedHeroTitle = t("paywall.title", heroTitle);
   const heroSubtitle = hardMode
-    ? t("paywall.hard_subtitle", "Unlock AI-assisted syllabus imports, calendar planning, focus, widgets, reminders, and sync.")
-    : t("paywall.subtitle", "Keep the full import-to-plan workflow ready for a busy semester.");
+    ? t("paywall.hard_subtitle", "Unlock unlimited syllabus imports, Life Studio, advanced forecasting, adaptive widgets, watch planning, and smart reminders.")
+    : t("paywall.subtitle", "Turn StudyPlanner into your personalized Student Life OS.");
 
   if (legalDocument) {
     return <LegalNotice document={legalDocument} onClose={() => setLegalDocument(null)} />;

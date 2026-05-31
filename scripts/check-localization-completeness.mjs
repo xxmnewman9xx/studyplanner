@@ -16,7 +16,7 @@ const sourceFiles = {
   entitlementGate: readFileSync("src/components/PremiumGate.tsx", "utf8"),
   paywall: readFileSync("src/screens/UpgradeScreen.tsx", "utf8"),
   modeToggle: readFileSync("src/components/ModeToggle.tsx", "utf8"),
-  widgets: readFileSync("src/screens/MoreScreen.tsx", "utf8"),
+  widgets: `${readFileSync("src/screens/MoreScreen.tsx", "utf8")}\n${readFileSync("src/screens/LifeStudioScreen.tsx", "utf8")}`,
   widgetSnapshot: readFileSync("src/services/widgetSnapshot.ts", "utf8"),
   appleComponents: readFileSync("src/components/AppleComponents.tsx", "utf8")
 };
@@ -137,7 +137,7 @@ assert(sourceFiles.notes.includes("useI18n") && sourceFiles.notes.includes("note
 assert(sourceFiles.entitlementGate.includes("useI18n") && sourceFiles.entitlementGate.includes("entitlement_gate.unlock_title"), "Entitlement gate component must consume runtime localization keys.");
 assert(sourceFiles.paywall.includes("useI18n") && sourceFiles.paywall.includes("paywall.hard_subtitle"), "Paywall must consume runtime localization keys.");
 assert(sourceFiles.modeToggle.includes("useI18n") && sourceFiles.modeToggle.includes("theme.use_light_mode"), "Theme mode toggle must consume runtime localization keys.");
-assert(sourceFiles.widgets.includes("useI18n") && sourceFiles.widgets.includes("more.native_style_fields"), "Widget Studio must consume runtime localization keys while preserving native/widget truth copy.");
+assert(sourceFiles.widgets.includes("useI18n") && sourceFiles.widgets.includes("life_studio.widget_dna"), "Life Studio must consume runtime localization keys while preserving native/widget truth copy.");
 assert(sourceFiles.widgetSnapshot.includes("translate?: WidgetSnapshotTranslate") && sourceFiles.widgetSnapshot.includes("widget_snapshot.today"), "Native widget snapshot payloads must accept runtime translations.");
 assert(sourceFiles.appleComponents.includes("useI18n") && sourceFiles.appleComponents.includes("widget_preview.next_caps"), "Widget previews must localize native-style fallback labels.");
 assert(sourceFiles.i18n.includes("EXPO_PUBLIC_STUDYPLANNER_LOCALE"), "Localization override must exist for screenshot QA.");
@@ -315,31 +315,16 @@ const hardcodedLaunchStrings = [
     file: "src/screens/MoreScreen.tsx",
     source: sourceFiles.widgets,
     phrases: [
-      "Notes, study, grades, and settings.",
-      "Open the secondary tools before you tune widgets.",
-      "Widget Studio",
-      "Choose widget, data, and style.",
-      "Ready for Home Screen",
-      "Home Screen handoff",
-      "Native style fields",
-      "Advanced looks stay as saved StudyPlanner presets",
-      "What style?",
-      "Size, privacy, class, look.",
-      "What shows",
-      "What data",
-      "Lock Screen widgets",
-      "Settings and trust",
-      "Privacy mode",
-      "Reminder default",
-      "Widget sync",
-      "Trust rules",
-      "Smart Stack presets",
-      "Build the daily preset set.",
-      "One-tap theme packs",
-      "App themes",
-      "Template gallery",
-      "Saved presets",
-      "Install status"
+      "Design your life OS.",
+      "Every choice changes the feed",
+      "Choose your identity",
+      "Pick your layout",
+      "Widget DNA",
+      "Watch DNA",
+      "OS Behavior",
+      "Friction Points",
+      "Your Life OS Preview",
+      "Local-first: no API keys"
     ]
   },
   {

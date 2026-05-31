@@ -8,6 +8,13 @@ import {
 } from "../components/AppleComponents";
 import { AppButton } from "../components/AppButton";
 import { SectionHeader } from "../components/SectionHeader";
+import {
+  SPFeedCard,
+  SPInsightCard,
+  SPMetricTile,
+  SPProgressRing,
+  SPSectionHeader as SPOSSectionHeader
+} from "../components/SPDesignSystem";
 import { Assignment, Course, FocusSession, Semester, StudyNote, UserSettings, WidgetPreset } from "../models";
 import {
   buildTodayBrain,
@@ -19,6 +26,7 @@ import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { courseEmoji } from "../utils/courseVisuals";
 import { useI18n } from "../i18n";
+import { buildStudentLifeOS } from "../logic/studentLifeOS";
 
 export type ImportHandoffSummary = {
   sourceName: string;
@@ -88,6 +96,7 @@ export function TodayScreen({
   const { colors } = theme;
   const styles = createStyles(theme);
   const plan = buildTodayBrain({ assignments, courses, semester, notes, focusSessions, widgetPresets, settings });
+  const lifeOS = buildStudentLifeOS({ assignments, courses, notes, focusSessions, settings });
   const nextCourse = plan.nextAction
     ? getCourseForAssignment(courses, plan.nextAction)
     : undefined;
@@ -146,6 +155,7 @@ export function TodayScreen({
       action: onOpenWidgets
     }
   ];
+  const leadInsight = lifeOS.insights[0];
 
   useEffect(() => {
     if (!courses.length) {
@@ -189,6 +199,56 @@ export function TodayScreen({
           <AppButton label={t("today.replace_with_syllabus", "Replace with my syllabus")} icon={FileScan} onPress={onReplaceDemo} />
         </GlassCard>
       ) : null}
+
+      <View style={styles.lifeOSBlock}>
+        <SPCardlessHero
+          title={t("today.life_os_title", "Student Life OS")}
+          detail={t("today.life_os_detail", "A personalized feed for classes, deadlines, focus, widgets, and your real week.")}
+          score={lifeOS.workloadScore}
+        />
+        <View style={styles.lifeMetricGrid}>
+          <SPMetricTile
+            label={t("today.life_metric_load", "Load")}
+            value={`${lifeOS.workloadScore}`}
+            detail={lifeOS.busiestDayLabel}
+            accent="#315BFF"
+          />
+          <SPMetricTile
+            label={t("today.life_metric_free", "Free")}
+            value={`${lifeOS.freeTimeHours.toFixed(1)}h`}
+            detail={lifeOS.focusWindowLabel}
+            accent="#16A66E"
+          />
+          <SPMetricTile
+            label={t("today.life_metric_risk", "Risk")}
+            value={`${lifeOS.stressScore}`}
+            detail={lifeOS.examClusterCount ? t("today.exam_cluster", "exam cluster") : t("today.forecast", "forecast")}
+            accent="#F97316"
+          />
+        </View>
+        {leadInsight ? <SPInsightCard insight={leadInsight} /> : null}
+        <SPOSSectionHeader
+          title={t("today.student_life_feed", "Student Life Feed")}
+          note={t("today.student_life_feed_note", "Ranked by your Life Studio OS.")}
+        />
+        <View style={styles.lifeFeedList}>
+          {lifeOS.feedItems.slice(0, 5).map((item) => (
+            <SPFeedCard
+              key={item.id}
+              item={item}
+              onPress={
+                item.sourceAssignmentId
+                  ? () => onOpenAssignment(item.sourceAssignmentId!)
+                  : item.type === "class"
+                    ? onOpenClasses
+                    : item.type === "focus"
+                      ? () => onOpenFocus(item.sourceAssignmentId)
+                      : undefined
+              }
+            />
+          ))}
+        </View>
+      </View>
 
       <GlassCard tone="hero" style={styles.heroCard}>
         <Text style={styles.heroKicker}>{heroKicker}</Text>
@@ -628,6 +688,24 @@ type MetricPillProps = {
   value: string;
 };
 
+function SPCardlessHero({ title, detail, score }: { title: string; detail: string; score: number }) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  return (
+    <View style={styles.lifeHero}>
+      <View style={styles.lifeHeroCopy}>
+        <Text style={styles.lifeHeroEyebrow}>StudyPlanner</Text>
+        <Text style={styles.lifeHeroTitle}>{title}</Text>
+        <Text style={styles.lifeHeroDetail}>{detail}</Text>
+      </View>
+      <View style={styles.lifeHeroRing}>
+        <SPProgressRing value={score / 100} size={68} accent={theme.colors.accent} />
+        <Text style={styles.lifeHeroRingLabel}>OS</Text>
+      </View>
+    </View>
+  );
+}
+
 type CatchUpSprintCardProps = {
   overdue: Assignment[];
   courses: Course[];
@@ -774,6 +852,71 @@ function createStyles(theme: AppTheme) {
   return StyleSheet.create({
     screen: {
       gap: 0
+    },
+    lifeOSBlock: {
+      gap: spacing.sm,
+      marginBottom: spacing.md
+    },
+    lifeHero: {
+      borderRadius: 28,
+      backgroundColor: theme.isDark ? colors.surface : "#FFFFFF",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.13)" : "#E4E8F0",
+      padding: spacing.md,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.md,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.14 : 0.07,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 2
+    },
+    lifeHeroCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 3
+    },
+    lifeHeroEyebrow: {
+      color: colors.accent,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase",
+      letterSpacing: 0.7
+    },
+    lifeHeroTitle: {
+      color: colors.ink,
+      fontSize: 25,
+      lineHeight: 30,
+      fontWeight: "900",
+      letterSpacing: 0
+    },
+    lifeHeroDetail: {
+      color: colors.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "800"
+    },
+    lifeHeroRing: {
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    lifeHeroRingLabel: {
+      position: "absolute",
+      bottom: 14,
+      color: colors.muted,
+      fontSize: 9,
+      lineHeight: 11,
+      fontWeight: "900"
+    },
+    lifeMetricGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs
+    },
+    lifeFeedList: {
+      gap: spacing.xs
     },
     demoCard: {
       gap: spacing.sm,

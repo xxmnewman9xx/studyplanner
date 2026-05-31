@@ -125,7 +125,7 @@ const proTabs: Array<{
   { id: "plan", labelKey: "tabs.calendar", icon: CalendarDays },
   { id: "courses", labelKey: "tabs.classes", icon: GraduationCap },
   { id: "notes", labelKey: "tabs.notes", icon: NotebookPen },
-  { id: "more", labelKey: "tabs.widgets", icon: Sparkles }
+  { id: "more", labelKey: "tabs.life", icon: Sparkles }
 ];
 
 const mobilePrimaryTabIds = new Set<NavTab>(["today", "import", "plan", "courses", "notes", "more"]);
@@ -133,7 +133,7 @@ const moreGroupTabIds = new Set<NavTab>(["more", "grades", "subscribe"]);
 
 function mobileTabLabel(tab: NavTab, fallback: string, t: (key: string, fallback?: string) => string) {
   if (tab === "plan") return t("tabs.calendar", "Calendar");
-  return tab === "more" ? t("tabs.widgets", "Widgets") : fallback;
+  return tab === "more" ? t("tabs.life", "Life") : fallback;
 }
 
 type CaptureRoute = {
@@ -1761,7 +1761,7 @@ function labelForTab(tab: NavTab, t: (key: string, fallback?: string) => string)
     plan: t("tabs.calendar", "Calendar"),
     courses: t("tabs.classes", "Classes"),
     notes: t("tabs.notes", "Notes"),
-    more: t("tabs.widgets", "Widgets"),
+    more: t("tabs.life", "Life"),
     focus: t("tabs.focus", "Focus"),
     grades: t("tabs.grades", "Grades"),
     subscribe: t("tabs.subscribe", "Subscribe")

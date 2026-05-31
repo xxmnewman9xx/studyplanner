@@ -10,7 +10,8 @@ const readIfExists = (relativePath) => {
 const app = read("App.tsx");
 const onboarding = read("src/screens/OnboardingScreen.tsx");
 const paywall = read("src/screens/UpgradeScreen.tsx");
-const more = read("src/screens/MoreScreen.tsx");
+const more = `${read("src/screens/MoreScreen.tsx")}\n${readIfExists("src/screens/LifeStudioScreen.tsx")}`;
+const studentLife = `${more}\n${readIfExists("src/logic/studentLifeOS.ts")}`;
 const components = read("src/components/AppleComponents.tsx");
 const planner = read("src/logic/planner.ts");
 const nativeWidgetLayout = read("src/widgets/StudyPlannerWidgets.tsx");
@@ -78,7 +79,7 @@ if (fs.existsSync(scenarioPath)) {
 assert(!app.includes("starterCourseLimit") && !app.includes("starterAssignmentLimit") && !app.includes("starterImportLimit"), "Runtime source must not keep feature-level starter limit gates.");
 assert(!app.includes(`${oldNoCostPrefix}CourseLimit`) && !app.includes(`${oldNoCostPrefix}AssignmentLimit`) && !app.includes(`${oldNoCostPrefix}ImportLimit`), "Runtime source must not keep old bypass-plan identifiers.");
 assert(app.includes("const visibleTabs = proTabs"), "Main app navigation should be available only after hard paywall entitlement/capture conditions.");
-assert(app.includes('labelKey: "tabs.scan"') && app.includes('labelKey: "tabs.calendar"') && app.includes('labelKey: "tabs.classes"') && app.includes('labelKey: "tabs.widgets"') && app.includes("t(tab.labelKey)"), "Tab bar must use runtime localized Scan, Calendar, Classes, and Widgets labels.");
+assert(app.includes('labelKey: "tabs.scan"') && app.includes('labelKey: "tabs.calendar"') && app.includes('labelKey: "tabs.classes"') && app.includes('labelKey: "tabs.life"') && app.includes("t(tab.labelKey)"), "Tab bar must use runtime localized Scan, Calendar, Classes, and Life labels.");
 assert(!app.includes("importLimitLocked"), "Import should not keep feature-level paid blockers after the hard paywall.");
 assert(app.includes("setPaywallSeen(false);") && app.includes("<UpgradeScreen hardMode />"), "Onboarding must route to a hard subscription paywall after value previews.");
 assert(app.includes("SkeletonBar") && app.includes("skeletonStack"), "App loading must use a real skeleton loader, not only a spinner.");
@@ -105,17 +106,19 @@ assert(read("src/screens/ImportScreen.tsx").includes("retryParsedImport") && rea
 assert(read("src/services/parserContract.ts").includes("createParsedImportFromCameraAsset") && read("src/services/parserContract.ts").includes("normalizeParsedItems"), "Capture parser contract should cover camera, document, typed, normalization, and review flags.");
 assert(reviewPrompt.includes("assignment_completed") && reviewPrompt.includes("focus_completed") && reviewPrompt.includes("widget_saved"), "Review prompt policy should stay value-gated.");
 assert(app.includes("syncStudyPlannerWidgets") && app.includes("nativeWidgetStatus"), "Native widget snapshots should refresh from real planner persistence.");
-assert(more.includes("Design the widget you want to see at a glance.") && more.includes("Tune the look, then save it as your Home Screen preset."), "Widget surface should lead with a product-facing customization studio.");
-assert(more.includes("What do I need to do today?") && more.includes("What deadline is coming next?") && more.includes("How heavy is this week?"), "Widget templates should be student-outcome first.");
-assert(more.includes("single_class") && more.includes("urgent_only") && more.includes("Pink Glass") && more.includes("Minimal Cream") && more.includes("stageWallpaper"), "Widget Studio should expose the target data, wallpaper, and palette choices.");
-assert(more.includes("One fact in small widgets") && more.includes("Agenda rows in medium widgets"), "Widget Studio first viewport should expose research-backed widget rules.");
-assert(!more.includes("top-20") && !more.includes("active in this studio") && !more.includes("3/6 ready") && !more.includes("Studio state"), "Widget Studio must not expose internal QA scoring language.");
+assert(more.includes("Life Studio") && more.includes("Design your life OS.") && more.includes("Your Life OS Preview"), "Life surface should lead with the personalized Student Life OS studio.");
+assert(more.includes("Focused Scholar") && more.includes("Active Athlete") && more.includes("Working Professional") && more.includes("Research Driven"), "Life Studio should expose student identity choices.");
+assert(studentLife.includes("Widget DNA") && studentLife.includes("exam_countdown") && studentLife.includes("grade_impact") && studentLife.includes("free_time_forecast"), "Life Studio should keep widgets student-outcome first.");
+assert(studentLife.includes("Watch DNA") && studentLife.includes("next_class") && studentLife.includes("focus_window") && studentLife.includes("semester_progress"), "Life Studio should expose watch complication planning.");
+assert(more.includes("OS Behavior") && more.includes("Highest GPA") && more.includes("Less Stress") && more.includes("Life Balance"), "Life Studio should connect personalization to behavior.");
+assert(more.includes("Friction Points") && more.includes("Procrastination") && more.includes("Exam Anxiety") && more.includes("Forgetfulness"), "Life Studio should capture student friction points.");
+assert(!more.includes("top-20") && !more.includes("active in this studio") && !more.includes("3/6 ready") && !more.includes("Studio state"), "Life Studio must not expose internal QA scoring language.");
 assert(planner.includes('headline: "Upcoming"') && planner.includes('headline: "Today"') && planner.includes("Class Progress"), "Widget data labels should match student-outcome templates.");
-assert(more.includes("Upcoming") && more.includes("Today") && more.includes("Week") && more.includes("Class Progress"), "Widget Studio templates should use actionable student-outcome labels.");
-assert(!more.includes("Deadline Map") && !more.includes("Class Risk") && !more.includes("Focus Block"), "Widget Studio should not keep stale decorative widget labels.");
-assert(!more.includes("Algebra II - Worksheet") && !more.includes("Week 11") && !more.includes("Wednesday, May 13"), "Widget surface must not show fake sample school data.");
+assert(more.includes("Feed first") && more.includes("Timeline") && more.includes("Focus first") && more.includes("Split view"), "Life Studio layout choices should describe real dashboard outcomes.");
+assert(!more.includes("Deadline Map") && !more.includes("Class Risk") && !more.includes("Focus Block"), "Life Studio should not keep stale decorative widget labels.");
+assert(!more.includes("Algebra II - Worksheet") && !more.includes("Week 11") && !more.includes("Wednesday, May 13"), "Life surface must not show fake sample school data.");
 assert(!components.includes("May 13") && !components.includes('"2h"'), "Widget preview components must not hard-code fake dates or fake due times.");
-assert(more.includes("Save preset") && more.includes("StudyPlannerWeekWidget") === false, "Widget Studio should save real presets without subscription wording in the primary flow.");
+assert(more.includes("Save OS") && more.includes("buildCanonicalWidgetPreset") && more.includes("StudyPlannerWeekWidget") === false, "Life Studio should save real presets without subscription wording in the primary flow.");
 assert(defaultPlanner.includes("defaultWidgetPresets"), "Default widget presets may exist for data compatibility, but UI must not imply native support.");
 assert(
   todayWidgetSwift

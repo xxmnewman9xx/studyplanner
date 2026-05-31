@@ -17,7 +17,7 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 export function AppThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<ThemeMode>("dark");
+  const [mode, setMode] = useState<ThemeMode>("light");
   const [accent, setAccent] = useState<ThemeAccent>("campus");
   const theme = useMemo(() => getTheme(mode, accent), [accent, mode]);
 

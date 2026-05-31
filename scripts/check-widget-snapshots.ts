@@ -185,7 +185,7 @@ const assert = (condition: boolean, message: string) => {
 
 const nativeWidgetLayoutSource = fs.readFileSync("src/widgets/StudyPlannerWidgets.tsx", "utf8");
 const widgetPreviewSource = fs.readFileSync("src/components/AppleComponents.tsx", "utf8");
-const widgetStudioSource = fs.readFileSync("src/screens/MoreScreen.tsx", "utf8");
+const widgetStudioSource = `${fs.readFileSync("src/screens/MoreScreen.tsx", "utf8")}\n${fs.readFileSync("src/screens/LifeStudioScreen.tsx", "utf8")}`;
 
 const snapshots = buildStudyPlannerWidgetSnapshots({
   semester,
@@ -531,24 +531,24 @@ assert(
   "Widget Studio native preview should render the same five-dot progress signal used by the native layout."
 );
 assert(
-  widgetStudioSource.includes("Ready for Home Screen") &&
-    widgetStudioSource.includes("Install native app") &&
-    widgetStudioSource.includes("nativeProgress={nativePreview?.progress}") &&
-    widgetStudioSource.includes("previewWidgetPresets") &&
-    widgetStudioSource.includes("Your saved {name} keeps this data, class focus, palette, and layout together."),
-  "Widget Studio should preview draft native presets with product-facing saved-preset copy."
+  widgetStudioSource.includes("SPPreviewPhone") &&
+    widgetStudioSource.includes("buildCanonicalWidgetPreset") &&
+    widgetStudioSource.includes("onSaveWidgetPreset") &&
+    widgetStudioSource.includes("defaultWidgetDNA") &&
+    widgetStudioSource.includes("defaultWatchDNA"),
+  "Life Studio should preview and save adaptive native presets from Student Life OS choices."
 );
 
 assert(
-  widgetStudioSource.includes("dataMode") &&
-    widgetStudioSource.includes("allowedDataModes") &&
-    widgetStudioSource.includes("allowedLayouts") &&
-    widgetStudioSource.includes("styleChoice") &&
-    widgetStudioSource.includes("studioPaletteOptions") &&
-    widgetStudioSource.includes("stageWallpaper") &&
-    widgetStudioSource.includes("setFont(option)") &&
+  widgetStudioSource.includes("identityOptions") &&
+    widgetStudioSource.includes("layoutOptions") &&
+    widgetStudioSource.includes("vibeOptions") &&
+    widgetStudioSource.includes("behaviorOptions") &&
+    widgetStudioSource.includes("frictionOptions") &&
+    widgetStudioSource.includes("widgetPriorities") &&
+    widgetStudioSource.includes("watchComplications") &&
     widgetStudioSource.includes("single_class"),
-  "Widget Studio should expose real data, size, palette, wallpaper, font, class, and layout controls."
+  "Life Studio should expose identity, layout, vibe, Widget DNA, Watch DNA, OS behavior, and friction controls."
 );
 
 assert(
