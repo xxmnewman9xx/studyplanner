@@ -129,14 +129,18 @@ import {
   type MarketingCaptureScreen
 } from "./src/services/marketingCapture";
 
-LogBox.ignoreLogs(["SafeAreaView has been deprecated"]);
-
 const plannerStorageKey = "study-planner-data-v3";
 const marketingCaptureTabFileName = "studyplanner-capture-tab.json";
 const simulatorCaptureFileRoutingEnabled = process.env.EXPO_PUBLIC_SIM_QA_CAPTURE === "1";
 const simulatorLoadingDelayMs = simulatorCaptureFileRoutingEnabled
   ? Math.max(0, Number(process.env.EXPO_PUBLIC_SIM_QA_LOADING_DELAY_MS || 0))
   : 0;
+
+if (simulatorCaptureFileRoutingEnabled) {
+  LogBox.ignoreAllLogs(true);
+} else {
+  LogBox.ignoreLogs(["SafeAreaView has been deprecated"]);
+}
 
 const proTabs: Array<{
   id: NavTab;

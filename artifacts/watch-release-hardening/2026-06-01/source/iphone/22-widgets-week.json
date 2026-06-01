@@ -1,0 +1,30 @@
+{
+  "locale": "runtime",
+  "device": "77573299-A148-49D7-95B6-DB5855B9305A",
+  "appearance": "light",
+  "theme": "graphite",
+  "widgetType": "week",
+  "size": "medium",
+  "background": "dark",
+  "palette": "graphite",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "this_week",
+  "route": {
+    "tab": "more",
+    "widgetType": "week",
+    "widgetSize": "medium",
+    "widgetPalette": "graphite",
+    "widgetBackground": "dark",
+    "widgetDataMode": "this_week"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/watch-release-hardening/2026-06-01/source/iphone/22-widgets-week.png",
+  "bytes": 497884,
+  "sha256": "55111cccd43e48423a2fff99ba07651aba6d85e8fa0ce9b3b6e3a412e96b899b",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "226c8e9",
+  "timestamp": "2026-06-01T18:57:09.198Z"
+}

@@ -1,0 +1,25 @@
+{
+  "locale": "runtime",
+  "device": "77573299-A148-49D7-95B6-DB5855B9305A",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "focus",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "focus"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/watch-release-hardening/2026-06-01/source/iphone/18-focus.png",
+  "bytes": 632463,
+  "sha256": "dfad1b31135f97d97aed52c726fad69c15ce6503a4f64d9d04c0277e211f53ff",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "226c8e9",
+  "timestamp": "2026-06-01T18:57:09.198Z"
+}
