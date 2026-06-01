@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { LayoutAnimation, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { CheckCircle2, Clock3, Pause, Play, Power, Square, TimerReset } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
 import { Badge } from "../components/Badge";
@@ -253,6 +253,7 @@ export function FocusScreen({
                   key={minutes}
                   style={[styles.durationChip, active ? styles.durationChipActive : null]}
                   onPress={() => {
+                    animateFocusChange();
                     setSelectedPlannedDuration(minutes);
                     setRunning(false);
                     setStartedAt(null);
@@ -407,6 +408,7 @@ export function FocusScreen({
               key={assignment.id}
               style={[styles.assignmentRow, active ? styles.assignmentRowActive : null]}
               onPress={() => {
+                animateFocusChange();
                 setSelectedId(assignment.id);
                 setSelectedPlannedDuration(null);
                 setRunning(false);
@@ -564,6 +566,10 @@ function labelizeStatus(status: FocusSession["status"], t: TranslateFn) {
   return status;
 }
 
+function animateFocusChange() {
+  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+}
+
 function formatLocalized(template: string, values: Record<string, string>) {
   return Object.entries(values).reduce((current, [key, value]) => current.replaceAll(`{${key}}`, value), template);
 }
@@ -590,13 +596,13 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
       borderWidth: 1,
       borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(5,5,5,0.08)",
       backgroundColor: theme.isDark ? "rgba(255,255,255,0.07)" : "#FFFFFF",
-      padding: spacing.md,
+      padding: spacing.lg,
       alignItems: "center",
       overflow: "hidden",
       shadowColor: "#000000",
-      shadowOpacity: theme.isDark ? 0.18 : 0.07,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: theme.isDark ? 0.18 : 0.09,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 14 },
       elevation: 2
     },
     focusGlow: {
@@ -673,31 +679,31 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
     },
     timerRing: {
       marginTop: spacing.lg,
-      width: 180,
-      height: 180,
-      borderRadius: 90,
-      borderWidth: 10,
+      width: 194,
+      height: 194,
+      borderRadius: 97,
+      borderWidth: 11,
       borderColor: accent,
       backgroundColor: theme.isDark ? "rgba(255,255,255,0.05)" : "#FFFFFF",
       alignItems: "center",
       justifyContent: "center",
       shadowColor: accent,
-      shadowOpacity: 0.2,
-      shadowRadius: 18,
+      shadowOpacity: 0.24,
+      shadowRadius: 22,
       shadowOffset: { width: 0, height: 0 }
     },
     timerRingInner: {
-      width: 138,
-      height: 138,
-      borderRadius: 69,
+      width: 148,
+      height: 148,
+      borderRadius: 74,
       backgroundColor: theme.isDark ? "rgba(255,255,255,0.05)" : colors.surfaceAlt,
       alignItems: "center",
       justifyContent: "center"
     },
     timer: {
       color: colors.ink,
-      fontSize: 40,
-      lineHeight: 48,
+      fontSize: 44,
+      lineHeight: 52,
       fontWeight: "300"
     },
     timerMeta: {
@@ -777,17 +783,17 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
     cockpitStats: {
       alignSelf: "stretch",
       flexDirection: "row",
-      gap: spacing.xs,
-      marginTop: spacing.sm
+      gap: spacing.sm,
+      marginTop: spacing.md
     },
     cockpitStat: {
       flex: 1,
       minWidth: 0,
-      borderRadius: 18,
+      borderRadius: 20,
       backgroundColor: theme.isDark ? "rgba(255,255,255,0.07)" : colors.surfaceAlt,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.isDark ? "rgba(255,255,255,0.12)" : colors.line,
-      padding: spacing.xs,
+      padding: spacing.sm,
       gap: 3
     },
     cockpitValue: {

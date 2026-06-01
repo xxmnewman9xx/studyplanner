@@ -255,12 +255,12 @@ const styles = StyleSheet.create({
     backgroundColor: SPBoardColors.canvas
   },
   stack: {
-    gap: 11
+    gap: 14
   },
   actionRail: {
     flexDirection: "row",
-    gap: 9,
-    marginBottom: 12
+    gap: 10,
+    marginBottom: 16
   },
   actionButton: {
     flex: 1,

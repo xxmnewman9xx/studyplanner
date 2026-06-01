@@ -99,9 +99,6 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
           <PayoffPill icon={FileScan} label={t("paywall.imports", "Imports")} />
           <PayoffPill icon={Check} label={t("paywall.review", "Review")} />
           <PayoffPill icon={TrendingUp} label={t("paywall.forecast", "Forecast")} />
-          <PayoffPill icon={Timer} label={t("tabs.focus", "Focus")} />
-          <PayoffPill icon={Bell} label={t("paywall.reminders", "Reminders")} />
-          <PayoffPill icon={Layers3} label={t("tabs.widgets", "Widgets")} />
         </View>
       </GlassCard>
 
@@ -431,8 +428,8 @@ function createStyles(theme: AppTheme) {
       gap: spacing.md
     },
     heroCard: {
-      padding: spacing.lg,
-      gap: spacing.sm,
+      padding: spacing.xl,
+      gap: spacing.md,
       overflow: "hidden"
     },
     heroGlow: {
@@ -461,15 +458,15 @@ function createStyles(theme: AppTheme) {
     },
     title: {
       color: colors.ink,
-      fontSize: 30,
-      lineHeight: 35,
+      fontSize: 34,
+      lineHeight: 39,
       fontWeight: "900",
       letterSpacing: 0
     },
     subtitle: {
       color: colors.muted,
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 15,
+      lineHeight: 22,
       fontWeight: "700"
     },
     phonePreview: {
@@ -518,7 +515,7 @@ function createStyles(theme: AppTheme) {
     payoffRail: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: spacing.xs
+      gap: spacing.sm
     },
     trustRail: {
       flexDirection: "row",
@@ -553,7 +550,7 @@ function createStyles(theme: AppTheme) {
     },
     payoffPill: {
       flexGrow: 1,
-      minHeight: 34,
+      minHeight: 38,
       borderRadius: radii.round,
       backgroundColor: theme.isDark ? "rgba(255,255,255,0.07)" : "#FFFFFF",
       borderWidth: StyleSheet.hairlineWidth,
@@ -665,11 +662,11 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800"
     },
     planStateCard: {
-      borderRadius: radii.xl,
+      borderRadius: radii.xxl,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.line,
       backgroundColor: colors.surfaceAlt,
-      padding: spacing.md,
+      padding: spacing.lg,
       gap: spacing.xs
     },
     planStateCardReady: {
@@ -744,12 +741,12 @@ function createStyles(theme: AppTheme) {
       fontWeight: "700"
     },
     productCard: {
-      borderRadius: radii.xl,
+      borderRadius: radii.xxl,
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: colors.elevated,
-      padding: spacing.sm,
-      gap: spacing.xs
+      padding: spacing.lg,
+      gap: spacing.sm
     },
     productCardSelected: {
       borderColor: colors.accent,

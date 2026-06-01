@@ -46,11 +46,6 @@ export function CoursesScreen({ semester, courses, assignments, notes = [], stud
         <Text style={styles.subtitle}>Your semester, simplified.</Text>
       </View>
 
-      <View style={styles.segment}>
-        <View style={styles.segmentActive}><Text style={styles.segmentActiveText}>Overview</Text></View>
-        <View style={styles.segmentInactive}><Text style={styles.segmentInactiveText}>Classes</Text></View>
-      </View>
-
       <View style={styles.progressCard}>
         <SPSemesterRing progress={progress} />
         <View style={styles.summaryStack}>
@@ -180,12 +175,12 @@ const styles = StyleSheet.create({
     backgroundColor: SPBoardColors.canvas
   },
   header: {
-    marginBottom: 14
+    marginBottom: 18
   },
   title: {
     color: SPBoardColors.text,
-    fontSize: 31,
-    lineHeight: 36,
+    fontSize: 35,
+    lineHeight: 39,
     fontWeight: "900",
     letterSpacing: 0
   },
@@ -228,14 +223,19 @@ const styles = StyleSheet.create({
     fontWeight: "800"
   },
   progressCard: {
-    borderRadius: 18,
+    borderRadius: 24,
     backgroundColor: "#FFFFFF",
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: SPBoardColors.line,
-    padding: 16,
+    padding: 20,
     flexDirection: "row",
     alignItems: "center",
-    gap: 20
+    gap: 22,
+    shadowColor: "#000000",
+    shadowOpacity: 0.06,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 2
   },
   summaryStack: {
     flex: 1,
@@ -248,10 +248,10 @@ const styles = StyleSheet.create({
   },
   summaryValue: {
     color: SPBoardColors.text,
-    fontSize: 22,
-    lineHeight: 25,
+    fontSize: 24,
+    lineHeight: 28,
     fontWeight: "900",
-    minWidth: 34
+    minWidth: 38
   },
   summaryLabel: {
     color: SPBoardColors.muted,

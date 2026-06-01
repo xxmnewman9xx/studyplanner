@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { LayoutAnimation, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
   Check,
   ChevronRight,
@@ -198,11 +198,13 @@ export function MoreScreen({
   };
 
   const updateAccent = (role: "primary" | "secondary" | "risk" | "focus" | "activity", color: string) => {
+    animateStudioChange();
     saveCustomization(setStudioAccent(customization, role, color));
   };
 
   const updateWidget = (patch: Partial<WidgetStudioSetting>) => {
     if (!selectedWidget) return;
+    animateStudioChange();
     const nextCustomization = updateStudioWidget(customization, surface, selectedWidget.id, patch);
     const nextWidget = packForSurface(nextCustomization, surface).find((widget) => widget.id === selectedWidget.id);
     saveCustomization(nextCustomization);
@@ -283,15 +285,6 @@ export function MoreScreen({
           </Text>
         </View>
         <View style={styles.previewGrid}>
-          <StudioTodayPreview
-            assignment={firstAssignment}
-            course={firstAssignment ? courses.find((course) => course.id === firstAssignment.courseId) : selectedCourse}
-            customization={customization}
-          />
-          <StudioClassPreview
-            course={selectedCourse}
-            openCount={assignments.filter((assignment) => assignment.courseId === selectedCourse?.id && assignment.status !== "done").length}
-          />
           <View style={styles.widgetPreviewSlot}>
             <WidgetPreviewCard
               title={selectedDefinition.title}
@@ -328,6 +321,17 @@ export function MoreScreen({
             examTitle={firstAssignment?.title || "Next assignment"}
             assignmentTitle={secondAssignment?.title || selectedDefinition.title}
           />
+          <View style={styles.previewPair}>
+            <StudioTodayPreview
+              assignment={firstAssignment}
+              course={firstAssignment ? courses.find((course) => course.id === firstAssignment.courseId) : selectedCourse}
+              customization={customization}
+            />
+            <StudioClassPreview
+              course={selectedCourse}
+              openCount={assignments.filter((assignment) => assignment.courseId === selectedCourse?.id && assignment.status !== "done").length}
+            />
+          </View>
         </View>
       </View>
 
@@ -439,6 +443,7 @@ export function MoreScreen({
                   : null
               ]}
               onPress={() => {
+                animateStudioChange();
                 setSurface(option);
                 setSelectedWidgetId(packForSurface(customization, option)[0]?.id || selectedWidgetId);
               }}
@@ -460,7 +465,10 @@ export function MoreScreen({
                 accessibilityState={{ selected: active }}
                 key={widget.id}
                 style={[styles.packCard, active ? styles.packCardActive : null, active ? { borderColor: withAlpha(customization.secondaryAccent, 0.42) } : null]}
-                onPress={() => setSelectedWidgetId(widget.id)}
+                onPress={() => {
+                  animateStudioChange();
+                  setSelectedWidgetId(widget.id);
+                }}
               >
                 <Text style={styles.packSurface}>{surfaceLabel(surface)}</Text>
                 <Text style={styles.packTitle}>{definition.title}</Text>
@@ -516,6 +524,7 @@ export function MoreScreen({
                     selected={selectedWidget.classFocusCourseId === course.id}
                     selectedColor={customization.secondaryAccent}
                     onPress={() => {
+                      animateStudioChange();
                       setSelectedCourseId(course.id);
                       updateWidget({ classFocusCourseId: course.id, colorSource: "class" });
                     }}
@@ -868,25 +877,32 @@ function StudioWatchPreview({
 }) {
   const compact = styleName === "compact";
   return (
-    <View style={[styles.watchPreview, compact ? styles.watchPreviewCompact : null]}>
-      <View style={styles.watchTopRow}>
-        <View style={[styles.watchRing, { borderColor: secondary }]} />
-        <View>
-          <Text style={styles.watchTime}>10:09</Text>
-          <Text style={styles.watchDate}>TUE 13</Text>
+    <View style={[styles.watchCase, compact ? styles.watchPreviewCompact : null]}>
+      <View style={styles.watchCrown} />
+      <View style={styles.watchPreview}>
+        <View style={styles.watchTopRow}>
+          <View style={[styles.watchRing, { borderColor: secondary }]} />
+          <View>
+            <Text style={styles.watchTime}>10:09</Text>
+            <Text style={styles.watchDate}>TUE 13</Text>
+          </View>
         </View>
+        <View style={[styles.watchMiniCard, { backgroundColor: primary }]}>
+          <Text style={styles.watchMiniKicker}>NEXT</Text>
+          <Text style={styles.watchMiniTitle} numberOfLines={2}>{assignmentTitle}</Text>
+        </View>
+        <View style={[styles.watchMiniCard, { backgroundColor: focus }]}>
+          <Text style={styles.watchMiniKicker}>FOCUS</Text>
+          <Text style={styles.watchMiniTitle} numberOfLines={1}>45 min</Text>
+        </View>
+        <Text style={styles.watchFootnote} numberOfLines={1}>{examTitle}</Text>
       </View>
-      <View style={[styles.watchMiniCard, { backgroundColor: primary }]}>
-        <Text style={styles.watchMiniKicker}>NEXT</Text>
-        <Text style={styles.watchMiniTitle} numberOfLines={2}>{assignmentTitle}</Text>
-      </View>
-      <View style={[styles.watchMiniCard, { backgroundColor: focus }]}>
-        <Text style={styles.watchMiniKicker}>FOCUS</Text>
-        <Text style={styles.watchMiniTitle} numberOfLines={1}>45 min</Text>
-      </View>
-      <Text style={styles.watchFootnote} numberOfLines={1}>{examTitle}</Text>
     </View>
   );
+}
+
+function animateStudioChange() {
+  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 }
 
 function withAlpha(color: string, alpha: number) {
@@ -907,8 +923,8 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 14,
-    marginBottom: 14
+    gap: 16,
+    marginBottom: 18
   },
   heroCopy: {
     flex: 1,
@@ -948,11 +964,11 @@ const styles = StyleSheet.create({
     fontWeight: "900"
   },
   livePreview: {
-    borderRadius: 24,
+    borderRadius: 28,
     backgroundColor: "rgba(248,250,252,0.88)",
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: "rgba(210,212,218,0.82)",
-    padding: 14,
+    padding: 16,
     shadowColor: "#000000",
     shadowOpacity: 0.06,
     shadowRadius: 20,
@@ -974,8 +990,8 @@ const styles = StyleSheet.create({
   },
   previewTitle: {
     color: SPBoardColors.text,
-    fontSize: 19,
-    lineHeight: 23,
+    fontSize: 22,
+    lineHeight: 27,
     fontWeight: "900"
   },
   syncPill: {
@@ -993,22 +1009,30 @@ const styles = StyleSheet.create({
     fontWeight: "900"
   },
   previewGrid: {
+    gap: 12
+  },
+  previewPair: {
+    flexDirection: "row",
     gap: 10
   },
   previewCard: {
-    borderRadius: 18,
+    flex: 1,
+    minHeight: 116,
+    borderRadius: 20,
     backgroundColor: "rgba(255,255,255,0.78)",
     borderWidth: StyleSheet.hairlineWidth,
     padding: 13
   },
   classPreviewCard: {
-    borderRadius: 18,
+    flex: 1,
+    minHeight: 116,
+    borderRadius: 20,
     backgroundColor: "rgba(255,255,255,0.78)",
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: SPBoardColors.line,
     padding: 13,
-    flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
     gap: 10
   },
   previewSmallKicker: {
@@ -1042,11 +1066,10 @@ const styles = StyleSheet.create({
     borderRadius: 3
   },
   widgetPreviewSlot: {
-    alignItems: "flex-start"
+    alignItems: "center"
   },
   nativeWidgetPreview: {
-    transform: [{ scale: 0.92 }],
-    transformOrigin: "top left"
+    alignSelf: "center"
   },
   classPreviewIcon: {
     width: 42,
@@ -1059,8 +1082,30 @@ const styles = StyleSheet.create({
     fontSize: 19,
     lineHeight: 23
   },
+  watchCase: {
+    alignSelf: "center",
+    width: "86%",
+    maxWidth: 246,
+    borderRadius: 36,
+    backgroundColor: "#111111",
+    padding: 8,
+    shadowColor: "#000000",
+    shadowOpacity: 0.22,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 3
+  },
+  watchCrown: {
+    position: "absolute",
+    right: -5,
+    top: 58,
+    width: 7,
+    height: 42,
+    borderRadius: 4,
+    backgroundColor: "#2B2B2B"
+  },
   watchPreview: {
-    borderRadius: 28,
+    borderRadius: 30,
     backgroundColor: "#050505",
     padding: 12,
     gap: 7,

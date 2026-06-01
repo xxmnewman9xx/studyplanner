@@ -139,7 +139,7 @@ export function SPNextClassCard({
 export function SPSemesterRing({
   progress,
   label = "Complete",
-  size = 118,
+  size = 128,
   color = SPBoardColors.green
 }: {
   progress: number;
@@ -148,7 +148,7 @@ export function SPSemesterRing({
   color?: string;
 }) {
   const clamped = Math.max(0, Math.min(1, progress));
-  const stroke = 12;
+  const stroke = 13;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - clamped);
@@ -557,25 +557,25 @@ const styles = StyleSheet.create({
     fontWeight: "900"
   },
   colorCard: {
-    minHeight: 80,
-    borderRadius: 18,
+    minHeight: 96,
+    borderRadius: 24,
     borderCurve: "continuous",
-    padding: 13,
+    padding: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 12,
+    gap: 16,
     overflow: "hidden",
     shadowColor: "#000000",
-    shadowOpacity: 0.08,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.10,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 11 },
     elevation: 2
   },
   lightCardBorder: {
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: "rgba(210,212,218,0.72)",
-    shadowOpacity: 0.05
+    shadowOpacity: 0.07
   },
   colorCardCopy: {
     flex: 1,
@@ -585,35 +585,35 @@ const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 13,
     fontWeight: "900",
-    letterSpacing: 0.3,
+    letterSpacing: 0,
     textTransform: "uppercase"
   },
   cardTitle: {
-    marginTop: 4,
-    fontSize: 18,
-    lineHeight: 21,
+    marginTop: 5,
+    fontSize: 20,
+    lineHeight: 24,
     fontWeight: "900",
     letterSpacing: 0
   },
   cardSubtitle: {
     marginTop: 4,
-    fontSize: 12,
-    lineHeight: 15,
+    fontSize: 13,
+    lineHeight: 17,
     fontWeight: "700"
   },
   cardMeta: {
-    marginTop: 2,
-    fontSize: 11,
-    lineHeight: 14,
-    fontWeight: "700"
+    marginTop: 3,
+    fontSize: 12,
+    lineHeight: 15,
+    fontWeight: "800"
   },
   cardIconShell: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+    width: 46,
+    height: 46,
+    borderRadius: 18,
     borderCurve: "continuous",
     borderWidth: 1,
-    backgroundColor: "rgba(255,255,255,0.08)",
+    backgroundColor: "rgba(255,255,255,0.14)",
     alignItems: "center",
     justifyContent: "center"
   },
@@ -640,8 +640,8 @@ const styles = StyleSheet.create({
   },
   ringValue: {
     color: SPBoardColors.text,
-    fontSize: 27,
-    lineHeight: 31,
+    fontSize: 30,
+    lineHeight: 34,
     fontWeight: "900"
   },
   ringLabel: {
@@ -813,17 +813,22 @@ const styles = StyleSheet.create({
   dateStrip: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 14
+    marginBottom: 18,
+    paddingHorizontal: 2
   },
   dateItem: {
-    width: 34,
-    height: 45,
-    borderRadius: 17,
+    width: 38,
+    height: 52,
+    borderRadius: 19,
     alignItems: "center",
     justifyContent: "center"
   },
   dateItemActive: {
-    backgroundColor: SPBoardColors.blue
+    backgroundColor: SPBoardColors.blue,
+    shadowColor: SPBoardColors.blue,
+    shadowOpacity: 0.22,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 }
   },
   dateLetter: {
     color: SPBoardColors.text,
@@ -833,9 +838,9 @@ const styles = StyleSheet.create({
   },
   dateNumber: {
     color: SPBoardColors.muted,
-    fontSize: 10,
-    lineHeight: 12,
-    fontWeight: "800"
+    fontSize: 13,
+    lineHeight: 16,
+    fontWeight: "900"
   },
   dateTextActive: {
     color: "#FFFFFF"

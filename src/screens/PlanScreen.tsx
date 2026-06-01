@@ -158,12 +158,12 @@ const styles = StyleSheet.create({
     backgroundColor: SPBoardColors.canvas
   },
   header: {
-    marginBottom: 16
+    marginBottom: 18
   },
   title: {
     color: SPBoardColors.text,
-    fontSize: 32,
-    lineHeight: 36,
+    fontSize: 36,
+    lineHeight: 40,
     fontWeight: "900",
     letterSpacing: 0
   },
@@ -175,6 +175,6 @@ const styles = StyleSheet.create({
     fontWeight: "700"
   },
   feed: {
-    gap: 11
+    gap: 14
   }
 });
