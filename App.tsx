@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Linking,
   LogBox,
@@ -1776,14 +1775,15 @@ function AppContent() {
 
 function LoadingScreen({ label }: { label: string }) {
   const { theme } = useAppTheme();
-  const { colors } = theme;
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style={theme.isDark ? "light" : "dark"} />
       <View style={styles.loadingScreen}>
-        <AppLogo showWordmark size={74} />
+        <View style={styles.loadingLogo}>
+          <AppLogo showWordmark size={60} />
+        </View>
         <Text style={styles.loadingText}>{label}</Text>
         <View style={styles.skeletonStack} accessibilityLabel="Loading planner preview">
           <View style={styles.skeletonHero}>
@@ -1805,7 +1805,6 @@ function LoadingScreen({ label }: { label: string }) {
             <SkeletonRow />
           </View>
         </View>
-        <ActivityIndicator color={colors.ink} />
       </View>
     </SafeAreaView>
   );
@@ -2293,26 +2292,32 @@ function createStyles(theme: AppTheme, tablet = false) {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
-      gap: spacing.md,
+      gap: spacing.sm,
       padding: spacing.xl
+    },
+    loadingLogo: {
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: spacing.xs
     },
     loadingText: {
       color: colors.muted,
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 13,
+      lineHeight: 18,
       fontWeight: "800"
     },
     skeletonStack: {
       width: "100%",
-      maxWidth: 360,
-      gap: spacing.sm
+      maxWidth: 376,
+      gap: spacing.sm,
+      opacity: theme.isDark ? 0.82 : 0.88
     },
     skeletonHero: {
-      borderRadius: radii.xl,
+      borderRadius: radii.xxl,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.line,
-      backgroundColor: colors.elevated,
-      padding: spacing.md,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.08)" : "rgba(5,5,5,0.045)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.82)",
+      padding: spacing.lg,
       gap: spacing.sm
     },
     skeletonTopRow: {
@@ -2326,27 +2331,27 @@ function createStyles(theme: AppTheme, tablet = false) {
       gap: spacing.sm
     },
     skeletonList: {
-      borderRadius: radii.xl,
+      borderRadius: radii.xxl,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.line,
-      backgroundColor: colors.surface,
-      padding: spacing.md,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.08)" : "rgba(5,5,5,0.04)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.045)" : "rgba(255,255,255,0.62)",
+      padding: spacing.lg,
       gap: spacing.sm
     },
     skeletonBar: {
       borderRadius: radii.round,
-      backgroundColor: theme.isDark ? "rgba(255,255,255,0.12)" : "#DDE6F2"
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.12)" : "rgba(111,125,145,0.14)"
     },
     skeletonBlock: {
       flex: 1,
       height: 62,
       borderRadius: radii.lg,
-      backgroundColor: theme.isDark ? "rgba(255,255,255,0.10)" : "#EEF3FA"
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.09)" : "rgba(111,125,145,0.10)"
     },
     skeletonRow: {
       minHeight: 54,
       borderRadius: radii.lg,
-      backgroundColor: theme.isDark ? "rgba(255,255,255,0.08)" : "#F3F6FB",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.075)" : "rgba(255,255,255,0.72)",
       padding: spacing.sm,
       flexDirection: "row",
       alignItems: "center",

@@ -49,8 +49,8 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
   const hasProducts = subscription.products.length > 0;
   const productIdSourceLabel =
     purchaseConfig.productIdSource === "environment"
-      ? t("paywall.product_source_build_env", "Build products")
-      : t("paywall.product_source_release_manifest", "Release manifest");
+      ? t("paywall.product_source_build_env", "Store plans")
+      : t("paywall.product_source_release_manifest", "Current plans");
   const planStateTitle = subscription.isPremium
     ? t("paywall.unlocked", "StudyPlanner is unlocked")
     : subscription.flowState === "purchasing"

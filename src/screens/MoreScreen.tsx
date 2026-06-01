@@ -278,7 +278,7 @@ export function MoreScreen({
         <View style={styles.previewHeader}>
           <View>
             <Text style={styles.previewKicker}>LIVE PREVIEW</Text>
-            <Text style={styles.previewTitle}>The preview is the product.</Text>
+            <Text style={styles.previewTitle}>Preview your widgets.</Text>
           </View>
           <Text style={styles.syncPill} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>
             {nativeStatusLabel}

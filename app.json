@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/app/study-planner-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#F6F8FC"
+      "backgroundColor": "#F7F8FA"
     },
     "ios": {
       "supportsTablet": true,
@@ -34,7 +34,7 @@
       "package": "com.studyplanner.syllabusai",
       "adaptiveIcon": {
         "foregroundImage": "./assets/app/study-planner-icon.png",
-        "backgroundColor": "#F6F8FC"
+        "backgroundColor": "#F7F8FA"
       },
       "permissions": [
         "CAMERA",
