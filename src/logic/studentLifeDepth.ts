@@ -1156,7 +1156,7 @@ function shortCourseCode(value: string) {
 
 const featureDepthValues: Record<StudentLifeFeature, FeatureDepthValue> = {
   home: {
-    oneDay: "Learns today's top action and whether the student acts.",
+    oneDay: "Learns today's top action and whether it gets done.",
     sevenDays: "Learns recurring open loops and ignored recommendations.",
     thirtyDays: "Ranks by personal effort, course friction, and completion behavior.",
     ninetyDays: "Understands semester rhythm and long-range next-best-action patterns."
@@ -1165,7 +1165,7 @@ const featureDepthValues: Record<StudentLifeFeature, FeatureDepthValue> = {
     oneDay: "Stores the first local risk snapshot.",
     sevenDays: "Compares this week against actual focus and completion behavior.",
     thirtyDays: "Predicts overload with real effort and class volatility.",
-    ninetyDays: "Recognizes semester cycles before the student feels them."
+    ninetyDays: "Recognizes semester cycles before they pile up."
   },
   classes: {
     oneDay: "Learns class roster, open work, and course context.",
@@ -1180,13 +1180,13 @@ const featureDepthValues: Record<StudentLifeFeature, FeatureDepthValue> = {
     ninetyDays: "Predicts realistic study plans from long-term behavior."
   },
   notes: {
-    oneDay: "Learns what the student captures.",
+    oneDay: "Learns what gets captured.",
     sevenDays: "Learns which notes become tasks or stay pinned.",
     thirtyDays: "Resurfaces class memory when it changes action.",
     ninetyDays: "Becomes a personal study memory by class and exam."
   },
   widgets: {
-    oneDay: "Learns which outside-app surface the student saves.",
+    oneDay: "Learns which outside-app surface gets saved.",
     sevenDays: "Adapts widget suggestions to current week state.",
     thirtyDays: "Recommends faces by goal, class risk, and real usage.",
     ninetyDays: "Rotates surfaces around the semester's changing rhythm."

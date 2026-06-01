@@ -165,7 +165,7 @@ function daysUntilSemesterEnd(semester: Semester) {
 }
 
 function buildMiniTimeline(assignments: Assignment[]) {
-  const colors = [SPBoardColors.orange, SPBoardColors.blue, SPBoardColors.teal, SPBoardColors.purple];
+  const colors = [SPBoardColors.orange, SPBoardColors.blue, SPBoardColors.teal, SPBoardColors.green];
   return ["12", "13", "14", "15", "16", "17", "18"].map((day, index) => ({
     day,
     letter: ["M", "T", "W", "T", "F", "S", "S"][index] || "",

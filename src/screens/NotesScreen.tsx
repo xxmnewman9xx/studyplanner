@@ -120,10 +120,10 @@ export function NotesScreen({
 
   return (
     <View style={styles.screen}>
-      <GlassCard tone="hero" style={styles.heroCard}>
+      <GlassCard style={styles.heroCard}>
         <View style={styles.heroGlow} />
         <View style={styles.heroTopRow}>
-          <View style={styles.heroIcon}><NotebookPen color={colors.heroText} size={22} /></View>
+          <View style={styles.heroIcon}><NotebookPen color={colors.ink} size={22} /></View>
           <Text style={styles.heroPill}>
             {formatNotes(notes.length === 1 ? t("notes.note_count_one", "{count} note") : t("notes.note_count", "{count} notes"), {
               count: notes.length
@@ -367,17 +367,17 @@ function createStyles(theme: AppTheme) {
   return StyleSheet.create({
     screen: { gap: spacing.md },
     heroCard: { padding: spacing.lg, gap: spacing.sm, overflow: "hidden" },
-    heroGlow: { position: "absolute", right: -56, top: -80, width: 190, height: 190, borderRadius: 95, backgroundColor: colors.brandViolet, opacity: theme.isDark ? 0.20 : 0.10 },
+    heroGlow: { display: "none", position: "absolute", right: -56, top: -80, width: 190, height: 190, borderRadius: 95, backgroundColor: "transparent", opacity: 0 },
     heroTopRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.sm },
-    heroIcon: { width: 42, height: 42, borderRadius: radii.lg, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.14)" },
-    heroPill: { color: colors.heroText, fontSize: 12, lineHeight: 16, fontWeight: "900", backgroundColor: "rgba(255,255,255,0.14)", paddingHorizontal: spacing.sm, paddingVertical: 6, borderRadius: radii.round, overflow: "hidden" },
+    heroIcon: { width: 42, height: 42, borderRadius: radii.lg, alignItems: "center", justifyContent: "center", backgroundColor: colors.surfaceAlt },
+    heroPill: { color: colors.ink, fontSize: 12, lineHeight: 16, fontWeight: "900", backgroundColor: colors.surfaceAlt, paddingHorizontal: spacing.sm, paddingVertical: 6, borderRadius: radii.round, overflow: "hidden" },
     kicker: { color: colors.accent, fontSize: 12, lineHeight: 16, fontWeight: "900", textTransform: "uppercase", letterSpacing: 0.8 },
-    heroTitle: { color: colors.heroText, fontSize: 30, lineHeight: 36, fontWeight: "900", letterSpacing: 0 },
-    heroText: { color: colors.heroMuted, fontSize: 15, lineHeight: 22, fontWeight: "700" },
+    heroTitle: { color: colors.ink, fontSize: 30, lineHeight: 36, fontWeight: "900", letterSpacing: 0 },
+    heroText: { color: colors.muted, fontSize: 15, lineHeight: 22, fontWeight: "700" },
     heroStats: { flexDirection: "row", gap: spacing.xs, marginTop: spacing.xs },
-    miniStat: { flex: 1, minWidth: 0, borderRadius: radii.lg, backgroundColor: "rgba(255,255,255,0.12)", padding: spacing.sm },
-    miniStatValue: { color: colors.heroText, fontSize: 17, lineHeight: 21, fontWeight: "900" },
-    miniStatLabel: { color: colors.heroMuted, fontSize: 10, lineHeight: 13, fontWeight: "900", textTransform: "uppercase" },
+    miniStat: { flex: 1, minWidth: 0, borderRadius: radii.lg, backgroundColor: colors.surfaceAlt, padding: spacing.sm },
+    miniStatValue: { color: colors.ink, fontSize: 17, lineHeight: 21, fontWeight: "900" },
+    miniStatLabel: { color: colors.muted, fontSize: 10, lineHeight: 13, fontWeight: "900", textTransform: "uppercase" },
     depthCard: { gap: 5 },
     depthKicker: { color: colors.accent, fontSize: 11, lineHeight: 14, fontWeight: "900", textTransform: "uppercase" },
     depthTitle: { color: colors.ink, fontSize: 15, lineHeight: 20, fontWeight: "900" },

@@ -30,8 +30,8 @@
       "system_snapshot": "snapshot",
       "system_preview": "preview",
       "system_empty_title": "Start with real school material.",
-      "system_empty_detail": "Scan a syllabus, paste class notes, or add the first class. The app stays empty until the student gives it real work.",
-      "system_demo": "Demo",
+      "system_empty_detail": "Scan a syllabus, paste class notes, or add the first class. The app stays empty until real coursework is reviewed.",
+      "system_demo": "Preview",
       "system_setup": "Setup",
       "system_scan_or_add": "Scan or add",
       "system_review_title": "A few items need a quick look.",
@@ -75,8 +75,8 @@
       "set_up": "Set up",
       "reviewed_source_rows": "reviewed source rows",
       "needs_planner_data": "needs planner data",
-      "sample_planner": "Sample planner",
-      "sample_replace_copy": "Replace this with your own syllabus when you are ready.",
+      "sample_planner": "Preview planner",
+      "sample_replace_copy": "Replace the preview with your own syllabus when you are ready.",
       "replace_with_syllabus": "Replace with my syllabus",
       "metric_done": "Done",
       "metric_open": "Open",
@@ -107,7 +107,7 @@
       "start_here": "Start here",
       "start_with_syllabus": "Start with your syllabus.",
       "start_with_syllabus_copy": "Scan a syllabus, review the draft, then Today shows what to do first.",
-      "preview_sample_plan": "Preview sample plan",
+      "preview_sample_plan": "Preview plan",
       "added_from_scan": "Added from Scan",
       "added_from_source": "{count} added from {source}",
       "still_need_review": "{count} still need review in Scan.",
@@ -170,7 +170,7 @@
       "empty_title": "No schoolwork added yet",
       "empty_copy": "Scan a syllabus or add one class. Today will stay clean until reviewed work is ready.",
       "add_class": "Add class",
-      "try_demo": "Try sample planner"
+      "try_demo": "Open preview"
     },
     "tabs": {
       "today": "Today",
@@ -211,7 +211,7 @@
       "preview_method_paste_text": "Paste text",
       "preview_method_review_draft": "Review draft",
       "preview_scan_title": "Add syllabus",
-      "preview_sample": "Sample",
+      "preview_sample": "Preview",
       "preview_deadlines_found": "{count} deadlines found for review",
       "preview_review_title": "Confirm before adding",
       "preview_today_title": "Next due item",
@@ -910,7 +910,7 @@
       "size": "Size",
       "palette": "Palette",
       "what_shows": "What shows",
-      "student_sees_first": "What a student sees first",
+      "student_sees_first": "What appears first",
       "setup_path": "Setup path",
       "what_data": "What data",
       "native_data_title": "Today and Upcoming use live planner data",
@@ -1035,7 +1035,10 @@
       "widgets_title": "Widgets",
       "widgets_subtitle": "Information you need, right where you need it.",
       "watch_preview": "Watch preview",
-      "watch_preview_copy": "Glanceable. Actionable."
+      "watch_preview_copy": "Glanceable. Actionable.",
+      "hero_subtitle": "Widget Studio keeps previews, class colors, and saved setups in one native system.",
+      "hero_badge": "Widget Studio",
+      "customize_accessibility": "Customize StudyPlanner. Make every class, widget, and reminder feel like yours."
     },
     "widget_snapshot": {
       "today": "Today",
@@ -1049,10 +1052,10 @@
       "off": "Off",
       "late": "Late",
       "tomorrow_short": "Tmrw",
-      "demo_detail_today": "Demo work stays inside the app",
+      "demo_detail_today": "Preview work stays inside the app",
       "demo_footnote_today": "Import a real syllabus for widgets",
       "demo_detail_upcoming": "Widgets wait for real planner data",
-      "demo_footnote_upcoming": "Demo coursework is never shared",
+      "demo_footnote_upcoming": "Preview coursework is never shared",
       "add_class_first": "Add a class first",
       "course_context": "Course context makes widgets useful",
       "then_add_homework": "Then add or import homework",
@@ -1230,7 +1233,7 @@
       "trust_done_title": "Complete and still editable",
       "trust_done_detail": "This task is done. Reopen details only if the plan or grade context changed.",
       "trust_ready_title": "Ready for Today and Plan",
-      "trust_ready_detail": "This assignment has enough trusted detail to show up in the active school operating system.",
+      "trust_ready_detail": "This assignment has enough trusted detail to show up in the active StudyPlanner flow.",
       "trusted": "Trusted",
       "linked_notes": "Linked notes",
       "no_linked_notes": "No notes attached yet.",
@@ -1288,8 +1291,8 @@
       "memory_kicker": "What I learned"
     },
     "entitlement_gate": {
-      "included": "Included with StudyPlanner",
-      "unlock_title": "Unlock StudyPlanner",
+      "included": "Included with StudyPlanner: Syllabus AI",
+      "unlock_title": "Unlock StudyPlanner: Syllabus AI",
       "unlock_copy": "Subscribe or restore purchases to use the full app.",
       "subscribe": "Subscribe"
     },
@@ -2336,7 +2339,10 @@
       "widgets_title": "Widget-Bereich",
       "widgets_subtitle": "Die Informationen, die du brauchst, genau dort, wo du sie brauchst.",
       "watch_preview": "Watch-Vorschau",
-      "watch_preview_copy": "Schnell erfassbar. Direkt nutzbar."
+      "watch_preview_copy": "Schnell erfassbar. Direkt nutzbar.",
+      "hero_subtitle": "Widget Studio hält Vorschauen, Kursfarben und gespeicherte Setups in einem nativen System zusammen.",
+      "hero_badge": "Widget-Studio",
+      "customize_accessibility": "StudyPlanner anpassen. Jede Klasse, jedes Widget und jede Erinnerung soll zu dir passen."
     },
     "widget_snapshot": {
       "today": "Heute",
@@ -3637,7 +3643,10 @@
       "widgets_title": "Panel de widgets",
       "widgets_subtitle": "La informacion que necesitas, justo donde la necesitas.",
       "watch_preview": "Vista previa del Watch",
-      "watch_preview_copy": "De un vistazo. Accionable."
+      "watch_preview_copy": "De un vistazo. Accionable.",
+      "hero_subtitle": "Widget Studio reúne vistas previas, colores de clase y configuraciones guardadas en un sistema nativo.",
+      "hero_badge": "Estudio de widgets",
+      "customize_accessibility": "Personaliza StudyPlanner. Haz que cada clase, widget y recordatorio se sienta tuyo."
     },
     "widget_snapshot": {
       "today": "Hoy",
@@ -4938,7 +4947,10 @@
       "widgets_title": "Espace widgets",
       "widgets_subtitle": "Les infos utiles, la ou tu en as besoin.",
       "watch_preview": "Apercu Watch",
-      "watch_preview_copy": "Lisible vite. Actionnable."
+      "watch_preview_copy": "Lisible vite. Actionnable.",
+      "hero_subtitle": "Widget Studio regroupe aperçus, couleurs de cours et configurations enregistrées dans un système natif.",
+      "hero_badge": "Studio Widgets",
+      "customize_accessibility": "Personnaliser StudyPlanner. Faites que chaque cours, widget et rappel vous corresponde."
     },
     "widget_snapshot": {
       "today": "Aujourd'hui",
@@ -6239,7 +6251,10 @@
       "widgets_title": "Area de widgets",
       "widgets_subtitle": "As informacoes de que voce precisa, onde precisa delas.",
       "watch_preview": "Previa no Watch",
-      "watch_preview_copy": "Rapido de ver. Pronto para agir."
+      "watch_preview_copy": "Rapido de ver. Pronto para agir.",
+      "hero_subtitle": "O Widget Studio mantém prévias, cores das aulas e ajustes salvos em um sistema nativo.",
+      "hero_badge": "Estúdio de widgets",
+      "customize_accessibility": "Personalize StudyPlanner. Faça cada aula, widget e lembrete ficar com a sua cara."
     },
     "widget_snapshot": {
       "today": "Hoje",
@@ -7540,7 +7555,10 @@
       "widgets_title": "لوحة الودجات",
       "widgets_subtitle": "المعلومة التي تحتاجها في المكان المناسب.",
       "watch_preview": "معاينة الساعة",
-      "watch_preview_copy": "واضحة بسرعة. قابلة للتنفيذ."
+      "watch_preview_copy": "واضحة بسرعة. قابلة للتنفيذ.",
+      "hero_subtitle": "يحفظ استوديو الودجت المعاينات وألوان الصفوف والإعدادات المحفوظة في نظام أصلي واحد.",
+      "hero_badge": "استوديو الودجت",
+      "customize_accessibility": "خصص StudyPlanner. اجعل كل صف وودجت وتذكير مناسباً لك."
     },
     "widget_snapshot": {
       "today": "اليوم",
@@ -8841,7 +8859,10 @@
       "widgets_title": "विजेट पैनल",
       "widgets_subtitle": "जरूरी जानकारी, ठीक वहीं जहां आपको चाहिए.",
       "watch_preview": "Watch पूर्वावलोकन",
-      "watch_preview_copy": "एक नजर में. काम के लिए तैयार."
+      "watch_preview_copy": "एक नजर में. काम के लिए तैयार.",
+      "hero_subtitle": "Widget Studio प्रीव्यू, क्लास रंग और सेव किए गए सेटअप को एक नेटिव सिस्टम में रखता है।",
+      "hero_badge": "विजेट स्टूडियो",
+      "customize_accessibility": "StudyPlanner कस्टमाइज़ करें. हर क्लास, विजेट और रिमाइंडर को अपना बनाएं."
     },
     "widget_snapshot": {
       "today": "आज",
@@ -10142,7 +10163,10 @@
       "widgets_title": "ウィジェット画面",
       "widgets_subtitle": "必要な情報を、必要な場所に。",
       "watch_preview": "Watchプレビュー",
-      "watch_preview_copy": "ひと目で確認。すぐ行動。"
+      "watch_preview_copy": "ひと目で確認。すぐ行動。",
+      "hero_subtitle": "Widget Studioはプレビュー、クラスカラー、保存済み設定を1つのネイティブシステムにまとめます。",
+      "hero_badge": "ウィジェットスタジオ",
+      "customize_accessibility": "StudyPlannerをカスタマイズ。各クラス、ウィジェット、リマインダーを自分らしくします。"
     },
     "widget_snapshot": {
       "today": "今日",
@@ -11443,7 +11467,10 @@
       "widgets_title": "위젯 패널",
       "widgets_subtitle": "필요한 정보를 필요한 위치에 둡니다.",
       "watch_preview": "Watch 미리보기",
-      "watch_preview_copy": "한눈에 보고 바로 실행."
+      "watch_preview_copy": "한눈에 보고 바로 실행.",
+      "hero_subtitle": "Widget Studio는 미리보기, 수업 색상, 저장된 설정을 하나의 네이티브 시스템에 모읍니다.",
+      "hero_badge": "위젯 스튜디오",
+      "customize_accessibility": "StudyPlanner 맞춤 설정. 모든 수업, 위젯, 리마인더를 나에게 맞게 만듭니다."
     },
     "widget_snapshot": {
       "today": "오늘",
@@ -12744,7 +12771,10 @@
       "widgets_title": "小组件面板",
       "widgets_subtitle": "把需要的信息放在你需要的位置。",
       "watch_preview": "Watch 预览",
-      "watch_preview_copy": "一眼可见。立即可做。"
+      "watch_preview_copy": "一眼可见。立即可做。",
+      "hero_subtitle": "Widget Studio 将预览、课程颜色和已保存设置集中在一个原生系统中。",
+      "hero_badge": "小组件工作室",
+      "customize_accessibility": "自定义 StudyPlanner。让每门课、小组件和提醒都更适合你。"
     },
     "widget_snapshot": {
       "today": "今天",

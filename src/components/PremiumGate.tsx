@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Crown, LockKeyhole } from "lucide-react-native";
 import { AppButton } from "./AppButton";
-import { AppLogo } from "./AppleComponents";
+import { AppMark } from "./AppleComponents";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { useI18n } from "../i18n";
@@ -18,23 +18,25 @@ export function PremiumGate({ title, copy, onUpgrade }: PremiumGateProps) {
   const { t } = useI18n();
   const { colors } = theme;
   const styles = createStyles(theme);
+  const lockBadgeBackground = theme.isDark ? colors.surfaceAlt : colors.ink;
+  const lockIconColor = theme.isDark ? colors.ink : "#FFFFFF";
 
   return (
     <View>
       <View style={styles.header}>
-        <Text style={styles.kicker}>{t("entitlement_gate.included", "Included with StudyPlanner")}</Text>
+        <Text style={styles.kicker}>{t("entitlement_gate.included", "Included with StudyPlanner: Syllabus AI")}</Text>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.subtitle}>{copy}</Text>
       </View>
 
       <View style={styles.card}>
         <View style={styles.brandLock}>
-          <AppLogo size={54} />
-          <View style={styles.lockBadge}>
-            <LockKeyhole color={colors.heroText} size={17} />
+          <AppMark size={52} />
+          <View style={[styles.lockBadge, { backgroundColor: lockBadgeBackground }]}>
+            <LockKeyhole color={lockIconColor} size={17} />
           </View>
         </View>
-        <Text style={styles.cardTitle}>{t("entitlement_gate.unlock_title", "Unlock StudyPlanner")}</Text>
+        <Text style={styles.cardTitle}>{t("entitlement_gate.unlock_title", "Unlock StudyPlanner: Syllabus AI")}</Text>
         <Text style={styles.cardCopy}>
           {t("entitlement_gate.unlock_copy", "Subscribe or restore purchases to use the full app.")}
         </Text>
@@ -52,7 +54,7 @@ function createStyles(theme: AppTheme) {
       gap: spacing.xs
     },
     kicker: {
-      color: colors.accent,
+      color: colors.muted,
       fontSize: 13,
       fontWeight: "900"
     },
@@ -77,8 +79,8 @@ function createStyles(theme: AppTheme) {
       elevation: 4
     },
     brandLock: {
-      width: 52,
-      height: 52,
+      width: 56,
+      height: 56,
       alignItems: "center",
       justifyContent: "center"
     },
@@ -89,7 +91,6 @@ function createStyles(theme: AppTheme) {
       width: 27,
       height: 27,
       borderRadius: 14,
-      backgroundColor: colors.accent,
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 2,

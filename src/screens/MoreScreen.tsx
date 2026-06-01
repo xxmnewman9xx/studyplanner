@@ -11,7 +11,7 @@ import {
   Watch
 } from "lucide-react-native";
 
-import { WidgetPreviewCard } from "../components/AppleComponents";
+import { AppMark, WidgetPreviewCard } from "../components/AppleComponents";
 import {
   SPBoardColors,
   SPWidgetTile
@@ -255,14 +255,20 @@ export function MoreScreen({
 
   return (
     <View style={styles.screen}>
-      <View style={styles.hero}>
+      <View
+        style={styles.hero}
+        accessibilityLabel={t("more.customize_accessibility", "Customize StudyPlanner. Make every class, widget, and reminder feel like yours.")}
+      >
+        <AppMark size={58} />
         <View style={styles.heroCopy}>
-          <Text style={styles.heroTitle}>Customize StudyPlanner</Text>
-          <Text style={styles.heroSubtitle}>Make every class, widget, and reminder feel like yours.</Text>
+          <Text style={styles.heroTitle}>{t("paywall.product_name", "StudyPlanner: Syllabus AI")}</Text>
+          <Text style={styles.heroSubtitle}>
+            {t("more.hero_subtitle", "Widget Studio keeps previews, class colors, and saved setups in one native system.")}
+          </Text>
         </View>
         <View style={styles.heroBadge}>
           <Palette color={customization.secondaryAccent} size={19} />
-          <Text style={styles.heroBadgeText}>Studio</Text>
+          <Text style={styles.heroBadgeText}>{t("more.hero_badge", "Widget Studio")}</Text>
         </View>
       </View>
 
@@ -898,19 +904,21 @@ const styles = StyleSheet.create({
   },
   hero: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    flexWrap: "wrap",
+    alignItems: "center",
     justifyContent: "space-between",
     gap: 14,
     marginBottom: 14
   },
   heroCopy: {
     flex: 1,
-    minWidth: 0
+    minWidth: 220,
+    flexBasis: 220
   },
   heroTitle: {
     color: SPBoardColors.text,
-    fontSize: 32,
-    lineHeight: 36,
+    fontSize: 29,
+    lineHeight: 33,
     fontWeight: "900",
     letterSpacing: 0
   },
@@ -922,6 +930,7 @@ const styles = StyleSheet.create({
     fontWeight: "700"
   },
   heroBadge: {
+    flexShrink: 0,
     minHeight: 38,
     borderRadius: 19,
     backgroundColor: "#F6F7FA",

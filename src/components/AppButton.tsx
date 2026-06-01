@@ -1,5 +1,5 @@
 import React from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, ViewStyle } from "react-native";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 
@@ -26,7 +26,9 @@ export function AppButton({
   const styles = createStyles(theme);
   const { colors } = theme;
   const foreground =
-    variant === "primary" ? colors.accentText : variant === "secondary" ? colors.ink : colors.ink;
+    variant === "primary"
+      ? theme.isDark ? "#050505" : "#FFFFFF"
+      : colors.ink;
   const inactive = disabled || loading;
 
   return (
@@ -46,7 +48,6 @@ export function AppButton({
       ]}
       onPress={onPress}
     >
-      {variant === "primary" ? <View pointerEvents="none" style={styles.primarySheen} /> : null}
       {loading ? <ActivityIndicator color={foreground} size="small" /> : Icon ? <Icon color={foreground} size={18} /> : null}
       <Text style={[styles.label, { color: foreground }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>
         {label}
@@ -61,7 +62,7 @@ function createStyles(theme: AppTheme) {
   return StyleSheet.create({
     button: {
       minHeight: 48,
-      borderRadius: radii.lg,
+      borderRadius: 16,
       paddingHorizontal: spacing.md,
       alignItems: "center",
       justifyContent: "center",
@@ -70,27 +71,19 @@ function createStyles(theme: AppTheme) {
       overflow: "hidden"
     },
     primary: {
-      backgroundColor: colors.accent,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.24)" : "rgba(255,255,255,0.64)",
-      shadowColor: colors.accent,
-      shadowOpacity: theme.isDark ? 0.24 : 0.16,
+      backgroundColor: theme.isDark ? "#F8FAFC" : "#050505",
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.72)" : "rgba(5,5,5,0.92)",
+      shadowColor: "#000000",
+      shadowOpacity: theme.isDark ? 0.18 : 0.10,
       shadowRadius: 12,
-      shadowOffset: { width: 0, height: 7 },
-      elevation: 4
-    },
-    primarySheen: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      height: "48%",
-      backgroundColor: "rgba(255,255,255,0.18)"
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 2
     },
     secondary: {
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : colors.line,
-      backgroundColor: theme.isDark ? "rgba(255,255,255,0.055)" : colors.elevated,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(5,5,5,0.09)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.07)" : "#FFFFFF",
       shadowColor: colors.shadow,
       shadowOpacity: theme.isDark ? 0.10 : 0.04,
       shadowRadius: 8,

@@ -184,10 +184,10 @@ export function AssignmentDetailScreen({
         <Text style={styles.trustDetail}>{trustState.detail}</Text>
       </GlassCard>
 
-      <GlassCard tone="hero" style={styles.hero}>
+      <GlassCard style={styles.hero}>
         <View style={styles.heroTop}>
           <View style={styles.courseChip}>
-            <View style={[styles.courseDot, { backgroundColor: course?.color || colors.brandPink }]} />
+            <View style={[styles.courseDot, { backgroundColor: course?.color || colors.accent }]} />
             <Text style={styles.courseChipText}>{course?.code || t("assignment_detail.class_fallback", "Class")}</Text>
           </View>
           {assignment.needsReview ? <EmojiBadge name="warning" label={t("assignment_detail.needs_check", "Needs check")} tone="gold" /> : null}
@@ -527,7 +527,7 @@ function buildAssignmentTrustState(assignment: Assignment, t: TranslateFn) {
 
   return {
     title: t("assignment_detail.trust_ready_title", "Ready for Today and Plan"),
-    detail: t("assignment_detail.trust_ready_detail", "This assignment has enough trusted detail to show up in the active school operating system."),
+    detail: t("assignment_detail.trust_ready_detail", "This assignment has enough trusted detail to show up in the active StudyPlanner flow."),
     badge: t("assignment_detail.trusted", "Trusted")
   };
 }
@@ -572,8 +572,8 @@ function createStyles(theme: AppTheme) {
     },
     trustCard: {
       gap: spacing.sm,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(49,91,255,0.16)",
-      backgroundColor: colors.heroSurface
+      borderColor: colors.line,
+      backgroundColor: colors.surface
     },
     trustHeader: {
       flexDirection: "row",
@@ -595,7 +595,7 @@ function createStyles(theme: AppTheme) {
       textTransform: "uppercase"
     },
     trustTitle: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 18,
       lineHeight: 23,
       fontWeight: "900"
@@ -613,7 +613,7 @@ function createStyles(theme: AppTheme) {
       textTransform: "uppercase"
     },
     trustDetail: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 13,
       lineHeight: 19,
       fontWeight: "700"
@@ -630,9 +630,9 @@ function createStyles(theme: AppTheme) {
     courseChip: {
       minHeight: 32,
       borderRadius: radii.round,
-      backgroundColor: "rgba(255,255,255,0.16)",
+      backgroundColor: colors.surfaceAlt,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.2)",
+      borderColor: colors.line,
       paddingHorizontal: spacing.sm,
       flexDirection: "row",
       alignItems: "center",
@@ -644,18 +644,18 @@ function createStyles(theme: AppTheme) {
       borderRadius: 5
     },
     courseChipText: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 12,
       fontWeight: "900"
     },
     heroTitle: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 24,
       lineHeight: 30,
       fontWeight: "900"
     },
     heroMeta: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 13,
       lineHeight: 18,
       fontWeight: "800"
@@ -663,16 +663,16 @@ function createStyles(theme: AppTheme) {
     progressTrack: {
       height: 10,
       borderRadius: radii.round,
-      backgroundColor: "rgba(255,255,255,0.18)",
+      backgroundColor: colors.line,
       overflow: "hidden"
     },
     progressFill: {
       height: "100%",
       borderRadius: radii.round,
-      backgroundColor: colors.brandPink
+      backgroundColor: colors.accent
     },
     progressText: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 12,
       fontWeight: "900"
     },

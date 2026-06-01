@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ActivityIndicator, Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Bell, CalendarSync, Check, Crown, FileScan, Layers3, Palette, ShieldCheck, Timer, TrendingUp, X } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
-import { AppLogo, GlassCard } from "../components/AppleComponents";
+import { AppMark, GlassCard } from "../components/AppleComponents";
 import { Badge } from "../components/Badge";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -87,13 +87,12 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
 
   return (
     <View style={styles.screen}>
-      <GlassCard tone="hero" style={styles.heroCard}>
-        <View style={styles.heroGlow} />
+      <GlassCard style={styles.heroCard}>
         <View style={styles.heroTopRow}>
-          <AppLogo showWordmark size={42} />
+          <AppMark size={48} />
           <Badge label={t("paywall.included_with_studyplanner", "Included with StudyPlanner")} tone="gold" />
         </View>
-        {!hardMode ? <Text style={styles.kicker}>{t("paywall.product_name", "StudyPlanner")}</Text> : null}
+        <Text style={styles.kicker}>{t("paywall.product_name", "StudyPlanner: Syllabus AI")}</Text>
         <Text style={styles.title}>{localizedHeroTitle}</Text>
         <Text style={styles.subtitle}>{heroSubtitle}</Text>
         <View style={styles.payoffRail}>
@@ -274,7 +273,7 @@ function PayoffPill({ icon: Icon, label }: { icon: React.ComponentType<{ color: 
   const styles = createStyles(theme);
   return (
     <View style={styles.payoffPill}>
-      <Icon color={theme.colors.heroText} size={15} />
+      <Icon color={theme.colors.ink} size={15} />
       <Text style={styles.payoffText}>{label}</Text>
     </View>
   );
@@ -432,8 +431,8 @@ function createStyles(theme: AppTheme) {
       gap: spacing.md
     },
     heroCard: {
-      padding: spacing.md,
-      gap: spacing.xs,
+      padding: spacing.lg,
+      gap: spacing.sm,
       overflow: "hidden"
     },
     heroGlow: {
@@ -461,14 +460,14 @@ function createStyles(theme: AppTheme) {
       letterSpacing: 0.8
     },
     title: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 30,
       lineHeight: 35,
       fontWeight: "900",
       letterSpacing: 0
     },
     subtitle: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 14,
       lineHeight: 20,
       fontWeight: "700"
@@ -556,9 +555,9 @@ function createStyles(theme: AppTheme) {
       flexGrow: 1,
       minHeight: 34,
       borderRadius: radii.round,
-      backgroundColor: "rgba(255,255,255,0.12)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.07)" : "#FFFFFF",
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(255,255,255,0.18)",
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(5,5,5,0.08)",
       paddingHorizontal: spacing.sm,
       flexDirection: "row",
       alignItems: "center",
@@ -566,7 +565,7 @@ function createStyles(theme: AppTheme) {
       gap: 5
     },
     payoffText: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 11,
       lineHeight: 14,
       fontWeight: "900"

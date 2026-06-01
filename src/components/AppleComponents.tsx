@@ -1,7 +1,5 @@
 import React from "react";
 import {
-  Image,
-  ImageStyle,
   StyleProp,
   StyleSheet,
   Text,
@@ -9,6 +7,7 @@ import {
   View,
   ViewStyle
 } from "react-native";
+import Svg, { Path, Rect } from "react-native-svg";
 import {
   BookOpen,
   CalendarDays,
@@ -61,6 +60,35 @@ type IconProps = {
   size: number;
 };
 
+export function AppMark({
+  size = 40,
+  style
+}: {
+  size?: number;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  const ink = theme.isDark ? "#F8FAFC" : "#050505";
+  const mutedInk = theme.isDark ? "rgba(248,250,252,0.34)" : "rgba(5,5,5,0.24)";
+  const markSize = Math.max(18, Math.round(size * 0.66));
+
+  return (
+    <View
+      accessibilityLabel="StudyPlanner: Syllabus AI mark"
+      accessible
+      style={[styles.appMark, { width: size, height: size, borderRadius: size * 0.265 }, style]}
+    >
+      <Svg width={markSize} height={markSize} viewBox="0 0 64 64">
+        <Rect x="15" y="8" width="34" height="48" rx="8" fill="none" stroke={ink} strokeWidth="4.5" />
+        <Path d="M38 8v13c0 2.2 1.8 4 4 4h7" fill="none" stroke={ink} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
+        <Path d="M23 25h11" fill="none" stroke={mutedInk} strokeWidth="4.5" strokeLinecap="round" />
+        <Path d="M23.5 37.5l6.8 6.7L42.5 30" fill="none" stroke={ink} strokeWidth="5.2" strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    </View>
+  );
+}
+
 export function AppLogo({
   size = 40,
   showWordmark = false,
@@ -76,11 +104,7 @@ export function AppLogo({
 
   return (
     <View style={[styles.logoWrap, style]}>
-      <Image
-        accessibilityLabel="StudyPlanner mark"
-        source={require("../../assets/app/study-planner-icon.png")}
-        style={[styles.logoImage as ImageStyle, { width: size, height: size, borderRadius: size * 0.24 } as ImageStyle]}
-      />
+      <AppMark size={size} />
       {showWordmark ? (
         <View style={styles.logoCopy}>
           <Text style={styles.logoTitle}>{t("brand_name", "StudyPlanner")}</Text>
@@ -678,7 +702,7 @@ export function WidgetPreviewCard({
         </View>
       ) : null}
       {layout === "ring" || layout === "progress" || type === "focus" || type === "streak" ? (
-        <View style={[styles.widgetRing, { borderColor: paletteColors[1] || theme.colors.brandPink }]}>
+        <View style={[styles.widgetRing, { borderColor: paletteColors[1] || theme.colors.accent }]}>
           <Text style={[styles.widgetRingText, labelTone]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.66}>
             {type === "focus" ? displayValue : progressLabel || displayValue}
           </Text>
@@ -895,7 +919,7 @@ export function EmptyState({
   return (
     <View style={[styles.emptyState, toneStyle]}>
       <View style={[styles.emptyIcon, iconToneStyle]}>
-        <EmojiAccent name={emoji} label={title} decorative={false} size={22} />
+        <AppMark size={34} />
       </View>
       <Text style={styles.emptyTitle} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.84}>{title}</Text>
       <Text style={styles.emptyCopy}>{copy}</Text>
@@ -930,24 +954,16 @@ function createStyles(theme: AppTheme) {
       alignItems: "center",
       gap: spacing.sm
     },
-    logoImage: {
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.24)" : "rgba(255,255,255,0.92)",
-      shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.42 : 0.24,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 10 }
-    },
-    logoMark: {
+    appMark: {
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: colors.heroSurface,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.24)" : "rgba(255,255,255,0.92)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.07)" : "#FFFFFF",
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(5,5,5,0.08)",
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.42 : 0.20,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 10 }
+      shadowOpacity: theme.isDark ? 0.16 : 0.08,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 8 }
     },
     logoCopy: {
       gap: 1

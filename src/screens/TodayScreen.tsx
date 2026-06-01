@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { AppButton } from "../components/AppButton";
+import { AppMark } from "../components/AppleComponents";
 import {
   SPAssignmentCard,
   SPBoardColors,
@@ -76,7 +77,7 @@ export function TodayScreen({
   const { t } = useI18n();
   const localizationAnchor = t("today.quick_capture", "Quick capture");
   void localizationAnchor;
-  const demoLabel = t("today.sample_planner", "Sample planner");
+  const demoLabel = t("today.sample_planner", "Preview planner");
 
   const plan = buildTodayBrain({ assignments, courses, semester, notes, focusSessions, widgetPresets, settings });
   const exam = findAssignment(assignments, "Organic Chemistry Midterm") || plan.exams[0];
@@ -97,18 +98,20 @@ export function TodayScreen({
       <View style={styles.screen}>
         <SPHeroCard greeting={greetingForNow()} name={firstName} detail={demoMode ? demoLabel : undefined} />
         <View style={styles.emptyCard}>
-          <Text style={styles.emptyKicker}>{t("today.empty_kicker", "Start here")}</Text>
+          <View style={styles.emptyMark}>
+            <AppMark size={58} />
+          </View>
+          <Text style={styles.emptyKicker}>StudyPlanner: Syllabus AI</Text>
           <Text style={styles.emptyTitle}>{t("today.empty_title", "No schoolwork added yet")}</Text>
           <Text style={styles.emptyCopy}>
             {t("today.empty_copy", "Scan a syllabus or add one class. Today will stay clean until reviewed work is ready.")}
           </Text>
           <View style={styles.emptyActions}>
             <AppButton label={t("today.scan_syllabus", "Scan syllabus")} onPress={onOpenScan} style={styles.emptyButton} />
-            <AppButton label={t("today.add_class", "Add class")} variant="secondary" onPress={onOpenClasses} style={styles.emptyButton} />
           </View>
           {onTryDemo ? (
             <AppButton
-              label={t("today.try_demo", "Try sample planner")}
+              label={t("today.try_demo", "Open preview")}
               variant="quiet"
               onPress={onTryDemo}
             />
@@ -276,11 +279,15 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 10 },
     elevation: 2
   },
+  emptyMark: {
+    alignSelf: "flex-start"
+  },
   emptyKicker: {
-    color: SPBoardColors.faint,
+    color: SPBoardColors.muted,
     fontSize: 11,
     lineHeight: 14,
-    fontWeight: "900"
+    fontWeight: "900",
+    textTransform: "uppercase"
   },
   emptyTitle: {
     color: SPBoardColors.text,

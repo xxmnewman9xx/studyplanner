@@ -43,6 +43,7 @@ export function FocusScreen({
   const { t, locale } = useI18n();
   const { colors } = theme;
   const styles = createStyles(theme, focusAccent);
+  const roundControlIconColor = theme.isDark ? "#050505" : "#FFFFFF";
   const focusableAssignments = useMemo(
     () =>
       assignments
@@ -271,7 +272,7 @@ export function FocusScreen({
             onPress={startPause}
             disabled={!selected}
           >
-            {running ? <Pause color="#FFFFFF" size={18} /> : <Play color="#FFFFFF" size={18} />}
+            {running ? <Pause color={roundControlIconColor} size={18} /> : <Play color={roundControlIconColor} size={18} />}
           </TouchableOpacity>
           <TouchableOpacity
             accessibilityRole="button"
@@ -293,7 +294,7 @@ export function FocusScreen({
             onPress={stop}
             disabled={!startedAt}
           >
-            <Square color="#FFFFFF" size={16} />
+            <Square color={roundControlIconColor} size={16} />
           </TouchableOpacity>
         </View>
         <Text style={styles.silencedCopy}>
@@ -587,36 +588,38 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
       minHeight: 0,
       borderRadius: 34,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.16)",
-      backgroundColor: "#071827",
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : "rgba(5,5,5,0.08)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.07)" : "#FFFFFF",
       padding: spacing.md,
       alignItems: "center",
       overflow: "hidden",
-      shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.38 : 0.22,
-      shadowRadius: 28,
-      shadowOffset: { width: 0, height: 18 },
-      elevation: 8
+      shadowColor: "#000000",
+      shadowOpacity: theme.isDark ? 0.18 : 0.07,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 2
     },
     focusGlow: {
+      display: "none",
       position: "absolute",
       top: -90,
       right: -80,
       width: 240,
       height: 240,
       borderRadius: 120,
-      backgroundColor: accent,
-      opacity: 0.22
+      backgroundColor: "transparent",
+      opacity: 0
     },
     focusGlowSecondary: {
+      display: "none",
       position: "absolute",
       left: -80,
       bottom: -95,
       width: 230,
       height: 230,
       borderRadius: 115,
-      backgroundColor: accent,
-      opacity: 0.12
+      backgroundColor: "transparent",
+      opacity: 0
     },
     stageHeader: {
       alignSelf: "stretch",
@@ -631,13 +634,13 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
       gap: 2
     },
     stageKicker: {
-      color: "#FFFFFF",
+      color: colors.ink,
       fontSize: 13,
       lineHeight: 18,
       fontWeight: "900"
     },
     stageSubcopy: {
-      color: "#B9E7F6",
+      color: colors.muted,
       fontSize: 11,
       lineHeight: 15,
       fontWeight: "800"
@@ -646,24 +649,24 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
       alignSelf: "stretch",
       marginTop: spacing.md,
       borderRadius: radii.lg,
-      backgroundColor: "rgba(255,255,255,0.10)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.07)" : colors.surfaceAlt,
       padding: spacing.sm,
       gap: 3
     },
     depthKicker: {
-      color: "#B9E7F6",
+      color: colors.accent,
       fontSize: 10,
       lineHeight: 13,
       fontWeight: "900"
     },
     depthText: {
-      color: "#FFFFFF",
+      color: colors.ink,
       fontSize: 13,
       lineHeight: 17,
       fontWeight: "900"
     },
     depthMeta: {
-      color: "#CFFAFE",
+      color: colors.muted,
       fontSize: 11,
       lineHeight: 15,
       fontWeight: "800"
@@ -675,7 +678,7 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
       borderRadius: 90,
       borderWidth: 10,
       borderColor: accent,
-      backgroundColor: "rgba(255,255,255,0.035)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.05)" : "#FFFFFF",
       alignItems: "center",
       justifyContent: "center",
       shadowColor: accent,
@@ -687,18 +690,18 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
       width: 138,
       height: 138,
       borderRadius: 69,
-      backgroundColor: "rgba(255,255,255,0.04)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.05)" : colors.surfaceAlt,
       alignItems: "center",
       justifyContent: "center"
     },
     timer: {
-      color: "#FFFFFF",
+      color: colors.ink,
       fontSize: 40,
       lineHeight: 48,
       fontWeight: "300"
     },
     timerMeta: {
-      color: "#B9E7F6",
+      color: colors.muted,
       fontSize: 11,
       fontWeight: "900",
       textTransform: "uppercase"
@@ -709,7 +712,7 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
       height: 8,
       borderRadius: 4,
       marginTop: spacing.sm,
-      backgroundColor: "rgba(255,255,255,0.12)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.10)" : colors.line,
       overflow: "hidden"
     },
     progressFill: {
@@ -719,7 +722,7 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
     },
     focusingOn: {
       marginTop: spacing.md,
-      color: "#B9E7F6",
+      color: colors.accent,
       fontSize: 10,
       lineHeight: 14,
       fontWeight: "900",
@@ -727,14 +730,14 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
     },
     timerTask: {
       marginTop: 3,
-      color: "#FFFFFF",
+      color: colors.ink,
       fontSize: 17,
       lineHeight: 22,
       textAlign: "center",
       fontWeight: "900"
     },
     timerCourse: {
-      color: "#B9E7F6",
+      color: colors.muted,
       fontSize: 13,
       lineHeight: 18,
       fontWeight: "800"
@@ -743,9 +746,9 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
       alignSelf: "center",
       maxWidth: "100%",
       borderRadius: radii.round,
-      backgroundColor: "rgba(255,255,255,0.10)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.07)" : colors.surfaceAlt,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(255,255,255,0.16)",
+      borderColor: theme.isDark ? "rgba(255,255,255,0.14)" : colors.line,
       paddingHorizontal: spacing.sm,
       paddingVertical: 7,
       flexDirection: "row",
@@ -766,7 +769,7 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
     focusClassText: {
       minWidth: 0,
       flexShrink: 1,
-      color: "rgba(255,255,255,0.86)",
+      color: colors.ink,
       fontSize: 12,
       lineHeight: 15,
       fontWeight: "900"
@@ -781,20 +784,20 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
       flex: 1,
       minWidth: 0,
       borderRadius: 18,
-      backgroundColor: "rgba(255,255,255,0.08)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.07)" : colors.surfaceAlt,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(255,255,255,0.12)",
+      borderColor: theme.isDark ? "rgba(255,255,255,0.12)" : colors.line,
       padding: spacing.xs,
       gap: 3
     },
     cockpitValue: {
-      color: "#FFFFFF",
+      color: colors.ink,
       fontSize: 16,
       lineHeight: 20,
       fontWeight: "900"
     },
     cockpitLabel: {
-      color: "#B9E7F6",
+      color: colors.muted,
       fontSize: 10,
       lineHeight: 13,
       fontWeight: "900",
@@ -812,22 +815,22 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
       borderRadius: 14,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: "rgba(255,255,255,0.08)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.07)" : colors.surfaceAlt,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(255,255,255,0.13)"
+      borderColor: theme.isDark ? "rgba(255,255,255,0.13)" : colors.line
     },
     durationChipActive: {
       backgroundColor: withAlpha(accent, 0.18),
       borderColor: withAlpha(accent, 0.44)
     },
     durationText: {
-      color: "#BDB7FF",
+      color: colors.muted,
       fontSize: 12,
       lineHeight: 16,
       fontWeight: "900"
     },
     durationTextActive: {
-      color: "#FFFFFF"
+      color: colors.ink
     },
     controlRow: {
       marginTop: spacing.md,
@@ -840,7 +843,7 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
       width: 56,
       height: 56,
       borderRadius: 20,
-      backgroundColor: "rgba(255,255,255,0.12)",
+      backgroundColor: theme.isDark ? "#F8FAFC" : "#050505",
       alignItems: "center",
       justifyContent: "center"
     },
@@ -866,7 +869,7 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
     },
     silencedCopy: {
       marginTop: spacing.sm,
-      color: "#9BC8DA",
+      color: colors.muted,
       fontSize: 11,
       lineHeight: 16,
       fontWeight: "800",

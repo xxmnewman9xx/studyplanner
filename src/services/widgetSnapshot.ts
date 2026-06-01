@@ -271,7 +271,7 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         state: "demo",
         headline: t("widget_snapshot.today", "Today"),
         value: t("widget_snapshot.import", "Import"),
-        detail: t("widget_snapshot.demo_detail_today", "Demo work stays inside the app"),
+        detail: t("widget_snapshot.demo_detail_today", "Preview work stays inside the app"),
         footnote: t("widget_snapshot.demo_footnote_today", "Import a real syllabus for widgets"),
         ...todayStyle
       }),
@@ -282,7 +282,7 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         headline: t("widget_snapshot.upcoming", "Upcoming"),
         value: t("widget_snapshot.import", "Import"),
         detail: t("widget_snapshot.demo_detail_upcoming", "Widgets wait for real planner data"),
-        footnote: t("widget_snapshot.demo_footnote_upcoming", "Demo coursework is never shared"),
+        footnote: t("widget_snapshot.demo_footnote_upcoming", "Preview coursework is never shared"),
         ...upcomingStyle
       }),
       week: setupSnapshot(
@@ -291,7 +291,7 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         t("widget_snapshot.week", "Week"),
         t("widget_snapshot.import", "Import"),
         t("widget_snapshot.demo_detail_upcoming", "Widgets wait for real planner data"),
-        t("widget_snapshot.demo_footnote_upcoming", "Demo coursework is never shared"),
+        t("widget_snapshot.demo_footnote_upcoming", "Preview coursework is never shared"),
         weekStyle
       ),
       classProgress: setupSnapshot(
@@ -300,7 +300,7 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
         t("widget_snapshot.class_progress", "Class Progress"),
         t("widget_snapshot.import", "Import"),
         t("widget_snapshot.demo_detail_upcoming", "Widgets wait for real planner data"),
-        t("widget_snapshot.demo_footnote_upcoming", "Demo coursework is never shared"),
+        t("widget_snapshot.demo_footnote_upcoming", "Preview coursework is never shared"),
         classProgressStyle
       )
     });

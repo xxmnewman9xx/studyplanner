@@ -1,18 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
-  CalendarDays,
   CheckCircle2,
   Crown,
-  FileScan,
-  GraduationCap,
-  ListChecks,
-  NotebookPen,
-  Sparkles,
-  Timer
+  FileScan
 } from "lucide-react-native";
 import { AppButton } from "../components/AppButton";
-import { AppLogo, GlassCard, WidgetPreviewCard } from "../components/AppleComponents";
+import { AppLogo, AppMark, GlassCard, WidgetPreviewCard } from "../components/AppleComponents";
 import { ModeToggle } from "../components/ModeToggle";
 import { AppTheme, appThemePalettes, ThemeAccent, themePalettes } from "../theme";
 import { useAppTheme } from "../themeContext";
@@ -136,7 +130,6 @@ const defaultOnboardingWidgetTheme = widgetThemeDefinitions.ocean;
 export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScreenProps) {
   const { theme } = useAppTheme();
   const { t, locale } = useI18n();
-  const { colors } = theme;
   const styles = createStyles(theme);
   const [index, setIndex] = useState(() => normalizedIndex(initialIndex));
   const [appTheme, setAppTheme] = useState<ThemeAccent>(defaultOnboardingWidgetTheme.appTheme);
@@ -215,16 +208,14 @@ export function OnboardingScreen({ onFinish, initialIndex = 0 }: OnboardingScree
         </View>
 
         <MotionFadeUpView trigger={index}>
-        <GlassCard tone="hero" style={styles.heroCard}>
+        <GlassCard style={styles.heroCard}>
           <View style={styles.heroTopRow}>
-            <View style={styles.heroIcon}>
-              {slide.id === "scan" ? <FileScan color={colors.heroText} size={22} /> : null}
-              {slide.id === "review" ? <ListChecks color={colors.heroText} size={22} /> : null}
-              {slide.id === "calendar" ? <CalendarDays color={colors.heroText} size={22} /> : null}
-              {slide.id === "today" ? <NotebookPen color={colors.heroText} size={22} /> : null}
-              {slide.id === "classes" ? <GraduationCap color={colors.heroText} size={22} /> : null}
-              {slide.id === "focus" ? <Timer color={colors.heroText} size={22} /> : null}
-              {slide.id === "widgets" ? <Sparkles color={colors.heroText} size={22} /> : null}
+            <View style={styles.heroBrandLock}>
+              <AppMark size={46} />
+              <View style={styles.heroMarkCopy}>
+                <Text style={styles.heroBrandName}>StudyPlanner</Text>
+                <Text style={styles.heroBrandSubtitle}>Syllabus AI</Text>
+              </View>
             </View>
             <Text style={styles.stepText}>{index + 1} / {slides.length}</Text>
           </View>
@@ -301,7 +292,7 @@ function ScanPreview({ styles, t }: { styles: ReturnType<typeof createStyles>; t
           <Text style={styles.appPreviewTitle}>{t("onboarding.preview_scan_title", "Add syllabus")}</Text>
         </View>
         <View style={styles.appPreviewBadge}>
-          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_sample", "Sample")}</Text>
+          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_sample", "Preview")}</Text>
         </View>
       </View>
       <View style={styles.methodGrid}>
@@ -336,7 +327,7 @@ function ReviewPreview({ styles, t, locale }: { styles: ReturnType<typeof create
           <Text style={styles.appPreviewTitle}>{t("onboarding.preview_review_title", "Confirm before adding")}</Text>
         </View>
         <View style={styles.appPreviewBadge}>
-          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_sample", "Sample")}</Text>
+          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_sample", "Preview")}</Text>
         </View>
       </View>
       <View style={styles.reviewList}>
@@ -407,7 +398,7 @@ function CalendarPreview({ styles, t }: { styles: ReturnType<typeof createStyles
           <Text style={styles.appPreviewTitle}>{t("onboarding.preview_calendar_title", "Week at a glance")}</Text>
         </View>
         <View style={styles.appPreviewBadge}>
-          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_sample", "Sample")}</Text>
+          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_sample", "Preview")}</Text>
         </View>
       </View>
       <View style={styles.calendarPreviewGrid}>
@@ -443,7 +434,7 @@ function ClassesPreview({ styles, t }: { styles: ReturnType<typeof createStyles>
           <Text style={styles.appPreviewTitle}>{t("onboarding.preview_classes_title", "Course hubs")}</Text>
         </View>
         <View style={styles.appPreviewBadge}>
-          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_sample", "Sample")}</Text>
+          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_sample", "Preview")}</Text>
         </View>
       </View>
       <View style={styles.classPreviewList}>
@@ -480,7 +471,7 @@ function FocusPreview({ styles, t }: { styles: ReturnType<typeof createStyles>; 
           <Text style={styles.appPreviewTitle}>{t("focus.block_minutes", "{minutes} min block").replace("{minutes}", "25")}</Text>
         </View>
         <View style={styles.appPreviewBadge}>
-          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_sample", "Sample")}</Text>
+          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_sample", "Preview")}</Text>
         </View>
       </View>
       <View style={styles.focusPreviewStage}>
@@ -523,7 +514,7 @@ function WidgetsPreview({
           <Text style={styles.appPreviewTitle}>{t("onboarding.preview_upcoming_widget", "Upcoming widget")}</Text>
         </View>
         <View style={styles.appPreviewBadge}>
-          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_sample", "Sample")}</Text>
+          <Text style={styles.appPreviewBadgeText}>{t("onboarding.preview_sample", "Preview")}</Text>
         </View>
       </View>
       <WidgetPreviewCard
@@ -658,7 +649,7 @@ function createStyles(theme: AppTheme) {
     },
     heroCard: {
       gap: spacing.sm,
-      padding: spacing.md,
+      padding: spacing.lg,
       overflow: "hidden"
     },
     heroTopRow: {
@@ -667,18 +658,32 @@ function createStyles(theme: AppTheme) {
       justifyContent: "space-between",
       gap: spacing.sm
     },
-    heroIcon: {
-      width: 42,
-      height: 42,
-      borderRadius: radii.lg,
+    heroBrandLock: {
+      flexDirection: "row",
       alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: "rgba(255,255,255,0.12)",
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(255,255,255,0.18)"
+      gap: spacing.sm,
+      flex: 1,
+      minWidth: 0
+    },
+    heroMarkCopy: {
+      gap: 1,
+      minWidth: 0
+    },
+    heroBrandName: {
+      color: colors.ink,
+      fontSize: 15,
+      lineHeight: 19,
+      fontWeight: "900"
+    },
+    heroBrandSubtitle: {
+      color: colors.muted,
+      fontSize: 11,
+      lineHeight: 14,
+      fontWeight: "900",
+      textTransform: "uppercase"
     },
     stepText: {
-      color: colors.heroMuted,
+      color: colors.faint,
       fontSize: 12,
       lineHeight: 16,
       fontWeight: "900"
@@ -691,14 +696,14 @@ function createStyles(theme: AppTheme) {
       textTransform: "uppercase"
     },
     title: {
-      color: colors.heroText,
+      color: colors.ink,
       fontSize: 28,
       lineHeight: 33,
       fontWeight: "900",
       letterSpacing: 0
     },
     copy: {
-      color: colors.heroMuted,
+      color: colors.muted,
       fontSize: 15,
       lineHeight: 22,
       fontWeight: "700"

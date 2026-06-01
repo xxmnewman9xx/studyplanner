@@ -84,7 +84,7 @@ export function PlanScreen({ assignments, courses, sessions, settings, studentLi
           icon={GraduationCap}
         />
         <SPColorCard
-          tone="purple"
+          tone="teal"
           accentColor={settings?.customization?.activityColor}
           title="Intramural Soccer Practice"
           subtitle={sessions.length ? "Saved focus activity" : "7:00 - 8:00 PM"}

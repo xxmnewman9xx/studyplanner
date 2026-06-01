@@ -1375,7 +1375,7 @@ function AppContent() {
     setDemoMode(true);
     setSettings((current) => ({ ...current, ...settingsPatch }));
     setImportHandoff({
-      sourceName: "Demo syllabus",
+      sourceName: "Preview syllabus",
       addedCount: demo.assignments.length,
       reviewCount: demo.assignments.filter((assignment) => assignment.needsReview).length,
       nextTitle: demo.assignments[0]?.title,
@@ -1496,7 +1496,7 @@ function AppContent() {
     (!captureBypassEnabled || captureHardPaywall) && onboarded && !subscription.isPremium;
 
   if (!hydrated) {
-    return <LoadingScreen label={t("app.loading", "Loading StudyPlanner")} />;
+    return <LoadingScreen label={t("app.loading", "Loading StudyPlanner: Syllabus AI")} />;
   }
 
   if (!onboarded) {
@@ -1559,7 +1559,7 @@ function AppContent() {
               })}
             </View>
             <View style={styles.sidebarPro}>
-              <Sparkles color={colors.brandPink} size={16} />
+              <Sparkles color={colors.accent} size={16} />
               <Text style={styles.sidebarProText}>{t("app.sidebar_pro_text", "Plan less. Stress less.")}</Text>
             </View>
           </View>
@@ -1908,8 +1908,8 @@ function buildAppSystemState(
   if (courses.length === 0 && assignments.length === 0) {
     return {
       title: t("app.system_empty_title", "Start with real school material."),
-      detail: t("app.system_empty_detail", "Scan a syllabus, paste class notes, or add the first class. The app stays empty until the student gives it real work."),
-      badge: demoMode ? t("app.system_demo", "Demo") : t("app.system_setup", "Setup"),
+      detail: t("app.system_empty_detail", "Scan a syllabus, paste class notes, or add the first class. The app stays empty until real coursework is reviewed."),
+      badge: demoMode ? t("app.system_demo", "Preview") : t("app.system_setup", "Setup"),
       actionLabel: t("app.system_scan_or_add", "Scan or add"),
       action: "scan",
       facts
@@ -2028,7 +2028,7 @@ function buildDemoPlannerData(now = new Date()) {
   const demoSemester = {
     ...defaultSemester,
     id: "demo-semester",
-    name: "Demo Semester",
+    name: "Preview Semester",
     startDate: dateOffset(now, -28),
     endDate: dateOffset(now, 84)
   };

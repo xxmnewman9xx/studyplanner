@@ -448,7 +448,7 @@ export function ImportScreen({
               onChangeText={setTypedText}
               multiline
               placeholder={t("import.paste_placeholder", "Paste syllabus lines or assignment dates...")}
-              placeholderTextColor={colors.heroMuted}
+              placeholderTextColor={colors.faint}
               style={styles.typeBox}
             />
             <AppButton
@@ -801,7 +801,7 @@ export function ImportScreen({
           setSourceMode(mode);
         }}
       >
-        <Icon color={selected ? colors.heroText : disabled ? colors.faint : colors.heroMuted} size={16} />
+        <Icon color={selected ? "#FFFFFF" : disabled ? colors.faint : colors.muted} size={16} />
         <Text style={[styles.sourceOptionText, selected ? styles.sourceOptionTextSelected : null, disabled ? styles.sourceOptionTextDisabled : null]}>{label}</Text>
       </TouchableOpacity>
     );
@@ -819,7 +819,7 @@ export function ImportScreen({
     variant: "primary" | "secondary";
   }) {
     const primary = variant === "primary";
-    const foreground = primary ? "#FFFFFF" : "#EAF2FF";
+    const foreground = primary ? "#FFFFFF" : colors.ink;
     return (
       <TouchableOpacity
         accessibilityRole="button"
@@ -1003,24 +1003,21 @@ function formatImportTemplate(template: string, values: Record<string, string | 
 function createStyles(theme: AppTheme) {
   const { colors, radii, spacing, typography } = theme;
   const captureGlass = {
-    base: theme.isDark ? "#050B17" : "#081632",
-    topTint: "rgba(113,132,255,0.15)",
-    lowerTint: "rgba(7,17,35,0.76)",
-    border: "rgba(204,222,255,0.34)",
-    rim: "rgba(255,255,255,0.16)",
-    highlight: "rgba(255,255,255,0.085)",
-    glowPink: "rgba(216,75,123,0.28)",
-    glowIndigo: "rgba(93,95,239,0.34)",
-    glowBlue: "rgba(49,91,255,0.28)",
-    textPrimary: "#F8FBFF",
-    textSecondary: "#D7E2F3",
-    textTertiary: "#B9C7DA",
-    control: "rgba(10,23,47,0.82)",
-    controlBorder: "rgba(197,216,255,0.22)",
-    panel: "rgba(13,28,55,0.82)",
-    panelBorder: "rgba(210,226,255,0.24)",
-    activeControl: "#315BFF",
-    inactiveControl: "rgba(255,255,255,0.08)"
+    base: "#FFFFFF",
+    lowerTint: "transparent",
+    border: "rgba(5,5,5,0.09)",
+    rim: "rgba(5,5,5,0.06)",
+    highlight: "transparent",
+    glowBlue: "rgba(5,5,5,0.12)",
+    textPrimary: "#111827",
+    textSecondary: "#586174",
+    textTertiary: "#8A94A6",
+    control: "#F4F5F7",
+    controlBorder: "rgba(5,5,5,0.08)",
+    panel: "#FFFFFF",
+    panelBorder: "rgba(5,5,5,0.08)",
+    activeControl: "#050505",
+    inactiveControl: "#FFFFFF"
   };
 
   return StyleSheet.create({
@@ -1034,10 +1031,12 @@ function createStyles(theme: AppTheme) {
       textTransform: "uppercase"
     },
     title: {
-      ...typography.title
+      ...typography.title,
+      color: "#111827"
     },
     subtitle: {
-      ...typography.body
+      ...typography.body,
+      color: "#586174"
     },
     limitCard: {
       marginTop: spacing.md,
@@ -1076,11 +1075,11 @@ function createStyles(theme: AppTheme) {
       borderWidth: 1,
       borderColor: captureGlass.border,
       backgroundColor: captureGlass.base,
-      shadowColor: "#061225",
-      shadowOpacity: theme.isDark ? 0.46 : 0.26,
-      shadowRadius: 26,
-      shadowOffset: { width: 0, height: 18 },
-      elevation: 5
+      shadowColor: "#000000",
+      shadowOpacity: theme.isDark ? 0.18 : 0.07,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 2
     },
     scanHeroBaseTint: {
       position: "absolute",
@@ -1091,22 +1090,24 @@ function createStyles(theme: AppTheme) {
       backgroundColor: captureGlass.lowerTint
     },
     scanHeroGlow: {
+      display: "none",
       position: "absolute",
       top: -74,
       right: -50,
       width: 184,
       height: 184,
       borderRadius: 999,
-      backgroundColor: captureGlass.glowIndigo
+      backgroundColor: "transparent"
     },
     scanHeroGlowTwo: {
+      display: "none",
       position: "absolute",
       bottom: -74,
       left: -42,
       width: 156,
       height: 156,
       borderRadius: 999,
-      backgroundColor: captureGlass.glowPink
+      backgroundColor: "transparent"
     },
     scanHeroTopSheen: {
       position: "absolute",
@@ -1133,8 +1134,8 @@ function createStyles(theme: AppTheme) {
       height: 52,
       borderRadius: 18,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(235,242,255,0.28)",
-      backgroundColor: "rgba(255,255,255,0.075)",
+      borderColor: "rgba(5,5,5,0.08)",
+      backgroundColor: "#F4F5F7",
       alignItems: "center",
       justifyContent: "center",
       marginBottom: 2
@@ -1143,14 +1144,14 @@ function createStyles(theme: AppTheme) {
       width: 36,
       height: 3,
       borderRadius: 2,
-      backgroundColor: colors.accent,
-      shadowColor: colors.accent,
-      shadowOpacity: 0.52,
-      shadowRadius: 14,
+      backgroundColor: "#050505",
+      shadowColor: "#000000",
+      shadowOpacity: 0.16,
+      shadowRadius: 8,
       shadowOffset: { width: 0, height: 0 }
     },
     dropKicker: {
-      color: "#8EA8FF",
+      color: colors.accent,
       fontSize: 11,
       lineHeight: 15,
       fontWeight: "900",
@@ -1183,15 +1184,15 @@ function createStyles(theme: AppTheme) {
       minHeight: 28,
       borderRadius: radii.round,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(255,255,255,0.18)",
-      backgroundColor: "rgba(255,255,255,0.08)",
+      borderColor: "rgba(5,5,5,0.08)",
+      backgroundColor: "#FFFFFF",
       paddingHorizontal: spacing.sm,
       flexDirection: "row",
       alignItems: "center",
       gap: 5
     },
     trustChipText: {
-      color: colors.heroText,
+      color: "#111827",
       fontSize: 11,
       lineHeight: 15,
       fontWeight: "900"
@@ -1222,9 +1223,9 @@ function createStyles(theme: AppTheme) {
     },
     sourceOptionSelected: {
       backgroundColor: captureGlass.activeControl,
-      shadowColor: captureGlass.glowBlue,
-      shadowOpacity: 0.55,
-      shadowRadius: 14,
+      shadowColor: colors.shadow,
+      shadowOpacity: theme.isDark ? 0.22 : 0.1,
+      shadowRadius: 12,
       shadowOffset: { width: 0, height: 6 }
     },
     sourceOptionDisabled: {
@@ -1237,7 +1238,7 @@ function createStyles(theme: AppTheme) {
       fontWeight: "900"
     },
     sourceOptionTextSelected: {
-      color: captureGlass.textPrimary
+      color: "#FFFFFF"
     },
     sourceOptionTextDisabled: {
       color: colors.faint
@@ -1289,19 +1290,20 @@ function createStyles(theme: AppTheme) {
     captureActionButtonPrimary: {
       backgroundColor: captureGlass.activeControl,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.26)",
-      shadowColor: "#315BFF",
-      shadowOpacity: 0.34,
-      shadowRadius: 14,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 4
+      borderColor: theme.isDark ? "rgba(255,255,255,0.72)" : "rgba(5,5,5,0.92)",
+      shadowColor: "#000000",
+      shadowOpacity: theme.isDark ? 0.18 : 0.10,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 2
     },
     captureActionButtonSecondary: {
-      backgroundColor: "rgba(255,255,255,0.12)",
+      backgroundColor: "#FFFFFF",
       borderWidth: 1,
-      borderColor: "rgba(222,235,255,0.32)"
+      borderColor: theme.isDark ? "rgba(255,255,255,0.13)" : "rgba(5,5,5,0.09)"
     },
     captureActionPrimarySheen: {
+      display: "none",
       position: "absolute",
       top: 0,
       left: 0,
@@ -1310,6 +1312,7 @@ function createStyles(theme: AppTheme) {
       backgroundColor: "rgba(255,255,255,0.16)"
     },
     captureActionSecondarySheen: {
+      display: "none",
       position: "absolute",
       top: 0,
       left: 0,
@@ -1426,7 +1429,7 @@ function createStyles(theme: AppTheme) {
       width: 44,
       height: 44,
       borderRadius: radii.round,
-      backgroundColor: colors.brandPink,
+      backgroundColor: theme.isDark ? colors.surfaceAlt : colors.ink,
       alignItems: "center",
       justifyContent: "center"
     },
