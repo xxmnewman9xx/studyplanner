@@ -6,6 +6,7 @@ import { Badge } from "../components/Badge";
 import { SectionHeader } from "../components/SectionHeader";
 import { Assignment, Course, FocusSession, StudyNote } from "../models";
 import { getCourseForAssignment } from "../logic/planner";
+import type { StudentLifeContext } from "../logic/studentLifeDepth";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { useI18n } from "../i18n";
@@ -17,6 +18,8 @@ type FocusScreenProps = {
   courses: Course[];
   defaultMinutes: number;
   sessions: FocusSession[];
+  studentLife?: StudentLifeContext;
+  focusAccent?: string;
   preferredAssignmentId?: string | null;
   onRecordSession: (session: FocusSession) => void;
   onMarkComplete?: (assignmentId: string) => void;
@@ -28,6 +31,8 @@ export function FocusScreen({
   courses,
   defaultMinutes,
   sessions,
+  studentLife,
+  focusAccent,
   preferredAssignmentId,
   onRecordSession,
   onMarkComplete,
@@ -36,7 +41,7 @@ export function FocusScreen({
   const { theme } = useAppTheme();
   const { t, locale } = useI18n();
   const { colors } = theme;
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, focusAccent);
   const focusableAssignments = useMemo(
     () =>
       assignments
@@ -191,6 +196,13 @@ export function FocusScreen({
           </View>
           <Badge label={formatLocalized(t("focus.session_count", "Session {count}"), { count: String(sessionNumber) })} tone="blue" />
         </View>
+        {studentLife ? (
+          <View style={styles.depthStrip}>
+            <Text style={styles.depthKicker}>{t("depth.what_i_learned", "What I learned")}</Text>
+            <Text style={styles.depthText} numberOfLines={3}>{studentLife.focus.learned}</Text>
+            <Text style={styles.depthMeta} numberOfLines={2}>{studentLife.focus.recommendation}</Text>
+          </View>
+        ) : null}
         <View style={styles.timerRing}>
           <View style={styles.timerRingInner}>
             <Text style={styles.timer}>{formatTimer(secondsLeft)}</Text>
@@ -544,8 +556,20 @@ function formatLocalized(template: string, values: Record<string, string>) {
   return Object.entries(values).reduce((current, [key, value]) => current.replaceAll(`{${key}}`, value), template);
 }
 
-function createStyles(theme: AppTheme) {
+function validAccent(value: string | undefined, fallback: string) {
+  return value && /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
+}
+
+function withAlpha(color: string, alpha: number) {
+  const red = parseInt(color.slice(1, 3), 16);
+  const green = parseInt(color.slice(3, 5), 16);
+  const blue = parseInt(color.slice(5, 7), 16);
+  return `rgba(${red},${green},${blue},${alpha})`;
+}
+
+function createStyles(theme: AppTheme, focusAccent?: string) {
   const { colors, radii, spacing } = theme;
+  const accent = validAccent(focusAccent, "#22C55E");
 
   return StyleSheet.create({
     focusStage: {
@@ -570,8 +594,8 @@ function createStyles(theme: AppTheme) {
       width: 240,
       height: 240,
       borderRadius: 120,
-      backgroundColor: "#0EA5E9",
-      opacity: 0.32
+      backgroundColor: accent,
+      opacity: 0.22
     },
     focusGlowSecondary: {
       position: "absolute",
@@ -580,8 +604,8 @@ function createStyles(theme: AppTheme) {
       width: 230,
       height: 230,
       borderRadius: 115,
-      backgroundColor: "#14B8A6",
-      opacity: 0.16
+      backgroundColor: accent,
+      opacity: 0.12
     },
     stageHeader: {
       alignSelf: "stretch",
@@ -607,19 +631,45 @@ function createStyles(theme: AppTheme) {
       lineHeight: 15,
       fontWeight: "800"
     },
+    depthStrip: {
+      alignSelf: "stretch",
+      marginTop: spacing.md,
+      borderRadius: radii.lg,
+      backgroundColor: "rgba(255,255,255,0.10)",
+      padding: spacing.sm,
+      gap: 3
+    },
+    depthKicker: {
+      color: "#B9E7F6",
+      fontSize: 10,
+      lineHeight: 13,
+      fontWeight: "900"
+    },
+    depthText: {
+      color: "#FFFFFF",
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
+    },
+    depthMeta: {
+      color: "#CFFAFE",
+      fontSize: 11,
+      lineHeight: 15,
+      fontWeight: "800"
+    },
     timerRing: {
       marginTop: spacing.lg,
       width: 180,
       height: 180,
       borderRadius: 90,
       borderWidth: 10,
-      borderColor: "#38BDF8",
+      borderColor: accent,
       backgroundColor: "rgba(255,255,255,0.035)",
       alignItems: "center",
       justifyContent: "center",
-      shadowColor: "#22D3EE",
-      shadowOpacity: 0.46,
-      shadowRadius: 24,
+      shadowColor: accent,
+      shadowOpacity: 0.2,
+      shadowRadius: 18,
       shadowOffset: { width: 0, height: 0 }
     },
     timerRingInner: {
@@ -654,7 +704,7 @@ function createStyles(theme: AppTheme) {
     progressFill: {
       height: "100%",
       borderRadius: 4,
-      backgroundColor: "#35F2D0"
+      backgroundColor: accent
     },
     focusingOn: {
       marginTop: spacing.md,
@@ -724,8 +774,8 @@ function createStyles(theme: AppTheme) {
       borderColor: "rgba(255,255,255,0.13)"
     },
     durationChipActive: {
-      backgroundColor: "rgba(53,242,208,0.18)",
-      borderColor: "rgba(53,242,208,0.44)"
+      backgroundColor: withAlpha(accent, 0.18),
+      borderColor: withAlpha(accent, 0.44)
     },
     durationText: {
       color: "#BDB7FF",
@@ -756,7 +806,7 @@ function createStyles(theme: AppTheme) {
       flex: 1,
       height: 56,
       borderRadius: 20,
-      backgroundColor: "#2563EB",
+      backgroundColor: accent,
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: spacing.sm

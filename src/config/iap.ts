@@ -32,8 +32,8 @@ export const studyPlannerIapManifest = {
     {
       productId: "com.mattnewman.studyplanner.plus.monthly",
       type: "auto_renewable_subscription" as IapProductType,
-      displayName: "StudyPlanner Monthly",
-      description: "Full access to StudyPlanner while the monthly plan is active.",
+      displayName: "StudyPlanner: Syllabus AI Monthly",
+      description: "Full access to StudyPlanner: Syllabus AI while the monthly plan is active.",
       entitlementUnlocked: "studyplanner_pro",
       subscriptionPeriod: "P1M",
       hasFreeTrial: false,
@@ -43,8 +43,8 @@ export const studyPlannerIapManifest = {
     {
       productId: "com.mattnewman.studyplanner.plus.yearly",
       type: "auto_renewable_subscription" as IapProductType,
-      displayName: "StudyPlanner Yearly",
-      description: "Full access to StudyPlanner while the yearly plan is active.",
+      displayName: "StudyPlanner: Syllabus AI Yearly",
+      description: "Full access to StudyPlanner: Syllabus AI while the yearly plan is active.",
       entitlementUnlocked: "studyplanner_pro",
       subscriptionPeriod: "P1Y",
       hasFreeTrial: false,

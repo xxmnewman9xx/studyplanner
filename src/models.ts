@@ -71,6 +71,63 @@ export type WidgetLayout =
   | "summary"
   | "next_task";
 
+export type StudioAccentRole = "primary" | "secondary" | "risk" | "focus" | "activity";
+
+export type CardAccentStyle = "clean" | "glass" | "color_card" | "compact";
+
+export type WidgetStudioStyle = "clean" | "glass" | "color_card" | "compact";
+
+export type WidgetColorSource = "class" | "urgency" | "custom";
+
+export type WidgetStudioSize = WidgetSize | "watch";
+
+export type WidgetStudioSurface = "home" | "lock" | "watch";
+
+export type WatchPreviewStyle = "rings" | "cards" | "compact";
+
+export type WidgetStudioContentType =
+  | "exam_countdown"
+  | "next_assignment"
+  | "next_class"
+  | "focus_window"
+  | "semester_progress"
+  | "heavy_week_warning"
+  | "free_time_forecast"
+  | "review_inbox_status"
+  | "class_progress";
+
+export type WidgetStudioSetting = {
+  id: string;
+  contentType: WidgetStudioContentType;
+  classFocusCourseId?: string;
+  colorSource: WidgetColorSource;
+  customColor?: string;
+  size: WidgetStudioSize;
+  style: WidgetStudioStyle;
+  surface: WidgetStudioSurface;
+  updatedAt: string;
+};
+
+export type StudioCustomization = {
+  version: 1;
+  primaryAccent: string;
+  secondaryAccent: string;
+  riskColor: string;
+  focusColor: string;
+  activityColor: string;
+  forecastAccent: string;
+  focusTimerAccent: string;
+  cardAccentStyle: CardAccentStyle;
+  widgetColor: string;
+  watchPreviewStyle: WatchPreviewStyle;
+  appIconVariant?: string;
+  homeWidgetPack: WidgetStudioSetting[];
+  lockWidgetPack: WidgetStudioSetting[];
+  watchWidgetPack: WidgetStudioSetting[];
+  savedSetupName?: string;
+  updatedAt: string;
+};
+
 export type FocusSessionStatus = "planned" | "running" | "paused" | "completed" | "stopped";
 
 export type Semester = {
@@ -96,6 +153,7 @@ export type PlannerData = {
   widgetPresets?: WidgetPreset[];
   focusSessions?: FocusSession[];
   notes?: StudyNote[];
+  studentLifeMemory?: StudentLifeMemory;
 };
 
 export type PlannerSettings = {
@@ -142,6 +200,7 @@ export type UserSettings = {
   syncEnabled: boolean;
   privacyMode: boolean;
   emojiAccentEnabled: boolean;
+  customization?: StudioCustomization;
 };
 
 export type ClassMeeting = {
@@ -348,6 +407,100 @@ export type FocusSession = {
   status: FocusSessionStatus;
   sessionNumber: number;
   notes?: string;
+};
+
+export type StudentLifeFeature =
+  | "home"
+  | "forecast"
+  | "classes"
+  | "focus"
+  | "notes"
+  | "widgets"
+  | "watch";
+
+export type StudentLifeRecommendationAction =
+  | "viewed"
+  | "started"
+  | "completed"
+  | "snoozed"
+  | "converted"
+  | "saved"
+  | "ignored";
+
+export type StudentLifeMemory = {
+  version: 1;
+  createdAt: string;
+  updatedAt: string;
+  featureVisits: Record<StudentLifeFeature, number>;
+  featureLastSeenAt: Partial<Record<StudentLifeFeature, string>>;
+  recommendationEvents: Array<{
+    id: string;
+    feature: StudentLifeFeature;
+    action: StudentLifeRecommendationAction;
+    assignmentId?: string;
+    courseId?: string;
+    noteId?: string;
+    widgetType?: WidgetType;
+    createdAt: string;
+  }>;
+  home: {
+    lastTopActionId?: string;
+    topActionSeenCount: Record<string, number>;
+    completedTopActions: number;
+    delayedTopActions: number;
+  };
+  forecast: {
+    snapshots: Array<{
+      dateKey: string;
+      state: "clear" | "watch" | "warning" | "storm" | "recovery";
+      riskScore: number;
+      heavyDayCount: number;
+      openCount: number;
+      completedFocusMinutes: number;
+      topAssignmentId?: string;
+      createdAt: string;
+    }>;
+    warningsSeen: number;
+    interventionsAccepted: number;
+  };
+  focus: {
+    completedSessions: number;
+    stoppedSessions: number;
+    totalMinutes: number;
+    preferredDurationMinutes?: number;
+    assignmentStats: Record<string, {
+      sessions: number;
+      completed: number;
+      stopped: number;
+      totalMinutes: number;
+      lastAt: string;
+    }>;
+    courseStats: Record<string, {
+      sessions: number;
+      completed: number;
+      stopped: number;
+      totalMinutes: number;
+      lastAt: string;
+    }>;
+  };
+  notes: {
+    created: number;
+    convertedToTasks: number;
+    pinned: number;
+    resurfaced: number;
+    courseCounts: Record<string, number>;
+  };
+  widgets: {
+    savedCount: number;
+    recommendedTypeCounts: Partial<Record<WidgetType, number>>;
+    lastRecommendedType?: WidgetType;
+  };
+  watch: {
+    signalsGenerated: number;
+    focusStarts: number;
+    smartSnoozes: number;
+    lastSignal?: string;
+  };
 };
 
 export type ThemePreset = {

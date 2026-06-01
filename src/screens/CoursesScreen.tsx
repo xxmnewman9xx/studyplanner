@@ -4,6 +4,7 @@ import { BookOpen, ChevronRight, GraduationCap, Timer } from "lucide-react-nativ
 
 import { SPBoardColors, SPSemesterRing } from "../components/StudyPlannerAppleBoard";
 import { Assignment, AssignmentKind, Course, Semester, StudyNote } from "../models";
+import type { StudentLifeContext } from "../logic/studentLifeDepth";
 import { useI18n } from "../i18n";
 
 type CoursesScreenProps = {
@@ -11,6 +12,7 @@ type CoursesScreenProps = {
   courses: Course[];
   assignments: Assignment[];
   notes?: StudyNote[];
+  studentLife?: StudentLifeContext;
   onAddQuickAssignment: (
     courseId: string,
     title: string,
@@ -24,7 +26,7 @@ type CoursesScreenProps = {
   onUpdateCourse: (courseId: string, patch: Partial<Course>) => void;
 };
 
-export function CoursesScreen({ semester, courses, assignments, notes = [], onOpenAssignment, onOpenNotes }: CoursesScreenProps) {
+export function CoursesScreen({ semester, courses, assignments, notes = [], studentLife, onOpenAssignment, onOpenNotes }: CoursesScreenProps) {
   const { t } = useI18n();
   const localizationAnchor = t("classes.course_hub", "Course hub");
   void localizationAnchor;
@@ -57,6 +59,14 @@ export function CoursesScreen({ semester, courses, assignments, notes = [], onOp
           <SummaryLine value={String(Math.max(exams.length, 4))} label="Exams left" />
         </View>
       </View>
+
+      {studentLife ? (
+        <View style={styles.depthCard}>
+          <Text style={styles.depthKicker}>{t("depth.what_i_learned", "What I learned")}</Text>
+          <Text style={styles.depthTitle}>{studentLife.classes.learned}</Text>
+          <Text style={styles.depthCopy}>{studentLife.classes.recommendation}</Text>
+        </View>
+      ) : null}
 
       <View style={styles.weekCard}>
         <View style={styles.weekHeader}>
@@ -256,6 +266,33 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: SPBoardColors.line,
     padding: 16
+  },
+  depthCard: {
+    marginTop: 14,
+    borderRadius: 18,
+    backgroundColor: "#F4F5F7",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: SPBoardColors.line,
+    padding: 16,
+    gap: 5
+  },
+  depthKicker: {
+    color: SPBoardColors.muted,
+    fontSize: 11,
+    lineHeight: 13,
+    fontWeight: "900"
+  },
+  depthTitle: {
+    color: SPBoardColors.text,
+    fontSize: 16,
+    lineHeight: 20,
+    fontWeight: "900"
+  },
+  depthCopy: {
+    color: SPBoardColors.muted,
+    fontSize: 13,
+    lineHeight: 17,
+    fontWeight: "700"
   },
   weekHeader: {
     flexDirection: "row",

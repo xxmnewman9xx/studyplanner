@@ -9,14 +9,17 @@ import {
   SPDateStrip,
   SPExamCard
 } from "../components/StudyPlannerAppleBoard";
-import { Assignment, Course, FocusSession } from "../models";
+import { Assignment, Course, FocusSession, UserSettings } from "../models";
 import { daysUntil, getCourseForAssignment } from "../logic/planner";
+import type { StudentLifeContext } from "../logic/studentLifeDepth";
 import { useI18n } from "../i18n";
 
 type PlanScreenProps = {
   assignments: Assignment[];
   courses: Course[];
   sessions: FocusSession[];
+  settings?: UserSettings;
+  studentLife?: StudentLifeContext;
   onOpenAssignment: (assignmentId: string) => void;
   onOpenFocus: (assignmentId?: string) => void;
   onUpdateStatus: (assignmentId: string, status: "not_started" | "in_progress" | "done") => void;
@@ -25,7 +28,7 @@ type PlanScreenProps = {
   onOpenScan: () => void;
 };
 
-export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, onOpenFocus, onOpenScan }: PlanScreenProps) {
+export function PlanScreen({ assignments, courses, sessions, settings, studentLife, onOpenAssignment, onOpenFocus, onOpenScan }: PlanScreenProps) {
   const { t } = useI18n();
   const localizationAnchor = t("plan.capture_title", "Put new work on the selected day.");
   void localizationAnchor;
@@ -47,21 +50,34 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
       <SPDateStrip activeIndex={1} />
 
       <View style={styles.feed}>
+        {studentLife ? (
+          <SPColorCard
+            tone={studentLife.forecast.state === "storm" || studentLife.forecast.state === "warning" ? "orange" : "soft"}
+            accentColor={settings?.customization?.forecastAccent}
+            title={studentLife.forecast.title}
+            subtitle={studentLife.forecast.detail}
+            meta={studentLife.forecast.recommendation}
+            icon={Activity}
+          />
+        ) : null}
         <SPExamCard
           kicker="TUE 13"
           title={boardTitle(exam?.title || "Organic Chemistry Midterm")}
           subtitle={formatTimeRange(exam?.dueAt, "9:00 - 11:00 AM")}
           meta={examCourse?.code || "Organic Chemistry"}
+          accentColor={examCourse?.color || settings?.customization?.riskColor}
           onPress={exam ? () => onOpenAssignment(exam.id) : undefined}
         />
         <SPAssignmentCard
           title={assignment?.title || "Calculus Problem Set"}
           subtitle={assignmentCourse?.code || "Calculus"}
           meta={assignment ? `Due ${formatDueDate(assignment.dueAt)} - Medium` : "Due Fri, May 16 - Medium"}
+          accentColor={assignmentCourse?.color || settings?.customization?.primaryAccent}
           onPress={assignment ? () => onOpenAssignment(assignment.id) : undefined}
         />
         <SPColorCard
           tone="teal"
+          accentColor={physics?.color}
           title={`${physics?.code || "Physics 201"} Lecture`}
           subtitle={nextClassTime(physics)}
           meta="Low"
@@ -69,6 +85,7 @@ export function PlanScreen({ assignments, courses, sessions, onOpenAssignment, o
         />
         <SPColorCard
           tone="purple"
+          accentColor={settings?.customization?.activityColor}
           title="Intramural Soccer Practice"
           subtitle={sessions.length ? "Saved focus activity" : "7:00 - 8:00 PM"}
           meta="Good for you"

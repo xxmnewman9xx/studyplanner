@@ -44,6 +44,16 @@ const captureTargets = [
   { key: "widget-dark-graphite-week", route: { tab: "more", themeMode: "dark", appTheme: "graphite", widgetType: "week", widgetSize: "medium", widgetPalette: "graphite", widgetBackground: "dark", widgetDataMode: "this_week" }, name: "35-widget-dark-graphite-week" },
   { key: "widget-dark-forest-class", route: { tab: "more", themeMode: "dark", appTheme: "mint", widgetType: "class_focus", widgetSize: "small", widgetPalette: "forest", widgetBackground: "glass", widgetDataMode: "single_class" }, name: "36-widget-dark-forest-class" },
   { key: "widget-dark-paper-due-next", route: { tab: "more", themeMode: "dark", appTheme: "minimal", widgetType: "due_next", widgetSize: "small", widgetPalette: "paper", widgetBackground: "light", widgetDataMode: "all_classes" }, name: "37-widget-dark-paper-due-next" },
+  { key: "depth-day1", route: { tab: "today", themeMode: "light", depthAgeDays: 0 }, name: "40-depth-day1-home" },
+  { key: "depth-day30", route: { tab: "today", themeMode: "light", depthAgeDays: 30 }, name: "41-depth-day30-home" },
+  { key: "depth-day30-forecast", route: { tab: "plan", themeMode: "light", depthAgeDays: 30 }, name: "42-depth-day30-forecast" },
+  { key: "depth-day30-widgets", route: { tab: "more", themeMode: "light", depthAgeDays: 30 }, name: "43-depth-day30-widget-studio" },
+  { key: "studio-default", route: { tab: "more", themeMode: "light" }, name: "50-studio-default" },
+  { key: "studio-class-color", route: { tab: "more", themeMode: "light", classColor: "#8B3DFF", secondaryAccent: "#EC4899", widgetColorSource: "class" }, name: "51-studio-class-color" },
+  { key: "studio-widget-customization", route: { tab: "more", themeMode: "light", classColor: "#8B3DFF", widgetType: "class_focus", widgetSize: "medium", widgetPalette: "forest", widgetBackground: "glass", widgetDataMode: "single_class", widgetStudioStyle: "color_card", widgetColorSource: "custom", widgetCustomColor: "#EC4899", watchPreviewStyle: "cards" }, name: "52-studio-widget-customization" },
+  { key: "home-after-customization", route: { tab: "today", themeMode: "light", classColor: "#8B3DFF", secondaryAccent: "#EC4899", focusColor: "#22C55E", riskColor: "#FF5A1F", widgetCustomColor: "#EC4899" }, name: "53-home-after-customization" },
+  { key: "forecast-after-customization", route: { tab: "plan", themeMode: "light", classColor: "#8B3DFF", secondaryAccent: "#EC4899", activityColor: "#21B8A7", riskColor: "#FF5A1F" }, name: "54-forecast-after-customization" },
+  { key: "widget-watch-preview-customization", route: { tab: "more", themeMode: "light", classColor: "#8B3DFF", widgetType: "focus", widgetSize: "small", widgetPalette: "paper", widgetBackground: "light", widgetStudioStyle: "glass", widgetColorSource: "custom", widgetCustomColor: "#22C55E", watchPreviewStyle: "compact" }, name: "55-widget-watch-preview-customization" },
   { key: "paywall", route: { tab: "subscribe" }, name: "24-paywall" },
   { key: "grades", route: { tab: "grades" }, name: "25-grades" }
 ];

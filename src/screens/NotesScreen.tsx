@@ -6,6 +6,7 @@ import { GlassCard, EmptyState } from "../components/AppleComponents";
 import { SectionHeader } from "../components/SectionHeader";
 import { Assignment, Course, FocusSession, StudyNote } from "../models";
 import { getCourseForAssignment, getPinnedNotes, getRelevantNotesForToday } from "../logic/planner";
+import type { StudentLifeContext } from "../logic/studentLifeDepth";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { courseEmoji } from "../utils/courseVisuals";
@@ -16,6 +17,7 @@ type NotesScreenProps = {
   assignments?: Assignment[];
   focusSessions?: FocusSession[];
   notes: StudyNote[];
+  studentLife?: StudentLifeContext;
   onAddNote: (note: Omit<StudyNote, "id" | "createdAt" | "updatedAt">) => void;
   onUpdateNote: (noteId: string, patch: Partial<StudyNote>) => void;
   onDeleteNote: (noteId: string) => void;
@@ -31,6 +33,7 @@ export function NotesScreen({
   assignments = [],
   focusSessions = [],
   notes,
+  studentLife,
   onAddNote,
   onUpdateNote,
   onDeleteNote,
@@ -136,6 +139,14 @@ export function NotesScreen({
           <MiniStat label={t("notes.latest", "Latest")} value={latestNote ? formatShortDate(latestNote.updatedAt, locale, t) : t("notes.none", "None")} />
         </View>
       </GlassCard>
+
+      {studentLife ? (
+        <GlassCard style={styles.depthCard}>
+          <Text style={styles.depthKicker}>{t("notes.memory_kicker", "What I learned")}</Text>
+          <Text style={styles.depthTitle}>{studentLife.notes.learned}</Text>
+          <Text style={styles.depthCopy}>{studentLife.notes.recommendation}</Text>
+        </GlassCard>
+      ) : null}
 
       <SectionHeader title={t("notes.new_agenda_note", "New agenda note")} note={t("notes.link_to_class", "Link it to a class.")} />
       <GlassCard style={styles.editorCard}>
@@ -367,6 +378,10 @@ function createStyles(theme: AppTheme) {
     miniStat: { flex: 1, minWidth: 0, borderRadius: radii.lg, backgroundColor: "rgba(255,255,255,0.12)", padding: spacing.sm },
     miniStatValue: { color: colors.heroText, fontSize: 17, lineHeight: 21, fontWeight: "900" },
     miniStatLabel: { color: colors.heroMuted, fontSize: 10, lineHeight: 13, fontWeight: "900", textTransform: "uppercase" },
+    depthCard: { gap: 5 },
+    depthKicker: { color: colors.accent, fontSize: 11, lineHeight: 14, fontWeight: "900", textTransform: "uppercase" },
+    depthTitle: { color: colors.ink, fontSize: 15, lineHeight: 20, fontWeight: "900" },
+    depthCopy: { color: colors.muted, fontSize: 13, lineHeight: 18, fontWeight: "700" },
     editorCard: { gap: spacing.sm },
     coursePicker: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs },
     courseChip: { maxWidth: "100%", borderRadius: radii.round, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.line, backgroundColor: colors.surfaceAlt, paddingHorizontal: spacing.sm, paddingVertical: 8 },

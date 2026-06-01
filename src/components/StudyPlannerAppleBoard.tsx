@@ -37,6 +37,7 @@ type SPColorCardProps = {
   subtitle?: string;
   meta?: string;
   icon?: IconComponent;
+  accentColor?: string;
   children?: React.ReactNode;
   onPress?: () => void;
 };
@@ -56,9 +57,9 @@ export function SPHeroCard({ greeting, name, detail }: { greeting: string; name:
   );
 }
 
-export function SPColorCard({ tone, kicker, title, subtitle, meta, icon: Icon, children, onPress }: SPColorCardProps) {
-  const palette = tonePalette[tone];
-  const light = tone === "white" || tone === "soft";
+export function SPColorCard({ tone, kicker, title, subtitle, meta, icon: Icon, accentColor, children, onPress }: SPColorCardProps) {
+  const palette = accentColor ? paletteForAccent(accentColor) : tonePalette[tone];
+  const light = !accentColor && (tone === "white" || tone === "soft");
   const content = (
     <>
       <View style={styles.colorCardCopy}>
@@ -123,14 +124,16 @@ export function SPNextClassCard({
   title,
   subtitle,
   meta,
+  accentColor,
   onPress
 }: {
   title: string;
   subtitle: string;
   meta?: string;
+  accentColor?: string;
   onPress?: () => void;
 }) {
-  return <SPColorCard tone="white" kicker="NEXT CLASS" title={title} subtitle={subtitle} meta={meta} icon={GraduationCap} onPress={onPress} />;
+  return <SPColorCard tone="white" accentColor={accentColor} kicker="NEXT CLASS" title={title} subtitle={subtitle} meta={meta} icon={GraduationCap} onPress={onPress} />;
 }
 
 export function SPSemesterRing({
@@ -484,6 +487,28 @@ const tonePalette: Record<SPCardTone, { background: string; text: string; subtle
     iconBorder: "rgba(255,255,255,0.18)"
   }
 };
+
+function paletteForAccent(color: string) {
+  const safeColor = /^#[0-9a-f]{6}$/i.test(color) ? color : SPBoardColors.blue;
+  const text = readableTextForBackground(safeColor);
+  const darkText = text === SPBoardColors.text;
+  return {
+    background: safeColor,
+    text,
+    subtle: darkText ? "rgba(5,5,5,0.68)" : "rgba(255,255,255,0.86)",
+    kicker: darkText ? "rgba(5,5,5,0.58)" : "rgba(255,255,255,0.72)",
+    icon: darkText ? "rgba(5,5,5,0.42)" : "rgba(255,255,255,0.45)",
+    iconBorder: darkText ? "rgba(5,5,5,0.14)" : "rgba(255,255,255,0.18)"
+  };
+}
+
+function readableTextForBackground(color: string) {
+  const red = parseInt(color.slice(1, 3), 16) / 255;
+  const green = parseInt(color.slice(3, 5), 16) / 255;
+  const blue = parseInt(color.slice(5, 7), 16) / 255;
+  const luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+  return luminance > 0.68 ? SPBoardColors.text : "#FFFFFF";
+}
 
 const styles = StyleSheet.create({
   hero: {

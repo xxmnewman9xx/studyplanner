@@ -4,7 +4,7 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "Loading StudyPlanner",
+      "loading": "Loading StudyPlanner: Syllabus AI",
       "add_more_title": "Add a little more",
       "add_more_message": "Title and due date are both needed.",
       "check_date_add_work_message": "Use a real date in YYYY-MM-DD format before adding this work.",
@@ -378,15 +378,15 @@
       "status_working_detail": "Working on the selected source."
     },
     "paywall": {
-      "title": "Unlock StudyPlanner",
-      "subtitle": "Keep the full scan-to-plan workflow ready for a busy semester.",
-      "hard_subtitle": "Unlock AI-assisted syllabus imports, calendar planning, focus, widgets, reminders, and sync.",
-      "monthly": "StudyPlanner Monthly",
-      "yearly": "StudyPlanner Yearly",
+      "title": "Unlock StudyPlanner: Syllabus AI",
+      "subtitle": "Keep the full syllabus-to-plan workflow ready for a busy semester.",
+      "hard_subtitle": "Unlock syllabus import, review inbox, forecast, personalized widgets, and local adaptation.",
+      "monthly": "StudyPlanner: Syllabus AI Monthly",
+      "yearly": "StudyPlanner: Syllabus AI Yearly",
       "feature_scans": "Syllabus imports",
-      "feature_scans_detail": "AI-assisted text/PDF imports, pasted text, and re-imports when classes change.",
-      "feature_widgets": "More widget styles",
-      "feature_widgets_detail": "Save real Next Up, Today List, Week, and Class Progress widget presets.",
+      "feature_scans_detail": "Turn syllabus text, PDFs, and pasted assignments into an editable plan.",
+      "feature_widgets": "Personalized widgets",
+      "feature_widgets_detail": "Save widgets that adapt to reviewed work, forecast state, and local memory.",
       "feature_focus": "Focus and progress tools",
       "feature_focus_detail": "Start timed study sessions and keep completion feedback visible.",
       "feature_calendar": "Reminders and calendar sync",
@@ -404,7 +404,7 @@
       "choose_plan_detail": "Choose a plan below. Restore stays available.",
       "plans_failed_locked_detail": "Plans could not load. Restore Purchases stays available, and this screen will not unlock the planner without a valid store entitlement.",
       "plans_failed_detail": "Plans could not load yet. Restore Purchases stays available for existing subscribers.",
-      "product_name": "StudyPlanner",
+      "product_name": "StudyPlanner: Syllabus AI",
       "imports": "Imports",
       "reminders": "Reminders",
       "app_store": "App Store",
@@ -437,12 +437,20 @@
       "store_unavailable": "Store purchases are unavailable on this device right now.",
       "subscription_plans_unavailable": "Subscription plans are not available right now.",
       "store_no_plans": "The store could not load active plans. Please try again shortly.",
-      "unlocked": "StudyPlanner is unlocked",
+      "unlocked": "StudyPlanner: Syllabus AI is unlocked",
       "unlocked_detail": "Full planner access is active on this device.",
       "legal_back": "Back",
-      "included_with_studyplanner": "Included with StudyPlanner",
+      "included_with_studyplanner": "Included with StudyPlanner: Syllabus AI",
       "product_source_build_env": "Build products",
-      "product_source_release_manifest": "Release manifest"
+      "product_source_release_manifest": "Release manifest",
+      "feature_review": "Review inbox",
+      "feature_review_detail": "Confirm uncertain dates and duplicates before they reach Today or widgets.",
+      "feature_forecast": "Forecast",
+      "feature_forecast_detail": "See overload earlier and move study blocks before the week stacks up.",
+      "feature_memory": "Local memory",
+      "feature_memory_detail": "Focus sessions, notes, and saved widgets improve recommendations on this device.",
+      "review": "Review",
+      "forecast": "Forecast"
     },
     "errors": {
       "text_required": "Paste syllabus text or upload a readable text file.",
@@ -612,7 +620,7 @@
       "health_review_copy": "Open flagged assignments from Today or the class list before trusting reminders and widgets.",
       "health_live_title": "Classes are carrying live work.",
       "health_live_copy": "Use each class detail to adjust teacher, period, room, notes, and the next homework items.",
-      "health_live": "Aktiv",
+      "health_live": "Active",
       "health_clean_title": "Classes are clean right now.",
       "health_clean_copy": "Your class shells are ready. Capture homework after class or import the next syllabus.",
       "health_clear": "Clear",
@@ -635,7 +643,7 @@
       "stage_kicker": "Focus session",
       "block_minutes": "{minutes} min block",
       "open_work_appears": "Open work appears here",
-      "session_count": "Séance {count}",
+      "session_count": "Session {count}",
       "status_focused": "Focused",
       "status_paused": "Paused",
       "status_ready": "Ready",
@@ -656,7 +664,7 @@
       "add_assignment_to_start": "Add an assignment to start a focus session.",
       "retention_loop": "Retention loop",
       "notes_title": "Capture the thing you'll forget later.",
-      "notes_badge": "Mémo",
+      "notes_badge": "Notes",
       "notes_copy": "Optional notes attach to this focus block, so studying creates useful history instead of just a timer log.",
       "notes_placeholder": "Example: Prof said quiz pulls from slides 18-24. Review enzyme chart.",
       "notes_disabled_placeholder": "Choose an assignment before adding notes.",
@@ -1018,7 +1026,11 @@
       "type_feel": "Type feel",
       "font_mono_detail": "Numbers",
       "font_rounded_detail": "Soft",
-      "font_default_detail": "Readable"
+      "font_default_detail": "Readable",
+      "widgets_title": "Widgets",
+      "widgets_subtitle": "Information you need, right where you need it.",
+      "watch_preview": "Watch preview",
+      "watch_preview_copy": "Glanceable. Actionable."
     },
     "widget_snapshot": {
       "today": "Today",
@@ -1267,13 +1279,20 @@
       "template_title": "{course} {kind}",
       "recent": "recent",
       "class_note": "Class note",
-      "convert_to_task": "Make task"
+      "convert_to_task": "Make task",
+      "memory_kicker": "What I learned"
     },
     "entitlement_gate": {
       "included": "Included with StudyPlanner",
       "unlock_title": "Unlock StudyPlanner",
       "unlock_copy": "Subscribe or restore purchases to use the full app.",
       "subscribe": "Subscribe"
+    },
+    "depth": {
+      "what_i_learned": "What I learned",
+      "learned_prefix": "Learned: {pattern}",
+      "reason_prefix": "Reason: {reason}",
+      "watch_adaptation": "Watch adaptation"
     }
   },
   "de": {
@@ -1281,7 +1300,7 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "StudyPlanner wird geladen",
+      "loading": "StudyPlanner: Syllabus AI wird geladen",
       "add_more_title": "Noch etwas hinzufügen",
       "add_more_message": "Titel und Fälligkeitsdatum werden beide benötigt.",
       "check_date_add_work_message": "Verwende ein echtes Datum im Format YYYY-MM-DD, bevor du diese Arbeit hinzufügst.",
@@ -1655,15 +1674,15 @@
       "status_working_detail": "Die ausgewaehlte Quelle wird verarbeitet."
     },
     "paywall": {
-      "title": "StudyPlanner freischalten",
-      "subtitle": "Halte den kompletten Import-bis-Plan-Ablauf für ein volles Semester bereit.",
-      "hard_subtitle": "Schalte KI-gestützte Syllabus-Importe, Kalenderplanung, Fokus, Widgets, Erinnerungen und Sync frei.",
-      "monthly": "StudyPlanner monatlich",
-      "yearly": "StudyPlanner jährlich",
+      "title": "StudyPlanner: Syllabus AI freischalten",
+      "subtitle": "Halte den kompletten Weg vom Syllabus zum Plan fuer ein volles Semester bereit.",
+      "hard_subtitle": "Schalte Syllabus-Import, Pruefeingang, Prognose, personalisierte Widgets und lokale Anpassung frei.",
+      "monthly": "StudyPlanner: Syllabus AI monatlich",
+      "yearly": "StudyPlanner: Syllabus AI jaehrlich",
       "feature_scans": "Syllabus-Importe",
-      "feature_scans_detail": "KI-gestützte Text/PDF-Importe, eingefügter Text und erneute Importe bei Kursänderungen.",
-      "feature_widgets": "Mehr Widget-Stile",
-      "feature_widgets_detail": "Speichere echte Next Up-, Heute-Liste-, Woche- und Klassenfortschritt-Widgets.",
+      "feature_scans_detail": "Mache aus Syllabus-Text, PDFs und eingefuegten Aufgaben einen bearbeitbaren Plan.",
+      "feature_widgets": "Personalisierte Widgets",
+      "feature_widgets_detail": "Speichere Widgets, die sich an gepruefte Arbeit, Prognose und lokale Erinnerung anpassen.",
       "feature_focus": "Fokus- und Fortschrittstools",
       "feature_focus_detail": "Starte Lernsitzungen mit Timer und behalte Fortschritt sichtbar.",
       "feature_calendar": "Erinnerungen und Kalender-Sync",
@@ -1681,7 +1700,7 @@
       "choose_plan_detail": "Wähle unten einen Tarif. Wiederherstellen bleibt verfügbar.",
       "plans_failed_locked_detail": "Tarife konnten nicht geladen werden. Käufe wiederherstellen bleibt verfügbar; ohne gültige Store-Berechtigung wird der Planer nicht entsperrt.",
       "plans_failed_detail": "Tarife konnten noch nicht geladen werden. Käufe wiederherstellen bleibt für Abonnenten verfügbar.",
-      "product_name": "StudyPlanner",
+      "product_name": "StudyPlanner: Syllabus AI",
       "imports": "Importe",
       "reminders": "Erinnerungen",
       "app_store": "App Store",
@@ -1714,12 +1733,20 @@
       "store_unavailable": "Store-Käufe sind auf diesem Gerät gerade nicht verfügbar.",
       "subscription_plans_unavailable": "Abo-Tarife sind gerade nicht verfügbar.",
       "store_no_plans": "Der Store konnte keine aktiven Tarife laden. Bitte versuche es gleich erneut.",
-      "unlocked": "StudyPlanner ist freigeschaltet",
+      "unlocked": "StudyPlanner: Syllabus AI ist freigeschaltet",
       "unlocked_detail": "Der volle Planerzugriff ist auf diesem Gerät aktiv.",
       "legal_back": "Zurück",
-      "included_with_studyplanner": "In StudyPlanner enthalten",
+      "included_with_studyplanner": "Enthalten in StudyPlanner: Syllabus AI",
       "product_source_build_env": "Build-Produkte",
-      "product_source_release_manifest": "Release-Manifest"
+      "product_source_release_manifest": "Release-Manifest",
+      "feature_review": "Pruefeingang",
+      "feature_review_detail": "Bestaetige unsichere Termine und Duplikate, bevor sie Heute oder Widgets erreichen.",
+      "feature_forecast": "Prognose",
+      "feature_forecast_detail": "Erkenne Ueberlastung frueher und verschiebe Lernbloecke, bevor die Woche voll wird.",
+      "feature_memory": "Lokale Erinnerung",
+      "feature_memory_detail": "Fokus-Sitzungen, Notizen und gespeicherte Widgets verbessern Empfehlungen auf diesem Geraet.",
+      "review": "Pruefen",
+      "forecast": "Prognose"
     },
     "errors": {
       "text_required": "Füge Syllabus-Text ein oder lade eine lesbare Textdatei hoch.",
@@ -2295,7 +2322,11 @@
       "type_feel": "Schriftgefuehl",
       "font_mono_detail": "Zahlen",
       "font_rounded_detail": "Weich",
-      "font_default_detail": "Lesbar"
+      "font_default_detail": "Lesbar",
+      "widgets_title": "Widget-Bereich",
+      "widgets_subtitle": "Die Informationen, die du brauchst, genau dort, wo du sie brauchst.",
+      "watch_preview": "Watch-Vorschau",
+      "watch_preview_copy": "Schnell erfassbar. Direkt nutzbar."
     },
     "widget_snapshot": {
       "today": "Heute",
@@ -2544,13 +2575,20 @@
       "template_title": "{kind} - {course}",
       "recent": "kürzlich",
       "class_note": "Klassennotiz",
-      "convert_to_task": "Aufgabe erstellen"
+      "convert_to_task": "Aufgabe erstellen",
+      "memory_kicker": "Was ich gelernt habe"
     },
     "entitlement_gate": {
       "included": "In StudyPlanner enthalten",
       "unlock_title": "StudyPlanner freischalten",
       "unlock_copy": "Abonnieren oder Käufe wiederherstellen, um die volle App zu nutzen.",
       "subscribe": "Abonnieren"
+    },
+    "depth": {
+      "what_i_learned": "Was ich gelernt habe",
+      "learned_prefix": "Gelernt: {pattern}",
+      "reason_prefix": "Grund: {reason}",
+      "watch_adaptation": "Watch-Anpassung"
     }
   },
   "es": {
@@ -2558,7 +2596,7 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "Cargando StudyPlanner",
+      "loading": "Cargando StudyPlanner: Syllabus AI",
       "add_more_title": "Agrega un poco más",
       "add_more_message": "Se necesitan título y fecha límite.",
       "check_date_add_work_message": "Usa una fecha real en formato YYYY-MM-DD antes de agregar este trabajo.",
@@ -2932,15 +2970,15 @@
       "status_working_detail": "Trabajando en la fuente seleccionada."
     },
     "paywall": {
-      "title": "Desbloquear StudyPlanner",
-      "subtitle": "Mantén listo el flujo completo de importar, revisar y planificar.",
-      "hard_subtitle": "Desbloquea importaciones de sílabos con IA, calendario, enfoque, widgets, recordatorios y sincronización.",
-      "monthly": "StudyPlanner mensual",
-      "yearly": "StudyPlanner anual",
+      "title": "Desbloquea StudyPlanner: Syllabus AI",
+      "subtitle": "Mantén listo todo el flujo de syllabus a plan para un semestre ocupado.",
+      "hard_subtitle": "Desbloquea importacion de syllabus, bandeja de revision, pronostico, widgets personalizados y adaptacion local.",
+      "monthly": "StudyPlanner: Syllabus AI mensual",
+      "yearly": "StudyPlanner: Syllabus AI anual",
       "feature_scans": "Importaciones de sílabos",
-      "feature_scans_detail": "Importaciones de texto/PDF asistidas por IA, texto pegado y reimportaciones cuando cambian las clases.",
-      "feature_widgets": "Más estilos de widgets",
-      "feature_widgets_detail": "Guarda presets reales de Next Up, Lista de hoy, Semana y Progreso de clase.",
+      "feature_scans_detail": "Convierte texto de syllabus, PDF y tareas pegadas en un plan editable.",
+      "feature_widgets": "Widgets personalizados",
+      "feature_widgets_detail": "Guarda widgets que se adaptan al trabajo revisado, al pronostico y a la memoria local.",
       "feature_focus": "Herramientas de enfoque y progreso",
       "feature_focus_detail": "Inicia sesiones cronometradas y mantén visible el progreso.",
       "feature_calendar": "Recordatorios y sincronización de calendario",
@@ -2958,7 +2996,7 @@
       "choose_plan_detail": "Elige un plan abajo. Restaurar sigue disponible.",
       "plans_failed_locked_detail": "No se pudieron cargar los planes. Restaurar compras sigue disponible y el planificador no se desbloquea sin una autorización válida de la tienda.",
       "plans_failed_detail": "Aún no se pudieron cargar los planes. Restaurar compras sigue disponible para suscriptores.",
-      "product_name": "StudyPlanner",
+      "product_name": "StudyPlanner: Syllabus AI",
       "imports": "Importaciones",
       "reminders": "Recordatorios",
       "app_store": "App Store",
@@ -2991,12 +3029,20 @@
       "store_unavailable": "Las compras de la tienda no están disponibles en este dispositivo ahora.",
       "subscription_plans_unavailable": "Los planes de suscripción no están disponibles ahora.",
       "store_no_plans": "La tienda no pudo cargar planes activos. Inténtalo de nuevo pronto.",
-      "unlocked": "StudyPlanner está desbloqueado",
+      "unlocked": "StudyPlanner: Syllabus AI esta desbloqueado",
       "unlocked_detail": "El acceso completo al planificador está activo en este dispositivo.",
       "legal_back": "Atrás",
-      "included_with_studyplanner": "Incluido con StudyPlanner",
+      "included_with_studyplanner": "Incluido con StudyPlanner: Syllabus AI",
       "product_source_build_env": "Productos de build",
-      "product_source_release_manifest": "Manifiesto de lanzamiento"
+      "product_source_release_manifest": "Manifiesto de lanzamiento",
+      "feature_review": "Bandeja de revision",
+      "feature_review_detail": "Confirma fechas dudosas y duplicados antes de que lleguen a Hoy o widgets.",
+      "feature_forecast": "Pronostico",
+      "feature_forecast_detail": "Detecta sobrecarga antes y mueve bloques de estudio antes de que la semana se acumule.",
+      "feature_memory": "Memoria local",
+      "feature_memory_detail": "Sesiones de enfoque, notas y widgets guardados mejoran recomendaciones en este dispositivo.",
+      "review": "Revision",
+      "forecast": "Pronostico"
     },
     "errors": {
       "text_required": "Pega texto del sílabo o sube un archivo de texto legible.",
@@ -3572,7 +3618,11 @@
       "type_feel": "Estilo de texto",
       "font_mono_detail": "Numeros",
       "font_rounded_detail": "Suave",
-      "font_default_detail": "Legible"
+      "font_default_detail": "Legible",
+      "widgets_title": "Panel de widgets",
+      "widgets_subtitle": "La informacion que necesitas, justo donde la necesitas.",
+      "watch_preview": "Vista previa del Watch",
+      "watch_preview_copy": "De un vistazo. Accionable."
     },
     "widget_snapshot": {
       "today": "Hoy",
@@ -3821,13 +3871,20 @@
       "template_title": "{kind} de {course}",
       "recent": "reciente",
       "class_note": "Nota de clase",
-      "convert_to_task": "Crear tarea"
+      "convert_to_task": "Crear tarea",
+      "memory_kicker": "Lo que aprendi"
     },
     "entitlement_gate": {
       "included": "Incluido con StudyPlanner",
       "unlock_title": "Desbloquear StudyPlanner",
       "unlock_copy": "Suscríbete o restaura compras para usar la app completa.",
       "subscribe": "Suscribirse"
+    },
+    "depth": {
+      "what_i_learned": "Lo que aprendi",
+      "learned_prefix": "Aprendido: {pattern}",
+      "reason_prefix": "Motivo: {reason}",
+      "watch_adaptation": "Adaptacion del Watch"
     }
   },
   "fr": {
@@ -3835,7 +3892,7 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "Chargement de StudyPlanner",
+      "loading": "Chargement de StudyPlanner: Syllabus AI",
       "add_more_title": "Ajoute encore",
       "add_more_message": "Le titre et la date limite sont nécessaires.",
       "check_date_add_work_message": "Utilise une vraie date au format YYYY-MM-DD avant d’ajouter ce travail.",
@@ -4209,15 +4266,15 @@
       "status_working_detail": "Traitement de la source selectionnee."
     },
     "paywall": {
-      "title": "Déverrouiller StudyPlanner",
-      "subtitle": "Garde le parcours importation, vérification et planning prêt quand les cours s'accélèrent.",
-      "hard_subtitle": "Déverrouille les imports de syllabus assistés par IA, calendrier, focus, widgets, rappels et synchronisation.",
-      "monthly": "StudyPlanner mensuel",
-      "yearly": "StudyPlanner annuel",
+      "title": "Debloquer StudyPlanner: Syllabus AI",
+      "subtitle": "Garde tout le flux syllabus-vers-plan pret pour un semestre charge.",
+      "hard_subtitle": "Debloque import de syllabus, boite de revision, prevision, widgets personnalises et adaptation locale.",
+      "monthly": "StudyPlanner: Syllabus AI mensuel",
+      "yearly": "StudyPlanner: Syllabus AI annuel",
       "feature_scans": "Imports de syllabus",
-      "feature_scans_detail": "Imports texte/PDF assistés par IA, texte collé et réimports quand les cours changent.",
-      "feature_widgets": "Styles de widgets avancés",
-      "feature_widgets_detail": "Enregistre de vrais widgets À faire, Liste du jour, Semaine et Progression de classe.",
+      "feature_scans_detail": "Transforme le texte de syllabus, les PDF et les devoirs colles en plan modifiable.",
+      "feature_widgets": "Widgets personnalises",
+      "feature_widgets_detail": "Enregistre des widgets adaptes au travail verifie, a la prevision et a la memoire locale.",
       "feature_focus": "Outils de concentration et de suivi",
       "feature_focus_detail": "Lance des sessions chronométrées et garde le progrès visible.",
       "feature_calendar": "Rappels et synchronisation calendrier",
@@ -4235,7 +4292,7 @@
       "choose_plan_detail": "Choisis une offre ci-dessous. La restauration reste disponible.",
       "plans_failed_locked_detail": "Les offres n’ont pas chargé. Restaurer les achats reste disponible; sans droit store valide, le planificateur reste verrouillé.",
       "plans_failed_detail": "Les offres n’ont pas encore chargé. Restaurer les achats reste disponible.",
-      "product_name": "StudyPlanner",
+      "product_name": "StudyPlanner: Syllabus AI",
       "imports": "Importations",
       "reminders": "Rappels",
       "app_store": "App Store",
@@ -4268,12 +4325,20 @@
       "store_unavailable": "Les achats store sont indisponibles sur cet appareil.",
       "subscription_plans_unavailable": "Les offres d’abonnement sont indisponibles pour le moment.",
       "store_no_plans": "Le store n’a pas chargé d’offres actives. Réessaie bientôt.",
-      "unlocked": "StudyPlanner est déverrouillé",
+      "unlocked": "StudyPlanner: Syllabus AI est debloque",
       "unlocked_detail": "L’accès complet au planificateur est actif sur cet appareil.",
       "legal_back": "Retour",
-      "included_with_studyplanner": "Inclus avec StudyPlanner",
+      "included_with_studyplanner": "Inclus avec StudyPlanner: Syllabus AI",
       "product_source_build_env": "Produits du build",
-      "product_source_release_manifest": "Manifeste de sortie"
+      "product_source_release_manifest": "Manifeste de sortie",
+      "feature_review": "Boite de revision",
+      "feature_review_detail": "Confirme les dates incertaines et doublons avant leur arrivee dans Aujourd hui ou les widgets.",
+      "feature_forecast": "Prevision",
+      "feature_forecast_detail": "Repere la surcharge plus tot et deplace les blocs de travail avant que la semaine s empile.",
+      "feature_memory": "Memoire locale",
+      "feature_memory_detail": "Les sessions focus, notes et widgets enregistres ameliorent les recommandations sur cet appareil.",
+      "review": "Revision",
+      "forecast": "Prevision"
     },
     "errors": {
       "text_required": "Colle du texte de syllabus ou importe un fichier texte lisible.",
@@ -4466,7 +4531,7 @@
       "stage_kicker": "Session de concentration",
       "block_minutes": "Bloc de {minutes} min",
       "open_work_appears": "Le travail ouvert apparaît ici",
-      "session_count": "Session {count}",
+      "session_count": "Séance {count}",
       "status_focused": "Concentré",
       "status_paused": "En pause",
       "status_ready": "Prêt",
@@ -4487,7 +4552,7 @@
       "add_assignment_to_start": "Ajoute un devoir pour lancer une session de concentration.",
       "retention_loop": "Boucle de mémorisation",
       "notes_title": "Note ce que tu oublieras ensuite.",
-      "notes_badge": "Notes",
+      "notes_badge": "Mémo",
       "notes_copy": "Les notes facultatives restent liées à ce bloc de concentration, pour créer un historique utile plutôt qu’un simple journal de minuteur.",
       "notes_placeholder": "Exemple : le prof dit que le quiz vient des diapositives 18-24. Revoir le schéma des enzymes.",
       "notes_disabled_placeholder": "Choisis un devoir avant d’ajouter des notes.",
@@ -4849,7 +4914,11 @@
       "type_feel": "Style texte",
       "font_mono_detail": "Chiffres",
       "font_rounded_detail": "Doux",
-      "font_default_detail": "Lisible"
+      "font_default_detail": "Lisible",
+      "widgets_title": "Espace widgets",
+      "widgets_subtitle": "Les infos utiles, la ou tu en as besoin.",
+      "watch_preview": "Apercu Watch",
+      "watch_preview_copy": "Lisible vite. Actionnable."
     },
     "widget_snapshot": {
       "today": "Aujourd'hui",
@@ -5098,13 +5167,20 @@
       "template_title": "{kind} - {course}",
       "recent": "récent",
       "class_note": "Note de cours",
-      "convert_to_task": "Créer tâche"
+      "convert_to_task": "Créer tâche",
+      "memory_kicker": "Ce que j ai appris"
     },
     "entitlement_gate": {
       "included": "Inclus avec StudyPlanner",
       "unlock_title": "Déverrouiller StudyPlanner",
       "unlock_copy": "Abonne-toi ou restaure les achats pour utiliser toute l’app.",
       "subscribe": "S’abonner"
+    },
+    "depth": {
+      "what_i_learned": "Ce que j ai appris",
+      "learned_prefix": "Appris : {pattern}",
+      "reason_prefix": "Raison : {reason}",
+      "watch_adaptation": "Adaptation Watch"
     }
   },
   "pt-BR": {
@@ -5112,7 +5188,7 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "Carregando StudyPlanner",
+      "loading": "Carregando StudyPlanner: Syllabus AI",
       "add_more_title": "Adicione um pouco mais",
       "add_more_message": "Título e data de entrega são necessários.",
       "check_date_add_work_message": "Use uma data real no formato YYYY-MM-DD antes de adicionar este trabalho.",
@@ -5486,15 +5562,15 @@
       "status_working_detail": "Processando a fonte selecionada."
     },
     "paywall": {
-      "title": "Desbloquear StudyPlanner",
-      "subtitle": "Mantenha pronto o fluxo completo de importar, revisar e planejar.",
-      "hard_subtitle": "Desbloqueie importações de ementa com IA, calendário, foco, widgets, lembretes e sincronização.",
-      "monthly": "StudyPlanner mensal",
-      "yearly": "StudyPlanner anual",
+      "title": "Desbloquear StudyPlanner: Syllabus AI",
+      "subtitle": "Mantenha o fluxo completo de syllabus para plano pronto para um semestre cheio.",
+      "hard_subtitle": "Desbloqueie importacao de syllabus, caixa de revisao, previsao, widgets personalizados e adaptacao local.",
+      "monthly": "StudyPlanner: Syllabus AI mensal",
+      "yearly": "StudyPlanner: Syllabus AI anual",
       "feature_scans": "Importações de ementas",
-      "feature_scans_detail": "Importações de texto/PDF com IA, texto colado e reimportações quando as aulas mudam.",
-      "feature_widgets": "Mais estilos de widgets",
-      "feature_widgets_detail": "Salve presets reais de Next Up, Lista de hoje, Semana e Progresso da turma.",
+      "feature_scans_detail": "Transforme texto de syllabus, PDFs e tarefas coladas em um plano editavel.",
+      "feature_widgets": "Widgets personalizados",
+      "feature_widgets_detail": "Salve widgets que se adaptam ao trabalho revisado, a previsao e a memoria local.",
       "feature_focus": "Ferramentas de foco e progresso",
       "feature_focus_detail": "Inicie sessões com timer e mantenha o progresso visível.",
       "feature_calendar": "Lembretes e sincronização com calendário",
@@ -5512,7 +5588,7 @@
       "choose_plan_detail": "Escolha um plano abaixo. Restaurar continua disponível.",
       "plans_failed_locked_detail": "Os planos não carregaram. Restaurar compras continua disponível; sem direito válido da loja, o planner não desbloqueia.",
       "plans_failed_detail": "Os planos ainda não carregaram. Restaurar compras continua disponível.",
-      "product_name": "StudyPlanner",
+      "product_name": "StudyPlanner: Syllabus AI",
       "imports": "Importações",
       "reminders": "Lembretes",
       "app_store": "App Store",
@@ -5545,12 +5621,20 @@
       "store_unavailable": "Compras da loja estão indisponíveis neste dispositivo.",
       "subscription_plans_unavailable": "Planos de assinatura não estão disponíveis agora.",
       "store_no_plans": "A loja não carregou planos ativos. Tente novamente em instantes.",
-      "unlocked": "StudyPlanner está desbloqueado",
+      "unlocked": "StudyPlanner: Syllabus AI esta desbloqueado",
       "unlocked_detail": "O acesso completo ao planner está ativo neste dispositivo.",
       "legal_back": "Voltar",
-      "included_with_studyplanner": "Incluído com StudyPlanner",
+      "included_with_studyplanner": "Incluido no StudyPlanner: Syllabus AI",
       "product_source_build_env": "Produtos da build",
-      "product_source_release_manifest": "Manifesto de lancamento"
+      "product_source_release_manifest": "Manifesto de lancamento",
+      "feature_review": "Caixa de revisao",
+      "feature_review_detail": "Confirme datas incertas e duplicatas antes de chegarem ao Hoje ou aos widgets.",
+      "feature_forecast": "Previsao",
+      "feature_forecast_detail": "Veja sobrecarga mais cedo e mova blocos de estudo antes de a semana acumular.",
+      "feature_memory": "Memoria local",
+      "feature_memory_detail": "Sessoes de foco, notas e widgets salvos melhoram recomendacoes neste dispositivo.",
+      "review": "Revisao",
+      "forecast": "Previsao"
     },
     "errors": {
       "text_required": "Cole texto do plano de curso ou envie um arquivo de texto legível.",
@@ -6126,7 +6210,11 @@
       "type_feel": "Sensacao do texto",
       "font_mono_detail": "Numeros",
       "font_rounded_detail": "Suave",
-      "font_default_detail": "Legivel"
+      "font_default_detail": "Legivel",
+      "widgets_title": "Area de widgets",
+      "widgets_subtitle": "As informacoes de que voce precisa, onde precisa delas.",
+      "watch_preview": "Previa no Watch",
+      "watch_preview_copy": "Rapido de ver. Pronto para agir."
     },
     "widget_snapshot": {
       "today": "Hoje",
@@ -6375,13 +6463,20 @@
       "template_title": "{kind} de {course}",
       "recent": "recente",
       "class_note": "Nota da turma",
-      "convert_to_task": "Criar tarefa"
+      "convert_to_task": "Criar tarefa",
+      "memory_kicker": "O que aprendi"
     },
     "entitlement_gate": {
       "included": "Incluído com StudyPlanner",
       "unlock_title": "Desbloquear StudyPlanner",
       "unlock_copy": "Assine ou restaure compras para usar o app completo.",
       "subscribe": "Assinar"
+    },
+    "depth": {
+      "what_i_learned": "O que aprendi",
+      "learned_prefix": "Aprendi: {pattern}",
+      "reason_prefix": "Motivo: {reason}",
+      "watch_adaptation": "Adaptacao do Watch"
     }
   },
   "ar": {
@@ -6389,7 +6484,7 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "جارٍ تحميل StudyPlanner",
+      "loading": "جار تحميل StudyPlanner: Syllabus AI",
       "add_more_title": "أضف المزيد قليلاً",
       "add_more_message": "العنوان وتاريخ التسليم مطلوبان.",
       "check_date_add_work_message": "استخدم تاريخًا حقيقيًا بتنسيق YYYY-MM-DD قبل إضافة هذا العمل.",
@@ -6763,15 +6858,15 @@
       "status_working_detail": "جار العمل على المصدر المحدد."
     },
     "paywall": {
-      "title": "فتح StudyPlanner",
-      "subtitle": "احتفظ بسير العمل الكامل من الاستيراد إلى الخطة عندما تزداد الدراسة.",
-      "hard_subtitle": "افتح استيراد خطط المقررات بمساعدة الذكاء الاصطناعي، والتقويم، والتركيز، والويدجت، والتذكيرات، والمزامنة.",
-      "monthly": "StudyPlanner شهري",
-      "yearly": "StudyPlanner سنوي",
+      "title": "افتح StudyPlanner: Syllabus AI",
+      "subtitle": "ابق مسار تحويل المنهج الى خطة جاهزا لفصل مزدحم.",
+      "hard_subtitle": "افتح استيراد المنهج، صندوق المراجعة، التوقعات، الودجات الشخصية، والتكيف المحلي.",
+      "monthly": "StudyPlanner: Syllabus AI شهري",
+      "yearly": "StudyPlanner: Syllabus AI سنوي",
       "feature_scans": "استيراد المناهج",
-      "feature_scans_detail": "استيراد نصوص وملفات PDF بمساعدة الذكاء الاصطناعي، ونص ملصق، وإعادة استيراد عند تغيّر الصفوف.",
-      "feature_widgets": "أنماط ويدجت أكثر",
-      "feature_widgets_detail": "احفظ ودجات حقيقية للقادم، قائمة اليوم، الأسبوع، وتقدم الصف.",
+      "feature_scans_detail": "حول نص المنهج وملفات PDF والواجبات الملصقة الى خطة قابلة للتعديل.",
+      "feature_widgets": "ودجات شخصية",
+      "feature_widgets_detail": "احفظ ودجات تتكيف مع العمل المراجع وحالة التوقعات والذاكرة المحلية.",
       "feature_focus": "أدوات تركيز وتقدم",
       "feature_focus_detail": "ابدأ جلسات دراسة مؤقتة واجعل التقدم واضحاً.",
       "feature_calendar": "تذكيرات ومزامنة التقويم",
@@ -6789,7 +6884,7 @@
       "choose_plan_detail": "اختر خطة أدناه. تبقى الاستعادة متاحة.",
       "plans_failed_locked_detail": "تعذر تحميل الخطط. تبقى استعادة المشتريات متاحة، ولن يفتح المخطط دون صلاحية متجر صالحة.",
       "plans_failed_detail": "لم يتم تحميل الخطط بعد. تبقى استعادة المشتريات متاحة للمشتركين الحاليين.",
-      "product_name": "StudyPlanner",
+      "product_name": "StudyPlanner: Syllabus AI",
       "imports": "استيراد",
       "reminders": "تذكيرات",
       "app_store": "App Store",
@@ -6822,12 +6917,20 @@
       "store_unavailable": "مشتريات المتجر غير متاحة على هذا الجهاز الآن.",
       "subscription_plans_unavailable": "خطط الاشتراك غير متاحة حالياً.",
       "store_no_plans": "تعذر على المتجر تحميل خطط نشطة. حاول مرة أخرى قريباً.",
-      "unlocked": "تم فتح StudyPlanner",
+      "unlocked": "تم فتح StudyPlanner: Syllabus AI",
       "unlocked_detail": "الوصول الكامل للمخطط نشط على هذا الجهاز.",
       "legal_back": "رجوع",
-      "included_with_studyplanner": "مضمن مع StudyPlanner",
+      "included_with_studyplanner": "مضمن مع StudyPlanner: Syllabus AI",
       "product_source_build_env": "منتجات البناء",
-      "product_source_release_manifest": "بيان الاصدار"
+      "product_source_release_manifest": "بيان الاصدار",
+      "feature_review": "صندوق المراجعة",
+      "feature_review_detail": "اكد التواريخ غير المؤكدة والتكرارات قبل وصولها الى اليوم او الودجات.",
+      "feature_forecast": "التوقعات",
+      "feature_forecast_detail": "اكتشف الضغط مبكرا وانقل كتل الدراسة قبل تراكم الاسبوع.",
+      "feature_memory": "ذاكرة محلية",
+      "feature_memory_detail": "جلسات التركيز والملاحظات والودجات المحفوظة تحسن التوصيات على هذا الجهاز.",
+      "review": "مراجعة",
+      "forecast": "توقع"
     },
     "errors": {
       "text_required": "ألصق نص خطة المقرر أو ارفع ملفاً نصياً قابلاً للقراءة.",
@@ -7403,7 +7506,11 @@
       "type_feel": "احساس الخط",
       "font_mono_detail": "ارقام",
       "font_rounded_detail": "ناعم",
-      "font_default_detail": "سهل القراءة"
+      "font_default_detail": "سهل القراءة",
+      "widgets_title": "لوحة الودجات",
+      "widgets_subtitle": "المعلومة التي تحتاجها في المكان المناسب.",
+      "watch_preview": "معاينة الساعة",
+      "watch_preview_copy": "واضحة بسرعة. قابلة للتنفيذ."
     },
     "widget_snapshot": {
       "today": "اليوم",
@@ -7652,13 +7759,20 @@
       "template_title": "{kind} - {course}",
       "recent": "حديثًا",
       "class_note": "ملاحظة صف",
-      "convert_to_task": "حوّل إلى مهمة"
+      "convert_to_task": "حوّل إلى مهمة",
+      "memory_kicker": "ما تعلمته"
     },
     "entitlement_gate": {
       "included": "مضمن مع StudyPlanner",
       "unlock_title": "فتح StudyPlanner",
       "unlock_copy": "اشترك أو استعد المشتريات لاستخدام التطبيق الكامل.",
       "subscribe": "اشترك"
+    },
+    "depth": {
+      "what_i_learned": "ما تعلمته",
+      "learned_prefix": "تعلمت: {pattern}",
+      "reason_prefix": "السبب: {reason}",
+      "watch_adaptation": "تكييف الساعة"
     }
   },
   "hi": {
@@ -7666,7 +7780,7 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "StudyPlanner लोड हो रहा है",
+      "loading": "StudyPlanner: Syllabus AI लोड हो रहा है",
       "add_more_title": "थोड़ा और जोड़ें",
       "add_more_message": "शीर्षक और अंतिम तिथि दोनों चाहिए।",
       "check_date_add_work_message": "यह काम जोड़ने से पहले YYYY-MM-DD प्रारूप में वास्तविक तारीख उपयोग करें।",
@@ -8040,15 +8154,15 @@
       "status_working_detail": "Selected source पर काम हो रहा है."
     },
     "paywall": {
-      "title": "StudyPlanner अनलॉक करें",
-      "subtitle": "इम्पोर्ट से प्लान तक पूरा वर्कफ्लो तैयार रखें।",
-      "hard_subtitle": "AI-assisted syllabus imports, calendar planning, focus, widgets, reminders और sync unlock करें।",
-      "monthly": "StudyPlanner मासिक",
-      "yearly": "StudyPlanner वार्षिक",
+      "title": "StudyPlanner: Syllabus AI अनलॉक करें",
+      "subtitle": "व्यस्त सेमेस्टर के लिए पूरा syllabus-to-plan workflow तैयार रखें.",
+      "hard_subtitle": "सिलेबस इम्पोर्ट, समीक्षा इनबॉक्स, पूर्वानुमान, निजी विजेट और स्थानीय अनुकूलन अनलॉक करें.",
+      "monthly": "StudyPlanner: Syllabus AI मासिक",
+      "yearly": "StudyPlanner: Syllabus AI वार्षिक",
       "feature_scans": "सिलेबस imports",
-      "feature_scans_detail": "AI-सहायता वाले text/PDF imports, pasted text, और classes बदलने पर re-imports.",
-      "feature_widgets": "अधिक विजेट स्टाइल",
-      "feature_widgets_detail": "Next Up, Today List, Week और Class Progress widgets के असली presets सहेजें.",
+      "feature_scans_detail": "सिलेबस टेक्स्ट, PDF और पेस्ट किए असाइनमेंट को editable plan में बदलें.",
+      "feature_widgets": "निजी विजेट",
+      "feature_widgets_detail": "Reviewed work, forecast state और local memory के अनुसार बदलने वाले widgets सेव करें.",
       "feature_focus": "फोकस और प्रगति टूल",
       "feature_focus_detail": "Timed study sessions शुरू करें और progress visible रखें।",
       "feature_calendar": "रिमाइंडर और कैलेंडर सिंक",
@@ -8066,7 +8180,7 @@
       "choose_plan_detail": "नीचे plan चुनें. Restore available रहता है.",
       "plans_failed_locked_detail": "Plans load नहीं हुए. Restore Purchases available है; valid store entitlement के बिना planner unlock नहीं होगा.",
       "plans_failed_detail": "Plans अभी load नहीं हुए. Existing subscribers के लिए Restore Purchases available है.",
-      "product_name": "StudyPlanner",
+      "product_name": "StudyPlanner: Syllabus AI",
       "imports": "इम्पोर्ट",
       "reminders": "रिमाइंडर",
       "app_store": "App Store",
@@ -8099,12 +8213,20 @@
       "store_unavailable": "Store purchases अभी इस device पर unavailable हैं.",
       "subscription_plans_unavailable": "Subscription plans अभी available नहीं हैं.",
       "store_no_plans": "Store active plans load नहीं कर पाया. थोड़ी देर में फिर कोशिश करें.",
-      "unlocked": "StudyPlanner अनलॉक है",
+      "unlocked": "StudyPlanner: Syllabus AI अनलॉक है",
       "unlocked_detail": "इस डिवाइस पर पूरा प्लानर एक्सेस सक्रिय है.",
       "legal_back": "वापस",
-      "included_with_studyplanner": "StudyPlanner में शामिल",
+      "included_with_studyplanner": "StudyPlanner: Syllabus AI में शामिल",
       "product_source_build_env": "Build products सेट",
-      "product_source_release_manifest": "Release manifest सेट"
+      "product_source_release_manifest": "Release manifest सेट",
+      "feature_review": "समीक्षा इनबॉक्स",
+      "feature_review_detail": "आज या विजेट तक पहुंचने से पहले संदिग्ध तारीखें और duplicates पक्का करें.",
+      "feature_forecast": "पूर्वानुमान",
+      "feature_forecast_detail": "ओवरलोड पहले देखें और सप्ताह भरने से पहले study blocks सरकाएं.",
+      "feature_memory": "स्थानीय मेमोरी",
+      "feature_memory_detail": "Focus sessions, notes और saved widgets इस device पर recommendations बेहतर करते हैं.",
+      "review": "समीक्षा",
+      "forecast": "पूर्वानुमान"
     },
     "errors": {
       "text_required": "सिलेबस टेक्स्ट चिपकाएं या पढ़ने योग्य टेक्स्ट फाइल अपलोड करें।",
@@ -8680,7 +8802,11 @@
       "type_feel": "टाइप फील",
       "font_mono_detail": "नंबर",
       "font_rounded_detail": "सॉफ्ट",
-      "font_default_detail": "रीडेबल"
+      "font_default_detail": "रीडेबल",
+      "widgets_title": "विजेट पैनल",
+      "widgets_subtitle": "जरूरी जानकारी, ठीक वहीं जहां आपको चाहिए.",
+      "watch_preview": "Watch पूर्वावलोकन",
+      "watch_preview_copy": "एक नजर में. काम के लिए तैयार."
     },
     "widget_snapshot": {
       "today": "आज",
@@ -8929,13 +9055,20 @@
       "template_title": "{kind} - {course}",
       "recent": "हाल का",
       "class_note": "कक्षा नोट",
-      "convert_to_task": "कार्य बनाएं"
+      "convert_to_task": "कार्य बनाएं",
+      "memory_kicker": "मैंने क्या सीखा"
     },
     "entitlement_gate": {
       "included": "StudyPlanner में शामिल",
       "unlock_title": "StudyPlanner अनलॉक करें",
       "unlock_copy": "पूरे app का उपयोग करने के लिए subscribe करें या purchases restore करें.",
       "subscribe": "सदस्यता लें"
+    },
+    "depth": {
+      "what_i_learned": "मैंने क्या सीखा",
+      "learned_prefix": "सीखा: {pattern}",
+      "reason_prefix": "कारण: {reason}",
+      "watch_adaptation": "Watch अनुकूलन"
     }
   },
   "ja": {
@@ -8943,7 +9076,7 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "StudyPlannerを読み込み中",
+      "loading": "StudyPlanner: Syllabus AIを読み込み中",
       "add_more_title": "もう少し追加",
       "add_more_message": "タイトルと締切日の両方が必要です。",
       "check_date_add_work_message": "この作業を追加する前に、YYYY-MM-DD形式の実在する日付を使ってください。",
@@ -9317,15 +9450,15 @@
       "status_working_detail": "選択したソースを処理しています。"
     },
     "paywall": {
-      "title": "StudyPlannerを解除",
-      "subtitle": "インポートから計画までの流れを、忙しい時期でも使えるようにします。",
-      "hard_subtitle": "AI支援のシラバス取り込み、カレンダー計画、集中、ウィジェット、リマインダー、同期を使えます。",
-      "monthly": "StudyPlanner 月額",
-      "yearly": "StudyPlanner 年額",
+      "title": "StudyPlanner: Syllabus AIを解除",
+      "subtitle": "忙しい学期に向けて、シラバスから計画までの流れを準備します。",
+      "hard_subtitle": "シラバス取り込み、レビュー受信箱、予測、個別ウィジェット、ローカル適応を解除します。",
+      "monthly": "StudyPlanner: Syllabus AI 月額",
+      "yearly": "StudyPlanner: Syllabus AI 年額",
       "feature_scans": "シラバス取り込み",
-      "feature_scans_detail": "AI支援のテキスト/PDF取り込み、貼り付けテキスト、授業変更時の再取り込み。",
-      "feature_widgets": "ウィジェットスタイルの追加",
-      "feature_widgets_detail": "Next Up、今日リスト、週、クラス進捗の実際のウィジェットプリセットを保存します。",
+      "feature_scans_detail": "シラバステキスト、PDF、貼り付けた課題を編集できる計画に変えます。",
+      "feature_widgets": "個別ウィジェット",
+      "feature_widgets_detail": "確認済みの課題、予測状態、ローカル記憶に合わせて変わるウィジェットを保存します。",
       "feature_focus": "集中と進捗ツール",
       "feature_focus_detail": "時間付きの学習セッションを始め、進捗を見える状態に保ちます。",
       "feature_calendar": "リマインダーとカレンダー同期",
@@ -9343,7 +9476,7 @@
       "choose_plan_detail": "下からプランを選択してください。復元は利用できます。",
       "plans_failed_locked_detail": "プランを読み込めませんでした。購入の復元は利用できますが、有効なストア権限がないとプランナーは解除されません。",
       "plans_failed_detail": "まだプランを読み込めません。既存の購読者は購入を復元できます。",
-      "product_name": "StudyPlanner",
+      "product_name": "StudyPlanner: Syllabus AI",
       "imports": "取り込み",
       "reminders": "リマインダー",
       "app_store": "App Store",
@@ -9376,12 +9509,20 @@
       "store_unavailable": "この端末では現在ストア購入を利用できません。",
       "subscription_plans_unavailable": "現在サブスクリプションプランを利用できません。",
       "store_no_plans": "ストアは有効なプランを読み込めませんでした。しばらくして再試行してください。",
-      "unlocked": "StudyPlannerが解除されています",
+      "unlocked": "StudyPlanner: Syllabus AIは解除済みです",
       "unlocked_detail": "この端末でプランナー全体のアクセスが有効です。",
       "legal_back": "戻る",
-      "included_with_studyplanner": "StudyPlannerに含まれます",
+      "included_with_studyplanner": "StudyPlanner: Syllabus AIに含まれます",
       "product_source_build_env": "ビルド商品",
-      "product_source_release_manifest": "リリースマニフェスト"
+      "product_source_release_manifest": "リリースマニフェスト",
+      "feature_review": "レビュー受信箱",
+      "feature_review_detail": "不確かな日付や重複を、今日やウィジェットに出す前に確認します。",
+      "feature_forecast": "予測",
+      "feature_forecast_detail": "負荷を早めに見つけ、週が詰まる前に学習ブロックを動かします。",
+      "feature_memory": "ローカル記憶",
+      "feature_memory_detail": "集中セッション、ノート、保存済みウィジェットがこの端末のおすすめを改善します。",
+      "review": "レビュー",
+      "forecast": "予測"
     },
     "errors": {
       "text_required": "シラバス文を貼り付けるか、読めるテキストファイルをアップロードしてください。",
@@ -9957,7 +10098,11 @@
       "type_feel": "文字の雰囲気",
       "font_mono_detail": "数字",
       "font_rounded_detail": "ソフト",
-      "font_default_detail": "読みやすい"
+      "font_default_detail": "読みやすい",
+      "widgets_title": "ウィジェット画面",
+      "widgets_subtitle": "必要な情報を、必要な場所に。",
+      "watch_preview": "Watchプレビュー",
+      "watch_preview_copy": "ひと目で確認。すぐ行動。"
     },
     "widget_snapshot": {
       "today": "今日",
@@ -10206,13 +10351,20 @@
       "template_title": "{kind}（{course}）",
       "recent": "最近",
       "class_note": "クラスメモ",
-      "convert_to_task": "タスク化"
+      "convert_to_task": "タスク化",
+      "memory_kicker": "学習したこと"
     },
     "entitlement_gate": {
       "included": "StudyPlannerに含まれます",
       "unlock_title": "StudyPlannerを解除",
       "unlock_copy": "アプリ全体を使うには登録または購入の復元を行ってください。",
       "subscribe": "登録"
+    },
+    "depth": {
+      "what_i_learned": "学習したこと",
+      "learned_prefix": "学習済み: {pattern}",
+      "reason_prefix": "理由: {reason}",
+      "watch_adaptation": "Watchの適応"
     }
   },
   "ko": {
@@ -10220,7 +10372,7 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "StudyPlanner 불러오는 중",
+      "loading": "StudyPlanner: Syllabus AI 불러오는 중",
       "add_more_title": "조금 더 추가",
       "add_more_message": "제목과 마감일이 모두 필요합니다.",
       "check_date_add_work_message": "이 작업을 추가하기 전에 YYYY-MM-DD 형식의 실제 날짜를 사용하세요.",
@@ -10594,15 +10746,15 @@
       "status_working_detail": "선택한 소스를 처리하는 중입니다."
     },
     "paywall": {
-      "title": "StudyPlanner 잠금 해제",
-      "subtitle": "가져오기부터 계획까지 전체 흐름을 바쁜 학기에도 준비해 둡니다.",
-      "hard_subtitle": "AI 지원 강의계획서 가져오기, 캘린더 계획, 집중, 위젯, 알림, 동기화를 잠금 해제하세요.",
-      "monthly": "StudyPlanner 월간",
-      "yearly": "StudyPlanner 연간",
+      "title": "StudyPlanner: Syllabus AI 잠금 해제",
+      "subtitle": "바쁜 학기를 위해 강의계획서에서 계획까지의 흐름을 준비합니다.",
+      "hard_subtitle": "강의계획서 가져오기, 검토함, 예측, 개인화 위젯, 로컬 적응을 잠금 해제합니다.",
+      "monthly": "StudyPlanner: Syllabus AI 월간",
+      "yearly": "StudyPlanner: Syllabus AI 연간",
       "feature_scans": "강의계획서 가져오기",
-      "feature_scans_detail": "AI 지원 텍스트/PDF 가져오기, 붙여넣은 텍스트, 수업 변경 시 다시 가져오기.",
-      "feature_widgets": "더 많은 위젯 스타일",
-      "feature_widgets_detail": "Next Up, 오늘 목록, 주간, 수업 진행 위젯 프리셋을 저장하세요.",
+      "feature_scans_detail": "강의계획서 텍스트, PDF, 붙여넣은 과제를 편집 가능한 계획으로 바꿉니다.",
+      "feature_widgets": "개인화 위젯",
+      "feature_widgets_detail": "검토된 과제, 예측 상태, 로컬 기억에 맞춰 변하는 위젯을 저장합니다.",
       "feature_focus": "집중 및 진행 도구",
       "feature_focus_detail": "시간 제한 학습 세션을 시작하고 진행 상황을 계속 표시합니다.",
       "feature_calendar": "알림 및 캘린더 동기화",
@@ -10620,7 +10772,7 @@
       "choose_plan_detail": "아래에서 플랜을 선택하세요. 복원은 계속 사용할 수 있습니다.",
       "plans_failed_locked_detail": "플랜을 불러오지 못했습니다. 구매 복원은 가능하지만 유효한 스토어 권한 없이는 플래너가 잠금 해제되지 않습니다.",
       "plans_failed_detail": "아직 플랜을 불러오지 못했습니다. 기존 구독자는 구매 복원을 사용할 수 있습니다.",
-      "product_name": "StudyPlanner",
+      "product_name": "StudyPlanner: Syllabus AI",
       "imports": "가져오기",
       "reminders": "알림",
       "app_store": "App Store",
@@ -10653,12 +10805,20 @@
       "store_unavailable": "현재 이 기기에서 스토어 구매를 사용할 수 없습니다.",
       "subscription_plans_unavailable": "지금은 구독 플랜을 사용할 수 없습니다.",
       "store_no_plans": "스토어가 활성 플랜을 불러오지 못했습니다. 잠시 후 다시 시도하세요.",
-      "unlocked": "StudyPlanner가 잠금 해제됨",
+      "unlocked": "StudyPlanner: Syllabus AI가 잠금 해제됨",
       "unlocked_detail": "이 기기에서 전체 플래너 접근이 활성화되었습니다.",
       "legal_back": "뒤로",
-      "included_with_studyplanner": "StudyPlanner에 포함",
+      "included_with_studyplanner": "StudyPlanner: Syllabus AI에 포함",
       "product_source_build_env": "빌드 상품",
-      "product_source_release_manifest": "릴리스 매니페스트"
+      "product_source_release_manifest": "릴리스 매니페스트",
+      "feature_review": "검토함",
+      "feature_review_detail": "불확실한 날짜와 중복을 Today나 위젯에 보내기 전에 확인합니다.",
+      "feature_forecast": "예측",
+      "feature_forecast_detail": "과부하를 더 일찍 보고 주가 쌓이기 전에 학습 블록을 옮깁니다.",
+      "feature_memory": "로컬 기억",
+      "feature_memory_detail": "집중 세션, 노트, 저장한 위젯이 이 기기에서 추천을 개선합니다.",
+      "review": "검토",
+      "forecast": "예측"
     },
     "errors": {
       "text_required": "강의계획서 텍스트를 붙여넣거나 읽을 수 있는 텍스트 파일을 업로드하세요.",
@@ -11234,7 +11394,11 @@
       "type_feel": "글자 느낌",
       "font_mono_detail": "숫자",
       "font_rounded_detail": "부드러움",
-      "font_default_detail": "읽기 쉬움"
+      "font_default_detail": "읽기 쉬움",
+      "widgets_title": "위젯 패널",
+      "widgets_subtitle": "필요한 정보를 필요한 위치에 둡니다.",
+      "watch_preview": "Watch 미리보기",
+      "watch_preview_copy": "한눈에 보고 바로 실행."
     },
     "widget_snapshot": {
       "today": "오늘",
@@ -11483,13 +11647,20 @@
       "template_title": "{course}의 {kind}",
       "recent": "최근",
       "class_note": "수업 노트",
-      "convert_to_task": "과제로 만들기"
+      "convert_to_task": "과제로 만들기",
+      "memory_kicker": "학습한 내용"
     },
     "entitlement_gate": {
       "included": "StudyPlanner에 포함",
       "unlock_title": "StudyPlanner 잠금 해제",
       "unlock_copy": "전체 앱을 사용하려면 구독하거나 구매를 복원하세요.",
       "subscribe": "구독"
+    },
+    "depth": {
+      "what_i_learned": "학습한 내용",
+      "learned_prefix": "학습됨: {pattern}",
+      "reason_prefix": "이유: {reason}",
+      "watch_adaptation": "Watch 적응"
     }
   },
   "zh-Hans": {
@@ -11497,7 +11668,7 @@
     "brand_name": "StudyPlanner",
     "brand_subtitle": "Syllabus AI",
     "app": {
-      "loading": "正在加载 StudyPlanner",
+      "loading": "正在加载 StudyPlanner: Syllabus AI",
       "add_more_title": "再添加一点",
       "add_more_message": "标题和截止日期都需要。",
       "check_date_add_work_message": "添加此任务前，请使用 YYYY-MM-DD 格式的真实日期。",
@@ -11871,15 +12042,15 @@
       "status_working_detail": "正在处理所选来源。"
     },
     "paywall": {
-      "title": "解锁 StudyPlanner",
-      "subtitle": "让导入、检查、计划的完整流程在忙起来时也能随时使用。",
-      "hard_subtitle": "解锁 AI 辅助课程大纲导入、日历计划、专注、小组件、提醒和同步。",
-      "monthly": "StudyPlanner 月度",
-      "yearly": "StudyPlanner 年度",
+      "title": "解锁 StudyPlanner: Syllabus AI",
+      "subtitle": "为忙碌学期保留从 syllabus 到计划的完整流程。",
+      "hard_subtitle": "解锁 syllabus 导入、复核收件箱、预测、个性化小组件和本地适配。",
+      "monthly": "StudyPlanner: Syllabus AI 月度",
+      "yearly": "StudyPlanner: Syllabus AI 年度",
       "feature_scans": "课程大纲导入",
-      "feature_scans_detail": "AI 辅助文本/PDF 导入、粘贴文本，以及课程变化时重新导入。",
-      "feature_widgets": "更多小组件样式",
-      "feature_widgets_detail": "保存真实的 Next Up、今日列表、周和班级进度小组件预设。",
+      "feature_scans_detail": "把 syllabus 文本、PDF 和粘贴的作业变成可编辑计划。",
+      "feature_widgets": "个性化小组件",
+      "feature_widgets_detail": "保存会根据已复核作业、预测状态和本地记忆调整的小组件。",
       "feature_focus": "专注与进度工具",
       "feature_focus_detail": "开始计时学习，并保持进度可见。",
       "feature_calendar": "提醒与日历同步",
@@ -11897,7 +12068,7 @@
       "choose_plan_detail": "在下方选择套餐。恢复购买仍可使用。",
       "plans_failed_locked_detail": "无法加载套餐。恢复购买仍可使用；没有有效商店权益时，计划器不会解锁。",
       "plans_failed_detail": "暂时无法加载套餐。现有订阅者仍可恢复购买。",
-      "product_name": "StudyPlanner",
+      "product_name": "StudyPlanner: Syllabus AI",
       "imports": "导入",
       "reminders": "提醒",
       "app_store": "App Store",
@@ -11930,12 +12101,20 @@
       "store_unavailable": "此设备当前无法使用商店购买。",
       "subscription_plans_unavailable": "当前没有可用订阅套餐。",
       "store_no_plans": "商店无法加载有效计划。请稍后重试。",
-      "unlocked": "StudyPlanner 已解锁",
+      "unlocked": "StudyPlanner: Syllabus AI 已解锁",
       "unlocked_detail": "此设备已启用完整计划器访问权限。",
       "legal_back": "返回",
-      "included_with_studyplanner": "StudyPlanner 已包含",
+      "included_with_studyplanner": "包含在 StudyPlanner: Syllabus AI 中",
       "product_source_build_env": "构建商品",
-      "product_source_release_manifest": "发布清单"
+      "product_source_release_manifest": "发布清单",
+      "feature_review": "复核收件箱",
+      "feature_review_detail": "在进入 Today 或小组件前，确认不确定日期和重复项。",
+      "feature_forecast": "预测",
+      "feature_forecast_detail": "更早发现过载，并在一周堆满前移动学习时段。",
+      "feature_memory": "本地记忆",
+      "feature_memory_detail": "专注记录、笔记和已保存小组件会在本设备上改进推荐。",
+      "review": "复核",
+      "forecast": "预测"
     },
     "errors": {
       "text_required": "请粘贴课程大纲文字，或上传可读取的文本文件。",
@@ -12511,7 +12690,11 @@
       "type_feel": "字体感觉",
       "font_mono_detail": "数字",
       "font_rounded_detail": "柔和",
-      "font_default_detail": "易读"
+      "font_default_detail": "易读",
+      "widgets_title": "小组件面板",
+      "widgets_subtitle": "把需要的信息放在你需要的位置。",
+      "watch_preview": "Watch 预览",
+      "watch_preview_copy": "一眼可见。立即可做。"
     },
     "widget_snapshot": {
       "today": "今天",
@@ -12760,13 +12943,20 @@
       "template_title": "{course}：{kind}",
       "recent": "最近",
       "class_note": "课程笔记",
-      "convert_to_task": "创建任务"
+      "convert_to_task": "创建任务",
+      "memory_kicker": "我学到了什么"
     },
     "entitlement_gate": {
       "included": "StudyPlanner 已包含",
       "unlock_title": "解锁 StudyPlanner",
       "unlock_copy": "订阅或恢复购买以使用完整应用。",
       "subscribe": "订阅"
+    },
+    "depth": {
+      "what_i_learned": "我学到了什么",
+      "learned_prefix": "已学习: {pattern}",
+      "reason_prefix": "原因: {reason}",
+      "watch_adaptation": "Watch 适配"
     }
   }
 }

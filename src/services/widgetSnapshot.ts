@@ -23,6 +23,7 @@ import {
   isValidDeadline,
   scoreWork
 } from "../logic/planner";
+import { nativeSnapshotStyleOverride } from "../customization";
 import { widgetStyleColors } from "../widgets/widgetThemes";
 import {
   ellipsizeWidgetText,
@@ -204,10 +205,17 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
   );
   const weekProgressStats = getWeekCompletionStats(filterAssignmentsForPreset(reviewedProgressAssignments, weekPreset, input.courses, now), now);
   const upcomingProgressStats = getWeekCompletionStats(assignments, now);
-  const todayStyle = getNativeWidgetStyle("today", todayPreset, input.settings, t);
-  const upcomingStyle = getNativeWidgetStyle("upcoming", upcomingPreset, input.settings, t);
-  const weekStyle = getNativeWidgetStyle("week", weekPreset, input.settings, t);
-  const classProgressStyle = getNativeWidgetStyle("class_progress", classProgressPreset, input.settings, t);
+  const todayStyle = applyNativeWidgetCustomization("today", getNativeWidgetStyle("today", todayPreset, input.settings, t), input, todayAssignments, todayPreset, now);
+  const upcomingStyle = applyNativeWidgetCustomization("upcoming", getNativeWidgetStyle("upcoming", upcomingPreset, input.settings, t), input, upcomingAssignments, upcomingPreset, now);
+  const weekStyle = applyNativeWidgetCustomization("week", getNativeWidgetStyle("week", weekPreset, input.settings, t), input, weekAssignments, weekPreset, now);
+  const classProgressStyle = applyNativeWidgetCustomization(
+    "class_progress",
+    getNativeWidgetStyle("class_progress", classProgressPreset, input.settings, t),
+    input,
+    classAssignments,
+    classProgressPreset,
+    now
+  );
   const classProgressCourse = classProgressPreset?.classFocusCourseId
     ? input.courses.find((course) => course.id === classProgressPreset.classFocusCourseId)
     : undefined;
@@ -778,10 +786,21 @@ function buildSyncDisabledWidgetSnapshots(input: WidgetSnapshotInput) {
     weekdayLabels: localizedWeekdayNarrowLabels(locale)
   };
   const canonicalPresets = ensureCanonicalWidgetPresets(input.widgetPresets || [], now);
-  const todayStyle = getNativeWidgetStyle("today", findNativePreset("today", canonicalPresets), input.settings, t);
-  const upcomingStyle = getNativeWidgetStyle("upcoming", findNativePreset("upcoming", canonicalPresets), input.settings, t);
-  const weekStyle = getNativeWidgetStyle("week", findNativePreset("week", canonicalPresets), input.settings, t);
-  const classProgressStyle = getNativeWidgetStyle("class_progress", findNativePreset("class_progress", canonicalPresets), input.settings, t);
+  const todayPreset = findNativePreset("today", canonicalPresets);
+  const upcomingPreset = findNativePreset("upcoming", canonicalPresets);
+  const weekPreset = findNativePreset("week", canonicalPresets);
+  const classProgressPreset = findNativePreset("class_progress", canonicalPresets);
+  const todayStyle = applyNativeWidgetCustomization("today", getNativeWidgetStyle("today", todayPreset, input.settings, t), input, input.assignments, todayPreset, now);
+  const upcomingStyle = applyNativeWidgetCustomization("upcoming", getNativeWidgetStyle("upcoming", upcomingPreset, input.settings, t), input, input.assignments, upcomingPreset, now);
+  const weekStyle = applyNativeWidgetCustomization("week", getNativeWidgetStyle("week", weekPreset, input.settings, t), input, input.assignments, weekPreset, now);
+  const classProgressStyle = applyNativeWidgetCustomization(
+    "class_progress",
+    getNativeWidgetStyle("class_progress", classProgressPreset, input.settings, t),
+    input,
+    input.assignments,
+    classProgressPreset,
+    now
+  );
 
   return finalizeNativeWidgetSnapshots({
     today: emptySnapshot({
@@ -845,6 +864,25 @@ function buildSyncDisabledWidgetSnapshots(input: WidgetSnapshotInput) {
       timelineLabel: t("widget_snapshot.private", "Private")
     })
   }, locale);
+}
+
+function applyNativeWidgetCustomization(
+  kind: StudyPlannerNativeWidgetKind,
+  style: ReturnType<typeof getNativeWidgetStyle>,
+  input: WidgetSnapshotInput,
+  assignments: Assignment[],
+  preset: WidgetPreset | undefined,
+  now: Date
+): ReturnType<typeof getNativeWidgetStyle> {
+  const override = nativeSnapshotStyleOverride({
+    kind,
+    settings: input.settings,
+    courses: input.courses,
+    assignments,
+    classFocusCourseId: preset?.classFocusCourseId,
+    now
+  });
+  return override ? { ...style, ...override } : style;
 }
 
 function loadNativeWidgetModule() {

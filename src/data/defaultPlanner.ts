@@ -9,6 +9,7 @@ import {
   UserSettings,
   WidgetPreset
 } from "../models";
+import { createDefaultStudioCustomization } from "../customization";
 import { buildCanonicalWidgetPreset } from "../widgets/widgetPresets";
 
 const now = "2026-05-27T09:41:00";
@@ -32,7 +33,8 @@ export const defaultSettings: UserSettings = {
   focusDefaultMinutes: 25,
   syncEnabled: true,
   privacyMode: false,
-  emojiAccentEnabled: true
+  emojiAccentEnabled: true,
+  customization: createDefaultStudioCustomization(new Date(now))
 };
 
 export const defaultCourses: Course[] = [

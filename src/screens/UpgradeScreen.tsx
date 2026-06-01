@@ -18,10 +18,11 @@ type UpgradeScreenProps = {
 type LegalDocument = "terms" | "privacy";
 
 const paidFeatures = [
-  { icon: FileScan, titleKey: "paywall.feature_scans", detailKey: "paywall.feature_scans_detail", fallbackTitle: "Syllabus imports", fallbackDetail: "AI-assisted text/PDF imports, pasted text, and re-imports when classes change." },
-  { icon: Layers3, titleKey: "paywall.feature_widgets", detailKey: "paywall.feature_widgets_detail", fallbackTitle: "Home Screen widgets", fallbackDetail: "Save real Next Up, Today List, Week, and Class Progress widget presets." },
-  { icon: Timer, titleKey: "paywall.feature_focus", detailKey: "paywall.feature_focus_detail", fallbackTitle: "Focus and progress tools", fallbackDetail: "Start timed study sessions and keep completion feedback visible." },
-  { icon: Bell, titleKey: "paywall.feature_calendar", detailKey: "paywall.feature_calendar_detail", fallbackTitle: "Reminders and calendar sync", fallbackDetail: "Send reviewed deadlines to device reminders and calendar." }
+  { icon: FileScan, titleKey: "paywall.feature_scans", detailKey: "paywall.feature_scans_detail", fallbackTitle: "Syllabus imports", fallbackDetail: "Turn syllabus text, PDFs, and pasted assignments into an editable plan." },
+  { icon: Check, titleKey: "paywall.feature_review", detailKey: "paywall.feature_review_detail", fallbackTitle: "Review inbox", fallbackDetail: "Confirm uncertain dates and duplicates before they reach Today or widgets." },
+  { icon: TrendingUp, titleKey: "paywall.feature_forecast", detailKey: "paywall.feature_forecast_detail", fallbackTitle: "Forecast", fallbackDetail: "See overload earlier and move study blocks before the week stacks up." },
+  { icon: Layers3, titleKey: "paywall.feature_widgets", detailKey: "paywall.feature_widgets_detail", fallbackTitle: "Personalized widgets", fallbackDetail: "Save widgets that adapt to reviewed work, forecast state, and local memory." },
+  { icon: ShieldCheck, titleKey: "paywall.feature_memory", detailKey: "paywall.feature_memory_detail", fallbackTitle: "Local memory", fallbackDetail: "Focus sessions, notes, and saved widgets improve recommendations on this device." }
 ];
 
 export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: UpgradeScreenProps) {
@@ -75,8 +76,8 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
   const heroTitle = "Unlock StudyPlanner";
   const localizedHeroTitle = t("paywall.title", heroTitle);
   const heroSubtitle = hardMode
-    ? t("paywall.hard_subtitle", "Unlock AI-assisted syllabus imports, calendar planning, focus, widgets, reminders, and sync.")
-    : t("paywall.subtitle", "Keep the full import-to-plan workflow ready for a busy semester.");
+    ? t("paywall.hard_subtitle", "Unlock syllabus import, review inbox, forecast, personalized widgets, and local adaptation.")
+    : t("paywall.subtitle", "Keep the full syllabus-to-plan workflow ready for a busy semester.");
 
   if (legalDocument) {
     return <LegalNotice document={legalDocument} onClose={() => setLegalDocument(null)} />;
@@ -95,9 +96,9 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
         <Text style={styles.subtitle}>{heroSubtitle}</Text>
         <View style={styles.payoffRail}>
           <PayoffPill icon={FileScan} label={t("paywall.imports", "Imports")} />
-          <PayoffPill icon={Timer} label={t("tabs.focus", "Focus")} />
+          <PayoffPill icon={Check} label={t("paywall.review", "Review")} />
+          <PayoffPill icon={TrendingUp} label={t("paywall.forecast", "Forecast")} />
           <PayoffPill icon={Layers3} label={t("tabs.widgets", "Widgets")} />
-          <PayoffPill icon={Bell} label={t("paywall.reminders", "Reminders")} />
         </View>
       </GlassCard>
 
@@ -313,15 +314,15 @@ function ProductOption({ product, selected, recommended, onPress }: { product: P
 
 function localizedProductTitle(product: PaywallProduct, t: (key: string, fallback?: string) => string) {
   if (product.kind === "lifetime") return t("paywall.buy_lifetime", "Buy Lifetime");
-  if (/year/i.test(product.id) || /year/i.test(product.periodLabel)) return t("paywall.yearly", "StudyPlanner Yearly");
-  if (/month/i.test(product.id) || /month/i.test(product.periodLabel)) return t("paywall.monthly", "StudyPlanner Monthly");
+  if (/year/i.test(product.id) || /year/i.test(product.periodLabel)) return t("paywall.yearly", "StudyPlanner: Syllabus AI Yearly");
+  if (/month/i.test(product.id) || /month/i.test(product.periodLabel)) return t("paywall.monthly", "StudyPlanner: Syllabus AI Monthly");
   return product.title;
 }
 
 function localizedPeriodLabel(product: PaywallProduct, t: (key: string, fallback?: string) => string) {
   if (product.kind === "lifetime") return t("paywall.product_name", "StudyPlanner");
-  if (/year/i.test(product.id) || /year/i.test(product.periodLabel)) return t("paywall.yearly", "StudyPlanner Yearly");
-  if (/month/i.test(product.id) || /month/i.test(product.periodLabel)) return t("paywall.monthly", "StudyPlanner Monthly");
+  if (/year/i.test(product.id) || /year/i.test(product.periodLabel)) return t("paywall.yearly", "StudyPlanner: Syllabus AI Yearly");
+  if (/month/i.test(product.id) || /month/i.test(product.periodLabel)) return t("paywall.monthly", "StudyPlanner: Syllabus AI Monthly");
   return product.periodLabel;
 }
 

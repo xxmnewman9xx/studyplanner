@@ -12,6 +12,7 @@ import {
 } from "../components/StudyPlannerAppleBoard";
 import { Assignment, Course, FocusSession, Semester, StudyNote, UserSettings, WidgetPreset } from "../models";
 import { buildTodayBrain, daysUntil, getCourseForAssignment } from "../logic/planner";
+import type { StudentLifeContext } from "../logic/studentLifeDepth";
 import { useI18n } from "../i18n";
 
 export type ImportHandoffSummary = {
@@ -31,6 +32,7 @@ type TodayScreenProps = {
   focusSessions?: FocusSession[];
   settings?: UserSettings;
   widgetPresets?: WidgetPreset[];
+  studentLife?: StudentLifeContext;
   importHandoff?: ImportHandoffSummary | null;
   demoMode?: boolean;
   onUpdateStatus: (assignmentId: string, status: "not_started" | "in_progress" | "done") => void;
@@ -58,6 +60,7 @@ export function TodayScreen({
   focusSessions = [],
   settings,
   widgetPresets = [],
+  studentLife,
   importHandoff,
   demoMode = false,
   onOpenAssignment,
@@ -88,11 +91,21 @@ export function TodayScreen({
       <SPHeroCard greeting={greetingForNow()} name={firstName} detail={demoMode ? demoLabel : undefined} />
 
       <View style={styles.stack}>
+        {studentLife ? (
+          <SPColorCard
+            tone="soft"
+            kicker={t("depth.learned_prefix", "Learned: {pattern}").replace("{pattern}", studentLife.feed.learned)}
+            title={studentLife.feed.recommendation}
+            subtitle={studentLife.feed.nextAction}
+            meta={t("depth.reason_prefix", "Reason: {reason}").replace("{reason}", studentLife.feed.reason)}
+          />
+        ) : null}
         <SPExamCard
           kicker={`EXAM IN ${examDays || 7} DAYS`}
           title={boardTitle(exam?.title || "Organic Chemistry Midterm")}
           subtitle={examCourse?.code || "Organic Chemistry"}
           meta="High impact"
+          accentColor={examCourse?.color || settings?.customization?.riskColor}
           onPress={exam ? () => onOpenAssignment(exam.id) : undefined}
         />
         <SPAssignmentCard
@@ -100,6 +113,7 @@ export function TodayScreen({
           title={assignment?.title || "Calculus Problem Set"}
           subtitle={assignmentCourse?.code || "Calculus"}
           meta={assignment?.title.toLowerCase().includes("calculus") ? "12 problems - 3h estimated" : assignment ? `${assignment.estimatedMinutes || 180} min estimated` : "12 problems - 3h estimated"}
+          accentColor={assignmentCourse?.color || settings?.customization?.primaryAccent}
           onPress={assignment ? () => onOpenAssignment(assignment.id) : undefined}
         />
         <SPFocusCard
@@ -107,15 +121,17 @@ export function TodayScreen({
           title="45 min"
           subtitle="Start a session"
           minutes={45}
+          accentColor={settings?.customization?.focusColor}
           onPress={() => onOpenFocus(assignment?.id)}
         />
         <SPNextClassCard
           title={physics?.code || "Physics 201"}
           subtitle={nextClassTime(physics)}
           meta={physics?.room ? `Room ${physics.room}` : "Room 4A"}
+          accentColor={physics?.color}
           onPress={onOpenClasses}
         />
-        <SPColorCard tone="soft" kicker="HEAVY WEEK AHEAD" title="Heavy week ahead" subtitle={`${Math.max(1, plan.exams.length || 1)} exams - ${heavyItems || 2} assignments - ${Math.max(reviewCount, 1)} quiz`} onPress={onOpenPlan}>
+        <SPColorCard tone="soft" accentColor={settings?.customization?.forecastAccent} kicker="HEAVY WEEK AHEAD" title="Heavy week ahead" subtitle={`${Math.max(1, plan.exams.length || 1)} exams - ${heavyItems || 2} assignments - ${Math.max(reviewCount, 1)} quiz`} onPress={onOpenPlan}>
           <View style={styles.heavyBars}>
             {[0.32, 0.68, 0.42, 0.78, 0.28, 0.62, 0.88].map((height, index) => (
               <View key={index} style={[styles.heavyBar, { height: 10 + height * 34, backgroundColor: barColor(index) }]} />

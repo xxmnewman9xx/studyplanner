@@ -38,13 +38,19 @@ import {
   ParsedItem,
   PlannerData,
   Semester,
+  StudentLifeFeature,
+  StudentLifeMemory,
   StudyNote,
   SyllabusParseResult,
   UserSettings,
   WidgetBackground,
+  WidgetColorSource,
   WidgetDataMode,
   WidgetPalette,
-  WidgetPreset
+  WidgetPreset,
+  WidgetStudioContentType,
+  WidgetStudioStyle,
+  WatchPreviewStyle
 } from "./src/models";
 import { AppTheme, ThemeAccent, ThemeMode } from "./src/theme";
 import { AppThemeProvider, useAppTheme } from "./src/themeContext";
@@ -60,6 +66,7 @@ import {
   defaultSettings,
   defaultWidgetPresets
 } from "./src/data/defaultPlanner";
+import { normalizeStudioCustomization } from "./src/customization";
 import { OnboardingDestination, OnboardingScreen } from "./src/screens/OnboardingScreen";
 import { TodayScreen, ImportHandoffSummary } from "./src/screens/TodayScreen";
 import { ImportScreen } from "./src/screens/ImportScreen";
@@ -80,6 +87,22 @@ import {
   applyLocale,
   saveWidgetPreset as saveWidgetPresetState
 } from "./src/logic/planner";
+import {
+  buildStudentLifeContext,
+  ensureStudentLifeMemory,
+  recordStudentLifeAssignmentCompleted,
+  recordStudentLifeFeatureVisit,
+  recordStudentLifeFocusSession,
+  recordStudentLifeForecastSnapshot,
+  recordStudentLifeNoteConverted,
+  recordStudentLifeNoteCreated,
+  recordStudentLifeNotePinned,
+  recordStudentLifeTopAction,
+  recordStudentLifeWatchSignal,
+  recordStudentLifeWidgetRecommended,
+  recordStudentLifeWidgetSaved,
+  seedStudentLifeMemoryForAge
+} from "./src/logic/studentLifeDepth";
 import { scheduleSmartReminders } from "./src/services/reminders";
 import { syncAssignmentsToDeviceCalendar } from "./src/services/calendarSync";
 import { loadJson, saveJson } from "./src/services/storage";
@@ -151,6 +174,16 @@ type CaptureRoute = {
   widgetSize?: WidgetPreset["size"];
   widgetLayout?: WidgetPreset["layout"];
   workloadState?: "standard" | "clean" | "urgent";
+  depthAgeDays?: number;
+  classColor?: string;
+  secondaryAccent?: string;
+  riskColor?: string;
+  focusColor?: string;
+  activityColor?: string;
+  widgetStudioStyle?: WidgetStudioStyle;
+  widgetColorSource?: WidgetColorSource;
+  widgetCustomColor?: string;
+  watchPreviewStyle?: WatchPreviewStyle;
   hardPaywall?: boolean;
   themeMode?: ThemeMode;
   locale?: SupportedLocale;
@@ -171,6 +204,16 @@ function parseCaptureRoute(raw: string): CaptureRoute {
       widgetSize?: unknown;
       widgetLayout?: unknown;
       workloadState?: unknown;
+      depthAgeDays?: unknown;
+      classColor?: unknown;
+      secondaryAccent?: unknown;
+      riskColor?: unknown;
+      focusColor?: unknown;
+      activityColor?: unknown;
+      widgetStudioStyle?: unknown;
+      widgetColorSource?: unknown;
+      widgetCustomColor?: unknown;
+      watchPreviewStyle?: unknown;
       hardPaywall?: unknown;
       themeMode?: unknown;
       locale?: unknown;
@@ -188,6 +231,16 @@ function parseCaptureRoute(raw: string): CaptureRoute {
       widgetSize: isCaptureWidgetSize(value.widgetSize) ? value.widgetSize : undefined,
       widgetLayout: isCaptureWidgetLayout(value.widgetLayout) ? value.widgetLayout : undefined,
       workloadState: isCaptureWorkloadState(value.workloadState) ? value.workloadState : undefined,
+      depthAgeDays: isCaptureDepthAge(value.depthAgeDays) ? value.depthAgeDays : undefined,
+      classColor: isCaptureHexColor(value.classColor) ? value.classColor : undefined,
+      secondaryAccent: isCaptureHexColor(value.secondaryAccent) ? value.secondaryAccent : undefined,
+      riskColor: isCaptureHexColor(value.riskColor) ? value.riskColor : undefined,
+      focusColor: isCaptureHexColor(value.focusColor) ? value.focusColor : undefined,
+      activityColor: isCaptureHexColor(value.activityColor) ? value.activityColor : undefined,
+      widgetStudioStyle: isCaptureWidgetStudioStyle(value.widgetStudioStyle) ? value.widgetStudioStyle : undefined,
+      widgetColorSource: isCaptureWidgetColorSource(value.widgetColorSource) ? value.widgetColorSource : undefined,
+      widgetCustomColor: isCaptureHexColor(value.widgetCustomColor) ? value.widgetCustomColor : undefined,
+      watchPreviewStyle: isCaptureWatchPreviewStyle(value.watchPreviewStyle) ? value.watchPreviewStyle : undefined,
       hardPaywall: value.hardPaywall === true,
       themeMode: isCaptureThemeMode(value.themeMode) ? value.themeMode : undefined,
       locale: isCaptureLocale(value.locale) ? value.locale : undefined
@@ -281,6 +334,23 @@ function captureDataModeForWidget(type: WidgetPreset["type"]): WidgetDataMode {
   return defaultDataModeForWidgetKind(widgetKindForType(type));
 }
 
+function captureContentTypeForWidget(type: WidgetPreset["type"]): WidgetStudioContentType {
+  if (type === "today") return "next_class";
+  if (type === "week") return "heavy_week_warning";
+  if (type === "class_focus") return "class_progress";
+  if (type === "focus") return "focus_window";
+  if (type === "needs_check") return "review_inbox_status";
+  return "next_assignment";
+}
+
+function captureStudioStyleForWidget(route: CaptureRoute): WidgetStudioStyle {
+  if (route.widgetStudioStyle) return route.widgetStudioStyle;
+  if (route.widgetLayout === "compact") return "compact";
+  if (route.widgetBackground === "glass") return "glass";
+  if (route.widgetBackground === "solid" || route.widgetBackground === "dark") return "color_card";
+  return "clean";
+}
+
 function shouldApplyOnboardingWidgetTheme(preset: WidgetPreset) {
   return isNativeWidgetPreset(preset);
 }
@@ -346,6 +416,26 @@ function isCaptureWidgetLayout(value: unknown): value is WidgetPreset["layout"] 
 
 function isCaptureWorkloadState(value: unknown): value is NonNullable<CaptureRoute["workloadState"]> {
   return value === "standard" || value === "clean" || value === "urgent";
+}
+
+function isCaptureDepthAge(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 120;
+}
+
+function isCaptureHexColor(value: unknown): value is string {
+  return typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value);
+}
+
+function isCaptureWidgetStudioStyle(value: unknown): value is WidgetStudioStyle {
+  return value === "clean" || value === "glass" || value === "color_card" || value === "compact";
+}
+
+function isCaptureWidgetColorSource(value: unknown): value is WidgetColorSource {
+  return value === "class" || value === "urgency" || value === "custom";
+}
+
+function isCaptureWatchPreviewStyle(value: unknown): value is WatchPreviewStyle {
+  return value === "rings" || value === "cards" || value === "compact";
 }
 
 function isCaptureThemeMode(value: unknown): value is ThemeMode {
@@ -459,6 +549,7 @@ function AppContent() {
   const [widgetPresets, setWidgetPresets] = useState<WidgetPreset[]>(defaultWidgetPresets);
   const [focusSessions, setFocusSessions] = useState<FocusSession[]>([]);
   const [notes, setNotes] = useState<StudyNote[]>([]);
+  const [studentLifeMemory, setStudentLifeMemory] = useState<StudentLifeMemory>(() => ensureStudentLifeMemory());
   const [demoMode, setDemoMode] = useState(false);
   const [importHandoff, setImportHandoff] = useState<ImportHandoffSummary | null>(null);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
@@ -490,6 +581,19 @@ function AppContent() {
   const systemState = useMemo(
     () => buildAppSystemState(activeAssignments, courses, parsedImports, nativeWidgetStatus, demoMode, t),
     [activeAssignments, courses, demoMode, nativeWidgetStatus, parsedImports, t]
+  );
+  const studentLifeContext = useMemo(
+    () =>
+      buildStudentLifeContext({
+        memory: studentLifeMemory,
+        assignments: activeAssignments,
+        courses,
+        notes,
+        focusSessions,
+        widgetPresets,
+        settings
+      }),
+    [activeAssignments, courses, focusSessions, notes, settings, studentLifeMemory, widgetPresets]
   );
 
   useEffect(() => {
@@ -530,14 +634,80 @@ function AppContent() {
         setCaptureScrollY(scrollYForCaptureScreen(requestedRoute.screen));
         setCaptureOnboardingIndex(0);
         if (requestedRoute.themeMode) setMode(requestedRoute.themeMode);
-        setCourses(marketingCaptureCourses);
-        setAssignments(assignmentsForCaptureWorkload(requestedRoute.workloadState));
+        const captureAssignments = assignmentsForCaptureWorkload(requestedRoute.workloadState);
+        const captureCourses = marketingCaptureCourses.map((course, index) =>
+          requestedRoute.classColor && index === 0
+            ? { ...course, color: requestedRoute.classColor, updatedAt: new Date().toISOString() }
+            : course
+        );
+        setCourses(captureCourses);
+        setAssignments(captureAssignments);
         setGradeItems(marketingCaptureGradeItems);
-        setNotes(buildDemoNotes(marketingCaptureCourses));
+        setNotes(buildDemoNotes(captureCourses));
         setSemester(marketingCaptureSemester);
         const captureAppTheme = requestedRoute.appTheme || "campus";
         const captureWidgetPalette = requestedRoute.widgetPalette || "ocean";
         const captureWidgetBackground = requestedRoute.widgetBackground || "glass";
+        const requestedWidgetType = requestedRoute.widgetType || "today";
+        const requestedWidgetKind = widgetKindForType(requestedWidgetType);
+        const captureCustomizationBase = normalizeStudioCustomization(defaultSettings.customization);
+        const captureWidgetStyle = captureStudioStyleForWidget(requestedRoute);
+        const captureCustomization = normalizeStudioCustomization({
+          ...captureCustomizationBase,
+          primaryAccent: requestedRoute.classColor || captureCustomizationBase.primaryAccent,
+          secondaryAccent: requestedRoute.secondaryAccent || captureCustomizationBase.secondaryAccent,
+          riskColor: requestedRoute.riskColor || captureCustomizationBase.riskColor,
+          forecastAccent: requestedRoute.riskColor || captureCustomizationBase.forecastAccent,
+          focusColor: requestedRoute.focusColor || captureCustomizationBase.focusColor,
+          focusTimerAccent: requestedRoute.focusColor || captureCustomizationBase.focusTimerAccent,
+          activityColor: requestedRoute.activityColor || captureCustomizationBase.activityColor,
+          widgetColor: requestedRoute.widgetCustomColor || requestedRoute.classColor || captureCustomizationBase.widgetColor,
+          watchPreviewStyle: requestedRoute.watchPreviewStyle || captureCustomizationBase.watchPreviewStyle,
+          homeWidgetPack: captureCustomizationBase.homeWidgetPack.map((widget, index) =>
+            index === 0
+              ? {
+                  ...widget,
+                  contentType: captureContentTypeForWidget(requestedWidgetType),
+                  classFocusCourseId:
+                    requestedWidgetType === "class_focus" || requestedRoute.widgetDataMode === "single_class"
+                      ? captureCourses[0]?.id
+                      : widget.classFocusCourseId,
+                  colorSource: requestedRoute.widgetColorSource || widget.colorSource,
+                  customColor: requestedRoute.widgetCustomColor || widget.customColor,
+                  size: requestedRoute.widgetSize || widget.size,
+                  style: captureWidgetStyle,
+                  updatedAt: new Date().toISOString()
+                }
+              : widget
+          ),
+          lockWidgetPack: captureCustomizationBase.lockWidgetPack.map((widget, index) =>
+            index === 0
+              ? {
+                  ...widget,
+                  contentType: captureContentTypeForWidget(requestedWidgetType),
+                  classFocusCourseId: captureCourses[0]?.id,
+                  colorSource: requestedRoute.widgetColorSource || "custom",
+                  customColor: requestedRoute.widgetCustomColor || requestedRoute.classColor || widget.customColor,
+                  style: requestedRoute.widgetStudioStyle || widget.style,
+                  updatedAt: new Date().toISOString()
+                }
+              : widget
+          ),
+          watchWidgetPack: captureCustomizationBase.watchWidgetPack.map((widget, index) =>
+            index === 0
+              ? {
+                  ...widget,
+                  contentType: captureContentTypeForWidget(requestedWidgetType),
+                  classFocusCourseId: captureCourses[0]?.id,
+                  colorSource: requestedRoute.widgetColorSource || "custom",
+                  customColor: requestedRoute.widgetCustomColor || requestedRoute.classColor || widget.customColor,
+                  style: requestedRoute.widgetStudioStyle || widget.style,
+                  updatedAt: new Date().toISOString()
+                }
+              : widget
+          ),
+          updatedAt: new Date().toISOString()
+        });
         setSettings({
           ...defaultSettings,
           onboardingComplete: true,
@@ -545,10 +715,15 @@ function AppContent() {
           syncEnabled: true,
           selectedTheme: captureWidgetPalette,
           defaultWidgetStyle: captureWidgetBackground,
-          appTheme: captureAppTheme
+          appTheme: captureAppTheme,
+          customPalette: [
+            captureCustomization.primaryAccent,
+            captureCustomization.secondaryAccent,
+            captureCustomization.riskColor,
+            captureCustomization.focusColor
+          ],
+          customization: captureCustomization
         });
-        const requestedWidgetType = requestedRoute.widgetType || "today";
-        const requestedWidgetKind = widgetKindForType(requestedWidgetType);
         const requestedPreset = buildCanonicalWidgetPreset(requestedWidgetKind, {
           type: requestedWidgetType,
           size: requestedRoute.widgetSize,
@@ -558,7 +733,7 @@ function AppContent() {
           layout: requestedRoute.widgetLayout,
           classFocusCourseId:
             requestedWidgetType === "class_focus" || requestedRoute.widgetDataMode === "single_class"
-              ? marketingCaptureCourses[0]?.id
+              ? captureCourses[0]?.id
               : undefined,
           themePackId: captureAppTheme
         });
@@ -568,6 +743,13 @@ function AppContent() {
             (preset) => widgetKindForType(preset.type) !== requestedWidgetKind
           )
         ]);
+        setStudentLifeMemory(
+          seedStudentLifeMemoryForAge({
+            ageDays: requestedRoute.depthAgeDays || 0,
+            assignments: captureAssignments,
+            courses: captureCourses
+          })
+        );
         setSelectedAssignmentId(null);
         setFocusAssignmentId(null);
         setActiveTab(requestedTab);
@@ -612,6 +794,37 @@ function AppContent() {
 
   useEffect(() => {
     if (!hydrated) return;
+    const feature = studentLifeFeatureForTab(activeTab);
+    if (!feature) return;
+    setStudentLifeMemory((current) => recordStudentLifeFeatureVisit(current, feature));
+  }, [activeTab, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    setStudentLifeMemory((current) =>
+      recordStudentLifeForecastSnapshot(current, activeAssignments, focusSessions)
+    );
+  }, [activeAssignments, focusSessions, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated || activeTab !== "today") return;
+    setStudentLifeMemory((current) =>
+      recordStudentLifeTopAction(current, studentLifeContext.feed.assignment?.id)
+    );
+  }, [activeTab, hydrated, studentLifeContext.feed.assignment?.id]);
+
+  useEffect(() => {
+    if (!hydrated || activeTab !== "more") return;
+    setStudentLifeMemory((current) =>
+      recordStudentLifeWidgetRecommended(
+        recordStudentLifeWatchSignal(current, studentLifeContext.watch.signal),
+        studentLifeContext.widgets.type
+      )
+    );
+  }, [activeTab, hydrated, studentLifeContext.watch.signal, studentLifeContext.widgets.type]);
+
+  useEffect(() => {
+    if (!hydrated) return;
 
     const openRoute = (url: string | null) => {
       if (!url) return;
@@ -640,7 +853,12 @@ function AppContent() {
       if (!mounted) return;
 
       if (stored) {
-        const storedSettings = { ...defaultSettings, ...(stored.settings || {}), onboardingComplete: Boolean(stored.onboarded) };
+        const storedSettings = {
+          ...defaultSettings,
+          ...(stored.settings || {}),
+          customization: normalizeStudioCustomization(stored.settings?.customization || defaultSettings.customization),
+          onboardingComplete: Boolean(stored.onboarded)
+        };
         setOnboarded(Boolean(stored.onboarded));
         setPaywallSeen(Boolean(stored.paywallSeen));
         setSemester(stored.semester || defaultSemester);
@@ -657,6 +875,7 @@ function AppContent() {
         setWidgetPresets(stored.widgetPresets?.length ? ensureCanonicalWidgetPresets(stored.widgetPresets) : defaultWidgetPresets);
         setFocusSessions(stored.focusSessions || []);
         setNotes(stored.notes || []);
+        setStudentLifeMemory(ensureStudentLifeMemory(stored.studentLifeMemory));
         setDemoMode(Boolean(stored.demoMode));
       }
 
@@ -692,6 +911,7 @@ function AppContent() {
       widgetPresets,
       focusSessions,
       notes,
+      studentLifeMemory,
       demoMode
     };
 
@@ -722,6 +942,7 @@ function AppContent() {
     paywallSeen,
     semester,
     settings,
+    studentLifeMemory,
     targetGradePercent,
     t,
     widgetPresets
@@ -919,6 +1140,7 @@ function AppContent() {
     assignmentId: string,
     status: Exclude<AssignmentStatus, "archived">
   ) => {
+    const targetAssignment = assignments.find((assignment) => assignment.id === assignmentId);
     setAssignments((current) =>
       status === "done"
         ? completeAssignment(current, assignmentId)
@@ -929,6 +1151,7 @@ function AppContent() {
           )
     );
     if (status === "done") {
+      setStudentLifeMemory((current) => recordStudentLifeAssignmentCompleted(current, targetAssignment));
       void recordReviewEvent("assignment_completed");
     }
   };
@@ -1023,6 +1246,7 @@ function AppContent() {
 
   const addNote = (note: Omit<StudyNote, "id" | "createdAt" | "updatedAt">) => {
     const timestamp = new Date().toISOString();
+    setStudentLifeMemory((current) => recordStudentLifeNoteCreated(current, note));
     setNotes((current) => [
       {
         ...note,
@@ -1035,6 +1259,9 @@ function AppContent() {
   };
 
   const updateNote = (noteId: string, patch: Partial<StudyNote>) => {
+    if (patch.pinned === true && !notes.find((note) => note.id === noteId)?.pinned) {
+      setStudentLifeMemory((current) => recordStudentLifeNotePinned(current));
+    }
     setNotes((current) =>
       current.map((note) =>
         note.id === noteId ? { ...note, ...patch, updatedAt: new Date().toISOString() } : note
@@ -1055,6 +1282,7 @@ function AppContent() {
       return;
     }
     setAssignments((current) => [assignment, ...current]);
+    setStudentLifeMemory((current) => recordStudentLifeNoteConverted(current, note, assignment));
     updateNote(noteId, {
       assignmentId: assignment.id,
       courseId: assignment.courseId,
@@ -1096,7 +1324,13 @@ function AppContent() {
   };
 
   const updateSettings = (patch: Partial<UserSettings>) => {
-    setSettings((current) => ({ ...current, ...patch }));
+    setSettings((current) => ({
+      ...current,
+      ...patch,
+      customization: patch.customization
+        ? normalizeStudioCustomization(patch.customization)
+        : normalizeStudioCustomization(current.customization)
+    }));
   };
 
   const updateLocale = (nextLocale: SupportedLocale) => {
@@ -1106,6 +1340,7 @@ function AppContent() {
 
   const saveWidgetPreset = (preset: WidgetPreset) => {
     setWidgetPresets((current) => saveWidgetPresetState(current, preset));
+    setStudentLifeMemory((current) => recordStudentLifeWidgetSaved(current, preset.type));
     void recordReviewEvent("widget_saved");
   };
 
@@ -1127,6 +1362,11 @@ function AppContent() {
     setWidgetPresets(ensureCanonicalWidgetPresets(defaultWidgetPresets));
     setFocusSessions(demo.focusSessions);
     setNotes(buildDemoNotes(demo.courses));
+    setStudentLifeMemory(seedStudentLifeMemoryForAge({
+      ageDays: 7,
+      assignments: demo.assignments,
+      courses: demo.courses
+    }));
     setDemoMode(true);
     setSettings((current) => ({ ...current, ...settingsPatch }));
     setImportHandoff({
@@ -1152,11 +1392,14 @@ function AppContent() {
     setPaywallSeen(false);
     setPostPaywallTab("import");
     setDemoMode(false);
+    setStudentLifeMemory(ensureStudentLifeMemory(null));
     setActiveTab("subscribe");
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   };
 
   const recordFocusSession = (session: FocusSession) => {
+    const assignment = assignments.find((item) => item.id === session.assignmentId);
+    setStudentLifeMemory((current) => recordStudentLifeFocusSession(current, session, assignment));
     setFocusSessions((current) => {
       const sameAssignmentDay = (item: FocusSession) =>
         item.assignmentId === session.assignmentId &&
@@ -1359,6 +1602,7 @@ function AppContent() {
                   focusSessions={focusSessions}
                   settings={settings}
                   widgetPresets={widgetPresets}
+                  studentLife={studentLifeContext}
                   importHandoff={importHandoff}
                   demoMode={demoMode}
                   onUpdateStatus={updateAssignmentStatus}
@@ -1382,6 +1626,7 @@ function AppContent() {
                     setParsedItems([]);
                     setFocusSessions([]);
                     setNotes([]);
+                    setStudentLifeMemory(ensureStudentLifeMemory(null));
                     setImportHandoff(null);
                     setDemoMode(false);
                     openTab("import");
@@ -1406,6 +1651,8 @@ function AppContent() {
                   assignments={activeAssignments}
                   courses={courses}
                   sessions={focusSessions}
+                  settings={settings}
+                  studentLife={studentLifeContext}
                   onOpenAssignment={setSelectedAssignmentId}
                   onOpenFocus={openFocusForAssignment}
                   onUpdateStatus={updateAssignmentStatus}
@@ -1420,6 +1667,7 @@ function AppContent() {
                   courses={courses}
                   assignments={activeAssignments}
                   notes={notes}
+                  studentLife={studentLifeContext}
                   onAddQuickAssignment={addQuickAssignment}
                   onOpenAssignment={setSelectedAssignmentId}
                   onOpenNotes={() => openTab("notes")}
@@ -1434,6 +1682,7 @@ function AppContent() {
                   assignments={activeAssignments}
                   focusSessions={focusSessions}
                   notes={notes}
+                  studentLife={studentLifeContext}
                   onAddNote={addNote}
                   onUpdateNote={updateNote}
                   onDeleteNote={deleteNote}
@@ -1458,6 +1707,8 @@ function AppContent() {
                   courses={courses}
                   defaultMinutes={getRecommendedFocusDuration(activeAssignments, focusSessions, settings)}
                   sessions={focusSessions}
+                  studentLife={studentLifeContext}
+                  focusAccent={settings.customization?.focusTimerAccent}
                   preferredAssignmentId={focusAssignmentId}
                   onRecordSession={recordFocusSession}
                   onMarkComplete={(assignmentId) => updateAssignmentStatus(assignmentId, "done")}
@@ -1476,9 +1727,11 @@ function AppContent() {
                   settings={settings}
                   widgetPresets={widgetPresets}
                   nativeWidgetStatus={nativeWidgetStatus}
+                  studentLife={studentLifeContext}
                   onUpdateSettings={updateSettings}
                   onSaveWidgetPreset={saveWidgetPreset}
                   onResetWidgetPresets={resetWidgetPresets}
+                  onUpdateCourse={updateCourse}
                   locale={locale}
                   onLocaleChange={updateLocale}
                   onOpenNotes={() => openTab("notes")}
@@ -1753,6 +2006,16 @@ function labelForTab(tab: NavTab, t: (key: string, fallback?: string) => string)
     subscribe: t("tabs.subscribe", "Subscribe")
   };
   return labels[tab];
+}
+
+function studentLifeFeatureForTab(tab: NavTab): StudentLifeFeature | null {
+  if (tab === "today") return "home";
+  if (tab === "plan") return "forecast";
+  if (tab === "courses") return "classes";
+  if (tab === "focus") return "focus";
+  if (tab === "notes") return "notes";
+  if (tab === "more") return "widgets";
+  return null;
 }
 
 function buildDemoPlannerData(now = new Date()) {
