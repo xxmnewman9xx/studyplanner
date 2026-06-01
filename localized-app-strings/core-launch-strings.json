@@ -165,7 +165,12 @@
       "nudge_overwhelmed": "You do not need the whole week right now. Start with the next visible step.",
       "nudge_busy_week": "This week has weight. Front-load one short block before it stacks.",
       "nudge_clear": "Clean slate. Capture new work when it appears.",
-      "for_student": "{name}'s Today"
+      "for_student": "{name}'s Today",
+      "empty_kicker": "Start here",
+      "empty_title": "No schoolwork added yet",
+      "empty_copy": "Scan a syllabus or add one class. Today will stay clean until reviewed work is ready.",
+      "add_class": "Add class",
+      "try_demo": "Try sample planner"
     },
     "tabs": {
       "today": "Today",
@@ -1461,7 +1466,12 @@
       "nudge_overwhelmed": "Du brauchst jetzt nicht die ganze Woche. Starte mit dem nächsten sichtbaren Schritt.",
       "nudge_busy_week": "Diese Woche hat Gewicht. Ziehe einen kurzen Block vor, bevor es sich staut.",
       "nudge_clear": "Sauberer Stand. Erfasse neue Arbeit, sobald sie auftaucht.",
-      "for_student": "{name}s Heute"
+      "for_student": "{name}s Heute",
+      "empty_kicker": "Hier starten",
+      "empty_title": "Noch keine Schularbeit hinzugefuegt",
+      "empty_copy": "Scanne einen Syllabus oder fuege eine Klasse hinzu. Heute bleibt leer, bis gepruefte Arbeit bereit ist.",
+      "add_class": "Klasse hinzufuegen",
+      "try_demo": "Beispielplan testen"
     },
     "tabs": {
       "today": "Heute",
@@ -2757,7 +2767,12 @@
       "nudge_overwhelmed": "No necesitas toda la semana ahora. Empieza por el siguiente paso visible.",
       "nudge_busy_week": "Esta semana pesa. Adelanta un bloque corto antes de que se acumule.",
       "nudge_clear": "Todo limpio. Captura trabajo nuevo cuando aparezca.",
-      "for_student": "Hoy de {name}"
+      "for_student": "Hoy de {name}",
+      "empty_kicker": "Empieza aqui",
+      "empty_title": "Aun no hay tareas escolares",
+      "empty_copy": "Escanea un syllabus o agrega una clase. Hoy se mantiene limpio hasta que haya trabajo revisado.",
+      "add_class": "Agregar clase",
+      "try_demo": "Probar plan de ejemplo"
     },
     "tabs": {
       "today": "Hoy",
@@ -4053,7 +4068,12 @@
       "nudge_overwhelmed": "Pas besoin de gérer toute la semaine maintenant. Commence par l’étape visible.",
       "nudge_busy_week": "La semaine est chargée. Avance un petit bloc avant l’empilement.",
       "nudge_clear": "Tableau propre. Capture le nouveau travail quand il arrive.",
-      "for_student": "Aujourd’hui de {name}"
+      "for_student": "Aujourd’hui de {name}",
+      "empty_kicker": "Commencer ici",
+      "empty_title": "Aucun travail scolaire ajoute",
+      "empty_copy": "Scanne un syllabus ou ajoute une classe. Aujourd hui reste vide jusqu a ce que du travail verifie soit pret.",
+      "add_class": "Ajouter une classe",
+      "try_demo": "Essayer un planning exemple"
     },
     "tabs": {
       "today": "Aujourd'hui",
@@ -5349,7 +5369,12 @@
       "nudge_overwhelmed": "Você não precisa carregar a semana toda agora. Comece pelo próximo passo visível.",
       "nudge_busy_week": "A semana está pesada. Antecipe um bloco curto antes de acumular.",
       "nudge_clear": "Tudo limpo. Capture trabalho novo quando aparecer.",
-      "for_student": "Hoje de {name}"
+      "for_student": "Hoje de {name}",
+      "empty_kicker": "Comece aqui",
+      "empty_title": "Nenhuma tarefa escolar adicionada",
+      "empty_copy": "Escaneie um syllabus ou adicione uma turma. Hoje fica limpo ate haver trabalho revisado.",
+      "add_class": "Adicionar turma",
+      "try_demo": "Testar plano de exemplo"
     },
     "tabs": {
       "today": "Hoje",
@@ -6645,7 +6670,12 @@
       "nudge_overwhelmed": "لا تحتاج إلى رؤية الأسبوع كله الآن. ابدأ بالخطوة التالية الواضحة.",
       "nudge_busy_week": "هذا الأسبوع ثقيل. أنجز جلسة قصيرة مبكرا قبل أن تتراكم المهام.",
       "nudge_clear": "صفحة نظيفة. التقط العمل الجديد عندما يظهر.",
-      "for_student": "يوم {name}"
+      "for_student": "يوم {name}",
+      "empty_kicker": "ابدأ هنا",
+      "empty_title": "لم تتم إضافة أعمال مدرسية بعد",
+      "empty_copy": "امسح المنهج أو أضف صفا واحدا. ستبقى صفحة اليوم نظيفة حتى يصبح العمل المراجع جاهزا.",
+      "add_class": "إضافة صف",
+      "try_demo": "تجربة خطة نموذجية"
     },
     "tabs": {
       "today": "اليوم",
@@ -7941,7 +7971,12 @@
       "nudge_overwhelmed": "अभी पूरा सप्ताह नहीं चाहिए। अगला साफ कदम शुरू करें।",
       "nudge_busy_week": "यह सप्ताह भारी है। काम जमा होने से पहले एक छोटा ब्लॉक करें।",
       "nudge_clear": "सब साफ है। नया काम आते ही कैप्चर करें।",
-      "for_student": "{name} का आज"
+      "for_student": "{name} का आज",
+      "empty_kicker": "यहां शुरू करें",
+      "empty_title": "अभी कोई स्कूलवर्क नहीं जोडा गया",
+      "empty_copy": "एक सिलेबस स्कैन करें या एक क्लास जोडें. समीक्षा किया हुआ काम तैयार होने तक Today साफ रहेगा.",
+      "add_class": "क्लास जोडें",
+      "try_demo": "नमूना प्लान आजमाएं"
     },
     "tabs": {
       "today": "आज",
@@ -9237,7 +9272,12 @@
       "nudge_overwhelmed": "今は週全体を抱えなくて大丈夫。見えている次の一歩から。",
       "nudge_busy_week": "今週は重めです。積み上がる前に短いブロックを先取りしましょう。",
       "nudge_clear": "すっきりしています。新しい課題が出たらキャプチャしましょう。",
-      "for_student": "{name}の今日"
+      "for_student": "{name}の今日",
+      "empty_kicker": "ここから開始",
+      "empty_title": "学校の課題はまだありません",
+      "empty_copy": "シラバスをスキャンするか、クラスを1つ追加します。確認済みの課題ができるまでTodayは空のままです。",
+      "add_class": "クラスを追加",
+      "try_demo": "サンプルプランを試す"
     },
     "tabs": {
       "today": "今日",
@@ -10533,7 +10573,12 @@
       "nudge_overwhelmed": "지금 한 주 전체를 볼 필요는 없어요. 보이는 다음 단계부터 시작하세요.",
       "nudge_busy_week": "이번 주는 무게가 있습니다. 쌓이기 전에 짧은 블록을 먼저 하세요.",
       "nudge_clear": "깔끔한 상태입니다. 새 과제가 생기면 바로 캡처하세요.",
-      "for_student": "{name}의 오늘"
+      "for_student": "{name}의 오늘",
+      "empty_kicker": "여기서 시작",
+      "empty_title": "아직 추가된 학교 과제가 없습니다",
+      "empty_copy": "실라버스를 스캔하거나 수업 하나를 추가하세요. 검토된 과제가 준비될 때까지 Today는 비워 둡니다.",
+      "add_class": "수업 추가",
+      "try_demo": "샘플 플래너 보기"
     },
     "tabs": {
       "today": "오늘",
@@ -11829,7 +11874,12 @@
       "nudge_overwhelmed": "现在不用处理整周。先做眼前的下一步。",
       "nudge_busy_week": "这周负担较重。趁任务堆起来前，先完成一个短块。",
       "nudge_clear": "当前很清爽。有新作业时再捕捉。",
-      "for_student": "{name}的今日"
+      "for_student": "{name}的今日",
+      "empty_kicker": "从这里开始",
+      "empty_title": "还没有添加课业",
+      "empty_copy": "扫描教学大纲或添加一门课程。审核后的任务准备好之前，Today 会保持干净。",
+      "add_class": "添加课程",
+      "try_demo": "试用示例计划"
     },
     "tabs": {
       "today": "今天",

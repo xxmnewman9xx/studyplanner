@@ -10,6 +10,7 @@ import type { StudentLifeContext } from "../logic/studentLifeDepth";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { useI18n } from "../i18n";
+import { courseEmoji } from "../utils/courseVisuals";
 
 type TranslateFn = (key: string, fallback?: string) => string;
 
@@ -225,6 +226,16 @@ export function FocusScreen({
         <Text style={styles.timerCourse} numberOfLines={1}>
           {selectedCourse?.code || (focusableAssignments.length > 0 ? t("focus.choose_assignment", "Choose an assignment") : t("focus.add_or_reopen_assignment", "Add or reopen an assignment"))}
         </Text>
+        {selectedCourse ? (
+          <View style={styles.focusClassPill}>
+            <View style={[styles.focusClassIcon, { backgroundColor: selectedCourse.color || colors.accent }]}>
+              <Text style={styles.focusClassEmoji}>{courseEmoji(selectedCourse)}</Text>
+            </View>
+            <Text style={styles.focusClassText} numberOfLines={1}>
+              {selectedCourse.name || selectedCourse.code}
+            </Text>
+          </View>
+        ) : null}
         <View style={styles.cockpitStats}>
           <CockpitStat icon={Clock3} value={formatLocalized(t("focus.minutes_short", "{minutes}m"), { minutes: String(elapsedMinutes) })} label={t("focus.logged", "logged")} />
           <CockpitStat icon={TimerReset} value={formatLocalized(t("focus.minutes_short", "{minutes}m"), { minutes: String(activeDurationMinutes) })} label={t("focus.target", "target")} />
@@ -727,6 +738,38 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
       fontSize: 13,
       lineHeight: 18,
       fontWeight: "800"
+    },
+    focusClassPill: {
+      alignSelf: "center",
+      maxWidth: "100%",
+      borderRadius: radii.round,
+      backgroundColor: "rgba(255,255,255,0.10)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.16)",
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 7,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs
+    },
+    focusClassIcon: {
+      width: 23,
+      height: 23,
+      borderRadius: 8,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    focusClassEmoji: {
+      fontSize: 13,
+      lineHeight: 15
+    },
+    focusClassText: {
+      minWidth: 0,
+      flexShrink: 1,
+      color: "rgba(255,255,255,0.86)",
+      fontSize: 12,
+      lineHeight: 15,
+      fontWeight: "900"
     },
     cockpitStats: {
       alignSelf: "stretch",

@@ -395,6 +395,7 @@ export function MoreScreen({
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recommendedRow}>
           {studioWidgetDefinitions.map((definition, index) => {
             const locked = plusLocked && index > 1;
+            const proof = recommendedWidgetProof(definition.id, selectedCourse);
             return (
               <TouchableOpacity
                 accessibilityRole="button"
@@ -408,6 +409,10 @@ export function MoreScreen({
                 </View>
                 <Text style={styles.recommendedTitle} numberOfLines={2}>{definition.title}</Text>
                 <Text style={styles.recommendedJob} numberOfLines={3}>{definition.job}</Text>
+                <Text style={styles.recommendedProof} numberOfLines={2}>Why: {proof.why}</Text>
+                <Text style={styles.recommendedProof} numberOfLines={2}>Where: {proof.where}</Text>
+                <Text style={styles.recommendedProof} numberOfLines={2}>Data: {proof.data}</Text>
+                <Text style={styles.recommendedProof} numberOfLines={2}>Changes with: {proof.changes}</Text>
                 {locked ? <Text style={styles.plusBadge}>Plus</Text> : null}
               </TouchableOpacity>
             );
@@ -420,7 +425,13 @@ export function MoreScreen({
               accessibilityRole="button"
               accessibilityState={{ selected: surface === option }}
               key={option}
-              style={[styles.surfaceTab, surface === option ? styles.surfaceTabActive : null]}
+              style={[
+                styles.surfaceTab,
+                surface === option ? styles.surfaceTabActive : null,
+                surface === option
+                  ? { backgroundColor: withAlpha(customization.secondaryAccent, 0.13), borderColor: withAlpha(customization.secondaryAccent, 0.34) }
+                  : null
+              ]}
               onPress={() => {
                 setSurface(option);
                 setSelectedWidgetId(packForSurface(customization, option)[0]?.id || selectedWidgetId);
@@ -442,7 +453,7 @@ export function MoreScreen({
                 accessibilityRole="button"
                 accessibilityState={{ selected: active }}
                 key={widget.id}
-                style={[styles.packCard, active ? styles.packCardActive : null]}
+                style={[styles.packCard, active ? styles.packCardActive : null, active ? { borderColor: withAlpha(customization.secondaryAccent, 0.42) } : null]}
                 onPress={() => setSelectedWidgetId(widget.id)}
               >
                 <Text style={styles.packSurface}>{surfaceLabel(surface)}</Text>
@@ -481,6 +492,7 @@ export function MoreScreen({
                     key={definition.id}
                     label={definition.title}
                     selected={selectedWidget.contentType === definition.id}
+                    selectedColor={customization.secondaryAccent}
                     locked={plusLocked && index > 1}
                     onPress={() => updateWidget({ contentType: definition.id })}
                   />
@@ -496,6 +508,7 @@ export function MoreScreen({
                     label={course.code}
                     color={course.color}
                     selected={selectedWidget.classFocusCourseId === course.id}
+                    selectedColor={customization.secondaryAccent}
                     onPress={() => {
                       setSelectedCourseId(course.id);
                       updateWidget({ classFocusCourseId: course.id, colorSource: "class" });
@@ -512,6 +525,7 @@ export function MoreScreen({
                     key={source}
                     label={colorSourceLabel(source)}
                     selected={selectedWidget.colorSource === source}
+                    selectedColor={customization.secondaryAccent}
                     locked={plusLocked && source === "custom"}
                     onPress={() => updateWidget({ colorSource: source })}
                   />
@@ -539,6 +553,7 @@ export function MoreScreen({
                     key={size}
                     label={displaySizeLabel(size)}
                     selected={selectedWidget.size === size}
+                    selectedColor={customization.secondaryAccent}
                     locked={plusLocked && (surface !== "home" || size === "large")}
                     onPress={() => updateWidget({ size })}
                   />
@@ -553,6 +568,7 @@ export function MoreScreen({
                     key={style}
                     label={labelForWidgetStyle(style)}
                     selected={selectedWidget.style === style}
+                    selectedColor={customization.secondaryAccent}
                     locked={plusLocked && style !== "clean"}
                     onPress={() => updateWidget({ style })}
                   />
@@ -645,6 +661,80 @@ function recommendedColor(contentType: WidgetStudioContentType, customization: R
   return customization.primaryAccent;
 }
 
+function recommendedWidgetProof(contentType: WidgetStudioContentType, course?: Course) {
+  const className = course?.code || course?.name || "the selected class";
+  if (contentType === "exam_countdown") {
+    return {
+      why: "keeps the next exam from sneaking up",
+      where: "Home Screen and Lock Screen",
+      data: "reviewed exams sorted by due date",
+      changes: "risk color, exam class color, urgency"
+    };
+  }
+  if (contentType === "next_assignment") {
+    return {
+      why: "puts the next real task first",
+      where: "Home Screen and Lock Screen",
+      data: "reviewed open assignments",
+      changes: "class color, class icon, due urgency"
+    };
+  }
+  if (contentType === "next_class") {
+    return {
+      why: "shows what room and class comes next",
+      where: "Home Screen",
+      data: "class meetings and room details",
+      changes: "class color and class icon"
+    };
+  }
+  if (contentType === "focus_window") {
+    return {
+      why: "turns the next task into a study block",
+      where: "Home Screen and Watch",
+      data: "focus queue and default timer",
+      changes: "focus accent and selected task"
+    };
+  }
+  if (contentType === "semester_progress") {
+    return {
+      why: "shows how much term runway is left",
+      where: "Home Screen",
+      data: "semester dates and open work",
+      changes: "secondary accent and progress"
+    };
+  }
+  if (contentType === "heavy_week_warning") {
+    return {
+      why: "warns before the week stacks up",
+      where: "Home Screen and Lock Screen",
+      data: "exams, open work, review inbox",
+      changes: "risk color and workload"
+    };
+  }
+  if (contentType === "free_time_forecast") {
+    return {
+      why: "shows if the week has breathing room",
+      where: "Home Screen",
+      data: "forecast load and focus sessions",
+      changes: "activity accent and workload"
+    };
+  }
+  if (contentType === "review_inbox_status") {
+    return {
+      why: "keeps unapproved imports visible",
+      where: "Home Screen and Lock Screen",
+      data: "parser review inbox",
+      changes: "urgency and inbox count"
+    };
+  }
+  return {
+    why: `keeps ${className} progress visible`,
+    where: "Home Screen and Watch",
+    data: `${className} assignments and completed work`,
+    changes: "class color, class icon, progress"
+  };
+}
+
 function SectionTitle({ title, note }: { title: string; note?: string }) {
   return (
     <View style={styles.sectionHeader}>
@@ -685,20 +775,25 @@ function Chip({
   selected,
   locked,
   color,
+  selectedColor,
   onPress
 }: {
   label: string;
   selected?: boolean;
   locked?: boolean;
   color?: string;
+  selectedColor?: string;
   onPress: () => void;
 }) {
+  const activeStyle = selected && selectedColor
+    ? { backgroundColor: withAlpha(selectedColor, 0.13), borderColor: withAlpha(selectedColor, 0.34) }
+    : null;
   return (
     <TouchableOpacity
       accessibilityRole="button"
       accessibilityState={{ selected, disabled: locked }}
       disabled={locked}
-      style={[styles.chip, selected ? styles.chipActive : null, locked ? styles.lockedChip : null]}
+      style={[styles.chip, selected ? styles.chipActive : null, activeStyle, locked ? styles.lockedChip : null]}
       onPress={onPress}
     >
       {color ? <View style={[styles.chipDot, { backgroundColor: color }]} /> : null}
@@ -1170,8 +1265,8 @@ const styles = StyleSheet.create({
     paddingRight: 4
   },
   recommendedCard: {
-    width: 142,
-    minHeight: 142,
+    width: 216,
+    minHeight: 224,
     borderRadius: 18,
     backgroundColor: "#FFFFFF",
     borderWidth: StyleSheet.hairlineWidth,
@@ -1201,6 +1296,12 @@ const styles = StyleSheet.create({
     lineHeight: 14,
     fontWeight: "700"
   },
+  recommendedProof: {
+    color: SPBoardColors.muted,
+    fontSize: 10,
+    lineHeight: 13,
+    fontWeight: "800"
+  },
   plusBadge: {
     alignSelf: "flex-start",
     overflow: "hidden",
@@ -1224,6 +1325,8 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 36,
     borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "transparent",
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",

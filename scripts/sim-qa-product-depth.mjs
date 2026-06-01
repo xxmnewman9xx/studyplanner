@@ -54,6 +54,10 @@ const captureTargets = [
   { key: "home-after-customization", route: { tab: "today", themeMode: "light", classColor: "#8B3DFF", secondaryAccent: "#EC4899", focusColor: "#22C55E", riskColor: "#FF5A1F", widgetCustomColor: "#EC4899" }, name: "53-home-after-customization" },
   { key: "forecast-after-customization", route: { tab: "plan", themeMode: "light", classColor: "#8B3DFF", secondaryAccent: "#EC4899", activityColor: "#21B8A7", riskColor: "#FF5A1F" }, name: "54-forecast-after-customization" },
   { key: "widget-watch-preview-customization", route: { tab: "more", themeMode: "light", classColor: "#8B3DFF", widgetType: "focus", widgetSize: "small", widgetPalette: "paper", widgetBackground: "light", widgetStudioStyle: "glass", widgetColorSource: "custom", widgetCustomColor: "#22C55E", watchPreviewStyle: "compact" }, name: "55-widget-watch-preview-customization" },
+  { key: "scan-starter-cta", route: { tab: "today", themeMode: "light", emptyPlanner: true }, name: "56-scan-starter-cta" },
+  { key: "empty-today", route: { tab: "today", themeMode: "light", emptyPlanner: true }, name: "57-empty-today" },
+  { key: "today-actions", route: { tab: "today", themeMode: "light" }, name: "58-today-reminder-calendar-actions" },
+  { key: "studio-customized-setup", route: { tab: "more", themeMode: "light", classColor: "#8B3DFF", secondaryAccent: "#EC4899", widgetType: "class_focus", widgetSize: "medium", widgetStudioStyle: "color_card", widgetColorSource: "custom", widgetCustomColor: "#EC4899", watchPreviewStyle: "cards" }, name: "59-studio-customized-setup" },
   { key: "paywall", route: { tab: "subscribe" }, name: "24-paywall" },
   { key: "grades", route: { tab: "grades" }, name: "25-grades" }
 ];

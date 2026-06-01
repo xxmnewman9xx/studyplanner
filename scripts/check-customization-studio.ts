@@ -157,6 +157,27 @@ assert(
   "Widget style and custom color should persist through storage."
 );
 
+const savedSetupCustomization = normalizeStudioCustomization({
+  ...reloadedCustomization,
+  savedSetupName: "Loaded semester setup",
+  secondaryAccent: "#8B3DFF",
+  focusTimerAccent: "#22C55E"
+}, now);
+const hydratedPlanner: PlannerData = JSON.parse(JSON.stringify({
+  ...persistedPlanner,
+  settings: {
+    ...persistedPlanner.settings,
+    customization: savedSetupCustomization
+  }
+}));
+const hydratedCustomization = normalizeStudioCustomization(hydratedPlanner.settings.customization, now);
+assert(
+  hydratedCustomization.savedSetupName === "Loaded semester setup" &&
+    hydratedCustomization.secondaryAccent === "#8B3DFF" &&
+    hydratedCustomization.homeWidgetPack[0]?.customColor === "#EC4899",
+  "Studio saved setup should reload after storage hydrate."
+);
+
 const defaultSnapshots = buildStudyPlannerWidgetSnapshots({
   semester,
   courses,
@@ -205,13 +226,40 @@ assert(
     forecastSource.includes("accentColor={physics?.color"),
   "Forecast cards should render class-backed cards from real class colors."
 );
+const focusSource = fs.readFileSync("src/screens/FocusScreen.tsx", "utf8");
+assert(
+  focusSource.includes("courseEmoji(selectedCourse)") &&
+    focusSource.includes("backgroundColor: selectedCourse.color"),
+  "Focus should show the selected class icon and color in the real timer flow."
+);
 assert(
   studioSource.includes("Customize StudyPlanner") &&
     studioSource.includes("Make every class, widget, and reminder feel like yours.") &&
     studioSource.includes("Recommended widgets") &&
+    studioSource.includes("Why: {proof.why}") &&
+    studioSource.includes("Where: {proof.where}") &&
+    studioSource.includes("Data: {proof.data}") &&
+    studioSource.includes("Changes with: {proof.changes}") &&
+    studioSource.includes("selectedColor={customization.secondaryAccent}") &&
     studioSource.includes("Lock Screen") &&
     studioSource.includes("Watch"),
-  "Studio should stay preview-first and include class, widget, lock, and watch customization surfaces."
+  "Studio should stay preview-first and explain recommendations, secondary accent states, lock, and watch customization surfaces."
+);
+const appSource = fs.readFileSync("App.tsx", "utf8");
+assert(
+  appSource.includes("customization: normalizeStudioCustomization(stored.settings?.customization || defaultSettings.customization)") &&
+    appSource.includes("customization: patch.customization") &&
+    appSource.includes("normalizeStudioCustomization(patch.customization)"),
+  "App storage hydrate and settings updates should normalize Studio customization."
+);
+assert(
+  todaySource.includes('label={t("today.scan_syllabus", "Scan syllabus")}') &&
+    todaySource.includes("onPress={onOpenScan}") &&
+    todaySource.includes('label={t("today.set_reminders", "Set reminders")}') &&
+    todaySource.includes("onPress={onScheduleReminders}") &&
+    todaySource.includes('label={t("today.sync_calendar", "Sync calendar")}') &&
+    todaySource.includes("onPress={onCalendarSync}"),
+  "Scenario-backed Today actions should remain wired to real Scan, reminders, and calendar handlers."
 );
 
 console.log("customization studio gates passed");

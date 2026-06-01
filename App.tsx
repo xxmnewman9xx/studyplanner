@@ -175,6 +175,7 @@ type CaptureRoute = {
   widgetLayout?: WidgetPreset["layout"];
   workloadState?: "standard" | "clean" | "urgent";
   depthAgeDays?: number;
+  emptyPlanner?: boolean;
   classColor?: string;
   secondaryAccent?: string;
   riskColor?: string;
@@ -205,6 +206,7 @@ function parseCaptureRoute(raw: string): CaptureRoute {
       widgetLayout?: unknown;
       workloadState?: unknown;
       depthAgeDays?: unknown;
+      emptyPlanner?: unknown;
       classColor?: unknown;
       secondaryAccent?: unknown;
       riskColor?: unknown;
@@ -232,6 +234,7 @@ function parseCaptureRoute(raw: string): CaptureRoute {
       widgetLayout: isCaptureWidgetLayout(value.widgetLayout) ? value.widgetLayout : undefined,
       workloadState: isCaptureWorkloadState(value.workloadState) ? value.workloadState : undefined,
       depthAgeDays: isCaptureDepthAge(value.depthAgeDays) ? value.depthAgeDays : undefined,
+      emptyPlanner: value.emptyPlanner === true,
       classColor: isCaptureHexColor(value.classColor) ? value.classColor : undefined,
       secondaryAccent: isCaptureHexColor(value.secondaryAccent) ? value.secondaryAccent : undefined,
       riskColor: isCaptureHexColor(value.riskColor) ? value.riskColor : undefined,
@@ -634,15 +637,17 @@ function AppContent() {
         setCaptureScrollY(scrollYForCaptureScreen(requestedRoute.screen));
         setCaptureOnboardingIndex(0);
         if (requestedRoute.themeMode) setMode(requestedRoute.themeMode);
-        const captureAssignments = assignmentsForCaptureWorkload(requestedRoute.workloadState);
-        const captureCourses = marketingCaptureCourses.map((course, index) =>
-          requestedRoute.classColor && index === 0
-            ? { ...course, color: requestedRoute.classColor, updatedAt: new Date().toISOString() }
-            : course
-        );
+        const captureAssignments = requestedRoute.emptyPlanner ? [] : assignmentsForCaptureWorkload(requestedRoute.workloadState);
+        const captureCourses = requestedRoute.emptyPlanner
+          ? []
+          : marketingCaptureCourses.map((course, index) =>
+              requestedRoute.classColor && index === 0
+                ? { ...course, color: requestedRoute.classColor, updatedAt: new Date().toISOString() }
+                : course
+            );
         setCourses(captureCourses);
         setAssignments(captureAssignments);
-        setGradeItems(marketingCaptureGradeItems);
+        setGradeItems(requestedRoute.emptyPlanner ? [] : marketingCaptureGradeItems);
         setNotes(buildDemoNotes(captureCourses));
         setSemester(marketingCaptureSemester);
         const captureAppTheme = requestedRoute.appTheme || "campus";

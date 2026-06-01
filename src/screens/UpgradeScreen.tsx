@@ -22,6 +22,8 @@ const paidFeatures = [
   { icon: Check, titleKey: "paywall.feature_review", detailKey: "paywall.feature_review_detail", fallbackTitle: "Review inbox", fallbackDetail: "Confirm uncertain dates and duplicates before they reach Today or widgets." },
   { icon: TrendingUp, titleKey: "paywall.feature_forecast", detailKey: "paywall.feature_forecast_detail", fallbackTitle: "Forecast", fallbackDetail: "See overload earlier and move study blocks before the week stacks up." },
   { icon: Layers3, titleKey: "paywall.feature_widgets", detailKey: "paywall.feature_widgets_detail", fallbackTitle: "Personalized widgets", fallbackDetail: "Save widgets that adapt to reviewed work, forecast state, and local memory." },
+  { icon: Timer, titleKey: "paywall.feature_focus", detailKey: "paywall.feature_focus_detail", fallbackTitle: "Focus and progress tools", fallbackDetail: "Start timed study sessions and keep completion feedback visible." },
+  { icon: Bell, titleKey: "paywall.feature_calendar", detailKey: "paywall.feature_calendar_detail", fallbackTitle: "Reminders and calendar sync", fallbackDetail: "Send reviewed deadlines to device reminders and calendar." },
   { icon: ShieldCheck, titleKey: "paywall.feature_memory", detailKey: "paywall.feature_memory_detail", fallbackTitle: "Local memory", fallbackDetail: "Focus sessions, notes, and saved widgets improve recommendations on this device." }
 ];
 
@@ -98,6 +100,8 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
           <PayoffPill icon={FileScan} label={t("paywall.imports", "Imports")} />
           <PayoffPill icon={Check} label={t("paywall.review", "Review")} />
           <PayoffPill icon={TrendingUp} label={t("paywall.forecast", "Forecast")} />
+          <PayoffPill icon={Timer} label={t("tabs.focus", "Focus")} />
+          <PayoffPill icon={Bell} label={t("paywall.reminders", "Reminders")} />
           <PayoffPill icon={Layers3} label={t("tabs.widgets", "Widgets")} />
         </View>
       </GlassCard>

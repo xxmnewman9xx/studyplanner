@@ -1,6 +1,7 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
+import { AppButton } from "../components/AppButton";
 import {
   SPAssignmentCard,
   SPBoardColors,
@@ -66,7 +67,11 @@ export function TodayScreen({
   onOpenAssignment,
   onOpenFocus,
   onOpenPlan,
-  onOpenClasses
+  onOpenClasses,
+  onScheduleReminders,
+  onCalendarSync,
+  onOpenScan,
+  onTryDemo
 }: TodayScreenProps) {
   const { t } = useI18n();
   const localizationAnchor = t("today.quick_capture", "Quick capture");
@@ -85,10 +90,54 @@ export function TodayScreen({
   const reviewCount = importHandoff?.reviewCount || plan.needsReview.length;
   const openCount = plan.openCount || assignments.filter((item) => item.status !== "done" && item.status !== "archived").length;
   const heavyItems = Math.max(plan.dueSoon.length, Math.min(openCount, 4));
+  const emptyPlanner = assignments.length === 0 && courses.length === 0;
+
+  if (emptyPlanner) {
+    return (
+      <View style={styles.screen}>
+        <SPHeroCard greeting={greetingForNow()} name={firstName} detail={demoMode ? demoLabel : undefined} />
+        <View style={styles.emptyCard}>
+          <Text style={styles.emptyKicker}>{t("today.empty_kicker", "Start here")}</Text>
+          <Text style={styles.emptyTitle}>{t("today.empty_title", "No schoolwork added yet")}</Text>
+          <Text style={styles.emptyCopy}>
+            {t("today.empty_copy", "Scan a syllabus or add one class. Today will stay clean until reviewed work is ready.")}
+          </Text>
+          <View style={styles.emptyActions}>
+            <AppButton label={t("today.scan_syllabus", "Scan syllabus")} onPress={onOpenScan} style={styles.emptyButton} />
+            <AppButton label={t("today.add_class", "Add class")} variant="secondary" onPress={onOpenClasses} style={styles.emptyButton} />
+          </View>
+          {onTryDemo ? (
+            <AppButton
+              label={t("today.try_demo", "Try sample planner")}
+              variant="quiet"
+              onPress={onTryDemo}
+            />
+          ) : null}
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.screen}>
       <SPHeroCard greeting={greetingForNow()} name={firstName} detail={demoMode ? demoLabel : undefined} />
+
+      {openCount > 0 ? (
+        <View style={styles.actionRail}>
+          <AppButton
+            label={t("today.set_reminders", "Set reminders")}
+            variant="secondary"
+            onPress={onScheduleReminders}
+            style={styles.actionButton}
+          />
+          <AppButton
+            label={t("today.sync_calendar", "Sync calendar")}
+            variant="secondary"
+            onPress={onCalendarSync}
+            style={styles.actionButton}
+          />
+        </View>
+      ) : null}
 
       <View style={styles.stack}>
         {studentLife ? (
@@ -204,6 +253,54 @@ const styles = StyleSheet.create({
   },
   stack: {
     gap: 11
+  },
+  actionRail: {
+    flexDirection: "row",
+    gap: 9,
+    marginBottom: 12
+  },
+  actionButton: {
+    flex: 1,
+    minWidth: 0
+  },
+  emptyCard: {
+    borderRadius: 26,
+    backgroundColor: "rgba(255,255,255,0.86)",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: SPBoardColors.line,
+    padding: 18,
+    gap: 10,
+    shadowColor: "#000000",
+    shadowOpacity: 0.06,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 2
+  },
+  emptyKicker: {
+    color: SPBoardColors.faint,
+    fontSize: 11,
+    lineHeight: 14,
+    fontWeight: "900"
+  },
+  emptyTitle: {
+    color: SPBoardColors.text,
+    fontSize: 27,
+    lineHeight: 32,
+    fontWeight: "900"
+  },
+  emptyCopy: {
+    color: SPBoardColors.muted,
+    fontSize: 15,
+    lineHeight: 21,
+    fontWeight: "700"
+  },
+  emptyActions: {
+    flexDirection: "row",
+    gap: 9
+  },
+  emptyButton: {
+    flex: 1,
+    minWidth: 0
   },
   heavyBars: {
     marginTop: 10,
