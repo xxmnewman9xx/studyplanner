@@ -57,10 +57,7 @@ import { AppLogo } from "./src/components/AppleComponents";
 import { ModeToggle } from "./src/components/ModeToggle";
 import { SPBottomTabBar } from "./src/components/StudyPlannerAppleBoard";
 import {
-  defaultAssignments,
-  defaultCourses,
   defaultFocusSessions,
-  defaultGradeItems,
   defaultSemester,
   defaultSettings,
   defaultWidgetPresets
@@ -119,13 +116,11 @@ import {
 } from "./src/widgets/widgetPresets";
 import { I18nProvider, supportedLocales, useI18n, type SupportedLocale } from "./src/i18n";
 import {
+  getMarketingCaptureData,
   getMarketingCaptureInitialTab,
   getMarketingCaptureScrollY,
   marketingCaptureAssignments,
-  marketingCaptureCourses,
   marketingCaptureEnabled,
-  marketingCaptureGradeItems,
-  marketingCaptureSemester,
   type MarketingCaptureScreen
 } from "./src/services/marketingCapture";
 
@@ -159,8 +154,8 @@ const mobilePrimaryTabIds = new Set<NavTab>(["today", "import", "plan", "courses
 const moreGroupTabIds = new Set<NavTab>(["more", "grades", "subscribe"]);
 
 function mobileTabLabel(tab: NavTab, fallback: string, t: (key: string, fallback?: string) => string) {
-  if (tab === "plan") return "Forecast";
-  if (tab === "courses") return "Semester";
+  if (tab === "plan") return t("paywall.forecast", "Forecast");
+  if (tab === "courses") return t("tabs.classes", "Classes");
   return tab === "more" ? t("tabs.widgets", "Widgets") : fallback;
 }
 
@@ -191,6 +186,7 @@ type CaptureRoute = {
   hardPaywall?: boolean;
   themeMode?: ThemeMode;
   locale?: SupportedLocale;
+  scrollY?: number;
 };
 
 function parseCaptureRoute(raw: string): CaptureRoute {
@@ -222,6 +218,7 @@ function parseCaptureRoute(raw: string): CaptureRoute {
       hardPaywall?: unknown;
       themeMode?: unknown;
       locale?: unknown;
+      scrollY?: unknown;
     };
     return {
       tab: isCaptureNavTab(value.tab) ? value.tab : null,
@@ -249,7 +246,8 @@ function parseCaptureRoute(raw: string): CaptureRoute {
       watchPreviewStyle: isCaptureWatchPreviewStyle(value.watchPreviewStyle) ? value.watchPreviewStyle : undefined,
       hardPaywall: value.hardPaywall === true,
       themeMode: isCaptureThemeMode(value.themeMode) ? value.themeMode : undefined,
-      locale: isCaptureLocale(value.locale) ? value.locale : undefined
+      locale: isCaptureLocale(value.locale) ? value.locale : undefined,
+      scrollY: isCaptureScrollY(value.scrollY) ? value.scrollY : undefined
     };
   } catch {
     const trimmed = raw.trim();
@@ -428,6 +426,10 @@ function isCaptureDepthAge(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 120;
 }
 
+function isCaptureScrollY(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 2400;
+}
+
 function isCaptureHexColor(value: unknown): value is string {
   return typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value);
 }
@@ -475,10 +477,10 @@ function scrollYForCaptureScreen(screen: MarketingCaptureScreen | undefined) {
   return null;
 }
 
-function assignmentsForCaptureWorkload(state: CaptureRoute["workloadState"]) {
+function assignmentsForCaptureWorkload(state: CaptureRoute["workloadState"], baseAssignments = marketingCaptureAssignments) {
   if (state === "clean") {
     const cleanDates = ["2026-06-03T23:59:00", "2026-06-05T17:00:00"];
-    return marketingCaptureAssignments.slice(0, 2).map((assignment, index) => ({
+    return baseAssignments.slice(0, 2).map((assignment, index) => ({
       ...assignment,
       dueAt: cleanDates[index] || assignment.dueAt,
       priority: "medium" as Assignment["priority"],
@@ -491,13 +493,13 @@ function assignmentsForCaptureWorkload(state: CaptureRoute["workloadState"]) {
 
   if (state === "urgent") {
     const urgentDates = [
-      "2026-05-25T11:30:00",
-      "2026-05-25T17:00:00",
-      "2026-05-25T23:59:00",
-      "2026-05-26T09:00:00",
-      "2026-05-26T20:00:00"
+      "2026-06-01T11:30:00",
+      "2026-06-01T17:00:00",
+      "2026-06-01T23:59:00",
+      "2026-06-02T09:00:00",
+      "2026-06-02T20:00:00"
     ];
-    return marketingCaptureAssignments.map((assignment, index) => ({
+    return baseAssignments.map((assignment, index) => ({
       ...assignment,
       dueAt: urgentDates[index] || assignment.dueAt,
       priority: "high" as Assignment["priority"],
@@ -508,7 +510,7 @@ function assignmentsForCaptureWorkload(state: CaptureRoute["workloadState"]) {
     }));
   }
 
-  return marketingCaptureAssignments;
+  return baseAssignments;
 }
 
 export default function App() {
@@ -531,13 +533,17 @@ function AppContent() {
   const tablet = width >= 760;
   const styles = useMemo(() => createStyles(theme, tablet), [theme, tablet]);
   const subscription = useSubscription();
+  const marketingFixture = useMemo(() => getMarketingCaptureData(locale), [locale]);
+  const marketingCaptureCourses = marketingFixture.courses;
+  const marketingCaptureAssignments = marketingFixture.assignments;
+  const marketingCaptureGradeItems = marketingFixture.gradeItems;
   const scrollRef = useRef<ScrollView>(null);
   const [onboarded, setOnboarded] = useState(marketingCaptureEnabled);
   const [paywallSeen, setPaywallSeen] = useState(marketingCaptureEnabled);
   const [postPaywallTab, setPostPaywallTab] = useState<NavTab>("import");
   const [activeTab, setActiveTab] = useState<NavTab>(getMarketingCaptureInitialTab());
   const [semester, setSemester] = useState(
-    marketingCaptureEnabled ? marketingCaptureSemester : defaultSemester
+    marketingCaptureEnabled ? marketingFixture.semester : defaultSemester
   );
   const [courses, setCourses] = useState<Course[]>(
     marketingCaptureEnabled ? marketingCaptureCourses : []
@@ -637,22 +643,24 @@ function AppContent() {
         setCaptureHardPaywall(Boolean(requestedRoute.hardPaywall));
         setCaptureScreenOverride(requestedRoute.screen);
         setCaptureImportSourceMode(requestedRoute.importSourceMode);
-        setCaptureScrollY(scrollYForCaptureScreen(requestedRoute.screen));
+        setCaptureScrollY(requestedRoute.scrollY ?? scrollYForCaptureScreen(requestedRoute.screen));
         setCaptureOnboardingIndex(0);
         if (requestedRoute.themeMode) setMode(requestedRoute.themeMode);
-        const captureAssignments = requestedRoute.emptyPlanner ? [] : assignmentsForCaptureWorkload(requestedRoute.workloadState);
+        const captureAssignments = requestedRoute.emptyPlanner
+          ? []
+          : assignmentsForCaptureWorkload(requestedRoute.workloadState, marketingFixture.assignments);
         const captureCourses = requestedRoute.emptyPlanner
           ? []
-          : marketingCaptureCourses.map((course, index) =>
+          : marketingFixture.courses.map((course, index) =>
               requestedRoute.classColor && index === 0
                 ? { ...course, color: requestedRoute.classColor, updatedAt: new Date().toISOString() }
                 : course
             );
         setCourses(captureCourses);
         setAssignments(captureAssignments);
-        setGradeItems(requestedRoute.emptyPlanner ? [] : marketingCaptureGradeItems);
-        setNotes(buildDemoNotes(captureCourses));
-        setSemester(marketingCaptureSemester);
+        setGradeItems(requestedRoute.emptyPlanner ? [] : marketingFixture.gradeItems);
+        setNotes(buildDemoNotes(captureCourses, t));
+        setSemester(marketingFixture.semester);
         const captureAppTheme = requestedRoute.appTheme || "campus";
         const captureWidgetPalette = requestedRoute.widgetPalette || "ocean";
         const captureWidgetBackground = requestedRoute.widgetBackground || "glass";
@@ -768,7 +776,7 @@ function AppContent() {
     return () => {
       mounted = false;
     };
-  }, [assignments.length, courses.length, gradeItems.length, hydrated, notes.length, setLocaleOverride]);
+  }, [assignments.length, courses.length, gradeItems.length, hydrated, marketingFixture, notes.length, setLocaleOverride, t]);
 
   useEffect(() => {
     if (!hydrated || captureScrollY === null) return;
@@ -1362,7 +1370,7 @@ function AppContent() {
     settingsPatch?: Partial<UserSettings>,
     requirePostOnboardingPaywall = false
   ) => {
-    const demo = buildDemoPlannerData();
+    const demo = buildDemoPlannerData(t, marketingFixture);
     setSemester(demo.semester);
     setCourses(demo.courses);
     setAssignments(demo.assignments);
@@ -1371,7 +1379,7 @@ function AppContent() {
     setParsedItems([]);
     setWidgetPresets(ensureCanonicalWidgetPresets(defaultWidgetPresets));
     setFocusSessions(demo.focusSessions);
-    setNotes(buildDemoNotes(demo.courses));
+    setNotes(buildDemoNotes(demo.courses, t));
     setStudentLifeMemory(seedStudentLifeMemoryForAge({
       ageDays: 7,
       assignments: demo.assignments,
@@ -1380,7 +1388,7 @@ function AppContent() {
     setDemoMode(true);
     setSettings((current) => ({ ...current, ...settingsPatch }));
     setImportHandoff({
-      sourceName: "Preview syllabus",
+      sourceName: marketingFixture.parseResult.sourceName,
       addedCount: demo.assignments.length,
       reviewCount: demo.assignments.filter((assignment) => assignment.needsReview).length,
       nextTitle: demo.assignments[0]?.title,
@@ -1660,6 +1668,7 @@ function AppContent() {
                 <PlanScreen
                   assignments={activeAssignments}
                   courses={courses}
+                  semester={semester}
                   sessions={focusSessions}
                   settings={settings}
                   studentLife={studentLifeContext}
@@ -2028,16 +2037,20 @@ function studentLifeFeatureForTab(tab: NavTab): StudentLifeFeature | null {
   return null;
 }
 
-function buildDemoPlannerData(now = new Date()) {
-  const demoCourses = defaultCourses.slice(0, 2);
+function buildDemoPlannerData(
+  t: (key: string, fallback?: string) => string,
+  fixture = getMarketingCaptureData(),
+  now = new Date()
+) {
+  const demoCourses = fixture.courses.slice(0, 2);
   const demoSemester = {
-    ...defaultSemester,
+    ...fixture.semester,
     id: "demo-semester",
-    name: "Preview Semester",
+    name: fixture.semester.name || t("today.preview_sample_plan", "Preview plan"),
     startDate: dateOffset(now, -28),
     endDate: dateOffset(now, 84)
   };
-  const demoAssignments = defaultAssignments.slice(0, 6).map((assignment, index) => {
+  const demoAssignments = fixture.assignments.slice(0, 6).map((assignment, index) => {
     const course = demoCourses[index % demoCourses.length] || demoCourses[0];
     const offsets = [0, 1, 2, 4, 7, 10];
     const dueDate = dateOffset(now, offsets[index] ?? index + 1);
@@ -2062,29 +2075,33 @@ function buildDemoPlannerData(now = new Date()) {
     semester: demoSemester,
     courses: demoCourses,
     assignments: demoAssignments,
-    gradeItems: defaultGradeItems.filter((item) => demoCourses.some((course) => course.id === item.courseId)),
-    focusSessions: defaultFocusSessions.map((session) => ({
+    gradeItems: fixture.gradeItems.filter((item) => demoCourses.some((course) => course.id === item.courseId)),
+    focusSessions: defaultFocusSessions.slice(0, 3).map((session, index) => ({
       ...session,
       id: `demo-${session.id}`,
-      assignmentId: `demo-${session.assignmentId}`,
+      assignmentId: demoAssignments[index % Math.max(demoAssignments.length, 1)]?.id || session.assignmentId,
       startedAt: `${dateOffset(now, -1)}T16:00:00`,
       endedAt: `${dateOffset(now, -1)}T16:25:00`
     }))
   };
 }
 
-function buildDemoNotes(courses: Course[]): StudyNote[] {
+function buildDemoNotes(courses: Course[], t: (key: string, fallback?: string) => string): StudyNote[] {
   const now = new Date().toISOString();
   return courses.slice(0, 3).map((course, index) => ({
     id: `demo-note-${course.id}`,
     courseId: course.id,
-    title: index === 0 ? "Teacher preferences" : index === 1 ? "Exam study plan" : "Project rubric clues",
-    body: index === 0
-      ? "Prefers concise answers, show work, and submit lab reflections before class starts."
+    title: index === 0
+      ? t("notes.class_note", "Class note")
       : index === 1
-        ? "Make a one-page formula sheet, redo missed quiz questions, then run a 25-minute focus block."
-        : "Rubric rewards source quality, clean outline, and a short reflection paragraph.",
-    tags: ["demo", "class-context"],
+        ? t("focus.predicted_block", "Predicted block")
+        : t("notes.memory_kicker", "What I learned"),
+    body: index === 0
+      ? t("notes.workflow_agenda_copy", "Capture what changed.")
+      : index === 1
+        ? t("focus.notes_copy", "Optional notes attach to this focus block, so studying creates useful history instead of just a timer log.")
+        : t("depth.learned_prefix", "Learned: {pattern}").replace("{pattern}", course.name || course.code),
+    tags: [t("app.system_demo", "Preview"), t("classes.class_fallback", "Class")],
     pinned: index === 0,
     createdAt: now,
     updatedAt: now

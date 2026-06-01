@@ -20,9 +20,9 @@ type LegalDocument = "terms" | "privacy";
 const paidFeatures = [
   { icon: FileScan, titleKey: "paywall.feature_scans", detailKey: "paywall.feature_scans_detail", fallbackTitle: "Syllabus imports", fallbackDetail: "Turn syllabus text, PDFs, and pasted assignments into an editable plan." },
   { icon: Check, titleKey: "paywall.feature_review", detailKey: "paywall.feature_review_detail", fallbackTitle: "Review inbox", fallbackDetail: "Confirm uncertain dates and duplicates before they reach Today or widgets." },
-  { icon: TrendingUp, titleKey: "paywall.feature_forecast", detailKey: "paywall.feature_forecast_detail", fallbackTitle: "Forecast", fallbackDetail: "See overload earlier and move study blocks before the week stacks up." },
-  { icon: Layers3, titleKey: "paywall.feature_widgets", detailKey: "paywall.feature_widgets_detail", fallbackTitle: "Personalized widgets", fallbackDetail: "Save widgets that adapt to reviewed work, forecast state, and local memory." },
-  { icon: Timer, titleKey: "paywall.feature_focus", detailKey: "paywall.feature_focus_detail", fallbackTitle: "Focus and progress tools", fallbackDetail: "Start timed study sessions and keep completion feedback visible." },
+  { icon: TrendingUp, titleKey: "paywall.feature_forecast", detailKey: "paywall.feature_forecast_detail", fallbackTitle: "Advanced Pulse + Forecast", fallbackDetail: "See your score, status, peak week, and recommended action before trouble stacks up." },
+  { icon: Layers3, titleKey: "paywall.feature_widgets", detailKey: "paywall.feature_widgets_detail", fallbackTitle: "Pulse widgets and Watch", fallbackDetail: "Put Semester Pulse, next due, exam countdown, future risk, and focus windows on external surfaces." },
+  { icon: Timer, titleKey: "paywall.feature_focus", detailKey: "paywall.feature_focus_detail", fallbackTitle: "Focus that improves Pulse", fallbackDetail: "Start timed study sessions and turn real work into wins and better recommendations." },
   { icon: Bell, titleKey: "paywall.feature_calendar", detailKey: "paywall.feature_calendar_detail", fallbackTitle: "Reminders and calendar sync", fallbackDetail: "Send reviewed deadlines to device reminders and calendar." },
   { icon: ShieldCheck, titleKey: "paywall.feature_memory", detailKey: "paywall.feature_memory_detail", fallbackTitle: "Local memory", fallbackDetail: "Focus sessions, notes, and saved widgets improve recommendations on this device." }
 ];
@@ -49,7 +49,7 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
   const hasProducts = subscription.products.length > 0;
   const productIdSourceLabel =
     purchaseConfig.productIdSource === "environment"
-      ? t("paywall.product_source_build_env", "Store plans")
+      ? t("paywall.product_source_build_env", "Current store pricing")
       : t("paywall.product_source_release_manifest", "Current plans");
   const planStateTitle = subscription.isPremium
     ? t("paywall.unlocked", "StudyPlanner is unlocked")
@@ -78,8 +78,8 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
   const heroTitle = "Unlock StudyPlanner";
   const localizedHeroTitle = t("paywall.title", heroTitle);
   const heroSubtitle = hardMode
-    ? t("paywall.hard_subtitle", "Unlock syllabus import, review inbox, forecast, personalized widgets, and local adaptation.")
-    : t("paywall.subtitle", "Keep the full syllabus-to-plan workflow ready for a busy semester.");
+    ? t("paywall.hard_subtitle", "Unlock advanced Semester Pulse, forecast, widgets, Watch, imports, and local adaptation.")
+    : t("paywall.subtitle", "Keep the semester control system ready across iPhone, widgets, and Apple Watch.");
 
   if (legalDocument) {
     return <LegalNotice document={legalDocument} onClose={() => setLegalDocument(null)} />;
@@ -119,7 +119,7 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
       <View style={[styles.planStateCard, subscription.errorMessage || plansUnavailable ? styles.planStateCardWarning : hasProducts || subscription.isPremium ? styles.planStateCardReady : null]}>
         <View style={styles.planStateTopRow}>
           <View style={styles.planStateCopy}>
-            <Text style={styles.planStateKicker}>{t("paywall.app_store", "App Store")} · {productIdSourceLabel}</Text>
+            <Text style={styles.planStateKicker}>{productIdSourceLabel}</Text>
             <Text style={styles.planStateTitle}>{planStateTitle}</Text>
           </View>
           {busy || loadingPlans ? <ActivityIndicator color={colors.accent} /> : <ShieldCheck color={hasProducts || subscription.isPremium ? colors.green : colors.muted} size={19} />}

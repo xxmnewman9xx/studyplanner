@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { SPBoardColors } from "./StudyPlannerAppleBoard";
+import { pulseStatusColor, type SemesterPulseStatus } from "../logic/semesterPulse";
 
 type SemesterPulseProps = {
   label: string;
@@ -10,6 +11,11 @@ type SemesterPulseProps = {
   bars: number[];
   accentColor?: string;
   quiet?: boolean;
+  score?: number;
+  status?: SemesterPulseStatus;
+  trendLabel?: string;
+  topReason?: string;
+  nextAction?: string;
 };
 
 export function SemesterPulse({
@@ -18,18 +24,41 @@ export function SemesterPulse({
   detail,
   bars,
   accentColor = SPBoardColors.blue,
-  quiet
+  quiet,
+  score,
+  status,
+  trendLabel,
+  topReason,
+  nextAction
 }: SemesterPulseProps) {
   const safeBars = normalizeBars(bars);
+  const statusColor = status ? pulseStatusColor(status) : accentColor;
+  const hasScore = typeof score === "number" && Number.isFinite(score);
   return (
     <View style={[styles.shell, quiet ? styles.shellQuiet : null]}>
-      <View style={styles.copyRow}>
-        <View style={styles.copyBlock}>
-          <Text style={[styles.label, quiet ? styles.labelQuiet : null]} numberOfLines={1}>{label}</Text>
-          <Text style={[styles.value, quiet ? styles.valueQuiet : null]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.74}>{value}</Text>
+      {hasScore ? (
+        <View style={styles.scoreHeader}>
+          <View style={styles.scoreBlock}>
+            <Text style={[styles.label, quiet ? styles.labelQuiet : null]} numberOfLines={1}>{label}</Text>
+            <View style={styles.scoreRow}>
+              <Text style={[styles.scoreValue, quiet ? styles.valueQuiet : null]} numberOfLines={1}>{Math.round(score)}</Text>
+              <View style={[styles.statusPill, { backgroundColor: withAlpha(statusColor, quiet ? 0.13 : 0.24) }]}>
+                <Text style={[styles.statusText, { color: quiet ? statusColor : "#FFFFFF" }]} numberOfLines={1}>{status || value}</Text>
+              </View>
+            </View>
+          </View>
+          {trendLabel ? <Text style={[styles.trend, quiet ? styles.trendQuiet : null]} numberOfLines={1}>{trendLabel}</Text> : null}
         </View>
-        {detail ? <Text style={[styles.detail, quiet ? styles.detailQuiet : null]} numberOfLines={2}>{detail}</Text> : null}
-      </View>
+      ) : (
+        <View style={styles.copyRow}>
+          <View style={styles.copyBlock}>
+            <Text style={[styles.label, quiet ? styles.labelQuiet : null]} numberOfLines={1}>{label}</Text>
+            <Text style={[styles.value, quiet ? styles.valueQuiet : null]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.74}>{value}</Text>
+          </View>
+          {detail ? <Text style={[styles.detail, quiet ? styles.detailQuiet : null]} numberOfLines={2}>{detail}</Text> : null}
+        </View>
+      )}
+      {hasScore && topReason ? <Text style={[styles.reason, quiet ? styles.reasonQuiet : null]} numberOfLines={2}>{topReason}</Text> : null}
       <View style={styles.rail}>
         {safeBars.map((height, index) => {
           const active = height >= 0.72 || index === peakIndex(safeBars);
@@ -48,6 +77,11 @@ export function SemesterPulse({
           );
         })}
       </View>
+      {hasScore && nextAction ? (
+        <View style={[styles.actionStrip, quiet ? styles.actionStripQuiet : null]}>
+          <Text style={[styles.actionText, quiet ? styles.actionTextQuiet : null]} numberOfLines={2}>{nextAction}</Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -99,6 +133,22 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0
   },
+  scoreHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 10
+  },
+  scoreBlock: {
+    flex: 1,
+    minWidth: 0
+  },
+  scoreRow: {
+    marginTop: 3,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8
+  },
   label: {
     color: "rgba(255,255,255,0.76)",
     fontSize: 9,
@@ -119,6 +169,35 @@ const styles = StyleSheet.create({
   valueQuiet: {
     color: SPBoardColors.text
   },
+  scoreValue: {
+    color: "#FFFFFF",
+    fontSize: 46,
+    lineHeight: 49,
+    fontWeight: "900",
+    fontVariant: ["tabular-nums"]
+  },
+  statusPill: {
+    minHeight: 26,
+    borderRadius: 13,
+    paddingHorizontal: 9,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  statusText: {
+    fontSize: 12,
+    lineHeight: 15,
+    fontWeight: "900"
+  },
+  trend: {
+    color: "rgba(255,255,255,0.74)",
+    fontSize: 12,
+    lineHeight: 15,
+    fontWeight: "900",
+    textAlign: "right"
+  },
+  trendQuiet: {
+    color: SPBoardColors.muted
+  },
   detail: {
     flex: 1,
     color: "rgba(255,255,255,0.72)",
@@ -129,6 +208,15 @@ const styles = StyleSheet.create({
   },
   detailQuiet: {
     color: SPBoardColors.muted
+  },
+  reason: {
+    color: "rgba(255,255,255,0.84)",
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: "800"
+  },
+  reasonQuiet: {
+    color: SPBoardColors.text
   },
   rail: {
     height: 42,
@@ -146,5 +234,23 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 14,
     borderRadius: 7
+  },
+  actionStrip: {
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.16)",
+    paddingHorizontal: 10,
+    paddingVertical: 8
+  },
+  actionStripQuiet: {
+    backgroundColor: "#F4F5F7"
+  },
+  actionText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    lineHeight: 17,
+    fontWeight: "900"
+  },
+  actionTextQuiet: {
+    color: SPBoardColors.text
   }
 });

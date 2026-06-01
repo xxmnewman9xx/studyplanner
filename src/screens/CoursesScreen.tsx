@@ -5,6 +5,8 @@ import { BookOpen, ChevronRight, GraduationCap, Timer } from "lucide-react-nativ
 import { SPBoardColors, SPSemesterRing } from "../components/StudyPlannerAppleBoard";
 import { Assignment, AssignmentKind, Course, Semester, StudyNote } from "../models";
 import type { StudentLifeContext } from "../logic/studentLifeDepth";
+import { localizedStudentLifeCopy } from "../logic/studentLifeCopy";
+import { buildSemesterPulseSignal, pulseStatusColor } from "../logic/semesterPulse";
 import { useI18n } from "../i18n";
 
 type CoursesScreenProps = {
@@ -27,49 +29,52 @@ type CoursesScreenProps = {
 };
 
 export function CoursesScreen({ semester, courses, assignments, notes = [], studentLife, onOpenAssignment, onOpenNotes }: CoursesScreenProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const localizationAnchor = t("classes.course_hub", "Course hub");
   void localizationAnchor;
 
   const openAssignments = assignments.filter((item) => item.status !== "done" && item.status !== "archived" && !item.needsReview);
   const exams = openAssignments.filter((item) => item.kind === "exam");
   const progress = semesterProgress(semester);
+  const pulse = buildSemesterPulseSignal({ assignments, courses, semester, studentLife });
   const daysLeft = daysUntilSemesterEnd(semester) || 32;
   const timeline = useMemo(() => buildMiniTimeline(openAssignments), [openAssignments]);
   const firstCourse = courses[0];
   const selectedAssignments = firstCourse ? openAssignments.filter((assignment) => assignment.courseId === firstCourse.id).slice(0, 3) : [];
+  const classDepthCopy = studentLife ? localizedStudentLifeCopy("classes", studentLife.classes, t) : null;
 
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
         <Text style={styles.title}>{semester.name || "Spring Semester"}</Text>
-        <Text style={styles.subtitle}>Your semester, simplified.</Text>
+        <Text style={styles.subtitle}>{t("classes.semester_subtitle", "Your semester, simplified.")}</Text>
       </View>
 
       <View style={styles.progressCard}>
-        <SPSemesterRing progress={progress} />
+        <SPSemesterRing progress={pulse.progress || progress} label={pulse.status} color={pulseStatusColor(pulse.status)} />
         <View style={styles.summaryStack}>
-          <SummaryLine value={String(daysLeft)} label="Days left" />
-          <SummaryLine value={String(Math.max(openAssignments.length, 18))} label="Tasks left" />
-          <SummaryLine value={String(Math.max(exams.length, 4))} label="Exams left" />
+          <SummaryLine value={String(pulse.score)} label={t("today.semester_pulse", "Semester Pulse")} />
+          <SummaryLine value={String(daysLeft)} label={t("classes.days_left", "Days left")} />
+          <SummaryLine value={String(Math.max(openAssignments.length, 18))} label={t("classes.tasks_left", "Tasks left")} />
+          <SummaryLine value={String(Math.max(exams.length, 4))} label={t("classes.exams_left", "Exams left")} />
         </View>
       </View>
 
       {studentLife ? (
         <View style={styles.depthCard}>
           <Text style={styles.depthKicker}>{t("depth.what_i_learned", "What I learned")}</Text>
-          <Text style={styles.depthTitle}>{studentLife.classes.learned}</Text>
-          <Text style={styles.depthCopy}>{studentLife.classes.recommendation}</Text>
+          <Text style={styles.depthTitle}>{pulse.classRisk ? `${pulse.classRisk.course.code || pulse.classRisk.course.name} is driving the Pulse.` : classDepthCopy?.learned || studentLife.classes.learned}</Text>
+          <Text style={styles.depthCopy}>{pulse.classRisk ? pulse.supportReason : classDepthCopy?.recommendation || studentLife.classes.recommendation}</Text>
         </View>
       ) : null}
 
       <View style={styles.weekCard}>
         <View style={styles.weekHeader}>
           <View>
-            <Text style={styles.weekTitle}>This week</Text>
-            <Text style={styles.weekRange}>May 12 - May 18</Text>
+            <Text style={styles.weekTitle}>{t("today.this_week", "This week")}</Text>
+            <Text style={styles.weekRange}>{formatWeekRange(locale)}</Text>
           </View>
-          <Text style={styles.workloadBadge}>High workload</Text>
+          <Text style={styles.workloadBadge}>{t("classes.high_workload", "High workload")}</Text>
         </View>
         <View style={styles.timeline}>
           {timeline.map((day) => (
@@ -88,18 +93,20 @@ export function CoursesScreen({ semester, courses, assignments, notes = [], stud
         <SemesterRow
           tone="blue"
           icon={BookOpen}
-          title="Assignments"
-          detail={`${Math.max(2, openAssignments.filter((item) => item.kind !== "exam").length)} due`}
+          title={t("import.assignments", "Assignments")}
+          detail={formatLocalized(t("classes.assignments_due", "{count} due"), {
+            count: String(Math.max(2, openAssignments.filter((item) => item.kind !== "exam").length))
+          })}
           onPress={() => selectedAssignments[0] ? onOpenAssignment(selectedAssignments[0].id) : undefined}
         />
         <SemesterRow
           tone="orange"
           icon={GraduationCap}
-          title="Exams"
-          detail={`${Math.max(1, exams.length)} this week`}
+          title={t("import.exams", "Exams")}
+          detail={formatLocalized(t("classes.exams_this_week", "{count} this week"), { count: String(Math.max(1, exams.length)) })}
           onPress={() => exams[0] ? onOpenAssignment(exams[0].id) : undefined}
         />
-        <SemesterRow tone="green" icon={Timer} title="Focus" detail="Keep your streak" onPress={onOpenNotes} />
+        <SemesterRow tone="green" icon={Timer} title={t("tabs.focus", "Focus")} detail={t("classes.keep_your_streak", "Keep your streak")} onPress={onOpenNotes} />
       </View>
     </View>
   );
@@ -161,12 +168,23 @@ function daysUntilSemesterEnd(semester: Semester) {
 
 function buildMiniTimeline(assignments: Assignment[]) {
   const colors = [SPBoardColors.orange, SPBoardColors.blue, SPBoardColors.teal, SPBoardColors.green];
-  return ["12", "13", "14", "15", "16", "17", "18"].map((day, index) => ({
+  return ["1", "2", "3", "4", "5", "6", "7"].map((day, index) => ({
     day,
     letter: ["M", "T", "W", "T", "F", "S", "S"][index] || "",
-    active: index === 1,
+    active: index === 0,
     dots: assignments.slice(index % 2, (index % 2) + 3).map((_, dotIndex) => colors[(index + dotIndex) % colors.length] || SPBoardColors.blue)
   }));
+}
+
+function formatWeekRange(locale: string) {
+  const start = new Date("2026-06-01T12:00:00");
+  const end = new Date("2026-06-07T12:00:00");
+  const formatter = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" });
+  return `${formatter.format(start)} - ${formatter.format(end)}`;
+}
+
+function formatLocalized(template: string, values: Record<string, string>) {
+  return Object.entries(values).reduce((current, [key, value]) => current.replaceAll(`{${key}}`, value), template);
 }
 
 const styles = StyleSheet.create({

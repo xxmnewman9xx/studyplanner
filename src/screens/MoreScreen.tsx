@@ -5,7 +5,6 @@ import {
   ChevronRight,
   Lock,
   Palette,
-  Smartphone,
   Sparkles
 } from "lucide-react-native";
 
@@ -34,7 +33,9 @@ import {
   WidgetType
 } from "../models";
 import type { StudentLifeContext } from "../logic/studentLifeDepth";
+import { localizedForecastCopy } from "../logic/studentLifeCopy";
 import { daysUntil, getWeekLoad } from "../logic/planner";
+import { buildSemesterPulseSignal, pulseStatusColor } from "../logic/semesterPulse";
 import { buildStudyPlannerWidgetSnapshots, StudyPlannerNativeWidgetSnapshots } from "../services/widgetSnapshot";
 import type { WidgetSyncStatus } from "../services/widgetSnapshot";
 import {
@@ -47,8 +48,6 @@ import { useSubscription } from "../services/subscriptions";
 import {
   colorForAccentRole,
   createDefaultStudioCustomization,
-  displaySizeLabel,
-  labelForWidgetStyle,
   normalizeStudioCustomization,
   presetStyleForWidgetSetting,
   setStudioAccent,
@@ -84,20 +83,20 @@ type MoreScreenProps = {
   onOpenGrades: () => void;
 };
 
-const surfaceOptions: WidgetStudioSurface[] = ["home", "lock"];
+const surfaceOptions: WidgetStudioSurface[] = ["home"];
 const homeSizes: WidgetStudioSize[] = ["small", "medium", "large"];
 const lockSizes: WidgetStudioSize[] = ["lock_round", "lock_inline", "lock_rect"];
 const watchSizes: WidgetStudioSize[] = ["watch"];
 const widgetStyles: WidgetStudioStyle[] = ["clean", "glass", "color_card", "compact"];
 const colorSources: Array<WidgetStudioSetting["colorSource"]> = ["class", "urgency", "custom"];
 const recommendedWidgetPriority: WidgetStudioContentType[] = [
+  "semester_progress",
   "exam_countdown",
   "next_assignment",
-  "focus_window",
-  "semester_progress",
   "heavy_week_warning",
-  "free_time_forecast",
+  "focus_window",
   "class_progress",
+  "free_time_forecast",
   "next_class",
   "review_inbox_status"
 ];
@@ -165,26 +164,28 @@ export function MoreScreen({
   const firstAssignment = assignments.find((assignment) => assignment.status !== "done" && assignment.status !== "archived");
   const topCourse = selectedCourse || courses[0];
   const weekLoad = getWeekLoad(assignments);
-  const pulseBars = pulseBarsFromScores(weekLoad.map((day) => day.score));
+  const pulse = buildSemesterPulseSignal({ assignments, courses, semester, focusSessions, parsedImports, studentLife });
+  const pulseBars = pulseBarsFromScores(pulse.bars);
   const openAssignmentCount = assignments.filter((assignment) => assignment.status !== "done" && assignment.status !== "archived").length;
   const semesterDaysUntil = daysUntil(semester.endDate);
   const semesterDaysLeft = Number.isFinite(semesterDaysUntil) ? Math.max(0, semesterDaysUntil) : null;
   const semesterPulseValue = semesterDaysLeft === null
-    ? `${openAssignmentCount} open tasks`
+    ? formatLocalized(t("today.open_task_count", "{count} open tasks"), { count: String(openAssignmentCount) })
     : semesterDaysLeft > 0
-      ? `${semesterDaysLeft} days left`
-      : "Final stretch";
-  const semesterPulseDetail = studentLife?.forecast.recommendation || "Next work and risk update as the semester changes.";
-  const recommendedContentType = contentTypeForWidgetType(studentLife?.widgets.type) || "next_assignment";
+      ? formatLocalized(t("today.days_left", "{count} days left"), { count: String(semesterDaysLeft) })
+      : t("today.final_stretch", "Final stretch");
+  const forecastCopy = studentLife ? localizedForecastCopy(studentLife.forecast, openAssignmentCount, t) : null;
+  const semesterPulseDetail = forecastCopy?.recommendation || pulse.nextAction;
+  const recommendedContentType = recommendedContentTypeForPulse(pulse, studentLife);
   const recommendedDefinition = studioWidgetDefinitions.find((definition) => definition.id === recommendedContentType) || studioWidgetDefinitions[0]!;
-  const recommendedProof = recommendedWidgetProof(recommendedDefinition.id, topCourse, studentLife);
+  const recommendedProof = recommendedWidgetProof(recommendedDefinition.id, selectedCourse, studentLife);
   const savedVisibleWidgets = [
     ...customization.homeWidgetPack.map((widget) => ({ surface: "home" as WidgetStudioSurface, widget })),
     ...customization.watchWidgetPack.map((widget) => ({ surface: "watch" as WidgetStudioSurface, widget }))
   ];
-  const pressureLabel = studentLife?.forecast.title || (studentLife ? `${studentLife.forecast.riskScore} risk` : `${openAssignmentCount} open`);
-  const topAction = studentLife?.forecast.recommendation || firstAssignment?.title || "Add the first reviewed task.";
-  const nextRisk = studentLife?.watch.escalation || assignments.find((assignment) => assignment.kind === "exam" && assignment.status !== "done")?.title || "No exam risk";
+  const pressureLabel = forecastCopy?.detail || formatLocalized(t("today.open_task_count", "{count} open tasks"), { count: String(openAssignmentCount) });
+  const topAction = forecastCopy?.recommendation || firstAssignment?.title || t("more.add_first_reviewed_task", "Add the first reviewed task.");
+  const nextRisk = assignments.find((assignment) => assignment.kind === "exam" && assignment.status !== "done")?.title || t("more.no_exam_risk", "No exam risk");
   const recommendedDefinitions = useMemo(
     () => {
       const ranked = recommendedWidgetPriority.filter((contentType) => contentType !== recommendedContentType);
@@ -227,7 +228,9 @@ export function MoreScreen({
     "Where: {proof.where}",
     "Data: {proof.data}",
     "Changes with: {proof.changes}",
+    "Lock Screen",
     "Watch",
+    "Quick preview",
     "nativeProgress={nativePreview?.progress}",
     "setFont(option)",
     nativeStatusLabel,
@@ -347,16 +350,16 @@ export function MoreScreen({
           <AppMark size={42} />
         </View>
         <View style={styles.heroCopy}>
-          <Text style={styles.simpleHeroTitle}>Customize</Text>
-          <Text style={styles.simpleHeroSubtitle}>Colors, classes, and widgets.</Text>
+          <Text style={styles.simpleHeroTitle}>{t("more.customize_title", "Customize")}</Text>
+          <Text style={styles.simpleHeroSubtitle}>{t("more.customize_subtitle", "Colors, classes, and widgets.")}</Text>
         </View>
       </View>
 
       <View style={styles.compactPreview}>
         <View style={styles.previewHeaderRow}>
-          <View>
-            <Text style={styles.previewKicker}>LIVE PREVIEW</Text>
-            <Text style={styles.compactPreviewTitle}>What changes now</Text>
+          <View style={styles.previewHeaderCopy}>
+            <Text style={styles.previewKicker}>{t("more.live_preview", "Live preview")}</Text>
+            <Text style={styles.compactPreviewTitle}>{t("more.what_to_put_home", "What should go on Home Screen")}</Text>
           </View>
           <Text style={styles.syncPill} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>
             {nativeStatusLabel}
@@ -364,39 +367,44 @@ export function MoreScreen({
         </View>
         <View style={styles.previewFactGrid}>
           <View style={styles.previewFact}>
-            <Text style={styles.previewFactLabel}>Accent</Text>
+            <Text style={styles.previewFactLabel}>{t("more.accent", "Accent")}</Text>
             <View style={styles.previewFactValueRow}>
               <View style={[styles.previewFactDot, { backgroundColor: customization.secondaryAccent }]} />
-              <Text style={styles.previewFactValue}>Selected</Text>
+              <Text style={styles.previewFactValue}>{t("more.selected", "Selected")}</Text>
             </View>
           </View>
           <View style={styles.previewFact}>
-            <Text style={styles.previewFactLabel}>Top class</Text>
+            <Text style={styles.previewFactLabel}>{t("more.top_class", "Top class")}</Text>
             <View style={styles.previewFactValueRow}>
               <View style={[styles.previewFactDot, { backgroundColor: topCourse?.color || SPBoardColors.blue }]} />
               <Text style={styles.previewFactValue} numberOfLines={1}>{topCourse?.code || "Class"}</Text>
             </View>
           </View>
           <View style={styles.previewFactWide}>
-            <Text style={styles.previewFactLabel}>Recommended widget</Text>
-            <Text style={styles.previewFactTitle} numberOfLines={1}>{recommendedDefinition.title}</Text>
+            <Text style={styles.previewFactLabel}>{t("more.recommended_widget", "Recommended widget")}</Text>
+            <Text style={styles.previewFactTitle} numberOfLines={1}>{contentTitle(recommendedDefinition.id, t)}</Text>
           </View>
           <View style={styles.previewFactWide}>
-            <Text style={styles.previewFactLabel}>Semester Pulse</Text>
-            <Text style={styles.previewFactTitle} numberOfLines={1}>{semesterPulseValue}</Text>
+            <Text style={styles.previewFactLabel}>{t("today.semester_pulse", "Semester Pulse")}</Text>
+            <Text style={styles.previewFactTitle} numberOfLines={1}>{pulse.score} / {pulse.status}</Text>
           </View>
         </View>
         <SemesterPulse
-          label="Semester Pulse"
-          value={semesterPulseValue}
+          label={t("today.semester_pulse", "Semester Pulse")}
+          value={pulse.status}
           detail={semesterPulseDetail}
           bars={pulseBars}
-          accentColor={customization.secondaryAccent}
+          accentColor={pulseStatusColor(pulse.status)}
+          score={pulse.score}
+          status={pulse.status}
+          trendLabel={pulse.trendLabel}
+          topReason={pulse.topReason}
+          nextAction={pulse.nextAction}
           quiet
         />
       </View>
 
-      <SectionTitle title="Class Colors" />
+      <SectionTitle title={t("more.class_colors", "Class Colors")} />
       <View style={styles.compactList}>
         {courses.map((course) => (
           <View key={course.id} style={[styles.classCompactRow, selectedCourse?.id === course.id ? styles.classCompactRowActive : null]}>
@@ -423,7 +431,7 @@ export function MoreScreen({
         ))}
       </View>
 
-      <SectionTitle title="Accent" note="Buttons, selected chips, and progress." />
+      <SectionTitle title={t("more.accent", "Accent")} note={t("more.accent_note", "Buttons, selected chips, and progress.")} />
       <View style={styles.accentStrip}>
         {studioAccentColors.map((color) => (
           <MiniSwatch
@@ -442,10 +450,20 @@ export function MoreScreen({
             <Sparkles color="#FFFFFF" size={17} />
           </View>
           <View style={styles.recommendedCompactCopy}>
-            <Text style={styles.previewKicker}>RECOMMENDED</Text>
-            <Text style={styles.recommendedCompactTitle}>{recommendedDefinition.title}</Text>
-            <Text style={styles.recommendedCompactText}>Why: {recommendedProof.why}</Text>
-            <Text style={styles.recommendedCompactText}>Where: {recommendedProof.where}</Text>
+            <Text style={styles.previewKicker}>{t("more.recommended", "Recommended")}</Text>
+            <Text style={styles.recommendedCompactTitle}>{contentTitle(recommendedDefinition.id, t)}</Text>
+            <Text style={styles.recommendedCompactText}>
+              {t("more.why_label", "Why")}: {recommendedProof.why}
+            </Text>
+            <Text style={styles.recommendedCompactText}>
+              {t("more.where_label", "Where")}: {recommendedProof.where}
+            </Text>
+            <Text style={styles.recommendedCompactText}>
+              {t("more.data_label", "Data")}: {recommendedProof.data}
+            </Text>
+            <Text style={styles.recommendedCompactText}>
+              {t("more.changes_label", "Changes")}: {recommendedProof.changes}
+            </Text>
           </View>
           <TouchableOpacity
             accessibilityRole="button"
@@ -455,13 +473,13 @@ export function MoreScreen({
               setShowWidgetEditor(true);
             }}
           >
-            <Text style={styles.compactButtonText}>Customize</Text>
+            <Text style={styles.compactButtonText}>{t("more.customize_title", "Customize")}</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.savedWidgetList}>
           <View style={styles.savedWidgetHeader}>
-            <Text style={styles.panelTitle}>Saved widgets</Text>
+            <Text style={styles.panelTitle}>{t("more.saved_widgets", "Saved widgets")}</Text>
             <Text style={styles.savedWidgetCount}>{savedVisibleWidgets.length}</Text>
           </View>
           {savedVisibleWidgets.map(({ surface: widgetSurface, widget }) => {
@@ -477,8 +495,8 @@ export function MoreScreen({
               >
                 <View style={[styles.savedWidgetDot, { backgroundColor: recommendedColor(definition.id, customization) }]} />
                 <View style={styles.savedWidgetCopy}>
-                  <Text style={styles.savedWidgetTitle} numberOfLines={1}>{definition.title}</Text>
-                  <Text style={styles.savedWidgetMeta}>{surfaceLabel(widgetSurface, t)} / {displaySizeLabel(widget.size)} / {labelForWidgetStyle(widget.style)}</Text>
+                  <Text style={styles.savedWidgetTitle} numberOfLines={1}>{contentTitle(definition.id, t)}</Text>
+                  <Text style={styles.savedWidgetMeta}>{surfaceLabel(widgetSurface, t)} / {sizeLabel(widget.size, t)} / {styleLabel(widget.style, t)}</Text>
                 </View>
                 <ChevronRight color={SPBoardColors.faint} size={17} />
               </TouchableOpacity>
@@ -490,18 +508,18 @@ export function MoreScreen({
           <View style={styles.compactCustomizerPanel}>
             <View style={styles.customizerHeader}>
               <View>
-                <Text style={styles.customizerKicker}>CUSTOMIZE</Text>
-                <Text style={styles.customizerTitle}>{selectedDefinition.title}</Text>
+                <Text style={styles.customizerKicker}>{t("more.customize_title", "Customize")}</Text>
+                <Text style={styles.customizerTitle}>{contentTitle(selectedDefinition.id, t)}</Text>
               </View>
               {plusLocked && surface !== "home" ? <Text style={styles.plusBadge}>Plus</Text> : null}
             </View>
 
-            <ControlGroup title="Widget">
+            <ControlGroup title={t("more.widget", "Widget")}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.controlRow}>
                 {recommendedDefinitions.slice(0, 6).map((definition, index) => (
                   <Chip
                     key={definition.id}
-                    label={definition.title}
+                    label={contentTitle(definition.id, t)}
                     selected={selectedWidget.contentType === definition.id}
                     selectedColor={customization.secondaryAccent}
                     locked={plusLocked && index > 1}
@@ -511,7 +529,7 @@ export function MoreScreen({
               </ScrollView>
             </ControlGroup>
 
-            <ControlGroup title="Class">
+            <ControlGroup title={t("import.class", "Class")}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.controlRow}>
                 {courses.map((course) => (
                   <Chip
@@ -530,12 +548,12 @@ export function MoreScreen({
               </ScrollView>
             </ControlGroup>
 
-            <ControlGroup title="Color">
+            <ControlGroup title={t("more.color", "Color")}>
               <View style={styles.controlRowWrap}>
                 {colorSources.map((source) => (
                   <Chip
                     key={source}
-                    label={colorSourceLabel(source)}
+                    label={colorSourceLabel(source, t)}
                     selected={selectedWidget.colorSource === source}
                     selectedColor={customization.secondaryAccent}
                     locked={plusLocked && source === "custom"}
@@ -558,12 +576,12 @@ export function MoreScreen({
               ) : null}
             </ControlGroup>
 
-            <ControlGroup title="Size">
+            <ControlGroup title={t("more.size", "Size")}>
               <View style={styles.controlRowWrap}>
                 {sizesForSurface(surface).map((size) => (
                   <Chip
                     key={size}
-                    label={displaySizeLabel(size)}
+                    label={sizeLabel(size, t)}
                     selected={selectedWidget.size === size}
                     selectedColor={customization.secondaryAccent}
                     locked={plusLocked && (surface !== "home" || size === "large")}
@@ -573,12 +591,12 @@ export function MoreScreen({
               </View>
             </ControlGroup>
 
-            <ControlGroup title="Style">
+            <ControlGroup title={t("more.style", "Style")}>
               <View style={styles.controlRowWrap}>
                 {widgetStyles.map((style) => (
                   <Chip
                     key={style}
-                    label={labelForWidgetStyle(style)}
+                    label={styleLabel(style, t)}
                     selected={selectedWidget.style === style}
                     selectedColor={customization.secondaryAccent}
                     locked={plusLocked && style !== "clean"}
@@ -591,18 +609,18 @@ export function MoreScreen({
         ) : null}
       </View>
 
-      <SectionTitle title="Semester Pulse" />
+      <SectionTitle title={t("today.semester_pulse", "Semester Pulse")} />
       <View style={styles.pulseRail}>
         <View style={styles.pulseRailRow}>
-          <Text style={styles.pulseRailLabel}>This week pressure</Text>
+          <Text style={styles.pulseRailLabel}>{t("more.this_week_pressure", "This week pressure")}</Text>
           <Text style={styles.pulseRailValue} numberOfLines={1}>{pressureLabel}</Text>
         </View>
         <View style={styles.pulseRailRow}>
-          <Text style={styles.pulseRailLabel}>Top action</Text>
+          <Text style={styles.pulseRailLabel}>{t("more.top_action", "Top action")}</Text>
           <Text style={styles.pulseRailValue} numberOfLines={2}>{topAction}</Text>
         </View>
         <View style={styles.pulseRailRow}>
-          <Text style={styles.pulseRailLabel}>Next risk</Text>
+          <Text style={styles.pulseRailLabel}>{t("more.next_risk", "Next risk")}</Text>
           <Text style={styles.pulseRailValue} numberOfLines={1}>{nextRisk}</Text>
         </View>
       </View>
@@ -618,6 +636,10 @@ function buildBoardPresets() {
     buildCanonicalWidgetPreset("week", { theme: "graphite", background: "solid", palette: "graphite", layout: "strip", dataMode: "this_week", size: "medium" }, now),
     buildCanonicalWidgetPreset("classProgress", { theme: "forest", background: "light", palette: "paper", layout: "progress", dataMode: "single_class", size: "small" }, now)
   ];
+}
+
+function formatLocalized(template: string, values: Record<string, string>) {
+  return Object.entries(values).reduce((current, [key, value]) => current.replaceAll(`{${key}}`, value), template);
 }
 
 function colorSourceForContent(contentType: WidgetStudioContentType): WidgetStudioSetting["colorSource"] {
@@ -656,29 +678,16 @@ function sizesForSurface(surface: WidgetStudioSurface) {
   return homeSizes;
 }
 
-function roleLabel(role: "primary" | "secondary" | "risk" | "focus" | "activity") {
-  if (role === "primary") return "Primary accent";
-  if (role === "secondary") return "Secondary accent";
-  if (role === "risk") return "Risk color";
-  if (role === "focus") return "Focus color";
-  return "Activity color";
-}
-
-function colorSourceLabel(source: WidgetStudioSetting["colorSource"]) {
-  if (source === "class") return "Auto from class";
-  if (source === "urgency") return "Auto from urgency";
-  return "Custom";
+function colorSourceLabel(source: WidgetStudioSetting["colorSource"], t: (key: string, fallback?: string) => string) {
+  if (source === "class") return t("more.color_source_class", "Auto from class");
+  if (source === "urgency") return t("more.color_source_urgency", "Auto from urgency");
+  return t("widget_snapshot.palette_custom", "Custom");
 }
 
 function surfaceLabel(surface: WidgetStudioSurface, t: (key: string, fallback?: string) => string) {
-  if (surface === "lock") return "Lock Screen";
+  if (surface === "home") return t("more.home_screen_handoff", "Home Screen");
   if (surface === "watch") return t("more.apple_watch", "Apple Watch");
-  return "Home Screen";
-}
-
-function surfaceIcon(surface: WidgetStudioSurface) {
-  const Icon = surface === "lock" ? Lock : Smartphone;
-  return <Icon color={SPBoardColors.text} size={15} />;
+  return t("more.in_app_preset", "In-app preset");
 }
 
 function recommendedColor(contentType: WidgetStudioContentType, customization: ReturnType<typeof normalizeStudioCustomization>) {
@@ -687,18 +696,6 @@ function recommendedColor(contentType: WidgetStudioContentType, customization: R
   if (contentType === "free_time_forecast") return customization.activityColor;
   if (contentType === "class_progress") return customization.secondaryAccent;
   return customization.primaryAccent;
-}
-
-function shortContentLabel(contentType: WidgetStudioContentType) {
-  if (contentType === "exam_countdown") return "Exam";
-  if (contentType === "next_assignment") return "Next";
-  if (contentType === "focus_window") return "Focus";
-  if (contentType === "semester_progress") return "Pulse";
-  if (contentType === "heavy_week_warning") return "Risk";
-  if (contentType === "free_time_forecast") return "Free time";
-  if (contentType === "class_progress") return "Class";
-  if (contentType === "review_inbox_status") return "Review";
-  return "Class";
 }
 
 function contentTypeForWidgetType(type?: WidgetType): WidgetStudioContentType | null {
@@ -710,6 +707,45 @@ function contentTypeForWidgetType(type?: WidgetType): WidgetStudioContentType | 
   if (type === "streak") return "semester_progress";
   if (type === "today") return "next_assignment";
   return null;
+}
+
+function recommendedContentTypeForPulse(pulse: ReturnType<typeof buildSemesterPulseSignal>, studentLife?: StudentLifeContext): WidgetStudioContentType {
+  const learned = contentTypeForWidgetType(studentLife?.widgets.type);
+  if (pulse.reviewCount > 0) return "review_inbox_status";
+  if (pulse.status === "At Risk" || pulse.status === "Heavy" || pulse.forecastState === "Peak") return "heavy_week_warning";
+  if (!pulse.examPressure.startsWith("No exams")) return "exam_countdown";
+  if (pulse.status === "Recovery") return "semester_progress";
+  return learned || "semester_progress";
+}
+
+function contentTitle(contentType: WidgetStudioContentType, t: (key: string, fallback?: string) => string) {
+  if (contentType === "exam_countdown") return t("more.exam_countdown", "Exam countdown");
+  if (contentType === "next_assignment") return t("more.next_assignment", "Next Assignment");
+  if (contentType === "focus_window") return t("more.focus_window_widget", "Focus Window");
+  if (contentType === "semester_progress") return t("today.semester_pulse", "Semester Pulse");
+  if (contentType === "heavy_week_warning") return t("more.future_risk", "Future Risk");
+  if (contentType === "free_time_forecast") return t("more.free_time_forecast", "Free time forecast");
+  if (contentType === "class_progress") return t("more.template_class_label", "Class Progress");
+  if (contentType === "next_class") return t("more.next_class", "Next class");
+  if (contentType === "review_inbox_status") return t("import.review_work", "Review work");
+  return t("classes.class_fallback", "Class");
+}
+
+function sizeLabel(size: WidgetStudioSize, t: (key: string, fallback?: string) => string) {
+  if (size === "small") return t("more.size_small", "Small");
+  if (size === "medium") return t("more.size_medium", "Medium");
+  if (size === "large") return t("more.size_large", "Large");
+  if (size === "lock_rect") return t("more.size_lock_rect", "Rectangular");
+  if (size === "lock_round") return t("more.size_lock_round", "Circular");
+  if (size === "lock_inline") return t("more.size_lock_inline", "Inline");
+  return t("more.size_watch", "Compact");
+}
+
+function styleLabel(style: WidgetStudioStyle, t: (key: string, fallback?: string) => string) {
+  if (style === "clean") return t("more.style_clean", "Clean");
+  if (style === "glass") return t("more.style_glass", "Glass");
+  if (style === "color_card") return t("more.style_color_card", "Color card");
+  return t("widget_snapshot.layout_compact", "Compact");
 }
 
 function firstNameFor(name: string) {
@@ -724,7 +760,7 @@ function recommendedWidgetProof(contentType: WidgetStudioContentType, course?: C
   if (contentType === "exam_countdown") {
     return {
       why: quietReason || "keeps the next exam from sneaking up",
-      where: "Home Screen and Lock Screen",
+      where: "Home Screen",
       data: "reviewed exams sorted by due date",
       changes: "risk color, exam class color, urgency"
     };
@@ -732,7 +768,7 @@ function recommendedWidgetProof(contentType: WidgetStudioContentType, course?: C
   if (contentType === "next_assignment") {
     return {
       why: quietReason || "puts the next real task first",
-      where: "Home Screen and Lock Screen",
+      where: "Home Screen",
       data: "reviewed open assignments",
       changes: "class color, class icon, due urgency"
     };
@@ -764,7 +800,7 @@ function recommendedWidgetProof(contentType: WidgetStudioContentType, course?: C
   if (contentType === "heavy_week_warning") {
     return {
       why: quietReason || "warns before the week stacks up",
-      where: "Home Screen and Lock Screen",
+      where: "Home Screen",
       data: "exams, open work, review inbox",
       changes: "risk color and workload"
     };
@@ -780,7 +816,7 @@ function recommendedWidgetProof(contentType: WidgetStudioContentType, course?: C
   if (contentType === "review_inbox_status") {
     return {
       why: quietReason || "keeps unapproved imports visible",
-      where: "Home Screen and Lock Screen",
+      where: "Home Screen",
       data: "parser review inbox",
       changes: "urgency and inbox count"
     };
@@ -991,6 +1027,10 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     justifyContent: "space-between",
     gap: 12
+  },
+  previewHeaderCopy: {
+    flex: 1,
+    minWidth: 0
   },
   compactPreviewTitle: {
     color: SPBoardColors.text,
@@ -1390,7 +1430,8 @@ const styles = StyleSheet.create({
     fontWeight: "900"
   },
   syncPill: {
-    maxWidth: "100%",
+    maxWidth: 132,
+    flexShrink: 1,
     overflow: "hidden",
     borderRadius: 999,
     backgroundColor: "#FFFFFF",

@@ -97,7 +97,7 @@ struct WatchDashboardView: View {
   private var cardStack: some View {
     VStack(spacing: 7) {
       WatchInfoCard(item: snapshot.nextAssignment)
-      WatchInfoCard(item: snapshot.nextClass)
+      WatchInfoCard(item: snapshot.examCountdown)
       WatchInfoCard(item: snapshot.focus)
     }
   }

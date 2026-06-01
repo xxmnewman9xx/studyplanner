@@ -26,6 +26,7 @@ import {
   isValidDeadline,
   scoreWork
 } from "../logic/planner";
+import { buildSemesterPulseSignal, pulseStatusColor } from "../logic/semesterPulse";
 import { nativeSnapshotStyleOverride } from "../customization";
 import { widgetStyleColors } from "../widgets/widgetThemes";
 import {
@@ -507,6 +508,19 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
   const weekAccent =
     weekPreset || privacyMode ? weekStyle.accentColor : colorForAssignment(weekWidgetAssignments[0] || nextUpcoming, input.courses, weekStyle.accentColor);
   const weekLoad = getWeekLoad(weekAssignments, now);
+  const pulse = buildSemesterPulseSignal({
+    semester: input.semester,
+    courses: input.courses,
+    assignments,
+    parsedImports,
+    focusSessions: input.focusSessions,
+    now
+  });
+  const pulseFootnote = privacyMode ? t("watch.open_iphone", "Open iPhone app") : pulse.nextAction;
+  const pulseMetricLabel = privacyMode ? t("today.semester_pulse", "Semester Pulse") : pulse.topReason;
+  const pulseNextLabel = privacyMode ? pulse.confidence : pulse.workloadPressure;
+  const pulseTimelineLabel = privacyMode ? t("today.this_week", "This week") : pulse.peakLabel;
+  const pulseRiskLabel = privacyMode ? undefined : pulse.topRisk;
   const classAccent =
     classProgressPreset || privacyMode ? classProgressStyle.accentColor : readableWidgetAccent(classProgressCourse?.color, classProgressStyle.accentColor);
   const classNext = classProgressAssignments[0];
@@ -634,64 +648,39 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
             ...base,
             kind: "week" as const,
             state: "ready" as const,
-            headline: t("widget_snapshot.week", "Week"),
-            value: weekProgressStats.total ? `${Math.round(weekProgressStats.progress * 100)}%` : String(weekWidgetAssignments.length),
-            detail: weekProgressStats.total
-              ? formatSnapshotTemplate(t("widget_snapshot.complete_count", "{done} of {total} complete"), {
-                  done: weekProgressStats.done,
-                  total: weekProgressStats.total
-                })
-              : formatSnapshotTemplate(t("widget_snapshot.open_deadline_count", "{count} open deadlines"), {
-                  count: weekWidgetAssignments.length
-                }),
-            footnote: weekWidgetAssignments[0]
-              ? formatSnapshotTemplate(t("widget_snapshot.next_assignment", "Next: {title}"), {
-                  title: assignmentDisplayTitle(weekWidgetAssignments[0], privacyMode, t)
-                })
-              : t("widget_snapshot.no_open_work", "No open work"),
+            headline: t("today.semester_pulse", "Semester Pulse"),
+            value: String(pulse.score),
+            detail: `${pulse.status} / ${pulse.trendLabel}`,
+            footnote: pulseFootnote,
             ...weekStyle,
-            accentColor: weekAccent,
-            progress: weekProgressStats.total > 0 ? weekProgressStats.progress : 0,
-            signalLabel: t("widget_snapshot.week_plan", "Week plan"),
-            metricLabel: weekProgressStats.total
-              ? formatSnapshotTemplate(t("widget_snapshot.complete_count", "{done} of {total} complete"), {
-                  done: weekProgressStats.done,
-                  total: weekProgressStats.total
-                })
-              : t("widget_snapshot.no_open_work", "No open work"),
-            nextLabel: weekWidgetAssignments[0]
-              ? assignmentSignal(weekWidgetAssignments[0], input.courses, now, privacyMode, t, locale)
-              : t("widget_snapshot.add_homework_when_appears", "Add homework when it appears"),
-            timelineLabel: t("today.this_week", "This week"),
-            weekdayCounts: weekLoad.map((day) => day.items.length),
-            biggestDeadlineLabel: weekWidgetAssignments[0]
-              ? assignmentDisplayTitle(weekWidgetAssignments[0], privacyMode, t)
-              : undefined,
+            accentColor: pulseStatusColor(pulse.status) || weekAccent,
+            progress: pulse.progress,
+            signalLabel: pulse.forecastState,
+            metricLabel: pulseMetricLabel,
+            nextLabel: pulseNextLabel,
+            timelineLabel: pulseTimelineLabel,
+            weekdayCounts: pulse.bars.map((score) => Math.round(score)),
+            biggestDeadlineLabel: pulseRiskLabel,
             items: weekWidgetAssignments.slice(0, 3).map((assignment) => toWidgetItem(assignment, input.courses, now, privacyMode, weekAccent, t, locale))
           }
         : emptySnapshot({
             ...base,
             kind: "week",
             state: "no_upcoming",
-            headline: t("widget_snapshot.week", "Week"),
-            value: t("widget_snapshot.clear", "Clear"),
-            detail: t("widget_snapshot.no_work_this_week", "No work this week"),
+            headline: t("today.semester_pulse", "Semester Pulse"),
+            value: String(pulse.score),
+            detail: `${pulse.status} / ${pulse.trendLabel}`,
             footnote: reviewCount > 0
               ? t("widget_snapshot.review_imported_ready", "Review imported items when ready")
-              : t("widget_snapshot.add_homework_when_appears", "Add homework when it appears"),
+              : pulseFootnote,
             ...weekStyle,
-            accentColor: weekAccent,
-            progress: weekProgressStats.total > 0 ? weekProgressStats.progress : 0,
-            signalLabel: t("widget_snapshot.clear_week", "Clear week"),
-            metricLabel: weekProgressStats.total
-              ? formatSnapshotTemplate(t("widget_snapshot.complete_count", "{done} of {total} complete"), {
-                  done: weekProgressStats.done,
-                  total: weekProgressStats.total
-                })
-              : t("widget_snapshot.no_open_work", "No open work"),
-            nextLabel: t("widget_snapshot.add_homework_when_appears", "Add homework when it appears"),
-            timelineLabel: t("today.this_week", "This week"),
-            weekdayCounts: weekLoad.map((day) => day.items.length)
+            accentColor: pulseStatusColor(pulse.status) || weekAccent,
+            progress: pulse.progress,
+            signalLabel: pulse.forecastState,
+            metricLabel: pulseMetricLabel,
+            nextLabel: pulseNextLabel,
+            timelineLabel: pulseTimelineLabel,
+            weekdayCounts: pulse.bars.map((score) => Math.round(score))
           }),
     classProgress:
       classProgressAssignments.length > 0 || classProgressStats.total > 0
@@ -779,6 +768,14 @@ export function buildStudyPlannerWatchSnapshot(
     input.settings,
     now
   );
+  const pulse = buildSemesterPulseSignal({
+    semester: input.semester,
+    courses: input.courses,
+    assignments,
+    parsedImports,
+    focusSessions: input.focusSessions,
+    now
+  });
   const semesterProgress = calculateSemesterProgress(input.semester, now);
   const semesterDaysLeft = daysUntil(input.semester.endDate, now);
   const nextClass = getNextClassMeeting(input.courses, now, locale, t);
@@ -850,16 +847,12 @@ export function buildStudyPlannerWatchSnapshot(
   };
   const semesterPulseItem = {
     title: t("today.semester_pulse", "Semester Pulse"),
-    value: Number.isFinite(semesterDaysLeft)
-      ? semesterDaysLeft > 0
-        ? formatSnapshotTemplate(t("today.days_left", "{count} days left"), { count: Math.max(0, semesterDaysLeft) })
-        : t("today.final_stretch", "Final stretch")
-      : formatSnapshotTemplate(t("today.open_task_count", "{count} open tasks"), { count: reviewedAssignments.length }),
-    detail: snapshots.week.detail || t("watch.semester_detail", "Term progress"),
+    value: String(pulse.score),
+    detail: `${pulse.status} / ${pulse.trendLabel}`,
     label: t("watch.semester", "Semester"),
-    color: colors.semester,
+    color: pulseStatusColor(pulse.status) || colors.semester,
     kind: "semester" as const,
-    progress: semesterProgress
+    progress: pulse.progress || semesterProgress
   };
   const hero = pickWatchHero({
     setupState,

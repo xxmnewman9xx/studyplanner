@@ -1,0 +1,27 @@
+{
+  "locale": "runtime",
+  "device": "786C707C-00A0-4B96-B32D-1DDBC0ADD15A",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "today",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "today",
+    "themeMode": "light",
+    "emptyPlanner": true
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/semester-pulse/screenshots-clean/57-empty-today.png",
+  "bytes": 291142,
+  "sha256": "fb3d5d73933dd0e2a9b4091feb47fced2359d3acfc6a70b8bc8d1e0201e9fcd6",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "c60d293",
+  "timestamp": "2026-06-01T22:34:04.729Z"
+}

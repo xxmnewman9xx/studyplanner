@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { AppButton } from "../components/AppButton";
 import { AppMark } from "../components/AppleComponents";
+import { SemesterPulse, pulseBarsFromScores } from "../components/SemesterPulse";
 import {
   SPAssignmentCard,
   SPBoardColors,
@@ -13,8 +14,10 @@ import {
   SPNextClassCard
 } from "../components/StudyPlannerAppleBoard";
 import { Assignment, Course, FocusSession, Semester, StudyNote, UserSettings, WidgetPreset } from "../models";
-import { buildTodayBrain, daysUntil, getCourseForAssignment } from "../logic/planner";
+import { buildTodayBrain, daysUntil, getCourseForAssignment, getWeekLoad } from "../logic/planner";
 import type { StudentLifeContext } from "../logic/studentLifeDepth";
+import { localizedForecastCopy, localizedStudentLifeCopy } from "../logic/studentLifeCopy";
+import { buildSemesterPulseSignal, pulseStatusColor } from "../logic/semesterPulse";
 import { useI18n } from "../i18n";
 
 export type ImportHandoffSummary = {
@@ -74,7 +77,7 @@ export function TodayScreen({
   onOpenScan,
   onTryDemo
 }: TodayScreenProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const localizationAnchor = t("today.quick_capture", "Quick capture");
   void localizationAnchor;
   const demoLabel = t("today.sample_planner", "Preview planner");
@@ -87,16 +90,31 @@ export function TodayScreen({
   const assignmentCourse = assignment ? getCourseForAssignment(courses, assignment) : findCourse(courses, "Calculus");
   const firstName = firstNameFor(studentName);
   const examDays = exam ? Math.max(0, daysUntil(exam.dueAt)) : 7;
-  const dueLabel = assignment ? dueWeekday(assignment.dueAt) : "Friday";
+  const dueLabel = assignment ? dueWeekday(assignment.dueAt, locale, t("classes.weekday_fri", "Fri")) : t("classes.weekday_fri", "Fri");
   const reviewCount = importHandoff?.reviewCount || plan.needsReview.length;
   const openCount = plan.openCount || assignments.filter((item) => item.status !== "done" && item.status !== "archived").length;
   const heavyItems = Math.max(plan.dueSoon.length, Math.min(openCount, 4));
+  const weekLoad = getWeekLoad(assignments);
+  const pulse = buildSemesterPulseSignal({ assignments, courses, semester, focusSessions, studentLife });
+  const pulseBars = pulseBarsFromScores(pulse.bars);
+  const semesterDaysUntil = daysUntil(semester.endDate);
+  const semesterDaysLeft = Number.isFinite(semesterDaysUntil) ? Math.max(0, semesterDaysUntil) : null;
+  const pulseValue = semesterDaysLeft === null
+    ? formatLocalized(t("today.open_task_count", "{count} open tasks"), { count: String(openCount) })
+    : semesterDaysLeft > 0
+      ? formatLocalized(t("today.days_left", "{count} days left"), { count: String(semesterDaysLeft) })
+      : t("today.final_stretch", "Final stretch");
+  const pulseDetail = studentLife
+    ? formatLocalized(t("today.risk_open_detail", "{risk} risk / {open} open"), { risk: String(studentLife.forecast.riskScore), open: String(openCount) })
+    : formatLocalized(t("today.review_open_detail", "{open} open / {review} to review"), { open: String(openCount), review: String(reviewCount) });
+  const feedCopy = studentLife ? localizedStudentLifeCopy("home", studentLife.feed, t) : null;
+  const forecastCopy = studentLife ? localizedForecastCopy(studentLife.forecast, openCount, t) : null;
   const emptyPlanner = assignments.length === 0 && courses.length === 0;
 
   if (emptyPlanner) {
     return (
       <View style={styles.screen}>
-        <SPHeroCard greeting={greetingForNow()} name={firstName} detail={demoMode ? demoLabel : undefined} />
+        <SPHeroCard greeting={greetingForNow(t)} name={firstName} detail={demoMode ? demoLabel : undefined} />
         <View style={styles.emptyCard}>
           <View style={styles.emptyMark}>
             <AppMark size={58} />
@@ -123,55 +141,75 @@ export function TodayScreen({
 
   return (
     <View style={styles.screen}>
-      <SPHeroCard greeting={greetingForNow()} name={firstName} detail={demoMode ? demoLabel : undefined} />
-
-      {openCount > 0 ? (
-        <View style={styles.actionRail}>
-          <AppButton
-            label={t("today.set_reminders", "Set reminders")}
-            variant="secondary"
-            onPress={onScheduleReminders}
-            style={styles.actionButton}
-          />
-          <AppButton
-            label={t("today.sync_calendar", "Sync calendar")}
-            variant="secondary"
-            onPress={onCalendarSync}
-            style={styles.actionButton}
-          />
-        </View>
-      ) : null}
+      <SPHeroCard greeting={greetingForNow(t)} name={firstName} detail={demoMode ? demoLabel : undefined} />
 
       <View style={styles.stack}>
-        {studentLife ? (
-          <SPColorCard
-            tone="soft"
-            kicker={t("depth.learned_prefix", "Learned: {pattern}").replace("{pattern}", studentLife.feed.learned)}
-            title={studentLife.feed.recommendation}
-            subtitle={studentLife.feed.nextAction}
-            meta={t("depth.reason_prefix", "Reason: {reason}").replace("{reason}", studentLife.feed.reason)}
+        <SPColorCard
+          tone="black"
+          kicker={t("today.semester_pulse", "Semester Pulse")}
+          title={pulse.nextAction}
+          subtitle={pulse.topReason}
+          meta={studentLife ? t("depth.learned_prefix", "Learned: {pattern}").replace("{pattern}", feedCopy?.learned || studentLife.feed.learned) : pulse.supportReason}
+          onPress={studentLife?.feed.assignment ? () => onOpenAssignment(studentLife.feed.assignment!.id) : onOpenPlan}
+        >
+          <SemesterPulse
+            label={t("today.semester_pulse", "Semester Pulse")}
+            value={pulse.status}
+            detail={pulseDetail}
+            bars={pulseBars}
+            accentColor={pulseStatusColor(pulse.status)}
+            score={pulse.score}
+            status={pulse.status}
+            trendLabel={pulse.trendLabel}
+            topReason={pulse.topReason}
+            nextAction={pulse.nextAction}
           />
+        </SPColorCard>
+        <SPColorCard
+          tone="soft"
+          accentColor={settings?.customization?.activityColor || SPBoardColors.green}
+          kicker={t("today.momentum", "Momentum")}
+          title={pulse.wins[0] || t("today.keep_moving", "Keep the next step moving.")}
+          subtitle={pulse.wins[1] || pulse.confidence}
+          meta={pulse.wins[2] || pulse.workloadPressure}
+          onPress={() => onOpenFocus(assignment?.id)}
+        />
+        {openCount > 0 ? (
+          <View style={styles.actionRail}>
+            <AppButton
+              label={t("today.set_reminders", "Set reminders")}
+              variant="secondary"
+              onPress={onScheduleReminders}
+              style={styles.actionButton}
+            />
+            <AppButton
+              label={t("today.sync_calendar", "Sync calendar")}
+              variant="secondary"
+              onPress={onCalendarSync}
+              style={styles.actionButton}
+            />
+          </View>
         ) : null}
         <SPExamCard
-          kicker={`EXAM IN ${examDays || 7} DAYS`}
+          kicker={formatLocalized(t("today.exam_in_days", "Exam in {count} days"), { count: String(examDays || 7) })}
           title={boardTitle(exam?.title || "Organic Chemistry Midterm")}
           subtitle={examCourse?.code || "Organic Chemistry"}
-          meta="High impact"
+          meta={t("widget_snapshot.high_priority", "High priority")}
           accentColor={examCourse?.color || settings?.customization?.riskColor}
           onPress={exam ? () => onOpenAssignment(exam.id) : undefined}
         />
         <SPAssignmentCard
-          kicker={`DUE ${dueLabel.toUpperCase()}`}
+          kicker={formatLocalized(t("today.due_weekday", "Due {weekday}"), { weekday: dueLabel })}
           title={assignment?.title || "Calculus Problem Set"}
           subtitle={assignmentCourse?.code || "Calculus"}
-          meta={assignment?.title.toLowerCase().includes("calculus") ? "12 problems - 3h estimated" : assignment ? `${assignment.estimatedMinutes || 180} min estimated` : "12 problems - 3h estimated"}
+          meta={formatLocalized(t("today.estimated_minutes", "{minutes} min estimated"), { minutes: String(assignment?.estimatedMinutes || 180) })}
           accentColor={assignmentCourse?.color || settings?.customization?.primaryAccent}
           onPress={assignment ? () => onOpenAssignment(assignment.id) : undefined}
         />
         <SPFocusCard
-          kicker="FOCUS WINDOW"
-          title="45 min"
-          subtitle="Start a session"
+          kicker={t("today.focus_window", "Focus window")}
+          title={formatLocalized(t("today.minutes_short", "{minutes} min"), { minutes: "45" })}
+          subtitle={t("focus.start_timer", "Start timer")}
           minutes={45}
           accentColor={settings?.customization?.focusColor}
           onPress={() => onOpenFocus(assignment?.id)}
@@ -179,16 +217,29 @@ export function TodayScreen({
         <SPNextClassCard
           title={physics?.code || "Physics 201"}
           subtitle={nextClassTime(physics)}
-          meta={physics?.room ? `Room ${physics.room}` : "Room 4A"}
+          meta={formatLocalized(t("classes.room_label", "Room {room}"), { room: physics?.room || "4A" })}
           accentColor={physics?.color}
           onPress={onOpenClasses}
         />
-        <SPColorCard tone="soft" accentColor={settings?.customization?.forecastAccent} kicker="HEAVY WEEK AHEAD" title="Heavy week ahead" subtitle={`${Math.max(1, plan.exams.length || 1)} exams - ${heavyItems || 2} assignments - ${Math.max(reviewCount, 1)} quiz`} onPress={onOpenPlan}>
-          <View style={styles.heavyBars}>
-            {[0.32, 0.68, 0.42, 0.78, 0.28, 0.62, 0.88].map((height, index) => (
-              <View key={index} style={[styles.heavyBar, { height: 10 + height * 34, backgroundColor: barColor(index) }]} />
-            ))}
-          </View>
+        <SPColorCard
+          tone="soft"
+          accentColor={settings?.customization?.forecastAccent}
+          kicker={t("paywall.forecast", "Forecast")}
+          title={`${pulse.forecastState}: ${pulse.peakLabel}`}
+          subtitle={formatLocalized(t("today.heavy_week_summary", "{exams} exams · {assignments} assignments · {reviews} to review"), {
+            exams: String(Math.max(1, plan.exams.length || 1)),
+            assignments: String(heavyItems || 2),
+            reviews: String(Math.max(reviewCount, 1))
+          })}
+          onPress={onOpenPlan}
+        >
+          <SemesterPulse
+            label={t("today.week_shape", "Week shape")}
+            value={forecastCopy?.recommendation || pulse.nextAction}
+            detail={forecastCopy?.detail || pulse.workloadPressure}
+            bars={pulseBars}
+            accentColor={settings?.customization?.forecastAccent || SPBoardColors.orange}
+          />
         </SPColorCard>
       </View>
     </View>
@@ -217,16 +268,16 @@ function boardTitle(title: string) {
   return title.replace("Organic Chemistry Midterm", "Organic Chemistry\nMidterm");
 }
 
-function greetingForNow() {
-  return "Good morning,";
+function greetingForNow(t: (key: string, fallback?: string) => string) {
+  return t("today.greeting_morning", "Good morning,");
 }
 
-function dueWeekday(iso: string) {
-  if (!/^\d{4}-\d{2}-\d{2}/.test(iso || "")) return "Friday";
+function dueWeekday(iso: string, locale: string, fallback: string) {
+  if (!/^\d{4}-\d{2}-\d{2}/.test(iso || "")) return fallback;
   try {
-    return new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(new Date(iso));
+    return new Intl.DateTimeFormat(locale, { weekday: "long" }).format(new Date(iso));
   } catch {
-    return "Friday";
+    return fallback;
   }
 }
 
@@ -245,8 +296,8 @@ function formatTime(value: string) {
   return `${display}:${minute.padStart(2, "0")} ${suffix}`;
 }
 
-function barColor(index: number) {
-  return [SPBoardColors.teal, SPBoardColors.orange, SPBoardColors.teal, SPBoardColors.blue, SPBoardColors.orange, SPBoardColors.blue, SPBoardColors.blue][index] || SPBoardColors.blue;
+function formatLocalized(template: string, values: Record<string, string>) {
+  return Object.entries(values).reduce((current, [key, value]) => current.replaceAll(`{${key}}`, value), template);
 }
 
 const styles = StyleSheet.create({
@@ -308,16 +359,5 @@ const styles = StyleSheet.create({
   emptyButton: {
     flex: 1,
     minWidth: 0
-  },
-  heavyBars: {
-    marginTop: 10,
-    height: 44,
-    flexDirection: "row",
-    alignItems: "flex-end",
-    gap: 9
-  },
-  heavyBar: {
-    width: 8,
-    borderRadius: 5
   }
 });

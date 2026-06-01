@@ -7,6 +7,7 @@ import { SectionHeader } from "../components/SectionHeader";
 import { Assignment, Course, FocusSession, StudyNote } from "../models";
 import { getCourseForAssignment } from "../logic/planner";
 import type { StudentLifeContext } from "../logic/studentLifeDepth";
+import { localizedStudentLifeCopy } from "../logic/studentLifeCopy";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { useI18n } from "../i18n";
@@ -42,7 +43,6 @@ export function FocusScreen({
   const { theme } = useAppTheme();
   const { t, locale } = useI18n();
   const { colors } = theme;
-  const styles = createStyles(theme, focusAccent);
   const roundControlIconColor = theme.isDark ? "#050505" : "#FFFFFF";
   const focusableAssignments = useMemo(
     () =>
@@ -53,7 +53,8 @@ export function FocusScreen({
   );
   const [selectedId, setSelectedId] = useState(preferredAssignmentId || focusableAssignments[0]?.id || "");
   const [selectedPlannedDuration, setSelectedPlannedDuration] = useState<number | null>(null);
-  const activeDurationMinutes = selectedPlannedDuration || defaultMinutes;
+  const intelligentDefaultMinutes = studentLife?.focus.minutes || defaultMinutes;
+  const activeDurationMinutes = selectedPlannedDuration || intelligentDefaultMinutes;
   const [secondsLeft, setSecondsLeft] = useState(activeDurationMinutes * 60);
   const [running, setRunning] = useState(false);
   const [startedAt, setStartedAt] = useState<string | null>(null);
@@ -65,7 +66,16 @@ export function FocusScreen({
     .reverse();
   const selected = focusableAssignments.find((assignment) => assignment.id === selectedId);
   const selectedCourse = selected ? getCourseForAssignment(courses, selected) : undefined;
+  const styles = createStyles(theme, selectedCourse?.color || focusAccent);
+  const winAccent = validAccent(selectedCourse?.color || focusAccent, colors.accent);
   const completedSessions = sessions.filter((session) => session.status === "completed");
+  const completedMinutes = completedSessions.reduce((sum, session) => sum + Math.max(1, session.durationMinutes || 0), 0);
+  const focusWin = completedSessions.length > 0
+    ? formatLocalized(t("focus.win_completed_sessions", "Win: {count} completed focus block(s) / {minutes} min protected"), {
+        count: String(completedSessions.length),
+        minutes: String(completedMinutes)
+      })
+    : t("focus.win_start_first", "Start one block to improve your Semester Pulse.");
   const recentStudyHistory = sessions
     .filter((session) => session.status !== "planned")
     .slice(-3)
@@ -75,6 +85,7 @@ export function FocusScreen({
     .slice()
     .sort((a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime());
   const sessionNumber = sessions.length + 1;
+  const focusDepthCopy = studentLife ? localizedStudentLifeCopy("focus", studentLife.focus, t) : null;
   const startedRef = useRef(startedAt);
   startedRef.current = startedAt;
 
@@ -200,9 +211,9 @@ export function FocusScreen({
         </View>
         {studentLife ? (
           <View style={styles.depthStrip}>
-            <Text style={styles.depthKicker}>{t("depth.what_i_learned", "What I learned")}</Text>
-            <Text style={styles.depthText} numberOfLines={3}>{studentLife.focus.learned}</Text>
-            <Text style={styles.depthMeta} numberOfLines={2}>{studentLife.focus.recommendation}</Text>
+            <Text style={styles.depthKicker}>{t("focus.predicted_block", "Predicted block")}</Text>
+            <Text style={styles.depthText} numberOfLines={3}>{focusDepthCopy?.learned || studentLife.focus.learned}</Text>
+            <Text style={styles.depthMeta} numberOfLines={2}>{focusDepthCopy?.recommendation || studentLife.focus.recommendation}</Text>
           </View>
         ) : null}
         <View style={styles.timerRing}>
@@ -242,9 +253,13 @@ export function FocusScreen({
           <CockpitStat icon={TimerReset} value={formatLocalized(t("focus.minutes_short", "{minutes}m"), { minutes: String(activeDurationMinutes) })} label={t("focus.target", "target")} />
           <CockpitStat icon={CheckCircle2} value={String(completedSessions.length)} label={t("focus.done", "done")} />
         </View>
+        <View style={styles.winStrip}>
+          <CheckCircle2 color={winAccent} size={15} />
+          <Text style={styles.winText} numberOfLines={2}>{focusWin}</Text>
+        </View>
         {selected ? (
           <View style={styles.durationRow}>
-            {[15, defaultMinutes, 45].filter((value, index, values) => values.indexOf(value) === index).map((minutes) => {
+            {[15, intelligentDefaultMinutes, 45].filter((value, index, values) => values.indexOf(value) === index).map((minutes) => {
               const active = activeDurationMinutes === minutes;
               return (
                 <TouchableOpacity
@@ -808,6 +823,26 @@ function createStyles(theme: AppTheme, focusAccent?: string) {
       lineHeight: 13,
       fontWeight: "900",
       textTransform: "uppercase"
+    },
+    winStrip: {
+      alignSelf: "stretch",
+      marginTop: spacing.sm,
+      borderRadius: radii.md,
+      backgroundColor: withAlpha(accent, theme.isDark ? 0.18 : 0.10),
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: withAlpha(accent, theme.isDark ? 0.32 : 0.24),
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8
+    },
+    winText: {
+      flex: 1,
+      color: colors.ink,
+      fontSize: 13,
+      lineHeight: 17,
+      fontWeight: "900"
     },
     durationRow: {
       alignSelf: "stretch",

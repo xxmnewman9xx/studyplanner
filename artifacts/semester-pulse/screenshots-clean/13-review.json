@@ -1,0 +1,26 @@
+{
+  "locale": "runtime",
+  "device": "786C707C-00A0-4B96-B32D-1DDBC0ADD15A",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "import",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "review_edit",
+  "route": {
+    "tab": "import",
+    "screen": "review_edit"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/semester-pulse/screenshots-clean/13-review.png",
+  "bytes": 260374,
+  "sha256": "4abf5d87b550ff2a70a44a73fc5a5d85478b50e79d0535d5c31c568757c9da73",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "c60d293",
+  "timestamp": "2026-06-01T22:34:04.729Z"
+}
