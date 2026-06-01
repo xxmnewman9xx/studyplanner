@@ -1,8 +1,9 @@
 import { createWidget } from "expo-widgets";
 
-import type { StudyPlannerNativeWidgetProps } from "../services/widgetSnapshot";
+import type { StudyPlannerNativeWidgetProps, StudyPlannerWatchSnapshot } from "../services/widgetSnapshot";
 
 type WidgetLayout = (props: StudyPlannerNativeWidgetProps, environment: object) => any;
+type WatchBridgeLayout = (props: StudyPlannerWatchSnapshot, environment: object) => any;
 
 const studyPlannerWidgetLayoutSource = `
 function StudyPlannerWidgetLayout(props, environment) {
@@ -501,4 +502,9 @@ export const StudyPlannerWeekWidget = createWidget<StudyPlannerNativeWidgetProps
 export const StudyPlannerClassProgressWidget = createWidget<StudyPlannerNativeWidgetProps>(
   "studyplanner.classProgress",
   StudyPlannerWidgetLayout
+);
+
+export const StudyPlannerWatchBridge = createWidget<StudyPlannerWatchSnapshot>(
+  "studyplanner.watch",
+  StudyPlannerWidgetLayout as unknown as WatchBridgeLayout
 );

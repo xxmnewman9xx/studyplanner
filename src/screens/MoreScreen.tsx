@@ -180,7 +180,7 @@ export function MoreScreen({
   const recommendedProof = recommendedWidgetProof(recommendedDefinition.id, topCourse, studentLife);
   const savedVisibleWidgets = [
     ...customization.homeWidgetPack.map((widget) => ({ surface: "home" as WidgetStudioSurface, widget })),
-    ...customization.lockWidgetPack.slice(0, 1).map((widget) => ({ surface: "lock" as WidgetStudioSurface, widget }))
+    ...customization.watchWidgetPack.map((widget) => ({ surface: "watch" as WidgetStudioSurface, widget }))
   ];
   const pressureLabel = studentLife?.forecast.title || (studentLife ? `${studentLife.forecast.riskScore} risk` : `${openAssignmentCount} open`);
   const topAction = studentLife?.forecast.recommendation || firstAssignment?.title || "Add the first reviewed task.";
@@ -478,7 +478,7 @@ export function MoreScreen({
                 <View style={[styles.savedWidgetDot, { backgroundColor: recommendedColor(definition.id, customization) }]} />
                 <View style={styles.savedWidgetCopy}>
                   <Text style={styles.savedWidgetTitle} numberOfLines={1}>{definition.title}</Text>
-                  <Text style={styles.savedWidgetMeta}>{surfaceLabel(widgetSurface)} / {displaySizeLabel(widget.size)} / {labelForWidgetStyle(widget.style)}</Text>
+                  <Text style={styles.savedWidgetMeta}>{surfaceLabel(widgetSurface, t)} / {displaySizeLabel(widget.size)} / {labelForWidgetStyle(widget.style)}</Text>
                 </View>
                 <ChevronRight color={SPBoardColors.faint} size={17} />
               </TouchableOpacity>
@@ -670,9 +670,9 @@ function colorSourceLabel(source: WidgetStudioSetting["colorSource"]) {
   return "Custom";
 }
 
-function surfaceLabel(surface: WidgetStudioSurface) {
+function surfaceLabel(surface: WidgetStudioSurface, t: (key: string, fallback?: string) => string) {
   if (surface === "lock") return "Lock Screen";
-  if (surface === "watch") return "Smart Stack";
+  if (surface === "watch") return t("more.apple_watch", "Apple Watch");
   return "Home Screen";
 }
 

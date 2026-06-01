@@ -1,6 +1,7 @@
 import {
   Assignment,
   Course,
+  FocusSession,
   ParsedImport,
   Semester,
   UserSettings,
@@ -14,8 +15,10 @@ import {
   WidgetType
 } from "../models";
 import {
+  calculateSemesterProgress,
   daysUntil,
   getAssignmentCompletionStats,
+  getRecommendedFocusDuration,
   getNeedsReview,
   getSchedulableAssignments,
   getWeekLoad,
@@ -135,6 +138,49 @@ export type StudyPlannerNativeWidgetSnapshots = {
   classProgress: StudyPlannerNativeWidgetProps;
 };
 
+export type StudyPlannerWatchSnapshotState =
+  | "ready"
+  | "setup"
+  | "needs_review"
+  | "sync_disabled"
+  | "empty";
+
+export type StudyPlannerWatchSnapshotItem = {
+  title: string;
+  value: string;
+  detail: string;
+  label: string;
+  color: string;
+  kind: "assignment" | "class" | "exam" | "focus" | "semester" | "today" | "setup";
+  progress?: number;
+};
+
+export type StudyPlannerWatchSnapshot = {
+  schemaVersion: 1;
+  generatedAt: string;
+  locale: string;
+  state: StudyPlannerWatchSnapshotState;
+  accentColor: string;
+  backgroundColor: string;
+  hero: StudyPlannerWatchSnapshotItem;
+  semesterPulse: StudyPlannerWatchSnapshotItem;
+  focus: StudyPlannerWatchSnapshotItem;
+  todayProgress: StudyPlannerWatchSnapshotItem;
+  nextAssignment: StudyPlannerWatchSnapshotItem;
+  nextClass: StudyPlannerWatchSnapshotItem;
+  examCountdown: StudyPlannerWatchSnapshotItem;
+  rings: StudyPlannerWatchSnapshotItem[];
+  labels: {
+    appName: string;
+    nextDue: string;
+    nextClass: string;
+    exam: string;
+    focus: string;
+    semester: string;
+    today: string;
+  };
+};
+
 export type WidgetSyncStatus = {
   state: "idle" | "synced" | "unavailable" | "skipped" | "error";
   message: string;
@@ -148,6 +194,7 @@ export type WidgetSnapshotInput = {
   courses: Course[];
   assignments: Assignment[];
   parsedImports: ParsedImport[];
+  focusSessions?: FocusSession[];
   settings?: UserSettings;
   widgetPresets?: WidgetPreset[];
   demoMode: boolean;
@@ -708,6 +755,151 @@ export function buildStudyPlannerWidgetSnapshots(input: WidgetSnapshotInput) {
   });
 }
 
+export function buildStudyPlannerWatchSnapshot(
+  input: WidgetSnapshotInput,
+  widgetSnapshots?: StudyPlannerNativeWidgetSnapshots
+): StudyPlannerWatchSnapshot {
+  const now = input.now || new Date();
+  const { locale, t } = getSnapshotLocalization(input);
+  const snapshots = widgetSnapshots || buildStudyPlannerWidgetSnapshots(input);
+  const assignments = input.demoMode ? input.assignments : input.assignments.filter(isRealWidgetAssignment);
+  const parsedImports = input.demoMode ? input.parsedImports : input.parsedImports.filter(isRealParsedImport);
+  const reviewedAssignments = getReviewedAssignments(assignments, now);
+  const reviewedProgressAssignments = getReviewedProgressAssignments(assignments);
+  const reviewedByDate = reviewedAssignments.slice().sort(sortByDueDateOnly);
+  const nextAssignment = reviewedByDate.find((assignment) => assignment.kind !== "exam") || reviewedByDate[0];
+  const nextExam = reviewedByDate.find((assignment) => assignment.kind === "exam");
+  const focusAssignment = reviewedAssignments[0] || nextAssignment;
+  const todayStats = getAssignmentCompletionStats(
+    reviewedProgressAssignments.filter((assignment) => daysUntil(assignment.dueAt, now) === 0)
+  );
+  const focusMinutes = getRecommendedFocusDuration(
+    reviewedAssignments,
+    input.focusSessions || [],
+    input.settings,
+    now
+  );
+  const semesterProgress = calculateSemesterProgress(input.semester, now);
+  const semesterDaysLeft = daysUntil(input.semester.endDate, now);
+  const nextClass = getNextClassMeeting(input.courses, now, locale, t);
+  const reviewCount = getNeedsReview(assignments).length;
+  const hasReviewedSyllabus = getHasReviewedSyllabus(assignments, parsedImports);
+  const colors = getWatchSnapshotColors(input, snapshots);
+  const setupState = getWatchSetupState(input, assignments, reviewedAssignments, reviewCount, hasReviewedSyllabus);
+  const nextAssignmentItem = nextAssignment
+    ? watchAssignmentItem(nextAssignment, input.courses, now, locale, t, colors.assignment, "assignment")
+    : watchEmptyItem(
+        t("watch.next_due", "Next Due"),
+        t("watch.no_assignment", "No assignment"),
+        t("watch.all_clear", "All clear"),
+        setupState.detail,
+        colors.assignment,
+        "assignment"
+      );
+  const nextClassItem = nextClass || watchEmptyItem(
+    t("watch.next_class", "Next Class"),
+    t("watch.no_class", "No class"),
+    t("watch.add_schedule", "Add schedule"),
+    t("watch.open_iphone", "Open iPhone app"),
+    colors.assignment,
+    "class"
+  );
+  const examItem = nextExam
+    ? watchAssignmentItem(nextExam, input.courses, now, locale, t, colors.exam, "exam")
+    : watchEmptyItem(
+        t("watch.exam", "Exam"),
+        t("watch.no_exam", "No exam"),
+        t("watch.safe", "Safe"),
+        t("watch.no_exam_detail", "No reviewed exams"),
+        colors.exam,
+        "exam"
+      );
+  const focusItem = focusAssignment
+    ? {
+        title: assignmentDisplayTitle(focusAssignment, input.settings?.privacyMode === true, t),
+        value: formatSnapshotTemplate(t("watch.focus_minutes", "{count} min"), { count: focusMinutes }),
+        detail: courseCodeForAssignment(focusAssignment, input.courses, t),
+        label: t("watch.focus", "Focus"),
+        color: colors.focus,
+        kind: "focus" as const,
+        progress: focusProgressForAssignment(focusAssignment)
+      }
+    : watchEmptyItem(
+        t("watch.focus", "Focus"),
+        t("watch.no_focus", "No focus"),
+        t("watch.ready", "Ready"),
+        t("watch.open_iphone", "Open iPhone app"),
+        colors.focus,
+        "focus"
+      );
+  const todayProgressItem = {
+    title: t("watch.today_progress", "Today Progress"),
+    value: todayStats.total > 0
+      ? formatSnapshotTemplate(t("watch.progress_count", "{done}/{total}"), { done: todayStats.done, total: todayStats.total })
+      : t("watch.clear", "Clear"),
+    detail: todayStats.total > 0
+      ? formatSnapshotTemplate(t("widget_snapshot.complete_count", "{done} of {total} complete"), {
+          done: todayStats.done,
+          total: todayStats.total
+        })
+      : t("widget_snapshot.no_open_work", "No open work"),
+    label: t("watch.today", "Today"),
+    color: colors.today,
+    kind: "today" as const,
+    progress: todayStats.total > 0 ? todayStats.progress : 1
+  };
+  const semesterPulseItem = {
+    title: t("today.semester_pulse", "Semester Pulse"),
+    value: Number.isFinite(semesterDaysLeft)
+      ? semesterDaysLeft > 0
+        ? formatSnapshotTemplate(t("today.days_left", "{count} days left"), { count: Math.max(0, semesterDaysLeft) })
+        : t("today.final_stretch", "Final stretch")
+      : formatSnapshotTemplate(t("today.open_task_count", "{count} open tasks"), { count: reviewedAssignments.length }),
+    detail: snapshots.week.detail || t("watch.semester_detail", "Term progress"),
+    label: t("watch.semester", "Semester"),
+    color: colors.semester,
+    kind: "semester" as const,
+    progress: semesterProgress
+  };
+  const hero = pickWatchHero({
+    setupState,
+    nextAssignmentItem,
+    nextClassItem,
+    examItem,
+    focusItem,
+    nextExam,
+    nextAssignment,
+    now,
+    t
+  });
+
+  return {
+    schemaVersion: 1,
+    generatedAt: now.toISOString(),
+    locale,
+    state: setupState.state,
+    accentColor: hero.color,
+    backgroundColor: colors.background,
+    hero,
+    semesterPulse: semesterPulseItem,
+    focus: focusItem,
+    todayProgress: todayProgressItem,
+    nextAssignment: nextAssignmentItem,
+    nextClass: nextClassItem,
+    examCountdown: examItem,
+    rings: [semesterPulseItem, focusItem, todayProgressItem],
+    labels: {
+      appName: t("brand_name", "StudyPlanner"),
+      nextDue: t("watch.next_due", "Next Due"),
+      nextClass: t("watch.next_class", "Next Class"),
+      exam: t("watch.exam", "Exam"),
+      focus: t("watch.focus", "Focus"),
+      semester: t("watch.semester", "Semester"),
+      today: t("watch.today", "Today")
+    }
+  };
+}
+
 export async function syncStudyPlannerWidgets(input: WidgetSnapshotInput): Promise<WidgetSyncStatus> {
   const { t } = getSnapshotLocalization(input);
 
@@ -720,6 +912,7 @@ export async function syncStudyPlannerWidgets(input: WidgetSnapshotInput): Promi
         widgets.StudyPlannerUpcomingWidget.updateSnapshot(snapshots.upcoming);
         widgets.StudyPlannerWeekWidget.updateSnapshot(snapshots.week);
         widgets.StudyPlannerClassProgressWidget.updateSnapshot(snapshots.classProgress);
+        updateStudyPlannerWatchBridge(widgets, buildStudyPlannerWatchSnapshot(input, snapshots));
         return {
           state: "skipped",
           message: t(
@@ -745,6 +938,7 @@ export async function syncStudyPlannerWidgets(input: WidgetSnapshotInput): Promi
   }
 
   const snapshots = buildStudyPlannerWidgetSnapshots(input);
+  const watchSnapshot = buildStudyPlannerWatchSnapshot(input, snapshots);
 
   try {
     const widgets = loadNativeWidgetModule();
@@ -759,6 +953,7 @@ export async function syncStudyPlannerWidgets(input: WidgetSnapshotInput): Promi
     widgets.StudyPlannerUpcomingWidget.updateSnapshot(snapshots.upcoming);
     widgets.StudyPlannerWeekWidget.updateSnapshot(snapshots.week);
     widgets.StudyPlannerClassProgressWidget.updateSnapshot(snapshots.classProgress);
+    updateStudyPlannerWatchBridge(widgets, watchSnapshot);
 
     return {
       state: "synced",
@@ -771,6 +966,294 @@ export async function syncStudyPlannerWidgets(input: WidgetSnapshotInput): Promi
       message: t("widget_snapshot.install_native_status", "Install a native iOS build with the widget extension to add widgets.")
     };
   }
+}
+
+function getWatchSnapshotColors(
+  input: WidgetSnapshotInput,
+  snapshots: StudyPlannerNativeWidgetSnapshots
+) {
+  const customization = input.settings?.customization;
+  return {
+    assignment: readableWidgetAccent(customization?.primaryAccent, snapshots.upcoming.accentColor || defaultAccent),
+    exam: readableWidgetAccent(customization?.riskColor, "#FF5A1F"),
+    focus: readableWidgetAccent(customization?.focusColor, "#22C55E"),
+    semester: readableWidgetAccent(customization?.secondaryAccent, snapshots.week.accentColor || "#21B8A7"),
+    today: readableWidgetAccent(customization?.activityColor, snapshots.today.accentColor || "#8B3DFF"),
+    background: snapshots.upcoming.backgroundColor || "#070A12"
+  };
+}
+
+function getWatchSetupState(
+  input: WidgetSnapshotInput,
+  assignments: Assignment[],
+  reviewedAssignments: Assignment[],
+  reviewCount: number,
+  hasReviewedSyllabus: boolean
+): { state: StudyPlannerWatchSnapshotState; title: string; value: string; detail: string; color?: string } {
+  const { t } = getSnapshotLocalization(input);
+
+  if (input.settings?.syncEnabled === false) {
+    return {
+      state: "sync_disabled",
+      title: t("watch.sync_off_title", "Sync off"),
+      value: t("widget_snapshot.off", "Off"),
+      detail: t("widget_snapshot.turn_sync_on", "Turn sync on in StudyPlanner")
+    };
+  }
+
+  if (input.courses.length === 0) {
+    return {
+      state: "setup",
+      title: t("widget_snapshot.add_class_first", "Add a class first"),
+      value: t("widget_snapshot.class", "Class"),
+      detail: t("watch.open_iphone", "Open iPhone app")
+    };
+  }
+
+  if (assignments.length === 0) {
+    return {
+      state: "setup",
+      title: hasReviewedSyllabus
+        ? t("widget_snapshot.add_homework_when_appears", "Add homework when it appears")
+        : t("widget_snapshot.review_syllabus_first", "Review a syllabus first"),
+      value: hasReviewedSyllabus ? t("widget_snapshot.add", "Add") : t("widget_snapshot.scan", "Scan"),
+      detail: t("watch.open_iphone", "Open iPhone app")
+    };
+  }
+
+  if (reviewedAssignments.length === 0 && reviewCount > 0) {
+    return {
+      state: "needs_review",
+      title: t("widget_snapshot.review_before_widgets", "Review before widgets use it"),
+      value: String(reviewCount),
+      detail: t("widget_snapshot.open_scan_approve", "Open Scan to approve deadlines"),
+      color: "#F59E0B"
+    };
+  }
+
+  if (reviewedAssignments.length === 0) {
+    return {
+      state: "empty",
+      title: t("watch.all_clear", "All clear"),
+      value: t("widget_snapshot.clear", "Clear"),
+      detail: t("watch.open_iphone", "Open iPhone app")
+    };
+  }
+
+  return {
+    state: "ready",
+    title: t("watch.ready", "Ready"),
+    value: t("widget_snapshot.next_deadline", "Next deadline"),
+    detail: t("watch.what_matters_next", "What matters next")
+  };
+}
+
+function watchEmptyItem(
+  label: string,
+  title: string,
+  value: string,
+  detail: string,
+  color: string,
+  kind: StudyPlannerWatchSnapshotItem["kind"]
+): StudyPlannerWatchSnapshotItem {
+  return {
+    label,
+    title,
+    value,
+    detail,
+    color,
+    kind,
+    progress: 0
+  };
+}
+
+function watchAssignmentItem(
+  assignment: Assignment,
+  courses: Course[],
+  now: Date,
+  locale: string,
+  t: WidgetSnapshotTranslate,
+  fallbackColor: string,
+  kind: "assignment" | "exam"
+): StudyPlannerWatchSnapshotItem {
+  const course = courses.find((item) => item.id === assignment.courseId);
+  const color = readableWidgetAccent(course?.color, fallbackColor);
+  return {
+    title: assignmentDisplayTitle(assignment, false, t),
+    value: kind === "exam"
+      ? formatWatchDayCount(daysUntil(assignment.dueAt, now), t)
+      : formatDueLabel(assignment.dueAt, now, t, locale),
+    detail: course?.code || course?.name || t("today.class_fallback", "class"),
+    label: kind === "exam" ? t("watch.exam", "Exam") : t("watch.next_due", "Next Due"),
+    color,
+    kind,
+    progress: focusProgressForAssignment(assignment)
+  };
+}
+
+function pickWatchHero({
+  setupState,
+  nextAssignmentItem,
+  nextClassItem,
+  examItem,
+  focusItem,
+  nextExam,
+  nextAssignment,
+  now,
+  t
+}: {
+  setupState: ReturnType<typeof getWatchSetupState>;
+  nextAssignmentItem: StudyPlannerWatchSnapshotItem;
+  nextClassItem: StudyPlannerWatchSnapshotItem;
+  examItem: StudyPlannerWatchSnapshotItem;
+  focusItem: StudyPlannerWatchSnapshotItem;
+  nextExam?: Assignment;
+  nextAssignment?: Assignment;
+  now: Date;
+  t: WidgetSnapshotTranslate;
+}): StudyPlannerWatchSnapshotItem {
+  if (setupState.state !== "ready") {
+    return {
+      label: t("watch.what_matters_next", "What matters next"),
+      title: setupState.title,
+      value: setupState.value,
+      detail: setupState.detail,
+      color: setupState.color || nextAssignmentItem.color,
+      kind: "setup",
+      progress: 0
+    };
+  }
+
+  if (nextExam) {
+    const days = daysUntil(nextExam.dueAt, now);
+    if (days <= 14) {
+      return {
+        ...examItem,
+        value: formatWatchDayCount(days, t),
+        detail: watchActionForDays(days, t)
+      };
+    }
+  }
+
+  if (nextAssignment) {
+    return {
+      ...nextAssignmentItem,
+      detail: watchActionForDays(daysUntil(nextAssignment.dueAt, now), t)
+    };
+  }
+
+  if (nextClassItem.kind === "class") return nextClassItem;
+  return focusItem;
+}
+
+function watchActionForDays(days: number, t: WidgetSnapshotTranslate) {
+  if (days < 0) return t("widget_snapshot.catch_up", "Catch up");
+  if (days === 0) return t("watch.start_now", "Start now");
+  if (days <= 2) return t("watch.start_tonight", "Start tonight");
+  return t("watch.plan_block", "Plan a block");
+}
+
+function formatWatchDayCount(days: number, t: WidgetSnapshotTranslate) {
+  if (!Number.isFinite(days)) return t("widget_snapshot.review", "Review");
+  if (days < 0) return formatSnapshotTemplate(t("today.overdue_by_days", "Overdue by {count} day(s)"), { count: Math.abs(days) });
+  if (days === 0) return t("today.due_today_short", "Due today");
+  if (days === 1) return t("watch.one_day", "1 day");
+  return formatSnapshotTemplate(t("watch.days_count", "{count} days"), { count: days });
+}
+
+function focusProgressForAssignment(assignment: Assignment) {
+  if (assignment.status === "done") return 1;
+  if (assignment.status === "in_progress") return Math.max(0.35, Math.min(0.92, assignment.progress || 0.5));
+  return Math.max(0.12, Math.min(0.88, assignment.progress || 0.24));
+}
+
+function courseCodeForAssignment(
+  assignment: Assignment,
+  courses: Course[],
+  t: WidgetSnapshotTranslate
+) {
+  const course = courses.find((item) => item.id === assignment.courseId);
+  return course?.code || course?.name || t("today.class_fallback", "class");
+}
+
+function getNextClassMeeting(
+  courses: Course[],
+  now: Date,
+  locale: string,
+  t: WidgetSnapshotTranslate
+): StudyPlannerWatchSnapshotItem | null {
+  const upcoming = courses.flatMap((course) =>
+    (course.meetings || []).map((meeting) => {
+      const date = dateForNextMeeting(meeting.day, meeting.startTime, now);
+      return date
+        ? {
+            course,
+            meeting,
+            date
+          }
+        : null;
+    })
+  ).filter((value): value is { course: Course; meeting: Course["meetings"][number]; date: Date } => Boolean(value))
+    .sort((left, right) => left.date.getTime() - right.date.getTime());
+
+  const next = upcoming[0];
+  if (!next) return null;
+
+  return {
+    title: next.course.code || next.course.name || t("today.class_fallback", "class"),
+    value: formatMeetingLabel(next.date, now, locale, t),
+    detail: next.meeting.location || next.course.room || t("watch.no_room", "Room TBD"),
+    label: t("watch.next_class", "Next Class"),
+    color: readableWidgetAccent(next.course.color, defaultAccent),
+    kind: "class",
+    progress: 0.5
+  };
+}
+
+function dateForNextMeeting(day: Course["meetings"][number]["day"], startTime: string, now: Date) {
+  const weekdayIndex: Record<Course["meetings"][number]["day"], number> = {
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6
+  };
+  const match = startTime.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+
+  const target = weekdayIndex[day];
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (!Number.isFinite(target) || !Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+
+  const date = new Date(now);
+  const offset = (target - now.getDay() + 7) % 7;
+  date.setDate(now.getDate() + offset);
+  date.setHours(hours, minutes, 0, 0);
+  if (date.getTime() <= now.getTime()) {
+    date.setDate(date.getDate() + 7);
+  }
+  return date;
+}
+
+function formatMeetingLabel(
+  date: Date,
+  now: Date,
+  locale: string,
+  t: WidgetSnapshotTranslate
+) {
+  const dayDelta = daysUntil(date.toISOString(), now);
+  const time = new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit" }).format(date);
+  if (dayDelta === 0) return formatSnapshotTemplate(t("watch.today_time", "Today {time}"), { time });
+  if (dayDelta === 1) return formatSnapshotTemplate(t("watch.tomorrow_time", "Tomorrow {time}"), { time });
+  const weekday = new Intl.DateTimeFormat(locale, { weekday: "short" }).format(date);
+  return formatSnapshotTemplate(t("watch.weekday_time", "{weekday} {time}"), { weekday, time });
+}
+
+function sortByDueDateOnly(left: Assignment, right: Assignment) {
+  return new Date(left.dueAt).getTime() - new Date(right.dueAt).getTime();
 }
 
 function buildSyncDisabledWidgetSnapshots(input: WidgetSnapshotInput) {
@@ -890,6 +1373,17 @@ function loadNativeWidgetModule() {
     return require("../widgets/StudyPlannerWidgets");
   } catch {
     return null;
+  }
+}
+
+function updateStudyPlannerWatchBridge(
+  widgets: ReturnType<typeof loadNativeWidgetModule>,
+  snapshot: StudyPlannerWatchSnapshot
+) {
+  try {
+    widgets?.StudyPlannerWatchBridge?.updateSnapshot(snapshot);
+  } catch {
+    // The phone widgets remain authoritative; Watch bridge sync is best-effort.
   }
 }
 

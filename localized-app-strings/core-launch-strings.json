@@ -1042,7 +1042,8 @@
       "watch_preview_copy": "Glanceable. Actionable.",
       "hero_subtitle": "Widget Studio keeps previews, class colors, and saved widgets in one native system.",
       "hero_badge": "Widget Studio",
-      "customize_accessibility": "Customize StudyPlanner. Make every class, widget, and reminder feel like yours."
+      "customize_accessibility": "Customize StudyPlanner. Make every class, widget, and reminder feel like yours.",
+      "apple_watch": "Apple Watch"
     },
     "widget_snapshot": {
       "today": "Today",
@@ -1305,6 +1306,64 @@
       "learned_prefix": "Learned: {pattern}",
       "reason_prefix": "Reason: {reason}",
       "watch_adaptation": "Watch adaptation"
+    },
+    "watch": {
+      "what_matters_next": "What matters next",
+      "next_due": "Next Due",
+      "next_class": "Next Class",
+      "exam": "Exam",
+      "focus": "Focus",
+      "semester": "Semester",
+      "today": "Today",
+      "today_progress": "Today Progress",
+      "no_assignment": "No assignment",
+      "no_class": "No class",
+      "no_exam": "No exam",
+      "no_focus": "No focus",
+      "all_clear": "All clear",
+      "add_schedule": "Add schedule",
+      "open_iphone": "Open iPhone app",
+      "safe": "Safe",
+      "no_exam_detail": "No reviewed exams",
+      "ready": "Ready",
+      "clear": "Clear",
+      "sync_off_title": "Sync off",
+      "what_matters_next_short": "Next",
+      "start_now": "Start now",
+      "start_tonight": "Start tonight",
+      "plan_block": "Plan a block",
+      "one_day": "1 day",
+      "days_count": "{count} days",
+      "focus_minutes": "{count} min",
+      "progress_count": "{done}/{total}",
+      "semester_detail": "Term progress",
+      "no_room": "Room TBD",
+      "today_time": "Today {time}",
+      "tomorrow_time": "Tomorrow {time}",
+      "weekday_time": "{weekday} {time}",
+      "no_data": {
+        "title": "Open StudyPlanner",
+        "value": "Sync",
+        "detail": "Open iPhone app"
+      },
+      "complication": {
+        "next_due": {
+          "name": "Next Due",
+          "description": "Your next reviewed deadline."
+        },
+        "exam": {
+          "name": "Exam Countdown",
+          "description": "Days until the next exam."
+        },
+        "focus": {
+          "name": "Focus Window",
+          "description": "The next study block."
+        },
+        "pulse": {
+          "name": "Semester Pulse",
+          "description": "Semester progress at a glance."
+        }
+      }
     }
   },
   "de": {
@@ -2350,7 +2409,8 @@
       "watch_preview_copy": "Schnell erfassbar. Direkt nutzbar.",
       "hero_subtitle": "Widget Studio hält Vorschauen, Kursfarben und gespeicherte Widgets in einem nativen System zusammen.",
       "hero_badge": "Widget-Studio",
-      "customize_accessibility": "StudyPlanner anpassen. Jede Klasse, jedes Widget und jede Erinnerung soll zu dir passen."
+      "customize_accessibility": "StudyPlanner anpassen. Jede Klasse, jedes Widget und jede Erinnerung soll zu dir passen.",
+      "apple_watch": "Apple Watch-Uhr"
     },
     "widget_snapshot": {
       "today": "Heute",
@@ -2613,6 +2673,64 @@
       "learned_prefix": "Gelernt: {pattern}",
       "reason_prefix": "Grund: {reason}",
       "watch_adaptation": "Watch-Anpassung"
+    },
+    "watch": {
+      "what_matters_next": "Was als Naechstes zaehlt",
+      "next_due": "Naechste Frist",
+      "next_class": "Naechster Kurs",
+      "exam": "Pruefung",
+      "focus": "Fokus",
+      "semester": "Studienphase",
+      "today": "Heute",
+      "today_progress": "Fortschritt heute",
+      "no_assignment": "Keine Aufgabe",
+      "no_class": "Kein Kurs",
+      "no_exam": "Keine Pruefung",
+      "no_focus": "Kein Fokus",
+      "all_clear": "Alles frei",
+      "add_schedule": "Plan hinzufuegen",
+      "open_iphone": "iPhone-App oeffnen",
+      "safe": "Sicher",
+      "no_exam_detail": "Keine geprueften Pruefungen",
+      "ready": "Bereit",
+      "clear": "Frei",
+      "sync_off_title": "Sync aus",
+      "what_matters_next_short": "Weiter",
+      "start_now": "Jetzt starten",
+      "start_tonight": "Heute Abend starten",
+      "plan_block": "Block planen",
+      "one_day": "1 Tag",
+      "days_count": "{count} Tage",
+      "focus_minutes": "{count} Min.",
+      "progress_count": "{done}/{total} fertig",
+      "semester_detail": "Semesterfortschritt",
+      "no_room": "Raum offen",
+      "today_time": "Heute {time}",
+      "tomorrow_time": "Morgen {time}",
+      "weekday_time": "{weekday} um {time}",
+      "no_data": {
+        "title": "StudyPlanner oeffnen",
+        "value": "Koppeln",
+        "detail": "iPhone-App oeffnen"
+      },
+      "complication": {
+        "next_due": {
+          "name": "Naechste Frist",
+          "description": "Deine naechste gepruefte Frist."
+        },
+        "exam": {
+          "name": "Pruefungs-Countdown",
+          "description": "Tage bis zur naechsten Pruefung."
+        },
+        "focus": {
+          "name": "Fokusfenster",
+          "description": "Der naechste Lernblock."
+        },
+        "pulse": {
+          "name": "Semesterpuls",
+          "description": "Semesterfortschritt auf einen Blick."
+        }
+      }
     }
   },
   "es": {
@@ -3658,7 +3776,8 @@
       "watch_preview_copy": "De un vistazo. Accionable.",
       "hero_subtitle": "Widget Studio reúne vistas previas, colores de clase y configuraciones guardadas en un sistema nativo.",
       "hero_badge": "Estudio de widgets",
-      "customize_accessibility": "Personaliza StudyPlanner. Haz que cada clase, widget y recordatorio se sienta tuyo."
+      "customize_accessibility": "Personaliza StudyPlanner. Haz que cada clase, widget y recordatorio se sienta tuyo.",
+      "apple_watch": "Reloj Apple Watch"
     },
     "widget_snapshot": {
       "today": "Hoy",
@@ -3921,6 +4040,64 @@
       "learned_prefix": "Aprendido: {pattern}",
       "reason_prefix": "Motivo: {reason}",
       "watch_adaptation": "Adaptacion del Watch"
+    },
+    "watch": {
+      "what_matters_next": "Lo proximo importante",
+      "next_due": "Proxima entrega",
+      "next_class": "Proxima clase",
+      "exam": "Examen",
+      "focus": "Enfoque",
+      "semester": "Semestre",
+      "today": "Hoy",
+      "today_progress": "Progreso de hoy",
+      "no_assignment": "Sin tarea",
+      "no_class": "Sin clase",
+      "no_exam": "Sin examen",
+      "no_focus": "Sin enfoque",
+      "all_clear": "Todo libre",
+      "add_schedule": "Agrega horario",
+      "open_iphone": "Abre la app del iPhone",
+      "safe": "Seguro",
+      "no_exam_detail": "No hay examenes revisados",
+      "ready": "Listo",
+      "clear": "Libre",
+      "sync_off_title": "Sync desactivado",
+      "what_matters_next_short": "Siguiente",
+      "start_now": "Empieza ahora",
+      "start_tonight": "Empieza esta noche",
+      "plan_block": "Planifica un bloque",
+      "one_day": "1 dia",
+      "days_count": "{count} dias",
+      "focus_minutes": "{count} min.",
+      "progress_count": "{done}/{total} listas",
+      "semester_detail": "Progreso del semestre",
+      "no_room": "Aula pendiente",
+      "today_time": "Hoy {time}",
+      "tomorrow_time": "Manana {time}",
+      "weekday_time": "{weekday} a las {time}",
+      "no_data": {
+        "title": "Abre StudyPlanner",
+        "value": "Sincroniza",
+        "detail": "Abre la app del iPhone"
+      },
+      "complication": {
+        "next_due": {
+          "name": "Proxima entrega",
+          "description": "Tu proxima fecha revisada."
+        },
+        "exam": {
+          "name": "Cuenta de examen",
+          "description": "Dias hasta el proximo examen."
+        },
+        "focus": {
+          "name": "Ventana de enfoque",
+          "description": "El proximo bloque de estudio."
+        },
+        "pulse": {
+          "name": "Pulso del semestre",
+          "description": "Progreso del semestre de un vistazo."
+        }
+      }
     }
   },
   "fr": {
@@ -4966,7 +5143,8 @@
       "watch_preview_copy": "Lisible vite. Actionnable.",
       "hero_subtitle": "Widget Studio regroupe aperçus, couleurs de cours et configurations enregistrées dans un système natif.",
       "hero_badge": "Studio Widgets",
-      "customize_accessibility": "Personnaliser StudyPlanner. Faites que chaque cours, widget et rappel vous corresponde."
+      "customize_accessibility": "Personnaliser StudyPlanner. Faites que chaque cours, widget et rappel vous corresponde.",
+      "apple_watch": "Montre Apple Watch"
     },
     "widget_snapshot": {
       "today": "Aujourd'hui",
@@ -5229,6 +5407,64 @@
       "learned_prefix": "Appris : {pattern}",
       "reason_prefix": "Raison : {reason}",
       "watch_adaptation": "Adaptation Watch"
+    },
+    "watch": {
+      "what_matters_next": "Ce qui compte ensuite",
+      "next_due": "Prochaine echeance",
+      "next_class": "Prochain cours",
+      "exam": "Examen",
+      "focus": "Concentration",
+      "semester": "Semestre",
+      "today": "Aujourd’hui",
+      "today_progress": "Progres du jour",
+      "no_assignment": "Aucun devoir",
+      "no_class": "Aucun cours",
+      "no_exam": "Aucun examen",
+      "no_focus": "Pas de focus",
+      "all_clear": "Tout est libre",
+      "add_schedule": "Ajouter l’horaire",
+      "open_iphone": "Ouvrir l’app iPhone",
+      "safe": "Sur",
+      "no_exam_detail": "Aucun examen verifie",
+      "ready": "Pret",
+      "clear": "Libre",
+      "sync_off_title": "Sync desactivee",
+      "what_matters_next_short": "Suite",
+      "start_now": "Commencer",
+      "start_tonight": "Commencer ce soir",
+      "plan_block": "Planifier un bloc",
+      "one_day": "1 jour",
+      "days_count": "{count} jours",
+      "focus_minutes": "{count} min.",
+      "progress_count": "{done}/{total} finis",
+      "semester_detail": "Progres du semestre",
+      "no_room": "Salle a confirmer",
+      "today_time": "Aujourd’hui {time}",
+      "tomorrow_time": "Demain {time}",
+      "weekday_time": "{weekday} à {time}",
+      "no_data": {
+        "title": "Ouvrir StudyPlanner",
+        "value": "Relier",
+        "detail": "Ouvrir l’app iPhone"
+      },
+      "complication": {
+        "next_due": {
+          "name": "Prochaine echeance",
+          "description": "Ta prochaine echeance verifiee."
+        },
+        "exam": {
+          "name": "Compte a rebours",
+          "description": "Jours avant le prochain examen."
+        },
+        "focus": {
+          "name": "Fenetre focus",
+          "description": "Le prochain bloc d’etude."
+        },
+        "pulse": {
+          "name": "Pouls du semestre",
+          "description": "Progres du semestre en un coup d’oeil."
+        }
+      }
     }
   },
   "pt-BR": {
@@ -6274,7 +6510,8 @@
       "watch_preview_copy": "Rapido de ver. Pronto para agir.",
       "hero_subtitle": "O Widget Studio mantém prévias, cores das aulas e ajustes salvos em um sistema nativo.",
       "hero_badge": "Estúdio de widgets",
-      "customize_accessibility": "Personalize StudyPlanner. Faça cada aula, widget e lembrete ficar com a sua cara."
+      "customize_accessibility": "Personalize StudyPlanner. Faça cada aula, widget e lembrete ficar com a sua cara.",
+      "apple_watch": "Relógio Apple Watch"
     },
     "widget_snapshot": {
       "today": "Hoje",
@@ -6537,6 +6774,64 @@
       "learned_prefix": "Aprendi: {pattern}",
       "reason_prefix": "Motivo: {reason}",
       "watch_adaptation": "Adaptacao do Watch"
+    },
+    "watch": {
+      "what_matters_next": "O que vem agora",
+      "next_due": "Proximo prazo",
+      "next_class": "Proxima aula",
+      "exam": "Prova",
+      "focus": "Foco",
+      "semester": "Semestre",
+      "today": "Hoje",
+      "today_progress": "Progresso de hoje",
+      "no_assignment": "Sem tarefa",
+      "no_class": "Sem aula",
+      "no_exam": "Sem prova",
+      "no_focus": "Sem foco",
+      "all_clear": "Tudo livre",
+      "add_schedule": "Adicione horario",
+      "open_iphone": "Abra o app no iPhone",
+      "safe": "Seguro",
+      "no_exam_detail": "Nenhuma prova revisada",
+      "ready": "Pronto",
+      "clear": "Livre",
+      "sync_off_title": "Sync desligado",
+      "what_matters_next_short": "Proximo",
+      "start_now": "Comece agora",
+      "start_tonight": "Comece hoje a noite",
+      "plan_block": "Planeje um bloco",
+      "one_day": "1 dia",
+      "days_count": "{count} dias",
+      "focus_minutes": "{count} min.",
+      "progress_count": "{done}/{total} feitas",
+      "semester_detail": "Progresso do semestre",
+      "no_room": "Sala a definir",
+      "today_time": "Hoje {time}",
+      "tomorrow_time": "Amanha {time}",
+      "weekday_time": "{weekday} às {time}",
+      "no_data": {
+        "title": "Abra o StudyPlanner",
+        "value": "Sincronizar",
+        "detail": "Abra o app no iPhone"
+      },
+      "complication": {
+        "next_due": {
+          "name": "Proximo prazo",
+          "description": "Seu proximo prazo revisado."
+        },
+        "exam": {
+          "name": "Contagem da prova",
+          "description": "Dias ate a proxima prova."
+        },
+        "focus": {
+          "name": "Janela de foco",
+          "description": "O proximo bloco de estudo."
+        },
+        "pulse": {
+          "name": "Pulso do semestre",
+          "description": "Progresso do semestre em um olhar."
+        }
+      }
     }
   },
   "ar": {
@@ -7582,7 +7877,8 @@
       "watch_preview_copy": "واضحة بسرعة. قابلة للتنفيذ.",
       "hero_subtitle": "يحفظ استوديو الودجت المعاينات وألوان الصفوف والإعدادات المحفوظة في نظام أصلي واحد.",
       "hero_badge": "استوديو الودجت",
-      "customize_accessibility": "خصص StudyPlanner. اجعل كل صف وودجت وتذكير مناسباً لك."
+      "customize_accessibility": "خصص StudyPlanner. اجعل كل صف وودجت وتذكير مناسباً لك.",
+      "apple_watch": "ساعة Apple Watch"
     },
     "widget_snapshot": {
       "today": "اليوم",
@@ -7845,6 +8141,64 @@
       "learned_prefix": "تعلمت: {pattern}",
       "reason_prefix": "السبب: {reason}",
       "watch_adaptation": "تكييف الساعة"
+    },
+    "watch": {
+      "what_matters_next": "ما المهم الآن",
+      "next_due": "التالي",
+      "next_class": "الحصة التالية",
+      "exam": "اختبار",
+      "focus": "تركيز",
+      "semester": "الفصل",
+      "today": "اليوم",
+      "today_progress": "تقدم اليوم",
+      "no_assignment": "لا واجب",
+      "no_class": "لا حصة",
+      "no_exam": "لا اختبار",
+      "no_focus": "لا تركيز",
+      "all_clear": "كل شيء صاف",
+      "add_schedule": "أضف الجدول",
+      "open_iphone": "افتح تطبيق iPhone",
+      "safe": "آمن",
+      "no_exam_detail": "لا اختبارات مراجعة",
+      "ready": "جاهز",
+      "clear": "صاف",
+      "sync_off_title": "المزامنة متوقفة",
+      "what_matters_next_short": "التالي",
+      "start_now": "ابدأ الآن",
+      "start_tonight": "ابدأ الليلة",
+      "plan_block": "خطط لوقت",
+      "one_day": "يوم واحد",
+      "days_count": "{count} أيام",
+      "focus_minutes": "{count} دقيقة",
+      "progress_count": "{done}/{total} مكتمل",
+      "semester_detail": "تقدم الفصل",
+      "no_room": "الغرفة لاحقا",
+      "today_time": "اليوم {time}",
+      "tomorrow_time": "غدا {time}",
+      "weekday_time": "{weekday}، {time}",
+      "no_data": {
+        "title": "افتح StudyPlanner",
+        "value": "مزامنة",
+        "detail": "افتح تطبيق iPhone"
+      },
+      "complication": {
+        "next_due": {
+          "name": "التالي",
+          "description": "موعدك المؤكد التالي."
+        },
+        "exam": {
+          "name": "عد تنازلي للاختبار",
+          "description": "الأيام حتى الاختبار التالي."
+        },
+        "focus": {
+          "name": "نافذة التركيز",
+          "description": "جلسة الدراسة التالية."
+        },
+        "pulse": {
+          "name": "نبض الفصل",
+          "description": "تقدم الفصل في لمحة."
+        }
+      }
     }
   },
   "hi": {
@@ -8890,7 +9244,8 @@
       "watch_preview_copy": "एक नजर में. काम के लिए तैयार.",
       "hero_subtitle": "Widget Studio प्रीव्यू, क्लास रंग और सेव किए गए सेटअप को एक नेटिव सिस्टम में रखता है।",
       "hero_badge": "विजेट स्टूडियो",
-      "customize_accessibility": "StudyPlanner कस्टमाइज़ करें. हर क्लास, विजेट और रिमाइंडर को अपना बनाएं."
+      "customize_accessibility": "StudyPlanner कस्टमाइज़ करें. हर क्लास, विजेट और रिमाइंडर को अपना बनाएं.",
+      "apple_watch": "Apple Watch घड़ी"
     },
     "widget_snapshot": {
       "today": "आज",
@@ -9153,6 +9508,64 @@
       "learned_prefix": "सीखा: {pattern}",
       "reason_prefix": "कारण: {reason}",
       "watch_adaptation": "Watch अनुकूलन"
+    },
+    "watch": {
+      "what_matters_next": "अब क्या जरूरी है",
+      "next_due": "अगला देय",
+      "next_class": "अगली कक्षा",
+      "exam": "परीक्षा",
+      "focus": "फोकस",
+      "semester": "सेमेस्टर",
+      "today": "आज",
+      "today_progress": "आज की प्रगति",
+      "no_assignment": "कोई असाइनमेंट नहीं",
+      "no_class": "कोई कक्षा नहीं",
+      "no_exam": "कोई परीक्षा नहीं",
+      "no_focus": "कोई फोकस नहीं",
+      "all_clear": "सब साफ",
+      "add_schedule": "समय-सारिणी जोड़ें",
+      "open_iphone": "iPhone ऐप खोलें",
+      "safe": "सुरक्षित",
+      "no_exam_detail": "कोई समीक्षा की परीक्षा नहीं",
+      "ready": "तैयार",
+      "clear": "साफ",
+      "sync_off_title": "सिंक बंद",
+      "what_matters_next_short": "अगला",
+      "start_now": "अभी शुरू करें",
+      "start_tonight": "आज रात शुरू करें",
+      "plan_block": "एक ब्लॉक तय करें",
+      "one_day": "1 दिन",
+      "days_count": "{count} दिन",
+      "focus_minutes": "{count} मिनट",
+      "progress_count": "{done}/{total} पूरे",
+      "semester_detail": "सेमेस्टर प्रगति",
+      "no_room": "कमरा तय नहीं",
+      "today_time": "आज {time}",
+      "tomorrow_time": "कल {time}",
+      "weekday_time": "{weekday}, {time}",
+      "no_data": {
+        "title": "StudyPlanner खोलें",
+        "value": "सिंक",
+        "detail": "iPhone ऐप खोलें"
+      },
+      "complication": {
+        "next_due": {
+          "name": "अगला देय",
+          "description": "आपकी अगली समीक्षा की समय-सीमा।"
+        },
+        "exam": {
+          "name": "परीक्षा उलटी गिनती",
+          "description": "अगली परीक्षा तक दिन।"
+        },
+        "focus": {
+          "name": "फोकस विंडो",
+          "description": "अगला पढ़ाई ब्लॉक।"
+        },
+        "pulse": {
+          "name": "सेमेस्टर पल्स",
+          "description": "सेमेस्टर प्रगति एक नजर में।"
+        }
+      }
     }
   },
   "ja": {
@@ -10198,7 +10611,8 @@
       "watch_preview_copy": "ひと目で確認。すぐ行動。",
       "hero_subtitle": "Widget Studioはプレビュー、クラスカラー、保存済み設定を1つのネイティブシステムにまとめます。",
       "hero_badge": "ウィジェットスタジオ",
-      "customize_accessibility": "StudyPlannerをカスタマイズ。各クラス、ウィジェット、リマインダーを自分らしくします。"
+      "customize_accessibility": "StudyPlannerをカスタマイズ。各クラス、ウィジェット、リマインダーを自分らしくします。",
+      "apple_watch": "Apple Watch対応"
     },
     "widget_snapshot": {
       "today": "今日",
@@ -10461,6 +10875,64 @@
       "learned_prefix": "学習済み: {pattern}",
       "reason_prefix": "理由: {reason}",
       "watch_adaptation": "Watchの適応"
+    },
+    "watch": {
+      "what_matters_next": "次に大事なこと",
+      "next_due": "次の締切",
+      "next_class": "次の授業",
+      "exam": "試験",
+      "focus": "集中",
+      "semester": "学期",
+      "today": "今日",
+      "today_progress": "今日の進捗",
+      "no_assignment": "課題なし",
+      "no_class": "授業なし",
+      "no_exam": "試験なし",
+      "no_focus": "集中なし",
+      "all_clear": "すべてクリア",
+      "add_schedule": "時間割を追加",
+      "open_iphone": "iPhoneアプリを開く",
+      "safe": "安全",
+      "no_exam_detail": "確認済みの試験なし",
+      "ready": "準備完了",
+      "clear": "クリア",
+      "sync_off_title": "同期オフ",
+      "what_matters_next_short": "次",
+      "start_now": "今始める",
+      "start_tonight": "今夜始める",
+      "plan_block": "時間を確保",
+      "one_day": "1日",
+      "days_count": "{count}日",
+      "focus_minutes": "{count}分",
+      "progress_count": "{done}/{total}完了",
+      "semester_detail": "学期の進捗",
+      "no_room": "教室未定",
+      "today_time": "今日 {time}",
+      "tomorrow_time": "明日 {time}",
+      "weekday_time": "{weekday} {time}に",
+      "no_data": {
+        "title": "StudyPlannerを開く",
+        "value": "同期",
+        "detail": "iPhoneアプリを開く"
+      },
+      "complication": {
+        "next_due": {
+          "name": "次の締切",
+          "description": "次の確認済み締切。"
+        },
+        "exam": {
+          "name": "試験カウントダウン",
+          "description": "次の試験までの日数。"
+        },
+        "focus": {
+          "name": "集中時間",
+          "description": "次の学習ブロック。"
+        },
+        "pulse": {
+          "name": "学期パルス",
+          "description": "学期の進捗をひと目で確認。"
+        }
+      }
     }
   },
   "ko": {
@@ -11506,7 +11978,8 @@
       "watch_preview_copy": "한눈에 보고 바로 실행.",
       "hero_subtitle": "Widget Studio는 미리보기, 수업 색상, 저장된 설정을 하나의 네이티브 시스템에 모읍니다.",
       "hero_badge": "위젯 스튜디오",
-      "customize_accessibility": "StudyPlanner 맞춤 설정. 모든 수업, 위젯, 리마인더를 나에게 맞게 만듭니다."
+      "customize_accessibility": "StudyPlanner 맞춤 설정. 모든 수업, 위젯, 리마인더를 나에게 맞게 만듭니다.",
+      "apple_watch": "Apple Watch용"
     },
     "widget_snapshot": {
       "today": "오늘",
@@ -11769,6 +12242,64 @@
       "learned_prefix": "학습됨: {pattern}",
       "reason_prefix": "이유: {reason}",
       "watch_adaptation": "Watch 적응"
+    },
+    "watch": {
+      "what_matters_next": "다음에 중요한 것",
+      "next_due": "다음 마감",
+      "next_class": "다음 수업",
+      "exam": "시험",
+      "focus": "집중",
+      "semester": "학기",
+      "today": "오늘",
+      "today_progress": "오늘 진행률",
+      "no_assignment": "과제 없음",
+      "no_class": "수업 없음",
+      "no_exam": "시험 없음",
+      "no_focus": "집중 없음",
+      "all_clear": "모두 정리됨",
+      "add_schedule": "시간표 추가",
+      "open_iphone": "iPhone 앱 열기",
+      "safe": "안전",
+      "no_exam_detail": "검토된 시험 없음",
+      "ready": "준비됨",
+      "clear": "정리됨",
+      "sync_off_title": "동기화 꺼짐",
+      "what_matters_next_short": "다음",
+      "start_now": "지금 시작",
+      "start_tonight": "오늘 밤 시작",
+      "plan_block": "블록 계획",
+      "one_day": "1일",
+      "days_count": "{count}일",
+      "focus_minutes": "{count}분",
+      "progress_count": "{done}/{total} 완료",
+      "semester_detail": "학기 진행률",
+      "no_room": "교실 미정",
+      "today_time": "오늘 {time}",
+      "tomorrow_time": "내일 {time}",
+      "weekday_time": "{weekday} {time}에",
+      "no_data": {
+        "title": "StudyPlanner 열기",
+        "value": "동기화",
+        "detail": "iPhone 앱 열기"
+      },
+      "complication": {
+        "next_due": {
+          "name": "다음 마감",
+          "description": "다음 검토된 마감."
+        },
+        "exam": {
+          "name": "시험 카운트다운",
+          "description": "다음 시험까지 남은 날."
+        },
+        "focus": {
+          "name": "집중 창",
+          "description": "다음 공부 블록."
+        },
+        "pulse": {
+          "name": "학기 펄스",
+          "description": "학기 진행률을 한눈에."
+        }
+      }
     }
   },
   "zh-Hans": {
@@ -12814,7 +13345,8 @@
       "watch_preview_copy": "一眼可见。立即可做。",
       "hero_subtitle": "Widget Studio 将预览、课程颜色和已保存设置集中在一个原生系统中。",
       "hero_badge": "小组件工作室",
-      "customize_accessibility": "自定义 StudyPlanner。让每门课、小组件和提醒都更适合你。"
+      "customize_accessibility": "自定义 StudyPlanner。让每门课、小组件和提醒都更适合你。",
+      "apple_watch": "Apple Watch 支持"
     },
     "widget_snapshot": {
       "today": "今天",
@@ -13077,6 +13609,64 @@
       "learned_prefix": "已学习: {pattern}",
       "reason_prefix": "原因: {reason}",
       "watch_adaptation": "Watch 适配"
+    },
+    "watch": {
+      "what_matters_next": "接下来最重要",
+      "next_due": "下个截止",
+      "next_class": "下一节课",
+      "exam": "考试",
+      "focus": "专注",
+      "semester": "学期",
+      "today": "今天",
+      "today_progress": "今日进度",
+      "no_assignment": "暂无作业",
+      "no_class": "暂无课程",
+      "no_exam": "暂无考试",
+      "no_focus": "暂无专注",
+      "all_clear": "全部清爽",
+      "add_schedule": "添加课表",
+      "open_iphone": "打开 iPhone App",
+      "safe": "安全",
+      "no_exam_detail": "暂无已确认考试",
+      "ready": "就绪",
+      "clear": "清爽",
+      "sync_off_title": "同步关闭",
+      "what_matters_next_short": "下一项",
+      "start_now": "现在开始",
+      "start_tonight": "今晚开始",
+      "plan_block": "安排一段时间",
+      "one_day": "1 天",
+      "days_count": "{count} 天",
+      "focus_minutes": "{count} 分钟",
+      "progress_count": "已完成 {done}/{total}",
+      "semester_detail": "学期进度",
+      "no_room": "教室待定",
+      "today_time": "今天 {time}",
+      "tomorrow_time": "明天 {time}",
+      "weekday_time": "{weekday} {time} 上课",
+      "no_data": {
+        "title": "打开 StudyPlanner",
+        "value": "同步",
+        "detail": "打开 iPhone App"
+      },
+      "complication": {
+        "next_due": {
+          "name": "下个截止",
+          "description": "下一个已确认截止日期。"
+        },
+        "exam": {
+          "name": "考试倒计时",
+          "description": "距离下一场考试的天数。"
+        },
+        "focus": {
+          "name": "专注窗口",
+          "description": "下一个学习时段。"
+        },
+        "pulse": {
+          "name": "学期脉搏",
+          "description": "一眼查看学期进度。"
+        }
+      }
     }
   }
 }
