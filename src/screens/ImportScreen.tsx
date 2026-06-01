@@ -395,8 +395,8 @@ export function ImportScreen({
         <Text style={styles.title}>{t("import.title", "Turn school material into reviewed assignments.")}</Text>
         <Text style={styles.subtitle}>
           {imageParsingAvailable
-            ? t("import.subtitle_images", "AI-assisted imports can use camera photos, saved images, text-based PDFs, or pasted syllabus text when OCR is configured.")
-            : t("import.subtitle", "Text/PDF parsing is ready. Photo capture is available, but OCR review is not enabled in this build.")}
+            ? t("import.subtitle_images", "Import photos, PDFs, images, or pasted syllabus text. Every item waits for review before it reaches Today.")
+            : t("import.subtitle", "Paste text or upload a PDF. Every item waits for review before it reaches Today.")}
         </Text>
       </View>
 
@@ -420,7 +420,7 @@ export function ImportScreen({
         {sourceMode === "camera" ? (
           <View style={styles.sourcePanel}>
             <Text style={styles.sourcePanelTitle}>{t("import.camera_title", "Use a syllabus photo.")}</Text>
-            <Text style={styles.sourcePanelCopy}>{t("import.camera_copy", "Take a photo or choose a page. Nothing is added unless OCR returns parsed rows; Upload or Type It In for full parsing today.")}</Text>
+            <Text style={styles.sourcePanelCopy}>{t("import.camera_copy", "Take a photo or choose a page. Nothing is added until you review it.")}</Text>
             <View style={styles.scanActions}>
               <CaptureActionButton label={t("import.take_photo", "Take photo")} icon={Camera} onPress={capturePhoto} variant="primary" />
               <CaptureActionButton label={t("import.choose_photo", "Choose photo")} icon={FileText} onPress={pickPhoto} variant="secondary" />
@@ -437,7 +437,7 @@ export function ImportScreen({
         {sourceMode === "file" ? (
           <View style={styles.sourcePanel}>
             <Text style={styles.sourcePanelTitle}>{t("import.pdf_title", "Upload school material.")}</Text>
-            <Text style={styles.sourcePanelCopy}>{t("import.pdf_copy", "Text-based PDFs and text files parse locally. Image files require the configured OCR endpoint.")}</Text>
+            <Text style={styles.sourcePanelCopy}>{t("import.pdf_copy", "Upload a text-based PDF or file. You review every item before it reaches Today.")}</Text>
             <CaptureActionButton label={t("import.upload_file", "Upload file")} icon={Upload} onPress={pickPdf} variant="primary" />
           </View>
         ) : null}
@@ -983,7 +983,7 @@ function captureStatusDetail(value: CaptureUiStatus, imageParsingAvailable: bool
   if (value === "idle") {
     return imageParsingAvailable
       ? t("import.status_idle_images_detail", "Scan, upload, or type school material. Nothing is added until review.")
-      : t("import.status_idle_detail", "Upload a text-based PDF or type/paste material. Photo OCR is off in this build.");
+      : t("import.status_idle_detail", "Upload a PDF or paste text. Nothing is added until review.");
   }
   if (value === "parsed") return t("import.status_parsed_detail", "Review parser rows before adding them to Today.");
   if (value === "failed") return t("import.status_failed_detail", "Retry with the same source or choose a clearer text-based file.");

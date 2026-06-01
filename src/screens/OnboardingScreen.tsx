@@ -119,7 +119,7 @@ const slides: Array<{
     copyKey: "onboarding.widgets_copy",
     ctaKey: "onboarding.final_cta",
     title: "Make the plan feel like yours.",
-    copy: "Choose a theme and put real reviewed work on your Home Screen.",
+    copy: "Choose colors and put real reviewed work on your Home Screen.",
     cta: "Continue"
   }
 ];

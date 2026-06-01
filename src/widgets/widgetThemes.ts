@@ -43,7 +43,7 @@ export const widgetThemeDefinitions: Record<WidgetThemeChoice, WidgetThemeDefini
     background: "glass",
     palette: "ocean",
     appTheme: "classic",
-    labelKey: "more.palette_ocean",
+    labelKey: "theme.ocean",
     fallbackLabel: "Ocean"
   },
   graphite: {
@@ -51,7 +51,7 @@ export const widgetThemeDefinitions: Record<WidgetThemeChoice, WidgetThemeDefini
     background: "dark",
     palette: "graphite",
     appTheme: "graphite",
-    labelKey: "more.palette_graphite",
+    labelKey: "theme.graphite",
     fallbackLabel: "Graphite"
   },
   forest: {
@@ -59,7 +59,7 @@ export const widgetThemeDefinitions: Record<WidgetThemeChoice, WidgetThemeDefini
     background: "glass",
     palette: "forest",
     appTheme: "mint",
-    labelKey: "more.palette_forest",
+    labelKey: "theme.forest",
     fallbackLabel: "Forest"
   },
   high_contrast: {
@@ -67,7 +67,7 @@ export const widgetThemeDefinitions: Record<WidgetThemeChoice, WidgetThemeDefini
     background: "dark",
     palette: "contrast",
     appTheme: "graphite",
-    labelKey: "more.style_high_contrast",
+    labelKey: "theme.high_contrast",
     fallbackLabel: "High contrast"
   }
 };
