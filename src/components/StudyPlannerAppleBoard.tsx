@@ -4,6 +4,7 @@ import { BlurView } from "expo-blur";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import Svg, { Circle } from "react-native-svg";
 import { Activity, Beaker, CalendarDays, CheckCircle2, CirclePlay, GraduationCap, Timer } from "lucide-react-native";
+import { useI18n } from "../i18n";
 
 type IconComponent = React.ComponentType<any>;
 
@@ -229,33 +230,37 @@ export function SPWatchPreview({
   assignmentTitle: string;
   focusTitle: string;
 }) {
+  const { t, locale } = useI18n();
+  const previewDate = new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric" }).format(new Date("2026-05-13T12:00:00"));
+  const friday = new Intl.DateTimeFormat(locale, { weekday: "long" }).format(new Date("2026-05-15T12:00:00"));
+
   return (
     <View style={styles.watchFrame}>
       <View style={styles.watchTop}>
         <SPMiniRing progress={0.82} color={SPBoardColors.green} size={28} stroke={4} />
         <View style={styles.watchTimeBlock}>
           <Text style={styles.watchTime}>10:09</Text>
-          <Text style={styles.watchDate}>TUE 13</Text>
+          <Text style={styles.watchDate}>{previewDate}</Text>
         </View>
       </View>
       <View style={[styles.watchCard, { backgroundColor: SPBoardColors.orange }]}>
-        <Text style={styles.watchKicker}>EXAM IN 7 DAYS</Text>
+        <Text style={styles.watchKicker}>{formatLocalized(t("today.exam_in_days", "Exam in {count} days"), { count: "7" })}</Text>
         <Text style={styles.watchTitle}>{examTitle}</Text>
       </View>
       <View style={[styles.watchCard, { backgroundColor: SPBoardColors.blue }]}>
-        <Text style={styles.watchKicker}>DUE FRIDAY</Text>
+        <Text style={styles.watchKicker}>{formatLocalized(t("today.due_weekday", "Due {weekday}"), { weekday: friday })}</Text>
         <Text style={styles.watchTitle}>{assignmentTitle}</Text>
       </View>
       <View style={[styles.watchCard, { backgroundColor: SPBoardColors.teal }]}>
         <View style={styles.watchFocusRow}>
           <View>
             <Text style={styles.watchTitle}>{focusTitle}</Text>
-            <Text style={styles.watchKicker}>45 min</Text>
+            <Text style={styles.watchKicker}>{formatLocalized(t("today.minutes_short", "{minutes} min"), { minutes: "45" })}</Text>
           </View>
           <CirclePlay color="#FFFFFF" size={24} fill="rgba(255,255,255,0.25)" />
         </View>
       </View>
-      <Text style={styles.watchMore}>+2 more</Text>
+      <Text style={styles.watchMore}>{formatLocalized(t("today.more_today", "{count} more today"), { count: "2" })}</Text>
     </View>
   );
 }
@@ -510,13 +515,17 @@ function readableTextForBackground(color: string) {
   return luminance > 0.68 ? SPBoardColors.text : "#FFFFFF";
 }
 
+function formatLocalized(template: string, values: Record<string, string>) {
+  return Object.entries(values).reduce((current, [key, value]) => current.replaceAll(`{${key}}`, value), template);
+}
+
 const styles = StyleSheet.create({
   hero: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 18,
-    marginBottom: 14
+    marginBottom: 22
   },
   heroCopy: {
     flex: 1,
@@ -524,14 +533,14 @@ const styles = StyleSheet.create({
   },
   heroGreeting: {
     color: SPBoardColors.text,
-    fontSize: 17,
-    lineHeight: 21,
+    fontSize: 15,
+    lineHeight: 19,
     fontWeight: "700"
   },
   heroName: {
     color: SPBoardColors.text,
-    fontSize: 34,
-    lineHeight: 37,
+    fontSize: 46,
+    lineHeight: 48,
     fontWeight: "900",
     letterSpacing: 0
   },
@@ -557,19 +566,19 @@ const styles = StyleSheet.create({
     fontWeight: "900"
   },
   colorCard: {
-    minHeight: 96,
-    borderRadius: 24,
+    minHeight: 124,
+    borderRadius: 28,
     borderCurve: "continuous",
-    padding: 16,
+    padding: 20,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 16,
     overflow: "hidden",
     shadowColor: "#000000",
-    shadowOpacity: 0.10,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 11 },
+    shadowOpacity: 0.08,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 14 },
     elevation: 2
   },
   lightCardBorder: {
@@ -589,16 +598,16 @@ const styles = StyleSheet.create({
     textTransform: "uppercase"
   },
   cardTitle: {
-    marginTop: 5,
-    fontSize: 20,
-    lineHeight: 24,
+    marginTop: 6,
+    fontSize: 24,
+    lineHeight: 28,
     fontWeight: "900",
     letterSpacing: 0
   },
   cardSubtitle: {
-    marginTop: 4,
-    fontSize: 13,
-    lineHeight: 17,
+    marginTop: 5,
+    fontSize: 15,
+    lineHeight: 19,
     fontWeight: "700"
   },
   cardMeta: {
@@ -608,8 +617,8 @@ const styles = StyleSheet.create({
     fontWeight: "800"
   },
   cardIconShell: {
-    width: 46,
-    height: 46,
+    width: 54,
+    height: 54,
     borderRadius: 18,
     borderCurve: "continuous",
     borderWidth: 1,

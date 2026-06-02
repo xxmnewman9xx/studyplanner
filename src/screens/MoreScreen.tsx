@@ -1010,16 +1010,16 @@ const styles = StyleSheet.create({
     fontWeight: "800"
   },
   compactPreview: {
-    borderRadius: 24,
+    borderRadius: 30,
     backgroundColor: "#FFFFFF",
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: SPBoardColors.line,
-    padding: 14,
-    gap: 12,
+    padding: 18,
+    gap: 16,
     shadowColor: "#000000",
-    shadowOpacity: 0.04,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.07,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 14 },
     elevation: 1
   },
   previewHeaderRow: {
@@ -1034,8 +1034,8 @@ const styles = StyleSheet.create({
   },
   compactPreviewTitle: {
     color: SPBoardColors.text,
-    fontSize: 19,
-    lineHeight: 23,
+    fontSize: 26,
+    lineHeight: 30,
     fontWeight: "900"
   },
   previewFactGrid: {
@@ -1138,17 +1138,22 @@ const styles = StyleSheet.create({
     gap: 6
   },
   widgetStudioCompact: {
-    borderRadius: 22,
+    borderRadius: 28,
     backgroundColor: "#FFFFFF",
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: SPBoardColors.line,
-    padding: 12,
-    gap: 12
+    padding: 16,
+    gap: 14,
+    shadowColor: "#000000",
+    shadowOpacity: 0.05,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 1
   },
   recommendedCompactCard: {
-    borderRadius: 18,
-    backgroundColor: "#F6F7FA",
-    padding: 12,
+    borderRadius: 22,
+    backgroundColor: "#F4F5F7",
+    padding: 16,
     flexDirection: "row",
     alignItems: "center",
     gap: 10

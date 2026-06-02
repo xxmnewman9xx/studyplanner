@@ -9,14 +9,12 @@ import {
   SPBoardColors,
   SPColorCard,
   SPExamCard,
-  SPFocusCard,
-  SPHeroCard,
-  SPNextClassCard
+  SPHeroCard
 } from "../components/StudyPlannerAppleBoard";
 import { Assignment, Course, FocusSession, Semester, StudyNote, UserSettings, WidgetPreset } from "../models";
-import { buildTodayBrain, daysUntil, getCourseForAssignment, getWeekLoad } from "../logic/planner";
+import { buildTodayBrain, daysUntil, getCourseForAssignment } from "../logic/planner";
 import type { StudentLifeContext } from "../logic/studentLifeDepth";
-import { localizedForecastCopy, localizedStudentLifeCopy } from "../logic/studentLifeCopy";
+import { localizedStudentLifeCopy } from "../logic/studentLifeCopy";
 import { buildSemesterPulseSignal, pulseStatusColor } from "../logic/semesterPulse";
 import { useI18n } from "../i18n";
 
@@ -85,7 +83,6 @@ export function TodayScreen({
   const plan = buildTodayBrain({ assignments, courses, semester, notes, focusSessions, widgetPresets, settings });
   const exam = findAssignment(assignments, "Organic Chemistry Midterm") || plan.exams[0];
   const assignment = findAssignment(assignments, "Calculus Problem Set") || firstOpenAssignment(assignments, exam?.id);
-  const physics = findCourse(courses, "Physics") || courses[0];
   const examCourse = exam ? getCourseForAssignment(courses, exam) : findCourse(courses, "Organic Chemistry");
   const assignmentCourse = assignment ? getCourseForAssignment(courses, assignment) : findCourse(courses, "Calculus");
   const firstName = firstNameFor(studentName);
@@ -93,8 +90,6 @@ export function TodayScreen({
   const dueLabel = assignment ? dueWeekday(assignment.dueAt, locale, t("classes.weekday_fri", "Fri")) : t("classes.weekday_fri", "Fri");
   const reviewCount = importHandoff?.reviewCount || plan.needsReview.length;
   const openCount = plan.openCount || assignments.filter((item) => item.status !== "done" && item.status !== "archived").length;
-  const heavyItems = Math.max(plan.dueSoon.length, Math.min(openCount, 4));
-  const weekLoad = getWeekLoad(assignments);
   const pulse = buildSemesterPulseSignal({ assignments, courses, semester, focusSessions, studentLife });
   const pulseBars = pulseBarsFromScores(pulse.bars);
   const semesterDaysUntil = daysUntil(semester.endDate);
@@ -108,7 +103,6 @@ export function TodayScreen({
     ? formatLocalized(t("today.risk_open_detail", "{risk} risk / {open} open"), { risk: String(studentLife.forecast.riskScore), open: String(openCount) })
     : formatLocalized(t("today.review_open_detail", "{open} open / {review} to review"), { open: String(openCount), review: String(reviewCount) });
   const feedCopy = studentLife ? localizedStudentLifeCopy("home", studentLife.feed, t) : null;
-  const forecastCopy = studentLife ? localizedForecastCopy(studentLife.forecast, openCount, t) : null;
   const emptyPlanner = assignments.length === 0 && courses.length === 0;
 
   if (emptyPlanner) {
@@ -165,31 +159,6 @@ export function TodayScreen({
             nextAction={pulse.nextAction}
           />
         </SPColorCard>
-        <SPColorCard
-          tone="soft"
-          accentColor={settings?.customization?.activityColor || SPBoardColors.green}
-          kicker={t("today.momentum", "Momentum")}
-          title={pulse.wins[0] || t("today.keep_moving", "Keep the next step moving.")}
-          subtitle={pulse.wins[1] || pulse.confidence}
-          meta={pulse.wins[2] || pulse.workloadPressure}
-          onPress={() => onOpenFocus(assignment?.id)}
-        />
-        {openCount > 0 ? (
-          <View style={styles.actionRail}>
-            <AppButton
-              label={t("today.set_reminders", "Set reminders")}
-              variant="secondary"
-              onPress={onScheduleReminders}
-              style={styles.actionButton}
-            />
-            <AppButton
-              label={t("today.sync_calendar", "Sync calendar")}
-              variant="secondary"
-              onPress={onCalendarSync}
-              style={styles.actionButton}
-            />
-          </View>
-        ) : null}
         <SPExamCard
           kicker={formatLocalized(t("today.exam_in_days", "Exam in {count} days"), { count: String(examDays || 7) })}
           title={boardTitle(exam?.title || "Organic Chemistry Midterm")}
@@ -206,41 +175,27 @@ export function TodayScreen({
           accentColor={assignmentCourse?.color || settings?.customization?.primaryAccent}
           onPress={assignment ? () => onOpenAssignment(assignment.id) : undefined}
         />
-        <SPFocusCard
-          kicker={t("today.focus_window", "Focus window")}
-          title={formatLocalized(t("today.minutes_short", "{minutes} min"), { minutes: "45" })}
-          subtitle={t("focus.start_timer", "Start timer")}
-          minutes={45}
-          accentColor={settings?.customization?.focusColor}
-          onPress={() => onOpenFocus(assignment?.id)}
-        />
-        <SPNextClassCard
-          title={physics?.code || "Physics 201"}
-          subtitle={nextClassTime(physics)}
-          meta={formatLocalized(t("classes.room_label", "Room {room}"), { room: physics?.room || "4A" })}
-          accentColor={physics?.color}
-          onPress={onOpenClasses}
-        />
-        <SPColorCard
-          tone="soft"
-          accentColor={settings?.customization?.forecastAccent}
-          kicker={t("paywall.forecast", "Forecast")}
-          title={`${pulse.forecastState}: ${pulse.peakLabel}`}
-          subtitle={formatLocalized(t("today.heavy_week_summary", "{exams} exams · {assignments} assignments · {reviews} to review"), {
-            exams: String(Math.max(1, plan.exams.length || 1)),
-            assignments: String(heavyItems || 2),
-            reviews: String(Math.max(reviewCount, 1))
-          })}
-          onPress={onOpenPlan}
-        >
-          <SemesterPulse
-            label={t("today.week_shape", "Week shape")}
-            value={forecastCopy?.recommendation || pulse.nextAction}
-            detail={forecastCopy?.detail || pulse.workloadPressure}
-            bars={pulseBars}
-            accentColor={settings?.customization?.forecastAccent || SPBoardColors.orange}
+        <View style={styles.actionRail}>
+          <AppButton
+            label={t("focus.start_timer", "Start timer")}
+            onPress={() => onOpenFocus(assignment?.id)}
+            style={styles.actionButton}
           />
-        </SPColorCard>
+        </View>
+        <View style={styles.secondaryActionRail}>
+          <AppButton
+            label={t("today.set_reminders", "Set reminders")}
+            variant="secondary"
+            onPress={onScheduleReminders}
+            style={styles.actionButton}
+          />
+          <AppButton
+            label={t("today.sync_calendar", "Sync calendar")}
+            variant="secondary"
+            onPress={onCalendarSync}
+            style={styles.actionButton}
+          />
+        </View>
       </View>
     </View>
   );
@@ -310,8 +265,13 @@ const styles = StyleSheet.create({
   },
   actionRail: {
     flexDirection: "row",
+    gap: 10
+  },
+  secondaryActionRail: {
+    flexDirection: "row",
     gap: 10,
-    marginBottom: 16
+    marginTop: -2,
+    marginBottom: 8
   },
   actionButton: {
     flex: 1,

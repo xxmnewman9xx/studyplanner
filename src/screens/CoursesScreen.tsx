@@ -5,7 +5,6 @@ import { BookOpen, ChevronRight, GraduationCap, Timer } from "lucide-react-nativ
 import { SPBoardColors, SPSemesterRing } from "../components/StudyPlannerAppleBoard";
 import { Assignment, AssignmentKind, Course, Semester, StudyNote } from "../models";
 import type { StudentLifeContext } from "../logic/studentLifeDepth";
-import { localizedStudentLifeCopy } from "../logic/studentLifeCopy";
 import { buildSemesterPulseSignal, pulseStatusColor } from "../logic/semesterPulse";
 import { useI18n } from "../i18n";
 
@@ -41,7 +40,6 @@ export function CoursesScreen({ semester, courses, assignments, notes = [], stud
   const timeline = useMemo(() => buildMiniTimeline(openAssignments), [openAssignments]);
   const firstCourse = courses[0];
   const selectedAssignments = firstCourse ? openAssignments.filter((assignment) => assignment.courseId === firstCourse.id).slice(0, 3) : [];
-  const classDepthCopy = studentLife ? localizedStudentLifeCopy("classes", studentLife.classes, t) : null;
 
   return (
     <View style={styles.screen}>
@@ -59,14 +57,6 @@ export function CoursesScreen({ semester, courses, assignments, notes = [], stud
           <SummaryLine value={String(Math.max(exams.length, 4))} label={t("classes.exams_left", "Exams left")} />
         </View>
       </View>
-
-      {studentLife ? (
-        <View style={styles.depthCard}>
-          <Text style={styles.depthKicker}>{t("depth.what_i_learned", "What I learned")}</Text>
-          <Text style={styles.depthTitle}>{pulse.classRisk ? `${pulse.classRisk.course.code || pulse.classRisk.course.name} is driving the Pulse.` : classDepthCopy?.learned || studentLife.classes.learned}</Text>
-          <Text style={styles.depthCopy}>{pulse.classRisk ? pulse.supportReason : classDepthCopy?.recommendation || studentLife.classes.recommendation}</Text>
-        </View>
-      ) : null}
 
       <View style={styles.weekCard}>
         <View style={styles.weekHeader}>

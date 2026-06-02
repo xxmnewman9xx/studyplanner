@@ -11,7 +11,7 @@ import {
 } from "../components/StudyPlannerAppleBoard";
 import { SemesterPulse, pulseBarsFromScores } from "../components/SemesterPulse";
 import { Assignment, Course, FocusSession, Semester, UserSettings } from "../models";
-import { daysUntil, getCourseForAssignment, getWeekLoad } from "../logic/planner";
+import { daysUntil, getCourseForAssignment } from "../logic/planner";
 import type { StudentLifeContext } from "../logic/studentLifeDepth";
 import { localizedForecastCopy } from "../logic/studentLifeCopy";
 import { buildSemesterPulseSignal, forecastStateColor, pulseStatusColor } from "../logic/semesterPulse";
@@ -43,7 +43,6 @@ export function PlanScreen({ assignments, courses, semester, sessions, settings,
   const examCourse = exam ? getCourseForAssignment(courses, exam) : findCourse(courses, "Organic Chemistry");
   const assignmentCourse = assignment ? getCourseForAssignment(courses, assignment) : findCourse(courses, "Calculus");
   const lookingAheadExamCount = Math.max(1, assignments.filter((item) => item.kind === "exam" && item.status !== "done" && item.status !== "archived").length);
-  const weekLoad = getWeekLoad(assignments);
   const pulse = buildSemesterPulseSignal({ assignments, courses, semester, focusSessions: sessions, studentLife });
   const pulseBars = pulseBarsFromScores(pulse.bars);
   const openCount = assignments.filter((item) => item.status !== "done" && item.status !== "archived").length;
@@ -120,22 +119,15 @@ export function PlanScreen({ assignments, courses, semester, sessions, settings,
           meta={t("assignment_detail.priority_low", "Low")}
           icon={GraduationCap}
         />
-        <SPColorCard
-          tone="teal"
-          accentColor={settings?.customization?.activityColor}
-          title={t("plan.activity_practice", "Study activity")}
-          subtitle={sessions.length ? t("plan.saved_focus_activity", "Saved focus activity") : "7:00 - 8:00 PM"}
-          meta={t("plan.good_for_you", "Good for you")}
-          icon={Activity}
-          onPress={() => onOpenFocus(assignment?.id)}
-        />
-        <SPColorCard
-          tone="white"
-          title={t("plan.looking_ahead", "Looking ahead")}
-          subtitle={formatLocalized(t("plan.exams_next_week", "{count} exams next week"), { count: String(lookingAheadExamCount + 1) })}
-          icon={CalendarDays}
-          onPress={onOpenScan}
-        />
+        <View style={styles.actionRail}>
+          <SPColorCard
+            tone="white"
+            title={t("plan.looking_ahead", "Looking ahead")}
+            subtitle={formatLocalized(t("plan.exams_next_week", "{count} exams next week"), { count: String(lookingAheadExamCount + 1) })}
+            icon={CalendarDays}
+            onPress={onOpenScan}
+          />
+        </View>
       </View>
     </View>
   );
@@ -231,7 +223,10 @@ const styles = StyleSheet.create({
     fontWeight: "700"
   },
   feed: {
-    gap: 14
+    gap: 16
+  },
+  actionRail: {
+    marginTop: 2
   },
   forecastGrid: {
     marginTop: 12,

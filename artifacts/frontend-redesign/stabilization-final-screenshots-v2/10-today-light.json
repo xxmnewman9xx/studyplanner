@@ -1,0 +1,26 @@
+{
+  "locale": "runtime",
+  "device": "786C707C-00A0-4B96-B32D-1DDBC0ADD15A",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "today",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "today",
+    "themeMode": "light"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/frontend-redesign/stabilization-final-screenshots-v2/10-today-light.png",
+  "bytes": 238108,
+  "sha256": "49740ad125993fa1bdc6ff810f65d130a2d3e6f753ae78cea131e61b628ec0f1",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "ea8cd1f",
+  "timestamp": "2026-06-02T00:03:21.450Z"
+}

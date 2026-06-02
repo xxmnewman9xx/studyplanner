@@ -196,7 +196,7 @@ export function UpgradeScreen({ onContinueAfterPurchase, hardMode = false }: Upg
       )}
 
       <View style={styles.valueGrid}>
-        {paidFeatures.map((feature) => {
+        {paidFeatures.slice(0, 4).map((feature) => {
           const Icon = feature.icon;
           return (
             <View key={feature.titleKey} style={styles.valueTile}>
