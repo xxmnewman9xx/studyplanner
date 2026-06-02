@@ -103,7 +103,6 @@
           ]
         }
       ],
-      "./plugins/with-studyplanner-watch",
       [
         "expo-build-properties",
         {
@@ -123,15 +122,6 @@
                 {
                   "targetName": "ExpoWidgetsTarget",
                   "bundleIdentifier": "com.mattnewman.studyplanner.widgets",
-                  "entitlements": {
-                    "com.apple.security.application-groups": [
-                      "group.com.mattnewman.studyplanner"
-                    ]
-                  }
-                },
-                {
-                  "targetName": "StudyPlannerWatchWidgets",
-                  "bundleIdentifier": "com.mattnewman.studyplanner.watchkitapp.widgets",
                   "entitlements": {
                     "com.apple.security.application-groups": [
                       "group.com.mattnewman.studyplanner"
