@@ -1,21 +1,10 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Activity, CalendarDays, GraduationCap } from "lucide-react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react-native";
 
-import {
-  SPAssignmentCard,
-  SPBoardColors,
-  SPColorCard,
-  SPDateStrip,
-  SPExamCard
-} from "../components/StudyPlannerAppleBoard";
-import { SemesterPulse, pulseBarsFromScores } from "../components/SemesterPulse";
+import { SP } from "../components/PrototypeUI";
 import { Assignment, Course, FocusSession, Semester, UserSettings } from "../models";
-import { daysUntil, getCourseForAssignment } from "../logic/planner";
 import type { StudentLifeContext } from "../logic/studentLifeDepth";
-import { localizedForecastCopy } from "../logic/studentLifeCopy";
-import { buildSemesterPulseSignal, forecastStateColor, pulseStatusColor } from "../logic/semesterPulse";
-import { useI18n } from "../i18n";
 
 type PlanScreenProps = {
   assignments: Assignment[];
@@ -32,236 +21,122 @@ type PlanScreenProps = {
   onOpenScan: () => void;
 };
 
-export function PlanScreen({ assignments, courses, semester, sessions, settings, studentLife, onOpenAssignment, onOpenFocus, onOpenScan }: PlanScreenProps) {
-  const { t, locale } = useI18n();
-  const localizationAnchor = t("plan.capture_title", "Put new work on the selected day.");
-  void localizationAnchor;
-
-  const exam = findAssignment(assignments, "Organic Chemistry Midterm") || assignments.find((item) => item.kind === "exam");
-  const assignment = findAssignment(assignments, "Calculus Problem Set") || firstOpenAssignment(assignments, exam?.id);
-  const physics = findCourse(courses, "Physics") || courses[0];
-  const examCourse = exam ? getCourseForAssignment(courses, exam) : findCourse(courses, "Organic Chemistry");
-  const assignmentCourse = assignment ? getCourseForAssignment(courses, assignment) : findCourse(courses, "Calculus");
-  const lookingAheadExamCount = Math.max(1, assignments.filter((item) => item.kind === "exam" && item.status !== "done" && item.status !== "archived").length);
-  const pulse = buildSemesterPulseSignal({ assignments, courses, semester, focusSessions: sessions, studentLife });
-  const pulseBars = pulseBarsFromScores(pulse.bars);
-  const openCount = assignments.filter((item) => item.status !== "done" && item.status !== "archived").length;
-  const forecastAccent = settings?.customization?.forecastAccent || forecastStateColor(pulse.forecastState);
-  const forecastCopy = studentLife ? localizedForecastCopy(studentLife.forecast, openCount, t) : null;
+export function PlanScreen({ courses }: PlanScreenProps) {
+  const scheduleCourses = [
+    courses[0] || fallbackCourses[0],
+    courses[1] || fallbackCourses[1],
+    courses[2] || fallbackCourses[2],
+    courses[3] || fallbackCourses[3]
+  ];
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{t("paywall.forecast", "Forecast")}</Text>
-        <Text style={styles.subtitle}>{t("plan.forecast_subtitle", "Weather for your semester.")}</Text>
-      </View>
-
-      <SPDateStrip activeIndex={1} />
-
-      <View style={styles.feed}>
-        <SPColorCard
-          tone={pulse.forecastState === "Calm" || pulse.forecastState === "Recovery" ? "soft" : "orange"}
-          accentColor={forecastAccent}
-          kicker={t("today.semester_pulse", "Semester Pulse")}
-          title={`${pulse.forecastState} forecast`}
-          subtitle={pulse.topRisk}
-          meta={forecastCopy?.recommendation || pulse.nextAction}
-          icon={Activity}
-        >
-          <SemesterPulse
-            label={t("today.semester_pulse", "Semester pulse")}
-            value={pulse.status}
-            detail={forecastCopy?.learned || studentLife?.forecast.learned || pulse.supportReason}
-            bars={pulseBars}
-            accentColor={pulseStatusColor(pulse.status)}
-            score={pulse.score}
-            status={pulse.status}
-            trendLabel={pulse.trendLabel}
-            topReason={pulse.topReason}
-            nextAction={pulse.nextAction}
-            quiet={pulse.forecastState === "Calm" || pulse.forecastState === "Recovery"}
-          />
-          <View style={styles.forecastGrid}>
-            <ForecastFact label={t("plan.peak", "Peak")} value={pulse.peakLabel} />
-            <ForecastFact label={t("plan.top_risk", "Top risk")} value={pulse.topRisk} />
-            <ForecastFact label={t("plan.free_time", "Free time")} value={pulse.freeTime} />
-            <ForecastFact label={t("plan.exam_pressure", "Exam pressure")} value={pulse.examPressure} />
-          </View>
-        </SPColorCard>
-        <SPExamCard
-          kicker={formatDateKicker(exam?.dueAt, locale)}
-          title={boardTitle(exam?.title || "Organic Chemistry Midterm")}
-          subtitle={formatTimeRange(exam?.dueAt, "9:00 - 11:00 AM", locale)}
-          meta={examCourse?.code || "Organic Chemistry"}
-          accentColor={examCourse?.color || settings?.customization?.riskColor}
-          onPress={exam ? () => onOpenAssignment(exam.id) : undefined}
-        />
-        <SPAssignmentCard
-          title={assignment?.title || "Calculus Problem Set"}
-          subtitle={assignmentCourse?.code || "Calculus"}
-          meta={assignment
-            ? formatLocalized(t("plan.due_with_priority", "Due {date} · {priority}"), {
-                date: formatDueDate(assignment.dueAt, locale, t),
-                priority: t("assignment_detail.priority_medium", "Medium")
-              })
-            : formatLocalized(t("plan.due_with_priority", "Due {date} · {priority}"), {
-                date: t("plan.relative_later", "Later"),
-                priority: t("assignment_detail.priority_medium", "Medium")
-              })}
-          accentColor={assignmentCourse?.color || settings?.customization?.primaryAccent}
-          onPress={assignment ? () => onOpenAssignment(assignment.id) : undefined}
-        />
-        <SPColorCard
-          tone="teal"
-          accentColor={physics?.color}
-          title={physics?.code || t("classes.class_fallback", "Class")}
-          subtitle={nextClassTime(physics)}
-          meta={t("assignment_detail.priority_low", "Low")}
-          icon={GraduationCap}
-        />
-        <View style={styles.actionRail}>
-          <SPColorCard
-            tone="white"
-            title={t("plan.looking_ahead", "Looking ahead")}
-            subtitle={formatLocalized(t("plan.exams_next_week", "{count} exams next week"), { count: String(lookingAheadExamCount + 1) })}
-            icon={CalendarDays}
-            onPress={onOpenScan}
-          />
+    <View style={styles.surface}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.appBar}>
+          <Text style={styles.title}>Calendar</Text>
+          <TouchableOpacity style={styles.iconButton} activeOpacity={0.78}>
+            <Plus size={22} color={SP.ink} />
+          </TouchableOpacity>
         </View>
-      </View>
+
+        <View style={styles.focusCard}>
+          <View style={styles.rowBetween}>
+            <Text style={styles.greenLabel}>NEXT OPEN BLOCK</Text>
+            <View style={styles.greenPill}><Text style={styles.greenPillText}>25 min</Text></View>
+          </View>
+          <Text style={styles.focusTitle}>12:30 PM study sprint</Text>
+          <Text style={styles.focusCopy}>Review Calculus problem set before English Literature.</Text>
+        </View>
+
+        <View style={styles.segment}>
+          {["Day", "Week", "Month"].map((item, index) => (
+            <TouchableOpacity key={item} style={[styles.segmentItem, index === 0 ? styles.segmentActive : null]} activeOpacity={0.82}>
+              <Text style={[styles.segmentText, index === 0 ? styles.segmentTextActive : null]}>{item}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.dateRow}>
+          <Text style={styles.dateTitle}>Mon, Jun 2</Text>
+          <View style={styles.chevrons}>
+            <TouchableOpacity style={styles.smallIcon}><ChevronLeft size={18} color={SP.ink} /></TouchableOpacity>
+            <TouchableOpacity style={styles.smallIcon}><ChevronRight size={18} color={SP.ink} /></TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.timeline}>
+          {hours.map((hour, index) => {
+            const block = blocks.find((item) => item.index === index);
+            const course = block ? scheduleCourses[block.courseIndex] : null;
+            return (
+              <View key={hour} style={styles.hourRow}>
+                <Text style={styles.hourLabel}>{hour}</Text>
+                <View style={styles.hourLine}>
+                  {block && course ? (
+                    <TouchableOpacity style={[styles.classBlock, { backgroundColor: tintFor(course.color), borderLeftColor: course.color || SP.blue }]} activeOpacity={0.84}>
+                      <Text style={styles.blockTitle}>{course.name}</Text>
+                      <Text style={styles.blockRoom}>Room {course.room || block.room}</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      </ScrollView>
     </View>
   );
 }
 
-function findAssignment(assignments: Assignment[], needle: string) {
-  return assignments.find((assignment) => assignment.title.toLowerCase().includes(needle.toLowerCase()));
-}
+const hours = ["8a", "9a", "10a", "11a", "12p", "1p", "2p", "3p", "4p"];
+const blocks = [
+  { index: 1, courseIndex: 0, room: "B204" },
+  { index: 3, courseIndex: 1, room: "M112" },
+  { index: 6, courseIndex: 2, room: "H310" },
+  { index: 7, courseIndex: 3, room: "CS50" }
+];
 
-function firstOpenAssignment(assignments: Assignment[], excludeId?: string) {
-  return assignments
-    .filter((assignment) => assignment.id !== excludeId && assignment.status !== "done" && assignment.status !== "archived" && !assignment.needsReview)
-    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())[0];
-}
+const fallbackCourses: Course[] = [
+  { id: "bio", name: "Biology 101", code: "BIO", instructor: "Dr. Chen", room: "B204", color: SP.green, meetings: [], gradeCategories: [] },
+  { id: "calc", name: "Calculus II", code: "CAL", instructor: "Prof. Harris", room: "M112", color: SP.blue, meetings: [], gradeCategories: [] },
+  { id: "eng", name: "English Literature", code: "ENG", instructor: "Dr. Patel", room: "H310", color: SP.purple, meetings: [], gradeCategories: [] },
+  { id: "cs", name: "Computer Science", code: "CS", instructor: "Prof. Kim", room: "CS50", color: SP.teal, meetings: [], gradeCategories: [] }
+];
 
-function findCourse(courses: Course[], needle: string) {
-  return courses.find((course) => `${course.code} ${course.name}`.toLowerCase().includes(needle.toLowerCase()));
-}
-
-function boardTitle(title: string) {
-  return title.replace("Organic Chemistry Midterm", "Organic Chemistry\nMidterm");
-}
-
-function formatDateKicker(iso: string | undefined, locale: string) {
-  if (!iso || !/^\d{4}-\d{2}-\d{2}/.test(iso)) return "";
-  try {
-    return new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric" }).format(new Date(iso));
-  } catch {
-    return "";
-  }
-}
-
-function formatTimeRange(iso: string | undefined, fallback: string, locale: string) {
-  if (!iso || !/^\d{4}-\d{2}-\d{2}/.test(iso)) return fallback;
-  const start = new Date(iso);
-  if (Number.isNaN(start.getTime())) return fallback;
-  const end = new Date(start);
-  end.setHours(start.getHours() + 2);
-  return `${formatClock(start, locale)} - ${formatClock(end, locale)}`;
-}
-
-function formatClock(date: Date, locale: string) {
-  return new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit" }).format(date);
-}
-
-function formatDueDate(iso: string, locale: string, t: (key: string, fallback?: string) => string) {
-  const days = daysUntil(iso);
-  if (days === 0) return t("plan.relative_today", "Today");
-  if (days === 1) return t("plan.relative_tomorrow", "Tomorrow");
-  if (!/^\d{4}-\d{2}-\d{2}/.test(iso || "")) return t("widget_snapshot.soon", "Soon");
-  return new Intl.DateTimeFormat(locale, { weekday: "short", month: "short", day: "numeric" }).format(new Date(iso));
-}
-
-function nextClassTime(course?: Course) {
-  const meeting = course?.meetings?.[0];
-  if (!meeting) return "10:00 - 10:50 AM";
-  return `${formatMeetingTime(meeting.startTime)} - ${formatMeetingTime(meeting.endTime)}`;
-}
-
-function formatMeetingTime(value: string) {
-  const [hourRaw, minute = "00"] = value.split(":");
-  const hour = Number(hourRaw || 0);
-  if (!Number.isFinite(hour)) return value;
-  const suffix = hour >= 12 ? "PM" : "AM";
-  const display = hour % 12 || 12;
-  return `${display}:${minute.padStart(2, "0")} ${suffix}`;
-}
-
-function formatLocalized(template: string, values: Record<string, string>) {
-  return Object.entries(values).reduce((current, [key, value]) => current.replaceAll(`{${key}}`, value), template);
+function tintFor(color?: string) {
+  if (color === SP.green) return "#E9FAF1";
+  if (color === SP.purple) return "#F5EEFF";
+  if (color === SP.teal) return "#E9FAFD";
+  return "#EEF4FF";
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: SPBoardColors.canvas
-  },
-  header: {
-    marginBottom: 18
-  },
-  title: {
-    color: SPBoardColors.text,
-    fontSize: 36,
-    lineHeight: 40,
-    fontWeight: "900",
-    letterSpacing: 0
-  },
-  subtitle: {
-    marginTop: 2,
-    color: SPBoardColors.muted,
-    fontSize: 15,
-    lineHeight: 19,
-    fontWeight: "700"
-  },
-  feed: {
-    gap: 16
-  },
-  actionRail: {
-    marginTop: 2
-  },
-  forecastGrid: {
-    marginTop: 12,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8
-  },
-  forecastFact: {
-    flexGrow: 1,
-    flexBasis: "47%",
-    borderRadius: 14,
-    backgroundColor: "rgba(255,255,255,0.18)",
-    paddingHorizontal: 10,
-    paddingVertical: 9,
-    gap: 3
-  },
-  forecastFactLabel: {
-    color: "rgba(255,255,255,0.70)",
-    fontSize: 10,
-    lineHeight: 12,
-    fontWeight: "900"
-  },
-  forecastFactValue: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    lineHeight: 15,
-    fontWeight: "900"
-  }
+  surface: { flex: 1, backgroundColor: SP.white },
+  content: { paddingHorizontal: 18, paddingTop: 10, paddingBottom: 138 },
+  appBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 },
+  title: { color: SP.ink, fontSize: 34, fontWeight: "900", letterSpacing: -0.9 },
+  iconButton: { width: 46, height: 46, borderRadius: 23, backgroundColor: "#FAFAFB", borderWidth: 1, borderColor: "#ECECF1", alignItems: "center", justifyContent: "center" },
+  focusCard: { borderRadius: 26, backgroundColor: "#F0FFF8", borderWidth: 1, borderColor: "#B8F0D4", padding: 18, marginBottom: 16 },
+  rowBetween: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  greenLabel: { color: SP.green, fontSize: 13, fontWeight: "900", letterSpacing: 0.6 },
+  greenPill: { height: 32, borderRadius: 16, backgroundColor: "#E8FFF3", borderWidth: 1, borderColor: "#B8F0D4", paddingHorizontal: 12, alignItems: "center", justifyContent: "center" },
+  greenPillText: { color: SP.green, fontSize: 13, fontWeight: "900" },
+  focusTitle: { color: SP.ink, fontSize: 24, fontWeight: "900", letterSpacing: -0.5, marginTop: 12 },
+  focusCopy: { color: "#656972", fontSize: 15, fontWeight: "600", lineHeight: 21, marginTop: 5 },
+  segment: { height: 44, borderRadius: 22, padding: 4, backgroundColor: "#F6F6F8", borderWidth: 1, borderColor: "#ECECF1", flexDirection: "row", gap: 4, marginBottom: 16 },
+  segmentItem: { flex: 1, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  segmentActive: { backgroundColor: SP.white, shadowColor: "#001", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } },
+  segmentText: { color: "#8A8F99", fontSize: 14, fontWeight: "900" },
+  segmentTextActive: { color: SP.ink },
+  dateRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
+  dateTitle: { color: SP.ink, fontSize: 24, fontWeight: "900", letterSpacing: -0.5 },
+  chevrons: { flexDirection: "row", gap: 8 },
+  smallIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#FAFAFB", borderWidth: 1, borderColor: "#ECECF1", alignItems: "center", justifyContent: "center" },
+  timeline: { borderRadius: 24, overflow: "hidden" },
+  hourRow: { minHeight: 66, flexDirection: "row", gap: 12 },
+  hourLabel: { width: 34, color: "#9AA0A8", fontSize: 12, fontWeight: "900", textAlign: "right", paddingTop: 2 },
+  hourLine: { flex: 1, borderTopWidth: 1, borderTopColor: "#F0F1F4", position: "relative" },
+  classBlock: { position: "absolute", left: 0, right: 4, top: 5, height: 58, borderRadius: 14, borderLeftWidth: 4, paddingHorizontal: 12, paddingVertical: 8, justifyContent: "center" },
+  blockTitle: { color: SP.ink, fontSize: 14, fontWeight: "900" },
+  blockRoom: { color: "#6F727A", fontSize: 12, fontWeight: "800", marginTop: 2 }
 });
-
-function ForecastFact({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.forecastFact}>
-      <Text style={styles.forecastFactLabel} numberOfLines={1}>{label}</Text>
-      <Text style={styles.forecastFactValue} numberOfLines={2}>{value}</Text>
-    </View>
-  );
-}

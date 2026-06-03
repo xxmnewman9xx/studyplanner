@@ -50,9 +50,12 @@ function StudyPlannerWidgetLayout(props, environment) {
   var ink = isDark ? "#F8FAFC" : "#171A20";
   var muted = isDark ? "#D7DEE9" : "#69707D";
   var quiet = isDark ? "#A8B3C5" : "#8A93A3";
-  var soft = isDark ? "#263245" : "#E7EAF0";
-  var surface = isDark ? "#172132" : "#FFFFFF";
-  var highlight = isDark ? "#111B2B" : "#FFFFFF";
+  var soft = isDark ? "#2A3B58" : "#E7EAF0";
+  var surface = isDark ? "#183052" : "#FFFFFF";
+  var highlight = isDark ? "#234B7D" : "#FFFFFF";
+  var glassBase = isDark ? "#07162D" : backgroundColor;
+  var glassPill = isDark ? "#1B3558" : "#FFFFFF";
+  var glassRim = isDark ? "#7CC8FF" : "#FFFFFF";
   var signalLabel = props.signalLabel || (props.state === "ready" ? props.headline : props.state === "needs_review" ? props.detail : props.footnote);
   var metricLabel = props.metricLabel || props.progressLabel || props.headline;
   var nextLabel = props.nextLabel || props.footnote || props.headline;
@@ -189,7 +192,7 @@ function StudyPlannerWidgetLayout(props, environment) {
       view("CircleView", {
         modifiers: [
           frame({ width: 62, height: 62 }),
-          background(backgroundColor, shapes.circle())
+          background(glassBase, shapes.circle())
         ]
       }),
       view("CircleView", {
@@ -251,7 +254,7 @@ function StudyPlannerWidgetLayout(props, environment) {
       alignment: "topLeading",
       modifiers: [
         frame({ maxWidth: 158, maxHeight: 158, alignment: "topLeading" }),
-        background(backgroundColor),
+        background(glassBase),
         widgetURL(props.openURL || "studyplanner://widgets")
       ],
       children: [
@@ -292,11 +295,20 @@ function StudyPlannerWidgetLayout(props, environment) {
                   ]
                 }),
                 view("SpacerView", { minLength: 3 }),
-                text(timelineLabel, [
-                  font({ size: Math.round(9 * fontScale), weight: "black" }),
-                  foregroundStyle(ink),
-                  lineLimit(1)
-                ])
+                view("VStackView", {
+                  alignment: "center",
+                  modifiers: [
+                    padding({ all: 4 }),
+                    background(glassPill)
+                  ],
+                  children: [
+                    text(timelineLabel, [
+                      font({ size: Math.round(9 * fontScale), weight: "black" }),
+                      foregroundStyle(isDark ? glassRim : ink),
+                      lineLimit(1)
+                    ])
+                  ]
+                })
               ]
             }),
             text(props.kind === "week" && weekdayCounts.length > 0 ? smallValue : smallTitle, [
@@ -335,7 +347,7 @@ function StudyPlannerWidgetLayout(props, environment) {
     alignment: "topLeading",
     modifiers: [
       frame({ maxWidth: 338, maxHeight: 158, alignment: "topLeading" }),
-      background(backgroundColor),
+        background(glassBase),
       widgetURL(props.openURL || "studyplanner://widgets")
     ],
     children: [
@@ -379,10 +391,14 @@ function StudyPlannerWidgetLayout(props, environment) {
               view("VStackView", {
                 alignment: "trailing",
                 spacing: 1,
+                modifiers: [
+                  padding({ all: 4 }),
+                  background(glassPill)
+                ],
                 children: [
                   text(props.windowLabel || "Today", [
                     font({ size: Math.round(9 * fontScale), weight: "black" }),
-                    foregroundStyle(ink),
+                    foregroundStyle(isDark ? glassRim : ink),
                     lineLimit(1)
                   ]),
                   text(showMetric ? metricLabel : props.layoutLabel || props.styleLabel || props.headline, [

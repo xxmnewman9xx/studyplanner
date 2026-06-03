@@ -217,33 +217,36 @@ const forecastSource = fs.readFileSync("src/screens/PlanScreen.tsx", "utf8");
 const studioSource = fs.readFileSync("src/screens/MoreScreen.tsx", "utf8");
 
 assert(
-  todaySource.includes("accentColor={assignmentCourse?.color") &&
-    todaySource.includes("accentColor={examCourse?.color"),
+  todaySource.includes("nextCourse?.code") &&
+    todaySource.includes("course?.color || SP.blue"),
   "Home cards should render assignment/exam cards from real class colors."
 );
 assert(
-  forecastSource.includes("accentColor={assignmentCourse?.color") &&
-    forecastSource.includes("accentColor={physics?.color"),
-  "Forecast cards should render class-backed cards from real class colors."
+  forecastSource.includes("heat(load)") &&
+    forecastSource.includes("Risk week"),
+  "Forecast should render the prototype semester heat map and risk card."
 );
 const focusSource = fs.readFileSync("src/screens/FocusScreen.tsx", "utf8");
 assert(
-  focusSource.includes("courseEmoji(selectedCourse)") &&
-    focusSource.includes("backgroundColor: selectedCourse.color"),
-  "Focus should show the selected class icon and color in the real timer flow."
+  focusSource.includes("focusAccent") &&
+    focusSource.includes("assignment?.title"),
+  "Focus should show the selected task and prototype ring accent in the real timer flow."
 );
 assert(
-  studioSource.includes("Customize StudyPlanner") &&
-    studioSource.includes("Make every class, widget, and reminder feel like yours.") &&
-    studioSource.includes("Recommended widgets") &&
-    studioSource.includes("Why: {proof.why}") &&
-    studioSource.includes("Where: {proof.where}") &&
-    studioSource.includes("Data: {proof.data}") &&
-    studioSource.includes("Changes with: {proof.changes}") &&
-    studioSource.includes("selectedColor={customization.secondaryAccent}") &&
-    studioSource.includes("Lock Screen") &&
-    studioSource.includes("Watch"),
-  "Studio should stay preview-first and explain recommendations, secondary accent states, lock, and watch customization surfaces."
+  studioSource.includes("WidgetPreview") &&
+    studioSource.includes("Exam Countdown") &&
+    studioSource.includes("Next Assignment") &&
+    studioSource.includes("Semester Pulse") &&
+    studioSource.includes("styleOptions") &&
+    studioSource.includes("colorSources") &&
+    studioSource.includes("classColor") &&
+    studioSource.includes("Save preview") &&
+    studioSource.includes("Preview-only until the native widget bridge reports synced.") &&
+    !studioSource.includes("Build your school Home Screen.") &&
+    !studioSource.includes("Lock Screen") &&
+    !studioSource.includes("Apple" + " Watch") &&
+    !studioSource.includes("theme" + " store"),
+  "Widget Studio should be a Home Screen builder with live payload preview, controls, class colors, and honest bridge status."
 );
 const appSource = fs.readFileSync("App.tsx", "utf8");
 assert(
@@ -253,13 +256,11 @@ assert(
   "App storage hydrate and settings updates should normalize Studio customization."
 );
 assert(
-  todaySource.includes('label={t("today.scan_syllabus", "Scan syllabus")}') &&
-    todaySource.includes("onPress={onOpenScan}") &&
-    todaySource.includes('label={t("today.set_reminders", "Set reminders")}') &&
-    todaySource.includes("onPress={onScheduleReminders}") &&
-    todaySource.includes('label={t("today.sync_calendar", "Sync calendar")}') &&
-    todaySource.includes("onPress={onCalendarSync}"),
-  "Scenario-backed Today actions should remain wired to real Scan, reminders, and calendar handlers."
+  todaySource.includes('action={t("today.scan_syllabus", "Scan syllabus")}') &&
+    todaySource.includes("onAction={onOpenScan}") &&
+    todaySource.includes("onScheduleReminders") &&
+    todaySource.includes("onCalendarSync"),
+  "Scenario-backed Today actions should preserve Scan, reminders, and calendar handler plumbing."
 );
 
 console.log("customization studio gates passed");

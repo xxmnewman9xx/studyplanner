@@ -524,31 +524,40 @@ for (const family of ["accessoryCircular", "accessoryRectangular", "accessoryInl
   assert(nativeWidgetLayoutSource.includes(`environment.widgetFamily === "${family}"`), `Native widget layout should keep ${family} coverage.`);
 }
 assert(
-    widgetPreviewSource.includes("nativeProgress") &&
+  widgetPreviewSource.includes("nativeProgress") &&
     widgetPreviewSource.includes("nativeWidgetProgressDots") &&
     widgetPreviewSource.includes("[0, 1, 2, 3, 4]") &&
     widgetPreviewSource.includes("lockRoundValue"),
-  "Widget Studio native preview should render the same five-dot progress signal used by the native layout."
+  "Recommended Widgets native preview should render the same five-dot progress signal used by the native layout."
 );
 assert(
-  widgetStudioSource.includes("Ready for Home Screen") &&
-    widgetStudioSource.includes("Install native app") &&
-    widgetStudioSource.includes("nativeProgress={nativePreview?.progress}") &&
-    widgetStudioSource.includes("previewWidgetPresets") &&
-    widgetStudioSource.includes("Your saved {name} keeps this data, class focus, palette, and layout together."),
-  "Widget Studio should preview draft native presets with product-facing saved-preset copy."
+  widgetStudioSource.includes("WidgetPreview") &&
+    widgetStudioSource.includes("Exam Countdown") &&
+    widgetStudioSource.includes("Next Assignment") &&
+    widgetStudioSource.includes("Semester Pulse") &&
+    widgetStudioSource.includes("ControlRail") &&
+    widgetStudioSource.includes("styleOptions") &&
+    widgetStudioSource.includes("colorSources") &&
+    widgetStudioSource.includes("updateStudioWidget") &&
+    widgetStudioSource.includes("Save preview") &&
+    widgetStudioSource.includes("Preview-only until the native widget bridge reports synced.") &&
+    !widgetStudioSource.includes("Apple" + " Watch") &&
+    !widgetStudioSource.includes("theme" + " store"),
+  "Widget Studio should be a Home Screen builder with live preview, controls, class colors, and honest native bridge save."
 );
 
 assert(
-  widgetStudioSource.includes("dataMode") &&
-    widgetStudioSource.includes("allowedDataModes") &&
-    widgetStudioSource.includes("allowedLayouts") &&
-    widgetStudioSource.includes("styleChoice") &&
-    widgetStudioSource.includes("studioPaletteOptions") &&
-    widgetStudioSource.includes("stageWallpaper") &&
-    widgetStudioSource.includes("setFont(option)") &&
-    widgetStudioSource.includes("single_class"),
-  "Widget Studio should expose real data, size, palette, wallpaper, font, class, and layout controls."
+  widgetStudioSource.includes("\"exam_countdown\"") &&
+    widgetStudioSource.includes("\"next_assignment\"") &&
+    widgetStudioSource.includes("\"semester_progress\"") &&
+    widgetStudioSource.includes("Widget") &&
+    widgetStudioSource.includes("Class") &&
+    widgetStudioSource.includes("Style") &&
+    !widgetStudioSource.includes("stageWallpaper") &&
+    !widgetStudioSource.includes("setFont(option)") &&
+    !widgetStudioSource.includes("watchPreviewStyle") &&
+    !widgetStudioSource.includes("theme" + " store"),
+  "Widget Studio should expose only the prototype widget preview choices and controls."
 );
 
 assert(

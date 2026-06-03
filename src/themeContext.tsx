@@ -26,7 +26,7 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
 
     loadJson<ThemeMode>(themeStorageKey).then((storedMode) => {
       if (mounted && (storedMode === "light" || storedMode === "dark")) {
-        setMode(storedMode);
+        setMode("light");
       }
     });
 
@@ -54,9 +54,9 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
       mode,
       theme,
       accent,
-      setMode,
+      setMode: () => setMode("light"),
       setAccent,
-      toggleMode: () => setMode((current) => (current === "light" ? "dark" : "light"))
+      toggleMode: () => setMode("light")
     }),
     [accent, mode, theme]
   );

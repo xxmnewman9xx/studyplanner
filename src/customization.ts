@@ -105,8 +105,8 @@ export const studioWidgetDefinitions: StudioWidgetDefinition[] = [
   },
   {
     id: "heavy_week_warning",
-    title: "Heavy Week Warning",
-    job: "A workload warning before it gets loud.",
+    title: "Future Risk",
+    job: "The week that needs attention before it gets loud.",
     nativeKind: "week",
     dataMode: "urgent_only",
     layout: "strip",

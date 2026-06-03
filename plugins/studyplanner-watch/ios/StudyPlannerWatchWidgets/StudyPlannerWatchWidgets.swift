@@ -106,22 +106,56 @@ private struct StudyPlannerRectangularComplication: View {
   var item: StudyPlannerWatchSnapshotItem
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 3) {
-      Text(item.label.uppercased())
-        .font(.system(size: 10, weight: .black, design: .rounded))
-        .foregroundStyle(Color(studyPlannerHex: item.color))
-        .lineLimit(1)
-      Text(item.title)
-        .font(.system(size: 15, weight: .bold, design: .rounded))
-        .foregroundStyle(.white)
-        .lineLimit(1)
-        .minimumScaleFactor(0.55)
-      Text("\(item.value)  \(item.detail)")
-        .font(.system(size: 11, weight: .semibold, design: .rounded))
-        .foregroundStyle(.white.opacity(0.72))
-        .lineLimit(1)
-        .minimumScaleFactor(0.58)
+    ZStack(alignment: .topLeading) {
+      RoundedRectangle(cornerRadius: 18, style: .continuous)
+        .fill(
+          LinearGradient(
+            colors: [
+              Color(red: 0.03, green: 0.09, blue: 0.18),
+              Color(red: 0.04, green: 0.16, blue: 0.32)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+          )
+        )
+      RoundedRectangle(cornerRadius: 18, style: .continuous)
+        .fill(Color.white.opacity(0.10))
+        .frame(maxHeight: 30)
+      RoundedRectangle(cornerRadius: 18, style: .continuous)
+        .strokeBorder(Color.white.opacity(0.26), lineWidth: 1)
+      Rectangle()
+        .fill(Color(studyPlannerHex: item.color))
+        .frame(width: 4)
+
+      VStack(alignment: .leading, spacing: 3) {
+        HStack(spacing: 5) {
+          Text(item.label.uppercased())
+            .font(.system(size: 10, weight: .black, design: .rounded))
+            .foregroundStyle(Color(studyPlannerHex: item.color))
+            .lineLimit(1)
+          Spacer(minLength: 2)
+          Text(item.value)
+            .font(.system(size: 10, weight: .black, design: .rounded))
+            .foregroundStyle(.white.opacity(0.86))
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+        }
+        Text(item.title)
+          .font(.system(size: 15, weight: .black, design: .rounded))
+          .foregroundStyle(.white)
+          .lineLimit(1)
+          .minimumScaleFactor(0.55)
+        Text(item.detail)
+          .font(.system(size: 11, weight: .semibold, design: .rounded))
+          .foregroundStyle(.white.opacity(0.74))
+          .lineLimit(1)
+          .minimumScaleFactor(0.58)
+      }
+      .padding(.leading, 10)
+      .padding(.trailing, 8)
+      .padding(.vertical, 7)
     }
+    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
   }
 }
 
@@ -139,6 +173,19 @@ private struct StudyPlannerCircularComplication: View {
     }
     .gaugeStyle(.accessoryCircular)
     .tint(Color(studyPlannerHex: item.color))
+    .containerBackground(for: .widget) {
+      Circle()
+        .fill(
+          LinearGradient(
+            colors: [
+              Color(red: 0.03, green: 0.09, blue: 0.18),
+              Color(red: 0.04, green: 0.16, blue: 0.32)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+          )
+        )
+    }
   }
 
   private var compactValue: String {

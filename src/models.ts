@@ -162,11 +162,28 @@ export type PlannerSettings = {
 
 export type StudentProfile = {
   name: string;
+  schoolLevel?: SchoolLevel;
+  goal?: StudentGoal;
+  struggle?: StudentStruggle;
+  scheduleStyle?: ScheduleStyle;
+  inputChoice?: StudentInputChoice;
+  classColorsGenerated?: boolean;
+  dashboardEmphasis?: string[];
   persona?: StudentPersona;
   stressLevel?: StressLevel;
   preferredLocale?: string;
   nightOwl?: boolean;
 };
+
+export type SchoolLevel = "middle_school" | "high_school" | "college" | "grad_school";
+
+export type StudentGoal = "better_grades" | "less_stress" | "stay_organized" | "balance_activities";
+
+export type StudentStruggle = "procrastination" | "forgetting_deadlines" | "exam_anxiety" | "too_much_going_on";
+
+export type ScheduleStyle = "class_heavy" | "activities_heavy" | "work_heavy" | "balanced";
+
+export type StudentInputChoice = "scan_syllabus" | "add_manually";
 
 export type StudentPersona =
   | "organized_ap"

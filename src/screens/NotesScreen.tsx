@@ -7,6 +7,7 @@ import { SectionHeader } from "../components/SectionHeader";
 import { Assignment, Course, FocusSession, StudyNote } from "../models";
 import { getCourseForAssignment, getPinnedNotes, getRelevantNotesForToday } from "../logic/planner";
 import type { StudentLifeContext } from "../logic/studentLifeDepth";
+import { localizedStudentLifeCopy } from "../logic/studentLifeCopy";
 import { AppTheme } from "../theme";
 import { useAppTheme } from "../themeContext";
 import { courseEmoji } from "../utils/courseVisuals";
@@ -75,6 +76,7 @@ export function NotesScreen({
     .filter((assignment) => assignment.status !== "done" && assignment.status !== "archived")
     .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
     .slice(0, 5);
+  const notesDepthCopy = studentLife ? localizedStudentLifeCopy("notes", studentLife.notes, t) : null;
 
   useEffect(() => {
     if (courses.length === 0) {
@@ -143,8 +145,8 @@ export function NotesScreen({
       {studentLife ? (
         <GlassCard style={styles.depthCard}>
           <Text style={styles.depthKicker}>{t("notes.memory_kicker", "What I learned")}</Text>
-          <Text style={styles.depthTitle}>{studentLife.notes.learned}</Text>
-          <Text style={styles.depthCopy}>{studentLife.notes.recommendation}</Text>
+          <Text style={styles.depthTitle}>{notesDepthCopy?.learned || studentLife.notes.learned}</Text>
+          <Text style={styles.depthCopy}>{notesDepthCopy?.recommendation || studentLife.notes.recommendation}</Text>
         </GlassCard>
       ) : null}
 

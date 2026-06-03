@@ -374,7 +374,7 @@ export function createTypography(themeColors: ColorTokens) {
 export const typography = createTypography(colors);
 
 export function createGlassTokens(themeColors: ColorTokens, mode: ThemeMode) {
-  const isDark = mode === "dark";
+  const isDark = false;
 
   return {
     blurAmount: {
@@ -418,14 +418,14 @@ export function createGlassTokens(themeColors: ColorTokens, mode: ThemeMode) {
 }
 
 export function getTheme(mode: ThemeMode, accent: ThemeAccent = "campus") {
-  const baseColors = mode === "dark" ? darkColors : lightColors;
-  const overrides = mode === "dark" ? darkAccentOverrides[accent] : lightAccentOverrides[accent];
+  const baseColors = lightColors;
+  const overrides = lightAccentOverrides[accent];
   const themeColors = { ...baseColors, ...overrides };
 
   return {
     mode,
     accent,
-    isDark: mode === "dark",
+    isDark: false,
     colors: themeColors,
     spacing,
     radii,

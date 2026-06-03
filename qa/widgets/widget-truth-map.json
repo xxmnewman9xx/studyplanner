@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-27T19:14:15.893Z",
+  "generatedAt": "2026-06-02T17:15:20.776Z",
   "repository": "studyplanner",
   "decisionPolicy": "Keep real native widgets and useful previews; demote static/dead showcases; remove user-facing QA and implementation copy.",
   "surfaces": [
@@ -60,10 +60,10 @@
       "decision": "keep/fix"
     },
     {
-      "widget": "Needs Check",
-      "surfaceClass": "Widget Studio live preview",
-      "sourceFile": "src/logic/planner.ts + src/components/AppleComponents.tsx",
-      "dataSource": "getWidgetData(urgent_only/needsReview)",
+      "widget": "Exam Countdown",
+      "surfaceClass": "Widget Gallery product label over Upcoming snapshot",
+      "sourceFile": "src/services/widgetSnapshot.ts + src/components/AppleComponents.tsx",
+      "dataSource": "buildStudyPlannerWidgetSnapshots.upcoming with reviewed exam/urgent data",
       "layoutSource": "src/widgets/widgetLayoutEngine.ts",
       "nativeSupport": false,
       "previewSupport": true,
@@ -71,13 +71,13 @@
       "screenshotState": "required in marketing_exports/raw_screenshots/widget_repair_final when feasible",
       "cropRisk": "low after WidgetLayoutEngine budget validation",
       "status": "real preview",
-      "decision": "keep/fix preview"
+      "decision": "keep as gallery preview"
     },
     {
-      "widget": "Empty State",
-      "surfaceClass": "Widget Studio live preview",
-      "sourceFile": "src/logic/planner.ts + src/components/AppleComponents.tsx",
-      "dataSource": "getWidgetData(empty/all caught up fallback)",
+      "widget": "Semester Pulse",
+      "surfaceClass": "Widget Gallery product label over Week snapshot",
+      "sourceFile": "src/services/widgetSnapshot.ts + src/components/AppleComponents.tsx",
+      "dataSource": "buildStudyPlannerWidgetSnapshots.week + semester pulse context",
       "layoutSource": "src/widgets/widgetLayoutEngine.ts",
       "nativeSupport": false,
       "previewSupport": true,
@@ -85,35 +85,21 @@
       "screenshotState": "required in marketing_exports/raw_screenshots/widget_repair_final when feasible",
       "cropRisk": "low after WidgetLayoutEngine budget validation",
       "status": "real preview",
-      "decision": "keep/fix preview"
+      "decision": "keep as gallery preview"
     },
     {
-      "widget": "Focus",
-      "surfaceClass": "Widget Studio live preview",
-      "sourceFile": "src/logic/planner.ts + src/components/AppleComponents.tsx",
-      "dataSource": "focusSessions + next focus recommendation",
+      "widget": "Future Risk",
+      "surfaceClass": "Widget Gallery product label over Week snapshot",
+      "sourceFile": "src/services/widgetSnapshot.ts + src/components/AppleComponents.tsx",
+      "dataSource": "buildStudyPlannerWidgetSnapshots.week with workload risk",
       "layoutSource": "src/widgets/widgetLayoutEngine.ts",
       "nativeSupport": false,
       "previewSupport": true,
       "savedPresetSupport": true,
       "screenshotState": "required in marketing_exports/raw_screenshots/widget_repair_final when feasible",
       "cropRisk": "low after WidgetLayoutEngine budget validation",
-      "status": "partial",
-      "decision": "keep/fix preview"
-    },
-    {
-      "widget": "Streak",
-      "surfaceClass": "Widget Studio live preview",
-      "sourceFile": "src/logic/planner.ts + src/components/AppleComponents.tsx",
-      "dataSource": "completed assignment/review activity summary",
-      "layoutSource": "src/widgets/widgetLayoutEngine.ts",
-      "nativeSupport": false,
-      "previewSupport": true,
-      "savedPresetSupport": true,
-      "screenshotState": "required in marketing_exports/raw_screenshots/widget_repair_final when feasible",
-      "cropRisk": "low after WidgetLayoutEngine budget validation",
-      "status": "partial",
-      "decision": "keep/fix preview"
+      "status": "real preview",
+      "decision": "keep as gallery preview"
     },
     {
       "widget": "Pinned Note",

@@ -792,7 +792,7 @@ function buildForecastSignal(
     : "First forecast snapshot.";
   const titleByState: Record<ForecastState, string> = {
     clear: "Clear",
-    watch: "Watch",
+    watch: "Attention",
     warning: "Warning",
     storm: "Storm",
     recovery: "Recovery"
@@ -953,9 +953,9 @@ function buildWatchSignal(
     action,
     escalation,
     learned: memory.watch.signalsGenerated > 1
-      ? `${memory.watch.signalsGenerated} wrist signals; ${memory.watch.focusStarts} became focus starts.`
-      : "No wrist pattern yet.",
-    adaptation: memory.watch.smartSnoozes > 0 ? `${memory.watch.smartSnoozes} snooze${memory.watch.smartSnoozes === 1 ? "" : "s"} have changed wrist timing.` : "Wrist timing will adapt after starts and snoozes.",
+      ? `${memory.watch.signalsGenerated} quick signals; ${memory.watch.focusStarts} became focus starts.`
+      : "No quick-check pattern yet.",
+    adaptation: memory.watch.smartSnoozes > 0 ? `${memory.watch.smartSnoozes} snooze${memory.watch.smartSnoozes === 1 ? "" : "s"} have changed reminder timing.` : "Reminder timing will adapt after starts and snoozes.",
     recommendation: `${signal} Action: ${action}.`,
     retention: valueGained(memory, "watch")
   };
@@ -978,8 +978,8 @@ function buildFeatureInsights(input: {
     classes: insight("Classes", featureDepthValues.classes, input.classes, input.memory, "classes"),
     focus: insight("Focus", featureDepthValues.focus, input.focus, input.memory, "focus"),
     notes: insight("Notes", featureDepthValues.notes, input.notesSignal, input.memory, "notes"),
-    widgets: insight("Widget Studio", featureDepthValues.widgets, input.widgets, input.memory, "widgets"),
-    watch: insight("Watch", featureDepthValues.watch, input.watch, input.memory, "watch")
+    widgets: insight("Recommended Widgets", featureDepthValues.widgets, input.widgets, input.memory, "widgets"),
+    watch: insight("Quick checks", featureDepthValues.watch, input.watch, input.memory, "watch")
   };
 }
 
@@ -1080,7 +1080,7 @@ function personalizationLine(feature: StudentLifeFeature, memory: StudentLifeMem
     return `Widget recommendations remember ${widgetTitle(memory.widgets.lastRecommendedType)}.`;
   }
   if (feature === "watch" && memory.watch.smartSnoozes > 0) {
-    return "Watch timing is personalized by snoozes.";
+    return "Reminder timing is personalized by snoozes.";
   }
   return "Personalization starts local and strengthens with each action.";
 }
@@ -1092,20 +1092,21 @@ function trendText(previousRisk: number, currentRisk: number) {
 }
 
 function widgetTitle(type: WidgetType) {
-  if (type === "week") return "Storm Watch";
-  if (type === "focus") return "Focus Face";
-  if (type === "class_focus") return "Class Face";
-  if (type === "due_next") return "Exam Face";
-  if (type === "needs_check") return "Review Face";
-  if (type === "streak") return "Progress Face";
-  return "Today Face";
+  if (type === "week") return "Future Risk";
+  if (type === "focus") return "Focus Window";
+  if (type === "class_focus") return "Class Progress";
+  if (type === "due_next") return "Next Assignment";
+  if (type === "needs_check") return "Review Inbox";
+  if (type === "streak") return "Semester Progress";
+  return "Today Plan";
 }
 
 function widgetDetail(type: WidgetType, forecastState: ForecastState) {
-  if (type === "week") return `Best for ${forecastState} weeks and overload prevention.`;
-  if (type === "focus") return "Best when starting is the highest leverage move.";
+  if (type === "week") return `Best for ${forecastState} weeks before overload is visible.`;
+  if (type === "focus") return "Best when the next useful move is starting a block.";
   if (type === "class_focus") return "Best once one class has enough memory to deserve space.";
-  if (type === "due_next") return "Best for exam countdown and high-impact deadlines.";
+  if (type === "due_next") return "Best for the deadline that should stay on the Home Screen.";
+  if (type === "streak") return "Best for keeping Semester Pulse visible.";
   return "Best for the daily operating picture.";
 }
 

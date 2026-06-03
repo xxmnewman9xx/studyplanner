@@ -108,8 +108,8 @@ function patchXcodeProject({ config, iosRoot, projectName }) {
   ensureMainBridge(project, projectName, mainTargetUuid);
   ensureWatchAppFiles(project, watchAppTargetUuid);
   ensureWatchWidgetFiles(project, watchWidgetTargetUuid);
-  ensureWatchBuildSettings(project, WATCH_APP_TARGET, watchAppSettings(config));
-  ensureWatchBuildSettings(project, WATCH_WIDGET_TARGET, watchWidgetSettings(config));
+  ensureWatchBuildSettings(project, watchAppTargetUuid, WATCH_APP_TARGET, watchAppSettings(config));
+  ensureWatchBuildSettings(project, watchWidgetTargetUuid, WATCH_WIDGET_TARGET, watchWidgetSettings(config));
 
   fs.writeFileSync(projectPath, project.writeSync());
 }
@@ -146,7 +146,7 @@ function ensureMainBridge(project, projectName, targetUuid) {
   const groupUuid = project.pbxGroupByName(projectName)
     ? findGroupUuid(project, projectName)
     : project.getFirstProject().firstProject.mainGroup;
-  const bridge = ensureFileReference(project, groupUuid, "StudyPlannerWatchSyncBridge.swift");
+  const bridge = ensureFileReference(project, groupUuid, `${projectName}/StudyPlannerWatchSyncBridge.swift`);
   ensureBuildFile(project, {
     fileRef: bridge.fileRef,
     displayName: "StudyPlannerWatchSyncBridge.swift",
@@ -283,8 +283,8 @@ function getTargetBuildPhase(project, targetUuid, phaseIsa) {
   return null;
 }
 
-function ensureWatchBuildSettings(project, targetName, settings) {
-  const target = project.pbxTargetByName(targetName);
+function ensureWatchBuildSettings(project, targetUuid, targetName, settings) {
+  const target = project.pbxNativeTargetSection()[targetUuid];
   if (!target) throw new Error(`Missing target ${targetName}.`);
   const configs = project.pbxXCBuildConfigurationSection();
   const configList = project.pbxXCConfigurationList()[target.buildConfigurationList];

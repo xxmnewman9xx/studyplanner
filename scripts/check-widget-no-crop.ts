@@ -145,12 +145,8 @@ const focusSessions: FocusSession[] = [
 const widgetCases: WidgetCase[] = [
   { id: "due-next-small", widgetType: "due_next", size: "small", background: "glass", palette: "ocean", layout: "timeline", dataState: "normal" },
   { id: "today-medium", widgetType: "today", size: "medium", background: "glass", palette: "lavender", layout: "list", dataState: "due_today" },
-  { id: "needs-check-small", widgetType: "needs_check", size: "small", background: "solid", palette: "sunset", layout: "compact", dataState: "needs_review" },
   { id: "week-medium", widgetType: "week", size: "medium", background: "dark", palette: "midnight", layout: "strip", dataState: "busy_week" },
-  { id: "class-focus-medium", widgetType: "class_focus", size: "medium", background: "glass", palette: "forest", layout: "progress", classFocusCourseId: "chemistry", dataState: "class_focus" },
-  { id: "empty-small", widgetType: "empty", size: "small", background: "light", palette: "minimal", layout: "summary", dataState: "all_caught_up" },
-  { id: "focus-small", widgetType: "focus", size: "small", background: "dark", palette: "graphite", layout: "ring", dataState: "focus_active" },
-  { id: "streak-small", widgetType: "streak", size: "small", background: "gradient", palette: "candy", layout: "ring", dataState: "completed" }
+  { id: "class-focus-medium", widgetType: "class_focus", size: "medium", background: "glass", palette: "forest", layout: "progress", classFocusCourseId: "chemistry", dataState: "class_focus" }
 ];
 
 const customizationCases: WidgetCase[] = [
@@ -158,12 +154,8 @@ const customizationCases: WidgetCase[] = [
   { id: "violet-glass-today-medium", widgetType: "today", size: "medium", background: "glass", palette: "lavender", layout: "list", dataState: "due_today" },
   { id: "midnight-week-medium", widgetType: "week", size: "medium", background: "dark", palette: "midnight", layout: "strip", dataState: "busy_week" },
   { id: "ocean-class-focus-medium", widgetType: "class_focus", size: "medium", background: "glass", palette: "ocean", layout: "progress", classFocusCourseId: "chemistry", dataState: "class_focus" },
-  { id: "amber-needs-check-small", widgetType: "needs_check", size: "small", background: "solid", palette: "sunset", layout: "compact", dataState: "needs_review" },
-  { id: "minimal-empty-small", widgetType: "empty", size: "small", background: "light", palette: "minimal", layout: "summary", dataState: "all_caught_up" },
   { id: "class-color-class-focus-medium", widgetType: "class_focus", size: "medium", background: "glass", palette: "forest", layout: "next_task", classFocusCourseId: "chemistry", dataState: "class_focus" },
-  { id: "dark-focus-small", widgetType: "focus", size: "small", background: "dark", palette: "graphite", layout: "ring", dataState: "focus_active" },
-  { id: "high-contrast-today-medium", widgetType: "today", size: "medium", background: "dark", palette: "contrast", layout: "compact", dataState: "due_today" },
-  { id: "candy-widget-studio-overview", widgetType: "today", size: "medium", background: "gradient", palette: "candy", layout: "list", dataState: "normal" }
+  { id: "high-contrast-today-medium", widgetType: "today", size: "medium", background: "dark", palette: "contrast", layout: "compact", dataState: "due_today" }
 ];
 
 const matrixEntries = [];
@@ -196,7 +188,7 @@ const screenshotEntries = screenshotFiles.map((screenshotPath) => {
     screen: humanizeScreenshotId(id),
     classification: classifyScreenshot(id),
     nativeHomeScreenAutomated: false,
-    nativeHomeScreenNote: "Actual iOS Home Screen insertion is not automated in this repo; Studio/Home previews are classified separately.",
+    nativeHomeScreenNote: "Actual iOS Home Screen insertion is not automated in this repo; Widget Gallery previews and native Home Screen snapshots are classified separately.",
     locale: inferPathPart(screenshotPath, 0) || "en-US",
     device: "Codex in-app browser web preview",
     appearance: "light",
@@ -226,14 +218,11 @@ const screenshotManifest = {
   pseudoLocales,
   requiredCoreCapturesPerLocale: [
     "Real native Home Screen widget if feasible",
-    "Widget Studio Due Next small",
-    "Widget Studio Today medium",
-    "Widget Studio Week medium",
-    "Widget Studio Class Focus medium",
-    "Widget Studio Needs Check small",
-    "Widget Studio Empty State small",
-    "Widget Library overview",
-    "Home Preview variety",
+    "Widget Gallery Due Next small",
+    "Widget Gallery Today medium",
+    "Widget Gallery Week medium",
+    "Widget Gallery Class Focus medium",
+    "Widget Gallery overview",
     "Calendar/Plan repaired panel",
     "Today widget data match state"
   ],
@@ -284,7 +273,7 @@ const scorecards = {
     genZCoolness: 92,
     personalizationQuality: 94,
     calendarVisualQuality: 94,
-    widgetStudioQuality: 95,
+    widgetGalleryQuality: 95,
     accessibility: 92,
     performanceRisk: "low"
   },
@@ -299,7 +288,7 @@ const scorecards = {
     genZCoolness: widgetCase.widgetType === "streak" || widgetCase.widgetType === "focus" ? 94 : 93,
     personalizationQuality: 94,
     calendarVisualQuality: 94,
-    widgetStudioQuality: 95,
+    widgetGalleryQuality: 95,
     accessibility: widgetCase.palette === "contrast" ? 96 : 93,
     performanceRisk: "low",
     dataTruthfulness: 99
@@ -327,10 +316,9 @@ const widgetTruthMap = {
     widgetTruth("Today", "real native Home Screen widget", "ios/ExpoWidgetsTarget/StudyPlannerTodayWidget.swift", "buildStudyPlannerWidgetSnapshots.today -> getWidgetData(today)", true, true, true, "keep/fix", "real"),
     widgetTruth("Week", "real native Home Screen widget", "ios/ExpoWidgetsTarget/StudyPlannerWeekWidget.swift", "buildStudyPlannerWidgetSnapshots.week -> getWidgetData(this_week)", true, true, true, "keep/fix", "real"),
     widgetTruth("Class Focus", "real native Home Screen widget", "ios/ExpoWidgetsTarget/StudyPlannerClassProgressWidget.swift", "buildStudyPlannerWidgetSnapshots.classProgress -> getWidgetData(single_class/all_classes fallback)", true, true, true, "keep/fix", "real"),
-    widgetTruth("Needs Check", "Widget Studio live preview", "src/logic/planner.ts + src/components/AppleComponents.tsx", "getWidgetData(urgent_only/needsReview)", false, true, true, "keep/fix preview", "real preview"),
-    widgetTruth("Empty State", "Widget Studio live preview", "src/logic/planner.ts + src/components/AppleComponents.tsx", "getWidgetData(empty/all caught up fallback)", false, true, true, "keep/fix preview", "real preview"),
-    widgetTruth("Focus", "Widget Studio live preview", "src/logic/planner.ts + src/components/AppleComponents.tsx", "focusSessions + next focus recommendation", false, true, true, "keep/fix preview", "partial"),
-    widgetTruth("Streak", "Widget Studio live preview", "src/logic/planner.ts + src/components/AppleComponents.tsx", "completed assignment/review activity summary", false, true, true, "keep/fix preview", "partial"),
+    widgetTruth("Exam Countdown", "Widget Gallery product label over Upcoming snapshot", "src/services/widgetSnapshot.ts + src/components/AppleComponents.tsx", "buildStudyPlannerWidgetSnapshots.upcoming with reviewed exam/urgent data", false, true, true, "keep as gallery preview", "real preview"),
+    widgetTruth("Semester Pulse", "Widget Gallery product label over Week snapshot", "src/services/widgetSnapshot.ts + src/components/AppleComponents.tsx", "buildStudyPlannerWidgetSnapshots.week + semester pulse context", false, true, true, "keep as gallery preview", "real preview"),
+    widgetTruth("Future Risk", "Widget Gallery product label over Week snapshot", "src/services/widgetSnapshot.ts + src/components/AppleComponents.tsx", "buildStudyPlannerWidgetSnapshots.week with workload risk", false, true, true, "keep as gallery preview", "real preview"),
     widgetTruth("Pinned Note", "not shipped as a widget surface", "src/logic/planner.ts", "pinned StudyNote data can support fallback copy but has no WidgetType/native kind", false, false, false, "demote/no shipped widget", "not present")
   ]
 };
@@ -400,14 +388,14 @@ writeJson("qa/screenshots/screenshot-manifest.json", {
     "Assignment Detail",
     "Notes Hub",
     "Focus",
-    "Widget Studio",
+    "Widget Gallery",
     "Widget Library",
     "Themes",
     "Settings / More",
     "Paywall",
     "Tablet Dashboard",
-    "Tablet Widget Studio",
-    "Widget Repair Studio cases",
+    "Tablet Widget Gallery",
+    "Widget Repair Gallery cases",
     "Widget Repair Calendar panel",
     "Widget Repair data match state"
   ],
@@ -634,7 +622,7 @@ function humanizeScreenshotId(id: string) {
 }
 
 function classifyScreenshot(id: string) {
-  if (id.startsWith("widget-studio")) return "Widget Studio live preview";
+  if (id.startsWith("widget-gallery") || id.startsWith("widget-studio")) return "Widget Gallery live preview";
   if (id.startsWith("widget-library")) return "Widget Library preview";
   if (id.startsWith("home-preview")) return "in-app Home Screen mock preview";
   if (id.startsWith("calendar-plan")) return "Calendar/Plan repaired panel";

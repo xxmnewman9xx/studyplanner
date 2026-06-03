@@ -533,7 +533,7 @@ export function WidgetPreviewCard({
           isLarge ? styles.widgetLarge : isMedium ? styles.widgetMedium : styles.widgetSmall,
           styles.nativeWidget,
           {
-            backgroundColor: nativeBackground,
+            backgroundColor: nativeDark ? "#07162D" : nativeBackground,
             width: layoutPlan.availableWidth,
             height: layoutPlan.availableHeight,
             padding: layoutPlan.safePadding
@@ -541,15 +541,15 @@ export function WidgetPreviewCard({
           style
         ]}
       >
-        <View pointerEvents="none" style={[styles.nativeWidgetGlassWash, { backgroundColor: nativeDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.58)" }]} />
-        <View pointerEvents="none" style={[styles.nativeWidgetBottomLens, { borderColor: nativeDark ? "rgba(255,255,255,0.10)" : "rgba(17,24,39,0.06)" }]} />
+        <View pointerEvents="none" style={[styles.nativeWidgetGlassWash, { backgroundColor: nativeDark ? "rgba(116,196,255,0.18)" : "rgba(255,255,255,0.62)" }]} />
+        <View pointerEvents="none" style={[styles.nativeWidgetBottomLens, { borderColor: nativeDark ? "rgba(255,255,255,0.22)" : "rgba(17,24,39,0.08)" }]} />
         <View pointerEvents="none" style={[styles.nativeWidgetAccent, { backgroundColor: nativeAccent }]} />
         <View style={styles.nativeWidgetTop}>
           <View style={styles.nativeWidgetHeading}>
             <Text style={styles.nativeWidgetBrand} numberOfLines={1}>StudyPlanner</Text>
             <Text style={[styles.nativeWidgetKicker, { color: nativeAccent }]} numberOfLines={1}>{nativeSignal}</Text>
           </View>
-          <View style={[styles.nativeWidgetSignalPill, { backgroundColor: nativeDark ? "#202633" : "#FFFFFF" }]}>
+          <View style={[styles.nativeWidgetSignalPill, { backgroundColor: nativeDark ? "rgba(255,255,255,0.13)" : "rgba(255,255,255,0.74)" }]}>
             <Text style={[styles.nativeWidgetSignalText, { color: nativeAccent }]} numberOfLines={1}>{nativeTimeline}</Text>
           </View>
         </View>
@@ -566,14 +566,14 @@ export function WidgetPreviewCard({
             </Text>
           </View>
           {isMedium && layoutPlan.ctaVisible ? (
-            <View style={[styles.nativeWidgetNextBox, { backgroundColor: nativeDark ? "#202633" : "#FFFFFF" }]}>
+            <View style={[styles.nativeWidgetNextBox, { backgroundColor: nativeDark ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.72)" }]}>
               <Text style={[styles.nativeWidgetNextKicker, { color: nativeQuiet }]} numberOfLines={1}>{t("widget_preview.next_caps", "NEXT")}</Text>
               <Text style={[styles.nativeWidgetNextText, { color: nativeInk }]} numberOfLines={2}>{nativeNext}</Text>
             </View>
           ) : null}
         </View>
         {layoutPlan.weekRailVisible && !nativeProgressLike ? (
-          <View style={[styles.nativeWidgetWeekRail, { backgroundColor: nativeDark ? "#172132" : "#FFFFFF" }]}>
+          <View style={[styles.nativeWidgetWeekRail, { backgroundColor: nativeDark ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.72)" }]}>
             {nativeWeekDots.map((label, index) => {
               const active = nativeProgressValue >= (index + 1) / nativeWeekDots.length;
               return (
@@ -1288,15 +1288,15 @@ function createStyles(theme: AppTheme) {
       fontWeight: "800"
     },
     widget: {
-      borderRadius: 27,
+      borderRadius: 26,
       padding: spacing.md,
       overflow: "hidden",
       borderWidth: 1,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.82)",
+      borderColor: theme.isDark ? "rgba(255,255,255,0.30)" : "rgba(255,255,255,0.90)",
       shadowColor: colors.shadow,
-      shadowOpacity: theme.isDark ? 0.46 : 0.16,
-      shadowRadius: 24,
-      shadowOffset: { width: 0, height: 16 },
+      shadowOpacity: theme.isDark ? 0.54 : 0.18,
+      shadowRadius: 28,
+      shadowOffset: { width: 0, height: 18 },
       elevation: 5
     },
     widgetSmall: {
@@ -1319,20 +1319,22 @@ function createStyles(theme: AppTheme) {
       borderColor: "rgba(15,23,42,0.08)"
     },
     widgetGlass: {
-      backgroundColor: theme.isDark ? "rgba(13,19,33,0.84)" : "rgba(255,255,255,0.76)",
+      backgroundColor: theme.isDark ? "rgba(7,22,45,0.90)" : "rgba(255,255,255,0.78)",
       borderColor: theme.isDark ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.94)"
     },
     widgetDark: {
-      backgroundColor: "#070A12",
-      borderColor: "rgba(53,242,208,0.22)"
+      backgroundColor: "#07162D",
+      borderColor: "rgba(143,205,255,0.30)"
     },
     nativeWidget: {
-      borderRadius: 27,
+      borderRadius: 26,
       padding: spacing.md,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.24)" : "rgba(255,255,255,0.90)",
-      shadowOpacity: theme.isDark ? 0.38 : 0.13,
-      shadowRadius: 24,
-      shadowOffset: { width: 0, height: 15 },
+      borderWidth: 1,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.34)" : "rgba(255,255,255,0.92)",
+      shadowColor: "#020714",
+      shadowOpacity: theme.isDark ? 0.58 : 0.16,
+      shadowRadius: 30,
+      shadowOffset: { width: 0, height: 18 },
       gap: 4
     },
     nativeWidgetGlassWash: {
@@ -1340,17 +1342,18 @@ function createStyles(theme: AppTheme) {
       top: 0,
       left: 0,
       right: 0,
-      height: "48%"
+      height: "50%",
+      opacity: 0.96
     },
     nativeWidgetBottomLens: {
       position: "absolute",
-      right: -24,
-      bottom: -24,
-      width: 118,
-      height: 74,
-      borderRadius: 28,
+      right: -30,
+      bottom: -30,
+      width: 142,
+      height: 92,
+      borderRadius: 34,
       borderWidth: StyleSheet.hairlineWidth,
-      backgroundColor: "rgba(255,255,255,0.035)",
+      backgroundColor: "rgba(255,255,255,0.055)",
       transform: [{ rotate: "-8deg" }]
     },
     nativeWidgetAccent: {
@@ -1358,8 +1361,8 @@ function createStyles(theme: AppTheme) {
       top: 0,
       bottom: 0,
       left: 0,
-      width: 5,
-      opacity: 0.95
+      width: 4,
+      opacity: 0.88
     },
     lockInlineWidget: {
       width: 220,
@@ -1453,7 +1456,7 @@ function createStyles(theme: AppTheme) {
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 1,
-      borderColor: theme.isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.70)"
+      borderColor: theme.isDark ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.76)"
     },
     nativeWidgetSignalText: {
       fontSize: 10,
@@ -1618,16 +1621,16 @@ function createStyles(theme: AppTheme) {
       height: 22,
       borderRadius: 18,
       borderWidth: 1,
-      opacity: 0.22
+      opacity: 0.30
     },
     widgetAura: {
       position: "absolute",
-      right: -34,
-      top: 18,
-      width: 132,
-      height: 62,
-      borderRadius: 28,
-      opacity: theme.isDark ? 0.30 : 0.18,
+      right: -40,
+      top: 10,
+      width: 154,
+      height: 82,
+      borderRadius: 36,
+      opacity: theme.isDark ? 0.38 : 0.20,
       transform: [{ rotate: "-12deg" }]
     },
     widgetSheen: {
@@ -1637,7 +1640,7 @@ function createStyles(theme: AppTheme) {
       width: 138,
       height: 42,
       borderRadius: 24,
-      opacity: theme.isDark ? 0.20 : 0.16,
+      opacity: theme.isDark ? 0.24 : 0.18,
       transform: [{ rotate: "-18deg" }]
     },
     widgetLiquidFace: {
@@ -1645,8 +1648,8 @@ function createStyles(theme: AppTheme) {
       top: 0,
       left: 0,
       right: 0,
-      height: "46%",
-      backgroundColor: theme.isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.48)"
+      height: "50%",
+      backgroundColor: theme.isDark ? "rgba(116,196,255,0.16)" : "rgba(255,255,255,0.54)"
     },
     widgetGridTexture: {
       position: "absolute",
@@ -1656,8 +1659,8 @@ function createStyles(theme: AppTheme) {
       height: 74,
       borderRadius: 22,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: "rgba(255,255,255,0.18)",
-      backgroundColor: "rgba(255,255,255,0.035)",
+      borderColor: "rgba(255,255,255,0.24)",
+      backgroundColor: "rgba(255,255,255,0.055)",
       transform: [{ rotate: "8deg" }]
     },
     widgetAccentRail: {
@@ -1666,7 +1669,7 @@ function createStyles(theme: AppTheme) {
       left: 0,
       bottom: 0,
       width: 5,
-      opacity: 0.92
+      opacity: 0.86
     },
     widgetGlow: {
       position: "absolute",
@@ -1698,10 +1701,12 @@ function createStyles(theme: AppTheme) {
       paddingHorizontal: 8,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: theme.isDark ? "rgba(255,255,255,0.09)" : "rgba(16,24,40,0.06)"
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.isDark ? "rgba(255,255,255,0.20)" : "rgba(255,255,255,0.72)",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.64)"
     },
     widgetStatusCapsuleTinted: {
-      backgroundColor: "rgba(255,255,255,0.18)"
+      backgroundColor: "rgba(255,255,255,0.20)"
     },
     widgetTiny: {
       color: colors.muted,

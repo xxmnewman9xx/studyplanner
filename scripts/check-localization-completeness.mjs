@@ -118,7 +118,7 @@ for (const locale of requiredLocales) {
 }
 
 assert(sourceFiles.app.includes("<I18nProvider>"), "App must wrap runtime UI in I18nProvider.");
-assert(sourceFiles.app.includes("t(tab.labelKey)"), "Navigation labels must use runtime localization keys.");
+assert(sourceFiles.app.includes("labelForTab(tab.id, t)") && sourceFiles.app.includes("t(tab.labelKey"), "Navigation labels must use runtime localization keys.");
 assert(sourceFiles.today.includes("useI18n") && sourceFiles.today.includes("today.quick_capture"), "Today screen must consume runtime localization keys.");
 assert(sourceFiles.plan.includes("useI18n") && sourceFiles.plan.includes("plan.capture_title"), "Calendar screen must consume runtime localization keys.");
 assert(sourceFiles.courses.includes("useI18n") && sourceFiles.courses.includes("classes.course_hub"), "Classes screen must consume runtime localization keys.");
@@ -126,18 +126,24 @@ assert(sourceFiles.focus.includes("useI18n") && sourceFiles.focus.includes("focu
 assert(sourceFiles.grades.includes("useI18n") && sourceFiles.grades.includes("grades.target_calculator"), "Grades screen must consume runtime localization keys.");
 assert(
   sourceFiles.onboarding.includes("useI18n") &&
-    sourceFiles.onboarding.includes("slide.titleKey") &&
-    sourceFiles.onboarding.includes("onboarding.preview_method_scan_paper") &&
-    sourceFiles.onboarding.includes("widgetThemeOrder"),
-  "Onboarding must consume runtime localization keys for slide copy, preview mockups, and theme choices."
+    sourceFiles.onboarding.includes("What level are you in?") &&
+    sourceFiles.onboarding.includes("onboarding.preview_method_scan_source") &&
+    sourceFiles.onboarding.includes("onboarding.unlock_dashboard"),
+  "Onboarding must consume runtime localization keys for guided setup and input choices."
 );
 assert(sourceFiles.importScreen.includes("useI18n") && sourceFiles.importScreen.includes("import.photo_disabled_message"), "Import screen must consume runtime localization keys.");
 assert(sourceFiles.assignmentDetail.includes("useI18n") && sourceFiles.assignmentDetail.includes("assignment_detail.trust_ready_title"), "Assignment detail screen must consume runtime localization keys.");
 assert(sourceFiles.notes.includes("useI18n") && sourceFiles.notes.includes("notes.hero_title"), "Notes screen must consume runtime localization keys.");
 assert(sourceFiles.entitlementGate.includes("useI18n") && sourceFiles.entitlementGate.includes("entitlement_gate.unlock_title"), "Entitlement gate component must consume runtime localization keys.");
-assert(sourceFiles.paywall.includes("useI18n") && sourceFiles.paywall.includes("paywall.hard_subtitle"), "Paywall must consume runtime localization keys.");
+assert(sourceFiles.paywall.includes("useI18n") && sourceFiles.paywall.includes("paywall.dashboard_ready_subtitle"), "Paywall must consume runtime localization keys.");
 assert(sourceFiles.modeToggle.includes("useI18n") && sourceFiles.modeToggle.includes("theme.use_light_mode"), "Theme mode toggle must consume runtime localization keys.");
-assert(sourceFiles.widgets.includes("useI18n") && sourceFiles.widgets.includes("more.native_style_fields"), "Widget Studio must consume runtime localization keys while preserving native/widget truth copy.");
+assert(
+  sourceFiles.widgets.includes("useI18n") &&
+    sourceFiles.widgets.includes("more.recommended_widgets_subtitle") &&
+    sourceFiles.widgets.includes("more.widget_preview") &&
+    sourceFiles.widgets.includes("more.widget_gallery_add_instructions"),
+  "Recommended Widgets must consume runtime localization keys while preserving native/widget truth copy."
+);
 assert(sourceFiles.widgetSnapshot.includes("translate?: WidgetSnapshotTranslate") && sourceFiles.widgetSnapshot.includes("widget_snapshot.today"), "Native widget snapshot payloads must accept runtime translations.");
 assert(sourceFiles.appleComponents.includes("useI18n") && sourceFiles.appleComponents.includes("widget_preview.next_caps"), "Widget previews must localize native-style fallback labels.");
 assert(sourceFiles.i18n.includes("EXPO_PUBLIC_STUDYPLANNER_LOCALE"), "Localization override must exist for screenshot QA.");
@@ -152,6 +158,7 @@ const hardcodedLaunchStrings = [
       "Scan paper",
       "Upload PDF",
       "Paste text",
+      "Scan source",
       "Review draft",
       "Add syllabus",
       "deadlines found for review",

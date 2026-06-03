@@ -39,21 +39,25 @@
       "system_review_detail_count": "{count} items need a date or duplicate check before they appear in Today and widgets.",
       "system_review_work": "Review work",
       "system_live_title": "Planner is live.",
-      "system_live_detail_one": "{count} open item is powering Today, Plan, and Widget Studio from the same reviewed data.",
-      "system_live_detail_count": "{count} open items are powering Today, Plan, and Widget Studio from the same reviewed data.",
+      "system_live_detail_one": "{count} open item is powering Today, Plan, and Recommended Widgets from the same reviewed data.",
+      "system_live_detail_count": "{count} open items are powering Today, Plan, and Recommended Widgets from the same reviewed data.",
       "system_imported": "Imported",
       "system_clear_title": "Clean slate, widget proof ready.",
-      "system_clear_detail": "No open work is due right now. Widget Studio can still show the real empty state and guide the next import.",
+      "system_clear_detail": "No open work is due right now. Recommended Widgets can still show the real empty state and guide the next import.",
       "system_clear": "Clear",
       "system_open_widgets": "Open Widgets",
       "system_eyebrow": "StudyPlanner · {label}",
       "system_open_today": "Open Today",
-      "note_task_needs_class": "A note needs class context before it can become a task."
+      "note_task_needs_class": "A note needs class context before it can become a task.",
+      "system_live_dashboard_detail_one": "{count} open item is powering Home, Plan, and Recommended Widgets from the same reviewed data.",
+      "system_live_dashboard_detail_count": "{count} open items are powering Home, Plan, and Recommended Widgets from the same reviewed data.",
+      "system_clear_recommended_detail": "No open work is due right now. Recommended Widgets can still show a clear empty state and guide the next import."
     },
     "common": {
       "next": "Next",
       "continue": "Continue",
-      "not_now": "Not now"
+      "not_now": "Not now",
+      "back": "Back"
     },
     "theme": {
       "appearance": "Appearance",
@@ -188,7 +192,19 @@
       "heavy_week_summary": "{exams} exams · {assignments} assignments · {reviews} to review",
       "heavy_days": "{count} heavy days",
       "momentum": "Momentum",
-      "keep_moving": "Keep the next step moving."
+      "keep_moving": "Keep the next step moving.",
+      "next_important_thing": "Next important thing",
+      "generated_from_profile": "Generated from your profile",
+      "upcoming_risk": "Upcoming risk",
+      "forecast_state": "Forecast",
+      "focus_suggestion": "Focus suggestion",
+      "work_heavy_focus": "Sized for a work-heavy week",
+      "profile_based_focus": "Based on your profile and deadlines",
+      "risk_peak": "Peak week forming",
+      "risk_heavy": "Heavy workload",
+      "risk_building": "Pressure building",
+      "risk_recovery": "Recovery window",
+      "risk_calm": "Risk looks calm"
     },
     "tabs": {
       "today": "Today",
@@ -200,7 +216,9 @@
       "focus": "Focus",
       "grades": "Grades",
       "widgets": "Widgets",
-      "subscribe": "Subscribe"
+      "subscribe": "Subscribe",
+      "home": "Home",
+      "more": "More"
     },
     "onboarding": {
       "scan_title": "Turn a syllabus into a draft.",
@@ -246,7 +264,9 @@
       "preview_focus_complete_note": "logs progress when complete",
       "preview_home_screen": "Home Screen",
       "preview_upcoming_widget": "Upcoming widget",
-      "preview_due_soon": "Due soon"
+      "preview_due_soon": "Due soon",
+      "unlock_dashboard": "Continue to unlock",
+      "preview_method_scan_source": "Scan source"
     },
     "import": {
       "title": "Turn school material into reviewed assignments.",
@@ -402,7 +422,7 @@
     },
     "paywall": {
       "title": "Unlock StudyPlanner: Syllabus AI",
-      "subtitle": "Keep the semester control system ready across iPhone, widgets, and Apple Watch.",
+      "subtitle": "Keep the semester control system ready across iPhone, widgets, and Widgets.",
       "hard_subtitle": "Unlock advanced Semester Pulse, forecast, widgets, Watch, imports, and local adaptation.",
       "monthly": "StudyPlanner: Syllabus AI Monthly",
       "yearly": "StudyPlanner: Syllabus AI Yearly",
@@ -473,7 +493,12 @@
       "feature_memory": "Local memory",
       "feature_memory_detail": "Focus sessions, notes, and saved widgets improve recommendations on this device.",
       "review": "Review",
-      "forecast": "Forecast"
+      "forecast": "Forecast",
+      "dashboard_ready_title": "Your school dashboard is ready",
+      "dashboard_ready_subtitle": "Unlock the personalized dashboard built from your profile and syllabus setup.",
+      "dashboard_ready_soft_subtitle": "Keep the semester control system ready across Home, Plan, Classes, and Recommended Widgets.",
+      "feature_recommended_widgets": "Recommended widgets",
+      "feature_recommended_widgets_detail": "Preview the widget that fits your profile, deadlines, and class colors, then follow add instructions."
     },
     "errors": {
       "text_required": "Paste syllabus text or upload a readable text file.",
@@ -1078,8 +1103,8 @@
       "widgets_subtitle": "Information you need, right where you need it.",
       "watch_preview": "Quick preview",
       "watch_preview_copy": "Glanceable. Actionable.",
-      "hero_subtitle": "Widget Studio keeps previews, class colors, and saved widgets in one native system.",
-      "hero_badge": "Widget Studio",
+      "hero_subtitle": "Recommended Widgets keeps previews, class colors, and saved widgets in one native system.",
+      "hero_badge": "Recommended Widgets",
       "customize_accessibility": "Customize StudyPlanner. Make every class, widget, and reminder feel like yours.",
       "semester_pulse_detail": "Next work and risk update as the semester changes.",
       "add_first_reviewed_task": "Add the first reviewed task.",
@@ -1114,13 +1139,29 @@
       "this_week_pressure": "This week pressure",
       "top_action": "Top action",
       "next_risk": "Next risk",
-      "apple_watch": "Apple Watch",
+      "apple_watch": "Widgets",
       "what_to_put_home": "What should go on Home Screen",
       "data_label": "Data",
       "changes_label": "Changes",
       "next_assignment": "Next Assignment",
       "focus_window_widget": "Focus Window",
-      "future_risk": "Future Risk"
+      "future_risk": "Future Risk",
+      "widget_gallery_subtitle": "Your school, on your Home Screen.",
+      "widget_gallery_real_data": "Real planner data",
+      "widget_gallery_live_preview": "Live Preview",
+      "widget_gallery_real_snapshot": "Real snapshot",
+      "widget_gallery_gallery": "Gallery",
+      "widget_gallery_save_setup": "Save your setup",
+      "widget_gallery_add_instructions": "Add the StudyPlanner widget from your Home Screen.",
+      "widget_gallery_why": "Why: {reason}.",
+      "widget_gallery_exam_days": "{count} days",
+      "widget_gallery_upcoming": "Upcoming",
+      "recommended_widgets": "Recommended Widgets",
+      "recommended_widgets_subtitle": "Preview the widget StudyPlanner recommends for your school week.",
+      "widget_preview": "Widget preview",
+      "widget_preview_note": "Preview plus add instructions. Only claim live widget behavior when it is proven in the shipped app.",
+      "class_colors_copy": "Customization stays simple: class colors and dashboard style, without extra appearance packs.",
+      "use_recommended_widget": "Use recommended widget"
     },
     "widget_snapshot": {
       "today": "Today",
@@ -1483,21 +1524,25 @@
       "system_review_detail_count": "{count} Einträge brauchen noch Datum, Duplikatprüfung oder Sicherheitscheck, bevor sie Heute und Widgets steuern.",
       "system_review_work": "Arbeit prüfen",
       "system_live_title": "Planer ist aktiv.",
-      "system_live_detail_one": "{count} offener Eintrag steuert Heute, Plan und Widget Studio aus denselben geprüften Daten.",
-      "system_live_detail_count": "{count} offene Einträge steuern Heute, Plan und Widget Studio aus denselben geprüften Daten.",
+      "system_live_detail_one": "{count} offener Eintrag steuert Heute, Plan und Recommended Widgets aus denselben geprüften Daten.",
+      "system_live_detail_count": "{count} offene Einträge steuern Heute, Plan und Recommended Widgets aus denselben geprüften Daten.",
       "system_imported": "Importiert",
       "system_clear_title": "Sauberer Stand, Widget-Proof bereit.",
-      "system_clear_detail": "Gerade ist keine offene Arbeit fällig. Widget Studio kann weiterhin den echten Leerzustand zeigen und den nächsten Import führen.",
+      "system_clear_detail": "Gerade ist keine offene Arbeit fällig. Recommended Widgets kann weiterhin den echten Leerzustand zeigen und den nächsten Import führen.",
       "system_clear": "Klar",
       "system_open_widgets": "Widgets öffnen",
       "system_eyebrow": "{label} · StudyPlanner",
       "system_open_today": "Heute öffnen",
-      "note_task_needs_class": "Eine Notiz braucht Klassenkontext, bevor sie zur Aufgabe wird."
+      "note_task_needs_class": "Eine Notiz braucht Klassenkontext, bevor sie zur Aufgabe wird.",
+      "system_live_dashboard_detail_one": "{count} offener Eintrag steuert Home, Plan und empfohlene Widgets aus denselben geprueften Daten.",
+      "system_live_dashboard_detail_count": "{count} offene Eintraege steuern Home, Plan und empfohlene Widgets aus denselben geprueften Daten.",
+      "system_clear_recommended_detail": "Gerade ist keine offene Arbeit faellig. Empfohlene Widgets koennen den leeren Zustand zeigen und den naechsten Import fuehren."
     },
     "common": {
       "next": "Weiter",
       "continue": "Weiter",
-      "not_now": "Jetzt nicht"
+      "not_now": "Jetzt nicht",
+      "back": "Zurueck"
     },
     "theme": {
       "appearance": "Darstellung",
@@ -1632,19 +1677,33 @@
       "heavy_week_summary": "{exams} Pruefungen · {assignments} Aufgaben · {reviews} zu pruefen",
       "heavy_days": "{count} volle Tage",
       "momentum": "Schub",
-      "keep_moving": "Mach mit dem nächsten Schritt weiter."
+      "keep_moving": "Mach mit dem nächsten Schritt weiter.",
+      "next_important_thing": "Naechste wichtige Sache",
+      "generated_from_profile": "Aus deinem Profil erstellt",
+      "upcoming_risk": "Kommendes Risiko",
+      "forecast_state": "Prognose",
+      "focus_suggestion": "Fokusvorschlag",
+      "work_heavy_focus": "Passend fuer eine arbeitsreiche Woche",
+      "profile_based_focus": "Basierend auf Profil und Fristen",
+      "risk_peak": "Spitzenwoche entsteht",
+      "risk_heavy": "Hohe Arbeitslast",
+      "risk_building": "Druck baut sich auf",
+      "risk_recovery": "Erholungsfenster",
+      "risk_calm": "Risiko wirkt ruhig"
     },
     "tabs": {
       "today": "Heute",
       "scan": "Import",
-      "plan": "Plan",
+      "plan": "Planen",
       "calendar": "Kalender",
       "classes": "Kurse",
       "notes": "Notizen",
       "focus": "Fokus",
       "grades": "Noten",
       "widgets": "Widgets",
-      "subscribe": "Abonnieren"
+      "subscribe": "Abonnieren",
+      "home": "Start",
+      "more": "Mehr"
     },
     "onboarding": {
       "scan_title": "Mach aus einem Syllabus einen Entwurf.",
@@ -1690,7 +1749,9 @@
       "preview_focus_complete_note": "protokolliert Fortschritt nach Abschluss",
       "preview_home_screen": "Home-Bildschirm",
       "preview_upcoming_widget": "Widget für Kommendes",
-      "preview_due_soon": "Bald fällig"
+      "preview_due_soon": "Bald fällig",
+      "unlock_dashboard": "Weiter zum Entsperren",
+      "preview_method_scan_source": "Quelle scannen"
     },
     "import": {
       "title": "Mach aus Schulmaterial geprüfte Aufgaben.",
@@ -1917,7 +1978,12 @@
       "feature_memory": "Lokale Erinnerung",
       "feature_memory_detail": "Fokus-Sitzungen, Notizen und gespeicherte Widgets verbessern Empfehlungen auf diesem Geraet.",
       "review": "Pruefen",
-      "forecast": "Prognose"
+      "forecast": "Prognose",
+      "dashboard_ready_title": "Dein Schuldashboard ist bereit",
+      "dashboard_ready_subtitle": "Entsperre das personalisierte Dashboard aus Profil und Syllabus-Setup.",
+      "dashboard_ready_soft_subtitle": "Halte das Semestersystem in Home, Plan, Klassen und empfohlenen Widgets bereit.",
+      "feature_recommended_widgets": "Empfohlene Widgets",
+      "feature_recommended_widgets_detail": "Sieh das Widget, das zu Profil, Fristen und Klassenfarben passt, mit Anleitung zum Hinzufuegen."
     },
     "errors": {
       "text_required": "Füge Syllabus-Text ein oder lade eine lesbare Textdatei hoch.",
@@ -2522,7 +2588,7 @@
       "widgets_subtitle": "Die Informationen, die du brauchst, genau dort, wo du sie brauchst.",
       "watch_preview": "Schnellvorschau",
       "watch_preview_copy": "Schnell erfassbar. Direkt nutzbar.",
-      "hero_subtitle": "Widget Studio hält Vorschauen, Kursfarben und gespeicherte Widgets in einem nativen System zusammen.",
+      "hero_subtitle": "Recommended Widgets hält Vorschauen, Kursfarben und gespeicherte Widgets in einem nativen System zusammen.",
       "hero_badge": "Widget-Studio",
       "customize_accessibility": "StudyPlanner anpassen. Jede Klasse, jedes Widget und jede Erinnerung soll zu dir passen.",
       "semester_pulse_detail": "Naechste Arbeit und Risiko aktualisieren sich mit dem Semester.",
@@ -2558,13 +2624,29 @@
       "this_week_pressure": "Druck diese Woche",
       "top_action": "Top-Aktion",
       "next_risk": "Naechstes Risiko",
-      "apple_watch": "Apple Watch-Uhr",
+      "apple_watch": "Widgets-Uhr",
       "what_to_put_home": "Was auf den Home-Bildschirm soll",
       "data_label": "Daten",
       "changes_label": "Ändert",
       "next_assignment": "Nächste Aufgabe",
       "focus_window_widget": "Fokusfenster",
-      "future_risk": "Zukünftiges Risiko"
+      "future_risk": "Zukünftiges Risiko",
+      "widget_gallery_subtitle": "Deine Schule auf deinem Home-Bildschirm.",
+      "widget_gallery_real_data": "Echte Plandaten",
+      "widget_gallery_live_preview": "Live-Vorschau",
+      "widget_gallery_real_snapshot": "Echter Snapshot",
+      "widget_gallery_gallery": "Galerie",
+      "widget_gallery_save_setup": "Setup speichern",
+      "widget_gallery_add_instructions": "Fuge das StudyPlanner-Widget auf deinem Home-Bildschirm hinzu.",
+      "widget_gallery_why": "Warum: {reason}.",
+      "widget_gallery_exam_days": "{count} Tage",
+      "widget_gallery_upcoming": "Demnachst",
+      "recommended_widgets": "Empfohlene Widgets",
+      "recommended_widgets_subtitle": "Vorschau auf das Widget, das StudyPlanner fuer deine Schulwoche empfiehlt.",
+      "widget_preview": "Widget-Vorschau",
+      "widget_preview_note": "Vorschau plus Anleitung. Live-Verhalten nur behaupten, wenn es in der App belegt ist.",
+      "class_colors_copy": "Anpassung bleibt einfach: Klassenfarben und Dashboard-Stil, ohne weitere Designpakete.",
+      "use_recommended_widget": "Empfohlenes Widget nutzen"
     },
     "widget_snapshot": {
       "today": "Heute",
@@ -2927,21 +3009,25 @@
       "system_review_detail_count": "{count} elementos aún necesitan fecha, revisión de duplicado o confianza antes de impulsar Hoy y widgets.",
       "system_review_work": "Revisar trabajo",
       "system_live_title": "El planificador está activo.",
-      "system_live_detail_one": "{count} elemento abierto impulsa Hoy, Plan y Widget Studio desde los mismos datos revisados.",
-      "system_live_detail_count": "{count} elementos abiertos impulsan Hoy, Plan y Widget Studio desde los mismos datos revisados.",
+      "system_live_detail_one": "{count} elemento abierto impulsa Hoy, Plan y Recommended Widgets desde los mismos datos revisados.",
+      "system_live_detail_count": "{count} elementos abiertos impulsan Hoy, Plan y Recommended Widgets desde los mismos datos revisados.",
       "system_imported": "Importado",
       "system_clear_title": "Todo limpio, prueba de widget lista.",
-      "system_clear_detail": "No hay trabajo abierto venciendo ahora. Widget Studio aún puede mostrar el estado vacío real y guiar la siguiente importación.",
+      "system_clear_detail": "No hay trabajo abierto venciendo ahora. Recommended Widgets aún puede mostrar el estado vacío real y guiar la siguiente importación.",
       "system_clear": "Limpio",
       "system_open_widgets": "Abrir widgets",
       "system_eyebrow": "{label} · StudyPlanner",
       "system_open_today": "Abrir Hoy",
-      "note_task_needs_class": "La nota necesita contexto de clase antes de convertirse en tarea."
+      "note_task_needs_class": "La nota necesita contexto de clase antes de convertirse en tarea.",
+      "system_live_dashboard_detail_one": "{count} elemento abierto alimenta Inicio, Plan y widgets recomendados con los mismos datos revisados.",
+      "system_live_dashboard_detail_count": "{count} elementos abiertos alimentan Inicio, Plan y widgets recomendados con los mismos datos revisados.",
+      "system_clear_recommended_detail": "No hay trabajo abierto pendiente ahora. Los widgets recomendados pueden mostrar un estado vacio claro y guiar la siguiente importacion."
     },
     "common": {
       "next": "Siguiente",
       "continue": "Continuar",
-      "not_now": "Ahora no"
+      "not_now": "Ahora no",
+      "back": "Atras"
     },
     "theme": {
       "appearance": "Apariencia",
@@ -3076,7 +3162,19 @@
       "heavy_week_summary": "{exams} examenes · {assignments} tareas · {reviews} por revisar",
       "heavy_days": "{count} dias intensos",
       "momentum": "Impulso",
-      "keep_moving": "Sigue con el próximo paso."
+      "keep_moving": "Sigue con el próximo paso.",
+      "next_important_thing": "Lo mas importante ahora",
+      "generated_from_profile": "Generado desde tu perfil",
+      "upcoming_risk": "Riesgo proximo",
+      "forecast_state": "Pronostico",
+      "focus_suggestion": "Sugerencia de enfoque",
+      "work_heavy_focus": "Ajustado para una semana con trabajo",
+      "profile_based_focus": "Basado en tu perfil y fechas limite",
+      "risk_peak": "Semana pico formandose",
+      "risk_heavy": "Carga pesada",
+      "risk_building": "La presion aumenta",
+      "risk_recovery": "Ventana de recuperacion",
+      "risk_calm": "El riesgo se ve tranquilo"
     },
     "tabs": {
       "today": "Hoy",
@@ -3088,7 +3186,9 @@
       "focus": "Enfoque",
       "grades": "Notas",
       "widgets": "Widgets",
-      "subscribe": "Suscribirse"
+      "subscribe": "Suscribirse",
+      "home": "Inicio",
+      "more": "Mas"
     },
     "onboarding": {
       "scan_title": "Convierte un sílabo en un borrador.",
@@ -3134,7 +3234,9 @@
       "preview_focus_complete_note": "registra el progreso al terminar",
       "preview_home_screen": "Pantalla de inicio",
       "preview_upcoming_widget": "Widget de próximos",
-      "preview_due_soon": "Vence pronto"
+      "preview_due_soon": "Vence pronto",
+      "unlock_dashboard": "Continuar para desbloquear",
+      "preview_method_scan_source": "Escanear fuente"
     },
     "import": {
       "title": "Convierte material de clase en tareas revisadas.",
@@ -3361,7 +3463,12 @@
       "feature_memory": "Memoria local",
       "feature_memory_detail": "Sesiones de enfoque, notas y widgets guardados mejoran recomendaciones en este dispositivo.",
       "review": "Revision",
-      "forecast": "Pronostico"
+      "forecast": "Pronostico",
+      "dashboard_ready_title": "Tu dashboard escolar esta listo",
+      "dashboard_ready_subtitle": "Desbloquea el dashboard personalizado creado con tu perfil y setup del syllabus.",
+      "dashboard_ready_soft_subtitle": "Mantén el sistema del semestre listo en Inicio, Plan, Clases y widgets recomendados.",
+      "feature_recommended_widgets": "Widgets recomendados",
+      "feature_recommended_widgets_detail": "Previsualiza el widget que encaja con tu perfil, fechas y colores de clase, y sigue las instrucciones."
     },
     "errors": {
       "text_required": "Pega texto del sílabo o sube un archivo de texto legible.",
@@ -3966,7 +4073,7 @@
       "widgets_subtitle": "La informacion que necesitas, justo donde la necesitas.",
       "watch_preview": "Vista rapida",
       "watch_preview_copy": "De un vistazo. Accionable.",
-      "hero_subtitle": "Widget Studio reúne vistas previas, colores de clase y configuraciones guardadas en un sistema nativo.",
+      "hero_subtitle": "Recommended Widgets reúne vistas previas, colores de clase y configuraciones guardadas en un sistema nativo.",
       "hero_badge": "Estudio de widgets",
       "customize_accessibility": "Personaliza StudyPlanner. Haz que cada clase, widget y recordatorio se sienta tuyo.",
       "semester_pulse_detail": "El proximo trabajo y riesgo se actualizan con el semestre.",
@@ -4002,13 +4109,29 @@
       "this_week_pressure": "Presion semanal",
       "top_action": "Accion principal",
       "next_risk": "Proximo riesgo",
-      "apple_watch": "Reloj Apple Watch",
+      "apple_watch": "Reloj Widgets",
       "what_to_put_home": "Qué poner en la pantalla de inicio",
       "data_label": "Datos",
       "changes_label": "Cambia",
       "next_assignment": "Próxima tarea",
       "focus_window_widget": "Bloque de enfoque",
-      "future_risk": "Riesgo futuro"
+      "future_risk": "Riesgo futuro",
+      "widget_gallery_subtitle": "Tu escuela, en tu pantalla de inicio.",
+      "widget_gallery_real_data": "Datos reales del plan",
+      "widget_gallery_live_preview": "Vista previa en vivo",
+      "widget_gallery_real_snapshot": "Captura real",
+      "widget_gallery_gallery": "Galeria",
+      "widget_gallery_save_setup": "Guardar configuracion",
+      "widget_gallery_add_instructions": "Agrega el widget de StudyPlanner desde tu pantalla de inicio.",
+      "widget_gallery_why": "Por que: {reason}.",
+      "widget_gallery_exam_days": "{count} dias",
+      "widget_gallery_upcoming": "Proximo",
+      "recommended_widgets": "Widgets recomendados",
+      "recommended_widgets_subtitle": "Previsualiza el widget que StudyPlanner recomienda para tu semana escolar.",
+      "widget_preview": "Vista del widget",
+      "widget_preview_note": "Vista previa mas instrucciones. Solo afirma comportamiento en vivo cuando este probado en la app.",
+      "class_colors_copy": "La personalizacion es simple: colores de clase y estilo del dashboard, sin paquetes extra.",
+      "use_recommended_widget": "Usar widget recomendado"
     },
     "widget_snapshot": {
       "today": "Hoy",
@@ -4371,21 +4494,25 @@
       "system_review_detail_count": "{count} éléments nécessitent encore une date, une vérification de doublon ou un contrôle de confiance avant d’alimenter Aujourd’hui et les widgets.",
       "system_review_work": "Vérifier le travail",
       "system_live_title": "Le planificateur est actif.",
-      "system_live_detail_one": "{count} élément ouvert alimente Aujourd’hui, Plan et Widget Studio depuis les mêmes données vérifiées.",
-      "system_live_detail_count": "{count} éléments ouverts alimentent Aujourd’hui, Plan et Widget Studio depuis les mêmes données vérifiées.",
+      "system_live_detail_one": "{count} élément ouvert alimente Aujourd’hui, Plan et Recommended Widgets depuis les mêmes données vérifiées.",
+      "system_live_detail_count": "{count} éléments ouverts alimentent Aujourd’hui, Plan et Recommended Widgets depuis les mêmes données vérifiées.",
       "system_imported": "Importé",
       "system_clear_title": "Page nette, preuve widget prête.",
-      "system_clear_detail": "Aucun travail ouvert n’est dû maintenant. Widget Studio peut encore montrer le vrai état vide et guider le prochain import.",
+      "system_clear_detail": "Aucun travail ouvert n’est dû maintenant. Recommended Widgets peut encore montrer le vrai état vide et guider le prochain import.",
       "system_clear": "Net",
       "system_open_widgets": "Ouvrir Widgets",
       "system_eyebrow": "{label} · StudyPlanner",
       "system_open_today": "Ouvrir Aujourd’hui",
-      "note_task_needs_class": "Une note doit être liée à un cours avant de devenir une tâche."
+      "note_task_needs_class": "Une note doit être liée à un cours avant de devenir une tâche.",
+      "system_live_dashboard_detail_one": "{count} element ouvert alimente Accueil, Plan et widgets recommandes avec les memes donnees verifiees.",
+      "system_live_dashboard_detail_count": "{count} elements ouverts alimentent Accueil, Plan et widgets recommandes avec les memes donnees verifiees.",
+      "system_clear_recommended_detail": "Aucun travail ouvert nest du maintenant. Les widgets recommandes peuvent montrer un etat vide clair et guider le prochain import."
     },
     "common": {
       "next": "Suivant",
       "continue": "Continuer",
-      "not_now": "Pas maintenant"
+      "not_now": "Pas maintenant",
+      "back": "Retour"
     },
     "theme": {
       "appearance": "Apparence",
@@ -4520,7 +4647,19 @@
       "heavy_week_summary": "{exams} examens · {assignments} devoirs · {reviews} a verifier",
       "heavy_days": "{count} jours charges",
       "momentum": "Élan",
-      "keep_moving": "Continue avec la prochaine étape."
+      "keep_moving": "Continue avec la prochaine étape.",
+      "next_important_thing": "Prochaine chose importante",
+      "generated_from_profile": "Genere depuis ton profil",
+      "upcoming_risk": "Risque a venir",
+      "forecast_state": "Prevision",
+      "focus_suggestion": "Suggestion de focus",
+      "work_heavy_focus": "Adapte a une semaine chargee de travail",
+      "profile_based_focus": "Base sur ton profil et tes echeances",
+      "risk_peak": "Semaine pic en formation",
+      "risk_heavy": "Charge lourde",
+      "risk_building": "La pression monte",
+      "risk_recovery": "Fenetre de recuperation",
+      "risk_calm": "Le risque semble calme"
     },
     "tabs": {
       "today": "Aujourd'hui",
@@ -4532,7 +4671,9 @@
       "focus": "Focus",
       "grades": "Notes",
       "widgets": "Widgets",
-      "subscribe": "S’abonner"
+      "subscribe": "S’abonner",
+      "home": "Accueil",
+      "more": "Plus"
     },
     "onboarding": {
       "scan_title": "Transforme un syllabus en brouillon.",
@@ -4578,7 +4719,9 @@
       "preview_focus_complete_note": "journalise la progression à la fin",
       "preview_home_screen": "Écran d’accueil",
       "preview_upcoming_widget": "Widget à venir",
-      "preview_due_soon": "Bientôt dû"
+      "preview_due_soon": "Bientôt dû",
+      "unlock_dashboard": "Continuer pour debloquer",
+      "preview_method_scan_source": "Scanner la source"
     },
     "import": {
       "title": "Transforme les documents de cours en devoirs validés.",
@@ -4805,7 +4948,12 @@
       "feature_memory": "Memoire locale",
       "feature_memory_detail": "Les sessions focus, notes et widgets enregistres ameliorent les recommandations sur cet appareil.",
       "review": "Revision",
-      "forecast": "Prevision"
+      "forecast": "Prevision",
+      "dashboard_ready_title": "Ton dashboard scolaire est pret",
+      "dashboard_ready_subtitle": "Debloque le dashboard personnalise cree avec ton profil et ton syllabus.",
+      "dashboard_ready_soft_subtitle": "Garde le systeme du semestre pret dans Accueil, Plan, Classes et widgets recommandes.",
+      "feature_recommended_widgets": "Widgets recommandes",
+      "feature_recommended_widgets_detail": "Apercu du widget adapte a ton profil, tes echeances et couleurs de classe, avec instructions."
     },
     "errors": {
       "text_required": "Colle du texte de syllabus ou importe un fichier texte lisible.",
@@ -5410,7 +5558,7 @@
       "widgets_subtitle": "Les infos utiles, la ou tu en as besoin.",
       "watch_preview": "Apercu rapide",
       "watch_preview_copy": "Lisible vite. Actionnable.",
-      "hero_subtitle": "Widget Studio regroupe aperçus, couleurs de cours et configurations enregistrées dans un système natif.",
+      "hero_subtitle": "Recommended Widgets regroupe aperçus, couleurs de cours et configurations enregistrées dans un système natif.",
       "hero_badge": "Studio Widgets",
       "customize_accessibility": "Personnaliser StudyPlanner. Faites que chaque cours, widget et rappel vous corresponde.",
       "semester_pulse_detail": "Le prochain travail et le risque evoluent avec le semestre.",
@@ -5446,13 +5594,29 @@
       "this_week_pressure": "Pression de la semaine",
       "top_action": "Action principale",
       "next_risk": "Prochain risque",
-      "apple_watch": "Montre Apple Watch",
+      "apple_watch": "Montre Widgets",
       "what_to_put_home": "À mettre sur l'écran d'accueil",
       "data_label": "Données",
       "changes_label": "Change",
       "next_assignment": "Prochain devoir",
       "focus_window_widget": "Fenêtre de focus",
-      "future_risk": "Risque futur"
+      "future_risk": "Risque futur",
+      "widget_gallery_subtitle": "Ton ecole, sur ton ecran d accueil.",
+      "widget_gallery_real_data": "Vraies donnees du planning",
+      "widget_gallery_live_preview": "Apercu en direct",
+      "widget_gallery_real_snapshot": "Instantane reel",
+      "widget_gallery_gallery": "Galerie",
+      "widget_gallery_save_setup": "Enregistrer la configuration",
+      "widget_gallery_add_instructions": "Ajoute le widget StudyPlanner depuis ton ecran d accueil.",
+      "widget_gallery_why": "Pourquoi : {reason}.",
+      "widget_gallery_exam_days": "{count} jours",
+      "widget_gallery_upcoming": "A venir",
+      "recommended_widgets": "Widgets recommandes",
+      "recommended_widgets_subtitle": "Apercu du widget que StudyPlanner recommande pour ta semaine scolaire.",
+      "widget_preview": "Apercu du widget",
+      "widget_preview_note": "Apercu plus instructions. Ne promettre le direct que si cest prouve dans lapp.",
+      "class_colors_copy": "La personnalisation reste simple: couleurs de classe et style du dashboard, sans packs visuels.",
+      "use_recommended_widget": "Utiliser le widget recommande"
     },
     "widget_snapshot": {
       "today": "Aujourd'hui",
@@ -5815,21 +5979,25 @@
       "system_review_detail_count": "{count} itens ainda precisam de data, verificação de duplicata ou confiança antes de alimentar Hoje e widgets.",
       "system_review_work": "Revisar trabalho",
       "system_live_title": "O planejador está ativo.",
-      "system_live_detail_one": "{count} item aberto alimenta Hoje, Plano e Widget Studio com os mesmos dados revisados.",
-      "system_live_detail_count": "{count} itens abertos alimentam Hoje, Plano e Widget Studio com os mesmos dados revisados.",
+      "system_live_detail_one": "{count} item aberto alimenta Hoje, Plano e Recommended Widgets com os mesmos dados revisados.",
+      "system_live_detail_count": "{count} itens abertos alimentam Hoje, Plano e Recommended Widgets com os mesmos dados revisados.",
       "system_imported": "Importado",
       "system_clear_title": "Tudo limpo, prova de widget pronta.",
-      "system_clear_detail": "Nenhum trabalho aberto vence agora. Widget Studio ainda pode mostrar o estado vazio real e guiar a próxima importação.",
+      "system_clear_detail": "Nenhum trabalho aberto vence agora. Recommended Widgets ainda pode mostrar o estado vazio real e guiar a próxima importação.",
       "system_clear": "Limpo",
       "system_open_widgets": "Abrir widgets",
       "system_eyebrow": "{label} · StudyPlanner",
       "system_open_today": "Abrir Hoje",
-      "note_task_needs_class": "A nota precisa de contexto da turma antes de virar tarefa."
+      "note_task_needs_class": "A nota precisa de contexto da turma antes de virar tarefa.",
+      "system_live_dashboard_detail_one": "{count} item aberto alimenta Inicio, Plano e widgets recomendados com os mesmos dados revisados.",
+      "system_live_dashboard_detail_count": "{count} itens abertos alimentam Inicio, Plano e widgets recomendados com os mesmos dados revisados.",
+      "system_clear_recommended_detail": "Nao ha trabalho aberto vencendo agora. Widgets recomendados ainda podem mostrar um estado vazio claro e guiar a proxima importacao."
     },
     "common": {
       "next": "Avançar",
       "continue": "Continuar",
-      "not_now": "Agora não"
+      "not_now": "Agora não",
+      "back": "Voltar"
     },
     "theme": {
       "appearance": "Aparência",
@@ -5964,7 +6132,19 @@
       "heavy_week_summary": "{exams} provas · {assignments} tarefas · {reviews} para revisar",
       "heavy_days": "{count} dias pesados",
       "momentum": "Impulso",
-      "keep_moving": "Continue com o próximo passo."
+      "keep_moving": "Continue com o próximo passo.",
+      "next_important_thing": "Proxima coisa importante",
+      "generated_from_profile": "Gerado pelo seu perfil",
+      "upcoming_risk": "Risco futuro",
+      "forecast_state": "Previsao",
+      "focus_suggestion": "Sugestao de foco",
+      "work_heavy_focus": "Ajustado para uma semana com trabalho",
+      "profile_based_focus": "Baseado no perfil e nos prazos",
+      "risk_peak": "Semana de pico se formando",
+      "risk_heavy": "Carga pesada",
+      "risk_building": "Pressao aumentando",
+      "risk_recovery": "Janela de recuperacao",
+      "risk_calm": "Risco parece calmo"
     },
     "tabs": {
       "today": "Hoje",
@@ -5976,7 +6156,9 @@
       "focus": "Foco",
       "grades": "Notas",
       "widgets": "Widgets",
-      "subscribe": "Assinar"
+      "subscribe": "Assinar",
+      "home": "Inicio",
+      "more": "Mais"
     },
     "onboarding": {
       "scan_title": "Transforme um plano de curso em rascunho.",
@@ -6022,7 +6204,9 @@
       "preview_focus_complete_note": "registra o progresso ao concluir",
       "preview_home_screen": "Tela inicial",
       "preview_upcoming_widget": "Widget de próximos",
-      "preview_due_soon": "Vence em breve"
+      "preview_due_soon": "Vence em breve",
+      "unlock_dashboard": "Continuar para desbloquear",
+      "preview_method_scan_source": "Escanear fonte"
     },
     "import": {
       "title": "Transforme material de aula em tarefas revisadas.",
@@ -6249,7 +6433,12 @@
       "feature_memory": "Memoria local",
       "feature_memory_detail": "Sessoes de foco, notas e widgets salvos melhoram recomendacoes neste dispositivo.",
       "review": "Revisao",
-      "forecast": "Previsao"
+      "forecast": "Previsao",
+      "dashboard_ready_title": "Seu dashboard escolar esta pronto",
+      "dashboard_ready_subtitle": "Desbloqueie o dashboard personalizado criado pelo perfil e setup do syllabus.",
+      "dashboard_ready_soft_subtitle": "Mantenha o sistema do semestre pronto em Inicio, Plano, Aulas e widgets recomendados.",
+      "feature_recommended_widgets": "Widgets recomendados",
+      "feature_recommended_widgets_detail": "Veja o widget que combina com seu perfil, prazos e cores das aulas, com instrucoes para adicionar."
     },
     "errors": {
       "text_required": "Cole texto do plano de curso ou envie um arquivo de texto legível.",
@@ -6854,7 +7043,7 @@
       "widgets_subtitle": "As informacoes de que voce precisa, onde precisa delas.",
       "watch_preview": "Previa rapida",
       "watch_preview_copy": "Rapido de ver. Pronto para agir.",
-      "hero_subtitle": "O Widget Studio mantém prévias, cores das aulas e ajustes salvos em um sistema nativo.",
+      "hero_subtitle": "O Recommended Widgets mantém prévias, cores das aulas e ajustes salvos em um sistema nativo.",
       "hero_badge": "Estúdio de widgets",
       "customize_accessibility": "Personalize StudyPlanner. Faça cada aula, widget e lembrete ficar com a sua cara.",
       "semester_pulse_detail": "O proximo trabalho e o risco mudam com o semestre.",
@@ -6890,13 +7079,29 @@
       "this_week_pressure": "Pressao da semana",
       "top_action": "Acao principal",
       "next_risk": "Proximo risco",
-      "apple_watch": "Relógio Apple Watch",
+      "apple_watch": "Relógio Widgets",
       "what_to_put_home": "O que colocar na Tela de Início",
       "data_label": "Dados",
       "changes_label": "Muda",
       "next_assignment": "Próxima tarefa",
       "focus_window_widget": "Janela de foco",
-      "future_risk": "Risco futuro"
+      "future_risk": "Risco futuro",
+      "widget_gallery_subtitle": "Sua escola, na Tela de Inicio.",
+      "widget_gallery_real_data": "Dados reais do plano",
+      "widget_gallery_live_preview": "Previa ao vivo",
+      "widget_gallery_real_snapshot": "Snapshot real",
+      "widget_gallery_gallery": "Galeria",
+      "widget_gallery_save_setup": "Salvar configuracao",
+      "widget_gallery_add_instructions": "Adicione o widget StudyPlanner pela Tela de Inicio.",
+      "widget_gallery_why": "Por que: {reason}.",
+      "widget_gallery_exam_days": "{count} dias",
+      "widget_gallery_upcoming": "Em breve",
+      "recommended_widgets": "Widgets recomendados",
+      "recommended_widgets_subtitle": "Veja o widget que o StudyPlanner recomenda para sua semana escolar.",
+      "widget_preview": "Previa do widget",
+      "widget_preview_note": "Previa com instrucoes. So afirme comportamento ao vivo quando estiver comprovado no app.",
+      "class_colors_copy": "A personalizacao fica simples: cores das aulas e estilo do dashboard, sem pacotes extras.",
+      "use_recommended_widget": "Usar widget recomendado"
     },
     "widget_snapshot": {
       "today": "Hoje",
@@ -7259,21 +7464,25 @@
       "system_review_detail_count": "{count} عناصر ما زالت تحتاج تاريخًا أو فحص تكرار أو ثقة قبل أن تشغّل اليوم والويدجت.",
       "system_review_work": "راجع العمل",
       "system_live_title": "المخطط نشط.",
-      "system_live_detail_one": "{count} عنصر مفتوح يشغّل اليوم والخطة وWidget Studio من البيانات المراجعة نفسها.",
-      "system_live_detail_count": "{count} عناصر مفتوحة تشغّل اليوم والخطة وWidget Studio من البيانات المراجعة نفسها.",
+      "system_live_detail_one": "{count} عنصر مفتوح يشغّل اليوم والخطة وRecommended Widgets من البيانات المراجعة نفسها.",
+      "system_live_detail_count": "{count} عناصر مفتوحة تشغّل اليوم والخطة وRecommended Widgets من البيانات المراجعة نفسها.",
       "system_imported": "مستوردة",
       "system_clear_title": "صفحة نظيفة وإثبات الويدجت جاهز.",
-      "system_clear_detail": "لا يوجد عمل مفتوح مستحق الآن. ما زال Widget Studio يستطيع عرض الحالة الفارغة الحقيقية وتوجيه الاستيراد التالي.",
+      "system_clear_detail": "لا يوجد عمل مفتوح مستحق الآن. ما زال Recommended Widgets يستطيع عرض الحالة الفارغة الحقيقية وتوجيه الاستيراد التالي.",
       "system_clear": "صافٍ",
       "system_open_widgets": "افتح الويدجت",
       "system_eyebrow": "{label} · StudyPlanner",
       "system_open_today": "افتح اليوم",
-      "note_task_needs_class": "تحتاج الملاحظة إلى سياق الصف قبل تحويلها إلى مهمة."
+      "note_task_needs_class": "تحتاج الملاحظة إلى سياق الصف قبل تحويلها إلى مهمة.",
+      "system_live_dashboard_detail_one": "{count} عنصر مفتوح يشغل الرئيسية والخطة والودجتات المقترحة من البيانات المراجعة نفسها.",
+      "system_live_dashboard_detail_count": "{count} عناصر مفتوحة تشغل الرئيسية والخطة والودجتات المقترحة من البيانات المراجعة نفسها.",
+      "system_clear_recommended_detail": "لا يوجد عمل مفتوح مستحق الآن. يمكن للودجتات المقترحة عرض حالة فارغة واضحة وتوجيه الاستيراد التالي."
     },
     "common": {
       "next": "التالي",
       "continue": "متابعة",
-      "not_now": "ليس الآن"
+      "not_now": "ليس الآن",
+      "back": "رجوع"
     },
     "theme": {
       "appearance": "المظهر",
@@ -7408,7 +7617,19 @@
       "heavy_week_summary": "{exams} اختبارات · {assignments} مهام · {reviews} للمراجعة",
       "heavy_days": "{count} ايام مزدحمة",
       "momentum": "زخم",
-      "keep_moving": "تابع الخطوة التالية."
+      "keep_moving": "تابع الخطوة التالية.",
+      "next_important_thing": "اهم شيء تال",
+      "generated_from_profile": "تم انشاؤه من ملفك",
+      "upcoming_risk": "خطر قادم",
+      "forecast_state": "توقع",
+      "focus_suggestion": "اقتراح تركيز",
+      "work_heavy_focus": "مناسب لاسبوع مليء بالعمل",
+      "profile_based_focus": "مبني على ملفك والمواعيد",
+      "risk_peak": "اسبوع ذروة يتشكل",
+      "risk_heavy": "عبء ثقيل",
+      "risk_building": "الضغط يتزايد",
+      "risk_recovery": "نافذة تعاف",
+      "risk_calm": "الخطر هادئ"
     },
     "tabs": {
       "today": "اليوم",
@@ -7420,7 +7641,9 @@
       "focus": "تركيز",
       "grades": "الدرجات",
       "widgets": "الويدجت",
-      "subscribe": "اشترك"
+      "subscribe": "اشترك",
+      "home": "الرئيسية",
+      "more": "المزيد"
     },
     "onboarding": {
       "scan_title": "حوّل خطة المقرر إلى مسودة.",
@@ -7466,7 +7689,9 @@
       "preview_focus_complete_note": "يسجل التقدم عند الانتهاء",
       "preview_home_screen": "الشاشة الرئيسية",
       "preview_upcoming_widget": "أداة القادم",
-      "preview_due_soon": "مستحق قريباً"
+      "preview_due_soon": "مستحق قريباً",
+      "unlock_dashboard": "متابعة للفتح",
+      "preview_method_scan_source": "مسح المصدر"
     },
     "import": {
       "title": "حوّل مواد الدراسة إلى واجبات تمت مراجعتها.",
@@ -7693,7 +7918,12 @@
       "feature_memory": "ذاكرة محلية",
       "feature_memory_detail": "جلسات التركيز والملاحظات والودجات المحفوظة تحسن التوصيات على هذا الجهاز.",
       "review": "مراجعة",
-      "forecast": "توقع"
+      "forecast": "توقع",
+      "dashboard_ready_title": "لوحة المدرسة جاهزة",
+      "dashboard_ready_subtitle": "افتح اللوحة الشخصية المبنية من ملفك واعداد المنهج.",
+      "dashboard_ready_soft_subtitle": "ابق نظام الفصل جاهزا عبر الرئيسية والخطة والصفوف والودجتات المقترحة.",
+      "feature_recommended_widgets": "ودجتات مقترحة",
+      "feature_recommended_widgets_detail": "عاين الودجت المناسب لملفك ومواعيدك والوان صفوفك ثم اتبع تعليمات الاضافة."
     },
     "errors": {
       "text_required": "ألصق نص خطة المقرر أو ارفع ملفاً نصياً قابلاً للقراءة.",
@@ -8334,13 +8564,29 @@
       "this_week_pressure": "ضغط هذا الاسبوع",
       "top_action": "اهم اجراء",
       "next_risk": "الخطر التالي",
-      "apple_watch": "ساعة Apple Watch",
+      "apple_watch": "ساعة Widgets",
       "what_to_put_home": "ما الذي يوضع على الشاشة الرئيسية",
       "data_label": "البيانات",
       "changes_label": "يتغير",
       "next_assignment": "المهمة التالية",
       "focus_window_widget": "نافذة تركيز",
-      "future_risk": "خطر قادم"
+      "future_risk": "خطر قادم",
+      "widget_gallery_subtitle": "مدرستك على الشاشة الرئيسية.",
+      "widget_gallery_real_data": "بيانات خطة حقيقية",
+      "widget_gallery_live_preview": "معاينة مباشرة",
+      "widget_gallery_real_snapshot": "لقطة حقيقية",
+      "widget_gallery_gallery": "المعرض",
+      "widget_gallery_save_setup": "احفظ الاعداد",
+      "widget_gallery_add_instructions": "اضف ودجت StudyPlanner من الشاشة الرئيسية.",
+      "widget_gallery_why": "السبب: {reason}.",
+      "widget_gallery_exam_days": "{count} ايام",
+      "widget_gallery_upcoming": "قادم",
+      "recommended_widgets": "ودجتات مقترحة",
+      "recommended_widgets_subtitle": "عاين الودجت الذي يقترحه StudyPlanner لاسبوعك الدراسي.",
+      "widget_preview": "معاينة الودجت",
+      "widget_preview_note": "معاينة مع تعليمات. لا تدع سلوكا مباشرا الا اذا كان مثبتا في التطبيق.",
+      "class_colors_copy": "يبقى التخصيص بسيطا: الوان الصفوف ونمط اللوحة، دون حزم مظهر اضافية.",
+      "use_recommended_widget": "استخدم الودجت المقترح"
     },
     "widget_snapshot": {
       "today": "اليوم",
@@ -8703,21 +8949,25 @@
       "system_review_detail_count": "{count} आइटम को आज और विजेट चलाने से पहले तारीख, डुप्लिकेट जांच या विश्वास पास चाहिए।",
       "system_review_work": "काम समीक्षा करें",
       "system_live_title": "प्लानर लाइव है।",
-      "system_live_detail_one": "{count} खुला आइटम उसी समीक्षित डेटा से आज, योजना और Widget Studio चला रहा है।",
-      "system_live_detail_count": "{count} खुले आइटम उसी समीक्षित डेटा से आज, योजना और Widget Studio चला रहे हैं।",
+      "system_live_detail_one": "{count} खुला आइटम उसी समीक्षित डेटा से आज, योजना और Recommended Widgets चला रहा है।",
+      "system_live_detail_count": "{count} खुले आइटम उसी समीक्षित डेटा से आज, योजना और Recommended Widgets चला रहे हैं।",
       "system_imported": "आयातित",
       "system_clear_title": "साफ़ स्थिति, विजेट प्रमाण तैयार।",
-      "system_clear_detail": "अभी कोई खुला काम देय नहीं है। Widget Studio असली खाली स्थिति दिखाकर अगला आयात सुझा सकता है।",
+      "system_clear_detail": "अभी कोई खुला काम देय नहीं है। Recommended Widgets असली खाली स्थिति दिखाकर अगला आयात सुझा सकता है।",
       "system_clear": "साफ़",
       "system_open_widgets": "विजेट खोलें",
       "system_eyebrow": "{label} · StudyPlanner",
       "system_open_today": "आज खोलें",
-      "note_task_needs_class": "नोट को कार्य बनाने से पहले कक्षा संदर्भ चाहिए।"
+      "note_task_needs_class": "नोट को कार्य बनाने से पहले कक्षा संदर्भ चाहिए।",
+      "system_live_dashboard_detail_one": "{count} खुला आइटम वही reviewed data से Home, Plan और recommended widgets चला रहा है.",
+      "system_live_dashboard_detail_count": "{count} खुले आइटम वही reviewed data से Home, Plan और recommended widgets चला रहे हैं.",
+      "system_clear_recommended_detail": "अभी कोई खुला काम due नहीं है. Recommended widgets साफ empty state दिखाकर अगला import सुझा सकते हैं."
     },
     "common": {
       "next": "आगे",
       "continue": "जारी रखें",
-      "not_now": "अभी नहीं"
+      "not_now": "अभी नहीं",
+      "back": "वापस"
     },
     "theme": {
       "appearance": "दिखावट",
@@ -8852,19 +9102,33 @@
       "heavy_week_summary": "{exams} परीक्षाएं · {assignments} असाइनमेंट · {reviews} समीक्षा बाकी",
       "heavy_days": "{count} भारी दिन",
       "momentum": "रफ्तार",
-      "keep_moving": "अगला कदम जारी रखें."
+      "keep_moving": "अगला कदम जारी रखें.",
+      "next_important_thing": "अगली जरूरी चीज",
+      "generated_from_profile": "आपके profile से बना",
+      "upcoming_risk": "आने वाला risk",
+      "forecast_state": "पूर्वानुमान",
+      "focus_suggestion": "Focus सुझाव",
+      "work_heavy_focus": "Work-heavy week के लिए छोटा रखा गया",
+      "profile_based_focus": "Profile और deadlines पर आधारित",
+      "risk_peak": "Peak week बन रही है",
+      "risk_heavy": "भारी काम",
+      "risk_building": "Pressure बन रहा है",
+      "risk_recovery": "सुधार समय",
+      "risk_calm": "Risk शांत दिख रहा है"
     },
     "tabs": {
       "today": "आज",
       "scan": "इम्पोर्ट",
-      "plan": "प्लान",
+      "plan": "योजना",
       "calendar": "कैलेंडर",
       "classes": "क्लास",
       "notes": "नोट्स",
       "focus": "फोकस",
       "grades": "ग्रेड",
       "widgets": "विजेट",
-      "subscribe": "सदस्यता लें"
+      "subscribe": "सदस्यता लें",
+      "home": "होम",
+      "more": "और"
     },
     "onboarding": {
       "scan_title": "सिलेबस को ड्राफ्ट में बदलें।",
@@ -8910,7 +9174,9 @@
       "preview_focus_complete_note": "पूरा होने पर प्रगति दर्ज करता है",
       "preview_home_screen": "होम स्क्रीन",
       "preview_upcoming_widget": "आने वाला विजेट",
-      "preview_due_soon": "जल्द देय"
+      "preview_due_soon": "जल्द देय",
+      "unlock_dashboard": "Unlock करने के लिए जारी रखें",
+      "preview_method_scan_source": "Source scan करें"
     },
     "import": {
       "title": "क्लास सामग्री को समीक्षा की गई असाइनमेंट में बदलें।",
@@ -9137,7 +9403,12 @@
       "feature_memory": "स्थानीय मेमोरी",
       "feature_memory_detail": "Focus sessions, notes और saved widgets इस device पर recommendations बेहतर करते हैं.",
       "review": "समीक्षा",
-      "forecast": "पूर्वानुमान"
+      "forecast": "पूर्वानुमान",
+      "dashboard_ready_title": "आपका school dashboard ready है",
+      "dashboard_ready_subtitle": "Profile और syllabus setup से बना personalized dashboard unlock करें.",
+      "dashboard_ready_soft_subtitle": "Home, Plan, Classes और Recommended Widgets में semester system ready रखें.",
+      "feature_recommended_widgets": "सुझाए गए widgets",
+      "feature_recommended_widgets_detail": "Profile, deadlines और class colors से match होने वाला widget preview करें और add instructions follow करें."
     },
     "errors": {
       "text_required": "सिलेबस टेक्स्ट चिपकाएं या पढ़ने योग्य टेक्स्ट फाइल अपलोड करें।",
@@ -9742,7 +10013,7 @@
       "widgets_subtitle": "जरूरी जानकारी, ठीक वहीं जहां आपको चाहिए.",
       "watch_preview": "त्वरित पूर्वावलोकन",
       "watch_preview_copy": "एक नजर में. काम के लिए तैयार.",
-      "hero_subtitle": "Widget Studio प्रीव्यू, क्लास रंग और सेव किए गए सेटअप को एक नेटिव सिस्टम में रखता है।",
+      "hero_subtitle": "Recommended Widgets प्रीव्यू, क्लास रंग और सेव किए गए सेटअप को एक नेटिव सिस्टम में रखता है।",
       "hero_badge": "विजेट स्टूडियो",
       "customize_accessibility": "StudyPlanner कस्टमाइज़ करें. हर क्लास, विजेट और रिमाइंडर को अपना बनाएं.",
       "semester_pulse_detail": "अगला काम और जोखिम सेमेस्टर के साथ बदलते हैं.",
@@ -9778,13 +10049,29 @@
       "this_week_pressure": "इस सप्ताह का दबाव",
       "top_action": "मुख्य कदम",
       "next_risk": "अगला जोखिम",
-      "apple_watch": "Apple Watch घड़ी",
+      "apple_watch": "Widgets घड़ी",
       "what_to_put_home": "होम स्क्रीन पर क्या रखें",
       "data_label": "डेटा",
       "changes_label": "बदलता है",
       "next_assignment": "अगला असाइनमेंट",
       "focus_window_widget": "फोकस विंडो",
-      "future_risk": "आने वाला जोखिम"
+      "future_risk": "आने वाला जोखिम",
+      "widget_gallery_subtitle": "आपका स्कूल, आपकी Home Screen पर.",
+      "widget_gallery_real_data": "असली planner data",
+      "widget_gallery_live_preview": "लाइव झलक",
+      "widget_gallery_real_snapshot": "असली स्नैपशॉट",
+      "widget_gallery_gallery": "गैलरी",
+      "widget_gallery_save_setup": "Setup save करें",
+      "widget_gallery_add_instructions": "Home Screen से StudyPlanner widget जोड़ें.",
+      "widget_gallery_why": "क्यों: {reason}.",
+      "widget_gallery_exam_days": "{count} दिन",
+      "widget_gallery_upcoming": "आने वाला",
+      "recommended_widgets": "सुझाए गए Widgets",
+      "recommended_widgets_subtitle": "StudyPlanner आपकी school week के लिए जो widget सुझाता है उसका preview देखें.",
+      "widget_preview": "Widget पूर्वावलोकन",
+      "widget_preview_note": "Preview plus add instructions. Live behavior तभी claim करें जब shipped app में proven हो.",
+      "class_colors_copy": "Customization simple रहती है: class colors और dashboard style, extra appearance packs नहीं.",
+      "use_recommended_widget": "Recommended widget use करें"
     },
     "widget_snapshot": {
       "today": "आज",
@@ -10147,21 +10434,25 @@
       "system_review_detail_count": "{count}件の項目は、今日とウィジェットを動かす前に日付、重複確認、または信頼チェックが必要です。",
       "system_review_work": "作業を確認",
       "system_live_title": "プランナーは稼働中です。",
-      "system_live_detail_one": "{count}件の未完了項目が、同じ確認済みデータから今日、計画、Widget Studioを動かしています。",
-      "system_live_detail_count": "{count}件の未完了項目が、同じ確認済みデータから今日、計画、Widget Studioを動かしています。",
+      "system_live_detail_one": "{count}件の未完了項目が、同じ確認済みデータから今日、計画、Recommended Widgetsを動かしています。",
+      "system_live_detail_count": "{count}件の未完了項目が、同じ確認済みデータから今日、計画、Recommended Widgetsを動かしています。",
       "system_imported": "インポート済み",
       "system_clear_title": "クリーンな状態、ウィジェット証明準備完了。",
-      "system_clear_detail": "今すぐ期限の未完了作業はありません。Widget Studioは実際の空状態を表示し、次のインポートを案内できます。",
+      "system_clear_detail": "今すぐ期限の未完了作業はありません。Recommended Widgetsは実際の空状態を表示し、次のインポートを案内できます。",
       "system_clear": "クリア",
       "system_open_widgets": "ウィジェットを開く",
       "system_eyebrow": "{label} · StudyPlanner",
       "system_open_today": "今日を開く",
-      "note_task_needs_class": "メモをタスクにするには、先にクラス情報が必要です。"
+      "note_task_needs_class": "メモをタスクにするには、先にクラス情報が必要です。",
+      "system_live_dashboard_detail_one": "{count}件の未完了項目が、同じ確認済みデータからホーム、プラン、おすすめウィジェットを動かします。",
+      "system_live_dashboard_detail_count": "{count}件の未完了項目が、同じ確認済みデータからホーム、プラン、おすすめウィジェットを動かします。",
+      "system_clear_recommended_detail": "今すぐ期限の未完了作業はありません。おすすめウィジェットは明確な空状態を表示し、次のインポートへ案内できます。"
     },
     "common": {
       "next": "次へ",
       "continue": "続ける",
-      "not_now": "今はしない"
+      "not_now": "今はしない",
+      "back": "戻る"
     },
     "theme": {
       "appearance": "外観",
@@ -10296,19 +10587,33 @@
       "heavy_week_summary": "試験 {exams} · 課題 {assignments} · 確認 {reviews}",
       "heavy_days": "重い日 {count} 日",
       "momentum": "勢い",
-      "keep_moving": "次の一歩を進めましょう。"
+      "keep_moving": "次の一歩を進めましょう。",
+      "next_important_thing": "次に大事なこと",
+      "generated_from_profile": "プロフィールから生成",
+      "upcoming_risk": "今後のリスク",
+      "forecast_state": "予測",
+      "focus_suggestion": "集中提案",
+      "work_heavy_focus": "仕事が多い週向けに調整",
+      "profile_based_focus": "プロフィールと期限に基づく",
+      "risk_peak": "ピーク週が近づいています",
+      "risk_heavy": "重い負荷",
+      "risk_building": "負荷が増加中",
+      "risk_recovery": "回復の余地",
+      "risk_calm": "リスクは落ち着いています"
     },
     "tabs": {
       "today": "今日",
       "scan": "取込",
-      "plan": "計画",
+      "plan": "プラン",
       "calendar": "カレンダー",
       "classes": "授業",
       "notes": "ノート",
       "focus": "集中",
       "grades": "成績",
       "widgets": "ウィジェット",
-      "subscribe": "登録"
+      "subscribe": "登録",
+      "home": "ホーム",
+      "more": "その他"
     },
     "onboarding": {
       "scan_title": "シラバスを下書きに変換。",
@@ -10354,7 +10659,9 @@
       "preview_focus_complete_note": "完了時に進捗を記録",
       "preview_home_screen": "ホーム画面",
       "preview_upcoming_widget": "今後のウィジェット",
-      "preview_due_soon": "まもなく締切"
+      "preview_due_soon": "まもなく締切",
+      "unlock_dashboard": "解除へ進む",
+      "preview_method_scan_source": "ソースをスキャン"
     },
     "import": {
       "title": "授業資料を確認済みの課題に変換。",
@@ -10581,7 +10888,12 @@
       "feature_memory": "ローカル記憶",
       "feature_memory_detail": "集中セッション、ノート、保存済みウィジェットがこの端末のおすすめを改善します。",
       "review": "レビュー",
-      "forecast": "予測"
+      "forecast": "予測",
+      "dashboard_ready_title": "学校ダッシュボードの準備完了",
+      "dashboard_ready_subtitle": "プロフィールとシラバス設定から作った個別ダッシュボードを解除します。",
+      "dashboard_ready_soft_subtitle": "ホーム、プラン、クラス、おすすめウィジェットで学期管理を保ちます。",
+      "feature_recommended_widgets": "おすすめウィジェット",
+      "feature_recommended_widgets_detail": "プロフィール、期限、クラスカラーに合うウィジェットを確認し、追加手順に進みます。"
     },
     "errors": {
       "text_required": "シラバス文を貼り付けるか、読めるテキストファイルをアップロードしてください。",
@@ -11186,7 +11498,7 @@
       "widgets_subtitle": "必要な情報を、必要な場所に。",
       "watch_preview": "クイックプレビュー",
       "watch_preview_copy": "ひと目で確認。すぐ行動。",
-      "hero_subtitle": "Widget Studioはプレビュー、クラスカラー、保存済み設定を1つのネイティブシステムにまとめます。",
+      "hero_subtitle": "Recommended Widgetsはプレビュー、クラスカラー、保存済み設定を1つのネイティブシステムにまとめます。",
       "hero_badge": "ウィジェットスタジオ",
       "customize_accessibility": "StudyPlannerをカスタマイズ。各クラス、ウィジェット、リマインダーを自分らしくします。",
       "semester_pulse_detail": "次の作業とリスクは学期に合わせて更新されます.",
@@ -11222,13 +11534,29 @@
       "this_week_pressure": "今週の負荷",
       "top_action": "最優先アクション",
       "next_risk": "次のリスク",
-      "apple_watch": "Apple Watch対応",
+      "apple_watch": "Widgets対応",
       "what_to_put_home": "ホーム画面に置くもの",
       "data_label": "データ",
       "changes_label": "変わる項目",
       "next_assignment": "次の課題",
       "focus_window_widget": "集中ウィンドウ",
-      "future_risk": "今後のリスク"
+      "future_risk": "今後のリスク",
+      "widget_gallery_subtitle": "学校の予定をホーム画面に。",
+      "widget_gallery_real_data": "実データのプラン",
+      "widget_gallery_live_preview": "ライブプレビュー",
+      "widget_gallery_real_snapshot": "実スナップショット",
+      "widget_gallery_gallery": "ギャラリー",
+      "widget_gallery_save_setup": "設定を保存",
+      "widget_gallery_add_instructions": "ホーム画面からStudyPlannerウィジェットを追加します。",
+      "widget_gallery_why": "理由: {reason}.",
+      "widget_gallery_exam_days": "{count}日",
+      "widget_gallery_upcoming": "予定あり",
+      "recommended_widgets": "おすすめウィジェット",
+      "recommended_widgets_subtitle": "StudyPlannerが学校週にすすめるウィジェットをプレビューします。",
+      "widget_preview": "ウィジェットプレビュー",
+      "widget_preview_note": "プレビューと追加手順。実際の動作が確認済みの場合だけライブ動作を説明します。",
+      "class_colors_copy": "カスタマイズはクラスカラーとダッシュボードスタイルだけに絞ります。",
+      "use_recommended_widget": "おすすめを使う"
     },
     "widget_snapshot": {
       "today": "今日",
@@ -11591,21 +11919,25 @@
       "system_review_detail_count": "{count}개 항목은 오늘과 위젯을 작동시키기 전에 날짜, 중복 확인 또는 신뢰 검사가 필요합니다.",
       "system_review_work": "작업 검토",
       "system_live_title": "플래너가 활성 상태입니다.",
-      "system_live_detail_one": "{count}개 열린 항목이 같은 검토된 데이터로 오늘, 계획, Widget Studio를 작동시킵니다.",
-      "system_live_detail_count": "{count}개 열린 항목이 같은 검토된 데이터로 오늘, 계획, Widget Studio를 작동시킵니다.",
+      "system_live_detail_one": "{count}개 열린 항목이 같은 검토된 데이터로 오늘, 계획, Recommended Widgets를 작동시킵니다.",
+      "system_live_detail_count": "{count}개 열린 항목이 같은 검토된 데이터로 오늘, 계획, Recommended Widgets를 작동시킵니다.",
       "system_imported": "가져옴",
       "system_clear_title": "깨끗한 상태, 위젯 증명 준비됨.",
-      "system_clear_detail": "지금 마감되는 열린 작업은 없습니다. Widget Studio는 실제 빈 상태를 보여주고 다음 가져오기를 안내할 수 있습니다.",
+      "system_clear_detail": "지금 마감되는 열린 작업은 없습니다. Recommended Widgets는 실제 빈 상태를 보여주고 다음 가져오기를 안내할 수 있습니다.",
       "system_clear": "깨끗함",
       "system_open_widgets": "위젯 열기",
       "system_eyebrow": "{label} · StudyPlanner",
       "system_open_today": "오늘 열기",
-      "note_task_needs_class": "노트를 과제로 만들려면 먼저 수업 정보가 필요합니다."
+      "note_task_needs_class": "노트를 과제로 만들려면 먼저 수업 정보가 필요합니다.",
+      "system_live_dashboard_detail_one": "{count}개 열린 항목이 같은 검토 데이터로 홈, 계획, 추천 위젯을 작동합니다.",
+      "system_live_dashboard_detail_count": "{count}개 열린 항목이 같은 검토 데이터로 홈, 계획, 추천 위젯을 작동합니다.",
+      "system_clear_recommended_detail": "지금 마감되는 열린 작업은 없습니다. 추천 위젯은 명확한 빈 상태를 보여주고 다음 가져오기를 안내할 수 있습니다."
     },
     "common": {
       "next": "다음",
       "continue": "계속",
-      "not_now": "나중에"
+      "not_now": "나중에",
+      "back": "뒤로"
     },
     "theme": {
       "appearance": "화면 모드",
@@ -11740,7 +12072,19 @@
       "heavy_week_summary": "시험 {exams}개 · 과제 {assignments}개 · 검토 {reviews}개",
       "heavy_days": "바쁜 날 {count}일",
       "momentum": "모멘텀",
-      "keep_moving": "다음 단계를 계속 진행하세요."
+      "keep_moving": "다음 단계를 계속 진행하세요.",
+      "next_important_thing": "다음 중요 항목",
+      "generated_from_profile": "프로필에서 생성됨",
+      "upcoming_risk": "다가오는 위험",
+      "forecast_state": "예측",
+      "focus_suggestion": "집중 제안",
+      "work_heavy_focus": "일이 많은 주에 맞춤",
+      "profile_based_focus": "프로필과 마감일 기준",
+      "risk_peak": "피크 주간 형성 중",
+      "risk_heavy": "무거운 작업량",
+      "risk_building": "압박 증가 중",
+      "risk_recovery": "회복 구간",
+      "risk_calm": "위험이 안정적입니다"
     },
     "tabs": {
       "today": "오늘",
@@ -11752,7 +12096,9 @@
       "focus": "집중",
       "grades": "성적",
       "widgets": "위젯",
-      "subscribe": "구독"
+      "subscribe": "구독",
+      "home": "홈",
+      "more": "더보기"
     },
     "onboarding": {
       "scan_title": "강의계획서를 초안으로 바꾸세요.",
@@ -11798,7 +12144,9 @@
       "preview_focus_complete_note": "완료 시 진행 상황 기록",
       "preview_home_screen": "홈 화면",
       "preview_upcoming_widget": "다가오는 일정 위젯",
-      "preview_due_soon": "곧 마감"
+      "preview_due_soon": "곧 마감",
+      "unlock_dashboard": "잠금 해제로 계속",
+      "preview_method_scan_source": "소스 스캔"
     },
     "import": {
       "title": "수업 자료를 검토된 과제로 바꾸세요.",
@@ -12025,7 +12373,12 @@
       "feature_memory": "로컬 기억",
       "feature_memory_detail": "집중 세션, 노트, 저장한 위젯이 이 기기에서 추천을 개선합니다.",
       "review": "검토",
-      "forecast": "예측"
+      "forecast": "예측",
+      "dashboard_ready_title": "학교 대시보드 준비 완료",
+      "dashboard_ready_subtitle": "프로필과 강의계획서 설정으로 만든 개인화 대시보드를 잠금 해제하세요.",
+      "dashboard_ready_soft_subtitle": "홈, 계획, 수업, 추천 위젯에서 학기 시스템을 유지하세요.",
+      "feature_recommended_widgets": "추천 위젯",
+      "feature_recommended_widgets_detail": "프로필, 마감일, 수업 색상에 맞는 위젯을 미리 보고 추가 안내를 따르세요."
     },
     "errors": {
       "text_required": "강의계획서 텍스트를 붙여넣거나 읽을 수 있는 텍스트 파일을 업로드하세요.",
@@ -12630,7 +12983,7 @@
       "widgets_subtitle": "필요한 정보를 필요한 위치에 둡니다.",
       "watch_preview": "빠른 미리보기",
       "watch_preview_copy": "한눈에 보고 바로 실행.",
-      "hero_subtitle": "Widget Studio는 미리보기, 수업 색상, 저장된 설정을 하나의 네이티브 시스템에 모읍니다.",
+      "hero_subtitle": "Recommended Widgets는 미리보기, 수업 색상, 저장된 설정을 하나의 네이티브 시스템에 모읍니다.",
       "hero_badge": "위젯 스튜디오",
       "customize_accessibility": "StudyPlanner 맞춤 설정. 모든 수업, 위젯, 리마인더를 나에게 맞게 만듭니다.",
       "semester_pulse_detail": "다음 작업과 위험은 학기에 맞춰 업데이트됩니다.",
@@ -12666,13 +13019,29 @@
       "this_week_pressure": "이번 주 부담",
       "top_action": "우선 행동",
       "next_risk": "다음 위험",
-      "apple_watch": "Apple Watch용",
+      "apple_watch": "Widgets용",
       "what_to_put_home": "홈 화면에 둘 항목",
       "data_label": "데이터",
       "changes_label": "변경됨",
       "next_assignment": "다음 과제",
       "focus_window_widget": "집중 시간대",
-      "future_risk": "향후 위험"
+      "future_risk": "향후 위험",
+      "widget_gallery_subtitle": "학교 일정을 홈 화면에.",
+      "widget_gallery_real_data": "실제 플래너 데이터",
+      "widget_gallery_live_preview": "라이브 미리보기",
+      "widget_gallery_real_snapshot": "실제 스냅샷",
+      "widget_gallery_gallery": "갤러리",
+      "widget_gallery_save_setup": "설정 저장",
+      "widget_gallery_add_instructions": "홈 화면에서 StudyPlanner 위젯을 추가하세요.",
+      "widget_gallery_why": "이유: {reason}.",
+      "widget_gallery_exam_days": "{count}일",
+      "widget_gallery_upcoming": "예정",
+      "recommended_widgets": "추천 위젯",
+      "recommended_widgets_subtitle": "StudyPlanner가 학교 주간에 추천하는 위젯을 미리 봅니다.",
+      "widget_preview": "위젯 미리보기",
+      "widget_preview_note": "미리보기와 추가 안내. 출시 앱에서 증명된 경우에만 실시간 동작을 설명하세요.",
+      "class_colors_copy": "개인화는 수업 색상과 대시보드 스타일로 단순하게 유지됩니다.",
+      "use_recommended_widget": "추천 위젯 사용"
     },
     "widget_snapshot": {
       "today": "오늘",
@@ -13035,21 +13404,25 @@
       "system_review_detail_count": "{count} 个项目仍需要日期、重复检查或可信度确认，才能驱动今天和小组件。",
       "system_review_work": "检查任务",
       "system_live_title": "计划器正在运行。",
-      "system_live_detail_one": "{count} 个未完成项目正用同一份已检查数据驱动今天、计划和 Widget Studio。",
-      "system_live_detail_count": "{count} 个未完成项目正用同一份已检查数据驱动今天、计划和 Widget Studio。",
+      "system_live_detail_one": "{count} 个未完成项目正用同一份已检查数据驱动今天、计划和 Recommended Widgets。",
+      "system_live_detail_count": "{count} 个未完成项目正用同一份已检查数据驱动今天、计划和 Recommended Widgets。",
       "system_imported": "已导入",
       "system_clear_title": "清爽状态，小组件证明已准备。",
-      "system_clear_detail": "现在没有到期的未完成任务。Widget Studio 仍可显示真实空状态并引导下一次导入。",
+      "system_clear_detail": "现在没有到期的未完成任务。Recommended Widgets 仍可显示真实空状态并引导下一次导入。",
       "system_clear": "清爽",
       "system_open_widgets": "打开小组件",
       "system_eyebrow": "{label} · StudyPlanner",
       "system_open_today": "打开今天",
-      "note_task_needs_class": "笔记需要课程上下文后才能转成任务。"
+      "note_task_needs_class": "笔记需要课程上下文后才能转成任务。",
+      "system_live_dashboard_detail_one": "{count} 个未完成项目正用同一份已检查数据驱动主页、计划和推荐小组件。",
+      "system_live_dashboard_detail_count": "{count} 个未完成项目正用同一份已检查数据驱动主页、计划和推荐小组件。",
+      "system_clear_recommended_detail": "现在没有到期的未完成任务。推荐小组件仍可显示清晰空状态并引导下一次导入。"
     },
     "common": {
       "next": "下一步",
       "continue": "继续",
-      "not_now": "暂不"
+      "not_now": "暂不",
+      "back": "返回"
     },
     "theme": {
       "appearance": "外观",
@@ -13184,7 +13557,19 @@
       "heavy_week_summary": "{exams} 场考试 · {assignments} 个作业 · {reviews} 个待检查",
       "heavy_days": "{count} 个繁忙日",
       "momentum": "动力",
-      "keep_moving": "继续推进下一步。"
+      "keep_moving": "继续推进下一步。",
+      "next_important_thing": "下一件重要事",
+      "generated_from_profile": "根据你的资料生成",
+      "upcoming_risk": "即将到来的风险",
+      "forecast_state": "预测",
+      "focus_suggestion": "专注建议",
+      "work_heavy_focus": "适合工作繁忙的一周",
+      "profile_based_focus": "基于你的资料和截止日期",
+      "risk_peak": "高峰周正在形成",
+      "risk_heavy": "任务负荷较重",
+      "risk_building": "压力正在上升",
+      "risk_recovery": "恢复窗口",
+      "risk_calm": "风险看起来平稳"
     },
     "tabs": {
       "today": "今天",
@@ -13196,7 +13581,9 @@
       "focus": "专注",
       "grades": "成绩",
       "widgets": "小组件",
-      "subscribe": "订阅"
+      "subscribe": "订阅",
+      "home": "主页",
+      "more": "更多"
     },
     "onboarding": {
       "scan_title": "把课程大纲变成草稿。",
@@ -13242,7 +13629,9 @@
       "preview_focus_complete_note": "完成时记录进度",
       "preview_home_screen": "主屏幕",
       "preview_upcoming_widget": "即将到来小组件",
-      "preview_due_soon": "即将截止"
+      "preview_due_soon": "即将截止",
+      "unlock_dashboard": "继续解锁",
+      "preview_method_scan_source": "扫描来源"
     },
     "import": {
       "title": "把课堂资料变成已检查的作业。",
@@ -13469,7 +13858,12 @@
       "feature_memory": "本地记忆",
       "feature_memory_detail": "专注记录、笔记和已保存小组件会在本设备上改进推荐。",
       "review": "复核",
-      "forecast": "预测"
+      "forecast": "预测",
+      "dashboard_ready_title": "你的学校仪表盘已准备好",
+      "dashboard_ready_subtitle": "解锁由个人资料和课程大纲设置生成的个性化仪表盘。",
+      "dashboard_ready_soft_subtitle": "在主页、计划、课程和推荐小组件中保持学期系统就绪。",
+      "feature_recommended_widgets": "推荐小组件",
+      "feature_recommended_widgets_detail": "预览符合你的资料、截止日期和课程颜色的小组件，然后按照说明添加。"
     },
     "errors": {
       "text_required": "请粘贴课程大纲文字，或上传可读取的文本文件。",
@@ -14074,7 +14468,7 @@
       "widgets_subtitle": "把需要的信息放在你需要的位置。",
       "watch_preview": "快速预览",
       "watch_preview_copy": "一眼可见。立即可做。",
-      "hero_subtitle": "Widget Studio 将预览、课程颜色和已保存设置集中在一个原生系统中。",
+      "hero_subtitle": "Recommended Widgets 将预览、课程颜色和已保存设置集中在一个原生系统中。",
       "hero_badge": "小组件工作室",
       "customize_accessibility": "自定义 StudyPlanner。让每门课、小组件和提醒都更适合你。",
       "semester_pulse_detail": "后续任务和风险会随学期更新.",
@@ -14110,13 +14504,29 @@
       "this_week_pressure": "本周压力",
       "top_action": "首要行动",
       "next_risk": "下一个风险",
-      "apple_watch": "Apple Watch 支持",
+      "apple_watch": "Widgets 支持",
       "what_to_put_home": "主屏幕应放什么",
       "data_label": "数据",
       "changes_label": "会变化",
       "next_assignment": "下一项作业",
       "focus_window_widget": "专注窗口",
-      "future_risk": "未来风险"
+      "future_risk": "未来风险",
+      "widget_gallery_subtitle": "把学校安排放在主屏幕上。",
+      "widget_gallery_real_data": "真实计划数据",
+      "widget_gallery_live_preview": "实时预览",
+      "widget_gallery_real_snapshot": "真实快照",
+      "widget_gallery_gallery": "图库",
+      "widget_gallery_save_setup": "保存设置",
+      "widget_gallery_add_instructions": "从主屏幕添加 StudyPlanner 小组件。",
+      "widget_gallery_why": "原因：{reason}。",
+      "widget_gallery_exam_days": "{count}天",
+      "widget_gallery_upcoming": "即将到来",
+      "recommended_widgets": "推荐小组件",
+      "recommended_widgets_subtitle": "预览 StudyPlanner 为你的学习周推荐的小组件。",
+      "widget_preview": "小组件预览",
+      "widget_preview_note": "预览加添加说明。只有在已发布应用中验证后才声称实时行为。",
+      "class_colors_copy": "个性化保持简单：课程颜色和仪表盘样式，不增加额外外观包。",
+      "use_recommended_widget": "使用推荐小组件"
     },
     "widget_snapshot": {
       "today": "今天",
