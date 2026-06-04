@@ -1,6 +1,7 @@
 import { loadJson, removeJson, saveJson } from "../services/storage";
 import { createInitialAppState } from "./sampleData";
-import type { AppSettings, AppState, Note, Task, WidgetSettings, WidgetType } from "./types";
+import type { ParsedImport, ParsedItem } from "../models";
+import type { AppSettings, AppState, Note, NoteScanDraft, Task, WidgetSettings, WidgetType } from "./types";
 import { mergeWidgetSettings } from "./widgetEngine";
 
 export const storageVersion = 1;
@@ -11,7 +12,10 @@ export const storageKeys = {
   tasks: "studyplanner:v1:tasks",
   notes: "studyplanner:v1:notes",
   settings: "studyplanner:v1:settings",
-  onboarding: "studyplanner:v1:onboarding"
+  onboarding: "studyplanner:v1:onboarding",
+  parsedImports: "studyplanner:v1:parsedImports",
+  parsedItems: "studyplanner:v1:parsedItems",
+  noteScanDrafts: "studyplanner:v1:noteScanDrafts"
 } as const;
 
 type StoredState = {
@@ -82,13 +86,40 @@ export async function persistSettings(settings: AppSettings): Promise<void> {
   }
 }
 
+export async function persistParsedImports(parsedImports: ParsedImport[]): Promise<void> {
+  try {
+    await saveJson(storageKeys.parsedImports, { version: storageVersion, parsedImports });
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
+export async function persistParsedItems(parsedItems: ParsedItem[]): Promise<void> {
+  try {
+    await saveJson(storageKeys.parsedItems, { version: storageVersion, parsedItems });
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
+export async function persistNoteScanDrafts(noteScanDrafts: NoteScanDraft[]): Promise<void> {
+  try {
+    await saveJson(storageKeys.noteScanDrafts, { version: storageVersion, noteScanDrafts });
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
 async function loadGranularState(fallback: AppState): Promise<Partial<AppState>> {
-  const [widgetRecord, taskRecord, noteRecord, settingsRecord, onboardingRecord] = await Promise.all([
+  const [widgetRecord, taskRecord, noteRecord, settingsRecord, onboardingRecord, parsedImportRecord, parsedItemRecord, noteScanRecord] = await Promise.all([
     loadJson<{ version: number; widgetSettings: Record<WidgetType, WidgetSettings> }>(storageKeys.widgetSettings),
     loadJson<{ version: number; tasks: Task[] }>(storageKeys.tasks),
     loadJson<{ version: number; notes: Note[] }>(storageKeys.notes),
     loadJson<{ version: number; settings: AppSettings }>(storageKeys.settings),
-    loadJson<{ version: number; onboardingComplete: boolean; scannerState?: AppState["scannerState"] }>(storageKeys.onboarding)
+    loadJson<{ version: number; onboardingComplete: boolean; scannerState?: AppState["scannerState"] }>(storageKeys.onboarding),
+    loadJson<{ version: number; parsedImports: ParsedImport[] }>(storageKeys.parsedImports),
+    loadJson<{ version: number; parsedItems: ParsedItem[] }>(storageKeys.parsedItems),
+    loadJson<{ version: number; noteScanDrafts: NoteScanDraft[] }>(storageKeys.noteScanDrafts)
   ]);
 
   return {
@@ -97,7 +128,10 @@ async function loadGranularState(fallback: AppState): Promise<Partial<AppState>>
     notes: Array.isArray(noteRecord?.notes) ? noteRecord.notes : fallback.notes,
     appSettings: settingsRecord?.settings ?? fallback.appSettings,
     onboardingComplete: onboardingRecord?.onboardingComplete ?? fallback.onboardingComplete,
-    scannerState: onboardingRecord?.scannerState ?? fallback.scannerState
+    scannerState: onboardingRecord?.scannerState ?? fallback.scannerState,
+    parsedImports: Array.isArray(parsedImportRecord?.parsedImports) ? parsedImportRecord.parsedImports : fallback.parsedImports,
+    parsedItems: Array.isArray(parsedItemRecord?.parsedItems) ? parsedItemRecord.parsedItems : fallback.parsedItems,
+    noteScanDrafts: Array.isArray(noteScanRecord?.noteScanDrafts) ? noteScanRecord.noteScanDrafts : fallback.noteScanDrafts
   };
 }
 
@@ -117,6 +151,10 @@ function migrateState(state: AppState): AppState {
     tasks: Array.isArray(state.tasks) ? state.tasks : fallback.tasks,
     notes: Array.isArray(state.notes) ? state.notes : fallback.notes,
     exams: Array.isArray(state.exams) ? state.exams : fallback.exams,
+    parsedImports: Array.isArray(state.parsedImports) ? state.parsedImports : fallback.parsedImports,
+    parsedItems: Array.isArray(state.parsedItems) ? state.parsedItems : fallback.parsedItems,
+    activeParseResult: state.activeParseResult ?? null,
+    noteScanDrafts: Array.isArray(state.noteScanDrafts) ? state.noteScanDrafts : fallback.noteScanDrafts,
     widgetSettings,
     appSettings: { ...fallback.appSettings, ...state.appSettings },
     scannerState: { ...fallback.scannerState, ...state.scannerState }

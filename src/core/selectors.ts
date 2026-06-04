@@ -14,6 +14,19 @@ export function selectNextClass(state: AppState, now: Date = new Date()) {
   return today.find((course) => timeToMinutes(course.startTime) >= current) ?? today[0] ?? state.classes[0] ?? null;
 }
 
+export function selectCurrentClass(state: AppState, now: Date = new Date()) {
+  const current = toMinutes(now);
+  return selectTodayClasses(state, now).find((course) => {
+    const start = timeToMinutes(course.startTime);
+    const end = timeToMinutes(course.endTime);
+    return current >= start && current < end;
+  }) ?? null;
+}
+
+export function selectCurrentOrNextClass(state: AppState, now: Date = new Date()) {
+  return selectCurrentClass(state, now) ?? selectNextClass(state, now);
+}
+
 export function selectTodayTasks(state: AppState, now: Date = new Date()) {
   const today = dateOnly(now);
   return state.tasks.filter((task) => task.dueDate === today && !task.completed);
@@ -31,6 +44,22 @@ export function selectOverdueTasks(state: AppState, now: Date = new Date()) {
 
 export function selectCompletedTasks(state: AppState) {
   return state.tasks.filter((task) => task.completed);
+}
+
+export function selectCatchUpQueue(state: AppState, now: Date = new Date()) {
+  return [
+    ...selectOverdueTasks(state, now),
+    ...selectTodayTasks(state, now).sort(sortTasks),
+    ...selectUpcomingTasks(state, now)
+  ].sort((left, right) => priorityRank(right.priority) - priorityRank(left.priority) || sortTasks(left, right));
+}
+
+export function selectDonePercentToday(state: AppState, now: Date = new Date()) {
+  const today = dateOnly(now);
+  const todayTasks = state.tasks.filter((task) => task.dueDate === today);
+  if (!todayTasks.length) return 100;
+  const done = todayTasks.filter((task) => task.completed).length;
+  return Math.round((done / todayTasks.length) * 100);
 }
 
 export function selectTaskCountToday(state: AppState) {
@@ -88,15 +117,18 @@ export function selectRoomReminder(state: AppState) {
 
 export function selectHomeDashboardModel(state: AppState) {
   const todayClasses = selectTodayClasses(state);
-  const nextClass = selectNextClass(state);
+  const nextClass = selectCurrentOrNextClass(state);
   const todayTasks = selectTodayTasks(state);
   const pulse = selectOverallPulse(state);
   return {
     student: state.student,
     todayClasses,
     nextClass,
+    currentClass: selectCurrentClass(state),
     todayTasks,
     upcomingTasks: selectUpcomingTasks(state),
+    catchUpQueue: selectCatchUpQueue(state),
+    donePercentToday: selectDonePercentToday(state),
     taskCountToday: todayTasks.length,
     openTasks: state.tasks.filter((task) => !task.completed),
     pulse,
@@ -178,11 +210,27 @@ function shortClass(course: ClassCourse | null) {
 }
 
 function minutesUntil(course: ClassCourse) {
-  return course.startTime === "11:30" ? "28 min" : `${course.startTime}`;
+  const now = new Date();
+  const current = toMinutes(now);
+  const start = timeToMinutes(course.startTime);
+  const end = timeToMinutes(course.endTime);
+  if (current >= start && current < end) return "Now";
+  if (current > end) return "Done";
+  const minutes = Math.max(0, start - current);
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder ? `${hours}h ${remainder}m` : `${hours}h`;
 }
 
 function sortTasks(a: Task, b: Task) {
   return `${a.completed}${a.dueDate}${a.dueTime}`.localeCompare(`${b.completed}${b.dueDate}${b.dueTime}`);
+}
+
+function priorityRank(priority: Task["priority"]) {
+  if (priority === "High") return 3;
+  if (priority === "Medium") return 2;
+  return 1;
 }
 
 function timeToMinutes(value: string) {

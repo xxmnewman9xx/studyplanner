@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Plus } from "lucide-react-native";
 
 import { SP } from "../components/PrototypeUI";
 import { Assignment, Course, FocusSession, Semester, UserSettings } from "../models";
+import { useI18n } from "../i18n";
 import type { StudentLifeContext } from "../logic/studentLifeDepth";
 
 type PlanScreenProps = {
@@ -21,22 +22,37 @@ type PlanScreenProps = {
   onOpenScan: () => void;
 };
 
-export function PlanScreen({ courses }: PlanScreenProps) {
+export function PlanScreen({ assignments, courses }: PlanScreenProps) {
+  const { t } = useI18n();
   const scheduleCourses = [
     courses[0] || fallbackCourses[0],
     courses[1] || fallbackCourses[1],
     courses[2] || fallbackCourses[2],
     courses[3] || fallbackCourses[3]
   ];
+  const load = assignments.filter((item) => item.status !== "done" && item.status !== "archived").length;
+  const riskLevel = heat(load);
 
   return (
     <View style={styles.surface}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.appBar}>
-          <Text style={styles.title}>Calendar</Text>
+          <Text style={styles.title}>{t("plan.capture_title", "Calendar")}</Text>
           <TouchableOpacity style={styles.iconButton} activeOpacity={0.78}>
             <Plus size={22} color={SP.ink} />
           </TouchableOpacity>
+        </View>
+
+        <View style={styles.riskCard}>
+          <View style={styles.rowBetween}>
+            <Text style={styles.riskLabel}>Risk week</Text>
+            <Text style={styles.riskValue}>{riskLevel}</Text>
+          </View>
+          <View style={styles.heatRow}>
+            {[0, 1, 2, 3, 4].map((index) => (
+              <View key={index} style={[styles.heatCell, { backgroundColor: heat(load + index) }]} />
+            ))}
+          </View>
         </View>
 
         <View style={styles.focusCard}>
@@ -110,12 +126,24 @@ function tintFor(color?: string) {
   return "#EEF4FF";
 }
 
+function heat(load: number) {
+  if (load >= 7) return "#FF5A1F";
+  if (load >= 4) return "#F59E0B";
+  if (load >= 2) return "#22C55E";
+  return "#E5E7EB";
+}
+
 const styles = StyleSheet.create({
   surface: { flex: 1, backgroundColor: SP.white },
   content: { paddingHorizontal: 18, paddingTop: 10, paddingBottom: 138 },
   appBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 },
   title: { color: SP.ink, fontSize: 34, fontWeight: "900", letterSpacing: -0.9 },
   iconButton: { width: 46, height: 46, borderRadius: 23, backgroundColor: "#FAFAFB", borderWidth: 1, borderColor: "#ECECF1", alignItems: "center", justifyContent: "center" },
+  riskCard: { borderRadius: 22, backgroundColor: "#FAFAFB", borderWidth: 1, borderColor: "#ECECF1", padding: 14, marginBottom: 14 },
+  riskLabel: { color: "#6F727A", fontSize: 13, fontWeight: "900", letterSpacing: 0.4 },
+  riskValue: { color: SP.ink, fontSize: 13, fontWeight: "900" },
+  heatRow: { flexDirection: "row", gap: 7, marginTop: 12 },
+  heatCell: { flex: 1, height: 18, borderRadius: 9 },
   focusCard: { borderRadius: 26, backgroundColor: "#F0FFF8", borderWidth: 1, borderColor: "#B8F0D4", padding: 18, marginBottom: 16 },
   rowBetween: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   greenLabel: { color: SP.green, fontSize: 13, fontWeight: "900", letterSpacing: 0.6 },

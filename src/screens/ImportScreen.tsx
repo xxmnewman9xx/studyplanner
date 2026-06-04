@@ -2,11 +2,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { Camera, CheckCircle2, FileText, Upload } from "lucide-react-native";
+import { CheckCircle2, FileText, Upload } from "lucide-react-native";
 
 import { AppButton, AppCard, AppHeader, AppSurface, Dot, IconTile, PrototypeIcons, SemesterPulse, SP } from "../components/PrototypeUI";
 import { Assignment, ParsedImport, ParsedItem, SyllabusImportSource, SyllabusParseResult } from "../models";
-import { parseSyllabus } from "../services/syllabusParser";
+import { parseSyllabus, supportsSyllabusImageParsing } from "../services/syllabusParser";
+import { hasNativeImageTextRecognition } from "../services/imageTextRecognition";
 import { getMarketingCaptureParseResult, marketingCaptureScreen, type MarketingCaptureScreen } from "../services/marketingCapture";
 import { useI18n } from "../i18n";
 import {
@@ -46,6 +47,7 @@ export function ImportScreen({
   const [loading, setLoading] = useState(captureScreen === "processing");
   const organizedMode = captureScreen === "extracted";
   const reviewMode = captureScreen === "review_edit";
+  const canParseImages = hasNativeImageTextRecognition() || supportsSyllabusImageParsing();
 
   useEffect(() => {
     if (captureScreen === "processing") {
@@ -82,7 +84,7 @@ export function ImportScreen({
 
   const pickPdf = async () => {
     const result = await DocumentPicker.getDocumentAsync({
-      type: ["application/pdf", "text/plain", "image/*"],
+      type: ["application/pdf", "text/plain"],
       copyToCacheDirectory: true
     });
     if (result.canceled) return;
@@ -91,24 +93,68 @@ export function ImportScreen({
     validateDocumentAsset({ uri: asset.uri, name: asset.name, mimeType: asset.mimeType, size: (asset as { size?: number }).size });
     await runParse(
       createParsedImportFromDocumentAsset({ uri: asset.uri, name: asset.name, mimeType: asset.mimeType, size: (asset as { size?: number }).size }),
-      { kind: asset.mimeType?.startsWith("image/") ? "photo" : "pdf", uri: asset.uri, name: asset.name, mimeType: asset.mimeType }
+      { kind: "pdf", uri: asset.uri, name: asset.name, mimeType: asset.mimeType }
     );
   };
 
+  const parsePhotoAsset = async (asset: ImagePicker.ImagePickerAsset, sourceName: string) => {
+    const parsedImport = createParsedImportFromCameraAsset({
+      uri: asset.uri,
+      name: asset.fileName || sourceName,
+      mimeType: asset.mimeType || "image/jpeg"
+    });
+    await runParse(parsedImport, {
+      kind: "photo",
+      uri: asset.uri,
+      name: parsedImport.title,
+      mimeType: parsedImport.mimeType
+    });
+  };
+
   const capturePhoto = async () => {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert(`Camera permission ${"needed"}`, t("import.photo_disabled_message", "Allow camera access to scan a syllabus."));
+    if (!canParseImages) {
+      Alert.alert(
+        t("import.photo_disabled_title", "Photo OCR needs OCR"),
+        t("import.photo_disabled_message", "Photo OCR needs the iOS Vision OCR build or a configured parser endpoint with image parsing enabled.")
+      );
       return;
     }
-    const result = await ImagePicker.launchCameraAsync({ quality: 0.85 });
-    if (result.canceled) return;
-    const asset = result.assets[0];
-    if (!asset) return;
-    await runParse(
-      createParsedImportFromCameraAsset({ uri: asset.uri, name: "syllabus-photo.jpg", mimeType: "image/jpeg" }),
-      { kind: "photo", uri: asset.uri, name: "syllabus-photo.jpg", mimeType: "image/jpeg" }
-    );
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert(t("permissions.camera", "Camera permission is required to scan a syllabus photo."));
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
+      allowsEditing: false,
+      quality: 0.92
+    });
+    if (!result.canceled && result.assets[0]) {
+      await parsePhotoAsset(result.assets[0], t("import.camera_photo", "Camera syllabus photo"));
+    }
+  };
+
+  const pickPhoto = async () => {
+    if (!canParseImages) {
+      Alert.alert(
+        t("import.photo_disabled_title", "Photo OCR needs OCR"),
+        t("import.photo_disabled_message", "Photo OCR needs the iOS Vision OCR build or a configured parser endpoint with image parsing enabled.")
+      );
+      return;
+    }
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert(t("permissions.photos", "Photo library permission is required to import a syllabus photo."));
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: false,
+      quality: 1
+    });
+    if (!result.canceled && result.assets[0]) {
+      await parsePhotoAsset(result.assets[0], t("import.photo_library_source", "Syllabus photo"));
+    }
   };
 
   if (reviewMode && draft) {
@@ -131,8 +177,9 @@ export function ImportScreen({
         </View>
       </View>
       <View style={styles.scanActions}>
-        <AppButton label={loading ? "Finding deadlines..." : "Capture"} variant="light" onPress={capturePhoto} />
-        <AppButton label={`Upload ${"PDF or photo"}`} variant="darkOnLight" onPress={pickPdf} />
+        <AppButton label={canParseImages ? "Scan with camera" : "Photo OCR needs native OCR"} variant="light" onPress={capturePhoto} />
+        <AppButton label={t("import.photo_library", "Photo")} variant="light" onPress={pickPhoto} />
+        <AppButton label={`Upload ${"PDF or text"}`} variant="darkOnLight" onPress={pickPdf} />
       </View>
     </AppSurface>
   );

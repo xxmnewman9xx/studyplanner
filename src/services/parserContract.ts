@@ -308,7 +308,7 @@ export function validateDocumentAsset(asset: CaptureSourceAsset) {
     throw new Error("This file is too large for quick import. Choose a file under 20 MB.");
   }
   if (!isSupportedDocumentAsset(asset)) {
-    throw new Error("Upload a PDF, text file, or image file.");
+    throw new Error("Upload a PDF or text file.");
   }
 }
 
@@ -318,8 +318,7 @@ export function isSupportedDocumentAsset(asset: CaptureSourceAsset) {
   return (
     mimeType === "application/pdf" ||
     mimeType === "text/plain" ||
-    mimeType.startsWith("image/") ||
-    /\.(pdf|txt|text|png|jpe?g|heic|heif|webp)$/i.test(name)
+    /\.(pdf|txt|text)$/i.test(name)
   );
 }
 

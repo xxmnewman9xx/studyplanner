@@ -24,8 +24,8 @@
       },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSCameraUsageDescription": "Use the camera only when image import is enabled to attach syllabus pages for manual review.",
-        "NSPhotoLibraryUsageDescription": "Use the photo library only when image import is enabled to attach syllabus images for manual review.",
+        "NSCameraUsageDescription": "Use the camera to read syllabus photos with OCR and turn assignments, exams, and deadlines into reviewed planner items.",
+        "NSPhotoLibraryUsageDescription": "Use selected syllabus photos for OCR so assignments, exams, and deadlines can be reviewed before they are added.",
         "NSCalendarsFullAccessUsageDescription": "Sync assignment and exam dates to your calendar.",
         "NSUserNotificationsUsageDescription": "Send calm reminders before deadlines, exams, and classes."
       }
@@ -64,7 +64,10 @@
               "description": "See what needs your attention today.",
               "supportedFamilies": [
                 "systemSmall",
-                "systemMedium"
+                "systemMedium",
+                "accessoryInline",
+                "accessoryCircular",
+                "accessoryRectangular"
               ],
               "contentMarginsDisabled": true
             },
@@ -75,7 +78,10 @@
               "description": "Preview upcoming assignments and deadlines.",
               "supportedFamilies": [
                 "systemSmall",
-                "systemMedium"
+                "systemMedium",
+                "accessoryInline",
+                "accessoryCircular",
+                "accessoryRectangular"
               ],
               "contentMarginsDisabled": true
             },
@@ -85,7 +91,10 @@
               "displayName": "StudyPlanner Week",
               "description": "Check your weekly workload at a glance.",
               "supportedFamilies": [
-                "systemMedium"
+                "systemMedium",
+                "accessoryInline",
+                "accessoryCircular",
+                "accessoryRectangular"
               ],
               "contentMarginsDisabled": true
             },
@@ -96,7 +105,10 @@
               "description": "Track progress for a selected class.",
               "supportedFamilies": [
                 "systemSmall",
-                "systemMedium"
+                "systemMedium",
+                "accessoryInline",
+                "accessoryCircular",
+                "accessoryRectangular"
               ],
               "contentMarginsDisabled": true
             }

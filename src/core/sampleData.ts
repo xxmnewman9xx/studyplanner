@@ -79,6 +79,10 @@ export function createInitialAppState(): AppState {
     widgetSettings: createDefaultWidgetSettings(),
     appSettings: defaultAppSettings,
     onboardingComplete: false,
-    scannerState: { status: "idle", stepIndex: 0, completedAt: null }
+    scannerState: { status: "idle", stepIndex: 0, completedAt: null },
+    parsedImports: [],
+    parsedItems: [],
+    activeParseResult: null,
+    noteScanDrafts: []
   };
 }

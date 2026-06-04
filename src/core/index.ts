@@ -1,5 +1,6 @@
 export * from "./actions";
 export * from "./deviceViewModels";
+export * from "./nativeWidgetBridge";
 export * from "./pulseEngine";
 export * from "./repository";
 export * from "./sampleData";

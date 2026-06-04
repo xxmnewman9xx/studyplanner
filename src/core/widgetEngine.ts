@@ -4,6 +4,7 @@ import {
   selectOverallPulse,
   selectRoomReminder,
   selectTodayTasks,
+  selectUpcomingTasks,
   selectUpcomingExams,
   selectWeeklyLoad
 } from "./selectors";
@@ -37,11 +38,13 @@ export function getWidgetDisplayModel(widgetType: WidgetType, state: AppState): 
   const settings = state.widgetSettings[widgetType] ?? getDefaultWidgetSettings(widgetType);
   const nextClass = selectNextClass(state);
   const todayTasks = selectTodayTasks(state);
+  const upcomingTasks = selectUpcomingTasks(state);
   const pulse = nextClass ? selectOverallPulse(state) : selectOverallPulse(state);
   const weeklyLoad = selectWeeklyLoad(state);
   const room = selectRoomReminder(state);
   const exam = selectUpcomingExams(state)[0];
   const examClass = exam ? state.classes.find((course) => course.id === exam.classId) : null;
+  const studyPlan = buildStudyTimeWidgetModel(state, todayTasks, upcomingTasks);
 
   const map: Record<WidgetType, WidgetDisplayModel> = {
     nextClass: {
@@ -110,17 +113,64 @@ export function getWidgetDisplayModel(widgetType: WidgetType, state: AppState): 
     studyTime: {
       widgetType,
       label: "STUDY TIME",
-      value: "2h",
-      title: "today",
-      copy: "Two focus blocks reserved",
-      status: "Clear",
-      items: ["12:30 PM", state.student.preferences.preferredStudyWindow],
+      value: studyPlan.value,
+      title: studyPlan.title,
+      copy: studyPlan.copy,
+      status: studyPlan.status,
+      items: studyPlan.items,
       chart: "bars",
       accent: settings.accent
     }
   };
 
   return map[widgetType];
+}
+
+function buildStudyTimeWidgetModel(
+  state: AppState,
+  todayTasks: AppState["tasks"],
+  upcomingTasks: AppState["tasks"]
+) {
+  const openTasks = [...todayTasks, ...upcomingTasks].filter((task) => !task.completed);
+  const priorityTasks = openTasks.filter((task) => task.priority === "High");
+  const focusQueue = [...priorityTasks, ...openTasks.filter((task) => task.priority !== "High")];
+  const minutes = focusQueue.slice(0, 3).reduce((sum, task) => sum + focusMinutesForTask(task), 0);
+  const cappedMinutes = Math.min(180, Math.max(openTasks.length ? 25 : 0, Math.ceil(minutes / 25) * 25));
+  const blockCount = cappedMinutes ? Math.max(1, Math.ceil(cappedMinutes / 25)) : 0;
+  const firstTask = focusQueue[0];
+  const preferredWindow = state.student.preferences.preferredStudyWindow;
+
+  if (!firstTask) {
+    return {
+      value: "0m",
+      title: "clear today",
+      copy: "No open tasks need a focus block",
+      status: "Clear",
+      items: [preferredWindow]
+    };
+  }
+
+  return {
+    value: formatFocusMinutes(cappedMinutes),
+    title: blockCount === 1 ? "focus block" : "focus blocks",
+    copy: `Start with ${firstTask.title}`,
+    status: todayTasks.length ? "Today" : priorityTasks.length ? "Priority" : "Planned",
+    items: [preferredWindow, ...focusQueue.slice(0, 2).map((task) => task.title)]
+  };
+}
+
+function focusMinutesForTask(task: AppState["tasks"][number]) {
+  if (task.type === "Test" || task.type === "Project") return 75;
+  if (task.priority === "High") return 50;
+  if (task.priority === "Medium") return 35;
+  return 25;
+}
+
+function formatFocusMinutes(minutes: number) {
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder ? `${hours}h ${remainder}m` : `${hours}h`;
 }
 
 export function getWidgetStyleVars(settings: WidgetSettings, appSettings: AppSettings) {

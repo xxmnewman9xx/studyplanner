@@ -3,7 +3,6 @@ import {
   LogBox,
   Modal,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Switch,
@@ -13,6 +12,9 @@ import {
   useWindowDimensions,
   View
 } from "react-native";
+import type { DimensionValue } from "react-native";
+import * as DocumentPicker from "expo-document-picker";
+import * as ImagePicker from "expo-image-picker";
 import { StatusBar } from "expo-status-bar";
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Polyline, Rect, Stop } from "react-native-svg";
 import {
@@ -39,8 +41,12 @@ import {
   getWidgetDisplayModel,
   getWidgetStyleVars,
   selectClassById,
+  selectCatchUpQueue,
   selectClassPulse,
   selectComplicationModels,
+  selectCurrentClass,
+  selectCurrentOrNextClass,
+  selectDonePercentToday,
   selectHomeDashboardModel,
   selectIpadDashboardModel,
   selectNotesByClass,
@@ -48,6 +54,7 @@ import {
   selectTasksByClass,
   selectTodayClasses,
   selectTodayTasks,
+  selectUpcomingExams,
   selectWatchNotificationModel,
   selectWatchPulseModel,
   selectWatchRoomModel,
@@ -57,6 +64,7 @@ import {
   type AppSettings,
   type AppState,
   type ClassCourse,
+  type NativeWidgetSyncStatus,
   type Note,
   type ReminderSettings,
   type StudyPlannerActions,
@@ -64,9 +72,39 @@ import {
   type WidgetSettings,
   type WidgetType,
   type WatchScreen,
+  nativeWidgetKindForCoreWidget,
+  syncCorePlannerWidgets,
   widgetTypes,
   useStudyPlannerStore
 } from "./src/core";
+import { I18nProvider, useI18n } from "./src/i18n";
+import { parseSyllabus, supportsSyllabusImageParsing } from "./src/services/syllabusParser";
+import { hasNativeImageTextRecognition } from "./src/services/imageTextRecognition";
+import { scanStudyNoteText } from "./src/services/noteScanner";
+import {
+  ClassBadge,
+  DashboardWidgetPreview,
+  EmptyState,
+  HeroCard,
+  ImportStatusCard,
+  PresetCard,
+  ProgressRing,
+  ReminderPill,
+  SectionHeader,
+  StatPill,
+  SurfaceCard,
+  TimelineRow,
+  WidgetCard
+} from "./src/design";
+import {
+  createParsedImportFromCameraAsset,
+  createParsedImportFromDocumentAsset,
+  createParsedImportFromTypedText,
+  normalizeParserError,
+  parseCapturedSource,
+  validateDocumentAsset
+} from "./src/services/parserContract";
+import { SubscriptionProvider, useSubscription } from "./src/services/subscriptions";
 
 LogBox.ignoreLogs(["RCTScrollViewComponentView implements focusItemsInRect"]);
 
@@ -76,12 +114,34 @@ type Route =
   | PadTab
   | "studio"
   | "scanner"
+  | "subscribe"
   | "classDetail"
   | "addTask"
   | "noteEditor"
   | "watchPreview";
 
 type WidgetDraft = WidgetSettings;
+type StudioPreset = {
+  id: string;
+  label: string;
+  copy: string;
+  patch: Partial<WidgetDraft>;
+};
+type FeatureCapability = {
+  id: string;
+  label: string;
+  state: "available" | "unavailable";
+  backing: string;
+};
+type FeatureCapabilityId =
+  | "addTask"
+  | "addNote"
+  | "noteSummary"
+  | "noteTask"
+  | "plannerReview"
+  | "widgetStudio"
+  | "cameraOcr"
+  | "fileUpload";
 
 const T = {
   "--bg": "#FFFFFF",
@@ -128,8 +188,58 @@ const widgetTypeLabels: Record<WidgetType, string> = {
   studyTime: "Study Time"
 };
 
+const studioPresets: StudioPreset[] = [
+  {
+    id: "academic",
+    label: "Academic",
+    copy: "Balanced classes, deadlines, pulse, and study time.",
+    patch: { widgetType: "nextClass", accent: "blue", size: "Hero", density: "Detailed", opacity: 94, blur: 18, glow: 48, radius: 30 }
+  },
+  {
+    id: "athlete",
+    label: "Athlete",
+    copy: "Fast schedule checks around practice and travel days.",
+    patch: { widgetType: "roomReminder", accent: "cyan", size: "L", density: "Compact", opacity: 96, blur: 14, glow: 42, radius: 28 }
+  },
+  {
+    id: "minimalist",
+    label: "Minimalist",
+    copy: "Low-noise glanceables with compact density.",
+    patch: { widgetType: "todayTasks", accent: "blue", size: "M", density: "Compact", opacity: 100, blur: 6, glow: 18, radius: 24 }
+  },
+  {
+    id: "adhd",
+    label: "ADHD",
+    copy: "Next action first, fewer competing details.",
+    patch: { widgetType: "studyTime", accent: "orange", size: "Hero", density: "Detailed", opacity: 96, blur: 12, glow: 58, radius: 30 }
+  },
+  {
+    id: "premed",
+    label: "Pre-med",
+    copy: "Exam prep and class pulse stay visible.",
+    patch: { widgetType: "upcomingTest", accent: "rose", size: "L", density: "Detailed", opacity: 92, blur: 18, glow: 66, radius: 30 }
+  },
+  {
+    id: "engineering",
+    label: "Engineering",
+    copy: "Projects, workload, and weekly load take priority.",
+    patch: { widgetType: "weeklyLoad", accent: "violet", size: "L", density: "Detailed", opacity: 92, blur: 16, glow: 52, radius: 28 }
+  }
+];
+
+const featureCapabilities: Record<FeatureCapabilityId, FeatureCapability> = {
+  addTask: { id: "addTask", label: "Add task", state: "available", backing: "actions.addTask" },
+  addNote: { id: "addNote", label: "Add note", state: "available", backing: "actions.addNote/updateNote" },
+  noteSummary: { id: "noteSummary", label: "Save summary", state: "available", backing: "actions.updateNote" },
+  noteTask: { id: "noteTask", label: "Note to task", state: "available", backing: "actions.addTask" },
+  plannerReview: { id: "plannerReview", label: "Apply review", state: "available", backing: "actions.applyParsedSyllabus" },
+  widgetStudio: { id: "widgetStudio", label: "Widget Studio", state: "available", backing: "actions.updateWidgetSettings + syncCorePlannerWidgets" },
+  cameraOcr: { id: "cameraOcr", label: "Camera OCR", state: "available", backing: "iOS Vision OCR on device; backend Tesseract only when the parser endpoint is configured" },
+  fileUpload: { id: "fileUpload", label: "Text/PDF upload", state: "available", backing: "expo-document-picker + local syllabus parser" }
+};
+
 export default function App() {
-  const { state, actions } = useStudyPlannerStore();
+  const { state, hydrated, actions } = useStudyPlannerStore();
   const viewport = useWindowDimensions();
   const previewWidth = viewport.width > 1420 ? 1180 : viewport.width;
   const isPad = previewWidth >= 700;
@@ -140,16 +250,40 @@ export default function App() {
   const [selectedNote, setSelectedNote] = useState("note-1");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [toast, setToast] = useState("");
+  const [subscriptionAccess, setSubscriptionAccess] = useState({ isPremium: false, status: "checking" });
+  const [nativeWidgetStatus, setNativeWidgetStatus] = useState<NativeWidgetSyncStatus>({
+    state: "idle",
+    message: "Preparing widgets"
+  });
   const settings = state.appSettings;
   const scale = settings.largerText ? 1.06 : 1;
   const homeModel = useMemo(() => selectHomeDashboardModel(state), [state]);
   const ipadModel = useMemo(() => selectIpadDashboardModel(state), [state]);
 
+  useEffect(() => {
+    if (!hydrated) return;
+    let active = true;
+    syncCorePlannerWidgets(state).then((status) => {
+      if (active) setNativeWidgetStatus(status);
+    }).catch(() => {
+      if (active) {
+        setNativeWidgetStatus({
+          state: "error",
+          message: "Native widget sync is unavailable in this build."
+        });
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [hydrated, state]);
+
   const go = (next: Route) => {
+    const target = requiresPremiumRoute(next) && !subscriptionAccess.isPremium ? "subscribe" : next;
     setSheetOpen(false);
-    setRoute(next);
-    if (isPadTab(next)) setActiveTab(next);
-    if (isPhoneTab(next)) setActiveTab(next);
+    setRoute(target);
+    if (isPadTab(target)) setActiveTab(target);
+    if (isPhoneTab(target)) setActiveTab(target);
   };
 
   const notify = (message: string) => {
@@ -165,6 +299,7 @@ export default function App() {
     homeModel,
     ipadModel,
     settings,
+    nativeWidgetStatus,
     selectedClass,
     setSelectedClass,
     selectedTask,
@@ -174,31 +309,75 @@ export default function App() {
     notify
   };
 
-  return (
-    <SafeAreaView style={[styles.safe, settings.highContrast ? styles.highContrastBg : null]}>
-      <StatusBar style="dark" />
-      <View style={[styles.desktopStage, viewport.width > 1420 ? { paddingVertical: 18 } : null]}>
-        <View style={[styles.appShell, { width: previewWidth }, viewport.width > 1420 ? styles.centeredPreview : null]}>
-          <View style={[styles.app, settings.largerText ? { transform: [{ scale }] } : null]}>
-            {isPad ? (
-              <IPadShell {...shared} route={route} activeTab={activeTab} />
-            ) : (
-              <IPhoneShell {...shared} route={route} activeTab={activeTab as PhoneTab} />
-            )}
-            <TouchableOpacity accessibilityLabel="Quick add" style={[styles.fab, isPad ? styles.padFab : null]} onPress={() => setSheetOpen(true)} activeOpacity={0.84}>
-              <Plus size={28} color={T["--surface"]} />
-            </TouchableOpacity>
-            {toast ? (
-              <View style={styles.toast}>
-                <Text style={styles.toastText}>{toast}</Text>
+  if (!hydrated) {
+    return (
+      <I18nProvider>
+        <SubscriptionProvider>
+          <View style={[styles.safe, settings.highContrast ? styles.highContrastBg : null]}>
+            <StatusBar style="dark" />
+            <View style={styles.desktopStage}>
+              <View style={[styles.appShell, { width: previewWidth }]}>
+                <View style={styles.app}>
+                  <View style={styles.skeletonStack}>
+                    <SkeletonBar width="54%" height={28} />
+                    <SkeletonBar width="82%" height={18} />
+                    <SkeletonBar width="100%" height={156} />
+                    <SkeletonBar width="100%" height={92} />
+                    <SkeletonBar width="72%" height={18} />
+                  </View>
+                </View>
               </View>
-            ) : null}
+            </View>
           </View>
+        </SubscriptionProvider>
+      </I18nProvider>
+    );
+  }
+
+  return (
+    <I18nProvider>
+      <SubscriptionProvider>
+        <SubscriptionStateProbe onChange={setSubscriptionAccess} />
+        <View style={[styles.safe, settings.highContrast ? styles.highContrastBg : null]}>
+          <StatusBar style="dark" />
+          <View style={[styles.desktopStage, viewport.width > 1420 ? { paddingVertical: 18 } : null]}>
+            <View style={[styles.appShell, { width: previewWidth }, viewport.width > 1420 ? styles.centeredPreview : null]}>
+              <View style={[styles.app, settings.largerText ? { transform: [{ scale }] } : null]}>
+                {isPad ? (
+                  <IPadShell {...shared} route={route} activeTab={activeTab} />
+                ) : (
+                  <IPhoneShell {...shared} route={route} activeTab={activeTab as PhoneTab} />
+                )}
+                {(isPad ? isPadTab(route) : isPhoneTab(route)) ? (
+                  <TouchableOpacity accessibilityLabel="Quick add" style={[styles.fab, isPad ? styles.padFab : null]} onPress={() => setSheetOpen(true)} activeOpacity={0.84}>
+                    <Plus size={28} color={T["--surface"]} />
+                  </TouchableOpacity>
+                ) : null}
+                {toast ? (
+                  <View style={styles.toast}>
+                    <Text style={styles.toastText}>{toast}</Text>
+                  </View>
+                ) : null}
+              </View>
+            </View>
+          </View>
+          <ActionSheet open={sheetOpen} isPad={isPad} close={() => setSheetOpen(false)} go={go} />
         </View>
-      </View>
-      <ActionSheet open={sheetOpen} isPad={isPad} close={() => setSheetOpen(false)} go={go} />
-    </SafeAreaView>
+      </SubscriptionProvider>
+    </I18nProvider>
   );
+}
+
+function SubscriptionStateProbe({ onChange }: { onChange: (state: { isPremium: boolean; status: string }) => void }) {
+  const subscription = useSubscription();
+  useEffect(() => {
+    onChange({ isPremium: subscription.isPremium, status: subscription.status });
+  }, [onChange, subscription.isPremium, subscription.status]);
+  return null;
+}
+
+function SkeletonBar({ width, height }: { width: DimensionValue; height: number }) {
+  return <View style={[styles.skeletonBar, { width, height }]} />;
 }
 
 function IPhoneShell(props: ShellProps & { route: Route; activeTab: PhoneTab }) {
@@ -206,7 +385,7 @@ function IPhoneShell(props: ShellProps & { route: Route; activeTab: PhoneTab }) 
   return (
     <View style={styles.phoneShell}>
       {content}
-      <PhoneTabBar active={props.activeTab} go={props.go} />
+      {isPhoneTab(props.route) ? <PhoneTabBar active={props.activeTab} go={props.go} /> : null}
     </View>
   );
 }
@@ -228,6 +407,7 @@ type ShellProps = {
   homeModel: ReturnType<typeof selectHomeDashboardModel>;
   ipadModel: ReturnType<typeof selectIpadDashboardModel>;
   settings: AppSettings;
+  nativeWidgetStatus: NativeWidgetSyncStatus;
   selectedClass: string;
   setSelectedClass: (id: string) => void;
   selectedTask: string;
@@ -245,6 +425,7 @@ function renderPhoneRoute(route: Route, props: ShellProps) {
   if (route === "profile") return <ProfileScreen {...props} />;
   if (route === "studio") return <WidgetStudio {...props} />;
   if (route === "scanner") return <ScannerScreen {...props} />;
+  if (route === "subscribe") return <SubscribeScreen {...props} />;
   if (route === "calendar") return <CalendarScreen {...props} />;
   if (route === "classDetail") return <ClassDetailScreen {...props} />;
   if (route === "addTask") return <AddTaskScreen {...props} />;
@@ -261,43 +442,38 @@ function renderPadRoute(route: Route, props: ShellProps) {
   if (route === "profile") return <IPadProfile {...props} />;
   if (route === "studio") return <IPadWidgetStudio {...props} />;
   if (route === "scanner") return <IPadScanner {...props} />;
+  if (route === "subscribe") return <SubscribeScreen {...props} />;
   return <WatchPreview {...props} />;
 }
 
-function HomeDashboard({ go, state, homeModel, settings }: ShellProps) {
-  const schedule = selectTodayClasses(state);
+function HomeDashboard({ go, state, homeModel, settings, nativeWidgetStatus }: ShellProps) {
+  const focusClass = selectCurrentOrNextClass(state);
+  const currentClass = selectCurrentClass(state);
+  const catchUpQueue = selectCatchUpQueue(state);
+  const donePercent = selectDonePercentToday(state);
+  const nextTask = catchUpQueue[0];
+  const firstName = homeModel.student.name.split(" ")[0] || "Student";
+  const todayLabel = new Intl.DateTimeFormat(undefined, { weekday: "long", month: "long", day: "numeric" }).format(new Date());
   return (
     <ScreenScroll>
       <View style={styles.header}>
         <View style={styles.headerText}>
-          <Text style={styles.greeting}>Good morning, {homeModel.student.name.split(" ")[0]}</Text>
-          <Text style={styles.subtitle}>You have {homeModel.todayClasses.length} classes and {homeModel.taskCountToday} tasks today.</Text>
+          <Text style={styles.subtitle}>{todayLabel}</Text>
+          <Text style={styles.greeting}>Good morning, {firstName}</Text>
         </View>
         <TouchableOpacity accessibilityLabel="Open profile" style={styles.avatarButton} onPress={() => go("profile")}>
           <User size={22} color={T["--surface"]} />
         </TouchableOpacity>
       </View>
-      <SearchBar label="Search classes, tasks, notes" />
-      <TouchableOpacity accessibilityLabel="Edit widgets" style={styles.editWidgetButton} onPress={() => go("studio")}>
-        <SlidersHorizontal size={18} color={T["--text"]} />
-        <Text style={styles.editWidgetText}>Edit widgets</Text>
-      </TouchableOpacity>
-
-      <LiquidWidget type="nextClass" state={state} styleConfig={state.widgetSettings.nextClass} settings={settings} onPress={() => go("classDetail")} />
-      <LiquidWidget type="todayTasks" state={state} styleConfig={state.widgetSettings.todayTasks} settings={settings} onPress={() => go("tasks")} />
-      <LiquidWidget type="classPulse" state={state} styleConfig={state.widgetSettings.classPulse} settings={settings} onPress={() => go("classDetail")} />
-      <LiquidWidget type="weeklyLoad" state={state} styleConfig={state.widgetSettings.weeklyLoad} settings={settings} onPress={() => go("calendar")} />
-      <LiquidWidget type="roomReminder" state={state} styleConfig={state.widgetSettings.roomReminder} settings={settings} onPress={() => go("classDetail")} />
-
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionLabel}>DAILY SCHEDULE</Text>
-        <TouchableOpacity accessibilityLabel="Open calendar" onPress={() => go("calendar")}>
-          <Text style={styles.sectionAction}>Calendar</Text>
-        </TouchableOpacity>
-      </View>
-      {schedule.map((item) => (
-        <ScheduleRow key={`${item.startTime}-${item.title}`} klass={item} />
-      ))}
+      <SchoolOSDashboard
+        go={go}
+        state={state}
+        homeModel={homeModel}
+        nativeWidgetStatus={nativeWidgetStatus}
+        focusClass={focusClass}
+        catchUpQueue={catchUpQueue}
+        donePercent={donePercent}
+      />
     </ScreenScroll>
   );
 }
@@ -305,35 +481,41 @@ function HomeDashboard({ go, state, homeModel, settings }: ShellProps) {
 function IPadHome(props: ShellProps) {
   const viewport = useWindowDimensions();
   const narrowPad = viewport.width < 900;
-  const schedule = selectTodayClasses(props.state);
+  const focusClass = selectCurrentOrNextClass(props.state);
+  const currentClass = selectCurrentClass(props.state);
+  const catchUpQueue = selectCatchUpQueue(props.state);
+  const donePercent = selectDonePercentToday(props.state);
   return (
     <ScrollView style={styles.padScroll} contentContainerStyle={styles.padHomeContent} showsVerticalScrollIndicator={false}>
       <View style={styles.padHeader}>
         <View>
-          <Text style={styles.padTitle}>Good morning, {props.ipadModel.student.name.split(" ")[0]}</Text>
-          <Text style={styles.subtitle}>Your classes, rooms, tasks, and reminders are lined up.</Text>
+          <Text style={styles.padTitle}>StudyPlanner AI</Text>
+          <Text style={styles.subtitle}>The operating system for {props.ipadModel.student.name.split(" ")[0]}'s student life.</Text>
         </View>
         <TouchableOpacity style={styles.blackPillButton} onPress={() => props.go("studio")}>
           <Grid2X2 size={18} color={T["--surface"]} />
-          <Text style={styles.blackPillText}>Widget Studio</Text>
+          <Text style={styles.blackPillText}>iOS Widgets</Text>
         </TouchableOpacity>
       </View>
       <View style={[styles.padDashboardGrid, narrowPad ? styles.padDashboardStack : null]}>
         <View style={styles.padMainGrid}>
-          <LiquidWidget type="nextClass" state={props.state} styleConfig={props.state.widgetSettings.nextClass} settings={props.settings} onPress={() => props.go("classDetail")} />
-          <View style={styles.padTwoCol}>
-            <LiquidWidget type="todayTasks" state={props.state} styleConfig={props.state.widgetSettings.todayTasks} settings={props.settings} onPress={() => props.go("tasks")} />
-            <LiquidWidget type="classPulse" state={props.state} styleConfig={props.state.widgetSettings.classPulse} settings={props.settings} onPress={() => props.go("classes")} />
-          </View>
-          <View style={styles.padTwoCol}>
-            <LiquidWidget type="weeklyLoad" state={props.state} styleConfig={props.state.widgetSettings.weeklyLoad} settings={props.settings} onPress={() => props.go("calendar")} />
-            <LiquidWidget type="roomReminder" state={props.state} styleConfig={props.state.widgetSettings.roomReminder} settings={props.settings} onPress={() => props.go("classDetail")} />
-          </View>
+          <TodayCommandCenter go={props.go} state={props.state} focusClass={focusClass} currentClass={currentClass} nextTask={catchUpQueue[0]} pulseScore={props.homeModel.pulse.score} />
+          <SchoolOSDashboard
+            go={props.go}
+            state={props.state}
+            homeModel={props.homeModel}
+            nativeWidgetStatus={props.nativeWidgetStatus}
+            focusClass={focusClass}
+            catchUpQueue={catchUpQueue}
+            donePercent={donePercent}
+            compact
+          />
         </View>
         <View style={[styles.padRail, narrowPad ? styles.padRailStack : null]}>
-          <Panel title="Schedule Rail">
-            {schedule.map((item) => (
-              <ScheduleRow key={`${item.startTime}-pad`} klass={item} compact />
+          <NativeWidgetStatusPill status={props.nativeWidgetStatus} />
+          <Panel title="Catch-up Queue">
+            {catchUpQueue.slice(0, 4).map((task) => (
+              <TaskMiniRow key={task.id} task={task} state={props.state} />
             ))}
           </Panel>
           <Panel title="Tasks">
@@ -350,7 +532,239 @@ function IPadHome(props: ShellProps) {
   );
 }
 
-function WidgetStudio({ state, actions, go, notify, settings }: ShellProps) {
+function TodayCommandCenter({
+  go,
+  state,
+  focusClass,
+  currentClass,
+  nextTask,
+  pulseScore
+}: {
+  go: (route: Route) => void;
+  state: AppState;
+  focusClass: ClassCourse | null;
+  currentClass: ClassCourse | null;
+  nextTask?: Task;
+  pulseScore: number;
+}) {
+  const accent = focusClass ? accentMap[focusClass.accent] : accentMap.blue;
+  const actionLabel = nextTask ? "Start task" : focusClass ? "Take note" : "Review import";
+  const status = currentClass ? "NOW" : focusClass ? "NEXT" : "READY";
+  return (
+    <View style={[styles.commandCenterCard, { borderColor: accent.color }]}>
+      <View style={styles.rowBetween}>
+        <Text style={[styles.nowPill, { backgroundColor: accent.color }]}>{status}</Text>
+        <Text style={styles.commandPulse}>{pulseScore}% pulse</Text>
+      </View>
+      <Text style={styles.commandTitle}>{focusClass?.title ?? "Build your semester"}</Text>
+      <Text style={styles.commandSub}>
+        {focusClass ? `${formatTime(focusClass.startTime)} - ${formatTime(focusClass.endTime)} · Room ${focusClass.room}` : "Scan a syllabus or add the first class."}
+      </Text>
+      {nextTask ? (
+        <View style={styles.commandNextTask}>
+          <View style={[styles.miniDot, { backgroundColor: priorityColor(nextTask.priority) }]} />
+          <View style={styles.flex1}>
+            <Text style={styles.commandTaskTitle}>{nextTask.title}</Text>
+            <Text style={styles.cardSub}>{classTitle(state, nextTask)} · {dueLabel(nextTask)}</Text>
+          </View>
+        </View>
+      ) : null}
+      <View style={styles.commandActions}>
+        <TouchableOpacity style={styles.primaryButton} onPress={() => go(nextTask ? "tasks" : focusClass ? "noteEditor" : "scanner")}>
+          <Text style={styles.primaryButtonText}>{actionLabel}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.secondaryButton} onPress={() => go("addTask")}>
+          <Text style={styles.secondaryButtonText}>Add task</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+function HomeMetric({ title, value, sub, color }: { title: string; value: string; sub: string; color: string }) {
+  return (
+    <View style={styles.homeMetricCard}>
+      <View style={[styles.miniDot, { backgroundColor: color }]} />
+      <Text style={styles.homeMetricValue}>{value}</Text>
+      <Text style={styles.homeMetricTitle}>{title}</Text>
+      <Text style={styles.homeMetricSub}>{sub}</Text>
+    </View>
+  );
+}
+
+function SchoolOSDashboard({
+  go,
+  state,
+  homeModel,
+  nativeWidgetStatus,
+  focusClass,
+  catchUpQueue,
+  donePercent,
+  compact = false
+}: {
+  go: (route: Route) => void;
+  state: AppState;
+  homeModel: ReturnType<typeof selectHomeDashboardModel>;
+  nativeWidgetStatus: NativeWidgetSyncStatus;
+  focusClass: ClassCourse | null;
+  catchUpQueue: Task[];
+  donePercent: number;
+  compact?: boolean;
+}) {
+  const schedule = selectTodayClasses(state);
+  const nextClassAccent = focusClass ? accentMap[focusClass.accent] : accentMap.blue;
+  const upcomingDeadlines = selectDashboardDeadlines(state);
+  const nextExam = selectUpcomingExams(state)[0];
+  const reviewNotes = state.notes.filter((note) => note.status !== "reviewed");
+  const overdueCount = state.tasks.filter((task) => !task.completed && dueLabel(task) === "Overdue").length;
+  const recentNotes = [...state.notes]
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .slice(0, 3);
+  const liveClasses = state.classes.slice(0, compact ? 3 : 4);
+  const widgetStatusCopy = nativeWidgetStatus.state === "synced" ? "Synced to iOS" : "Ready to sync";
+  const assignmentTimeline = upcomingDeadlines.length ? upcomingDeadlines : catchUpQueue;
+
+  return (
+    <View>
+      <SectionHeader title="Semester Health" />
+      <HeroCard
+        eyebrow="LIVE SYSTEM"
+        title={homeModel.pulse.label}
+        subtitle={`${state.classes.length} classes, ${homeModel.taskCountToday} due today, ${reviewNotes.length} notes waiting for review.`}
+        metric={`${homeModel.pulse.score}%`}
+        accentColor={T["--blue"]}
+        style={styles.schoolHeroCard}
+      >
+        <View style={styles.semesterBar}>
+          <View style={[styles.semesterBarFill, { width: `${Math.max(8, Math.min(100, homeModel.pulse.score))}%` }]} />
+        </View>
+      </HeroCard>
+
+      <SectionHeader title="Today's Load" />
+      <View style={styles.homeMetricGrid}>
+        <WidgetCard label="DUE TODAY" value={String(homeModel.taskCountToday)} detail={`${donePercent}% done`} accentColor={T["--orange"]} />
+        <WidgetCard label="CLASS PULSE" value={`${homeModel.pulse.score}%`} detail={homeModel.pulse.primaryReason} accentColor={T["--mint"]} />
+        <WidgetCard label="OVERDUE" value={String(overdueCount)} detail={overdueCount ? "needs recovery" : "clear"} accentColor={T["--rose"]} />
+        <WidgetCard label="NOTES" value={String(reviewNotes.length)} detail="to review" accentColor={T["--violet"]} />
+      </View>
+
+      <SectionHeader title="Next Class" actionLabel="Calendar" onAction={() => go("calendar")} />
+      {focusClass ? (
+        <SurfaceCard style={styles.nextClassCard}>
+          <View style={styles.rowBetween}>
+            <View style={[styles.classIcon, { backgroundColor: nextClassAccent.pale }]}>
+              <BookOpen size={21} color={nextClassAccent.color} />
+            </View>
+          <Text style={[styles.priorityPill, { color: nextClassAccent.color }]}>{formatTime(focusClass.startTime)}</Text>
+          </View>
+          <ClassBadge title={focusClass.title} room={`Room ${focusClass.room}`} accentColor={nextClassAccent.color} />
+          <Text style={styles.cardTitle}>{focusClass.title}</Text>
+          <Text style={styles.cardSub}>Room {focusClass.room} · {focusClass.days.join("/")} · {reminderLabel(focusClass.reminderSettings)}</Text>
+        </SurfaceCard>
+      ) : <EmptyState title="No class is next" copy="Scan a syllabus or add a schedule to bring this system online." />}
+
+      <SectionHeader title="Class Pulse" actionLabel="Classes" onAction={() => go("classes")} />
+      {liveClasses.map((klass) => {
+        const pulse = selectClassPulse(state, klass.id);
+        return (
+          <TimelineRow
+            key={`pulse-${klass.id}`}
+            title={klass.title}
+            subtitle={`${pulse.label} · Room ${klass.room}`}
+            meta={`${pulse.score}`}
+            accentColor={accentMap[klass.accent].color}
+          />
+        );
+      })}
+
+      <SectionHeader title="Assignment Timeline" actionLabel="Tasks" onAction={() => go("tasks")} />
+      {assignmentTimeline.length ? assignmentTimeline.slice(0, 4).map((task) => (
+        <TimelineRow
+          key={`queue-${task.id}`}
+          time={formatTime(task.dueTime)}
+          title={task.title}
+          subtitle={`${classTitle(state, task)} · ${dueLabel(task)}`}
+          meta={task.priority}
+          accentColor={priorityColor(task.priority)}
+        />
+      )) : <EmptyState title="No urgent deadlines" copy="Reviewed work will appear here as soon as it is imported or added." />}
+
+      <SectionHeader title="Notes Activity" actionLabel="Notes" onAction={() => go("notes")} />
+      {(reviewNotes.length ? reviewNotes : recentNotes).slice(0, 3).map((note) => (
+        <TimelineRow
+          key={`note-${note.id}`}
+          title={note.title}
+          subtitle={noteClassTitle(state, note)}
+          meta={note.status === "reviewed" ? "Reviewed" : "Review"}
+          accentColor={note.status === "reviewed" ? T["--mint"] : T["--violet"]}
+        />
+      ))}
+      {!state.notes.length ? <EmptyState title="Notes will attach to classes" copy="Scanned notes and summaries will show up beside assignments and exams." /> : null}
+
+      <SectionHeader title="Widget Stack" actionLabel="Studio" onAction={() => go("studio")} />
+      <DashboardWidgetPreview label="iOS WIDGETS" value={widgetStatusCopy} detail="Home Screen and dashboard placement share the same data." accentColor={T["--blue"]} />
+      <LiquidWidget type="nextClass" state={state} styleConfig={state.widgetSettings.nextClass} settings={state.appSettings} />
+      <LiquidWidget type="todayTasks" state={state} styleConfig={state.widgetSettings.todayTasks} settings={state.appSettings} />
+
+      <SectionHeader title="AI Insight" />
+      <DashboardWidgetPreview
+        label="SCHOOL OS SIGNAL"
+        value={homeModel.pulse.label}
+        detail={homeModel.pulse.suggestedActions[0] ?? homeModel.pulse.primaryReason}
+        accentColor={homeModel.pulse.score < 60 ? T["--rose"] : T["--blue"]}
+      />
+    </View>
+  );
+}
+
+function HomeSearchPanel({
+  state,
+  query,
+  setQuery,
+  go
+}: {
+  state: AppState;
+  query: string;
+  setQuery: (value: string) => void;
+  go: (route: Route) => void;
+}) {
+  const clean = query.trim().toLowerCase();
+  const results = clean ? [
+    ...state.classes
+      .filter((klass) => `${klass.title} ${klass.professor} ${klass.room}`.toLowerCase().includes(clean))
+      .slice(0, 2)
+      .map((klass) => ({ id: `class-${klass.id}`, title: klass.title, sub: `Room ${klass.room}`, route: "classes" as Route })),
+    ...state.tasks
+      .filter((task) => `${task.title} ${classTitle(state, task)} ${task.type}`.toLowerCase().includes(clean))
+      .slice(0, 2)
+      .map((task) => ({ id: `task-${task.id}`, title: task.title, sub: `${classTitle(state, task)} · ${dueLabel(task)}`, route: "tasks" as Route })),
+    ...state.notes
+      .filter((note) => `${note.title} ${note.body} ${note.summary ?? ""}`.toLowerCase().includes(clean))
+      .slice(0, 2)
+      .map((note) => ({ id: `note-${note.id}`, title: note.title, sub: noteClassTitle(state, note), route: "notes" as Route }))
+  ].slice(0, 4) : [];
+  return (
+    <View style={styles.homeSearchWrap}>
+      <View style={styles.searchBar}>
+        <Search size={17} color={T["--muted"]} />
+        <TextInput value={query} onChangeText={setQuery} placeholder="Search classes, tasks, notes" placeholderTextColor={T["--muted"]} style={styles.searchInput} />
+        {query ? <TouchableOpacity onPress={() => setQuery("")}><X size={16} color={T["--muted"]} /></TouchableOpacity> : null}
+      </View>
+      {clean ? (
+        <View style={styles.searchResults}>
+          {results.length ? results.map((item) => (
+            <TouchableOpacity key={item.id} style={styles.searchResultRow} onPress={() => go(item.route)}>
+              <Text style={styles.cardTitle}>{item.title}</Text>
+              <Text style={styles.cardSub}>{item.sub}</Text>
+            </TouchableOpacity>
+          )) : <MiniLine text="No planner matches yet" />}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function WidgetStudio({ state, actions, go, notify, settings, nativeWidgetStatus }: ShellProps) {
   const [draft, setDraft] = useState<WidgetDraft>(state.widgetSettings.nextClass);
   useEffect(() => {
     setDraft((current) => state.widgetSettings[current.widgetType]);
@@ -367,7 +781,10 @@ function WidgetStudio({ state, actions, go, notify, settings }: ShellProps) {
 
   const save = () => {
     actions.updateWidgetSettings(draft.widgetType, draft);
-    notify("Widget saved");
+    notify(nativeWidgetStatus.state === "synced" ? "iPhone widget style saved" : "Saved. Syncing iPhone widgets");
+  };
+  const applyPreset = (preset: StudioPreset) => {
+    setDraft((current) => buildStudioPresetDraft(state, current, preset));
   };
 
   const reset = () => {
@@ -381,12 +798,12 @@ function WidgetStudio({ state, actions, go, notify, settings }: ShellProps) {
       <View style={styles.studioPreviewTop}>
         <LiquidWidget type={draft.widgetType} state={state} styleConfig={draft} settings={settings} />
       </View>
-      <StudioControls draft={draft} updateDraft={updateDraft} reset={reset} save={save} />
+      <StudioControls draft={draft} updateDraft={updateDraft} applyPreset={applyPreset} reset={reset} save={save} />
     </ScreenScroll>
   );
 }
 
-function IPadWidgetStudio({ state, actions, go, notify, settings }: ShellProps) {
+function IPadWidgetStudio({ state, actions, go, notify, settings, nativeWidgetStatus }: ShellProps) {
   const [draft, setDraft] = useState<WidgetDraft>(state.widgetSettings.nextClass);
   const updateDraft = <K extends keyof WidgetDraft>(key: K, value: WidgetDraft[K]) => {
     if (key === "widgetType") {
@@ -398,7 +815,10 @@ function IPadWidgetStudio({ state, actions, go, notify, settings }: ShellProps) 
   };
   const save = () => {
     actions.updateWidgetSettings(draft.widgetType, draft);
-    notify("Widget saved");
+    notify(nativeWidgetStatus.state === "synced" ? "iPhone widget style saved" : "Saved. Syncing iPhone widgets");
+  };
+  const applyPreset = (preset: StudioPreset) => {
+    setDraft((current) => buildStudioPresetDraft(state, current, preset));
   };
   const reset = () => {
     actions.resetWidgetSettings(draft.widgetType);
@@ -416,19 +836,16 @@ function IPadWidgetStudio({ state, actions, go, notify, settings }: ShellProps) 
         ))}
       </View>
       <ScrollView style={styles.studioCanvas} contentContainerStyle={styles.studioCanvasContent}>
-        <Text style={styles.padTitle}>Live Dashboard Preview</Text>
+        <Text style={styles.padTitle}>iPhone Widget Preview</Text>
         <LiquidWidget type={draft.widgetType} state={state} styleConfig={draft} settings={settings} />
-        <View style={styles.previewDashboard}>
-          <LiquidWidget type="todayTasks" state={state} styleConfig={state.widgetSettings.todayTasks} settings={settings} />
-          <LiquidWidget type="classPulse" state={state} styleConfig={state.widgetSettings.classPulse} settings={settings} />
-        </View>
+        <WidgetBackedLine widgetType={draft.widgetType} />
       </ScrollView>
       <ScrollView style={styles.studioInspector} contentContainerStyle={styles.inspectorContent}>
         <View style={styles.rowBetween}>
           <Text style={styles.padPaneTitle}>Inspector</Text>
           <TouchableOpacity style={styles.closeButton} onPress={() => go("home")}><X size={18} color={T["--text"]} /></TouchableOpacity>
         </View>
-        <StudioControls draft={draft} updateDraft={updateDraft} reset={reset} save={save} />
+        <StudioControls draft={draft} updateDraft={updateDraft} applyPreset={applyPreset} reset={reset} save={save} />
       </ScrollView>
     </View>
   );
@@ -437,16 +854,29 @@ function IPadWidgetStudio({ state, actions, go, notify, settings }: ShellProps) 
 function StudioControls({
   draft,
   updateDraft,
+  applyPreset,
   reset,
   save
 }: {
   draft: WidgetDraft;
   updateDraft: <K extends keyof WidgetDraft>(key: K, value: WidgetDraft[K]) => void;
+  applyPreset: (preset: StudioPreset) => void;
   reset: () => void;
   save: () => void;
 }) {
   return (
     <View>
+      <WidgetBackedLine widgetType={draft.widgetType} />
+      <View style={styles.studioHeroCopy}>
+        <Text style={styles.cardTitle}>Build your own School OS</Text>
+        <Text style={styles.cardSub}>Presets change hierarchy, density, color, and the dashboard widget target without changing saved planner data.</Text>
+      </View>
+      <StudioSection title="School OS Presets">
+        <StudioPresetRail draft={draft} onPress={applyPreset} />
+      </StudioSection>
+      <StudioSection title="Dashboard Placement">
+        <ChipRow values={["Next class", "Tasks", "Pulse", "Load", "Room", "Exam", "Study"]} value={placementLabelForWidget(draft.widgetType)} onPress={(value) => updateDraft("widgetType", widgetTypeForPlacement(value))} wrap />
+      </StudioSection>
       <StudioSection title="Widget Type">
         <WidgetTypePicker value={draft.widgetType} onPress={(value) => updateDraft("widgetType", value)} />
       </StudioSection>
@@ -482,15 +912,95 @@ function StudioControls({
   );
 }
 
+function StudioPresetRail({ draft, onPress }: { draft: WidgetDraft; onPress: (preset: StudioPreset) => void }) {
+  return (
+    <View style={styles.studioPresetGrid}>
+      {studioPresets.map((preset) => {
+        const active = draft.widgetType === (preset.patch.widgetType ?? draft.widgetType) && draft.accent === preset.patch.accent;
+        const accent = preset.patch.accent ? accentMap[preset.patch.accent] : accentMap.blue;
+        return (
+          <PresetCard
+            key={preset.id}
+            label={preset.label}
+            copy={preset.copy}
+            accentColor={accent.color}
+            active={active}
+            onPress={() => onPress(preset)}
+          />
+        );
+      })}
+    </View>
+  );
+}
+
+function NativeWidgetStatusPill({ status }: { status: NativeWidgetSyncStatus }) {
+  const synced = status.state === "synced";
+  const skipped = status.state === "skipped" || status.state === "unavailable";
+  const color = synced ? T["--mint"] : skipped ? T["--orange"] : T["--blue"];
+  return (
+    <View style={[styles.nativeWidgetPill, { borderColor: color }]}>
+      <View style={[styles.statusDot, { backgroundColor: color }]} />
+      <Text style={[styles.nativeWidgetPillText, { color }]} numberOfLines={1}>
+        {synced ? "iOS widgets synced" : status.message}
+      </Text>
+    </View>
+  );
+}
+
+function WidgetBackedLine({ widgetType }: { widgetType: WidgetType }) {
+  const nativeKind = nativeWidgetKindForCoreWidget(widgetType);
+  const label = nativeKind === "classProgress" ? "Class Progress" : nativeKind.charAt(0).toUpperCase() + nativeKind.slice(1);
+  return (
+    <View style={styles.widgetBackedLine}>
+      <Grid2X2 size={15} color={T["--muted"]} />
+      <Text style={styles.widgetBackedText}>{widgetTypeLabels[widgetType]} saves into the iOS {label} widget.</Text>
+    </View>
+  );
+}
+
 function ClassesScreen(props: ShellProps) {
   const todays = selectTodayClasses(props.state);
   const ordered = todays.concat(props.state.classes.filter((klass) => !todays.some((today) => today.id === klass.id)));
+  const current = selectCurrentClass(props.state);
+  const focus = selectCurrentOrNextClass(props.state);
+  const reviewCount = props.state.notes.filter((note) => note.status !== "reviewed").length + selectTodayTasks(props.state).length;
   return (
     <ScreenScroll>
-      <TopBar title="Classes" actionLabel="Calendar" onAction={() => props.go("calendar")} />
+      <TopBar title="Classes" actionLabel="Calendar" actionAccessibilityLabel="Open calendar" onAction={() => props.go("calendar")} />
+      <TouchableOpacity style={styles.aiSuggestionCard} onPress={() => props.go("scanner")}>
+        <ScanLine size={22} color={T["--blue"]} />
+        <View style={styles.flex1}>
+          <Text style={styles.cardTitle}>Planner has {reviewCount} things to review</Text>
+          <Text style={styles.cardSub}>Tasks, notes, rooms, and reminders share one timeline.</Text>
+        </View>
+      </TouchableOpacity>
+      {focus ? (
+        <View style={styles.scheduleHeroCard}>
+          <View style={styles.rowBetween}>
+            <Text style={styles.nowPill}>{current?.id === focus.id ? "NOW" : "NEXT"}</Text>
+            <Sparkline color={T["--blue"]} />
+          </View>
+          <Text style={styles.scheduleHeroTitle}>{focus.title}</Text>
+          <Text style={styles.scheduleHeroSub}>{formatTime(focus.startTime)} - {formatTime(focus.endTime)} · Room {focus.room}</Text>
+          <View style={styles.heroMetricRow}>
+            <Text style={styles.heroMetric}>Pulse: {selectClassPulse(props.state, focus.id).label}</Text>
+            <Text style={styles.heroMetric}>Reminder: {reminderLabel(focus.reminderSettings)}</Text>
+          </View>
+          <View style={styles.noteActionBar}>
+            <TouchableOpacity style={styles.noteActionButton} onPress={() => props.go("noteEditor")}><NotebookPen size={18} color={T["--text"]} /><Text style={styles.noteActionText}>Take note</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.noteActionButton} onPress={() => props.go("scanner")}><ScanLine size={18} color={T["--text"]} /><Text style={styles.noteActionText}>Review import</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.noteActionButton} onPress={() => props.go("addTask")}><Plus size={18} color={T["--text"]} /><Text style={styles.noteActionText}>Add task</Text></TouchableOpacity>
+          </View>
+        </View>
+      ) : null}
+      <View style={styles.summaryGrid}>
+        <View style={styles.summaryCard}><Text style={styles.summaryTitle}>Due today</Text><Text style={styles.summaryValue}>{selectTodayTasks(props.state).length}</Text><Text style={styles.cardSub}>open tasks</Text></View>
+        <View style={styles.summaryCard}><Text style={styles.summaryTitle}>After school</Text><Text style={styles.summaryValue}>{props.state.notes.filter((note) => note.status !== "reviewed").length}</Text><Text style={styles.cardSub}>notes to review</Text></View>
+      </View>
       {ordered.map((klass) => (
         <ClassCard key={klass.id} state={props.state} klass={klass} selected={props.selectedClass === klass.id} onPress={() => { props.setSelectedClass(klass.id); props.go("classDetail"); }} />
       ))}
+      {!ordered.length ? <EmptyState title="Scan your syllabus to build classes" copy="Class pulse unlocks when StudyPlanner knows your schedule, rooms, assignments, and exams." /> : null}
     </ScreenScroll>
   );
 }
@@ -527,6 +1037,8 @@ function ClassDetailContent({ state, actions, klass }: { state: AppState; action
   const pulse = selectClassPulse(state, klass.id);
   const tasks = selectTasksByClass(state, klass.id).filter((task) => !task.completed);
   const notes = selectNotesByClass(state, klass.id);
+  const exams = state.exams.filter((exam) => exam.classId === klass.id);
+  const nextTask = tasks[0];
   const updateReminder = (patch: Partial<ReminderSettings>) => {
     actions.updateClassReminder(klass.id, { ...klass.reminderSettings, ...patch });
   };
@@ -534,50 +1046,65 @@ function ClassDetailContent({ state, actions, klass }: { state: AppState; action
     <View>
       <LiquidWidget type="classPulse" state={state} styleConfig={{ ...state.widgetSettings.classPulse, accent: klass.accent }} settings={state.appSettings} />
       <View style={styles.whiteCard}>
+        <ClassBadge title={klass.title} room={`Room ${klass.room}`} accentColor={accent.color} />
         <Text style={styles.detailTitle}>{klass.title}</Text>
         <Text style={styles.detailSub}>{klass.professor}</Text>
         <View style={styles.detailGrid}>
-          <InfoPill label="Room" value={klass.room} color={accent.color} />
-          <InfoPill label="Next meeting" value={`${klass.days.join("/")} ${formatTime(klass.startTime)}`} color={accent.color} />
-          <InfoPill label="Pulse" value={`${pulse.score}%`} color={accent.color} />
-          <InfoPill label="Schedule" value={`${formatTime(klass.startTime)}-${formatTime(klass.endTime)}`} color={accent.color} />
+          <StatPill label="Room" value={klass.room} accentColor={accent.color} />
+          <StatPill label="Next meeting" value={`${klass.days.join("/")} ${formatTime(klass.startTime)}`} accentColor={accent.color} />
+          <StatPill label="Pulse" value={`${pulse.score}%`} accentColor={accent.color} />
+          <StatPill label="Exams" value={String(exams.length)} accentColor={T["--rose"]} />
         </View>
       </View>
       <Panel title="Tasks">
         {tasks.slice(0, 3).map((item) => <MiniLine key={item.id} text={item.title} />)}
+        {!tasks.length ? <EmptyState title="No assignments linked yet" copy="Scan a syllabus or add a task to make this class space useful." /> : null}
+      </Panel>
+      <Panel title="Exams">
+        {exams.slice(0, 3).map((item) => <MiniLine key={item.id} text={`${item.title} · ${item.date}`} />)}
+        {!exams.length ? <MiniLine text="Exam dates appear here when imported or added." /> : null}
       </Panel>
       <Panel title="Notes">
         {notes.slice(0, 3).map((item) => <MiniLine key={item.id} text={item.title} />)}
+        {!notes.length ? <EmptyState title="Notes become class memory here" copy="Capture notes from lecture or import scanned notes to connect them to this class." /> : null}
       </Panel>
       <Panel title="Reminder Controls">
-        <ChipRow values={["Off", "5 min before", "10 min before", "15 min before", "30 min before", "Custom"]} value={reminderLabel(klass.reminderSettings)} onPress={(value) => updateReminder(reminderPatch(value))} wrap />
+        <ReminderPill label={reminderLabel(klass.reminderSettings)} enabled={klass.reminderSettings.enabled} />
+        <ChipRow values={["Off", "5 min before", "10 min before", "15 min before", "30 min before", "1 hour before", "Custom"]} value={reminderLabel(klass.reminderSettings)} onPress={(value) => updateReminder(reminderPatch(value))} wrap />
         <View style={styles.toggleRow}>
           <Text style={styles.cardTitle}>Show room in reminder</Text>
           <Switch value={klass.reminderSettings.showRoom} onValueChange={(value) => updateReminder({ showRoom: value })} />
         </View>
         <View style={styles.notificationPreview}>
           <Text style={styles.notificationTitle}>{klass.title} starts in {klass.reminderSettings.minutesBefore} min</Text>
-          <Text style={styles.notificationSub}>{klass.reminderSettings.showRoom ? `Room ${klass.room}` : "Room hidden"}</Text>
+          <Text style={styles.notificationSub}>{klass.reminderSettings.showRoom ? `Room ${klass.room}` : "Room hidden"}{nextTask ? ` · Next: ${nextTask.title}` : ""}</Text>
         </View>
       </Panel>
-      <Panel title="Tests and Files">
-        <MiniLine text="Biology quiz Friday" />
-        <MiniLine text="Lecture slides attached" />
+      <Panel title="Class Activity">
+        {tasks.slice(0, 2).map((item) => <MiniLine key={`activity-task-${item.id}`} text={`${item.title} · ${dueLabel(item)}`} />)}
+        {notes.slice(0, 2).map((item) => <MiniLine key={`activity-note-${item.id}`} text={`${item.title} · ${item.status === "reviewed" ? "Reviewed" : "Needs review"}`} />)}
+        {!tasks.length && !notes.length ? <MiniLine text="No saved tasks or notes for this class yet" /> : null}
       </Panel>
     </View>
   );
 }
 
 function TasksScreen(props: ShellProps) {
-  const [filter, setFilter] = useState("Today");
-  const filtered = filterTasks(props.state, filter);
+  const [filter, setFilter] = useState("All");
+  const sections = buildTaskSections(props.state, filter);
   return (
     <ScreenScroll>
       <TopBar title="Tasks" actionLabel="Add" onAction={() => props.go("addTask")} />
-      <ChipRow values={["Today", "Upcoming", "Overdue", "Completed"]} value={filter} onPress={setFilter} />
+      <ChipRow values={["All", "Overdue", "Today", "Upcoming", "Later", "Completed"]} value={filter} onPress={setFilter} wrap />
       <LiquidWidget type="todayTasks" state={props.state} styleConfig={props.state.widgetSettings.todayTasks} settings={props.settings} />
-      {filtered.map((task) => (
-        <TaskCard key={task.id} state={props.state} task={task} onPress={() => props.actions.toggleTaskComplete(task.id)} />
+      {sections.map((section) => (
+        <View key={section.title}>
+          <SectionHeader title={section.title} />
+          {section.tasks.map((task) => (
+            <TaskCard key={task.id} state={props.state} task={task} onPress={() => props.actions.toggleTaskComplete(task.id)} />
+          ))}
+          {!section.tasks.length ? <EmptyState title={`${section.title} is clear`} copy="New assignments from imports and class spaces will land here automatically." /> : null}
+        </View>
       ))}
     </ScreenScroll>
   );
@@ -592,7 +1119,7 @@ function IPadTasks(props: ShellProps & { addMode: boolean }) {
           <Text style={styles.padPaneTitle}>Tasks</Text>
           <TouchableOpacity style={styles.smallBlackButton} onPress={() => props.go("addTask")}><Plus size={16} color={T["--surface"]} /></TouchableOpacity>
         </View>
-        <ChipRow values={["Today", "Upcoming", "Overdue", "Completed"]} value="Today" onPress={() => undefined} />
+        <ChipRow values={["Today", "Upcoming", "Overdue", "Completed"]} value="Today" onPress={() => undefined} wrap />
         {props.state.tasks.map((task) => (
           <TaskCard key={task.id} state={props.state} task={task} selected={props.selectedTask === task.id} onPress={() => props.setSelectedTask(task.id)} compact />
         ))}
@@ -641,34 +1168,136 @@ function AddTaskForm({ state, actions, go, notify }: ShellProps) {
       <PickerRow label="Type" values={["Homework", "Reading", "Report", "Essay", "Test"]} value={type} onPress={setType} />
       <PickerRow label="Due date" values={["Today", "Tomorrow", "Friday", "Next week"]} value={due} onPress={setDue} />
       <PickerRow label="Priority" values={["Low", "Medium", "High"]} value={priority} onPress={(value) => setPriority(value as Task["priority"])} />
-      <PickerRow label="Reminder" values={["Off", "5 min before", "15 min before", "30 min before", "Tonight"]} value={reminder} onPress={setReminder} />
+      <PickerRow label="Reminder" values={["Off", "5 min before", "10 min before", "15 min before", "30 min before", "1 hour before", "Tonight"]} value={reminder} onPress={setReminder} />
       <TouchableOpacity style={styles.primaryButton} onPress={save}><Text style={styles.primaryButtonText}>Save task</Text></TouchableOpacity>
     </View>
   );
 }
 
 function NotesScreen(props: ShellProps) {
+  const [query, setQuery] = useState("");
+  const notesByClass = props.state.classes.map((klass) => ({ klass, notes: selectNotesByClass(props.state, klass.id) }));
+  const reviewNotes = props.state.notes.filter((note) => note.status !== "reviewed");
+  const recent = [...props.state.notes]
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    .filter((note) => `${note.title} ${note.body} ${note.summary ?? ""} ${noteClassTitle(props.state, note)}`.toLowerCase().includes(query.trim().toLowerCase()));
+  const primary = reviewNotes[0] ?? props.state.notes[0];
+  const primaryIdeaCount = primary ? (primary.keyIdeas?.length ?? Math.max(1, primary.tags.length)) : 0;
+  const missingClass = props.state.classes.find((klass) => !props.state.notes.some((note) => note.classId === klass.id));
+  const setReviewReminder = (note: Note) => {
+    const id = `reminder-note-${note.id}`;
+    props.actions.updateNote(note.id, { status: "draft", reviewReminderId: id });
+    props.notify("Review reminder set");
+  };
+  const createTaskFromNote = (note: Note) => {
+    props.actions.addTask({
+      title: `Review ${note.title}`,
+      classId: note.classId,
+      type: "Homework",
+      dueDate: new Date().toISOString().slice(0, 10),
+      dueTime: "23:59",
+      priority: "Medium",
+      reminder: "Tonight"
+    });
+    props.notify("Task created from note");
+  };
   return (
     <ScreenScroll>
       <TopBar title="Notes" actionLabel="New" onAction={() => props.go("noteEditor")} />
-      <SearchBar label="Search notes" />
-      <TouchableOpacity style={styles.scanNoteCard} onPress={() => props.go("scanner")}>
-        <ScanLine size={22} color={T["--blue"]} />
-        <View style={styles.flex1}>
-          <Text style={styles.cardTitle}>Scan notes</Text>
-          <Text style={styles.cardSub}>Capture a board, worksheet, or page.</Text>
-        </View>
-      </TouchableOpacity>
-      <Panel title="Recent Notes">
-        {props.state.notes.map((note) => (
-          <NoteCard key={note.id} state={props.state} note={note} onPress={() => { props.setSelectedNote(note.id); props.go("noteEditor"); }} />
+      <View style={styles.searchBar}>
+        <Search size={17} color={T["--muted"]} />
+        <TextInput value={query} onChangeText={setQuery} placeholder="Search notes" placeholderTextColor={T["--muted"]} style={styles.searchInput} />
+        {query ? <TouchableOpacity onPress={() => setQuery("")}><X size={16} color={T["--muted"]} /></TouchableOpacity> : null}
+      </View>
+      <View style={styles.smartCardRow}>
+        <TouchableOpacity style={[styles.smartNoteCard, styles.smartNoteCardPrimary]} onPress={() => {
+          if (primary) props.setSelectedNote(primary.id);
+          props.go(primary ? "noteEditor" : "noteEditor");
+        }}>
+          <NotebookPen size={20} color={T["--cyan"]} />
+          <Text style={styles.smartCardKicker}>Today's notes</Text>
+          <Text style={styles.smartCardTitle}>{primary ? noteClassTitle(props.state, primary) : "Ready for notes"}</Text>
+          <Text style={styles.smartIdeaPill}>{primary?.summary ? "Summary ready" : "Capture ready"}</Text>
+          <TouchableOpacity style={styles.reviewButton} onPress={() => {
+            if (primary) props.setSelectedNote(primary.id);
+            props.go("noteEditor");
+          }}><Text style={styles.reviewButtonText}>Review</Text></TouchableOpacity>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.smartNoteCard} onPress={() => {
+          if (primary) props.setSelectedNote(primary.id);
+          props.go(primary ? "noteEditor" : "notes");
+        }}>
+          <Bell size={20} color={T["--mint"]} />
+          <Text style={[styles.smartCardKicker, { color: T["--mint"] }]}>Needs review</Text>
+          <Text style={styles.smartCardTitle}>{primary?.title ?? "No notes due"}</Text>
+          <Text style={styles.smartIdeaPill}>{primaryIdeaCount} key ideas</Text>
+        </TouchableOpacity>
+      </View>
+      <Panel title="By class">
+        {notesByClass.map(({ klass, notes }) => (
+          <TouchableOpacity key={klass.id} style={styles.classNoteRow} onPress={() => {
+            if (notes[0]) props.setSelectedNote(notes[0].id);
+            else props.go("noteEditor");
+          }}>
+            <View style={[styles.classIcon, { backgroundColor: accentMap[klass.accent].pale }]}><BookOpen size={18} color={accentMap[klass.accent].color} /></View>
+            <View style={styles.flex1}>
+              <Text style={styles.cardTitle}>{klass.title}</Text>
+              <Text style={styles.cardSub}>{notes.length ? `${notes.length} ${notes.length === 1 ? "note" : "notes"}` : "No notes yet"}</Text>
+            </View>
+            <Text style={[styles.countPill, { color: accentMap[klass.accent].color, backgroundColor: accentMap[klass.accent].pale }]}>{notes.length}</Text>
+          </TouchableOpacity>
         ))}
       </Panel>
+      {missingClass ? (
+        <TouchableOpacity style={styles.aiSuggestionCard} onPress={() => props.go("scanner")}>
+          <ScanLine size={22} color={T["--blue"]} />
+          <View style={styles.flex1}>
+            <Text style={styles.cardTitle}>Review import for {missingClass.title}</Text>
+            <Text style={styles.cardSub}>No note is linked yet.</Text>
+          </View>
+          <Text style={styles.sectionAction}>Review</Text>
+        </TouchableOpacity>
+      ) : null}
+      <Panel title="Recent Notes">
+        {recent.map((note, index) => (
+          <TouchableOpacity key={note.id} style={index === 0 ? styles.recentNoteCard : styles.noteRow} onPress={() => { props.setSelectedNote(note.id); props.go("noteEditor"); }}>
+            <View style={[styles.classIcon, { backgroundColor: note.status === "reviewed" ? accentMap.mint.pale : accentMap.violet.pale }]}>
+              <FileText size={19} color={note.status === "reviewed" ? T["--mint"] : T["--violet"]} />
+            </View>
+            <View style={styles.flex1}>
+              <View style={styles.rowBetween}>
+                <Text style={styles.cardTitle}>{note.title}</Text>
+                <Text style={[styles.noteStatusDot, { color: note.status === "reviewed" ? T["--mint"] : T["--orange"] }]}>●</Text>
+              </View>
+              <Text style={styles.cardSub}>{noteClassTitle(props.state, note)} · {note.status === "reviewed" ? "Reviewed" : "Needs review"}</Text>
+              {index === 0 ? (
+                <>
+                  <Text style={styles.noteSummaryLabel}>Summary</Text>
+                  <Text style={styles.recentNoteSummary}>{note.summary ?? note.body}</Text>
+                  <View style={styles.noteActionBar}>
+                    <TouchableOpacity style={styles.noteActionButton} onPress={() => createTaskFromNote(note)}><FileText size={17} color={T["--cyan"]} /><Text style={[styles.noteActionText, { color: T["--cyan"] }]}>Create task</Text></TouchableOpacity>
+                    <TouchableOpacity style={styles.noteActionButton} onPress={() => setReviewReminder(note)}><CalendarDays size={17} color={T["--violet"]} /><Text style={[styles.noteActionText, { color: T["--violet"] }]}>Review</Text></TouchableOpacity>
+                    <TouchableOpacity style={styles.noteActionButton} onPress={() => props.actions.updateNote(note.id, { status: "reviewed" })}><Check size={17} color={T["--mint"]} /><Text style={[styles.noteActionText, { color: T["--mint"] }]}>Done</Text></TouchableOpacity>
+                  </View>
+                </>
+              ) : null}
+            </View>
+          </TouchableOpacity>
+        ))}
+        {!recent.length ? <EmptyState title="Notes become useful when linked to class" copy="Create a quick note, scan lecture text, or import study material to connect notes with assignments and exams." /> : null}
+      </Panel>
+      <View style={styles.notesDock}>
+        <TouchableOpacity style={styles.dockButton} onPress={() => props.go("noteEditor")}><FileText size={17} color={T["--cyan"]} /><Text style={styles.dockButtonText}>New note</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.dockButton} onPress={() => props.go("scanner")}><ScanLine size={17} color={T["--cyan"]} /><Text style={styles.dockButtonText}>Review import</Text></TouchableOpacity>
+      </View>
     </ScreenScroll>
   );
 }
 
 function IPadNotes(props: ShellProps) {
+  const [query, setQuery] = useState("");
+  const clean = query.trim().toLowerCase();
+  const visibleNotes = props.state.notes.filter((note) => !clean || `${note.title} ${note.body} ${note.summary ?? ""} ${noteClassTitle(props.state, note)}`.toLowerCase().includes(clean));
   const selected = props.state.notes.find((note) => note.id === props.selectedNote) ?? props.state.notes[0];
   return (
     <View style={styles.splitView}>
@@ -677,8 +1306,12 @@ function IPadNotes(props: ShellProps) {
           <Text style={styles.padPaneTitle}>Notes</Text>
           <TouchableOpacity style={styles.smallBlackButton} onPress={() => props.go("noteEditor")}><Plus size={16} color={T["--surface"]} /></TouchableOpacity>
         </View>
-        <SearchBar label="Search notes" />
-        {props.state.notes.map((note) => (
+        <View style={styles.searchBar}>
+          <Search size={17} color={T["--muted"]} />
+          <TextInput value={query} onChangeText={setQuery} placeholder="Search notes" placeholderTextColor={T["--muted"]} style={styles.searchInput} />
+          {query ? <TouchableOpacity onPress={() => setQuery("")}><X size={16} color={T["--muted"]} /></TouchableOpacity> : null}
+        </View>
+        {visibleNotes.map((note) => (
           <NoteCard key={note.id} state={props.state} note={note} selected={props.selectedNote === note.id} onPress={() => props.setSelectedNote(note.id)} />
         ))}
       </View>
@@ -704,12 +1337,14 @@ function NoteEditorForm({ state, actions, go, notify, existing }: ShellProps & {
   const [classId, setClassId] = useState(existing?.classId ?? "calc");
   const [body, setBody] = useState(existing?.body ?? "");
   const [tags, setTags] = useState(existing?.tags.join(", ") ?? "");
-  const [smartOutput, setSmartOutput] = useState("");
+  const [actionStatus, setActionStatus] = useState("");
+  const cleanTitle = title.trim() || "Quick note";
+  const cleanBody = body.trim();
   const save = () => {
     const nextNote = {
-      title: title.trim() || "Quick note",
+      title: cleanTitle,
       classId,
-      body: body.trim() || "New note body",
+      body: cleanBody || "New note body",
       tags: tags.split(",").map((tag) => tag.trim()).filter(Boolean),
       status: existing?.status ?? "draft" as const
     };
@@ -721,63 +1356,345 @@ function NoteEditorForm({ state, actions, go, notify, existing }: ShellProps & {
     notify("Note saved");
     go("notes");
   };
+  const saveSummary = () => {
+    const summary = buildNoteSummary(cleanBody || cleanTitle);
+    const keyIdeas = buildKeyIdeas(cleanBody || cleanTitle, tags);
+    if (existing) {
+      actions.updateNote(existing.id, { title: cleanTitle, classId, body: cleanBody || existing.body, summary, keyIdeas, status: "reviewed" });
+      setActionStatus("Summary saved to this note.");
+      notify("Summary saved");
+      return;
+    }
+    actions.addNote({
+      id: `note-${Date.now()}`,
+      title: cleanTitle,
+      classId,
+      body: cleanBody || "New note body",
+      summary,
+      keyIdeas,
+      tags: tags.split(",").map((tag) => tag.trim()).filter(Boolean),
+      status: "reviewed"
+    });
+    setActionStatus("Summary saved in a new reviewed note.");
+    notify("Summary saved");
+  };
+  const createTask = () => {
+    actions.addTask({
+      title: `Review ${cleanTitle}`,
+      classId,
+      type: "Homework",
+      dueDate: new Date().toISOString().slice(0, 10),
+      dueTime: "23:59",
+      priority: "Medium",
+      reminder: "Tonight"
+    });
+    setActionStatus("Review task added to Tasks.");
+    notify("Task created from note");
+  };
+  const markReviewed = () => {
+    if (!existing) {
+      setActionStatus("Save this note before marking it reviewed.");
+      return;
+    }
+    actions.updateNote(existing.id, { status: "reviewed" });
+    setActionStatus("Note marked reviewed.");
+    notify("Note reviewed");
+  };
   return (
     <View style={styles.formCard}>
       <LabeledInput label="Title" value={title} setValue={setTitle} placeholder="Integration by Parts" />
       <PickerRow label="Class" values={state.classes.map((klassItem) => klassItem.title)} value={selectClassById(state, classId)?.title ?? "Class"} onPress={(value) => setClassId(state.classes.find((klassItem) => klassItem.title === value)?.id ?? classId)} />
       <LabeledInput label="Body" value={body} setValue={setBody} placeholder="Write the note body" multiline />
       <LabeledInput label="Tags" value={tags} setValue={setTags} placeholder="exam, practice" />
-      <Panel title="Smart Actions">
+      <Panel title="Note Actions">
         <View style={styles.actionRow}>
-          {["Summarize", "Make flashcards", "Extract tasks"].map((action) => (
-            <TouchableOpacity key={action} style={styles.secondaryButton} onPress={() => setSmartOutput(localSmartOutput(action))}>
-              <Text style={styles.secondaryButtonText}>{action}</Text>
-            </TouchableOpacity>
-          ))}
+          <TouchableOpacity style={styles.secondaryButton} onPress={saveSummary}><Text style={styles.secondaryButtonText}>Save summary</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.secondaryButton} onPress={createTask}><Text style={styles.secondaryButtonText}>Create task</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.secondaryButton} onPress={markReviewed}><Text style={styles.secondaryButtonText}>Mark reviewed</Text></TouchableOpacity>
         </View>
-        {smartOutput ? <Text style={styles.smartOutput}>{smartOutput}</Text> : null}
+        {actionStatus ? <Text style={styles.smartOutput}>{actionStatus}</Text> : null}
       </Panel>
       <TouchableOpacity style={styles.primaryButton} onPress={save}><Text style={styles.primaryButtonText}>Save note</Text></TouchableOpacity>
     </View>
   );
 }
 
-function ScannerScreen({ go, state, actions }: ShellProps) {
+function ScannerScreen({ go, state, actions, notify }: ShellProps) {
   return (
     <ScreenScroll>
       <BackBar title="Scanner" back={() => go("home")} />
-      <ScannerContent state={state} actions={actions} />
+      <ScannerContent state={state} actions={actions} notify={notify} />
     </ScreenScroll>
   );
 }
 
-function IPadScanner({ go, state, actions }: ShellProps) {
+function IPadScanner({ go, state, actions, notify }: ShellProps) {
   return (
     <View style={styles.ipadScanner}>
       <ScrollView style={styles.scannerPreviewPane} contentContainerStyle={styles.detailContent}>
         <BackBar title="Scan Schedule" back={() => go("home")} />
-        <ScannerContent state={state} actions={actions} previewOnly />
+        <ScannerContent state={state} actions={actions} notify={notify} previewOnly />
       </ScrollView>
       <View style={styles.scannerReviewPane}>
-        <Panel title="Detected Classes">
-          {["Biology 101, Room B204", "Calculus II, Room M112", "English Literature, Room H310"].map((line) => <MiniLine key={line} text={line} />)}
+        <Panel title="Reviewed Classes">
+          {state.classes.slice(0, 4).map((klass) => <MiniLine key={klass.id} text={`${klass.title}, Room ${klass.room}`} />)}
         </Panel>
-        <Panel title="Detected Tasks">
-          {["Problem Set 4, Today", "Lab Report, Tomorrow", "Essay draft, Friday"].map((line) => <MiniLine key={line} text={line} />)}
+        <Panel title="Reviewed Tasks">
+          {selectCatchUpQueue(state).slice(0, 4).map((task) => <MiniLine key={task.id} text={`${task.title}, ${dueLabel(task)}`} />)}
         </Panel>
       </View>
     </View>
   );
 }
 
-function ScannerContent({ state, actions, previewOnly = false }: { state: AppState; actions: StudyPlannerActions; previewOnly?: boolean }) {
-  const steps = ["Reading schedule", "Finding classes", "Finding rooms", "Finding due dates", "Creating reminders", "Building dashboard"];
-  const visibleStep = state.scannerState.status === "idle" ? 0 : state.scannerState.stepIndex;
+function ScannerContent({ state, actions, notify, previewOnly = false }: { state: AppState; actions: StudyPlannerActions; notify: (message: string) => void; previewOnly?: boolean }) {
+  const { t } = useI18n();
+  const [syllabusText, setSyllabusText] = useState("");
+  const [noteText, setNoteText] = useState("");
+  const [working, setWorking] = useState<"syllabus" | "file" | "note" | null>(null);
+  const [scanMessage, setScanMessage] = useState("");
+  const [lastApplySummary, setLastApplySummary] = useState<{ classes: number; tasks: number; exams: number } | null>(null);
+  const activeParse = state.activeParseResult;
+  const activeDraft = state.noteScanDrafts[0];
+  const cameraCapability = featureCapabilities.cameraOcr;
+  const uploadCapability = featureCapabilities.fileUpload;
+  const canParseImages = hasNativeImageTextRecognition() || supportsSyllabusImageParsing();
+  const parsedRows = activeParse?.assignments ?? [];
+  const validRows = parsedRows.filter((item) => item.dueAt && !Number.isNaN(new Date(item.dueAt).getTime()));
+  const examRows = parsedRows.filter((item) => item.kind === "exam" || item.type === "exam");
+  const importStep = lastApplySummary ? "live" : working ? "extract" : activeParse ? "review" : "import";
+
+  const parseTypedSyllabus = async () => {
+    setWorking("syllabus");
+    setScanMessage(t("import.reading_import", "Reading your import"));
+    try {
+      const parsedImport = createParsedImportFromTypedText(syllabusText, t("import.typed_school_material", "Typed school material"));
+      const result = await parseCapturedSource(parsedImport, { kind: "typed", text: syllabusText, name: parsedImport.title }, {
+        parseSyllabusSource: parseSyllabus,
+        existingParsedItems: state.parsedItems
+      });
+      actions.upsertParsedImport(result.parsedImport);
+      actions.upsertParsedItemsForImport(result.parsedImport.id, result.parsedItems);
+      actions.setActiveParseResult(result.parseResult);
+      setLastApplySummary(null);
+      setScanMessage(formatLocal(t("import.review_work_note", "{count} found. Edit, confirm, then add to Today."), { count: result.parsedItems.length }));
+      notify(t("import.status_parsed", "Ready to review"));
+    } catch (error) {
+      const message = normalizeParserError(error);
+      setScanMessage(message);
+      notify(message);
+    } finally {
+      setWorking(null);
+    }
+  };
+
+  const uploadSyllabusFile = async () => {
+    setWorking("file");
+    setScanMessage(t("import.pick_file_status", "Choose a PDF or text file."));
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["application/pdf", "text/plain"],
+        copyToCacheDirectory: true
+      });
+      if (result.canceled) {
+        setScanMessage(t("import.picker_cancelled", "Import cancelled. No planner data changed."));
+        return;
+      }
+      const asset = result.assets[0];
+      if (!asset) return;
+      validateDocumentAsset({ uri: asset.uri, name: asset.name, mimeType: asset.mimeType, size: (asset as { size?: number }).size });
+      const parsedImport = createParsedImportFromDocumentAsset({ uri: asset.uri, name: asset.name, mimeType: asset.mimeType, size: (asset as { size?: number }).size });
+      const parsed = await parseCapturedSource(parsedImport, {
+        kind: "pdf",
+        uri: asset.uri,
+        name: asset.name,
+        mimeType: asset.mimeType
+      }, {
+        parseSyllabusSource: parseSyllabus,
+        existingParsedItems: state.parsedItems
+      });
+      actions.upsertParsedImport(parsed.parsedImport);
+      actions.upsertParsedItemsForImport(parsed.parsedImport.id, parsed.parsedItems);
+      actions.setActiveParseResult(parsed.parseResult);
+      setLastApplySummary(null);
+      setScanMessage(formatLocal(t("import.review_work_note", "{count} found. Edit, confirm, then add to Today."), { count: parsed.parsedItems.length }));
+      notify(t("import.status_parsed", "Ready to review"));
+    } catch (error) {
+      const message = normalizeParserError(error);
+      setScanMessage(message);
+      notify(message);
+    } finally {
+      setWorking(null);
+    }
+  };
+
+  const parsePhotoAsset = async (asset: ImagePicker.ImagePickerAsset, sourceName: string) => {
+    const parsedImport = createParsedImportFromCameraAsset({
+      uri: asset.uri,
+      name: asset.fileName || sourceName,
+      mimeType: asset.mimeType || "image/jpeg"
+    });
+    const parsed = await parseCapturedSource(parsedImport, {
+      kind: "photo",
+      uri: asset.uri,
+      name: parsedImport.title,
+      mimeType: parsedImport.mimeType
+    }, {
+      parseSyllabusSource: parseSyllabus,
+      existingParsedItems: state.parsedItems
+    });
+    actions.upsertParsedImport(parsed.parsedImport);
+    actions.upsertParsedItemsForImport(parsed.parsedImport.id, parsed.parsedItems);
+    actions.setActiveParseResult(parsed.parseResult);
+    setLastApplySummary(null);
+    setScanMessage(formatLocal(t("import.review_work_note", "{count} found. Edit, confirm, then add to Today."), { count: parsed.parsedItems.length }));
+    notify(t("import.status_parsed", "Ready to review"));
+  };
+
+  const captureSyllabusPhoto = async () => {
+    if (!canParseImages) {
+      const message = t("import.photo_disabled_message", "Camera OCR needs the iOS Vision OCR build or a configured parser endpoint with image parsing enabled.");
+      setScanMessage(message);
+      notify(message);
+      return;
+    }
+    setWorking("file");
+    setScanMessage(t("import.camera_ready_status", "Open camera and capture one syllabus page."));
+    try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        setScanMessage(t("permissions.camera", "Camera permission is required to scan a syllabus photo."));
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ["images"],
+        allowsEditing: false,
+        quality: 0.92
+      });
+      if (result.canceled || !result.assets[0]) {
+        setScanMessage(t("import.picker_cancelled", "Import cancelled. No planner data changed."));
+        return;
+      }
+      setScanMessage(t("import.reading_import", "Reading your import"));
+      await parsePhotoAsset(result.assets[0], t("import.camera_photo", "Camera syllabus photo"));
+    } catch (error) {
+      const message = normalizeParserError(error);
+      setScanMessage(message);
+      notify(message);
+    } finally {
+      setWorking(null);
+    }
+  };
+
+  const chooseSyllabusPhoto = async () => {
+    if (!canParseImages) {
+      const message = t("import.photo_disabled_message", "Photo OCR needs the iOS Vision OCR build or a configured parser endpoint with image parsing enabled.");
+      setScanMessage(message);
+      notify(message);
+      return;
+    }
+    setWorking("file");
+    setScanMessage(t("import.pick_photo_status", "Choose a syllabus photo."));
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        setScanMessage(t("permissions.photos", "Photo library permission is required to import a syllabus photo."));
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: false,
+        quality: 1
+      });
+      if (result.canceled || !result.assets[0]) {
+        setScanMessage(t("import.picker_cancelled", "Import cancelled. No planner data changed."));
+        return;
+      }
+      setScanMessage(t("import.reading_import", "Reading your import"));
+      await parsePhotoAsset(result.assets[0], t("import.photo_library_source", "Syllabus photo"));
+    } catch (error) {
+      const message = normalizeParserError(error);
+      setScanMessage(message);
+      notify(message);
+    } finally {
+      setWorking(null);
+    }
+  };
+
+  const scanNotes = () => {
+    setWorking("note");
+    try {
+      const result = scanStudyNoteText(noteText, t("notes.scanned_note", "Scanned notes"));
+      const task = result.taskCandidates[0];
+      const draft = {
+        id: `note-scan-${Date.now()}`,
+        title: result.title,
+        classId: state.classes[0]?.id ?? "",
+        body: result.body,
+        summary: result.summary,
+        keyIdeas: result.keyIdeas,
+        tags: result.tags,
+        taskTitle: task?.title,
+        taskDueDate: task?.dueDate,
+        taskDueTime: task?.dueTime,
+        sourceName: t("notes.scanned_note", "Scanned notes"),
+        createdAt: new Date().toISOString()
+      };
+      actions.addNoteScanDraft(draft);
+      setScanMessage(formatLocal(t("notes.scan_ready", "{count} key ideas ready to save."), { count: result.keyIdeas.length }));
+      notify(t("notes.scan_ready_short", "Note scan ready"));
+    } catch (error) {
+      const message = normalizeParserError(error);
+      setScanMessage(message);
+      notify(message);
+    } finally {
+      setWorking(null);
+    }
+  };
+
+  const applyParsedPlan = () => {
+    if (!activeParse) {
+      setScanMessage(t("import.add_reviewed_before_today", "Add at least one reviewed item before sending work to Today."));
+      return;
+    }
+    actions.applyParsedSyllabus(activeParse);
+    setLastApplySummary({ classes: activeParse.courses.length, tasks: validRows.length, exams: examRows.length });
+    setScanMessage(formatLocal(
+      t("import.dashboard_alive", "Dashboard is live: {classes} classes and {items} reviewed items are now connected to Today, Calendar, Notes, and Widgets."),
+      { classes: activeParse.courses.length, items: validRows.length }
+    ));
+    notify(t("import.status_applied", "Applied"));
+  };
+
+  const applyNoteDraft = () => {
+    if (!activeDraft) return;
+    actions.applyNoteScanDraft(activeDraft.id);
+    setNoteText("");
+    notify(t("notes.save_note", "Save note"));
+  };
+
   return (
     <View>
+      <ImportStatusCard
+        step={importStep}
+        title={lastApplySummary ? t("import.dashboard_updated", "Dashboard comes alive") : activeParse ? t("import.status_parsed", "Ready to review") : t("import.title_short", "Import school material")}
+        detail={lastApplySummary ? t("import.dashboard_updated_detail", "Classes, tasks, exams, calendar, and widgets now share the reviewed import.") : canParseImages ? t("import.vision_ready", "Camera, photo, PDF, and paste imports are available for review.") : t("import.photo_disabled_message", "Photo OCR needs the iOS Vision OCR build or a configured parser endpoint with image parsing enabled.")}
+        counts={[
+          { label: "classes", value: lastApplySummary?.classes ?? activeParse?.courses.length ?? state.classes.length },
+          { label: "tasks", value: lastApplySummary?.tasks ?? validRows.length },
+          { label: "exams", value: lastApplySummary?.exams ?? examRows.length }
+        ]}
+      />
       <View style={styles.scanChoiceRow}>
-        <TouchableOpacity style={styles.secondaryButton} onPress={actions.runScannerDemo}><Text style={styles.secondaryButtonText}>Scan</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.secondaryButton} onPress={actions.markScannerComplete}><Text style={styles.secondaryButtonText}>Upload</Text></TouchableOpacity>
+        <TouchableOpacity style={[styles.secondaryButton, !canParseImages ? styles.disabledButton : null]} onPress={captureSyllabusPhoto} disabled={working !== null || !canParseImages}>
+          <Text style={canParseImages ? styles.secondaryButtonText : styles.disabledButtonText}>{working === "file" ? t("import.status_processing", "Processing") : cameraCapability.label}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.secondaryButton, !canParseImages ? styles.disabledButton : null]} onPress={chooseSyllabusPhoto} disabled={working !== null || !canParseImages}>
+          <Text style={canParseImages ? styles.secondaryButtonText : styles.disabledButtonText}>{t("import.photo_library", "Photo")}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.secondaryButton} onPress={uploadSyllabusFile} disabled={working !== null}>
+          <Text style={styles.secondaryButtonText}>{working === "file" ? t("import.reading_import", "Reading your import") : uploadCapability.label}</Text>
+        </TouchableOpacity>
       </View>
       <View style={[styles.cameraCard, previewOnly ? styles.padCameraCard : null]}>
         <View style={styles.scanFrame}>
@@ -785,16 +1702,60 @@ function ScannerContent({ state, actions, previewOnly = false }: { state: AppSta
           <View style={styles.scanCornerBottom} />
           <ScanLine size={54} color={T["--blue"]} />
         </View>
-        <Text style={styles.cameraTitle}>Reading schedule</Text>
+        <Text style={styles.cameraTitle}>{t("import.title", "Turn school material into reviewed assignments.")}</Text>
+        <Text style={styles.cameraSub}>{canParseImages ? cameraCapability.backing : t("import.photo_disabled_message", "Photo OCR needs the iOS Vision OCR build or a configured parser endpoint with image parsing enabled.")} {uploadCapability.backing}.</Text>
       </View>
       <View style={styles.whiteCard}>
-        {steps.map((step, index) => (
-          <View key={step} style={styles.progressStep}>
-            <View style={[styles.progressDot, index <= visibleStep ? styles.progressDone : null]} />
-            <Text style={styles.progressText}>{step}</Text>
+        <Text style={styles.readyText}>{t("import.type_it_in", "Type It In")}</Text>
+        <TextInput
+          value={syllabusText}
+          onChangeText={setSyllabusText}
+          placeholder={t("import.paste_placeholder", "Paste syllabus lines or assignment dates...")}
+          placeholderTextColor={T["--muted"]}
+          style={styles.scanTextArea}
+          multiline
+          textAlignVertical="top"
+        />
+        <TouchableOpacity style={styles.primaryButton} onPress={parseTypedSyllabus} disabled={working !== null}>
+          <Text style={styles.primaryButtonText}>{working === "syllabus" ? t("import.finding_work", "Finding assignments, dates, classes, and grade weights.") : t("import.review_pasted_text", "Review pasted text")}</Text>
+        </TouchableOpacity>
+        <Text style={styles.readyText}>{activeParse ? formatLocal(t("import.found_count_status", "{count} found · {status}"), { count: parsedRows.length, status: t("import.status_parsed", "Ready to review") }) : t("import.no_silent_import", "No silent import")}</Text>
+        <View style={styles.scannerReviewList}>
+          {activeParse?.courses.slice(0, 3).map((course) => <MiniLine key={course.id} text={`${course.code} · ${course.name}`} />)}
+          {parsedRows.slice(0, 5).map((item) => <MiniLine key={item.id} text={`${item.title} · ${item.dueAt ? item.dueAt.slice(0, 10) : t("import.needs_date", "needs date")}`} />)}
+          {!activeParse ? state.parsedImports.slice(0, 3).map((item) => <MiniLine key={item.id} text={`${item.title} · ${statusLabel(item.status, t)}`} />) : null}
+        </View>
+        <TouchableOpacity style={[styles.primaryButton, !activeParse || validRows.length === 0 ? styles.disabledButton : null]} onPress={applyParsedPlan} disabled={!activeParse || validRows.length === 0}>
+          <Text style={styles.primaryButtonText}>{activeParse ? formatLocal(t("import.add_reviewed_items", "Add {count} reviewed items to Today"), { count: validRows.length }) : t("import.review_work", "Review work")}</Text>
+        </TouchableOpacity>
+        {scanMessage ? <Text style={styles.smartOutput}>{scanMessage}</Text> : null}
+      </View>
+      <View style={styles.whiteCard}>
+        <Text style={styles.readyText}>{t("notes.scan_title", "Scan notes")}</Text>
+        <TextInput
+          value={noteText}
+          onChangeText={setNoteText}
+          placeholder={t("notes.scan_placeholder", "Paste class notes, board text, or homework details...")}
+          placeholderTextColor={T["--muted"]}
+          style={styles.scanTextArea}
+          multiline
+          textAlignVertical="top"
+        />
+        <View style={styles.actionRow}>
+          <TouchableOpacity style={styles.secondaryButton} onPress={scanNotes} disabled={working !== null}>
+            <Text style={styles.secondaryButtonText}>{working === "note" ? t("import.status_processing", "Processing") : t("notes.scan_review", "Review note scan")}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.secondaryButton, !activeDraft ? styles.disabledButton : null]} onPress={applyNoteDraft} disabled={!activeDraft}>
+            <Text style={activeDraft ? styles.secondaryButtonText : styles.disabledButtonText}>{t("notes.save_note", "Save note")}</Text>
+          </TouchableOpacity>
+        </View>
+        {activeDraft ? (
+          <View style={styles.scannerReviewList}>
+            <MiniLine text={activeDraft.title} />
+            <MiniLine text={activeDraft.summary} />
+            {activeDraft.taskTitle ? <MiniLine text={`${t("notes.convert_to_task", "Make task")}: ${activeDraft.taskTitle}`} /> : null}
           </View>
-        ))}
-        <Text style={styles.readyText}>{state.scannerState.status === "complete" ? "Planner ready" : "Scanner running"}</Text>
+        ) : null}
       </View>
     </View>
   );
@@ -822,29 +1783,37 @@ function IPadCalendar(props: ShellProps) {
 
 function CalendarBlocks({ state, compact = false }: { state?: AppState; compact?: boolean }) {
   const schedule = state ? selectTodayClasses(state) : [];
-  const firstTask = state ? selectTodayTasks(state)[0] : null;
+  const todayTasks = state ? selectTodayTasks(state).filter((task) => !task.completed) : [];
+  const nextExam = state ? selectUpcomingExams(state)[0] : null;
   return (
     <View>
-      <View style={styles.segmentStatic}>
-        <Text style={styles.segmentStaticActive}>Day</Text>
-        <Text style={styles.segmentStaticText}>Week</Text>
-      </View>
-      {schedule.map((item, index) => (
+      {!schedule.length && !todayTasks.length && !nextExam ? <EmptyState title="No classes or deadlines today" copy="Classes, assignments, exams, and reminders appear here after your first import." /> : null}
+      {schedule.map((item) => (
         <View key={`${item.title}-calendar`} style={[styles.calendarBlock, compact ? styles.calendarBlockCompact : null, { borderLeftColor: accentMap[item.accent].color }]}>
           <Text style={styles.calendarTime}>{formatTime(item.startTime)}</Text>
           <View style={styles.flex1}>
             <Text style={styles.calendarTitle}>{item.title}</Text>
-            <Text style={styles.calendarSub}>Room {item.room}</Text>
+            <Text style={styles.calendarSub}>Room {item.room} · {reminderLabel(item.reminderSettings)}</Text>
           </View>
-          {index === 1 ? <Text style={styles.priorityPill}>Test prep</Text> : null}
+          {nextExam?.classId === item.id ? <Text style={styles.priorityPill}>{nextExam.title}</Text> : null}
         </View>
       ))}
-      {firstTask ? (
-        <View style={[styles.calendarBlock, { borderLeftColor: T["--rose"] }]}>
-          <Text style={styles.calendarTime}>{formatTime(firstTask.dueTime)}</Text>
+      {todayTasks.map((task) => (
+        <View key={`calendar-task-${task.id}`} style={[styles.calendarBlock, compact ? styles.calendarBlockCompact : null, { borderLeftColor: priorityColor(task.priority) }]}>
+          <Text style={styles.calendarTime}>{formatTime(task.dueTime)}</Text>
           <View style={styles.flex1}>
-            <Text style={styles.calendarTitle}>{firstTask.title} due</Text>
-            <Text style={styles.calendarSub}>{classTitle(state!, firstTask)}</Text>
+            <Text style={styles.calendarTitle}>{task.title} due</Text>
+            <Text style={styles.calendarSub}>{classTitle(state!, task)} · {task.type} · {task.reminder}</Text>
+          </View>
+          <Text style={[styles.priorityPill, { color: priorityColor(task.priority) }]}>{task.priority}</Text>
+        </View>
+      ))}
+      {nextExam ? (
+        <View style={[styles.calendarBlock, compact ? styles.calendarBlockCompact : null, { borderLeftColor: T["--rose"] }]}>
+          <Text style={styles.calendarTime}>{formatTime(nextExam.time)}</Text>
+          <View style={styles.flex1}>
+            <Text style={styles.calendarTitle}>{nextExam.title}</Text>
+            <Text style={styles.calendarSub}>{selectClassById(state!, nextExam.classId)?.title ?? "Exam"} · {nextExam.date}</Text>
           </View>
         </View>
       ) : null}
@@ -861,6 +1830,47 @@ function ProfileScreen(props: ShellProps) {
   );
 }
 
+function SubscribeScreen({ go }: ShellProps) {
+  const { t } = useI18n();
+  const subscription = useSubscription();
+  const selectedProduct = subscription.products.find((product) => product.id === subscription.selectedProductId) ?? subscription.products[0];
+  const buy = async () => {
+    if (selectedProduct) {
+      await subscription.purchase(selectedProduct.id);
+    } else {
+      await subscription.manageSubscriptions();
+    }
+  };
+
+  return (
+    <ScreenScroll>
+      <BackBar title={t("entitlement_gate.unlock_title", "Unlock StudyPlanner: Syllabus AI")} back={() => go("home")} />
+      <View style={styles.profileHero}>
+        <Text style={styles.detailTitle}>{t("paywall.dashboard_ready_title", "Your semester command center is ready.")}</Text>
+        <Text style={styles.detailSub}>{t("entitlement_gate.unlock_copy", "Subscribe or restore purchases to use the full app.")}</Text>
+      </View>
+      <Panel title={t("paywall.included_with_studyplanner", "Included with StudyPlanner")}>
+        <MiniLine text={t("paywall.feature_scans", "Unlimited syllabus scans")} />
+        <MiniLine text={t("paywall.feature_recommended_widgets", "Recommended widgets")} />
+        <MiniLine text={t("paywall.feature_forecast", "Semester forecast")} />
+      </Panel>
+      <View style={styles.formCard}>
+        <Text style={styles.readyText}>
+          {selectedProduct ? `${selectedProduct.title} · ${selectedProduct.displayPrice}` : t("paywall.loading_current_store_pricing", "Loading current store pricing")}
+        </Text>
+        {subscription.errorMessage ? <Text style={styles.smartOutput}>{subscription.errorMessage}</Text> : null}
+        {subscription.message ? <Text style={styles.smartOutput}>{subscription.message}</Text> : null}
+        <TouchableOpacity style={styles.primaryButton} onPress={buy}>
+          <Text style={styles.primaryButtonText}>{t("paywall.subscribe", "Subscribe")}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.secondaryButton} onPress={subscription.restore}>
+          <Text style={styles.secondaryButtonText}>{subscription.flowState === "restoring" ? t("paywall.restoring", "Restoring") : t("paywall.restore", "Restore Purchases")}</Text>
+        </TouchableOpacity>
+      </View>
+    </ScreenScroll>
+  );
+}
+
 function IPadProfile(props: ShellProps) {
   return (
     <ScrollView style={styles.padScroll} contentContainerStyle={styles.detailContent}>
@@ -872,20 +1882,63 @@ function IPadProfile(props: ShellProps) {
 
 function ProfileContent({ state, settings, actions, go }: ShellProps) {
   const set = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => actions.updateAppSettings({ [key]: value });
+  const [name, setName] = useState(state.student.name);
+  const [school, setSchool] = useState(state.student.school);
+  const [year, setYear] = useState(state.student.year);
+  const [semester, setSemester] = useState(state.student.semester);
+  const donePercent = selectDonePercentToday(state);
+  const pulse = selectHomeDashboardModel(state).pulse;
+  const activePreset = studioPresets.find((preset) => preset.patch.widgetType === state.widgetSettings.nextClass.widgetType) ?? { label: "Academic" };
+  const saveProfile = () => {
+    actions.updateStudent({
+      name: name.trim() || state.student.name,
+      school: school.trim() || state.student.school,
+      year: year.trim() || state.student.year,
+      semester: semester.trim() || state.student.semester
+    });
+  };
   return (
     <View>
       <View style={styles.profileHero}>
-        <View style={styles.profileAvatar}><Text style={styles.profileInitials}>MR</Text></View>
+        <View style={styles.profileAvatar}><Text style={styles.profileInitials}>{appInitials(state.student.name)}</Text></View>
         <Text style={styles.detailTitle}>{state.student.name}</Text>
         <Text style={styles.detailSub}>{state.student.school}</Text>
+        <View style={styles.profileStatsRow}>
+          <StatPill label="classes" value={String(state.classes.length)} accentColor={T["--blue"]} />
+          <StatPill label="today done" value={`${donePercent}%`} accentColor={T["--mint"]} />
+          <StatPill label="pulse" value={`${pulse.score}%`} accentColor={pulse.score < 60 ? T["--rose"] : T["--blue"]} />
+        </View>
       </View>
-      <Panel title="Account"><MiniLine text={state.student.name} /><MiniLine text={state.student.year} /></Panel>
-      <Panel title="School Profile"><MiniLine text={state.student.school} /><MiniLine text={state.student.semester} /></Panel>
+      <View style={styles.formCard}>
+        <LabeledInput label="Name" value={name} setValue={setName} placeholder="Student name" />
+        <LabeledInput label="School" value={school} setValue={setSchool} placeholder="School" />
+        <LabeledInput label="Year" value={year} setValue={setYear} placeholder="Year" />
+        <LabeledInput label="Semester" value={semester} setValue={setSemester} placeholder="Semester" />
+        <TouchableOpacity style={styles.primaryButton} onPress={saveProfile}><Text style={styles.primaryButtonText}>Save profile</Text></TouchableOpacity>
+      </View>
       <Panel title="Reminder Defaults">
-        <PickerRow label="Default class reminder" values={["Off", "5 min before", "10 min before", "15 min before", "30 min before"]} value={settings.defaultClassReminder ? `${settings.defaultClassReminder} min before` : "Off"} onPress={(value) => set("defaultClassReminder", reminderMinutes(value))} />
+        <PickerRow label="Default class reminder" values={["Off", "5 min before", "10 min before", "15 min before", "30 min before", "1 hour before"]} value={settings.defaultClassReminder === 60 ? "1 hour before" : settings.defaultClassReminder ? `${settings.defaultClassReminder} min before` : "Off"} onPress={(value) => set("defaultClassReminder", reminderMinutes(value))} />
         <ToggleLine label="Show room in reminder" value={settings.showRoomInReminder} onValueChange={(value) => set("showRoomInReminder", value)} />
       </Panel>
-      <Panel title="Widget Defaults"><MiniLine text="Liquid Glass widgets enabled" /><MiniLine text="Saved styles apply to iPhone and iPad" /></Panel>
+      <Panel title="Semester Progress">
+        <SurfaceCard compact>
+          <View style={styles.rowBetween}>
+            <View style={styles.flex1}>
+              <Text style={styles.cardTitle}>{state.student.semester}</Text>
+              <Text style={styles.cardSub}>{state.tasks.filter((task) => task.completed).length} completed tasks · {state.exams.length} exams tracked</Text>
+            </View>
+            <ProgressRing value={pulse.score} accentColor={pulse.score < 60 ? T["--rose"] : T["--blue"]} label="pulse" />
+          </View>
+        </SurfaceCard>
+      </Panel>
+      <Panel title="Customization">
+        <MiniLine text={`Theme controls: ${settings.highContrast ? "high contrast" : "standard contrast"}, ${settings.reduceTransparency ? "reduced glass" : "liquid glass"}`} />
+        <MiniLine text={`Widget preset: ${activePreset.label}`} />
+        <TouchableOpacity style={styles.watchAccessButton} onPress={() => go("studio")}>
+          <Text style={styles.primaryButtonText}>Open Widget Studio</Text>
+        </TouchableOpacity>
+      </Panel>
+      <Panel title="Widget Defaults"><MiniLine text="Home Screen widgets sync from Widget Studio" /><MiniLine text="Lock Screen metadata syncs when native bridge is available" /></Panel>
       <Panel title="Watch Settings">
         <TouchableOpacity style={styles.watchAccessButton} onPress={() => go("watchPreview")}>
           <Text style={styles.primaryButtonText}>Apple Watch</Text>
@@ -1001,22 +2054,24 @@ function LiquidBackdrop({ accent, radius, muted }: { accent: Accent; radius: num
 }
 
 function IPadSidebar({ active, go }: { active: PadTab; go: (route: Route) => void }) {
-  const items: Array<[PadTab, string, React.ComponentType<{ size?: number; color?: string }>]> = [
-    ["home", "Home", Home],
-    ["classes", "Classes", BookOpen],
-    ["tasks", "Tasks", Check],
-    ["notes", "Notes", FileText],
-    ["calendar", "Calendar", CalendarDays],
-    ["profile", "Profile", User]
+  const { t } = useI18n();
+  const tabs: Array<{ id: PadTab; labelKey: string; fallback: string; Icon: React.ComponentType<{ size?: number; color?: string }> }> = [
+    { id: "home", labelKey: "tabs.home", fallback: "Home", Icon: Home },
+    { id: "classes", labelKey: "tabs.schedule", fallback: "Schedule", Icon: CalendarDays },
+    { id: "tasks", labelKey: "tabs.tasks", fallback: "Tasks", Icon: Check },
+    { id: "notes", labelKey: "tabs.notes", fallback: "Notes", Icon: FileText },
+    { id: "calendar", labelKey: "tabs.calendar", fallback: "Calendar", Icon: CalendarDays },
+    { id: "profile", labelKey: "tabs.profile", fallback: "Profile", Icon: User }
   ];
   return (
     <View style={styles.sidebar}>
       <Text style={styles.sidebarTitle}>StudyPlanner</Text>
-      {items.map(([id, label, Icon]) => {
-        const selected = active === id;
+      {tabs.map((tab) => {
+        const selected = active === tab.id;
+        const label = labelForTab(tab.id, t) || t(tab.labelKey, tab.fallback);
         return (
-          <TouchableOpacity key={id} accessibilityLabel={label} style={[styles.sidebarItem, selected ? styles.sidebarItemActive : null]} onPress={() => go(id)}>
-            <Icon size={20} color={selected ? T["--surface"] : T["--muted"]} />
+          <TouchableOpacity key={tab.id} accessibilityLabel={label} style={[styles.sidebarItem, selected ? styles.sidebarItemActive : null]} onPress={() => go(tab.id)}>
+            <tab.Icon size={20} color={selected ? T["--surface"] : T["--muted"]} />
             <Text style={[styles.sidebarLabel, selected ? styles.sidebarLabelActive : null]}>{label}</Text>
           </TouchableOpacity>
         );
@@ -1026,20 +2081,22 @@ function IPadSidebar({ active, go }: { active: PadTab; go: (route: Route) => voi
 }
 
 function PhoneTabBar({ active, go }: { active: PhoneTab; go: (route: Route) => void }) {
-  const items: Array<[PhoneTab, string, React.ComponentType<{ size?: number; color?: string }>]> = [
-    ["home", "Home", Home],
-    ["classes", "Classes", BookOpen],
-    ["tasks", "Tasks", Check],
-    ["notes", "Notes", FileText],
-    ["profile", "Profile", User]
+  const { t } = useI18n();
+  const tabs: Array<{ id: PhoneTab; labelKey: string; fallback: string; Icon: React.ComponentType<{ size?: number; color?: string }> }> = [
+    { id: "home", labelKey: "tabs.home", fallback: "Home", Icon: Home },
+    { id: "classes", labelKey: "tabs.schedule", fallback: "Schedule", Icon: CalendarDays },
+    { id: "tasks", labelKey: "tabs.tasks", fallback: "Tasks", Icon: Check },
+    { id: "notes", labelKey: "tabs.notes", fallback: "Notes", Icon: FileText },
+    { id: "profile", labelKey: "tabs.profile", fallback: "Profile", Icon: User }
   ];
   return (
     <View style={styles.tabBar}>
-      {items.map(([id, label, Icon]) => {
-        const selected = active === id;
+      {tabs.map((tab) => {
+        const selected = active === tab.id;
+        const label = labelForTab(tab.id, t) || t(tab.labelKey, tab.fallback);
         return (
-          <TouchableOpacity key={id} accessibilityLabel={label} style={styles.tabItem} onPress={() => go(id)}>
-            <Icon size={23} color={selected ? T["--text"] : T["--muted"]} />
+          <TouchableOpacity key={tab.id} accessibilityLabel={label} style={styles.tabItem} onPress={() => go(tab.id)}>
+            <tab.Icon size={23} color={selected ? T["--text"] : T["--muted"]} />
             <Text style={[styles.tabLabel, selected ? styles.tabLabelActive : null]}>{label}</Text>
           </TouchableOpacity>
         );
@@ -1049,13 +2106,13 @@ function PhoneTabBar({ active, go }: { active: PhoneTab; go: (route: Route) => v
 }
 
 function ActionSheet({ open, close, go, isPad }: { open: boolean; close: () => void; go: (route: Route) => void; isPad: boolean }) {
-  const actions: Array<[string, Route, React.ComponentType<{ size?: number; color?: string }>, Accent]> = [
-    ["Scan schedule", "scanner", ScanLine, "blue"],
-    ["Add class", "classes", BookOpen, "mint"],
-    ["Add task", "addTask", Check, "orange"],
-    ["Add note", "noteEditor", NotebookPen, "violet"],
-    ["Add reminder", "calendar", Bell, "cyan"]
-  ];
+  type SheetAction = [FeatureCapabilityId, Route, React.ComponentType<{ size?: number; color?: string }>, Accent];
+  const actions = ([
+    ["plannerReview", "scanner", ScanLine, "blue"],
+    ["addTask", "addTask", Check, "orange"],
+    ["addNote", "noteEditor", NotebookPen, "violet"],
+    ["widgetStudio", "studio", Grid2X2, "blue"]
+  ] satisfies SheetAction[]).filter(([id]) => featureCapabilities[id].state === "available");
   return (
     <Modal visible={open} transparent animationType={isPad ? "fade" : "slide"} onRequestClose={close}>
       <View style={[styles.modalRoot, isPad ? styles.modalRootPad : null]}>
@@ -1070,12 +2127,12 @@ function ActionSheet({ open, close, go, isPad }: { open: boolean; close: () => v
             <TouchableOpacity style={styles.closeButton} onPress={close}><X size={18} color={T["--text"]} /></TouchableOpacity>
           </View>
           <View style={styles.sheetGrid}>
-            {actions.map(([label, route, Icon, accent]) => (
-              <TouchableOpacity key={label} style={styles.sheetItem} onPress={() => go(route)}>
+            {actions.map(([id, route, Icon, accent]) => (
+              <TouchableOpacity key={id} style={styles.sheetItem} onPress={() => go(route)}>
                 <View style={[styles.sheetIcon, { backgroundColor: accentMap[accent].pale }]}>
                   <Icon size={22} color={accentMap[accent].color} />
                 </View>
-                <Text style={styles.sheetItemText}>{label}</Text>
+                <Text style={styles.sheetItemText}>{featureCapabilities[id].label}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -1181,11 +2238,17 @@ function ScreenScroll({ children, stickyFooter }: { children: React.ReactNode; s
   );
 }
 
-function TopBar({ title, actionLabel, onAction }: { title: string; actionLabel?: string; onAction?: () => void }) {
+function TopBar({ title, actionLabel, actionAccessibilityLabel, onAction }: { title: string; actionLabel?: string; actionAccessibilityLabel?: string; onAction?: () => void }) {
   return (
     <View style={styles.topBar}>
       <Text style={styles.screenTitle}>{title}</Text>
-      {actionLabel && onAction ? <TouchableOpacity style={styles.topAction} onPress={onAction}><Text style={styles.topActionText}>{actionLabel}</Text></TouchableOpacity> : <View style={styles.topSpacer} />}
+      {actionLabel && onAction ? (
+        actionAccessibilityLabel === "Open calendar" ? (
+          <TouchableOpacity accessibilityLabel="Open calendar" style={styles.topAction} onPress={onAction}><Text style={styles.topActionText}>{actionLabel}</Text></TouchableOpacity>
+        ) : (
+          <TouchableOpacity accessibilityLabel={actionAccessibilityLabel ?? actionLabel} style={styles.topAction} onPress={onAction}><Text style={styles.topActionText}>{actionLabel}</Text></TouchableOpacity>
+        )
+      ) : <View style={styles.topSpacer} />}
     </View>
   );
 }
@@ -1228,14 +2291,15 @@ function ClassCard({ state, klass, selected, onPress, compact = false }: { state
 }
 
 function TaskCard({ state, task, onPress, selected, compact = false }: { state: AppState; task: Task; onPress: () => void; selected?: boolean; compact?: boolean }) {
+  const urgencyColor = task.completed ? T["--mint"] : priorityColor(task.priority);
   return (
     <TouchableOpacity style={[styles.taskCard, selected ? styles.selectedCard : null, compact ? styles.compactTaskCard : null]} onPress={onPress}>
-      <View style={[styles.checkbox, task.completed ? styles.checkboxDone : null]}>{task.completed ? <Check size={16} color={T["--surface"]} /> : null}</View>
+      <View style={[styles.checkbox, { borderColor: urgencyColor }, task.completed ? styles.checkboxDone : null]}>{task.completed ? <Check size={16} color={T["--surface"]} /> : null}</View>
       <View style={styles.flex1}>
         <Text style={[styles.cardTitle, task.completed ? styles.doneText : null]}>{task.title}</Text>
         <Text style={styles.cardSub}>{classTitle(state, task)} · {dueLabel(task)} · {task.reminder}</Text>
       </View>
-      <Text style={[styles.priorityPill, task.priority === "High" ? styles.priorityHigh : null]}>{task.priority}</Text>
+      <StatPill label={task.type} value={task.priority} accentColor={urgencyColor} />
     </TouchableOpacity>
   );
 }
@@ -1476,17 +2540,128 @@ function isPadTab(route: Route): route is PadTab {
   return ["home", "classes", "tasks", "notes", "calendar", "profile"].includes(route);
 }
 
+function requiresPremiumRoute(route: Route) {
+  return route === "scanner" || route === "studio";
+}
+
+function labelForTab(tab: PadTab, t: (key: string, fallback?: string) => string) {
+  const keyByTab: Record<PadTab, [string, string]> = {
+    home: ["tabs.home", "Home"],
+    classes: ["tabs.schedule", "Schedule"],
+    tasks: ["tabs.tasks", "Tasks"],
+    notes: ["tabs.notes", "Notes"],
+    calendar: ["tabs.calendar", "Calendar"],
+    profile: ["tabs.profile", "Profile"]
+  };
+  const [key, fallback] = keyByTab[tab];
+  return t(key, fallback);
+}
+
+function routeForWidget(widgetType: WidgetType): Route {
+  if (widgetType === "todayTasks" || widgetType === "studyTime") return "tasks";
+  if (widgetType === "weeklyLoad" || widgetType === "upcomingTest") return "calendar";
+  return "classDetail";
+}
+
+function chunk<TItem>(items: TItem[], size: number) {
+  const rows: TItem[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    rows.push(items.slice(index, index + size));
+  }
+  return rows;
+}
+
 function filterTasks(state: AppState, filter: string) {
   if (filter === "Completed") return state.tasks.filter((task) => task.completed);
-  if (filter === "Upcoming") return state.tasks.filter((task) => !task.completed && dueLabel(task) !== "Today" && dueLabel(task) !== "Overdue");
+  if (filter === "Later") return state.tasks.filter((task) => !task.completed && taskDueDistance(task) > 7);
+  if (filter === "Upcoming") return state.tasks.filter((task) => !task.completed && taskDueDistance(task) > 0 && taskDueDistance(task) <= 7);
   if (filter === "Overdue") return state.tasks.filter((task) => !task.completed && dueLabel(task) === "Overdue");
   return selectTodayTasks(state);
 }
 
-function localSmartOutput(action: string) {
-  if (action === "Summarize") return "Local summary: key ideas, formulas, and next review point are grouped.";
-  if (action === "Make flashcards") return "Local flashcards: definition, example, and practice prompt.";
-  return "Local tasks: review notes, finish practice set, prepare one question for class.";
+function buildTaskSections(state: AppState, filter: string) {
+  const sections = [
+    { title: "Overdue", tasks: filterTasks(state, "Overdue") },
+    { title: "Today", tasks: selectTodayTasks(state).filter((task) => !task.completed) },
+    { title: "Upcoming", tasks: filterTasks(state, "Upcoming") },
+    { title: "Later", tasks: filterTasks(state, "Later") },
+    { title: "Completed", tasks: filterTasks(state, "Completed") }
+  ];
+  return filter === "All" ? sections.filter((section) => section.tasks.length || section.title === "Today") : sections.filter((section) => section.title === filter);
+}
+
+function taskDueDistance(task: Task) {
+  const due = new Date(`${task.dueDate}T00:00:00`).getTime();
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  return Math.round((due - today) / 86400000);
+}
+
+function selectDashboardDeadlines(state: AppState) {
+  return [...state.tasks]
+    .filter((task) => !task.completed)
+    .sort((a, b) => `${a.dueDate}${a.dueTime}`.localeCompare(`${b.dueDate}${b.dueTime}`));
+}
+
+function buildStudioPresetDraft(state: AppState, current: WidgetDraft, preset: StudioPreset): WidgetDraft {
+  const widgetType = preset.patch.widgetType ?? current.widgetType;
+  return {
+    ...state.widgetSettings[widgetType],
+    ...preset.patch,
+    widgetType,
+    updatedAt: new Date().toISOString()
+  };
+}
+
+function placementLabelForWidget(widgetType: WidgetType) {
+  const labels: Record<WidgetType, string> = {
+    nextClass: "Next class",
+    todayTasks: "Tasks",
+    classPulse: "Pulse",
+    weeklyLoad: "Load",
+    roomReminder: "Room",
+    upcomingTest: "Exam",
+    studyTime: "Study"
+  };
+  return labels[widgetType];
+}
+
+function widgetTypeForPlacement(value: string): WidgetType {
+  const map: Record<string, WidgetType> = {
+    "Next class": "nextClass",
+    Tasks: "todayTasks",
+    Pulse: "classPulse",
+    Load: "weeklyLoad",
+    Room: "roomReminder",
+    Exam: "upcomingTest",
+    Study: "studyTime"
+  };
+  return map[value] ?? "nextClass";
+}
+
+function buildNoteSummary(value: string) {
+  const clean = value.replace(/\s+/g, " ").trim();
+  if (!clean) return "No note body yet.";
+  return clean.length > 150 ? `${clean.slice(0, 147)}...` : clean;
+}
+
+function buildKeyIdeas(body: string, tags: string) {
+  const tagIdeas = tags.split(",").map((tag) => tag.trim()).filter(Boolean);
+  const sentenceIdeas = body
+    .split(/[.!?]/)
+    .map((item) => item.trim())
+    .filter((item) => item.length > 12)
+    .slice(0, 3);
+  return [...sentenceIdeas, ...tagIdeas].slice(0, 4);
+}
+
+function appInitials(value: string) {
+  const parts = value.trim().split(/\s+/).filter(Boolean);
+  return `${parts[0]?.[0] ?? "S"}${parts[1]?.[0] ?? ""}`.toUpperCase();
+}
+
+function noteClassTitle(state: AppState, note: Note) {
+  return selectClassById(state, note.classId)?.title ?? "Class";
 }
 
 function formatTime(value: string) {
@@ -1498,20 +2673,36 @@ function formatTime(value: string) {
 }
 
 function dueToDate(value: string) {
-  if (value === "Tomorrow") return "2026-06-04";
-  if (value === "Friday") return "2026-06-05";
-  if (value === "Next week") return "2026-06-10";
-  return "2026-06-03";
+  const today = new Date();
+  if (value === "Tomorrow") return offsetDate(today, 1);
+  if (value === "Friday") return nextWeekdayDate(today, 5);
+  if (value === "Next week") return offsetDate(today, 7);
+  return offsetDate(today, 0);
+}
+
+function offsetDate(base: Date, days: number) {
+  const value = new Date(base);
+  value.setDate(value.getDate() + days);
+  return value.toISOString().slice(0, 10);
+}
+
+function nextWeekdayDate(base: Date, weekday: number) {
+  const value = new Date(base);
+  const distance = (weekday - value.getDay() + 7) % 7 || 7;
+  value.setDate(value.getDate() + distance);
+  return value.toISOString().slice(0, 10);
 }
 
 function reminderMinutes(value: string) {
   if (value === "Off") return 0;
+  if (value === "1 hour before") return 60;
   const match = value.match(/\d+/);
   return match ? Number(match[0]) : 15;
 }
 
 function reminderLabel(settings: ReminderSettings) {
   if (!settings.enabled || settings.minutesBefore === 0) return "Off";
+  if (settings.minutesBefore === 60) return "1 hour before";
   if ([5, 10, 15, 30].includes(settings.minutesBefore)) return `${settings.minutesBefore} min before`;
   return "Custom";
 }
@@ -1521,6 +2712,38 @@ function reminderPatch(value: string): Partial<ReminderSettings> {
     enabled: value !== "Off",
     minutesBefore: reminderMinutes(value)
   };
+}
+
+function priorityColor(priority: Task["priority"]) {
+  if (priority === "High") return T["--rose"];
+  if (priority === "Medium") return T["--orange"];
+  return T["--mint"];
+}
+
+function formatLocal(template: string, values: Record<string, string | number>) {
+  return Object.entries(values).reduce(
+    (text, [key, value]) => text.replace(new RegExp(`\\{${key}\\}`, "g"), String(value)),
+    template
+  );
+}
+
+function statusLabel(status: string, t: (key: string, fallback?: string) => string) {
+  const labels: Record<string, string> = {
+    idle: "Ready",
+    picking: "Choosing source",
+    captured: "Captured",
+    queued: "Queued",
+    parsing: "Parsing",
+    parsed: "Ready to review",
+    failed: "Failed",
+    retrying: "Retrying",
+    reviewed: "Reviewed",
+    processing: "Processing",
+    ready: "Ready",
+    error: "Error",
+    applied: "Applied"
+  };
+  return t(`import.status_${status}`, labels[status] || status);
 }
 
 function titleCase(value: string) {
@@ -1534,13 +2757,15 @@ const styles = StyleSheet.create({
   appShell: { flex: 1, backgroundColor: T["--bg"], overflow: "hidden" },
   centeredPreview: { borderRadius: 38, borderWidth: Platform.OS === "web" ? 1 : 0, borderColor: T["--line"], shadowColor: "#000", shadowOpacity: 0.12, shadowRadius: 28, shadowOffset: { width: 0, height: 16 } },
   app: { flex: 1, backgroundColor: T["--bg"] },
+  skeletonStack: { flex: 1, padding: 24, gap: 16, justifyContent: "center" },
+  skeletonBar: { borderRadius: 14, backgroundColor: T["--line"], opacity: 0.78 },
   flex1: { flex: 1 },
   rowBetween: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   phoneShell: { flex: 1, backgroundColor: T["--bg"] },
   padShell: { flex: 1, flexDirection: "row", backgroundColor: T["--bg"] },
   padContent: { flex: 1, minWidth: 0 },
   screen: { flex: 1 },
-  screenContent: { paddingHorizontal: 18, paddingTop: 12, paddingBottom: 136 },
+  screenContent: { paddingHorizontal: 18, paddingTop: 64, paddingBottom: 136 },
   screenContentWithFooter: { paddingBottom: 188 },
   padScroll: { flex: 1 },
   padHomeContent: { padding: 24, paddingBottom: 48 },
@@ -1550,9 +2775,33 @@ const styles = StyleSheet.create({
   subtitle: { color: T["--muted"], fontSize: 16, lineHeight: 22, fontWeight: "700", marginTop: 4, letterSpacing: 0 },
   avatarButton: { width: 48, height: 48, borderRadius: 24, backgroundColor: T["--text"], alignItems: "center", justifyContent: "center" },
   searchBar: { minHeight: 48, borderRadius: 18, backgroundColor: T["--surface"], borderWidth: 1, borderColor: T["--line"], paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 9, marginBottom: 12 },
+  homeSearchWrap: { marginBottom: 2 },
+  searchResults: { borderRadius: 20, borderWidth: 1, borderColor: T["--line"], backgroundColor: T["--surface"], padding: 8, marginBottom: 12 },
+  searchResultRow: { minHeight: 54, borderRadius: 16, backgroundColor: T["--surface-2"], paddingHorizontal: 12, paddingVertical: 9, marginBottom: 6 },
   searchPlaceholder: { color: T["--muted"], fontSize: 15, fontWeight: "700" },
+  searchInput: { flex: 1, minHeight: 46, color: T["--text"], fontSize: 15, fontWeight: "700" },
   editWidgetButton: { minHeight: 44, borderRadius: 22, backgroundColor: T["--surface"], borderWidth: 1, borderColor: T["--line"], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 12 },
   editWidgetText: { color: T["--text"], fontSize: 14, fontWeight: "900" },
+  nativeWidgetPill: { minHeight: 36, borderRadius: 18, borderWidth: 1, backgroundColor: T["--surface"], paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
+  nativeWidgetPillText: { flex: 1, fontSize: 12, fontWeight: "900" },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  commandCenterCard: { borderRadius: 30, borderWidth: 1.5, backgroundColor: T["--surface"], padding: 18, marginBottom: 12, shadowColor: "#000", shadowOpacity: 0.07, shadowRadius: 28, shadowOffset: { width: 0, height: 14 } },
+  commandPulse: { color: T["--muted"], fontSize: 12, fontWeight: "900" },
+  commandTitle: { color: T["--text"], fontSize: 30, lineHeight: 35, fontWeight: "900", letterSpacing: 0, marginTop: 14 },
+  commandSub: { color: T["--muted"], fontSize: 15, lineHeight: 21, fontWeight: "800", marginTop: 4 },
+  commandNextTask: { minHeight: 54, borderRadius: 18, backgroundColor: T["--surface-2"], borderWidth: 1, borderColor: T["--line"], paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14 },
+  commandTaskTitle: { color: T["--text"], fontSize: 15, lineHeight: 20, fontWeight: "900" },
+  commandActions: { flexDirection: "row", gap: 10, marginTop: 14 },
+  schoolHeroCard: { marginBottom: 12 },
+  semesterBar: { height: 8, borderRadius: 4, backgroundColor: T["--line"], overflow: "hidden" },
+  semesterBarFill: { height: 8, borderRadius: 4, backgroundColor: T["--text"] },
+  homeMetricGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 12 },
+  homeMetricCard: { flex: 1, minWidth: "47%", minHeight: 112, borderRadius: 22, backgroundColor: T["--surface"], borderWidth: 1, borderColor: T["--line"], padding: 14, justifyContent: "space-between" },
+  homeMetricValue: { color: T["--text"], fontSize: 27, lineHeight: 32, fontWeight: "900", letterSpacing: 0 },
+  homeMetricTitle: { color: T["--text"], fontSize: 13, fontWeight: "900" },
+  homeMetricSub: { color: T["--muted"], fontSize: 12, fontWeight: "800" },
+  iosWidgetLink: { minHeight: 44, borderRadius: 22, backgroundColor: T["--surface-2"], borderWidth: 1, borderColor: T["--line"], paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 },
+  iosWidgetLinkText: { flex: 1, color: T["--text"], fontSize: 13, fontWeight: "900" },
   sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 20, marginBottom: 10 },
   sectionLabel: { color: T["--muted"], fontSize: 12, fontWeight: "900", letterSpacing: 0 },
   sectionAction: { color: T["--text"], fontSize: 13, fontWeight: "900" },
@@ -1576,6 +2825,19 @@ const styles = StyleSheet.create({
   scheduleRail: { width: 4, height: 42, borderRadius: 2 },
   scheduleTitle: { color: T["--text"], fontSize: 16, fontWeight: "900", letterSpacing: 0 },
   scheduleSub: { color: T["--muted"], fontSize: 13, fontWeight: "700", marginTop: 3 },
+  aiSuggestionCard: { minHeight: 70, borderRadius: 22, backgroundColor: "#F5FAFF", borderWidth: 1, borderColor: "#DCEBFF", padding: 14, flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 12 },
+  scheduleHeroCard: { borderRadius: 28, borderWidth: 1, borderColor: "#DCEBFF", backgroundColor: "#F3F8FF", padding: 18, marginBottom: 12, shadowColor: T["--blue"], shadowOpacity: 0.12, shadowRadius: 20, shadowOffset: { width: 0, height: 10 } },
+  nowPill: { alignSelf: "flex-start", overflow: "hidden", borderRadius: 14, backgroundColor: T["--blue"], color: T["--surface"], paddingHorizontal: 12, paddingVertical: 5, fontSize: 12, fontWeight: "900" },
+  scheduleHeroTitle: { color: T["--text"], fontSize: 29, lineHeight: 35, fontWeight: "900", letterSpacing: 0, marginTop: 12 },
+  scheduleHeroSub: { color: T["--text"], fontSize: 16, lineHeight: 22, fontWeight: "700", marginTop: 2 },
+  heroMetricRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 },
+  heroMetric: { overflow: "hidden", borderRadius: 14, backgroundColor: T["--surface"], borderWidth: 1, borderColor: T["--line"], color: T["--text"], paddingHorizontal: 10, paddingVertical: 6, fontSize: 12, fontWeight: "900" },
+  summaryGrid: { flexDirection: "row", gap: 10, marginBottom: 12 },
+  summaryCard: { flex: 1, minHeight: 104, borderRadius: 22, borderWidth: 1, borderColor: T["--line"], backgroundColor: T["--surface"], padding: 14 },
+  summaryTitle: { color: T["--text"], fontSize: 15, fontWeight: "900" },
+  summaryValue: { color: T["--text"], fontSize: 34, lineHeight: 40, fontWeight: "900", marginTop: 8 },
+  nextClassCard: { marginBottom: 4 },
+  studyProgressCard: { marginBottom: 4 },
   tabBar: { position: "absolute", left: 0, right: 0, bottom: 0, height: 86, paddingHorizontal: 6, paddingTop: 9, borderTopWidth: 1, borderTopColor: T["--line"], backgroundColor: "rgba(255,255,255,0.96)", flexDirection: "row", zIndex: 10 },
   tabItem: { flex: 1, alignItems: "center", gap: 4, minHeight: 56 },
   tabLabel: { color: T["--muted"], fontSize: 11, fontWeight: "800" },
@@ -1648,6 +2910,7 @@ const styles = StyleSheet.create({
   inputLabel: { color: T["--muted"], fontSize: 12, fontWeight: "900", marginBottom: 8 },
   input: { minHeight: 48, borderRadius: 17, backgroundColor: T["--surface-2"], borderWidth: 1, borderColor: T["--line"], paddingHorizontal: 14, color: T["--text"], fontSize: 15, fontWeight: "700" },
   textArea: { minHeight: 150, paddingTop: 13, textAlignVertical: "top" },
+  scanTextArea: { minHeight: 136, paddingTop: 13, textAlignVertical: "top" },
   chipRow: { flexDirection: "row", gap: 8, marginTop: 8 },
   wrap: { flexWrap: "wrap" },
   chip: { minHeight: 38, borderRadius: 19, paddingHorizontal: 13, alignItems: "center", justifyContent: "center", backgroundColor: T["--surface"], borderWidth: 1, borderColor: T["--line"] },
@@ -1656,6 +2919,27 @@ const styles = StyleSheet.create({
   chipTextActive: { color: T["--surface"] },
   actionRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   smartOutput: { color: T["--muted"], fontSize: 14, fontWeight: "700", lineHeight: 20, marginTop: 10 },
+  smartCardRow: { flexDirection: "row", gap: 12, marginBottom: 14 },
+  smartNoteCard: { flex: 1, minHeight: 164, borderRadius: 22, borderWidth: 1, borderColor: T["--line"], backgroundColor: T["--surface"], padding: 14, gap: 8 },
+  smartNoteCardPrimary: { backgroundColor: "#F0FBFF", borderColor: "#CDEFFF" },
+  smartCardKicker: { color: T["--cyan"], fontSize: 12, fontWeight: "900" },
+  smartCardTitle: { color: T["--text"], fontSize: 18, lineHeight: 23, fontWeight: "900" },
+  smartIdeaPill: { alignSelf: "flex-start", overflow: "hidden", borderRadius: 12, backgroundColor: "#EAFBF3", color: T["--mint"], paddingHorizontal: 9, paddingVertical: 5, fontSize: 11, fontWeight: "900" },
+  reviewButton: { minHeight: 36, borderRadius: 14, backgroundColor: T["--cyan"], alignItems: "center", justifyContent: "center", marginTop: "auto" },
+  reviewButtonText: { color: T["--surface"], fontSize: 13, fontWeight: "900" },
+  classNoteRow: { minHeight: 62, borderRadius: 18, backgroundColor: T["--surface"], borderWidth: 1, borderColor: T["--line"], padding: 12, flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 },
+  countPill: { minWidth: 28, height: 28, borderRadius: 14, overflow: "hidden", textAlign: "center", lineHeight: 28, fontSize: 12, fontWeight: "900" },
+  noteRow: { minHeight: 78, borderRadius: 20, backgroundColor: T["--surface"], borderWidth: 1, borderColor: T["--line"], padding: 12, flexDirection: "row", gap: 12, marginBottom: 10 },
+  recentNoteCard: { minHeight: 202, borderRadius: 24, backgroundColor: T["--surface"], borderWidth: 1, borderColor: T["--line"], padding: 14, flexDirection: "row", gap: 12, marginBottom: 10 },
+  noteStatusDot: { fontSize: 16, fontWeight: "900" },
+  noteSummaryLabel: { color: T["--muted"], fontSize: 11, fontWeight: "900", marginTop: 12 },
+  recentNoteSummary: { color: T["--text"], fontSize: 14, lineHeight: 20, fontWeight: "700", marginTop: 4 },
+  noteActionBar: { minHeight: 60, borderRadius: 18, overflow: "hidden", borderWidth: 1, borderColor: T["--line"], flexDirection: "row", marginTop: 12, backgroundColor: T["--surface"] },
+  noteActionButton: { flex: 1, alignItems: "center", justifyContent: "center", gap: 4, paddingHorizontal: 4, borderRightWidth: 1, borderRightColor: T["--line"] },
+  noteActionText: { color: T["--text"], fontSize: 11, lineHeight: 14, fontWeight: "900", textAlign: "center" },
+  notesDock: { minHeight: 58, borderRadius: 25, backgroundColor: T["--surface"], borderWidth: 1, borderColor: T["--line"], flexDirection: "row", gap: 10, padding: 7, marginBottom: 14 },
+  dockButton: { flex: 1, borderRadius: 18, backgroundColor: "#F6FEFF", borderWidth: 1, borderColor: "#DDF5F8", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
+  dockButtonText: { color: T["--cyan"], fontSize: 14, fontWeight: "900" },
   scanNoteCard: { minHeight: 74, borderRadius: 22, backgroundColor: "#EDF3FF", borderWidth: 1, borderColor: "#D9E6FF", padding: 14, flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 14 },
   noteCard: { minHeight: 86, borderRadius: 22, backgroundColor: T["--surface"], borderWidth: 1, borderColor: T["--line"], padding: 14, flexDirection: "row", gap: 12, marginBottom: 10 },
   notePreview: { color: T["--muted"], fontSize: 13, lineHeight: 18, fontWeight: "700", marginTop: 6 },
@@ -1669,11 +2953,15 @@ const styles = StyleSheet.create({
   scanCornerTop: { position: "absolute", left: 18, right: 18, top: 18, height: 2, backgroundColor: "rgba(47,107,255,0.45)" },
   scanCornerBottom: { position: "absolute", left: 18, right: 18, bottom: 18, height: 2, backgroundColor: "rgba(47,107,255,0.45)" },
   cameraTitle: { color: T["--text"], fontSize: 18, fontWeight: "900", marginTop: 14 },
+  cameraSub: { color: T["--muted"], fontSize: 13, lineHeight: 18, fontWeight: "700", textAlign: "center", paddingHorizontal: 24, marginTop: 8 },
+  disabledButton: { opacity: 0.58 },
+  disabledButtonText: { color: T["--muted"], fontSize: 13, fontWeight: "900", textAlign: "center" },
   progressStep: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 34 },
   progressDot: { width: 14, height: 14, borderRadius: 7, backgroundColor: T["--line"] },
   progressDone: { backgroundColor: T["--blue"] },
   progressText: { color: T["--muted"], fontSize: 14, fontWeight: "800" },
   readyText: { color: T["--text"], fontSize: 25, fontWeight: "900", marginTop: 14 },
+  scannerReviewList: { marginTop: 12, marginBottom: 10 },
   calendarSurface: { backgroundColor: T["--surface"], borderWidth: 1, borderColor: T["--line"], borderRadius: 28, padding: 18, marginTop: 14 },
   segmentStatic: { height: 42, borderRadius: 21, backgroundColor: T["--surface-2"], borderWidth: 1, borderColor: T["--line"], padding: 4, flexDirection: "row", gap: 4, marginBottom: 14 },
   segmentStaticActive: { flex: 1, textAlign: "center", borderRadius: 17, backgroundColor: T["--surface"], color: T["--text"], fontSize: 13, fontWeight: "900", paddingTop: 8, overflow: "hidden" },
@@ -1684,6 +2972,7 @@ const styles = StyleSheet.create({
   calendarTitle: { color: T["--text"], fontSize: 16, fontWeight: "900" },
   calendarSub: { color: T["--muted"], fontSize: 13, fontWeight: "700", marginTop: 3 },
   profileHero: { alignItems: "center", backgroundColor: T["--surface"], borderWidth: 1, borderColor: T["--line"], borderRadius: 28, padding: 22, marginBottom: 14 },
+  profileStatsRow: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 8, marginTop: 10 },
   profileAvatar: { width: 82, height: 82, borderRadius: 41, backgroundColor: T["--text"], alignItems: "center", justifyContent: "center", marginBottom: 12 },
   profileInitials: { color: T["--surface"], fontSize: 25, fontWeight: "900" },
   watchAccessButton: { minHeight: 50, borderRadius: 25, backgroundColor: T["--text"], alignItems: "center", justifyContent: "center" },
@@ -1705,7 +2994,10 @@ const styles = StyleSheet.create({
   watchTaskText: { color: "#FFFFFF", fontSize: 12, fontWeight: "800", flex: 1 },
   watchGrid: { flex: 1, flexDirection: "row", flexWrap: "wrap", gap: 6 },
   studioPreviewTop: { marginBottom: 4 },
+  studioHeroCopy: { borderRadius: 22, backgroundColor: T["--surface"], borderWidth: 1, borderColor: T["--line"], padding: 14, marginTop: 8 },
   studioSection: { marginTop: 16 },
+  widgetBackedLine: { minHeight: 34, borderRadius: 17, backgroundColor: T["--surface-2"], borderWidth: 1, borderColor: T["--line"], paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8, marginBottom: 4 },
+  widgetBackedText: { flex: 1, color: T["--muted"], fontSize: 12, lineHeight: 16, fontWeight: "800" },
   colorDots: { flexDirection: "row", gap: 12, marginTop: 10, flexWrap: "wrap" },
   colorDot: { width: 38, height: 38, borderRadius: 19, borderWidth: 3, borderColor: T["--surface"] },
   colorDotActive: { borderColor: T["--text"] },
@@ -1717,6 +3009,8 @@ const styles = StyleSheet.create({
   sliderFill: { height: 8, borderRadius: 4, backgroundColor: T["--text"] },
   sliderValue: { color: T["--text"], fontSize: 16, fontWeight: "900" },
   studioButtons: { flexDirection: "row", gap: 10, marginTop: 16 },
+  studioPresetGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 8 },
+  studioPresetCard: { width: "48%", minHeight: 118, borderRadius: 20, backgroundColor: T["--surface"], borderWidth: 1, borderColor: T["--line"], padding: 13, gap: 7 },
   primaryButton: { flex: 1, minHeight: 52, borderRadius: 26, backgroundColor: T["--text"], alignItems: "center", justifyContent: "center", paddingHorizontal: 16 },
   primaryButtonText: { color: T["--surface"], fontSize: 15, fontWeight: "900" },
   secondaryButton: { flex: 1, minHeight: 48, borderRadius: 24, backgroundColor: T["--surface"], borderWidth: 1, borderColor: T["--line"], alignItems: "center", justifyContent: "center", paddingHorizontal: 12 },

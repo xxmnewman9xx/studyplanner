@@ -377,7 +377,7 @@
       "capture_failed_truth": "The parser could not read this source. Retry or use Type It In; no work was added.",
       "ready_to_review_truth": "Ready to review. Every row below came from parser output or an explicit needs-date finding.",
       "status_queued_detail": "Queued for parser review.",
-      "pick_file_status": "Choose a PDF, text file, or image.",
+      "pick_file_status": "Choose a PDF or text file.",
       "picker_cancelled": "Import cancelled. No planner data changed.",
       "file_not_supported": "Could not use that file",
       "photo_permission_message": "Photo access is needed to choose syllabus images. You can still paste text or upload a text-based PDF.",
@@ -418,7 +418,15 @@
       "status_permission_denied_detail": "Permission was denied. You can still upload a file or type text.",
       "status_cancelled_detail": "Picker closed. No planner data changed.",
       "status_unavailable_detail": "This source is unavailable on this device. Try upload or Type It In.",
-      "status_working_detail": "Working on the selected source."
+      "status_working_detail": "Working on the selected source.",
+      "camera_ready_status": "Open camera and capture one syllabus page.",
+      "photo_library": "Photo",
+      "photo_library_source": "Syllabus photo",
+      "dashboard_alive": "Dashboard is live: {classes} classes and {items} reviewed items are now connected to Today, Calendar, Notes, and Widgets.",
+      "dashboard_updated": "Dashboard comes alive",
+      "title_short": "Import school material",
+      "dashboard_updated_detail": "Classes, tasks, exams, calendar, and widgets now share the reviewed import.",
+      "vision_ready": "Camera, photo, PDF, and paste imports are available for review."
     },
     "paywall": {
       "title": "Unlock StudyPlanner: Syllabus AI",
@@ -508,10 +516,11 @@
       "try_again": "Try Again"
     },
     "permissions": {
-      "camera": "Use the camera only when image import is enabled to attach syllabus pages for manual review.",
-      "photo_library": "Use the photo library only when image import is enabled to attach syllabus images for manual review.",
+      "camera": "Use the camera to read syllabus photos with OCR and turn assignments, exams, and deadlines into reviewed planner items.",
+      "photo_library": "Use selected syllabus photos for OCR so assignments, exams, and deadlines can be reviewed before they are added.",
       "calendar": "Sync assignment and exam dates to your calendar.",
-      "notifications": "Send calm reminders before deadlines, exams, and classes."
+      "notifications": "Send calm reminders before deadlines, exams, and classes.",
+      "photos": "Photo library permission is required to import a syllabus photo."
     },
     "widgets": {
       "sync_after_load": "Home Screen widgets update after your planner loads."
@@ -1411,7 +1420,13 @@
       "recent": "recent",
       "class_note": "Class note",
       "convert_to_task": "Make task",
-      "memory_kicker": "What I learned"
+      "memory_kicker": "What I learned",
+      "scanned_note": "Scanned notes",
+      "scan_ready": "{count} key ideas ready to save.",
+      "scan_ready_short": "Note scan ready",
+      "scan_title": "Scan notes",
+      "scan_placeholder": "Paste class notes, board text, or homework details...",
+      "scan_review": "Review note scan"
     },
     "entitlement_gate": {
       "included": "Included with StudyPlanner: Syllabus AI",
@@ -1862,7 +1877,7 @@
       "capture_failed_truth": "Der Parser konnte diese Quelle nicht lesen. Erneut versuchen oder manuell eingeben; es wurde nichts hinzugefuegt.",
       "ready_to_review_truth": "Bereit zur Pruefung. Jede Zeile unten stammt aus Parserausgabe oder aus einem eindeutigen Datumshinweis.",
       "status_queued_detail": "Fuer die Parserpruefung vorgemerkt.",
-      "pick_file_status": "Waehle eine PDF-, Text- oder Bilddatei.",
+      "pick_file_status": "Waehle eine PDF- oder Textdatei.",
       "picker_cancelled": "Import abgebrochen. Keine Plandaten wurden geaendert.",
       "file_not_supported": "Diese Datei konnte nicht verwendet werden",
       "photo_permission_message": "Fotozugriff wird zum Auswaehlen von Lehrplanbildern benoetigt. Du kannst weiter Text einfuegen oder eine textbasierte PDF hochladen.",
@@ -1903,7 +1918,15 @@
       "status_permission_denied_detail": "Die Berechtigung wurde abgelehnt. Du kannst weiter Datei hochladen oder Text eingeben.",
       "status_cancelled_detail": "Auswahl geschlossen. Keine Plandaten wurden geaendert.",
       "status_unavailable_detail": "Diese Quelle ist auf diesem Geraet nicht verfuegbar. Versuche Hochladen oder Eintippen.",
-      "status_working_detail": "Die ausgewaehlte Quelle wird verarbeitet."
+      "status_working_detail": "Die ausgewaehlte Quelle wird verarbeitet.",
+      "camera_ready_status": "Kamera öffnen und eine Syllabus-Seite aufnehmen.",
+      "photo_library": "Foto",
+      "photo_library_source": "Syllabus-Foto",
+      "dashboard_alive": "Dashboard ist live: {classes} Kurse und {items} geprüfte Einträge sind jetzt mit Heute, Kalender, Notizen und Widgets verbunden.",
+      "dashboard_updated": "Dashboard wird lebendig",
+      "title_short": "Schulmaterial importieren",
+      "dashboard_updated_detail": "Kurse, Aufgaben, Prüfungen, Kalender und Widgets teilen jetzt den geprüften Import.",
+      "vision_ready": "Kamera-, Foto-, PDF- und Einfügeimporte sind zur Prüfung verfügbar."
     },
     "paywall": {
       "title": "StudyPlanner: Syllabus AI freischalten",
@@ -1993,10 +2016,11 @@
       "try_again": "Erneut versuchen"
     },
     "permissions": {
-      "camera": "Kamera nur verwenden, wenn Bildimport aktiviert ist, um Syllabus-Seiten zur manuellen Prüfung anzuhängen.",
-      "photo_library": "Fotomediathek nur verwenden, wenn Bildimport aktiviert ist, um Syllabus-Bilder zur manuellen Prüfung anzuhängen.",
+      "camera": "Kamera verwenden, um Syllabus-Fotos per OCR zu lesen und Aufgaben, Prüfungen und Fristen als geprüfte Planner-Einträge zu erstellen.",
+      "photo_library": "Ausgewählte Syllabus-Fotos für OCR verwenden, damit Aufgaben, Prüfungen und Fristen vor dem Hinzufügen geprüft werden können.",
       "calendar": "Aufgaben- und Prüfungstermine mit deinem Kalender synchronisieren.",
-      "notifications": "Ruhige Erinnerungen vor Abgaben, Prüfungen und Kursen senden."
+      "notifications": "Ruhige Erinnerungen vor Abgaben, Prüfungen und Kursen senden.",
+      "photos": "Die Berechtigung für die Fotomediathek ist erforderlich, um ein Syllabus-Foto zu importieren."
     },
     "widgets": {
       "sync_after_load": "Native Widgets werden synchronisiert, nachdem dein Plan geladen ist."
@@ -2896,7 +2920,13 @@
       "recent": "kürzlich",
       "class_note": "Klassennotiz",
       "convert_to_task": "Aufgabe erstellen",
-      "memory_kicker": "Was ich gelernt habe"
+      "memory_kicker": "Was ich gelernt habe",
+      "scanned_note": "Gescannte Notizen",
+      "scan_ready": "{count} Kerngedanken zum Speichern bereit.",
+      "scan_ready_short": "Notizscan bereit",
+      "scan_title": "Notizen scannen",
+      "scan_placeholder": "Kursnotizen, Tafeltext oder Hausaufgabendetails einfügen...",
+      "scan_review": "Notizscan prüfen"
     },
     "entitlement_gate": {
       "included": "In StudyPlanner enthalten",
@@ -3347,7 +3377,7 @@
       "capture_failed_truth": "El parser no pudo leer esta fuente. Reintenta o usa Escribir; no se agrego ningun trabajo.",
       "ready_to_review_truth": "Listo para revisar. Cada fila viene del parser o de una marca clara de fecha pendiente.",
       "status_queued_detail": "En cola para revision del parser.",
-      "pick_file_status": "Elige un PDF, archivo de texto o imagen.",
+      "pick_file_status": "Elige un PDF o archivo de texto.",
       "picker_cancelled": "Importacion cancelada. No cambio ningun dato del plan.",
       "file_not_supported": "No se pudo usar ese archivo",
       "photo_permission_message": "Se necesita acceso a fotos para elegir imagenes del syllabus. Tambien puedes pegar texto o subir un PDF con texto.",
@@ -3388,7 +3418,15 @@
       "status_permission_denied_detail": "Se denego el permiso. Aun puedes subir un archivo o escribir texto.",
       "status_cancelled_detail": "Selector cerrado. No cambio ningun dato del plan.",
       "status_unavailable_detail": "Esta fuente no esta disponible en este dispositivo. Prueba Subir o Escribir.",
-      "status_working_detail": "Trabajando en la fuente seleccionada."
+      "status_working_detail": "Trabajando en la fuente seleccionada.",
+      "camera_ready_status": "Abre la cámara y captura una página del sílabo.",
+      "photo_library": "Foto",
+      "photo_library_source": "Foto del sílabo",
+      "dashboard_alive": "El dashboard está activo: {classes} clases y {items} elementos revisados ahora están conectados con Hoy, Calendario, Notas y Widgets.",
+      "dashboard_updated": "El dashboard cobra vida",
+      "title_short": "Importar material escolar",
+      "dashboard_updated_detail": "Clases, tareas, exámenes, calendario y widgets ahora comparten la importación revisada.",
+      "vision_ready": "La cámara, fotos, PDF y texto pegado están disponibles para revisar."
     },
     "paywall": {
       "title": "Desbloquea StudyPlanner: Syllabus AI",
@@ -3478,10 +3516,11 @@
       "try_again": "Intentar de nuevo"
     },
     "permissions": {
-      "camera": "Usar la cámara solo cuando la importación de imágenes esté activada para adjuntar páginas del sílabo para revisión manual.",
-      "photo_library": "Usar la fototeca solo cuando la importación de imágenes esté activada para adjuntar imágenes del sílabo para revisión manual.",
+      "camera": "Usar la cámara para leer fotos del sílabo con OCR y convertir tareas, exámenes y fechas límite en elementos revisados del planner.",
+      "photo_library": "Usar fotos seleccionadas del sílabo para OCR, de modo que tareas, exámenes y fechas límite se revisen antes de agregarse.",
       "calendar": "Sincroniza fechas de tareas y exámenes con tu calendario.",
-      "notifications": "Envía recordatorios tranquilos antes de entregas, exámenes y clases."
+      "notifications": "Envía recordatorios tranquilos antes de entregas, exámenes y clases.",
+      "photos": "Se requiere permiso de la fototeca para importar una foto del sílabo."
     },
     "widgets": {
       "sync_after_load": "Los widgets nativos se sincronizan cuando carga tu plan."
@@ -4381,7 +4420,13 @@
       "recent": "reciente",
       "class_note": "Nota de clase",
       "convert_to_task": "Crear tarea",
-      "memory_kicker": "Lo que aprendi"
+      "memory_kicker": "Lo que aprendi",
+      "scanned_note": "Notas escaneadas",
+      "scan_ready": "{count} ideas clave listas para guardar.",
+      "scan_ready_short": "Escaneo de notas listo",
+      "scan_title": "Escanear notas",
+      "scan_placeholder": "Pega notas de clase, texto del pizarrón o detalles de tarea...",
+      "scan_review": "Revisar escaneo de notas"
     },
     "entitlement_gate": {
       "included": "Incluido con StudyPlanner",
@@ -4832,7 +4877,7 @@
       "capture_failed_truth": "Le parseur n a pas pu lire cette source. Reessayez ou saisissez le texte; aucun travail n a ete ajoute.",
       "ready_to_review_truth": "Pret pour verification. Chaque ligne ci-dessous vient du parseur ou d un signal clair de date manquante.",
       "status_queued_detail": "Place en file pour verification du parseur.",
-      "pick_file_status": "Choisissez un PDF, un fichier texte ou une image.",
+      "pick_file_status": "Choisissez un PDF ou un fichier texte.",
       "picker_cancelled": "Import annule. Aucune donnee du planning n a change.",
       "file_not_supported": "Impossible d utiliser ce fichier",
       "photo_permission_message": "L acces aux photos est necessaire pour choisir des images de syllabus. Vous pouvez aussi coller du texte ou televerser un PDF texte.",
@@ -4873,7 +4918,15 @@
       "status_permission_denied_detail": "La permission a ete refusee. Vous pouvez encore televerser un fichier ou saisir du texte.",
       "status_cancelled_detail": "Selecteur ferme. Aucune donnee du planning n a change.",
       "status_unavailable_detail": "Cette source est indisponible sur cet appareil. Essayez Televerser ou Saisir.",
-      "status_working_detail": "Traitement de la source selectionnee."
+      "status_working_detail": "Traitement de la source selectionnee.",
+      "camera_ready_status": "Ouvre l’appareil photo et capture une page du syllabus.",
+      "photo_library": "Photothèque",
+      "photo_library_source": "Photo du syllabus",
+      "dashboard_alive": "Le tableau de bord est actif : {classes} cours et {items} éléments vérifiés sont connectés à Aujourd’hui, Calendrier, Notes et Widgets.",
+      "dashboard_updated": "Le tableau de bord prend vie",
+      "title_short": "Importer du contenu scolaire",
+      "dashboard_updated_detail": "Cours, devoirs, examens, calendrier et widgets partagent maintenant l’import vérifié.",
+      "vision_ready": "Les imports caméra, photo, PDF et texte collé sont disponibles pour vérification."
     },
     "paywall": {
       "title": "Debloquer StudyPlanner: Syllabus AI",
@@ -4963,10 +5016,11 @@
       "try_again": "Réessayer"
     },
     "permissions": {
-      "camera": "Utiliser l'appareil photo uniquement si l'import d'images est activé afin de joindre des pages de syllabus pour vérification manuelle.",
-      "photo_library": "Utiliser la photothèque uniquement si l'import d'images est activé afin de joindre des images de syllabus pour vérification manuelle.",
+      "camera": "Utiliser l’appareil photo pour lire les photos de syllabus avec OCR et transformer devoirs, examens et échéances en éléments vérifiés du planner.",
+      "photo_library": "Utiliser les photos de syllabus sélectionnées pour l’OCR afin de vérifier devoirs, examens et échéances avant ajout.",
       "calendar": "Synchroniser les dates de devoirs et d'examens avec ton calendrier.",
-      "notifications": "Envoyer des rappels calmes avant les échéances, examens et cours."
+      "notifications": "Envoyer des rappels calmes avant les échéances, examens et cours.",
+      "photos": "L’autorisation de la photothèque est requise pour importer une photo de syllabus."
     },
     "widgets": {
       "sync_after_load": "Les widgets natifs se synchronisent après le chargement du planning."
@@ -5866,7 +5920,13 @@
       "recent": "récent",
       "class_note": "Note de cours",
       "convert_to_task": "Créer tâche",
-      "memory_kicker": "Ce que j ai appris"
+      "memory_kicker": "Ce que j ai appris",
+      "scanned_note": "Notes scannées",
+      "scan_ready": "{count} idées clés prêtes à enregistrer.",
+      "scan_ready_short": "Scan de notes prêt",
+      "scan_title": "Scanner des notes",
+      "scan_placeholder": "Colle des notes de cours, du texte du tableau ou des détails de devoir...",
+      "scan_review": "Réviser le scan de notes"
     },
     "entitlement_gate": {
       "included": "Inclus avec StudyPlanner",
@@ -6317,7 +6377,7 @@
       "capture_failed_truth": "O parser nao conseguiu ler esta fonte. Tente de novo ou use Digitar; nenhum trabalho foi adicionado.",
       "ready_to_review_truth": "Pronto para revisar. Cada linha abaixo veio do parser ou de uma indicacao clara de data ausente.",
       "status_queued_detail": "Na fila para revisao do parser.",
-      "pick_file_status": "Escolha um PDF, arquivo de texto ou imagem.",
+      "pick_file_status": "Escolha um PDF ou arquivo de texto.",
       "picker_cancelled": "Importacao cancelada. Nenhum dado do plano mudou.",
       "file_not_supported": "Nao foi possivel usar esse arquivo",
       "photo_permission_message": "O acesso as fotos e necessario para escolher imagens do programa. Voce tambem pode colar texto ou enviar um PDF com texto.",
@@ -6358,7 +6418,15 @@
       "status_permission_denied_detail": "A permissao foi negada. Voce ainda pode enviar um arquivo ou digitar texto.",
       "status_cancelled_detail": "Seletor fechado. Nenhum dado do plano mudou.",
       "status_unavailable_detail": "Esta fonte nao esta disponivel neste dispositivo. Tente Enviar ou Digitar.",
-      "status_working_detail": "Processando a fonte selecionada."
+      "status_working_detail": "Processando a fonte selecionada.",
+      "camera_ready_status": "Abra a câmera e capture uma página da ementa.",
+      "photo_library": "Foto",
+      "photo_library_source": "Foto da ementa",
+      "dashboard_alive": "O painel está ativo: {classes} aulas e {items} itens revisados agora estão conectados a Hoje, Calendário, Notas e Widgets.",
+      "dashboard_updated": "O painel ganha vida",
+      "title_short": "Importar material escolar",
+      "dashboard_updated_detail": "Aulas, tarefas, provas, calendário e widgets agora compartilham a importação revisada.",
+      "vision_ready": "Câmera, foto, PDF e texto colado estão disponíveis para revisão."
     },
     "paywall": {
       "title": "Desbloquear StudyPlanner: Syllabus AI",
@@ -6448,10 +6516,11 @@
       "try_again": "Tentar de novo"
     },
     "permissions": {
-      "camera": "Usar a câmera somente quando a importação de imagens estiver ativada para anexar páginas da ementa para revisão manual.",
-      "photo_library": "Usar a fototeca somente quando a importação de imagens estiver ativada para anexar imagens da ementa para revisão manual.",
+      "camera": "Usar a câmera para ler fotos da ementa com OCR e transformar tarefas, provas e prazos em itens revisados do planner.",
+      "photo_library": "Usar fotos selecionadas da ementa para OCR para que tarefas, provas e prazos sejam revisados antes de entrar.",
       "calendar": "Sincronizar datas de tarefas e provas com seu calendário.",
-      "notifications": "Enviar lembretes tranquilos antes de prazos, provas e aulas."
+      "notifications": "Enviar lembretes tranquilos antes de prazos, provas e aulas.",
+      "photos": "A permissão da fototeca é necessária para importar uma foto da ementa."
     },
     "widgets": {
       "sync_after_load": "Widgets nativos sincronizam depois que seu plano carrega."
@@ -7351,7 +7420,13 @@
       "recent": "recente",
       "class_note": "Nota da turma",
       "convert_to_task": "Criar tarefa",
-      "memory_kicker": "O que aprendi"
+      "memory_kicker": "O que aprendi",
+      "scanned_note": "Notas escaneadas",
+      "scan_ready": "{count} ideias-chave prontas para salvar.",
+      "scan_ready_short": "Escaneamento de notas pronto",
+      "scan_title": "Escanear notas",
+      "scan_placeholder": "Cole notas de aula, texto do quadro ou detalhes da tarefa...",
+      "scan_review": "Revisar escaneamento de notas"
     },
     "entitlement_gate": {
       "included": "Incluído com StudyPlanner",
@@ -7802,7 +7877,7 @@
       "capture_failed_truth": "تعذر على المحلل قراءة هذا المصدر. حاول مرة اخرى او اكتب النص؛ لم تتم اضافة اي عمل.",
       "ready_to_review_truth": "جاهز للمراجعة. كل صف ادناه جاء من ناتج المحلل او من تنبيه واضح لتاريخ مفقود.",
       "status_queued_detail": "تمت الاضافة الى قائمة مراجعة المحلل.",
-      "pick_file_status": "اختر ملف PDF او ملف نص او صورة.",
+      "pick_file_status": "اختر ملف PDF او ملف نص.",
       "picker_cancelled": "تم الغاء الاستيراد. لم تتغير بيانات الخطة.",
       "file_not_supported": "تعذر استخدام هذا الملف",
       "photo_permission_message": "يلزم الوصول الى الصور لاختيار صور المنهج. يمكنك ايضا لصق نص او رفع PDF نصي.",
@@ -7843,7 +7918,15 @@
       "status_permission_denied_detail": "تم رفض الاذن. ما زال يمكنك رفع ملف او كتابة نص.",
       "status_cancelled_detail": "تم اغلاق المنتقي. لم تتغير بيانات الخطة.",
       "status_unavailable_detail": "هذا المصدر غير متاح على هذا الجهاز. جرب الرفع او الكتابة.",
-      "status_working_detail": "جار العمل على المصدر المحدد."
+      "status_working_detail": "جار العمل على المصدر المحدد.",
+      "camera_ready_status": "افتح الكاميرا والتقط صفحة واحدة من المنهج.",
+      "photo_library": "صورة",
+      "photo_library_source": "صورة المنهج",
+      "dashboard_alive": "لوحة المعلومات نشطة: تم ربط {classes} صفوف و {items} عناصر تمت مراجعتها مع اليوم والتقويم والملاحظات والويدجت.",
+      "dashboard_updated": "لوحة المعلومات أصبحت جاهزة",
+      "title_short": "استيراد مواد المدرسة",
+      "dashboard_updated_detail": "الصفوف والمهام والاختبارات والتقويم والويدجت تشارك الآن الاستيراد الذي تمت مراجعته.",
+      "vision_ready": "تتوفر واردات الكاميرا والصور وPDF واللصق للمراجعة."
     },
     "paywall": {
       "title": "افتح StudyPlanner: Syllabus AI",
@@ -7933,10 +8016,11 @@
       "try_again": "حاول مرة أخرى"
     },
     "permissions": {
-      "camera": "استخدام الكاميرا فقط عند تفعيل استيراد الصور لإرفاق صفحات المنهج للمراجعة اليدوية.",
-      "photo_library": "استخدام مكتبة الصور فقط عند تفعيل استيراد الصور لإرفاق صور المنهج للمراجعة اليدوية.",
+      "camera": "استخدم الكاميرا لقراءة صور المنهج عبر OCR وتحويل الواجبات والاختبارات والمواعيد إلى عناصر مخطط قابلة للمراجعة.",
+      "photo_library": "استخدم صور المنهج المحددة عبر OCR حتى يمكن مراجعة الواجبات والاختبارات والمواعيد قبل إضافتها.",
       "calendar": "مزامنة مواعيد الواجبات والاختبارات مع تقويمك.",
-      "notifications": "إرسال تذكيرات هادئة قبل المواعيد والاختبارات والحصص."
+      "notifications": "إرسال تذكيرات هادئة قبل المواعيد والاختبارات والحصص.",
+      "photos": "يلزم إذن مكتبة الصور لاستيراد صورة منهج."
     },
     "widgets": {
       "sync_after_load": "تتزامن الويدجت الأصلية بعد تحميل خطتك."
@@ -8836,7 +8920,13 @@
       "recent": "حديثًا",
       "class_note": "ملاحظة صف",
       "convert_to_task": "حوّل إلى مهمة",
-      "memory_kicker": "ما تعلمته"
+      "memory_kicker": "ما تعلمته",
+      "scanned_note": "ملاحظات ممسوحة",
+      "scan_ready": "{count} أفكار رئيسية جاهزة للحفظ.",
+      "scan_ready_short": "مسح الملاحظات جاهز",
+      "scan_title": "مسح الملاحظات",
+      "scan_placeholder": "الصق ملاحظات الصف أو نص اللوح أو تفاصيل الواجب...",
+      "scan_review": "مراجعة مسح الملاحظات"
     },
     "entitlement_gate": {
       "included": "مضمن مع StudyPlanner",
@@ -9287,7 +9377,7 @@
       "capture_failed_truth": "पार्सर इस स्रोत को नहीं पढ़ सका। फिर कोशिश करें या हाथ से लिखें; कोई काम नहीं जुड़ा।",
       "ready_to_review_truth": "समीक्षा के लिए तैयार। नीचे की हर पंक्ति पार्सर परिणाम या तारीख-चाहिए संकेत से आई है।",
       "status_queued_detail": "पार्सर समीक्षा के लिए कतार में रखा गया।",
-      "pick_file_status": "PDF, टेक्स्ट फाइल या इमेज चुनें।",
+      "pick_file_status": "PDF या टेक्स्ट फाइल चुनें।",
       "picker_cancelled": "इम्पोर्ट रद्द हुआ। योजना डेटा नहीं बदला।",
       "file_not_supported": "यह फाइल इस्तेमाल नहीं हो सकी",
       "photo_permission_message": "सिलेबस इमेज चुनने के लिए फोटो एक्सेस चाहिए। आप टेक्स्ट चिपका सकते हैं या टेक्स्ट वाला PDF अपलोड कर सकते हैं।",
@@ -9328,7 +9418,15 @@
       "status_permission_denied_detail": "अनुमति अस्वीकृत हुई। आप फिर भी फाइल अपलोड या टेक्स्ट लिख सकते हैं।",
       "status_cancelled_detail": "चयनकर्ता बंद हुआ। योजना डेटा नहीं बदला।",
       "status_unavailable_detail": "यह स्रोत इस डिवाइस पर उपलब्ध नहीं है। अपलोड या हाथ से लिखें आजमाएं।",
-      "status_working_detail": "चुने गए स्रोत पर काम हो रहा है।"
+      "status_working_detail": "चुने गए स्रोत पर काम हो रहा है।",
+      "camera_ready_status": "कैमरा खोलें और सिलेबस का एक पेज कैप्चर करें।",
+      "photo_library": "फोटो",
+      "photo_library_source": "सिलेबस फोटो",
+      "dashboard_alive": "डैशबोर्ड लाइव है: {classes} कक्षाएं और {items} समीक्षा किए गए आइटम अब Today, Calendar, Notes और Widgets से जुड़े हैं.",
+      "dashboard_updated": "डैशबोर्ड सक्रिय हो गया",
+      "title_short": "स्कूल सामग्री इम्पोर्ट करें",
+      "dashboard_updated_detail": "कक्षाएं, कार्य, परीक्षाएं, कैलेंडर और विजेट अब समीक्षा किए गए इम्पोर्ट को साझा करते हैं.",
+      "vision_ready": "कैमरा, फोटो, PDF और पेस्ट इम्पोर्ट समीक्षा के लिए उपलब्ध हैं."
     },
     "paywall": {
       "title": "StudyPlanner: Syllabus AI अनलॉक करें",
@@ -9418,10 +9516,11 @@
       "try_again": "फिर कोशिश करें"
     },
     "permissions": {
-      "camera": "इमेज इम्पोर्ट चालू होने पर ही कैमरा इस्तेमाल करें, ताकि मैन्युअल समीक्षा के लिए सिलेबस पेज जोड़े जा सकें।",
-      "photo_library": "इमेज इम्पोर्ट चालू होने पर ही फोटो लाइब्रेरी इस्तेमाल करें, ताकि मैन्युअल समीक्षा के लिए सिलेबस इमेज जोड़ी जा सकें।",
+      "camera": "सिलेबस फोटो को OCR से पढ़ने और असाइनमेंट, परीक्षा और डेडलाइन को समीक्षा किए गए प्लानर आइटम में बदलने के लिए कैमरा इस्तेमाल करें।",
+      "photo_library": "चुने गए सिलेबस फोटो को OCR के लिए इस्तेमाल करें, ताकि असाइनमेंट, परीक्षा और डेडलाइन जोड़े जाने से पहले समीक्षा हो सकें।",
       "calendar": "असाइनमेंट और परीक्षा की तारीखें अपने कैलेंडर से सिंक करें।",
-      "notifications": "डेडलाइन, परीक्षा और क्लास से पहले शांत रिमाइंडर भेजें।"
+      "notifications": "डेडलाइन, परीक्षा और क्लास से पहले शांत रिमाइंडर भेजें।",
+      "photos": "सिलेबस फोटो इम्पोर्ट करने के लिए फोटो लाइब्रेरी अनुमति चाहिए।"
     },
     "widgets": {
       "sync_after_load": "आपका प्लान लोड होने के बाद native widgets sync होते हैं।"
@@ -10321,7 +10420,13 @@
       "recent": "हाल का",
       "class_note": "कक्षा नोट",
       "convert_to_task": "कार्य बनाएं",
-      "memory_kicker": "मैंने क्या सीखा"
+      "memory_kicker": "मैंने क्या सीखा",
+      "scanned_note": "स्कैन किए नोट्स",
+      "scan_ready": "{count} मुख्य विचार सहेजने के लिए तैयार हैं.",
+      "scan_ready_short": "नोट स्कैन तैयार",
+      "scan_title": "नोट्स स्कैन करें",
+      "scan_placeholder": "कक्षा नोट्स, बोर्ड टेक्स्ट या होमवर्क विवरण पेस्ट करें...",
+      "scan_review": "नोट स्कैन की समीक्षा करें"
     },
     "entitlement_gate": {
       "included": "StudyPlanner में शामिल",
@@ -10772,7 +10877,7 @@
       "capture_failed_truth": "パーサーはこのソースを読めませんでした。再試行するか手入力してください。課題は追加されていません。",
       "ready_to_review_truth": "レビュー準備完了。下の各行はパーサー出力、または日付確認が必要な結果です。",
       "status_queued_detail": "パーサーレビューのキューに入りました。",
-      "pick_file_status": "PDF、テキストファイル、または画像を選択してください。",
+      "pick_file_status": "PDFまたはテキストファイルを選択してください。",
       "picker_cancelled": "インポートをキャンセルしました。プランナーのデータは変わっていません。",
       "file_not_supported": "このファイルは使用できません",
       "photo_permission_message": "シラバス画像を選ぶには写真アクセスが必要です。テキスト貼り付けやテキストPDFのアップロードも使えます。",
@@ -10813,7 +10918,15 @@
       "status_permission_denied_detail": "権限が拒否されました。ファイルアップロードまたはテキスト入力は使えます。",
       "status_cancelled_detail": "ピッカーを閉じました。プランナーのデータは変わっていません。",
       "status_unavailable_detail": "このソースはこのデバイスで使えません。アップロードまたは入力を試してください。",
-      "status_working_detail": "選択したソースを処理しています。"
+      "status_working_detail": "選択したソースを処理しています。",
+      "camera_ready_status": "カメラを開いてシラバス1ページを撮影します。",
+      "photo_library": "写真",
+      "photo_library_source": "シラバス写真",
+      "dashboard_alive": "ダッシュボードが稼働しました: {classes} 件のクラスと {items} 件の確認済み項目が Today、カレンダー、ノート、ウィジェットにつながりました。",
+      "dashboard_updated": "ダッシュボードが動き出しました",
+      "title_short": "学校資料を取り込む",
+      "dashboard_updated_detail": "クラス、課題、試験、カレンダー、ウィジェットが確認済みの取り込みを共有します。",
+      "vision_ready": "カメラ、写真、PDF、貼り付けによる取り込みを確認できます。"
     },
     "paywall": {
       "title": "StudyPlanner: Syllabus AIを解除",
@@ -10903,10 +11016,11 @@
       "try_again": "もう一度試す"
     },
     "permissions": {
-      "camera": "画像の取り込みが有効な場合のみ、手動確認用にシラバスページを添付するためカメラを使用します。",
-      "photo_library": "画像の取り込みが有効な場合のみ、手動確認用にシラバス画像を添付するため写真ライブラリを使用します。",
+      "camera": "カメラでシラバス写真をOCR読み取りし、課題、試験、締切を確認済みのプランナー項目に変換します。",
+      "photo_library": "選択したシラバス写真をOCRに使い、課題、試験、締切を追加前に確認できるようにします。",
       "calendar": "課題と試験の日付をカレンダーに同期します。",
-      "notifications": "締切、試験、授業の前に落ち着いたリマインダーを送ります。"
+      "notifications": "締切、試験、授業の前に落ち着いたリマインダーを送ります。",
+      "photos": "シラバス写真を取り込むには写真ライブラリの許可が必要です。"
     },
     "widgets": {
       "sync_after_load": "計画の読み込み後、ネイティブウィジェットが同期されます。"
@@ -11806,7 +11920,13 @@
       "recent": "最近",
       "class_note": "クラスメモ",
       "convert_to_task": "タスク化",
-      "memory_kicker": "学習したこと"
+      "memory_kicker": "学習したこと",
+      "scanned_note": "スキャンしたノート",
+      "scan_ready": "{count}件の重要アイデアを保存できます。",
+      "scan_ready_short": "ノートスキャン準備完了",
+      "scan_title": "ノートをスキャン",
+      "scan_placeholder": "授業ノート、板書、宿題の詳細を貼り付け...",
+      "scan_review": "ノートスキャンを確認"
     },
     "entitlement_gate": {
       "included": "StudyPlannerに含まれます",
@@ -12257,7 +12377,7 @@
       "capture_failed_truth": "파서가 이 소스를 읽지 못했습니다. 다시 시도하거나 직접 입력하세요. 추가된 과제는 없습니다.",
       "ready_to_review_truth": "검토 준비 완료. 아래 각 행은 파서 출력이거나 날짜 확인이 필요한 항목입니다.",
       "status_queued_detail": "파서 검토 대기열에 추가되었습니다.",
-      "pick_file_status": "PDF, 텍스트 파일 또는 이미지를 선택하세요.",
+      "pick_file_status": "PDF 또는 텍스트 파일을 선택하세요.",
       "picker_cancelled": "가져오기가 취소되었습니다. 플래너 데이터는 변경되지 않았습니다.",
       "file_not_supported": "해당 파일을 사용할 수 없습니다",
       "photo_permission_message": "실라버스 이미지를 선택하려면 사진 접근 권한이 필요합니다. 텍스트 붙여넣기나 텍스트 PDF 업로드도 사용할 수 있습니다.",
@@ -12298,7 +12418,15 @@
       "status_permission_denied_detail": "권한이 거부되었습니다. 그래도 파일 업로드나 텍스트 입력은 가능합니다.",
       "status_cancelled_detail": "선택기가 닫혔습니다. 플래너 데이터는 변경되지 않았습니다.",
       "status_unavailable_detail": "이 소스는 이 기기에서 사용할 수 없습니다. 업로드 또는 직접 입력을 시도하세요.",
-      "status_working_detail": "선택한 소스를 처리하는 중입니다."
+      "status_working_detail": "선택한 소스를 처리하는 중입니다.",
+      "camera_ready_status": "카메라를 열고 강의계획서 한 페이지를 촬영하세요.",
+      "photo_library": "사진",
+      "photo_library_source": "강의계획서 사진",
+      "dashboard_alive": "대시보드가 활성화되었습니다. {classes}개 수업과 검토된 {items}개 항목이 오늘, 캘린더, 노트, 위젯에 연결되었습니다.",
+      "dashboard_updated": "대시보드가 살아났습니다",
+      "title_short": "학교 자료 가져오기",
+      "dashboard_updated_detail": "수업, 과제, 시험, 캘린더, 위젯이 검토된 가져오기를 함께 사용합니다.",
+      "vision_ready": "카메라, 사진, PDF, 붙여넣기 가져오기를 검토할 수 있습니다."
     },
     "paywall": {
       "title": "StudyPlanner: Syllabus AI 잠금 해제",
@@ -12388,10 +12516,11 @@
       "try_again": "다시 시도"
     },
     "permissions": {
-      "camera": "이미지 가져오기가 켜져 있을 때만 수동 검토용 강의계획서 페이지를 첨부하기 위해 카메라를 사용합니다.",
-      "photo_library": "이미지 가져오기가 켜져 있을 때만 수동 검토용 강의계획서 이미지를 첨부하기 위해 사진 보관함을 사용합니다.",
+      "camera": "카메라로 강의계획서 사진을 OCR로 읽고 과제, 시험, 마감일을 검토된 플래너 항목으로 변환합니다.",
+      "photo_library": "선택한 강의계획서 사진을 OCR에 사용해 과제, 시험, 마감일을 추가 전에 검토할 수 있게 합니다.",
       "calendar": "과제와 시험 날짜를 캘린더와 동기화합니다.",
-      "notifications": "마감, 시험, 수업 전에 차분한 알림을 보냅니다."
+      "notifications": "마감, 시험, 수업 전에 차분한 알림을 보냅니다.",
+      "photos": "강의계획서 사진을 가져오려면 사진 보관함 권한이 필요합니다."
     },
     "widgets": {
       "sync_after_load": "계획이 로드되면 네이티브 위젯이 동기화됩니다."
@@ -13291,7 +13420,13 @@
       "recent": "최근",
       "class_note": "수업 노트",
       "convert_to_task": "과제로 만들기",
-      "memory_kicker": "학습한 내용"
+      "memory_kicker": "학습한 내용",
+      "scanned_note": "스캔한 노트",
+      "scan_ready": "{count}개 핵심 아이디어를 저장할 수 있습니다.",
+      "scan_ready_short": "노트 스캔 준비됨",
+      "scan_title": "노트 스캔",
+      "scan_placeholder": "수업 노트, 칠판 내용 또는 숙제 세부 정보를 붙여넣으세요...",
+      "scan_review": "노트 스캔 검토"
     },
     "entitlement_gate": {
       "included": "StudyPlanner에 포함",
@@ -13742,7 +13877,7 @@
       "capture_failed_truth": "解析器无法读取此来源。请重试或手动输入；没有添加任何作业。",
       "ready_to_review_truth": "已可 review。下方每一行都来自解析结果，或明确的缺少日期提示。",
       "status_queued_detail": "已加入解析审核队列。",
-      "pick_file_status": "选择 PDF、文本文件或图片。",
+      "pick_file_status": "选择 PDF 或文本文件。",
       "picker_cancelled": "导入已取消。计划数据未更改。",
       "file_not_supported": "无法使用该文件",
       "photo_permission_message": "需要照片权限来选择课程大纲图片。你也可以粘贴文本或上传文本型 PDF。",
@@ -13783,7 +13918,15 @@
       "status_permission_denied_detail": "权限被拒绝。你仍可上传文件或输入文本。",
       "status_cancelled_detail": "选择器已关闭。计划数据未更改。",
       "status_unavailable_detail": "此来源在本设备不可用。请尝试上传或手动输入。",
-      "status_working_detail": "正在处理所选来源。"
+      "status_working_detail": "正在处理所选来源。",
+      "camera_ready_status": "打开相机并拍摄一页课程大纲。",
+      "photo_library": "照片",
+      "photo_library_source": "课程大纲照片",
+      "dashboard_alive": "仪表盘已启用：{classes} 门课程和 {items} 个已审阅项目现已连接到今日、日历、笔记和小组件。",
+      "dashboard_updated": "仪表盘已更新",
+      "title_short": "导入学校资料",
+      "dashboard_updated_detail": "课程、任务、考试、日历和小组件现在共享已审阅的导入内容。",
+      "vision_ready": "可审阅来自相机、照片、PDF 和粘贴文本的导入。"
     },
     "paywall": {
       "title": "解锁 StudyPlanner: Syllabus AI",
@@ -13873,10 +14016,11 @@
       "try_again": "重试"
     },
     "permissions": {
-      "camera": "仅在启用图像导入时使用相机，以附加课程大纲页面供手动检查。",
-      "photo_library": "仅在启用图像导入时使用照片图库，以附加课程大纲图像供手动检查。",
+      "camera": "使用相机通过 OCR 读取课程大纲照片，并将作业、考试和截止日期转换为已审核的计划项。",
+      "photo_library": "使用选中的课程大纲照片进行 OCR，以便作业、考试和截止日期在添加前可先审核。",
       "calendar": "将作业和考试日期同步到你的日历。",
-      "notifications": "在截止日期、考试和课程前发送温和提醒。"
+      "notifications": "在截止日期、考试和课程前发送温和提醒。",
+      "photos": "导入课程大纲照片需要照片图库权限。"
     },
     "widgets": {
       "sync_after_load": "计划加载后，原生小组件会同步。"
@@ -14776,7 +14920,13 @@
       "recent": "最近",
       "class_note": "课程笔记",
       "convert_to_task": "创建任务",
-      "memory_kicker": "我学到了什么"
+      "memory_kicker": "我学到了什么",
+      "scanned_note": "扫描的笔记",
+      "scan_ready": "{count} 个关键想法可保存。",
+      "scan_ready_short": "笔记扫描已就绪",
+      "scan_title": "扫描笔记",
+      "scan_placeholder": "粘贴课堂笔记、板书文字或作业详情...",
+      "scan_review": "查看笔记扫描"
     },
     "entitlement_gate": {
       "included": "StudyPlanner 已包含",

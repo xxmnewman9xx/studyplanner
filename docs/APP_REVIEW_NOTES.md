@@ -13,13 +13,13 @@ https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Polic
 ## Supported syllabus import flow for this build
 
 1. Open the Scan tab after access is active.
-2. Choose Upload for a text-based PDF/plain-text syllabus from Files, Paste syllabus/handout text directly, or use Scan/Choose Photo to save a photo source for review.
-3. Pasted text always parses locally. Text-based PDFs and plain-text files can parse locally when no endpoint is configured, and can use the configured parser endpoint when present. Camera/photo sources can be captured and saved as sources, but automatic OCR parsing requires the configured HTTPS parser endpoint and `EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1`.
+2. Choose Upload for a text-based PDF/plain-text syllabus from Files, or paste syllabus/handout text directly.
+3. Pasted text always parses locally. Text-based PDFs and plain-text files can parse locally when no endpoint is configured, and can use the configured parser endpoint when present. Camera/photo OCR uses the iOS native Vision OCR module in native iOS builds; when a parser endpoint is configured over HTTPS with `EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1`, image parsing can also use the backend Tesseract parser. Unclear OCR results stay in review instead of applying uncertain data.
 4. Review detected courses, deadlines, due times, effort estimates, possible duplicates, and grade categories.
 5. Fix any items marked Needs Review. Invalid dates or times cannot be applied to the planner.
 6. Apply the parsed plan only after review.
 
-Camera/photo source capture is visible in this build, and it does not apply planner data by itself. OCR parsing is active only when the production parser endpoint is configured over HTTPS and image parsing is explicitly enabled for the build. There is no local image OCR fallback. If the online parser endpoint is unavailable or a photo cannot be read clearly, the app shows a retry/fallback message instead of applying uncertain data.
+Camera/photo OCR controls are enabled only when the native iOS Vision OCR module is present or when the production parser endpoint is configured over HTTPS and image parsing is explicitly enabled for the build. If image parsing is unavailable, the app directs students to text-based PDFs or pasted text instead of applying uncertain data.
 
 ## Planner trust behavior
 
@@ -33,7 +33,7 @@ StudyPlanner keeps deadline data reviewable before it affects planning or device
 
 ## WidgetKit behavior
 
-iOS builds include four WidgetKit Home Screen widgets backed by the app group `group.com.mattnewman.studyplanner`: StudyPlanner Today (small, medium), StudyPlanner Upcoming (small, medium), StudyPlanner Week (medium), and StudyPlanner Class Progress (small, medium). These widgets receive compact timeline snapshots from the app, not the full planner database.
+iOS builds include four WidgetKit Home Screen and Lock Screen accessory families backed by the app group `group.com.mattnewman.studyplanner`: StudyPlanner Today (small, medium, inline, circular, rectangular), StudyPlanner Upcoming (small, medium, inline, circular, rectangular), StudyPlanner Week (medium, inline, circular, rectangular), and StudyPlanner Class Progress (small, medium, inline, circular, rectangular). These widgets receive compact timeline snapshots from the app, not the full planner database.
 
 The widget snapshot includes reviewed assignment display fields only: local assignment ID, title, course code/color, due label, priority, assignment type, semester name, widget state, generated time, colors, and display copy. It excludes raw syllabus text, parsed raw text, teacher names, rooms, grades, notes, checklist details, reminder identifiers, calendar event identifiers, purchase state, and student name. Demo coursework and unreviewed or invalid scan results are not written to native widgets.
 

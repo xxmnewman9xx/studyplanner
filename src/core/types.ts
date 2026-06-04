@@ -1,3 +1,5 @@
+import type { ParsedImport, ParsedItem, SyllabusParseResult } from "../models";
+
 export type Accent = "blue" | "mint" | "violet" | "orange" | "cyan" | "rose";
 
 export type Priority = "Low" | "Medium" | "High";
@@ -73,6 +75,9 @@ export type Note = {
   title: string;
   classId: string;
   body: string;
+  summary?: string;
+  keyIdeas?: string[];
+  reviewReminderId?: string;
   tags: string[];
   status: NoteStatus;
   createdAt: string;
@@ -109,9 +114,27 @@ export type AppSettings = {
 };
 
 export type ScannerState = {
-  status: "idle" | "running" | "complete";
+  status: "idle" | "running" | "review" | "complete";
   stepIndex: number;
   completedAt: string | null;
+  activeImportId?: string;
+  lastAppliedImportId?: string;
+  lastError?: string;
+};
+
+export type NoteScanDraft = {
+  id: string;
+  title: string;
+  classId: string;
+  body: string;
+  summary: string;
+  keyIdeas: string[];
+  tags: string[];
+  taskTitle?: string;
+  taskDueDate?: string;
+  taskDueTime?: string;
+  sourceName: string;
+  createdAt: string;
 };
 
 export type AppState = {
@@ -124,6 +147,10 @@ export type AppState = {
   appSettings: AppSettings;
   onboardingComplete: boolean;
   scannerState: ScannerState;
+  parsedImports: ParsedImport[];
+  parsedItems: ParsedItem[];
+  activeParseResult: SyllabusParseResult | null;
+  noteScanDrafts: NoteScanDraft[];
 };
 
 export type PulseModel = {

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-02T17:15:20.776Z",
+  "generatedAt": "2026-06-04T10:57:25.658Z",
   "outputRoot": "marketing_exports/raw_screenshots/widget_repair_final",
   "rawPngPolicy": "marketing_exports/raw_screenshots is ignored; PNGs are left local and are not committed.",
   "supportedLocales": [
@@ -74,8 +74,8 @@
       "source": "Calendar/Plan repaired panel",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "18d1e47",
-      "timestamp": "2026-06-02T17:15:20.776Z"
+      "gitCommit": "06fdaa4",
+      "timestamp": "2026-06-04T10:57:25.658Z"
     },
     {
       "id": "calendar-plan-repaired-panel-full",
@@ -99,8 +99,8 @@
       "source": "Calendar/Plan repaired panel",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "18d1e47",
-      "timestamp": "2026-06-02T17:15:20.776Z"
+      "gitCommit": "06fdaa4",
+      "timestamp": "2026-06-04T10:57:25.658Z"
     },
     {
       "id": "calendar-plan-repaired-panel",
@@ -124,8 +124,8 @@
       "source": "Calendar/Plan repaired panel",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "18d1e47",
-      "timestamp": "2026-06-02T17:15:20.776Z"
+      "gitCommit": "06fdaa4",
+      "timestamp": "2026-06-04T10:57:25.658Z"
     },
     {
       "id": "home-preview-variety-stage",
@@ -149,8 +149,8 @@
       "source": "in-app Home Screen mock preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "18d1e47",
-      "timestamp": "2026-06-02T17:15:20.776Z"
+      "gitCommit": "06fdaa4",
+      "timestamp": "2026-06-04T10:57:25.658Z"
     },
     {
       "id": "home-preview-variety",
@@ -174,8 +174,8 @@
       "source": "in-app Home Screen mock preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "18d1e47",
-      "timestamp": "2026-06-02T17:15:20.776Z"
+      "gitCommit": "06fdaa4",
+      "timestamp": "2026-06-04T10:57:25.658Z"
     },
     {
       "id": "today-widget-data-match-state",
@@ -199,8 +199,8 @@
       "source": "Today widget data match state",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "18d1e47",
-      "timestamp": "2026-06-02T17:15:20.776Z"
+      "gitCommit": "06fdaa4",
+      "timestamp": "2026-06-04T10:57:25.658Z"
     },
     {
       "id": "widget-library-overview",
@@ -224,8 +224,8 @@
       "source": "Widget Library preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "18d1e47",
-      "timestamp": "2026-06-02T17:15:20.776Z"
+      "gitCommit": "06fdaa4",
+      "timestamp": "2026-06-04T10:57:25.658Z"
     },
     {
       "id": "widget-studio-class-focus-medium",
@@ -249,8 +249,8 @@
       "source": "Widget Gallery live preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "18d1e47",
-      "timestamp": "2026-06-02T17:15:20.776Z"
+      "gitCommit": "06fdaa4",
+      "timestamp": "2026-06-04T10:57:25.658Z"
     },
     {
       "id": "widget-studio-due-next-small",
@@ -274,8 +274,8 @@
       "source": "Widget Gallery live preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "18d1e47",
-      "timestamp": "2026-06-02T17:15:20.776Z"
+      "gitCommit": "06fdaa4",
+      "timestamp": "2026-06-04T10:57:25.658Z"
     },
     {
       "id": "widget-studio-empty-state",
@@ -299,8 +299,8 @@
       "source": "Widget Gallery live preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "18d1e47",
-      "timestamp": "2026-06-02T17:15:20.776Z"
+      "gitCommit": "06fdaa4",
+      "timestamp": "2026-06-04T10:57:25.658Z"
     },
     {
       "id": "widget-studio-focus-small",
@@ -324,8 +324,8 @@
       "source": "Widget Gallery live preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "18d1e47",
-      "timestamp": "2026-06-02T17:15:20.776Z"
+      "gitCommit": "06fdaa4",
+      "timestamp": "2026-06-04T10:57:25.658Z"
     },
     {
       "id": "widget-studio-fullpage",
@@ -349,8 +349,8 @@
       "source": "Widget Gallery live preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "18d1e47",
-      "timestamp": "2026-06-02T17:15:20.776Z"
+      "gitCommit": "06fdaa4",
+      "timestamp": "2026-06-04T10:57:25.658Z"
     },
     {
       "id": "widget-studio-needs-check-small",
@@ -374,8 +374,8 @@
       "source": "Widget Gallery live preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "18d1e47",
-      "timestamp": "2026-06-02T17:15:20.776Z"
+      "gitCommit": "06fdaa4",
+      "timestamp": "2026-06-04T10:57:25.658Z"
     },
     {
       "id": "widget-studio-streak-small",
@@ -399,8 +399,8 @@
       "source": "Widget Gallery live preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "18d1e47",
-      "timestamp": "2026-06-02T17:15:20.776Z"
+      "gitCommit": "06fdaa4",
+      "timestamp": "2026-06-04T10:57:25.658Z"
     },
     {
       "id": "widget-studio-today-medium",
@@ -424,8 +424,8 @@
       "source": "Widget Gallery live preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "18d1e47",
-      "timestamp": "2026-06-02T17:15:20.776Z"
+      "gitCommit": "06fdaa4",
+      "timestamp": "2026-06-04T10:57:25.658Z"
     },
     {
       "id": "widget-studio-week-medium",
@@ -449,8 +449,8 @@
       "source": "Widget Gallery live preview",
       "noCropResult": "validated-by-layout-budget-and-visual-review",
       "scoreResult": "pass",
-      "gitCommit": "18d1e47",
-      "timestamp": "2026-06-02T17:15:20.776Z"
+      "gitCommit": "06fdaa4",
+      "timestamp": "2026-06-04T10:57:25.658Z"
     }
   ]
 }

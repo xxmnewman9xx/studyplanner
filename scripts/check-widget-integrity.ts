@@ -460,15 +460,17 @@ assert(appJson.includes('"name": "StudyPlannerClassProgressWidget"'), "Class Pro
 assert(expoWidgetsPluginIndex >= 0, "expo-widgets config plugin should be present.");
 assert(widgetKindPluginIndex >= 0 && widgetKindPluginIndex < expoWidgetsPluginIndex, "WidgetKit kind patch plugin should precede expo-widgets in app.json so Expo runs it after generated Swift exists.");
 assert(widgetKindPluginSource.includes("widget.kind") && widgetKindPluginSource.includes("let name: String"), "WidgetKit kind patch plugin should rewrite generated Swift kinds from app.json.");
-assertWidgetMetadata("studyplanner.today", "StudyPlanner Today", "See what needs your attention today.", ["systemSmall", "systemMedium"]);
-assertWidgetMetadata("studyplanner.upcoming", "StudyPlanner Upcoming", "Preview upcoming assignments and deadlines.", ["systemSmall", "systemMedium"]);
-assertWidgetMetadata("studyplanner.week", "StudyPlanner Week", "Check your weekly workload at a glance.", ["systemMedium"]);
-assertWidgetMetadata("studyplanner.classProgress", "StudyPlanner Class Progress", "Track progress for a selected class.", ["systemSmall", "systemMedium"]);
+assertWidgetMetadata("studyplanner.today", "StudyPlanner Today", "See what needs your attention today.", ["systemSmall", "systemMedium", "accessoryInline", "accessoryCircular", "accessoryRectangular"]);
+assertWidgetMetadata("studyplanner.upcoming", "StudyPlanner Upcoming", "Preview upcoming assignments and deadlines.", ["systemSmall", "systemMedium", "accessoryInline", "accessoryCircular", "accessoryRectangular"]);
+assertWidgetMetadata("studyplanner.week", "StudyPlanner Week", "Check your weekly workload at a glance.", ["systemMedium", "accessoryInline", "accessoryCircular", "accessoryRectangular"]);
+assertWidgetMetadata("studyplanner.classProgress", "StudyPlanner Class Progress", "Track progress for a selected class.", ["systemSmall", "systemMedium", "accessoryInline", "accessoryCircular", "accessoryRectangular"]);
 for (const widgetKind of ["studyplanner.today", "studyplanner.upcoming", "studyplanner.week", "studyplanner.classProgress"]) {
   assert(nativeWidgetJs.includes(`"${widgetKind}"`), `${widgetKind} should be the JS createWidget storage/reload name.`);
   assert(nativeWidgetFiles.some((file) => file.includes(`let name: String = "${widgetKind}"`)), `${widgetKind} should be the native StaticConfiguration kind.`);
 }
-assert(!appJson.includes("accessoryCircular") && !appJson.includes("accessoryRectangular") && !appJson.includes("accessoryInline"), "Widget metadata must not claim unsupported Lock Screen families.");
+for (const family of [".accessoryInline", ".accessoryCircular", ".accessoryRectangular"]) {
+  assert(nativeWidgetFiles.every((file) => file.includes(family)), `Every native widget should register ${family}.`);
+}
 assert(expoWidgetsJs.includes("updateSnapshot(props)") && expoWidgetsJs.includes("updateTimeline"), "updateSnapshot should write a timeline entry.");
 assert(widgetObjectSwift.includes("WidgetCenter.shared.reloadTimelines") && widgetObjectSwift.includes("WidgetsStorage.set(entries.map"), "Native timeline updates should write App Group storage and reload WidgetKit.");
 

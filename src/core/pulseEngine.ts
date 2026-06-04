@@ -1,6 +1,7 @@
 import type { Accent, AppState, ClassCourse, PulseModel } from "./types";
 
 export function getPulseLabel(score: number): PulseModel["label"] {
+  if (!Number.isFinite(score)) return "Needs attention";
   if (score >= 90) return "Great";
   if (score >= 75) return "Good";
   if (score >= 50) return "Needs attention";
@@ -31,8 +32,9 @@ export function calculateClassPulse(state: AppState, classId: string, now: Date 
   const reminderBonus = course.reminderSettings.enabled ? 4 : -6;
   const studyTimePlaceholder = course.id === "calc" || course.id === "bio" ? 3 : 0;
 
+  const basePulse = Number.isFinite(course.pulse) ? course.pulse : 72;
   const score = clamp(
-    course.pulse
+    basePulse
       - overdue.length * 18
       - dueSoon.length * 6
       - exams.length * 5
@@ -82,6 +84,7 @@ function buildSuggestedActions(hasDueWork: boolean, noteCount: number, reminderE
 }
 
 function pulseAccent(score: number, course?: ClassCourse): Accent {
+  if (!Number.isFinite(score)) return "orange";
   if (score < 50) return "rose";
   if (score < 75) return "orange";
   return course?.accent ?? "mint";
@@ -104,5 +107,6 @@ function toDateOnly(date: Date) {
 }
 
 function clamp(value: number, min: number, max: number) {
+  if (!Number.isFinite(value)) return min;
   return Math.max(min, Math.min(max, Math.round(value)));
 }

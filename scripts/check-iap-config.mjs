@@ -30,10 +30,24 @@ const readiness = matchString(iapManifest, /readiness:\s*"([^"]+)"/);
 
 assert(app.includes("<SubscriptionProvider>"), "App must wrap screens in SubscriptionProvider.");
 assert(app.includes("useSubscription"), "App must read centralized subscription state.");
-assert(app.includes('activeTab === "import"'), "Import tab must be guarded.");
-assert(app.includes('activeTab === "grades"'), "Grades tab must be guarded.");
-assert(app.includes("handleScheduleReminders"), "Reminder entrypoint must stay behind app access.");
-assert(app.includes("handleCalendarSync"), "Calendar sync entrypoint must stay behind app access.");
+assert(
+  app.includes("requiresPremiumRoute(next)") &&
+    app.includes('route === "scanner"') &&
+    app.includes('? "subscribe" : next'),
+  "Scan/import route must be guarded by centralized subscription state."
+);
+assert(
+  !app.includes('| "grades"') || app.includes('route === "grades"'),
+  "Grades route must be guarded when it is exposed by the current route model."
+);
+assert(
+  !app.includes("handleScheduleReminders") && app.includes("actions.updateClassReminder"),
+  "Current reminder flow must use local class reminder settings without exposing the legacy scheduler entrypoint."
+);
+assert(
+  !app.includes("handleCalendarSync") && app.includes('route === "calendar"'),
+  "Current calendar flow must use the in-app calendar route without exposing the legacy calendar sync entrypoint."
+);
 
 assert(
   hasPlugin(appConfig.plugins, "expo-iap"),
@@ -83,10 +97,10 @@ assert(
     widgetPlugin?.widgets?.some((widget) => widget.name === "StudyPlannerClassProgressWidget"),
   "expo-widgets must register Today, Upcoming, Week, and Class Progress widgets."
 );
-assertWidget("studyplanner.today", "StudyPlanner Today", ["systemSmall", "systemMedium"]);
-assertWidget("studyplanner.upcoming", "StudyPlanner Upcoming", ["systemSmall", "systemMedium"]);
-assertWidget("studyplanner.week", "StudyPlanner Week", ["systemMedium"]);
-assertWidget("studyplanner.classProgress", "StudyPlanner Class Progress", ["systemSmall", "systemMedium"]);
+assertWidget("studyplanner.today", "StudyPlanner Today", ["systemSmall", "systemMedium", "accessoryInline", "accessoryCircular", "accessoryRectangular"]);
+assertWidget("studyplanner.upcoming", "StudyPlanner Upcoming", ["systemSmall", "systemMedium", "accessoryInline", "accessoryCircular", "accessoryRectangular"]);
+assertWidget("studyplanner.week", "StudyPlanner Week", ["systemMedium", "accessoryInline", "accessoryCircular", "accessoryRectangular"]);
+assertWidget("studyplanner.classProgress", "StudyPlanner Class Progress", ["systemSmall", "systemMedium", "accessoryInline", "accessoryCircular", "accessoryRectangular"]);
 
 for (const name of [
   "EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS",
@@ -195,7 +209,10 @@ assert(
 assert(paywall.includes("Restore Purchases"), "Paywall must expose Restore Purchases.");
 assert(paywall.includes("Terms of Use"), "Paywall must expose Terms of Use.");
 assert(paywall.includes("Terms of Use (EULA)"), "Paywall must expose EULA wording.");
-assert(paywall.includes("Privacy Policy"), "Paywall must expose Privacy Policy.");
+assert(
+  paywall.includes("paywall.privacy_short") && paywall.includes("purchaseConfig.privacyUrl"),
+  "Paywall must expose the localized privacy policy link."
+);
 assert(
   paywall.includes("purchaseConfig.productIdSource") || paywall.includes("usesManifestProductFallback"),
   "Paywall must disclose whether product IDs came from build env or the release manifest."

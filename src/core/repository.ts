@@ -2,6 +2,9 @@ import type { AppSettings, AppState, Note, Task, WidgetSettings, WidgetType } fr
 import {
   hydrateAppState,
   persistAppState,
+  persistNoteScanDrafts,
+  persistParsedImports,
+  persistParsedItems,
   persistNotes,
   persistSettings,
   persistTasks,
@@ -36,7 +39,10 @@ export class LocalStudyPlannerRepository implements StudyPlannerRepository {
       persistWidgetSettings(state.widgetSettings),
       persistTasks(state.tasks),
       persistNotes(state.notes),
-      persistSettings(state.appSettings)
+      persistSettings(state.appSettings),
+      persistParsedImports(state.parsedImports),
+      persistParsedItems(state.parsedItems),
+      persistNoteScanDrafts(state.noteScanDrafts)
     ]);
   }
 

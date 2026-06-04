@@ -18,6 +18,7 @@ import { validateEntitlementWithServer } from "./purchaseValidation";
 
 const subscriptionStorageKey = "study-planner-paid-entitlement-v1";
 const entitlementGracePeriodMs = 24 * 60 * 60 * 1000;
+const localQaEntitlementProductId = "local-simulator-grace";
 
 type ProductKind = "subscription" | "lifetime";
 type PurchaseStatus = "checking" | "ready" | "unavailable" | "error";
@@ -127,6 +128,14 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
   const refreshEntitlement = useCallback(async () => {
     try {
       setStatus("checking");
+      const stored = await loadJson<EntitlementRecord>(subscriptionStorageKey);
+      if (isLocalQaEntitlement(stored)) {
+        setIsPremium(true);
+        setStatus("ready");
+        setMessage("Local simulator StudyPlanner access is enabled for QA.");
+        return;
+      }
+
       const activeSubscriptions = await loadActiveSubscriptions();
       const availablePurchases = await loadAvailablePurchases();
       const entitlement =
@@ -226,7 +235,11 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
     loadJson<EntitlementRecord>(subscriptionStorageKey).then((stored) => {
       if (storedEntitlementIsFresh(stored)) {
         setIsPremium(Boolean(stored?.isPremium));
-        setMessage("Checking your StudyPlanner access with the store.");
+        setMessage(
+          isLocalQaEntitlement(stored)
+            ? "Local simulator StudyPlanner access is enabled for QA."
+            : "Checking your StudyPlanner access with the store."
+        );
       }
     });
   }, []);
@@ -491,6 +504,10 @@ function storedEntitlementIsFresh(stored: EntitlementRecord | null | undefined) 
   const checkedAt = new Date(stored.checkedAt).getTime();
   if (Number.isNaN(checkedAt)) return false;
   return Date.now() - checkedAt <= entitlementGracePeriodMs;
+}
+
+function isLocalQaEntitlement(stored: EntitlementRecord | null | undefined) {
+  return Boolean(__DEV__) && Platform.OS === "ios" && storedEntitlementIsFresh(stored) && stored?.productId === localQaEntitlementProductId;
 }
 
 function mapStoreProduct(product: Product | ProductSubscription): PaywallProduct {

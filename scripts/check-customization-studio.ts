@@ -249,18 +249,21 @@ assert(
   "Widget Studio should be a Home Screen builder with live payload preview, controls, class colors, and honest bridge status."
 );
 const appSource = fs.readFileSync("App.tsx", "utf8");
+const coreActionsSource = fs.readFileSync("src/core/actions.ts", "utf8");
+const coreStorageSource = fs.readFileSync("src/core/storage.ts", "utf8");
+const coreRepositorySource = fs.readFileSync("src/core/repository.ts", "utf8");
 assert(
-  appSource.includes("customization: normalizeStudioCustomization(stored.settings?.customization || defaultSettings.customization)") &&
-    appSource.includes("customization: patch.customization") &&
-    appSource.includes("normalizeStudioCustomization(patch.customization)"),
-  "App storage hydrate and settings updates should normalize Studio customization."
+  appSource.includes("actions.updateWidgetSettings") &&
+    coreActionsSource.includes("normalizeWidgetSettings({ ...current, ...settings, widgetType") &&
+    coreStorageSource.includes("mergeWidgetSettings(fallback.widgetSettings[type], state.widgetSettings?.[type])") &&
+    coreRepositorySource.includes("persistWidgetSettings(state.widgetSettings)"),
+  "Core Widget Studio settings should normalize on update, hydrate through storage, and persist through the repository."
 );
 assert(
-  todaySource.includes('action={t("today.scan_syllabus", "Scan syllabus")}') &&
-    todaySource.includes("onAction={onOpenScan}") &&
-    todaySource.includes("onScheduleReminders") &&
-    todaySource.includes("onCalendarSync"),
-  "Scenario-backed Today actions should preserve Scan, reminders, and calendar handler plumbing."
+  appSource.includes('go(nextTask ? "tasks" : focusClass ? "noteEditor" : "scanner")') &&
+    appSource.includes('accessibilityLabel="Open calendar"') &&
+    appSource.includes("actions.updateClassReminder"),
+  "Scenario-backed dashboard actions should preserve Scan navigation, calendar access, and reminder settings plumbing."
 );
 
 console.log("customization studio gates passed");

@@ -29,7 +29,7 @@ Import a syllabus with AI assistance, review every class and deadline, then star
 
 StudyPlanner: Syllabus AI helps high-school and college students turn syllabi, assignments, exams, class schedules, and grades into one daily plan.
 
-Upload a text-based syllabus PDF or paste class material, review the detected courses, deadlines, due times, and grade categories, then see what matters today. Track weighted grades, calculate what you need on remaining work, start a focus session for one assignment, and set reminders before exams and due dates.
+Scan a syllabus photo, upload a text-based syllabus PDF, or paste class material, review the detected courses, deadlines, due times, and grade categories, then see what matters today. Track weighted grades, calculate what you need on remaining work, start a focus session for one assignment, and set reminders before exams and due dates.
 
 StudyPlanner keeps you in control: imported work is editable before it touches your planner, uncertain items are flagged for review, and invalid deadlines are kept out of Today, widgets, reminders, and calendar sync until fixed.
 
@@ -53,8 +53,8 @@ https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Polic
 
 - Explain that AI/parser results are editable before application.
 - StudyPlanner is available through the in-app subscription screen. To test subscription flows, complete onboarding, choose a StudyPlanner plan, subscribe using Apple's sandbox purchase flow, then use Scan, reminders, calendar sync, and grade planning surfaces.
-- Supported import paths for App Review: text-based PDF/plain-text file and pasted syllabus text. Camera photo and photo library image import are supported only when the native build has a configured HTTPS parser endpoint and `EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1`.
-- Photo/image parsing uses the configured parser endpoint and has no local OCR fallback. If that endpoint or image parsing flag is unavailable, photo imports show a clear fallback message instead of applying uncertain data; text-based PDFs and pasted text can still parse on device.
+- Supported import paths for App Review: text-based PDF/plain-text file, pasted syllabus text, and camera/photo OCR in native iOS builds through the on-device Vision OCR module. Camera/photo OCR can also use the configured HTTPS parser endpoint when `EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1`.
+- Photo/image parsing uses native iOS Vision OCR on device when available. If the native OCR module and configured image parser endpoint are both unavailable, photo imports show a clear fallback message instead of applying uncertain data; text-based PDFs and pasted text can still parse on device.
 - The app uses Apple's standard EULA: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 - Do not mention Canvas in metadata unless the app supports a clear Canvas-related feature.
 - Document notification, calendar, camera, and photo usage with concrete purpose strings.

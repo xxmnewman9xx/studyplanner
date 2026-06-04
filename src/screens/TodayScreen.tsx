@@ -5,6 +5,7 @@ import { Activity, Bell, Check, Grid2X2, MapPin, Plus, Search, User } from "luci
 import { SemesterPulse, SP } from "../components/PrototypeUI";
 import { Assignment, Course, FocusSession, Semester, StudyNote, UserSettings, WidgetPreset } from "../models";
 import { getCourseForAssignment } from "../logic/planner";
+import { useI18n } from "../i18n";
 import type { StudentLifeContext } from "../logic/studentLifeDepth";
 
 export type ImportHandoffSummary = {
@@ -44,12 +45,14 @@ type TodayScreenProps = {
 };
 
 export function TodayScreen({ assignments, courses, semester, studentName, onOpenAssignment, onOpenPlan }: TodayScreenProps) {
+  const { t } = useI18n();
   const openItems = assignments
     .filter((item) => item.status !== "done" && item.status !== "archived")
     .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
   const tasks = openItems.slice(0, 3);
   const primaryTask = tasks[0];
   const nextClass = courses[0] || fallbackCourse;
+  const nextCourse = nextClass;
   const secondClass = courses[1] || { ...fallbackCourse, id: "calc", name: "Calculus II", code: "CAL", room: "M112", color: SP.blue };
   const thirdClass = courses[2] || { ...fallbackCourse, id: "eng", name: "English Literature", code: "ENG", room: "H310", color: SP.purple };
   const first = firstName(studentName) || "Maya";
@@ -75,12 +78,12 @@ export function TodayScreen({ assignments, courses, semester, studentName, onOpe
 
         <View style={styles.search}>
           <Search size={18} color={SP.sub} />
-          <Text style={styles.searchText}>Search classes, tasks, notes</Text>
+          <Text style={styles.searchText}>{t("today.quick_capture", "Search classes, tasks, notes")}</Text>
         </View>
 
         <TouchableOpacity style={styles.pulseHero} activeOpacity={0.86} onPress={() => primaryTask && onOpenAssignment(primaryTask.id)}>
           <View style={styles.heroTop}>
-            <Text style={styles.greenLabel}>CLASS PULSE</Text>
+            <Text style={styles.greenLabel}>{nextCourse?.code || "CLASS"} PULSE</Text>
             <View style={styles.goodPill}><Activity size={16} color={SP.green} /><Text style={styles.goodPillText}>Good</Text></View>
           </View>
           <View style={styles.heroBody}>
@@ -138,20 +141,23 @@ export function TodayScreen({ assignments, courses, semester, studentName, onOpe
           <Text style={styles.sectionLabel}>TODAY'S SCHEDULE</Text>
           <TouchableOpacity onPress={onOpenPlan}><Text style={styles.calendarLink}>Calendar</Text></TouchableOpacity>
         </View>
-        {[nextClass, secondClass, thirdClass].map((course, index) => (
-          <View key={`${course.id}-${index}`} style={styles.scheduleRow}>
-            <View style={styles.timeCol}>
-              <Text style={styles.time}>{["9:00", "11:30", "2:00"][index]}</Text>
-              <Text style={styles.ampm}>{index === 2 ? "PM" : "AM"}</Text>
+        {[nextClass, secondClass, thirdClass].map((course, index) => {
+          const courseColor = course?.color || SP.blue;
+          return (
+            <View key={`${course.id}-${index}`} style={styles.scheduleRow}>
+              <View style={styles.timeCol}>
+                <Text style={styles.time}>{["9:00", "11:30", "2:00"][index]}</Text>
+                <Text style={styles.ampm}>{index === 2 ? "PM" : "AM"}</Text>
+              </View>
+              <View style={[styles.scheduleRail, { backgroundColor: courseColor }]} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.scheduleTitle}>{course.name}</Text>
+                <Text style={styles.scheduleSub}>Room {course.room || ["B204", "M112", "H310"][index]}</Text>
+              </View>
+              {index === 0 ? <View style={styles.nextPill}><Text style={styles.nextPillText}>Next</Text></View> : null}
             </View>
-            <View style={[styles.scheduleRail, { backgroundColor: course.color || SP.blue }]} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.scheduleTitle}>{course.name}</Text>
-              <Text style={styles.scheduleSub}>Room {course.room || ["B204", "M112", "H310"][index]}</Text>
-            </View>
-            {index === 0 ? <View style={styles.nextPill}><Text style={styles.nextPillText}>Next</Text></View> : null}
-          </View>
-        ))}
+          );
+        })}
       </ScrollView>
 
       <TouchableOpacity style={styles.fab} activeOpacity={0.82}>

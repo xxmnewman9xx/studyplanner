@@ -146,8 +146,9 @@ async function main() {
   }, now);
   assert(documentImport.sourceType === "pdf" && sourceForParsedImport(documentImport)?.kind === "pdf", "document asset should create a PDF parsed import");
 
-  assert(isSupportedDocumentAsset({ name: "worksheet.png", mimeType: "image/png" }), "image upload should be supported when OCR is configured");
+  assert(!isSupportedDocumentAsset({ name: "worksheet.png", mimeType: "image/png" }), "image upload should stay off until a real local OCR bridge is configured");
   assert(!isSupportedDocumentAsset({ name: "archive.zip", mimeType: "application/zip" }), "unsupported files should be rejected");
+  assertThrows(() => validateDocumentAsset({ name: "worksheet.png", mimeType: "image/png" }), "image file should return useful no-OCR boundary error");
   assertThrows(() => validateDocumentAsset({ name: "archive.zip", mimeType: "application/zip" }), "unsupported file should return useful error");
   assertThrows(() => validateDocumentAsset({ name: "huge.pdf", mimeType: "application/pdf", size: 25 * 1024 * 1024 }), "large file should return useful error");
 
