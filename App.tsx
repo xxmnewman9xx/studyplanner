@@ -118,7 +118,11 @@ type Route =
   | "classDetail"
   | "addTask"
   | "noteEditor"
-  | "watchPreview";
+  | "watchPreview"
+  | "homePreview"
+  | "lockPreview"
+  | "themeStudio"
+  | "reminders";
 
 type WidgetDraft = WidgetSettings;
 type StudioPreset = {
@@ -224,6 +228,18 @@ const studioPresets: StudioPreset[] = [
     label: "Engineering",
     copy: "Projects, workload, and weekly load take priority.",
     patch: { widgetType: "weeklyLoad", accent: "violet", size: "L", density: "Detailed", opacity: 92, blur: 16, glow: 52, radius: 28 }
+  },
+  {
+    id: "finals",
+    label: "Finals Week",
+    copy: "Exam countdowns, study blocks, and pulse recovery first.",
+    patch: { widgetType: "upcomingTest", accent: "orange", size: "Hero", density: "Detailed", opacity: 94, blur: 18, glow: 70, radius: 30 }
+  },
+  {
+    id: "colorPop",
+    label: "Color Pop",
+    copy: "Bright glanceables for motivation and visual memory.",
+    patch: { widgetType: "classPulse", accent: "rose", size: "L", density: "Detailed", opacity: 90, blur: 22, glow: 78, radius: 32 }
   }
 ];
 
@@ -430,6 +446,10 @@ function renderPhoneRoute(route: Route, props: ShellProps) {
   if (route === "classDetail") return <ClassDetailScreen {...props} />;
   if (route === "addTask") return <AddTaskScreen {...props} />;
   if (route === "noteEditor") return <NoteEditorScreen {...props} />;
+  if (route === "homePreview") return <HomeScreenWidgetPreview {...props} />;
+  if (route === "lockPreview") return <LockScreenWidgetPreview {...props} />;
+  if (route === "themeStudio") return <ThemeStudioScreen {...props} />;
+  if (route === "reminders") return <RemindersScreen {...props} />;
   return <WatchPreview {...props} />;
 }
 
@@ -443,6 +463,10 @@ function renderPadRoute(route: Route, props: ShellProps) {
   if (route === "studio") return <IPadWidgetStudio {...props} />;
   if (route === "scanner") return <IPadScanner {...props} />;
   if (route === "subscribe") return <SubscribeScreen {...props} />;
+  if (route === "homePreview") return <HomeScreenWidgetPreview {...props} />;
+  if (route === "lockPreview") return <LockScreenWidgetPreview {...props} />;
+  if (route === "themeStudio") return <ThemeStudioScreen {...props} />;
+  if (route === "reminders") return <RemindersScreen {...props} />;
   return <WatchPreview {...props} />;
 }
 
@@ -798,7 +822,7 @@ function WidgetStudio({ state, actions, go, notify, settings, nativeWidgetStatus
       <View style={styles.studioPreviewTop}>
         <LiquidWidget type={draft.widgetType} state={state} styleConfig={draft} settings={settings} />
       </View>
-      <StudioControls draft={draft} updateDraft={updateDraft} applyPreset={applyPreset} reset={reset} save={save} />
+      <StudioControls draft={draft} updateDraft={updateDraft} applyPreset={applyPreset} reset={reset} save={save} go={go} />
     </ScreenScroll>
   );
 }
@@ -845,7 +869,7 @@ function IPadWidgetStudio({ state, actions, go, notify, settings, nativeWidgetSt
           <Text style={styles.padPaneTitle}>Inspector</Text>
           <TouchableOpacity style={styles.closeButton} onPress={() => go("home")}><X size={18} color={T["--text"]} /></TouchableOpacity>
         </View>
-        <StudioControls draft={draft} updateDraft={updateDraft} applyPreset={applyPreset} reset={reset} save={save} />
+        <StudioControls draft={draft} updateDraft={updateDraft} applyPreset={applyPreset} reset={reset} save={save} go={go} />
       </ScrollView>
     </View>
   );
@@ -856,13 +880,15 @@ function StudioControls({
   updateDraft,
   applyPreset,
   reset,
-  save
+  save,
+  go
 }: {
   draft: WidgetDraft;
   updateDraft: <K extends keyof WidgetDraft>(key: K, value: WidgetDraft[K]) => void;
   applyPreset: (preset: StudioPreset) => void;
   reset: () => void;
   save: () => void;
+  go: (route: Route) => void;
 }) {
   return (
     <View>
@@ -873,6 +899,12 @@ function StudioControls({
       </View>
       <StudioSection title="School OS Presets">
         <StudioPresetRail draft={draft} onPress={applyPreset} />
+      </StudioSection>
+      <StudioSection title="Home and Lock Screen">
+        <View style={styles.studioButtons}>
+          <TouchableOpacity style={styles.secondaryButton} onPress={() => go("homePreview")}><Text style={styles.secondaryButtonText}>Home Screen</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.secondaryButton} onPress={() => go("lockPreview")}><Text style={styles.secondaryButtonText}>Lock Screen</Text></TouchableOpacity>
+        </View>
       </StudioSection>
       <StudioSection title="Dashboard Placement">
         <ChipRow values={["Next class", "Tasks", "Pulse", "Load", "Room", "Exam", "Study"]} value={placementLabelForWidget(draft.widgetType)} onPress={(value) => updateDraft("widgetType", widgetTypeForPlacement(value))} wrap />
@@ -1919,6 +1951,9 @@ function ProfileContent({ state, settings, actions, go }: ShellProps) {
       <Panel title="Reminder Defaults">
         <PickerRow label="Default class reminder" values={["Off", "5 min before", "10 min before", "15 min before", "30 min before", "1 hour before"]} value={settings.defaultClassReminder === 60 ? "1 hour before" : settings.defaultClassReminder ? `${settings.defaultClassReminder} min before` : "Off"} onPress={(value) => set("defaultClassReminder", reminderMinutes(value))} />
         <ToggleLine label="Show room in reminder" value={settings.showRoomInReminder} onValueChange={(value) => set("showRoomInReminder", value)} />
+        <TouchableOpacity style={styles.watchAccessButton} onPress={() => go("reminders")}>
+          <Text style={styles.primaryButtonText}>Open Reminders</Text>
+        </TouchableOpacity>
       </Panel>
       <Panel title="Semester Progress">
         <SurfaceCard compact>
@@ -1934,6 +1969,9 @@ function ProfileContent({ state, settings, actions, go }: ShellProps) {
       <Panel title="Customization">
         <MiniLine text={`Theme controls: ${settings.highContrast ? "high contrast" : "standard contrast"}, ${settings.reduceTransparency ? "reduced glass" : "liquid glass"}`} />
         <MiniLine text={`Widget preset: ${activePreset.label}`} />
+        <TouchableOpacity style={styles.watchAccessButton} onPress={() => go("themeStudio")}>
+          <Text style={styles.primaryButtonText}>Open Theme Studio</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.watchAccessButton} onPress={() => go("studio")}>
           <Text style={styles.primaryButtonText}>Open Widget Studio</Text>
         </TouchableOpacity>
@@ -1951,6 +1989,171 @@ function ProfileContent({ state, settings, actions, go }: ShellProps) {
         <ToggleLine label="Larger text" value={settings.largerText} onValueChange={(value) => set("largerText", value)} />
       </Panel>
     </View>
+  );
+}
+
+function HomeScreenWidgetPreview({ go, state, settings }: ShellProps) {
+  const dueToday = selectTodayTasks(state).filter((task) => !task.completed).length;
+  const nextExam = selectUpcomingExams(state)[0];
+  const appIcons = ["Messages", "Calendar", "Photos", "Camera", "Maps", "Clock", "Notes", "Music"];
+  return (
+    <View style={styles.iosPreviewScreen}>
+      <View style={styles.previewWallpaper} />
+      <View style={styles.previewTopBar}>
+        <TouchableOpacity style={styles.previewBackButton} onPress={() => go("studio")}><ChevronLeft size={20} color="#FFFFFF" /></TouchableOpacity>
+        <Text style={styles.previewTitle}>Home Screen</Text>
+        <View style={styles.previewSpacer} />
+      </View>
+      <ScrollView contentContainerStyle={styles.homePreviewContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.homePreviewGrid}>
+          <View style={styles.homePreviewLargeWidget}>
+            <LiquidWidget type="nextClass" state={state} styleConfig={state.widgetSettings.nextClass} settings={settings} />
+          </View>
+          <View style={styles.homePreviewSmallStack}>
+            <View style={styles.homeSmallWidget}><Text style={styles.homeSmallLabel}>Due Today</Text><Text style={styles.homeSmallValue}>{dueToday}</Text><Text style={styles.homeSmallSub}>assignments</Text></View>
+            <View style={styles.homeSmallWidget}><Text style={styles.homeSmallLabel}>Next Exam</Text><Text style={styles.homeSmallValue}>{nextExam ? "Soon" : "--"}</Text><Text style={styles.homeSmallSub}>{nextExam?.title ?? "clear"}</Text></View>
+          </View>
+        </View>
+        <View style={styles.homePreviewWideWidget}>
+          <LiquidWidget type="classPulse" state={state} styleConfig={state.widgetSettings.classPulse} settings={settings} />
+        </View>
+        <View style={styles.appIconGrid}>
+          <View style={styles.appIconWrap}>
+            <View style={styles.studyPlannerIcon}><BookOpen size={26} color="#FFFFFF" /></View>
+            <Text style={styles.appIconLabel}>StudyPlanner</Text>
+          </View>
+          {appIcons.map((label, index) => (
+            <View key={label} style={styles.appIconWrap}>
+              <View style={[styles.genericAppIcon, { backgroundColor: appIconColor(index) }]} />
+              <Text style={styles.appIconLabel}>{label}</Text>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+      <View style={styles.homeDock}>
+        {[T["--mint"], T["--cyan"], T["--blue"], T["--rose"]].map((color) => <View key={color} style={[styles.dockIcon, { backgroundColor: color }]} />)}
+      </View>
+    </View>
+  );
+}
+
+function LockScreenWidgetPreview({ go, state, settings }: ShellProps) {
+  const dueToday = selectTodayTasks(state).filter((task) => !task.completed).length;
+  const nextClass = selectCurrentOrNextClass(state);
+  const nextExam = selectUpcomingExams(state)[0];
+  return (
+    <View style={styles.iosPreviewScreen}>
+      <View style={styles.lockWallpaper} />
+      <View style={styles.previewTopBar}>
+        <TouchableOpacity style={styles.previewBackButton} onPress={() => go("studio")}><ChevronLeft size={20} color="#FFFFFF" /></TouchableOpacity>
+        <Text style={styles.previewTitle}>Lock Screen</Text>
+        <View style={styles.previewSpacer} />
+      </View>
+      <View style={styles.lockPreviewContent}>
+        <View style={styles.lockWidgetRow}>
+          <LockChip label={nextClass?.title ?? "Class"} value={nextClass ? formatTime(nextClass.startTime) : "--"} />
+          <LockChip label="Due" value={String(dueToday)} />
+          <LockChip label="Exam" value={nextExam ? nextExam.date.slice(5) : "--"} />
+        </View>
+        <Text style={styles.lockDate}>Thursday, June 4</Text>
+        <Text style={styles.lockClock}>9:41</Text>
+        <View style={styles.lockInlineWidget}>
+          <Text style={styles.lockInlineText}>14-day study streak</Text>
+        </View>
+        <View style={styles.liveActivityCard}>
+          <View style={styles.liveActivityIcon}><BookOpen size={22} color="#FFFFFF" /></View>
+          <View style={styles.flex1}>
+            <Text style={styles.liveActivityTitle}>{nextClass ? `${nextClass.title} is next` : "School OS synced"}</Text>
+            <Text style={styles.liveActivitySub}>{nextClass ? `Room ${nextClass.room} · ${reminderLabel(nextClass.reminderSettings)}` : "Widgets update from your reviewed planner data."}</Text>
+          </View>
+          <Text style={styles.liveActivityTime}>{nextClass ? formatTime(nextClass.startTime) : "Live"}</Text>
+        </View>
+        <View style={styles.lockWidgetPreview}>
+          <LiquidWidget type="todayTasks" state={state} styleConfig={state.widgetSettings.todayTasks} settings={settings} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function LockChip({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.lockChip}>
+      <Text style={styles.lockChipValue}>{value}</Text>
+      <Text style={styles.lockChipLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function ThemeStudioScreen({ go, state, settings, actions }: ShellProps) {
+  const set = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => actions.updateAppSettings({ [key]: value });
+  return (
+    <ScreenScroll>
+      <BackBar title="Theme Studio" back={() => go("profile")} />
+      <View style={styles.themePreviewCard}>
+        <Text style={styles.detailTitle}>Everything updates live.</Text>
+        <Text style={styles.detailSub}>Theme controls change contrast, motion, and glass behavior across dashboard, widgets, and previews.</Text>
+        <LiquidWidget type="classPulse" state={state} styleConfig={state.widgetSettings.classPulse} settings={settings} />
+      </View>
+      <Panel title="Appearance">
+        <ToggleLine label="Liquid glass" value={!settings.reduceTransparency} onValueChange={(value) => set("reduceTransparency", !value)} />
+        <ToggleLine label="High contrast" value={settings.highContrast} onValueChange={(value) => set("highContrast", value)} />
+        <ToggleLine label="Larger text" value={settings.largerText} onValueChange={(value) => set("largerText", value)} />
+        <ToggleLine label="Reduce motion" value={settings.reduceMotion} onValueChange={(value) => set("reduceMotion", value)} />
+      </Panel>
+      <Panel title="Accent Palette">
+        <View style={styles.themeGrid}>
+          {(Object.keys(accentMap) as Accent[]).map((accent) => (
+            <View key={accent} style={styles.themeSwatchCard}>
+              <View style={[styles.themeSwatch, { backgroundColor: accentMap[accent].color }]} />
+              <Text style={styles.cardTitle}>{accentMap[accent].label}</Text>
+              <Text style={styles.cardSub}>Available in Widget Studio</Text>
+            </View>
+          ))}
+        </View>
+      </Panel>
+    </ScreenScroll>
+  );
+}
+
+function RemindersScreen({ go, state, settings, actions }: ShellProps) {
+  const set = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => actions.updateAppSettings({ [key]: value });
+  const activeClasses = state.classes.filter((klass) => klass.reminderSettings.enabled).slice(0, 4);
+  const upcomingTasks = state.tasks.filter((task) => !task.completed).slice(0, 4);
+  const nextExam = selectUpcomingExams(state)[0];
+  return (
+    <ScreenScroll>
+      <BackBar title="Reminders" back={() => go("profile")} />
+      <HeroCard
+        eyebrow="SMART NUDGES"
+        title="Never miss a class, deadline, or exam."
+        subtitle="Default reminders, room previews, and assignment nudges stay wired to the same School OS data."
+        metric={settings.defaultClassReminder ? `${settings.defaultClassReminder}m` : "Off"}
+        accentColor={T["--orange"]}
+      />
+      <Panel title="Default class reminder">
+        <PickerRow label="Lead time" values={["Off", "5 min before", "10 min before", "15 min before", "30 min before", "1 hour before"]} value={settings.defaultClassReminder === 60 ? "1 hour before" : settings.defaultClassReminder ? `${settings.defaultClassReminder} min before` : "Off"} onPress={(value) => set("defaultClassReminder", reminderMinutes(value))} />
+        <ToggleLine label="Include room/location" value={settings.showRoomInReminder} onValueChange={(value) => set("showRoomInReminder", value)} />
+      </Panel>
+      {nextExam ? (
+        <View style={styles.aiSuggestionCard}>
+          <Bell size={20} color={T["--orange"]} />
+          <View style={styles.flex1}>
+            <Text style={styles.cardTitle}>Smart suggestion</Text>
+            <Text style={styles.cardSub}>{nextExam.title} is coming up. Add a one-day reminder and study nudges from the exam plan.</Text>
+          </View>
+        </View>
+      ) : null}
+      <Panel title="Active class reminders">
+        {activeClasses.length ? activeClasses.map((klass) => (
+          <MiniLine key={`reminder-${klass.id}`} text={`${klass.title} · ${reminderLabel(klass.reminderSettings)}${klass.reminderSettings.showRoom ? ` · Room ${klass.room}` : ""}`} />
+        )) : <EmptyState title="No class reminders yet" copy="Turn on class reminders from a class detail or set a default here." />}
+      </Panel>
+      <Panel title="Assignment and exam reminders">
+        {upcomingTasks.map((task) => <MiniLine key={`task-reminder-${task.id}`} text={`${task.title} · ${classTitle(state, task)} · ${task.reminder}`} />)}
+        {nextExam ? <MiniLine text={`${nextExam.title} · exam reminder ready`} /> : null}
+      </Panel>
+    </ScreenScroll>
   );
 }
 
@@ -2532,6 +2735,10 @@ function widgetSizeStyle(size: WidgetSettings["size"]) {
   return map[size];
 }
 
+function appIconColor(index: number) {
+  return [T["--mint"], T["--surface"], "#48484A", T["--cyan"], "#1C1C1E", "#FFD60A", T["--rose"], T["--blue"]][index % 8];
+}
+
 function isPhoneTab(route: Route): route is PhoneTab {
   return ["home", "classes", "tasks", "notes", "profile"].includes(route);
 }
@@ -2975,6 +3182,48 @@ const styles = StyleSheet.create({
   profileStatsRow: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 8, marginTop: 10 },
   profileAvatar: { width: 82, height: 82, borderRadius: 41, backgroundColor: T["--text"], alignItems: "center", justifyContent: "center", marginBottom: 12 },
   profileInitials: { color: T["--surface"], fontSize: 25, fontWeight: "900" },
+  iosPreviewScreen: { flex: 1, backgroundColor: "#111827", overflow: "hidden" },
+  previewWallpaper: { ...StyleSheet.absoluteFillObject, backgroundColor: "#7057C9" },
+  lockWallpaper: { ...StyleSheet.absoluteFillObject, backgroundColor: "#20375F" },
+  previewTopBar: { position: "absolute", top: 52, left: 16, right: 16, zIndex: 5, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  previewBackButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.22)", alignItems: "center", justifyContent: "center" },
+  previewTitle: { color: "#FFFFFF", fontSize: 15, fontWeight: "900", textShadowColor: "rgba(0,0,0,0.28)", textShadowRadius: 8 },
+  previewSpacer: { width: 40, height: 40 },
+  homePreviewContent: { paddingTop: 112, paddingHorizontal: 20, paddingBottom: 126 },
+  homePreviewGrid: { flexDirection: "row", gap: 14, marginBottom: 14 },
+  homePreviewLargeWidget: { flex: 1 },
+  homePreviewSmallStack: { flex: 1, gap: 14 },
+  homeSmallWidget: { flex: 1, minHeight: 112, borderRadius: 24, backgroundColor: "rgba(255,255,255,0.92)", padding: 14, justifyContent: "space-between", shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 18, shadowOffset: { width: 0, height: 10 } },
+  homeSmallLabel: { color: "#555B66", fontSize: 12, fontWeight: "900" },
+  homeSmallValue: { color: T["--orange"], fontSize: 31, lineHeight: 35, fontWeight: "900" },
+  homeSmallSub: { color: "#656B75", fontSize: 12, fontWeight: "800" },
+  homePreviewWideWidget: { marginBottom: 16 },
+  appIconGrid: { flexDirection: "row", flexWrap: "wrap", gap: 14 },
+  appIconWrap: { width: "22%", alignItems: "center", gap: 6, marginBottom: 8 },
+  studyPlannerIcon: { width: 58, height: 58, borderRadius: 16, backgroundColor: T["--blue"], alignItems: "center", justifyContent: "center" },
+  genericAppIcon: { width: 58, height: 58, borderRadius: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.34)" },
+  appIconLabel: { color: "#FFFFFF", fontSize: 10, fontWeight: "800", textAlign: "center", textShadowColor: "rgba(0,0,0,0.32)", textShadowRadius: 5 },
+  homeDock: { position: "absolute", left: 18, right: 18, bottom: 24, height: 86, borderRadius: 30, backgroundColor: "rgba(255,255,255,0.26)", flexDirection: "row", alignItems: "center", justifyContent: "space-around", paddingHorizontal: 16 },
+  dockIcon: { width: 58, height: 58, borderRadius: 16 },
+  lockPreviewContent: { flex: 1, paddingTop: 110, paddingHorizontal: 22, alignItems: "center" },
+  lockWidgetRow: { flexDirection: "row", gap: 12, marginBottom: 16 },
+  lockChip: { minWidth: 76, borderRadius: 18, backgroundColor: "rgba(255,255,255,0.17)", paddingHorizontal: 13, paddingVertical: 10, alignItems: "center" },
+  lockChipValue: { color: "#FFFFFF", fontSize: 15, fontWeight: "900" },
+  lockChipLabel: { color: "rgba(255,255,255,0.76)", fontSize: 10, fontWeight: "800", marginTop: 2 },
+  lockDate: { color: "#FFFFFF", fontSize: 20, fontWeight: "800", textShadowColor: "rgba(0,0,0,0.28)", textShadowRadius: 8 },
+  lockClock: { color: "#FFFFFF", fontSize: 88, lineHeight: 96, fontWeight: "800", letterSpacing: 0, textShadowColor: "rgba(0,0,0,0.28)", textShadowRadius: 12 },
+  lockInlineWidget: { borderRadius: 18, backgroundColor: "rgba(255,255,255,0.18)", paddingHorizontal: 14, paddingVertical: 7, marginTop: 8 },
+  lockInlineText: { color: "#FFFFFF", fontSize: 13, fontWeight: "900" },
+  liveActivityCard: { position: "absolute", left: 22, right: 22, bottom: 126, borderRadius: 24, backgroundColor: "rgba(12,15,24,0.68)", borderWidth: 1, borderColor: "rgba(255,255,255,0.16)", padding: 15, flexDirection: "row", alignItems: "center", gap: 12 },
+  liveActivityIcon: { width: 44, height: 44, borderRadius: 14, backgroundColor: T["--mint"], alignItems: "center", justifyContent: "center" },
+  liveActivityTitle: { color: "#FFFFFF", fontSize: 16, fontWeight: "900" },
+  liveActivitySub: { color: "rgba(255,255,255,0.78)", fontSize: 13, fontWeight: "700", marginTop: 2 },
+  liveActivityTime: { color: "#FFFFFF", fontSize: 18, fontWeight: "900" },
+  lockWidgetPreview: { position: "absolute", left: 22, right: 22, bottom: 18 },
+  themePreviewCard: { borderRadius: 28, backgroundColor: T["--surface"], borderWidth: 1, borderColor: T["--line"], padding: 18, marginBottom: 16 },
+  themeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  themeSwatchCard: { width: "48%", borderRadius: 20, backgroundColor: T["--surface"], borderWidth: 1, borderColor: T["--line"], padding: 13 },
+  themeSwatch: { height: 54, borderRadius: 15, marginBottom: 10 },
   watchAccessButton: { minHeight: 50, borderRadius: 25, backgroundColor: T["--text"], alignItems: "center", justifyContent: "center" },
   watchFrame: { alignSelf: "center", width: 224, height: 280, borderRadius: 52, backgroundColor: "#050506", padding: 12, marginTop: 16, borderWidth: 6, borderColor: "#17181B", shadowColor: "#000", shadowOpacity: 0.26, shadowRadius: 26, shadowOffset: { width: 0, height: 16 } },
   watchScreen: { flex: 1, borderRadius: 40, backgroundColor: "#000000", overflow: "hidden", padding: 10 },
