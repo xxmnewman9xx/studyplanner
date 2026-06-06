@@ -1,0 +1,17 @@
+node_modules/
+.expo/
+dist/
+web-build/
+ios/Pods/
+ios/build/
+ios/build-signed-sim/
+android/
+work/
+qa/
+*.ipa
+*.xcarchive
+*.tsbuildinfo
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.DS_Store

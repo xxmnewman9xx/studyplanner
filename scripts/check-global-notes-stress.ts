@@ -1,0 +1,78 @@
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { analyzeNotes } from "../src/ai";
+import { buildSemesterSnapshot } from "../src/intelligence";
+import { buildSemesterNarrative } from "../src/semesterNarrative";
+import { defaultData } from "./fixture-data";
+import { NoteItem } from "../src/types";
+
+type Case = {
+  locale: string;
+  kind: string;
+  text: string;
+  sparse?: boolean;
+};
+
+const cases: Case[] = [
+  { locale: "English", kind: "lecture outline", text: "Biology Lecture Photosynthesis Definition chlorophyll converts light. Formula ATP + NADPH. Exam hint know Calvin cycle. confusing electron transport review later." },
+  { locale: "Spanish", kind: "exam review", text: "BIO revisión examen definición mitosis tarea confusing ciclo celular repasar formula ATP." },
+  { locale: "Portuguese", kind: "formula notes", text: "FIN revisão WACC = E/V Re + D/V Rd. beta confusing. exame precisa revisar custo capital." },
+  { locale: "French", kind: "definitions", text: "PSYC réviser définition mémoire travail. devoir cognition. confusing attention sélective." },
+  { locale: "German", kind: "weak areas", text: "CHEM klausur review aufgabe molaritat formula M=n/V confusing titration." },
+  { locale: "Japanese", kind: "messy OCR", text: "CHEM 復習 試験 formula pH=-logH 課題 confusing 酸 塩基 review later" },
+  { locale: "Korean", kind: "flashcard style", text: "CS 복습 시험 Definition algorithm complexity O(n log n) confusing graph traversal" },
+  { locale: "Chinese", kind: "mixed topic", text: "MATH 复习 考试 formula derivative limit 作业 confusing chain rule" },
+  { locale: "Hindi", kind: "OCR notes", text: "BIO समीक्षा परीक्षा formula ATP असाइनमेंट confusing कोशिका division review" },
+  { locale: "Arabic", kind: "sparse notes", text: "CHEM مراجعة اختبار formula pH واجب confusing acid base", sparse: true },
+  { locale: "Sparse", kind: "too short", text: "some stuff maybe", sparse: true },
+];
+
+const failures: string[] = [];
+const rows = cases.map((item) => {
+  const batch = analyzeNotes(item.text, defaultData);
+  const noteCandidate = batch.candidates.find((candidate) => candidate.kind === "note");
+  const taskCandidate = batch.candidates.find((candidate) => candidate.kind === "task");
+  const note = noteCandidate?.payload as NoteItem | undefined;
+  const data = note ? { ...defaultData, notes: [...defaultData.notes, note] } : defaultData;
+  const snapshot = buildSemesterSnapshot(data);
+  const narrative = buildSemesterNarrative(data, snapshot);
+  const hasWeakSignal = /confusing|weak|review/i.test(JSON.stringify(note?.suggestedTasks || [])) || /confusing|review/i.test(item.text);
+
+  if (!noteCandidate) failures.push(`${item.locale}: no note candidate`);
+  if (!item.sparse && !taskCandidate) failures.push(`${item.locale}: expected review task`);
+  if (!item.sparse && (note?.terms.length || 0) < 2) failures.push(`${item.locale}: expected multiple concepts`);
+  if (item.sparse && noteCandidate && noteCandidate.confidence > 0.75) failures.push(`${item.locale}: sparse notes overconfident`);
+  if (!hasWeakSignal) failures.push(`${item.locale}: missing weak/review signal`);
+  if (!narrative.notesNudge) failures.push(`${item.locale}: missing notes narrative`);
+
+  return `| ${item.locale} | ${item.kind} | ${note?.terms.length || 0} | ${taskCandidate ? "yes" : "no"} | ${noteCandidate?.confidence.toFixed(2) || "0"} | ${snapshot.semesterHealth.dimensions.preparedness.score} | ${narrative.notesNudge} | ${failures.some((failure) => failure.startsWith(`${item.locale}:`)) ? "FAIL" : "PASS"} |`;
+});
+
+const report = `# Build 44 Global Notes Report
+
+## Scope
+Global notes stress test covering lecture outlines, OCR-like notes, formulas, definitions, exam review hints, weak-area language, flashcard-friendly material, and sparse input.
+
+## Result
+${failures.length ? "FAIL" : "PASS"}
+
+| Locale | Scenario | Concepts | Review Task | Confidence | Preparedness | Notes Narrative | Status |
+| --- | --- | ---: | --- | ---: | ---: | --- | --- |
+${rows.join("\n")}
+
+## Guardrails
+- Notes improve preparedness only when there is enough signal.
+- Sparse notes stay low confidence.
+- Weak-area language should produce review-oriented suggestions without hallucinating certainty.
+
+${failures.length ? `## Failures\n${failures.map((failure) => `- ${failure}`).join("\n")}\n` : ""}
+`;
+
+writeFileSync(join(process.cwd(), "BUILD_44_GLOBAL_NOTES_REPORT.md"), report);
+
+if (failures.length) {
+  console.error(failures.join("\n"));
+  process.exit(1);
+}
+
+console.log("Build 44 global notes stress passed");

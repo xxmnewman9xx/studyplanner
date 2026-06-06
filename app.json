@@ -1,17 +1,32 @@
 {
   "expo": {
-    "name": "studyplanner-ai",
-    "slug": "studyplanner-ai",
-    "version": "1.0.0",
+    "name": "Studyplanner: Syllabus AI",
+    "slug": "study-planner-syllabus-ai",
+    "scheme": "studyplanner",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "appleTeamId": "5JN35MJ3QD",
+      "bundleIdentifier": "com.mattnewman.studyplanner",
+      "buildNumber": "52",
+      "entitlements": {
+        "com.apple.security.application-groups": [
+          "group.com.mattnewman.studyplanner"
+        ]
+      },
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Use the camera to read syllabus photos with OCR and turn assignments, exams, and deadlines into reviewed planner items.",
+        "NSPhotoLibraryUsageDescription": "Use selected syllabus photos for OCR so assignments, exams, and deadlines can be reviewed before they are added.",
+        "NSUserNotificationsUsageDescription": "Send calm reminders before deadlines, exams, and classes."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -20,6 +35,83 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-iap",
+      "expo-notifications",
+      "expo-sqlite",
+      "expo-image-picker",
+      "./plugins/with-widgetkit-kinds",
+      [
+        "expo-widgets",
+        {
+          "bundleIdentifier": "com.mattnewman.studyplanner.widgets",
+          "groupIdentifier": "group.com.mattnewman.studyplanner",
+          "widgets": [
+            {
+              "name": "StudyPlannerTodayWidget",
+              "kind": "studyplanner.today",
+              "displayName": "StudyPlanner Today",
+              "description": "See what needs your attention today.",
+              "supportedFamilies": [
+                "systemSmall",
+                "systemMedium",
+                "accessoryInline",
+                "accessoryCircular",
+                "accessoryRectangular"
+              ],
+              "contentMarginsDisabled": true
+            },
+            {
+              "name": "StudyPlannerUpcomingWidget",
+              "kind": "studyplanner.upcoming",
+              "displayName": "StudyPlanner Upcoming",
+              "description": "Preview upcoming assignments and deadlines.",
+              "supportedFamilies": [
+                "systemSmall",
+                "systemMedium",
+                "accessoryInline",
+                "accessoryCircular",
+                "accessoryRectangular"
+              ],
+              "contentMarginsDisabled": true
+            },
+            {
+              "name": "StudyPlannerWeekWidget",
+              "kind": "studyplanner.week",
+              "displayName": "StudyPlanner Week",
+              "description": "Check your weekly workload at a glance.",
+              "supportedFamilies": [
+                "systemMedium",
+                "accessoryInline",
+                "accessoryCircular",
+                "accessoryRectangular"
+              ],
+              "contentMarginsDisabled": true
+            },
+            {
+              "name": "StudyPlannerClassProgressWidget",
+              "kind": "studyplanner.classProgress",
+              "displayName": "StudyPlanner Class Progress",
+              "description": "Track progress for a selected class.",
+              "supportedFamilies": [
+                "systemSmall",
+                "systemMedium",
+                "accessoryInline",
+                "accessoryCircular",
+                "accessoryRectangular"
+              ],
+              "contentMarginsDisabled": true
+            }
+          ]
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "69335c75-753e-424e-8a76-c8bd2455a112"
+      }
+    },
+    "owner": "xxmnewman9xx"
   }
 }

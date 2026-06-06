@@ -1,0 +1,8 @@
+{
+  "name": "studyplanner-vision-ocr",
+  "version": "1.0.0",
+  "description": "Local iOS Vision OCR module for StudyPlanner syllabus photos.",
+  "main": "index.ts",
+  "license": "UNLICENSED",
+  "private": true
+}
