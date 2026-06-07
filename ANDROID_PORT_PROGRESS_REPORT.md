@@ -1,133 +1,164 @@
-# Android Port Progress Report - Sprint 002
+# Android Port Progress Report - Sprint 003
 
 ## Current Readiness Score
 
-82/100
+84/100
 
-StudyPlanner now has a working Windows Android SDK, a generated Android project, and a successful Android debug APK build from the Sprint 001 Android foundation. The remaining blocker is emulator/device runtime execution on this Windows host, not Android source compilation.
+StudyPlanner now has a proven debug APK build and a proven local release AAB build path. The release artifact is not Play-ready yet because it is debug-signed, and physical-device runtime smoke is still blocked because no authorized Android device is connected.
 
 ## Completed
 
-- Android SDK installed at `C:\Users\xxmne\AppData\Local\Android\Sdk`.
-- SDK path normalized to standard `cmdline-tools\latest`.
-- Java 17 confirmed.
-- `adb`, `emulator`, `sdkmanager`, and `avdmanager` confirmed.
-- API 36 platform, Build Tools 36, platform-tools, emulator, command-line tools installed.
-- Google APIs and Google Play API 36 x86_64 system images installed.
-- Gradle auto-installed required NDK, CMake, and Build Tools 35 dependencies.
-- AVD created: `StudyPlanner_API_36_Play`.
-- `npm run typecheck`: PASS.
-- `npm run check:iap`: PASS.
-- `npm run check:build52`: PASS.
-- `npx expo-doctor`: PASS, `21/21`.
-- `npx expo prebuild --platform android --no-install`: PASS.
-- `.\gradlew.bat clean`: PASS.
-- `.\gradlew.bat assembleDebug`: PASS.
-- Debug APK created:
+- Android SDK remains installed at `C:\Users\xxmne\AppData\Local\Android\Sdk`.
+- `adb` is installed and working.
+- Debug APK exists:
   `C:\FounderWorker\repos\StudyPlanner\android\app\build\outputs\apk\debug\app-debug.apk`
+- `adb devices -l` was checked.
+- No physical device was connected or authorized.
+- `.\gradlew.bat :app:signingReport`: PASS.
+- `.\gradlew.bat :app:bundleRelease`: PASS.
+- Local release AAB created:
+  `C:\FounderWorker\repos\StudyPlanner\android\app\build\outputs\bundle\release\app-release.aab`
+- Package identity confirmed: `com.mattnewman.studyplanner`.
+- Version confirmed: `1.0.3` / versionCode `52`.
+- App name, icon, adaptive icon, splash, billing permission, notification permission, and deep link scheme confirmed.
+- Merged release manifest confirms `RECORD_AUDIO` is not present after the removal directive is applied.
 
-## APK Build Status
+## Physical Device Status
 
-PASS.
+BLOCKED.
 
-The debug APK exists and was produced without source changes during Sprint 002.
-
-## Emulator Status
-
-BLOCKED by Windows emulator/hypervisor execution.
-
-Hardware acceleration check reports WHPX is installed and usable, but the emulator launch fails with:
+`adb devices -l` returned no connected devices:
 
 ```text
-WHPX: Failed to setup partition, hr=80070005
-failed to initialize WHPX: Invalid argument
+List of devices attached
 ```
 
-Software fallback with `-accel off` starts emulator/qemu processes but the adb device remains `offline` and never reaches `sys.boot_completed=1`.
+APK install and runtime smoke were not attempted because there was no target device.
+
+Next required setup:
+
+1. Enable Developer Options on the Android phone.
+2. Enable USB Debugging.
+3. Connect with a data-capable USB cable.
+4. Accept the RSA debugging prompt.
+5. Run `adb devices -l` until the device state is `device`.
+
+Then install:
+
+```powershell
+adb install -r "C:\FounderWorker\repos\StudyPlanner\android\app\build\outputs\apk\debug\app-debug.apk"
+adb shell monkey -p com.mattnewman.studyplanner 1
+```
+
+## Release AAB Readiness
+
+PARTIAL PASS.
+
+The AAB build path works:
+
+```text
+C:\FounderWorker\repos\StudyPlanner\android\app\build\outputs\bundle\release\app-release.aab
+```
+
+The artifact is not Play-ready because the generated `release` build type currently uses `signingConfigs.debug`.
+
+Recommended Play-ready path:
+
+```powershell
+cd C:\FounderWorker\repos\StudyPlanner
+npx eas login
+npx eas credentials -p android
+npx eas build -p android --profile production
+```
+
+Use package:
+
+```text
+com.mattnewman.studyplanner
+```
 
 ## Remaining Blockers
 
-1. Fix Windows WHPX/hypervisor access or attach a physical Android device.
-2. Install and launch `app-debug.apk` on emulator/device.
-3. Confirm whether the debug APK launches standalone or expects Metro.
-4. Runtime-test onboarding, paywall, restore/manage copy, import flows, paste fallback, notification permission/channel, and Today/dashboard path.
-5. Confirm Google Play subscription products in Play Console.
-6. Test Google Play Billing with a license tester/internal app sharing or internal testing track.
-7. Decide whether Android image OCR parity requires native OCR before closed testing or whether the paste/PDF fallback is acceptable for internal beta.
-8. Runtime-test Android notifications on Android 13+.
-9. Configure release signing and generate an AAB.
-10. Prepare Play Console data safety, privacy, screenshots, and closed-testing metadata.
+1. Connect and authorize a physical Android device.
+2. Install and launch the debug APK on device.
+3. Complete runtime smoke: onboarding, locked funnel, paywall, restore/manage copy, imports, paste fallback, notification permission, Today/dashboard, close/reopen.
+4. Configure Play-ready Android signing through EAS credentials or a production upload keystore.
+5. Generate a signed Play-ready AAB.
+6. Configure Play Console app and subscription products.
+7. Test Google Play Billing with license testers/internal testing.
+8. Review release permissions and data-safety declarations.
+9. Decide Android image OCR parity scope.
+10. Keep Android widgets deferred unless product requirements change.
 
 ## Estimated Effort
 
 ### Internal Android Beta
 
-Estimated: 1-2 focused days after emulator/device access is fixed.
+Estimated: 1 focused day after physical device access is available.
 
 Required:
 
-- Boot an Android emulator or connect a physical Android device.
-- Install the debug APK.
-- Run the smoke checklist.
-- Fix any first-launch runtime issue.
-- Confirm billing UI behavior against Google Play availability.
+- Install APK on device.
+- Run smoke checklist.
+- Fix any first-launch/runtime blocker.
+- Decide whether debug-signed local build is enough for owner testing or whether EAS internal distribution should be used immediately.
 
 ### Play Store Closed Testing
 
-Estimated: 5-8 business days after runtime smoke passes.
+Estimated: 3-6 business days after device smoke passes.
 
 Required:
 
-- Build signed release AAB.
-- Configure Play Console app, package identity, testers, and subscription products.
-- Validate subscription entitlement and restore/manage flows with license testers.
-- Test notifications and import flows on at least one physical Android device.
-- Prepare listing, screenshots, privacy policy references, data safety, and support contact.
+- Configure Android signing credentials.
+- Produce signed AAB.
+- Create Play Console app/package.
+- Configure subscriptions.
+- Add license testers/internal track.
+- Complete data safety and listing basics.
+- Upload AAB to closed testing.
 
 ### Production Release
 
-Estimated: 2-3 weeks depending on OCR and widget decisions.
+Estimated: 2-3 weeks depending on OCR, billing QA, and closed-test results.
 
 Required:
 
-- Stable closed-test build.
-- Billing validation accepted.
-- Crash-free Android QA pass.
-- Release signing secured.
+- Stable closed-test pass on physical Android hardware.
+- Google Play Billing purchase/restore validated.
+- Data safety/policy review complete.
 - Android OCR parity decision resolved.
-- Widget parity either implemented or explicitly deferred.
+- Crash-free release candidate.
 
-## Exact Next Sprint Recommendation
-
-Next prompt:
+## Recommended Next Sprint
 
 ```text
-StudyPlanner Android Port Sprint 003 - Emulator/Device Runtime QA
+StudyPlanner Android Sprint 004 - Physical Device Runtime QA
 
 Repo: C:\FounderWorker\repos\StudyPlanner
 Branch: studyplanner-android-sprint-001
-APK: C:\FounderWorker\repos\StudyPlanner\android\app\build\outputs\apk\debug\app-debug.apk
+Latest local commit: <current Sprint 003 commit>
 
-Goal: After fixing Windows WHPX or connecting a physical Android device, install and runtime-smoke the Sprint 002 debug APK. Do not redesign, do not push, and do not start other apps.
+Goal: With a real Android device connected and authorized, install the debug APK, run full runtime smoke, capture screenshots/logcat, and fix only narrow Android runtime blockers.
 
-Run:
-- emulator -accel-check
-- emulator -avd StudyPlanner_API_36_Play -no-snapshot-load
-- adb wait-for-device
+Commands:
+- adb devices -l
 - adb install -r android\app\build\outputs\apk\debug\app-debug.apk
 - adb shell monkey -p com.mattnewman.studyplanner 1
-- capture screenshots/logcat
+- adb logcat -c
+- adb logcat -d > android-device-smoke-logcat.txt
 
 Smoke:
 - launch/no crash
 - onboarding
+- locked funnel
 - paywall
 - restore/manage Android copy
 - import screen
-- camera/photo import fallback
+- camera/photo path
 - paste fallback
 - notification permission/channel
-- Today/dashboard demo path
+- Today/dashboard
+- close/reopen
 
-Fix only narrow Android runtime blockers. Produce an updated emulator/device smoke report and commit locally only if changes are required.
+Do not push, merge, submit to Play, or redesign.
 ```
