@@ -3,6 +3,8 @@ import { Platform } from "react-native";
 import { buildSemesterSnapshot } from "./intelligence";
 import { AppData, ReminderItem } from "./types";
 
+export const STUDYPLANNER_ANDROID_REMINDER_CHANNEL_ID = "studyplanner-reminders";
+
 export type ReminderScheduleResult = {
   state: "scheduled" | "denied" | "unavailable" | "error";
   message: string;
@@ -35,9 +37,23 @@ Notifications.setNotificationHandler({
 });
 
 async function permissionState() {
+  await ensureAndroidReminderChannel();
   const current = await Notifications.getPermissionsAsync();
   if (current.granted) return current;
   return Notifications.requestPermissionsAsync();
+}
+
+export async function ensureAndroidReminderChannel() {
+  if (Platform.OS !== "android") return;
+  await Notifications.setNotificationChannelAsync(STUDYPLANNER_ANDROID_REMINDER_CHANNEL_ID, {
+    name: "StudyPlanner reminders",
+    description: "Assignment, exam, class, and study block reminders.",
+    importance: Notifications.AndroidImportance.DEFAULT,
+    sound: null,
+    vibrationPattern: [0, 250, 250, 250],
+    lightColor: "#0A84FF",
+    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
+  });
 }
 
 function notificationEvidence(notification: Notifications.NotificationRequest): ScheduledNotificationEvidence {
@@ -55,8 +71,8 @@ export async function listPendingReminderNotifications(): Promise<ScheduledNotif
 }
 
 export async function scheduleLocalReminders(data: AppData, options: ReminderScheduleOptions = {}): Promise<ReminderScheduleResult> {
-  if (Platform.OS !== "ios") {
-    return { state: "unavailable", message: "Local reminders are available in the iPhone build." };
+  if (Platform.OS === "web") {
+    return { state: "unavailable", message: "Local reminders are available in native mobile builds." };
   }
 
   try {
@@ -81,7 +97,7 @@ export async function scheduleLocalReminders(data: AppData, options: ReminderSch
           body: item.body,
           data: { classId: item.classId, sourceId: item.sourceId, kind: item.kind },
         },
-        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: triggerDate },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: triggerDate, channelId: STUDYPLANNER_ANDROID_REMINDER_CHANNEL_ID },
       });
       scheduled.push({
         id: `r_${item.stableId}`,
@@ -106,7 +122,7 @@ export async function scheduleLocalReminders(data: AppData, options: ReminderSch
           body: "One block keeps you on track.",
           data: { kind: "Study", validation: true, build: "42" },
         },
-        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: triggerDate },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: triggerDate, channelId: STUDYPLANNER_ANDROID_REMINDER_CHANNEL_ID },
       });
       scheduled.unshift({
         id: `r_${validationId}`,

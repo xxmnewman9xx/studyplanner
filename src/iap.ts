@@ -19,6 +19,15 @@ export const STUDYPLANNER_SUBSCRIPTION_IDS = [
   "com.mattnewman.studyplanner.plus.yearly",
 ] as const;
 
+export const STUDYPLANNER_ANDROID_PACKAGE_ID = "com.mattnewman.studyplanner";
+export const STUDYPLANNER_ANDROID_SUBSCRIPTION_IDS = [
+  "com.mattnewman.studyplanner.plus.monthly",
+  "com.mattnewman.studyplanner.plus.yearly",
+] as const;
+
+const STORE_NAME = Platform.OS === "android" ? "Google Play" : "App Store";
+const ACTIVE_SUBSCRIPTION_IDS = Platform.OS === "android" ? STUDYPLANNER_ANDROID_SUBSCRIPTION_IDS : STUDYPLANNER_SUBSCRIPTION_IDS;
+
 export type PaywallPlan = {
   id: string;
   title: string;
@@ -37,22 +46,31 @@ export type EntitlementResult = {
 export function fallbackPlans(): PaywallPlan[] {
   return [
     {
-      id: STUDYPLANNER_SUBSCRIPTION_IDS[1],
+      id: ACTIVE_SUBSCRIPTION_IDS[1],
       title: "StudyPlanner Yearly",
       description: "Best value for the full school year.",
-      displayPrice: "Shown by App Store",
+      displayPrice: `Shown by ${STORE_NAME}`,
       cadence: "Yearly",
       recommended: true,
     },
     {
-      id: STUDYPLANNER_SUBSCRIPTION_IDS[0],
+      id: ACTIVE_SUBSCRIPTION_IDS[0],
       title: "StudyPlanner Monthly",
       description: "Flexible access for the current term.",
-      displayPrice: "Shown by App Store",
+      displayPrice: `Shown by ${STORE_NAME}`,
       cadence: "Monthly",
       recommended: false,
     },
   ];
+}
+
+export function storeDisplayName() {
+  return STORE_NAME;
+}
+
+export function manageSubscriptionUrl() {
+  if (Platform.OS === "android") return "https://play.google.com/store/account/subscriptions";
+  return "https://apps.apple.com/account/subscriptions";
 }
 
 export async function initializeStudyPlannerStore() {
@@ -66,7 +84,7 @@ export async function closeStudyPlannerStore() {
 }
 
 export async function loadStorePlans(): Promise<PaywallPlan[]> {
-  const products = await fetchProducts({ skus: [...STUDYPLANNER_SUBSCRIPTION_IDS], type: "subs" });
+  const products = await fetchProducts({ skus: [...ACTIVE_SUBSCRIPTION_IDS], type: "subs" });
   const mapped = (products || [])
     .filter((product): product is ProductSubscription => product.type === "subs")
     .map(mapProduct)
@@ -100,7 +118,7 @@ export async function finishStudyPlannerPurchase(purchase: Purchase): Promise<En
 
 export async function checkStudyPlannerEntitlement(): Promise<EntitlementResult> {
   if (Platform.OS === "web") return { isPremium: false, checkedAt: new Date().toISOString() };
-  const active = await getActiveSubscriptions([...STUDYPLANNER_SUBSCRIPTION_IDS]);
+  const active = await getActiveSubscriptions([...ACTIVE_SUBSCRIPTION_IDS]);
   const subscription = active.find((item) => item.isActive && isKnownProduct(item.productId));
   return {
     isPremium: Boolean(subscription),
@@ -110,7 +128,7 @@ export async function checkStudyPlannerEntitlement(): Promise<EntitlementResult>
 }
 
 export function isKnownProduct(productId: string | null | undefined) {
-  return Boolean(productId && (STUDYPLANNER_SUBSCRIPTION_IDS as readonly string[]).includes(productId));
+  return Boolean(productId && (ACTIVE_SUBSCRIPTION_IDS as readonly string[]).includes(productId));
 }
 
 function mapProduct(product: ProductSubscription): PaywallPlan {

@@ -11,6 +11,7 @@ import {
   Image as RNImage,
   KeyboardAvoidingView,
   Linking,
+  Platform,
   Pressable,
   ScrollView,
   StyleProp,
@@ -99,8 +100,10 @@ import {
   finishStudyPlannerPurchase,
   initializeStudyPlannerStore,
   loadStorePlans,
+  manageSubscriptionUrl,
   purchasePlan,
   restoreStudyPlannerPurchases,
+  storeDisplayName,
 } from "./src/iap";
 
 type Route =
@@ -200,7 +203,6 @@ function tap(style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Li
 
 const TERMS_URL = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
 const SUPPORT_URL = "mailto:mattnewmanapps@gmail.com?subject=StudyPlanner%20Support";
-const MANAGE_SUBSCRIPTION_URL = "https://apps.apple.com/account/subscriptions";
 const APP_STORE_REVIEW_URL = "itms-apps://itunes.apple.com/app/id6766181202?action=write-review";
 const PRE_PURCHASE_ROUTES: Route[] = ["welcome", "onboarding", "importOptions", "lockedDashboard", "scan", "paste", "review", "paywall", "terms", "privacy"];
 type EntitlementStatus = "loading" | "active" | "inactive" | "error";
@@ -1206,14 +1208,14 @@ function LegalScreen({ nav, theme, kind }: ScreenProps & { kind: "terms" | "priv
     ? [
         ["Data source", "StudyPlanner stores your planner data on this device."],
         ["Imports", "Syllabus, note, PDF, and camera text are used to create your reviewed preview and semester plan."],
-        ["Purchases", "Subscription purchases and restores are handled by the App Store."],
+        ["Purchases", `Subscription purchases and restores are handled by ${storeDisplayName()}.`],
         ["Sharing", "StudyPlanner does not sell your planner data."],
         ["Support", "Email support to request help with app data, purchases, or privacy questions."],
       ]
     : [
-        ["Subscription", "StudyPlanner uses auto-renewing subscriptions shown and confirmed by the App Store before purchase."],
+        ["Subscription", `StudyPlanner uses auto-renewing subscriptions shown and confirmed by ${storeDisplayName()} before purchase.`],
         ["Access", "A valid active entitlement is required to apply imports, use the dashboard, schedule reminders, and sync widgets."],
-        ["Billing", "Manage or cancel subscriptions from your Apple account."],
+        ["Billing", `Manage or cancel subscriptions from your ${Platform.OS === "android" ? "Google Play" : "Apple"} account.`],
         ["Standard terms", "Apple's standard EULA applies unless a separate written agreement is provided."],
       ];
   return (
@@ -1239,11 +1241,12 @@ function LegalScreen({ nav, theme, kind }: ScreenProps & { kind: "terms" | "priv
 function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentImport, setEntitlementStatus }: ScreenProps) {
   const initialPlans = useMemo(() => fallbackPlans(), []);
   const firstName = firstNameFromPrefs(data);
+  const storeName = storeDisplayName();
   const [plans, setPlans] = useState<PaywallPlan[]>(initialPlans);
   const [selected, setSelected] = useState(initialPlans[0].id);
   const [storePlansReady, setStorePlansReady] = useState(false);
   const [busy, setBusy] = useState<"loading" | "purchase" | "restore" | "checking" | null>("loading");
-  const [message, setMessage] = useState("Connecting to the App Store...");
+  const [message, setMessage] = useState(`Connecting to ${storeName}...`);
 
   const unlock = (productId?: string, checkedAt = new Date().toISOString()) => {
     setEntitlementStatus("active");
@@ -1268,7 +1271,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
         if (planResult.status === "fulfilled") {
           setPlans(planResult.value);
           setSelected((current) => planResult.value.some((plan) => plan.id === current) ? current : planResult.value[0]?.id || current);
-          localizedPlansReady = planResult.value.some((plan) => plan.displayPrice !== "Shown by App Store");
+          localizedPlansReady = planResult.value.some((plan) => !plan.displayPrice.startsWith("Shown by "));
           setStorePlansReady(localizedPlansReady);
         }
         const entitlementResult = results[2];
@@ -1277,12 +1280,12 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
           return;
         }
         setBusy(null);
-        setMessage(localizedPlansReady ? "Choose a StudyPlanner plan to continue." : "App Store pricing is not loaded. Restore is still available.");
+        setMessage(localizedPlansReady ? "Choose a StudyPlanner plan to continue." : `${storeName} pricing is not loaded. Restore is still available.`);
       })
       .catch((error) => {
         if (!mounted) return;
         setBusy(null);
-        setMessage(error instanceof Error ? error.message : "The App Store is not available right now.");
+        setMessage(error instanceof Error ? error.message : `${storeName} is not available right now.`);
       });
     return () => {
       mounted = false;
@@ -1291,30 +1294,30 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
 
   const purchase = async () => {
     if (!storePlansReady) {
-      setMessage("App Store pricing is still loading. Try again in a moment.");
+      setMessage(`${storeName} pricing is still loading. Try again in a moment.`);
       return;
     }
     setBusy("purchase");
-    setMessage("Opening the App Store purchase sheet...");
+    setMessage(`Opening the ${storeName} purchase sheet...`);
     try {
       await purchasePlan(selected);
-      setMessage("Approve the subscription in the App Store sheet. StudyPlanner unlocks as soon as Apple confirms it.");
+      setMessage(`Approve the subscription in the ${storeName} sheet. StudyPlanner unlocks as soon as the store confirms it.`);
       setBusy(null);
     } catch (error) {
       setBusy(null);
-      setMessage(error instanceof Error ? error.message : "The App Store could not start the purchase.");
+      setMessage(error instanceof Error ? error.message : `${storeName} could not start the purchase.`);
     }
   };
 
   const restore = async () => {
     setBusy("restore");
-    setMessage("Checking your App Store account...");
+    setMessage(`Checking your ${storeName} account...`);
     try {
       const entitlement = await restoreStudyPlannerPurchases();
       if (entitlement.isPremium) unlock(entitlement.productId, entitlement.checkedAt);
       else {
         setBusy(null);
-        setMessage("No active StudyPlanner subscription was found for this Apple ID.");
+        setMessage(`No active StudyPlanner subscription was found for this ${Platform.OS === "android" ? "Google Play account" : "Apple ID"}.`);
       }
     } catch (error) {
       setBusy(null);
@@ -1380,9 +1383,9 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
           ))}
         </Card>
         <Text selectable style={{ color: theme.label2, lineHeight: 19, marginBottom: 10 }}>{message}</Text>
-        <Button label={busy === "purchase" ? "Opening App Store..." : storePlansReady ? `Unlock ${selectedPlan.cadence}` : "Loading App Store price"} theme={theme} icon="crown" onPress={busy || !storePlansReady ? undefined : purchase} />
+        <Button label={busy === "purchase" ? `Opening ${storeName}...` : storePlansReady ? `Unlock ${selectedPlan.cadence}` : `Loading ${storeName} price`} theme={theme} icon="crown" onPress={busy || !storePlansReady ? undefined : purchase} />
         <Button label={busy === "restore" ? "Restoring..." : "Restore Purchases"} theme={theme} secondary icon="refresh" onPress={busy ? undefined : restore} />
-        <Text selectable style={{ color: theme.label3, fontSize: 12, lineHeight: 17, marginTop: 14 }}>Auto-renewing subscription. Price and terms are shown by the App Store before purchase. Manage or cancel in Apple subscriptions.</Text>
+        <Text selectable style={{ color: theme.label3, fontSize: 12, lineHeight: 17, marginTop: 14 }}>Auto-renewing subscription. Price and terms are shown by {storeName} before purchase. Manage or cancel in your {Platform.OS === "android" ? "Google Play subscriptions" : "Apple subscriptions"}.</Text>
         <View style={{ flexDirection: "row", justifyContent: "center", gap: 18, marginTop: 12 }}>
           <Pressable onPress={() => nav.push("terms")}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>Terms of Use</Text></Pressable>
           <Pressable onPress={() => nav.push("privacy")}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>Privacy Policy</Text></Pressable>
@@ -1819,7 +1822,13 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
   const previewOnly = !data.prefs.premium;
   const autoActionHandled = useRef(false);
   const [quickTask, setQuickTask] = useState("chem lab report due tomorrow, estimate 2 hours");
-  const [scanStatus, setScanStatus] = useState(hasNativeImageTextRecognition() ? "On-device text scan is ready." : "Camera and photo scan are ready on iPhone. Paste is available as a backup.");
+  const [scanStatus, setScanStatus] = useState(
+    hasNativeImageTextRecognition()
+      ? "On-device text scan is ready."
+      : Platform.OS === "android"
+        ? "Camera, photos, PDF, and paste are available. Android image OCR falls back to paste review in this build."
+        : "Camera and photo scan are ready on iPhone. Paste is available as a backup."
+  );
   const [working, setWorking] = useState<"syllabusCamera" | "syllabusLibrary" | "syllabusPdf" | "notesCamera" | "notesLibrary" | null>(null);
 
   const analyzeText = (sourceText: string, sourceName: string, mode: "syllabus" | "notes") => {
@@ -1848,6 +1857,15 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
       if (result.canceled || !result.assets[0]?.uri) {
         setScanStatus("Scan canceled.");
         setWorking(null);
+        return;
+      }
+
+      if (!hasNativeImageTextRecognition()) {
+        setScanStatus(Platform.OS === "android" ? "Photo selected. Paste the extracted text to review it on Android." : "Photo selected. Paste is available as a backup.");
+        Alert.alert("Paste text to review", "This build can open the camera and photo library here, but on-device image OCR is only wired for iPhone. Paste the text to keep the same review flow.", [
+          { text: "Paste text", onPress: () => nav.push("paste", { mode }) },
+          { text: "OK" },
+        ]);
         return;
       }
 
@@ -2381,10 +2399,11 @@ function WidgetsScreen({ nav, theme }: ScreenProps) {
 }
 
 function Profile({ data, mutate, nav, theme }: ScreenProps) {
+  const storeName = storeDisplayName();
   const rows = [
     ["bell", COLORS.red, "Reminders", `${data.reminders.filter((r) => r.enabled).length} active`, "reminders"],
     ["scan", COLORS.purple, "Import history", `${data.imports.length} imports`, "scan"],
-    ["refresh", COLORS.blue, "Manage subscription", "Apple account", "manage"],
+    ["refresh", COLORS.blue, "Manage subscription", `${storeName} account`, "manage"],
     ["shield", COLORS.green, "Privacy Policy", "StudyPlanner data", "privacy"],
     ["file", COLORS.orange, "Terms of Use", "Subscription terms", "terms"],
     ["file", COLORS.orange, "Support", "Email help", "support"],
@@ -2397,7 +2416,7 @@ function Profile({ data, mutate, nav, theme }: ScreenProps) {
         <Pressable onPress={() => nav.push("paywall")}><View style={{ borderRadius: 22, padding: 18, backgroundColor: "#282139" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Crown color={COLORS.yellow} size={19} /><Text selectable style={{ color: "#fff", fontWeight: "900" }}>StudyPlanner subscription</Text></View><Text selectable style={{ color: "rgba(255,255,255,.85)" }}>Scans, reminders, study sets, and planning are active.</Text></View></Pressable>
         <Card theme={theme} style={{ overflow: "hidden" }}>{rows.map(([icon, color, title, value, route]) => <Pressable key={title} onPress={() => {
           if (route === "scan") nav.tab("scan");
-          else if (route === "manage") openExternal(MANAGE_SUBSCRIPTION_URL);
+          else if (route === "manage") openExternal(manageSubscriptionUrl());
           else if (route === "privacy" || route === "terms") nav.push(route);
           else if (route === "support") openExternal(SUPPORT_URL);
           else nav.push(route as Route);
