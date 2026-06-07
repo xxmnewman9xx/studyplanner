@@ -1,105 +1,133 @@
-# Android Port Progress Report - Sprint 001
+# Android Port Progress Report - Sprint 002
 
 ## Current Readiness Score
 
-68/100
+82/100
 
-StudyPlanner is now materially closer to Android: it has a generated native Android project, package identity, versioning, icons, splash assets, billing dependency, Android-aware paywall copy, Android notification channel support, and Android import fallbacks. The main blocker is local build infrastructure, not app configuration.
+StudyPlanner now has a working Windows Android SDK, a generated Android project, and a successful Android debug APK build from the Sprint 001 Android foundation. The remaining blocker is emulator/device runtime execution on this Windows host, not Android source compilation.
 
 ## Completed
 
-- Android application ID: `com.mattnewman.studyplanner`.
-- Android version: `1.0.3` / `52`.
-- Android native project generated.
-- Adaptive icons generated.
-- Splash screen configured through `expo-splash-screen`.
-- `expo-system-ui` added to support configured UI style.
-- Android permissions configured and `RECORD_AUDIO` blocked.
-- Deep link scheme generated: `studyplanner://`.
-- Google Play Billing dependency generated through `expo-iap`.
-- Paywall and restore copy now use App Store or Google Play by platform.
-- Entitlement checks now use active platform subscription IDs.
-- Android notification channel implemented.
-- Android local reminders are schedulable through Expo notifications.
-- Android camera/photo import now falls back to paste review instead of failing on the iOS OCR module.
-- Widget parity is inventoried and deferred as requested.
-- Build 52 guardrails still pass.
-
-## Verification Results
-
+- Android SDK installed at `C:\Users\xxmne\AppData\Local\Android\Sdk`.
+- SDK path normalized to standard `cmdline-tools\latest`.
+- Java 17 confirmed.
+- `adb`, `emulator`, `sdkmanager`, and `avdmanager` confirmed.
+- API 36 platform, Build Tools 36, platform-tools, emulator, command-line tools installed.
+- Google APIs and Google Play API 36 x86_64 system images installed.
+- Gradle auto-installed required NDK, CMake, and Build Tools 35 dependencies.
+- AVD created: `StudyPlanner_API_36_Play`.
 - `npm run typecheck`: PASS.
 - `npm run check:iap`: PASS.
 - `npm run check:build52`: PASS.
-- `npx expo-doctor`: PASS.
+- `npx expo-doctor`: PASS, `21/21`.
 - `npx expo prebuild --platform android --no-install`: PASS.
-- Android debug build: BLOCKED by missing Android SDK path.
-- Android emulator launch: BLOCKED because `emulator`/SDK tools are absent.
+- `.\gradlew.bat clean`: PASS.
+- `.\gradlew.bat assembleDebug`: PASS.
+- Debug APK created:
+  `C:\FounderWorker\repos\StudyPlanner\android\app\build\outputs\apk\debug\app-debug.apk`
+
+## APK Build Status
+
+PASS.
+
+The debug APK exists and was produced without source changes during Sprint 002.
+
+## Emulator Status
+
+BLOCKED by Windows emulator/hypervisor execution.
+
+Hardware acceleration check reports WHPX is installed and usable, but the emulator launch fails with:
+
+```text
+WHPX: Failed to setup partition, hr=80070005
+failed to initialize WHPX: Invalid argument
+```
+
+Software fallback with `-accel off` starts emulator/qemu processes but the adb device remains `offline` and never reaches `sys.boot_completed=1`.
 
 ## Remaining Blockers
 
-1. Install/configure Android SDK on this Windows machine.
-2. Run `.\gradlew.bat assembleDebug`.
-3. Launch on Android emulator/device.
-4. Create/confirm Google Play subscription products.
-5. Test Google Play Billing with license tester/internal app sharing.
-6. Decide whether Build 52-level Android image OCR must be native before beta or whether paste/PDF fallback is acceptable for first internal beta.
-7. Runtime-test Android notifications on Android 13+.
-8. Decide whether Android widgets are required for closed testing or deferred.
-9. Configure release signing/AAB.
-10. Prepare Play Console data-safety and closed-testing metadata.
+1. Fix Windows WHPX/hypervisor access or attach a physical Android device.
+2. Install and launch `app-debug.apk` on emulator/device.
+3. Confirm whether the debug APK launches standalone or expects Metro.
+4. Runtime-test onboarding, paywall, restore/manage copy, import flows, paste fallback, notification permission/channel, and Today/dashboard path.
+5. Confirm Google Play subscription products in Play Console.
+6. Test Google Play Billing with a license tester/internal app sharing or internal testing track.
+7. Decide whether Android image OCR parity requires native OCR before closed testing or whether the paste/PDF fallback is acceptable for internal beta.
+8. Runtime-test Android notifications on Android 13+.
+9. Configure release signing and generate an AAB.
+10. Prepare Play Console data safety, privacy, screenshots, and closed-testing metadata.
 
 ## Estimated Effort
 
 ### Internal Android Beta
 
-Estimated: 2-4 focused days after Android SDK setup.
+Estimated: 1-2 focused days after emulator/device access is fixed.
 
 Required:
 
-- Debug build compiles.
-- App launches on emulator/device.
-- Onboarding, paywall, locked dashboard, paste/PDF import, SQLite persistence, deep links, and notifications smoke-tested.
-- Google Play Billing can be mocked or tested with internal app sharing/license tester.
+- Boot an Android emulator or connect a physical Android device.
+- Install the debug APK.
+- Run the smoke checklist.
+- Fix any first-launch runtime issue.
+- Confirm billing UI behavior against Google Play availability.
 
 ### Play Store Closed Testing
 
-Estimated: 1-2 weeks.
+Estimated: 5-8 business days after runtime smoke passes.
 
 Required:
 
-- Release AAB builds and signs.
-- Play products configured.
-- Billing works with tester account.
-- Notifications tested on Android 13+.
-- Import flows tested on physical Android device.
-- Play listing, privacy, data safety, screenshots, and support contact prepared.
-- OCR decision documented clearly if Android image OCR remains fallback-only.
+- Build signed release AAB.
+- Configure Play Console app, package identity, testers, and subscription products.
+- Validate subscription entitlement and restore/manage flows with license testers.
+- Test notifications and import flows on at least one physical Android device.
+- Prepare listing, screenshots, privacy policy references, data safety, and support contact.
 
 ### Production Release
 
-Estimated: 2-4 weeks depending on OCR and widget requirements.
+Estimated: 2-3 weeks depending on OCR and widget decisions.
 
 Required:
 
-- Production billing validation policy accepted.
-- Android image OCR either implemented or intentionally scoped out with acceptable product parity rationale.
-- Crash-free closed test pass.
-- Release signing secure.
-- Play review notes complete.
-- Widget parity either shipped or explicitly deferred.
+- Stable closed-test build.
+- Billing validation accepted.
+- Crash-free Android QA pass.
+- Release signing secured.
+- Android OCR parity decision resolved.
+- Widget parity either implemented or explicitly deferred.
 
-## Recommended Next Sprint
+## Exact Next Sprint Recommendation
 
-1. Configure Android SDK.
-2. Fix the first native compile errors from `assembleDebug`.
-3. Launch debug build on emulator/device.
-4. Runtime-test:
-   - onboarding
-   - paywall
-   - restore path
-   - PDF import
-   - camera/photo fallback
-   - paste review
-   - reminders permission/channel
-   - deep links
-5. Produce an Android device QA report before any Play Console work.
+Next prompt:
+
+```text
+StudyPlanner Android Port Sprint 003 - Emulator/Device Runtime QA
+
+Repo: C:\FounderWorker\repos\StudyPlanner
+Branch: studyplanner-android-sprint-001
+APK: C:\FounderWorker\repos\StudyPlanner\android\app\build\outputs\apk\debug\app-debug.apk
+
+Goal: After fixing Windows WHPX or connecting a physical Android device, install and runtime-smoke the Sprint 002 debug APK. Do not redesign, do not push, and do not start other apps.
+
+Run:
+- emulator -accel-check
+- emulator -avd StudyPlanner_API_36_Play -no-snapshot-load
+- adb wait-for-device
+- adb install -r android\app\build\outputs\apk\debug\app-debug.apk
+- adb shell monkey -p com.mattnewman.studyplanner 1
+- capture screenshots/logcat
+
+Smoke:
+- launch/no crash
+- onboarding
+- paywall
+- restore/manage Android copy
+- import screen
+- camera/photo import fallback
+- paste fallback
+- notification permission/channel
+- Today/dashboard demo path
+
+Fix only narrow Android runtime blockers. Produce an updated emulator/device smoke report and commit locally only if changes are required.
+```
