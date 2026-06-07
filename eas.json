@@ -7,6 +7,9 @@
     "production": {
       "distribution": "store",
       "autoIncrement": false,
+      "android": {
+        "buildType": "app-bundle"
+      },
       "ios": {
         "resourceClass": "m-medium"
       }
