@@ -20,8 +20,8 @@ function expect(pass, message) {
 const failures = [];
 
 expect(appSource.includes('type AccessState = "loading" | "onboarding" | "preview_allowed" | "locked" | "paywall" | "unlocked"'), "single AccessState union must exist");
-expect(appJson.version === "1.0.3" && appJson.ios?.buildNumber === "55", "release metadata must remain 1.0.3 (55)");
-expect(!xcodeProject.includes("CURRENT_PROJECT_VERSION = 52;") && (xcodeProject.match(/CURRENT_PROJECT_VERSION = 55;/g) || []).length >= 4, "native app and widget project versions must remain 55");
+expect(appJson.version === "1.0.3" && appJson.ios?.buildNumber === "56", "release metadata must remain 1.0.3 (56)");
+expect(!xcodeProject.includes("CURRENT_PROJECT_VERSION = 52;") && (xcodeProject.match(/CURRENT_PROJECT_VERSION = 56;/g) || []).length >= 4, "native app and widget project versions must remain 56");
 expect(/function entitlementUnlocks[\s\S]{0,160}return entitlementStatus === "active";/.test(appSource), "only active StoreKit entitlement may unlock");
 expect(!/function entitlementUnlocks[\s\S]{0,220}data\.prefs\.premium/.test(appSource), "local premium flag must not participate in entitlementUnlocks");
 expect(appSource.includes("function dataForAccessState") && appSource.includes("return lockedWidgetData(lockUnvalidatedPremium(data))"), "screen data must be fully scrubbed unless entitlement is active");
