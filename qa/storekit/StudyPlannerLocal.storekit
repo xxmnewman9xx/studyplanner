@@ -1,0 +1,71 @@
+{
+  "identifier": "studyplanner-local-storekit",
+  "nonRenewingSubscriptions": [],
+  "products": [],
+  "settings": {
+    "_applicationInternalID": "6766181202",
+    "_developerTeamID": "",
+    "_failTransactionsEnabled": false,
+    "_locale": "en_US",
+    "_storefront": "USA"
+  },
+  "subscriptionGroups": [
+    {
+      "id": "studyplanner-pro",
+      "localizations": [
+        {
+          "description": "Full StudyPlanner access.",
+          "displayName": "StudyPlanner",
+          "locale": "en_US"
+        }
+      ],
+      "name": "StudyPlanner",
+      "subscriptions": [
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "3.99",
+          "familyShareable": false,
+          "groupNumber": 1,
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "Full access to StudyPlanner while the monthly plan is active.",
+              "displayName": "StudyPlanner Monthly",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "com.mattnewman.studyplanner.plus.monthly",
+          "recurringSubscriptionPeriod": "P1M",
+          "referenceName": "StudyPlanner Monthly",
+          "subscriptionGroupID": "studyplanner-pro",
+          "type": "RecurringSubscription"
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "24.99",
+          "familyShareable": false,
+          "groupNumber": 2,
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "Full access to StudyPlanner while the yearly plan is active.",
+              "displayName": "StudyPlanner Yearly",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "com.mattnewman.studyplanner.plus.yearly",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "StudyPlanner Yearly",
+          "subscriptionGroupID": "studyplanner-pro",
+          "type": "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version": {
+    "major": 4,
+    "minor": 0
+  }
+}

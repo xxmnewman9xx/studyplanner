@@ -1,0 +1,25 @@
+{
+  "locale": "runtime",
+  "device": "77573299-A148-49D7-95B6-DB5855B9305A",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "courses",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "courses"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/watch-release-hardening/2026-06-01/source/iphone/17-classes.png",
+  "bytes": 354572,
+  "sha256": "a2ee185ee61c1ef331c206581f09a10cdd1a1f62fabdac31f9316b6084b9c457",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "226c8e9",
+  "timestamp": "2026-06-01T18:57:09.198Z"
+}

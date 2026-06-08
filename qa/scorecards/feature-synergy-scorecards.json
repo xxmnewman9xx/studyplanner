@@ -1,0 +1,120 @@
+{
+  "generatedAt": "2026-05-27T07:42:00-04:00",
+  "principle": "Every feature must feed Capture, Review, Plan, Notes, Focus, Complete, Widgets, or Personalization through StudyPlannerBrain.",
+  "features": [
+    {
+      "feature": "Capture",
+      "userJob": "Get school material into the system quickly.",
+      "feedsFrom": ["scan/upload/type/manual entry"],
+      "feedsInto": ["ParsedImport", "ParsedItem", "Review", "source-linked notes"],
+      "decision": "keep and connect",
+      "usefulness": 95,
+      "synergy": 96
+    },
+    {
+      "feature": "Review",
+      "userJob": "Turn messy captured work into trusted assignments.",
+      "feedsFrom": ["ParsedImport", "ParsedItem"],
+      "feedsInto": ["Assignments", "Notes", "Calendar", "Today", "Widgets"],
+      "decision": "keep and strengthen",
+      "usefulness": 96,
+      "synergy": 97
+    },
+    {
+      "feature": "Today",
+      "userJob": "Know what to do next.",
+      "feedsFrom": ["Assignments", "Courses", "Review state", "Notes", "Focus history", "Settings", "Widget presets"],
+      "feedsInto": ["Assignment detail", "Focus", "Plan", "Widgets", "Notes"],
+      "decision": "rebuild around StudyPlannerBrain",
+      "usefulness": 97,
+      "synergy": 98
+    },
+    {
+      "feature": "Plan",
+      "userJob": "Understand when work happens and why the week feels heavy.",
+      "feedsFrom": ["Assignments", "Courses", "Focus history"],
+      "feedsInto": ["Today", "Widgets", "Assignment detail", "Focus planning"],
+      "decision": "keep and align",
+      "usefulness": 94,
+      "synergy": 96
+    },
+    {
+      "feature": "Classes",
+      "userJob": "Organize work by course identity.",
+      "feedsFrom": ["Course", "Assignments", "Notes", "Widget presets"],
+      "feedsInto": ["Calendar dots", "Assignment rows", "Notes", "Widgets", "Personalization"],
+      "decision": "keep and align",
+      "usefulness": 94,
+      "synergy": 96
+    },
+    {
+      "feature": "Assignment detail",
+      "userJob": "Act on one piece of work.",
+      "feedsFrom": ["Review/parser", "Notes", "Course", "Calendar"],
+      "feedsInto": ["Focus", "Completion", "Today", "Widgets", "Notes"],
+      "decision": "keep and add notes linkage",
+      "usefulness": 95,
+      "synergy": 97
+    },
+    {
+      "feature": "Notes",
+      "userJob": "Capture useful study memory in context.",
+      "feedsFrom": ["Capture", "Assignment detail", "Class detail", "Focus", "Quick add"],
+      "feedsInto": ["Today", "Widgets", "Assignment detail", "Class detail", "Focus"],
+      "decision": "promote from secondary to primary loop",
+      "usefulness": 94,
+      "synergy": 97
+    },
+    {
+      "feature": "Focus",
+      "userJob": "Start, finish, and record study progress.",
+      "feedsFrom": ["Today", "Assignment detail", "Settings", "Personalized focus duration"],
+      "feedsInto": ["Progress", "Focus sessions", "Notes", "Completion", "Widgets"],
+      "decision": "keep and connect notes",
+      "usefulness": 95,
+      "synergy": 97
+    },
+    {
+      "feature": "Widget Studio",
+      "userJob": "Turn planner truth into glanceable widgets.",
+      "feedsFrom": ["StudyPlannerBrain", "Today", "Plan", "Classes", "Notes", "Focus", "Theme", "Settings"],
+      "feedsInto": ["Saved presets", "Settings default widget", "Personalization recommendations"],
+      "decision": "keep as flagship; remove dead showcase panels",
+      "usefulness": 96,
+      "synergy": 98
+    },
+    {
+      "feature": "Themes",
+      "userJob": "Personalize the app without hurting clarity.",
+      "feedsFrom": ["Settings", "Workload recommendations"],
+      "feedsInto": ["App shell", "Today", "Focus", "Widget Studio", "Widget previews"],
+      "decision": "keep and wire to recommendations",
+      "usefulness": 93,
+      "synergy": 96
+    },
+    {
+      "feature": "Settings / More",
+      "userJob": "Change behavior, not decorative toggles.",
+      "feedsFrom": ["UserSettings", "Locale state", "Widget presets", "Subscription"],
+      "feedsInto": ["Theme", "Focus default", "Locale", "Privacy", "Widget defaults"],
+      "decision": "simplify; demote or delete non-behavioral blocks",
+      "usefulness": 93,
+      "synergy": 96
+    },
+    {
+      "feature": "Grades",
+      "userJob": "Secondary progress context.",
+      "feedsFrom": ["Grade items", "Courses"],
+      "feedsInto": ["More/secondary confidence context"],
+      "decision": "demote under More; keep out of primary loop",
+      "usefulness": 86,
+      "synergy": 82
+    }
+  ],
+  "removedMergedOrDemoted": [
+    "Removed unreachable false-gated Widget Studio showcase/proof/lock-preview sections.",
+    "Demoted Grades out of primary navigation.",
+    "Merged Notes into the primary navigation and StudyPlannerBrain context.",
+    "Kept Settings rows only where they visibly affect locale, theme, focus, privacy, sync, widgets, or subscription behavior."
+  ]
+}

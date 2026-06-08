@@ -1,0 +1,58 @@
+{
+  "generatedAt": "2026-05-27T13:42:02Z",
+  "rawDirectory": "marketing_exports/raw_screenshots/final_polish",
+  "contactBoard": "/tmp/studyplanner_final_polish_contact_board.png",
+  "primaryCaptureMethod": "Native iOS simulator screenshots from a Release simulator build with EXPO_PUBLIC_SIM_QA_CAPTURE=1 for deterministic route capture; direct simctl install and bundle-id launch; no Expo Go or browser overlay screenshots used for scoring.",
+  "appBundleIdentifier": "com.mattnewman.studyplanner",
+  "simulators": [
+    {
+      "deviceName": "StudyPlanner-QA-iPhone",
+      "role": "primary iPhone final-polish capture"
+    },
+    {
+      "deviceName": "StudyPlanner-QA-iPad",
+      "role": "tablet Widget Studio and dashboard capture"
+    }
+  ],
+  "nativeBuilds": {
+    "debugSimulator": "passed direct xcodebuild after final Capture changes",
+    "releaseSimulator": "passed direct xcodebuild after final Capture changes",
+    "releaseCaptureBundle": "passed with EXPO_PUBLIC_SIM_QA_CAPTURE=1 for deterministic screenshot routing"
+  },
+  "screenshots": [
+    { "id": "today", "screen": "Today", "path": "marketing_exports/raw_screenshots/final_polish/10-today-light.png", "device": "StudyPlanner-QA-iPhone", "scored": true },
+    { "id": "capture-idle", "screen": "Capture idle / Scan", "path": "marketing_exports/raw_screenshots/final_polish/12-scan.png", "device": "StudyPlanner-QA-iPhone", "scored": true },
+    { "id": "capture-upload", "screen": "Capture Upload tab", "path": "marketing_exports/raw_screenshots/final_polish/12d-capture-upload.png", "device": "StudyPlanner-QA-iPhone", "scored": true },
+    { "id": "capture-type", "screen": "Typed import composer", "path": "marketing_exports/raw_screenshots/final_polish/12a-capture-type-it-in.png", "device": "StudyPlanner-QA-iPhone", "scored": true },
+    { "id": "capture-parsing", "screen": "Capture parsing state", "path": "marketing_exports/raw_screenshots/final_polish/12b-capture-parsing.png", "device": "StudyPlanner-QA-iPhone", "scored": true },
+    { "id": "capture-failed", "screen": "Capture failed / retry state", "path": "marketing_exports/raw_screenshots/final_polish/12c-capture-failed-retry.png", "device": "StudyPlanner-QA-iPhone", "scored": true },
+    { "id": "review-found-work", "screen": "Review / Found Work", "path": "marketing_exports/raw_screenshots/final_polish/13-review.png", "device": "StudyPlanner-QA-iPhone", "scored": true },
+    { "id": "plan-calendar", "screen": "Plan Calendar", "path": "marketing_exports/raw_screenshots/final_polish/14-calendar.png", "device": "StudyPlanner-QA-iPhone", "scored": true },
+    { "id": "week-insight", "screen": "Week Insight", "path": "marketing_exports/raw_screenshots/final_polish/16-calendar-urgent.png", "device": "StudyPlanner-QA-iPhone", "scored": true },
+    { "id": "classes", "screen": "Classes", "path": "marketing_exports/raw_screenshots/final_polish/17-classes.png", "device": "StudyPlanner-QA-iPhone", "scored": true },
+    { "id": "focus", "screen": "Focus", "path": "marketing_exports/raw_screenshots/final_polish/18-focus.png", "device": "StudyPlanner-QA-iPhone", "scored": true },
+    { "id": "widget-studio", "screen": "Widget Studio", "path": "marketing_exports/raw_screenshots/final_polish/30-widget-studio-pick-widget.png", "device": "StudyPlanner-QA-iPhone", "scored": true },
+    { "id": "widget-library", "screen": "Widget Library", "path": "marketing_exports/raw_screenshots/final_polish/23-widgets-class-progress.png", "device": "StudyPlanner-QA-iPhone", "scored": true },
+    { "id": "themes", "screen": "Themes", "path": "marketing_exports/raw_screenshots/final_polish/20-widgets-graphite.png", "device": "StudyPlanner-QA-iPhone", "scored": true },
+    { "id": "settings-more", "screen": "Settings / More", "path": "marketing_exports/raw_screenshots/final_polish/19-widgets-ocean.png", "device": "StudyPlanner-QA-iPhone", "scored": true },
+    { "id": "paywall", "screen": "Paywall", "path": "marketing_exports/raw_screenshots/final_polish/24-paywall.png", "device": "StudyPlanner-QA-iPhone", "scored": true },
+    { "id": "tablet-dashboard", "screen": "Tablet Dashboard", "path": "marketing_exports/raw_screenshots/final_polish/tablet/10-today-light.png", "device": "StudyPlanner-QA-iPad", "scored": true },
+    { "id": "tablet-widget-studio", "screen": "Tablet Widget Studio", "path": "marketing_exports/raw_screenshots/final_polish/tablet/30-widget-studio-pick-widget.png", "device": "StudyPlanner-QA-iPad", "scored": true }
+  ],
+  "carriedForwardCleanNativeEvidence": [
+    { "id": "assignment-detail", "screen": "Assignment Detail", "path": "marketing_exports/raw_screenshots/native_clean/40-assignment-detail.png", "reason": "Clean native evidence already existed from the latest pushed validation and this pass did not alter AssignmentDetailScreen." },
+    { "id": "notes-hub", "screen": "Notes Hub", "path": "marketing_exports/raw_screenshots/native_clean/41-notes-hub.png", "reason": "Clean native evidence already existed from the latest pushed validation and this pass did not alter NotesScreen." },
+    { "id": "class-detail", "screen": "Class Detail", "path": "marketing_exports/raw_screenshots/native_clean/17-classes.png", "reason": "Class detail behavior remains inside Classes flow; this pass did not alter CoursesScreen." }
+  ],
+  "excluded": [
+    {
+      "path": "marketing_exports/raw_screenshots/final_polish/12-scan.png from the Debug app attempt",
+      "reason": "Discarded and overwritten because the Debug simulator shell lacked the bundled JS and captured a blank native surface."
+    },
+    {
+      "path": "marketing_exports/raw_screenshots/final_polish/12-scan.png from the non-capture Release app attempt",
+      "reason": "Discarded and overwritten because the app correctly showed the production hard paywall when built without EXPO_PUBLIC_SIM_QA_CAPTURE=1."
+    }
+  ],
+  "rawPngCommitPolicy": "Raw PNG screenshots are intentionally left local; commit the manifests and scorecards only."
+}

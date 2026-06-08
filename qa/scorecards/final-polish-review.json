@@ -1,0 +1,105 @@
+{
+  "generatedAt": "2026-05-27T13:42:02Z",
+  "status": "release-candidate",
+  "summary": {
+    "iapReadiness": "ready",
+    "nativeWidgetBuild": "direct Debug and Release simulator xcodebuild passed; duplicate ExpoWidgetsTarget output issue did not reproduce after single target verification",
+    "liquidGlass": "centralized tokens and reusable primitives applied only to high-value surfaces",
+    "captureParser": "typed, upload, camera/photo, recent, retry, review, and Add All paths are wired through a shared parser contract",
+    "screenshots": "final native iPhone/iPad screenshots captured and scored; raw PNGs left local"
+  },
+  "capturePanelVisualResult": {
+    "contrastChanges": "Replaced the shared GlassCard wash on the Capture hero with a purpose-built deep navy/ink material so white text and controls remain crisp.",
+    "liquidGlassTextureChanges": "Added deliberate indigo and rose ambient glows, a top sheen, soft rim stroke, darker lower action layer, and controlled shadow depth without blur-heavy animation or texture images.",
+    "buttonControlPolish": "Reworked the Scan / Upload / Type It In segmented control for stronger active state, readable inactive labels, and matched primary/secondary photo buttons with softer tint instead of a harsh white pill.",
+    "copyTruthfulnessChanges": "Changed the launch subtitle and camera copy to say text/PDF parsing is ready while photo capture is available and OCR review is not enabled in this build.",
+    "beforeAfterScoreSummary": {
+      "beforeVisualReview": { "visualPremium": 91, "polish": 91, "liquidGlassQuality": 88, "coolness": 89, "primaryIssues": ["muddy gray GlassCard wash", "low contrast glass area", "harsh secondary photo button"] },
+      "afterCorrection": { "visualPremium": 96, "polish": 96, "liquidGlassQuality": 96, "coolness": 94, "performanceRisk": "low" }
+    },
+    "screenshotArtifacts": [
+      "marketing_exports/raw_screenshots/final_polish/12-scan.png",
+      "marketing_exports/raw_screenshots/final_polish/12d-capture-upload.png",
+      "marketing_exports/raw_screenshots/final_polish/12a-capture-type-it-in.png",
+      "marketing_exports/raw_screenshots/final_polish/12b-capture-parsing.png",
+      "marketing_exports/raw_screenshots/final_polish/12c-capture-failed-retry.png",
+      "marketing_exports/raw_screenshots/final_polish/13-review.png",
+      "/tmp/studyplanner_final_polish_contact_board.png"
+    ],
+    "remainingLimitations": [
+      "Permission-denied OS prompt state was not separately screenshotted because simulator permission prompts are stateful; the app handles denied permission and the failed/retry state was captured.",
+      "No photo OCR claim is made unless the configured OCR parser returns ParsedItems."
+    ]
+  },
+  "cameraCaptureParserResult": {
+    "scanButton": "working native action; requests camera permission, handles denied/cancel/unavailable, creates a ParsedImport from the camera asset, and routes to parser/review or honest failed state",
+    "uploadButton": "working document-picker action for PDF, text, and image assets; validates type/size, copies to cache, creates ParsedImport, and routes to parser/review or useful error",
+    "choosePhotoButton": "working media-library action; requests permission, handles cancel/denied, creates ParsedImport, and routes through the same parser contract",
+    "typeItIn": "working fully local path; validates non-empty text, creates ParsedImport and ParsedItems, then opens Review / Found Work",
+    "recentCaptures": "uses real ParsedImport records, opens saved parsed rows, displays status/source, and exposes retry on failed imports",
+    "retryParse": "preserves source metadata and retries failed imports without silently duplicating accepted rows",
+    "reviewFoundWork": "shows confidence, needsReview, missing-date, duplicate, and parser findings before conversion",
+    "addAllAddSelected": "Add All is gated by valid, reviewed rows and conversion is idempotent for the same parsed import",
+    "parserContract": [
+      "createParsedImportFromCameraAsset",
+      "createParsedImportFromDocumentAsset",
+      "createParsedImportFromTypedText",
+      "parseCapturedSource",
+      "normalizeParsedItems",
+      "detectMissingDates",
+      "detectDuplicates",
+      "estimateConfidence",
+      "convertParsedItemsToAssignments",
+      "retryParsedImport",
+      "getParsedImportById",
+      "getParsedItemsForImport"
+    ],
+    "ocrTruthfulness": "honest fallback; real images/PDFs require configured OCR/text extraction and failed states do not claim assignments were found unless ParsedItems exist",
+    "testsAdded": [
+      "npm run test:capture-parser",
+      "qa/regression/capture-parser-smoke.json",
+      "qa-scenarios scenario sp-capture-camera-parser-truth",
+      "check:scenarios parser-contract assertions"
+    ],
+    "screenshotsScored": [
+      "Capture idle / Scan",
+      "Typed import composer",
+      "Capture parsing state",
+      "Capture failed / retry state",
+      "Review / Found Work"
+    ],
+    "remainingPlatformLimitation": "Simulator camera hardware is unavailable by nature; the native camera action handles that as an unavailable state. Production OCR remains dependent on the configured image/OCR parser endpoint."
+  },
+  "screenshotCorrectionPass": {
+    "attempted": true,
+    "fixed": [
+      "Debug screenshots were blank because Debug build lacked bundled JS; recaptured with Release capture build.",
+      "Non-capture Release screenshots correctly showed the hard paywall; recaptured with EXPO_PUBLIC_SIM_QA_CAPTURE=1.",
+      "Capture hero was tightened and decorative loop preview removed so real actions are visible.",
+      "Parsing/failed screenshot routes now scroll to the relevant parser status cards."
+    ],
+    "rerunLimit": "One targeted correction pass for Capture/Review states, then stopped."
+  },
+  "thresholdResult": {
+    "allCoreScreensAtOrAboveThreshold": true,
+    "parserTruthfulnessThresholdMet": true,
+    "iapReadinessThresholdMet": true,
+    "performanceRisk": "low",
+    "belowThresholds": []
+  },
+  "nativeBuildResult": {
+    "debugSimulatorXcodebuild": "passed",
+    "releaseSimulatorXcodebuild": "passed",
+    "workspaceList": "passed",
+    "projectTargets": [
+      "StudyPlannerSyllabusAI",
+      "ExpoWidgetsTarget"
+    ],
+    "duplicateExpoWidgetsTargetOutputs": "not reproduced in final Debug or Release simulator builds"
+  },
+  "limitations": [
+    "Raw screenshots are local under marketing_exports/raw_screenshots/final_polish and not intended for commit.",
+    "Assignment Detail and Notes Hub scoring relies on existing clean native evidence because this final pass did not change those screens.",
+    "Final App Store Connect subscription group numeric identifier is not present locally; manifest records the known group reference name and readiness remains ready because product IDs are final and configured."
+  ]
+}

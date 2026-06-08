@@ -1,0 +1,27 @@
+{
+  "id": "sp-capture-camera-parser-truth",
+  "createdAt": "2026-05-27T00:00:00.000Z",
+  "scope": "Capture / Import / Parser truth regression",
+  "status": "covered-by-script",
+  "command": "npm run test:capture-parser",
+  "assertions": [
+    "typed import creates ParsedImport and ParsedItems",
+    "missing-date work is flagged needsReview without an invented date",
+    "duplicate parsed item is flagged",
+    "Add All conversion is idempotent by assignment id",
+    "failed parse can transition to retrying with preserved source",
+    "recent import rebuilds the correct review draft",
+    "camera asset creates a photo ParsedImport without pretending OCR succeeded",
+    "document asset creates a PDF ParsedImport",
+    "parser results feed Today/Plan/Widget/StudyPlannerBrain selectors",
+    "permission-denied is UI-only and not persisted as a parser status",
+    "picker cancel transitions are valid",
+    "large and unsupported files return useful errors",
+    "parser status transitions are validated"
+  ],
+  "truthfulness": {
+    "ocr": "Camera and image uploads require the configured OCR parser endpoint. Local fallback stays honest and does not claim image extraction.",
+    "typedText": "Typed and pasted text parse locally through deterministic syllabus parsing.",
+    "pdf": "Text-based PDFs parse locally; scanned PDFs require OCR or manual typed confirmation."
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "locale": "runtime",
+  "device": "786C707C-00A0-4B96-B32D-1DDBC0ADD15A",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "focus",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "focus"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/frontend-redesign/stabilization-final-screenshots-v2/18-focus.png",
+  "bytes": 317037,
+  "sha256": "00a7527d3c4e2bf1cbbb5dcf3c6fb1c327c256f919065ec36a67ccbbcd576432",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "ea8cd1f",
+  "timestamp": "2026-06-02T00:03:21.450Z"
+}

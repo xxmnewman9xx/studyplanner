@@ -1,0 +1,26 @@
+{
+  "locale": "runtime",
+  "device": "77573299-A148-49D7-95B6-DB5855B9305A",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "import",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "review_edit",
+  "route": {
+    "tab": "import",
+    "screen": "review_edit"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/watch-release-hardening/2026-06-01/source/iphone/13-review.png",
+  "bytes": 277482,
+  "sha256": "18177b931dc86f17a3d45986d6f2917605711447bb3642cf13360fdaa0d7dad1",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "226c8e9",
+  "timestamp": "2026-06-01T18:57:09.198Z"
+}

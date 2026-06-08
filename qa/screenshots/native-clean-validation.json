@@ -1,0 +1,352 @@
+{
+  "generatedAt": "2026-05-27T12:02:07.752Z",
+  "gitCommit": "bb527b48c2b79550596b5685d499f10ead5a79c9",
+  "outputRoot": "marketing_exports/raw_screenshots/native_clean",
+  "criteria": [
+    "shows StudyPlanner UI",
+    "no Expo Go overlay",
+    "no dev launcher overlay",
+    "no Safari/browser/URL prompt",
+    "no simulator alert blocking UI",
+    "no dev menu",
+    "not loading-only unless intended",
+    "logo correct where visible",
+    "route matches intended screen"
+  ],
+  "summary": {
+    "totalScoredNativeScreenshots": 16,
+    "validScoredNativeScreenshots": 16,
+    "invalidScoredNativeScreenshots": 0,
+    "cleanNativeEvidenceReady": true
+  },
+  "screenshots": [
+    {
+      "path": "marketing_exports/raw_screenshots/native_clean/10-today-light.png",
+      "screenName": "Today",
+      "routeState": "{ tab: \"today\", themeMode: \"light\" }",
+      "valid": true,
+      "cleanNative": true,
+      "scored": true,
+      "checks": {
+        "studyPlannerUi": true,
+        "expoGoOverlay": false,
+        "devLauncherOverlay": false,
+        "safariOrUrlPrompt": false,
+        "simulatorAlertBlocking": false,
+        "devMenu": false,
+        "loadingOnly": false,
+        "logoCorrectWhereVisible": true,
+        "routeMatches": true
+      },
+      "notes": "StudyPlanner Today UI visible with logo; no overlays or alerts."
+    },
+    {
+      "path": "marketing_exports/raw_screenshots/native_clean/12-scan.png",
+      "screenName": "Capture / Scan",
+      "routeState": "{ tab: \"import\" }",
+      "valid": true,
+      "cleanNative": true,
+      "scored": true,
+      "checks": {
+        "studyPlannerUi": true,
+        "expoGoOverlay": false,
+        "devLauncherOverlay": false,
+        "safariOrUrlPrompt": false,
+        "simulatorAlertBlocking": false,
+        "devMenu": false,
+        "loadingOnly": false,
+        "logoCorrectWhereVisible": true,
+        "routeMatches": true
+      },
+      "notes": "Scan/import surface visible; no Expo Go, dev launcher, Safari, URL prompt, or alert."
+    },
+    {
+      "path": "marketing_exports/raw_screenshots/native_clean/13-review.png",
+      "screenName": "Review / Found Work",
+      "routeState": "{ tab: \"import\", screen: \"review_edit\" }",
+      "valid": true,
+      "cleanNative": true,
+      "scored": true,
+      "checks": {
+        "studyPlannerUi": true,
+        "expoGoOverlay": false,
+        "devLauncherOverlay": false,
+        "safariOrUrlPrompt": false,
+        "simulatorAlertBlocking": false,
+        "devMenu": false,
+        "loadingOnly": false,
+        "logoCorrectWhereVisible": true,
+        "routeMatches": true
+      },
+      "notes": "Review work surface visible with found-work validation; clean native app frame only."
+    },
+    {
+      "path": "marketing_exports/raw_screenshots/native_clean/14-calendar.png",
+      "screenName": "Plan Calendar",
+      "routeState": "{ tab: \"plan\" }",
+      "valid": true,
+      "cleanNative": true,
+      "scored": true,
+      "checks": {
+        "studyPlannerUi": true,
+        "expoGoOverlay": false,
+        "devLauncherOverlay": false,
+        "safariOrUrlPrompt": false,
+        "simulatorAlertBlocking": false,
+        "devMenu": false,
+        "loadingOnly": false,
+        "logoCorrectWhereVisible": true,
+        "routeMatches": true
+      },
+      "notes": "Calendar route visible; no blocking native alert or overlay."
+    },
+    {
+      "path": "marketing_exports/raw_screenshots/native_clean/42-week-insight.png",
+      "screenName": "Week Insight",
+      "routeState": "{ tab: \"plan\", screen: \"agenda\" }",
+      "valid": true,
+      "cleanNative": true,
+      "scored": true,
+      "checks": {
+        "studyPlannerUi": true,
+        "expoGoOverlay": false,
+        "devLauncherOverlay": false,
+        "safariOrUrlPrompt": false,
+        "simulatorAlertBlocking": false,
+        "devMenu": false,
+        "loadingOnly": false,
+        "logoCorrectWhereVisible": true,
+        "routeMatches": true
+      },
+      "notes": "Week/survival-plan section visible after deterministic route scroll; clean native app UI."
+    },
+    {
+      "path": "marketing_exports/raw_screenshots/native_clean/17-classes.png",
+      "screenName": "Classes",
+      "routeState": "{ tab: \"courses\" }",
+      "valid": true,
+      "cleanNative": true,
+      "scored": true,
+      "checks": {
+        "studyPlannerUi": true,
+        "expoGoOverlay": false,
+        "devLauncherOverlay": false,
+        "safariOrUrlPrompt": false,
+        "simulatorAlertBlocking": false,
+        "devMenu": false,
+        "loadingOnly": false,
+        "logoCorrectWhereVisible": true,
+        "routeMatches": true
+      },
+      "notes": "Classes route visible; no launcher or handoff overlay."
+    },
+    {
+      "path": "marketing_exports/raw_screenshots/native_clean/40-assignment-detail.png",
+      "screenName": "Assignment Detail",
+      "routeState": "manual native tap from Today Open task",
+      "valid": true,
+      "cleanNative": true,
+      "scored": true,
+      "checks": {
+        "studyPlannerUi": true,
+        "expoGoOverlay": false,
+        "devLauncherOverlay": false,
+        "safariOrUrlPrompt": false,
+        "simulatorAlertBlocking": false,
+        "devMenu": false,
+        "loadingOnly": false,
+        "logoCorrectWhereVisible": true,
+        "routeMatches": true
+      },
+      "notes": "Assignment detail opened through native UI interaction; clean app state, no overlay."
+    },
+    {
+      "path": "marketing_exports/raw_screenshots/native_clean/41-notes-hub.png",
+      "screenName": "Notes Hub",
+      "routeState": "{ tab: \"notes\", themeMode: \"light\" }",
+      "valid": true,
+      "cleanNative": true,
+      "scored": true,
+      "checks": {
+        "studyPlannerUi": true,
+        "expoGoOverlay": false,
+        "devLauncherOverlay": false,
+        "safariOrUrlPrompt": false,
+        "simulatorAlertBlocking": false,
+        "devMenu": false,
+        "loadingOnly": false,
+        "logoCorrectWhereVisible": true,
+        "routeMatches": true
+      },
+      "notes": "Notes hub visible; no prompt, dev menu, or loading-only state."
+    },
+    {
+      "path": "marketing_exports/raw_screenshots/native_clean/18-focus.png",
+      "screenName": "Focus",
+      "routeState": "{ tab: \"focus\" }",
+      "valid": true,
+      "cleanNative": true,
+      "scored": true,
+      "checks": {
+        "studyPlannerUi": true,
+        "expoGoOverlay": false,
+        "devLauncherOverlay": false,
+        "safariOrUrlPrompt": false,
+        "simulatorAlertBlocking": false,
+        "devMenu": false,
+        "loadingOnly": false,
+        "logoCorrectWhereVisible": true,
+        "routeMatches": true
+      },
+      "notes": "Focus route visible; no runtime error or simulator alert."
+    },
+    {
+      "path": "marketing_exports/raw_screenshots/native_clean/19-widgets-ocean.png",
+      "screenName": "Widget Studio",
+      "routeState": "{ tab: \"more\", widgetType: \"today\", widgetPalette: \"ocean\", widgetBackground: \"glass\" }",
+      "valid": true,
+      "cleanNative": true,
+      "scored": true,
+      "checks": {
+        "studyPlannerUi": true,
+        "expoGoOverlay": false,
+        "devLauncherOverlay": false,
+        "safariOrUrlPrompt": false,
+        "simulatorAlertBlocking": false,
+        "devMenu": false,
+        "loadingOnly": false,
+        "logoCorrectWhereVisible": true,
+        "routeMatches": true
+      },
+      "notes": "Widget Studio visible with native widget sync status; clean app UI."
+    },
+    {
+      "path": "marketing_exports/raw_screenshots/native_clean/43-widget-library-lower.png",
+      "screenName": "Widget Library",
+      "routeState": "{ tab: \"more\", screen: \"agenda\", widgetType: \"week\" }",
+      "valid": true,
+      "cleanNative": true,
+      "scored": true,
+      "checks": {
+        "studyPlannerUi": true,
+        "expoGoOverlay": false,
+        "devLauncherOverlay": false,
+        "safariOrUrlPrompt": false,
+        "simulatorAlertBlocking": false,
+        "devMenu": false,
+        "loadingOnly": false,
+        "logoCorrectWhereVisible": true,
+        "routeMatches": true
+      },
+      "notes": "Widget template/library cards and saved preset area visible; clean native app UI."
+    },
+    {
+      "path": "marketing_exports/raw_screenshots/native_clean/46-themes.png",
+      "screenName": "Themes",
+      "routeState": "manual native scroll in More to App appearance",
+      "valid": true,
+      "cleanNative": true,
+      "scored": true,
+      "checks": {
+        "studyPlannerUi": true,
+        "expoGoOverlay": false,
+        "devLauncherOverlay": false,
+        "safariOrUrlPrompt": false,
+        "simulatorAlertBlocking": false,
+        "devMenu": false,
+        "loadingOnly": false,
+        "logoCorrectWhereVisible": true,
+        "routeMatches": true
+      },
+      "notes": "App appearance and theme cards visible after native scroll; no overlays."
+    },
+    {
+      "path": "marketing_exports/raw_screenshots/native_clean/45-settings-more.png",
+      "screenName": "Settings / More",
+      "routeState": "manual native scroll in More to Settings and trust",
+      "valid": true,
+      "cleanNative": true,
+      "scored": true,
+      "checks": {
+        "studyPlannerUi": true,
+        "expoGoOverlay": false,
+        "devLauncherOverlay": false,
+        "safariOrUrlPrompt": false,
+        "simulatorAlertBlocking": false,
+        "devMenu": false,
+        "loadingOnly": false,
+        "logoCorrectWhereVisible": true,
+        "routeMatches": true
+      },
+      "notes": "Settings and trust controls visible after native scroll; no overlays."
+    },
+    {
+      "path": "marketing_exports/raw_screenshots/native_clean/24-paywall.png",
+      "screenName": "Paywall",
+      "routeState": "{ tab: \"subscribe\" }",
+      "valid": true,
+      "cleanNative": true,
+      "scored": true,
+      "checks": {
+        "studyPlannerUi": true,
+        "expoGoOverlay": false,
+        "devLauncherOverlay": false,
+        "safariOrUrlPrompt": false,
+        "simulatorAlertBlocking": false,
+        "devMenu": false,
+        "loadingOnly": false,
+        "logoCorrectWhereVisible": true,
+        "routeMatches": true
+      },
+      "notes": "Native paywall visible; no store sheet, Expo Go, dev launcher, or browser handoff."
+    },
+    {
+      "path": "marketing_exports/raw_screenshots/native_clean/50-tablet-today.png",
+      "screenName": "Tablet Layout / Dashboard",
+      "routeState": "{ tab: \"today\", themeMode: \"light\" }",
+      "valid": true,
+      "cleanNative": true,
+      "scored": true,
+      "checks": {
+        "studyPlannerUi": true,
+        "expoGoOverlay": false,
+        "devLauncherOverlay": false,
+        "safariOrUrlPrompt": false,
+        "simulatorAlertBlocking": false,
+        "devMenu": false,
+        "loadingOnly": false,
+        "logoCorrectWhereVisible": true,
+        "routeMatches": true
+      },
+      "notes": "Tablet sidebar and Today dashboard visible on dedicated iPad simulator; clean native app UI."
+    },
+    {
+      "path": "marketing_exports/raw_screenshots/native_clean/51-tablet-widget-studio.png",
+      "screenName": "Tablet Layout / Widget Studio",
+      "routeState": "{ tab: \"more\", widgetType: \"week\", widgetSize: \"medium\" }",
+      "valid": true,
+      "cleanNative": true,
+      "scored": true,
+      "checks": {
+        "studyPlannerUi": true,
+        "expoGoOverlay": false,
+        "devLauncherOverlay": false,
+        "safariOrUrlPrompt": false,
+        "simulatorAlertBlocking": false,
+        "devMenu": false,
+        "loadingOnly": false,
+        "logoCorrectWhereVisible": true,
+        "routeMatches": true
+      },
+      "notes": "Tablet widget studio visible on dedicated iPad simulator; clean native app UI."
+    }
+  ],
+  "excludedInvalidEvidence": [
+    {
+      "path": "marketing_exports/raw_screenshots/native_validation",
+      "valid": false,
+      "scored": false,
+      "reason": "Previous invalid native prompt/Expo Go mismatch overlay evidence remains excluded from scored native evidence."
+    }
+  ]
+}
