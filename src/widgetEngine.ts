@@ -134,10 +134,10 @@ export function buildNativeWidgetSnapshots(data: AppData): NativeWidgetSnapshots
   const locked = !data.prefs.premium;
   const empty = !(data.classes.length || data.tasks.length || data.exams.length);
   if (locked || empty) {
-    const headline = locked ? "Know your semester" : "Scan syllabus";
-    const value = locked ? "Unlock" : "Start";
-    const detail = locked ? "StudyPlanner" : "Semester";
-    const footnote = locked ? "Subscribe to build your plan." : "Syllabus in. Semester out.";
+    const headline = locked ? "Build semester" : "Scan syllabus";
+    const value = locked ? "Locked" : "Start";
+    const detail = locked ? "Preview only" : "Semester";
+    const footnote = locked ? "Unlock to apply your syllabus." : "Syllabus in. Semester out.";
     const base = {
       version: 1 as const,
       generatedAt: now,
@@ -155,7 +155,7 @@ export function buildNativeWidgetSnapshots(data: AppData): NativeWidgetSnapshots
     };
     return {
       today: { ...base, kind: "today" },
-      upcoming: { ...base, kind: "upcoming", headline: locked ? "Unlock scan" : "Build plan", detail: locked ? "Required" : "Ready" },
+      upcoming: { ...base, kind: "upcoming", headline: locked ? "Unlock plan" : "Build plan", detail: locked ? "Required" : "Ready" },
       week: { ...base, kind: "week", headline: "No schedule", weekLabels: ["M", "T", "W", "T", "F", "S", "S"], weekCounts: [0, 0, 0, 0, 0, 0, 0] },
       classProgress: { ...base, kind: "classProgress", headline: "No classes", detail: "Import first" },
     };

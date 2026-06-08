@@ -141,3 +141,7 @@ export async function cancelStoredReminders(data: AppData) {
   const ids = data.reminders.flatMap((reminder) => reminder.notificationIds || []);
   await Promise.all(ids.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => {})));
 }
+
+export async function cancelReminderNotificationIds(ids: string[] = []) {
+  await Promise.all(ids.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => {})));
+}

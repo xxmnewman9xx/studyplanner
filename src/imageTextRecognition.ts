@@ -26,5 +26,9 @@ export async function extractTextFromImage(uri: string): Promise<string> {
   if (!normalized) {
     throw new Error("No readable school material text was found in that photo.");
   }
+  const wordCount = normalized.split(/\s+/).filter(Boolean).length;
+  if (wordCount < 8) {
+    throw new Error("That photo did not contain enough readable school text. Retake it closer, scan another page, or paste the text.");
+  }
   return normalized;
 }

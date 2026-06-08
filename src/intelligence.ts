@@ -697,6 +697,26 @@ function dimension(key: HealthDimensionKey, label: string, score: number, reason
   return { key, label, score: rounded, colorState: semanticForScore(rounded), trend, reason };
 }
 
+export function hasRealSemesterData(data: Pick<AppData, "classes" | "tasks" | "exams" | "studyBlocks">) {
+  return Boolean(
+    data.classes.length > 0 ||
+      data.tasks.length > 0 ||
+      data.exams.length > 0 ||
+      data.studyBlocks.length > 0
+  );
+}
+
+function emptySemesterDimension(key: HealthDimensionKey, label: string): HealthDimension {
+  return {
+    key,
+    label,
+    score: 0,
+    colorState: "graphite",
+    trend: "flat",
+    reason: "Add syllabus first.",
+  };
+}
+
 function scoreSnapshot(semester: SemesterSnapshot | { semesterHealth: SemesterHealth }) {
   const dims = semester.semesterHealth.dimensions;
   return {
@@ -905,6 +925,25 @@ function buildRecommendedActions(data: AppData, risks: RiskRecommendation[], rec
 }
 
 function buildSemesterHealth(data: AppData, forecasts: GradeForecast[], pressure: PressureForecast, schedulePlan: SchedulePlan, now = TODAY): SemesterHealth {
+  if (!hasRealSemesterData(data)) {
+    const dimensions = {
+      workload: emptySemesterDimension("workload", "Workload"),
+      grades: emptySemesterDimension("grades", "Grades"),
+      preparedness: emptySemesterDimension("preparedness", "Preparedness"),
+      consistency: emptySemesterDimension("consistency", "Consistency"),
+    };
+    return {
+      overallScore: 0,
+      dimensions,
+      colorState: "graphite",
+      trend: "flat",
+      reason: "No semester loaded.",
+      biggestRisk: "No semester loaded.",
+      biggestWin: "Build your semester first.",
+      nextBestAction: "Scan syllabus",
+    };
+  }
+
   const active = sortedActiveTasks(data, now);
   const overdue = active.filter((task) => daysUntilTask(task, now) < 0);
   const dueSoon = active.filter((task) => daysUntilTask(task, now) <= 2);
