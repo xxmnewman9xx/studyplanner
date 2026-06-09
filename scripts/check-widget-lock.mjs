@@ -15,6 +15,9 @@ expect(appSource.includes("const widgetSyncData = appAccessLocked"), "widget syn
 expect(widgetSource.includes("const locked = !data.prefs.premium"), "widget snapshots must detect non-premium state");
 expect(widgetSource.includes("items: [] as NativeWidgetItem[]"), "locked widgets must expose no items");
 expect(widgetSource.includes("progress: 0"), "locked widgets must expose zero progress");
+expect(widgetSource.includes('const headline = locked ? "Build semester" : "Scan syllabus"'), "locked widgets must invite build/import instead of implying live app data");
+expect(widgetSource.includes('const value = locked ? "Locked" : "Start"'), "locked widgets must show locked state instead of fake score or action");
+expect(widgetSource.includes("Unlock to apply your syllabus."), "locked widget copy must point to unlock/apply");
 expect(widgetSource.includes('openURL: "studyplanner://today"'), "widget taps must use gated Today route");
 expect(widgetViewSource.includes('widgetURL(props.openURL || "studyplanner://today")'), "widget views must use gated URL");
 

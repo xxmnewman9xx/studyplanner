@@ -1,0 +1,1250 @@
+★ eas-cli@19.1.0 is now available.
+To upgrade, run:
+npm install -g eas-cli
+Proceeding with outdated version.
+
+
+⚠️ Detected that your app uses Expo Go for development, this is not recommended when building production apps.
+Learn more: https://expo.fyi/why-not-build-expo-go-for-production
+To suppress this warning, set EAS_BUILD_NO_EXPO_GO_WARNING=true.
+
+Environment variables with visibility "Plain text" and "Sensitive" loaded from the "production" environment on EAS: EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS, EXPO_PUBLIC_PRIVACY_URL, EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED, EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT, EXPO_PUBLIC_TERMS_URL.
+
+✔ Using remote iOS credentials (Expo server)
+
+We found that the scheme you want to build consists of many targets.
+You have to set up credentials for each of the targets.
+They can share the same Distribution Certificate but require separate Provisioning Profiles.
+
+Setting up credentials for following targets:
+- Target: StudyPlannerSyllabusAI
+  Bundle Identifier: com.mattnewman.studyplanner
+- Target: ExpoWidgetsTarget
+  Bundle Identifier: com.mattnewman.studyplanner.widgets
+
+Setting up credentials for target StudyPlannerSyllabusAI (com.mattnewman.studyplanner)
+
+Distribution Certificate is not validated for non-interactive builds.
+Skipping Provisioning Profile validation on Apple Servers because we aren't authenticated.
+
+Setting up credentials for target ExpoWidgetsTarget (com.mattnewman.studyplanner.widgets)
+
+Distribution Certificate is not validated for non-interactive builds.
+Skipping Provisioning Profile validation on Apple Servers because we aren't authenticated.
+
+Project Credentials Configuration
+
+Project                   @xxmnewman9xx/study-planner-syllabus-ai
+
+Target                    StudyPlannerSyllabusAI
+Bundle Identifier         com.mattnewman.studyplanner
+
+App Store Configuration
+
+Distribution Certificate
+Serial Number             35AAAA8BECDA41D7F6A22412737F297E
+Expiration Date           Wed, 28 Apr 2027 14:10:13 EDT
+Apple Team                5JN35MJ3QD (matthew newman (Individual))
+Updated                   28 days ago
+
+Provisioning Profile
+Developer Portal ID       4W2429DPHT
+Status                    active
+Expiration                Wed, 28 Apr 2027 14:10:13 EDT
+Apple Team                5JN35MJ3QD (matthew newman (Individual))
+Updated                   7 days ago
+
+
+Target                    ExpoWidgetsTarget
+Bundle Identifier         com.mattnewman.studyplanner.widgets
+
+App Store Configuration
+
+Distribution Certificate
+Serial Number             35AAAA8BECDA41D7F6A22412737F297E
+Expiration Date           Wed, 28 Apr 2027 14:10:13 EDT
+Apple Team                5JN35MJ3QD (matthew newman (Individual))
+Updated                   28 days ago
+
+Provisioning Profile
+Developer Portal ID       Z9J8X9Q3B8
+Status                    active
+Expiration                Wed, 28 Apr 2027 14:10:13 EDT
+Apple Team                5JN35MJ3QD (matthew newman (Individual))
+Updated                   7 days ago
+
+All credentials are ready to build @xxmnewman9xx/study-planner-syllabus-ai (com.mattnewman.studyplanner, com.mattnewman.studyplanner.widgets)
+
+- Compressing project files
+- Computing project fingerprint
+✔ Computed project fingerprint
+[SETUP_WORKINGDIR] Preparing workingdir /var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408
+[START_BUILD] Starting build
+  "job": {
+    "type": "managed",
+    "platform": "ios",
+    "projectArchive": {
+      "type": "PATH",
+      "path": "/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-cli-nodejs/fd4231d7-0e07-4f6d-8017-31c1c134a00e.tar.gz"
+    },
+    "projectRootDirectory": ".",
+    "builderEnvironment": {
+      "env": {}
+    },
+    "cache": {
+      "disabled": false,
+      "paths": [],
+      "clear": false
+    },
+    "updates": {},
+    "scheme": "StudyPlannerSyllabusAI",
+    "environment": "production",
+    "username": "xxmnewman9xx",
+    "experimental": {},
+    "mode": "build",
+    "triggeredBy": "EAS_CLI",
+    "appId": "69335c75-753e-424e-8a76-c8bd2455a112",
+    "initiatingUserId": "6da278a6-5a3b-411b-94a0-78fef9440015"
+  }
+Local build, skipping project archive refresh
+[READ_EAS_JSON] Using eas.json:
+[READ_EAS_JSON] {
+  "cli": {
+    "version": ">= 18.8.1",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "app-dev": {
+      "environment": "preview",
+      "distribution": "internal",
+      "ios": {
+        "simulator": false
+      }
+    },
+    "app-dev-simulator": {
+      "environment": "development",
+      "distribution": "internal",
+      "ios": {
+        "simulator": true
+      }
+    },
+    "production": {
+      "environment": "production",
+      "distribution": "store",
+      "autoIncrement": false
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "6766181202"
+      }
+    }
+  }
+}
+
+[READ_PACKAGE_JSON] Using package.json:
+[READ_PACKAGE_JSON] {
+  "name": "study-planner-syllabus-ai",
+  "version": "1.0.0",
+  "private": true,
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run qa:release",
+    "lint": "npm run typecheck",
+    "test:parser": "rm -rf /tmp/studyplanner-parser-test-build && tsc scripts/check-syllabus-parser.ts src/services/syllabusLocalParser.ts src/models.ts --outDir /tmp/studyplanner-parser-test-build --module commonjs --target ES2020 --esModuleInterop --skipLibCheck && node /tmp/studyplanner-parser-test-build/scripts/check-syllabus-parser.js",
+    "test:capture-parser": "rm -rf /tmp/studyplanner-capture-parser-test-build && tsc scripts/check-capture-parser-truth.ts src/services/parserContract.ts src/services/syllabusLocalParser.ts src/logic/studyPlannerBrain.ts src/logic/planner.ts src/models.ts --outDir /tmp/studyplanner-capture-parser-test-build --module commonjs --target ES2020 --esModuleInterop --skipLibCheck && node /tmp/studyplanner-capture-parser-test-build/scripts/check-capture-parser-truth.js",
+    "test:photo-ocr": "rm -rf /tmp/studyplanner-photo-ocr-test-build && tsc scripts/check-photo-ocr-import.ts server/syllabus-parser/handler.ts src/services/syllabusLocalParser.ts src/services/pdfText.ts src/logic/planner.ts src/models.ts --outDir /tmp/studyplanner-photo-ocr-test-build --module commonjs --target ES2020 --lib ES2020,DOM --esModuleInterop --skipLibCheck && NODE_PATH=$(pwd)/node_modules node /tmp/studyplanner-photo-ocr-test-build/scripts/check-photo-ocr-import.js",
+    "check:iap": "node scripts/check-iap-config.mjs",
+    "export:web": "expo export --platform web",
+    "qa:release": "npm run typecheck && npm run test:quick-homework && npm run test:parser && npm run test:capture-parser && npm run test:parser-endpoint && npm run test:backend-platform && npm run test:photo-ocr && npm run test:planner && npm run test:widgets && npm run test:widget-integrity && npm run check:scenarios && npm run check:localization && npm run check:iap && npm run check:release-docs && npm run export:web",
+    "test:planner": "rm -rf /tmp/studyplanner-trust-test-build && tsc scripts/check-planner-trust.ts src/logic/studyPlannerBrain.ts src/logic/planner.ts src/models.ts --outDir /tmp/studyplanner-trust-test-build --module commonjs --target ES2020 --esModuleInterop --skipLibCheck && node /tmp/studyplanner-trust-test-build/scripts/check-planner-trust.js",
+    "test:quick-homework": "rm -rf /tmp/studyplanner-quick-homework-test-build && tsc scripts/check-quick-homework-parser.ts src/services/quickHomeworkParser.ts src/models.ts --outDir /tmp/studyplanner-quick-homework-test-build --module commonjs --target ES2020 --esModuleInterop --skipLibCheck && node /tmp/studyplanner-quick-homework-test-build/scripts/check-quick-homework-parser.js",
+    "check:release-docs": "node scripts/check-release-docs.mjs",
+    "check:localization": "node scripts/check-localization-completeness.mjs",
+    "check:widget-no-crop": "rm -rf /tmp/studyplanner-widget-no-crop-build && tsc scripts/check-widget-no-crop.ts src/widgets/widgetLayoutEngine.ts src/services/widgetSnapshot.ts src/logic/planner.ts src/models.ts --outDir /tmp/studyplanner-widget-no-crop-build --module commonjs --target ES2020 --esModuleInterop --skipLibCheck && node /tmp/studyplanner-widget-no-crop-build/scripts/check-widget-no-crop.js",
+    "test:widgets": "rm -rf /tmp/studyplanner-widget-test-build && tsc scripts/check-widget-snapshots.ts src/services/widgetSnapshot.ts src/logic/planner.ts src/models.ts --outDir /tmp/studyplanner-widget-test-build --module commonjs --target ES2020 --esModuleInterop --skipLibCheck && node /tmp/studyplanner-widget-test-build/scripts/check-widget-snapshots.js",
+    "test:widget-integrity": "rm -rf /tmp/studyplanner-widget-integrity-build && tsc scripts/check-widget-integrity.ts src/services/widgetSnapshot.ts src/logic/planner.ts src/models.ts --outDir /tmp/studyplanner-widget-integrity-build --module commonjs --target ES2020 --esModuleInterop --skipLibCheck && node /tmp/studyplanner-widget-integrity-build/scripts/check-widget-integrity.js",
+    "test:parser-endpoint": "rm -rf /tmp/studyplanner-endpoint-normalizer-test-build && tsc scripts/check-syllabus-endpoint-normalizer.ts src/services/syllabusParseNormalizer.ts src/logic/planner.ts src/models.ts --outDir /tmp/studyplanner-endpoint-normalizer-test-build --module commonjs --target ES2020 --esModuleInterop --skipLibCheck && node /tmp/studyplanner-endpoint-normalizer-test-build/scripts/check-syllabus-endpoint-normalizer.js",
+    "test:backend-platform": "rm -rf /tmp/studyplanner-backend-platform-test-build && tsc scripts/check-backend-platform-contracts.ts server/syllabus-parser/handler.ts server/purchase-validation/contract.ts src/services/purchaseValidation.ts src/services/syllabusLocalParser.ts src/services/pdfText.ts src/logic/planner.ts src/models.ts --outDir /tmp/studyplanner-backend-platform-test-build --module commonjs --target ES2020 --lib ES2020,DOM --esModuleInterop --skipLibCheck && NODE_PATH=$(pwd)/node_modules node /tmp/studyplanner-backend-platform-test-build/scripts/check-backend-platform-contracts.js",
+    "build:syllabus-parser": "tsc --project tsconfig.syllabus-parser.json",
+    "start:syllabus-parser": "node dist/server/syllabus-parser/server.js",
+    "check:scenarios": "node scripts/check-scenarios.mjs",
+    "qa:sim-product-depth": "node scripts/sim-qa-product-depth.mjs"
+  },
+  "dependencies": {
+    "@expo/ui": "~55.0.17",
+    "@expo/vector-icons": "^15.0.2",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@tesseract.js-data/eng": "^1.0.0",
+    "expo": "~55.0.26",
+    "expo-build-properties": "~55.0.14",
+    "expo-calendar": "~55.0.15",
+    "expo-document-picker": "~55.0.13",
+    "expo-file-system": "~55.0.22",
+    "expo-font": "~55.0.8",
+    "expo-iap": "^4.2.4",
+    "expo-image-picker": "~55.0.20",
+    "expo-notifications": "~55.0.23",
+    "expo-status-bar": "~55.0.6",
+    "expo-store-review": "~55.0.14",
+    "expo-widgets": "^55.0.18",
+    "lucide-react-native": "^1.14.0",
+    "pako": "^2.1.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-native": "0.83.6",
+    "react-native-svg": "15.15.3",
+    "react-native-web": "^0.21.0",
+    "tesseract.js": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/pako": "^2.0.4",
+    "@types/react": "~19.2.0",
+    "babel-preset-expo": "~55.0.19",
+    "typescript": "~5.9.2"
+  },
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "expo-widgets"
+        ]
+      }
+    }
+  }
+}
+[INSTALL_DEPENDENCIES] Running "npm ci --include=dev" in /var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build directory
+[INSTALL_DEPENDENCIES] npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+[INSTALL_DEPENDENCIES] npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+[INSTALL_DEPENDENCIES] npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+[INSTALL_DEPENDENCIES] npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+[INSTALL_DEPENDENCIES] npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+[INSTALL_DEPENDENCIES] npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+[INSTALL_DEPENDENCIES] npm warn deprecated uuid@7.0.3: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+[INSTALL_DEPENDENCIES] added 630 packages, and audited 631 packages in 4s
+[INSTALL_DEPENDENCIES] 53 packages are looking for funding
+[INSTALL_DEPENDENCIES]   run `npm fund` for details
+[INSTALL_DEPENDENCIES] 10 moderate severity vulnerabilities
+[INSTALL_DEPENDENCIES]
+[INSTALL_DEPENDENCIES] To address issues that do not require attention, run:
+[INSTALL_DEPENDENCIES]   npm audit fix
+[INSTALL_DEPENDENCIES]
+[INSTALL_DEPENDENCIES] To address all issues (including breaking changes), run:
+[INSTALL_DEPENDENCIES]   npm audit fix --force
+[INSTALL_DEPENDENCIES]
+[INSTALL_DEPENDENCIES] Run `npm audit` for details.
+The NODE_ENV environment variable is required but was not specified. Ensure the project is bundled with Expo CLI or NODE_ENV is set.
+Proceeding without mode-specific .env
+[READ_APP_CONFIG] Using app configuration:
+[READ_APP_CONFIG] {
+  "name": "StudyPlanner: Syllabus AI",
+  "slug": "study-planner-syllabus-ai",
+  "version": "1.0.2",
+  "orientation": "default",
+  "userInterfaceStyle": "automatic",
+  "icon": "./assets/app/study-planner-icon.png",
+  "scheme": "studyplanner",
+  "splash": {
+    "image": "./assets/app/study-planner-icon.png",
+    "resizeMode": "contain",
+    "backgroundColor": "#F6F8FC"
+  },
+  "ios": {
+    "supportsTablet": true,
+    "bundleIdentifier": "com.mattnewman.studyplanner",
+    "icon": "./assets/app/study-planner-icon.png",
+    "buildNumber": "31",
+    "entitlements": {
+      "com.apple.security.application-groups": [
+        "group.com.mattnewman.studyplanner"
+      ]
+    },
+    "infoPlist": {
+      "ITSAppUsesNonExemptEncryption": false,
+      "NSCameraUsageDescription": "Use the camera only when image import is enabled to attach syllabus pages for manual review.",
+      "NSPhotoLibraryUsageDescription": "Use the photo library only when image import is enabled to attach syllabus images for manual review.",
+      "NSCalendarsFullAccessUsageDescription": "Sync assignment and exam dates to your calendar.",
+      "NSUserNotificationsUsageDescription": "Send calm reminders before deadlines, exams, and classes."
+    }
+  },
+  "android": {
+    "package": "com.studyplanner.syllabusai",
+    "adaptiveIcon": {
+      "foregroundImage": "./assets/app/study-planner-icon.png",
+      "backgroundColor": "#F6F8FC"
+    },
+    "permissions": [
+      "android.permission.CAMERA",
+      "android.permission.READ_CALENDAR",
+      "android.permission.WRITE_CALENDAR",
+      "android.permission.POST_NOTIFICATIONS",
+      "android.permission.READ_CALENDAR",
+      "android.permission.WRITE_CALENDAR",
+      "android.permission.RECORD_AUDIO"
+    ]
+  },
+  "plugins": [
+    "expo-calendar",
+    "expo-document-picker",
+    "expo-image-picker",
+    "expo-notifications",
+    "expo-iap",
+    "expo-font",
+    "./plugins/with-widgetkit-kinds",
+    [
+      "expo-widgets",
+      {
+        "bundleIdentifier": "com.mattnewman.studyplanner.widgets",
+        "groupIdentifier": "group.com.mattnewman.studyplanner",
+        "widgets": [
+          {
+            "name": "StudyPlannerTodayWidget",
+            "kind": "studyplanner.today",
+            "displayName": "StudyPlanner Today",
+            "description": "See what needs your attention today.",
+            "supportedFamilies": [
+              "systemSmall",
+              "systemMedium"
+            ],
+            "contentMarginsDisabled": true
+          },
+          {
+            "name": "StudyPlannerUpcomingWidget",
+            "kind": "studyplanner.upcoming",
+            "displayName": "StudyPlanner Upcoming",
+            "description": "Preview upcoming assignments and deadlines.",
+            "supportedFamilies": [
+              "systemSmall",
+              "systemMedium"
+            ],
+            "contentMarginsDisabled": true
+          },
+          {
+            "name": "StudyPlannerWeekWidget",
+            "kind": "studyplanner.week",
+            "displayName": "StudyPlanner Week",
+            "description": "Check your weekly workload at a glance.",
+            "supportedFamilies": [
+              "systemMedium"
+            ],
+            "contentMarginsDisabled": true
+          },
+          {
+            "name": "StudyPlannerClassProgressWidget",
+            "kind": "studyplanner.classProgress",
+            "displayName": "StudyPlanner Class Progress",
+            "description": "Track progress for a selected class.",
+            "supportedFamilies": [
+              "systemSmall",
+              "systemMedium"
+            ],
+            "contentMarginsDisabled": true
+          }
+        ]
+      }
+    ],
+    [
+      "expo-build-properties",
+      {
+        "ios": {
+          "deploymentTarget": "16.0"
+        }
+      }
+    ]
+  ],
+  "extra": {
+    "eas": {
+      "projectId": "69335c75-753e-424e-8a76-c8bd2455a112",
+      "build": {
+        "experimental": {
+          "ios": {
+            "appExtensions": [
+              {
+                "targetName": "ExpoWidgetsTarget",
+                "bundleIdentifier": "com.mattnewman.studyplanner.widgets",
+                "entitlements": {
+                  "com.apple.security.application-groups": [
+                    "group.com.mattnewman.studyplanner"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "owner": "xxmnewman9xx",
+  "sdkVersion": "55.0.0",
+  "platforms": [
+    "ios",
+    "android",
+    "web"
+  ]
+}
+[RUN_EXPO_DOCTOR] Running "expo doctor"
+[RUN_EXPO_DOCTOR] Running 19 checks on your project...
+[RUN_EXPO_DOCTOR] 18/19 checks passed. 1 checks failed. Possible issues detected:
+[RUN_EXPO_DOCTOR] Use the --verbose flag to see more details about passed checks.
+[RUN_EXPO_DOCTOR] ✖ Check for issues with Metro config
+[RUN_EXPO_DOCTOR] It looks like that you are using a custom metro.config.js that does not extend "expo/metro-config". This can lead to unexpected and hard to debug issues. Learn more: https://docs.expo.dev/guides/customizing-metro/
+[RUN_EXPO_DOCTOR] Advice:
+[RUN_EXPO_DOCTOR] Update your "metro.config.js" to extend "expo/metro-config".
+[RUN_EXPO_DOCTOR] 1 check failed, indicating possible issues with the project.
+[RUN_EXPO_DOCTOR] Command "expo doctor" failed.
+Error: npx -y expo-doctor exited with non-zero code: 1
+    at ChildProcess.completionListener (/Users/mattnewman/.npm/_npx/0917d8cd6fe7b3c5/node_modules/@expo/spawn-async/build/spawnAsync.js:113:23)
+    at Object.onceWrapper (node:events:631:12)
+    at ChildProcess.emit (node:events:509:20)
+    at maybeClose (node:internal/child_process:1108:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:305:5)
+    ...
+    at spawnAsync (/Users/mattnewman/.npm/_npx/0917d8cd6fe7b3c5/node_modules/@expo/spawn-async/build/spawnAsync.js:9:23)
+    at spawn (/Users/mattnewman/.npm/_npx/0917d8cd6fe7b3c5/node_modules/@expo/turtle-spawn/dist/index.js:16:47)
+    at runExpoDoctor (/Users/mattnewman/.npm/_npx/0917d8cd6fe7b3c5/node_modules/@expo/build-tools/dist/common/setup.js:139:52)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async /Users/mattnewman/.npm/_npx/0917d8cd6fe7b3c5/node_modules/@expo/build-tools/dist/common/setup.js:118:17
+    at async BuildContext.runBuildPhase (/Users/mattnewman/.npm/_npx/0917d8cd6fe7b3c5/node_modules/@expo/build-tools/dist/context.js:127:28)
+    at async setupAsync (/Users/mattnewman/.npm/_npx/0917d8cd6fe7b3c5/node_modules/@expo/build-tools/dist/common/setup.js:116:9)
+    at async buildAsync (/Users/mattnewman/.npm/_npx/0917d8cd6fe7b3c5/node_modules/@expo/build-tools/dist/builders/ios.js:51:5)
+    at async runBuilderWithHooksAsync (/Users/mattnewman/.npm/_npx/0917d8cd6fe7b3c5/node_modules/@expo/build-tools/dist/builders/common.js:12:13)
+    at async Object.iosBuilder (/Users/mattnewman/.npm/_npx/0917d8cd6fe7b3c5/node_modules/@expo/build-tools/dist/builders/ios.js:38:16)
+[PREPARE_CREDENTIALS] Preparing credentials
+[PREPARE_CREDENTIALS] Creating keychain
+[PREPARE_CREDENTIALS] Preparing credentials for target 'StudyPlannerSyllabusAI'
+[PREPARE_CREDENTIALS] Getting distribution certificate fingerprint and common name
+[PREPARE_CREDENTIALS] Fingerprint = "B3BCBD5F26772A968D0F0416228983EB01819BBE", common name = iPhone Distribution: matthew newman (5JN35MJ3QD)
+[PREPARE_CREDENTIALS] Writing distribution certificate to /var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/831f2b4f-8cf9-418e-aa36-83c718841507.p12
+[PREPARE_CREDENTIALS] Importing distribution certificate into the keychain
+[PREPARE_CREDENTIALS] Initializing provisioning profile
+[PREPARE_CREDENTIALS] Validating whether the distribution certificate has been imported successfully
+[PREPARE_CREDENTIALS] Verifying whether the distribution certificate and provisioning profile match
+[PREPARE_CREDENTIALS] Preparing credentials for target 'ExpoWidgetsTarget'
+[PREPARE_CREDENTIALS] Getting distribution certificate fingerprint and common name
+[PREPARE_CREDENTIALS] Fingerprint = "B3BCBD5F26772A968D0F0416228983EB01819BBE", common name = iPhone Distribution: matthew newman (5JN35MJ3QD)
+[PREPARE_CREDENTIALS] Writing distribution certificate to /var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/57de5f7f-a59d-446f-8adc-ba07709b2ead.p12
+[PREPARE_CREDENTIALS] Importing distribution certificate into the keychain
+[PREPARE_CREDENTIALS] Initializing provisioning profile
+[PREPARE_CREDENTIALS] Validating whether the distribution certificate has been imported successfully
+[PREPARE_CREDENTIALS] Verifying whether the distribution certificate and provisioning profile match
+[PREBUILD] 🔍 [expo-iap] Config values: horizonAppId=undefined, isHorizonEnabled=false, isOnsideEnabled=false
+[PREBUILD] 📦 [expo-iap] Using OpenIAP from CocoaPods
+[PREBUILD] The ios project is malformed, project files will be cleared and reinitialized.
+[PREBUILD] - Clearing ios
+[PREBUILD] ✔ Cleared ios code
+[PREBUILD] - Creating native directory (./ios)
+[PREBUILD] ✔ Created native directory
+[PREBUILD] - Updating package.json
+[PREBUILD] ✔ Updated package.json | no changes
+[PREBUILD] - Running prebuild
+[PREBUILD] 📦 expo-iap: Added CocoaPods CDN source to Podfile
+[PREBUILD] - Running prebuild
+[PREBUILD] ✔ Finished prebuild
+[PREBUILD] Running "npm install --include=dev" in /var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build directory
+[PREBUILD] up to date, audited 631 packages in 701ms
+[PREBUILD] 53 packages are looking for funding
+[PREBUILD]   run `npm fund` for details
+[PREBUILD] 10 moderate severity vulnerabilities
+[PREBUILD]
+[PREBUILD] To address issues that do not require attention, run:
+[PREBUILD]   npm audit fix
+[PREBUILD]
+[PREBUILD] To address all issues (including breaking changes), run:
+[PREBUILD]   npm audit fix --force
+[PREBUILD]
+[PREBUILD] Run `npm audit` for details.
+[RESTORE_CACHE] Local builds do not support restoring cache
+[INSTALL_PODS] Using Expo modules
+[INSTALL_PODS] [Expo] Enabling modular headers for pod ExpoModulesCore
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-RCTFabric
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-RCTAppDelegate
+[INSTALL_PODS] [Expo] Enabling modular headers for pod ReactAppDependencyProvider
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-Core
+[INSTALL_PODS] [Expo] Enabling modular headers for pod ReactCodegen
+[INSTALL_PODS] [Expo] Enabling modular headers for pod RCTRequired
+[INSTALL_PODS] [Expo] Enabling modular headers for pod RCTTypeSafety
+[INSTALL_PODS] [Expo] Enabling modular headers for pod ReactCommon
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-NativeModulesApple
+[INSTALL_PODS] [Expo] Enabling modular headers for pod Yoga
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-Fabric
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-graphics
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-utils
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-featureflags
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-debug
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-ImageManager
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-rendererdebug
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-jsi
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-renderercss
+[INSTALL_PODS] [Expo] Enabling modular headers for pod hermes-engine
+[INSTALL_PODS] [Expo] Enabling modular headers for pod glog
+[INSTALL_PODS] [Expo] Enabling modular headers for pod boost
+[INSTALL_PODS] [Expo] Enabling modular headers for pod DoubleConversion
+[INSTALL_PODS] [Expo] Enabling modular headers for pod fast_float
+[INSTALL_PODS] [Expo] Enabling modular headers for pod fmt
+[INSTALL_PODS] [Expo] Enabling modular headers for pod RCT-Folly
+[INSTALL_PODS] [Expo] Enabling modular headers for pod SocketRocket
+[INSTALL_PODS] [Expo] Enabling modular headers for pod openiap
+[INSTALL_PODS] [Expo] Enabling modular headers for pod ExpoUI
+[INSTALL_PODS] Found 3 modules for target `StudyPlannerSyllabusAI`
+[INSTALL_PODS] link_native_modules! {ios_packages: [{configurations: [], name: "@react-native-async-storage/async-storage", root: "/private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/node_modules/@react-native-async-storage/async-storage", path: "../node_modules/@react-native-async-storage/async-storage", podspec_path: "/private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/node_modules/@react-native-async-storage/async-storage/RNCAsyncStorage.podspec", script_phases: []}, {configurations: [], name: "expo", root: "/private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/node_modules/expo", path: "../node_modules/expo", podspec_path: "/private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/node_modules/expo/Expo.podspec", script_phases: []}, {configurations: [], name: "react-native-svg", root: "/private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/node_modules/react-native-svg", path: "../node_modules/react-native-svg", podspec_path: "/private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/node_modules/react-native-svg/RNSVG.podspec", script_phases: []}], ios_project_root_path: "/private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios", react_native_path: "../node_modules/react-native"}
+[INSTALL_PODS] Auto-linking React Native modules for target `StudyPlannerSyllabusAI`: RNCAsyncStorage and RNSVG
+[INSTALL_PODS] Framework build type is static library
+[INSTALL_PODS] [ReactNativeDependencies] Setting up ReactNativeDependencies...
+[INSTALL_PODS] [ReactNativeDependencies] Building from source: false
+[INSTALL_PODS] [ReactNativeDependencies] Using tarball from URL: https://repo1.maven.org/maven2/com/facebook/react/react-native-artifacts/0.83.6/react-native-artifacts-0.83.6-reactnative-dependencies-debug.tar.gz
+[INSTALL_PODS] % Total    % Received % Xferd  Average
+[INSTALL_PODS] Speed   Time    Time     Time  Current
+[INSTALL_PODS]                                  Dload  Upload   Total   Spent    Left  Speed
+[INSTALL_PODS]   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+[INSTALL_PODS] 55 18.3M   55 10.2M    0     0  10.7M      0  0:00:01 --:--:--  0:00:01
+[INSTALL_PODS] 10.7M
+[INSTALL_PODS] 100 18.3M  100 18.3M    0     0  11.6M
+[INSTALL_PODS] 0  0:00:01  0:00:01 --:--:-- 11.6M
+[INSTALL_PODS] % Total    % Received % Xferd  Average Speed   Time
+[INSTALL_PODS] Time     Time  Current
+[INSTALL_PODS]                                  Dload  Upload   Total   Spent    Left  Speed
+[INSTALL_PODS]   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+[INSTALL_PODS] 27  9.9M   27 2830k    0     0  8393k      0  0:00:01 --:--:--  0:00:01 837
+[INSTALL_PODS] 2k
+[INSTALL_PODS] 100  9.9M  100  9.9M    0     0  11.1M      0 --:--:-- --:--:-- --
+[INSTALL_PODS] :--:-- 11.1M
+[INSTALL_PODS] [ReactNativeDependencies] Source: {http: "file:///private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/Pods/ReactNativeDependencies-artifacts/reactnative-dependencies-0.83.6-debug.tar.gz"}
+[INSTALL_PODS] [ReactNativeCore] Setting up ReactNativeCore...
+[INSTALL_PODS] [ReactNativeCore] Building from source: false
+[INSTALL_PODS] Configuring the target with the New Architecture
+[INSTALL_PODS] [ReactNativeCore] Using React Native Core and React Native Dependencies prebuilt versions.
+[INSTALL_PODS] [36m[1m[Codegen][0m Analyzing /private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/package.json[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m [33mSearching for codegen-enabled libraries in the app.[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m [33mThe "codegenConfig" field is not defined in package.json. Assuming there is nothing to generate at the app level.[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m [33mSearching for codegen-enabled libraries in react-native.config.js[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Found @react-native-async-storage/async-storage[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Found react-native-svg[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Processing rnasyncstorage[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m [33mSearching for podspec in the project dependencies.[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Supported Apple platforms: ios, macos, tvos, visionos for rnasyncstorage[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Processing rnsvg[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m [33mSearching for podspec in the project dependencies.[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Supported Apple platforms: ios, macos, tvos, visionos for rnsvg[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating Native Code for rnasyncstorage - ios[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifacts: /private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/build/generated/ios/ReactCodegen[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating Native Code for rnsvg - ios[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifacts: /private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/build/generated/ios/ReactCodegen[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating RCTThirdPartyComponentsProvider.h[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifact: /private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/build/generated/ios/ReactCodegen/RCTThirdPartyComponentsProvider.h[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating RCTThirdPartyComponentsProvider.mm[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifact: /private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/build/generated/ios/ReactCodegen/RCTThirdPartyComponentsProvider.mm[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating RCTModulesProvider.h[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifact: /private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/build/generated/ios/ReactCodegen/RCTModuleProviders.h[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating RCTModuleProviders.mm[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifact: /private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/build/generated/ios/ReactCodegen/RCTModuleProviders.mm[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating RCTAppDependencyProvider[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifact: /private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/build/generated/ios/ReactAppDependencyProvider/RCTAppDependencyProvider.h[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifact: /private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/build/generated/ios/ReactAppDependencyProvider/RCTAppDependencyProvider.mm[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated podspec: /private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/build/generated/ios/ReactAppDependencyProvider/ReactAppDependencyProvider.podspec[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated podspec: /private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/build/generated/ios/ReactCodegen/ReactCodegen.podspec[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating Package.swift[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifact: /private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/build/generated/ios/Package.swift[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m [33mDone.[0m
+[INSTALL_PODS] Using Expo modules
+[INSTALL_PODS] [Expo] Enabling modular headers for pod ExpoModulesCore
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-RCTFabric
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-RCTAppDelegate
+[INSTALL_PODS] [Expo] Enabling modular headers for pod ReactAppDependencyProvider
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-Core
+[INSTALL_PODS] [Expo] Enabling modular headers for pod ReactCodegen
+[INSTALL_PODS] [Expo] Enabling modular headers for pod RCTRequired
+[INSTALL_PODS] [Expo] Enabling modular headers for pod RCTTypeSafety
+[INSTALL_PODS] [Expo] Enabling modular headers for pod ReactCommon
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-NativeModulesApple
+[INSTALL_PODS] [Expo] Enabling modular headers for pod Yoga
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-Fabric
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-graphics
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-utils
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-featureflags
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-debug
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-ImageManager
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-rendererdebug
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-jsi
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-renderercss
+[INSTALL_PODS] [Expo] Enabling modular headers for pod hermes-engine
+[INSTALL_PODS] [Expo] Enabling modular headers for pod ReactNativeDependencies
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-Core-prebuilt
+[INSTALL_PODS] [Expo] Enabling modular headers for pod ExpoUI
+[INSTALL_PODS] Found 3 modules for target `ExpoWidgetsTarget`
+[INSTALL_PODS] link_native_modules! {ios_packages: [{configurations: [], name: "expo", root: "/private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/node_modules/expo", path: "../node_modules/expo", podspec_path: "/private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/node_modules/expo/Expo.podspec", script_phases: []}], ios_project_root_path: "/private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios", react_native_path: "../node_modules/react-native"}
+[INSTALL_PODS] Framework build type is static library
+[INSTALL_PODS] Configuring the target with the New Architecture
+[INSTALL_PODS] [ReactNativeCore] Using React Native Core and React Native Dependencies prebuilt versions.
+[INSTALL_PODS] [36m[1m[Codegen][0m Skipping use_react_native_codegen_discovery.
+[INSTALL_PODS] Analyzing dependencies
+[INSTALL_PODS] Fetching podspec for `React-Core-prebuilt` from `../node_modules/react-native/React-Core-prebuilt.podspec`
+[INSTALL_PODS] [ReactNativeCore] Downloading ReactNativeCore-prebuilt debug tarball from https://repo1.maven.org/maven2/com/facebook/react/react-native-artifacts/0.83.6/react-native-artifacts-0.83.6-reactnative-core-debug.tar.gz to ../../ios/Pods/ReactNativeCore-artifacts/reactnative-core-0.83.6-debug.tar.gz
+[INSTALL_PODS] % Total    % Received % Xferd  Average Speed
+[INSTALL_PODS] Time    Time     Time  Current
+[INSTALL_PODS]                                  Dload  Upload   Total   Spent    Left  Speed
+[INSTALL_PODS]   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+[INSTALL_PODS] 8 88.2M    8 7578k    0     0  10.5M      0  0:00:08 --:--:--  0:00:08 10.5M
+[INSTALL_PODS] 23 88.2M   23 20.6M    0     0  12.1M      0  0:00:07  0:00:0
+[INSTALL_PODS] 1  0:00:06 12.1M
+[INSTALL_PODS] 38 88.2M   38 33.8M    0     0  12.5M      0
+[INSTALL_PODS] 0:00:07  0:00:02  0:00:05 12.5M
+[INSTALL_PODS] 53 88.2M   53 47.1M    0     0  12.7M      0
+[INSTALL_PODS] 0:00:06  0:00:03  0:00:03 12.7M
+[INSTALL_PODS] 68 88.2M   68 60.3M    0     0  12.8
+[INSTALL_PODS] M      0  0:00:06  0:00:04  0:00:02 12.8M
+[INSTALL_PODS] 83 88.2M   83 73.7M    0     0  12.9M      0  0:00:0
+[INSTALL_PODS] 6  0:00:05  0:00:01 13.2M
+[INSTALL_PODS] 98 88.2M   98 86.4M    0     0  12.9M      0  0:0
+[INSTALL_PODS] 0:06  0:00:06 --:--:-- 13.1M
+[INSTALL_PODS] 100 88.2M  100 88.2M    0     0  12.9M
+[INSTALL_PODS] 0  0:00:06  0:00:06 --:--:-- 13.1M
+[INSTALL_PODS] [ReactNativeCore] Downloading ReactNativeCore-prebuilt release tarball from https://repo1.maven.org/maven2/com/facebook/react/react-native-artifacts/0.83.6/react-native-artifacts-0.83.6-reactnative-core-release.tar.gz to ../../ios/Pods/ReactNativeCore-artifacts/reactnative-core-0.83.6-release.tar.gz
+[INSTALL_PODS] % Total    % Received % Xferd  Average Speed   T
+[INSTALL_PODS] ime    Time     Time  Current
+[INSTALL_PODS]                                  Dload  Upload   Total   Spent    Left  Speed
+[INSTALL_PODS]   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+[INSTALL_PODS] 34 27.9M   34 9948k    0     0  11.4M      0  0:00:02
+[INSTALL_PODS] --:--:--  0:00:02 11.4M
+[INSTALL_PODS] 80 27.9M   80 22.4M    0     0  12.1M      0  0:00:02  0:00:01  0:00:01
+[INSTALL_PODS] 12.1M
+[INSTALL_PODS] 100 27.9M  100 27.9M    0     0  1
+[INSTALL_PODS] 2.3M      0  0:00:02  0:00:02 --:--:-- 12.4M
+[INSTALL_PODS] [ReactNativeCore] Resolved stable ReactNativeCore-prebuilt version:
+[INSTALL_PODS] [ReactNativeCore]   ../../ios/Pods/ReactNativeCore-artifacts/reactnative-core-0.83.6-debug.tar.gz
+[INSTALL_PODS] [ReactNativeCore]   ../../ios/Pods/ReactNativeCore-artifacts/reactnative-core-0.83.6-release.tar.gz
+[INSTALL_PODS] Fetching podspec for `ReactNativeDependencies` from `../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`
+[INSTALL_PODS] [ReactNativeDependencies] Using tarball from URL: https://repo1.maven.org/maven2/com/facebook/react/react-native-artifacts/0.83.6/react-native-artifacts-0.83.6-reactnative-dependencies-debug.tar.gz
+[INSTALL_PODS] Fetching podspec for `hermes-engine` from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`
+[INSTALL_PODS] [Hermes] Using release tarball from URL: https://repo1.maven.org/maven2/com/facebook/hermes/hermes-ios/0.14.1/hermes-ios-0.14.1-hermes-ios-debug.tar.gz
+[INSTALL_PODS] % Total    % Received % Xferd  Average Speed   Ti
+[INSTALL_PODS] me    Time     Time  Current
+[INSTALL_PODS]                                  Dload  Upload   Total   Spent    Left  Speed
+[INSTALL_PODS]   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+[INSTALL_PODS] 4 29.0M    4 1227k    0     0  6466k      0  0:00
+[INSTALL_PODS] :04 --:--:--  0:00:04 6460k
+[INSTALL_PODS] 49 29.0M   49 14.3M    0     0  12.0M      0  0:00:02  0:00:01  0:00:01 12.0M
+[INSTALL_PODS] 93 29.0M   93 27.2M    0     0  12.3
+[INSTALL_PODS] M      0  0:00:02  0:00:02 --:--:-- 12.3M
+[INSTALL_PODS] 100 29.0M  100 29.0M    0     0  12.4M      0
+[INSTALL_PODS] 0:00:02  0:00:02 --:--:-- 12.4M
+[INSTALL_PODS] % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+[INSTALL_PODS] Dload  Upload   Total   Spent    Left  Speed
+[INSTALL_PODS]   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+[INSTALL_PODS] 43 20.7M   43 9275k    0     0  11.1M      0  0:00:01 --:--:--  0:00:01
+[INSTALL_PODS] 11.1M
+[INSTALL_PODS] 100 20.7M  100 20.7M    0     0  11.4M      0  0:00:01
+[INSTALL_PODS] 0:00:01 --:--:-- 11.4M
+[INSTALL_PODS] Downloading dependencies
+[INSTALL_PODS] Installing EXApplication (55.0.15)
+[INSTALL_PODS] Installing EXConstants (55.0.16)
+[INSTALL_PODS] Installing Expo (55.0.26)
+[INSTALL_PODS] Installing ExpoAsset (55.0.17)
+[INSTALL_PODS] Installing ExpoCalendar (55.0.15)
+[INSTALL_PODS] Installing ExpoDocumentPicker (55.0.13)
+[INSTALL_PODS] Installing ExpoDomWebView (55.0.6)
+[INSTALL_PODS] Installing ExpoFileSystem (55.0.22)
+[INSTALL_PODS] Installing ExpoFont (55.0.8)
+[INSTALL_PODS] Installing ExpoIap (4.2.4)
+[INSTALL_PODS] Installing ExpoImagePicker (55.0.20)
+[INSTALL_PODS] Installing ExpoKeepAwake (55.0.8)
+[INSTALL_PODS] Installing ExpoLogBox (55.0.12)
+[INSTALL_PODS] Installing ExpoModulesCore (55.0.25)
+[INSTALL_PODS] Installing ExpoModulesJSI (55.0.25)
+[INSTALL_PODS] Installing ExpoNotifications (55.0.23)
+[INSTALL_PODS] Installing ExpoStoreReview (55.0.14)
+[INSTALL_PODS] Installing ExpoUI (55.0.17)
+[INSTALL_PODS] Installing ExpoWidgets (55.0.19)
+[INSTALL_PODS] Installing FBLazyVector (0.83.6)
+[INSTALL_PODS] Installing RCTDeprecation (0.83.6)
+[INSTALL_PODS] Installing RCTRequired (0.83.6)
+[INSTALL_PODS] Installing RCTSwiftUI (0.83.6)
+[INSTALL_PODS] Installing RCTSwiftUIWrapper (0.83.6)
+[INSTALL_PODS] Installing RCTTypeSafety (0.83.6)
+[INSTALL_PODS] Installing RNCAsyncStorage (2.2.0)
+[INSTALL_PODS] Installing RNSVG (15.15.3)
+[INSTALL_PODS] Installing React (0.83.6)
+[INSTALL_PODS] Installing React-Core (0.83.6)
+[INSTALL_PODS] Installing React-Core-prebuilt (0.83.6)
+[INSTALL_PODS] Installing React-CoreModules (0.83.6)
+[INSTALL_PODS] Installing React-Fabric (0.83.6)
+[INSTALL_PODS] Installing React-FabricComponents (0.83.6)
+[INSTALL_PODS] Installing React-FabricImage (0.83.6)
+[INSTALL_PODS] Installing React-ImageManager (0.83.6)
+[INSTALL_PODS] Installing React-Mapbuffer (0.83.6)
+[INSTALL_PODS] Installing React-NativeModulesApple (0.83.6)
+[INSTALL_PODS] Installing React-RCTActionSheet (0.83.6)
+[INSTALL_PODS] Installing React-RCTAnimation (0.83.6)
+[INSTALL_PODS] Installing React-RCTAppDelegate (0.83.6)
+[INSTALL_PODS] Installing React-RCTBlob (0.83.6)
+[INSTALL_PODS] Installing React-RCTFBReactNativeSpec (0.83.6)
+[INSTALL_PODS] Installing React-RCTFabric (0.83.6)
+[INSTALL_PODS] Installing React-RCTImage (0.83.6)
+[INSTALL_PODS] Installing React-RCTLinking (0.83.6)
+[INSTALL_PODS] Installing React-RCTNetwork (0.83.6)
+[INSTALL_PODS] Installing React-RCTRuntime (0.83.6)
+[INSTALL_PODS] Installing React-RCTSettings (0.83.6)
+[INSTALL_PODS] Installing React-RCTText (0.83.6)
+[INSTALL_PODS] Installing React-RCTVibration (0.83.6)
+[INSTALL_PODS] Installing React-RuntimeApple (0.83.6)
+[INSTALL_PODS] Installing React-RuntimeCore (0.83.6)
+[INSTALL_PODS] Installing React-RuntimeHermes (0.83.6)
+[INSTALL_PODS] Installing React-callinvoker (0.83.6)
+[INSTALL_PODS] Installing React-cxxreact (0.83.6)
+[INSTALL_PODS] Installing React-debug (0.83.6)
+[INSTALL_PODS] Installing React-defaultsnativemodule (0.83.6)
+[INSTALL_PODS] Installing React-domnativemodule (0.83.6)
+[INSTALL_PODS] Installing React-featureflags (0.83.6)
+[INSTALL_PODS] Installing React-featureflagsnativemodule (0.83.6)
+[INSTALL_PODS] Installing React-graphics (0.83.6)
+[INSTALL_PODS] Installing React-hermes (0.83.6)
+[INSTALL_PODS] Installing React-idlecallbacksnativemodule (0.83.6)
+[INSTALL_PODS] Installing React-intersectionobservernativemodule (0.83.6)
+[INSTALL_PODS] Installing React-jserrorhandler (0.83.6)
+[INSTALL_PODS] Installing React-jsi (0.83.6)
+[INSTALL_PODS] Installing React-jsiexecutor (0.83.6)
+[INSTALL_PODS] Installing React-jsinspector (0.83.6)
+[INSTALL_PODS] Installing React-jsinspectorcdp (0.83.6)
+[INSTALL_PODS] Installing React-jsinspectornetwork (0.83.6)
+[INSTALL_PODS] Installing React-jsinspectortracing (0.83.6)
+[INSTALL_PODS] Installing React-jsitooling (0.83.6)
+[INSTALL_PODS] Installing React-jsitracing (0.83.6)
+[INSTALL_PODS] Installing React-logger (0.83.6)
+[INSTALL_PODS] Installing React-microtasksnativemodule (0.83.6)
+[INSTALL_PODS] Installing React-networking (0.83.6)
+[INSTALL_PODS] Installing React-oscompat (0.83.6)
+[INSTALL_PODS] Installing React-perflogger (0.83.6)
+[INSTALL_PODS] Installing React-performancecdpmetrics (0.83.6)
+[INSTALL_PODS] Installing React-performancetimeline (0.83.6)
+[INSTALL_PODS] Installing React-rendererconsistency (0.83.6)
+[INSTALL_PODS] Installing React-renderercss (0.83.6)
+[INSTALL_PODS] Installing React-rendererdebug (0.83.6)
+[INSTALL_PODS] Installing React-runtimeexecutor (0.83.6)
+[INSTALL_PODS] Installing React-runtimescheduler (0.83.6)
+[INSTALL_PODS] Installing React-timing (0.83.6)
+[INSTALL_PODS] Installing React-utils (0.83.6)
+[INSTALL_PODS] Installing React-webperformancenativemodule (0.83.6)
+[INSTALL_PODS] Installing ReactAppDependencyProvider (0.83.6)
+[INSTALL_PODS] Installing ReactCodegen (0.83.6)
+[INSTALL_PODS] Installing ReactCommon (0.83.6)
+[INSTALL_PODS] Installing ReactNativeDependencies (0.83.6)
+[INSTALL_PODS] Installing Yoga (0.0.0)
+[INSTALL_PODS] Installing hermes-engine (0.14.1)
+[INSTALL_PODS] Installing openiap (2.1.5)
+[INSTALL_PODS] Generating Pods project
+[INSTALL_PODS] Setting USE_HERMES build settings
+[INSTALL_PODS] Setting REACT_NATIVE_PATH build settings
+[INSTALL_PODS] Setting SWIFT_ACTIVE_COMPILATION_CONDITIONS build settings
+[INSTALL_PODS] [Ccache]: Removing Ccache from CC, LD, CXX & LDPLUSPLUS build settings
+[INSTALL_PODS] Setting SWIFT_ENABLE_EXPLICIT_MODULES build settings
+[INSTALL_PODS] [SPM] Cleaning old SPM dependencies from Pods project
+[INSTALL_PODS] [SPM] Adding SPM dependencies to Pods project
+[INSTALL_PODS] [Privacy Manifest Aggregation] No existing PrivacyInfo.xcprivacy file found, creating a new one.
+[INSTALL_PODS] [Privacy Manifest Aggregation] Reading .xcprivacy files to aggregate all used Required Reason APIs.
+[INSTALL_PODS] file_root: StudyPlannerSyllabusAI
+[INSTALL_PODS] Setting CLANG_CXX_LANGUAGE_STANDARD to c++20 on /private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/StudyPlannerSyllabusAI.xcodeproj
+[INSTALL_PODS] ==================== DEPRECATION NOTICE =====================
+[INSTALL_PODS] Calling `pod install` directly is deprecated in React Native
+[INSTALL_PODS] because we are moving away from Cocoapods toward alternative
+[INSTALL_PODS] solutions to build the project.
+[INSTALL_PODS] * If you are using Expo, please run:
+[INSTALL_PODS] `npx expo run:ios`
+[INSTALL_PODS] * If you are using the Community CLI, please run:
+[INSTALL_PODS] `yarn ios`
+[INSTALL_PODS] =============================================================
+[INSTALL_PODS] Pod install took 43 [s] to run
+[INSTALL_PODS] Integrating client project
+[INSTALL_PODS] [!] Please close any current Xcode sessions and use `StudyPlannerSyllabusAI.xcworkspace` for this project from now on.
+[INSTALL_PODS] [Expo] Installing the build script for target ExpoWidgetsTarget
+[INSTALL_PODS] [Expo] Installing the build script for target StudyPlannerSyllabusAI
+[INSTALL_PODS] Pod installation complete! There are 95 dependencies from the Podfile and 95 total pods installed.
+[INSTALL_PODS] [Expo] Adding '[Expo Autolinking] Run Codegen with autolinking' build phase to ReactCodegen
+[INSTALL_PODS] [Expo] Disabling SWIFT_EMIT_MODULE_INTERFACE for pod targets (prebuilt React compatibility)
+[INSTALL_PODS] [!] React-Core-prebuilt has added 1 script phase. Please inspect before executing a build. See `https://guides.cocoapods.org/syntax/podspec.html#script_phases` for more information.
+[INSTALL_PODS] [!] ReactNativeDependencies has added 1 script phase. Please inspect before executing a build. See `https://guides.cocoapods.org/syntax/podspec.html#script_phases` for more information.
+[INSTALL_PODS] [!] hermes-engine has added 1 script phase. Please inspect before executing a build. See `https://guides.cocoapods.org/syntax/podspec.html#script_phases` for more information.
+[CONFIGURE_XCODE_PROJECT] Configuring Xcode project
+[CONFIGURE_XCODE_PROJECT] Assigning provisioning profile '*[expo] com.mattnewman.studyplanner AppStore 2026-05-04T08:55:23.709Z' (Apple Team ID: 5JN35MJ3QD) to target 'StudyPlannerSyllabusAI'
+[CONFIGURE_XCODE_PROJECT] Assigning provisioning profile '*[expo] com.mattnewman.studyplanner.widgets AppStore 2026-05-19T16:21:18.805Z' (Apple Team ID: 5JN35MJ3QD) to target 'ExpoWidgetsTarget'
+[EAGER_BUNDLE] 🔍 [expo-iap] Config values: horizonAppId=undefined, isHorizonEnabled=false, isOnsideEnabled=false
+[EAGER_BUNDLE] 📦 [expo-iap] Using OpenIAP from CocoaPods
+[EAGER_BUNDLE] Starting Metro Bundler
+[EAGER_BUNDLE] iOS node_modules/expo/AppEntry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+[EAGER_BUNDLE] iOS Bundled 764ms node_modules/expo/AppEntry.js (2555 modules)
+[EAGER_BUNDLE] Writing bundle output to: /var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/gjh2ip29nr/main.jsbundle
+[EAGER_BUNDLE] Copying 1 asset files
+[EAGER_BUNDLE] Done writing bundle output
+[RUN_FASTLANE] Creating Gymfile
+[RUN_FASTLANE] Gymfile created
+[RUN_FASTLANE] Successfully loaded '/private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/Gymfile' 📄
+[RUN_FASTLANE]
+[RUN_FASTLANE] +--------------------------------------------------------------+
+[RUN_FASTLANE] |               Detected Values from './Gymfile'               |
+[RUN_FASTLANE] +-----------------------+--------------------------------------+
+[RUN_FASTLANE] | suppress_xcode_output | true                                 |
+[RUN_FASTLANE] | clean                 | false                                |
+[RUN_FASTLANE] | scheme                | StudyPlannerSyllabusAI               |
+[RUN_FASTLANE] | configuration         | Release                              |
+[RUN_FASTLANE] | export_options        | {method: "app-store",                |
+[RUN_FASTLANE] |                       | provisioningProfiles:                |
+[RUN_FASTLANE] |                       | {"com.mattnewman.studyplanner" =>    |
+[RUN_FASTLANE] |                       | "5fc980aa-3a03-482c-a0fe-3992b8d4f1  |
+[RUN_FASTLANE] |                       | 77",                                 |
+[RUN_FASTLANE] |                       | "com.mattnewman.studyplanner.widget  |
+[RUN_FASTLANE] |                       | s" =>                                |
+[RUN_FASTLANE] |                       | "c1691eab-2768-4faa-8e12-5026805b47  |
+[RUN_FASTLANE] |                       | 21"}}                                |
+[RUN_FASTLANE] | export_xcargs         | OTHER_CODE_SIGN_FLAGS="--keychain    |
+[RUN_FASTLANE] |                       | /var/folders/2l/ht_1zc55015319qs57z  |
+[RUN_FASTLANE] |                       | mhk_c0000gn/T/eas-build-89219b89-a9  |
+[RUN_FASTLANE] |                       | 7f-46a4-8d5c-20aecb14b1e9.keychain"  |
+[RUN_FASTLANE] | disable_xcpretty      | true                                 |
+[RUN_FASTLANE] | buildlog_path         | /var/folders/2l/ht_1zc55015319qs57z  |
+[RUN_FASTLANE] |                       | mhk_c0000gn/T/eas-build-local-nodej  |
+[RUN_FASTLANE] |                       | s/a7ee4488-70d2-4d9c-9667-bd0197522  |
+[RUN_FASTLANE] |                       | 408/logs                             |
+[RUN_FASTLANE] | derived_data_path     | ./build                              |
+[RUN_FASTLANE] | result_bundle         | true                                 |
+[RUN_FASTLANE] | result_bundle_path    | /var/folders/2l/ht_1zc55015319qs57z  |
+[RUN_FASTLANE] |                       | mhk_c0000gn/T/result-bundle-1779897  |
+[RUN_FASTLANE] |                       | 832253.xcresult                      |
+[RUN_FASTLANE] | output_directory      | ./build                              |
+[RUN_FASTLANE] +-----------------------+--------------------------------------+
+[RUN_FASTLANE]
+[RUN_FASTLANE] Resolving Swift Package Manager dependencies...
+[RUN_FASTLANE] $ xcodebuild -resolvePackageDependencies -workspace ./StudyPlannerSyllabusAI.xcworkspace -scheme StudyPlannerSyllabusAI -configuration Release -derivedDataPath ./build
+[RUN_FASTLANE] ▸ Command line invocation:
+[RUN_FASTLANE] ▸     /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -resolvePackageDependencies -workspace ./StudyPlannerSyllabusAI.xcworkspace -scheme StudyPlannerSyllabusAI -configuration Release -derivedDataPath ./build
+[RUN_FASTLANE] ▸ resolved source packages:
+[RUN_FASTLANE] $ xcodebuild -showBuildSettings -workspace ./StudyPlannerSyllabusAI.xcworkspace -scheme StudyPlannerSyllabusAI -configuration Release -derivedDataPath ./build 2>&1
+[RUN_FASTLANE] Detected provisioning profile mapping: {"com.mattnewman.studyplanner": "5fc980aa-3a03-482c-a0fe-3992b8d4f177", "com.mattnewman.studyplanner.widgets": "c1691eab-2768-4faa-8e12-5026805b4721"}
+[RUN_FASTLANE]
+[RUN_FASTLANE] +-----------------------------------------------------------------------------+
+[RUN_FASTLANE] |                           Summary for gym 2.234.0                           |
+[RUN_FASTLANE] +--------------------------------------+--------------------------------------+
+[RUN_FASTLANE] | workspace                            | ./StudyPlannerSyllabusAI.xcworkspac  |
+[RUN_FASTLANE] |                                      | e                                    |
+[RUN_FASTLANE] | scheme                               | StudyPlannerSyllabusAI               |
+[RUN_FASTLANE] | clean                                | false                                |
+[RUN_FASTLANE] | output_directory                     | ./build                              |
+[RUN_FASTLANE] | output_name                          | StudyPlannerSyllabusAI               |
+[RUN_FASTLANE] | configuration                        | Release                              |
+[RUN_FASTLANE] | silent                               | false                                |
+[RUN_FASTLANE] | skip_package_ipa                     | false                                |
+[RUN_FASTLANE] | skip_package_pkg                     | false                                |
+[RUN_FASTLANE] | export_options.method                | app-store                            |
+[RUN_FASTLANE] | export_options.provisioningProfiles  | 5fc980aa-3a03-482c-a0fe-3992b8d4f17  |
+[RUN_FASTLANE] | .com.mattnewman.studyplanner         | 7                                    |
+[RUN_FASTLANE] | export_options.provisioningProfiles  | c1691eab-2768-4faa-8e12-5026805b472  |
+[RUN_FASTLANE] | .com.mattnewman.studyplanner.widget  | 1                                    |
+[RUN_FASTLANE] | s                                    |                                      |
+[RUN_FASTLANE] | export_xcargs                        | OTHER_CODE_SIGN_FLAGS="--keychain    |
+[RUN_FASTLANE] |                                      | /var/folders/2l/ht_1zc55015319qs57z  |
+[RUN_FASTLANE] |                                      | mhk_c0000gn/T/eas-build-89219b89-a9  |
+[RUN_FASTLANE] |                                      | 7f-46a4-8d5c-20aecb14b1e9.keychain"  |
+[RUN_FASTLANE] | build_path                           | /Users/mattnewman/Library/Developer  |
+[RUN_FASTLANE] |                                      | /Xcode/Archives/2026-05-27           |
+[RUN_FASTLANE] | derived_data_path                    | ./build                              |
+[RUN_FASTLANE] | result_bundle                        | true                                 |
+[RUN_FASTLANE] | result_bundle_path                   | /var/folders/2l/ht_1zc55015319qs57z  |
+[RUN_FASTLANE] |                                      | mhk_c0000gn/T/result-bundle-1779897  |
+[RUN_FASTLANE] |                                      | 832253.xcresult                      |
+[RUN_FASTLANE] | buildlog_path                        | /var/folders/2l/ht_1zc55015319qs57z  |
+[RUN_FASTLANE] |                                      | mhk_c0000gn/T/eas-build-local-nodej  |
+[RUN_FASTLANE] |                                      | s/a7ee4488-70d2-4d9c-9667-bd0197522  |
+[RUN_FASTLANE] |                                      | 408/logs                             |
+[RUN_FASTLANE] | destination                          | generic/platform=iOS                 |
+[RUN_FASTLANE] | suppress_xcode_output                | true                                 |
+[RUN_FASTLANE] | xcodebuild_formatter                 | xcpretty                             |
+[RUN_FASTLANE] | build_timing_summary                 | false                                |
+[RUN_FASTLANE] | disable_xcpretty                     | true                                 |
+[RUN_FASTLANE] | skip_profile_detection               | false                                |
+[RUN_FASTLANE] | xcodebuild_command                   | xcodebuild                           |
+[RUN_FASTLANE] | skip_package_dependencies_resolutio  | false                                |
+[RUN_FASTLANE] | n                                    |                                      |
+[RUN_FASTLANE] | disable_package_automatic_updates    | false                                |
+[RUN_FASTLANE] | skip_package_repository_fetches      | false                                |
+[RUN_FASTLANE] | use_system_scm                       | false                                |
+[RUN_FASTLANE] | generate_appstore_info               | false                                |
+[RUN_FASTLANE] | xcode_path                           | /Applications/Xcode.app              |
+[RUN_FASTLANE] +--------------------------------------+--------------------------------------+
+[RUN_FASTLANE] $ set -o pipefail && xcodebuild -workspace ./StudyPlannerSyllabusAI.xcworkspace -scheme StudyPlannerSyllabusAI -configuration Release -derivedDataPath ./build -destination 'generic/platform=iOS' -archivePath /Users/mattnewman/Library/Developer/Xcode/Archives/2026-05-27/StudyPlannerSyllabusAI\ 2026-05-27\ 12.03.55.xcarchive -resultBundlePath '/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/result-bundle-1779897832253.xcresult' archive | tee /var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/logs/StudyPlannerSyllabusAI-StudyPlannerSyllabusAI.log > /dev/null
+[RUN_FASTLANE] › Executing react-native Pods/hermes-engine » [CP-User] [Hermes] Replace Hermes for the right configuration, if needed
+[RUN_FASTLANE] › Executing react-native Pods/ReactNativeDependencies » [CP-User] [RNDeps] Replace React Native Dependencies for the right configuration, if needed
+[RUN_FASTLANE] › Preparing Pods/React-cxxreact-React-cxxreact_privacy » ResourceBundle-React-cxxreact_privacy-React-cxxreact-Info.plist
+[RUN_FASTLANE] › Copying   ios/build/Build/Intermediates.noindex/ArchiveIntermediates/StudyPlannerSyllabusAI/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/React-cxxreact_privacy.bundle/PrivacyInfo.xcprivacy ➜ ../../../../var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/node_modules/react-native/ReactCommon/cxxreact/PrivacyInfo.xcprivacy
+[RUN_FASTLANE] › Preparing Pods/React-Core-React-Core_privacy » ResourceBundle-React-Core_privacy-React-Core-Info.plist
+[RUN_FASTLANE] › Copying   ios/build/Build/Intermediates.noindex/ArchiveIntermediates/StudyPlannerSyllabusAI/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/React-Core_privacy.bundle/PrivacyInfo.xcprivacy ➜ ../../../../var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/node_modules/react-native/React/Resources/PrivacyInfo.xcprivacy
+[RUN_FASTLANE] › Copying   ios/build/Build/Intermediates.noindex/ArchiveIntermediates/StudyPlannerSyllabusAI/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/RNSVGFilters.bundle/RNSVGArithmeticFilter.iphoneos.metallib ➜ ../../../../var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/node_modules/react-native-svg/apple/Filters/MetalCI/RNSVGArithmeticFilter.iphoneos.metallib
+[RUN_FASTLANE] › Preparing Pods/RNSVG-RNSVGFilters » ResourceBundle-RNSVGFilters-RNSVG-Info.plist
+[RUN_FASTLANE] › Copying   ios/build/Build/Intermediates.noindex/ArchiveIntermediates/StudyPlannerSyllabusAI/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/RNSVGFilters.bundle/RNSVGCompositeXor.iphoneos.metallib ➜ ../../../../var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/node_modules/react-native-svg/apple/Filters/MetalCI/RNSVGCompositeXor.iphoneos.metallib
+[RUN_FASTLANE] › Preparing Pods/RNCAsyncStorage-RNCAsyncStorage_resources » ResourceBundle-RNCAsyncStorage_resources-RNCAsyncStorage-Info.plist
+[RUN_FASTLANE] › Copying   ios/build/Build/Intermediates.noindex/ArchiveIntermediates/StudyPlannerSyllabusAI/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/RNCAsyncStorage_resources.bundle/PrivacyInfo.xcprivacy ➜ ../../../../var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/node_modules/@react-native-async-storage/async-storage/ios/PrivacyInfo.xcprivacy
+[RUN_FASTLANE] › Preparing expo-widgets Pods/ExpoWidgets-ExpoWidgets » ResourceBundle-ExpoWidgets-ExpoWidgets-Info.plist
+[RUN_FASTLANE] › Preparing Pods/ExpoNotifications-ExpoNotifications_privacy » ResourceBundle-ExpoNotifications_privacy-ExpoNotifications-Info.plist
+[RUN_FASTLANE] › Copying   ios/build/Build/Intermediates.noindex/ArchiveIntermediates/StudyPlannerSyllabusAI/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/ExpoNotifications_privacy.bundle/PrivacyInfo.xcprivacy ➜ ../../../../var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/node_modules/expo-notifications/ios/PrivacyInfo.xcprivacy
+[RUN_FASTLANE] › Preparing Pods/ExpoFileSystem-ExpoFileSystem_privacy » ResourceBundle-ExpoFileSystem_privacy-ExpoFileSystem-Info.plist
+[RUN_FASTLANE] › Copying   ios/build/Build/Intermediates.noindex/ArchiveIntermediates/StudyPlannerSyllabusAI/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/ExpoFileSystem_privacy.bundle/PrivacyInfo.xcprivacy ➜ ../../../../var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/node_modules/expo-file-system/ios/PrivacyInfo.xcprivacy
+[RUN_FASTLANE] › Preparing Pods/EXConstants-ExpoConstants_privacy » ResourceBundle-ExpoConstants_privacy-EXConstants-Info.plist
+[RUN_FASTLANE] › Copying   ios/build/Build/Intermediates.noindex/ArchiveIntermediates/StudyPlannerSyllabusAI/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/ExpoConstants_privacy.bundle/PrivacyInfo.xcprivacy ➜ ../../../../var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/node_modules/expo-constants/ios/PrivacyInfo.xcprivacy
+[RUN_FASTLANE] › Preparing expo-constants Pods/EXConstants-EXConstants » ResourceBundle-EXConstants-EXConstants-Info.plist
+[RUN_FASTLANE] › Creating  Pods/React-cxxreact-React-cxxreact_privacy » React-cxxreact_privacy.bundle
+[RUN_FASTLANE] › Creating  Pods/React-Core-React-Core_privacy » React-Core_privacy.bundle
+[RUN_FASTLANE] › Preparing Pods/EXApplication-ExpoApplication_privacy » ResourceBundle-ExpoApplication_privacy-EXApplication-Info.plist
+[RUN_FASTLANE] › Copying   ios/build/Build/Intermediates.noindex/ArchiveIntermediates/StudyPlannerSyllabusAI/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/ExpoApplication_privacy.bundle/PrivacyInfo.xcprivacy ➜ ../../../../var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/node_modules/expo-application/ios/PrivacyInfo.xcprivacy
+[RUN_FASTLANE] › Creating  Pods/RNSVG-RNSVGFilters » RNSVGFilters.bundle
+[RUN_FASTLANE] › Creating  Pods/RNCAsyncStorage-RNCAsyncStorage_resources » RNCAsyncStorage_resources.bundle
+[RUN_FASTLANE] › Creating  Pods/ExpoNotifications-ExpoNotifications_privacy » ExpoNotifications_privacy.bundle
+[RUN_FASTLANE] › Creating  expo-widgets Pods/ExpoWidgets-ExpoWidgets » ExpoWidgets.bundle
+[RUN_FASTLANE] › Creating  Pods/ExpoFileSystem-ExpoFileSystem_privacy » ExpoFileSystem_privacy.bundle
+[RUN_FASTLANE] › Creating  Pods/EXConstants-ExpoConstants_privacy » ExpoConstants_privacy.bundle
+[RUN_FASTLANE] › Creating  expo-constants Pods/EXConstants-EXConstants » EXConstants.bundle
+[RUN_FASTLANE] › Creating  Pods/EXApplication-ExpoApplication_privacy » ExpoApplication_privacy.bundle
+[RUN_FASTLANE] › Executing react-native Pods/hermes-engine » [CP] Copy XCFrameworks
+[RUN_FASTLANE] › Executing react-native Pods/ReactNativeDependencies » [CP] Copy XCFrameworks
+[RUN_FASTLANE] › Executing react-native Pods/React-Core-prebuilt » [CP-User] [RNDeps] Replace React Native Core for the right configuration, if needed
+[RUN_FASTLANE] › Executing [CP] Copy XCFrameworks
+[RUN_FASTLANE] › Executing react-native Pods/React-RCTFBReactNativeSpec » [CP-User] [RN]Check FBReactNativeSpec
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » TypedArray.cpp
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » MemoryBuffer.cpp
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » ObjectDeallocator.cpp
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » MainThreadInvoker.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » JSIUtils.cpp
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » EXStringUtils.cpp
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » EXRawJavaScriptFunction.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » EXRawJavaScriptArrayBuffer.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » EXNativeArrayBuffer.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » EXJavaScriptWeakObject.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » EXJavaScriptValue.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » EXJavaScriptTypedArray.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » EXJavaScriptRuntime.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » EXJavaScriptObjectBinding.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » EXJavaScriptObject.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » EXJSIUtils.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » EXJSIConversions.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » EXArrayBuffer.mm
+[RUN_FASTLANE] › Compiling @expo/log-box Pods/ExpoLogBox » ExpoRedBoxSwap.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesJSI » ExpoModulesJSI-dummy.m
+[RUN_FASTLANE] › Compiling react-native Pods/RCTSwiftUI » RCTSwiftUI-dummy.m
+[RUN_FASTLANE] › Packaging react-native Pods/RCTSwiftUI » libRCTSwiftUI.a
+[RUN_FASTLANE] › Executing react-native Pods/RCTSwiftUI » Copy generated compatibility header
+[RUN_FASTLANE] › Packaging expo-modules-core Pods/ExpoModulesJSI » libExpoModulesJSI.a
+[RUN_FASTLANE] › Compiling react-native Pods/RCTSwiftUIWrapper » RCTSwiftUIWrapper-dummy.m
+[RUN_FASTLANE] › Compiling react-native Pods/RCTSwiftUIWrapper » RCTSwiftUIContainerViewWrapper.m
+[RUN_FASTLANE] › Packaging react-native Pods/RCTSwiftUIWrapper » libRCTSwiftUIWrapper.a
+[RUN_FASTLANE] › Executing study-planner-syllabus-ai Pods/ReactCodegen » [CP-User] Generate Specs
+[RUN_FASTLANE] › Compiling @expo/log-box Pods/ExpoLogBox » ExpoLogBox-dummy.m
+[RUN_FASTLANE] › Packaging @expo/log-box Pods/ExpoLogBox » libExpoLogBox.a
+[RUN_FASTLANE] › Executing @expo/log-box Pods/ExpoLogBox » Copy generated compatibility header
+[RUN_FASTLANE] › Compiling study-planner-syllabus-ai Pods/ReactCodegen » rnsvg-generated.mm
+[RUN_FASTLANE] › Compiling study-planner-syllabus-ai Pods/ReactCodegen » RCTThirdPartyComponentsProvider.mm
+[RUN_FASTLANE] › Compiling study-planner-syllabus-ai Pods/ReactCodegen » ShadowNodes.cpp
+[RUN_FASTLANE] › Compiling study-planner-syllabus-ai Pods/ReactCodegen » States.cpp
+[RUN_FASTLANE] › Compiling study-planner-syllabus-ai Pods/ReactCodegen » rnasyncstorage-generated.mm
+[RUN_FASTLANE] › Compiling study-planner-syllabus-ai Pods/ReactCodegen » RCTUnstableModulesRequiringMainQueueSetupProvider.mm
+[RUN_FASTLANE] › Compiling study-planner-syllabus-ai Pods/ReactCodegen » RCTModulesConformingToProtocolsProvider.mm
+[RUN_FASTLANE] › Compiling study-planner-syllabus-ai Pods/ReactCodegen » RCTModuleProviders.mm
+[RUN_FASTLANE] › Compiling study-planner-syllabus-ai Pods/ReactCodegen » Props.cpp
+[RUN_FASTLANE] › Compiling study-planner-syllabus-ai Pods/ReactCodegen » EventEmitters.cpp
+[RUN_FASTLANE] › Compiling study-planner-syllabus-ai Pods/ReactCodegen » ComponentDescriptors.cpp
+[RUN_FASTLANE] › Compiling study-planner-syllabus-ai Pods/ReactCodegen » ReactCodegen-dummy.m
+[RUN_FASTLANE] › Compiling study-planner-syllabus-ai Pods/ReactAppDependencyProvider » RCTAppDependencyProvider.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGViewBox.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGUseManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGUse.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGTopAlignedLabel.ios.mm
+[RUN_FASTLANE] › Compiling study-planner-syllabus-ai Pods/ReactAppDependencyProvider » ReactAppDependencyProvider-dummy.m
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGTextProperties.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGTextPathManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGTextPath.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGTextManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGText.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGTSpanManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGTSpan.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGSymbolManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGSymbol.mm
+[RUN_FASTLANE] › Packaging study-planner-syllabus-ai Pods/ReactCodegen » libReactCodegen.a
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGSvgViewModule.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGSvgViewManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGSvgView.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGSolidColorBrush.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGShadowNodes.cpp
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGRenderableModule.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGRenderableManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGRenderUtils.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGRectManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGRect.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGRadialGradientManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGRadialGradient.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGPropHelper.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGPatternManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGPattern.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGPathParser.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGPathMeasure.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGPathManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGPath.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGPainterBrush.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGPainter.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGNodeManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGNode.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGMaskManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGMask.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGMarkerPosition.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGMarkerManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGMarker.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGLinearGradientManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGLinearGradient.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGLineManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGLine.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGLength.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGLayoutableShadowNode.cpp
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGImageState.cpp
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGImageShadowNode.cpp
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGImageManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGImage.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGGroupManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGGroup.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGGlyphContext.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGForeignObjectManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGForeignObject.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFontData.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFilterRegion.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFilterPrimitiveManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFilterPrimitive.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFilterManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFilter.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFeOffsetManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFeOffset.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFeMergeManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFeMerge.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFeGaussianBlurManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFeGaussianBlur.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFeFloodManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFeFlood.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFeCompositeManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFeComposite.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFeColorMatrixManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFeColorMatrix.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFeBlendManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGFeBlend.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGEllipseManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGEllipse.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGDefsManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGDefs.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGCustomFilter.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGConvert.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGContextBrush.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGCompositeXor.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGClipPathManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGClipPath.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGCircleManager.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGCircle.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGBrush.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGBezierElement.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVGArithmeticFilter.mm
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RCTConvert+RNSVG.mm
+[RUN_FASTLANE] › Compiling @react-native-async-storage/async-storage Pods/RNCAsyncStorage » RNCAsyncStorage.mm
+[RUN_FASTLANE] › Compiling expo-iap Pods/openiap » openiap-dummy.m
+[RUN_FASTLANE] › Packaging expo-iap Pods/openiap » libopeniap.a
+[RUN_FASTLANE] › Executing expo-iap Pods/openiap » Copy generated compatibility header
+[RUN_FASTLANE] › Packaging study-planner-syllabus-ai Pods/ReactAppDependencyProvider » libReactAppDependencyProvider.a
+[RUN_FASTLANE] › Compiling @react-native-async-storage/async-storage Pods/RNCAsyncStorage » RNCAsyncStorage-dummy.m
+[RUN_FASTLANE] › Compiling react-native-svg Pods/RNSVG » RNSVG-dummy.m
+[RUN_FASTLANE] › Packaging @react-native-async-storage/async-storage Pods/RNCAsyncStorage » libRNCAsyncStorage.a
+[RUN_FASTLANE] › Packaging react-native-svg Pods/RNSVG » libRNSVG.a
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » WorkletRuntimeFactory.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » WorkletJSCallInvoker.cpp
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » WorkletExecutor.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » SwiftUIVirtualViewObjC.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » SharedRef.cpp
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » SharedObject.cpp
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » SerializableExtractor.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » NativeModule.cpp
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » ExpoViewShadowNode.cpp
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » LazyObject.cpp
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » ExpoViewProps.cpp
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » ExpoViewEventEmitter.cpp
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » ExpoViewComponentDescriptor.cpp
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » ExpoModulesHostObject.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » ExpoFabricViewObjC.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » ExpoBridgeModule.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EventEmitter.cpp
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXWorkletRuntime.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXSharedObjectUtils.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXRuntime.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXReactNativeAdapter.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXReactDelegateWrapper.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXNativeModulesProxy.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXJavaScriptSerializable.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXJSUtils.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXJSIInstaller.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXHostWrapper.mm
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXUtilities.m
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXSingletonModule.m
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXReactNativeUserNotificationCenterProxy.m
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXPermissionsService.m
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXPermissionsMethodsDelegate.m
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXModuleRegistryProvider.m
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXModuleRegistryHolderReactModule.m
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXModuleRegistryAdapter.m
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXModuleRegistry.m
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXImageLoader.m
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXExportedModule.m
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » ExpoModulesCore-dummy.m
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXAppDefines.m
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » EXAppContextFactoryRegistry.m
+[RUN_FASTLANE] › Compiling expo-modules-core Pods/ExpoModulesCore » CoreModuleHelper.m
+[RUN_FASTLANE] › Packaging expo-modules-core Pods/ExpoModulesCore » libExpoModulesCore.a
+[RUN_FASTLANE] › Executing expo-modules-core Pods/ExpoModulesCore » Copy generated compatibility header
+[RUN_FASTLANE] › Compiling expo-store-review Pods/ExpoStoreReview » ExpoStoreReview-dummy.m
+[RUN_FASTLANE] › Compiling expo-keep-awake Pods/ExpoKeepAwake » ExpoKeepAwake-dummy.m
+[RUN_FASTLANE] › Compiling expo-font Pods/ExpoFont » ExpoFont-dummy.m
+[RUN_FASTLANE] › Compiling expo-document-picker Pods/ExpoDocumentPicker » ExpoDocumentPicker-dummy.m
+[RUN_FASTLANE] › Compiling expo-asset Pods/ExpoAsset » ExpoAsset-dummy.m
+[RUN_FASTLANE] › Compiling @expo/dom-webview Pods/ExpoDomWebView » ExpoDomWebView-dummy.m
+[RUN_FASTLANE] › Packaging expo-store-review Pods/ExpoStoreReview » libExpoStoreReview.a
+[RUN_FASTLANE] › Packaging expo-keep-awake Pods/ExpoKeepAwake » libExpoKeepAwake.a
+[RUN_FASTLANE] › Packaging expo-font Pods/ExpoFont » libExpoFont.a
+[RUN_FASTLANE] › Packaging @expo/dom-webview Pods/ExpoDomWebView » libExpoDomWebView.a
+[RUN_FASTLANE] › Packaging expo-document-picker Pods/ExpoDocumentPicker » libExpoDocumentPicker.a
+[RUN_FASTLANE] › Packaging expo-asset Pods/ExpoAsset » libExpoAsset.a
+[RUN_FASTLANE] › Executing expo-constants Pods/EXConstants » [CP-User] Generate app.config for prebuilt Constants.manifest
+[RUN_FASTLANE] › Executing expo-store-review Pods/ExpoStoreReview » Copy generated compatibility header
+[RUN_FASTLANE] › Executing expo-keep-awake Pods/ExpoKeepAwake » Copy generated compatibility header
+[RUN_FASTLANE] › Executing expo-font Pods/ExpoFont » Copy generated compatibility header
+[RUN_FASTLANE] › Executing @expo/dom-webview Pods/ExpoDomWebView » Copy generated compatibility header
+[RUN_FASTLANE] › Executing expo-document-picker Pods/ExpoDocumentPicker » Copy generated compatibility header
+[RUN_FASTLANE] › Executing expo-asset Pods/ExpoAsset » Copy generated compatibility header
+[RUN_FASTLANE] › Compiling expo-application Pods/EXApplication » EXProvisioningProfile.m
+[RUN_FASTLANE] › Compiling expo-application Pods/EXApplication » EXApplication-dummy.m
+[RUN_FASTLANE] › Packaging expo-application Pods/EXApplication » libEXApplication.a
+[RUN_FASTLANE] › Executing expo-application Pods/EXApplication » Copy generated compatibility header
+[RUN_FASTLANE] › Compiling expo-iap Pods/ExpoIap » ExpoIap-dummy.m
+[RUN_FASTLANE] › Packaging expo-iap Pods/ExpoIap » libExpoIap.a
+[RUN_FASTLANE] › Executing expo-iap Pods/ExpoIap » Copy generated compatibility header
+[RUN_FASTLANE] › Compiling expo-constants Pods/EXConstants » EXConstantsInstallationIdProvider.m
+[RUN_FASTLANE] › Compiling expo-constants Pods/EXConstants » EXConstantsService.m
+[RUN_FASTLANE] › Compiling expo-constants Pods/EXConstants » EXConstants-dummy.m
+[RUN_FASTLANE] › Packaging expo-constants Pods/EXConstants » libEXConstants.a
+[RUN_FASTLANE] › Compiling expo-image-picker Pods/ExpoImagePicker » ExpoImagePicker-dummy.m
+[RUN_FASTLANE] › Compiling expo-file-system Pods/ExpoFileSystem » ExpoFileSystem-dummy.m
+[RUN_FASTLANE] › Compiling expo-file-system Pods/ExpoFileSystem » EXSessionTaskDispatcher.m
+[RUN_FASTLANE] › Compiling expo-file-system Pods/ExpoFileSystem » EXTaskHandlersManager.m
+[RUN_FASTLANE] › Compiling expo-file-system Pods/ExpoFileSystem » EXSessionUploadTaskDelegate.m
+[RUN_FASTLANE] › Packaging expo-image-picker Pods/ExpoImagePicker » libExpoImagePicker.a
+[RUN_FASTLANE] › Compiling expo-file-system Pods/ExpoFileSystem » EXSessionTaskDelegate.m
+[RUN_FASTLANE] › Compiling expo-file-system Pods/ExpoFileSystem » NSData+EXFileSystem.m
+[RUN_FASTLANE] › Compiling expo-file-system Pods/ExpoFileSystem » EXSessionResumableDownloadTaskDelegate.m
+[RUN_FASTLANE] › Compiling expo-file-system Pods/ExpoFileSystem » EXSessionHandler.m
+[RUN_FASTLANE] › Compiling expo-file-system Pods/ExpoFileSystem » EXSessionDownloadTaskDelegate.m
+[RUN_FASTLANE] › Compiling expo-file-system Pods/ExpoFileSystem » EXSessionCancelableUploadTaskDelegate.m
+[RUN_FASTLANE] › Executing expo-image-picker Pods/ExpoImagePicker » Copy generated compatibility header
+[RUN_FASTLANE] › Executing expo-constants Pods/EXConstants » Copy generated compatibility header
+[RUN_FASTLANE] › Compiling expo-notifications Pods/ExpoNotifications » ExpoNotifications-dummy.m
+[RUN_FASTLANE] › Packaging expo-notifications Pods/ExpoNotifications » libExpoNotifications.a
+[RUN_FASTLANE] › Executing expo-notifications Pods/ExpoNotifications » Copy generated compatibility header
+[RUN_FASTLANE] › Compiling expo-file-system Pods/ExpoFileSystem » EXFileSystemLocalFileHandler.m
+[RUN_FASTLANE] › Compiling expo-file-system Pods/ExpoFileSystem » EXFileSystemAssetLibraryHandler.m
+[RUN_FASTLANE] › Executing expo-file-system Pods/ExpoFileSystem » Copy generated compatibility header
+[RUN_FASTLANE] › Compiling expo-calendar Pods/ExpoCalendar » ExpoCalendar-dummy.m
+[RUN_FASTLANE] › Packaging expo-calendar Pods/ExpoCalendar » libExpoCalendar.a
+[RUN_FASTLANE] › Executing expo-calendar Pods/ExpoCalendar » Copy generated compatibility header
+[RUN_FASTLANE] › Compiling expo Pods/Expo » ExpoReactNativeFactory.mm
+[RUN_FASTLANE] › Compiling expo Pods/Expo » EXReactRootViewFactory.mm
+[RUN_FASTLANE] › Compiling expo Pods/Expo » Expo-dummy.m
+[RUN_FASTLANE] › Compiling expo Pods/Expo » EXLegacyAppDelegateWrapper.m
+[RUN_FASTLANE] › Compiling expo Pods/Expo » EXAppDefinesLoader.m
+[RUN_FASTLANE] › Compiling expo Pods/Expo » EXAppDelegatesLoader.m
+[RUN_FASTLANE] › Packaging expo Pods/Expo » libExpo.a
+[RUN_FASTLANE] › Executing expo Pods/Expo » Copy generated compatibility header
+[RUN_FASTLANE] › Compiling @expo/ui Pods/ExpoUI » ExpoUITouchHandlerHelper.mm
+[RUN_FASTLANE] › Compiling @expo/ui Pods/ExpoUI » ExpoUI-dummy.m
+[RUN_FASTLANE] › Packaging @expo/ui Pods/ExpoUI » libExpoUI.a
+[RUN_FASTLANE] › Executing @expo/ui Pods/ExpoUI » Copy generated compatibility header
+[RUN_FASTLANE] › Executing expo-widgets Pods/ExpoWidgets » [CP-User] Build ExpoWidgets Bundle
+[RUN_FASTLANE] › Executing expo-widgets Pods/ExpoWidgets » [CP-User] Prepare ExpoWidgets Resources
+[RUN_FASTLANE] › Compiling expo-widgets Pods/ExpoWidgets » ExpoWidgets-dummy.m
+[RUN_FASTLANE] › Packaging expo-widgets Pods/ExpoWidgets » libExpoWidgets.a
+[RUN_FASTLANE] › Executing expo-widgets Pods/ExpoWidgets » Copy generated compatibility header
+[RUN_FASTLANE] › Compiling Pods/Pods-StudyPlannerSyllabusAI » Pods-StudyPlannerSyllabusAI-dummy.m
+[RUN_FASTLANE] › Compiling Pods/Pods-ExpoWidgetsTarget » Pods-ExpoWidgetsTarget-dummy.m
+[RUN_FASTLANE] › Packaging Pods/Pods-ExpoWidgetsTarget » libPods-ExpoWidgetsTarget.a
+[RUN_FASTLANE] › Packaging Pods/Pods-StudyPlannerSyllabusAI » libPods-StudyPlannerSyllabusAI.a
+[RUN_FASTLANE] › Preparing StudyPlannerSyllabusAI/ExpoWidgetsTarget » Info.plist
+[RUN_FASTLANE] › Executing StudyPlannerSyllabusAI/ExpoWidgetsTarget » [CP] Check Pods Manifest.lock
+[RUN_FASTLANE] › Executing StudyPlannerSyllabusAI/ExpoWidgetsTarget » [Expo] Configure project
+[RUN_FASTLANE] › Linking   StudyPlannerSyllabusAI/ExpoWidgetsTarget » ExpoWidgetsTarget
+[RUN_FASTLANE] › Executing StudyPlannerSyllabusAI/ExpoWidgetsTarget » [CP] Copy Pods Resources
+[RUN_FASTLANE] › Generating debug StudyPlannerSyllabusAI/ExpoWidgetsTarget » ExpoWidgetsTarget.appex.dSYM
+[RUN_FASTLANE] › Signing   StudyPlannerSyllabusAI/ExpoWidgetsTarget » ExpoWidgetsTarget.appex
+[RUN_FASTLANE] › Creating  StudyPlannerSyllabusAI/ExpoWidgetsTarget » ExpoWidgetsTarget.appex
+[RUN_FASTLANE] › Executing StudyPlannerSyllabusAI » [CP] Check Pods Manifest.lock
+[RUN_FASTLANE] › Executing StudyPlannerSyllabusAI » [Expo] Configure project
+[RUN_FASTLANE] › Copying   ios/build/Build/Intermediates.noindex/ArchiveIntermediates/StudyPlannerSyllabusAI/InstallationBuildProductsLocation/Applications/StudyPlannerSyllabusAI.app/PrivacyInfo.xcprivacy ➜ ../../../../var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/StudyPlannerSyllabusAI/PrivacyInfo.xcprivacy
+[RUN_FASTLANE] › Copying   ios/StudyPlannerSyllabusAI/Supporting/Expo.plist ➜ ./Expo.plist
+[RUN_FASTLANE] › Compiling StudyPlannerSyllabusAI » SplashScreen.storyboard
+[RUN_FASTLANE] › Compiling StudyPlannerSyllabusAI » StudyPlannerSyllabusAI_vers.c
+[RUN_FASTLANE] › Linking   StudyPlannerSyllabusAI » StudyPlannerSyllabusAI
+[RUN_FASTLANE] › Executing StudyPlannerSyllabusAI » Bundle React Native code and images
+[RUN_FASTLANE]     Bundler cache is empty, rebuilding (this may take a minute)
+[RUN_FASTLANE] › Executing StudyPlannerSyllabusAI » [CP] Copy Pods Resources
+[RUN_FASTLANE]     not stripping binary because it is signed: /var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/build/Build/Intermediates.noindex/ArchiveIntermediates/StudyPlannerSyllabusAI/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/ExpoWidgetsTarget.appex/ExpoWidgetsTarget (in target 'StudyPlannerSyllabusAI' from project 'StudyPlannerSyllabusAI')
+[RUN_FASTLANE] › Preparing StudyPlannerSyllabusAI » Info.plist
+[RUN_FASTLANE] › Executing StudyPlannerSyllabusAI » [CP] Embed Pods Frameworks
+[RUN_FASTLANE] › Generating debug StudyPlannerSyllabusAI » StudyPlannerSyllabusAI.app.dSYM
+[RUN_FASTLANE] › Signing   StudyPlannerSyllabusAI » StudyPlannerSyllabusAI.app
+[RUN_FASTLANE] › Creating  StudyPlannerSyllabusAI » StudyPlannerSyllabusAI.app
+[RUN_FASTLANE] › Archive Succeeded
+[RUN_FASTLANE] Generated plist file with the following values:
+[RUN_FASTLANE] ▸ -----------------------------------------
+[RUN_FASTLANE] ▸ {
+[RUN_FASTLANE] ▸   "method": "app-store",
+[RUN_FASTLANE] ▸   "provisioningProfiles": {
+[RUN_FASTLANE] ▸     "com.mattnewman.studyplanner": "5fc980aa-3a03-482c-a0fe-3992b8d4f177",
+[RUN_FASTLANE] ▸     "com.mattnewman.studyplanner.widgets": "c1691eab-2768-4faa-8e12-5026805b4721"
+[RUN_FASTLANE] ▸   },
+[RUN_FASTLANE] ▸   "signingStyle": "manual"
+[RUN_FASTLANE] ▸ }
+[RUN_FASTLANE] ▸ -----------------------------------------
+[RUN_FASTLANE] $ /usr/bin/xcrun /opt/homebrew/Cellar/fastlane/2.234.0/libexec/gems/fastlane-2.234.0/gym/lib/assets/wrap_xcodebuild/xcbuild-safe.sh -exportArchive -exportOptionsPlist '/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/gym_config20260527-50589-ijnhvb.plist' -archivePath /Users/mattnewman/Library/Developer/Xcode/Archives/2026-05-27/StudyPlannerSyllabusAI\ 2026-05-27\ 12.03.55.xcarchive -exportPath '/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/gym_output20260527-50589-rwltey' OTHER_CODE_SIGN_FLAGS="--keychain /var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-89219b89-a97f-46a4-8d5c-20aecb14b1e9.keychain"
+[RUN_FASTLANE] Compressing 2 dSYM(s)
+[RUN_FASTLANE] $ cd '/Users/mattnewman/Library/Developer/Xcode/Archives/2026-05-27/StudyPlannerSyllabusAI 2026-05-27 12.03.55.xcarchive/dSYMs' && zip -r '/private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/build/StudyPlannerSyllabusAI.app.dSYM.zip' *.dSYM
+[RUN_FASTLANE] ▸   adding: ExpoWidgetsTarget.appex.dSYM/ (stored 0%)
+[RUN_FASTLANE] ▸   adding: ExpoWidgetsTarget.appex.dSYM/Contents/ (stored 0%)
+[RUN_FASTLANE] ▸   adding: ExpoWidgetsTarget.appex.dSYM/Contents/Resources/ (stored 0%)
+[RUN_FASTLANE] ▸   adding: ExpoWidgetsTarget.appex.dSYM/Contents/Resources/Relocations/ (stored 0%)
+[RUN_FASTLANE] ▸   adding: ExpoWidgetsTarget.appex.dSYM/Contents/Resources/Relocations/aarch64/ (stored 0%)
+[RUN_FASTLANE] ▸   adding: ExpoWidgetsTarget.appex.dSYM/Contents/Resources/Relocations/aarch64/ExpoWidgetsTarget.yml (deflated 88%)
+[RUN_FASTLANE] ▸   adding: ExpoWidgetsTarget.appex.dSYM/Contents/Resources/DWARF/ (stored 0%)
+[RUN_FASTLANE] ▸   adding: ExpoWidgetsTarget.appex.dSYM/Contents/Resources/DWARF/ExpoWidgetsTarget (deflated 71%)
+[RUN_FASTLANE] ▸   adding: ExpoWidgetsTarget.appex.dSYM/Contents/Info.plist (deflated 52%)
+[RUN_FASTLANE] ▸   adding: StudyPlannerSyllabusAI.app.dSYM/ (stored 0%)
+[RUN_FASTLANE] ▸   adding: StudyPlannerSyllabusAI.app.dSYM/Contents/ (stored 0%)
+[RUN_FASTLANE] ▸   adding: StudyPlannerSyllabusAI.app.dSYM/Contents/Resources/ (stored 0%)
+[RUN_FASTLANE] ▸   adding: StudyPlannerSyllabusAI.app.dSYM/Contents/Resources/Relocations/ (stored 0%)
+[RUN_FASTLANE] ▸   adding: StudyPlannerSyllabusAI.app.dSYM/Contents/Resources/Relocations/aarch64/ (stored 0%)
+[RUN_FASTLANE] ▸   adding: StudyPlannerSyllabusAI.app.dSYM/Contents/Resources/Relocations/aarch64/StudyPlannerSyllabusAI.yml (deflated 89%)
+[RUN_FASTLANE] ▸   adding: StudyPlannerSyllabusAI.app.dSYM/Contents/Resources/DWARF/ (stored 0%)
+[RUN_FASTLANE] ▸   adding: StudyPlannerSyllabusAI.app.dSYM/Contents/Resources/DWARF/StudyPlannerSyllabusAI (deflated 72%)
+[RUN_FASTLANE] ▸   adding: StudyPlannerSyllabusAI.app.dSYM/Contents/Info.plist (deflated 52%)
+[RUN_FASTLANE]
+[RUN_FASTLANE] Successfully exported and compressed dSYM file
+[RUN_FASTLANE] Successfully exported and signed the ipa file:
+[RUN_FASTLANE] /private/var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/build/StudyPlannerSyllabusAI.ipa
+[CLEAN_UP_CREDENTIALS] Destroying keychain - /var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-89219b89-a97f-46a4-8d5c-20aecb14b1e9.keychain
+[CLEAN_UP_CREDENTIALS] Removing provisioning profile
+[CLEAN_UP_CREDENTIALS] Removing provisioning profile
+[UPLOAD_APPLICATION_ARCHIVE] Application archives:
+[UPLOAD_APPLICATION_ARCHIVE]   - /var/folders/2l/ht_1zc55015319qs57zmhk_c0000gn/T/eas-build-local-nodejs/a7ee4488-70d2-4d9c-9667-bd0197522408/build/ios/build/StudyPlannerSyllabusAI.ipa (14.5 MB)
+[UPLOAD_APPLICATION_ARCHIVE] Uploading application archive...
+[PREPARE_ARTIFACTS] Preparing artifacts
+[PREPARE_ARTIFACTS] Writing artifacts to /Users/mattnewman/work/StudyPlanner/builds/StudyPlanner-1.0.2-b31.ipa
+[SAVE_CACHE] Local builds do not support saving cache.
+
+Build successful
+You can find the build artifacts in /Users/mattnewman/work/StudyPlanner/builds/StudyPlanner-1.0.2-b31.ipa

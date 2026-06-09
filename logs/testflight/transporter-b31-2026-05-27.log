@@ -1,0 +1,111 @@
+Running iTMSTransporter at path '/Applications/Transporter.app/Contents/itms/bin/iTMSTransporter'...
+[2026-05-27 12:34:18 EDT] <main> DEBUG: Setting System property: DataCenters = contentdelivery02.itunes.apple.com,contentdelivery01.itunes.apple.com
+[2026-05-27 12:34:18 EDT] <main> DEBUG: Setting System property: DataCenters.host = contentdelivery02.itunes.apple.com
+[2026-05-27 12:34:18 EDT] <main> DEBUG: Setting System property: DataCenters.setBy = Defaults.properties
+[2026-05-27 12:34:19 EDT] <main>  INFO: Configuring logging...
+[2026-05-27 12:34:19 EDT] <main>  INFO: Logging level set to eXtreme
+[2026-05-27 12:34:20 EDT] <main> DEBUG: SMART-CLIENT: initializing data center locking ops: [authenticateForSession, validateAssets]
+[2026-05-27 12:34:20 EDT] <main> DEBUG: SMART-CLIENT: initializing data centers with: [contentdelivery02.itunes.apple.com, contentdelivery01.itunes.apple.com]
+[2026-05-27 12:34:20 EDT] <main>  INFO: iTMSTransporter : iTunes Store Transporter [4.1.0]
+[2026-05-27 12:34:20 EDT] <main>  INFO: OS identifier: Mac OS X 26.4.1 (aarch64); jvm=21.0.6+7-iTunesOpenJDK-1; jre=21.0.6+7-iTunesOpenJDK-1; arch=arm64
+[2026-05-27 12:34:20 EDT] <main>  INFO: Memory: [JVM] 980M free, 1G total, 2G max [System] (Physical) 164M free, 17G total (Swap) 689M free, 8G total
+[2026-05-27 12:34:20 EDT] <main> DEBUG: SMART-CLIENT: getCurrent(); current data center is null
+[2026-05-27 12:34:20 EDT] <main> DEBUG: SMART-CLIENT: getCurrent(); iterator was null, setting it
+[2026-05-27 12:34:20 EDT] <main> DEBUG: SMART-CLIENT: getCurrent(); setting current data center to: contentdelivery02.itunes.apple.com
+[2026-05-27 12:34:20 EDT] <main>  INFO: Setting transport log file: 89f8cf77-068d-4f4e-87ca-2fd8536d8da015847109164539868661.tx.log
+[2026-05-27 12:34:20 EDT] <main>  INFO: Configuring the Software Uploader...
+[2026-05-27 12:34:20 EDT] <main>  INFO: Performing analysis...
+[2026-05-27 12:34:23 EDT] <main>  INFO: Uploading software analysis file...
+[2026-05-27 12:34:23 EDT] <main>  INFO: Uploading analysis file...
+[2026-05-27 12:34:23 EDT] <main>  INFO: Starting upload for package b017a8ed-6a80-4165-abc2-3a1fffba186f-StudyPlanner-1.0.2-b31.ipa16025554262016537105-swinfo.plist.
+[2026-05-27 12:34:23 EDT] <main>  INFO: Computing total size of files to upload ...
+[2026-05-27 12:34:23 EDT] <main> DBG-X:   adding file for % complete logging: StudyPlanner-1.0.2-b31.ipa16025554262016537105-swinfo.plist , size: 747046
+[2026-05-27 12:34:23 EDT] <main> DEBUG: Setting total size of files for upload to: 747046
+[2026-05-27 12:34:23 EDT] <main>  INFO: Done computing total size of files to upload.
+[2026-05-27 12:34:23 EDT] <checksum-001>  INFO: Starting checksum calculations...
+[2026-05-27 12:34:23 EDT] <main>  INFO: Checksum calculations are complete, elapsed time: 0 d 0h 0m 0s.
+[2026-05-27 12:34:23 EDT] <main>  INFO: Creating reservations for build: b017a8ed-6a80-4165-abc2-3a1fffba186f
+[2026-05-27 12:34:24 EDT] <RLT-001>  INFO: Starting upload for reservation: (72ee1a30-eb4b-4d1b-814d-6b50cb0b03ac) file: (StudyPlanner-1.0.2-b31.ipa16025554262016537105-swinfo.plist/1) attempt: 1 size: 747046
+[2026-05-27 12:34:24 EDT] <RLT-001>  INFO:      File: StudyPlanner-1.0.2-b31.ipa16025554262016537105-swinfo.plist 16384/747046, 2.19% completed
+[2026-05-27 12:34:24 EDT] <RLT-001>  INFO: Package upload progress: 2.19% completed
+[2026-05-27 12:34:24 EDT] <RLT-001>  INFO:      File: StudyPlanner-1.0.2-b31.ipa16025554262016537105-swinfo.plist 747046/747046, 100.00% completed
+[2026-05-27 12:34:24 EDT] <RLT-001>  INFO: Package upload progress: 100.00% completed
+[2026-05-27 12:34:24 EDT] <RLT-001>  INFO: Finished part upload for: (StudyPlanner-1.0.2-b31.ipa16025554262016537105-swinfo.plist/1) 1.356 MB/s in 0.551 secs
+[2026-05-27 12:34:24 EDT] <web-svc>  INFO: Getting reservations for: [72ee1a30-eb4b-4d1b-814d-6b50cb0b03ac]
+[2026-05-27 12:34:25 EDT] <web-svc>  INFO: Committing reservation for build: b017a8ed-6a80-4165-abc2-3a1fffba186f / StudyPlanner-1.0.2-b31.ipa16025554262016537105-swinfo.plist / 72ee1a30-eb4b-4d1b-814d-6b50cb0b03ac
+[2026-05-27 12:34:52 EDT] <RLT-001>  INFO: Finished upload for reservation: (72ee1a30-eb4b-4d1b-814d-6b50cb0b03ac) file: (StudyPlanner-1.0.2-b31.ipa16025554262016537105-swinfo.plist)
+[2026-05-27 12:34:52 EDT] <main>  INFO: Transfer Metrics Summary:
+[2026-05-27 12:34:52 EDT] <main>  INFO:     bytes transmitted: 747046
+[2026-05-27 12:34:52 EDT] <main>  INFO:     StudyPlanner-1.0.2-b31.ipa16025554262016537105-swinfo.plist transfer metrics:
+[2026-05-27 12:34:52 EDT] <main>  INFO:         bytes transmitted: 747046
+[2026-05-27 12:34:53 EDT] <main>  INFO: Starting upload for package b017a8ed-6a80-4165-abc2-3a1fffba186f-StudyPlanner-1.0.2-b31.ipa.
+[2026-05-27 12:34:53 EDT] <main>  INFO: Computing total size of files to upload ...
+[2026-05-27 12:34:53 EDT] <main> DBG-X:   adding file for % complete logging: StudyPlanner-1.0.2-b31.ipa , size: 15219844
+[2026-05-27 12:34:53 EDT] <main> DEBUG: Setting total size of files for upload to: 15219844
+[2026-05-27 12:34:53 EDT] <main>  INFO: Done computing total size of files to upload.
+[2026-05-27 12:34:53 EDT] <checksum-001>  INFO: Starting checksum calculations...
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 3.01% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 6.03% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 9.04% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 12.00% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 15.02% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 18.03% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 21.05% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 24.01% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 27.02% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 30.03% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 33.05% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 36.01% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 39.02% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 42.04% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 45.05% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 48.01% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 51.03% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 54.04% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 57.00% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 60.01% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 63.03% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 66.04% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 69.00% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 72.02% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 75.03% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 78.05% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 81.01% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 84.02% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 87.03% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 90.05% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 93.01% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 96.02% complete.
+[2026-05-27 12:34:53 EDT] <checksum-002>  INFO: Checksum calculations are 99.04% complete.
+[2026-05-27 12:34:53 EDT] <main>  INFO: Checksum calculations are complete, elapsed time: 0 d 0h 0m 0s.
+[2026-05-27 12:34:53 EDT] <main>  INFO: Creating reservations for build: b017a8ed-6a80-4165-abc2-3a1fffba186f
+[2026-05-27 12:34:53 EDT] <RLT-003>  INFO: Starting upload for reservation: (73183baa-0d66-4967-8765-5c8b59cbc753) file: (StudyPlanner-1.0.2-b31.ipa/2) attempt: 1 size: 5242880
+[2026-05-27 12:34:53 EDT] <RLT-002>  INFO: Starting upload for reservation: (73183baa-0d66-4967-8765-5c8b59cbc753) file: (StudyPlanner-1.0.2-b31.ipa/1) attempt: 1 size: 5242880
+[2026-05-27 12:34:53 EDT] <RLT-004>  INFO: Starting upload for reservation: (73183baa-0d66-4967-8765-5c8b59cbc753) file: (StudyPlanner-1.0.2-b31.ipa/3) attempt: 1 size: 4734084
+[2026-05-27 12:34:53 EDT] <RLT-003>  INFO:      File: StudyPlanner-1.0.2-b31.ipa 16384/15219844, 0.11% completed
+[2026-05-27 12:34:53 EDT] <RLT-003>  INFO: Package upload progress: 0.11% completed
+[2026-05-27 12:34:56 EDT] <RLT-004>  INFO: Finished part upload for: (StudyPlanner-1.0.2-b31.ipa/3) 1.702 MB/s in 2.781 secs
+[2026-05-27 12:34:56 EDT] <RLT-002>  INFO:      File: StudyPlanner-1.0.2-b31.ipa 11222148/15219844, 73.73% completed
+[2026-05-27 12:34:56 EDT] <RLT-002>  INFO: Package upload progress: 73.73% completed
+[2026-05-27 12:34:58 EDT] <RLT-003>  INFO:      File: StudyPlanner-1.0.2-b31.ipa 15219844/15219844, 100.00% completed
+[2026-05-27 12:34:58 EDT] <RLT-003>  INFO: Package upload progress: 100.00% completed
+[2026-05-27 12:34:59 EDT] <RLT-003>  INFO: Finished part upload for: (StudyPlanner-1.0.2-b31.ipa/2) 859.207 kB/s in 6.102 secs
+[2026-05-27 12:34:59 EDT] <RLT-002>  INFO: Finished part upload for: (StudyPlanner-1.0.2-b31.ipa/1) 850.013 kB/s in 6.168 secs
+[2026-05-27 12:34:59 EDT] <web-svc>  INFO: Getting reservations for: [73183baa-0d66-4967-8765-5c8b59cbc753]
+[2026-05-27 12:35:00 EDT] <web-svc>  INFO: Committing reservation for build: b017a8ed-6a80-4165-abc2-3a1fffba186f / StudyPlanner-1.0.2-b31.ipa / 73183baa-0d66-4967-8765-5c8b59cbc753
+[2026-05-27 12:35:02 EDT] <RLT-002>  INFO: Finished upload for reservation: (73183baa-0d66-4967-8765-5c8b59cbc753) file: (StudyPlanner-1.0.2-b31.ipa)
+[2026-05-27 12:35:02 EDT] <main>  INFO: Transfer Metrics Summary:
+[2026-05-27 12:35:02 EDT] <main>  INFO:     bytes transmitted: 15219844
+[2026-05-27 12:35:02 EDT] <main>  INFO:     StudyPlanner-1.0.2-b31.ipa transfer metrics:
+[2026-05-27 12:35:02 EDT] <main>  INFO:         bytes transmitted: 15219844
+
+
+
+Package Summary:
+
+1 package was uploaded successfully:
+	/Users/mattnewman/work/StudyPlanner/builds/StudyPlanner-1.0.2-b31.ipa
+
+The successful package(s) throughput information is:
+	/Users/mattnewman/work/StudyPlanner/builds/StudyPlanner-1.0.2-b31.ipa			0 seconds, 0 bytes, 0 bytes/sec
+[2026-05-27 12:35:02 EDT] <main> DBG-X: Returning 0

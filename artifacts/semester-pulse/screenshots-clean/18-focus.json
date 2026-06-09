@@ -1,0 +1,25 @@
+{
+  "locale": "runtime",
+  "device": "786C707C-00A0-4B96-B32D-1DDBC0ADD15A",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "focus",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "focus"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/semester-pulse/screenshots-clean/18-focus.png",
+  "bytes": 395364,
+  "sha256": "24d7d25eb23f391889d68ab33c9f0f11ba63cee4dd2e0260d5bd77c096b90d26",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "c60d293",
+  "timestamp": "2026-06-01T22:34:04.729Z"
+}

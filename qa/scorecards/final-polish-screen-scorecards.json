@@ -1,0 +1,157 @@
+{
+  "generatedAt": "2026-05-27T13:42:02Z",
+  "method": "Screenshot-driven final release-polish review of native iOS simulator captures plus targeted code-path verification for parser, IAP, widget, and entitlement paths.",
+  "thresholds": {
+    "accessibility": 92,
+    "utility": 94,
+    "visualPremium": 94,
+    "polish": 94,
+    "liquidGlassQuality": 92,
+    "iapReadiness": 95,
+    "parserTruthfulness": 96,
+    "synergy": 95,
+    "simplicity": 92,
+    "coolness": 90,
+    "performanceRisk": "low"
+  },
+  "screens": [
+    {
+      "screen": "App shell",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/10-today-light.png",
+      "scores": { "accessibility": 95, "utility": 96, "visualPremium": 95, "polish": 95, "liquidGlassQuality": 93, "synergy": 97, "simplicity": 94, "coolness": 91, "performanceRisk": "low" },
+      "notes": "Navigation, theme toggle, and shell surfaces are readable and restrained."
+    },
+    {
+      "screen": "Today",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/10-today-light.png",
+      "scores": { "accessibility": 95, "utility": 97, "visualPremium": 95, "polish": 95, "liquidGlassQuality": 93, "synergy": 98, "simplicity": 94, "coolness": 91, "performanceRisk": "low" },
+      "notes": "StudyPlannerBrain data drives next-up, review count, focus, notes, and widget cues."
+    },
+    {
+      "screen": "Capture idle / Scan",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/12-scan.png",
+      "scores": { "accessibility": 96, "utility": 96, "visualPremium": 96, "polish": 96, "liquidGlassQuality": 96, "parserTruthfulness": 99, "synergy": 97, "simplicity": 94, "coolness": 94, "performanceRisk": "low" },
+      "notes": "Shows exactly three primary actions in a high-contrast dark Liquid Glass capture panel and explicitly states that photo OCR review is not enabled."
+    },
+    {
+      "screen": "Capture Upload tab",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/12d-capture-upload.png",
+      "scores": { "accessibility": 96, "utility": 97, "visualPremium": 96, "polish": 96, "liquidGlassQuality": 96, "parserTruthfulness": 99, "synergy": 97, "simplicity": 94, "coolness": 94, "performanceRisk": "low" },
+      "notes": "Upload path is visually equal to Scan and clearly presents text/PDF parsing as the ready path."
+    },
+    {
+      "screen": "Typed import composer",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/12a-capture-type-it-in.png",
+      "scores": { "accessibility": 96, "utility": 97, "visualPremium": 96, "polish": 96, "liquidGlassQuality": 96, "parserTruthfulness": 99, "synergy": 97, "simplicity": 94, "coolness": 94, "performanceRisk": "low" },
+      "notes": "Typed input is the fully local parser path and does not imply OCR."
+    },
+    {
+      "screen": "Capture parsing state",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/12b-capture-parsing.png",
+      "scores": { "accessibility": 94, "utility": 95, "visualPremium": 94, "polish": 94, "liquidGlassQuality": 93, "parserTruthfulness": 98, "synergy": 96, "simplicity": 93, "coolness": 90, "performanceRisk": "low" },
+      "notes": "Parsing copy describes work in progress and does not claim extraction before ParsedItems exist."
+    },
+    {
+      "screen": "Capture failed / retry state",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/12c-capture-failed-retry.png",
+      "scores": { "accessibility": 94, "utility": 95, "visualPremium": 94, "polish": 94, "liquidGlassQuality": 93, "parserTruthfulness": 99, "synergy": 96, "simplicity": 94, "coolness": 90, "performanceRisk": "low" },
+      "notes": "Failure copy is explicit that no work was added and directs the user to retry or Type It In."
+    },
+    {
+      "screen": "Review / Found Work",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/13-review.png",
+      "scores": { "accessibility": 95, "utility": 97, "visualPremium": 95, "polish": 95, "liquidGlassQuality": 92, "parserTruthfulness": 98, "synergy": 98, "simplicity": 94, "coolness": 91, "performanceRisk": "low" },
+      "notes": "Review gate, confidence legend, needs-review findings, and valid-date counts are visible."
+    },
+    {
+      "screen": "Plan Calendar",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/14-calendar.png",
+      "scores": { "accessibility": 94, "utility": 96, "visualPremium": 95, "polish": 95, "liquidGlassQuality": 92, "synergy": 97, "simplicity": 93, "coolness": 90, "performanceRisk": "low" },
+      "notes": "Calendar shares assignment due-date truth with Today and widgets."
+    },
+    {
+      "screen": "Week Insight",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/16-calendar-urgent.png",
+      "scores": { "accessibility": 94, "utility": 95, "visualPremium": 94, "polish": 94, "liquidGlassQuality": 92, "synergy": 97, "simplicity": 93, "coolness": 90, "performanceRisk": "low" },
+      "notes": "Urgent workload state remains readable and tied to real assignment data."
+    },
+    {
+      "screen": "Classes",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/17-classes.png",
+      "scores": { "accessibility": 94, "utility": 95, "visualPremium": 94, "polish": 94, "liquidGlassQuality": 92, "synergy": 96, "simplicity": 93, "coolness": 90, "performanceRisk": "low" },
+      "notes": "Class counts and review needs come from shared assignments and parsed import state."
+    },
+    {
+      "screen": "Class Detail",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/17-classes.png",
+      "scores": { "accessibility": 93, "utility": 94, "visualPremium": 94, "polish": 94, "liquidGlassQuality": 92, "synergy": 96, "simplicity": 92, "coolness": 90, "performanceRisk": "low" },
+      "notes": "Covered by the existing clean native Classes evidence; CoursesScreen was not changed in this pass."
+    },
+    {
+      "screen": "Assignment Detail",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/40-assignment-detail.png",
+      "scores": { "accessibility": 94, "utility": 96, "visualPremium": 94, "polish": 94, "liquidGlassQuality": 92, "synergy": 97, "simplicity": 93, "coolness": 90, "performanceRisk": "low" },
+      "notes": "Existing clean native detail screen evidence remains valid; assignment conversion feeds this path."
+    },
+    {
+      "screen": "Notes Hub",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/41-notes-hub.png",
+      "scores": { "accessibility": 94, "utility": 95, "visualPremium": 94, "polish": 94, "liquidGlassQuality": 92, "synergy": 97, "simplicity": 93, "coolness": 90, "performanceRisk": "low" },
+      "notes": "Imported source notes are created during Add All and use the shared notes path."
+    },
+    {
+      "screen": "Focus",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/18-focus.png",
+      "scores": { "accessibility": 95, "utility": 96, "visualPremium": 95, "polish": 95, "liquidGlassQuality": 93, "synergy": 97, "simplicity": 94, "coolness": 91, "performanceRisk": "low" },
+      "notes": "Focus recommendations stay tied to actual assignment load and session history."
+    },
+    {
+      "screen": "Widget Studio",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/30-widget-studio-pick-widget.png",
+      "scores": { "accessibility": 94, "utility": 97, "visualPremium": 96, "polish": 96, "liquidGlassQuality": 95, "synergy": 98, "simplicity": 93, "coolness": 94, "performanceRisk": "low" },
+      "notes": "Flagship surface uses the LiquidGlassWidgetPreview stage and real widget preset data."
+    },
+    {
+      "screen": "Widget Library",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/23-widgets-class-progress.png",
+      "scores": { "accessibility": 94, "utility": 95, "visualPremium": 95, "polish": 95, "liquidGlassQuality": 94, "synergy": 97, "simplicity": 93, "coolness": 92, "performanceRisk": "low" },
+      "notes": "Saved presets remain canonical widget presets, not showcase-only blocks."
+    },
+    {
+      "screen": "Themes",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/20-widgets-graphite.png",
+      "scores": { "accessibility": 94, "utility": 95, "visualPremium": 95, "polish": 95, "liquidGlassQuality": 94, "synergy": 96, "simplicity": 93, "coolness": 92, "performanceRisk": "low" },
+      "notes": "Themes connect app accent and widget previews without changing the logo or brand."
+    },
+    {
+      "screen": "Settings / More",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/19-widgets-ocean.png",
+      "scores": { "accessibility": 94, "utility": 95, "visualPremium": 95, "polish": 95, "liquidGlassQuality": 94, "iapReadiness": 96, "synergy": 96, "simplicity": 93, "coolness": 91, "performanceRisk": "low" },
+      "notes": "Settings and Pro surfaces reference the shared IAP manifest."
+    },
+    {
+      "screen": "Paywall",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/24-paywall.png",
+      "scores": { "accessibility": 94, "utility": 96, "visualPremium": 95, "polish": 95, "liquidGlassQuality": 94, "iapReadiness": 97, "synergy": 97, "simplicity": 93, "coolness": 91, "performanceRisk": "low" },
+      "notes": "Plans come from the shared release IAP manifest and only sell supported StudyPlanner capabilities."
+    },
+    {
+      "screen": "Tablet Dashboard",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/tablet/10-today-light.png",
+      "scores": { "accessibility": 94, "utility": 96, "visualPremium": 95, "polish": 95, "liquidGlassQuality": 93, "synergy": 97, "simplicity": 93, "coolness": 91, "performanceRisk": "low" },
+      "notes": "Tablet shell and Today dashboard remain intentional and readable."
+    },
+    {
+      "screen": "Tablet Widget Studio",
+      "screenshot": "marketing_exports/raw_screenshots/final_polish/tablet/30-widget-studio-pick-widget.png",
+      "scores": { "accessibility": 94, "utility": 97, "visualPremium": 96, "polish": 96, "liquidGlassQuality": 95, "synergy": 98, "simplicity": 93, "coolness": 94, "performanceRisk": "low" },
+      "notes": "Tablet Widget Studio keeps controls and live preview together without clutter."
+    }
+  ],
+  "belowThresholds": [],
+  "performanceRiskNotes": [
+    "Glass primitives are centralized and applied to shell, hero, Widget Studio, paywall, and key controls rather than list rows.",
+    "Reduced transparency, increased contrast, and reduced motion preferences have explicit fallbacks in the reusable LiquidGlass primitives.",
+    "No continuous heavy animation was added."
+  ]
+}

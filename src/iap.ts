@@ -137,7 +137,7 @@ function mapProduct(product: ProductSubscription): PaywallPlan {
     id: product.id,
     title: product.displayName || product.title || (yearly ? "StudyPlanner Yearly" : "StudyPlanner Monthly"),
     description: product.description || (yearly ? "Full access for the school year." : "Full access month to month."),
-    displayPrice: product.displayPrice || "Shown by App Store",
+    displayPrice: product.displayPrice || `Shown by ${STORE_NAME}`,
     cadence: yearly ? "Yearly" : "Monthly",
     recommended: yearly,
   };

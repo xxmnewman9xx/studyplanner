@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="944" height="2048" viewBox="0 0 944 2048">
+  <rect width="944" height="2048" fill="#F6F7FA"/>
+  <text x="72" y="190" font-family="Arial" font-size="76" font-weight="900" fill="#05070B">Widgets</text>
+  <text x="72" y="250" font-family="Arial" font-size="34" font-weight="800" fill="#6B7280">Home Screen broadcast</text>
+  <rect x="72" y="360" width="800" height="420" rx="52" fill="#111827"/>
+  <text x="118" y="440" font-family="Arial" font-size="28" font-weight="900" fill="#AAB2C0">SEMESTER PULSE</text>
+  <text x="118" y="560" font-family="Arial" font-size="118" font-weight="950" fill="#FFFFFF">49</text>
+  <rect x="308" y="482" width="170" height="72" rx="36" fill="#5B2523"/>
+  <text x="338" y="531" font-family="Arial" font-size="32" font-weight="900" fill="#FFFFFF">At Risk</text>
+  <text x="640" y="442" font-family="Arial" font-size="32" font-weight="900" fill="#D1D5DB">-2 this week</text>
+  <text x="118" y="646" font-family="Arial" font-size="34" font-weight="850" fill="#F3F4F6">2 imported items need review.</text>
+  <g transform="translate(118 704)">
+    <circle cx="0" cy="0" r="16" fill="#7F2D2B"/>
+    <circle cx="112" cy="0" r="16" fill="#7F2D2B"/>
+    <circle cx="224" cy="0" r="16" fill="#7F2D2B"/>
+    <rect x="336" y="-44" width="32" height="88" rx="16" fill="#FF3B30"/>
+    <circle cx="480" cy="0" r="16" fill="#7F2D2B"/>
+    <rect x="592" y="-44" width="32" height="88" rx="16" fill="#FF3B30"/>
+  </g>
+  <rect x="118" y="736" width="690" height="76" rx="38" fill="#374151"/>
+  <text x="152" y="786" font-family="Arial" font-size="34" font-weight="900" fill="#FFFFFF">Review imported dates.</text>
+  <rect x="72" y="900" width="800" height="250" rx="42" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <text x="118" y="980" font-family="Arial" font-size="30" font-weight="900" fill="#6B7280">Recommended widgets</text>
+  <text x="118" y="1050" font-family="Arial" font-size="46" font-weight="950" fill="#05070B">Semester Pulse</text>
+  <text x="118" y="1106" font-family="Arial" font-size="28" font-weight="800" fill="#6B7280">Data: reviewed syllabus, workload, focus, exams</text>
+</svg>

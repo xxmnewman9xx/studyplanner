@@ -1,0 +1,114 @@
+{
+  "generatedAt": "2026-05-27T07:42:00-04:00",
+  "repo": "/Users/mattnewman/work/StudyPlanner",
+  "source": {
+    "command": "npx --no-install gitnexus detect-changes --repo studyplanner --scope compare --base-ref 4bda59b^",
+    "baseRef": "4bda59b^",
+    "headRef": "main",
+    "purpose": "Post-revamp release stabilization blast-radius audit for commit 4bda59b and follow-up hardening."
+  },
+  "overall": {
+    "risk": "critical",
+    "changedFiles": 15,
+    "changedSymbols": 121,
+    "affectedProcesses": 78,
+    "note": "Previous user-reported final detect-changes showed 107 affected flows. Current compare after re-analysis groups the same revamp surface into 78 affected processes."
+  },
+  "highestRiskFlows": [
+    {
+      "flow": "SaveWidgetPreset -> WidgetKindForType",
+      "affectedFiles": ["src/logic/planner.ts", "src/widgets/widgetPresets.ts", "App.tsx", "src/screens/MoreScreen.tsx"],
+      "featureArea": "Widget Studio / native widget presets",
+      "riskLevel": "critical",
+      "coverageAvailable": ["npm run test:planner", "npm run test:widgets", "npm run test:widget-integrity", "npm run check:scenarios"],
+      "missingCoverage": "Clean native screenshot set remains blocked; Widget Studio native handoff is validated through web/screenshots and native build launch only.",
+      "actionTaken": "Added StudyPlannerBrain preset save/load/reset fixture and golden scenario sp-brain-core-loop-truth."
+    },
+    {
+      "flow": "SaveWidgetPreset -> WidgetThemeChoiceFromPreset",
+      "affectedFiles": ["src/widgets/widgetThemes.ts", "src/widgets/widgetPresets.ts", "src/screens/MoreScreen.tsx"],
+      "featureArea": "Widget Studio / themes",
+      "riskLevel": "high",
+      "coverageAvailable": ["npm run test:planner", "npm run test:widgets", "npm run test:widget-integrity"],
+      "missingCoverage": "Native screenshots of theme variations are not cleanly captured.",
+      "actionTaken": "Regression fixture now asserts applyTheme and widget preset metadata persistence."
+    },
+    {
+      "flow": "TodayRelevant -> IsValidDateInput",
+      "affectedFiles": ["src/logic/planner.ts", "src/screens/TodayScreen.tsx"],
+      "featureArea": "Today / date trust",
+      "riskLevel": "critical",
+      "coverageAvailable": ["npm run test:planner"],
+      "missingCoverage": "No device-level RTL/large-text capture in this pass.",
+      "actionTaken": "Existing planner trust checks cover impossible dates/times; new Brain fixture covers missing-date parsed review work."
+    },
+    {
+      "flow": "TodayRelevant -> IsValidTimeInput",
+      "affectedFiles": ["src/logic/planner.ts", "src/screens/TodayScreen.tsx"],
+      "featureArea": "Today / deadline trust",
+      "riskLevel": "critical",
+      "coverageAvailable": ["npm run test:planner"],
+      "missingCoverage": "No native screenshot for invalid-time state.",
+      "actionTaken": "Planner trust fixture asserts invalid deadlines stay out of calendar/upcoming and stay visible in Needs Review."
+    },
+    {
+      "flow": "MoreScreen -> IsSupportedLocale",
+      "affectedFiles": ["src/screens/MoreScreen.tsx", "src/i18n.ts"],
+      "featureArea": "Settings / localization",
+      "riskLevel": "high",
+      "coverageAvailable": ["npm run check:localization", "npm run typecheck"],
+      "missingCoverage": "No native RTL screenshot capture.",
+      "actionTaken": "Brain fixture asserts applyLocale updates settings/profile; localization gate retained."
+    },
+    {
+      "flow": "TodayScreen -> IsSupportedLocale",
+      "affectedFiles": ["src/screens/TodayScreen.tsx", "src/i18n.ts"],
+      "featureArea": "Today / localization",
+      "riskLevel": "high",
+      "coverageAvailable": ["npm run check:localization", "npm run typecheck"],
+      "missingCoverage": "No native pseudo-locale screenshot capture.",
+      "actionTaken": "Localization validation remains a release gate."
+    },
+    {
+      "flow": "TodayScreen -> IsActiveAssignment",
+      "affectedFiles": ["src/logic/planner.ts", "src/screens/TodayScreen.tsx"],
+      "featureArea": "Today / assignment state",
+      "riskLevel": "critical",
+      "coverageAvailable": ["npm run test:planner"],
+      "missingCoverage": "No native screenshot of all-complete/all-overdue state in this pass.",
+      "actionTaken": "Brain fixture asserts completion updates status, progress, checklist, and downstream widget data."
+    },
+    {
+      "flow": "TodayScreen -> IsValidDateInput",
+      "affectedFiles": ["src/logic/planner.ts", "src/screens/TodayScreen.tsx"],
+      "featureArea": "Today / review state",
+      "riskLevel": "critical",
+      "coverageAvailable": ["npm run test:planner"],
+      "missingCoverage": "No manual simulator navigation screenshots without prompt overlay.",
+      "actionTaken": "Regression coverage targets invalid/missing deadline paths."
+    },
+    {
+      "flow": "TodayScreen -> IsValidTimeInput",
+      "affectedFiles": ["src/logic/planner.ts", "src/screens/TodayScreen.tsx"],
+      "featureArea": "Today / review state",
+      "riskLevel": "critical",
+      "coverageAvailable": ["npm run test:planner"],
+      "missingCoverage": "No native invalid-time screenshot.",
+      "actionTaken": "Invalid time remains review-visible and non-schedulable in test:planner."
+    },
+    {
+      "flow": "TodayScreen -> IsSameDay",
+      "affectedFiles": ["src/logic/planner.ts", "src/screens/TodayScreen.tsx"],
+      "featureArea": "Today / due-today logic",
+      "riskLevel": "high",
+      "coverageAvailable": ["npm run test:planner", "qa/regression/core-flow-smoke.json"],
+      "missingCoverage": "No native calendar/day screenshot set.",
+      "actionTaken": "Planner trust fixture validates due-today, week-load, and calendar grouping stay on the same date truth."
+    }
+  ],
+  "coverageStrategy": [
+    "Keep release hardening narrow: cover shared Brain selectors/helpers rather than changing every affected screen.",
+    "Use native build validation to prove SDK mismatch is not an app-code blocker.",
+    "Use web fallback screenshots and existing scorecards as visual evidence until clean simulator screenshots are available."
+  ]
+}

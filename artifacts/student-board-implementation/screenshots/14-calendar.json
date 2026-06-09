@@ -1,0 +1,25 @@
+{
+  "locale": "runtime",
+  "device": "StudyPlanner QA Vertical",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "plan",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "plan"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/student-board-implementation/screenshots/14-calendar.png",
+  "bytes": 249222,
+  "sha256": "c074e33895c9417549d1b6b155bb34abf727ea01e6393de2c7dc44cdf128ce81",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "147788e",
+  "timestamp": "2026-05-31T22:34:23.549Z"
+}

@@ -41,6 +41,20 @@ function assert(condition: unknown, message: string) {
   if (!condition) throw new Error(message);
 }
 
+function pdfFixture(lines: string[]) {
+  return `%PDF-1.4
+1 0 obj <<>> stream
+BT
+${lines.map((line) => `(${line}) Tj`).join("\n")}
+ET
+endstream endobj
+%%EOF`;
+}
+
+function countedWords(count: number, start = 1) {
+  return Array.from({ length: count }, (_, index) => `word${start + index}`).join(" ");
+}
+
 const rows = cases.map((item) => {
   const batch = analyzeSyllabus(item.text, defaultData);
   const tasks = batch.candidates.filter((candidate) => candidate.kind === "task" && candidate.title !== "Review imported syllabus");
@@ -74,12 +88,21 @@ const fakePdf = `%PDF-1.4
 1 0 obj <<>> stream
 BT
 (BIO 210 Human Biology) Tj
+(Professor Rivera meets Monday Wednesday Friday in Science Hall 204) Tj
+(Required textbook chapters one through ten are listed in the weekly schedule) Tj
 (Lab Report due September 21) Tj
+(Genetics Problem Set due September 28) Tj
 (Midterm Exam on October 15) Tj
+(Final Exam on December 12 in Science Hall 204) Tj
+(Office hours are Tuesday afternoon and students should ask questions early) Tj
+(Late work loses ten percent each day after the deadline) Tj
 ET
 endstream endobj
 %%EOF`;
 const pdf = extractPdfTextFromBase64(Buffer.from(fakePdf, "latin1").toString("base64"));
+const weakPdf = extractPdfTextFromBase64(Buffer.from("%PDF-1.4\n1 0 obj <<>> stream\nBT\n(Syllabus) Tj\nET\nendstream endobj\n%%EOF", "latin1").toString("base64"));
+const fiftyFourWordPdf = extractPdfTextFromBase64(Buffer.from(pdfFixture([countedWords(14, 1), countedWords(14, 15), countedWords(13, 29), countedWords(13, 42)]), "latin1").toString("base64"));
+const fiftyFiveWordPdf = extractPdfTextFromBase64(Buffer.from(pdfFixture([countedWords(14, 1), countedWords(14, 15), countedWords(14, 29), countedWords(13, 43)]), "latin1").toString("base64"));
 
 const failed = rows.filter((row) => !row.pass);
 const report = [
@@ -95,6 +118,7 @@ const report = [
   "",
   `Words: ${pdf.wordCount}`,
   `Fallback needed: ${pdf.fallbackNeeded}`,
+  `Weak fixture fallback needed: ${weakPdf.fallbackNeeded}`,
   "",
   "## Misses",
   "",
@@ -105,6 +129,9 @@ const report = [
 writeFileSync("BUILD_42_SYLLABUS_STRESS_TEST_REPORT.md", report);
 
 assert(!failed.length, `Syllabus stress failed: ${failed.map((row) => row.name).join(", ")}`);
-assert(pdf.wordCount >= 6 && !pdf.fallbackNeeded, "PDF text fixture should extract enough words");
+assert(pdf.wordCount >= 55 && !pdf.fallbackNeeded, "PDF text fixture should extract enough words");
+assert(weakPdf.fallbackNeeded, "Weak PDF fixture should require camera or paste fallback");
+assert(fiftyFourWordPdf.fallbackNeeded, "54-word PDF fixture should require fallback");
+assert(!fiftyFiveWordPdf.fallbackNeeded, "55-word PDF fixture should import without fallback");
 
 console.log("Syllabus stress checks passed", { cases: rows.length, pdfWords: pdf.wordCount });

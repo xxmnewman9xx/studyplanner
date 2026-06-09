@@ -1,0 +1,10 @@
+BLOCKED
+
+No HTTPS syllabus parser URL was deployed in this pass.
+
+Reason:
+- No checked-in deployment target/config was present for Vercel, Fly, Netlify, Cloudflare Workers, Render, Firebase, or Railway.
+- The only installed backend deploy CLI was Railway, and `railway whoami` failed with `Unauthorized. Please run railway login again.`
+- No local deploy token env vars were present for `VERCEL`, `RAILWAY`, `FLY`, `NETLIFY`, `CLOUDFLARE`, `WRANGLER`, `RENDER`, `SUPABASE`, or `FIREBASE`.
+
+Do not set `EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT` until a real HTTPS route is deployed and smoke-tested.

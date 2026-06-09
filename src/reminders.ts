@@ -78,7 +78,8 @@ export async function scheduleLocalReminders(data: AppData, options: ReminderSch
   try {
     const permission = await permissionState();
     if (!permission.granted) {
-      return { state: "denied", permissionStatus: permission.status, message: "Notifications are off. Turn them on in iPhone Settings to receive reminders." };
+      const settingsName = Platform.OS === "android" ? "Android Settings" : "iPhone Settings";
+      return { state: "denied", permissionStatus: permission.status, message: `Notifications are off. Turn them on in ${settingsName} to receive reminders.` };
     }
 
     const existingIds = data.reminders.flatMap((reminder) => reminder.notificationIds || []);
@@ -155,5 +156,9 @@ export async function scheduleLocalReminders(data: AppData, options: ReminderSch
 
 export async function cancelStoredReminders(data: AppData) {
   const ids = data.reminders.flatMap((reminder) => reminder.notificationIds || []);
+  await Promise.all(ids.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => {})));
+}
+
+export async function cancelReminderNotificationIds(ids: string[] = []) {
   await Promise.all(ids.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => {})));
 }

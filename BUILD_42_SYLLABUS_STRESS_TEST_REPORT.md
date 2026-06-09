@@ -27,8 +27,9 @@ Result: PASS
 
 ## PDF Extraction Fixture
 
-Words: 28
+Words: 72
 Fallback needed: false
+Weak fixture fallback needed: true
 
 ## Misses
 

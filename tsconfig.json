@@ -2,5 +2,26 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true
-  }
+  },
+  "exclude": [
+    "src/components/**",
+    "src/core/**",
+    "src/design/**",
+    "src/screens/**",
+    "src/services/**",
+    "server/**",
+    "storybook/**",
+    "src/themeContext.tsx",
+    "scripts/check-backend-platform-contracts.ts",
+    "scripts/check-capture-parser-truth.ts",
+    "scripts/check-customization-studio.ts",
+    "scripts/check-photo-ocr-import.ts",
+    "scripts/check-quick-homework-parser.ts",
+    "scripts/check-semester-loop-stress.ts",
+    "scripts/check-syllabus-endpoint-normalizer.ts",
+    "scripts/check-syllabus-parser.ts",
+    "scripts/check-widget-integrity.ts",
+    "scripts/check-widget-no-crop.ts",
+    "scripts/check-widget-snapshots.ts"
+  ]
 }

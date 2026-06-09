@@ -1,0 +1,26 @@
+{
+  "locale": "runtime",
+  "device": "StudyPlanner QA Vertical",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "today",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "today",
+    "themeMode": "light"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/student-board-implementation/screenshots/10-today-light.png",
+  "bytes": 275717,
+  "sha256": "65c851eeadca53a8dbcf4386eb8a6d698a8eaa22e0722efb05ff3ccbcd83a7f5",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "147788e",
+  "timestamp": "2026-05-31T22:34:23.549Z"
+}

@@ -1,0 +1,26 @@
+{
+  "locale": "runtime",
+  "device": "786C707C-00A0-4B96-B32D-1DDBC0ADD15A",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "today",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "today",
+    "themeMode": "light"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/semester-pulse/screenshots-clean/10-today-light.png",
+  "bytes": 231207,
+  "sha256": "6110e1044765b3cfc6a86b49d10e9582c2211799d92975479437e72f7fd660e9",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "c60d293",
+  "timestamp": "2026-06-01T22:34:04.729Z"
+}

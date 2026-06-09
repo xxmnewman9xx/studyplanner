@@ -1,0 +1,130 @@
+{
+  "generatedAt": "2026-06-04T10:57:25.658Z",
+  "student": "Alex Kim",
+  "demoData": {
+    "classes": [
+      "Algebra II",
+      "Chemistry",
+      "English Lit",
+      "World History",
+      "Biology",
+      "Studio Art"
+    ],
+    "assignments": [
+      {
+        "title": "Worksheet Ch. 4 Review",
+        "courseId": "algebra",
+        "dueAt": "2026-05-27T11:30:00-04:00",
+        "status": "not_started",
+        "needsReview": false,
+        "duplicateOf": null
+      },
+      {
+        "title": "Lab Report: Titration",
+        "courseId": "chemistry",
+        "dueAt": "2026-05-27T17:00:00-04:00",
+        "status": "not_started",
+        "needsReview": false,
+        "duplicateOf": null
+      },
+      {
+        "title": "Reading Notes Ch. 9-11",
+        "courseId": "english",
+        "dueAt": "2026-05-28T08:30:00-04:00",
+        "status": "not_started",
+        "needsReview": true,
+        "duplicateOf": null
+      },
+      {
+        "title": "Essay Draft",
+        "courseId": "history",
+        "dueAt": "2026-05-26T23:00:00-04:00",
+        "status": "not_started",
+        "needsReview": false,
+        "duplicateOf": null
+      },
+      {
+        "title": "Cell Quiz",
+        "courseId": "biology",
+        "dueAt": "not-a-date",
+        "status": "not_started",
+        "needsReview": true,
+        "duplicateOf": "english-reading"
+      },
+      {
+        "title": "Sketchbook Review",
+        "courseId": "art",
+        "dueAt": "2026-05-29T15:00:00-04:00",
+        "status": "done",
+        "needsReview": false,
+        "duplicateOf": null
+      }
+    ],
+    "states": [
+      "due today",
+      "due tomorrow",
+      "overdue",
+      "needs review",
+      "possible duplicate",
+      "missing date",
+      "completed",
+      "focus active",
+      "all caught up",
+      "busy week",
+      "pinned note"
+    ]
+  },
+  "selectors": [
+    {
+      "widget": "Due Next",
+      "selector": "getWidgetData -> filterWidgetAssignmentsForPreset(next3/next_up) -> getNextUp",
+      "source": "real reviewed assignments sorted by due date",
+      "result": "pass",
+      "hardcodedDisplayText": "empty/demo fallback only"
+    },
+    {
+      "widget": "Today",
+      "selector": "getWidgetData -> getTodayWidgetRows",
+      "source": "overdue and due-today assignments matching Today planner urgency",
+      "result": "pass",
+      "hardcodedDisplayText": "empty/demo fallback only"
+    },
+    {
+      "widget": "Week",
+      "selector": "getWidgetData -> getWeekWidgetRows + weekLoad",
+      "source": "same week window and load summary used by Plan/Week insight",
+      "result": "pass",
+      "hardcodedDisplayText": "empty/demo fallback only"
+    },
+    {
+      "widget": "Class Focus",
+      "selector": "getWidgetData(single_class) + classProgressScopeLabel",
+      "source": "selected class when configured, otherwise All Classes fallback",
+      "result": "pass",
+      "hardcodedDisplayText": "empty/demo fallback only"
+    },
+    {
+      "widget": "Needs Check",
+      "selector": "getWidgetData(needs_check)",
+      "source": "needsReview, duplicate, and missing-date assignments",
+      "result": "pass",
+      "hardcodedDisplayText": "empty/demo fallback only"
+    },
+    {
+      "widget": "Focus",
+      "selector": "getWidgetData(focus) + focusSessions",
+      "source": "active focus session when available, otherwise next recommended assignment",
+      "result": "pass",
+      "hardcodedDisplayText": "empty/demo fallback only"
+    },
+    {
+      "widget": "Pinned Note",
+      "selector": "StudyNote.pinned",
+      "source": "real pinned note exists in demo data but no shipped widget kind",
+      "result": "partial",
+      "hardcodedDisplayText": "empty/demo fallback only"
+    }
+  ],
+  "nativeSync": "syncStudyPlannerWidgets persists buildStudyPlannerWidgetSnapshots output into shared native widget state.",
+  "previewSync": "WidgetPreviewCard consumes the same getWidgetData/buildStudyPlannerWidgetSnapshots output and the same WidgetLayoutEngine budgets."
+}

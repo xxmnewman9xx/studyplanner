@@ -24,6 +24,7 @@
   "devDependencies": {
     "@types/node": "^25.9.1",
     "@types/react": "~19.2.2",
+    "babel-preset-expo": "^56.0.14",
     "tsx": "^4.22.4",
     "typescript": "~6.0.3"
   },
@@ -32,7 +33,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "node --stack_size=8192 ./node_modules/typescript/bin/tsc --noEmit",
     "test:intelligence": "tsx scripts/check-intelligence-core.ts",
     "test:semester": "tsx scripts/check-semester-snapshot.ts",
     "test:narrative": "tsx scripts/check-semester-narrative.ts",
@@ -44,6 +45,8 @@
     "test:widgets": "node scripts/check-widget-lock.mjs",
     "test:widget-integrity": "node scripts/check-widget-integrity.mjs",
     "check:iap": "node scripts/check-iap-config.mjs",
+    "check:android-release": "node scripts/check-android-release.mjs",
+    "android:screenshots": "node scripts/capture-android-screenshots.mjs",
     "check:build41": "node scripts/check-build41-hardening.mjs",
     "check:build42": "node scripts/check-build42-living-semester.mjs",
     "check:build42-6": "tsx scripts/check-build42-6-trust-gauntlet.ts",
@@ -55,7 +58,11 @@
     "check:build48": "tsx scripts/check-build48-rescue.ts",
     "check:build49": "tsx scripts/check-build49.ts",
     "check:build51": "node scripts/check-build51.mjs",
-    "check:build52": "node scripts/check-build52.mjs"
+    "check:build52": "node scripts/check-build52.mjs",
+    "check:installed-build52": "node scripts/check-installed-build52.mjs",
+    "check:activation-spine": "tsx scripts/check-activation-spine.ts",
+    "check:localization": "node scripts/check-localization.mjs",
+    "qa:release": "npm run check:activation-spine && npm run check:build52"
   },
   "private": true
 }

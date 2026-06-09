@@ -1,0 +1,257 @@
+{
+  "generatedAt": "2026-05-27T12:02:07.752Z",
+  "gitCommit": "bb527b48c2b79550596b5685d499f10ead5a79c9",
+  "method": "Clean native iOS simulator screenshots from dedicated simulators using direct native app install/launch. Scores apply only to clean native screenshots in marketing_exports/raw_screenshots/native_clean.",
+  "thresholds": {
+    "accessibility": 90,
+    "utility": 92,
+    "visualPremium": 92,
+    "polish": 92,
+    "synergy": 95,
+    "simplicity": 90,
+    "coolness": 88
+  },
+  "screens": [
+    {
+      "screen": "Today",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/10-today-light.png",
+      "scores": {
+        "accessibility": 94,
+        "utility": 95,
+        "visualPremium": 94,
+        "polish": 94,
+        "synergy": 98,
+        "simplicity": 93,
+        "coolness": 91
+      },
+      "passedThresholds": true,
+      "notes": "StudyPlanner Today UI visible with logo; no overlays or alerts."
+    },
+    {
+      "screen": "Capture / Scan",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/12-scan.png",
+      "scores": {
+        "accessibility": 93,
+        "utility": 94,
+        "visualPremium": 93,
+        "polish": 93,
+        "synergy": 96,
+        "simplicity": 94,
+        "coolness": 90
+      },
+      "passedThresholds": true,
+      "notes": "Scan/import surface visible; no Expo Go, dev launcher, Safari, URL prompt, or alert."
+    },
+    {
+      "screen": "Review / Found Work",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/13-review.png",
+      "scores": {
+        "accessibility": 93,
+        "utility": 95,
+        "visualPremium": 93,
+        "polish": 93,
+        "synergy": 97,
+        "simplicity": 92,
+        "coolness": 89
+      },
+      "passedThresholds": true,
+      "notes": "Review work surface visible with found-work validation; clean native app frame only."
+    },
+    {
+      "screen": "Plan Calendar",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/14-calendar.png",
+      "scores": {
+        "accessibility": 92,
+        "utility": 94,
+        "visualPremium": 92,
+        "polish": 93,
+        "synergy": 96,
+        "simplicity": 91,
+        "coolness": 88
+      },
+      "passedThresholds": true,
+      "notes": "Calendar route visible; no blocking native alert or overlay."
+    },
+    {
+      "screen": "Week Insight",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/42-week-insight.png",
+      "scores": {
+        "accessibility": 92,
+        "utility": 94,
+        "visualPremium": 92,
+        "polish": 93,
+        "synergy": 96,
+        "simplicity": 91,
+        "coolness": 88
+      },
+      "passedThresholds": true,
+      "notes": "Week/survival-plan section visible after deterministic route scroll; clean native app UI."
+    },
+    {
+      "screen": "Classes",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/17-classes.png",
+      "scores": {
+        "accessibility": 92,
+        "utility": 94,
+        "visualPremium": 92,
+        "polish": 93,
+        "synergy": 96,
+        "simplicity": 92,
+        "coolness": 89
+      },
+      "passedThresholds": true,
+      "notes": "Classes route visible; no launcher or handoff overlay."
+    },
+    {
+      "screen": "Assignment Detail",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/40-assignment-detail.png",
+      "scores": {
+        "accessibility": 92,
+        "utility": 95,
+        "visualPremium": 93,
+        "polish": 93,
+        "synergy": 97,
+        "simplicity": 92,
+        "coolness": 89
+      },
+      "passedThresholds": true,
+      "notes": "Assignment detail opened through native UI interaction; clean app state, no overlay."
+    },
+    {
+      "screen": "Notes Hub",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/41-notes-hub.png",
+      "scores": {
+        "accessibility": 92,
+        "utility": 94,
+        "visualPremium": 93,
+        "polish": 93,
+        "synergy": 97,
+        "simplicity": 92,
+        "coolness": 89
+      },
+      "passedThresholds": true,
+      "notes": "Notes hub visible; no prompt, dev menu, or loading-only state."
+    },
+    {
+      "screen": "Focus",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/18-focus.png",
+      "scores": {
+        "accessibility": 93,
+        "utility": 95,
+        "visualPremium": 94,
+        "polish": 94,
+        "synergy": 97,
+        "simplicity": 94,
+        "coolness": 90
+      },
+      "passedThresholds": true,
+      "notes": "Focus route visible; no runtime error or simulator alert."
+    },
+    {
+      "screen": "Widget Studio",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/19-widgets-ocean.png",
+      "scores": {
+        "accessibility": 92,
+        "utility": 96,
+        "visualPremium": 94,
+        "polish": 94,
+        "synergy": 98,
+        "simplicity": 91,
+        "coolness": 94
+      },
+      "passedThresholds": true,
+      "notes": "Widget Studio visible with native widget sync status; clean app UI."
+    },
+    {
+      "screen": "Widget Library",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/43-widget-library-lower.png",
+      "scores": {
+        "accessibility": 92,
+        "utility": 94,
+        "visualPremium": 93,
+        "polish": 93,
+        "synergy": 97,
+        "simplicity": 91,
+        "coolness": 92
+      },
+      "passedThresholds": true,
+      "notes": "Widget template/library cards and saved preset area visible; clean native app UI."
+    },
+    {
+      "screen": "Themes",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/46-themes.png",
+      "scores": {
+        "accessibility": 91,
+        "utility": 93,
+        "visualPremium": 93,
+        "polish": 93,
+        "synergy": 96,
+        "simplicity": 91,
+        "coolness": 91
+      },
+      "passedThresholds": true,
+      "notes": "App appearance and theme cards visible after native scroll; no overlays."
+    },
+    {
+      "screen": "Settings / More",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/45-settings-more.png",
+      "scores": {
+        "accessibility": 92,
+        "utility": 93,
+        "visualPremium": 93,
+        "polish": 92,
+        "synergy": 96,
+        "simplicity": 92,
+        "coolness": 89
+      },
+      "passedThresholds": true,
+      "notes": "Settings and trust controls visible after native scroll; no overlays."
+    },
+    {
+      "screen": "Paywall",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/24-paywall.png",
+      "scores": {
+        "accessibility": 91,
+        "utility": 92,
+        "visualPremium": 93,
+        "polish": 92,
+        "synergy": 95,
+        "simplicity": 91,
+        "coolness": 88
+      },
+      "passedThresholds": true,
+      "notes": "Native paywall visible; no store sheet, Expo Go, dev launcher, or browser handoff."
+    },
+    {
+      "screen": "Tablet Layout / Dashboard",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/50-tablet-today.png",
+      "scores": {
+        "accessibility": 93,
+        "utility": 94,
+        "visualPremium": 93,
+        "polish": 93,
+        "synergy": 96,
+        "simplicity": 92,
+        "coolness": 90
+      },
+      "passedThresholds": true,
+      "notes": "Tablet sidebar and Today dashboard visible on dedicated iPad simulator; clean native app UI."
+    },
+    {
+      "screen": "Tablet Layout / Widget Studio",
+      "screenshot": "marketing_exports/raw_screenshots/native_clean/51-tablet-widget-studio.png",
+      "scores": {
+        "accessibility": 92,
+        "utility": 96,
+        "visualPremium": 94,
+        "polish": 94,
+        "synergy": 98,
+        "simplicity": 91,
+        "coolness": 94
+      },
+      "passedThresholds": true,
+      "notes": "Tablet widget studio visible on dedicated iPad simulator; clean native app UI."
+    }
+  ],
+  "belowThresholds": []
+}

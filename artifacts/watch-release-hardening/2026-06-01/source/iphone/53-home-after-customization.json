@@ -1,0 +1,31 @@
+{
+  "locale": "runtime",
+  "device": "77573299-A148-49D7-95B6-DB5855B9305A",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "today",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "today",
+    "themeMode": "light",
+    "classColor": "#8B3DFF",
+    "secondaryAccent": "#EC4899",
+    "focusColor": "#22C55E",
+    "riskColor": "#FF5A1F",
+    "widgetCustomColor": "#EC4899"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/watch-release-hardening/2026-06-01/source/iphone/53-home-after-customization.png",
+  "bytes": 256062,
+  "sha256": "f67ee94058c5ccf0525d9d8ad29ad6c112b4517dd29d10aa2c096e0d2ce0d25c",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "226c8e9",
+  "timestamp": "2026-06-01T18:57:09.198Z"
+}

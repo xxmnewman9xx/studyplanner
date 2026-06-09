@@ -1,0 +1,211 @@
+[
+  {
+    "id": "sp-hard-paywall-after-onboarding",
+    "app": "StudyPlanner",
+    "persona": "new student deciding whether to pay",
+    "risk": "conversion",
+    "state": "fresh install, normal mode, onboarding complete, not subscribed",
+    "trigger": "enters app",
+    "expected": [
+      "onboarding previews Scan, Review, Today, Widgets, and customization first",
+      "completion routes to a hard subscription paywall",
+      "main app access requires purchase or restore"
+    ],
+    "automation": "static",
+    "evidence": [
+      "App.tsx hard paywall branch",
+      "Onboarding current UI preview copy",
+      "Paywall hardMode copy"
+    ],
+    "failureMeans": "The user reaches the planner without a valid store entitlement or gets asked to pay before seeing product-value previews."
+  },
+  {
+    "id": "sp-hard-paywall-store-state",
+    "app": "StudyPlanner",
+    "persona": "student deciding whether to subscribe",
+    "risk": "revenue",
+    "state": "not subscribed after onboarding",
+    "trigger": "hard paywall loads store plans or an unavailable-store state",
+    "expected": [
+      "store-loaded plans, Restore Purchases, Terms, and Privacy stay visible",
+      "no silent unlock when products fail to load",
+      "CTA explains scans, widgets, reminders, and calendar sync"
+    ],
+    "automation": "static",
+    "evidence": [
+      "hard paywall branch",
+      "store plan state",
+      "restore action",
+      "visible tabs"
+    ],
+    "failureMeans": "The hard paywall either blocks legitimate purchasers without recovery or unlocks without a valid entitlement."
+  },
+  {
+    "id": "sp-subscription-tab-surface",
+    "app": "StudyPlanner",
+    "persona": "subscribed student exploring navigation",
+    "risk": "conversion",
+    "state": "access active or simulator capture route for proof",
+    "trigger": "looks at bottom navigation and command tiles",
+    "expected": [
+      "bottom navigation exposes Today, Scan, Plan, and Widgets",
+      "scan and plan are usable",
+      "focus, grades, reminders, and calendar sync remain available after app access"
+    ],
+    "automation": "static",
+    "evidence": [
+      "localized tab labels",
+      "unlocked import flow",
+      "reminder and calendar command tiles",
+      "Widget Studio saved preset labels"
+    ],
+    "failureMeans": "The simplified IA is confusing, or subscriber surfaces bypass entitlement checks."
+  },
+  {
+    "id": "sp-first-run-empty",
+    "app": "StudyPlanner",
+    "persona": "skeptical first-time user",
+    "risk": "trust",
+    "state": "normal fresh install",
+    "trigger": "opens Today/Classes before adding anything",
+    "expected": [
+      "no demo courses",
+      "no demo assignments",
+      "no demo grade items",
+      "no demo focus sessions"
+    ],
+    "automation": "static",
+    "evidence": [
+      "App.tsx empty initial arrays",
+      "storage does not fall back to defaults"
+    ],
+    "failureMeans": "The app looks fake and violates student trust."
+  },
+  {
+    "id": "sp-scan-review-handoff",
+    "app": "StudyPlanner",
+    "persona": "student importing syllabus",
+    "risk": "retention",
+    "state": "user with syllabus parse result and import allowance",
+    "trigger": "applies parsed plan",
+    "expected": [
+      "courses and assignments merge",
+      "review handoff appears",
+      "Today opens",
+      "review prompt event records value"
+    ],
+    "automation": "static",
+    "evidence": [
+      "applyParsedPlan",
+      "importHandoff",
+      "recordReviewEvent(import_applied)"
+    ],
+    "failureMeans": "The parser wedge does not turn into a daily plan."
+  },
+  {
+    "id": "sp-capture-camera-parser-truth",
+    "app": "StudyPlanner",
+    "persona": "student capturing real school material",
+    "risk": "trust",
+    "state": "Capture can scan, upload, type, parse, retry, review, and add without fake parser claims",
+    "trigger": "uses Scan, Upload, Type It In, Recent, Retry, Review, and Add All",
+    "expected": [
+      "camera/photo paths either use the configured OCR endpoint or show an honest unavailable/failed state",
+      "typed text and text-based documents create ParsedImport plus ParsedItem rows before Add All",
+      "missing dates, duplicates, low confidence, and parser failures stay visible and retryable",
+      "Add All converts reviewed rows once and updates Today, Plan, Classes, Notes, Widgets, and Focus data"
+    ],
+    "automation": "unit",
+    "evidence": [
+      "npm run test:capture-parser",
+      "src/services/parserContract.ts",
+      "ImportScreen persisted parser status and retry UI"
+    ],
+    "failureMeans": "The Capture surface implies fake OCR/parser success or loses parsed rows before review."
+  },
+  {
+    "id": "sp-brain-core-loop-truth",
+    "app": "StudyPlanner",
+    "persona": "overwhelmed student with captured work, notes, and focus history",
+    "risk": "trust",
+    "state": "parsed import contains valid work, missing-date review work, assignment notes, pinned notes, focus sessions, and saved widget presets",
+    "trigger": "shared StudyPlannerBrain selectors build Today, widgets, recommendations, focus, and completion state",
+    "expected": [
+      "review flags, duplicate flags, source links, notes, widget data, focus sessions, theme, locale, and completion all read/write the same assignment truth",
+      "invalid or missing dates surface as needs-review work instead of corrupting calendar/week/upcoming views",
+      "widget preset save/load/reset and note-to-task conversion stay covered by release regression checks"
+    ],
+    "automation": "unit",
+    "evidence": [
+      "npm run test:planner",
+      "scripts/check-planner-trust.ts StudyPlannerBrain regression fixture",
+      "qa/regression/core-flow-smoke.json"
+    ],
+    "failureMeans": "The post-revamp shared Brain can drift into disconnected screen state without a release gate."
+  },
+  {
+    "id": "sp-no-fake-widgets",
+    "app": "StudyPlanner",
+    "persona": "skeptical first-time user",
+    "risk": "trust",
+    "state": "empty app",
+    "trigger": "opens any widget surface",
+    "expected": [
+      "no fake settings",
+      "no fake Algebra examples",
+      "no hard-coded fake dates/times",
+      "native widgets use reviewed planner data",
+      "templates are student-outcome first",
+      "daily widget stack explains student value"
+    ],
+    "automation": "static",
+    "evidence": [
+      "MoreScreen native WidgetKit copy",
+      "student widget template names",
+      "daily widget stack copy",
+      "native widget loop copy",
+      "WidgetPreviewCard status text",
+      "native preset save controls",
+      "no sample school text"
+    ],
+    "failureMeans": "Fake controls create trust debt and App Store review risk."
+  },
+  {
+    "id": "sp-review-prompt-value-only",
+    "app": "StudyPlanner",
+    "persona": "student who just got value",
+    "risk": "shipping",
+    "state": "user completes real action",
+    "trigger": "import applied, assignment completed, focus completed, or widget saved",
+    "expected": [
+      "review events are value-gated",
+      "no first-launch begging",
+      "prompt throttled by service policy"
+    ],
+    "automation": "static",
+    "evidence": [
+      "reviewPrompt service",
+      "recordReviewEvent callsites"
+    ],
+    "failureMeans": "Review prompt annoys users before value."
+  },
+  {
+    "id": "sp-minimal-white-icon",
+    "app": "StudyPlanner",
+    "persona": "App Store browser",
+    "risk": "clarity",
+    "state": "app icon visible at small size",
+    "trigger": "compares icon in TestFlight/App Store",
+    "expected": [
+      "mainly white",
+      "minimal",
+      "no text",
+      "not glossy/crayon"
+    ],
+    "automation": "manual",
+    "evidence": [
+      "assets/app/study-planner-icon.png"
+    ],
+    "failureMeans": "The icon fights the paid academic positioning."
+  }
+]

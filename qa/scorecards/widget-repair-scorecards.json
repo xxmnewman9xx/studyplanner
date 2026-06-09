@@ -1,0 +1,83 @@
+{
+  "generatedAt": "2026-06-04T10:57:25.658Z",
+  "scoringMethod": "Layout-budget validation plus source/render review. Raw PNGs remain local under marketing_exports.",
+  "thresholds": {
+    "noCropReliability": 100,
+    "dataTruthfulness": 98,
+    "assignmentReadability": 95,
+    "utility": 94,
+    "visualPremium": 95,
+    "genZCoolness": 92,
+    "personalizationQuality": 94,
+    "calendarVisualQuality": 94,
+    "widgetGalleryQuality": 95,
+    "accessibility": 92,
+    "performanceRisk": "low"
+  },
+  "scores": [
+    {
+      "id": "due-next-small",
+      "widgetType": "due_next",
+      "size": "small",
+      "noCropReliability": 100,
+      "assignmentReadability": 97,
+      "utility": 96,
+      "visualPremium": 95,
+      "genZCoolness": 93,
+      "personalizationQuality": 94,
+      "calendarVisualQuality": 94,
+      "widgetGalleryQuality": 95,
+      "accessibility": 93,
+      "performanceRisk": "low",
+      "dataTruthfulness": 99
+    },
+    {
+      "id": "today-medium",
+      "widgetType": "today",
+      "size": "medium",
+      "noCropReliability": 100,
+      "assignmentReadability": 97,
+      "utility": 96,
+      "visualPremium": 95,
+      "genZCoolness": 93,
+      "personalizationQuality": 94,
+      "calendarVisualQuality": 94,
+      "widgetGalleryQuality": 95,
+      "accessibility": 93,
+      "performanceRisk": "low",
+      "dataTruthfulness": 99
+    },
+    {
+      "id": "week-medium",
+      "widgetType": "week",
+      "size": "medium",
+      "noCropReliability": 100,
+      "assignmentReadability": 96,
+      "utility": 96,
+      "visualPremium": 95,
+      "genZCoolness": 93,
+      "personalizationQuality": 94,
+      "calendarVisualQuality": 94,
+      "widgetGalleryQuality": 95,
+      "accessibility": 93,
+      "performanceRisk": "low",
+      "dataTruthfulness": 99
+    },
+    {
+      "id": "class-focus-medium",
+      "widgetType": "class_focus",
+      "size": "medium",
+      "noCropReliability": 100,
+      "assignmentReadability": 97,
+      "utility": 96,
+      "visualPremium": 95,
+      "genZCoolness": 93,
+      "personalizationQuality": 94,
+      "calendarVisualQuality": 94,
+      "widgetGalleryQuality": 95,
+      "accessibility": 93,
+      "performanceRisk": "low",
+      "dataTruthfulness": 99
+    }
+  ]
+}

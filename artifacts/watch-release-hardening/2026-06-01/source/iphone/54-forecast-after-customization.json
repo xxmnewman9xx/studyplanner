@@ -1,0 +1,30 @@
+{
+  "locale": "runtime",
+  "device": "77573299-A148-49D7-95B6-DB5855B9305A",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "plan",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "plan",
+    "themeMode": "light",
+    "classColor": "#8B3DFF",
+    "secondaryAccent": "#EC4899",
+    "activityColor": "#21B8A7",
+    "riskColor": "#FF5A1F"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/watch-release-hardening/2026-06-01/source/iphone/54-forecast-after-customization.png",
+  "bytes": 308862,
+  "sha256": "3bd1898130c4cb88a4c4637e922d12e8abd730e20ce2a30d3082eeb4226c5fdd",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "226c8e9",
+  "timestamp": "2026-06-01T18:57:09.198Z"
+}

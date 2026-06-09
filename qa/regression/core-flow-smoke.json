@@ -1,0 +1,127 @@
+{
+  "generatedAt": "2026-05-27T07:42:00-04:00",
+  "status": "pass-with-native-screenshot-limitation",
+  "scope": "Focused post-revamp stabilization for the Capture -> Review -> Plan -> Notes -> Focus -> Complete -> Widgets loop.",
+  "evidence": [
+    "npm run test:planner",
+    "npm run check:scenarios",
+    "clean temporary native prebuild/build succeeded for iPhone simulator",
+    "web fallback screenshots and scorecards remain current release visual evidence"
+  ],
+  "flows": [
+    {
+      "id": 1,
+      "flow": "Today loads and uses shared selectors",
+      "result": "pass",
+      "coverage": "buildTodayBrain, buildTodayPlan, due today/soon/overdue/review selectors covered by test:planner."
+    },
+    {
+      "id": 2,
+      "flow": "Capture creates parsed import or honest placeholder state",
+      "result": "pass",
+      "coverage": "Golden scenario sp-scan-review-handoff and existing parser release gates remain active."
+    },
+    {
+      "id": 3,
+      "flow": "Review converts parsed items into assignments",
+      "result": "pass",
+      "coverage": "convertParsedItemsToAssignments fixture covers accepted/dismissed, sourceId, confidence, duplicate, missing date, checklist, and reminder state."
+    },
+    {
+      "id": 4,
+      "flow": "Assignment detail shows checklist, notes, progress, source/review metadata, focus CTA, and complete CTA",
+      "result": "pass",
+      "coverage": "Shared assignment checklist/progress/source/review data covered by test:planner; existing web screenshot scorecard covers UI state."
+    },
+    {
+      "id": 5,
+      "flow": "Notes attach to assignment/class/focus/source and surface in Today where relevant",
+      "result": "pass",
+      "coverage": "getAssignmentNotes, getCourseNotes, getPinnedNotes, getRelevantNotesForToday, source-linked note surfacing, and note-to-task conversion covered by test:planner."
+    },
+    {
+      "id": 6,
+      "flow": "Plan calendar uses assignment due dates and class colors",
+      "result": "pass",
+      "coverage": "getCalendarEventsByDay and invalid-date exclusion covered by test:planner; Plan web screenshot scorecard remains passing."
+    },
+    {
+      "id": 7,
+      "flow": "Week insight uses the same data as Today/widgets",
+      "result": "pass",
+      "coverage": "getWeekLoad and getWidgetData covered by test:planner; Week Insight screenshot scorecard remains passing."
+    },
+    {
+      "id": 8,
+      "flow": "Classes show correct counts and related notes/work",
+      "result": "pass",
+      "coverage": "getClassAssignmentCounts and getCourseNotes covered by test:planner."
+    },
+    {
+      "id": 9,
+      "flow": "Focus starts, pauses, resumes/stops, and updates focus history/progress",
+      "result": "pass",
+      "coverage": "startFocusSession, pauseFocusSession, endFocusSession, and widget focus history inputs covered by test:planner."
+    },
+    {
+      "id": 10,
+      "flow": "Complete assignment updates Today, Plan, Classes, Widgets, and notes context",
+      "result": "pass",
+      "coverage": "completeAssignment updates done/progress/checklist; downstream widget data and Brain state are re-read from the completed assignment set."
+    },
+    {
+      "id": 11,
+      "flow": "Widget Studio preview updates from shared widget data",
+      "result": "pass",
+      "coverage": "getWidgetData fixture covers Needs Check shared data; widget snapshot/integrity release gates cover native widget presets."
+    },
+    {
+      "id": 12,
+      "flow": "Widget presets save/load/reset",
+      "result": "pass",
+      "coverage": "saveWidgetPreset, loadWidgetPreset, and resetWidgetPreset covered by test:planner."
+    },
+    {
+      "id": 13,
+      "flow": "Themes update app and widget previews",
+      "result": "pass",
+      "coverage": "applyTheme and getRecommendedTheme covered by test:planner; theme scorecard remains passing."
+    },
+    {
+      "id": 14,
+      "flow": "Locale changes update labels/dates/plurals/RTL where localization exists",
+      "result": "pass",
+      "coverage": "applyLocale covered by test:planner; npm run check:localization is retained as release gate."
+    },
+    {
+      "id": 15,
+      "flow": "Settings change behavior or are removed/demoted",
+      "result": "pass",
+      "coverage": "Scenario gate checks privacy/sync/language/widget behavior surfaces; no broad settings redesign in this pass."
+    },
+    {
+      "id": 16,
+      "flow": "Paywall only shows real premium value if present",
+      "result": "pass",
+      "coverage": "Golden scenario gate retains hard paywall/store-state checks."
+    },
+    {
+      "id": 17,
+      "flow": "Tablet/sidebar layout is intentional",
+      "result": "pass",
+      "coverage": "Existing web fallback tablet screenshots remain scored; no native tablet capture in this pass."
+    },
+    {
+      "id": 18,
+      "flow": "Empty/loading/error states render",
+      "result": "pass",
+      "coverage": "Scenario gate checks first-run empty, no-fake widgets, parser handoff, and loading skeleton contract."
+    }
+  ],
+  "nativeStatus": {
+    "result": "partial",
+    "build": "Clean temporary Expo prebuild, CocoaPods install, Debug build, and Release simulator build succeeded for SDK 55.",
+    "launch": "Release simulator app rendered StudyPlanner UI, including the existing verified StudyPlanner logo asset, behind a lingering iOS URL handoff prompt on the reused simulator.",
+    "screenshotLimitation": "Deterministic route screenshots in marketing_exports/raw_screenshots/native_validation are invalid because the prompt/Expo Go mismatch overlay remained; they are not used for scoring."
+  }
+}

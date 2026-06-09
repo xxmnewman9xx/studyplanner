@@ -1,5 +1,7 @@
 node_modules/
 .expo/
+.claude/
+.gitnexus/
 dist/
 web-build/
 ios/Pods/
@@ -8,6 +10,12 @@ ios/build-signed-sim/
 android/
 work/
 qa/
+qa-screenshots/
+test-results/
+AppStore/
+artifacts/
+marketing/
+marketing_exports/
 *.ipa
 *.xcarchive
 *.tsbuildinfo

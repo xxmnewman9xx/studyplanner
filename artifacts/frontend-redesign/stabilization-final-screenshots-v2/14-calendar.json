@@ -1,0 +1,25 @@
+{
+  "locale": "runtime",
+  "device": "786C707C-00A0-4B96-B32D-1DDBC0ADD15A",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "plan",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "plan"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/frontend-redesign/stabilization-final-screenshots-v2/14-calendar.png",
+  "bytes": 280822,
+  "sha256": "382c7077faa9b025f22a82d3a7ad6b9d1ecaf6173589c908004da5f9b112f9f8",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "ea8cd1f",
+  "timestamp": "2026-06-02T00:03:21.450Z"
+}

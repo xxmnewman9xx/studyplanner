@@ -1,0 +1,32 @@
+{
+  "generatedAt": "2026-05-27T13:42:02Z",
+  "issue": "Historical direct xcodebuild failure with duplicate ExpoWidgetsTarget.appex/__preview.dylib and ExpoWidgetsTarget.appex/ExpoWidgetsTarget.debug.dylib outputs.",
+  "diagnosis": {
+    "searched": [
+      "ExpoWidgetsTarget",
+      "__preview.dylib",
+      "debug.dylib",
+      "ios/StudyPlannerSyllabusAI.xcodeproj/project.pbxproj",
+      "Expo widget config and entitlements"
+    ],
+    "finalProjectTargets": [
+      "StudyPlannerSyllabusAI",
+      "ExpoWidgetsTarget"
+    ],
+    "workspaceSchemes": "ExpoWidgetsTarget and StudyPlannerSyllabusAI schemes present; no duplicate project target remains in xcodebuild -list -project output.",
+    "safeFixApplied": "No broad native project rewrite was needed in this pass; final validation used the normalized single ExpoWidgetsTarget project state already present in the worktree."
+  },
+  "validation": {
+    "xcodebuildListProject": "passed",
+    "xcodebuildListWorkspace": "passed",
+    "debugSimulatorBuild": "passed",
+    "releaseSimulatorBuild": "passed",
+    "releaseCaptureSimulatorBuild": "passed with EXPO_PUBLIC_SIM_QA_CAPTURE=1 for screenshot routing",
+    "duplicateOutputIssueReproduced": false
+  },
+  "notes": [
+    "An earlier direct build attempt failed from low /tmp disk space, not duplicate widget outputs.",
+    "Only StudyPlanner temporary DerivedData-style folders under /tmp were cleared for validation; no user files or simulator state were destructively cleaned.",
+    "No Expo SDK upgrade, Podfile rewrite, or unrelated Xcode project churn was introduced."
+  ]
+}

@@ -1,0 +1,218 @@
++ DEST=/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/StudyPlannerSyllabusAI.app
++ [[ ! -n '' ]]
++ [[ Release = *Debug* ]]
++ [[ -n '' ]]
++ case "$CONFIGURATION" in
++ DEV=false
++++ dirname /Users/mattnewman/work/StudyPlanner/node_modules/react-native/scripts/react-native-xcode.sh
+++ cd /Users/mattnewman/work/StudyPlanner/node_modules/react-native/scripts/..
+++ pwd
++ REACT_NATIVE_DIR=/Users/mattnewman/work/StudyPlanner/node_modules/react-native
++ PROJECT_ROOT=/Users/mattnewman/work/StudyPlanner/ios/..
++ cd /Users/mattnewman/work/StudyPlanner/ios/..
++ [[ -n /Users/mattnewman/work/StudyPlanner/node_modules/expo/AppEntry.js ]]
++ :
++ source /Users/mattnewman/work/StudyPlanner/node_modules/react-native/scripts/node-binary.sh
+++ '[' -z /opt/homebrew/Cellar/node/25.9.0_2/bin/node ']'
+++ type /opt/homebrew/Cellar/node/25.9.0_2/bin/node
++ HERMES_ENGINE_PATH=/Users/mattnewman/work/StudyPlanner/ios/Pods/hermes-engine
++ '[' -z /Users/mattnewman/work/StudyPlanner/node_modules/hermes-compiler/hermesc/osx-bin/hermesc ']'
++ [[ true != false ]]
++ [[ -f /Users/mattnewman/work/StudyPlanner/ios/Pods/hermes-engine ]]
++ '[' -z '' ']'
++ export NODE_ARGS=
++ NODE_ARGS=
++ '[' -z /Users/mattnewman/work/StudyPlanner/node_modules/expo/node_modules/@expo/cli/build/bin/cli ']'
++ '[' -z export:embed ']'
++ '[' -z '' ']'
++ COMPOSE_SOURCEMAP_PATH=/Users/mattnewman/work/StudyPlanner/node_modules/react-native/scripts/compose-source-maps.js
++ [[ -z '' ]]
++ CONFIG_ARG=
++ [[ -z '' ]]
++ BUNDLE_NAME=main
++ BUNDLE_FILE=/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle
++ EXTRA_ARGS=()
++ case "$PLATFORM_NAME" in
++ BUNDLE_PLATFORM=ios
++ '[' '' = YES ']'
++ EMIT_SOURCEMAP=
++ [[ ! -z '' ]]
++ PACKAGER_SOURCEMAP_FILE=
++ [[ '' == true ]]
++ [[ true != false ]]
++ [[ false == false ]]
++ EXTRA_ARGS+=("--minify" "false")
++ [[ -n '' ]]
++ [[ -n '' ]]
++ EXTRA_ARGS+=("--config-cmd" "'$NODE_BINARY' $NODE_ARGS '$REACT_NATIVE_DIR/cli.js' config")
++ /opt/homebrew/Cellar/node/25.9.0_2/bin/node /Users/mattnewman/work/StudyPlanner/node_modules/expo/node_modules/@expo/cli/build/bin/cli export:embed --entry-file /Users/mattnewman/work/StudyPlanner/node_modules/expo/AppEntry.js --platform ios --dev false --reset-cache --bundle-output /Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle --assets-dest /Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/StudyPlannerSyllabusAI.app --minify false --config-cmd ''\''/opt/homebrew/Cellar/node/25.9.0_2/bin/node'\''  '\''/Users/mattnewman/work/StudyPlanner/node_modules/react-native/cli.js'\'' config'
+🔍 [expo-iap] Config values: horizonAppId=undefined, isHorizonEnabled=false, isOnsideEnabled=false
+📦 [expo-iap] Using OpenIAP from CocoaPods
+Starting Metro Bundler
+
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+iOS node_modules/expo/AppEntry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+| (node:89783) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:89783) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:89783) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:89783) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:89783) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:89783) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:89783) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+iOS node_modules/expo/AppEntry.js ▓▓▓▓▓▓▓▓▓▓░░░░░░ 67.0% (1156/2294)
+iOS Bundled 5163ms node_modules/expo/AppEntry.js (2549 modules)
+Writing bundle output to: /Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle
+Copying 1 asset files
+Done writing bundle output
++ [[ true == false ]]
++ EXTRA_COMPILER_ARGS=
++ [[ false == true ]]
++ EXTRA_COMPILER_ARGS=-O
++ [[ '' == true ]]
++ /Users/mattnewman/work/StudyPlanner/node_modules/hermes-compiler/hermesc/osx-bin/hermesc -emit-binary -max-diagnostic-width=80 -O -out /Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/StudyPlannerSyllabusAI.app/main.jsbundle /Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:2248:34: warning: the variable "AbortController" was not declared in anonymous function " 69#"
+        if ("function" == typeof AbortController) return new AbortController();
+                                 ^~~~~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:2400:165: warning: the variable "Promise" was not declared in anonymous arrow function " 93#"
+...Br(r, D) : c(undefined)), q(() => Promise.all(de.map(r => r())), true, D);
+                                     ^~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:898:32: warning: the variable "queueMicrotask" was not declared in arrow function "y"
+      if ("function" == typeof queueMicrotask) y = queueMicrotask;else {
+                               ^~~~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:1146:100: warning: the variable "structuredClone" was not declared in arrow function "ie"
+...sfer() : "function" == typeof structuredClone ? r => structuredClone(r, {
+                                 ^~~~~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:2366:84: warning: the variable "self" was not declared in anonymous function " 28#"
+...globalThis : "undefined" != typeof self ? self : "undefined" != typeof glo...
+                                      ^~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:3448:25: warning: the variable "ErrorUtils" was not declared in anonymous function " 237#"
+    var globalHandler = ErrorUtils.getGlobalHandler();
+                        ^~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:3487:39: warning: the variable "FormData" was not declared in anonymous function " 239#"
+  (0, _FormData.installFormDataPatch)(FormData);
+                                      ^~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:3512:26: warning: the variable "Blob" was not declared in function "normalizeArgs"
+    if (value instanceof Blob) {
+                         ^~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:4289:25: warning: the variable "TextDecoder" was not declared in function "TextDecoderStream"
+      var decoder = new TextDecoder(label, options);
+                        ^~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:4330:48: warning: the variable "TransformStream" was not declared in anonymous function " 266#"
+...(0, _wrapNativeSuper.default)(TransformStream)); // https://encoding.spec....
+                                 ^~~~~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:4335:25: warning: the variable "TextEncoder" was not declared in function "TextEncoderStream"
+      var encoder = new TextEncoder();
+                        ^~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:6029:33: warning: the variable "Iterator" was not declared in anonymous function " 283#"
+  var c = "undefined" != typeof Iterator ? Iterator : Object;
+                                ^~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:6294:19: warning: the variable "URL" was not declared in function "getBundleUrl"
+    var url = new URL(scriptURL);
+                  ^~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:6837:23: warning: the variable "DebuggerInternal" was not declared in function "__shouldPauseOnThrow"
+        return typeof DebuggerInternal !== 'undefined' && DebuggerInternal.sh...
+                      ^~~~~~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:7667:16: warning: the variable "location" was not declared in function "buildUrlForBundle"
+    if (typeof location !== 'undefined') {
+               ^~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:7724:16: warning: Direct call to eval(), but lexical scope is not supported.
+        return eval(body);
+               ^~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:12819:49: warning: the variable "reportError" was not declared in anonymous function " 434#"
+...alError = "function" === typeof reportError ? reportError : function (erro...
+                                   ^~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:16727:25: warning: the variable "performance" was not declared in function "Event"
+      this._timeStamp = performance.now();
+                        ^~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:22243:7: warning: the variable "setTimeout" was not declared in function "logUncaughtError"
+      setTimeout(function () {
+      ^~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:25021:31: warning: the variable "nativeFabricUIManager" was not declared in anonymous function " 613#"
+  var _nativeFabricUIManage = nativeFabricUIManager,
+                              ^~~~~~~~~~~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:25085:21: warning: the variable "clearTimeout" was not declared in anonymous function " 613#"
+    cancelTimeout = clearTimeout;
+                    ^~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:25106:49: warning: the variable "RN$enableMicrotasksInReact" was not declared in anonymous function " 613#"
+... "undefined" !== typeof RN$enableMicrotasksInReact && !!RN$enableMicrotask...
+                           ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:25159:30: warning: the variable "__REACT_DEVTOOLS_GLOBAL_HOOK__" was not declared in anonymous function " 613#"
+  if ("undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__) {
+                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:27585:5: warning: the variable "setImmediate" was not declared in function "handleResolved"
+    setImmediate(function () {
+    ^~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:29624:59: warning: the variable "AbortSignal" was not declared in function "addEventListener 3#"
+          if (signal !== undefined && !(signal instanceof AbortSignal)) {
+                                                          ^~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:31072:24: warning: the variable "FileReader" was not declared in function "readBlobAsArrayBuffer"
+      var reader = new FileReader();
+                       ^~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:31127:44: warning: the variable "URLSearchParams" was not declared in anonymous function " 892#"
+...e if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body...
+                                 ^~~~~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:31380:23: warning: the variable "XMLHttpRequest" was not declared in anonymous function " 902#"
+        var xhr = new XMLHttpRequest();
+                      ^~~~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:35497:37: warning: the variable "MessageChannel" was not declared in anonymous function " 1057#"
+  };else if ("undefined" !== typeof MessageChannel) {
+                                    ^~~~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:35512:62: warning: the variable "nativeRuntimeScheduler" was not declared in anonymous function " 1057#"
+... = "undefined" !== typeof nativeRuntimeScheduler ? nativeRuntimeScheduler....
+                             ^~~~~~~~~~~~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:44990:13: warning: the variable "clearImmediate" was not declared in anonymous function " 1187#"
+            clearImmediate(flushQueueImmediate);
+            ^~~~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:46739:34: warning: the variable "requestAnimationFrame" was not declared in function "start 9#"
+          this._animationFrame = requestAnimationFrame(() => this.onUpdate());
+                                 ^~~~~~~~~~~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:65353:21: warning: the variable "Image" was not declared in anonymous arrow function " 1937#"
+      var img = new Image();
+                    ^~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:67829:20: warning: the variable "ReadableStream" was not declared in function "readableStream"
+        return new ReadableStream(new _streams.FileSystemReadableStreamSource...
+                   ^~~~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:67834:20: warning: the variable "WritableStream" was not declared in function "writableStream"
+        return new WritableStream(new _streams.FileSystemWritableSink((0, _su...
+                   ^~~~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:109371:28: warning: the variable "fetch" was not declared in function "?anon_0_ 36#"
+      var response = yield fetch(uri);
+                           ^~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:109356:12: warning: the variable "atob" was not declared in arrow function "decodeBase64Image"
+    return atob(content);
+           ^~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:191123:18: warning: the variable "document" was not declared in function "loadCookie"
+      if (typeof document === "undefined") return null;
+                 ^~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:193788:14: warning: the variable "Intl" was not declared in function "getRuntimeLocale"
+      return Intl.DateTimeFormat().resolvedOptions().locale;
+             ^~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:218919:19: warning: the variable "setInterval" was not declared in anonymous arrow function " 4501#"
+      var timer = setInterval(() => {
+                  ^~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:218932:20: warning: the variable "clearInterval" was not declared in anonymous arrow function " 4504#"
+      return () => clearInterval(timer);
+                   ^~~~~~~~~~~~~
+/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/main.jsbundle:225248:16: warning: the variable "Headers" was not declared in function "mergeHeaders"
+    if (typeof Headers === 'function') {
+               ^~~~~~~
++ [[ '' == true ]]
++ BUNDLE_FILE=/Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/StudyPlannerSyllabusAI.app/main.jsbundle
++ [[ false != true ]]
++ [[ ! -f /Users/mattnewman/work/StudyPlanner/ios/build/DerivedData/Build/Products/Release-iphonesimulator/StudyPlannerSyllabusAI.app/main.jsbundle ]]
+note: Run script build phase '[CP-User] [RNDeps] Replace React Native Dependencies for the right configuration, if needed' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'ReactNativeDependencies' from project 'Pods')
+warning: Run script build phase '[CP-User] [Hermes] Replace Hermes for the right configuration, if needed' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'hermes-engine' from project 'Pods')
+note: Run script build phase '[CP-User] [RNDeps] Replace React Native Core for the right configuration, if needed' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'React-Core-prebuilt' from project 'Pods')
+note: Run script build phase '[CP-User] [RN]Check FBReactNativeSpec' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'React-RCTFBReactNativeSpec' from project 'Pods')
+note: Run script build phase '[CP-User] Prepare ExpoWidgets Resources' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'ExpoWidgets' from project 'Pods')
+note: Run script build phase '[CP-User] Generate app.config for prebuilt Constants.manifest' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'EXConstants' from project 'Pods')
+note: Run script build phase '[Expo] Configure project' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'ExpoWidgetsTarget' from project 'StudyPlannerSyllabusAI')
+note: Run script build phase 'Bundle React Native code and images' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'StudyPlannerSyllabusAI' from project 'StudyPlannerSyllabusAI')
+note: Run script build phase '[Expo] Configure project' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'StudyPlannerSyllabusAI' from project 'StudyPlannerSyllabusAI')

@@ -1,69 +1,66 @@
-# Build 52 TestFlight Submission
+# Build 52 Locked Experience TestFlight Submission
 
 ## Status
 
-PASS - Build 52 was submitted to App Store Connect/TestFlight.
+PASS - The Build 52 locked onboarding/paywall repair was built and uploaded to App Store Connect/TestFlight.
 
 ## Artifact
 
-- IPA path: `/Users/mattnewman/Documents/Codex/2026-06-04/files-mentioned-by-the-user-study/studyplanner-ai/build-52-artifacts/studyplanner-build52.ipa`
-- SHA-256: `a64e228cfd2c430e4bf94cc1df6eb2fcc99474ce503b36220e907c8c1cb429fe`
+- IPA path: `/Users/mattnewman/work/StudyPlanner/builds/studyplanner-1.0.3-55.ipa`
+- SHA-256: `17b44a5d977d51d782fa23f03de31d0f919dcc5fc96c523ca607d3933ccee001`
 - App version: `1.0.3`
-- iOS build number: `52`
+- iOS build number: `55`
 - App bundle: `com.mattnewman.studyplanner`
 - Widget bundle: `com.mattnewman.studyplanner.widgets`
 - Apple Team: `5JN35MJ3QD`
 - ASC App ID: `6766181202`
 
+The signed IPA was inspected after export. The parent app and widget extension both report `CFBundleShortVersionString=1.0.3` and `CFBundleVersion=55`.
+
 ## Build
 
-Cloud EAS build was attempted first:
+Cloud EAS build was not used because the available route was the local production build with remote App Store credentials.
+
+Command:
 
 ```sh
-npx eas-cli@latest build -p ios --profile production --non-interactive --wait
+EAS_NO_VCS=1 npx eas-cli@latest build -p ios --profile production --local --non-interactive --output ./builds/studyplanner-1.0.3-54.ipa
 ```
 
-Result: blocked by Free-plan iOS build quota.
+Result: PASS.
 
-Local EAS production build was then run with remote App Store credentials:
+EAS produced the signed IPA and the artifact was renamed to match the signed bundle metadata:
 
 ```sh
-mkdir -p build-52-artifacts && npx eas-cli@latest build -p ios --profile production --local --non-interactive --output "$PWD/build-52-artifacts/studyplanner-build52.ipa"
+mv builds/studyplanner-1.0.3-54.ipa builds/studyplanner-1.0.3-55.ipa
 ```
-
-Result: PASS. IPA exported to `build-52-artifacts/studyplanner-build52.ipa`.
 
 Build warnings:
 
 - Duplicate library warning for `-lc++`.
-- `NODE_ENV` was not specified; EAS continued without mode-specific `.env` loading.
-- `react-dom@19.2.7` peer override warning against React `19.2.3`.
-- `uuid@3.4.0` deprecation warning from dependency tree.
-- `npm audit` reported 10 moderate findings.
-- RNSVG prebuilt package was unavailable and built from source.
 - CocoaPods/Xcode script phase notices were emitted.
+- During archive, Xcode emitted a transient widget extension build-number warning, but the exported IPA was inspected and both the app and widget extension are signed as build `55`.
 
-No warning blocked archive, signing, or IPA export.
+No warning blocked archive, signing, export, or submission.
 
 ## Submission
 
 Submission command:
 
 ```sh
-npx eas-cli@latest submit -p ios --profile production --path build-52-artifacts/studyplanner-build52.ipa --non-interactive
+EAS_NO_VCS=1 npx eas-cli@latest submit -p ios --profile production --path ./builds/studyplanner-1.0.3-55.ipa --non-interactive
 ```
 
 Result: PASS.
 
-- EAS build ID: not applicable; local EAS build was used after cloud quota block.
-- EAS submission ID: `d4aeef5f-9181-46f7-909e-86b360b500a4`
-- Submission URL: `https://expo.dev/accounts/xxmnewman9xx/projects/study-planner-syllabus-ai/submissions/d4aeef5f-9181-46f7-909e-86b360b500a4`
+- EAS build ID: not applicable; local EAS build was used.
+- EAS submission ID: `d2a636a3-1667-4825-bbe0-4c38834ac02f`
+- Submission URL: `https://expo.dev/accounts/xxmnewman9xx/projects/study-planner-syllabus-ai/submissions/d2a636a3-1667-4825-bbe0-4c38834ac02f`
 - TestFlight URL: `https://appstoreconnect.apple.com/apps/6766181202/testflight/ios`
-- ASC/TestFlight status: uploaded successfully to App Store Connect; Apple processing pending/completing asynchronously.
+- ASC/TestFlight status: uploaded successfully to App Store Connect; Apple processing is pending/completing asynchronously.
 
-Submission warnings:
+Submission warning:
 
 - `ios.bundleIdentifier` in `app.json` was ignored because the native `ios` directory is present; EAS used the native bundle identifier.
 
 No `--what-to-test` flag was used.
-

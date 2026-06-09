@@ -1,0 +1,14 @@
+Release onboarding localization build proof
+locale: ar
+configuration: Release iphonesimulator
+scheme: StudyPlannerSyllabusAI
+destination: StudyPlanner-QA-iPhone
+env: EXPO_PUBLIC_SIM_QA_CAPTURE=1
+env: EXPO_PUBLIC_STUDYPLANNER_LOCALE=ar
+env: EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1
+env: EXPO_PUBLIC_SYLLABUS_PARSE_ENDPOINT=https://studyplanner-parser-production.up.railway.app/api/syllabus/parse
+env: EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS=com.mattnewman.studyplanner.plus.monthly,com.mattnewman.studyplanner.plus.yearly
+xcodebuild result: BUILD SUCCEEDED
+install: xcrun simctl install StudyPlanner-QA-iPhone ios/build/DerivedData/Build/Products/Release-iphonesimulator/StudyPlannerSyllabusAI.app exited 0
+screenshot proof: 00-onboarding-scan.png through 06-onboarding-widgets.png
+note: full Xcode output was condensed after verification to avoid committing generated build noise.

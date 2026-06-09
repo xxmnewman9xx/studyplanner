@@ -98,10 +98,12 @@ export function extractPdfTextFromBase64(base64: string): PdfTextExtraction {
 
   const text = cleanExtractedText(chunks.join("\n"));
   const wordCount = text.split(/\s+/).filter(Boolean).length;
+  const hasEnoughStructure = chunks.length >= 4;
+  const fallbackNeeded = wordCount < 55 || !hasEnoughStructure;
   return {
     text,
     wordCount,
-    confidence: wordCount >= 180 ? 0.82 : wordCount >= 60 ? 0.66 : 0.35,
-    fallbackNeeded: wordCount < 20,
+    confidence: wordCount >= 180 ? 0.82 : wordCount >= 80 ? 0.66 : wordCount >= 55 && hasEnoughStructure ? 0.52 : 0.28,
+    fallbackNeeded,
   };
 }

@@ -1,0 +1,25 @@
+{
+  "locale": "runtime",
+  "device": "786C707C-00A0-4B96-B32D-1DDBC0ADD15A",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "courses",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "tab": "courses"
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "artifacts/frontend-redesign/stabilization-final-screenshots-v2/17-classes.png",
+  "bytes": 335453,
+  "sha256": "82246db53f1c5dd50d8b58362ce54d78fe7dad60caf5f3698dcf28af4d4e55ba",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "ea8cd1f",
+  "timestamp": "2026-06-02T00:03:21.450Z"
+}

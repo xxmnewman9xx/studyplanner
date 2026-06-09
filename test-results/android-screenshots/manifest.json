@@ -1,0 +1,31 @@
+{
+  "generatedAt": "2026-06-09T15:57:20.844Z",
+  "serial": "emulator-5554",
+  "packageName": "com.mattnewman.studyplanner",
+  "shots": [
+    {
+      "name": "01-onboarding-name.png",
+      "path": "test-results\\android-screenshots\\01-onboarding-name.png",
+      "bytes": 78879,
+      "width": 1080,
+      "height": 2400,
+      "score": 100
+    },
+    {
+      "name": "02-student-type.png",
+      "path": "test-results\\android-screenshots\\02-student-type.png",
+      "bytes": 135928,
+      "width": 1080,
+      "height": 2400,
+      "score": 100
+    },
+    {
+      "name": "03-main-goal.png",
+      "path": "test-results\\android-screenshots\\03-main-goal.png",
+      "bytes": 134015,
+      "width": 1080,
+      "height": 2400,
+      "score": 100
+    }
+  ]
+}
