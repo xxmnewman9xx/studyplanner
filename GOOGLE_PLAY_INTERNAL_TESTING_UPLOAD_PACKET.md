@@ -1,6 +1,6 @@
 # StudyPlanner Google Play Internal Testing Upload Packet
 
-Date: 2026-06-07
+Date: 2026-06-09
 
 ## Upload Candidate
 
@@ -9,14 +9,14 @@ Date: 2026-06-07
 | App name | `Studyplanner: Syllabus AI` |
 | Package name | `com.mattnewman.studyplanner` |
 | Version name | `1.0.3` |
-| Version code | `52` |
+| Version code | `56` |
 | Build profile | `production` |
-| Build ID | `e342624f-9f34-44b1-a98f-960f141a4fd2` |
-| Build page | `https://expo.dev/accounts/xxmnewman9xx/projects/study-planner-syllabus-ai/builds/e342624f-9f34-44b1-a98f-960f141a4fd2` |
-| EAS artifact URL | `https://expo.dev/artifacts/eas/u4DL4BfXL7se8A2859hkbA.aab` |
-| Local AAB path | `C:\FounderWorker\outputs\StudyPlanner\StudyPlanner-android-internal-v52-eas-signed.aab` |
-| Local AAB SHA-256 | `E791908274B0692555D9784BD1AA531C4AE7EDF82278CA95BC493191A1560C03` |
-| Upload readiness | Ready for Google Play internal testing upload, pending Play Console app setup |
+| Build ID | `b9b6e6d5-17da-4ebe-b388-9da51909914a` |
+| Build page | `https://expo.dev/accounts/xxmnewman9xx/projects/study-planner-syllabus-ai/builds/b9b6e6d5-17da-4ebe-b388-9da51909914a` |
+| EAS artifact URL | `https://expo.dev/artifacts/eas/oW6Z4bEQS7mH9NYjbqkjgC.aab` |
+| Local AAB path | `C:\FounderWorker\outputs\StudyPlanner\StudyPlanner-android-internal-v56-eas-signed.aab` |
+| Local AAB SHA-256 | `0B6FBF4B78DAEF26FFC6A5A9F347E41CBE652EAA52CF0F28BAEE6E3CF74F9B3B` |
+| Upload readiness | Ready for manual Google Play internal testing upload; automated EAS Submit blocked on Google service-account key |
 
 Use the local AAB path above for manual upload. Do not use the local Gradle AAB under `android\app\build\outputs\bundle\release`.
 
@@ -25,13 +25,13 @@ Use the local AAB path above for manual upload. Do not use the local Gradle AAB 
 Recommended release name:
 
 ```text
-StudyPlanner Android internal 52
+StudyPlanner Android internal 56
 ```
 
 Release notes:
 
 ```text
-Internal Android testing build for StudyPlanner AI versionCode 52.
+Internal Android testing build for StudyPlanner AI versionCode 56.
 
 Focus areas:
 - Onboarding and locked funnel
@@ -126,16 +126,16 @@ Do not submit for review until the Play Console privacy policy field points to t
 8. Upload:
 
 ```text
-C:\FounderWorker\outputs\StudyPlanner\StudyPlanner-android-internal-v52-eas-signed.aab
+C:\FounderWorker\outputs\StudyPlanner\StudyPlanner-android-internal-v56-eas-signed.aab
 ```
 
 9. Confirm Play Console reads:
    - Package: `com.mattnewman.studyplanner`
-   - Version code: `52`
+   - Version code: `56`
 10. Enter release name:
 
 ```text
-StudyPlanner Android internal 52
+StudyPlanner Android internal 56
 ```
 
 11. Paste release notes from this packet.
