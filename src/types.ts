@@ -22,6 +22,9 @@ export type ClassItem = {
   color: string;
   color2: string;
   icon: string;
+  notes?: string;
+  archivedAt?: string;
+  userEditedAt?: string;
   gradeEntries?: GradeEntry[];
   targetGrade?: string;
 };
@@ -43,6 +46,12 @@ export type TaskItem = {
   done: boolean;
   urgent: boolean;
   source: string;
+  priority?: "Low" | "Medium" | "High";
+  description?: string;
+  recurringId?: string;
+  recurrenceIndex?: number;
+  recurrenceEndDate?: string;
+  userEditedAt?: string;
   subtasks: Subtask[];
   weight?: number;
   score?: number;
@@ -57,6 +66,12 @@ export type ExamItem = {
   dueDate: string;
   time: string;
   room: string;
+  kind?: "Quiz" | "Exam" | "Midterm" | "Final" | "Presentation" | "Project";
+  description?: string;
+  effortMinutes?: number;
+  priority?: "Low" | "Medium" | "High";
+  notes?: string;
+  userEditedAt?: string;
   topics: string[];
   weight?: number;
   score?: number;
@@ -419,6 +434,7 @@ export type ImportCandidate = {
   confidence: number;
   payload: Partial<ClassItem & TaskItem & ExamItem & NoteItem>;
   approved: boolean;
+  reconciliationChoice?: "keep" | "update" | "duplicate";
 };
 
 export type ImportBatch = {

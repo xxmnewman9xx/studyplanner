@@ -1,5 +1,6 @@
 import { Platform } from "react-native";
 import { requireOptionalNativeModule } from "expo-modules-core";
+import { normalizeExtractedOcrText } from "../ocrText";
 
 type StudyPlannerVisionOcrModule = {
   recognizeText(uri: string): Promise<string>;
@@ -19,11 +20,7 @@ export async function extractTextFromImage(uri: string): Promise<string> {
   }
 
   const text = await visionOcr!.recognizeText(uri);
-  const normalized = text
-    .replace(/\r/g, "\n")
-    .replace(/[ \t]+\n/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
+  const normalized = normalizeExtractedOcrText(text);
 
   if (!normalized) {
     throw new Error("No readable school material text was found in that photo.");

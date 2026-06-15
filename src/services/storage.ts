@@ -1,6 +1,6 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 const memoryStore = new Map<string, string>();
+type AsyncStorageModule = typeof import("@react-native-async-storage/async-storage").default;
+let asyncStoragePromise: Promise<AsyncStorageModule | null> | null = null;
 
 export async function loadJson<T>(key: string): Promise<T | null> {
   try {
@@ -19,7 +19,7 @@ export async function saveJson<T>(key: string, value: T): Promise<void> {
 
 export async function removeJson(key: string): Promise<void> {
   try {
-    await AsyncStorage.removeItem(key);
+    await (await asyncStorage())?.removeItem(key);
   } catch {
     // Ignore storage failures and still clear fallbacks.
   }
@@ -35,7 +35,7 @@ export async function removeJson(key: string): Promise<void> {
 
 async function loadString(key: string) {
   try {
-    const nativeValue = await AsyncStorage.getItem(key);
+    const nativeValue = await (await asyncStorage())?.getItem(key);
     if (nativeValue) return nativeValue;
   } catch {
     // Fall through to web, cookie, and memory.
@@ -55,8 +55,11 @@ async function saveString(key: string, value: string) {
   let saved = false;
 
   try {
-    await AsyncStorage.setItem(key, value);
-    saved = true;
+    const storage = await asyncStorage();
+    if (storage) {
+      await storage.setItem(key, value);
+      saved = true;
+    }
   } catch {
     saved = false;
   }
@@ -76,6 +79,15 @@ async function saveString(key: string, value: string) {
   }
 
   memoryStore.set(key, value);
+}
+
+function asyncStorage() {
+  if (!asyncStoragePromise) {
+    asyncStoragePromise = import("@react-native-async-storage/async-storage")
+      .then((module) => module.default)
+      .catch(() => null);
+  }
+  return asyncStoragePromise;
 }
 
 function getWebStorage() {

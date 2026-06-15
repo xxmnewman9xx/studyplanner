@@ -1,4 +1,6 @@
 import { Assignment, Course, GradeCategory, SyllabusParseResult } from "../models";
+import { normalizeGlobalAcademicText } from "../ai";
+import { normalizeExtractedOcrText } from "../ocrText";
 
 type InferredSemester = {
   name?: string;
@@ -124,8 +126,10 @@ export function parseSyllabusText(rawText: string, sourceName: string): Syllabus
 }
 
 function normalizeSyllabusText(rawText: string) {
-  return addDeadlineBreaks(rawText)
+  const normalizedAcademicText = normalizeGlobalAcademicText(normalizeExtractedOcrText(rawText));
+  return addDeadlineBreaks(normalizedAcademicText)
     .replace(/\r/g, "\n")
+    .replace(/\s*\|\s*(?=(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[/. -]\d{1,2}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+\d{1,2}))/gi, "\n")
     .replace(/[ \t]+/g, " ")
     .replace(/\u0000/g, "")
     .replace(/[“”]/g, "\"")
@@ -399,7 +403,11 @@ function parseDateToken(token: string, inferredYear: number) {
   const numeric = normalized.match(/^(\d{1,2})[/. -](\d{1,2})(?:[/. -](\d{2,4}))?$/);
   if (numeric) {
     const year = normalizeYear(numeric[3], inferredYear);
-    return formatDateParts(year, Number(numeric[1]), Number(numeric[2]));
+    const first = Number(numeric[1]);
+    const second = Number(numeric[2]);
+    const month = first > 12 && second <= 12 ? second : first;
+    const day = first > 12 && second <= 12 ? first : second;
+    return formatDateParts(year, month, day);
   }
 
   const named = normalized.match(

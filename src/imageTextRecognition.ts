@@ -1,5 +1,6 @@
 import { Platform } from "react-native";
 import { requireOptionalNativeModule } from "expo-modules-core";
+import { countOcrWords, normalizeExtractedOcrText } from "./ocrText";
 
 type StudyPlannerVisionOcrModule = {
   recognizeText(uri: string): Promise<string>;
@@ -17,16 +18,12 @@ export async function extractTextFromImage(uri: string): Promise<string> {
   }
 
   const text = await visionOcr!.recognizeText(uri);
-  const normalized = text
-    .replace(/\r/g, "\n")
-    .replace(/[ \t]+\n/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
+  const normalized = normalizeExtractedOcrText(text);
 
   if (!normalized) {
     throw new Error("No readable school material text was found in that photo.");
   }
-  const wordCount = normalized.split(/\s+/).filter(Boolean).length;
+  const wordCount = countOcrWords(normalized);
   if (wordCount < 8) {
     throw new Error("That photo did not contain enough readable school text. Retake it closer, scan another page, or paste the text.");
   }

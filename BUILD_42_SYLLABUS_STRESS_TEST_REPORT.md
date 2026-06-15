@@ -6,7 +6,7 @@ Result: PASS
 |---|---:|---:|---:|---:|---|
 | Standard table syllabus | PASS | 1 | 1 | 0 | dates normalized |
 | Bullet list syllabus | PASS | 1 | 1 | 1 | dates normalized |
-| Paragraph syllabus | PASS | 1 | 2 | 2 | dates normalized |
+| Paragraph syllabus | PASS | 1 | 1 | 2 | dates normalized |
 | Multiple dates per line | PASS | 0 | 1 | 3 | dates normalized |
 | Date ranges | PASS | 0 | 1 | 0 | dates normalized |
 | Ambiguous year | PASS | 0 | 1 | 1 | dates normalized |
@@ -23,7 +23,7 @@ Result: PASS
 | Time-bearing dates | PASS | 0 | 2 | 0 | dates normalized |
 | Grading-weight section | PASS | 0 | 1 | 1 | dates normalized |
 | Class meeting schedule | PASS | 1 | 1 | 0 | dates normalized |
-| Mixed content | PASS | 1 | 2 | 1 | dates normalized |
+| Mixed content | PASS | 1 | 3 | 1 | dates normalized |
 
 ## PDF Extraction Fixture
 

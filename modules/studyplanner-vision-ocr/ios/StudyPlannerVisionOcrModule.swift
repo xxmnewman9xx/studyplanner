@@ -18,7 +18,7 @@ public class StudyPlannerVisionOcrModule: Module {
       let request = VNRecognizeTextRequest()
       request.recognitionLevel = .accurate
       request.usesLanguageCorrection = true
-      request.recognitionLanguages = ["en-US"]
+      request.recognitionLanguages = Self.supportedStudyPlannerLanguages(for: request)
       request.minimumTextHeight = 0.015
 
       let handler = VNImageRequestHandler(
@@ -41,6 +41,31 @@ public class StudyPlannerVisionOcrModule: Module {
 
       return text
     }
+  }
+
+  private static func supportedStudyPlannerLanguages(for request: VNRecognizeTextRequest) -> [String] {
+    let preferred = [
+      "en-US", "en-GB", "en-AU", "en-CA",
+      "es-ES", "es-MX",
+      "fr-FR", "fr-CA",
+      "de-DE",
+      "pt-BR", "pt-PT",
+      "ja-JP",
+      "ko-KR",
+      "zh-Hans", "zh-Hant",
+      "hi-IN",
+      "ar-SA"
+    ]
+
+    guard let supported = try? VNRecognizeTextRequest.supportedRecognitionLanguages(
+      for: request.recognitionLevel,
+      revision: request.revision
+    ) else {
+      return ["en-US"]
+    }
+
+    let filtered = preferred.filter { supported.contains($0) }
+    return filtered.isEmpty ? ["en-US"] : filtered
   }
 
   private static func loadImage(_ uri: String) throws -> UIImage {

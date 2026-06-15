@@ -30,12 +30,25 @@ export const studyPlannerIapManifest = {
   },
   products: [
     {
+      productId: "com.mattnewman.studyplanner.plus.weekly",
+      type: "auto_renewable_subscription" as IapProductType,
+      displayName: "StudyPlanner: Syllabus AI Weekly",
+      description: "Full access to StudyPlanner: Syllabus AI while the weekly plan is active.",
+      entitlementUnlocked: "studyplanner_pro",
+      subscriptionPeriod: "P1W",
+      appStoreConnectPriceUsd: "5.99",
+      hasFreeTrial: false,
+      hasIntroOffer: false,
+      sandboxNotes: "Use an App Store sandbox tester or local StoreKit config; do not use this value as a bundle identifier."
+    },
+    {
       productId: "com.mattnewman.studyplanner.plus.monthly",
       type: "auto_renewable_subscription" as IapProductType,
       displayName: "StudyPlanner: Syllabus AI Monthly",
       description: "Full access to StudyPlanner: Syllabus AI while the monthly plan is active.",
       entitlementUnlocked: "studyplanner_pro",
       subscriptionPeriod: "P1M",
+      appStoreConnectPriceUsd: "14.99",
       hasFreeTrial: false,
       hasIntroOffer: false,
       sandboxNotes: "Use an App Store sandbox tester or local StoreKit config; do not use this value as a bundle identifier."
@@ -47,6 +60,7 @@ export const studyPlannerIapManifest = {
       description: "Full access to StudyPlanner: Syllabus AI while the yearly plan is active.",
       entitlementUnlocked: "studyplanner_pro",
       subscriptionPeriod: "P1Y",
+      appStoreConnectPriceUsd: "59.99",
       hasFreeTrial: false,
       hasIntroOffer: false,
       sandboxNotes: "Use an App Store sandbox tester or local StoreKit config; do not use this value as a bundle identifier."

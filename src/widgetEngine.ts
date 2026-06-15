@@ -1,5 +1,5 @@
 import { Platform } from "react-native";
-import { AppData, ClassItem, TaskItem, WidgetDensity, WidgetKey, WidgetThemeChoice } from "./types";
+import { AppData, ClassItem, ExamItem, TaskItem, WidgetDensity, WidgetKey, WidgetThemeChoice } from "./types";
 import { formatDue } from "./seed";
 import { buildSemesterSnapshot, colorForState, daysUntilTask } from "./intelligence";
 import { buildSemesterNarrative } from "./semesterNarrative";
@@ -65,6 +65,16 @@ function activeTasks(data: AppData) {
   return data.tasks.filter((task) => !task.done).slice().sort((a, b) => daysUntilTask(a) - daysUntilTask(b));
 }
 
+function daysUntilIso(iso: string) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+  return Math.round((new Date(`${iso}T12:00:00`).getTime() - today.getTime()) / 86400000);
+}
+
+function activeAssessments(data: AppData) {
+  return data.exams.slice().sort((a, b) => daysUntilIso(a.dueDate) - daysUntilIso(b.dueDate));
+}
+
 function classFor(data: AppData, classId?: string): ClassItem {
   return data.classes.find((klass) => klass.id === classId) || data.classes[0] || {
     id: "empty",
@@ -92,6 +102,23 @@ function itemFor(data: AppData, task: TaskItem): NativeWidgetItem {
     courseColor: "#111111",
     dueLabel: formatDue(daysUntilTask(task)),
   };
+}
+
+function examItemFor(data: AppData, exam: ExamItem): NativeWidgetItem {
+  const klass = classFor(data, exam.classId);
+  return {
+    id: exam.id,
+    title: exam.title,
+    courseCode: klass.code,
+    courseColor: "#111111",
+    dueLabel: formatDue(daysUntilIso(exam.dueDate)),
+  };
+}
+
+function dueItems(data: AppData) {
+  const taskItems = activeTasks(data).map((task) => ({ sort: daysUntilTask(task), item: itemFor(data, task) }));
+  const examItems = activeAssessments(data).map((exam) => ({ sort: daysUntilIso(exam.dueDate), item: examItemFor(data, exam) }));
+  return [...taskItems, ...examItems].sort((a, b) => a.sort - b.sort);
 }
 
 function itemLimit(density: WidgetDensity) {
@@ -164,9 +191,10 @@ export function buildNativeWidgetSnapshots(data: AppData): NativeWidgetSnapshots
   const narrative = buildSemesterNarrative(data, snapshot);
   const loop = buildSemesterLoop(data);
   const tasks = activeTasks(data);
+  const itemsByDue = dueItems(data);
   const limit = itemLimit(density);
-  const today = tasks.filter((task) => daysUntilTask(task) <= 0).slice(0, limit).map((task) => itemFor(data, task));
-  const upcoming = tasks.slice(0, limit + 1).map((task) => itemFor(data, task));
+  const today = itemsByDue.filter((entry) => entry.sort <= 0).slice(0, limit).map((entry) => entry.item);
+  const upcoming = itemsByDue.slice(0, limit + 1).map((entry) => entry.item);
   const classFocus = classFor(data, data.prefs.widgetClassId);
   const classTasks = tasks.filter((task) => task.classId === classFocus.id).slice(0, limit).map((task) => itemFor(data, task));
   const nextAction = snapshot.recommendedActions[0];

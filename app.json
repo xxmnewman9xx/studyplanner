@@ -3,7 +3,7 @@
     "name": "Studyplanner: Syllabus AI",
     "slug": "study-planner-syllabus-ai",
     "scheme": "studyplanner",
-    "version": "1.0.3",
+    "version": "2.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -11,13 +11,14 @@
       "supportsTablet": true,
       "appleTeamId": "5JN35MJ3QD",
       "bundleIdentifier": "com.mattnewman.studyplanner",
-      "buildNumber": "56",
+      "buildNumber": "64",
       "entitlements": {
         "com.apple.security.application-groups": [
           "group.com.mattnewman.studyplanner"
         ]
       },
       "infoPlist": {
+        "CFBundleAllowMixedLocalizations": true,
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "Use the camera to read syllabus photos with OCR and turn assignments, exams, and deadlines into reviewed planner items.",
         "NSPhotoLibraryUsageDescription": "Use selected syllabus photos for OCR so assignments, exams, and deadlines can be reviewed before they are added.",
@@ -41,6 +42,14 @@
       "expo-notifications",
       "expo-sqlite",
       "expo-image-picker",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Use the camera to guide syllabus and notes scans with framing feedback before OCR review.",
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": false
+        }
+      ],
       "./plugins/with-widgetkit-kinds",
       [
         "expo-widgets",
@@ -107,6 +116,25 @@
         }
       ]
     ],
+    "locales": {
+      "ar-SA": "./locales/ios/ar-SA.json",
+      "de-DE": "./locales/ios/de-DE.json",
+      "en-AU": "./locales/ios/en-AU.json",
+      "en-CA": "./locales/ios/en-CA.json",
+      "en-GB": "./locales/ios/en-GB.json",
+      "en-US": "./locales/ios/en-US.json",
+      "es-ES": "./locales/ios/es-ES.json",
+      "es-MX": "./locales/ios/es-MX.json",
+      "fr-CA": "./locales/ios/fr-CA.json",
+      "fr-FR": "./locales/ios/fr-FR.json",
+      "hi": "./locales/ios/hi.json",
+      "ja": "./locales/ios/ja.json",
+      "ko": "./locales/ios/ko.json",
+      "pt-BR": "./locales/ios/pt-BR.json",
+      "pt-PT": "./locales/ios/pt-PT.json",
+      "zh-Hans": "./locales/ios/zh-Hans.json",
+      "zh-Hant": "./locales/ios/zh-Hant.json"
+    },
     "extra": {
       "eas": {
         "projectId": "69335c75-753e-424e-8a76-c8bd2455a112"

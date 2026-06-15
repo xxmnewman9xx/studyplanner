@@ -1,0 +1,21 @@
+locale	kw	sub	promo	rel	score	note
+pt-BR	94	24	118	172	10	10/10 conversion-ready
+zh-Hant	97	10	56	70	10	10/10 conversion-ready
+es-ES	100	23	121	183	10	10/10 conversion-ready
+fr-CA	97	23	129	181	10	10/10 conversion-ready
+en-GB	97	24	128	197	10	10/10 conversion-ready
+de-DE	94	26	123	180	10	10/10 conversion-ready
+en-US	100	23	127	197	10	10/10 conversion-ready
+fr-FR	94	27	130	186	10	10/10 conversion-ready
+en-AU	100	24	122	191	10	10/10 conversion-ready
+en-CA	99	26	133	197	10	10/10 conversion-ready
+pt-PT	97	26	127	177	10	10/10 conversion-ready
+hi	95	21	135	180	10	10/10 conversion-ready
+ko	99	15	77	116	10	10/10 conversion-ready
+zh-Hans	95	10	53	72	10	10/10 conversion-ready
+es-MX	98	23	125	183	10	10/10 conversion-ready
+ja	100	14	62	95	10	10/10 conversion-ready
+ar-SA	98	18	124	164	10	10/10 conversion-ready
+
+errors
+none

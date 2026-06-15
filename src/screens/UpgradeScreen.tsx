@@ -23,6 +23,7 @@ export function UpgradeScreen({ onContinueAfterPurchase }: UpgradeScreenProps) {
   const { t } = useI18n();
   const localizationAnchor = t("paywall.dashboard_ready_subtitle", "Stay ahead all semester.");
   void localizationAnchor;
+  const weeklyProduct = subscription.products.find((product) => product.periodLabel.toLowerCase().includes("week"));
   const monthlyProduct = subscription.products.find((product) => product.periodLabel.toLowerCase().includes("month")) ?? subscription.products[0];
   const yearlyProduct =
     subscription.products.find((product) => product.periodLabel.toLowerCase().includes("year")) ??
@@ -74,14 +75,18 @@ export function UpgradeScreen({ onContinueAfterPurchase }: UpgradeScreenProps) {
       <View style={{ flex: 1 }} />
 
       <View style={styles.plans}>
+        <TouchableOpacity style={styles.plan} onPress={() => weeklyProduct ? subscription.setSelectedProductId(weeklyProduct.id) : undefined}>
+          <Text style={styles.planLabel}>{t("paywall.weekly", "Weekly")}</Text>
+          <Text style={styles.planPrice}>{weeklyProduct?.displayPrice ?? "$5.99"}</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.plan} onPress={() => monthlyProduct ? subscription.setSelectedProductId(monthlyProduct.id) : undefined}>
           <Text style={styles.planLabel}>{t("paywall.monthly", "Monthly")}</Text>
-          <Text style={styles.planPrice}>{monthlyProduct?.displayPrice ?? "$4.99"}</Text>
+          <Text style={styles.planPrice}>{monthlyProduct?.displayPrice ?? "$14.99"}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.plan, styles.planSelected]} onPress={() => yearlyProduct ? subscription.setSelectedProductId(yearlyProduct.id) : undefined}>
-          <Text style={styles.save}>SAVE 60%</Text>
+          <Text style={styles.save}>SAVE 81%</Text>
           <Text style={styles.planLabel}>{t("paywall.yearly", "Yearly")}</Text>
-          <Text style={styles.planPrice}>{yearlyProduct?.displayPrice ?? "$23.99"}</Text>
+          <Text style={styles.planPrice}>{yearlyProduct?.displayPrice ?? "$59.99"}</Text>
         </TouchableOpacity>
       </View>
       <AppButton label="Start 7-day free trial" variant="light" onPress={buy} style={{ height: 60 }} />
@@ -89,7 +94,7 @@ export function UpgradeScreen({ onContinueAfterPurchase }: UpgradeScreenProps) {
         <Text style={styles.restoreText}>{subscription.flowState === "restoring" ? t("paywall.restoring", "Restoring") : t("paywall.restore", "Restore Purchases")}</Text>
       </TouchableOpacity>
       <Text style={styles.fine}>
-        Then {yearlyProduct?.displayPrice ?? "$23.99"}/yr · Cancel anytime · {purchaseConfig.productIdSource === "environment" ? t("paywall.product_source_build_env", "Store products from build environment") : t("paywall.product_source_release_manifest", "Store products from release manifest")}
+        Then {yearlyProduct?.displayPrice ?? "$59.99"}/yr · Cancel anytime · {purchaseConfig.productIdSource === "environment" ? t("paywall.product_source_build_env", "Store products from build environment") : t("paywall.product_source_release_manifest", "Store products from release manifest")}
       </Text>
       <View style={styles.legalRow}>
         <TouchableOpacity onPress={openTerms}>

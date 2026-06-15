@@ -1,0 +1,155 @@
+[
+  {
+    "locale": "pt-BR",
+    "titleLength": 28,
+    "subtitleLength": 24,
+    "keywordsLength": 77,
+    "iphoneScreenshots": 7,
+    "firstIphoneScreenshot": "store/apple/screenshot/pt-BR/APP_IPHONE_65/01-scan-anything.png",
+    "versionReleaseNotes": "Novas prévias para iPad, capturas localizadas e melhor organização de tarefas, prazos e planos de estudo."
+  },
+  {
+    "locale": "zh-Hant",
+    "titleLength": 18,
+    "subtitleLength": 9,
+    "keywordsLength": 39,
+    "iphoneScreenshots": 7,
+    "firstIphoneScreenshot": "store/apple/screenshot/zh-Hant/APP_IPHONE_65/01-scan-anything.png",
+    "versionReleaseNotes": "新增 iPad 預覽、本地化截圖，並改善從課程大綱整理作業、提醒與學習計畫的流程。"
+  },
+  {
+    "locale": "es-ES",
+    "titleLength": 28,
+    "subtitleLength": 23,
+    "keywordsLength": 84,
+    "iphoneScreenshots": 7,
+    "firstIphoneScreenshot": "store/apple/screenshot/es-ES/APP_IPHONE_65/01-scan-anything.png",
+    "versionReleaseNotes": "Nuevas capturas para iPad, vistas localizadas y mejor organización de tareas, entregas y estudio."
+  },
+  {
+    "locale": "fr-CA",
+    "titleLength": 29,
+    "subtitleLength": 25,
+    "keywordsLength": 82,
+    "iphoneScreenshots": 7,
+    "firstIphoneScreenshot": "store/apple/screenshot/fr-CA/APP_IPHONE_65/01-scan-anything.png",
+    "versionReleaseNotes": "Nouveaux visuels iPad, aperçus localisés et meilleure organisation des travaux, échéances et plans d’étude."
+  },
+  {
+    "locale": "en-GB",
+    "titleLength": 15,
+    "subtitleLength": 24,
+    "keywordsLength": 89,
+    "iphoneScreenshots": 7,
+    "firstIphoneScreenshot": "store/apple/screenshot/en-GB/APP_IPHONE_65/01-scan-anything.png",
+    "versionReleaseNotes": "New iPad screenshots, refreshed localized previews, cleaner onboarding flow, and improved syllabus-to-plan organization."
+  },
+  {
+    "locale": "de-DE",
+    "titleLength": 25,
+    "subtitleLength": 24,
+    "keywordsLength": 90,
+    "iphoneScreenshots": 7,
+    "firstIphoneScreenshot": "store/apple/screenshot/de-DE/APP_IPHONE_65/01-scan-anything.png",
+    "versionReleaseNotes": "Neue iPad-Vorschauen, lokalisierte Screenshots und bessere Organisation von Aufgaben, Fristen und Lernplänen."
+  },
+  {
+    "locale": "en-US",
+    "titleLength": 15,
+    "subtitleLength": 24,
+    "keywordsLength": 89,
+    "iphoneScreenshots": 7,
+    "firstIphoneScreenshot": "store/apple/screenshot/en-US/APP_IPHONE_65/01-scan-anything.png",
+    "versionReleaseNotes": "New iPad screenshots, refreshed localized previews, cleaner onboarding flow, and improved syllabus-to-plan organization."
+  },
+  {
+    "locale": "fr-FR",
+    "titleLength": 29,
+    "subtitleLength": 23,
+    "keywordsLength": 83,
+    "iphoneScreenshots": 7,
+    "firstIphoneScreenshot": "store/apple/screenshot/fr-FR/APP_IPHONE_65/01-scan-anything.png",
+    "versionReleaseNotes": "Nouveaux visuels iPad, aperçus localisés et meilleure organisation des devoirs, échéances et révisions."
+  },
+  {
+    "locale": "en-AU",
+    "titleLength": 15,
+    "subtitleLength": 24,
+    "keywordsLength": 89,
+    "iphoneScreenshots": 7,
+    "firstIphoneScreenshot": "store/apple/screenshot/en-AU/APP_IPHONE_65/01-scan-anything.png",
+    "versionReleaseNotes": "New iPad screenshots, refreshed localized previews, cleaner onboarding flow, and improved syllabus-to-plan organization."
+  },
+  {
+    "locale": "en-CA",
+    "titleLength": 15,
+    "subtitleLength": 24,
+    "keywordsLength": 89,
+    "iphoneScreenshots": 7,
+    "firstIphoneScreenshot": "store/apple/screenshot/en-CA/APP_IPHONE_65/01-scan-anything.png",
+    "versionReleaseNotes": "New iPad screenshots, refreshed localized previews, cleaner onboarding flow, and improved syllabus-to-plan organization."
+  },
+  {
+    "locale": "pt-PT",
+    "titleLength": 28,
+    "subtitleLength": 19,
+    "keywordsLength": 86,
+    "iphoneScreenshots": 7,
+    "firstIphoneScreenshot": "store/apple/screenshot/pt-PT/APP_IPHONE_65/01-scan-anything.png",
+    "versionReleaseNotes": "Novas pré-visualizações para iPad, capturas localizadas e melhor organização de TPC, prazos e planos de estudo."
+  },
+  {
+    "locale": "hi",
+    "titleLength": 25,
+    "subtitleLength": 22,
+    "keywordsLength": 77,
+    "iphoneScreenshots": 7,
+    "firstIphoneScreenshot": "store/apple/screenshot/hi/APP_IPHONE_65/01-scan-anything.png",
+    "versionReleaseNotes": "iPad पूर्वावलोकन, स्थानीयकृत स्क्रीनशॉट, और सिलेबस से कार्य व पढ़ाई की योजना बनाने की प्रक्रिया में सुधार।"
+  },
+  {
+    "locale": "ko",
+    "titleLength": 19,
+    "subtitleLength": 16,
+    "keywordsLength": 41,
+    "iphoneScreenshots": 7,
+    "firstIphoneScreenshot": "store/apple/screenshot/ko/APP_IPHONE_65/01-scan-anything.png",
+    "versionReleaseNotes": "iPad 미리보기, 현지화된 스크린샷, 강의계획서에서 일정과 공부 계획을 정리하는 흐름을 개선했습니다."
+  },
+  {
+    "locale": "zh-Hans",
+    "titleLength": 18,
+    "subtitleLength": 9,
+    "keywordsLength": 41,
+    "iphoneScreenshots": 7,
+    "firstIphoneScreenshot": "store/apple/screenshot/zh-Hans/APP_IPHONE_65/01-scan-anything.png",
+    "versionReleaseNotes": "新增 iPad 预览、本地化截图，并改进从教学大纲整理作业、提醒和学习计划的流程。"
+  },
+  {
+    "locale": "es-MX",
+    "titleLength": 28,
+    "subtitleLength": 23,
+    "keywordsLength": 84,
+    "iphoneScreenshots": 7,
+    "firstIphoneScreenshot": "store/apple/screenshot/es-MX/APP_IPHONE_65/01-scan-anything.png",
+    "versionReleaseNotes": "Nuevas capturas para iPad, vistas localizadas y mejor organización de tareas, entregas y estudio."
+  },
+  {
+    "locale": "ja",
+    "titleLength": 18,
+    "subtitleLength": 12,
+    "keywordsLength": 44,
+    "iphoneScreenshots": 7,
+    "firstIphoneScreenshot": "store/apple/screenshot/ja/APP_IPHONE_65/01-scan-anything.png",
+    "versionReleaseNotes": "iPad向けプレビュー、各言語のスクリーンショット、シラバスから予定を整理する流れを改善しました。"
+  },
+  {
+    "locale": "ar-SA",
+    "titleLength": 26,
+    "subtitleLength": 16,
+    "keywordsLength": 80,
+    "iphoneScreenshots": 7,
+    "firstIphoneScreenshot": "store/apple/screenshot/ar-SA/APP_IPHONE_65/01-scan-anything.png",
+    "versionReleaseNotes": "تحديثات لصور iPad والمعاينات المحلية، مع تنظيم أوضح للواجبات والمواعيد وخطط المذاكرة حسب المادة."
+  }
+]

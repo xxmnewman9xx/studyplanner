@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~56.0.9",
+    "expo-camera": "~56.0.8",
     "expo-document-picker": "~56.0.4",
     "expo-file-system": "~56.0.7",
     "expo-haptics": "~56.0.3",
@@ -12,6 +14,7 @@
     "expo-notifications": "~56.0.16",
     "expo-sqlite": "~56.0.4",
     "expo-status-bar": "~56.0.4",
+    "expo-store-review": "~56.0.3",
     "expo-widgets": "~56.0.17",
     "lucide-react-native": "^1.17.0",
     "react": "19.2.3",
@@ -58,7 +61,7 @@
     "check:installed-build52": "node scripts/check-installed-build52.mjs",
     "check:activation-spine": "tsx scripts/check-activation-spine.ts",
     "check:localization": "node scripts/check-localization.mjs",
-    "qa:release": "npm run check:activation-spine && npm run check:build52"
+    "qa:release": "npm run check:activation-spine && tsx scripts/check-semester-ownership-cycle.ts && npm run check:build52"
   },
   "private": true
 }

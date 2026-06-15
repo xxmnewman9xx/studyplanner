@@ -11,6 +11,7 @@ const devClientUrl = process.env.STUDYPLANNER_DEV_CLIENT_URL || "";
 const captureLocale = process.env.STUDYPLANNER_CAPTURE_LOCALE || "";
 const launchWaitMs = Number(process.env.STUDYPLANNER_SIM_CAPTURE_WAIT_MS || 14000);
 const captureTargets = [
+  { key: "welcome", route: { route: "welcome", emptyPlanner: true }, name: "00-welcome" },
   { key: "onboarding", route: { onboardingIndex: 0 }, name: "00-onboarding-scan" },
   { key: "onboarding-review", route: { onboardingIndex: 1 }, name: "01-onboarding-review" },
   { key: "onboarding-calendar", route: { onboardingIndex: 2 }, name: "02-onboarding-calendar" },
@@ -18,6 +19,10 @@ const captureTargets = [
   { key: "onboarding-classes", route: { onboardingIndex: 4 }, name: "04-onboarding-classes" },
   { key: "onboarding-focus", route: { onboardingIndex: 5 }, name: "05-onboarding-focus" },
   { key: "onboarding-widgets", route: { onboardingIndex: 6 }, name: "06-onboarding-widgets" },
+  { key: "import-options", route: { route: "importOptions", emptyPlanner: true }, name: "07-import-options" },
+  { key: "locked-dashboard", route: { route: "lockedDashboard", emptyPlanner: true }, name: "08-locked-dashboard" },
+  { key: "terms", route: { route: "terms", emptyPlanner: true }, name: "09-terms" },
+  { key: "privacy", route: { route: "privacy", emptyPlanner: true }, name: "09a-privacy" },
   { key: "today", route: { tab: "today", themeMode: "light" }, name: "10-today-light" },
   { key: "today-dark", route: { tab: "today", themeMode: "dark" }, name: "11-today-dark" },
   { key: "scan", route: { tab: "import" }, name: "12-scan" },
@@ -30,6 +35,17 @@ const captureTargets = [
   { key: "calendar-clean", route: { tab: "plan", workloadState: "clean" }, name: "15-calendar-clean" },
   { key: "calendar-urgent", route: { tab: "plan", workloadState: "urgent" }, name: "16-calendar-urgent" },
   { key: "classes", route: { tab: "courses" }, name: "17-classes" },
+  { key: "class-detail", route: { screen: "classDetail" }, name: "17a-class-detail" },
+  { key: "notes", route: { route: "notes" }, name: "17b-notes" },
+  { key: "tasks", route: { route: "tasks" }, name: "17c-tasks" },
+  { key: "profile", route: { route: "profile" }, name: "17d-profile" },
+  { key: "task-detail", route: { screen: "taskDetail" }, name: "17e-task-detail" },
+  { key: "assessment-detail", route: { screen: "assessmentDetail" }, name: "17f-assessment-detail" },
+  { key: "note-detail", route: { screen: "noteDetail" }, name: "17g-note-detail" },
+  { key: "paste", route: { route: "paste" }, name: "17h-paste" },
+  { key: "success", route: { route: "success" }, name: "17i-success" },
+  { key: "reminders", route: { route: "reminders" }, name: "17j-reminders" },
+  { key: "study-session", route: { route: "studySession" }, name: "17k-study-session" },
   { key: "focus", route: { tab: "focus" }, name: "18-focus" },
   { key: "widgets", route: { tab: "more" }, name: "19-widgets-ocean" },
   { key: "widgets-graphite", route: { tab: "more", appTheme: "graphite", widgetPalette: "graphite", widgetBackground: "dark" }, name: "20-widgets-graphite" },
@@ -58,15 +74,16 @@ const captureTargets = [
   { key: "empty-today", route: { tab: "today", themeMode: "light", emptyPlanner: true }, name: "57-empty-today" },
   { key: "today-actions", route: { tab: "today", themeMode: "light" }, name: "58-today-reminder-calendar-actions" },
   { key: "studio-customized-setup", route: { tab: "more", themeMode: "light", classColor: "#8B3DFF", secondaryAccent: "#EC4899", widgetType: "class_focus", widgetSize: "medium", widgetStudioStyle: "color_card", widgetColorSource: "custom", widgetCustomColor: "#EC4899", watchPreviewStyle: "cards" }, name: "59-studio-customized-setup" },
-  { key: "paywall", route: { tab: "subscribe" }, name: "24-paywall" },
+  { key: "paywall", route: { route: "paywall", emptyPlanner: true }, name: "24-paywall" },
   { key: "grades", route: { tab: "grades" }, name: "25-grades" }
 ];
 const requestedTargets = (process.env.STUDYPLANNER_SIM_CAPTURE_TABS || "")
   .split(",")
   .map((target) => target.trim())
   .filter(Boolean);
+const exactTargetsOnly = process.env.STUDYPLANNER_SIM_CAPTURE_EXACT === "1";
 const targets = requestedTargets.length
-  ? captureTargets.filter((target) => requestedTargets.includes(target.key) || requestedTargets.includes(target.route.tab))
+  ? captureTargets.filter((target) => requestedTargets.includes(target.key) || (!exactTargetsOnly && requestedTargets.includes(target.route.tab)))
   : captureTargets;
 const finalWidgetMode = outDir.includes("final_widgets");
 const manifestEntries = [];
@@ -86,7 +103,7 @@ const timestamp = new Date().toISOString();
 for (const { route, name, key } of targets) {
   writeFileSync(
     join(dataRoot, "Documents", "studyplanner-capture-tab.json"),
-    JSON.stringify(captureLocale ? { ...route, locale: captureLocale } : route)
+    JSON.stringify({ ...route, qaState: "build57", ...(captureLocale ? { locale: captureLocale } : {}) })
   );
   runOptional("xcrun", ["simctl", "terminate", device, bundleId]);
   if (devClientUrl) {

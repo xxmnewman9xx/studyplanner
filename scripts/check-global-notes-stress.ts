@@ -14,16 +14,23 @@ type Case = {
 };
 
 const cases: Case[] = [
-  { locale: "English", kind: "lecture outline", text: "Biology Lecture Photosynthesis Definition chlorophyll converts light. Formula ATP + NADPH. Exam hint know Calvin cycle. confusing electron transport review later." },
-  { locale: "Spanish", kind: "exam review", text: "BIO revisión examen definición mitosis tarea confusing ciclo celular repasar formula ATP." },
-  { locale: "Portuguese", kind: "formula notes", text: "FIN revisão WACC = E/V Re + D/V Rd. beta confusing. exame precisa revisar custo capital." },
-  { locale: "French", kind: "definitions", text: "PSYC réviser définition mémoire travail. devoir cognition. confusing attention sélective." },
-  { locale: "German", kind: "weak areas", text: "CHEM klausur review aufgabe molaritat formula M=n/V confusing titration." },
-  { locale: "Japanese", kind: "messy OCR", text: "CHEM 復習 試験 formula pH=-logH 課題 confusing 酸 塩基 review later" },
-  { locale: "Korean", kind: "flashcard style", text: "CS 복습 시험 Definition algorithm complexity O(n log n) confusing graph traversal" },
-  { locale: "Chinese", kind: "mixed topic", text: "MATH 复习 考试 formula derivative limit 作业 confusing chain rule" },
-  { locale: "Hindi", kind: "OCR notes", text: "BIO समीक्षा परीक्षा formula ATP असाइनमेंट confusing कोशिका division review" },
-  { locale: "Arabic", kind: "sparse notes", text: "CHEM مراجعة اختبار formula pH واجب confusing acid base", sparse: true },
+  { locale: "en-US", kind: "lecture outline", text: "Biology Lecture Photosynthesis Definition chlorophyll converts light. Formula ATP + NADPH. Exam hint know Calvin cycle. confusing electron transport review later." },
+  { locale: "en-GB", kind: "revision sheet", text: "CHEM revision practical exam Definition catalyst lowers activation energy. Formula rate = k[A]. confusing equilibrium review later." },
+  { locale: "en-AU", kind: "tutorial notes", text: "PSYC tutorial memory Definition working memory stores information briefly. Formula score = correct / total. confusing attention review before quiz." },
+  { locale: "en-CA", kind: "lab notes", text: "BIO lab osmosis Definition water crosses membrane. Formula concentration gradient. confusing diffusion review for exam." },
+  { locale: "es-ES", kind: "exam review", text: "BIO revisión examen definición mitosis tarea confusing ciclo celular repasar formula ATP." },
+  { locale: "es-MX", kind: "apuntes de clase", text: "HIST revisión examen definición revolución tarea confusing causas consecuencias repasar cronología." },
+  { locale: "pt-BR", kind: "formula notes", text: "FIN revisão WACC = E/V Re + D/V Rd. beta confusing. exame precisa revisar custo capital." },
+  { locale: "pt-PT", kind: "ficha de estudo", text: "BIO revisão exame definição célula trabalho confusing mitose meiose formula ATP." },
+  { locale: "fr-CA", kind: "definitions", text: "PSYC réviser définition mémoire travail. devoir cognition. confusing attention sélective." },
+  { locale: "fr-FR", kind: "fiche de révision", text: "MATH réviser examen définition dérivée formule limite devoir confusing règle chaîne." },
+  { locale: "de-DE", kind: "weak areas", text: "CHEM klausur review aufgabe molaritat formula M=n/V confusing titration." },
+  { locale: "ja", kind: "messy OCR", text: "CHEM 復習 試験 formula pH=-logH 課題 confusing 酸 塩基 review later" },
+  { locale: "ko", kind: "flashcard style", text: "CS 복습 시험 Definition algorithm complexity O(n log n) confusing graph traversal" },
+  { locale: "zh-Hans", kind: "mixed topic", text: "MATH 复习 考试 formula derivative limit 作业 confusing chain rule" },
+  { locale: "zh-Hant", kind: "複習筆記", text: "ECON 復習 考試 formula elasticity demand 作業 confusing opportunity cost review" },
+  { locale: "hi", kind: "OCR notes", text: "BIO समीक्षा परीक्षा formula ATP असाइनमेंट confusing कोशिका division review" },
+  { locale: "ar-SA", kind: "sparse notes", text: "CHEM مراجعة اختبار formula pH واجب confusing acid base", sparse: true },
   { locale: "Sparse", kind: "too short", text: "some stuff maybe", sparse: true },
 ];
 
@@ -48,13 +55,17 @@ const rows = cases.map((item) => {
   return `| ${item.locale} | ${item.kind} | ${note?.terms.length || 0} | ${taskCandidate ? "yes" : "no"} | ${noteCandidate?.confidence.toFixed(2) || "0"} | ${snapshot.semesterHealth.dimensions.preparedness.score} | ${narrative.notesNudge} | ${failures.some((failure) => failure.startsWith(`${item.locale}:`)) ? "FAIL" : "PASS"} |`;
 });
 
-const report = `# Build 44 Global Notes Report
+const score = Math.round(((cases.length - failures.length) / cases.length) * 10);
+
+const report = `# Global Notes OCR Locale Stress Report
 
 ## Scope
-Global notes stress test covering lecture outlines, OCR-like notes, formulas, definitions, exam review hints, weak-area language, flashcard-friendly material, and sparse input.
+Global notes stress test covering every localized App Store app-title locale, lecture outlines, OCR-like notes, formulas, definitions, exam review hints, weak-area language, flashcard-friendly material, and sparse input.
 
 ## Result
 ${failures.length ? "FAIL" : "PASS"}
+
+Score: ${score}/10
 
 | Locale | Scenario | Concepts | Review Task | Confidence | Preparedness | Notes Narrative | Status |
 | --- | --- | ---: | --- | ---: | ---: | --- | --- |

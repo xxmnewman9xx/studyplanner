@@ -1,0 +1,11 @@
+ERRORS
+none
+
+WARNINGS
+pt-BR: latin words ['Agenda', 'Feito', 'Novas', 'Revise', 'Tarefas', 'Termos', 'Transforme', 'acompanhe', 'antes', 'aulas', 'capturas', 'cheias']
+es-ES: latin words ['Agenda', 'Condiciones', 'Convierte', 'Hecho', 'Nuevas', 'Revisa', 'Tareas', 'antes', 'apuntes', 'calendario', 'capturas', 'claro']
+fr-CA: latin words ['Agenda', 'Conditions', 'Nouveaux', 'Politique', 'Transformez', 'Travaux', 'aide', 'avant', 'avec', 'bord', 'chaque', 'clair']
+de-DE: latin words ['Aufgaben', 'Dashboard', 'Datenschutzrichtlinie', 'Erinnerungen', 'Erstelle', 'Fokuszeiten', 'Fristen', 'Hausaufgaben', 'Kalender', 'Klausuren', 'Kurs', 'Lernen']
+fr-FR: latin words ['Agenda', 'Conditions', 'Devoirs', 'Nouveaux', 'Politique', 'Transformez', 'avant', 'bord', 'chaque', 'clair', 'cours', 'depuis']
+pt-PT: latin words ['Agenda', 'Feito', 'Novas', 'TPC', 'Termos', 'Transforma', 'acompanha', 'antes', 'apontamentos', 'aulas', 'capturas', 'cheias']
+es-MX: latin words ['Agenda', 'Condiciones', 'Convierte', 'Hecho', 'Nuevas', 'Revisa', 'Tareas', 'antes', 'apuntes', 'calendario', 'capturas', 'claro']

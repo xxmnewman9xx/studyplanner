@@ -78,10 +78,37 @@ function normalizeTask(task: Partial<TaskItem>, index: number): TaskItem {
     done: Boolean(task.done),
     urgent: Boolean(task.urgent),
     source: cleanText(task.source, "Imported"),
+    priority: task.priority,
+    description: task.description,
+    recurringId: task.recurringId,
+    recurrenceIndex: Number.isFinite(task.recurrenceIndex) ? Number(task.recurrenceIndex) : undefined,
+    recurrenceEndDate: task.recurrenceEndDate,
+    userEditedAt: task.userEditedAt,
     subtasks: Array.isArray(task.subtasks) ? task.subtasks.map((subtask) => ({ title: cleanText(subtask.title, "Step"), done: Boolean(subtask.done) })) : [],
     weight: task.weight,
     score: task.score,
     missing: task.missing,
+  };
+}
+
+function normalizeExam(exam: Partial<ExamItem>, index: number): ExamItem {
+  return {
+    id: cleanText(exam.id, `exam_${index}`),
+    classId: cleanText(exam.classId, ""),
+    title: cleanText(exam.title, "Untitled assessment"),
+    dueOffset: Number.isFinite(exam.dueOffset) ? Number(exam.dueOffset) : 0,
+    dueDate: cleanText(exam.dueDate, new Date().toISOString().slice(0, 10)),
+    time: cleanText(exam.time, "9:00 AM"),
+    room: cleanText(exam.room, "Room TBD"),
+    kind: exam.kind,
+    description: exam.description,
+    effortMinutes: Number.isFinite(exam.effortMinutes) ? Number(exam.effortMinutes) : undefined,
+    priority: exam.priority,
+    notes: exam.notes,
+    userEditedAt: exam.userEditedAt,
+    topics: Array.isArray(exam.topics) ? exam.topics.filter((topic): topic is string => typeof topic === "string") : [],
+    weight: exam.weight,
+    score: exam.score,
   };
 }
 
@@ -133,7 +160,7 @@ export function normalizeData(data: Partial<AppData> | null | undefined): AppDat
     },
     classes: Array.isArray(data?.classes) ? data.classes.filter(Boolean) as ClassItem[] : [],
     tasks: Array.isArray(data?.tasks) ? data.tasks.filter(Boolean).map((task, index) => normalizeTask(task, index)) : [],
-    exams: Array.isArray(data?.exams) ? data.exams.filter(Boolean) as ExamItem[] : [],
+    exams: Array.isArray(data?.exams) ? data.exams.filter(Boolean).map((exam, index) => normalizeExam(exam, index)) : [],
     notes: Array.isArray(data?.notes) ? data.notes.filter(Boolean).map((note, index) => normalizeNote(note, index)) : [],
     reminders: Array.isArray(data?.reminders) ? data.reminders.filter(Boolean) as ReminderItem[] : [],
     studyBlocks: Array.isArray(data?.studyBlocks) ? data.studyBlocks.filter(Boolean) as StudyBlock[] : [],

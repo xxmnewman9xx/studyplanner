@@ -24,9 +24,29 @@
         {
           "adHocOffers": [],
           "codeOffers": [],
-          "displayPrice": "3.99",
+          "displayPrice": "5.99",
           "familyShareable": false,
           "groupNumber": 1,
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "Full access to StudyPlanner while the weekly plan is active.",
+              "displayName": "StudyPlanner Weekly",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "com.mattnewman.studyplanner.plus.weekly",
+          "recurringSubscriptionPeriod": "P1W",
+          "referenceName": "StudyPlanner Weekly",
+          "subscriptionGroupID": "studyplanner-pro",
+          "type": "RecurringSubscription"
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "14.99",
+          "familyShareable": false,
+          "groupNumber": 2,
           "introductoryOffer": null,
           "localizations": [
             {
@@ -44,9 +64,9 @@
         {
           "adHocOffers": [],
           "codeOffers": [],
-          "displayPrice": "24.99",
+          "displayPrice": "59.99",
           "familyShareable": false,
-          "groupNumber": 2,
+          "groupNumber": 3,
           "introductoryOffer": null,
           "localizations": [
             {
