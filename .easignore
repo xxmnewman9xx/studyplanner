@@ -16,6 +16,7 @@ AppStore/
 artifacts/
 marketing/
 marketing_exports/
+store/
 *.ipa
 *.xcarchive
 *.tsbuildinfo
