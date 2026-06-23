@@ -23,6 +23,8 @@ const localQaEntitlementProductId = "local-simulator-grace";
 type ProductKind = "subscription" | "lifetime";
 type PurchaseStatus = "checking" | "ready" | "unavailable" | "error";
 type PurchaseFlowState = "idle" | "loading" | "purchasing" | "restoring" | "success" | "error";
+type StoreProductType = "subs" | "in-app";
+type StoreProduct = Product | ProductSubscription;
 
 export type PaywallProduct = {
   id: string;
@@ -251,10 +253,10 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
     try {
       const [subscriptions, lifetimeProducts] = await Promise.all([
         purchaseConfig.subscriptionIds.length
-          ? fetchProducts({ skus: purchaseConfig.subscriptionIds, type: "subs" })
+          ? fetchStoreProducts(purchaseConfig.subscriptionIds, "subs")
           : Promise.resolve([]),
         purchaseConfig.lifetimeProductIds.length
-          ? fetchProducts({ skus: purchaseConfig.lifetimeProductIds, type: "in-app" })
+          ? fetchStoreProducts(purchaseConfig.lifetimeProductIds, "in-app")
           : Promise.resolve([])
       ]);
 
@@ -275,7 +277,7 @@ function NativeSubscriptionProvider({ children }: { children: React.ReactNode })
       setSelectedProductId(undefined);
       setStatus("error");
       setFlowState("error");
-      setErrorMessage(userMessageFromError(error));
+      setErrorMessage(productQueryMessageFromError(error));
     }
   }, []);
 
@@ -447,6 +449,38 @@ async function refreshEntitlementAfterPurchase(source: "purchase" | "restore" = 
   }
 
   return entitlement;
+}
+
+async function fetchStoreProducts(skus: string[], type: StoreProductType): Promise<StoreProduct[]> {
+  try {
+    return ((await fetchProducts({ skus, type })) ?? []) as StoreProduct[];
+  } catch (error) {
+    if (Platform.OS !== "android" || skus.length <= 1) {
+      throw error;
+    }
+
+    const results = await Promise.allSettled(
+      skus.map((sku) => fetchProducts({ skus: [sku], type }))
+    );
+    const products = results.flatMap((result) =>
+      result.status === "fulfilled" ? ((result.value ?? []) as StoreProduct[]) : []
+    );
+
+    if (products.length > 0) {
+      return uniqueStoreProducts(products);
+    }
+
+    throw error;
+  }
+}
+
+function uniqueStoreProducts(products: StoreProduct[]) {
+  const seen = new Set<string>();
+  return products.filter((product) => {
+    if (seen.has(product.id)) return false;
+    seen.add(product.id);
+    return true;
+  });
 }
 
 function entitlementCandidates(activeSubscriptions: ActiveSubscription[], purchases: Purchase[]) {
@@ -636,4 +670,13 @@ function userMessageFromError(error: unknown) {
   }
 
   return "The store could not complete that request. Try again in a moment.";
+}
+
+function productQueryMessageFromError(error: unknown) {
+  const message = userMessageFromError(error);
+  if (Platform.OS === "android" && /query product|product/i.test(message)) {
+    return "Google Play did not return the StudyPlanner plans. Install this build from Google Play with a Google account that has access, then try again.";
+  }
+
+  return message;
 }

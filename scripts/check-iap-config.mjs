@@ -11,9 +11,11 @@ function expect(condition, message) {
 }
 
 expect(app.ios?.bundleIdentifier === "com.mattnewman.studyplanner", "app bundle id must remain com.mattnewman.studyplanner");
+expect(app.android?.package === "com.mattnewman.studyplanner", "Android package must remain com.mattnewman.studyplanner");
 expect(app.ios?.appleTeamId === "5JN35MJ3QD", "Apple Team must remain 5JN35MJ3QD");
 expect(JSON.stringify(app).includes("group.com.mattnewman.studyplanner"), "App Group must remain configured");
 expect(iap.includes('STUDYPLANNER_BUNDLE_ID = "com.mattnewman.studyplanner"'), "IAP bundle constant must remain intact");
+expect(iapManifest.includes('packageName: "com.mattnewman.studyplanner"'), "Android IAP package must match the Play package");
 expect(iap.includes('STUDYPLANNER_ASC_APP_ID = "6766181202"'), "ASC app id must remain intact");
 expect(iap.includes("com.mattnewman.studyplanner.plus.weekly"), "weekly IAP product ID must remain intact");
 expect(iap.includes("com.mattnewman.studyplanner.plus.monthly"), "monthly IAP product ID must remain intact");

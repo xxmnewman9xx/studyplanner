@@ -13,7 +13,7 @@ export const studyPlannerIapManifest = {
     entitlementUnlocked: "studyplanner_pro"
   },
   android: {
-    packageName: "com.studyplanner.syllabusai"
+    packageName: "com.mattnewman.studyplanner"
   },
   appGroupIdentifier: "group.com.mattnewman.studyplanner",
   widgetExtensions: [
