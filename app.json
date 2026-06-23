@@ -27,13 +27,13 @@
     },
     "android": {
       "package": "com.mattnewman.studyplanner",
-      "versionCode": 67,
+      "versionCode": 68,
       "icon": "./assets/android-icon.png",
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
       ],
       "adaptiveIcon": {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#F7F8FA",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
