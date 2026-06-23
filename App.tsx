@@ -2185,7 +2185,7 @@ export default function App() {
       };
       if (!entitlementUnlocks(data, entitlementStatus)) {
         if (!onboardingComplete(data)) {
-          setStack([{ route: "onboarding" }]);
+          setStack([{ route: "welcome" }]);
           return;
         }
         if (route === "scan" || route === "paste" || route === "paywall") {
