@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "Studyplanner: Syllabus AI",
+    "name": "StudyPlanner Ai",
     "slug": "study-planner-syllabus-ai",
     "scheme": "studyplanner",
-    "version": "2.0.2",
+    "version": "2.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -11,7 +11,7 @@
       "supportsTablet": true,
       "appleTeamId": "5JN35MJ3QD",
       "bundleIdentifier": "com.mattnewman.studyplanner",
-      "buildNumber": "64",
+      "buildNumber": "66",
       "entitlements": {
         "com.apple.security.application-groups": [
           "group.com.mattnewman.studyplanner"
@@ -26,6 +26,12 @@
       }
     },
     "android": {
+      "package": "com.mattnewman.studyplanner",
+      "versionCode": 66,
+      "icon": "./assets/android-icon.png",
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -51,6 +57,7 @@
         }
       ],
       "./plugins/with-widgetkit-kinds",
+      "./plugins/with-android-default-display-name",
       [
         "expo-widgets",
         {

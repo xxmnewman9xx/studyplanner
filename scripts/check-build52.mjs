@@ -20,8 +20,8 @@ function expect(pass, message) {
 const failures = [];
 
 expect(appSource.includes('type AccessState = "loading" | "onboarding" | "preview_allowed" | "locked" | "paywall" | "unlocked"'), "single AccessState union must exist");
-expect(appJson.version === "2.0.2" && appJson.ios?.buildNumber === "64", "release metadata must be 2.0.2 (64)");
-expect(!xcodeProject.includes("CURRENT_PROJECT_VERSION = 52;") && (xcodeProject.match(/CURRENT_PROJECT_VERSION = 64;/g) || []).length >= 4, "native app and widget project versions must be 64");
+expect(appJson.version === "2.0.3" && appJson.ios?.buildNumber === "66", "release metadata must be 2.0.3 (66)");
+expect(!xcodeProject.includes("CURRENT_PROJECT_VERSION = 52;") && (xcodeProject.match(/CURRENT_PROJECT_VERSION = 66;/g) || []).length >= 4, "native app and widget project versions must be 66");
 expect(/function entitlementUnlocks[\s\S]{0,160}return entitlementStatus === "active";/.test(appSource), "only active StoreKit entitlement may unlock");
 expect(!/function entitlementUnlocks[\s\S]{0,220}data\.prefs\.premium/.test(appSource), "local premium flag must not participate in entitlementUnlocks");
 expect(appSource.includes("function dataForAccessState") && appSource.includes("return lockedWidgetData(lockUnvalidatedPremium(data))"), "screen data must be fully scrubbed unless entitlement is active");
@@ -31,7 +31,7 @@ expect(appSource.includes("allowValidatedPremium") && appSource.includes("lockUn
 expect(appSource.includes("[Build52Access]") && appSource.includes("entitlementTraceSource"), "QA entitlement trace logs must identify source and route decision");
 expect(appSource.includes('"terms"') && appSource.includes('"privacy"') && appSource.includes('displayRoute === "privacy"'), "terms and privacy must be in-app locked-safe routes");
 expect(!appSource.includes("PRIVACY_URL") && !appSource.includes("https://www.apple.com/legal/privacy/"), "privacy policy must not point to Apple's generic privacy page");
-expect(appSource.includes("storePlansReady") && appSource.includes("Loading App Store price") && appSource.includes("busy || !storePlansReady ? undefined : purchase"), "purchase CTA must be disabled until localized App Store pricing is loaded");
+expect(appSource.includes("storePlansReady") && appSource.includes("Loading store price") && appSource.includes("busy || !storePlansReady ? undefined : purchase"), "purchase CTA must be disabled until localized store pricing is loaded");
 expect(iapSource.includes("return checkStudyPlannerEntitlement()") && !/finishStudyPlannerPurchase[\s\S]{0,420}isPremium,\s*productId/.test(iapSource), "purchase updates must revalidate active entitlement before unlock");
 expect(appSource.includes('if (entitlementStatus === "loading") return;') && appSource.indexOf('if (entitlementStatus === "loading") return;') < appSource.indexOf("if (initial) initialUrlHandled.current = true"), "initial links must not be consumed while entitlement is loading");
 expect(storageSource.includes("(incomingPrefs as any).osLive === true") && storageSource.includes("premium: false") && storageSource.includes("CORRUPT_BACKUP_PREFIX"), "storage migration must use strict booleans, distrust premium, and back up corrupt payloads");
@@ -85,9 +85,9 @@ const pkg = JSON.parse(packageSource);
 expect(pkg.scripts?.["check:build52"] === "node scripts/check-build52.mjs", "package.json must expose check:build52");
 
 if (failures.length) {
-  console.error("Build 64 checks failed:");
+  console.error("Build 66 checks failed:");
   failures.forEach((failure) => console.error(`- ${failure}`));
   process.exit(1);
 }
 
-console.log("Build 64 access, onboarding, and locked funnel checks passed.");
+console.log("Build 66 access, onboarding, and locked funnel checks passed.");

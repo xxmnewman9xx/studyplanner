@@ -3,7 +3,6 @@ import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { File, Paths } from "expo-file-system";
-import { purchaseErrorListener, purchaseUpdatedListener } from "expo-iap";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -13,6 +12,7 @@ import {
   Image as RNImage,
 	  KeyboardAvoidingView,
 	  Linking,
+  Platform,
 	  Pressable,
   ScrollView,
   StyleProp,
@@ -272,19 +272,19 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
     "paywall.title": "{name}, build your live semester.",
     "paywall.sub_no_import": "Unlock first, then scan to keep your semester visible across dashboard, widgets, reminders, and next moves.",
     "paywall.sub_import": "Your preview is ready. Unlock to apply it to the live dashboard, reminders, and widgets.",
-    "paywall.message_loading": "Connecting to the App Store...",
+    "paywall.message_loading": "Connecting to the store...",
     "paywall.message_choose": "Choose a StudyPlanner plan to continue.",
-    "paywall.message_unavailable": "App Store pricing is not loaded. Restore is still available.",
+    "paywall.message_unavailable": "Store pricing is not loaded. Restore is still available.",
     "paywall.benefit_apply": "Apply your syllabus",
     "paywall.benefit_health": "Track Semester Health",
     "paywall.benefit_exams": "Stay ahead of exams",
     "paywall.benefit_reminders": "Get reminder timing",
     "paywall.benefit_widgets": "Keep widgets current",
     "paywall.unlock": "Unlock {plan}",
-    "paywall.loading_price": "Loading App Store price",
-    "paywall.opening": "Opening App Store...",
+    "paywall.loading_price": "Loading store price",
+    "paywall.opening": "Opening purchase sheet...",
     "paywall.restoring": "Restoring...",
-    "paywall.legal": "Auto-renewing subscription. Price and terms are shown by the App Store before purchase. Manage or cancel in Apple subscriptions.",
+    "paywall.legal": "Auto-renewing subscription. Price and terms are shown by the store before purchase. Manage or cancel in your subscription settings.",
     "today.next_move": "Next Move",
     "today.next_class": "Next class",
     "today.deadline": "Deadline",
@@ -1214,7 +1214,7 @@ function reviewRoutingCopy(): ReviewRoutingCopy {
   const copy: Record<SupportedLocale, ReviewRoutingCopy> = {
     "en-US": {
       title: "How is StudyPlanner working?",
-      body: "Pick a rating. Five stars opens the App Store. Anything lower sends feedback straight to us.",
+      body: "Pick a rating. Five stars opens the store. Anything lower sends feedback straight to us.",
       notNow: "Not now",
       ratings: { 1: "1 star", 2: "2 stars", 3: "3 stars", 4: "4 stars", 5: "5 stars" },
       feedbackSubject: "StudyPlanner {rating}-star feedback",
@@ -2010,6 +2010,28 @@ export default function App() {
 
   useEffect(() => {
     let mounted = true;
+    if (Platform.OS === "web" && typeof window !== "undefined") {
+      const params = new URL(window.location.href).searchParams;
+      const webCaptureConfig: SimulatorCaptureConfig = {
+        qaState: "build57",
+        route: (params.get("route") as Route | null) || routeFromUrl(window.location.href) || "today",
+        tab: params.get("tab") || undefined,
+        screen: params.get("screen") || undefined,
+      };
+      const webCaptureState = buildSimulatorCaptureState(webCaptureConfig);
+      if (webCaptureState) {
+        currentImportRef.current = webCaptureState.currentImport;
+        setCurrentImport(webCaptureState.currentImport);
+        setData(webCaptureState.data);
+        setEntitlementStatus(webCaptureState.entitlementStatus);
+        setPendingImportStoreReady(true);
+        setLoaded(true);
+        setStack([webCaptureState.navItem]);
+        return () => {
+          mounted = false;
+        };
+      }
+    }
     loadData().then(async (stored) => {
       if (!mounted) return;
       const safeStored = lockUnvalidatedPremium(stored);
@@ -2056,24 +2078,36 @@ export default function App() {
 
   useEffect(() => {
     initializeStudyPlannerStore().catch(() => {});
-    const updated = purchaseUpdatedListener(async (purchase) => {
-      try {
-        const entitlement = await finishStudyPlannerPurchase(purchase);
-        if (entitlement.isPremium) {
-          activateEntitlement(entitlement.productId, entitlement.checkedAt);
-          maybeShowUnlockSuccess("purchase_action");
+    if (Platform.OS === "web") {
+      return () => {
+        closeStudyPlannerStore().catch(() => {});
+      };
+    }
+    let mounted = true;
+    let updated: { remove: () => void } | undefined;
+    let errored: { remove: () => void } | undefined;
+    import("expo-iap").then(({ purchaseUpdatedListener, purchaseErrorListener }) => {
+      if (!mounted) return;
+      updated = purchaseUpdatedListener(async (purchase: any) => {
+        try {
+          const entitlement = await finishStudyPlannerPurchase(purchase);
+          if (entitlement.isPremium) {
+            activateEntitlement(entitlement.productId, entitlement.checkedAt);
+            maybeShowUnlockSuccess("purchase_action");
+          }
+        } catch (error) {
+          Alert.alert("Purchase needs attention", error instanceof Error ? error.message : "Try Restore Purchases.");
         }
-      } catch (error) {
-        Alert.alert("Purchase needs attention", error instanceof Error ? error.message : "Try Restore Purchases.");
-      }
-    });
-    const errored = purchaseErrorListener((error) => {
-      if (error.code === "user-cancelled") return;
-      Alert.alert("Purchase not completed", error.message || "The App Store could not complete the purchase.");
-    });
+      });
+      errored = purchaseErrorListener((error: any) => {
+        if (error.code === "user-cancelled") return;
+        Alert.alert("Purchase not completed", error.message || "The store could not complete the purchase.");
+      });
+    }).catch(() => {});
     return () => {
-      updated.remove();
-      errored.remove();
+      mounted = false;
+      updated?.remove();
+      errored?.remove();
       closeStudyPlannerStore().catch(() => {});
     };
   }, [activateEntitlement]);
@@ -2201,7 +2235,7 @@ export default function App() {
           const feedbackSubject = copy.feedbackSubject.replace("{rating}", String(rating));
           submitReviewRating(rating, { subject: feedbackSubject, body: copy.feedbackBody }).catch(() => {});
         };
-        Alert.alert(copy.title, copy.body, [
+        Alert.alert(copy.title, Platform.OS === "android" ? copy.body.replace(/App Store/g, "Google Play").replace(/Apple subscriptions/g, "Google Play subscriptions") : copy.body, [
           { text: copy.ratings[5], onPress: () => submit(5) },
           { text: copy.ratings[4], onPress: () => submit(4) },
           { text: copy.ratings[3], onPress: () => submit(3) },
@@ -2932,18 +2966,20 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
 
 function LegalScreen({ nav, theme, kind }: ScreenProps & { kind: "terms" | "privacy" }) {
   const isPrivacy = kind === "privacy";
+  const storeName = Platform.OS === "android" ? "Google Play" : "App Store";
+  const accountName = Platform.OS === "android" ? "Google Play account" : "Apple account";
   const rows = isPrivacy
     ? [
         ["Data source", "StudyPlanner stores your planner data on this device."],
         ["Imports", "syllabus, note, PDF, and camera text are used to create your reviewed preview and semester plan."],
-        ["Purchases", "Subscription purchases and restores are handled by the App Store."],
+        ["Purchases", `Subscription purchases and restores are handled by ${storeName}.`],
         ["Sharing", "StudyPlanner does not sell your planner data."],
         ["Support", "Email support to request help with app data, purchases, or privacy questions."],
       ]
     : [
-        ["Subscription", "StudyPlanner uses auto-renewing subscriptions shown and confirmed by the App Store before purchase."],
+        ["Subscription", `StudyPlanner uses auto-renewing subscriptions shown and confirmed by ${storeName} before purchase.`],
         ["Access", "A valid active entitlement is required to apply imports, use the dashboard, schedule reminders, and sync widgets."],
-        ["Billing", "Manage or cancel subscriptions from your Apple account."],
+        ["Billing", `Manage or cancel subscriptions from your ${accountName}.`],
         ["Standard terms", "Apple's standard EULA applies unless a separate written agreement is provided."],
       ];
   return (
@@ -2969,11 +3005,22 @@ function LegalScreen({ nav, theme, kind }: ScreenProps & { kind: "terms" | "priv
 function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentImport, setEntitlementStatus }: ScreenProps) {
   const initialPlans = useMemo(() => fallbackPlans(), []);
   const firstName = firstNameFromPrefs(data);
+  const storeCopy = (copy: string) =>
+    Platform.OS === "android"
+      ? copy
+          .replace(/App-Store/g, "Google Play")
+          .replace(/App Store/g, "Google Play")
+          .replace(/Apple subscriptions/g, "Google Play subscriptions")
+          .replace(/Apple confirms/g, "Google Play confirms")
+          .replace(/Apple ID/g, "Google Play account")
+      : copy;
+  const paywallText = (key: string, fallback: string, vars: CopyVars = {}) =>
+    storeCopy(textFor(key, fallback, vars));
   const [plans, setPlans] = useState<PaywallPlan[]>(initialPlans);
   const [selected, setSelected] = useState(initialPlans[0].id);
   const [storePlansReady, setStorePlansReady] = useState(false);
   const [busy, setBusy] = useState<"loading" | "purchase" | "restore" | "checking" | null>("loading");
-  const [message, setMessage] = useState(textFor("paywall.message_loading", "Connecting to the App Store..."));
+  const [message, setMessage] = useState(paywallText("paywall.message_loading", "Connecting to the store..."));
 
   const unlock = (productId?: string, checkedAt = new Date().toISOString()) => {
     setEntitlementStatus("active");
@@ -2998,7 +3045,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
         if (planResult.status === "fulfilled") {
           setPlans(planResult.value);
           setSelected((current) => planResult.value.some((plan) => plan.id === current) ? current : planResult.value[0]?.id || current);
-          localizedPlansReady = planResult.value.some((plan) => plan.displayPrice !== "Shown by App Store");
+          localizedPlansReady = planResult.value.some((plan) => plan.displayPrice !== "Shown by store");
           setStorePlansReady(localizedPlansReady);
         }
         const entitlementResult = results[2];
@@ -3007,12 +3054,12 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
           return;
         }
         setBusy(null);
-        setMessage(localizedPlansReady ? textFor("paywall.message_choose", "Choose a StudyPlanner plan to continue.") : textFor("paywall.message_unavailable", "App Store pricing is not loaded. Restore is still available."));
+        setMessage(localizedPlansReady ? paywallText("paywall.message_choose", "Choose a StudyPlanner plan to continue.") : paywallText("paywall.message_unavailable", "Store pricing is not loaded. Restore is still available."));
       })
       .catch((error) => {
         if (!mounted) return;
         setBusy(null);
-        setMessage(error instanceof Error ? error.message : textFor("paywall.message_unavailable", "The App Store is not available right now."));
+        setMessage(error instanceof Error ? error.message : paywallText("paywall.message_unavailable", "The store is not available right now."));
       });
     return () => {
       mounted = false;
@@ -3021,24 +3068,24 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
 
   const purchase = async () => {
     if (!storePlansReady) {
-      setMessage(textFor("paywall.loading_price", "App Store pricing is still loading. Try again in a moment."));
+      setMessage(paywallText("paywall.loading_price", "Store pricing is still loading. Try again in a moment."));
       return;
     }
     setBusy("purchase");
-    setMessage(textFor("paywall.opening", "Opening the App Store purchase sheet..."));
+    setMessage(paywallText("paywall.opening", "Opening the purchase sheet..."));
     try {
       await purchasePlan(selected);
-      setMessage(textFor("paywall.opening", "Approve the subscription in the App Store sheet. StudyPlanner unlocks as soon as Apple confirms it."));
+      setMessage(paywallText("paywall.opening", "Approve the subscription in the store sheet. StudyPlanner unlocks as soon as the store confirms it."));
       setBusy(null);
     } catch (error) {
       setBusy(null);
-      setMessage(error instanceof Error ? error.message : textFor("paywall.message_unavailable", "The App Store could not start the purchase."));
+      setMessage(error instanceof Error ? error.message : paywallText("paywall.message_unavailable", "The store could not start the purchase."));
     }
   };
 
   const restore = async () => {
     setBusy("restore");
-      setMessage(textFor("paywall.restoring", "Checking your App Store account..."));
+      setMessage(paywallText("paywall.restoring", "Checking your store account..."));
       try {
         const entitlement = await restoreStudyPlannerPurchases();
         if (entitlement.isPremium) {
@@ -3047,11 +3094,11 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
         }
         else {
           setBusy(null);
-          setMessage(textFor("paywall.message_unavailable", "No active StudyPlanner subscription was found for this Apple ID."));
+          setMessage(paywallText("paywall.message_unavailable", "No active StudyPlanner subscription was found for this store account."));
       }
     } catch (error) {
       setBusy(null);
-      setMessage(error instanceof Error ? error.message : textFor("paywall.message_unavailable", "Restore could not be completed."));
+      setMessage(error instanceof Error ? error.message : paywallText("paywall.message_unavailable", "Restore could not be completed."));
     }
   };
 
@@ -3071,8 +3118,8 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
       </Pressable>
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingTop: 68, paddingHorizontal: 20, paddingBottom: 34 }}>
         <RNImage source={require("./assets/icon.png")} style={{ width: 62, height: 62, borderRadius: 19, marginBottom: 18 }} />
-        <Text selectable style={{ color: theme.label, fontSize: 36, lineHeight: 39, fontWeight: "900", marginBottom: 10 }}>{textFor("paywall.title", "{name}, build your live semester.", { name: firstName })}</Text>
-        <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22, marginBottom: 20 }}>{currentImport ? textFor("paywall.sub_import", "Your preview is ready. Unlock to apply it to the live dashboard, reminders, and widgets.") : textFor("paywall.sub_no_import", "Unlock first, then scan to keep your semester visible across dashboard, widgets, reminders, and next moves.")}</Text>
+        <Text selectable style={{ color: theme.label, fontSize: 36, lineHeight: 39, fontWeight: "900", marginBottom: 10 }}>{paywallText("paywall.title", "{name}, build your live semester.", { name: firstName })}</Text>
+        <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22, marginBottom: 20 }}>{currentImport ? paywallText("paywall.sub_import", "Your preview is ready. Unlock to apply it to the live dashboard, reminders, and widgets.") : paywallText("paywall.sub_no_import", "Unlock first, then scan to keep your semester visible across dashboard, widgets, reminders, and next moves.")}</Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 14 }}>
           <Pressable onPress={busy ? undefined : restore} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: theme.surface2 }}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.restore", "Restore Purchases")}</Text></Pressable>
           <Pressable onPress={() => nav.push("terms")} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: theme.surface2 }}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.terms", "Terms")}</Text></Pressable>
@@ -3082,14 +3129,14 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
         <Card theme={theme} style={{ padding: 15, marginBottom: 14, backgroundColor: "#111114" }}>
           {currentImport ? (
             <View>
-              <Text selectable style={{ color: "rgba(255,255,255,0.66)", fontSize: 12, fontWeight: "900", marginBottom: 10 }}>{textFor("paywall.ready_apply", "READY TO APPLY")}</Text>
+              <Text selectable style={{ color: "rgba(255,255,255,0.66)", fontSize: 12, fontWeight: "900", marginBottom: 10 }}>{paywallText("paywall.ready_apply", "READY TO APPLY")}</Text>
               <View style={{ flexDirection: "row", gap: 9, marginBottom: 12 }}>
                 <View style={{ flex: 1 }}><Text selectable style={{ color: "#fff", fontSize: 24, fontWeight: "900" }}>{importSummary.classes}</Text><Text selectable style={{ color: "rgba(255,255,255,0.66)", fontSize: 12, fontWeight: "800" }}>{textFor("review.classes", "classes")}</Text></View>
                 <View style={{ flex: 1 }}><Text selectable style={{ color: "#fff", fontSize: 24, fontWeight: "900" }}>{importSummary.assignments}</Text><Text selectable style={{ color: "rgba(255,255,255,0.66)", fontSize: 12, fontWeight: "800" }}>{textFor("review.assignments", "assignments")}</Text></View>
                 <View style={{ flex: 1 }}><Text selectable style={{ color: "#fff", fontSize: 24, fontWeight: "900" }}>{importSummary.exams}</Text><Text selectable style={{ color: "rgba(255,255,255,0.66)", fontSize: 12, fontWeight: "800" }}>{textFor("review.exams", "exams")}</Text></View>
               </View>
               <Text selectable style={{ color: "#fff", fontSize: 17, lineHeight: 22, fontWeight: "900" }}>{importSummary.firstAction || textFor("review.title", "Review your imported semester")}</Text>
-              <Text selectable style={{ color: "rgba(255,255,255,0.72)", marginTop: 4, lineHeight: 19 }}>{textFor("paywall.sub_import", "Unlock to save this plan, schedule reminders, and sync widgets.")}</Text>
+              <Text selectable style={{ color: "rgba(255,255,255,0.72)", marginTop: 4, lineHeight: 19 }}>{paywallText("paywall.sub_import", "Unlock to save this plan, schedule reminders, and sync widgets.")}</Text>
             </View>
           ) : (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
@@ -3115,10 +3162,10 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
                     </View>
                     <View style={{ flex: 1 }}>
                       <View style={{ flexDirection: "row", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-	                        <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>{textFor(plan.id.toLowerCase().includes("year") ? "paywall.yearly" : plan.id.toLowerCase().includes("week") ? "paywall.weekly" : "paywall.monthly", plan.cadence)}</Text>
-                        {plan.recommended ? <Pill text={textFor("paywall.best_value", "Best value")} color={COLORS.green} theme={theme} icon="star" /> : null}
+	                        <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>{paywallText(plan.id.toLowerCase().includes("year") ? "paywall.yearly" : plan.id.toLowerCase().includes("week") ? "paywall.weekly" : "paywall.monthly", plan.cadence)}</Text>
+                        {plan.recommended ? <Pill text={paywallText("paywall.best_value", "Best value")} color={COLORS.green} theme={theme} icon="star" /> : null}
                       </View>
-	                      <Text selectable style={{ color: theme.label2, marginTop: 4 }}>{textFor(plan.id.toLowerCase().includes("year") ? "paywall.benefit_apply" : "paywall.benefit_health", plan.description)}</Text>
+	                      <Text selectable style={{ color: theme.label2, marginTop: 4 }}>{paywallText(plan.id.toLowerCase().includes("year") ? "paywall.benefit_apply" : "paywall.benefit_health", plan.description)}</Text>
                     </View>
                     <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{plan.displayPrice}</Text>
                   </View>
@@ -3129,11 +3176,11 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
         </View>
         <Card theme={theme} style={{ padding: 15, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF", marginBottom: 14 }}>
           {[
-            ["file", textFor("paywall.benefit_apply", "Apply your syllabus")],
-            ["heart", textFor("paywall.benefit_health", "Track Semester Health")],
-            ["target", textFor("paywall.benefit_exams", "Stay ahead of exams")],
-            ["bell", textFor("paywall.benefit_reminders", "Get reminder timing")],
-            ["grid", textFor("paywall.benefit_widgets", "Keep widgets current")],
+            ["file", paywallText("paywall.benefit_apply", "Apply your syllabus")],
+            ["heart", paywallText("paywall.benefit_health", "Track Semester Health")],
+            ["target", paywallText("paywall.benefit_exams", "Stay ahead of exams")],
+            ["bell", paywallText("paywall.benefit_reminders", "Get reminder timing")],
+            ["grid", paywallText("paywall.benefit_widgets", "Keep widgets current")],
           ].map(([icon, text]) => (
             <View key={text} style={{ flexDirection: "row", gap: 10, alignItems: "center", paddingVertical: 6 }}>
               <Icon name={icon} color={theme.accent} size={18} />
@@ -3142,9 +3189,9 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
           ))}
         </Card>
         <Text selectable style={{ color: theme.label2, lineHeight: 19, marginBottom: 10 }}>{message}</Text>
-        <Button label={busy === "purchase" ? textFor("paywall.opening", "Opening App Store...") : storePlansReady ? textFor("paywall.unlock", "Unlock {plan}", { plan: selectedPlan.cadence }) : textFor("paywall.loading_price", "Loading App Store price")} theme={theme} icon="crown" onPress={busy || !storePlansReady ? undefined : purchase} />
-        <Button label={busy === "restore" ? textFor("paywall.restoring", "Restoring...") : textFor("common.restore", "Restore Purchases")} theme={theme} secondary icon="refresh" onPress={busy ? undefined : restore} />
-        <Text selectable style={{ color: theme.label3, fontSize: 12, lineHeight: 17, marginTop: 14 }}>{textFor("paywall.legal", "Auto-renewing subscription. Price and terms are shown by the App Store before purchase. Manage or cancel in Apple subscriptions.")}</Text>
+        <Button label={busy === "purchase" ? paywallText("paywall.opening", "Opening purchase sheet...") : storePlansReady ? paywallText("paywall.unlock", "Unlock {plan}", { plan: selectedPlan.cadence }) : paywallText("paywall.loading_price", "Loading store price")} theme={theme} icon="crown" onPress={busy || !storePlansReady ? undefined : purchase} />
+        <Button label={busy === "restore" ? paywallText("paywall.restoring", "Restoring...") : textFor("common.restore", "Restore Purchases")} theme={theme} secondary icon="refresh" onPress={busy ? undefined : restore} />
+        <Text selectable style={{ color: theme.label3, fontSize: 12, lineHeight: 17, marginTop: 14 }}>{paywallText("paywall.legal", "Auto-renewing subscription. Price and terms are shown by the store before purchase. Manage or cancel in your subscription settings.")}</Text>
         <View style={{ flexDirection: "row", justifyContent: "center", gap: 18, marginTop: 12 }}>
           <Pressable onPress={() => nav.push("terms")}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.terms", "Terms of Use")}</Text></Pressable>
           <Pressable onPress={() => nav.push("privacy")}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.privacy", "Privacy Policy")}</Text></Pressable>
@@ -5377,10 +5424,11 @@ function WidgetsScreen({ data, nav, theme, recordReviewTrigger }: ScreenProps) {
 }
 
 function Profile({ data, mutate, nav, theme }: ScreenProps) {
+  const subscriptionAccountLabel = Platform.OS === "android" ? "Google Play account" : textFor("profile.apple_account", "Apple account");
   const rows = [
     ["bell", COLORS.red, textFor("profile.reminders", "Reminders"), textFor("profile.active_count", "{count} active", { count: data.reminders.filter((r) => r.enabled).length }), "reminders"],
     ["scan", COLORS.purple, textFor("profile.import_history", "Import history"), textFor("profile.import_count", "{count} imports", { count: data.imports.length }), "scan"],
-    ["refresh", COLORS.blue, textFor("profile.manage_subscription", "Manage subscription"), textFor("profile.apple_account", "Apple account"), "manage"],
+    ["refresh", COLORS.blue, textFor("profile.manage_subscription", "Manage subscription"), subscriptionAccountLabel, "manage"],
     ["shield", COLORS.green, textFor("profile.privacy_policy", "Privacy Policy"), textFor("profile.studyplanner_data", "StudyPlanner data"), "privacy"],
     ["file", COLORS.orange, textFor("profile.terms_use", "Terms of Use"), textFor("profile.subscription_terms", "Subscription terms"), "terms"],
     ["file", COLORS.orange, textFor("common.support", "Support"), textFor("profile.email_help", "Email help"), "support"],

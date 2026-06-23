@@ -63,7 +63,7 @@ export function fallbackPlans(): PaywallPlan[] {
       id: STUDYPLANNER_SUBSCRIPTION_IDS[0],
       title: "StudyPlanner Weekly",
       description: "Short-term access when you need a focused planning push.",
-      displayPrice: "$5.99",
+      displayPrice: "$6.99",
       cadence: "Weekly",
       recommended: false,
     },
@@ -139,7 +139,7 @@ function mapProduct(product: ProductSubscription): PaywallPlan {
     id: product.id,
     title: product.displayName || product.title || (yearly ? "StudyPlanner Yearly" : weekly ? "StudyPlanner Weekly" : "StudyPlanner Monthly"),
     description: product.description || (yearly ? "Full access for the school year." : weekly ? "Full access week to week." : "Full access month to month."),
-    displayPrice: product.displayPrice || "Shown by App Store",
+    displayPrice: product.displayPrice || "Shown by store",
     cadence: yearly ? "Yearly" : weekly ? "Weekly" : "Monthly",
     recommended: yearly,
   };

@@ -36,7 +36,7 @@ export const studyPlannerIapManifest = {
       description: "Full access to StudyPlanner: Syllabus AI while the weekly plan is active.",
       entitlementUnlocked: "studyplanner_pro",
       subscriptionPeriod: "P1W",
-      appStoreConnectPriceUsd: "5.99",
+      appStoreConnectPriceUsd: "6.99",
       hasFreeTrial: false,
       hasIntroOffer: false,
       sandboxNotes: "Use an App Store sandbox tester or local StoreKit config; do not use this value as a bundle identifier."

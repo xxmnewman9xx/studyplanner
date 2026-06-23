@@ -19,13 +19,13 @@ expect(iap.includes("com.mattnewman.studyplanner.plus.weekly"), "weekly IAP prod
 expect(iap.includes("com.mattnewman.studyplanner.plus.monthly"), "monthly IAP product ID must remain intact");
 expect(iap.includes("com.mattnewman.studyplanner.plus.yearly"), "yearly IAP product ID must remain intact");
 expect(iap.includes("getActiveSubscriptions([...STUDYPLANNER_SUBSCRIPTION_IDS])"), "entitlement must be checked against active App Store subscriptions");
-expect(iap.includes('$5.99'), "weekly fallback price must remain $5.99");
+expect(iap.includes('$6.99'), "weekly fallback price must remain $6.99");
 expect(iap.includes('$14.99'), "monthly fallback price must remain $14.99");
 expect(iap.includes('$59.99'), "yearly fallback price must remain $59.99");
-expect(iapManifest.includes('appStoreConnectPriceUsd: "5.99"'), "weekly ASC target price must remain 5.99");
+expect(iapManifest.includes('appStoreConnectPriceUsd: "6.99"'), "weekly ASC target price must remain 6.99");
 expect(iapManifest.includes('appStoreConnectPriceUsd: "14.99"'), "monthly ASC target price must remain 14.99");
 expect(iapManifest.includes('appStoreConnectPriceUsd: "59.99"'), "yearly ASC target price must remain 59.99");
-expect(storeKit.includes('"displayPrice": "5.99"'), "local StoreKit weekly price must remain 5.99");
+expect(storeKit.includes('"displayPrice": "6.99"'), "local StoreKit weekly price must remain 6.99");
 expect(storeKit.includes('"displayPrice": "14.99"'), "local StoreKit monthly price must remain 14.99");
 expect(storeKit.includes('"displayPrice": "59.99"'), "local StoreKit yearly price must remain 59.99");
 

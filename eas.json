@@ -7,6 +7,9 @@
     "production": {
       "distribution": "store",
       "autoIncrement": false,
+      "android": {
+        "buildType": "app-bundle"
+      },
       "ios": {
         "resourceClass": "m-medium"
       }
@@ -14,6 +17,9 @@
   },
   "submit": {
     "production": {
+      "android": {
+        "track": "internal"
+      },
       "ios": {
         "ascAppId": "6766181202"
       }
