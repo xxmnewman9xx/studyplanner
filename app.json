@@ -27,7 +27,7 @@
     },
     "android": {
       "package": "com.mattnewman.studyplanner",
-      "versionCode": 66,
+      "versionCode": 67,
       "icon": "./assets/android-icon.png",
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
