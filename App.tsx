@@ -2541,7 +2541,7 @@ function Welcome({ data, mutate, nav, theme }: ScreenProps) {
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <ScrollView style={{ marginBottom: 112 }} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingTop: 58, paddingHorizontal: 24, paddingBottom: 24 }}>
         <Animated.View style={{ transform: [{ scale: pulseScale }] }}>
-          <RNImage source={require("./assets/android-icon.png")} style={{ width: 56, height: 56, borderRadius: 28, marginBottom: 18 }} />
+          <RNImage source={require("./assets/icon.png")} style={{ width: 56, height: 56, borderRadius: 14, marginBottom: 18 }} />
         </Animated.View>
         <Text selectable style={{ color: theme.label, fontSize: 38, lineHeight: 40, fontWeight: "900", marginBottom: 10 }}>{textFor("welcome.title", "Know exactly where you stand.")}</Text>
         <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22, marginBottom: 18 }}>{textFor("welcome.body", "Import a syllabus. StudyPlanner maps the semester, finds pressure, and tells you the next move.")}</Text>
@@ -3117,7 +3117,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
         <X color={theme.label} size={20} />
       </Pressable>
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingTop: 68, paddingHorizontal: 20, paddingBottom: 34 }}>
-        <RNImage source={require("./assets/android-icon.png")} style={{ width: 62, height: 62, borderRadius: 31, marginBottom: 18 }} />
+        <RNImage source={require("./assets/icon.png")} style={{ width: 62, height: 62, borderRadius: 16, marginBottom: 18 }} />
         <Text selectable style={{ color: theme.label, fontSize: 36, lineHeight: 39, fontWeight: "900", marginBottom: 10 }}>{paywallText("paywall.title", "{name}, build your live semester.", { name: firstName })}</Text>
         <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22, marginBottom: 20 }}>{currentImport ? paywallText("paywall.sub_import", "Your preview is ready. Unlock to apply it to the live dashboard, reminders, and widgets.") : paywallText("paywall.sub_no_import", "Unlock first, then scan to keep your semester visible across dashboard, widgets, reminders, and next moves.")}</Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 14 }}>

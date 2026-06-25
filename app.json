@@ -3,7 +3,7 @@
     "name": "StudyPlanner Ai",
     "slug": "study-planner-syllabus-ai",
     "scheme": "studyplanner",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -11,7 +11,7 @@
       "supportsTablet": true,
       "appleTeamId": "5JN35MJ3QD",
       "bundleIdentifier": "com.mattnewman.studyplanner",
-      "buildNumber": "66",
+      "buildNumber": "71",
       "entitlements": {
         "com.apple.security.application-groups": [
           "group.com.mattnewman.studyplanner"
@@ -27,15 +27,14 @@
     },
     "android": {
       "package": "com.mattnewman.studyplanner",
-      "versionCode": 67,
-      "icon": "./assets/android-icon.png",
+      "versionCode": 72,
+      "icon": "./assets/icon.png",
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
