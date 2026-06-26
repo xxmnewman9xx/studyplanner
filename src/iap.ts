@@ -33,6 +33,7 @@ export type PaywallPlan = {
   displayPrice: string;
   cadence: "Weekly" | "Monthly" | "Yearly";
   recommended: boolean;
+  androidOfferToken?: string;
 };
 
 export type EntitlementResult = {
@@ -40,6 +41,8 @@ export type EntitlementResult = {
   productId?: string;
   checkedAt: string;
 };
+
+const androidOfferTokensByProductId = new Map<string, string>();
 
 export function fallbackPlans(): PaywallPlan[] {
   return [
@@ -94,11 +97,26 @@ export async function loadStorePlans(): Promise<PaywallPlan[]> {
 }
 
 export async function purchasePlan(productId: string): Promise<void> {
+  let googleRequest: { skus: string[]; subscriptionOffers?: { sku: string; offerToken: string }[] } = {
+    skus: [productId],
+  };
+
+  if (Platform.OS === "android") {
+    const offerToken = await resolveAndroidSubscriptionOfferToken(productId);
+    if (!offerToken) {
+      throw new Error("Google Play subscription pricing is not fully available yet. Reopen the paywall and try again.");
+    }
+    googleRequest = {
+      skus: [productId],
+      subscriptionOffers: [{ sku: productId, offerToken }],
+    };
+  }
+
   await requestPurchase({
     type: "subs",
     request: {
       apple: { sku: productId },
-      google: { skus: [productId] },
+      google: googleRequest,
     },
   });
 }
@@ -135,6 +153,7 @@ export function isKnownProduct(productId: string | null | undefined) {
 function mapProduct(product: ProductSubscription): PaywallPlan {
   const yearly = product.id.includes("year");
   const weekly = product.id.includes("week");
+  const androidOfferToken = cacheAndroidSubscriptionOfferToken(product);
   return {
     id: product.id,
     title: product.displayName || product.title || (yearly ? "StudyPlanner Yearly" : weekly ? "StudyPlanner Weekly" : "StudyPlanner Monthly"),
@@ -142,5 +161,28 @@ function mapProduct(product: ProductSubscription): PaywallPlan {
     displayPrice: product.displayPrice || "Shown by store",
     cadence: yearly ? "Yearly" : weekly ? "Weekly" : "Monthly",
     recommended: yearly,
+    androidOfferToken,
   };
+}
+
+async function resolveAndroidSubscriptionOfferToken(productId: string) {
+  const cached = androidOfferTokensByProductId.get(productId);
+  if (cached) return cached;
+
+  const products = await fetchProducts({ skus: [productId], type: "subs" });
+  const product = (products || []).find(
+    (candidate): candidate is ProductSubscription => candidate.type === "subs" && candidate.id === productId
+  );
+  return product ? cacheAndroidSubscriptionOfferToken(product) : undefined;
+}
+
+function cacheAndroidSubscriptionOfferToken(product: ProductSubscription) {
+  if (product.platform !== "android") return undefined;
+
+  const offerToken =
+    product.subscriptionOffers?.find((offer) => offer.offerTokenAndroid)?.offerTokenAndroid ||
+    product.subscriptionOfferDetailsAndroid?.[0]?.offerToken;
+
+  if (offerToken) androidOfferTokensByProductId.set(product.id, offerToken);
+  return offerToken;
 }

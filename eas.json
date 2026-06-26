@@ -23,6 +23,21 @@
       "ios": {
         "ascAppId": "6766181202"
       }
+    },
+    "android-internal": {
+      "android": {
+        "track": "internal"
+      }
+    },
+    "android-closed": {
+      "android": {
+        "track": "alpha"
+      }
+    },
+    "android-open": {
+      "android": {
+        "track": "beta"
+      }
     }
   }
 }

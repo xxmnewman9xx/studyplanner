@@ -8,6 +8,7 @@ ios/Pods/
 ios/build/
 ios/build-signed-sim/
 android/
+outputs/
 work/
 qa/
 qa-screenshots/
