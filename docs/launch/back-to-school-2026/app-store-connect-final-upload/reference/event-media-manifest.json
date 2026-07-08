@@ -1,0 +1,38 @@
+{
+  "generatedAt": "2026-07-07",
+  "release": "Back-to-School Semester Kickoff",
+  "eventName": "Semester Kickoff Week",
+  "brandLogoSource": "assets/icon.png",
+  "files": [
+    {
+      "id": "event-card",
+      "path": "docs/launch/back-to-school-2026/app-store-connect-final-upload/event-media/01-event-card-image-1920x1080.png",
+      "width": 1920,
+      "height": 1080,
+      "destination": "App Store Connect Event Card Image",
+      "approvedForEventMedia": true
+    },
+    {
+      "id": "event-details",
+      "path": "docs/launch/back-to-school-2026/app-store-connect-final-upload/event-media/02-event-details-image-1080x1920.png",
+      "width": 1080,
+      "height": 1920,
+      "destination": "App Store Connect Event Details Page Image",
+      "approvedForEventMedia": true
+    },
+    {
+      "id": "supplemental-hero-branded",
+      "path": "docs/launch/back-to-school-2026/app-store-connect-final-upload/supplemental/studyplanner-branded-supplemental-hero-1920x1080.png",
+      "width": 1920,
+      "height": 1080,
+      "destination": "Press/supplemental cover",
+      "approvedForEventMedia": false
+    }
+  ],
+  "rules": [
+    "Use only event-card and event-details inside App Store Connect In-App Event media.",
+    "Keep event media text-free and device-free.",
+    "Do not show fake app UI, fake widgets, fake phone UI, notifications, lock screens, App Store badges, ratings, prices, reviews, school names, or LMS brands.",
+    "Use the exact logo from assets/icon.png only for supplemental or press contexts."
+  ]
+}

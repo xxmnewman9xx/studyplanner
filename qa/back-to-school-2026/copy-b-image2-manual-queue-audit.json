@@ -1,0 +1,23 @@
+{
+  "generatedAt": "2026-07-08T17:31:35.978Z",
+  "status": "ready-for-manual-chatgpt-mac-app-generation",
+  "promptPack": "docs/launch/back-to-school-2026/app-store-connect-final-upload/outcome-copy-b-image-2-mac-prompts.md",
+  "queueJson": "docs/launch/back-to-school-2026/app-store-connect-final-upload/copy-b-image2-manual-queue.json",
+  "queueJsonl": "docs/launch/back-to-school-2026/app-store-connect-final-upload/copy-b-image2-manual-queue.jsonl",
+  "provenanceTemplate": "docs/launch/back-to-school-2026/app-store-connect-final-upload/copy-b-image2-provenance.template.json",
+  "finalProvenancePath": "docs/launch/back-to-school-2026/app-store-connect-final-upload/copy-b-image2-provenance.json",
+  "finalOutputRoot": "store/apple/screenshot-copy-b-image-2",
+  "expected": {
+    "locales": 17,
+    "slides": 7,
+    "jobs": 119,
+    "dimensions": "1242x2688"
+  },
+  "constraints": {
+    "generationSurface": "ChatGPT Mac app",
+    "model": "GPT Image 2.0",
+    "generatedIndividually": true,
+    "finalImagesGeneratedByThisScript": false
+  },
+  "failures": []
+}

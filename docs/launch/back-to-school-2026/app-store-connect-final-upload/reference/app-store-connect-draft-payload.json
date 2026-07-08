@@ -1,0 +1,67 @@
+{
+  "generatedAt": "2026-07-07T06:58:28.835Z",
+  "release": "Back-to-School Semester Kickoff",
+  "campaign": "Back-to-School Semester Kickoff",
+  "nominationName": "Back-to-School Semester Kickoff",
+  "nominationType": "App Enhancements",
+  "platforms": "iOS (iPhone), iOS (iPad)",
+  "targetWindow": "2026-08-24 to 2026-08-31",
+  "submissionTarget": "2026-07-24",
+  "relevantCountriesOrRegions": "All available regions",
+  "inAppEvent": {
+    "intendsToSubmit": true,
+    "nominationField": "Yes - draft `Semester Kickoff Week`; attach only after App Store approval or publication",
+    "referenceName": "Back-to-School Semester Kickoff 2026",
+    "eventName": "Semester Kickoff Week",
+    "badge": "Challenge",
+    "shortDescription": "Build your semester plan",
+    "longDescription": "Import a syllabus, review deadlines, and finish first-week setup before classes ramp.",
+    "start": "2026-08-24 08:00 local time",
+    "end": "2026-08-31 23:59 local time",
+    "publishStart": "2026-08-10 08:00 local time",
+    "deepLinkCandidate": "studyplanner://import",
+    "mediaRule": "Use editorial/marketing context assets only; do not invent app screens, fake widgets, or fake phone UI.",
+    "attachmentRule": "Attach to the featuring nomination only after the In-App Event is approved or published in App Store Connect."
+  },
+  "description": "Study Planner AI's Back-to-School Semester Kickoff update helps students turn the first stack of syllabi into a calm, reviewed semester plan before classes begin. During setup, onboarding guides them to scan or import a syllabus, review detected courses, assignments, exams, and uncertain dates, then save a plan they control. Native WidgetKit surfaces keep the plan visible after setup: Today, Upcoming, Week/Semester Calendar, Class Progress, and real Home Screen views for heavy weeks. The update is localized across key student markets, uses real release screenshots and WidgetKit captures, includes localization and accessibility QA checks, and keeps the promise focused: a reviewed Apple-native path from syllabus chaos to a calmer first week.",
+  "helpfulDetails": "Built by an independent developer focused on reducing semester overwhelm, not selling generic AI. The release pairs privacy-conscious review-before-save planning with Apple-native details: real WidgetKit proof, submitted iPhone/iPad screenshots, localized store presence, Dynamic Type/RTL/accessibility QA checks, and a timed Semester Kickoff Week event that helps students finish setup before classes ramp.",
+  "characterCounts": {
+    "description": 749,
+    "helpfulDetails": 407
+  },
+  "supplementalMaterials": [
+    {
+      "id": "product-video",
+      "title": "Import, Review, Semester Ready, Home, Focus, Widgets",
+      "url": "https://github.com/xxmnewman9xx/studyplanner/releases/download/back-to-school-2026-supplementals/product-video.mp4"
+    },
+    {
+      "id": "screenshot-contact-sheet",
+      "title": "Release Build Screenshot Contact Sheet",
+      "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/screenshot-contact-sheet.md"
+    },
+    {
+      "id": "native-widget-sheet",
+      "title": "Native WidgetKit Screenshot Sheet",
+      "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/native-widget-sheet.md"
+    },
+    {
+      "id": "accessibility-localization-summary",
+      "title": "Accessibility and Localization QA Summary",
+      "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/accessibility-localization-summary.md"
+    },
+    {
+      "id": "app-review-proof",
+      "title": "App Review Notes and Purchase Flow Proof",
+      "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/app-review-proof.md"
+    }
+  ],
+  "csvAllowed": false,
+  "csvReason": "Do not generate/import a CSV until every gate is ready because App Store Connect CSV imports submit nominations automatically.",
+  "sourceDocs": [
+    "https://developer.apple.com/help/app-store-connect/manage-featuring-nominations/nominate-your-app-for-featuring/",
+    "https://developer.apple.com/help/app-store-connect/reference/nominations/nominations-template/",
+    "https://developer.apple.com/help/app-store-connect/offer-in-app-events/offer-in-app-events/",
+    "https://developer.apple.com/help/app-store-connect/reference/in-app-events/in-app-event-badges"
+  ]
+}
