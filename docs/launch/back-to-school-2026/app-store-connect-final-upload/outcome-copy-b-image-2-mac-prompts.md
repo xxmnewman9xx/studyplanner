@@ -14,9 +14,9 @@ Attach the real logo and every listed latest-build UI or direction reference for
   - Slide 1: `qa-screenshots/back-to-school-2026-native-color-system-v3/app-06-review.png`
   - Slide 2: `qa-screenshots/back-to-school-2026-native-color-system-v3/app-06-review.png`
   - Slide 3: `qa-screenshots/back-to-school-2026-native-color-system-v3/app-07-semester-ready.png`
-  - Slide 4: `qa-screenshots/back-to-school-2026-native/app-08-today.png`
-  - Slide 5: `qa-screenshots/back-to-school-2026-native/app-09-focus.png`
-  - Slide 6: `qa-screenshots/back-to-school-2026-native/app-10-widgets.png`
+  - Slide 4: `qa-screenshots/back-to-school-2026-native-color-system-v3/app-08-today.png`
+  - Slide 5: `qa-screenshots/back-to-school-2026-native-color-system-v3/app-09-focus.png`
+  - Slide 6: `qa-screenshots/back-to-school-2026-native-color-system-v3/app-10-widgets.png`
   - Slide 7: `qa-screenshots/back-to-school-2026-native/widget-02-normal-medium.png`
 - User-provided first-three direction references:
   - Slide 1: `docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/02-scan-anything-direction.jpg`
@@ -88,7 +88,9 @@ Use this entry shape for every locale/slide pair:
 
 ## Global Prompt Rules
 
-Use GPT Image 2.0 in the ChatGPT Mac app. Generate exactly one screenshot per prompt. Create a 1242x2688 App Store screenshot.
+Use GPT Image 2.0 in the ChatGPT Mac app. Generate exactly one screenshot per prompt. Create the final PNG on a native portrait App Store canvas that is exactly 1242 pixels wide by 2688 pixels tall.
+
+Dimension lock: the exported image file must measure exactly `1242x2688` pixels. Do not output a preview-sized file, scaled-down cache image, cropped alternate, padded alternate, or any other size. If GPT Image 2.0 cannot return an actual `1242x2688` PNG, do not provide a scaled preview image. Reject known bad export sizes including `852x1846`, `853x1844`, `1024x1792`, `1170x2532`, and `1290x2796`. No extra border, matte, resize, crop, or post-processing is allowed.
 
 Use the attached real StudyPlanner UI screenshot as the product proof. Preserve the app UI content exactly enough to remain clearly real StudyPlanner: do not invent fake screens, fake WidgetKit content, fake Home Screen content, fake LMS integrations, fake App Store UI, prices, ratings, awards, school logos, or unsupported claims.
 
@@ -123,9 +125,9 @@ Attach:
 Prompt:
 
 ```text
-GPT Image 2.0, create one 1242x2688 App Store screenshot for StudyPlanner.
+GPT Image 2.0, create exactly one PNG App Store screenshot for StudyPlanner on a native portrait canvas that is exactly 1242 pixels wide by 2688 pixels tall.
 
-Use the attached latest StudyPlanner scan UI and review UI references as product proof and the attached app icon as the exact logo. Use the supplied direction references only for composition. Build a premium Apple-native screenshot around the latest scan/import experience and the reviewed-plan payoff. The first slide must visibly communicate that a student can start from syllabus material or notes, then review the extracted next steps before anything saves. Mandatory proof: show both syllabus/PDF import and notes input as visible product proof. Prefer the real Scan screen with `Upload syllabus PDF` and the `Notes` source row both readable; if adding a paper note prop, keep it blank or abstract with no fake legible content. Use the attached Review Import screenshot only as the approval/payoff proof; do not synthesize review rows or invent review content. Use clean white space, bright desk-light realism, soft device depth, graphite typography, small blue/green/orange class-color accents, and a calm back-to-school feel.
+Use the attached latest StudyPlanner scan UI and review UI references as product proof and the attached app icon as the exact logo. Use the supplied direction references only for composition. Build a premium Apple-native screenshot around the latest scan/import experience and the reviewed-plan payoff. The first slide must visibly communicate both starting paths at once: scan notes and scan/import a syllabus, then review extracted next steps before anything saves. Mandatory proof: show both syllabus/PDF import and notes input as visible product proof. Prefer the real Scan screen with `Upload syllabus PDF` and the `Notes` source row both readable; if adding a paper note prop, keep it blank or abstract with no fake legible content. Use the attached Review Import screenshot only as the approval/payoff proof; do not synthesize review rows or invent review content. Use clean white space, bright desk-light realism, soft device depth, graphite typography, small blue/green/orange class-color accents, and a calm back-to-school feel.
 
 Match the approved Image 2.0 reference system and the 2026-07-08 direction examples: bold top headline, short gray subhead, small StudyPlanner brand mark, one large phone UI hero, white rounded canvas, and restrained edge semicircle accents. The hero should feel like the current Scan flow: Capture anything, Import. Review. Start., upload syllabus PDF, camera/photo capture, notes, then review before anything saves. Do not show the older Copy A scan screen or the older locked `Build your semester` UI. Do not invent LMS integrations, guaranteed extraction, fake document text, fake camera UI, or fake review rows. The UI must remain recognizably attached latest StudyPlanner UI, not a fake app screen.
 
@@ -134,6 +136,8 @@ Headline: Syllabus and notes become a plan.
 Subhead: Review before anything saves.
 
 Place the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep all text readable and professionally spaced. No fake UI, no fake widgets, no App Store badges, no prices, no ratings.
+
+Before returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.
 ```
 
 ### 2. `02-approve-deadlines.png`
@@ -148,17 +152,19 @@ Attach:
 Prompt:
 
 ```text
-GPT Image 2.0, create one 1242x2688 App Store screenshot for StudyPlanner.
+GPT Image 2.0, create exactly one PNG App Store screenshot for StudyPlanner on a native portrait canvas that is exactly 1242 pixels wide by 2688 pixels tall.
 
 Use the attached latest StudyPlanner review-import UI screenshot as the product proof and the attached app icon as the exact logo. Use the supplied first-three direction references only for composition and scan-context continuity. Make the screenshot feel like the outcome of control: the student sees what was found, confirms it, and keeps bad data out of the plan. Use crisp real UI, highlighted review rows, calm premium composition, white space, soft shadows, and restrained blue/green/orange accents.
 
 Match the approved Image 2.0 reference system and the 2026-07-08 direction examples: bold top headline, short gray subhead, small StudyPlanner brand mark, large phone UI hero, white rounded canvas, and restrained edge semicircle accents. The visual story is: the user approves classes, deadlines, exams, or note tasks before anything reaches the plan. Do not show automatic saving, submission, or LMS sync. Do not show older Copy A scanner UI. Do not invent any app UI beyond the real referenced StudyPlanner screen.
 
 External marketing text:
-Headline: Stay in control before save.
+Headline: Approve before anything saves.
 Subhead: You confirm what reaches the plan.
 
 Place the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep all text readable and professionally spaced. No fake UI, no fake widgets, no App Store badges, no prices, no ratings.
+
+Before returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.
 ```
 
 ### 3. `03-semester-built.png`
@@ -173,7 +179,7 @@ Attach:
 Prompt:
 
 ```text
-GPT Image 2.0, create one 1242x2688 App Store screenshot for StudyPlanner.
+GPT Image 2.0, create exactly one PNG App Store screenshot for StudyPlanner on a native portrait canvas that is exactly 1242 pixels wide by 2688 pixels tall.
 
 Use the attached latest StudyPlanner semester-ready UI screenshot as the product proof and the attached app icon as the exact logo. Use the supplied first-three direction references only for composition and payoff hierarchy. Make the composition feel like the payoff after approval: the semester is organized, the plan is live, and the student can breathe. Keep the phone crop focused on `Semester Ready`, the real counts, and the semester payoff; do not let setup/system language or color-system messaging become the main story. Use bright Apple-native layout, clean graphite typography, realistic phone depth, and restrained class-color accents.
 
@@ -184,6 +190,8 @@ Headline: See the semester take shape.
 Subhead: Classes, deadlines, and exams together.
 
 Place the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep all text readable and professionally spaced. No fake UI, no fake widgets, no App Store badges, no prices, no ratings.
+
+Before returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.
 ```
 
 ### 4. `04-today-next-move.png`
@@ -191,12 +199,12 @@ Place the real app icon/logo as a small brand mark. Do not redraw or alter it. K
 Attach:
 
 - `assets/app/study-planner-icon.png`
-- `qa-screenshots/back-to-school-2026-native/app-08-today.png`
+- `qa-screenshots/back-to-school-2026-native-color-system-v3/app-08-today.png`
 
 Prompt:
 
 ```text
-GPT Image 2.0, create one 1242x2688 App Store screenshot for StudyPlanner.
+GPT Image 2.0, create exactly one PNG App Store screenshot for StudyPlanner on a native portrait canvas that is exactly 1242 pixels wide by 2688 pixels tall.
 
 Use the attached real StudyPlanner Today UI screenshot as the product proof and the attached app icon as the exact logo. Build a polished App Store preview that makes the next action obvious: Today, deadlines, health, and focus block visible in one calm view. Use bright white space, soft realistic depth, graphite headline type, and subtle blue/green/orange accents.
 
@@ -207,6 +215,8 @@ Headline: Know what to do today.
 Subhead: Health, deadlines, and focus in one view.
 
 Place the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep all text readable and professionally spaced. No fake UI, no fake widgets, no App Store badges, no prices, no ratings.
+
+Before returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.
 ```
 
 ### 5. `05-study-blocks.png`
@@ -214,12 +224,12 @@ Place the real app icon/logo as a small brand mark. Do not redraw or alter it. K
 Attach:
 
 - `assets/app/study-planner-icon.png`
-- `qa-screenshots/back-to-school-2026-native/app-09-focus.png`
+- `qa-screenshots/back-to-school-2026-native-color-system-v3/app-09-focus.png`
 
 Prompt:
 
 ```text
-GPT Image 2.0, create one 1242x2688 App Store screenshot for StudyPlanner.
+GPT Image 2.0, create exactly one PNG App Store screenshot for StudyPlanner on a native portrait canvas that is exactly 1242 pixels wide by 2688 pixels tall.
 
 Use the attached real StudyPlanner focus/plan UI screenshot as the product proof and the attached app icon as the exact logo. Make the composition communicate calm study planning from real due dates: focus blocks, prepared time, and less Sunday-night pressure. Use clean Apple-native design, precise spacing, soft depth, and restrained blue/green/orange accents.
 
@@ -230,6 +240,8 @@ Headline: Study without the scramble.
 Subhead: Real deadlines become calm study blocks.
 
 Place the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep all text readable and professionally spaced. No fake UI, no fake widgets, no App Store badges, no prices, no ratings.
+
+Before returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.
 ```
 
 ### 6. `06-widgets-sync.png`
@@ -237,12 +249,12 @@ Place the real app icon/logo as a small brand mark. Do not redraw or alter it. K
 Attach:
 
 - `assets/app/study-planner-icon.png`
-- `qa-screenshots/back-to-school-2026-native/app-10-widgets.png`
+- `qa-screenshots/back-to-school-2026-native-color-system-v3/app-10-widgets.png`
 
 Prompt:
 
 ```text
-GPT Image 2.0, create one 1242x2688 App Store screenshot for StudyPlanner.
+GPT Image 2.0, create exactly one PNG App Store screenshot for StudyPlanner on a native portrait canvas that is exactly 1242 pixels wide by 2688 pixels tall.
 
 Use the attached real StudyPlanner widgets screen as the product proof and the attached app icon as the exact logo. Make the screenshot sell the outcome after setup: the reviewed plan keeps showing up where the student needs it, so the school day stays visible without reopening the whole app. Keep it Apple-native, bright, realistic, calm, and premium.
 
@@ -253,6 +265,8 @@ Headline: Your plan stays with you.
 Subhead: School priorities stay visible.
 
 Place the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep all text readable and professionally spaced. No fake UI, no fake widgets, no App Store badges, no prices, no ratings.
+
+Before returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.
 ```
 
 ### 7. `07-home-screen-widgets.png`
@@ -265,7 +279,7 @@ Attach:
 Prompt:
 
 ```text
-GPT Image 2.0, create one 1242x2688 App Store screenshot for StudyPlanner.
+GPT Image 2.0, create exactly one PNG App Store screenshot for StudyPlanner on a native portrait canvas that is exactly 1242 pixels wide by 2688 pixels tall.
 
 Use the attached real WidgetKit/Home Screen screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic Home Screen widget proof, not a mockup. Preserve the real widget/Home Screen content enough that it is clearly the attached StudyPlanner WidgetKit proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.
 
@@ -276,6 +290,8 @@ Headline: See the week at a glance.
 Subhead: Today stays close on Home Screen.
 
 Place the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep all text readable and professionally spaced. No fake UI, no App Store badges, no prices, no ratings.
+
+Before returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.
 ```
 
 ## Locale Copy Table
@@ -308,7 +324,7 @@ Accept a generated B image only when all are true:
 
 - It was generated individually in the ChatGPT Mac app with GPT Image 2.0.
 - It used the real UI screenshot and `assets/app/study-planner-icon.png` as references.
-- Output is exactly `1242x2688`.
+- Output is exactly `1242x2688` by `sips -g pixelWidth -g pixelHeight`; any other measured file is rejected and preserved as evidence.
 - Product UI remains credible real StudyPlanner UI, with no fake app screens or fake widgets.
 - App icon/logo is exact enough to read as the real supplied logo and is not stylized.
 - External headline and subhead match the selected locale row exactly.

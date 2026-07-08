@@ -85,17 +85,17 @@ const expectedSlides: ExpectedSlide[] = [
   {
     index: 4,
     file: "04-today-next-move.png",
-    uiReference: "qa-screenshots/back-to-school-2026-native/app-08-today.png",
+    uiReference: "qa-screenshots/back-to-school-2026-native-color-system-v3/app-08-today.png",
   },
   {
     index: 5,
     file: "05-study-blocks.png",
-    uiReference: "qa-screenshots/back-to-school-2026-native/app-09-focus.png",
+    uiReference: "qa-screenshots/back-to-school-2026-native-color-system-v3/app-09-focus.png",
   },
   {
     index: 6,
     file: "06-widgets-sync.png",
-    uiReference: "qa-screenshots/back-to-school-2026-native/app-10-widgets.png",
+    uiReference: "qa-screenshots/back-to-school-2026-native-color-system-v3/app-10-widgets.png",
   },
   {
     index: 7,
