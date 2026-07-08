@@ -31,6 +31,8 @@ const AUDIT_PATH = "qa/back-to-school-2026/copy-b-image2-manual-queue-audit.json
 
 const REQUIRED_WIDTH = 1242;
 const REQUIRED_HEIGHT = 2688;
+const EXACT_REQUIRED_PROMPT_PREFIX =
+  "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.";
 
 const expectedLocales = [
   "en-US",
@@ -79,6 +81,9 @@ const expectedSlides: ExpectedSlide[] = [
     index: 3,
     file: "03-semester-built.png",
     uiReference: "qa-screenshots/back-to-school-2026-native-color-system-v3/app-07-semester-ready.png",
+    extraUiReferences: [
+      "qa-screenshots/back-to-school-2026-native-color-system-v3/app-08-today.png",
+    ],
     directionReferences: [
       "docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/01-today-next-move-direction.jpg",
       "docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/04-latest-scan-ui-reference.jpg",
@@ -179,6 +184,12 @@ function extractPromptSection(markdown: string, slide: ExpectedSlide) {
   return markdown.slice(start, end).trim();
 }
 
+function extractPromptText(section: string) {
+  const match = section.match(/```text\n([\s\S]*?)\n```/);
+  expect(Boolean(match), "Prompt section is missing a text code fence");
+  return match?.[1]?.trim() || section;
+}
+
 function uiReferencesForSlide(slide: ExpectedSlide) {
   return [slide.uiReference, ...(slide.extraUiReferences || [])];
 }
@@ -259,6 +270,7 @@ const queue = expectedLocales.flatMap((locale) =>
   expectedSlides.map((slide) => {
     const localizedMarketingText = localeCopy.get(locale)?.slides[String(slide.index)];
     const promptSection = localizedPromptSection(slideSections.get(slide.file) || "", locale, localizedMarketingText);
+    const promptText = extractPromptText(promptSection);
     const uiReferences = uiReferencesForSlide(slide);
     const directionReferences = directionReferencesForSlide(slide);
 
@@ -275,7 +287,7 @@ const queue = expectedLocales.flatMap((locale) =>
       promptPack: PROMPT_PACK_PATH,
       promptHeading: `### ${slide.index}. \`${slide.file}\``,
       promptSection,
-      prompt: promptSection,
+      prompt: promptText,
       localizedMarketingText,
       sourceScreenshot: slide.uiReference,
       sourceScreenshots: uiReferences,
@@ -322,6 +334,10 @@ for (const item of queue) {
       `Queue job ${item.jobId} prompt missing localized subhead`,
     );
   }
+  expect(
+    item.prompt.startsWith(EXACT_REQUIRED_PROMPT_PREFIX),
+    `Queue job ${item.jobId} prompt does not start with the exact required dimension-lock prefix`,
+  );
   if (item.locale === "ar-SA") {
     expect(item.promptSection.includes("right-to-left") && item.promptSection.includes("right-aligned"), `Queue job ${item.jobId} missing RTL instruction`);
   }

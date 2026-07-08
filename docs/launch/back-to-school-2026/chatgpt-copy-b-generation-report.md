@@ -1,0 +1,49 @@
+# ChatGPT Copy B Generation Report
+
+Generated: 2026-07-08
+Queue: `docs/launch/back-to-school-2026/app-store-connect-final-upload/copy-b-image2-manual-queue.json`
+
+## Result
+
+Do not run the remaining 118 Copy B prompts until GPT Image 2.0 can return accepted output at `1242x2688` while preserving locked pixels.
+
+The ChatGPT Mac app prompting path works:
+
+- `en-US-01` was staged with the current ASC-live preview image attached.
+- `en-US-01` was sent to ChatGPT/GPT Image 2.0.
+- ChatGPT generated candidates and cached readable PNG outputs.
+- The automation can locate cached ChatGPT PNGs under the Kingfisher image cache.
+
+The generated outputs are rejected:
+
+- Loose prompt candidate: `853x1844`, visibly redrew non-text areas.
+- Strict pixel-locked prompt candidate: `853x1844`, still downscaled and not App Store-size.
+- Rejected strict candidate saved at `qa/back-to-school-2026/chatgpt-copy-b-candidates/en-US-01-rejected-strict.png`.
+- ChatGPT Mac app export probe found no usable full-resolution file in Desktop, Downloads, app containers, or the ChatGPT image cache.
+- A later file-picker upload probe successfully attached the exact PNG through ChatGPT's `Attach content -> Upload file` path, but the generated candidate still returned `852x1846`, not App Store-size. Rejected file-picker candidate saved at `qa/back-to-school-2026/chatgpt-copy-b-candidates/en-US-01-file-upload-proof-852x1846.png`.
+- A restarted Creative Copy B proof generated a stronger lifestyle/editorial visual direction, but still returned `853x1844`. Rejected creative candidate saved at `qa/back-to-school-2026/creative-copy-b-candidates/creative-en-US-01-rejected-853x1844.png`.
+- The July 8 fresh-chat final-prefix canary started with the exact required sentence, attached the real StudyPlanner icon, latest Scan UI, latest Review Import UI, and first-three direction references, then returned `853x1844`. Rejected raw file saved at `qa/back-to-school-2026/copy-b-image2-mac-app-rejected/2026-07-08-en-US-01-fresh-dimlock-chatgpt-mac-cache-853x1844.png`; SHA-256 `8ae7a82077e2ebe704ef5841333e946bb41b861902e69372b33d34029bf93b74`. Visual proof saved at `qa/back-to-school-2026/copy-b-image2-mac-app-rejected/2026-07-08-en-US-01-fresh-dimlock-chatgpt-mac-visual-proof.png`.
+
+## Stop Condition
+
+The 10/10 gate requires exact `1242x2688` PNGs, correct localized external Copy B text, and no changed app UI, widget, Home Screen, icon, brand lockup, phone geometry, background, hand, or shadow pixels.
+
+Because strict edit, file-picker upload, restarted creative generation, first-three outcome generation, dimension-lock prompting, compensation prompting, and the fresh final-prefix canary all fail the required dimensions, mass-sending the full 119-item queue would produce likely rejected outputs. Continue only after one GPT Image 2.0 candidate is retrievable as a raw exact `1242x2688` PNG and passes visual QA.
+
+## Working Command
+
+Stage without sending:
+
+```bash
+node scripts/prompt-chatgpt-copy-b-queue.mjs --id en-US-01 --stage --force
+```
+
+Send and collect one candidate:
+
+```bash
+node scripts/prompt-chatgpt-copy-b-queue.mjs --id en-US-01 --send --force --collect --stop-on-fail --wait-ms 240000
+```
+
+## Next Test
+
+Use ChatGPT's image output controls, if available, to download/export the generated image at full resolution. If the downloadable file is still `853x1844`, do not use it for App Store screenshots. Under the current rule, there is no local compositor fallback for Copy B: accepted Copy B assets must come from GPT Image 2.0 in the ChatGPT Mac app or remain ungenerated. Copy B is non-blocking for the In-App Event nomination and blocks only PPO treatment upload.
