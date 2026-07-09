@@ -161,7 +161,7 @@ Verified on 2026-07-07:
 | Screenshot contact sheet | HTTP 200; `Screenshots fulfilled: 9/9` | https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/screenshot-contact-sheet.md |
 | Native WidgetKit sheet | HTTP 200; `Widget states captured: 5/8` | https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/native-widget-sheet.md |
 | Accessibility/localization summary | HTTP 200; build `2.0.8` / `79` and current verification date visible | https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/accessibility-localization-summary.md |
-| App Review proof | HTTP 200; build `2.0.8` / `79` and claim boundaries visible | https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/app-review-proof.md |
+| App Review proof | HTTP 200; build `2.0.8` / `79` and claim boundaries visible | https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/3b232101ccf177128af9900f5f233eb282b00dbf/app-review-proof.md |
 
 ## Submit Or Wait Decision
 

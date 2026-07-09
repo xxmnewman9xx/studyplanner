@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-09T09:12:43.447Z",
+  "generatedAt": "2026-07-09T09:17:00.351Z",
   "status": "ready",
   "networkChecked": true,
   "bundleRoot": "docs/launch/back-to-school-2026/app-store-connect-final-upload",
@@ -96,7 +96,7 @@
       },
       {
         "id": "app-review-proof",
-        "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/app-review-proof.md",
+        "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/3b232101ccf177128af9900f5f233eb282b00dbf/app-review-proof.md",
         "status": "registered"
       }
     ],
@@ -159,11 +159,11 @@
       },
       {
         "id": "app-review-proof",
-        "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/app-review-proof.md",
+        "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/3b232101ccf177128af9900f5f233eb282b00dbf/app-review-proof.md",
         "status": 200,
         "ok": true,
         "contentType": "text/plain; charset=utf-8",
-        "bytes": 5182,
+        "bytes": 5311,
         "checks": {
           "screenshotsFulfilled": false,
           "widgetStatesCaptured": false,
