@@ -35,6 +35,8 @@ The July 8 fresh-chat final-prefix canary used the exact required opening senten
 
 The Mac app viewer share-sheet `Copy` route exposed the same `853x1844` temporary media-preview PNG, and `Add to Photos` produced no readable recent image file. This confirms the current blocker is the lack of a first-party exact-size export route, not the queue content.
 
+The visible `Open with Preview` route also opened the same temporary media-preview asset and did not expose a durable original-size file. Copy B remains blocked on ChatGPT Mac app export behavior, while the In-App Event nomination remains ready for manual ASC submission with Copy A/control.
+
 ## Local Gate Interpretation
 
 `npm run check:back-to-school-release-cycle` passes locally but reports `submissionReady: false`.
