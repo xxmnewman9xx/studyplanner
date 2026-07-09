@@ -73,7 +73,9 @@ This file uses the exact real app logo from `assets/icon.png`. It is for supplem
 - `copy-b-image2-upload-map.json`
 - `copy-b-image2-provenance.template.json`
 
-## Optional PPO After Nomination
+## Immediate PPO After Nomination
+
+After the In-App Event and featuring nomination are submitted, immediately create an iPhone-only Product Page Optimization treatment from `copy-b-image2-upload-map.json`. Keep Copy A/control as the standard app-version screenshot set until there is a complete iPad strategy for Copy B.
 
 - `gpt-image-2-prompts.md`
 - `gpt-image-2-localized-preview-prompt-pack.md`

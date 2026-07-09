@@ -30,9 +30,9 @@ Characters: 749/1000
 
 ## Helpful Details
 
-Built by an independent developer focused on reducing semester overwhelm, not selling generic AI. The release pairs privacy-conscious review-before-save planning with Apple-native details: real WidgetKit proof, submitted iPhone/iPad screenshots, localized store presence, Dynamic Type/RTL/accessibility QA checks, and a timed Semester Kickoff Week event that helps students finish setup before classes ramp.
+Built by an independent developer focused on reducing semester overwhelm, not selling generic AI. The release pairs review-before-save planning with Apple-native details: real WidgetKit proof, submitted iPhone/iPad screenshots, localized store presence, Dynamic Type/RTL/accessibility QA checks, and a timed Semester Kickoff Week event that helps students finish setup before classes ramp.
 
-Characters: 407/500
+Characters: 389/500
 
 ## In-App Event
 

@@ -20,7 +20,7 @@ Submit now. The remaining gap is not nomination quality; it is only the external
 | Public proof | 9/10 | Five URLs return HTTP 200; stale blocker language removed from public proof. | Product video is supplemental, not App Preview-ready. |
 | In-App Event readiness | 9/10 | Fields, media, deep link, dates, and fallback badge are ready. | Requires manual App Store Connect creation/submission. |
 | Localization/accessibility | 9/10 | Public summary and local checks cover localization, Dynamic Type/RTL/reduce-transparency intent. | Native extended capture should continue after nomination. |
-| Independent developer story | 9/10 | Helpful details identify independent developer and privacy-conscious review-before-save planning. | Could be strengthened in press follow-up, not needed for nomination. |
+| Independent developer story | 9/10 | Helpful details identify independent developer and review-before-save planning. | Could be strengthened in press follow-up, not needed for nomination. |
 | Timing strategy | 10/10 | Submit by 2026-07-17 if possible; 2026-07-24 absolute latest. | Delay is the main risk. |
 
 ## Final Recommendation

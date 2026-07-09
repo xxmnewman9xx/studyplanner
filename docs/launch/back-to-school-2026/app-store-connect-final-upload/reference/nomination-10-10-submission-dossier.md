@@ -36,9 +36,9 @@ Nomination description, 749/1000 characters:
 
 Study Planner AI's Back-to-School Semester Kickoff update helps students turn the first stack of syllabi into a calm, reviewed semester plan before classes begin. During setup, onboarding guides them to scan or import a syllabus, review detected courses, assignments, exams, and uncertain dates, then save a plan they control. Native WidgetKit surfaces keep the plan visible after setup: Today, Upcoming, Week/Semester Calendar, Class Progress, and real Home Screen views for heavy weeks. The update is localized across key student markets, uses real release screenshots and WidgetKit captures, includes localization and accessibility QA checks, and keeps the promise focused: a reviewed Apple-native path from syllabus chaos to a calmer first week.
 
-Helpful Details, 407/500 characters:
+Helpful Details, 389/500 characters:
 
-Built by an independent developer focused on reducing semester overwhelm, not selling generic AI. The release pairs privacy-conscious review-before-save planning with Apple-native details: real WidgetKit proof, submitted iPhone/iPad screenshots, localized store presence, Dynamic Type/RTL/accessibility QA checks, and a timed Semester Kickoff Week event that helps students finish setup before classes ramp.
+Built by an independent developer focused on reducing semester overwhelm, not selling generic AI. The release pairs review-before-save planning with Apple-native details: real WidgetKit proof, submitted iPhone/iPad screenshots, localized store presence, Dynamic Type/RTL/accessibility QA checks, and a timed Semester Kickoff Week event that helps students finish setup before classes ramp.
 
 ## In-App Event
 

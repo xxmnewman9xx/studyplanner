@@ -64,6 +64,7 @@ Use `Major Update` as the fallback badge. Keep every other field the same.
 6. Add the five supplemental URLs from `supplemental-url-registry.md`.
 7. Attach `Semester Kickoff Week` only if App Store Connect makes it selectable.
 8. Submit.
+9. After the nomination is submitted, create an iPhone-only Product Page Optimization treatment using `copy-b-image2-upload-map.json`; keep Copy A/control active as the standard screenshot set.
 
 ## If The In-App Event Is Not Selectable
 
