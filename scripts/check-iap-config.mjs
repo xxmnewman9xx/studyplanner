@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 const app = JSON.parse(readFileSync("app.json", "utf8")).expo;
 const iap = readFileSync("src/iap.ts", "utf8");
 const iapManifest = readFileSync("src/config/iap.ts", "utf8");
+const upgradeScreen = readFileSync("src/screens/UpgradeScreen.tsx", "utf8");
 const storeKit = readFileSync("qa/storekit/StudyPlannerLocal.storekit", "utf8");
 const failures = [];
 
@@ -19,15 +20,24 @@ expect(iap.includes("com.mattnewman.studyplanner.plus.weekly"), "weekly IAP prod
 expect(iap.includes("com.mattnewman.studyplanner.plus.monthly"), "monthly IAP product ID must remain intact");
 expect(iap.includes("com.mattnewman.studyplanner.plus.yearly"), "yearly IAP product ID must remain intact");
 expect(iap.includes("getActiveSubscriptions([...STUDYPLANNER_SUBSCRIPTION_IDS])"), "entitlement must be checked against active App Store subscriptions");
-expect(iap.includes('$5.99'), "weekly fallback price must remain $5.99");
-expect(iap.includes('$14.99'), "monthly fallback price must remain $14.99");
-expect(iap.includes('$59.99'), "yearly fallback price must remain $59.99");
-expect(iapManifest.includes('appStoreConnectPriceUsd: "5.99"'), "weekly ASC target price must remain 5.99");
-expect(iapManifest.includes('appStoreConnectPriceUsd: "14.99"'), "monthly ASC target price must remain 14.99");
+expect((iap.match(/displayPrice: "Shown by App Store"/g) || []).length >= 3, "fallback plans must avoid real-looking prices until StoreKit loads localized products");
+expect(!iap.includes('displayPrice: "$9.99"'), "weekly fallback must not show a fake App Store price");
+expect(!iap.includes('displayPrice: "$19.99"'), "monthly fallback must not show a fake App Store price");
+expect(!iap.includes('displayPrice: "$59.99"'), "yearly fallback must not show a fake App Store price");
+expect(!upgradeScreen.toLowerCase().includes("free trial"), "upgrade UI must not advertise a free trial");
+expect(upgradeScreen.includes('t("paywall.terms_feature"'), "upgrade UI must defer price and terms to localized store copy");
+expect(iapManifest.includes('appStoreConnectPriceUsd: "9.99"'), "weekly ASC target price must remain 9.99");
+expect(iapManifest.includes('appStoreConnectPriceUsd: "19.99"'), "monthly ASC target price must remain 19.99");
 expect(iapManifest.includes('appStoreConnectPriceUsd: "59.99"'), "yearly ASC target price must remain 59.99");
-expect(storeKit.includes('"displayPrice": "5.99"'), "local StoreKit weekly price must remain 5.99");
-expect(storeKit.includes('"displayPrice": "14.99"'), "local StoreKit monthly price must remain 14.99");
+expect(iapManifest.includes("Back-to-School 2026 Yearly Plus One-Week Trial"), "yearly back-to-school intro offer must be documented in the IAP manifest");
+expect(iapManifest.includes('availabilityStart: "2026-07-09"'), "yearly intro offer start date must match ASC");
+expect(iapManifest.includes('availabilityEnd: "2026-09-30"'), "yearly intro offer end date must match ASC");
+expect(storeKit.includes('"displayPrice": "9.99"'), "local StoreKit weekly price must remain 9.99");
+expect(storeKit.includes('"displayPrice": "19.99"'), "local StoreKit monthly price must remain 19.99");
 expect(storeKit.includes('"displayPrice": "59.99"'), "local StoreKit yearly price must remain 59.99");
+expect(storeKit.includes('"internalID": "yearly_intro_back_to_school_2026"'), "local StoreKit yearly intro offer must remain configured");
+expect(storeKit.includes('"paymentMode": "free"'), "local StoreKit yearly intro offer must be free");
+expect(storeKit.includes('"subscriptionPeriod": "P1W"'), "local StoreKit yearly intro offer must last one week");
 
 if (failures.length) {
   console.error("IAP config checks failed:");

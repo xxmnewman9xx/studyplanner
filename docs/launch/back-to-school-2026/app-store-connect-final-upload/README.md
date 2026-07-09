@@ -22,6 +22,16 @@ Use `npm run check:copy-b-image2` for the optional PPO Copy B set. Current statu
 
 `store.config.json` intentionally remains pointed at Copy A/control for the standard app-version metadata upload. For a manual Product Page Optimization treatment, use `copy-b-image2-upload-map.json`, which maps all `17 x 7 = 119` Copy B iPhone PNGs under `store/apple/screenshot-copy-b-image-2/{locale}/APP_IPHONE_65/`.
 
+## Live App Store Connect Status
+
+Verified in App Store Connect on 2026-07-09:
+
+- iOS app version `2.0.8` has build `79` attached; Save is disabled and Add for Review is enabled.
+- Yearly Plus (`com.mattnewman.studyplanner.plus.yearly`) has a worldwide introductory offer: `Jul 9, 2026 to Sep 30, 2026`, `175 Countries or Regions`, `Free for the first week`.
+- In-App Event `Semester Kickoff Week` is saved as a draft with both event-media files uploaded, deep link `studyplanner://import`, all countries or regions selected, and Add for Review enabled.
+- Featuring nomination `8255bf6c-6cbf-45bd-b88c-1afc3074ca41` is saved as a draft with the seasonal trial copy, all regions, 17 languages, five supplemental URLs, and Submit Nomination enabled.
+- No final submission buttons have been pressed.
+
 Before producing Copy B in the ChatGPT Mac app, run:
 
 ```bash
@@ -91,7 +101,7 @@ After the In-App Event and featuring nomination are submitted, immediately creat
 
 ## Current Decision
 
-Submit the nomination once App Store Connect shows iOS `2.0.8` build `79` visible/selectable, the In-App Event draft has the two approved event-media files uploaded and cropped acceptably, the event deep link is exactly `studyplanner://import`, and the five supplemental URLs are accepted in the nomination form. Do not block the nomination on extended widget variant follow-up. The package already has public 9/9 screenshot proof and five real WidgetKit proof states, and editorial timing is more important for the August 24 window.
+Submit the In-App Event and nomination now once the final human crop review looks acceptable. App Store Connect already shows iOS `2.0.8` build `79` attached to the app-version draft, the In-App Event draft has the two approved event-media files uploaded, the event deep link is exactly `studyplanner://import`, the worldwide one-week Yearly Plus trial is live for July 9 through September 30, 2026, and the five supplemental URLs are accepted in the nomination form. Do not block the nomination on extended widget variant follow-up. The package already has public 9/9 screenshot proof and five real WidgetKit proof states, and editorial timing is more important for the August 24 window.
 
 Do not use the rejected `2.0.7` train for new App Store Connect uploads. Apple returned ITMS-90186/ITMS-90062 for `2.0.7 (78)`, so the current required binary train is iOS `2.0.8` build `79`; see `testflight-build-status.md`.
 

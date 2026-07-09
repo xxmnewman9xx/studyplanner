@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-09T12:50:20.128Z",
+  "generatedAt": "2026-07-09T18:12:41.456Z",
   "status": "ready",
   "networkChecked": true,
   "bundleRoot": "docs/launch/back-to-school-2026/app-store-connect-final-upload",
@@ -37,8 +37,8 @@
     "publishStart": "2026-08-24",
     "publishEnd": "2026-08-31",
     "platforms": "iOS (iPhone), iOS (iPad)",
-    "descriptionCharacters": 710,
-    "helpfulDetailsCharacters": 396,
+    "descriptionCharacters": 876,
+    "helpfulDetailsCharacters": 438,
     "relatedEventIntent": "Yes",
     "eventName": "Semester Kickoff Week",
     "deepLink": "studyplanner://import"

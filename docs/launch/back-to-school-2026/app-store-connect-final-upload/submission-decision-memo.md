@@ -14,6 +14,7 @@ Do not wait for extended WidgetKit variant follow-up unless App Store Connect re
 
 - Editorial timing matters. For an August 24 start, submit by 2026-07-17 if possible and no later than 2026-07-24.
 - The current replacement build candidate is iOS `2.0.8` build `79` because Apple closed the `2.0.7` pre-release train.
+- Live App Store Connect verification on 2026-07-09 shows build `79` attached to iOS app version `2.0.8` and the Yearly Plus worldwide one-week free trial active from July 9 through September 30, 2026.
 - The public proof package already covers the story Apple needs to evaluate: real screenshots, real WidgetKit captures, localization proof, accessibility proof, review notes, and purchase-flow boundaries.
 - The remaining local gate blockers are stricter internal launch checks, not blockers for a featuring nomination. They track optional extended widget-state proof and final internal packaging status.
 - The nomination copy does not claim unproven automation, LMS sync, institution-grade forecasting, or fake widgets.
@@ -26,6 +27,7 @@ Do not wait for extended WidgetKit variant follow-up unless App Store Connect re
 - Accessibility/localization summary: HTTP 200 and public latest raw Gist readback shows build `2.0.8` / `79`.
 - App Review proof: HTTP 200 and public latest raw Gist readback shows build `2.0.8` / `79`.
 - Deep link smoke: `studyplanner://import` opened Study Planner on a clean iPhone 17 simulator and landed on the first-run syllabus onboarding path; the submitted iOS `2.0.8` build `79` IPA also contains the `studyplanner` URL scheme.
+- Monetization proof: Yearly Plus introductory offer is live in App Store Connect for `175 Countries or Regions`, `Jul 9, 2026 to Sep 30, 2026`, `Free for the first week`.
 
 ## Copy B PPO Status
 

@@ -36,7 +36,7 @@ export const studyPlannerIapManifest = {
       description: "Full access to StudyPlanner: Syllabus AI while the weekly plan is active.",
       entitlementUnlocked: "studyplanner_pro",
       subscriptionPeriod: "P1W",
-      appStoreConnectPriceUsd: "5.99",
+      appStoreConnectPriceUsd: "9.99",
       hasFreeTrial: false,
       hasIntroOffer: false,
       sandboxNotes: "Use an App Store sandbox tester or local StoreKit config; do not use this value as a bundle identifier."
@@ -48,7 +48,7 @@ export const studyPlannerIapManifest = {
       description: "Full access to StudyPlanner: Syllabus AI while the monthly plan is active.",
       entitlementUnlocked: "studyplanner_pro",
       subscriptionPeriod: "P1M",
-      appStoreConnectPriceUsd: "14.99",
+      appStoreConnectPriceUsd: "19.99",
       hasFreeTrial: false,
       hasIntroOffer: false,
       sandboxNotes: "Use an App Store sandbox tester or local StoreKit config; do not use this value as a bundle identifier."
@@ -61,9 +61,18 @@ export const studyPlannerIapManifest = {
       entitlementUnlocked: "studyplanner_pro",
       subscriptionPeriod: "P1Y",
       appStoreConnectPriceUsd: "59.99",
-      hasFreeTrial: false,
-      hasIntroOffer: false,
-      sandboxNotes: "Use an App Store sandbox tester or local StoreKit config; do not use this value as a bundle identifier."
+      hasFreeTrial: true,
+      hasIntroOffer: true,
+      introductoryOffer: {
+        referenceName: "Back-to-School 2026 Yearly Plus One-Week Trial",
+        paymentMode: "free_trial",
+        duration: "P1W",
+        availabilityStart: "2026-07-09",
+        availabilityEnd: "2026-09-30",
+        countriesOrRegions: 175,
+        appStoreConnectReadback: "Jul 9, 2026 to Sep 30, 2026; 175 Countries or Regions; Free for the first week"
+      },
+      sandboxNotes: "Use an App Store sandbox tester or local StoreKit config. ASC verified a worldwide one-week introductory offer for July 9-Sept. 30, 2026; do not use this value as a bundle identifier."
     }
   ],
   sandboxTesting: {

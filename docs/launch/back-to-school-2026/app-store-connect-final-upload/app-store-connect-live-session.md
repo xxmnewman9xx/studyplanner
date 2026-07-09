@@ -10,6 +10,8 @@ Use this file during the actual App Store Connect session.
 - Nomination type: `App Enhancements`
 - In-App Event: `Semester Kickoff Week`
 - Event deep link: `studyplanner://import`
+- Live ASC check on 2026-07-09: build `79` is attached to iOS app version `2.0.8`; In-App Event Add for Review is enabled; nomination Submit Nomination is enabled; no final submit buttons have been pressed.
+- Seasonal offer: Yearly Plus worldwide one-week free trial from `2026-07-09` through `2026-09-30` across 175 countries or regions.
 
 ## Before Opening App Store Connect
 
@@ -39,7 +41,7 @@ Use this file during the actual App Store Connect session.
 6. Upload:
    - Event card image: `event-media/01-event-card-image-1920x1080.png`
    - Event details page image: `event-media/02-event-details-image-1080x1920.png`
-7. Submit the event for review.
+7. Submit the event for review. The draft is already created and ready; do not recreate it.
 
 ## If App Store Connect Rejects The Event Badge
 
@@ -63,7 +65,7 @@ Use `Major Update` as the fallback badge. Keep every other field the same.
 5. Paste the description and helpful details from `nomination-fields.md`.
 6. Add the five supplemental URLs from `supplemental-url-registry.md`.
 7. Attach `Semester Kickoff Week` only if App Store Connect makes it selectable.
-8. Submit.
+8. Submit. The draft nomination is already saved and ready; do not recreate it.
 9. After the nomination is submitted, create an iPhone-only Product Page Optimization treatment using `copy-b-image2-upload-map.json`; keep Copy A/control active as the standard screenshot set.
 
 ## If The In-App Event Is Not Selectable
@@ -81,6 +83,7 @@ Semester Kickoff Week has been submitted as a supporting In-App Event. If it is 
 Stop and do not submit if any of these happen:
 
 - App Store Connect does not show build `2.0.8` build `79` as the current submitted/approved candidate.
+- The Yearly Plus introductory offer does not show `Jul 9, 2026 to Sep 30, 2026`, `175 Countries or Regions`, and `Free for the first week`.
 - Any supplemental URL fails to open publicly.
 - App Store Connect requires screenshots or event media that are not in this folder.
 - The event media preview crops the desk/planner art in a way that looks broken.

@@ -1,6 +1,6 @@
 # TestFlight And Build Status
 
-Checked: 2026-07-09 05:30 ET
+Checked: 2026-07-09 13:55 ET
 
 ## Current State
 
@@ -20,7 +20,7 @@ Checked: 2026-07-09 05:30 ET
 - EAS GraphQL status recheck on 2026-07-09: `6a4dcc05-79dc-4e24-81b5-88826e7173f8` is `FINISHED` for ASC app `6766181202`.
 - Ignore later duplicate attempt `e873a70f-cee9-41de-94e6-4e0faff92e77`; EAS reports it as `ERRORED`.
 - App Store Connect TestFlight URL: `https://appstoreconnect.apple.com/apps/6766181202/testflight/ios`.
-- Apple processing/selectability in App Store Connect is now the remaining TestFlight wait state.
+- App Store Connect now shows build `79` attached to iOS app version `2.0.8`; Save is disabled and Add for Review is enabled.
 - SDK package patches have been aligned with Expo SDK 56 expectations:
   - `expo` `~56.0.15`
   - `expo-image-picker` `~56.0.20`
@@ -53,11 +53,11 @@ Do not select or submit any `2.0.7` build for this cycle. That train is closed.
 - The rejected IPA itself had matching app/widget plist versions (`2.0.7` / `78`), so the blocking issue is the closed train and not a widget-extension version mismatch.
 - The first `eas build --auto-submit` attempt used `--what-to-test`, but EAS Submit rejected that changelog parameter for this account tier. Continue submitting exact build IDs without `--what-to-test`.
 
-## Proof To Capture After Apple Processing
+## App Store Connect Attachment Proof
 
-- App Store Connect processing status for build `79`.
-- Confirmation that build `79` is selectable for the `2.0.8` App Store version.
+- Build section readback: `BUILD 79`, `VERSION 2.0.8`, `HAS APP CLIP NO`.
+- The app-version draft has no remaining build-selection blocker.
 
 ## Manual ASC Boundary
 
-App Store submission and In-App Event/featuring nomination final submit remain manual App Store Connect actions unless explicitly performed in the live ASC session. This packet prepares the exact build and metadata, but the final buttons should be pressed only after build `79` is visible/selectable and all supplemental URLs open publicly.
+App Store submission and In-App Event/featuring nomination final submit remain manual App Store Connect actions unless explicitly performed in the live ASC session. Build `79` is now visible/selectable and attached, the seasonal Yearly Plus trial is live, and all supplemental URLs have public readback evidence. The remaining manual boundary is pressing Add for Review / Submit Nomination after final human review.
