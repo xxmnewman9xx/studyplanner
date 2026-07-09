@@ -12,25 +12,7 @@ The direction is intentionally Apple-inspired minimal: bright white space, bold 
 
 Do not replace the active standard-upload set with GPT output unless each generated PNG passes the rejection gate: no changed UI pixels, no changed localized copy, no fake widget, no fake phone UI, exact `1242x2688` output, and a complete iPad strategy.
 
-## 2026-07-08 Reference Research Update
-
-Apple's product-page guidance makes slides 1-3 the highest-leverage screenshot real estate: when no app preview is available, the first one to three screenshots may appear in search results and should show the app's essence. Apple's Product Page Optimization guidance also supports testing alternate screenshot treatments against the original product page.
-
-Copy B is now framed and accepted for that search/PPO path:
-
-1. Slide 1 shows the outcome of starting from syllabus material or notes: a reviewed plan, not a scanner feature tour.
-2. Slide 2 shows control before save: the student approves what reaches the plan.
-3. Slide 3 shows the payoff: the semester is organized and ready to use.
-
-Reference direction from the four 2026-07-08 user-provided comps is limited to composition: bold black top headline, short gray subhead, small StudyPlanner brand mark, large latest-build phone UI, white App Store canvas, and restrained color accents. Final Copy B used real StudyPlanner UI references, the real logo, one-at-a-time ChatGPT Mac app / GPT Image 2.0 generation, exact `1242x2688`, and human QA acceptance.
-
-Accepted Copy B/Image 2.0 state: `store/apple/screenshot-copy-b-image-2` contains 119/119 iPhone PNGs at `1242x2688`, including 17 localized Home Screen widget slides. It remains a manual PPO treatment, not the active standard upload set, because `store.config.json` stays on the complete Copy A/control set and Copy B is iPhone-only.
-
-Sources:
-
-- Apple Product Page guidance: https://developer.apple.com/app-store/product-page/
-- Apple Product Page Optimization guidance: https://developer.apple.com/app-store/product-page-optimization/
-- Apple Featuring guidance: https://developer.apple.com/app-store/getting-featured/
+Copy B/Image 2.0 is ready as an optional iPhone Product Page Optimization treatment: `store/apple/screenshot-copy-b-image-2` contains 119/119 accepted iPhone PNGs at `1242x2688`, with 17 localized widget slides and 119 accepted provenance entries. It is not the active `store.config.json` upload set because it is iPhone-only and the widget treatment is generated from verified real WidgetKit source rather than exact raw Home Screen placement.
 
 ## Final Asset Set
 

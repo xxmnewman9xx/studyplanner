@@ -2,7 +2,7 @@
 
 Release: Back-to-School Semester Kickoff
 Target featuring window: 2026-08-24 to 2026-08-31
-Generated: 2026-07-07
+Generated: 2026-07-09
 
 Use this folder for the manual App Store Connect session.
 
@@ -89,7 +89,7 @@ This file uses the exact real app logo from `assets/icon.png`. It is for supplem
 
 ## Current Decision
 
-Submit the nomination once the In-App Event is submitted or once the five supplemental URLs are confirmed public. Do not block the nomination on the missing three extended widget proof states. The package already has public 9/9 screenshot proof and 5/8 WidgetKit proof, and editorial timing is more important for the August 24 window.
+Submit the nomination once App Store Connect shows iOS `2.0.8` build `79` visible/selectable, the In-App Event draft has the two approved event-media files uploaded and cropped acceptably, the event deep link is exactly `studyplanner://import`, and the five supplemental URLs are accepted in the nomination form. Do not block the nomination on the missing three extended widget proof states. The package already has public 9/9 screenshot proof and 5/8 WidgetKit proof, and editorial timing is more important for the August 24 window.
 
 Do not use the rejected `2.0.7` train for new App Store Connect uploads. Apple returned ITMS-90186/ITMS-90062 for `2.0.7 (78)`, so the current required binary train is iOS `2.0.8` build `79`; see `testflight-build-status.md`.
 

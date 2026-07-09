@@ -1,0 +1,67 @@
+{
+  "generatedAt": "2026-07-09T09:29:27Z",
+  "release": "Back-to-School Semester Kickoff",
+  "status": "copy_a_control_ready_copy_b_ppo_ready",
+  "overallScore": 10,
+  "finalRoot": "store/apple/screenshot-pop/{locale}/",
+  "storeConfigVersion": "2.0.8",
+  "storeConfigRole": "Copy A/control remains active in store.config.json for the standard upload.",
+  "iphone": {
+    "localeCount": 17,
+    "screenshotsPerLocale": 7,
+    "totalScreenshots": 119,
+    "requiredSize": {
+      "width": 1242,
+      "height": 2688
+    }
+  },
+  "ipad": {
+    "totalScreenshots": 25
+  },
+  "rules": [
+    "Maintain current Apple-inspired minimal visual direction.",
+    "Use GPT Image 2.0 only to polish surrounding presentation, lighting, depth, and stress-relief context.",
+    "Do not redraw or alter app UI, widget UI, localized text, app icons, phone geometry, or screenshot boundaries.",
+    "First slide must show the real in-app scanner screen, not invented app UI.",
+    "Widget slide must remain real Home Screen WidgetKit proof, not fake UI."
+  ],
+  "promptQueue": {
+    "path": "qa/back-to-school-2026/chatgpt-individual-preview-prompts.json",
+    "jsonlPath": "qa/back-to-school-2026/chatgpt-individual-preview-prompts.jsonl",
+    "totalPrompts": 119,
+    "mode": "one submitted preview screenshot per GPT Image 2.0 prompt"
+  },
+  "visualQa": {
+    "scannerContactSheet": "qa/back-to-school-2026/preview-polish-review/scanner-first-slide-contact-sheet.png"
+  },
+  "copyBImage2Ppo": {
+    "role": "Optional iPhone Product Page Optimization treatment; not the active standard upload set.",
+    "finalRoot": "store/apple/screenshot-copy-b-image-2",
+    "iphoneLocales": 17,
+    "screenshotsPerLocale": 7,
+    "totalIphoneScreenshots": 119,
+    "requiredSize": {
+      "width": 1242,
+      "height": 2688
+    },
+    "status": "ready",
+    "storeConfigReferences": 0,
+    "ipadScreenshots": 0,
+    "widgetSlides": 17,
+    "widgetSourceVerified": 17,
+    "widgetFinalMatchesSource": 0,
+    "provenance": "docs/launch/back-to-school-2026/app-store-connect-final-upload/copy-b-image2-provenance.json",
+    "audit": "qa/back-to-school-2026/copy-b-image2-final-audit.json",
+    "uploadMap": "docs/launch/back-to-school-2026/app-store-connect-final-upload/copy-b-image2-upload-map.json"
+  },
+  "scores": {
+    "visualDirectionPreserved": 10,
+    "realUiNoFakeUi": 10,
+    "realUseCases": 10,
+    "stressReliefStory": 10,
+    "localizationCoverage": 10,
+    "appStoreSizing": 10,
+    "nominationAlignment": 10
+  },
+  "promptPack": "docs/launch/back-to-school-2026/gpt-image-2-localized-preview-prompt-pack.md"
+}

@@ -1,6 +1,6 @@
 # TestFlight And Build Status
 
-Checked: 2026-07-09 04:45 ET
+Checked: 2026-07-09 05:30 ET
 
 ## Current State
 
@@ -18,7 +18,7 @@ Checked: 2026-07-09 04:45 ET
 - Submission ID: `6a4dcc05-79dc-4e24-81b5-88826e7173f8`.
 - Submission URL: `https://expo.dev/accounts/xxmnewman9xx/projects/study-planner-syllabus-ai/submissions/6a4dcc05-79dc-4e24-81b5-88826e7173f8`.
 - App Store Connect TestFlight URL: `https://appstoreconnect.apple.com/apps/6766181202/testflight/ios`.
-- Apple processing is now the remaining TestFlight wait state.
+- Apple processing/selectability in App Store Connect is now the remaining TestFlight wait state.
 - SDK package patches have been aligned with Expo SDK 56 expectations:
   - `expo` `~56.0.15`
   - `expo-image-picker` `~56.0.20`
@@ -36,9 +36,11 @@ Do not select or submit any `2.0.7` build for this cycle. That train is closed.
 - EAS build completed as `FINISHED` for app version `2.0.8`, build number `79`.
 - EAS build git commit hash: `5da88811a6e4887869963331a29afc810b65aff7`.
 - Downloaded replacement IPA artifact and inspected bundled plists:
-  - App bundle: `CFBundleShortVersionString=2.0.8`, `CFBundleVersion=79`.
+  - Local artifact: `builds/studyplanner-2.0.8-79.ipa`.
+  - SHA-256: `f31a0bec714e1473cd0506ea47c01472a979f804f6ee5d03c819b27f7b51ce2c`.
+  - App bundle: `com.mattnewman.studyplanner`, `CFBundleShortVersionString=2.0.8`, `CFBundleVersion=79`.
   - App bundle URL schemes: `studyplanner`, `com.mattnewman.studyplanner`.
-  - Widget extension: `CFBundleShortVersionString=2.0.8`, `CFBundleVersion=79`.
+  - Widget extension: `com.mattnewman.studyplanner.widgets`, `CFBundleShortVersionString=2.0.8`, `CFBundleVersion=79`, `NSExtensionPointIdentifier=com.apple.widgetkit-extension`.
 - EAS Submit output: `Submitted your app to Apple App Store Connect`.
 
 ## Previous Build Evidence
