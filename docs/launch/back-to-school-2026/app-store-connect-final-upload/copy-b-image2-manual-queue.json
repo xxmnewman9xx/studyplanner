@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-08T22:49:44.595Z",
+  "generatedAt": "2026-07-09T01:17:19.864Z",
   "status": "ready-for-manual-chatgpt-mac-app-generation",
   "instructions": "Run each queue item individually in the ChatGPT Mac app with GPT Image 2.0. Attach the real logo and every slide-specific real UI reference before generating. Save accepted PNGs to outputPath.",
   "finalValidationCommand": "npm run check:copy-b-image2",

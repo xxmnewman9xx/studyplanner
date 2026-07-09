@@ -33,6 +33,8 @@ Do not block the In-App Event or featuring nomination on Copy B. The final Copy 
 
 The July 8 fresh-chat final-prefix canary used the exact required opening sentence, the real app icon, latest Scan UI, latest Review Import UI, and first-three direction references. GPT Image 2.0 again returned a retrievable PNG at `853x1844`, not `1242x2688`. The rejected raw file is `qa/back-to-school-2026/copy-b-image2-mac-app-rejected/2026-07-08-en-US-01-fresh-dimlock-chatgpt-mac-cache-853x1844.png` with SHA-256 `8ae7a82077e2ebe704ef5841333e946bb41b861902e69372b33d34029bf93b74`; visual proof is `qa/back-to-school-2026/copy-b-image2-mac-app-rejected/2026-07-08-en-US-01-fresh-dimlock-chatgpt-mac-visual-proof.png`. Keep `store/apple/screenshot-copy-b-image-2/` empty unless a new GPT Image 2.0 canary is retrievable as a raw exact `1242x2688` PNG and passes visual QA.
 
+The Mac app viewer share-sheet `Copy` route exposed the same `853x1844` temporary media-preview PNG, and `Add to Photos` produced no readable recent image file. This confirms the current blocker is the lack of a first-party exact-size export route, not the queue content.
+
 ## Local Gate Interpretation
 
 `npm run check:back-to-school-release-cycle` passes locally but reports `submissionReady: false`.

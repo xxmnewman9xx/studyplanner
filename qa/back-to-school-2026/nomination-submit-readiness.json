@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-08T22:49:51.037Z",
+  "generatedAt": "2026-07-09T01:17:26.004Z",
   "status": "ready_for_manual_asc_submission",
   "nominationPath": {
     "copyAControl": {
@@ -11,7 +11,7 @@
     "finalUploadBundle": {
       "root": "docs/launch/back-to-school-2026/app-store-connect-final-upload",
       "zip": "docs/launch/back-to-school-2026/studyplanner-back-to-school-2026-app-store-connect-upload.zip",
-      "zipBytes": 8239178,
+      "zipBytes": 8239416,
       "zipSynced": true
     },
     "requiredLocalGates": {
