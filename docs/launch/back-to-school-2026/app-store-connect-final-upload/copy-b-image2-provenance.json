@@ -1502,7 +1502,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted after targeted slide 06 Home Screen WidgetKit repair. Dimension-finalized from ChatGPT Mac app raw candidate ja-06-rejected-710x1536.png using the user-approved dimension edit path; source proof was the real localized Home Screen widget screenshot.",
+      "notes": "Visual QA accepted after targeted Japanese slide 06 localization repair. External text corrected to exact queue copy: 計画がいつも見える。 / 学習の優先事項が見える。 Product UI remains the real localized Home Screen WidgetKit proof; final PNG remains 1242x2688.",
       "sourcePath": "store/apple/screenshot-pop/ja/APP_IPHONE_65/07-real-home-screen-widgets.png",
       "sourceSha256": "1f9328496e7347a0241a4a1c52fde6ef0de08ce6058f0dff2084a9ee59660ee9",
       "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/ja-06-rejected-710x1536.png",
@@ -1511,7 +1511,15 @@
         "width": 710,
         "height": 1536
       },
-      "finalSha256": "5cfa64b12d06a1b21f1acb8a29ded07be46fa2bd1053637a9adc76b3550e2614"
+      "finalSha256": "822e1a97fea919cd8cc75371fb110c5c31a3e72651c09db3bf0e8c5f4d41da97",
+      "localizationRepair": {
+        "repairedAt": "2026-07-09T12:18:47.727Z",
+        "reason": "Corrected wrong external Home Screen slide copy on ja slide 06.",
+        "beforePath": "qa/back-to-school-2026/copy-b-image2-localization-repair-evidence/ja-06-widgets-sync-before-wrong-copy-1242x2688.png",
+        "acceptedCandidatePath": "qa/back-to-school-2026/copy-b-image2-localization-repair-evidence/ja-06-widgets-sync-accepted-repair-1242x2688.png",
+        "expectedHeadline": "計画がいつも見える。",
+        "expectedSubhead": "学習の優先事項が見える。"
+      }
     },
     {
       "locale": "ja",
