@@ -17,6 +17,8 @@ Checked: 2026-07-09 05:30 ET
 - EAS Submit uploaded the replacement binary to App Store Connect.
 - Submission ID: `6a4dcc05-79dc-4e24-81b5-88826e7173f8`.
 - Submission URL: `https://expo.dev/accounts/xxmnewman9xx/projects/study-planner-syllabus-ai/submissions/6a4dcc05-79dc-4e24-81b5-88826e7173f8`.
+- EAS GraphQL status recheck on 2026-07-09: `6a4dcc05-79dc-4e24-81b5-88826e7173f8` is `FINISHED` for ASC app `6766181202`.
+- Ignore later duplicate attempt `e873a70f-cee9-41de-94e6-4e0faff92e77`; EAS reports it as `ERRORED`.
 - App Store Connect TestFlight URL: `https://appstoreconnect.apple.com/apps/6766181202/testflight/ios`.
 - Apple processing/selectability in App Store Connect is now the remaining TestFlight wait state.
 - SDK package patches have been aligned with Expo SDK 56 expectations:
