@@ -22,5 +22,5 @@ https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166
 - Product video: HTTP 200 after GitHub redirect, 1,331,420 bytes.
 - Screenshot contact sheet: HTTP 200, `Screenshots fulfilled: 9/9`.
 - Native WidgetKit sheet: HTTP 200, `Widget states captured: 5/8`.
-- Accessibility/localization summary: HTTP 200, build `2.0.7` / `78` visible.
-- App Review proof: HTTP 200, build `2.0.7` / `78` and claim boundaries visible.
+- Accessibility/localization summary: HTTP 200, build `2.0.8` / `79` visible.
+- App Review proof: HTTP 200, build `2.0.8` / `79` and claim boundaries visible.

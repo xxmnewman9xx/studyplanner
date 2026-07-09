@@ -4,6 +4,9 @@ node_modules/
 .gitnexus/
 dist/
 web-build/
+build/
+docs/
+/ios
 ios/Pods/
 ios/build/
 ios/build-signed-sim/
@@ -12,11 +15,13 @@ work/
 qa/
 qa-screenshots/
 test-results/
+tmp/
 AppStore/
 artifacts/
 marketing/
 marketing_exports/
 store/
+fastlane/
 *.ipa
 *.xcarchive
 *.tsbuildinfo

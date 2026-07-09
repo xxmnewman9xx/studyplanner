@@ -4,7 +4,7 @@ Use this file during the actual App Store Connect session.
 
 ## Status
 
-- Release build: iOS `2.0.7` build `78`
+- Release build: iOS `2.0.8` build `79`
 - Target featuring window: `2026-08-24` to `2026-08-31`
 - Submission type: individual featuring nomination
 - Nomination type: `App Enhancements`
@@ -79,7 +79,7 @@ Semester Kickoff Week has been submitted as a supporting In-App Event. If it is 
 
 Stop and do not submit if any of these happen:
 
-- App Store Connect does not show build `2.0.7` build `78` as the current submitted/approved candidate.
+- App Store Connect does not show build `2.0.8` build `79` as the current submitted/approved candidate.
 - Any supplemental URL fails to open publicly.
 - App Store Connect requires screenshots or event media that are not in this folder.
 - The event media preview crops the desk/planner art in a way that looks broken.

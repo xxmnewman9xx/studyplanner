@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-09T07:46:44.402Z",
+  "generatedAt": "2026-07-09T08:30:09.525Z",
   "status": "ready-for-manual-chatgpt-mac-app-generation",
   "instructions": "Run every slide individually in the ChatGPT Mac app with GPT Image 2.0. For slide 7, attach the exact locale-specific real Home Screen WidgetKit source as the UI reference and reject in-app widget screens. Attach the real logo and every slide-specific real UI reference before generation.",
   "finalValidationCommand": "npm run check:copy-b-image2",

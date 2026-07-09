@@ -1,30 +1,44 @@
 # TestFlight And Build Status
 
-Checked: 2026-07-09 07:35 ET
+Checked: 2026-07-09 04:35 ET
 
 ## Current State
 
-- Local app config targets iOS `2.0.7` build `78`.
-- EAS latest finished iOS store build is `2.0.7` build `77`.
-- Latest finished EAS build ID: `488aef21-f0ba-4dd6-95d8-8b6fd78b90b2`.
-- Booted simulator installed app is `2.0.7` build `77`.
-- `studyplanner://import` launched the installed app and landed on the localized Scan/import screen.
-- Fresh EAS list check found `0` finished iOS builds for `2.0.7` build `78`.
+- Apple rejected the previous upload for iOS `2.0.7` build `78`.
+- Rejection codes:
+  - `ITMS-90186`: the `2.0.7` pre-release train is closed for new build submissions.
+  - `ITMS-90062`: `CFBundleShortVersionString` must be higher than the previously approved `2.0.7`.
+- Local replacement config now targets iOS `2.0.8` build `79`.
+- Local replacement config now targets Android version code `79`.
+- SDK package patches have been aligned with Expo SDK 56 expectations:
+  - `expo` `~56.0.15`
+  - `expo-image-picker` `~56.0.20`
+  - `expo-notifications` `~56.0.20`
+  - `expo-widgets` `~56.0.22`
 
-## Blocker
+## Required Binary
 
-Do not push build `77` to TestFlight as the final nomination binary if App Store Connect and the nomination packet are expecting build `78`.
+Use iOS `2.0.8` build `79` for the next App Store Connect upload and TestFlight processing pass.
 
-Build `78` must be created or otherwise verified in App Store Connect before the final TestFlight handoff. Local disk is also below the native-review threshold: `522 MiB` free at the latest check.
+Do not select or submit any `2.0.7` build for this cycle. That train is closed.
 
-## Evidence
+## Previous Build Evidence
 
-- EAS build list: latest finished store build is `2.0.7 (77)`.
-- Simulator launch proof: `qa/back-to-school-2026/latest-build-simulator-review/build77-launch-2026-07-09.png`.
-- Deep link proof: `qa/back-to-school-2026/latest-build-simulator-review/build77-import-deeplink-2026-07-09.png`.
-- Refreshed simulator launch proof: `qa/back-to-school-2026/latest-build-simulator-review/build77-launch-2026-07-09-refresh.png`.
-- Refreshed deep link proof: `qa/back-to-school-2026/latest-build-simulator-review/build77-import-deeplink-2026-07-09-refresh.png`.
+- Rejected EAS build ID: `53e057a4-fdf7-457b-a2ca-41a22d7cd016`.
+- Rejected EAS build version: `2.0.7` build `78`.
+- Rejected EAS submission ID: `3c791f67-7d25-4799-957b-b51a1be7fed3`.
+- The rejected IPA itself had matching app/widget plist versions (`2.0.7` / `78`), so the blocking issue is the closed train and not a widget-extension version mismatch.
+- The first `eas build --auto-submit` attempt used `--what-to-test`, but EAS Submit rejected that changelog parameter for this account tier. Continue submitting exact build IDs without `--what-to-test`.
 
-## Safe Next Step
+## Proof To Capture After Build 79
 
-Free disk to at least the native preflight threshold, create/verify iOS `2.0.7` build `78`, run the release gates, then submit that exact build ID to TestFlight with `eas submit --platform ios --id <build-78-id> --profile production --what-to-test <notes>`.
+- Finished EAS build ID for `2.0.8` build `79`.
+- Successful EAS Submit ID for that exact build.
+- Downloaded IPA plist proof:
+  - App bundle `CFBundleShortVersionString=2.0.8`, `CFBundleVersion=79`.
+  - Widget extension `CFBundleShortVersionString=2.0.8`, `CFBundleVersion=79`.
+- App Store Connect processing status for build `79`.
+
+## Manual ASC Boundary
+
+App Store submission and In-App Event/featuring nomination final submit remain manual App Store Connect actions unless explicitly performed in the live ASC session. This packet prepares the exact build and metadata, but the final buttons should be pressed only after build `79` is visible/selectable and all supplemental URLs open publicly.

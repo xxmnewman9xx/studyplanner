@@ -13,7 +13,7 @@ Do not wait for the three remaining extended WidgetKit proof states unless App S
 ## Why This Is The Best August Strategy
 
 - Editorial timing matters. For an August 24 start, submit by 2026-07-17 if possible and no later than 2026-07-24.
-- The submitted build candidate is iOS `2.0.7` build `78`.
+- The current replacement build candidate is iOS `2.0.8` build `79` because Apple closed the `2.0.7` pre-release train.
 - The public proof package already covers the story Apple needs to evaluate: real screenshots, real WidgetKit captures, localization proof, accessibility proof, review notes, and purchase-flow boundaries.
 - The remaining local gate blockers are stricter internal launch checks, not blockers for a featuring nomination. They track optional extended widget-state proof and final internal packaging status.
 - The nomination copy does not claim unproven automation, LMS sync, institution-grade forecasting, or fake widgets.
@@ -23,8 +23,8 @@ Do not wait for the three remaining extended WidgetKit proof states unless App S
 - Product video: HTTP 200 after GitHub redirect.
 - Screenshot contact sheet: HTTP 200 and `Screenshots fulfilled: 9/9`.
 - Native WidgetKit sheet: HTTP 200 and `Widget states captured: 5/8`.
-- Accessibility/localization summary: HTTP 200 and public latest raw Gist readback shows build `2.0.7` / `78`.
-- App Review proof: HTTP 200 and public latest raw Gist readback shows build `2.0.7` / `78`.
+- Accessibility/localization summary: HTTP 200 and public latest raw Gist readback shows build `2.0.8` / `79`.
+- App Review proof: HTTP 200 and public latest raw Gist readback shows build `2.0.8` / `79`.
 - Deep link smoke: `studyplanner://import` opened Study Planner on a clean iPhone 17 simulator and landed on the first-run syllabus onboarding path.
 
 ## Copy B PPO Status

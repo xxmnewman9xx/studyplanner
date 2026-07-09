@@ -91,7 +91,7 @@ This file uses the exact real app logo from `assets/icon.png`. It is for supplem
 
 Submit the nomination once the In-App Event is submitted or once the five supplemental URLs are confirmed public. Do not block the nomination on the missing three extended widget proof states. The package already has public 9/9 screenshot proof and 5/8 WidgetKit proof, and editorial timing is more important for the August 24 window.
 
-Do not substitute EAS build `2.0.7 (77)` for build `78` in TestFlight or App Store Connect. Local config targets build `78`, but EAS and the booted simulator currently only prove build `77`; see `testflight-build-status.md`.
+Do not use the rejected `2.0.7` train for new App Store Connect uploads. Apple returned ITMS-90186/ITMS-90062 for `2.0.7 (78)`, so the current required binary train is iOS `2.0.8` build `79`; see `testflight-build-status.md`.
 
 Deep link validation was refreshed on a clean iPhone 17 simulator window. Keep the event deep link as `studyplanner://import`.
 

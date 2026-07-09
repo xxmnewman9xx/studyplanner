@@ -37,7 +37,7 @@ Sources:
 - iPhone screenshots per locale: 7
 - Total iPhone screenshots: 119
 - iPad screenshots: 25
-- App version in `store.config.json`: `2.0.7`
+- App version in `store.config.json`: `2.0.8`
 - First slide: real in-app scanner screen, not invented app UI; localized scanner captures are used where available and non-localized fallbacks remain real app UI rather than generated UI
 - Widget slide: real Home Screen WidgetKit proof, not fake UI
 - Individual GPT Image 2.0 prompt queue: `qa/back-to-school-2026/chatgpt-individual-preview-prompts.json`

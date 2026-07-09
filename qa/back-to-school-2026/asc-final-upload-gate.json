@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-09T07:46:45.639Z",
+  "generatedAt": "2026-07-09T08:30:10.602Z",
   "status": "ready",
   "networkChecked": true,
   "bundleRoot": "docs/launch/back-to-school-2026/app-store-connect-final-upload",
@@ -14,17 +14,17 @@
   },
   "appConfig": {
     "scheme": "studyplanner",
-    "version": "2.0.7",
-    "iosBuildNumber": "78",
+    "version": "2.0.8",
+    "iosBuildNumber": "79",
     "iosBundleIdentifier": "com.mattnewman.studyplanner",
-    "androidVersionCode": 78,
+    "androidVersionCode": 79,
     "widgetDefinitions": 4,
     "widgetsWithColorConfiguration": 0,
     "importDeepLinkRoutesToScan": true,
     "runtimeReadsThemeColor": false
   },
   "storeConfig": {
-    "version": "2.0.7",
+    "version": "2.0.8",
     "automaticRelease": true,
     "screenshotRefs": 144,
     "missingScreenshotRefs": [],
@@ -163,7 +163,7 @@
         "status": 200,
         "ok": true,
         "contentType": "text/plain; charset=utf-8",
-        "bytes": 5170,
+        "bytes": 5182,
         "checks": {
           "screenshotsFulfilled": false,
           "widgetStatesCaptured": false,
@@ -176,7 +176,7 @@
   "failures": [],
   "warnings": [],
   "remainingExternalChecks": [
-    "Confirm iOS 2.0.7 build 78 in the live App Store Connect session.",
+    "Confirm iOS 2.0.8 build 79 in the live App Store Connect session.",
     "Confirm event media crop in App Store Connect after upload.",
     "Confirm studyplanner://import in the live In-App Event form.",
     "Confirm all five supplemental URLs are accepted in the live nomination form."

@@ -3,7 +3,7 @@
     "name": "Studyplanner: Syllabus AI",
     "slug": "study-planner-syllabus-ai",
     "scheme": "studyplanner",
-    "version": "2.0.2",
+    "version": "2.0.8",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -11,7 +11,7 @@
       "supportsTablet": true,
       "appleTeamId": "5JN35MJ3QD",
       "bundleIdentifier": "com.mattnewman.studyplanner",
-      "buildNumber": "64",
+      "buildNumber": "79",
       "entitlements": {
         "com.apple.security.application-groups": [
           "group.com.mattnewman.studyplanner"
@@ -22,10 +22,13 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "Use the camera to read syllabus photos with OCR and turn assignments, exams, and deadlines into reviewed planner items.",
         "NSPhotoLibraryUsageDescription": "Use selected syllabus photos for OCR so assignments, exams, and deadlines can be reviewed before they are added.",
+        "NSCalendarsFullAccessUsageDescription": "Add reviewed assignments, exams, and deadlines to your calendar only when you choose calendar sync.",
         "NSUserNotificationsUsageDescription": "Send calm reminders before deadlines, exams, and classes."
       }
     },
     "android": {
+      "versionCode": 79,
+      "package": "com.mattnewman.studyplanner",
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -62,60 +65,127 @@
               "kind": "studyplanner.today",
               "displayName": "StudyPlanner Today",
               "description": "See what needs your attention today.",
-              "supportedFamilies": [
-                "systemSmall",
-                "systemMedium",
-                "accessoryInline",
-                "accessoryCircular",
-                "accessoryRectangular"
-              ],
-              "contentMarginsDisabled": true
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "systemMedium",
+                  "accessoryInline",
+                  "accessoryCircular",
+                  "accessoryRectangular"
+                ],
+                "configuration": {
+                  "title": "StudyPlanner Today",
+                  "description": "Choose the Today widget view.",
+                  "parameters": {
+                    "viewMode": {
+                      "title": "View",
+                      "type": "enum",
+                      "default": "today",
+                      "values": [
+                        { "name": "Today", "value": "today" },
+                        { "name": "Upcoming", "value": "upcoming" }
+                      ]
+                    }
+                  }
+                },
+                "contentMarginsDisabled": true
+              }
             },
             {
               "name": "StudyPlannerUpcomingWidget",
               "kind": "studyplanner.upcoming",
               "displayName": "StudyPlanner Upcoming",
               "description": "Preview upcoming assignments and deadlines.",
-              "supportedFamilies": [
-                "systemSmall",
-                "systemMedium",
-                "accessoryInline",
-                "accessoryCircular",
-                "accessoryRectangular"
-              ],
-              "contentMarginsDisabled": true
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "systemMedium",
+                  "accessoryInline",
+                  "accessoryCircular",
+                  "accessoryRectangular"
+                ],
+                "configuration": {
+                  "title": "StudyPlanner Upcoming",
+                  "description": "Choose the Upcoming widget view.",
+                  "parameters": {
+                    "viewMode": {
+                      "title": "View",
+                      "type": "enum",
+                      "default": "upcoming",
+                      "values": [
+                        { "name": "Upcoming", "value": "upcoming" },
+                        { "name": "Today", "value": "today" }
+                      ]
+                    }
+                  }
+                },
+                "contentMarginsDisabled": true
+              }
             },
             {
               "name": "StudyPlannerWeekWidget",
               "kind": "studyplanner.week",
               "displayName": "StudyPlanner Week",
               "description": "Check your weekly workload at a glance.",
-              "supportedFamilies": [
-                "systemMedium",
-                "accessoryInline",
-                "accessoryCircular",
-                "accessoryRectangular"
-              ],
-              "contentMarginsDisabled": true
+              "ios": {
+                "supportedFamilies": [
+                  "systemMedium",
+                  "accessoryInline",
+                  "accessoryCircular",
+                  "accessoryRectangular"
+                ],
+                "configuration": {
+                  "title": "StudyPlanner Week",
+                  "description": "Use the calendar widget view.",
+                  "parameters": {
+                    "viewMode": {
+                      "title": "View",
+                      "type": "enum",
+                      "default": "week",
+                      "values": [
+                        { "name": "Week", "value": "week" }
+                      ]
+                    }
+                  }
+                },
+                "contentMarginsDisabled": true
+              }
             },
             {
               "name": "StudyPlannerClassProgressWidget",
               "kind": "studyplanner.classProgress",
               "displayName": "StudyPlanner Class Progress",
               "description": "Track progress for a selected class.",
-              "supportedFamilies": [
-                "systemSmall",
-                "systemMedium",
-                "accessoryInline",
-                "accessoryCircular",
-                "accessoryRectangular"
-              ],
-              "contentMarginsDisabled": true
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "systemMedium",
+                  "accessoryInline",
+                  "accessoryCircular",
+                  "accessoryRectangular"
+                ],
+                "configuration": {
+                  "title": "StudyPlanner Class",
+                  "description": "Use the class progress widget view.",
+                  "parameters": {
+                    "viewMode": {
+                      "title": "View",
+                      "type": "enum",
+                      "default": "classProgress",
+                      "values": [
+                        { "name": "Class", "value": "classProgress" }
+                      ]
+                    }
+                  }
+                },
+                "contentMarginsDisabled": true
+              }
             }
           ]
         }
-      ]
-    ],
+      ],
+    "./plugins/with-android-localized-string-defaults"
+  ],
     "locales": {
       "ar-SA": "./locales/ios/ar-SA.json",
       "de-DE": "./locales/ios/de-DE.json",

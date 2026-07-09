@@ -7,7 +7,27 @@
     "production": {
       "distribution": "store",
       "autoIncrement": false,
+      "android": {
+        "buildType": "app-bundle"
+      },
       "ios": {
+        "resourceClass": "m-medium"
+      }
+    },
+    "google-play-review": {
+      "extends": "production",
+      "env": {
+        "EXPO_PUBLIC_GOOGLE_PLAY_REVIEW_ACCESS": "1"
+      }
+    },
+    "back-to-school-sim": {
+      "distribution": "internal",
+      "autoIncrement": false,
+      "env": {
+        "EXPO_PUBLIC_STUDYPLANNER_CAPTURE_QA": "1"
+      },
+      "ios": {
+        "simulator": true,
         "resourceClass": "m-medium"
       }
     }
@@ -16,6 +36,28 @@
     "production": {
       "ios": {
         "ascAppId": "6766181202"
+      },
+      "android": {
+        "track": "internal",
+        "releaseStatus": "completed"
+      }
+    },
+    "android-internal": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "completed"
+      }
+    },
+    "android-alpha": {
+      "android": {
+        "track": "alpha",
+        "releaseStatus": "completed"
+      }
+    },
+    "android-beta": {
+      "android": {
+        "track": "beta",
+        "releaseStatus": "completed"
       }
     }
   }

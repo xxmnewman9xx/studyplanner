@@ -17,7 +17,7 @@ Use `studyplanner://import` for the In-App Event.
 
 ## Caveat
 
-The freshest local simulator artifact available on disk was `2.0.6` build `76`; the current submission candidate is `2.0.7` build `78`. This proof validates the URL scheme, OS handoff, and first-run routing path in a clean simulator. The current source and `app.json` confirm the same scheme and route parser for build `78`. Re-run the same smoke check on build `78` before final App Store submission.
+The freshest local simulator artifact available on disk was `2.0.6` build `76`; the current replacement submission candidate is `2.0.8` build `79`. This proof validates the URL scheme, OS handoff, and first-run routing path in a clean simulator. The current source and `app.json` confirm the same scheme and route parser for build `79`. Re-run the same smoke check on build `79` before final App Store submission.
 
 ## Expected User Outcomes
 

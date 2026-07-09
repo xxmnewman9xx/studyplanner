@@ -224,7 +224,7 @@ const payload = {
     finalAudit: existsSync(COPY_B_FINAL_AUDIT_PATH) ? COPY_B_FINAL_AUDIT_PATH : null,
   },
   liveAscChecks: ascAudit?.remainingExternalChecks || [
-    "Confirm iOS 2.0.7 build 78 in the live App Store Connect session.",
+    "Confirm iOS 2.0.8 build 79 in the live App Store Connect session.",
     "Confirm event media crop in App Store Connect after upload.",
     "Confirm studyplanner://import in the live In-App Event form.",
     "Confirm all five supplemental URLs are accepted in the live nomination form.",
