@@ -1,0 +1,27 @@
+{
+  "filename": "ja/app-10-widgets.png",
+  "captureId": "app-10-widgets",
+  "device": "185B5022-AF87-4167-ABA9-E2DDE87A3EDF",
+  "buildNumber": "release-simulator",
+  "buildConfiguration": "Release",
+  "appearance": "light",
+  "locale": "ja",
+  "accessibilitySettings": "default",
+  "sourceStateFixture": "build57 widget recommendation fixture",
+  "reviewerNotes": "In-app widget recommendation; real WidgetKit placement remains separate.",
+  "requiredProof": "Semester Calendar is presented as the recommended Home Screen surface.",
+  "status": "captured",
+  "bytes": 504018,
+  "sha256": "63fa8b0e754269c2fd50312dda893fe45c5a317e56cd7d1869674689747f10d5",
+  "path": "qa-screenshots/back-to-school-2026-native-localized-current/ja/app-10-widgets.png",
+  "config": {
+    "qaState": "build57",
+    "tab": "more",
+    "semesterThemeColorId": "graphite",
+    "widgetType": "week",
+    "widgetSize": "medium",
+    "widgetDataMode": "this_week",
+    "locale": "ja"
+  },
+  "generatedAt": "2026-07-09T02:59:03.245Z"
+}

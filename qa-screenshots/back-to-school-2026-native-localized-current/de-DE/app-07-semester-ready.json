@@ -1,0 +1,24 @@
+{
+  "filename": "de-DE/app-07-semester-ready.png",
+  "captureId": "app-07-semester-ready",
+  "device": "185B5022-AF87-4167-ABA9-E2DDE87A3EDF",
+  "buildNumber": "release-simulator",
+  "buildConfiguration": "Release",
+  "appearance": "light",
+  "locale": "de-DE",
+  "accessibilitySettings": "default",
+  "sourceStateFixture": "build57 import success fixture",
+  "reviewerNotes": "Post-apply payoff.",
+  "requiredProof": "Semester Pulse, next move, first focus block, and widget recommendation are visible.",
+  "status": "captured",
+  "bytes": 363216,
+  "sha256": "8001890af49adb43f41a53416ba7505408a75a5256f1c36aa52e0b0b993b7f00",
+  "path": "qa-screenshots/back-to-school-2026-native-localized-current/de-DE/app-07-semester-ready.png",
+  "config": {
+    "qaState": "build57",
+    "route": "success",
+    "semesterThemeColorId": "graphite",
+    "locale": "de-DE"
+  },
+  "generatedAt": "2026-07-09T02:59:03.245Z"
+}

@@ -5,7 +5,9 @@ type ExpectedSlide = {
   index: number;
   file: string;
   uiReference: string;
+  localeUiReferencePattern?: string;
   extraUiReferences?: string[];
+  extraLocaleUiReferencePatterns?: string[];
   directionReferences?: string[];
 };
 
@@ -58,12 +60,14 @@ const expectedSlides: ExpectedSlide[] = [
   {
     index: 1,
     file: "01-scan-syllabus-notes.png",
-    uiReference:
-      "docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/04-latest-scan-ui-reference.jpg",
-    extraUiReferences: [
-      "qa-screenshots/back-to-school-2026-native-color-system-v3/app-06-review.png",
+    uiReference: "qa-screenshots/back-to-school-2026-native-localized-current/en-US/app-00-scan-current.png",
+    localeUiReferencePattern:
+      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-00-scan-current.png",
+    extraLocaleUiReferencePatterns: [
+      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-06-review.png",
     ],
     directionReferences: [
+      "docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/04-latest-scan-ui-reference.jpg",
       "docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/02-scan-anything-direction.jpg",
       "docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/03-scan-syllabus-direction.jpg",
     ],
@@ -71,7 +75,12 @@ const expectedSlides: ExpectedSlide[] = [
   {
     index: 2,
     file: "02-approve-deadlines.png",
-    uiReference: "qa-screenshots/back-to-school-2026-native-color-system-v3/app-06-review.png",
+    uiReference: "qa-screenshots/back-to-school-2026-native-localized-current/en-US/app-06-review.png",
+    localeUiReferencePattern:
+      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-06-review.png",
+    extraLocaleUiReferencePatterns: [
+      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-00-scan-current.png",
+    ],
     directionReferences: [
       "docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/02-scan-anything-direction.jpg",
       "docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/04-latest-scan-ui-reference.jpg",
@@ -80,9 +89,11 @@ const expectedSlides: ExpectedSlide[] = [
   {
     index: 3,
     file: "03-semester-built.png",
-    uiReference: "qa-screenshots/back-to-school-2026-native-color-system-v3/app-07-semester-ready.png",
-    extraUiReferences: [
-      "qa-screenshots/back-to-school-2026-native-color-system-v3/app-08-today.png",
+    uiReference: "qa-screenshots/back-to-school-2026-native-localized-current/en-US/app-07-semester-ready.png",
+    localeUiReferencePattern:
+      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-07-semester-ready.png",
+    extraLocaleUiReferencePatterns: [
+      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-08-today.png",
     ],
     directionReferences: [
       "docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/01-today-next-move-direction.jpg",
@@ -92,22 +103,30 @@ const expectedSlides: ExpectedSlide[] = [
   {
     index: 4,
     file: "04-today-next-move.png",
-    uiReference: "qa-screenshots/back-to-school-2026-native-color-system-v3/app-08-today.png",
+    uiReference: "qa-screenshots/back-to-school-2026-native-localized-current/en-US/app-08-today.png",
+    localeUiReferencePattern:
+      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-08-today.png",
   },
   {
     index: 5,
     file: "05-study-blocks.png",
-    uiReference: "qa-screenshots/back-to-school-2026-native-color-system-v3/app-09-focus.png",
+    uiReference: "qa-screenshots/back-to-school-2026-native-localized-current/en-US/app-09-focus.png",
+    localeUiReferencePattern:
+      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-09-focus.png",
   },
   {
     index: 6,
     file: "06-widgets-sync.png",
-    uiReference: "qa-screenshots/back-to-school-2026-native-color-system-v3/app-10-widgets.png",
+    uiReference: "qa-screenshots/back-to-school-2026-native-localized-current/en-US/app-10-widgets.png",
+    localeUiReferencePattern:
+      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-10-widgets.png",
   },
   {
     index: 7,
     file: "07-home-screen-widgets.png",
-    uiReference: "qa-screenshots/back-to-school-2026-native/widget-02-normal-medium.png",
+    uiReference: "qa-screenshots/back-to-school-2026-native-localized-current/en-US/app-10-widgets.png",
+    localeUiReferencePattern:
+      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-10-widgets.png",
   },
 ];
 
@@ -190,16 +209,23 @@ function extractPromptText(section: string) {
   return match?.[1]?.trim() || section;
 }
 
-function uiReferencesForSlide(slide: ExpectedSlide) {
-  return [slide.uiReference, ...(slide.extraUiReferences || [])];
+function localizedUiReference(slide: ExpectedSlide, locale: string) {
+  return slide.localeUiReferencePattern?.replace("{locale}", locale) || slide.uiReference;
+}
+
+function uiReferencesForSlide(slide: ExpectedSlide, locale = "en-US") {
+  const localizedExtras = (slide.extraLocaleUiReferencePatterns || []).map((pattern) =>
+    pattern.replace("{locale}", locale),
+  );
+  return [localizedUiReference(slide, locale), ...(slide.extraUiReferences || []), ...localizedExtras];
 }
 
 function directionReferencesForSlide(slide: ExpectedSlide) {
   return slide.directionReferences || [];
 }
 
-function allReferencesForSlide(slide: ExpectedSlide) {
-  return [...uiReferencesForSlide(slide), ...directionReferencesForSlide(slide)];
+function allReferencesForSlide(slide: ExpectedSlide, locale = "en-US") {
+  return [...uiReferencesForSlide(slide, locale), ...directionReferencesForSlide(slide)];
 }
 
 function localizedPromptSection(section: string, locale: string, copy?: { headline: string; subhead: string }) {
@@ -211,6 +237,7 @@ function localizedPromptSection(section: string, locale: string, copy?: { headli
       : "Render the exact localized headline and subhead below. Do not use the English fallback headline or subhead.";
 
   return section
+    .replaceAll("{locale}", locale)
     .replace(
       "External marketing text:",
       `External marketing text (render exactly for ${locale}; no English fallback):\n${textDirection}`,
@@ -229,8 +256,8 @@ function localizedPromptSection(section: string, locale: string, copy?: { headli
       "Keep the UI grounded in the attached real StudyPlanner screenshot. Pixel-lock the real product UI content as much as possible; only improve the surrounding App Store frame, lighting, depth, and external marketing text.",
     )
     .replace(
-      "Preserve the real widget/Home Screen content enough that it is clearly the attached StudyPlanner WidgetKit proof.",
-      "Pixel-lock the real widget/Home Screen content as much as possible so it is clearly the attached StudyPlanner WidgetKit proof; only improve the surrounding App Store frame, lighting, depth, and external marketing text.",
+      "Preserve the real widgets screen content enough that it is clearly the attached localized StudyPlanner widgets proof.",
+      "Pixel-lock the real localized widgets screen content as much as possible so it is clearly the attached StudyPlanner widgets proof; only improve the surrounding App Store frame, lighting, depth, and external marketing text.",
     );
 }
 
@@ -260,9 +287,30 @@ for (const locale of expectedLocales) {
 
 const slideSections = new Map(expectedSlides.map((slide) => [slide.file, extractPromptSection(promptPack, slide)]));
 for (const slide of expectedSlides) {
+  const promptReferences = [
+    slide.localeUiReferencePattern || slide.uiReference,
+    ...(slide.extraUiReferences || []),
+    ...(slide.extraLocaleUiReferencePatterns || []),
+    ...directionReferencesForSlide(slide),
+  ];
+
   for (const reference of allReferencesForSlide(slide)) {
     expect(existsSync(reference), `Missing required reference: ${reference}`);
-    expect(promptPack.includes(reference), `Prompt pack does not name reference: ${reference}`);
+  }
+  for (const promptReference of promptReferences) {
+    expect(promptPack.includes(promptReference), `Prompt pack does not name reference: ${promptReference}`);
+  }
+  if (slide.localeUiReferencePattern) {
+    for (const locale of expectedLocales) {
+      const localizedReference = localizedUiReference(slide, locale);
+      expect(existsSync(localizedReference), `Missing locale-specific reference for ${locale}: ${localizedReference}`);
+    }
+  }
+  for (const pattern of slide.extraLocaleUiReferencePatterns || []) {
+    for (const locale of expectedLocales) {
+      const localizedReference = pattern.replace("{locale}", locale);
+      expect(existsSync(localizedReference), `Missing locale-specific extra reference for ${locale}: ${localizedReference}`);
+    }
   }
 }
 
@@ -271,7 +319,7 @@ const queue = expectedLocales.flatMap((locale) =>
     const localizedMarketingText = localeCopy.get(locale)?.slides[String(slide.index)];
     const promptSection = localizedPromptSection(slideSections.get(slide.file) || "", locale, localizedMarketingText);
     const promptText = extractPromptText(promptSection);
-    const uiReferences = uiReferencesForSlide(slide);
+    const uiReferences = uiReferencesForSlide(slide, locale);
     const directionReferences = directionReferencesForSlide(slide);
 
     return {
@@ -289,7 +337,7 @@ const queue = expectedLocales.flatMap((locale) =>
       promptSection,
       prompt: promptText,
       localizedMarketingText,
-      sourceScreenshot: slide.uiReference,
+      sourceScreenshot: uiReferences[0],
       sourceScreenshots: uiReferences,
       directionReferences,
       textDirection: locale === "ar-SA" ? "rtl" : "ltr",

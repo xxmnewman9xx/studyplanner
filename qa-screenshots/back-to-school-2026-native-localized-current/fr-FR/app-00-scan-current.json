@@ -1,0 +1,24 @@
+{
+  "filename": "fr-FR/app-00-scan-current.png",
+  "captureId": "app-00-scan-current",
+  "device": "185B5022-AF87-4167-ABA9-E2DDE87A3EDF",
+  "buildNumber": "release-simulator",
+  "buildConfiguration": "Release",
+  "appearance": "light",
+  "locale": "fr-FR",
+  "accessibilitySettings": "default",
+  "sourceStateFixture": "build57 active semester scan route fixture",
+  "reviewerNotes": "Latest Scan route, not the older onboarding build-step screen.",
+  "requiredProof": "Latest Scan tab shows syllabus/PDF intake, notes intake, and review-before-save proof.",
+  "status": "captured",
+  "bytes": 545814,
+  "sha256": "cd5f92817e5be287f11fd3329912bb71468a6b6936bae9e4596eb49ba72dfa83",
+  "path": "qa-screenshots/back-to-school-2026-native-localized-current/fr-FR/app-00-scan-current.png",
+  "config": {
+    "qaState": "build57",
+    "tab": "import",
+    "semesterThemeColorId": "graphite",
+    "locale": "fr-FR"
+  },
+  "generatedAt": "2026-07-09T02:59:03.245Z"
+}

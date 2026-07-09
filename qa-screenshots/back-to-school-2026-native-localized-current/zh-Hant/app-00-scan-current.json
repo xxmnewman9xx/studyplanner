@@ -1,0 +1,24 @@
+{
+  "filename": "zh-Hant/app-00-scan-current.png",
+  "captureId": "app-00-scan-current",
+  "device": "185B5022-AF87-4167-ABA9-E2DDE87A3EDF",
+  "buildNumber": "release-simulator",
+  "buildConfiguration": "Release",
+  "appearance": "light",
+  "locale": "zh-Hant",
+  "accessibilitySettings": "default",
+  "sourceStateFixture": "build57 active semester scan route fixture",
+  "reviewerNotes": "Latest Scan route, not the older onboarding build-step screen.",
+  "requiredProof": "Latest Scan tab shows syllabus/PDF intake, notes intake, and review-before-save proof.",
+  "status": "captured",
+  "bytes": 537332,
+  "sha256": "372b38293be2e23cbf47b55b063c7bbebc93611ee2d5f8540e59329c460da6c5",
+  "path": "qa-screenshots/back-to-school-2026-native-localized-current/zh-Hant/app-00-scan-current.png",
+  "config": {
+    "qaState": "build57",
+    "tab": "import",
+    "semesterThemeColorId": "graphite",
+    "locale": "zh-Hant"
+  },
+  "generatedAt": "2026-07-09T02:59:03.245Z"
+}

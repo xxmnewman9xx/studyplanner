@@ -1,0 +1,24 @@
+{
+  "filename": "fr-CA/app-06-review.png",
+  "captureId": "app-06-review",
+  "device": "185B5022-AF87-4167-ABA9-E2DDE87A3EDF",
+  "buildNumber": "release-simulator",
+  "buildConfiguration": "Release",
+  "appearance": "light",
+  "locale": "fr-CA",
+  "accessibilitySettings": "default",
+  "sourceStateFixture": "build57 reviewed import fixture",
+  "reviewerNotes": "Review-before-save proof.",
+  "requiredProof": "Student reviews detected courses, deadlines, exams, and uncertain dates before save.",
+  "status": "captured",
+  "bytes": 479930,
+  "sha256": "e77e7657693f4b65ca84984f2043029ae74ae4db2f5612e294065bf68bc479ff",
+  "path": "qa-screenshots/back-to-school-2026-native-localized-current/fr-CA/app-06-review.png",
+  "config": {
+    "qaState": "build57",
+    "screen": "review_edit",
+    "semesterThemeColorId": "graphite",
+    "locale": "fr-CA"
+  },
+  "generatedAt": "2026-07-09T02:59:03.245Z"
+}

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-09T01:31:37.939Z",
+  "generatedAt": "2026-07-09T06:02:41.397Z",
   "status": "ready_for_manual_asc_submission",
   "nominationPath": {
     "copyAControl": {
@@ -11,7 +11,7 @@
     "finalUploadBundle": {
       "root": "docs/launch/back-to-school-2026/app-store-connect-final-upload",
       "zip": "docs/launch/back-to-school-2026/studyplanner-back-to-school-2026-app-store-connect-upload.zip",
-      "zipBytes": 8239986,
+      "zipBytes": 8245417,
       "zipSynced": true
     },
     "requiredLocalGates": {
@@ -42,9 +42,9 @@
     "requiredModel": "GPT Image 2.0",
     "generatedIndividuallyRequired": true,
     "finalRoot": "store/apple/screenshot-copy-b-image-2",
-    "finalPngs": 0,
+    "finalPngs": 119,
     "finalProvenance": "docs/launch/back-to-school-2026/app-store-connect-final-upload/copy-b-image2-provenance.json",
-    "finalProvenanceExists": false,
+    "finalProvenanceExists": true,
     "status": "manual_generation_required",
     "notNominationBlocking": true,
     "queueAudit": "qa/back-to-school-2026/copy-b-image2-manual-queue-audit.json",

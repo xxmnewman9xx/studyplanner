@@ -9,16 +9,17 @@ Copy A/control remains the nomination upload set in `store/apple/screenshot-pop`
 Attach the real logo and every listed latest-build UI or direction reference for each prompt:
 
 - Real app icon/logo: `assets/app/study-planner-icon.png`
-- Slide-specific latest UI references:
-  - Slide 1: `docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/04-latest-scan-ui-reference.jpg`
-  - Slide 1: `qa-screenshots/back-to-school-2026-native-color-system-v3/app-06-review.png`
-  - Slide 2: `qa-screenshots/back-to-school-2026-native-color-system-v3/app-06-review.png`
-  - Slide 3: `qa-screenshots/back-to-school-2026-native-color-system-v3/app-07-semester-ready.png`
-  - Slide 3: `qa-screenshots/back-to-school-2026-native-color-system-v3/app-08-today.png`
-  - Slide 4: `qa-screenshots/back-to-school-2026-native-color-system-v3/app-08-today.png`
-  - Slide 5: `qa-screenshots/back-to-school-2026-native-color-system-v3/app-09-focus.png`
-  - Slide 6: `qa-screenshots/back-to-school-2026-native-color-system-v3/app-10-widgets.png`
-  - Slide 7: `qa-screenshots/back-to-school-2026-native/widget-02-normal-medium.png`
+- Slide-specific latest raw localized UI references:
+  - Slide 1: `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-00-scan-current.png`
+  - Slide 1: `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-06-review.png`
+  - Slide 2: `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-06-review.png`
+  - Slide 2: `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-00-scan-current.png`
+  - Slide 3: `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-07-semester-ready.png`
+  - Slide 3: `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-08-today.png`
+  - Slide 4: `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-08-today.png`
+  - Slide 5: `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-09-focus.png`
+  - Slide 6: `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-10-widgets.png`
+  - Slide 7: `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-10-widgets.png`
 - User-provided first-three direction references:
   - Slide 1: `docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/02-scan-anything-direction.jpg`
   - Slide 1: `docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/03-scan-syllabus-direction.jpg`
@@ -29,7 +30,7 @@ Attach the real logo and every listed latest-build UI or direction reference for
 
 Use the approved English Image 2.0 visual direction and the four 2026-07-08 user-provided direction references as composition guidance only: bold black outcome headline at the top, short gray subhead, small StudyPlanner brand mark, large latest-build iPhone UI as the hero, soft realistic phone depth, white rounded App Store canvas, and restrained green/blue/purple/orange semicircle accents at the edges. The preview should feel like the strongest approved Image 2.0 examples: outcome-led, calm, premium, and grounded in real StudyPlanner UI proof. Do not use the direction references as permission to invent product UI.
 
-Do not use the older Copy A/App Store preview UI as Copy B product proof. Reject any output that resembles the old `store/apple/screenshot-pop` first-slide phone UI or the older locked `Build your semester` scan-choice screen. Copy B must be grounded in the latest scan/review/semester-ready UI references above.
+Do not use the older Copy A/App Store preview UI as Copy B product proof. Reject any output that resembles the old `store/apple/screenshot-pop` first-slide phone UI or the older locked `Build your semester` scan-choice screen. Copy B must be grounded in the latest raw localized scan/review/semester-ready UI references above.
 
 Apple reference research makes the first three slides the highest-leverage path: the first one to three screenshots may appear in search results when no app preview is available, and Product Page Optimization can test alternate screenshot treatments. Therefore slides 1-3 must sell the outcome sequence immediately:
 
@@ -91,9 +92,9 @@ Use this entry shape for every locale/slide pair:
 
 Use GPT Image 2.0 in the ChatGPT Mac app. Generate exactly one screenshot per prompt. Create the final PNG on a native portrait App Store canvas that is exactly 1242 pixels wide by 2688 pixels tall.
 
-Dimension lock: the exported image file must measure exactly `1242x2688` pixels. Do not output a preview-sized file, scaled-down cache image, cropped alternate, padded alternate, or any other size. If GPT Image 2.0 cannot return an actual `1242x2688` PNG, do not provide a scaled preview image. Reject known bad export sizes including `852x1846`, `853x1844`, `1024x1792`, `1170x2532`, and `1290x2796`. No extra border, matte, resize, crop, or post-processing is allowed.
+Dimension lock: the requested exported image file must measure exactly `1242x2688` pixels. Do not output a preview-sized file, scaled-down cache image, cropped alternate, padded alternate, or any other size. If GPT Image 2.0 returns a non-upload-sized raw PNG, preserve it as raw evidence first, then use dimension-only finalization to produce the upload PNG. Dimension finalization may resize/canvas to exact App Store size, but must not repaint UI, logo, text, device content, widgets, shadows, or product facts.
 
-Use the attached real StudyPlanner UI screenshot as the product proof. Preserve the app UI content exactly enough to remain clearly real StudyPlanner: do not invent fake screens, fake WidgetKit content, fake Home Screen content, fake LMS integrations, fake App Store UI, prices, ratings, awards, school logos, or unsupported claims.
+Use the attached locale-specific raw StudyPlanner UI screenshot as the product proof. Preserve the app UI content exactly enough to remain clearly real StudyPlanner and localized for the selected market: do not invent fake screens, fake WidgetKit content, fake Home Screen content, fake LMS integrations, fake App Store UI, prices, ratings, awards, school logos, or unsupported claims.
 
 Use the attached real app icon/logo exactly as the brand mark. Do not redraw, restyle, reinterpret, recolor, or replace the logo.
 
@@ -118,8 +119,9 @@ Reject any output that changes app UI facts, creates fake UI, clips text, produc
 Attach:
 
 - `assets/app/study-planner-icon.png`
+- `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-00-scan-current.png`
+- `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-06-review.png`
 - `docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/04-latest-scan-ui-reference.jpg`
-- `qa-screenshots/back-to-school-2026-native-color-system-v3/app-06-review.png`
 - `docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/02-scan-anything-direction.jpg`
 - `docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/03-scan-syllabus-direction.jpg`
 
@@ -128,7 +130,7 @@ Prompt:
 ```text
 GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.
 
-Use the attached latest StudyPlanner scan UI and review UI references as product proof and the attached app icon as the exact logo. Use the supplied direction references only for composition. Build a premium Apple-native screenshot around the latest scan/import experience and the reviewed-plan payoff. The first slide must visibly communicate both starting paths at once: scan notes and scan/import a syllabus, then review extracted next steps before anything saves. Mandatory proof: show both syllabus/PDF import and notes input as visible product proof. Prefer the real Scan screen with `Upload syllabus PDF` and the `Notes` source row both readable; if adding a paper note prop, keep it blank or abstract with no fake legible content. Use the attached Review Import screenshot only as the approval/payoff proof; do not synthesize review rows or invent review content. Use clean white space, bright desk-light realism, soft device depth, graphite typography, small blue/green/orange class-color accents, and a calm back-to-school feel.
+Use the attached locale-specific raw StudyPlanner scan UI and review UI references as product proof and the attached app icon as the exact logo. Use the supplied direction references only for composition. Build a premium Apple-native screenshot around the latest scan/import experience and the reviewed-plan payoff. The first slide must visibly communicate both starting paths at once: scan notes and scan/import a syllabus, then review extracted next steps before anything saves. Mandatory proof: show both syllabus/PDF import and notes input as visible product proof from the attached raw localized Scan screen. Prefer the real Scan screen with the localized `Upload syllabus PDF` equivalent and the localized Notes source row both readable; if adding a paper note prop, keep it blank or abstract with no fake legible content. Use the attached Review Import screenshot only as the approval/payoff proof; do not synthesize review rows or invent review content. Use clean white space, bright desk-light realism, soft device depth, graphite typography, small blue/green/orange class-color accents, and a calm back-to-school feel.
 
 Match the approved Image 2.0 reference system and the 2026-07-08 direction examples: bold top headline, short gray subhead, small StudyPlanner brand mark, one large phone UI hero, white rounded canvas, and restrained edge semicircle accents. The hero should feel like the current Scan flow: Capture anything, Import. Review. Start., upload syllabus PDF, camera/photo capture, notes, then review before anything saves. Do not show the older Copy A scan screen or the older locked `Build your semester` UI. Do not invent LMS integrations, guaranteed extraction, fake document text, fake camera UI, or fake review rows. The UI must remain recognizably attached latest StudyPlanner UI, not a fake app screen.
 
@@ -146,7 +148,8 @@ Before returning the image, self-check that the actual PNG dimensions are exactl
 Attach:
 
 - `assets/app/study-planner-icon.png`
-- `qa-screenshots/back-to-school-2026-native-color-system-v3/app-06-review.png`
+- `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-06-review.png`
+- `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-00-scan-current.png`
 - `docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/02-scan-anything-direction.jpg`
 - `docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/04-latest-scan-ui-reference.jpg`
 
@@ -155,7 +158,7 @@ Prompt:
 ```text
 GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.
 
-Use the attached latest StudyPlanner review-import UI screenshot as the product proof and the attached app icon as the exact logo. Use the supplied first-three direction references only for composition and scan-context continuity. Make the screenshot feel like the outcome of control: the student sees what was found, confirms it, and keeps bad data out of the plan. Use crisp real UI, highlighted review rows, calm premium composition, white space, soft shadows, and restrained blue/green/orange accents.
+Use the attached locale-specific raw StudyPlanner review-import UI screenshot as the product proof and the attached raw Scan UI as context, with the attached app icon as the exact logo. Use the supplied first-three direction references only for composition and scan-context continuity. Make the screenshot feel like the outcome of control: the student sees what was found, confirms it, and keeps bad data out of the plan. Use crisp real localized UI, highlighted review rows, calm premium composition, white space, soft shadows, and restrained blue/green/orange accents.
 
 Match the approved Image 2.0 reference system and the 2026-07-08 direction examples: bold top headline, short gray subhead, small StudyPlanner brand mark, large phone UI hero, white rounded canvas, and restrained edge semicircle accents. The visual story is: the user approves classes, deadlines, exams, or note tasks before anything reaches the plan. Do not show automatic saving, submission, or LMS sync. Do not show older Copy A scanner UI. Do not invent any app UI beyond the real referenced StudyPlanner screen.
 
@@ -173,8 +176,8 @@ Before returning the image, self-check that the actual PNG dimensions are exactl
 Attach:
 
 - `assets/app/study-planner-icon.png`
-- `qa-screenshots/back-to-school-2026-native-color-system-v3/app-07-semester-ready.png`
-- `qa-screenshots/back-to-school-2026-native-color-system-v3/app-08-today.png`
+- `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-07-semester-ready.png`
+- `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-08-today.png`
 - `docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/01-today-next-move-direction.jpg`
 - `docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/04-latest-scan-ui-reference.jpg`
 
@@ -183,7 +186,7 @@ Prompt:
 ```text
 GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.
 
-Use the attached latest StudyPlanner semester-ready UI screenshot as the primary product proof, the attached latest Today UI screenshot as the next-move proof, and the attached app icon as the exact logo. Use the supplied first-three direction references only for composition and payoff hierarchy. Make the composition feel like the payoff after approval: the semester is organized, the plan is live, and the student's next move is visible today. Keep the phone crop focused on real `Semester Ready` and Today UI proof; do not merge screens into invented hybrid UI, and do not let setup/system language or color-system messaging become the main story. Use bright Apple-native layout, clean graphite typography, realistic phone depth, and restrained class-color accents.
+Use the attached locale-specific raw StudyPlanner semester-ready UI screenshot as the primary product proof, the attached raw Today UI screenshot as the next-move proof, and the attached app icon as the exact logo. Use the supplied first-three direction references only for composition and payoff hierarchy. Make the composition feel like the payoff after approval: the semester is organized, the plan is live, and the student's next move is visible today. Keep the phone crop focused on real localized Semester Ready and Today UI proof; do not merge screens into invented hybrid UI, and do not let setup/system language or color-system messaging become the main story. Use bright Apple-native layout, clean graphite typography, realistic phone depth, and restrained class-color accents.
 
 Match the approved Image 2.0 reference system and the 2026-07-08 direction examples: bold top headline, short gray subhead, small StudyPlanner brand mark, large phone UI hero, white rounded canvas, and restrained edge semicircle accents. The visual story is: reviewed classes, assignments, exams, Today, Plan, and widgets are now connected. Do not claim automatic perfection or guaranteed extraction. Do not show older Copy A scanner UI. Do not invent extra product screens.
 
@@ -201,14 +204,14 @@ Before returning the image, self-check that the actual PNG dimensions are exactl
 Attach:
 
 - `assets/app/study-planner-icon.png`
-- `qa-screenshots/back-to-school-2026-native-color-system-v3/app-08-today.png`
+- `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-08-today.png`
 
 Prompt:
 
 ```text
 GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.
 
-Use the attached real StudyPlanner Today UI screenshot as the product proof and the attached app icon as the exact logo. Build a polished App Store preview that makes the next action obvious: Today, deadlines, progress, and focus block visible in one calm view. Use bright white space, soft realistic depth, graphite headline type, and subtle blue/green/orange accents.
+Use the attached locale-specific raw StudyPlanner Today UI screenshot as the product proof and the attached app icon as the exact logo. Build a polished App Store preview that makes the next action obvious: Today, deadlines, progress, and focus block visible in one calm view. Use bright white space, soft realistic depth, graphite headline type, and subtle blue/green/orange accents.
 
 Match the approved Image 2.0 reference system: bold top headline, short gray subhead, large Today screen hero, white rounded canvas, green and purple edge accents, and calm premium spacing. The visual story is: the student opens the app and knows what to do today. Do not invent fake calendar data, fake notifications, fake charts, or fake school integrations. Keep the UI grounded in the attached real StudyPlanner screenshot.
 
@@ -226,14 +229,14 @@ Before returning the image, self-check that the actual PNG dimensions are exactl
 Attach:
 
 - `assets/app/study-planner-icon.png`
-- `qa-screenshots/back-to-school-2026-native-color-system-v3/app-09-focus.png`
+- `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-09-focus.png`
 
 Prompt:
 
 ```text
 GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.
 
-Use the attached real StudyPlanner focus/plan UI screenshot as the product proof and the attached app icon as the exact logo. Make the composition communicate calm study planning from real due dates: focus blocks, prepared time, and less Sunday-night pressure. Use clean Apple-native design, precise spacing, soft depth, and restrained blue/green/orange accents.
+Use the attached locale-specific raw StudyPlanner focus/plan UI screenshot as the product proof and the attached app icon as the exact logo. Make the composition communicate calm study planning from real due dates: focus blocks, prepared time, and less Sunday-night pressure. Use clean Apple-native design, precise spacing, soft depth, and restrained blue/green/orange accents.
 
 Match the approved Image 2.0 reference system from the supplied `Plan the week calmly.` example: bold top headline, short gray subhead, large Plan screen hero, white rounded canvas, blue and lavender edge accents, and calm premium spacing. The visual story is: deadlines become study blocks the student can actually follow. Do not claim automatic homework completion, LMS sync, or guaranteed schedules. Do not invent fake app UI.
 
@@ -251,14 +254,14 @@ Before returning the image, self-check that the actual PNG dimensions are exactl
 Attach:
 
 - `assets/app/study-planner-icon.png`
-- `qa-screenshots/back-to-school-2026-native-color-system-v3/app-10-widgets.png`
+- `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-10-widgets.png`
 
 Prompt:
 
 ```text
 GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.
 
-Use the attached real StudyPlanner widgets screen as the product proof and the attached app icon as the exact logo. Make the screenshot sell the outcome after setup: the reviewed plan keeps showing up where the student needs it, so the school day stays visible without reopening the whole app. Keep it Apple-native, bright, realistic, calm, and premium.
+Use the attached locale-specific raw StudyPlanner widgets screen as the product proof and the attached app icon as the exact logo. Make the screenshot sell the outcome after setup: the reviewed plan keeps showing up where the student needs it, so the school day stays visible without reopening the whole app. Keep it Apple-native, bright, realistic, calm, and premium.
 
 Match the approved Image 2.0 reference system: bold top headline, short gray subhead, large phone UI hero, white rounded canvas, and restrained edge semicircle accents. The visual story is: widgets reflect the reviewed school plan. Do not create fake widgets outside the real product proof. Do not invent extra Home Screen content, fake notifications, or unsupported platform claims.
 
@@ -276,16 +279,16 @@ Before returning the image, self-check that the actual PNG dimensions are exactl
 Attach:
 
 - `assets/app/study-planner-icon.png`
-- `qa-screenshots/back-to-school-2026-native/widget-02-normal-medium.png`
+- `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-10-widgets.png`
 
 Prompt:
 
 ```text
 GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.
 
-Use the attached real WidgetKit/Home Screen screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic Home Screen widget proof, not a mockup. Preserve the real widget/Home Screen content enough that it is clearly the attached StudyPlanner WidgetKit proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.
+Use the attached locale-specific raw StudyPlanner widgets screen as the product proof and the attached app icon as the exact logo. This must read as authentic StudyPlanner widget proof from the current app, not a mockup. Preserve the real widgets screen content enough that it is clearly the attached localized StudyPlanner widgets proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.
 
-Match the approved Image 2.0 reference system: bold top headline, short gray subhead, large real Home Screen/widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner stays visible on the Home Screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.
+Match the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized widgets proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.
 
 External marketing text:
 Headline: See the week at a glance.
@@ -306,15 +309,15 @@ Use the same seven prompts for each locale, replacing only the external marketin
 | en-CA | Syllabus and notes become a plan. | Review before anything saves. | Approve before anything saves. | You confirm what reaches the plan. | See the term take shape. | Classes, deadlines, and exams together. | Know what to do today. | Progress, deadlines, and focus in one view. | Study without the scramble. | Real deadlines become calm study blocks. | Your plan stays with you. | School priorities stay visible. | See the week at a glance. | Today stays close on Home Screen. |
 | en-GB | Syllabus and notes become a plan. | Review before anything saves. | Approve before anything saves. | You confirm what reaches the plan. | See your term take shape. | Classes, deadlines, and exams together. | Know what to do today. | Progress, deadlines, and focus in one view. | Study without the scramble. | Real deadlines become calm study blocks. | Your plan stays with you. | Study priorities stay visible. | See the week at a glance. | Today stays close on Home Screen. |
 | en-AU | Syllabus and notes become a plan. | Review before anything saves. | Approve before anything saves. | You confirm what reaches the plan. | See your term take shape. | Classes, deadlines, and exams together. | Know what to do today. | Progress, deadlines, and focus in one view. | Study without the scramble. | Real deadlines become calm study blocks. | Your plan stays with you. | Study priorities stay visible. | See the week at a glance. | Today stays close on Home Screen. |
-| de-DE | Kursplan und Notizen werden Plan. | Prüfe Schritte vor dem Speichern. | Du behältst Kontrolle. | Du bestätigst, was in den Plan kommt. | Sieh dein Semester entstehen. | Kurse, Fristen und Prüfungen zusammen. | Wissen, was heute ansteht. | Status, Fristen, Fokus. | Lernen ohne Last-Minute-Stress. | Fristen werden ruhige Lernblöcke. | Dein Plan bleibt sichtbar. | Studienprioritäten bleiben sichtbar. | Woche im Blick. | Heute auf dem Home-Bildschirm. |
-| es-ES | Temario y apuntes se vuelven plan. | Revisa los pasos antes de guardar. | Mantén el control antes de guardar. | Tú confirmas qué llega al plan. | Ve cómo toma forma el curso. | Clases, fechas y exámenes juntos. | Ten claro qué hacer hoy. | Progreso, fechas y concentración en una vista. | Estudia sin agobios. | Las fechas reales crean bloques tranquilos. | Tu plan te acompaña. | Tus prioridades siguen visibles. | Ve la semana de un vistazo. | Hoy siempre cerca en la pantalla de inicio. |
-| es-MX | Temario y apuntes se vuelven plan. | Revisa los pasos antes de guardar. | Mantén el control antes de guardar. | Tú confirmas qué llega al plan. | Ve cómo toma forma el semestre. | Clases, fechas y exámenes juntos. | Conoce qué hacer hoy. | Avance, fechas y enfoque en una vista. | Estudia sin prisas. | Las fechas reales crean bloques tranquilos. | Tu plan te acompaña. | Tus prioridades siguen visibles. | Ve la semana de un vistazo. | Hoy siempre cerca en la pantalla de inicio. |
-| fr-FR | Syllabus et notes deviennent un plan. | Validez avant d'enregistrer. | Gardez le contrôle. | Vous confirmez ce qui rejoint le plan. | Voyez le semestre prendre forme. | Cours, échéances et examens réunis. | Sachez quoi faire aujourd'hui. | État, échéances, focus. | Étudiez sans panique. | Les échéances deviennent des sessions calmes. | Votre plan reste visible. | Vos priorités restent visibles. | La semaine d'un coup d'œil. | Aujourd'hui sur l'écran d'accueil. |
-| fr-CA | Syllabus et notes deviennent un plan. | Validez les étapes avant d'enregistrer. | Gardez le contrôle avant d'enregistrer. | Vous confirmez ce qui rejoint le plan. | Voyez la session prendre forme. | Cours, échéances et examens réunis. | Sachez quoi faire aujourd'hui. | État, échéances, focus. | Étudiez sans panique. | Les vraies échéances deviennent des blocs calmes. | Votre plan vous suit. | Vos priorités restent visibles. | Voyez la semaine d'un coup d'œil. | Aujourd'hui reste proche sur l'écran d'accueil. |
-| pt-BR | Ementa e anotações viram plano. | Revise os passos antes de salvar. | Controle tudo antes de salvar. | Você confirma o que entra no plano. | Veja o semestre tomar forma. | Aulas, prazos e provas juntos. | Saiba o que fazer hoje. | Progresso, prazos e foco. | Estude sem correria. | Prazos reais viram blocos tranquilos. | Seu plano acompanha você. | Prioridades ficam visíveis. | Veja a semana num olhar. | Hoje fica perto na Tela de Início. |
-| pt-PT | Do programa e apontamentos nasce o plano. | Reveja os passos antes de guardar. | Confirme antes de guardar. | Só entra no plano o que aprovar. | O semestre ganha forma. | Aulas, prazos e exames juntos. | Saiba o que fazer hoje. | Progresso, prazos e foco. | Estude sem pressa. | Prazos reais tornam-se blocos de estudo. | O plano continua visível. | Prioridades ficam visíveis. | A semana num relance. | Hoje no Ecrã principal. |
-| ar-SA | يتحول المنهج والملاحظات إلى خطة. | راجع الخطوات قبل حفظها. | تحكّم قبل الحفظ. | تؤكد ما يدخل إلى الخطة. | شاهد الفصل الدراسي يتشكل. | المواد والمواعيد والاختبارات معًا. | اعرف ما تفعله اليوم. | الحالة والمواعيد والتركيز. | ذاكر بلا ارتباك. | المواعيد تتحول إلى جلسات هادئة. | تبقى خطتك معك. | الأولويات الدراسية تبقى ظاهرة. | الأسبوع بلمحة واحدة. | اليوم على الشاشة الرئيسية. |
-| hi | सिलेबस और नोट्स प्लान बनते हैं. | सेव से पहले अगले कदम देखें. | सेव से पहले नियंत्रण रखें. | प्लान में क्या जाए, आप तय करें. | सेमेस्टर को आकार लेते देखें. | क्लास, डेडलाइन और परीक्षाएं साथ में. | आज क्या करना है जानें. | प्रगति, डेडलाइन और फोकस एक जगह. | बिना हड़बड़ी पढ़ें. | असली डेडलाइन शांत स्टडी ब्लॉक बनती हैं. | आपका प्लान साथ रहता है. | पढ़ाई की प्राथमिकताएं दिखती रहती हैं. | सप्ताह एक नज़र में देखें. | आज का काम होम स्क्रीन पर दिखता है. |
+| de-DE | Aus Syllabus und Notizen wird ein Plan. | Vor dem Speichern prüfen. | Bestätige vor dem Speichern. | Du entscheidest, was in den Plan kommt. | Sieh, wie dein Semester entsteht. | Kurse, Fristen und Prüfungen zusammen. | Heute wissen, was ansteht. | Fortschritt, Fristen und Fokus. | Lernen ohne Last-Minute-Stress. | Aus Fristen werden klare Lernblöcke. | Dein Plan bleibt griffbereit. | Studienprioritäten auf einen Blick. | Die Woche auf einen Blick. | Heute direkt auf dem Home-Bildschirm. |
+| es-ES | Temario y apuntes se convierten en plan. | Revisa antes de guardar. | Aprueba antes de guardar. | Tú confirmas qué entra en el plan. | Ve cómo toma forma el curso. | Clases, fechas y exámenes juntos. | Ten claro qué hacer hoy. | Progreso, fechas y concentración en una vista. | Estudia sin agobios. | Las fechas reales se convierten en bloques de estudio. | Tu plan va contigo. | Tus prioridades siguen visibles. | La semana de un vistazo. | Hoy a mano en la pantalla de inicio. |
+| es-MX | Temario y apuntes se convierten en plan. | Revisa antes de guardar. | Aprueba antes de guardar. | Tú confirmas qué entra en el plan. | Ve cómo toma forma el semestre. | Clases, fechas y exámenes juntos. | Conoce qué hacer hoy. | Avance, fechas y enfoque en una vista. | Estudia sin prisas. | Las fechas reales se convierten en bloques de estudio. | Tu plan va contigo. | Tus prioridades siguen visibles. | La semana de un vistazo. | Hoy a la mano en la pantalla de inicio. |
+| fr-FR | Syllabus et notes deviennent un plan. | Validez avant d'enregistrer. | Validez avant d'enregistrer. | Vous confirmez ce qui entre dans le plan. | Voyez le semestre prendre forme. | Cours, échéances et examens réunis. | Sachez quoi faire aujourd'hui. | Progression, échéances et focus. | Étudiez sans panique. | Les échéances deviennent des créneaux d'étude. | Votre plan reste à portée. | Vos priorités d'étude restent visibles. | La semaine d'un coup d'œil. | Aujourd'hui sur l'écran d'accueil. |
+| fr-CA | Plan de cours et notes deviennent un plan. | Validez avant d'enregistrer. | Validez avant d'enregistrer. | Vous confirmez ce qui entre dans le plan. | Voyez la session prendre forme. | Cours, échéances et examens réunis. | Sachez quoi faire aujourd'hui. | Progression, échéances et focus. | Étudiez sans stress. | Les échéances deviennent des blocs d'étude. | Votre plan vous suit. | Vos priorités restent visibles. | La semaine d'un coup d'œil. | Aujourd'hui sur l'écran d'accueil. |
+| pt-BR | Ementa e anotações viram plano. | Revise antes de salvar. | Aprove antes de salvar. | Você confirma o que entra no plano. | Veja o semestre tomar forma. | Aulas, prazos e provas juntos. | Saiba o que fazer hoje. | Progresso, prazos e foco. | Estude sem correria. | Prazos reais viram blocos de estudo. | Seu plano acompanha você. | Prioridades ficam visíveis. | Veja a semana de relance. | Hoje na Tela de Início. |
+| pt-PT | Programa e apontamentos tornam-se plano. | Reveja antes de guardar. | Aprove antes de guardar. | Só entra no plano o que aprovar. | O semestre ganha forma. | Aulas, prazos e exames juntos. | Saiba o que fazer hoje. | Progresso, prazos e foco. | Estude sem pressa. | Prazos reais tornam-se blocos de estudo. | O plano continua consigo. | Prioridades ficam visíveis. | A semana num relance. | Hoje no Ecrã principal. |
+| ar-SA | يتحول المنهج والملاحظات إلى خطة. | راجع قبل الحفظ. | وافق قبل الحفظ. | تؤكد ما يُضاف إلى الخطة. | شاهد الفصل الدراسي يتشكل. | المواد والمواعيد النهائية والاختبارات معًا. | اعرف ما عليك اليوم. | التقدم والمواعيد النهائية والتركيز. | ادرس بلا ارتباك. | المواعيد النهائية تصبح جلسات دراسة هادئة. | تبقى خطتك معك. | أولويات الدراسة تبقى ظاهرة. | الأسبوع بلمحة واحدة. | اليوم على الشاشة الرئيسية. |
+| hi | सिलेबस और नोट्स से प्लान बनता है. | सहेजने से पहले समीक्षा करें. | सहेजने से पहले मंजूरी दें. | प्लान में क्या जोड़े, आप तय करें. | सेमेस्टर को आकार लेते देखें. | क्लास, समयसीमा और परीक्षाएं साथ में. | आज क्या करना है जानें. | प्रगति, समयसीमा और फोकस एक जगह. | बिना हड़बड़ी पढ़ें. | असली समयसीमा स्टडी ब्लॉक बनती हैं. | आपका प्लान साथ रहता है. | पढ़ाई की प्राथमिकताएं दिखती रहती हैं. | सप्ताह एक नज़र में देखें. | आज का काम होम स्क्रीन पर. |
 | ja | シラバスとノートが計画に。 | 保存前に次の一歩を確認。 | 保存前に自分で管理。 | 計画に入る内容を確認。 | 学期が形になっていく。 | 授業、締切、試験をまとめて。 | 今日やることがわかる。 | 進捗、締切、集中を一画面で。 | 慌てずに勉強できる。 | 締切が落ち着いた学習枠に。 | 計画がいつも見える。 | 学習の優先事項が見える。 | 週をひと目で確認。 | 今日の予定をホーム画面に。 |
 | ko | 강의계획서와 노트가 계획으로. | 저장 전 다음 할 일을 검토하세요. | 저장 전까지 직접 관리하세요. | 계획에 들어갈 내용을 확인합니다. | 학기 계획이 잡혀갑니다. | 수업, 마감일, 시험을 한곳에. | 오늘 할 일을 알 수 있습니다. | 상태, 마감일, 집중을 한 화면에. | 허둥대지 않고 공부하세요. | 실제 마감일이 차분한 공부 블록이 됩니다. | 계획이 계속 보입니다. | 공부 우선순위가 보입니다. | 한 주를 한눈에 보세요. | 홈 화면에서 오늘을 확인. |
 | zh-Hans | 教学大纲和笔记变成计划。 | 保存前先审核下一步。 | 保存前你始终掌控。 | 你确认哪些进入计划。 | 看见学期逐渐成形。 | 课程、截止日期和考试集中管理。 | 知道今天要做什么。 | 进度、截止日期和专注一屏呈现。 | 不再临时抱佛脚。 | 真实截止日期变成从容学习时段。 | 计划始终可见。 | 学习重点始终可见。 | 一眼看清本周。 | 今天就在主屏幕。 |
@@ -326,7 +329,7 @@ Accept a generated B image only when all are true:
 
 - It was generated individually in the ChatGPT Mac app with GPT Image 2.0.
 - It used the real UI screenshot and `assets/app/study-planner-icon.png` as references.
-- Output is exactly `1242x2688` by `sips -g pixelWidth -g pixelHeight`; any other measured file is rejected and preserved as evidence.
+- Final upload PNG is exactly `1242x2688` by `sips -g pixelWidth -g pixelHeight`; any non-upload-sized raw ChatGPT export is preserved as evidence before dimension-only finalization.
 - Product UI remains credible real StudyPlanner UI, with no fake app screens or fake widgets.
 - App icon/logo is exact enough to read as the real supplied logo and is not stylized.
 - External headline and subhead match the selected locale row exactly.

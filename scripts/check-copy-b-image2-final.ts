@@ -5,6 +5,7 @@ type ExpectedSlide = {
   index: number;
   file: string;
   uiReference: string;
+  localeUiReferencePattern?: string;
 };
 
 type ProvenanceEntry = {
@@ -69,38 +70,51 @@ const expectedSlides: ExpectedSlide[] = [
   {
     index: 1,
     file: "01-scan-syllabus-notes.png",
-    uiReference:
-      "docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/04-latest-scan-ui-reference.jpg",
+    uiReference: "qa-screenshots/back-to-school-2026-native-localized-current/en-US/app-00-scan-current.png",
+    localeUiReferencePattern:
+      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-00-scan-current.png",
   },
   {
     index: 2,
     file: "02-approve-deadlines.png",
-    uiReference: "qa-screenshots/back-to-school-2026-native-color-system-v3/app-06-review.png",
+    uiReference: "qa-screenshots/back-to-school-2026-native-localized-current/en-US/app-06-review.png",
+    localeUiReferencePattern:
+      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-06-review.png",
   },
   {
     index: 3,
     file: "03-semester-built.png",
-    uiReference: "qa-screenshots/back-to-school-2026-native-color-system-v3/app-07-semester-ready.png",
+    uiReference: "qa-screenshots/back-to-school-2026-native-localized-current/en-US/app-07-semester-ready.png",
+    localeUiReferencePattern:
+      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-07-semester-ready.png",
   },
   {
     index: 4,
     file: "04-today-next-move.png",
-    uiReference: "qa-screenshots/back-to-school-2026-native-color-system-v3/app-08-today.png",
+    uiReference: "qa-screenshots/back-to-school-2026-native-localized-current/en-US/app-08-today.png",
+    localeUiReferencePattern:
+      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-08-today.png",
   },
   {
     index: 5,
     file: "05-study-blocks.png",
-    uiReference: "qa-screenshots/back-to-school-2026-native-color-system-v3/app-09-focus.png",
+    uiReference: "qa-screenshots/back-to-school-2026-native-localized-current/en-US/app-09-focus.png",
+    localeUiReferencePattern:
+      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-09-focus.png",
   },
   {
     index: 6,
     file: "06-widgets-sync.png",
-    uiReference: "qa-screenshots/back-to-school-2026-native-color-system-v3/app-10-widgets.png",
+    uiReference: "qa-screenshots/back-to-school-2026-native-localized-current/en-US/app-10-widgets.png",
+    localeUiReferencePattern:
+      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-10-widgets.png",
   },
   {
     index: 7,
     file: "07-home-screen-widgets.png",
-    uiReference: "qa-screenshots/back-to-school-2026-native/widget-02-normal-medium.png",
+    uiReference: "qa-screenshots/back-to-school-2026-native-localized-current/en-US/app-10-widgets.png",
+    localeUiReferencePattern:
+      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-10-widgets.png",
   },
 ];
 
@@ -198,8 +212,15 @@ for (const locale of expectedLocales) {
 
 for (const slide of expectedSlides) {
   expect(promptPack.includes(`### ${slide.index}. \`${slide.file}\``), `prompt pack missing slide prompt for ${slide.file}`);
-  expect(promptPack.includes(slide.uiReference), `prompt pack missing UI reference for ${slide.file}: ${slide.uiReference}`);
+  const promptReference = slide.localeUiReferencePattern || slide.uiReference;
+  expect(promptPack.includes(promptReference), `prompt pack missing UI reference for ${slide.file}: ${promptReference}`);
   expect(existsSync(slide.uiReference), `missing real UI reference: ${slide.uiReference}`);
+  if (slide.localeUiReferencePattern) {
+    for (const locale of expectedLocales) {
+      const localizedReference = slide.localeUiReferencePattern.replace("{locale}", locale);
+      expect(existsSync(localizedReference), `missing locale-specific UI reference for ${slide.file}: ${localizedReference}`);
+    }
+  }
 }
 
 expect(existsSync("assets/app/study-planner-icon.png"), "missing real app icon reference: assets/app/study-planner-icon.png");

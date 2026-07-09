@@ -1,0 +1,2160 @@
+{
+  "generatedAt": "2026-07-09T06:01:55.572Z",
+  "applied": true,
+  "humanAccepted": true,
+  "queuePath": "docs/launch/back-to-school-2026/app-store-connect-final-upload/copy-b-image2-manual-queue.json",
+  "candidateRoot": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates",
+  "provenancePath": "docs/launch/back-to-school-2026/app-store-connect-final-upload/copy-b-image2-provenance.json",
+  "expectedCount": 119,
+  "finalizedCount": 119,
+  "missingCount": 0,
+  "requiredDimensions": {
+    "width": 1242,
+    "height": 2688
+  },
+  "failures": [],
+  "items": [
+    {
+      "jobId": "en-US-01",
+      "locale": "en-US",
+      "file": "01-scan-syllabus-notes.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-US-01-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "3f99744e2d674d9c784f4dc1334f403b40c1e6a059fc9ec05e4656bc6f076a60",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/01-scan-syllabus-notes.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "57c9f9b603d477ec13c7d7a54f20d2dc2955b4d62bc1124d4f0614792c8984c7",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-US-02",
+      "locale": "en-US",
+      "file": "02-approve-deadlines.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-US-02-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "b4be98568b2ca9e977aab45c2d77b69cc0b3ba5b994eb97a323aec568f53166a",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/02-approve-deadlines.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "3843308b04b1298e20809cd4778a2ac0eca0dffb8df56990fade64b0ec8ea99f",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-US-03",
+      "locale": "en-US",
+      "file": "03-semester-built.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-US-03-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "1ded1145d2978aab50a26b1136e0a41825909dd3e5145c52e196fe1021694ba2",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/03-semester-built.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "34035c5e3c12a3c20e33dab92fe13d81cf2c601fe57bd5e3e5af123b75667404",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-US-04",
+      "locale": "en-US",
+      "file": "04-today-next-move.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-US-04-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "20f909d0e19a1cd13e646c31c2c903ab5b4876699107fc05df8cc52cd91310df",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/04-today-next-move.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "7627ff9586af1d218921fb2dfd40dc2c362841a5b2134f3aa54067553d4d0477",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-US-05",
+      "locale": "en-US",
+      "file": "05-study-blocks.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-US-05-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "7ec8c23eac1102ca7aae133c87f7a48deb0778e92522cb1b68c294c97ddeda39",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/05-study-blocks.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "e104aacf63498019edd58b6405ca66d53cc3b37f8fe1eaddd1b7b9dcb296724b",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-US-06",
+      "locale": "en-US",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-US-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "6218ed8ed06d1660f70a8fa6a635dbba2cc5f5e569c286bd1e873f25d1732912",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "ad0da7fbb213fa569d1265253453103f9d38d26f206a91e8bf44de8febc9c0eb",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-US-07",
+      "locale": "en-US",
+      "file": "07-home-screen-widgets.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-US-07-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "2d469f3953836228cae7aaa678259c8321feb0136167a4540ded4776057109cd",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "6449810f15ff0be41cde8b47e244aa4599416ed442bfb6897e4573911948cfd5",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-CA-01",
+      "locale": "en-CA",
+      "file": "01-scan-syllabus-notes.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-CA-01-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "f9bf45e9fa5f9455ea25fe81406bd086412d93e0bc4c99572e2bb00672425b3a",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-CA/APP_IPHONE_65/01-scan-syllabus-notes.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "2d7c6115371f7c8b7c9d709c2a911f3fe68925be056f4416c362cd37980b3728",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-CA-02",
+      "locale": "en-CA",
+      "file": "02-approve-deadlines.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-CA-02-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "4ab2d86c61d09d7657bbeb064919cf23967834448f0086e2ffcbfe822cb8d713",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-CA/APP_IPHONE_65/02-approve-deadlines.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "321ec5703d3f80f02d5158f915090795975d6aaf3df6c15143d48a4bc5adc376",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-CA-03",
+      "locale": "en-CA",
+      "file": "03-semester-built.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-CA-03-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "133271c93656fc9d93847dec4f1fc215c62926b99b37a20043175669ab3a12a1",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-CA/APP_IPHONE_65/03-semester-built.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "7876b52c6aed55b5b2ba5299056d7772718d230a3fe7d3b2ec7b0c2ca3214192",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-CA-04",
+      "locale": "en-CA",
+      "file": "04-today-next-move.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-CA-04-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "182bff03c7a056bf1e7bc6dc614f6166bcb09d34e6688bd385842e638ac1eb4c",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-CA/APP_IPHONE_65/04-today-next-move.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "0a8fec7273c2118159a5fcf1ac05526935c0e62a4913bb121d8288993e748b0b",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-CA-05",
+      "locale": "en-CA",
+      "file": "05-study-blocks.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-CA-05-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "43aae7fa41da9083ab9143143982c946b3c0104396e4bf621c8c51009b3dc8ab",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-CA/APP_IPHONE_65/05-study-blocks.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "ab331b1cfe73bfbf63a0073bc5b07787c3254902cd604eedacb3304420add976",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-CA-06",
+      "locale": "en-CA",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-CA-06-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "a7865cb3a212a8f9b268dadc48fb41697014beeb28a867253f2bae2fd5edbe8d",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-CA/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "4f38450f17fcab13ed434ec6b6a4358843b2ee23f8c37059121dc8fd0a061a4d",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-CA-07",
+      "locale": "en-CA",
+      "file": "07-home-screen-widgets.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-CA-07-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "687901a2a18c0785914642e439fa2f6eaf3735994704e58472150dae317fed7c",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-CA/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "daa2f8987e81aba19901acc5cfd6c1173f801cffd8f8313e701e5e856edf5bbf",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-GB-01",
+      "locale": "en-GB",
+      "file": "01-scan-syllabus-notes.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-GB-01-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "dd9fe0082fc5ea4a99cd781d50dba2c0979f03f44fb9429672a0165e26580a1c",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-GB/APP_IPHONE_65/01-scan-syllabus-notes.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "d8991963f56b82548bc3e4393aca0540b670472fdb7b079e67a5bc9defcbff56",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-GB-02",
+      "locale": "en-GB",
+      "file": "02-approve-deadlines.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-GB-02-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "a40534143880f0506042c4141ee1bae5370310aad181530aec1ab9b0c96488de",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-GB/APP_IPHONE_65/02-approve-deadlines.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "d5e6ab60e461f6bd754cbdfc55898d50c8695bf8743d2213d33d00c8134661da",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-GB-03",
+      "locale": "en-GB",
+      "file": "03-semester-built.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-GB-03-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "db28a06121a05156e702aa728354778852bc4535cc79cde125d15d0cfaf92dc1",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-GB/APP_IPHONE_65/03-semester-built.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "390c0a3487d0bf1235788e05613221c922ae582ea1c3720ae7e6612ae5a9e6f3",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-GB-04",
+      "locale": "en-GB",
+      "file": "04-today-next-move.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-GB-04-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "1fa45f4de304a33335a06b1b92c376be90868c30a00e72a1edce5f5e57d5f1c6",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-GB/APP_IPHONE_65/04-today-next-move.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "b8a7fb1baf3a0726e5556f49afb0049b402559782ea81ab7a3665958c31ffb9f",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-GB-05",
+      "locale": "en-GB",
+      "file": "05-study-blocks.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-GB-05-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "47d53e0b9cddb6d9cdf4d0b4a4a6fd3753294b17b614a7a1388417bef3c1e2a7",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-GB/APP_IPHONE_65/05-study-blocks.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "2fb91d7b9faa7c5a50b6873669344395edd39933d734ff8661200a829871c6f5",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-GB-06",
+      "locale": "en-GB",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-GB-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "57ba28d6ed9ca83ae4e0689ef6784794d95579d285ff516b08c49d71fe110149",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-GB/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "b440c1fba03547bde623565e5f4ca322e0c95e6aee45b1d9e7857e073084785b",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-GB-07",
+      "locale": "en-GB",
+      "file": "07-home-screen-widgets.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-GB-07-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "317cc4356f2b0ea1692f9951c5a1afe2716843692c8e2fb445addf19947aa34d",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-GB/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "01dcb9da442b0d5f5ad2a367c5abdef353b546c687e927c24c0a7e82429022a6",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-AU-01",
+      "locale": "en-AU",
+      "file": "01-scan-syllabus-notes.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-AU-01-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "95c03df7fd325434fef2497cdeffd4f14f452bbe1eb051bfa93001ad055b69eb",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-AU/APP_IPHONE_65/01-scan-syllabus-notes.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "b833e44641340a4773916916a7493d93e442b203167ee56a7eb03e1d80814f75",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-AU-02",
+      "locale": "en-AU",
+      "file": "02-approve-deadlines.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-AU-02-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "41f6b409906d837d05e0a0b1a7d0c81c5b6384226a64964713bc9d08741f5b4d",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-AU/APP_IPHONE_65/02-approve-deadlines.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "03388bd0286a825c1e787f44f58241505c974d84c66ae8755f7b55e1cf339296",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-AU-03",
+      "locale": "en-AU",
+      "file": "03-semester-built.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-AU-03-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "5cc8e65e53367b95b5a84c8fc1641c3673e9c69486bd0936683b6e96bd624d73",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-AU/APP_IPHONE_65/03-semester-built.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "bc3c89bb6ae108ac13f83912bb49b89c76e124bd9565788a098802a87dc7a2b5",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-AU-04",
+      "locale": "en-AU",
+      "file": "04-today-next-move.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-AU-04-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "4fa5c52abe38d2d348655f07d7d62a89ae17ececf64fa92dea9151915e87bb44",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-AU/APP_IPHONE_65/04-today-next-move.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "777eb1d617feaacd8a249c878eb71f5f3bb87d2ab90f9974b6bdbdb5729d14b5",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-AU-05",
+      "locale": "en-AU",
+      "file": "05-study-blocks.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-AU-05-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "c1bb7fe841501890faf45874027b37ef009e5327ad42230e21cc1f5a6cb9f6b5",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-AU/APP_IPHONE_65/05-study-blocks.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "464b32116cf683680284e16fd2b67338e21b8a8502425095942aaddbe265da16",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-AU-06",
+      "locale": "en-AU",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-AU-06-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "5e0733257ec48b44d07cb153ab5e1dd482db3bcfe83a1fb4deb5bfdcd383f446",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-AU/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "cc08d721ea35d7f692532bb13fa3a124632d555be2a6950bd9c0fa0998d8e81e",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "en-AU-07",
+      "locale": "en-AU",
+      "file": "07-home-screen-widgets.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-AU-07-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "fe99ae2e073b30a04ade6f379138817d8f041da9f6a4f6718ac9f88cc8c9be13",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-AU/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "7a942fe89ff4e7b0107dbc7ba8d4512b87b1062e819a893f74daba7c7a23a63c",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "de-DE-01",
+      "locale": "de-DE",
+      "file": "01-scan-syllabus-notes.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/de-DE-01-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "00dbeb83415bdb71730bc7c6e7e1a3c5e6a729858d08d0569f2c5d42ca56e615",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/de-DE/APP_IPHONE_65/01-scan-syllabus-notes.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "718ef255fc71b2932aafb3d55a66232eb5b0175da9a22ac035198b802bea9862",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "de-DE-02",
+      "locale": "de-DE",
+      "file": "02-approve-deadlines.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/de-DE-02-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "0e1cda4de8d0ce1fba14ced8b67b157ff5abe2dd902d93d38fe8a376bd32533e",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/de-DE/APP_IPHONE_65/02-approve-deadlines.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "a145d83b2b0a3b9d0c85d74a1693d26b4e6da08a416b83caeff781f9ed0570b2",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "de-DE-03",
+      "locale": "de-DE",
+      "file": "03-semester-built.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/de-DE-03-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "c5ea74139fd92bb3942f47091f8669533e0a73e1dbacfa6bff262c849b61b846",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/de-DE/APP_IPHONE_65/03-semester-built.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "fb20de36aa4ea9a46276a388fda6f031d7a2810370bd139122a8e7788f407617",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "de-DE-04",
+      "locale": "de-DE",
+      "file": "04-today-next-move.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/de-DE-04-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "9335d53abf24a036c0805a4ff76e99cdc44815b530e7ba0e62f087ef035e8f83",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/de-DE/APP_IPHONE_65/04-today-next-move.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "34ea90e5443abe7a022e306ba133b4c2ad032b691a5a385ff42f13a4463bab5a",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "de-DE-05",
+      "locale": "de-DE",
+      "file": "05-study-blocks.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/de-DE-05-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "c685a9ee4546b0fc3a9bf721eba53b57134c1f66c92bfb9ae956e3b852cea18c",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/de-DE/APP_IPHONE_65/05-study-blocks.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "07b6b7b94b2161c0d2998ce6768daa115ab6ad0b7a61a4e7330ae20ba5dcd641",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "de-DE-06",
+      "locale": "de-DE",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/de-DE-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "ee2854b399f9eaf68a7c16c5b3515e0ae0784d947c9d31c3c21c70efd5291fe3",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/de-DE/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "6fbacdc7e86f07b7e19676a05eeeefe25f63b83675ec32a4d434d09ce76bcc7b",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "de-DE-07",
+      "locale": "de-DE",
+      "file": "07-home-screen-widgets.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/de-DE-07-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "5c98ef9848b0bc334aeab059fe741fa66a9de869138e510f3915aa26e3ed534a",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/de-DE/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "a559309f7762d223c7641ac46b2b63a88f6a08a997cd1524748acae4e077fcfd",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "es-ES-01",
+      "locale": "es-ES",
+      "file": "01-scan-syllabus-notes.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/es-ES-01-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "0e234419a0f7d5d674929905c3ccfdb58a6d993066cf58c7d4a2c1c3a10ff2ff",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/es-ES/APP_IPHONE_65/01-scan-syllabus-notes.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "aaefda92b556933b42cf7b088e315ed45a27f275aa67930495d15ed8d4dd38de",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "es-ES-02",
+      "locale": "es-ES",
+      "file": "02-approve-deadlines.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/es-ES-02-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "d513574cb0b9a11e9bc329ce7dbfc35ef93fb8ecaf88552d8a75b536b1adecc5",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/es-ES/APP_IPHONE_65/02-approve-deadlines.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "0cf31a63cbcf0e6bb9f77a880ad9d85827752ca5b9cf0c278eba7d04f79718ad",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "es-ES-03",
+      "locale": "es-ES",
+      "file": "03-semester-built.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/es-ES-03-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "7285b1d205b3c8fe5775e30915ee4c5bdd238df10990d806c0ad33a6b6dc16c9",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/es-ES/APP_IPHONE_65/03-semester-built.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "70a00eb6487a775be578e4542414f0f094dd71244b632d5d6734bf2e7abad699",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "es-ES-04",
+      "locale": "es-ES",
+      "file": "04-today-next-move.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/es-ES-04-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "2befb20308cf571303156324ab13efaf513d225e8998b279531e4f0a1b43a991",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/es-ES/APP_IPHONE_65/04-today-next-move.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "ca41b039efa0abba9383592ef2f76a29224c300be3873a26cda1b57d91052622",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "es-ES-05",
+      "locale": "es-ES",
+      "file": "05-study-blocks.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/es-ES-05-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "4f894484077bacc577f7fc20a69127162adf6831c846e127291770ed64d8a6cf",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/es-ES/APP_IPHONE_65/05-study-blocks.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "53b4a114b0835ded2bf057b32ad298a57cffd83581420d6a2ee6e9e07abd4984",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "es-ES-06",
+      "locale": "es-ES",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/es-ES-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "7ea79c370d730f6028d0a456714787c2fd3883873c527bdaf2cff5734d389b0b",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/es-ES/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "b268232c2c0ca6fa0790e8366141e50d2bab087c86ae58f42103110c02b06eff",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "es-ES-07",
+      "locale": "es-ES",
+      "file": "07-home-screen-widgets.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/es-ES-07-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "b9297875e5ed216bb97ce0025c48c215ae2d54de3e46292e19b113dcc21a6c8c",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/es-ES/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "5bfb4b8dc9abffde92eef812bf1886013794ebbf410e94a061d3ec5ae6862b42",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "es-MX-01",
+      "locale": "es-MX",
+      "file": "01-scan-syllabus-notes.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/es-MX-01-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "22d6ee94889440ad6fb6796a2d60a2cd8679fd669c38fa6933a7b7b83b6152f3",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/es-MX/APP_IPHONE_65/01-scan-syllabus-notes.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "744569c6a1186f3fee40e6e19e7d092702d87d2dbf6ebf08fe26e59dff4bdbad",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "es-MX-02",
+      "locale": "es-MX",
+      "file": "02-approve-deadlines.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/es-MX-02-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "0d114ea663b2e7a09d76b3c9613db809c47c76d136fbf9eba939ea97cda51d87",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/es-MX/APP_IPHONE_65/02-approve-deadlines.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "b9a5d301d1849aa6e6c600eb30dee2249f48e26366fbdeb95e9714f986c0a185",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "es-MX-03",
+      "locale": "es-MX",
+      "file": "03-semester-built.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/es-MX-03-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "50b7b0e6280093af522f27a04043a488654a0857fd82b4bdecb94bb54f0d450e",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/es-MX/APP_IPHONE_65/03-semester-built.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "2a1637861af7ed134d3c5217a6be55e7fcdb5989266767eb8da3731b2466fc88",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "es-MX-04",
+      "locale": "es-MX",
+      "file": "04-today-next-move.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/es-MX-04-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "245351fd036551e77821dfab2b12f15fe042ee33246e846236d5f71fb694c95d",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/es-MX/APP_IPHONE_65/04-today-next-move.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "e36ac53f9ab445a1236f03f8b00149676bc2ef027e84bfd558a8f412f4713871",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "es-MX-05",
+      "locale": "es-MX",
+      "file": "05-study-blocks.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/es-MX-05-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "9e33c88534d99e70f90d6321239a2d9d9d524f22b418d724d051a2f19eaf26a0",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/es-MX/APP_IPHONE_65/05-study-blocks.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "3fad632ea3f94d1c8c8d4de4796054c0330595bcdfe846afa1ca79cfacd1b64d",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "es-MX-06",
+      "locale": "es-MX",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/es-MX-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "521f9ff9455f3a33c13516982d152137562dd245b34e4ee8036909e5f3e5787f",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/es-MX/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "33dd0251a7a8d6b9cbb3e28ee8cd1b735fb408da1b603ca3fc7671ccf54bc42c",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "es-MX-07",
+      "locale": "es-MX",
+      "file": "07-home-screen-widgets.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/es-MX-07-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "c4c9c1ff23606b77a802f09336f575bbf8a3c9b4bf582ab23acd58c070d68728",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/es-MX/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "7c42edeacc75ef5c79a0eb651ee43788fef4b1fc0277f68bb057ae8d968b229a",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "fr-FR-01",
+      "locale": "fr-FR",
+      "file": "01-scan-syllabus-notes.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/fr-FR-01-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "4727f86378295fbd9fc04465f715fbd44de1e6c8900702ef306c8bd7bd822eb0",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/fr-FR/APP_IPHONE_65/01-scan-syllabus-notes.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "fb8c22a437241d651d30745e94caa251d167f9473cac9bc65d154530ec76a26c",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "fr-FR-02",
+      "locale": "fr-FR",
+      "file": "02-approve-deadlines.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/fr-FR-02-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "a1b367debe31b2a9b6175c8635241cae7c3c1a47903dd757a05056b4f6c9990f",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/fr-FR/APP_IPHONE_65/02-approve-deadlines.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "bde3d43b92808c15a2dd9621050447892ea3f2624683123c044a944bcda343ef",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "fr-FR-03",
+      "locale": "fr-FR",
+      "file": "03-semester-built.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/fr-FR-03-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "1d517c0ca42df6f364a95b0702fe1b414c4fce813c82f15bc62130a8dbbb25f5",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/fr-FR/APP_IPHONE_65/03-semester-built.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "e4f1d5162e83957613dd4f2347940c19ecf787f1da66bab93e90fc31077c07a5",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "fr-FR-04",
+      "locale": "fr-FR",
+      "file": "04-today-next-move.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/fr-FR-04-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "ab8b8df0bbb22dffeb6ac00a3a8cd2b0b53f3f14d5bd582746bbc1c02da764e7",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/fr-FR/APP_IPHONE_65/04-today-next-move.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "1904978b04cb4ce8bd55c5847ba1de6ee07f25ca7628b3b03cea5739a1d0a096",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "fr-FR-05",
+      "locale": "fr-FR",
+      "file": "05-study-blocks.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/fr-FR-05-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "4d62b72e71ea3023484ebf72fafd85d4007652889fc8fc858a89b495b287e3b6",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/fr-FR/APP_IPHONE_65/05-study-blocks.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "d0adaace8045aa065ac21a2f5576b4ee6be3d02f6a40ceaf1fe4cc7cd90c64fa",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "fr-FR-06",
+      "locale": "fr-FR",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/fr-FR-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "9a993970f288f9f8379e58d066881eb86b284d2062f241ba20db13efb036609c",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/fr-FR/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "e125082714793014c594988065424b3705fe4e11b6eee4bf9c3d488686cde0c8",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "fr-FR-07",
+      "locale": "fr-FR",
+      "file": "07-home-screen-widgets.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/fr-FR-07-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "294963e625e6b1bc0be1bcbee9fc1fd4a80f155bf749e1e2aa6493041f85d5dd",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/fr-FR/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "8ed31a2c9e17c3379ad5a74e80b84f0e92be31a1375af4419638192b0a741f7d",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "fr-CA-01",
+      "locale": "fr-CA",
+      "file": "01-scan-syllabus-notes.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/fr-CA-01-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "869cac3e106e79caad81e8679cb8c1f5a798b66e063feb8859b8344155369c9d",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/fr-CA/APP_IPHONE_65/01-scan-syllabus-notes.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "680e1e2a3e886bce8220e585763d06279e3436633b2a6bf8b620a3b65e9513d8",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "fr-CA-02",
+      "locale": "fr-CA",
+      "file": "02-approve-deadlines.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/fr-CA-02-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "dd3417e8eb848bac62d798b2412e552fbad29b5e99d07d04d1df596c8398b751",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/fr-CA/APP_IPHONE_65/02-approve-deadlines.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "b2ed3e9f43e2da4e854e2d0d9c6cc119acb7e9e8cb7d1cce799cd98a02205751",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "fr-CA-03",
+      "locale": "fr-CA",
+      "file": "03-semester-built.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/fr-CA-03-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "2f741e36cbf811aed26357d627b863146bd5a65b169d7560e78fb944f5c6552f",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/fr-CA/APP_IPHONE_65/03-semester-built.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "b08d69e97f76ee72275b50d9dd9f2d8afdff814a161263145e5f010946518a05",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "fr-CA-04",
+      "locale": "fr-CA",
+      "file": "04-today-next-move.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/fr-CA-04-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "62aa633edbc430fb4859678abe3293290206a9b588ff15377b10848b39986636",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/fr-CA/APP_IPHONE_65/04-today-next-move.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "acbf8e212b923b17c13290a50be32eb11cbddb2db3fe86999910ceca39fb596a",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "fr-CA-05",
+      "locale": "fr-CA",
+      "file": "05-study-blocks.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/fr-CA-05-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "37ada8db7b9ca43532e326bf30806222b4e226b8d43758ad327b08d49c211d69",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/fr-CA/APP_IPHONE_65/05-study-blocks.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "238706b1ba0fc7b35877c8b4f41a20a6ece1aa7db9bd5b254a7347acdac49cc9",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "fr-CA-06",
+      "locale": "fr-CA",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/fr-CA-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "abfbe543a332fbd46f7fae9dd530e60f814b4f07656cae789da39f5050bc3a36",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/fr-CA/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "c79c50006e08b41d2d85180f876cc26015a9efc8d9c38c1024e8e7ad683d7a66",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "fr-CA-07",
+      "locale": "fr-CA",
+      "file": "07-home-screen-widgets.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/fr-CA-07-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "6ee5755b84cc2578739fa5d57b86787f4218ea647ba2ff6ceaee70588e5d215e",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/fr-CA/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "302b7407f5c1ab702098e7151738bfd833e9d29ae36e886fcd6e573e23409cdb",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "pt-BR-01",
+      "locale": "pt-BR",
+      "file": "01-scan-syllabus-notes.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/pt-BR-01-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "8fdabc8250520ef7ba513cb56bc2e2d55c59c4f0251fd9219f49591a2a15fa16",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/pt-BR/APP_IPHONE_65/01-scan-syllabus-notes.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "23ee0201eb560e1e147a0988c2261aba5cd09a77defcfef0d4831ff4d1887a31",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "pt-BR-02",
+      "locale": "pt-BR",
+      "file": "02-approve-deadlines.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/pt-BR-02-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "960f0c81bf3743e0c8583054cc622a0ce14c1a244c0e346a8ce7d1ba6e1a83b3",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/pt-BR/APP_IPHONE_65/02-approve-deadlines.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "b33b11bf01d3ae7fabcc4eeb9cea12780553e3f3e95643305ec63abb96b55c6d",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "pt-BR-03",
+      "locale": "pt-BR",
+      "file": "03-semester-built.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/pt-BR-03-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "f6dfd83ceb9ec6f20dcbce56f7f1d22dd2542d21f9f5105f8b513a6a223584c5",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/pt-BR/APP_IPHONE_65/03-semester-built.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "e010bd7d242bfc1adb1a8cca702d6d34f5c62252e8b9ca264475b25d9c584b84",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "pt-BR-04",
+      "locale": "pt-BR",
+      "file": "04-today-next-move.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/pt-BR-04-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "5aa7d5588693ed0d64455cf792168bd56492aa8ca70490755d20240732edde23",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/pt-BR/APP_IPHONE_65/04-today-next-move.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "5deeef3c246207d1cc93330c664aeb82fd4f91df4140bdf321bdb13c2991f307",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "pt-BR-05",
+      "locale": "pt-BR",
+      "file": "05-study-blocks.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/pt-BR-05-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "e2afe0c41e8fb0b860b86155c2772ee944aaa82b25c18be918e0dbd8b55566a6",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/pt-BR/APP_IPHONE_65/05-study-blocks.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "2061473b374cfb5d5d99258f79a1fac5c69fd566d3f34a1d8965ebc3641a9cd6",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "pt-BR-06",
+      "locale": "pt-BR",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/pt-BR-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "a32007c02276ec69f36b00de43b9c3ff43d7a44af7ce571551eb8c5837b22f0e",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/pt-BR/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "df1e503ab97d90a8ea14000e2394f5c802ef3d494af0e37adf7a0ad8ea697d57",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "pt-BR-07",
+      "locale": "pt-BR",
+      "file": "07-home-screen-widgets.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/pt-BR-07-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "5edad9073d35039d380748e4be3df40fb3d85ac05b2a998b66ae0e2271097833",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/pt-BR/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "af8f417848c660290393f80a3b7daaaedf6393d1736ede5daf3762258ffa0f81",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "pt-PT-01",
+      "locale": "pt-PT",
+      "file": "01-scan-syllabus-notes.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/pt-PT-01-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "e01b8b5428ba306663618c7fa140ec439db7a7c747496951ff832a4b4424d923",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/01-scan-syllabus-notes.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "5ff9660a3d53f54fa3789037ad0b2ca6fa13179f5026c26e593233bc01264286",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "pt-PT-02",
+      "locale": "pt-PT",
+      "file": "02-approve-deadlines.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/pt-PT-02-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "2a8c797c0ade03853ec2cfad9578dd6565c6fd5e7a706d6a1934264beee7a15b",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/02-approve-deadlines.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "04dae148e001499cd3ea3cb2f8c70671192e3296f055182462ad4f5a5bc74f72",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "pt-PT-03",
+      "locale": "pt-PT",
+      "file": "03-semester-built.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/pt-PT-03-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "c676f2c8e1804fad15016147e78e18f530a4529b1889d9ee073d2e07eafad4be",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/03-semester-built.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "d201b2a2861c525bc073db874c0d7788abc24ad9ba2aeb48ca84013f7d79691e",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "pt-PT-04",
+      "locale": "pt-PT",
+      "file": "04-today-next-move.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/pt-PT-04-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "93dfe959306351e70cf4d88dbacfab5a00aac2407f2af427014bff132bf9d346",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/04-today-next-move.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "9a6a3cdaf95f8b9fab03663911320106affb8c12bf687c3f40db0775cee8575d",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "pt-PT-05",
+      "locale": "pt-PT",
+      "file": "05-study-blocks.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/pt-PT-05-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "e276f30b406e0e5a6356cc360a6b3aa2aa6c3212dea58bb7ee3870df6c4a6275",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/05-study-blocks.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "50cabf606794e1ef165584b8c7fc0392b875719c7e13f57d070fe14030491d09",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "pt-PT-06",
+      "locale": "pt-PT",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/pt-PT-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "1deabf51908c2a1bc3583758c48694d677522e066e39f2cfae3324de6535a000",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "dae636ececfbcae3a9ffe1c17a6be159f5681871191789b2bdb5b5771001ff90",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "pt-PT-07",
+      "locale": "pt-PT",
+      "file": "07-home-screen-widgets.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/pt-PT-07-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "e8dd23f871ef2012d5b2d580a4c8b694900816f14a9530ce8c332007ad872d83",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "e6cb4ad5ae0341f55d03a84d40369a4b34dace211665ba40cd8f11e17a4ee87c",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ar-SA-01",
+      "locale": "ar-SA",
+      "file": "01-scan-syllabus-notes.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ar-SA-01-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "9065c55af43ba5a01d90fadbe12dc65b6035288dedcbef1fd44b35a37b267a63",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ar-SA/APP_IPHONE_65/01-scan-syllabus-notes.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "ea02e8448ed3794d7b3cf6415cefa7a0b1a1c50e82ce7e1c24afc3e398691332",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ar-SA-02",
+      "locale": "ar-SA",
+      "file": "02-approve-deadlines.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ar-SA-02-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "a88fcaaed1ac08d32090cdd33050541e7380af7c5bca42601f005af0a67ceefa",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ar-SA/APP_IPHONE_65/02-approve-deadlines.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "303e4ecc3926d1322c913985a74939281c5d741fef15aa91a56bc2c484f1647e",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ar-SA-03",
+      "locale": "ar-SA",
+      "file": "03-semester-built.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ar-SA-03-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "188cecc5d521a074303da550a54a0f845ae8616a307e7801fa3fb0334da0155b",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ar-SA/APP_IPHONE_65/03-semester-built.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "668970e4cd98594b992f24e15d90010b834949b0953d8377e4e0635a05812591",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ar-SA-04",
+      "locale": "ar-SA",
+      "file": "04-today-next-move.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ar-SA-04-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "b5569439e870c55a2c2cdebf2c10ffe554cd4af82450b6eeb85b4ac39bf2091c",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ar-SA/APP_IPHONE_65/04-today-next-move.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "31930229b82186f155b59b47b3c435983ff6c5da59d065649ae2af42dc0e52ce",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ar-SA-05",
+      "locale": "ar-SA",
+      "file": "05-study-blocks.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ar-SA-05-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "8ca9b75ff8c1c1c5dd9a0b5e79d476af3c51c96bc59fcd777880519637c1acf5",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ar-SA/APP_IPHONE_65/05-study-blocks.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "65671392fdc43132459eb974f7efae818b42e16def89cca0a82d5d6762eb28ce",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ar-SA-06",
+      "locale": "ar-SA",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ar-SA-06-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "9ea5cee3e6a50015f5049df98605c9b7116c3e0831d234b67d03a178bbf113bb",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ar-SA/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "b9484b2d893daa0f1e8407ec86965bc4ef041cf9e455f59cc0c3fc088a1faed2",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ar-SA-07",
+      "locale": "ar-SA",
+      "file": "07-home-screen-widgets.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ar-SA-07-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "bc13dc191a3f195e379355c28e5053fa4aaffe68861bfbcb166c8040948069fb",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ar-SA/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "9757165c5b0136fd8bd5cbb9942b13af3e0b71b09648eef3d3e15e9fb0ae7755",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "hi-01",
+      "locale": "hi",
+      "file": "01-scan-syllabus-notes.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/hi-01-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "04cd814b016f8a68e77c1d8638529f849021dfa7289c649019dfe26371d13eb8",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/hi/APP_IPHONE_65/01-scan-syllabus-notes.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "67e43277c113fcc3ee68c4f7a034ea7124248321770bb429e1d31d820da8f08e",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "hi-02",
+      "locale": "hi",
+      "file": "02-approve-deadlines.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/hi-02-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "7e1a8e93516294d08b1c7df0a3bbef476e4a471ec0c07f9a29eeba6a86f6ffcb",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/hi/APP_IPHONE_65/02-approve-deadlines.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "f7c587d7991c25f4d3ac2cf2247c482e80b20c82165b199dd7fd3a5ddb1184b9",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "hi-03",
+      "locale": "hi",
+      "file": "03-semester-built.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/hi-03-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "a8405e509aa0bdb9ed87ce228f839cf5da03250ae0a96186ea4b04cc5d7ed100",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/hi/APP_IPHONE_65/03-semester-built.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "c1b687b0bb96643d36267cfe8f7a35362c86f7de431082aaa4a393bff5304100",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "hi-04",
+      "locale": "hi",
+      "file": "04-today-next-move.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/hi-04-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "4b575408534df2d815b4582a005698916fb16484a2907919adac4bc88b6f3cfc",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/hi/APP_IPHONE_65/04-today-next-move.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "667904790eaded7ddd6ea9787df2ced4c9162c6f0199915d56e5a44e80e0deb5",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "hi-05",
+      "locale": "hi",
+      "file": "05-study-blocks.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/hi-05-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "a90e4ff429b42e271cf6c59172bb3b88ea19acae9b65185254fbb542b4d29062",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/hi/APP_IPHONE_65/05-study-blocks.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "e19be0028d4fa01bc7f2ecc653384c3ef6789be41e7e884ae591a0983f929ba0",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "hi-06",
+      "locale": "hi",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/hi-06-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "9a2787b1b90e33bd4225ba806764f71d69df99944d7902f9687cacf0710899e7",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/hi/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "6b8af3dfc798ea8f135ff8ae3943bda7b295b6f820352e14dcb13dbb0537e305",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "hi-07",
+      "locale": "hi",
+      "file": "07-home-screen-widgets.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/hi-07-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "f4602604882f1d4d4db1c22b80ca3fc6844c4efafdef79c89acf29be4a40a1b4",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/hi/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "f7f7d44fd77a0209c91189fe2fed1e25ab794e331e177afdc499536840ec9cb3",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ja-01",
+      "locale": "ja",
+      "file": "01-scan-syllabus-notes.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ja-01-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "c2b76d1e9bcffcc03453aafbbcc0a1a24c244aefa82a6413caa67fd2dc07b8db",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ja/APP_IPHONE_65/01-scan-syllabus-notes.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "1608ded11e81a83c1eee012594276e187140e6bee9b9bff13484c3757e8582a6",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ja-02",
+      "locale": "ja",
+      "file": "02-approve-deadlines.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ja-02-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "1a168ca59013ee94ca225d7b82a0e9f4d7b8e68022f0689c686da7b16cdd19f1",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ja/APP_IPHONE_65/02-approve-deadlines.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "ef7a8f3b61d552d89e3f43c17cda5274dedb6780572161238fdaa9cd8c5830cc",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ja-03",
+      "locale": "ja",
+      "file": "03-semester-built.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ja-03-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "2dd48a744e99608cc4e2b0dadca5eaafeb3b50308700a3cb00186f081847fc39",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ja/APP_IPHONE_65/03-semester-built.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "3f385dbc7c81481121fea721a3e5188fcd456ff0c0b8f3ac3bc51a37318dc86c",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ja-04",
+      "locale": "ja",
+      "file": "04-today-next-move.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ja-04-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "1587eb42499ed1f64ac12101c2b9f63b2e3557c5466099bb98f2bce7263d366a",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ja/APP_IPHONE_65/04-today-next-move.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "3ec682798c38689403ca08610c3b54dcaccff46dcee471c9d5be3a3087e62fdc",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ja-05",
+      "locale": "ja",
+      "file": "05-study-blocks.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ja-05-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "82c8c026e717c1305f9784011ccf6842cf468dc6e94908cdb2e19a363a56fbe1",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ja/APP_IPHONE_65/05-study-blocks.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "6337d894785155a92ff991f4615afb668a24ce622aa65ff35d8b8d8d39c91253",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ja-06",
+      "locale": "ja",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ja-06-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "7b36e28b76e2024390d336ff98640cb57ef55167397205ae72af17dd9b54b95b",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ja/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "45b03e4ce7b161dc007a1bc838b06ef53b8131f1330b4a398622471f2574410f",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ja-07",
+      "locale": "ja",
+      "file": "07-home-screen-widgets.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ja-07-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "2d0d5d135b29d9cdab31a46794bfd42297198b9b93db4a39271c9310c7c3786a",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ja/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "8a545c51484a2d0272ed47a36d42ba41ca7058e94a5b1330a1e265ceffbd78b8",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ko-01",
+      "locale": "ko",
+      "file": "01-scan-syllabus-notes.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ko-01-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "6b1578d4802b80a232236d53a8de67213af29760f867a66f4296336b6ec4d1e0",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/01-scan-syllabus-notes.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "a830e889c497bc6d9e28f0b41c127c03cdaacd304d27431bf9c89e7ec1691acc",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ko-02",
+      "locale": "ko",
+      "file": "02-approve-deadlines.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ko-02-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "ad635da7bfa4641c85318b943db39ec7df56980338fe11b6c5dfddba4a61a53b",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/02-approve-deadlines.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "9752266d6083d7d1fac4c56017755e7643ef5ed6332486d9266b2990389c2121",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ko-03",
+      "locale": "ko",
+      "file": "03-semester-built.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ko-03-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "cfb219d0aa1a4eeb5b5eb0ccf7874f8255b8cda4d75a86ccb7f5e9c0fb74ee03",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/03-semester-built.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "91a9e226c84e7ef91aa4631e2622d00b356c7ea51bba5ad37e7c2337501e4672",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ko-04",
+      "locale": "ko",
+      "file": "04-today-next-move.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ko-04-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "820ea33977edc32eb1751202323d1468e70d40881f6418546f8a3a27a90ac99c",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/04-today-next-move.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "e789237037dabc591902831dbe91451123977eaf99bc56ca3635898a191e8217",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ko-05",
+      "locale": "ko",
+      "file": "05-study-blocks.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ko-05-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "8c53a918ddb7e3beb556468888fc8b46c57134cde6874ca62496b5e4dd71ab8a",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/05-study-blocks.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "06923d0318eed873247fe661be27b3ca3b803fa29a590fe137349905decd0dfb",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ko-06",
+      "locale": "ko",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ko-06-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "7c7276bbf729f07a161bacbd72ab258fbe19165e7a4e3ba7ca8a3c637e34ecf2",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "192330cce014f6f3317b21b2b89d2ff93b188cdc7af4bc1873bce2b90c6a04ec",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "ko-07",
+      "locale": "ko",
+      "file": "07-home-screen-widgets.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/ko-07-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "7d582e9fb87145ef5a37ad1c3c41a2a7fadd43d4a587b043c4888831320c8754",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "5835d25e225071a4552d930008123ff7c22639dbfaf1f457ef5816c825950f52",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "zh-Hans-01",
+      "locale": "zh-Hans",
+      "file": "01-scan-syllabus-notes.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/zh-Hans-01-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "35147af08372db2d17410599216fb887201298ed694af12438b0de84950da3bf",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/zh-Hans/APP_IPHONE_65/01-scan-syllabus-notes.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "dc96594a0ec412c72e3b96b5ade6c811a6a27b03b306a9e8818d9601d9b791c6",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "zh-Hans-02",
+      "locale": "zh-Hans",
+      "file": "02-approve-deadlines.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/zh-Hans-02-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "c84d68eed374509dedb171e4aca45f0ff3349865065f44904ac07758c037badf",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/zh-Hans/APP_IPHONE_65/02-approve-deadlines.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "ab7a908f7992c0b3b436b4e678392a02a09cbf3f1f3c9297b4c553879457b009",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "zh-Hans-03",
+      "locale": "zh-Hans",
+      "file": "03-semester-built.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/zh-Hans-03-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "ac6f10b44a34aa4d28ac3b6e9be6b29dcb2e497b706c4ce8bcf5390d04662b37",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/zh-Hans/APP_IPHONE_65/03-semester-built.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "ece90b0138fc01bfbc9312e2c604113ea9e6d04c226a0a3c831e2b1d060a8093",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "zh-Hans-04",
+      "locale": "zh-Hans",
+      "file": "04-today-next-move.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/zh-Hans-04-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "bab015aaff819175b90894b2953efba61eaa23ce80d8ca8c5be3e0141e942c0d",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/zh-Hans/APP_IPHONE_65/04-today-next-move.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "f1986936c9cac586fad0d61e4db16da6889bd1ed47cde82de6239cb31e7337f5",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "zh-Hans-05",
+      "locale": "zh-Hans",
+      "file": "05-study-blocks.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/zh-Hans-05-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "e6913c060e1764eebc6127e467836e25dda7c97d3fb15611bdc5842a6d4f04f0",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/zh-Hans/APP_IPHONE_65/05-study-blocks.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "7d4821be0c34ca263f1793a087138465f9ca722e2a921c175058bd7a89ebd2c3",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "zh-Hans-06",
+      "locale": "zh-Hans",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/zh-Hans-06-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "34dec8bf06a0a020a6d26a309b58ba8acace18faf84aefc84001adb3c50cfc21",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/zh-Hans/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "0ec849914fa683cd089691a1eca7d9b66400f534bb214ba8e6cbef145b770a64",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "zh-Hans-07",
+      "locale": "zh-Hans",
+      "file": "07-home-screen-widgets.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/zh-Hans-07-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "2d808a9cd7a12a55910c247ab4ecbec5816beb39b5951bc315a1c2c7b4ca3841",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/zh-Hans/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "e442f2436d824d928d5255bcfcf8e51ea42cf683f7062378914de6e9c63145be",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "zh-Hant-01",
+      "locale": "zh-Hant",
+      "file": "01-scan-syllabus-notes.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/zh-Hant-01-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "e8e770e60cfae52bb9f50a2e1d2b29249de60acccc1dea44a26f6205bd08ca30",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/zh-Hant/APP_IPHONE_65/01-scan-syllabus-notes.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "f0c2f212100d17ba67bd1d849f4abbb75afbce1d4ccb31b17c8bca03e08c13ec",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "zh-Hant-02",
+      "locale": "zh-Hant",
+      "file": "02-approve-deadlines.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/zh-Hant-02-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "c6d56d2ac6e2471a5e21b3958cd08509dcf8f085bf05f2b0c09b46d5c11fb911",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/zh-Hant/APP_IPHONE_65/02-approve-deadlines.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "c651ad09e910f563195dde2935380d1d9f07661be1e2b7a2e796793ab3d2a55d",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "zh-Hant-03",
+      "locale": "zh-Hant",
+      "file": "03-semester-built.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/zh-Hant-03-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "c37f4cd3fd3e131cf8a121411845c99955f1af5ce07643cab682bc422ace56f4",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/zh-Hant/APP_IPHONE_65/03-semester-built.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "55b6d369967564d321c787001d3d5191bcdefe179be798f325ca651674aecca5",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "zh-Hant-04",
+      "locale": "zh-Hant",
+      "file": "04-today-next-move.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/zh-Hant-04-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "1982f9593a73d002a8a85674de4daa92ab2c6a1805695bcf0fd4957130229cfe",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/zh-Hant/APP_IPHONE_65/04-today-next-move.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "d004a2e63ecf6986d9a92f9ab15223b1e173997a760999b3eff7a6504969fed5",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "zh-Hant-05",
+      "locale": "zh-Hant",
+      "file": "05-study-blocks.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/zh-Hant-05-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "37bbc76916953f87ae9492c033b0e71d927b70db4c27bde4cbae87beb3c8dd4f",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/zh-Hant/APP_IPHONE_65/05-study-blocks.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "5f20cac56fd5e9c6fda1c280fd8fba77a15c3a1a8aaefa2d3f94a168380788d7",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "zh-Hant-06",
+      "locale": "zh-Hant",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/zh-Hant-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "cbb0534a0e3332d0f11f3c5fc642a2ac4e1a484a0a36bcaace00fa7861aad9f0",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/zh-Hant/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "945c88f6c1736e88a5bdc6b957851e6a347d782a2b930a05683a79166e05f9d6",
+      "humanAccepted": true
+    },
+    {
+      "jobId": "zh-Hant-07",
+      "locale": "zh-Hant",
+      "file": "07-home-screen-widgets.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/zh-Hant-07-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "fb3f17114cb72ff12f891556532de9da9405aeb381f9525544bfd0a787803c07",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/zh-Hant/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "8b4e4c9468d5ad96eeed2b1efc9c6d05bb79fd2c2ac79f93a0ec25896fc19161",
+      "humanAccepted": true
+    }
+  ]
+}

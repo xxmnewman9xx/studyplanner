@@ -1,0 +1,24 @@
+{
+  "filename": "de-DE/app-09-focus.png",
+  "captureId": "app-09-focus",
+  "device": "185B5022-AF87-4167-ABA9-E2DDE87A3EDF",
+  "buildNumber": "release-simulator",
+  "buildConfiguration": "Release",
+  "appearance": "light",
+  "locale": "de-DE",
+  "accessibilitySettings": "default",
+  "sourceStateFixture": "build57 focus fixture",
+  "reviewerNotes": "Focus route.",
+  "requiredProof": "The first study block is actionable and not cramming-oriented.",
+  "status": "captured",
+  "bytes": 418318,
+  "sha256": "b61a3acd6a2a78772de371c23925f544f1df55a087380f84c79cf7d3d0f7ae11",
+  "path": "qa-screenshots/back-to-school-2026-native-localized-current/de-DE/app-09-focus.png",
+  "config": {
+    "qaState": "build57",
+    "tab": "focus",
+    "semesterThemeColorId": "graphite",
+    "locale": "de-DE"
+  },
+  "generatedAt": "2026-07-09T02:59:03.245Z"
+}

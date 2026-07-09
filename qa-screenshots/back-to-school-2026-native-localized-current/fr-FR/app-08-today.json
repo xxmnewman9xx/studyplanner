@@ -1,0 +1,24 @@
+{
+  "filename": "fr-FR/app-08-today.png",
+  "captureId": "app-08-today",
+  "device": "185B5022-AF87-4167-ABA9-E2DDE87A3EDF",
+  "buildNumber": "release-simulator",
+  "buildConfiguration": "Release",
+  "appearance": "light",
+  "locale": "fr-FR",
+  "accessibilitySettings": "default",
+  "sourceStateFixture": "build57 today fixture",
+  "reviewerNotes": "Active semester Home/Today state.",
+  "requiredProof": "Dashboard feels semester-ready, not like a generic task list.",
+  "status": "captured",
+  "bytes": 518491,
+  "sha256": "ddc40cc464d5d85579efc4cc0173f3e44f20733e568ae2e201480cb5412d4ff3",
+  "path": "qa-screenshots/back-to-school-2026-native-localized-current/fr-FR/app-08-today.png",
+  "config": {
+    "qaState": "build57",
+    "route": "today",
+    "semesterThemeColorId": "graphite",
+    "locale": "fr-FR"
+  },
+  "generatedAt": "2026-07-09T02:59:03.245Z"
+}
