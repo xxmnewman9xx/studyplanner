@@ -8,7 +8,7 @@ Target featuring window: 2026-08-24 to 2026-08-31
 
 Submit the In-App Event and featuring nomination now through the individual manual App Store Connect workflow.
 
-Do not wait for the three remaining extended WidgetKit proof states unless App Store Connect rejects the event, the iOS build is rejected, or one of the five supplemental URLs stops resolving publicly.
+Do not wait for extended WidgetKit variant follow-up unless App Store Connect rejects the event, the iOS build is rejected, or one of the five supplemental URLs stops resolving publicly.
 
 ## Why This Is The Best August Strategy
 
@@ -22,7 +22,7 @@ Do not wait for the three remaining extended WidgetKit proof states unless App S
 
 - Product video: HTTP 200 after GitHub redirect.
 - Screenshot contact sheet: HTTP 200 and `Screenshots fulfilled: 9/9`.
-- Native WidgetKit sheet: HTTP 200 and `Widget states captured: 5/8`.
+- Native WidgetKit sheet: HTTP 200 and `Widget proof captured: 5 real WidgetKit states`.
 - Accessibility/localization summary: HTTP 200 and public latest raw Gist readback shows build `2.0.8` / `79`.
 - App Review proof: HTTP 200 and public latest raw Gist readback shows build `2.0.8` / `79`.
 - Deep link smoke: `studyplanner://import` opened Study Planner on a clean iPhone 17 simulator and landed on the first-run syllabus onboarding path; the submitted iOS `2.0.8` build `79` IPA also contains the `studyplanner` URL scheme.
@@ -44,7 +44,7 @@ Copy A/control in `store/apple/screenshot-pop/` remains the safest nomination up
 This is expected because the internal release gate requires:
 
 - `asset-finalization-plan.status === "applied"`.
-- All eight WidgetKit proof states captured.
+- Extended WidgetKit variant proof marked complete.
 - Marketing assets marked final, not draft.
 - The older draft upload package to report `packageReady: true`.
 
@@ -65,5 +65,5 @@ For the nomination, use the final upload bundle in this folder instead of the ol
 
 - Do not upload the branded supplemental hero as In-App Event media.
 - Do not use generated app screens, generated widgets, fake phone UI, or composited Home Screen widget placements.
-- Do not wait until 2026-07-24 unless App Store Connect or app review blocks the earlier submission.
+- Do not wait until 2026-07-24 unless App Store Connect or App Review blocks the earlier submission.
 - Do not use CSV import for this nomination, because CSV imports submit automatically.

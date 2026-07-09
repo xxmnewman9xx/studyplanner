@@ -1,0 +1,49 @@
+{
+  "generatedAt": "2026-07-09T10:52:21.407Z",
+  "submitted": {
+    "pt-PT-06-widget-text-repair": {
+      "at": "2026-07-09T10:52:26.574Z",
+      "sourcePath": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/06-widgets-sync.png",
+      "sourcePaths": [
+        "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/06-widgets-sync.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/06-widgets-sync.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T10:53:16.410Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/fba9f264861c058e5668e2e478eba9d9242512ac78ae71685d0335e08f7fc4a1",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-pt-pt-widget-repair-chatgpt-candidates/pt-PT-06-widget-text-repair-rejected-853x1844.png",
+        "dimensions": {
+          "width": 853,
+          "height": 1844
+        },
+        "ignoredSourceDimensions": [],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 853x1844."
+      }
+    },
+    "pt-PT-07-widget-text-repair": {
+      "at": "2026-07-09T10:53:23.038Z",
+      "sourcePath": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/07-home-screen-widgets.png",
+      "sourcePaths": [
+        "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/07-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T10:54:21.951Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/c7aaded7864660d80e5c397121baa9baf00265d288091f097305c8df66db84d7",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-pt-pt-widget-repair-chatgpt-candidates/pt-PT-07-widget-text-repair-rejected-853x1844.png",
+        "dimensions": {
+          "width": 853,
+          "height": 1844
+        },
+        "ignoredSourceDimensions": [],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 853x1844."
+      }
+    }
+  },
+  "staged": {},
+  "failures": []
+}

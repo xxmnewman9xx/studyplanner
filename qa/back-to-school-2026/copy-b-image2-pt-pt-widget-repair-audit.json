@@ -1,0 +1,82 @@
+{
+  "generatedAt": "2026-07-09T11:04:42.553Z",
+  "status": "ready",
+  "repair": "pt-PT-widget-label-and-corner-cleanup",
+  "reason": "Final visual QA found Brazilian Portuguese widget label `Revisar hoje`; accepted final now uses European Portuguese `Rever hoje`.",
+  "requiredDimensions": {
+    "width": 1242,
+    "height": 2688
+  },
+  "accepted": 2,
+  "rejectedChatGptRepairCandidates": 2,
+  "chatGptRepairCandidates": [
+    {
+      "path": "qa/back-to-school-2026/copy-b-image2-pt-pt-widget-repair-chatgpt-candidates/pt-PT-06-widget-text-repair-rejected-853x1844.png",
+      "sha256": "9962edc315d7ac1cb837ae257bd754d60d3b7be1f8b82e87e266161b868ec4ed",
+      "dimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "bytes": 1132768,
+      "disposition": "rejected",
+      "reason": "GPT Image 2.0 returned 853x1844 and did not change visible `Revisar hoje` label."
+    },
+    {
+      "path": "qa/back-to-school-2026/copy-b-image2-pt-pt-widget-repair-chatgpt-candidates/pt-PT-07-widget-text-repair-rejected-853x1844.png",
+      "sha256": "4250b03703b01955746147a60e4cd0d8a27e0a508c89ba59b6ca88c4ff69c543",
+      "dimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "bytes": 1214484,
+      "disposition": "rejected",
+      "reason": "GPT Image 2.0 returned 853x1844 and garbled the target label."
+    }
+  ],
+  "supersededFinals": [
+    {
+      "path": "qa/back-to-school-2026/copy-b-image2-pt-pt-widget-repair-superseded/pt-PT-06-widgets-sync-before-fd60e47c93b3.png",
+      "sha256": "fd60e47c93b39555d218de67364a4001fc6db115b10d9350b42b56ba1ad20f4a",
+      "dimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "bytes": 2075944
+    },
+    {
+      "path": "qa/back-to-school-2026/copy-b-image2-pt-pt-widget-repair-superseded/pt-PT-07-home-screen-widgets-before-2b0adb40c12e.png",
+      "sha256": "2b0adb40c12ece904b0b09d1538864306efa0959ea7bb53d65e0e79ef793922f",
+      "dimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "bytes": 2225161
+    }
+  ],
+  "finals": [
+    {
+      "locale": "pt-PT",
+      "file": "06-widgets-sync.png",
+      "path": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/06-widgets-sync.png",
+      "sha256": "8377765cd9e6070edbef0c384374c408f236ba728ab6e81f736bd2260ded71db",
+      "dimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "bytes": 1767600,
+      "visualQa": "accepted: reads `Rever hoje`, external pt-PT copy remains intact, real Home Screen WidgetKit proof preserved, black top-corner slivers cleaned, no invented widgets."
+    },
+    {
+      "locale": "pt-PT",
+      "file": "07-home-screen-widgets.png",
+      "path": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/07-home-screen-widgets.png",
+      "sha256": "88fb519fa8506f03470eaedc5698526efb481de9155733e3ed016f9a94a24c8a",
+      "dimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "bytes": 1917408,
+      "visualQa": "accepted: reads `Rever hoje`, external pt-PT copy remains intact, real Home Screen WidgetKit proof preserved, no invented widgets."
+    }
+  ]
+}

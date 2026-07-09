@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-07-09T09:09:53.918Z",
-  "source": "Accepted Copy B set: GPT Image 2.0 slides 1-7, with slide 7 generated from real localized Home Screen WidgetKit UI references",
+  "generatedAt": "2026-07-09T11:04:42.553Z",
+  "source": "ChatGPT Mac app / GPT Image 2.0 raw candidates with user-approved dimension finalization; slide 06 repaired from real localized Home Screen WidgetKit proof",
   "entries": [
     {
       "locale": "en-US",
@@ -66,7 +66,16 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate en-US-06-rejected-853x1844.png."
+      "notes": "Visual QA accepted after targeted slide 06 Home Screen WidgetKit repair. Dimension-finalized from ChatGPT Mac app raw candidate en-US-06-rejected-852x1846.png using the user-approved dimension edit path; source proof was the real localized Home Screen widget screenshot.",
+      "sourcePath": "store/apple/screenshot-pop/en-US/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "67ffe6106cc8d6a62c4bf23085aebde4eb5c81760dc80934b7ae1905f5a6d338",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/en-US-06-rejected-852x1846.png",
+      "rawSha256": "4b78131ea49fa95b6478c8d890093171079dd5ad5399ecb6df72199df2cf3910",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "finalSha256": "5b28d631657e3e19709fd587b774e3b6f3cbcb684c88c10dbce02d768817cca8"
     },
     {
       "locale": "en-US",
@@ -166,7 +175,16 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate en-CA-06-rejected-852x1846.png."
+      "notes": "Visual QA accepted after targeted slide 06 Home Screen WidgetKit repair. Dimension-finalized from ChatGPT Mac app raw candidate en-CA-06-rejected-853x1844.png using the user-approved dimension edit path; source proof was the real localized Home Screen widget screenshot.",
+      "sourcePath": "store/apple/screenshot-pop/en-CA/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "67ffe6106cc8d6a62c4bf23085aebde4eb5c81760dc80934b7ae1905f5a6d338",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/en-CA-06-rejected-853x1844.png",
+      "rawSha256": "0374e44752143138e6cadc546d77bd17033032f05de2b627c26d08bb37805267",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "finalSha256": "4431f9cde735edd1584faf6531e255e08eff49b26b9cebc1358ffbddda77fefe"
     },
     {
       "locale": "en-CA",
@@ -266,7 +284,16 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate en-GB-06-rejected-853x1844.png."
+      "notes": "Visual QA accepted after targeted slide 06 Home Screen WidgetKit repair. Dimension-finalized from ChatGPT Mac app raw candidate en-GB-06-rejected-853x1844.png using the user-approved dimension edit path; source proof was the real localized Home Screen widget screenshot.",
+      "sourcePath": "store/apple/screenshot-pop/en-GB/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "67ffe6106cc8d6a62c4bf23085aebde4eb5c81760dc80934b7ae1905f5a6d338",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/en-GB-06-rejected-853x1844.png",
+      "rawSha256": "4715f8bab8453b675061954cc70a94b3356aab6de9e6d60e294bd6c94ae6cdf3",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "finalSha256": "a6ad0c8286d8ec658b4ff0a1d80b0d37a92caf867cd199dc0cd5a7dee02f6370"
     },
     {
       "locale": "en-GB",
@@ -366,7 +393,16 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate en-AU-06-rejected-852x1846.png."
+      "notes": "Visual QA accepted after targeted slide 06 Home Screen WidgetKit repair. Dimension-finalized from ChatGPT Mac app raw candidate en-AU-06-rejected-853x1844.png using the user-approved dimension edit path; source proof was the real localized Home Screen widget screenshot.",
+      "sourcePath": "store/apple/screenshot-pop/en-AU/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "67ffe6106cc8d6a62c4bf23085aebde4eb5c81760dc80934b7ae1905f5a6d338",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/en-AU-06-rejected-853x1844.png",
+      "rawSha256": "1e994d8f31ceb22727eece21c90056ef04e8b2f1ca35ce7b5e05b4d4dfbfd8cd",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "finalSha256": "f3057a21d225bc9f2f7ad76e90584806f710148b194ccfb321448af46f90e701"
     },
     {
       "locale": "en-AU",
@@ -466,7 +502,16 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate de-DE-06-rejected-853x1844.png."
+      "notes": "Visual QA accepted after targeted slide 06 Home Screen WidgetKit repair. Dimension-finalized from ChatGPT Mac app raw candidate de-DE-06-rejected-853x1844.png using the user-approved dimension edit path; source proof was the real localized Home Screen widget screenshot.",
+      "sourcePath": "store/apple/screenshot-pop/de-DE/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "9636daf312407a2d22b337327661b500722125da0a48c180f4e8df83288d6085",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/de-DE-06-rejected-853x1844.png",
+      "rawSha256": "aba54df14ff7dc5bec8deca037fc909b13ee2db683a75fd14485185e4cd0a7ad",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "finalSha256": "a5d95c6b96fc3310403fbe3477eb64305d2025f0f8716c2c4fbc14f085c6a068"
     },
     {
       "locale": "de-DE",
@@ -566,7 +611,16 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate es-ES-06-rejected-853x1844.png."
+      "notes": "Visual QA accepted after targeted slide 06 Home Screen WidgetKit repair. Dimension-finalized from ChatGPT Mac app raw candidate es-ES-06-rejected-852x1846.png using the user-approved dimension edit path; source proof was the real localized Home Screen widget screenshot.",
+      "sourcePath": "store/apple/screenshot-pop/es-ES/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "5c31ab81b0b13cee5340903024a517d4dcdfbe40f3203f8a21cf3f0c28b2e7a1",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/es-ES-06-rejected-852x1846.png",
+      "rawSha256": "99c0633cc97ab94c2e8de5973502d74f0b51a07bae9f9956d75c53ee3935f275",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "finalSha256": "ac45e384e166a8e18db181ca825979987406540c220e535cd358bda27395412b"
     },
     {
       "locale": "es-ES",
@@ -666,7 +720,16 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate es-MX-06-rejected-853x1844.png."
+      "notes": "Visual QA accepted after targeted slide 06 Home Screen WidgetKit repair. Dimension-finalized from ChatGPT Mac app raw candidate es-MX-06-rejected-853x1844.png using the user-approved dimension edit path; source proof was the real localized Home Screen widget screenshot.",
+      "sourcePath": "store/apple/screenshot-pop/es-MX/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "5c31ab81b0b13cee5340903024a517d4dcdfbe40f3203f8a21cf3f0c28b2e7a1",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/es-MX-06-rejected-853x1844.png",
+      "rawSha256": "62d34067066793af51365c77cf482f8b8717caa330fb429abd6e28bedeb306b4",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "finalSha256": "d287fdc52408d42beeb2f4b22edbaae95ab6a1344f8552e6485f133927101f3a"
     },
     {
       "locale": "es-MX",
@@ -766,7 +829,16 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate fr-FR-06-rejected-853x1844.png."
+      "notes": "Visual QA accepted after targeted slide 06 Home Screen WidgetKit repair. Dimension-finalized from ChatGPT Mac app raw candidate fr-FR-06-rejected-852x1846.png using the user-approved dimension edit path; source proof was the real localized Home Screen widget screenshot.",
+      "sourcePath": "store/apple/screenshot-pop/fr-FR/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "b1dbedc151ec8b11b16a11f979e3b1eda276f0674cb197e469091d5bcdeca613",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/fr-FR-06-rejected-852x1846.png",
+      "rawSha256": "357886ccfef1e1d76558a49926ad451e346845c4fb9d7595093b5411968fda0d",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "finalSha256": "6d5261a08f7b9cbf76e13f221a4bf2540fbdb0a52f460181bfec7d5717251d49"
     },
     {
       "locale": "fr-FR",
@@ -866,7 +938,16 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate fr-CA-06-rejected-853x1844.png."
+      "notes": "Visual QA accepted after targeted slide 06 Home Screen WidgetKit repair. Dimension-finalized from ChatGPT Mac app raw candidate fr-CA-06-rejected-852x1846.png using the user-approved dimension edit path; source proof was the real localized Home Screen widget screenshot.",
+      "sourcePath": "store/apple/screenshot-pop/fr-CA/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "b1dbedc151ec8b11b16a11f979e3b1eda276f0674cb197e469091d5bcdeca613",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/fr-CA-06-rejected-852x1846.png",
+      "rawSha256": "178172b2a14afac2620db736172678d6e2ba684d30adaef6142f2003db18c4bb",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "finalSha256": "524b192e1748a4f283e8dfe849a6848129e7e53b064c8f8988912536ad371342"
     },
     {
       "locale": "fr-CA",
@@ -966,7 +1047,16 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate pt-BR-06-rejected-853x1844.png."
+      "notes": "Visual QA accepted after targeted slide 06 Home Screen WidgetKit repair. Dimension-finalized from ChatGPT Mac app raw candidate pt-BR-06-rejected-853x1844.png using the user-approved dimension edit path; source proof was the real localized Home Screen widget screenshot.",
+      "sourcePath": "store/apple/screenshot-pop/pt-BR/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "8aa70476e0b78a6aead28029d199dff759fef8250fad4e85a6330c6c9106c48f",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/pt-BR-06-rejected-853x1844.png",
+      "rawSha256": "4ae02e26a47c4db70f1b500ea70d3beddc2000e73e8875e7ff535c8760296fca",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "finalSha256": "e48628338f925b030c400d6a2b402ccf45aa3286bf79933f56fbf59165cf65e7"
     },
     {
       "locale": "pt-BR",
@@ -1066,7 +1156,28 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate pt-PT-06-rejected-853x1844.png."
+      "notes": "Visual QA accepted after targeted pt-PT widget label repair. Base slide remains GPT Image 2.0 output; GPT Image 2.0 repair candidate was preserved as rejected evidence because it did not correct the label. Final was dimension-safe edited per user-approved finalization path.",
+      "sourcePath": "store/apple/screenshot-pop/pt-PT/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "8aa70476e0b78a6aead28029d199dff759fef8250fad4e85a6330c6c9106c48f",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/pt-PT-06-rejected-853x1844.png",
+      "rawSha256": "92cce4ae92f8e8c4d04317ad84299bd88125800146438103befd15f4a85cd9ee",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "finalSha256": "8377765cd9e6070edbef0c384374c408f236ba728ab6e81f736bd2260ded71db",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "ptPtRepairAuditPath": "qa/back-to-school-2026/copy-b-image2-pt-pt-widget-repair-audit.json",
+      "rejectedRepairCandidatePath": "qa/back-to-school-2026/copy-b-image2-pt-pt-widget-repair-chatgpt-candidates/pt-PT-06-widget-text-repair-rejected-853x1844.png",
+      "rejectedRepairCandidateSha256": "9962edc315d7ac1cb837ae257bd754d60d3b7be1f8b82e87e266161b868ec4ed",
+      "rejectedRepairCandidateDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "visualQa": "Accepted after pt-PT widget label repair: `Revisar hoje` corrected to `Rever hoje`; no in-app widget gallery, no fake widgets, no unsupported claims."
     },
     {
       "locale": "pt-PT",
@@ -1077,7 +1188,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/pt-PT-07-chatgpt-raw-853x1844.png (853x1844). Source UI reference was the real localized Home Screen WidgetKit slide.",
+      "notes": "Visual QA accepted after targeted pt-PT widget label repair. Base slide remains GPT Image 2.0 output; GPT Image 2.0 repair candidate was preserved as rejected evidence because it garbled the target label. Final was dimension-safe edited per user-approved finalization path.",
       "realHomeScreenWidgetReference": true,
       "realHomeScreenWidgetSource": false,
       "sourcePath": "store/apple/screenshot-pop/pt-PT/APP_IPHONE_65/07-real-home-screen-widgets.png",
@@ -1098,9 +1209,16 @@
         "width": 1242,
         "height": 2688
       },
-      "finalSha256": "2b0adb40c12ece904b0b09d1538864306efa0959ea7bb53d65e0e79ef793922f",
-      "visualQa": "Accepted: real Home Screen WidgetKit proof, localized headline/subhead readable, no in-app widget screen or invented app UI visible.",
-      "finalization": "GPT Image 2.0 widget candidate accepted by visual QA; final PNG keeps Copy B output path and is linked to exact real localized WidgetKit source proof by path and SHA-256."
+      "finalSha256": "88fb519fa8506f03470eaedc5698526efb481de9155733e3ed016f9a94a24c8a",
+      "visualQa": "Accepted after pt-PT widget label repair: `Revisar hoje` corrected to `Rever hoje`; real Home Screen WidgetKit proof preserved, no fake widgets.",
+      "finalization": "GPT Image 2.0 widget candidate accepted by visual QA; final PNG keeps Copy B output path and is linked to exact real localized WidgetKit source proof by path and SHA-256.",
+      "ptPtRepairAuditPath": "qa/back-to-school-2026/copy-b-image2-pt-pt-widget-repair-audit.json",
+      "rejectedRepairCandidatePath": "qa/back-to-school-2026/copy-b-image2-pt-pt-widget-repair-chatgpt-candidates/pt-PT-07-widget-text-repair-rejected-853x1844.png",
+      "rejectedRepairCandidateSha256": "4250b03703b01955746147a60e4cd0d8a27e0a508c89ba59b6ca88c4ff69c543",
+      "rejectedRepairCandidateDimensions": {
+        "width": 853,
+        "height": 1844
+      }
     },
     {
       "locale": "ar-SA",
@@ -1166,7 +1284,16 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate ar-SA-06-rejected-852x1846.png."
+      "notes": "Visual QA accepted after targeted slide 06 Home Screen WidgetKit repair. Dimension-finalized from ChatGPT Mac app raw candidate ar-SA-06-rejected-853x1844.png using the user-approved dimension edit path; source proof was the real localized Home Screen widget screenshot.",
+      "sourcePath": "store/apple/screenshot-pop/ar-SA/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "d78bb70f9ac6810fdf7126b76bb2f7ace1e50a8bc1d2b777f0ae112d429e1686",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/ar-SA-06-rejected-853x1844.png",
+      "rawSha256": "ca7e9595626b61c8d64bfa8f5f0db0eab0e2bee90112d2368daf1353dffea2cb",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "finalSha256": "52cf59c03bc79599228d8697ee0a2ee6b8b837f937576a8d22b9d85b15ddae9d"
     },
     {
       "locale": "ar-SA",
@@ -1266,7 +1393,16 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate hi-06-rejected-852x1846.png."
+      "notes": "Visual QA accepted after targeted slide 06 Home Screen WidgetKit repair. Dimension-finalized from ChatGPT Mac app raw candidate hi-06-rejected-853x1844.png using the user-approved dimension edit path; source proof was the real localized Home Screen widget screenshot.",
+      "sourcePath": "store/apple/screenshot-pop/hi/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "d5e59e11b1c82e37e6fd7215ebb637a8dbc1c46278bda165d7f314702d34c365",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/hi-06-rejected-853x1844.png",
+      "rawSha256": "deca11d91f24cf088577acfac7aa46c572412d2cf91919fa651d4b1c155015b0",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "finalSha256": "c9499a669433c2906910ce06023122072e1e1135e470c1dfa8a35024a4d6d5f0"
     },
     {
       "locale": "hi",
@@ -1366,7 +1502,16 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate ja-06-rejected-852x1846.png."
+      "notes": "Visual QA accepted after targeted slide 06 Home Screen WidgetKit repair. Dimension-finalized from ChatGPT Mac app raw candidate ja-06-rejected-710x1536.png using the user-approved dimension edit path; source proof was the real localized Home Screen widget screenshot.",
+      "sourcePath": "store/apple/screenshot-pop/ja/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "1f9328496e7347a0241a4a1c52fde6ef0de08ce6058f0dff2084a9ee59660ee9",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/ja-06-rejected-710x1536.png",
+      "rawSha256": "cce14765bdcbff88593a5d2e333fdc72044fd0740e852d52862e19f23a3a1f06",
+      "rawDimensions": {
+        "width": 710,
+        "height": 1536
+      },
+      "finalSha256": "5cfa64b12d06a1b21f1acb8a29ded07be46fa2bd1053637a9adc76b3550e2614"
     },
     {
       "locale": "ja",
@@ -1466,7 +1611,16 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate ko-06-rejected-852x1846.png."
+      "notes": "Visual QA accepted after targeted slide 06 Home Screen WidgetKit repair. Dimension-finalized from ChatGPT Mac app raw candidate ko-06-rejected-853x1844.png using the user-approved dimension edit path; source proof was the real localized Home Screen widget screenshot.",
+      "sourcePath": "store/apple/screenshot-pop/ko/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "42b6d65c640c5bef393d7881c2cc8083a0b2fd9d67ed3c5425a66d59be8cb89d",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/ko-06-rejected-853x1844.png",
+      "rawSha256": "6d5af5135a611ed86d9cc64e97d4f2464823710130d25ff58491c0ba35d8a1de",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "finalSha256": "40052c47e36da918ceabdf404c669cb77eceffb001cafd99f1c3703e623adca8"
     },
     {
       "locale": "ko",
@@ -1566,7 +1720,16 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate zh-Hans-06-rejected-852x1846.png."
+      "notes": "Visual QA accepted after targeted slide 06 Home Screen WidgetKit repair. Dimension-finalized from ChatGPT Mac app raw candidate zh-Hans-06-rejected-853x1844.png using the user-approved dimension edit path; source proof was the real localized Home Screen widget screenshot.",
+      "sourcePath": "store/apple/screenshot-pop/zh-Hans/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "22f1da911484af4152af014c756542eca70439e29173809655330d55e4dac129",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/zh-Hans-06-rejected-853x1844.png",
+      "rawSha256": "1f87ef95ed05494ed1732d7547f536c3cb0bb13015bd346787dc7c4a5be63585",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "finalSha256": "7b041ba415e05a2cfe326474bc8bc5c404b8495ea53af7b7521e599cc3286f12"
     },
     {
       "locale": "zh-Hans",
@@ -1666,7 +1829,16 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate zh-Hant-06-rejected-853x1844.png."
+      "notes": "Visual QA accepted after targeted slide 06 Home Screen WidgetKit repair. Dimension-finalized from ChatGPT Mac app raw candidate zh-Hant-06-rejected-853x1844.png using the user-approved dimension edit path; source proof was the real localized Home Screen widget screenshot.",
+      "sourcePath": "store/apple/screenshot-pop/zh-Hant/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "4809eefa7c2a9a89eb775b3becc82cb191fc09603f238147df4d6b94b6c6de18",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/zh-Hant-06-rejected-853x1844.png",
+      "rawSha256": "e4274c896096881b53709b7dafb74c06afeab9946571d884b996685418bf38a9",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "finalSha256": "4a21149cee8515b059781b23c13ca746060302106855d0438ac2b5d3a7cfa918"
     },
     {
       "locale": "zh-Hant",

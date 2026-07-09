@@ -284,7 +284,7 @@ async function verifyUrl(slot: { id?: string; url?: string }) {
     bytes,
     checks: {
       screenshotsFulfilled: body.includes("Screenshots fulfilled: 9/9"),
-      widgetStatesCaptured: body.includes("Widget states captured: 5/8"),
+      widgetProofCaptured: body.includes("Widget proof captured: 5 real WidgetKit states"),
       buildVisible: body.includes("2.0.8") && body.includes("79"),
       claimBoundariesVisible: body.includes("claim boundaries") || body.includes("Claim Boundaries") || body.includes("Canvas"),
     },
@@ -332,7 +332,7 @@ async function main() {
 
   expect(readme.includes("Use this folder for the manual App Store Connect session."), "final upload README must identify this folder as the manual ASC bundle");
   expect(decisionMemo.includes("Submit the In-App Event and featuring nomination now"), "decision memo must explicitly recommend submit-now workflow");
-  expect(decisionMemo.includes("Do not wait for the three remaining extended WidgetKit proof states"), "decision memo must distinguish optional extended WidgetKit proof states");
+  expect(decisionMemo.includes("Do not wait for extended WidgetKit variant follow-up"), "decision memo must distinguish optional extended WidgetKit proof states");
   expect(readme.includes("Do not block the In-App Event or featuring nomination on new previews"), "README must keep Copy B out of the nomination critical path");
   expect(copyBPrompt.includes("ChatGPT Mac app") && copyBPrompt.includes("GPT Image 2.0"), "Copy B prompt pack must preserve Mac app GPT Image 2.0 rule");
   expect(existsSync(BUNDLE_ZIP_PATH), `final upload zip must exist: ${BUNDLE_ZIP_PATH}`);
@@ -432,7 +432,7 @@ async function main() {
   for (const result of networkResults) {
     expect(result.ok === true, `${result.id} public URL returned non-OK status: ${result.status}`);
     if (result.id === "screenshot-contact-sheet") expect(result.checks?.screenshotsFulfilled === true, "screenshot contact sheet must say Screenshots fulfilled: 9/9");
-    if (result.id === "native-widget-sheet") expect(result.checks?.widgetStatesCaptured === true, "native widget sheet must say Widget states captured: 5/8");
+    if (result.id === "native-widget-sheet") expect(result.checks?.widgetProofCaptured === true, "native widget sheet must say Widget proof captured: 5 real WidgetKit states");
     if (result.id === "accessibility-localization-summary") expect(result.checks?.buildVisible === true, "accessibility/localization summary must show build 2.0.8 / 79");
     if (result.id === "app-review-proof") {
       expect(result.checks?.buildVisible === true, "app review proof must show build 2.0.8 / 79");

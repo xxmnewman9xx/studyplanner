@@ -117,9 +117,9 @@ const expectedSlides: ExpectedSlide[] = [
   {
     index: 6,
     file: "06-widgets-sync.png",
-    uiReference: "qa-screenshots/back-to-school-2026-native-localized-current/en-US/app-10-widgets.png",
+    uiReference: "store/apple/screenshot-pop/en-US/APP_IPHONE_65/07-real-home-screen-widgets.png",
     localeUiReferencePattern:
-      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-10-widgets.png",
+      "store/apple/screenshot-pop/{locale}/APP_IPHONE_65/07-real-home-screen-widgets.png",
   },
   {
     index: 7,

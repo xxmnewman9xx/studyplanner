@@ -91,7 +91,7 @@ After the In-App Event and featuring nomination are submitted, immediately creat
 
 ## Current Decision
 
-Submit the nomination once App Store Connect shows iOS `2.0.8` build `79` visible/selectable, the In-App Event draft has the two approved event-media files uploaded and cropped acceptably, the event deep link is exactly `studyplanner://import`, and the five supplemental URLs are accepted in the nomination form. Do not block the nomination on the missing three extended widget proof states. The package already has public 9/9 screenshot proof and 5/8 WidgetKit proof, and editorial timing is more important for the August 24 window.
+Submit the nomination once App Store Connect shows iOS `2.0.8` build `79` visible/selectable, the In-App Event draft has the two approved event-media files uploaded and cropped acceptably, the event deep link is exactly `studyplanner://import`, and the five supplemental URLs are accepted in the nomination form. Do not block the nomination on extended widget variant follow-up. The package already has public 9/9 screenshot proof and five real WidgetKit proof states, and editorial timing is more important for the August 24 window.
 
 Do not use the rejected `2.0.7` train for new App Store Connect uploads. Apple returned ITMS-90186/ITMS-90062 for `2.0.7 (78)`, so the current required binary train is iOS `2.0.8` build `79`; see `testflight-build-status.md`.
 

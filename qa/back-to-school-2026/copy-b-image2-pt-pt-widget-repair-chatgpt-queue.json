@@ -1,0 +1,52 @@
+{
+  "generatedAt": "2026-07-09T00:00:00.000Z",
+  "purpose": "Targeted pt-PT widget slide repair after final visual QA found Brazilian Portuguese widget label.",
+  "items": [
+    {
+      "id": "pt-PT-06-widget-text-repair",
+      "locale": "pt-PT",
+      "slideIndex": 6,
+      "slideFile": "06-widgets-sync.png",
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached current pt-PT StudyPlanner Copy B widget preview as the locked source image. This is a precise repair pass, not a redesign. Preserve the existing premium white App Store canvas, the StudyPlanner AI brand mark, the headline, the subhead, phone framing, Home Screen, widgets, wallpaper, app icons, status bar, shadows, and composition. Do not invent or redraw widgets. Do not merge screens. Do not add fake UI.\n\nMake only these visible repairs:\n1. In the small top-left widget inside the phone, replace the orange widget text `Revisar hoje` with correct European Portuguese: `Rever hoje`.\n2. Clean the tiny black corner slivers at the extreme top corners by keeping the rounded App Store canvas white/premium. Do not crop, scale, or change the phone/product proof.\n\nExternal marketing text must remain exactly as it already appears for pt-PT:\nHeadline: O plano continua comigo.\nSubhead: Prioridades ficam visíveis.\n\nKeep all other visible product text unchanged unless required by the single pt-PT repair above. No English fallback, no Brazilian-only wording, no fake school logos, no ratings, no prices, no awards, no App Store chrome.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.",
+      "sourcePath": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/06-widgets-sync.png",
+      "sourcePaths": [
+        "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/06-widgets-sync.png"
+      ],
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/06-widgets-sync.png",
+      "modelTarget": "GPT Image 2.0",
+      "generatedIndividuallyRequired": true,
+      "localizedMarketingText": {
+        "headline": "O plano continua comigo.",
+        "subhead": "Prioridades ficam visíveis."
+      },
+      "textDirection": "ltr"
+    },
+    {
+      "id": "pt-PT-07-widget-text-repair",
+      "locale": "pt-PT",
+      "slideIndex": 7,
+      "slideFile": "07-home-screen-widgets.png",
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached current pt-PT StudyPlanner Copy B Home Screen widget preview as the locked source image. This is a precise repair pass, not a redesign. Preserve the existing premium white App Store canvas, the StudyPlanner AI brand mark, the headline, the subhead, phone framing, Home Screen, widgets, wallpaper, app icons, status bar, shadows, and composition. Do not invent or redraw widgets. Do not merge screens. Do not add fake UI.\n\nMake only these visible repairs:\n1. In the small top-left widget inside the phone, replace the orange widget text `Revisar hoje` with correct European Portuguese: `Rever hoje`.\n2. Keep the canvas corners clean and premium white. Do not crop, scale, or change the phone/product proof.\n\nExternal marketing text must remain exactly as it already appears for pt-PT:\nHeadline: A semana num relance.\nSubhead: Hoje no Ecrã principal.\n\nKeep all other visible product text unchanged unless required by the single pt-PT repair above. No English fallback, no Brazilian-only wording, no fake school logos, no ratings, no prices, no awards, no App Store chrome.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.",
+      "sourcePath": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/07-home-screen-widgets.png",
+      "sourcePaths": [
+        "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/07-home-screen-widgets.png"
+      ],
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/07-home-screen-widgets.png",
+      "modelTarget": "GPT Image 2.0",
+      "generatedIndividuallyRequired": true,
+      "localizedMarketingText": {
+        "headline": "A semana num relance.",
+        "subhead": "Hoje no Ecrã principal."
+      },
+      "textDirection": "ltr"
+    }
+  ]
+}

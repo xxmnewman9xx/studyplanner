@@ -1,0 +1,441 @@
+{
+  "generatedAt": "2026-07-09T10:34:32.131Z",
+  "status": "ready",
+  "repair": "slide-06-home-screen-widget-proof",
+  "candidateRoot": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates",
+  "finalRoot": "store/apple/screenshot-copy-b-image-2",
+  "supersededRoot": "qa/back-to-school-2026/copy-b-image2-slide06-widget-gallery-superseded",
+  "requiredDimensions": {
+    "width": 1242,
+    "height": 2688
+  },
+  "accepted": 17,
+  "rejected": 0,
+  "items": [
+    {
+      "locale": "en-US",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/en-US-06-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "4b78131ea49fa95b6478c8d890093171079dd5ad5399ecb6df72199df2cf3910",
+      "previousFinalPath": "qa/back-to-school-2026/copy-b-image2-slide06-widget-gallery-superseded/en-US-06-widgets-sync-previous-1242x2688-ad0da7fbb213.png",
+      "previousFinalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "previousFinalSha256": "ad0da7fbb213fa569d1265253453103f9d38d26f206a91e8bf44de8febc9c0eb",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "5b28d631657e3e19709fd587b774e3b6f3cbcb684c88c10dbce02d768817cca8",
+      "sourcePath": "store/apple/screenshot-pop/en-US/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "67ffe6106cc8d6a62c4bf23085aebde4eb5c81760dc80934b7ae1905f5a6d338",
+      "visualQa": "accepted: real localized Home Screen WidgetKit proof, no in-app widget gallery, no systemSmall/systemMedium labels, no unsupported claims"
+    },
+    {
+      "locale": "en-CA",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/en-CA-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "0374e44752143138e6cadc546d77bd17033032f05de2b627c26d08bb37805267",
+      "previousFinalPath": "qa/back-to-school-2026/copy-b-image2-slide06-widget-gallery-superseded/en-CA-06-widgets-sync-previous-1242x2688-4f38450f17fc.png",
+      "previousFinalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "previousFinalSha256": "4f38450f17fcab13ed434ec6b6a4358843b2ee23f8c37059121dc8fd0a061a4d",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-CA/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "4431f9cde735edd1584faf6531e255e08eff49b26b9cebc1358ffbddda77fefe",
+      "sourcePath": "store/apple/screenshot-pop/en-CA/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "67ffe6106cc8d6a62c4bf23085aebde4eb5c81760dc80934b7ae1905f5a6d338",
+      "visualQa": "accepted: real localized Home Screen WidgetKit proof, no in-app widget gallery, no systemSmall/systemMedium labels, no unsupported claims"
+    },
+    {
+      "locale": "en-GB",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/en-GB-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "4715f8bab8453b675061954cc70a94b3356aab6de9e6d60e294bd6c94ae6cdf3",
+      "previousFinalPath": "qa/back-to-school-2026/copy-b-image2-slide06-widget-gallery-superseded/en-GB-06-widgets-sync-previous-1242x2688-b440c1fba035.png",
+      "previousFinalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "previousFinalSha256": "b440c1fba03547bde623565e5f4ca322e0c95e6aee45b1d9e7857e073084785b",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-GB/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "a6ad0c8286d8ec658b4ff0a1d80b0d37a92caf867cd199dc0cd5a7dee02f6370",
+      "sourcePath": "store/apple/screenshot-pop/en-GB/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "67ffe6106cc8d6a62c4bf23085aebde4eb5c81760dc80934b7ae1905f5a6d338",
+      "visualQa": "accepted: real localized Home Screen WidgetKit proof, no in-app widget gallery, no systemSmall/systemMedium labels, no unsupported claims"
+    },
+    {
+      "locale": "en-AU",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/en-AU-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "1e994d8f31ceb22727eece21c90056ef04e8b2f1ca35ce7b5e05b4d4dfbfd8cd",
+      "previousFinalPath": "qa/back-to-school-2026/copy-b-image2-slide06-widget-gallery-superseded/en-AU-06-widgets-sync-previous-1242x2688-cc08d721ea35.png",
+      "previousFinalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "previousFinalSha256": "cc08d721ea35d7f692532bb13fa3a124632d555be2a6950bd9c0fa0998d8e81e",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-AU/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "f3057a21d225bc9f2f7ad76e90584806f710148b194ccfb321448af46f90e701",
+      "sourcePath": "store/apple/screenshot-pop/en-AU/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "67ffe6106cc8d6a62c4bf23085aebde4eb5c81760dc80934b7ae1905f5a6d338",
+      "visualQa": "accepted: real localized Home Screen WidgetKit proof, no in-app widget gallery, no systemSmall/systemMedium labels, no unsupported claims"
+    },
+    {
+      "locale": "de-DE",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/de-DE-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "aba54df14ff7dc5bec8deca037fc909b13ee2db683a75fd14485185e4cd0a7ad",
+      "previousFinalPath": "qa/back-to-school-2026/copy-b-image2-slide06-widget-gallery-superseded/de-DE-06-widgets-sync-previous-1242x2688-6fbacdc7e86f.png",
+      "previousFinalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "previousFinalSha256": "6fbacdc7e86f07b7e19676a05eeeefe25f63b83675ec32a4d434d09ce76bcc7b",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/de-DE/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "a5d95c6b96fc3310403fbe3477eb64305d2025f0f8716c2c4fbc14f085c6a068",
+      "sourcePath": "store/apple/screenshot-pop/de-DE/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "9636daf312407a2d22b337327661b500722125da0a48c180f4e8df83288d6085",
+      "visualQa": "accepted: real localized Home Screen WidgetKit proof, no in-app widget gallery, no systemSmall/systemMedium labels, no unsupported claims"
+    },
+    {
+      "locale": "es-ES",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/es-ES-06-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "99c0633cc97ab94c2e8de5973502d74f0b51a07bae9f9956d75c53ee3935f275",
+      "previousFinalPath": "qa/back-to-school-2026/copy-b-image2-slide06-widget-gallery-superseded/es-ES-06-widgets-sync-previous-1242x2688-b268232c2c0c.png",
+      "previousFinalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "previousFinalSha256": "b268232c2c0ca6fa0790e8366141e50d2bab087c86ae58f42103110c02b06eff",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/es-ES/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "ac45e384e166a8e18db181ca825979987406540c220e535cd358bda27395412b",
+      "sourcePath": "store/apple/screenshot-pop/es-ES/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "5c31ab81b0b13cee5340903024a517d4dcdfbe40f3203f8a21cf3f0c28b2e7a1",
+      "visualQa": "accepted: real localized Home Screen WidgetKit proof, no in-app widget gallery, no systemSmall/systemMedium labels, no unsupported claims"
+    },
+    {
+      "locale": "es-MX",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/es-MX-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "62d34067066793af51365c77cf482f8b8717caa330fb429abd6e28bedeb306b4",
+      "previousFinalPath": "qa/back-to-school-2026/copy-b-image2-slide06-widget-gallery-superseded/es-MX-06-widgets-sync-previous-1242x2688-33dd0251a7a8.png",
+      "previousFinalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "previousFinalSha256": "33dd0251a7a8d6b9cbb3e28ee8cd1b735fb408da1b603ca3fc7671ccf54bc42c",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/es-MX/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "d287fdc52408d42beeb2f4b22edbaae95ab6a1344f8552e6485f133927101f3a",
+      "sourcePath": "store/apple/screenshot-pop/es-MX/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "5c31ab81b0b13cee5340903024a517d4dcdfbe40f3203f8a21cf3f0c28b2e7a1",
+      "visualQa": "accepted: real localized Home Screen WidgetKit proof, no in-app widget gallery, no systemSmall/systemMedium labels, no unsupported claims"
+    },
+    {
+      "locale": "fr-FR",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/fr-FR-06-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "357886ccfef1e1d76558a49926ad451e346845c4fb9d7595093b5411968fda0d",
+      "previousFinalPath": "qa/back-to-school-2026/copy-b-image2-slide06-widget-gallery-superseded/fr-FR-06-widgets-sync-previous-1242x2688-e12508271479.png",
+      "previousFinalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "previousFinalSha256": "e125082714793014c594988065424b3705fe4e11b6eee4bf9c3d488686cde0c8",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/fr-FR/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "6d5261a08f7b9cbf76e13f221a4bf2540fbdb0a52f460181bfec7d5717251d49",
+      "sourcePath": "store/apple/screenshot-pop/fr-FR/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "b1dbedc151ec8b11b16a11f979e3b1eda276f0674cb197e469091d5bcdeca613",
+      "visualQa": "accepted: real localized Home Screen WidgetKit proof, no in-app widget gallery, no systemSmall/systemMedium labels, no unsupported claims"
+    },
+    {
+      "locale": "fr-CA",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/fr-CA-06-rejected-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "178172b2a14afac2620db736172678d6e2ba684d30adaef6142f2003db18c4bb",
+      "previousFinalPath": "qa/back-to-school-2026/copy-b-image2-slide06-widget-gallery-superseded/fr-CA-06-widgets-sync-previous-1242x2688-c79c50006e08.png",
+      "previousFinalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "previousFinalSha256": "c79c50006e08b41d2d85180f876cc26015a9efc8d9c38c1024e8e7ad683d7a66",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/fr-CA/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "524b192e1748a4f283e8dfe849a6848129e7e53b064c8f8988912536ad371342",
+      "sourcePath": "store/apple/screenshot-pop/fr-CA/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "b1dbedc151ec8b11b16a11f979e3b1eda276f0674cb197e469091d5bcdeca613",
+      "visualQa": "accepted: real localized Home Screen WidgetKit proof, no in-app widget gallery, no systemSmall/systemMedium labels, no unsupported claims"
+    },
+    {
+      "locale": "pt-BR",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/pt-BR-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "4ae02e26a47c4db70f1b500ea70d3beddc2000e73e8875e7ff535c8760296fca",
+      "previousFinalPath": "qa/back-to-school-2026/copy-b-image2-slide06-widget-gallery-superseded/pt-BR-06-widgets-sync-previous-1242x2688-df1e503ab97d.png",
+      "previousFinalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "previousFinalSha256": "df1e503ab97d90a8ea14000e2394f5c802ef3d494af0e37adf7a0ad8ea697d57",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/pt-BR/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "e48628338f925b030c400d6a2b402ccf45aa3286bf79933f56fbf59165cf65e7",
+      "sourcePath": "store/apple/screenshot-pop/pt-BR/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "8aa70476e0b78a6aead28029d199dff759fef8250fad4e85a6330c6c9106c48f",
+      "visualQa": "accepted: real localized Home Screen WidgetKit proof, no in-app widget gallery, no systemSmall/systemMedium labels, no unsupported claims"
+    },
+    {
+      "locale": "pt-PT",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/pt-PT-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "92cce4ae92f8e8c4d04317ad84299bd88125800146438103befd15f4a85cd9ee",
+      "previousFinalPath": "qa/back-to-school-2026/copy-b-image2-slide06-widget-gallery-superseded/pt-PT-06-widgets-sync-previous-1242x2688-dae636ececfb.png",
+      "previousFinalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "previousFinalSha256": "dae636ececfbcae3a9ffe1c17a6be159f5681871191789b2bdb5b5771001ff90",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "fd60e47c93b39555d218de67364a4001fc6db115b10d9350b42b56ba1ad20f4a",
+      "sourcePath": "store/apple/screenshot-pop/pt-PT/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "8aa70476e0b78a6aead28029d199dff759fef8250fad4e85a6330c6c9106c48f",
+      "visualQa": "accepted: real localized Home Screen WidgetKit proof, no in-app widget gallery, no systemSmall/systemMedium labels, no unsupported claims"
+    },
+    {
+      "locale": "ar-SA",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/ar-SA-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "ca7e9595626b61c8d64bfa8f5f0db0eab0e2bee90112d2368daf1353dffea2cb",
+      "previousFinalPath": "qa/back-to-school-2026/copy-b-image2-slide06-widget-gallery-superseded/ar-SA-06-widgets-sync-previous-1242x2688-b9484b2d893d.png",
+      "previousFinalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "previousFinalSha256": "b9484b2d893daa0f1e8407ec86965bc4ef041cf9e455f59cc0c3fc088a1faed2",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ar-SA/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "52cf59c03bc79599228d8697ee0a2ee6b8b837f937576a8d22b9d85b15ddae9d",
+      "sourcePath": "store/apple/screenshot-pop/ar-SA/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "d78bb70f9ac6810fdf7126b76bb2f7ace1e50a8bc1d2b777f0ae112d429e1686",
+      "visualQa": "accepted: real localized Home Screen WidgetKit proof, no in-app widget gallery, no systemSmall/systemMedium labels, no unsupported claims"
+    },
+    {
+      "locale": "hi",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/hi-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "deca11d91f24cf088577acfac7aa46c572412d2cf91919fa651d4b1c155015b0",
+      "previousFinalPath": "qa/back-to-school-2026/copy-b-image2-slide06-widget-gallery-superseded/hi-06-widgets-sync-previous-1242x2688-6b8af3dfc798.png",
+      "previousFinalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "previousFinalSha256": "6b8af3dfc798ea8f135ff8ae3943bda7b295b6f820352e14dcb13dbb0537e305",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/hi/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "c9499a669433c2906910ce06023122072e1e1135e470c1dfa8a35024a4d6d5f0",
+      "sourcePath": "store/apple/screenshot-pop/hi/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "d5e59e11b1c82e37e6fd7215ebb637a8dbc1c46278bda165d7f314702d34c365",
+      "visualQa": "accepted: real localized Home Screen WidgetKit proof, no in-app widget gallery, no systemSmall/systemMedium labels, no unsupported claims"
+    },
+    {
+      "locale": "ja",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/ja-06-rejected-710x1536.png",
+      "rawDimensions": {
+        "width": 710,
+        "height": 1536
+      },
+      "rawSha256": "cce14765bdcbff88593a5d2e333fdc72044fd0740e852d52862e19f23a3a1f06",
+      "previousFinalPath": "qa/back-to-school-2026/copy-b-image2-slide06-widget-gallery-superseded/ja-06-widgets-sync-previous-1242x2688-45b03e4ce7b1.png",
+      "previousFinalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "previousFinalSha256": "45b03e4ce7b161dc007a1bc838b06ef53b8131f1330b4a398622471f2574410f",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ja/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "5cfa64b12d06a1b21f1acb8a29ded07be46fa2bd1053637a9adc76b3550e2614",
+      "sourcePath": "store/apple/screenshot-pop/ja/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "1f9328496e7347a0241a4a1c52fde6ef0de08ce6058f0dff2084a9ee59660ee9",
+      "visualQa": "accepted: real localized Home Screen WidgetKit proof, no in-app widget gallery, no systemSmall/systemMedium labels, no unsupported claims"
+    },
+    {
+      "locale": "ko",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/ko-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "6d5af5135a611ed86d9cc64e97d4f2464823710130d25ff58491c0ba35d8a1de",
+      "previousFinalPath": "qa/back-to-school-2026/copy-b-image2-slide06-widget-gallery-superseded/ko-06-widgets-sync-previous-1242x2688-192330cce014.png",
+      "previousFinalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "previousFinalSha256": "192330cce014f6f3317b21b2b89d2ff93b188cdc7af4bc1873bce2b90c6a04ec",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "40052c47e36da918ceabdf404c669cb77eceffb001cafd99f1c3703e623adca8",
+      "sourcePath": "store/apple/screenshot-pop/ko/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "42b6d65c640c5bef393d7881c2cc8083a0b2fd9d67ed3c5425a66d59be8cb89d",
+      "visualQa": "accepted: real localized Home Screen WidgetKit proof, no in-app widget gallery, no systemSmall/systemMedium labels, no unsupported claims"
+    },
+    {
+      "locale": "zh-Hans",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/zh-Hans-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "1f87ef95ed05494ed1732d7547f536c3cb0bb13015bd346787dc7c4a5be63585",
+      "previousFinalPath": "qa/back-to-school-2026/copy-b-image2-slide06-widget-gallery-superseded/zh-Hans-06-widgets-sync-previous-1242x2688-0ec849914fa6.png",
+      "previousFinalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "previousFinalSha256": "0ec849914fa683cd089691a1eca7d9b66400f534bb214ba8e6cbef145b770a64",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/zh-Hans/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "7b041ba415e05a2cfe326474bc8bc5c404b8495ea53af7b7521e599cc3286f12",
+      "sourcePath": "store/apple/screenshot-pop/zh-Hans/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "22f1da911484af4152af014c756542eca70439e29173809655330d55e4dac129",
+      "visualQa": "accepted: real localized Home Screen WidgetKit proof, no in-app widget gallery, no systemSmall/systemMedium labels, no unsupported claims"
+    },
+    {
+      "locale": "zh-Hant",
+      "file": "06-widgets-sync.png",
+      "rawPath": "qa/back-to-school-2026/copy-b-image2-slide06-home-widget-chatgpt-candidates/zh-Hant-06-rejected-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "e4274c896096881b53709b7dafb74c06afeab9946571d884b996685418bf38a9",
+      "previousFinalPath": "qa/back-to-school-2026/copy-b-image2-slide06-widget-gallery-superseded/zh-Hant-06-widgets-sync-previous-1242x2688-945c88f6c173.png",
+      "previousFinalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "previousFinalSha256": "945c88f6c1736e88a5bdc6b957851e6a347d782a2b930a05683a79166e05f9d6",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/zh-Hant/APP_IPHONE_65/06-widgets-sync.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "4a21149cee8515b059781b23c13ca746060302106855d0438ac2b5d3a7cfa918",
+      "sourcePath": "store/apple/screenshot-pop/zh-Hant/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourceSha256": "4809eefa7c2a9a89eb775b3becc82cb191fc09603f238147df4d6b94b6c6de18",
+      "visualQa": "accepted: real localized Home Screen WidgetKit proof, no in-app widget gallery, no systemSmall/systemMedium labels, no unsupported claims"
+    }
+  ]
+}

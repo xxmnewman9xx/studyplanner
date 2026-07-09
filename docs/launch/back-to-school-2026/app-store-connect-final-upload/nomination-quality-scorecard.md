@@ -14,7 +14,7 @@ Submit now. The remaining gap is not nomination quality; it is only the external
 | Area | Score | Evidence | Risk |
 | --- | ---: | --- | --- |
 | Student outcome | 10/10 | Copy leads with syllabus chaos becoming a calm reviewed semester plan. | None. |
-| Apple-native workflow | 9/10 | Real WidgetKit proof, iPhone/iPad platforms, deep link, accessibility/localization proof. | Extended widget proof is 5/8, but enough for nomination. |
+| Apple-native workflow | 9/10 | Real WidgetKit proof, iPhone/iPad platforms, deep link, accessibility/localization proof. | Extended tinted and Lock Screen variants can continue after nomination. |
 | No generic AI pitch | 10/10 | Nomination name is `Back-to-School Semester Kickoff`; copy says not generic AI and focuses on student outcome. | None. |
 | Real UI / no fake UI | 10/10 | Event media is device-free; supplemental proof states no fake screens/widgets. | None. |
 | Public proof | 9/10 | Five URLs return HTTP 200; stale blocker language removed from public proof. | Product video is supplemental, not App Preview-ready. |
@@ -25,7 +25,7 @@ Submit now. The remaining gap is not nomination quality; it is only the external
 
 ## Final Recommendation
 
-Use the final upload bundle to submit the In-App Event first, then the individual App Enhancements nomination. Do not wait for the three remaining extended WidgetKit proof states unless App Store Connect rejects the event, the iOS build is rejected, or a public supplemental URL fails.
+Use the final upload bundle to submit the In-App Event first, then the individual App Enhancements nomination. Do not wait for extended WidgetKit variant follow-up unless App Store Connect rejects the event, the iOS build is rejected, or a public supplemental URL fails.
 
 ## Best App Store Connect Field Choices
 

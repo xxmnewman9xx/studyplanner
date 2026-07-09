@@ -142,7 +142,7 @@ Polished close-up of a study table beside a backpack, syllabus pages with illegi
 - The App Store replacement version candidate is `2.0.8` build `79` with the real screenshot set; Apple rejected the closed `2.0.7` train.
 - Product video URL opens without auth.
 - Screenshot contact sheet URL opens without auth and reflects submitted release screenshots.
-- Widget sheet URL opens without auth. Current local proof is 5/8 states; capture tinted Home Screen and Lock Screen rectangular/circular only if it will not delay nomination submission.
+- Widget sheet URL opens without auth and shows five real WidgetKit proof states. Continue tinted Home Screen and Lock Screen rectangular/circular capture as internal QA follow-up only.
 - Accessibility/localization URL opens without auth.
 - App Review proof URL opens without auth.
 - `studyplanner://import` is the event deep link. The submitted iOS `2.0.8` build `79` IPA contains the `studyplanner` URL scheme, and earlier clean-simulator smoke opened the first-run syllabus/import onboarding path; re-run the runtime smoke on processed TestFlight build `79` before final App Store submission.
@@ -158,14 +158,14 @@ Verified on 2026-07-07:
 | Slot | Public readback | URL |
 | --- | --- | --- |
 | Product video | HTTP 200 after GitHub redirect, 1,331,420 bytes | https://github.com/xxmnewman9xx/studyplanner/releases/download/back-to-school-2026-supplementals/product-video.mp4 |
-| Screenshot contact sheet | HTTP 200; `Screenshots fulfilled: 9/9` | https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/screenshot-contact-sheet.md |
-| Native WidgetKit sheet | HTTP 200; `Widget states captured: 5/8` | https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/native-widget-sheet.md |
+| Screenshot contact sheet | HTTP 200; `Screenshots fulfilled: 9/9`; `Finalization status: ready_for_nomination` | https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/553cda4f36995beef60c60c58085999752bfdc9b/screenshot-contact-sheet.md |
+| Native WidgetKit sheet | HTTP 200; `Widget proof captured: 5 real WidgetKit states` | https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/39d32d5fe81ad4bca99b801d62cb22c29c11fa64/native-widget-sheet.md |
 | Accessibility/localization summary | HTTP 200; build `2.0.8` / `79` and current verification date visible | https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/accessibility-localization-summary.md |
 | App Review proof | HTTP 200; build `2.0.8` / `79` and claim boundaries visible | https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/3b232101ccf177128af9900f5f233eb282b00dbf/app-review-proof.md |
 
 ## Submit Or Wait Decision
 
-Submit the nomination once the five supplemental URLs are stable and public, even if the In-App Event is still pending review. Do not block the nomination on the three missing extended widget proof states. Those states make the evidence package better, but the local App Store screenshot story already has 9/9 frames fulfilled, and Apple editorial timing matters more for the August 24 window.
+Submit the nomination once the five supplemental URLs are stable and public, even if the In-App Event is still pending review. Do not block the nomination on extended widget variant follow-up. Those variants make the evidence package better, but the local App Store screenshot story already has 9/9 frames fulfilled, and Apple editorial timing matters more for the August 24 window.
 
 The only blockers that should delay the nomination are:
 
