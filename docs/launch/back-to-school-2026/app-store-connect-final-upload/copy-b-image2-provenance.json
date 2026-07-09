@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-07-09T11:04:42.553Z",
-  "source": "ChatGPT Mac app / GPT Image 2.0 raw candidates with user-approved dimension finalization; slide 06 repaired from real localized Home Screen WidgetKit proof",
+  "generatedAt": "2026-07-09T12:49:12.129Z",
+  "source": "ChatGPT Mac app / GPT Image 2.0 raw candidates with user-approved dimension finalization; slide 06 and en-GB slide 07 repaired from real localized Home Screen WidgetKit proof",
   "entries": [
     {
       "locale": "en-US",
@@ -304,7 +304,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/en-GB-07-chatgpt-raw-853x1844.png (853x1844). Source UI reference was the real localized Home Screen WidgetKit slide.",
+      "notes": "Visual QA accepted after targeted en-GB slide 07 Home Screen WidgetKit copy repair requested by user. Final PNG preserves the real localized Home Screen widget proof and renders the exact en-GB external headline/subhead.",
       "realHomeScreenWidgetReference": true,
       "realHomeScreenWidgetSource": false,
       "sourcePath": "store/apple/screenshot-pop/en-GB/APP_IPHONE_65/07-real-home-screen-widgets.png",
@@ -325,9 +325,28 @@
         "width": 1242,
         "height": 2688
       },
-      "finalSha256": "2deb1d26e6057e31f7ef29be455730bd538963fb9aebc2b3e61653ebb85a638f",
-      "visualQa": "Accepted: real Home Screen WidgetKit proof, localized headline/subhead readable, no in-app widget screen or invented app UI visible.",
-      "finalization": "GPT Image 2.0 widget candidate accepted by visual QA; final PNG keeps Copy B output path and is linked to exact real localized WidgetKit source proof by path and SHA-256."
+      "finalSha256": "bef18c045c2934e4b8fce8eed6459b5983ec7669cfb99951a1bdc90c046f668f",
+      "visualQa": "Accepted: real Home Screen WidgetKit proof, requested en-GB headline/subhead readable, no in-app widget screen, no invented widgets, no ghosted old copy.",
+      "finalization": "GPT Image 2.0 widget candidate accepted by visual QA; final PNG keeps Copy B output path and was copy-repaired to match the user-provided en-GB slide 07 prompt while preserving exact 1242x2688 dimensions.",
+      "localizedMarketingText": {
+        "headline": "Your plan stays with you.",
+        "subhead": "Study priorities stay visible."
+      },
+      "localizationRepair": {
+        "reason": "User-provided en-GB slide 07 prompt superseded the older queue copy.",
+        "oldHeadline": "See the week at a glance.",
+        "oldSubhead": "Today stays close on Home Screen.",
+        "newHeadline": "Your plan stays with you.",
+        "newSubhead": "Study priorities stay visible.",
+        "beforePath": "qa/back-to-school-2026/copy-b-image2-localization-repair-evidence/en-GB-07-home-screen-widgets-before-old-copy-1242x2688.png",
+        "beforeSha256": "2deb1d26e6057e31f7ef29be455730bd538963fb9aebc2b3e61653ebb85a638f",
+        "acceptedRepairEvidencePath": "qa/back-to-school-2026/copy-b-image2-localization-repair-evidence/en-GB-07-home-screen-widgets-accepted-repair-1242x2688.png",
+        "acceptedRepairSha256": "bef18c045c2934e4b8fce8eed6459b5983ec7669cfb99951a1bdc90c046f668f",
+        "acceptedRepairDimensions": {
+          "width": 1242,
+          "height": 2688
+        }
+      }
     },
     {
       "locale": "en-AU",
