@@ -93,7 +93,7 @@ Submit the nomination once the In-App Event is submitted or once the five supple
 
 Do not use the rejected `2.0.7` train for new App Store Connect uploads. Apple returned ITMS-90186/ITMS-90062 for `2.0.7 (78)`, so the current required binary train is iOS `2.0.8` build `79`; see `testflight-build-status.md`.
 
-Deep link validation was refreshed on a clean iPhone 17 simulator window. Keep the event deep link as `studyplanner://import`.
+Deep link validation was refreshed on a clean iPhone 17 simulator window using the freshest local simulator artifact available at the time. The submitted iOS `2.0.8` build `79` IPA now also proves the `studyplanner` URL scheme is present in `CFBundleURLTypes`. Keep the event deep link as `studyplanner://import`, and perform the final runtime smoke from processed TestFlight build `79` before pressing the final App Store submission button.
 
 Use the localized polished screenshot set in `store/apple/screenshot-pop/`. The preview polish cycle preserves the current Apple-inspired minimal direction, keeps real app/widget UI intact, and scores 10/10 for nomination readiness.
 

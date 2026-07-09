@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-09T08:47:37.289Z",
+  "generatedAt": "2026-07-09T09:10:17.028Z",
   "status": "ready",
   "roots": {
     "final": "store/apple/screenshot-copy-b-image-2",
@@ -81,7 +81,9 @@
     "provenanceEntries": 119,
     "provenanceMissing": 0,
     "provenanceRejected": 0,
-    "widgetSourceMismatches": 0
+    "widgetSourceMismatches": 0,
+    "widgetSourceVerified": 17,
+    "widgetFinalMatchesSource": 0
   },
   "machineVerifiableGates": {
     "promptPackRequiresMacAppAndImage2": true,
@@ -100,7 +102,8 @@
       "humanAccepted"
     ],
     "allAccepted": true,
-    "realHomeScreenWidgetSlideHashLocked": true
+    "realHomeScreenWidgetReferenceHashLocked": true,
+    "realHomeScreenWidgetSlideHashLocked": false
   },
   "failures": [],
   "warnings": [],

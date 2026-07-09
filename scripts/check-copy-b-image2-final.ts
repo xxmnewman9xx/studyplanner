@@ -21,6 +21,7 @@ type ProvenanceEntry = {
   humanAccepted?: boolean;
   sourcePath?: string;
   sourceSha256?: string;
+  finalSha256?: string;
   notes?: string;
 };
 
@@ -258,6 +259,8 @@ const ready: string[] = [];
 const provenanceMissing: string[] = [];
 const provenanceRejected: string[] = [];
 const widgetSourceMismatch: { path: string; reason: string }[] = [];
+const widgetSourceVerified: string[] = [];
+const widgetFinalMatchesSource: string[] = [];
 
 for (const locale of expectedLocales) {
   for (const slide of expectedSlides) {
@@ -285,9 +288,13 @@ for (const locale of expectedLocales) {
       provenanceRejected.push(path);
       continue;
     }
-    if (slide.file === "07-home-screen-widgets.png" && entry.realHomeScreenWidgetSource) {
-      if (!entry.sourcePath || !existsSync(entry.sourcePath)) {
-        widgetSourceMismatch.push({ path, reason: `missing real widget source: ${entry.sourcePath || "(none)"}` });
+    if (slide.file === "07-home-screen-widgets.png") {
+      const expectedWidgetSource = `store/apple/screenshot-pop/${locale}/${DEVICE_DIR}/07-real-home-screen-widgets.png`;
+      if (!entry.sourcePath || entry.sourcePath !== expectedWidgetSource || !existsSync(entry.sourcePath)) {
+        widgetSourceMismatch.push({
+          path,
+          reason: `missing real widget source: ${entry.sourcePath || "(none)"}, expected ${expectedWidgetSource}`,
+        });
         continue;
       }
       const sourceSha = sha256(entry.sourcePath);
@@ -296,7 +303,15 @@ for (const locale of expectedLocales) {
         widgetSourceMismatch.push({ path, reason: `provenance source hash ${entry.sourceSha256} does not match ${sourceSha}` });
         continue;
       }
-      if (finalSha !== sourceSha) {
+      if (entry.finalSha256 && entry.finalSha256 !== finalSha) {
+        widgetSourceMismatch.push({ path, reason: `provenance final hash ${entry.finalSha256} does not match ${finalSha}` });
+        continue;
+      }
+      widgetSourceVerified.push(path);
+      if (finalSha === sourceSha) {
+        widgetFinalMatchesSource.push(path);
+      }
+      if (entry.realHomeScreenWidgetSource && finalSha !== sourceSha) {
         widgetSourceMismatch.push({ path, reason: `final PNG hash ${finalSha} does not match real widget source ${sourceSha}` });
         continue;
       }
@@ -350,6 +365,8 @@ const payload = {
     provenanceMissing: provenanceMissing.length,
     provenanceRejected: provenanceRejected.length,
     widgetSourceMismatches: widgetSourceMismatch.length,
+    widgetSourceVerified: widgetSourceVerified.length,
+    widgetFinalMatchesSource: widgetFinalMatchesSource.length,
   },
   machineVerifiableGates: {
     promptPackRequiresMacAppAndImage2: promptPack.includes("ChatGPT Mac app") && promptPack.includes("GPT Image 2.0"),
@@ -368,7 +385,9 @@ const payload = {
       "humanAccepted",
     ],
     allAccepted: provenanceMissing.length === 0 && provenanceRejected.length === 0 && ready.length === expectedCount,
-    realHomeScreenWidgetSlideHashLocked: widgetSourceMismatch.length === 0,
+    realHomeScreenWidgetReferenceHashLocked:
+      widgetSourceVerified.length === expectedLocales.length && widgetSourceMismatch.length === 0,
+    realHomeScreenWidgetSlideHashLocked: widgetFinalMatchesSource.length === expectedLocales.length,
   },
   failures,
   warnings,

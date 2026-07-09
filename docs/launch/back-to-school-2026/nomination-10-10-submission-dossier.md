@@ -145,7 +145,7 @@ Polished close-up of a study table beside a backpack, syllabus pages with illegi
 - Widget sheet URL opens without auth. Current local proof is 5/8 states; capture tinted Home Screen and Lock Screen rectangular/circular only if it will not delay nomination submission.
 - Accessibility/localization URL opens without auth.
 - App Review proof URL opens without auth.
-- `studyplanner://import` opens the submitted build to syllabus/import onboarding.
+- `studyplanner://import` is the event deep link. The submitted iOS `2.0.8` build `79` IPA contains the `studyplanner` URL scheme, and earlier clean-simulator smoke opened the first-run syllabus/import onboarding path; re-run the runtime smoke on processed TestFlight build `79` before final App Store submission.
 - In-App Event media passes 16:9 and 9:16 size checks: `semester-kickoff-event-card-1920x1080.png` and `semester-kickoff-event-details-1080x1920.png`.
 - All images are text-free and have no fake UI/widgets/devices.
 - No claim mentions Canvas/LMS sync, guaranteed extraction, automatic homework submission, unsupported Watch, Live Activities, ratings, rankings, or prices.

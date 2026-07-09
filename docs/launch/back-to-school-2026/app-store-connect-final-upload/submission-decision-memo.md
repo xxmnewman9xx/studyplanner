@@ -25,7 +25,7 @@ Do not wait for the three remaining extended WidgetKit proof states unless App S
 - Native WidgetKit sheet: HTTP 200 and `Widget states captured: 5/8`.
 - Accessibility/localization summary: HTTP 200 and public latest raw Gist readback shows build `2.0.8` / `79`.
 - App Review proof: HTTP 200 and public latest raw Gist readback shows build `2.0.8` / `79`.
-- Deep link smoke: `studyplanner://import` opened Study Planner on a clean iPhone 17 simulator and landed on the first-run syllabus onboarding path.
+- Deep link smoke: `studyplanner://import` opened Study Planner on a clean iPhone 17 simulator and landed on the first-run syllabus onboarding path; the submitted iOS `2.0.8` build `79` IPA also contains the `studyplanner` URL scheme.
 
 ## Copy B PPO Status
 
@@ -39,7 +39,7 @@ Copy A/control in `store/apple/screenshot-pop/` remains the safest nomination up
 
 ## Local Gate Interpretation
 
-`npm run check:back-to-school-release-cycle` passes locally but reports `submissionReady: false`.
+`npm run check:back-to-school-release-cycle` is a stricter legacy/internal gate and may fail or report `submissionReady: false`.
 
 This is expected because the internal release gate requires:
 

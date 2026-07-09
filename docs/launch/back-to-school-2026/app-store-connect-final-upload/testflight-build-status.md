@@ -37,6 +37,7 @@ Do not select or submit any `2.0.7` build for this cycle. That train is closed.
 - EAS build git commit hash: `5da88811a6e4887869963331a29afc810b65aff7`.
 - Downloaded replacement IPA artifact and inspected bundled plists:
   - App bundle: `CFBundleShortVersionString=2.0.8`, `CFBundleVersion=79`.
+  - App bundle URL schemes: `studyplanner`, `com.mattnewman.studyplanner`.
   - Widget extension: `CFBundleShortVersionString=2.0.8`, `CFBundleVersion=79`.
 - EAS Submit output: `Submitted your app to Apple App Store Connect`.
 

@@ -1,6 +1,6 @@
 # Back-to-School 2026 App Review Proof Packet
 
-Date: 2026-07-07
+Date: 2026-07-09
 Release: Back-to-School Semester Kickoff
 Submitted build candidate: iOS 2.0.8 build 79
 Submission status: Public supplemental URL verified for App Store Connect.
@@ -20,7 +20,7 @@ The Back-to-School update helps a student start from an empty semester, add thei
 
 ## Purchase and Review Flow Evidence
 
-Verified on 2026-07-07:
+Verified on 2026-07-09:
 
 - `npm run test:hard-paywall`
 - `npm run check:iap`
@@ -86,4 +86,6 @@ Validation on 2026-07-07:
 - `app.json` defines the production scheme as `studyplanner`.
 - Current route parsing maps the `import` token to the app's syllabus scan/import route.
 - A clean iPhone 17 simulator opened `studyplanner://import` into Study Planner's first-run onboarding path: "Unlock first, then use the camera scan to turn a syllabus into a reviewed plan."
-- The local simulator proof used the freshest available release simulator artifact on disk (`2.0.6` build `76`); the current replacement submission candidate is `2.0.8` build `79`, and the current source/config preserve the same scheme and route parser. Re-run this smoke check on build `79` before final App Store submission.
+- The local simulator proof used the freshest available release simulator artifact on disk (`2.0.6` build `76`); the current replacement submission candidate is `2.0.8` build `79`.
+- The submitted build `79` IPA contains `CFBundleURLSchemes=["studyplanner","com.mattnewman.studyplanner"]`, and the current source/config preserve the same route parser.
+- Re-run this runtime smoke check on processed TestFlight build `79` before final App Store submission.
