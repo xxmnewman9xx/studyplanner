@@ -29,15 +29,19 @@ expect(upgradeScreen.includes('t("paywall.terms_feature"'), "upgrade UI must def
 expect(iapManifest.includes('appStoreConnectPriceUsd: "9.99"'), "weekly ASC target price must remain 9.99");
 expect(iapManifest.includes('appStoreConnectPriceUsd: "19.99"'), "monthly ASC target price must remain 19.99");
 expect(iapManifest.includes('appStoreConnectPriceUsd: "59.99"'), "yearly ASC target price must remain 59.99");
+expect(iapManifest.includes("Back-to-School 2026 Weekly Plus One-Week Trial"), "weekly back-to-school intro offer must be documented in the IAP manifest");
+expect(iapManifest.includes("Back-to-School 2026 Monthly Plus One-Week Trial"), "monthly back-to-school intro offer must be documented in the IAP manifest");
 expect(iapManifest.includes("Back-to-School 2026 Yearly Plus One-Week Trial"), "yearly back-to-school intro offer must be documented in the IAP manifest");
-expect(iapManifest.includes('availabilityStart: "2026-07-09"'), "yearly intro offer start date must match ASC");
-expect(iapManifest.includes('availabilityEnd: "2026-09-30"'), "yearly intro offer end date must match ASC");
+expect((iapManifest.match(/availabilityStart: "2026-07-09"/g) || []).length >= 3, "all subscription intro offer start dates must match ASC");
+expect((iapManifest.match(/availabilityEnd: "2026-09-30"/g) || []).length >= 3, "all subscription intro offer end dates must match ASC");
 expect(storeKit.includes('"displayPrice": "9.99"'), "local StoreKit weekly price must remain 9.99");
 expect(storeKit.includes('"displayPrice": "19.99"'), "local StoreKit monthly price must remain 19.99");
 expect(storeKit.includes('"displayPrice": "59.99"'), "local StoreKit yearly price must remain 59.99");
+expect(storeKit.includes('"internalID": "weekly_intro_back_to_school_2026"'), "local StoreKit weekly intro offer must remain configured");
+expect(storeKit.includes('"internalID": "monthly_intro_back_to_school_2026"'), "local StoreKit monthly intro offer must remain configured");
 expect(storeKit.includes('"internalID": "yearly_intro_back_to_school_2026"'), "local StoreKit yearly intro offer must remain configured");
-expect(storeKit.includes('"paymentMode": "free"'), "local StoreKit yearly intro offer must be free");
-expect(storeKit.includes('"subscriptionPeriod": "P1W"'), "local StoreKit yearly intro offer must last one week");
+expect((storeKit.match(/"paymentMode": "free"/g) || []).length >= 3, "local StoreKit intro offers must be free");
+expect((storeKit.match(/"subscriptionPeriod": "P1W"/g) || []).length >= 3, "local StoreKit intro offers must last one week");
 
 if (failures.length) {
   console.error("IAP config checks failed:");

@@ -60,4 +60,4 @@ Do not select or submit any `2.0.7` build for this cycle. That train is closed.
 
 ## Manual ASC Boundary
 
-App Store submission and In-App Event/featuring nomination final submit remain manual App Store Connect actions unless explicitly performed in the live ASC session. Build `79` is now visible/selectable and attached, the seasonal Yearly Plus trial is live, and all supplemental URLs have public readback evidence. The remaining manual boundary is pressing Add for Review / Submit Nomination after final human review.
+App Store submission and In-App Event/featuring nomination final submit remain manual App Store Connect actions unless explicitly performed in the live ASC session. Build `79` is now visible/selectable and attached, the seasonal one-week Plus introductory offer is live for Weekly, Monthly, and Yearly, and all supplemental URLs have public readback evidence. The remaining manual boundary is pressing Add for Review / Submit Nomination after final human review.

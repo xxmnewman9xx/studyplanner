@@ -27,9 +27,10 @@ Use `npm run check:copy-b-image2` for the optional PPO Copy B set. Current statu
 Verified in App Store Connect on 2026-07-09:
 
 - iOS app version `2.0.8` has build `79` attached; Save is disabled and Add for Review is enabled.
-- Yearly Plus (`com.mattnewman.studyplanner.plus.yearly`) has a worldwide introductory offer: `Jul 9, 2026 to Sep 30, 2026`, `175 Countries or Regions`, `Free for the first week`.
+- Weekly Plus (`com.mattnewman.studyplanner.plus.weekly`), Monthly Plus (`com.mattnewman.studyplanner.plus.monthly`), and Yearly Plus (`com.mattnewman.studyplanner.plus.yearly`) each have a worldwide introductory offer: `Jul 9, 2026 to Sep 30, 2026`, `175 Countries or Regions`, `Free for the first week`. Apple eligibility still applies at the subscription-group level.
 - In-App Event `Semester Kickoff Week` is saved as a draft with both event-media files uploaded, deep link `studyplanner://import`, all countries or regions selected, and Add for Review enabled.
 - Featuring nomination `8255bf6c-6cbf-45bd-b88c-1afc3074ca41` is saved as a draft with the seasonal trial copy, all regions, 17 languages, five supplemental URLs, and Submit Nomination enabled.
+- Product Page Optimization draft `Copy B Back-to-School 2026` exists at `/distribution/optimization/8f3b740d-28e8-4ae5-8f51-5e2809932b09` with one treatment, all 17 localizations selected, and Copy A/original product page retained as control. Upload is incomplete because Chrome extension communication failed during file upload after English (U.S.) Treatment A iPhone 6.5 inherited screenshots were cleared.
 - No final submission buttons have been pressed.
 
 Before producing Copy B in the ChatGPT Mac app, run:
@@ -85,7 +86,7 @@ This file uses the exact real app logo from `assets/icon.png`. It is for supplem
 
 ## Immediate PPO After Nomination
 
-After the In-App Event and featuring nomination are submitted, immediately create an iPhone-only Product Page Optimization treatment from `copy-b-image2-upload-map.json`. Keep Copy A/control as the standard app-version screenshot set until there is a complete iPad strategy for Copy B.
+After the In-App Event and featuring nomination are submitted, continue the existing iPhone-only Product Page Optimization treatment from `copy-b-image2-upload-map.json`. Keep Copy A/control as the standard app-version screenshot set until there is a complete iPad strategy for Copy B. Do not press `Start Test` until all 17 locales have their seven B screenshots uploaded and verified.
 
 - `gpt-image-2-prompts.md`
 - `gpt-image-2-localized-preview-prompt-pack.md`
@@ -101,7 +102,7 @@ After the In-App Event and featuring nomination are submitted, immediately creat
 
 ## Current Decision
 
-Submit the In-App Event and nomination now once the final human crop review looks acceptable. App Store Connect already shows iOS `2.0.8` build `79` attached to the app-version draft, the In-App Event draft has the two approved event-media files uploaded, the event deep link is exactly `studyplanner://import`, the worldwide one-week Yearly Plus trial is live for July 9 through September 30, 2026, and the five supplemental URLs are accepted in the nomination form. Do not block the nomination on extended widget variant follow-up. The package already has public 9/9 screenshot proof and five real WidgetKit proof states, and editorial timing is more important for the August 24 window.
+Submit the In-App Event and nomination now once the final human crop review looks acceptable. App Store Connect already shows iOS `2.0.8` build `79` attached to the app-version draft, the In-App Event draft has the two approved event-media files uploaded, the event deep link is exactly `studyplanner://import`, the worldwide one-week Plus introductory offer is live for Weekly, Monthly, and Yearly from July 9 through September 30, 2026, and the five supplemental URLs are accepted in the nomination form. Do not block the nomination on extended widget variant follow-up or the incomplete PPO upload. The package already has public 9/9 screenshot proof and five real WidgetKit proof states, and editorial timing is more important for the August 24 window.
 
 Do not use the rejected `2.0.7` train for new App Store Connect uploads. Apple returned ITMS-90186/ITMS-90062 for `2.0.7 (78)`, so the current required binary train is iOS `2.0.8` build `79`; see `testflight-build-status.md`.
 

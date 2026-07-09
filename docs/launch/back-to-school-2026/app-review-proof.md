@@ -35,6 +35,7 @@ Verified on 2026-07-09:
 - Purchase updates and Restore Purchases both recheck App Store subscriptions before unlock.
 - The app does not display fake subscription prices while StoreKit is loading. Fallback plans use `Shown by App Store`, and the App Store purchase sheet shows the current price and terms before purchase.
 - The paywall keeps Restore Purchases available when App Store product metadata is unavailable.
+- App Store Connect currently shows Weekly Plus, Monthly Plus, and Yearly Plus with the seasonal introductory offer `Jul 9, 2026 to Sep 30, 2026`, `175 Countries or Regions`, and `Free for the first week` for eligible new subscribers.
 
 ## Review-Before-Save Proof
 
@@ -47,9 +48,9 @@ Verified on 2026-07-09:
 
 Supporting files:
 
-- `docs/launch/2026-05-26/storekit-localization-proof.md`
 - `store/apple/localized-upload-qa.txt`
 - `docs/APP_REVIEW_NOTES.md`
+- `src/config/iap.ts`
 - `qa/storekit/StudyPlannerLocal.storekit`
 - `scripts/check-hard-paywall-app-gate.mjs`
 - `scripts/check-iap-config.mjs`

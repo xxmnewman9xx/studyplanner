@@ -1,6 +1,14 @@
 {
   "generatedAt": "2026-07-09T07:46:13.790Z",
   "purpose": "Manual App Store Connect Product Page Optimization treatment upload map for Copy B. store.config.json intentionally remains Copy A/control for standard metadata upload.",
+  "appStoreConnectDraft": {
+    "name": "Copy B Back-to-School 2026",
+    "optimizationId": "8f3b740d-28e8-4ae5-8f51-5e2809932b09",
+    "treatmentId": "c88be5ab-ff42-4a4b-a9c9-b46475b7004e",
+    "url": "https://appstoreconnect.apple.com/apps/6766181202/distribution/optimization/8f3b740d-28e8-4ae5-8f51-5e2809932b09",
+    "status": "draft-created-upload-incomplete",
+    "resumeNote": "Copy A/original product page remains control. English (U.S.) Treatment A iPhone 6.5 inherited screenshots were cleared before Chrome extension communication failed; upload the seven en-US Copy B PNGs first, then continue locale-by-locale. Do not press Start Test until all 17 locales are uploaded and verified."
+  },
   "finalRoot": "store/apple/screenshot-copy-b-image-2",
   "device": "APP_IPHONE_65",
   "expected": {

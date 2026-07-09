@@ -15,7 +15,7 @@ https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166
 https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/accessibility-localization-summary.md
 
 5. App Review Notes and Purchase Flow Proof:
-https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/3b232101ccf177128af9900f5f233eb282b00dbf/app-review-proof.md
+https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/app-review-proof.md
 
 ## Verified Public Readback
 

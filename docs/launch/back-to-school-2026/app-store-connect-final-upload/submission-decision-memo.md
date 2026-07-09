@@ -14,7 +14,7 @@ Do not wait for extended WidgetKit variant follow-up unless App Store Connect re
 
 - Editorial timing matters. For an August 24 start, submit by 2026-07-17 if possible and no later than 2026-07-24.
 - The current replacement build candidate is iOS `2.0.8` build `79` because Apple closed the `2.0.7` pre-release train.
-- Live App Store Connect verification on 2026-07-09 shows build `79` attached to iOS app version `2.0.8` and the Yearly Plus worldwide one-week free trial active from July 9 through September 30, 2026.
+- Live App Store Connect verification on 2026-07-09 shows build `79` attached to iOS app version `2.0.8` and Weekly Plus, Monthly Plus, and Yearly Plus each showing a worldwide one-week introductory offer from July 9 through September 30, 2026 for eligible new subscribers.
 - The public proof package already covers the story Apple needs to evaluate: real screenshots, real WidgetKit captures, localization proof, accessibility proof, review notes, and purchase-flow boundaries.
 - The remaining local gate blockers are stricter internal launch checks, not blockers for a featuring nomination. They track optional extended widget-state proof and final internal packaging status.
 - The nomination copy does not claim unproven automation, LMS sync, institution-grade forecasting, or fake widgets.
@@ -27,11 +27,13 @@ Do not wait for extended WidgetKit variant follow-up unless App Store Connect re
 - Accessibility/localization summary: HTTP 200 and public latest raw Gist readback shows build `2.0.8` / `79`.
 - App Review proof: HTTP 200 and public latest raw Gist readback shows build `2.0.8` / `79`.
 - Deep link smoke: `studyplanner://import` opened Study Planner on a clean iPhone 17 simulator and landed on the first-run syllabus onboarding path; the submitted iOS `2.0.8` build `79` IPA also contains the `studyplanner` URL scheme.
-- Monetization proof: Yearly Plus introductory offer is live in App Store Connect for `175 Countries or Regions`, `Jul 9, 2026 to Sep 30, 2026`, `Free for the first week`.
+- Monetization proof: Weekly Plus, Monthly Plus, and Yearly Plus introductory offers are live in App Store Connect for `175 Countries or Regions`, `Jul 9, 2026 to Sep 30, 2026`, `Free for the first week`. Apple subscription-group eligibility still applies.
 
 ## Copy B PPO Status
 
 Copy B is now locally upload-ready as an optional Product Page Optimization treatment: `119/119` final iPhone PNGs exist in `store/apple/screenshot-copy-b-image-2/` at exact `1242x2688` dimensions, and `npm run check:copy-b-image2` passes.
+
+The ASC PPO draft `Copy B Back-to-School 2026` has been created with one treatment and 17 localizations. Copy A/original product page remains the control. The PPO upload is not complete: Chrome extension communication failed during the file upload step after English (U.S.) Treatment A iPhone 6.5 inherited screenshots were cleared and before the seven B PNGs were attached. This is not a nomination blocker; continue the draft from `copy-b-image2-upload-map.json` once Chrome automation is available.
 
 Slides 1-7 are the accepted outcome-led Image 2.0 set generated from the latest localized UI references. Slide 7 was regenerated from the real localized Home Screen WidgetKit composition references so the widget promise is backed by real Home Screen proof, not the in-app Widgets screen.
 

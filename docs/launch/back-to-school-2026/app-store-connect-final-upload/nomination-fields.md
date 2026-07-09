@@ -24,15 +24,15 @@ Pre-order: No
 
 ## Nomination Description
 
-Study Planner AI's Back-to-School Semester Kickoff update helps students turn the first stack of syllabi into a calm, reviewed semester plan before classes begin. During setup, onboarding guides them to scan or import a syllabus, review detected courses, assignments, exams, and uncertain dates, then save a plan they control. Real WidgetKit proof shows Today, Upcoming, Week/Semester Calendar, Class Progress, and Home Screen views for heavy weeks. The update is localized across key student markets, uses real release screenshots and WidgetKit captures, includes localization and accessibility QA checks, and keeps the promise focused: a reviewed Apple-native path from syllabus chaos to a calmer first week. For the seasonal push, Yearly Plus includes a worldwide one-week free trial from July 9 to September 30, 2026, so students can test the setup flow before committing.
+Study Planner AI's Back-to-School Semester Kickoff update helps students turn the first stack of syllabi into a calm, reviewed semester plan before classes begin. During setup, onboarding guides them to scan or import a syllabus, review detected courses, assignments, exams, and uncertain dates, then save a plan they control. Real WidgetKit proof shows Today, Upcoming, Week/Semester Calendar, Class Progress, and Home Screen views for heavy weeks. The update is localized across key student markets, uses real release screenshots and WidgetKit captures, includes localization and accessibility QA checks, and keeps the promise focused: a reviewed Apple-native path from syllabus chaos to a calmer first week. For the seasonal push, eligible new Plus subscribers can start with a worldwide one-week introductory trial from July 9 to September 30, 2026.
 
-Characters: 876/1000
+Characters: 853/1000
 
 ## Helpful Details
 
-Built by an independent developer focused on reducing semester overwhelm, not selling generic AI. The release pairs review-before-save planning with Apple-native details: real WidgetKit public proof, submitted iPhone/iPad screenshots, localized store presence, Dynamic Type/RTL/accessibility QA checks, a timed Semester Kickoff Week event, and a worldwide July 9-Sept. 30 one-week Yearly Plus trial to lower back-to-school setup friction.
+Built by an independent developer focused on reducing semester overwhelm, not selling generic AI. The release pairs review-before-save planning with Apple-native details: real WidgetKit public proof, submitted iPhone/iPad screenshots, localized store presence, Dynamic Type/RTL/accessibility QA checks, a timed Semester Kickoff Week event, and a worldwide July 9-Sept. 30 one-week Plus introductory trial for eligible new subscribers.
 
-Characters: 438/500
+Characters: 434/500
 
 ## In-App Event
 
