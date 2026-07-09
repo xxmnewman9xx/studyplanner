@@ -273,7 +273,14 @@ print(json.dumps({"generating": bool(dark_side and light_center), "samples": sam
 function waitForIdle(timeoutMs) {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
-    if (!isGenerating()) return true;
+    try {
+      if (!isGenerating()) return true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!message.includes("-1712") && !message.includes("AppleEvent timed out")) {
+        throw error;
+      }
+    }
     sleep(3000);
   }
   return false;

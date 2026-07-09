@@ -1,0 +1,184 @@
+{
+  "generatedAt": "2026-07-09T07:46:45.639Z",
+  "status": "ready",
+  "networkChecked": true,
+  "bundleRoot": "docs/launch/back-to-school-2026/app-store-connect-final-upload",
+  "bundleZip": {
+    "path": "docs/launch/back-to-school-2026/studyplanner-back-to-school-2026-app-store-connect-upload.zip",
+    "exists": true,
+    "bundleFiles": 34,
+    "zipFiles": 34,
+    "missingEntries": [],
+    "extraEntries": [],
+    "mismatchedEntries": []
+  },
+  "appConfig": {
+    "scheme": "studyplanner",
+    "version": "2.0.7",
+    "iosBuildNumber": "78",
+    "iosBundleIdentifier": "com.mattnewman.studyplanner",
+    "androidVersionCode": 78,
+    "widgetDefinitions": 4,
+    "widgetsWithColorConfiguration": 0,
+    "importDeepLinkRoutesToScan": true,
+    "runtimeReadsThemeColor": false
+  },
+  "storeConfig": {
+    "version": "2.0.7",
+    "automaticRelease": true,
+    "screenshotRefs": 144,
+    "missingScreenshotRefs": [],
+    "nonPopScreenshotRefs": [],
+    "screenshotDimensionMismatches": []
+  },
+  "nomination": {
+    "name": "Back-to-School Semester Kickoff",
+    "type": "App Enhancements",
+    "publishStart": "2026-08-24",
+    "publishEnd": "2026-08-31",
+    "platforms": "iOS (iPhone), iOS (iPad)",
+    "descriptionCharacters": 749,
+    "helpfulDetailsCharacters": 407,
+    "relatedEventIntent": "Yes",
+    "eventName": "Semester Kickoff Week",
+    "deepLink": "studyplanner://import"
+  },
+  "eventMedia": [
+    {
+      "id": "event-card",
+      "path": "docs/launch/back-to-school-2026/app-store-connect-final-upload/event-media/01-event-card-image-1920x1080.png",
+      "width": 1920,
+      "height": 1080,
+      "approvedForEventMedia": true,
+      "bytes": 2002781
+    },
+    {
+      "id": "event-details",
+      "path": "docs/launch/back-to-school-2026/app-store-connect-final-upload/event-media/02-event-details-image-1080x1920.png",
+      "width": 1080,
+      "height": 1920,
+      "approvedForEventMedia": true,
+      "bytes": 1888970
+    },
+    {
+      "id": "supplemental-hero-branded",
+      "path": "docs/launch/back-to-school-2026/app-store-connect-final-upload/supplemental/studyplanner-branded-supplemental-hero-1920x1080.png",
+      "width": 1920,
+      "height": 1080,
+      "approvedForEventMedia": false,
+      "bytes": 2010378
+    }
+  ],
+  "supplementalUrls": {
+    "status": "all_urls_registered",
+    "requiredCount": 5,
+    "registeredCount": 5,
+    "slots": [
+      {
+        "id": "product-video",
+        "url": "https://github.com/xxmnewman9xx/studyplanner/releases/download/back-to-school-2026-supplementals/product-video.mp4",
+        "status": "registered"
+      },
+      {
+        "id": "screenshot-contact-sheet",
+        "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/screenshot-contact-sheet.md",
+        "status": "registered"
+      },
+      {
+        "id": "native-widget-sheet",
+        "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/native-widget-sheet.md",
+        "status": "registered"
+      },
+      {
+        "id": "accessibility-localization-summary",
+        "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/accessibility-localization-summary.md",
+        "status": "registered"
+      },
+      {
+        "id": "app-review-proof",
+        "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/app-review-proof.md",
+        "status": "registered"
+      }
+    ],
+    "networkResults": [
+      {
+        "id": "product-video",
+        "url": "https://github.com/xxmnewman9xx/studyplanner/releases/download/back-to-school-2026-supplementals/product-video.mp4",
+        "status": 200,
+        "ok": true,
+        "contentType": "application/octet-stream",
+        "bytes": 1331420,
+        "checks": {
+          "screenshotsFulfilled": false,
+          "widgetStatesCaptured": false,
+          "buildVisible": false,
+          "claimBoundariesVisible": false
+        }
+      },
+      {
+        "id": "screenshot-contact-sheet",
+        "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/screenshot-contact-sheet.md",
+        "status": 200,
+        "ok": true,
+        "contentType": "text/plain; charset=utf-8",
+        "bytes": 3464,
+        "checks": {
+          "screenshotsFulfilled": true,
+          "widgetStatesCaptured": false,
+          "buildVisible": false,
+          "claimBoundariesVisible": false
+        }
+      },
+      {
+        "id": "native-widget-sheet",
+        "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/native-widget-sheet.md",
+        "status": 200,
+        "ok": true,
+        "contentType": "text/plain; charset=utf-8",
+        "bytes": 2423,
+        "checks": {
+          "screenshotsFulfilled": false,
+          "widgetStatesCaptured": true,
+          "buildVisible": false,
+          "claimBoundariesVisible": false
+        }
+      },
+      {
+        "id": "accessibility-localization-summary",
+        "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/accessibility-localization-summary.md",
+        "status": 200,
+        "ok": true,
+        "contentType": "text/plain; charset=utf-8",
+        "bytes": 4717,
+        "checks": {
+          "screenshotsFulfilled": false,
+          "widgetStatesCaptured": false,
+          "buildVisible": true,
+          "claimBoundariesVisible": false
+        }
+      },
+      {
+        "id": "app-review-proof",
+        "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/app-review-proof.md",
+        "status": 200,
+        "ok": true,
+        "contentType": "text/plain; charset=utf-8",
+        "bytes": 5170,
+        "checks": {
+          "screenshotsFulfilled": false,
+          "widgetStatesCaptured": false,
+          "buildVisible": true,
+          "claimBoundariesVisible": true
+        }
+      }
+    ]
+  },
+  "failures": [],
+  "warnings": [],
+  "remainingExternalChecks": [
+    "Confirm iOS 2.0.7 build 78 in the live App Store Connect session.",
+    "Confirm event media crop in App Store Connect after upload.",
+    "Confirm studyplanner://import in the live In-App Event form.",
+    "Confirm all five supplemental URLs are accepted in the live nomination form."
+  ]
+}

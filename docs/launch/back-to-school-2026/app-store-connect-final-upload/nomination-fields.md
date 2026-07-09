@@ -42,9 +42,9 @@ Event name: Semester Kickoff Week
 
 Badge: Challenge
 
-Short description: Build your semester plan
+Short description: Review your first-week plan
 
-Long description: Import a syllabus, review deadlines, and finish first-week setup before classes ramp.
+Long description: Import a syllabus, approve deadlines, and finish setup before classes ramp.
 
 Start: 2026-08-24 08:00 local time
 

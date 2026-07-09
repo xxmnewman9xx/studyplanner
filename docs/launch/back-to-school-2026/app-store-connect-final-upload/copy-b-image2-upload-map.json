@@ -1,0 +1,695 @@
+{
+  "generatedAt": "2026-07-09T07:46:13.790Z",
+  "purpose": "Manual App Store Connect Product Page Optimization treatment upload map for Copy B. store.config.json intentionally remains Copy A/control for standard metadata upload.",
+  "finalRoot": "store/apple/screenshot-copy-b-image-2",
+  "device": "APP_IPHONE_65",
+  "expected": {
+    "locales": 17,
+    "slidesPerLocale": 7,
+    "totalPngs": 119,
+    "dimensions": "1242x2688"
+  },
+  "treatmentName": "Copy B - Outcome-led Image 2.0 previews",
+  "locales": [
+    {
+      "locale": "ar-SA",
+      "screenshots": [
+        {
+          "order": 1,
+          "file": "01-scan-syllabus-notes.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ar-SA/APP_IPHONE_65/01-scan-syllabus-notes.png"
+        },
+        {
+          "order": 2,
+          "file": "02-approve-deadlines.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ar-SA/APP_IPHONE_65/02-approve-deadlines.png"
+        },
+        {
+          "order": 3,
+          "file": "03-semester-built.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ar-SA/APP_IPHONE_65/03-semester-built.png"
+        },
+        {
+          "order": 4,
+          "file": "04-today-next-move.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ar-SA/APP_IPHONE_65/04-today-next-move.png"
+        },
+        {
+          "order": 5,
+          "file": "05-study-blocks.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ar-SA/APP_IPHONE_65/05-study-blocks.png"
+        },
+        {
+          "order": 6,
+          "file": "06-widgets-sync.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ar-SA/APP_IPHONE_65/06-widgets-sync.png"
+        },
+        {
+          "order": 7,
+          "file": "07-home-screen-widgets.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ar-SA/APP_IPHONE_65/07-home-screen-widgets.png"
+        }
+      ]
+    },
+    {
+      "locale": "de-DE",
+      "screenshots": [
+        {
+          "order": 1,
+          "file": "01-scan-syllabus-notes.png",
+          "path": "store/apple/screenshot-copy-b-image-2/de-DE/APP_IPHONE_65/01-scan-syllabus-notes.png"
+        },
+        {
+          "order": 2,
+          "file": "02-approve-deadlines.png",
+          "path": "store/apple/screenshot-copy-b-image-2/de-DE/APP_IPHONE_65/02-approve-deadlines.png"
+        },
+        {
+          "order": 3,
+          "file": "03-semester-built.png",
+          "path": "store/apple/screenshot-copy-b-image-2/de-DE/APP_IPHONE_65/03-semester-built.png"
+        },
+        {
+          "order": 4,
+          "file": "04-today-next-move.png",
+          "path": "store/apple/screenshot-copy-b-image-2/de-DE/APP_IPHONE_65/04-today-next-move.png"
+        },
+        {
+          "order": 5,
+          "file": "05-study-blocks.png",
+          "path": "store/apple/screenshot-copy-b-image-2/de-DE/APP_IPHONE_65/05-study-blocks.png"
+        },
+        {
+          "order": 6,
+          "file": "06-widgets-sync.png",
+          "path": "store/apple/screenshot-copy-b-image-2/de-DE/APP_IPHONE_65/06-widgets-sync.png"
+        },
+        {
+          "order": 7,
+          "file": "07-home-screen-widgets.png",
+          "path": "store/apple/screenshot-copy-b-image-2/de-DE/APP_IPHONE_65/07-home-screen-widgets.png"
+        }
+      ]
+    },
+    {
+      "locale": "en-AU",
+      "screenshots": [
+        {
+          "order": 1,
+          "file": "01-scan-syllabus-notes.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-AU/APP_IPHONE_65/01-scan-syllabus-notes.png"
+        },
+        {
+          "order": 2,
+          "file": "02-approve-deadlines.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-AU/APP_IPHONE_65/02-approve-deadlines.png"
+        },
+        {
+          "order": 3,
+          "file": "03-semester-built.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-AU/APP_IPHONE_65/03-semester-built.png"
+        },
+        {
+          "order": 4,
+          "file": "04-today-next-move.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-AU/APP_IPHONE_65/04-today-next-move.png"
+        },
+        {
+          "order": 5,
+          "file": "05-study-blocks.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-AU/APP_IPHONE_65/05-study-blocks.png"
+        },
+        {
+          "order": 6,
+          "file": "06-widgets-sync.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-AU/APP_IPHONE_65/06-widgets-sync.png"
+        },
+        {
+          "order": 7,
+          "file": "07-home-screen-widgets.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-AU/APP_IPHONE_65/07-home-screen-widgets.png"
+        }
+      ]
+    },
+    {
+      "locale": "en-CA",
+      "screenshots": [
+        {
+          "order": 1,
+          "file": "01-scan-syllabus-notes.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-CA/APP_IPHONE_65/01-scan-syllabus-notes.png"
+        },
+        {
+          "order": 2,
+          "file": "02-approve-deadlines.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-CA/APP_IPHONE_65/02-approve-deadlines.png"
+        },
+        {
+          "order": 3,
+          "file": "03-semester-built.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-CA/APP_IPHONE_65/03-semester-built.png"
+        },
+        {
+          "order": 4,
+          "file": "04-today-next-move.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-CA/APP_IPHONE_65/04-today-next-move.png"
+        },
+        {
+          "order": 5,
+          "file": "05-study-blocks.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-CA/APP_IPHONE_65/05-study-blocks.png"
+        },
+        {
+          "order": 6,
+          "file": "06-widgets-sync.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-CA/APP_IPHONE_65/06-widgets-sync.png"
+        },
+        {
+          "order": 7,
+          "file": "07-home-screen-widgets.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-CA/APP_IPHONE_65/07-home-screen-widgets.png"
+        }
+      ]
+    },
+    {
+      "locale": "en-GB",
+      "screenshots": [
+        {
+          "order": 1,
+          "file": "01-scan-syllabus-notes.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-GB/APP_IPHONE_65/01-scan-syllabus-notes.png"
+        },
+        {
+          "order": 2,
+          "file": "02-approve-deadlines.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-GB/APP_IPHONE_65/02-approve-deadlines.png"
+        },
+        {
+          "order": 3,
+          "file": "03-semester-built.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-GB/APP_IPHONE_65/03-semester-built.png"
+        },
+        {
+          "order": 4,
+          "file": "04-today-next-move.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-GB/APP_IPHONE_65/04-today-next-move.png"
+        },
+        {
+          "order": 5,
+          "file": "05-study-blocks.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-GB/APP_IPHONE_65/05-study-blocks.png"
+        },
+        {
+          "order": 6,
+          "file": "06-widgets-sync.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-GB/APP_IPHONE_65/06-widgets-sync.png"
+        },
+        {
+          "order": 7,
+          "file": "07-home-screen-widgets.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-GB/APP_IPHONE_65/07-home-screen-widgets.png"
+        }
+      ]
+    },
+    {
+      "locale": "en-US",
+      "screenshots": [
+        {
+          "order": 1,
+          "file": "01-scan-syllabus-notes.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/01-scan-syllabus-notes.png"
+        },
+        {
+          "order": 2,
+          "file": "02-approve-deadlines.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/02-approve-deadlines.png"
+        },
+        {
+          "order": 3,
+          "file": "03-semester-built.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/03-semester-built.png"
+        },
+        {
+          "order": 4,
+          "file": "04-today-next-move.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/04-today-next-move.png"
+        },
+        {
+          "order": 5,
+          "file": "05-study-blocks.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/05-study-blocks.png"
+        },
+        {
+          "order": 6,
+          "file": "06-widgets-sync.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/06-widgets-sync.png"
+        },
+        {
+          "order": 7,
+          "file": "07-home-screen-widgets.png",
+          "path": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/07-home-screen-widgets.png"
+        }
+      ]
+    },
+    {
+      "locale": "es-ES",
+      "screenshots": [
+        {
+          "order": 1,
+          "file": "01-scan-syllabus-notes.png",
+          "path": "store/apple/screenshot-copy-b-image-2/es-ES/APP_IPHONE_65/01-scan-syllabus-notes.png"
+        },
+        {
+          "order": 2,
+          "file": "02-approve-deadlines.png",
+          "path": "store/apple/screenshot-copy-b-image-2/es-ES/APP_IPHONE_65/02-approve-deadlines.png"
+        },
+        {
+          "order": 3,
+          "file": "03-semester-built.png",
+          "path": "store/apple/screenshot-copy-b-image-2/es-ES/APP_IPHONE_65/03-semester-built.png"
+        },
+        {
+          "order": 4,
+          "file": "04-today-next-move.png",
+          "path": "store/apple/screenshot-copy-b-image-2/es-ES/APP_IPHONE_65/04-today-next-move.png"
+        },
+        {
+          "order": 5,
+          "file": "05-study-blocks.png",
+          "path": "store/apple/screenshot-copy-b-image-2/es-ES/APP_IPHONE_65/05-study-blocks.png"
+        },
+        {
+          "order": 6,
+          "file": "06-widgets-sync.png",
+          "path": "store/apple/screenshot-copy-b-image-2/es-ES/APP_IPHONE_65/06-widgets-sync.png"
+        },
+        {
+          "order": 7,
+          "file": "07-home-screen-widgets.png",
+          "path": "store/apple/screenshot-copy-b-image-2/es-ES/APP_IPHONE_65/07-home-screen-widgets.png"
+        }
+      ]
+    },
+    {
+      "locale": "es-MX",
+      "screenshots": [
+        {
+          "order": 1,
+          "file": "01-scan-syllabus-notes.png",
+          "path": "store/apple/screenshot-copy-b-image-2/es-MX/APP_IPHONE_65/01-scan-syllabus-notes.png"
+        },
+        {
+          "order": 2,
+          "file": "02-approve-deadlines.png",
+          "path": "store/apple/screenshot-copy-b-image-2/es-MX/APP_IPHONE_65/02-approve-deadlines.png"
+        },
+        {
+          "order": 3,
+          "file": "03-semester-built.png",
+          "path": "store/apple/screenshot-copy-b-image-2/es-MX/APP_IPHONE_65/03-semester-built.png"
+        },
+        {
+          "order": 4,
+          "file": "04-today-next-move.png",
+          "path": "store/apple/screenshot-copy-b-image-2/es-MX/APP_IPHONE_65/04-today-next-move.png"
+        },
+        {
+          "order": 5,
+          "file": "05-study-blocks.png",
+          "path": "store/apple/screenshot-copy-b-image-2/es-MX/APP_IPHONE_65/05-study-blocks.png"
+        },
+        {
+          "order": 6,
+          "file": "06-widgets-sync.png",
+          "path": "store/apple/screenshot-copy-b-image-2/es-MX/APP_IPHONE_65/06-widgets-sync.png"
+        },
+        {
+          "order": 7,
+          "file": "07-home-screen-widgets.png",
+          "path": "store/apple/screenshot-copy-b-image-2/es-MX/APP_IPHONE_65/07-home-screen-widgets.png"
+        }
+      ]
+    },
+    {
+      "locale": "fr-CA",
+      "screenshots": [
+        {
+          "order": 1,
+          "file": "01-scan-syllabus-notes.png",
+          "path": "store/apple/screenshot-copy-b-image-2/fr-CA/APP_IPHONE_65/01-scan-syllabus-notes.png"
+        },
+        {
+          "order": 2,
+          "file": "02-approve-deadlines.png",
+          "path": "store/apple/screenshot-copy-b-image-2/fr-CA/APP_IPHONE_65/02-approve-deadlines.png"
+        },
+        {
+          "order": 3,
+          "file": "03-semester-built.png",
+          "path": "store/apple/screenshot-copy-b-image-2/fr-CA/APP_IPHONE_65/03-semester-built.png"
+        },
+        {
+          "order": 4,
+          "file": "04-today-next-move.png",
+          "path": "store/apple/screenshot-copy-b-image-2/fr-CA/APP_IPHONE_65/04-today-next-move.png"
+        },
+        {
+          "order": 5,
+          "file": "05-study-blocks.png",
+          "path": "store/apple/screenshot-copy-b-image-2/fr-CA/APP_IPHONE_65/05-study-blocks.png"
+        },
+        {
+          "order": 6,
+          "file": "06-widgets-sync.png",
+          "path": "store/apple/screenshot-copy-b-image-2/fr-CA/APP_IPHONE_65/06-widgets-sync.png"
+        },
+        {
+          "order": 7,
+          "file": "07-home-screen-widgets.png",
+          "path": "store/apple/screenshot-copy-b-image-2/fr-CA/APP_IPHONE_65/07-home-screen-widgets.png"
+        }
+      ]
+    },
+    {
+      "locale": "fr-FR",
+      "screenshots": [
+        {
+          "order": 1,
+          "file": "01-scan-syllabus-notes.png",
+          "path": "store/apple/screenshot-copy-b-image-2/fr-FR/APP_IPHONE_65/01-scan-syllabus-notes.png"
+        },
+        {
+          "order": 2,
+          "file": "02-approve-deadlines.png",
+          "path": "store/apple/screenshot-copy-b-image-2/fr-FR/APP_IPHONE_65/02-approve-deadlines.png"
+        },
+        {
+          "order": 3,
+          "file": "03-semester-built.png",
+          "path": "store/apple/screenshot-copy-b-image-2/fr-FR/APP_IPHONE_65/03-semester-built.png"
+        },
+        {
+          "order": 4,
+          "file": "04-today-next-move.png",
+          "path": "store/apple/screenshot-copy-b-image-2/fr-FR/APP_IPHONE_65/04-today-next-move.png"
+        },
+        {
+          "order": 5,
+          "file": "05-study-blocks.png",
+          "path": "store/apple/screenshot-copy-b-image-2/fr-FR/APP_IPHONE_65/05-study-blocks.png"
+        },
+        {
+          "order": 6,
+          "file": "06-widgets-sync.png",
+          "path": "store/apple/screenshot-copy-b-image-2/fr-FR/APP_IPHONE_65/06-widgets-sync.png"
+        },
+        {
+          "order": 7,
+          "file": "07-home-screen-widgets.png",
+          "path": "store/apple/screenshot-copy-b-image-2/fr-FR/APP_IPHONE_65/07-home-screen-widgets.png"
+        }
+      ]
+    },
+    {
+      "locale": "hi",
+      "screenshots": [
+        {
+          "order": 1,
+          "file": "01-scan-syllabus-notes.png",
+          "path": "store/apple/screenshot-copy-b-image-2/hi/APP_IPHONE_65/01-scan-syllabus-notes.png"
+        },
+        {
+          "order": 2,
+          "file": "02-approve-deadlines.png",
+          "path": "store/apple/screenshot-copy-b-image-2/hi/APP_IPHONE_65/02-approve-deadlines.png"
+        },
+        {
+          "order": 3,
+          "file": "03-semester-built.png",
+          "path": "store/apple/screenshot-copy-b-image-2/hi/APP_IPHONE_65/03-semester-built.png"
+        },
+        {
+          "order": 4,
+          "file": "04-today-next-move.png",
+          "path": "store/apple/screenshot-copy-b-image-2/hi/APP_IPHONE_65/04-today-next-move.png"
+        },
+        {
+          "order": 5,
+          "file": "05-study-blocks.png",
+          "path": "store/apple/screenshot-copy-b-image-2/hi/APP_IPHONE_65/05-study-blocks.png"
+        },
+        {
+          "order": 6,
+          "file": "06-widgets-sync.png",
+          "path": "store/apple/screenshot-copy-b-image-2/hi/APP_IPHONE_65/06-widgets-sync.png"
+        },
+        {
+          "order": 7,
+          "file": "07-home-screen-widgets.png",
+          "path": "store/apple/screenshot-copy-b-image-2/hi/APP_IPHONE_65/07-home-screen-widgets.png"
+        }
+      ]
+    },
+    {
+      "locale": "ja",
+      "screenshots": [
+        {
+          "order": 1,
+          "file": "01-scan-syllabus-notes.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ja/APP_IPHONE_65/01-scan-syllabus-notes.png"
+        },
+        {
+          "order": 2,
+          "file": "02-approve-deadlines.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ja/APP_IPHONE_65/02-approve-deadlines.png"
+        },
+        {
+          "order": 3,
+          "file": "03-semester-built.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ja/APP_IPHONE_65/03-semester-built.png"
+        },
+        {
+          "order": 4,
+          "file": "04-today-next-move.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ja/APP_IPHONE_65/04-today-next-move.png"
+        },
+        {
+          "order": 5,
+          "file": "05-study-blocks.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ja/APP_IPHONE_65/05-study-blocks.png"
+        },
+        {
+          "order": 6,
+          "file": "06-widgets-sync.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ja/APP_IPHONE_65/06-widgets-sync.png"
+        },
+        {
+          "order": 7,
+          "file": "07-home-screen-widgets.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ja/APP_IPHONE_65/07-home-screen-widgets.png"
+        }
+      ]
+    },
+    {
+      "locale": "ko",
+      "screenshots": [
+        {
+          "order": 1,
+          "file": "01-scan-syllabus-notes.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/01-scan-syllabus-notes.png"
+        },
+        {
+          "order": 2,
+          "file": "02-approve-deadlines.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/02-approve-deadlines.png"
+        },
+        {
+          "order": 3,
+          "file": "03-semester-built.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/03-semester-built.png"
+        },
+        {
+          "order": 4,
+          "file": "04-today-next-move.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/04-today-next-move.png"
+        },
+        {
+          "order": 5,
+          "file": "05-study-blocks.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/05-study-blocks.png"
+        },
+        {
+          "order": 6,
+          "file": "06-widgets-sync.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/06-widgets-sync.png"
+        },
+        {
+          "order": 7,
+          "file": "07-home-screen-widgets.png",
+          "path": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/07-home-screen-widgets.png"
+        }
+      ]
+    },
+    {
+      "locale": "pt-BR",
+      "screenshots": [
+        {
+          "order": 1,
+          "file": "01-scan-syllabus-notes.png",
+          "path": "store/apple/screenshot-copy-b-image-2/pt-BR/APP_IPHONE_65/01-scan-syllabus-notes.png"
+        },
+        {
+          "order": 2,
+          "file": "02-approve-deadlines.png",
+          "path": "store/apple/screenshot-copy-b-image-2/pt-BR/APP_IPHONE_65/02-approve-deadlines.png"
+        },
+        {
+          "order": 3,
+          "file": "03-semester-built.png",
+          "path": "store/apple/screenshot-copy-b-image-2/pt-BR/APP_IPHONE_65/03-semester-built.png"
+        },
+        {
+          "order": 4,
+          "file": "04-today-next-move.png",
+          "path": "store/apple/screenshot-copy-b-image-2/pt-BR/APP_IPHONE_65/04-today-next-move.png"
+        },
+        {
+          "order": 5,
+          "file": "05-study-blocks.png",
+          "path": "store/apple/screenshot-copy-b-image-2/pt-BR/APP_IPHONE_65/05-study-blocks.png"
+        },
+        {
+          "order": 6,
+          "file": "06-widgets-sync.png",
+          "path": "store/apple/screenshot-copy-b-image-2/pt-BR/APP_IPHONE_65/06-widgets-sync.png"
+        },
+        {
+          "order": 7,
+          "file": "07-home-screen-widgets.png",
+          "path": "store/apple/screenshot-copy-b-image-2/pt-BR/APP_IPHONE_65/07-home-screen-widgets.png"
+        }
+      ]
+    },
+    {
+      "locale": "pt-PT",
+      "screenshots": [
+        {
+          "order": 1,
+          "file": "01-scan-syllabus-notes.png",
+          "path": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/01-scan-syllabus-notes.png"
+        },
+        {
+          "order": 2,
+          "file": "02-approve-deadlines.png",
+          "path": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/02-approve-deadlines.png"
+        },
+        {
+          "order": 3,
+          "file": "03-semester-built.png",
+          "path": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/03-semester-built.png"
+        },
+        {
+          "order": 4,
+          "file": "04-today-next-move.png",
+          "path": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/04-today-next-move.png"
+        },
+        {
+          "order": 5,
+          "file": "05-study-blocks.png",
+          "path": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/05-study-blocks.png"
+        },
+        {
+          "order": 6,
+          "file": "06-widgets-sync.png",
+          "path": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/06-widgets-sync.png"
+        },
+        {
+          "order": 7,
+          "file": "07-home-screen-widgets.png",
+          "path": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/07-home-screen-widgets.png"
+        }
+      ]
+    },
+    {
+      "locale": "zh-Hans",
+      "screenshots": [
+        {
+          "order": 1,
+          "file": "01-scan-syllabus-notes.png",
+          "path": "store/apple/screenshot-copy-b-image-2/zh-Hans/APP_IPHONE_65/01-scan-syllabus-notes.png"
+        },
+        {
+          "order": 2,
+          "file": "02-approve-deadlines.png",
+          "path": "store/apple/screenshot-copy-b-image-2/zh-Hans/APP_IPHONE_65/02-approve-deadlines.png"
+        },
+        {
+          "order": 3,
+          "file": "03-semester-built.png",
+          "path": "store/apple/screenshot-copy-b-image-2/zh-Hans/APP_IPHONE_65/03-semester-built.png"
+        },
+        {
+          "order": 4,
+          "file": "04-today-next-move.png",
+          "path": "store/apple/screenshot-copy-b-image-2/zh-Hans/APP_IPHONE_65/04-today-next-move.png"
+        },
+        {
+          "order": 5,
+          "file": "05-study-blocks.png",
+          "path": "store/apple/screenshot-copy-b-image-2/zh-Hans/APP_IPHONE_65/05-study-blocks.png"
+        },
+        {
+          "order": 6,
+          "file": "06-widgets-sync.png",
+          "path": "store/apple/screenshot-copy-b-image-2/zh-Hans/APP_IPHONE_65/06-widgets-sync.png"
+        },
+        {
+          "order": 7,
+          "file": "07-home-screen-widgets.png",
+          "path": "store/apple/screenshot-copy-b-image-2/zh-Hans/APP_IPHONE_65/07-home-screen-widgets.png"
+        }
+      ]
+    },
+    {
+      "locale": "zh-Hant",
+      "screenshots": [
+        {
+          "order": 1,
+          "file": "01-scan-syllabus-notes.png",
+          "path": "store/apple/screenshot-copy-b-image-2/zh-Hant/APP_IPHONE_65/01-scan-syllabus-notes.png"
+        },
+        {
+          "order": 2,
+          "file": "02-approve-deadlines.png",
+          "path": "store/apple/screenshot-copy-b-image-2/zh-Hant/APP_IPHONE_65/02-approve-deadlines.png"
+        },
+        {
+          "order": 3,
+          "file": "03-semester-built.png",
+          "path": "store/apple/screenshot-copy-b-image-2/zh-Hant/APP_IPHONE_65/03-semester-built.png"
+        },
+        {
+          "order": 4,
+          "file": "04-today-next-move.png",
+          "path": "store/apple/screenshot-copy-b-image-2/zh-Hant/APP_IPHONE_65/04-today-next-move.png"
+        },
+        {
+          "order": 5,
+          "file": "05-study-blocks.png",
+          "path": "store/apple/screenshot-copy-b-image-2/zh-Hant/APP_IPHONE_65/05-study-blocks.png"
+        },
+        {
+          "order": 6,
+          "file": "06-widgets-sync.png",
+          "path": "store/apple/screenshot-copy-b-image-2/zh-Hant/APP_IPHONE_65/06-widgets-sync.png"
+        },
+        {
+          "order": 7,
+          "file": "07-home-screen-widgets.png",
+          "path": "store/apple/screenshot-copy-b-image-2/zh-Hant/APP_IPHONE_65/07-home-screen-widgets.png"
+        }
+      ]
+    }
+  ]
+}

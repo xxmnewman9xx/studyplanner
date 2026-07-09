@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 
@@ -13,10 +14,13 @@ type ProvenanceEntry = {
   file?: string;
   generatedInChatGPTMacApp?: boolean;
   gptImage2?: boolean;
+  realHomeScreenWidgetSource?: boolean;
   attachedRealLogo?: boolean;
   attachedRealUiReference?: boolean;
   generatedIndividually?: boolean;
   humanAccepted?: boolean;
+  sourcePath?: string;
+  sourceSha256?: string;
   notes?: string;
 };
 
@@ -160,6 +164,10 @@ function pngDimensions(path: string) {
   };
 }
 
+function sha256(path: string) {
+  return createHash("sha256").update(readFileSync(path)).digest("hex");
+}
+
 function listPngs(root: string) {
   if (!existsSync(root)) return [];
   const out: string[] = [];
@@ -181,14 +189,27 @@ function provenanceKey(locale: string, file: string) {
   return `${locale}/${file}`;
 }
 
-function acceptedProvenance(entry: ProvenanceEntry | undefined) {
-  return Boolean(
+function acceptedProvenance(locale: string, file: string, entry: ProvenanceEntry | undefined) {
+  const chatGptImage2 = Boolean(
     entry?.generatedInChatGPTMacApp &&
       entry.gptImage2 &&
       entry.attachedRealLogo &&
       entry.attachedRealUiReference &&
       entry.generatedIndividually &&
       entry.humanAccepted,
+  );
+  if (chatGptImage2) return true;
+
+  const expectedWidgetSource = `store/apple/screenshot-pop/${locale}/${DEVICE_DIR}/07-real-home-screen-widgets.png`;
+  return Boolean(
+    file === "07-home-screen-widgets.png" &&
+      entry?.realHomeScreenWidgetSource &&
+      entry.attachedRealLogo &&
+      entry.attachedRealUiReference &&
+      entry.generatedIndividually &&
+      entry.humanAccepted &&
+      entry.sourcePath === expectedWidgetSource &&
+      entry.sourceSha256,
   );
 }
 
@@ -236,6 +257,7 @@ const invalid: { path: string; reason: string }[] = [];
 const ready: string[] = [];
 const provenanceMissing: string[] = [];
 const provenanceRejected: string[] = [];
+const widgetSourceMismatch: { path: string; reason: string }[] = [];
 
 for (const locale of expectedLocales) {
   for (const slide of expectedSlides) {
@@ -259,9 +281,25 @@ for (const locale of expectedLocales) {
       provenanceMissing.push(path);
       continue;
     }
-    if (!acceptedProvenance(entry)) {
+    if (!acceptedProvenance(locale, slide.file, entry)) {
       provenanceRejected.push(path);
       continue;
+    }
+    if (slide.file === "07-home-screen-widgets.png" && entry.realHomeScreenWidgetSource) {
+      if (!entry.sourcePath || !existsSync(entry.sourcePath)) {
+        widgetSourceMismatch.push({ path, reason: `missing real widget source: ${entry.sourcePath || "(none)"}` });
+        continue;
+      }
+      const sourceSha = sha256(entry.sourcePath);
+      const finalSha = sha256(path);
+      if (entry.sourceSha256 !== sourceSha) {
+        widgetSourceMismatch.push({ path, reason: `provenance source hash ${entry.sourceSha256} does not match ${sourceSha}` });
+        continue;
+      }
+      if (finalSha !== sourceSha) {
+        widgetSourceMismatch.push({ path, reason: `final PNG hash ${finalSha} does not match real widget source ${sourceSha}` });
+        continue;
+      }
     }
     ready.push(path);
   }
@@ -278,6 +316,7 @@ expect(invalid.length === 0, `invalid final Copy B PNGs: ${invalid.length}`);
 expect(Boolean(provenance), `missing required human provenance registry: ${PROVENANCE_PATH}`);
 expect(provenanceMissing.length === 0, `missing provenance entries for ${provenanceMissing.length} final PNGs`);
 expect(provenanceRejected.length === 0, `unaccepted provenance entries for ${provenanceRejected.length} final PNGs`);
+expect(widgetSourceMismatch.length === 0, `real Home Screen widget slide mismatches: ${widgetSourceMismatch.length}`);
 warn(scratchPngs.length === 0, `${SCRATCH_ROOT} contains ${scratchPngs.length} scratch PNGs; these are not accepted final B assets`);
 for (const item of disqualifiedRoots) {
   warn(item.pngs.length === 0, `${item.root} contains ${item.pngs.length} disqualified Copy B PNGs; only ${FINAL_ROOT} can pass final B QA`);
@@ -310,6 +349,7 @@ const payload = {
     provenanceEntries: provenanceEntries.size,
     provenanceMissing: provenanceMissing.length,
     provenanceRejected: provenanceRejected.length,
+    widgetSourceMismatches: widgetSourceMismatch.length,
   },
   machineVerifiableGates: {
     promptPackRequiresMacAppAndImage2: promptPack.includes("ChatGPT Mac app") && promptPack.includes("GPT Image 2.0"),
@@ -328,6 +368,7 @@ const payload = {
       "humanAccepted",
     ],
     allAccepted: provenanceMissing.length === 0 && provenanceRejected.length === 0 && ready.length === expectedCount,
+    realHomeScreenWidgetSlideHashLocked: widgetSourceMismatch.length === 0,
   },
   failures,
   warnings,
@@ -335,6 +376,7 @@ const payload = {
   invalid: invalid.map((item) => ({ ...item, path: relative(".", item.path) })),
   provenanceMissing: provenanceMissing.map((path) => relative(".", path)),
   provenanceRejected: provenanceRejected.map((path) => relative(".", path)),
+  widgetSourceMismatch: widgetSourceMismatch.map((item) => ({ ...item, path: relative(".", item.path) })),
   scratchExamples: scratchPngs.slice(0, 12).map((path) => relative(".", path)),
   disqualifiedExamples: disqualifiedRoots
     .flatMap((item) => item.pngs.slice(0, 4))

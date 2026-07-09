@@ -1,0 +1,90 @@
+{
+  "generatedAt": "2026-07-09T07:46:44.861Z",
+  "status": "ready",
+  "funnel": {
+    "steps": [
+      "name",
+      "build"
+    ],
+    "scanOptions": [
+      "Scan with camera",
+      "Paste syllabus",
+      "Add manually"
+    ],
+    "maxClicksToPaywallWithOptionChange": 3,
+    "personalization": {
+      "nameStep": true,
+      "personalBuildTitle": true
+    },
+    "activeRoutes": {
+      "camera": "paywall -> scan?action=camera",
+      "paste": "paywall -> paste?mode=syllabus",
+      "manual": "paywall -> paste?mode=manual"
+    }
+  },
+  "colorCustomization": {
+    "onboardingThemeFixedToGraphite": true,
+    "widgetConfigurationColorParameters": 0,
+    "widgetRuntimeReadsThemeColor": false
+  },
+  "copyB": {
+    "promptPack": "docs/launch/back-to-school-2026/app-store-connect-final-upload/outcome-copy-b-image-2-mac-prompts.md",
+    "validator": "scripts/check-copy-b-image2-final.ts",
+    "finalRootRequired": "store/apple/screenshot-copy-b-image-2",
+    "acceptedGenerationPath": "Individual ChatGPT Mac app GPT Image 2.0 generations with real UI and real logo references"
+  },
+  "checks": [
+    {
+      "name": "onboarding is a two-step personalized funnel",
+      "pass": true,
+      "detail": "steps=[\"name\",\"build\"]"
+    },
+    {
+      "name": "onboarding exposes only three build choices",
+      "pass": true,
+      "detail": "scanOptions=[\"Scan with camera\",\"Paste syllabus\",\"Add manually\"]"
+    },
+    {
+      "name": "first setup surface has no skip path",
+      "pass": true,
+      "detail": "Expected setup to require scan, paste, or manual paywall-first action with no visible skip option."
+    },
+    {
+      "name": "paywall appears within four taps from the fresh funnel",
+      "pass": true,
+      "detail": "maxClicksToPaywallWithOptionChange=3"
+    },
+    {
+      "name": "scan, paste, and manual onboarding routes are paywall-first",
+      "pass": true,
+      "detail": "Expected every active onboarding import path to push the paywall route before scan/paste/manual setup."
+    },
+    {
+      "name": "paywall is a full screen, not a transient popup",
+      "pass": true,
+      "detail": "Expected the Paywall component to render a full route with App Store proof, purchase, and restore actions."
+    },
+    {
+      "name": "actual IAP purchase callback preserves the selected paywall destination",
+      "pass": true,
+      "detail": "Expected real StoreKit purchase updates to route to the selected scan/paste/manual/widget destination after unlock."
+    },
+    {
+      "name": "onboarding has no visible color customization",
+      "pass": true,
+      "detail": "Expected automatic graphite theme with no user-facing theme/color option picker in onboarding."
+    },
+    {
+      "name": "widget and settings color customization is not exposed",
+      "pass": true,
+      "detail": "widgetsWithColorConfig=0"
+    },
+    {
+      "name": "Copy B final gate enforces individual ChatGPT Mac app GPT Image 2.0 generation",
+      "pass": true,
+      "detail": "Expected prompt pack plus validator to reject non-Mac-app, non-Image-2, non-individual, or local-rendered B assets."
+    }
+  ],
+  "failures": [],
+  "warnings": []
+}

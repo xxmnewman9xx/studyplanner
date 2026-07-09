@@ -1,0 +1,415 @@
+{
+  "generatedAt": "2026-07-09T07:02:02.424Z",
+  "submitted": {
+    "en-US-07": {
+      "at": "2026-07-09T07:02:08.992Z",
+      "sourcePath": "store/apple/screenshot-pop/en-US/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/en-US/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T07:03:02.405Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/637cd7e14cf174528930f0e7aa65cfbce408418d6bcc4d7dec1e548d5a4572ed",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/en-US-07-rejected-853x1844.png",
+        "dimensions": {
+          "width": 853,
+          "height": 1844
+        },
+        "ignoredSourceDimensions": [
+          "1024x1024"
+        ],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 853x1844."
+      }
+    },
+    "en-CA-07": {
+      "at": "2026-07-09T07:03:09.777Z",
+      "sourcePath": "store/apple/screenshot-pop/en-CA/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/en-CA/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/en-CA/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T07:04:06.347Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/632491c1baaaef20df52b22706db972065cf3f75cb1f3fa291faec97935f632c",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/en-CA-07-rejected-853x1844.png",
+        "dimensions": {
+          "width": 853,
+          "height": 1844
+        },
+        "ignoredSourceDimensions": [
+          "1024x1024"
+        ],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 853x1844."
+      }
+    },
+    "en-GB-07": {
+      "at": "2026-07-09T07:04:13.677Z",
+      "sourcePath": "store/apple/screenshot-pop/en-GB/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/en-GB/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/en-GB/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T07:05:04.117Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/aae8b5685ed6f934510a65b7ce0ecebbcd399abf8ef5362b2404307ef78bec00",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/en-GB-07-rejected-853x1844.png",
+        "dimensions": {
+          "width": 853,
+          "height": 1844
+        },
+        "ignoredSourceDimensions": [
+          "1024x1024"
+        ],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 853x1844."
+      }
+    },
+    "en-AU-07": {
+      "at": "2026-07-09T07:05:11.501Z",
+      "sourcePath": "store/apple/screenshot-pop/en-AU/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/en-AU/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/en-AU/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T07:06:10.310Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/124b18a2f5ec60b337bd92816d5a4feaa39b863100c5176d85e5cfdc0ae00172",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/en-AU-07-rejected-853x1844.png",
+        "dimensions": {
+          "width": 853,
+          "height": 1844
+        },
+        "ignoredSourceDimensions": [
+          "1024x1024"
+        ],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 853x1844."
+      }
+    },
+    "de-DE-07": {
+      "at": "2026-07-09T07:06:17.700Z",
+      "sourcePath": "store/apple/screenshot-pop/de-DE/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/de-DE/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/de-DE/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T07:07:23.917Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/92498ef3247293a73ea81bfeb9f87962dd4aeffcbdf4416b1a4eeceea07894a8",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/de-DE-07-rejected-853x1844.png",
+        "dimensions": {
+          "width": 853,
+          "height": 1844
+        },
+        "ignoredSourceDimensions": [
+          "1024x1024"
+        ],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 853x1844."
+      }
+    },
+    "es-ES-07": {
+      "at": "2026-07-09T07:07:31.296Z",
+      "sourcePath": "store/apple/screenshot-pop/es-ES/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/es-ES/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/es-ES/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T07:08:21.922Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/e217de252d7d46b95603a27478938f46b93ed35ea42381835c67efab089a289e",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/es-ES-07-rejected-853x1844.png",
+        "dimensions": {
+          "width": 853,
+          "height": 1844
+        },
+        "ignoredSourceDimensions": [
+          "1024x1024"
+        ],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 853x1844."
+      }
+    },
+    "es-MX-07": {
+      "at": "2026-07-09T07:08:29.344Z",
+      "sourcePath": "store/apple/screenshot-pop/es-MX/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/es-MX/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/es-MX/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T07:09:22.155Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/04d7626e7116db92905c168a18eeb3b006f332ac074a6722b7001e21c9cfd400",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/es-MX-07-rejected-853x1844.png",
+        "dimensions": {
+          "width": 853,
+          "height": 1844
+        },
+        "ignoredSourceDimensions": [
+          "1024x1024"
+        ],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 853x1844."
+      }
+    },
+    "fr-FR-07": {
+      "at": "2026-07-09T07:09:29.542Z",
+      "sourcePath": "store/apple/screenshot-pop/fr-FR/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/fr-FR/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/fr-FR/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T07:10:26.039Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/749be6b83d4969016e29c48d1d976cf23e0bc13998e2283c24ecc00a2d0f4531",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/fr-FR-07-rejected-853x1844.png",
+        "dimensions": {
+          "width": 853,
+          "height": 1844
+        },
+        "ignoredSourceDimensions": [
+          "1024x1024"
+        ],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 853x1844."
+      }
+    },
+    "fr-CA-07": {
+      "at": "2026-07-09T07:10:33.400Z",
+      "sourcePath": "store/apple/screenshot-pop/fr-CA/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/fr-CA/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/fr-CA/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T07:11:23.880Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/2a5f193c6dcb91d959792961e871d20faae5ddf49764c6142e167778e10d529b",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/fr-CA-07-rejected-853x1844.png",
+        "dimensions": {
+          "width": 853,
+          "height": 1844
+        },
+        "ignoredSourceDimensions": [
+          "1024x1024"
+        ],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 853x1844."
+      }
+    },
+    "pt-BR-07": {
+      "at": "2026-07-09T07:11:31.234Z",
+      "sourcePath": "store/apple/screenshot-pop/pt-BR/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/pt-BR/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/pt-BR/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T07:12:18.015Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/df12976d7cbc0345416a1f19cd54fc6e3b59e3f8a67e109108db46e5b77cb436",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/pt-BR-07-rejected-853x1844.png",
+        "dimensions": {
+          "width": 853,
+          "height": 1844
+        },
+        "ignoredSourceDimensions": [
+          "1024x1024"
+        ],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 853x1844."
+      }
+    },
+    "pt-PT-07": {
+      "at": "2026-07-09T07:12:25.442Z",
+      "sourcePath": "store/apple/screenshot-pop/pt-PT/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/pt-PT/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T07:13:21.353Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/8c8da1349d6d7983ec9c13303e89f983e40579d368bfabc99500386112635031",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/pt-PT-07-rejected-853x1844.png",
+        "dimensions": {
+          "width": 853,
+          "height": 1844
+        },
+        "ignoredSourceDimensions": [
+          "1024x1024"
+        ],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 853x1844."
+      }
+    },
+    "ar-SA-07": {
+      "at": "2026-07-09T07:13:28.760Z",
+      "sourcePath": "store/apple/screenshot-pop/ar-SA/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/ar-SA/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/ar-SA/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T07:14:22.102Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/483b37911d747c8c9674d314b61d577303a4b6fde6ee7cc5e0d2d01d9ffb3b09",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/ar-SA-07-rejected-853x1844.png",
+        "dimensions": {
+          "width": 853,
+          "height": 1844
+        },
+        "ignoredSourceDimensions": [
+          "1024x1024"
+        ],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 853x1844."
+      }
+    },
+    "hi-07": {
+      "at": "2026-07-09T07:14:29.445Z",
+      "sourcePath": "store/apple/screenshot-pop/hi/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/hi/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/hi/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T07:16:00.274Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/63b6167e45784fd44fdcd5b7b78c07bcdc32265112cde1a010f1459ca4cd21ea",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/hi-07-rejected-852x1846.png",
+        "dimensions": {
+          "width": 852,
+          "height": 1846
+        },
+        "ignoredSourceDimensions": [
+          "1024x1024"
+        ],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 852x1846."
+      }
+    },
+    "ja-07": {
+      "at": "2026-07-09T07:16:07.646Z",
+      "sourcePath": "store/apple/screenshot-pop/ja/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/ja/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/ja/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T07:17:07.600Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/6eb9fcc744d66b35eac4a3dd2b7b3a6e5120fb83e423d409fa257f5d8ce916f2",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/ja-07-rejected-853x1844.png",
+        "dimensions": {
+          "width": 853,
+          "height": 1844
+        },
+        "ignoredSourceDimensions": [
+          "1024x1024"
+        ],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 853x1844."
+      }
+    },
+    "ko-07": {
+      "at": "2026-07-09T07:17:14.943Z",
+      "sourcePath": "store/apple/screenshot-pop/ko/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/ko/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T07:17:18.526Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/a6947a5b287ae72630b7595cb02160aa007e47f0a7adc496f7f622acfedb1efb",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/ko-07-rejected-710x1536.png",
+        "dimensions": {
+          "width": 710,
+          "height": 1536
+        },
+        "ignoredSourceDimensions": [
+          "1024x1024"
+        ],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 710x1536."
+      }
+    },
+    "zh-Hans-07": {
+      "at": "2026-07-09T07:17:25.941Z",
+      "sourcePath": "store/apple/screenshot-pop/zh-Hans/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/zh-Hans/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/zh-Hans/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T07:18:19.663Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/a9ecd3d81a596c6acb770ebd6425d6845ba171645b8681b3229ec1ee557cf882",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/zh-Hans-07-rejected-852x1846.png",
+        "dimensions": {
+          "width": 852,
+          "height": 1846
+        },
+        "ignoredSourceDimensions": [
+          "1024x1024"
+        ],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 852x1846."
+      }
+    },
+    "zh-Hant-07": {
+      "at": "2026-07-09T07:18:26.992Z",
+      "sourcePath": "store/apple/screenshot-pop/zh-Hant/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/zh-Hant/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/zh-Hant/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T07:19:23.411Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/e96a2fcd5c784ee2b81b6f7ae1e319c13d4709bb4db95155983a80d480d4325d",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/zh-Hant-07-rejected-853x1844.png",
+        "dimensions": {
+          "width": 853,
+          "height": 1844
+        },
+        "ignoredSourceDimensions": [
+          "1024x1024"
+        ],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 853x1844."
+      }
+    }
+  },
+  "staged": {},
+  "failures": []
+}

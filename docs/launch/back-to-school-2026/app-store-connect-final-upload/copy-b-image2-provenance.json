@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-07-09T06:01:55.572Z",
-  "source": "ChatGPT Mac app / GPT Image 2.0 raw candidates with dimension-only finalization",
+  "generatedAt": "2026-07-09T07:31:03.375Z",
+  "source": "Accepted Copy B set: GPT Image 2.0 slides 1-7, with slide 7 generated from real localized Home Screen WidgetKit UI references",
   "entries": [
     {
       "locale": "en-US",
@@ -77,7 +77,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate en-US-07-rejected-853x1844.png."
+      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/en-US-07-chatgpt-raw-853x1844.png (853x1844). Source UI reference was the real localized Home Screen WidgetKit slide."
     },
     {
       "locale": "en-CA",
@@ -154,7 +154,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate en-CA-07-rejected-853x1844.png."
+      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/en-CA-07-chatgpt-raw-853x1844.png (853x1844). Source UI reference was the real localized Home Screen WidgetKit slide."
     },
     {
       "locale": "en-GB",
@@ -231,7 +231,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate en-GB-07-rejected-853x1844.png."
+      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/en-GB-07-chatgpt-raw-853x1844.png (853x1844). Source UI reference was the real localized Home Screen WidgetKit slide."
     },
     {
       "locale": "en-AU",
@@ -308,7 +308,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate en-AU-07-rejected-853x1844.png."
+      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/en-AU-07-chatgpt-raw-853x1844.png (853x1844). Source UI reference was the real localized Home Screen WidgetKit slide."
     },
     {
       "locale": "de-DE",
@@ -385,7 +385,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate de-DE-07-rejected-853x1844.png."
+      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/de-DE-07-chatgpt-raw-853x1844.png (853x1844). Source UI reference was the real localized Home Screen WidgetKit slide."
     },
     {
       "locale": "es-ES",
@@ -462,7 +462,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate es-ES-07-rejected-853x1844.png."
+      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/es-ES-07-chatgpt-raw-853x1844.png (853x1844). Source UI reference was the real localized Home Screen WidgetKit slide."
     },
     {
       "locale": "es-MX",
@@ -539,7 +539,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate es-MX-07-rejected-853x1844.png."
+      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/es-MX-07-chatgpt-raw-853x1844.png (853x1844). Source UI reference was the real localized Home Screen WidgetKit slide."
     },
     {
       "locale": "fr-FR",
@@ -616,7 +616,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate fr-FR-07-rejected-853x1844.png."
+      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/fr-FR-07-chatgpt-raw-853x1844.png (853x1844). Source UI reference was the real localized Home Screen WidgetKit slide."
     },
     {
       "locale": "fr-CA",
@@ -693,7 +693,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate fr-CA-07-rejected-853x1844.png."
+      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/fr-CA-07-chatgpt-raw-853x1844.png (853x1844). Source UI reference was the real localized Home Screen WidgetKit slide."
     },
     {
       "locale": "pt-BR",
@@ -770,7 +770,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate pt-BR-07-rejected-853x1844.png."
+      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/pt-BR-07-chatgpt-raw-853x1844.png (853x1844). Source UI reference was the real localized Home Screen WidgetKit slide."
     },
     {
       "locale": "pt-PT",
@@ -847,7 +847,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate pt-PT-07-rejected-853x1844.png."
+      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/pt-PT-07-chatgpt-raw-853x1844.png (853x1844). Source UI reference was the real localized Home Screen WidgetKit slide."
     },
     {
       "locale": "ar-SA",
@@ -924,7 +924,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate ar-SA-07-rejected-852x1846.png."
+      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/ar-SA-07-chatgpt-raw-853x1844.png (853x1844). Source UI reference was the real localized Home Screen WidgetKit slide."
     },
     {
       "locale": "hi",
@@ -1001,7 +1001,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate hi-07-rejected-853x1844.png."
+      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/hi-07-chatgpt-raw-852x1846.png (852x1846). Source UI reference was the real localized Home Screen WidgetKit slide."
     },
     {
       "locale": "ja",
@@ -1078,7 +1078,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate ja-07-rejected-853x1844.png."
+      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/ja-07-chatgpt-raw-853x1844.png (853x1844). Source UI reference was the real localized Home Screen WidgetKit slide."
     },
     {
       "locale": "ko",
@@ -1155,7 +1155,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate ko-07-rejected-853x1844.png."
+      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/ko-07-chatgpt-raw-852x1846.png (852x1846). Source UI reference was the real localized Home Screen WidgetKit slide."
     },
     {
       "locale": "zh-Hans",
@@ -1232,7 +1232,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate zh-Hans-07-rejected-852x1846.png."
+      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/zh-Hans-07-chatgpt-raw-852x1846.png (852x1846). Source UI reference was the real localized Home Screen WidgetKit slide."
     },
     {
       "locale": "zh-Hant",
@@ -1309,7 +1309,7 @@
       "attachedRealUiReference": true,
       "generatedIndividually": true,
       "humanAccepted": true,
-      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app raw candidate zh-Hant-07-rejected-852x1846.png."
+      "notes": "Visual QA accepted. Dimension-finalized from ChatGPT Mac app widget candidate qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/zh-Hant-07-chatgpt-raw-853x1844.png (853x1844). Source UI reference was the real localized Home Screen WidgetKit slide."
     }
   ]
 }

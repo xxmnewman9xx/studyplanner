@@ -1,0 +1,278 @@
+{
+  "generatedAt": "2026-07-09T06:52:26.676Z",
+  "purpose": "Widget-only ChatGPT Mac app / GPT Image 2.0 generation queue for Copy B slide 7",
+  "items": [
+    {
+      "id": "en-US-07",
+      "locale": "en-US",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/en-US/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/en-US/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.\n\nMatch the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app `Widgets` or `Recommended widgets` screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.\n\nExternal marketing text (render exactly for en-US; no English fallback):\nRender the exact localized headline and subhead below. Do not use the English fallback headline or subhead.\nHeadline: See the week at a glance.\nSubhead: Today stays close on Home Screen.\n\nPlace the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep the external headline and subhead inside the top 20-25% text area, fit the longest word without clipping, and keep all text readable and professionally spaced. No fake UI, no App Store badges, no prices, no ratings.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.\n\nSource-lock requirement for this widget slide: preserve the attached real Home Screen WidgetKit screenshot, localized marketing text, StudyPlanner logo, widgets, wallpaper, status bar, app icons, phone geometry, and all visible widget content as faithfully as possible. Do not replace it with the in-app Widgets screen. Do not invent widget labels, app icons, ratings, prices, awards, notifications, lock screens, school logos, or App Store chrome. If you cannot improve the presentation without changing real widget proof, return the same composition faithfully at the requested dimensions."
+    },
+    {
+      "id": "en-CA-07",
+      "locale": "en-CA",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/en-CA/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/en-CA/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/en-CA/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.\n\nMatch the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app `Widgets` or `Recommended widgets` screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.\n\nExternal marketing text (render exactly for en-CA; no English fallback):\nRender the exact localized headline and subhead below. Do not use the English fallback headline or subhead.\nHeadline: See the week at a glance.\nSubhead: Today stays close on Home Screen.\n\nPlace the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep the external headline and subhead inside the top 20-25% text area, fit the longest word without clipping, and keep all text readable and professionally spaced. No fake UI, no App Store badges, no prices, no ratings.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.\n\nSource-lock requirement for this widget slide: preserve the attached real Home Screen WidgetKit screenshot, localized marketing text, StudyPlanner logo, widgets, wallpaper, status bar, app icons, phone geometry, and all visible widget content as faithfully as possible. Do not replace it with the in-app Widgets screen. Do not invent widget labels, app icons, ratings, prices, awards, notifications, lock screens, school logos, or App Store chrome. If you cannot improve the presentation without changing real widget proof, return the same composition faithfully at the requested dimensions."
+    },
+    {
+      "id": "en-GB-07",
+      "locale": "en-GB",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/en-GB/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/en-GB/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/en-GB/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.\n\nMatch the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app `Widgets` or `Recommended widgets` screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.\n\nExternal marketing text (render exactly for en-GB; no English fallback):\nRender the exact localized headline and subhead below. Do not use the English fallback headline or subhead.\nHeadline: See the week at a glance.\nSubhead: Today stays close on Home Screen.\n\nPlace the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep the external headline and subhead inside the top 20-25% text area, fit the longest word without clipping, and keep all text readable and professionally spaced. No fake UI, no App Store badges, no prices, no ratings.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.\n\nSource-lock requirement for this widget slide: preserve the attached real Home Screen WidgetKit screenshot, localized marketing text, StudyPlanner logo, widgets, wallpaper, status bar, app icons, phone geometry, and all visible widget content as faithfully as possible. Do not replace it with the in-app Widgets screen. Do not invent widget labels, app icons, ratings, prices, awards, notifications, lock screens, school logos, or App Store chrome. If you cannot improve the presentation without changing real widget proof, return the same composition faithfully at the requested dimensions."
+    },
+    {
+      "id": "en-AU-07",
+      "locale": "en-AU",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/en-AU/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/en-AU/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/en-AU/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.\n\nMatch the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app `Widgets` or `Recommended widgets` screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.\n\nExternal marketing text (render exactly for en-AU; no English fallback):\nRender the exact localized headline and subhead below. Do not use the English fallback headline or subhead.\nHeadline: See the week at a glance.\nSubhead: Today stays close on Home Screen.\n\nPlace the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep the external headline and subhead inside the top 20-25% text area, fit the longest word without clipping, and keep all text readable and professionally spaced. No fake UI, no App Store badges, no prices, no ratings.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.\n\nSource-lock requirement for this widget slide: preserve the attached real Home Screen WidgetKit screenshot, localized marketing text, StudyPlanner logo, widgets, wallpaper, status bar, app icons, phone geometry, and all visible widget content as faithfully as possible. Do not replace it with the in-app Widgets screen. Do not invent widget labels, app icons, ratings, prices, awards, notifications, lock screens, school logos, or App Store chrome. If you cannot improve the presentation without changing real widget proof, return the same composition faithfully at the requested dimensions."
+    },
+    {
+      "id": "de-DE-07",
+      "locale": "de-DE",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/de-DE/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/de-DE/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/de-DE/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.\n\nMatch the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app `Widgets` or `Recommended widgets` screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.\n\nExternal marketing text (render exactly for de-DE; no English fallback):\nRender the exact localized headline and subhead below. Do not use the English fallback headline or subhead.\nHeadline: Die Woche auf einen Blick.\nSubhead: Heute direkt auf dem Home-Bildschirm.\n\nPlace the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep the external headline and subhead inside the top 20-25% text area, fit the longest word without clipping, and keep all text readable and professionally spaced. No fake UI, no App Store badges, no prices, no ratings.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.\n\nSource-lock requirement for this widget slide: preserve the attached real Home Screen WidgetKit screenshot, localized marketing text, StudyPlanner logo, widgets, wallpaper, status bar, app icons, phone geometry, and all visible widget content as faithfully as possible. Do not replace it with the in-app Widgets screen. Do not invent widget labels, app icons, ratings, prices, awards, notifications, lock screens, school logos, or App Store chrome. If you cannot improve the presentation without changing real widget proof, return the same composition faithfully at the requested dimensions."
+    },
+    {
+      "id": "es-ES-07",
+      "locale": "es-ES",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/es-ES/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/es-ES/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/es-ES/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.\n\nMatch the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app `Widgets` or `Recommended widgets` screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.\n\nExternal marketing text (render exactly for es-ES; no English fallback):\nRender the exact localized headline and subhead below. Do not use the English fallback headline or subhead.\nHeadline: La semana de un vistazo.\nSubhead: Hoy a mano en la pantalla de inicio.\n\nPlace the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep the external headline and subhead inside the top 20-25% text area, fit the longest word without clipping, and keep all text readable and professionally spaced. No fake UI, no App Store badges, no prices, no ratings.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.\n\nSource-lock requirement for this widget slide: preserve the attached real Home Screen WidgetKit screenshot, localized marketing text, StudyPlanner logo, widgets, wallpaper, status bar, app icons, phone geometry, and all visible widget content as faithfully as possible. Do not replace it with the in-app Widgets screen. Do not invent widget labels, app icons, ratings, prices, awards, notifications, lock screens, school logos, or App Store chrome. If you cannot improve the presentation without changing real widget proof, return the same composition faithfully at the requested dimensions."
+    },
+    {
+      "id": "es-MX-07",
+      "locale": "es-MX",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/es-MX/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/es-MX/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/es-MX/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.\n\nMatch the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app `Widgets` or `Recommended widgets` screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.\n\nExternal marketing text (render exactly for es-MX; no English fallback):\nRender the exact localized headline and subhead below. Do not use the English fallback headline or subhead.\nHeadline: La semana de un vistazo.\nSubhead: Hoy a la mano en la pantalla de inicio.\n\nPlace the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep the external headline and subhead inside the top 20-25% text area, fit the longest word without clipping, and keep all text readable and professionally spaced. No fake UI, no App Store badges, no prices, no ratings.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.\n\nSource-lock requirement for this widget slide: preserve the attached real Home Screen WidgetKit screenshot, localized marketing text, StudyPlanner logo, widgets, wallpaper, status bar, app icons, phone geometry, and all visible widget content as faithfully as possible. Do not replace it with the in-app Widgets screen. Do not invent widget labels, app icons, ratings, prices, awards, notifications, lock screens, school logos, or App Store chrome. If you cannot improve the presentation without changing real widget proof, return the same composition faithfully at the requested dimensions."
+    },
+    {
+      "id": "fr-FR-07",
+      "locale": "fr-FR",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/fr-FR/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/fr-FR/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/fr-FR/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.\n\nMatch the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app `Widgets` or `Recommended widgets` screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.\n\nExternal marketing text (render exactly for fr-FR; no English fallback):\nRender the exact localized headline and subhead below. Do not use the English fallback headline or subhead.\nHeadline: La semaine d'un coup d'œil.\nSubhead: Aujourd'hui sur l'écran d'accueil.\n\nPlace the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep the external headline and subhead inside the top 20-25% text area, fit the longest word without clipping, and keep all text readable and professionally spaced. No fake UI, no App Store badges, no prices, no ratings.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.\n\nSource-lock requirement for this widget slide: preserve the attached real Home Screen WidgetKit screenshot, localized marketing text, StudyPlanner logo, widgets, wallpaper, status bar, app icons, phone geometry, and all visible widget content as faithfully as possible. Do not replace it with the in-app Widgets screen. Do not invent widget labels, app icons, ratings, prices, awards, notifications, lock screens, school logos, or App Store chrome. If you cannot improve the presentation without changing real widget proof, return the same composition faithfully at the requested dimensions."
+    },
+    {
+      "id": "fr-CA-07",
+      "locale": "fr-CA",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/fr-CA/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/fr-CA/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/fr-CA/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.\n\nMatch the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app `Widgets` or `Recommended widgets` screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.\n\nExternal marketing text (render exactly for fr-CA; no English fallback):\nRender the exact localized headline and subhead below. Do not use the English fallback headline or subhead.\nHeadline: La semaine d'un coup d'œil.\nSubhead: Aujourd'hui sur l'écran d'accueil.\n\nPlace the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep the external headline and subhead inside the top 20-25% text area, fit the longest word without clipping, and keep all text readable and professionally spaced. No fake UI, no App Store badges, no prices, no ratings.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.\n\nSource-lock requirement for this widget slide: preserve the attached real Home Screen WidgetKit screenshot, localized marketing text, StudyPlanner logo, widgets, wallpaper, status bar, app icons, phone geometry, and all visible widget content as faithfully as possible. Do not replace it with the in-app Widgets screen. Do not invent widget labels, app icons, ratings, prices, awards, notifications, lock screens, school logos, or App Store chrome. If you cannot improve the presentation without changing real widget proof, return the same composition faithfully at the requested dimensions."
+    },
+    {
+      "id": "pt-BR-07",
+      "locale": "pt-BR",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/pt-BR/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/pt-BR/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/pt-BR/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.\n\nMatch the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app `Widgets` or `Recommended widgets` screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.\n\nExternal marketing text (render exactly for pt-BR; no English fallback):\nRender the exact localized headline and subhead below. Do not use the English fallback headline or subhead.\nHeadline: Veja a semana de relance.\nSubhead: Hoje na Tela de Início.\n\nPlace the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep the external headline and subhead inside the top 20-25% text area, fit the longest word without clipping, and keep all text readable and professionally spaced. No fake UI, no App Store badges, no prices, no ratings.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.\n\nSource-lock requirement for this widget slide: preserve the attached real Home Screen WidgetKit screenshot, localized marketing text, StudyPlanner logo, widgets, wallpaper, status bar, app icons, phone geometry, and all visible widget content as faithfully as possible. Do not replace it with the in-app Widgets screen. Do not invent widget labels, app icons, ratings, prices, awards, notifications, lock screens, school logos, or App Store chrome. If you cannot improve the presentation without changing real widget proof, return the same composition faithfully at the requested dimensions."
+    },
+    {
+      "id": "pt-PT-07",
+      "locale": "pt-PT",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/pt-PT/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/pt-PT/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.\n\nMatch the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app `Widgets` or `Recommended widgets` screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.\n\nExternal marketing text (render exactly for pt-PT; no English fallback):\nRender the exact localized headline and subhead below. Do not use the English fallback headline or subhead.\nHeadline: A semana num relance.\nSubhead: Hoje no Ecrã principal.\n\nPlace the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep the external headline and subhead inside the top 20-25% text area, fit the longest word without clipping, and keep all text readable and professionally spaced. No fake UI, no App Store badges, no prices, no ratings.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.\n\nSource-lock requirement for this widget slide: preserve the attached real Home Screen WidgetKit screenshot, localized marketing text, StudyPlanner logo, widgets, wallpaper, status bar, app icons, phone geometry, and all visible widget content as faithfully as possible. Do not replace it with the in-app Widgets screen. Do not invent widget labels, app icons, ratings, prices, awards, notifications, lock screens, school logos, or App Store chrome. If you cannot improve the presentation without changing real widget proof, return the same composition faithfully at the requested dimensions."
+    },
+    {
+      "id": "ar-SA-07",
+      "locale": "ar-SA",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/ar-SA/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/ar-SA/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/ar-SA/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.\n\nMatch the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app `Widgets` or `Recommended widgets` screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.\n\nExternal marketing text (render exactly for ar-SA; no English fallback):\nRender the external headline and subhead in Arabic, right-to-left text direction, right-aligned. Do not left-align Arabic text.\nHeadline: الأسبوع بلمحة واحدة.\nSubhead: اليوم على الشاشة الرئيسية.\n\nPlace the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep the external headline and subhead inside the top 20-25% text area, fit the longest word without clipping, and keep all text readable and professionally spaced. No fake UI, no App Store badges, no prices, no ratings.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.\n\nSource-lock requirement for this widget slide: preserve the attached real Home Screen WidgetKit screenshot, localized marketing text, StudyPlanner logo, widgets, wallpaper, status bar, app icons, phone geometry, and all visible widget content as faithfully as possible. Do not replace it with the in-app Widgets screen. Do not invent widget labels, app icons, ratings, prices, awards, notifications, lock screens, school logos, or App Store chrome. If you cannot improve the presentation without changing real widget proof, return the same composition faithfully at the requested dimensions."
+    },
+    {
+      "id": "hi-07",
+      "locale": "hi",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/hi/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/hi/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/hi/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.\n\nMatch the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app `Widgets` or `Recommended widgets` screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.\n\nExternal marketing text (render exactly for hi; no English fallback):\nRender the exact localized headline and subhead below. Do not use the English fallback headline or subhead.\nHeadline: सप्ताह एक नज़र में देखें.\nSubhead: आज का काम होम स्क्रीन पर.\n\nPlace the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep the external headline and subhead inside the top 20-25% text area, fit the longest word without clipping, and keep all text readable and professionally spaced. No fake UI, no App Store badges, no prices, no ratings.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.\n\nSource-lock requirement for this widget slide: preserve the attached real Home Screen WidgetKit screenshot, localized marketing text, StudyPlanner logo, widgets, wallpaper, status bar, app icons, phone geometry, and all visible widget content as faithfully as possible. Do not replace it with the in-app Widgets screen. Do not invent widget labels, app icons, ratings, prices, awards, notifications, lock screens, school logos, or App Store chrome. If you cannot improve the presentation without changing real widget proof, return the same composition faithfully at the requested dimensions."
+    },
+    {
+      "id": "ja-07",
+      "locale": "ja",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/ja/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/ja/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/ja/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.\n\nMatch the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app `Widgets` or `Recommended widgets` screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.\n\nExternal marketing text (render exactly for ja; no English fallback):\nRender the exact localized headline and subhead below. Do not use the English fallback headline or subhead.\nHeadline: 週をひと目で確認。\nSubhead: 今日の予定をホーム画面に。\n\nPlace the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep the external headline and subhead inside the top 20-25% text area, fit the longest word without clipping, and keep all text readable and professionally spaced. No fake UI, no App Store badges, no prices, no ratings.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.\n\nSource-lock requirement for this widget slide: preserve the attached real Home Screen WidgetKit screenshot, localized marketing text, StudyPlanner logo, widgets, wallpaper, status bar, app icons, phone geometry, and all visible widget content as faithfully as possible. Do not replace it with the in-app Widgets screen. Do not invent widget labels, app icons, ratings, prices, awards, notifications, lock screens, school logos, or App Store chrome. If you cannot improve the presentation without changing real widget proof, return the same composition faithfully at the requested dimensions."
+    },
+    {
+      "id": "ko-07",
+      "locale": "ko",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/ko/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/ko/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.\n\nMatch the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app `Widgets` or `Recommended widgets` screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.\n\nExternal marketing text (render exactly for ko; no English fallback):\nRender the exact localized headline and subhead below. Do not use the English fallback headline or subhead.\nHeadline: 한 주를 한눈에 보세요.\nSubhead: 홈 화면에서 오늘을 확인.\n\nPlace the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep the external headline and subhead inside the top 20-25% text area, fit the longest word without clipping, and keep all text readable and professionally spaced. No fake UI, no App Store badges, no prices, no ratings.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.\n\nSource-lock requirement for this widget slide: preserve the attached real Home Screen WidgetKit screenshot, localized marketing text, StudyPlanner logo, widgets, wallpaper, status bar, app icons, phone geometry, and all visible widget content as faithfully as possible. Do not replace it with the in-app Widgets screen. Do not invent widget labels, app icons, ratings, prices, awards, notifications, lock screens, school logos, or App Store chrome. If you cannot improve the presentation without changing real widget proof, return the same composition faithfully at the requested dimensions."
+    },
+    {
+      "id": "zh-Hans-07",
+      "locale": "zh-Hans",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/zh-Hans/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/zh-Hans/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/zh-Hans/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.\n\nMatch the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app `Widgets` or `Recommended widgets` screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.\n\nExternal marketing text (render exactly for zh-Hans; no English fallback):\nRender the exact localized headline and subhead below. Do not use the English fallback headline or subhead.\nHeadline: 一眼看清本周。\nSubhead: 今天就在主屏幕。\n\nPlace the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep the external headline and subhead inside the top 20-25% text area, fit the longest word without clipping, and keep all text readable and professionally spaced. No fake UI, no App Store badges, no prices, no ratings.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.\n\nSource-lock requirement for this widget slide: preserve the attached real Home Screen WidgetKit screenshot, localized marketing text, StudyPlanner logo, widgets, wallpaper, status bar, app icons, phone geometry, and all visible widget content as faithfully as possible. Do not replace it with the in-app Widgets screen. Do not invent widget labels, app icons, ratings, prices, awards, notifications, lock screens, school logos, or App Store chrome. If you cannot improve the presentation without changing real widget proof, return the same composition faithfully at the requested dimensions."
+    },
+    {
+      "id": "zh-Hant-07",
+      "locale": "zh-Hant",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/zh-Hant/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/zh-Hant/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/zh-Hant/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.\n\nUse the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.\n\nMatch the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app `Widgets` or `Recommended widgets` screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.\n\nExternal marketing text (render exactly for zh-Hant; no English fallback):\nRender the exact localized headline and subhead below. Do not use the English fallback headline or subhead.\nHeadline: 一眼看清本週。\nSubhead: 今天就在主畫面。\n\nPlace the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep the external headline and subhead inside the top 20-25% text area, fit the longest word without clipping, and keep all text readable and professionally spaced. No fake UI, no App Store badges, no prices, no ratings.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall.\n\nSource-lock requirement for this widget slide: preserve the attached real Home Screen WidgetKit screenshot, localized marketing text, StudyPlanner logo, widgets, wallpaper, status bar, app icons, phone geometry, and all visible widget content as faithfully as possible. Do not replace it with the in-app Widgets screen. Do not invent widget labels, app icons, ratings, prices, awards, notifications, lock screens, school logos, or App Store chrome. If you cannot improve the presentation without changing real widget proof, return the same composition faithfully at the requested dimensions."
+    }
+  ]
+}

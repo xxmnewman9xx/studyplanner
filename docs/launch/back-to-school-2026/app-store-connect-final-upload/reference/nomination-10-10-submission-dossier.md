@@ -42,13 +42,13 @@ Built by an independent developer focused on reducing semester overwhelm, not se
 
 ## In-App Event
 
-Use `Challenge` if the event flow clearly asks students to complete a goal before the event ends: scan/import a syllabus, review deadlines, and finish the first-week setup. Use `Major Update` only if App Review or editorial feedback rejects the challenge framing.
+Use `Challenge` if the event flow clearly asks students to complete a goal before the event ends: import a syllabus, approve deadlines, and finish setup before classes ramp. Use `Major Update` only if App Review or editorial feedback rejects the challenge framing.
 
 Reference name: Back-to-School Semester Kickoff 2026
 Event name: Semester Kickoff Week
 Badge: Challenge
-Short description: Build your semester plan
-Long description: Import a syllabus, review deadlines, and finish first-week setup before classes ramp.
+Short description: Review your first-week plan
+Long description: Import a syllabus, approve deadlines, and finish setup before classes ramp.
 Publish start: 2026-08-10 08:00 local time
 Start: 2026-08-24 08:00 local time
 End: 2026-08-31 23:59 local time

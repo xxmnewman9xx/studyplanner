@@ -1,0 +1,408 @@
+{
+  "generatedAt": "2026-07-09T07:31:03.377Z",
+  "status": "ready",
+  "acceptedCount": 17,
+  "rejectedCount": 4,
+  "requiredFinalDimensions": {
+    "width": 1242,
+    "height": 2688
+  },
+  "generationSurface": "ChatGPT Mac app / GPT Image 2.0",
+  "finalization": "Raw ChatGPT candidates preserved; accepted widget slides dimension-finalized with sips to App Store 6.5-inch PNG dimensions.",
+  "accepted": [
+    {
+      "locale": "en-US",
+      "slide": 7,
+      "file": "07-home-screen-widgets.png",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/en-US-07-rejected-853x1844.png",
+      "acceptedRawPath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/en-US-07-chatgpt-raw-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "5ab0de26074da89384b2c6ccf55534c2cebe50118fae21070f91c7b2693d6ba2",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "7384b8af8480757922eb49272227ea0868488b9964000ea8f6967f1393818508",
+      "visualQa": "Accepted: real Home Screen WidgetKit proof, localized headline/subhead readable, no in-app widget screen or invented app UI visible."
+    },
+    {
+      "locale": "en-CA",
+      "slide": 7,
+      "file": "07-home-screen-widgets.png",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/en-CA-07-rejected-853x1844.png",
+      "acceptedRawPath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/en-CA-07-chatgpt-raw-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "95ce45a88e77c0350ddbb3ba0a9144c8260fc7ca083b307a0a08c7d5f1f759c8",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-CA/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "e1cc953ff797a2544106acfb11ea7b2c5e4bf5416301281f7b9cdadefda5082f",
+      "visualQa": "Accepted: real Home Screen WidgetKit proof, localized headline/subhead readable, no in-app widget screen or invented app UI visible."
+    },
+    {
+      "locale": "en-GB",
+      "slide": 7,
+      "file": "07-home-screen-widgets.png",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/en-GB-07-rejected-853x1844.png",
+      "acceptedRawPath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/en-GB-07-chatgpt-raw-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "f91fe87b6d811fb7d210ccd90636f0e3b1842568951d90da04a7fc6bf74d13d8",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-GB/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "2deb1d26e6057e31f7ef29be455730bd538963fb9aebc2b3e61653ebb85a638f",
+      "visualQa": "Accepted: real Home Screen WidgetKit proof, localized headline/subhead readable, no in-app widget screen or invented app UI visible."
+    },
+    {
+      "locale": "en-AU",
+      "slide": 7,
+      "file": "07-home-screen-widgets.png",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/en-AU-07-rejected-853x1844.png",
+      "acceptedRawPath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/en-AU-07-chatgpt-raw-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "4be35454c62afbfb97cef44d29900aa78c166a83c6b1645fb645e2cdaa942a77",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/en-AU/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "2bbbe15e2d14705c904ef2e30222b691638694ffb755e987e49f5082250efe11",
+      "visualQa": "Accepted: real Home Screen WidgetKit proof, localized headline/subhead readable, no in-app widget screen or invented app UI visible."
+    },
+    {
+      "locale": "de-DE",
+      "slide": 7,
+      "file": "07-home-screen-widgets.png",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/de-DE-07-rejected-853x1844.png",
+      "acceptedRawPath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/de-DE-07-chatgpt-raw-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "1ba1702522a9bd4361287c4be76fa6c3f18a9a62f0b394d27d2b4fe37d4ce4af",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/de-DE/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "5ed3a3780a17a1687bcb58bbbf59866d73ec34c1cefa4918b3fdaedb9e725abb",
+      "visualQa": "Accepted: real Home Screen WidgetKit proof, localized headline/subhead readable, no in-app widget screen or invented app UI visible."
+    },
+    {
+      "locale": "es-ES",
+      "slide": 7,
+      "file": "07-home-screen-widgets.png",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/es-ES-07-rejected-853x1844.png",
+      "acceptedRawPath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/es-ES-07-chatgpt-raw-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "5eb60817ff887a81695b623727b177e6bca43d0ecfa91d8c22a1d77460a8fa61",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/es-ES/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "5ebcb9a31242dd00d1fc536acab800c98c4b41b46e6f1f29207c323eacaf6100",
+      "visualQa": "Accepted: real Home Screen WidgetKit proof, localized headline/subhead readable, no in-app widget screen or invented app UI visible."
+    },
+    {
+      "locale": "es-MX",
+      "slide": 7,
+      "file": "07-home-screen-widgets.png",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/es-MX-07-rejected-853x1844.png",
+      "acceptedRawPath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/es-MX-07-chatgpt-raw-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "18b8fcfb818998e2b12124c91e915358602babd8b262bc69f708f8bb28ffcfe4",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/es-MX/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "b97f6123e627fc60f56dab91c6f0fd1edab96827d85209fb8174a16bd83bfc1b",
+      "visualQa": "Accepted: real Home Screen WidgetKit proof, localized headline/subhead readable, no in-app widget screen or invented app UI visible."
+    },
+    {
+      "locale": "fr-FR",
+      "slide": 7,
+      "file": "07-home-screen-widgets.png",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/fr-FR-07-rejected-853x1844.png",
+      "acceptedRawPath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/fr-FR-07-chatgpt-raw-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "1c811ccaaf6aa78dbb06ed56dedd8bfc3f6bc4c6d45f26f5dbee105eee01cfb0",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/fr-FR/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "fabe27c0c9a53ec5d8499d4a356af4dd645683e5ab9267c5970b7e4d86d1d7c2",
+      "visualQa": "Accepted: real Home Screen WidgetKit proof, localized headline/subhead readable, no in-app widget screen or invented app UI visible."
+    },
+    {
+      "locale": "fr-CA",
+      "slide": 7,
+      "file": "07-home-screen-widgets.png",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/fr-CA-07-rejected-853x1844.png",
+      "acceptedRawPath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/fr-CA-07-chatgpt-raw-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "6be0fdc158784f18656557810c395439722c13d95ac19f971ad9d89d77fc9f4e",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/fr-CA/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "045e0109f68e8d3652f3dbe211f55c2967d9f70f435349858d1ebb937ceaf0ed",
+      "visualQa": "Accepted: real Home Screen WidgetKit proof, localized headline/subhead readable, no in-app widget screen or invented app UI visible."
+    },
+    {
+      "locale": "pt-BR",
+      "slide": 7,
+      "file": "07-home-screen-widgets.png",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/pt-BR-07-rejected-853x1844.png",
+      "acceptedRawPath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/pt-BR-07-chatgpt-raw-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "d9d9d120601508967fde83ac5a4c3327b2e2c4e651701a06d0c849560f32f5b3",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/pt-BR/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "666cecc5bb8681a8c572c34a0436ad9d6fb4ff1a0cc9cc6bdd8df3c6252148c9",
+      "visualQa": "Accepted: real Home Screen WidgetKit proof, localized headline/subhead readable, no in-app widget screen or invented app UI visible."
+    },
+    {
+      "locale": "pt-PT",
+      "slide": 7,
+      "file": "07-home-screen-widgets.png",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/pt-PT-07-rejected-853x1844.png",
+      "acceptedRawPath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/pt-PT-07-chatgpt-raw-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "f61826bac20d651610e5bc996a760b71c38685823ed73968f82ce29585996130",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/pt-PT/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "2b0adb40c12ece904b0b09d1538864306efa0959ea7bb53d65e0e79ef793922f",
+      "visualQa": "Accepted: real Home Screen WidgetKit proof, localized headline/subhead readable, no in-app widget screen or invented app UI visible."
+    },
+    {
+      "locale": "ar-SA",
+      "slide": 7,
+      "file": "07-home-screen-widgets.png",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/ar-SA-07-rejected-853x1844.png",
+      "acceptedRawPath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/ar-SA-07-chatgpt-raw-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "926d2f401d10c2138bd3e5e123ab008783bc238c74e5a91a9bcb8b874e84600c",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ar-SA/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "231a5a357f492b3d5ccb60f037ec7db0174250bfebae17c6f20c4221a1cfd3b8",
+      "visualQa": "Accepted: real Home Screen WidgetKit proof, localized headline/subhead readable, no in-app widget screen or invented app UI visible."
+    },
+    {
+      "locale": "hi",
+      "slide": 7,
+      "file": "07-home-screen-widgets.png",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/hi-07-rejected-852x1846.png",
+      "acceptedRawPath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/hi-07-chatgpt-raw-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "dd5a569953478467766ba277b9aea3c8c686c3e8278109b66567427c7af96364",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/hi/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "2fa672904ebc29d40ddb69cbdecec64426401774d94c07c9530c411f3946f1ef",
+      "visualQa": "Accepted: real Home Screen WidgetKit proof, localized headline/subhead readable, no in-app widget screen or invented app UI visible."
+    },
+    {
+      "locale": "ja",
+      "slide": 7,
+      "file": "07-home-screen-widgets.png",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/ja-07-rejected-853x1844.png",
+      "acceptedRawPath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/ja-07-chatgpt-raw-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "e75a0eeb28abac15a1faa983dfc2e29303893b43c6b43d99beea3abf87bd3b0e",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ja/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "350baf680d46bf6e90c4e37bdb801e32749f6df822ad4cb2777f9d3335246e48",
+      "visualQa": "Accepted: real Home Screen WidgetKit proof, localized headline/subhead readable, no in-app widget screen or invented app UI visible."
+    },
+    {
+      "locale": "ko",
+      "slide": 7,
+      "file": "07-home-screen-widgets.png",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-ko-retry/ko-07-retry-rejected-852x1846.png",
+      "acceptedRawPath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/ko-07-chatgpt-raw-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "2c1658db8d9ff21a3a85d9b93efaf855cc46e5ded5c00424d5f11fb615399fc2",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "6dab109a4167654a56d3fb9baf49cb3fe8f93d7620f8dc0a4c5293af0c351728",
+      "visualQa": "Accepted Korean retry: real Home Screen WidgetKit proof; exact meaning preserved; watch possible headline punctuation artifact in manual ASC review."
+    },
+    {
+      "locale": "zh-Hans",
+      "slide": 7,
+      "file": "07-home-screen-widgets.png",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/zh-Hans-07-rejected-852x1846.png",
+      "acceptedRawPath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/zh-Hans-07-chatgpt-raw-852x1846.png",
+      "rawDimensions": {
+        "width": 852,
+        "height": 1846
+      },
+      "rawSha256": "b3926f8f25b09f8f93df6d9c1ce6b7029877d00719b7989ad9f8d9c7edb14204",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/zh-Hans/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "5ed5eb85dbcedb5737ccb6946176b104488763431eaae238055dbaf30e33ff5b",
+      "visualQa": "Accepted: real Home Screen WidgetKit proof, localized headline/subhead readable, no in-app widget screen or invented app UI visible."
+    },
+    {
+      "locale": "zh-Hant",
+      "slide": 7,
+      "file": "07-home-screen-widgets.png",
+      "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/zh-Hant-07-rejected-853x1844.png",
+      "acceptedRawPath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/zh-Hant-07-chatgpt-raw-853x1844.png",
+      "rawDimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "rawSha256": "4b1f04884c1bd919ff0fc19b8d46ff71fd30857b433a9ccf32daa5163291e797",
+      "finalPath": "store/apple/screenshot-copy-b-image-2/zh-Hant/APP_IPHONE_65/07-home-screen-widgets.png",
+      "finalDimensions": {
+        "width": 1242,
+        "height": 2688
+      },
+      "finalSha256": "54819842b298dc88df6a18f724be477134c94e76255f6c367782fa29d9ce5e38",
+      "visualQa": "Accepted: real Home Screen WidgetKit proof, localized headline/subhead readable, no in-app widget screen or invented app UI visible."
+    }
+  ],
+  "rejected": [
+    {
+      "locale": "en-US",
+      "path": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-canary/en-US-07-rejected-853x1844.png",
+      "dimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "sha256": "51c53fd34fa29bf149628dc2f5ce184048f2d8d930b33632fa020dc1af6d2d7e",
+      "reason": "canary superseded by full locale run"
+    },
+    {
+      "locale": "en-US",
+      "path": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-rejected/en-US-07-cache-mispick-korean-inapp-1206x2622.png",
+      "dimensions": {
+        "width": 1206,
+        "height": 2622
+      },
+      "sha256": "2cecf395085534a6b9da5a565c2c9465f572e70cfc0e0d24c91b54a25d8e5c0c",
+      "reason": "cache mis-pick; wrong locale/in-app content"
+    },
+    {
+      "locale": "ko",
+      "path": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-v2/ko-07-rejected-710x1536.png",
+      "dimensions": {
+        "width": 710,
+        "height": 1536
+      },
+      "sha256": "69f23c0defd17af2167dda4b46921c5d8b752551d21ebcd5fb6e9bc98b4ade73",
+      "reason": "Korean initial widget candidate used wrong headline/subhead"
+    },
+    {
+      "locale": "ko",
+      "path": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-ko-retry2/ko-07-retry2-rejected-710x1536.png",
+      "dimensions": {
+        "width": 710,
+        "height": 1536
+      },
+      "sha256": "69f23c0defd17af2167dda4b46921c5d8b752551d21ebcd5fb6e9bc98b4ade73",
+      "reason": "Korean retry2 collected stale cached initial candidate"
+    }
+  ],
+  "latestAcceptedCanary": {
+    "locale": "ko",
+    "slide": 7,
+    "file": "07-home-screen-widgets.png",
+    "rawCandidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-ko-retry/ko-07-retry-rejected-852x1846.png",
+    "acceptedRawPath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/ko-07-chatgpt-raw-852x1846.png",
+    "rawDimensions": {
+      "width": 852,
+      "height": 1846
+    },
+    "rawSha256": "2c1658db8d9ff21a3a85d9b93efaf855cc46e5ded5c00424d5f11fb615399fc2",
+    "finalPath": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/07-home-screen-widgets.png",
+    "finalDimensions": {
+      "width": 1242,
+      "height": 2688
+    },
+    "finalSha256": "6dab109a4167654a56d3fb9baf49cb3fe8f93d7620f8dc0a4c5293af0c351728",
+    "visualQa": "Accepted Korean retry: real Home Screen WidgetKit proof; exact meaning preserved; watch possible headline punctuation artifact in manual ASC review."
+  },
+  "latestRejectedCanary": {
+    "locale": "ko",
+    "path": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-ko-retry2/ko-07-retry2-rejected-710x1536.png",
+    "dimensions": {
+      "width": 710,
+      "height": 1536
+    },
+    "sha256": "69f23c0defd17af2167dda4b46921c5d8b752551d21ebcd5fb6e9bc98b4ade73",
+    "reason": "Korean retry2 collected stale cached initial candidate"
+  }
+}

@@ -29,8 +29,8 @@ Use this file during the actual App Store Connect session.
    - Reference name: `Back-to-School Semester Kickoff 2026`
    - Event name: `Semester Kickoff Week`
    - Badge: `Challenge`
-   - Short description: `Build your semester plan`
-   - Long description: `Import a syllabus, review deadlines, and finish first-week setup before classes ramp.`
+   - Short description: `Review your first-week plan`
+   - Long description: `Import a syllabus, approve deadlines, and finish setup before classes ramp.`
    - Start: `2026-08-24 08:00 local time`
    - End: `2026-08-31 23:59 local time`
    - Publish start: `2026-08-10 08:00 local time`

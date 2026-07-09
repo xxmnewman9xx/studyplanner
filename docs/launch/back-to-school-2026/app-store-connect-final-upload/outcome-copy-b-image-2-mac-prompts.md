@@ -19,7 +19,7 @@ Attach the real logo and every listed latest-build UI or direction reference for
   - Slide 4: `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-08-today.png`
   - Slide 5: `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-09-focus.png`
   - Slide 6: `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-10-widgets.png`
-  - Slide 7: `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-10-widgets.png`
+  - Slide 7: `store/apple/screenshot-pop/{locale}/APP_IPHONE_65/07-real-home-screen-widgets.png`
 - User-provided first-three direction references:
   - Slide 1: `docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/02-scan-anything-direction.jpg`
   - Slide 1: `docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/03-scan-syllabus-direction.jpg`
@@ -254,7 +254,7 @@ Before returning the image, self-check that the actual PNG dimensions are exactl
 Attach:
 
 - `assets/app/study-planner-icon.png`
-- `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-10-widgets.png`
+- `store/apple/screenshot-pop/{locale}/APP_IPHONE_65/07-real-home-screen-widgets.png`
 
 Prompt:
 
@@ -279,16 +279,16 @@ Before returning the image, self-check that the actual PNG dimensions are exactl
 Attach:
 
 - `assets/app/study-planner-icon.png`
-- `qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-10-widgets.png`
+- `store/apple/screenshot-pop/{locale}/APP_IPHONE_65/07-real-home-screen-widgets.png`
 
 Prompt:
 
 ```text
 GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, any preview-sized image, or any scaled image.
 
-Use the attached locale-specific raw StudyPlanner widgets screen as the product proof and the attached app icon as the exact logo. This must read as authentic StudyPlanner widget proof from the current app, not a mockup. Preserve the real widgets screen content enough that it is clearly the attached localized StudyPlanner widgets proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.
+Use the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.
 
-Match the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized widgets proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.
+Match the approved Image 2.0 reference system: bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app `Widgets` or `Recommended widgets` screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, or unsupported Home Screen content.
 
 External marketing text:
 Headline: See the week at a glance.

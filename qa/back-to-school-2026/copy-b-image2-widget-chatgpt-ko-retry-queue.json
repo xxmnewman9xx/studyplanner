@@ -1,0 +1,22 @@
+{
+  "generatedAt": "2026-07-09T07:25:10.029Z",
+  "source": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-queue.json",
+  "items": [
+    {
+      "id": "ko-07-retry",
+      "locale": "ko",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/ko/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/ko/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, 710x1536, any preview-sized image, or any scaled image.\n\nUse the attached locale-specific real StudyPlanner Home Screen WidgetKit screenshot as the product proof and the attached app icon as the exact logo. This must read as authentic real Home Screen widget proof, not a mockup and not the in-app Widgets screen. Preserve the real Home Screen, wallpaper, widgets, app icons, widget content, status bar, and phone geometry as source proof. Use a premium Apple-native preview frame with clean white space, soft lighting, subtle depth, and restrained class-color accents.\n\nCritical Korean text lock: render ONLY the exact Korean marketing text below. Do not paraphrase. Do not substitute shorter Korean. Do not use “홈 화면에서 바로.” Do not use any English fallback.\nHeadline: 한 주를 한눈에 보세요.\nSubhead: 홈 화면에서 오늘을 확인.\n\nMatch the approved Image 2.0 reference system: bold top headline, short gray subhead, small real StudyPlanner brand mark, large real localized Home Screen widget proof, white rounded canvas, and restrained edge semicircle accents. The visual story is: after setup, StudyPlanner keeps the week visible through widgets. Do not show the in-app Widgets or Recommended widgets screen. Do not invent extra widgets, fake notifications, fake lock screens, fake app icons, unsupported Home Screen content, ratings, prices, awards, school logos, or App Store chrome.\n\nPlace the real app icon/logo as a small brand mark. Do not redraw or alter it. Keep the external headline and subhead inside the top 20-25% text area, fit Korean text without clipping, and keep all text readable and professionally spaced.\n\nBefore returning the image, self-check that the actual PNG dimensions are exactly 1242 pixels wide by 2688 pixels tall. If exact output sizing is unavailable, prioritize the exact Korean text and faithful real widget proof; do not alter the source UI."
+    }
+  ]
+}

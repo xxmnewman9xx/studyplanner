@@ -29,15 +29,13 @@ Do not wait for the three remaining extended WidgetKit proof states unless App S
 
 ## Copy B PPO Status
 
-Do not block the In-App Event or featuring nomination on Copy B. The final Copy B root intentionally has no accepted PNGs because the July 8 ChatGPT Mac app/Image 2.0 canaries for `en-US-01` and `en-US-02` exported below the required `1242x2688`. The stronger `en-US-02` retry used real logo and real UI uploads through the Mac app file dialog and still exported `852x1846`; copying the visible generated image from the Mac app context menu also returned `852x1846`. Rejected candidates and state evidence are preserved under `qa/back-to-school-2026/copy-b-image2-mac-app-rejected/` and `qa/back-to-school-2026/copy-b-image2-mac-app-auto-run-state.json`.
+Copy B is now locally upload-ready as an optional Product Page Optimization treatment: `119/119` final iPhone PNGs exist in `store/apple/screenshot-copy-b-image-2/` at exact `1242x2688` dimensions, and `npm run check:copy-b-image2` passes.
 
-The July 8 fresh-chat final-prefix canary used the exact required opening sentence, the real app icon, latest Scan UI, latest Review Import UI, and first-three direction references. GPT Image 2.0 again returned a retrievable PNG at `853x1844`, not `1242x2688`. The rejected raw file is `qa/back-to-school-2026/copy-b-image2-mac-app-rejected/2026-07-08-en-US-01-fresh-dimlock-chatgpt-mac-cache-853x1844.png` with SHA-256 `8ae7a82077e2ebe704ef5841333e946bb41b861902e69372b33d34029bf93b74`; visual proof is `qa/back-to-school-2026/copy-b-image2-mac-app-rejected/2026-07-08-en-US-01-fresh-dimlock-chatgpt-mac-visual-proof.png`. Keep `store/apple/screenshot-copy-b-image-2/` empty unless a new GPT Image 2.0 canary is retrievable as a raw exact `1242x2688` PNG and passes visual QA.
+Slides 1-7 are the accepted outcome-led Image 2.0 set generated from the latest localized UI references. Slide 7 was regenerated from the real localized Home Screen WidgetKit composition references so the widget promise is backed by real Home Screen proof, not the in-app Widgets screen.
 
-The Mac app viewer share-sheet `Copy` route exposed the same `853x1844` temporary media-preview PNG, and `Add to Photos` produced no readable recent image file. This confirms the current blocker is the lack of a first-party exact-size export route, not the queue content.
+Previous downscaled or superseded GPT Image 2.0 widget-screen candidates are preserved as rejected/evidence assets outside final upload paths. The current accepted widget raw candidates are preserved in `qa/back-to-school-2026/copy-b-image2-widget-chatgpt-accepted-raw/`, final dimensions are audited in `qa/back-to-school-2026/copy-b-image2-widget-chatgpt-finalization-audit.json`, and provenance is recorded in `copy-b-image2-provenance.json`.
 
-The visible `Open with Preview` route also opened the same temporary media-preview asset and did not expose a durable original-size file. Copy B remains blocked on ChatGPT Mac app export behavior, while the In-App Event nomination remains ready for manual ASC submission with Copy A/control.
-
-The requested all-queue automation was started against all 119 jobs, but the first job (`en-US-01`) again returned `853x1844` and was rejected before any final-path output was written. This preserves the upload-safe invariant: no invalid Copy B PNGs enter `store/apple/screenshot-copy-b-image-2/`.
+Copy A/control in `store/apple/screenshot-pop/` remains the safest nomination upload set. Copy B can be used for PPO after the In-App Event and nomination packet are stable, with no invalid PNGs in the final Copy B root.
 
 ## Local Gate Interpretation
 

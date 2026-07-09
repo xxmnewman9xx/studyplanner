@@ -124,9 +124,9 @@ const expectedSlides: ExpectedSlide[] = [
   {
     index: 7,
     file: "07-home-screen-widgets.png",
-    uiReference: "qa-screenshots/back-to-school-2026-native-localized-current/en-US/app-10-widgets.png",
+    uiReference: "store/apple/screenshot-pop/en-US/APP_IPHONE_65/07-real-home-screen-widgets.png",
     localeUiReferencePattern:
-      "qa-screenshots/back-to-school-2026-native-localized-current/{locale}/app-10-widgets.png",
+      "store/apple/screenshot-pop/{locale}/APP_IPHONE_65/07-real-home-screen-widgets.png",
   },
 ];
 
@@ -331,6 +331,7 @@ const queue = expectedLocales.flatMap((locale) =>
       requiredDimensions: { width: REQUIRED_WIDTH, height: REQUIRED_HEIGHT },
       generationSurface: "ChatGPT Mac app",
       model: "GPT Image 2.0",
+      finalizationMode: "generate individually in ChatGPT Mac app with GPT Image 2.0",
       generatedIndividuallyRequired: true,
       promptPack: PROMPT_PACK_PATH,
       promptHeading: `### ${slide.index}. \`${slide.file}\``,
@@ -357,6 +358,9 @@ const queue = expectedLocales.flatMap((locale) =>
       rejectionRules: [
         "Reject if it was not generated in the ChatGPT Mac app.",
         "Reject if it was not generated with GPT Image 2.0.",
+        ...(slide.file === "07-home-screen-widgets.png"
+          ? ["Reject if it shows the in-app Widgets or Recommended widgets screen instead of real Home Screen widgets."]
+          : []),
         "Reject if it was batch-generated with any other locale or slide.",
         "Reject if the real app logo was not attached or was redrawn, recolored, replaced, or altered.",
         "Reject if the real UI reference was not attached or product UI facts drifted.",
@@ -421,10 +425,12 @@ const audit = {
     locales: expectedLocales.length,
     slides: expectedSlides.length,
     jobs: expectedLocales.length * expectedSlides.length,
+    image2Jobs: expectedLocales.length * expectedSlides.length,
+    realWidgetSourceJobs: 0,
     dimensions: `${REQUIRED_WIDTH}x${REQUIRED_HEIGHT}`,
   },
   constraints: {
-    generationSurface: "ChatGPT Mac app",
+    generationSurface: "ChatGPT Mac app for all slides, with real localized Home Screen WidgetKit source attached for slide 7",
     model: "GPT Image 2.0",
     generatedIndividually: true,
     finalImagesGeneratedByThisScript: false,
@@ -441,7 +447,7 @@ writeFileSync(
       generatedAt: audit.generatedAt,
       status: audit.status,
       instructions:
-        "Run each queue item individually in the ChatGPT Mac app with GPT Image 2.0. Attach the real logo and every slide-specific real UI reference before generating. Save accepted PNGs to outputPath.",
+        "Run every slide individually in the ChatGPT Mac app with GPT Image 2.0. For slide 7, attach the exact locale-specific real Home Screen WidgetKit source as the UI reference and reject in-app widget screens. Attach the real logo and every slide-specific real UI reference before generation.",
       finalValidationCommand: "npm run check:copy-b-image2",
       jobs: queue,
     },
@@ -460,7 +466,9 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`Prepared ${queue.length} individual ChatGPT Mac app / GPT Image 2.0 Copy B jobs`);
+console.log(
+  `Prepared ${queue.length} Copy B jobs: ${expectedLocales.length * expectedSlides.length} ChatGPT Mac app / GPT Image 2.0 jobs`,
+);
 console.log(`Queue written to ${QUEUE_JSON_PATH}`);
 console.log(`JSONL written to ${QUEUE_JSONL_PATH}`);
 console.log(`Provenance template written to ${PROVENANCE_TEMPLATE_PATH}`);

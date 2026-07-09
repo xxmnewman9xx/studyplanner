@@ -1,0 +1,22 @@
+{
+  "generatedAt": "2026-07-09T07:26:57.981Z",
+  "source": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-queue.json",
+  "items": [
+    {
+      "id": "ko-07-retry2",
+      "locale": "ko",
+      "slideIndex": 7,
+      "sourcePath": "store/apple/screenshot-pop/ko/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/ko/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/07-home-screen-widgets.png",
+      "requiredOutputSize": {
+        "width": 1242,
+        "height": 2688
+      },
+      "prompt": "GPT Image 2.0, create exactly one final PNG App Store screenshot for StudyPlanner at exactly 1242 pixels wide by 2688 pixels tall. The retrievable saved PNG file must measure exactly 1242x2688 when checked with sips. Do not output 853x1844, 852x1846, 1024x1792, 1170x2532, 710x1536, any preview-sized image, or any scaled image.\n\nUse the attached real Korean StudyPlanner Home Screen WidgetKit screenshot as product proof and the attached app icon as the exact logo. Preserve the real Home Screen widget proof: wallpaper, widgets, app icons, widget content, status bar, phone geometry. Do not show the in-app Widgets screen.\n\nKOREAN TEXT MUST BE EXACT. Render these two external marketing lines and nothing else as the main headline/subhead.\n\nHeadline exact string, with exactly one period at the end: 한 주를 한눈에 보세요.\nSubhead exact string, with exactly one period at the end: 홈 화면에서 오늘을 확인.\n\nDo not render: 홈 화면에서 바로.\nDo not render: 한 주를 한눈에 보세요..\nDo not add a second period, dot, bullet, or extra punctuation after the headline or subhead.\n\nUse the same premium Apple-native layout as the attached reference family: small StudyPlanner logo, bold top headline, short gray subhead, large real localized Home Screen widget proof, white rounded canvas, restrained edge semicircle accents, soft depth. No fake UI, no fake widgets, no fake app icons, no ratings, no prices, no awards, no school logos, no App Store chrome.\n\nBefore returning the image, self-check: the image is exactly 1242x2688; the headline is exactly “한 주를 한눈에 보세요.” with one period; the subhead is exactly “홈 화면에서 오늘을 확인.” with one period."
+    }
+  ]
+}

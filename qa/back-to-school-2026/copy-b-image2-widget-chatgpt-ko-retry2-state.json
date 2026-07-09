@@ -1,0 +1,31 @@
+{
+  "generatedAt": "2026-07-09T07:26:58.028Z",
+  "submitted": {
+    "ko-07-retry2": {
+      "at": "2026-07-09T07:27:04.400Z",
+      "sourcePath": "store/apple/screenshot-pop/ko/APP_IPHONE_65/07-real-home-screen-widgets.png",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "store/apple/screenshot-pop/ko/APP_IPHONE_65/07-real-home-screen-widgets.png"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/ko/APP_IPHONE_65/07-home-screen-widgets.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T07:27:08.436Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/c95fb57bff2e672274d8e8bfee7bd7df32b274bd2119feb74fceb956a62de052",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-widget-chatgpt-candidates-ko-retry2/ko-07-retry2-rejected-710x1536.png",
+        "dimensions": {
+          "width": 710,
+          "height": 1536
+        },
+        "ignoredSourceDimensions": [
+          "1024x1024"
+        ],
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 710x1536."
+      }
+    }
+  },
+  "staged": {},
+  "failures": []
+}

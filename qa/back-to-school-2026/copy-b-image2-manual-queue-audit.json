@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-09T06:02:34.423Z",
+  "generatedAt": "2026-07-09T07:46:44.402Z",
   "status": "ready-for-manual-chatgpt-mac-app-generation",
   "promptPack": "docs/launch/back-to-school-2026/app-store-connect-final-upload/outcome-copy-b-image-2-mac-prompts.md",
   "queueJson": "docs/launch/back-to-school-2026/app-store-connect-final-upload/copy-b-image2-manual-queue.json",
@@ -11,10 +11,12 @@
     "locales": 17,
     "slides": 7,
     "jobs": 119,
+    "image2Jobs": 119,
+    "realWidgetSourceJobs": 0,
     "dimensions": "1242x2688"
   },
   "constraints": {
-    "generationSurface": "ChatGPT Mac app",
+    "generationSurface": "ChatGPT Mac app for all slides, with real localized Home Screen WidgetKit source attached for slide 7",
     "model": "GPT Image 2.0",
     "generatedIndividually": true,
     "finalImagesGeneratedByThisScript": false
