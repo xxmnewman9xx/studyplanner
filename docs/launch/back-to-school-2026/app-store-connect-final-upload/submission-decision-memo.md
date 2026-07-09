@@ -37,6 +37,8 @@ The Mac app viewer share-sheet `Copy` route exposed the same `853x1844` temporar
 
 The visible `Open with Preview` route also opened the same temporary media-preview asset and did not expose a durable original-size file. Copy B remains blocked on ChatGPT Mac app export behavior, while the In-App Event nomination remains ready for manual ASC submission with Copy A/control.
 
+The requested all-queue automation was started against all 119 jobs, but the first job (`en-US-01`) again returned `853x1844` and was rejected before any final-path output was written. This preserves the upload-safe invariant: no invalid Copy B PNGs enter `store/apple/screenshot-copy-b-image-2/`.
+
 ## Local Gate Interpretation
 
 `npm run check:back-to-school-release-cycle` passes locally but reports `submissionReady: false`.

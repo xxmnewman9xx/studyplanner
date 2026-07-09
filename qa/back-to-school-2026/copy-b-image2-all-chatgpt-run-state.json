@@ -1,0 +1,36 @@
+{
+  "generatedAt": "2026-07-09T01:28:10.496Z",
+  "submitted": {
+    "en-US-01": {
+      "at": "2026-07-09T01:28:22.174Z",
+      "sourcePaths": [
+        "assets/app/study-planner-icon.png",
+        "docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/04-latest-scan-ui-reference.jpg",
+        "qa-screenshots/back-to-school-2026-native-color-system-v3/app-06-review.png",
+        "docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/02-scan-anything-direction.jpg",
+        "docs/launch/back-to-school-2026/app-store-connect-final-upload/reference/copy-b-first-three-direction/03-scan-syllabus-direction.jpg"
+      ],
+      "outputPathRecommended": "store/apple/screenshot-copy-b-image-2/en-US/APP_IPHONE_65/01-scan-syllabus-notes.png",
+      "mode": "sent",
+      "candidate": {
+        "at": "2026-07-09T01:29:56.322Z",
+        "cachePath": "/Users/mattnewman/Library/Caches/com.openai.chat/com.onevcat.Kingfisher.ImageCache/com.onevcat.Kingfisher.ImageCache.com.openai.chat/20af7bd783a16681d61a76e2fd996e4ba4bd67245b75dffb8d3e14ad8cdaff36",
+        "candidatePath": "qa/back-to-school-2026/copy-b-image2-mac-app-candidates/en-US-01-rejected-853x1844.png",
+        "dimensions": {
+          "width": 853,
+          "height": 1844
+        },
+        "dimensionsPass": false,
+        "rejectionReason": "Expected 1242x2688; got 853x1844."
+      }
+    }
+  },
+  "staged": {},
+  "failures": [
+    {
+      "at": "2026-07-09T01:29:56.324Z",
+      "id": "en-US-01",
+      "message": "en-US-01 candidate failed dimensions: 853x1844"
+    }
+  ]
+}
