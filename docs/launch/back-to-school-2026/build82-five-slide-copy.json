@@ -1,0 +1,638 @@
+{
+  "schemaVersion": 1,
+  "status": "draft_requires_native_language_review",
+  "story": "input-control-outcome-plan-appearance",
+  "productUiPolicy": "exact_build_pixels_only",
+  "sourceCommit": "a8ec2af6b74a84ea88459d51f634ee49f03de149",
+  "localizations": {
+    "ar-SA": [
+      {
+        "id": "01-class-material",
+        "proof": "scan",
+        "appearance": "light",
+        "headline": "ابدأ بمواد المقرر.",
+        "subhead": "حوّل المنهج والملاحظات إلى خطة تراجعها بنفسك."
+      },
+      {
+        "id": "02-approve-deadlines",
+        "proof": "review",
+        "appearance": "light",
+        "headline": "أنت تعتمد كل موعد نهائي.",
+        "subhead": "لا يُحفظ شيء حتى تؤكده."
+      },
+      {
+        "id": "03-today-next-move",
+        "proof": "today",
+        "appearance": "light",
+        "headline": "اعرف ما يحتاج إلى اهتمامك اليوم.",
+        "subhead": "الأولويات والمواعيد والتركيز في عرض واحد."
+      },
+      {
+        "id": "04-plan-the-week",
+        "proof": "plan",
+        "appearance": "dark",
+        "headline": "خصص وقتًا لكل موعد نهائي.",
+        "subhead": "حوّل مواعيد التسليم إلى فترات دراسة هادئة."
+      },
+      {
+        "id": "05-any-light",
+        "proof": "profile-and-matching-screen",
+        "appearance": "light-dark",
+        "headline": "خطتك في أي مظهر.",
+        "subhead": "اختر فاتحًا أو داكنًا أو النظام."
+      }
+    ],
+    "de-DE": [
+      {
+        "id": "01-class-material",
+        "proof": "scan",
+        "appearance": "light",
+        "headline": "Starte mit Kursmaterial.",
+        "subhead": "Lehrplan und Notizen werden zum geprüften Plan."
+      },
+      {
+        "id": "02-approve-deadlines",
+        "proof": "review",
+        "appearance": "light",
+        "headline": "Du bestätigst jede Frist.",
+        "subhead": "Gespeichert wird erst nach deiner Freigabe."
+      },
+      {
+        "id": "03-today-next-move",
+        "proof": "today",
+        "appearance": "light",
+        "headline": "Wisse, was heute zählt.",
+        "subhead": "Prioritäten, Fristen und Fokus auf einen Blick."
+      },
+      {
+        "id": "04-plan-the-week",
+        "proof": "plan",
+        "appearance": "dark",
+        "headline": "Gib jeder Frist einen Termin.",
+        "subhead": "Mach aus Abgaben ruhige Lernblöcke."
+      },
+      {
+        "id": "05-any-light",
+        "proof": "profile-and-matching-screen",
+        "appearance": "light-dark",
+        "headline": "Dein Plan in jedem Modus.",
+        "subhead": "Wähle Hell, Dunkel oder System."
+      }
+    ],
+    "en-AU": [
+      {
+        "id": "01-class-material",
+        "proof": "scan",
+        "appearance": "light",
+        "headline": "Start with subject material.",
+        "subhead": "Turn a syllabus and notes into a plan you review."
+      },
+      {
+        "id": "02-approve-deadlines",
+        "proof": "review",
+        "appearance": "light",
+        "headline": "You approve every due date.",
+        "subhead": "Nothing saves until you confirm it."
+      },
+      {
+        "id": "03-today-next-move",
+        "proof": "today",
+        "appearance": "light",
+        "headline": "Know what needs you today.",
+        "subhead": "Priorities, due dates and focus in one view."
+      },
+      {
+        "id": "04-plan-the-week",
+        "proof": "plan",
+        "appearance": "dark",
+        "headline": "Give every due date a time.",
+        "subhead": "Turn deadlines into calm study blocks."
+      },
+      {
+        "id": "05-any-light",
+        "proof": "profile-and-matching-screen",
+        "appearance": "light-dark",
+        "headline": "Your plan, in any light.",
+        "subhead": "Choose Light, Dark or System."
+      }
+    ],
+    "en-CA": [
+      {
+        "id": "01-class-material",
+        "proof": "scan",
+        "appearance": "light",
+        "headline": "Begin with course material.",
+        "subhead": "A syllabus and notes become a plan you review."
+      },
+      {
+        "id": "02-approve-deadlines",
+        "proof": "review",
+        "appearance": "light",
+        "headline": "You approve every deadline.",
+        "subhead": "Nothing is saved until you confirm it."
+      },
+      {
+        "id": "03-today-next-move",
+        "proof": "today",
+        "appearance": "light",
+        "headline": "See what needs you today.",
+        "subhead": "Priorities, deadlines, and focus in one view."
+      },
+      {
+        "id": "04-plan-the-week",
+        "proof": "plan",
+        "appearance": "dark",
+        "headline": "Make time for every deadline.",
+        "subhead": "Turn due dates into calm study blocks."
+      },
+      {
+        "id": "05-any-light",
+        "proof": "profile-and-matching-screen",
+        "appearance": "light-dark",
+        "headline": "Your plan, in any light.",
+        "subhead": "Choose Light, Dark, or System."
+      }
+    ],
+    "en-GB": [
+      {
+        "id": "01-class-material",
+        "proof": "scan",
+        "appearance": "light",
+        "headline": "Start with your course material.",
+        "subhead": "Turn a syllabus and notes into a plan you check."
+      },
+      {
+        "id": "02-approve-deadlines",
+        "proof": "review",
+        "appearance": "light",
+        "headline": "You confirm every deadline.",
+        "subhead": "Nothing is saved until you approve it."
+      },
+      {
+        "id": "03-today-next-move",
+        "proof": "today",
+        "appearance": "light",
+        "headline": "Know what matters today.",
+        "subhead": "Priorities, deadlines and focus in one view."
+      },
+      {
+        "id": "04-plan-the-week",
+        "proof": "plan",
+        "appearance": "dark",
+        "headline": "Set time for every deadline.",
+        "subhead": "Turn due dates into calm study blocks."
+      },
+      {
+        "id": "05-any-light",
+        "proof": "profile-and-matching-screen",
+        "appearance": "light-dark",
+        "headline": "Your plan, in any light.",
+        "subhead": "Choose Light, Dark or System."
+      }
+    ],
+    "en-US": [
+      {
+        "id": "01-class-material",
+        "proof": "scan",
+        "appearance": "light",
+        "headline": "Start with class material.",
+        "subhead": "Syllabus and notes become a reviewed plan."
+      },
+      {
+        "id": "02-approve-deadlines",
+        "proof": "review",
+        "appearance": "light",
+        "headline": "You approve every deadline.",
+        "subhead": "Nothing saves until you confirm it."
+      },
+      {
+        "id": "03-today-next-move",
+        "proof": "today",
+        "appearance": "light",
+        "headline": "Know what needs you today.",
+        "subhead": "Priorities, deadlines, and focus in one view."
+      },
+      {
+        "id": "04-plan-the-week",
+        "proof": "plan",
+        "appearance": "dark",
+        "headline": "Give every deadline a time.",
+        "subhead": "Turn due dates into calm study blocks."
+      },
+      {
+        "id": "05-any-light",
+        "proof": "profile-and-matching-screen",
+        "appearance": "light-dark",
+        "headline": "Your plan, in any light.",
+        "subhead": "Choose Light, Dark, or System."
+      }
+    ],
+    "es-ES": [
+      {
+        "id": "01-class-material",
+        "proof": "scan",
+        "appearance": "light",
+        "headline": "Empieza con tus clases.",
+        "subhead": "Temario y apuntes crean un plan que revisas."
+      },
+      {
+        "id": "02-approve-deadlines",
+        "proof": "review",
+        "appearance": "light",
+        "headline": "Tú apruebas cada fecha.",
+        "subhead": "Nada se guarda hasta que lo confirmas."
+      },
+      {
+        "id": "03-today-next-move",
+        "proof": "today",
+        "appearance": "light",
+        "headline": "Sabe qué importa hoy.",
+        "subhead": "Prioridades, entregas y enfoque en una vista."
+      },
+      {
+        "id": "04-plan-the-week",
+        "proof": "plan",
+        "appearance": "dark",
+        "headline": "Pon hora a cada entrega.",
+        "subhead": "Convierte entregas en bloques tranquilos."
+      },
+      {
+        "id": "05-any-light",
+        "proof": "profile-and-matching-screen",
+        "appearance": "light-dark",
+        "headline": "Tu plan, en cualquier modo.",
+        "subhead": "Elige Claro, Oscuro o Sistema."
+      }
+    ],
+    "es-MX": [
+      {
+        "id": "01-class-material",
+        "proof": "scan",
+        "appearance": "light",
+        "headline": "Empieza con material de clase.",
+        "subhead": "El programa y tus notas crean un plan que revisas."
+      },
+      {
+        "id": "02-approve-deadlines",
+        "proof": "review",
+        "appearance": "light",
+        "headline": "Tú confirmas cada fecha límite.",
+        "subhead": "Nada se guarda hasta que lo apruebas."
+      },
+      {
+        "id": "03-today-next-move",
+        "proof": "today",
+        "appearance": "light",
+        "headline": "Sabe qué importa hoy.",
+        "subhead": "Prioridades, fechas y enfoque en una vista."
+      },
+      {
+        "id": "04-plan-the-week",
+        "proof": "plan",
+        "appearance": "dark",
+        "headline": "Dale tiempo a cada entrega.",
+        "subhead": "Convierte entregas en bloques tranquilos."
+      },
+      {
+        "id": "05-any-light",
+        "proof": "profile-and-matching-screen",
+        "appearance": "light-dark",
+        "headline": "Tu plan, en cualquier modo.",
+        "subhead": "Elige Claro, Oscuro o Sistema."
+      }
+    ],
+    "fr-CA": [
+      {
+        "id": "01-class-material",
+        "proof": "scan",
+        "appearance": "light",
+        "headline": "Commence par tes cours.",
+        "subhead": "Révise un plan créé depuis tes notes de cours."
+      },
+      {
+        "id": "02-approve-deadlines",
+        "proof": "review",
+        "appearance": "light",
+        "headline": "Tu confirmes chaque échéance.",
+        "subhead": "Rien n’est enregistré avant ton approbation."
+      },
+      {
+        "id": "03-today-next-move",
+        "proof": "today",
+        "appearance": "light",
+        "headline": "Sache ce qui compte aujourd’hui.",
+        "subhead": "Priorités, échéances et concentration en une vue."
+      },
+      {
+        "id": "04-plan-the-week",
+        "proof": "plan",
+        "appearance": "dark",
+        "headline": "Planifie chaque échéance.",
+        "subhead": "Transforme les remises en blocs d’étude sereins."
+      },
+      {
+        "id": "05-any-light",
+        "proof": "profile-and-matching-screen",
+        "appearance": "light-dark",
+        "headline": "Ton plan, dans tous les modes.",
+        "subhead": "Choisis Clair, Sombre ou Système."
+      }
+    ],
+    "fr-FR": [
+      {
+        "id": "01-class-material",
+        "proof": "scan",
+        "appearance": "light",
+        "headline": "Commence par tes cours.",
+        "subhead": "Valide un planning créé à partir du syllabus."
+      },
+      {
+        "id": "02-approve-deadlines",
+        "proof": "review",
+        "appearance": "light",
+        "headline": "Tu valides chaque échéance.",
+        "subhead": "Rien n’est enregistré sans ta confirmation."
+      },
+      {
+        "id": "03-today-next-move",
+        "proof": "today",
+        "appearance": "light",
+        "headline": "Sache ce qui compte aujourd’hui.",
+        "subhead": "Priorités, échéances et concentration en une vue."
+      },
+      {
+        "id": "04-plan-the-week",
+        "proof": "plan",
+        "appearance": "dark",
+        "headline": "Planifie chaque échéance.",
+        "subhead": "Transforme les dates limites en sessions sereines."
+      },
+      {
+        "id": "05-any-light",
+        "proof": "profile-and-matching-screen",
+        "appearance": "light-dark",
+        "headline": "Ton planning, dans chaque mode.",
+        "subhead": "Choisis Clair, Sombre ou Système."
+      }
+    ],
+    "hi": [
+      {
+        "id": "01-class-material",
+        "proof": "scan",
+        "appearance": "light",
+        "headline": "क्लास की सामग्री से शुरुआत करें।",
+        "subhead": "सिलेबस और नोट्स से ऐसी योजना जिसे आप जाँचें।"
+      },
+      {
+        "id": "02-approve-deadlines",
+        "proof": "review",
+        "appearance": "light",
+        "headline": "हर समय-सीमा आप मंज़ूर करते हैं।",
+        "subhead": "आपकी पुष्टि से पहले कुछ भी सेव नहीं होता।"
+      },
+      {
+        "id": "03-today-next-move",
+        "proof": "today",
+        "appearance": "light",
+        "headline": "जानें, आज किस पर ध्यान देना है।",
+        "subhead": "प्राथमिकताएँ, समय-सीमाएँ और फ़ोकस एक ही जगह।"
+      },
+      {
+        "id": "04-plan-the-week",
+        "proof": "plan",
+        "appearance": "dark",
+        "headline": "हर समय-सीमा के लिए समय तय करें।",
+        "subhead": "ड्यू डेट को शांत स्टडी ब्लॉक में बदलें।"
+      },
+      {
+        "id": "05-any-light",
+        "proof": "profile-and-matching-screen",
+        "appearance": "light-dark",
+        "headline": "हर मोड में आपकी योजना।",
+        "subhead": "हल्का, गहरा या सिस्टम चुनें।"
+      }
+    ],
+    "ja": [
+      {
+        "id": "01-class-material",
+        "proof": "scan",
+        "appearance": "light",
+        "headline": "授業資料から始めよう。",
+        "subhead": "シラバスやノートが、確認できる計画になります。"
+      },
+      {
+        "id": "02-approve-deadlines",
+        "proof": "review",
+        "appearance": "light",
+        "headline": "締切はすべて自分で承認。",
+        "subhead": "確認するまで何も保存されません。"
+      },
+      {
+        "id": "03-today-next-move",
+        "proof": "today",
+        "appearance": "light",
+        "headline": "今日やるべきことが分かる。",
+        "subhead": "優先事項・締切・集中時間をひとつの画面で。"
+      },
+      {
+        "id": "04-plan-the-week",
+        "proof": "plan",
+        "appearance": "dark",
+        "headline": "すべての締切に時間を確保。",
+        "subhead": "期限を落ち着いた学習時間に変えよう。"
+      },
+      {
+        "id": "05-any-light",
+        "proof": "profile-and-matching-screen",
+        "appearance": "light-dark",
+        "headline": "どの表示でも、計画は見やすく。",
+        "subhead": "ライト・ダーク・システムから選択。"
+      }
+    ],
+    "ko": [
+      {
+        "id": "01-class-material",
+        "proof": "scan",
+        "appearance": "light",
+        "headline": "수업 자료에서 시작하세요.",
+        "subhead": "강의계획서와 노트가 검토 가능한 계획이 됩니다."
+      },
+      {
+        "id": "02-approve-deadlines",
+        "proof": "review",
+        "appearance": "light",
+        "headline": "모든 마감일을 직접 승인하세요.",
+        "subhead": "확인하기 전에는 아무것도 저장되지 않습니다."
+      },
+      {
+        "id": "03-today-next-move",
+        "proof": "today",
+        "appearance": "light",
+        "headline": "오늘 할 일을 바로 파악하세요.",
+        "subhead": "우선순위, 마감일, 집중 시간을 한눈에."
+      },
+      {
+        "id": "04-plan-the-week",
+        "proof": "plan",
+        "appearance": "dark",
+        "headline": "모든 마감일에 시간을 배정하세요.",
+        "subhead": "마감일을 여유로운 학습 블록으로 바꾸세요."
+      },
+      {
+        "id": "05-any-light",
+        "proof": "profile-and-matching-screen",
+        "appearance": "light-dark",
+        "headline": "어떤 모드에서도 선명한 계획.",
+        "subhead": "라이트, 다크 또는 시스템을 선택하세요."
+      }
+    ],
+    "pt-BR": [
+      {
+        "id": "01-class-material",
+        "proof": "scan",
+        "appearance": "light",
+        "headline": "Comece com o material da aula.",
+        "subhead": "Plano de ensino e notas viram um plano revisado."
+      },
+      {
+        "id": "02-approve-deadlines",
+        "proof": "review",
+        "appearance": "light",
+        "headline": "Você aprova cada prazo.",
+        "subhead": "Nada é salvo até você confirmar."
+      },
+      {
+        "id": "03-today-next-move",
+        "proof": "today",
+        "appearance": "light",
+        "headline": "Saiba o que importa hoje.",
+        "subhead": "Prioridades, prazos e foco em uma só tela."
+      },
+      {
+        "id": "04-plan-the-week",
+        "proof": "plan",
+        "appearance": "dark",
+        "headline": "Dê um horário a cada prazo.",
+        "subhead": "Transforme entregas em blocos tranquilos."
+      },
+      {
+        "id": "05-any-light",
+        "proof": "profile-and-matching-screen",
+        "appearance": "light-dark",
+        "headline": "Seu plano, em qualquer modo.",
+        "subhead": "Escolha Claro, Escuro ou Sistema."
+      }
+    ],
+    "pt-PT": [
+      {
+        "id": "01-class-material",
+        "proof": "scan",
+        "appearance": "light",
+        "headline": "Começa pelo material de estudo.",
+        "subhead": "Revê um plano feito do programa e apontamentos."
+      },
+      {
+        "id": "02-approve-deadlines",
+        "proof": "review",
+        "appearance": "light",
+        "headline": "Aprovas todos os prazos.",
+        "subhead": "Nada é guardado até confirmares."
+      },
+      {
+        "id": "03-today-next-move",
+        "proof": "today",
+        "appearance": "light",
+        "headline": "Sabe o que precisa de ti hoje.",
+        "subhead": "Prioridades, prazos e foco numa só vista."
+      },
+      {
+        "id": "04-plan-the-week",
+        "proof": "plan",
+        "appearance": "dark",
+        "headline": "Reserva tempo para cada prazo.",
+        "subhead": "Transforma entregas em blocos tranquilos."
+      },
+      {
+        "id": "05-any-light",
+        "proof": "profile-and-matching-screen",
+        "appearance": "light-dark",
+        "headline": "O teu plano, em qualquer modo.",
+        "subhead": "Escolhe Claro, Escuro ou Sistema."
+      }
+    ],
+    "zh-Hans": [
+      {
+        "id": "01-class-material",
+        "proof": "scan",
+        "appearance": "light",
+        "headline": "从课程资料开始。",
+        "subhead": "教学大纲和笔记变成由你审核的计划。"
+      },
+      {
+        "id": "02-approve-deadlines",
+        "proof": "review",
+        "appearance": "light",
+        "headline": "每个截止日期都由你确认。",
+        "subhead": "确认前，不会保存任何内容。"
+      },
+      {
+        "id": "03-today-next-move",
+        "proof": "today",
+        "appearance": "light",
+        "headline": "清楚今天该做什么。",
+        "subhead": "优先事项、截止日期和专注安排一目了然。"
+      },
+      {
+        "id": "04-plan-the-week",
+        "proof": "plan",
+        "appearance": "dark",
+        "headline": "为每个截止日期安排时间。",
+        "subhead": "把截止任务变成从容的学习时段。"
+      },
+      {
+        "id": "05-any-light",
+        "proof": "profile-and-matching-screen",
+        "appearance": "light-dark",
+        "headline": "任何外观下，计划都清晰。",
+        "subhead": "选择浅色、深色或跟随系统。"
+      }
+    ],
+    "zh-Hant": [
+      {
+        "id": "01-class-material",
+        "proof": "scan",
+        "appearance": "light",
+        "headline": "從課程資料開始。",
+        "subhead": "課綱和筆記變成由你審核的計畫。"
+      },
+      {
+        "id": "02-approve-deadlines",
+        "proof": "review",
+        "appearance": "light",
+        "headline": "每個截止日期都由你確認。",
+        "subhead": "確認前，不會儲存任何內容。"
+      },
+      {
+        "id": "03-today-next-move",
+        "proof": "today",
+        "appearance": "light",
+        "headline": "清楚今天該做什麼。",
+        "subhead": "優先事項、截止日期和專注安排一目瞭然。"
+      },
+      {
+        "id": "04-plan-the-week",
+        "proof": "plan",
+        "appearance": "dark",
+        "headline": "為每個截止日期安排時間。",
+        "subhead": "把到期任務變成從容的學習時段。"
+      },
+      {
+        "id": "05-any-light",
+        "proof": "profile-and-matching-screen",
+        "appearance": "light-dark",
+        "headline": "任何外觀下，計畫都清晰。",
+        "subhead": "選擇淺色、深色或跟隨系統。"
+      }
+    ]
+  }
+}

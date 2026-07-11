@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "status": "proposed_do_not_apply_until_release_authorized",
+  "generatedAt": "2026-07-11T17:30:00Z",
+  "release": {
+    "version": "2.0.8",
+    "buildNumber": "82",
+    "sourceCommit": "a8ec2af6b74a84ea88459d51f634ee49f03de149"
+  },
+  "liveStateReadback": {
+    "inAppEvent": {
+      "id": "6789245011",
+      "state": "APPROVED",
+      "action": "preserve_until_named_release_authorization"
+    },
+    "featuringNomination": {
+      "id": "8255bf6c-6cbf-45bd-b88c-1afc3074ca41",
+      "state": "SUBMITTED",
+      "action": "preserve_until_named_release_authorization"
+    }
+  },
+  "inAppEventProposal": {
+    "referenceName": "Back-to-School Semester Kickoff 2026",
+    "name": "Semester Kickoff Week",
+    "badge": "CHALLENGE",
+    "shortDescription": "Build a calm, reviewed semester plan.",
+    "longDescription": "Import a syllabus, approve each deadline, and finish your first-week plan before classes ramp up.",
+    "publishStartLocal": "2026-08-10T08:00:00",
+    "eventStartLocal": "2026-08-24T08:00:00",
+    "eventEndLocal": "2026-08-31T23:59:00",
+    "deepLink": "studyplanner://import",
+    "priority": "HIGH",
+    "purpose": "ATTRACT_NEW_USERS",
+    "availability": "all_app_storefronts_where_app_is_available",
+    "productTruthCondition": "Use CHALLENGE only while the app tracks progress toward completing first-week setup during the event window.",
+    "replacementMediaAuthorized": false
+  },
+  "featuringNominationProposal": {
+    "name": "Back-to-School Semester Kickoff",
+    "type": "APP_ENHANCEMENTS",
+    "publishStart": "2026-08-24",
+    "publishEnd": "2026-08-31",
+    "platforms": [
+      "IOS_IPHONE",
+      "IOS_IPAD"
+    ],
+    "regions": "all_available",
+    "relatedInAppEventId": "6789245011",
+    "description": "Study Planner AI helps students turn the first stack of syllabi into a calm plan they control. Students scan or import class material, review detected courses, assignments, exams, and uncertain dates, then approve every deadline before anything is saved. Build 82 adds user-controlled System, Light, and Dark appearance with white-and-black app chrome while course colors stay distinct and native widgets adapt independently to the Home and Lock Screen. The release combines transparent review-before-save safeguards, focused study blocks built from real deadlines, accessible Dynamic Type and RTL layouts, and localized product and store experiences across 17 key student markets.",
+    "helpfulDetails": "Built by an independent developer focused on reducing semester overwhelm. The update pairs review-before-save OCR with real System, Light, and Dark support, native WidgetKit views, on-device planning data, Dynamic Type and RTL QA, and localized iPhone and iPad product pages. The seasonal event asks students to complete a concrete first-week setup goal rather than promoting general app awareness."
+  },
+  "copyQualityScore": {
+    "scope": "metadata_copy_only_not_submission_readiness_or_apple_acceptance",
+    "scale": 10,
+    "weightedScore": 9.6,
+    "dimensions": [
+      {
+        "name": "seasonal_relevance",
+        "weight": 0.15,
+        "score": 10,
+        "reason": "The event has a specific back-to-school window and a concrete first-week completion goal."
+      },
+      {
+        "name": "product_specificity",
+        "weight": 0.2,
+        "score": 9.8,
+        "reason": "The copy names syllabus import, review-before-save, deadlines, appearance controls, and native widgets."
+      },
+      {
+        "name": "student_value",
+        "weight": 0.2,
+        "score": 9.7,
+        "reason": "The value is framed as control and a calmer first week, not generic AI capability."
+      },
+      {
+        "name": "editorial_clarity",
+        "weight": 0.15,
+        "score": 9.5,
+        "reason": "The event copy is short, active, and understandable without product jargon."
+      },
+      {
+        "name": "apple_platform_fit",
+        "weight": 0.15,
+        "score": 9.5,
+        "reason": "The nomination ties truthful product value to System appearance, WidgetKit, Dynamic Type, and RTL."
+      },
+      {
+        "name": "claim_verifiability",
+        "weight": 0.15,
+        "score": 9.2,
+        "reason": "Every product claim maps to Build 81 source or QA, while final physical-device and screenshot authorization remain explicit gates."
+      }
+    ]
+  },
+  "applyGate": {
+    "ready": false,
+    "required": [
+      "physical_iphone_testflight_qa_passed",
+      "physical_ipad_testflight_qa_passed",
+      "170_exact_binary_screenshots_mechanical_qa_passed",
+      "170_exact_binary_screenshots_human_qa_at_or_above_9_5",
+      "named_reviewer_authorized_build_and_media_hashes",
+      "approved_event_edit_or_replacement_strategy_confirmed",
+      "submitted_nomination_update_strategy_confirmed"
+    ]
+  }
+}

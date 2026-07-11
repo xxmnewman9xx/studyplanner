@@ -40,6 +40,26 @@
     "appReviewSubmitted": false,
     "readbackAt": "2026-07-11T16:57:50Z"
   },
+  "inAppEvent": {
+    "id": "6789245011",
+    "referenceName": "Back-to-School Semester Kickoff 2026",
+    "name": "Semester Kickoff Week",
+    "state": "APPROVED",
+    "badge": "CHALLENGE",
+    "shortDescription": "Review your first-week plan",
+    "longDescription": "Import a syllabus, approve deadlines, and finish setup before classes ramp.",
+    "eventCardAssetId": "07dabcb0-c821-47c0-8a60-b07b1173c879",
+    "eventDetailsAssetId": "58010586-2651-44af-945d-6a7e84871a92",
+    "replacementMediaAuthorized": false
+  },
+  "featuringNomination": {
+    "id": "8255bf6c-6cbf-45bd-b88c-1afc3074ca41",
+    "name": "Back-to-School Semester Kickoff",
+    "type": "APP_ENHANCEMENTS",
+    "state": "SUBMITTED",
+    "submittedDate": "2026-07-09T20:50:08.273094Z",
+    "updatedForBuild81": false
+  },
   "physicalDeviceQa": {
     "iphone": null,
     "ipad": null,
