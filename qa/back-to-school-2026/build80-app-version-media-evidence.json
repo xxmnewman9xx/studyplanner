@@ -1,6 +1,6 @@
 {
   "status": "verified",
-  "readiness": "blocked_pending_asc_processing_selection_screenshots_and_human_authorization",
+  "readiness": "blocked_pending_asc_selection_screenshots_and_human_authorization",
   "version": "2.0.8",
   "buildNumber": "80",
   "bundleIdentifier": "com.mattnewman.studyplanner",
@@ -42,13 +42,21 @@
     "version": "2.0.8",
     "buildNumber": "80",
     "uploaded": true,
-    "processed": false,
+    "processed": true,
     "selectedForVersion": false,
+    "buildId": "c518fd04-612e-44c5-9c76-a0d723c8e7c7",
+    "processingState": "VALID",
+    "uploadedDate": "2026-07-10T21:40:47-07:00",
+    "appVersionId": "a05e2964-6639-4f7a-9109-09c56cc36ebe",
+    "appVersionState": "PREPARE_FOR_SUBMISSION",
+    "selectedBuildNumber": "79",
     "submissionId": "acd97888-613f-415b-9724-c4ae9e121b19",
     "submissionStatus": "finished",
     "submissionDetailsUrl": "https://expo.dev/accounts/xxmnewman9xx/projects/study-planner-syllabus-ai/submissions/acd97888-613f-415b-9724-c4ae9e121b19",
-    "stateSource": "eas_submission_graphql",
-    "submissionVerifiedAt": "2026-07-11T06:03:02Z"
+    "submissionStateSource": "eas_submission_graphql",
+    "submissionVerifiedAt": "2026-07-11T06:03:02Z",
+    "stateSource": "app_store_connect_api_readback",
+    "verifiedAt": "2026-07-11T06:14:55Z"
   },
   "screenshots": {
     "iphone": {

@@ -17,7 +17,7 @@ The July 9 submission record is not permission to upload or submit a newer app-v
 | --- | --- | --- |
 | In-App Event `Semester Kickoff Week` | Submitted July 9; historical record says Waiting for Review | No new event submission is implied by this scorecard. |
 | Featuring nomination `8255bf6c-6cbf-45bd-b88c-1afc3074ca41` | Submitted July 9 | No new nomination submission is implied by this scorecard. |
-| iOS app version `2.0.8` Build `80` | Uploaded; not evidence-complete | EAS build and submission finished and the IPA identity/hash are verified. Apple processing and app-version selection still require live App Store Connect readback. |
+| iOS app version `2.0.8` Build `80` | Processed; not selected | EAS build/submission and IPA identity/hash are verified. Live ASC readback shows Build 80 `VALID`, while the editable version still selects Build 79. |
 | Standard App Store screenshots | Mechanically configured, not upload-authorized | `store.config.json` points to the canonical `store/apple/screenshot/` root with 144 valid references: 119 iPhone and 25 iPad. |
 | GPT Image 2.0 Treatment B | **BLOCKED / DO NOT UPLOAD** | Independent review found UI drift, localization errors, seams, and incomplete or contradictory provenance. |
 | In-App Event art | **CANDIDATE-APPROVED / UPLOAD BLOCKED** | Exact 1920x1080 card and 1080x1920 details replacements each scored `9.6/10`; manifest upload authorization remains `false`. |
@@ -32,7 +32,7 @@ Gate completion: **4/8**. This is an evidence-completion count, not an Apple-qua
 | Local Build 80 target | Pass | `app.json` targets iOS `2.0.8` Build `80`, bundle `com.mattnewman.studyplanner`. |
 | Canonical store configuration | Pass | All 144 configured references use `store/apple/screenshot/`, exist, and match the configured iPhone/iPad dimensions. |
 | Local runtime/quality checks | Pass | First-experience, scanner stress, widget safeguards, and no-crop records are present in the readiness audit. |
-| Real Build 80 identity | **Partial / Blocked** | EAS build, IPA identity/hash, and EAS submission are verified. Live ASC app `6766181202` must still show Build 80 processed and selected. |
+| Real Build 80 identity | **Partial / Blocked** | EAS build, IPA identity/hash, submission, and live ASC `VALID` processing are verified. ASC app `6766181202` must still select Build 80 for version `2.0.8`. |
 | Exact-binary iPhone provenance | **Blocked** | Per-file hashes for all 119 configured iPhone screenshots, each linked to the verified Build 80 IPA SHA-256. |
 | Exact-binary iPad provenance | **Blocked** | Per-file hashes for all 25 configured iPad screenshots, each linked to the verified Build 80 IPA SHA-256. |
 | App Preview decision | Pass | Explicit `no_upload` decision recorded because App Previews are optional; the invalid existing videos remain blocked. |

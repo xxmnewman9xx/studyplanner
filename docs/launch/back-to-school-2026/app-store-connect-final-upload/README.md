@@ -36,7 +36,7 @@ Use `npm run check:copy-b-image2` for the optional PPO Copy B set. It proves the
 
 ## Live App Store Connect Status
 
-Current Build 80 evidence: production EAS build `8d157ad7-d41e-4909-972d-859f05f9349e` and EAS submission `acd97888-613f-415b-9724-c4ae9e121b19` both finished without an EAS error. The verified IPA is iOS `2.0.8 (80)`, SHA-256 `57c7e6f03546eeed476eb47702e5bb88684c640a6657efc78bfee394fe61fc4a`. This proves the binary handoff, not Apple processing or selection; those fields remain false until live App Store Connect readback.
+Current Build 80 evidence: production EAS build `8d157ad7-d41e-4909-972d-859f05f9349e` and EAS submission `acd97888-613f-415b-9724-c4ae9e121b19` both finished without an EAS error. The verified IPA is iOS `2.0.8 (80)`, SHA-256 `57c7e6f03546eeed476eb47702e5bb88684c640a6657efc78bfee394fe61fc4a`. Live App Store Connect API readback on 2026-07-11 shows Build 80 processed as `VALID`; the editable `2.0.8` version remains `PREPARE_FOR_SUBMISSION` and still has Build 79 selected. Build 80 selection remains blocked.
 
 Verified in App Store Connect on 2026-07-09:
 
