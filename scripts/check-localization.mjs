@@ -71,6 +71,9 @@ expect(!appSource.includes("score 81"), "localized surfaces must not mention fak
 expect(!appSource.includes("No dashboard data"), "empty dashboard must not use broken placeholder copy");
 expect(!appSource.includes("0 / locked"), "locked or empty dashboard must not expose prototype numeric shorthand");
 expect(!appSource.includes("Studyplanner: Syllabus AI"), "loading copy must use product casing");
+expect(appSource.includes('"review.guard_active": "Approve first."'), "English save-gate copy must stay compact");
+expect(!appSource.includes('"review.guard_active": "Nothing saves until you approve."'), "English save-gate copy must not regress to the wrapped phrase");
+expect(appSource.includes('textFor("scan.rail_review", "Review")} label={textFor("scan.metric_gate", "Save gate")}'), "Scan save-gate metric must use the compact Review value");
 
 const sourceFile = ts.createSourceFile("App.tsx", appSource, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 const runtimeCopyNode = objectLiteralForConst(sourceFile, "SCAN_REVIEW_RUNTIME_COPY");
