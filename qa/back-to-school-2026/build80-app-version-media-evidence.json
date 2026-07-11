@@ -1,0 +1,78 @@
+{
+  "status": "verified",
+  "readiness": "blocked_pending_asc_screenshots_event_media_and_human_authorization",
+  "version": "2.0.8",
+  "buildNumber": "80",
+  "bundleIdentifier": "com.mattnewman.studyplanner",
+  "easBuild": {
+    "id": "8d157ad7-d41e-4909-972d-859f05f9349e",
+    "status": "finished",
+    "platform": "ios",
+    "profile": "production",
+    "artifactUrl": "https://expo.dev/artifacts/eas/deH5HBkO3fEhn3EUFrxMHH7hVGRxINKZ_R5mYH6MmIA.ipa",
+    "appVersion": "2.0.8",
+    "buildNumber": "80",
+    "sourceCommit": "f7c943c469fd0eaade4c98e1578bd3c64fadad46",
+    "fingerprint": "0e936badbef19b8fa4d03ea38c0dc7d49b64bc2e",
+    "completedAt": "2026-07-11T01:53:55.968Z"
+  },
+  "ipa": {
+    "localPath": "builds/StudyPlanner-2.0.8-80-f7c943c4.ipa",
+    "sha256": "57c7e6f03546eeed476eb47702e5bb88684c640a6657efc78bfee394fe61fc4a",
+    "bytes": 18651336,
+    "version": "2.0.8",
+    "buildNumber": "80",
+    "bundleIdentifier": "com.mattnewman.studyplanner",
+    "widgetBundleIdentifier": "com.mattnewman.studyplanner.widgets",
+    "widgetVersion": "2.0.8",
+    "widgetBuildNumber": "80",
+    "signingTeamIdentifier": "5JN35MJ3QD",
+    "appGroup": "group.com.mattnewman.studyplanner",
+    "urlSchemes": [
+      "studyplanner",
+      "com.mattnewman.studyplanner"
+    ],
+    "signatureVerified": true,
+    "appPrivacyManifestEmbedded": true,
+    "widgetPrivacyManifestEmbedded": true,
+    "inspectedAt": "2026-07-11T01:56:47Z"
+  },
+  "appStoreConnect": {
+    "appAppleId": "6766181202",
+    "version": "2.0.8",
+    "buildNumber": "80",
+    "uploaded": false,
+    "processed": false,
+    "selectedForVersion": false,
+    "stateSource": "not_uploaded_by_this_workflow"
+  },
+  "screenshots": {
+    "iphone": {
+      "captureSource": "pending_exact_build80_binary",
+      "sourceIpaSha256": "57c7e6f03546eeed476eb47702e5bb88684c640a6657efc78bfee394fe61fc4a",
+      "assets": []
+    },
+    "ipad": {
+      "captureSource": "pending_exact_build80_binary",
+      "sourceIpaSha256": "57c7e6f03546eeed476eb47702e5bb88684c640a6657efc78bfee394fe61fc4a",
+      "assets": []
+    }
+  },
+  "appPreview": {
+    "decision": "no_upload",
+    "optional": true,
+    "uploadApproved": false,
+    "reviewPath": "qa/back-to-school-2026/product-video-review.json"
+  },
+  "eventMedia": {
+    "status": "blocked_below_10",
+    "eventCardScore": 8.5,
+    "eventDetailsScore": 7.3,
+    "supplementalHeroScore": 7.5,
+    "uploadAuthorized": false
+  },
+  "humanUploadAuthorization": {
+    "authorized": false,
+    "treatmentBUploadAuthorized": false
+  }
+}
