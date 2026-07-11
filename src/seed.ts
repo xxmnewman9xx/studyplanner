@@ -59,11 +59,13 @@ export const defaultData: AppData = {
     studentPersona: "School semester",
     mainGoal: "Stay ahead",
     semesterGoal: "Stay ahead",
-    scanIntent: "Syllabus PDF",
+    scanIntent: "Scan with camera",
     theme: "light",
     presetId: "academic",
     widgetTheme: "liquidLight",
     widgetDensity: "balanced",
+    semesterThemeColorId: "blue",
+    semesterAccentColor: "#1476FF",
     onboardingComplete: false,
     osLive: false,
     premium: false,
@@ -92,8 +94,12 @@ export function minutesLabel(minutes: number) {
   return m ? `${h}h ${m}m` : `${h}h`;
 }
 
-export function isoFromOffset(offset: number) {
-  const d = new Date(TODAY);
+export function isoFromOffset(offset: number, current = new Date()) {
+  const d = new Date(current);
+  d.setHours(12, 0, 0, 0);
   d.setDate(d.getDate() + offset);
-  return d.toISOString().slice(0, 10);
+  const year = String(d.getFullYear()).padStart(4, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }

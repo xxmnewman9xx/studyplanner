@@ -1,3 +1,6 @@
 {
-  "CFBundleDisplayName": "シラバス学習計画"
+  "CFBundleDisplayName": "シラバス学習計画",
+  "NSCameraUsageDescription": "カメラでシラバス写真を読み取り、課題・試験・締切を確認済みの計画項目にします。",
+  "NSPhotoLibraryUsageDescription": "選択したシラバス写真を読み取り、追加前に課題・試験・締切を確認できるようにします。",
+  "NSUserNotificationsUsageDescription": "締切、試験、授業の前に落ち着いた通知を送ります。"
 }

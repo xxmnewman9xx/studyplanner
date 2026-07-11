@@ -125,6 +125,8 @@ export type WidgetThemeChoice =
 
 export type WidgetDensity = "quiet" | "balanced" | "detailed";
 
+export type SemesterThemeColorId = "blue" | "green" | "orange" | "purple" | "pink" | "graphite";
+
 export type WidgetPreset = {
   id: string;
   name: string;
@@ -152,11 +154,14 @@ export type UserPrefs = {
   widgetTheme?: WidgetThemeChoice;
   widgetDensity?: WidgetDensity;
   widgetClassId?: string;
+  semesterThemeColorId?: SemesterThemeColorId;
+  semesterAccentColor?: string;
   onboardingComplete?: boolean;
   osLive: boolean;
   premium: boolean;
   premiumProductId?: string;
   premiumCheckedAt?: string;
+  widgetLastSyncedAt?: string;
 };
 
 export type StudyBlock = {

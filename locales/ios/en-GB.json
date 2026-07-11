@@ -1,3 +1,6 @@
 {
-  "CFBundleDisplayName": "Study Planner AI"
+  "CFBundleDisplayName": "Study Planner AI",
+  "NSCameraUsageDescription": "Use the camera to read syllabus photos and turn coursework, exams, and deadlines into reviewed planner items.",
+  "NSPhotoLibraryUsageDescription": "Use selected syllabus photos so coursework, exams, and deadlines can be reviewed before they are added.",
+  "NSUserNotificationsUsageDescription": "Send calm reminders before deadlines, exams, and classes."
 }

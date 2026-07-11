@@ -1,3 +1,6 @@
 {
-  "CFBundleDisplayName": "Planificador de Materias"
+  "CFBundleDisplayName": "Planificador de Materias",
+  "NSCameraUsageDescription": "Usa la cámara para leer fotos del programa y convertir tareas, exámenes y fechas de entrega en elementos revisados del plan.",
+  "NSPhotoLibraryUsageDescription": "Usa fotos seleccionadas del programa para revisar tareas, exámenes y fechas de entrega antes de agregarlas.",
+  "NSUserNotificationsUsageDescription": "Envía recordatorios discretos antes de entregas, exámenes y clases."
 }

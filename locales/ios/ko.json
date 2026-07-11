@@ -1,3 +1,6 @@
 {
-  "CFBundleDisplayName": "강의계획서 학습계획"
+  "CFBundleDisplayName": "강의계획서 학습계획",
+  "NSCameraUsageDescription": "카메라로 강의계획서 사진을 읽어 과제, 시험, 마감일을 검토된 계획 항목으로 바꿉니다.",
+  "NSPhotoLibraryUsageDescription": "선택한 강의계획서 사진을 읽어 과제, 시험, 마감일을 추가 전에 검토할 수 있게 합니다.",
+  "NSUserNotificationsUsageDescription": "마감일, 시험, 수업 전에 차분한 알림을 보냅니다."
 }

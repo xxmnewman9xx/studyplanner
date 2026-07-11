@@ -1,3 +1,6 @@
 {
-  "CFBundleDisplayName": "Planificador de Temarios"
+  "CFBundleDisplayName": "Planificador de Temarios",
+  "NSCameraUsageDescription": "Usa la cámara para leer fotos del temario y convertir tareas, exámenes y entregas en elementos revisados del plan.",
+  "NSPhotoLibraryUsageDescription": "Usa fotos seleccionadas del temario para revisar tareas, exámenes y entregas antes de añadirlas.",
+  "NSUserNotificationsUsageDescription": "Envía recordatorios tranquilos antes de entregas, exámenes y clases."
 }

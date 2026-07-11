@@ -1,18 +1,23 @@
 import { StatusBar } from "expo-status-bar";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
+import * as Notifications from "expo-notifications";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { File, Paths } from "expo-file-system";
 import { purchaseErrorListener, purchaseUpdatedListener } from "expo-iap";
+import OpenCC from "opencc-js/cn2t";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Animated,
+  AppState,
+  BackHandler,
   Easing,
   Image as RNImage,
 	  KeyboardAvoidingView,
 	  Linking,
+  Platform,
 	  Pressable,
   ScrollView,
   StyleProp,
@@ -92,17 +97,20 @@ import {
 import { extractTextFromImage, hasNativeImageTextRecognition } from "./src/imageTextRecognition";
 import { countOcrWords } from "./src/ocrText";
 import { COLORS, THEMES, defaultData, formatDue, isoFromOffset, minutesLabel } from "./src/seed";
-import { AppData, ClassItem, ExamItem, FeedbackEvent, HealthDimensionKey, ImportBatch, ImportCandidate, NoteItem, StudyBlock, TaskItem, ThemeId } from "./src/types";
-import { buildSemesterLoop, syncNativeWidgets } from "./src/widgetEngine";
-import { cancelReminderNotificationIds, scheduleLocalReminders } from "./src/reminders";
+import { AppData, ClassItem, ExamItem, FeedbackEvent, HealthDimensionKey, ImportBatch, ImportCandidate, NoteItem, ReminderItem, StudyBlock, TaskItem, ThemeId } from "./src/types";
+import { buildNativeWidgetSnapshots, buildSemesterLoop, syncNativeWidgets, type NativeWidgetKind, type NativeWidgetSnapshot, type WidgetCopy } from "./src/widgetEngine";
+import { cancelReminderNotificationIds, listPendingReminderNotifications, scheduleLocalReminders } from "./src/reminders";
+import { cleanupRemindersForDeletedEntities, pruneOrphanedStudyBlocks, reconcileReminderNotificationEvidence } from "./src/reminderCleanup";
 import { pickAndExtractPdf } from "./src/pdfImport";
 import { clearPendingImport, loadPendingImport, savePendingImport } from "./src/pendingImport";
 import { buildSemesterNarrative } from "./src/semesterNarrative";
 import { resolveInitialRouteForData } from "./src/activation";
+import { isValidDateInput } from "./src/logic/planner";
 import {
   activeSemesterData,
   applyImportUpdateToData,
   applyTaskRecurrencePatch,
+  canMarkStudyBlockMissed,
   classColors,
   deleteTaskRecurrence,
   findImportMatch,
@@ -116,17 +124,24 @@ import {
   closeStudyPlannerStore,
   fallbackPlans,
   finishStudyPlannerPurchase,
+  hasOneWeekFreeTrial,
   initializeStudyPlannerStore,
+  loadEligibleIntroOfferProductIds,
   loadStorePlans,
   purchasePlan,
   restoreStudyPlannerPurchases,
 } from "./src/iap";
 import {
   recordReviewEvent,
-  submitReviewRating,
-  type ReviewRating,
   type ReviewTrigger,
 } from "./src/services/reviewPrompt";
+import { LiquidGlassSurface } from "./src/components/LiquidGlassSurface";
+import {
+  isSemesterThemeColorId,
+  resolveSemesterThemeColor,
+  type SemesterThemeColorId,
+} from "./src/semesterTheme";
+import { semesterKickoffPhase, semesterKickoffProgress } from "./src/semesterKickoff";
 
 declare const process:
   | {
@@ -141,6 +156,7 @@ type Route =
   | "welcome"
   | "onboarding"
   | "importOptions"
+  | "semesterKickoff"
   | "lockedDashboard"
   | "paywall"
   | "terms"
@@ -168,6 +184,46 @@ type Route =
 
 type NavItem = { route: Route; params?: Record<string, string> };
 
+const GOOGLE_PLAY_REVIEW_ACCESS_CODE = "STUDYPLANNER-REVIEW-2026";
+const GOOGLE_PLAY_REVIEW_PRODUCT_ID = "google-play-review-access";
+
+function unlockDestinationFromPaywall(destination?: NavItem | null): NavItem | null {
+  if (destination?.route !== "paywall") return null;
+  const params = destination.params || {};
+  if (params.next === "scan") return { route: "scan", params: params.action ? { action: params.action } : undefined };
+  if (params.next === "paste") return { route: "paste", params: { mode: params.mode || "syllabus" } };
+  if (params.next === "widgets") return { route: "widgets" };
+  if (params.id && ["classDetail", "taskDetail", "assessmentDetail", "studySession"].includes(params.next || "")) {
+    return { route: params.next as Route, params: { id: params.id } };
+  }
+  return null;
+}
+
+function destinationFromNotificationData(value: unknown): NavItem | null {
+  if (!value || typeof value !== "object") return null;
+  const data = value as Record<string, unknown>;
+  const sourceId = typeof data.sourceId === "string" ? data.sourceId : "";
+  const kind = typeof data.kind === "string" ? data.kind : "";
+  if (!sourceId) return null;
+  if (kind === "Class") return { route: "classDetail", params: { id: sourceId } };
+  if (kind === "Assignment") return { route: "taskDetail", params: { id: sourceId } };
+  if (kind === "Exam") return { route: "assessmentDetail", params: { id: sourceId } };
+  if (kind === "Study") return { route: "studySession", params: { id: sourceId } };
+  return null;
+}
+
+function normalizedReviewAccessCode(value: string) {
+  return value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+function googlePlayReviewAccessEnabled() {
+  return Platform.OS === "android" && typeof process !== "undefined" && process.env?.EXPO_PUBLIC_GOOGLE_PLAY_REVIEW_ACCESS === "1";
+}
+
+function googlePlayReviewAccessCodeMatches(value: string) {
+  return normalizedReviewAccessCode(value) === normalizedReviewAccessCode(GOOGLE_PLAY_REVIEW_ACCESS_CODE);
+}
+
 type SupportedLocale =
   | "ar"
   | "de"
@@ -184,30 +240,307 @@ type CopyVars = Record<string, string | number>;
 
 const supportedLocales: SupportedLocale[] = ["ar", "de", "en-US", "es", "fr", "hi", "ja", "ko", "pt-BR", "zh-Hans"];
 
+type SemesterKickoffCopy = {
+  kicker: string;
+  title: string;
+  body: string;
+  upcoming: string;
+  live: string;
+  ended: string;
+  progress: string;
+  importTitle: string;
+  importBody: string;
+  reviewTitle: string;
+  reviewBody: string;
+  focusTitle: string;
+  focusBody: string;
+  done: string;
+  next: string;
+  completeTitle: string;
+  completeBody: string;
+  ctaImport: string;
+  ctaReview: string;
+  ctaFocus: string;
+  ctaDone: string;
+};
+
+const SEMESTER_KICKOFF_COPY: Record<SupportedLocale, SemesterKickoffCopy> = {
+  "en-US": {
+    kicker: "BACK-TO-SCHOOL CHALLENGE",
+    title: "Semester Kickoff Week",
+    body: "Turn one real syllabus into a reviewed plan before classes ramp.",
+    upcoming: "Starts August 24",
+    live: "Live through August 31",
+    ended: "Challenge ended · your plan still works",
+    progress: "{done} of 3 complete",
+    importTitle: "Import one syllabus",
+    importBody: "Use the camera, a PDF, or pasted text from a real class.",
+    reviewTitle: "Approve real deadlines",
+    reviewBody: "Dated work counts only after you review and apply it.",
+    focusTitle: "Finish setup with one focus block",
+    focusBody: "Complete one planned study block to close the loop.",
+    done: "Done",
+    next: "Next",
+    completeTitle: "Kickoff complete",
+    completeBody: "Your first reviewed semester plan is live. Today keeps the next move visible.",
+    ctaImport: "Start syllabus import",
+    ctaReview: "Review waiting import",
+    ctaFocus: "Open the study plan",
+    ctaDone: "Open Today",
+  },
+  de: {
+    kicker: "CHALLENGE ZUM SCHULSTART",
+    title: "Woche zum Semesterstart",
+    body: "Mach aus einem echten Lehrplan einen geprüften Plan, bevor der Unterricht anzieht.",
+    upcoming: "Startet am 24. August",
+    live: "Live bis 31. August",
+    ended: "Challenge beendet · dein Plan bleibt aktiv",
+    progress: "{done} von 3 erledigt",
+    importTitle: "Einen Lehrplan importieren",
+    importBody: "Nutze Kamera, PDF oder eingefügten Text aus einem echten Kurs.",
+    reviewTitle: "Echte Fristen bestätigen",
+    reviewBody: "Datierte Aufgaben zählen erst nach Prüfung und Übernahme.",
+    focusTitle: "Setup mit einem Fokusblock abschließen",
+    focusBody: "Beende einen geplanten Lernblock und schließe den Kreislauf.",
+    done: "Erledigt",
+    next: "Als Nächstes",
+    completeTitle: "Semesterstart geschafft",
+    completeBody: "Dein erster geprüfter Semesterplan ist aktiv. Heute zeigt den nächsten Schritt.",
+    ctaImport: "Lehrplan importieren",
+    ctaReview: "Wartenden Import prüfen",
+    ctaFocus: "Lernplan öffnen",
+    ctaDone: "Heute öffnen",
+  },
+  es: {
+    kicker: "RETO DE VUELTA A CLASE",
+    title: "Semana de inicio del semestre",
+    body: "Convierte un programa real en un plan revisado antes de que aumente el ritmo.",
+    upcoming: "Empieza el 24 de agosto",
+    live: "Activo hasta el 31 de agosto",
+    ended: "El reto terminó · tu plan sigue activo",
+    progress: "{done} de 3 completados",
+    importTitle: "Importa un programa",
+    importBody: "Usa la cámara, un PDF o texto pegado de una clase real.",
+    reviewTitle: "Aprueba fechas reales",
+    reviewBody: "El trabajo con fecha cuenta solo después de revisarlo y aplicarlo.",
+    focusTitle: "Termina la configuración con un bloque de enfoque",
+    focusBody: "Completa un bloque de estudio planificado para cerrar el ciclo.",
+    done: "Listo",
+    next: "Siguiente",
+    completeTitle: "Inicio completado",
+    completeBody: "Tu primer plan de semestre revisado está activo. Hoy mantiene visible el siguiente paso.",
+    ctaImport: "Importar programa",
+    ctaReview: "Revisar importación pendiente",
+    ctaFocus: "Abrir plan de estudio",
+    ctaDone: "Abrir Hoy",
+  },
+  fr: {
+    kicker: "DÉFI DE RENTRÉE",
+    title: "Semaine de lancement du semestre",
+    body: "Transforme un vrai syllabus en plan vérifié avant que les cours s'intensifient.",
+    upcoming: "Commence le 24 août",
+    live: "En direct jusqu'au 31 août",
+    ended: "Défi terminé · ton plan reste actif",
+    progress: "{done} sur 3 terminés",
+    importTitle: "Importer un syllabus",
+    importBody: "Utilise l'appareil photo, un PDF ou le texte d'un vrai cours.",
+    reviewTitle: "Valider les vraies échéances",
+    reviewBody: "Le travail daté compte seulement après vérification et application.",
+    focusTitle: "Finir la configuration avec un bloc Focus",
+    focusBody: "Termine un bloc d'étude planifié pour boucler la boucle.",
+    done: "Terminé",
+    next: "Suite",
+    completeTitle: "Lancement terminé",
+    completeBody: "Ton premier plan de semestre vérifié est actif. Aujourd'hui garde la prochaine étape visible.",
+    ctaImport: "Importer le syllabus",
+    ctaReview: "Vérifier l'import en attente",
+    ctaFocus: "Ouvrir le plan d'étude",
+    ctaDone: "Ouvrir Aujourd'hui",
+  },
+  "pt-BR": {
+    kicker: "DESAFIO DE VOLTA ÀS AULAS",
+    title: "Semana de início do semestre",
+    body: "Transforme uma ementa real em um plano revisado antes das aulas acelerarem.",
+    upcoming: "Começa em 24 de agosto",
+    live: "Ativo até 31 de agosto",
+    ended: "Desafio encerrado · seu plano continua ativo",
+    progress: "{done} de 3 concluídos",
+    importTitle: "Importe uma ementa",
+    importBody: "Use a câmera, um PDF ou texto colado de uma matéria real.",
+    reviewTitle: "Aprove prazos reais",
+    reviewBody: "Trabalhos com data só contam depois de revisar e aplicar.",
+    focusTitle: "Conclua a configuração com um bloco de foco",
+    focusBody: "Conclua um bloco de estudo planejado para fechar o ciclo.",
+    done: "Concluído",
+    next: "Próximo",
+    completeTitle: "Início concluído",
+    completeBody: "Seu primeiro plano de semestre revisado está ativo. Hoje mantém a próxima ação visível.",
+    ctaImport: "Importar ementa",
+    ctaReview: "Revisar importação pendente",
+    ctaFocus: "Abrir plano de estudo",
+    ctaDone: "Abrir Hoje",
+  },
+  ja: {
+    kicker: "新学期チャレンジ",
+    title: "学期スタート週間",
+    body: "授業が本格化する前に、実際のシラバスを確認済みの計画に変えましょう。",
+    upcoming: "8月24日開始",
+    live: "8月31日まで開催",
+    ended: "チャレンジ終了 · 計画は引き続き使えます",
+    progress: "3件中{done}件完了",
+    importTitle: "シラバスを1件取り込む",
+    importBody: "実際の授業のカメラ画像、PDF、または貼り付けたテキストを使います。",
+    reviewTitle: "実際の締切を承認する",
+    reviewBody: "日付付きの課題は、確認して適用した後にだけ反映されます。",
+    focusTitle: "集中ブロックで設定を完了する",
+    focusBody: "計画した学習ブロックを1件完了して流れを完成させます。",
+    done: "完了",
+    next: "次へ",
+    completeTitle: "スタート完了",
+    completeBody: "最初の確認済み学期プランが有効です。今日で次の行動を確認できます。",
+    ctaImport: "シラバスを取り込む",
+    ctaReview: "保留中の取り込みを確認",
+    ctaFocus: "学習プランを開く",
+    ctaDone: "今日を開く",
+  },
+  ko: {
+    kicker: "개강 준비 챌린지",
+    title: "학기 시작 주간",
+    body: "수업이 바빠지기 전에 실제 강의계획서를 검토된 계획으로 바꾸세요.",
+    upcoming: "8월 24일 시작",
+    live: "8월 31일까지 진행",
+    ended: "챌린지 종료 · 계획은 계속 사용할 수 있어요",
+    progress: "3개 중 {done}개 완료",
+    importTitle: "강의계획서 하나 가져오기",
+    importBody: "실제 수업의 카메라, PDF 또는 붙여넣은 텍스트를 사용하세요.",
+    reviewTitle: "실제 마감일 승인하기",
+    reviewBody: "날짜가 있는 과제는 검토하고 적용한 뒤에만 반영됩니다.",
+    focusTitle: "집중 블록으로 설정 마치기",
+    focusBody: "계획한 학습 블록 하나를 완료해 흐름을 마무리하세요.",
+    done: "완료",
+    next: "다음",
+    completeTitle: "학기 시작 준비 완료",
+    completeBody: "첫 검토 완료 학기 계획이 활성화됐어요. 오늘에서 다음 행동을 확인하세요.",
+    ctaImport: "강의계획서 가져오기",
+    ctaReview: "대기 중 가져오기 검토",
+    ctaFocus: "학습 계획 열기",
+    ctaDone: "오늘 열기",
+  },
+  "zh-Hans": {
+    kicker: "开学挑战",
+    title: "学期开启周",
+    body: "在课程忙起来之前，把一份真实教学大纲变成已审核计划。",
+    upcoming: "8月24日开始",
+    live: "持续至8月31日",
+    ended: "挑战已结束 · 你的计划仍可继续使用",
+    progress: "已完成 {done}/3",
+    importTitle: "导入一份教学大纲",
+    importBody: "使用真实课程的相机图片、PDF 或粘贴文本。",
+    reviewTitle: "确认真实截止日期",
+    reviewBody: "带日期的任务只有在审核并应用后才会计入。",
+    focusTitle: "用一个专注时段完成设置",
+    focusBody: "完成一个已计划的学习时段，闭合整个流程。",
+    done: "已完成",
+    next: "下一步",
+    completeTitle: "开学准备完成",
+    completeBody: "你的第一份已审核学期计划已启用。今天会持续显示下一步。",
+    ctaImport: "导入教学大纲",
+    ctaReview: "审核待处理导入",
+    ctaFocus: "打开学习计划",
+    ctaDone: "打开今天",
+  },
+  hi: {
+    kicker: "बैक-टू-स्कूल चैलेंज",
+    title: "सेमेस्टर किकऑफ सप्ताह",
+    body: "कक्षाएं तेज होने से पहले एक असली सिलेबस को जांचे हुए प्लान में बदलें।",
+    upcoming: "24 अगस्त से शुरू",
+    live: "31 अगस्त तक लाइव",
+    ended: "चैलेंज समाप्त · आपका प्लान अभी भी काम करता है",
+    progress: "3 में से {done} पूरे",
+    importTitle: "एक सिलेबस इम्पोर्ट करें",
+    importBody: "असली कक्षा का कैमरा, PDF या पेस्ट किया हुआ टेक्स्ट इस्तेमाल करें।",
+    reviewTitle: "असली डेडलाइन मंजूर करें",
+    reviewBody: "तारीख वाला काम जांचने और लागू करने के बाद ही गिना जाता है।",
+    focusTitle: "एक फोकस ब्लॉक से सेटअप पूरा करें",
+    focusBody: "चक्र पूरा करने के लिए एक नियोजित स्टडी ब्लॉक खत्म करें।",
+    done: "पूरा",
+    next: "अगला",
+    completeTitle: "किकऑफ पूरा",
+    completeBody: "आपका पहला जांचा हुआ सेमेस्टर प्लान लाइव है। आज अगला कदम दिखाता है।",
+    ctaImport: "सिलेबस इम्पोर्ट शुरू करें",
+    ctaReview: "लंबित इम्पोर्ट जांचें",
+    ctaFocus: "स्टडी प्लान खोलें",
+    ctaDone: "आज खोलें",
+  },
+  ar: {
+    kicker: "تحدي العودة إلى الدراسة",
+    title: "أسبوع انطلاق الفصل",
+    body: "حوّل منهجًا حقيقيًا إلى خطة راجعتها قبل أن تزداد وتيرة الدراسة.",
+    upcoming: "يبدأ في 24 أغسطس",
+    live: "مباشر حتى 31 أغسطس",
+    ended: "انتهى التحدي · ما زالت خطتك تعمل",
+    progress: "اكتمل {done} من 3",
+    importTitle: "استورد منهجًا واحدًا",
+    importBody: "استخدم الكاميرا أو ملف PDF أو نصًا من مقرر حقيقي.",
+    reviewTitle: "اعتمد المواعيد الحقيقية",
+    reviewBody: "لا تُحتسب الأعمال المؤرخة إلا بعد مراجعتها وتطبيقها.",
+    focusTitle: "أكمل الإعداد بجلسة تركيز",
+    focusBody: "أكمل جلسة دراسة مخططة واحدة لإغلاق الحلقة.",
+    done: "تم",
+    next: "التالي",
+    completeTitle: "اكتمل الانطلاق",
+    completeBody: "أصبحت أول خطة فصل راجعتها نشطة. تُبقي شاشة اليوم الخطوة التالية ظاهرة.",
+    ctaImport: "ابدأ استيراد المنهج",
+    ctaReview: "راجع الاستيراد المعلّق",
+    ctaFocus: "افتح خطة الدراسة",
+    ctaDone: "افتح اليوم",
+  },
+};
+
+function semesterKickoffCopy() {
+  return SEMESTER_KICKOFF_COPY[appLocale()] || SEMESTER_KICKOFF_COPY["en-US"];
+}
+
 const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
   "en-US": {
     "common.continue": "Continue",
     "common.cancel": "Cancel",
     "common.close": "Close",
     "common.edit": "Edit",
+    "common.duplicate": "Duplicate",
     "common.save": "Save",
     "common.archive": "Archive",
     "common.delete": "Delete",
-    "common.restore": "Restore Purchases",
-    "common.terms": "Terms",
-    "common.privacy": "Privacy",
-    "common.support": "Support",
+    "common.back": "Back",
+    "common.active": "active",
+	    "common.restore": "Restore Purchases",
+	    "common.terms": "Terms",
+	    "common.privacy": "Privacy",
+	    "common.support": "Support",
+	    "common.app_store": "App Store",
     "onboarding.name_title": "What should StudyPlanner call you?",
-    "onboarding.name_sub": "Let's build your semester.",
+    "onboarding.name_sub": "Start with a real syllabus. Review the plan before anything saves.",
     "onboarding.name_placeholder": "Your first name",
     "onboarding.nice": "Nice, {name}.",
     "onboarding.student_kicker": "NICE, {name}",
     "onboarding.student_title": "What are you managing?",
     "onboarding.goal_title": "What do you want under control?",
-    "onboarding.artifacts_title": "StudyPlanner turns your schoolwork into a live plan.",
-    "onboarding.artifacts_sub": "Real app artifacts. No demo classes.",
+    "onboarding.artifacts_title": "Scan the syllabus. Review the plan. Start with a real next move.",
+    "onboarding.artifacts_sub": "Camera scan is locked behind the App Store unlock. After unlock, every extracted class, deadline, exam, and widget signal waits for your review before it saves.",
     "onboarding.build_title": "Build your semester.",
-    "onboarding.paywall_first": "Unlock first, then scan.",
+    "onboarding.paywall_first": "Pick how you want to start. Every path unlocks first, then opens the real scanner, PDF, paste, or manual review flow.",
+    "onboarding.camera_gate_title": "Unlock the camera scan.",
+    "onboarding.camera_gate_body": "The guided camera opens after App Store unlock, reads the syllabus on this iPhone, then sends every row to review before anything saves.",
+    "onboarding.paywall_gate_title": "Unlock first. Then build.",
+    "onboarding.paywall_gate_body": "Camera, PDF, paste, and manual setup start after the App Store unlock, so the first real import can become your live semester.",
+    "onboarding.unlock_to_scan": "Unlock camera scan",
+    "onboarding.unlock_to_continue": "Unlock to continue",
+    "onboarding.preview_title": "Preview first. Unlock when the plan is ready.",
+    "onboarding.preview_body": "Scan, paste, or add one class now. StudyPlanner shows every extracted row for review before saving asks you to choose a plan.",
+    "onboarding.continue_scan": "Scan syllabus",
+    "onboarding.continue_paste": "Paste syllabus",
+    "onboarding.continue_manual": "Add class manually",
+    "onboarding.import_options_sub": "Choose a real source. Review the extracted plan before anything saves.",
     "option.school_semester": "School semester",
     "option.high_school": "High school classes",
     "option.college": "College courses",
@@ -222,16 +555,15 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
     "option.upload_pdf": "Upload PDF",
     "option.paste_syllabus": "Paste syllabus",
     "option.scan_camera": "Scan with camera",
-    "option.skip": "Skip for now",
     "locked.kicker": "LOCKED PREVIEW",
     "locked.title": "{name}, build your semester.",
-    "locked.sub": "Unlock StudyPlanner first. Then scan a syllabus and apply your live plan.",
-    "locked.card_kicker": "SYLLABUS AFTER UNLOCK",
-    "locked.card_title": "Turn your syllabus into a live plan.",
+    "locked.sub": "The camera scan, PDF import, paste, and manual setup are locked until App Store unlock. You review every row before anything saves.",
+    "locked.card_kicker": "CAMERA SCAN LOCKED",
+    "locked.card_title": "Unlock the scanner. Build the semester.",
     "locked.step1": "Unlock StudyPlanner",
-    "locked.step2": "Scan syllabus",
-    "locked.step3": "Review deadlines",
-    "locked.scan": "Scan syllabus",
+    "locked.step2": "Scan with camera, PDF, paste, or manual setup",
+    "locked.step3": "Review every extracted row before save",
+    "locked.scan": "Unlock camera scan",
     "locked.paste": "Paste manually",
     "locked.health": "SEMESTER HEALTH",
     "locked.health_title": "Locked preview",
@@ -248,10 +580,10 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
     "locked.consistency_body": "Locked until StudyPlanner can see your plan.",
     "scan.header_preview": "Preview syllabus",
     "scan.header": "Scan",
-    "scan.sub_preview": "Preview before you unlock",
+    "scan.sub_preview": "Unlock before scan",
     "scan.sub": "Capture anything",
     "scan.kicker": "SYLLABUS IMPORT",
-    "scan.title_preview": "Preview. Then unlock.",
+    "scan.title_preview": "Unlock. Then review.",
     "scan.title": "Import. Review. Start.",
     "scan.upload_pdf": "Upload syllabus PDF",
     "scan.camera": "Camera",
@@ -269,22 +601,35 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
     "scan.status_backup": "Camera opens for capture. Paste text is available if this device cannot read photos.",
     "scan.limited_photos": "Photo access is limited. Pick an allowed image, open Settings for more access, or paste text.",
     "scan.quick_seed": "chem lab report due tomorrow, estimate 2 hours",
-    "paywall.title": "{name}, build your live semester.",
-    "paywall.sub_no_import": "Unlock first, then scan to keep your semester visible across dashboard, widgets, reminders, and next moves.",
-    "paywall.sub_import": "Your preview is ready. Unlock to apply it to the live dashboard, reminders, and widgets.",
+    "paywall.title": "{name}, unlock trusted syllabus scan.",
+    "paywall.sub_no_import": "Unlock first, then scan, upload, paste, or add manually. StudyPlanner shows every class, exam, and deadline for review before anything reaches your dashboard, widgets, reminders, or next moves.",
+    "paywall.sub_import": "Your preview is ready. Unlock, return to Review, then approve it for the live dashboard, reminders, and widgets.",
     "paywall.message_loading": "Connecting to the App Store...",
     "paywall.message_choose": "Choose a StudyPlanner plan to continue.",
     "paywall.message_unavailable": "App Store pricing is not loaded. Restore is still available.",
+    "paywall.camera_title": "Camera scan unlocks here",
+    "paywall.camera_body": "After the App Store sheet, capture syllabus pages, read the text on this iPhone when Vision OCR is available, and review extracted rows before anything saves.",
+    "paywall.camera_methods": "Camera scan · OCR · Review",
+    "paywall.camera_step_scan": "Scan",
+    "paywall.camera_step_read": "Read",
+    "paywall.camera_step_review": "Review",
+    "paywall.camera_step_apply": "Apply",
+    "paywall.unlock_camera": "Unlock camera scan",
+    "paywall.benefit_camera": "Scan or import a real syllabus",
     "paywall.benefit_apply": "Apply your syllabus",
     "paywall.benefit_health": "Track Semester Health",
     "paywall.benefit_exams": "Stay ahead of exams",
     "paywall.benefit_reminders": "Get reminder timing",
     "paywall.benefit_widgets": "Keep widgets current",
     "paywall.unlock": "Unlock {plan}",
-    "paywall.loading_price": "Loading App Store price",
+    "paywall.loading_price": "Price appears before purchase",
     "paywall.opening": "Opening App Store...",
     "paywall.restoring": "Restoring...",
-    "paywall.legal": "Auto-renewing subscription. Price and terms are shown by the App Store before purchase. Manage or cancel in Apple subscriptions.",
+    "paywall.legal": "Auto-renewing subscription. The App Store confirms the current price and terms before any charge. Manage or cancel in Apple subscriptions.",
+    "paywall.purchase_attention": "Purchase needs attention",
+    "paywall.try_restore": "Try Restore Purchases.",
+    "paywall.purchase_not_completed": "Purchase not completed",
+    "paywall.purchase_sheet_failed": "The App Store could not complete the purchase.",
     "today.next_move": "Next Move",
     "today.next_class": "Next class",
     "today.deadline": "Deadline",
@@ -324,12 +669,16 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
     "review.assignments": "assignments",
     "review.exams": "exams",
     "review.approve": "Approve trusted",
+    "review.approve_count": "Approve {count} high-confidence items",
+    "review.keep_existing": "Keep existing",
+    "review.update_existing": "Update existing",
+    "review.create_duplicate": "Create duplicate",
     "review.manual": "Manual setup",
     "review.unlock": "Unlock my semester",
-    "review.apply": "Apply schedule",
+    "review.apply": "Apply approved items ({count})",
     "review.invalid_date": "Enter a valid YYYY-MM-DD date before approving this row.",
     "review.resume_title": "Import waiting for review",
-    "review.resume_body": "{count} rows are saved on this device. Review them before anything changes your semester.",
+    "review.resume_body": "{count} rows are waiting for review. Nothing changes your semester until you apply them.",
     "review.resume": "Resume review",
     "plan.title": "Plan",
     "plan.sub_suffix": "semester autopilot",
@@ -341,10 +690,13 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
     "widgets.sub_ready": "Home Screen snapshots",
     "widgets.sub_locked": "Locked preview",
     "widgets.ready_title": "Widgets are synced",
+    "widgets.ready_to_sync_title": "Widgets are ready to sync",
+    "widgets.up_to_date_title": "Widgets are up to date",
+    "widgets.refresh": "Refresh widgets",
     "widgets.locked_title": "Unlock widgets",
-    "widgets.ready_body": "{score} loop score ready for iOS widgets.",
+    "widgets.ready_body": "Upcoming deadline, week load, and class pulse match your iPhone widgets.",
     "widgets.locked_body": "Apply a syllabus and unlock to keep widgets current.",
-    "widgets.sync": "Sync from dashboard",
+    "widgets.sync": "Sync to iPhone",
     "tabs.today": "Today",
     "tabs.classes": "Classes",
     "tabs.scan": "Scan",
@@ -352,6 +704,7 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
     "tabs.profile": "Profile",
     "classes.add_manual": "Add class manually",
     "classes.archived": "Archived",
+    "classes.restore": "Restore class",
     "class.forecast": "Forecast",
     "class.due": "Due",
     "class.archive_title": "Archive class?",
@@ -362,6 +715,15 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
     "class.not_found_body": "That class is not in this semester anymore.",
     "class.open_dashboard": "Open dashboard",
     "plan.autopilot": "Autopilot",
+    "reminders.suggested_status": "Suggestions added. Tap Schedule to activate them.",
+    "reminders.none": "No active reminders yet.",
+    "reminders.toggle": "Toggle reminder for {title}",
+    "reminders.refresh": "Refresh schedule",
+    "reminders.configured": "Configured, not scheduled",
+    "reminders.scheduled": "Scheduled",
+    "reminders.off": "Off",
+    "study.skip_complete": "Skip recall and complete",
+    "notes.classes_count": "classes",
     "plan.rebuild": "Rebuild plan",
     "plan.focus_blocks": "Focus blocks",
     "plan.regenerate": "Regenerate",
@@ -452,7 +814,7 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
     "paste.notes_title": "Notes become a study set.",
     "paste.syllabus_title": "syllabus becomes a semester.",
     "paste.premium_sub": "Review everything before it saves.",
-    "paste.preview_sub": "Preview what StudyPlanner finds before you unlock.",
+    "paste.preview_sub": "Review what StudyPlanner finds before anything saves.",
     "paste.notes_placeholder": "Paste lecture notes, reading notes, or review material...",
     "paste.syllabus_placeholder": "Paste syllabus text, assignment sheets, or extracted PDF text...",
     "paste.reading": "Reading...",
@@ -468,6 +830,7 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
     "review.editable_later": "editable later",
     "review.locked_until_premium": "locked until premium",
     "review.approve_one": "Approve at least one item to continue",
+    "review.rate_studyplanner": "Review StudyPlanner",
     "success.step_reading": "Reading syllabus",
     "success.step_deadlines": "Finding deadlines",
     "success.step_schedule": "Building schedule",
@@ -483,6 +846,12 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
     "class.notes_label": "Notes",
     "tasks.today": "Today",
     "tasks.later": "Later",
+    "tasks.title": "Tasks",
+    "tasks.active_count": "{count} active",
+    "tasks.complete_count": "{count} complete",
+    "tasks.this_week": "This week",
+    "tasks.need_dates_title": "{count} item(s) need dates",
+    "tasks.need_dates_body": "They stay visible until you set real due dates.",
     "task.delete_title": "Delete assignment?",
     "task.delete_recurring_body": "Choose how much of this recurring work to remove.",
     "task.delete_body": "{title} will be removed from Today, Plan, reminders, and widgets.",
@@ -494,6 +863,7 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
     "task.source": "Source",
     "task.on_calendar": "On calendar",
     "task.not_scheduled": "Not scheduled",
+    "task.subtasks": "Subtasks",
     "assessment.delete_title": "Delete assessment?",
     "assessment.delete_body": "{title} will be removed from Today, Plan, reminders, and widgets.",
     "assessment.save": "Save assessment",
@@ -562,7 +932,7 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
     "profile.subscription": "StudyPlanner subscription",
     "profile.subscription_body": "Scans, reminders, study sets, and planning are active.",
     "reminders.title": "Reminders",
-    "reminders.default_status": "Enable reminders when you want this iPhone to schedule them.",
+    "reminders.default_status": "Add suggestions, review the timing, then schedule the reminders you want.",
     "reminders.schedule_failed": "Could not schedule reminders.",
     "reminders.smart": "Smart reminders",
     "reminders.scheduling": "Scheduling...",
@@ -584,84 +954,84 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
 };
 
 Object.assign(APP_COPY.de, {
-  "common.continue": "Weiter", "common.cancel": "Abbrechen", "common.close": "Schließen", "common.edit": "Bearbeiten", "common.save": "Sichern", "common.archive": "Archivieren", "common.delete": "Löschen", "common.restore": "Käufe wiederherstellen", "common.terms": "Bedingungen", "common.privacy": "Datenschutz", "common.support": "Support",
-  "onboarding.name_title": "Wie soll StudyPlanner dich nennen?", "onboarding.name_sub": "Wir bauen dein Semester.", "onboarding.name_placeholder": "Dein Vorname", "onboarding.nice": "Schön, {name}.", "onboarding.student_kicker": "SCHÖN, {name}", "onboarding.student_title": "Was organisierst du?", "onboarding.goal_title": "Was soll unter Kontrolle sein?", "onboarding.artifacts_title": "StudyPlanner macht aus Schularbeit einen lebenden Plan.", "onboarding.artifacts_sub": "Echte App-Ansichten. Keine Demo-Kurse.", "onboarding.build_title": "Baue dein Semester.", "onboarding.paywall_first": "Erst freischalten, dann scannen.",
+  "common.continue": "Weiter", "common.cancel": "Abbrechen", "common.close": "Schließen", "common.edit": "Bearbeiten", "common.duplicate": "Duplizieren", "common.save": "Sichern", "common.archive": "Archivieren", "common.delete": "Löschen", "common.restore": "Käufe wiederherstellen", "common.terms": "Bedingungen", "common.privacy": "Datenschutz", "common.support": "Support",
+  "onboarding.name_title": "Wie soll StudyPlanner dich nennen?", "onboarding.name_sub": "Wir bauen dein Semester.", "onboarding.name_placeholder": "Dein Vorname", "onboarding.nice": "Schön, {name}.", "onboarding.student_kicker": "SCHÖN, {name}", "onboarding.student_title": "Was organisierst du?", "onboarding.goal_title": "Was soll unter Kontrolle sein?", "onboarding.artifacts_title": "StudyPlanner macht aus Schularbeit einen lebenden Plan.", "onboarding.artifacts_sub": "Nach dem Freischalten prüfst du echte Kurse, erste Frist, Druck und Widget-Nachweis, bevor etwas gespeichert wird.", "onboarding.build_title": "Baue dein Semester.", "onboarding.paywall_first": "Erst freischalten, dann scannen, einfügen oder manuell anlegen. Du prüfst alles vor dem Speichern.",
   "option.school_semester": "Schulsemester", "option.high_school": "Oberstufenkurse", "option.college": "Uni-Kurse", "option.grad": "Master/Promotion", "option.online": "Onlinekurse", "option.exams": "Prüfungen", "option.deadlines": "Fristen", "option.notes": "Notizen", "option.grades": "Noten", "option.study_plan": "Lernplan", "option.everything": "Alles", "option.upload_pdf": "PDF hochladen", "option.paste_syllabus": "syllabus einfügen", "option.scan_camera": "Mit Kamera scannen", "option.skip": "Vorerst überspringen",
-  "locked.kicker": "GESPERRTE VORSCHAU", "locked.title": "{name}, baue dein Semester.", "locked.sub": "Schalte StudyPlanner zuerst frei. Scanne danach deinen syllabus und wende deinen Live-Plan an.", "locked.card_kicker": "SYLLABUS NACH FREISCHALTUNG", "locked.card_title": "Mach aus deinem syllabus einen lebenden Plan.", "locked.step1": "StudyPlanner freischalten", "locked.step2": "syllabus scannen", "locked.step3": "Fristen prüfen", "locked.scan": "syllabus scannen", "locked.paste": "Manuell einfügen", "locked.health": "SEMESTERSTATUS", "locked.health_title": "Gesperrte Vorschau", "locked.health_sub": "Dein Wert erscheint, nachdem dein syllabus geprüft und angewendet wurde.", "locked.unlock": "StudyPlanner freischalten", "locked.after_scan": "nach Scan", "locked.workload": "Arbeitslast", "locked.grades": "Noten", "locked.preparedness": "Vorbereitung", "locked.consistency": "Konstanz", "locked.workload_body": "Gesperrt, bis dein syllabus geprüft ist.", "locked.grades_body": "Gesperrt, bis echte Kurse existieren.", "locked.preparedness_body": "Gesperrt, bis Notizen und Prüfungen existieren.", "locked.consistency_body": "Gesperrt, bis StudyPlanner deinen Plan sieht.",
-  "scan.header_preview": "syllabus-Vorschau", "scan.header": "Scannen", "scan.sub_preview": "Vorschau vor dem Freischalten", "scan.sub": "Alles erfassen", "scan.kicker": "LEHRPLAN-IMPORT", "scan.title_preview": "Vorschau. Dann freischalten.", "scan.title": "Importieren. Prüfen. Starten.", "scan.upload_pdf": "syllabus-PDF hochladen", "scan.camera": "Kamera", "scan.photo": "Foto", "scan.paste_text": "Text einfügen", "scan.notes_title": "Notizen scannen", "scan.notes_body": "Zusammenfassungen, Begriffe, Karten, Quizze und Lernaufgaben.", "scan.quick_title": "Schnellerfassung", "scan.quick_body": "Kurs, Aufgabe, Termin und Aufwand eingeben.", "scan.quick_button": "Aufgabe erstellen + neu planen", "scan.more": "Weitere Erfassungen", "scan.history": "Importverlauf", "scan.empty_history": "Noch keine Importe. Füge einen syllabus oder Notizen ein.",
-  "paywall.title": "{name}, baue dein Live-Semester.", "paywall.sub_no_import": "Erst freischalten, dann scannen, damit dein Semester in Dashboard, Widgets, Erinnerungen und nächsten Schritten sichtbar bleibt.", "paywall.sub_import": "Deine Vorschau ist bereit. Schalte frei, um sie auf Dashboard, Erinnerungen und Widgets anzuwenden.", "paywall.message_loading": "Verbindung zum App Store...", "paywall.message_choose": "Wähle einen StudyPlanner-Plan.", "paywall.message_unavailable": "App-Store-Preise sind nicht geladen. Wiederherstellen ist verfügbar.", "paywall.benefit_apply": "syllabus anwenden", "paywall.benefit_health": "Semesterstatus verfolgen", "paywall.benefit_exams": "Prüfungen vorausplanen", "paywall.benefit_reminders": "Erinnerungen abstimmen", "paywall.benefit_widgets": "Widgets aktuell halten", "paywall.unlock": "{plan} freischalten", "paywall.loading_price": "App-Store-Preis wird geladen", "paywall.opening": "App Store wird geöffnet...", "paywall.restoring": "Wiederherstellung...", "paywall.legal": "Automatisch verlängerbares Abo. Preis und Bedingungen zeigt der App Store vor dem Kauf. Verwalten oder kündigen in Apple-Abos.",
+  "locked.kicker": "GESPERRTE VORSCHAU", "locked.title": "{name}, baue dein Semester.", "locked.sub": "Freischalten, dann scannen, Text einfügen oder einen Kurs anlegen. Du prüfst jede Zeile vor dem Speichern.", "locked.card_kicker": "PRÜFEN NACH FREISCHALTUNG", "locked.card_title": "Mach aus deinem syllabus einen lebenden Plan.", "locked.step1": "StudyPlanner freischalten", "locked.step2": "Scannen, einfügen oder manuell", "locked.step3": "Vor dem Speichern prüfen", "locked.scan": "syllabus scannen", "locked.paste": "Manuell einfügen", "locked.health": "SEMESTERSTATUS", "locked.health_title": "Gesperrte Vorschau", "locked.health_sub": "Dein Wert erscheint, nachdem dein syllabus geprüft und angewendet wurde.", "locked.unlock": "StudyPlanner freischalten", "locked.after_scan": "nach dem Scannen", "locked.workload": "Arbeitslast", "locked.grades": "Noten", "locked.preparedness": "Vorbereitung", "locked.consistency": "Konstanz", "locked.workload_body": "Gesperrt, bis dein syllabus geprüft ist.", "locked.grades_body": "Gesperrt, bis echte Kurse existieren.", "locked.preparedness_body": "Gesperrt, bis Notizen und Prüfungen existieren.", "locked.consistency_body": "Gesperrt, bis StudyPlanner deinen Plan sieht.",
+  "scan.header_preview": "syllabus-Vorschau", "scan.header": "Scannen", "scan.sub_preview": "Vor dem Scan freischalten", "scan.sub": "Alles erfassen", "scan.kicker": "LEHRPLAN-IMPORT", "scan.title_preview": "Freischalten. Dann prüfen.", "scan.title": "Importieren. Prüfen. Starten.", "scan.upload_pdf": "syllabus-PDF hochladen", "scan.camera": "Kamera", "scan.photo": "Foto", "scan.paste_text": "Text einfügen", "scan.notes_title": "Notizen scannen", "scan.notes_body": "Zusammenfassungen, Begriffe, Karten, Quizze und Lernaufgaben.", "scan.quick_title": "Schnellerfassung", "scan.quick_body": "Kurs, Aufgabe, Termin und Aufwand eingeben.", "scan.quick_button": "Aufgabe erstellen + neu planen", "scan.more": "Weitere Erfassungen", "scan.history": "Importverlauf", "scan.empty_history": "Noch keine Importe. Füge einen syllabus oder Notizen ein.",
+  "paywall.title": "{name}, baue dein Live-Semester.", "paywall.sub_no_import": "Freischalten, dann scannen, einfügen oder manuell anlegen. Du prüfst jede Zeile, bevor Dashboard, Widgets, Erinnerungen oder nächste Schritte aktualisiert werden.", "paywall.sub_import": "Deine Vorschau ist bereit. Schalte frei, um sie auf Dashboard, Erinnerungen und Widgets anzuwenden.", "paywall.message_loading": "Verbindung zum App Store...", "paywall.message_choose": "Wähle einen StudyPlanner-Plan.", "paywall.message_unavailable": "App-Store-Preise sind nicht geladen. Wiederherstellen ist verfügbar.", "paywall.benefit_apply": "syllabus anwenden", "paywall.benefit_health": "Semesterstatus verfolgen", "paywall.benefit_exams": "Prüfungen vorausplanen", "paywall.benefit_reminders": "Erinnerungen abstimmen", "paywall.benefit_widgets": "Widgets aktuell halten", "paywall.unlock": "{plan} freischalten", "paywall.loading_price": "App-Store-Preis wird geladen", "paywall.opening": "App Store wird geöffnet...", "paywall.restoring": "Wiederherstellung...", "paywall.legal": "Automatisch verlängerbares Abo. Preis und Bedingungen zeigt der App Store vor dem Kauf. Verwalten oder kündigen in Apple-Abos.",
   "today.next_move": "Nächster Schritt", "today.next_class": "Nächster Kurs", "today.deadline": "Frist", "today.focus": "Fokus", "today.open_plan": "Plan öffnen", "today.start_focus": "Fokus starten", "today.next_30": "Nächste 30 Tage", "today.risk_radar": "Risiko-Radar", "today.upcoming_deadlines": "Kommende Fristen", "today.upcoming_assessments": "Kommende Prüfungen", "today.notes_activity": "Notizenaktivität",
   "classes.title": "Semester verwalten", "classes.truth": "Eine Quelle der Wahrheit", "classes.truth_body": "Importe korrigieren, fehlende Arbeit ergänzen, Kurse ablegen und Heute, Plan, Erinnerungen und Widgets synchron halten.", "classes.add": "Kurs hinzufügen", "classes.import": "Importieren", "classes.empty_title": "Noch keine aktiven Kurse.", "classes.empty_body": "Starte manuell, wenn der syllabus fehlt, unlesbar oder falsch ist.",
   "class.schedule": "Zeitplan", "class.add_work": "Fehlende Arbeit ergänzen", "class.add_work_body": "Überraschungsquiz, wiederkehrende Diskussion, Projekt oder Aufgabe ohne Datum hinzufügen.", "class.assignment": "Aufgabe", "class.assessment": "Prüfung", "class.pulse": "Kurspuls", "class.assignments": "Aufgaben", "class.exams": "Kommende Prüfungen", "class.notes": "Aktuelle Notizen",
   "review.title": "Import prüfen", "review.empty": "Kein Import wartet auf Prüfung.", "review.guard_preview": "Nur Vorschau.", "review.guard_preview_body": "Schalte frei, um dieses Semester in der echten App anzuwenden.", "review.guard_active": "Nichts wird gespeichert, bevor du zustimmst.", "review.guard_active_body": "Bearbeite, entferne oder bestätige jeden Eintrag.", "review.found": "StudyPlanner hat dein Semester gefunden.", "review.classes": "Kurse", "review.assignments": "Aufgaben", "review.exams": "Prüfungen", "review.approve": "Sichere prüfen", "review.manual": "Manuell einrichten", "review.unlock": "Mein Semester freischalten", "review.apply": "Plan anwenden",
-  "plan.title": "Plan", "plan.sub_suffix": "Semester-Autopilot", "plan.notes_feed": "{count} Notizen steuern den Plan", "notes.title": "Notizen", "notes.sub": "{score} Vorbereitung · {count} Notizen", "notes.body": "Notizen steigern Vorbereitung und schärfen den Kurspuls.", "widgets.title": "Widgets", "widgets.sub_ready": "Home-Bildschirm-Snapshots", "widgets.sub_locked": "Gesperrte Vorschau", "widgets.ready_title": "Widgets sind synchron", "widgets.locked_title": "Widgets freischalten", "widgets.ready_body": "{score} Loop-Wert bereit für iOS-Widgets.", "widgets.locked_body": "Wende einen syllabus an und schalte frei, um Widgets aktuell zu halten.", "widgets.sync": "Vom Dashboard syncen",
+  "plan.title": "Plan", "plan.sub_suffix": "Semester-Autopilot", "plan.notes_feed": "{count} Notizen steuern den Plan", "notes.title": "Notizen", "notes.sub": "{score} Vorbereitung · {count} Notizen", "notes.body": "Notizen steigern Vorbereitung und schärfen den Kurspuls.", "widgets.title": "Widgets", "widgets.sub_ready": "Home-Bildschirm-Snapshots", "widgets.sub_locked": "Gesperrte Vorschau", "widgets.ready_title": "Widgets sind synchron", "widgets.locked_title": "Widgets freischalten", "widgets.ready_body": "Nächste Frist, Wochenlast und Kurspuls passen zu deinen iOS-Widgets.", "widgets.locked_body": "Wende einen syllabus an und schalte frei, um Widgets aktuell zu halten.", "widgets.sync": "Mit iPhone synchronisieren",
 });
 
 Object.assign(APP_COPY.es, {
-  "common.continue": "Continuar", "common.cancel": "Cancelar", "common.close": "Cerrar", "common.edit": "Editar", "common.save": "Guardar", "common.archive": "Archivar", "common.delete": "Eliminar", "common.restore": "Restaurar compras", "common.terms": "Términos", "common.privacy": "Privacidad", "common.support": "Soporte",
-  "onboarding.name_title": "¿Cómo debería llamarte StudyPlanner?", "onboarding.name_sub": "Construyamos tu semestre.", "onboarding.name_placeholder": "Tu nombre", "onboarding.nice": "Perfecto, {name}.", "onboarding.student_kicker": "PERFECTO, {name}", "onboarding.student_title": "¿Qué estás organizando?", "onboarding.goal_title": "¿Qué quieres tener bajo control?", "onboarding.artifacts_title": "StudyPlanner convierte tus clases en un plan vivo.", "onboarding.artifacts_sub": "Pantallas reales. Sin cursos de demo.", "onboarding.build_title": "Construye tu semestre.", "onboarding.paywall_first": "Primero desbloquea, luego escanea.",
-  "locked.kicker": "VISTA BLOQUEADA", "locked.title": "{name}, arma tu semestre.", "locked.sub": "Desbloquea StudyPlanner primero. Luego escanea un programa y aplica tu plan en vivo.", "locked.card_kicker": "PROGRAMA DESPUÉS DE DESBLOQUEAR", "locked.card_title": "Convierte tu programa en un plan vivo.", "locked.step1": "Desbloquear StudyPlanner", "locked.step2": "Escanear programa", "locked.step3": "Revisar fechas", "locked.scan": "Escanear programa", "locked.paste": "Pegar manualmente", "locked.health": "SALUD DEL SEMESTRE", "locked.health_title": "Vista bloqueada", "locked.health_sub": "Tu puntaje aparece después de revisar y aplicar tu programa.", "locked.unlock": "Desbloquear StudyPlanner",
-  "scan.header_preview": "Vista del programa", "scan.header": "Escanear", "scan.sub_preview": "Vista antes de desbloquear", "scan.sub": "Captura cualquier cosa", "scan.kicker": "IMPORTAR PROGRAMA", "scan.title_preview": "Vista previa. Luego desbloquea.", "scan.title": "Importa. Revisa. Empieza.", "scan.upload_pdf": "Subir PDF del programa", "scan.camera": "Cámara", "scan.photo": "Foto", "scan.paste_text": "Pegar texto", "scan.notes_title": "Escanear notas", "scan.notes_body": "Resúmenes, conceptos, tarjetas, cuestionarios y tareas de repaso.", "scan.quick_title": "Captura rápida", "scan.quick_body": "Escribe curso, tarea, fecha y esfuerzo.", "scan.quick_button": "Crear tarea + replanificar",
-  "paywall.title": "{name}, arma tu semestre en vivo.", "paywall.sub_no_import": "Desbloquea primero y luego escanea para mantener tu semestre visible en panel, widgets, recordatorios y próximos pasos.", "paywall.sub_import": "Tu vista previa está lista. Desbloquea para aplicarla al panel, recordatorios y widgets.",
+  "common.continue": "Continuar", "common.cancel": "Cancelar", "common.close": "Cerrar", "common.edit": "Editar", "common.duplicate": "Duplicar", "common.save": "Guardar", "common.archive": "Archivar", "common.delete": "Eliminar", "common.restore": "Restaurar compras", "common.terms": "Términos", "common.privacy": "Privacidad", "common.support": "Soporte",
+  "onboarding.name_title": "¿Cómo debería llamarte StudyPlanner?", "onboarding.name_sub": "Construyamos tu semestre.", "onboarding.name_placeholder": "Tu nombre", "onboarding.nice": "Perfecto, {name}.", "onboarding.student_kicker": "PERFECTO, {name}", "onboarding.student_title": "¿Qué estás organizando?", "onboarding.goal_title": "¿Qué quieres tener bajo control?", "onboarding.artifacts_title": "StudyPlanner convierte tus clases en un plan vivo.", "onboarding.artifacts_sub": "Después de desbloquear, revisas clases reales, primera fecha, presión y prueba de widgets antes de guardar.", "onboarding.build_title": "Construye tu semestre.", "onboarding.paywall_first": "Primero desbloquea; luego escanea, pega o agrega manualmente. Revisas todo antes de guardar.",
+  "locked.kicker": "VISTA BLOQUEADA", "locked.title": "{name}, arma tu semestre.", "locked.sub": "Desbloquea para escanear, pegar o agregar una clase. Revisas cada fila antes de guardar.", "locked.card_kicker": "REVISA DESPUÉS DE DESBLOQUEAR", "locked.card_title": "Convierte tu programa en un plan vivo.", "locked.step1": "Desbloquear StudyPlanner", "locked.step2": "Escanea, pega o agrega manualmente", "locked.step3": "Revisa antes de guardar", "locked.scan": "Escanear programa", "locked.paste": "Pegar manualmente", "locked.health": "SALUD DEL SEMESTRE", "locked.health_title": "Vista bloqueada", "locked.health_sub": "Tu puntaje aparece después de revisar y aplicar tu programa.", "locked.unlock": "Desbloquear StudyPlanner",
+  "scan.header_preview": "Vista del programa", "scan.header": "Escanear", "scan.sub_preview": "Desbloquea antes de escanear", "scan.sub": "Captura cualquier cosa", "scan.kicker": "IMPORTAR PROGRAMA", "scan.title_preview": "Desbloquea. Luego revisa.", "scan.title": "Importa. Revisa. Empieza.", "scan.upload_pdf": "Subir PDF del programa", "scan.camera": "Cámara", "scan.photo": "Foto", "scan.paste_text": "Pegar texto", "scan.notes_title": "Escanear notas", "scan.notes_body": "Resúmenes, conceptos, tarjetas, cuestionarios y tareas de repaso.", "scan.quick_title": "Captura rápida", "scan.quick_body": "Escribe curso, tarea, fecha y esfuerzo.", "scan.quick_button": "Crear tarea + replanificar",
+  "paywall.title": "{name}, arma tu semestre en vivo.", "paywall.sub_no_import": "Desbloquea para escanear, pegar o agregar manualmente. Luego revisas cada fila antes de que llegue al panel, widgets, recordatorios o próximos pasos.", "paywall.sub_import": "Tu vista previa está lista. Desbloquea para aplicarla al panel, recordatorios y widgets.",
 });
 
 Object.assign(APP_COPY.fr, {
-  "common.continue": "Continuer", "common.cancel": "Annuler", "common.close": "Fermer", "common.edit": "Modifier", "common.save": "Enregistrer", "common.archive": "Archiver", "common.delete": "Supprimer", "common.restore": "Restaurer les achats", "common.terms": "Conditions", "common.privacy": "Confidentialité", "common.support": "Assistance",
-  "onboarding.name_title": "Comment StudyPlanner doit-il t’appeler ?", "onboarding.name_sub": "Construisons ton semestre.", "onboarding.name_placeholder": "Ton prénom", "onboarding.nice": "Parfait, {name}.", "onboarding.student_kicker": "PARFAIT, {name}", "onboarding.student_title": "Qu’est-ce que tu organises ?", "onboarding.goal_title": "Que veux-tu maîtriser ?", "onboarding.artifacts_title": "StudyPlanner transforme ton travail en plan vivant.", "onboarding.artifacts_sub": "Vraies vues de l’app. Pas de cours démo.", "onboarding.build_title": "Construis ton semestre.", "onboarding.paywall_first": "Déverrouille d’abord, scanne ensuite.",
-  "locked.kicker": "APERÇU VERROUILLÉ", "locked.title": "{name}, construis ton semestre.", "locked.sub": "Déverrouille StudyPlanner d’abord. Scanne ensuite ton syllabus et applique ton plan vivant.", "locked.card_kicker": "SYLLABUS APRÈS DÉVERROUILLAGE", "locked.card_title": "Transforme ton syllabus en plan vivant.", "locked.step1": "Déverrouiller StudyPlanner", "locked.step2": "Scanner le syllabus", "locked.step3": "Vérifier les échéances", "locked.scan": "Scanner le syllabus", "locked.paste": "Coller manuellement", "locked.health": "SANTÉ DU SEMESTRE", "locked.health_title": "Aperçu verrouillé", "locked.health_sub": "Ton score apparaît après vérification et application du syllabus.", "locked.unlock": "Déverrouiller StudyPlanner",
-  "scan.header_preview": "Aperçu du syllabus", "scan.header": "Scanner", "scan.sub_preview": "Aperçu avant déverrouillage", "scan.sub": "Capture tout", "scan.kicker": "IMPORT DE PROGRAMME", "scan.title_preview": "Aperçu. Puis déverrouille.", "scan.title": "Importer. Vérifier. Démarrer.", "scan.upload_pdf": "Importer le PDF du syllabus", "scan.camera": "Caméra", "scan.photo": "Photo", "scan.paste_text": "Coller le texte", "scan.notes_title": "Scanner des notes", "scan.notes_body": "Résumés, notions, cartes, quiz et tâches de révision.", "scan.quick_title": "Capture rapide", "scan.quick_body": "Saisis cours, tâche, date limite et durée.", "scan.quick_button": "Créer + replanifier",
-  "paywall.title": "{name}, construis ton semestre vivant.", "paywall.sub_no_import": "Déverrouille d’abord, puis scanne pour garder ton semestre visible dans le tableau, les widgets, les rappels et les prochaines actions.", "paywall.sub_import": "Ton aperçu est prêt. Déverrouille pour l’appliquer au tableau, aux rappels et aux widgets.",
+  "common.continue": "Continuer", "common.cancel": "Annuler", "common.close": "Fermer", "common.edit": "Modifier", "common.duplicate": "Dupliquer", "common.save": "Enregistrer", "common.archive": "Archiver", "common.delete": "Supprimer", "common.restore": "Restaurer les achats", "common.terms": "Conditions", "common.privacy": "Confidentialité", "common.support": "Assistance",
+  "onboarding.name_title": "Comment StudyPlanner doit-il t’appeler ?", "onboarding.name_sub": "Construisons ton semestre.", "onboarding.name_placeholder": "Ton prénom", "onboarding.nice": "Parfait, {name}.", "onboarding.student_kicker": "PARFAIT, {name}", "onboarding.student_title": "Qu’est-ce que tu organises ?", "onboarding.goal_title": "Que veux-tu maîtriser ?", "onboarding.artifacts_title": "StudyPlanner transforme ton travail en plan vivant.", "onboarding.artifacts_sub": "Après déverrouillage, vérifie vrais cours, première échéance, pression et preuve widget avant enregistrement.", "onboarding.build_title": "Construis ton semestre.", "onboarding.paywall_first": "Déverrouille d'abord, puis scanne, colle ou ajoute à la main. Tu vérifies tout avant enregistrement.",
+  "locked.kicker": "APERÇU VERROUILLÉ", "locked.title": "{name}, construis ton semestre.", "locked.sub": "Déverrouille pour scanner, coller ou ajouter un cours. Tu vérifies chaque ligne avant enregistrement.", "locked.card_kicker": "VÉRIFIER APRÈS DÉVERROUILLAGE", "locked.card_title": "Transforme ton syllabus en plan vivant.", "locked.step1": "Déverrouiller StudyPlanner", "locked.step2": "Scanner, coller ou ajouter à la main", "locked.step3": "Vérifier avant enregistrement", "locked.scan": "Scanner le syllabus", "locked.paste": "Coller manuellement", "locked.health": "SANTÉ DU SEMESTRE", "locked.health_title": "Aperçu verrouillé", "locked.health_sub": "Ton score apparaît après vérification et application du syllabus.", "locked.unlock": "Déverrouiller StudyPlanner",
+  "scan.header_preview": "Aperçu du syllabus", "scan.header": "Scanner", "scan.sub_preview": "Déverrouille avant scan", "scan.sub": "Capture tout", "scan.kicker": "IMPORT DE PROGRAMME", "scan.title_preview": "Déverrouille. Puis vérifie.", "scan.title": "Importer. Vérifier. Démarrer.", "scan.upload_pdf": "Importer le PDF du syllabus", "scan.camera": "Caméra", "scan.photo": "Photo", "scan.paste_text": "Coller le texte", "scan.notes_title": "Scanner des notes", "scan.notes_body": "Résumés, notions, cartes, quiz et tâches de révision.", "scan.quick_title": "Capture rapide", "scan.quick_body": "Saisis cours, tâche, date limite et durée.", "scan.quick_button": "Créer + replanifier",
+  "paywall.title": "{name}, construis ton semestre vivant.", "paywall.sub_no_import": "Déverrouille pour scanner, coller ou ajouter à la main. Ensuite tu vérifies chaque ligne avant qu'elle atteigne tableau, widgets, rappels ou prochaines actions.", "paywall.sub_import": "Ton aperçu est prêt. Déverrouille pour l’appliquer au tableau, aux rappels et aux widgets.",
 });
 
 Object.assign(APP_COPY["pt-BR"], {
-  "common.continue": "Continuar", "common.cancel": "Cancelar", "common.close": "Fechar", "common.edit": "Editar", "common.save": "Salvar", "common.archive": "Arquivar", "common.delete": "Excluir", "common.restore": "Restaurar compras", "common.terms": "Termos", "common.privacy": "Privacidade", "common.support": "Suporte",
-  "onboarding.name_title": "Como o StudyPlanner deve chamar você?", "onboarding.name_sub": "Vamos montar seu semestre.", "onboarding.name_placeholder": "Seu primeiro nome", "onboarding.nice": "Boa, {name}.", "onboarding.student_kicker": "BOA, {name}", "onboarding.student_title": "O que você está organizando?", "onboarding.goal_title": "O que quer manter sob controle?", "onboarding.artifacts_title": "StudyPlanner transforma seus estudos em um plano vivo.", "onboarding.artifacts_sub": "Telas reais do app. Sem turmas demo.", "onboarding.build_title": "Monte seu semestre.", "onboarding.paywall_first": "Desbloqueie primeiro, escaneie depois.",
-  "locked.kicker": "PRÉVIA BLOQUEADA", "locked.title": "{name}, monte seu semestre.", "locked.sub": "Desbloqueie o StudyPlanner primeiro. Depois escaneie o plano de curso e aplique seu plano vivo.", "locked.card_kicker": "PLANO DE CURSO APÓS DESBLOQUEAR", "locked.card_title": "Transforme o plano de curso em um plano vivo.", "locked.step1": "Desbloquear StudyPlanner", "locked.step2": "Escanear plano de curso", "locked.step3": "Revisar prazos", "locked.scan": "Escanear plano", "locked.paste": "Colar manualmente", "locked.health": "SAÚDE DO SEMESTRE", "locked.health_title": "Prévia bloqueada", "locked.health_sub": "Sua pontuação aparece após revisar e aplicar o plano de curso.", "locked.unlock": "Desbloquear StudyPlanner",
-  "scan.header_preview": "Prévia do plano", "scan.header": "Escanear", "scan.sub_preview": "Prévia antes de desbloquear", "scan.sub": "Capture qualquer coisa", "scan.kicker": "IMPORTAR PLANO", "scan.title_preview": "Prévia. Depois desbloqueie.", "scan.title": "Importe. Revise. Comece.", "scan.upload_pdf": "Enviar PDF do plano", "scan.camera": "Câmera", "scan.photo": "Foto", "scan.paste_text": "Colar texto", "scan.notes_title": "Escanear notas", "scan.notes_body": "Resumos, conceitos, cartões, quizzes e tarefas de revisão.", "scan.quick_title": "Captura rápida", "scan.quick_body": "Digite matéria, tarefa, prazo e esforço.", "scan.quick_button": "Criar tarefa + replanejar",
-  "paywall.title": "{name}, monte seu semestre ao vivo.", "paywall.sub_no_import": "Desbloqueie primeiro e depois escaneie para manter seu semestre visível no painel, widgets, lembretes e próximos passos.", "paywall.sub_import": "Sua prévia está pronta. Desbloqueie para aplicar ao painel, lembretes e widgets.",
+  "common.continue": "Continuar", "common.cancel": "Cancelar", "common.close": "Fechar", "common.edit": "Editar", "common.duplicate": "Duplicar", "common.save": "Salvar", "common.archive": "Arquivar", "common.delete": "Excluir", "common.restore": "Restaurar compras", "common.terms": "Termos", "common.privacy": "Privacidade", "common.support": "Suporte",
+  "onboarding.name_title": "Como o StudyPlanner deve chamar você?", "onboarding.name_sub": "Vamos montar seu semestre.", "onboarding.name_placeholder": "Seu primeiro nome", "onboarding.nice": "Boa, {name}.", "onboarding.student_kicker": "BOA, {name}", "onboarding.student_title": "O que você está organizando?", "onboarding.goal_title": "O que quer manter sob controle?", "onboarding.artifacts_title": "StudyPlanner transforma seus estudos em um plano vivo.", "onboarding.artifacts_sub": "Depois de desbloquear, revise aulas reais, primeiro prazo, pressão e prova dos widgets antes de salvar.", "onboarding.build_title": "Monte seu semestre.", "onboarding.paywall_first": "Desbloqueie primeiro; depois escaneie, cole ou adicione manualmente. Você revisa tudo antes de salvar.",
+  "locked.kicker": "PRÉVIA BLOQUEADA", "locked.title": "{name}, monte seu semestre.", "locked.sub": "Desbloqueie para escanear, colar ou adicionar uma aula. Você revisa cada linha antes de salvar.", "locked.card_kicker": "REVISAO APOS DESBLOQUEAR", "locked.card_title": "Transforme o plano de curso em um plano vivo.", "locked.step1": "Desbloquear StudyPlanner", "locked.step2": "Escanear, colar ou adicionar manualmente", "locked.step3": "Revisar antes de salvar", "locked.scan": "Escanear plano", "locked.paste": "Colar manualmente", "locked.health": "SAÚDE DO SEMESTRE", "locked.health_title": "Prévia bloqueada", "locked.health_sub": "Sua pontuação aparece após revisar e aplicar o plano de curso.", "locked.unlock": "Desbloquear StudyPlanner",
+  "scan.header_preview": "Prévia do plano", "scan.header": "Escanear", "scan.sub_preview": "Desbloqueie antes de escanear", "scan.sub": "Capture qualquer coisa", "scan.kicker": "IMPORTAR PLANO", "scan.title_preview": "Desbloqueie. Depois revise.", "scan.title": "Importe. Revise. Comece.", "scan.upload_pdf": "Enviar PDF do plano", "scan.camera": "Câmera", "scan.photo": "Foto", "scan.paste_text": "Colar texto", "scan.notes_title": "Escanear notas", "scan.notes_body": "Resumos, conceitos, cartões, quizzes e tarefas de revisão.", "scan.quick_title": "Captura rápida", "scan.quick_body": "Digite matéria, tarefa, prazo e esforço.", "scan.quick_button": "Criar tarefa + replanejar",
+  "paywall.title": "{name}, monte seu semestre ao vivo.", "paywall.sub_no_import": "Desbloqueie para escanear, colar ou adicionar manualmente. Depois revise cada linha antes de chegar ao painel, widgets, lembretes ou próximos passos.", "paywall.sub_import": "Sua prévia está pronta. Desbloqueie para aplicar ao painel, lembretes e widgets.",
 });
 
 Object.assign(APP_COPY.ja, {
-  "common.continue": "続ける", "common.cancel": "キャンセル", "common.close": "閉じる", "common.edit": "編集", "common.save": "保存", "common.archive": "アーカイブ", "common.delete": "削除", "common.restore": "購入を復元", "common.terms": "利用規約", "common.privacy": "プライバシー", "common.support": "サポート",
-  "onboarding.name_title": "StudyPlannerで使う名前は？", "onboarding.name_sub": "学期の計画を作りましょう。", "onboarding.name_placeholder": "名前", "onboarding.nice": "いいですね、{name}。", "onboarding.student_kicker": "{name}さん", "onboarding.student_title": "何を管理しますか？", "onboarding.goal_title": "何を整えたいですか？", "onboarding.artifacts_title": "授業の予定を、生きた計画に。", "onboarding.artifacts_sub": "実際のアプリ画面。デモ授業なし。", "onboarding.build_title": "学期を作成。", "onboarding.paywall_first": "先に解除して、次にスキャン。",
+  "common.continue": "続ける", "common.cancel": "キャンセル", "common.close": "閉じる", "common.edit": "編集", "common.duplicate": "複製", "common.save": "保存", "common.archive": "アーカイブ", "common.delete": "削除", "common.restore": "購入を復元", "common.terms": "利用規約", "common.privacy": "プライバシー", "common.support": "サポート",
+  "onboarding.name_title": "StudyPlannerで使う名前は？", "onboarding.name_sub": "学期の計画を作りましょう。", "onboarding.name_placeholder": "名前", "onboarding.nice": "いいですね、{name}。", "onboarding.student_kicker": "{name}さん", "onboarding.student_title": "何を管理しますか？", "onboarding.goal_title": "何を整えたいですか？", "onboarding.artifacts_title": "授業の予定を、生きた計画に。", "onboarding.artifacts_sub": "解除後に実際の授業、最初の締切、負荷、ウィジェット表示を保存前に確認します。", "onboarding.build_title": "学期を作成。", "onboarding.paywall_first": "先に解除し、その後スキャン、貼り付け、手動追加。保存前に必ず確認します。",
   "option.school_semester": "学校の学期", "option.high_school": "高校の授業", "option.college": "大学の授業", "option.grad": "大学院", "option.online": "オンライン授業", "option.exams": "試験", "option.deadlines": "締切", "option.notes": "ノート", "option.grades": "成績", "option.study_plan": "学習計画", "option.everything": "すべて", "option.upload_pdf": "PDFをアップロード", "option.paste_syllabus": "シラバスを貼り付け", "option.scan_camera": "カメラでスキャン", "option.skip": "今はスキップ",
-  "locked.kicker": "ロック中のプレビュー", "locked.title": "{name}さん、学期を作成しましょう。", "locked.sub": "先にStudyPlannerを解除。次にシラバスをスキャンして、ライブ計画に反映します。", "locked.card_kicker": "解除後にシラバス", "locked.card_title": "シラバスを、生きた計画に。", "locked.step1": "StudyPlannerを解除", "locked.step2": "シラバスをスキャン", "locked.step3": "締切を確認", "locked.scan": "シラバスをスキャン", "locked.paste": "手動で貼り付け", "locked.health": "学期ヘルス", "locked.health_title": "ロック中のプレビュー", "locked.health_sub": "シラバスを確認して適用するとスコアが表示されます。", "locked.unlock": "StudyPlannerを解除",
-  "scan.header_preview": "シラバスのプレビュー", "scan.header": "スキャン", "scan.sub_preview": "解除前に確認", "scan.sub": "何でも取り込み", "scan.kicker": "シラバス取り込み", "scan.title_preview": "プレビューしてから解除。", "scan.title": "取り込み、確認、開始。", "scan.upload_pdf": "シラバスPDFをアップロード", "scan.camera": "カメラ", "scan.photo": "写真", "scan.paste_text": "テキストを貼り付け", "scan.notes_title": "ノートをスキャン", "scan.notes_body": "要約、用語、カード、クイズ、復習タスクを作成。", "scan.quick_title": "クイック入力", "scan.quick_body": "授業、タスク、締切、所要時間を入力。", "scan.quick_button": "タスク作成＋再計画",
+  "locked.kicker": "ロック中のプレビュー", "locked.title": "{name}さん、学期を作成しましょう。", "locked.sub": "解除してスキャン、貼り付け、または授業を追加。保存前に各行を確認します。", "locked.card_kicker": "解除後に確認", "locked.card_title": "シラバスを、生きた計画に。", "locked.step1": "StudyPlannerを解除", "locked.step2": "スキャン、貼り付け、手動追加", "locked.step3": "保存前に確認", "locked.scan": "シラバスをスキャン", "locked.paste": "手動で貼り付け", "locked.health": "学期ヘルス", "locked.health_title": "ロック中のプレビュー", "locked.health_sub": "シラバスを確認して適用するとスコアが表示されます。", "locked.unlock": "StudyPlannerを解除",
+  "scan.header_preview": "シラバスのプレビュー", "scan.header": "スキャン", "scan.sub_preview": "スキャン前に解除", "scan.sub": "何でも取り込み", "scan.kicker": "シラバス取り込み", "scan.title_preview": "解除してから確認。", "scan.title": "取り込み、確認、開始。", "scan.upload_pdf": "シラバスPDFをアップロード", "scan.camera": "カメラ", "scan.photo": "写真", "scan.paste_text": "テキストを貼り付け", "scan.notes_title": "ノートをスキャン", "scan.notes_body": "要約、用語、カード、クイズ、復習タスクを作成。", "scan.quick_title": "クイック入力", "scan.quick_body": "授業、タスク、締切、所要時間を入力。", "scan.quick_button": "タスク作成＋再計画",
   "paywall.title": "{name}さん、学期をライブ化。", "paywall.sub_no_import": "先に解除してからスキャン。ダッシュボード、ウィジェット、リマインダー、次の行動に反映します。", "paywall.sub_import": "プレビューの準備ができました。解除するとダッシュボード、リマインダー、ウィジェットに反映できます。",
 });
 
 Object.assign(APP_COPY.ko, {
-  "common.continue": "계속", "common.cancel": "취소", "common.close": "닫기", "common.edit": "편집", "common.save": "저장", "common.archive": "보관", "common.delete": "삭제", "common.restore": "구매 복원", "common.terms": "약관", "common.privacy": "개인정보", "common.support": "지원",
-  "onboarding.name_title": "StudyPlanner에서 뭐라고 부를까요?", "onboarding.name_sub": "학기를 함께 만들어 볼게요.", "onboarding.name_placeholder": "이름", "onboarding.nice": "좋아요, {name}.", "onboarding.student_kicker": "좋아요, {name}", "onboarding.student_title": "무엇을 관리하나요?", "onboarding.goal_title": "무엇을 정리하고 싶나요?", "onboarding.artifacts_title": "수업 일을 살아 있는 계획으로.", "onboarding.artifacts_sub": "실제 앱 화면. 데모 과목 없음.", "onboarding.build_title": "학기 만들기.", "onboarding.paywall_first": "먼저 잠금 해제, 다음에 스캔.",
-  "locked.kicker": "잠긴 미리보기", "locked.title": "{name}님, 학기를 만들어 보세요.", "locked.sub": "먼저 StudyPlanner를 잠금 해제하세요. 그다음 강의계획서를 스캔해 실시간 계획에 적용합니다.", "locked.card_kicker": "잠금 해제 후 강의계획서", "locked.card_title": "강의계획서를 살아 있는 계획으로.", "locked.step1": "StudyPlanner 잠금 해제", "locked.step2": "강의계획서 스캔", "locked.step3": "마감일 검토", "locked.scan": "강의계획서 스캔", "locked.paste": "직접 붙여넣기", "locked.health": "학기 상태", "locked.health_title": "잠긴 미리보기", "locked.health_sub": "강의계획서를 검토하고 적용하면 점수가 표시됩니다.", "locked.unlock": "StudyPlanner 잠금 해제",
-  "scan.header_preview": "강의계획서 미리보기", "scan.header": "스캔", "scan.sub_preview": "잠금 해제 전 미리보기", "scan.sub": "무엇이든 캡처", "scan.kicker": "강의계획서 가져오기", "scan.title_preview": "미리보고 잠금 해제.", "scan.title": "가져오기. 검토. 시작.", "scan.upload_pdf": "강의계획서 PDF 업로드", "scan.camera": "카메라", "scan.photo": "사진", "scan.paste_text": "텍스트 붙여넣기", "scan.notes_title": "노트 스캔", "scan.notes_body": "요약, 개념, 카드, 퀴즈, 복습 작업 생성.", "scan.quick_title": "빠른 캡처", "scan.quick_body": "과목, 과제, 마감일, 예상 시간을 입력.", "scan.quick_button": "작업 생성 + 다시 계획",
-  "paywall.title": "{name}님, 학기를 실시간으로 관리하세요.", "paywall.sub_no_import": "먼저 잠금 해제하고 스캔해 대시보드, 위젯, 알림, 다음 행동에 학기를 표시하세요.", "paywall.sub_import": "미리보기가 준비되었습니다. 잠금 해제하면 대시보드, 알림, 위젯에 적용됩니다.",
+  "common.continue": "계속", "common.cancel": "취소", "common.close": "닫기", "common.edit": "편집", "common.duplicate": "복제", "common.save": "저장", "common.archive": "보관", "common.delete": "삭제", "common.restore": "구매 복원", "common.terms": "약관", "common.privacy": "개인정보", "common.support": "지원",
+  "onboarding.name_title": "StudyPlanner에서 뭐라고 부를까요?", "onboarding.name_sub": "학기를 함께 만들어 볼게요.", "onboarding.name_placeholder": "이름", "onboarding.nice": "좋아요, {name}.", "onboarding.student_kicker": "좋아요, {name}", "onboarding.student_title": "무엇을 관리하나요?", "onboarding.goal_title": "무엇을 정리하고 싶나요?", "onboarding.artifacts_title": "수업 일을 살아 있는 계획으로.", "onboarding.artifacts_sub": "잠금 해제 후 실제 수업, 첫 마감, 부담, 위젯 증거를 저장 전 검토합니다.", "onboarding.build_title": "학기 만들기.", "onboarding.paywall_first": "먼저 잠금 해제한 뒤 스캔, 붙여넣기, 직접 추가하세요. 저장 전 모두 검토합니다.",
+  "locked.kicker": "잠긴 미리보기", "locked.title": "{name}님, 학기를 만들어 보세요.", "locked.sub": "잠금 해제 후 스캔, 붙여넣기, 또는 수업을 추가하세요. 저장 전 각 행을 검토합니다.", "locked.card_kicker": "잠금 해제 후 검토", "locked.card_title": "강의계획서를 살아 있는 계획으로.", "locked.step1": "StudyPlanner 잠금 해제", "locked.step2": "스캔, 붙여넣기, 직접 추가", "locked.step3": "저장 전 검토", "locked.scan": "강의계획서 스캔", "locked.paste": "직접 붙여넣기", "locked.health": "학기 상태", "locked.health_title": "잠긴 미리보기", "locked.health_sub": "강의계획서를 검토하고 적용하면 점수가 표시됩니다.", "locked.unlock": "StudyPlanner 잠금 해제",
+  "scan.header_preview": "강의계획서 미리보기", "scan.header": "스캔", "scan.sub_preview": "스캔 전 잠금 해제", "scan.sub": "무엇이든 캡처", "scan.kicker": "강의계획서 가져오기", "scan.title_preview": "잠금 해제 후 검토.", "scan.title": "가져오기. 검토. 시작.", "scan.upload_pdf": "강의계획서 PDF 업로드", "scan.camera": "카메라", "scan.photo": "사진", "scan.paste_text": "텍스트 붙여넣기", "scan.notes_title": "노트 스캔", "scan.notes_body": "요약, 개념, 카드, 퀴즈, 복습 작업 생성.", "scan.quick_title": "빠른 캡처", "scan.quick_body": "과목, 과제, 마감일, 예상 시간을 입력.", "scan.quick_button": "작업 생성 + 다시 계획",
+  "paywall.title": "{name}님, 학기를 실시간으로 관리하세요.", "paywall.sub_no_import": "잠금 해제 후 스캔, 붙여넣기, 직접 추가하세요. 대시보드, 위젯, 알림, 다음 행동에 반영되기 전 각 행을 검토합니다.", "paywall.sub_import": "미리보기가 준비되었습니다. 잠금 해제하면 대시보드, 알림, 위젯에 적용됩니다.",
 });
 
 Object.assign(APP_COPY["zh-Hans"], {
-  "common.continue": "继续", "common.cancel": "取消", "common.close": "关闭", "common.edit": "编辑", "common.save": "保存", "common.archive": "归档", "common.delete": "删除", "common.restore": "恢复购买", "common.terms": "条款", "common.privacy": "隐私", "common.support": "支持",
-  "onboarding.name_title": "StudyPlanner 该怎么称呼你？", "onboarding.name_sub": "一起搭好你的学期。", "onboarding.name_placeholder": "你的名字", "onboarding.nice": "好的，{name}。", "onboarding.student_kicker": "好的，{name}", "onboarding.student_title": "你要管理什么？", "onboarding.goal_title": "你想先稳住什么？", "onboarding.artifacts_title": "把课程任务变成实时计划。", "onboarding.artifacts_sub": "真实应用界面，没有演示课程。", "onboarding.build_title": "建立你的学期。", "onboarding.paywall_first": "先解锁，再扫描。",
+  "common.continue": "继续", "common.cancel": "取消", "common.close": "关闭", "common.edit": "编辑", "common.duplicate": "复制", "common.save": "保存", "common.archive": "归档", "common.delete": "删除", "common.restore": "恢复购买", "common.terms": "条款", "common.privacy": "隐私", "common.support": "支持",
+  "onboarding.name_title": "StudyPlanner 该怎么称呼你？", "onboarding.name_sub": "一起搭好你的学期。", "onboarding.name_placeholder": "你的名字", "onboarding.nice": "好的，{name}。", "onboarding.student_kicker": "好的，{name}", "onboarding.student_title": "你要管理什么？", "onboarding.goal_title": "你想先稳住什么？", "onboarding.artifacts_title": "把课程任务变成实时计划。", "onboarding.artifacts_sub": "解锁后，在保存前检查真实课程、首个截止日期、压力和组件证明。", "onboarding.build_title": "建立你的学期。", "onboarding.paywall_first": "先解锁，再扫描、粘贴或手动添加。保存前你仍会检查所有内容。",
   "option.school_semester": "学校学期", "option.high_school": "高中课程", "option.college": "大学课程", "option.grad": "研究生课程", "option.online": "在线课程", "option.exams": "考试", "option.deadlines": "截止日期", "option.notes": "笔记", "option.grades": "成绩", "option.study_plan": "学习计划", "option.everything": "全部", "option.upload_pdf": "上传 PDF", "option.paste_syllabus": "粘贴大纲", "option.scan_camera": "用相机扫描", "option.skip": "暂时跳过",
-  "locked.kicker": "锁定预览", "locked.title": "{name}，建立你的学期。", "locked.sub": "先解锁 StudyPlanner。然后扫描课程大纲，并应用你的实时计划。", "locked.card_kicker": "解锁后扫描大纲", "locked.card_title": "把课程大纲变成实时计划。", "locked.step1": "解锁 StudyPlanner", "locked.step2": "扫描课程大纲", "locked.step3": "检查截止日期", "locked.scan": "扫描课程大纲", "locked.paste": "手动粘贴", "locked.health": "学期健康", "locked.health_title": "锁定预览", "locked.health_sub": "课程大纲检查并应用后会显示分数。", "locked.unlock": "解锁 StudyPlanner",
-  "scan.header_preview": "大纲预览", "scan.header": "扫描", "scan.sub_preview": "解锁前先预览", "scan.sub": "捕捉任何内容", "scan.kicker": "导入课程大纲", "scan.title_preview": "先预览，再解锁。", "scan.title": "导入。检查。开始。", "scan.upload_pdf": "上传课程大纲 PDF", "scan.camera": "相机", "scan.photo": "照片", "scan.paste_text": "粘贴文本", "scan.notes_title": "扫描笔记", "scan.notes_body": "生成摘要、概念、卡片、测验和复习任务。", "scan.quick_title": "快速捕捉", "scan.quick_body": "输入课程、任务、截止日期和预计时间。", "scan.quick_button": "创建任务并重新规划",
-  "paywall.title": "{name}，让学期实时运转。", "paywall.sub_no_import": "先解锁再扫描，让学期同步到首页、组件、提醒和下一步。", "paywall.sub_import": "预览已准备好。解锁后即可应用到首页、提醒和组件。",
+  "locked.kicker": "锁定预览", "locked.title": "{name}，建立你的学期。", "locked.sub": "解锁后扫描、粘贴或添加课程。保存前检查每一行。", "locked.card_kicker": "解锁后检查", "locked.card_title": "把课程大纲变成实时计划。", "locked.step1": "解锁 StudyPlanner", "locked.step2": "扫描、粘贴或手动添加", "locked.step3": "保存前检查", "locked.scan": "扫描课程大纲", "locked.paste": "手动粘贴", "locked.health": "学期健康", "locked.health_title": "锁定预览", "locked.health_sub": "课程大纲检查并应用后会显示分数。", "locked.unlock": "解锁 StudyPlanner",
+  "scan.header_preview": "大纲预览", "scan.header": "扫描", "scan.sub_preview": "扫描前先解锁", "scan.sub": "捕捉任何内容", "scan.kicker": "导入课程大纲", "scan.title_preview": "先解锁，再检查。", "scan.title": "导入。检查。开始。", "scan.upload_pdf": "上传课程大纲 PDF", "scan.camera": "相机", "scan.photo": "照片", "scan.paste_text": "粘贴文本", "scan.notes_title": "扫描笔记", "scan.notes_body": "生成摘要、概念、卡片、测验和复习任务。", "scan.quick_title": "快速捕捉", "scan.quick_body": "输入课程、任务、截止日期和预计时间。", "scan.quick_button": "创建任务并重新规划",
+  "paywall.title": "{name}，让学期实时运转。", "paywall.sub_no_import": "解锁后扫描、粘贴或手动添加。进入仪表盘、组件、提醒或下一步前，你会检查每一行。", "paywall.sub_import": "预览已准备好。解锁后即可应用到首页、提醒和组件。",
 });
 
 Object.assign(APP_COPY.hi, {
-  "common.continue": "जारी रखें", "common.cancel": "रद्द करें", "common.close": "बंद करें", "common.edit": "संपादित करें", "common.save": "सहेजें", "common.archive": "आर्काइव", "common.delete": "हटाएं", "common.restore": "खरीदारी पुनर्स्थापित करें", "common.terms": "शर्तें", "common.privacy": "गोपनीयता", "common.support": "सहायता",
-  "onboarding.name_title": "StudyPlanner आपको क्या कहे?", "onboarding.name_sub": "आपका सेमेस्टर बनाते हैं।", "onboarding.name_placeholder": "आपका पहला नाम", "onboarding.nice": "बढ़िया, {name}.", "onboarding.student_kicker": "बढ़िया, {name}", "onboarding.student_title": "आप क्या संभाल रहे हैं?", "onboarding.goal_title": "आप क्या नियंत्रण में रखना चाहते हैं?", "onboarding.artifacts_title": "StudyPlanner आपकी पढ़ाई को सक्रिय योजना में बदलता है।", "onboarding.artifacts_sub": "ऐप की असली स्क्रीन। कोई नमूना कक्षा नहीं।", "onboarding.build_title": "अपना सेमेस्टर बनाएं।", "onboarding.paywall_first": "पहले अनलॉक करें, फिर स्कैन करें।",
-  "locked.kicker": "बंद पूर्वावलोकन", "locked.title": "{name}, अपना सेमेस्टर बनाएं।", "locked.sub": "पहले StudyPlanner अनलॉक करें। फिर पाठ्यक्रम स्कैन करके सक्रिय योजना लागू करें।", "locked.card_kicker": "अनलॉक के बाद पाठ्यक्रम", "locked.card_title": "पाठ्यक्रम को सक्रिय योजना में बदलें।", "locked.step1": "StudyPlanner अनलॉक करें", "locked.step2": "पाठ्यक्रम स्कैन करें", "locked.step3": "समय-सीमाएं जांचें", "locked.scan": "पाठ्यक्रम स्कैन करें", "locked.paste": "हाथ से चिपकाएं", "locked.health": "सेमेस्टर स्थिति", "locked.health_title": "बंद पूर्वावलोकन", "locked.health_sub": "पाठ्यक्रम जांचकर लागू होने के बाद आपका स्कोर दिखेगा।", "locked.unlock": "StudyPlanner अनलॉक करें",
-  "scan.header_preview": "पाठ्यक्रम पूर्वावलोकन", "scan.header": "स्कैन", "scan.sub_preview": "अनलॉक से पहले पूर्वावलोकन", "scan.sub": "कुछ भी सहेजें", "scan.kicker": "पाठ्यक्रम आयात", "scan.title_preview": "पूर्वावलोकन। फिर अनलॉक।", "scan.title": "आयात करें। जांचें। शुरू करें।", "scan.upload_pdf": "पाठ्यक्रम PDF अपलोड करें", "scan.camera": "कैमरा", "scan.photo": "फोटो", "scan.paste_text": "टेक्स्ट चिपकाएं", "scan.notes_title": "नोट्स स्कैन करें", "scan.notes_body": "सारांश, शब्द, अभ्यास कार्ड, प्रश्नोत्तरी और दोहराई के काम।", "scan.quick_title": "त्वरित सहेजना", "scan.quick_body": "कक्षा, काम, तारीख और अनुमान लिखें।", "scan.quick_button": "काम बनाएं + योजना दोबारा बनाएं",
-  "paywall.title": "{name}, अपना सक्रिय सेमेस्टर बनाएं।", "paywall.sub_no_import": "पहले अनलॉक करें, फिर स्कैन करें ताकि सेमेस्टर मुख्य पटल, छोटे विजेट, याद दिलाने वाली सूचनाओं और अगले कदमों में दिखे।", "paywall.sub_import": "आपका पूर्वावलोकन तैयार है। मुख्य पटल, सूचनाओं और छोटे विजेट पर लागू करने के लिए अनलॉक करें।",
+  "common.continue": "जारी रखें", "common.cancel": "रद्द करें", "common.close": "बंद करें", "common.edit": "संपादित करें", "common.duplicate": "डुप्लिकेट करें", "common.save": "सहेजें", "common.archive": "आर्काइव", "common.delete": "हटाएं", "common.restore": "खरीदारी पुनर्स्थापित करें", "common.terms": "शर्तें", "common.privacy": "गोपनीयता", "common.support": "सहायता",
+  "onboarding.name_title": "StudyPlanner आपको क्या कहे?", "onboarding.name_sub": "आपका सेमेस्टर बनाते हैं।", "onboarding.name_placeholder": "आपका पहला नाम", "onboarding.nice": "बढ़िया, {name}.", "onboarding.student_kicker": "बढ़िया, {name}", "onboarding.student_title": "आप क्या संभाल रहे हैं?", "onboarding.goal_title": "आप क्या नियंत्रण में रखना चाहते हैं?", "onboarding.artifacts_title": "StudyPlanner आपकी पढ़ाई को सक्रिय योजना में बदलता है।", "onboarding.artifacts_sub": "अनलॉक के बाद असली कक्षाएं, पहली समय-सीमा, दबाव और विजेट प्रमाण सेव से पहले जांचें।", "onboarding.build_title": "अपना सेमेस्टर बनाएं।", "onboarding.paywall_first": "पहले अनलॉक करें, फिर स्कैन, पेस्ट या हाथ से जोड़ें। सेव से पहले सब जांचेंगे।",
+  "locked.kicker": "बंद पूर्वावलोकन", "locked.title": "{name}, अपना सेमेस्टर बनाएं।", "locked.sub": "अनलॉक के बाद स्कैन, पेस्ट या क्लास जोड़ें। सेव से पहले हर पंक्ति जांचें।", "locked.card_kicker": "अनलॉक के बाद समीक्षा", "locked.card_title": "पाठ्यक्रम को सक्रिय योजना में बदलें।", "locked.step1": "StudyPlanner अनलॉक करें", "locked.step2": "स्कैन, पेस्ट या हाथ से जोड़ें", "locked.step3": "सेव से पहले जांचें", "locked.scan": "पाठ्यक्रम स्कैन करें", "locked.paste": "हाथ से चिपकाएं", "locked.health": "सेमेस्टर स्थिति", "locked.health_title": "बंद पूर्वावलोकन", "locked.health_sub": "पाठ्यक्रम जांचकर लागू होने के बाद आपका स्कोर दिखेगा।", "locked.unlock": "StudyPlanner अनलॉक करें",
+  "scan.header_preview": "पाठ्यक्रम पूर्वावलोकन", "scan.header": "स्कैन", "scan.sub_preview": "स्कैन से पहले अनलॉक", "scan.sub": "कुछ भी सहेजें", "scan.kicker": "पाठ्यक्रम आयात", "scan.title_preview": "अनलॉक करें। फिर जांचें।", "scan.title": "आयात करें। जांचें। शुरू करें।", "scan.upload_pdf": "पाठ्यक्रम PDF अपलोड करें", "scan.camera": "कैमरा", "scan.photo": "फोटो", "scan.paste_text": "टेक्स्ट चिपकाएं", "scan.notes_title": "नोट्स स्कैन करें", "scan.notes_body": "सारांश, शब्द, अभ्यास कार्ड, प्रश्नोत्तरी और दोहराई के काम।", "scan.quick_title": "त्वरित सहेजना", "scan.quick_body": "कक्षा, काम, तारीख और अनुमान लिखें।", "scan.quick_button": "काम बनाएं + योजना दोबारा बनाएं",
+  "paywall.title": "{name}, अपना सक्रिय सेमेस्टर बनाएं।", "paywall.sub_no_import": "अनलॉक के बाद स्कैन, पेस्ट या हाथ से जोड़ें। डैशबोर्ड, विजेट, रिमाइंडर या अगले कदमों में जाने से पहले हर पंक्ति जांचें।", "paywall.sub_import": "आपका पूर्वावलोकन तैयार है। मुख्य पटल, सूचनाओं और छोटे विजेट पर लागू करने के लिए अनलॉक करें।",
 });
 
 Object.assign(APP_COPY.ar, {
-  "common.continue": "متابعة", "common.cancel": "إلغاء", "common.close": "إغلاق", "common.edit": "تعديل", "common.save": "حفظ", "common.archive": "أرشفة", "common.delete": "حذف", "common.restore": "استعادة المشتريات", "common.terms": "الشروط", "common.privacy": "الخصوصية", "common.support": "الدعم",
-  "onboarding.name_title": "بماذا يناديك StudyPlanner؟", "onboarding.name_sub": "لنجهّز فصلك الدراسي.", "onboarding.name_placeholder": "اسمك الأول", "onboarding.nice": "جميل، {name}.", "onboarding.student_kicker": "جميل، {name}", "onboarding.student_title": "ماذا تريد تنظيمه؟", "onboarding.goal_title": "ما الذي تريد ضبطه؟", "onboarding.artifacts_title": "يحوّل StudyPlanner عملك الدراسي إلى خطة حيّة.", "onboarding.artifacts_sub": "شاشات تطبيق حقيقية. لا صفوف تجريبية.", "onboarding.build_title": "ابنِ فصلك الدراسي.", "onboarding.paywall_first": "افتح أولاً، ثم امسح.",
+  "common.continue": "متابعة", "common.cancel": "إلغاء", "common.close": "إغلاق", "common.edit": "تعديل", "common.duplicate": "إنشاء نسخة", "common.save": "حفظ", "common.archive": "أرشفة", "common.delete": "حذف", "common.restore": "استعادة المشتريات", "common.terms": "الشروط", "common.privacy": "الخصوصية", "common.support": "الدعم",
+  "onboarding.name_title": "بماذا يناديك StudyPlanner؟", "onboarding.name_sub": "لنجهّز فصلك الدراسي.", "onboarding.name_placeholder": "اسمك الأول", "onboarding.nice": "جميل، {name}.", "onboarding.student_kicker": "جميل، {name}", "onboarding.student_title": "ماذا تريد تنظيمه؟", "onboarding.goal_title": "ما الذي تريد ضبطه؟", "onboarding.artifacts_title": "يحوّل StudyPlanner عملك الدراسي إلى خطة حيّة.", "onboarding.artifacts_sub": "بعد الفتح، راجع المواد الحقيقية وأول موعد والضغط وإثبات الويدجت قبل الحفظ.", "onboarding.build_title": "ابنِ فصلك الدراسي.", "onboarding.paywall_first": "افتح أولاً، ثم امسح أو الصق أو أضف يدويًا. ستراجع كل شيء قبل الحفظ.",
   "option.school_semester": "فصل دراسي", "option.high_school": "صفوف الثانوية", "option.college": "مقررات الجامعة", "option.grad": "دراسات عليا", "option.online": "دروس عبر الإنترنت", "option.exams": "اختبارات", "option.deadlines": "مواعيد نهائية", "option.notes": "ملاحظات", "option.grades": "درجات", "option.study_plan": "خطة دراسة", "option.everything": "كل شيء", "option.upload_pdf": "رفع PDF", "option.paste_syllabus": "لصق المنهج", "option.scan_camera": "المسح بالكاميرا", "option.skip": "تخطي الآن",
-  "locked.kicker": "معاينة مقفلة", "locked.title": "{name}، ابنِ فصلك الدراسي.", "locked.sub": "افتح StudyPlanner أولاً. بعدها امسح المنهج وطبّق خطتك الحيّة.", "locked.card_kicker": "المنهج بعد الفتح", "locked.card_title": "حوّل المنهج إلى خطة حيّة.", "locked.step1": "افتح StudyPlanner", "locked.step2": "امسح المنهج", "locked.step3": "راجع المواعيد", "locked.scan": "امسح المنهج", "locked.paste": "الصق يدويًا", "locked.health": "صحة الفصل", "locked.health_title": "معاينة مقفلة", "locked.health_sub": "تظهر درجتك بعد مراجعة المنهج وتطبيقه.", "locked.unlock": "افتح StudyPlanner",
-  "scan.header_preview": "معاينة المنهج", "scan.header": "مسح", "scan.sub_preview": "عاين قبل الفتح", "scan.sub": "التقط أي شيء", "scan.kicker": "استيراد المنهج", "scan.title_preview": "عاين. ثم افتح.", "scan.title": "استورد. راجع. ابدأ.", "scan.upload_pdf": "ارفع PDF المنهج", "scan.camera": "الكاميرا", "scan.photo": "صورة", "scan.paste_text": "لصق النص", "scan.notes_title": "امسح الملاحظات", "scan.notes_body": "ملخصات ومفاهيم وبطاقات واختبارات ومهام مراجعة.", "scan.quick_title": "التقاط سريع", "scan.quick_body": "اكتب المادة والمهمة والموعد والوقت.", "scan.quick_button": "أنشئ مهمة وأعد التخطيط",
-  "paywall.title": "{name}، ابنِ فصلك الحي.", "paywall.sub_no_import": "افتح أولاً ثم امسح ليظهر فصلك في اللوحة والويدجت والتذكيرات والخطوات التالية.", "paywall.sub_import": "معاينتك جاهزة. افتح لتطبيقها على اللوحة والتذكيرات والويدجت.",
+  "locked.kicker": "معاينة مقفلة", "locked.title": "{name}، ابنِ فصلك الدراسي.", "locked.sub": "افتح ثم امسح أو الصق أو أضف مادة. راجع كل صف قبل الحفظ.", "locked.card_kicker": "مراجعة بعد الفتح", "locked.card_title": "حوّل المنهج إلى خطة حيّة.", "locked.step1": "افتح StudyPlanner", "locked.step2": "امسح أو الصق أو أضف يدويًا", "locked.step3": "راجع قبل الحفظ", "locked.scan": "امسح المنهج", "locked.paste": "الصق يدويًا", "locked.health": "صحة الفصل", "locked.health_title": "معاينة مقفلة", "locked.health_sub": "تظهر درجتك بعد مراجعة المنهج وتطبيقه.", "locked.unlock": "افتح StudyPlanner",
+  "scan.header_preview": "معاينة المنهج", "scan.header": "مسح", "scan.sub_preview": "افتح قبل المسح", "scan.sub": "التقط أي شيء", "scan.kicker": "استيراد المنهج", "scan.title_preview": "افتح. ثم راجع.", "scan.title": "استورد. راجع. ابدأ.", "scan.upload_pdf": "ارفع PDF المنهج", "scan.camera": "الكاميرا", "scan.photo": "صورة", "scan.paste_text": "لصق النص", "scan.notes_title": "امسح الملاحظات", "scan.notes_body": "ملخصات ومفاهيم وبطاقات واختبارات ومهام مراجعة.", "scan.quick_title": "التقاط سريع", "scan.quick_body": "اكتب المادة والمهمة والموعد والوقت.", "scan.quick_button": "أنشئ مهمة وأعد التخطيط",
+  "paywall.title": "{name}، ابنِ فصلك الحي.", "paywall.sub_no_import": "بعد الفتح، امسح أو الصق أو أضف يدويًا. ستراجع كل صف قبل أن يصل إلى اللوحة أو الويدجت أو التذكيرات أو الخطوات التالية.", "paywall.sub_import": "معاينتك جاهزة. افتح لتطبيقها على اللوحة والتذكيرات والويدجت.",
 });
 
 const LOCALE_COMPLETIONS: Record<Exclude<SupportedLocale, "en-US">, Record<string, string>> = {
@@ -684,7 +1054,7 @@ const LOCALE_COMPLETIONS: Record<Exclude<SupportedLocale, "en-US">, Record<strin
     "class.schedule": "Horario", "class.add_work": "Añadir trabajo", "class.add_work_body": "Añade quiz, proyecto o tarea sin reimportar.", "class.assignment": "Tarea", "class.assessment": "Examen", "class.pulse": "Pulso de clase", "class.assignments": "Tareas", "class.exams": "Próximos exámenes", "class.notes": "Notas recientes", "class.forecast": "Pronóstico", "class.due": "Pendiente", "class.archive_title": "¿Archivar clase?", "class.archive_body": "{code} saldrá de Hoy, Plan, recordatorios y widgets. Podrás recuperarla desde Gestionar semestre.", "class.delete_title": "¿Eliminar clase permanentemente?", "class.archive_instead": "Archivar mejor", "class.not_found": "Clase no encontrada", "class.not_found_body": "Esa clase ya no está en este semestre.", "class.open_dashboard": "Abrir panel",
     "review.title": "Revisar importación", "review.empty": "No hay importación pendiente.", "review.guard_preview": "Solo vista previa.", "review.guard_preview_body": "Desbloquea para aplicar este semestre real.", "review.guard_active": "Nada se guarda hasta que apruebes.", "review.guard_active_body": "Edita, elimina o confirma cada elemento.", "review.found": "StudyPlanner encontró tu semestre.", "review.classes": "clases", "review.assignments": "tareas", "review.exams": "exámenes", "review.approve": "Aprobar confiables", "review.manual": "Configurar manualmente", "review.unlock": "Desbloquear mi semestre", "review.apply": "Aplicar horario",
     "plan.title": "Plan", "plan.sub_suffix": "autopiloto del semestre", "plan.notes_feed": "{count} notas alimentan el plan", "plan.autopilot": "Autopiloto", "plan.rebuild": "Reconstruir plan", "plan.focus_blocks": "Bloques de enfoque", "plan.regenerate": "Regenerar", "plan.study": "Estudiar", "plan.clear_day": "Día despejado.", "notes.title": "Notas", "notes.sub": "{score} preparación · {count} notas", "notes.body": "Las notas suben la preparación y afinan el pulso de clase.", "notes.all": "Todas", "notes.empty_title": "No hay notas cargadas", "notes.empty_body": "Escanea o pega apuntes para crear resúmenes, tarjetas, quizzes y tareas.", "notes.scan": "Escanear notas", "notes.paste": "Pegar notas",
-    "widgets.title": "Widgets", "widgets.sub_ready": "Vistas de pantalla de inicio", "widgets.sub_locked": "Vista bloqueada", "widgets.ready_title": "Widgets sincronizados", "widgets.locked_title": "Desbloquear widgets", "widgets.ready_body": "{score} de loop listo para widgets de iOS.", "widgets.locked_body": "Aplica un programa y desbloquea para mantener widgets al día.", "widgets.sync": "Sincronizar desde panel", "widgets.row_today": "StudyPlanner Hoy", "widgets.row_today_body": "Salud, próxima entrega y bloque de enfoque", "widgets.row_upcoming": "Próximo", "widgets.row_upcoming_body": "Tareas y exámenes por venir", "widgets.row_week": "Carga semanal", "widgets.row_week_body": "Presión por semana", "widgets.row_class": "Progreso de clase", "widgets.row_class_body": "Pulso de la clase elegida", "widgets.ready": "listo", "widgets.locked": "bloqueado"
+    "widgets.title": "Widgets", "widgets.sub_ready": "Vistas de pantalla de inicio", "widgets.sub_locked": "Vista bloqueada", "widgets.ready_title": "Widgets sincronizados", "widgets.locked_title": "Desbloquear widgets", "widgets.ready_body": "La próxima entrega, la carga semanal y el pulso de clase coinciden con los widgets de iOS.", "widgets.locked_body": "Aplica un programa y desbloquea para mantener widgets al día.", "widgets.sync": "Sincronizar con iPhone", "widgets.row_today": "StudyPlanner Hoy", "widgets.row_today_body": "Salud, próxima entrega y bloque de enfoque", "widgets.row_upcoming": "Próximo", "widgets.row_upcoming_body": "Tareas y exámenes por venir", "widgets.row_week": "Carga semanal", "widgets.row_week_body": "Presión por semana", "widgets.row_class": "Progreso de clase", "widgets.row_class_body": "Pulso de la clase elegida", "widgets.ready": "listo", "widgets.locked": "bloqueado"
   },
   fr: {
     "tabs.today": "Aujourd’hui", "tabs.classes": "Cours", "tabs.scan": "Scanner", "tabs.plan": "Plan", "tabs.profile": "Profil",
@@ -697,7 +1067,7 @@ const LOCALE_COMPLETIONS: Record<Exclude<SupportedLocale, "en-US">, Record<strin
     "class.schedule": "Horaire", "class.add_work": "Ajouter du travail", "class.add_work_body": "Ajoute quiz, projet ou devoir sans réimporter.", "class.assignment": "Devoir", "class.assessment": "Examen", "class.pulse": "Pouls du cours", "class.assignments": "Devoirs", "class.exams": "Examens à venir", "class.notes": "Notes récentes", "class.forecast": "Prévision", "class.due": "À rendre", "class.archive_title": "Archiver le cours ?", "class.archive_body": "{code} quittera Aujourd’hui, Plan, rappels et widgets. Son travail reste récupérable dans Gérer le semestre.", "class.delete_title": "Supprimer définitivement ?", "class.archive_instead": "Archiver plutôt", "class.not_found": "Cours introuvable", "class.not_found_body": "Ce cours n’est plus dans ce semestre.", "class.open_dashboard": "Ouvrir le tableau",
     "review.title": "Vérifier l’import", "review.empty": "Aucun import à vérifier.", "review.guard_preview": "Aperçu seulement.", "review.guard_preview_body": "Déverrouille pour appliquer ce semestre réel.", "review.guard_active": "Rien n’est enregistré avant approbation.", "review.guard_active_body": "Modifie, retire ou confirme chaque élément.", "review.found": "StudyPlanner a trouvé ton semestre.", "review.classes": "cours", "review.assignments": "devoirs", "review.exams": "examens", "review.approve": "Approuver fiables", "review.manual": "Configuration manuelle", "review.unlock": "Déverrouiller mon semestre", "review.apply": "Appliquer l’horaire",
     "plan.title": "Plan", "plan.sub_suffix": "autopilote du semestre", "plan.notes_feed": "{count} notes alimentent le plan", "plan.autopilot": "Autopilote", "plan.rebuild": "Reconstruire", "plan.focus_blocks": "Blocs focus", "plan.regenerate": "Régénérer", "plan.study": "Réviser", "plan.clear_day": "Journée dégagée.", "notes.title": "Notes", "notes.sub": "{score} préparation · {count} notes", "notes.body": "Les notes renforcent la préparation et affinent le pouls du cours.", "notes.all": "Tout", "notes.empty_title": "Aucune note chargée", "notes.empty_body": "Scanne ou colle des notes pour créer résumés, cartes, quiz et tâches.", "notes.scan": "Scanner notes", "notes.paste": "Coller notes",
-    "widgets.title": "Widgets", "widgets.sub_ready": "Aperçus écran d’accueil", "widgets.sub_locked": "Aperçu verrouillé", "widgets.ready_title": "Widgets synchronisés", "widgets.locked_title": "Déverrouiller les widgets", "widgets.ready_body": "Score de boucle {score} prêt pour les widgets iOS.", "widgets.locked_body": "Applique un syllabus et déverrouille pour garder les widgets à jour.", "widgets.sync": "Synchroniser depuis le tableau", "widgets.row_today": "StudyPlanner Aujourd’hui", "widgets.row_today_body": "Santé, prochaine échéance et bloc focus", "widgets.row_upcoming": "À venir", "widgets.row_upcoming_body": "Devoirs et examens bientôt", "widgets.row_week": "Charge semaine", "widgets.row_week_body": "Pression par semaine", "widgets.row_class": "Progression cours", "widgets.row_class_body": "Pouls du cours choisi", "widgets.ready": "prêt", "widgets.locked": "verrouillé"
+    "widgets.title": "Widgets", "widgets.sub_ready": "Aperçus écran d’accueil", "widgets.sub_locked": "Aperçu verrouillé", "widgets.ready_title": "Widgets synchronisés", "widgets.locked_title": "Déverrouiller les widgets", "widgets.ready_body": "La prochaine échéance, la charge semaine et le pouls du cours correspondent aux widgets iOS.", "widgets.locked_body": "Applique un syllabus et déverrouille pour garder les widgets à jour.", "widgets.sync": "Synchroniser sur iPhone", "widgets.row_today": "StudyPlanner Aujourd’hui", "widgets.row_today_body": "Santé, prochaine échéance et bloc focus", "widgets.row_upcoming": "À venir", "widgets.row_upcoming_body": "Devoirs et examens bientôt", "widgets.row_week": "Charge semaine", "widgets.row_week_body": "Pression par semaine", "widgets.row_class": "Progression cours", "widgets.row_class_body": "Pouls du cours choisi", "widgets.ready": "prêt", "widgets.locked": "verrouillé"
   },
   "pt-BR": {
     "tabs.today": "Hoje", "tabs.classes": "Aulas", "tabs.scan": "Escanear", "tabs.plan": "Plano", "tabs.profile": "Perfil",
@@ -710,7 +1080,7 @@ const LOCALE_COMPLETIONS: Record<Exclude<SupportedLocale, "en-US">, Record<strin
     "class.schedule": "Horário", "class.add_work": "Adicionar pendência", "class.add_work_body": "Adicione prova, projeto ou tarefa sem reimportar.", "class.assignment": "Tarefa", "class.assessment": "Prova", "class.pulse": "Pulso da aula", "class.assignments": "Tarefas", "class.exams": "Próximas provas", "class.notes": "Notas recentes", "class.forecast": "Previsão", "class.due": "Pendências", "class.archive_title": "Arquivar aula?", "class.archive_body": "{code} sairá de Hoje, Plano, lembretes e widgets. O trabalho fica recuperável em Gerenciar semestre.", "class.delete_title": "Excluir aula permanentemente?", "class.archive_instead": "Arquivar em vez disso", "class.not_found": "Aula não encontrada", "class.not_found_body": "Essa aula não está mais neste semestre.", "class.open_dashboard": "Abrir painel",
     "review.title": "Revisar importação", "review.empty": "Nenhuma importação aguardando revisão.", "review.guard_preview": "Somente prévia.", "review.guard_preview_body": "Desbloqueie para aplicar este semestre real.", "review.guard_active": "Nada salva até você aprovar.", "review.guard_active_body": "Edite, remova ou confirme cada item.", "review.found": "StudyPlanner encontrou seu semestre.", "review.classes": "aulas", "review.assignments": "tarefas", "review.exams": "provas", "review.approve": "Aprovar confiáveis", "review.manual": "Configurar manualmente", "review.unlock": "Desbloquear meu semestre", "review.apply": "Aplicar horário",
     "plan.title": "Plano", "plan.sub_suffix": "autopiloto do semestre", "plan.notes_feed": "{count} notas alimentam o plano", "plan.autopilot": "Autopiloto", "plan.rebuild": "Reconstruir plano", "plan.focus_blocks": "Blocos de foco", "plan.regenerate": "Regenerar", "plan.study": "Estudar", "plan.clear_day": "Dia livre.", "notes.title": "Notas", "notes.sub": "{score} preparo · {count} notas", "notes.body": "Notas aumentam o preparo e afinam o pulso da aula.", "notes.all": "Todas", "notes.empty_title": "Nenhuma nota carregada", "notes.empty_body": "Escaneie ou cole anotações para criar resumos, cartões, quizzes e tarefas.", "notes.scan": "Escanear notas", "notes.paste": "Colar notas",
-    "widgets.title": "Widgets", "widgets.sub_ready": "Prévia da Tela de Início", "widgets.sub_locked": "Prévia bloqueada", "widgets.ready_title": "Widgets sincronizados", "widgets.locked_title": "Desbloquear widgets", "widgets.ready_body": "Pontuação de loop {score} pronta para widgets iOS.", "widgets.locked_body": "Aplique um plano e desbloqueie para manter widgets atuais.", "widgets.sync": "Sincronizar do painel", "widgets.row_today": "StudyPlanner Hoje", "widgets.row_today_body": "Saúde, próximo prazo e bloco de foco", "widgets.row_upcoming": "Próximos", "widgets.row_upcoming_body": "Tarefas e provas em breve", "widgets.row_week": "Carga semanal", "widgets.row_week_body": "Pressão por semana", "widgets.row_class": "Progresso da aula", "widgets.row_class_body": "Pulso da aula escolhida", "widgets.ready": "pronto", "widgets.locked": "bloqueado"
+    "widgets.title": "Widgets", "widgets.sub_ready": "Prévia da Tela de Início", "widgets.sub_locked": "Prévia bloqueada", "widgets.ready_title": "Widgets sincronizados", "widgets.locked_title": "Desbloquear widgets", "widgets.ready_body": "O próximo prazo, a carga semanal e o pulso da aula agora combinam com os widgets iOS.", "widgets.locked_body": "Aplique um plano e desbloqueie para manter widgets atuais.", "widgets.sync": "Sincronizar com iPhone", "widgets.row_today": "StudyPlanner Hoje", "widgets.row_today_body": "Saúde, próximo prazo e bloco de foco", "widgets.row_upcoming": "Próximos", "widgets.row_upcoming_body": "Tarefas e provas em breve", "widgets.row_week": "Carga semanal", "widgets.row_week_body": "Pressão por semana", "widgets.row_class": "Progresso da aula", "widgets.row_class_body": "Pulso da aula escolhida", "widgets.ready": "pronto", "widgets.locked": "bloqueado"
   },
   ja: {
     "tabs.today": "今日", "tabs.classes": "授業", "tabs.scan": "スキャン", "tabs.plan": "計画", "tabs.profile": "プロフィール",
@@ -721,7 +1091,7 @@ const LOCALE_COMPLETIONS: Record<Exclude<SupportedLocale, "en-US">, Record<strin
     "class.schedule": "時間割", "class.add_work": "課題を追加", "class.add_work_body": "再取り込みなしで小テスト、プロジェクト、課題を追加。", "class.assignment": "課題", "class.assessment": "試験", "class.pulse": "授業パルス", "class.assignments": "課題", "class.exams": "今後の試験", "class.notes": "最近のノート", "class.forecast": "予測", "class.due": "締切", "class.archive_title": "授業をアーカイブしますか？", "class.archive_body": "{code}は今日、計画、リマインダー、ウィジェットから外れます。学期管理から復元できます。", "class.delete_title": "授業を完全に削除しますか？", "class.archive_instead": "代わりにアーカイブ", "class.not_found": "授業が見つかりません", "class.not_found_body": "この授業はもう学期にありません。", "class.open_dashboard": "ダッシュボードを開く",
     "review.title": "取り込みを確認", "review.empty": "確認待ちの取り込みはありません。", "review.guard_preview": "プレビューのみ。", "review.guard_preview_body": "解除すると実際のアプリに適用できます。", "review.guard_active": "承認するまで保存されません。", "review.guard_active_body": "各項目を編集、削除、確認できます。", "review.found": "StudyPlannerが学期を見つけました。", "review.classes": "授業", "review.assignments": "課題", "review.exams": "試験", "review.approve": "信頼項目を承認", "review.manual": "手動設定", "review.unlock": "学期を解除", "review.apply": "時間割を適用",
     "plan.title": "計画", "plan.sub_suffix": "学期オートパイロット", "plan.notes_feed": "{count}件のノートが計画に反映", "plan.autopilot": "オートパイロット", "plan.rebuild": "計画を再作成", "plan.focus_blocks": "集中ブロック", "plan.regenerate": "再生成", "plan.study": "学習", "plan.clear_day": "予定なし。", "notes.title": "ノート", "notes.sub": "準備{score} · {count}件", "notes.body": "ノートが準備度と授業パルスを高めます。", "notes.all": "すべて", "notes.empty_title": "ノート未読み込み", "notes.empty_body": "講義ノートをスキャンまたは貼り付けて、要約、カード、クイズ、タスクを作成。", "notes.scan": "ノートをスキャン", "notes.paste": "ノートを貼り付け",
-    "widgets.title": "ウィジェット", "widgets.sub_ready": "ホーム画面スナップショット", "widgets.sub_locked": "ロック中のプレビュー", "widgets.ready_title": "ウィジェット同期済み", "widgets.locked_title": "ウィジェットを解除", "widgets.ready_body": "ループスコア{score}をiOSウィジェットに反映できます。", "widgets.locked_body": "シラバスを適用して解除すると最新に保てます。", "widgets.sync": "ダッシュボードから同期", "widgets.row_today": "StudyPlanner 今日", "widgets.row_today_body": "ヘルス、次の締切、集中ブロック", "widgets.row_upcoming": "まもなく", "widgets.row_upcoming_body": "課題と試験の予定", "widgets.row_week": "週の負荷", "widgets.row_week_body": "週ごとの負荷", "widgets.row_class": "授業進捗", "widgets.row_class_body": "選択した授業パルス", "widgets.ready": "準備済み", "widgets.locked": "ロック中"
+    "widgets.title": "ウィジェット", "widgets.sub_ready": "ホーム画面スナップショット", "widgets.sub_locked": "ロック中のプレビュー", "widgets.ready_title": "ウィジェット同期済み", "widgets.locked_title": "ウィジェットを解除", "widgets.ready_body": "次の締切、週の負荷、授業パルスがiOSウィジェットと一致します。", "widgets.locked_body": "シラバスを適用して解除すると最新に保てます。", "widgets.sync": "iPhoneに同期", "widgets.row_today": "StudyPlanner 今日", "widgets.row_today_body": "ヘルス、次の締切、集中ブロック", "widgets.row_upcoming": "まもなく", "widgets.row_upcoming_body": "課題と試験の予定", "widgets.row_week": "週の負荷", "widgets.row_week_body": "週ごとの負荷", "widgets.row_class": "授業進捗", "widgets.row_class_body": "選択した授業パルス", "widgets.ready": "準備済み", "widgets.locked": "ロック中"
   },
   ko: {
     "tabs.today": "오늘", "tabs.classes": "수업", "tabs.scan": "스캔", "tabs.plan": "계획", "tabs.profile": "프로필",
@@ -733,7 +1103,7 @@ const LOCALE_COMPLETIONS: Record<Exclude<SupportedLocale, "en-US">, Record<strin
     "class.schedule": "시간표", "class.add_work": "빠진 일 추가", "class.add_work_body": "다시 가져오지 않고 퀴즈, 프로젝트, 과제를 추가합니다.", "class.assignment": "과제", "class.assessment": "시험", "class.pulse": "수업 펄스", "class.assignments": "과제", "class.exams": "다가오는 시험", "class.notes": "최근 노트", "class.forecast": "예측", "class.due": "마감", "class.archive_title": "수업을 보관할까요?", "class.archive_body": "{code}가 오늘, 계획, 알림, 위젯에서 사라집니다. 학기 관리에서 복원할 수 있습니다.", "class.delete_title": "수업을 영구 삭제할까요?", "class.archive_instead": "대신 보관", "class.not_found": "수업을 찾을 수 없음", "class.not_found_body": "이 수업은 더 이상 학기에 없습니다.", "class.open_dashboard": "대시보드 열기",
     "review.title": "가져오기 검토", "review.empty": "검토할 가져오기가 없습니다.", "review.guard_preview": "미리보기만.", "review.guard_preview_body": "잠금 해제하면 실제 앱에 적용됩니다.", "review.guard_active": "승인 전에는 저장되지 않습니다.", "review.guard_active_body": "각 항목을 수정, 제거, 확인하세요.", "review.found": "StudyPlanner가 학기를 찾았습니다.", "review.classes": "수업", "review.assignments": "과제", "review.exams": "시험", "review.approve": "신뢰 항목 승인", "review.manual": "직접 설정", "review.unlock": "내 학기 잠금 해제", "review.apply": "시간표 적용",
     "plan.title": "계획", "plan.sub_suffix": "학기 오토파일럿", "plan.notes_feed": "노트 {count}개가 계획에 반영", "plan.autopilot": "오토파일럿", "plan.rebuild": "계획 다시 만들기", "plan.focus_blocks": "집중 블록", "plan.regenerate": "다시 생성", "plan.study": "공부", "plan.clear_day": "비어 있는 날.", "notes.title": "노트", "notes.sub": "준비도 {score} · 노트 {count}개", "notes.body": "노트가 준비도와 수업 펄스를 높입니다.", "notes.all": "전체", "notes.empty_title": "노트가 없습니다", "notes.empty_body": "강의 노트를 스캔하거나 붙여넣어 요약, 카드, 퀴즈, 작업을 만드세요.", "notes.scan": "노트 스캔", "notes.paste": "노트 붙여넣기",
-    "widgets.title": "위젯", "widgets.sub_ready": "홈 화면 스냅샷", "widgets.sub_locked": "잠긴 미리보기", "widgets.ready_title": "위젯 동기화됨", "widgets.locked_title": "위젯 잠금 해제", "widgets.ready_body": "루프 점수 {score}가 iOS 위젯에 준비되었습니다.", "widgets.locked_body": "강의계획서를 적용하고 잠금 해제해 위젯을 최신으로 유지하세요.", "widgets.sync": "대시보드에서 동기화", "widgets.row_today": "StudyPlanner 오늘", "widgets.row_today_body": "상태, 다음 마감, 집중 블록", "widgets.row_upcoming": "예정", "widgets.row_upcoming_body": "다가오는 과제와 시험", "widgets.row_week": "주간 부담", "widgets.row_week_body": "주별 압박", "widgets.row_class": "수업 진행", "widgets.row_class_body": "선택한 수업 펄스", "widgets.ready": "준비됨", "widgets.locked": "잠김"
+    "widgets.title": "위젯", "widgets.sub_ready": "홈 화면 스냅샷", "widgets.sub_locked": "잠긴 미리보기", "widgets.ready_title": "위젯 동기화됨", "widgets.locked_title": "위젯 잠금 해제", "widgets.ready_body": "다음 마감, 주간 부담, 수업 펄스가 iOS 위젯과 일치합니다.", "widgets.locked_body": "강의계획서를 적용하고 잠금 해제해 위젯을 최신으로 유지하세요.", "widgets.sync": "iPhone에 동기화", "widgets.row_today": "StudyPlanner 오늘", "widgets.row_today_body": "상태, 다음 마감, 집중 블록", "widgets.row_upcoming": "예정", "widgets.row_upcoming_body": "다가오는 과제와 시험", "widgets.row_week": "주간 부담", "widgets.row_week_body": "주별 압박", "widgets.row_class": "수업 진행", "widgets.row_class_body": "선택한 수업 펄스", "widgets.ready": "준비됨", "widgets.locked": "잠김"
   },
   "zh-Hans": {
     "tabs.today": "今天", "tabs.classes": "课程", "tabs.scan": "扫描", "tabs.plan": "计划", "tabs.profile": "我的",
@@ -744,7 +1114,7 @@ const LOCALE_COMPLETIONS: Record<Exclude<SupportedLocale, "en-US">, Record<strin
     "class.schedule": "时间表", "class.add_work": "补充任务", "class.add_work_body": "无需重新导入即可添加测验、项目或作业。", "class.assignment": "作业", "class.assessment": "考试", "class.pulse": "课程脉搏", "class.assignments": "作业", "class.exams": "即将考试", "class.notes": "最近笔记", "class.forecast": "预测", "class.due": "待办", "class.archive_title": "归档课程？", "class.archive_body": "{code} 将从今天、计划、提醒和组件中移除。可在管理学期中恢复。", "class.delete_title": "永久删除课程？", "class.archive_instead": "改为归档", "class.not_found": "未找到课程", "class.not_found_body": "这门课已不在本学期中。", "class.open_dashboard": "打开首页",
     "review.title": "检查导入", "review.empty": "没有等待检查的导入。", "review.guard_preview": "仅预览。", "review.guard_preview_body": "解锁后可应用到真实应用。", "review.guard_active": "批准前不会保存。", "review.guard_active_body": "编辑、删除或确认每一项。", "review.found": "StudyPlanner 找到了你的学期。", "review.classes": "课程", "review.assignments": "作业", "review.exams": "考试", "review.approve": "批准可信项", "review.manual": "手动设置", "review.unlock": "解锁我的学期", "review.apply": "应用日程",
     "plan.title": "计划", "plan.sub_suffix": "学期自动规划", "plan.notes_feed": "{count} 条笔记进入计划", "plan.autopilot": "自动规划", "plan.rebuild": "重建计划", "plan.focus_blocks": "专注时段", "plan.regenerate": "重新生成", "plan.study": "学习", "plan.clear_day": "今天很清爽。", "notes.title": "笔记", "notes.sub": "准备度 {score} · {count} 条笔记", "notes.body": "笔记提升准备度并优化课程脉搏。", "notes.all": "全部", "notes.empty_title": "还没有笔记", "notes.empty_body": "扫描或粘贴课堂笔记，生成摘要、卡片、测验和任务。", "notes.scan": "扫描笔记", "notes.paste": "粘贴笔记",
-    "widgets.title": "组件", "widgets.sub_ready": "主屏幕快照", "widgets.sub_locked": "锁定预览", "widgets.ready_title": "组件已同步", "widgets.locked_title": "解锁组件", "widgets.ready_body": "循环分数 {score} 可用于 iOS 组件。", "widgets.locked_body": "应用大纲并解锁后，组件会保持最新。", "widgets.sync": "从首页同步", "widgets.row_today": "StudyPlanner 今天", "widgets.row_today_body": "健康、下个截止和专注时段", "widgets.row_upcoming": "即将到来", "widgets.row_upcoming_body": "即将出现的作业和考试", "widgets.row_week": "周负荷", "widgets.row_week_body": "每周压力", "widgets.row_class": "课程进度", "widgets.row_class_body": "选中课程的脉搏", "widgets.ready": "就绪", "widgets.locked": "已锁定"
+    "widgets.title": "组件", "widgets.sub_ready": "主屏幕快照", "widgets.sub_locked": "锁定预览", "widgets.ready_title": "组件已同步", "widgets.locked_title": "解锁组件", "widgets.ready_body": "下个截止、周负荷和课程脉搏会与 iOS 组件一致。", "widgets.locked_body": "应用大纲并解锁后，组件会保持最新。", "widgets.sync": "同步到 iPhone", "widgets.row_today": "StudyPlanner 今天", "widgets.row_today_body": "健康、下个截止和专注时段", "widgets.row_upcoming": "即将到来", "widgets.row_upcoming_body": "即将出现的作业和考试", "widgets.row_week": "周负荷", "widgets.row_week_body": "每周压力", "widgets.row_class": "课程进度", "widgets.row_class_body": "选中课程的脉搏", "widgets.ready": "就绪", "widgets.locked": "已锁定"
   },
   hi: {
     "tabs.today": "आज", "tabs.classes": "क्लास", "tabs.scan": "स्कैन", "tabs.plan": "प्लान", "tabs.profile": "प्रोफाइल",
@@ -754,8 +1124,8 @@ const LOCALE_COMPLETIONS: Record<Exclude<SupportedLocale, "en-US">, Record<strin
     "classes.title": "सेमेस्टर मैनेज करें", "classes.truth": "एक भरोसेमंद जगह", "classes.truth_body": "इम्पोर्ट ठीक करें, छूटा काम जोड़ें और आज, प्लान, रिमाइंडर, विजेट सिंक रखें।", "classes.add": "क्लास जोड़ें", "classes.import": "इम्पोर्ट", "classes.empty_title": "अभी कोई सक्रिय क्लास नहीं।", "classes.empty_body": "सिलेबस गायब, unreadable या गलत हो तो मैन्युअली शुरू करें।", "classes.add_manual": "क्लास मैन्युअली जोड़ें", "classes.archived": "आर्काइव",
     "class.schedule": "शेड्यूल", "class.add_work": "छूटा काम जोड़ें", "class.add_work_body": "री-इम्पोर्ट किए बिना quiz, project या assignment जोड़ें।", "class.assignment": "असाइनमेंट", "class.assessment": "परीक्षा", "class.pulse": "क्लास पल्स", "class.assignments": "असाइनमेंट", "class.exams": "आने वाली परीक्षाएं", "class.notes": "हाल के नोट्स", "class.forecast": "पूर्वानुमान", "class.due": "बकाया", "class.archive_title": "क्लास आर्काइव करें?", "class.archive_body": "{code} आज, प्लान, रिमाइंडर और विजेट से हटेगी। काम Manage Semester से restore हो सकेगा।", "class.delete_title": "क्लास हमेशा के लिए हटाएं?", "class.archive_instead": "इसके बजाय आर्काइव", "class.not_found": "क्लास नहीं मिली", "class.not_found_body": "यह क्लास अब इस सेमेस्टर में नहीं है।", "class.open_dashboard": "डैशबोर्ड खोलें",
     "review.title": "इम्पोर्ट समीक्षा", "review.empty": "समीक्षा के लिए कोई इम्पोर्ट नहीं।", "review.guard_preview": "सिर्फ पूर्वावलोकन।", "review.guard_preview_body": "असल ऐप में लागू करने के लिए अनलॉक करें।", "review.guard_active": "आपकी मंजूरी तक कुछ सेव नहीं होगा।", "review.guard_active_body": "हर आइटम edit, remove या confirm करें।", "review.found": "StudyPlanner ने आपका सेमेस्टर ढूंढ लिया।", "review.classes": "क्लास", "review.assignments": "असाइनमेंट", "review.exams": "परीक्षा", "review.approve": "भरोसेमंद approve", "review.manual": "मैन्युअल setup", "review.unlock": "मेरा सेमेस्टर अनलॉक", "review.apply": "शेड्यूल लागू करें",
-    "plan.title": "प्लान", "plan.sub_suffix": "सेमेस्टर autopilot", "plan.notes_feed": "{count} नोट्स प्लान में जाते हैं", "plan.autopilot": "Autopilot", "plan.rebuild": "प्लान फिर बनाएं", "plan.focus_blocks": "फोकस ब्लॉक", "plan.regenerate": "फिर बनाएं", "plan.study": "पढ़ाई", "plan.clear_day": "दिन साफ है।", "notes.title": "नोट्स", "notes.sub": "{score} तैयारी · {count} नोट्स", "notes.body": "नोट्स तैयारी बढ़ाते हैं और class pulse बेहतर करते हैं।", "notes.all": "सभी", "notes.empty_title": "कोई नोट लोड नहीं", "notes.empty_body": "लेक्चर नोट्स स्कैन या पेस्ट करके summaries, flashcards, quizzes और tasks बनाएं।", "notes.scan": "नोट्स स्कैन", "notes.paste": "नोट्स पेस्ट",
-    "widgets.title": "विजेट", "widgets.sub_ready": "Home Screen snapshots", "widgets.sub_locked": "लॉक्ड पूर्वावलोकन", "widgets.ready_title": "विजेट sync हैं", "widgets.locked_title": "विजेट अनलॉक करें", "widgets.ready_body": "{score} loop score iOS विजेट के लिए तैयार है।", "widgets.locked_body": "सिलेबस लागू करें और विजेट updated रखने के लिए अनलॉक करें।", "widgets.sync": "डैशबोर्ड से sync", "widgets.row_today": "StudyPlanner आज", "widgets.row_today_body": "Health, अगली deadline और focus block", "widgets.row_upcoming": "आने वाला", "widgets.row_upcoming_body": "Assignments और exams जल्द", "widgets.row_week": "Week Load", "widgets.row_week_body": "हर week pressure", "widgets.row_class": "Class Progress", "widgets.row_class_body": "चुनी हुई class pulse", "widgets.ready": "तैयार", "widgets.locked": "लॉक्ड"
+    "plan.title": "योजना", "plan.sub_suffix": "सेमेस्टर स्वचालन", "plan.notes_feed": "{count} नोट्स योजना में जाते हैं", "plan.autopilot": "स्वचालित योजना", "plan.rebuild": "योजना फिर बनाएं", "plan.focus_blocks": "फोकस ब्लॉक", "plan.regenerate": "फिर बनाएं", "plan.study": "पढ़ाई", "plan.clear_day": "दिन साफ है।", "notes.title": "नोट्स", "notes.sub": "{score} तैयारी · {count} नोट्स", "notes.body": "नोट्स तैयारी बढ़ाते हैं और क्लास की नब्ज साफ करते हैं।", "notes.all": "सभी", "notes.empty_title": "कोई नोट लोड नहीं", "notes.empty_body": "लेक्चर नोट्स स्कैन या पेस्ट करके सारांश, अभ्यास कार्ड, प्रश्नोत्तरी और काम बनाएं।", "notes.scan": "नोट्स स्कैन", "notes.paste": "नोट्स पेस्ट",
+    "widgets.title": "विजेट", "widgets.sub_ready": "होम स्क्रीन झलक", "widgets.sub_locked": "लॉक पूर्वावलोकन", "widgets.ready_title": "विजेट साथ में हैं", "widgets.locked_title": "विजेट अनलॉक करें", "widgets.ready_body": "अगली तारीख, सप्ताह का भार और क्लास नब्ज iOS विजेट से मेल खाते हैं।", "widgets.locked_body": "पाठ्यक्रम लागू करें और विजेट ताज़ा रखने के लिए अनलॉक करें।", "widgets.sync": "iPhone से मिलाएं", "widgets.row_today": "StudyPlanner आज", "widgets.row_today_body": "स्थिति, अगली तारीख और फोकस ब्लॉक", "widgets.row_upcoming": "आने वाला", "widgets.row_upcoming_body": "असाइनमेंट और परीक्षाएं जल्द", "widgets.row_week": "साप्ताहिक भार", "widgets.row_week_body": "हर सप्ताह का दबाव", "widgets.row_class": "क्लास प्रगति", "widgets.row_class_body": "चुनी हुई क्लास नब्ज", "widgets.ready": "तैयार", "widgets.locked": "लॉक"
   },
   ar: {
     "tabs.today": "اليوم", "tabs.classes": "المواد", "tabs.scan": "مسح", "tabs.plan": "الخطة", "tabs.profile": "الملف",
@@ -766,7 +1136,7 @@ const LOCALE_COMPLETIONS: Record<Exclude<SupportedLocale, "en-US">, Record<strin
     "class.schedule": "الجدول", "class.add_work": "أضف عملًا ناقصًا", "class.add_work_body": "أضف اختبارًا قصيرًا أو مشروعًا أو واجبًا دون إعادة الاستيراد.", "class.assignment": "واجب", "class.assessment": "اختبار", "class.pulse": "نبض المادة", "class.assignments": "الواجبات", "class.exams": "اختبارات قادمة", "class.notes": "ملاحظات حديثة", "class.forecast": "التوقع", "class.due": "مستحق", "class.archive_title": "أرشفة المادة؟", "class.archive_body": "ستغادر {code} اليوم والخطة والتذكيرات والويدجت. يمكن استعادة العمل من إدارة الفصل.", "class.delete_title": "حذف المادة نهائيًا؟", "class.archive_instead": "أرشفة بدلًا من ذلك", "class.not_found": "المادة غير موجودة", "class.not_found_body": "هذه المادة لم تعد في هذا الفصل.", "class.open_dashboard": "افتح اللوحة",
     "review.title": "مراجعة الاستيراد", "review.empty": "لا يوجد استيراد بانتظار المراجعة.", "review.guard_preview": "معاينة فقط.", "review.guard_preview_body": "افتح لتطبيق هذا الفصل في التطبيق الحقيقي.", "review.guard_active": "لا يتم الحفظ حتى توافق.", "review.guard_active_body": "عدّل أو أزل أو أكد كل عنصر.", "review.found": "وجد StudyPlanner فصلك الدراسي.", "review.classes": "مواد", "review.assignments": "واجبات", "review.exams": "اختبارات", "review.approve": "اعتماد الموثوق", "review.manual": "إعداد يدوي", "review.unlock": "افتح فصلي", "review.apply": "تطبيق الجدول",
     "plan.title": "الخطة", "plan.sub_suffix": "طيار الفصل الآلي", "plan.notes_feed": "{count} ملاحظات تغذي الخطة", "plan.autopilot": "الطيار الآلي", "plan.rebuild": "أعد بناء الخطة", "plan.focus_blocks": "جلسات التركيز", "plan.regenerate": "إعادة إنشاء", "plan.study": "دراسة", "plan.clear_day": "اليوم صافٍ.", "notes.title": "الملاحظات", "notes.sub": "استعداد {score} · {count} ملاحظات", "notes.body": "ترفع الملاحظات الاستعداد وتوضح نبض المادة.", "notes.all": "الكل", "notes.empty_title": "لا توجد ملاحظات", "notes.empty_body": "امسح أو الصق ملاحظات المحاضرة لإنشاء ملخصات وبطاقات واختبارات ومهام.", "notes.scan": "امسح الملاحظات", "notes.paste": "الصق الملاحظات",
-    "widgets.title": "الويدجت", "widgets.sub_ready": "لقطات الشاشة الرئيسية", "widgets.sub_locked": "معاينة مقفلة", "widgets.ready_title": "الويدجت متزامنة", "widgets.locked_title": "افتح الويدجت", "widgets.ready_body": "درجة الحلقة {score} جاهزة لويدجت iOS.", "widgets.locked_body": "طبّق منهجًا وافتح للحفاظ على تحديث الويدجت.", "widgets.sync": "زامن من اللوحة", "widgets.row_today": "StudyPlanner اليوم", "widgets.row_today_body": "الصحة والموعد التالي وجلسة التركيز", "widgets.row_upcoming": "القادم", "widgets.row_upcoming_body": "واجبات واختبارات قريبًا", "widgets.row_week": "عبء الأسبوع", "widgets.row_week_body": "الضغط حسب الأسبوع", "widgets.row_class": "تقدم المادة", "widgets.row_class_body": "نبض المادة المختارة", "widgets.ready": "جاهز", "widgets.locked": "مقفل"
+    "widgets.title": "الويدجت", "widgets.sub_ready": "لقطات الشاشة الرئيسية", "widgets.sub_locked": "معاينة مقفلة", "widgets.ready_title": "الويدجت متزامنة", "widgets.locked_title": "افتح الويدجت", "widgets.ready_body": "الموعد التالي وعبء الأسبوع ونبض المادة تطابق ويدجت iOS.", "widgets.locked_body": "طبّق منهجًا وافتح للحفاظ على تحديث الويدجت.", "widgets.sync": "زامن مع iPhone", "widgets.row_today": "StudyPlanner اليوم", "widgets.row_today_body": "الصحة والموعد التالي وجلسة التركيز", "widgets.row_upcoming": "القادم", "widgets.row_upcoming_body": "واجبات واختبارات قريبًا", "widgets.row_week": "عبء الأسبوع", "widgets.row_week_body": "الضغط حسب الأسبوع", "widgets.row_class": "تقدم المادة", "widgets.row_class_body": "نبض المادة المختارة", "widgets.ready": "جاهز", "widgets.locked": "مقفل"
   }
 };
 
@@ -800,7 +1170,7 @@ const APP_COPY_FINAL_GAPS: Record<Exclude<SupportedLocale, "en-US">, Record<stri
     "welcome.title": "Wisse genau, wo du stehst.", "welcome.body": "Importiere einen syllabus. StudyPlanner plant das Semester, erkennt Druck und zeigt den nächsten Schritt.", "welcome.preview": "Vorschau", "welcome.card_title": "syllabus rein. Dashboard raus.", "welcome.card_body": "Kurse, Fristen, Prüfungen und ersten Schritt ansehen, bevor etwas gespeichert wird.", "welcome.map_title": "Jede Frist erfassen", "welcome.map_body": "syllabus rein. Semester raus.", "welcome.health_title": "Semesterstatus verfolgen", "welcome.health_body": "Wissen, ob du im grünen Bereich bist.", "welcome.import": "syllabus importieren",
     "mini.builds_live": "Baut live", "mini.after_import": "nach Import", "mini.pressure": "DRUCKPROGNOSE", "mini.class_pulse": "KURSPULS", "mini.notes_preparedness": "NOTIZVORBEREITUNG", "mini.locked": "Gesperrt", "mini.no_fake": "Keine Fake-Kurse", "mini.next_move": "NÄCHSTER SCHRITT", "mini.first_action": "Erste Aktion", "mini.widget": "WIDGET", "mini.unlock_after": "Nach Kauf freischalten", "health.score": "Wert", "health.start_here": "Hier starten", "health.no_semester": "Kein Semester geladen.", "today.empty_kicker": "SEMESTER BAUEN", "today.empty_title": "Kurs hinzufügen oder syllabus scannen.",
     "scan.opening_camera": "Kamera wird geöffnet...", "scan.opening_photos": "Fotos werden geöffnet...", "scan.permission": "Berechtigung nötig, um {mode}-Seiten aus {target} zu lesen.", "scan.open_settings": "Einstellungen öffnen", "scan.canceled": "Scan abgebrochen.", "scan.reading_notes": "Notiztext wird auf diesem iPhone gelesen...", "scan.reading_syllabus": "syllabus-Text wird auf diesem iPhone gelesen...", "scan.found_words": "{count} Wörter gefunden. Vor dem Speichern prüfen.", "scan.image_failed": "Dieses Bild konnte nicht gescannt werden.", "scan.opening_pdf": "PDF wird geöffnet...", "scan.pdf_canceled": "PDF-Import abgebrochen.", "scan.pdf_unreadable": "PDF geöffnet. Text war hier nicht lesbar. Text einfügen oder Seiten scannen.", "scan.scan_pages": "Seiten scannen", "scan.pdf_read": "PDF gelesen: {count} Wörter. Vor dem Speichern prüfen.", "scan.pdf_failed": "Dieses PDF konnte nicht importiert werden.", "scan.pdf_failed_title": "PDF-Import fehlgeschlagen", "scan.pdf_failed_body": "syllabus-Text einfügen oder PDF-Seiten mit der Kamera scannen.",
-    "paste.add_text_title": "Erst Text hinzufügen", "paste.notes_required": "Füge Notizen ein, um Zusammenfassungen und Lernmaterial zu erstellen.", "paste.syllabus_required": "Füge syllabus-Text ein, um Kurse, Aufgaben und Prüfungen zu erkennen.", "paste.notes_title": "Notizen werden zum Lernset.", "paste.syllabus_title": "Der syllabus wird zum Semester.", "paste.premium_sub": "Alles prüfen, bevor gespeichert wird.", "paste.preview_sub": "Sieh vor dem Freischalten, was StudyPlanner findet.", "paste.notes_placeholder": "Vorlesungsnotizen, Lesezeichen oder Lernstoff einfügen...", "paste.syllabus_placeholder": "syllabus, Aufgabenblatt oder extrahierten PDF-Text einfügen...", "paste.reading": "Wird gelesen...",
+    "paste.add_text_title": "Erst Text hinzufügen", "paste.notes_required": "Füge Notizen ein, um Zusammenfassungen und Lernmaterial zu erstellen.", "paste.syllabus_required": "Füge syllabus-Text ein, um Kurse, Aufgaben und Prüfungen zu erkennen.", "paste.notes_title": "Notizen werden zum Lernset.", "paste.syllabus_title": "Der syllabus wird zum Semester.", "paste.premium_sub": "Alles prüfen, bevor gespeichert wird.", "paste.preview_sub": "Prüfe, was StudyPlanner findet, bevor etwas gespeichert wird.", "paste.notes_placeholder": "Vorlesungsnotizen, Lesezeichen oder Lernstoff einfügen...", "paste.syllabus_placeholder": "syllabus, Aufgabenblatt oder extrahierten PDF-Text einfügen...", "paste.reading": "Wird gelesen...",
     "review.none_selected_title": "Nichts ausgewählt", "review.none_selected_body": "Bestätige mindestens einen Kurs, eine Aufgabe, Prüfung oder Notiz.", "review.first_deadline": "Erste Frist prüfen", "review.high": "Hoch", "review.good": "Gut", "review.needs_review_body": "StudyPlanner ist bei dieser Zeile nicht sicher.", "review.reconcile_hint": "Wähle, wie diese Importzeile behandelt wird. StudyPlanner überschreibt oder dupliziert nichts heimlich.", "review.applying": "Wird angewendet...", "review.approved_footer": "{count} bestätigte Einträge · {state}", "review.editable_later": "später bearbeitbar", "review.locked_until_premium": "bis Premium gesperrt", "review.approve_one": "Bestätige mindestens einen Eintrag.",
     "success.step_reading": "syllabus lesen", "success.step_deadlines": "Fristen finden", "success.step_schedule": "Plan bauen", "success.step_health": "Semesterstatus berechnen", "success.step_next": "Nächsten Schritt vorbereiten", "success.continue": "Weiter",
     "class.delete_body": "{code}, {tasks} offene Aufgaben, {exams} Prüfungen, Notizen, Erinnerungen und Lernblöcke werden gelöscht. Archivieren ist sicherer.", "class.weekly_discussion": "Wöchentliche Diskussion", "class.new_assignment": "Neue Aufgabe", "class.add_assessment": "Prüfung hinzufügen", "class.add_assignment": "Aufgabe hinzufügen", "class.effort": "Aufwand", "class.notes_label": "Notizen", "tasks.today": "Heute", "tasks.later": "Später", "task.delete_title": "Aufgabe löschen?", "task.delete_recurring_body": "Wähle, wie viel dieser Serie entfernt wird.", "task.delete_body": "{title} verschwindet aus Heute, Plan, Erinnerungen und Widgets.", "task.edit": "Aufgabe bearbeiten", "task.save": "Aufgabe sichern", "task.save_awaiting": "Ohne Datum sichern", "task.due": "Fällig", "task.estimated": "Geschätzt", "task.source": "Quelle", "task.on_calendar": "Im Kalender", "task.not_scheduled": "Nicht geplant",
@@ -815,7 +1185,7 @@ const APP_COPY_FINAL_GAPS: Record<Exclude<SupportedLocale, "en-US">, Record<stri
     "welcome.title": "Sabe exactamente dónde estás.", "welcome.body": "Importa un programa. StudyPlanner organiza el semestre, detecta presión y te dice el siguiente paso.", "welcome.preview": "vista previa", "welcome.card_title": "Programa entra. Panel sale.", "welcome.card_body": "Previsualiza clases, entregas, exámenes y primer paso antes de guardar nada.", "welcome.map_title": "Mapea cada entrega", "welcome.map_body": "Programa entra. Semestre sale.", "welcome.health_title": "Sigue la salud del semestre", "welcome.health_body": "Sabe si vas bien.", "welcome.import": "Importar programa",
     "mini.builds_live": "Se arma en vivo", "mini.after_import": "tras importar", "mini.pressure": "PRONÓSTICO DE PRESIÓN", "mini.class_pulse": "PULSO DE CLASE", "mini.notes_preparedness": "PREPARACIÓN DE NOTAS", "mini.locked": "Bloqueado", "mini.no_fake": "Sin clases falsas", "mini.next_move": "SIGUIENTE PASO", "mini.first_action": "Primera acción", "mini.widget": "WIDGET", "mini.unlock_after": "Desbloquea tras comprar", "health.score": "puntaje", "health.start_here": "Empieza aquí", "health.no_semester": "No hay semestre cargado.", "today.empty_kicker": "ARMA TU SEMESTRE", "today.empty_title": "Añade una clase o escanea un programa.",
     "scan.opening_camera": "Abriendo cámara...", "scan.opening_photos": "Abriendo fotos...", "scan.permission": "Se necesita permiso para leer páginas de {mode} desde {target}.", "scan.open_settings": "Abrir ajustes", "scan.canceled": "Escaneo cancelado.", "scan.reading_notes": "Leyendo notas en este iPhone...", "scan.reading_syllabus": "Leyendo programa en este iPhone...", "scan.found_words": "{count} palabras encontradas. Revisa antes de guardar.", "scan.image_failed": "No se pudo escanear esa imagen.", "scan.opening_pdf": "Abriendo PDF...", "scan.pdf_canceled": "Importación de PDF cancelada.", "scan.pdf_unreadable": "PDF abierto. El texto no fue legible aquí. Pega texto o escanea páginas.", "scan.scan_pages": "Escanear páginas", "scan.pdf_read": "PDF leído: {count} palabras. Revisa antes de guardar.", "scan.pdf_failed": "No se pudo importar ese PDF.", "scan.pdf_failed_title": "Falló la importación PDF", "scan.pdf_failed_body": "Pega el texto del programa o escanea las páginas con la cámara.",
-    "paste.add_text_title": "Añade texto primero", "paste.notes_required": "Pega notas para resumir y convertirlas en material de estudio.", "paste.syllabus_required": "Pega el programa para extraer clases, tareas y exámenes.", "paste.notes_title": "Las notas se vuelven set de estudio.", "paste.syllabus_title": "El programa se vuelve semestre.", "paste.premium_sub": "Revisa todo antes de guardar.", "paste.preview_sub": "Previsualiza lo que encuentra StudyPlanner antes de desbloquear.", "paste.notes_placeholder": "Pega apuntes de clase, lectura o repaso...", "paste.syllabus_placeholder": "Pega programa, hojas de tarea o texto extraído de PDF...", "paste.reading": "Leyendo...",
+    "paste.add_text_title": "Añade texto primero", "paste.notes_required": "Pega notas para resumir y convertirlas en material de estudio.", "paste.syllabus_required": "Pega el programa para extraer clases, tareas y exámenes.", "paste.notes_title": "Las notas se vuelven set de estudio.", "paste.syllabus_title": "El programa se vuelve semestre.", "paste.premium_sub": "Revisa todo antes de guardar.", "paste.preview_sub": "Revisa lo que encuentra StudyPlanner antes de guardar.", "paste.notes_placeholder": "Pega apuntes de clase, lectura o repaso...", "paste.syllabus_placeholder": "Pega programa, hojas de tarea o texto extraído de PDF...", "paste.reading": "Leyendo...",
     "review.none_selected_title": "Nada seleccionado", "review.none_selected_body": "Aprueba al menos una clase, tarea, examen o nota.", "review.first_deadline": "Revisar primera entrega", "review.high": "Alta", "review.good": "Buena", "review.needs_review_body": "StudyPlanner no está seguro de que esta fila esté completa.", "review.reconcile_hint": "Elige cómo manejar esta fila. StudyPlanner no sobrescribe ni duplica en silencio.", "review.applying": "Aplicando...", "review.approved_footer": "{count} elementos aprobados · {state}", "review.editable_later": "editable después", "review.locked_until_premium": "bloqueado hasta premium", "review.approve_one": "Aprueba al menos un elemento.",
     "success.step_reading": "Leyendo programa", "success.step_deadlines": "Buscando entregas", "success.step_schedule": "Armando horario", "success.step_health": "Calculando salud del semestre", "success.step_next": "Preparando próximo paso", "success.continue": "Continuar",
     "class.delete_body": "Esto elimina {code}, {tasks} tareas abiertas, {exams} exámenes, notas, recordatorios y bloques. Archivar es más seguro.", "class.weekly_discussion": "Discusión semanal", "class.new_assignment": "Nueva tarea", "class.add_assessment": "Añadir examen", "class.add_assignment": "Añadir tarea", "class.effort": "Esfuerzo", "class.notes_label": "Notas", "tasks.today": "Hoy", "tasks.later": "Después", "task.delete_title": "¿Eliminar tarea?", "task.delete_recurring_body": "Elige cuánto de esta serie quitar.", "task.delete_body": "{title} saldrá de Hoy, Plan, recordatorios y widgets.", "task.edit": "Editar tarea", "task.save": "Guardar tarea", "task.save_awaiting": "Guardar sin fecha", "task.due": "Vence", "task.estimated": "Estimado", "task.source": "Fuente", "task.on_calendar": "En calendario", "task.not_scheduled": "Sin programar",
@@ -839,7 +1209,7 @@ Object.assign(APP_COPY.fr, APP_COPY_FINAL_GAPS.es, {
   "welcome.title": "Sache exactement où tu en es.", "welcome.body": "Importe un syllabus. StudyPlanner organise le semestre, repère la pression et indique la prochaine action.", "welcome.preview": "aperçu", "welcome.card_title": "syllabus entré. Tableau prêt.", "welcome.card_body": "Prévisualise cours, échéances, examens et première action avant tout enregistrement.", "welcome.map_title": "Cartographier chaque échéance", "welcome.map_body": "syllabus entré. Semestre prêt.", "welcome.health_title": "Suivre la santé du semestre", "welcome.health_body": "Savoir si tu gardes le rythme.", "welcome.import": "Importer le syllabus",
   "mini.builds_live": "Se construit en direct", "mini.after_import": "après import", "mini.pressure": "PRÉVISION DE PRESSION", "mini.class_pulse": "POULS DU COURS", "mini.notes_preparedness": "PRÉPARATION NOTES", "mini.locked": "Verrouillé", "mini.no_fake": "Aucun faux cours", "mini.next_move": "PROCHAINE ACTION", "mini.first_action": "Première action", "mini.widget": "WIDGET", "mini.unlock_after": "Déverrouiller après achat", "health.score": "score", "health.start_here": "Commencer ici", "health.no_semester": "Aucun semestre chargé.", "today.empty_kicker": "CONSTRUIS TON SEMESTRE", "today.empty_title": "Ajoute un cours ou scanne un syllabus.",
   "scan.opening_camera": "Ouverture caméra...", "scan.opening_photos": "Ouverture photos...", "scan.permission": "Autorisation requise pour lire les pages {mode} depuis {target}.", "scan.open_settings": "Ouvrir Réglages", "scan.canceled": "Scan annulé.", "scan.reading_notes": "Lecture des notes sur cet iPhone...", "scan.reading_syllabus": "Lecture du syllabus sur cet iPhone...", "scan.found_words": "{count} mots trouvés. Vérifie avant d’enregistrer.", "scan.image_failed": "Cette image n’a pas pu être scannée.", "scan.opening_pdf": "Ouverture du PDF...", "scan.pdf_canceled": "Import PDF annulé.", "scan.pdf_unreadable": "PDF ouvert. Texte illisible ici. Colle le texte ou scanne les pages.", "scan.scan_pages": "Scanner pages", "scan.pdf_read": "PDF lu : {count} mots. Vérifie avant d’enregistrer.", "scan.pdf_failed": "Ce PDF n’a pas pu être importé.", "scan.pdf_failed_title": "Import PDF échoué", "scan.pdf_failed_body": "Colle le texte du syllabus ou scanne les pages avec la caméra.",
-  "paste.add_text_title": "Ajoute du texte d’abord", "paste.notes_required": "Colle des notes pour créer résumés et supports d’étude.", "paste.syllabus_required": "Colle le syllabus pour extraire cours, devoirs et examens.", "paste.notes_title": "Les notes deviennent un set d’étude.", "paste.syllabus_title": "Le syllabus devient un semestre.", "paste.premium_sub": "Vérifie tout avant enregistrement.", "paste.preview_sub": "Prévisualise ce que StudyPlanner trouve avant déverrouillage.", "paste.notes_placeholder": "Colle notes de cours, lectures ou révisions...", "paste.syllabus_placeholder": "Colle syllabus, devoirs ou texte PDF extrait...", "paste.reading": "Lecture...",
+  "paste.add_text_title": "Ajoute du texte d’abord", "paste.notes_required": "Colle des notes pour créer résumés et supports d’étude.", "paste.syllabus_required": "Colle le syllabus pour extraire cours, devoirs et examens.", "paste.notes_title": "Les notes deviennent un set d’étude.", "paste.syllabus_title": "Le syllabus devient un semestre.", "paste.premium_sub": "Vérifie tout avant enregistrement.", "paste.preview_sub": "Vérifie ce que StudyPlanner trouve avant enregistrement.", "paste.notes_placeholder": "Colle notes de cours, lectures ou révisions...", "paste.syllabus_placeholder": "Colle syllabus, devoirs ou texte PDF extrait...", "paste.reading": "Lecture...",
   "review.none_selected_title": "Rien sélectionné", "review.none_selected_body": "Approuve au moins un cours, devoir, examen ou note.", "review.first_deadline": "Vérifier la première échéance", "review.high": "Haute", "review.good": "Bonne", "review.needs_review_body": "StudyPlanner n’est pas sûr que cette ligne soit complète.", "review.reconcile_hint": "Choisis comment gérer cette ligne. StudyPlanner n’écrase ni ne duplique en silence.", "review.applying": "Application...", "review.approved_footer": "{count} éléments approuvés · {state}", "review.editable_later": "modifiable ensuite", "review.locked_until_premium": "verrouillé jusqu’à premium", "review.approve_one": "Approuve au moins un élément.",
   "success.step_reading": "Lecture du syllabus", "success.step_deadlines": "Recherche des échéances", "success.step_schedule": "Construction du planning", "success.step_health": "Calcul de santé du semestre", "success.step_next": "Préparation de la suite", "success.continue": "Continuer",
   "class.delete_body": "Supprime {code}, {tasks} devoirs ouverts, {exams} examens, notes, rappels et blocs. Archiver est plus sûr.", "class.weekly_discussion": "Discussion hebdo", "class.new_assignment": "Nouveau devoir", "class.add_assessment": "Ajouter examen", "class.add_assignment": "Ajouter devoir", "class.effort": "Effort", "class.notes_label": "Notes", "tasks.today": "Aujourd’hui", "tasks.later": "Plus tard", "task.delete_title": "Supprimer le devoir ?", "task.delete_recurring_body": "Choisis combien de cette série retirer.", "task.delete_body": "{title} quittera Aujourd’hui, Plan, rappels et widgets.", "task.edit": "Modifier devoir", "task.save": "Enregistrer devoir", "task.save_awaiting": "Enregistrer sans date", "task.due": "Échéance", "task.estimated": "Estimé", "task.source": "Source", "task.on_calendar": "Au calendrier", "task.not_scheduled": "Non planifié",
@@ -847,7 +1217,7 @@ Object.assign(APP_COPY.fr, APP_COPY_FINAL_GAPS.es, {
   "study.focus_session": "Session focus", "study.no_blocks": "Aucun bloc", "study.no_blocks_body": "Importe du travail puis reconstruis.", "study.impact": "Impact", "study.goal": "Objectif", "study.goal_body": "Un point. Puis rappel.", "study.active_recall": "Rappel actif", "study.recall_body": "Explique sans regarder.", "study.recall_placeholder": "Écris ta réponse...", "study.score_recall": "Noter le rappel", "study.recall_score": "Score rappel : {score}/10", "study.complete": "Terminer la session",
   "note.not_found": "Note introuvable", "note.not_found_body": "Cette note n’est plus dans ce semestre.", "note.open_notes": "Ouvrir les notes", "note.effect": "Effet sur {code}", "note.readiness_up": "Préparation en hausse.", "note.summary": "Résumé", "note.key_terms": "NOTIONS CLÉS", "note.signals": "Signaux", "note.exam_topics": "Sujets d’examen", "note.formulas": "Formules", "note.weak_area": "Zone fragile", "note.suggested_tasks": "Tâches de révision suggérées", "note.generated_assets": "Supports générés", "note.cards": "cartes", "note.flashcards": "Cartes", "note.quiz": "Quiz", "note.add": "Ajouter", "note.add_review_task": "Ajouter tâche de révision", "note.source_text": "TEXTE SOURCE", "note.concepts": "{count} notions", "note.tasks": "{count} tâches", "note.formulas_count": "{count} formules",
   "profile.active_semester": "Semestre actif", "profile.reminders": "Rappels", "profile.active_count": "{count} actifs", "profile.import_history": "Historique d’import", "profile.import_count": "{count} imports", "profile.manage_subscription": "Gérer l’abonnement", "profile.apple_account": "Compte Apple", "profile.privacy_policy": "Confidentialité", "profile.studyplanner_data": "Données StudyPlanner", "profile.terms_use": "Conditions d’utilisation", "profile.subscription_terms": "Conditions d’abonnement", "profile.email_help": "Aide par e-mail", "profile.subscribed": "Abonné", "profile.locked": "Verrouillé", "profile.on_device": "Sur l’appareil", "profile.semester_progress": "PROGRESSION DU SEMESTRE", "profile.classes_count": "{count} cours", "profile.no_semester": "Aucun semestre", "profile.subscription": "Abonnement StudyPlanner", "profile.subscription_body": "Scans, rappels, sets d’étude et planification sont actifs.",
-  "reminders.title": "Rappels", "reminders.default_status": "Active les rappels quand tu veux que cet iPhone les syllabus.", "reminders.schedule_failed": "Impossible de syllabusr les rappels.", "reminders.smart": "Rappels intelligents", "reminders.scheduling": "Programmation...", "reminders.schedule": "Syllabusr", "reminders.add_suggestions": "Ajouter suggestions", "reminders.active": "Rappels actifs", "common.link_unavailable": "Lien indisponible", "common.link_unavailable_body": "Ouvre la fiche de l’app pour voir ce document."
+  "reminders.title": "Rappels", "reminders.default_status": "Active les rappels quand tu veux que cet iPhone les programme.", "reminders.schedule_failed": "Impossible de programmer les rappels.", "reminders.smart": "Rappels intelligents", "reminders.scheduling": "Programmation...", "reminders.schedule": "Programmer", "reminders.add_suggestions": "Ajouter suggestions", "reminders.active": "Rappels actifs", "common.link_unavailable": "Lien indisponible", "common.link_unavailable_body": "Ouvre la fiche de l’app pour voir ce document."
 });
 
 for (const locale of Object.keys(APP_COPY_FINAL_GAPS) as Exclude<SupportedLocale, "en-US">[]) {
@@ -864,8 +1234,8 @@ Object.assign(APP_COPY.hi, {
   "notes.empty_body": "लेक्चर नोट्स स्कैन या पेस्ट करके सारांश, कार्ड, प्रश्नोत्तरी और काम बनाएं।",
   "widgets.sub_ready": "होम स्क्रीन झलक",
   "widgets.ready_title": "विजेट साथ में हैं",
-  "widgets.ready_body": "{score} लूप स्कोर iOS विजेट के लिए तैयार है।",
-  "widgets.sync": "डैशबोर्ड से मिलाएं",
+  "widgets.ready_body": "अगली तारीख, सप्ताह का भार और क्लास नब्ज iOS विजेट से मेल खाते हैं।",
+  "widgets.sync": "iPhone से मिलाएं",
   "widgets.row_today_body": "स्थिति, अगली डेडलाइन और फोकस ब्लॉक",
   "widgets.row_upcoming_body": "आने वाले असाइनमेंट और परीक्षाएं",
   "widgets.row_week": "साप्ताहिक भार",
@@ -987,6 +1357,22 @@ for (const locale of Object.keys(LOCALIZED_UI_GAPS) as Exclude<SupportedLocale, 
   Object.assign(APP_COPY[locale], LOCALIZED_UI_GAPS[locale]);
 }
 
+const LOCALIZED_RELEASE_LEAK_COPY: Record<Exclude<SupportedLocale, "en-US">, Record<string, string>> = {
+  de: { "common.back": "Zurück", "common.active": "aktiv", "paywall.purchase_attention": "Kauf braucht Aufmerksamkeit", "paywall.try_restore": "Käufe wiederherstellen versuchen.", "paywall.purchase_not_completed": "Kauf nicht abgeschlossen", "paywall.purchase_sheet_failed": "Der App Store konnte den Kauf nicht abschließen.", "tasks.title": "Aufgaben", "tasks.active_count": "{count} aktiv", "tasks.complete_count": "{count} erledigt", "tasks.this_week": "Diese Woche", "tasks.need_dates_title": "{count} Einträge brauchen Daten", "tasks.need_dates_body": "Sie bleiben sichtbar, bis du echte Fälligkeitsdaten setzt.", "task.subtasks": "Teilaufgaben", "review.rate_studyplanner": "StudyPlanner bewerten" },
+  es: { "common.back": "Atrás", "common.active": "activos", "paywall.purchase_attention": "La compra necesita atención", "paywall.try_restore": "Prueba Restaurar compras.", "paywall.purchase_not_completed": "Compra no completada", "paywall.purchase_sheet_failed": "App Store no pudo completar la compra.", "tasks.title": "Tareas", "tasks.active_count": "{count} activas", "tasks.complete_count": "{count} completadas", "tasks.this_week": "Esta semana", "tasks.need_dates_title": "{count} elementos necesitan fechas", "tasks.need_dates_body": "Siguen visibles hasta que pongas fechas reales.", "task.subtasks": "Subtareas", "review.rate_studyplanner": "Valorar StudyPlanner" },
+  fr: { "common.back": "Retour", "common.active": "actifs", "paywall.purchase_attention": "Achat à vérifier", "paywall.try_restore": "Essaie de restaurer les achats.", "paywall.purchase_not_completed": "Achat non terminé", "paywall.purchase_sheet_failed": "L'App Store n'a pas pu terminer l'achat.", "tasks.title": "Devoirs", "tasks.active_count": "{count} actifs", "tasks.complete_count": "{count} terminés", "tasks.this_week": "Cette semaine", "tasks.need_dates_title": "{count} éléments ont besoin d'une date", "tasks.need_dates_body": "Ils restent visibles jusqu'à ce que tu ajoutes de vraies échéances.", "task.subtasks": "Sous-tâches", "review.rate_studyplanner": "Noter StudyPlanner" },
+  "pt-BR": { "common.back": "Voltar", "common.active": "ativos", "paywall.purchase_attention": "A compra precisa de atenção", "paywall.try_restore": "Tente restaurar compras.", "paywall.purchase_not_completed": "Compra não concluída", "paywall.purchase_sheet_failed": "A App Store não conseguiu concluir a compra.", "tasks.title": "Tarefas", "tasks.active_count": "{count} ativas", "tasks.complete_count": "{count} concluídas", "tasks.this_week": "Esta semana", "tasks.need_dates_title": "{count} itens precisam de datas", "tasks.need_dates_body": "Eles ficam visíveis até você definir prazos reais.", "task.subtasks": "Subtarefas", "review.rate_studyplanner": "Avaliar StudyPlanner" },
+  ja: { "common.back": "戻る", "common.active": "有効", "paywall.purchase_attention": "購入の確認が必要です", "paywall.try_restore": "購入の復元を試してください。", "paywall.purchase_not_completed": "購入が完了していません", "paywall.purchase_sheet_failed": "App Storeで購入を完了できませんでした。", "tasks.title": "課題", "tasks.active_count": "{count}件が未完了", "tasks.complete_count": "{count}件が完了", "tasks.this_week": "今週", "tasks.need_dates_title": "{count}件に日付が必要です", "tasks.need_dates_body": "実際の締切を設定するまで表示されます。", "task.subtasks": "サブタスク", "review.rate_studyplanner": "StudyPlannerを評価" },
+  ko: { "common.back": "뒤로", "common.active": "활성", "paywall.purchase_attention": "구매 확인 필요", "paywall.try_restore": "구매 복원을 시도하세요.", "paywall.purchase_not_completed": "구매가 완료되지 않음", "paywall.purchase_sheet_failed": "App Store에서 구매를 완료하지 못했습니다.", "tasks.title": "과제", "tasks.active_count": "{count}개 진행 중", "tasks.complete_count": "{count}개 완료", "tasks.this_week": "이번 주", "tasks.need_dates_title": "{count}개 항목에 날짜가 필요합니다", "tasks.need_dates_body": "실제 마감일을 설정할 때까지 계속 표시됩니다.", "task.subtasks": "하위 작업", "review.rate_studyplanner": "StudyPlanner 평가" },
+  "zh-Hans": { "common.back": "返回", "common.active": "有效", "paywall.purchase_attention": "购买需要处理", "paywall.try_restore": "请尝试恢复购买。", "paywall.purchase_not_completed": "购买未完成", "paywall.purchase_sheet_failed": "App Store 无法完成购买。", "tasks.title": "任务", "tasks.active_count": "{count} 个进行中", "tasks.complete_count": "{count} 个已完成", "tasks.this_week": "本周", "tasks.need_dates_title": "{count} 项需要日期", "tasks.need_dates_body": "设置真实截止日期前，它们会一直显示。", "task.subtasks": "子任务", "review.rate_studyplanner": "评价 StudyPlanner" },
+  hi: { "common.back": "वापस", "common.active": "सक्रिय", "paywall.purchase_attention": "खरीदारी पर ध्यान चाहिए", "paywall.try_restore": "खरीदारी पुनर्स्थापित करके देखें।", "paywall.purchase_not_completed": "खरीदारी पूरी नहीं हुई", "paywall.purchase_sheet_failed": "App Store खरीदारी पूरी नहीं कर पाया।", "tasks.title": "कार्य", "tasks.active_count": "{count} सक्रिय", "tasks.complete_count": "{count} पूरे", "tasks.this_week": "इस सप्ताह", "tasks.need_dates_title": "{count} आइटम को तारीख चाहिए", "tasks.need_dates_body": "असल अंतिम तारीख सेट होने तक ये दिखते रहेंगे।", "task.subtasks": "उपकार्य", "review.rate_studyplanner": "StudyPlanner रेट करें" },
+  ar: { "common.back": "رجوع", "common.active": "نشط", "paywall.purchase_attention": "تحتاج عملية الشراء إلى انتباه", "paywall.try_restore": "جرّب استعادة المشتريات.", "paywall.purchase_not_completed": "لم تكتمل عملية الشراء", "paywall.purchase_sheet_failed": "تعذر على App Store إكمال الشراء.", "tasks.title": "المهام", "tasks.active_count": "{count} نشطة", "tasks.complete_count": "{count} مكتملة", "tasks.this_week": "هذا الأسبوع", "tasks.need_dates_title": "{count} عناصر تحتاج إلى تواريخ", "tasks.need_dates_body": "ستظل ظاهرة حتى تضبط مواعيد حقيقية.", "task.subtasks": "مهام فرعية", "review.rate_studyplanner": "قيّم StudyPlanner" },
+};
+
+for (const locale of Object.keys(LOCALIZED_RELEASE_LEAK_COPY) as Exclude<SupportedLocale, "en-US">[]) {
+  Object.assign(APP_COPY[locale], LOCALIZED_RELEASE_LEAK_COPY[locale]);
+}
+
 const LOCALIZED_RELATIVE_DUE_COPY: Record<Exclude<SupportedLocale, "en-US">, Record<string, string>> = {
   de: { "task.yesterday": "Gestern", "task.tomorrow": "Morgen", "task.in_days": "In {count} Tagen", "task.days_ago": "Vor {count} Tagen", "time.days_short": "{count} T", "study.day_today": "Heute", "study.day_tonight": "Heute Abend", "study.source_task": "Aufgabenfokus", "study.source_exam": "Prüfung", "study.source_repair": "Nachholen" },
   es: { "task.yesterday": "Ayer", "task.tomorrow": "Mañana", "task.in_days": "En {count} días", "task.days_ago": "Hace {count} días", "time.days_short": "{count} d", "study.day_today": "Hoy", "study.day_tonight": "Esta noche", "study.source_task": "Enfoque tarea", "study.source_exam": "Prep. examen", "study.source_repair": "Recuperar" },
@@ -1003,16 +1389,2712 @@ for (const locale of Object.keys(LOCALIZED_RELATIVE_DUE_COPY) as Exclude<Support
   Object.assign(APP_COPY[locale], LOCALIZED_RELATIVE_DUE_COPY[locale]);
 }
 
+const ONBOARDING_FUNNEL_COPY: Record<SupportedLocale, Record<string, string>> = {
+  "en-US": {
+	    "common.app_store": "App Store",
+    "legal.privacy_title": "Privacy Policy",
+    "legal.terms_title": "Terms of Use",
+    "legal.data_source_title": "Data source",
+    "legal.data_source_body": "StudyPlanner stores your planner data on this device.",
+    "legal.imports_title": "Imports",
+    "legal.imports_body": "Syllabus, notes, PDF, and camera text are used to create your reviewed preview and semester plan.",
+    "legal.purchases_title": "Purchases",
+    "legal.purchases_body": "Subscription purchases and restores are handled by the App Store.",
+    "legal.sharing_title": "Sharing",
+    "legal.sharing_body": "StudyPlanner does not sell your planner data.",
+    "legal.support_title": "Support",
+    "legal.support_body": "Email support to request help with app data, purchases, or privacy questions.",
+    "legal.subscription_title": "Subscription",
+    "legal.subscription_body": "StudyPlanner uses auto-renewing subscriptions shown and confirmed by the App Store before purchase.",
+    "legal.access_title": "Access",
+    "legal.access_body": "A valid active entitlement is required to apply imports, use the dashboard, schedule reminders, and sync widgets.",
+    "legal.billing_title": "Billing",
+    "legal.billing_body": "Manage or cancel subscriptions from your Apple account.",
+    "legal.standard_terms_title": "Standard terms",
+    "legal.standard_terms_body": "Apple's standard EULA applies unless a separate written agreement is provided.",
+	    "option.add_manually": "Add manually",
+	    "onboarding.rating_title": "App Store checkout",
+	    "onboarding.rating_body": "Price, terms, and subscription confirmation appear before purchase.",
+    "onboarding.paywall_gate_title": "Unlock first. Then scan.",
+    "onboarding.paywall_gate_body": "Camera, PDF, paste, and manual setup start after the App Store unlock, so the first real import can become your live semester.",
+	    "onboarding.camera_gate_title": "Unlock the camera scan.",
+	    "onboarding.camera_gate_body": "The guided camera opens after App Store unlock, reads the syllabus on this iPhone, then sends every row to review before anything saves.",
+	    "onboarding.unlock_to_scan": "Unlock to scan",
+	    "onboarding.artifacts_sub": "After unlock, review your real classes, first deadline, pressure, and widget proof before anything saves.",
+    "onboarding.preview_kicker": "{goal} PLAN",
+    "onboarding.preview_title": "{name}, unlock once, then review the first useful version.",
+    "onboarding.preview_body": "After unlock, scan, paste, or add one class manually. You review the artifact before anything saves.",
+    "onboarding.paywall_first": "Unlock first, then scan, paste, or add manually. You still review everything before it saves.",
+    "onboarding.fallback_title": "No clean syllabus? Manual setup still works.",
+    "onboarding.fallback_body": "Add one class and one deadline by hand. StudyPlanner turns it into the same review preview as scan or import.",
+    "onboarding.manual_body": "Type one class and one deadline to build a preview",
+    "onboarding.manual_need_class": "Add a class name before previewing.",
+    "onboarding.manual_task_description": "First manual deadline from onboarding.",
+    "onboarding.manual_kicker": "MANUAL FALLBACK",
+    "onboarding.manual_title": "Build a clean preview by hand.",
+    "onboarding.manual_sub": "Use this when a syllabus is missing, blurry, or wrong. Nothing saves until you approve the preview.",
+    "onboarding.manual_class_placeholder": "Biology 101",
+    "onboarding.manual_deadline_title": "First deadline",
+    "onboarding.manual_deadline_placeholder": "Lab report due Friday",
+    "onboarding.manual_deadline_hint": "Optional, but it makes the first plan feel real.",
+    "onboarding.manual_preview": "Preview manual plan",
+    "import.preview_body": "Classes, deadlines, exams, pressure, and your first move appear in preview.",
+    "locked.sub": "Unlock to scan, paste, or add a class. You review every row before anything saves.",
+    "locked.card_kicker": "REVIEW AFTER UNLOCK",
+    "locked.step1": "Unlock StudyPlanner",
+    "locked.step2": "Scan, paste, or add manually",
+    "locked.step3": "Review before save",
+    "locked.preview_sub": "Unlock to scan, paste, or add a class. You review every row before anything saves.",
+    "locked.preview_card_kicker": "REVIEW AFTER UNLOCK",
+    "locked.preview_step1": "Unlock StudyPlanner",
+    "locked.preview_step2": "Scan, paste, or add manually",
+    "locked.preview_step3": "Review before save",
+    "paste.syllabus_required": "Paste syllabus text to extract classes, assignments, and exams.",
+    "paste.syllabus_title": "Syllabus becomes a semester preview.",
+    "paste.preview_sub": "Review what StudyPlanner finds before anything saves.",
+    "paste.syllabus_placeholder": "Paste syllabus text, assignment sheets, or extracted PDF text...",
+    "paste.reading": "Reading...",
+    "scan.pdf_action_body": "Best for full syllabi and multi-page handouts.",
+    "scan.camera_action_body": "Capture pages, boards, packets, and printed schedules.",
+    "scan.photo_action_body": "Use screenshots or saved syllabus pages.",
+    "scan.paste_action_body": "Fallback for locked PDFs or copied LMS text.",
+    "scan.metric_ocr": "OCR",
+    "scan.metric_gate": "Save gate",
+    "scan.history_empty_title": "No imports reviewed yet",
+    "scan.rail_capture": "Capture",
+    "scan.rail_read": "Read text",
+    "scan.rail_review": "Review",
+    "scan.rail_plan": "Plan",
+	    "scanner.notes_mode": "Guided notes scan",
+	    "scanner.syllabus_mode": "Guided syllabus scan",
+	    "scanner.exit": "Exit scanner",
+    "review.weak_title": "Extraction looks incomplete.",
+    "review.weak_body": "Use the rows below only if they match the syllabus. You can retry, paste text, or build the semester manually.",
+    "review.none_selected_title": "Nothing selected",
+    "review.none_selected_body": "Approve at least one class, assignment, exam, or note before continuing.",
+    "review.empty_title": "No import waiting",
+    "review.empty_body": "Scan, paste, or upload a syllabus first. Nothing saves until you approve the review rows.",
+    "review.approved_footer": "{count} approved items · {state}",
+    "review.editable_later": "editable later",
+    "review.locked_until_premium": "locked until unlock",
+    "review.approve_one": "Approve at least one item to continue",
+    "review.accessibility_title": "{kind} title",
+    "review.accessibility_title_hint": "Edit the imported row title before approving it.",
+    "review.accessibility_approve": "Approve {title}",
+    "review.accessibility_unapprove": "Unapprove {title}",
+    "review.accessibility_toggle_apply": "Toggle whether this row will be applied.",
+    "review.accessibility_remove": "Remove {title}",
+    "review.accessibility_remove_hint": "Deletes this row from the import review.",
+    "paywall.sub_no_import": "Unlock first, then scan, upload, paste, or add manually. StudyPlanner shows every class, exam, and deadline for review before anything reaches your dashboard, widgets, reminders, or next moves.",
+    "paywall.preview_first_sub": "Unlock first, then scan, upload, paste, or add manually. StudyPlanner shows every class, exam, and deadline for review before anything reaches your dashboard, widgets, reminders, or next moves.",
+    "paywall.ready_apply": "Ready to apply",
+    "paywall.best_value": "Best value",
+    "paywall.plan_preview_title": "Plan preview",
+    "paywall.plan_preview_methods": "Scan · Paste · Manual setup",
+    "paywall.camera_title": "Camera scan unlocks here",
+    "paywall.camera_body": "Use the guided camera after purchase to capture syllabus pages, read the text on this iPhone, and review the extracted rows before anything saves.",
+    "paywall.camera_methods": "Camera scan · OCR · Review",
+    "paywall.camera_step_scan": "Scan",
+    "paywall.camera_step_read": "Read",
+    "paywall.camera_step_review": "Review",
+    "paywall.camera_step_apply": "Apply",
+    "paywall.unlock_camera": "Unlock camera scan",
+    "paywall.benefit_camera": "Scan or import a real syllabus",
+    "paywall.preview_chip_class": "Class",
+    "paywall.preview_chip_class_sub": "from setup",
+    "paywall.preview_chip_deadline": "Deadline",
+    "paywall.preview_chip_deadline_sub": "review before save",
+    "paywall.preview_chip_move": "First move",
+    "paywall.preview_chip_move_sub": "after review",
+  },
+  de: {
+	    "common.close_paywall": "Abo-Angebot schließen",
+	    "common.app_store": "App Store",
+    "legal.privacy_title": "Datenschutz",
+    "legal.terms_title": "Nutzungsbedingungen",
+    "legal.data_source_title": "Datenquelle",
+    "legal.data_source_body": "StudyPlanner speichert deine Planungsdaten auf diesem Gerät.",
+    "legal.imports_title": "Importe",
+    "legal.imports_body": "Lehrpläne, Notizen, PDFs und Kameratext werden genutzt, um deine geprüfte Vorschau und den Semesterplan zu erstellen.",
+    "legal.purchases_title": "Käufe",
+    "legal.purchases_body": "Abos und Wiederherstellungen laufen über den App Store.",
+    "legal.sharing_title": "Weitergabe",
+    "legal.sharing_body": "StudyPlanner verkauft deine Planungsdaten nicht.",
+    "legal.support_title": "Support",
+    "legal.support_body": "Schreibe dem Support bei Fragen zu App-Daten, Käufen oder Datenschutz.",
+    "legal.subscription_title": "Abo",
+    "legal.subscription_body": "StudyPlanner nutzt automatische Abos, die vor dem Kauf im App Store angezeigt und bestätigt werden.",
+    "legal.access_title": "Zugriff",
+    "legal.access_body": "Ein aktives Abo ist nötig, um Importe anzuwenden, Dashboard, Erinnerungen und Widgets zu nutzen.",
+    "legal.billing_title": "Abrechnung",
+    "legal.billing_body": "Abos verwaltest oder kündigst du in deinem Apple-Konto.",
+    "legal.standard_terms_title": "Standardbedingungen",
+    "legal.standard_terms_body": "Es gilt Apples Standard-EULA, sofern keine separate schriftliche Vereinbarung vorliegt.",
+	    "option.add_manually": "Manuell hinzufügen",
+	    "onboarding.rating_title": "App-Store-Kauf",
+	    "onboarding.rating_body": "Preis, Bedingungen und Abobestätigung erscheinen vor dem Kauf.",
+	    "onboarding.paywall_gate_title": "Erst freischalten. Dann scannen.",
+	    "onboarding.paywall_gate_body": "Kamera, PDF, Einfügen und manuelle Einrichtung starten nach der App-Store-Freischaltung, damit der erste echte Import dein Live-Semester wird.",
+	    "onboarding.camera_gate_title": "Kamerascan freischalten.",
+	    "onboarding.camera_gate_body": "Nach der App-Store-Freischaltung öffnet sich die geführte Kamera, liest den Lehrplan auf diesem iPhone und schickt jede Zeile vor dem Speichern in die Prüfung.",
+	    "onboarding.unlock_to_scan": "Zum Scannen freischalten",
+    "option.paste_syllabus": "Lehrplan einfügen",
+    "locked.card_title": "Mach aus deinem Lehrplan einen lebenden Plan.",
+    "locked.scan": "Lehrplan scannen",
+    "locked.health_sub": "Dein Wert erscheint, nachdem dein Lehrplan geprüft und angewendet wurde.",
+    "locked.workload_body": "Gesperrt, bis dein Lehrplan geprüft ist.",
+    "scan.header_preview": "Lehrplan-Vorschau",
+    "scan.upload_pdf": "Lehrplan-PDF hochladen",
+    "scan.empty_history": "Noch keine Importe. Füge einen Lehrplan oder Notizen ein.",
+    "scan.more_upload_body": "Lehrplan-PDF wählen",
+    "scan.reading_syllabus": "Lehrplantext wird auf diesem iPhone gelesen...",
+    "scan.pdf_failed_body": "Lehrplantext einfügen oder PDF-Seiten mit der Kamera scannen.",
+    "paywall.benefit_apply": "Lehrplan anwenden",
+    "classes.empty_body": "Starte manuell, wenn der Lehrplan fehlt, unlesbar oder falsch ist. Später kannst du importieren und passende Zeilen übernehmen.",
+    "widgets.locked_body": "Wende einen Lehrplan an und schalte frei, um Widgets aktuell zu halten.",
+    "welcome.body": "Importiere einen Lehrplan. StudyPlanner plant das Semester, erkennt Druck und zeigt den nächsten Schritt.",
+    "welcome.card_title": "Lehrplan rein. Dashboard raus.",
+    "welcome.map_body": "Lehrplan rein. Semester raus.",
+    "welcome.import": "Lehrplan importieren",
+    "today.empty_title": "Kurs hinzufügen oder Lehrplan scannen.",
+    "success.step_reading": "Lehrplan lesen",
+    "success.built": "Aus deinem Lehrplan gebaut.",
+    "onboarding.artifacts_sub": "Nach dem Freischalten prüfst du echte Kurse, erste Frist, Druck und Widget-Vorschau, bevor etwas gespeichert wird.",
+    "onboarding.preview_kicker": "{goal}-PLAN",
+    "onboarding.preview_title": "{name}, einmal freischalten, dann die erste brauchbare Version prüfen.",
+    "onboarding.preview_body": "Nach dem Freischalten scannst du, fügst Text ein oder legst einen Kurs manuell an. Du prüfst alles, bevor etwas gespeichert wird.",
+    "onboarding.paywall_first": "Erst freischalten, dann scannen, einfügen oder manuell anlegen. Du prüfst alles vor dem Speichern.",
+    "onboarding.fallback_title": "Kein sauberer Lehrplan? Manuell klappt es trotzdem.",
+    "onboarding.fallback_body": "Füge einen Kurs und eine Frist von Hand hinzu. StudyPlanner macht daraus dieselbe Prüfvorschau wie beim Scannen.",
+    "onboarding.manual_body": "Einen Kurs und eine Frist eingeben, um eine Vorschau zu bauen",
+    "onboarding.manual_need_class": "Füge einen Kursnamen hinzu, bevor du die Vorschau öffnest.",
+    "onboarding.manual_task_description": "Erste manuelle Frist aus der Einführung.",
+    "onboarding.manual_kicker": "MANUELLE ABSICHERUNG",
+    "onboarding.manual_title": "Baue eine saubere Vorschau von Hand.",
+    "onboarding.manual_sub": "Für fehlende, unscharfe oder falsche Lehrpläne. Nichts wird gespeichert, bis du die Vorschau bestätigst.",
+    "onboarding.manual_class_placeholder": "Biologie 101",
+    "onboarding.manual_deadline_title": "Erste Frist",
+    "onboarding.manual_deadline_placeholder": "Laborbericht bis Freitag",
+    "onboarding.manual_deadline_hint": "Optional, aber dadurch fühlt sich der erste Plan echt an.",
+    "onboarding.manual_preview": "Manuellen Plan prüfen",
+    "import.preview_body": "Kurse, Fristen, Prüfungen, Druck und dein erster Schritt erscheinen in der Vorschau.",
+    "locked.sub": "Freischalten, dann scannen, Text einfügen oder einen Kurs anlegen. Du prüfst jede Zeile vor dem Speichern.",
+    "locked.card_kicker": "PRÜFEN NACH FREISCHALTUNG",
+    "locked.step1": "StudyPlanner freischalten",
+    "locked.step2": "Scannen, einfügen oder manuell",
+    "locked.step3": "Vor dem Speichern prüfen",
+    "locked.preview_sub": "Freischalten, dann scannen, Text einfügen oder einen Kurs anlegen. Du prüfst jede Zeile vor dem Speichern.",
+    "locked.preview_card_kicker": "PRÜFEN NACH FREISCHALTUNG",
+    "locked.preview_step1": "StudyPlanner freischalten",
+    "locked.preview_step2": "Scannen, einfügen oder manuell",
+    "locked.preview_step3": "Vor dem Speichern prüfen",
+    "paste.syllabus_required": "Füge Lehrplantext ein, um Kurse, Aufgaben und Prüfungen zu erkennen.",
+    "paste.syllabus_title": "Der Lehrplan wird zur Semestervorschau.",
+    "paste.preview_sub": "Prüfe, was StudyPlanner findet, bevor etwas gespeichert wird.",
+    "paste.syllabus_placeholder": "Lehrplan, Aufgabenblatt oder extrahierten PDF-Text einfügen...",
+    "paste.reading": "Wird gelesen...",
+    "scan.pdf_action_body": "Ideal für vollständige Lehrpläne und mehrseitige Unterlagen.",
+    "scan.camera_action_body": "Seiten, Tafeln, Unterlagen und gedruckte Pläne aufnehmen.",
+    "scan.photo_action_body": "Nutze Screenshots oder gespeicherte Lehrplanseiten.",
+    "scan.paste_action_body": "Ausweichweg für gesperrte PDFs oder kopierten LMS-Text.",
+    "scan.metric_ocr": "Texterkennung",
+    "scan.metric_gate": "Speicherschutz",
+    "scan.history_empty_title": "Noch kein Import geprüft",
+    "scan.rail_capture": "Erfassen",
+    "scan.rail_read": "Text lesen",
+    "scan.rail_review": "Prüfen",
+    "scan.rail_plan": "Plan",
+	    "scanner.notes_mode": "Geführter Notizscan",
+	    "scanner.syllabus_mode": "Geführter Lehrplanscan",
+	    "scanner.exit": "Scanner verlassen",
+    "review.weak_title": "Die Erkennung wirkt unvollständig.",
+    "review.weak_body": "Nutze diese Zeilen nur, wenn sie zum Lehrplan passen. Du kannst es erneut versuchen, Text einfügen oder das Semester manuell erstellen.",
+    "review.none_selected_title": "Nichts ausgewählt",
+    "review.none_selected_body": "Bestätige mindestens einen Kurs, eine Aufgabe, Prüfung oder Notiz.",
+    "review.empty_title": "Kein Import wartet",
+    "review.empty_body": "Scanne, füge Text ein oder lade zuerst einen Lehrplan hoch. Nichts wird gespeichert, bis du die Zeilen bestätigst.",
+    "review.approved_footer": "{count} bestätigte Einträge · {state}",
+    "review.editable_later": "später bearbeitbar",
+    "review.locked_until_premium": "bis Freischaltung gesperrt",
+    "review.approve_one": "Bestätige mindestens einen Eintrag.",
+    "review.accessibility_title": "{kind}-Titel",
+    "review.accessibility_title_hint": "Bearbeite den importierten Zeilentitel vor der Bestätigung.",
+    "review.accessibility_approve": "{title} bestätigen",
+    "review.accessibility_unapprove": "Bestätigung für {title} entfernen",
+    "review.accessibility_toggle_apply": "Umschalten, ob diese Zeile angewendet wird.",
+    "review.accessibility_remove": "{title} entfernen",
+    "review.accessibility_remove_hint": "Löscht diese Zeile aus der Importprüfung.",
+    "paywall.sub_no_import": "Freischalten, dann scannen, einfügen oder manuell anlegen. Du prüfst jede Zeile, bevor Dashboard, Widgets, Erinnerungen oder nächste Schritte aktualisiert werden.",
+    "paywall.preview_first_sub": "Freischalten, dann scannen, einfügen oder manuell anlegen. Du prüfst jede Zeile, bevor Dashboard, Widgets, Erinnerungen oder nächste Schritte aktualisiert werden.",
+    "paywall.ready_apply": "Bereit zum Anwenden",
+    "paywall.best_value": "Beste Wahl",
+    "paywall.plan_preview_title": "Planvorschau",
+    "paywall.plan_preview_methods": "Scannen · Einfügen · Manuell",
+    "paywall.camera_title": "Kamerascan wird hier freigeschaltet",
+    "paywall.camera_body": "Nach dem Kauf erfasst die geführte Kamera Lehrplanseiten, liest den Text auf diesem iPhone und lässt dich jede erkannte Zeile vor dem Speichern prüfen.",
+    "paywall.camera_methods": "Kamera · Texterkennung · Prüfung",
+    "paywall.camera_step_scan": "Scannen",
+    "paywall.camera_step_read": "Lesen",
+    "paywall.camera_step_review": "Prüfen",
+    "paywall.camera_step_apply": "Anwenden",
+    "paywall.unlock_camera": "Kamerascan freischalten",
+    "paywall.benefit_camera": "Lehrplan mit Kamera scannen",
+    "paywall.preview_chip_class": "Kurs",
+    "paywall.preview_chip_class_sub": "angelegt",
+    "paywall.preview_chip_deadline": "Frist",
+    "paywall.preview_chip_deadline_sub": "erst prüfen",
+    "paywall.preview_chip_move": "Erster Schritt",
+    "paywall.preview_chip_move_sub": "danach",
+  },
+  es: {
+	    "common.close_paywall": "Cerrar pago",
+	    "common.app_store": "App Store",
+    "legal.privacy_title": "Privacidad",
+    "legal.terms_title": "Términos de uso",
+    "legal.data_source_title": "Fuente de datos",
+    "legal.data_source_body": "StudyPlanner guarda tus datos de planificación en este dispositivo.",
+    "legal.imports_title": "Importaciones",
+    "legal.imports_body": "Programas, notas, PDF y texto de cámara se usan para crear tu vista previa revisada y el plan del semestre.",
+    "legal.purchases_title": "Compras",
+    "legal.purchases_body": "Las compras y restauraciones de suscripción las gestiona el App Store.",
+    "legal.sharing_title": "Uso compartido",
+    "legal.sharing_body": "StudyPlanner no vende tus datos de planificación.",
+    "legal.support_title": "Soporte",
+    "legal.support_body": "Escribe a soporte para pedir ayuda con datos de la app, compras o privacidad.",
+    "legal.subscription_title": "Suscripción",
+    "legal.subscription_body": "StudyPlanner usa suscripciones renovables que el App Store muestra y confirma antes de comprar.",
+    "legal.access_title": "Acceso",
+    "legal.access_body": "Necesitas una suscripción activa para aplicar importaciones, usar el panel, programar recordatorios y sincronizar widgets.",
+    "legal.billing_title": "Facturación",
+    "legal.billing_body": "Gestiona o cancela suscripciones desde tu cuenta de Apple.",
+    "legal.standard_terms_title": "Términos estándar",
+    "legal.standard_terms_body": "Se aplica el EULA estándar de Apple salvo que exista otro acuerdo escrito.",
+	    "option.add_manually": "Agregar manualmente",
+	    "onboarding.rating_title": "Compra en App Store",
+	    "onboarding.rating_body": "El precio, los términos y la confirmación aparecen antes de comprar.",
+	    "onboarding.paywall_gate_title": "Desbloquea primero. Luego escanea.",
+	    "onboarding.paywall_gate_body": "Cámara, PDF, pegado y configuración manual empiezan después del desbloqueo de App Store, para que la primera importación real se convierta en tu semestre activo.",
+	    "onboarding.camera_gate_title": "Desbloquea el escaneo con cámara.",
+	    "onboarding.camera_gate_body": "La cámara guiada se abre después del desbloqueo de App Store, lee el programa en este iPhone y manda cada fila a revisión antes de guardar.",
+	    "onboarding.unlock_to_scan": "Desbloquear para escanear",
+    "onboarding.artifacts_sub": "Después de desbloquear, revisa clases reales, primera entrega, presión y widgets antes de guardar nada.",
+    "onboarding.preview_kicker": "PLAN DE {goal}",
+    "onboarding.preview_title": "{name}, desbloquea una vez y revisa la primera versión útil.",
+    "onboarding.preview_body": "Después de desbloquear, escanea, pega o agrega una clase manualmente. Revisas todo antes de guardar.",
+    "onboarding.paywall_first": "Primero desbloquea; luego escanea, pega o agrega manualmente. Revisas todo antes de guardar.",
+    "onboarding.fallback_title": "¿Sin programa limpio? La carga manual también sirve.",
+    "onboarding.fallback_body": "Agrega una clase y una fecha a mano. StudyPlanner la convierte en la misma vista previa de revisión.",
+    "onboarding.manual_body": "Escribe una clase y una fecha para crear una vista previa",
+    "onboarding.manual_need_class": "Agrega el nombre de una clase antes de previsualizar.",
+    "onboarding.manual_task_description": "Primera fecha manual desde el inicio.",
+    "onboarding.manual_kicker": "RESPALDO MANUAL",
+    "onboarding.manual_title": "Crea una vista previa limpia a mano.",
+    "onboarding.manual_sub": "Úsalo si el programa falta, se ve borroso o está mal. Nada se guarda hasta que apruebas la vista previa.",
+    "onboarding.manual_class_placeholder": "Biología 101",
+    "onboarding.manual_deadline_title": "Primera entrega",
+    "onboarding.manual_deadline_placeholder": "Informe de laboratorio para el viernes",
+    "onboarding.manual_deadline_hint": "Opcional, pero hace que el primer plan se sienta real.",
+    "onboarding.manual_preview": "Previsualizar plan manual",
+    "import.preview_body": "Clases, entregas, exámenes, presión y primer paso aparecen en la vista previa.",
+    "locked.sub": "Desbloquea para escanear, pegar o agregar una clase. Revisas cada fila antes de guardar.",
+    "locked.card_kicker": "REVISA DESPUÉS DE DESBLOQUEAR",
+    "locked.step1": "Desbloquea StudyPlanner",
+    "locked.step2": "Escanea, pega o agrega manualmente",
+    "locked.step3": "Revisa antes de guardar",
+    "locked.preview_sub": "Desbloquea para escanear, pegar o agregar una clase. Revisas cada fila antes de guardar.",
+    "locked.preview_card_kicker": "REVISA DESPUÉS DE DESBLOQUEAR",
+    "locked.preview_step1": "Desbloquea StudyPlanner",
+    "locked.preview_step2": "Escanea, pega o agrega manualmente",
+    "locked.preview_step3": "Revisa antes de guardar",
+    "paste.syllabus_required": "Pega el programa para extraer clases, tareas y exámenes.",
+    "paste.syllabus_title": "El programa se vuelve vista previa del semestre.",
+    "paste.preview_sub": "Revisa lo que encuentra StudyPlanner antes de guardar.",
+    "paste.syllabus_placeholder": "Pega programa, hojas de tarea o texto extraído de PDF...",
+    "paste.reading": "Leyendo...",
+    "scan.pdf_action_body": "Ideal para programas completos y documentos de varias páginas.",
+    "scan.camera_action_body": "Captura páginas, pizarras, paquetes y horarios impresos.",
+    "scan.photo_action_body": "Usa capturas o páginas guardadas del programa.",
+    "scan.paste_action_body": "Respaldo para PDF bloqueados o texto copiado del campus virtual.",
+    "scan.metric_ocr": "Lectura",
+    "scan.metric_gate": "Control de guardado",
+    "scan.history_empty_title": "Aún no revisaste importaciones",
+    "scan.rail_capture": "Capturar",
+    "scan.rail_read": "Leer texto",
+    "scan.rail_review": "Revisar",
+    "scan.rail_plan": "Plan",
+	    "scanner.notes_mode": "Escaneo guiado de notas",
+	    "scanner.syllabus_mode": "Escaneo guiado del programa",
+	    "scanner.exit": "Salir del escáner",
+    "review.weak_title": "La extracción parece incompleta.",
+    "review.weak_body": "Usa estas filas solo si coinciden con el programa. Puedes reintentar, pegar texto o armarlo manualmente.",
+    "review.none_selected_title": "Nada seleccionado",
+    "review.none_selected_body": "Aprueba al menos una clase, tarea, examen o nota antes de continuar.",
+    "review.empty_title": "No hay importación pendiente",
+    "review.empty_body": "Escanea, pega o sube un programa primero. Nada se guarda hasta que apruebas las filas de revisión.",
+    "review.approved_footer": "{count} elementos aprobados · {state}",
+    "review.editable_later": "editable después",
+    "review.locked_until_premium": "bloqueado hasta desbloquear",
+    "review.approve_one": "Aprueba al menos un elemento para continuar",
+    "review.accessibility_title": "Título de {kind}",
+    "review.accessibility_title_hint": "Edita el título importado antes de aprobarlo.",
+    "review.accessibility_approve": "Aprobar {title}",
+    "review.accessibility_unapprove": "Quitar aprobación de {title}",
+    "review.accessibility_toggle_apply": "Cambia si esta fila se aplicará.",
+    "review.accessibility_remove": "Eliminar {title}",
+    "review.accessibility_remove_hint": "Elimina esta fila de la revisión de importación.",
+    "paywall.sub_no_import": "Desbloquea para escanear, pegar o agregar manualmente. Luego revisas cada fila antes de que llegue al panel, widgets, recordatorios o próximos pasos.",
+    "paywall.preview_first_sub": "Desbloquea para escanear, pegar o agregar manualmente. Luego revisas cada fila antes de que llegue al panel, widgets, recordatorios o próximos pasos.",
+    "paywall.ready_apply": "Listo para aplicar",
+    "paywall.best_value": "Mejor opción",
+    "paywall.plan_preview_title": "Vista del plan",
+    "paywall.plan_preview_methods": "Escanear · Pegar · A mano",
+    "paywall.camera_title": "El escaneo con cámara se desbloquea aquí",
+    "paywall.camera_body": "Después de comprar, usa la cámara guiada para capturar páginas del programa, leer el texto en este iPhone y revisar las filas extraídas antes de guardar.",
+    "paywall.camera_methods": "Cámara · Lectura · Revisión",
+    "paywall.camera_step_scan": "Escanear",
+    "paywall.camera_step_read": "Leer",
+    "paywall.camera_step_review": "Revisar",
+    "paywall.camera_step_apply": "Aplicar",
+    "paywall.unlock_camera": "Desbloquear cámara",
+    "paywall.benefit_camera": "Escanear un programa con cámara",
+    "paywall.preview_chip_class": "Clase",
+    "paywall.preview_chip_class_sub": "creada aquí",
+    "paywall.preview_chip_deadline": "Entrega",
+    "paywall.preview_chip_deadline_sub": "revisar primero",
+    "paywall.preview_chip_move": "Primer paso",
+    "paywall.preview_chip_move_sub": "tras vista",
+  },
+  fr: {
+    "common.close_paywall": "Fermer l'offre",
+    "common.app_store": "App Store",
+    "legal.privacy_title": "Confidentialité",
+    "legal.terms_title": "Conditions d'utilisation",
+    "legal.data_source_title": "Source des données",
+    "legal.data_source_body": "StudyPlanner stocke tes données de planning sur cet appareil.",
+    "legal.imports_title": "Imports",
+    "legal.imports_body": "Programme, notes, PDF et texte caméra servent à créer ton aperçu vérifié et ton plan de semestre.",
+    "legal.purchases_title": "Achats",
+    "legal.purchases_body": "Les achats et restaurations d'abonnement sont gérés par l'App Store.",
+    "legal.sharing_title": "Partage",
+    "legal.sharing_body": "StudyPlanner ne vend pas tes données de planning.",
+    "legal.support_title": "Support",
+    "legal.support_body": "Écris au support pour l'aide sur les données, achats ou questions de confidentialité.",
+    "legal.subscription_title": "Abonnement",
+    "legal.subscription_body": "StudyPlanner utilise des abonnements renouvelables affichés et confirmés par l'App Store avant achat.",
+    "legal.access_title": "Accès",
+    "legal.access_body": "Un abonnement actif est requis pour appliquer les imports, utiliser le tableau, les rappels et les widgets.",
+    "legal.billing_title": "Facturation",
+    "legal.billing_body": "Gère ou annule tes abonnements depuis ton compte Apple.",
+    "legal.standard_terms_title": "Conditions standard",
+    "legal.standard_terms_body": "Le contrat EULA standard d'Apple s'applique sauf accord écrit séparé.",
+    "option.add_manually": "Ajouter à la main",
+    "onboarding.rating_title": "Achat via l'App Store",
+    "onboarding.rating_body": "Le prix, les conditions et la confirmation apparaissent avant l'achat.",
+    "onboarding.paywall_gate_title": "Déverrouille d'abord. Scanne ensuite.",
+    "onboarding.paywall_gate_body": "La caméra, les PDF, le collage et la saisie manuelle démarrent après le déverrouillage App Store, pour que le premier vrai import devienne ton semestre actif.",
+    "onboarding.camera_gate_title": "Déverrouille le scan caméra.",
+    "onboarding.camera_gate_body": "La caméra guidée s'ouvre après le déverrouillage App Store, lit le programme sur cet iPhone, puis envoie chaque ligne en vérification avant enregistrement.",
+    "onboarding.unlock_to_scan": "Déverrouiller pour scanner",
+    "option.paste_syllabus": "Coller le programme",
+    "locked.card_title": "Transforme ton programme en plan vivant.",
+    "locked.scan": "Scanner le programme",
+    "locked.health_sub": "Ton score apparaît après vérification et application du programme.",
+    "locked.workload_body": "Verrouillé jusqu'à validation du programme.",
+    "scan.header_preview": "Aperçu du programme",
+    "scan.upload_pdf": "Importer le PDF du programme",
+    "scan.empty_history": "Aucun import pour l'instant. Colle un programme ou des notes.",
+    "scan.more_upload_body": "Choisir le PDF du programme",
+    "scan.reading_syllabus": "Lecture du programme sur cet iPhone...",
+    "scan.pdf_failed_body": "Colle le texte du programme ou scanne les pages PDF avec la caméra.",
+    "paywall.benefit_apply": "Appliquer ton programme",
+    "classes.empty_body": "Commence à la main si le programme manque, est illisible ou faux. Tu pourras importer ensuite et garder les bonnes lignes.",
+    "widgets.locked_body": "Applique un programme et déverrouille pour garder les widgets à jour.",
+    "welcome.body": "Importe un programme. StudyPlanner organise le semestre, repère la pression et indique la prochaine action.",
+    "welcome.card_title": "Programme entré. Tableau prêt.",
+    "welcome.map_body": "Programme entré. Semestre prêt.",
+    "welcome.import": "Importer le programme",
+    "today.empty_title": "Ajoute un cours ou scanne un programme.",
+    "success.step_reading": "Lecture du programme",
+    "success.built": "Créé depuis ton programme.",
+    "reminders.default_status": "Active les rappels quand tu veux que cet iPhone les programme.",
+    "reminders.scheduling": "Programmation...",
+    "reminders.schedule": "Programmer",
+    "onboarding.artifacts_sub": "Après déverrouillage, vérifie tes vrais cours, première échéance, pression et widgets avant tout enregistrement.",
+    "onboarding.preview_kicker": "PLAN {goal}",
+    "onboarding.preview_title": "{name}, déverrouille une fois, puis vérifie la première version utile.",
+    "onboarding.preview_body": "Après déverrouillage, scanne, colle ou ajoute un cours à la main. Tu vérifies tout avant enregistrement.",
+    "onboarding.paywall_first": "Déverrouille d'abord, puis scanne, colle ou ajoute à la main. Tu vérifies tout avant enregistrement.",
+    "onboarding.fallback_title": "Pas de programme propre ? La saisie manuelle fonctionne aussi.",
+    "onboarding.fallback_body": "Ajoute un cours et une échéance à la main. StudyPlanner en fait le même aperçu de vérification.",
+    "onboarding.manual_body": "Saisis un cours et une échéance pour créer un aperçu",
+    "onboarding.manual_need_class": "Ajoute un nom de cours avant l'aperçu.",
+    "onboarding.manual_task_description": "Première échéance manuelle depuis l'accueil.",
+    "onboarding.manual_kicker": "SECOURS MANUEL",
+    "onboarding.manual_title": "Crée un aperçu propre à la main.",
+    "onboarding.manual_sub": "À utiliser si le programme manque, est flou ou faux. Rien n'est enregistré avant validation.",
+    "onboarding.manual_class_placeholder": "Biologie 101",
+    "onboarding.manual_deadline_title": "Première échéance",
+    "onboarding.manual_deadline_placeholder": "Compte rendu de labo vendredi",
+    "onboarding.manual_deadline_hint": "Optionnel, mais cela rend le premier plan concret.",
+    "onboarding.manual_preview": "Prévisualiser le plan manuel",
+    "import.preview_body": "Cours, échéances, examens, pression et première action apparaissent dans l'aperçu.",
+    "locked.sub": "Déverrouille pour scanner, coller ou ajouter un cours. Tu vérifies chaque ligne avant enregistrement.",
+    "locked.card_kicker": "VÉRIFIER APRÈS DÉVERROUILLAGE",
+    "locked.step1": "Déverrouiller StudyPlanner",
+    "locked.step2": "Scanner, coller ou ajouter à la main",
+    "locked.step3": "Vérifier avant enregistrement",
+    "locked.preview_sub": "Déverrouille pour scanner, coller ou ajouter un cours. Tu vérifies chaque ligne avant enregistrement.",
+    "locked.preview_card_kicker": "VÉRIFIER APRÈS DÉVERROUILLAGE",
+    "locked.preview_step1": "Déverrouiller StudyPlanner",
+    "locked.preview_step2": "Scanner, coller ou ajouter à la main",
+    "locked.preview_step3": "Vérifier avant enregistrement",
+    "paste.syllabus_required": "Colle le programme pour extraire cours, devoirs et examens.",
+    "paste.syllabus_title": "Le programme devient un aperçu du semestre.",
+    "paste.preview_sub": "Vérifie ce que StudyPlanner trouve avant enregistrement.",
+    "paste.syllabus_placeholder": "Colle programme, feuilles de devoir ou texte extrait d'un PDF...",
+    "paste.reading": "Lecture...",
+    "scan.pdf_action_body": "Idéal pour les programmes complets et les documents multipages.",
+    "scan.camera_action_body": "Capture pages, tableaux, dossiers et emplois du temps imprimés.",
+    "scan.photo_action_body": "Utilise des captures ou pages de programme enregistrées.",
+    "scan.paste_action_body": "Solution de secours pour PDF verrouillé ou texte copié de l'ENT.",
+    "scan.metric_ocr": "Lecture",
+    "scan.metric_gate": "Garde-fou",
+    "scan.history_empty_title": "Aucun import vérifié",
+    "scan.rail_capture": "Capturer",
+    "scan.rail_read": "Lire",
+    "scan.rail_review": "Vérifier",
+    "scan.rail_plan": "Plan",
+    "scanner.notes_mode": "Numérisation guidée des notes",
+    "scanner.syllabus_mode": "Numérisation guidée du programme",
+    "scanner.exit": "Quitter le scanner",
+    "scanner.guide_start": "Place toute la page dans le cadre.",
+    "scanner.note_tip_1": "Remplis le cadre avec une page de notes.",
+    "scanner.note_tip_2": "Aplatis les pages courbées avant la capture.",
+    "scanner.note_tip_3": "Active la lampe si l'écriture est grise ou ombrée.",
+    "scanner.note_tip_4": "Reste immobile jusqu'au début de la lecture.",
+    "scanner.tip_1": "Place les quatre coins de la page dans le cadre.",
+    "scanner.tip_2": "Rapproche-toi jusqu'à ce que le petit texte soit net.",
+    "scanner.tip_3": "Utilise une lumière vive et régulière. Évite les reflets.",
+    "scanner.tip_4": "Garde le téléphone parallèle à la page.",
+    "scanner.ready_review": "Texte trouvé. Vérifie chaque ligne avant tout enregistrement.",
+    "scanner.ready_review_count": "{count} mots trouvés. Vérifie les lignes extraites avant d'enregistrer.",
+    "scanner.weak": "Le texte est trop léger. Reprends avec la page plus proche et mieux éclairée.",
+    "scanner.weak_title": "Reprise recommandée",
+    "scanner.weak_body": "Seulement {count} mots trouvés. Rapproche-toi, garde les coins visibles et évite les ombres.",
+    "scanner.use_anyway": "Utiliser quand même",
+    "scanner.retake": "Reprendre",
+    "scanner.hold": "Reste immobile. Capture de la page...",
+    "scanner.reading": "Lecture du texte. Le résultat est meilleur avec une page nette et plate.",
+    "scanner.capture_failed": "La caméra n'a pas renvoyé de photo.",
+    "scanner.loading_camera": "Préparation de la caméra...",
+    "scanner.permission_title": "Accès caméra nécessaire",
+    "scanner.allow_camera": "Autoriser la caméra",
+    "scanner.ready_title": "Prêt à vérifier",
+    "scanner.promise": "Rien n'est enregistré avant ta vérification et validation des lignes extraites.",
+    "scanner.check_corners": "Coins",
+    "scanner.check_light": "Lumière",
+    "scanner.check_steady": "Stable",
+    "scanner.after_capture": "Texte capturé",
+    "scanner.before_capture": "Avant la capture",
+    "scanner.ready_rule_1": "{count} mots trouvés.",
+    "scanner.ready_rule_2": "L'écran suivant permet de modifier, approuver ou supprimer chaque ligne.",
+    "scanner.ready_rule_3": "Reprends si la page était coupée ou floue.",
+    "scanner.rule_1": "Bords visibles, sans recadrage.",
+    "scanner.rule_2": "Texte assez net pour être lu à l'écran.",
+    "scanner.rule_3": "Aucun doigt, reflet ni ombre sombre.",
+    "scanner.capture": "Capturer la page",
+    "review.weak_title": "L'extraction semble incomplète.",
+    "review.weak_body": "Utilise ces lignes seulement si elles correspondent au programme. Tu peux réessayer, coller du texte ou créer manuellement.",
+    "review.none_selected_title": "Rien de sélectionné",
+    "review.none_selected_body": "Approuve au moins un cours, devoir, examen ou note avant de continuer.",
+    "review.empty_title": "Aucun import en attente",
+    "review.empty_body": "Numérise, colle ou importe d'abord un programme. Rien n'est enregistré avant validation des lignes.",
+    "review.approved_footer": "{count} éléments approuvés · {state}",
+    "review.editable_later": "modifiable ensuite",
+    "review.locked_until_premium": "verrouillé jusqu'au déverrouillage",
+    "review.approve_one": "Approuve au moins un élément pour continuer",
+    "review.accessibility_title": "Titre {kind}",
+    "review.accessibility_title_hint": "Modifie le titre importé avant de l'approuver.",
+    "review.accessibility_approve": "Approuver {title}",
+    "review.accessibility_unapprove": "Retirer l'approbation de {title}",
+    "review.accessibility_toggle_apply": "Choisir si cette ligne sera appliquée.",
+    "review.accessibility_remove": "Supprimer {title}",
+    "review.accessibility_remove_hint": "Supprime cette ligne de la vérification d'import.",
+    "paywall.sub_no_import": "Déverrouille pour scanner, coller ou ajouter à la main. Ensuite tu vérifies chaque ligne avant qu'elle atteigne tableau, widgets, rappels ou prochaines actions.",
+    "paywall.preview_first_sub": "Déverrouille pour scanner, coller ou ajouter à la main. Ensuite tu vérifies chaque ligne avant qu'elle atteigne tableau, widgets, rappels ou prochaines actions.",
+    "paywall.ready_apply": "Prêt à appliquer",
+    "paywall.best_value": "Meilleure offre",
+    "paywall.plan_preview_title": "Aperçu du plan",
+    "paywall.plan_preview_methods": "Numériser · Coller · Manuel",
+    "paywall.preview_chip_class": "Cours",
+    "paywall.preview_chip_class_sub": "créé ici",
+    "paywall.preview_chip_deadline": "Échéance",
+    "paywall.preview_chip_deadline_sub": "à vérifier",
+    "paywall.preview_chip_move": "Action 1",
+    "paywall.preview_chip_move_sub": "après aperçu",
+  },
+  "pt-BR": {
+    "common.close_paywall": "Fechar oferta",
+    "common.app_store": "App Store",
+    "legal.privacy_title": "Privacidade",
+    "legal.terms_title": "Termos de uso",
+    "legal.data_source_title": "Fonte dos dados",
+    "legal.data_source_body": "O StudyPlanner guarda seus dados de planejamento neste dispositivo.",
+    "legal.imports_title": "Importações",
+    "legal.imports_body": "Plano de curso, notas, PDF e texto da câmera são usados para criar sua prévia revisada e o plano do semestre.",
+    "legal.purchases_title": "Compras",
+    "legal.purchases_body": "Compras e restaurações de assinatura são gerenciadas pela App Store.",
+    "legal.sharing_title": "Compartilhamento",
+    "legal.sharing_body": "O StudyPlanner não vende seus dados de planejamento.",
+    "legal.support_title": "Suporte",
+    "legal.support_body": "Envie e-mail ao suporte para ajuda com dados do app, compras ou privacidade.",
+    "legal.subscription_title": "Assinatura",
+    "legal.subscription_body": "O StudyPlanner usa assinaturas renováveis exibidas e confirmadas pela App Store antes da compra.",
+    "legal.access_title": "Acesso",
+    "legal.access_body": "Uma assinatura ativa é necessária para aplicar importações, usar painel, lembretes e widgets.",
+    "legal.billing_title": "Cobrança",
+    "legal.billing_body": "Gerencie ou cancele assinaturas na sua conta Apple.",
+    "legal.standard_terms_title": "Termos padrão",
+    "legal.standard_terms_body": "O EULA padrão da Apple se aplica salvo acordo escrito separado.",
+    "option.add_manually": "Adicionar manualmente",
+    "onboarding.rating_title": "Compra na App Store",
+    "onboarding.rating_body": "Preço, termos e confirmação da assinatura aparecem antes da compra.",
+    "onboarding.paywall_gate_title": "Desbloqueie primeiro. Depois escaneie.",
+    "onboarding.paywall_gate_body": "Câmera, PDF, colagem e setup manual começam depois do desbloqueio da App Store, para que a primeira importação real vire seu semestre ativo.",
+    "onboarding.unlock_to_scan": "Desbloquear para escanear",
+    "onboarding.artifacts_sub": "Depois de desbloquear, revise aulas reais, primeiro prazo, pressão e widgets antes de salvar qualquer coisa.",
+    "onboarding.preview_kicker": "PLANO DE {goal}",
+    "onboarding.preview_title": "{name}, desbloqueie uma vez e revise a primeira versão útil.",
+    "onboarding.preview_body": "Depois de desbloquear, escaneie, cole ou adicione uma aula manualmente. Você revisa tudo antes de salvar.",
+    "onboarding.paywall_first": "Desbloqueie primeiro; depois escaneie, cole ou adicione manualmente. Você revisa tudo antes de salvar.",
+    "onboarding.fallback_title": "Sem plano de curso limpo? Manual também funciona.",
+    "onboarding.fallback_body": "Adicione uma aula e um prazo à mão. O StudyPlanner transforma isso na mesma prévia de revisão.",
+    "onboarding.manual_body": "Digite uma aula e um prazo para criar uma prévia",
+    "onboarding.manual_need_class": "Adicione o nome de uma aula antes da prévia.",
+    "onboarding.manual_task_description": "Primeiro prazo manual da entrada.",
+    "onboarding.manual_kicker": "PLANO B MANUAL",
+    "onboarding.manual_title": "Monte uma prévia limpa à mão.",
+    "onboarding.manual_sub": "Use quando o plano de curso faltar, estiver borrado ou errado. Nada salva até você aprovar a prévia.",
+    "onboarding.manual_class_placeholder": "Biologia 101",
+    "onboarding.manual_deadline_title": "Primeiro prazo",
+    "onboarding.manual_deadline_placeholder": "Relatório de laboratório para sexta",
+    "onboarding.manual_deadline_hint": "Opcional, mas deixa o primeiro plano mais real.",
+    "onboarding.manual_preview": "Prévia do plano manual",
+    "import.preview_body": "Aulas, prazos, provas, pressão e o primeiro passo aparecem na prévia.",
+    "locked.sub": "Desbloqueie para escanear, colar ou adicionar uma aula. Você revisa cada linha antes de salvar.",
+    "locked.card_kicker": "REVISAO APOS DESBLOQUEAR",
+    "locked.step1": "Desbloquear StudyPlanner",
+    "locked.step2": "Escanear, colar ou adicionar manualmente",
+    "locked.step3": "Revisar antes de salvar",
+    "locked.preview_sub": "Desbloqueie para escanear, colar ou adicionar uma aula. Você revisa cada linha antes de salvar.",
+    "locked.preview_card_kicker": "REVISAO APOS DESBLOQUEAR",
+    "locked.preview_step1": "Desbloquear StudyPlanner",
+    "locked.preview_step2": "Escanear, colar ou adicionar manualmente",
+    "locked.preview_step3": "Revisar antes de salvar",
+    "paste.add_text_title": "Adicione texto primeiro",
+    "paste.syllabus_required": "Cole o texto do plano de curso para extrair aulas, tarefas e provas.",
+    "paste.syllabus_title": "O plano de curso vira uma prévia do semestre.",
+    "paste.preview_sub": "Revise o que o StudyPlanner encontra antes de salvar.",
+    "paste.syllabus_placeholder": "Cole plano de curso, folhas de tarefa ou texto extraído de PDF...",
+    "paste.reading": "Lendo...",
+    "scan.pdf_action_body": "Melhor para planos completos e materiais com várias páginas.",
+    "scan.camera_action_body": "Capture páginas, quadros, apostilas e horários impressos.",
+    "scan.photo_action_body": "Use capturas ou páginas salvas do plano de curso.",
+    "scan.paste_action_body": "Plano B para PDFs bloqueados ou texto copiado do AVA.",
+    "scan.metric_ocr": "Leitura",
+    "scan.metric_gate": "Controle de salvar",
+    "scan.history_empty_title": "Nenhuma importação revisada ainda",
+    "scan.rail_capture": "Capturar",
+    "scan.rail_read": "Ler texto",
+    "scan.rail_review": "Revisar",
+    "scan.rail_plan": "Plano",
+    "scanner.notes_mode": "Escaneamento guiado de notas",
+    "scanner.syllabus_mode": "Escaneamento guiado do plano",
+    "scanner.exit": "Sair do scanner",
+    "review.weak_title": "A extração parece incompleta.",
+    "review.weak_body": "Use estas linhas somente se elas baterem com o plano de curso. Você pode tentar de novo, colar texto ou montar o semestre manualmente.",
+    "review.none_selected_title": "Nada selecionado",
+    "review.none_selected_body": "Aprove pelo menos uma aula, tarefa, prova ou nota antes de continuar.",
+    "review.empty_title": "Nenhuma importação aguardando",
+    "review.empty_body": "Escaneie, cole ou envie um plano de curso primeiro. Nada é salvo até você aprovar as linhas da revisão.",
+    "review.approved_footer": "{count} itens aprovados · {state}",
+    "review.editable_later": "editável depois",
+    "review.locked_until_premium": "bloqueado até desbloquear",
+    "review.approve_one": "Aprove pelo menos um item para continuar",
+    "review.accessibility_title": "Título de {kind}",
+    "review.accessibility_title_hint": "Edite o título importado antes de aprovar.",
+    "review.accessibility_approve": "Aprovar {title}",
+    "review.accessibility_unapprove": "Remover aprovação de {title}",
+    "review.accessibility_toggle_apply": "Alterne se esta linha será aplicada.",
+    "review.accessibility_remove": "Remover {title}",
+    "review.accessibility_remove_hint": "Remove esta linha da revisão de importação.",
+    "paywall.sub_no_import": "Desbloqueie para escanear, colar ou adicionar manualmente. Depois revise cada linha antes de chegar ao painel, widgets, lembretes ou próximos passos.",
+    "paywall.preview_first_sub": "Desbloqueie para escanear, colar ou adicionar manualmente. Depois revise cada linha antes de chegar ao painel, widgets, lembretes ou próximos passos.",
+    "paywall.ready_apply": "Pronto para aplicar",
+    "paywall.best_value": "Melhor opção",
+    "paywall.plan_preview_title": "Prévia do plano",
+    "paywall.plan_preview_methods": "Escanear · Colar · Manual",
+    "paywall.preview_chip_class": "Aula",
+    "paywall.preview_chip_class_sub": "criada aqui",
+    "paywall.preview_chip_deadline": "Prazo",
+    "paywall.preview_chip_deadline_sub": "revisar antes",
+    "paywall.preview_chip_move": "1º passo",
+    "paywall.preview_chip_move_sub": "após prévia",
+  },
+  ja: {
+    "common.close_paywall": "購入画面を閉じる",
+    "common.app_store": "App Store",
+    "legal.privacy_title": "プライバシーポリシー",
+    "legal.terms_title": "利用規約",
+    "legal.data_source_title": "データの保存先",
+    "legal.data_source_body": "StudyPlannerは学習計画データをこの端末に保存します。",
+    "legal.imports_title": "取り込み",
+    "legal.imports_body": "シラバス、ノート、PDF、カメラの文字は、確認用プレビューと学期計画の作成に使われます。",
+    "legal.purchases_title": "購入",
+    "legal.purchases_body": "サブスクリプションの購入と復元はApp Storeで処理されます。",
+    "legal.sharing_title": "共有",
+    "legal.sharing_body": "StudyPlannerは学習計画データを販売しません。",
+    "legal.support_title": "サポート",
+    "legal.support_body": "アプリデータ、購入、プライバシーについてはサポートへメールしてください。",
+    "legal.subscription_title": "サブスクリプション",
+    "legal.subscription_body": "StudyPlannerは、購入前にApp Storeで表示・確認される自動更新サブスクリプションを使用します。",
+    "legal.access_title": "アクセス",
+    "legal.access_body": "取り込みの適用、ダッシュボード、リマインダー、ウィジェットには有効な権利が必要です。",
+    "legal.billing_title": "請求",
+    "legal.billing_body": "サブスクリプションはAppleアカウントで管理または解約できます。",
+    "legal.standard_terms_title": "標準規約",
+    "legal.standard_terms_body": "別途書面の合意がない限り、Appleの標準EULAが適用されます。",
+    "option.add_manually": "手動で追加",
+    "onboarding.rating_title": "App Storeで購入",
+    "onboarding.rating_body": "購入前に価格、条件、サブスクリプション確認が表示されます。",
+    "onboarding.paywall_gate_title": "先に解除。次にスキャン。",
+    "onboarding.paywall_gate_body": "カメラ、PDF、貼り付け、手動設定はApp Storeでの解除後に開始し、最初の実データをそのまま学期計画にします。",
+    "onboarding.unlock_to_scan": "解除してスキャン",
+    "onboarding.artifacts_sub": "解除後、保存前に実際の授業・最初の締切・負荷・ウィジェットを確認します。",
+    "onboarding.preview_kicker": "{goal}プラン",
+    "onboarding.preview_title": "{name}さん、一度解除してから最初の使える形を確認します。",
+    "onboarding.preview_body": "解除後にスキャン、貼り付け、または授業を手動追加。保存前にすべて確認します。",
+    "onboarding.paywall_first": "先に解除し、その後スキャン、貼り付け、手動追加。保存前に必ず確認します。",
+    "onboarding.fallback_title": "きれいなシラバスがなくても手動で始められます。",
+    "onboarding.fallback_body": "授業1つと締切1つを手で入れるだけで、スキャンと同じ確認プレビューになります。",
+    "onboarding.manual_body": "授業と締切を入れてプレビューを作成",
+    "onboarding.manual_need_class": "プレビュー前に授業名を追加してください。",
+    "onboarding.manual_task_description": "オンボーディングで追加した最初の手動締切。",
+    "onboarding.manual_kicker": "手動バックアップ",
+    "onboarding.manual_title": "手入力で確実なプレビューを作る。",
+    "onboarding.manual_sub": "シラバスがない、読めない、間違っている時に使います。承認するまで保存されません。",
+    "onboarding.manual_class_placeholder": "生物学101",
+    "onboarding.manual_deadline_title": "最初の締切",
+    "onboarding.manual_deadline_placeholder": "金曜までに実験レポート",
+    "onboarding.manual_deadline_hint": "任意ですが、最初の計画が具体的になります。",
+    "onboarding.manual_preview": "手動プランをプレビュー",
+    "import.preview_body": "授業、締切、試験、負荷、最初の行動がプレビューに出ます。",
+    "locked.sub": "解除してスキャン、貼り付け、または授業を追加。保存前に各行を確認します。",
+    "locked.card_kicker": "解除後に確認",
+    "locked.step1": "StudyPlannerを解除",
+    "locked.step2": "スキャン、貼り付け、手動追加",
+    "locked.step3": "保存前に確認",
+    "locked.preview_sub": "解除してスキャン、貼り付け、または授業を追加。保存前に各行を確認します。",
+    "locked.preview_card_kicker": "解除後に確認",
+    "locked.preview_step1": "StudyPlannerを解除",
+    "locked.preview_step2": "スキャン、貼り付け、手動追加",
+    "locked.preview_step3": "保存前に確認",
+    "paste.syllabus_required": "シラバス本文を貼り付けると、授業・課題・試験を抽出します。",
+    "paste.syllabus_title": "シラバスから学期プレビューを作成。",
+    "paste.preview_sub": "保存前にStudyPlannerが見つけた内容を確認します。",
+    "paste.syllabus_placeholder": "シラバス、課題表、PDFから抽出した文字を貼り付け...",
+    "paste.reading": "読み取り中...",
+    "scan.pdf_action_body": "シラバス全体や複数ページの資料に最適です。",
+    "scan.camera_action_body": "ページ、板書、配布物、印刷された予定表を撮影。",
+    "scan.photo_action_body": "スクリーンショットや保存済みシラバスページを使います。",
+    "scan.paste_action_body": "ロックされたPDFやLMSからコピーした文字の代替手段です。",
+    "scan.metric_ocr": "文字認識",
+    "scan.metric_gate": "保存確認",
+    "scan.history_empty_title": "確認済みの取り込みはまだありません",
+    "scan.rail_capture": "取り込み",
+    "scan.rail_read": "文字を読む",
+    "scan.rail_review": "確認",
+    "scan.rail_plan": "計画",
+    "scanner.notes_mode": "ノートのガイドスキャン",
+    "scanner.syllabus_mode": "シラバスのガイドスキャン",
+    "scanner.exit": "スキャナーを終了",
+    "review.weak_title": "抽出が不完全な可能性があります。",
+    "review.weak_body": "下の項目がシラバスと一致する場合だけ使ってください。再試行、テキスト貼り付け、手動作成もできます。",
+    "review.none_selected_title": "何も選択されていません",
+    "review.none_selected_body": "続ける前に授業、課題、試験、ノートを1つ以上承認してください。",
+    "review.empty_title": "確認待ちの取り込みはありません",
+    "review.empty_body": "まずシラバスをスキャン、貼り付け、またはアップロードしてください。承認するまで保存されません。",
+    "review.approved_footer": "{count}件承認 · {state}",
+    "review.editable_later": "あとで編集可能",
+    "review.locked_until_premium": "解除までロック",
+    "review.approve_one": "続けるには1件以上承認してください",
+    "review.accessibility_title": "{kind}のタイトル",
+    "review.accessibility_title_hint": "承認前に取り込み行のタイトルを編集します。",
+    "review.accessibility_approve": "{title}を承認",
+    "review.accessibility_unapprove": "{title}の承認を外す",
+    "review.accessibility_toggle_apply": "この行を適用するか切り替えます。",
+    "review.accessibility_remove": "{title}を削除",
+    "review.accessibility_remove_hint": "この行を取り込み確認から削除します。",
+    "paywall.sub_no_import": "解除後にスキャン、貼り付け、または手動追加。ダッシュボード、ウィジェット、リマインダー、次の行動に反映される前に各行を確認します。",
+    "paywall.preview_first_sub": "解除後にスキャン、貼り付け、または手動追加。ダッシュボード、ウィジェット、リマインダー、次の行動に反映される前に各行を確認します。",
+    "paywall.ready_apply": "適用準備完了",
+    "paywall.best_value": "おすすめ",
+    "paywall.plan_preview_title": "計画プレビュー",
+    "paywall.plan_preview_methods": "スキャン · 貼り付け · 手動",
+    "paywall.preview_chip_class": "授業",
+    "paywall.preview_chip_class_sub": "設定から",
+    "paywall.preview_chip_deadline": "締切",
+    "paywall.preview_chip_deadline_sub": "先に確認",
+    "paywall.preview_chip_move": "次の一手",
+    "paywall.preview_chip_move_sub": "プレビュー後",
+  },
+  ko: {
+    "common.close_paywall": "구독 화면 닫기",
+    "common.app_store": "App Store",
+    "legal.privacy_title": "개인정보 처리방침",
+    "legal.terms_title": "이용 약관",
+    "legal.data_source_title": "데이터 저장",
+    "legal.data_source_body": "StudyPlanner는 계획 데이터를 이 기기에 저장합니다.",
+    "legal.imports_title": "가져오기",
+    "legal.imports_body": "강의계획서, 노트, PDF, 카메라 텍스트는 검토용 미리보기와 학기 계획을 만드는 데 사용됩니다.",
+    "legal.purchases_title": "구매",
+    "legal.purchases_body": "구독 구매와 복원은 App Store에서 처리됩니다.",
+    "legal.sharing_title": "공유",
+    "legal.sharing_body": "StudyPlanner는 계획 데이터를 판매하지 않습니다.",
+    "legal.support_title": "지원",
+    "legal.support_body": "앱 데이터, 구매, 개인정보 관련 도움은 이메일로 문의하세요.",
+    "legal.subscription_title": "구독",
+    "legal.subscription_body": "StudyPlanner는 구매 전 App Store에서 표시되고 확인되는 자동 갱신 구독을 사용합니다.",
+    "legal.access_title": "접근",
+    "legal.access_body": "가져오기 적용, 대시보드, 알림, 위젯 사용에는 활성 권한이 필요합니다.",
+    "legal.billing_title": "결제",
+    "legal.billing_body": "구독은 Apple 계정에서 관리하거나 취소할 수 있습니다.",
+    "legal.standard_terms_title": "표준 약관",
+    "legal.standard_terms_body": "별도 서면 합의가 없으면 Apple 표준 EULA가 적용됩니다.",
+    "option.add_manually": "직접 추가",
+    "onboarding.rating_title": "App Store 결제",
+    "onboarding.rating_body": "구매 전에 가격, 약관, 구독 확인이 표시됩니다.",
+    "onboarding.paywall_gate_title": "먼저 잠금 해제. 그다음 스캔.",
+    "onboarding.paywall_gate_body": "카메라, PDF, 붙여넣기, 직접 설정은 App Store 잠금 해제 후 시작되어 첫 실제 가져오기가 바로 학기 계획이 됩니다.",
+    "onboarding.unlock_to_scan": "잠금 해제하고 스캔",
+    "onboarding.artifacts_sub": "잠금 해제 후 저장 전에 실제 수업, 첫 마감, 부담, 위젯을 확인하세요.",
+    "onboarding.preview_kicker": "{goal} 계획",
+    "onboarding.preview_title": "{name}님, 한 번 잠금 해제한 뒤 첫 유용한 계획을 검토하세요.",
+    "onboarding.preview_body": "잠금 해제 후 스캔, 붙여넣기, 또는 수업 하나를 직접 추가하세요. 저장 전 모든 항목을 검토합니다.",
+    "onboarding.paywall_first": "먼저 잠금 해제한 뒤 스캔, 붙여넣기, 직접 추가하세요. 저장 전 모두 검토합니다.",
+    "onboarding.fallback_title": "깨끗한 강의계획서가 없어도 직접 시작할 수 있어요.",
+    "onboarding.fallback_body": "수업 하나와 마감 하나를 손으로 넣으면 스캔과 같은 검토 미리보기가 만들어집니다.",
+    "onboarding.manual_body": "수업과 마감을 입력해 미리보기 만들기",
+    "onboarding.manual_need_class": "미리보기 전에 수업 이름을 추가하세요.",
+    "onboarding.manual_task_description": "온보딩에서 추가한 첫 직접 입력 마감.",
+    "onboarding.manual_kicker": "직접 입력 백업",
+    "onboarding.manual_title": "손으로 깔끔한 미리보기를 만듭니다.",
+    "onboarding.manual_sub": "강의계획서가 없거나 흐리거나 틀렸을 때 사용하세요. 승인 전에는 저장되지 않습니다.",
+    "onboarding.manual_class_placeholder": "생물학 101",
+    "onboarding.manual_deadline_title": "첫 마감",
+    "onboarding.manual_deadline_placeholder": "금요일까지 실험 보고서",
+    "onboarding.manual_deadline_hint": "선택 사항이지만 첫 계획이 더 실제처럼 느껴집니다.",
+    "onboarding.manual_preview": "직접 입력 계획 미리보기",
+    "import.preview_body": "수업, 마감, 시험, 부담, 첫 행동이 미리보기에 표시됩니다.",
+    "locked.sub": "잠금 해제 후 스캔, 붙여넣기, 또는 수업을 추가하세요. 저장 전 각 행을 검토합니다.",
+    "locked.card_kicker": "잠금 해제 후 검토",
+    "locked.step1": "StudyPlanner 잠금 해제",
+    "locked.step2": "스캔, 붙여넣기, 직접 추가",
+    "locked.step3": "저장 전 검토",
+    "locked.preview_sub": "잠금 해제 후 스캔, 붙여넣기, 또는 수업을 추가하세요. 저장 전 각 행을 검토합니다.",
+    "locked.preview_card_kicker": "잠금 해제 후 검토",
+    "locked.preview_step1": "StudyPlanner 잠금 해제",
+    "locked.preview_step2": "스캔, 붙여넣기, 직접 추가",
+    "locked.preview_step3": "저장 전 검토",
+    "paste.syllabus_required": "강의계획서 텍스트를 붙여넣으면 수업, 과제, 시험을 추출합니다.",
+    "paste.syllabus_title": "강의계획서로 학기 미리보기를 만듭니다.",
+    "paste.preview_sub": "저장 전에 StudyPlanner가 찾은 내용을 검토하세요.",
+    "paste.syllabus_placeholder": "강의계획서, 과제 안내문, PDF에서 추출한 텍스트를 붙여넣기...",
+    "paste.reading": "읽는 중...",
+    "scan.pdf_action_body": "전체 강의계획서와 여러 페이지 자료에 적합합니다.",
+    "scan.camera_action_body": "페이지, 칠판, 자료 묶음, 인쇄된 일정을 촬영.",
+    "scan.photo_action_body": "스크린샷이나 저장한 강의계획서 페이지를 사용하세요.",
+    "scan.paste_action_body": "잠긴 PDF나 LMS에서 복사한 텍스트용 대안입니다.",
+    "scan.metric_ocr": "문자 인식",
+    "scan.metric_gate": "저장 확인",
+    "scan.history_empty_title": "아직 검토한 가져오기가 없습니다",
+    "scan.rail_capture": "캡처",
+    "scan.rail_read": "텍스트 읽기",
+    "scan.rail_review": "검토",
+    "scan.rail_plan": "계획",
+    "scanner.notes_mode": "노트 가이드 스캔",
+    "scanner.syllabus_mode": "강의계획서 가이드 스캔",
+    "scanner.exit": "스캐너 나가기",
+    "review.weak_title": "추출이 불완전해 보입니다.",
+    "review.weak_body": "아래 항목이 강의계획서와 맞을 때만 사용하세요. 다시 시도하거나, 텍스트를 붙여넣거나, 직접 만들 수 있습니다.",
+    "review.none_selected_title": "선택된 항목 없음",
+    "review.none_selected_body": "계속하려면 수업, 과제, 시험, 노트 중 하나 이상을 승인하세요.",
+    "review.empty_title": "검토할 가져오기가 없습니다",
+    "review.empty_body": "먼저 강의계획서를 스캔, 붙여넣기 또는 업로드하세요. 승인 전에는 저장되지 않습니다.",
+    "review.approved_footer": "{count}개 승인됨 · {state}",
+    "review.editable_later": "나중에 수정 가능",
+    "review.locked_until_premium": "잠금 해제 전까지 잠김",
+    "review.approve_one": "계속하려면 하나 이상 승인하세요",
+    "review.accessibility_title": "{kind} 제목",
+    "review.accessibility_title_hint": "승인 전에 가져온 행 제목을 수정합니다.",
+    "review.accessibility_approve": "{title} 승인",
+    "review.accessibility_unapprove": "{title} 승인 해제",
+    "review.accessibility_toggle_apply": "이 행을 적용할지 전환합니다.",
+    "review.accessibility_remove": "{title} 삭제",
+    "review.accessibility_remove_hint": "가져오기 검토에서 이 행을 삭제합니다.",
+    "paywall.sub_no_import": "잠금 해제 후 스캔, 붙여넣기, 직접 추가하세요. 대시보드, 위젯, 알림, 다음 행동에 반영되기 전 각 행을 검토합니다.",
+    "paywall.preview_first_sub": "잠금 해제 후 스캔, 붙여넣기, 직접 추가하세요. 대시보드, 위젯, 알림, 다음 행동에 반영되기 전 각 행을 검토합니다.",
+    "paywall.ready_apply": "적용 준비 완료",
+    "paywall.best_value": "추천",
+    "paywall.plan_preview_title": "계획 미리보기",
+    "paywall.plan_preview_methods": "스캔 · 붙여넣기 · 직접 입력",
+    "paywall.preview_chip_class": "수업",
+    "paywall.preview_chip_class_sub": "설정에서",
+    "paywall.preview_chip_deadline": "마감",
+    "paywall.preview_chip_deadline_sub": "먼저 검토",
+    "paywall.preview_chip_move": "첫 행동",
+    "paywall.preview_chip_move_sub": "미리보기 후",
+  },
+  "zh-Hans": {
+    "common.close_paywall": "关闭订阅页",
+    "common.app_store": "App Store",
+    "legal.privacy_title": "隐私政策",
+    "legal.terms_title": "使用条款",
+    "legal.data_source_title": "数据来源",
+    "legal.data_source_body": "StudyPlanner 会把你的计划数据存储在这台设备上。",
+    "legal.imports_title": "导入",
+    "legal.imports_body": "课程大纲、笔记、PDF 和相机文字会用于生成已检查的预览和学期计划。",
+    "legal.purchases_title": "购买",
+    "legal.purchases_body": "订阅购买和恢复由 App Store 处理。",
+    "legal.sharing_title": "共享",
+    "legal.sharing_body": "StudyPlanner 不会出售你的计划数据。",
+    "legal.support_title": "支持",
+    "legal.support_body": "如需应用数据、购买或隐私帮助，请邮件联系支持。",
+    "legal.subscription_title": "订阅",
+    "legal.subscription_body": "StudyPlanner 使用自动续订订阅，购买前由 App Store 显示并确认。",
+    "legal.access_title": "访问",
+    "legal.access_body": "应用导入、使用仪表盘、提醒和组件需要有效权益。",
+    "legal.billing_title": "账单",
+    "legal.billing_body": "可在 Apple 账户中管理或取消订阅。",
+    "legal.standard_terms_title": "标准条款",
+    "legal.standard_terms_body": "除非另有书面协议，否则适用 Apple 标准 EULA。",
+    "option.add_manually": "手动添加",
+    "onboarding.rating_title": "App Store 购买",
+    "onboarding.rating_body": "购买前会显示价格、条款和订阅确认。",
+    "onboarding.paywall_gate_title": "先解锁。再扫描。",
+    "onboarding.paywall_gate_body": "相机、PDF、粘贴和手动设置会在 App Store 解锁后开始，让第一次真实导入直接变成你的学期计划。",
+    "onboarding.unlock_to_scan": "解锁后扫描",
+    "onboarding.artifacts_sub": "解锁后，在保存前检查真实课程、首个截止日期、压力和组件。",
+    "onboarding.preview_kicker": "{goal}计划",
+    "onboarding.preview_title": "{name}，先解锁一次，再检查第一版可用计划。",
+    "onboarding.preview_body": "解锁后扫描、粘贴，或手动添加一门课。保存前先检查所有内容。",
+    "onboarding.paywall_first": "先解锁，再扫描、粘贴或手动添加。保存前你仍会检查所有内容。",
+    "onboarding.fallback_title": "没有清晰课程大纲？手动也能开始。",
+    "onboarding.fallback_body": "手动添加一门课和一个截止日期，StudyPlanner 会生成和扫描相同的检查预览。",
+    "onboarding.manual_body": "输入一门课和一个截止日期来生成预览",
+    "onboarding.manual_need_class": "预览前请先添加课程名称。",
+    "onboarding.manual_task_description": "引导中添加的第一个手动截止日期。",
+    "onboarding.manual_kicker": "手动兜底",
+    "onboarding.manual_title": "手动生成干净预览。",
+    "onboarding.manual_sub": "课程大纲缺失、模糊或错误时使用。批准预览前不会保存。",
+    "onboarding.manual_class_placeholder": "生物学 101",
+    "onboarding.manual_deadline_title": "第一个截止日期",
+    "onboarding.manual_deadline_placeholder": "周五交实验报告",
+    "onboarding.manual_deadline_hint": "可选，但会让第一版计划更真实。",
+    "onboarding.manual_preview": "预览手动计划",
+    "import.preview_body": "课程、截止日期、考试、压力和第一步会显示在预览中。",
+    "locked.sub": "解锁后扫描、粘贴或添加课程。保存前检查每一行。",
+    "locked.card_kicker": "解锁后检查",
+    "locked.step1": "解锁 StudyPlanner",
+    "locked.step2": "扫描、粘贴或手动添加",
+    "locked.step3": "保存前检查",
+    "locked.preview_sub": "解锁后扫描、粘贴或添加课程。保存前检查每一行。",
+    "locked.preview_card_kicker": "解锁后检查",
+    "locked.preview_step1": "解锁 StudyPlanner",
+    "locked.preview_step2": "扫描、粘贴或手动添加",
+    "locked.preview_step3": "保存前检查",
+    "paste.syllabus_required": "粘贴课程大纲文字，以提取课程、作业和考试。",
+    "paste.syllabus_title": "用课程大纲生成学期预览。",
+    "paste.preview_sub": "保存前检查 StudyPlanner 找到的内容。",
+    "paste.syllabus_placeholder": "粘贴课程大纲、作业说明或 PDF 提取文字...",
+    "paste.reading": "读取中...",
+    "scan.pdf_action_body": "适合完整课程大纲和多页资料。",
+    "scan.camera_action_body": "拍摄页面、板书、资料包和打印课表。",
+    "scan.photo_action_body": "使用截图或保存的课程大纲页面。",
+    "scan.paste_action_body": "适合锁定 PDF 或从学习平台复制的文字。",
+    "scan.metric_ocr": "文字识别",
+    "scan.metric_gate": "保存确认",
+    "scan.history_empty_title": "还没有检查过导入",
+    "scan.rail_capture": "采集",
+    "scan.rail_read": "读取文字",
+    "scan.rail_review": "检查",
+    "scan.rail_plan": "计划",
+    "scanner.notes_mode": "引导式笔记扫描",
+    "scanner.syllabus_mode": "引导式大纲扫描",
+    "scanner.exit": "退出扫描器",
+    "review.weak_title": "提取结果可能不完整。",
+    "review.weak_body": "仅在下方项目与课程大纲一致时使用。你也可以重试、粘贴文本或手动建立。",
+    "review.none_selected_title": "未选择任何项目",
+    "review.none_selected_body": "继续前请至少批准一门课、一个作业、一次考试或一条笔记。",
+    "review.empty_title": "没有待检查的导入",
+    "review.empty_body": "请先扫描、粘贴或上传课程大纲。批准检查行前不会保存。",
+    "review.approved_footer": "已批准 {count} 项 · {state}",
+    "review.editable_later": "之后可编辑",
+    "review.locked_until_premium": "解锁前锁定",
+    "review.approve_one": "请至少批准一项以继续",
+    "review.accessibility_title": "{kind}标题",
+    "review.accessibility_title_hint": "批准前编辑导入行标题。",
+    "review.accessibility_approve": "批准 {title}",
+    "review.accessibility_unapprove": "取消批准 {title}",
+    "review.accessibility_toggle_apply": "切换此行是否应用。",
+    "review.accessibility_remove": "删除 {title}",
+    "review.accessibility_remove_hint": "从导入检查中删除此行。",
+    "paywall.sub_no_import": "解锁后扫描、粘贴或手动添加。进入仪表盘、组件、提醒或下一步前，你会检查每一行。",
+    "paywall.preview_first_sub": "解锁后扫描、粘贴或手动添加。进入仪表盘、组件、提醒或下一步前，你会检查每一行。",
+    "paywall.ready_apply": "可应用",
+    "paywall.best_value": "推荐",
+    "paywall.plan_preview_title": "计划预览",
+    "paywall.plan_preview_methods": "扫描 · 粘贴 · 手动",
+    "paywall.preview_chip_class": "课程",
+    "paywall.preview_chip_class_sub": "来自设置",
+    "paywall.preview_chip_deadline": "截止",
+    "paywall.preview_chip_deadline_sub": "先检查",
+    "paywall.preview_chip_move": "第一步",
+    "paywall.preview_chip_move_sub": "预览后",
+  },
+  hi: {
+    "common.close_paywall": "सदस्यता स्क्रीन बंद करें",
+    "common.app_store": "App Store",
+    "legal.privacy_title": "गोपनीयता नीति",
+    "legal.terms_title": "उपयोग की शर्तें",
+    "legal.data_source_title": "डेटा स्रोत",
+    "legal.data_source_body": "StudyPlanner आपकी प्लानिंग डेटा इसी डिवाइस पर रखता है।",
+    "legal.imports_title": "इम्पोर्ट",
+    "legal.imports_body": "सिलेबस, नोट्स, PDF और कैमरा टेक्स्ट से समीक्षा वाला पूर्वावलोकन और सेमेस्टर प्लान बनता है।",
+    "legal.purchases_title": "खरीद",
+    "legal.purchases_body": "सब्सक्रिप्शन खरीद और पुनर्स्थापन App Store संभालता है।",
+    "legal.sharing_title": "साझा करना",
+    "legal.sharing_body": "StudyPlanner आपका प्लानिंग डेटा नहीं बेचता।",
+    "legal.support_title": "सहायता",
+    "legal.support_body": "ऐप डेटा, खरीद या गोपनीयता के लिए सहायता को ईमेल करें।",
+    "legal.subscription_title": "सब्सक्रिप्शन",
+    "legal.subscription_body": "StudyPlanner अपने आप नवीनीकृत होने वाला सब्सक्रिप्शन उपयोग करता है, जिसे खरीद से पहले App Store दिखाता और पुष्टि करता है।",
+    "legal.access_title": "एक्सेस",
+    "legal.access_body": "इम्पोर्ट लागू करने, डैशबोर्ड, रिमाइंडर और विजेट के लिए सक्रिय एक्सेस चाहिए।",
+    "legal.billing_title": "बिलिंग",
+    "legal.billing_body": "सब्सक्रिप्शन Apple खाते से प्रबंधित या रद्द करें।",
+    "legal.standard_terms_title": "मानक शर्तें",
+    "legal.standard_terms_body": "अलग लिखित समझौता न हो तो Apple की मानक EULA लागू होती है।",
+    "option.add_manually": "हाथ से जोड़ें",
+    "onboarding.rating_title": "App Store भुगतान",
+    "onboarding.rating_body": "खरीद से पहले कीमत, शर्तें और सब्सक्रिप्शन पुष्टि दिखती है।",
+    "onboarding.paywall_gate_title": "पहले अनलॉक करें। फिर स्कैन करें।",
+    "onboarding.paywall_gate_body": "कैमरा, PDF, पेस्ट और हाथ से सेटअप App Store अनलॉक के बाद शुरू होते हैं, ताकि पहला असली इम्पोर्ट आपका लाइव सेमेस्टर बने।",
+    "onboarding.unlock_to_scan": "स्कैन के लिए अनलॉक करें",
+    "onboarding.artifacts_sub": "अनलॉक के बाद सेव होने से पहले असली क्लास, पहली तारीख, दबाव और विजेट देखें।",
+    "onboarding.preview_kicker": "{goal} प्लान",
+    "onboarding.preview_title": "{name}, पहले अनलॉक करें, फिर पहला उपयोगी प्लान जांचें।",
+    "onboarding.preview_body": "अनलॉक के बाद स्कैन करें, पेस्ट करें या एक क्लास हाथ से जोड़ें। सेव से पहले सब जांचें।",
+    "onboarding.paywall_first": "पहले अनलॉक करें, फिर स्कैन, पेस्ट या हाथ से जोड़ें। सेव से पहले सब जांचेंगे।",
+    "onboarding.fallback_title": "साफ सिलेबस नहीं? हाथ से शुरुआत भी काम करती है।",
+    "onboarding.fallback_body": "एक क्लास और एक तारीख हाथ से जोड़ें। StudyPlanner उसे स्कैन जैसी समीक्षा झलक में बदलता है।",
+    "onboarding.manual_body": "पूर्वावलोकन बनाने के लिए एक क्लास और एक तारीख लिखें",
+    "onboarding.manual_need_class": "पूर्वावलोकन से पहले क्लास का नाम जोड़ें।",
+    "onboarding.manual_task_description": "ऑनबोर्डिंग से पहली हाथ से जोड़ी गई तारीख।",
+    "onboarding.manual_kicker": "हाथ से बैकअप",
+    "onboarding.manual_title": "हाथ से साफ पूर्वावलोकन बनाएं।",
+    "onboarding.manual_sub": "जब सिलेबस न हो, धुंधला हो या गलत हो। मंजूरी से पहले कुछ सेव नहीं होता।",
+    "onboarding.manual_class_placeholder": "बायोलॉजी 101",
+    "onboarding.manual_deadline_title": "पहली तारीख",
+    "onboarding.manual_deadline_placeholder": "शुक्रवार तक लैब रिपोर्ट",
+    "onboarding.manual_deadline_hint": "वैकल्पिक, लेकिन पहला प्लान असली लगता है।",
+    "onboarding.manual_preview": "हाथ से प्लान देखें",
+    "import.preview_body": "क्लास, तारीखें, परीक्षाएं, दबाव और पहला कदम पूर्वावलोकन में दिखते हैं।",
+    "locked.sub": "अनलॉक के बाद स्कैन, पेस्ट या क्लास जोड़ें। सेव से पहले हर पंक्ति जांचें।",
+    "locked.card_kicker": "अनलॉक के बाद समीक्षा",
+    "locked.step1": "StudyPlanner अनलॉक करें",
+    "locked.step2": "स्कैन, पेस्ट या हाथ से जोड़ें",
+    "locked.step3": "सेव से पहले जांचें",
+    "locked.preview_sub": "अनलॉक के बाद स्कैन, पेस्ट या क्लास जोड़ें। सेव से पहले हर पंक्ति जांचें।",
+    "locked.preview_card_kicker": "अनलॉक के बाद समीक्षा",
+    "locked.preview_step1": "StudyPlanner अनलॉक करें",
+    "locked.preview_step2": "स्कैन, पेस्ट या हाथ से जोड़ें",
+    "locked.preview_step3": "सेव से पहले जांचें",
+    "paste.syllabus_required": "क्लास, असाइनमेंट और परीक्षा निकालने के लिए सिलेबस टेक्स्ट पेस्ट करें।",
+    "paste.syllabus_title": "सिलेबस से सेमेस्टर पूर्वावलोकन बनाएं।",
+    "paste.preview_sub": "सेव से पहले देखें कि StudyPlanner क्या खोजता है।",
+    "paste.syllabus_placeholder": "सिलेबस, असाइनमेंट शीट या PDF से निकला टेक्स्ट पेस्ट करें...",
+    "paste.reading": "पढ़ रहा है...",
+    "scan.pdf_action_body": "पूरे सिलेबस और कई पन्नों वाली सामग्री के लिए बेहतर।",
+    "scan.camera_action_body": "पेज, बोर्ड, पैकेट और छपे शेड्यूल कैप्चर करें.",
+    "scan.photo_action_body": "स्क्रीनशॉट या सेव किए हुए सिलेबस पन्ने उपयोग करें।",
+    "scan.paste_action_body": "लॉक PDF या LMS से कॉपी टेक्स्ट के लिए दूसरा रास्ता।",
+    "scan.metric_ocr": "टेक्स्ट पढ़ना",
+    "scan.metric_gate": "सेव जांच",
+    "scan.history_empty_title": "अभी कोई इम्पोर्ट समीक्षा नहीं हुई",
+    "scan.rail_capture": "कैप्चर",
+    "scan.rail_read": "टेक्स्ट पढ़ें",
+    "scan.rail_review": "समीक्षा",
+    "scan.rail_plan": "प्लान",
+    "scanner.notes_mode": "नोट्स का गाइडेड स्कैन",
+    "scanner.syllabus_mode": "सिलेबस का गाइडेड स्कैन",
+    "scanner.exit": "स्कैनर से बाहर निकलें",
+    "review.weak_title": "निकाला गया डेटा अधूरा लग रहा है।",
+    "review.weak_body": "नीचे की पंक्तियां तभी उपयोग करें जब वे सिलेबस से मिलती हों। आप फिर कोशिश कर सकते हैं, टेक्स्ट पेस्ट कर सकते हैं या मैन्युअली बना सकते हैं।",
+    "review.none_selected_title": "कुछ चुना नहीं गया",
+    "review.none_selected_body": "आगे बढ़ने से पहले कम से कम एक क्लास, असाइनमेंट, परीक्षा या नोट मंजूर करें।",
+    "review.empty_title": "कोई इम्पोर्ट समीक्षा में नहीं है",
+    "review.empty_body": "पहले सिलेबस स्कैन, पेस्ट या अपलोड करें। समीक्षा पंक्तियां मंजूर होने तक कुछ सेव नहीं होगा।",
+    "review.approved_footer": "{count} आइटम मंजूर · {state}",
+    "review.editable_later": "बाद में बदला जा सकता है",
+    "review.locked_until_premium": "अनलॉक तक बंद",
+    "review.approve_one": "जारी रखने के लिए कम से कम एक आइटम मंजूर करें",
+    "review.accessibility_title": "{kind} शीर्षक",
+    "review.accessibility_title_hint": "मंजूरी से पहले इम्पोर्ट की गई पंक्ति का शीर्षक बदलें।",
+    "review.accessibility_approve": "{title} मंजूर करें",
+    "review.accessibility_unapprove": "{title} की मंजूरी हटाएं",
+    "review.accessibility_toggle_apply": "यह पंक्ति लागू होगी या नहीं, बदलें।",
+    "review.accessibility_remove": "{title} हटाएं",
+    "review.accessibility_remove_hint": "इस पंक्ति को इम्पोर्ट समीक्षा से हटाता है।",
+    "paywall.sub_no_import": "अनलॉक के बाद स्कैन, पेस्ट या हाथ से जोड़ें। डैशबोर्ड, विजेट, रिमाइंडर या अगले कदमों में जाने से पहले हर पंक्ति जांचें।",
+    "paywall.preview_first_sub": "अनलॉक के बाद स्कैन, पेस्ट या हाथ से जोड़ें। डैशबोर्ड, विजेट, रिमाइंडर या अगले कदमों में जाने से पहले हर पंक्ति जांचें।",
+    "paywall.ready_apply": "लागू करने के लिए तैयार",
+    "paywall.best_value": "सबसे अच्छा",
+    "paywall.plan_preview_title": "प्लान पूर्वावलोकन",
+    "paywall.plan_preview_methods": "स्कैन · पेस्ट · हाथ से",
+    "paywall.preview_chip_class": "क्लास",
+    "paywall.preview_chip_class_sub": "तैयारी से",
+    "paywall.preview_chip_deadline": "तारीख",
+    "paywall.preview_chip_deadline_sub": "पहले जांचें",
+    "paywall.preview_chip_move": "पहला कदम",
+    "paywall.preview_chip_move_sub": "पूर्वावलोकन बाद",
+  },
+  ar: {
+    "common.close_paywall": "إغلاق شاشة الاشتراك",
+    "common.app_store": "App Store",
+    "legal.privacy_title": "سياسة الخصوصية",
+    "legal.terms_title": "شروط الاستخدام",
+    "legal.data_source_title": "مصدر البيانات",
+    "legal.data_source_body": "يحفظ StudyPlanner بيانات خطتك على هذا الجهاز.",
+    "legal.imports_title": "الاستيراد",
+    "legal.imports_body": "تُستخدم المناهج والملاحظات وملفات PDF ونص الكاميرا لإنشاء معاينة مراجعة وخطة الفصل.",
+    "legal.purchases_title": "المشتريات",
+    "legal.purchases_body": "يتولى App Store عمليات شراء الاشتراك واستعادته.",
+    "legal.sharing_title": "المشاركة",
+    "legal.sharing_body": "لا يبيع StudyPlanner بيانات خطتك.",
+    "legal.support_title": "الدعم",
+    "legal.support_body": "راسل الدعم للمساعدة في بيانات التطبيق أو المشتريات أو الخصوصية.",
+    "legal.subscription_title": "الاشتراك",
+    "legal.subscription_body": "يستخدم StudyPlanner اشتراكات تتجدد تلقائيًا ويعرضها App Store ويؤكدها قبل الشراء.",
+    "legal.access_title": "الوصول",
+    "legal.access_body": "يلزم اشتراك نشط لتطبيق الاستيراد واستخدام اللوحة والتذكيرات والويدجت.",
+    "legal.billing_title": "الفوترة",
+    "legal.billing_body": "يمكنك إدارة الاشتراكات أو إلغاءها من حساب Apple.",
+    "legal.standard_terms_title": "الشروط القياسية",
+    "legal.standard_terms_body": "تطبق اتفاقية Apple القياسية ما لم توجد اتفاقية مكتوبة منفصلة.",
+    "option.add_manually": "إضافة يدويًا",
+    "onboarding.rating_title": "الدفع عبر App Store",
+    "onboarding.rating_body": "يظهر السعر والشروط وتأكيد الاشتراك قبل الشراء.",
+    "onboarding.paywall_gate_title": "افتح أولًا. ثم امسح.",
+    "onboarding.paywall_gate_body": "تبدأ الكاميرا وPDF واللصق والإعداد اليدوي بعد فتح App Store، حتى يصبح أول استيراد حقيقي خطة الفصل المباشرة.",
+    "onboarding.unlock_to_scan": "افتح للمسح",
+    "onboarding.artifacts_sub": "بعد الفتح، راجع المواد الحقيقية وأول موعد والضغط والويدجت قبل حفظ أي شيء.",
+    "onboarding.preview_kicker": "خطة {goal}",
+    "onboarding.preview_title": "{name}، افتح مرة واحدة ثم راجع أول نسخة مفيدة.",
+    "onboarding.preview_body": "بعد الفتح، امسح أو الصق أو أضف مادة يدويًا. تراجع كل شيء قبل الحفظ.",
+    "onboarding.paywall_first": "افتح أولاً، ثم امسح أو الصق أو أضف يدويًا. ستراجع كل شيء قبل الحفظ.",
+    "onboarding.fallback_title": "لا يوجد منهج واضح؟ الإعداد اليدوي يعمل أيضًا.",
+    "onboarding.fallback_body": "أضف مادة وموعدًا يدويًا. يحوله StudyPlanner إلى نفس معاينة المراجعة.",
+    "onboarding.manual_body": "اكتب مادة وموعدًا لبناء معاينة",
+    "onboarding.manual_need_class": "أضف اسم المادة قبل المعاينة.",
+    "onboarding.manual_task_description": "أول موعد يدوي من التهيئة.",
+    "onboarding.manual_kicker": "خطة يدوية بديلة",
+    "onboarding.manual_title": "ابنِ معاينة واضحة يدويًا.",
+    "onboarding.manual_sub": "استخدمها عندما يكون المنهج مفقودًا أو غير واضح أو خاطئًا. لا يُحفظ شيء حتى توافق.",
+    "onboarding.manual_class_placeholder": "الأحياء 101",
+    "onboarding.manual_deadline_title": "أول موعد",
+    "onboarding.manual_deadline_placeholder": "تقرير المختبر يوم الجمعة",
+    "onboarding.manual_deadline_hint": "اختياري، لكنه يجعل أول خطة واقعية.",
+    "onboarding.manual_preview": "معاينة الخطة اليدوية",
+    "import.preview_body": "تظهر المواد والمواعيد والاختبارات والضغط وأول خطوة في المعاينة.",
+    "locked.sub": "افتح ثم امسح أو الصق أو أضف مادة. راجع كل صف قبل الحفظ.",
+    "locked.card_kicker": "مراجعة بعد الفتح",
+    "locked.step1": "افتح StudyPlanner",
+    "locked.step2": "امسح أو الصق أو أضف يدويًا",
+    "locked.step3": "راجع قبل الحفظ",
+    "locked.preview_sub": "افتح ثم امسح أو الصق أو أضف مادة. راجع كل صف قبل الحفظ.",
+    "locked.preview_card_kicker": "مراجعة بعد الفتح",
+    "locked.preview_step1": "افتح StudyPlanner",
+    "locked.preview_step2": "امسح أو الصق أو أضف يدويًا",
+    "locked.preview_step3": "راجع قبل الحفظ",
+    "paste.syllabus_required": "الصق نص المنهج لاستخراج المواد والواجبات والاختبارات.",
+    "paste.syllabus_title": "أنشئ معاينة للفصل من المنهج.",
+    "paste.preview_sub": "راجع ما يجده StudyPlanner قبل الحفظ.",
+    "paste.syllabus_placeholder": "الصق المنهج أو أوراق الواجب أو النص المستخرج من PDF...",
+    "paste.reading": "جارٍ القراءة...",
+    "scan.pdf_action_body": "الأفضل للمناهج الكاملة والملفات متعددة الصفحات.",
+    "scan.camera_action_body": "التقط الصفحات واللوحات والحزم والجداول المطبوعة.",
+    "scan.photo_action_body": "استخدم لقطات الشاشة أو صفحات المنهج المحفوظة.",
+    "scan.paste_action_body": "بديل لملفات PDF المقفلة أو النص المنسوخ من منصة الدراسة.",
+    "scan.metric_ocr": "قراءة النص",
+    "scan.metric_gate": "بوابة الحفظ",
+    "scan.history_empty_title": "لا توجد واردات تمت مراجعتها بعد",
+    "scan.rail_capture": "التقاط",
+    "scan.rail_read": "قراءة النص",
+    "scan.rail_review": "مراجعة",
+    "scan.rail_plan": "خطة",
+    "scanner.notes_mode": "مسح ملاحظات موجّه",
+    "scanner.syllabus_mode": "مسح منهج موجّه",
+    "scanner.exit": "الخروج من الماسح",
+    "review.weak_title": "يبدو الاستخراج غير مكتمل.",
+    "review.weak_body": "استخدم الصفوف أدناه فقط إذا كانت تطابق المنهج. يمكنك إعادة المحاولة أو لصق النص أو الإعداد يدويًا.",
+    "review.none_selected_title": "لا يوجد اختيار",
+    "review.none_selected_body": "وافق على مادة أو واجب أو اختبار أو ملاحظة واحدة على الأقل قبل المتابعة.",
+    "review.empty_title": "لا يوجد استيراد قيد المراجعة",
+    "review.empty_body": "امسح أو الصق أو ارفع منهجًا أولًا. لا يُحفظ شيء حتى توافق على الصفوف.",
+    "review.approved_footer": "{count} عناصر معتمدة · {state}",
+    "review.editable_later": "قابل للتعديل لاحقًا",
+    "review.locked_until_premium": "مغلق حتى الفتح",
+    "review.approve_one": "وافق على عنصر واحد على الأقل للمتابعة",
+    "review.accessibility_title": "عنوان {kind}",
+    "review.accessibility_title_hint": "عدّل عنوان الصف المستورد قبل الموافقة.",
+    "review.accessibility_approve": "الموافقة على {title}",
+    "review.accessibility_unapprove": "إلغاء الموافقة على {title}",
+    "review.accessibility_toggle_apply": "بدّل ما إذا كان هذا الصف سيُطبق.",
+    "review.accessibility_remove": "إزالة {title}",
+    "review.accessibility_remove_hint": "يزيل هذا الصف من مراجعة الاستيراد.",
+    "paywall.sub_no_import": "بعد الفتح، امسح أو الصق أو أضف يدويًا. ستراجع كل صف قبل أن يصل إلى اللوحة أو الويدجت أو التذكيرات أو الخطوات التالية.",
+    "paywall.preview_first_sub": "بعد الفتح، امسح أو الصق أو أضف يدويًا. ستراجع كل صف قبل أن يصل إلى اللوحة أو الويدجت أو التذكيرات أو الخطوات التالية.",
+    "paywall.ready_apply": "جاهز للتطبيق",
+    "paywall.best_value": "أفضل خيار",
+    "paywall.plan_preview_title": "معاينة الخطة",
+    "paywall.plan_preview_methods": "مسح · لصق · يدوي",
+    "paywall.preview_chip_class": "مادة",
+    "paywall.preview_chip_class_sub": "من الإعداد",
+    "paywall.preview_chip_deadline": "موعد",
+    "paywall.preview_chip_deadline_sub": "راجعه أولًا",
+    "paywall.preview_chip_move": "أول خطوة",
+    "paywall.preview_chip_move_sub": "بعد المعاينة",
+  },
+};
+
+for (const locale of Object.keys(ONBOARDING_FUNNEL_COPY) as SupportedLocale[]) {
+  Object.assign(APP_COPY[locale], ONBOARDING_FUNNEL_COPY[locale]);
+}
+
+const PREVIEW_BEFORE_PURCHASE_COPY: Record<SupportedLocale, Record<string, string>> = {
+  "en-US": {
+    "onboarding.name_sub": "Turn your syllabus into a plan you can review before anything is saved.",
+    "onboarding.paywall_first_personal": "Choose a source. StudyPlanner AI builds a preview first; unlock only to apply it, add reminders, or use widgets.",
+    "onboarding.preview_title": "{name}, build your first preview.",
+    "onboarding.preview_title_camera": "{name}, scan your syllabus now.",
+    "onboarding.preview_body": "Scan, paste, or add one class. Review the result before you unlock and apply it.",
+    "onboarding.continue_scan": "Open camera",
+    "onboarding.continue_paste": "Paste syllabus",
+    "onboarding.continue_manual": "Add manually",
+    "onboarding.import_options_sub": "Choose a source. Review the preview before anything is saved.",
+    "review.locked_cta": "Unlock to apply plan",
+  },
+  de: {
+    "onboarding.name_sub": "Mach aus deinem Lehrplan einen Plan, den du vor dem Speichern prüfen kannst.",
+    "onboarding.paywall_first_personal": "Wähle eine Quelle. StudyPlanner AI erstellt zuerst eine Vorschau; freischalten musst du erst zum Anwenden, für Erinnerungen oder Widgets.",
+    "onboarding.preview_title": "{name}, erstelle deine erste Vorschau.",
+    "onboarding.preview_title_camera": "{name}, scanne jetzt deinen Lehrplan.",
+    "onboarding.preview_body": "Scanne, füge Text ein oder lege einen Kurs an. Prüfe das Ergebnis, bevor du freischaltest und es anwendest.",
+    "onboarding.continue_scan": "Kamera öffnen",
+    "onboarding.continue_paste": "Lehrplan einfügen",
+    "onboarding.continue_manual": "Manuell hinzufügen",
+    "onboarding.import_options_sub": "Wähle eine Quelle. Prüfe die Vorschau, bevor etwas gespeichert wird.",
+    "review.locked_cta": "Zum Anwenden freischalten",
+  },
+  es: {
+    "onboarding.name_sub": "Convierte tu programa en un plan que puedes revisar antes de guardar nada.",
+    "onboarding.paywall_first_personal": "Elige una fuente. StudyPlanner AI crea primero una vista previa; desbloquea solo para aplicarla, crear recordatorios o usar widgets.",
+    "onboarding.preview_title": "{name}, crea tu primera vista previa.",
+    "onboarding.preview_title_camera": "{name}, escanea tu programa ahora.",
+    "onboarding.preview_body": "Escanea, pega el texto o añade una clase. Revisa el resultado antes de desbloquearlo y aplicarlo.",
+    "onboarding.continue_scan": "Abrir cámara",
+    "onboarding.continue_paste": "Pegar programa",
+    "onboarding.continue_manual": "Añadir manualmente",
+    "onboarding.import_options_sub": "Elige una fuente. Revisa la vista previa antes de guardar nada.",
+    "review.locked_cta": "Desbloquear para aplicar el plan",
+  },
+  fr: {
+    "onboarding.name_sub": "Transforme ton programme en un plan que tu peux vérifier avant tout enregistrement.",
+    "onboarding.paywall_first_personal": "Choisis une source. StudyPlanner AI crée d’abord un aperçu ; le déverrouillage n’est requis que pour l’appliquer, ajouter des rappels ou utiliser les widgets.",
+    "onboarding.preview_title": "{name}, crée ton premier aperçu.",
+    "onboarding.preview_title_camera": "{name}, scanne ton programme maintenant.",
+    "onboarding.preview_body": "Scanne, colle du texte ou ajoute un cours. Vérifie le résultat avant de déverrouiller et de l’appliquer.",
+    "onboarding.continue_scan": "Ouvrir l’appareil photo",
+    "onboarding.continue_paste": "Coller le programme",
+    "onboarding.continue_manual": "Ajouter manuellement",
+    "onboarding.import_options_sub": "Choisis une source. Vérifie l’aperçu avant tout enregistrement.",
+    "review.locked_cta": "Déverrouiller pour appliquer le plan",
+  },
+  "pt-BR": {
+    "onboarding.name_sub": "Transforme seu plano de ensino em um plano que você pode revisar antes de salvar qualquer coisa.",
+    "onboarding.paywall_first_personal": "Escolha uma fonte. O StudyPlanner AI cria uma prévia primeiro; desbloqueie só para aplicá-la, adicionar lembretes ou usar widgets.",
+    "onboarding.preview_title": "{name}, crie sua primeira prévia.",
+    "onboarding.preview_title_camera": "{name}, escaneie seu plano de ensino agora.",
+    "onboarding.preview_body": "Escaneie, cole o texto ou adicione uma disciplina. Revise o resultado antes de desbloquear e aplicar.",
+    "onboarding.continue_scan": "Abrir câmera",
+    "onboarding.continue_paste": "Colar plano de ensino",
+    "onboarding.continue_manual": "Adicionar manualmente",
+    "onboarding.import_options_sub": "Escolha uma fonte. Revise a prévia antes de salvar qualquer coisa.",
+    "review.locked_cta": "Desbloquear para aplicar o plano",
+  },
+  ja: {
+    "onboarding.name_sub": "シラバスを計画に変え、保存前に内容を確認できます。",
+    "onboarding.paywall_first_personal": "開始方法を選んでください。StudyPlanner AIが先にプレビューを作成します。計画の適用、リマインダーの追加、ウィジェットの利用時だけ解除が必要です。",
+    "onboarding.preview_title": "{name}さん、最初のプレビューを作りましょう。",
+    "onboarding.preview_title_camera": "{name}さん、今すぐシラバスをスキャンしましょう。",
+    "onboarding.preview_body": "スキャン、貼り付け、または授業を1つ手入力します。解除して適用する前に、結果を確認できます。",
+    "onboarding.continue_scan": "カメラを開く",
+    "onboarding.continue_paste": "シラバスを貼り付け",
+    "onboarding.continue_manual": "手動で追加",
+    "onboarding.import_options_sub": "開始方法を選んでください。保存前にプレビューを確認できます。",
+    "review.locked_cta": "ロックを解除して計画を適用",
+  },
+  ko: {
+    "onboarding.name_sub": "강의계획서를 계획으로 만들고 저장 전에 내용을 검토하세요.",
+    "onboarding.paywall_first_personal": "시작 방법을 선택하세요. StudyPlanner AI가 먼저 미리보기를 만듭니다. 계획 적용, 알림 추가, 위젯 사용 시에만 잠금 해제가 필요합니다.",
+    "onboarding.preview_title": "{name}님, 첫 미리보기를 만들어 보세요.",
+    "onboarding.preview_title_camera": "{name}님, 지금 강의계획서를 스캔하세요.",
+    "onboarding.preview_body": "스캔하거나 텍스트를 붙여넣거나 수업 하나를 직접 추가하세요. 결과를 검토한 뒤 잠금을 해제하고 적용하세요.",
+    "onboarding.continue_scan": "카메라 열기",
+    "onboarding.continue_paste": "강의계획서 붙여넣기",
+    "onboarding.continue_manual": "직접 추가",
+    "onboarding.import_options_sub": "시작 방법을 선택하세요. 저장 전에 미리보기를 검토할 수 있습니다.",
+    "review.locked_cta": "계획 적용을 위해 잠금 해제",
+  },
+  "zh-Hans": {
+    "onboarding.name_sub": "把课程大纲变成计划，保存前先检查内容。",
+    "onboarding.paywall_first_personal": "选择一种开始方式。StudyPlanner AI 会先生成预览；仅在应用计划、添加提醒或使用小组件时需要解锁。",
+    "onboarding.preview_title": "{name}，先生成第一份预览。",
+    "onboarding.preview_title_camera": "{name}，现在扫描课程大纲。",
+    "onboarding.preview_body": "扫描、粘贴或手动添加一门课程。检查结果后再解锁并应用。",
+    "onboarding.continue_scan": "打开相机",
+    "onboarding.continue_paste": "粘贴课程大纲",
+    "onboarding.continue_manual": "手动添加",
+    "onboarding.import_options_sub": "选择一种开始方式。保存前先检查预览。",
+    "review.locked_cta": "解锁后应用计划",
+  },
+  hi: {
+    "onboarding.name_sub": "अपने सिलेबस को योजना में बदलें और कुछ भी सेव होने से पहले उसे जाँच लें।",
+    "onboarding.paywall_first_personal": "शुरू करने का तरीका चुनें। StudyPlanner AI पहले प्रीव्यू बनाता है; योजना लागू करने, रिमाइंडर जोड़ने या विजेट इस्तेमाल करने के लिए ही अनलॉक करें।",
+    "onboarding.preview_title": "{name}, अपना पहला प्रीव्यू बनाएँ।",
+    "onboarding.preview_title_camera": "{name}, अब अपना सिलेबस स्कैन करें।",
+    "onboarding.preview_body": "स्कैन करें, टेक्स्ट पेस्ट करें या एक क्लास जोड़ें। अनलॉक करके लागू करने से पहले नतीजा जाँच लें।",
+    "onboarding.continue_scan": "कैमरा खोलें",
+    "onboarding.continue_paste": "सिलेबस पेस्ट करें",
+    "onboarding.continue_manual": "खुद जोड़ें",
+    "onboarding.import_options_sub": "शुरू करने का तरीका चुनें। कुछ भी सेव होने से पहले प्रीव्यू जाँच लें।",
+    "review.locked_cta": "योजना लागू करने के लिए अनलॉक करें",
+  },
+  ar: {
+    "onboarding.name_sub": "حوّل منهجك إلى خطة يمكنك مراجعتها قبل حفظ أي شيء.",
+    "onboarding.paywall_first_personal": "اختر مصدرًا. ينشئ StudyPlanner AI معاينة أولًا؛ ولا يلزم الاشتراك إلا لتطبيقها أو إضافة تذكيرات أو استخدام الويدجت.",
+    "onboarding.preview_title": "{name}، أنشئ معاينتك الأولى.",
+    "onboarding.preview_title_camera": "{name}، امسح منهجك ضوئيًا الآن.",
+    "onboarding.preview_body": "امسح منهجًا أو الصقه أو أضف مادة واحدة. راجع النتيجة قبل الاشتراك وتطبيقها.",
+    "onboarding.continue_scan": "فتح الكاميرا",
+    "onboarding.continue_paste": "لصق المنهج",
+    "onboarding.continue_manual": "إضافة يدويًا",
+    "onboarding.import_options_sub": "اختر مصدرًا. راجع المعاينة قبل حفظ أي شيء.",
+    "review.locked_cta": "اشترك لتطبيق الخطة",
+  },
+};
+
+for (const locale of Object.keys(PREVIEW_BEFORE_PURCHASE_COPY) as SupportedLocale[]) {
+  Object.assign(APP_COPY[locale], {
+    "onboarding.name_sub": PREVIEW_BEFORE_PURCHASE_COPY[locale]["onboarding.name_sub"],
+  });
+}
+
+const SEASONAL_TRIAL_COPY: Record<SupportedLocale, Record<string, string>> = {
+  "en-US": {
+    "paywall.seasonal_kicker": "BACK-TO-SCHOOL OFFER",
+    "paywall.seasonal_title": "One week free with any plan",
+    "paywall.seasonal_body": "Eligible new subscribers. Apple confirms eligibility; then {price} on the {plan} plan. Renews automatically until canceled.",
+    "paywall.trial_badge": "1 week free",
+    "paywall.trial_cta": "Start one-week free trial",
+    "paywall.trial_summary": "1 week free, then {price}/{plan}. Auto-renews until canceled.",
+  },
+  de: {
+    "paywall.seasonal_kicker": "ANGEBOT ZUM SEMESTERSTART",
+    "paywall.seasonal_title": "Eine Woche gratis mit jedem Abo",
+    "paywall.seasonal_body": "Für berechtigte neue Abonnenten. Apple bestätigt die Berechtigung; danach {price} im {plan}-Abo. Verlängert sich automatisch bis zur Kündigung.",
+    "paywall.trial_badge": "1 Woche kostenlos",
+    "paywall.trial_cta": "Kostenlose Woche starten",
+    "paywall.trial_summary": "1 Woche kostenlos, danach {price}/{plan}. Verlängert sich automatisch.",
+  },
+  es: {
+    "paywall.seasonal_kicker": "OFERTA DE VUELTA A CLASES",
+    "paywall.seasonal_title": "Una semana gratis con cualquier plan",
+    "paywall.seasonal_body": "Para nuevos suscriptores que cumplan los requisitos. Apple confirma la elegibilidad; después, {price} con el plan {plan}. Se renueva automáticamente hasta que canceles.",
+    "paywall.trial_badge": "1 semana gratis",
+    "paywall.trial_cta": "Iniciar semana gratis",
+    "paywall.trial_summary": "1 semana gratis; después, {price}/{plan}. Renovación automática.",
+  },
+  fr: {
+    "paywall.seasonal_kicker": "OFFRE DE RENTRÉE",
+    "paywall.seasonal_title": "Une semaine offerte avec chaque formule",
+    "paywall.seasonal_body": "Pour les nouveaux abonnés éligibles. Apple confirme l’éligibilité ; puis {price} avec la formule {plan}. Renouvellement automatique jusqu’à résiliation.",
+    "paywall.trial_badge": "1 semaine gratuite",
+    "paywall.trial_cta": "Commencer la semaine gratuite",
+    "paywall.trial_summary": "1 semaine gratuite, puis {price}/{plan}. Renouvellement automatique.",
+  },
+  "pt-BR": {
+    "paywall.seasonal_kicker": "OFERTA DE VOLTA ÀS AULAS",
+    "paywall.seasonal_title": "Uma semana grátis em qualquer plano",
+    "paywall.seasonal_body": "Para novos assinantes elegíveis. A Apple confirma a elegibilidade; depois, {price} no plano {plan}. Renovação automática até o cancelamento.",
+    "paywall.trial_badge": "1 semana grátis",
+    "paywall.trial_cta": "Iniciar semana grátis",
+    "paywall.trial_summary": "1 semana grátis; depois, {price}/{plan}. Renovação automática.",
+  },
+  ja: {
+    "paywall.seasonal_kicker": "新学期キャンペーン",
+    "paywall.seasonal_title": "どのプランも最初の1週間は無料",
+    "paywall.seasonal_body": "対象となる新規登録者向けです。Appleが適用条件を確認し、その後は{plan}が{price}です。解約するまで自動更新されます。",
+    "paywall.trial_badge": "1週間無料",
+    "paywall.trial_cta": "1週間の無料体験を開始",
+    "paywall.trial_summary": "1週間無料、その後{price}/{plan}。解約まで自動更新。",
+  },
+  ko: {
+    "paywall.seasonal_kicker": "새 학기 프로모션",
+    "paywall.seasonal_title": "모든 요금제 첫 1주 무료",
+    "paywall.seasonal_body": "대상 신규 구독자에게 적용됩니다. Apple이 대상 여부를 확인하며 이후 {plan} 요금은 {price}입니다. 취소할 때까지 자동 갱신됩니다.",
+    "paywall.trial_badge": "1주 무료",
+    "paywall.trial_cta": "1주 무료 체험 시작",
+    "paywall.trial_summary": "1주 무료, 이후 {price}/{plan}. 자동 갱신.",
+  },
+  "zh-Hans": {
+    "paywall.seasonal_kicker": "开学季优惠",
+    "paywall.seasonal_title": "任一方案首周免费",
+    "paywall.seasonal_body": "适用于符合条件的新订阅用户。Apple 会确认资格；之后{plan}价格为 {price}。取消前将自动续订。",
+    "paywall.trial_badge": "免费 1 周",
+    "paywall.trial_cta": "开始一周免费试用",
+    "paywall.trial_summary": "首周免费，之后 {price}/{plan}。自动续订。",
+  },
+  hi: {
+    "paywall.seasonal_kicker": "बैक-टू-स्कूल ऑफ़र",
+    "paywall.seasonal_title": "हर प्लान के साथ पहला सप्ताह मुफ़्त",
+    "paywall.seasonal_body": "योग्य नए सब्सक्राइबर के लिए। Apple पात्रता की पुष्टि करता है; फिर {plan} के लिए {price}। रद्द करने तक अपने-आप नवीनीकृत होगा।",
+    "paywall.trial_badge": "1 सप्ताह मुफ़्त",
+    "paywall.trial_cta": "एक सप्ताह का मुफ़्त ट्रायल शुरू करें",
+    "paywall.trial_summary": "1 सप्ताह मुफ़्त, फिर {price}/{plan}। अपने-आप नवीनीकरण।",
+  },
+  ar: {
+    "paywall.seasonal_kicker": "عرض العودة إلى الدراسة",
+    "paywall.seasonal_title": "أسبوع مجانًا مع أي خطة",
+    "paywall.seasonal_body": "للمشتركين الجدد المؤهلين. تؤكد Apple الأهلية؛ ثم {price} لخطة {plan}. يتجدد تلقائيًا حتى الإلغاء.",
+    "paywall.trial_badge": "أسبوع مجانًا",
+    "paywall.trial_cta": "ابدأ التجربة المجانية لأسبوع",
+    "paywall.trial_summary": "أسبوع مجانًا، ثم {price}/{plan}. تجديد تلقائي.",
+  },
+};
+
+for (const locale of Object.keys(SEASONAL_TRIAL_COPY) as SupportedLocale[]) {
+  Object.assign(APP_COPY[locale], SEASONAL_TRIAL_COPY[locale]);
+}
+
+const SEMESTER_THEME_COPY: Record<SupportedLocale, Record<string, string>> = {
+  "en-US": {
+    "onboarding.theme_kicker": "MAKE IT YOUR SEMESTER",
+    "onboarding.theme_title": "Your semester, cleanly set up.",
+    "onboarding.theme_sub": "StudyPlanner keeps the setup personal without asking you to decorate it.",
+    "onboarding.theme_preview_kicker": "LIVE PREVIEW",
+    "onboarding.theme_preview_title": "{name}'s semester",
+    "onboarding.theme_preview_title_fallback": "Your semester",
+    "onboarding.theme_pulse": "SEMESTER PULSE",
+    "onboarding.theme_ready": "Ready to build",
+    "onboarding.theme_widget_title": "Calendar widget",
+    "onboarding.theme_widget_body": "Deadlines stay glanceable.",
+    "onboarding.theme_locked_title": "White by default",
+    "onboarding.theme_locked_body": "Black controls stay primary. Course colors appear automatically for classes and widgets.",
+    "onboarding.theme_blue": "Blue",
+    "onboarding.theme_green": "Green",
+    "onboarding.theme_orange": "Orange",
+    "onboarding.theme_purple": "Purple",
+    "onboarding.theme_pink": "Pink",
+    "onboarding.theme_graphite": "Graphite",
+    "onboarding.theme_selected_hint": "Selected. Dashboard, focus blocks, classes, and widgets use the quiet system.",
+    "onboarding.theme_select_hint": "Uses the quiet system for your dashboard, focus blocks, classes, and widgets.",
+    "onboarding.theme_selected_value": "Selected semester system",
+    "onboarding.theme_unselected_value": "Available semester system",
+    "success.theme_kicker": "SYSTEM APPLIED",
+    "success.theme_title": "White system, class colors",
+    "success.theme_body": "Dashboard, focus blocks, classes, and widgets keep black controls with automatic course colors for context.",
+    "success.theme_proof": "No color setup required. Course colors stay automatic for classes and widgets.",
+  },
+  de: {
+    "onboarding.theme_kicker": "MACH ES ZU DEINEM SEMESTER",
+    "onboarding.theme_title": "Dein Semester, klar eingerichtet.",
+    "onboarding.theme_sub": "StudyPlanner bleibt persönlich, ohne dass du es gestalten musst.",
+    "onboarding.theme_preview_kicker": "LIVE-VORSCHAU",
+    "onboarding.theme_preview_title": "{name}s Semester",
+    "onboarding.theme_preview_title_fallback": "Dein Semester",
+    "onboarding.theme_pulse": "SEMESTER-PULS",
+    "onboarding.theme_ready": "Bereit zum Planen",
+    "onboarding.theme_widget_title": "Kalender-Widget",
+    "onboarding.theme_widget_body": "Fristen bleiben sichtbar.",
+    "onboarding.theme_locked_title": "Standardmäßig Weiß",
+    "onboarding.theme_locked_body": "Schwarze Bedienelemente bleiben primär. Kursfarben erscheinen automatisch für Kurse und Widgets.",
+    "onboarding.theme_blue": "Blau",
+    "onboarding.theme_green": "Grün",
+    "onboarding.theme_orange": "Orange",
+    "onboarding.theme_purple": "Lila",
+    "onboarding.theme_pink": "Pink",
+    "onboarding.theme_graphite": "Graphit",
+    "onboarding.theme_selected_hint": "Ausgewählt. Dashboard, Fokusblöcke, Kurse und Widgets nutzen das ruhige System.",
+    "onboarding.theme_select_hint": "Nutzt das ruhige System für Dashboard, Fokusblöcke, Kurse und Widgets.",
+    "onboarding.theme_selected_value": "Ausgewähltes Semestersystem",
+    "onboarding.theme_unselected_value": "Verfügbares Semestersystem",
+    "success.theme_kicker": "SYSTEM ANGEWENDET",
+    "success.theme_title": "Weißes System, Kursfarben",
+    "success.theme_body": "Dashboard, Fokusblöcke, Kurse und Widgets behalten schwarze Bedienelemente mit automatischen Kursfarben.",
+    "success.theme_proof": "Keine Farbauswahl nötig. Kursfarben bleiben automatisch für Kurse und Widgets.",
+  },
+  es: {
+    "onboarding.theme_kicker": "HAZLO TU SEMESTRE",
+    "onboarding.theme_title": "Tu semestre, limpio y listo.",
+    "onboarding.theme_sub": "StudyPlanner lo mantiene personal sin pedirte que lo decores.",
+    "onboarding.theme_preview_kicker": "VISTA EN VIVO",
+    "onboarding.theme_preview_title": "Semestre de {name}",
+    "onboarding.theme_preview_title_fallback": "Tu semestre",
+    "onboarding.theme_pulse": "PULSO DEL SEMESTRE",
+    "onboarding.theme_ready": "Listo para crear",
+    "onboarding.theme_widget_title": "Widget de calendario",
+    "onboarding.theme_widget_body": "Entregas siempre visibles.",
+    "onboarding.theme_locked_title": "Blanco por defecto",
+    "onboarding.theme_locked_body": "Los controles negros siguen primero. Los colores de clase aparecen automáticamente en clases y widgets.",
+    "onboarding.theme_blue": "Azul",
+    "onboarding.theme_green": "Verde",
+    "onboarding.theme_orange": "Naranja",
+    "onboarding.theme_purple": "Morado",
+    "onboarding.theme_pink": "Rosa",
+    "onboarding.theme_graphite": "Grafito",
+    "onboarding.theme_selected_hint": "Seleccionado. Panel, bloques de enfoque, clases y widgets usan el sistema tranquilo.",
+    "onboarding.theme_select_hint": "Usa el sistema tranquilo para panel, bloques de enfoque, clases y widgets.",
+    "onboarding.theme_selected_value": "Sistema de semestre seleccionado",
+    "onboarding.theme_unselected_value": "Sistema de semestre disponible",
+    "success.theme_kicker": "SISTEMA APLICADO",
+    "success.theme_title": "Sistema blanco, colores de clase",
+    "success.theme_body": "Panel, bloques de enfoque, clases y widgets mantienen controles negros con colores de clase automáticos.",
+    "success.theme_proof": "Sin elegir colores. Los colores de clase quedan automáticos para clases y widgets.",
+  },
+  fr: {
+    "onboarding.theme_kicker": "PERSONNALISE TON SEMESTRE",
+    "onboarding.theme_title": "Ton semestre, simplement prêt.",
+    "onboarding.theme_sub": "StudyPlanner reste personnel sans te demander de le décorer.",
+    "onboarding.theme_preview_kicker": "APERÇU EN DIRECT",
+    "onboarding.theme_preview_title": "Semestre de {name}",
+    "onboarding.theme_preview_title_fallback": "Ton semestre",
+    "onboarding.theme_pulse": "RYTHME DU SEMESTRE",
+    "onboarding.theme_ready": "Prêt à construire",
+    "onboarding.theme_widget_title": "Widget calendrier",
+    "onboarding.theme_widget_body": "Échéances visibles.",
+    "onboarding.theme_locked_title": "Blanc par défaut",
+    "onboarding.theme_locked_body": "Les contrôles noirs restent prioritaires. Les couleurs de cours apparaissent automatiquement.",
+    "onboarding.theme_blue": "Bleu",
+    "onboarding.theme_green": "Vert",
+    "onboarding.theme_orange": "Orange",
+    "onboarding.theme_purple": "Violet",
+    "onboarding.theme_pink": "Rose",
+    "onboarding.theme_graphite": "Graphite",
+    "onboarding.theme_selected_hint": "Sélectionné. Tableau, blocs de concentration, cours et widgets utilisent le système calme.",
+    "onboarding.theme_select_hint": "Utilise le système calme pour le tableau, les blocs de concentration, les cours et les widgets.",
+    "onboarding.theme_selected_value": "Système de semestre sélectionné",
+    "onboarding.theme_unselected_value": "Système de semestre disponible",
+    "success.theme_kicker": "SYSTÈME APPLIQUÉ",
+    "success.theme_title": "Système blanc, couleurs de cours",
+    "success.theme_body": "Tableau, blocs de concentration, cours et widgets gardent des contrôles noirs avec couleurs de cours automatiques.",
+    "success.theme_proof": "Aucune couleur à choisir. Les couleurs de cours restent automatiques.",
+  },
+  "pt-BR": {
+    "onboarding.theme_kicker": "DEIXE O SEMESTRE COM A SUA CARA",
+    "onboarding.theme_title": "Seu semestre, limpo e pronto.",
+    "onboarding.theme_sub": "StudyPlanner fica pessoal sem pedir que você decore nada.",
+    "onboarding.theme_preview_kicker": "PRÉVIA AO VIVO",
+    "onboarding.theme_preview_title": "Semestre de {name}",
+    "onboarding.theme_preview_title_fallback": "Seu semestre",
+    "onboarding.theme_pulse": "PULSO DO SEMESTRE",
+    "onboarding.theme_ready": "Pronto para criar",
+    "onboarding.theme_widget_title": "Widget de calendário",
+    "onboarding.theme_widget_body": "Prazos sempre visíveis.",
+    "onboarding.theme_locked_title": "Branco por padrão",
+    "onboarding.theme_locked_body": "Controles pretos continuam principais. Cores de matérias aparecem automaticamente.",
+    "onboarding.theme_blue": "Azul",
+    "onboarding.theme_green": "Verde",
+    "onboarding.theme_orange": "Laranja",
+    "onboarding.theme_purple": "Roxo",
+    "onboarding.theme_pink": "Rosa",
+    "onboarding.theme_graphite": "Grafite",
+    "onboarding.theme_selected_hint": "Selecionado. Painel, blocos de foco, matérias e widgets usam o sistema calmo.",
+    "onboarding.theme_select_hint": "Usa o sistema calmo no painel, blocos de foco, matérias e widgets.",
+    "onboarding.theme_selected_value": "Sistema de semestre selecionado",
+    "onboarding.theme_unselected_value": "Sistema de semestre disponível",
+    "success.theme_kicker": "SISTEMA APLICADO",
+    "success.theme_title": "Sistema branco, cores de matérias",
+    "success.theme_body": "Painel, blocos de foco, matérias e widgets mantêm controles pretos com cores automáticas.",
+    "success.theme_proof": "Sem escolha de cores. As cores das matérias ficam automáticas.",
+  },
+  ja: {
+    "onboarding.theme_kicker": "自分らしい学期に",
+    "onboarding.theme_title": "あなたの学期をすっきり準備。",
+    "onboarding.theme_sub": "StudyPlannerは飾り付けを求めず、個人に合わせて整えます。",
+    "onboarding.theme_preview_kicker": "ライブプレビュー",
+    "onboarding.theme_preview_title": "{name}の学期",
+    "onboarding.theme_preview_title_fallback": "あなたの学期",
+    "onboarding.theme_pulse": "学期パルス",
+    "onboarding.theme_ready": "作成準備完了",
+    "onboarding.theme_widget_title": "カレンダーウィジェット",
+    "onboarding.theme_widget_body": "締切をすぐ確認できます。",
+    "onboarding.theme_locked_title": "標準は白",
+    "onboarding.theme_locked_body": "黒い操作系を中心に、授業カラーは自動で授業とウィジェットに表示されます。",
+    "onboarding.theme_blue": "ブルー",
+    "onboarding.theme_green": "グリーン",
+    "onboarding.theme_orange": "オレンジ",
+    "onboarding.theme_purple": "パープル",
+    "onboarding.theme_pink": "ピンク",
+    "onboarding.theme_graphite": "グラファイト",
+    "onboarding.theme_selected_hint": "選択済み。ダッシュボード、集中ブロック、授業、ウィジェットに静かなシステムを使います。",
+    "onboarding.theme_select_hint": "静かなシステムをダッシュボード、集中ブロック、授業、ウィジェットに使います。",
+    "onboarding.theme_selected_value": "選択中の学期システム",
+    "onboarding.theme_unselected_value": "選択できる学期システム",
+    "success.theme_kicker": "システム適用済み",
+    "success.theme_title": "白いシステムと授業カラー",
+    "success.theme_body": "黒い操作系を保ちながら、授業カラーがダッシュボード、授業、ウィジェットに自動で入ります。",
+    "success.theme_proof": "色選択は不要です。授業カラーは自動で保たれます。",
+  },
+  ko: {
+    "onboarding.theme_kicker": "내 학기답게 만들기",
+    "onboarding.theme_title": "내 학기, 깔끔하게 준비.",
+    "onboarding.theme_sub": "StudyPlanner는 꾸미기 없이도 개인화된 설정을 유지합니다.",
+    "onboarding.theme_preview_kicker": "실시간 미리보기",
+    "onboarding.theme_preview_title": "{name}의 학기",
+    "onboarding.theme_preview_title_fallback": "내 학기",
+    "onboarding.theme_pulse": "학기 흐름",
+    "onboarding.theme_ready": "만들 준비 완료",
+    "onboarding.theme_widget_title": "캘린더 위젯",
+    "onboarding.theme_widget_body": "마감을 한눈에 볼 수 있습니다.",
+    "onboarding.theme_locked_title": "기본은 흰색",
+    "onboarding.theme_locked_body": "검은 컨트롤이 기본이고, 수업 색상은 수업과 위젯에 자동으로 표시됩니다.",
+    "onboarding.theme_blue": "파랑",
+    "onboarding.theme_green": "초록",
+    "onboarding.theme_orange": "주황",
+    "onboarding.theme_purple": "보라",
+    "onboarding.theme_pink": "분홍",
+    "onboarding.theme_graphite": "그래파이트",
+    "onboarding.theme_selected_hint": "선택됨. 대시보드, 집중 블록, 수업, 위젯에 차분한 시스템이 적용됩니다.",
+    "onboarding.theme_select_hint": "차분한 시스템을 대시보드, 집중 블록, 수업, 위젯에 적용합니다.",
+    "onboarding.theme_selected_value": "선택한 학기 시스템",
+    "onboarding.theme_unselected_value": "선택 가능한 학기 시스템",
+    "success.theme_kicker": "시스템 적용됨",
+    "success.theme_title": "흰 시스템, 수업 색상",
+    "success.theme_body": "대시보드, 집중 블록, 수업, 위젯은 검은 컨트롤과 자동 수업 색상을 함께 씁니다.",
+    "success.theme_proof": "색상 선택은 필요 없습니다. 수업 색상은 자동으로 유지됩니다.",
+  },
+  "zh-Hans": {
+    "onboarding.theme_kicker": "打造你的学期",
+    "onboarding.theme_title": "你的学期，清爽就绪。",
+    "onboarding.theme_sub": "StudyPlanner 保持个人化，但不要求你装饰它。",
+    "onboarding.theme_preview_kicker": "实时预览",
+    "onboarding.theme_preview_title": "{name}的学期",
+    "onboarding.theme_preview_title_fallback": "你的学期",
+    "onboarding.theme_pulse": "学期脉搏",
+    "onboarding.theme_ready": "准备创建",
+    "onboarding.theme_widget_title": "日历小组件",
+    "onboarding.theme_widget_body": "截止日期一眼可见。",
+    "onboarding.theme_locked_title": "默认白色",
+    "onboarding.theme_locked_body": "黑色控件保持优先。课程颜色会自动出现在课程和小组件中。",
+    "onboarding.theme_blue": "蓝色",
+    "onboarding.theme_green": "绿色",
+    "onboarding.theme_orange": "橙色",
+    "onboarding.theme_purple": "紫色",
+    "onboarding.theme_pink": "粉色",
+    "onboarding.theme_graphite": "石墨色",
+    "onboarding.theme_selected_hint": "已选择。仪表盘、专注时段、课程和小组件将使用安静系统。",
+    "onboarding.theme_select_hint": "将安静系统应用到仪表盘、专注时段、课程和小组件。",
+    "onboarding.theme_selected_value": "已选择的学期系统",
+    "onboarding.theme_unselected_value": "可选学期系统",
+    "success.theme_kicker": "系统已应用",
+    "success.theme_title": "白色系统，课程颜色",
+    "success.theme_body": "仪表盘、专注时段、课程和小组件保留黑色控件，并自动显示课程颜色。",
+    "success.theme_proof": "无需选择颜色。课程颜色会自动用于课程和小组件。",
+  },
+  hi: {
+    "onboarding.theme_kicker": "इसे अपना सेमेस्टर बनाएं",
+    "onboarding.theme_title": "आपका सेमेस्टर, साफ़ तरीके से तैयार।",
+    "onboarding.theme_sub": "StudyPlanner इसे निजी रखता है, सजावट चुनने को नहीं कहता।",
+    "onboarding.theme_preview_kicker": "लाइव प्रीव्यू",
+    "onboarding.theme_preview_title": "{name} का सेमेस्टर",
+    "onboarding.theme_preview_title_fallback": "आपका सेमेस्टर",
+    "onboarding.theme_pulse": "सेमेस्टर पल्स",
+    "onboarding.theme_ready": "बनाने के लिए तैयार",
+    "onboarding.theme_widget_title": "कैलेंडर विजेट",
+    "onboarding.theme_widget_body": "डेडलाइन आसानी से दिखेंगी।",
+    "onboarding.theme_locked_title": "डिफ़ॉल्ट रूप से सफेद",
+    "onboarding.theme_locked_body": "काले कंट्रोल मुख्य रहते हैं। क्लास रंग क्लास और विजेट में अपने-आप दिखते हैं।",
+    "onboarding.theme_blue": "नीला",
+    "onboarding.theme_green": "हरा",
+    "onboarding.theme_orange": "नारंगी",
+    "onboarding.theme_purple": "बैंगनी",
+    "onboarding.theme_pink": "गुलाबी",
+    "onboarding.theme_graphite": "ग्रेफाइट",
+    "onboarding.theme_selected_hint": "चुना गया। डैशबोर्ड, फोकस ब्लॉक, क्लास और विजेट शांत सिस्टम इस्तेमाल करेंगे।",
+    "onboarding.theme_select_hint": "शांत सिस्टम को डैशबोर्ड, फोकस ब्लॉक, क्लास और विजेट पर लागू करता है।",
+    "onboarding.theme_selected_value": "चुना हुआ सेमेस्टर सिस्टम",
+    "onboarding.theme_unselected_value": "उपलब्ध सेमेस्टर सिस्टम",
+    "success.theme_kicker": "सिस्टम लागू",
+    "success.theme_title": "सफेद सिस्टम, क्लास रंग",
+    "success.theme_body": "डैशबोर्ड, फोकस ब्लॉक, क्लास और विजेट काले कंट्रोल के साथ अपने-आप क्लास रंग दिखाते हैं।",
+    "success.theme_proof": "रंग चुनने की ज़रूरत नहीं। क्लास रंग अपने-आप रहते हैं।",
+  },
+  ar: {
+    "onboarding.theme_kicker": "اجعل الفصل مناسبًا لك",
+    "onboarding.theme_title": "فصلك جاهز ببساطة.",
+    "onboarding.theme_sub": "يحافظ StudyPlanner على الطابع الشخصي بدون طلب تزيين الواجهة.",
+    "onboarding.theme_preview_kicker": "معاينة مباشرة",
+    "onboarding.theme_preview_title": "فصل {name}",
+    "onboarding.theme_preview_title_fallback": "فصلك الدراسي",
+    "onboarding.theme_pulse": "نبض الفصل",
+    "onboarding.theme_ready": "جاهز للبناء",
+    "onboarding.theme_widget_title": "ويدجت التقويم",
+    "onboarding.theme_widget_body": "تبقى المواعيد واضحة.",
+    "onboarding.theme_locked_title": "أبيض افتراضيًا",
+    "onboarding.theme_locked_body": "تبقى عناصر التحكم سوداء، وتظهر ألوان المواد تلقائيًا في المواد والويدجت.",
+    "onboarding.theme_blue": "أزرق",
+    "onboarding.theme_green": "أخضر",
+    "onboarding.theme_orange": "برتقالي",
+    "onboarding.theme_purple": "بنفسجي",
+    "onboarding.theme_pink": "وردي",
+    "onboarding.theme_graphite": "غرافيت",
+    "onboarding.theme_selected_hint": "محدد. ستستخدم اللوحة وفترات التركيز والمواد والويدجت النظام الهادئ.",
+    "onboarding.theme_select_hint": "يطبّق النظام الهادئ على اللوحة وفترات التركيز والمواد والويدجت.",
+    "onboarding.theme_selected_value": "نظام الفصل المحدد",
+    "onboarding.theme_unselected_value": "نظام فصل متاح",
+    "success.theme_kicker": "تم تطبيق النظام",
+    "success.theme_title": "نظام أبيض وألوان مواد",
+    "success.theme_body": "تحافظ اللوحة وفترات التركيز والمواد والويدجت على تحكم أسود مع ألوان مواد تلقائية.",
+    "success.theme_proof": "لا حاجة لاختيار الألوان. تبقى ألوان المواد تلقائية.",
+  },
+};
+
+for (const locale of Object.keys(SEMESTER_THEME_COPY) as SupportedLocale[]) {
+  Object.assign(APP_COPY[locale], SEMESTER_THEME_COPY[locale]);
+}
+
+const CAMERA_PAYWALL_COPY: Record<Exclude<SupportedLocale, "en-US">, Record<string, string>> = {
+  de: {
+    "onboarding.camera_gate_title": "Kamerascan freischalten.",
+    "onboarding.camera_gate_body": "Nach der App-Store-Freischaltung öffnet sich die geführte Kamera, liest den Lehrplan auf diesem iPhone und schickt jede Zeile vor dem Speichern in die Prüfung.",
+    "paywall.camera_title": "Kamerascan wird hier freigeschaltet",
+    "paywall.camera_body": "Nach dem Kauf erfasst die geführte Kamera Lehrplanseiten, liest den Text auf diesem iPhone und lässt dich jede erkannte Zeile vor dem Speichern prüfen.",
+    "paywall.camera_methods": "Kamera · Texterkennung · Prüfung",
+    "paywall.camera_step_scan": "Scannen",
+    "paywall.camera_step_read": "Lesen",
+    "paywall.camera_step_review": "Prüfen",
+    "paywall.camera_step_apply": "Anwenden",
+    "paywall.unlock_camera": "Kamerascan freischalten",
+    "paywall.benefit_camera": "Lehrplan mit Kamera scannen",
+  },
+  es: {
+    "onboarding.camera_gate_title": "Desbloquea el escaneo con cámara.",
+    "onboarding.camera_gate_body": "La cámara guiada se abre después del desbloqueo de App Store, lee el programa en este iPhone y manda cada fila a revisión antes de guardar.",
+    "paywall.camera_title": "El escaneo con cámara se desbloquea aquí",
+    "paywall.camera_body": "Después de comprar, usa la cámara guiada para capturar páginas del programa, leer el texto en este iPhone y revisar las filas extraídas antes de guardar.",
+    "paywall.camera_methods": "Cámara · Lectura · Revisión",
+    "paywall.camera_step_scan": "Escanear",
+    "paywall.camera_step_read": "Leer",
+    "paywall.camera_step_review": "Revisar",
+    "paywall.camera_step_apply": "Aplicar",
+    "paywall.unlock_camera": "Desbloquear cámara",
+    "paywall.benefit_camera": "Escanear un programa con cámara",
+  },
+  fr: {
+    "onboarding.camera_gate_title": "Déverrouille le scan caméra.",
+    "onboarding.camera_gate_body": "La caméra guidée s'ouvre après le déverrouillage App Store, lit le programme sur cet iPhone, puis envoie chaque ligne en vérification avant enregistrement.",
+    "paywall.camera_title": "Le scan caméra se déverrouille ici",
+    "paywall.camera_body": "Après achat, utilise la caméra guidée pour capturer les pages du programme, lire le texte sur cet iPhone et vérifier les lignes extraites avant enregistrement.",
+    "paywall.camera_methods": "Caméra · Lecture · Vérification",
+    "paywall.camera_step_scan": "Scanner",
+    "paywall.camera_step_read": "Lire",
+    "paywall.camera_step_review": "Vérifier",
+    "paywall.camera_step_apply": "Appliquer",
+    "paywall.unlock_camera": "Déverrouiller le scan",
+    "paywall.benefit_camera": "Scanner un programme avec la caméra",
+  },
+  "pt-BR": {
+    "onboarding.camera_gate_title": "Desbloqueie o escaneamento com câmera.",
+    "onboarding.camera_gate_body": "A câmera guiada abre depois do desbloqueio da App Store, lê o plano de curso neste iPhone e envia cada linha para revisão antes de salvar.",
+    "paywall.camera_title": "A câmera desbloqueia aqui",
+    "paywall.camera_body": "Depois da compra, use a câmera guiada para capturar páginas do plano, ler o texto neste iPhone e revisar as linhas extraídas antes de salvar.",
+    "paywall.camera_methods": "Câmera · Leitura · Revisão",
+    "paywall.camera_step_scan": "Escanear",
+    "paywall.camera_step_read": "Ler",
+    "paywall.camera_step_review": "Revisar",
+    "paywall.camera_step_apply": "Aplicar",
+    "paywall.unlock_camera": "Desbloquear câmera",
+    "paywall.benefit_camera": "Escanear plano com câmera",
+  },
+  ja: {
+    "onboarding.camera_gate_title": "カメラスキャンを解除。",
+    "onboarding.camera_gate_body": "App Storeで解除するとガイド付きカメラが開き、このiPhoneでシラバスを読み取り、保存前に各行を確認へ送ります。",
+    "paywall.camera_title": "ここでカメラスキャンを解除",
+    "paywall.camera_body": "購入後、ガイド付きカメラでシラバスページを撮影し、このiPhoneで文字を読み取り、抽出行を保存前に確認できます。",
+    "paywall.camera_methods": "カメラ · 文字認識 · 確認",
+    "paywall.camera_step_scan": "撮影",
+    "paywall.camera_step_read": "読取",
+    "paywall.camera_step_review": "確認",
+    "paywall.camera_step_apply": "適用",
+    "paywall.unlock_camera": "カメラを解除",
+    "paywall.benefit_camera": "カメラでシラバスをスキャン",
+  },
+  ko: {
+    "onboarding.camera_gate_title": "카메라 스캔 잠금 해제.",
+    "onboarding.camera_gate_body": "App Store 잠금 해제 후 가이드 카메라가 열리고, 이 iPhone에서 강의계획서를 읽은 뒤 저장 전 각 행을 검토로 보냅니다.",
+    "paywall.camera_title": "여기서 카메라 스캔 잠금 해제",
+    "paywall.camera_body": "구매 후 가이드 카메라로 강의계획서 페이지를 촬영하고, 이 iPhone에서 텍스트를 읽고, 저장 전 추출된 행을 검토하세요.",
+    "paywall.camera_methods": "카메라 · 문자 인식 · 검토",
+    "paywall.camera_step_scan": "스캔",
+    "paywall.camera_step_read": "읽기",
+    "paywall.camera_step_review": "검토",
+    "paywall.camera_step_apply": "적용",
+    "paywall.unlock_camera": "카메라 잠금 해제",
+    "paywall.benefit_camera": "카메라로 강의계획서 스캔",
+  },
+  "zh-Hans": {
+    "onboarding.camera_gate_title": "解锁相机扫描。",
+    "onboarding.camera_gate_body": "App Store 解锁后会打开引导式相机，在这台 iPhone 上读取课程大纲，并在保存前把每一行送去检查。",
+    "paywall.camera_title": "在这里解锁相机扫描",
+    "paywall.camera_body": "购买后，用引导式相机拍摄课程大纲页面，在这台 iPhone 上读取文字，并在保存前检查提取出的每一行。",
+    "paywall.camera_methods": "相机 · 文字识别 · 检查",
+    "paywall.camera_step_scan": "扫描",
+    "paywall.camera_step_read": "读取",
+    "paywall.camera_step_review": "检查",
+    "paywall.camera_step_apply": "应用",
+    "paywall.unlock_camera": "解锁相机扫描",
+    "paywall.benefit_camera": "用相机扫描课程大纲",
+  },
+  hi: {
+    "onboarding.camera_gate_title": "कैमरा स्कैन अनलॉक करें।",
+    "onboarding.camera_gate_body": "App Store अनलॉक के बाद गाइडेड कैमरा खुलेगा, इस iPhone पर सिलेबस पढ़ेगा और सेव से पहले हर पंक्ति समीक्षा में भेजेगा।",
+    "paywall.camera_title": "कैमरा स्कैन यहां अनलॉक होता है",
+    "paywall.camera_body": "खरीद के बाद गाइडेड कैमरा से सिलेबस पेज कैप्चर करें, इस iPhone पर टेक्स्ट पढ़ें और सेव से पहले निकली पंक्तियां जांचें।",
+    "paywall.camera_methods": "कैमरा · टेक्स्ट पढ़ना · समीक्षा",
+    "paywall.camera_step_scan": "स्कैन",
+    "paywall.camera_step_read": "पढ़ें",
+    "paywall.camera_step_review": "समीक्षा",
+    "paywall.camera_step_apply": "लागू",
+    "paywall.unlock_camera": "कैमरा स्कैन अनलॉक",
+    "paywall.benefit_camera": "कैमरा से सिलेबस स्कैन",
+  },
+  ar: {
+    "onboarding.camera_gate_title": "افتح مسح الكاميرا.",
+    "onboarding.camera_gate_body": "بعد فتح App Store، تفتح الكاميرا الموجهة وتقرأ المنهج على هذا iPhone ثم ترسل كل صف للمراجعة قبل الحفظ.",
+    "paywall.camera_title": "يُفتح مسح الكاميرا هنا",
+    "paywall.camera_body": "بعد الشراء، استخدم الكاميرا الموجهة لالتقاط صفحات المنهج وقراءة النص على هذا iPhone ومراجعة الصفوف المستخرجة قبل الحفظ.",
+    "paywall.camera_methods": "كاميرا · قراءة نص · مراجعة",
+    "paywall.camera_step_scan": "مسح",
+    "paywall.camera_step_read": "قراءة",
+    "paywall.camera_step_review": "مراجعة",
+    "paywall.camera_step_apply": "تطبيق",
+    "paywall.unlock_camera": "فتح مسح الكاميرا",
+    "paywall.benefit_camera": "مسح المنهج بالكاميرا",
+  },
+};
+
+for (const locale of Object.keys(CAMERA_PAYWALL_COPY) as Exclude<SupportedLocale, "en-US">[]) {
+  Object.assign(APP_COPY[locale], CAMERA_PAYWALL_COPY[locale]);
+}
+
+const SCANNER_GUIDE_COPY: Record<SupportedLocale, Record<string, string>> = {
+  "en-US": {
+    "scanner.notes_mode": "Guided notes scan",
+    "scanner.syllabus_mode": "Guided syllabus scan",
+    "scanner.exit": "Exit scanner",
+    "scanner.guide_start": "Place the full page inside the frame.",
+    "scanner.note_tip_1": "Fill the frame with one notes page.",
+    "scanner.note_tip_2": "Flatten curved notebook pages before capture.",
+    "scanner.note_tip_3": "Use torch if handwriting is gray or shadowed.",
+    "scanner.note_tip_4": "Hold still until the text read starts.",
+    "scanner.tip_1": "Get all four page corners inside the frame.",
+    "scanner.tip_2": "Move closer until small text looks crisp.",
+    "scanner.tip_3": "Use bright, even light. Avoid glare.",
+    "scanner.tip_4": "Keep the phone parallel to the page.",
+    "scanner.ready_review": "Text found. Review every row before anything saves.",
+    "scanner.ready_review_count": "{count} words found. Review the extracted rows before saving.",
+    "scanner.weak": "Text looks thin. Retake with the page closer and brighter.",
+    "scanner.weak_title": "Retake recommended",
+    "scanner.weak_body": "Only {count} words were found. Move closer, keep all corners visible, and avoid shadows.",
+    "scanner.use_anyway": "Use anyway",
+    "scanner.retake": "Retake",
+    "scanner.hold": "Hold still. Capturing the page...",
+    "scanner.reading": "Reading text. This works best with crisp, flat pages.",
+    "scanner.capture_failed": "The camera did not return a photo.",
+    "scanner.loading_camera": "Preparing camera...",
+    "scanner.permission_title": "Camera access is needed",
+    "scanner.allow_camera": "Allow camera",
+    "scanner.ready_title": "Ready to review",
+    "scanner.promise": "Nothing saves until you review and approve the extracted rows.",
+    "scanner.check_corners": "Corners",
+    "scanner.check_light": "Light",
+    "scanner.check_steady": "Steady",
+    "scanner.after_capture": "Captured text",
+    "scanner.before_capture": "Before capture",
+    "scanner.ready_rule_1": "{count} words found.",
+    "scanner.ready_rule_2": "Next screen lets you edit, approve, or remove every row.",
+    "scanner.ready_rule_3": "Retake if the page was cropped or blurry.",
+    "scanner.rule_1": "Page edges visible, not cropped.",
+    "scanner.rule_2": "Text is sharp enough to read on screen.",
+    "scanner.rule_3": "No fingers, glare, or dark shadows over text.",
+    "scanner.capture": "Capture page",
+  },
+  de: {
+    "scanner.notes_mode": "Geführter Notizscan",
+    "scanner.syllabus_mode": "Geführter Lehrplanscan",
+    "scanner.exit": "Scanner verlassen",
+    "scanner.guide_start": "Lege die ganze Seite in den Rahmen.",
+    "scanner.note_tip_1": "Fülle den Rahmen mit einer Notizseite.",
+    "scanner.note_tip_2": "Glätte gebogene Seiten vor der Aufnahme.",
+    "scanner.note_tip_3": "Nutze die Lampe, wenn Schrift grau oder schattig ist.",
+    "scanner.note_tip_4": "Halte still, bis das Lesen beginnt.",
+    "scanner.tip_1": "Bringe alle vier Seitenecken in den Rahmen.",
+    "scanner.tip_2": "Geh näher heran, bis kleiner Text scharf wirkt.",
+    "scanner.tip_3": "Nutze helles, gleichmäßiges Licht. Vermeide Glanz.",
+    "scanner.tip_4": "Halte das iPhone parallel zur Seite.",
+    "scanner.ready_review": "Text gefunden. Prüfe jede Zeile, bevor etwas gespeichert wird.",
+    "scanner.ready_review_count": "{count} Wörter gefunden. Prüfe die erkannten Zeilen vor dem Speichern.",
+    "scanner.weak": "Der Text wirkt schwach. Nimm die Seite näher und heller erneut auf.",
+    "scanner.weak_title": "Erneute Aufnahme empfohlen",
+    "scanner.weak_body": "Nur {count} Wörter gefunden. Geh näher heran, halte alle Ecken sichtbar und vermeide Schatten.",
+    "scanner.use_anyway": "Trotzdem verwenden",
+    "scanner.retake": "Neu aufnehmen",
+    "scanner.hold": "Still halten. Seite wird aufgenommen...",
+    "scanner.reading": "Text wird gelesen. Das klappt am besten mit einer scharfen, flachen Seite.",
+    "scanner.capture_failed": "Die Kamera hat kein Foto zurückgegeben.",
+    "scanner.loading_camera": "Kamera wird vorbereitet...",
+    "scanner.permission_title": "Kamerazugriff erforderlich",
+    "scanner.allow_camera": "Kamera erlauben",
+    "scanner.ready_title": "Bereit zur Prüfung",
+    "scanner.promise": "Nichts wird gespeichert, bis du die erkannten Zeilen geprüft und bestätigt hast.",
+    "scanner.check_corners": "Ecken",
+    "scanner.check_light": "Licht",
+    "scanner.check_steady": "Ruhig",
+    "scanner.after_capture": "Erfasster Text",
+    "scanner.before_capture": "Vor der Aufnahme",
+    "scanner.ready_rule_1": "{count} Wörter gefunden.",
+    "scanner.ready_rule_2": "Im nächsten Bildschirm kannst du jede Zeile bearbeiten, bestätigen oder entfernen.",
+    "scanner.ready_rule_3": "Nimm neu auf, wenn die Seite abgeschnitten oder unscharf war.",
+    "scanner.rule_1": "Seitenränder sichtbar, nicht abgeschnitten.",
+    "scanner.rule_2": "Text ist am Bildschirm gut lesbar.",
+    "scanner.rule_3": "Keine Finger, Reflexe oder dunklen Schatten.",
+    "scanner.capture": "Seite aufnehmen",
+  },
+  es: {
+    "scanner.notes_mode": "Escaneo guiado de notas",
+    "scanner.syllabus_mode": "Escaneo guiado del programa",
+    "scanner.exit": "Salir del escáner",
+    "scanner.guide_start": "Coloca toda la página dentro del marco.",
+    "scanner.note_tip_1": "Llena el marco con una página de apuntes.",
+    "scanner.note_tip_2": "Aplana páginas curvadas antes de capturar.",
+    "scanner.note_tip_3": "Usa la luz si la letra se ve gris o con sombra.",
+    "scanner.note_tip_4": "Mantén el teléfono quieto hasta que empiece la lectura.",
+    "scanner.tip_1": "Mete las cuatro esquinas de la página en el marco.",
+    "scanner.tip_2": "Acércate hasta que el texto pequeño se vea nítido.",
+    "scanner.tip_3": "Usa luz brillante y pareja. Evita reflejos.",
+    "scanner.tip_4": "Mantén el iPhone paralelo a la página.",
+    "scanner.ready_review": "Texto encontrado. Revisa cada fila antes de guardar nada.",
+    "scanner.ready_review_count": "{count} palabras encontradas. Revisa las filas extraídas antes de guardar.",
+    "scanner.weak": "El texto se ve débil. Repite con la página más cerca y más iluminada.",
+    "scanner.weak_title": "Conviene repetir",
+    "scanner.weak_body": "Solo se encontraron {count} palabras. Acércate, deja visibles las esquinas y evita sombras.",
+    "scanner.use_anyway": "Usar igual",
+    "scanner.retake": "Repetir",
+    "scanner.hold": "Quédate quieto. Capturando la página...",
+    "scanner.reading": "Leyendo texto. Funciona mejor con una página plana y nítida.",
+    "scanner.capture_failed": "La cámara no devolvió una foto.",
+    "scanner.loading_camera": "Preparando cámara...",
+    "scanner.permission_title": "Se necesita acceso a la cámara",
+    "scanner.allow_camera": "Permitir cámara",
+    "scanner.ready_title": "Listo para revisar",
+    "scanner.promise": "Nada se guarda hasta que revises y apruebes las filas extraídas.",
+    "scanner.check_corners": "Esquinas",
+    "scanner.check_light": "Luz",
+    "scanner.check_steady": "Firme",
+    "scanner.after_capture": "Texto capturado",
+    "scanner.before_capture": "Antes de capturar",
+    "scanner.ready_rule_1": "{count} palabras encontradas.",
+    "scanner.ready_rule_2": "La siguiente pantalla permite editar, aprobar o quitar cada fila.",
+    "scanner.ready_rule_3": "Repite si la página quedó cortada o borrosa.",
+    "scanner.rule_1": "Bordes visibles, sin recortes.",
+    "scanner.rule_2": "Texto lo bastante nítido para leerlo en pantalla.",
+    "scanner.rule_3": "Sin dedos, reflejos ni sombras oscuras.",
+    "scanner.capture": "Capturar página",
+  },
+  fr: {
+    "scanner.notes_mode": "Numérisation guidée des notes",
+    "scanner.syllabus_mode": "Numérisation guidée du programme",
+    "scanner.exit": "Quitter le scanner",
+    "scanner.guide_start": "Place toute la page dans le cadre.",
+    "scanner.note_tip_1": "Remplis le cadre avec une page de notes.",
+    "scanner.note_tip_2": "Aplatis les pages courbées avant la capture.",
+    "scanner.note_tip_3": "Active la lampe si l'écriture est grise ou ombrée.",
+    "scanner.note_tip_4": "Reste immobile jusqu'au début de la lecture.",
+    "scanner.tip_1": "Place les quatre coins de la page dans le cadre.",
+    "scanner.tip_2": "Rapproche-toi jusqu'à ce que le petit texte soit net.",
+    "scanner.tip_3": "Utilise une lumière vive et régulière. Évite les reflets.",
+    "scanner.tip_4": "Garde le téléphone parallèle à la page.",
+    "scanner.ready_review": "Texte trouvé. Vérifie chaque ligne avant tout enregistrement.",
+    "scanner.ready_review_count": "{count} mots trouvés. Vérifie les lignes extraites avant d'enregistrer.",
+    "scanner.weak": "Le texte est trop léger. Reprends avec la page plus proche et mieux éclairée.",
+    "scanner.weak_title": "Reprise recommandée",
+    "scanner.weak_body": "Seulement {count} mots trouvés. Rapproche-toi, garde les coins visibles et évite les ombres.",
+    "scanner.use_anyway": "Utiliser quand même",
+    "scanner.retake": "Reprendre",
+    "scanner.hold": "Reste immobile. Capture de la page...",
+    "scanner.reading": "Lecture du texte. Le résultat est meilleur avec une page nette et plate.",
+    "scanner.capture_failed": "La caméra n'a pas renvoyé de photo.",
+    "scanner.loading_camera": "Préparation de la caméra...",
+    "scanner.permission_title": "Accès caméra nécessaire",
+    "scanner.allow_camera": "Autoriser la caméra",
+    "scanner.ready_title": "Prêt à vérifier",
+    "scanner.promise": "Rien n'est enregistré avant ta vérification et validation des lignes extraites.",
+    "scanner.check_corners": "Coins",
+    "scanner.check_light": "Lumière",
+    "scanner.check_steady": "Stable",
+    "scanner.after_capture": "Texte capturé",
+    "scanner.before_capture": "Avant la capture",
+    "scanner.ready_rule_1": "{count} mots trouvés.",
+    "scanner.ready_rule_2": "L'écran suivant permet de modifier, approuver ou supprimer chaque ligne.",
+    "scanner.ready_rule_3": "Reprends si la page était coupée ou floue.",
+    "scanner.rule_1": "Bords visibles, sans recadrage.",
+    "scanner.rule_2": "Texte assez net pour être lu à l'écran.",
+    "scanner.rule_3": "Aucun doigt, reflet ni ombre sombre.",
+    "scanner.capture": "Capturer la page",
+  },
+  "pt-BR": {
+    "scanner.notes_mode": "Escaneamento guiado de notas",
+    "scanner.syllabus_mode": "Escaneamento guiado do plano",
+    "scanner.exit": "Sair do scanner",
+    "scanner.guide_start": "Coloque a página inteira dentro do quadro.",
+    "scanner.note_tip_1": "Preencha o quadro com uma página de anotações.",
+    "scanner.note_tip_2": "Achate páginas curvadas antes de capturar.",
+    "scanner.note_tip_3": "Use a luz se a escrita estiver cinza ou sombreada.",
+    "scanner.note_tip_4": "Fique parado até a leitura começar.",
+    "scanner.tip_1": "Coloque os quatro cantos da página no quadro.",
+    "scanner.tip_2": "Aproxime até o texto pequeno ficar nítido.",
+    "scanner.tip_3": "Use luz forte e uniforme. Evite reflexos.",
+    "scanner.tip_4": "Mantenha o iPhone paralelo à página.",
+    "scanner.ready_review": "Texto encontrado. Revise cada linha antes de salvar qualquer coisa.",
+    "scanner.ready_review_count": "{count} palavras encontradas. Revise as linhas extraídas antes de salvar.",
+    "scanner.weak": "O texto ficou fraco. Capture de novo com a página mais perto e iluminada.",
+    "scanner.weak_title": "Repetir recomendado",
+    "scanner.weak_body": "Só {count} palavras foram encontradas. Aproxime, mantenha os cantos visíveis e evite sombras.",
+    "scanner.use_anyway": "Usar mesmo assim",
+    "scanner.retake": "Repetir",
+    "scanner.hold": "Fique parado. Capturando a página...",
+    "scanner.reading": "Lendo texto. Funciona melhor com uma página plana e nítida.",
+    "scanner.capture_failed": "A câmera não retornou uma foto.",
+    "scanner.loading_camera": "Preparando câmera...",
+    "scanner.permission_title": "Acesso à câmera necessário",
+    "scanner.allow_camera": "Permitir câmera",
+    "scanner.ready_title": "Pronto para revisar",
+    "scanner.promise": "Nada é salvo até você revisar e aprovar as linhas extraídas.",
+    "scanner.check_corners": "Cantos",
+    "scanner.check_light": "Luz",
+    "scanner.check_steady": "Firme",
+    "scanner.after_capture": "Texto capturado",
+    "scanner.before_capture": "Antes da captura",
+    "scanner.ready_rule_1": "{count} palavras encontradas.",
+    "scanner.ready_rule_2": "A próxima tela permite editar, aprovar ou remover cada linha.",
+    "scanner.ready_rule_3": "Repita se a página ficou cortada ou borrada.",
+    "scanner.rule_1": "Bordas visíveis, sem cortes.",
+    "scanner.rule_2": "Texto nítido o suficiente para ler na tela.",
+    "scanner.rule_3": "Sem dedos, reflexos ou sombras escuras.",
+    "scanner.capture": "Capturar página",
+  },
+  ja: {
+    "scanner.notes_mode": "ノートのガイドスキャン",
+    "scanner.syllabus_mode": "シラバスのガイドスキャン",
+    "scanner.exit": "スキャナーを終了",
+    "scanner.guide_start": "ページ全体を枠に入れてください。",
+    "scanner.note_tip_1": "ノート1ページを枠いっぱいに入れます。",
+    "scanner.note_tip_2": "曲がったページは撮影前に平らにします。",
+    "scanner.note_tip_3": "文字が薄い、または影がある時はライトを使います。",
+    "scanner.note_tip_4": "読み取りが始まるまで動かさないでください。",
+    "scanner.tip_1": "ページの四隅をすべて枠に入れます。",
+    "scanner.tip_2": "小さい文字がくっきり見えるまで近づけます。",
+    "scanner.tip_3": "明るく均一な光を使い、反射を避けます。",
+    "scanner.tip_4": "iPhoneをページと平行に保ちます。",
+    "scanner.ready_review": "テキストを検出しました。保存前にすべての行を確認してください。",
+    "scanner.ready_review_count": "{count}語を検出しました。保存前に抽出行を確認してください。",
+    "scanner.weak": "テキストが薄く見えます。ページを近づけ、明るくして撮り直してください。",
+    "scanner.weak_title": "撮り直し推奨",
+    "scanner.weak_body": "{count}語だけ検出されました。近づけて四隅を見せ、影を避けてください。",
+    "scanner.use_anyway": "このまま使う",
+    "scanner.retake": "撮り直す",
+    "scanner.hold": "動かさないでください。ページを撮影中...",
+    "scanner.reading": "テキストを読み取り中。平らで鮮明なページほど正確です。",
+    "scanner.capture_failed": "カメラから写真が返りませんでした。",
+    "scanner.loading_camera": "カメラを準備中...",
+    "scanner.permission_title": "カメラへのアクセスが必要です",
+    "scanner.allow_camera": "カメラを許可",
+    "scanner.ready_title": "確認できます",
+    "scanner.promise": "抽出行を確認して承認するまで何も保存されません。",
+    "scanner.check_corners": "四隅",
+    "scanner.check_light": "明るさ",
+    "scanner.check_steady": "固定",
+    "scanner.after_capture": "撮影したテキスト",
+    "scanner.before_capture": "撮影前",
+    "scanner.ready_rule_1": "{count}語を検出しました。",
+    "scanner.ready_rule_2": "次の画面で各行を編集、承認、削除できます。",
+    "scanner.ready_rule_3": "ページが切れた、またはぼやけた場合は撮り直してください。",
+    "scanner.rule_1": "ページの端が見えていて切れていない。",
+    "scanner.rule_2": "画面上で読めるだけの鮮明さ。",
+    "scanner.rule_3": "指、反射、濃い影がない。",
+    "scanner.capture": "ページを撮影",
+  },
+  ko: {
+    "scanner.notes_mode": "노트 가이드 스캔",
+    "scanner.syllabus_mode": "강의계획서 가이드 스캔",
+    "scanner.exit": "스캐너 나가기",
+    "scanner.guide_start": "페이지 전체를 프레임 안에 넣으세요.",
+    "scanner.note_tip_1": "노트 한 페이지가 프레임을 채우게 하세요.",
+    "scanner.note_tip_2": "휘어진 페이지는 촬영 전에 펴 주세요.",
+    "scanner.note_tip_3": "글씨가 흐리거나 그림자가 있으면 조명을 켜세요.",
+    "scanner.note_tip_4": "텍스트 읽기가 시작될 때까지 움직이지 마세요.",
+    "scanner.tip_1": "페이지 네 모서리를 모두 프레임 안에 넣으세요.",
+    "scanner.tip_2": "작은 글자가 선명해질 때까지 가까이 가세요.",
+    "scanner.tip_3": "밝고 고른 빛을 사용하고 반사를 피하세요.",
+    "scanner.tip_4": "iPhone을 페이지와 평행하게 유지하세요.",
+    "scanner.ready_review": "텍스트를 찾았습니다. 저장 전에 모든 행을 검토하세요.",
+    "scanner.ready_review_count": "{count}단어를 찾았습니다. 저장 전에 추출된 행을 검토하세요.",
+    "scanner.weak": "텍스트가 약합니다. 페이지를 더 가깝고 밝게 해서 다시 촬영하세요.",
+    "scanner.weak_title": "다시 촬영 권장",
+    "scanner.weak_body": "{count}단어만 찾았습니다. 더 가까이 가고 모서리를 보이게 하며 그림자를 피하세요.",
+    "scanner.use_anyway": "그래도 사용",
+    "scanner.retake": "다시 촬영",
+    "scanner.hold": "가만히 유지하세요. 페이지를 촬영 중...",
+    "scanner.reading": "텍스트를 읽는 중입니다. 선명하고 평평한 페이지에서 가장 잘 작동합니다.",
+    "scanner.capture_failed": "카메라가 사진을 반환하지 않았습니다.",
+    "scanner.loading_camera": "카메라 준비 중...",
+    "scanner.permission_title": "카메라 접근이 필요합니다",
+    "scanner.allow_camera": "카메라 허용",
+    "scanner.ready_title": "검토 준비 완료",
+    "scanner.promise": "추출된 행을 검토하고 승인할 때까지 아무것도 저장되지 않습니다.",
+    "scanner.check_corners": "모서리",
+    "scanner.check_light": "조명",
+    "scanner.check_steady": "고정",
+    "scanner.after_capture": "캡처한 텍스트",
+    "scanner.before_capture": "촬영 전",
+    "scanner.ready_rule_1": "{count}단어를 찾았습니다.",
+    "scanner.ready_rule_2": "다음 화면에서 각 행을 편집, 승인 또는 제거할 수 있습니다.",
+    "scanner.ready_rule_3": "페이지가 잘렸거나 흐리면 다시 촬영하세요.",
+    "scanner.rule_1": "페이지 가장자리가 보이고 잘리지 않음.",
+    "scanner.rule_2": "화면에서 읽을 만큼 텍스트가 선명함.",
+    "scanner.rule_3": "손가락, 반사, 짙은 그림자 없음.",
+    "scanner.capture": "페이지 촬영",
+  },
+  "zh-Hans": {
+    "scanner.notes_mode": "引导式笔记扫描",
+    "scanner.syllabus_mode": "引导式大纲扫描",
+    "scanner.exit": "退出扫描器",
+    "scanner.guide_start": "把整页放进取景框。",
+    "scanner.note_tip_1": "让一页笔记填满取景框。",
+    "scanner.note_tip_2": "拍摄前先压平弯曲页面。",
+    "scanner.note_tip_3": "字迹发灰或有阴影时打开补光。",
+    "scanner.note_tip_4": "保持静止，直到开始读取文字。",
+    "scanner.tip_1": "让页面四个角都在框内。",
+    "scanner.tip_2": "靠近一点，直到小字清晰。",
+    "scanner.tip_3": "使用明亮均匀的光线，避免反光。",
+    "scanner.tip_4": "让 iPhone 与页面保持平行。",
+    "scanner.ready_review": "已找到文本。保存前请检查每一行。",
+    "scanner.ready_review_count": "找到 {count} 个词。保存前请检查提取的行。",
+    "scanner.weak": "文本偏弱。请靠近并增加光线后重新拍摄。",
+    "scanner.weak_title": "建议重拍",
+    "scanner.weak_body": "只找到 {count} 个词。靠近一些，保持四角可见，并避免阴影。",
+    "scanner.use_anyway": "仍然使用",
+    "scanner.retake": "重拍",
+    "scanner.hold": "保持静止。正在拍摄页面...",
+    "scanner.reading": "正在读取文本。平整清晰的页面效果最好。",
+    "scanner.capture_failed": "相机没有返回照片。",
+    "scanner.loading_camera": "正在准备相机...",
+    "scanner.permission_title": "需要相机权限",
+    "scanner.allow_camera": "允许相机",
+    "scanner.ready_title": "准备检查",
+    "scanner.promise": "在你检查并批准提取行之前，不会保存任何内容。",
+    "scanner.check_corners": "四角",
+    "scanner.check_light": "光线",
+    "scanner.check_steady": "稳定",
+    "scanner.after_capture": "已捕获文本",
+    "scanner.before_capture": "拍摄前",
+    "scanner.ready_rule_1": "找到 {count} 个词。",
+    "scanner.ready_rule_2": "下一屏可编辑、批准或移除每一行。",
+    "scanner.ready_rule_3": "如果页面被裁切或模糊，请重拍。",
+    "scanner.rule_1": "页面边缘可见，未被裁切。",
+    "scanner.rule_2": "文本清晰到能在屏幕上阅读。",
+    "scanner.rule_3": "没有手指、反光或深色阴影。",
+    "scanner.capture": "拍摄页面",
+  },
+  hi: {
+    "scanner.notes_mode": "नोट्स का गाइडेड स्कैन",
+    "scanner.syllabus_mode": "सिलेबस का गाइडेड स्कैन",
+    "scanner.exit": "स्कैनर से बाहर निकलें",
+    "scanner.guide_start": "पूरे पेज को फ्रेम के अंदर रखें।",
+    "scanner.note_tip_1": "नोट्स का एक पेज फ्रेम में भरें।",
+    "scanner.note_tip_2": "कैप्चर से पहले मुड़े हुए पेज को सपाट करें।",
+    "scanner.note_tip_3": "लिखावट धुंधली या छाया में हो तो लाइट चलाएं।",
+    "scanner.note_tip_4": "टेक्स्ट पढ़ना शुरू होने तक स्थिर रहें।",
+    "scanner.tip_1": "पेज के चारों कोने फ्रेम में रखें।",
+    "scanner.tip_2": "छोटा टेक्स्ट साफ दिखने तक पास जाएं।",
+    "scanner.tip_3": "तेज, बराबर रोशनी रखें। चमक से बचें।",
+    "scanner.tip_4": "iPhone को पेज के समानांतर रखें।",
+    "scanner.ready_review": "टेक्स्ट मिला। कुछ भी सेव होने से पहले हर पंक्ति जांचें।",
+    "scanner.ready_review_count": "{count} शब्द मिले। सेव से पहले निकाली गई पंक्तियां जांचें।",
+    "scanner.weak": "टेक्स्ट हल्का दिख रहा है। पेज को पास और रोशन करके फिर लें।",
+    "scanner.weak_title": "फिर से लेना बेहतर है",
+    "scanner.weak_body": "सिर्फ {count} शब्द मिले। पास जाएं, सभी कोने दिखाएं और छाया से बचें।",
+    "scanner.use_anyway": "फिर भी उपयोग करें",
+    "scanner.retake": "फिर लें",
+    "scanner.hold": "स्थिर रहें। पेज कैप्चर हो रहा है...",
+    "scanner.reading": "टेक्स्ट पढ़ा जा रहा है। साफ और सपाट पेज सबसे अच्छा काम करता है।",
+    "scanner.capture_failed": "कैमरा ने फोटो वापस नहीं की।",
+    "scanner.loading_camera": "कैमरा तैयार हो रहा है...",
+    "scanner.permission_title": "कैमरा एक्सेस चाहिए",
+    "scanner.allow_camera": "कैमरा अनुमति दें",
+    "scanner.ready_title": "समीक्षा के लिए तैयार",
+    "scanner.promise": "निकाली गई पंक्तियां जांचकर स्वीकृत करने तक कुछ भी सेव नहीं होगा।",
+    "scanner.check_corners": "कोने",
+    "scanner.check_light": "रोशनी",
+    "scanner.check_steady": "स्थिर",
+    "scanner.after_capture": "कैप्चर किया टेक्स्ट",
+    "scanner.before_capture": "कैप्चर से पहले",
+    "scanner.ready_rule_1": "{count} शब्द मिले।",
+    "scanner.ready_rule_2": "अगली स्क्रीन पर हर पंक्ति संपादित, स्वीकृत या हटाई जा सकती है।",
+    "scanner.ready_rule_3": "पेज कटा या धुंधला हो तो फिर लें।",
+    "scanner.rule_1": "पेज किनारे दिखें, कटे नहीं।",
+    "scanner.rule_2": "टेक्स्ट स्क्रीन पर पढ़ने लायक साफ हो।",
+    "scanner.rule_3": "उंगलियां, चमक या गहरी छाया न हो।",
+    "scanner.capture": "पेज कैप्चर करें",
+  },
+  ar: {
+    "scanner.notes_mode": "مسح ملاحظات موجّه",
+    "scanner.syllabus_mode": "مسح منهج موجّه",
+    "scanner.exit": "الخروج من الماسح",
+    "scanner.guide_start": "ضع الصفحة كاملة داخل الإطار.",
+    "scanner.note_tip_1": "املأ الإطار بصفحة ملاحظات واحدة.",
+    "scanner.note_tip_2": "افرد الصفحات المنحنية قبل الالتقاط.",
+    "scanner.note_tip_3": "استخدم الضوء إذا كانت الكتابة باهتة أو مظللة.",
+    "scanner.note_tip_4": "ابق ثابتًا حتى تبدأ قراءة النص.",
+    "scanner.tip_1": "أدخل زوايا الصفحة الأربع داخل الإطار.",
+    "scanner.tip_2": "اقترب حتى يصبح النص الصغير واضحًا.",
+    "scanner.tip_3": "استخدم ضوءًا ساطعًا ومتوازنًا. تجنب اللمعان.",
+    "scanner.tip_4": "أبق iPhone موازيًا للصفحة.",
+    "scanner.ready_review": "تم العثور على نص. راجع كل صف قبل حفظ أي شيء.",
+    "scanner.ready_review_count": "تم العثور على {count} كلمة. راجع الصفوف المستخرجة قبل الحفظ.",
+    "scanner.weak": "النص ضعيف. أعد الالتقاط والصفحة أقرب وأكثر إضاءة.",
+    "scanner.weak_title": "يوصى بإعادة الالتقاط",
+    "scanner.weak_body": "تم العثور على {count} كلمة فقط. اقترب، أبق الزوايا مرئية، وتجنب الظلال.",
+    "scanner.use_anyway": "استخدمه رغم ذلك",
+    "scanner.retake": "إعادة الالتقاط",
+    "scanner.hold": "ابق ثابتًا. جارٍ التقاط الصفحة...",
+    "scanner.reading": "جارٍ قراءة النص. يعمل أفضل مع صفحة واضحة ومسطحة.",
+    "scanner.capture_failed": "لم تُرجع الكاميرا صورة.",
+    "scanner.loading_camera": "جارٍ تجهيز الكاميرا...",
+    "scanner.permission_title": "يلزم الوصول إلى الكاميرا",
+    "scanner.allow_camera": "السماح بالكاميرا",
+    "scanner.ready_title": "جاهز للمراجعة",
+    "scanner.promise": "لن يُحفظ شيء حتى تراجع الصفوف المستخرجة وتوافق عليها.",
+    "scanner.check_corners": "الزوايا",
+    "scanner.check_light": "الضوء",
+    "scanner.check_steady": "ثابت",
+    "scanner.after_capture": "النص الملتقط",
+    "scanner.before_capture": "قبل الالتقاط",
+    "scanner.ready_rule_1": "تم العثور على {count} كلمة.",
+    "scanner.ready_rule_2": "تتيح الشاشة التالية تعديل كل صف أو الموافقة عليه أو إزالته.",
+    "scanner.ready_rule_3": "أعد الالتقاط إذا كانت الصفحة مقصوصة أو ضبابية.",
+    "scanner.rule_1": "حواف الصفحة ظاهرة وغير مقصوصة.",
+    "scanner.rule_2": "النص واضح بما يكفي للقراءة على الشاشة.",
+    "scanner.rule_3": "لا أصابع أو لمعان أو ظلال داكنة.",
+    "scanner.capture": "التقاط الصفحة",
+  },
+};
+
+for (const locale of Object.keys(SCANNER_GUIDE_COPY) as SupportedLocale[]) {
+  Object.assign(APP_COPY[locale], SCANNER_GUIDE_COPY[locale]);
+}
+
+const SCANNER_ACCESSIBILITY_COPY: Record<SupportedLocale, Record<string, string>> = {
+  "en-US": { "scanner.toggle_torch": "Toggle torch" },
+  de: { "scanner.toggle_torch": "Lampe umschalten" },
+  es: { "scanner.toggle_torch": "Alternar luz" },
+  fr: { "scanner.toggle_torch": "Activer ou desactiver la lampe" },
+  "pt-BR": { "scanner.toggle_torch": "Alternar luz" },
+  ja: { "scanner.toggle_torch": "ライトを切り替え" },
+  ko: { "scanner.toggle_torch": "조명 전환" },
+  "zh-Hans": { "scanner.toggle_torch": "切换补光灯" },
+  hi: { "scanner.toggle_torch": "लाइट बदलें" },
+  ar: { "scanner.toggle_torch": "تبديل الضوء" },
+};
+
+for (const locale of Object.keys(SCANNER_ACCESSIBILITY_COPY) as SupportedLocale[]) {
+  Object.assign(APP_COPY[locale], SCANNER_ACCESSIBILITY_COPY[locale]);
+}
+
+const RELEASE_LOCALIZATION_OVERLAY: Record<SupportedLocale, Record<string, string>> = {
+  "en-US": {
+    "widget.native.updated_time": "Updated {time}",
+    "widget.native.updated_now": "Updated now",
+    "widget.native.build_semester": "Build semester",
+    "widget.native.scan_syllabus": "Scan syllabus",
+    "widget.native.locked": "Locked",
+    "widget.native.start": "Start",
+    "widget.native.preview_only": "Preview only",
+    "widget.native.semester": "Semester",
+    "widget.native.unlock_to_apply": "Unlock to apply your syllabus.",
+    "widget.native.syllabus_in": "Syllabus in. Semester out.",
+    "widget.native.unlock_required": "Unlock required",
+    "widget.native.import_syllabus": "Import syllabus",
+    "widget.native.setup": "Setup",
+    "widget.native.ready": "Ready",
+    "widget.native.quiet": "quiet",
+    "widget.native.unlock_plan": "Unlock plan",
+    "widget.native.build_plan": "Build plan",
+    "widget.native.required": "Required",
+    "widget.native.next_move": "Next move",
+    "widget.native.no_schedule": "No schedule",
+    "widget.native.no_load": "No load",
+    "widget.native.week_load": "Week load",
+    "widget.native.seven_days": "7 days",
+    "widget.native.no_classes": "No classes",
+    "widget.native.import_first": "Import first",
+    "widget.native.class_pulse": "Class pulse",
+    "widget.native.class": "Class",
+    "widget.native.days_ago": "{count} days ago",
+    "widget.native.yesterday": "Yesterday",
+    "widget.native.today": "Today",
+    "widget.native.tomorrow": "Tomorrow",
+    "widget.native.in_days": "In {count} days",
+    "widget.native.due_today_headline": "Due Today",
+    "widget.native.next_deadline_headline": "Next Deadline",
+    "widget.native.clear_today_headline": "Clear Today",
+    "widget.native.clear": "Clear",
+    "widget.native.due_today_detail": "due today",
+    "widget.native.today_lower": "today",
+    "widget.native.busy_day": "busy day",
+    "widget.native.busy_days": "busy days",
+    "widget.native.overdue_count": "{count} overdue",
+    "widget.native.review_today": "Review today",
+    "widget.native.clear_today": "Clear today",
+    "widget.native.next_move_headline": "Next Move",
+    "widget.native.next": "Next",
+    "widget.native.max_per_day": "{count} max/day",
+    "widget.native.light_week": "Light week",
+    "widget.native.add_grade": "Add grade",
+    "widget.native.forecast": "Forecast",
+    "widget.native.sync_iphone_only": "Native widgets sync on iPhone builds.",
+    "widget.native.timeline_error": "Widget timelines did not confirm. Try syncing again.",
+    "widget.native.synced": "iPhone widgets updated.",
+    "widget.native.unavailable": "Install the native iPhone build to sync widgets.",
+    "import.source_ai": "AI syllabus import",
+    "import.source_pasted_syllabus": "Pasted syllabus",
+    "import.source_pasted_notes": "Pasted notes",
+    "import.source_photo_syllabus": "Photo syllabus scan",
+    "import.source_photo_notes": "Photo notes scan",
+    "import.source_camera_syllabus_words": "Guided syllabus camera scan - {count} words",
+    "import.source_camera_notes_words": "Guided notes camera scan - {count} words",
+    "import.source_pdf": "PDF - {name}",
+    "import.room_tbd": "Room TBD",
+    "import.topic_core": "Core concepts",
+    "import.topic_practice": "Practice problems",
+    "import.topic_lecture_notes": "Lecture notes",
+    "import.subtask_confirm": "Confirm requirements",
+    "import.subtask_first_pass": "Complete first pass",
+    "import.meta_due": "due",
+    "risk.no_overdue": "No overdue work",
+    "risk.overdue_count": "{count} overdue",
+    "risk.due_today_count": "{count} due today",
+    "risk.no_exam": "No exam risk",
+    "risk.exam_in_days": "Exam in {count}d",
+    "risk.add_classes": "Add classes",
+    "risk.clear": "Clear.",
+    "risk.get_ahead": "Get ahead.",
+    "risk.past_due": "Past due.",
+    "risk.no_due_today": "No due date today.",
+    "risk.no_overdue_detail": "No overdue work.",
+    "study.reason_recover_first": "Recover first.",
+    "study.reason_protected_time": "Protected time.",
+    "study.reason_exam_prep": "Exam prep.",
+    "study.reason_notes_active": "Keep notes active.",
+    "study.reason_due_today": "Due today.",
+    "study.reason_clear_day": "Clear day.",
+    "study.reason_split_before": "Split before the due date.",
+  },
+  de: {
+    "widget.native.updated_time": "Aktualisiert {time}", "widget.native.updated_now": "Gerade aktualisiert", "widget.native.build_semester": "Semester bauen", "widget.native.scan_syllabus": "Lehrplan scannen", "widget.native.locked": "Gesperrt", "widget.native.start": "Start", "widget.native.preview_only": "Nur Vorschau", "widget.native.semester": "Semester", "widget.native.unlock_to_apply": "Freischalten, um deinen Lehrplan anzuwenden.", "widget.native.syllabus_in": "Lehrplan rein. Semester raus.", "widget.native.unlock_required": "Freischaltung nötig", "widget.native.import_syllabus": "Lehrplan importieren", "widget.native.setup": "Einrichtung", "widget.native.ready": "Bereit", "widget.native.quiet": "ruhig", "widget.native.unlock_plan": "Plan freischalten", "widget.native.build_plan": "Plan bauen", "widget.native.required": "Erforderlich", "widget.native.next_move": "Nächster Schritt", "widget.native.no_schedule": "Kein Plan", "widget.native.no_load": "Keine Last", "widget.native.week_load": "Wochenlast", "widget.native.seven_days": "7 Tage", "widget.native.no_classes": "Keine Kurse", "widget.native.import_first": "Erst importieren", "widget.native.class_pulse": "Kurspuls", "widget.native.class": "Kurs", "widget.native.days_ago": "vor {count} Tagen", "widget.native.yesterday": "Gestern", "widget.native.today": "Heute", "widget.native.tomorrow": "Morgen", "widget.native.in_days": "In {count} Tagen", "widget.native.due_today_headline": "Heute fällig", "widget.native.next_deadline_headline": "Nächste Frist", "widget.native.clear_today_headline": "Heute frei", "widget.native.clear": "Frei", "widget.native.due_today_detail": "heute fällig", "widget.native.today_lower": "heute", "widget.native.busy_day": "voller Tag", "widget.native.busy_days": "volle Tage", "widget.native.overdue_count": "{count} überfällig", "widget.native.review_today": "Heute prüfen", "widget.native.clear_today": "Heute frei", "widget.native.next_move_headline": "Nächster Schritt", "widget.native.next": "Weiter", "widget.native.max_per_day": "{count} max/Tag", "widget.native.light_week": "Leichte Woche", "widget.native.add_grade": "Note hinzufügen", "widget.native.forecast": "Prognose", "widget.native.sync_iphone_only": "Native Widgets synchronisieren in iPhone-Builds.", "widget.native.timeline_error": "Widget-Zeitleisten wurden nicht bestätigt. Erneut synchronisieren.", "widget.native.synced": "iPhone-Widgets aktualisiert.", "widget.native.unavailable": "Installiere den nativen iPhone-Build, um Widgets zu synchronisieren.",
+    "import.source_ai": "Lehrplanimport", "import.source_pasted_syllabus": "Eingefügter Lehrplan", "import.source_pasted_notes": "Eingefügte Notizen", "import.source_photo_syllabus": "Foto-Lehrplanscan", "import.source_photo_notes": "Foto-Notizscan", "import.source_camera_syllabus_words": "Geführter Lehrplan-Kamerascan - {count} Wörter", "import.source_camera_notes_words": "Geführter Notiz-Kamerascan - {count} Wörter", "import.source_pdf": "PDF - {name}", "import.room_tbd": "Raum offen", "import.topic_core": "Kernkonzepte", "import.topic_practice": "Übungsaufgaben", "import.topic_lecture_notes": "Vorlesungsnotizen", "import.subtask_confirm": "Anforderungen prüfen", "import.subtask_first_pass": "Ersten Durchlauf abschließen", "import.meta_due": "fällig", "risk.no_overdue": "Nichts überfällig", "risk.overdue_count": "{count} überfällig", "risk.due_today_count": "{count} heute fällig", "risk.no_exam": "Kein Prüfungsrisiko", "risk.exam_in_days": "Prüfung in {count} T.", "risk.add_classes": "Kurse hinzufügen", "risk.clear": "Frei.", "risk.get_ahead": "Vorsprung holen.", "risk.past_due": "Überfällig.", "risk.no_due_today": "Heute keine Frist.", "risk.no_overdue_detail": "Nichts ist überfällig.", "study.reason_recover_first": "Zuerst aufholen.", "study.reason_protected_time": "Geschützte Zeit.", "study.reason_exam_prep": "Prüfungsvorbereitung.", "study.reason_notes_active": "Notizen aktiv halten.", "study.reason_due_today": "Heute fällig.", "study.reason_clear_day": "Freier Tag.", "study.reason_split_before": "Vor der Frist aufteilen.",
+  },
+  es: {
+    "widget.native.updated_time": "Actualizado {time}", "widget.native.updated_now": "Actualizado ahora", "widget.native.build_semester": "Armar semestre", "widget.native.scan_syllabus": "Escanear programa", "widget.native.locked": "Bloqueado", "widget.native.start": "Inicio", "widget.native.preview_only": "Solo vista previa", "widget.native.semester": "Semestre", "widget.native.unlock_to_apply": "Desbloquea para aplicar tu programa.", "widget.native.syllabus_in": "Programa dentro. Semestre listo.", "widget.native.unlock_required": "Requiere desbloqueo", "widget.native.import_syllabus": "Importar programa", "widget.native.setup": "Configurar", "widget.native.ready": "Listo", "widget.native.quiet": "tranquilo", "widget.native.unlock_plan": "Desbloquear plan", "widget.native.build_plan": "Crear plan", "widget.native.required": "Requerido", "widget.native.next_move": "Siguiente paso", "widget.native.no_schedule": "Sin horario", "widget.native.no_load": "Sin carga", "widget.native.week_load": "Carga semanal", "widget.native.seven_days": "7 días", "widget.native.no_classes": "Sin clases", "widget.native.import_first": "Importa primero", "widget.native.class_pulse": "Pulso de clase", "widget.native.class": "Clase", "widget.native.days_ago": "hace {count} días", "widget.native.yesterday": "Ayer", "widget.native.today": "Hoy", "widget.native.tomorrow": "Mañana", "widget.native.in_days": "En {count} días", "widget.native.due_today_headline": "Vence hoy", "widget.native.next_deadline_headline": "Próxima entrega", "widget.native.clear_today_headline": "Hoy libre", "widget.native.clear": "Libre", "widget.native.due_today_detail": "vence hoy", "widget.native.today_lower": "hoy", "widget.native.busy_day": "día ocupado", "widget.native.busy_days": "días ocupados", "widget.native.overdue_count": "{count} atrasadas", "widget.native.review_today": "Revisar hoy", "widget.native.clear_today": "Hoy libre", "widget.native.next_move_headline": "Siguiente paso", "widget.native.next": "Siguiente", "widget.native.max_per_day": "{count} máx/día", "widget.native.light_week": "Semana ligera", "widget.native.add_grade": "Añadir nota", "widget.native.forecast": "Pronóstico", "widget.native.sync_iphone_only": "Los widgets nativos se sincronizan en builds de iPhone.", "widget.native.timeline_error": "Los widgets no confirmaron la línea de tiempo. Intenta sincronizar otra vez.", "widget.native.synced": "Widgets de iPhone actualizados.", "widget.native.unavailable": "Instala el build nativo de iPhone para sincronizar widgets.",
+    "import.source_ai": "Importación del programa", "import.source_pasted_syllabus": "Programa pegado", "import.source_pasted_notes": "Notas pegadas", "import.source_photo_syllabus": "Escaneo de programa desde foto", "import.source_photo_notes": "Escaneo de notas desde foto", "import.source_camera_syllabus_words": "Escaneo guiado del programa - {count} palabras", "import.source_camera_notes_words": "Escaneo guiado de notas - {count} palabras", "import.source_pdf": "PDF - {name}", "import.room_tbd": "Aula pendiente", "import.topic_core": "Conceptos clave", "import.topic_practice": "Problemas de práctica", "import.topic_lecture_notes": "Notas de clase", "import.subtask_confirm": "Confirmar requisitos", "import.subtask_first_pass": "Completar primera pasada", "import.meta_due": "vence", "risk.no_overdue": "Nada atrasado", "risk.overdue_count": "{count} atrasadas", "risk.due_today_count": "{count} vencen hoy", "risk.no_exam": "Sin riesgo de examen", "risk.exam_in_days": "Examen en {count} d", "risk.add_classes": "Añadir clases", "risk.clear": "Libre.", "risk.get_ahead": "Adelántate.", "risk.past_due": "Atrasado.", "risk.no_due_today": "Hoy no vence nada.", "risk.no_overdue_detail": "No hay trabajo atrasado.", "study.reason_recover_first": "Recuperar primero.", "study.reason_protected_time": "Tiempo protegido.", "study.reason_exam_prep": "Preparación de examen.", "study.reason_notes_active": "Mantener notas activas.", "study.reason_due_today": "Vence hoy.", "study.reason_clear_day": "Día libre.", "study.reason_split_before": "Dividir antes de la fecha.",
+  },
+  fr: {
+    "widget.native.updated_time": "Mis à jour {time}", "widget.native.updated_now": "Mis à jour maintenant", "widget.native.build_semester": "Construire semestre", "widget.native.scan_syllabus": "Scanner programme", "widget.native.locked": "Verrouillé", "widget.native.start": "Démarrer", "widget.native.preview_only": "Aperçu seul", "widget.native.semester": "Semestre", "widget.native.unlock_to_apply": "Déverrouille pour appliquer ton programme.", "widget.native.syllabus_in": "Programme entré. Semestre prêt.", "widget.native.unlock_required": "Déverrouillage requis", "widget.native.import_syllabus": "Importer programme", "widget.native.setup": "Configuration", "widget.native.ready": "Prêt", "widget.native.quiet": "calme", "widget.native.unlock_plan": "Déverrouiller plan", "widget.native.build_plan": "Créer plan", "widget.native.required": "Requis", "widget.native.next_move": "Prochaine action", "widget.native.no_schedule": "Aucun planning", "widget.native.no_load": "Aucune charge", "widget.native.week_load": "Charge semaine", "widget.native.seven_days": "7 jours", "widget.native.no_classes": "Aucun cours", "widget.native.import_first": "Importer d'abord", "widget.native.class_pulse": "Pouls du cours", "widget.native.class": "Cours", "widget.native.days_ago": "il y a {count} j", "widget.native.yesterday": "Hier", "widget.native.today": "Aujourd'hui", "widget.native.tomorrow": "Demain", "widget.native.in_days": "Dans {count} j", "widget.native.due_today_headline": "À rendre aujourd'hui", "widget.native.next_deadline_headline": "Prochaine échéance", "widget.native.clear_today_headline": "Aujourd'hui libre", "widget.native.clear": "Libre", "widget.native.due_today_detail": "à rendre aujourd'hui", "widget.native.today_lower": "aujourd'hui", "widget.native.busy_day": "jour chargé", "widget.native.busy_days": "jours chargés", "widget.native.overdue_count": "{count} en retard", "widget.native.review_today": "Réviser aujourd'hui", "widget.native.clear_today": "Aujourd'hui libre", "widget.native.next_move_headline": "Prochaine action", "widget.native.next": "Suivant", "widget.native.max_per_day": "{count} max/jour", "widget.native.light_week": "Semaine légère", "widget.native.add_grade": "Ajouter note", "widget.native.forecast": "Prévision", "widget.native.sync_iphone_only": "Les widgets natifs se synchronisent dans les builds iPhone.", "widget.native.timeline_error": "Les widgets n'ont pas confirmé la chronologie. Réessaie.", "widget.native.synced": "Widgets iPhone mis à jour.", "widget.native.unavailable": "Installe le build iPhone natif pour synchroniser les widgets.",
+    "import.source_ai": "Import du programme", "import.source_pasted_syllabus": "Programme collé", "import.source_pasted_notes": "Notes collées", "import.source_photo_syllabus": "Scan programme depuis photo", "import.source_photo_notes": "Scan notes depuis photo", "import.source_camera_syllabus_words": "Scan caméra guidé du programme - {count} mots", "import.source_camera_notes_words": "Scan caméra guidé des notes - {count} mots", "import.source_pdf": "PDF - {name}", "import.room_tbd": "Salle à confirmer", "import.topic_core": "Notions clés", "import.topic_practice": "Exercices pratiques", "import.topic_lecture_notes": "Notes de cours", "import.subtask_confirm": "Confirmer les exigences", "import.subtask_first_pass": "Terminer le premier passage", "import.meta_due": "échéance", "risk.no_overdue": "Aucun retard", "risk.overdue_count": "{count} en retard", "risk.due_today_count": "{count} à rendre aujourd'hui", "risk.no_exam": "Aucun risque d'examen", "risk.exam_in_days": "Examen dans {count} j", "risk.add_classes": "Ajouter cours", "risk.clear": "Libre.", "risk.get_ahead": "Prends de l'avance.", "risk.past_due": "En retard.", "risk.no_due_today": "Aucune échéance aujourd'hui.", "risk.no_overdue_detail": "Aucun travail en retard.", "study.reason_recover_first": "Rattraper d'abord.", "study.reason_protected_time": "Temps protégé.", "study.reason_exam_prep": "Préparation examen.", "study.reason_notes_active": "Garder les notes actives.", "study.reason_due_today": "À rendre aujourd'hui.", "study.reason_clear_day": "Journée libre.", "study.reason_split_before": "Diviser avant l'échéance.", "reminders.default_status": "Active les rappels quand tu veux que cet iPhone les programme.", "reminders.schedule_failed": "Impossible de programmer les rappels.", "reminders.schedule": "Programmer",
+  },
+  "pt-BR": {
+    "widget.native.updated_time": "Atualizado {time}", "widget.native.updated_now": "Atualizado agora", "widget.native.build_semester": "Montar semestre", "widget.native.scan_syllabus": "Escanear plano", "widget.native.locked": "Bloqueado", "widget.native.start": "Iniciar", "widget.native.preview_only": "Só prévia", "widget.native.semester": "Semestre", "widget.native.unlock_to_apply": "Desbloqueie para aplicar seu plano.", "widget.native.syllabus_in": "Plano dentro. Semestre pronto.", "widget.native.unlock_required": "Desbloqueio necessário", "widget.native.import_syllabus": "Importar plano", "widget.native.setup": "Configurar", "widget.native.ready": "Pronto", "widget.native.quiet": "calmo", "widget.native.unlock_plan": "Desbloquear plano", "widget.native.build_plan": "Criar plano", "widget.native.required": "Necessário", "widget.native.next_move": "Próximo passo", "widget.native.no_schedule": "Sem agenda", "widget.native.no_load": "Sem carga", "widget.native.week_load": "Carga semanal", "widget.native.seven_days": "7 dias", "widget.native.no_classes": "Sem aulas", "widget.native.import_first": "Importe primeiro", "widget.native.class_pulse": "Pulso da aula", "widget.native.class": "Aula", "widget.native.days_ago": "há {count} dias", "widget.native.yesterday": "Ontem", "widget.native.today": "Hoje", "widget.native.tomorrow": "Amanhã", "widget.native.in_days": "Em {count} dias", "widget.native.due_today_headline": "Vence hoje", "widget.native.next_deadline_headline": "Próximo prazo", "widget.native.clear_today_headline": "Hoje livre", "widget.native.clear": "Livre", "widget.native.due_today_detail": "vence hoje", "widget.native.today_lower": "hoje", "widget.native.busy_day": "dia cheio", "widget.native.busy_days": "dias cheios", "widget.native.overdue_count": "{count} atrasados", "widget.native.review_today": "Revisar hoje", "widget.native.clear_today": "Hoje livre", "widget.native.next_move_headline": "Próximo passo", "widget.native.next": "Próximo", "widget.native.max_per_day": "{count} máx/dia", "widget.native.light_week": "Semana leve", "widget.native.add_grade": "Adicionar nota", "widget.native.forecast": "Previsão", "widget.native.sync_iphone_only": "Widgets nativos sincronizam em builds de iPhone.", "widget.native.timeline_error": "Os widgets não confirmaram a linha do tempo. Sincronize de novo.", "widget.native.synced": "Widgets do iPhone atualizados.", "widget.native.unavailable": "Instale o build nativo de iPhone para sincronizar widgets.",
+    "import.source_ai": "Importação do plano", "import.source_pasted_syllabus": "Plano colado", "import.source_pasted_notes": "Notas coladas", "import.source_photo_syllabus": "Escaneamento do plano por foto", "import.source_photo_notes": "Escaneamento de notas por foto", "import.source_camera_syllabus_words": "Escaneamento guiado do plano - {count} palavras", "import.source_camera_notes_words": "Escaneamento guiado de notas - {count} palavras", "import.source_pdf": "PDF - {name}", "import.room_tbd": "Sala a confirmar", "import.topic_core": "Conceitos principais", "import.topic_practice": "Exercícios práticos", "import.topic_lecture_notes": "Notas de aula", "import.subtask_confirm": "Confirmar requisitos", "import.subtask_first_pass": "Concluir primeira passada", "import.meta_due": "vence", "risk.no_overdue": "Nada atrasado", "risk.overdue_count": "{count} atrasados", "risk.due_today_count": "{count} vencem hoje", "risk.no_exam": "Sem risco de prova", "risk.exam_in_days": "Prova em {count} d", "risk.add_classes": "Adicionar aulas", "risk.clear": "Livre.", "risk.get_ahead": "Adiante-se.", "risk.past_due": "Atrasado.", "risk.no_due_today": "Nada vence hoje.", "risk.no_overdue_detail": "Nenhum trabalho atrasado.", "study.reason_recover_first": "Recuperar primeiro.", "study.reason_protected_time": "Tempo protegido.", "study.reason_exam_prep": "Preparo para prova.", "study.reason_notes_active": "Manter notas ativas.", "study.reason_due_today": "Vence hoje.", "study.reason_clear_day": "Dia livre.", "study.reason_split_before": "Dividir antes do prazo.",
+  },
+  ja: {
+    "widget.native.updated_time": "{time}に更新", "widget.native.updated_now": "今更新", "widget.native.build_semester": "学期を作成", "widget.native.scan_syllabus": "シラバスをスキャン", "widget.native.locked": "ロック中", "widget.native.start": "開始", "widget.native.preview_only": "プレビューのみ", "widget.native.semester": "学期", "widget.native.unlock_to_apply": "シラバスを適用するには解除してください。", "widget.native.syllabus_in": "シラバスから学期へ。", "widget.native.unlock_required": "解除が必要", "widget.native.import_syllabus": "シラバスを取り込み", "widget.native.setup": "設定", "widget.native.ready": "準備完了", "widget.native.quiet": "静か", "widget.native.unlock_plan": "計画を解除", "widget.native.build_plan": "計画を作成", "widget.native.required": "必須", "widget.native.next_move": "次の行動", "widget.native.no_schedule": "予定なし", "widget.native.no_load": "負荷なし", "widget.native.week_load": "週間負荷", "widget.native.seven_days": "7日", "widget.native.no_classes": "授業なし", "widget.native.import_first": "先に取り込み", "widget.native.class_pulse": "授業パルス", "widget.native.class": "授業", "widget.native.days_ago": "{count}日前", "widget.native.yesterday": "昨日", "widget.native.today": "今日", "widget.native.tomorrow": "明日", "widget.native.in_days": "{count}日後", "widget.native.due_today_headline": "今日締切", "widget.native.next_deadline_headline": "次の締切", "widget.native.clear_today_headline": "今日は余裕あり", "widget.native.clear": "余裕あり", "widget.native.due_today_detail": "今日締切", "widget.native.today_lower": "今日", "widget.native.busy_day": "忙しい日", "widget.native.busy_days": "忙しい日", "widget.native.overdue_count": "{count}件遅れ", "widget.native.review_today": "今日確認", "widget.native.clear_today": "今日は余裕あり", "widget.native.next_move_headline": "次の行動", "widget.native.next": "次", "widget.native.max_per_day": "1日最大{count}", "widget.native.light_week": "軽い週", "widget.native.add_grade": "成績を追加", "widget.native.forecast": "予測", "widget.native.sync_iphone_only": "ネイティブウィジェットはiPhoneビルドで同期します。", "widget.native.timeline_error": "ウィジェットのタイムラインを確認できません。再同期してください。", "widget.native.synced": "iPhoneウィジェットを更新しました。", "widget.native.unavailable": "同期にはネイティブiPhoneビルドをインストールしてください。",
+    "import.source_ai": "シラバス取り込み", "import.source_pasted_syllabus": "貼り付けたシラバス", "import.source_pasted_notes": "貼り付けたノート", "import.source_photo_syllabus": "写真からのシラバススキャン", "import.source_photo_notes": "写真からのノートスキャン", "import.source_camera_syllabus_words": "ガイド付きシラバスカメラスキャン - {count}語", "import.source_camera_notes_words": "ガイド付きノートカメラスキャン - {count}語", "import.source_pdf": "PDF - {name}", "import.room_tbd": "教室未定", "import.topic_core": "重要概念", "import.topic_practice": "練習問題", "import.topic_lecture_notes": "講義ノート", "import.subtask_confirm": "要件を確認", "import.subtask_first_pass": "初回作業を完了", "import.meta_due": "締切", "risk.no_overdue": "遅れなし", "risk.overdue_count": "{count}件遅れ", "risk.due_today_count": "今日締切 {count}件", "risk.no_exam": "試験リスクなし", "risk.exam_in_days": "{count}日後に試験", "risk.add_classes": "授業を追加", "risk.clear": "余裕あり。", "risk.get_ahead": "先に進めます。", "risk.past_due": "期限超過。", "risk.no_due_today": "今日の締切はありません。", "risk.no_overdue_detail": "遅れている作業はありません。", "study.reason_recover_first": "まず追いつく。", "study.reason_protected_time": "確保した時間。", "study.reason_exam_prep": "試験準備。", "study.reason_notes_active": "ノートを活用。", "study.reason_due_today": "今日締切。", "study.reason_clear_day": "余裕のある日。", "study.reason_split_before": "締切前に分割。",
+  },
+  ko: {
+    "widget.native.updated_time": "{time} 업데이트", "widget.native.updated_now": "방금 업데이트", "widget.native.build_semester": "학기 만들기", "widget.native.scan_syllabus": "강의계획서 스캔", "widget.native.locked": "잠김", "widget.native.start": "시작", "widget.native.preview_only": "미리보기만", "widget.native.semester": "학기", "widget.native.unlock_to_apply": "강의계획서를 적용하려면 잠금 해제하세요.", "widget.native.syllabus_in": "강의계획서로 학기 완성.", "widget.native.unlock_required": "잠금 해제 필요", "widget.native.import_syllabus": "강의계획서 가져오기", "widget.native.setup": "설정", "widget.native.ready": "준비됨", "widget.native.quiet": "간결", "widget.native.unlock_plan": "계획 잠금 해제", "widget.native.build_plan": "계획 만들기", "widget.native.required": "필요", "widget.native.next_move": "다음 할 일", "widget.native.no_schedule": "일정 없음", "widget.native.no_load": "부담 없음", "widget.native.week_load": "주간 부담", "widget.native.seven_days": "7일", "widget.native.no_classes": "수업 없음", "widget.native.import_first": "먼저 가져오기", "widget.native.class_pulse": "수업 펄스", "widget.native.class": "수업", "widget.native.days_ago": "{count}일 전", "widget.native.yesterday": "어제", "widget.native.today": "오늘", "widget.native.tomorrow": "내일", "widget.native.in_days": "{count}일 후", "widget.native.due_today_headline": "오늘 마감", "widget.native.next_deadline_headline": "다음 마감", "widget.native.clear_today_headline": "오늘 여유", "widget.native.clear": "여유", "widget.native.due_today_detail": "오늘 마감", "widget.native.today_lower": "오늘", "widget.native.busy_day": "바쁜 날", "widget.native.busy_days": "바쁜 날", "widget.native.overdue_count": "{count}개 지연", "widget.native.review_today": "오늘 검토", "widget.native.clear_today": "오늘 여유", "widget.native.next_move_headline": "다음 할 일", "widget.native.next": "다음", "widget.native.max_per_day": "하루 최대 {count}", "widget.native.light_week": "가벼운 주", "widget.native.add_grade": "성적 추가", "widget.native.forecast": "예측", "widget.native.sync_iphone_only": "네이티브 위젯은 iPhone 빌드에서 동기화됩니다.", "widget.native.timeline_error": "위젯 타임라인을 확인하지 못했습니다. 다시 동기화하세요.", "widget.native.synced": "iPhone 위젯이 업데이트되었습니다.", "widget.native.unavailable": "위젯 동기화를 위해 네이티브 iPhone 빌드를 설치하세요.",
+    "import.source_ai": "강의계획서 가져오기", "import.source_pasted_syllabus": "붙여넣은 강의계획서", "import.source_pasted_notes": "붙여넣은 노트", "import.source_photo_syllabus": "사진 강의계획서 스캔", "import.source_photo_notes": "사진 노트 스캔", "import.source_camera_syllabus_words": "가이드 강의계획서 카메라 스캔 - {count}단어", "import.source_camera_notes_words": "가이드 노트 카메라 스캔 - {count}단어", "import.source_pdf": "PDF - {name}", "import.room_tbd": "강의실 미정", "import.topic_core": "핵심 개념", "import.topic_practice": "연습 문제", "import.topic_lecture_notes": "강의 노트", "import.subtask_confirm": "요구사항 확인", "import.subtask_first_pass": "첫 작업 완료", "import.meta_due": "마감", "risk.no_overdue": "지연 없음", "risk.overdue_count": "{count}개 지연", "risk.due_today_count": "오늘 마감 {count}개", "risk.no_exam": "시험 위험 없음", "risk.exam_in_days": "{count}일 후 시험", "risk.add_classes": "수업 추가", "risk.clear": "여유 있음.", "risk.get_ahead": "미리 진행하세요.", "risk.past_due": "기한 지남.", "risk.no_due_today": "오늘 마감 없음.", "risk.no_overdue_detail": "지연된 일이 없습니다.", "study.reason_recover_first": "먼저 회복.", "study.reason_protected_time": "보호된 시간.", "study.reason_exam_prep": "시험 준비.", "study.reason_notes_active": "노트 활성 유지.", "study.reason_due_today": "오늘 마감.", "study.reason_clear_day": "여유 있는 날.", "study.reason_split_before": "마감 전에 나누기.",
+  },
+  "zh-Hans": {
+    "widget.native.updated_time": "{time}已更新", "widget.native.updated_now": "刚刚更新", "widget.native.build_semester": "构建学期", "widget.native.scan_syllabus": "扫描大纲", "widget.native.locked": "已锁定", "widget.native.start": "开始", "widget.native.preview_only": "仅预览", "widget.native.semester": "学期", "widget.native.unlock_to_apply": "解锁后应用课程大纲。", "widget.native.syllabus_in": "导入大纲，生成学期。", "widget.native.unlock_required": "需要解锁", "widget.native.import_syllabus": "导入大纲", "widget.native.setup": "设置", "widget.native.ready": "就绪", "widget.native.quiet": "安静", "widget.native.unlock_plan": "解锁计划", "widget.native.build_plan": "构建计划", "widget.native.required": "必需", "widget.native.next_move": "下一步", "widget.native.no_schedule": "无日程", "widget.native.no_load": "无负荷", "widget.native.week_load": "周负荷", "widget.native.seven_days": "7天", "widget.native.no_classes": "无课程", "widget.native.import_first": "先导入", "widget.native.class_pulse": "课程脉搏", "widget.native.class": "课程", "widget.native.days_ago": "{count}天前", "widget.native.yesterday": "昨天", "widget.native.today": "今天", "widget.native.tomorrow": "明天", "widget.native.in_days": "{count}天后", "widget.native.due_today_headline": "今日截止", "widget.native.next_deadline_headline": "下个截止", "widget.native.clear_today_headline": "今天清爽", "widget.native.clear": "清爽", "widget.native.due_today_detail": "今日截止", "widget.native.today_lower": "今天", "widget.native.busy_day": "忙碌日", "widget.native.busy_days": "忙碌日", "widget.native.overdue_count": "{count}项逾期", "widget.native.review_today": "今天检查", "widget.native.clear_today": "今天清爽", "widget.native.next_move_headline": "下一步", "widget.native.next": "下一个", "widget.native.max_per_day": "每天最多{count}", "widget.native.light_week": "轻松一周", "widget.native.add_grade": "添加成绩", "widget.native.forecast": "预测", "widget.native.sync_iphone_only": "原生小组件在 iPhone 构建中同步。", "widget.native.timeline_error": "小组件时间线未确认。请再次同步。", "widget.native.synced": "iPhone 小组件已更新。", "widget.native.unavailable": "安装原生 iPhone 构建以同步小组件。",
+    "import.source_ai": "大纲导入", "import.source_pasted_syllabus": "粘贴的大纲", "import.source_pasted_notes": "粘贴的笔记", "import.source_photo_syllabus": "照片大纲扫描", "import.source_photo_notes": "照片笔记扫描", "import.source_camera_syllabus_words": "引导式大纲相机扫描 - {count}词", "import.source_camera_notes_words": "引导式笔记相机扫描 - {count}词", "import.source_pdf": "PDF - {name}", "import.room_tbd": "教室待定", "import.topic_core": "核心概念", "import.topic_practice": "练习题", "import.topic_lecture_notes": "课堂笔记", "import.subtask_confirm": "确认要求", "import.subtask_first_pass": "完成第一遍", "import.meta_due": "截止", "risk.no_overdue": "没有逾期任务", "risk.overdue_count": "{count}项逾期", "risk.due_today_count": "{count}项今日截止", "risk.no_exam": "没有考试风险", "risk.exam_in_days": "{count}天后考试", "risk.add_classes": "添加课程", "risk.clear": "清爽。", "risk.get_ahead": "可以提前。", "risk.past_due": "已逾期。", "risk.no_due_today": "今天没有截止。", "risk.no_overdue_detail": "没有逾期作业。", "study.reason_recover_first": "先补上。", "study.reason_protected_time": "已保护时间。", "study.reason_exam_prep": "考试准备。", "study.reason_notes_active": "保持笔记活跃。", "study.reason_due_today": "今日截止。", "study.reason_clear_day": "清爽的一天。", "study.reason_split_before": "截止前拆分。",
+  },
+  hi: {
+    "widget.native.updated_time": "{time} अपडेट", "widget.native.updated_now": "अभी अपडेट", "widget.native.build_semester": "सेमेस्टर बनाएं", "widget.native.scan_syllabus": "पाठ्यक्रम स्कैन करें", "widget.native.locked": "लॉक", "widget.native.start": "शुरू", "widget.native.preview_only": "सिर्फ पूर्वावलोकन", "widget.native.semester": "सेमेस्टर", "widget.native.unlock_to_apply": "पाठ्यक्रम लागू करने के लिए अनलॉक करें।", "widget.native.syllabus_in": "पाठ्यक्रम अंदर, सेमेस्टर तैयार।", "widget.native.unlock_required": "अनलॉक जरूरी", "widget.native.import_syllabus": "पाठ्यक्रम आयात करें", "widget.native.setup": "सेटअप", "widget.native.ready": "तैयार", "widget.native.quiet": "शांत", "widget.native.unlock_plan": "योजना अनलॉक करें", "widget.native.build_plan": "योजना बनाएं", "widget.native.required": "जरूरी", "widget.native.next_move": "अगला कदम", "widget.native.no_schedule": "कोई शेड्यूल नहीं", "widget.native.no_load": "कोई भार नहीं", "widget.native.week_load": "साप्ताहिक भार", "widget.native.seven_days": "7 दिन", "widget.native.no_classes": "कोई क्लास नहीं", "widget.native.import_first": "पहले आयात करें", "widget.native.class_pulse": "क्लास नब्ज", "widget.native.class": "क्लास", "widget.native.days_ago": "{count} दिन पहले", "widget.native.yesterday": "कल", "widget.native.today": "आज", "widget.native.tomorrow": "कल", "widget.native.in_days": "{count} दिन में", "widget.native.due_today_headline": "आज जमा", "widget.native.next_deadline_headline": "अगली तारीख", "widget.native.clear_today_headline": "आज साफ", "widget.native.clear": "साफ", "widget.native.due_today_detail": "आज जमा", "widget.native.today_lower": "आज", "widget.native.busy_day": "व्यस्त दिन", "widget.native.busy_days": "व्यस्त दिन", "widget.native.overdue_count": "{count} देर", "widget.native.review_today": "आज जांचें", "widget.native.clear_today": "आज साफ", "widget.native.next_move_headline": "अगला कदम", "widget.native.next": "अगला", "widget.native.max_per_day": "{count} अधिकतम/दिन", "widget.native.light_week": "हल्का सप्ताह", "widget.native.add_grade": "ग्रेड जोड़ें", "widget.native.forecast": "अनुमान", "widget.native.sync_iphone_only": "नेटिव विजेट iPhone बिल्ड पर सिंक होते हैं।", "widget.native.timeline_error": "विजेट टाइमलाइन की पुष्टि नहीं हुई। फिर सिंक करें।", "widget.native.synced": "iPhone विजेट अपडेट हुए।", "widget.native.unavailable": "विजेट सिंक के लिए नेटिव iPhone बिल्ड इंस्टॉल करें.",
+    "import.source_ai": "पाठ्यक्रम आयात", "import.source_pasted_syllabus": "चिपकाया पाठ्यक्रम", "import.source_pasted_notes": "चिपकाए नोट्स", "import.source_photo_syllabus": "फोटो पाठ्यक्रम स्कैन", "import.source_photo_notes": "फोटो नोट्स स्कैन", "import.source_camera_syllabus_words": "निर्देशित पाठ्यक्रम कैमरा स्कैन - {count} शब्द", "import.source_camera_notes_words": "निर्देशित नोट्स कैमरा स्कैन - {count} शब्द", "import.source_pdf": "PDF - {name}", "import.room_tbd": "कमरा तय होना बाकी", "import.topic_core": "मुख्य अवधारणाएं", "import.topic_practice": "अभ्यास प्रश्न", "import.topic_lecture_notes": "लेक्चर नोट्स", "import.subtask_confirm": "जरूरतें जांचें", "import.subtask_first_pass": "पहला पास पूरा करें", "import.meta_due": "जमा", "risk.no_overdue": "कोई काम देर से नहीं", "risk.overdue_count": "{count} देर", "risk.due_today_count": "{count} आज जमा", "risk.no_exam": "कोई परीक्षा जोखिम नहीं", "risk.exam_in_days": "{count} दिन में परीक्षा", "risk.add_classes": "क्लास जोड़ें", "risk.clear": "साफ।", "risk.get_ahead": "आगे बढ़ें।", "risk.past_due": "तारीख निकल गई।", "risk.no_due_today": "आज कोई तारीख नहीं।", "risk.no_overdue_detail": "कोई काम देर से नहीं।", "study.reason_recover_first": "पहले संभालें।", "study.reason_protected_time": "सुरक्षित समय।", "study.reason_exam_prep": "परीक्षा तैयारी।", "study.reason_notes_active": "नोट्स सक्रिय रखें।", "study.reason_due_today": "आज जमा।", "study.reason_clear_day": "साफ दिन।", "study.reason_split_before": "तारीख से पहले बांटें।", "widgets.ready_body": "अगली तारीख, सप्ताह का भार और क्लास नब्ज iOS विजेट से मेल खाते हैं।", "onboarding.rating_title": "App Store भुगतान", "onboarding.rating_body": "खरीद से पहले कीमत, शर्तें और सब्सक्रिप्शन पुष्टि दिखती है।",
+  },
+  ar: {
+    "widget.native.updated_time": "تم التحديث {time}", "widget.native.updated_now": "تم التحديث الآن", "widget.native.build_semester": "أنشئ الفصل", "widget.native.scan_syllabus": "امسح المنهج", "widget.native.locked": "مقفل", "widget.native.start": "ابدأ", "widget.native.preview_only": "معاينة فقط", "widget.native.semester": "الفصل", "widget.native.unlock_to_apply": "افتح لتطبيق المنهج.", "widget.native.syllabus_in": "المنهج يدخل، والفصل يجهز.", "widget.native.unlock_required": "يلزم الفتح", "widget.native.import_syllabus": "استيراد المنهج", "widget.native.setup": "الإعداد", "widget.native.ready": "جاهز", "widget.native.quiet": "هادئ", "widget.native.unlock_plan": "فتح الخطة", "widget.native.build_plan": "بناء الخطة", "widget.native.required": "مطلوب", "widget.native.next_move": "الخطوة التالية", "widget.native.no_schedule": "لا جدول", "widget.native.no_load": "لا عبء", "widget.native.week_load": "عبء الأسبوع", "widget.native.seven_days": "7 أيام", "widget.native.no_classes": "لا مواد", "widget.native.import_first": "استورد أولاً", "widget.native.class_pulse": "نبض المادة", "widget.native.class": "مادة", "widget.native.days_ago": "منذ {count} يوم", "widget.native.yesterday": "أمس", "widget.native.today": "اليوم", "widget.native.tomorrow": "غداً", "widget.native.in_days": "بعد {count} يوم", "widget.native.due_today_headline": "مستحق اليوم", "widget.native.next_deadline_headline": "الموعد التالي", "widget.native.clear_today_headline": "اليوم صاف", "widget.native.clear": "صاف", "widget.native.due_today_detail": "مستحق اليوم", "widget.native.today_lower": "اليوم", "widget.native.busy_day": "يوم مزدحم", "widget.native.busy_days": "أيام مزدحمة", "widget.native.overdue_count": "{count} متأخر", "widget.native.review_today": "راجع اليوم", "widget.native.clear_today": "اليوم صاف", "widget.native.next_move_headline": "الخطوة التالية", "widget.native.next": "التالي", "widget.native.max_per_day": "{count} كحد أقصى/يوم", "widget.native.light_week": "أسبوع خفيف", "widget.native.add_grade": "أضف درجة", "widget.native.forecast": "توقع", "widget.native.sync_iphone_only": "تتزامن الودجت الأصلية في إصدارات iPhone.", "widget.native.timeline_error": "لم تؤكد الودجت الخط الزمني. حاول المزامنة مجدداً.", "widget.native.synced": "تم تحديث ودجت iPhone.", "widget.native.unavailable": "ثبّت إصدار iPhone الأصلي لمزامنة الودجت.",
+    "import.source_ai": "استيراد المنهج", "import.source_pasted_syllabus": "منهج ملصق", "import.source_pasted_notes": "ملاحظات ملصقة", "import.source_photo_syllabus": "مسح منهج من صورة", "import.source_photo_notes": "مسح ملاحظات من صورة", "import.source_camera_syllabus_words": "مسح كاميرا موجّه للمنهج - {count} كلمة", "import.source_camera_notes_words": "مسح كاميرا موجّه للملاحظات - {count} كلمة", "import.source_pdf": "PDF - {name}", "import.room_tbd": "الغرفة لاحقاً", "import.topic_core": "المفاهيم الأساسية", "import.topic_practice": "تمارين تدريب", "import.topic_lecture_notes": "ملاحظات المحاضرة", "import.subtask_confirm": "تأكيد المتطلبات", "import.subtask_first_pass": "إكمال المرور الأول", "import.meta_due": "مستحق", "risk.no_overdue": "لا عمل متأخر", "risk.overdue_count": "{count} متأخر", "risk.due_today_count": "{count} مستحق اليوم", "risk.no_exam": "لا خطر اختبار", "risk.exam_in_days": "اختبار بعد {count} يوم", "risk.add_classes": "أضف مواد", "risk.clear": "صاف.", "risk.get_ahead": "تقدم الآن.", "risk.past_due": "فات الموعد.", "risk.no_due_today": "لا موعد اليوم.", "risk.no_overdue_detail": "لا يوجد عمل متأخر.", "study.reason_recover_first": "عالج المتأخر أولاً.", "study.reason_protected_time": "وقت محمي.", "study.reason_exam_prep": "تحضير اختبار.", "study.reason_notes_active": "أبق الملاحظات نشطة.", "study.reason_due_today": "مستحق اليوم.", "study.reason_clear_day": "يوم صاف.", "study.reason_split_before": "قسّم قبل الموعد.",
+  },
+};
+
+for (const locale of Object.keys(RELEASE_LOCALIZATION_OVERLAY) as SupportedLocale[]) {
+  Object.assign(APP_COPY[locale], RELEASE_LOCALIZATION_OVERLAY[locale]);
+}
+
+const WIDGET_FINAL_LOCALIZATION_COPY: Record<SupportedLocale, Record<string, string>> = {
+  "en-US": {
+    "widget.native.theme_liquid_light": "Liquid Light",
+    "widget.native.theme_graphite": "Graphite",
+    "widget.native.theme_campus": "Campus",
+    "widget.native.theme_focus": "Focus",
+    "widget.native.theme_contrast": "High Contrast",
+    "widget.native.density_quiet": "Quiet",
+    "widget.native.density_balanced": "Balanced",
+    "widget.native.density_detailed": "Detailed",
+    "widget.native.state_on_track": "On Track",
+    "widget.native.state_attention_needed": "Attention Needed",
+    "widget.native.state_recovery_needed": "Recovery Needed",
+    "widget.native.state_immediate_action": "Immediate Action",
+    "widget.native.state_exam_week": "Exam Week",
+    "widget.native.state_pressure_building": "Pressure Building",
+    "widget.native.state_ahead_this_week": "Ahead This Week",
+    "widget.native.forecast_not_enough_data": "Not enough data",
+    "widget.native.forecast_needs_recovery": "Needs recovery",
+    "widget.native.trend_up": "up",
+    "widget.native.trend_down": "down",
+    "widget.native.trend_flat": "flat",
+    "widget.native.mode_known": "known",
+    "widget.native.mode_estimated": "estimated",
+    "widget.native.mode_unknown": "unknown",
+    "widget.native.next_recover_title": "Recover {title}",
+    "widget.native.next_prepare_exam": "Prepare for {title}",
+    "widget.native.pressure_heavy_day": "Heavy {day}",
+    "widget.native.driver_overdue_one": "{count} overdue item reducing health.",
+    "widget.native.driver_overdue_many": "{count} overdue items reducing health.",
+    "widget.native.nudge_recover_title": "Recover {title}.",
+    "widget.native.nudge_recover_missing": "Recover missing work.",
+    "widget.native.nudge_prep_exam": "Prep for {title}.",
+    "widget.native.action_finish_title": "Finish {title}",
+    "widget.native.action_review_title": "Review {title}",
+    "widget.native.action_start_title": "Start {title}.",
+    "widget.native.action_review_title_due": "Review {title}. {due}",
+    "widget.native.action_course_recover": "{code}: recover {title}.",
+    "widget.native.action_course_prep": "{code}: prep {title}. {due}",
+    "widget.native.action_course_due": "{code}: {title}. {due}",
+    "widget.native.action_course_next": "{code} next",
+    "widget.native.action_course_exam_mode": "{code} exam mode",
+    "widget.native.action_class_forecast": "{code} {forecast}",
+    "widget.native.due_today_count": "{count} due today",
+    "widget.native.exam_in_days": "Exam in {count}d",
+    "widget.native.unscheduled_count": "{count} unscheduled tasks",
+    "widget.native.due_days_sentence": "{count} days.",
+    "widget.native.detail_review_next_item": "Review the next planner item.",
+    "widget.native.generated_signal": "Planner signal",
+    "widget.native.not_set": "Not set",
+    "widget.native.room_tbd": "Room TBD",
+    "widget.native.time_tbd": "Time TBD",
+  },
+  de: {
+    "widget.native.theme_liquid_light": "Flüssig hell", "widget.native.theme_graphite": "Graphit", "widget.native.theme_campus": "Campus", "widget.native.theme_focus": "Fokus", "widget.native.theme_contrast": "Hoher Kontrast", "widget.native.density_quiet": "Ruhig", "widget.native.density_balanced": "Ausgewogen", "widget.native.density_detailed": "Detailliert", "widget.native.state_on_track": "Im Plan", "widget.native.state_attention_needed": "Aufmerksamkeit nötig", "widget.native.state_recovery_needed": "Aufholen nötig", "widget.native.state_immediate_action": "Sofort handeln", "widget.native.state_exam_week": "Prüfungswoche", "widget.native.state_pressure_building": "Druck steigt", "widget.native.state_ahead_this_week": "Diese Woche voraus", "widget.native.forecast_not_enough_data": "Nicht genug Daten", "widget.native.forecast_needs_recovery": "Aufholen nötig", "widget.native.trend_up": "steigend", "widget.native.trend_down": "fallend", "widget.native.trend_flat": "stabil", "widget.native.mode_known": "bekannt", "widget.native.mode_estimated": "geschätzt", "widget.native.mode_unknown": "unbekannt", "widget.native.next_recover_title": "{title} aufholen", "widget.native.next_prepare_exam": "Für {title} vorbereiten", "widget.native.pressure_heavy_day": "Voller {day}", "widget.native.driver_overdue_one": "{count} überfälliger Punkt senkt die Gesundheit.", "widget.native.driver_overdue_many": "{count} überfällige Punkte senken die Gesundheit.", "widget.native.nudge_recover_title": "{title} aufholen.", "widget.native.nudge_recover_missing": "Fehlende Arbeit aufholen.", "widget.native.nudge_prep_exam": "Für {title} vorbereiten.", "widget.native.action_finish_title": "{title} abschließen", "widget.native.action_review_title": "{title} wiederholen", "widget.native.action_start_title": "{title} starten.", "widget.native.action_review_title_due": "{title} wiederholen. {due}", "widget.native.action_course_recover": "{code}: {title} aufholen.", "widget.native.action_course_prep": "{code}: {title} vorbereiten. {due}", "widget.native.action_course_due": "{code}: {title}. {due}", "widget.native.action_course_next": "{code} als Nächstes", "widget.native.action_course_exam_mode": "{code} Prüfungsmodus", "widget.native.action_class_forecast": "{code} {forecast}", "widget.native.due_today_count": "{count} heute fällig", "widget.native.exam_in_days": "Prüfung in {count} T.", "widget.native.unscheduled_count": "{count} ungeplante Aufgaben", "widget.native.due_days_sentence": "{count} Tage.", "widget.native.detail_review_next_item": "Nächsten Planpunkt prüfen.", "widget.native.generated_signal": "Planersignal", "widget.native.not_set": "Nicht gesetzt", "widget.native.room_tbd": "Raum offen", "widget.native.time_tbd": "Zeit offen",
+  },
+  es: {
+    "widget.native.theme_liquid_light": "Luz líquida", "widget.native.theme_graphite": "Grafito", "widget.native.theme_campus": "Campus", "widget.native.theme_focus": "Enfoque", "widget.native.theme_contrast": "Alto contraste", "widget.native.density_quiet": "Simple", "widget.native.density_balanced": "Equilibrado", "widget.native.density_detailed": "Detallado", "widget.native.state_on_track": "En rumbo", "widget.native.state_attention_needed": "Requiere atención", "widget.native.state_recovery_needed": "Necesita recuperar", "widget.native.state_immediate_action": "Acción inmediata", "widget.native.state_exam_week": "Semana de examen", "widget.native.state_pressure_building": "Sube la presión", "widget.native.state_ahead_this_week": "Adelantado esta semana", "widget.native.forecast_not_enough_data": "Faltan datos", "widget.native.forecast_needs_recovery": "Necesita recuperar", "widget.native.trend_up": "sube", "widget.native.trend_down": "baja", "widget.native.trend_flat": "estable", "widget.native.mode_known": "conocido", "widget.native.mode_estimated": "estimado", "widget.native.mode_unknown": "desconocido", "widget.native.next_recover_title": "Recuperar {title}", "widget.native.next_prepare_exam": "Preparar {title}", "widget.native.pressure_heavy_day": "{day} pesado", "widget.native.driver_overdue_one": "{count} pendiente atrasado baja la salud.", "widget.native.driver_overdue_many": "{count} pendientes atrasados bajan la salud.", "widget.native.nudge_recover_title": "Recupera {title}.", "widget.native.nudge_recover_missing": "Recupera trabajo pendiente.", "widget.native.nudge_prep_exam": "Prepara {title}.", "widget.native.action_finish_title": "Terminar {title}", "widget.native.action_review_title": "Repasar {title}", "widget.native.action_start_title": "Empezar {title}.", "widget.native.action_review_title_due": "Repasar {title}. {due}", "widget.native.action_course_recover": "{code}: recuperar {title}.", "widget.native.action_course_prep": "{code}: preparar {title}. {due}", "widget.native.action_course_due": "{code}: {title}. {due}", "widget.native.action_course_next": "{code} siguiente", "widget.native.action_course_exam_mode": "{code} modo examen", "widget.native.action_class_forecast": "{code} {forecast}", "widget.native.due_today_count": "{count} vencen hoy", "widget.native.exam_in_days": "Examen en {count} d", "widget.native.unscheduled_count": "{count} tareas sin plan", "widget.native.due_days_sentence": "{count} días.", "widget.native.detail_review_next_item": "Revisa el siguiente punto del plan.", "widget.native.generated_signal": "Señal del plan", "widget.native.not_set": "Sin definir", "widget.native.room_tbd": "Aula pendiente", "widget.native.time_tbd": "Hora pendiente",
+  },
+  fr: {
+    "widget.native.theme_liquid_light": "Lumière liquide", "widget.native.theme_graphite": "Graphite", "widget.native.theme_campus": "Campus", "widget.native.theme_focus": "Concentration", "widget.native.theme_contrast": "Contraste élevé", "widget.native.density_quiet": "Simple", "widget.native.density_balanced": "Équilibré", "widget.native.density_detailed": "Détaillé", "widget.native.state_on_track": "Sur la bonne voie", "widget.native.state_attention_needed": "Attention requise", "widget.native.state_recovery_needed": "Rattrapage requis", "widget.native.state_immediate_action": "Action immédiate", "widget.native.state_exam_week": "Semaine d’examen", "widget.native.state_pressure_building": "Pression en hausse", "widget.native.state_ahead_this_week": "En avance cette semaine", "widget.native.forecast_not_enough_data": "Données insuffisantes", "widget.native.forecast_needs_recovery": "Rattrapage requis", "widget.native.trend_up": "en hausse", "widget.native.trend_down": "en baisse", "widget.native.trend_flat": "stable", "widget.native.mode_known": "connu", "widget.native.mode_estimated": "estimé", "widget.native.mode_unknown": "inconnu", "widget.native.next_recover_title": "Rattraper {title}", "widget.native.next_prepare_exam": "Préparer {title}", "widget.native.pressure_heavy_day": "{day} chargé", "widget.native.driver_overdue_one": "{count} élément en retard baisse la santé.", "widget.native.driver_overdue_many": "{count} éléments en retard baissent la santé.", "widget.native.nudge_recover_title": "Rattrape {title}.", "widget.native.nudge_recover_missing": "Rattrape le travail manquant.", "widget.native.nudge_prep_exam": "Prépare {title}.", "widget.native.action_finish_title": "Terminer {title}", "widget.native.action_review_title": "Réviser {title}", "widget.native.action_start_title": "Commencer {title}.", "widget.native.action_review_title_due": "Réviser {title}. {due}", "widget.native.action_course_recover": "{code} : rattraper {title}.", "widget.native.action_course_prep": "{code} : préparer {title}. {due}", "widget.native.action_course_due": "{code} : {title}. {due}", "widget.native.action_course_next": "{code} suivant", "widget.native.action_course_exam_mode": "{code} mode examen", "widget.native.action_class_forecast": "{code} {forecast}", "widget.native.due_today_count": "{count} à rendre aujourd’hui", "widget.native.exam_in_days": "Examen dans {count} j", "widget.native.unscheduled_count": "{count} tâches sans plan", "widget.native.due_days_sentence": "{count} jours.", "widget.native.detail_review_next_item": "Vérifie le prochain point du plan.", "widget.native.generated_signal": "Signal du plan", "widget.native.not_set": "Non défini", "widget.native.room_tbd": "Salle à confirmer", "widget.native.time_tbd": "Heure à confirmer",
+  },
+  "pt-BR": {
+    "widget.native.theme_liquid_light": "Luz líquida", "widget.native.theme_graphite": "Grafite", "widget.native.theme_campus": "Campus", "widget.native.theme_focus": "Foco", "widget.native.theme_contrast": "Alto contraste", "widget.native.density_quiet": "Simples", "widget.native.density_balanced": "Equilibrado", "widget.native.density_detailed": "Detalhado", "widget.native.state_on_track": "No caminho", "widget.native.state_attention_needed": "Atenção necessária", "widget.native.state_recovery_needed": "Recuperação necessária", "widget.native.state_immediate_action": "Ação imediata", "widget.native.state_exam_week": "Semana de prova", "widget.native.state_pressure_building": "Pressão subindo", "widget.native.state_ahead_this_week": "Adiantado esta semana", "widget.native.forecast_not_enough_data": "Dados insuficientes", "widget.native.forecast_needs_recovery": "Precisa recuperar", "widget.native.trend_up": "subindo", "widget.native.trend_down": "caindo", "widget.native.trend_flat": "estável", "widget.native.mode_known": "conhecido", "widget.native.mode_estimated": "estimado", "widget.native.mode_unknown": "desconhecido", "widget.native.next_recover_title": "Recuperar {title}", "widget.native.next_prepare_exam": "Preparar {title}", "widget.native.pressure_heavy_day": "{day} pesado", "widget.native.driver_overdue_one": "{count} item atrasado reduz a saúde.", "widget.native.driver_overdue_many": "{count} itens atrasados reduzem a saúde.", "widget.native.nudge_recover_title": "Recupere {title}.", "widget.native.nudge_recover_missing": "Recupere trabalho pendente.", "widget.native.nudge_prep_exam": "Prepare {title}.", "widget.native.action_finish_title": "Terminar {title}", "widget.native.action_review_title": "Revisar {title}", "widget.native.action_start_title": "Começar {title}.", "widget.native.action_review_title_due": "Revisar {title}. {due}", "widget.native.action_course_recover": "{code}: recuperar {title}.", "widget.native.action_course_prep": "{code}: preparar {title}. {due}", "widget.native.action_course_due": "{code}: {title}. {due}", "widget.native.action_course_next": "{code} próximo", "widget.native.action_course_exam_mode": "{code} modo prova", "widget.native.action_class_forecast": "{code} {forecast}", "widget.native.due_today_count": "{count} vencem hoje", "widget.native.exam_in_days": "Prova em {count} d", "widget.native.unscheduled_count": "{count} tarefas sem plano", "widget.native.due_days_sentence": "{count} dias.", "widget.native.detail_review_next_item": "Revise o próximo ponto do plano.", "widget.native.generated_signal": "Sinal do plano", "widget.native.not_set": "Não definido", "widget.native.room_tbd": "Sala pendente", "widget.native.time_tbd": "Hora pendente",
+  },
+  ja: {
+    "widget.native.theme_liquid_light": "リキッドライト", "widget.native.theme_graphite": "グラファイト", "widget.native.theme_campus": "キャンパス", "widget.native.theme_focus": "集中", "widget.native.theme_contrast": "高コントラスト", "widget.native.density_quiet": "少なめ", "widget.native.density_balanced": "標準", "widget.native.density_detailed": "詳細", "widget.native.state_on_track": "順調", "widget.native.state_attention_needed": "注意が必要", "widget.native.state_recovery_needed": "立て直しが必要", "widget.native.state_immediate_action": "すぐ対応", "widget.native.state_exam_week": "試験週", "widget.native.state_pressure_building": "負荷上昇", "widget.native.state_ahead_this_week": "今週は先行", "widget.native.forecast_not_enough_data": "データ不足", "widget.native.forecast_needs_recovery": "立て直しが必要", "widget.native.trend_up": "上向き", "widget.native.trend_down": "下向き", "widget.native.trend_flat": "安定", "widget.native.mode_known": "確定", "widget.native.mode_estimated": "推定", "widget.native.mode_unknown": "不明", "widget.native.next_recover_title": "{title}を立て直す", "widget.native.next_prepare_exam": "{title}に備える", "widget.native.pressure_heavy_day": "{day}が重い", "widget.native.driver_overdue_one": "遅れた項目{count}件が状態を下げています。", "widget.native.driver_overdue_many": "遅れた項目{count}件が状態を下げています。", "widget.native.nudge_recover_title": "{title}を立て直す。", "widget.native.nudge_recover_missing": "未完了分を立て直す。", "widget.native.nudge_prep_exam": "{title}に備える。", "widget.native.action_finish_title": "{title}を終える", "widget.native.action_review_title": "{title}を復習", "widget.native.action_start_title": "{title}を開始。", "widget.native.action_review_title_due": "{title}を復習。{due}", "widget.native.action_course_recover": "{code}: {title}を立て直す。", "widget.native.action_course_prep": "{code}: {title}に備える。{due}", "widget.native.action_course_due": "{code}: {title}。{due}", "widget.native.action_course_next": "{code} 次", "widget.native.action_course_exam_mode": "{code} 試験モード", "widget.native.action_class_forecast": "{code} {forecast}", "widget.native.due_today_count": "今日締切{count}件", "widget.native.exam_in_days": "{count}日後に試験", "widget.native.unscheduled_count": "未計画タスク{count}件", "widget.native.due_days_sentence": "{count}日。", "widget.native.detail_review_next_item": "次の計画項目を確認。", "widget.native.generated_signal": "計画シグナル", "widget.native.not_set": "未設定", "widget.native.room_tbd": "教室未定", "widget.native.time_tbd": "時間未定",
+  },
+  ko: {
+    "widget.native.theme_liquid_light": "리퀴드 라이트", "widget.native.theme_graphite": "그래파이트", "widget.native.theme_campus": "캠퍼스", "widget.native.theme_focus": "집중", "widget.native.theme_contrast": "고대비", "widget.native.density_quiet": "간단", "widget.native.density_balanced": "균형", "widget.native.density_detailed": "자세히", "widget.native.state_on_track": "순조로움", "widget.native.state_attention_needed": "주의 필요", "widget.native.state_recovery_needed": "회복 필요", "widget.native.state_immediate_action": "즉시 조치", "widget.native.state_exam_week": "시험 주간", "widget.native.state_pressure_building": "부담 증가", "widget.native.state_ahead_this_week": "이번 주 앞섬", "widget.native.forecast_not_enough_data": "데이터 부족", "widget.native.forecast_needs_recovery": "회복 필요", "widget.native.trend_up": "상승", "widget.native.trend_down": "하락", "widget.native.trend_flat": "유지", "widget.native.mode_known": "확정", "widget.native.mode_estimated": "추정", "widget.native.mode_unknown": "알 수 없음", "widget.native.next_recover_title": "{title} 회복", "widget.native.next_prepare_exam": "{title} 준비", "widget.native.pressure_heavy_day": "{day} 부담 큼", "widget.native.driver_overdue_one": "지연 항목 {count}개가 상태를 낮춥니다.", "widget.native.driver_overdue_many": "지연 항목 {count}개가 상태를 낮춥니다.", "widget.native.nudge_recover_title": "{title} 회복.", "widget.native.nudge_recover_missing": "누락된 작업 회복.", "widget.native.nudge_prep_exam": "{title} 준비.", "widget.native.action_finish_title": "{title} 끝내기", "widget.native.action_review_title": "{title} 복습", "widget.native.action_start_title": "{title} 시작.", "widget.native.action_review_title_due": "{title} 복습. {due}", "widget.native.action_course_recover": "{code}: {title} 회복.", "widget.native.action_course_prep": "{code}: {title} 준비. {due}", "widget.native.action_course_due": "{code}: {title}. {due}", "widget.native.action_course_next": "{code} 다음", "widget.native.action_course_exam_mode": "{code} 시험 모드", "widget.native.action_class_forecast": "{code} {forecast}", "widget.native.due_today_count": "오늘 마감 {count}개", "widget.native.exam_in_days": "{count}일 후 시험", "widget.native.unscheduled_count": "계획 없는 작업 {count}개", "widget.native.due_days_sentence": "{count}일.", "widget.native.detail_review_next_item": "다음 계획 항목을 확인하세요.", "widget.native.generated_signal": "계획 신호", "widget.native.not_set": "미설정", "widget.native.room_tbd": "강의실 미정", "widget.native.time_tbd": "시간 미정",
+  },
+  "zh-Hans": {
+    "widget.native.theme_liquid_light": "流光浅色", "widget.native.theme_graphite": "石墨", "widget.native.theme_campus": "校园", "widget.native.theme_focus": "专注", "widget.native.theme_contrast": "高对比", "widget.native.density_quiet": "简洁", "widget.native.density_balanced": "均衡", "widget.native.density_detailed": "详细", "widget.native.state_on_track": "进展正常", "widget.native.state_attention_needed": "需要关注", "widget.native.state_recovery_needed": "需要补救", "widget.native.state_immediate_action": "立即处理", "widget.native.state_exam_week": "考试周", "widget.native.state_pressure_building": "压力上升", "widget.native.state_ahead_this_week": "本周领先", "widget.native.forecast_not_enough_data": "数据不足", "widget.native.forecast_needs_recovery": "需要补救", "widget.native.trend_up": "上升", "widget.native.trend_down": "下降", "widget.native.trend_flat": "稳定", "widget.native.mode_known": "已知", "widget.native.mode_estimated": "估算", "widget.native.mode_unknown": "未知", "widget.native.next_recover_title": "补上 {title}", "widget.native.next_prepare_exam": "准备 {title}", "widget.native.pressure_heavy_day": "{day} 较重", "widget.native.driver_overdue_one": "{count}项逾期正在降低健康度。", "widget.native.driver_overdue_many": "{count}项逾期正在降低健康度。", "widget.native.nudge_recover_title": "补上 {title}。", "widget.native.nudge_recover_missing": "补上缺失作业。", "widget.native.nudge_prep_exam": "准备 {title}。", "widget.native.action_finish_title": "完成 {title}", "widget.native.action_review_title": "复习 {title}", "widget.native.action_start_title": "开始 {title}。", "widget.native.action_review_title_due": "复习 {title}。{due}", "widget.native.action_course_recover": "{code}：补上 {title}。", "widget.native.action_course_prep": "{code}：准备 {title}。{due}", "widget.native.action_course_due": "{code}：{title}。{due}", "widget.native.action_course_next": "{code} 下一步", "widget.native.action_course_exam_mode": "{code} 考试模式", "widget.native.action_class_forecast": "{code} {forecast}", "widget.native.due_today_count": "{count}项今日截止", "widget.native.exam_in_days": "{count}天后考试", "widget.native.unscheduled_count": "{count}项任务未排期", "widget.native.due_days_sentence": "{count}天。", "widget.native.detail_review_next_item": "检查下一个计划项。", "widget.native.generated_signal": "计划信号", "widget.native.not_set": "未设置", "widget.native.room_tbd": "教室待定", "widget.native.time_tbd": "时间待定",
+  },
+  hi: {
+    "widget.native.theme_liquid_light": "लिक्विड लाइट", "widget.native.theme_graphite": "ग्रेफाइट", "widget.native.theme_campus": "कैंपस", "widget.native.theme_focus": "फोकस", "widget.native.theme_contrast": "उच्च कंट्रास्ट", "widget.native.density_quiet": "सरल", "widget.native.density_balanced": "संतुलित", "widget.native.density_detailed": "विस्तृत", "widget.native.state_on_track": "सही राह", "widget.native.state_attention_needed": "ध्यान चाहिए", "widget.native.state_recovery_needed": "सुधार चाहिए", "widget.native.state_immediate_action": "तुरंत करें", "widget.native.state_exam_week": "परीक्षा सप्ताह", "widget.native.state_pressure_building": "दबाव बढ़ रहा", "widget.native.state_ahead_this_week": "इस सप्ताह आगे", "widget.native.forecast_not_enough_data": "डेटा कम है", "widget.native.forecast_needs_recovery": "सुधार चाहिए", "widget.native.trend_up": "ऊपर", "widget.native.trend_down": "नीचे", "widget.native.trend_flat": "स्थिर", "widget.native.mode_known": "ज्ञात", "widget.native.mode_estimated": "अनुमानित", "widget.native.mode_unknown": "अज्ञात", "widget.native.next_recover_title": "{title} सुधारें", "widget.native.next_prepare_exam": "{title} की तैयारी", "widget.native.pressure_heavy_day": "{day} भारी", "widget.native.driver_overdue_one": "{count} देर वाला काम स्वास्थ्य घटा रहा है.", "widget.native.driver_overdue_many": "{count} देर वाले काम स्वास्थ्य घटा रहे हैं.", "widget.native.nudge_recover_title": "{title} सुधारें.", "widget.native.nudge_recover_missing": "छूटा काम सुधारें.", "widget.native.nudge_prep_exam": "{title} की तैयारी करें.", "widget.native.action_finish_title": "{title} पूरा करें", "widget.native.action_review_title": "{title} दोहराएं", "widget.native.action_start_title": "{title} शुरू करें.", "widget.native.action_review_title_due": "{title} दोहराएं. {due}", "widget.native.action_course_recover": "{code}: {title} सुधारें.", "widget.native.action_course_prep": "{code}: {title} की तैयारी. {due}", "widget.native.action_course_due": "{code}: {title}. {due}", "widget.native.action_course_next": "{code} अगला", "widget.native.action_course_exam_mode": "{code} परीक्षा मोड", "widget.native.action_class_forecast": "{code} {forecast}", "widget.native.due_today_count": "{count} आज जमा", "widget.native.exam_in_days": "{count} दिन में परीक्षा", "widget.native.unscheduled_count": "{count} काम बिना योजना", "widget.native.due_days_sentence": "{count} दिन.", "widget.native.detail_review_next_item": "अगला योजना आइटम जांचें.", "widget.native.generated_signal": "योजना संकेत", "widget.native.not_set": "सेट नहीं", "widget.native.room_tbd": "कक्ष बाकी", "widget.native.time_tbd": "समय बाकी",
+  },
+  ar: {
+    "widget.native.theme_liquid_light": "ضوء سائل", "widget.native.theme_graphite": "غرافيت", "widget.native.theme_campus": "الحرم", "widget.native.theme_focus": "تركيز", "widget.native.theme_contrast": "تباين عال", "widget.native.density_quiet": "بسيط", "widget.native.density_balanced": "متوازن", "widget.native.density_detailed": "مفصل", "widget.native.state_on_track": "على المسار", "widget.native.state_attention_needed": "يحتاج انتباهاً", "widget.native.state_recovery_needed": "يحتاج تعويضاً", "widget.native.state_immediate_action": "إجراء فوري", "widget.native.state_exam_week": "أسبوع الاختبار", "widget.native.state_pressure_building": "الضغط يرتفع", "widget.native.state_ahead_this_week": "متقدم هذا الأسبوع", "widget.native.forecast_not_enough_data": "بيانات غير كافية", "widget.native.forecast_needs_recovery": "يحتاج تعويضاً", "widget.native.trend_up": "صاعد", "widget.native.trend_down": "هابط", "widget.native.trend_flat": "ثابت", "widget.native.mode_known": "معروف", "widget.native.mode_estimated": "تقديري", "widget.native.mode_unknown": "غير معروف", "widget.native.next_recover_title": "عوّض {title}", "widget.native.next_prepare_exam": "حضّر {title}", "widget.native.pressure_heavy_day": "{day} مزدحم", "widget.native.driver_overdue_one": "{count} عنصر متأخر يخفض الصحة.", "widget.native.driver_overdue_many": "{count} عناصر متأخرة تخفض الصحة.", "widget.native.nudge_recover_title": "عوّض {title}.", "widget.native.nudge_recover_missing": "عوّض العمل الناقص.", "widget.native.nudge_prep_exam": "حضّر {title}.", "widget.native.action_finish_title": "أنهِ {title}", "widget.native.action_review_title": "راجع {title}", "widget.native.action_start_title": "ابدأ {title}.", "widget.native.action_review_title_due": "راجع {title}. {due}", "widget.native.action_course_recover": "{code}: عوّض {title}.", "widget.native.action_course_prep": "{code}: حضّر {title}. {due}", "widget.native.action_course_due": "{code}: {title}. {due}", "widget.native.action_course_next": "{code} التالي", "widget.native.action_course_exam_mode": "{code} وضع الاختبار", "widget.native.action_class_forecast": "{code} {forecast}", "widget.native.due_today_count": "{count} مستحق اليوم", "widget.native.exam_in_days": "اختبار بعد {count} يوم", "widget.native.unscheduled_count": "{count} مهام بلا خطة", "widget.native.due_days_sentence": "{count} أيام.", "widget.native.detail_review_next_item": "راجع عنصر الخطة التالي.", "widget.native.generated_signal": "إشارة الخطة", "widget.native.not_set": "غير محدد", "widget.native.room_tbd": "القاعة لاحقاً", "widget.native.time_tbd": "الوقت لاحقاً",
+  },
+};
+
+for (const locale of Object.keys(WIDGET_FINAL_LOCALIZATION_COPY) as SupportedLocale[]) {
+  Object.assign(APP_COPY[locale], WIDGET_FINAL_LOCALIZATION_COPY[locale]);
+}
+
+const REMINDER_RELIABILITY_COPY: Record<SupportedLocale, Record<string, string>> = {
+  "en-US": {
+    "reminders.cancel_failed_title": "Couldn't update reminders",
+    "reminders.cancel_failed_body": "StudyPlanner couldn't remove every scheduled alert, so it stopped before deleting or switching anything off. Try again. If this continues, open iPhone Settings > Notifications > StudyPlanner.",
+    "reminders.cancel_failed_status": "Reminder change stopped. Nothing was marked Off.",
+    "reminders.suggested_status": "{count} suggestions added. Tap Schedule to activate them.",
+    "reminders.no_new_suggestions": "No new suggestions. Your reminder list is up to date.",
+  },
+  de: {
+    "reminders.cancel_failed_title": "Erinnerungen konnten nicht aktualisiert werden",
+    "reminders.cancel_failed_body": "StudyPlanner konnte nicht alle geplanten Hinweise entfernen und hat daher nichts gelöscht oder ausgeschaltet. Versuche es erneut. Falls das Problem bleibt, öffne iPhone-Einstellungen > Mitteilungen > StudyPlanner.",
+    "reminders.cancel_failed_status": "Änderung gestoppt. Nichts wurde ausgeschaltet.",
+    "reminders.suggested_status": "{count} Vorschläge hinzugefügt. Tippe zum Aktivieren auf Planen.",
+    "reminders.no_new_suggestions": "Keine neuen Vorschläge. Deine Erinnerungsliste ist aktuell.",
+  },
+  es: {
+    "reminders.cancel_failed_title": "No se pudieron actualizar los recordatorios",
+    "reminders.cancel_failed_body": "StudyPlanner no pudo quitar todas las alertas programadas, así que no eliminó ni desactivó nada. Inténtalo de nuevo. Si continúa, abre Ajustes del iPhone > Notificaciones > StudyPlanner.",
+    "reminders.cancel_failed_status": "Cambio detenido. Nada se marcó como desactivado.",
+    "reminders.suggested_status": "Se añadieron {count} sugerencias. Toca Programar para activarlas.",
+    "reminders.no_new_suggestions": "No hay sugerencias nuevas. Tu lista de recordatorios está al día.",
+  },
+  fr: {
+    "reminders.cancel_failed_title": "Impossible de mettre à jour les rappels",
+    "reminders.cancel_failed_body": "StudyPlanner n’a pas pu retirer toutes les alertes programmées. Rien n’a donc été supprimé ni désactivé. Réessaie. Si le problème persiste, ouvre Réglages iPhone > Notifications > StudyPlanner.",
+    "reminders.cancel_failed_status": "Modification arrêtée. Rien n’a été désactivé.",
+    "reminders.suggested_status": "{count} suggestions ajoutées. Touche Programmer pour les activer.",
+    "reminders.no_new_suggestions": "Aucune nouvelle suggestion. Ta liste de rappels est à jour.",
+  },
+  "pt-BR": {
+    "reminders.cancel_failed_title": "Não foi possível atualizar os lembretes",
+    "reminders.cancel_failed_body": "O StudyPlanner não conseguiu remover todos os alertas agendados e, por isso, não excluiu nem desativou nada. Tente novamente. Se continuar, abra Ajustes do iPhone > Notificações > StudyPlanner.",
+    "reminders.cancel_failed_status": "Alteração interrompida. Nada foi desativado.",
+    "reminders.suggested_status": "{count} sugestões adicionadas. Toque em Agendar para ativá-las.",
+    "reminders.no_new_suggestions": "Nenhuma sugestão nova. Sua lista de lembretes está atualizada.",
+  },
+  ja: {
+    "reminders.cancel_failed_title": "リマインダーを更新できませんでした",
+    "reminders.cancel_failed_body": "予定済みの通知をすべて削除できなかったため、削除やオフへの変更を中止しました。もう一度お試しください。続く場合は、iPhoneの設定 > 通知 > StudyPlannerを開いてください。",
+    "reminders.cancel_failed_status": "変更を中止しました。オフにはしていません。",
+    "reminders.suggested_status": "候補を{count}件追加しました。「スケジュール」で有効にできます。",
+    "reminders.no_new_suggestions": "新しい候補はありません。リマインダーは最新です。",
+  },
+  ko: {
+    "reminders.cancel_failed_title": "미리 알림을 업데이트할 수 없음",
+    "reminders.cancel_failed_body": "예약된 알림을 모두 제거하지 못해 삭제하거나 끄지 않았습니다. 다시 시도하세요. 계속되면 iPhone 설정 > 알림 > StudyPlanner를 여세요.",
+    "reminders.cancel_failed_status": "변경을 중단했습니다. 꺼짐으로 표시하지 않았습니다.",
+    "reminders.suggested_status": "추천 {count}개를 추가했습니다. 예약을 눌러 활성화하세요.",
+    "reminders.no_new_suggestions": "새 추천이 없습니다. 미리 알림 목록이 최신입니다.",
+  },
+  "zh-Hans": {
+    "reminders.cancel_failed_title": "无法更新提醒",
+    "reminders.cancel_failed_body": "StudyPlanner 无法移除所有已安排的通知，因此没有删除任何内容或将提醒关闭。请重试。若问题持续，请打开 iPhone 设置 > 通知 > StudyPlanner。",
+    "reminders.cancel_failed_status": "更改已停止，没有提醒被标为关闭。",
+    "reminders.suggested_status": "已添加 {count} 条建议。轻点“安排”即可启用。",
+    "reminders.no_new_suggestions": "没有新建议。提醒列表已是最新。",
+  },
+  hi: {
+    "reminders.cancel_failed_title": "रिमाइंडर अपडेट नहीं हुए",
+    "reminders.cancel_failed_body": "StudyPlanner सभी तय अलर्ट नहीं हटा सका, इसलिए उसने कुछ भी डिलीट या बंद नहीं किया। फिर कोशिश करें। समस्या बनी रहे तो iPhone Settings > Notifications > StudyPlanner खोलें।",
+    "reminders.cancel_failed_status": "बदलाव रोक दिया गया। कुछ भी बंद नहीं दिखाया गया।",
+    "reminders.suggested_status": "{count} सुझाव जोड़े गए। उन्हें चालू करने के लिए Schedule दबाएं।",
+    "reminders.no_new_suggestions": "कोई नया सुझाव नहीं। रिमाइंडर सूची अपडेट है।",
+  },
+  ar: {
+    "reminders.cancel_failed_title": "تعذر تحديث التذكيرات",
+    "reminders.cancel_failed_body": "تعذر على StudyPlanner إزالة كل التنبيهات المجدولة، لذلك لم يحذف أو يوقف أي شيء. حاول مجددًا. إذا استمرت المشكلة، افتح إعدادات iPhone > الإشعارات > StudyPlanner.",
+    "reminders.cancel_failed_status": "توقف التغيير. لم يُعلَّم أي تذكير كمتوقف.",
+    "reminders.suggested_status": "تمت إضافة {count} اقتراحات. اضغط «جدولة» لتفعيلها.",
+    "reminders.no_new_suggestions": "لا توجد اقتراحات جديدة. قائمة التذكيرات محدثة.",
+  },
+};
+
+for (const locale of supportedLocales) {
+  Object.assign(APP_COPY[locale], REMINDER_RELIABILITY_COPY[locale]);
+}
+
 let simulatorLocaleOverride: string | undefined;
+
+type StoreLocaleVariant = "pt-PT" | "zh-Hant";
+
+const zhHansToTaiwan = OpenCC.Converter({ from: "cn", to: "tw" });
+
+const PT_PT_COPY_OVERRIDES: Record<string, string> = {
+  "common.save": "Guardar",
+  "common.delete": "Eliminar",
+  "common.archive": "Arquivar",
+  "common.restore": "Restaurar compras",
+  "tabs.classes": "Disciplinas",
+  "classes.title": "Gerir semestre",
+  "classes.truth": "Uma única fonte de verdade",
+  "classes.truth_body": "Corrige importações, acrescenta trabalho em falta e mantém Hoje, Plano, lembretes e widgets sincronizados.",
+  "classes.add": "Adicionar disciplina",
+  "classes.add_manual": "Adicionar disciplina manualmente",
+  "classes.empty_title": "Ainda não há disciplinas ativas.",
+  "classes.empty_body": "Começa manualmente se o programa estiver em falta, ilegível ou incorreto.",
+  "classes.restore": "Restaurar disciplina",
+  "class.code": "Código",
+  "class.name": "Nome",
+  "class.professor": "Docente",
+  "class.assignment": "Trabalho",
+  "class.assignments": "Trabalhos",
+  "class.assessment": "Avaliação",
+  "class.exams": "Próximas avaliações",
+  "scan.header": "Digitalizar",
+  "scan.title": "Importa. Revê. Começa.",
+  "scan.sub": "Captura qualquer material",
+  "scan.upload_pdf": "Carregar PDF do programa",
+  "scan.paste_text": "Colar texto",
+  "scan.notes_title": "Digitalizar apontamentos",
+  "scan.notes_body": "Resumos, conceitos, cartões, testes e tarefas de revisão.",
+  "scan.quick_title": "Captura rápida",
+  "scan.quick_body": "Escreve a disciplina, a tarefa, o prazo e a duração.",
+  "scan.quick_button": "Criar tarefa e reorganizar",
+  "review.title": "Rever importação",
+  "review.found": "O StudyPlanner encontrou o teu semestre.",
+  "review.classes": "disciplinas",
+  "review.assignments": "trabalhos",
+  "review.exams": "avaliações",
+  "review.approve": "Aprovar itens fiáveis",
+  "review.approve_count": "Aprovar {count} itens de elevada confiança",
+  "review.manual": "Configuração manual",
+  "review.apply": "Aplicar itens aprovados ({count})",
+  "review.keep_existing": "Manter existente",
+  "review.update_existing": "Atualizar existente",
+  "review.create_duplicate": "Criar duplicado",
+  "success.ready": "Semestre pronto",
+  "success.built": "Guardado a partir da digitalização aprovada.",
+  "success.open_dashboard": "Abrir painel",
+  "today.next_move": "Próximo passo",
+  "today.next_class": "Próxima aula",
+  "today.deadline": "Prazo",
+  "today.start_focus": "Começar foco",
+  "today.upcoming_deadlines": "Próximos prazos",
+  "today.upcoming_assessments": "Próximas avaliações",
+  "plan.title": "Plano",
+  "plan.autopilot": "Piloto automático",
+  "plan.rebuild": "Reconstruir plano",
+  "plan.focus_blocks": "Blocos de foco",
+  "plan.study": "Estudar",
+  "tasks.title": "Tarefas",
+  "notes.title": "Apontamentos",
+  "notes.scan": "Digitalizar apontamentos",
+  "notes.paste": "Colar apontamentos",
+  "notes.classes_count": "disciplinas",
+  "widgets.title": "Widgets",
+  "widgets.sub_ready": "Capturas do ecrã principal",
+  "widgets.ready_to_sync_title": "Widgets prontos a sincronizar",
+  "widgets.up_to_date_title": "Widgets atualizados",
+  "widgets.sync": "Sincronizar com o iPhone",
+  "widgets.refresh": "Atualizar widgets",
+  "widgets.row_today": "StudyPlanner Hoje",
+  "widgets.row_upcoming": "Próximos",
+  "widgets.row_week_calendar": "Calendário do semestre",
+  "widgets.row_class": "Progresso da disciplina",
+  "profile.manage_subscription": "Gerir subscrição",
+  "profile.semester_progress": "PROGRESSO DO SEMESTRE",
+  "option.paste_syllabus": "Colar programa",
+  "option.scan_camera": "Digitalizar com a câmara",
+  "preview.user": "Inês",
+  "preview.class1": "Estruturas de dados",
+  "preview.class2": "Química geral",
+  "preview.class3": "Seminário arquivado",
+  "preview.professor1": "Prof.ª Silva",
+  "preview.professor2": "Prof. Costa",
+  "preview.task1": "Discussão semanal",
+  "preview.task2": "Relatório de laboratório",
+  "preview.task3": "Reflexão de leitura",
+  "preview.exam1": "Avaliação 1",
+  "preview.note1": "Apontamentos sobre árvores binárias",
+  "preview.note2": "Apontamentos de titulação",
+  "preview.source": "Importação do programa",
+  "preview.state": "No bom caminho",
+  "preview.health": "Estável",
+  "preview.driver": "A carga mantém-se estável.",
+  "preview.next": "Preparar o relatório",
+  "preview.detail": "Um bloco de foco protege o plano.",
+  "preview.pressure": "Semana equilibrada",
+  "preview.notes": "Os apontamentos reforçam a preparação.",
+  "preview.forecast": "Estável",
+  "preview.reason": "O próximo prazo está claro.",
+  "preview.nudge": "Começa hoje um bloco de foco.",
+  "preview.mode": "atual",
+  "preview.signals": "sinais",
+  "preview.busy": "cheio",
+  "preview.clear": "Caminho livre",
+  "preview.nextClass": "próxima aula",
+  "preview.dueToday": "vence hoje",
+  "preview.assignments": "tarefas",
+  "preview.exams": "avaliações",
+  "preview.classPulse": "Pulso da disciplina",
+  "preview.classes": "Disciplinas",
+  "preview.allNotes": "Todos os apontamentos",
+};
+
+function storeLocaleVariant(): StoreLocaleVariant | null {
+  const envLocale = typeof process !== "undefined" ? process.env?.EXPO_PUBLIC_STUDYPLANNER_LOCALE : undefined;
+  let runtimeLocale = "";
+  try {
+    runtimeLocale = Intl.DateTimeFormat().resolvedOptions().locale;
+  } catch {
+    runtimeLocale = "";
+  }
+  const raw = (simulatorLocaleOverride || envLocale || runtimeLocale).replace("_", "-").toLowerCase();
+  if (raw === "pt-pt" || raw.startsWith("pt-pt-")) return "pt-PT";
+  if (raw === "zh-hant" || raw.startsWith("zh-hant-") || raw === "zh-tw" || raw.startsWith("zh-tw-")) return "zh-Hant";
+  return null;
+}
+
+function europeanPortuguese(text: string) {
+  return [
+    ["Gerenciar", "Gerir"], ["gerenciar", "gerir"],
+    ["Salvar", "Guardar"], ["salvar", "guardar"],
+    ["Excluir", "Eliminar"], ["excluir", "eliminar"],
+    ["Tela de Início", "ecrã principal"], ["tela inicial", "ecrã principal"],
+    ["Arquivos", "Ficheiros"], ["arquivos", "ficheiros"], ["Arquivo", "Ficheiro"], ["arquivo", "ficheiro"],
+    ["planejador", "planeador"], ["celular", "telemóvel"],
+  ].reduce((value, [from, to]) => value.split(from).join(to), text);
+}
+
+function storeVariantText(key: string, text: string) {
+  const variant = storeLocaleVariant();
+  if (variant === "zh-Hant") return zhHansToTaiwan(text);
+  if (variant === "pt-PT") return PT_PT_COPY_OVERRIDES[key] || europeanPortuguese(text);
+  return text;
+}
 
 type PreviewCopy = Record<string, string>;
 const PREVIEW_COPY: Record<SupportedLocale, PreviewCopy> = {
   "en-US": {},
-  de: { user: "Mia", class1: "Datenstrukturen", class2: "Allgemeine Chemie", class3: "Archiviertes Seminar", professor1: "Dr. Weber", professor2: "Prof. Bauer", task1: "Wöchentlicher Diskussionsbeitrag", task2: "Laborbericht", task3: "Lese-Reflexion", exam1: "Zwischenprüfung 1", note1: "Notizen zu Binärbäumen", note2: "Notizen zum Titrationslabor", summary1: "Traversierung, Baumhöhe und Balanceregeln aus Woche 4.", summary2: "Endpunkt, Molarität und Checkliste für den Laborbericht.", term1: "Binärbaum|Traversierung|Laufzeit|Balance|Hashtabelle", term2: "Molarität|Endpunkt|Indikator|Titration", source: "syllabus-Import", importFile: "semesterplan.pdf", state: "Gut im Plan", health: "Stabil", driver: "Arbeitslast bleibt stabil.", next: "Laborbericht vorbereiten", detail: "Ein Fokusblock hält den Plan sauber.", pressure: "Ausgewogene Woche", notes: "Notizen stützen die Vorbereitung.", forecast: "Stabil", trend: "steigend", reason: "Nächste Frist ist sichtbar.", nudge: "Heute einen Fokusblock starten.", mode: "aktuell", signals: "Signale", busy: "voll", clear: "Freie Strecke", nextClass: "nächster Kurs", dueToday: "heute fällig", studyToday: "heute lernen", pressureLabel: "Druck", assignments: "Aufgaben", exams: "Prüfungen", classPulse: "Kurspuls", classes: "Kurse", allNotes: "Alle Notizen", viewPlan: "Plan ansehen" },
+  de: { user: "Mia", class1: "Datenstrukturen", class2: "Allgemeine Chemie", class3: "Archiviertes Seminar", professor1: "Dr. Weber", professor2: "Prof. Bauer", task1: "Wöchentlicher Diskussionsbeitrag", task2: "Laborbericht", task3: "Lese-Reflexion", exam1: "Zwischenprüfung 1", note1: "Notizen zu Binärbäumen", note2: "Notizen zum Titrationslabor", summary1: "Traversierung, Baumhöhe und Balanceregeln aus Woche 4.", summary2: "Endpunkt, Molarität und Checkliste für den Laborbericht.", term1: "Binärbaum|Traversierung|Laufzeit|Balance|Hashtabelle", term2: "Molarität|Endpunkt|Indikator|Titration", source: "Lehrplanimport", importFile: "semesterplan.pdf", state: "Gut im Plan", health: "Stabil", driver: "Arbeitslast bleibt stabil.", next: "Laborbericht vorbereiten", detail: "Ein Fokusblock hält den Plan sauber.", pressure: "Ausgewogene Woche", notes: "Notizen stützen die Vorbereitung.", forecast: "Stabil", trend: "steigend", reason: "Nächste Frist ist sichtbar.", nudge: "Heute einen Fokusblock starten.", mode: "aktuell", signals: "Signale", busy: "voll", clear: "Freie Strecke", nextClass: "nächster Kurs", dueToday: "heute fällig", studyToday: "heute lernen", pressureLabel: "Druck", assignments: "Aufgaben", exams: "Prüfungen", classPulse: "Kurspuls", classes: "Kurse", allNotes: "Alle Notizen", viewPlan: "Plan ansehen" },
   es: { user: "Sofía", class1: "Estructuras de datos", class2: "Química general", class3: "Seminario archivado", professor1: "Dra. Ruiz", professor2: "Prof. Vega", task1: "Foro semanal", task2: "Informe de laboratorio", task3: "Reflexión de lectura", exam1: "Parcial 1", note1: "Notas de árboles binarios", note2: "Notas de titulación", summary1: "Recorridos, altura y reglas de balance de la semana 4.", summary2: "Cambio de color, molaridad y lista del informe.", term1: "Árbol binario|Recorrido|Complejidad|Balance|Tabla hash", term2: "Molaridad|Punto final|Indicador|Titulación", source: "Importación del programa", importFile: "plan-semestre.pdf", state: "En buen ritmo", health: "Estable", driver: "La carga se mantiene estable.", next: "Preparar informe", detail: "Un bloque de enfoque protege el plan.", pressure: "Semana equilibrada", notes: "Las notas sostienen la preparación.", forecast: "Estable", trend: "sube", reason: "La próxima entrega está clara.", nudge: "Inicia un bloque de enfoque hoy.", mode: "actual", signals: "señales", busy: "lleno", clear: "Ruta libre", nextClass: "próxima clase", dueToday: "vence hoy", studyToday: "estudiar hoy", pressureLabel: "presión", assignments: "tareas", exams: "exámenes", classPulse: "Pulso de clase", classes: "Clases", allNotes: "Todas las notas", viewPlan: "Ver plan" },
-  fr: { user: "Camille", class1: "Structures de données", class2: "Chimie générale", class3: "Séminaire archivé", professor1: "Dr Martin", professor2: "Pr Dubois", task1: "Discussion hebdo", task2: "Compte rendu de labo", task3: "Réflexion de lecture", exam1: "Partiel 1", note1: "Notes sur les arbres binaires", note2: "Notes de titrage", summary1: "Parcours, hauteur et règles d’équilibrage de la semaine 4.", summary2: "Virage, molarité et checklist du compte rendu.", term1: "Arbre binaire|Parcours|Complexité|Équilibre|Table de hachage", term2: "Molarité|Point final|Indicateur|Titrage", source: "Import du syllabus", importFile: "plan-semestre.pdf", state: "Bon rythme", health: "Stable", driver: "La charge reste stable.", next: "Préparer le compte rendu", detail: "Un bloc focus protège le plan.", pressure: "Semaine équilibrée", notes: "Les notes soutiennent la préparation.", forecast: "Stable", trend: "monte", reason: "La prochaine échéance est claire.", nudge: "Lance un bloc focus aujourd’hui.", mode: "actuel", signals: "signaux", busy: "chargé", clear: "Voie libre", nextClass: "prochain cours", dueToday: "à rendre", studyToday: "réviser", pressureLabel: "pression", assignments: "devoirs", exams: "examens", classPulse: "Pouls du cours", classes: "Cours", allNotes: "Toutes les notes", viewPlan: "Voir le plan" },
+  fr: { user: "Camille", class1: "Structures de données", class2: "Chimie générale", class3: "Séminaire archivé", professor1: "Dr Martin", professor2: "Pr Dubois", task1: "Discussion hebdo", task2: "Compte rendu de labo", task3: "Réflexion de lecture", exam1: "Partiel 1", note1: "Notes sur les arbres binaires", note2: "Notes de titrage", summary1: "Parcours, hauteur et règles d’équilibrage de la semaine 4.", summary2: "Virage, molarité et liste de vérification du compte rendu.", term1: "Arbre binaire|Parcours|Complexité|Équilibre|Table de hachage", term2: "Molarité|Point final|Indicateur|Titrage", source: "Import du programme", importFile: "plan-semestre.pdf", state: "Bon rythme", health: "Stable", driver: "La charge reste stable.", next: "Préparer le compte rendu", detail: "Un bloc focus protège le plan.", pressure: "Semaine équilibrée", notes: "Les notes soutiennent la préparation.", forecast: "Stable", trend: "monte", reason: "La prochaine échéance est claire.", nudge: "Lance un bloc focus aujourd’hui.", mode: "actuel", signals: "signaux", busy: "chargé", clear: "Voie libre", nextClass: "prochain cours", dueToday: "à rendre", studyToday: "réviser", pressureLabel: "pression", assignments: "devoirs", exams: "examens", classPulse: "Pouls du cours", classes: "Cours", allNotes: "Toutes les notes", viewPlan: "Voir le plan" },
   "pt-BR": { user: "Luiza", class1: "Estruturas de dados", class2: "Química geral", class3: "Seminário arquivado", professor1: "Dra. Lima", professor2: "Prof. Costa", task1: "Discussão semanal", task2: "Relatório de laboratório", task3: "Reflexão de leitura", exam1: "Prova 1", note1: "Notas de árvores binárias", note2: "Notas de titulação", summary1: "Percurso, altura e regras de balanceamento da semana 4.", summary2: "Ponto final, molaridade e checklist do relatório.", term1: "Árvore binária|Percurso|Complexidade|Balanceamento|Tabela hash", term2: "Molaridade|Ponto final|Indicador|Titulação", source: "Importação do plano", importFile: "plano-semestre.pdf", state: "No ritmo", health: "Estável", driver: "A carga segue estável.", next: "Preparar relatório", detail: "Um bloco de foco protege o plano.", pressure: "Semana equilibrada", notes: "As notas sustentam o preparo.", forecast: "Estável", trend: "subindo", reason: "O próximo prazo está claro.", nudge: "Comece um bloco de foco hoje.", mode: "atual", signals: "sinais", busy: "cheio", clear: "Caminho livre", nextClass: "próxima aula", dueToday: "vence hoje", studyToday: "estudar hoje", pressureLabel: "pressão", assignments: "tarefas", exams: "provas", classPulse: "Pulso da aula", classes: "Aulas", allNotes: "Todas as notas", viewPlan: "Ver plano" },
-  ja: { user: "ゆい", class1: "データ構造", class2: "基礎化学", class3: "アーカイブ済みゼミ", professor1: "田中先生", professor2: "佐藤先生", task1: "週次ディスカッション", task2: "実験レポート", task3: "読書ふり返り", exam1: "中間試験1", note1: "二分木の講義ノート", note2: "滴定実験ノート", summary1: "4週目の走査、木の高さ、平衡ルール。", summary2: "終点、モル濃度、実験レポート確認。", term1: "二分木|走査|計算量|平衡|ハッシュ表", term2: "モル濃度|終点|指示薬|滴定", source: "シラバス取り込み", importFile: "gakki-keikaku.pdf", state: "順調", health: "安定", driver: "負荷は安定しています。", next: "実験レポート準備", detail: "集中ブロックで計画を守ります。", pressure: "バランスのよい週", notes: "ノートが準備を支えています。", forecast: "安定", trend: "上昇", reason: "次の締切が見えています。", nudge: "今日の集中ブロックを開始。", mode: "最新", signals: "シグナル", busy: "多め", clear: "余裕あり", nextClass: "次の授業", dueToday: "今日締切", studyToday: "今日学習", pressureLabel: "負荷", assignments: "課題", exams: "試験", classPulse: "授業パルス", classes: "授業", allNotes: "全ノート", viewPlan: "計画を見る" },
+  ja: { user: "ゆい", class1: "データ構造", class2: "基礎化学", class3: "アーカイブ済みゼミ", professor1: "田中先生", professor2: "佐藤先生", task1: "週次ディスカッション", task2: "実験レポート", task3: "読書ふり返り", exam1: "中間試験1", note1: "二分木の講義ノート", note2: "滴定実験ノート", summary1: "4週目の走査、木の高さ、平衡ルール。", summary2: "終点、モル濃度、実験レポート確認。", term1: "二分木|走査|計算量|平衡|ハッシュ表", term2: "モル濃度|終点|指示薬|滴定", source: "シラバス取り込み", importFile: "学期計画.pdf", state: "順調", health: "安定", driver: "負荷は安定しています。", next: "実験レポート準備", detail: "集中ブロックで計画を守ります。", pressure: "バランスのよい週", notes: "ノートが準備を支えています。", forecast: "安定", trend: "上昇", reason: "次の締切が見えています。", nudge: "今日の集中ブロックを開始。", mode: "最新", signals: "シグナル", busy: "多め", clear: "余裕あり", nextClass: "次の授業", dueToday: "今日締切", studyToday: "今日学習", pressureLabel: "負荷", assignments: "課題", exams: "試験", classPulse: "授業パルス", classes: "授業", allNotes: "全ノート", viewPlan: "計画を見る" },
   ko: { user: "서연", class1: "자료구조", class2: "일반화학", class3: "보관된 세미나", professor1: "김 교수", professor2: "박 교수", task1: "주간 토론 글", task2: "실험 보고서", task3: "읽기 회고", exam1: "중간고사 1", note1: "이진 트리 강의 노트", note2: "적정 실험 노트", summary1: "4주차 순회, 높이, 균형 규칙.", summary2: "종말점, 몰농도, 보고서 체크리스트.", term1: "이진 트리|순회|복잡도|균형|해시 테이블", term2: "몰농도|종말점|지시약|적정", source: "강의계획서 가져오기", importFile: "학기계획.pdf", state: "순조로움", health: "안정", driver: "학습 부담이 안정적입니다.", next: "실험 보고서 준비", detail: "집중 블록 하나가 계획을 지켜줍니다.", pressure: "균형 잡힌 주", notes: "노트가 준비도를 받쳐줍니다.", forecast: "안정", trend: "상승", reason: "다음 마감이 분명합니다.", nudge: "오늘 집중 블록을 시작하세요.", mode: "최신", signals: "신호", busy: "바쁨", clear: "여유 있음", nextClass: "다음 수업", dueToday: "오늘 마감", studyToday: "오늘 공부", pressureLabel: "부담", assignments: "과제", exams: "시험", classPulse: "수업 펄스", classes: "수업", allNotes: "모든 노트", viewPlan: "계획 보기" },
   "zh-Hans": { user: "林同学", class1: "数据结构", class2: "普通化学", class3: "已归档研讨课", professor1: "陈老师", professor2: "王老师", task1: "每周讨论帖", task2: "实验报告", task3: "阅读反思", exam1: "期中考试1", note1: "二叉树课堂笔记", note2: "滴定实验笔记", summary1: "第4周的遍历、树高和平衡规则。", summary2: "终点颜色、摩尔浓度和报告清单。", term1: "二叉树|遍历|复杂度|平衡|哈希表", term2: "摩尔浓度|终点|指示剂|滴定", source: "大纲导入", importFile: "学期计划.pdf", state: "进度稳定", health: "稳定", driver: "任务量保持稳定。", next: "准备实验报告", detail: "一个专注时段能稳住计划。", pressure: "本周均衡", notes: "笔记正在支撑准备度。", forecast: "稳定", trend: "上升", reason: "下个截止日期清楚。", nudge: "今天开始一个专注时段。", mode: "最新", signals: "信号", busy: "较忙", clear: "节奏清晰", nextClass: "下一节课", dueToday: "今日截止", studyToday: "今日学习", pressureLabel: "压力", assignments: "作业", exams: "考试", classPulse: "课程脉搏", classes: "课程", allNotes: "全部笔记", viewPlan: "查看计划" },
   hi: { user: "अनया", class1: "डेटा संरचना", class2: "सामान्य रसायन", class3: "आर्काइव सेमिनार", professor1: "डॉ. मेहरा", professor2: "प्रो. सिंह", task1: "साप्ताहिक चर्चा पोस्ट", task2: "लैब रिपोर्ट", task3: "रीडिंग चिंतन", exam1: "मिडटर्म 1", note1: "बाइनरी ट्री नोट्स", note2: "टाइट्रेशन लैब नोट्स", summary1: "सप्ताह 4 के traversal, tree height और balance नियम।", summary2: "endpoint, molarity और लैब रिपोर्ट checklist।", term1: "बाइनरी ट्री|ट्रैवर्सल|जटिलता|बैलेंस|हैश टेबल", term2: "मोलैरिटी|एंडपॉइंट|इंडिकेटर|टाइट्रेशन", source: "सिलेबस इम्पोर्ट", importFile: "सेमेस्टर-प्लान.pdf", state: "लय में", health: "स्थिर", driver: "वर्कलोड स्थिर है।", next: "लैब रिपोर्ट तैयार करें", detail: "एक फोकस ब्लॉक प्लान बचाता है।", pressure: "संतुलित सप्ताह", notes: "नोट्स तैयारी को सहारा दे रहे हैं।", forecast: "स्थिर", trend: "ऊपर", reason: "अगली डेडलाइन साफ है।", nudge: "आज फोकस ब्लॉक शुरू करें।", mode: "ताज़ा", signals: "संकेत", busy: "व्यस्त", clear: "रास्ता साफ", nextClass: "अगली क्लास", dueToday: "आज जमा", studyToday: "आज पढ़ाई", pressureLabel: "दबाव", assignments: "असाइनमेंट", exams: "परीक्षा", classPulse: "क्लास पल्स", classes: "क्लास", allNotes: "सभी नोट्स", viewPlan: "प्लान देखें" },
@@ -1030,7 +4112,9 @@ Object.assign(PREVIEW_COPY.hi, {
 });
 
 function previewCopy() {
-  return PREVIEW_COPY[appLocale()] || PREVIEW_COPY["en-US"];
+  const copy = PREVIEW_COPY[appLocale()] || PREVIEW_COPY["en-US"];
+  if (!storeLocaleVariant()) return copy;
+  return Object.fromEntries(Object.entries(copy).map(([key, value]) => [key, storeVariantText(`preview.${key}`, value)]));
 }
 
 function previewClean<T>(englishValue: T, localizedValue: T): T {
@@ -1050,9 +4134,9 @@ function previewFixtureText(key: string, fallback: string) {
   const locale = appLocale();
   const localized: Record<SupportedLocale, Record<string, string>> = {
     "en-US": {},
-    de: { roomScience: "Raum 214", roomLab: "Labor 5", roomHall: "Saal 3", daysMw: "Mo Mi", daysTt: "Di Do", daysFri: "Fr", nextWed: "Mittwoch", nextThu: "Donnerstag", archived: "Archiviert", discussion: "Diskussion", assignment: "Aufgabe", reflection: "Reflexion", high: "Hoch", medium: "Mittel", low: "Niedrig", draftPost: "Beitrag entwerfen", checkRubric: "Rubrik prüfen", midtermKind: "Zwischenprüfung", aiImport: "syllabus-Import", awaitingDate: "Datum offen", tbd: "offen", roomTbd: "Raum offen", daysTbd: "Tage offen", timeTbd: "Zeit offen", due: "fällig", professor3: "Prof. Nasser" },
+    de: { roomScience: "Raum 214", roomLab: "Labor 5", roomHall: "Saal 3", daysMw: "Mo Mi", daysTt: "Di Do", daysFri: "Fr", nextWed: "Mittwoch", nextThu: "Donnerstag", archived: "Archiviert", discussion: "Diskussion", assignment: "Aufgabe", reflection: "Reflexion", high: "Hoch", medium: "Mittel", low: "Niedrig", draftPost: "Beitrag entwerfen", checkRubric: "Rubrik prüfen", midtermKind: "Zwischenprüfung", aiImport: "Lehrplanimport", awaitingDate: "Datum offen", tbd: "offen", roomTbd: "Raum offen", daysTbd: "Tage offen", timeTbd: "Zeit offen", due: "fällig", professor3: "Prof. Nasser" },
     es: { roomScience: "Aula 214", roomLab: "Lab 5", roomHall: "Sala 3", daysMw: "lun mié", daysTt: "mar jue", daysFri: "vie", nextWed: "miércoles", nextThu: "jueves", archived: "Archivado", discussion: "Discusión", assignment: "Tarea", reflection: "Reflexión", high: "Alta", medium: "Media", low: "Baja", draftPost: "Borrador del foro", checkRubric: "Revisar rúbrica", midtermKind: "Parcial", aiImport: "Importación del programa", awaitingDate: "Fecha pendiente", tbd: "pendiente", roomTbd: "Aula pendiente", daysTbd: "Días pendientes", timeTbd: "Hora pendiente", due: "vence", professor3: "Prof. Nasser" },
-    fr: { roomScience: "Salle 214", roomLab: "Labo 5", roomHall: "Amphi 3", daysMw: "lun mer", daysTt: "mar jeu", daysFri: "ven", nextWed: "mercredi", nextThu: "jeudi", archived: "Archivé", discussion: "Discussion", assignment: "Devoir", reflection: "Réflexion", high: "Haute", medium: "Moyenne", low: "Basse", draftPost: "Brouillon", checkRubric: "Vérifier barème", midtermKind: "Partiel", aiImport: "Import du syllabus", awaitingDate: "Date à confirmer", tbd: "à confirmer", roomTbd: "Salle à confirmer", daysTbd: "Jours à confirmer", timeTbd: "Heure à confirmer", due: "échéance", professor3: "Pr Nasser" },
+    fr: { roomScience: "Salle 214", roomLab: "Labo 5", roomHall: "Amphi 3", daysMw: "lun mer", daysTt: "mar jeu", daysFri: "ven", nextWed: "mercredi", nextThu: "jeudi", archived: "Archivé", discussion: "Discussion", assignment: "Devoir", reflection: "Réflexion", high: "Haute", medium: "Moyenne", low: "Basse", draftPost: "Brouillon", checkRubric: "Vérifier barème", midtermKind: "Partiel", aiImport: "Import du programme", awaitingDate: "Date à confirmer", tbd: "à confirmer", roomTbd: "Salle à confirmer", daysTbd: "Jours à confirmer", timeTbd: "Heure à confirmer", due: "échéance", professor3: "Pr Nasser" },
     "pt-BR": { roomScience: "Sala 214", roomLab: "Lab 5", roomHall: "Auditório 3", daysMw: "seg qua", daysTt: "ter qui", daysFri: "sex", nextWed: "quarta", nextThu: "quinta", archived: "Arquivado", discussion: "Discussão", assignment: "Tarefa", reflection: "Reflexão", high: "Alta", medium: "Média", low: "Baixa", draftPost: "Rascunhar post", checkRubric: "Ver rubrica", midtermKind: "Prova", aiImport: "Importação do plano", awaitingDate: "Data pendente", tbd: "pendente", roomTbd: "Sala pendente", daysTbd: "Dias pendentes", timeTbd: "Hora pendente", due: "vence", professor3: "Prof. Nasser" },
     ja: { roomScience: "理科棟214", roomLab: "実験室5", roomHall: "講堂3", daysMw: "月・水", daysTt: "火・木", daysFri: "金", nextWed: "水曜日", nextThu: "木曜日", archived: "アーカイブ済み", discussion: "ディスカッション", assignment: "課題", reflection: "ふり返り", high: "高", medium: "中", low: "低", draftPost: "投稿下書き", checkRubric: "評価表を確認", midtermKind: "中間試験", aiImport: "シラバス取り込み", awaitingDate: "日付待ち", tbd: "未定", roomTbd: "教室未定", daysTbd: "曜日未定", timeTbd: "時間未定", due: "締切", professor3: "ナセル先生" },
     ko: { roomScience: "과학관 214", roomLab: "실험실 5", roomHall: "강의실 3", daysMw: "월 수", daysTt: "화 목", daysFri: "금", nextWed: "수요일", nextThu: "목요일", archived: "보관됨", discussion: "토론", assignment: "과제", reflection: "회고", high: "높음", medium: "중간", low: "낮음", draftPost: "글 초안", checkRubric: "채점표 확인", midtermKind: "중간고사", aiImport: "강의계획서 가져오기", awaitingDate: "날짜 대기", tbd: "미정", roomTbd: "강의실 미정", daysTbd: "요일 미정", timeTbd: "시간 미정", due: "마감", professor3: "나세르 교수" },
@@ -1060,7 +4144,7 @@ function previewFixtureText(key: string, fallback: string) {
     hi: { roomScience: "विज्ञान कक्ष 214", roomLab: "प्रयोगशाला 5", roomHall: "हॉल 3", daysMw: "सोम बुध", daysTt: "मंगल गुरु", daysFri: "शुक्र", nextWed: "बुधवार", nextThu: "गुरुवार", archived: "आर्काइव", discussion: "चर्चा", assignment: "असाइनमेंट", reflection: "चिंतन", high: "उच्च", medium: "मध्यम", low: "कम", draftPost: "पोस्ट का मसौदा", checkRubric: "रूब्रिक देखें", midtermKind: "मध्य परीक्षा", aiImport: "सिलेबस इम्पोर्ट", awaitingDate: "तारीख बाकी", tbd: "बाकी", roomTbd: "कक्ष बाकी", daysTbd: "दिन बाकी", timeTbd: "समय बाकी", due: "जमा", professor3: "प्रो. नासिर" },
     ar: { roomScience: "قاعة العلوم 214", roomLab: "مختبر 5", roomHall: "قاعة 3", daysMw: "الاثنين الأربعاء", daysTt: "الثلاثاء الخميس", daysFri: "الجمعة", nextWed: "الأربعاء", nextThu: "الخميس", archived: "مؤرشف", discussion: "نقاش", assignment: "واجب", reflection: "تأمل", high: "عالٍ", medium: "متوسط", low: "منخفض", draftPost: "مسودة المشاركة", checkRubric: "راجع المعيار", midtermKind: "اختبار منتصف", aiImport: "استيراد المنهج", awaitingDate: "بانتظار التاريخ", tbd: "غير محدد", roomTbd: "القاعة غير محددة", daysTbd: "الأيام غير محددة", timeTbd: "الوقت غير محدد", due: "مستحق", professor3: "أ. ناصر" },
   };
-  return localized[locale]?.[key] || fallback;
+  return storeVariantText(`fixture.${key}`, localized[locale]?.[key] || fallback);
 }
 
 function localizedNarrativeText(kind: "state" | "health" | "driver" | "next" | "detail" | "pressure" | "notes", fallback: string) {
@@ -1140,6 +4224,424 @@ function localizedStudyBlockSource(source?: string) {
   return source.replace(/_/g, " ");
 }
 
+function renderWidgetCopy(template: string, vars: CopyVars = {}) {
+  return template.replace(/\{(\w+)\}/g, (_match, name) => String(vars[name] ?? ""));
+}
+
+function widgetFallbackTemplateForKey(key: string, fallback: string) {
+  if (appLocale() === "en-US") return fallback;
+  if (key.includes("trend")) return previewText("trend", fallback);
+  if (key.includes("mode")) return previewText("mode", fallback);
+  if (key.includes("forecast")) return previewText("forecast", fallback);
+  if (key.includes("pressure") || key.includes("week")) return previewText("pressure", fallback);
+  if (key.includes("state") || key.includes("narrative")) return previewText("state", fallback);
+  if (key.includes("driver")) return previewText("driver", fallback);
+  if (key.includes("nudge") || key.includes("recover") || key.includes("prep")) return previewText("nudge", fallback);
+  if (key.includes("next") || key.includes("action") || key.includes("finish") || key.includes("review") || key.includes("start")) return previewText("next", fallback);
+  return previewText("detail", fallback);
+}
+
+const widgetCopyFor: WidgetCopy = (key, fallback, vars) => {
+  const locale = appLocale();
+  const template =
+    APP_COPY[locale]?.[key] ||
+    (locale === "en-US" ? APP_COPY["en-US"][key] : undefined) ||
+    (key.startsWith("widget.native.") ? widgetFallbackTemplateForKey(key, fallback) : undefined);
+  if (template) return renderWidgetCopy(storeVariantText(key, template), vars || {});
+  return textFor(key, fallback, vars || {});
+};
+
+function localizedImportedText(value?: string) {
+  if (!value) return value || "";
+  const replacements: Record<string, string> = {
+    "AI syllabus import": textFor("import.source_ai", "AI syllabus import"),
+    "Pasted syllabus": textFor("import.source_pasted_syllabus", "Pasted syllabus"),
+    "Pasted notes": textFor("import.source_pasted_notes", "Pasted notes"),
+    "Room TBD": textFor("import.room_tbd", "Room TBD"),
+    "Core concepts": textFor("import.topic_core", "Core concepts"),
+    "Practice problems": textFor("import.topic_practice", "Practice problems"),
+    "Lecture notes": textFor("import.topic_lecture_notes", "Lecture notes"),
+    "Confirm requirements": textFor("import.subtask_confirm", "Confirm requirements"),
+    "Complete first pass": textFor("import.subtask_first_pass", "Complete first pass"),
+  };
+  return Object.entries(replacements).reduce((text, [from, to]) => text.split(from).join(to), value).replace(/\bdue\b/g, textFor("import.meta_due", "due"));
+}
+
+function localizedTaskSource(source?: string) {
+  return localizedImportedText(source || textFor("review.manual", "Manual"));
+}
+
+function localizedImportCandidate(candidate: ImportCandidate): ImportCandidate {
+  const payload: any = { ...(candidate.payload as any) };
+  if (typeof payload.source === "string") payload.source = localizedImportedText(payload.source);
+  if (typeof payload.room === "string") payload.room = localizedImportedText(payload.room);
+  if (Array.isArray(payload.topics)) payload.topics = payload.topics.map((topic: string) => localizedImportedText(topic));
+  if (Array.isArray(payload.subtasks)) payload.subtasks = payload.subtasks.map((subtask: any) => ({ ...subtask, title: localizedImportedText(subtask.title) }));
+  return {
+    ...candidate,
+    meta: localizedImportedText(candidate.meta),
+    payload,
+  };
+}
+
+function localizedImportBatch(batch: ImportBatch, sourceName?: string): ImportBatch {
+  return {
+    ...batch,
+    sourceName: localizedImportedText(sourceName || batch.sourceName),
+    candidates: batch.candidates.map(localizedImportCandidate),
+  };
+}
+
+function localizedRiskLabel(risk: { id: string; label: string }) {
+  if (risk.id === "overdue") {
+    const count = Number(risk.label.match(/\d+/)?.[0] || 0);
+    return count ? textFor("risk.overdue_count", "{count} overdue", { count }) : textFor("risk.no_overdue", "No overdue work");
+  }
+  if (risk.id === "today") {
+    const count = Number(risk.label.match(/\d+/)?.[0] || 0);
+    return textFor("risk.due_today_count", "{count} due today", { count });
+  }
+  if (risk.id === "exam") {
+    const count = Number(risk.label.match(/\d+/)?.[0] || 0);
+    return count ? textFor("risk.exam_in_days", "Exam in {count}d", { count }) : textFor("risk.no_exam", "No exam risk");
+  }
+  if (risk.id === "class" && risk.label === "Add classes") return textFor("risk.add_classes", "Add classes");
+  return localizedPulseText("forecast", localizedImportedText(risk.label));
+}
+
+function localizedRiskDetail(detail: string) {
+  if (detail === "Clear.") return textFor("risk.clear", "Clear.");
+  if (detail === "Get ahead.") return textFor("risk.get_ahead", "Get ahead.");
+  if (detail === "No overdue work.") return textFor("risk.no_overdue_detail", "No overdue work.");
+  if (detail === "No due date today.") return textFor("risk.no_due_today", "No due date today.");
+  if (detail === "Past due.") return textFor("risk.past_due", "Past due.");
+  return localizedNarrativeText("detail", localizedImportedText(detail));
+}
+
+function localizedStudyBlockReason(reason: string) {
+  if (reason === "Recover first.") return textFor("study.reason_recover_first", "Recover first.");
+  if (reason === "Protected time.") return textFor("study.reason_protected_time", "Protected time.");
+  if (reason === "Exam prep.") return textFor("study.reason_exam_prep", "Exam prep.");
+  if (reason === "Keep notes active.") return textFor("study.reason_notes_active", "Keep notes active.");
+  if (reason === "Due today.") return textFor("study.reason_due_today", "Due today.");
+  if (reason === "Clear day.") return textFor("study.reason_clear_day", "Clear day.");
+  if (/^Split before /i.test(reason)) return textFor("study.reason_split_before", "Split before the due date.");
+  return localizedNarrativeText("detail", localizedImportedText(reason));
+}
+
+const PHOTO_PERMISSION_COPY: Record<SupportedLocale, Record<string, string>> = {
+  "en-US": { "scan.photo_permission_title": "Photo access is needed", "scan.photo_library": "photo library" },
+  de: { "scan.photo_permission_title": "Fotozugriff erforderlich", "scan.photo_library": "Fotomediathek" },
+  es: { "scan.photo_permission_title": "Se necesita acceso a las fotos", "scan.photo_library": "fototeca" },
+  fr: { "scan.photo_permission_title": "Accès aux photos nécessaire", "scan.photo_library": "photothèque" },
+  "pt-BR": { "scan.photo_permission_title": "Acesso às fotos necessário", "scan.photo_library": "biblioteca de fotos" },
+  ja: { "scan.photo_permission_title": "写真へのアクセスが必要です", "scan.photo_library": "写真ライブラリ" },
+  ko: { "scan.photo_permission_title": "사진 접근이 필요합니다", "scan.photo_library": "사진 보관함" },
+  "zh-Hans": { "scan.photo_permission_title": "需要照片访问权限", "scan.photo_library": "照片图库" },
+  hi: { "scan.photo_permission_title": "फ़ोटो एक्सेस चाहिए", "scan.photo_library": "फ़ोटो लाइब्रेरी" },
+  ar: { "scan.photo_permission_title": "يلزم الوصول إلى الصور", "scan.photo_library": "مكتبة الصور" },
+};
+
+const REVIEW_MATCH_COPY: Record<SupportedLocale, string> = {
+  "en-US": "Existing item found",
+  de: "Vorhandener Eintrag gefunden",
+  es: "Se encontró un elemento existente",
+  fr: "Élément existant trouvé",
+  "pt-BR": "Item existente encontrado",
+  ja: "既存の項目が見つかりました",
+  ko: "기존 항목을 찾았습니다",
+  "zh-Hans": "发现已有项目",
+  hi: "मौजूदा आइटम मिला",
+  ar: "تم العثور على عنصر موجود",
+};
+
+const TODAY_SUMMARY_COPY: Record<SupportedLocale, string> = {
+  "en-US": "Today at a glance",
+  de: "Heute auf einen Blick",
+  es: "Hoy de un vistazo",
+  fr: "Aujourd’hui en bref",
+  "pt-BR": "Hoje em resumo",
+  ja: "今日の概要",
+  ko: "오늘 한눈에",
+  "zh-Hans": "今日概览",
+  hi: "आज एक नज़र में",
+  ar: "اليوم في لمحة",
+};
+
+const RECURRENCE_END_COPY: Record<SupportedLocale, string> = {
+  "en-US": "Ends {date}",
+  de: "Endet am {date}",
+  es: "Termina el {date}",
+  fr: "Se termine le {date}",
+  "pt-BR": "Termina em {date}",
+  ja: "終了 {date}",
+  ko: "종료 {date}",
+  "zh-Hans": "结束于 {date}",
+  hi: "{date} को समाप्त",
+  ar: "ينتهي في {date}",
+};
+
+const RECURRENCE_UPDATE_COPY: Record<SupportedLocale, string> = {
+  "en-US": "Update recurring work?",
+  de: "Wiederkehrende Aufgabe aktualisieren?",
+  es: "¿Actualizar tarea recurrente?",
+  fr: "Mettre à jour la tâche récurrente ?",
+  "pt-BR": "Atualizar tarefa recorrente?",
+  ja: "繰り返し課題を更新しますか？",
+  ko: "반복 과제를 업데이트할까요?",
+  "zh-Hans": "更新重复任务？",
+  hi: "दोहराए जाने वाले कार्य को अपडेट करें?",
+  ar: "تحديث المهمة المتكررة؟",
+};
+
+const REVIEW_APPLY_COPY: Record<SupportedLocale, string> = {
+  "en-US": "Apply approved items ({count})",
+  de: "Bestätigte Elemente anwenden ({count})",
+  es: "Aplicar elementos aprobados ({count})",
+  fr: "Appliquer les éléments approuvés ({count})",
+  "pt-BR": "Aplicar itens aprovados ({count})",
+  ja: "承認済み項目を適用（{count}件）",
+  ko: "승인된 항목 적용 ({count}개)",
+  "zh-Hans": "应用已批准项目（{count}）",
+  hi: "स्वीकृत आइटम लागू करें ({count})",
+  ar: "تطبيق العناصر المعتمدة ({count})",
+};
+
+const PENDING_IMPORT_RESUME_COPY: Record<SupportedLocale, string> = {
+  "en-US": "{count} rows are waiting for review. Nothing changes your semester until you apply them.",
+  de: "{count} Zeilen warten auf Prüfung. Dein Semester ändert sich erst nach dem Anwenden.",
+  es: "{count} filas esperan revisión. Tu semestre no cambia hasta que las apliques.",
+  fr: "{count} lignes attendent ta validation. Ton semestre ne change pas avant leur application.",
+  "pt-BR": "{count} linhas aguardam revisão. Seu semestre só muda quando você as aplicar.",
+  ja: "{count}件を確認待ちです。適用するまで学期は変更されません。",
+  ko: "{count}개 항목이 검토를 기다립니다. 적용하기 전에는 학기가 변경되지 않습니다.",
+  "zh-Hans": "{count} 行等待审核。应用前不会更改你的学期。",
+  hi: "{count} पंक्तियाँ समीक्षा के लिए प्रतीक्षारत हैं। लागू करने तक आपका सेमेस्टर नहीं बदलेगा।",
+  ar: "هناك {count} صفًا بانتظار المراجعة. لن يتغير فصلك حتى تطبقها.",
+};
+
+const REMINDER_SCHEDULE_COPY: Record<SupportedLocale, string> = {
+  "en-US": "Schedule reminders",
+  de: "Erinnerungen planen",
+  es: "Programar recordatorios",
+  fr: "Programmer les rappels",
+  "pt-BR": "Programar lembretes",
+  ja: "リマインダーを設定",
+  ko: "알림 예약",
+  "zh-Hans": "安排提醒",
+  hi: "रिमाइंडर शेड्यूल करें",
+  ar: "جدولة التذكيرات",
+};
+
+const CONTROL_TRUTH_COPY: Record<SupportedLocale, Record<string, string>> = {
+  "en-US": {
+    "reminders.configured_count": "{count} configured",
+    "reminders.scheduled_count": "{count} scheduled",
+    "reminders.verify_failed": "Could not verify the iPhone schedule. Configured reminders are shown without a Scheduled claim.",
+    "scanner.torch_optional": "Torch optional",
+    "scan.status_backup": "On-device text scan is unavailable here. Paste text to continue.",
+    "class.delete_body": "This deletes {code}, {tasks} assignments (including completed work), {exams} exams, notes, reminders, and study blocks. Archive is safer.",
+  },
+  de: {
+    "reminders.configured_count": "{count} konfiguriert",
+    "reminders.scheduled_count": "{count} geplant",
+    "reminders.verify_failed": "Der iPhone-Zeitplan konnte nicht geprüft werden. Konfigurierte Erinnerungen werden nicht als geplant markiert.",
+    "scanner.torch_optional": "Lampe optional",
+    "scan.status_backup": "Der Textscan auf diesem Gerät ist nicht verfügbar. Füge Text ein, um fortzufahren.",
+    "class.delete_body": "Dadurch werden {code}, {tasks} Aufgaben einschließlich erledigter Arbeiten, {exams} Prüfungen, Notizen, Erinnerungen und Lernblöcke gelöscht. Archivieren ist sicherer.",
+  },
+  es: {
+    "reminders.configured_count": "{count} configurados",
+    "reminders.scheduled_count": "{count} programados",
+    "reminders.verify_failed": "No se pudo verificar la programación del iPhone. Los recordatorios configurados no se muestran como programados.",
+    "scanner.torch_optional": "Linterna opcional",
+    "scan.status_backup": "El escaneo de texto no está disponible aquí. Pega texto para continuar.",
+    "class.delete_body": "Esto elimina {code}, {tasks} tareas (incluido el trabajo completado), {exams} exámenes, notas, recordatorios y bloques. Archivar es más seguro.",
+  },
+  fr: {
+    "reminders.configured_count": "{count} configurés",
+    "reminders.scheduled_count": "{count} programmés",
+    "reminders.verify_failed": "Impossible de vérifier le planning iPhone. Les rappels configurés ne sont pas indiqués comme programmés.",
+    "scanner.torch_optional": "Lampe facultative",
+    "scan.status_backup": "La lecture de texte sur l’appareil n’est pas disponible ici. Colle le texte pour continuer.",
+    "class.delete_body": "Supprime {code}, {tasks} devoirs, y compris le travail terminé, {exams} examens, notes, rappels et blocs. Archiver est plus sûr.",
+  },
+  "pt-BR": {
+    "reminders.configured_count": "{count} configurados",
+    "reminders.scheduled_count": "{count} programados",
+    "reminders.verify_failed": "Não foi possível verificar a agenda do iPhone. Lembretes configurados não aparecem como programados.",
+    "scanner.torch_optional": "Luz opcional",
+    "scan.status_backup": "A leitura de texto no dispositivo não está disponível aqui. Cole o texto para continuar.",
+    "class.delete_body": "Isso exclui {code}, {tasks} tarefas, incluindo as concluídas, {exams} provas, notas, lembretes e blocos. Arquivar é mais seguro.",
+  },
+  ja: {
+    "reminders.configured_count": "設定済み {count}件",
+    "reminders.scheduled_count": "予約済み {count}件",
+    "reminders.verify_failed": "iPhoneの予約を確認できませんでした。設定済みのリマインダーを予約済みとは表示しません。",
+    "scanner.torch_optional": "ライトは任意",
+    "scan.status_backup": "この環境では端末上のテキスト読み取りを利用できません。テキストを貼り付けて続けてください。",
+    "class.delete_body": "{code}、完了済みを含む課題{tasks}件、試験{exams}件、ノート、リマインダー、学習ブロックを削除します。アーカイブの方が安全です。",
+  },
+  ko: {
+    "reminders.configured_count": "{count}개 구성됨",
+    "reminders.scheduled_count": "{count}개 예약됨",
+    "reminders.verify_failed": "iPhone 예약을 확인하지 못했습니다. 구성된 알림을 예약됨으로 표시하지 않습니다.",
+    "scanner.torch_optional": "조명 선택 사항",
+    "scan.status_backup": "여기서는 기기 내 텍스트 스캔을 사용할 수 없습니다. 텍스트를 붙여넣어 계속하세요.",
+    "class.delete_body": "{code}, 완료된 항목을 포함한 과제 {tasks}개, 시험 {exams}개, 노트, 알림, 학습 블록을 삭제합니다. 보관이 더 안전합니다.",
+  },
+  "zh-Hans": {
+    "reminders.configured_count": "已配置 {count} 个",
+    "reminders.scheduled_count": "已安排 {count} 个",
+    "reminders.verify_failed": "无法验证 iPhone 日程。已配置的提醒不会显示为已安排。",
+    "scanner.torch_optional": "补光灯可选",
+    "scan.status_backup": "此处无法使用设备端文本扫描。请粘贴文本继续。",
+    "class.delete_body": "这会删除 {code}、{tasks} 项作业（包括已完成内容）、{exams} 场考试、笔记、提醒和学习时段。归档更安全。",
+  },
+  hi: {
+    "reminders.configured_count": "{count} कॉन्फ़िगर किए गए",
+    "reminders.scheduled_count": "{count} शेड्यूल किए गए",
+    "reminders.verify_failed": "iPhone शेड्यूल की पुष्टि नहीं हुई। कॉन्फ़िगर किए गए रिमाइंडर शेड्यूल किए हुए नहीं दिखाए जाएंगे।",
+    "scanner.torch_optional": "लाइट वैकल्पिक",
+    "scan.status_backup": "यहाँ डिवाइस पर टेक्स्ट स्कैन उपलब्ध नहीं है। जारी रखने के लिए टेक्स्ट पेस्ट करें।",
+    "class.delete_body": "यह {code}, पूरे किए गए काम सहित {tasks} असाइनमेंट, {exams} परीक्षाएँ, नोट्स, रिमाइंडर और स्टडी ब्लॉक हटा देता है। आर्काइव करना सुरक्षित है।",
+  },
+  ar: {
+    "reminders.configured_count": "تم إعداد {count}",
+    "reminders.scheduled_count": "تمت جدولة {count}",
+    "reminders.verify_failed": "تعذر التحقق من جدول iPhone. لن تظهر التذكيرات المعدّة على أنها مجدولة.",
+    "scanner.torch_optional": "الإضاءة اختيارية",
+    "scan.status_backup": "مسح النص على الجهاز غير متاح هنا. الصق النص للمتابعة.",
+    "class.delete_body": "يحذف هذا {code} و{tasks} واجبات، بما فيها المكتملة، و{exams} اختبارات وملاحظات وتذكيرات وكتل دراسة. الأرشفة أكثر أمانًا.",
+  },
+};
+
+const EDITORIAL_POLISH_COPY: Record<SupportedLocale, Record<string, string>> = {
+  "en-US": {
+    "reminders.default_status": "Add suggestions, review the timing, then schedule the reminders you want.",
+    "reminders.none": "Nothing scheduled yet",
+    "reminders.none_body": "Start with the suggestions above. You decide what gets scheduled.",
+    "reminders.step_review": "Review",
+    "plan.pressure_points": "pressure points",
+    "today.summary_detail": "{minutes} planned · {count} due now",
+    "task.schedule_hint": "Create a {minutes} focus block around your existing plan.",
+    "widgets.ready_to_sync_title": "Widget updates are ready",
+    "widgets.sync": "Update widgets",
+  },
+  de: {
+    "reminders.default_status": "Füge Vorschläge hinzu, prüfe die Zeiten und plane die gewünschten Erinnerungen.",
+    "reminders.none": "Noch nichts geplant",
+    "reminders.none_body": "Beginne mit den Vorschlägen oben. Du entscheidest, was geplant wird.",
+    "reminders.step_review": "Prüfen",
+    "plan.pressure_points": "Belastungspunkte",
+    "today.summary_detail": "{minutes} geplant · {count} jetzt fällig",
+    "task.schedule_hint": "Erstelle einen {minutes}-Fokusblock passend zu deinem bestehenden Plan.",
+    "widgets.ready_to_sync_title": "Widget-Updates sind bereit",
+    "widgets.sync": "Widgets aktualisieren",
+  },
+  es: {
+    "reminders.default_status": "Añade sugerencias, revisa los horarios y programa los recordatorios que quieras.",
+    "reminders.none": "Nada programado todavía",
+    "reminders.none_body": "Empieza con las sugerencias de arriba. Tú decides qué se programa.",
+    "reminders.step_review": "Revisar",
+    "plan.pressure_points": "puntos de carga",
+    "today.summary_detail": "{minutes} planificados · {count} pendientes ahora",
+    "task.schedule_hint": "Crea un bloque de enfoque de {minutes} alrededor de tu plan actual.",
+    "widgets.ready_to_sync_title": "Las actualizaciones están listas",
+    "widgets.sync": "Actualizar widgets",
+  },
+  fr: {
+    "reminders.default_status": "Ajoute des suggestions, vérifie les horaires, puis programme les rappels souhaités.",
+    "reminders.none": "Rien de programmé",
+    "reminders.none_body": "Commence par les suggestions ci-dessus. Tu choisis ce qui sera programmé.",
+    "reminders.step_review": "Vérifier",
+    "plan.pressure_points": "points de charge",
+    "today.summary_detail": "{minutes} planifiées · {count} à rendre",
+    "task.schedule_hint": "Crée un bloc de concentration de {minutes} adapté à ton planning.",
+    "widgets.ready_to_sync_title": "Les mises à jour sont prêtes",
+    "widgets.sync": "Actualiser les widgets",
+  },
+  "pt-BR": {
+    "reminders.default_status": "Adicione sugestões, revise os horários e programe os lembretes que quiser.",
+    "reminders.none": "Nada programado ainda",
+    "reminders.none_body": "Comece pelas sugestões acima. Você decide o que será programado.",
+    "reminders.step_review": "Revisar",
+    "plan.pressure_points": "pontos de carga",
+    "today.summary_detail": "{minutes} planejados · {count} pendentes agora",
+    "task.schedule_hint": "Crie um bloco de foco de {minutes} que caiba no seu plano atual.",
+    "widgets.ready_to_sync_title": "As atualizações estão prontas",
+    "widgets.sync": "Atualizar widgets",
+  },
+  ja: {
+    "reminders.default_status": "候補を追加し、時刻を確認して、必要なリマインダーを予約します。",
+    "reminders.none": "まだ予約はありません",
+    "reminders.none_body": "上の候補から始めます。予約する内容は自分で選べます。",
+    "reminders.step_review": "確認",
+    "plan.pressure_points": "負荷ポイント",
+    "today.summary_detail": "{minutes}予定 · 現在{count}件締切",
+    "task.schedule_hint": "現在の予定に合わせて{minutes}の集中ブロックを作成します。",
+    "widgets.ready_to_sync_title": "ウィジェットの更新準備ができました",
+    "widgets.sync": "ウィジェットを更新",
+  },
+  ko: {
+    "reminders.default_status": "추천을 추가하고 시간을 검토한 다음 원하는 알림을 예약하세요.",
+    "reminders.none": "아직 예약된 알림 없음",
+    "reminders.none_body": "위 추천으로 시작하세요. 무엇을 예약할지는 직접 결정합니다.",
+    "reminders.step_review": "검토",
+    "plan.pressure_points": "부담 포인트",
+    "today.summary_detail": "{minutes} 계획 · 지금 {count}개 마감",
+    "task.schedule_hint": "현재 계획에 맞춰 {minutes} 집중 블록을 만드세요.",
+    "widgets.ready_to_sync_title": "위젯 업데이트 준비 완료",
+    "widgets.sync": "위젯 업데이트",
+  },
+  "zh-Hans": {
+    "reminders.default_status": "添加建议，检查时间，然后安排你需要的提醒。",
+    "reminders.none": "尚未安排提醒",
+    "reminders.none_body": "从上方建议开始。由你决定安排哪些提醒。",
+    "reminders.step_review": "检查",
+    "plan.pressure_points": "负荷点",
+    "today.summary_detail": "已计划 {minutes} · 当前 {count} 项到期",
+    "task.schedule_hint": "根据现有计划创建一个 {minutes} 的专注时段。",
+    "widgets.ready_to_sync_title": "组件更新已就绪",
+    "widgets.sync": "更新组件",
+  },
+  hi: {
+    "reminders.default_status": "सुझाव जोड़ें, समय की समीक्षा करें, फिर अपने चुने हुए रिमाइंडर शेड्यूल करें।",
+    "reminders.none": "अभी कुछ शेड्यूल नहीं है",
+    "reminders.none_body": "ऊपर दिए सुझावों से शुरू करें। क्या शेड्यूल होगा, यह आप तय करते हैं।",
+    "reminders.step_review": "समीक्षा",
+    "plan.pressure_points": "वर्कलोड अंक",
+    "today.summary_detail": "{minutes} नियोजित · अभी {count} देय",
+    "task.schedule_hint": "अपने मौजूदा प्लान के अनुसार {minutes} का फोकस ब्लॉक बनाएं।",
+    "widgets.ready_to_sync_title": "विजेट अपडेट तैयार हैं",
+    "widgets.sync": "विजेट अपडेट करें",
+  },
+  ar: {
+    "reminders.default_status": "أضف الاقتراحات وراجع التوقيت ثم جدوِل التذكيرات التي تريدها.",
+    "reminders.none": "لا شيء مجدول بعد",
+    "reminders.none_body": "ابدأ بالاقتراحات أعلاه. أنت من يقرر ما تتم جدولته.",
+    "reminders.step_review": "مراجعة",
+    "plan.pressure_points": "نقاط العبء",
+    "today.summary_detail": "{minutes} مخططة · {count} مستحقة الآن",
+    "task.schedule_hint": "أنشئ كتلة تركيز مدتها {minutes} حول خطتك الحالية.",
+    "widgets.ready_to_sync_title": "تحديثات الويدجت جاهزة",
+    "widgets.sync": "تحديث الويدجت",
+  },
+};
+
+for (const locale of supportedLocales) {
+  Object.assign(APP_COPY[locale], PHOTO_PERMISSION_COPY[locale]);
+  APP_COPY[locale]["review.existing_found"] = REVIEW_MATCH_COPY[locale];
+  APP_COPY[locale]["today.at_a_glance"] = TODAY_SUMMARY_COPY[locale];
+  APP_COPY[locale]["task.recurrence_ends"] = RECURRENCE_END_COPY[locale];
+  APP_COPY[locale]["task.update_recurring_title"] = RECURRENCE_UPDATE_COPY[locale];
+  APP_COPY[locale]["review.apply"] = REVIEW_APPLY_COPY[locale];
+  APP_COPY[locale]["review.resume_body"] = PENDING_IMPORT_RESUME_COPY[locale];
+  APP_COPY[locale]["reminders.schedule"] = REMINDER_SCHEDULE_COPY[locale];
+  Object.assign(APP_COPY[locale], CONTROL_TRUTH_COPY[locale]);
+  Object.assign(APP_COPY[locale], EDITORIAL_POLISH_COPY[locale]);
+}
+
 function localizedWeekdayNarrow(index: number) {
   const labels: Record<SupportedLocale, string[]> = {
     "en-US": ["M", "T", "W", "T", "F", "S", "S"],
@@ -1197,103 +4699,8 @@ function nonEnglishMissingCopy(locale: SupportedLocale, key: string) {
 function textFor(key: string, fallback: string, vars: CopyVars = {}) {
   const locale = appLocale();
   const localized = APP_COPY[locale]?.[key];
-  const template = localized || (locale === "en-US" ? APP_COPY["en-US"][key] || fallback : nonEnglishMissingCopy(locale, key));
-  return template.replace(/\{(\w+)\}/g, (_match, name) => String(vars[name] ?? ""));
-}
-
-type ReviewRoutingCopy = {
-  title: string;
-  body: string;
-  notNow: string;
-  ratings: Record<ReviewRating, string>;
-  feedbackSubject: string;
-  feedbackBody: string;
-};
-
-function reviewRoutingCopy(): ReviewRoutingCopy {
-  const copy: Record<SupportedLocale, ReviewRoutingCopy> = {
-    "en-US": {
-      title: "How is StudyPlanner working?",
-      body: "Pick a rating. Five stars opens the App Store. Anything lower sends feedback straight to us.",
-      notNow: "Not now",
-      ratings: { 1: "1 star", 2: "2 stars", 3: "3 stars", 4: "4 stars", 5: "5 stars" },
-      feedbackSubject: "StudyPlanner {rating}-star feedback",
-      feedbackBody: "What went wrong?\n\nWhat should StudyPlanner improve next?\n\n"
-    },
-    de: {
-      title: "Wie funktioniert StudyPlanner fuer dich?",
-      body: "Waehle eine Bewertung. Fuenf Sterne oeffnen den App Store. Alles darunter geht direkt als Feedback an uns.",
-      notNow: "Jetzt nicht",
-      ratings: { 1: "1 Stern", 2: "2 Sterne", 3: "3 Sterne", 4: "4 Sterne", 5: "5 Sterne" },
-      feedbackSubject: "StudyPlanner Feedback mit {rating} Sternen",
-      feedbackBody: "Was hat nicht gepasst?\n\nWas sollte StudyPlanner als Naechstes verbessern?\n\n"
-    },
-    es: {
-      title: "¿Como te va con StudyPlanner?",
-      body: "Elige una calificacion. Cinco estrellas abre App Store. Cualquier nota menor envia comentarios directos.",
-      notNow: "Ahora no",
-      ratings: { 1: "1 estrella", 2: "2 estrellas", 3: "3 estrellas", 4: "4 estrellas", 5: "5 estrellas" },
-      feedbackSubject: "Comentarios de StudyPlanner con {rating} estrellas",
-      feedbackBody: "¿Que salio mal?\n\n¿Que deberia mejorar StudyPlanner ahora?\n\n"
-    },
-    fr: {
-      title: "Comment se passe StudyPlanner ?",
-      body: "Choisis une note. Cinq etoiles ouvre l'App Store. Une note plus basse envoie ton retour directement.",
-      notNow: "Pas maintenant",
-      ratings: { 1: "1 etoile", 2: "2 etoiles", 3: "3 etoiles", 4: "4 etoiles", 5: "5 etoiles" },
-      feedbackSubject: "Retour StudyPlanner avec {rating} etoiles",
-      feedbackBody: "Qu'est-ce qui n'a pas marche ?\n\nQue devrait ameliorer StudyPlanner ensuite ?\n\n"
-    },
-    hi: {
-      title: "StudyPlanner आपके लिए कैसा चल रहा है?",
-      body: "रेटिंग चुनें। पांच स्टार App Store खोलते हैं। इससे कम रेटिंग सीधे हमें feedback भेजती है।",
-      notNow: "अभी नहीं",
-      ratings: { 1: "1 स्टार", 2: "2 स्टार", 3: "3 स्टार", 4: "4 स्टार", 5: "5 स्टार" },
-      feedbackSubject: "StudyPlanner {rating}-स्टार feedback",
-      feedbackBody: "क्या ठीक नहीं रहा?\n\nStudyPlanner को आगे क्या सुधारना चाहिए?\n\n"
-    },
-    ja: {
-      title: "StudyPlannerの使い心地は？",
-      body: "評価を選んでください。5つ星はApp Storeを開き、それ未満は直接フィードバックを送ります。",
-      notNow: "今はしない",
-      ratings: { 1: "1つ星", 2: "2つ星", 3: "3つ星", 4: "4つ星", 5: "5つ星" },
-      feedbackSubject: "StudyPlanner {rating}つ星フィードバック",
-      feedbackBody: "うまくいかなかったことは？\n\nStudyPlannerで次に改善してほしいことは？\n\n"
-    },
-    ko: {
-      title: "StudyPlanner 사용 경험은 어떤가요?",
-      body: "평점을 선택하세요. 별 5개는 App Store를 열고, 그보다 낮으면 의견을 바로 보냅니다.",
-      notNow: "나중에",
-      ratings: { 1: "별 1개", 2: "별 2개", 3: "별 3개", 4: "별 4개", 5: "별 5개" },
-      feedbackSubject: "StudyPlanner 별 {rating}개 의견",
-      feedbackBody: "무엇이 불편했나요?\n\nStudyPlanner가 다음에 무엇을 개선하면 좋을까요?\n\n"
-    },
-    "pt-BR": {
-      title: "Como esta o StudyPlanner?",
-      body: "Escolha uma nota. Cinco estrelas abre a App Store. Qualquer nota menor envia feedback direto.",
-      notNow: "Agora nao",
-      ratings: { 1: "1 estrela", 2: "2 estrelas", 3: "3 estrelas", 4: "4 estrelas", 5: "5 estrelas" },
-      feedbackSubject: "Feedback do StudyPlanner com {rating} estrelas",
-      feedbackBody: "O que nao funcionou?\n\nO que o StudyPlanner deve melhorar agora?\n\n"
-    },
-    "zh-Hans": {
-      title: "StudyPlanner 用起来怎么样？",
-      body: "选择评分。5 星会打开 App Store，低于 5 星会直接发送反馈给我们。",
-      notNow: "暂时不要",
-      ratings: { 1: "1 星", 2: "2 星", 3: "3 星", 4: "4 星", 5: "5 星" },
-      feedbackSubject: "StudyPlanner {rating} 星反馈",
-      feedbackBody: "哪里不顺利？\n\n你希望 StudyPlanner 接下来改进什么？\n\n"
-    },
-    ar: {
-      title: "كيف يعمل StudyPlanner معك؟",
-      body: "اختر تقييما. خمس نجوم تفتح App Store. أي تقييم أقل يرسل ملاحظاتك إلينا مباشرة.",
-      notNow: "ليس الآن",
-      ratings: { 1: "نجمة 1", 2: "نجمتان", 3: "3 نجوم", 4: "4 نجوم", 5: "5 نجوم" },
-      feedbackSubject: "ملاحظات StudyPlanner بتقييم {rating} نجوم",
-      feedbackBody: "ما الذي لم يعمل جيدا؟\n\nما الذي يجب أن يحسنه StudyPlanner بعد ذلك؟\n\n"
-    },
-  };
-  return copy[appLocale()] || copy["en-US"];
+  const template = localized || (locale === "en-US" || key.startsWith("scanner.") ? APP_COPY["en-US"][key] || fallback : nonEnglishMissingCopy(locale, key));
+  return storeVariantText(key, template).replace(/\{(\w+)\}/g, (_match, name) => String(vars[name] ?? ""));
 }
 
 function optionText(value: string) {
@@ -1312,8 +4719,8 @@ function optionText(value: string) {
     "Upload PDF": "option.upload_pdf",
     "syllabus PDF": "option.upload_pdf",
     "Paste syllabus": "option.paste_syllabus",
+    "Add manually": "option.add_manually",
     "Scan with camera": "option.scan_camera",
-    "Skip for now": "option.skip",
   }[value];
   return key ? textFor(key, value) : appLocale() === "en-US" ? value : textFor("option.everything", value);
 }
@@ -1327,6 +4734,7 @@ const iconMap: Record<string, LucideIcon> = {
   classes: BookOpen,
   scan: ScanLine,
   plan: CalendarDays,
+  calendar: CalendarDays,
   profile: User,
   "book-open": BookOpen,
   "notebook-pen": NotebookPen,
@@ -1371,9 +4779,31 @@ function Icon({ name, size = 20, color = COLORS.ink, strokeWidth = 2.1 }: { name
   return <C size={size} color={color} strokeWidth={strokeWidth} />;
 }
 
-function palette(theme: ThemeId) {
+function contrastSafeLightForeground(color: string) {
+  const match = /^#([0-9a-f]{6})$/i.exec(color);
+  if (!match) return "#3A3A40";
+  let red = Number.parseInt(match[1].slice(0, 2), 16);
+  let green = Number.parseInt(match[1].slice(2, 4), 16);
+  let blue = Number.parseInt(match[1].slice(4, 6), 16);
+  const luminance = () => {
+    const channel = (value: number) => {
+      const normalized = value / 255;
+      return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+    };
+    return 0.2126 * channel(red) + 0.7152 * channel(green) + 0.0722 * channel(blue);
+  };
+  while (1.05 / (luminance() + 0.05) < 4.5) {
+    red = Math.floor(red * 0.9);
+    green = Math.floor(green * 0.9);
+    blue = Math.floor(blue * 0.9);
+  }
+  return `#${[red, green, blue].map((value) => value.toString(16).padStart(2, "0")).join("")}`;
+}
+
+function palette(theme: ThemeId, accentOverride?: string) {
   const dark = ["dark", "neon", "athlete"].includes(theme);
-  const accent = THEMES.find((t) => t.id === theme)?.swatches[1] || COLORS.blue;
+  const accentSource = accentOverride || THEMES.find((t) => t.id === theme)?.swatches[1] || COLORS.blue;
+  const accent = dark ? accentSource : contrastSafeLightForeground(accentSource);
   return {
     dark,
     bg: dark ? "#050507" : "#EFEFF4",
@@ -1382,10 +4812,10 @@ function palette(theme: ThemeId) {
     surface3: dark ? "#2C2C33" : "#ECECF2",
     hairline: dark ? "rgba(255,255,255,0.10)" : "rgba(60,60,67,0.12)",
     label: dark ? "#FFFFFF" : "#0A0A0D",
-    label2: dark ? "rgba(235,235,245,0.66)" : "rgba(60,60,67,0.66)",
-    label3: dark ? "rgba(235,235,245,0.34)" : "rgba(60,60,67,0.34)",
+    label2: dark ? "rgba(235,235,245,0.72)" : "#515158",
+    label3: dark ? "rgba(235,235,245,0.52)" : "#6E6E76",
     accent,
-    accent2: THEMES.find((t) => t.id === theme)?.swatches[0] || COLORS.purple,
+    accent2: accentOverride || THEMES.find((t) => t.id === theme)?.swatches[0] || COLORS.purple,
   };
 }
 
@@ -1394,13 +4824,15 @@ function tap(style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Li
 }
 
 const TERMS_URL = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
+const PRIVACY_URL = "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408";
 const SUPPORT_URL = "mailto:mattnewmanapps@gmail.com?subject=StudyPlanner%20Support";
-const MANAGE_SUBSCRIPTION_URL = "https://apps.apple.com/account/subscriptions";
-const APP_STORE_REVIEW_URL = "itms-apps://itunes.apple.com/app/id6766181202?action=write-review";
-const PRE_PURCHASE_ROUTES: Route[] = ["welcome", "onboarding", "importOptions", "lockedDashboard", "paywall", "terms", "privacy"];
+const MANAGE_SUBSCRIPTION_URL = Platform.OS === "android"
+  ? "https://play.google.com/store/account/subscriptions?package=com.mattnewman.studyplanner"
+  : "https://apps.apple.com/account/subscriptions";
+const PRE_PURCHASE_ROUTES: Route[] = ["welcome", "onboarding", "importOptions", "semesterKickoff", "lockedDashboard", "paywall", "terms", "privacy"];
 type EntitlementStatus = "loading" | "active" | "inactive" | "error";
 type AccessState = "loading" | "onboarding" | "preview_allowed" | "locked" | "paywall" | "unlocked";
-type UnlockSuccessSource = "purchase_action" | "restore_action" | "startup_hydration";
+type UnlockSuccessSource = "purchase_action" | "restore_action" | "startup_hydration" | "google_play_review_access";
 let lastUnlockSuccessAlertAt = 0;
 const FALLBACK_CLASS: ClassItem = {
   id: "empty-class",
@@ -1430,10 +4862,50 @@ function taskDueLabel(task: TaskItem) {
   return hasTaskDate(task) ? `${localizedDueLabel(daysUntilTask(task))} · ${task.time}` : `${previewFixtureText("awaitingDate", "Awaiting Date")} · ${task.time || previewFixtureText("tbd", "TBD")}`;
 }
 
+function localDateKey(date: Date) {
+  const year = String(date.getFullYear()).padStart(4, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function isValidPlannerTime(value: string) {
+  const clean = value.trim();
+  if (/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(clean)) return true;
+  const twelveHour = /^(\d{1,2}):([0-5]\d)\s*(AM|PM)$/i.exec(clean);
+  return Boolean(twelveHour && Number(twelveHour[1]) >= 1 && Number(twelveHour[1]) <= 12);
+}
+
+function showInvalidPlannerField(kind: "date" | "time" | "title") {
+  const body = kind === "date"
+    ? textFor("review.invalid_date", "Use a real date in YYYY-MM-DD format.")
+    : kind === "time"
+      ? "Use a real time such as 9:00 AM or 17:00."
+      : "Add a specific class or work title before saving.";
+  Alert.alert(textFor("review.needs_review", "Check the details"), body);
+}
+
+function showReminderCancellationFailure() {
+  Alert.alert(
+    textFor("reminders.cancel_failed_title", "Couldn't update reminders"),
+    textFor("reminders.cancel_failed_body", "StudyPlanner couldn't remove every scheduled alert, so it stopped before deleting or switching anything off. Try again. If this continues, open iPhone Settings > Notifications > StudyPlanner."),
+    [
+      { text: textFor("common.cancel", "Cancel"), style: "cancel" },
+      {
+        text: textFor("scan.open_settings", "Open Settings"),
+        onPress: () => Linking.openSettings().catch(() => Alert.alert(
+          textFor("common.link_unavailable", "Link unavailable"),
+          textFor("common.link_unavailable_body", "Open iPhone Settings to update StudyPlanner notifications."),
+        )),
+      },
+    ],
+  );
+}
+
 function addDaysLocal(iso: string, days: number) {
   const date = new Date(`${iso}T12:00:00`);
   date.setDate(date.getDate() + days);
-  return date.toISOString().slice(0, 10);
+  return localDateKey(date);
 }
 
 function firstNameFromPrefs(data: AppData) {
@@ -1460,7 +4932,7 @@ function appAccessLocked(data: AppData, entitlementStatus: EntitlementStatus) {
 }
 
 function accessStateFor(data: AppData, entitlementStatus: EntitlementStatus, active?: Route): AccessState {
-  if (!onboardingComplete(data)) return "onboarding";
+  if (!onboardingComplete(data)) return active === "semesterKickoff" ? "preview_allowed" : "onboarding";
   if (entitlementUnlocks(data, entitlementStatus)) return "unlocked";
   if (entitlementStatus === "loading") return PRE_PURCHASE_ROUTES.includes(active || "lockedDashboard") ? "preview_allowed" : "loading";
   if (active === "paywall") return "paywall";
@@ -1567,14 +5039,18 @@ function routeFromUrl(rawUrl: string): Route | null {
   if (rawUrl.toLowerCase().includes("expo-development-client")) return null;
   const routeTokens = routeTokensFromUrl(rawUrl);
 
-  if (routeTokens.has("scan") || routeTokens.has("import")) return "scan";
+  if (routeTokens.has("import")) return "semesterKickoff";
+  if (routeTokens.has("scan")) return "scan";
   if (routeTokens.has("paste")) return "paste";
   if (routeTokens.has("notes")) return "notes";
   if (routeTokens.has("classes") || routeTokens.has("courses")) return "classes";
   if (routeTokens.has("calendar") || routeTokens.has("plan")) return "plan";
   if (routeTokens.has("study")) return "plan";
   if (routeTokens.has("reminders")) return "reminders";
-  if (routeTokens.has("today") || routeTokens.has("widgets") || routeTokens.has("widget")) return "today";
+  if (routeTokens.has("homepreview") || (routeTokens.has("home") && routeTokens.has("preview"))) return "homePreview";
+  if (routeTokens.has("lockpreview") || (routeTokens.has("lock") && routeTokens.has("preview"))) return "lockPreview";
+  if (routeTokens.has("widgets") || routeTokens.has("widget")) return "widgets";
+  if (routeTokens.has("today")) return "today";
   if (routeTokens.has("terms") || routeTokens.has("eula")) return "terms";
   if (routeTokens.has("privacy")) return "privacy";
   if (routeTokens.has("paywall") || routeTokens.has("subscribe")) return "paywall";
@@ -1607,6 +5083,10 @@ function shortDateLabel() {
   return new Date().toLocaleDateString(appLocale(), { weekday: "long", month: "long", day: "numeric" });
 }
 
+function readablePlannerTimeRange(value: string) {
+  return value.replace(/(\d)(AM|PM)\b/gi, "$1 $2").replace(/\s*-\s*/g, " – ");
+}
+
 const SIMULATOR_CAPTURE_FILE = "studyplanner-capture-tab.json";
 type SimulatorCaptureConfig = {
   tab?: string;
@@ -1614,8 +5094,9 @@ type SimulatorCaptureConfig = {
   screen?: string;
   onboardingIndex?: number;
   locale?: string;
-  qaState?: "build57";
+  qaState?: "build57" | "build66" | "examHeavy";
   emptyPlanner?: boolean;
+  semesterThemeColorId?: SemesterThemeColorId;
   prompt?: "recurrenceScope" | "archiveClass";
 };
 
@@ -1628,11 +5109,31 @@ type SimulatorCaptureState = {
 };
 
 function simulatorCaptureIsEnabled() {
-  return typeof __DEV__ !== "undefined" && __DEV__;
+  const releaseCaptureEnabled = typeof process !== "undefined" && process.env?.EXPO_PUBLIC_STUDYPLANNER_CAPTURE_QA === "1";
+  return (typeof __DEV__ !== "undefined" && __DEV__) || releaseCaptureEnabled;
+}
+
+function simulatorCaptureConfigFromUrl(url: string | null): SimulatorCaptureConfig | null {
+  if (!simulatorCaptureIsEnabled() || !url || !url.includes("capture")) return null;
+  const [, query = ""] = url.split("?");
+  if (!query) return null;
+  const params = new URLSearchParams(query);
+  const encodedConfig = params.get("config");
+  if (!encodedConfig || encodedConfig.length > 20_000) return null;
+  try {
+    const parsed = JSON.parse(decodeURIComponent(encodedConfig));
+    if (!parsed || typeof parsed !== "object") return null;
+    simulatorLocaleOverride = parsed.locale;
+    return parsed as SimulatorCaptureConfig;
+  } catch {
+    return null;
+  }
 }
 
 async function loadSimulatorCaptureConfig(): Promise<SimulatorCaptureConfig | null> {
   if (!simulatorCaptureIsEnabled()) return null;
+  const initialUrlConfig = simulatorCaptureConfigFromUrl(await Linking.getInitialURL().catch(() => null));
+  if (initialUrlConfig) return initialUrlConfig;
   try {
     const file = new File(Paths.document, SIMULATOR_CAPTURE_FILE);
     if (!file.exists) return null;
@@ -1821,6 +5322,60 @@ function buildBuild57FixtureData() {
   return { ...data, studyBlocks: buildStudyPlan(data) };
 }
 
+function buildExamHeavyFixtureData(): AppData {
+  const semesterTheme = resolveSemesterThemeColor("purple");
+  const classes: ClassItem[] = [
+    { id: "bio", code: "BIO 101", name: "Introductory Biology", professor: "Dr. Alvarez", room: "Ryder Hall 204", days: "Mon Wed Fri", time: "9:00 AM", next: "Today · 9:00 AM", health: 0.86, grade: "A-", color: COLORS.green, color2: "#1FA346", icon: "flask-conical" },
+    { id: "fin", code: "FIN 250", name: "Corporate Finance", professor: "Prof. Chen", room: "Shillman 315", days: "Tue Thu", time: "11:00 AM", next: "Tomorrow · 11:00 AM", health: 0.72, grade: "B+", color: COLORS.blue, color2: "#0768CC", icon: "bar-chart-3" },
+    { id: "chem", code: "CHEM 311", name: "Organic Chemistry", professor: "Dr. Okafor", room: "Richards 458", days: "Mon Wed", time: "1:00 PM", next: "Today · 1:00 PM", health: 0.58, grade: "B-", color: "#BF5AF2", color2: "#9A3FCB", icon: "flask-conical" },
+    { id: "hist", code: "HIST 180", name: "World History to 1500", professor: "Prof. Bauer", room: "Online", days: "Tue Thu", time: "2:30 PM", next: "Tomorrow · 2:30 PM", health: 0.91, grade: "A", color: COLORS.orange, color2: "#D97E00", icon: "globe-2" },
+    { id: "cs", code: "CS 214", name: "Data Structures", professor: "Dr. Park", room: "Snell 168", days: "Mon Wed Fri", time: "3:30 PM", next: "Today · 3:30 PM", health: 0.64, grade: "B", color: COLORS.pink, color2: "#D4234A", icon: "layers" },
+  ];
+  const tasks: TaskItem[] = [
+    { id: "t1", title: "Problem Set 3", classId: "cs", type: "Assignment", dueOffset: -1, dueDate: isoFromOffset(-1), time: "11:59 PM", estimateMinutes: 120, done: false, urgent: true, priority: "High", source: "CS 214 Syllabus", subtasks: [{ title: "Implement linked list", done: true }, { title: "Big-O write-up", done: false }, { title: "Edge case tests", done: false }] },
+    { id: "t2", title: "Lab Report: Mitosis", classId: "bio", type: "Lab", dueOffset: 0, dueDate: isoFromOffset(0), time: "5:00 PM", estimateMinutes: 90, done: false, urgent: true, priority: "High", source: "BIO 101 Syllabus", subtasks: [{ title: "Results table", done: true }, { title: "Discussion", done: false }] },
+    { id: "t3", title: "Reaction Mechanisms Set", classId: "chem", type: "Assignment", dueOffset: 0, dueDate: isoFromOffset(0), time: "11:59 PM", estimateMinutes: 120, done: false, urgent: true, priority: "High", source: "Notes suggested", subtasks: [] },
+    { id: "t4", title: "Case Study: Tesla WACC", classId: "fin", type: "Assignment", dueOffset: 2, dueDate: isoFromOffset(2), time: "11:59 PM", estimateMinutes: 180, done: false, urgent: false, priority: "Medium", source: "FIN 250 Syllabus", subtasks: [{ title: "Pull financials", done: false }, { title: "Compute WACC", done: false }, { title: "Memo", done: false }] },
+    { id: "t5", title: "WWI Essay Outline", classId: "hist", type: "Essay", dueOffset: 3, dueDate: isoFromOffset(3), time: "2:30 PM", estimateMinutes: 60, done: false, urgent: false, priority: "Medium", source: "Notes suggested", subtasks: [] },
+    { id: "t6", title: "Midterm Review Packet", classId: "chem", type: "Review", dueOffset: 4, dueDate: isoFromOffset(4), time: "1:00 PM", estimateMinutes: 150, done: false, urgent: false, priority: "High", source: "Exam reminder", subtasks: [] },
+    { id: "t7", title: "Final Project Milestone", classId: "cs", type: "Project", dueOffset: 9, dueDate: isoFromOffset(9), time: "11:59 PM", estimateMinutes: 240, done: false, urgent: false, priority: "Medium", source: "CS 214 Syllabus", subtasks: [] },
+    { id: "t8", title: "Reading: Ch. 4 Enzymes", classId: "bio", type: "Reading", dueOffset: -2, dueDate: isoFromOffset(-2), time: "9:00 AM", estimateMinutes: 40, done: true, urgent: false, priority: "Low", source: "BIO 101 Syllabus", subtasks: [] },
+    { id: "t9", title: "Discussion Post 2", classId: "hist", type: "Discussion", dueOffset: -3, dueDate: isoFromOffset(-3), time: "11:59 PM", estimateMinutes: 30, done: true, urgent: false, priority: "Low", source: "HIST 180 Syllabus", subtasks: [] },
+  ];
+  const exams: ExamItem[] = [
+    { id: "e1", classId: "chem", title: "Organic Chem Midterm", dueOffset: 4, dueDate: isoFromOffset(4), time: "1:00 PM", room: "Richards 458", kind: "Midterm", effortMinutes: 180, priority: "High", topics: ["Reaction mechanisms", "Stereochemistry", "Spectroscopy"] },
+    { id: "e2", classId: "bio", title: "Biology Unit Exam 2", dueOffset: 6, dueDate: isoFromOffset(6), time: "9:00 AM", room: "Ryder Hall 204", kind: "Exam", effortMinutes: 180, priority: "High", topics: ["Cell division", "Genetics", "Enzymes"] },
+    { id: "e3", classId: "fin", title: "Finance Midterm", dueOffset: 8, dueDate: isoFromOffset(8), time: "11:00 AM", room: "Shillman 315", kind: "Midterm", effortMinutes: 160, priority: "High", topics: ["Time value of money", "CAPM", "WACC"] },
+    { id: "e4", classId: "cs", title: "Data Structures Quiz 3", dueOffset: 5, dueDate: isoFromOffset(5), time: "3:30 PM", room: "Snell 168", kind: "Quiz", effortMinutes: 90, priority: "High", topics: ["Trees", "Hash maps"] },
+  ];
+  return {
+    ...defaultData,
+    prefs: {
+      ...defaultData.prefs,
+      name: "Maya Chen",
+      firstName: "Maya",
+      onboardingComplete: true,
+      osLive: true,
+      premium: true,
+      premiumProductId: "exam-heavy.qa",
+      premiumCheckedAt: new Date().toISOString(),
+      widgetTheme: "liquidLight",
+      widgetDensity: "balanced",
+      widgetClassId: "bio",
+      semesterThemeColorId: "purple",
+      semesterAccentColor: semesterTheme.accent,
+    },
+    classes,
+    tasks,
+    exams,
+    studyBlocks: [
+      { id: "sb1", day: "Tonight", time: "7:00 - 8:00 PM", taskId: "t3", classId: "chem", title: "Reaction Mechanisms Set", minutes: 60, reason: "Due today and linked to the next exam.", completed: false, date: isoFromOffset(0) },
+      { id: "sb2", day: "Friday", time: "2:00 - 3:00 PM", taskId: "t5", classId: "hist", title: "WWI Essay Outline", minutes: 60, reason: "Short writing task before weekend load rises.", completed: false, date: isoFromOffset(1) },
+      { id: "sb3", day: "Sunday", time: "10:00 AM - 12:30 PM", taskId: "t6", classId: "chem", title: "Organic Chem Midterm review", minutes: 150, reason: "Exam is in four days; active recall block added.", completed: false, date: isoFromOffset(3) },
+    ],
+  };
+}
+
 function localizePreviewStudyBlocks(data: AppData): AppData {
   if (appLocale() === "en-US") return data;
   const copy = previewCopy();
@@ -1909,7 +5464,138 @@ function buildBuild57ImportFixture(data: AppData): ImportBatch {
   };
 }
 
+function buildBuild66SyllabusText() {
+  return [
+    "CS 201 Data Structures meets Monday and Wednesday at 10:00 AM in Science 214.",
+    "Weekly discussion posts are due Sundays at 8:00 PM.",
+    "Lab report for CHEM 110 is due Friday at 11:59 PM with rubric review required.",
+    "Midterm 1 covers stacks, queues, trees, hash tables, and Big O analysis.",
+    "Partner project proposal is due in three weeks and requires a checkpoint meeting.",
+    "Students should review every extracted date before adding work to the semester plan.",
+  ].join(" ");
+}
+
+function buildBuild66FixtureData() {
+  const data = buildBuild57FixtureData();
+  const classes = data.classes.map((item) => {
+    if (item.id === "qa-cs201") {
+      return {
+        ...item,
+        code: "CS 201",
+        name: "Data Structures",
+        professor: "Dr. Kim-West",
+        room: "Science 214",
+        notes: "Build 66 demo syllabus: scanner, review, and dashboard states.",
+      };
+    }
+    if (item.id === "qa-chem110") {
+      return {
+        ...item,
+        code: "CHEM 110",
+        name: "General Chemistry Lab",
+        professor: "Prof. Alvarez",
+        room: "Lab 5",
+      };
+    }
+    return item;
+  });
+  const tasks = data.tasks.map((item) => {
+    if (item.id === "qa-lab-report") {
+      return {
+        ...item,
+        title: "CHEM lab report",
+        description: "Build 66 mock syllabus row. Includes methods, results, and conclusion.",
+        source: "Build 66 guided syllabus scan",
+      };
+    }
+    if (item.id === "qa-reading-reflection") {
+      return {
+        ...item,
+        title: "Reading reflection",
+        description: "Captured without a confirmed date so the review gate can block it.",
+        source: "Build 66 guided syllabus scan",
+      };
+    }
+    return item;
+  });
+  const exams = data.exams.map((item) => item.id === "qa-midterm" ? {
+    ...item,
+    title: "Midterm 1",
+    description: "Stacks, queues, trees, hash tables, and Big O analysis.",
+    notes: "Build 66 mock syllabus says bring student ID and calculator.",
+  } : item);
+  const imports = [{
+    id: "build66-demo-import",
+    sourceName: "Build 66 demo syllabus.pdf",
+    sourceText: buildBuild66SyllabusText(),
+    createdAt: new Date().toISOString(),
+    status: "applied" as const,
+    candidates: [],
+  }, ...data.imports.filter((item) => item.id !== "qa-original-import")];
+  const updated: AppData = {
+    ...data,
+    prefs: {
+      ...data.prefs,
+      premiumProductId: "build66.qa",
+      name: "Matt",
+      firstName: "Matt",
+    },
+    classes,
+    tasks,
+    exams,
+    imports,
+  };
+  return { ...updated, studyBlocks: buildStudyPlan(updated) };
+}
+
+function buildBuild66ImportFixture(data: AppData): ImportBatch {
+  const base = buildBuild57ImportFixture(data);
+  return {
+    ...base,
+    id: "build66-guided-scan-review",
+    sourceName: "Guided syllabus scan - Build 66",
+    sourceText: buildBuild66SyllabusText(),
+    candidates: base.candidates.map((candidate) => {
+      if (candidate.id === "qa-reconcile-class") {
+        return {
+          ...candidate,
+          title: "CS 201 Data Structures",
+          meta: "Matched existing class from scanner mock data",
+          confidence: 0.94,
+        };
+      }
+      if (candidate.id === "qa-reconcile-task") {
+        return {
+          ...candidate,
+          title: "CHEM lab report",
+          meta: "Due date changed in Build 66 mock syllabus",
+          confidence: 0.89,
+        };
+      }
+      if (candidate.id === "qa-reconcile-exam") {
+        return {
+          ...candidate,
+          title: "Midterm 1",
+          meta: "Assessment time confirmed from scan",
+          confidence: 0.91,
+        };
+      }
+      if (candidate.id === "qa-new-project") {
+        return {
+          ...candidate,
+          title: "Partner project proposal",
+          meta: "New row extracted from guided scan",
+          confidence: 0.82,
+        };
+      }
+      return candidate;
+    }),
+  };
+}
+
 function simulatorCaptureNavItem(config: SimulatorCaptureConfig, importBatch: ImportBatch | null): NavItem {
+  if (config.screen === "scannerAiming") return { route: "cameraScanner", params: { mode: "syllabus", captureDemo: "aiming" } };
+  if (config.screen === "scannerReady") return { route: "cameraScanner", params: { mode: "syllabus", captureDemo: "ready" } };
   if (config.screen === "review_edit" || config.route === "review" || importBatch) return { route: "review" };
   if (config.screen === "classEdit") return { route: "classDetail", params: { id: "qa-cs201", edit: "1" } };
   if (config.screen === "classDetail") return { route: "classDetail", params: { id: "qa-cs201" } };
@@ -1933,6 +5619,9 @@ function simulatorCaptureNavItem(config: SimulatorCaptureConfig, importBatch: Im
 
 function buildSimulatorCaptureState(config: SimulatorCaptureConfig): SimulatorCaptureState | null {
   if (!config.qaState && !config.emptyPlanner && !config.route && !config.tab && !config.screen && config.onboardingIndex == null) return null;
+  const useBuild66Fixture = config.qaState === "build66";
+  const useExamHeavyFixture = config.qaState === "examHeavy";
+  const captureThemeColorId = isSemesterThemeColorId(config.semesterThemeColorId) ? config.semesterThemeColorId : null;
   const rawData = config.emptyPlanner
     ? {
         ...defaultData,
@@ -1943,9 +5632,21 @@ function buildSimulatorCaptureState(config: SimulatorCaptureConfig): SimulatorCa
           premium: false,
         },
       }
-    : buildBuild57FixtureData();
-  const data = localizePreviewStudyBlocks(rawData);
-  const currentImport = config.screen === "review_edit" || config.route === "review" ? buildBuild57ImportFixture(data) : null;
+    : useExamHeavyFixture ? buildExamHeavyFixtureData() : useBuild66Fixture ? buildBuild66FixtureData() : buildBuild57FixtureData();
+  const themedRawData = captureThemeColorId
+    ? {
+        ...rawData,
+        prefs: {
+          ...rawData.prefs,
+          semesterThemeColorId: captureThemeColorId,
+          semesterAccentColor: resolveSemesterThemeColor(captureThemeColorId).accent,
+        },
+      }
+    : rawData;
+  const data = localizePreviewStudyBlocks(themedRawData);
+  const currentImport = config.screen === "review_edit" || config.route === "review"
+    ? useBuild66Fixture ? buildBuild66ImportFixture(data) : buildBuild57ImportFixture(data)
+    : null;
   return {
     data,
     currentImport,
@@ -1957,15 +5658,15 @@ function buildSimulatorCaptureState(config: SimulatorCaptureConfig): SimulatorCa
 
 function showSimulatorCapturePrompt(prompt: SimulatorCaptureConfig["prompt"]) {
   if (prompt === "recurrenceScope") {
-    Alert.alert(textFor("task.delete_recurring_body", "Update recurring work?"), textFor("task.repeats_weekly", "Repeats weekly"), [
+    Alert.alert(textFor("task.update_recurring_title", "Update recurring work?"), textFor("task.repeats_weekly", "Repeats weekly"), [
       { text: textFor("common.cancel", "Cancel"), style: "cancel" },
       { text: textFor("task.this_occurrence", "This occurrence") },
       { text: textFor("task.this_future", "This and future") },
     ]);
   } else if (prompt === "archiveClass") {
-    Alert.alert("Archive class?", "CS 201 will be hidden from Today, Plan, reminders, and widgets. You can restore it from Manage Semester.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Archive", style: "destructive" },
+    Alert.alert(textFor("class.archive_title", "Archive class?"), textFor("class.archive_body", "{code} will leave Today, Plan, reminders, and widgets. Its work stays recoverable from Manage Semester.", { code: "CS 201" }), [
+      { text: textFor("common.cancel", "Cancel"), style: "cancel" },
+      { text: textFor("common.archive", "Archive"), style: "destructive" },
     ]);
   }
 }
@@ -1976,30 +5677,61 @@ export default function App() {
   const [stack, setStack] = useState<NavItem[]>([]);
   const [currentImport, setCurrentImport] = useState<ImportBatch | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveAttempt, setSaveAttempt] = useState(0);
+  const [pendingImportSaveError, setPendingImportSaveError] = useState(false);
+  const [pendingImportSaveAttempt, setPendingImportSaveAttempt] = useState(0);
   const [pendingImportStoreReady, setPendingImportStoreReady] = useState(false);
   const [entitlementStatus, setEntitlementStatus] = useState<EntitlementStatus>("loading");
   const saveChain = useRef(Promise.resolve());
   const initialUrlHandled = useRef(false);
+  const notificationResponseHandled = useRef<string | null>(null);
   const currentImportRef = useRef<ImportBatch | null>(null);
-  const theme = palette(data?.prefs.theme || "light");
+  const paywallDestinationRef = useRef<NavItem | null>(null);
+  const theme = palette(data?.prefs.theme || "light", data?.prefs.semesterAccentColor);
 
   useEffect(() => {
     currentImportRef.current = currentImport;
     if (!pendingImportStoreReady) return;
-    if (currentImport) savePendingImport(currentImport).catch(() => {});
-    else clearPendingImport().catch(() => {});
-  }, [currentImport, pendingImportStoreReady]);
+    let active = true;
+    setPendingImportSaveError(false);
+    if (currentImport) {
+      savePendingImport(currentImport).catch(() => {
+        if (active) setPendingImportSaveError(true);
+      });
+    } else {
+      clearPendingImport().catch(() => {});
+    }
+    return () => {
+      active = false;
+    };
+  }, [currentImport, pendingImportSaveAttempt, pendingImportStoreReady]);
 
-  const activateEntitlement = useCallback((productId?: string, checkedAt = new Date().toISOString(), options: { applyPendingImport?: boolean } = {}) => {
-    const shouldApplyPending = options.applyPendingImport !== false;
-    const pending = shouldApplyPending ? currentImportRef.current : null;
+  const activateEntitlement = useCallback((productId?: string, checkedAt = new Date().toISOString(), options: { applyPendingImport?: boolean; destination?: NavItem | null } = {}) => {
+    const shouldReviewPending = options.applyPendingImport !== false;
+    const pending = shouldReviewPending ? currentImportRef.current : null;
+    const unlockDestination = unlockDestinationFromPaywall(options.destination || paywallDestinationRef.current);
     setEntitlementStatus("active");
     setData((current) => {
       if (!current) return current;
-      const unlocked = premiumData(current, productId, checkedAt);
-      return pending ? applyImport(unlocked, pending) : unlocked;
+      return premiumData(current, productId, checkedAt);
     });
-    if (shouldApplyPending) {
+    if (pending) {
+      paywallDestinationRef.current = null;
+      setCurrentImport(pending);
+      setTab("today");
+      setStack([{ route: "review" }]);
+    } else if (unlockDestination) {
+      paywallDestinationRef.current = null;
+      currentImportRef.current = null;
+      setCurrentImport(null);
+      clearPendingImport().catch(() => {});
+      setTab("today");
+      setStack([unlockDestination]);
+    } else if (shouldReviewPending) {
+      paywallDestinationRef.current = null;
       currentImportRef.current = null;
       setCurrentImport(null);
       clearPendingImport().catch(() => {});
@@ -2010,10 +5742,24 @@ export default function App() {
 
   useEffect(() => {
     let mounted = true;
+    setLoadError(null);
     loadData().then(async (stored) => {
       if (!mounted) return;
       const safeStored = lockUnvalidatedPremium(stored);
-      const pendingImport = await loadPendingImport();
+      let pendingImport = await loadPendingImport();
+      if (!mounted) return;
+      // A termination can happen after the exact planner snapshot commits but
+      // before the recovery file is deleted. The applied import receipt makes
+      // that narrow window idempotent without ever discarding an uncommitted
+      // review.
+      if (pendingImport && safeStored.imports.some((item) => item.id === pendingImport?.id && item.createdAt === pendingImport?.createdAt && item.status === "applied")) {
+        try {
+          await clearPendingImport();
+          pendingImport = null;
+        } catch {
+          // Keep recovery visible when its file cannot be removed reliably.
+        }
+      }
       if (!mounted) return;
       const simulatorCaptureConfig = await loadSimulatorCaptureConfig();
       if (!mounted) return;
@@ -2040,6 +5786,8 @@ export default function App() {
       // A premium entitlement is not evidence that onboarding has been completed.
       setStack([{ route: appRouteForInitialRoute(resolveInitialRouteForData(safeStored, pendingImport)) }]);
       try {
+        await initializeStudyPlannerStore();
+        if (!mounted) return;
         const entitlement = await checkStudyPlannerEntitlement();
         if (!mounted) return;
         maybeShowUnlockSuccess("startup_hydration");
@@ -2048,28 +5796,33 @@ export default function App() {
       } catch {
         if (mounted) setEntitlementStatus("error");
       }
+    }).catch(() => {
+      if (!mounted) return;
+      setLoaded(false);
+      setLoadError(textFor("storage.safe_body", "StudyPlanner could not open your saved planner. Nothing was replaced—try again when storage is available."));
     });
     return () => {
       mounted = false;
     };
-  }, [activateEntitlement]);
+  }, [activateEntitlement, loadAttempt]);
 
   useEffect(() => {
+    if (Platform.OS === "web") return;
     initializeStudyPlannerStore().catch(() => {});
     const updated = purchaseUpdatedListener(async (purchase) => {
       try {
         const entitlement = await finishStudyPlannerPurchase(purchase);
         if (entitlement.isPremium) {
-          activateEntitlement(entitlement.productId, entitlement.checkedAt);
+          activateEntitlement(entitlement.productId, entitlement.checkedAt, { destination: paywallDestinationRef.current });
           maybeShowUnlockSuccess("purchase_action");
         }
       } catch (error) {
-        Alert.alert("Purchase needs attention", error instanceof Error ? error.message : "Try Restore Purchases.");
+        Alert.alert(textFor("paywall.purchase_attention", "Purchase needs attention"), textFor("paywall.try_restore", "Try Restore Purchases."));
       }
     });
     const errored = purchaseErrorListener((error) => {
       if (error.code === "user-cancelled") return;
-      Alert.alert("Purchase not completed", error.message || "The App Store could not complete the purchase.");
+      Alert.alert(textFor("paywall.purchase_not_completed", "Purchase not completed"), textFor("paywall.purchase_sheet_failed", "The App Store could not complete the purchase."));
     });
     return () => {
       updated.remove();
@@ -2079,28 +5832,95 @@ export default function App() {
   }, [activateEntitlement]);
 
   useEffect(() => {
+    if (Platform.OS === "web") return;
+    let refreshing = false;
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state !== "active" || refreshing) return;
+      refreshing = true;
+      initializeStudyPlannerStore()
+        .then(() => checkStudyPlannerEntitlement())
+        .then((entitlement) => {
+          if (entitlement.isPremium) {
+            activateEntitlement(entitlement.productId, entitlement.checkedAt, { applyPendingImport: false, destination: { route: "today" } });
+            return;
+          }
+          setEntitlementStatus("inactive");
+          setData((current) => current ? lockUnvalidatedPremium(current) : current);
+        })
+        .catch(() => {
+          // Keep the last verified in-memory state on transient foreground refresh failures.
+        })
+        .finally(() => {
+          refreshing = false;
+        });
+    });
+    return () => subscription.remove();
+  }, [activateEntitlement]);
+
+  useEffect(() => {
     if (loaded && data) {
       const snapshot = data;
       saveChain.current = saveChain.current
+        .catch(() => {})
         .then(async () => {
           const persistedSnapshot = entitlementUnlocks(snapshot, entitlementStatus) ? snapshot : lockUnvalidatedPremium(snapshot);
           await saveData(persistedSnapshot);
-          const widgetSyncData = appAccessLocked(persistedSnapshot, entitlementStatus) ? lockedWidgetData(persistedSnapshot) : persistedSnapshot;
-          if (persistedSnapshot.prefs.osLive || appAccessLocked(persistedSnapshot, entitlementStatus)) await syncNativeWidgets(widgetSyncData);
+          setSaveError(null);
+          const widgetSyncData = appAccessLocked(persistedSnapshot, entitlementStatus)
+            ? lockedWidgetData(persistedSnapshot)
+            : activeSemesterData(persistedSnapshot);
+          if (persistedSnapshot.prefs.osLive || appAccessLocked(persistedSnapshot, entitlementStatus)) {
+            const invalidateWidgetSyncEvidence = () => setData((current) => {
+              if (!current || (!current.prefs.osLive && !current.prefs.widgetLastSyncedAt)) return current;
+              return { ...current, prefs: { ...current.prefs, osLive: false, widgetLastSyncedAt: undefined } };
+            });
+            try {
+              const status = await syncNativeWidgets(widgetSyncData, widgetCopyFor);
+              if (status.state !== "synced") {
+                invalidateWidgetSyncEvidence();
+                setSaveError(status.message || textFor("storage.widget_retry", "Planner changes are saved, but widgets have not refreshed yet."));
+              }
+            } catch {
+              invalidateWidgetSyncEvidence();
+              setSaveError(textFor("storage.widget_retry", "Planner changes are saved, but widgets have not refreshed yet."));
+            }
+          }
         })
-        .catch(() => {});
+        .catch(() => setSaveError(textFor("storage.save_retry", "Changes are safe in this session but could not be saved to this device yet.")));
     }
-  }, [data, entitlementStatus, loaded]);
+  }, [data, entitlementStatus, loaded, saveAttempt]);
+
+  const persistPlannerSnapshot = useCallback(async (snapshot: AppData) => {
+    // Import apply is a transaction boundary: queue the exact reviewed
+    // snapshot behind any earlier writes and do not clear its recovery file
+    // until this write has completed successfully.
+    const queuedWrite = saveChain.current
+      .catch(() => {})
+      .then(() => saveData(snapshot));
+    saveChain.current = queuedWrite;
+    try {
+      await queuedWrite;
+      setSaveError(null);
+    } catch (error) {
+      setSaveError(textFor("storage.save_retry", "Changes are safe in this session but could not be saved to this device yet."));
+      throw error;
+    }
+  }, []);
 
   const nav = useMemo(
     () => ({
       push: (route: Route, params?: Record<string, string>) => {
         tap();
+        if (route === "paywall") paywallDestinationRef.current = { route, params };
         setStack((s) => [...s, { route, params }]);
       },
       back: () => {
         tap();
         setStack((s) => s.slice(0, -1));
+      },
+      replaceTop: (route: Route, params?: Record<string, string>) => {
+        if (route === "paywall") paywallDestinationRef.current = { route, params };
+        setStack((s) => s.length ? [...s.slice(0, -1), { route, params }] : s);
       },
       tab: (route: Route) => {
         tap();
@@ -2112,12 +5932,68 @@ export default function App() {
   );
 
   useEffect(() => {
+    if (Platform.OS !== "android") return;
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
+      const current = stack[stack.length - 1];
+      if (stack.length > 1) {
+        nav.back();
+        return true;
+      }
+      if (current && !["today", "onboarding", "lockedDashboard"].includes(current.route)) {
+        nav.back();
+        return true;
+      }
+      if (tab !== "today") {
+        nav.tab("today");
+        return true;
+      }
+      return false;
+    });
+    return () => subscription.remove();
+  }, [nav, stack, tab]);
+
+  useEffect(() => {
+    if (Platform.OS === "web" || !loaded || !data) return;
+    const openResponse = (response: Notifications.NotificationResponse | null) => {
+      if (!response) return;
+      const request = response.notification.request;
+      const responseKey = `${request.identifier}:${response.actionIdentifier}`;
+      if (notificationResponseHandled.current === responseKey) return;
+      const destination = destinationFromNotificationData(request.content.data);
+      if (!destination) return;
+      notificationResponseHandled.current = responseKey;
+      if (!entitlementUnlocks(data, entitlementStatus)) {
+        nav.push("paywall", { next: destination.route, id: destination.params?.id || "" });
+        return;
+      }
+      nav.push(destination.route, destination.params);
+    };
+    openResponse(Notifications.getLastNotificationResponse());
+    const subscription = Notifications.addNotificationResponseReceivedListener(openResponse);
+    return () => subscription.remove();
+  }, [data, entitlementStatus, loaded, nav]);
+
+  useEffect(() => {
     if (!loaded || !data) return;
     const routeUrl = (url: string | null, initial = false) => {
       if (!url || (initial && initialUrlHandled.current)) return;
+      if (entitlementStatus === "loading") return;
+      const captureConfig = simulatorCaptureConfigFromUrl(url);
+      if (captureConfig) {
+        const captureState = buildSimulatorCaptureState(captureConfig);
+        if (!captureState) return;
+        if (initial) initialUrlHandled.current = true;
+        currentImportRef.current = captureState.currentImport;
+        setCurrentImport(captureState.currentImport);
+        setData(captureState.data);
+        setEntitlementStatus(captureState.entitlementStatus);
+        setPendingImportStoreReady(true);
+        setStack([captureState.navItem]);
+        if (captureState.prompt) setTimeout(() => showSimulatorCapturePrompt(captureState.prompt), 1200);
+        return;
+      }
       const route = routeFromUrl(url);
       if (!route) return;
-      if (entitlementStatus === "loading") return;
       if (initial) initialUrlHandled.current = true;
       const openResolvedRoute = (target: Route) => {
         if (target === "scan" || target === "paste") {
@@ -2141,6 +6017,10 @@ export default function App() {
           nav.push("reminders");
           return;
         }
+        if (target === "semesterKickoff" || target === "widgets" || target === "terms" || target === "privacy" || target === "homePreview" || target === "lockPreview") {
+          nav.push(target);
+          return;
+        }
         if (target === "today") {
           nav.tab("today");
           return;
@@ -2151,10 +6031,26 @@ export default function App() {
       };
       if (!entitlementUnlocks(data, entitlementStatus)) {
         if (!onboardingComplete(data)) {
+          if (route === "semesterKickoff") {
+            openResolvedRoute(route);
+            return;
+          }
           setStack([{ route: "onboarding" }]);
           return;
         }
-        if (route === "scan" || route === "paste" || route === "paywall") {
+        if (route === "semesterKickoff") {
+          openResolvedRoute(route);
+          return;
+        }
+        if (route === "scan") {
+          nav.push("paywall", { next: "scan" });
+          return;
+        }
+        if (route === "paste") {
+          nav.push("paywall", { next: "paste", mode: "syllabus" });
+          return;
+        }
+        if (route === "paywall" || route === "terms" || route === "privacy") {
           openResolvedRoute(route);
           return;
         }
@@ -2178,6 +6074,19 @@ export default function App() {
     );
   }, [data, entitlementStatus, loaded, stack, tab]);
 
+  if (!data && loadError) {
+    return (
+      <View style={{ flex: 1, backgroundColor: "#F5F5F7", alignItems: "center", justifyContent: "center", padding: 28 }}>
+        <View style={{ width: 58, height: 58, borderRadius: 18, backgroundColor: "#111114", alignItems: "center", justifyContent: "center" }}><AlertTriangle color="#FFFFFF" size={27} /></View>
+        <Text selectable accessibilityRole="header" style={{ color: "#111114", fontSize: 26, lineHeight: 30, fontWeight: "900", textAlign: "center", marginTop: 20 }}>{textFor("storage.safe_title", "Your planner is still safe")}</Text>
+        <Text selectable accessibilityRole="alert" style={{ color: "#5C5C64", fontSize: 15, lineHeight: 21, textAlign: "center", marginTop: 9 }}>{loadError}</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.try_again", "Try again")} onPress={() => setLoadAttempt((attempt) => attempt + 1)} style={{ minHeight: 52, alignSelf: "stretch", borderRadius: 999, backgroundColor: "#111114", alignItems: "center", justifyContent: "center", marginTop: 22 }}>
+          <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "900" }}>{textFor("common.try_again", "Try again")}</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
   if (!data) {
     return (
       <View style={{ flex: 1, backgroundColor: "#0A0A0C", alignItems: "center", justifyContent: "center" }}>
@@ -2193,24 +6102,7 @@ export default function App() {
     return options.allowValidatedPremium || entitlementUnlocks(next, entitlementStatus) ? next : lockUnvalidatedPremium(next);
   });
   const recordReviewTrigger = (trigger: ReviewTrigger) => {
-    recordReviewEvent(trigger)
-      .then((result) => {
-        if (!result.shouldPrompt) return;
-        const copy = reviewRoutingCopy();
-        const submit = (rating: ReviewRating) => {
-          const feedbackSubject = copy.feedbackSubject.replace("{rating}", String(rating));
-          submitReviewRating(rating, { subject: feedbackSubject, body: copy.feedbackBody }).catch(() => {});
-        };
-        Alert.alert(copy.title, copy.body, [
-          { text: copy.ratings[5], onPress: () => submit(5) },
-          { text: copy.ratings[4], onPress: () => submit(4) },
-          { text: copy.ratings[3], onPress: () => submit(3) },
-          { text: copy.ratings[2], onPress: () => submit(2) },
-          { text: copy.ratings[1], onPress: () => submit(1) },
-          { text: copy.notNow, style: "cancel" },
-        ]);
-      })
-      .catch(() => {});
+    recordReviewEvent(trigger).catch(() => {});
   };
   const active = stack[stack.length - 1]?.route || tab;
   const params = stack[stack.length - 1]?.params || {};
@@ -2218,13 +6110,17 @@ export default function App() {
   const displayRoute = gatedRoute(active, data, entitlementStatus);
   const accessState = accessStateFor(data, entitlementStatus, active);
   const screenData = dataForAccessState(data, entitlementStatus);
-  const showPendingImportBanner = Boolean(currentImport && displayRoute !== "review" && displayRoute !== "cameraScanner" && displayRoute !== "paste" && displayRoute !== "paywall" && displayRoute !== "success");
+  const showPendingImportBanner = entitlementUnlocks(data, entitlementStatus) && Boolean(currentImport && displayRoute !== "review" && displayRoute !== "cameraScanner" && displayRoute !== "paste" && displayRoute !== "paywall" && displayRoute !== "success");
+  const visibleSaveError = pendingImportSaveError
+    ? textFor("storage.save_retry", "Changes are safe in this session but could not be saved to this device yet.")
+    : saveError;
 
-  const props = { data: screenData, mutate, nav, theme, params, currentImport, setCurrentImport, setEntitlementStatus, accessState, recordReviewTrigger };
+  const props = { data: screenData, mutate, persistPlannerSnapshot, nav, theme, params, currentImport, setCurrentImport, setEntitlementStatus, accessState, recordReviewTrigger };
   const screen =
     displayRoute === "welcome" ? <Welcome {...props} /> :
     displayRoute === "onboarding" ? <Onboarding {...props} /> :
     displayRoute === "importOptions" ? <ImportOptions {...props} /> :
+    displayRoute === "semesterKickoff" ? <SemesterKickoff {...props} /> :
     displayRoute === "lockedDashboard" ? <LockedDashboard {...props} /> :
     displayRoute === "paywall" ? <Paywall {...props} /> :
     displayRoute === "terms" ? <LegalScreen {...props} kind="terms" /> :
@@ -2237,18 +6133,18 @@ export default function App() {
     displayRoute === "tasks" ? <Tasks {...props} /> :
     displayRoute === "notes" ? <Notes {...props} /> :
     displayRoute === "profile" ? <Profile {...props} /> :
-    displayRoute === "classDetail" ? <ClassDetail {...props} /> :
-    displayRoute === "taskDetail" ? <TaskDetail {...props} /> :
-    displayRoute === "assessmentDetail" ? <AssessmentDetail {...props} /> :
-    displayRoute === "noteDetail" ? <NoteDetail {...props} /> :
+    displayRoute === "classDetail" ? <ClassDetail key={`classDetail:${params.id || ""}`} {...props} /> :
+    displayRoute === "taskDetail" ? <TaskDetail key={`taskDetail:${params.id || ""}`} {...props} /> :
+    displayRoute === "assessmentDetail" ? <AssessmentDetail key={`assessmentDetail:${params.id || ""}`} {...props} /> :
+    displayRoute === "noteDetail" ? <NoteDetail key={`noteDetail:${params.id || ""}`} {...props} /> :
     displayRoute === "paste" ? <PasteImport {...props} /> :
     displayRoute === "review" ? <ReviewImport {...props} /> :
     displayRoute === "success" ? <ApplySuccess {...props} /> :
     displayRoute === "widgets" ? <WidgetsScreen {...props} /> :
     displayRoute === "reminders" ? <Reminders {...props} /> :
     displayRoute === "studySession" ? <StudySession {...props} /> :
-    displayRoute === "homePreview" ? <WidgetsScreen {...props} /> :
-    displayRoute === "lockPreview" ? <WidgetsScreen {...props} /> :
+    displayRoute === "homePreview" ? <HomePreview {...props} /> :
+    displayRoute === "lockPreview" ? <LockPreview {...props} /> :
     <Today {...props} />;
 
   const showTabs = entitlementUnlocks(data, entitlementStatus) && stack.length === 0 && !["welcome", "onboarding", "importOptions", "lockedDashboard", "paywall"].includes(displayRoute);
@@ -2256,6 +6152,13 @@ export default function App() {
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <StatusBar style={theme.dark ? "light" : "dark"} />
       {screen}
+      {visibleSaveError ? (
+        <View accessibilityRole="alert" style={{ position: "absolute", top: 54, left: 14, right: 14, zIndex: 100, borderRadius: 18, padding: 13, backgroundColor: "#FFF4E5", borderWidth: 1, borderColor: "#F59E0B", flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <AlertTriangle color="#B45309" size={20} />
+          <Text selectable style={{ color: "#7C2D12", flex: 1, fontSize: 13, lineHeight: 18, fontWeight: "800" }}>{visibleSaveError}</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.try_again", "Try again")} onPress={() => pendingImportSaveError ? setPendingImportSaveAttempt((attempt) => attempt + 1) : setSaveAttempt((attempt) => attempt + 1)} style={{ minHeight: 44, paddingHorizontal: 12, justifyContent: "center" }}><Text style={{ color: "#92400E", fontWeight: "900" }}>{textFor("common.try_again", "Try again")}</Text></Pressable>
+        </View>
+      ) : null}
       {showPendingImportBanner && currentImport ? <PendingImportResumeBanner batch={currentImport} nav={nav} theme={theme} hasTabs={showTabs} /> : null}
       {showTabs ? <TabBar tab={tab} setTab={nav.tab} theme={theme} /> : null}
     </View>
@@ -2265,7 +6168,8 @@ export default function App() {
 type ScreenProps = {
   data: AppData;
   mutate: (fn: (current: AppData) => AppData, options?: { allowValidatedPremium?: boolean }) => void;
-  nav: { push: (route: Route, params?: Record<string, string>) => void; back: () => void; tab: (route: Route) => void };
+  persistPlannerSnapshot: (snapshot: AppData) => Promise<void>;
+  nav: { push: (route: Route, params?: Record<string, string>) => void; back: () => void; replaceTop: (route: Route, params?: Record<string, string>) => void; tab: (route: Route) => void };
   theme: ReturnType<typeof palette>;
   params: Record<string, string>;
   currentImport: ImportBatch | null;
@@ -2320,7 +6224,7 @@ function PendingImportResumeBanner({ batch, nav, theme, hasTabs }: { batch: Impo
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={textFor("review.resume_title", "Import waiting for review")}
-      accessibilityHint={textFor("review.resume_body", "{count} rows are saved on this device. Review them before anything changes your semester.", { count })}
+      accessibilityHint={textFor("review.resume_body", "{count} rows are waiting for review. Nothing changes your semester until you apply them.", { count })}
       onPress={() => nav.push("review")}
       style={{
         position: "absolute",
@@ -2343,16 +6247,120 @@ function PendingImportResumeBanner({ batch, nav, theme, hasTabs }: { batch: Impo
       </View>
       <View style={{ flex: 1 }}>
         <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("review.resume_title", "Import waiting for review")}</Text>
-        <Text selectable numberOfLines={2} style={{ color: theme.label2, marginTop: 2, lineHeight: 18 }}>{textFor("review.resume_body", "{count} rows are saved on this device. Review them before anything changes your semester.", { count })}</Text>
+        <Text selectable numberOfLines={2} style={{ color: theme.label2, marginTop: 2, lineHeight: 18 }}>{textFor("review.resume_body", "{count} rows are waiting for review. Nothing changes your semester until you apply them.", { count })}</Text>
       </View>
       <Text style={{ color: theme.accent, fontWeight: "900" }}>{textFor("review.resume", "Resume review")}</Text>
     </Pressable>
   );
 }
 
+function SemesterKickoff({ data, nav, theme, currentImport, accessState }: ScreenProps) {
+  const copy = semesterKickoffCopy();
+  const phase = semesterKickoffPhase();
+  const progress = semesterKickoffProgress(data);
+  const phaseLabel = phase === "upcoming" ? copy.upcoming : phase === "live" ? copy.live : copy.ended;
+  const progressLabel = copy.progress.replace("{done}", String(progress.completedCount));
+  const steps = [
+    { key: "import", complete: progress.importComplete, title: copy.importTitle, body: copy.importBody, icon: "scan" },
+    { key: "review", complete: progress.deadlinesReviewed, title: copy.reviewTitle, body: copy.reviewBody, icon: "target" },
+    { key: "focus", complete: progress.focusComplete, title: copy.focusTitle, body: copy.focusBody, icon: "timer" },
+  ];
+  const locked = accessState !== "unlocked";
+  const primaryLabel = currentImport
+    ? copy.ctaReview
+    : !progress.importComplete || !progress.deadlinesReviewed
+      ? copy.ctaImport
+      : !progress.focusComplete
+        ? copy.ctaFocus
+        : copy.ctaDone;
+  const continueChallenge = () => {
+    if (!onboardingComplete(data)) {
+      nav.push("onboarding", { returnTo: "semesterKickoff" });
+      return;
+    }
+    if (locked) {
+      nav.push("paywall", { next: "scan", action: "camera" });
+      return;
+    }
+    if (currentImport) {
+      nav.push("review");
+      return;
+    }
+    if (!progress.importComplete || !progress.deadlinesReviewed) {
+      nav.tab("scan");
+      return;
+    }
+    if (!progress.focusComplete) {
+      nav.tab("plan");
+      return;
+    }
+    nav.tab("today");
+  };
+
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <Screen theme={theme} bottom={44}>
+        <BackHeader embedded nav={nav} theme={theme} label={copy.title} />
+        <View style={{ paddingHorizontal: 16, gap: 14 }}>
+          <View style={{ borderRadius: 28, padding: 22, backgroundColor: theme.dark ? "#1C1730" : "#191326", overflow: "hidden" }}>
+            <View style={{ alignSelf: "flex-start", borderRadius: 999, paddingHorizontal: 11, paddingVertical: 7, backgroundColor: "rgba(255,255,255,0.12)" }}>
+              <Text selectable style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "900", letterSpacing: 0.7 }}>{copy.kicker}</Text>
+            </View>
+            <Text selectable accessibilityRole="header" style={{ color: "#FFFFFF", fontSize: 32, lineHeight: 35, fontWeight: "900", marginTop: 18 }}>{copy.title}</Text>
+            <Text selectable style={{ color: "rgba(255,255,255,0.78)", fontSize: 16, lineHeight: 23, marginTop: 10 }}>{copy.body}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 20 }}>
+              <Text selectable style={{ color: "#D9CBFF", fontWeight: "900", flex: 1 }}>{phaseLabel}</Text>
+              <Text selectable accessibilityLiveRegion="polite" style={{ color: "#FFFFFF", fontWeight: "900" }}>{progressLabel}</Text>
+            </View>
+            <View style={{ height: 8, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.14)", overflow: "hidden", marginTop: 10 }}>
+              <View style={{ width: `${(progress.completedCount / progress.totalCount) * 100}%`, height: "100%", borderRadius: 999, backgroundColor: "#B89CFF" }} />
+            </View>
+          </View>
+
+          <Card theme={theme} style={{ padding: 6, overflow: "hidden" }}>
+            {steps.map((step, index) => (
+              <View
+                key={step.key}
+                accessible
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: step.complete }}
+                accessibilityLabel={`${step.title}. ${step.complete ? copy.done : copy.next}. ${step.body}`}
+                style={{ flexDirection: "row", alignItems: "center", gap: 13, padding: 14, borderBottomWidth: index === steps.length - 1 ? 0 : 1, borderBottomColor: theme.hairline }}
+              >
+                <View style={{ width: 44, height: 44, borderRadius: 15, alignItems: "center", justifyContent: "center", backgroundColor: step.complete ? `${COLORS.green}1F` : theme.surface2 }}>
+                  {step.complete ? <CheckCircle2 color={COLORS.green} size={23} /> : <Icon name={step.icon} color={theme.label3} size={22} />}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text selectable style={{ color: theme.label, fontSize: 16, fontWeight: "900" }}>{step.title}</Text>
+                  <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 3 }}>{step.body}</Text>
+                </View>
+                <Text selectable style={{ color: step.complete ? COLORS.green : theme.accent, fontSize: 12, fontWeight: "900" }}>{step.complete ? copy.done : copy.next}</Text>
+              </View>
+            ))}
+          </Card>
+
+          {progress.isComplete ? (
+            <Card theme={theme} style={{ padding: 18, backgroundColor: theme.dark ? "#14231A" : "#EEFFF4", borderColor: `${COLORS.green}44` }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                <CheckCircle2 color={COLORS.green} size={26} />
+                <View style={{ flex: 1 }}>
+                  <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{copy.completeTitle}</Text>
+                  <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 4 }}>{copy.completeBody}</Text>
+                </View>
+              </View>
+            </Card>
+          ) : null}
+
+          <Button label={primaryLabel} theme={theme} icon={progress.isComplete ? "home" : "chevron-right"} onPress={continueChallenge} />
+        </View>
+      </Screen>
+    </View>
+  );
+}
+
 function Screen({ children, theme, bottom = 112 }: { children: React.ReactNode; theme: ReturnType<typeof palette>; bottom?: number }) {
   return (
-    <ScrollView contentInsetAdjustmentBehavior="automatic" style={{ flex: 1, backgroundColor: theme.bg }} contentContainerStyle={{ paddingTop: 58, paddingBottom: bottom }}>
+    <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" style={{ flex: 1, backgroundColor: theme.bg }} contentContainerStyle={{ paddingTop: 58, paddingBottom: bottom }}>
       {children}
     </ScrollView>
   );
@@ -2370,10 +6378,10 @@ function Header({ title, sub, right, theme }: { title: string; sub?: string; rig
   );
 }
 
-function BackHeader({ label, nav, theme, action }: { label?: string; nav: ScreenProps["nav"]; theme: ReturnType<typeof palette>; action?: React.ReactNode }) {
+function BackHeader({ label, nav, theme, action, embedded = false }: { label?: string; nav: ScreenProps["nav"]; theme: ReturnType<typeof palette>; action?: React.ReactNode; embedded?: boolean }) {
   return (
-    <View style={{ paddingTop: 54, paddingHorizontal: 18, paddingBottom: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: theme.bg }}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Back" hitSlop={10} onPress={nav.back} style={{ width: 38, height: 38, borderRadius: 99, backgroundColor: theme.surface, alignItems: "center", justifyContent: "center" }}>
+    <View style={{ paddingTop: embedded ? 0 : 54, paddingHorizontal: 18, paddingBottom: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: theme.bg }}>
+      <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} hitSlop={10} onPress={nav.back} style={{ width: 38, height: 38, borderRadius: 99, backgroundColor: theme.surface, alignItems: "center", justifyContent: "center" }}>
         <ChevronLeft color={theme.label} size={21} strokeWidth={2.6} />
       </Pressable>
       <Text selectable style={{ color: theme.label, fontSize: 16, fontWeight: "800" }}>{label}</Text>
@@ -2403,10 +6411,11 @@ function RecoveryScreen({ title, body, action, nav, theme }: { title: string; bo
 
 function Pill({ text, color, theme, icon }: { text: string; color?: string; theme: ReturnType<typeof palette>; icon?: string }) {
   const c = color || theme.label2;
+  const foreground = theme.dark ? c : contrastSafeLightForeground(c);
   return (
-    <View style={{ flexDirection: "row", gap: 5, alignItems: "center", alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: `${c}1C` }}>
-      {icon ? <Icon name={icon} size={13} color={c} /> : null}
-      <Text selectable style={{ color: c, fontSize: 12, fontWeight: "800" }}>{text}</Text>
+    <View style={{ flexDirection: "row", gap: 5, alignItems: "center", alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: /^#[0-9a-f]{6}$/i.test(c) ? `${c}1C` : theme.surface2 }}>
+      {icon ? <Icon name={icon} size={13} color={foreground} /> : null}
+      <Text selectable style={{ color: foreground, fontSize: 12, fontWeight: "800" }}>{text}</Text>
     </View>
   );
 }
@@ -2415,7 +6424,7 @@ function FieldInput({ label, value, onChangeText, placeholder, theme, multiline 
   return (
     <View style={{ marginBottom: 10 }}>
       <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 5 }}>{label}</Text>
-      <TextInput value={value} onChangeText={onChangeText} placeholder={placeholder} placeholderTextColor={theme.label3} multiline={multiline} textAlignVertical={multiline ? "top" : "center"} style={{ minHeight: multiline ? 76 : 44, borderRadius: 13, backgroundColor: theme.surface2, color: theme.label, paddingHorizontal: 12, paddingVertical: 10, fontWeight: "800" }} />
+      <TextInput accessibilityLabel={label} value={value} onChangeText={onChangeText} placeholder={placeholder} placeholderTextColor={theme.label3} multiline={multiline} textAlignVertical={multiline ? "top" : "center"} style={{ minHeight: multiline ? 76 : 48, borderRadius: 13, backgroundColor: theme.surface2, color: theme.label, paddingHorizontal: 12, paddingVertical: 10, fontWeight: "800" }} />
     </View>
   );
 }
@@ -2424,7 +6433,7 @@ function Section({ title, action, onAction, theme }: { title: string; action?: s
   return (
     <View style={{ paddingHorizontal: 4, paddingBottom: 9, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
       <Text selectable style={{ color: theme.label, fontSize: 19, fontWeight: "900" }}>{title}</Text>
-      {action ? <Pressable onPress={onAction}><Text style={{ color: theme.accent, fontSize: 14, fontWeight: "800" }}>{action}</Text></Pressable> : null}
+      {action && onAction ? <Pressable accessibilityRole="button" onPress={onAction}><Text style={{ color: theme.accent, fontSize: 14, fontWeight: "800" }}>{action}</Text></Pressable> : action ? <Text selectable style={{ color: theme.label2, fontSize: 14, fontWeight: "800" }}>{action}</Text> : null}
     </View>
   );
 }
@@ -2452,21 +6461,25 @@ function TaskRow({ task, data, theme, onToggle, onOpen }: { task: TaskItem; data
   const dueDays = hasTaskDate(task) ? daysUntilTask(task) : 99;
   const dueColor = task.done ? theme.label3 : task.missing ? COLORS.orange : dueDays < 0 ? COLORS.red : dueDays === 0 ? COLORS.orange : dueDays <= 2 ? COLORS.blue : theme.label2;
   return (
-    <Pressable onPress={onOpen} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}>
-      <Pressable onPress={(e) => { e.stopPropagation(); onToggle(); }} style={{ width: 27, height: 27, borderRadius: 99, borderWidth: task.done ? 0 : 2, borderColor: dueColor, backgroundColor: task.done ? COLORS.green : "transparent", alignItems: "center", justifyContent: "center" }}>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}>
+      <Pressable accessibilityRole="checkbox" accessibilityLabel={`${task.done ? textFor("task.reopen", "Reopen task") : textFor("task.mark_complete", "Mark complete")}: ${task.title}`} accessibilityHint={`${c.code}. ${taskDueLabel(task)}`} accessibilityState={{ checked: task.done }} hitSlop={8} onPress={onToggle} style={{ width: 44, height: 44, borderRadius: 99, alignItems: "center", justifyContent: "center" }}>
+        <View style={{ width: 27, height: 27, borderRadius: 99, borderWidth: task.done ? 0 : 2, borderColor: dueColor, backgroundColor: task.done ? COLORS.green : "transparent", alignItems: "center", justifyContent: "center" }}>
         {task.done ? <Check color="#fff" size={17} strokeWidth={3} /> : null}
-      </Pressable>
-      <View style={{ flex: 1 }}>
-        <Text selectable numberOfLines={1} style={{ color: task.done ? theme.label3 : theme.label, textDecorationLine: task.done ? "line-through" : "none", fontSize: 16, fontWeight: "800" }}>{task.title}</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 3 }}>
-          <View style={{ width: 7, height: 7, borderRadius: 99, backgroundColor: dueColor }} />
-          <Text selectable style={{ color: theme.label2, fontSize: 12.5, fontWeight: "700" }}>{c.code}</Text>
-          <Text selectable style={{ color: dueColor, fontSize: 12.5, fontWeight: "800" }}>{taskDueLabel(task)}</Text>
         </View>
-      </View>
-      {task.urgent && !task.done ? <View style={{ width: 8, height: 8, borderRadius: 99, backgroundColor: COLORS.red }} /> : null}
-      <ChevronRight color={theme.label3} size={17} />
-    </Pressable>
+      </Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={`${task.title}, ${c.code}, ${taskDueLabel(task)}`} accessibilityHint={textFor("task.edit", "Open assignment details")} onPress={onOpen} style={{ flex: 1, minHeight: 44, flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <View style={{ flex: 1 }}>
+          <Text selectable numberOfLines={1} style={{ color: task.done ? theme.label3 : theme.label, textDecorationLine: task.done ? "line-through" : "none", fontSize: 16, fontWeight: "800" }}>{task.title}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 3 }}>
+            <View style={{ width: 7, height: 7, borderRadius: 99, backgroundColor: dueColor }} />
+            <Text selectable style={{ color: theme.label2, fontSize: 12.5, fontWeight: "700" }}>{c.code}</Text>
+            <Text selectable style={{ color: dueColor, fontSize: 12.5, fontWeight: "800" }}>{taskDueLabel(task)}</Text>
+          </View>
+        </View>
+        {task.urgent && !task.done ? <View style={{ width: 8, height: 8, borderRadius: 99, backgroundColor: COLORS.red }} /> : null}
+        <ChevronRight color={theme.label3} size={17} />
+      </Pressable>
+    </View>
   );
 }
 
@@ -2474,7 +6487,7 @@ function NoteCard({ note, data, theme, onOpen }: { note: NoteItem; data: AppData
   const c = safeClassFor(data, note.classId);
   const insight = parseNoteInsights(note, data);
   return (
-    <Pressable onPress={onOpen}>
+    <Pressable accessibilityRole="button" accessibilityLabel={`${note.title}. ${c.code}. ${textFor("note.concepts", "{count} concepts", { count: insight.concepts.length })}`} accessibilityHint={textFor("note.accessibility_open_hint", "Open note details")} onPress={onOpen}>
       <Card theme={theme} style={{ padding: 15 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 9 }}>
           <Pill text={c.code} color={c.color} theme={theme} />
@@ -2511,6 +6524,7 @@ function Welcome({ data, mutate, nav, theme }: ScreenProps) {
         </Animated.View>
         <Text selectable style={{ color: theme.label, fontSize: 38, lineHeight: 40, fontWeight: "900", marginBottom: 10 }}>{textFor("welcome.title", "Know exactly where you stand.")}</Text>
         <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22, marginBottom: 18 }}>{textFor("welcome.body", "Import a syllabus. StudyPlanner maps the semester, finds pressure, and tells you the next move.")}</Text>
+        <AppStoreRatingProof theme={theme} />
         <Card theme={theme} style={{ padding: 16, marginBottom: 12, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
             <View style={{ width: 72, height: 72, borderRadius: 999, borderWidth: 8, borderColor: COLORS.green, alignItems: "center", justifyContent: "center" }}>
@@ -2526,8 +6540,8 @@ function Welcome({ data, mutate, nav, theme }: ScreenProps) {
         {[
           ["scan", COLORS.blue, textFor("welcome.map_title", "Map every deadline"), textFor("welcome.map_body", "syllabus in. Semester out.")],
           ["heart", COLORS.green, textFor("welcome.health_title", "Track Semester Health"), textFor("welcome.health_body", "Know if you are okay.")],
-        ].map(([i, c, title, body]) => (
-          <Card key={title} theme={theme} style={{ padding: 16, flexDirection: "row", gap: 14, alignItems: "center", marginBottom: 12 }}>
+        ].map(([i, c, title, body], index) => (
+          <Card key={`welcome-feature-${index}`} theme={theme} style={{ padding: 16, flexDirection: "row", gap: 14, alignItems: "center", marginBottom: 12 }}>
             <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: `${c}1C`, alignItems: "center", justifyContent: "center" }}><Icon name={i} color={c} size={23} /></View>
             <View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 16 }}>{title}</Text><Text selectable style={{ color: theme.label2, marginTop: 3, lineHeight: 18 }}>{body}</Text></View>
           </Card>
@@ -2616,36 +6630,99 @@ function MiniNextMove({ theme }: { theme: ReturnType<typeof palette> }) {
   );
 }
 
-function MiniWidgetPreview({ theme }: { theme: ReturnType<typeof palette> }) {
+function MiniWidgetPreview({ theme, accent = COLORS.blue }: { theme: ReturnType<typeof palette>; accent?: string }) {
   return (
     <View style={{ width: "48%", borderRadius: 18, padding: 13, backgroundColor: "#111114" }}>
       <Text selectable style={{ color: "rgba(255,255,255,0.56)", fontSize: 10, fontWeight: "900" }}>{textFor("mini.widget", "WIDGET")}</Text>
       <Text selectable style={{ color: "#fff", fontSize: 16, fontWeight: "900", marginTop: 8 }}>{textFor("widgets.sub_locked", "Locked preview")}</Text>
       <Text selectable numberOfLines={1} style={{ color: "rgba(255,255,255,0.68)", fontSize: 12, marginTop: 4 }}>{textFor("mini.unlock_after", "Unlock after purchase")}</Text>
       <View style={{ flexDirection: "row", gap: 4, marginTop: 10 }}>
-        {[COLORS.green, COLORS.orange, COLORS.purple].map((color) => <View key={color} style={{ flex: 1, height: 5, borderRadius: 99, backgroundColor: color }} />)}
+        {[accent, COLORS.orange, COLORS.green].map((color) => <View key={color} style={{ flex: 1, height: 5, borderRadius: 99, backgroundColor: color }} />)}
       </View>
     </View>
   );
 }
 
+function AppStoreRatingProof({ theme, dark = false }: { theme: ReturnType<typeof palette>; dark?: boolean }) {
+  const labelColor = dark ? "#FFFFFF" : theme.label;
+  const bodyColor = dark ? "rgba(255,255,255,0.72)" : theme.label2;
+  const backgroundColor = dark ? "rgba(255,255,255,0.10)" : theme.surface;
+  const borderColor = dark ? "rgba(255,255,255,0.16)" : theme.hairline;
+  return (
+    <View style={{ borderRadius: 18, padding: 13, backgroundColor, borderWidth: 1, borderColor, marginBottom: 12 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 3, marginBottom: 7 }}>
+        <Shield color={dark ? "#FFFFFF" : theme.accent} size={16} />
+        <CheckCircle2 color={dark ? "#FFFFFF" : COLORS.green} size={16} />
+        <Text selectable style={{ color: labelColor, fontSize: 12, fontWeight: "900", marginLeft: 6 }}>{textFor("common.app_store", "App Store")}</Text>
+      </View>
+      <Text selectable style={{ color: labelColor, fontSize: 16, fontWeight: "900" }}>{textFor("onboarding.rating_title", "App Store checkout")}</Text>
+      <Text selectable style={{ color: bodyColor, lineHeight: 18, marginTop: 3, fontSize: 13 }}>{textFor("onboarding.rating_body", "Price, terms, and subscription confirmation appear before purchase.")}</Text>
+    </View>
+  );
+}
+
 function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
-  const steps = ["name", "studentType", "mainGoal", "artifacts", "build"] as const;
+  const steps = ["name", "priorities", "build"];
+  const studentTypeOptions = ["High school classes", "College courses", "Grad school", "Online classes"];
+  const goalOptions = ["Deadlines", "Exams", "Notes", "Grades", "Everything"];
   const initialIndex = Math.max(0, Math.min(steps.length - 1, Number(params.onboardingIndex || 0) || 0));
   const [index, setIndex] = useState(initialIndex);
   const storedFirstName = data.prefs.firstName && data.prefs.firstName !== "Student" ? data.prefs.firstName : "";
+  const storedStudentType = data.prefs.studentType || data.prefs.level || "";
+  const hasSavedPersonalization = Boolean(data.prefs.onboardingComplete || params.returnTo);
+  const initialStudentType = !hasSavedPersonalization
+    ? ""
+    : studentTypeOptions.includes(storedStudentType)
+      ? storedStudentType
+      : storedStudentType.toLowerCase().includes("college")
+        ? "College courses"
+        : storedStudentType.toLowerCase().includes("grad")
+          ? "Grad school"
+          : storedStudentType.toLowerCase().includes("online")
+            ? "Online classes"
+            : "High school classes";
+  const storedMainGoal = data.prefs.mainGoal || data.prefs.semesterGoal || "";
+  const initialMainGoal = !hasSavedPersonalization
+    ? ""
+    : goalOptions.includes(storedMainGoal)
+      ? storedMainGoal
+      : storedMainGoal.toLowerCase().includes("exam")
+        ? "Exams"
+        : storedMainGoal.toLowerCase().includes("note")
+          ? "Notes"
+          : storedMainGoal.toLowerCase().includes("grade")
+            ? "Grades"
+            : storedMainGoal.toLowerCase().includes("everything")
+              ? "Everything"
+              : "Deadlines";
   const [profile, setProfile] = useState({
     name: storedFirstName || (data.prefs.name === "Student" ? "" : firstNameFromPrefs(data)),
-    studentType: data.prefs.studentType || "School semester",
-    mainGoal: data.prefs.mainGoal || data.prefs.semesterGoal || "Everything",
-    scanIntent: data.prefs.scanIntent || "syllabus PDF",
+    studentType: initialStudentType,
+    mainGoal: initialMainGoal,
+    scanIntent: data.prefs.scanIntent || "Scan with camera",
+    semesterThemeColorId: data.prefs.semesterThemeColorId || "graphite" as SemesterThemeColorId,
   });
   const motion = useRef(new Animated.Value(1)).current;
   const step = steps[index];
-  const firstName = profile.name.trim().split(/\s+/)[0] || "there";
-  const studentOptions = ["School semester", "High school classes", "College courses", "Grad school", "Online classes", "Exams"];
-  const goalOptions = ["Deadlines", "Exams", "Notes", "Grades", "Study plan", "Everything"];
-  const scanOptions = ["Upload PDF", "Paste syllabus", "Scan with camera", "Skip for now"];
+  const cleanProfileName = profile.name.trim();
+  const firstName = cleanProfileName.split(/\s+/)[0] || "there";
+  const buildTitle = cleanProfileName
+    ? textFor("onboarding.build_title_personal", "Build {name}'s semester.", { name: firstName })
+    : textFor("onboarding.build_title", "Build your semester.");
+  const scanOptions = ["Scan with camera", "Paste syllabus", "Add manually"];
+  const cameraIntentSelected = profile.scanIntent === "Scan with camera";
+  const prioritiesComplete = Boolean(profile.studentType && profile.mainGoal);
+  const semesterTheme = resolveSemesterThemeColor(profile.semesterThemeColorId);
+  const onboardingAccent = "#111114";
+  const onboardingTheme = { ...theme, accent: onboardingAccent };
+  const coursePalette = semesterTheme.courseColors.length >= 4 ? semesterTheme.courseColors : [onboardingAccent, COLORS.blue, COLORS.green, COLORS.orange];
+  const loopRadius = 20;
+  const loopCircumference = 2 * Math.PI * loopRadius;
+  const loopFeedback = [
+    { label: textFor("paywall.camera_step_scan", "Scan"), progress: 0.76, color: coursePalette[1] },
+    { label: textFor("paywall.camera_step_review", "Review"), progress: 0.58, color: coursePalette[2] },
+    { label: textFor("paywall.camera_step_apply", "Apply"), progress: 0.42, color: coursePalette[3] },
+  ];
   useEffect(() => {
     motion.setValue(0);
     Animated.timing(motion, {
@@ -2672,7 +6749,9 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
         semesterGoal: source.mainGoal,
         workloadStyle: "Balanced",
         scanIntent: source.scanIntent,
-        theme: "light",
+        theme: d.prefs.theme || "light",
+        semesterThemeColorId: source.semesterThemeColorId,
+        semesterAccentColor: resolveSemesterThemeColor(source.semesterThemeColorId).accent,
         onboardingComplete: complete ? true : d.prefs.onboardingComplete,
         osLive: d.prefs.osLive,
       },
@@ -2682,14 +6761,14 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
   const next = (source = profile) => {
     persistProfile(index === steps.length - 1, source);
     if (index < steps.length - 1) setIndex(index + 1);
+    else if (params.returnTo === "semesterKickoff") nav.back();
     else if (source.scanIntent === "Paste syllabus") nav.push("paywall", { next: "paste", mode: "syllabus" });
-    else if (source.scanIntent === "Skip for now") nav.tab("lockedDashboard");
-    else nav.push("paywall", { next: "scan", action: source.scanIntent === "Scan with camera" ? "camera" : "pdf" });
+    else if (source.scanIntent === "Add manually") nav.push("paywall", { next: "paste", mode: "manual" });
+    else nav.push("paywall", { next: "scan", action: "camera" });
   };
   const pick = (key: keyof typeof profile, value: string) => {
     const nextProfile = { ...profile, [key]: value };
     setProfile(nextProfile);
-    setTimeout(() => next(nextProfile), 80);
   };
   const motionStyle = {
     opacity: motion,
@@ -2713,10 +6792,32 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
       {opts.map((opt) => {
         const on = profile[key] === opt;
         return (
-          <Pressable key={opt} onPress={() => pick(key, opt)}>
-            <Card theme={theme} style={{ padding: 17, flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderColor: on ? theme.accent : theme.hairline, borderWidth: on ? 2 : 1, backgroundColor: on ? "#FFFFFF" : "rgba(255,255,255,0.72)" }}>
+          <Pressable key={opt} accessibilityRole="radio" accessibilityLabel={optionText(opt)} accessibilityState={{ selected: on }} onPress={() => pick(key, opt)}>
+            <Card theme={theme} style={{ padding: 17, flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderColor: on ? onboardingAccent : theme.hairline, borderWidth: on ? 2 : 1, backgroundColor: on ? "#FFFFFF" : "rgba(255,255,255,0.72)" }}>
               <Text selectable style={{ color: theme.label, fontSize: 16, fontWeight: "900" }}>{optionText(opt)}</Text>
-              {on ? <CheckCircle2 color={COLORS.green} size={22} /> : <Circle color={theme.label3} size={22} />}
+              {on ? <CheckCircle2 color={onboardingAccent} size={22} /> : <Circle color={theme.label3} size={22} />}
+            </Card>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+  const renderChoiceGrid = (key: keyof typeof profile, opts: string[]) => (
+    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+      {opts.map((opt) => {
+        const on = profile[key] === opt;
+        return (
+          <Pressable
+            key={opt}
+            accessibilityRole="radio"
+            accessibilityLabel={optionText(opt)}
+            accessibilityState={{ selected: on }}
+            onPress={() => pick(key, opt)}
+            style={{ width: "48%", minHeight: 68 }}
+          >
+            <Card theme={theme} style={{ flex: 1, minHeight: 68, padding: 13, flexDirection: "row", gap: 8, alignItems: "center", borderColor: on ? onboardingAccent : theme.hairline, borderWidth: on ? 2 : 1, backgroundColor: on ? "#FFFFFF" : "rgba(255,255,255,0.72)" }}>
+              <Text selectable numberOfLines={2} style={{ color: theme.label, fontSize: 14, lineHeight: 18, fontWeight: "900", flex: 1 }}>{optionText(opt)}</Text>
+              {on ? <CheckCircle2 color={onboardingAccent} size={19} /> : <Circle color={theme.label3} size={19} />}
             </Card>
           </Pressable>
         );
@@ -2724,67 +6825,105 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
     </View>
   );
   return (
-    <View style={{ flex: 1, backgroundColor: "#F5F5F7" }}>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: "#F5F5F7" }}>
       <View style={{ paddingTop: 58, paddingHorizontal: 24, flexDirection: "row", alignItems: "center", gap: 8 }}>
-        {index ? <Pressable onPress={() => setIndex(index - 1)}><ChevronLeft color={theme.label2} size={22} /></Pressable> : <View style={{ width: 22 }} />}
-        <View style={{ flex: 1, flexDirection: "row", gap: 5 }}>{steps.map((_, i) => <View key={i} style={{ flex: 1, height: 5, borderRadius: 99, backgroundColor: i <= index ? theme.accent : theme.surface3 }} />)}</View>
+        {index ? <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} hitSlop={11} onPress={() => setIndex(index - 1)} style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}><ChevronLeft color={theme.label2} size={22} /></Pressable> : <View style={{ width: 44 }} />}
+        <View style={{ flex: 1, flexDirection: "row", gap: 5 }}>{steps.map((_, i) => <View key={i} style={{ flex: 1, height: 5, borderRadius: 99, backgroundColor: i <= index ? onboardingAccent : theme.surface3 }} />)}</View>
       </View>
-      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 24, paddingBottom: 120 }}>
+      <ScrollView style={{ flex: 1 }} contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" contentContainerStyle={{ padding: 24, paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
         <Animated.View style={motionStyle}>
           {step === "name" ? (
             <>
               <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: "#0A0A0D", alignItems: "center", justifyContent: "center", marginBottom: 22 }}><Icon name="sparkles" color="#fff" size={27} /></View>
               <Text selectable style={{ color: theme.label, fontSize: 36, lineHeight: 39, fontWeight: "900" }}>{textFor("onboarding.name_title", "What should StudyPlanner call you?")}</Text>
               <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginTop: 10 }}>{textFor("onboarding.name_sub", "Let's build your semester.")}</Text>
-              <TextInput autoFocus value={profile.name} onChangeText={(name) => setProfile((current) => ({ ...current, name }))} placeholder={textFor("onboarding.name_placeholder", "Your first name")} placeholderTextColor={theme.label3} returnKeyType="next" onSubmitEditing={() => next()} style={{ marginTop: 26, minHeight: 58, borderRadius: 20, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: theme.hairline, color: theme.label, paddingHorizontal: 18, fontSize: 20, fontWeight: "900" }} />
+              <TextInput accessibilityLabel={textFor("onboarding.name_placeholder", "Your first name")} autoFocus value={profile.name} onChangeText={(name) => setProfile((current) => ({ ...current, name }))} placeholder={textFor("onboarding.name_placeholder", "Your first name")} placeholderTextColor={theme.label3} selectionColor={onboardingAccent} returnKeyType="next" onSubmitEditing={() => { if (cleanProfileName) next(); }} style={{ marginTop: 26, minHeight: 58, borderRadius: 20, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: theme.hairline, color: theme.label, paddingHorizontal: 18, fontSize: 20, fontWeight: "900" }} />
               {profile.name.trim() ? <Text selectable style={{ color: theme.label, fontSize: 20, lineHeight: 25, fontWeight: "900", marginTop: 22 }}>{textFor("onboarding.nice", "Nice, {name}.", { name: firstName })}</Text> : null}
             </>
           ) : null}
-          {step === "studentType" ? (
+          {step === "priorities" ? (
             <>
-              <Text selectable style={{ color: theme.label2, fontSize: 13, fontWeight: "900", marginBottom: 8 }}>{textFor("onboarding.student_kicker", "NICE, {name}", { name: firstName.toUpperCase() })}</Text>
-              <Text selectable style={{ color: theme.label, fontSize: 34, lineHeight: 37, fontWeight: "900", marginBottom: 22 }}>{textFor("onboarding.student_title", "What are you managing?")}</Text>
-              {renderOptions("studentType", studentOptions)}
-            </>
-          ) : null}
-          {step === "mainGoal" ? (
-            <>
-              <Text selectable style={{ color: theme.label, fontSize: 34, lineHeight: 37, fontWeight: "900", marginBottom: 22 }}>{textFor("onboarding.goal_title", "What do you want under control?")}</Text>
-              {renderOptions("mainGoal", goalOptions)}
-            </>
-          ) : null}
-          {step === "artifacts" ? (
-            <>
-              <Text selectable style={{ color: theme.label, fontSize: 34, lineHeight: 37, fontWeight: "900" }}>{textFor("onboarding.artifacts_title", "StudyPlanner turns your schoolwork into a live plan.")}</Text>
-              <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginTop: 8, marginBottom: 18 }}>{textFor("onboarding.artifacts_sub", "Real app artifacts. No demo classes.")}</Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-                <MiniSemesterHealth theme={theme} />
-                <MiniNextMove theme={theme} />
-                <MiniClassPulse theme={theme} />
-                <MiniPressureForecast theme={theme} />
-                <MiniNotesPreparedness theme={theme} />
-                <MiniWidgetPreview theme={theme} />
-              </View>
+              <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: "#0A0A0D", alignItems: "center", justifyContent: "center", marginBottom: 20 }}><Icon name="graduation-cap" color="#fff" size={27} /></View>
+              <Text selectable style={{ color: theme.label, fontSize: 34, lineHeight: 38, fontWeight: "900" }}>{textFor("onboarding.student_title", "What are you managing?")}</Text>
+              <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginTop: 8, marginBottom: 17 }}>{textFor("onboarding.artifacts_sub", "Your answers tune the first plan, deadlines, and study rhythm before anything saves.")}</Text>
+              {renderChoiceGrid("studentType", studentTypeOptions)}
+              <Text selectable style={{ color: theme.label, fontSize: 24, lineHeight: 28, fontWeight: "900", marginTop: 24, marginBottom: 12 }}>{textFor("onboarding.goal_title", "What do you want under control?")}</Text>
+              {renderChoiceGrid("mainGoal", goalOptions)}
             </>
           ) : null}
           {step === "build" ? (
             <>
-              <Text selectable style={{ color: theme.label, fontSize: 34, lineHeight: 37, fontWeight: "900", marginBottom: 8 }}>{textFor("onboarding.build_title", "Build your semester.")}</Text>
-              <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginBottom: 22 }}>{textFor("onboarding.paywall_first", "Unlock first, then scan.")}</Text>
-              {renderOptions("scanIntent", scanOptions)}
+              <Text selectable style={{ color: theme.label, fontSize: 34, lineHeight: 37, fontWeight: "900", marginBottom: 8 }}>{buildTitle}</Text>
+              <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginBottom: 14 }}>{textFor("onboarding.paywall_first", "Unlock first, then scan, paste, or add manually. You still review everything before it saves.")}</Text>
+              <View accessible accessibilityLabel={`${optionText(profile.studentType)}. ${optionText(profile.mainGoal)}.`} style={{ borderRadius: 18, padding: 13, backgroundColor: "rgba(17,17,20,0.06)", flexDirection: "row", alignItems: "center", gap: 11, marginBottom: 14 }}>
+                <View style={{ width: 38, height: 38, borderRadius: 13, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center" }}><Icon name="graduation-cap" color={onboardingAccent} size={20} /></View>
+                <View style={{ flex: 1 }}>
+                  <Text selectable style={{ color: theme.label, fontSize: 15, fontWeight: "900" }}>{optionText(profile.studentType)}</Text>
+                  <Text selectable style={{ color: theme.label2, fontSize: 13, fontWeight: "800", marginTop: 2 }}>{optionText(profile.mainGoal)}</Text>
+                </View>
+                <CheckCircle2 color={COLORS.green} size={21} />
+              </View>
+              <LiquidGlassSurface tintColor="rgba(255,255,255,0.76)" style={{ borderRadius: 26, padding: 16, backgroundColor: "rgba(255,255,255,0.78)", borderWidth: 1, borderColor: "rgba(17,17,20,0.10)", gap: 13, marginBottom: 14 }} fallbackStyle={{ backgroundColor: "#FFFFFF" }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                  <View style={{ width: 46, height: 46, borderRadius: 16, backgroundColor: "#111114", alignItems: "center", justifyContent: "center" }}>
+                    <Icon name="target" color="#FFFFFF" size={22} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text selectable style={{ color: theme.label2, fontSize: 11, fontWeight: "900" }}>{textFor("onboarding.theme_pulse", "SEMESTER PULSE")}</Text>
+                    <Text selectable style={{ color: theme.label, fontSize: 20, lineHeight: 23, fontWeight: "900", marginTop: 2 }}>{textFor("onboarding.theme_ready", "Ready to build")}</Text>
+                  </View>
+                </View>
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  {loopFeedback.map((item) => (
+                    <View key={`semester-loop-${item.label}`} style={{ flex: 1, minWidth: 0, alignItems: "center", gap: 2 }}>
+                      <Svg width={44} height={44} viewBox="0 0 50 50">
+                        <SvgCircle cx={25} cy={25} r={loopRadius} stroke="rgba(17,17,20,0.08)" strokeWidth={7} fill="none" />
+                        <SvgCircle
+                          cx={25}
+                          cy={25}
+                          r={loopRadius}
+                          stroke={item.color}
+                          strokeWidth={7}
+                          strokeLinecap="round"
+                          fill="none"
+                          strokeDasharray={`${loopCircumference} ${loopCircumference}`}
+                          strokeDashoffset={loopCircumference * (1 - item.progress)}
+                          transform="rotate(-90 25 25)"
+                        />
+                      </Svg>
+                      <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: theme.label2, fontSize: 9, fontWeight: "900", maxWidth: "100%" }}>{item.label}</Text>
+                    </View>
+                  ))}
+                </View>
+              </LiquidGlassSurface>
+              <Card theme={theme} style={{ padding: 14, marginBottom: 16, backgroundColor: "#111114" }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                  <View style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}>
+                    <Icon name={cameraIntentSelected ? "camera" : "crown"} color="#FFFFFF" size={21} />
+                  </View>
+                  <Text selectable style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "900", flex: 1 }}>{cameraIntentSelected ? textFor("onboarding.camera_gate_title", "Unlock the camera scan.") : textFor("onboarding.paywall_gate_title", "Unlock first. Then build.")}</Text>
+                </View>
+                <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 5 }}>{cameraIntentSelected ? textFor("onboarding.camera_gate_body_simple", "Unlock first, then scan the syllabus on this iPhone. Every extracted row still goes to review before anything saves.") : textFor("onboarding.paywall_gate_body_simple", "Unlock first, then review the first real version before it reaches Today, reminders, or widgets.")}</Text>
+              </Card>
+              <View style={{ marginTop: 2, marginBottom: 16 }}>{renderOptions("scanIntent", scanOptions)}</View>
             </>
           ) : null}
         </Animated.View>
       </ScrollView>
-      <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: 24, paddingBottom: 34, backgroundColor: "rgba(245,245,247,0.92)" }}>
-        <Button label={textFor("common.continue", "Continue")} theme={theme} icon={step === "build" ? "crown" : "chevron-right"} onPress={next} />
-      </View>
-    </View>
+      <LiquidGlassSurface tintColor="rgba(245,245,247,0.72)" style={{ padding: 24, paddingBottom: 34, backgroundColor: "rgba(245,245,247,0.92)" }} fallbackStyle={{ backgroundColor: "rgba(245,245,247,0.94)" }}>
+        <Button
+          label={step !== "build" ? textFor("common.continue", "Continue") : cameraIntentSelected ? textFor("onboarding.unlock_to_scan", "Unlock to scan") : textFor("onboarding.unlock_to_continue", "Unlock to continue")}
+          theme={onboardingTheme}
+          icon={step !== "build" ? "chevron-right" : "crown"}
+          onPress={(step === "name" && !cleanProfileName) || (step === "priorities" && !prioritiesComplete) ? undefined : next}
+        />
+      </LiquidGlassSurface>
+    </KeyboardAvoidingView>
   );
 }
 
 function ImportOptions({ data, mutate, nav, theme }: ScreenProps) {
-  const completeAnd = (route: "scan" | "paste" | "lockedDashboard", params?: Record<string, string>) => {
+  const completeAnd = (route: "scan" | "paste", params?: Record<string, string>) => {
     mutate((d) => ({
       ...d,
       prefs: {
@@ -2794,25 +6933,26 @@ function ImportOptions({ data, mutate, nav, theme }: ScreenProps) {
         premium: false,
       },
     }));
-    if (route === "paste") nav.push("paste", params);
-    else nav.tab(route);
+    if (route === "paste") nav.push("paywall", { next: "paste", mode: params?.mode || "syllabus" });
+    else nav.push("paywall", { next: "scan", action: params?.action || "pdf" });
   };
   return (
     <View style={{ flex: 1, backgroundColor: "#F5F5F7" }}>
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingTop: 72, paddingHorizontal: 22, paddingBottom: 120 }}>
+        <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} hitSlop={10} onPress={nav.back} style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.surface, alignItems: "center", justifyContent: "center", marginBottom: 18 }}><ChevronLeft color={theme.label} /></Pressable>
         <Text selectable style={{ color: theme.label, fontSize: 38, lineHeight: 41, fontWeight: "900" }}>{textFor("onboarding.build_title", "Build your semester.")}</Text>
-        <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22, marginTop: 8, marginBottom: 20 }}>{textFor("paste.preview_sub", "Preview what StudyPlanner finds before you unlock.")}</Text>
+        <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22, marginTop: 8, marginBottom: 20 }}>{textFor("paywall.sub_no_import", "Unlock first, then scan or import. StudyPlanner shows every extracted row for review before anything saves.")}</Text>
         <Card theme={theme} style={{ padding: 17, backgroundColor: "#111114", marginBottom: 18 }}>
-          <Text selectable style={{ color: "#fff", fontSize: 21, lineHeight: 25, fontWeight: "900" }}>{textFor("locked.card_title", "Start with your syllabus.")}</Text>
-          <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 6 }}>{textFor("locked.sub", "Classes, deadlines, exams, pressure, and your first move appear in preview.")}</Text>
+          <Text selectable style={{ color: "#fff", fontSize: 21, lineHeight: 25, fontWeight: "900" }}>{textFor("paywall.camera_title", "Camera scan unlocks here")}</Text>
+          <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 6 }}>{textFor("paywall.camera_body", "Use the guided camera after purchase to capture syllabus pages, read the text on this iPhone, and review the extracted rows before anything saves.")}</Text>
         </Card>
         {[
+          [textFor("option.scan_camera", "Scan with camera"), textFor("paywall.camera_body", "Unlock guided camera scan, OCR, and review."), "camera", COLORS.orange, () => completeAnd("scan", { action: "camera" })],
           [textFor("option.upload_pdf", "Upload PDF"), textFor("scan.more_upload_body", "Pick a syllabus file"), "upload", COLORS.green, () => completeAnd("scan", { action: "pdf" })],
           [textFor("locked.paste", "Paste manually"), textFor("paste.syllabus_required", "Enter syllabus text"), "file", COLORS.blue, () => completeAnd("paste", { mode: "syllabus" })],
-          [textFor("option.scan_camera", "Scan with camera"), textFor("scan.camera", "Photo or camera OCR"), "camera", COLORS.orange, () => completeAnd("scan", { action: "camera" })],
-          [textFor("option.skip", "Skip for now"), textFor("widgets.sub_locked", "View the locked dashboard"), "lock", COLORS.purple, () => completeAnd("lockedDashboard")],
-        ].map(([title, body, icon, color, onPress]: any) => (
-          <Pressable key={title} onPress={onPress}>
+          [textFor("classes.add_manual", "Add class manually"), textFor("onboarding.manual_body", "Type one class and one deadline to build a preview"), "plus", COLORS.purple, () => completeAnd("paste", { mode: "manual" })],
+        ].map(([title, body, icon, color, onPress]: any, index) => (
+          <Pressable key={`onboarding-import-option-${index}`} accessibilityRole="button" accessibilityLabel={title} accessibilityHint={body} onPress={onPress}>
             <Card theme={theme} style={{ padding: 16, flexDirection: "row", gap: 13, alignItems: "center", marginBottom: 12 }}>
               <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: `${color}1C`, alignItems: "center", justifyContent: "center" }}><Icon name={icon} color={color} /></View>
               <View style={{ flex: 1 }}>
@@ -2849,22 +6989,23 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
         <View style={{ gap: 8, paddingHorizontal: 2 }}>
           <Text selectable style={{ color: theme.label2, fontSize: 13, fontWeight: "900" }}>{textFor("locked.kicker", "LOCKED PREVIEW")}</Text>
           <Text selectable style={{ color: theme.label, fontSize: 36, lineHeight: 39, fontWeight: "900" }}>{textFor("locked.title", "{name}, build your semester.", { name: firstName })}</Text>
-          <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22 }}>{textFor("locked.sub", "Unlock StudyPlanner first. Then scan a syllabus and apply your live plan.")}</Text>
+          <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22 }}>{textFor("locked.preview_sub", "Unlock first, then scan, paste, or add a class. You review every row before anything saves.")}</Text>
         </View>
+        <AppStoreRatingProof theme={theme} />
 
         <View style={{ borderRadius: 28, padding: 20, backgroundColor: "#111114", overflow: "hidden" }}>
           <View style={{ width: 52, height: 52, borderRadius: 17, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
             <Icon name="scan" color="#FFFFFF" size={26} />
           </View>
-          <Text selectable style={{ color: "rgba(255,255,255,0.62)", fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("locked.card_kicker", "SYLLABUS AFTER UNLOCK")}</Text>
-          <Text selectable style={{ color: "#FFFFFF", fontSize: 25, lineHeight: 29, fontWeight: "900" }}>{textFor("locked.card_title", "Turn your syllabus into a live plan.")}</Text>
+          <Text selectable style={{ color: "rgba(255,255,255,0.62)", fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("locked.preview_card_kicker", "CAMERA SCAN LOCKED")}</Text>
+          <Text selectable style={{ color: "#FFFFFF", fontSize: 25, lineHeight: 29, fontWeight: "900" }}>{textFor("locked.card_title", "Unlock the scanner. Build the semester.")}</Text>
           <View style={{ gap: 11, marginTop: 17 }}>
             {[
-              ["1", textFor("locked.step1", "Unlock StudyPlanner")],
-              ["2", textFor("locked.step2", "Scan syllabus")],
-              ["3", textFor("locked.step3", "Review deadlines")],
+              ["1", textFor("locked.preview_step1", "Unlock StudyPlanner")],
+              ["2", textFor("locked.preview_step2", "Scan with camera, PDF, paste, or manual setup")],
+              ["3", textFor("locked.preview_step3", "Review every extracted row before save")],
             ].map(([step, label]) => (
-              <View key={label} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+              <View key={`locked-step-${step}`} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 <View style={{ width: 28, height: 28, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.14)", alignItems: "center", justifyContent: "center" }}>
                   <Text selectable style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "900" }}>{step}</Text>
                 </View>
@@ -2873,12 +7014,12 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
             ))}
           </View>
           <View style={{ marginTop: 16 }}>
-            <Pressable accessibilityRole="button" onPress={() => nav.push("paywall", { next: "scan" })} style={{ minHeight: 51, borderRadius: 999, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
-              <Icon name="scan" color="#111114" size={18} />
-              <Text style={{ color: "#111114", fontWeight: "900" }}>{textFor("locked.scan", "Scan syllabus")}</Text>
+            <Pressable accessibilityRole="button" onPress={() => nav.push("paywall", { next: "scan", action: "camera" })} style={{ minHeight: 51, borderRadius: 999, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
+              <Icon name="camera" color="#111114" size={18} />
+              <Text style={{ color: "#111114", fontWeight: "900" }}>{textFor("locked.scan", "Unlock camera scan")}</Text>
             </Pressable>
-            <Pressable accessibilityRole="button" onPress={() => nav.push("paywall", { next: "paste", mode: "syllabus" })} style={{ minHeight: 48, borderRadius: 999, borderWidth: 1, borderColor: "rgba(255,255,255,0.22)", alignItems: "center", justifyContent: "center", marginTop: 10 }}>
-              <Text style={{ color: "#FFFFFF", fontWeight: "900" }}>{textFor("locked.paste", "Paste manually")}</Text>
+            <Pressable accessibilityRole="button" onPress={() => nav.push("paywall", { next: "paste", mode: "manual" })} style={{ minHeight: 48, borderRadius: 999, borderWidth: 1, borderColor: "rgba(255,255,255,0.22)", alignItems: "center", justifyContent: "center", marginTop: 10 }}>
+              <Text style={{ color: "#FFFFFF", fontWeight: "900" }}>{textFor("classes.add_manual", "Add class manually")}</Text>
             </Pressable>
           </View>
         </View>
@@ -2892,7 +7033,7 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
               <MiniMetric value={previewSummary.exams} label={textFor("review.exams", "exams")} color={COLORS.purple} theme={theme} />
             </View>
             <Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 17 }}>{textFor("paywall.ready_apply", "Ready to apply")}</Text>
-            <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 4 }}>{textFor("paywall.sub_import", "Your preview is ready. Unlock to apply it to the live dashboard, reminders, and widgets.")}</Text>
+            <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 4 }}>{textFor("paywall.sub_import", "Your preview is ready. Unlock, return to Review, then approve it for the live dashboard, reminders, and widgets.")}</Text>
             <Button label={textFor("review.unlock", "Unlock my semester")} theme={theme} icon="crown" onPress={() => nav.push("paywall")} />
           </Card>
         ) : null}
@@ -2907,8 +7048,8 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
           </View>
           <Text selectable style={{ color: theme.label2, lineHeight: 20, marginBottom: 14 }}>{textFor("locked.health_sub", "Your score appears after your syllabus is reviewed and applied.")}</Text>
           <View style={{ gap: 10 }}>
-            {features.map(([title, body]) => (
-              <View key={title} style={{ padding: 12, borderRadius: 15, backgroundColor: theme.surface2, borderWidth: 1, borderColor: theme.hairline }}>
+            {features.map(([title, body], index) => (
+              <View key={`locked-feature-${index}`} style={{ padding: 12, borderRadius: 15, backgroundColor: theme.surface2, borderWidth: 1, borderColor: theme.hairline }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                   <Lock color={theme.label3} size={15} />
                   <Text selectable style={{ color: theme.label, fontWeight: "900", flex: 1 }}>{title}</Text>
@@ -2932,34 +7073,37 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
 
 function LegalScreen({ nav, theme, kind }: ScreenProps & { kind: "terms" | "privacy" }) {
   const isPrivacy = kind === "privacy";
+  const title = textFor(isPrivacy ? "legal.privacy_title" : "legal.terms_title", isPrivacy ? "Privacy Policy" : "Terms of Use");
   const rows = isPrivacy
     ? [
-        ["Data source", "StudyPlanner stores your planner data on this device."],
-        ["Imports", "syllabus, note, PDF, and camera text are used to create your reviewed preview and semester plan."],
-        ["Purchases", "Subscription purchases and restores are handled by the App Store."],
-        ["Sharing", "StudyPlanner does not sell your planner data."],
-        ["Support", "Email support to request help with app data, purchases, or privacy questions."],
+        [textFor("legal.data_source_title", "Data source"), textFor("legal.data_source_body", "StudyPlanner stores your planner data on this device.")],
+        [textFor("legal.imports_title", "Imports"), textFor("legal.imports_body", "Syllabus, notes, PDF, and camera text are used to create your reviewed preview and semester plan.")],
+        [textFor("legal.purchases_title", "Purchases"), textFor("legal.purchases_body", "Subscription purchases and restores are handled by the App Store.")],
+        [textFor("legal.sharing_title", "Sharing"), textFor("legal.sharing_body", "StudyPlanner does not sell your planner data.")],
+        [textFor("legal.support_title", "Support"), textFor("legal.support_body", "Email support to request help with app data, purchases, or privacy questions.")],
       ]
     : [
-        ["Subscription", "StudyPlanner uses auto-renewing subscriptions shown and confirmed by the App Store before purchase."],
-        ["Access", "A valid active entitlement is required to apply imports, use the dashboard, schedule reminders, and sync widgets."],
-        ["Billing", "Manage or cancel subscriptions from your Apple account."],
-        ["Standard terms", "Apple's standard EULA applies unless a separate written agreement is provided."],
+        [textFor("legal.subscription_title", "Subscription"), textFor("legal.subscription_body", "StudyPlanner uses auto-renewing subscriptions shown and confirmed by the App Store before purchase.")],
+        [textFor("legal.access_title", "Access"), textFor("legal.access_body", "A valid active entitlement is required to apply imports, use the dashboard, schedule reminders, and sync widgets.")],
+        [textFor("legal.billing_title", "Billing"), textFor("legal.billing_body", "Manage or cancel subscriptions from your Apple account.")],
+        [textFor("legal.standard_terms_title", "Standard terms"), textFor("legal.standard_terms_body", "Apple's standard EULA applies unless a separate written agreement is provided.")],
       ];
   return (
     <Screen theme={theme}>
-      <BackHeader nav={nav} theme={theme} label={isPrivacy ? "Privacy Policy" : "Terms of Use"} />
+      <BackHeader nav={nav} theme={theme} label={title} />
       <View style={{ paddingHorizontal: 16, gap: 14 }}>
-        <Header title={isPrivacy ? "Privacy Policy" : "Terms of Use"} sub="StudyPlanner" theme={theme} />
+        <Header title={title} sub="StudyPlanner" theme={theme} />
         <Card theme={theme} style={{ overflow: "hidden" }}>
           {rows.map(([title, body], index) => (
-            <View key={title} style={{ padding: 15, borderBottomWidth: index === rows.length - 1 ? 0 : 1, borderBottomColor: theme.hairline }}>
+            <View key={`legal-row-${index}`} style={{ padding: 15, borderBottomWidth: index === rows.length - 1 ? 0 : 1, borderBottomColor: theme.hairline }}>
               <Text selectable style={{ color: theme.label, fontSize: 16, fontWeight: "900" }}>{title}</Text>
               <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 4 }}>{body}</Text>
             </View>
           ))}
         </Card>
-        {!isPrivacy ? <Button label={textFor("common.terms", "Terms")} theme={theme} secondary icon="file" onPress={() => openExternal(TERMS_URL)} /> : null}
+        {isPrivacy
+          ? <Button label={textFor("legal.open_full_privacy", "Open full privacy policy")} theme={theme} secondary icon="shield" onPress={() => openExternal(PRIVACY_URL)} />
+          : <Button label={textFor("common.terms", "Terms")} theme={theme} secondary icon="file" onPress={() => openExternal(TERMS_URL)} />}
         <Button label={textFor("common.support", "Support")} theme={theme} secondary icon="file" onPress={() => openExternal(SUPPORT_URL)} />
       </View>
     </Screen>
@@ -2968,71 +7112,97 @@ function LegalScreen({ nav, theme, kind }: ScreenProps & { kind: "terms" | "priv
 
 function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentImport, setEntitlementStatus }: ScreenProps) {
   const initialPlans = useMemo(() => fallbackPlans(), []);
+  const initialSelectedPlan = initialPlans.find((plan) => plan.recommended)?.id || initialPlans[0]?.id || "";
   const firstName = firstNameFromPrefs(data);
   const [plans, setPlans] = useState<PaywallPlan[]>(initialPlans);
-  const [selected, setSelected] = useState(initialPlans[0].id);
-  const [storePlansReady, setStorePlansReady] = useState(false);
+  const [selected, setSelected] = useState(initialSelectedPlan);
+  const [eligibleTrialProductIds, setEligibleTrialProductIds] = useState<string[]>([]);
+  const [storePlansReady, setStorePlansReady] = useState(Boolean(initialPlans[0]?.id));
   const [busy, setBusy] = useState<"loading" | "purchase" | "restore" | "checking" | null>("loading");
   const [message, setMessage] = useState(textFor("paywall.message_loading", "Connecting to the App Store..."));
+  const [reviewAccessCode, setReviewAccessCode] = useState("");
+  const reviewAccessEnabled = googlePlayReviewAccessEnabled();
 
   const unlock = (productId?: string, checkedAt = new Date().toISOString()) => {
     setEntitlementStatus("active");
     mutate((d) => {
-      const unlocked = premiumData(d, productId || selected, checkedAt);
-      return currentImport ? applyImport(unlocked, currentImport) : unlocked;
+      return premiumData(d, productId || selected, checkedAt);
     }, { allowValidatedPremium: true });
-    if (currentImport) setCurrentImport(null);
-    if (currentImport) nav.tab("today");
-    else if (params.next === "scan") nav.push("scan", params.action ? { action: params.action } : undefined);
-    else if (params.next === "paste") nav.push("paste", { mode: params.mode || "syllabus" });
+    const destination = unlockDestinationFromPaywall({ route: "paywall", params });
+    if (currentImport) nav.replaceTop("review");
+    else if (destination) nav.replaceTop(destination.route, destination.params);
     else nav.tab("today");
   };
 
   useEffect(() => {
     let mounted = true;
-    Promise.allSettled([initializeStudyPlannerStore(), loadStorePlans(), checkStudyPlannerEntitlement()])
+    const storeReady = initializeStudyPlannerStore();
+    Promise.allSettled([storeReady, storeReady.then(() => loadStorePlans()), storeReady.then(() => checkStudyPlannerEntitlement())])
       .then((results) => {
         if (!mounted) return;
         const planResult = results[1];
         let localizedPlansReady = false;
+        let purchasablePlansReady = initialPlans.some((plan) => Boolean(plan.id));
         if (planResult.status === "fulfilled") {
           setPlans(planResult.value);
-          setSelected((current) => planResult.value.some((plan) => plan.id === current) ? current : planResult.value[0]?.id || current);
+          setSelected((current) => planResult.value.some((plan) => plan.id === current) ? current : planResult.value.find((plan) => plan.recommended)?.id || planResult.value[0]?.id || current);
           localizedPlansReady = planResult.value.some((plan) => plan.displayPrice !== "Shown by App Store");
-          setStorePlansReady(localizedPlansReady);
+          purchasablePlansReady = planResult.value.some((plan) => Boolean(plan.id));
+        } else {
+          setPlans(initialPlans);
+          setSelected((current) => initialPlans.some((plan) => plan.id === current) ? current : initialSelectedPlan || current);
         }
+        setStorePlansReady(purchasablePlansReady);
         const entitlementResult = results[2];
         if (entitlementResult.status === "fulfilled" && entitlementResult.value.isPremium) {
           unlock(entitlementResult.value.productId, entitlementResult.value.checkedAt);
           return;
         }
         setBusy(null);
-        setMessage(localizedPlansReady ? textFor("paywall.message_choose", "Choose a StudyPlanner plan to continue.") : textFor("paywall.message_unavailable", "App Store pricing is not loaded. Restore is still available."));
+        setMessage(localizedPlansReady ? textFor("paywall.message_choose", "Choose a StudyPlanner plan to continue.") : purchasablePlansReady ? textFor("paywall.message_store_sheet", "Unlock when ready. The App Store shows the current price and terms before purchase.") : textFor("paywall.message_unavailable", "App Store products are not available right now. Restore is still available."));
       })
       .catch((error) => {
         if (!mounted) return;
         setBusy(null);
-        setMessage(error instanceof Error ? error.message : textFor("paywall.message_unavailable", "The App Store is not available right now."));
+        setMessage(textFor("paywall.message_unavailable", "The App Store is not available right now."));
       });
     return () => {
       mounted = false;
     };
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    setEligibleTrialProductIds([]);
+    loadEligibleIntroOfferProductIds(plans)
+      .then((productIds) => {
+        if (mounted) setEligibleTrialProductIds(productIds);
+      })
+      .catch(() => {
+        if (mounted) setEligibleTrialProductIds([]);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [plans]);
+
+  const selectedPlan = plans.find((plan) => plan.id === selected) || plans[0] || initialPlans[0];
+
   const purchase = async () => {
-    if (!storePlansReady) {
-      setMessage(textFor("paywall.loading_price", "App Store pricing is still loading. Try again in a moment."));
+    const productId = selectedPlan?.id || selected;
+    if (!productId) {
+      setMessage(textFor("paywall.message_unavailable", "App Store products are not available right now. Restore is still available."));
       return;
     }
     setBusy("purchase");
     setMessage(textFor("paywall.opening", "Opening the App Store purchase sheet..."));
     try {
-      await purchasePlan(selected);
+      await purchasePlan(productId);
       setMessage(textFor("paywall.opening", "Approve the subscription in the App Store sheet. StudyPlanner unlocks as soon as Apple confirms it."));
       setBusy(null);
     } catch (error) {
       setBusy(null);
-      setMessage(error instanceof Error ? error.message : textFor("paywall.message_unavailable", "The App Store could not start the purchase."));
+      setMessage(textFor("paywall.message_unavailable", "The App Store could not start the purchase."));
     }
   };
 
@@ -3051,11 +7221,21 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
       }
     } catch (error) {
       setBusy(null);
-      setMessage(error instanceof Error ? error.message : textFor("paywall.message_unavailable", "Restore could not be completed."));
+      setMessage(textFor("paywall.message_unavailable", "Restore could not be completed."));
     }
   };
 
-  const selectedPlan = plans.find((plan) => plan.id === selected) || plans[0] || initialPlans[0];
+  const unlockReviewAccess = () => {
+    if (!reviewAccessEnabled) return;
+    if (!googlePlayReviewAccessCodeMatches(reviewAccessCode)) {
+      setMessage("Review access code was not recognized.");
+      return;
+    }
+    setMessage("Google Play review access unlocked.");
+    unlock(GOOGLE_PLAY_REVIEW_PRODUCT_ID, new Date().toISOString());
+    maybeShowUnlockSuccess("google_play_review_access");
+  };
+
   const importCandidates = currentImport?.candidates.filter((candidate) => candidate.approved) || [];
   const importSummary = {
     classes: importCandidates.filter((candidate) => candidate.kind === "class").length,
@@ -3063,23 +7243,95 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
     exams: importCandidates.filter((candidate) => candidate.kind === "exam").length,
     firstAction: importCandidates.find((candidate) => candidate.kind === "task" || candidate.kind === "exam")?.title,
   };
+  const cameraIntent = !currentImport && (params.action === "camera" || data.prefs.scanIntent === "Scan with camera");
+  const pdfIntent = !currentImport && (params.action === "pdf" || data.prefs.scanIntent === "Upload PDF");
+  const manualIntent = !currentImport && params.next === "paste" && (params.mode === "manual" || data.prefs.scanIntent === "Add manually");
+  const pasteIntent = !currentImport && !manualIntent && (params.next === "paste" || data.prefs.scanIntent === "Paste syllabus");
+  const intentPreview = cameraIntent
+    ? {
+        icon: "camera",
+        title: textFor("paywall.camera_title", "Camera scan unlocks here"),
+        methods: textFor("paywall.camera_methods", "Camera scan · OCR · Review"),
+        body: textFor("paywall.camera_body", "Use the guided camera after purchase to capture syllabus pages, read the text on this iPhone, and review the extracted rows before anything saves."),
+        unlockTarget: textFor("option.scan_camera", "camera scan"),
+      }
+    : pdfIntent
+      ? {
+          icon: "upload",
+          title: textFor("scan.upload_pdf", "Upload syllabus PDF"),
+          methods: textFor("scan.pdf_action_body", "Best for full syllabi and multi-page handouts."),
+          body: textFor("paywall.preview_first_sub", "Unlock first, then scan, upload, paste, or add manually. StudyPlanner shows every class, exam, and deadline for review before anything reaches your dashboard, widgets, reminders, or next moves."),
+          unlockTarget: textFor("option.upload_pdf", "PDF import"),
+        }
+      : manualIntent
+        ? {
+            icon: "plus",
+            title: textFor("classes.add_manual", "Add class manually"),
+            methods: textFor("onboarding.manual_body", "Type one class and one deadline to build a preview"),
+            body: textFor("onboarding.manual_sub", "Use this when a syllabus is missing, blurry, or wrong. Nothing saves until you approve the preview."),
+            unlockTarget: textFor("classes.add_manual", "manual setup"),
+          }
+        : pasteIntent
+          ? {
+              icon: "file",
+              title: textFor("option.paste_syllabus", "Paste syllabus"),
+              methods: textFor("paste.syllabus_title", "Syllabus becomes a semester preview."),
+              body: textFor("paste.preview_sub", "Review what StudyPlanner finds before anything saves."),
+              unlockTarget: textFor("option.paste_syllabus", "paste import"),
+            }
+          : {
+              icon: "sparkles",
+              title: textFor("paywall.plan_preview_title", "Plan preview"),
+              methods: textFor("paywall.plan_preview_methods", "Scan · Paste · Manual setup"),
+              body: textFor("paywall.preview_first_sub", "Unlock first, then scan, upload, paste, or add manually. StudyPlanner shows every class, exam, and deadline for review before anything reaches your dashboard, widgets, reminders, or next moves."),
+              unlockTarget: selectedPlan.cadence,
+            };
+  const paywallSteps = cameraIntent ? [
+    [textFor("paywall.camera_step_scan", "Scan"), textFor("option.scan_camera", "camera")],
+    [textFor("paywall.camera_step_read", "Read"), textFor("scan.metric_ocr", "OCR")],
+    [textFor("paywall.camera_step_review", "Review"), textFor("review.guard_active", "before save")],
+    [textFor("paywall.camera_step_apply", "Apply"), textFor("tabs.today", "dashboard")],
+  ] : [
+    [pdfIntent ? textFor("scan.upload_pdf", "Upload PDF") : manualIntent ? textFor("classes.add_manual", "Add manually") : pasteIntent ? textFor("scan.paste_text", "Paste text") : textFor("paywall.preview_chip_class", "Class"), pdfIntent ? textFor("scan.metric_ocr", "Text") : textFor("paywall.preview_chip_class_sub", "from setup")],
+    [textFor("paywall.preview_chip_deadline", "Deadline"), textFor("paywall.preview_chip_deadline_sub", "review before save")],
+    [textFor("paywall.preview_chip_move", "First move"), textFor("paywall.preview_chip_move_sub", "after review")],
+  ];
+  const selectedPlanLabel = textFor(selectedPlan.id.toLowerCase().includes("year") ? "paywall.yearly" : selectedPlan.id.toLowerCase().includes("week") ? "paywall.weekly" : "paywall.monthly", selectedPlan.cadence);
+  const selectedPlanPeriodLabel = selectedPlanLabel.toLocaleLowerCase(appLocale());
+  const eligibleTrialProductIdSet = new Set(eligibleTrialProductIds);
+  const selectedPlanHasOneWeekTrial = hasOneWeekFreeTrial(selectedPlan) && eligibleTrialProductIdSet.has(selectedPlan.id);
+  const allPlansHaveOneWeekTrial = plans.length > 0 && plans.every((plan) => hasOneWeekFreeTrial(plan) && eligibleTrialProductIdSet.has(plan.id));
+  const trialPlan = allPlansHaveOneWeekTrial && selectedPlanHasOneWeekTrial ? selectedPlan : undefined;
+  const trialPlanLabel = trialPlan
+    ? textFor(trialPlan.id.toLowerCase().includes("year") ? "paywall.yearly" : trialPlan.id.toLowerCase().includes("week") ? "paywall.weekly" : "paywall.monthly", trialPlan.cadence)
+    : "";
+  const purchaseLabel = busy === "purchase"
+    ? textFor("paywall.opening", "Opening App Store...")
+    : selectedPlanHasOneWeekTrial
+      ? textFor("paywall.trial_cta", "Start one-week free trial")
+      : currentImport
+      ? textFor("review.locked_cta", "Unlock to apply plan")
+      : cameraIntent
+        ? textFor("paywall.unlock_camera", "Unlock camera scan")
+        : textFor("paywall.unlock", "Unlock {plan}", { plan: intentPreview.unlockTarget || selectedPlanLabel });
+  const restoreLabel = busy === "restore" ? textFor("paywall.restoring", "Restoring...") : textFor("common.restore", "Restore Purchases");
+  const selectedPlanSummary = selectedPlanHasOneWeekTrial
+    ? textFor("paywall.trial_summary", "1 week free, then {price}/{plan}. Auto-renews until canceled.", { price: selectedPlan.displayPrice, plan: selectedPlanPeriodLabel })
+    : selectedPlan.displayPrice;
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Close paywall" onPress={nav.back} style={{ position: "absolute", top: 56, right: 18, zIndex: 3, width: 44, height: 44, borderRadius: 999, backgroundColor: theme.surface, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: theme.hairline }}>
-        <X color={theme.label} size={20} />
-      </Pressable>
-      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingTop: 68, paddingHorizontal: 20, paddingBottom: 34 }}>
-        <RNImage source={require("./assets/icon.png")} style={{ width: 62, height: 62, borderRadius: 19, marginBottom: 18 }} />
-        <Text selectable style={{ color: theme.label, fontSize: 36, lineHeight: 39, fontWeight: "900", marginBottom: 10 }}>{textFor("paywall.title", "{name}, build your live semester.", { name: firstName })}</Text>
-        <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22, marginBottom: 20 }}>{currentImport ? textFor("paywall.sub_import", "Your preview is ready. Unlock to apply it to the live dashboard, reminders, and widgets.") : textFor("paywall.sub_no_import", "Unlock first, then scan to keep your semester visible across dashboard, widgets, reminders, and next moves.")}</Text>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 14 }}>
-          <Pressable onPress={busy ? undefined : restore} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: theme.surface2 }}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.restore", "Restore Purchases")}</Text></Pressable>
-          <Pressable onPress={() => nav.push("terms")} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: theme.surface2 }}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.terms", "Terms")}</Text></Pressable>
-          <Pressable onPress={() => nav.push("privacy")} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: theme.surface2 }}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.privacy", "Privacy")}</Text></Pressable>
-          <Pressable onPress={() => openExternal(SUPPORT_URL)} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: theme.surface2 }}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.support", "Support")}</Text></Pressable>
+      <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: 58, paddingHorizontal: 20, paddingBottom: 180 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+          <RNImage source={require("./assets/icon.png")} style={{ width: 52, height: 52, borderRadius: 16 }} />
+          <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} accessibilityHint={textFor("accessibility.back_hint", "Return to the previous screen")} onPress={() => currentImport ? nav.back() : nav.tab("lockedDashboard")} style={{ minHeight: 38, borderRadius: 999, paddingHorizontal: 13, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: theme.surface2, borderWidth: 1, borderColor: theme.hairline }}>
+            <ChevronLeft color={theme.label2} size={15} />
+            <Text style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("common.back", "Back")}</Text>
+          </Pressable>
         </View>
-        <Card theme={theme} style={{ padding: 15, marginBottom: 14, backgroundColor: "#111114" }}>
+        <Text selectable style={{ color: theme.label, fontSize: 34, lineHeight: 37, fontWeight: "900", marginBottom: 8 }}>{currentImport ? textFor("paywall.ready_apply", "Your plan is ready to apply") : textFor("paywall.title", "{name}, unlock StudyPlanner.", { name: firstName })}</Text>
+        <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginBottom: 14 }}>{currentImport ? textFor("paywall.sub_import", "Your preview is ready. Unlock, return to Review, then approve it for the live dashboard, reminders, and widgets.") : textFor("paywall.sub_no_import", "Unlock first, then scan, upload, paste, or add manually. StudyPlanner shows every class, exam, and deadline for review before anything reaches your dashboard, widgets, reminders, or next moves.")}</Text>
+        <Card theme={theme} style={{ padding: 13, marginBottom: 12, backgroundColor: "#111114" }}>
           {currentImport ? (
             <View>
               <Text selectable style={{ color: "rgba(255,255,255,0.66)", fontSize: 12, fontWeight: "900", marginBottom: 10 }}>{textFor("paywall.ready_apply", "READY TO APPLY")}</Text>
@@ -3089,36 +7341,62 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
                 <View style={{ flex: 1 }}><Text selectable style={{ color: "#fff", fontSize: 24, fontWeight: "900" }}>{importSummary.exams}</Text><Text selectable style={{ color: "rgba(255,255,255,0.66)", fontSize: 12, fontWeight: "800" }}>{textFor("review.exams", "exams")}</Text></View>
               </View>
               <Text selectable style={{ color: "#fff", fontSize: 17, lineHeight: 22, fontWeight: "900" }}>{importSummary.firstAction || textFor("review.title", "Review your imported semester")}</Text>
-              <Text selectable style={{ color: "rgba(255,255,255,0.72)", marginTop: 4, lineHeight: 19 }}>{textFor("paywall.sub_import", "Unlock to save this plan, schedule reminders, and sync widgets.")}</Text>
+              <Text selectable style={{ color: "rgba(255,255,255,0.72)", marginTop: 4, lineHeight: 19 }}>{textFor("paywall.sub_import", "Unlock, return to Review, then approve this plan for reminders and widgets.")}</Text>
             </View>
           ) : (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
-              <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}>
-                <Icon name="lock" color="#fff" size={25} />
+            <View style={{ gap: 11 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                <View style={{ width: 50, height: 50, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}>
+                  <Icon name={intentPreview.icon} color="#fff" size={25} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text selectable style={{ color: "#fff", fontSize: 18, fontWeight: "900" }}>{intentPreview.title}</Text>
+                  <Text selectable style={{ color: "rgba(255,255,255,0.7)", marginTop: 3, lineHeight: 19 }}>{intentPreview.methods}</Text>
+                </View>
               </View>
-              <View style={{ flex: 1 }}>
-	                <Text selectable style={{ color: "#fff", fontSize: 18, fontWeight: "900" }}>{optionText(data.prefs.mainGoal || data.prefs.semesterGoal || "Everything")}</Text>
-	                <Text selectable style={{ color: "rgba(255,255,255,0.7)", marginTop: 3, lineHeight: 19 }}>{optionText(data.prefs.studentType || data.prefs.studentPersona || "School semester")} · {textFor("option.everything", data.prefs.workloadStyle || "Balanced")} · {optionText(data.prefs.scanIntent || "Upload PDF")}</Text>
+              <View style={{ flexDirection: "row", gap: 7 }}>
+                {paywallSteps.map(([value, label], index) => (
+                  <View key={`paywall-preview-chip-${index}`} style={{ flex: 1, borderRadius: 13, padding: 9, backgroundColor: "rgba(255,255,255,0.10)" }}>
+                    <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: "#fff", fontSize: 15, fontWeight: "900" }}>{value}</Text>
+                    <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.66} style={{ color: "rgba(255,255,255,0.62)", fontSize: 11, fontWeight: "800", marginTop: 2 }}>{label}</Text>
+                  </View>
+                ))}
               </View>
+              <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 19 }}>{intentPreview.body}</Text>
             </View>
           )}
         </Card>
-        <View style={{ gap: 10, marginBottom: 18 }}>
+        {trialPlan ? (
+          <Card theme={theme} style={{ padding: 15, marginBottom: 12, borderWidth: 2, borderColor: COLORS.green, backgroundColor: theme.dark ? "rgba(28, 110, 75, 0.18)" : "rgba(31, 152, 104, 0.10)" }}>
+            <Text selectable style={{ color: COLORS.green, fontSize: 12, fontWeight: "900", marginBottom: 5 }}>{textFor("paywall.seasonal_kicker", "BACK-TO-SCHOOL OFFER")}</Text>
+            <Text selectable style={{ color: theme.label, fontSize: 22, lineHeight: 27, fontWeight: "900" }}>{textFor("paywall.seasonal_title", "One week free with any plan")}</Text>
+            <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 5 }}>{textFor("paywall.seasonal_body", "Eligible new subscribers. Apple confirms eligibility; then {price} for {plan}.", { price: trialPlan.displayPrice, plan: trialPlanLabel })}</Text>
+          </Card>
+        ) : null}
+        <View style={{ gap: 8, marginBottom: 14 }}>
           {plans.map((plan) => {
             const on = selected === plan.id;
             return (
-              <Pressable key={plan.id} onPress={() => setSelected(plan.id)}>
-                <Card theme={theme} style={{ padding: 15, borderWidth: on ? 2 : 1, borderColor: on ? theme.accent : theme.hairline }}>
+              <Pressable
+                key={plan.id}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: on }}
+                accessibilityLabel={`${plan.cadence}, ${plan.displayPrice}${hasOneWeekFreeTrial(plan) && eligibleTrialProductIdSet.has(plan.id) ? `, ${textFor("paywall.trial_badge", "1 week free")}` : ""}`}
+                accessibilityHint={textFor("paywall.accessibility_plan_hint", "Select this subscription plan")}
+                onPress={() => setSelected(plan.id)}
+              >
+                <Card theme={theme} style={{ padding: 13, borderWidth: on ? 2 : 1, borderColor: on ? theme.accent : theme.hairline }}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                    <View style={{ width: 26, height: 26, borderRadius: 99, borderWidth: on ? 0 : 2, borderColor: theme.label3, backgroundColor: on ? theme.accent : "transparent", alignItems: "center", justifyContent: "center" }}>
+	                    <View style={{ width: 24, height: 24, borderRadius: 99, borderWidth: on ? 0 : 2, borderColor: theme.label3, backgroundColor: on ? theme.accent : "transparent", alignItems: "center", justifyContent: "center" }}>
                       {on ? <Check color="#fff" size={16} strokeWidth={3} /> : null}
                     </View>
                     <View style={{ flex: 1 }}>
                       <View style={{ flexDirection: "row", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
 	                        <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>{textFor(plan.id.toLowerCase().includes("year") ? "paywall.yearly" : plan.id.toLowerCase().includes("week") ? "paywall.weekly" : "paywall.monthly", plan.cadence)}</Text>
                         {plan.recommended ? <Pill text={textFor("paywall.best_value", "Best value")} color={COLORS.green} theme={theme} icon="star" /> : null}
+                        {hasOneWeekFreeTrial(plan) && eligibleTrialProductIdSet.has(plan.id) ? <Pill text={textFor("paywall.trial_badge", "1 week free")} color={theme.accent} theme={theme} icon="sparkles" /> : null}
                       </View>
-	                      <Text selectable style={{ color: theme.label2, marginTop: 4 }}>{textFor(plan.id.toLowerCase().includes("year") ? "paywall.benefit_apply" : "paywall.benefit_health", plan.description)}</Text>
+	                      <Text selectable style={{ color: theme.label2, marginTop: 3, fontSize: 13, lineHeight: 18 }}>{textFor(plan.id.toLowerCase().includes("year") ? "paywall.benefit_apply" : "paywall.benefit_health", plan.description)}</Text>
                     </View>
                     <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{plan.displayPrice}</Text>
                   </View>
@@ -3127,30 +7405,56 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
             );
           })}
         </View>
-        <Card theme={theme} style={{ padding: 15, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF", marginBottom: 14 }}>
-          {[
-            ["file", textFor("paywall.benefit_apply", "Apply your syllabus")],
-            ["heart", textFor("paywall.benefit_health", "Track Semester Health")],
-            ["target", textFor("paywall.benefit_exams", "Stay ahead of exams")],
-            ["bell", textFor("paywall.benefit_reminders", "Get reminder timing")],
-            ["grid", textFor("paywall.benefit_widgets", "Keep widgets current")],
-          ].map(([icon, text]) => (
-            <View key={text} style={{ flexDirection: "row", gap: 10, alignItems: "center", paddingVertical: 6 }}>
-              <Icon name={icon} color={theme.accent} size={18} />
-              <Text selectable style={{ color: theme.label, flex: 1, fontWeight: "800" }}>{text}</Text>
+        <Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label2, lineHeight: 19, marginBottom: 10 }}>{message}</Text>
+        <Card theme={theme} style={{ padding: 15, marginBottom: 14, backgroundColor: theme.surface }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <View style={{ flex: 1 }}>
+              <Text selectable numberOfLines={1} style={{ color: theme.label, fontSize: 15, fontWeight: "900" }}>{selectedPlanLabel}</Text>
+              <Text selectable numberOfLines={3} style={{ color: theme.label2, marginTop: 2, fontSize: 12, lineHeight: 17, fontWeight: "800" }}>{selectedPlanSummary}</Text>
             </View>
-          ))}
+            <Pressable accessibilityRole="button" accessibilityLabel={restoreLabel} accessibilityHint={textFor("paywall.accessibility_restore_hint", "Check this store account for an active subscription")} accessibilityState={{ disabled: Boolean(busy), busy: busy === "restore" }} onPress={busy ? undefined : restore} disabled={Boolean(busy)} hitSlop={8} style={{ minHeight: 44, borderRadius: 999, paddingHorizontal: 13, alignItems: "center", justifyContent: "center", backgroundColor: theme.surface2, opacity: busy === "purchase" ? 0.54 : 1 }}>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ color: theme.label, fontSize: 12, fontWeight: "900" }}>{restoreLabel}</Text>
+            </Pressable>
+          </View>
         </Card>
-        <Text selectable style={{ color: theme.label2, lineHeight: 19, marginBottom: 10 }}>{message}</Text>
-        <Button label={busy === "purchase" ? textFor("paywall.opening", "Opening App Store...") : storePlansReady ? textFor("paywall.unlock", "Unlock {plan}", { plan: selectedPlan.cadence }) : textFor("paywall.loading_price", "Loading App Store price")} theme={theme} icon="crown" onPress={busy || !storePlansReady ? undefined : purchase} />
-        <Button label={busy === "restore" ? textFor("paywall.restoring", "Restoring...") : textFor("common.restore", "Restore Purchases")} theme={theme} secondary icon="refresh" onPress={busy ? undefined : restore} />
-        <Text selectable style={{ color: theme.label3, fontSize: 12, lineHeight: 17, marginTop: 14 }}>{textFor("paywall.legal", "Auto-renewing subscription. Price and terms are shown by the App Store before purchase. Manage or cancel in Apple subscriptions.")}</Text>
+        {reviewAccessEnabled ? (
+          <Card theme={theme} style={{ padding: 15, backgroundColor: theme.surface, marginBottom: 14 }}>
+            <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>Google Play review access</Text>
+            <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 5 }}>Enter the access code from Play Console to unlock all premium features for review.</Text>
+            <TextInput
+              accessibilityLabel="Google Play review access code"
+              value={reviewAccessCode}
+              onChangeText={setReviewAccessCode}
+              placeholder="Access code"
+              placeholderTextColor={theme.label3}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              style={{ minHeight: 50, borderRadius: 15, backgroundColor: theme.surface2, borderWidth: 1, borderColor: theme.hairline, color: theme.label, paddingHorizontal: 14, marginTop: 12, fontWeight: "900" }}
+            />
+            <Button label="Unlock review access" theme={theme} icon="shield" onPress={normalizedReviewAccessCode(reviewAccessCode) ? unlockReviewAccess : undefined} />
+          </Card>
+        ) : null}
+        <Text selectable style={{ color: theme.label3, fontSize: 12, lineHeight: 17, marginTop: 14 }}>{textFor("paywall.legal", "Auto-renewing subscription. The App Store confirms the current price and terms before any charge. Manage or cancel in Apple subscriptions.")}</Text>
         <View style={{ flexDirection: "row", justifyContent: "center", gap: 18, marginTop: 12 }}>
-          <Pressable onPress={() => nav.push("terms")}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.terms", "Terms of Use")}</Text></Pressable>
-          <Pressable onPress={() => nav.push("privacy")}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.privacy", "Privacy Policy")}</Text></Pressable>
-          <Pressable onPress={() => openExternal(SUPPORT_URL)}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.support", "Support")}</Text></Pressable>
+          <Pressable accessibilityRole="link" accessibilityLabel={textFor("common.terms", "Terms of Use")} accessibilityHint={textFor("paywall.accessibility_terms_hint", "Open the subscription terms")} onPress={() => nav.push("terms")}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.terms", "Terms of Use")}</Text></Pressable>
+          <Pressable accessibilityRole="link" accessibilityLabel={textFor("common.privacy", "Privacy Policy")} accessibilityHint={textFor("paywall.accessibility_privacy_hint", "Open the privacy policy")} onPress={() => nav.push("privacy")}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.privacy", "Privacy Policy")}</Text></Pressable>
+          <Pressable accessibilityRole="link" accessibilityLabel={textFor("common.support", "Support")} accessibilityHint={textFor("paywall.accessibility_support_hint", "Open StudyPlanner support")} onPress={() => openExternal(SUPPORT_URL)}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.support", "Support")}</Text></Pressable>
         </View>
       </ScrollView>
+      <LiquidGlassSurface
+        tintColor={theme.dark ? "rgba(18,18,22,0.90)" : "rgba(250,250,252,0.92)"}
+        style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 30, backgroundColor: theme.dark ? "rgba(18,18,22,0.96)" : "rgba(250,250,252,0.97)", borderTopWidth: 1, borderTopColor: theme.hairline }}
+        fallbackStyle={{ backgroundColor: theme.bg }}
+      >
+        <View accessible accessibilityLabel={`${selectedPlanLabel}. ${selectedPlanSummary}`} style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 8 }}>
+          <View style={{ flex: 1 }}>
+            <Text selectable numberOfLines={1} style={{ color: theme.label, fontSize: 14, fontWeight: "900" }}>{selectedPlanLabel}</Text>
+            <Text selectable numberOfLines={2} style={{ color: theme.label2, fontSize: 11.5, lineHeight: 16, fontWeight: "800", marginTop: 2 }}>{selectedPlanSummary}</Text>
+          </View>
+          <Text selectable style={{ color: theme.label, fontSize: 14, fontWeight: "900" }}>{selectedPlan.displayPrice}</Text>
+        </View>
+        <Button label={purchaseLabel} theme={theme} icon="crown" onPress={busy || !storePlansReady ? undefined : purchase} />
+      </LiquidGlassSurface>
     </View>
   );
 }
@@ -3168,7 +7472,7 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
   const upcomingAssessments = liveData.exams.slice().sort((a, b) => daysUntilExam(a) - daysUntilExam(b)).slice(0, 3);
   const insight = deadlineInsight(liveData);
   const risks = semester.riskFactors;
-  const firstBlock = semester.schedulePlan.blocks.find((block) => !block.completed);
+  const firstBlock = liveData.studyBlocks.find((block) => !block.completed);
   const firstPulse = semester.classPulses[0];
   const firstPulseClass = safeClassFor(liveData, firstPulse?.classId);
   const preparedness = semester.semesterHealth.dimensions.preparedness;
@@ -3198,7 +7502,7 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
   if (!hasSemesterData) {
     return (
       <Screen theme={theme}>
-        <Header title={todayTitle} sub={todayHeaderLabel()} theme={theme} right={<Pressable onPress={() => nav.tab("profile")}><View style={{ width: 42, height: 42, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 17 }}>{userInitial(data)}</Text></View></Pressable>} />
+        <Header title={todayTitle} sub={todayHeaderLabel()} theme={theme} right={<Pressable accessibilityRole="button" accessibilityLabel={textFor("tabs.profile", "Profile")} accessibilityHint={textFor("profile.accessibility_open_hint", "Open profile and app settings")} onPress={() => nav.tab("profile")}><View style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 17 }}>{userInitial(data)}</Text></View></Pressable>} />
         <View style={{ paddingHorizontal: 16, gap: 16 }}>
           <SemesterHealthHero semester={semester} narrative={narrative} theme={theme} hasSemesterData={false} />
           <Card theme={theme} style={{ padding: 18, backgroundColor: "#111114" }}>
@@ -3225,7 +7529,7 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
 
   return (
     <Screen theme={theme}>
-      <Header title={todayTitle} sub={todayHeaderLabel()} theme={theme} right={<Pressable onPress={() => nav.tab("profile")}><View style={{ width: 42, height: 42, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 17 }}>{userInitial(data)}</Text></View></Pressable>} />
+      <Header title={todayTitle} sub={todayHeaderLabel()} theme={theme} right={<Pressable accessibilityRole="button" accessibilityLabel={textFor("tabs.profile", "Profile")} accessibilityHint={textFor("profile.accessibility_open_hint", "Open profile and app settings")} onPress={() => nav.tab("profile")}><View style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 17 }}>{userInitial(data)}</Text></View></Pressable>} />
       <View style={{ paddingHorizontal: 16, gap: 18 }}>
         <SemesterHealthHero semester={semester} narrative={narrative} theme={theme} hasSemesterData={hasSemesterData} />
         {semester.feedbackEvents[0] ? <FeedbackLoopCard event={semester.feedbackEvents[0]} theme={theme} /> : null}
@@ -3233,34 +7537,34 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
           <View style={{ flexDirection: "row", gap: 12, alignItems: "center", marginBottom: 12 }}>
             <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: `${theme.accent}1C`, alignItems: "center", justifyContent: "center" }}><Sparkles color={theme.accent} size={21} /></View>
             <View style={{ flex: 1 }}>
-              <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{textFor("today.next_move", "Next Move")}</Text>
-              <Text selectable style={{ color: theme.label2, marginTop: 2 }}>{localizedNarrativeText("next", narrative.nextMoveLabel)}</Text>
+              <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{textFor("today.at_a_glance", "Today at a glance")}</Text>
+              <Text selectable style={{ color: theme.label2, marginTop: 2 }}>{textFor("today.summary_detail", "{minutes} planned · {count} due now", { minutes: minutesLabel(snapshot.todayPressure.studyMinutes), count: dueNow.length })}</Text>
             </View>
           </View>
           <View style={{ gap: 9 }}>
-            <Pressable onPress={() => snapshot.nextClass ? nav.push("classDetail", { id: snapshot.nextClass.classId }) : nav.tab("classes")} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("today.next_class", "Next class")}. ${snapshot.nextClass ? `${snapshot.nextClass.code}, ${new Date(snapshot.nextClass.startsAt).toLocaleTimeString(appLocale(), { hour: "numeric", minute: "2-digit" })}` : textFor("classes.add", "Add a class")}`} accessibilityHint={textFor("today.accessibility_next_class_hint", "Open the next class")} onPress={() => snapshot.nextClass ? nav.push("classDetail", { id: snapshot.nextClass.classId }) : nav.tab("classes")} style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44 }}>
               <Icon name="classes" color={snapshot.nextClass?.color || COLORS.blue} size={18} />
               <Text selectable style={{ color: theme.label2, width: 86, fontWeight: "800" }}>{textFor("today.next_class", "Next class")}</Text>
               <Text selectable numberOfLines={1} style={{ color: theme.label, flex: 1, fontWeight: "900" }}>{snapshot.nextClass ? `${snapshot.nextClass.code} · ${new Date(snapshot.nextClass.startsAt).toLocaleTimeString(appLocale(), { hour: "numeric", minute: "2-digit" })}` : textFor("classes.add", "Add a class")}</Text>
             </Pressable>
-            <Pressable onPress={() => snapshot.nearestDeadline ? nav.push("taskDetail", { id: snapshot.nearestDeadline.taskId }) : nav.tab("scan")} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("today.deadline", "Deadline")}. ${snapshot.nearestDeadline ? `${snapshot.nearestDeadline.dueLabel}, ${snapshot.nearestDeadline.title}` : textFor("plan.clear_day", "No active deadline")}`} accessibilityHint={snapshot.nearestDeadline ? textFor("task.edit", "Open assignment details") : textFor("today.accessibility_add_work_hint", "Open import and quick add")} onPress={() => snapshot.nearestDeadline ? nav.push("taskDetail", { id: snapshot.nearestDeadline.taskId }) : nav.tab("scan")} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
               <Icon name="target" color={COLORS.orange} size={18} />
               <Text selectable style={{ color: theme.label2, width: 86, fontWeight: "800" }}>{textFor("today.deadline", "Deadline")}</Text>
               <Text selectable numberOfLines={1} style={{ color: theme.label, flex: 1, fontWeight: "900" }}>{snapshot.nearestDeadline ? `${snapshot.nearestDeadline.dueLabel} · ${snapshot.nearestDeadline.title}` : textFor("plan.clear_day", "No active deadline")}</Text>
             </Pressable>
-            <Pressable onPress={() => firstBlock ? nav.push("studySession", { id: firstBlock.id }) : nav.tab("scan")} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("today.focus", "Focus")}. ${firstBlock ? `${firstBlock.title}, ${firstBlock.time}` : textFor("scan.quick_title", "Scan or quick add to plan")}`} accessibilityHint={firstBlock ? textFor("study.focus_session", "Open focus session") : textFor("today.accessibility_add_work_hint", "Open import and quick add")} onPress={() => firstBlock ? nav.push("studySession", { id: firstBlock.id }) : nav.tab("scan")} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
               <Icon name="clock" color={COLORS.purple} size={18} />
               <Text selectable style={{ color: theme.label2, width: 86, fontWeight: "800" }}>{textFor("today.focus", "Focus")}</Text>
-              <Text selectable numberOfLines={1} style={{ color: theme.label, flex: 1, fontWeight: "900" }}>{firstBlock ? `${firstBlock.time} · ${firstBlock.title}` : textFor("scan.quick_title", "Scan or quick add to plan")}</Text>
+              {firstBlock ? <View style={{ flex: 1 }}><Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{firstBlock.title}</Text><Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "800", marginTop: 1 }}>{firstBlock.time}</Text></View> : <Text selectable numberOfLines={1} style={{ color: theme.label, flex: 1, fontWeight: "900" }}>{textFor("scan.quick_title", "Scan or quick add to plan")}</Text>}
             </Pressable>
           </View>
           <View style={{ flexDirection: "row", gap: 9, marginTop: 14 }}>
-            <Pressable onPress={() => nav.tab("plan")} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingHorizontal: 15, paddingVertical: 10 }}><Text style={{ color: "#fff", fontWeight: "900" }}>{textFor("today.open_plan", "Open plan")}</Text></Pressable>
-            <Pressable onPress={() => firstBlock ? nav.push("studySession", { id: firstBlock.id }) : nav.tab("scan")} style={{ backgroundColor: theme.surface2, borderRadius: 999, paddingHorizontal: 15, paddingVertical: 10 }}><Text style={{ color: theme.label, fontWeight: "900" }}>{firstBlock ? textFor("today.start_focus", "Start focus") : textFor("locked.scan", "Scan first")}</Text></Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel={textFor("today.open_plan", "Open plan")} accessibilityHint={textFor("today.accessibility_plan_hint", "Open your semester plan")} onPress={() => nav.tab("plan")} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingHorizontal: 15, paddingVertical: 10 }}><Text style={{ color: "#fff", fontWeight: "900" }}>{textFor("today.open_plan", "Open plan")}</Text></Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel={firstBlock ? textFor("today.start_focus", "Start focus") : textFor("locked.scan", "Scan first")} accessibilityHint={firstBlock ? `${textFor("study.focus_session", "Open focus session")}: ${firstBlock.title}` : textFor("today.accessibility_add_work_hint", "Open import and quick add")} onPress={() => firstBlock ? nav.push("studySession", { id: firstBlock.id }) : nav.tab("scan")} style={{ backgroundColor: theme.surface2, borderRadius: 999, paddingHorizontal: 15, paddingVertical: 10 }}><Text style={{ color: theme.label, fontWeight: "900" }}>{firstBlock ? textFor("today.start_focus", "Start focus") : textFor("locked.scan", "Scan first")}</Text></Pressable>
           </View>
         </Card>
         {preparedness.score < 75 || !liveData.notes.length ? (
-          <Pressable onPress={() => nav.tab("scan")}>
+          <Pressable accessibilityRole="button" accessibilityLabel={localizedNarrativeText("notes", narrative.notesNudge)} accessibilityHint={textFor("notes.accessibility_open_hint", "Open notes and study assets")} onPress={() => nav.push("notes")}>
             <Card theme={theme} style={{ padding: 15, flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: theme.dark ? "#211E2B" : "#F7F0FF" }}>
               <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: `${COLORS.purple}20`, alignItems: "center", justifyContent: "center" }}><NotebookPen color={COLORS.purple} size={21} /></View>
               <View style={{ flex: 1 }}>
@@ -3277,10 +7581,10 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
           <Stat n={minutesLabel(snapshot.todayPressure.studyMinutes)} label={previewMetricLabel("studyToday", "study today")} icon="clock" color={COLORS.purple} theme={theme} />
         </View>
         {awaitingDate ? (
-          <Pressable onPress={() => nav.push("tasks")}>
+          <Pressable accessibilityRole="button" accessibilityLabel={textFor("tasks.need_dates_title", "{count} item(s) need dates", { count: awaitingDate })} accessibilityHint={textFor("tasks.accessibility_open_hint", "Open assignments to add due dates")} onPress={() => nav.push("tasks")}>
             <Card theme={theme} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: theme.dark ? "#2A2018" : "#FFF7E8" }}>
               <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: `${COLORS.orange}1F`, alignItems: "center", justifyContent: "center" }}><CalendarDays color={COLORS.orange} size={19} /></View>
-              <View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{awaitingDate} item{awaitingDate === 1 ? "" : "s"} need dates</Text><Text selectable style={{ color: theme.label2, marginTop: 2 }}>They stay visible until you set real due dates.</Text></View>
+              <View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("tasks.need_dates_title", "{count} item(s) need dates", { count: awaitingDate })}</Text><Text selectable style={{ color: theme.label2, marginTop: 2 }}>{textFor("tasks.need_dates_body", "They stay visible until you set real due dates.")}</Text></View>
               <ChevronRight color={theme.label3} size={18} />
             </Card>
           </Pressable>
@@ -3310,16 +7614,25 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
             </View>
           </View>
           <View style={{ flexDirection: "row", gap: 8, marginTop: 14 }}>
-            {loop.rings.map((ring) => <View key={ring.label} style={{ flex: 1 }}><Text selectable style={{ color: ring.color, fontWeight: "900", fontSize: 12 }}>{ring.label}</Text><ProgressBar value={ring.value} color={ring.color} theme={theme} height={7} /></View>)}
+            {loop.rings.map((ring) => {
+              const ringLabel = ring.label === "Grades"
+                ? textFor("locked.grades", "Grades")
+                : ring.label === "Prep"
+                  ? textFor("locked.preparedness", "Preparedness")
+                  : ring.label === "Work"
+                    ? textFor("locked.workload", "Workload")
+                    : ring.label;
+              return <View key={ring.label} style={{ flex: 1 }}><Text selectable style={{ color: ring.color, fontWeight: "900", fontSize: 12 }}>{ringLabel}</Text><ProgressBar value={ring.value} color={ring.color} theme={theme} height={7} /></View>;
+            })}
           </View>
         </Card>
         <View>
           <Section title={textFor("today.risk_radar", "Risk Radar")} action={textFor("plan.rebuild", "Replan")} onAction={() => mutate((d) => ({ ...d, studyBlocks: buildStudyPlan(d) }))} theme={theme} />
           <View style={{ gap: 9 }}>{risks.slice(0, 3).map((risk) => (
-            <Pressable key={risk.id} onPress={() => risk.taskId ? nav.push("taskDetail", { id: risk.taskId }) : risk.examId ? nav.push("assessmentDetail", { id: risk.examId }) : risk.classId ? nav.push("classDetail", { id: risk.classId }) : nav.tab("plan")}>
+            <Pressable key={risk.id} accessibilityRole="button" accessibilityLabel={`${localizedRiskLabel(risk)}. ${localizedRiskDetail(risk.detail)}. ${risk.score}`} accessibilityHint={textFor("today.accessibility_risk_hint", "Open the related planner detail")} onPress={() => risk.taskId ? nav.push("taskDetail", { id: risk.taskId }) : risk.examId ? nav.push("assessmentDetail", { id: risk.examId }) : risk.classId ? nav.push("classDetail", { id: risk.classId }) : nav.tab("plan")}>
               <Card theme={theme} style={{ padding: 13, flexDirection: "row", gap: 12, alignItems: "center" }}>
                 <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: `${risk.color}20`, alignItems: "center", justifyContent: "center" }}><AlertTriangle color={risk.color} size={19} /></View>
-                <View style={{ flex: 1 }}><Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{risk.label}</Text><Text selectable numberOfLines={1} style={{ color: theme.label2 }}>{risk.detail}</Text></View>
+                <View style={{ flex: 1 }}><Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{localizedRiskLabel(risk)}</Text><Text selectable numberOfLines={1} style={{ color: theme.label2 }}>{localizedRiskDetail(risk.detail)}</Text></View>
                 <Text selectable style={{ color: risk.color, fontWeight: "900" }}>{risk.score}</Text>
               </Card>
             </Pressable>
@@ -3332,18 +7645,27 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
         {upcomingAssessments.length ? (
           <View>
             <Section title={textFor("today.upcoming_assessments", "Upcoming Assessments")} action={`${upcomingAssessments.length}`} theme={theme} />
-            <Card theme={theme} style={{ overflow: "hidden" }}>{upcomingAssessments.map((exam) => { const klass = safeClassFor(liveData, exam.classId); return <Pressable key={exam.id} onPress={() => nav.push("assessmentDetail", { id: exam.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}><ClassGlyph c={klass} size={34} /><View style={{ flex: 1 }}><Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{exam.title}</Text><Text selectable style={{ color: theme.label2 }}>{klass.code} · {localizedDueLabel(daysUntilExam(exam))} · {exam.time}</Text></View><Pill text={localizedExamKind(exam.kind)} color={COLORS.purple} theme={theme} /></Pressable>; })}</Card>
+            <Card theme={theme} style={{ overflow: "hidden" }}>{upcomingAssessments.map((exam) => { const klass = safeClassFor(liveData, exam.classId); return <Pressable key={exam.id} accessibilityRole="button" accessibilityLabel={`${exam.title}. ${klass.code}. ${localizedDueLabel(daysUntilExam(exam))}. ${exam.time}`} accessibilityHint={textFor("assessment.accessibility_open_hint", "Open assessment details")} onPress={() => nav.push("assessmentDetail", { id: exam.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}><ClassGlyph c={klass} size={34} /><View style={{ flex: 1 }}><Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{exam.title}</Text><Text selectable style={{ color: theme.label2 }}>{klass.code} · {localizedDueLabel(daysUntilExam(exam))} · {exam.time}</Text></View><Pill text={localizedExamKind(exam.kind)} color={COLORS.purple} theme={theme} /></Pressable>; })}</Card>
           </View>
         ) : null}
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}>
           <View style={{ flexDirection: "row", gap: 8, alignItems: "center", marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} size={18} /><Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 16 }}>{insight.headline}</Text></View>
           <Text selectable style={{ color: theme.label, lineHeight: 21 }}>{insight.body}</Text>
           <View style={{ flexDirection: "row", gap: 9, marginTop: 13 }}>
-            <Pressable onPress={() => nav.tab("plan")} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingHorizontal: 15, paddingVertical: 10 }}><Text style={{ color: "#fff", fontWeight: "900" }}>{previewText("viewPlan", "View plan")}</Text></Pressable>
-            <Pressable onPress={() => {
-              if (data.studyBlocks[0]) nav.push("studySession", { id: data.studyBlocks[0].id });
-              else mutate((d) => ({ ...d, studyBlocks: buildStudyPlan(d) }));
-            }} style={{ backgroundColor: theme.surface, borderRadius: 999, paddingHorizontal: 15, paddingVertical: 10 }}><Text style={{ color: theme.label, fontWeight: "900" }}>{textFor("today.start_focus", "Start focus")}</Text></Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel={previewText("viewPlan", "View plan")} accessibilityHint={textFor("today.accessibility_plan_hint", "Open your semester plan")} onPress={() => nav.tab("plan")} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingHorizontal: 15, paddingVertical: 10 }}><Text style={{ color: "#fff", fontWeight: "900" }}>{previewText("viewPlan", "View plan")}</Text></Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel={firstBlock ? textFor("today.start_focus", "Start focus") : textFor("plan.rebuild", "Build a focus plan")} accessibilityHint={firstBlock ? `${textFor("study.focus_session", "Open focus session")}: ${firstBlock.title}` : textFor("plan.rebuild", "Build a focus plan")} onPress={() => {
+              if (firstBlock) {
+                nav.push("studySession", { id: firstBlock.id });
+                return;
+              }
+              const rebuilt = buildStudyPlan(liveData);
+              if (!rebuilt.length) {
+                nav.tab("scan");
+                return;
+              }
+              mutate((d) => ({ ...d, studyBlocks: rebuilt }));
+              nav.push("studySession", { id: rebuilt[0].id });
+            }} style={{ backgroundColor: theme.surface, borderRadius: 999, paddingHorizontal: 15, paddingVertical: 10 }}><Text style={{ color: theme.label, fontWeight: "900" }}>{firstBlock ? textFor("today.start_focus", "Start focus") : textFor("plan.rebuild", "Build a focus plan")}</Text></Pressable>
           </View>
         </Card>
         <Card theme={theme} style={{ padding: 16 }}>
@@ -3366,7 +7688,7 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
         </Card>
         <View>
           <Section title={previewText("classPulse", "Class Pulse")} action={previewText("classes", "Classes")} onAction={() => nav.tab("classes")} theme={theme} />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 11 }}>{semester.classPulses.map((pulse) => { const c = safeClassFor(data, pulse.classId); return <Pressable key={c.id} onPress={() => nav.push("classDetail", { id: c.id })}><Card theme={theme} style={{ width: 158, padding: 13 }}><View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}><ClassGlyph c={c} size={34} /><View style={{ alignItems: "flex-end" }}><Text style={{ color: colorForState(pulse.colorState), fontWeight: "900" }}>{localizedPulseText("forecast", pulse.forecastLabel)}</Text><Text style={{ color: theme.label2, fontSize: 10, fontWeight: "900" }}>{localizedPulseText("trend", pulse.trend)}</Text></View></View><Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{c.code}</Text><Text selectable numberOfLines={2} style={{ color: theme.label2, marginTop: 2, minHeight: 34 }}>{localizedPulseText("reason", pulse.reason)}</Text><Text selectable numberOfLines={1} style={{ color: colorForState(pulse.colorState), marginTop: 9, fontWeight: "800" }}>{localizedPulseText("nudge", pulse.nudge)}</Text></Card></Pressable>; })}</ScrollView>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 11 }}>{semester.classPulses.map((pulse) => { const c = safeClassFor(data, pulse.classId); return <Pressable key={c.id} accessibilityRole="button" accessibilityLabel={`${c.code}. ${localizedPulseText("forecast", pulse.forecastLabel)}. ${localizedPulseText("reason", pulse.reason)}`} accessibilityHint={textFor("class.accessibility_open_hint", "Open class details")} onPress={() => nav.push("classDetail", { id: c.id })}><Card theme={theme} style={{ width: 158, padding: 13 }}><View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}><ClassGlyph c={c} size={34} /><View style={{ alignItems: "flex-end" }}><Text style={{ color: colorForState(pulse.colorState), fontWeight: "900" }}>{localizedPulseText("forecast", pulse.forecastLabel)}</Text><Text style={{ color: theme.label2, fontSize: 10, fontWeight: "900" }}>{localizedPulseText("trend", pulse.trend)}</Text></View></View><Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{c.code}</Text><Text selectable numberOfLines={2} style={{ color: theme.label2, marginTop: 2, minHeight: 34 }}>{localizedPulseText("reason", pulse.reason)}</Text><Text selectable numberOfLines={1} style={{ color: colorForState(pulse.colorState), marginTop: 9, fontWeight: "800" }}>{localizedPulseText("nudge", pulse.nudge)}</Text></Card></Pressable>; })}</ScrollView>
         </View>
         <View>
           <Section title={textFor("today.notes_activity", "Notes Activity")} action={previewText("allNotes", "All notes")} onAction={() => nav.push("notes")} theme={theme} />
@@ -3448,8 +7770,8 @@ function SemesterHealthHero({ semester, narrative, theme, hasSemesterData = true
         <View style={{ flexDirection: "row", gap: 18, alignItems: "center" }}>
           <HealthRing score={0} color={theme.accent} theme={theme} />
           <View style={{ flex: 1, gap: 9 }}>
-            {[textFor("locked.workload", "Workload"), textFor("locked.grades", "Grades"), textFor("locked.preparedness", "Preparedness"), textFor("locked.consistency", "Consistency")].map((label) => (
-              <View key={label} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 8, borderBottomWidth: label === "Consistency" ? 0 : 1, borderBottomColor: theme.hairline }}>
+            {[textFor("locked.workload", "Workload"), textFor("locked.grades", "Grades"), textFor("locked.preparedness", "Preparedness"), textFor("locked.consistency", "Consistency")].map((label, index) => (
+              <View key={`locked-dimension-${index}`} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 8, borderBottomWidth: index === 3 ? 0 : 1, borderBottomColor: theme.hairline }}>
                 <Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 13 }}>{label}</Text>
                 <Text selectable style={{ color: theme.label3, fontWeight: "900", fontSize: 13 }}>--</Text>
               </View>
@@ -3503,7 +7825,6 @@ function FeedbackLoopCard({ event, theme }: { event: FeedbackEvent; theme: Retur
   const dimension = event.dimension || "semester";
   const before = event.dimension ? event.before[event.dimension] : event.before.semesterHealth;
   const after = event.dimension ? event.after[event.dimension] : event.after.semesterHealth;
-  const reviewEligible = positive && (event.action === "importSyllabus" || event.action === "completeStudyBlock" || event.delta >= 3);
   return (
     <Card theme={theme} style={{ padding: 15, borderColor: `${color}55`, backgroundColor: theme.dark ? "#172019" : positive ? "#F1FFF6" : "#FFF8EF" }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
@@ -3511,7 +7832,7 @@ function FeedbackLoopCard({ event, theme }: { event: FeedbackEvent; theme: Retur
           <Icon name={positive ? "check" : "refresh"} color={color} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text selectable style={{ color: theme.label, fontWeight: "900" }}>Impact</Text>
+          <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("study.impact", "Impact")}</Text>
           <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 2 }}>{event.message}</Text>
         </View>
         <View style={{ alignItems: "flex-end" }}>
@@ -3519,11 +7840,6 @@ function FeedbackLoopCard({ event, theme }: { event: FeedbackEvent; theme: Retur
           <Text selectable style={{ color: theme.label2, fontSize: 11, fontWeight: "800" }}>{dimension}</Text>
         </View>
       </View>
-      {reviewEligible ? (
-        <Pressable onPress={() => openExternal(APP_STORE_REVIEW_URL)} style={{ marginTop: 12, alignSelf: "flex-start", borderRadius: 999, backgroundColor: "#FFFFFF", paddingHorizontal: 13, paddingVertical: 9, borderWidth: 1, borderColor: `${color}33` }}>
-          <Text style={{ color: theme.label, fontWeight: "900" }}>Review StudyPlanner</Text>
-        </Pressable>
-      ) : null}
     </Card>
   );
 }
@@ -3561,7 +7877,15 @@ function Classes({ data, mutate, nav, theme }: ScreenProps) {
     notes: "",
   });
   const createClass = () => {
-    const code = draft.code.trim() || draft.name.trim() || "New Class";
+    if (!draft.code.trim() && !draft.name.trim()) {
+      showInvalidPlannerField("title");
+      return;
+    }
+    if (draft.time.trim() && !isValidPlannerTime(draft.time)) {
+      showInvalidPlannerField("time");
+      return;
+    }
+    const code = draft.code.trim() || draft.name.trim();
     const name = draft.name.trim() || code;
     const [color, color2] = classColors(data.classes.length);
     const klass: ClassItem = {
@@ -3587,7 +7911,7 @@ function Classes({ data, mutate, nav, theme }: ScreenProps) {
   const restoreClass = (id: string) => mutate((current) => ({ ...current, classes: current.classes.map((klass) => klass.id === id ? { ...klass, archivedAt: undefined } : klass), studyBlocks: buildStudyPlan({ ...current, classes: current.classes.map((klass) => klass.id === id ? { ...klass, archivedAt: undefined } : klass) }) }));
   return (
     <Screen theme={theme}>
-      <Header title={textFor("classes.title", "Manage Semester")} sub={`${liveData.classes.length} ${textFor("profile.active_semester", "active")} · ${archivedClasses.length} ${textFor("classes.archived", "archived")}`} theme={theme} right={<Pressable onPress={() => setAdding((value) => !value)} style={{ width: 42, height: 42, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Plus color="#fff" size={21} strokeWidth={3} /></Pressable>} />
+      <Header title={textFor("classes.title", "Manage Semester")} sub={`${liveData.classes.length} ${textFor("common.active", "active")} · ${archivedClasses.length} ${textFor("classes.archived", "archived")}`} theme={theme} right={<Pressable accessibilityRole="button" accessibilityLabel={adding ? textFor("common.close", "Close") : textFor("classes.add", "Add class")} accessibilityHint={adding ? textFor("classes.accessibility_close_form_hint", "Close the add class form") : textFor("classes.accessibility_add_form_hint", "Open the add class form")} accessibilityState={{ expanded: adding }} onPress={() => setAdding((value) => !value)} style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}>{adding ? <X color="#fff" size={21} strokeWidth={3} /> : <Plus color="#fff" size={21} strokeWidth={3} />}</Pressable>} />
       <View style={{ paddingHorizontal: 16, gap: 13 }}>
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}>
           <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{textFor("classes.truth", "Single source of truth")}</Text>
@@ -3623,21 +7947,23 @@ function Classes({ data, mutate, nav, theme }: ScreenProps) {
           </Card>
         ) : null}
         {sortedClasses.map((c) => (
-        <Pressable key={c.id} onPress={() => nav.push("classDetail", { id: c.id })}>
+        <Pressable key={c.id} accessibilityRole="button" accessibilityLabel={`${c.code}. ${c.name}`} accessibilityHint={textFor("class.accessibility_open_hint", "Open class details")} onPress={() => nav.push("classDetail", { id: c.id })}>
           {(() => {
             const pulse = classPulse(liveData, c);
             const pulseColor = colorForState(pulse.colorState as any);
+            const dueCount = liveData.tasks.filter((task) => task.classId === c.id && !task.done).length;
+            const examCount = liveData.exams.filter((exam) => exam.classId === c.id).length;
+            const noteCount = liveData.notes.filter((note) => note.classId === c.id).length;
             return (
           <Card theme={theme} style={{ overflow: "hidden" }}>
             <View style={{ padding: 16 }}>
               <View style={{ flexDirection: "row", gap: 12, alignItems: "center", marginBottom: 13 }}>
                 <ClassGlyph c={c} size={46} />
                 <View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>{c.code}</Text><Text selectable numberOfLines={1} style={{ color: theme.label2 }}>{c.name}</Text></View>
-                <View style={{ alignItems: "flex-end" }}><Text selectable style={{ color: pulseColor, fontSize: 24, fontWeight: "900" }}>{pulse.label}</Text><Text selectable style={{ color: theme.label2, fontSize: 11, fontWeight: "900" }}>{pulse.mode}</Text></View>
+                <View style={{ alignItems: "flex-end" }}><Text selectable style={{ color: pulseColor, fontSize: 24, fontWeight: "900" }}>{pulse.label}</Text></View>
               </View>
-              <ProgressBar value={pulse.score / 100} color={pulseColor} theme={theme} height={7} />
-              <View style={{ gap: 5, marginTop: 12, marginBottom: 12 }}><Text selectable numberOfLines={2} style={{ color: theme.label2, lineHeight: 19 }}>{pulse.causes[0]}</Text><Text selectable numberOfLines={1} style={{ color: pulseColor, fontWeight: "900" }}>{pulse.nextMove}</Text></View>
-              <View style={{ flexDirection: "row", gap: 8 }}><Pill text={`${liveData.tasks.filter((t) => t.classId === c.id && !t.done).length} ${textFor("class.due", "due")}`} color={COLORS.orange} theme={theme} /><Pill text={`${liveData.exams.filter((e) => e.classId === c.id).length} ${textFor("review.exams", "exam")}`} color={COLORS.purple} theme={theme} /><Pill text={`${liveData.notes.filter((n) => n.classId === c.id).length} ${textFor("notes.title", "notes")}`} theme={theme} /></View>
+              <View style={{ gap: 5, marginTop: 12, marginBottom: 12 }}><Text selectable numberOfLines={2} style={{ color: theme.label2, lineHeight: 19 }}>{pulse.causes[0]}</Text><Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{pulse.nextMove}</Text></View>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}><Pill text={`${textFor("class.due", "Due")} (${dueCount})`} color={COLORS.orange} theme={theme} />{examCount ? <Pill text={`${textFor("class.exams", "Exams")} (${examCount})`} color={COLORS.purple} theme={theme} /> : null}{noteCount ? <Pill text={`${textFor("class.notes", "Notes")} (${noteCount})`} theme={theme} /> : null}</View>
             </View>
           </Card>
             );
@@ -3651,7 +7977,7 @@ function Classes({ data, mutate, nav, theme }: ScreenProps) {
             <View key={klass.id} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12, opacity: 0.75 }}>
               <ClassGlyph c={klass} size={34} />
               <View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{klass.code}</Text><Text selectable style={{ color: theme.label2 }}>{klass.name}</Text></View>
-              <Pressable onPress={() => restoreClass(klass.id)} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, backgroundColor: theme.surface2 }}><Text style={{ color: theme.accent, fontWeight: "900" }}>{textFor("common.restore", "Restore")}</Text></Pressable>
+              <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("classes.restore", "Restore class")}: ${klass.code}`} accessibilityHint={`${klass.name}. ${textFor("classes.accessibility_restore_hint", "Return this class to the active semester")}`} onPress={() => restoreClass(klass.id)} style={{ minHeight: 44, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, backgroundColor: theme.surface2, justifyContent: "center" }}><Text style={{ color: theme.accent, fontWeight: "900" }}>{textFor("classes.restore", "Restore class")}</Text></Pressable>
             </View>
           ))}</Card>
         </View>
@@ -3664,7 +7990,8 @@ function Classes({ data, mutate, nav, theme }: ScreenProps) {
 function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
   const c = data.classes.find((item) => item.id === params.id);
   if (!c) return <RecoveryScreen title={textFor("class.not_found", "Class not found")} body={textFor("class.not_found_body", "That class is not in this semester anymore.")} action={textFor("class.open_dashboard", "Open dashboard")} nav={nav} theme={theme} />;
-  const tasks = data.tasks.filter((t) => t.classId === c.id && !t.done);
+  const classTasks = data.tasks.filter((t) => t.classId === c.id);
+  const tasks = classTasks.filter((t) => !t.done);
   const exams = data.exams.filter((e) => e.classId === c.id);
   const notes = data.notes.filter((n) => n.classId === c.id);
   const pulse = classPulse(data, c);
@@ -3693,9 +8020,17 @@ function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
   });
   const toggle = (id: string) => mutate((d) => {
     const tasksNext = d.tasks.map((t) => t.id === id ? { ...t, done: !t.done } : t);
-    return withFeedback(d, { ...d, tasks: tasksNext }, "completeTask", { classId: c.id, actionId: id, dimension: "grades" });
+    return withFeedback(d, { ...d, tasks: tasksNext, studyBlocks: buildStudyPlan({ ...d, tasks: tasksNext }) }, "completeTask", { classId: c.id, actionId: id, dimension: "grades" });
   });
   const saveClass = () => {
+    if (!classDraft.code.trim() && !classDraft.name.trim()) {
+      showInvalidPlannerField("title");
+      return;
+    }
+    if (classDraft.time.trim() !== c.time.trim() && !isValidPlannerTime(classDraft.time)) {
+      showInvalidPlannerField("time");
+      return;
+    }
     mutate((d) => {
       const classes = d.classes.map((klass) => klass.id === c.id ? { ...klass, ...classDraft, updatedAt: new Date().toISOString(), userEditedAt: new Date().toISOString() } as ClassItem : klass);
       return { ...d, classes, studyBlocks: buildStudyPlan({ ...d, classes }) };
@@ -3704,15 +8039,33 @@ function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
   };
   const archiveClass = () => Alert.alert(textFor("class.archive_title", "Archive class?"), textFor("class.archive_body", "{code} will leave Today, Plan, reminders, and widgets. Its work stays recoverable from Manage Semester.", { code: c.code }), [
     { text: textFor("common.cancel", "Cancel"), style: "cancel" },
-    { text: textFor("common.archive", "Archive"), style: "destructive", onPress: () => {
-      mutate((d) => ({ ...d, classes: d.classes.map((klass) => klass.id === c.id ? { ...klass, archivedAt: new Date().toISOString() } : klass), studyBlocks: buildStudyPlan(activeSemesterData({ ...d, classes: d.classes.map((klass) => klass.id === c.id ? { ...klass, archivedAt: new Date().toISOString() } : klass) })) }));
+    { text: textFor("common.archive", "Archive"), style: "destructive", onPress: async () => {
+      try {
+        await cancelReminderNotificationIds(data.reminders.filter((reminder) => reminder.classId === c.id).flatMap((reminder) => reminder.notificationIds || []));
+      } catch {
+        showReminderCancellationFailure();
+        return;
+      }
+      mutate((d) => {
+        const archivedAt = new Date().toISOString();
+        const classes = d.classes.map((klass) => klass.id === c.id ? { ...klass, archivedAt } : klass);
+        const reminders = d.reminders.map((reminder) => reminder.classId === c.id ? { ...reminder, enabled: false, notificationIds: [], scheduledFor: [] } : reminder);
+        const next = { ...d, classes, reminders };
+        return { ...next, studyBlocks: buildStudyPlan(activeSemesterData(next)) };
+      });
       nav.tab("classes");
     } },
   ]);
-  const deleteClass = () => Alert.alert(textFor("class.delete_title", "Delete class permanently?"), textFor("class.delete_body", "This deletes {code}, {tasks} open assignments, {exams} exams, notes, reminders, and study blocks for this class. Archive is safer.", { code: c.code, tasks: tasks.length, exams: exams.length }), [
+  const deleteClass = () => Alert.alert(textFor("class.delete_title", "Delete class permanently?"), textFor("class.delete_body", "This deletes {code}, {tasks} assignments (including completed work), {exams} exams, notes, reminders, and study blocks. Archive is safer.", { code: c.code, tasks: classTasks.length, exams: exams.length }), [
     { text: textFor("common.cancel", "Cancel"), style: "cancel" },
     { text: textFor("class.archive_instead", "Archive instead"), onPress: archiveClass },
-    { text: textFor("common.delete", "Delete"), style: "destructive", onPress: () => {
+    { text: textFor("common.delete", "Delete"), style: "destructive", onPress: async () => {
+      try {
+        await cancelReminderNotificationIds(data.reminders.filter((reminder) => reminder.classId === c.id).flatMap((reminder) => reminder.notificationIds || []));
+      } catch {
+        showReminderCancellationFailure();
+        return;
+      }
       mutate((d) => {
         const next = {
           ...d,
@@ -3730,14 +8083,30 @@ function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
   ]);
   const createWork = () => {
     const dueDate = workDraft.dueDate.trim();
-    const missingDate = !/^\d{4}-\d{2}-\d{2}$/.test(dueDate);
+    const missingDate = !dueDate;
+    if (!workDraft.title.trim()) {
+      showInvalidPlannerField("title");
+      return;
+    }
+    if (!missingDate && !isValidDateInput(dueDate)) {
+      showInvalidPlannerField("date");
+      return;
+    }
+    if (addingWork === "exam" && missingDate) {
+      showInvalidPlannerField("date");
+      return;
+    }
+    if (!isValidPlannerTime(workDraft.time)) {
+      showInvalidPlannerField("time");
+      return;
+    }
     if (addingWork === "exam") {
       const exam = {
         id: makeOwnershipId("exam"),
         classId: c.id,
         title: workDraft.title.trim() || workDraft.type,
         dueOffset: 0,
-        dueDate: missingDate ? isoFromOffset(0) : dueDate,
+        dueDate,
         time: workDraft.time.trim() || "9:00 AM",
         room: c.room,
         kind: workDraft.type as any,
@@ -3752,14 +8121,14 @@ function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
       const tasksToAdd = Array.from({ length: count }, (_item, index): TaskItem => {
         const date = new Date(`${baseDate}T12:00:00`);
         date.setDate(date.getDate() + index * 7);
-        const dateText = date.toISOString().slice(0, 10);
+        const dateText = localDateKey(date);
         return {
           id: makeOwnershipId("task"),
           title: workDraft.title.trim() || (workDraft.recurring ? textFor("class.weekly_discussion", "Weekly discussion") : textFor("class.new_assignment", "New assignment")),
           classId: c.id,
           type: workDraft.type.trim() || textFor("class.assignment", "Assignment"),
           dueOffset: 0,
-          dueDate: missingDate ? isoFromOffset(0) : dateText,
+          dueDate: dateText,
           time: workDraft.time.trim() || "11:59 PM",
           estimateMinutes: Math.max(5, Number(workDraft.effort) || 45),
           done: false,
@@ -3781,17 +8150,17 @@ function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
   };
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 40 }}>
         <View style={{ paddingTop: 58, paddingHorizontal: 20, paddingBottom: 22, backgroundColor: c.color }}>
-          <Pressable onPress={nav.back} style={{ width: 38, height: 38, borderRadius: 99, backgroundColor: "rgba(255,255,255,.24)", alignItems: "center", justifyContent: "center", marginBottom: 20 }}><ChevronLeft color="#fff" /></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} accessibilityHint={textFor("accessibility.back_hint", "Return to the previous screen")} hitSlop={10} onPress={nav.back} style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: "rgba(255,255,255,.24)", alignItems: "center", justifyContent: "center", marginBottom: 20 }}><ChevronLeft color="#fff" /></Pressable>
           <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><View style={{ width: 54, height: 54, borderRadius: 16, backgroundColor: "rgba(255,255,255,.22)", alignItems: "center", justifyContent: "center" }}><Icon name={c.icon} color="#fff" size={28} /></View><View><Text selectable style={{ color: "#fff", fontSize: 29, fontWeight: "900" }}>{c.code}</Text><Text selectable style={{ color: "rgba(255,255,255,.9)", fontWeight: "800" }}>{c.name}</Text></View></View>
-          <View style={{ flexDirection: "row", gap: 18, marginTop: 20 }}>{[{ l: textFor("class.forecast", "Forecast"), v: pulse.label }, { l: textFor("class.pulse", "Pulse"), v: pulse.score }, { l: textFor("class.due", "Due"), v: tasks.length }, { l: textFor("class.exams", "Exams"), v: exams.length }].map((s) => <View key={s.l}><Text selectable style={{ color: "#fff", fontSize: 22, fontWeight: "900" }}>{s.v}</Text><Text selectable style={{ color: "rgba(255,255,255,.84)", fontSize: 12, fontWeight: "800" }}>{s.l}</Text></View>)}</View>
+          <View style={{ flexDirection: "row", gap: 18, marginTop: 20 }}>{[{ l: textFor("class.forecast", "Forecast"), v: pulse.label }, { l: textFor("class.pulse", "Pulse"), v: pulse.score }, { l: textFor("class.due", "Due"), v: tasks.length }, { l: textFor("class.exams", "Exams"), v: exams.length }].map((s, index) => <View key={`class-stat-${index}`}><Text selectable style={{ color: "#fff", fontSize: 22, fontWeight: "900" }}>{s.v}</Text><Text selectable style={{ color: "rgba(255,255,255,.84)", fontSize: 12, fontWeight: "800" }}>{s.l}</Text></View>)}</View>
         </View>
         <View style={{ padding: 16, gap: 16 }}>
           <Card theme={theme} style={{ padding: 16 }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
               <Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 16 }}>{textFor("class.schedule", "Schedule")}</Text>
-              <Pressable onPress={() => setEditing((value) => !value)} style={{ paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999, backgroundColor: theme.surface2 }}><Text style={{ color: theme.accent, fontWeight: "900" }}>{editing ? textFor("common.close", "Close") : textFor("common.edit", "Edit")}</Text></Pressable>
+              <Pressable accessibilityRole="button" accessibilityLabel={editing ? textFor("common.close", "Close") : textFor("common.edit", "Edit")} accessibilityHint={editing ? textFor("class.accessibility_close_edit_hint", "Close class editing") : textFor("class.accessibility_edit_hint", "Edit class details")} accessibilityState={{ expanded: editing }} onPress={() => setEditing((value) => !value)} style={{ minHeight: 44, paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999, backgroundColor: theme.surface2, justifyContent: "center" }}><Text style={{ color: theme.accent, fontWeight: "900" }}>{editing ? textFor("common.close", "Close") : textFor("common.edit", "Edit")}</Text></Pressable>
             </View>
             <Text selectable style={{ color: theme.label2, marginTop: 4, lineHeight: 20 }}>{c.days} · {c.time} · {c.room}</Text>
             <Text selectable style={{ color: theme.label2, marginTop: 3 }}>{c.professor}</Text>
@@ -3840,18 +8209,19 @@ function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
               </View>
               <FieldInput label={textFor("class.description", "Description")} value={workDraft.description} onChangeText={(description) => setWorkDraft((current) => ({ ...current, description }))} theme={theme} multiline />
               {addingWork === "assignment" ? (
-                <Pressable onPress={() => setWorkDraft((current) => ({ ...current, recurring: !current.recurring, title: current.title || textFor("class.weekly_discussion", "Weekly discussion") }))} style={{ flexDirection: "row", gap: 10, alignItems: "center", paddingVertical: 8 }}>
+                <Pressable accessibilityRole="checkbox" accessibilityLabel={textFor("class.repeat_weekly", "Repeat weekly for 12 weeks")} accessibilityHint={textFor("class.accessibility_repeat_hint", "Toggle weekly recurrence for this assignment")} accessibilityState={{ checked: workDraft.recurring }} onPress={() => setWorkDraft((current) => ({ ...current, recurring: !current.recurring, title: current.title || textFor("class.weekly_discussion", "Weekly discussion") }))} style={{ flexDirection: "row", gap: 10, alignItems: "center", paddingVertical: 8 }}>
                   <View style={{ width: 24, height: 24, borderRadius: 99, borderWidth: workDraft.recurring ? 0 : 2, borderColor: theme.label3, backgroundColor: workDraft.recurring ? theme.accent : "transparent", alignItems: "center", justifyContent: "center" }}>{workDraft.recurring ? <Check color="#fff" size={15} strokeWidth={3} /> : null}</View>
                   <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("class.repeat_weekly", "Repeat weekly for 12 weeks")}</Text>
                 </Pressable>
               ) : null}
-              <Button label={workDraft.dueDate.trim() ? textFor("class.create_work", "Create") : textFor("class.create_awaiting", "Create as Awaiting Date")} theme={theme} icon="plus" onPress={createWork} />
+              {addingWork === "exam" && !workDraft.dueDate.trim() ? <Text selectable accessibilityRole="alert" style={{ color: COLORS.orange, fontWeight: "800", lineHeight: 19 }}>{textFor("review.invalid_date", "Enter a valid YYYY-MM-DD date before creating this assessment.")}</Text> : null}
+              <Button label={addingWork === "exam" || workDraft.dueDate.trim() ? textFor("class.create_work", "Create") : textFor("class.create_awaiting", "Create as Awaiting Date")} theme={theme} icon="plus" onPress={createWork} />
               <Button label={textFor("common.cancel", "Cancel")} theme={theme} secondary onPress={() => setAddingWork(null)} />
             </Card>
           ) : null}
           <Card theme={theme} style={{ padding: 16 }}><View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 12 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("class.pulse", "Class pulse")}</Text><Text selectable style={{ color: colorForState(pulse.colorState as any), fontWeight: "900" }}>{pulse.label}</Text></View><ProgressBar value={pulse.score / 100} color={colorForState(pulse.colorState as any)} theme={theme} /><Text selectable style={{ color: theme.label2, marginTop: 8 }}>{pulse.nextMove} · {pulse.causes[0]}</Text></Card>
           {tasks.length ? <View><Section title={textFor("class.assignments", "Assignments")} action={textFor("notes.all", "All")} onAction={() => nav.push("tasks")} theme={theme} /><Card theme={theme} style={{ overflow: "hidden" }}>{tasks.map((t) => <TaskRow key={t.id} task={t} data={data} theme={theme} onToggle={() => toggle(t.id)} onOpen={() => nav.push("taskDetail", { id: t.id })} />)}</Card></View> : null}
-          {exams.length ? <View><Section title={textFor("class.exams", "Upcoming exams")} theme={theme} /><View style={{ gap: 10 }}>{exams.map((e) => <Pressable key={e.id} onPress={() => nav.push("assessmentDetail", { id: e.id })}><Card theme={theme} style={{ padding: 15 }}><View style={{ flexDirection: "row", justifyContent: "space-between" }}><View><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{e.title}</Text><Text selectable style={{ color: theme.label2, marginTop: 2 }}>{localizedExamKind(e.kind)} · {e.room} · {e.time}</Text></View><Text selectable style={{ color: c.color, fontSize: 20, fontWeight: "900" }}>{localizedDaysShort(daysUntilExam(e))}</Text></View><View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 }}>{e.topics.map((topic) => <Pill key={topic} text={topic} theme={theme} />)}</View></Card></Pressable>)}</View></View> : null}
+          {exams.length ? <View><Section title={textFor("class.exams", "Upcoming exams")} theme={theme} /><View style={{ gap: 10 }}>{exams.map((e) => <Pressable key={e.id} accessibilityRole="button" accessibilityLabel={`${e.title}. ${localizedExamKind(e.kind)}. ${localizedDaysShort(daysUntilExam(e))}. ${e.time}`} accessibilityHint={textFor("assessment.accessibility_open_hint", "Open assessment details")} onPress={() => nav.push("assessmentDetail", { id: e.id })}><Card theme={theme} style={{ padding: 15 }}><View style={{ flexDirection: "row", justifyContent: "space-between" }}><View><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{e.title}</Text><Text selectable style={{ color: theme.label2, marginTop: 2 }}>{localizedExamKind(e.kind)} · {localizedImportedText(e.room)} · {e.time}</Text></View><Text selectable style={{ color: c.color, fontSize: 20, fontWeight: "900" }}>{localizedDaysShort(daysUntilExam(e))}</Text></View><View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 }}>{e.topics.map((topic) => <Pill key={topic} text={localizedImportedText(topic)} theme={theme} />)}</View></Card></Pressable>)}</View></View> : null}
           {notes.length ? <View><Section title={textFor("class.notes", "Recent notes")} action={textFor("notes.all", "All")} onAction={() => nav.push("notes")} theme={theme} /><View style={{ gap: 10 }}>{notes.slice(0, 2).map((n) => <NoteCard key={n.id} note={n} data={data} theme={theme} onOpen={() => nav.push("noteDetail", { id: n.id })} />)}</View></View> : null}
         </View>
       </ScrollView>
@@ -3882,17 +8252,18 @@ function Tasks({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
   };
   return (
     <Screen theme={theme}>
-      <Header title="Tasks" sub={`${liveData.tasks.length - done} active · ${done} done`} theme={theme} />
+      <BackHeader embedded nav={nav} theme={theme} label={textFor("tasks.title", "Tasks")} />
+      <Header title={textFor("tasks.title", "Tasks")} sub={`${textFor("tasks.active_count", "{count} active", { count: liveData.tasks.length - done })} · ${textFor("tasks.complete_count", "{count} complete", { count: done })}`} theme={theme} />
       <View style={{ paddingHorizontal: 16, gap: 18 }}>
-        <Card theme={theme} style={{ padding: 15 }}><View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>This week</Text><Text selectable style={{ color: theme.label2 }}>{done}/{liveData.tasks.length} complete</Text></View><ProgressBar value={liveData.tasks.length ? done / liveData.tasks.length : 0} color={theme.accent} theme={theme} height={9} /></Card>
-        {groups.filter((g) => g[2].length).map(([name, color, items]) => <View key={name}><View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingBottom: 9 }}><View style={{ width: 9, height: 9, borderRadius: 99, backgroundColor: color }} /><Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{name}</Text><Text selectable style={{ color: theme.label2 }}>{items.length}</Text></View><Card theme={theme} style={{ overflow: "hidden", opacity: name === "Completed" ? 0.7 : 1 }}>{items.map((t) => <TaskRow key={t.id} task={t} data={liveData} theme={theme} onToggle={() => toggle(t.id)} onOpen={() => nav.push("taskDetail", { id: t.id })} />)}</Card></View>)}
+        <Card theme={theme} style={{ padding: 15 }}><View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("tasks.this_week", "This week")}</Text><Text selectable style={{ color: theme.label2 }}>{done}/{liveData.tasks.length} {textFor("tasks.complete_count", "{count} complete", { count: "" }).trim()}</Text></View><ProgressBar value={liveData.tasks.length ? done / liveData.tasks.length : 0} color={theme.accent} theme={theme} height={9} /></Card>
+        {groups.filter((g) => g[2].length).map(([name, color, items], index) => <View key={`task-group-${index}`}><View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingBottom: 9 }}><View style={{ width: 9, height: 9, borderRadius: 99, backgroundColor: color }} /><Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{name}</Text><Text selectable style={{ color: theme.label2 }}>{items.length}</Text></View><Card theme={theme} style={{ overflow: "hidden", opacity: index === 1 ? 0.7 : 1 }}>{items.map((t) => <TaskRow key={t.id} task={t} data={liveData} theme={theme} onToggle={() => toggle(t.id)} onOpen={() => nav.push("taskDetail", { id: t.id })} />)}</Card></View>)}
       </View>
     </Screen>
   );
 }
 
 function TaskDetail({ data, mutate, nav, theme, params, recordReviewTrigger }: ScreenProps) {
-  const task = data.tasks.find((t) => t.id === params.id) || data.tasks[0];
+  const task = data.tasks.find((t) => t.id === params.id);
   const [subs, setSubs] = useState(task?.subtasks || []);
   const [editing, setEditing] = useState(params.edit === "1");
   const [draft, setDraft] = useState<{
@@ -3905,30 +8276,43 @@ function TaskDetail({ data, mutate, nav, theme, params, recordReviewTrigger }: S
     description: string;
   }>({
     title: task?.title || "",
-    classId: task?.classId || data.classes[0]?.id || "",
+    classId: task?.classId || "",
     type: task?.type || "Assignment",
     dueDate: task?.missing ? "" : task?.dueDate || "",
     time: task?.time || "11:59 PM",
     estimateMinutes: String(task?.estimateMinutes || 45),
     description: task?.description || "",
   });
-  const recurrenceLabel = task?.recurringId ? `${textFor("task.repeats_weekly", "Repeats weekly")}${task.recurrenceEndDate ? ` · ${task.recurrenceEndDate}` : ""}` : "";
-  if (!task) return <RecoveryScreen title={textFor("task.delete_title", "Task not found")} body={textFor("task.delete_body", "That task is not in this semester anymore.", { title: "" })} action={textFor("tabs.classes", "Open tasks")} nav={nav} theme={theme} />;
-  const c = safeClassFor(data, task.classId);
+  const recurrenceEndLabel = task?.recurrenceEndDate
+    ? new Date(`${task.recurrenceEndDate}T12:00:00`).toLocaleDateString(appLocale(), { month: "short", day: "numeric", year: "numeric" })
+    : "";
+  const recurrenceLabel = task?.recurringId ? `${textFor("task.repeats_weekly", "Repeats weekly")}${recurrenceEndLabel ? ` · ${textFor("task.recurrence_ends", "Ends {date}", { date: recurrenceEndLabel })}` : ""}` : "";
+  if (!task) return <RecoveryScreen title="Task not found" body="That task is not in this semester anymore." action={textFor("class.open_dashboard", "Open dashboard")} nav={nav} theme={theme} />;
+  const c = data.classes.find((item) => item.id === task.classId);
+  if (!c) return <RecoveryScreen title={textFor("class.not_found", "Class not found")} body={textFor("class.not_found_body", "This task's class is no longer in this semester.")} action={textFor("class.open_dashboard", "Open dashboard")} nav={nav} theme={theme} />;
+  const completionLabel = task.recurringId
+    ? `${task.done ? textFor("task.reopen", "Reopen task") : textFor("task.mark_complete", "Mark complete")} · ${textFor("task.this_occurrence", "This occurrence")}`
+    : task.done ? textFor("task.reopen", "Reopen task") : textFor("task.mark_complete", "Mark complete");
   const dueDays = hasTaskDate(task) ? daysUntilTask(task) : 99;
+  const canAddStudyBlock = !task.done && hasTaskDate(task);
   const markComplete = () => {
     if (!task.done) recordReviewTrigger("assignment_completed");
     mutate((d) => {
-    const updated = { ...d, tasks: d.tasks.map((t) => t.id === task.id ? { ...t, done: !t.done, subtasks: subs } : t) };
+    const tasks = d.tasks.map((t) => t.id === task.id ? { ...t, done: !t.done, subtasks: subs } : t);
+    const updated = { ...d, tasks, studyBlocks: buildStudyPlan({ ...d, tasks }) };
     return withFeedback(d, updated, "completeTask", { classId: task.classId, actionId: task.id, dimension: "workload" });
   });
   };
   const addBlock = () => mutate((d) => {
-    const updated = { ...d, studyBlocks: buildStudyPlan(d).filter((block) => block.taskId === task.id).concat(d.studyBlocks.filter((block) => block.taskId !== task.id)) };
+    const currentTask = d.tasks.find((item) => item.id === task.id);
+    if (!currentTask || currentTask.done || !hasTaskDate(currentTask)) return d;
+    const regeneratedBlocks = buildStudyPlan({ ...d, tasks: [currentTask] }).filter((block) => block.taskId === task.id);
+    if (!regeneratedBlocks.length) return d;
+    const updated = { ...d, studyBlocks: regeneratedBlocks.concat(d.studyBlocks.filter((block) => block.taskId !== task.id)) };
     return withFeedback(d, updated, "reschedulePlan", { classId: task.classId, actionId: task.id, dimension: "preparedness" });
   });
   const buildTaskPatch = (): Partial<TaskItem> => {
-    const missing = !/^\d{4}-\d{2}-\d{2}$/.test(draft.dueDate.trim());
+    const missing = !draft.dueDate.trim();
     return {
       title: draft.title.trim() || task.title,
       classId: draft.classId || task.classId,
@@ -3951,11 +8335,19 @@ function TaskDetail({ data, mutate, nav, theme, params, recordReviewTrigger }: S
     return withFeedback(d, updated, "reschedulePlan", { classId: draft.classId || task.classId, actionId: task.id, dimension: "workload" });
   });
   const saveTask = () => {
+    if (draft.dueDate.trim() && !isValidDateInput(draft.dueDate.trim())) {
+      showInvalidPlannerField("date");
+      return;
+    }
+    if (draft.time.trim() !== task.time.trim() && !isValidPlannerTime(draft.time)) {
+      showInvalidPlannerField("time");
+      return;
+    }
     if (!task.recurringId) {
       saveTaskWithScope("single");
       return;
     }
-    Alert.alert(textFor("task.delete_recurring_body", "Update recurring work?"), recurrenceLabel, [
+    Alert.alert(textFor("task.update_recurring_title", "Update recurring work?"), recurrenceLabel, [
       { text: textFor("common.cancel", "Cancel"), style: "cancel" },
       { text: textFor("task.this_occurrence", "This occurrence"), onPress: () => saveTaskWithScope("single") },
       { text: textFor("task.this_future", "This and future"), onPress: () => saveTaskWithScope("future") },
@@ -3966,12 +8358,29 @@ function TaskDetail({ data, mutate, nav, theme, params, recordReviewTrigger }: S
     const tasks = [copy, ...d.tasks];
     return { ...d, tasks, studyBlocks: buildStudyPlan({ ...d, tasks }) };
   });
-  const deleteTaskWithScope = (scope: RecurrenceScope) => {
+  const deleteTaskWithScope = async (scope: RecurrenceScope) => {
+    const tasksAfterDeletion = task.recurringId ? deleteTaskRecurrence(data.tasks, task, scope) : data.tasks.filter((item) => item.id !== task.id);
+    const remainingTaskIds = new Set(tasksAfterDeletion.map((item) => item.id));
+    const deletedTaskIds = data.tasks.filter((item) => !remainingTaskIds.has(item.id)).map((item) => item.id);
+    const cancellationEvidence = cleanupRemindersForDeletedEntities(data.reminders, { taskIds: deletedTaskIds });
+    try {
+      await cancelReminderNotificationIds(cancellationEvidence.notificationIdsToCancel);
+    } catch {
+      showReminderCancellationFailure();
+      return;
+    }
     mutate((d) => {
       const tasks = task.recurringId ? deleteTaskRecurrence(d.tasks, task, scope) : d.tasks.filter((item) => item.id !== task.id);
       const remainingIds = new Set(tasks.map((item) => item.id));
-      const studyBlocks = d.studyBlocks.filter((block) => !block.taskId || remainingIds.has(block.taskId));
-      return { ...d, tasks, studyBlocks: buildStudyPlan({ ...d, tasks, studyBlocks }) };
+      const deletedIds = d.tasks.filter((item) => !remainingIds.has(item.id)).map((item) => item.id);
+      const reminderCleanup = cleanupRemindersForDeletedEntities(d.reminders, { taskIds: deletedIds });
+      const next = {
+        ...d,
+        tasks,
+        reminders: reminderCleanup.reminders,
+        studyBlocks: pruneOrphanedStudyBlocks(d.studyBlocks, tasks, d.exams),
+      };
+      return { ...next, studyBlocks: pruneOrphanedStudyBlocks(buildStudyPlan(next), tasks, d.exams) };
     });
     nav.back();
   };
@@ -3982,11 +8391,16 @@ function TaskDetail({ data, mutate, nav, theme, params, recordReviewTrigger }: S
       { text: textFor("task.this_future", "This and future"), style: "destructive" as const, onPress: () => deleteTaskWithScope("future") },
     ] : [{ text: textFor("common.delete", "Delete"), style: "destructive" as const, onPress: () => deleteTaskWithScope("single") }]),
   ]);
+  const toggleSubtask = (index: number) => {
+    const next = subs.map((item, itemIndex) => itemIndex === index ? { ...item, done: !item.done } : item);
+    setSubs(next);
+    mutate((d) => ({ ...d, tasks: d.tasks.map((item) => item.id === task.id ? { ...item, subtasks: next } : item) }));
+  };
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={c.code} />
-      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
-        <View><View style={{ flexDirection: "row", gap: 8, marginBottom: 10, flexWrap: "wrap" }}><Pill text={c.code} color={c.color} theme={theme} /><Pill text={task.type} theme={theme} />{task.missing ? <Pill text={textFor("task.awaiting_date", "Awaiting Date")} color={COLORS.orange} theme={theme} /> : null}{task.recurringId ? <Pill text={textFor("task.repeats_weekly", "Repeats weekly")} color={COLORS.purple} theme={theme} /> : null}</View><Text selectable style={{ color: theme.label, fontSize: 26, lineHeight: 30, fontWeight: "900", marginBottom: 14 }}>{task.title}</Text>{recurrenceLabel ? <Text selectable style={{ color: theme.label2, lineHeight: 20, marginBottom: 10 }}>{recurrenceLabel}</Text> : null}<View style={{ flexDirection: "row", gap: 9 }}><View style={{ flex: 1 }}><Button label={task.done ? textFor("task.reopen", "Reopen task") : textFor("task.mark_complete", "Mark complete")} theme={theme} icon="target" onPress={() => { markComplete(); nav.back(); }} /></View><View style={{ flex: 1 }}><Button label={editing ? textFor("task.close_edit", "Close edit") : textFor("common.edit", "Edit")} theme={theme} secondary icon="pencil" onPress={() => setEditing((value) => !value)} /></View></View></View>
+      <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
+        <View><View style={{ flexDirection: "row", gap: 8, marginBottom: 10, flexWrap: "wrap" }}><Pill text={c.code} color={c.color} theme={theme} /><Pill text={localizedImportedText(task.type)} theme={theme} />{task.missing ? <Pill text={textFor("task.awaiting_date", "Awaiting Date")} color={COLORS.orange} theme={theme} /> : null}{task.recurringId ? <Pill text={textFor("task.repeats_weekly", "Repeats weekly")} color={COLORS.purple} theme={theme} /> : null}</View><Text selectable style={{ color: theme.label, fontSize: 26, lineHeight: 30, fontWeight: "900", marginBottom: 14 }}>{task.title}</Text>{recurrenceLabel ? <Text selectable style={{ color: theme.label2, lineHeight: 20, marginBottom: 10 }}>{recurrenceLabel}</Text> : null}<View style={{ gap: 2 }}><Button label={completionLabel} theme={theme} icon="target" onPress={() => { markComplete(); nav.back(); }} /><Button label={editing ? textFor("task.close_edit", "Close edit") : textFor("common.edit", "Edit")} theme={theme} secondary icon="pencil" onPress={() => setEditing((value) => !value)} /></View></View>
         {editing ? (
           <Card theme={theme} style={{ padding: 16 }}>
             <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900", marginBottom: 10 }}>{textFor("task.edit", "Edit assignment")}</Text>
@@ -4001,26 +8415,26 @@ function TaskDetail({ data, mutate, nav, theme, params, recordReviewTrigger }: S
             </View>
             <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("task.move_to_class", "Move to class")}</Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>{data.classes.filter((klass) => !klass.archivedAt).map((klass) => (
-              <Pressable key={klass.id} onPress={() => setDraft((current) => ({ ...current, classId: klass.id }))} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: draft.classId === klass.id ? klass.color : theme.surface2 }}><Text style={{ color: draft.classId === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
+              <Pressable key={klass.id} accessibilityRole="radio" accessibilityLabel={`${klass.code}. ${klass.name}`} accessibilityHint={textFor("task.accessibility_move_class_hint", "Move this assignment to the selected class")} accessibilityState={{ selected: draft.classId === klass.id }} onPress={() => setDraft((current) => ({ ...current, classId: klass.id }))} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: draft.classId === klass.id ? klass.color : theme.surface2 }}><Text style={{ color: draft.classId === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
             ))}</View>
             <FieldInput label={textFor("class.description", "Description")} value={draft.description} onChangeText={(description) => setDraft((current) => ({ ...current, description }))} theme={theme} multiline />
             <Button label={draft.dueDate.trim() ? textFor("task.save", "Save assignment") : textFor("task.save_awaiting", "Save as Awaiting Date")} theme={theme} icon="target" onPress={saveTask} />
             <View style={{ flexDirection: "row", gap: 9 }}>
-              <View style={{ flex: 1 }}><Button label={textFor("common.edit", "Duplicate")} theme={theme} secondary icon="copy" onPress={duplicateTask} /></View>
+              <View style={{ flex: 1 }}><Button label={textFor("common.duplicate", "Duplicate")} theme={theme} secondary icon="copy" onPress={duplicateTask} /></View>
               <View style={{ flex: 1 }}><Button label={textFor("common.delete", "Delete")} theme={theme} secondary icon="trash" onPress={deleteTask} /></View>
             </View>
           </Card>
         ) : null}
-        <Card theme={theme} style={{ overflow: "hidden" }}>{[[Clock, textFor("task.due", "Due"), taskDueLabel(task), task.missing || dueDays <= 0 ? COLORS.orange : theme.label], [Timer, textFor("task.estimated", "Estimated"), minutesLabel(task.estimateMinutes), theme.label], [FileText, textFor("task.source", "Source"), task.source, theme.label], [CalendarDays, textFor("task.on_calendar", "On calendar"), data.studyBlocks.find((b) => b.taskId === task.id)?.time || textFor("task.not_scheduled", "Not scheduled"), theme.label]].map(([I, l, v, color]: any) => <View key={l} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: l === textFor("task.on_calendar", "On calendar") ? 0 : 1, borderBottomColor: theme.hairline }}><I color={theme.label2} size={18} /><Text selectable style={{ color: theme.label2, flex: 1 }}>{l}</Text><Text selectable style={{ color, fontWeight: "900", maxWidth: 180, textAlign: "right" }}>{v}</Text></View>)}</Card>
-        {subs.length ? <View><Section title="Subtasks" action={`${subs.filter((s) => s.done).length}/${subs.length}`} theme={theme} /><Card theme={theme} style={{ overflow: "hidden" }}>{subs.map((s, i) => <Pressable key={s.title} onPress={() => setSubs((list) => list.map((item, j) => j === i ? { ...item, done: !item.done } : item))} style={{ flexDirection: "row", gap: 12, alignItems: "center", padding: 14 }}><View style={{ width: 23, height: 23, borderRadius: 99, borderWidth: s.done ? 0 : 2, borderColor: c.color, backgroundColor: s.done ? c.color : "transparent", alignItems: "center", justifyContent: "center" }}>{s.done ? <Check color="#fff" size={14} strokeWidth={3} /> : null}</View><Text selectable style={{ color: s.done ? theme.label3 : theme.label, textDecorationLine: s.done ? "line-through" : "none", fontWeight: "700" }}>{s.title}</Text></Pressable>)}</Card></View> : null}
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("today.next_move", "Next Move")}</Text></View><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{minutesLabel(task.estimateMinutes)} · {taskDueLabel(task)}.</Text><Button label={textFor("assessment.rebuild", "Add study block")} theme={theme} icon="clock" onPress={addBlock} /></Card>
+        <Card theme={theme} style={{ overflow: "hidden" }}>{[[Clock, textFor("task.due", "Due"), taskDueLabel(task), task.missing || dueDays <= 0 ? COLORS.orange : theme.label], [Timer, textFor("task.estimated", "Estimated"), minutesLabel(task.estimateMinutes), theme.label], [FileText, textFor("task.source", "Source"), localizedTaskSource(task.source), theme.label], [CalendarDays, textFor("task.on_calendar", "On calendar"), readablePlannerTimeRange(data.studyBlocks.find((b) => b.taskId === task.id)?.time || textFor("task.not_scheduled", "Not scheduled")), theme.label]].map(([I, l, v, color]: any, index) => <View key={`task-detail-row-${index}`} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: index === 3 ? 0 : 1, borderBottomColor: theme.hairline }}><I color={theme.label2} size={18} /><Text selectable style={{ color: theme.label2, flex: 1 }}>{l}</Text><Text selectable style={{ color, fontWeight: "900", maxWidth: 180, textAlign: "right" }}>{v}</Text></View>)}</Card>
+        {subs.length ? <View><Section title={textFor("task.subtasks", "Subtasks")} action={`${subs.filter((s) => s.done).length}/${subs.length}`} theme={theme} /><Card theme={theme} style={{ overflow: "hidden" }}>{subs.map((s, i) => <Pressable key={s.title} accessibilityRole="checkbox" accessibilityLabel={localizedImportedText(s.title)} accessibilityHint={s.done ? textFor("task.accessibility_reopen_subtask_hint", "Mark this subtask incomplete") : textFor("task.accessibility_complete_subtask_hint", "Mark this subtask complete")} accessibilityState={{ checked: s.done }} onPress={() => toggleSubtask(i)} style={{ flexDirection: "row", gap: 12, alignItems: "center", padding: 14 }}><View style={{ width: 23, height: 23, borderRadius: 99, borderWidth: s.done ? 0 : 2, borderColor: c.color, backgroundColor: s.done ? c.color : "transparent", alignItems: "center", justifyContent: "center" }}>{s.done ? <Check color="#fff" size={14} strokeWidth={3} /> : null}</View><Text selectable style={{ color: s.done ? theme.label3 : theme.label, textDecorationLine: s.done ? "line-through" : "none", fontWeight: "700" }}>{localizedImportedText(s.title)}</Text></Pressable>)}</Card></View> : null}
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("today.next_move", "Next Move")}</Text></View><Text selectable style={{ color: canAddStudyBlock ? theme.label : theme.label2, lineHeight: 21 }}>{canAddStudyBlock ? textFor("task.schedule_hint", "Create a {minutes} focus block around your existing plan.", { minutes: minutesLabel(task.estimateMinutes) }) : `${task.done ? textFor("task.reopen", "Reopen task") : textFor("task.awaiting_date", "Due date required")} · ${textFor("task.not_scheduled", "Not scheduled")}`}</Text><Button label={canAddStudyBlock ? textFor("assessment.rebuild", "Add study block") : task.done ? textFor("task.reopen", "Reopen task to schedule") : textFor("task.awaiting_date", "Due date required")} theme={theme} icon="clock" onPress={canAddStudyBlock ? addBlock : undefined} /></Card>
       </ScrollView>
     </View>
   );
 }
 
 function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
-  const exam = data.exams.find((item) => item.id === params.id) || data.exams[0];
+  const exam = data.exams.find((item) => item.id === params.id);
   const [editing, setEditing] = useState(params.edit === "1");
   const [draft, setDraft] = useState<{
     title: string;
@@ -4034,7 +8448,7 @@ function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
     notes: string;
   }>({
     title: exam?.title || "",
-    classId: exam?.classId || data.classes[0]?.id || "",
+    classId: exam?.classId || "",
     date: exam?.dueDate || isoFromOffset(1),
     time: exam?.time || "9:00 AM",
     type: exam?.kind || textFor("class.assessment", "Exam"),
@@ -4043,28 +8457,39 @@ function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
     room: exam?.room || previewFixtureText("roomTbd", "Room TBD"),
     notes: exam?.notes || exam?.description || "",
   });
-  if (!exam) return <RecoveryScreen title={textFor("class.assessment", "Assessment")} body={textFor("class.not_found_body", "That assessment is not in this semester anymore.")} action={textFor("today.open_plan", "Open plan")} nav={nav} theme={theme} />;
-  const c = safeClassFor(data, exam.classId);
+  if (!exam) return <RecoveryScreen title="Assessment not found" body="That assessment is not in this semester anymore." action={textFor("class.open_dashboard", "Open dashboard")} nav={nav} theme={theme} />;
+  const c = data.classes.find((item) => item.id === exam.classId);
+  if (!c) return <RecoveryScreen title={textFor("class.not_found", "Class not found")} body={textFor("class.not_found_body", "This assessment's class is no longer in this semester.")} action={textFor("class.open_dashboard", "Open dashboard")} nav={nav} theme={theme} />;
   const dueDays = daysUntilExam(exam);
-  const saveAssessment = () => mutate((d) => {
-    const exams = d.exams.map((item) => item.id === exam.id ? {
-      ...item,
-      title: draft.title.trim() || item.title,
-      classId: draft.classId || item.classId,
-      dueDate: /^\d{4}-\d{2}-\d{2}$/.test(draft.date.trim()) ? draft.date.trim() : item.dueDate,
-      time: draft.time.trim() || "9:00 AM",
-      room: draft.room.trim() || previewFixtureText("roomTbd", "Room TBD"),
-      kind: draft.type as ExamItem["kind"],
-      effortMinutes: Math.max(15, Number(draft.effort) || item.effortMinutes || 120),
-      priority: draft.priority as ExamItem["priority"],
-      notes: draft.notes.trim(),
-      userEditedAt: new Date().toISOString(),
-      description: draft.notes.trim(),
-      topics: draft.notes.trim() ? [draft.notes.trim()] : item.topics,
-    } : item);
-    setEditing(false);
-    return withFeedback(d, { ...d, exams, studyBlocks: buildStudyPlan({ ...d, exams }) }, "reschedulePlan", { classId: draft.classId || exam.classId, actionId: exam.id, dimension: "preparedness" });
-  });
+  const saveAssessment = () => {
+    if (!isValidDateInput(draft.date.trim())) {
+      showInvalidPlannerField("date");
+      return;
+    }
+    if (draft.time.trim() !== exam.time.trim() && !isValidPlannerTime(draft.time)) {
+      showInvalidPlannerField("time");
+      return;
+    }
+    mutate((d) => {
+      const exams = d.exams.map((item) => item.id === exam.id ? {
+        ...item,
+        title: draft.title.trim() || item.title,
+        classId: draft.classId || item.classId,
+        dueDate: draft.date.trim(),
+        time: draft.time.trim(),
+        room: draft.room.trim() || previewFixtureText("roomTbd", "Room TBD"),
+        kind: draft.type as ExamItem["kind"],
+        effortMinutes: Math.max(15, Number(draft.effort) || item.effortMinutes || 120),
+        priority: draft.priority as ExamItem["priority"],
+        notes: draft.notes.trim(),
+        userEditedAt: new Date().toISOString(),
+        description: draft.notes.trim(),
+        topics: draft.notes.trim() ? [draft.notes.trim()] : item.topics,
+      } : item);
+      setEditing(false);
+      return withFeedback(d, { ...d, exams, studyBlocks: buildStudyPlan({ ...d, exams }) }, "reschedulePlan", { classId: draft.classId || exam.classId, actionId: exam.id, dimension: "preparedness" });
+    });
+  };
   const duplicateAssessment = () => mutate((d) => {
     const copy: ExamItem = { ...exam, id: makeOwnershipId("exam"), title: `${exam.title} ${textFor("task.copy_suffix", "copy")}` };
     const exams = [copy, ...d.exams];
@@ -4072,11 +8497,24 @@ function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
   });
   const deleteAssessment = () => Alert.alert(textFor("assessment.delete_title", "Delete assessment?"), textFor("assessment.delete_body", "{title} will be removed from Today, Plan, reminders, and widgets.", { title: exam.title }), [
     { text: textFor("common.cancel", "Cancel"), style: "cancel" },
-    { text: textFor("common.delete", "Delete"), style: "destructive", onPress: () => {
+    { text: textFor("common.delete", "Delete"), style: "destructive", onPress: async () => {
+      const cancellationEvidence = cleanupRemindersForDeletedEntities(data.reminders, { examIds: [exam.id] });
+      try {
+        await cancelReminderNotificationIds(cancellationEvidence.notificationIdsToCancel);
+      } catch {
+        showReminderCancellationFailure();
+        return;
+      }
       mutate((d) => {
         const exams = d.exams.filter((item) => item.id !== exam.id);
-        const studyBlocks = d.studyBlocks.filter((block) => block.examId !== exam.id);
-        return { ...d, exams, studyBlocks: buildStudyPlan({ ...d, exams, studyBlocks }) };
+        const reminderCleanup = cleanupRemindersForDeletedEntities(d.reminders, { examIds: [exam.id] });
+        const next = {
+          ...d,
+          exams,
+          reminders: reminderCleanup.reminders,
+          studyBlocks: pruneOrphanedStudyBlocks(d.studyBlocks, d.tasks, exams),
+        };
+        return { ...next, studyBlocks: pruneOrphanedStudyBlocks(buildStudyPlan(next), d.tasks, exams) };
       });
       nav.back();
     } },
@@ -4084,13 +8522,13 @@ function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={c.code} />
-      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
+      <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
         <View>
           <View style={{ flexDirection: "row", gap: 8, marginBottom: 10, flexWrap: "wrap" }}><Pill text={c.code} color={c.color} theme={theme} /><Pill text={localizedExamKind(exam.kind)} color={COLORS.purple} theme={theme} /><Pill text={localizedPriority(exam.priority)} color={exam.priority === "Low" ? COLORS.blue : exam.priority === "Medium" ? COLORS.orange : COLORS.red} theme={theme} /></View>
           <Text selectable style={{ color: theme.label, fontSize: 26, lineHeight: 30, fontWeight: "900", marginBottom: 14 }}>{exam.title}</Text>
           <View style={{ flexDirection: "row", gap: 9 }}>
             <View style={{ flex: 1 }}><Button label={editing ? textFor("task.close_edit", "Close edit") : textFor("common.edit", "Edit")} theme={theme} icon="pencil" onPress={() => setEditing((value) => !value)} /></View>
-            <View style={{ flex: 1 }}><Button label={textFor("common.edit", "Duplicate")} theme={theme} secondary icon="copy" onPress={duplicateAssessment} /></View>
+            <View style={{ flex: 1 }}><Button label={textFor("common.duplicate", "Duplicate")} theme={theme} secondary icon="copy" onPress={duplicateAssessment} /></View>
           </View>
         </View>
         {editing ? (
@@ -4111,14 +8549,14 @@ function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
             </View>
             <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("task.move_to_class", "Move to class")}</Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>{data.classes.filter((klass) => !klass.archivedAt).map((klass) => (
-              <Pressable key={klass.id} onPress={() => setDraft((current) => ({ ...current, classId: klass.id }))} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: draft.classId === klass.id ? klass.color : theme.surface2 }}><Text style={{ color: draft.classId === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
+              <Pressable key={klass.id} accessibilityRole="radio" accessibilityLabel={`${klass.code}. ${klass.name}`} accessibilityHint={textFor("assessment.accessibility_move_class_hint", "Move this assessment to the selected class")} accessibilityState={{ selected: draft.classId === klass.id }} onPress={() => setDraft((current) => ({ ...current, classId: klass.id }))} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: draft.classId === klass.id ? klass.color : theme.surface2 }}><Text style={{ color: draft.classId === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
             ))}</View>
             <FieldInput label={textFor("class.notes_label", "Notes")} value={draft.notes} onChangeText={(notes) => setDraft((current) => ({ ...current, notes }))} theme={theme} multiline />
             <Button label={textFor("assessment.save", "Save assessment")} theme={theme} icon="target" onPress={saveAssessment} />
             <Button label={textFor("assessment.delete_title", "Delete assessment?")} theme={theme} secondary icon="trash" onPress={deleteAssessment} />
           </Card>
         ) : null}
-        <Card theme={theme} style={{ overflow: "hidden" }}>{[[Clock, textFor("assessment.date", "Date"), `${localizedDueLabel(dueDays)} · ${exam.time}`, dueDays <= 3 ? COLORS.orange : theme.label], [Timer, textFor("class.effort", "Effort"), minutesLabel(exam.effortMinutes || 120), theme.label], [MapPin, textFor("assessment.room", "Room"), exam.room, theme.label], [FileText, textFor("class.notes_label", "Notes"), exam.notes || exam.description || textFor("assessment.no_notes", "No notes yet"), theme.label]].map(([I, l, v, color]: any) => <View key={l} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: l === textFor("class.notes_label", "Notes") ? 0 : 1, borderBottomColor: theme.hairline }}><I color={theme.label2} size={18} /><Text selectable style={{ color: theme.label2, flex: 1 }}>{l}</Text><Text selectable numberOfLines={2} style={{ color, fontWeight: "900", maxWidth: 190, textAlign: "right" }}>{v}</Text></View>)}</Card>
+        <Card theme={theme} style={{ overflow: "hidden" }}>{[[Clock, textFor("assessment.date", "Date"), `${localizedDueLabel(dueDays)} · ${exam.time}`, dueDays <= 3 ? COLORS.orange : theme.label], [Timer, textFor("class.effort", "Effort"), minutesLabel(exam.effortMinutes || 120), theme.label], [MapPin, textFor("assessment.room", "Room"), localizedImportedText(exam.room), theme.label], [FileText, textFor("class.notes_label", "Notes"), exam.notes || exam.description || textFor("assessment.no_notes", "No notes yet"), theme.label]].map(([I, l, v, color]: any, index) => <View key={`assessment-detail-row-${index}`} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: index === 3 ? 0 : 1, borderBottomColor: theme.hairline }}><I color={theme.label2} size={18} /><Text selectable style={{ color: theme.label2, flex: 1 }}>{l}</Text><Text selectable numberOfLines={2} style={{ color, fontWeight: "900", maxWidth: 190, textAlign: "right" }}>{v}</Text></View>)}</Card>
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 18 }}>{textFor("assessment.prep_plan", "Prep plan")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21, marginTop: 5 }}>{textFor("assessment.prep_body", "{minutes} of prep. Due {due}.", { minutes: minutesLabel(exam.effortMinutes || 120), due: localizedDueLabel(dueDays) })}</Text><Button label={textFor("assessment.rebuild", "Rebuild study blocks")} theme={theme} icon="refresh" onPress={() => mutate((d) => ({ ...d, studyBlocks: buildStudyPlan(d) }))} /></Card>
       </ScrollView>
     </View>
@@ -4128,17 +8566,27 @@ function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
 function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProps) {
   const previewOnly = !data.prefs.premium;
   const autoActionHandled = useRef(false);
+  const imageOcrAvailable = hasNativeImageTextRecognition();
+  const semesterReady = hasRealSemesterData(data);
   const [quickTask, setQuickTask] = useState(textFor("scan.quick_seed", "chem lab report due tomorrow, estimate 2 hours"));
-  const [scanStatus, setScanStatus] = useState(hasNativeImageTextRecognition() ? textFor("scan.status_ready", "On-device text scan is ready.") : textFor("scan.status_backup", "Camera and photo scan are ready on iPhone. Paste is available as a backup."));
+  const [scanStatus, setScanStatus] = useState(imageOcrAvailable ? textFor("scan.status_ready", "On-device text scan is ready.") : textFor("scan.status_backup", "On-device text scan is unavailable here. Paste text to continue."));
   const [working, setWorking] = useState<"syllabusCamera" | "syllabusLibrary" | "syllabusPdf" | "notesCamera" | "notesLibrary" | null>(null);
+  const requirePremium = (paywallParams: Record<string, string>) => {
+    if (!previewOnly) return false;
+    setWorking(null);
+    setScanStatus(textFor("onboarding.paywall_gate_body", "Camera, PDF, paste, and manual setup start after the App Store unlock, so the first real import can become your live semester."));
+    nav.push("paywall", paywallParams);
+    return true;
+  };
 
   const analyzeText = (sourceText: string, sourceName: string, mode: "syllabus" | "notes") => {
     const batch = mode === "notes" ? analyzeNotes(sourceText, data) : analyzeSyllabus(sourceText, data);
-    setCurrentImport({ ...batch, sourceName });
+    setCurrentImport(localizedImportBatch(batch, sourceName));
     nav.push("review");
   };
 
   const runImageOcr = async (source: "camera" | "library", mode: "syllabus" | "notes") => {
+    if (requirePremium(source === "camera" ? { next: "scan", action: "camera" } : { next: "scan" })) return;
     if (source === "camera") {
       nav.push("cameraScanner", { mode });
       return;
@@ -4149,9 +8597,9 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        const target = "photo library";
+        const target = textFor("scan.photo_library", "photo library");
         setScanStatus(textFor("scan.permission", "Permission is needed to read {mode} pages from the {target}.", { mode: mode === "notes" ? textFor("notes.title", "notes") : textFor("scan.header_preview", "syllabus"), target }));
-        Alert.alert(textFor("scan.permission", "Permission needed", { mode: "", target: "" }), textFor("scan.permission", "Permission is needed to read {mode} pages from the {target}.", { mode: mode === "notes" ? textFor("notes.title", "notes") : textFor("scan.header_preview", "syllabus"), target }), [
+        Alert.alert(textFor("scan.photo_permission_title", "Photo access is needed"), textFor("scan.permission", "Permission is needed to read {mode} pages from the {target}.", { mode: mode === "notes" ? textFor("notes.title", "notes") : textFor("scan.header_preview", "syllabus"), target }), [
           { text: textFor("scan.paste_text", "Paste text"), onPress: () => nav.push("paste", { mode }) },
           { text: textFor("scan.open_settings", "Open Settings"), onPress: () => Linking.openSettings().catch(() => {}) },
           { text: textFor("common.cancel", "Cancel"), style: "cancel" },
@@ -4173,15 +8621,16 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
       setScanStatus(mode === "notes" ? textFor("scan.reading_notes", "Reading note text on this iPhone...") : textFor("scan.reading_syllabus", "Reading syllabus text on this iPhone..."));
       const text = await extractTextFromImage(result.assets[0].uri);
       setScanStatus(textFor("scan.found_words", "Found {count} words. Review before saving.", { count: countOcrWords(text) }));
-      analyzeText(text, `Photo ${mode} scan`, mode);
+      analyzeText(text, mode === "notes" ? textFor("import.source_photo_notes", "Photo notes scan") : textFor("import.source_photo_syllabus", "Photo syllabus scan"), mode);
     } catch (error) {
-      setScanStatus(error instanceof Error ? error.message : textFor("scan.image_failed", "That image could not be scanned."));
+      setScanStatus(textFor("scan.image_failed", "That image could not be scanned."));
     } finally {
       setWorking(null);
     }
   };
 
   const runPdfImport = async () => {
+    if (requirePremium({ next: "scan", action: "pdf" })) return;
     setWorking("syllabusPdf");
     setScanStatus(textFor("scan.opening_pdf", "Opening PDF..."));
     try {
@@ -4191,18 +8640,19 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
         return;
       }
       if (result.fallbackNeeded) {
-        setScanStatus(textFor("scan.pdf_unreadable", "PDF opened. Text was not readable here. Paste text or scan pages."));
-        Alert.alert(textFor("review.needs_review", "Needs review"), textFor("scan.pdf_unreadable", "PDF opened. Text was not readable here. Paste text or scan pages."), [
+        const fallbackMessage = `${textFor("scan.pdf_unreadable", "PDF opened. Text was not readable here. Paste text or scan pages.")}${result.wordCount ? ` ${result.wordCount} words found.` : ""}`;
+        setScanStatus(fallbackMessage);
+        Alert.alert(textFor("review.needs_review", "Needs review"), fallbackMessage, [
           { text: textFor("scan.scan_pages", "Scan pages"), onPress: () => runImageOcr("camera", "syllabus") },
           { text: textFor("scan.paste_text", "Paste text"), onPress: () => nav.push("paste", { mode: "syllabus" }) },
           { text: textFor("common.close", "Close") },
         ]);
         return;
       }
-      setScanStatus(textFor("scan.pdf_read", "PDF read: {count} words. Review before saving.", { count: result.wordCount }));
-      analyzeText(result.text, `PDF · ${result.fileName}`, "syllabus");
+      setScanStatus(`${result.fileName}: ${textFor("scan.pdf_read", "PDF read: {count} words. Review before saving.", { count: result.wordCount })}`);
+      analyzeText(result.text, textFor("import.source_pdf", "PDF - {name}", { name: result.fileName }), "syllabus");
     } catch (error) {
-      setScanStatus(error instanceof Error ? error.message : textFor("scan.pdf_failed", "That PDF could not be imported."));
+      setScanStatus(textFor("scan.pdf_failed", "That PDF could not be imported."));
       Alert.alert(textFor("scan.pdf_failed_title", "PDF import failed"), textFor("scan.pdf_failed_body", "Paste syllabus text or scan the PDF pages with the camera."));
     } finally {
       setWorking(null);
@@ -4210,26 +8660,61 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
   };
 
   const captureTask = () => {
-    if (previewOnly) {
-      nav.push("paywall");
+    if (requirePremium({ next: "scan" })) return;
+    const result = createNaturalLanguageTask(quickTask, data);
+    if (!result.ok) {
+      const details = Array.from(new Set(result.issues.map((issue) => {
+        switch (issue) {
+          case "input":
+            return textFor("scan.quick_error_input", "Type the task, its class, and an explicit due date.");
+          case "title":
+            return textFor("scan.quick_error_title", "Add what you need to do, not only the class and date.");
+          case "class":
+            return textFor("scan.quick_error_class", "Include a class code or name from this semester.");
+          case "class-ambiguous":
+            return textFor("scan.quick_error_class_ambiguous", "Name exactly one class.");
+          case "date":
+            return textFor("scan.quick_error_date", "Add today, tomorrow, next week, or a YYYY-MM-DD due date.");
+          case "date-invalid":
+            return textFor("scan.quick_error_date_invalid", "That YYYY-MM-DD value is not a real calendar date.");
+          case "date-ambiguous":
+            return textFor("scan.quick_error_date_ambiguous", "Use exactly one due date.");
+        }
+      })));
+      const status = details.join(" ");
+      const exampleClass = data.classes.find((klass) => !klass.archivedAt)?.code;
+      const example = exampleClass
+        ? textFor("scan.quick_error_example", "Example: {classCode} lab report due tomorrow, estimate 2 hours.", { classCode: exampleClass })
+        : textFor("scan.quick_error_no_class", "Add a class to this semester before using Fast capture.");
+      setScanStatus(status);
+      Alert.alert(
+        textFor("scan.quick_error_heading", "Fast capture needs more detail"),
+        `${details.map((detail) => `• ${detail}`).join("\n")}\n\n${example}`,
+        [{ text: textFor("common.close", "Close") }],
+      );
       return;
     }
-    const task = createNaturalLanguageTask(quickTask, data);
+    const task = result.task;
     mutate((d) => {
       const tasks = [task, ...d.tasks];
       const updated = { ...d, tasks, studyBlocks: buildStudyPlan({ ...d, tasks }) };
       return withFeedback(d, updated, "reschedulePlan", { classId: task.classId, actionId: task.id, dimension: "workload" });
     });
+    const classCode = data.classes.find((klass) => klass.id === task.classId)?.code || "";
+    setQuickTask("");
+    setScanStatus(textFor("scan.quick_created", "Created {title} for {classCode}, due {dueDate}.", { title: task.title, classCode, dueDate: task.dueDate }));
     nav.push("tasks");
   };
   useEffect(() => {
     if (autoActionHandled.current) return;
     if (params.action === "pdf") {
       autoActionHandled.current = true;
+      nav.replaceTop("scan");
       runPdfImport();
     }
     if (params.action === "camera") {
       autoActionHandled.current = true;
+      nav.replaceTop("scan");
       runImageOcr("camera", "syllabus");
     }
   }, [params.action]);
@@ -4238,6 +8723,8 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
   const approvedImports = data.imports.filter((imp) => imp.status === "applied").length;
   const latestImport = data.imports[0];
   const scannerReady = hasNativeImageTextRecognition();
+  // Keep App scanner controls aligned with the parsed import camera path:
+  // createParsedImportFromCameraAsset is the canonical photo source record.
   const primaryActions = [
     {
       key: "pdf",
@@ -4248,6 +8735,7 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
       busy: working === "syllabusPdf",
       onPress: runPdfImport,
       featured: true,
+      requiresOcr: false,
     },
     {
       key: "camera",
@@ -4256,7 +8744,8 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
       detail: textFor("scan.camera_action_body", "Capture pages, boards, packets, and printed schedules."),
       color: COLORS.green,
       busy: working === "syllabusCamera",
-      onPress: () => nav.push("cameraScanner", { mode: "syllabus" }),
+      onPress: () => runImageOcr("camera", "syllabus"),
+      requiresOcr: true,
     },
     {
       key: "photo",
@@ -4266,6 +8755,7 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
       color: COLORS.purple,
       busy: working === "syllabusLibrary",
       onPress: () => runImageOcr("library", "syllabus"),
+      requiresOcr: true,
     },
     {
       key: "paste",
@@ -4274,7 +8764,8 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
       detail: textFor("scan.paste_action_body", "Fallback for locked PDFs or copied LMS text."),
       color: COLORS.orange,
       busy: false,
-      onPress: () => nav.push("paste", { mode: "syllabus" }),
+      onPress: () => previewOnly ? requirePremium({ next: "paste", mode: "syllabus" }) : nav.push("paste", { mode: "syllabus" }),
+      requiresOcr: false,
     },
   ];
 
@@ -4282,7 +8773,7 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
     <Screen theme={theme} bottom={132}>
       <Header
         title={previewOnly ? textFor("scan.header_preview", "Preview syllabus") : textFor("scan.header", "Scan")}
-        sub={previewOnly ? textFor("scan.sub_preview", "Preview before you unlock") : textFor("scan.sub", "Capture anything")}
+        sub={previewOnly ? textFor("scan.sub_preview", "Unlock before scan") : textFor("scan.sub", "Capture anything")}
         theme={theme}
         right={<ScannerModeBadge label={previewOnly ? textFor("review.guard_preview", "Preview only.") : textFor("widgets.ready", "Ready")} theme={theme} locked={previewOnly} />}
       />
@@ -4296,8 +8787,8 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
                 </View>
               </View>
               <View style={{ flex: 1, gap: 7 }}>
-                <Text selectable style={{ color: scannerReady ? COLORS.green : COLORS.orange, fontSize: 12, fontWeight: "900" }}>{scannerReady ? textFor("scan.status_ready", "On-device text scan is ready.") : textFor("scan.status_backup", "Camera and photo scan are ready on iPhone. Paste is available as a backup.")}</Text>
-                <Text selectable style={{ color: theme.label, fontSize: 26, lineHeight: 29, fontWeight: "900" }}>{previewOnly ? textFor("scan.title_preview", "Preview. Then unlock.") : textFor("scan.title", "Import. Review. Start.")}</Text>
+                <Text selectable style={{ color: scannerReady ? COLORS.green : COLORS.orange, fontSize: 12, fontWeight: "900" }}>{scannerReady ? textFor("scan.status_ready", "On-device text scan is ready.") : textFor("scan.status_backup", "On-device text scan is unavailable here. Paste text to continue.")}</Text>
+                <Text selectable style={{ color: theme.label, fontSize: 26, lineHeight: 29, fontWeight: "900" }}>{previewOnly ? textFor("scan.title_preview", "Unlock. Then review.") : textFor("scan.title", "Import. Review. Start.")}</Text>
                 <Text selectable style={{ color: theme.label2, lineHeight: 20 }}>{scanStatus}</Text>
               </View>
             </View>
@@ -4309,8 +8800,31 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
           </View>
           <View style={{ paddingHorizontal: 18, paddingBottom: 18 }}>
             <ScannerStatusRail theme={theme} activeIndex={isWorking ? 1 : latestImport ? 3 : 0} />
+            <View style={{ marginTop: 12, borderRadius: 18, padding: 12, backgroundColor: theme.dark ? "rgba(255,255,255,0.06)" : "#F7F9FC", borderWidth: 1, borderColor: theme.hairline, gap: 9 }}>
+              {[
+                ["upload", COLORS.blue, textFor("scan.pdf_action_body", "Best for full syllabi and multi-page handouts.")],
+                ["shield", COLORS.green, textFor("review.guard_active", "Nothing saves before you approve.")],
+                ["camera", COLORS.orange, textFor("scan.pdf_unreadable", "Scanned PDFs fall back to camera or paste.")],
+              ].map(([icon, color, label], index) => (
+                <View key={`scanner-pdf-guard-${index}`} style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
+                  <View style={{ width: 24, height: 24, borderRadius: 8, backgroundColor: `${color}1A`, alignItems: "center", justifyContent: "center" }}>
+                    <Icon name={icon} color={color} size={14} />
+                  </View>
+                  <Text selectable style={{ color: theme.label2, flex: 1, lineHeight: 18, fontSize: 12, fontWeight: "800" }}>{label}</Text>
+                </View>
+              ))}
+            </View>
           </View>
         </View>
+
+        {!previewOnly && semesterReady ? (
+          <ScannerPanel theme={theme} icon="notebook-pen" color={COLORS.purple} title={textFor("scan.notes_title", "Scan notes")} body={textFor("scan.notes_body", "Summaries, terms, flashcards, quizzes, and review tasks.")}>
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              <ScannerCompactButton theme={theme} label={textFor("scan.camera", "Camera")} icon="camera" color={COLORS.purple} busy={working === "notesCamera"} disabled={isWorking || !scannerReady} onPress={() => nav.push("cameraScanner", { mode: "notes" })} />
+              <ScannerCompactButton theme={theme} label={textFor("scan.photo", "Photo")} icon="image" color={COLORS.blue} busy={working === "notesLibrary"} disabled={isWorking || !scannerReady} onPress={() => runImageOcr("library", "notes")} />
+            </View>
+          </ScannerPanel>
+        ) : null}
 
         <View style={{ gap: 10 }}>
           {primaryActions.map((action) => (
@@ -4322,18 +8836,18 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
               detail={action.detail}
               color={action.color}
               busy={action.busy}
-              disabled={isWorking}
+              disabled={isWorking || (action.requiresOcr && !scannerReady)}
               featured={action.featured}
               onPress={action.onPress}
             />
           ))}
         </View>
 
-        {!previewOnly ? (
+        {!previewOnly && !semesterReady ? (
           <ScannerPanel theme={theme} icon="notebook-pen" color={COLORS.purple} title={textFor("scan.notes_title", "Scan notes")} body={textFor("scan.notes_body", "Summaries, terms, flashcards, quizzes, and review tasks.")}>
             <View style={{ flexDirection: "row", gap: 10 }}>
-              <ScannerCompactButton theme={theme} label={textFor("scan.camera", "Camera")} icon="camera" color={COLORS.purple} busy={working === "notesCamera"} disabled={isWorking} onPress={() => nav.push("cameraScanner", { mode: "notes" })} />
-              <ScannerCompactButton theme={theme} label={textFor("scan.photo", "Photo")} icon="image" color={COLORS.blue} busy={working === "notesLibrary"} disabled={isWorking} onPress={() => runImageOcr("library", "notes")} />
+              <ScannerCompactButton theme={theme} label={textFor("scan.camera", "Camera")} icon="camera" color={COLORS.purple} busy={working === "notesCamera"} disabled={isWorking || !scannerReady} onPress={() => nav.push("cameraScanner", { mode: "notes" })} />
+              <ScannerCompactButton theme={theme} label={textFor("scan.photo", "Photo")} icon="image" color={COLORS.blue} busy={working === "notesLibrary"} disabled={isWorking || !scannerReady} onPress={() => runImageOcr("library", "notes")} />
             </View>
           </ScannerPanel>
         ) : null}
@@ -4341,6 +8855,7 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
         {!previewOnly ? (
           <ScannerPanel theme={theme} icon="wand" color={COLORS.green} title={textFor("scan.quick_title", "Fast capture")} body={textFor("scan.quick_body", "Type class, task, due date, estimate.")}>
             <TextInput
+              accessibilityLabel={textFor("scan.quick_title", "Fast capture")}
               value={quickTask}
               onChangeText={setQuickTask}
               placeholder={textFor("scan.quick_seed", "chem lab report due tomorrow, estimate 2 hours")}
@@ -4359,9 +8874,9 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
                 ["syllabus", textFor("scan.more_assignment", "Assignment sheet"), textFor("scan.more_assignment_body", "Extract task details"), COLORS.orange, "file"],
                 ["syllabus", textFor("scan.more_exam", "Exam review"), textFor("scan.more_exam_body", "Build a study set"), COLORS.pink, "flask-conical"],
                 ["syllabus", textFor("scan.upload_pdf", "Upload PDF"), textFor("scan.more_upload_body", "Pick syllabus PDF"), COLORS.green, "upload"],
-              ].map(([mode, name, sub, color, icon]) => (
+              ].map(([mode, name, sub, color, icon], index) => (
                 <ScannerCaptureTile
-                  key={name}
+                  key={`scanner-capture-${index}`}
                   theme={theme}
                   title={name}
                   body={sub}
@@ -4427,7 +8942,7 @@ function ScannerStatusRail({ theme, activeIndex }: { theme: ReturnType<typeof pa
         const active = index <= activeIndex;
         const color = active ? [COLORS.green, COLORS.blue, COLORS.purple, COLORS.orange][index] : theme.label3;
         return (
-          <View key={label} style={{ flex: 1, minHeight: 58, borderRadius: 14, padding: 9, backgroundColor: active ? `${color}14` : theme.surface2, borderWidth: 1, borderColor: active ? `${color}30` : theme.hairline, justifyContent: "center", alignItems: "center", gap: 5 }}>
+          <View key={`${icon}-${index}`} style={{ flex: 1, minHeight: 58, borderRadius: 14, padding: 9, backgroundColor: active ? `${color}14` : theme.surface2, borderWidth: 1, borderColor: active ? `${color}30` : theme.hairline, justifyContent: "center", alignItems: "center", gap: 5 }}>
             <Icon name={icon} color={color} size={16} />
             <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.64} style={{ color: active ? theme.label : theme.label2, fontSize: 11, fontWeight: "900", textAlign: "center" }}>{label}</Text>
           </View>
@@ -4539,20 +9054,25 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
   const [capturedText, setCapturedText] = useState("");
   const [capturedWordCount, setCapturedWordCount] = useState(0);
   const [feedback, setFeedback] = useState(textFor("scanner.guide_start", "Place the full page inside the frame."));
+  const demoCaptureState = simulatorCaptureIsEnabled() && (params.captureDemo === "aiming" || params.captureDemo === "ready") ? params.captureDemo : null;
+  const demoCapturedText = buildBuild66SyllabusText();
+  const demoWordCount = countOcrWords(demoCapturedText);
+  const minimumWordCount = mode === "notes" ? 18 : 35;
+  const strongWordCount = mode === "notes" ? 42 : 85;
   const guidance = mode === "notes"
     ? [
         textFor("scanner.note_tip_1", "Fill the frame with one notes page."),
-        textFor("scanner.note_tip_2", "Flatten curved notebook pages."),
-        textFor("scanner.note_tip_3", "Avoid shadows across handwriting."),
-        textFor("scanner.note_tip_4", "Hold still until the capture finishes."),
+        textFor("scanner.note_tip_2", "Flatten curved notebook pages before capture."),
+        textFor("scanner.note_tip_3", "Use torch if handwriting is gray or shadowed."),
+        textFor("scanner.note_tip_4", "Hold still until the text read starts."),
       ]
     : [
         textFor("scanner.tip_1", "Get all four page corners inside the frame."),
-        textFor("scanner.tip_2", "Move closer until the text looks crisp."),
+        textFor("scanner.tip_2", "Move closer until small text looks crisp."),
         textFor("scanner.tip_3", "Use bright, even light. Avoid glare."),
         textFor("scanner.tip_4", "Keep the phone parallel to the page."),
       ];
-  const readyScore = (permission?.granted ? 34 : 0) + (cameraReady ? 33 : 0) + (captureState === "aiming" || captureState === "ready" ? 33 : 0);
+  const readyScore = (permission?.granted ? 30 : 0) + (cameraReady ? 35 : 0) + (captureState === "aiming" || captureState === "ready" ? 35 : 0);
   const busy = captureState === "capturing" || captureState === "reading";
 
   useEffect(() => {
@@ -4567,9 +9087,29 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
     return () => clearInterval(id);
   }, [busy, guidance, permission?.granted]);
 
+  if (!data.prefs.premium) {
+    return (
+      <View style={{ flex: 1, backgroundColor: theme.bg }}>
+        <BackHeader nav={nav} theme={theme} label={textFor("scan.camera", "Camera")} />
+        <View style={{ padding: 18 }}>
+          <Card theme={theme} style={{ padding: 18, backgroundColor: "#111114" }}>
+            <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+              <Camera color="#FFFFFF" size={27} />
+            </View>
+            <Text selectable style={{ color: "rgba(255,255,255,0.62)", fontSize: 12, fontWeight: "900" }}>{textFor("locked.kicker", "LOCKED PREVIEW")}</Text>
+            <Text selectable style={{ color: "#FFFFFF", fontSize: 27, lineHeight: 31, fontWeight: "900", marginTop: 7 }}>{textFor("paywall.camera_title", "Camera scan unlocks here")}</Text>
+            <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 8 }}>{textFor("paywall.camera_body", "Use the guided camera after purchase to capture syllabus pages, read the text on this iPhone, and review the extracted rows before anything saves.")}</Text>
+            <Button label={textFor("paywall.unlock_camera", "Unlock camera scan")} theme={theme} icon="crown" onPress={() => nav.push("paywall", { next: "scan", action: "camera" })} />
+            <Button label={textFor("welcome.preview", "Preview")} theme={theme} secondary icon="chevron-left" onPress={() => nav.tab("lockedDashboard")} />
+          </Card>
+        </View>
+      </View>
+    );
+  }
+
   const analyzeCapturedText = (sourceText: string, sourceName: string) => {
     const batch = mode === "notes" ? analyzeNotes(sourceText, data) : analyzeSyllabus(sourceText, data);
-    setCurrentImport({ ...batch, sourceName });
+    setCurrentImport(localizedImportBatch(batch, sourceName));
     nav.push("review");
   };
 
@@ -4582,7 +9122,35 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
 
   const useCapturedText = (text: string, wordCount: number) => {
     setFeedback(textFor("scanner.ready_review", "Text found. Review every row before anything saves."));
-    analyzeCapturedText(text, `${mode === "notes" ? "Guided notes" : "Guided syllabus"} camera scan - ${wordCount} words`);
+    analyzeCapturedText(text, mode === "notes" ? textFor("import.source_camera_notes_words", "Guided notes camera scan - {count} words", { count: wordCount }) : textFor("import.source_camera_syllabus_words", "Guided syllabus camera scan - {count} words", { count: wordCount }));
+  };
+
+  const shouldRetake = (wordCount: number) => wordCount < minimumWordCount;
+
+  const finishOcrRead = (text: string, wordCount: number) => {
+    if (shouldRetake(wordCount)) {
+      setCaptureState("aiming");
+      setFeedback(textFor("scanner.weak", "Text looks thin. Retake with the page closer and brighter."));
+      Alert.alert(
+        textFor("scanner.weak_title", "Retake recommended"),
+        textFor("scanner.weak_body", "Only {count} words were found. Move closer, keep all corners visible, and avoid shadows.", { count: wordCount }),
+        [
+          { text: textFor("scanner.use_anyway", "Use anyway"), onPress: () => useCapturedText(text, wordCount) },
+          { text: textFor("scan.paste_text", "Paste text"), onPress: () => nav.push("paste", { mode }) },
+          { text: textFor("scanner.retake", "Retake"), style: "cancel" },
+        ]
+      );
+      return;
+    }
+
+    setCapturedText(text);
+    setCapturedWordCount(wordCount);
+    setCaptureState("ready");
+    setFeedback(
+      wordCount >= strongWordCount
+        ? textFor("scanner.ready_review_count", "{count} words found. Review the extracted rows before saving.", { count: wordCount })
+        : textFor("scanner.ready_review", "Text found. Review every row before anything saves.")
+    );
   };
 
   const capture = async () => {
@@ -4590,33 +9158,16 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
     setCaptureState("capturing");
     setFeedback(textFor("scanner.hold", "Hold still. Capturing the page..."));
     try {
-      const photo = await cameraRef.current?.takePictureAsync({ quality: 0.96, skipProcessing: false });
+      const photo = await cameraRef.current?.takePictureAsync({ quality: 1, skipProcessing: false, exif: false });
       if (!photo?.uri) throw new Error(textFor("scanner.capture_failed", "The camera did not return a photo."));
       setCaptureState("reading");
       setFeedback(textFor("scanner.reading", "Reading text. This works best with crisp, flat pages."));
       const text = await extractTextFromImage(photo.uri);
       const wordCount = countOcrWords(text);
-      if (wordCount < 35) {
-        setCaptureState("aiming");
-        setFeedback(textFor("scanner.weak", "Text looks thin. Retake with the page closer and brighter."));
-        Alert.alert(
-          textFor("scanner.weak_title", "Retake recommended"),
-          textFor("scanner.weak_body", "Only {count} words were found. Move closer, keep all corners visible, and avoid shadows.", { count: wordCount }),
-          [
-            { text: textFor("scanner.use_anyway", "Use anyway"), onPress: () => useCapturedText(text, wordCount) },
-            { text: textFor("scan.paste_text", "Paste text"), onPress: () => nav.push("paste", { mode }) },
-            { text: textFor("scanner.retake", "Retake"), style: "cancel" },
-          ]
-        );
-        return;
-      }
-      setCapturedText(text);
-      setCapturedWordCount(wordCount);
-      setCaptureState("ready");
-      setFeedback(textFor("scanner.ready_review_count", "{count} words found. Review the extracted rows before saving.", { count: wordCount }));
+      finishOcrRead(text, wordCount);
     } catch (error) {
       setCaptureState("aiming");
-      setFeedback(error instanceof Error ? error.message : textFor("scan.image_failed", "That image could not be scanned."));
+      setFeedback(textFor("scan.image_failed", "That image could not be scanned."));
     }
   };
 
@@ -4628,8 +9179,9 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
         setCaptureState("aiming");
-        setFeedback(textFor("scan.permission", "Permission is needed to read {mode} pages from the {target}.", { mode: mode === "notes" ? textFor("notes.title", "notes") : textFor("scan.header_preview", "syllabus"), target: "photo library" }));
-        Alert.alert(textFor("scan.permission", "Permission needed", { mode: "", target: "" }), textFor("scan.permission", "Permission is needed to read {mode} pages from the {target}.", { mode: mode === "notes" ? textFor("notes.title", "notes") : textFor("scan.header_preview", "syllabus"), target: "photo library" }), [
+        const target = textFor("scan.photo_library", "photo library");
+        setFeedback(textFor("scan.permission", "Permission is needed to read {mode} pages from the {target}.", { mode: mode === "notes" ? textFor("notes.title", "notes") : textFor("scan.header_preview", "syllabus"), target }));
+        Alert.alert(textFor("scan.photo_permission_title", "Photo access is needed"), textFor("scan.permission", "Permission is needed to read {mode} pages from the {target}.", { mode: mode === "notes" ? textFor("notes.title", "notes") : textFor("scan.header_preview", "syllabus"), target }), [
           { text: textFor("scan.paste_text", "Paste text"), onPress: () => nav.push("paste", { mode }) },
           { text: textFor("scan.open_settings", "Open Settings"), onPress: () => Linking.openSettings().catch(() => {}) },
           { text: textFor("common.cancel", "Cancel"), style: "cancel" },
@@ -4647,29 +9199,24 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
       setFeedback(mode === "notes" ? textFor("scan.reading_notes", "Reading note text on this iPhone...") : textFor("scan.reading_syllabus", "Reading syllabus text on this iPhone..."));
       const text = await extractTextFromImage(result.assets[0].uri);
       const wordCount = countOcrWords(text);
-      if (wordCount < 35) {
-        setCaptureState("aiming");
-        setFeedback(textFor("scanner.weak", "Text looks thin. Retake with the page closer and brighter."));
-        Alert.alert(
-          textFor("scanner.weak_title", "Retake recommended"),
-          textFor("scanner.weak_body", "Only {count} words were found. Move closer, keep all corners visible, and avoid shadows.", { count: wordCount }),
-          [
-            { text: textFor("scanner.use_anyway", "Use anyway"), onPress: () => useCapturedText(text, wordCount) },
-            { text: textFor("scan.paste_text", "Paste text"), onPress: () => nav.push("paste", { mode }) },
-            { text: textFor("scanner.retake", "Retake"), style: "cancel" },
-          ]
-        );
-        return;
-      }
-      setCapturedText(text);
-      setCapturedWordCount(wordCount);
-      setCaptureState("ready");
-      setFeedback(textFor("scanner.ready_review_count", "{count} words found. Review the extracted rows before saving.", { count: wordCount }));
+      finishOcrRead(text, wordCount);
     } catch (error) {
       setCaptureState("aiming");
-      setFeedback(error instanceof Error ? error.message : textFor("scan.image_failed", "That image could not be scanned."));
+      setFeedback(textFor("scan.image_failed", "That image could not be scanned."));
     }
   };
+
+  if (demoCaptureState) {
+    return (
+      <GuidedScannerDemoSurface
+        nav={nav}
+        mode={mode}
+        captureState={demoCaptureState}
+        wordCount={demoWordCount}
+        onReview={() => useCapturedText(demoCapturedText, demoWordCount)}
+      />
+    );
+  }
 
   if (!permission) {
     return <View style={{ flex: 1, backgroundColor: "#050507", alignItems: "center", justifyContent: "center" }}><ActivityIndicator color="#fff" /><Text selectable style={{ color: "#fff", fontWeight: "900", marginTop: 14 }}>{textFor("scanner.loading_camera", "Preparing camera...")}</Text></View>;
@@ -4683,7 +9230,7 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
           <Card theme={theme} style={{ padding: 18 }}>
             <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: `${COLORS.orange}18`, alignItems: "center", justifyContent: "center", marginBottom: 12 }}><Camera color={COLORS.orange} size={26} /></View>
             <Text selectable style={{ color: theme.label, fontSize: 24, lineHeight: 28, fontWeight: "900" }}>{textFor("scanner.permission_title", "Camera access is needed")}</Text>
-            <Text selectable style={{ color: theme.label2, lineHeight: 21, marginTop: 8 }}>{textFor("scan.permission", "Permission is needed to read {mode} pages from the {target}.", { mode: mode === "notes" ? textFor("notes.title", "notes") : textFor("scan.header_preview", "syllabus"), target: "camera" })}</Text>
+            <Text selectable style={{ color: theme.label2, lineHeight: 21, marginTop: 8 }}>{textFor("scan.permission", "Permission is needed to read {mode} pages from the {target}.", { mode: mode === "notes" ? textFor("notes.title", "notes") : textFor("scan.header_preview", "syllabus"), target: textFor("scan.camera", "camera") })}</Text>
             <Button label={textFor("scanner.allow_camera", "Allow camera")} theme={theme} icon="camera" onPress={requestPermission} />
             <Button label={textFor("scan.open_settings", "Open Settings")} theme={theme} secondary icon="shield" onPress={() => Linking.openSettings()} />
             <Button label={textFor("scan.paste_text", "Paste text")} theme={theme} secondary icon="file" onPress={() => nav.push("paste", { mode })} />
@@ -4700,8 +9247,11 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
         style={{ flex: 1 }}
         facing="back"
         mode="picture"
+        active={captureState !== "ready"}
+        autofocus="on"
         enableTorch={torch}
         animateShutter
+        responsiveOrientationWhenOrientationLocked
         onCameraReady={() => {
           setCameraReady(true);
           setFeedback(guidance[guidanceIndex]);
@@ -4714,14 +9264,14 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
         ))}
         <View style={{ position: "absolute", left: 18, right: 18, top: "47%", height: 2, backgroundColor: "rgba(74,222,128,0.72)", borderRadius: 999 }} />
       </View>
-      <View style={{ position: "absolute", left: 16, right: 16, top: 54, gap: 10 }}>
+      <View style={{ position: "absolute", left: 16, right: 16, top: 54, gap: 10, zIndex: 20, elevation: 20 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={nav.back} style={{ width: 42, height: 42, borderRadius: 999, backgroundColor: "rgba(0,0,0,0.54)", alignItems: "center", justifyContent: "center" }}><ChevronLeft color="#fff" size={23} /></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel={textFor("scanner.exit", "Exit scanner")} hitSlop={16} onPress={nav.back} style={{ width: 46, height: 46, borderRadius: 999, backgroundColor: "rgba(0,0,0,0.60)", alignItems: "center", justifyContent: "center", zIndex: 21, elevation: 21 }}><ChevronLeft color="#fff" size={24} /></Pressable>
           <View style={{ flex: 1, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 9, backgroundColor: "rgba(0,0,0,0.54)", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7 }}>
             <Shield color={readyScore >= 100 ? COLORS.green : COLORS.orange} size={16} />
             <Text style={{ color: "#fff", fontWeight: "900" }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>{mode === "notes" ? textFor("scanner.notes_mode", "Guided notes scan") : textFor("scanner.syllabus_mode", "Guided syllabus scan")}</Text>
           </View>
-          <Pressable accessibilityRole="button" accessibilityLabel="Toggle torch" onPress={() => { tap(); setTorch((value) => !value); }} style={{ width: 42, height: 42, borderRadius: 999, backgroundColor: torch ? COLORS.orange : "rgba(0,0,0,0.54)", alignItems: "center", justifyContent: "center" }}><Zap color="#fff" size={21} /></Pressable>
+          <Pressable accessibilityRole="switch" accessibilityLabel={textFor("scanner.toggle_torch", "Toggle torch")} accessibilityState={{ checked: torch, disabled: busy || captureState === "ready" }} disabled={busy || captureState === "ready"} onPress={() => { tap(); setTorch((value) => !value); }} style={{ width: 42, height: 42, borderRadius: 999, backgroundColor: torch ? COLORS.orange : "rgba(0,0,0,0.54)", alignItems: "center", justifyContent: "center", opacity: busy || captureState === "ready" ? 0.52 : 1 }}><Zap color="#fff" size={21} /></Pressable>
         </View>
         <View style={{ borderRadius: 18, padding: 13, backgroundColor: "rgba(0,0,0,0.62)", borderWidth: 1, borderColor: "rgba(255,255,255,0.16)" }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -4733,8 +9283,8 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
           </View>
           <View style={{ flexDirection: "row", gap: 7, marginTop: 12 }}>
             <CameraChecklistPill label={textFor("scanner.check_corners", "Corners")} active={cameraReady} />
-            <CameraChecklistPill label={textFor("scanner.check_light", "Light")} active={torch || cameraReady} />
-            <CameraChecklistPill label={captureState === "ready" ? `${capturedWordCount}` : textFor("scanner.check_steady", "Steady")} active={!busy} />
+            <CameraChecklistPill label={textFor("scanner.torch_optional", "Torch optional")} active={torch} />
+	            <CameraChecklistPill label={captureState === "ready" ? `${capturedWordCount}` : textFor("scanner.check_steady", "Steady")} active={!busy && readyScore >= 90} />
           </View>
         </View>
       </View>
@@ -4749,8 +9299,8 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
             textFor("scanner.rule_1", "Page edges visible, not cropped."),
             textFor("scanner.rule_2", "Text is sharp enough to read on screen."),
             textFor("scanner.rule_3", "No fingers, glare, or dark shadows over text."),
-          ]).map((item) => (
-            <View key={item} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 2 }}>
+          ]).map((item, index) => (
+            <View key={`${captureState}-rule-${index}`} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 2 }}>
               <CheckCircle2 color={COLORS.green} size={15} />
               <Text selectable style={{ color: "rgba(255,255,255,0.84)", flex: 1 }}>{item}</Text>
             </View>
@@ -4768,6 +9318,76 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
   );
 }
 
+function GuidedScannerDemoSurface({ nav, mode, captureState, wordCount, onReview }: { nav: ScreenProps["nav"]; mode: "syllabus" | "notes"; captureState: "aiming" | "ready"; wordCount: number; onReview: () => void }) {
+  const ready = captureState === "ready";
+  const feedback = ready
+    ? textFor("scanner.ready_review_count", "{count} words found. Review the extracted rows before saving.", { count: wordCount })
+    : textFor("scanner.tip_1", "Get all four page corners inside the frame.");
+  const bodyLines = ready ? [
+    textFor("scanner.ready_rule_1", "{count} words found.", { count: wordCount }),
+    textFor("scanner.ready_rule_2", "Next screen lets you edit, approve, or remove every row."),
+    textFor("scanner.ready_rule_3", "Retake if the page was cropped or blurry."),
+  ] : [
+    textFor("scanner.rule_1", "Page edges visible, not cropped."),
+    textFor("scanner.rule_2", "Text is sharp enough to read on screen."),
+    textFor("scanner.rule_3", "No fingers, glare, or dark shadows over text."),
+  ];
+
+  return (
+    <View style={{ flex: 1, backgroundColor: "#050507" }}>
+      <View style={{ position: "absolute", inset: 0, backgroundColor: "#020302" }} />
+      <View pointerEvents="none" style={{ position: "absolute", left: 18, right: 18, top: 216, bottom: 230, borderRadius: 26, borderWidth: 2, borderColor: ready ? "rgba(74,222,128,0.95)" : "rgba(255,255,255,0.86)", backgroundColor: "rgba(255,255,255,0.025)" }}>
+        {[["top", "left"], ["top", "right"], ["bottom", "left"], ["bottom", "right"]].map(([vertical, horizontal]) => (
+          <View key={`${vertical}-${horizontal}`} style={{ position: "absolute", [vertical]: -2, [horizontal]: -2, width: 54, height: 54, borderColor: "#FFFFFF", borderTopWidth: vertical === "top" ? 5 : 0, borderBottomWidth: vertical === "bottom" ? 5 : 0, borderLeftWidth: horizontal === "left" ? 5 : 0, borderRightWidth: horizontal === "right" ? 5 : 0, borderRadius: 16 }} />
+        ))}
+        <View style={{ position: "absolute", left: 18, right: 18, top: "47%", height: 2, backgroundColor: "rgba(74,222,128,0.72)", borderRadius: 999 }} />
+      </View>
+      <View style={{ position: "absolute", left: 16, right: 16, top: 54, gap: 10, zIndex: 20, elevation: 20 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+          <Pressable accessibilityRole="button" accessibilityLabel={textFor("scanner.exit", "Exit scanner")} hitSlop={16} onPress={nav.back} style={{ width: 46, height: 46, borderRadius: 999, backgroundColor: "rgba(0,0,0,0.60)", alignItems: "center", justifyContent: "center", zIndex: 21, elevation: 21 }}><ChevronLeft color="#fff" size={24} /></Pressable>
+          <View style={{ flex: 1, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 9, backgroundColor: "rgba(0,0,0,0.54)", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7 }}>
+            <Shield color={ready ? COLORS.green : COLORS.orange} size={16} />
+            <Text style={{ color: "#fff", fontWeight: "900" }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>{mode === "notes" ? textFor("scanner.notes_mode", "Guided notes scan") : textFor("scanner.syllabus_mode", "Guided syllabus scan")}</Text>
+          </View>
+          <View style={{ width: 42, height: 42, borderRadius: 999, backgroundColor: "rgba(0,0,0,0.54)", alignItems: "center", justifyContent: "center" }}><Zap color="#fff" size={21} /></View>
+        </View>
+        <View style={{ borderRadius: 18, padding: 13, backgroundColor: "rgba(0,0,0,0.62)", borderWidth: 1, borderColor: "rgba(255,255,255,0.16)" }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: ready ? `${COLORS.green}2A` : `${COLORS.orange}2A`, alignItems: "center", justifyContent: "center" }}><ScanLine color={ready ? COLORS.green : COLORS.orange} size={22} /></View>
+            <View style={{ flex: 1 }}>
+              <Text selectable style={{ color: "#fff", fontWeight: "900", fontSize: 16 }}>{ready ? textFor("scanner.ready_title", "Ready to review") : feedback}</Text>
+              <Text selectable style={{ color: "rgba(255,255,255,0.72)", marginTop: 3, lineHeight: 18 }}>{textFor("scanner.promise", "Nothing saves until you review and approve the extracted rows.")}</Text>
+            </View>
+          </View>
+          <View style={{ flexDirection: "row", gap: 7, marginTop: 12 }}>
+            <CameraChecklistPill label={textFor("scanner.check_corners", "Corners")} active />
+            <CameraChecklistPill label={textFor("scanner.torch_optional", "Torch optional")} active={false} />
+            <CameraChecklistPill label={ready ? `${wordCount}` : textFor("scanner.check_steady", "Steady")} active />
+          </View>
+        </View>
+      </View>
+      <View style={{ position: "absolute", left: 16, right: 16, bottom: 34, gap: 12 }}>
+        <View style={{ borderRadius: 18, padding: 13, backgroundColor: "rgba(0,0,0,0.62)", borderWidth: 1, borderColor: "rgba(255,255,255,0.16)" }}>
+          <Text selectable style={{ color: "#fff", fontWeight: "900", marginBottom: 8 }}>{ready ? textFor("scanner.after_capture", "Captured text") : textFor("scanner.before_capture", "Before capture")}</Text>
+          {bodyLines.map((item, index) => (
+            <View key={`${captureState}-demo-rule-${index}`} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 2 }}>
+              <CheckCircle2 color={COLORS.green} size={15} />
+              <Text selectable style={{ color: "rgba(255,255,255,0.84)", flex: 1 }}>{item}</Text>
+            </View>
+          ))}
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 18 }}>
+          <View style={{ width: 58, height: 58, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.16)", alignItems: "center", justifyContent: "center" }}>{ready ? <RefreshCw color="#fff" size={23} /> : <FileText color="#fff" size={23} />}</View>
+          <Pressable accessibilityRole="button" accessibilityLabel={ready ? textFor("review.title", "Review Import") : textFor("scanner.capture", "Capture page")} onPress={ready ? onReview : undefined} style={({ pressed }) => ({ width: 82, height: 82, borderRadius: 999, backgroundColor: "#FFFFFF", borderWidth: 6, borderColor: ready ? COLORS.green : COLORS.orange, alignItems: "center", justifyContent: "center", opacity: pressed ? 0.78 : 1 })}>
+            {ready ? <Check color={COLORS.green} size={42} strokeWidth={3} /> : <View style={{ width: 54, height: 54, borderRadius: 999, backgroundColor: COLORS.orange }} />}
+          </Pressable>
+          <View style={{ width: 58, height: 58, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.16)", alignItems: "center", justifyContent: "center" }}><Image color="#fff" size={23} /></View>
+        </View>
+      </View>
+    </View>
+  );
+}
+
 function CameraChecklistPill({ label, active }: { label: string; active: boolean }) {
   return (
     <View style={{ flex: 1, minHeight: 31, borderRadius: 999, backgroundColor: active ? "rgba(74,222,128,0.20)" : "rgba(255,255,255,0.12)", borderWidth: 1, borderColor: active ? "rgba(74,222,128,0.42)" : "rgba(255,255,255,0.14)", alignItems: "center", justifyContent: "center", paddingHorizontal: 7 }}>
@@ -4777,36 +9397,219 @@ function CameraChecklistPill({ label, active }: { label: string; active: boolean
 }
 
 function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps) {
-  const mode = data.prefs.premium && params.mode === "notes" ? "notes" : "syllabus";
+  const manualMode = params.mode === "manual";
+  const requestedMode = manualMode ? "manual" : params.mode === "notes" ? "notes" : "syllabus";
+  const previewOnly = !data.prefs.premium;
+  const mode = !manualMode && data.prefs.premium && requestedMode === "notes" ? "notes" : "syllabus";
   const [text, setText] = useState("");
+  const [classCode, setClassCode] = useState("");
+  const [className, setClassName] = useState("");
+  const [classDays, setClassDays] = useState("");
+  const [classTime, setClassTime] = useState("");
+  const [deadlineTitle, setDeadlineTitle] = useState("");
+  const [deadlineDate, setDeadlineDate] = useState(isoFromOffset(7));
   const [working, setWorking] = useState(false);
+  const analysisTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (analysisTimer.current) clearTimeout(analysisTimer.current);
+  }, []);
+  const openPasteUnlock = () => nav.push("paywall", { next: "paste", mode: requestedMode });
+  const buildManualPreview = () => {
+    if (previewOnly) {
+      openPasteUnlock();
+      return;
+    }
+    const code = classCode.trim().toUpperCase();
+    const name = className.trim();
+    const taskTitle = deadlineTitle.trim();
+    const dueDate = deadlineDate.trim();
+    if (!code && !name) {
+      Alert.alert(textFor("class.create", "Create class"), textFor("onboarding.manual_need_class", "Add a class code or class name first."));
+      return;
+    }
+    if (classTime.trim() && !isValidPlannerTime(classTime)) {
+      showInvalidPlannerField("time");
+      return;
+    }
+    if (taskTitle && !isValidDateInput(dueDate)) {
+      Alert.alert(textFor("task.awaiting_date", "Date pending"), textFor("review.invalid_date", "Enter a valid YYYY-MM-DD date before approving this row."));
+      return;
+    }
+    const classId = makeOwnershipId("class");
+    const cleanCode = code || name.slice(0, 12).toUpperCase() || "CLASS";
+    const cleanName = name || cleanCode;
+    const now = new Date().toISOString();
+    const candidates: ImportCandidate[] = [
+      {
+        id: makeOwnershipId("candidate"),
+        kind: "class",
+        title: cleanName,
+        meta: `${cleanCode}${classDays.trim() ? ` - ${classDays.trim()}` : ""}`,
+        classId,
+        confidence: 0.98,
+        approved: true,
+        payload: {
+          id: classId,
+          code: cleanCode,
+          name: cleanName,
+          professor: "",
+          room: "",
+          days: classDays.trim(),
+          time: classTime.trim(),
+          next: taskTitle,
+          health: 0.72,
+          grade: "—",
+          color: COLORS.blue,
+          color2: COLORS.green,
+          icon: "book",
+          userEditedAt: now,
+        },
+      },
+    ];
+    if (taskTitle) {
+      candidates.push({
+        id: makeOwnershipId("candidate"),
+        kind: "task",
+        title: taskTitle,
+        meta: `${cleanCode} - ${dueDate}`,
+        classId,
+        confidence: 0.96,
+        approved: true,
+        payload: {
+          id: makeOwnershipId("task"),
+          title: taskTitle,
+          classId,
+          type: textFor("review.manual", "Manual"),
+          dueOffset: 0,
+          dueDate,
+          time: "11:59 PM",
+          estimateMinutes: 45,
+          done: false,
+          urgent: true,
+          source: textFor("review.manual", "Manual"),
+          priority: "Medium",
+          description: textFor("onboarding.manual_task_description", "Added during onboarding manual setup."),
+          subtasks: [],
+          userEditedAt: now,
+        },
+      });
+    }
+    setCurrentImport({
+      id: makeOwnershipId("import"),
+      sourceName: textFor("review.manual", "Manual setup"),
+      sourceText: [cleanCode, cleanName, classDays, classTime, taskTitle, dueDate].filter(Boolean).join("\n"),
+      createdAt: now,
+      status: "review",
+      candidates,
+    });
+    nav.push("review");
+  };
   const analyze = () => {
+    if (previewOnly) {
+      openPasteUnlock();
+      return;
+    }
     if (!text.trim()) {
       Alert.alert(textFor("paste.add_text_title", "Add text first"), mode === "notes" ? textFor("paste.notes_required", "Paste notes to summarize and turn into study assets.") : textFor("paste.syllabus_required", "Paste syllabus text to extract classes, assignments, and exams."));
       return;
     }
     setWorking(true);
-    setTimeout(() => {
+    if (analysisTimer.current) clearTimeout(analysisTimer.current);
+    analysisTimer.current = setTimeout(() => {
+      analysisTimer.current = null;
       const batch = mode === "notes" ? analyzeNotes(text, data) : analyzeSyllabus(text, data);
-      setCurrentImport(batch);
+      setCurrentImport(localizedImportBatch(batch));
       setWorking(false);
       nav.push("review");
     }, 650);
   };
+  if (previewOnly) {
+    const lockedTitle = manualMode ? textFor("classes.add_manual", "Add class manually") : requestedMode === "notes" ? textFor("notes.paste", "Paste notes") : textFor("option.paste_syllabus", "Paste syllabus");
+    const lockedBody = manualMode
+      ? textFor("onboarding.manual_sub", "Use this when a syllabus is missing, blurry, or wrong. Nothing saves until you approve the preview.")
+      : requestedMode === "notes"
+        ? textFor("paste.notes_required", "Paste notes to summarize and turn into study assets.")
+        : textFor("paste.syllabus_required", "Paste syllabus text to extract classes, assignments, and exams.");
+    return (
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: theme.bg }}>
+        <BackHeader nav={nav} theme={theme} label={lockedTitle} />
+        <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+          <Card theme={theme} style={{ padding: 18, marginBottom: 14, backgroundColor: "#111114" }}>
+            <View style={{ width: 54, height: 54, borderRadius: 18, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+              <Icon name={manualMode ? "plus" : "file"} color="#FFFFFF" size={25} />
+            </View>
+            <Text selectable style={{ color: "rgba(255,255,255,0.62)", fontSize: 12, fontWeight: "900" }}>{textFor("locked.kicker", "LOCKED PREVIEW")}</Text>
+            <Text selectable style={{ color: "#FFFFFF", fontSize: 27, lineHeight: 31, fontWeight: "900", marginTop: 7 }}>{lockedTitle}</Text>
+            <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 8 }}>{lockedBody}</Text>
+          </Card>
+          <Card theme={theme} style={{ padding: 16, marginBottom: 14 }}>
+            {[
+              [textFor("locked.step1", "Unlock StudyPlanner"), "crown", COLORS.orange],
+              [manualMode ? textFor("classes.add_manual", "Add class manually") : textFor("scan.paste_text", "Paste text"), manualMode ? "plus" : "file", COLORS.blue],
+              [textFor("locked.step3", "Review before anything saves"), "shield", COLORS.green],
+            ].map(([label, icon, color], index) => (
+              <View key={`paste-lock-step-${index}`} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 8 }}>
+                <View style={{ width: 32, height: 32, borderRadius: 11, backgroundColor: `${color}18`, alignItems: "center", justifyContent: "center" }}>
+                  <Icon name={icon} color={color} size={17} />
+                </View>
+                <Text selectable style={{ color: theme.label, flex: 1, fontWeight: "900" }}>{label}</Text>
+              </View>
+            ))}
+          </Card>
+          <Button label={textFor("locked.unlock", "Unlock StudyPlanner")} icon="crown" theme={theme} onPress={openPasteUnlock} />
+          <Button label={textFor("welcome.preview", "Preview")} icon="chevron-left" theme={theme} secondary onPress={() => nav.tab("lockedDashboard")} />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    );
+  }
+  if (manualMode) {
+    return (
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: theme.bg }}>
+        <BackHeader nav={nav} theme={theme} label={textFor("classes.add_manual", "Add class manually")} />
+        <ScrollView style={{ flex: 1 }} contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
+          <Card theme={theme} style={{ padding: 16, marginBottom: 14, backgroundColor: "#111114" }}>
+            <Text selectable style={{ color: "rgba(255,255,255,0.62)", fontSize: 12, fontWeight: "900" }}>{textFor("onboarding.manual_kicker", "RELIABLE FALLBACK")}</Text>
+            <Text selectable style={{ color: "#FFFFFF", fontSize: 25, lineHeight: 29, fontWeight: "900", marginTop: 7 }}>{textFor("onboarding.manual_title", "Start with one class. Add the rest later.")}</Text>
+            <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 7 }}>{textFor("onboarding.manual_sub", "This creates a review preview just like scan or import, so nothing saves until you approve it.")}</Text>
+          </Card>
+          <Card theme={theme} style={{ padding: 15, marginBottom: 14 }}>
+            <FieldInput label={textFor("class.code", "Code")} value={classCode} onChangeText={setClassCode} placeholder="BIO 101" theme={theme} />
+            <FieldInput label={textFor("class.name", "Name")} value={className} onChangeText={setClassName} placeholder={textFor("onboarding.manual_class_placeholder", "Biology Lab")} theme={theme} />
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              <View style={{ flex: 1 }}><FieldInput label={textFor("class.days", "Days")} value={classDays} onChangeText={setClassDays} placeholder="Mon Wed" theme={theme} /></View>
+              <View style={{ flex: 1 }}><FieldInput label={textFor("class.time", "Time")} value={classTime} onChangeText={setClassTime} placeholder="10:00 AM" theme={theme} /></View>
+            </View>
+          </Card>
+          <Card theme={theme} style={{ padding: 15, marginBottom: 14, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}>
+            <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900", marginBottom: 10 }}>{textFor("onboarding.manual_deadline_title", "First deadline preview")}</Text>
+            <FieldInput label={textFor("class.title", "Title")} value={deadlineTitle} onChangeText={setDeadlineTitle} placeholder={textFor("onboarding.manual_deadline_placeholder", "Problem set 1")} theme={theme} />
+            <FieldInput label={textFor("task.awaiting_date", "Date pending")} value={deadlineDate} onChangeText={setDeadlineDate} placeholder="YYYY-MM-DD" theme={theme} />
+            <Text selectable style={{ color: theme.label2, lineHeight: 19 }}>{textFor("onboarding.manual_deadline_hint", "Optional, but adding one deadline makes the review artifact more useful.")}</Text>
+          </Card>
+        </ScrollView>
+        <LiquidGlassSurface tintColor="rgba(245,245,247,0.78)" style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24, backgroundColor: theme.dark ? "rgba(6,6,8,0.94)" : "rgba(245,245,247,0.96)", borderTopWidth: 1, borderTopColor: theme.hairline }} fallbackStyle={{ backgroundColor: theme.bg }}>
+          <Button label={textFor("onboarding.manual_preview", "Preview manual plan")} icon="sparkles" theme={theme} onPress={buildManualPreview} />
+          <Button label={textFor("locked.paste", "Paste manually")} icon="file" theme={theme} secondary onPress={() => nav.push("paste", { mode: "syllabus" })} />
+        </LiquidGlassSurface>
+      </KeyboardAvoidingView>
+    );
+  }
   return (
-    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: theme.bg }}>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={mode === "notes" ? textFor("notes.paste", "Paste notes") : textFor("option.paste_syllabus", "Paste syllabus")} />
-      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+      <ScrollView style={{ flex: 1 }} contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
         <Text selectable style={{ color: theme.label, fontSize: 26, fontWeight: "900", marginBottom: 8 }}>{mode === "notes" ? textFor("paste.notes_title", "Notes become a study set.") : textFor("paste.syllabus_title", "syllabus becomes a semester.")}</Text>
-        <Text selectable style={{ color: theme.label2, lineHeight: 21, marginBottom: 14 }}>{data.prefs.premium ? textFor("paste.premium_sub", "Review everything before it saves.") : textFor("paste.preview_sub", "Preview what StudyPlanner finds before you unlock.")}</Text>
-        <TextInput multiline value={text} onChangeText={setText} placeholder={mode === "notes" ? textFor("paste.notes_placeholder", "Paste lecture notes, reading notes, or review material...") : textFor("paste.syllabus_placeholder", "Paste syllabus text, assignment sheets, or extracted PDF text...")} placeholderTextColor={theme.label3} textAlignVertical="top" style={{ minHeight: 290, borderRadius: 18, backgroundColor: theme.surface, color: theme.label, borderWidth: 1, borderColor: theme.hairline, padding: 16, fontSize: 15, lineHeight: 22 }} />
-        <Button label={working ? textFor("paste.reading", "Reading...") : textFor("review.title", "Review import")} icon="sparkles" theme={theme} onPress={working ? undefined : analyze} />
+        <Text selectable style={{ color: theme.label2, lineHeight: 21, marginBottom: 14 }}>{data.prefs.premium ? textFor("paste.premium_sub", "Review everything before it saves.") : textFor("paste.preview_sub", "Review what StudyPlanner finds before anything saves.")}</Text>
+        <TextInput accessibilityLabel={mode === "notes" ? textFor("notes.paste", "Paste notes") : textFor("option.paste_syllabus", "Paste syllabus")} multiline value={text} onChangeText={setText} placeholder={mode === "notes" ? textFor("paste.notes_placeholder", "Paste lecture notes, reading notes, or review material...") : textFor("paste.syllabus_placeholder", "Paste syllabus text, assignment sheets, or extracted PDF text...")} placeholderTextColor={theme.label3} textAlignVertical="top" style={{ minHeight: 290, borderRadius: 18, backgroundColor: theme.surface, color: theme.label, borderWidth: 1, borderColor: theme.hairline, padding: 16, fontSize: 15, lineHeight: 22 }} />
       </ScrollView>
+      <LiquidGlassSurface tintColor="rgba(245,245,247,0.78)" style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24, backgroundColor: theme.dark ? "rgba(6,6,8,0.94)" : "rgba(245,245,247,0.96)", borderTopWidth: 1, borderTopColor: theme.hairline }} fallbackStyle={{ backgroundColor: theme.bg }}>
+        <Button label={working ? textFor("paste.reading", "Reading...") : textFor("review.title", "Review import")} icon="sparkles" theme={theme} onPress={working ? undefined : analyze} />
+      </LiquidGlassSurface>
     </KeyboardAvoidingView>
   );
 }
 
-function ReviewImport({ data, mutate, nav, theme, currentImport, setCurrentImport, recordReviewTrigger }: ScreenProps) {
+function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, currentImport, setCurrentImport, recordReviewTrigger }: ScreenProps) {
   const batch = currentImport;
   const [applying, setApplying] = useState(false);
   if (!batch) return (
@@ -4821,22 +9624,60 @@ function ReviewImport({ data, mutate, nav, theme, currentImport, setCurrentImpor
           <Text selectable style={{ color: theme.label2, lineHeight: 21, marginTop: 8 }}>{textFor("review.empty_body", "Scan, paste, or upload a syllabus first. Nothing saves until you approve the review rows.")}</Text>
           <Button label={textFor("scan.camera", "Camera")} theme={theme} icon="camera" onPress={() => nav.push("cameraScanner", { mode: "syllabus" })} />
           <Button label={textFor("scan.paste_text", "Paste text")} theme={theme} secondary icon="file" onPress={() => nav.push("paste", { mode: "syllabus" })} />
-          <Button label={textFor("scan.header", "Scan")} theme={theme} secondary icon="scan" onPress={() => nav.push("scan")} />
+          <Button label={textFor("scan.header", "Scan")} theme={theme} secondary icon="scan" onPress={() => nav.tab("scan")} />
         </Card>
       </View>
     </View>
   );
-  const update = (id: string, patch: Partial<ImportCandidate>) => setCurrentImport({ ...batch, candidates: batch.candidates.map((c) => c.id === id ? { ...c, ...patch } : c) });
+  const candidateClassId = (item: ImportCandidate) => {
+    const payloadClassId = (item.payload as any).classId;
+    if (typeof payloadClassId === "string" && payloadClassId.trim()) return payloadClassId.trim();
+    if (item.kind === "class" && typeof (item.payload as any).id === "string") return (item.payload as any).id.trim();
+    return item.classId?.trim() || "";
+  };
+  const requiresResolvedTitle = (item: ImportCandidate) => {
+    if (!item.title.trim()) return true;
+    const payload: any = item.payload;
+    if (item.kind === "class") return !String(payload.code || "").trim() || !String(payload.name || "").trim();
+    return !String(payload.title || "").trim();
+  };
+  const requiresResolvedTime = (item: ImportCandidate) => {
+    if (item.kind === "note") return false;
+    const value = (item.payload as any).time;
+    return typeof value !== "undefined" && Boolean(String(value).trim()) && !isValidPlannerTime(String(value));
+  };
+  const approvedBatchClassIds = (candidates: ImportCandidate[]) => new Set(candidates
+    .filter((candidate) => candidate.kind === "class" && candidate.approved && !requiresResolvedTitle(candidate) && !requiresResolvedTime(candidate))
+    .map(candidateClassId)
+    .filter(Boolean));
+  const requiresResolvedOwner = (item: ImportCandidate, batchClassIds = approvedBatchClassIds(batch.candidates)) => {
+    if (item.kind === "class") return false;
+    const ownerId = candidateClassId(item);
+    return !ownerId || (!data.classes.some((klass) => klass.id === ownerId) && !batchClassIds.has(ownerId));
+  };
+  const update = (id: string, patch: Partial<ImportCandidate>) => {
+    const target = batch.candidates.find((candidate) => candidate.id === id);
+    const revokedClassId = target?.kind === "class" && patch.approved === false ? candidateClassId(target) : "";
+    setCurrentImport({
+      ...batch,
+      candidates: batch.candidates.map((candidate) => {
+        if (candidate.id === id) return { ...candidate, ...patch };
+        if (revokedClassId && candidateClassId(candidate) === revokedClassId) return { ...candidate, approved: false };
+        return candidate;
+      }),
+    });
+  };
   const updateTitle = (item: ImportCandidate, title: string) => {
     const payload: any = { ...item.payload };
     if (item.kind === "class") {
       const [codePart, namePart] = title.split("·").map((part) => part.trim());
-      payload.code = codePart || payload.code;
-      payload.name = namePart || codePart || payload.name;
+      payload.code = codePart || "";
+      payload.name = namePart || codePart || "";
     } else {
       payload.title = title;
     }
-    update(item.id, { title, payload });
+    const nextItem = { ...item, title, payload };
+    update(item.id, { title, payload, ...(requiresResolvedTitle(nextItem) ? { approved: false } : {}) });
   };
   const updatePayload = (item: ImportCandidate, patch: Record<string, unknown>, candidatePatch: Partial<ImportCandidate> = {}) => {
     const payload: any = { ...item.payload, ...patch };
@@ -4852,25 +9693,64 @@ function ReviewImport({ data, mutate, nav, theme, currentImport, setCurrentImpor
     }
     update(item.id, { payload, meta, classId: typeof payload.classId === "string" ? payload.classId : item.classId, ...candidatePatch });
   };
+  const requiresResolvedDate = (item: ImportCandidate) => {
+    if (item.kind !== "task" && item.kind !== "exam") return false;
+    const payload: any = item.payload;
+    return Boolean(payload.missing || payload.invalidDate || !isValidDateInput(typeof payload.dueDate === "string" ? payload.dueDate : ""));
+  };
+  const updateTime = (item: ImportCandidate, time: string) => {
+    const invalid = Boolean(time.trim()) && !isValidPlannerTime(time);
+    updatePayload(item, { time }, invalid ? { approved: false } : {});
+  };
   const updateDueDate = (item: ImportCandidate, value: string) => {
     const clean = value.trim();
     if (!clean) {
-      updatePayload(item, { dueDate: "", missing: true, invalidDate: undefined });
+      updatePayload(item, { dueDate: "", missing: true, invalidDate: undefined }, { approved: false });
       return;
     }
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(clean)) {
+    if (!isValidDateInput(clean)) {
       updatePayload(item, { dueDate: "", missing: true, invalidDate: clean }, { approved: false });
       return;
     }
     updatePayload(item, { dueDate: clean, missing: false, invalidDate: undefined });
   };
-  const approveTrusted = () => setCurrentImport({
-    ...batch,
-    candidates: batch.candidates.map((candidate) => candidate.confidence >= 0.85 && !(candidate.payload as any).invalidDate ? { ...candidate, approved: true } : candidate),
-  });
-  const apply = () => {
+  const approveTrusted = () => {
+    const trustedClassIds = new Set(batch.candidates
+      .filter((candidate) => candidate.kind === "class" && candidate.confidence >= 0.85 && !requiresResolvedTitle(candidate) && !requiresResolvedTime(candidate))
+      .map(candidateClassId)
+      .filter(Boolean));
+    setCurrentImport({
+      ...batch,
+      candidates: batch.candidates.map((candidate) => {
+        const trusted = candidate.confidence >= 0.85
+          && !requiresResolvedTitle(candidate)
+          && !requiresResolvedDate(candidate)
+          && !requiresResolvedTime(candidate)
+          && !requiresResolvedOwner(candidate, trustedClassIds);
+        return trusted ? { ...candidate, approved: true } : candidate;
+      }),
+    });
+  };
+  const removeCandidate = (item: ImportCandidate) => Alert.alert(
+    textFor("review.accessibility_remove", "Remove {title}", { title: item.title }),
+    textFor("review.accessibility_remove_hint", "Deletes this row from the import review."),
+    [
+      { text: textFor("common.cancel", "Cancel"), style: "cancel" },
+      { text: textFor("common.delete", "Delete"), style: "destructive", onPress: () => setCurrentImport({ ...batch, candidates: batch.candidates.filter((candidate) => candidate.id !== item.id) }) },
+    ],
+  );
+  const apply = async () => {
     if (applying) return;
-    const approvedCount = batch.candidates.filter((candidate) => candidate.approved).length;
+    const classIds = approvedBatchClassIds(batch.candidates);
+    const isBlocked = (candidate: ImportCandidate) => requiresResolvedTitle(candidate)
+      || requiresResolvedDate(candidate)
+      || requiresResolvedTime(candidate)
+      || requiresResolvedOwner(candidate, classIds);
+    const reviewBatch: ImportBatch = {
+      ...batch,
+      candidates: batch.candidates.map((candidate) => isBlocked(candidate) ? { ...candidate, approved: false } : candidate),
+    };
+    const approvedCount = reviewBatch.candidates.filter((candidate) => candidate.approved).length;
     if (!approvedCount) {
       Alert.alert(textFor("review.none_selected_title", "Nothing selected"), textFor("review.none_selected_body", "Approve at least one class, assignment, exam, or note before continuing."));
       return;
@@ -4880,51 +9760,119 @@ function ReviewImport({ data, mutate, nav, theme, currentImport, setCurrentImpor
       return;
     }
     setApplying(true);
-    mutate((d) => {
-      const reconciledData = batch.candidates.reduce((current, candidate) => {
+    try {
+      // Preserve the exact reviewed batch first. If the planner write fails or
+      // the app terminates during it, startup can resume this recovery file.
+      await savePendingImport(reviewBatch);
+      const classOwnerAliases = new Map<string, string>();
+      reviewBatch.candidates.forEach((candidate) => {
+        if (!candidate.approved || candidate.kind !== "class" || candidate.reconciliationChoice === "duplicate") return;
+        const match = findImportMatch(data, candidate);
+        const sourceClassId = candidateClassId(candidate);
+        if (match?.kind === "class" && sourceClassId) classOwnerAliases.set(sourceClassId, match.id);
+      });
+      const ownershipResolvedBatch: ImportBatch = {
+        ...reviewBatch,
+        candidates: reviewBatch.candidates.map((candidate) => {
+          if (candidate.kind === "class") return candidate;
+          const resolvedClassId = classOwnerAliases.get(candidateClassId(candidate));
+          return resolvedClassId ? { ...candidate, classId: resolvedClassId, payload: { ...candidate.payload, classId: resolvedClassId } } : candidate;
+        }),
+      };
+      const reconciledData = ownershipResolvedBatch.candidates.reduce((current, candidate) => {
         if (!candidate.approved || candidate.reconciliationChoice !== "update") return current;
         const match = findImportMatch(current, candidate);
         return match ? applyImportUpdateToData(current, candidate, match) : current;
-      }, d);
-      const candidates = batch.candidates.map((candidate) => {
+      }, data);
+      const candidates = ownershipResolvedBatch.candidates.map((candidate) => {
         const match = findImportMatch(reconciledData, candidate);
         if (!candidate.approved || !match) return candidate;
         if (candidate.reconciliationChoice === "duplicate") return candidate;
         return { ...candidate, approved: false };
       });
-      return applyImport(reconciledData, { ...batch, candidates });
-    });
-    setCurrentImport(null);
-    nav.push("success");
-    recordReviewTrigger("import_applied");
+      const appliedSnapshot = applyImport(reconciledData, { ...ownershipResolvedBatch, candidates });
+      await persistPlannerSnapshot(appliedSnapshot);
+      mutate(() => appliedSnapshot, { allowValidatedPremium: true });
+      // Clearing currentImport triggers recovery-file deletion only after the
+      // exact appliedSnapshot has safely reached planner storage.
+      setCurrentImport(null);
+      nav.replaceTop("success");
+      recordReviewTrigger("import_applied");
+    } catch {
+      setApplying(false);
+      Alert.alert(
+        textFor("storage.safe_title", "Your planner is still safe"),
+        "The import could not be saved yet. Your review is still here—try again when device storage is available.",
+      );
+    }
   };
   const groups = ["class", "task", "exam", "note"] as const;
-  const approved = batch.candidates.filter((candidate) => candidate.approved);
+  const currentApprovedClassIds = approvedBatchClassIds(batch.candidates);
+  const candidateIsBlocked = (candidate: ImportCandidate) => requiresResolvedTitle(candidate)
+    || requiresResolvedDate(candidate)
+    || requiresResolvedTime(candidate)
+    || requiresResolvedOwner(candidate, currentApprovedClassIds);
+  const approved = batch.candidates.filter((candidate) => candidate.approved && !candidateIsBlocked(candidate));
   const approvedCount = approved.length;
+  const highConfidenceCount = batch.candidates.filter((candidate) => candidate.confidence >= 0.85 && !candidateIsBlocked(candidate)).length;
+  const unresolvedCount = batch.candidates.filter((candidate) => !candidate.approved || candidateIsBlocked(candidate)).length;
   const classesFound = approved.filter((candidate) => candidate.kind === "class").length;
   const assignmentsFound = approved.filter((candidate) => candidate.kind === "task").length;
   const examsFound = approved.filter((candidate) => candidate.kind === "exam").length;
+  const notesFound = approved.filter((candidate) => candidate.kind === "note").length;
+  const noteTermsFound = Array.from(new Set(approved
+    .filter((candidate) => candidate.kind === "note")
+    .flatMap((candidate) => Array.isArray((candidate.payload as any).terms) ? (candidate.payload as any).terms : [])
+    .map((term) => String(term).trim())
+    .filter(Boolean))).length;
+  const noteSuggestedTasks = approved
+    .filter((candidate) => candidate.kind === "note")
+    .flatMap((candidate) => Array.isArray((candidate.payload as any).suggestedTasks) ? (candidate.payload as any).suggestedTasks : [])
+    .map((task) => String(task).trim())
+    .filter(Boolean);
+  const notesOnlyImport = notesFound > 0 && classesFound === 0 && examsFound === 0;
+  const noteTasksLabel = textFor("note.tasks", "{count} tasks", { count: noteSuggestedTasks.length || assignmentsFound }).replace(String(noteSuggestedTasks.length || assignmentsFound), "").trim() || "tasks";
+  const noteTermsLabel = textFor("note.concepts", "{count} concepts", { count: noteTermsFound }).replace(String(noteTermsFound), "").trim() || "terms";
+  const reviewMetrics = notesOnlyImport
+    ? [
+      { value: notesFound, label: textFor("notes.title", "Notes"), color: COLORS.purple },
+      { value: noteSuggestedTasks.length || assignmentsFound, label: noteTasksLabel, color: COLORS.blue },
+      { value: noteTermsFound, label: noteTermsLabel, color: COLORS.green },
+    ]
+    : [
+      { value: classesFound, label: textFor("review.classes", "classes"), color: COLORS.blue },
+      { value: assignmentsFound, label: textFor("review.assignments", "assignments"), color: COLORS.orange },
+      { value: examsFound, label: textFor("review.exams", "exams"), color: COLORS.purple },
+    ];
   const pressureWeek = assignmentsFound + examsFound >= 5 ? previewText("busy", "Heavy") : assignmentsFound + examsFound >= 2 ? localizedNarrativeText("pressure", "Moderate") : previewText("clear", "Light");
-  const firstAction = approved.find((candidate) => candidate.kind === "task" || candidate.kind === "exam")?.title || textFor("review.first_deadline", "Review your first deadline");
+  const firstAction = notesOnlyImport
+    ? noteSuggestedTasks[0] || approved.find((candidate) => candidate.kind === "task")?.title || textFor("note.open_notes", "Open notes")
+    : approved.find((candidate) => candidate.kind === "task" || candidate.kind === "exam")?.title || textFor("review.first_deadline", "Review your first deadline");
+  const primaryApplyLabel = data.prefs.premium
+    ? textFor("review.apply", "Apply approved items ({count})", { count: approvedCount })
+    : textFor("review.locked_cta", "Unlock to apply plan");
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={textFor("review.title", "Review Import")} />
-      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16, paddingBottom: 118 }}>
+      <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 34 }}>
         <Card theme={theme} style={{ padding: 14, flexDirection: "row", gap: 10, alignItems: "center", marginBottom: 16 }}><Lock color={COLORS.green} size={19} /><Text selectable style={{ color: theme.label, flex: 1, lineHeight: 20 }}><Text style={{ fontWeight: "900" }}>{data.prefs.premium ? textFor("review.guard_active", "Nothing saves until you approve.") : textFor("review.guard_preview", "Preview only.")}</Text> {data.prefs.premium ? textFor("review.guard_active_body", "Edit, remove, or confirm each item.") : textFor("review.guard_preview_body", "Unlock to apply this semester to the real app.")}</Text></Card>
         <Card theme={theme} style={{ padding: 16, marginBottom: 16, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
-          <Text selectable style={{ color: theme.label, fontSize: 19, fontWeight: "900", marginBottom: 12 }}>{textFor("review.found", "StudyPlanner found your semester.")}</Text>
+          <Text selectable style={{ color: theme.label, fontSize: 19, fontWeight: "900", marginBottom: 12 }}>{notesOnlyImport ? textFor("notes.body", "Notes raise Preparedness and sharpen Class Pulse.") : textFor("review.found", "StudyPlanner found your semester.")}</Text>
           <View style={{ flexDirection: "row", gap: 9, marginBottom: 12 }}>
-            <MiniMetric value={classesFound} label={textFor("review.classes", "classes")} color={COLORS.blue} theme={theme} />
-            <MiniMetric value={assignmentsFound} label={textFor("review.assignments", "assignments")} color={COLORS.orange} theme={theme} />
-            <MiniMetric value={examsFound} label={textFor("review.exams", "exams")} color={COLORS.purple} theme={theme} />
+            {reviewMetrics.map((metric) => (
+              <View key={metric.label} style={{ flex: 1, minWidth: 0, borderRadius: 16, backgroundColor: theme.surface2, padding: 12 }}>
+                <Text selectable style={{ color: metric.color, fontSize: 23, fontWeight: "900" }}>{metric.value}</Text>
+                <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ color: theme.label2, fontSize: 12, fontWeight: "800", marginTop: 2 }}>{metric.label}</Text>
+              </View>
+            ))}
           </View>
           <View style={{ padding: 13, borderRadius: 16, backgroundColor: theme.surface2 }}>
-            <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("review.pressure_preview", "Pressure preview")}: {pressureWeek}</Text>
-            <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 4 }}>{textFor("review.first_action", "First recommended action")}: {firstAction}</Text>
+            <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{notesOnlyImport ? textFor("note.generated_assets", "Generated study assets") : textFor("review.pressure_preview", "Pressure preview")}: {notesOnlyImport ? `${textFor("note.flashcards", "Flashcards")} + ${textFor("note.quiz", "Quiz")}` : pressureWeek}</Text>
+            <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 4 }}>{notesOnlyImport ? textFor("note.suggested_tasks", "Suggested study tasks") : textFor("review.first_action", "First recommended action")}: {firstAction}</Text>
           </View>
           <View style={{ flexDirection: "row", gap: 9, marginTop: 12 }}>
-            <View style={{ flex: 1 }}><Button label={textFor("review.approve", "Approve trusted")} theme={theme} icon="target" onPress={approveTrusted} /></View>
-            <View style={{ flex: 1 }}><Button label={textFor("review.manual", "Manual setup")} theme={theme} secondary icon="plus" onPress={() => nav.tab("classes")} /></View>
+            <View style={{ flex: 1 }}><Button label={textFor("review.approve", "Approve trusted")} theme={theme} icon="target" onPress={highConfidenceCount ? approveTrusted : undefined} /></View>
+            <View style={{ flex: 1 }}><Button label={textFor("review.manual", "Manual setup")} theme={theme} secondary icon="plus" onPress={() => nav.push("paste", { mode: "manual" })} /></View>
           </View>
         </Card>
         {batch.candidates.length === 0 || batch.candidates.every((candidate) => candidate.confidence < 0.75) ? (
@@ -4933,8 +9881,9 @@ function ReviewImport({ data, mutate, nav, theme, currentImport, setCurrentImpor
             <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 5 }}>{textFor("review.weak_body", "Use the rows below only if they match the syllabus. You can retry, paste text, or build the semester manually.")}</Text>
             <View style={{ flexDirection: "row", gap: 9, marginTop: 10 }}>
               <View style={{ flex: 1 }}><Button label={textFor("review.retry", "Retry")} theme={theme} icon="refresh" onPress={() => nav.tab("scan")} /></View>
-              <View style={{ flex: 1 }}><Button label={textFor("scan.paste_text", "Paste text")} theme={theme} secondary icon="file" onPress={() => nav.push("paste", { mode: "syllabus" })} /></View>
+              <View style={{ flex: 1 }}><Button label={textFor("scan.paste_text", "Paste text")} theme={theme} secondary icon="file" onPress={() => nav.push("paste", { mode: notesOnlyImport ? "notes" : "syllabus" })} /></View>
             </View>
+            <Button label={textFor("review.manual", "Manual setup")} theme={theme} secondary icon="plus" onPress={() => nav.push("paste", { mode: "manual" })} />
           </Card>
         ) : null}
         {groups.map((kind) => {
@@ -4946,34 +9895,50 @@ function ReviewImport({ data, mutate, nav, theme, currentImport, setCurrentImpor
             const match = findImportMatch(data, item);
             const choice = item.reconciliationChoice || (match ? "keep" : "duplicate");
             const confColor = item.confidence >= 0.9 ? COLORS.green : item.confidence >= 0.75 ? COLORS.blue : COLORS.orange;
-            const invalidDate = typeof payload.invalidDate === "string" && payload.invalidDate.trim();
+            const titleBlocked = requiresResolvedTitle(item);
+            const dateBlocked = requiresResolvedDate(item);
+            const timeBlocked = requiresResolvedTime(item);
+            const ownerBlocked = requiresResolvedOwner(item, currentApprovedClassIds);
+            const rowBlocked = titleBlocked || dateBlocked || timeBlocked || ownerBlocked;
+            const effectivelyApproved = item.approved && !rowBlocked;
+            const blockedHint = titleBlocked
+              ? "Add a specific title before approving this row."
+              : dateBlocked
+                ? textFor("review.invalid_date", "Enter a valid YYYY-MM-DD date before approving this row.")
+                : timeBlocked
+                  ? "Use a real time such as 9:00 AM or 17:00 before approving this row."
+                  : ownerBlocked
+                    ? "Assign this row to an existing class or approve its matching class first."
+                    : textFor("review.accessibility_toggle_apply", "Toggle whether this row will be applied.");
             return (
-              <View key={item.id} style={{ padding: 13, opacity: item.approved ? 1 : 0.45, borderBottomWidth: 1, borderBottomColor: theme.hairline }}>
+              <View key={item.id} style={{ padding: 13, opacity: effectivelyApproved ? 1 : 0.45, borderBottomWidth: 1, borderBottomColor: theme.hairline }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 11 }}>
                   <ClassGlyph c={rowClass} size={32} />
                   <View style={{ flex: 1 }}>
-                    <TextInput accessibilityLabel={`${localizedKindLabel(item.kind)} title`} accessibilityHint="Edit the imported row title before approving it." value={item.title} onChangeText={(title) => updateTitle(item, title)} style={{ color: theme.label, fontSize: 14.5, fontWeight: "900", padding: 0 }} />
-                    <Text selectable numberOfLines={1} style={{ color: theme.label2 }}>{item.meta}</Text>
+                    <TextInput accessibilityLabel={textFor("review.accessibility_title", "{kind} title", { kind: localizedKindLabel(item.kind) })} accessibilityHint={textFor("review.accessibility_title_hint", "Edit the imported row title before approving it.")} value={item.title} onChangeText={(title) => updateTitle(item, title)} style={{ color: theme.label, fontSize: 14.5, fontWeight: "900", padding: 0 }} />
+                    <Text selectable numberOfLines={2} style={{ color: theme.label2, lineHeight: 17 }}><Text style={{ color: confColor, fontWeight: "900" }}>{item.confidence >= 0.9 ? textFor("review.high", "High") : item.confidence >= 0.75 ? textFor("review.good", "Good") : textFor("review.title", "Review")}</Text>{` · ${item.meta}`}</Text>
                   </View>
-                  <Pill text={item.confidence >= 0.9 ? textFor("review.high", "High") : item.confidence >= 0.75 ? textFor("review.good", "Good") : textFor("review.title", "Review")} color={confColor} theme={theme} />
-                  <Pressable accessibilityRole="checkbox" accessibilityLabel={`${item.approved ? "Unapprove" : "Approve"} ${item.title}`} accessibilityHint={invalidDate ? textFor("review.invalid_date", "Enter a valid YYYY-MM-DD date before approving this row.") : "Toggle whether this row will be applied."} accessibilityState={{ checked: item.approved, disabled: Boolean(invalidDate) }} disabled={Boolean(invalidDate)} onPress={() => update(item.id, { approved: !item.approved })}>{item.approved ? <CheckCircle2 color={COLORS.green} /> : <Circle color={invalidDate ? COLORS.orange : theme.label3} />}</Pressable>
-                  <Pressable accessibilityRole="button" accessibilityLabel={`Remove ${item.title}`} accessibilityHint="Deletes this row from the import review." onPress={() => setCurrentImport({ ...batch, candidates: batch.candidates.filter((c) => c.id !== item.id) })}><Trash2 color={theme.label3} size={19} /></Pressable>
+                  <Pressable accessibilityRole="checkbox" accessibilityLabel={effectivelyApproved ? textFor("review.accessibility_unapprove", "Unapprove {title}", { title: item.title }) : textFor("review.accessibility_approve", "Approve {title}", { title: item.title || localizedKindLabel(item.kind) })} accessibilityHint={blockedHint} accessibilityState={{ checked: effectivelyApproved, disabled: rowBlocked }} disabled={rowBlocked} onPress={() => update(item.id, { approved: !item.approved })}>{effectivelyApproved ? <CheckCircle2 color={COLORS.green} /> : <Circle color={rowBlocked ? COLORS.orange : theme.label3} />}</Pressable>
+                  <Pressable accessibilityRole="button" accessibilityLabel={textFor("review.accessibility_remove", "Remove {title}", { title: item.title })} accessibilityHint={textFor("review.accessibility_remove_hint", "Deletes this row from the import review.")} hitSlop={10} onPress={() => removeCandidate(item)}><Trash2 color={theme.label3} size={19} /></Pressable>
                 </View>
                 {item.confidence < 0.75 ? <Text selectable style={{ color: COLORS.orange, marginTop: 8, fontWeight: "800" }}>{textFor("review.needs_review", "Needs review")}: {textFor("review.needs_review_body", "StudyPlanner is not confident this row is complete.")}</Text> : null}
-                {invalidDate ? <Text selectable accessibilityRole="alert" style={{ color: COLORS.orange, marginTop: 8, fontWeight: "900" }}>{textFor("review.invalid_date", "Enter a valid YYYY-MM-DD date before approving this row.")}</Text> : null}
+                {titleBlocked ? <Text selectable accessibilityRole="alert" style={{ color: COLORS.orange, marginTop: 8, fontWeight: "900" }}>Add a specific {localizedKindLabel(item.kind).toLowerCase()} title before approving this row.</Text> : null}
+                {dateBlocked ? <Text selectable accessibilityRole="alert" style={{ color: COLORS.orange, marginTop: 8, fontWeight: "900" }}>{textFor("review.invalid_date", "Enter a valid YYYY-MM-DD date before approving this row.")}</Text> : null}
+                {timeBlocked ? <Text selectable accessibilityRole="alert" style={{ color: COLORS.orange, marginTop: 8, fontWeight: "900" }}>Use a real time such as 9:00 AM or 17:00 before approving this row.</Text> : null}
+                {ownerBlocked ? <Text selectable accessibilityRole="alert" style={{ color: COLORS.orange, marginTop: 8, fontWeight: "900" }}>Assign this row to an existing class or approve its matching class first. Orphaned rows are never attached automatically.</Text> : null}
                 {match ? (
                   <View style={{ marginTop: 10, padding: 12, borderRadius: 14, backgroundColor: theme.surface2 }}>
-	                    <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("review.needs_review", "Needs review")}: {match.label}</Text>
+	                    <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("review.existing_found", "Existing item found")}: {match.label}</Text>
                     {match.oldDate && match.newDate && match.oldDate !== match.newDate ? <Text selectable style={{ color: COLORS.orange, fontWeight: "900", marginTop: 4 }}>{match.oldDate} to {match.newDate}</Text> : null}
                     <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 4 }}>{textFor("review.reconcile_hint", "Choose how to handle this import row. StudyPlanner will not overwrite or duplicate it silently.")}</Text>
-                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
+                    <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
                       {[
-	                        ["keep", textFor("common.close", "Keep existing")],
-	                        ["update", textFor("common.edit", "Update existing")],
-	                        ["duplicate", textFor("common.save", "Create duplicate")],
+                        ["keep", textFor("review.keep_existing", "Keep existing")],
+	                        ["update", textFor("review.update_existing", "Update existing")],
+	                        ["duplicate", textFor("review.create_duplicate", "Create duplicate")],
                       ].map(([value, label]) => (
-                        <Pressable key={value} accessibilityRole="button" accessibilityLabel={`${label} for ${item.title}`} accessibilityState={{ selected: choice === value }} onPress={() => update(item.id, { reconciliationChoice: value as ImportCandidate["reconciliationChoice"], approved: !invalidDate })} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: choice === value ? theme.accent : theme.surface }}>
-                          <Text style={{ color: choice === value ? "#fff" : theme.label, fontWeight: "900" }}>{label}</Text>
+                        <Pressable key={value} accessibilityRole="button" accessibilityLabel={`${label} for ${item.title}`} accessibilityState={{ selected: choice === value }} onPress={() => update(item.id, { reconciliationChoice: value as ImportCandidate["reconciliationChoice"], approved: !dateBlocked })} style={{ flex: 1, minWidth: 0, minHeight: 48, paddingHorizontal: 7, paddingVertical: 8, borderRadius: 14, backgroundColor: choice === value ? theme.accent : theme.surface, alignItems: "center", justifyContent: "center" }}>
+                          <Text numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.72} style={{ color: choice === value ? "#fff" : theme.label, fontSize: 12, lineHeight: 15, fontWeight: "900", textAlign: "center" }}>{label}</Text>
                         </Pressable>
                       ))}
                     </View>
@@ -4982,12 +9947,12 @@ function ReviewImport({ data, mutate, nav, theme, currentImport, setCurrentImpor
                 {item.kind === "class" ? (
                   <View style={{ marginTop: 10 }}>
                     <View style={{ flexDirection: "row", gap: 8 }}>
-	                      <View style={{ flex: 1 }}><FieldInput label={textFor("class.schedule", "Days")} value={payload.days || ""} onChangeText={(days) => updatePayload(item, { days })} theme={theme} /></View>
-	                      <View style={{ flex: 1 }}><FieldInput label={textFor("class.schedule", "Time")} value={payload.time || ""} onChangeText={(time) => updatePayload(item, { time })} theme={theme} /></View>
+	                      <View style={{ flex: 1 }}><FieldInput label={textFor("class.days", "Days")} value={payload.days || ""} onChangeText={(days) => updatePayload(item, { days })} theme={theme} /></View>
+	                      <View style={{ flex: 1 }}><FieldInput label={textFor("class.time", "Time")} value={payload.time || ""} onChangeText={(time) => updateTime(item, time)} theme={theme} /></View>
                     </View>
                     <View style={{ flexDirection: "row", gap: 8 }}>
 	                      <View style={{ flex: 1 }}><FieldInput label={textFor("assessment.room", "Room")} value={payload.room || ""} onChangeText={(room) => updatePayload(item, { room })} theme={theme} /></View>
-	                      <View style={{ flex: 1 }}><FieldInput label={textFor("class.schedule", "Professor")} value={payload.professor || ""} onChangeText={(professor) => updatePayload(item, { professor })} theme={theme} /></View>
+	                      <View style={{ flex: 1 }}><FieldInput label={textFor("class.professor", "Professor")} value={payload.professor || ""} onChangeText={(professor) => updatePayload(item, { professor })} theme={theme} /></View>
                     </View>
                   </View>
                 ) : null}
@@ -4995,7 +9960,7 @@ function ReviewImport({ data, mutate, nav, theme, currentImport, setCurrentImpor
                   <View style={{ marginTop: 10 }}>
                     <View style={{ flexDirection: "row", gap: 8 }}>
 	                      <View style={{ flex: 1 }}><FieldInput label={textFor("task.due", "Due date")} value={payload.missing ? "" : payload.dueDate || ""} onChangeText={(dueDate) => updateDueDate(item, dueDate)} placeholder="YYYY-MM-DD" theme={theme} /></View>
-	                      <View style={{ flex: 1 }}><FieldInput label={textFor("class.schedule", "Time")} value={payload.time || ""} onChangeText={(time) => updatePayload(item, { time })} theme={theme} /></View>
+	                      <View style={{ flex: 1 }}><FieldInput label={textFor("class.time", "Time")} value={payload.time || ""} onChangeText={(time) => updateTime(item, time)} theme={theme} /></View>
                     </View>
 	                    {payload.missing ? <Text selectable style={{ color: COLORS.orange, fontWeight: "900", marginBottom: 8 }}>{textFor("task.save_awaiting", "Awaiting Date")}</Text> : null}
                     {item.kind === "task" ? (
@@ -5014,12 +9979,23 @@ function ReviewImport({ data, mutate, nav, theme, currentImport, setCurrentImpor
                     ) : null}
                   </View>
                 ) : null}
+                {item.kind === "note" && data.classes.length ? (
+                  <View style={{ marginTop: 10 }}>
+                    <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("tabs.classes", "Class")}</Text>
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{data.classes.filter((klass) => !klass.archivedAt).map((klass) => (
+                      <Pressable key={klass.id} accessibilityRole="button" accessibilityLabel={`Assign ${item.title} to ${klass.code}`} accessibilityState={{ selected: (payload.classId || item.classId) === klass.id }} onPress={() => updatePayload(item, { classId: klass.id })} style={{ paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999, backgroundColor: (payload.classId || item.classId) === klass.id ? klass.color : theme.surface2 }}><Text style={{ color: (payload.classId || item.classId) === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
+                    ))}</View>
+                  </View>
+                ) : null}
               </View>
             );
           })}</Card></View>;
         })}
+        <Card theme={theme} style={{ padding: 16, marginBottom: 8 }}>
+          <Button label={applying ? textFor("review.applying", "Applying...") : primaryApplyLabel} icon={data.prefs.premium ? "target" : "crown"} theme={theme} onPress={approvedCount && !applying ? apply : undefined} />
+          <Text selectable accessibilityLiveRegion="polite" style={{ color: approvedCount ? theme.label2 : COLORS.orange, textAlign: "center", marginTop: 8 }}>{approvedCount ? `${textFor("review.approved_footer", "{count} approved items · {state}", { count: approvedCount, state: data.prefs.premium ? textFor("review.editable_later", "editable later") : textFor("review.locked_until_premium", "locked until premium") })}${unresolvedCount ? ` · ${unresolvedCount} ${textFor("review.needs_review", "need review")}` : ""}` : textFor("review.approve_one", "Approve at least one item to continue")}</Text>
+        </Card>
       </ScrollView>
-      <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: 16, paddingBottom: 34, backgroundColor: theme.surface, borderTopWidth: 1, borderTopColor: theme.hairline }}><Button label={applying ? textFor("review.applying", "Applying...") : data.prefs.premium ? textFor("review.apply", "Apply schedule") : textFor("review.unlock", "Unlock my semester")} icon={data.prefs.premium ? "target" : "crown"} theme={theme} onPress={approvedCount ? apply : undefined} /><Text selectable style={{ color: approvedCount ? theme.label2 : COLORS.orange, textAlign: "center", marginTop: 8 }}>{approvedCount ? textFor("review.approved_footer", "{count} approved items · {state}", { count: approvedCount, state: data.prefs.premium ? textFor("review.editable_later", "editable later") : textFor("review.locked_until_premium", "locked until premium") }) : textFor("review.approve_one", "Approve at least one item to continue")}</Text></View>
     </View>
   );
 }
@@ -5027,12 +10003,16 @@ function ReviewImport({ data, mutate, nav, theme, currentImport, setCurrentImpor
 function ApplySuccess({ data, nav, theme }: ScreenProps) {
   const semester = buildSemesterSnapshot(data);
   const narrative = buildSemesterNarrative(data, semester);
+  const widgetSnapshots = buildNativeWidgetSnapshots(data, widgetCopyFor);
+  const semesterTheme = resolveSemesterThemeColor("graphite");
+  const successCoursePalette = semesterTheme.courseColors.length >= 4 ? semesterTheme.courseColors : [COLORS.ink, COLORS.blue, COLORS.green, COLORS.orange];
+  const firstFocusBlock = data.studyBlocks.find((block) => !block.completed) || data.studyBlocks[0];
   const [step, setStep] = useState(0);
   const pulse = useRef(new Animated.Value(0)).current;
-  const steps = [textFor("success.step_reading", "Reading syllabus"), textFor("success.step_deadlines", "Finding deadlines"), textFor("success.step_schedule", "Building schedule"), textFor("success.step_health", "Calculating Semester Health"), textFor("success.step_next", "Preparing next move")];
+  const steps = [textFor("success.step_reading", "Reading scan"), textFor("success.step_deadlines", "Finding deadlines and notes"), textFor("success.step_schedule", "Building plan"), textFor("success.step_health", "Updating Today and widgets"), textFor("success.step_next", "Preparing next move")];
   useEffect(() => {
     if (step >= steps.length) return;
-    const id = setTimeout(() => setStep((current) => current + 1), 360);
+    const id = setTimeout(() => setStep((current) => current + 1), 260);
     return () => clearTimeout(id);
   }, [step]);
   const ready = step >= steps.length;
@@ -5043,18 +10023,25 @@ function ApplySuccess({ data, nav, theme }: ScreenProps) {
   }, [pulse, ready]);
   const pulseScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.82, 1.18] });
   const pulseOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.22, 0] });
+  const successLoopRadius = 19;
+  const successLoopCircumference = 2 * Math.PI * successLoopRadius;
+  const successLoops = [
+    { label: textFor("review.classes", "classes"), value: narrative.importSummary.classes, color: successCoursePalette[1], progress: 0.86 },
+    { label: textFor("tasks.title", "Tasks"), value: narrative.importSummary.assignments, color: successCoursePalette[2], progress: 0.68 },
+    { label: textFor("review.exams", "exams"), value: narrative.importSummary.exams, color: successCoursePalette[3], progress: 0.52 },
+  ];
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingTop: 80, paddingHorizontal: 22, paddingBottom: 34, gap: 16 }}>
         <View style={{ alignItems: "center", marginBottom: 4 }}>
           <View style={{ width: 104, height: 104, marginBottom: 22, alignItems: "center", justifyContent: "center" }}>
-            {ready ? <Animated.View style={{ position: "absolute", width: 104, height: 104, borderRadius: 34, backgroundColor: COLORS.green, opacity: pulseOpacity, transform: [{ scale: pulseScale }] }} /> : null}
-            <View style={{ width: 104, height: 104, borderRadius: 34, backgroundColor: ready ? COLORS.green : theme.surface, borderWidth: 1, borderColor: ready ? COLORS.green : theme.hairline, alignItems: "center", justifyContent: "center" }}>
+            {ready ? <Animated.View style={{ position: "absolute", width: 104, height: 104, borderRadius: 34, backgroundColor: semesterTheme.accent, opacity: pulseOpacity, transform: [{ scale: pulseScale }] }} /> : null}
+            <View style={{ width: 104, height: 104, borderRadius: 34, backgroundColor: ready ? semesterTheme.accent : theme.surface, borderWidth: 1, borderColor: ready ? semesterTheme.accent : theme.hairline, alignItems: "center", justifyContent: "center" }}>
             {ready ? <Check color="#fff" size={58} strokeWidth={2.4} /> : <ActivityIndicator color={theme.accent} />}
             </View>
           </View>
-          <Text selectable style={{ color: theme.label, fontSize: 34, lineHeight: 37, fontWeight: "900", textAlign: "center" }}>{ready ? textFor("success.ready", "Semester Ready") : steps[Math.min(step, steps.length - 1)]}</Text>
-          <Text selectable style={{ color: theme.label2, textAlign: "center", lineHeight: 21, marginTop: 8 }}>{ready ? textFor("success.built", "Built from your syllabus.") : textFor("success.building", "One local plan is taking shape.")}</Text>
+          <Text selectable accessibilityRole="header" accessibilityLiveRegion="polite" style={{ color: theme.label, fontSize: 34, lineHeight: 37, fontWeight: "900", textAlign: "center" }}>{ready ? textFor("success.ready", "Semester Ready") : steps[Math.min(step, steps.length - 1)]}</Text>
+          <Text selectable style={{ color: theme.label2, textAlign: "center", lineHeight: 21, marginTop: 8 }}>{ready ? textFor("success.built", "Saved from your approved scan.") : textFor("success.building", "One local plan is taking shape.")}</Text>
         </View>
         {ready ? (
           <>
@@ -5062,17 +10049,53 @@ function ApplySuccess({ data, nav, theme }: ScreenProps) {
               <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10 }}>
                 {[
 	                  [narrative.importSummary.classes, textFor("review.classes", "classes"), COLORS.blue],
-	                  [narrative.importSummary.assignments, textFor("review.assignments", "assignments"), COLORS.orange],
-	                  [narrative.importSummary.exams, textFor("review.exams", "exams"), COLORS.purple],
-	                  [narrative.importSummary.highPressureWeeks, textFor("today.next_30", "pressure weeks"), COLORS.red],
-                ].map(([value, label, color]) => (
-                  <View key={label as string} style={{ flex: 1 }}>
-                    <Text selectable style={{ color: color as string, fontSize: 24, fontWeight: "900" }}>{value}</Text>
-                    <Text selectable numberOfLines={1} style={{ color: theme.label2, fontSize: 12, fontWeight: "800" }}>{label}</Text>
+		                  [narrative.importSummary.assignments, textFor("tasks.title", "Tasks"), COLORS.orange],
+		                  [narrative.importSummary.exams, textFor("review.exams", "exams"), COLORS.purple],
+		                  [narrative.importSummary.highPressureWeeks, textFor("success.metric_30d", "30d"), COLORS.red],
+	                ].map(([value, label, color], index) => (
+	                  <View key={`success-metric-${index}`} style={{ flex: 1 }}>
+	                    <Text selectable style={{ color: color as string, fontSize: 24, fontWeight: "900" }}>{value}</Text>
+	                    <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78} style={{ color: theme.label2, fontSize: 12, fontWeight: "800" }}>{label}</Text>
+	                  </View>
+	                ))}
+              </View>
+            </Card>
+            <LiquidGlassSurface tintColor="rgba(255,255,255,0.72)" style={{ borderRadius: 22, padding: 16, backgroundColor: "#F7F7FA", borderWidth: 1, borderColor: "rgba(17,17,20,0.10)", gap: 12 }} fallbackStyle={{ backgroundColor: "#F7F7FA" }}>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <View style={{ flex: 1 }}>
+                  <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("success.theme_kicker", "SYSTEM APPLIED")}</Text>
+                  <Text selectable style={{ color: theme.label, fontSize: 20, lineHeight: 24, fontWeight: "900", marginTop: 3 }}>{textFor("success.theme_title", "White system, class colors")}</Text>
+                  <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 4 }}>{textFor("success.theme_body", "Dashboard, focus blocks, classes, and widgets keep black controls with automatic course colors for context.")}</Text>
+                </View>
+                <View style={{ width: 58, height: 58, borderRadius: 20, backgroundColor: "#111114", alignItems: "center", justifyContent: "center" }}>
+                  <Icon name="sparkles" color={semesterTheme.foreground} size={25} />
+                </View>
+              </View>
+              <View style={{ flexDirection: "row", gap: 10 }}>
+                {successLoops.map((item) => (
+                  <View key={`success-loop-${item.label}`} style={{ flex: 1, minHeight: 76, borderRadius: 18, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "rgba(17,17,20,0.10)", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                    <Svg width={48} height={48} viewBox="0 0 48 48">
+                      <SvgCircle cx={24} cy={24} r={successLoopRadius} stroke="rgba(17,17,20,0.08)" strokeWidth={7} fill="none" />
+                      <SvgCircle
+                        cx={24}
+                        cy={24}
+                        r={successLoopRadius}
+                        stroke={item.color}
+                        strokeWidth={7}
+                        strokeLinecap="round"
+                        fill="none"
+                        strokeDasharray={`${successLoopCircumference} ${successLoopCircumference}`}
+                        strokeDashoffset={successLoopCircumference * (1 - item.progress)}
+                        transform="rotate(-90 24 24)"
+                      />
+                    </Svg>
+                    <Text selectable numberOfLines={1} style={{ color: theme.label, fontSize: 13, fontWeight: "900" }}>{item.value}</Text>
+                    <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ color: theme.label2, fontSize: 10, fontWeight: "800" }}>{item.label}</Text>
                   </View>
                 ))}
               </View>
-            </Card>
+              <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "800" }}>{textFor("success.theme_proof", "No color setup required. Course colors stay automatic for classes and widgets.")}</Text>
+            </LiquidGlassSurface>
             <Card theme={theme} style={{ padding: 18 }}>
 	              <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 6 }}>{textFor("locked.health", "SEMESTER HEALTH")}</Text>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
@@ -5090,13 +10113,42 @@ function ApplySuccess({ data, nav, theme }: ScreenProps) {
 	              <Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 18 }}>{textFor("today.next_move", "Next Move")}</Text>
 	              <Text selectable style={{ color: theme.label2, lineHeight: 21, marginTop: 5 }}>{localizedNarrativeText("next", narrative.nextMoveLabel)}. {localizedNarrativeText("detail", narrative.nextMoveDetail)}</Text>
             </Card>
-	            {!data.prefs.premium ? <Text selectable style={{ color: theme.label2, textAlign: "center", lineHeight: 20 }}>{textFor("paywall.sub_import", "Your preview is ready. Unlock to apply it to the live dashboard, reminders, and widgets.")}</Text> : null}
-	            <Button label={data.prefs.premium ? textFor("success.open_dashboard", "Open dashboard") : textFor("success.continue", "Continue")} theme={theme} onPress={() => data.prefs.premium ? nav.tab("today") : nav.push("paywall")} />
+            {firstFocusBlock ? (
+              <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#172019" : "#F1FFF6" }}>
+                <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+                  <View style={{ width: 46, height: 46, borderRadius: 16, backgroundColor: `${COLORS.green}1F`, alignItems: "center", justifyContent: "center" }}>
+                    <Icon name="timer" color={COLORS.green} size={22} />
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("success.first_focus_kicker", "FIRST FOCUS BLOCK")}</Text>
+                    <Text selectable numberOfLines={2} style={{ color: theme.label, fontSize: 18, lineHeight: 22, fontWeight: "900", marginTop: 3 }}>{firstFocusBlock.title}</Text>
+                    <Text selectable numberOfLines={1} style={{ color: theme.label2, marginTop: 3 }}>{localizedStudyBlockDay(firstFocusBlock.day)} · {firstFocusBlock.time} · {minutesLabel(firstFocusBlock.minutes)}</Text>
+                  </View>
+                </View>
+                <Button label={textFor("success.start_focus", "Start first focus block")} theme={theme} icon="play" onPress={() => nav.push("studySession", { id: firstFocusBlock.id })} />
+              </Card>
+            ) : null}
+            <LiquidGlassSurface tintColor={`${widgetSnapshots.week.accentColor}18`} style={{ borderRadius: 22, padding: 16, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.hairline }} fallbackStyle={{ backgroundColor: theme.surface }}>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12, gap: 12 }}>
+                <View style={{ flex: 1 }}>
+                  <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("success.widgets_kicker", "RECOMMENDED WIDGET")}</Text>
+                  <Text selectable style={{ color: theme.label, fontSize: 20, lineHeight: 24, fontWeight: "900", marginTop: 3 }}>{textFor("success.calendar_widget_title", "Semester calendar widget")}</Text>
+                  <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 3 }}>{textFor("success.calendar_widget_body", "See this week, exam markers, and pressure days before opening the app.")}</Text>
+                </View>
+                <Pill text={textFor("widgets.ready", "ready")} color={COLORS.green} theme={theme} icon="grid" />
+              </View>
+              <View style={{ alignItems: "center" }}>
+                <NativeHomeWidgetPreview snapshot={widgetSnapshots.week} family="systemMedium" />
+              </View>
+	              <Button label={textFor("success.set_up_widgets", "Set up widgets")} theme={theme} icon="grid" onPress={() => nav.push("widgets")} />
+            </LiquidGlassSurface>
+	            {!data.prefs.premium ? <Text selectable style={{ color: theme.label2, textAlign: "center", lineHeight: 20 }}>{textFor("paywall.sub_import", "Your preview is ready. Unlock, return to Review, then approve it for the live dashboard, reminders, and widgets.")}</Text> : null}
+	            <Button label={data.prefs.premium ? textFor("success.open_dashboard", "Open dashboard") : textFor("success.continue", "Continue")} theme={theme} icon="home" onPress={() => data.prefs.premium ? nav.tab("today") : nav.push("paywall")} />
           </>
         ) : (
           <Card theme={theme} style={{ padding: 16 }}>
             {steps.map((label, index) => (
-              <View key={label} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 7 }}>
+              <View key={`success-step-${index}`} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 7 }}>
                 {index < step ? <CheckCircle2 color={COLORS.green} size={18} /> : <Circle color={theme.label3} size={18} />}
                 <View style={{ flex: 1 }}>
                   <Text selectable style={{ color: index <= step ? theme.label : theme.label2, fontWeight: "800" }}>{label}</Text>
@@ -5149,8 +10201,8 @@ function Plan({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
   const leading = (monthStart.getDay() + 6) % 7;
   const cells = Array.from({ length: 42 }, (_, index) => index - leading + 1);
-  const isoForDay = (day: number) => new Date(today.getFullYear(), today.getMonth(), day).toISOString().slice(0, 10);
-  const selectedIso = isoForDay(selectedDay);
+  const dateForDay = (day: number) => new Date(today.getFullYear(), today.getMonth(), day, 12, 0, 0);
+  const isoForDay = (day: number) => localDateKey(dateForDay(day));
   const itemsForDay = (day: number) => {
     if (day < 1 || day > daysInMonth) return { tasks: [], exams: [], notes: [], blocks: [] as StudyBlock[] };
     const iso = isoForDay(day);
@@ -5166,32 +10218,49 @@ function Plan({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
     const items = itemsForDay(day);
     return sum + items.tasks.length + items.exams.length * 2 + items.blocks.length;
   }, 0);
+  const calendarLegend: [string, string, string][] = [
+    [COLORS.purple, textFor("review.exams", "Exams"), "◆"],
+    [COLORS.orange, textFor("tasks.title", "Tasks"), "■"],
+    [COLORS.green, textFor("plan.focus_blocks", "Focus blocks"), "●"],
+    [COLORS.blue, textFor("notes.title", "Notes"), "▬"],
+  ];
   return (
     <Screen theme={theme}>
-      <Header title={textFor("plan.title", "Plan")} sub={`${localizedNarrativeText("state", narrative.state)} · ${textFor("plan.sub_suffix", "semester autopilot")}`} theme={theme} right={<Pressable onPress={rebuild} style={{ padding: 10, backgroundColor: theme.surface, borderRadius: 99 }}><RefreshCw color={theme.accent} size={20} /></Pressable>} />
+      <Header title={textFor("plan.title", "Plan")} sub={`${localizedNarrativeText("state", narrative.state)} · ${textFor("plan.sub_suffix", "semester autopilot")}`} theme={theme} />
       <View style={{ paddingHorizontal: 16, gap: 16 }}>
         <Card theme={theme} style={{ padding: 14 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <View><Text selectable style={{ color: theme.label, fontSize: 22, fontWeight: "900" }}>{monthLabel}</Text><Text selectable style={{ color: theme.label2, marginTop: 2 }}>{monthPressure} {previewMetricLabel("signals", "signals")} · {localizedNarrativeText("pressure", narrative.pressureLabel)}</Text></View>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+            <Text selectable numberOfLines={1} style={{ color: theme.label, fontSize: 22, fontWeight: "900", flexShrink: 1 }}>{monthLabel}</Text>
             <Pill text={textFor("plan.notes_feed", "{count} notes feed plan", { count: liveData.notes.length })} color={COLORS.purple} theme={theme} icon="note" />
           </View>
+          <Text selectable style={{ color: theme.label2, marginTop: 2, marginBottom: 12 }}>{monthPressure} {textFor("plan.pressure_points", "pressure points")} · {localizedNarrativeText("pressure", narrative.pressureLabel)}</Text>
           <View style={{ flexDirection: "row", marginBottom: 6 }}>{Array.from({ length: 7 }, (_value, index) => localizedWeekdayNarrow(index)).map((d, index) => <Text key={`${d}${index}`} style={{ flex: 1, textAlign: "center", color: theme.label2, fontWeight: "900", fontSize: 12 }}>{d}</Text>)}</View>
           <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
             {cells.map((day, index) => {
               const inMonth = day >= 1 && day <= daysInMonth;
+              if (!inMonth) return <View key={index} importantForAccessibility="no-hide-descendants" style={{ width: "14.285%", minHeight: 56 }} />;
               const selected = day === selectedDay;
               const isToday = day === today.getDate();
               const items = itemsForDay(day);
               const pressure = items.tasks.length + items.exams.length * 2 + items.blocks.length + items.notes.length;
+              const dateLabel = dateForDay(day).toLocaleDateString(appLocale(), { weekday: "long", month: "long", day: "numeric" });
+              const eventCount = items.tasks.length + items.exams.length + items.blocks.length + items.notes.length;
+              const eventCategorySummary = ([
+                [items.exams.length, textFor("review.exams", "Exams")],
+                [items.tasks.length, textFor("tasks.title", "Tasks")],
+                [items.blocks.length, textFor("plan.focus_blocks", "Focus blocks")],
+                [items.notes.length, textFor("notes.title", "Notes")],
+              ] as [number, string][]).filter(([count]) => count > 0).map(([count, label]) => `${count} ${label}`).join(", ");
               return (
-                <Pressable key={index} onPress={() => inMonth && setSelectedDay(day)} style={{ width: "14.285%", padding: 3 }}>
+                <Pressable key={index} accessibilityRole="button" accessibilityLabel={`${dateLabel}. ${eventCount} ${previewMetricLabel("signals", "items")}${eventCategorySummary ? `. ${eventCategorySummary}` : ""}`} accessibilityHint={textFor("plan.accessibility_select_day_hint", "Show planner items for this day")} accessibilityState={{ selected }} onPress={() => setSelectedDay(day)} style={{ width: "14.285%", minHeight: 56, padding: 3 }}>
                   <View style={{ minHeight: 50, borderRadius: 12, padding: 5, alignItems: "center", justifyContent: "center", backgroundColor: selected ? theme.accent : isToday ? `${theme.accent}22` : "transparent", opacity: inMonth ? 1 : 0.25 }}>
                     <Text style={{ color: selected ? "#fff" : theme.label, fontWeight: selected || isToday ? "900" : "700", fontSize: 13 }}>{inMonth ? day : ""}</Text>
-                    <View style={{ flexDirection: "row", gap: 2, minHeight: 6, marginTop: 4 }}>
-                      {items.exams.length ? <View style={{ width: 5, height: 5, borderRadius: 99, backgroundColor: selected ? "#fff" : COLORS.purple }} /> : null}
-                      {items.tasks.length ? <View style={{ width: 5, height: 5, borderRadius: 99, backgroundColor: selected ? "#fff" : COLORS.orange }} /> : null}
-                      {items.blocks.length ? <View style={{ width: 5, height: 5, borderRadius: 99, backgroundColor: selected ? "#fff" : COLORS.green }} /> : null}
-                      {items.notes.length ? <View style={{ width: 5, height: 5, borderRadius: 99, backgroundColor: selected ? "#fff" : COLORS.blue }} /> : null}
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 2, minHeight: 7, marginTop: 4 }}>
+                      {items.exams.length ? <Text accessible={false} style={{ color: selected ? "#fff" : COLORS.purple, fontSize: 7, lineHeight: 7 }}>◆</Text> : null}
+                      {items.tasks.length ? <Text accessible={false} style={{ color: selected ? "#fff" : COLORS.orange, fontSize: 7, lineHeight: 7 }}>■</Text> : null}
+                      {items.blocks.length ? <Text accessible={false} style={{ color: selected ? "#fff" : COLORS.green, fontSize: 7, lineHeight: 7 }}>●</Text> : null}
+                      {items.notes.length ? <Text accessible={false} style={{ color: selected ? "#fff" : COLORS.blue, fontSize: 7, lineHeight: 7 }}>▬</Text> : null}
+                      {eventCount ? <Text accessible={false} style={{ color: selected ? "#fff" : theme.label2, fontSize: 10, lineHeight: 11, fontWeight: "900", marginLeft: 1 }}>{eventCount}</Text> : null}
                     </View>
                     {pressure > 3 ? <Text style={{ color: selected ? "#fff" : COLORS.red, fontSize: 9, fontWeight: "900", marginTop: 1 }}>{previewMetricLabel("busy", "busy")}</Text> : null}
                   </View>
@@ -5199,43 +10268,73 @@ function Plan({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
               );
             })}
           </View>
+          <View accessibilityRole="summary" style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginTop: 10 }}>
+            {calendarLegend.map(([color, label, marker]) => <View key={label} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}><Text accessible={false} style={{ color, fontSize: 10, lineHeight: 10 }}>{marker}</Text><Text selectable style={{ color: theme.label2, fontSize: 11, fontWeight: "800" }}>{label}</Text></View>)}
+          </View>
         </Card>
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("plan.autopilot", "Autopilot")}</Text></View><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{localizedNarrativeText("next", narrative.nextMoveLabel)}. {localizedNarrativeText("detail", narrative.nextMoveDetail)}</Text><Text selectable style={{ color: theme.label2, marginTop: 7 }}>{localizedNarrativeText("driver", narrative.primaryDriver)}</Text>{semester.schedulePlan.changedSinceLastPlan.slice(0, 2).map((change) => <Text selectable key={change} style={{ color: theme.label2, marginTop: 7 }}>- {localizedNarrativeText("detail", change)}</Text>)}<View style={{ flexDirection: "row", gap: 7, marginTop: 12 }}>{semester.pressureForecast.weekLoads.map((load, index) => <View key={`${index}${load}`} style={{ flex: 1 }}><ProgressBar value={load / 100} color={load > 85 ? COLORS.red : load > 64 ? COLORS.orange : load > 38 ? COLORS.yellow : COLORS.green} theme={theme} height={8} /><Text style={{ color: theme.label2, textAlign: "center", fontSize: 10, marginTop: 4, fontWeight: "900" }}>{localizedWeekdayNarrow(index)}</Text></View>)}</View><Button label={textFor("plan.rebuild", "Rebuild plan")} theme={theme} icon="refresh" onPress={rebuild} /></Card>
         <View>
-          <Section title={new Date(selectedIso).toLocaleDateString(appLocale(), { weekday: "short", month: "short", day: "numeric" })} action={`${selectedItems.tasks.length + selectedItems.exams.length + selectedItems.notes.length + selectedItems.blocks.length} ${previewMetricLabel("signals", "items")}`} theme={theme} />
+          <Section title={dateForDay(selectedDay).toLocaleDateString(appLocale(), { weekday: "short", month: "short", day: "numeric" })} action={`${selectedItems.tasks.length + selectedItems.exams.length + selectedItems.notes.length + selectedItems.blocks.length} ${previewMetricLabel("signals", "items")}`} theme={theme} />
           <Card theme={theme} style={{ overflow: "hidden" }}>
-            {selectedItems.exams.map((exam) => { const c = safeClassFor(liveData, exam.classId); return <Pressable key={exam.id} onPress={() => nav.push("assessmentDetail", { id: exam.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}><ClassGlyph c={c} size={34} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{exam.title}</Text><Text selectable style={{ color: theme.label2 }}>{exam.time} · {exam.room}</Text></View><Pill text={localizedExamKind(exam.kind)} color={COLORS.purple} theme={theme} /></Pressable>; })}
+            {selectedItems.exams.map((exam) => { const c = safeClassFor(liveData, exam.classId); return <Pressable key={exam.id} accessibilityRole="button" accessibilityLabel={`${exam.title}. ${c.code}. ${exam.time}. ${localizedImportedText(exam.room)}`} accessibilityHint={textFor("assessment.accessibility_open_hint", "Open assessment details")} onPress={() => nav.push("assessmentDetail", { id: exam.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}><ClassGlyph c={c} size={34} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{exam.title}</Text><Text selectable style={{ color: theme.label2 }}>{exam.time} · {localizedImportedText(exam.room)}</Text></View><Pill text={localizedExamKind(exam.kind)} color={COLORS.purple} theme={theme} /></Pressable>; })}
             {selectedItems.tasks.map((task) => <TaskRow key={task.id} task={task} data={liveData} theme={theme} onToggle={() => {
               if (!task.done) recordReviewTrigger("assignment_completed");
               mutate((d) => {
-                const updated = { ...d, tasks: d.tasks.map((t) => t.id === task.id ? { ...t, done: !t.done } : t) };
+                const currentTask = d.tasks.find((item) => item.id === task.id);
+                if (!currentTask || currentTask.done) return d;
+                const tasks = d.tasks.map((item) => item.id === task.id ? { ...item, done: true } : item);
+                const next = { ...d, tasks };
+                const updated = { ...next, studyBlocks: pruneOrphanedStudyBlocks(buildStudyPlan(next), tasks, d.exams) };
                 return withFeedback(d, updated, "completeTask", { classId: task.classId, actionId: task.id, dimension: "workload" });
               });
             }} onOpen={() => nav.push("taskDetail", { id: task.id })} />)}
-            {selectedItems.blocks.map((block) => { const c = safeClassFor(liveData, block.classId); return <Pressable key={block.id} onPress={() => nav.push("studySession", { id: block.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}><ClassGlyph c={c} size={34} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{block.title}</Text><Text selectable style={{ color: theme.label2 }}>{block.time} · {minutesLabel(block.minutes)}</Text></View><Pill text={textFor("plan.study", "Study")} color={COLORS.green} theme={theme} /></Pressable>; })}
-            {selectedItems.notes.map((note) => <Pressable key={note.id} onPress={() => nav.push("noteDetail", { id: note.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}><NotebookPen color={COLORS.blue} size={22} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{note.title}</Text><Text selectable style={{ color: theme.label2 }}>{note.suggestedTasks.length} {textFor("plan.suggested_tasks", "suggested tasks")}</Text></View><ChevronRight color={theme.label3} size={16} /></Pressable>)}
+            {selectedItems.blocks.map((block) => { const c = safeClassFor(liveData, block.classId); return <Pressable key={block.id} accessibilityRole="button" accessibilityLabel={`${block.title}. ${c.code}. ${block.time}. ${minutesLabel(block.minutes)}`} accessibilityHint={textFor("study.focus_session", "Open focus session")} onPress={() => nav.push("studySession", { id: block.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}><ClassGlyph c={c} size={34} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{block.title}</Text><Text selectable style={{ color: theme.label2 }}>{block.time} · {minutesLabel(block.minutes)}</Text></View><Pill text={textFor("plan.study", "Study")} color={COLORS.green} theme={theme} /></Pressable>; })}
+            {selectedItems.notes.map((note) => <Pressable key={note.id} accessibilityRole="button" accessibilityLabel={`${note.title}. ${note.suggestedTasks.length} ${textFor("plan.suggested_tasks", "suggested tasks")}`} accessibilityHint={textFor("note.accessibility_open_hint", "Open note details")} onPress={() => nav.push("noteDetail", { id: note.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}><NotebookPen color={COLORS.blue} size={22} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{note.title}</Text><Text selectable style={{ color: theme.label2 }}>{note.suggestedTasks.length} {textFor("plan.suggested_tasks", "suggested tasks")}</Text></View><ChevronRight color={theme.label3} size={16} /></Pressable>)}
             {!selectedItems.tasks.length && !selectedItems.exams.length && !selectedItems.blocks.length && !selectedItems.notes.length ? <View style={{ padding: 16 }}><Text selectable style={{ color: theme.label2 }}>{textFor("plan.clear_day", "Clear day.")}</Text></View> : null}
           </Card>
         </View>
         <Section title={textFor("plan.focus_blocks", "Focus blocks")} action={textFor("plan.regenerate", "Regenerate")} onAction={rebuild} theme={theme} />
-        <View style={{ gap: 10 }}>{liveData.studyBlocks.map((b) => { const c = safeClassFor(liveData, b.classId); return <Pressable key={b.id} onPress={() => nav.push("studySession", { id: b.id })}><Card theme={theme} style={{ padding: 15, flexDirection: "row", gap: 12, alignItems: "center" }}><ClassGlyph c={c} size={40} /><View style={{ flex: 1 }}><View style={{ flexDirection: "row", alignItems: "center", gap: 7, marginBottom: 2 }}><Text selectable style={{ color: theme.label, fontWeight: "900", flex: 1 }}>{b.title}</Text>{b.source ? <Pill text={localizedStudyBlockSource(b.source)} color={b.source === "exam_prep" ? COLORS.purple : b.source === "missed_repair" ? COLORS.orange : COLORS.blue} theme={theme} /> : null}</View><Text selectable style={{ color: theme.label2 }}>{localizedStudyBlockDay(b.day)} · {b.time} · {minutesLabel(b.minutes)}</Text><Text selectable numberOfLines={2} style={{ color: theme.label2, marginTop: 5, lineHeight: 18 }}><Text style={{ fontWeight: "900", color: theme.label }}>{textFor("plan.why", "Why")}: </Text>{b.reason}</Text><Pressable onPress={(e) => { e.stopPropagation(); mutate((d) => {
-          const updated = replanAfterMissedBlock({ ...d, studyBlocks: d.studyBlocks.map((block) => block.id === b.id ? { ...block, missed: true } : block) }, b);
-          return withFeedback(d, updated, "missStudyBlock", { classId: b.classId, actionId: b.id, dimension: "consistency" });
-        }); }}><Text style={{ color: COLORS.orange, fontWeight: "900", marginTop: 6 }}>{textFor("plan.missed", "Missed? make up tomorrow")}</Text></Pressable></View><Pressable onPress={(e) => { e.stopPropagation(); complete(b.id); }}>{b.completed ? <CheckCircle2 color={COLORS.green} /> : <Play color={theme.accent} />}</Pressable></Card></Pressable>; })}</View>
+        <View style={{ gap: 10 }}>{liveData.studyBlocks.map((b) => {
+          const c = safeClassFor(liveData, b.classId);
+          const canMarkMissed = canMarkStudyBlockMissed(b);
+          const markMissed = () => mutate((d) => {
+            const currentBlock = d.studyBlocks.find((block) => block.id === b.id);
+            if (!currentBlock || !canMarkStudyBlockMissed(currentBlock)) return d;
+            const missedBlock = { ...currentBlock, missed: true };
+            const updated = replanAfterMissedBlock({ ...d, studyBlocks: d.studyBlocks.map((block) => block.id === b.id ? missedBlock : block) }, missedBlock);
+            return withFeedback(d, updated, "missStudyBlock", { classId: b.classId, actionId: b.id, dimension: "consistency" });
+          });
+          return (
+            <Card key={b.id} theme={theme} style={{ padding: 15, flexDirection: "row", gap: 12, alignItems: "center" }}>
+              <ClassGlyph c={c} size={40} />
+              <View style={{ flex: 1 }}>
+                <Pressable accessibilityRole="button" accessibilityLabel={`${b.title}. ${localizedStudyBlockDay(b.day)}, ${b.time}, ${minutesLabel(b.minutes)}`} accessibilityHint={textFor("study.focus_session", "Open focus session")} onPress={() => nav.push("studySession", { id: b.id })} style={{ minHeight: 44 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 7, marginBottom: 2 }}><Text selectable style={{ color: theme.label, fontWeight: "900", flex: 1 }}>{b.title}</Text>{b.source ? <Pill text={localizedStudyBlockSource(b.source)} color={b.source === "exam_prep" ? COLORS.purple : b.source === "missed_repair" ? COLORS.orange : COLORS.blue} theme={theme} /> : null}</View>
+                  <Text selectable style={{ color: theme.label2 }}>{localizedStudyBlockDay(b.day)} · {b.time} · {minutesLabel(b.minutes)}</Text>
+                  <Text selectable numberOfLines={2} style={{ color: theme.label2, marginTop: 5, lineHeight: 18 }}><Text style={{ fontWeight: "900", color: theme.label }}>{textFor("plan.why", "Why")}: </Text>{localizedStudyBlockReason(b.reason)}</Text>
+                </Pressable>
+                {canMarkMissed ? <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("plan.missed", "Missed? make up tomorrow")}: ${b.title}`} accessibilityHint={textFor("plan.accessibility_missed_hint", "Move this missed focus block to tomorrow")} hitSlop={8} onPress={markMissed} style={{ minHeight: 44, justifyContent: "center" }}><Text style={{ color: COLORS.orange, fontWeight: "900" }}>{textFor("plan.missed", "Missed? make up tomorrow")}</Text></Pressable> : null}
+              </View>
+              <Pressable accessibilityRole="checkbox" accessibilityLabel={b.completed ? textFor("task.reopen", "Reopen study block") : textFor("task.mark_complete", "Complete study block")} accessibilityHint={b.title} accessibilityState={{ checked: b.completed }} hitSlop={10} onPress={() => complete(b.id)} style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>{b.completed ? <CheckCircle2 color={COLORS.green} /> : <Circle color={theme.accent} />}</Pressable>
+            </Card>
+          );
+        })}</View>
       </View>
     </Screen>
   );
 }
 
 function StudySession({ data, mutate, nav, theme, params, recordReviewTrigger }: ScreenProps) {
-  const block = data.studyBlocks.find((b) => b.id === params.id) || data.studyBlocks[0];
-  const task = data.tasks.find((t) => t.id === block?.taskId);
-  const c = safeClassFor(data, block?.classId);
+  const block = data.studyBlocks.find((b) => b.id === params.id);
+  const c = block ? data.classes.find((item) => item.id === block.classId) : undefined;
   const [answer, setAnswer] = useState("");
-  const [score, setScore] = useState<number | null>(null);
+  const finishStarted = useRef(false);
   const semester = buildSemesterSnapshot(data);
   const pulse = semester.classPulses.find((item) => item.classId === block?.classId);
   if (!block) {
+    if (params.id || data.studyBlocks.length) {
+      return <RecoveryScreen title="Study block not found" body="That study block is not in this semester anymore." action={textFor("class.open_dashboard", "Open dashboard")} nav={nav} theme={theme} />;
+    }
     return (
       <View style={{ flex: 1, backgroundColor: theme.bg }}>
         <BackHeader nav={nav} theme={theme} label={textFor("study.focus_session", "Focus Session")} />
@@ -5247,70 +10346,194 @@ function StudySession({ data, mutate, nav, theme, params, recordReviewTrigger }:
       </View>
     );
   }
-  const finish = () => mutate((d) => {
-    const updated = {
-      ...d,
-      studyBlocks: d.studyBlocks.map((b) => b.id === block.id ? { ...b, completed: true } : b),
-      tasks: task ? d.tasks.map((t) => t.id === task.id && answer.length > 30 ? { ...t, subtasks: t.subtasks.map((s, i) => i === 0 ? { ...s, done: true } : s) } : t) : d.tasks,
-    };
-    return withFeedback(d, updated, "completeStudyBlock", {
-      classId: block.classId,
-      actionId: block.id,
-      dimension: "preparedness",
-      message: `${c.code} prep saved.`,
+  if (!c) return <RecoveryScreen title={textFor("class.not_found", "Class not found")} body={textFor("class.not_found_body", "This study block's class is no longer in this semester.")} action={textFor("class.open_dashboard", "Open dashboard")} nav={nav} theme={theme} />;
+  const responseWordCount = answer.trim() ? answer.trim().split(/\s+/).length : 0;
+  const responseMetricTemplate = ({ "en-US": "Response length: {count} words", de: "Antwortlänge: {count} Wörter", es: "Longitud de respuesta: {count} palabras", fr: "Longueur de réponse : {count} mots", "pt-BR": "Tamanho da resposta: {count} palavras", ja: "回答の長さ: {count}語", ko: "응답 길이: {count}단어", "zh-Hans": "回答长度：{count} 个词", hi: "उत्तर की लंबाई: {count} शब्द", ar: "طول الإجابة: {count} كلمة" } as Record<SupportedLocale, string>)[appLocale()];
+  const responseMetricLabel = responseMetricTemplate.replace("{count}", String(responseWordCount));
+  const finish = () => {
+    if (finishStarted.current || block.completed) return false;
+    finishStarted.current = true;
+    mutate((d) => {
+      const currentBlock = d.studyBlocks.find((item) => item.id === block.id);
+      if (!currentBlock || currentBlock.completed) return d;
+      const updated = {
+        ...d,
+        studyBlocks: d.studyBlocks.map((item) => item.id === block.id ? { ...item, completed: true } : item),
+      };
+      return withFeedback(d, updated, "completeStudyBlock", {
+        classId: block.classId,
+        actionId: block.id,
+        dimension: "preparedness",
+        message: `${c.code} prep saved.`,
+      });
     });
-  });
+    return true;
+  };
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={textFor("study.focus_session", "Focus Session")} />
-      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
+      <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
         <Card theme={theme} style={{ padding: 18 }}><View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><ClassGlyph c={c} size={50} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontSize: 22, fontWeight: "900" }}>{block.title}</Text><Text selectable style={{ color: theme.label2, marginTop: 3 }}>{localizedStudyBlockDay(block.day)} · {block.time} · {minutesLabel(block.minutes)}</Text></View></View></Card>
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#172019" : "#F1FFF6" }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.impact", "Impact")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21 }}>{c.code} {textFor("locked.preparedness", "preparedness")}. {pulse ? `${localizedPulseText("forecast", pulse.forecastLabel)} ${textFor("class.forecast", "forecast")}.` : localizedNarrativeText("detail", "Risk reduced.")}</Text></Card>
         <Card theme={theme} style={{ padding: 16 }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.goal", "Goal")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21 }}>{textFor("study.goal_body", "One item. Then recall.")}</Text></Card>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.active_recall", "Active recall")}</Text><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{textFor("study.recall_body", "Explain it without looking.")}</Text><TextInput multiline value={answer} onChangeText={setAnswer} placeholder={textFor("study.recall_placeholder", "Type your recall answer...")} placeholderTextColor={theme.label3} style={{ minHeight: 120, backgroundColor: theme.surface, color: theme.label, borderRadius: 14, padding: 12, marginTop: 12, textAlignVertical: "top" }} /><Button label={score == null ? textFor("study.score_recall", "Score recall") : textFor("study.recall_score", "Recall score: {score}/10", { score })} theme={theme} icon="brain" onPress={() => setScore(Math.min(10, Math.max(3, Math.round(answer.split(/\s+/).filter(Boolean).length / 6))))} /></Card>
-        <Button label={textFor("study.complete", "Complete session")} theme={theme} icon="check" onPress={() => { finish(); if (!block.completed) recordReviewTrigger("focus_completed"); nav.back(); }} />
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.active_recall", "Active recall")}</Text><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{textFor("study.recall_body", "Explain it without looking.")}</Text><TextInput accessibilityLabel={textFor("study.active_recall", "Active recall")} multiline value={answer} onChangeText={setAnswer} placeholder={textFor("study.recall_placeholder", "Type your recall answer...")} placeholderTextColor={theme.label3} style={{ minHeight: 120, backgroundColor: theme.surface, color: theme.label, borderRadius: 14, padding: 12, marginTop: 12, textAlignVertical: "top" }} />{responseWordCount ? <Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label2, fontWeight: "800", marginTop: 10 }}>{responseMetricLabel}</Text> : null}</Card>
+        <Button label={block.completed ? textFor("tasks.completed", "Session already complete") : answer.trim() ? textFor("study.complete", "Complete session") : textFor("study.skip_complete", "Skip recall and complete")} theme={theme} secondary={!answer.trim() || block.completed} icon="check" onPress={block.completed ? undefined : () => { if (!finish()) return; recordReviewTrigger("focus_completed"); nav.back(); }} />
       </ScrollView>
     </View>
   );
 }
 
 function Notes({ data, nav, theme }: ScreenProps) {
+  const liveData = activeSemesterData(data);
   const [filter, setFilter] = useState("all");
-  const notes = filter === "all" ? data.notes : data.notes.filter((n) => n.classId === filter);
-  const semester = buildSemesterSnapshot(data);
-  const narrative = buildSemesterNarrative(data, semester);
+  const notes = filter === "all" ? liveData.notes : liveData.notes.filter((n) => n.classId === filter);
+  const semester = buildSemesterSnapshot(liveData);
+  const narrative = buildSemesterNarrative(liveData, semester);
+  const sortedNotes = notes.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const allTerms = Array.from(new Set(notes.flatMap((note) => note.terms))).slice(0, 8);
+  const suggestedTasks = notes.flatMap((note) => note.suggestedTasks.map((task) => ({ task, note }))).slice(0, 4);
+  const linkedClasses = new Set(notes.map((note) => note.classId)).size;
+  const preparedness = semester.semesterHealth.dimensions.preparedness.score;
   return (
     <Screen theme={theme}>
-      <Header title={textFor("notes.title", "Notes")} sub={textFor("notes.sub", "{score} preparedness · {count} notes", { score: semester.semesterHealth.dimensions.preparedness.score, count: data.notes.length })} theme={theme} right={<Pressable onPress={() => nav.tab("scan")} style={{ width: 42, height: 42, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Camera color="#fff" /></Pressable>} />
-      <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}><Card theme={theme} style={{ padding: 14 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{localizedNarrativeText("notes", narrative.notesNudge)}</Text><Text selectable style={{ color: theme.label2, marginTop: 4, lineHeight: 20 }}>{textFor("notes.body", "Notes raise Preparedness and sharpen Class Pulse.")}</Text></Card></View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 16, paddingBottom: 14 }}>{[{ id: "all", code: textFor("notes.all", "All") }, ...data.classes].map((c: any) => <Pressable key={c.id} onPress={() => setFilter(c.id)} style={{ borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: filter === c.id ? theme.accent : theme.surface }}><Text style={{ color: filter === c.id ? "#fff" : theme.label2, fontWeight: "800" }}>{c.code}</Text></Pressable>)}</ScrollView>
-      <View style={{ paddingHorizontal: 16, gap: 11 }}>{notes.length ? notes.map((n) => <NoteCard key={n.id} note={n} data={data} theme={theme} onOpen={() => nav.push("noteDetail", { id: n.id })} />) : (
-        <Card theme={theme} style={{ padding: 18 }}>
-          <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: `${COLORS.purple}1C`, alignItems: "center", justifyContent: "center", marginBottom: 12 }}><NotebookPen color={COLORS.purple} size={24} /></View>
-          <Text selectable style={{ color: theme.label, fontSize: 22, lineHeight: 26, fontWeight: "900" }}>{textFor("notes.empty_title", "No notes loaded")}</Text>
-          <Text selectable style={{ color: theme.label2, lineHeight: 21, marginTop: 6 }}>{textFor("notes.empty_body", "Scan or paste lecture notes to build summaries, flashcards, quizzes, and review tasks.")}</Text>
-          <Button label={textFor("notes.scan", "Scan notes")} theme={theme} icon="camera" onPress={() => nav.tab("scan")} />
-          <Button label={textFor("notes.paste", "Paste notes")} theme={theme} secondary icon="file" onPress={() => nav.push("paste", { mode: "notes" })} />
+      <BackHeader embedded nav={nav} theme={theme} label={textFor("notes.title", "Notes")} />
+      <Header title={textFor("notes.title", "Notes")} sub={textFor("notes.sub", "{score} preparedness · {count} notes", { score: preparedness, count: liveData.notes.length })} theme={theme} />
+      <View style={{ paddingHorizontal: 16, gap: 14 }}>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#111114" : "#FFFFFF" }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 13 }}>
+            <View style={{ width: 54, height: 54, borderRadius: 18, backgroundColor: `${COLORS.purple}18`, alignItems: "center", justifyContent: "center" }}>
+              <NotebookPen color={COLORS.purple} size={26} />
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text selectable numberOfLines={2} style={{ color: theme.label, fontSize: 20, lineHeight: 24, fontWeight: "900" }}>{localizedNarrativeText("notes", narrative.notesNudge)}</Text>
+              <Text selectable numberOfLines={2} style={{ color: theme.label2, lineHeight: 19, marginTop: 4 }}>{textFor("notes.body", "Notes raise Preparedness and sharpen Class Pulse.")}</Text>
+            </View>
+          </View>
+          <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
+            <View style={{ flex: 1 }}>
+              <Button label={textFor("notes.scan", "Scan notes")} theme={theme} icon="camera" onPress={() => nav.push("cameraScanner", { mode: "notes" })} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button label={textFor("notes.paste", "Paste notes")} theme={theme} secondary icon="file" onPress={() => nav.push("paste", { mode: "notes" })} />
+            </View>
+          </View>
         </Card>
-      )}</View>
+        <Card theme={theme} style={{ padding: 15, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: `${COLORS.blue}1C`, alignItems: "center", justifyContent: "center" }}>
+              <Shield color={COLORS.blue} size={21} />
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>{textFor("review.guard_active", "Nothing saves before you approve.")}</Text>
+              <Text selectable numberOfLines={2} style={{ color: theme.label2, lineHeight: 19, marginTop: 3 }}>{textFor("scan.notes_body", "Summaries, terms, flashcards, quizzes, and review tasks.")}</Text>
+            </View>
+          </View>
+        </Card>
+
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          {[
+            [String(notes.length), textFor("notes.title", "Notes"), COLORS.purple],
+            [String(suggestedTasks.length), textFor("note.tasks", "{count} tasks", { count: suggestedTasks.length }).replace(String(suggestedTasks.length), "").trim() || "tasks", COLORS.blue],
+            [String(allTerms.length), textFor("note.concepts", "{count} concepts", { count: allTerms.length }).replace(String(allTerms.length), "").trim() || "concepts", COLORS.green],
+            [String(linkedClasses), textFor("notes.classes_count", "classes"), COLORS.orange],
+          ].map(([value, label, color]) => (
+            <View key={`${value}-${label}`} style={{ flex: 1, minHeight: 68, borderRadius: 16, padding: 10, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.hairline, justifyContent: "center" }}>
+              <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ color, fontSize: 20, fontWeight: "900" }}>{value}</Text>
+              <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.62} style={{ color: theme.label2, fontSize: 11, fontWeight: "800", marginTop: 2 }}>{label}</Text>
+            </View>
+          ))}
+        </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingBottom: 2 }}>
+          {[{ id: "all", code: textFor("notes.all", "All") }, ...liveData.classes].map((c: any) => (
+            <Pressable key={c.id} accessibilityRole="radio" accessibilityLabel={c.code} accessibilityHint={textFor("notes.accessibility_filter_hint", "Filter notes by this class")} accessibilityState={{ selected: filter === c.id }} onPress={() => setFilter(c.id)} style={{ minHeight: 44, borderRadius: 999, paddingHorizontal: 14, backgroundColor: filter === c.id ? theme.accent : theme.surface, borderWidth: 1, borderColor: filter === c.id ? theme.accent : theme.hairline, alignItems: "center", justifyContent: "center" }}>
+              <Text style={{ color: filter === c.id ? "#fff" : theme.label2, fontWeight: "900" }} numberOfLines={1}>{c.code}</Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+
+        {suggestedTasks.length ? (
+          <View>
+            <Section title={textFor("note.suggested_tasks", "Suggested study tasks")} action={textFor("plan.title", "Plan")} onAction={() => nav.tab("plan")} theme={theme} />
+            <Card theme={theme} style={{ overflow: "hidden" }}>
+              {suggestedTasks.map(({ task, note }, index) => {
+                const c = safeClassFor(liveData, note.classId);
+                return (
+                  <Pressable key={`${note.id}-${task}`} accessibilityRole="button" accessibilityLabel={`${task}. ${c.code}. ${note.title}`} accessibilityHint={textFor("note.accessibility_open_hint", "Open note details")} onPress={() => nav.push("noteDetail", { id: note.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderTopWidth: index === 0 ? 0 : 1, borderTopColor: theme.hairline }}>
+                    <View style={{ width: 34, height: 34, borderRadius: 12, backgroundColor: `${c.color}18`, alignItems: "center", justifyContent: "center" }}><Target color={c.color} size={18} /></View>
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{task}</Text>
+                      <Text selectable numberOfLines={1} style={{ color: theme.label2, marginTop: 2, fontSize: 12.5 }}>{c.code} · {note.title}</Text>
+                    </View>
+                    <ChevronRight color={theme.label3} size={16} />
+                  </Pressable>
+                );
+              })}
+            </Card>
+          </View>
+        ) : null}
+
+        {allTerms.length ? (
+          <View>
+            <Section title={textFor("note.key_terms", "Key terms")} theme={theme} />
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
+              {allTerms.map((term) => <Pill key={term} text={term} color={COLORS.purple} theme={theme} />)}
+            </View>
+          </View>
+        ) : null}
+
+        <View>
+          <Section title={textFor("scan.history", "Import history")} action={sortedNotes.length ? `${sortedNotes.length}` : undefined} theme={theme} />
+          <View style={{ gap: 10 }}>
+            {sortedNotes.length ? sortedNotes.map((n) => <NoteCard key={n.id} note={n} data={liveData} theme={theme} onOpen={() => nav.push("noteDetail", { id: n.id })} />) : (
+              <Card theme={theme} style={{ padding: 18 }}>
+                <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: `${COLORS.purple}1C`, alignItems: "center", justifyContent: "center", marginBottom: 12 }}><NotebookPen color={COLORS.purple} size={24} /></View>
+                <Text selectable style={{ color: theme.label, fontSize: 22, lineHeight: 26, fontWeight: "900" }}>{textFor("notes.empty_title", "No notes loaded")}</Text>
+                <Text selectable style={{ color: theme.label2, lineHeight: 21, marginTop: 6 }}>{textFor("notes.empty_body", "Scan or paste lecture notes to build summaries, flashcards, quizzes, and review tasks.")}</Text>
+              </Card>
+            )}
+          </View>
+        </View>
+      </View>
     </Screen>
   );
 }
 
 function NoteDetail({ data, mutate, nav, theme, params }: ScreenProps) {
-  const note = data.notes.find((n) => n.id === params.id) || data.notes[0];
-  if (!note) return <RecoveryScreen title={textFor("note.not_found", "Note not found")} body={textFor("note.not_found_body", "That note is not in this semester anymore.")} action={textFor("note.open_notes", "Open notes")} nav={nav} theme={theme} />;
-  const c = safeClassFor(data, note.classId);
+  const note = data.notes.find((n) => n.id === params.id);
+  if (!note) return <RecoveryScreen title={textFor("note.not_found", "Note not found")} body={textFor("note.not_found_body", "That note is not in this semester anymore.")} action={textFor("class.open_dashboard", "Open dashboard")} nav={nav} theme={theme} />;
+  const c = data.classes.find((item) => item.id === note.classId);
+  if (!c) return <RecoveryScreen title={textFor("class.not_found", "Class not found")} body={textFor("class.not_found_body", "This note's class is no longer in this semester.")} action={textFor("class.open_dashboard", "Open dashboard")} nav={nav} theme={theme} />;
   const assets = generateStudyAssets(note, data);
   const insight = parseNoteInsights(note, data);
   const semester = buildSemesterSnapshot(data);
   const pulse = semester.classPulses.find((item) => item.classId === note.classId);
+  const addedLabel = ({ "en-US": "Added", de: "Hinzugefügt", es: "Añadida", fr: "Ajoutée", "pt-BR": "Adicionada", ja: "追加済み", ko: "추가됨", "zh-Hans": "已添加", hi: "जोड़ा गया", ar: "تمت الإضافة" } as Record<SupportedLocale, string>)[appLocale()];
+  const urgentLabel = ({ "en-US": "Urgent", de: "Dringend", es: "Urgente", fr: "Urgent", "pt-BR": "Urgente", ja: "緊急", ko: "긴급", "zh-Hans": "紧急", hi: "अत्यावश्यक", ar: "عاجل" } as Record<SupportedLocale, string>)[appLocale()];
+  const taskDisclosure = `${localizedDueLabel(1)} · 7:00 PM · ${urgentLabel} · ${minutesLabel(30)}`;
+  const reviewTaskTitle = `${textFor("review.title", "Review")} ${note.title}`;
+  const reviewTaskAdded = data.tasks.some((task) => task.title.toLowerCase() === reviewTaskTitle.toLowerCase() && task.classId === note.classId);
   const addTask = (title: string) => mutate((d) => {
     if (d.tasks.some((task) => task.title.toLowerCase() === title.toLowerCase() && task.classId === note.classId)) return d;
     const tasks = [{ id: `t_${Date.now()}`, title, classId: note.classId, type: "Review", dueOffset: 1, dueDate: isoFromOffset(1), time: "7:00 PM", estimateMinutes: 30, done: false, urgent: true, source: `Note · ${note.title}`, subtasks: [] }, ...d.tasks];
     const updated = { ...d, tasks };
     return withFeedback(d, { ...updated, studyBlocks: buildStudyPlan(updated) }, "reviewWeakConcept", { classId: note.classId, actionId: note.id, dimension: "preparedness" });
   });
+  const deleteNote = () => Alert.alert(
+    textFor("note.delete_title", "Delete note?"),
+    textFor("note.delete_body", "{title} and its generated study assets will be removed. Tasks you already added will stay in your planner.", { title: note.title }),
+    [
+      { text: textFor("common.cancel", "Cancel"), style: "cancel" },
+      {
+        text: textFor("note.delete", "Delete note"),
+        style: "destructive",
+        onPress: () => {
+          mutate((d) => ({ ...d, notes: d.notes.filter((item) => item.id !== note.id) }));
+          nav.back();
+        },
+      },
+    ],
+  );
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={c.code} />
@@ -5320,67 +10543,294 @@ function NoteDetail({ data, mutate, nav, theme, params }: ScreenProps) {
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("note.summary", "Summary")}</Text></View><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{note.summary}</Text></Card>
         <View><Text selectable style={{ color: theme.label2, fontWeight: "900", marginBottom: 8 }}>{textFor("note.key_terms", "KEY TERMS")}</Text><View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>{note.terms.map((t) => <Pill key={t} text={t} theme={theme} />)}</View></View>
         <View><Section title={textFor("note.signals", "Signals")} action={`${Math.round(insight.confidence * 100)}%`} theme={theme} /><Card theme={theme} style={{ padding: 15, gap: 12 }}><View><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 6 }}>{textFor("note.exam_topics", "Exam topics")}</Text><View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>{insight.likelyExamTopics.slice(0, 6).map((topic) => <Pill key={topic} text={topic} color={COLORS.orange} theme={theme} />)}</View></View>{insight.formulas.length ? <View><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 6 }}>{textFor("note.formulas", "Formulas")}</Text>{insight.formulas.slice(0, 3).map((formula) => <Text selectable key={formula} style={{ color: theme.label2, marginTop: 3 }}>{formula}</Text>)}</View> : null}<View><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 6 }}>{textFor("note.weak_area", "Weak area")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 20 }}>{insight.weakAreas[0]}</Text></View></Card></View>
-        <View><Section title={textFor("note.suggested_tasks", "Suggested study tasks")} theme={theme} /><Card theme={theme} style={{ overflow: "hidden" }}>{note.suggestedTasks.map((t) => <View key={t} style={{ flexDirection: "row", gap: 12, alignItems: "center", padding: 14 }}><Icon name="target" color={COLORS.blue} /><Text selectable style={{ color: theme.label, flex: 1, fontWeight: "800" }}>{t}</Text><Pressable onPress={() => addTask(t)}><Pill text={textFor("note.add", "Add")} color={theme.accent} theme={theme} /></Pressable></View>)}</Card></View>
+        <View><Section title={textFor("note.suggested_tasks", "Suggested study tasks")} theme={theme} /><Card theme={theme} style={{ overflow: "hidden" }}>{note.suggestedTasks.map((t) => {
+          const alreadyAdded = data.tasks.some((task) => task.title.toLowerCase() === t.toLowerCase() && task.classId === note.classId);
+          return <View key={t} style={{ flexDirection: "row", gap: 12, alignItems: "center", padding: 14 }}><Icon name="target" color={alreadyAdded ? COLORS.green : COLORS.blue} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "800" }}>{t}</Text><Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "700", marginTop: 4 }}>{taskDisclosure}</Text></View><Pressable accessibilityRole="button" accessibilityLabel={`${alreadyAdded ? addedLabel : textFor("note.add", "Add")}: ${t}`} accessibilityHint={alreadyAdded ? textFor("note.accessibility_added_hint", "This task is already in your planner") : `${taskDisclosure}. ${textFor("note.accessibility_add_hint", "Add this task to your planner")}`} accessibilityState={{ disabled: alreadyAdded }} disabled={alreadyAdded} onPress={() => addTask(t)} style={{ opacity: alreadyAdded ? 0.68 : 1 }}><Pill text={alreadyAdded ? addedLabel : textFor("note.add", "Add")} color={alreadyAdded ? COLORS.green : theme.accent} theme={theme} /></Pressable></View>;
+        })}</Card></View>
         <View><Section title={textFor("note.generated_assets", "Generated study assets")} action={`${assets.flashcards.length} ${textFor("note.cards", "cards")}`} theme={theme} /><Card theme={theme} style={{ padding: 15, gap: 12 }}>
           <View><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("note.flashcards", "Flashcards")}</Text>{assets.flashcards.slice(0, 3).map((card) => <View key={card.front} style={{ paddingVertical: 8, borderTopWidth: 1, borderTopColor: theme.hairline }}><Text selectable style={{ color: theme.label, fontWeight: "800" }}>{card.front}</Text><Text selectable style={{ color: theme.label2, marginTop: 3 }}>{card.back}</Text></View>)}</View>
           <View><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("note.quiz", "Quiz")}</Text>{assets.quiz.slice(0, 2).map((q) => <View key={q.prompt} style={{ paddingVertical: 8, borderTopWidth: 1, borderTopColor: theme.hairline }}><Text selectable style={{ color: theme.label, fontWeight: "800" }}>{q.prompt}</Text><Text selectable style={{ color: theme.label2, marginTop: 3 }}>{q.answer}</Text></View>)}</View>
-          <Button label={textFor("note.add_review_task", "Add review task")} theme={theme} icon="target" onPress={() => addTask(`${textFor("review.title", "Review")} ${note.title}`)} />
+          <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "700" }}>{taskDisclosure}</Text>
+          <Button label={reviewTaskAdded ? addedLabel : textFor("note.add_review_task", "Add review task")} theme={theme} icon="target" onPress={reviewTaskAdded ? undefined : () => addTask(reviewTaskTitle)} />
         </Card></View>
         <Card theme={theme} style={{ padding: 16 }}><Text selectable style={{ color: theme.label2, fontWeight: "900", marginBottom: 8 }}>{textFor("note.source_text", "SOURCE TEXT")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21 }}>{note.sourceText}</Text></Card>
+        <Button label={textFor("note.delete", "Delete note")} theme={theme} secondary icon="trash" onPress={deleteNote} />
       </ScrollView>
     </View>
   );
 }
 
-function WidgetsScreen({ data, nav, theme, recordReviewTrigger }: ScreenProps) {
-  const loop = buildSemesterLoop(data);
-  const widgetRows = [
-    [textFor("widgets.row_today", "StudyPlanner Today"), textFor("widgets.row_today_body", "Health, next deadline, and focus block"), "home", COLORS.blue],
-    [textFor("widgets.row_upcoming", "Upcoming"), textFor("widgets.row_upcoming_body", "Assignments and exams coming soon"), "target", COLORS.orange],
-    [textFor("widgets.row_week", "Week Load"), textFor("widgets.row_week_body", "Pressure by week"), "bar-chart-3", COLORS.purple],
-    [textFor("widgets.row_class", "Class Progress"), textFor("widgets.row_class_body", "Selected class pulse"), "classes", COLORS.green],
-  ];
+function NativeHomeWidgetPreview({ snapshot, family }: { snapshot: NativeWidgetSnapshot; family: "systemSmall" | "systemMedium" }) {
+  const isMedium = family === "systemMedium";
+  const width = isMedium ? 338 : 158;
+  const items = snapshot.items.slice(0, isMedium ? 2 : 1);
+  const accent = snapshot.accentColor || "#0A84FF";
+  const bg = snapshot.backgroundColor || "#FFFFFF";
+  const ink = accent === "#000000" || accent === "#111111" ? "#050505" : "#111318";
+  const muted = "#686D76";
+  const signalLabel = snapshot.signalLabel || snapshot.headline;
+  const timelineLabel = snapshot.timelineLabel || snapshot.headline;
+  const updatedLabel = snapshot.updatedLabel || snapshot.footnote;
+  const weekLabels = snapshot.weekLabels || ["M", "T", "W", "T", "F", "S", "S"];
+  const weekCounts = snapshot.weekCounts || [];
+  const calendarDays = snapshot.calendarDays || [];
+  const maxWeek = Math.max(1, ...weekCounts.map((count) => count || 0));
+  const examDays = snapshot.examDays || [];
+  const todayIndex = typeof snapshot.todayIndex === "number" ? snapshot.todayIndex : -1;
+  const peakDayLabel = snapshot.peakDayLabel || snapshot.updatedLabel || updatedLabel;
+  const calendarHeadline = snapshot.calendarHeadline || snapshot.timelineLabel || snapshot.headline;
+  const actionLabel = snapshot.actionLabel || "";
+  const ringProgress = Math.max(0, Math.min(1, snapshot.progress || 0));
+  const ringScore = snapshot.ringValue || String(Math.round(ringProgress * 100));
+  const ringLabel = snapshot.ringLabel || textFor("health.score", "score");
+  const renderProgressRing = (size: number) => {
+    const stroke = size > 58 ? 8 : 7;
+    const radius = (size - stroke) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const dashOffset = circumference * (1 - ringProgress);
+    return (
+      <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+        <Svg width={size} height={size} style={{ position: "absolute", transform: [{ rotate: "-90deg" }] }}>
+          <SvgCircle cx={size / 2} cy={size / 2} r={radius} stroke="rgba(120,126,138,0.18)" strokeWidth={stroke} fill="none" />
+          <SvgCircle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={accent}
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            fill="none"
+            strokeDasharray={`${circumference} ${circumference}`}
+            strokeDashoffset={dashOffset}
+          />
+        </Svg>
+        <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: ink, fontSize: size > 58 ? 19 : 16, lineHeight: size > 58 ? 21 : 18, fontWeight: "900" }}>{ringScore}</Text>
+        <Text selectable numberOfLines={1} style={{ color: muted, fontSize: 7, fontWeight: "800" }}>{ringLabel}</Text>
+      </View>
+    );
+  };
   return (
-    <Screen theme={theme}>
+    <View style={{ width, height: 158, borderRadius: isMedium ? 28 : 24, overflow: "hidden", backgroundColor: bg, borderWidth: 1, borderColor: "rgba(0,0,0,0.06)", boxShadow: "0 14px 26px rgba(15,23,42,0.12)" }}>
+      <View style={{ position: "absolute", top: 0, left: 0, right: 0, height: 48, backgroundColor: "rgba(255,255,255,0.68)" }} />
+      <View style={{ padding: isMedium ? 12 : 11, gap: isMedium ? 7 : 6, height: 158 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <View style={{ width: 8, height: 8, borderRadius: 99, backgroundColor: accent }} />
+          <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ color: muted, fontSize: 10, fontWeight: "900", flexShrink: 1, minWidth: isMedium ? 0 : 34 }}>{timelineLabel}</Text>
+          <View style={{ flex: 1, minWidth: 4 }} />
+          <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.68} style={{ color: accent, fontSize: 9, fontWeight: "900", maxWidth: isMedium ? 190 : 72 }}>{signalLabel}</Text>
+        </View>
+        {snapshot.kind === "classProgress" ? (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: isMedium ? 13 : 10 }}>
+            {renderProgressRing(isMedium ? 66 : 54)}
+            <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+              <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.68} style={{ color: ink, fontSize: isMedium ? 21 : 15, lineHeight: isMedium ? 24 : 18, fontWeight: "900" }}>{snapshot.value}</Text>
+              <Text selectable numberOfLines={1} style={{ color: muted, fontSize: isMedium ? 11 : 10, fontWeight: "900" }}>{snapshot.detail}</Text>
+              <Text selectable numberOfLines={isMedium ? 2 : 1} style={{ color: muted, fontSize: isMedium ? 11 : 10, lineHeight: isMedium ? 14 : 13, fontWeight: "700" }}>{snapshot.footnote}</Text>
+            </View>
+          </View>
+        ) : (
+          <>
+            <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 6 }}>
+              <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.58} style={{ color: ink, fontSize: isMedium ? 24 : 21, lineHeight: isMedium ? 28 : 25, fontWeight: "900", flexShrink: 1, maxWidth: isMedium ? 235 : 96 }}>{snapshot.value}</Text>
+              <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: ink, fontSize: 12, fontWeight: "800", marginBottom: 2, flexShrink: 1 }}>{snapshot.detail}</Text>
+            </View>
+            <Text selectable numberOfLines={isMedium ? 2 : 1} style={{ color: muted, fontSize: isMedium ? 12 : 10, lineHeight: isMedium ? 15 : 13, fontWeight: "900" }}>{snapshot.footnote}</Text>
+          </>
+        )}
+        {snapshot.kind === "week" ? (
+          <View style={{ gap: isMedium ? 5 : 4 }}>
+            {Array.from({ length: 2 }).map((_rowValue, rowIndex) => (
+              <View key={`${snapshot.kind}-calendar-row-${rowIndex}`} style={{ flexDirection: "row", alignItems: "center", gap: isMedium ? 4 : 2, maxWidth: isMedium ? 300 : 130 }}>
+                {Array.from({ length: 7 }).map((_value, columnIndex) => {
+                const index = rowIndex * 7 + columnIndex;
+                const day = calendarDays[index];
+                const count = day?.count ?? weekCounts[columnIndex] ?? 0;
+                const isToday = Boolean(day?.isToday) || index === todayIndex;
+                const hasExam = Boolean(day?.hasExam) || examDays.includes(index);
+                const load = Math.max(0, Math.min(1, count / maxWeek));
+                const countText = count > 9 ? "9+" : String(count);
+                const dayBg = isToday ? accent : count ? `rgba(255,255,255,${0.76 + load * 0.2})` : "rgba(255,255,255,0.52)";
+                const dayInk = isToday ? "#FFFFFF" : ink;
+                const dayMuted = isToday ? "rgba(255,255,255,0.76)" : muted;
+                return (
+                  <View key={`${snapshot.kind}-native-day-${index}`} style={{ flex: 1, height: isMedium ? 42 : 30, minWidth: 0, borderRadius: isMedium ? 11 : 6, backgroundColor: dayBg, borderWidth: hasExam && !isToday ? 1 : 0, borderColor: hasExam ? COLORS.orange : "transparent", alignItems: "center", justifyContent: "center", gap: isMedium ? 1 : 0 }}>
+                    <Text selectable numberOfLines={1} style={{ color: dayMuted, fontSize: isMedium ? 7 : 5, fontWeight: "900" }}>{day?.weekday || weekLabels[columnIndex] || ""}</Text>
+                    <Text selectable numberOfLines={1} style={{ color: dayInk, fontSize: isMedium ? 11 : 8, lineHeight: isMedium ? 13 : 9, fontWeight: "900" }}>{day?.dayNumber || (count ? countText : "-")}</Text>
+                    <View style={{ width: hasExam ? (isMedium ? 5 : 3) : 3, height: hasExam ? (isMedium ? 5 : 3) : 3, borderRadius: 99, backgroundColor: hasExam ? (isToday ? "#FFFFFF" : COLORS.orange) : count ? accent : "#D9DDE5" }} />
+                  </View>
+                );
+              })}
+              </View>
+            ))}
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Text selectable numberOfLines={1} style={{ color: muted, fontSize: 10, fontWeight: "900", flex: 1 }}>{calendarHeadline}</Text>
+              <Text selectable numberOfLines={1} style={{ color: accent, fontSize: 10, fontWeight: "900", maxWidth: isMedium ? 128 : 64 }}>{peakDayLabel}</Text>
+            </View>
+          </View>
+        ) : (
+          <View style={{ gap: 4 }}>
+            {items.length ? items.map((item, index) => (
+              <View key={item.id || `${snapshot.kind}-native-row-${index}`} style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
+                <View style={{ width: 7, height: 7, borderRadius: 99, backgroundColor: accent }} />
+                <Text selectable numberOfLines={1} style={{ color: accent, fontSize: 10, fontWeight: "900", flex: !isMedium && (snapshot.kind === "today" || snapshot.kind === "upcoming") ? 1 : undefined }}>{item.courseCode}</Text>
+                {isMedium || (snapshot.kind !== "today" && snapshot.kind !== "upcoming") ? <Text selectable numberOfLines={1} style={{ color: ink, flex: 1, fontSize: 11, fontWeight: "600" }}>{item.title}</Text> : null}
+                <Text selectable numberOfLines={1} style={{ color: muted, fontSize: 10, fontWeight: "800" }}>{item.dueLabel}</Text>
+              </View>
+            )) : <Text selectable numberOfLines={isMedium ? 2 : 1} style={{ color: muted, fontSize: 11, lineHeight: 14, fontWeight: "600" }}>{snapshot.footnote}</Text>}
+          </View>
+        )}
+        {isMedium ? (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Text selectable numberOfLines={1} style={{ color: muted, fontSize: 10, fontWeight: "600", flex: 1 }}>{snapshot.lastInteractionLabel || updatedLabel}</Text>
+            {actionLabel ? (
+              <View style={{ minHeight: 24, maxWidth: 116, borderRadius: 999, paddingHorizontal: 10, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.58)", borderWidth: 1, borderColor: "rgba(255,255,255,0.76)" }}>
+                <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ color: accent, fontSize: 10, fontWeight: "900" }}>{actionLabel}</Text>
+              </View>
+            ) : null}
+          </View>
+        ) : <View style={{ flex: 1 }} />}
+      </View>
+    </View>
+  );
+}
+
+function WidgetSnapshotCard({ snapshot, title, icon, theme, selected, onPress }: { snapshot: NativeWidgetSnapshot; title: string; icon: string; theme: ReturnType<typeof palette>; selected: boolean; onPress: () => void }) {
+  const family = snapshot.kind === "week" ? "systemMedium" : "systemSmall";
+  const spansRow = snapshot.kind === "week" || snapshot.kind === "classProgress";
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel={`${title}. ${snapshot.headline}`} accessibilityState={{ selected }} onPress={onPress} style={{ width: spansRow ? "100%" : "48%", borderRadius: 18, overflow: "hidden" }}>
+      <LiquidGlassSurface interactive={selected} tintColor={selected ? `${snapshot.accentColor}20` : "rgba(255,255,255,0.74)"} style={{ borderRadius: 18, padding: 12, backgroundColor: selected ? `${snapshot.accentColor}14` : theme.surface, borderWidth: 1, borderColor: selected ? snapshot.accentColor : theme.hairline }} fallbackStyle={{ backgroundColor: selected ? `${snapshot.accentColor}14` : theme.surface }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: `${snapshot.accentColor}1F`, alignItems: "center", justifyContent: "center" }}><Icon name={icon} color={snapshot.accentColor} size={17} /></View>
+        <View style={{ flex: 1 }}>
+          <Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{title}</Text>
+          <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76} style={{ color: theme.label2, fontSize: 12, marginTop: 1 }}>{snapshot.timelineLabel || snapshot.densityLabel}</Text>
+        </View>
+      </View>
+      <View style={{ alignItems: "center" }}>
+        <NativeHomeWidgetPreview snapshot={snapshot} family={family} />
+      </View>
+      </LiquidGlassSurface>
+    </Pressable>
+  );
+}
+
+function WidgetsScreen({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
+  const liveData = activeSemesterData(data);
+  const snapshots = buildNativeWidgetSnapshots(liveData, widgetCopyFor);
+  const [selectedKind, setSelectedKind] = useState<NativeWidgetKind>("today");
+  const [syncing, setSyncing] = useState(false);
+  const [manualSyncStatus, setManualSyncStatus] = useState<{ state: string; message: string; updatedAt?: string } | null>(null);
+  const widgetsUpToDate = manualSyncStatus?.state === "synced";
+  const selectedSnapshot = snapshots[selectedKind];
+  const activeDeadlines = liveData.tasks.filter((task) => !task.done).length + liveData.exams.length;
+  const focusClass = liveData.classes[0];
+  const legacyWeekWidgetTitle = textFor("widgets.row_week", "Week Load");
+  const legacyWeekWidgetBody = textFor("widgets.row_week_body", "Pressure by week");
+  const weekCalendarTitle = textFor("widgets.row_week_calendar", "Semester Calendar");
+  const weekCalendarBody = textFor("widgets.row_week_calendar_body", "Week load, exam markers, and pressure days");
+  const widgetCards: { kind: NativeWidgetKind; title: string; body: string; icon: string }[] = [
+    { kind: "today", title: textFor("widgets.row_today_short", "Today"), body: textFor("widgets.row_today_body", "Health, next deadline, and focus block"), icon: "home" },
+    { kind: "upcoming", title: textFor("widgets.row_upcoming", "Upcoming"), body: textFor("widgets.row_upcoming_body", "Assignments and exams coming soon"), icon: "target" },
+    { kind: "week", title: weekCalendarTitle || legacyWeekWidgetTitle, body: weekCalendarBody || legacyWeekWidgetBody, icon: "calendar" },
+    { kind: "classProgress", title: textFor("widgets.row_class", "Class Progress"), body: textFor("widgets.row_class_body", "Selected class pulse"), icon: "classes" },
+  ];
+  const updateWidgetPrefs = (patch: Partial<AppData["prefs"]>) => mutate((current) => ({ ...current, prefs: { ...current.prefs, ...patch } }));
+  const handleSync = async () => {
+    if (!data.prefs.premium) {
+      nav.push("paywall");
+      return;
+    }
+    const syncData = activeSemesterData({ ...data, prefs: { ...data.prefs, osLive: true } });
+    setSyncing(true);
+    setManualSyncStatus(null);
+    try {
+      const status = await syncNativeWidgets(syncData, widgetCopyFor);
+      setManualSyncStatus(status);
+      if (status.state === "synced") {
+        updateWidgetPrefs({ osLive: true, widgetLastSyncedAt: status.updatedAt || new Date().toISOString() });
+        recordReviewTrigger("widget_saved");
+      } else {
+        updateWidgetPrefs({ osLive: false, widgetLastSyncedAt: undefined });
+      }
+    } catch (error) {
+      updateWidgetPrefs({ osLive: false, widgetLastSyncedAt: undefined });
+      setManualSyncStatus({ state: "error", message: textFor("widgets.sync_error", "Widget sync needs attention.") });
+    } finally {
+      setSyncing(false);
+    }
+  };
+  return (
+    <Screen theme={theme} bottom={128}>
+      <BackHeader embedded nav={nav} theme={theme} label="" />
       <Header title={textFor("widgets.title", "Widgets")} sub={data.prefs.premium ? textFor("widgets.sub_ready", "Home Screen snapshots") : textFor("widgets.sub_locked", "Locked preview")} theme={theme} />
       <View style={{ paddingHorizontal: 16, gap: 14 }}>
-        <Card theme={theme} style={{ padding: 18, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
+        <LiquidGlassSurface tintColor={theme.dark ? "rgba(23,23,28,0.72)" : "rgba(255,255,255,0.76)"} colorScheme={theme.dark ? "dark" : "light"} style={{ borderRadius: 22, padding: 18, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF", borderWidth: 1, borderColor: theme.hairline }} fallbackStyle={{ backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
           <View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}>
             <View style={{ width: 72, height: 72, borderRadius: 22, backgroundColor: "#111114", alignItems: "center", justifyContent: "center" }}><Grid2X2 color="#fff" size={30} /></View>
             <View style={{ flex: 1 }}>
-              <Text selectable style={{ color: theme.label, fontSize: 21, lineHeight: 25, fontWeight: "900" }}>{data.prefs.premium ? textFor("widgets.ready_title", "Widgets are synced") : textFor("widgets.locked_title", "Unlock widgets")}</Text>
-              <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 4 }}>{data.prefs.premium ? textFor("widgets.ready_body", "{score} loop score ready for iOS widgets.", { score: loop.score }) : textFor("widgets.locked_body", "Apply a syllabus and unlock to keep widgets current.")}</Text>
+              <Text selectable style={{ color: theme.label, fontSize: 21, lineHeight: 25, fontWeight: "900" }}>{data.prefs.premium ? syncing ? textFor("widgets.syncing", "Syncing...") : widgetsUpToDate ? textFor("widgets.up_to_date_title", "Widgets are up to date") : textFor("widgets.ready_to_sync_title", "Widgets are ready to sync") : textFor("widgets.locked_title", "Unlock widgets")}</Text>
+	              <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 4 }}>{data.prefs.premium ? textFor("widgets.ready_body", "Today, upcoming deadlines, semester calendar, and class progress match your iPhone widgets after sync.") : textFor("widgets.locked_body", "Apply a syllabus and unlock to keep widgets current.")}</Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 9 }}>
+                <Pill text={textFor("widgets.source_classes", "{count} classes", { count: liveData.classes.length })} color={COLORS.blue} theme={theme} />
+                <Pill text={textFor("widgets.source_deadlines", "{count} deadlines", { count: activeDeadlines })} color={COLORS.orange} theme={theme} />
+                <Pill text={focusClass ? focusClass.code : textFor("widgets.no_focus", "No class yet")} color={focusClass?.color || COLORS.green} theme={theme} />
+              </View>
             </View>
           </View>
-          <Button label={data.prefs.premium ? textFor("widgets.sync", "Sync from dashboard") : textFor("widgets.locked_title", "Unlock widgets")} theme={theme} icon={data.prefs.premium ? "refresh" : "crown"} onPress={() => {
-            if (data.prefs.premium) {
-              recordReviewTrigger("widget_saved");
-              nav.tab("today");
-            } else {
-              nav.push("paywall");
-            }
-          }} />
-        </Card>
-        {widgetRows.map(([title, body, icon, color]) => (
-          <Card key={title as string} theme={theme} style={{ padding: 15, flexDirection: "row", gap: 12, alignItems: "center" }}>
-            <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: `${color}1C`, alignItems: "center", justifyContent: "center" }}><Icon name={icon as string} color={color as string} /></View>
+          <Button label={syncing ? textFor("widgets.syncing", "Syncing...") : data.prefs.premium ? widgetsUpToDate ? textFor("widgets.refresh", "Refresh widgets") : textFor("widgets.sync", "Update widgets") : textFor("widgets.locked_title", "Unlock widgets")} theme={theme} icon={data.prefs.premium ? "refresh" : "crown"} onPress={syncing ? undefined : handleSync} />
+          {manualSyncStatus ? <Text selectable accessibilityLiveRegion="polite" style={{ color: manualSyncStatus.state === "error" ? COLORS.red : theme.label2, lineHeight: 19, marginTop: 8, fontWeight: "800" }}>{manualSyncStatus.message}</Text> : null}
+        </LiquidGlassSurface>
+        <View>
+          <Section title={textFor("widgets.live_preview", "Recommended widgets")} action={data.prefs.premium ? undefined : textFor("widgets.locked", "locked")} theme={theme} />
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+            {widgetCards.map((card) => (
+              <WidgetSnapshotCard key={card.kind} snapshot={snapshots[card.kind]} title={card.title} icon={card.icon} theme={theme} selected={selectedKind === card.kind} onPress={() => setSelectedKind(card.kind)} />
+            ))}
+          </View>
+        </View>
+        <Card theme={theme} style={{ padding: 15, gap: 14 }}>
+          <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+            <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: `${selectedSnapshot.accentColor}1C`, alignItems: "center", justifyContent: "center" }}><Icon name={widgetCards.find((card) => card.kind === selectedKind)?.icon || "grid"} color={selectedSnapshot.accentColor} /></View>
             <View style={{ flex: 1 }}>
-              <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{title}</Text>
-              <Text selectable style={{ color: theme.label2, marginTop: 3 }}>{body}</Text>
+              <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{selectedSnapshot.headline}</Text>
+              <Text selectable style={{ color: theme.label2, marginTop: 3 }}>{widgetCards.find((card) => card.kind === selectedKind)?.body}</Text>
             </View>
-            <Pill text={data.prefs.premium ? textFor("widgets.ready", "ready") : textFor("widgets.locked", "locked")} color={data.prefs.premium ? COLORS.green : COLORS.orange} theme={theme} />
-          </Card>
-        ))}
+            {!data.prefs.premium ? <Pill text={textFor("widgets.locked", "locked")} color={COLORS.orange} theme={theme} /> : null}
+          </View>
+          <Text selectable style={{ color: theme.label2, lineHeight: 20 }}>{selectedSnapshot.footnote}</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
+            <Pill text={selectedSnapshot.signalLabel || selectedSnapshot.headline} color={selectedSnapshot.accentColor} theme={theme} />
+            <Pill text={selectedSnapshot.updatedLabel || selectedSnapshot.timelineLabel || selectedSnapshot.kind} color={COLORS.blue} theme={theme} />
+          </View>
+        </Card>
+        <Card theme={theme} style={{ padding: 15, gap: 12, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
+          <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+            <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: `${selectedSnapshot.accentColor}1C`, alignItems: "center", justifyContent: "center" }}><Sparkles color={selectedSnapshot.accentColor} size={20} /></View>
+            <View style={{ flex: 1 }}>
+              <Text selectable style={{ color: theme.label, fontSize: 16, fontWeight: "900" }}>{textFor("success.theme_title", "White system, class colors")}</Text>
+              <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 3 }}>{textFor("success.theme_proof", "No color setup required. Course colors stay automatic for classes and widgets.")}</Text>
+            </View>
+          </View>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
+            <Pill text={focusClass ? focusClass.code : textFor("widget_snapshot.all_classes", "All classes")} color={focusClass?.color || selectedSnapshot.accentColor} theme={theme} />
+            <Pill text={selectedSnapshot.signalLabel || selectedSnapshot.headline} color={selectedSnapshot.accentColor} theme={theme} />
+            <Pill text={selectedSnapshot.updatedLabel || selectedSnapshot.timelineLabel || selectedSnapshot.kind} color={COLORS.blue} theme={theme} />
+          </View>
+        </Card>
       </View>
     </Screen>
   );
 }
 
 function Profile({ data, mutate, nav, theme }: ScreenProps) {
+  const liveData = activeSemesterData(data);
+  const subscriptionAccount = Platform.OS === "android" ? textFor("profile.google_play", "Google Play") : textFor("profile.apple_account", "Apple account");
   const rows = [
-    ["bell", COLORS.red, textFor("profile.reminders", "Reminders"), textFor("profile.active_count", "{count} active", { count: data.reminders.filter((r) => r.enabled).length }), "reminders"],
+    ["bell", COLORS.red, textFor("profile.reminders", "Reminders"), textFor("reminders.configured_count", "{count} configured", { count: liveData.reminders.filter((r) => r.enabled).length }), "reminders"],
+    ["grid", COLORS.green, textFor("widgets.title", "Widgets"), textFor("widgets.sync", "Update widgets"), "widgets"],
     ["scan", COLORS.purple, textFor("profile.import_history", "Import history"), textFor("profile.import_count", "{count} imports", { count: data.imports.length }), "scan"],
-    ["refresh", COLORS.blue, textFor("profile.manage_subscription", "Manage subscription"), textFor("profile.apple_account", "Apple account"), "manage"],
+    ["refresh", COLORS.blue, textFor("profile.manage_subscription", "Manage subscription"), subscriptionAccount, "manage"],
     ["shield", COLORS.green, textFor("profile.privacy_policy", "Privacy Policy"), textFor("profile.studyplanner_data", "StudyPlanner data"), "privacy"],
     ["file", COLORS.orange, textFor("profile.terms_use", "Terms of Use"), textFor("profile.subscription_terms", "Subscription terms"), "terms"],
     ["file", COLORS.orange, textFor("common.support", "Support"), textFor("profile.email_help", "Email help"), "support"],
@@ -5389,9 +10839,9 @@ function Profile({ data, mutate, nav, theme }: ScreenProps) {
     <Screen theme={theme}>
       <Header title={textFor("tabs.profile", "Profile")} sub={textFor("profile.active_semester", "Active semester")} theme={theme} />
       <View style={{ paddingHorizontal: 16, gap: 16 }}>
-        <Card theme={theme} style={{ padding: 18 }}><View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}><View style={{ width: 62, height: 62, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 26, fontWeight: "900" }}>{userInitial(data)}</Text></View><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontSize: 24, fontWeight: "900" }}>{firstNameFromPrefs(data)}</Text><Text selectable style={{ color: theme.label2 }}>{optionText(data.prefs.level)} · {optionText(data.prefs.studentPersona || "School semester")}</Text><View style={{ flexDirection: "row", gap: 6, marginTop: 6 }}><Pill text={data.prefs.premium ? textFor("profile.subscribed", "Subscribed") : textFor("profile.locked", "Locked")} color={data.prefs.premium ? COLORS.green : COLORS.orange} icon="crown" theme={theme} /><Pill text={textFor("profile.on_device", "On device")} color={COLORS.green} icon="shield" theme={theme} /></View></View></View><View style={{ marginTop: 18 }}><View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 7 }}><Text selectable style={{ color: theme.label2, fontWeight: "900" }}>{textFor("profile.semester_progress", "SEMESTER PROGRESS")}</Text><Text selectable style={{ color: theme.label2 }}>{data.classes.length ? textFor("profile.classes_count", "{count} classes", { count: data.classes.length }) : textFor("profile.no_semester", "No semester yet")}</Text></View><ProgressBar value={data.tasks.length ? data.tasks.filter((task) => task.done).length / data.tasks.length : 0} color={theme.accent} theme={theme} /></View></Card>
-        <Pressable onPress={() => nav.push("paywall")}><View style={{ borderRadius: 22, padding: 18, backgroundColor: "#282139" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Crown color={COLORS.yellow} size={19} /><Text selectable style={{ color: "#fff", fontWeight: "900" }}>{textFor("profile.subscription", "StudyPlanner subscription")}</Text></View><Text selectable style={{ color: "rgba(255,255,255,.85)" }}>{textFor("profile.subscription_body", "Scans, reminders, study sets, and planning are active.")}</Text></View></Pressable>
-        <Card theme={theme} style={{ overflow: "hidden" }}>{rows.map(([icon, color, title, value, route]) => <Pressable key={title} onPress={() => {
+        <Card theme={theme} style={{ padding: 18 }}><View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}><View style={{ width: 62, height: 62, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 26, fontWeight: "900" }}>{userInitial(data)}</Text></View><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontSize: 24, fontWeight: "900" }}>{firstNameFromPrefs(data)}</Text><Text selectable style={{ color: theme.label2 }}>{optionText(data.prefs.level)} · {optionText(data.prefs.studentPersona || "School semester")}</Text><View style={{ flexDirection: "row", gap: 6, marginTop: 6 }}><Pill text={data.prefs.premium ? textFor("profile.subscribed", "Subscribed") : textFor("profile.locked", "Locked")} color={data.prefs.premium ? COLORS.green : COLORS.orange} icon="crown" theme={theme} /><Pill text={textFor("profile.on_device", "On device")} color={COLORS.green} icon="shield" theme={theme} /></View></View></View><View style={{ marginTop: 18 }}><View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 7 }}><Text selectable style={{ color: theme.label2, fontWeight: "900" }}>{textFor("profile.semester_progress", "SEMESTER PROGRESS")}</Text><Text selectable style={{ color: theme.label2 }}>{liveData.classes.length ? textFor("profile.classes_count", "{count} classes", { count: liveData.classes.length }) : textFor("profile.no_semester", "No semester yet")}</Text></View><ProgressBar value={liveData.tasks.length ? liveData.tasks.filter((task) => task.done).length / liveData.tasks.length : 0} color={theme.accent} theme={theme} /></View></Card>
+        <Pressable accessibilityRole={data.prefs.premium ? "link" : "button"} accessibilityLabel={data.prefs.premium ? textFor("profile.manage_subscription", "Manage subscription") : textFor("locked.unlock", "Unlock StudyPlanner")} accessibilityHint={data.prefs.premium ? textFor("profile.accessibility_manage_hint", "Open subscription management for this store account") : textFor("profile.accessibility_unlock_hint", "Open StudyPlanner subscription options")} onPress={() => data.prefs.premium ? openExternal(MANAGE_SUBSCRIPTION_URL) : nav.push("paywall")}><View style={{ borderRadius: 22, padding: 18, backgroundColor: "#282139" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Crown color={COLORS.yellow} size={19} /><Text selectable style={{ color: "#fff", fontWeight: "900" }}>{textFor("profile.subscription", "StudyPlanner subscription")}</Text></View><Text selectable style={{ color: "rgba(255,255,255,.85)" }}>{textFor("profile.subscription_body", "Scans, reminders, study sets, and planning are active.")}</Text></View></Pressable>
+        <Card theme={theme} style={{ overflow: "hidden" }}>{rows.map(([icon, color, title, value, route]) => <Pressable key={`profile-row-${route}`} accessibilityRole={route === "manage" || route === "privacy" || route === "terms" || route === "support" ? "link" : "button"} accessibilityLabel={`${title}. ${value}`} accessibilityHint={route === "manage" ? textFor("profile.accessibility_manage_hint", "Open subscription management for this store account") : route === "privacy" ? textFor("paywall.accessibility_privacy_hint", "Open the privacy policy") : route === "terms" ? textFor("paywall.accessibility_terms_hint", "Open the subscription terms") : route === "support" ? textFor("paywall.accessibility_support_hint", "Open StudyPlanner support") : textFor("profile.accessibility_row_hint", "Open this setting")} onPress={() => {
           if (route === "scan") nav.tab("scan");
           else if (route === "manage") openExternal(MANAGE_SUBSCRIPTION_URL);
           else if (route === "privacy" || route === "terms") nav.push(route);
@@ -5404,33 +10854,134 @@ function Profile({ data, mutate, nav, theme }: ScreenProps) {
 }
 
 function Reminders({ data, mutate, nav, theme, params }: ScreenProps) {
-  const semester = buildSemesterSnapshot(data);
-  const initialReminderStatus = semester.notificationPlan.items[0]?.explanation
-    ? localizedNarrativeText("detail", semester.notificationPlan.items[0].explanation)
-    : textFor("reminders.default_status", "Enable reminders when you want this iPhone to schedule them.");
+  const liveData = activeSemesterData(data);
+  const semester = buildSemesterSnapshot(liveData);
+  const configuredReminderCount = liveData.reminders.filter((reminder) => reminder.enabled).length;
+  const [verifiedPendingIds, setVerifiedPendingIds] = useState<Set<string> | null>(null);
+  const initialReminderStatus = configuredReminderCount
+    ? textFor("reminders.configured_count", "{count} configured", { count: configuredReminderCount })
+    : textFor("reminders.default_status", "Add suggestions, review the timing, then schedule the reminders you want.");
   const [status, setStatus] = useState(initialReminderStatus);
   const [scheduling, setScheduling] = useState(false);
+  const [updatingReminderId, setUpdatingReminderId] = useState<string | null>(null);
   const validationStarted = useRef(false);
-  const toggle = (id: string) => mutate((d) => {
-    const reminder = d.reminders.find((item) => item.id === id);
-    if (reminder?.enabled) cancelReminderNotificationIds(reminder.notificationIds || []).catch(() => {});
-    return { ...d, reminders: d.reminders.map((r) => r.id === id ? { ...r, enabled: !r.enabled, notificationIds: r.enabled ? [] : r.notificationIds, scheduledFor: r.enabled ? [] : r.scheduledFor } : r) };
-  });
-  const addSmart = () => mutate((d) => ({ ...d, reminders: [...suggestSmartReminders(d).map((r, index) => ({ id: `r_${Date.now()}_${index}`, enabled: true, ...r })), ...d.reminders] }));
+  const schedulingInFlight = useRef(false);
+  const reminderActionInFlight = useRef<string | null>(null);
+  const reminderKey = (reminder: Pick<ReminderItem, "title" | "lead" | "classId">) => `${reminder.classId || ""}|${reminder.title.trim().toLowerCase()}|${reminder.lead.trim().toLowerCase()}`;
+  const existingReminderKeys = new Set(data.reminders.map(reminderKey));
+  const smartSuggestions = suggestSmartReminders(liveData).filter((reminder) => !existingReminderKeys.has(reminderKey(reminder)));
+  const verifiedIdsFor = (reminder: ReminderItem) => verifiedPendingIds
+    ? (reminder.notificationIds || []).filter((identifier) => verifiedPendingIds.has(identifier))
+    : [];
+  const scheduledNotificationCount = liveData.reminders.reduce((count, reminder) => count + verifiedIdsFor(reminder).length, 0);
+  const scheduledReminderCount = liveData.reminders.filter((reminder) => verifiedIdsFor(reminder).length > 0).length;
+  const hasScheduledNotifications = scheduledNotificationCount > 0;
+  const scheduleContextCount = hasScheduledNotifications ? scheduledNotificationCount : configuredReminderCount;
+  const shouldAddSuggestionsFirst = liveData.reminders.length === 0 && smartSuggestions.length > 0;
+  const toggle = async (id: string) => {
+    if (reminderActionInFlight.current) return;
+    const reminder = data.reminders.find((item) => item.id === id);
+    if (!reminder) return;
+    const notificationIds = reminder.notificationIds || [];
+    const shouldTurnOff = reminder.enabled || notificationIds.length > 0;
+    if (!shouldTurnOff) {
+      mutate((d) => ({ ...d, reminders: d.reminders.map((item) => item.id === id ? { ...item, enabled: true } : item) }));
+      setStatus(textFor("reminders.configured", "Configured, not scheduled"));
+      return;
+    }
+
+    reminderActionInFlight.current = id;
+    setUpdatingReminderId(id);
+    try {
+      await cancelReminderNotificationIds(notificationIds);
+      mutate((d) => ({
+        ...d,
+        reminders: d.reminders.map((item) => item.id === id
+          ? { ...item, enabled: false, notificationIds: [], scheduledFor: [] }
+          : item),
+      }));
+      setStatus(textFor("reminders.off", "Off"));
+    } catch {
+      setStatus(textFor("reminders.cancel_failed_status", "Reminder change stopped. Nothing was marked Off."));
+      showReminderCancellationFailure();
+    } finally {
+      reminderActionInFlight.current = null;
+      setUpdatingReminderId(null);
+    }
+  };
+  const addSmart = () => {
+    const additions = smartSuggestions.map((reminder) => ({ ...reminder, id: makeOwnershipId("reminder"), enabled: true }));
+    if (additions.length) mutate((d) => ({ ...d, reminders: [...additions, ...d.reminders] }));
+    setStatus(additions.length
+      ? textFor("reminders.suggested_status", "{count} added. Tap Schedule to activate.", { count: additions.length })
+      : textFor("reminders.no_new_suggestions", "No new suggestions. Your reminder list is up to date."));
+  };
   const schedule = async (validation = false) => {
+    if (schedulingInFlight.current) return;
+    schedulingInFlight.current = true;
     setScheduling(true);
     try {
-      const result = await scheduleLocalReminders(data, validation ? { includeValidationNotification: true, validationDelaySeconds: 60 } : {});
-      setStatus(result.message);
-      if (result.state === "scheduled" && result.reminders) {
-        mutate((d) => ({ ...d, reminders: [...result.reminders!, ...d.reminders.filter((r) => !(r.notificationIds || []).length)] }));
+      const result = await scheduleLocalReminders(liveData, validation ? { includeValidationNotification: true, validationDelaySeconds: 60 } : {});
+      const pendingIds = result.pendingNotifications ? new Set(result.pendingNotifications.map((notification) => notification.identifier)) : null;
+      if (pendingIds) setVerifiedPendingIds(pendingIds);
+      else if (result.state !== "scheduled") setVerifiedPendingIds(null);
+      if (result.reminders) {
+        const verifiedReminders = pendingIds ? reconcileReminderNotificationEvidence(result.reminders, pendingIds) : result.reminders;
+        mutate((d) => {
+          const activeClassIds = new Set(activeSemesterData(d).classes.map((klass) => klass.id));
+          const archivedRows = d.reminders.filter((reminder) => !activeClassIds.has(reminder.classId));
+          return { ...d, reminders: [...verifiedReminders, ...archivedRows] };
+        });
+      }
+      if (result.failure === "cancellation_failed") {
+        setStatus(textFor("reminders.cancel_failed_status", "Reminder change stopped. Nothing was marked Off."));
+        showReminderCancellationFailure();
+      } else if (result.state === "error") {
+        setStatus(textFor("reminders.schedule_failed", "Could not schedule reminders."));
+      } else {
+        setStatus(result.message);
       }
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : textFor("reminders.schedule_failed", "Could not schedule reminders."));
+      setStatus(textFor("reminders.schedule_failed", "Could not schedule reminders."));
     } finally {
+      schedulingInFlight.current = false;
       setScheduling(false);
     }
   };
+  useEffect(() => {
+    if (params.validation === "1") return;
+    let active = true;
+    listPendingReminderNotifications()
+      .then((pending) => {
+        if (!active) return;
+        const pendingIds = new Set(pending.map((notification) => notification.identifier));
+        setVerifiedPendingIds(pendingIds);
+        const reconciled = reconcileReminderNotificationEvidence(data.reminders, pendingIds);
+        mutate((d) => {
+          const next = reconcileReminderNotificationEvidence(d.reminders, pendingIds);
+          const changed = next.some((reminder, index) =>
+            (reminder.notificationIds || []).join("|") !== (d.reminders[index]?.notificationIds || []).join("|")
+            || (reminder.scheduledFor || []).join("|") !== (d.reminders[index]?.scheduledFor || []).join("|")
+          );
+          return changed ? { ...d, reminders: next } : d;
+        });
+        const activeClassIds = new Set(liveData.classes.map((klass) => klass.id));
+        const verifiedScheduledCount = reconciled.filter((reminder) => activeClassIds.has(reminder.classId) && (reminder.notificationIds || []).length > 0).length;
+        setStatus(verifiedScheduledCount
+          ? textFor("reminders.scheduled_count", "{count} scheduled", { count: verifiedScheduledCount })
+          : configuredReminderCount
+            ? textFor("reminders.configured_count", "{count} configured", { count: configuredReminderCount })
+            : textFor("reminders.default_status", "Add suggestions, review the timing, then schedule the reminders you want."));
+      })
+      .catch(() => {
+        if (!active) return;
+        setVerifiedPendingIds(null);
+        setStatus(textFor("reminders.verify_failed", "Could not verify the iPhone schedule. Configured reminders are shown without a Scheduled claim."));
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
   useEffect(() => {
     if (params.validation === "1" && !validationStarted.current) {
       validationStarted.current = true;
@@ -5441,32 +10992,86 @@ function Reminders({ data, mutate, nav, theme, params }: ScreenProps) {
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={textFor("reminders.title", "Reminders")} />
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 18 }}>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("reminders.smart", "Smart reminders")}</Text></View><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{status}</Text><Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 8 }}>{localizedNarrativeText("next", semester.coachCopy.nextAction)}</Text><Button label={scheduling ? textFor("reminders.scheduling", "Scheduling...") : textFor("reminders.schedule", "Schedule")} theme={theme} onPress={scheduling ? undefined : schedule} /><Button label={textFor("reminders.add_suggestions", "Add suggestions")} secondary theme={theme} onPress={addSmart} /></Card>
-        <Section title={textFor("reminders.active", "Active reminders")} theme={theme} />
-        <Card theme={theme} style={{ overflow: "hidden" }}>{data.reminders.map((r) => { const c = safeClassFor(data, r.classId); return <View key={r.id} style={{ flexDirection: "row", gap: 12, alignItems: "center", padding: 14 }}><ClassGlyph c={c} size={34} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{r.title}</Text><Text selectable style={{ color: theme.label2 }}>{r.lead}{r.room ? ` · ${r.room}` : ""}</Text></View><Pressable onPress={() => toggle(r.id)} style={{ width: 48, height: 29, borderRadius: 99, backgroundColor: r.enabled ? COLORS.green : theme.surface3, padding: 2, alignItems: r.enabled ? "flex-end" : "flex-start" }}><View style={{ width: 25, height: 25, borderRadius: 99, backgroundColor: "#fff" }} /></Pressable></View>; })}</Card>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("reminders.smart", "Smart reminders")}</Text></View><Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label, lineHeight: 21 }}>{status}</Text><Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 8 }}>{localizedNarrativeText("next", semester.coachCopy.nextAction)}</Text>{shouldAddSuggestionsFirst ? <Button label={`${textFor("reminders.add_suggestions", "Add suggestions")} (${smartSuggestions.length})`} theme={theme} onPress={scheduling || updatingReminderId ? undefined : addSmart} /> : liveData.reminders.length ? <><Button label={scheduling ? textFor("reminders.scheduling", "Scheduling...") : `${hasScheduledNotifications ? textFor("reminders.refresh", "Refresh schedule") : textFor("reminders.schedule", "Schedule reminders")} (${scheduleContextCount})`} theme={theme} onPress={scheduling || scheduleContextCount === 0 ? undefined : () => { schedule().catch(() => setScheduling(false)); }} />{smartSuggestions.length ? <Button label={`${textFor("reminders.add_suggestions", "Add suggestions")} (${smartSuggestions.length})`} secondary theme={theme} onPress={scheduling || updatingReminderId ? undefined : addSmart} /> : null}</> : null}</Card>
+        <Section title={textFor("reminders.title", "Reminders")} action={scheduledReminderCount ? textFor("reminders.scheduled_count", "{count} scheduled", { count: scheduledReminderCount }) : undefined} theme={theme} />
+        <Card theme={theme} style={{ overflow: "hidden" }}>
+          {liveData.reminders.length ? liveData.reminders.map((r) => {
+            const c = safeClassFor(liveData, r.classId);
+            const hasNativeEvidence = verifiedIdsFor(r).length > 0;
+            const appearsEnabled = r.enabled || hasNativeEvidence;
+            const stateLabel = hasNativeEvidence ? textFor("reminders.scheduled", "Scheduled") : !r.enabled ? textFor("reminders.off", "Off") : textFor("reminders.configured", "Configured, not scheduled");
+            const updating = updatingReminderId === r.id;
+            return <View key={r.id} style={{ flexDirection: "row", gap: 12, alignItems: "center", padding: 14, opacity: updating ? 0.66 : 1 }}><ClassGlyph c={c} size={34} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{r.title}</Text><Text selectable style={{ color: theme.label2 }}>{r.lead}{r.room ? ` · ${r.room}` : ""}</Text><Text selectable style={{ color: appearsEnabled ? theme.accent : theme.label3, fontSize: 12, fontWeight: "900", marginTop: 3 }}>{stateLabel}</Text></View><Pressable accessibilityRole="switch" accessibilityLabel={textFor("reminders.toggle", "Toggle reminder for {title}", { title: r.title })} accessibilityState={{ checked: appearsEnabled, disabled: Boolean(updatingReminderId) }} disabled={Boolean(updatingReminderId)} onPress={() => { toggle(r.id).catch(() => setUpdatingReminderId(null)); }} style={{ width: 52, height: 44, borderRadius: 99, justifyContent: "center", backgroundColor: "transparent" }}><View style={{ width: 48, height: 29, borderRadius: 99, backgroundColor: appearsEnabled ? COLORS.green : theme.surface3, padding: 2, alignItems: appearsEnabled ? "flex-end" : "flex-start" }}><View style={{ width: 25, height: 25, borderRadius: 99, backgroundColor: "#fff" }} /></View></Pressable></View>;
+          }) : (
+            <View style={{ padding: 18 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: `${COLORS.purple}18`, alignItems: "center", justifyContent: "center" }}><Bell color={COLORS.purple} size={21} /></View>
+                <View style={{ flex: 1 }}>
+                  <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>{textFor("reminders.none", "Nothing scheduled yet")}</Text>
+                  <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 3 }}>{textFor("reminders.none_body", "Start with the suggestions above. You decide what gets scheduled.")}</Text>
+                </View>
+              </View>
+              <View style={{ flexDirection: "row", gap: 8, marginTop: 14 }}>
+                {[["1", textFor("reminders.add_suggestions", "Add")], ["2", textFor("reminders.step_review", "Review")], ["3", textFor("reminders.schedule", "Schedule")]].map(([step, label]) => (
+                  <View key={step} style={{ flex: 1, minHeight: 48, borderRadius: 14, backgroundColor: theme.surface2, alignItems: "center", justifyContent: "center", paddingHorizontal: 6 }}>
+                    <Text selectable style={{ color: theme.accent, fontSize: 11, fontWeight: "900" }}>{step}</Text>
+                    <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ color: theme.label, fontSize: 12, fontWeight: "900", marginTop: 2 }}>{label}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+        </Card>
       </ScrollView>
     </View>
   );
 }
 
-function HomePreview({ nav, theme }: ScreenProps) {
-  useEffect(() => {
-    nav.tab("today");
-  }, [nav]);
+function HomePreview({ data, nav, theme }: ScreenProps) {
+  const snapshots = buildNativeWidgetSnapshots(activeSemesterData(data), widgetCopyFor);
   return (
-    <View style={{ flex: 1, backgroundColor: theme.bg, alignItems: "center", justifyContent: "center" }}>
-      <ActivityIndicator color={theme.accent} />
-    </View>
+    <Screen theme={theme} bottom={40}>
+      <BackHeader embedded nav={nav} theme={theme} label={textFor("widgets.sub_ready", "Home Screen snapshots")} />
+      <Header title={textFor("widgets.title", "Widgets")} sub={textFor("widgets.sub_ready", "Home Screen snapshots")} theme={theme} />
+      <View style={{ paddingHorizontal: 16, gap: 14 }}>
+        <Card theme={theme} style={{ padding: 16, gap: 14 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <View style={{ flex: 1 }}>
+              <Text selectable style={{ color: theme.label, fontSize: 20, lineHeight: 24, fontWeight: "900" }}>{textFor("widgets.row_today", "StudyPlanner Today")}</Text>
+              <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 4 }}>{textFor("widgets.row_today_body", "Health, next deadline, and focus block")}</Text>
+            </View>
+            <Pill text={textFor("widgets.ready", "ready")} color={COLORS.green} theme={theme} icon="grid" />
+          </View>
+          <View style={{ alignItems: "center" }}>
+            <NativeHomeWidgetPreview snapshot={snapshots.today} family="systemSmall" />
+          </View>
+        </Card>
+        <Card theme={theme} style={{ padding: 16, gap: 14 }}>
+          <Text selectable style={{ color: theme.label, fontSize: 20, lineHeight: 24, fontWeight: "900" }}>{textFor("widgets.row_week_calendar", "Semester Calendar")}</Text>
+          <NativeHomeWidgetPreview snapshot={snapshots.week} family="systemMedium" />
+        </Card>
+        <Button label={textFor("widgets.title", "Widgets")} theme={theme} icon="grid" onPress={() => nav.push("widgets")} />
+      </View>
+    </Screen>
   );
 }
 
-function LockPreview({ nav, theme }: ScreenProps) {
-  useEffect(() => {
-    nav.tab("today");
-  }, [nav]);
+function LockPreview({ data, nav, theme }: ScreenProps) {
+  const snapshots = buildNativeWidgetSnapshots(data, widgetCopyFor);
   return (
-    <View style={{ flex: 1, backgroundColor: theme.bg, alignItems: "center", justifyContent: "center" }}>
-      <ActivityIndicator color={theme.accent} />
-    </View>
+    <Screen theme={theme} bottom={40}>
+      <BackHeader embedded nav={nav} theme={theme} label={textFor("widgets.sub_locked", "Locked preview")} />
+      <Header title={textFor("widgets.sub_locked", "Locked preview")} sub={textFor("widgets.title", "Widgets")} theme={theme} />
+      <View style={{ paddingHorizontal: 16, gap: 14 }}>
+        <Card theme={theme} style={{ padding: 16, gap: 14 }}>
+          <Text selectable style={{ color: theme.label, fontSize: 20, lineHeight: 24, fontWeight: "900" }}>{textFor("widgets.locked_title", "Unlock widgets")}</Text>
+          <Text selectable style={{ color: theme.label2, lineHeight: 20 }}>{textFor("widgets.locked_body", "Apply a syllabus and unlock to keep widgets current.")}</Text>
+          <View style={{ alignItems: "center", opacity: 0.72 }}>
+            <NativeHomeWidgetPreview snapshot={snapshots.upcoming} family="systemSmall" />
+          </View>
+          <Button label={textFor("widgets.locked_title", "Unlock widgets")} theme={theme} icon="crown" onPress={() => nav.push("paywall", { next: "widgets" })} />
+        </Card>
+      </View>
+    </Screen>
   );
 }

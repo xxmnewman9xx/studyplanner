@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { buildDashboardSnapshot, buildSemesterSnapshot } from "../src/intelligence";
-import { applyImportUpdateToData, applyTaskRecurrencePatch, deleteTaskRecurrence, findImportMatch } from "../src/ownership/semesterOwnership";
+import { applyImportUpdateToData, applyTaskRecurrencePatch, canMarkStudyBlockMissed, deleteTaskRecurrence, findImportMatch } from "../src/ownership/semesterOwnership";
 import { isoFromOffset } from "../src/seed";
-import { AppData, ClassItem, ExamItem, ImportBatch, TaskItem } from "../src/types";
+import { AppData, ClassItem, ExamItem, ImportBatch, StudyBlock, TaskItem } from "../src/types";
 
 function assert(condition: unknown, message: string) {
   if (!condition) throw new Error(message);
@@ -117,9 +117,47 @@ const recurrenceAnchor = data.tasks.find((task) => task.id === "discussion-3")!;
 data = { ...data, tasks: applyTaskRecurrencePatch(data.tasks, recurrenceAnchor, { title: "Discussion special case" }, "single") };
 assert(data.tasks.find((task) => task.id === "discussion-3")?.title === "Discussion special case", "recurring edit single should update one occurrence");
 assert(data.tasks.find((task) => task.id === "discussion-4")?.title === "Weekly discussion", "recurring edit single should not update future occurrences");
+const discussion4Date = data.tasks.find((task) => task.id === "discussion-4")?.dueDate;
+const discussion5Date = data.tasks.find((task) => task.id === "discussion-5")?.dueDate;
 data = { ...data, tasks: applyTaskRecurrencePatch(data.tasks, data.tasks.find((task) => task.id === "discussion-4")!, { title: "Discussion future series" }, "future") };
 assert(data.tasks.find((task) => task.id === "discussion-4")?.title === "Discussion future series", "recurring edit future should update anchor occurrence");
 assert(data.tasks.find((task) => task.id === "discussion-5")?.title === "Discussion future series", "recurring edit future should update later occurrences");
+assert(data.tasks.find((task) => task.id === "discussion-4")?.dueDate === discussion4Date, "recurring title-only future edit should preserve the anchor date");
+assert(data.tasks.find((task) => task.id === "discussion-5")?.dueDate === discussion5Date, "recurring title-only future edit should preserve each later occurrence date");
+
+const undatedRecurring = Array.from({ length: 3 }, (_item, index): TaskItem => ({
+  ...taskItem(`undated-weekly-${index}`, "chem", "Undated weekly", isoFromOffset(index * 7), true),
+  recurringId: "undated-weekly-series",
+  recurrenceIndex: index,
+}));
+const resolvedUndatedRecurring = applyTaskRecurrencePatch(
+  undatedRecurring,
+  undatedRecurring[0],
+  { dueDate: isoFromOffset(2), missing: false },
+  "future"
+);
+assert(resolvedUndatedRecurring[0]?.dueDate === isoFromOffset(2), "resolving an undated recurring anchor should use the chosen date");
+assert(resolvedUndatedRecurring[1]?.dueDate === isoFromOffset(9), "resolving an undated recurring series should preserve weekly spacing");
+assert(resolvedUndatedRecurring[2]?.dueDate === isoFromOffset(16), "resolving an undated recurring series should preserve every later weekly date");
+
+const blockFixture: StudyBlock = {
+  id: "block-fixture",
+  day: "Friday",
+  time: "8:00 AM - 8:30 AM",
+  classId: "chem",
+  title: "Review",
+  minutes: 30,
+  reason: "Regression",
+  completed: false,
+  date: "2026-07-10",
+  startsAt: "2026-07-10T08:00:00.000Z",
+  endsAt: "2026-07-10T08:30:00.000Z",
+};
+const blockNow = new Date("2026-07-10T09:00:00.000Z");
+assert(canMarkStudyBlockMissed(blockFixture, blockNow), "past incomplete study block should allow missed repair");
+assert(!canMarkStudyBlockMissed({ ...blockFixture, endsAt: "2026-07-10T10:00:00.000Z" }, blockNow), "future study block should not allow missed repair");
+assert(!canMarkStudyBlockMissed({ ...blockFixture, completed: true }, blockNow), "completed study block should not allow missed repair");
+assert(!canMarkStudyBlockMissed({ ...blockFixture, missed: true }, blockNow), "already-missed study block should not allow another repair");
 data = { ...data, tasks: deleteTaskRecurrence(data.tasks, data.tasks.find((task) => task.id === "discussion-4")!, "single") };
 assert(!data.tasks.some((task) => task.id === "discussion-4"), "recurring delete single should remove one occurrence");
 assert(data.tasks.some((task) => task.id === "discussion-5"), "recurring delete single should preserve future occurrences");
@@ -172,6 +210,11 @@ assert(widgetCompatibleItems.every((item) => item.id && item.title && activeClas
 const storageSource = readFileSync("src/storage.ts", "utf8");
 assert(["recurringId", "recurrenceIndex", "recurrenceEndDate", "userEditedAt"].every((field) => storageSource.includes(field)), "storage normalization should preserve recurrence/edit metadata");
 assert(["normalizeExam", "effortMinutes", "priority", "notes"].every((field) => storageSource.includes(field)), "storage normalization should preserve assessment ownership metadata");
+
+const appSource = readFileSync("App.tsx", "utf8");
+assert(appSource.includes(": activeSemesterData(persistedSnapshot);"), "automatic native widget sync should filter archived semester data");
+assert(appSource.includes("dueDate: dateText,"), "blank-date recurring creation should retain generated weekly dates behind the missing-date flag");
+assert(appSource.includes("buildStudyPlan({ ...d, tasks: [currentTask] })"), "Task Detail should schedule its selected task even outside the planner's global top-twelve window");
 
 const widgetAssessmentItems = activeData.exams.map((exam) => ({ id: exam.id, title: exam.title, classId: exam.classId, dueDate: exam.dueDate }));
 assert(widgetAssessmentItems.some((item) => item.id === "chem-final" && activeClassIds.has(item.classId)), "native widgets should be able to show assessments as due items");

@@ -2,7 +2,7 @@
 
 ## Product Promise
 
-Turn a messy semester into a clear daily execution plan. Students upload a text-based syllabus or paste class material, review the detected plan, and immediately see courses, assignments, exams, reminders, grades, and what to do today. Photo import can save a review source, while automatic photo OCR is available only in builds with a configured parser endpoint and image parsing enabled.
+Turn a messy semester into a clear daily execution plan. Students upload a text-based syllabus, paste class material, or scan a syllabus photo on iOS, review the detected plan, and immediately see courses, assignments, exams, reminders, grades, and what to do today. Supported imports are processed on device in this release.
 
 ## Audience
 
@@ -16,13 +16,12 @@ Turn a messy semester into a clear daily execution plan. Students upload a text-
 
 - Course and semester setup.
 - Text-based PDF and pasted-text syllabus import with editable parsing results.
-- Real photo syllabus parsing through the camera/photo library only when the production parser endpoint is configured and `EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1`; without OCR support, photo capture saves an honest source for review instead of claiming extraction.
+- Real photo syllabus parsing through the camera/photo library when the native iOS Vision OCR module is present; without native OCR, the app directs students to paste text or use a readable text-based PDF.
 - Assignments and exams with due dates, tags, priority, estimates, and status.
 - Weekly class schedule.
 - Today view with a ranked next action.
 - Weighted grade tracker and target-grade calculator.
 - Smart local reminders for deadlines and exams.
-- Device calendar sync.
 - Focus timer tied to a specific assignment.
 - Onboarding that explains value quickly, previews customization, and routes into the Plus paywall.
 
@@ -45,8 +44,8 @@ Turn a messy semester into a clear daily execution plan. Students upload a text-
 
 ### Syllabus Import
 
-1. Upload a text-based PDF, paste syllabus text, or capture a syllabus photo as a review source.
-2. Parse pasted text locally. Parse text-based PDFs locally when no endpoint is configured, and use the configured parser endpoint first when present. Send camera/photo sources to OCR only when the configured endpoint and image parsing flag are both enabled.
+1. Upload a text-based PDF, paste syllabus text, or scan a syllabus photo with native iOS Vision OCR.
+2. Parse pasted text and readable text-based PDFs on device. Process camera/photo text on device when native Vision OCR is available.
 3. Return structured JSON with confidence and review flags.
 4. Show editable title, kind, priority, due date, due time, and effort fields before applying.
 5. Block invalid deadlines from application and route uncertain work into Needs Review.
@@ -81,7 +80,7 @@ The Today view ranks open work using:
 - Whether the task has already been started.
 - Review/duplicate/confidence flags.
 
-This keeps the app planner-first: AI creates structure, but daily execution logic stays deterministic and explainable. Invalid legacy deadlines are treated as review work instead of schedulable work, so Today, widgets, reminders, calendar sync, and week load stay trustworthy.
+This keeps the app planner-first: AI creates structure, but daily execution logic stays deterministic and explainable. Invalid legacy deadlines are treated as review work instead of schedulable work, so Today, widgets, reminders, and week load stay trustworthy.
 
 ## Monetization Gates
 
@@ -94,11 +93,11 @@ This release routes students through Plus after onboarding. The current product 
 - Expanded course, assignment, and import limits.
 - Syllabus scan.
 - Advanced reminders.
-- Calendar sync.
+- Home Screen and Lock Screen widgets.
 - Grade prediction.
 - Study-plan suggestions.
 
-The first paid value should appear at a natural save-time moment: scanning a syllabus, syncing a calendar, or calculating risk across remaining grade weight.
+The first paid value should appear at a natural save-time moment: scanning a syllabus, applying a reviewed semester, or calculating risk across remaining grade weight.
 
 ## Retention Loop
 
@@ -113,6 +112,5 @@ The first paid value should appear at a natural save-time moment: scanning a syl
 
 - AI date extraction must be reviewable and reversible.
 - Deadline validation must prevent impossible dates/times from entering schedulable surfaces.
-- Calendar sync must store external event IDs before production release to avoid duplicates.
 - App Store metadata should not claim Canvas support unless the shipped build actually supports it.
-- Syllabus photos may contain student, school, and instructor data, so backend retention and deletion policies need to be explicit.
+- Syllabus photos may contain student, school, and instructor data, so the on-device processing boundary must stay explicit in privacy and review copy.

@@ -1,3 +1,6 @@
 {
-  "CFBundleDisplayName": "Planeador de Programas"
+  "CFBundleDisplayName": "Planeador de Programas",
+  "NSCameraUsageDescription": "Utiliza a câmara para ler fotos de programas e transformar tarefas, testes e prazos em itens revistos do plano.",
+  "NSPhotoLibraryUsageDescription": "Utiliza fotos selecionadas de programas para rever tarefas, testes e prazos antes de adicionar.",
+  "NSUserNotificationsUsageDescription": "Envia lembretes tranquilos antes de prazos, testes e aulas."
 }

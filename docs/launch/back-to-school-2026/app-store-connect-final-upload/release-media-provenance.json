@@ -1,0 +1,18 @@
+{
+  "$schema": "./release-media-provenance.schema.json",
+  "schemaVersion": 1,
+  "status": "BLOCKED_AWAITING_EXACT_BUILD80_EVIDENCE",
+  "target": {
+    "platform": "ios",
+    "appVersion": "2.0.8",
+    "buildNumber": "80",
+    "bundleId": "com.mattnewman.studyplanner"
+  },
+  "assets": [],
+  "notes": [
+    "This manifest is intentionally blocked. Do not copy simulator, legacy, generated, or inferred values into exact-release evidence.",
+    "The six selected iPhone screenshots currently trace to release-simulator captures, not the submitted EAS IPA.",
+    "The iPad screenshots referenced by store.config.json are legacy or otherwise lack exact Build 80 provenance.",
+    "Populate one READY_EXACT_BUILD80 entry per expected file only after capture from the TestFlight installation produced by the exact EAS Build 80 artifact on the named physical device."
+  ]
+}

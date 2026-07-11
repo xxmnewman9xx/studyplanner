@@ -24,7 +24,7 @@ import {
   TaskItem,
   WidgetKey,
 } from "./types";
-import { COLORS, formatDue, isoFromOffset, minutesLabel, TODAY } from "./seed";
+import { COLORS, formatDue, minutesLabel } from "./seed";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const DAY_ALIASES: Record<string, number> = {
@@ -65,7 +65,10 @@ function startOfDay(date: Date) {
 }
 
 export function dateKey(date: Date) {
-  return startOfDay(date).toISOString().slice(0, 10);
+  const year = String(date.getFullYear()).padStart(4, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function parseClock(time?: string) {
@@ -86,7 +89,7 @@ function withClock(date: Date, time?: string) {
   return next;
 }
 
-function parseDateTime(date?: string, time?: string, fallbackOffset?: number, now = TODAY) {
+function parseDateTime(date?: string, time?: string, fallbackOffset?: number, now = new Date()) {
   let base: Date | null = null;
   if (date && /^\d{4}-\d{2}-\d{2}/.test(date)) {
     const [year, month, day] = date.slice(0, 10).split("-").map(Number);
@@ -100,19 +103,19 @@ function parseDateTime(date?: string, time?: string, fallbackOffset?: number, no
   return withClock(base, time);
 }
 
-export function dueDateTime(item: Pick<TaskItem | ExamItem, "dueDate" | "time" | "dueOffset">, now = TODAY) {
+export function dueDateTime(item: Pick<TaskItem | ExamItem, "dueDate" | "time" | "dueOffset">, now = new Date()) {
   return parseDateTime(item.dueDate, item.time, item.dueOffset, now);
 }
 
-export function daysUntilDate(date: Date, now = TODAY) {
+export function daysUntilDate(date: Date, now = new Date()) {
   return Math.round((startOfDay(date).getTime() - startOfDay(now).getTime()) / DAY_MS);
 }
 
-export function daysUntilTask(task: TaskItem, now = TODAY) {
+export function daysUntilTask(task: TaskItem, now = new Date()) {
   return daysUntilDate(dueDateTime(task, now), now);
 }
 
-export function daysUntilExam(exam: ExamItem, now = TODAY) {
+export function daysUntilExam(exam: ExamItem, now = new Date()) {
   return daysUntilDate(dueDateTime(exam, now), now);
 }
 
@@ -162,11 +165,11 @@ function classFor(data: AppData, classId?: string) {
   } satisfies ClassItem;
 }
 
-function taskDueLabel(task: TaskItem, now = TODAY) {
+function taskDueLabel(task: TaskItem, now = new Date()) {
   return formatDue(daysUntilTask(task, now));
 }
 
-function sortedActiveTasks(data: AppData, now = TODAY) {
+function sortedActiveTasks(data: AppData, now = new Date()) {
   return data.tasks
     .filter((task) => !task.done)
     .slice()
@@ -176,7 +179,7 @@ function sortedActiveTasks(data: AppData, now = TODAY) {
     });
 }
 
-function classStats(data: AppData, klass: ClassItem, now = TODAY) {
+function classStats(data: AppData, klass: ClassItem, now = new Date()) {
   const tasks = data.tasks.filter((task) => task.classId === klass.id);
   const active = tasks.filter((task) => !task.done);
   const overdue = active.filter((task) => daysUntilTask(task, now) < 0);
@@ -187,7 +190,7 @@ function classStats(data: AppData, klass: ClassItem, now = TODAY) {
   return { tasks, active, overdue, dueSoon, completed, nextExam, noteCount };
 }
 
-export function buildClassPulseBreakdowns(data: AppData, now = TODAY): ClassPulseBreakdown[] {
+export function buildClassPulseBreakdowns(data: AppData, now = new Date()): ClassPulseBreakdown[] {
   return data.classes.map((klass) => {
     const stats = classStats(data, klass, now);
     const examDays = stats.nextExam ? daysUntilExam(stats.nextExam, now) : 99;
@@ -268,7 +271,7 @@ function blockFromSlot(params: {
   } satisfies StudyBlock;
 }
 
-export function buildSchedulePlan(data: AppData, now = TODAY): SchedulePlan {
+export function buildSchedulePlan(data: AppData, now = new Date()): SchedulePlan {
   const persona = `${data.prefs.studyPersonality} ${data.prefs.workloadStyle}`.toLowerCase();
   const dailyCap = persona.includes("heavy") ? 210 : persona.includes("nudge") || persona.includes("adhd") ? 110 : 150;
   const dailyLoad: Record<string, number> = {};
@@ -357,7 +360,7 @@ export function buildSchedulePlan(data: AppData, now = TODAY): SchedulePlan {
   if (data.exams.some((exam) => daysUntilExam(exam, now) <= 14)) rationale.push("Exam prep added.");
 
   return {
-    generatedAt: new Date().toISOString(),
+    generatedAt: new Date(now).toISOString(),
     blocks: blocks.slice(0, 24),
     dailyLoad,
     cappedDays,
@@ -366,7 +369,7 @@ export function buildSchedulePlan(data: AppData, now = TODAY): SchedulePlan {
   };
 }
 
-export function buildRiskRecommendations(data: AppData, schedulePlan = buildSchedulePlan(data), now = TODAY): RiskRecommendation[] {
+export function buildRiskRecommendations(data: AppData, schedulePlan = buildSchedulePlan(data), now = new Date()): RiskRecommendation[] {
   const active = sortedActiveTasks(data, now);
   const overdue = active.filter((task) => daysUntilTask(task, now) < 0);
   const dueToday = active.filter((task) => daysUntilTask(task, now) === 0);
@@ -447,7 +450,7 @@ export function buildRiskRecommendations(data: AppData, schedulePlan = buildSche
   return recommendations.sort((a, b) => b.score - a.score);
 }
 
-export function buildDashboardSnapshot(data: AppData, now = TODAY): DashboardSnapshot {
+export function buildDashboardSnapshot(data: AppData, now = new Date()): DashboardSnapshot {
   const schedulePlan = buildSchedulePlan(data, now);
   const active = sortedActiveTasks(data, now);
   const pulses = buildClassPulseBreakdowns(data, now);
@@ -583,24 +586,24 @@ export function buildNotificationPlan(data: AppData, now = new Date()): Notifica
     });
   });
 
-  sortedActiveTasks(data, TODAY).slice(0, 10).forEach((task) => {
-    const dueAt = dueDateTime(task, TODAY);
+  sortedActiveTasks(data, now).slice(0, 10).forEach((task) => {
+    const dueAt = dueDateTime(task, now);
     const trigger = new Date(dueAt);
-    trigger.setHours(Math.max(8, trigger.getHours() - (daysUntilTask(task, TODAY) <= 1 ? 2 : 24)));
+    trigger.setHours(Math.max(8, trigger.getHours() - (daysUntilTask(task, now) <= 1 ? 2 : 24)));
     add({
       stableId: `task:${task.id}:${task.dueDate}`,
       kind: "Assignment",
-      title: `${task.title} due ${taskDueLabel(task, TODAY).toLowerCase()}`,
+      title: `${task.title} due ${taskDueLabel(task, now).toLowerCase()}`,
       body: `${classFor(data, task.classId).code}: one block keeps pace.`,
       classId: task.classId,
       triggerAt: trigger.toISOString(),
-      explanation: daysUntilTask(task, TODAY) <= 1 ? "Deadline is close, so the reminder lands two hours before due time." : "Reminder lands the day before to protect a study block.",
+      explanation: daysUntilTask(task, now) <= 1 ? "Deadline is close, so the reminder lands two hours before due time." : "Reminder lands the day before to protect a study block.",
       sourceId: task.id,
     });
   });
 
   data.exams.slice(0, 8).forEach((exam) => {
-    const examAt = dueDateTime(exam, TODAY);
+    const examAt = dueDateTime(exam, now);
     const trigger = new Date(examAt);
     trigger.setDate(trigger.getDate() - 1);
     trigger.setHours(19, 0, 0, 0);
@@ -616,7 +619,7 @@ export function buildNotificationPlan(data: AppData, now = new Date()): Notifica
     });
   });
 
-  buildSchedulePlan(data, TODAY).blocks.slice(0, 8).forEach((block) => {
+  buildSchedulePlan(data, now).blocks.slice(0, 8).forEach((block) => {
     if (!block.startsAt) return;
     const trigger = new Date(block.startsAt);
     trigger.setMinutes(trigger.getMinutes() - 10);
@@ -740,7 +743,7 @@ function knownGradeScore(klass: ClassItem) {
   return scoreForGradeLabel(klass.grade);
 }
 
-export function buildGradeForecasts(data: AppData, now = TODAY): GradeForecast[] {
+export function buildGradeForecasts(data: AppData, now = new Date()): GradeForecast[] {
   const legacyPulses = buildClassPulseBreakdowns(data, now);
   return data.classes.map((klass) => {
     const explicit = knownGradeScore(klass);
@@ -802,7 +805,7 @@ export function buildGradeForecasts(data: AppData, now = TODAY): GradeForecast[]
   }).sort((a, b) => (a.numericScore ?? 999) - (b.numericScore ?? 999));
 }
 
-export function buildPressureForecast(data: AppData, schedulePlan = buildSchedulePlan(data), now = TODAY): PressureForecast {
+export function buildPressureForecast(data: AppData, schedulePlan = buildSchedulePlan(data), now = new Date()): PressureForecast {
   const labels: string[] = [];
   const loads: number[] = [];
   const clusters: PressureForecast["clusters"] = [];
@@ -833,7 +836,7 @@ export function buildPressureForecast(data: AppData, schedulePlan = buildSchedul
   };
 }
 
-export function buildClassPulsesV2(data: AppData, forecasts = buildGradeForecasts(data), now = TODAY): ClassPulseV2[] {
+export function buildClassPulsesV2(data: AppData, forecasts = buildGradeForecasts(data), now = new Date()): ClassPulseV2[] {
   return data.classes.map((klass) => {
     const forecast = forecasts.find((item) => item.classId === klass.id)!;
     const nextDeadline = data.tasks.filter((task) => task.classId === klass.id && !task.done).sort((a, b) => daysUntilTask(a, now) - daysUntilTask(b, now))[0];
@@ -860,7 +863,7 @@ export function buildClassPulsesV2(data: AppData, forecasts = buildGradeForecast
   }).sort((a, b) => (a.forecastScore ?? 999) - (b.forecastScore ?? 999));
 }
 
-function buildStudyRecommendations(data: AppData, classPulses: ClassPulseV2[], now = TODAY): StudyRecommendation[] {
+function buildStudyRecommendations(data: AppData, classPulses: ClassPulseV2[], now = new Date()): StudyRecommendation[] {
   return classPulses.slice(0, 5).map((pulse) => {
     const klass = classFor(data, pulse.classId);
     const exam = data.exams.filter((item) => item.classId === pulse.classId).sort((a, b) => daysUntilExam(a, now) - daysUntilExam(b, now))[0];
@@ -882,18 +885,18 @@ function buildStudyRecommendations(data: AppData, classPulses: ClassPulseV2[], n
   });
 }
 
-function buildRecommendedActions(data: AppData, risks: RiskRecommendation[], recommendations: StudyRecommendation[]): SemesterAction[] {
+function buildRecommendedActions(data: AppData, risks: RiskRecommendation[], recommendations: StudyRecommendation[], now = new Date()): SemesterAction[] {
   const riskDetail = (risk: RiskRecommendation) => {
     const klass = risk.classId ? classFor(data, risk.classId) : classFor(data);
     const task = risk.taskId ? data.tasks.find((item) => item.id === risk.taskId) : undefined;
     const exam = risk.examId ? data.exams.find((item) => item.id === risk.examId) : undefined;
     if (task) {
-      const due = taskDueLabel(task);
-      if (daysUntilTask(task) < 0) return `${klass.code}: recover ${task.title}.`;
+      const due = taskDueLabel(task, now);
+      if (daysUntilTask(task, now) < 0) return `${klass.code}: recover ${task.title}.`;
       return `${klass.code}: ${task.title}. ${due}.`;
     }
     if (exam) {
-      const days = daysUntilExam(exam);
+      const days = daysUntilExam(exam, now);
       return `${klass.code}: prep ${exam.title}. ${daysCopy(days)}`;
     }
     if (risk.id === "unscheduled") return "Add protected time.";
@@ -924,7 +927,7 @@ function buildRecommendedActions(data: AppData, risks: RiskRecommendation[], rec
   ].sort((a, b) => b.priority - a.priority);
 }
 
-function buildSemesterHealth(data: AppData, forecasts: GradeForecast[], pressure: PressureForecast, schedulePlan: SchedulePlan, now = TODAY): SemesterHealth {
+function buildSemesterHealth(data: AppData, forecasts: GradeForecast[], pressure: PressureForecast, schedulePlan: SchedulePlan, now = new Date()): SemesterHealth {
   if (!hasRealSemesterData(data)) {
     const dimensions = {
       workload: emptySemesterDimension("workload", "Workload"),
@@ -1008,7 +1011,7 @@ function buildSemesterHealth(data: AppData, forecasts: GradeForecast[], pressure
   };
 }
 
-export function buildSemesterSnapshot(data: AppData, now = TODAY): SemesterSnapshot {
+export function buildSemesterSnapshot(data: AppData, now = new Date()): SemesterSnapshot {
   const schedulePlan = buildSchedulePlan(data, now);
   const gradeForecasts = buildGradeForecasts(data, now);
   const classPulses = buildClassPulsesV2(data, gradeForecasts, now);
@@ -1016,7 +1019,7 @@ export function buildSemesterSnapshot(data: AppData, now = TODAY): SemesterSnaps
   const semesterHealth = buildSemesterHealth(data, gradeForecasts, pressureForecast, schedulePlan, now);
   const riskFactors = buildRiskRecommendations(data, schedulePlan, now);
   const studyRecommendations = buildStudyRecommendations(data, classPulses, now);
-  const recommendedActions = buildRecommendedActions(data, riskFactors, studyRecommendations);
+  const recommendedActions = buildRecommendedActions(data, riskFactors, studyRecommendations, now);
   const notificationPlan = buildNotificationPlan(data, new Date(now));
   const feedbackEvents = (data.feedbackEvents || []).slice(0, 10);
   const topAction = recommendedActions[0];
@@ -1027,7 +1030,7 @@ export function buildSemesterSnapshot(data: AppData, now = TODAY): SemesterSnaps
     feedback: feedbackEvents[0]?.message,
   };
   return {
-    generatedAt: new Date().toISOString(),
+    generatedAt: new Date(now).toISOString(),
     todayKey: dateKey(now),
     semesterHealth,
     classPulses,
@@ -1113,29 +1116,163 @@ export function generateStudyAssets(note: NoteItem, data?: AppData): StudyAsset 
   };
 }
 
-export function createNaturalLanguageTask(input: string, data: AppData): TaskItem {
-  const lower = input.toLowerCase();
-  const matchedClass = data.classes.find((klass) => lower.includes(klass.code.toLowerCase().split(" ")[0]) || lower.includes(klass.name.toLowerCase().split(" ")[0])) || classFor(data);
-  const dueOffset = lower.includes("today") ? 0 : lower.includes("tomorrow") ? 1 : lower.includes("next week") ? 7 : lower.includes("friday") ? 1 : lower.includes("monday") ? 4 : 3;
-  const estimate = Number(lower.match(/(\d+(?:\.\d+)?)\s*(?:h|hour)/)?.[1] || 1) * 60;
-  const cleaned = input
-    .replace(/due .*/i, "")
-    .replace(/estimate .*/i, "")
-    .replace(/\b(today|tomorrow|next week|friday|monday)\b/gi, "")
+export type NaturalLanguageTaskIssue =
+  | "input"
+  | "title"
+  | "date"
+  | "date-invalid"
+  | "date-ambiguous"
+  | "class"
+  | "class-ambiguous";
+
+export type NaturalLanguageTaskResult =
+  | { ok: true; task: TaskItem }
+  | { ok: false; issues: NaturalLanguageTaskIssue[] };
+
+type CaptureClassMatch = {
+  klass: ClassItem;
+  alias: string;
+  priority: number;
+};
+
+type CaptureDateResult =
+  | { ok: true; dueDate: string; dueOffset: number }
+  | { ok: false; issue: "date" | "date-invalid" | "date-ambiguous" };
+
+function normalizeCapturePhrase(value: string) {
+  return value
+    .normalize("NFKC")
+    .toLocaleLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
+}
+
+function captureClassAliases(klass: ClassItem) {
+  const code = normalizeCapturePhrase(klass.code);
+  const name = normalizeCapturePhrase(klass.name);
+  const aliases: { value: string; priority: number }[] = [];
+  const add = (value: string, priority: number) => {
+    if (!value || aliases.some((alias) => alias.value === value)) return;
+    aliases.push({ value, priority });
+  };
+
+  add(code, 4);
+  add(code.replace(/\s+/g, ""), 4);
+  add(code.split(" ")[0] || "", 3);
+  add(name, 4);
+  name.split(" ").forEach((word) => {
+    if (word.length >= 4 && !["and", "introductory", "introduction", "the", "to"].includes(word)) add(word, 1);
+  });
+
+  return aliases;
+}
+
+function findCaptureClassMatches(input: string, data: AppData): CaptureClassMatch[] {
+  const normalizedInput = ` ${normalizeCapturePhrase(input)} `;
+  return data.classes
+    .filter((klass) => !klass.archivedAt)
+    .map((klass) => {
+      const aliases = captureClassAliases(klass)
+        .filter((alias) => normalizedInput.includes(` ${alias.value} `))
+        .sort((a, b) => b.priority - a.priority || b.value.length - a.value.length);
+      return aliases[0] ? { klass, alias: aliases[0].value, priority: aliases[0].priority } : null;
+    })
+    .filter((match): match is CaptureClassMatch => Boolean(match));
+}
+
+function parseCaptureDate(input: string, now = new Date()): CaptureDateResult {
+  const relativeDates = [
+    { phrase: "today", offset: 0, pattern: /\btoday\b/i },
+    { phrase: "tomorrow", offset: 1, pattern: /\btomorrow\b/i },
+    { phrase: "next week", offset: 7, pattern: /\bnext\s+week\b/i },
+  ].filter((candidate) => candidate.pattern.test(input));
+  const isoDates = Array.from(new Set(input.match(/\b\d{4}-\d{2}-\d{2}\b/g) || []));
+
+  if (relativeDates.length + isoDates.length === 0) return { ok: false, issue: "date" };
+  if (relativeDates.length + isoDates.length > 1) return { ok: false, issue: "date-ambiguous" };
+
+  if (relativeDates.length === 1) {
+    const dueOffset = relativeDates[0].offset;
+    const dueAt = startOfDay(now);
+    dueAt.setDate(dueAt.getDate() + dueOffset);
+    return { ok: true, dueOffset, dueDate: dateKey(dueAt) };
+  }
+
+  const dueDate = isoDates[0];
+  const [year, month, day] = dueDate.split("-").map(Number);
+  const parsed = new Date(0);
+  parsed.setHours(12, 0, 0, 0);
+  parsed.setFullYear(year, month - 1, day);
+  if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day) {
+    return { ok: false, issue: "date-invalid" };
+  }
+  return { ok: true, dueDate, dueOffset: daysUntilDate(parsed, now) };
+}
+
+function escapeCaptureRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function removeCaptureAlias(value: string, alias: string) {
+  const phrase = alias.split(" ").map(escapeCaptureRegExp).join("[\\s._/#-]+");
+  const pattern = new RegExp(`(^|[^\\p{L}\\p{N}])${phrase}(?=$|[^\\p{L}\\p{N}])`, "giu");
+  return value.replace(pattern, "$1");
+}
+
+function captureTitle(input: string, classMatches: CaptureClassMatch[]) {
+  let title = input
+    .replace(/\b(?:due\s*(?:on\s*)?[:=-]?\s*)?(?:today|tomorrow|next\s+week)\b/giu, " ")
+    .replace(/\b(?:due\s*(?:on\s*)?[:=-]?\s*)?\d{4}-\d{2}-\d{2}\b/giu, " ")
+    .replace(/\b(?:estimate(?:d)?\s*[:=-]?\s*)?\d+(?:\.\d+)?\s*(?:hours?|hrs?|hr|h|minutes?|mins?|min|m)\b/giu, " ");
+  classMatches.forEach((match) => {
+    title = removeCaptureAlias(title, match.alias);
+  });
+  return title
+    .replace(/\s+/g, " ")
+    .replace(/^[\s,;:|/\\\-–—]+|[\s,;:|/\\\-–—]+$/g, "")
+    .replace(/\b(?:for|in|class)\s*$/i, "")
+    .trim();
+}
+
+function captureEstimateMinutes(input: string) {
+  const match = input.match(/\b(\d+(?:\.\d+)?)\s*(hours?|hrs?|hr|h|minutes?|mins?|min|m)\b/i);
+  if (!match) return 60;
+  const amount = Number(match[1]);
+  return Math.max(30, Math.round(/^h|hour|hr/i.test(match[2]) ? amount * 60 : amount));
+}
+
+export function createNaturalLanguageTask(input: string, data: AppData): NaturalLanguageTaskResult {
+  const trimmed = input.trim();
+  if (!trimmed) return { ok: false, issues: ["input"] };
+
+  const parsedDate = parseCaptureDate(trimmed, new Date());
+  const classMatches = findCaptureClassMatches(trimmed, data);
+  const title = captureTitle(trimmed, classMatches);
+  const issues: NaturalLanguageTaskIssue[] = [];
+  if (!title) issues.push("title");
+  if (classMatches.length === 0) issues.push("class");
+  if (classMatches.length > 1) issues.push("class-ambiguous");
+  if (!parsedDate.ok) issues.push(parsedDate.issue);
+  if (!parsedDate.ok || classMatches.length !== 1 || !title) return { ok: false, issues };
+
+  const lower = trimmed.toLowerCase();
+  const matchedClass = classMatches[0].klass;
   return {
-    id: `t_${Date.now()}`,
-    title: cleaned || "Captured task",
-    classId: matchedClass.id,
-    type: lower.includes("exam") ? "Review" : lower.includes("read") ? "Reading" : "Assignment",
-    dueOffset,
-    dueDate: isoFromOffset(dueOffset),
-    time: lower.includes("morning") ? "9:00 AM" : "7:00 PM",
-    estimateMinutes: Math.max(30, estimate),
-    done: false,
-    urgent: dueOffset <= 2,
-    source: "Natural language capture",
-    subtasks: [{ title: "Clarify requirements", done: false }, { title: "Work first pass", done: false }],
+    ok: true,
+    task: {
+      id: `t_${Date.now()}`,
+      title,
+      classId: matchedClass.id,
+      type: lower.includes("exam") ? "Review" : lower.includes("read") ? "Reading" : "Assignment",
+      dueOffset: parsedDate.dueOffset,
+      dueDate: parsedDate.dueDate,
+      time: lower.includes("morning") ? "9:00 AM" : "7:00 PM",
+      estimateMinutes: captureEstimateMinutes(trimmed),
+      done: false,
+      urgent: parsedDate.dueOffset <= 2,
+      source: "Natural language capture",
+      subtasks: [{ title: "Clarify requirements", done: false }, { title: "Work first pass", done: false }],
+    },
   };
 }
 
@@ -1150,9 +1287,9 @@ export function suggestSmartReminders(data: AppData) {
   }));
 }
 
-export function replanAfterMissedBlock(data: AppData, missedBlock: StudyBlock): AppData {
+export function replanAfterMissedBlock(data: AppData, missedBlock: StudyBlock, now = new Date()): AppData {
   const blocks = data.studyBlocks.filter((block) => block.id !== missedBlock.id);
-  const target = new Date(TODAY);
+  const target = startOfDay(now);
   target.setDate(target.getDate() + 1);
   const makeup = blockFromSlot({
     id: `sb_makeup_${Date.now()}`,

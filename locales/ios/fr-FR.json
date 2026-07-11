@@ -1,3 +1,6 @@
 {
-  "CFBundleDisplayName": "Cours et Devoirs"
+  "CFBundleDisplayName": "Cours et Devoirs",
+  "NSCameraUsageDescription": "Utilise l’appareil photo pour lire des photos de supports de cours et transformer devoirs, examens et échéances en éléments vérifiés du planning.",
+  "NSPhotoLibraryUsageDescription": "Utilise les photos de supports de cours choisies afin de vérifier devoirs, examens et échéances avant l’ajout.",
+  "NSUserNotificationsUsageDescription": "Envoie des rappels calmes avant les échéances, examens et cours."
 }

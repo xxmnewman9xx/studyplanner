@@ -1,0 +1,219 @@
+{
+  "generatedAt": "2026-07-10T23:39:51.364Z",
+  "release": "Back to School with AI",
+  "status": "legacy_supporting_approved",
+  "role": "Supplemental featuring nomination product-video candidate",
+  "appPreviewReady": false,
+  "appStoreConnectSlot": {
+    "device": "APP_IPHONE_65",
+    "requiredPortraitResolution": "886x1920",
+    "maximumFps": 30,
+    "progressive": true,
+    "h264TargetBitrateMbps": "10-12",
+    "h264MaximumProfileAndLevel": "High Profile 4.0",
+    "optionalAudio": "stereo AAC near 256 kbps at 44.1 or 48 kHz",
+    "uploadApproved": false,
+    "blockedExistingPaths": [
+      "marketing/social-launch-video/final/studyplanner-scanner-demo-app-preview-1080x1920.mp4",
+      "docs/launch/back-to-school-2026/draft-upload-package/supplemental/product-video/studyplanner-scanner-demo-app-preview-1080x1920.mp4",
+      "marketing/social-launch-video/build66-final/build66-studyplanner-app-preview-1080x1920.mp4",
+      "docs/launch/back-to-school-2026/draft-upload-package/supplemental/product-video/build66-studyplanner-app-preview-1080x1920.mp4",
+      "marketing/social-launch-video/build66-produced/studyplanner-build66-produced-app-store-1080x1920.mp4",
+      "docs/launch/back-to-school-2026/draft-upload-package/supplemental/product-video/studyplanner-build66-produced-app-store-1080x1920.mp4"
+    ]
+  },
+  "sourceDocs": [
+    "https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/"
+  ],
+  "primaryCandidate": {
+    "id": "scanner-demo-final",
+    "label": "Final scanner demo",
+    "path": "marketing/social-launch-video/final/studyplanner-scanner-demo-app-preview-1080x1920.mp4",
+    "copies": [
+      "docs/launch/back-to-school-2026/draft-upload-package/supplemental/product-video/studyplanner-scanner-demo-app-preview-1080x1920.mp4"
+    ],
+    "exists": true,
+    "bytes": 1331420,
+    "sha256": "1ab92985751a7930619659188bd52f0ce7762d47c623fc901da445544a45c2a0",
+    "width": 1080,
+    "height": 1920,
+    "durationSeconds": 15,
+    "fps": 60,
+    "codec": "h264",
+    "profile": "High",
+    "level": 50,
+    "fieldOrder": "progressive",
+    "videoBitrateMbps": 0.703885,
+    "audio": {
+      "present": false
+    },
+    "extension": "mp4",
+    "portrait": true,
+    "supplementalReady": true,
+    "appPreviewReady": false,
+    "evidence": [
+      "1080x1920 portrait",
+      "15.00 seconds",
+      "60.00 fps",
+      "h264 High level 50 · progressive",
+      "0.704 Mbps video",
+      "no audio track",
+      "MP4",
+      "1300 KB"
+    ],
+    "warnings": [
+      "Not App Preview-ready: Apple app previews max out at 30fps; this export should stay supplemental unless re-exported.",
+      "Not App Preview-ready for APP_IPHONE_65: 1080x1920 must be re-exported at 886x1920.",
+      "Not App Preview-ready: H.264 must be Baseline/Main/High at level 4.0 or lower; found High level 50.",
+      "Not App Preview-ready: H.264 target video bitrate is 10-12 Mbps; found 0.704 Mbps."
+    ],
+    "blockers": []
+  },
+  "narrativeReady": true,
+  "candidates": [
+    {
+      "id": "scanner-demo-final",
+      "label": "Final scanner demo",
+      "path": "marketing/social-launch-video/final/studyplanner-scanner-demo-app-preview-1080x1920.mp4",
+      "copies": [
+        "docs/launch/back-to-school-2026/draft-upload-package/supplemental/product-video/studyplanner-scanner-demo-app-preview-1080x1920.mp4"
+      ],
+      "exists": true,
+      "bytes": 1331420,
+      "sha256": "1ab92985751a7930619659188bd52f0ce7762d47c623fc901da445544a45c2a0",
+      "width": 1080,
+      "height": 1920,
+      "durationSeconds": 15,
+      "fps": 60,
+      "codec": "h264",
+      "profile": "High",
+      "level": 50,
+      "fieldOrder": "progressive",
+      "videoBitrateMbps": 0.703885,
+      "audio": {
+        "present": false
+      },
+      "extension": "mp4",
+      "portrait": true,
+      "supplementalReady": true,
+      "appPreviewReady": false,
+      "evidence": [
+        "1080x1920 portrait",
+        "15.00 seconds",
+        "60.00 fps",
+        "h264 High level 50 · progressive",
+        "0.704 Mbps video",
+        "no audio track",
+        "MP4",
+        "1300 KB"
+      ],
+      "warnings": [
+        "Not App Preview-ready: Apple app previews max out at 30fps; this export should stay supplemental unless re-exported.",
+        "Not App Preview-ready for APP_IPHONE_65: 1080x1920 must be re-exported at 886x1920.",
+        "Not App Preview-ready: H.264 must be Baseline/Main/High at level 4.0 or lower; found High level 50.",
+        "Not App Preview-ready: H.264 target video bitrate is 10-12 Mbps; found 0.704 Mbps."
+      ],
+      "blockers": []
+    },
+    {
+      "id": "build66-final",
+      "label": "Build 66 final app preview",
+      "path": "marketing/social-launch-video/build66-final/build66-studyplanner-app-preview-1080x1920.mp4",
+      "copies": [
+        "docs/launch/back-to-school-2026/draft-upload-package/supplemental/product-video/build66-studyplanner-app-preview-1080x1920.mp4"
+      ],
+      "exists": true,
+      "bytes": 630156,
+      "sha256": "a62679de6bb243884f8ca1670f7f4252ddd3e6e43ed317c86591b98cc7467edb",
+      "width": 1080,
+      "height": 1920,
+      "durationSeconds": 15.033333,
+      "fps": 60,
+      "codec": "h264",
+      "profile": "High",
+      "level": 50,
+      "fieldOrder": "progressive",
+      "videoBitrateMbps": 0.329123,
+      "audio": {
+        "present": false
+      },
+      "extension": "mp4",
+      "portrait": true,
+      "supplementalReady": true,
+      "appPreviewReady": false,
+      "evidence": [
+        "1080x1920 portrait",
+        "15.03 seconds",
+        "60.00 fps",
+        "h264 High level 50 · progressive",
+        "0.329 Mbps video",
+        "no audio track",
+        "MP4",
+        "615 KB"
+      ],
+      "warnings": [
+        "Not App Preview-ready: Apple app previews max out at 30fps; this export should stay supplemental unless re-exported.",
+        "Not App Preview-ready for APP_IPHONE_65: 1080x1920 must be re-exported at 886x1920.",
+        "Not App Preview-ready: H.264 must be Baseline/Main/High at level 4.0 or lower; found High level 50.",
+        "Not App Preview-ready: H.264 target video bitrate is 10-12 Mbps; found 0.329 Mbps."
+      ],
+      "blockers": []
+    },
+    {
+      "id": "build66-produced",
+      "label": "Build 66 produced app preview",
+      "path": "marketing/social-launch-video/build66-produced/studyplanner-build66-produced-app-store-1080x1920.mp4",
+      "copies": [
+        "docs/launch/back-to-school-2026/draft-upload-package/supplemental/product-video/studyplanner-build66-produced-app-store-1080x1920.mp4"
+      ],
+      "exists": true,
+      "bytes": 389154,
+      "sha256": "8394f5a2f593f13fcbb284ac2de95a240a5390787c38ad001aab68475718ec8f",
+      "width": 1080,
+      "height": 1920,
+      "durationSeconds": 18.521333,
+      "fps": 30,
+      "codec": "h264",
+      "profile": "High",
+      "level": 40,
+      "fieldOrder": "progressive",
+      "videoBitrateMbps": 0.156417,
+      "audio": {
+        "present": true,
+        "codec": "aac",
+        "channels": 2,
+        "sampleRateHz": 48000,
+        "bitrateKbps": 2.319
+      },
+      "extension": "mp4",
+      "portrait": true,
+      "supplementalReady": true,
+      "appPreviewReady": false,
+      "evidence": [
+        "1080x1920 portrait",
+        "18.52 seconds",
+        "30.00 fps",
+        "h264 High level 40 · progressive",
+        "0.156 Mbps video",
+        "aac 2ch 48000Hz 2.3 kbps",
+        "MP4",
+        "380 KB"
+      ],
+      "warnings": [
+        "Not App Preview-ready for APP_IPHONE_65: 1080x1920 must be re-exported at 886x1920.",
+        "Not App Preview-ready: H.264 target video bitrate is 10-12 Mbps; found 0.156 Mbps.",
+        "Not App Preview-ready: when audio is present it must be stereo AAC near 256 kbps at 44.1 or 48 kHz."
+      ],
+      "blockers": []
+    }
+  ],
+  "blockers": [],
+  "warnings": [
+    "Not App Preview-ready: Apple app previews max out at 30fps; this export should stay supplemental unless re-exported.",
+    "Not App Preview-ready for APP_IPHONE_65: 1080x1920 must be re-exported at 886x1920.",
+    "Not App Preview-ready: H.264 must be Baseline/Main/High at level 4.0 or lower; found High level 50.",
+    "Not App Preview-ready: H.264 target video bitrate is 10-12 Mbps; found 0.704 Mbps.",
+    "All existing 1080x1920 candidates are supplemental-only and must not be uploaded to the APP_IPHONE_65 App Preview slot.",
+    "Replace them with current-binary 886x1920 progressive footage at 30fps or lower, H.264 High Profile level 4.0 or lower at a 10-12 Mbps target, and compliant stereo AAC if audio is present."
+  ]
+}

@@ -1,4 +1,5 @@
-import { CLASS_COLORS, defaultData, isoFromOffset, TODAY } from "./seed";
+import { CLASS_COLORS, defaultData, isoFromOffset } from "./seed";
+import { scanStudyNoteText } from "./services/noteScanner";
 import { AppData, ClassItem, ExamItem, ImportBatch, ImportCandidate, NoteItem, StudyBlock, TaskItem } from "./types";
 import { buildSchedulePlan, buildSemesterSnapshot, parseNoteInsights } from "./intelligence";
 
@@ -11,6 +12,40 @@ function id(prefix: string) {
 
 function clean(s: string) {
   return s.replace(/[–—]/g, "-").replace(/\s+/g, " ").replace(/[•*]/g, "").trim();
+}
+
+function uniqueCleanStrings(values: string[], limit: number) {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const raw of values) {
+    const value = clean(raw).slice(0, 88);
+    const key = value.toLowerCase();
+    if (!value || seen.has(key)) continue;
+    seen.add(key);
+    result.push(value);
+    if (result.length >= limit) break;
+  }
+  return result;
+}
+
+function displayTimeFromClock(clock?: string) {
+  const match = clock?.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return undefined;
+  const hour24 = Number(match[1]);
+  const minute = match[2];
+  if (Number.isNaN(hour24) || hour24 > 23) return undefined;
+  const suffix = hour24 >= 12 ? "PM" : "AM";
+  const hour12 = hour24 % 12 || 12;
+  return `${hour12}:${minute} ${suffix}`;
+}
+
+function offsetFromIsoDay(iso?: string) {
+  if (!iso) return 1;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+  const target = new Date(`${iso}T12:00:00`);
+  if (Number.isNaN(target.getTime())) return 1;
+  return Math.round((target.getTime() - today.getTime()) / 86400000);
 }
 
 function fallbackClass(): ClassItem {
@@ -129,77 +164,78 @@ export function normalizeGlobalAcademicText(sourceText: string) {
   return text.replace(/\b(\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[/-]\d{1,2})\s*\|\s*([^|\n;]{3,80})/g, "$1: $2");
 }
 
-function fullYear(year?: string) {
-  if (!year) return TODAY.getFullYear();
+function fullYear(year: string | undefined, now: Date) {
+  if (!year) return now.getFullYear();
   return Number(year.length === 2 ? `20${year}` : year);
 }
 
-function dateFromPhrase(phrase: string) {
+function validDateParts(year: number, month: number, day: number) {
+  const target = new Date(year, month - 1, day, 12, 0, 0);
+  return target.getFullYear() === year && target.getMonth() === month - 1 && target.getDate() === day;
+}
+
+function dateFromParts(year: number, month: number, day: number, explicitYear: boolean, now: Date) {
+  if (!validDateParts(year, month, day)) return null;
+  const target = new Date(year, month - 1, day, 12, 0, 0);
+  if (!explicitYear && target.getTime() < now.getTime()) {
+    const nextYear = year + 1;
+    return validDateParts(nextYear, month, day) ? new Date(nextYear, month - 1, day, 12, 0, 0) : null;
+  }
+  return target;
+}
+
+function hasDateLikeToken(phrase: string) {
+  return /\b\d{4}-\d{1,2}-\d{1,2}\b|\b\d{1,2}[/-]\d{1,2}(?:[/-]\d{2,4})?\b|\b(?:[a-z]+\.?\s+\d{1,2}|\d{1,2}\s+[a-z]+\.?)\b/i.test(phrase);
+}
+
+function dateFromPhrase(phrase: string, now: Date) {
   const p = phrase.toLowerCase().replace(/[–—]/g, "-").replace(/\./g, "").trim();
-  if (p.includes("today")) return new Date(TODAY);
+  if (p.includes("today")) return new Date(now);
   if (p.includes("tomorrow")) {
-    const target = new Date(TODAY);
+    const target = new Date(now);
     target.setDate(target.getDate() + 1);
     return target;
   }
   const isoMatch = p.match(/\b(\d{4})-(\d{1,2})-(\d{1,2})\b/);
   if (isoMatch) {
-    const target = new Date(TODAY);
-    target.setFullYear(Number(isoMatch[1]));
-    target.setMonth(Number(isoMatch[2]) - 1);
-    target.setDate(Number(isoMatch[3]));
-    return target;
+    return dateFromParts(Number(isoMatch[1]), Number(isoMatch[2]), Number(isoMatch[3]), true, now);
   }
   const slashMatch = p.match(/\b(\d{1,2})[\/-](\d{1,2})(?:[\/-](\d{2,4}))?\b/);
   if (slashMatch) {
-    const target = new Date(TODAY);
     let month = Number(slashMatch[1]);
     let day = Number(slashMatch[2]);
     if (month > 12 && day <= 12) {
       month = Number(slashMatch[2]);
       day = Number(slashMatch[1]);
     }
-    target.setFullYear(fullYear(slashMatch[3]));
-    target.setMonth(month - 1);
-    target.setDate(day);
-    if (!slashMatch[3] && target.getTime() < TODAY.getTime()) target.setFullYear(target.getFullYear() + 1);
-    return target;
+    return dateFromParts(fullYear(slashMatch[3], now), month, day, Boolean(slashMatch[3]), now);
   }
   const monthFirst = p.match(new RegExp(`\\b(${MONTH_PATTERN})\\s+(\\d{1,2})(?:,?\\s+(\\d{4}))?\\b`, "i"));
   if (monthFirst) {
-    const target = new Date(TODAY);
     const month = MONTHS.findIndex((m) => monthFirst[1].toLowerCase().startsWith(m));
-    target.setFullYear(fullYear(monthFirst[3]));
-    target.setMonth(Math.max(0, month));
-    target.setDate(Number(monthFirst[2]));
-    if (!monthFirst[3] && target.getTime() < TODAY.getTime()) target.setFullYear(target.getFullYear() + 1);
-    return target;
+    return month >= 0 ? dateFromParts(fullYear(monthFirst[3], now), month + 1, Number(monthFirst[2]), Boolean(monthFirst[3]), now) : null;
   }
   const dayFirst = p.match(new RegExp(`\\b(\\d{1,2})\\s+(${MONTH_PATTERN})(?:,?\\s+(\\d{4}))?\\b`, "i"));
   if (dayFirst) {
-    const target = new Date(TODAY);
     const month = MONTHS.findIndex((m) => dayFirst[2].toLowerCase().startsWith(m));
-    target.setFullYear(fullYear(dayFirst[3]));
-    target.setMonth(Math.max(0, month));
-    target.setDate(Number(dayFirst[1]));
-    if (!dayFirst[3] && target.getTime() < TODAY.getTime()) target.setFullYear(target.getFullYear() + 1);
-    return target;
+    return month >= 0 ? dateFromParts(fullYear(dayFirst[3], now), month + 1, Number(dayFirst[1]), Boolean(dayFirst[3]), now) : null;
   }
   return null;
 }
 
-function offsetForDatePhrase(phrase: string) {
+function offsetForDatePhrase(phrase: string, now: Date) {
   const p = phrase.toLowerCase().trim();
   if (p.includes("today")) return 0;
   if (p.includes("tomorrow")) return 1;
-  const parsed = dateFromPhrase(p);
-  if (parsed) return Math.max(0, Math.round((parsed.getTime() - TODAY.getTime()) / 86400000));
+  const parsed = dateFromPhrase(p, now);
+  if (parsed) return Math.round((parsed.getTime() - now.getTime()) / 86400000);
+  if (hasDateLikeToken(p)) return null;
   const shortDay = { sun: "sunday", mon: "monday", tue: "tuesday", tues: "tuesday", wed: "wednesday", thu: "thursday", fri: "friday", sat: "saturday" } as Record<string, string>;
   const short = Object.keys(shortDay).find((key) => new RegExp(`\\b${key}\\b`).test(p));
   const normalized = short ? `${p} ${shortDay[short]}` : p;
   const day = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"].findIndex((d) => normalized.includes(d));
   if (day >= 0) {
-    const current = TODAY.getDay();
+    const current = now.getDay();
     let delta = day - current;
     if (delta <= 0 || p.includes("next")) delta += 7;
     return delta;
@@ -207,6 +243,12 @@ function offsetForDatePhrase(phrase: string) {
   const numberMatch = p.match(/in\s+(\d+)\s+days?/);
   if (numberMatch) return Number(numberMatch[1]);
   return 7;
+}
+
+function dueFromDatePhrase(phrase: string, now: Date) {
+  const offset = offsetForDatePhrase(phrase, now);
+  if (offset === null) return null;
+  return { offset, dueDate: isoFromOffset(offset, now) };
 }
 
 function inferType(title: string) {
@@ -262,7 +304,7 @@ function findClassId(code: string, classes: ClassItem[]) {
   return found?.id || classSlug(code);
 }
 
-export function analyzeSyllabus(sourceText: string, existing: AppData = defaultData): ImportBatch {
+export function analyzeSyllabus(sourceText: string, existing: AppData = defaultData, now = new Date()): ImportBatch {
   const normalizedSourceText = normalizeGlobalAcademicText(sourceText);
   const lines = normalizedSourceText
     .split(/\n+/)
@@ -289,18 +331,19 @@ export function analyzeSyllabus(sourceText: string, existing: AppData = defaultD
       const code = `${classMatch[1]} ${classMatch[2]}`;
       if (!seenClasses.has(code.toLowerCase())) {
         const palette = CLASS_COLORS[(classes.length + candidates.length) % CLASS_COLORS.length];
-        const days = classSegment.match(/\b(MWF|MW|TR|Tue Thu|Mon Wed Fri|Monday Wednesday Friday|Tuesday Thursday)\b/i)?.[0] || "Tue Thu";
+        const days = classSegment.match(/\b(MWF|MW|TR|Mon Wed|Tue Thu|Monday Wednesday|Mon Wed Fri|Monday Wednesday Friday|Tuesday Thursday)\b/i)?.[0] || "Tue Thu";
         const time = classSegment.match(/\b\d{1,2}(?::\d{2})?\s?(?:AM|PM)\b/i)?.[0]?.toUpperCase() || "10:00 AM";
         const room = classSegment.match(/\b(?:Room|Hall|Building|Online|Lab|Ryder|Richards|Science|Business)\s?[A-Za-z0-9 ]{2,24}/i)?.[0] || "Room TBD";
+        const name = clean((classMatch[3] || "New Course").replace(/\b(?:meets?|meeting|lecture)\b.*$/i, "")) || "New Course";
         const klass: ClassItem = {
           id: classSlug(code),
           code,
-          name: clean(classMatch[3] || "New Course") || "New Course",
+          name,
           professor: classSegment.match(/\b(?:Dr\.|Prof\.)\s+[A-Z][a-z]+/i)?.[0] || "Professor TBD",
           room,
           days,
           time,
-          next: `${dayShort[(TODAY.getDay() + 1) % 7]} · ${time}`,
+          next: `${dayShort[(now.getDay() + 1) % 7]} · ${time}`,
           health: 0.76,
           grade: "Not set",
           color: palette[0],
@@ -331,21 +374,21 @@ export function analyzeSyllabus(sourceText: string, existing: AppData = defaultD
     const dueScan = dueSegments.length <= 1 ? (dueSegments[0] || line) : "";
     const lineDue = dueScan && !isPolicyOnly(dueScan) ? dueScan.match(new RegExp(`(.{3,120}?)(?:\\s+is)?\\s+due\\s+(${looseDatePattern})`, "i")) : null;
     if (lineDue) {
-      const offset = offsetForDatePhrase(lineDue[2]);
+      const due = dueFromDatePhrase(lineDue[2], now);
       const title = cleanImportedTitle(lineDue[1].split("|").pop() || lineDue[1]) || "Imported assignment";
-      const key = `task-${title.toLowerCase()}-${isoFromOffset(offset)}`;
-      if (!candidates.some((candidate) => `${candidate.kind}-${candidate.title.toLowerCase()}-${(candidate.payload as any).dueDate || ""}` === key)) {
+      const key = `task-${title.toLowerCase()}-${due?.dueDate || ""}`;
+      if (due && !candidates.some((candidate) => `${candidate.kind}-${candidate.title.toLowerCase()}-${(candidate.payload as any).dueDate || ""}` === key)) {
         const task: TaskItem = {
           id: id("t"),
           title,
           classId: lineClassId,
           type: inferType(title),
-          dueOffset: offset,
-          dueDate: isoFromOffset(offset),
+          dueOffset: due.offset,
+          dueDate: due.dueDate,
           time: line.match(/\b\d{1,2}:\d{2}\s?(?:AM|PM)\b/i)?.[0]?.toUpperCase() || "11:59 PM",
           estimateMinutes: estimateMinutes(title),
           done: false,
-          urgent: offset <= 2,
+          urgent: due.offset <= 2,
           source: "AI syllabus import",
           subtasks: [{ title: "Confirm requirements", done: false }, { title: "Complete first pass", done: false }],
         };
@@ -355,17 +398,17 @@ export function analyzeSyllabus(sourceText: string, existing: AppData = defaultD
 
     const lineExam = !isPolicyOnly(line) ? line.match(new RegExp(`(.{0,100}?(?:exam|midterm|quiz|test|final)[^.;,]*?)(?:\\s+(?:will\\s+be\\s+)?(?:held|scheduled|on)\\s+|:\\s*)(${looseDatePattern})`, "i")) : null;
     if (lineExam) {
-      const offset = offsetForDatePhrase(lineExam[2]);
+      const due = dueFromDatePhrase(lineExam[2], now);
       const examPrefix = lineExam[1].split(/\band\s+(?:the\s+)?/i).pop() || lineExam[1];
       const title = cleanImportedTitle(examPrefix.split("|").pop() || examPrefix) || "Imported exam";
-      const key = `exam-${title.toLowerCase()}-${isoFromOffset(offset)}`;
-      if (!candidates.some((candidate) => `${candidate.kind}-${candidate.title.toLowerCase()}-${(candidate.payload as any).dueDate || ""}` === key)) {
+      const key = `exam-${title.toLowerCase()}-${due?.dueDate || ""}`;
+      if (due && !candidates.some((candidate) => `${candidate.kind}-${candidate.title.toLowerCase()}-${(candidate.payload as any).dueDate || ""}` === key)) {
         const exam: ExamItem = {
           id: id("e"),
           classId: lineClassId,
           title,
-          dueOffset: offset,
-          dueDate: isoFromOffset(offset),
+          dueOffset: due.offset,
+          dueDate: due.dueDate,
           time: line.match(/\b\d{1,2}:\d{2}\s?(?:AM|PM)\b/i)?.[0]?.toUpperCase() || "9:00 AM",
           room: line.match(/\b(?:Room|Hall|Building|Online|Lab|Richards|Science|Business)\s?[A-Za-z0-9 ]{2,24}/i)?.[0] || "Room TBD",
           topics: ["Core concepts", "Practice problems", "Lecture notes"],
@@ -377,18 +420,18 @@ export function analyzeSyllabus(sourceText: string, existing: AppData = defaultD
     const linePrefix = !isPolicyOnly(line) ? line.match(new RegExp(`^\\s*(${looseDatePattern})\\s*[:\\-]?\\s+(.{3,120})`, "i")) : null;
     if (linePrefix) {
       const title = clean(linePrefix[2].replace(/\b(?:due|deadline|by)\b/gi, "").replace(/[;|]+$/g, ""));
-      const offset = offsetForDatePhrase(linePrefix[1]);
+      const due = dueFromDatePhrase(linePrefix[1], now);
       const isExamLike = new RegExp(EXAM_TITLE_PATTERN, "i").test(title);
       const isTaskLike = isExamLike || new RegExp(ACTIONABLE_TITLE_PATTERN, "i").test(title);
-      const key = `${isExamLike ? "exam" : "task"}-${title.toLowerCase()}-${isoFromOffset(offset)}`;
-      if (isTaskLike && title && !candidates.some((candidate) => `${candidate.kind}-${candidate.title.toLowerCase()}-${(candidate.payload as any).dueDate || ""}` === key)) {
+      const key = `${isExamLike ? "exam" : "task"}-${title.toLowerCase()}-${due?.dueDate || ""}`;
+      if (due && isTaskLike && title && !candidates.some((candidate) => `${candidate.kind}-${candidate.title.toLowerCase()}-${(candidate.payload as any).dueDate || ""}` === key)) {
         if (isExamLike) {
           const exam: ExamItem = {
             id: id("e"),
             classId: lineClassId,
             title,
-            dueOffset: offset,
-            dueDate: isoFromOffset(offset),
+            dueOffset: due.offset,
+            dueDate: due.dueDate,
             time: line.match(/\b\d{1,2}:\d{2}\s?(?:AM|PM)\b/i)?.[0]?.toUpperCase() || "9:00 AM",
             room: "Room TBD",
             topics: ["Core concepts", "Practice problems", "Lecture notes"],
@@ -400,12 +443,12 @@ export function analyzeSyllabus(sourceText: string, existing: AppData = defaultD
             title,
             classId: lineClassId,
             type: inferType(title),
-            dueOffset: offset,
-            dueDate: isoFromOffset(offset),
+            dueOffset: due.offset,
+            dueDate: due.dueDate,
             time: line.match(/\b\d{1,2}:\d{2}\s?(?:AM|PM)\b/i)?.[0]?.toUpperCase() || "11:59 PM",
             estimateMinutes: estimateMinutes(title),
             done: false,
-            urgent: offset <= 2,
+            urgent: due.offset <= 2,
             source: "AI syllabus import",
             subtasks: [{ title: "Confirm requirements", done: false }, { title: "Complete first pass", done: false }],
           };
@@ -417,15 +460,15 @@ export function analyzeSyllabus(sourceText: string, existing: AppData = defaultD
     const actionOn = !isPolicyOnly(line) ? line.match(new RegExp(`^\\s*((?:presentation|clinical checkoff|lab practical|project milestone|discussion post|reading response|essay|paper|case memo)[^.;,]*?)\\s+(?:on|scheduled)\\s+(${looseDatePattern})`, "i")) : null;
     if (actionOn) {
       const title = clean(actionOn[1]);
-      const offset = offsetForDatePhrase(actionOn[2]);
+      const due = dueFromDatePhrase(actionOn[2], now);
       const isExamLike = /lab practical/i.test(title);
-      const key = `${isExamLike ? "exam" : "task"}-${title.toLowerCase()}-${isoFromOffset(offset)}`;
-      if (!candidates.some((candidate) => `${candidate.kind}-${candidate.title.toLowerCase()}-${(candidate.payload as any).dueDate || ""}` === key)) {
+      const key = `${isExamLike ? "exam" : "task"}-${title.toLowerCase()}-${due?.dueDate || ""}`;
+      if (due && !candidates.some((candidate) => `${candidate.kind}-${candidate.title.toLowerCase()}-${(candidate.payload as any).dueDate || ""}` === key)) {
         if (isExamLike) {
-          const exam: ExamItem = { id: id("e"), classId: lineClassId, title, dueOffset: offset, dueDate: isoFromOffset(offset), time: "9:00 AM", room: "Room TBD", topics: ["Core concepts", "Practice problems", "Lecture notes"] };
+          const exam: ExamItem = { id: id("e"), classId: lineClassId, title, dueOffset: due.offset, dueDate: due.dueDate, time: "9:00 AM", room: "Room TBD", topics: ["Core concepts", "Practice problems", "Lecture notes"] };
           candidates.push({ id: id("ic"), kind: "exam", title: exam.title, meta: `${exam.dueDate} · ${exam.time} · ${exam.room}`, classId: lineClassId, confidence: 0.72, payload: exam, approved: true });
         } else {
-          const task: TaskItem = { id: id("t"), title, classId: lineClassId, type: inferType(title), dueOffset: offset, dueDate: isoFromOffset(offset), time: "11:59 PM", estimateMinutes: estimateMinutes(title), done: false, urgent: offset <= 2, source: "AI syllabus import", subtasks: [{ title: "Confirm requirements", done: false }, { title: "Complete first pass", done: false }] };
+          const task: TaskItem = { id: id("t"), title, classId: lineClassId, type: inferType(title), dueOffset: due.offset, dueDate: due.dueDate, time: "11:59 PM", estimateMinutes: estimateMinutes(title), done: false, urgent: due.offset <= 2, source: "AI syllabus import", subtasks: [{ title: "Confirm requirements", done: false }, { title: "Complete first pass", done: false }] };
           candidates.push({ id: id("ic"), kind: "task", title: task.title, meta: `${task.type} · due ${task.dueDate} · ${task.time}`, classId: lineClassId, confidence: 0.8, payload: task, approved: true });
         }
       }
@@ -437,20 +480,20 @@ export function analyzeSyllabus(sourceText: string, existing: AppData = defaultD
       const classId = code ? findClassId(`${code[1]} ${code[2]}`, classes) : activeClassId || classes[index % Math.max(classes.length, 1)]?.id || "bio";
       const datedAction = clause.match(new RegExp(`^\\s*(?:week\\s+\\d+\\s+)?(${datePattern})\\s*[:\\-|]\\s*(.{3,120})`, "i"));
       if (datedAction && !/(spring break|no class|holiday|office hours)/i.test(clause)) {
-        const offset = offsetForDatePhrase(datedAction[1]);
+        const due = dueFromDatePhrase(datedAction[1], now);
         const rawTitle = cleanImportedTitle(datedAction[2]);
         const actionable = new RegExp(`${ACTIONABLE_TITLE_PATTERN}|${EXAM_TITLE_PATTERN}|memo|read chapter`, "i").test(rawTitle);
-        if (actionable) {
+        if (due && actionable) {
           const isExamLike = new RegExp(EXAM_TITLE_PATTERN, "i").test(rawTitle);
-          const key = `${isExamLike ? "exam" : "task"}-${rawTitle.toLowerCase()}-${isoFromOffset(offset)}`;
+          const key = `${isExamLike ? "exam" : "task"}-${rawTitle.toLowerCase()}-${due.dueDate}`;
           if (!candidates.some((candidate) => `${candidate.kind}-${candidate.title.toLowerCase()}-${(candidate.payload as any).dueDate || ""}` === key)) {
             if (isExamLike) {
               const exam: ExamItem = {
                 id: id("e"),
                 classId,
                 title: rawTitle,
-                dueOffset: offset,
-                dueDate: isoFromOffset(offset),
+                dueOffset: due.offset,
+                dueDate: due.dueDate,
                 time: clause.match(/\b\d{1,2}:\d{2}\s?(?:AM|PM)\b/i)?.[0]?.toUpperCase() || "9:00 AM",
                 room: clause.match(/\b(?:Room|Hall|Building|Online|Lab|Richards|Science|Business)\s?[A-Za-z0-9 ]{2,24}/i)?.[0] || "Room TBD",
                 topics: ["Core concepts", "Practice problems", "Lecture notes"],
@@ -462,12 +505,12 @@ export function analyzeSyllabus(sourceText: string, existing: AppData = defaultD
                 title: rawTitle,
                 classId,
                 type: inferType(rawTitle),
-                dueOffset: offset,
-                dueDate: isoFromOffset(offset),
+                dueOffset: due.offset,
+                dueDate: due.dueDate,
                 time: clause.match(/\b\d{1,2}:\d{2}\s?(?:AM|PM)\b/i)?.[0]?.toUpperCase() || "11:59 PM",
                 estimateMinutes: estimateMinutes(rawTitle),
                 done: false,
-                urgent: offset <= 2,
+                urgent: due.offset <= 2,
                 source: "AI syllabus import",
                 subtasks: [{ title: "Confirm requirements", done: false }, { title: "Complete first pass", done: false }],
               };
@@ -485,46 +528,48 @@ export function analyzeSyllabus(sourceText: string, existing: AppData = defaultD
       const prefixLooksActionable = new RegExp(`due|${ACTIONABLE_TITLE_PATTERN}|${EXAM_TITLE_PATTERN}|memo|read chapter`, "i").test(datePrefixTitle);
       const keywordDateMatch = clause.match(new RegExp(`(.{0,100}?(?:${ACTIONABLE_TITLE_PATTERN}|${EXAM_TITLE_PATTERN})[^.;,|]*?)\\s*(?:[:\\-]|\\s+)?\\s*(${datePattern})\\b`, "i"));
       if (simpleDueMatch) {
-        const offset = offsetForDatePhrase(simpleDueMatch[2]);
+        const due = dueFromDatePhrase(simpleDueMatch[2], now);
         const title = cleanImportedTitle(simpleDueMatch[1].replace(/\b(?:meets?|with|office hours?).*$/i, ""));
-        const task: TaskItem = {
-          id: id("t"),
-          title: title || "Imported assignment",
-          classId,
-          type: inferType(title),
-          dueOffset: offset,
-          dueDate: isoFromOffset(offset),
-          time: clause.toLowerCase().includes("midnight") ? "11:59 PM" : clause.match(/\b\d{1,2}:\d{2}\s?(?:AM|PM)\b/i)?.[0]?.toUpperCase() || "11:59 PM",
-          estimateMinutes: estimateMinutes(title),
-          done: false,
-          urgent: offset <= 2,
-          source: "AI syllabus import",
-          subtasks: [
-            { title: "Read requirements", done: false },
-            { title: "Draft or solve first pass", done: false },
-            { title: "Final check before submit", done: false },
-          ],
-        };
-        candidates.push({
-          id: id("ic"),
-          kind: "task",
-          title: task.title,
-          meta: `${task.type} · due ${task.dueDate} · ${task.time}`,
-          classId,
-          confidence: clause.length > 18 ? 0.9 : 0.68,
-          payload: task,
-          approved: true,
-        });
+        if (due) {
+          const task: TaskItem = {
+            id: id("t"),
+            title: title || "Imported assignment",
+            classId,
+            type: inferType(title),
+            dueOffset: due.offset,
+            dueDate: due.dueDate,
+            time: clause.toLowerCase().includes("midnight") ? "11:59 PM" : clause.match(/\b\d{1,2}:\d{2}\s?(?:AM|PM)\b/i)?.[0]?.toUpperCase() || "11:59 PM",
+            estimateMinutes: estimateMinutes(title),
+            done: false,
+            urgent: due.offset <= 2,
+            source: "AI syllabus import",
+            subtasks: [
+              { title: "Read requirements", done: false },
+              { title: "Draft or solve first pass", done: false },
+              { title: "Final check before submit", done: false },
+            ],
+          };
+          candidates.push({
+            id: id("ic"),
+            kind: "task",
+            title: task.title,
+            meta: `${task.type} · due ${task.dueDate} · ${task.time}`,
+            classId,
+            confidence: clause.length > 18 ? 0.9 : 0.68,
+            payload: task,
+            approved: true,
+          });
+        }
       } else if (keywordDateMatch && !datePrefix && !/(spring break|no class|holiday|office hours|grading)/i.test(clause)) {
         const title = cleanImportedTitle(keywordDateMatch[1]);
-        const offset = offsetForDatePhrase(keywordDateMatch[2]);
-        if (new RegExp(EXAM_TITLE_PATTERN, "i").test(title)) {
+        const due = dueFromDatePhrase(keywordDateMatch[2], now);
+        if (due && new RegExp(EXAM_TITLE_PATTERN, "i").test(title)) {
           const exam: ExamItem = {
             id: id("e"),
             classId,
             title: title || "Imported exam",
-            dueOffset: offset,
-            dueDate: isoFromOffset(offset),
+            dueOffset: due.offset,
+            dueDate: due.dueDate,
             time: clause.match(/\b\d{1,2}:\d{2}\s?(?:AM|PM)\b/i)?.[0]?.toUpperCase() || "9:00 AM",
             room: clause.match(/\b(?:Room|Hall|Building|Online|Lab|Richards|Science|Business)\s?[A-Za-z0-9 ]{2,24}/i)?.[0] || "Room TBD",
             topics: ["Core concepts", "Practice problems", "Lecture notes"],
@@ -539,18 +584,18 @@ export function analyzeSyllabus(sourceText: string, existing: AppData = defaultD
             payload: exam,
             approved: true,
           });
-        } else {
+        } else if (due) {
           const task: TaskItem = {
             id: id("t"),
             title: title || "Imported assignment",
             classId,
             type: inferType(title),
-            dueOffset: offset,
-            dueDate: isoFromOffset(offset),
+            dueOffset: due.offset,
+            dueDate: due.dueDate,
             time: clause.match(/\b\d{1,2}:\d{2}\s?(?:AM|PM)\b/i)?.[0]?.toUpperCase() || "11:59 PM",
             estimateMinutes: estimateMinutes(title),
             done: false,
-            urgent: offset <= 2,
+            urgent: due.offset <= 2,
             source: "AI syllabus import",
             subtasks: [{ title: "Confirm requirements", done: false }, { title: "Complete first pass", done: false }],
           };
@@ -566,15 +611,15 @@ export function analyzeSyllabus(sourceText: string, existing: AppData = defaultD
           });
         }
       } else if (datePrefix && prefixLooksActionable && !/(spring break|no class|holiday|office hours)/i.test(clause)) {
-        const offset = offsetForDatePhrase(datePrefix[1]);
+        const due = dueFromDatePhrase(datePrefix[1], now);
         const title = clean(datePrefixTitle.replace(/\b(?:MWF|MW|TR|Tue Thu|Mon Wed Fri|Monday Wednesday Friday|Tuesday Thursday)\b/gi, ""));
-        if (new RegExp(EXAM_TITLE_PATTERN, "i").test(title)) {
+        if (due && new RegExp(EXAM_TITLE_PATTERN, "i").test(title)) {
           const exam: ExamItem = {
             id: id("e"),
             classId,
             title: title || "Imported exam",
-            dueOffset: offset,
-            dueDate: isoFromOffset(offset),
+            dueOffset: due.offset,
+            dueDate: due.dueDate,
             time: clause.match(/\b\d{1,2}:\d{2}\s?(?:AM|PM)\b/i)?.[0]?.toUpperCase() || "9:00 AM",
             room: clause.match(/\b(?:Room|Hall|Building|Online|Lab|Richards|Science|Business)\s?[A-Za-z0-9 ]{2,24}/i)?.[0] || "Room TBD",
             topics: ["Core concepts", "Practice problems", "Lecture notes"],
@@ -589,18 +634,18 @@ export function analyzeSyllabus(sourceText: string, existing: AppData = defaultD
             payload: exam,
             approved: true,
           });
-        } else {
+        } else if (due) {
           const task: TaskItem = {
             id: id("t"),
             title: title || "Imported assignment",
             classId,
             type: inferType(title),
-            dueOffset: offset,
-            dueDate: isoFromOffset(offset),
+            dueOffset: due.offset,
+            dueDate: due.dueDate,
             time: clause.match(/\b\d{1,2}:\d{2}\s?(?:AM|PM)\b/i)?.[0]?.toUpperCase() || (clause.toLowerCase().includes("midnight") ? "11:59 PM" : "11:59 PM"),
             estimateMinutes: estimateMinutes(title),
             done: false,
-            urgent: offset <= 2,
+            urgent: due.offset <= 2,
             source: "AI syllabus import",
             subtasks: [{ title: "Confirm requirements", done: false }, { title: "Complete first pass", done: false }],
           };
@@ -620,27 +665,29 @@ export function analyzeSyllabus(sourceText: string, existing: AppData = defaultD
       const examMatch = clause.match(new RegExp(`(.{0,70}?(?:exam|midterm|quiz|test)[^.;,]*?)(?:\\s+on\\s+|:\\s*|\\s+)(${datePattern.replace("|midnight", "")})`, "i"));
       const examHeldMatch = examMatch || clause.match(new RegExp(`(.{0,70}?(?:exam|midterm|quiz|test|final)[^.;,]*?)(?:\\s+(?:will\\s+be\\s+)?(?:held|scheduled|on)\\s+)(${looseDatePattern})`, "i"));
       if (examHeldMatch) {
-        const offset = offsetForDatePhrase(examHeldMatch[2]);
-        const exam: ExamItem = {
-          id: id("e"),
-          classId,
-          title: cleanImportedTitle(examHeldMatch[1]) || "Imported exam",
-          dueOffset: offset,
-          dueDate: isoFromOffset(offset),
-          time: clause.match(/\b\d{1,2}:\d{2}\s?(?:AM|PM)\b/i)?.[0]?.toUpperCase() || "9:00 AM",
-          room: clause.match(/\b(?:Room|Hall|Building|Online|Lab)\s?[A-Za-z0-9 ]{2,24}/i)?.[0] || "Room TBD",
-          topics: ["Core concepts", "Practice problems", "Lecture notes"],
-        };
-        candidates.push({
-          id: id("ic"),
-          kind: "exam",
-          title: exam.title,
-          meta: `${exam.dueDate} · ${exam.time} · ${exam.room}`,
-          classId,
-          confidence: exam.room === "Room TBD" ? 0.72 : 0.9,
-          payload: exam,
-          approved: true,
-        });
+        const due = dueFromDatePhrase(examHeldMatch[2], now);
+        if (due) {
+          const exam: ExamItem = {
+            id: id("e"),
+            classId,
+            title: cleanImportedTitle(examHeldMatch[1]) || "Imported exam",
+            dueOffset: due.offset,
+            dueDate: due.dueDate,
+            time: clause.match(/\b\d{1,2}:\d{2}\s?(?:AM|PM)\b/i)?.[0]?.toUpperCase() || "9:00 AM",
+            room: clause.match(/\b(?:Room|Hall|Building|Online|Lab)\s?[A-Za-z0-9 ]{2,24}/i)?.[0] || "Room TBD",
+            topics: ["Core concepts", "Practice problems", "Lecture notes"],
+          };
+          candidates.push({
+            id: id("ic"),
+            kind: "exam",
+            title: exam.title,
+            meta: `${exam.dueDate} · ${exam.time} · ${exam.room}`,
+            classId,
+            confidence: exam.room === "Room TBD" ? 0.72 : 0.9,
+            payload: exam,
+            approved: true,
+          });
+        }
       }
     });
   });
@@ -697,39 +744,56 @@ export function analyzeNotes(sourceText: string, data: AppData): ImportBatch {
       candidates: [],
     };
   }
+  let scannedNotes: ReturnType<typeof scanStudyNoteText> | null = null;
+  try {
+    scannedNotes = scanStudyNoteText(normalizedSourceText, "Pasted notes");
+  } catch {
+    scannedNotes = null;
+  }
+  const scannedIdeas = scannedNotes?.keyIdeas.map((idea) => clean(idea)).filter((idea) => idea.length >= 4) || [];
+  const scannedTaskTitles = uniqueCleanStrings(scannedNotes?.taskCandidates.map((task) => task.title) || [], 3);
+  const scannedTask = scannedNotes?.taskCandidates.find((task) => task.title.trim().length);
   const terms = Array.from(
     new Set(
       [
+        ...scannedIdeas,
         ...(normalizedSourceText
           .match(/\b[A-Z][a-zA-Z]{4,}\b/g)
           ?.filter((w) => !["Today", "Notes", "Lecture", "Chapter"].includes(w)) || []),
         ...words.filter((word) => /^\p{L}[\p{L}-]{4,}$/u.test(word) && !/(today|notes|lecture|chapter|review|exam|assignment|confusing)/i.test(word)),
-      ].slice(0, 8)
+      ].map((term) => clean(term).slice(0, 60)).filter(Boolean).slice(0, 10)
     )
   );
   if (!terms.length) terms.push("Concept", "Evidence", "Practice");
   const firstClass = data.classes.find((c) => normalizedSourceText.toLowerCase().includes(c.code.toLowerCase().split(" ")[0])) || data.classes[0] || fallbackClass();
   const sentences = normalizedSourceText.split(/[.!?]+/).map(clean).filter((s) => s.length > 20);
-  const summary = sentences.slice(0, 2).join(". ") || `These notes cover ${terms.slice(0, 3).join(", ")} and need a short active-recall review.`;
+  const summary = scannedNotes?.summary
+    ? clean(scannedNotes.summary)
+    : sentences.slice(0, 2).join(". ") || `These notes cover ${terms.slice(0, 3).join(", ")} and need a short active-recall review.`;
+  const scannedTitle = scannedNotes?.title && !/^pasted notes$/i.test(scannedNotes.title) ? clean(scannedNotes.title) : "";
+  const initialSuggestedTasks = scannedTaskTitles.length
+    ? scannedTaskTitles
+    : [`Make flashcards for ${terms.slice(0, 3).join(", ")}`, `Self-quiz ${firstClass.code} for 15 minutes`];
   const note: NoteItem = {
     id: id("n"),
     classId: firstClass.id,
-    title: `${terms[0] || firstClass.code} Study Notes`,
+    title: scannedTitle || `${terms[0] || firstClass.code} Study Notes`,
     createdAt: new Date().toISOString(),
     summary,
     terms,
-    suggestedTasks: [`Make flashcards for ${terms.slice(0, 3).join(", ")}`, `Self-quiz ${firstClass.code} for 15 minutes`],
+    suggestedTasks: initialSuggestedTasks,
     examId: data.exams.find((e) => e.classId === firstClass.id)?.id,
     pages: Math.max(1, Math.ceil(words.length / 180)),
     sourceText,
   };
   const insight = parseNoteInsights(note, data);
   note.terms = insight.concepts.slice(0, 8);
-  note.suggestedTasks = [
+  note.suggestedTasks = uniqueCleanStrings([
+    ...scannedTaskTitles,
     `Make flashcards for ${insight.concepts.slice(0, 3).join(", ") || note.title}`,
     `Self-quiz ${firstClass.code} for 15 minutes`,
     insight.weakAreas[0] ? `Review weak area: ${insight.weakAreas[0].slice(0, 48)}` : `Review ${firstClass.code} before next class`,
-  ].filter(Boolean);
+  ].filter(Boolean), 4);
   const noteConfidence = words.length > 20 ? 0.91 : words.length >= 4 ? 0.66 : 0.42;
   const noteCandidate: ImportCandidate = {
     id: id("ic"),
@@ -741,26 +805,29 @@ export function analyzeNotes(sourceText: string, data: AppData): ImportBatch {
     payload: note,
     approved: noteConfidence >= 0.55,
   };
+  const suggestedDueDate = scannedTask?.dueDate || isoFromOffset(1);
+  const suggestedTime = displayTimeFromClock(scannedTask?.dueTime) || "7:00 PM";
+  const suggestedTitle = note.suggestedTasks[0];
   const reviewTask: ImportCandidate = {
     id: id("ic"),
     kind: "task",
-    title: note.suggestedTasks[0],
-    meta: `${firstClass.code} · active recall · tomorrow`,
+    title: suggestedTitle,
+    meta: `${firstClass.code} · ${scannedTask?.dueDate ? "from notes" : "active recall"} · ${scannedTask?.dueDate || "tomorrow"}`,
     classId: firstClass.id,
-    confidence: words.length >= 8 ? 0.84 : 0.52,
+    confidence: scannedTask ? 0.88 : words.length >= 8 ? 0.84 : 0.52,
     approved: words.length >= 8,
     payload: {
       id: id("t"),
-      title: note.suggestedTasks[0],
+      title: suggestedTitle,
       classId: firstClass.id,
       type: "Review",
-      dueOffset: 1,
-      dueDate: isoFromOffset(1),
-      time: "7:00 PM",
+      dueOffset: offsetFromIsoDay(suggestedDueDate),
+      dueDate: suggestedDueDate,
+      time: suggestedTime,
       estimateMinutes: 30,
       done: false,
       urgent: true,
-      source: "Notes → suggested",
+      source: scannedTask ? "Notes → scanned action" : "Notes → suggested",
       subtasks: [],
     },
   };
@@ -778,13 +845,13 @@ export function buildStudyPlan(data: AppData): StudyBlock[] {
   return buildSchedulePlan(data).blocks;
 }
 
-export function deadlineInsight(data: AppData) {
+export function deadlineInsight(data: AppData, now = new Date()) {
   const snapshot = buildSemesterSnapshot(data);
   const due = data.tasks.filter((task) => !task.done && task.dueDate === snapshot.todayKey).length;
   const focus = snapshot.schedulePlan.blocks.find((block) => !block.completed);
   const nearest = data.tasks.filter((task) => !task.done).slice().sort((a, b) => a.dueOffset - b.dueOffset)[0];
   const nextClass = data.classes[0];
-  const day = dayNames[TODAY.getDay()];
+  const day = dayNames[now.getDay()];
   return {
     headline: `${due || 1} priority move${due === 1 ? "" : "s"} for ${day}`,
     body: due

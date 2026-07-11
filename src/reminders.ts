@@ -1,6 +1,12 @@
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import { buildSemesterSnapshot } from "./intelligence";
+import {
+  cancelNativeNotificationIds,
+  ReminderCancellationError,
+  type CancelNotification,
+  type ReminderCancellationResult,
+} from "./reminderCancellation";
 import { AppData, ReminderItem } from "./types";
 
 export type ReminderScheduleResult = {
@@ -10,6 +16,7 @@ export type ReminderScheduleResult = {
   permissionStatus?: string;
   pendingNotifications?: ScheduledNotificationEvidence[];
   scheduledCount?: number;
+  failure?: "cancellation_failed" | "scheduling_failed";
 };
 
 export type ScheduledNotificationEvidence = {
@@ -49,6 +56,29 @@ function notificationEvidence(notification: Notifications.NotificationRequest): 
   };
 }
 
+function withoutConfirmedCanceledEvidence(reminders: ReminderItem[], canceledIds: Iterable<string>) {
+  const canceled = new Set(canceledIds);
+  return reminders.map((reminder) => {
+    const notificationIds = reminder.notificationIds || [];
+    const scheduledFor = reminder.scheduledFor || [];
+    const keptIndexes = notificationIds.map((_identifier, index) => index).filter((index) => !canceled.has(notificationIds[index]));
+    return {
+      ...reminder,
+      notificationIds: keptIndexes.map((index) => notificationIds[index]),
+      scheduledFor: keptIndexes.map((index) => scheduledFor[index]).filter((value): value is string => Boolean(value)),
+    };
+  });
+}
+
+function mergeRemainingScheduledEvidence(clearedConfiguredReminders: ReminderItem[], scheduled: ReminderItem[], canceledIds: Iterable<string>) {
+  const remainingScheduled = withoutConfirmedCanceledEvidence(scheduled, canceledIds)
+    .filter((reminder) => (reminder.notificationIds || []).length > 0);
+  const remainingIds = new Set(remainingScheduled.map((reminder) => reminder.id));
+  return [...remainingScheduled, ...clearedConfiguredReminders.filter((reminder) => !remainingIds.has(reminder.id))];
+}
+
+const cancelScheduledNotification: CancelNotification = (identifier) => Notifications.cancelScheduledNotificationAsync(identifier);
+
 export async function listPendingReminderNotifications(): Promise<ScheduledNotificationEvidence[]> {
   const pending = await Notifications.getAllScheduledNotificationsAsync();
   return pending.map(notificationEvidence);
@@ -59,6 +89,11 @@ export async function scheduleLocalReminders(data: AppData, options: ReminderSch
     return { state: "unavailable", message: "Local reminders are available in the iPhone build." };
   }
 
+  const clearedConfiguredReminders = data.reminders.map((reminder) => ({ ...reminder, notificationIds: [], scheduledFor: [] }));
+  const newlyScheduledNotificationIds: string[] = [];
+  const scheduled: ReminderItem[] = [];
+  let existingCancellationStarted = false;
+  let existingCancellationCompleted = false;
   try {
     const permission = await permissionState();
     if (!permission.granted) {
@@ -66,12 +101,20 @@ export async function scheduleLocalReminders(data: AppData, options: ReminderSch
     }
 
     const existingIds = data.reminders.flatMap((reminder) => reminder.notificationIds || []);
-    await Promise.all(existingIds.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => {})));
+    existingCancellationStarted = true;
+    await cancelReminderNotificationIds(existingIds);
+    existingCancellationCompleted = true;
 
     const now = new Date();
     const plan = buildSemesterSnapshot(data, now).notificationPlan;
-    const scheduled: ReminderItem[] = [];
+    const reminderKey = (reminder: Pick<ReminderItem, "kind" | "classId" | "title">) => `${reminder.kind}|${reminder.classId}|${reminder.title.trim().toLowerCase()}`;
+    const configuredById = new Map(data.reminders.map((reminder) => [reminder.id, reminder]));
+    const configuredByKey = new Map(data.reminders.map((reminder) => [reminderKey(reminder), reminder]));
+    const hasConfiguredReminders = data.reminders.length > 0;
     for (const item of plan.items) {
+      const stableReminderId = `r_${item.stableId}`;
+      const configured = configuredById.get(stableReminderId) || configuredByKey.get(reminderKey(item));
+      if (hasConfiguredReminders && (!configured || !configured.enabled)) continue;
       const triggerDate = new Date(item.triggerAt);
       if (triggerDate.getTime() <= Date.now() + 5000) continue;
       const notificationId = await Notifications.scheduleNotificationAsync({
@@ -83,8 +126,9 @@ export async function scheduleLocalReminders(data: AppData, options: ReminderSch
         },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: triggerDate },
       });
+      newlyScheduledNotificationIds.push(notificationId);
       scheduled.push({
-        id: `r_${item.stableId}`,
+        id: configured?.id || stableReminderId,
         kind: item.kind,
         title: item.title,
         classId: item.classId,
@@ -108,6 +152,7 @@ export async function scheduleLocalReminders(data: AppData, options: ReminderSch
         },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: triggerDate },
       });
+      newlyScheduledNotificationIds.push(notificationId);
       scheduled.unshift({
         id: `r_${validationId}`,
         kind: "Study",
@@ -122,26 +167,77 @@ export async function scheduleLocalReminders(data: AppData, options: ReminderSch
     }
 
     const pendingNotifications = await listPendingReminderNotifications();
-    const pendingSuffix = pendingNotifications.length ? ` Pending: ${pendingNotifications.length}.` : "";
+    const scheduledReminderIds = new Set(scheduled.map((reminder) => reminder.id));
+    const preservedConfiguredReminders = clearedConfiguredReminders.filter((reminder) => !scheduledReminderIds.has(reminder.id));
+    const quietTime = (hour: number) => new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" })
+      .format(new Date(2000, 0, 1, hour, 0, 0));
 
     return {
       state: "scheduled",
       permissionStatus: permission.status,
       scheduledCount: scheduled.length,
       pendingNotifications,
-      message: `${scheduled.length} reminders scheduled.${pendingSuffix} Quiet hours are ${plan.quietHours.startHour}:00-${plan.quietHours.endHour}:00.`,
-      reminders: scheduled,
+      message: `${scheduled.length} reminders scheduled. Quiet hours are ${quietTime(plan.quietHours.startHour)}–${quietTime(plan.quietHours.endHour)}.`,
+      reminders: [...scheduled, ...preservedConfiguredReminders],
     };
   } catch (error) {
-    return { state: "error", message: error instanceof Error ? error.message : "Could not schedule reminders." };
+    if (existingCancellationStarted && !existingCancellationCompleted && error instanceof ReminderCancellationError) {
+      const reminders = withoutConfirmedCanceledEvidence(data.reminders, error.canceledIds);
+      return {
+        state: "error",
+        failure: "cancellation_failed",
+        message: "Could not remove every existing reminder. Your remaining reminder evidence was kept.",
+        reminders,
+        scheduledCount: reminders.reduce((count, reminder) => count + (reminder.notificationIds || []).length, 0),
+      };
+    }
+
+    if (!existingCancellationCompleted) {
+      return {
+        state: "error",
+        failure: "scheduling_failed",
+        message: "Could not start reminder scheduling. Try again.",
+      };
+    }
+
+    try {
+      await cancelReminderNotificationIds(newlyScheduledNotificationIds);
+    } catch (rollbackError) {
+      if (rollbackError instanceof ReminderCancellationError) {
+        const reminders = mergeRemainingScheduledEvidence(clearedConfiguredReminders, scheduled, rollbackError.canceledIds);
+        return {
+          state: "error",
+          failure: "cancellation_failed",
+          message: "Could not remove every partially scheduled reminder. Remaining reminder evidence was kept.",
+          reminders,
+          scheduledCount: reminders.reduce((count, reminder) => count + (reminder.notificationIds || []).length, 0),
+        };
+      }
+      return {
+        state: "error",
+        failure: "cancellation_failed",
+        message: "Could not verify reminder cleanup. Existing reminder evidence was kept.",
+      };
+    }
+
+    return {
+      state: "error",
+      failure: "scheduling_failed",
+      message: "Could not finish scheduling reminders. Try again.",
+      reminders: clearedConfiguredReminders,
+      scheduledCount: 0,
+    };
   }
 }
 
-export async function cancelStoredReminders(data: AppData) {
+export async function cancelStoredReminders(data: AppData): Promise<ReminderCancellationResult> {
   const ids = data.reminders.flatMap((reminder) => reminder.notificationIds || []);
-  await Promise.all(ids.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => {})));
+  return cancelReminderNotificationIds(ids);
 }
 
-export async function cancelReminderNotificationIds(ids: string[] = []) {
-  await Promise.all(ids.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => {})));
+export async function cancelReminderNotificationIds(
+  ids: string[] = [],
+  cancelNotification: CancelNotification = cancelScheduledNotification,
+): Promise<ReminderCancellationResult> {
+  return cancelNativeNotificationIds(ids, cancelNotification);
 }

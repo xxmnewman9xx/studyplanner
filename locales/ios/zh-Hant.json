@@ -1,3 +1,6 @@
 {
-  "CFBundleDisplayName": "課程大綱學習計畫"
+  "CFBundleDisplayName": "課程大綱學習計畫",
+  "NSCameraUsageDescription": "使用相機讀取課程大綱照片，並將作業、考試和截止日轉成已審核的計畫項目。",
+  "NSPhotoLibraryUsageDescription": "使用所選課程大綱照片讀取文字，以便在加入前審核作業、考試和截止日。",
+  "NSUserNotificationsUsageDescription": "在截止日、考試和課程前傳送溫和提醒。"
 }

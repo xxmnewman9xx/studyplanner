@@ -64,7 +64,9 @@ export async function loadPendingImport(): Promise<ImportBatch | null> {
 export async function savePendingImport(batch: ImportBatch) {
   const file = pendingImportFile();
   const raw = JSON.stringify({ ...batch, status: "review", candidates: batch.candidates.slice(0, MAX_PENDING_IMPORT_CANDIDATES) });
-  if (raw.length > MAX_PENDING_IMPORT_BYTES) return;
+  if (raw.length > MAX_PENDING_IMPORT_BYTES) {
+    throw new Error("Pending import is too large to preserve safely.");
+  }
   if (!file.exists) file.create({ intermediates: true });
   file.write(raw);
 }

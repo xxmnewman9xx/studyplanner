@@ -1,144 +1,39 @@
 {
   "configVersion": 0,
   "apple": {
-    "version": "2.0.2",
+    "version": "2.0.8",
     "copyright": "© 2026 Matt Newman",
     "release": {
       "automaticRelease": true
     },
     "info": {
-      "pt-BR": {
-        "description": "Importe ementas e transforme tudo em um plano de estudo claro.\n\nO planejador ajuda a organizar disciplinas por tarefas, provas, prazos, notas, lembretes, calendário e sessões de estudo. Revise as datas sugeridas antes de salvar e acompanhe escola ou faculdade com mais controle durante o semestre.\n\nUse para:\nPlanejar disciplinas reais\nRevisar tarefas e provas antes de salvar\nOrganizar notas, lembretes, tarefas e calendário\nPreparar sessões de estudo para semanas cheias\nVer com mais clareza o que vem a seguir\n\nAlguns recursos podem exigir assinatura.\n\nTermos de uso:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolítica de privacidade:\nhttps://tinyurl.com/2x2zp799",
-        "keywords": "tarefa,prova,prazo,aula,agenda,lembrete,anotacoes,calendario,faculdade,trabalho",
-        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
-        "title": "Planejador de Ementas",
-        "subtitle": "Ementas viram tarefas",
-        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
-        "screenshots": {
-          "APP_IPHONE_65": [
-            "store/apple/screenshot/pt-BR/APP_IPHONE_65/01-scan-anything.png",
-            "store/apple/screenshot/pt-BR/APP_IPHONE_65/02-semester-health.png",
-            "store/apple/screenshot/pt-BR/APP_IPHONE_65/03-plan-autopilot.png",
-            "store/apple/screenshot/pt-BR/APP_IPHONE_65/04-manage-semester.png",
-            "store/apple/screenshot/pt-BR/APP_IPHONE_65/05-class-detail.png",
-            "store/apple/screenshot/pt-BR/APP_IPHONE_65/06-notes.png",
-            "store/apple/screenshot/pt-BR/APP_IPHONE_65/07-focus.png"
-          ],
-          "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot/pt-BR/APP_IPAD_PRO_3GEN_129/portugese.png"
-          ]
-        },
-        "promoText": "Transforme ementas e anotações em tarefas, provas, prazos, lembretes e sessões de estudo. Revise tudo antes de salvar.",
-        "releaseNotes": "Correções de erros, melhorias de desempenho e ajustes na revisão de ementas e no planejamento dos estudos."
-      },
-      "zh-Hant": {
-        "description": "把課程大綱整理成更可信的學習計畫。\n\n課程大綱學習計畫可依課程整理作業、截止日期、考試、筆記、提醒、行事曆和讀書時段。儲存前，你可以先檢查建議日期，讓學校或大學安排在整個學期裡更清楚。\n\n適合用來：\n規劃真實課程\n儲存前檢查作業和考試日期\n整理筆記、提醒、任務和行事曆\n為忙碌週提前安排讀書時段\n更清楚地看到接下來要做什麼\n\n部分功能可能需要訂閱。\n\n使用條款:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\n隱私權政策:\nhttps://tinyurl.com/2x2zp799",
-        "keywords": "作業管理,截止日,考試安排,課表,筆記,提醒,複習,備考",
-        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
-        "title": "課程大綱學習計畫",
-        "subtitle": "課程大綱變計畫",
-        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
-        "screenshots": {
-          "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot/zh-Hant/APP_IPAD_PRO_3GEN_129/chinese.png"
-          ],
-          "APP_IPHONE_65": [
-            "store/apple/screenshot/zh-Hant/APP_IPHONE_65/01-scan-anything.png",
-            "store/apple/screenshot/zh-Hant/APP_IPHONE_65/02-semester-health.png",
-            "store/apple/screenshot/zh-Hant/APP_IPHONE_65/03-plan-autopilot.png",
-            "store/apple/screenshot/zh-Hant/APP_IPHONE_65/04-manage-semester.png",
-            "store/apple/screenshot/zh-Hant/APP_IPHONE_65/05-class-detail.png",
-            "store/apple/screenshot/zh-Hant/APP_IPHONE_65/06-notes.png",
-            "store/apple/screenshot/zh-Hant/APP_IPHONE_65/07-focus.png"
-          ]
-        },
-        "promoText": "把課程大綱和筆記整理成作業、截止日、考試、提醒與讀書時段。儲存前可先檢查每個細節。",
-        "releaseNotes": "修正問題、提升效能，並優化課程大綱檢查和學習計畫流程。"
-      },
-      "es-ES": {
-        "description": "Importa guías docentes y conviértelas en un plan de estudio claro.\n\nEl planificador te ayuda a organizar asignaturas por tareas, entregas, exámenes, apuntes, recordatorios, calendario y sesiones de estudio. Revisa las fechas sugeridas antes de guardarlas y mantén instituto o universidad bajo control durante el curso.\n\nÚsalo para:\nPlanificar asignaturas reales\nRevisar entregas y exámenes antes de guardar\nOrganizar tareas, apuntes, recordatorios y calendario\nPreparar sesiones de estudio para semanas cargadas\nVer con más claridad qué viene después\n\nAlgunas funciones pueden requerir una suscripción.\n\nCondiciones de uso:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolítica de privacidad:\nhttps://tinyurl.com/2x2zp799",
-        "keywords": "tareas,examen,entrega,clase,agenda,recordatorio,apuntes,calendario,universidad,notas",
-        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
-        "title": "Planificador de Temarios",
-        "subtitle": "Guías docentes a tareas",
-        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
-        "screenshots": {
-          "APP_IPHONE_65": [
-            "store/apple/screenshot/es-ES/APP_IPHONE_65/01-scan-anything.png",
-            "store/apple/screenshot/es-ES/APP_IPHONE_65/02-semester-health.png",
-            "store/apple/screenshot/es-ES/APP_IPHONE_65/03-plan-autopilot.png",
-            "store/apple/screenshot/es-ES/APP_IPHONE_65/04-manage-semester.png",
-            "store/apple/screenshot/es-ES/APP_IPHONE_65/05-class-detail.png",
-            "store/apple/screenshot/es-ES/APP_IPHONE_65/06-notes.png",
-            "store/apple/screenshot/es-ES/APP_IPHONE_65/07-focus.png"
-          ],
-          "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot/es-ES/APP_IPAD_PRO_3GEN_129/spanish.png"
-          ]
-        },
-        "promoText": "Convierte guías docentes y apuntes en tareas, entregas, recordatorios y sesiones de estudio. Revisa cada fecha antes de guardarla.",
-        "releaseNotes": "Corrección de errores, mejoras de rendimiento y ajustes en la revisión de guías docentes y la planificación de estudios."
-      },
-      "fr-CA": {
-        "description": "Importez vos plans de cours et transformez-les en organisation claire pour la session.\n\nLe planificateur vous aide à classer travaux, examens, échéances, notes, rappels, calendrier et périodes d’étude par cours. Vérifiez les dates suggérées avant de les enregistrer, puis gardez l’école, le cégep ou l’université plus faciles à suivre.\n\nUtilisez-le pour:\nPlanifier de vrais cours\nVérifier travaux et examens avant l’enregistrement\nOrganiser tâches, notes, rappels et calendrier\nPréparer des périodes d’étude avant les semaines chargées\nVoir plus clairement ce qui s’en vient\n\nCertaines fonctions peuvent nécessiter un abonnement.\n\nConditions d’utilisation:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolitique de confidentialité:\nhttps://tinyurl.com/2x2zp799",
-        "keywords": "devoir,travail,examen,cours,agenda,rappel,notes,calendrier,cégep,université,session,tâche",
-        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
-        "title": "Plan de Cours Étudiant",
-        "subtitle": "Plans de cours en tâches",
-        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
-        "screenshots": {
-          "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot/fr-CA/APP_IPAD_PRO_3GEN_129/french.png"
-          ],
-          "APP_IPHONE_65": [
-            "store/apple/screenshot/fr-CA/APP_IPHONE_65/01-scan-anything.png",
-            "store/apple/screenshot/fr-CA/APP_IPHONE_65/02-semester-health.png",
-            "store/apple/screenshot/fr-CA/APP_IPHONE_65/03-plan-autopilot.png",
-            "store/apple/screenshot/fr-CA/APP_IPHONE_65/04-manage-semester.png",
-            "store/apple/screenshot/fr-CA/APP_IPHONE_65/05-class-detail.png",
-            "store/apple/screenshot/fr-CA/APP_IPHONE_65/06-notes.png",
-            "store/apple/screenshot/fr-CA/APP_IPHONE_65/07-focus.png"
-          ]
-        },
-        "promoText": "Transformez vos plans de cours en tâches, échéances, rappels, notes et périodes d’étude. Vérifiez chaque détail avant d’enregistrer.",
-        "releaseNotes": "Corrections d’erreurs, améliorations des performances et ajustements de la vérification des plans de cours."
-      },
-      "en-GB": {
-        "description": "Import syllabuses and make coursework easier to plan.\n\nStudy Planner AI helps you organise modules around coursework, exams, deadlines, notes, reminders, calendar views and focused revision sessions. Review suggested dates before anything is saved, then keep school, sixth form or university work easier to follow through the term.\n\nUse it for:\nCoursework and exam planning\nDate review before saving\nTasks, notes, reminders and calendar organisation\nFocused revision before busy weeks\nA calmer view of what needs attention next\n\nSome features may require a subscription.\n\nTerms of Use:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPrivacy Policy:\nhttps://tinyurl.com/2x2zp799",
-        "keywords": "homework,deadline,exam,revision,timetable,uni,calendar,reminder,notes,syllabus,focus,school",
-        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
-        "title": "Study Planner AI",
-        "subtitle": "Coursework made clear",
-        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
-        "screenshots": {
-          "APP_IPHONE_65": [
-            "store/apple/screenshot/en-GB/APP_IPHONE_65/01-scan-anything.png",
-            "store/apple/screenshot/en-GB/APP_IPHONE_65/02-semester-health.png",
-            "store/apple/screenshot/en-GB/APP_IPHONE_65/03-plan-autopilot.png",
-            "store/apple/screenshot/en-GB/APP_IPHONE_65/04-manage-semester.png",
-            "store/apple/screenshot/en-GB/APP_IPHONE_65/05-class-detail.png",
-            "store/apple/screenshot/en-GB/APP_IPHONE_65/06-notes.png",
-            "store/apple/screenshot/en-GB/APP_IPHONE_65/07-focus.png"
-          ],
-          "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot/en-GB/APP_IPAD_PRO_3GEN_129/ipad-01-dashboard.png",
-            "store/apple/screenshot/en-GB/APP_IPAD_PRO_3GEN_129/ipad-02-calendar.png",
-            "store/apple/screenshot/en-GB/APP_IPAD_PRO_3GEN_129/ipad-03-classes.png"
-          ]
-        },
-        "promoText": "Turn syllabuses into checked coursework dates, revision tasks, reminders and focused study sessions, with every detail under your control.",
-        "releaseNotes": "Bug fixes, performance improvements, and refinements to syllabus review and study planning."
-      },
       "de-DE": {
-        "description": "Importiere Kurspläne und mach daraus einen Lernplan, dem du vertrauen kannst.\n\nDer Kursplaner hilft dir, Schule und Studium nach Aufgaben, Prüfungen, Fristen, Notizen, Erinnerungen, Kalender und Lernzeiten zu ordnen. Prüfe vorgeschlagene Termine vor dem Speichern und behalte jedes Fach im Semester leichter im Blick.\n\nNutze ihn für:\nKursplanung für echte Fächer\nPrüfung von Aufgaben und Terminen vor dem Speichern\nAufgaben, Notizen, Erinnerungen und Kalender\nLernzeiten vor vollen Wochen\nEinen ruhigeren Blick auf das, was als Nächstes ansteht\n\nEinige Funktionen können ein Abonnement erfordern.\n\nNutzungsbedingungen:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nDatenschutzrichtlinie:\nhttps://tinyurl.com/2x2zp799",
-        "keywords": "hausaufgaben,aufgabe,frist,pruefung,kurs,kalender,erinnerung,notizen,semester,uni,lernen",
+        "description": "Importiere Kurspläne und mach daraus einen Lernplan, dem du vertrauen kannst.\n\nDer Kursplaner hilft dir, Schule und Studium nach Aufgaben, Prüfungen, Fristen, Notizen, Erinnerungen, Kalender und Lernzeiten zu ordnen. Prüfe vorgeschlagene Termine vor dem Speichern und behalte jedes Fach im Semester leichter im Blick.\n\nNutze ihn für:\nKursplanung für echte Fächer\nPrüfung von Aufgaben und Terminen vor dem Speichern\nAufgaben, Notizen, Erinnerungen und Kalender\nLernzeiten vor vollen Wochen\nEinen ruhigeren Blick auf das, was als Nächstes ansteht\n\nEinige Funktionen können ein Abonnement erfordern.\n\nNutzungsbedingungen:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nDatenschutzrichtlinie:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "keywords": [
+          "hausaufgaben",
+          "aufgabe",
+          "frist",
+          "pruefung",
+          "kurs",
+          "kalender",
+          "erinnerung",
+          "notizen",
+          "semester",
+          "uni",
+          "lernen",
+          "abi",
+          "plan",
+          "fh"
+        ],
+        "releaseNotes": "Fehlerbehebungen, Leistungsverbesserungen und Verfeinerungen bei Kursplanprüfung und Lernplanung.",
+        "promoText": "Wandle Kurspläne in geprüfte Aufgaben, Fristen, Notizen, Erinnerungen und ruhige Lernzeiten um. Du bestätigst alles vor dem Speichern.",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "Kursplaner fürs Lernen",
         "subtitle": "Kurspläne klar ordnen",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot/de-DE/APP_IPHONE_65/01-scan-anything.png",
+            "store/apple/screenshot/de-DE/APP_IPHONE_65/01-scan-syllabus.png",
             "store/apple/screenshot/de-DE/APP_IPHONE_65/02-semester-health.png",
             "store/apple/screenshot/de-DE/APP_IPHONE_65/03-plan-autopilot.png",
             "store/apple/screenshot/de-DE/APP_IPHONE_65/04-manage-semester.png",
@@ -149,39 +44,547 @@
           "APP_IPAD_PRO_3GEN_129": [
             "store/apple/screenshot/de-DE/APP_IPAD_PRO_3GEN_129/german.png"
           ]
-        },
-        "promoText": "Wandle Kurspläne in geprüfte Aufgaben, Fristen, Notizen, Erinnerungen und ruhige Lernzeiten um. Du bestätigst alles vor dem Speichern.",
-        "releaseNotes": "Fehlerbehebungen, Leistungsverbesserungen und Verfeinerungen bei Kursplanprüfung und Lernplanung."
+        }
       },
-      "en-US": {
-        "description": "Import a class syllabus and turn it into a study plan you can trust.\n\nStudy Planner AI helps you organize school around the details that matter: assignments, exams, due dates, notes, reminders, calendar views, and focused study sessions. Import syllabus files, review suggested dates before saving, then keep every class easier to track through the semester.\n\nUse it for:\nSyllabus planning for real classes\nAssignment and exam review before saving\nTasks, notes, reminders, and calendar organization\nFocused study sessions for busy weeks\nA calmer view of what is due next\n\nSome features may require a subscription.\n\nTerms of Use:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPrivacy Policy:\nhttps://tinyurl.com/2x2zp799",
-        "keywords": "homework,school,college,deadline,assignment,class,calendar,exam,notes,focus,semester,study,lecture",
+      "fr-CA": {
+        "description": "Importez vos plans de cours et transformez-les en organisation claire pour la session.\n\nLe planificateur vous aide à classer travaux, examens, échéances, notes, rappels, calendrier et périodes d’étude par cours. Vérifiez les dates suggérées avant de les enregistrer, puis gardez l’école, le cégep ou l’université plus faciles à suivre.\n\nUtilisez-le pour:\nPlanifier de vrais cours\nVérifier travaux et examens avant l’enregistrement\nOrganiser tâches, notes, rappels et calendrier\nPréparer des périodes d’étude avant les semaines chargées\nVoir plus clairement ce qui s’en vient\n\nCertaines fonctions peuvent nécessiter un abonnement.\n\nConditions d’utilisation:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolitique de confidentialité:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "keywords": [
+          "devoir",
+          "travail",
+          "examen",
+          "cours",
+          "agenda",
+          "rappel",
+          "notes",
+          "calendrier",
+          "cégep",
+          "université",
+          "session",
+          "tâche",
+          "étude",
+          "plan"
+        ],
+        "releaseNotes": "Corrections d’erreurs, améliorations des performances et ajustements de la vérification des plans de cours.",
+        "promoText": "Transformez vos plans de cours en tâches, échéances, rappels, notes et périodes d’étude. Vérifiez chaque détail avant d’enregistrer.",
+        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
+        "title": "Plan de Cours Étudiant",
+        "subtitle": "Plans de cours en tâches",
+        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "screenshots": {
+          "APP_IPHONE_65": [
+            "store/apple/screenshot/fr-CA/APP_IPHONE_65/01-scan-syllabus.png",
+            "store/apple/screenshot/fr-CA/APP_IPHONE_65/02-semester-health.png",
+            "store/apple/screenshot/fr-CA/APP_IPHONE_65/03-plan-autopilot.png",
+            "store/apple/screenshot/fr-CA/APP_IPHONE_65/04-manage-semester.png",
+            "store/apple/screenshot/fr-CA/APP_IPHONE_65/05-class-detail.png",
+            "store/apple/screenshot/fr-CA/APP_IPHONE_65/06-notes.png",
+            "store/apple/screenshot/fr-CA/APP_IPHONE_65/07-focus.png"
+          ],
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/apple/screenshot/fr-CA/APP_IPAD_PRO_3GEN_129/french.png"
+          ]
+        }
+      },
+      "en-GB": {
+        "description": "Import syllabuses and make coursework easier to plan.\n\nStudy Planner AI helps you organise modules around coursework, exams, deadlines, notes, reminders, calendar views and focused revision sessions. Review suggested dates before anything is saved, then keep school, sixth form or university work easier to follow through the term.\n\nUse it for:\nCoursework and exam planning\nDate review before saving\nTasks, notes, reminders and calendar organisation\nFocused revision before busy weeks\nA calmer view of what needs attention next\n\nSome features may require a subscription.\n\nTerms of Use:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPrivacy Policy:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "keywords": [
+          "homework",
+          "deadline",
+          "exam",
+          "revision",
+          "timetable",
+          "uni",
+          "calendar",
+          "reminder",
+          "notes",
+          "syllabus",
+          "focus",
+          "school",
+          "essay",
+          "uk"
+        ],
+        "releaseNotes": "Bug fixes, performance improvements, and refinements to syllabus review and study planning.",
+        "promoText": "Turn syllabuses into checked coursework dates, revision tasks, reminders and focused study sessions, with every detail under your control.",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "Study Planner AI",
-        "subtitle": "Syllabus to study plans",
+        "subtitle": "Coursework made clear",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot/en-US/APP_IPAD_PRO_3GEN_129/ipad-01-dashboard.png",
-            "store/apple/screenshot/en-US/APP_IPAD_PRO_3GEN_129/ipad-02-calendar.png",
-            "store/apple/screenshot/en-US/APP_IPAD_PRO_3GEN_129/ipad-03-classes.png"
+            "store/apple/screenshot/en-GB/APP_IPAD_PRO_3GEN_129/ipad-01-dashboard.png",
+            "store/apple/screenshot/en-GB/APP_IPAD_PRO_3GEN_129/ipad-02-calendar.png",
+            "store/apple/screenshot/en-GB/APP_IPAD_PRO_3GEN_129/ipad-03-classes.png"
           ],
           "APP_IPHONE_65": [
-            "store/apple/screenshot/en-US/APP_IPHONE_65/01-scan-anything.png",
-            "store/apple/screenshot/en-US/APP_IPHONE_65/02-semester-health.png",
-            "store/apple/screenshot/en-US/APP_IPHONE_65/03-plan-autopilot.png",
-            "store/apple/screenshot/en-US/APP_IPHONE_65/04-manage-semester.png",
-            "store/apple/screenshot/en-US/APP_IPHONE_65/05-class-detail.png",
-            "store/apple/screenshot/en-US/APP_IPHONE_65/06-notes.png",
-            "store/apple/screenshot/en-US/APP_IPHONE_65/07-focus.png"
+            "store/apple/screenshot/en-GB/APP_IPHONE_65/01-scan-syllabus.png",
+            "store/apple/screenshot/en-GB/APP_IPHONE_65/02-semester-health.png",
+            "store/apple/screenshot/en-GB/APP_IPHONE_65/03-plan-autopilot.png",
+            "store/apple/screenshot/en-GB/APP_IPHONE_65/04-manage-semester.png",
+            "store/apple/screenshot/en-GB/APP_IPHONE_65/05-class-detail.png",
+            "store/apple/screenshot/en-GB/APP_IPHONE_65/06-notes.png",
+            "store/apple/screenshot/en-GB/APP_IPHONE_65/07-focus.png"
           ]
-        },
-        "promoText": "Import a syllabus, review the dates, and turn each class into clear tasks, notes, reminders, and focused study sessions.",
-        "releaseNotes": "Bug fixes, performance improvements, and refinements to syllabus review and study planning."
+        }
+      },
+      "en-AU": {
+        "description": "Import syllabuses and turn the term into a plan you can trust.\n\nStudy Planner AI helps you organise classes around assignments, exams, due dates, notes, reminders, calendar views and focused study sessions. Review suggested dates before saving, then keep school, uni or TAFE work easier to track.\n\nUse it for:\nSyllabus planning for real classes\nAssignment and exam review before saving\nTasks, notes, reminders and calendar organisation\nFocused study sessions for busy weeks\nA clearer view of what is due next\n\nSome features may require a subscription.\n\nTerms of Use:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPrivacy Policy:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "keywords": [
+          "homework",
+          "assignment",
+          "deadline",
+          "exam",
+          "class",
+          "calendar",
+          "reminder",
+          "notes",
+          "focus",
+          "uni",
+          "terms",
+          "timetable",
+          "study",
+          "plan"
+        ],
+        "releaseNotes": "Bug fixes, performance improvements, and refinements to syllabus review and study planning.",
+        "promoText": "Turn syllabuses into checked class tasks, due dates, reminders, notes and focused study sessions for the term ahead.",
+        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
+        "title": "Study Planner AI",
+        "subtitle": "Syllabuses to tasks",
+        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "screenshots": {
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/apple/screenshot/en-AU/APP_IPAD_PRO_3GEN_129/ipad-01-dashboard.png",
+            "store/apple/screenshot/en-AU/APP_IPAD_PRO_3GEN_129/ipad-02-calendar.png",
+            "store/apple/screenshot/en-AU/APP_IPAD_PRO_3GEN_129/ipad-03-classes.png"
+          ],
+          "APP_IPHONE_65": [
+            "store/apple/screenshot/en-AU/APP_IPHONE_65/01-scan-syllabus.png",
+            "store/apple/screenshot/en-AU/APP_IPHONE_65/02-semester-health.png",
+            "store/apple/screenshot/en-AU/APP_IPHONE_65/03-plan-autopilot.png",
+            "store/apple/screenshot/en-AU/APP_IPHONE_65/04-manage-semester.png",
+            "store/apple/screenshot/en-AU/APP_IPHONE_65/05-class-detail.png",
+            "store/apple/screenshot/en-AU/APP_IPHONE_65/06-notes.png",
+            "store/apple/screenshot/en-AU/APP_IPHONE_65/07-focus.png"
+          ]
+        }
+      },
+      "zh-Hans": {
+        "description": "把课程大纲整理成更可信的学习计划。\n\n课程大纲学习计划可按课程整理作业、截止日期、考试、笔记、提醒、日历和学习时段。保存前，你可以先检查建议日期，让学校或大学安排在整个学期里更清楚。\n\n适合用来：\n规划真实课程\n保存前检查作业和考试日期\n整理笔记、提醒、任务和日历\n为忙碌周提前安排学习时段\n更清楚地看到接下来要做什么\n\n部分功能可能需要订阅。\n\n使用条款:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\n隐私政策:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "keywords": [
+          "作业管理",
+          "截止日",
+          "考试安排",
+          "课程表",
+          "笔记",
+          "提醒",
+          "复习",
+          "备考",
+          "学期",
+          "大学",
+          "课程",
+          "学习计划",
+          "报告",
+          "专注",
+          "时间管理",
+          "待办",
+          "成绩",
+          "教授",
+          "期中",
+          "期末",
+          "小测",
+          "学校",
+          "自习",
+          "作业",
+          "日历",
+          "论文",
+          "清单",
+          "考前",
+          "日程",
+          "课",
+          "卷"
+        ],
+        "releaseNotes": "修复问题、提升性能，并优化课程大纲检查和学习计划流程。",
+        "promoText": "把课程大纲和笔记整理成作业、截止日、考试、提醒和学习时段。保存前可以先检查每个细节。",
+        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
+        "title": "课程大纲学习计划",
+        "subtitle": "大纲变学习计划",
+        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "screenshots": {
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/apple/screenshot/zh-Hans/APP_IPAD_PRO_3GEN_129/chinese.png"
+          ],
+          "APP_IPHONE_65": [
+            "store/apple/screenshot/zh-Hans/APP_IPHONE_65/01-scan-syllabus.png",
+            "store/apple/screenshot/zh-Hans/APP_IPHONE_65/02-semester-health.png",
+            "store/apple/screenshot/zh-Hans/APP_IPHONE_65/03-plan-autopilot.png",
+            "store/apple/screenshot/zh-Hans/APP_IPHONE_65/04-manage-semester.png",
+            "store/apple/screenshot/zh-Hans/APP_IPHONE_65/05-class-detail.png",
+            "store/apple/screenshot/zh-Hans/APP_IPHONE_65/06-notes.png",
+            "store/apple/screenshot/zh-Hans/APP_IPHONE_65/07-focus.png"
+          ]
+        }
+      },
+      "es-ES": {
+        "description": "Importa guías docentes y conviértelas en un plan de estudio claro.\n\nEl planificador te ayuda a organizar asignaturas por tareas, entregas, exámenes, apuntes, recordatorios, calendario y sesiones de estudio. Revisa las fechas sugeridas antes de guardarlas y mantén instituto o universidad bajo control durante el curso.\n\nÚsalo para:\nPlanificar asignaturas reales\nRevisar entregas y exámenes antes de guardar\nOrganizar tareas, apuntes, recordatorios y calendario\nPreparar sesiones de estudio para semanas cargadas\nVer con más claridad qué viene después\n\nAlgunas funciones pueden requerir una suscripción.\n\nCondiciones de uso:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolítica de privacidad:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "keywords": [
+          "tareas",
+          "examen",
+          "entrega",
+          "clase",
+          "agenda",
+          "recordatorio",
+          "apuntes",
+          "calendario",
+          "universidad",
+          "notas",
+          "estudio",
+          "uni",
+          "eso"
+        ],
+        "releaseNotes": "Corrección de errores, mejoras de rendimiento y ajustes en la revisión de guías docentes y la planificación de estudios.",
+        "promoText": "Convierte guías docentes y apuntes en tareas, entregas, recordatorios y sesiones de estudio. Revisa cada fecha antes de guardarla.",
+        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
+        "title": "Planificador de Temarios",
+        "subtitle": "Guías docentes a tareas",
+        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "screenshots": {
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/apple/screenshot/es-ES/APP_IPAD_PRO_3GEN_129/spanish.png"
+          ],
+          "APP_IPHONE_65": [
+            "store/apple/screenshot/es-ES/APP_IPHONE_65/01-scan-syllabus.png",
+            "store/apple/screenshot/es-ES/APP_IPHONE_65/02-semester-health.png",
+            "store/apple/screenshot/es-ES/APP_IPHONE_65/03-plan-autopilot.png",
+            "store/apple/screenshot/es-ES/APP_IPHONE_65/04-manage-semester.png",
+            "store/apple/screenshot/es-ES/APP_IPHONE_65/05-class-detail.png",
+            "store/apple/screenshot/es-ES/APP_IPHONE_65/06-notes.png",
+            "store/apple/screenshot/es-ES/APP_IPHONE_65/07-focus.png"
+          ]
+        }
+      },
+      "pt-BR": {
+        "description": "Importe ementas e transforme tudo em um plano de estudo claro.\n\nO planejador ajuda a organizar disciplinas por tarefas, provas, prazos, notas, lembretes, calendário e sessões de estudo. Revise as datas sugeridas antes de salvar e acompanhe escola ou faculdade com mais controle durante o semestre.\n\nUse para:\nPlanejar disciplinas reais\nRevisar tarefas e provas antes de salvar\nOrganizar notas, lembretes, tarefas e calendário\nPreparar sessões de estudo para semanas cheias\nVer com mais clareza o que vem a seguir\n\nAlguns recursos podem exigir assinatura.\n\nTermos de uso:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolítica de privacidade:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "keywords": [
+          "tarefa",
+          "prova",
+          "prazo",
+          "aula",
+          "agenda",
+          "lembrete",
+          "anotacoes",
+          "calendario",
+          "faculdade",
+          "trabalho",
+          "enem",
+          "tcc",
+          "estudo",
+          "foco"
+        ],
+        "releaseNotes": "Correções de erros, melhorias de desempenho e ajustes na revisão de ementas e no planejamento dos estudos.",
+        "promoText": "Transforme ementas e anotações em tarefas, provas, prazos, lembretes e sessões de estudo. Revise tudo antes de salvar.",
+        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
+        "title": "Planejador de Ementas",
+        "subtitle": "Ementas viram tarefas",
+        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "screenshots": {
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/apple/screenshot/pt-BR/APP_IPAD_PRO_3GEN_129/portugese.png"
+          ],
+          "APP_IPHONE_65": [
+            "store/apple/screenshot/pt-BR/APP_IPHONE_65/01-scan-syllabus.png",
+            "store/apple/screenshot/pt-BR/APP_IPHONE_65/02-semester-health.png",
+            "store/apple/screenshot/pt-BR/APP_IPHONE_65/03-plan-autopilot.png",
+            "store/apple/screenshot/pt-BR/APP_IPHONE_65/04-manage-semester.png",
+            "store/apple/screenshot/pt-BR/APP_IPHONE_65/05-class-detail.png",
+            "store/apple/screenshot/pt-BR/APP_IPHONE_65/06-notes.png",
+            "store/apple/screenshot/pt-BR/APP_IPHONE_65/07-focus.png"
+          ]
+        }
+      },
+      "pt-PT": {
+        "description": "Importa programas e transforma tudo num plano de estudo claro.\n\nO planeador ajuda a organizar disciplinas por tarefas, testes, prazos, apontamentos, lembretes, calendário e sessões de estudo. Revê as datas sugeridas antes de guardar e acompanha escola ou universidade com mais controlo durante o período.\n\nUsa para:\nPlanear disciplinas reais\nRever tarefas e testes antes de guardar\nOrganizar apontamentos, lembretes, tarefas e calendário\nPreparar sessões de estudo para semanas cheias\nVer com mais clareza o que vem a seguir\n\nAlgumas funcionalidades podem exigir uma subscrição.\n\nTermos de uso:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolítica de privacidade:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "keywords": [
+          "tarefa",
+          "teste",
+          "prazo",
+          "aula",
+          "agenda",
+          "lembrete",
+          "apontamentos",
+          "calendario",
+          "universidade",
+          "tpc",
+          "avaliacao",
+          "estudo",
+          "ia"
+        ],
+        "releaseNotes": "Correções de erros, melhorias de desempenho e ajustes na revisão de programas e no planeamento dos estudos.",
+        "promoText": "Transforma programas e apontamentos em tarefas, testes, prazos, lembretes e sessões de estudo. Revê tudo antes de guardar.",
+        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
+        "title": "Planeador de Programas",
+        "subtitle": "Programas em tarefas",
+        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "screenshots": {
+          "APP_IPHONE_65": [
+            "store/apple/screenshot/pt-PT/APP_IPHONE_65/01-scan-syllabus.png",
+            "store/apple/screenshot/pt-PT/APP_IPHONE_65/02-semester-health.png",
+            "store/apple/screenshot/pt-PT/APP_IPHONE_65/03-plan-autopilot.png",
+            "store/apple/screenshot/pt-PT/APP_IPHONE_65/04-manage-semester.png",
+            "store/apple/screenshot/pt-PT/APP_IPHONE_65/05-class-detail.png",
+            "store/apple/screenshot/pt-PT/APP_IPHONE_65/06-notes.png",
+            "store/apple/screenshot/pt-PT/APP_IPHONE_65/07-focus.png"
+          ],
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/apple/screenshot/pt-PT/APP_IPAD_PRO_3GEN_129/portugese.png"
+          ]
+        }
+      },
+      "ar-SA": {
+        "description": "حوّل المنهج إلى خطة مذاكرة يمكنك الوثوق بها.\n\nيساعدك مخطط المنهج الدراسي على ترتيب واجبات كل مادة، الاختبارات، المواعيد، الملاحظات، التنبيهات، التقويم وجلسات المذاكرة. راجع التواريخ المقترحة قبل الحفظ حتى تبقى المدرسة أو الجامعة أوضح طوال الفصل.\n\nاستخدمه من أجل:\nتخطيط موادك الفعلية\nمراجعة الواجبات والاختبارات قبل الحفظ\nترتيب الملاحظات والتنبيهات والمهام والتقويم\nتجهيز جلسات مذاكرة قبل الأسابيع المزدحمة\nرؤية أوضح لما يجب عمله بعد ذلك\n\nقد تتطلب بعض الميزات اشتراكًا.\n\nشروط الاستخدام:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nسياسة الخصوصية:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "keywords": [
+          "واجبات",
+          "اختبار",
+          "مواعيد",
+          "مهام",
+          "ملاحظات",
+          "جامعة",
+          "تقويم",
+          "جدولة",
+          "دراسة",
+          "تذكير",
+          "فصل",
+          "مدرسة",
+          "محاضرة",
+          "خططي",
+          "اختبارات",
+          "تركيز"
+        ],
+        "releaseNotes": "إصلاحات للأخطاء وتحسينات في الأداء مع ضبط مراجعة المنهج وتخطيط الدراسة.",
+        "promoText": "حوّل المنهج والملاحظات إلى واجبات ومواعيد واختبارات وتذكيرات وجلسات مذاكرة. راجع التفاصيل قبل الحفظ.",
+        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
+        "title": "مخطط المنهج الدراسي",
+        "subtitle": "حوّل منهجك إلى خطة",
+        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "screenshots": {
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/apple/screenshot/ar-SA/APP_IPAD_PRO_3GEN_129/arabic.png"
+          ],
+          "APP_IPHONE_65": [
+            "store/apple/screenshot/ar-SA/APP_IPHONE_65/01-scan-syllabus.png",
+            "store/apple/screenshot/ar-SA/APP_IPHONE_65/02-semester-health.png",
+            "store/apple/screenshot/ar-SA/APP_IPHONE_65/03-plan-autopilot.png",
+            "store/apple/screenshot/ar-SA/APP_IPHONE_65/04-manage-semester.png",
+            "store/apple/screenshot/ar-SA/APP_IPHONE_65/05-class-detail.png",
+            "store/apple/screenshot/ar-SA/APP_IPHONE_65/06-notes.png",
+            "store/apple/screenshot/ar-SA/APP_IPHONE_65/07-focus.png"
+          ]
+        }
+      },
+      "hi": {
+        "description": "सिलेबस को भरोसेमंद पढ़ाई योजना में बदलें।\n\nसिलेबस योजनाकार कक्षा के कार्य, परीक्षाएँ, समयसीमाएँ, नोट्स, रिमाइंडर, दिनदर्शिका और पढ़ाई सत्र व्यवस्थित करने में मदद करता है। सुझाई गई तारीखों को सेव करने से पहले जाँचें और स्कूल या कॉलेज के काम को पूरे सत्र में साफ रखें।\n\nइसके लिए उपयोग करें:\nवास्तविक कक्षाओं की योजना\nसेव करने से पहले कार्य और परीक्षा की जाँच\nनोट्स, रिमाइंडर, कार्य और दिनदर्शिका की व्यवस्था\nव्यस्त सप्ताहों के लिए पढ़ाई सत्र\nआगे आने वाले काम का साफ दृश्य\n\nकुछ सुविधाओं के लिए सदस्यता की आवश्यकता हो सकती है।\n\nउपयोग की शर्तें:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nगोपनीयता नीति:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "keywords": [
+          "परीक्षा",
+          "कार्य",
+          "कक्षा",
+          "समयसीमा",
+          "होमवर्क",
+          "नोट्स",
+          "कैलेंडर",
+          "रिमाइंडर",
+          "कॉलेज",
+          "अध्ययन",
+          "सेमेस्टर",
+          "असाइनमेंट",
+          "पाठ",
+          "योजना"
+        ],
+        "releaseNotes": "त्रुटि सुधार, प्रदर्शन सुधार और सिलेबस समीक्षा व पढ़ाई योजना में सुधार।",
+        "promoText": "सिलेबस और नोट्स को कार्य, परीक्षाओं, समयसीमाओं और पढ़ाई सत्रों में बदलें। सेव करने से पहले हर बात जाँचें।",
+        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
+        "title": "सिलेबस योजनाकार",
+        "subtitle": "सिलेबस से पढ़ाई योजना",
+        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "screenshots": {
+          "APP_IPHONE_65": [
+            "store/apple/screenshot/hi/APP_IPHONE_65/01-scan-syllabus.png",
+            "store/apple/screenshot/hi/APP_IPHONE_65/02-semester-health.png",
+            "store/apple/screenshot/hi/APP_IPHONE_65/03-plan-autopilot.png",
+            "store/apple/screenshot/hi/APP_IPHONE_65/04-manage-semester.png",
+            "store/apple/screenshot/hi/APP_IPHONE_65/05-class-detail.png",
+            "store/apple/screenshot/hi/APP_IPHONE_65/06-notes.png",
+            "store/apple/screenshot/hi/APP_IPHONE_65/07-focus.png"
+          ],
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/apple/screenshot/hi/APP_IPAD_PRO_3GEN_129/hindi.png"
+          ]
+        }
+      },
+      "ko": {
+        "description": "강의계획서를 믿고 쓸 수 있는 학습 계획으로 정리하세요.\n\n강의계획서 학습계획은 수업별 과제, 마감일, 시험, 필기, 알림, 달력, 공부 시간을 정리하도록 도와줍니다. 저장하기 전에 제안된 날짜를 확인할 수 있어 학교와 대학교 일정을 직접 관리할 수 있습니다.\n\n이럴 때 사용하세요:\n실제 수업에 맞춘 계획\n저장 전 과제와 시험 날짜 확인\n필기, 알림, 과제, 달력 정리\n바쁜 주 전 공부 시간 준비\n다음 할 일을 더 분명하게 확인\n\n일부 기능은 유료 구독이 필요할 수 있습니다.\n\n이용 약관:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\n개인정보 처리방침:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "keywords": [
+          "과제관리",
+          "마감일",
+          "시험",
+          "시간표",
+          "강의계획서",
+          "복습",
+          "제출물",
+          "학기",
+          "대학",
+          "수업",
+          "노트",
+          "알림",
+          "공부계획",
+          "집중",
+          "숙제",
+          "보고서",
+          "중간고사",
+          "기말고사",
+          "퀴즈",
+          "일정",
+          "학점",
+          "교수",
+          "학교",
+          "시간관리",
+          "성적",
+          "교재",
+          "발표",
+          "계획"
+        ],
+        "releaseNotes": "오류 수정, 성능 개선, 강의계획서 확인과 학습 계획 흐름을 다듬었습니다.",
+        "promoText": "강의계획서와 필기를 과제, 마감일, 시험, 알림, 공부 시간으로 정리하세요. 저장 전 내용을 확인할 수 있습니다.",
+        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
+        "title": "강의계획서 학습계획",
+        "subtitle": "강의계획서를 일정으로",
+        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "screenshots": {
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/apple/screenshot/ko/APP_IPAD_PRO_3GEN_129/korean.png"
+          ],
+          "APP_IPHONE_65": [
+            "store/apple/screenshot/ko/APP_IPHONE_65/01-scan-syllabus.png",
+            "store/apple/screenshot/ko/APP_IPHONE_65/02-semester-health.png",
+            "store/apple/screenshot/ko/APP_IPHONE_65/03-plan-autopilot.png",
+            "store/apple/screenshot/ko/APP_IPHONE_65/04-manage-semester.png",
+            "store/apple/screenshot/ko/APP_IPHONE_65/05-class-detail.png",
+            "store/apple/screenshot/ko/APP_IPHONE_65/06-notes.png",
+            "store/apple/screenshot/ko/APP_IPHONE_65/07-focus.png"
+          ]
+        }
+      },
+      "es-MX": {
+        "description": "Importa temarios y conviértelos en un plan de estudio claro.\n\nEl planificador te ayuda a organizar materias por tareas, entregas, exámenes, apuntes, recordatorios, calendario y sesiones de estudio. Revisa las fechas sugeridas antes de guardarlas y mantén la prepa o universidad bajo control durante el semestre.\n\nÚsalo para:\nPlanificar materias reales\nRevisar entregas y exámenes antes de guardar\nOrganizar tareas, apuntes, recordatorios y calendario\nPreparar sesiones de estudio para semanas pesadas\nVer con más claridad qué sigue\n\nAlgunas funciones pueden requerir una suscripción.\n\nCondiciones de uso:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolítica de privacidad:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "keywords": [
+          "tareas",
+          "examen",
+          "entrega",
+          "clases",
+          "agenda",
+          "recordatorio",
+          "apuntes",
+          "calendario",
+          "universidad",
+          "prepa",
+          "notas",
+          "estudiar"
+        ],
+        "releaseNotes": "Corrección de errores, mejoras de rendimiento y ajustes en la revisión de temarios y la planificación de estudios.",
+        "promoText": "Convierte temarios y apuntes en tareas, entregas, recordatorios y sesiones de estudio. Revisa cada fecha antes de guardarla.",
+        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
+        "title": "Planificador de Materias",
+        "subtitle": "Temarios a tareas",
+        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "screenshots": {
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/apple/screenshot/es-MX/APP_IPAD_PRO_3GEN_129/spanish.png"
+          ],
+          "APP_IPHONE_65": [
+            "store/apple/screenshot/es-MX/APP_IPHONE_65/01-scan-syllabus.png",
+            "store/apple/screenshot/es-MX/APP_IPHONE_65/02-semester-health.png",
+            "store/apple/screenshot/es-MX/APP_IPHONE_65/03-plan-autopilot.png",
+            "store/apple/screenshot/es-MX/APP_IPHONE_65/04-manage-semester.png",
+            "store/apple/screenshot/es-MX/APP_IPHONE_65/05-class-detail.png",
+            "store/apple/screenshot/es-MX/APP_IPHONE_65/06-notes.png",
+            "store/apple/screenshot/es-MX/APP_IPHONE_65/07-focus.png"
+          ]
+        }
+      },
+      "zh-Hant": {
+        "description": "把課程大綱整理成更可信的學習計畫。\n\n課程大綱學習計畫可依課程整理作業、截止日期、考試、筆記、提醒、行事曆和讀書時段。儲存前，你可以先檢查建議日期，讓學校或大學安排在整個學期裡更清楚。\n\n適合用來：\n規劃真實課程\n儲存前檢查作業和考試日期\n整理筆記、提醒、任務和行事曆\n為忙碌週提前安排讀書時段\n更清楚地看到接下來要做什麼\n\n部分功能可能需要訂閱。\n\n使用條款:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\n隱私權政策:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "keywords": [
+          "作業管理",
+          "截止日",
+          "考試安排",
+          "課表",
+          "筆記",
+          "提醒",
+          "複習",
+          "備考",
+          "學期",
+          "大學",
+          "課程",
+          "讀書計畫",
+          "報告",
+          "專注",
+          "時間管理",
+          "待辦",
+          "成績",
+          "教授",
+          "期中考",
+          "期末考",
+          "小考",
+          "學校",
+          "自習",
+          "功課",
+          "任務",
+          "行事曆",
+          "測驗",
+          "考前",
+          "日程",
+          "課"
+        ],
+        "releaseNotes": "修正問題、提升效能，並優化課程大綱檢查和學習計畫流程。",
+        "promoText": "把課程大綱和筆記整理成作業、截止日、考試、提醒與讀書時段。儲存前可先檢查每個細節。",
+        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
+        "title": "課程大綱學習計畫",
+        "subtitle": "課程大綱變計畫",
+        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "screenshots": {
+          "APP_IPHONE_65": [
+            "store/apple/screenshot/zh-Hant/APP_IPHONE_65/01-scan-syllabus.png",
+            "store/apple/screenshot/zh-Hant/APP_IPHONE_65/02-semester-health.png",
+            "store/apple/screenshot/zh-Hant/APP_IPHONE_65/03-plan-autopilot.png",
+            "store/apple/screenshot/zh-Hant/APP_IPHONE_65/04-manage-semester.png",
+            "store/apple/screenshot/zh-Hant/APP_IPHONE_65/05-class-detail.png",
+            "store/apple/screenshot/zh-Hant/APP_IPHONE_65/06-notes.png",
+            "store/apple/screenshot/zh-Hant/APP_IPHONE_65/07-focus.png"
+          ],
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/apple/screenshot/zh-Hant/APP_IPAD_PRO_3GEN_129/chinese.png"
+          ]
+        }
       },
       "fr-FR": {
-        "description": "Importez vos supports de cours et transformez-les en planning clair.\n\nLe planificateur vous aide à organiser devoirs, partiels, échéances, notes, rappels, calendrier et séances de révision par cours. Vérifiez les dates suggérées avant de les enregistrer, puis suivez plus facilement le lycée, la fac ou les périodes d’examens.\n\nUtilisez-le pour:\nPlanifier de vrais cours\nVérifier devoirs et partiels avant l’enregistrement\nOrganiser tâches, notes, rappels et calendrier\nPréparer des révisions avant les semaines chargées\nVoir plus clairement ce qui arrive ensuite\n\nCertaines fonctions peuvent nécessiter un abonnement.\n\nConditions d’utilisation:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolitique de confidentialité:\nhttps://tinyurl.com/2x2zp799",
-        "keywords": "devoir,examen,partiel,cours,agenda,rappel,notes,révision,calendrier,fac,tâche,lycée",
+        "description": "Importez vos supports de cours et transformez-les en planning clair.\n\nLe planificateur vous aide à organiser devoirs, partiels, échéances, notes, rappels, calendrier et séances de révision par cours. Vérifiez les dates suggérées avant de les enregistrer, puis suivez plus facilement le lycée, la fac ou les périodes d’examens.\n\nUtilisez-le pour:\nPlanifier de vrais cours\nVérifier devoirs et partiels avant l’enregistrement\nOrganiser tâches, notes, rappels et calendrier\nPréparer des révisions avant les semaines chargées\nVoir plus clairement ce qui arrive ensuite\n\nCertaines fonctions peuvent nécessiter un abonnement.\n\nConditions d’utilisation:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolitique de confidentialité:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "keywords": [
+          "devoir",
+          "examen",
+          "partiel",
+          "cours",
+          "agenda",
+          "rappel",
+          "notes",
+          "révision",
+          "calendrier",
+          "fac",
+          "tâche",
+          "lycée",
+          "étude",
+          "td",
+          "bac",
+          "dut"
+        ],
+        "releaseNotes": "Corrections d’erreurs, améliorations des performances et ajustements de la vérification des supports de cours.",
+        "promoText": "Transformez supports de cours et notes en devoirs, échéances, rappels et révisions. Vérifiez chaque détail avant d’enregistrer.",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "Cours et Devoirs",
         "subtitle": "Cours et devoirs clairs",
@@ -191,7 +594,7 @@
             "store/apple/screenshot/fr-FR/APP_IPAD_PRO_3GEN_129/french.png"
           ],
           "APP_IPHONE_65": [
-            "store/apple/screenshot/fr-FR/APP_IPHONE_65/01-scan-anything.png",
+            "store/apple/screenshot/fr-FR/APP_IPHONE_65/01-scan-syllabus.png",
             "store/apple/screenshot/fr-FR/APP_IPHONE_65/02-semester-health.png",
             "store/apple/screenshot/fr-FR/APP_IPHONE_65/03-plan-autopilot.png",
             "store/apple/screenshot/fr-FR/APP_IPHONE_65/04-manage-semester.png",
@@ -199,46 +602,87 @@
             "store/apple/screenshot/fr-FR/APP_IPHONE_65/06-notes.png",
             "store/apple/screenshot/fr-FR/APP_IPHONE_65/07-focus.png"
           ]
-        },
-        "promoText": "Transformez supports de cours et notes en devoirs, échéances, rappels et révisions. Vérifiez chaque détail avant d’enregistrer.",
-        "releaseNotes": "Corrections d’erreurs, améliorations des performances et ajustements de la vérification des supports de cours."
+        }
       },
-      "en-AU": {
-        "description": "Import syllabuses and turn the term into a plan you can trust.\n\nStudy Planner AI helps you organise classes around assignments, exams, due dates, notes, reminders, calendar views and focused study sessions. Review suggested dates before saving, then keep school, uni or TAFE work easier to track.\n\nUse it for:\nSyllabus planning for real classes\nAssignment and exam review before saving\nTasks, notes, reminders and calendar organisation\nFocused study sessions for busy weeks\nA clearer view of what is due next\n\nSome features may require a subscription.\n\nTerms of Use:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPrivacy Policy:\nhttps://tinyurl.com/2x2zp799",
-        "keywords": "homework,assignment,deadline,exam,class,calendar,reminder,notes,focus,uni,term,tafe",
+      "ja": {
+        "description": "シラバスを、信頼できる学習計画に整えます。\n\nシラバス学習計画は、授業ごとの課題、締切、試験、メモ、リマインダー、カレンダー、学習時間を整理するためのアプリです。保存前に提案された日付を確認できるので、学校や大学の予定を自分で管理できます。\n\nできること:\n実際の授業に合わせた計画\n保存前の課題と試験日の確認\nメモ、リマインダー、課題、カレンダーの整理\n忙しい週に向けた学習時間の準備\n次にやることの見やすい把握\n\n一部の機能には有料登録が必要な場合があります。\n\n利用規約:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nプライバシーポリシー:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "keywords": [
+          "課題管理",
+          "締切",
+          "試験",
+          "時間割",
+          "シラバス",
+          "復習",
+          "提出物",
+          "学期",
+          "大学",
+          "授業",
+          "ノート",
+          "通知",
+          "学習計画",
+          "集中",
+          "宿題",
+          "レポート",
+          "期末",
+          "中間",
+          "小テスト",
+          "予定表",
+          "成績",
+          "教授",
+          "学校",
+          "勉強",
+          "課題",
+          "カレンダー",
+          "日程",
+          "単位"
+        ],
+        "releaseNotes": "不具合修正、動作改善、シラバス確認と学習計画の調整を行いました。",
+        "promoText": "シラバスやノートを課題、締切、試験、メモ、学習時間に整理。保存前に内容を確認できます。",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
-        "title": "Study Planner AI",
-        "subtitle": "Syllabuses to tasks",
+        "title": "シラバス学習計画",
+        "subtitle": "シラバスを予定に",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot/en-AU/APP_IPHONE_65/01-scan-anything.png",
-            "store/apple/screenshot/en-AU/APP_IPHONE_65/02-semester-health.png",
-            "store/apple/screenshot/en-AU/APP_IPHONE_65/03-plan-autopilot.png",
-            "store/apple/screenshot/en-AU/APP_IPHONE_65/04-manage-semester.png",
-            "store/apple/screenshot/en-AU/APP_IPHONE_65/05-class-detail.png",
-            "store/apple/screenshot/en-AU/APP_IPHONE_65/06-notes.png",
-            "store/apple/screenshot/en-AU/APP_IPHONE_65/07-focus.png"
+            "store/apple/screenshot/ja/APP_IPHONE_65/01-scan-syllabus.png",
+            "store/apple/screenshot/ja/APP_IPHONE_65/02-semester-health.png",
+            "store/apple/screenshot/ja/APP_IPHONE_65/03-plan-autopilot.png",
+            "store/apple/screenshot/ja/APP_IPHONE_65/04-manage-semester.png",
+            "store/apple/screenshot/ja/APP_IPHONE_65/05-class-detail.png",
+            "store/apple/screenshot/ja/APP_IPHONE_65/06-notes.png",
+            "store/apple/screenshot/ja/APP_IPHONE_65/07-focus.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot/en-AU/APP_IPAD_PRO_3GEN_129/ipad-01-dashboard.png",
-            "store/apple/screenshot/en-AU/APP_IPAD_PRO_3GEN_129/ipad-02-calendar.png",
-            "store/apple/screenshot/en-AU/APP_IPAD_PRO_3GEN_129/ipad-03-classes.png"
+            "store/apple/screenshot/ja/APP_IPAD_PRO_3GEN_129/japanese.png"
           ]
-        },
-        "promoText": "Turn syllabuses into checked class tasks, due dates, reminders, notes and focused study sessions for the term ahead.",
-        "releaseNotes": "Bug fixes, performance improvements, and refinements to syllabus review and study planning."
+        }
       },
       "en-CA": {
-        "description": "Import syllabi and class notes into a semester plan you can trust.\n\nStudy Planner AI helps you organize school around assignments, exams, due dates, notes, reminders, calendar views, and focused study sessions. Review suggested dates before saving, then keep each class easier to manage across the semester.\n\nUse it for:\nSyllabus planning for real classes\nAssignment and exam review before saving\nTasks, notes, reminders, and calendar organization\nFocused study sessions for busy weeks\nA clearer view of what is due next\n\nSome features may require a subscription.\n\nTerms of Use:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPrivacy Policy:\nhttps://tinyurl.com/2x2zp799",
-        "keywords": "homework,assignment,deadline,exam,calendar,reminder,notes,focus,semester,university,todo",
+        "description": "Import syllabi and class notes into a semester plan you can trust.\n\nStudy Planner AI helps you organize school around assignments, exams, due dates, notes, reminders, calendar views, and focused study sessions. Review suggested dates before saving, then keep each class easier to manage across the semester.\n\nUse it for:\nSyllabus planning for real classes\nAssignment and exam review before saving\nTasks, notes, reminders, and calendar organization\nFocused study sessions for busy weeks\nA clearer view of what is due next\n\nSome features may require a subscription.\n\nTerms of Use:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPrivacy Policy:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "keywords": [
+          "homework",
+          "assignment",
+          "deadline",
+          "exam",
+          "calendar",
+          "reminder",
+          "notes",
+          "focus",
+          "semester",
+          "university",
+          "todo",
+          "syllabi",
+          "uni"
+        ],
+        "releaseNotes": "Bug fixes, performance improvements, and refinements to syllabus review and study planning.",
+        "promoText": "Import syllabi, review due dates, and organize classes into tasks, notes, reminders, and focused study sessions.",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "Study Planner AI",
         "subtitle": "Syllabi to class plans",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot/en-CA/APP_IPHONE_65/01-scan-anything.png",
+            "store/apple/screenshot/en-CA/APP_IPHONE_65/01-scan-syllabus.png",
             "store/apple/screenshot/en-CA/APP_IPHONE_65/02-semester-health.png",
             "store/apple/screenshot/en-CA/APP_IPHONE_65/03-plan-autopilot.png",
             "store/apple/screenshot/en-CA/APP_IPHONE_65/04-manage-semester.png",
@@ -251,177 +695,47 @@
             "store/apple/screenshot/en-CA/APP_IPAD_PRO_3GEN_129/ipad-02-calendar.png",
             "store/apple/screenshot/en-CA/APP_IPAD_PRO_3GEN_129/ipad-03-classes.png"
           ]
-        },
-        "promoText": "Import syllabi, review due dates, and organize classes into tasks, notes, reminders, and focused study sessions.",
-        "releaseNotes": "Bug fixes, performance improvements, and refinements to syllabus review and study planning."
+        }
       },
-      "pt-PT": {
-        "description": "Importa programas e transforma tudo num plano de estudo claro.\n\nO planeador ajuda a organizar disciplinas por tarefas, testes, prazos, apontamentos, lembretes, calendário e sessões de estudo. Revê as datas sugeridas antes de guardar e acompanha escola ou universidade com mais controlo durante o período.\n\nUsa para:\nPlanear disciplinas reais\nRever tarefas e testes antes de guardar\nOrganizar apontamentos, lembretes, tarefas e calendário\nPreparar sessões de estudo para semanas cheias\nVer com mais clareza o que vem a seguir\n\nAlgumas funcionalidades podem exigir uma subscrição.\n\nTermos de uso:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolítica de privacidade:\nhttps://tinyurl.com/2x2zp799",
-        "keywords": "tarefa,teste,prazo,aula,agenda,lembrete,apontamentos,calendario,universidade,tpc,avaliacao",
+      "en-US": {
+        "description": "Import a class syllabus and turn it into a study plan you can trust.\n\nStudy Planner AI helps you organize school around the details that matter: assignments, exams, due dates, notes, reminders, calendar views, and focused study sessions. Import syllabus files, review suggested dates before saving, then keep every class easier to track through the semester.\n\nUse it for:\nSyllabus planning for real classes\nAssignment and exam review before saving\nTasks, notes, reminders, and calendar organization\nFocused study sessions for busy weeks\nA calmer view of what is due next\n\nSome features may require a subscription.\n\nTerms of Use:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPrivacy Policy:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "keywords": [
+          "homework",
+          "school",
+          "college",
+          "deadline",
+          "assignment",
+          "classes",
+          "calendar",
+          "exam",
+          "notes",
+          "focus",
+          "semester",
+          "study",
+          "lecture"
+        ],
+        "releaseNotes": "Bug fixes, performance improvements, and refinements to syllabus review and study planning.",
+        "promoText": "Import a syllabus, review the dates, and turn each class into clear tasks, notes, reminders, and focused study sessions.",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
-        "title": "Planeador de Programas",
-        "subtitle": "Programas em tarefas",
+        "title": "Study Planner AI",
+        "subtitle": "Syllabus to study plans",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot/pt-PT/APP_IPHONE_65/01-scan-anything.png",
-            "store/apple/screenshot/pt-PT/APP_IPHONE_65/02-semester-health.png",
-            "store/apple/screenshot/pt-PT/APP_IPHONE_65/03-plan-autopilot.png",
-            "store/apple/screenshot/pt-PT/APP_IPHONE_65/04-manage-semester.png",
-            "store/apple/screenshot/pt-PT/APP_IPHONE_65/05-class-detail.png",
-            "store/apple/screenshot/pt-PT/APP_IPHONE_65/06-notes.png",
-            "store/apple/screenshot/pt-PT/APP_IPHONE_65/07-focus.png"
+            "store/apple/screenshot/en-US/APP_IPHONE_65/01-scan-syllabus.png",
+            "store/apple/screenshot/en-US/APP_IPHONE_65/02-semester-health.png",
+            "store/apple/screenshot/en-US/APP_IPHONE_65/03-plan-autopilot.png",
+            "store/apple/screenshot/en-US/APP_IPHONE_65/04-manage-semester.png",
+            "store/apple/screenshot/en-US/APP_IPHONE_65/05-class-detail.png",
+            "store/apple/screenshot/en-US/APP_IPHONE_65/06-notes.png",
+            "store/apple/screenshot/en-US/APP_IPHONE_65/07-focus.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot/pt-PT/APP_IPAD_PRO_3GEN_129/portugese.png"
+            "store/apple/screenshot/en-US/APP_IPAD_PRO_3GEN_129/ipad-01-dashboard.png",
+            "store/apple/screenshot/en-US/APP_IPAD_PRO_3GEN_129/ipad-02-calendar.png",
+            "store/apple/screenshot/en-US/APP_IPAD_PRO_3GEN_129/ipad-03-classes.png"
           ]
-        },
-        "promoText": "Transforma programas e apontamentos em tarefas, testes, prazos, lembretes e sessões de estudo. Revê tudo antes de guardar.",
-        "releaseNotes": "Correções de erros, melhorias de desempenho e ajustes na revisão de programas e no planeamento dos estudos."
-      },
-      "hi": {
-        "description": "सिलेबस को भरोसेमंद पढ़ाई योजना में बदलें।\n\nसिलेबस योजनाकार कक्षा के कार्य, परीक्षाएँ, समयसीमाएँ, नोट्स, रिमाइंडर, दिनदर्शिका और पढ़ाई सत्र व्यवस्थित करने में मदद करता है। सुझाई गई तारीखों को सेव करने से पहले जाँचें और स्कूल या कॉलेज के काम को पूरे सत्र में साफ रखें।\n\nइसके लिए उपयोग करें:\nवास्तविक कक्षाओं की योजना\nसेव करने से पहले कार्य और परीक्षा की जाँच\nनोट्स, रिमाइंडर, कार्य और दिनदर्शिका की व्यवस्था\nव्यस्त सप्ताहों के लिए पढ़ाई सत्र\nआगे आने वाले काम का साफ दृश्य\n\nकुछ सुविधाओं के लिए सदस्यता की आवश्यकता हो सकती है।\n\nउपयोग की शर्तें:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nगोपनीयता नीति:\nhttps://tinyurl.com/2x2zp799",
-        "keywords": "परीक्षा,कार्य,कक्षा,समयसीमा,होमवर्क",
-        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
-        "title": "सिलेबस योजनाकार",
-        "subtitle": "सिलेबस से पढ़ाई योजना",
-        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
-        "screenshots": {
-          "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot/hi/APP_IPAD_PRO_3GEN_129/hindi.png"
-          ],
-          "APP_IPHONE_65": [
-            "store/apple/screenshot/hi/APP_IPHONE_65/01-scan-anything.png",
-            "store/apple/screenshot/hi/APP_IPHONE_65/02-semester-health.png",
-            "store/apple/screenshot/hi/APP_IPHONE_65/03-plan-autopilot.png",
-            "store/apple/screenshot/hi/APP_IPHONE_65/04-manage-semester.png",
-            "store/apple/screenshot/hi/APP_IPHONE_65/05-class-detail.png",
-            "store/apple/screenshot/hi/APP_IPHONE_65/06-notes.png",
-            "store/apple/screenshot/hi/APP_IPHONE_65/07-focus.png"
-          ]
-        },
-        "promoText": "सिलेबस और नोट्स को कार्य, परीक्षाओं, समयसीमाओं और पढ़ाई सत्रों में बदलें। सेव करने से पहले हर बात जाँचें।",
-        "releaseNotes": "त्रुटि सुधार, प्रदर्शन सुधार और सिलेबस समीक्षा व पढ़ाई योजना में सुधार।"
-      },
-      "ko": {
-        "description": "강의계획서를 믿고 쓸 수 있는 학습 계획으로 정리하세요.\n\n강의계획서 학습계획은 수업별 과제, 마감일, 시험, 필기, 알림, 달력, 공부 시간을 정리하도록 도와줍니다. 저장하기 전에 제안된 날짜를 확인할 수 있어 학교와 대학교 일정을 직접 관리할 수 있습니다.\n\n이럴 때 사용하세요:\n실제 수업에 맞춘 계획\n저장 전 과제와 시험 날짜 확인\n필기, 알림, 과제, 달력 정리\n바쁜 주 전 공부 시간 준비\n다음 할 일을 더 분명하게 확인\n\n일부 기능은 유료 구독이 필요할 수 있습니다.\n\n이용 약관:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\n개인정보 처리방침:\nhttps://tinyurl.com/2x2zp799",
-        "keywords": "과제관리,마감일,시험,시간표,강의계획서,복습,제출물",
-        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
-        "title": "강의계획서 학습계획",
-        "subtitle": "강의계획서를 일정으로",
-        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
-        "screenshots": {
-          "APP_IPHONE_65": [
-            "store/apple/screenshot/ko/APP_IPHONE_65/01-scan-anything.png",
-            "store/apple/screenshot/ko/APP_IPHONE_65/02-semester-health.png",
-            "store/apple/screenshot/ko/APP_IPHONE_65/03-plan-autopilot.png",
-            "store/apple/screenshot/ko/APP_IPHONE_65/04-manage-semester.png",
-            "store/apple/screenshot/ko/APP_IPHONE_65/05-class-detail.png",
-            "store/apple/screenshot/ko/APP_IPHONE_65/06-notes.png",
-            "store/apple/screenshot/ko/APP_IPHONE_65/07-focus.png"
-          ],
-          "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot/ko/APP_IPAD_PRO_3GEN_129/korean.png"
-          ]
-        },
-        "promoText": "강의계획서와 필기를 과제, 마감일, 시험, 알림, 공부 시간으로 정리하세요. 저장 전 내용을 확인할 수 있습니다.",
-        "releaseNotes": "오류 수정, 성능 개선, 강의계획서 확인과 학습 계획 흐름을 다듬었습니다."
-      },
-      "zh-Hans": {
-        "description": "把课程大纲整理成更可信的学习计划。\n\n课程大纲学习计划可按课程整理作业、截止日期、考试、笔记、提醒、日历和学习时段。保存前，你可以先检查建议日期，让学校或大学安排在整个学期里更清楚。\n\n适合用来：\n规划真实课程\n保存前检查作业和考试日期\n整理笔记、提醒、任务和日历\n为忙碌周提前安排学习时段\n更清楚地看到接下来要做什么\n\n部分功能可能需要订阅。\n\n使用条款:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\n隐私政策:\nhttps://tinyurl.com/2x2zp799",
-        "keywords": "作业管理,截止日,考试安排,课程表,笔记,提醒,复习,备考",
-        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
-        "title": "课程大纲学习计划",
-        "subtitle": "大纲变学习计划",
-        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
-        "screenshots": {
-          "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot/zh-Hans/APP_IPAD_PRO_3GEN_129/chinese.png"
-          ],
-          "APP_IPHONE_65": [
-            "store/apple/screenshot/zh-Hans/APP_IPHONE_65/01-scan-anything.png",
-            "store/apple/screenshot/zh-Hans/APP_IPHONE_65/02-semester-health.png",
-            "store/apple/screenshot/zh-Hans/APP_IPHONE_65/03-plan-autopilot.png",
-            "store/apple/screenshot/zh-Hans/APP_IPHONE_65/04-manage-semester.png",
-            "store/apple/screenshot/zh-Hans/APP_IPHONE_65/05-class-detail.png",
-            "store/apple/screenshot/zh-Hans/APP_IPHONE_65/06-notes.png",
-            "store/apple/screenshot/zh-Hans/APP_IPHONE_65/07-focus.png"
-          ]
-        },
-        "promoText": "把课程大纲和笔记整理成作业、截止日、考试、提醒和学习时段。保存前可以先检查每个细节。",
-        "releaseNotes": "修复问题、提升性能，并优化课程大纲检查和学习计划流程。"
-      },
-      "es-MX": {
-        "description": "Importa temarios y conviértelos en un plan de estudio claro.\n\nEl planificador te ayuda a organizar materias por tareas, entregas, exámenes, apuntes, recordatorios, calendario y sesiones de estudio. Revisa las fechas sugeridas antes de guardarlas y mantén la prepa o universidad bajo control durante el semestre.\n\nÚsalo para:\nPlanificar materias reales\nRevisar entregas y exámenes antes de guardar\nOrganizar tareas, apuntes, recordatorios y calendario\nPreparar sesiones de estudio para semanas pesadas\nVer con más claridad qué sigue\n\nAlgunas funciones pueden requerir una suscripción.\n\nCondiciones de uso:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolítica de privacidad:\nhttps://tinyurl.com/2x2zp799",
-        "keywords": "tareas,examen,entrega,clase,agenda,recordatorio,apuntes,calendario,universidad,prepa,notas",
-        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
-        "title": "Planificador de Materias",
-        "subtitle": "Temarios a tareas",
-        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
-        "screenshots": {
-          "APP_IPHONE_65": [
-            "store/apple/screenshot/es-MX/APP_IPHONE_65/01-scan-anything.png",
-            "store/apple/screenshot/es-MX/APP_IPHONE_65/02-semester-health.png",
-            "store/apple/screenshot/es-MX/APP_IPHONE_65/03-plan-autopilot.png",
-            "store/apple/screenshot/es-MX/APP_IPHONE_65/04-manage-semester.png",
-            "store/apple/screenshot/es-MX/APP_IPHONE_65/05-class-detail.png",
-            "store/apple/screenshot/es-MX/APP_IPHONE_65/06-notes.png",
-            "store/apple/screenshot/es-MX/APP_IPHONE_65/07-focus.png"
-          ],
-          "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot/es-MX/APP_IPAD_PRO_3GEN_129/spanish.png"
-          ]
-        },
-        "promoText": "Convierte temarios y apuntes en tareas, entregas, recordatorios y sesiones de estudio. Revisa cada fecha antes de guardarla.",
-        "releaseNotes": "Corrección de errores, mejoras de rendimiento y ajustes en la revisión de temarios y la planificación de estudios."
-      },
-      "ja": {
-        "description": "シラバスを、信頼できる学習計画に整えます。\n\nシラバス学習計画は、授業ごとの課題、締切、試験、メモ、リマインダー、カレンダー、学習時間を整理するためのアプリです。保存前に提案された日付を確認できるので、学校や大学の予定を自分で管理できます。\n\nできること:\n実際の授業に合わせた計画\n保存前の課題と試験日の確認\nメモ、リマインダー、課題、カレンダーの整理\n忙しい週に向けた学習時間の準備\n次にやることの見やすい把握\n\n一部の機能には有料登録が必要な場合があります。\n\n利用規約:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nプライバシーポリシー:\nhttps://tinyurl.com/2x2zp799",
-        "keywords": "課題管理,締切,試験,時間割,シラバス,復習,提出物",
-        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
-        "title": "シラバス学習計画",
-        "subtitle": "シラバスを予定に",
-        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
-        "screenshots": {
-          "APP_IPHONE_65": [
-            "store/apple/screenshot/ja/APP_IPHONE_65/01-scan-anything.png",
-            "store/apple/screenshot/ja/APP_IPHONE_65/02-semester-health.png",
-            "store/apple/screenshot/ja/APP_IPHONE_65/03-plan-autopilot.png",
-            "store/apple/screenshot/ja/APP_IPHONE_65/04-manage-semester.png",
-            "store/apple/screenshot/ja/APP_IPHONE_65/05-class-detail.png",
-            "store/apple/screenshot/ja/APP_IPHONE_65/06-notes.png",
-            "store/apple/screenshot/ja/APP_IPHONE_65/07-focus.png"
-          ],
-          "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot/ja/APP_IPAD_PRO_3GEN_129/japanese.png"
-          ]
-        },
-        "promoText": "シラバスやノートを課題、締切、試験、メモ、学習時間に整理。保存前に内容を確認できます。",
-        "releaseNotes": "不具合修正、動作改善、シラバス確認と学習計画の調整を行いました。"
-      },
-      "ar-SA": {
-        "description": "حوّل المنهج إلى خطة مذاكرة يمكنك الوثوق بها.\n\nيساعدك مخطط المنهج الدراسي على ترتيب واجبات كل مادة، الاختبارات، المواعيد، الملاحظات، التنبيهات، التقويم وجلسات المذاكرة. راجع التواريخ المقترحة قبل الحفظ حتى تبقى المدرسة أو الجامعة أوضح طوال الفصل.\n\nاستخدمه من أجل:\nتخطيط موادك الفعلية\nمراجعة الواجبات والاختبارات قبل الحفظ\nترتيب الملاحظات والتنبيهات والمهام والتقويم\nتجهيز جلسات مذاكرة قبل الأسابيع المزدحمة\nرؤية أوضح لما يجب عمله بعد ذلك\n\nقد تتطلب بعض الميزات اشتراكًا.\n\nشروط الاستخدام:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nسياسة الخصوصية:\nhttps://tinyurl.com/2x2zp799",
-        "keywords": "واجبات,اختبارات,مواعيد,مهام,ملاحظات,جامعة,تقويم,جدول",
-        "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
-        "title": "مخطط المنهج الدراسي",
-        "subtitle": "حوّل منهجك إلى خطة",
-        "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
-        "screenshots": {
-          "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot/ar-SA/APP_IPAD_PRO_3GEN_129/arabic.png"
-          ],
-          "APP_IPHONE_65": [
-            "store/apple/screenshot/ar-SA/APP_IPHONE_65/01-scan-anything.png",
-            "store/apple/screenshot/ar-SA/APP_IPHONE_65/02-semester-health.png",
-            "store/apple/screenshot/ar-SA/APP_IPHONE_65/03-plan-autopilot.png",
-            "store/apple/screenshot/ar-SA/APP_IPHONE_65/04-manage-semester.png",
-            "store/apple/screenshot/ar-SA/APP_IPHONE_65/05-class-detail.png",
-            "store/apple/screenshot/ar-SA/APP_IPHONE_65/06-notes.png",
-            "store/apple/screenshot/ar-SA/APP_IPHONE_65/07-focus.png"
-          ]
-        },
-        "promoText": "حوّل المنهج والملاحظات إلى واجبات ومواعيد واختبارات وتذكيرات وجلسات مذاكرة. راجع التفاصيل قبل الحفظ.",
-        "releaseNotes": "إصلاحات للأخطاء وتحسينات في الأداء مع ضبط مراجعة المنهج وتخطيط الدراسة."
+        }
       }
     },
     "categories": [
@@ -461,9 +775,9 @@
       "firstName": "matt",
       "lastName": "newman",
       "email": "xxmnewman9xx@gmail.com",
-      "phone": "7813926747",
+      "phone": "+17813926747",
       "demoRequired": false,
-      "notes": "StudyPlanner Plus is available through the in-app subscription screen. To test Syllabus Scan, open the app, complete onboarding, choose Study Planner Plus, subscribe using Apple's sandbox purchase flow, then open Syllabus Scan from the Scan tab. Restore Purchases is available on the paywall.\n\nSupported syllabus upload flow for this build:\n1. Use the Scan tab after Plus is active.\n2. Choose File to select a text-based PDF or plain-text syllabus from Files.\n3. Review detected courses, deadlines, and grade categories.\n4. Apply the parsed plan only after review.\n\nThis build supports text-based PDF and plain-text syllabus imports from Files. Camera/photo OCR is not advertised in this binary; the Scan feature remains available through Files.\n\nThe app uses Apple's standard EULA:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPrivacy Policy:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408"
+      "notes": "StudyPlanner Plus is available through the in-app subscription screen. To test Syllabus Scan, open the app, complete onboarding, choose Study Planner Plus, subscribe using Apple's sandbox purchase flow, then open Syllabus Scan from the Scan tab. Restore Purchases is available on the paywall.\n\nSupported syllabus import flow for this build:\n1. Use the Scan tab after Plus is active.\n2. Choose File for a text-based PDF or plain-text syllabus, Camera/Photo when the native iOS Vision OCR module is available, or Paste Text for copied syllabus text.\n3. Review detected courses, deadlines, exams, notes, and grade categories.\n4. Apply the parsed plan only after review.\n\nCamera and photo text recognition uses Apple's Vision framework on the device. Text-based PDFs, plain-text files, and pasted text are also parsed on the device. Syllabus and note content is not uploaded to a remote parser. If image text recognition is unavailable, the app directs students to a text-based PDF or pasted text instead of applying uncertain data.\n\nThe app uses Apple's standard EULA:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPrivacy Policy:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408"
     }
   }
 }

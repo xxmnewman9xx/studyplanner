@@ -13,7 +13,7 @@ export const studyPlannerIapManifest = {
     entitlementUnlocked: "studyplanner_pro"
   },
   android: {
-    packageName: "com.studyplanner.syllabusai"
+    packageName: "com.mattnewman.studyplanner"
   },
   appGroupIdentifier: "group.com.mattnewman.studyplanner",
   widgetExtensions: [
@@ -25,8 +25,8 @@ export const studyPlannerIapManifest = {
   ],
   subscriptionGroup: {
     referenceName: "StudyPlanner",
-    appStoreConnectIdentifier: null,
-    verificationStatus: "App Store Connect group identifier is not locally exported; confirm in ASC before release."
+    appStoreConnectIdentifier: "22066553",
+    verificationStatus: "ASC verified: Study Planner Plus subscription group contains weekly, monthly, and yearly Plus products."
   },
   products: [
     {
@@ -36,10 +36,19 @@ export const studyPlannerIapManifest = {
       description: "Full access to StudyPlanner: Syllabus AI while the weekly plan is active.",
       entitlementUnlocked: "studyplanner_pro",
       subscriptionPeriod: "P1W",
-      appStoreConnectPriceUsd: "5.99",
-      hasFreeTrial: false,
-      hasIntroOffer: false,
-      sandboxNotes: "Use an App Store sandbox tester or local StoreKit config; do not use this value as a bundle identifier."
+      appStoreConnectPriceUsd: "9.99",
+      hasFreeTrial: true,
+      hasIntroOffer: true,
+      introductoryOffer: {
+        referenceName: "Back-to-School 2026 Weekly Plus One-Week Trial",
+        paymentMode: "free_trial",
+        duration: "P1W",
+        availabilityStart: "2026-07-09",
+        availabilityEnd: "2026-09-30",
+        countriesOrRegions: 175,
+        appStoreConnectReadback: "Jul 9, 2026 to Sep 30, 2026; 175 Countries or Regions; Free for the first week"
+      },
+      sandboxNotes: "Use an App Store sandbox tester or local StoreKit config. ASC verified a worldwide one-week introductory offer for July 9-Sept. 30, 2026; do not use this value as a bundle identifier."
     },
     {
       productId: "com.mattnewman.studyplanner.plus.monthly",
@@ -48,10 +57,19 @@ export const studyPlannerIapManifest = {
       description: "Full access to StudyPlanner: Syllabus AI while the monthly plan is active.",
       entitlementUnlocked: "studyplanner_pro",
       subscriptionPeriod: "P1M",
-      appStoreConnectPriceUsd: "14.99",
-      hasFreeTrial: false,
-      hasIntroOffer: false,
-      sandboxNotes: "Use an App Store sandbox tester or local StoreKit config; do not use this value as a bundle identifier."
+      appStoreConnectPriceUsd: "19.99",
+      hasFreeTrial: true,
+      hasIntroOffer: true,
+      introductoryOffer: {
+        referenceName: "Back-to-School 2026 Monthly Plus One-Week Trial",
+        paymentMode: "free_trial",
+        duration: "P1W",
+        availabilityStart: "2026-07-09",
+        availabilityEnd: "2026-09-30",
+        countriesOrRegions: 175,
+        appStoreConnectReadback: "Jul 9, 2026 to Sep 30, 2026; 175 Countries or Regions; Free for the first week"
+      },
+      sandboxNotes: "Use an App Store sandbox tester or local StoreKit config. ASC verified a worldwide one-week introductory offer for July 9-Sept. 30, 2026; do not use this value as a bundle identifier."
     },
     {
       productId: "com.mattnewman.studyplanner.plus.yearly",
@@ -61,9 +79,18 @@ export const studyPlannerIapManifest = {
       entitlementUnlocked: "studyplanner_pro",
       subscriptionPeriod: "P1Y",
       appStoreConnectPriceUsd: "59.99",
-      hasFreeTrial: false,
-      hasIntroOffer: false,
-      sandboxNotes: "Use an App Store sandbox tester or local StoreKit config; do not use this value as a bundle identifier."
+      hasFreeTrial: true,
+      hasIntroOffer: true,
+      introductoryOffer: {
+        referenceName: "Back-to-School 2026 Yearly Plus One-Week Trial",
+        paymentMode: "free_trial",
+        duration: "P1W",
+        availabilityStart: "2026-07-09",
+        availabilityEnd: "2026-09-30",
+        countriesOrRegions: 175,
+        appStoreConnectReadback: "Jul 9, 2026 to Sep 30, 2026; 175 Countries or Regions; Free for the first week"
+      },
+      sandboxNotes: "Use an App Store sandbox tester or local StoreKit config. ASC verified a worldwide one-week introductory offer for July 9-Sept. 30, 2026; do not use this value as a bundle identifier."
     }
   ],
   sandboxTesting: {
@@ -75,9 +102,9 @@ export const studyPlannerIapManifest = {
     ]
   },
   externalVerificationRequired: [
-    "Confirm both product IDs exist in App Store Connect for app 6766181202.",
+    "Confirm all three subscription product IDs exist in App Store Connect for app 6766181202.",
     "Confirm subscription group membership, pricing, localization, cleared-for-sale, and review state.",
-    "Confirm any trial or introductory offer flags in App Store Connect before claiming them in UI."
+    "Confirm introductory offer eligibility copy follows Apple's one-intro-offer-per-subscription-group rule before claiming a universal trial in UI."
   ]
 } as const;
 

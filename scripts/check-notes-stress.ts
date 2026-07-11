@@ -2,6 +2,7 @@
 import { writeFileSync } from "node:fs";
 import { analyzeNotes } from "../src/ai";
 import { buildSemesterSnapshot, generateStudyAssets, parseNoteInsights } from "../src/intelligence";
+import { scanStudyNoteText } from "../src/services/noteScanner";
 import { defaultData } from "./fixture-data";
 import type { NoteItem } from "../src/types";
 
@@ -65,6 +66,15 @@ const rows = cases.map((item) => {
 });
 
 const failed = rows.filter((row) => !row.pass);
+const dueOnlyScan = scanStudyNoteText("Due: tomorrow\nAsk professor about lab rubric", "OCR note");
+assert(
+  dueOnlyScan.taskCandidates.every((task) => !/^Note task \d+$/i.test(task.title) && !/scanned note/i.test(task.title)),
+  "Notes scanner must not emit numbered or scanner-generic filler task titles"
+);
+assert(
+  dueOnlyScan.taskCandidates.some((task) => /tomorrow|rubric|question|class/i.test(task.title)),
+  "Notes scanner should turn bare due/ask lines into actionable task titles"
+);
 const report = [
   "# Build 42 Notes Stress Test Report",
   "",

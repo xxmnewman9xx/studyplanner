@@ -16,10 +16,13 @@ expect(widgetSource.includes("const locked = !data.prefs.premium"), "widget snap
 expect(widgetSource.includes("items: [] as NativeWidgetItem[]"), "locked widgets must expose no items");
 expect(widgetSource.includes("progress: 0"), "locked widgets must expose zero progress");
 expect(widgetSource.includes('const headline = locked ? "Build semester" : "Scan syllabus"'), "locked widgets must invite build/import instead of implying live app data");
-expect(widgetSource.includes('const value = locked ? "Locked" : "Start"'), "locked widgets must show locked state instead of fake score or action");
-expect(widgetSource.includes("Unlock to apply your syllabus."), "locked widget copy must point to unlock/apply");
-expect(widgetSource.includes('openURL: "studyplanner://today"'), "widget taps must use gated Today route");
+expect(widgetSource.includes('const value = locked ? "Build" : "Start"'), "locked widgets must use compact build copy instead of fake score data");
+expect(widgetSource.includes('t("widget.native.preview_badge", "Preview")'), "locked widgets must expose a preview badge");
+expect(widgetSource.includes('t("widget.native.preview_unlock_plan", "Preview only. Unlock plan from app.")'), "locked widget copy must point to unlock/apply without repeated lines");
+expect(widgetSource.includes('actionLabel: locked ? t("widget.native.unlock_plan", "Unlock plan")'), "locked widgets must expose an unlock action");
+expect(widgetSource.includes('openURL: locked ? "studyplanner://paywall" : "studyplanner://scan"'), "locked and empty widget actions must open their exact gated destination");
 expect(widgetViewSource.includes('widgetURL(props.openURL || "studyplanner://today")'), "widget views must use gated URL");
+expect(widgetViewSource.includes("Link({") && widgetViewSource.includes("destination: props.openURL"), "widget action labels must use real deep links");
 
 if (failures.length) {
   console.error("Widget lock checks failed:");

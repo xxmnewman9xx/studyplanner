@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://studyplanner.local/schemas/release-media-provenance.schema.json",
+  "title": "Study Planner exact-release media provenance",
+  "description": "Proof that every selected App Store screenshot was captured from the exact EAS iOS artifact being submitted.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "status",
+    "target",
+    "assets"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "./release-media-provenance.schema.json"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "status": {
+      "enum": [
+        "BLOCKED_AWAITING_EXACT_BUILD80_EVIDENCE",
+        "READY_EXACT_BUILD80"
+      ]
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "platform",
+        "appVersion",
+        "buildNumber",
+        "bundleId"
+      ],
+      "properties": {
+        "platform": {
+          "const": "ios"
+        },
+        "appVersion": {
+          "const": "2.0.8"
+        },
+        "buildNumber": {
+          "const": "80"
+        },
+        "bundleId": {
+          "const": "com.mattnewman.studyplanner"
+        }
+      }
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/asset"
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "locale",
+        "screenSlot",
+        "file",
+        "status",
+        "release",
+        "capture",
+        "source",
+        "output"
+      ],
+      "properties": {
+        "locale": {
+          "type": "string",
+          "minLength": 2
+        },
+        "screenSlot": {
+          "enum": [
+            "APP_IPHONE_65",
+            "APP_IPAD_PRO_3GEN_129"
+          ]
+        },
+        "file": {
+          "type": "string",
+          "pattern": "^(qa|store)/.+\\.png$"
+        },
+        "status": {
+          "const": "READY_EXACT_BUILD80"
+        },
+        "release": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "easBuildId",
+            "gitSha",
+            "ipaSha256",
+            "appVersion",
+            "buildNumber",
+            "bundleId"
+          ],
+          "properties": {
+            "easBuildId": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+            },
+            "gitSha": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            },
+            "ipaSha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "appVersion": {
+              "const": "2.0.8"
+            },
+            "buildNumber": {
+              "const": "80"
+            },
+            "bundleId": {
+              "const": "com.mattnewman.studyplanner"
+            }
+          }
+        },
+        "capture": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "environment",
+            "device",
+            "os",
+            "capturedAt"
+          ],
+          "properties": {
+            "environment": {
+              "const": "physical_device_testflight_build80"
+            },
+            "device": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "model"
+              ],
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "minLength": 3
+                },
+                "identifier": {
+                  "type": "string",
+                  "minLength": 3
+                }
+              }
+            },
+            "os": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "version"
+              ],
+              "properties": {
+                "name": {
+                  "enum": [
+                    "iOS",
+                    "iPadOS"
+                  ]
+                },
+                "version": {
+                  "type": "string",
+                  "pattern": "^[0-9]+(\\.[0-9]+){1,2}$"
+                }
+              }
+            },
+            "capturedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^(qa|store)/.+\\.png$"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "output": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sha256"
+          ],
+          "properties": {
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

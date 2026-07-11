@@ -1,3 +1,6 @@
 {
-  "CFBundleDisplayName": "Plan de Cours Étudiant"
+  "CFBundleDisplayName": "Plan de Cours Étudiant",
+  "NSCameraUsageDescription": "Utilise l’appareil photo pour lire des photos de plans de cours et transformer travaux, examens et échéances en éléments vérifiés du plan.",
+  "NSPhotoLibraryUsageDescription": "Utilise les photos de plans de cours choisies afin de vérifier travaux, examens et échéances avant l’ajout.",
+  "NSUserNotificationsUsageDescription": "Envoie des rappels calmes avant les échéances, examens et cours."
 }

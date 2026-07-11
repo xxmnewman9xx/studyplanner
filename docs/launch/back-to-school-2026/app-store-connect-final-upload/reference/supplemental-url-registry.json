@@ -1,0 +1,63 @@
+{
+  "generatedAt": "2026-07-07T06:58:26.810Z",
+  "release": "Back-to-School Semester Kickoff",
+  "status": "all_urls_registered",
+  "applyRequested": false,
+  "strictRequested": false,
+  "networkCheckRequested": false,
+  "requiredCount": 5,
+  "registeredCount": 5,
+  "invalidCount": 0,
+  "missingCount": 0,
+  "unknownIds": [],
+  "slots": [
+    {
+      "id": "product-video",
+      "title": "Import, Review, Semester Ready, Home, Focus, Widgets",
+      "url": "https://github.com/xxmnewman9xx/studyplanner/releases/download/back-to-school-2026-supplementals/product-video.mp4",
+      "status": "registered",
+      "checkedAt": "2026-07-07T06:58:26.809Z"
+    },
+    {
+      "id": "screenshot-contact-sheet",
+      "title": "Release Build Screenshot Contact Sheet",
+      "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/553cda4f36995beef60c60c58085999752bfdc9b/screenshot-contact-sheet.md",
+      "status": "registered",
+      "checkedAt": "2026-07-07T06:58:26.810Z"
+    },
+    {
+      "id": "native-widget-sheet",
+      "title": "Native WidgetKit Screenshot Sheet",
+      "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/39d32d5fe81ad4bca99b801d62cb22c29c11fa64/native-widget-sheet.md",
+      "status": "registered",
+      "checkedAt": "2026-07-07T06:58:26.810Z"
+    },
+    {
+      "id": "accessibility-localization-summary",
+      "title": "Accessibility and Localization QA Summary",
+      "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/accessibility-localization-summary.md",
+      "status": "registered",
+      "checkedAt": "2026-07-07T06:58:26.810Z"
+    },
+    {
+      "id": "app-review-proof",
+      "title": "App Review Notes and Purchase Flow Proof",
+      "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/app-review-proof.md",
+      "status": "registered",
+      "checkedAt": "2026-07-07T06:58:26.810Z"
+    }
+  ],
+  "rules": [
+    "Only stable HTTPS URLs should be registered for App Store Connect supplemental material fields.",
+    "Do not register local files, localhost URLs, placeholders, or temporary signed links that may expire before editorial review.",
+    "Registering a URL does not bypass native screenshot, WidgetKit, or App Review proof blockers.",
+    "Run the upload package and submission gates after registering final URLs."
+  ],
+  "commands": {
+    "plan": "npm run plan:back-to-school-supplemental-urls",
+    "applyOne": "npm run register:back-to-school-supplemental-urls -- --set app-review-proof=https://hosted.example/final-proof.pdf",
+    "applyJson": "npm run register:back-to-school-supplemental-urls -- --input /path/to/supplemental-urls.json",
+    "strictNetwork": "npm run register:back-to-school-supplemental-urls -- --strict --check-network",
+    "refreshPackage": "npm run check:back-to-school-supplementals && npm run check:back-to-school-upload-package && npm run check:back-to-school-submission"
+  }
+}

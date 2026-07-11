@@ -19,7 +19,7 @@ Current truth boundary after the rescue: StudyPlanner supports reviewed AI-assis
 - keywords: student,planner,syllabus,homework,calendar,classes,study,focus,grades,reminders
 - whats_new: Adds a production parser for syllabus text and text-based PDFs. Image parsing stays off until reliable OCR is available.
 - subscription_display_names: StudyPlanner Monthly; StudyPlanner Yearly
-- subscription_descriptions: Monthly: Unlock higher import and planning limits with Focus, Grades, reminders/calendar sync, widgets, and customization. Auto-renewing monthly subscription; price is shown by the App Store before purchase. Yearly: Unlock the same StudyPlanner tools for a yearly term. Auto-renewing yearly subscription; price is shown by the App Store before purchase.
+- subscription_descriptions: Monthly: Unlock higher import and planning limits with Focus, Grades, reminders, widgets, and customization. Auto-renewing monthly subscription; price is shown by the App Store before purchase. Yearly: Unlock the same StudyPlanner tools for a yearly term. Auto-renewing yearly subscription; price is shown by the App Store before purchase.
 - screenshot_headlines: Import a text syllabus; Review before it is added; See what is due today; Plan your semester calendar; Keep school on your widgets
 
 ## de

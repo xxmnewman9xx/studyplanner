@@ -1,0 +1,69 @@
+# Historical July 9 App Store Connect Fields — Do Not Repaste
+
+This file preserves the fields used for the July 9 nomination/event workflow. It is not a current upload script or authorization. References below to screenshots, WidgetKit proof, or submitted media do not prove the exact Build 80 binary. Do not reuse or resubmit these fields until the controlling scorecard passes, replacement event media scores `10/10`, and a human authorizes the exact evidence set.
+
+## Featuring Nomination
+
+Nomination name: Back-to-School Semester Kickoff
+
+Nomination type: App Enhancements
+
+Publish Date Start: 2026-08-24
+
+Publish Date End: 2026-08-31
+
+Relevant countries or regions: All available regions
+
+Launch in certain markets first: No
+
+Do you intend to submit a new In-App Event: Yes
+
+Platforms: iOS (iPhone), iOS (iPad)
+
+Related In-App Events: `Semester Kickoff Week` draft created. Submit the event for review first; if it is not selectable yet, submit this as an App Enhancements nomination.
+
+Pre-order: No
+
+## Nomination Description
+
+Study Planner AI's Back-to-School Semester Kickoff update helps students turn the first stack of syllabi into a calm, reviewed semester plan before classes begin. During setup, onboarding guides them to scan or import a syllabus, review detected courses, assignments, exams, and uncertain dates, then save a plan they control. Real WidgetKit proof shows Today, Upcoming, Week/Semester Calendar, Class Progress, and Home Screen views for heavy weeks. The update is localized across key student markets, uses real release screenshots and WidgetKit captures, includes localization and accessibility QA checks, and keeps the promise focused: a reviewed Apple-native path from syllabus chaos to a calmer first week. For the seasonal push, eligible new Plus subscribers can start with a worldwide one-week introductory trial from July 9 to September 30, 2026.
+
+Characters: 853/1000
+
+## Helpful Details
+
+Built by an independent developer focused on reducing semester overwhelm, not selling generic AI. The release pairs review-before-save planning with Apple-native details: real WidgetKit public proof, submitted iPhone/iPad screenshots, localized store presence, Dynamic Type/RTL/accessibility QA checks, a timed Semester Kickoff Week event, and a worldwide July 9-Sept. 30 one-week Plus introductory trial for eligible new subscribers.
+
+Characters: 434/500
+
+## In-App Event
+
+Reference name: Back-to-School Semester Kickoff 2026
+
+Event name: Semester Kickoff Week
+
+Badge: Challenge
+
+Short description: Review your first-week plan
+
+Long description: Import a syllabus, approve deadlines, and finish setup before classes ramp.
+
+Start: 2026-08-24 08:00 local time
+
+End: 2026-08-31 23:59 local time
+
+Publish start: 2026-08-10 08:00 local time
+
+Deep link: studyplanner://import
+
+Priority: High, if App Store Connect exposes priority for the event.
+
+Availability: All storefronts matching app availability.
+
+## In-App Event Media
+
+Historical Event Card Image path: `event-media/01-event-card-image-1920x1080.png`
+
+Historical Event Details Page Image path: `event-media/02-event-details-image-1080x1920.png`
+
+Current status: both files are intentionally absent and blocked below the requested `10/10` bar. Do not upload them. Regenerated replacements must be text-free, device-free, contain no fake app UI or fake widgets, pass independent full-resolution review, and be explicitly approved in the event-media manifest.

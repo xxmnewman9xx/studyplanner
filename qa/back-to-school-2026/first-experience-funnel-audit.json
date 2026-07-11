@@ -1,0 +1,100 @@
+{
+  "generatedAt": "2026-07-11T01:47:55.867Z",
+  "status": "ready",
+  "funnel": {
+    "steps": [
+      "name",
+      "priorities",
+      "build"
+    ],
+    "scanOptions": [
+      "Scan with camera",
+      "Paste syllabus",
+      "Add manually"
+    ],
+    "maxClicksToPaywallWithOptionChange": 4,
+    "personalization": {
+      "nameStep": false,
+      "personalBuildTitle": true
+    },
+    "activeRoutes": {
+      "camera": "paywall?next=scan&action=camera -> cameraScanner after StoreKit entitlement",
+      "paste": "paywall?next=paste&mode=syllabus -> paste after StoreKit entitlement",
+      "manual": "paywall?next=paste&mode=manual -> manual setup after StoreKit entitlement"
+    }
+  },
+  "colorCustomization": {
+    "onboardingThemeFixedToGraphite": false,
+    "widgetConfigurationColorParameters": 0,
+    "widgetRuntimeReadsThemeColor": false
+  },
+  "copyB": {
+    "status": "blocked_do_not_upload",
+    "humanReview": "docs/launch/back-to-school-2026/app-store-connect-final-upload/copy-b-human-visual-review-2026-07-09.md",
+    "uploadAuthorized": false
+  },
+  "checks": [
+    {
+      "name": "onboarding is a concise three-step personalized funnel",
+      "pass": true,
+      "detail": "steps=[\"name\",\"priorities\",\"build\"]"
+    },
+    {
+      "name": "onboarding exposes only three build choices",
+      "pass": true,
+      "detail": "scanOptions=[\"Scan with camera\",\"Paste syllabus\",\"Add manually\"]"
+    },
+    {
+      "name": "first setup surface has no skip path",
+      "pass": true,
+      "detail": "Expected setup to require scan, paste, or manual preview with no visible skip option."
+    },
+    {
+      "name": "the personalized paywall appears within four taps from the fresh funnel",
+      "pass": true,
+      "detail": "maxClicksToPreviewWithOptionChange=4"
+    },
+    {
+      "name": "scan, paste, and manual onboarding routes hit paywall before import",
+      "pass": true,
+      "detail": "Expected every onboarding source to open the purchase route before camera, paste, or manual input."
+    },
+    {
+      "name": "paywall is a full screen, not a transient popup",
+      "pass": true,
+      "detail": "Expected the Paywall component to render a full route with App Store proof, purchase, and restore actions."
+    },
+    {
+      "name": "paywall presents the seasonal one-week trial only from live StoreKit data",
+      "pass": true,
+      "detail": "Expected StoreKit introductory-offer data to control the seasonal card, plan badges, and purchase CTA."
+    },
+    {
+      "name": "actual IAP purchase callback preserves the selected paywall destination",
+      "pass": true,
+      "detail": "Expected real StoreKit purchase updates to route to the selected scan/paste/manual/widget destination after unlock."
+    },
+    {
+      "name": "review cannot silently discard undated tasks or exams",
+      "pass": true,
+      "detail": "Expected missing/invalid task and exam dates to block approval and Apply until corrected or explicitly removed."
+    },
+    {
+      "name": "onboarding has no visible color customization",
+      "pass": true,
+      "detail": "Expected automatic graphite theme with no user-facing theme/color option picker in onboarding."
+    },
+    {
+      "name": "widget and settings color customization is not exposed",
+      "pass": true,
+      "detail": "widgetsWithColorConfig=0"
+    },
+    {
+      "name": "Copy B remains blocked by the independent human review",
+      "pass": true,
+      "detail": "Expected the committed independent review to keep all GPT Image 2.0 Treatment B assets blocked."
+    }
+  ],
+  "failures": [],
+  "warnings": []
+}

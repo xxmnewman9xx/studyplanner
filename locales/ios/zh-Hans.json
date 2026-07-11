@@ -1,3 +1,6 @@
 {
-  "CFBundleDisplayName": "课程大纲学习计划"
+  "CFBundleDisplayName": "课程大纲学习计划",
+  "NSCameraUsageDescription": "使用相机读取课程大纲照片，并将作业、考试和截止日期转成已审核的计划项目。",
+  "NSPhotoLibraryUsageDescription": "使用所选课程大纲照片读取文字，以便在添加前审核作业、考试和截止日期。",
+  "NSUserNotificationsUsageDescription": "在截止日期、考试和课程前发送温和提醒。"
 }

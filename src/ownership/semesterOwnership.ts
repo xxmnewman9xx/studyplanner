@@ -1,4 +1,5 @@
-import { AppData, ClassItem, ExamItem, ImportCandidate, TaskItem } from "../types";
+import { AppData, ClassItem, ExamItem, ImportCandidate, StudyBlock, TaskItem } from "../types";
+import { dateKey } from "../intelligence";
 
 export type RecurrenceScope = "single" | "future";
 
@@ -44,7 +45,7 @@ function timeValue(iso: string) {
 function addDays(iso: string, days: number) {
   const date = new Date(`${iso}T12:00:00`);
   date.setDate(date.getDate() + days);
-  return date.toISOString().slice(0, 10);
+  return dateKey(date);
 }
 
 export function recurrenceMatches(task: TaskItem, anchor: TaskItem, scope: RecurrenceScope) {
@@ -59,9 +60,15 @@ export function applyTaskRecurrencePatch(tasks: TaskItem[], anchor: TaskItem, pa
   const dateDelta = patch.dueDate && hasTaskDate(anchor) && hasTaskDate({ dueDate: patch.dueDate, missing: patch.missing })
     ? Math.round((timeValue(patch.dueDate) - timeValue(anchor.dueDate)) / 86400000)
     : 0;
+  const resolvesUndatedSeries = scope === "future" && anchor.missing && Boolean(patch.dueDate) && patch.missing === false;
   return tasks.map((task) => {
     if (!recurrenceMatches(task, anchor, scope)) return task;
-    const dueDate = scope === "future" && task.id !== anchor.id && dateDelta ? addDays(task.dueDate, dateDelta) : patch.dueDate;
+    const isLaterOccurrence = scope === "future" && task.id !== anchor.id;
+    const dueDate = isLaterOccurrence
+      ? resolvesUndatedSeries && typeof anchor.recurrenceIndex === "number" && typeof task.recurrenceIndex === "number"
+        ? addDays(patch.dueDate!, (task.recurrenceIndex - anchor.recurrenceIndex) * 7)
+        : dateDelta !== 0 ? addDays(task.dueDate, dateDelta) : task.dueDate
+      : patch.dueDate;
     return {
       ...task,
       ...patch,
@@ -76,6 +83,15 @@ export function applyTaskRecurrencePatch(tasks: TaskItem[], anchor: TaskItem, pa
 
 export function deleteTaskRecurrence(tasks: TaskItem[], anchor: TaskItem, scope: RecurrenceScope) {
   return tasks.filter((task) => !recurrenceMatches(task, anchor, scope));
+}
+
+export function canMarkStudyBlockMissed(block: StudyBlock, now = new Date()) {
+  if (block.completed || block.missed) return false;
+  const explicitEnd = block.endsAt ? Date.parse(block.endsAt) : Number.NaN;
+  const inferredEnd = block.startsAt ? Date.parse(block.startsAt) + block.minutes * 60_000 : Number.NaN;
+  const endTime = Number.isFinite(explicitEnd) ? explicitEnd : inferredEnd;
+  if (Number.isFinite(endTime)) return endTime <= now.getTime();
+  return Boolean(block.date && block.date < dateKey(now));
 }
 
 function norm(value: unknown) {

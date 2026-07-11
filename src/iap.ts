@@ -5,6 +5,7 @@ import {
   finishTransaction,
   getActiveSubscriptions,
   initConnection,
+  isEligibleForIntroOfferIOS,
   requestPurchase,
   restorePurchases,
 } from "expo-iap";
@@ -26,6 +27,8 @@ export const STUDYPLANNER_SUBSCRIPTION_IDS = [
   "com.mattnewman.studyplanner.plus.yearly",
 ] as const;
 
+let storeConnectionPromise: Promise<boolean> | null = null;
+
 export type PaywallPlan = {
   id: string;
   title: string;
@@ -33,6 +36,14 @@ export type PaywallPlan = {
   displayPrice: string;
   cadence: "Weekly" | "Monthly" | "Yearly";
   recommended: boolean;
+  subscriptionGroupId?: string;
+  introductoryOffer?: {
+    displayPrice: string;
+    paymentMode: "free-trial" | "pay-as-you-go" | "pay-up-front" | "unknown";
+    periodUnit: "day" | "week" | "month" | "year" | "unknown";
+    periodValue: number;
+    periodCount: number;
+  };
 };
 
 export type EntitlementResult = {
@@ -41,13 +52,38 @@ export type EntitlementResult = {
   checkedAt: string;
 };
 
+export function hasOneWeekFreeTrial(plan: PaywallPlan | null | undefined) {
+  const offer = plan?.introductoryOffer;
+  if (!offer || offer.paymentMode !== "free-trial") return false;
+  const totalUnits = offer.periodValue * offer.periodCount;
+  return (offer.periodUnit === "week" && totalUnits === 1) || (offer.periodUnit === "day" && totalUnits === 7);
+}
+
+export async function loadEligibleIntroOfferProductIds(plans: PaywallPlan[]) {
+  const trialPlans = plans.filter(hasOneWeekFreeTrial);
+  if (Platform.OS !== "ios") return trialPlans.map((plan) => plan.id);
+  const groupIds = [...new Set(trialPlans.map((plan) => plan.subscriptionGroupId).filter((groupId): groupId is string => Boolean(groupId)))];
+  if (!groupIds.length) return [];
+  const eligibility = new Map<string, boolean>();
+  await Promise.all(groupIds.map(async (groupId) => {
+    try {
+      eligibility.set(groupId, await isEligibleForIntroOfferIOS(groupId));
+    } catch {
+      eligibility.set(groupId, false);
+    }
+  }));
+  return trialPlans
+    .filter((plan) => Boolean(plan.subscriptionGroupId && eligibility.get(plan.subscriptionGroupId)))
+    .map((plan) => plan.id);
+}
+
 export function fallbackPlans(): PaywallPlan[] {
   return [
     {
       id: STUDYPLANNER_SUBSCRIPTION_IDS[1],
       title: "StudyPlanner Monthly",
       description: "Flexible access for the current term.",
-      displayPrice: "$14.99",
+      displayPrice: "Shown by App Store",
       cadence: "Monthly",
       recommended: false,
     },
@@ -55,7 +91,7 @@ export function fallbackPlans(): PaywallPlan[] {
       id: STUDYPLANNER_SUBSCRIPTION_IDS[2],
       title: "StudyPlanner Yearly",
       description: "Best value for the full school year.",
-      displayPrice: "$59.99",
+      displayPrice: "Shown by App Store",
       cadence: "Yearly",
       recommended: true,
     },
@@ -63,7 +99,7 @@ export function fallbackPlans(): PaywallPlan[] {
       id: STUDYPLANNER_SUBSCRIPTION_IDS[0],
       title: "StudyPlanner Weekly",
       description: "Short-term access when you need a focused planning push.",
-      displayPrice: "$5.99",
+      displayPrice: "Shown by App Store",
       cadence: "Weekly",
       recommended: false,
     },
@@ -72,12 +108,23 @@ export function fallbackPlans(): PaywallPlan[] {
 
 export async function initializeStudyPlannerStore() {
   if (Platform.OS === "web") return false;
-  return initConnection();
+  if (!storeConnectionPromise) {
+    storeConnectionPromise = initConnection().catch((error) => {
+      storeConnectionPromise = null;
+      throw error;
+    });
+  }
+  return storeConnectionPromise;
 }
 
 export async function closeStudyPlannerStore() {
   if (Platform.OS === "web") return;
-  await endConnection();
+  try {
+    if (storeConnectionPromise) await storeConnectionPromise;
+    await endConnection();
+  } finally {
+    storeConnectionPromise = null;
+  }
 }
 
 export async function loadStorePlans(): Promise<PaywallPlan[]> {
@@ -110,11 +157,15 @@ export async function restoreStudyPlannerPurchases(): Promise<EntitlementResult>
 
 export async function finishStudyPlannerPurchase(purchase: Purchase): Promise<EntitlementResult> {
   const validPurchaseUpdate = isKnownProduct(purchase.productId) && purchase.purchaseState === "purchased";
-  if (validPurchaseUpdate) {
-    await finishTransaction({ purchase, isConsumable: false });
-  }
   if (!validPurchaseUpdate) return { isPremium: false, checkedAt: new Date().toISOString() };
-  return checkStudyPlannerEntitlement();
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, attempt * 250));
+    const entitlement = await checkStudyPlannerEntitlement();
+    if (!entitlement.isPremium) continue;
+    await finishTransaction({ purchase, isConsumable: false });
+    return entitlement;
+  }
+  throw new Error("The purchase arrived, but the active subscription is not visible yet. Restore Purchases to retry.");
 }
 
 export async function checkStudyPlannerEntitlement(): Promise<EntitlementResult> {
@@ -135,6 +186,27 @@ export function isKnownProduct(productId: string | null | undefined) {
 function mapProduct(product: ProductSubscription): PaywallPlan {
   const yearly = product.id.includes("year");
   const weekly = product.id.includes("week");
+  const standardizedIntro = product.subscriptionOffers?.find((offer) => offer.type === "introductory");
+  const legacyIosIntro = product.platform === "ios" && product.introductoryPricePaymentModeIOS !== "empty"
+    ? {
+        displayPrice: product.introductoryPriceIOS || "",
+        paymentMode: product.introductoryPricePaymentModeIOS,
+        periodUnit: product.introductoryPriceSubscriptionPeriodIOS === "empty" || !product.introductoryPriceSubscriptionPeriodIOS
+          ? "unknown" as const
+          : product.introductoryPriceSubscriptionPeriodIOS,
+        periodValue: 1,
+        periodCount: Math.max(1, Number(product.introductoryPriceNumberOfPeriodsIOS || 1) || 1),
+      }
+    : undefined;
+  const introductoryOffer = standardizedIntro
+    ? {
+        displayPrice: standardizedIntro.displayPrice,
+        paymentMode: standardizedIntro.paymentMode || "unknown",
+        periodUnit: standardizedIntro.period?.unit || "unknown",
+        periodValue: Math.max(1, standardizedIntro.period?.value || 1),
+        periodCount: Math.max(1, standardizedIntro.periodCount || 1),
+      }
+    : legacyIosIntro;
   return {
     id: product.id,
     title: product.displayName || product.title || (yearly ? "StudyPlanner Yearly" : weekly ? "StudyPlanner Weekly" : "StudyPlanner Monthly"),
@@ -142,5 +214,7 @@ function mapProduct(product: ProductSubscription): PaywallPlan {
     displayPrice: product.displayPrice || "Shown by App Store",
     cadence: yearly ? "Yearly" : weekly ? "Weekly" : "Monthly",
     recommended: yearly,
+    subscriptionGroupId: product.platform === "ios" ? product.subscriptionInfoIOS?.subscriptionGroupId || undefined : undefined,
+    introductoryOffer,
   };
 }

@@ -1,3 +1,6 @@
 {
-  "CFBundleDisplayName": "Planejador de Ementas"
+  "CFBundleDisplayName": "Planejador de Ementas",
+  "NSCameraUsageDescription": "Use a câmera para ler fotos de ementas e transformar tarefas, provas e prazos em itens revisados do plano.",
+  "NSPhotoLibraryUsageDescription": "Use fotos selecionadas de ementas para revisar tarefas, provas e prazos antes de adicionar.",
+  "NSUserNotificationsUsageDescription": "Envia lembretes discretos antes de prazos, provas e aulas."
 }

@@ -32,9 +32,39 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env.eas-simulator
+credentials.json
 
 # typescript
 *.tsbuildinfo
+
+# generated build and QA artifacts
+/.gitnexus/
+/artifacts/
+/tmp/
+/qa-screenshots/
+/builds/*.ipa
+/eng.traineddata
+/*_CONTACT_SHEET.png
+/outputs-*.png
+/docs/launch/back-to-school-2026/studyplanner-back-to-school-2026-app-store-connect-upload.zip
+/assets/AppPreviews/
+/fastlane/metadata/android/
+/marketing/social-launch-video/
+/docs/launch/back-to-school-2026/event-media/
+/docs/launch/back-to-school-2026/draft-upload-package/
+/docs/launch/back-to-school-2026/marketing-asset-package/
+/qa/back-to-school-2026/copy-b-image2-mac-app-rejected/
+/qa/back-to-school-2026/copy-b-image2-replaced-widget-screen-slide7/
+/qa/back-to-school-2026/latest-build-copy-b-image2-candidates/
+/qa/back-to-school-2026/copy-b-image2-background-plate-candidates/
+/qa/back-to-school-2026/preview-polish-review/
+/qa/back-to-school-2026/latest-preview-audit/
+/qa/back-to-school-2026/copy-b-image2-regeneration-candidates/
+/qa/back-to-school-2026/copy-b-reviewed-plan-review-only-2026-07-09/contact-sheets/
+/qa/back-to-school-2026/copy-b-reviewed-plan-review-only-2026-07-09/screenshots/
+/store/apple/screenshot-pop/
+/store/apple/screenshot/*/APP_IPHONE_65/07-widgets.png
 
 # generated native folders
 /ios

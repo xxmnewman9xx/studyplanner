@@ -86,7 +86,7 @@ expect(realSnapshot.semesterHealth.overallScore > 0, "real semester must not be 
 const appSource = readFileSync("App.tsx", "utf8");
 const intelligenceSource = readFileSync("src/intelligence.ts", "utf8");
 expect(appSource.includes("resolveInitialRouteForData"), "App bootstrap must use the explicit initial route helper");
-expect(appSource.includes('if (!onboardingComplete(data)) return "onboarding";'), "access state must prioritize onboarding before entitlement");
+expect(appSource.includes('if (!onboardingComplete(data)) return active === "semesterKickoff" ? "preview_allowed" : "onboarding";'), "access state must prioritize onboarding while allowing the approved event landing page to explain itself before setup");
 expect(!/function premiumData[\s\S]{0,260}onboardingComplete:\s*true/.test(appSource), "premiumData must not imply onboarding completion");
 expect(appSource.includes('maybeShowUnlockSuccess("startup_hydration")'), "startup hydration must cross the no-alert boundary");
 expect(appSource.includes('source !== "purchase_action" && source !== "restore_action"'), "unlock success must be source-gated");

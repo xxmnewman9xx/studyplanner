@@ -1,3 +1,6 @@
 {
-  "CFBundleDisplayName": "Kursplaner fürs Lernen"
+  "CFBundleDisplayName": "Kursplaner fürs Lernen",
+  "NSCameraUsageDescription": "Mit der Kamera werden Lehrplanfotos per Texterkennung gelesen und Aufgaben, Prüfungen und Fristen in geprüfte Planeinträge umgewandelt.",
+  "NSPhotoLibraryUsageDescription": "Ausgewählte Lehrplanfotos werden per Texterkennung gelesen, damit Aufgaben, Prüfungen und Fristen vor dem Hinzufügen geprüft werden können.",
+  "NSUserNotificationsUsageDescription": "Sendet ruhige Erinnerungen vor Fristen, Prüfungen und Kursen."
 }
