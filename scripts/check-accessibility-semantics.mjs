@@ -17,7 +17,7 @@ const scopedComponents = new Map([
   ["Tasks", 0],
   ["TaskDetail", 2],
   ["AssessmentDetail", 1],
-  ["Plan", 7],
+  ["Plan", 8],
   ["Notes", 2],
   ["NoteDetail", 1],
   ["Profile", 2],

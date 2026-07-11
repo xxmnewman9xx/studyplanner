@@ -147,6 +147,33 @@ async function checkMissingPayloadBootstrapsOnce() {
   assert.deepEqual(JSON.parse(writes[0].value), JSON.parse(JSON.stringify(loaded)));
 }
 
+async function checkAppearanceMigrationPreservesLegacyChoice() {
+  const darkPayload = preservedPayload();
+  darkPayload.prefs.theme = "dark";
+  const darkStorage = await freshStorage(async () => createDatabase({
+    read: () => ({ value: JSON.stringify(darkPayload) }),
+    write() {},
+  }));
+  assert.equal((await darkStorage.loadData()).prefs.appearanceMode, "dark", "legacy dark users must remain dark after migration");
+
+  const explicitSystemPayload = preservedPayload();
+  explicitSystemPayload.prefs.theme = "dark";
+  explicitSystemPayload.prefs.appearanceMode = "system";
+  const systemStorage = await freshStorage(async () => createDatabase({
+    read: () => ({ value: JSON.stringify(explicitSystemPayload) }),
+    write() {},
+  }));
+  assert.equal((await systemStorage.loadData()).prefs.appearanceMode, "system", "an explicit System preference must win over the legacy theme");
+
+  const lightPayload = preservedPayload();
+  lightPayload.prefs.theme = "light";
+  const lightStorage = await freshStorage(async () => createDatabase({
+    read: () => ({ value: JSON.stringify(lightPayload) }),
+    write() {},
+  }));
+  assert.equal((await lightStorage.loadData()).prefs.appearanceMode, "system", "legacy light data should adopt the new System default");
+}
+
 async function checkCorruptPayloadBacksUpBeforeReset() {
   for (const corruptRaw of ["", "null", "{not-json"]) {
     const writes = [];
@@ -203,6 +230,7 @@ try {
   await checkTransientReadPreservesAndRecovers();
   await checkTransientOpenPreservesAndRecovers();
   await checkMissingPayloadBootstrapsOnce();
+  await checkAppearanceMigrationPreservesLegacyChoice();
   await checkCorruptPayloadBacksUpBeforeReset();
   await checkCorruptBackupFailureLeavesActiveKeyUntouched();
   console.log("Storage read safety checks passed.");

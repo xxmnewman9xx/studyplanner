@@ -39,7 +39,8 @@ for (const [name, source] of [["Scan", scan], ["CameraScanner", cameraScanner]])
 assert.doesNotMatch(appSource, /permissions\.photo_library/, "Photo permission copy must not use an undefined runtime key");
 assert.match(appSource, /const PHOTO_PERMISSION_COPY: Record<SupportedLocale/, "Photo permission title and target must have explicit runtime localization coverage");
 
-assert.match(reviewImport, /adjustsFontSizeToFit minimumFontScale=\{0\.72\}[\s\S]*\{metric\.label\}/, "Review summary labels must remain readable without truncation");
+assert.match(reviewImport, /flexWrap: "wrap"[\s\S]*minWidth: 88[\s\S]*\{metric\.label\}/, "Review summary metrics must wrap into a readable adaptive grid");
+assert.doesNotMatch(reviewImport, /adjustsFontSizeToFit|minimumFontScale|numberOfLines=\{2\}[\s\S]*\{metric\.label\}/, "Review summary labels must wrap instead of shrinking or truncating");
 assert.match(reviewImport, /label=\{textFor\("review\.approve", "Approve trusted"\)\}[^\n]+highConfidenceCount/, "Review trusted-item CTA must keep a readable label and disable at zero trusted items");
 assert.match(reviewImport, /textFor\("review\.existing_found", "Existing item found"\)/, "Reconciliation rows must distinguish an existing match from low-confidence extraction");
 assert.match(reviewImport, /return trusted \? \{ \.\.\.candidate, approved: true \} : candidate;/, "Approve trusted must preserve manual approval choices on non-trusted rows");

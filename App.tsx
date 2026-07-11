@@ -10,6 +10,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   ActivityIndicator,
   Alert,
+  Appearance,
   Animated,
   AppState,
   BackHandler,
@@ -21,8 +22,10 @@ import {
 	  Pressable,
   ScrollView,
   StyleProp,
-  Text,
-  TextInput,
+	  Text,
+	  TextInput,
+  useColorScheme,
+  useWindowDimensions,
   View,
   ViewStyle,
 	} from "react-native";
@@ -77,6 +80,7 @@ import {
   type LucideIcon,
 } from "lucide-react-native";
 import Svg, { Circle as SvgCircle } from "react-native-svg";
+import { SafeAreaProvider, SafeAreaView, initialWindowMetrics, useSafeAreaInsets } from "react-native-safe-area-context";
 import { applyImport, loadData, saveData } from "./src/storage";
 import { analyzeNotes, analyzeSyllabus, buildStudyPlan, deadlineInsight } from "./src/ai";
 import {
@@ -97,7 +101,7 @@ import {
 import { extractTextFromImage, hasNativeImageTextRecognition } from "./src/imageTextRecognition";
 import { countOcrWords } from "./src/ocrText";
 import { COLORS, THEMES, defaultData, formatDue, isoFromOffset, minutesLabel } from "./src/seed";
-import { AppData, ClassItem, ExamItem, FeedbackEvent, HealthDimensionKey, ImportBatch, ImportCandidate, NoteItem, ReminderItem, StudyBlock, TaskItem, ThemeId } from "./src/types";
+import { AppearanceMode, AppData, ClassItem, ExamItem, FeedbackEvent, HealthDimensionKey, ImportBatch, ImportCandidate, NoteItem, ReminderItem, StudyBlock, TaskItem, ThemeId } from "./src/types";
 import { buildNativeWidgetSnapshots, buildSemesterLoop, syncNativeWidgets, type NativeWidgetKind, type NativeWidgetSnapshot, type WidgetCopy } from "./src/widgetEngine";
 import { cancelReminderNotificationIds, listPendingReminderNotifications, scheduleLocalReminders } from "./src/reminders";
 import { cleanupRemindersForDeletedEntities, pruneOrphanedStudyBlocks, reconcileReminderNotificationEvidence } from "./src/reminderCleanup";
@@ -239,6 +243,152 @@ type SupportedLocale =
 type CopyVars = Record<string, string | number>;
 
 const supportedLocales: SupportedLocale[] = ["ar", "de", "en-US", "es", "fr", "hi", "ja", "ko", "pt-BR", "zh-Hans"];
+
+const APPEARANCE_COPY: Record<SupportedLocale, Record<string, string>> = {
+  "en-US": {
+    "appearance.title": "Appearance",
+    "appearance.description": "Choose how StudyPlanner looks.",
+    "appearance.system": "System",
+    "appearance.light": "Light",
+    "appearance.dark": "Dark",
+    "appearance.system_hint": "Follows your device setting.",
+    "onboarding.theme_locked_title": "Matches your appearance",
+    "onboarding.theme_locked_body": "StudyPlanner follows your device or selected appearance. Course colors stay automatic.",
+    "success.theme_title": "App appearance, adaptive widgets",
+    "success.theme_body": "Dashboard, focus blocks, and classes follow your app appearance. Widgets adapt separately to the Home and Lock Screen.",
+    "success.theme_proof": "App appearance stays consistent. Widgets use their own system environment and automatic course colors.",
+  },
+  de: {
+    "appearance.title": "Darstellung",
+    "appearance.description": "Wähle, wie StudyPlanner aussieht.",
+    "appearance.system": "System",
+    "appearance.light": "Hell",
+    "appearance.dark": "Dunkel",
+    "appearance.system_hint": "Folgt der Geräteeinstellung.",
+    "onboarding.theme_locked_title": "Passend zu deiner Darstellung",
+    "onboarding.theme_locked_body": "StudyPlanner folgt dem Gerät oder deiner Auswahl. Kursfarben bleiben automatisch.",
+    "success.theme_title": "App-Darstellung, adaptive Widgets",
+    "success.theme_body": "Dashboard, Fokusblöcke und Kurse folgen der App-Darstellung. Widgets passen sich separat an Home- und Sperrbildschirm an.",
+    "success.theme_proof": "Die App bleibt einheitlich. Widgets nutzen ihre eigene Systemumgebung und automatische Kursfarben.",
+  },
+  es: {
+    "appearance.title": "Apariencia",
+    "appearance.description": "Elige cómo se ve StudyPlanner.",
+    "appearance.system": "Sistema",
+    "appearance.light": "Claro",
+    "appearance.dark": "Oscuro",
+    "appearance.system_hint": "Sigue la configuración del dispositivo.",
+    "onboarding.theme_locked_title": "Se adapta a tu apariencia",
+    "onboarding.theme_locked_body": "StudyPlanner sigue el dispositivo o tu selección. Los colores de clase siguen automáticos.",
+    "success.theme_title": "Apariencia de la app, widgets adaptables",
+    "success.theme_body": "El panel, los bloques y las clases siguen la apariencia de la app. Los widgets se adaptan aparte a Inicio y la pantalla bloqueada.",
+    "success.theme_proof": "La app se mantiene uniforme. Los widgets usan su propio entorno del sistema y colores de clase automáticos.",
+  },
+  fr: {
+    "appearance.title": "Apparence",
+    "appearance.description": "Choisissez l’apparence de StudyPlanner.",
+    "appearance.system": "Système",
+    "appearance.light": "Clair",
+    "appearance.dark": "Sombre",
+    "appearance.system_hint": "Suit le réglage de l’appareil.",
+    "onboarding.theme_locked_title": "S’adapte à votre apparence",
+    "onboarding.theme_locked_body": "StudyPlanner suit l’appareil ou votre choix. Les couleurs de cours restent automatiques.",
+    "success.theme_title": "Apparence de l’app, widgets adaptatifs",
+    "success.theme_body": "Tableau, blocs et cours suivent l’apparence de l’app. Les widgets s’adaptent séparément aux écrans d’accueil et verrouillé.",
+    "success.theme_proof": "L’app reste cohérente. Les widgets utilisent leur propre environnement système et des couleurs automatiques.",
+  },
+  "pt-BR": {
+    "appearance.title": "Aparência",
+    "appearance.description": "Escolha como o StudyPlanner aparece.",
+    "appearance.system": "Sistema",
+    "appearance.light": "Claro",
+    "appearance.dark": "Escuro",
+    "appearance.system_hint": "Segue o ajuste do dispositivo.",
+    "onboarding.theme_locked_title": "Combina com sua aparência",
+    "onboarding.theme_locked_body": "StudyPlanner segue o dispositivo ou sua escolha. As cores das matérias continuam automáticas.",
+    "success.theme_title": "Aparência do app, widgets adaptáveis",
+    "success.theme_body": "Painel, blocos e matérias seguem a aparência do app. Os widgets se adaptam separadamente às telas Inicial e Bloqueada.",
+    "success.theme_proof": "O app fica consistente. Os widgets usam o próprio ambiente do sistema e cores automáticas.",
+  },
+  ja: {
+    "appearance.title": "外観",
+    "appearance.description": "StudyPlanner の表示を選びます。",
+    "appearance.system": "システム",
+    "appearance.light": "ライト",
+    "appearance.dark": "ダーク",
+    "appearance.system_hint": "デバイスの設定に従います。",
+    "onboarding.theme_locked_title": "外観設定に合わせます",
+    "onboarding.theme_locked_body": "StudyPlannerは端末または選択した外観に従い、授業カラーは自動のままです。",
+    "success.theme_title": "アプリの外観と適応型ウィジェット",
+    "success.theme_body": "ダッシュボード、集中ブロック、授業はアプリの外観に従います。ウィジェットはホーム画面とロック画面に個別に適応します。",
+    "success.theme_proof": "アプリの外観は統一され、ウィジェットは独自のシステム環境と自動授業カラーを使用します。",
+  },
+  ko: {
+    "appearance.title": "화면 모드",
+    "appearance.description": "StudyPlanner의 표시 방식을 선택하세요.",
+    "appearance.system": "시스템",
+    "appearance.light": "라이트",
+    "appearance.dark": "다크",
+    "appearance.system_hint": "기기 설정을 따릅니다.",
+    "onboarding.theme_locked_title": "선택한 화면 모드에 맞춤",
+    "onboarding.theme_locked_body": "StudyPlanner는 기기 또는 선택한 모드를 따르며 수업 색상은 자동으로 유지됩니다.",
+    "success.theme_title": "앱 화면 모드와 적응형 위젯",
+    "success.theme_body": "대시보드, 집중 블록, 수업은 앱 화면 모드를 따릅니다. 위젯은 홈 화면과 잠금 화면에 별도로 맞춰집니다.",
+    "success.theme_proof": "앱 화면은 일관되며 위젯은 자체 시스템 환경과 자동 수업 색상을 사용합니다.",
+  },
+  "zh-Hans": {
+    "appearance.title": "外观",
+    "appearance.description": "选择 StudyPlanner 的显示方式。",
+    "appearance.system": "跟随系统",
+    "appearance.light": "浅色",
+    "appearance.dark": "深色",
+    "appearance.system_hint": "跟随设备设置。",
+    "onboarding.theme_locked_title": "匹配你的外观设置",
+    "onboarding.theme_locked_body": "StudyPlanner 跟随设备或你的选择，课程颜色保持自动。",
+    "success.theme_title": "应用外观与自适应小组件",
+    "success.theme_body": "仪表板、专注时段和课程跟随应用外观。小组件会分别适配主屏幕和锁定屏幕。",
+    "success.theme_proof": "应用外观保持一致；小组件使用自身的系统环境和自动课程颜色。",
+  },
+  hi: {
+    "appearance.title": "रूप",
+    "appearance.description": "चुनें कि StudyPlanner कैसा दिखे।",
+    "appearance.system": "सिस्टम",
+    "appearance.light": "हल्का",
+    "appearance.dark": "गहरा",
+    "appearance.system_hint": "डिवाइस की सेटिंग का अनुसरण करता है।",
+    "onboarding.theme_locked_title": "आपके रूप के अनुसार",
+    "onboarding.theme_locked_body": "StudyPlanner डिवाइस या आपके चयन का अनुसरण करता है। कक्षा के रंग अपने-आप रहते हैं।",
+    "success.theme_title": "ऐप का रूप और अनुकूल विजेट",
+    "success.theme_body": "डैशबोर्ड, फोकस ब्लॉक और कक्षाएँ ऐप के रूप का अनुसरण करते हैं। विजेट होम और लॉक स्क्रीन के अनुसार अलग से ढलते हैं।",
+    "success.theme_proof": "ऐप का रूप एक जैसा रहता है। विजेट अपने सिस्टम परिवेश और अपने-आप लागू कक्षा रंगों का उपयोग करते हैं।",
+  },
+  ar: {
+    "appearance.title": "المظهر",
+    "appearance.description": "اختر مظهر StudyPlanner.",
+    "appearance.system": "النظام",
+    "appearance.light": "فاتح",
+    "appearance.dark": "داكن",
+    "appearance.system_hint": "يتبع إعداد الجهاز.",
+    "onboarding.theme_locked_title": "يتوافق مع مظهرك",
+    "onboarding.theme_locked_body": "يتبع StudyPlanner إعداد الجهاز أو اختيارك، وتبقى ألوان المقررات تلقائية.",
+    "success.theme_title": "مظهر التطبيق وويدجت متكيّفة",
+    "success.theme_body": "تتبع لوحة التحكم وكتل التركيز والمقررات مظهر التطبيق. وتتكيّف الويدجت بشكل مستقل مع الشاشة الرئيسية وشاشة القفل.",
+    "success.theme_proof": "يبقى مظهر التطبيق متناسقًا، وتستخدم الويدجت بيئة النظام الخاصة بها وألوان المقررات التلقائية.",
+  },
+};
+
+const WIDGET_WEEKDAY_COPY: Record<SupportedLocale, Record<string, string>> = {
+  "en-US": { "widget.weekday.mon": "M", "widget.weekday.tue": "T", "widget.weekday.wed": "W", "widget.weekday.thu": "T", "widget.weekday.fri": "F", "widget.weekday.sat": "S", "widget.weekday.sun": "S" },
+  de: { "widget.weekday.mon": "M", "widget.weekday.tue": "D", "widget.weekday.wed": "M", "widget.weekday.thu": "D", "widget.weekday.fri": "F", "widget.weekday.sat": "S", "widget.weekday.sun": "S" },
+  es: { "widget.weekday.mon": "L", "widget.weekday.tue": "M", "widget.weekday.wed": "X", "widget.weekday.thu": "J", "widget.weekday.fri": "V", "widget.weekday.sat": "S", "widget.weekday.sun": "D" },
+  fr: { "widget.weekday.mon": "L", "widget.weekday.tue": "M", "widget.weekday.wed": "M", "widget.weekday.thu": "J", "widget.weekday.fri": "V", "widget.weekday.sat": "S", "widget.weekday.sun": "D" },
+  "pt-BR": { "widget.weekday.mon": "S", "widget.weekday.tue": "T", "widget.weekday.wed": "Q", "widget.weekday.thu": "Q", "widget.weekday.fri": "S", "widget.weekday.sat": "S", "widget.weekday.sun": "D" },
+  ja: { "widget.weekday.mon": "月", "widget.weekday.tue": "火", "widget.weekday.wed": "水", "widget.weekday.thu": "木", "widget.weekday.fri": "金", "widget.weekday.sat": "土", "widget.weekday.sun": "日" },
+  ko: { "widget.weekday.mon": "월", "widget.weekday.tue": "화", "widget.weekday.wed": "수", "widget.weekday.thu": "목", "widget.weekday.fri": "금", "widget.weekday.sat": "토", "widget.weekday.sun": "일" },
+  "zh-Hans": { "widget.weekday.mon": "一", "widget.weekday.tue": "二", "widget.weekday.wed": "三", "widget.weekday.thu": "四", "widget.weekday.fri": "五", "widget.weekday.sat": "六", "widget.weekday.sun": "日" },
+  hi: { "widget.weekday.mon": "सो", "widget.weekday.tue": "मं", "widget.weekday.wed": "बु", "widget.weekday.thu": "गु", "widget.weekday.fri": "शु", "widget.weekday.sat": "श", "widget.weekday.sun": "र" },
+  ar: { "widget.weekday.mon": "ن", "widget.weekday.tue": "ث", "widget.weekday.wed": "ر", "widget.weekday.thu": "خ", "widget.weekday.fri": "ج", "widget.weekday.sat": "س", "widget.weekday.sun": "ح" },
+};
 
 type SemesterKickoffCopy = {
   kicker: string;
@@ -676,7 +826,7 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
     "review.manual": "Manual setup",
     "review.unlock": "Unlock my semester",
     "review.apply": "Apply approved items ({count})",
-    "review.invalid_date": "Enter a valid YYYY-MM-DD date before approving this row.",
+    "review.invalid_date": "Enter a valid date in YYYY-MM-DD format.",
     "review.resume_title": "Import waiting for review",
     "review.resume_body": "{count} rows are waiting for review. Nothing changes your semester until you apply them.",
     "review.resume": "Resume review",
@@ -1123,7 +1273,7 @@ const LOCALE_COMPLETIONS: Record<Exclude<SupportedLocale, "en-US">, Record<strin
     "today.next_move": "अगला कदम", "today.next_class": "अगली क्लास", "today.deadline": "डेडलाइन", "today.focus": "फोकस", "today.open_plan": "प्लान खोलें", "today.start_focus": "फोकस शुरू करें", "today.next_30": "अगले 30 दिन", "today.risk_radar": "रिस्क रडार", "today.upcoming_deadlines": "आने वाली डेडलाइन", "today.upcoming_assessments": "आने वाली परीक्षाएं", "today.notes_activity": "नोट्स गतिविधि",
     "classes.title": "सेमेस्टर मैनेज करें", "classes.truth": "एक भरोसेमंद जगह", "classes.truth_body": "इम्पोर्ट ठीक करें, छूटा काम जोड़ें और आज, प्लान, रिमाइंडर, विजेट सिंक रखें।", "classes.add": "क्लास जोड़ें", "classes.import": "इम्पोर्ट", "classes.empty_title": "अभी कोई सक्रिय क्लास नहीं।", "classes.empty_body": "सिलेबस गायब, unreadable या गलत हो तो मैन्युअली शुरू करें।", "classes.add_manual": "क्लास मैन्युअली जोड़ें", "classes.archived": "आर्काइव",
     "class.schedule": "शेड्यूल", "class.add_work": "छूटा काम जोड़ें", "class.add_work_body": "री-इम्पोर्ट किए बिना quiz, project या assignment जोड़ें।", "class.assignment": "असाइनमेंट", "class.assessment": "परीक्षा", "class.pulse": "क्लास पल्स", "class.assignments": "असाइनमेंट", "class.exams": "आने वाली परीक्षाएं", "class.notes": "हाल के नोट्स", "class.forecast": "पूर्वानुमान", "class.due": "बकाया", "class.archive_title": "क्लास आर्काइव करें?", "class.archive_body": "{code} आज, प्लान, रिमाइंडर और विजेट से हटेगी। काम Manage Semester से restore हो सकेगा।", "class.delete_title": "क्लास हमेशा के लिए हटाएं?", "class.archive_instead": "इसके बजाय आर्काइव", "class.not_found": "क्लास नहीं मिली", "class.not_found_body": "यह क्लास अब इस सेमेस्टर में नहीं है।", "class.open_dashboard": "डैशबोर्ड खोलें",
-    "review.title": "इम्पोर्ट समीक्षा", "review.empty": "समीक्षा के लिए कोई इम्पोर्ट नहीं।", "review.guard_preview": "सिर्फ पूर्वावलोकन।", "review.guard_preview_body": "असल ऐप में लागू करने के लिए अनलॉक करें।", "review.guard_active": "आपकी मंजूरी तक कुछ सेव नहीं होगा।", "review.guard_active_body": "हर आइटम edit, remove या confirm करें।", "review.found": "StudyPlanner ने आपका सेमेस्टर ढूंढ लिया।", "review.classes": "क्लास", "review.assignments": "असाइनमेंट", "review.exams": "परीक्षा", "review.approve": "भरोसेमंद approve", "review.manual": "मैन्युअल setup", "review.unlock": "मेरा सेमेस्टर अनलॉक", "review.apply": "शेड्यूल लागू करें",
+    "review.title": "इम्पोर्ट समीक्षा", "review.empty": "समीक्षा के लिए कोई इम्पोर्ट नहीं।", "review.guard_preview": "सिर्फ पूर्वावलोकन।", "review.guard_preview_body": "असल ऐप में लागू करने के लिए अनलॉक करें।", "review.guard_active": "आपकी मंजूरी तक कुछ सेव नहीं होगा।", "review.guard_active_body": "हर आइटम को संपादित करें, हटाएं या उसकी पुष्टि करें।", "review.found": "StudyPlanner ने आपका सेमेस्टर ढूंढ लिया।", "review.classes": "क्लास", "review.assignments": "असाइनमेंट", "review.exams": "परीक्षा", "review.approve": "भरोसेमंद आइटम मंज़ूर करें", "review.manual": "हाथ से तैयार करें", "review.unlock": "मेरा सेमेस्टर अनलॉक", "review.apply": "शेड्यूल लागू करें",
     "plan.title": "योजना", "plan.sub_suffix": "सेमेस्टर स्वचालन", "plan.notes_feed": "{count} नोट्स योजना में जाते हैं", "plan.autopilot": "स्वचालित योजना", "plan.rebuild": "योजना फिर बनाएं", "plan.focus_blocks": "फोकस ब्लॉक", "plan.regenerate": "फिर बनाएं", "plan.study": "पढ़ाई", "plan.clear_day": "दिन साफ है।", "notes.title": "नोट्स", "notes.sub": "{score} तैयारी · {count} नोट्स", "notes.body": "नोट्स तैयारी बढ़ाते हैं और क्लास की नब्ज साफ करते हैं।", "notes.all": "सभी", "notes.empty_title": "कोई नोट लोड नहीं", "notes.empty_body": "लेक्चर नोट्स स्कैन या पेस्ट करके सारांश, अभ्यास कार्ड, प्रश्नोत्तरी और काम बनाएं।", "notes.scan": "नोट्स स्कैन", "notes.paste": "नोट्स पेस्ट",
     "widgets.title": "विजेट", "widgets.sub_ready": "होम स्क्रीन झलक", "widgets.sub_locked": "लॉक पूर्वावलोकन", "widgets.ready_title": "विजेट साथ में हैं", "widgets.locked_title": "विजेट अनलॉक करें", "widgets.ready_body": "अगली तारीख, सप्ताह का भार और क्लास नब्ज iOS विजेट से मेल खाते हैं।", "widgets.locked_body": "पाठ्यक्रम लागू करें और विजेट ताज़ा रखने के लिए अनलॉक करें।", "widgets.sync": "iPhone से मिलाएं", "widgets.row_today": "StudyPlanner आज", "widgets.row_today_body": "स्थिति, अगली तारीख और फोकस ब्लॉक", "widgets.row_upcoming": "आने वाला", "widgets.row_upcoming_body": "असाइनमेंट और परीक्षाएं जल्द", "widgets.row_week": "साप्ताहिक भार", "widgets.row_week_body": "हर सप्ताह का दबाव", "widgets.row_class": "क्लास प्रगति", "widgets.row_class_body": "चुनी हुई क्लास नब्ज", "widgets.ready": "तैयार", "widgets.locked": "लॉक"
   },
@@ -1258,6 +1408,35 @@ Object.assign(APP_COPY.hi, {
 Object.assign(APP_COPY.de, { "plan.notes_feed": "{count} Notizen im Plan" });
 Object.assign(APP_COPY.es, { "plan.notes_feed": "{count} notas en plan" });
 Object.assign(APP_COPY.fr, { "today.focus": "Concentration", "plan.focus_blocks": "Blocs de concentration", "plan.notes_feed": "{count} notes au plan" });
+Object.assign(APP_COPY.ar, {
+  "profile.active_semester": "الفصل الدراسي النشط",
+  "profile.reminders": "التذكيرات",
+  "reminders.configured_count": "{count} مُعدّة",
+  "widgets.title": "الويدجت",
+  "widgets.sync": "تحديث الويدجت",
+  "profile.import_history": "سجل الاستيراد",
+  "profile.import_count": "{count} عمليات استيراد",
+  "profile.manage_subscription": "إدارة الاشتراك",
+  "profile.apple_account": "حساب Apple",
+  "profile.google_play": "حساب Google Play",
+  "profile.privacy_policy": "سياسة الخصوصية",
+  "profile.studyplanner_data": "بيانات StudyPlanner",
+  "profile.terms_use": "شروط الاستخدام",
+  "profile.subscription_terms": "شروط الاشتراك",
+  "common.support": "الدعم",
+  "profile.email_help": "مساعدة عبر البريد الإلكتروني",
+  "profile.subscribed": "مشترك",
+  "profile.locked": "مقفل",
+  "profile.on_device": "على الجهاز",
+  "profile.semester_progress": "تقدم الفصل الدراسي",
+  "profile.classes_count": "{count} مواد",
+  "profile.no_semester": "لا يوجد فصل دراسي بعد",
+  "profile.subscription": "اشتراك StudyPlanner",
+  "profile.subscription_body": "المسح والتذكيرات ومجموعات الدراسة والتخطيط نشطة.",
+  "profile.accessibility_manage_hint": "افتح إدارة الاشتراك لهذا الحساب",
+  "profile.accessibility_unlock_hint": "افتح خيارات اشتراك StudyPlanner",
+  "profile.accessibility_row_hint": "افتح هذا الإعداد",
+});
 
 const LOCALIZED_DEEP_SCREEN_COPY: Record<Exclude<SupportedLocale, "en-US" | "de" | "es" | "fr" | "hi">, Record<string, string>> = {
   "pt-BR": {
@@ -2810,8 +2989,8 @@ const SEMESTER_THEME_COPY: Record<SupportedLocale, Record<string, string>> = {
     "onboarding.theme_ready": "Ready to build",
     "onboarding.theme_widget_title": "Calendar widget",
     "onboarding.theme_widget_body": "Deadlines stay glanceable.",
-    "onboarding.theme_locked_title": "White by default",
-    "onboarding.theme_locked_body": "Black controls stay primary. Course colors appear automatically for classes and widgets.",
+    "onboarding.theme_locked_title": "Matches your appearance",
+    "onboarding.theme_locked_body": "StudyPlanner follows your device or selected appearance. Course colors stay automatic.",
     "onboarding.theme_blue": "Blue",
     "onboarding.theme_green": "Green",
     "onboarding.theme_orange": "Orange",
@@ -2823,9 +3002,9 @@ const SEMESTER_THEME_COPY: Record<SupportedLocale, Record<string, string>> = {
     "onboarding.theme_selected_value": "Selected semester system",
     "onboarding.theme_unselected_value": "Available semester system",
     "success.theme_kicker": "SYSTEM APPLIED",
-    "success.theme_title": "White system, class colors",
-    "success.theme_body": "Dashboard, focus blocks, classes, and widgets keep black controls with automatic course colors for context.",
-    "success.theme_proof": "No color setup required. Course colors stay automatic for classes and widgets.",
+    "success.theme_title": "App appearance, adaptive widgets",
+    "success.theme_body": "Dashboard, focus blocks, and classes follow your app appearance. Widgets adapt separately to the Home and Lock Screen.",
+    "success.theme_proof": "App appearance stays consistent. Widgets use their own system environment and automatic course colors.",
   },
   de: {
     "onboarding.theme_kicker": "MACH ES ZU DEINEM SEMESTER",
@@ -3938,6 +4117,7 @@ for (const locale of supportedLocales) {
 }
 
 let simulatorLocaleOverride: string | undefined;
+let simulatorCaptureScrollY = 0;
 
 type StoreLocaleVariant = "pt-PT" | "zh-Hant";
 
@@ -4629,7 +4809,430 @@ const EDITORIAL_POLISH_COPY: Record<SupportedLocale, Record<string, string>> = {
   },
 };
 
+type ScanReviewRuntimeKey =
+  | "review.guard_active_body"
+  | "review.approve"
+  | "review.manual"
+  | "scan.more_assignment"
+  | "scan.more_assignment_body"
+  | "scan.more_exam"
+  | "scan.more_exam_body"
+  | "scan.more_upload_body"
+  | "review.pressure_preview"
+  | "review.first_action"
+  | "review.high"
+  | "review.good"
+  | "review.needs_review"
+  | "review.needs_review_body"
+  | "review.items_found"
+  | "review.reconcile_hint"
+  | "review.keep_existing"
+  | "review.update_existing"
+  | "review.create_duplicate"
+  | "review.date_change_connector"
+  | "review.date_change_accessibility"
+  | "task.due"
+  | "class.effort"
+  | "assessment.room"
+  | "review.title_required"
+  | "review.time_required"
+  | "review.owner_required"
+  | "review.invalid_date"
+  | "review.accessibility_approve"
+  | "review.accessibility_unapprove"
+  | "review.accessibility_remove"
+  | "review.reconciliation_action_accessibility"
+  | "review.assign_to_class_accessibility"
+  | "import.status_applied"
+  | "import.status_review"
+  | "scan.history_row_summary";
+
+const SCAN_REVIEW_RUNTIME_COPY = {
+  "en-US": {
+    "review.guard_active_body": "Edit, remove, or confirm each item.",
+    "review.approve": "Approve trusted items",
+    "review.manual": "Manual setup",
+    "scan.more_assignment": "Assignment sheet",
+    "scan.more_assignment_body": "Extract task details",
+    "scan.more_exam": "Exam review",
+    "scan.more_exam_body": "Build a study set",
+    "scan.more_upload_body": "Pick syllabus PDF",
+    "review.pressure_preview": "Workload preview",
+    "review.first_action": "First recommended action",
+    "review.high": "High",
+    "review.good": "Good",
+    "review.needs_review": "Needs review",
+    "review.needs_review_body": "StudyPlanner is not confident this row is complete.",
+    "review.items_found": "{kind} found",
+    "review.reconcile_hint": "Choose how to handle this import row. StudyPlanner will not overwrite or duplicate it silently.",
+    "review.keep_existing": "Keep existing",
+    "review.update_existing": "Update existing",
+    "review.create_duplicate": "Create duplicate",
+    "review.date_change_connector": "to",
+    "review.date_change_accessibility": "Date changed from {oldDate} to {newDate}.",
+    "task.due": "Due date",
+    "class.effort": "Estimated time",
+    "assessment.room": "Room",
+    "review.title_required": "Add a specific title before approving this row ({kind}).",
+    "review.time_required": "Enter a valid time, such as 9:00 AM or 17:00, before approving this row.",
+    "review.owner_required": "Assign this row to an existing class or approve its matching class first. Orphaned rows are never attached automatically.",
+    "review.invalid_date": "Enter a valid date in YYYY-MM-DD format.",
+    "review.accessibility_approve": "Approve {title}",
+    "review.accessibility_unapprove": "Unapprove {title}",
+    "review.accessibility_remove": "Remove {title}",
+    "review.reconciliation_action_accessibility": "{action} for {title}",
+    "review.assign_to_class_accessibility": "Assign {title} to {classCode}",
+    "import.status_applied": "Applied",
+    "import.status_review": "Needs review",
+    "scan.history_row_summary": "{status} · Items: {count}",
+  },
+  de: {
+    "review.guard_active_body": "Bearbeite, entferne oder bestätige jeden Eintrag.",
+    "review.approve": "Verlässliche Einträge bestätigen",
+    "review.manual": "Manuell einrichten",
+    "scan.more_assignment": "Aufgabenblatt",
+    "scan.more_assignment_body": "Aufgabendetails erkennen",
+    "scan.more_exam": "Prüfungsvorbereitung",
+    "scan.more_exam_body": "Lernset erstellen",
+    "scan.more_upload_body": "Lehrplan-PDF wählen",
+    "review.pressure_preview": "Arbeitslastvorschau",
+    "review.first_action": "Erster empfohlener Schritt",
+    "review.high": "Hoch",
+    "review.good": "Gut",
+    "review.needs_review": "Prüfen",
+    "review.needs_review_body": "StudyPlanner ist nicht sicher, ob diese Zeile vollständig ist.",
+    "review.items_found": "Gefunden: {kind}",
+    "review.reconcile_hint": "Wähle, wie diese Importzeile behandelt wird. StudyPlanner überschreibt oder dupliziert nichts heimlich.",
+    "review.keep_existing": "Vorhandenes behalten",
+    "review.update_existing": "Vorhandenes aktualisieren",
+    "review.create_duplicate": "Kopie erstellen",
+    "review.date_change_connector": "auf",
+    "review.date_change_accessibility": "Datum von {oldDate} auf {newDate} geändert.",
+    "task.due": "Fälligkeitsdatum",
+    "class.effort": "Geschätzte Dauer",
+    "assessment.room": "Raum",
+    "review.title_required": "Gib vor dem Bestätigen dieser Zeile einen eindeutigen Titel ein ({kind}).",
+    "review.time_required": "Gib vor dem Bestätigen dieser Zeile eine gültige Uhrzeit ein, zum Beispiel 09:00 oder 17:00 Uhr.",
+    "review.owner_required": "Ordne diese Zeile einem vorhandenen Kurs zu oder bestätige zuerst den zugehörigen Kurs. Einträge ohne Kurszuordnung werden nie automatisch verknüpft.",
+    "review.invalid_date": "Gib ein gültiges Datum im Format JJJJ-MM-TT ein.",
+    "review.accessibility_approve": "{title} bestätigen",
+    "review.accessibility_unapprove": "Bestätigung für {title} entfernen",
+    "review.accessibility_remove": "{title} entfernen",
+    "review.reconciliation_action_accessibility": "{action} für {title}",
+    "review.assign_to_class_accessibility": "{title} dem Kurs {classCode} zuordnen",
+    "import.status_applied": "Übernommen",
+    "import.status_review": "Zu prüfen",
+    "scan.history_row_summary": "{status} · Einträge: {count}",
+  },
+  es: {
+    "review.guard_active_body": "Edita, elimina o confirma cada elemento.",
+    "review.approve": "Aprobar elementos confiables",
+    "review.manual": "Configuración manual",
+    "scan.more_assignment": "Hoja de tareas",
+    "scan.more_assignment_body": "Extraer los detalles de la tarea",
+    "scan.more_exam": "Repaso de examen",
+    "scan.more_exam_body": "Crear material de estudio",
+    "scan.more_upload_body": "Elegir el PDF del programa",
+    "review.pressure_preview": "Vista previa de carga",
+    "review.first_action": "Primera acción recomendada",
+    "review.high": "Alta",
+    "review.good": "Buena",
+    "review.needs_review": "Requiere revisión",
+    "review.needs_review_body": "StudyPlanner no está seguro de que esta fila esté completa.",
+    "review.items_found": "Se encontraron: {kind}",
+    "review.reconcile_hint": "Elige cómo gestionar esta fila importada. StudyPlanner no la sobrescribirá ni duplicará sin avisarte.",
+    "review.keep_existing": "Conservar el existente",
+    "review.update_existing": "Actualizar el existente",
+    "review.create_duplicate": "Crear duplicado",
+    "review.date_change_connector": "a",
+    "review.date_change_accessibility": "La fecha cambió de {oldDate} a {newDate}.",
+    "task.due": "Fecha de entrega",
+    "class.effort": "Duración estimada",
+    "assessment.room": "Aula",
+    "review.title_required": "Añade un título específico antes de aprobar esta fila ({kind}).",
+    "review.time_required": "Introduce una hora válida, como 09:00 o 17:00, antes de aprobar esta fila.",
+    "review.owner_required": "Asigna esta fila a una clase existente o aprueba primero la clase correspondiente. Las filas sin clase nunca se asignan automáticamente.",
+    "review.invalid_date": "Introduce una fecha válida con formato AAAA-MM-DD.",
+    "review.accessibility_approve": "Aprobar {title}",
+    "review.accessibility_unapprove": "Quitar aprobación de {title}",
+    "review.accessibility_remove": "Eliminar {title}",
+    "review.reconciliation_action_accessibility": "{action} para {title}",
+    "review.assign_to_class_accessibility": "Asignar {title} a la clase {classCode}",
+    "import.status_applied": "Aplicada",
+    "import.status_review": "Pendiente de revisión",
+    "scan.history_row_summary": "{status} · Elementos: {count}",
+  },
+  fr: {
+    "review.guard_active_body": "Modifie, retire ou confirme chaque élément.",
+    "review.approve": "Approuver les éléments fiables",
+    "review.manual": "Configuration manuelle",
+    "scan.more_assignment": "Feuille de devoirs",
+    "scan.more_assignment_body": "Extraire les détails du devoir",
+    "scan.more_exam": "Révision d’examen",
+    "scan.more_exam_body": "Créer un kit de révision",
+    "scan.more_upload_body": "Choisir le PDF du programme",
+    "review.pressure_preview": "Aperçu de la charge",
+    "review.first_action": "Première action recommandée",
+    "review.high": "Élevée",
+    "review.good": "Bonne",
+    "review.needs_review": "À vérifier",
+    "review.needs_review_body": "StudyPlanner n’est pas certain que cette ligne soit complète.",
+    "review.items_found": "Éléments trouvés\u00a0: {kind}",
+    "review.reconcile_hint": "Choisis comment gérer cette ligne. StudyPlanner ne l’écrase ni ne la duplique en silence.",
+    "review.keep_existing": "Conserver l’existant",
+    "review.update_existing": "Mettre à jour l’existant",
+    "review.create_duplicate": "Créer un doublon",
+    "review.date_change_connector": "à",
+    "review.date_change_accessibility": "Date modifiée. Ancienne date\u00a0: {oldDate}. Nouvelle date\u00a0: {newDate}.",
+    "task.due": "Échéance",
+    "class.effort": "Durée estimée",
+    "assessment.room": "Salle",
+    "review.title_required": "Ajoute un titre précis avant d’approuver cette ligne ({kind}).",
+    "review.time_required": "Saisis une heure valide, par exemple 09:00 ou 17:00, avant d’approuver cette ligne.",
+    "review.owner_required": "Associe cette ligne à un cours existant ou approuve d’abord le cours correspondant. Les lignes sans cours ne sont jamais rattachées automatiquement.",
+    "review.invalid_date": "Saisis une date valide au format AAAA-MM-JJ.",
+    "review.accessibility_approve": "Approuver {title}",
+    "review.accessibility_unapprove": "Retirer l’approbation de {title}",
+    "review.accessibility_remove": "Supprimer {title}",
+    "review.reconciliation_action_accessibility": "{action} pour {title}",
+    "review.assign_to_class_accessibility": "Associer {title} au cours {classCode}",
+    "import.status_applied": "Appliqué",
+    "import.status_review": "À vérifier",
+    "scan.history_row_summary": "{status} · Éléments\u00a0: {count}",
+  },
+  "pt-BR": {
+    "review.guard_active_body": "Edite, remova ou confirme cada item.",
+    "review.approve": "Aprovar itens confiáveis",
+    "review.manual": "Configuração manual",
+    "scan.more_assignment": "Folha de atividades",
+    "scan.more_assignment_body": "Extrair detalhes da tarefa",
+    "scan.more_exam": "Revisão para prova",
+    "scan.more_exam_body": "Criar material de estudo",
+    "scan.more_upload_body": "Escolher o PDF do plano de ensino",
+    "review.pressure_preview": "Prévia da carga",
+    "review.first_action": "Primeira ação recomendada",
+    "review.high": "Alta",
+    "review.good": "Boa",
+    "review.needs_review": "Precisa de revisão",
+    "review.needs_review_body": "O StudyPlanner não tem certeza de que esta linha esteja completa.",
+    "review.items_found": "Itens encontrados: {kind}",
+    "review.reconcile_hint": "Escolha como tratar esta linha importada. O StudyPlanner não vai substituí-la nem duplicá-la em silêncio.",
+    "review.keep_existing": "Manter existente",
+    "review.update_existing": "Atualizar existente",
+    "review.create_duplicate": "Criar duplicata",
+    "review.date_change_connector": "para",
+    "review.date_change_accessibility": "A data mudou de {oldDate} para {newDate}.",
+    "task.due": "Prazo",
+    "class.effort": "Duração estimada",
+    "assessment.room": "Sala",
+    "review.title_required": "Adicione um título específico antes de aprovar esta linha ({kind}).",
+    "review.time_required": "Informe um horário válido, como 09:00 ou 17:00, antes de aprovar esta linha.",
+    "review.owner_required": "Associe esta linha a uma disciplina existente ou aprove primeiro a disciplina correspondente. Linhas sem disciplina nunca são vinculadas automaticamente.",
+    "review.invalid_date": "Informe uma data válida no formato AAAA-MM-DD.",
+    "review.accessibility_approve": "Aprovar {title}",
+    "review.accessibility_unapprove": "Remover aprovação de {title}",
+    "review.accessibility_remove": "Remover {title}",
+    "review.reconciliation_action_accessibility": "{action} para {title}",
+    "review.assign_to_class_accessibility": "Atribuir {title} à disciplina {classCode}",
+    "import.status_applied": "Aplicada",
+    "import.status_review": "Aguardando revisão",
+    "scan.history_row_summary": "{status} · Itens: {count}",
+  },
+  ja: {
+    "review.guard_active_body": "各項目を編集、削除、または確認してください。",
+    "review.approve": "信頼できる項目を承認",
+    "review.manual": "手動設定",
+    "scan.more_assignment": "課題プリント",
+    "scan.more_assignment_body": "課題の詳細を抽出",
+    "scan.more_exam": "試験対策",
+    "scan.more_exam_body": "学習セットを作成",
+    "scan.more_upload_body": "シラバスPDFを選択",
+    "review.pressure_preview": "負荷のプレビュー",
+    "review.first_action": "最初のおすすめアクション",
+    "review.high": "高",
+    "review.good": "良好",
+    "review.needs_review": "要確認",
+    "review.needs_review_body": "StudyPlannerは、この行が完全であると確信できません。",
+    "review.items_found": "{kind}を検出",
+    "review.reconcile_hint": "この取り込み行の処理方法を選んでください。StudyPlannerが勝手に上書きしたり複製したりすることはありません。",
+    "review.keep_existing": "既存項目を保持",
+    "review.update_existing": "既存項目を更新",
+    "review.create_duplicate": "複製を作成",
+    "review.date_change_connector": "→",
+    "review.date_change_accessibility": "日付が{oldDate}から{newDate}に変更されました。",
+    "task.due": "締切日",
+    "class.effort": "予定時間",
+    "assessment.room": "教室",
+    "review.title_required": "この行を承認する前に、具体的なタイトルを入力してください（{kind}）。",
+    "review.time_required": "この行を承認する前に、09:00や17:00などの有効な時刻を入力してください。",
+    "review.owner_required": "この行を既存の授業に割り当てるか、対応する授業を先に承認してください。授業が未指定の行が自動で関連付けられることはありません。",
+    "review.invalid_date": "YYYY-MM-DD形式の有効な日付を入力してください。",
+    "review.accessibility_approve": "{title}を承認",
+    "review.accessibility_unapprove": "{title}の承認を外す",
+    "review.accessibility_remove": "{title}を削除",
+    "review.reconciliation_action_accessibility": "{title}：{action}",
+    "review.assign_to_class_accessibility": "{title}を{classCode}に割り当てる",
+    "import.status_applied": "適用済み",
+    "import.status_review": "要確認",
+    "scan.history_row_summary": "{status}・{count}件",
+  },
+  ko: {
+    "review.guard_active_body": "각 항목을 수정, 삭제 또는 확인하세요.",
+    "review.approve": "신뢰할 수 있는 항목 승인",
+    "review.manual": "직접 설정",
+    "scan.more_assignment": "과제 안내문",
+    "scan.more_assignment_body": "과제 세부 정보 추출",
+    "scan.more_exam": "시험 복습",
+    "scan.more_exam_body": "학습 세트 만들기",
+    "scan.more_upload_body": "강의계획서 PDF 선택",
+    "review.pressure_preview": "학업 부담 미리보기",
+    "review.first_action": "첫 번째 추천 작업",
+    "review.high": "높음",
+    "review.good": "양호",
+    "review.needs_review": "검토 필요",
+    "review.needs_review_body": "StudyPlanner에서 이 행이 완전하다고 확신하지 못합니다.",
+    "review.items_found": "찾은 항목: {kind}",
+    "review.reconcile_hint": "이 가져오기 행을 처리할 방법을 선택하세요. StudyPlanner는 사용자 확인 없이 덮어쓰거나 복제하지 않습니다.",
+    "review.keep_existing": "기존 항목 유지",
+    "review.update_existing": "기존 항목 업데이트",
+    "review.create_duplicate": "복제본 만들기",
+    "review.date_change_connector": "→",
+    "review.date_change_accessibility": "날짜가 변경되었습니다. 이전 날짜: {oldDate}. 새 날짜: {newDate}.",
+    "task.due": "마감일",
+    "class.effort": "예상 시간",
+    "assessment.room": "강의실",
+    "review.title_required": "이 행을 승인하기 전에 구체적인 제목을 입력하세요({kind}).",
+    "review.time_required": "이 행을 승인하기 전에 09:00 또는 17:00처럼 올바른 시간을 입력하세요.",
+    "review.owner_required": "이 행을 기존 수업에 배정하거나 일치하는 수업을 먼저 승인하세요. 수업이 지정되지 않은 행은 자동으로 연결되지 않습니다.",
+    "review.invalid_date": "YYYY-MM-DD 형식의 올바른 날짜를 입력하세요.",
+    "review.accessibility_approve": "{title} 승인",
+    "review.accessibility_unapprove": "{title} 승인 해제",
+    "review.accessibility_remove": "{title} 삭제",
+    "review.reconciliation_action_accessibility": "{title}: {action}",
+    "review.assign_to_class_accessibility": "{title}: {classCode} 수업에 배정",
+    "import.status_applied": "적용 완료",
+    "import.status_review": "검토 필요",
+    "scan.history_row_summary": "{status} · 항목 {count}개",
+  },
+  "zh-Hans": {
+    "review.guard_active_body": "编辑、移除或确认每一项。",
+    "review.approve": "批准可信项",
+    "review.manual": "手动设置",
+    "scan.more_assignment": "作业单",
+    "scan.more_assignment_body": "提取任务详情",
+    "scan.more_exam": "考试复习",
+    "scan.more_exam_body": "创建学习资料",
+    "scan.more_upload_body": "选择课程大纲 PDF",
+    "review.pressure_preview": "学业负荷预览",
+    "review.first_action": "首个建议操作",
+    "review.high": "高",
+    "review.good": "良好",
+    "review.needs_review": "需要检查",
+    "review.needs_review_body": "StudyPlanner 无法确认此行是否完整。",
+    "review.items_found": "已找到：{kind}",
+    "review.reconcile_hint": "选择如何处理此导入行。StudyPlanner 不会在未告知你的情况下覆盖或创建重复项。",
+    "review.keep_existing": "保留现有项",
+    "review.update_existing": "更新现有项",
+    "review.create_duplicate": "创建副本",
+    "review.date_change_connector": "→",
+    "review.date_change_accessibility": "日期已从 {oldDate} 更改为 {newDate}。",
+    "task.due": "截止日期",
+    "class.effort": "预计时长",
+    "assessment.room": "教室",
+    "review.title_required": "批准此行前，请输入明确的标题（{kind}）。",
+    "review.time_required": "批准此行前，请输入有效时间，例如 09:00 或 17:00。",
+    "review.owner_required": "请将此行分配到现有课程，或先批准与其匹配的课程。未指定课程的行不会自动关联。",
+    "review.invalid_date": "请输入 YYYY-MM-DD 格式的有效日期。",
+    "review.accessibility_approve": "批准 {title}",
+    "review.accessibility_unapprove": "取消批准 {title}",
+    "review.accessibility_remove": "删除 {title}",
+    "review.reconciliation_action_accessibility": "{title}：{action}",
+    "review.assign_to_class_accessibility": "将 {title} 分配到课程 {classCode}",
+    "import.status_applied": "已应用",
+    "import.status_review": "待检查",
+    "scan.history_row_summary": "{status} · {count} 项",
+  },
+  hi: {
+    "review.guard_active_body": "हर प्रविष्टि को बदलें, हटाएँ या पुष्टि करें।",
+    "review.approve": "विश्वसनीय प्रविष्टियाँ मंज़ूर करें",
+    "review.manual": "खुद से तैयार करें",
+    "scan.more_assignment": "असाइनमेंट शीट",
+    "scan.more_assignment_body": "कार्य का विवरण निकालें",
+    "scan.more_exam": "परीक्षा की तैयारी",
+    "scan.more_exam_body": "अध्ययन सामग्री बनाएं",
+    "scan.more_upload_body": "सिलेबस PDF चुनें",
+    "review.pressure_preview": "कार्यभार का पूर्वावलोकन",
+    "review.first_action": "पहला सुझाया कदम",
+    "review.high": "उच्च भरोसा",
+    "review.good": "अच्छा भरोसा",
+    "review.needs_review": "समीक्षा चाहिए",
+    "review.needs_review_body": "StudyPlanner को भरोसा नहीं है कि यह पंक्ति पूरी है।",
+    "review.items_found": "मिली सामग्री: {kind}",
+    "review.reconcile_hint": "चुनें कि इम्पोर्ट की गई इस पंक्ति का क्या करना है। StudyPlanner आपकी पसंद के बिना न तो मौजूदा जानकारी बदलेगा, न दूसरी प्रति बनाएगा।",
+    "review.keep_existing": "मौजूदा रखें",
+    "review.update_existing": "मौजूदा बदलें",
+    "review.create_duplicate": "नई प्रति बनाएँ",
+    "review.date_change_connector": "→",
+    "review.date_change_accessibility": "तारीख बदल गई है। पिछली तारीख: {oldDate}। नई तारीख: {newDate}।",
+    "task.due": "नियत तारीख",
+    "class.effort": "अनुमानित समय",
+    "assessment.room": "कक्ष",
+    "review.title_required": "इस पंक्ति को मंज़ूर करने से पहले स्पष्ट शीर्षक जोड़ें ({kind})।",
+    "review.time_required": "इस पंक्ति को मंज़ूर करने से पहले सही समय दर्ज करें, जैसे 09:00 या 17:00।",
+    "review.owner_required": "इस पंक्ति को किसी मौजूदा क्लास से जोड़ें या पहले इससे मेल खाने वाली क्लास को मंज़ूर करें। बिना क्लास वाली पंक्तियाँ अपने आप नहीं जोड़ी जातीं।",
+    "review.invalid_date": "YYYY-MM-DD फ़ॉर्मेट में सही तारीख दर्ज करें।",
+    "review.accessibility_approve": "{title} मंज़ूर करें",
+    "review.accessibility_unapprove": "{title} की मंज़ूरी हटाएँ",
+    "review.accessibility_remove": "{title} हटाएँ",
+    "review.reconciliation_action_accessibility": "{title} के लिए {action}",
+    "review.assign_to_class_accessibility": "{title} को {classCode} क्लास से जोड़ें",
+    "import.status_applied": "लागू",
+    "import.status_review": "समीक्षा बाकी",
+    "scan.history_row_summary": "{status} · कुल प्रविष्टियाँ: {count}",
+  },
+  ar: {
+    "review.guard_active_body": "عدّل أو أزل أو أكّد كل عنصر.",
+    "review.approve": "اعتماد العناصر الموثوقة",
+    "review.manual": "إعداد يدوي",
+    "scan.more_assignment": "ورقة واجب",
+    "scan.more_assignment_body": "استخراج تفاصيل المهمة",
+    "scan.more_exam": "مراجعة اختبار",
+    "scan.more_exam_body": "إنشاء مجموعة مذاكرة",
+    "scan.more_upload_body": "اختيار ملف PDF للمنهج",
+    "review.pressure_preview": "معاينة عبء الدراسة",
+    "review.first_action": "أول إجراء مقترح",
+    "review.high": "ثقة عالية",
+    "review.good": "ثقة جيدة",
+    "review.needs_review": "يحتاج إلى مراجعة",
+    "review.needs_review_body": "StudyPlanner غير واثق من اكتمال هذا الصف.",
+    "review.items_found": "تم العثور على {kind}",
+    "review.reconcile_hint": "اختر كيفية التعامل مع صف الاستيراد هذا. لن يغيّر StudyPlanner العنصر الحالي أو ينشئ نسخة مكررة منه دون اختيارك.",
+    "review.keep_existing": "الاحتفاظ بالموجود",
+    "review.update_existing": "تحديث الموجود",
+    "review.create_duplicate": "إنشاء نسخة",
+    "review.date_change_connector": "إلى",
+    "review.date_change_accessibility": "تم تغيير التاريخ. التاريخ السابق: \u2068{oldDate}\u2069. التاريخ الجديد: \u2068{newDate}\u2069.",
+    "task.due": "تاريخ الاستحقاق",
+    "class.effort": "المدة المقدرة",
+    "assessment.room": "القاعة",
+    "review.title_required": "أضف عنوانًا واضحًا قبل اعتماد هذا الصف (\u2068{kind}\u2069).",
+    "review.time_required": "أدخل وقتًا صحيحًا، مثل \u206809:00\u2069 أو \u206817:00\u2069، قبل اعتماد هذا الصف.",
+    "review.owner_required": "اربط هذا الصف بمادة موجودة، أو اعتمد المادة المطابقة له أولًا. لا تُسنَد الصفوف التي لم تُحدَّد لها مادة تلقائيًا.",
+    "review.invalid_date": "أدخل تاريخًا صحيحًا بتنسيق \u2068YYYY-MM-DD\u2069.",
+    "review.accessibility_approve": "اعتماد \u2068{title}\u2069",
+    "review.accessibility_unapprove": "إلغاء اعتماد \u2068{title}\u2069",
+    "review.accessibility_remove": "إزالة \u2068{title}\u2069",
+    "review.reconciliation_action_accessibility": "\u2068{action}\u2069 للعنصر \u2068{title}\u2069",
+    "review.assign_to_class_accessibility": "إسناد \u2068{title}\u2069 إلى المادة \u2068{classCode}\u2069",
+    "import.status_applied": "تم التطبيق",
+    "import.status_review": "بحاجة إلى مراجعة",
+    "scan.history_row_summary": "\u2068{status}\u2069 · العناصر: \u2068{count}\u2069",
+  },
+} satisfies Record<SupportedLocale, Record<ScanReviewRuntimeKey, string>>;
+
 for (const locale of supportedLocales) {
+  Object.assign(APP_COPY[locale], APPEARANCE_COPY[locale]);
+  Object.assign(APP_COPY[locale], WIDGET_WEEKDAY_COPY[locale]);
   Object.assign(APP_COPY[locale], PHOTO_PERMISSION_COPY[locale]);
   APP_COPY[locale]["review.existing_found"] = REVIEW_MATCH_COPY[locale];
   APP_COPY[locale]["today.at_a_glance"] = TODAY_SUMMARY_COPY[locale];
@@ -4640,6 +5243,7 @@ for (const locale of supportedLocales) {
   APP_COPY[locale]["reminders.schedule"] = REMINDER_SCHEDULE_COPY[locale];
   Object.assign(APP_COPY[locale], CONTROL_TRUTH_COPY[locale]);
   Object.assign(APP_COPY[locale], EDITORIAL_POLISH_COPY[locale]);
+  Object.assign(APP_COPY[locale], SCAN_REVIEW_RUNTIME_COPY[locale]);
 }
 
 function localizedWeekdayNarrow(index: number) {
@@ -4656,6 +5260,14 @@ function localizedWeekdayNarrow(index: number) {
     ar: ["ن", "ث", "ر", "خ", "ج", "س", "ح"],
   };
   return labels[appLocale()]?.[index] || labels["en-US"][index] || "";
+}
+
+function localizedRollingWeekdayNarrow(offset: number) {
+  const date = new Date();
+  date.setHours(12, 0, 0, 0);
+  date.setDate(date.getDate() + offset);
+  const mondayFirstIndex = date.getDay() === 0 ? 6 : date.getDay() - 1;
+  return localizedWeekdayNarrow(mondayFirstIndex);
 }
 
 function localeFromRuntime(value?: string): SupportedLocale {
@@ -4745,6 +5357,7 @@ const iconMap: Record<string, LucideIcon> = {
   "graduation-cap": GraduationCap,
   flame: Flame,
   moon: Moon,
+  sun: Sun,
   zap: Zap,
   sparkles: Sparkles,
   bell: Bell,
@@ -4779,6 +5392,14 @@ function Icon({ name, size = 20, color = COLORS.ink, strokeWidth = 2.1 }: { name
   return <C size={size} color={color} strokeWidth={strokeWidth} />;
 }
 
+function BackChevron({ color, size = 21, strokeWidth = 2.6 }: { color: string; size?: number; strokeWidth?: number }) {
+  return <View style={{ transform: appLocale() === "ar" ? [{ scaleX: -1 }] : undefined }}><ChevronLeft color={color} size={size} strokeWidth={strokeWidth} /></View>;
+}
+
+function ForwardChevron({ color, size = 18, strokeWidth = 2.1 }: { color: string; size?: number; strokeWidth?: number }) {
+  return <View style={{ transform: appLocale() === "ar" ? [{ scaleX: -1 }] : undefined }}><ChevronRight color={color} size={size} strokeWidth={strokeWidth} /></View>;
+}
+
 function contrastSafeLightForeground(color: string) {
   const match = /^#([0-9a-f]{6})$/i.exec(color);
   if (!match) return "#3A3A40";
@@ -4800,12 +5421,92 @@ function contrastSafeLightForeground(color: string) {
   return `#${[red, green, blue].map((value) => value.toString(16).padStart(2, "0")).join("")}`;
 }
 
-function palette(theme: ThemeId, accentOverride?: string) {
-  const dark = ["dark", "neon", "athlete"].includes(theme);
+function hexChannels(color: string) {
+  const match = /^#([0-9a-f]{6})$/i.exec(color);
+  if (!match) return null;
+  return [
+    Number.parseInt(match[1].slice(0, 2), 16),
+    Number.parseInt(match[1].slice(2, 4), 16),
+    Number.parseInt(match[1].slice(4, 6), 16),
+  ] as const;
+}
+
+function relativeLuminance(color: string) {
+  const channels = hexChannels(color);
+  if (!channels) return null;
+  const linear = channels.map((value) => {
+    const normalized = value / 255;
+    return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+}
+
+function contrastRatio(left: string, right: string) {
+  const leftLuminance = relativeLuminance(left);
+  const rightLuminance = relativeLuminance(right);
+  if (leftLuminance == null || rightLuminance == null) return 1;
+  const lighter = Math.max(leftLuminance, rightLuminance);
+  const darker = Math.min(leftLuminance, rightLuminance);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function compositeHexColor(foreground: string, background: string, alpha: number) {
+  const foregroundChannels = hexChannels(foreground);
+  const backgroundChannels = hexChannels(background);
+  if (!foregroundChannels || !backgroundChannels) return background;
+  const opacity = Math.max(0, Math.min(1, alpha));
+  return `#${foregroundChannels.map((channel, index) => Math.round(channel * opacity + backgroundChannels[index] * (1 - opacity)).toString(16).padStart(2, "0")).join("")}`;
+}
+
+function foregroundForColor(background: string) {
+  return contrastRatio(background, "#050507") >= contrastRatio(background, "#FFFFFF") ? "#050507" : "#FFFFFF";
+}
+
+function contrastSafeForegroundOn(color: string, background: string) {
+  const channels = hexChannels(color);
+  const backgroundLuminance = relativeLuminance(background);
+  if (!channels || backgroundLuminance == null) return foregroundForColor(background);
+  let [red, green, blue] = channels;
+  let candidate = color;
+  let attempts = 0;
+  const target = backgroundLuminance < 0.179 ? 255 : 0;
+  while (contrastRatio(candidate, background) < 4.5 && attempts < 32) {
+    red = Math.round(red + (target - red) * 0.12);
+    green = Math.round(green + (target - green) * 0.12);
+    blue = Math.round(blue + (target - blue) * 0.12);
+    candidate = `#${[red, green, blue].map((value) => value.toString(16).padStart(2, "0")).join("")}`;
+    attempts += 1;
+  }
+  return candidate;
+}
+
+function contrastSafeDarkForeground(color: string, background = "#2C2C2E") {
+  return contrastSafeForegroundOn(color, background);
+}
+
+function semanticTextColor(color: string, theme: { surface: string }, background = theme.surface) {
+  return contrastSafeForegroundOn(color, background);
+}
+
+function isAppearanceMode(value: unknown): value is AppearanceMode {
+  return value === "system" || value === "light" || value === "dark";
+}
+
+function resolvedAppearanceMode(preference: unknown, systemScheme: "light" | "dark" | null | undefined, legacyTheme?: ThemeId) {
+  if (preference === "light" || preference === "dark") return preference;
+  if (preference === "system") return systemScheme === "dark" ? "dark" : "light";
+  if (legacyTheme && ["dark", "neon", "athlete"].includes(legacyTheme)) return "dark";
+  return systemScheme === "dark" ? "dark" : "light";
+}
+
+function palette(theme: ThemeId, accentOverride?: string, appearance?: "light" | "dark") {
+  const legacyDark = ["dark", "neon", "athlete"].includes(theme);
+  const dark = appearance ? appearance === "dark" : legacyDark;
   const accentSource = accentOverride || THEMES.find((t) => t.id === theme)?.swatches[1] || COLORS.blue;
-  const accent = dark ? accentSource : contrastSafeLightForeground(accentSource);
+  const accent = contrastSafeForegroundOn(accentSource, dark ? "#2C2C2E" : "#EFEFF4");
   return {
     dark,
+    rtl: appLocale() === "ar",
     bg: dark ? "#050507" : "#EFEFF4",
     surface: dark ? "#1A1A1E" : "#FFFFFF",
     surface2: dark ? "#232329" : "#F6F6FA",
@@ -4815,6 +5516,7 @@ function palette(theme: ThemeId, accentOverride?: string) {
     label2: dark ? "rgba(235,235,245,0.72)" : "#515158",
     label3: dark ? "rgba(235,235,245,0.52)" : "#6E6E76",
     accent,
+    accentText: foregroundForColor(accent),
     accent2: accentOverride || THEMES.find((t) => t.id === theme)?.swatches[0] || COLORS.purple,
   };
 }
@@ -5087,7 +5789,26 @@ function readablePlannerTimeRange(value: string) {
   return value.replace(/(\d)(AM|PM)\b/gi, "$1 $2").replace(/\s*-\s*/g, " – ");
 }
 
+function balancedCopyLines(value: string, maximumCharacters: number) {
+  const words = value.trim().split(/\s+/).filter(Boolean);
+  if (words.length <= 1) return value;
+  const lines: string[] = [];
+  let line = "";
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (line && candidate.length > maximumCharacters) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = candidate;
+    }
+  }
+  if (line) lines.push(line);
+  return lines.join("\n");
+}
+
 const SIMULATOR_CAPTURE_FILE = "studyplanner-capture-tab.json";
+const SIMULATOR_CAPTURE_ACK_FILE = "studyplanner-capture-ready.json";
 type SimulatorCaptureConfig = {
   tab?: string;
   route?: Route;
@@ -5096,9 +5817,34 @@ type SimulatorCaptureConfig = {
   locale?: string;
   qaState?: "build57" | "build66" | "examHeavy";
   emptyPlanner?: boolean;
+  emptyContent?: boolean;
+  appearanceMode?: AppearanceMode;
+  themeMode?: AppearanceMode;
   semesterThemeColorId?: SemesterThemeColorId;
   prompt?: "recurrenceScope" | "archiveClass";
+  captureScrollY?: number;
+  captureOriginRawY?: number;
+  captureNonce?: string;
+  captureTarget?: string;
 };
+
+let activeSimulatorCaptureConfig: SimulatorCaptureConfig | null = null;
+let simulatorCaptureResolvedRoute = "";
+let simulatorCaptureResolvedAppearance = "";
+let simulatorCaptureResolvedSystemAppearance = "";
+let simulatorCaptureRawContentOffsetY = 0;
+let simulatorCaptureContentInsetTop = 0;
+let simulatorCaptureObservedScrollY = 0;
+let simulatorCaptureScrollNonce = "";
+let simulatorCaptureContentHeight = 0;
+let simulatorCaptureViewportHeight = 0;
+let simulatorCaptureScrollView: ScrollView | null = null;
+let simulatorCaptureScrollViewNonce = "";
+let simulatorCaptureScrollAttemptNonce = "";
+let simulatorCaptureScrollAttemptCount = 0;
+let simulatorCaptureLastAttemptedScrollY = 0;
+let simulatorCaptureScrollResetNonce = "";
+let simulatorCaptureScrollResetAt = 0;
 
 type SimulatorCaptureState = {
   data: AppData;
@@ -5111,6 +5857,142 @@ type SimulatorCaptureState = {
 function simulatorCaptureIsEnabled() {
   const releaseCaptureEnabled = typeof process !== "undefined" && process.env?.EXPO_PUBLIC_STUDYPLANNER_CAPTURE_QA === "1";
   return (typeof __DEV__ !== "undefined" && __DEV__) || releaseCaptureEnabled;
+}
+
+function simulatorCaptureContentOffset() {
+  return simulatorCaptureIsEnabled() && simulatorCaptureScrollY > 0 ? { x: 0, y: simulatorCaptureScrollY } : undefined;
+}
+
+function applySimulatorCaptureScrollAfterLayout() {
+  const config = activeSimulatorCaptureConfig;
+  const scrollView = simulatorCaptureScrollView;
+  if (!simulatorCaptureIsEnabled() || !config?.captureNonce || !scrollView || simulatorCaptureScrollY <= 1) return;
+  const captureNonce = config.captureNonce;
+  const apply = () => {
+    if (activeSimulatorCaptureConfig?.captureNonce !== captureNonce || simulatorCaptureScrollView !== scrollView) return;
+    if (simulatorCaptureScrollAttemptNonce !== captureNonce) simulatorCaptureScrollAttemptCount = 0;
+    simulatorCaptureScrollAttemptNonce = captureNonce;
+    simulatorCaptureScrollAttemptCount += 1;
+    simulatorCaptureLastAttemptedScrollY = simulatorCaptureScrollY;
+    const rawMaxScrollY = Math.max(0, simulatorCaptureContentHeight - simulatorCaptureViewportHeight);
+    const requestedOriginRawY = Number(config.captureOriginRawY);
+    const contentOriginRawY = Number.isFinite(requestedOriginRawY) ? requestedOriginRawY : 0;
+    const maxScrollY = Math.max(0, rawMaxScrollY - contentOriginRawY);
+    const nativeScrollEventObserved = simulatorCaptureScrollNonce === captureNonce;
+    if (!nativeScrollEventObserved) {
+      if (simulatorCaptureScrollResetNonce !== captureNonce) {
+        simulatorCaptureScrollResetNonce = captureNonce;
+        simulatorCaptureScrollResetAt = Date.now();
+      }
+      if (Date.now() - simulatorCaptureScrollResetAt < 80) {
+        scrollView.scrollTo({ x: 0, y: contentOriginRawY, animated: false });
+        writeSimulatorCaptureAcknowledgement();
+        return;
+      }
+    }
+    if (maxScrollY > 1 && simulatorCaptureScrollY >= maxScrollY - 2) scrollView.scrollToEnd({ animated: false });
+    else scrollView.scrollTo({ x: 0, y: Math.max(0, simulatorCaptureScrollY + contentOriginRawY), animated: false });
+    writeSimulatorCaptureAcknowledgement();
+  };
+  apply();
+  requestAnimationFrame(() => requestAnimationFrame(apply));
+  setTimeout(apply, 120);
+  setTimeout(apply, 420);
+}
+
+function registerSimulatorCaptureScrollView(scrollView: ScrollView | null) {
+  if (!simulatorCaptureIsEnabled()) return;
+  simulatorCaptureScrollView = scrollView;
+  simulatorCaptureScrollViewNonce = scrollView ? activeSimulatorCaptureConfig?.captureNonce || "" : "";
+  applySimulatorCaptureScrollAfterLayout();
+}
+
+function writeSimulatorCaptureAcknowledgement() {
+  const config = activeSimulatorCaptureConfig;
+  if (!simulatorCaptureIsEnabled() || !config?.captureNonce) return;
+  try {
+    const requestedScrollY = Math.max(0, Number(config.captureScrollY || 0));
+    const nativeScrollEventObserved = simulatorCaptureScrollNonce === config.captureNonce;
+    const implicitZeroOffset = !nativeScrollEventObserved
+      && requestedScrollY <= 1
+      && simulatorCaptureContentHeight > 0
+      && simulatorCaptureViewportHeight > 0;
+    const scrollPositionSource = nativeScrollEventObserved
+      ? "native-scroll-event"
+      : implicitZeroOffset ? "implicit-zero-content-offset" : "pending-scroll-event";
+    const rawContentOffsetY = implicitZeroOffset ? 0 : simulatorCaptureRawContentOffsetY;
+    const requestedOriginRawY = Number(config.captureOriginRawY);
+    const contentOriginRawY = Number.isFinite(requestedOriginRawY)
+      ? requestedOriginRawY
+      : requestedScrollY <= 1 ? rawContentOffsetY : 0;
+    const observedScrollY = Math.max(0, rawContentOffsetY - contentOriginRawY);
+    const rawMaxScrollY = Math.max(0, simulatorCaptureContentHeight - simulatorCaptureViewportHeight);
+    const maxScrollY = Math.max(0, rawMaxScrollY - contentOriginRawY);
+    const scrollApplied = requestedScrollY <= 1
+      ? observedScrollY <= 2
+      : maxScrollY >= requestedScrollY - 2 && observedScrollY >= requestedScrollY - 2;
+    const file = new File(Paths.document, SIMULATOR_CAPTURE_ACK_FILE);
+    if (!file.exists) file.create({ intermediates: true });
+    file.write(JSON.stringify({
+      schemaVersion: 5,
+      captureNonce: config.captureNonce,
+      captureTarget: config.captureTarget || "",
+      mountedRoute: simulatorCaptureResolvedRoute,
+      resolvedAppearance: simulatorCaptureResolvedAppearance,
+      resolvedSystemAppearance: simulatorCaptureResolvedSystemAppearance,
+      requestedLocale: config.locale || "",
+      resolvedLocale: appLocale(),
+      rtl: appLocale() === "ar",
+      requestedScrollY,
+      scrollPositionSource,
+      rawContentOffsetY,
+      contentInsetTop: simulatorCaptureContentInsetTop,
+      contentOriginRawY,
+      observedScrollYConvention: "raw-minus-top-origin",
+      observedScrollY,
+      contentHeight: simulatorCaptureContentHeight,
+      viewportHeight: simulatorCaptureViewportHeight,
+      rawMaxScrollY,
+      maxScrollY,
+      scrollViewRegistered: simulatorCaptureScrollViewNonce === config.captureNonce,
+      scrollApplyAttemptCount: simulatorCaptureScrollAttemptNonce === config.captureNonce ? simulatorCaptureScrollAttemptCount : 0,
+      lastAttemptedScrollY: simulatorCaptureScrollAttemptNonce === config.captureNonce ? simulatorCaptureLastAttemptedScrollY : 0,
+      scrollApplied: implicitZeroOffset || (nativeScrollEventObserved && scrollApplied),
+      acknowledgedAt: new Date().toISOString(),
+    }));
+  } catch {
+    // Capture acknowledgement is QA-only and must never affect the app route.
+  }
+}
+
+function recordSimulatorCaptureScroll(event: any) {
+  const rawContentOffsetY = Number(event?.nativeEvent?.contentOffset?.y ?? 0);
+  const contentInsetTop = Number(event?.nativeEvent?.contentInset?.top ?? 0);
+  simulatorCaptureRawContentOffsetY = Number.isFinite(rawContentOffsetY) ? rawContentOffsetY : 0;
+  simulatorCaptureContentInsetTop = Number.isFinite(contentInsetTop) ? Math.max(0, contentInsetTop) : 0;
+  simulatorCaptureObservedScrollY = Math.max(0, simulatorCaptureRawContentOffsetY + simulatorCaptureContentInsetTop);
+  simulatorCaptureScrollNonce = activeSimulatorCaptureConfig?.captureNonce || "";
+  writeSimulatorCaptureAcknowledgement();
+}
+
+function recordSimulatorCaptureViewport(event: any) {
+  simulatorCaptureViewportHeight = Math.max(0, Number(event?.nativeEvent?.layout?.height || 0));
+  applySimulatorCaptureScrollAfterLayout();
+  writeSimulatorCaptureAcknowledgement();
+}
+
+function recordSimulatorCaptureFixedViewport(event: any) {
+  if (!simulatorCaptureIsEnabled()) return;
+  const height = Math.max(0, Number(event?.nativeEvent?.layout?.height || 0));
+  simulatorCaptureContentHeight = height;
+  simulatorCaptureViewportHeight = height;
+  writeSimulatorCaptureAcknowledgement();
+}
+
+function recordSimulatorCaptureContentSize(_width: number, height: number) {
+  simulatorCaptureContentHeight = Math.max(0, Number(height || 0));
+  applySimulatorCaptureScrollAfterLayout();
+  writeSimulatorCaptureAcknowledgement();
 }
 
 function simulatorCaptureConfigFromUrl(url: string | null): SimulatorCaptureConfig | null {
@@ -5607,6 +6489,7 @@ function simulatorCaptureNavItem(config: SimulatorCaptureConfig, importBatch: Im
   if (config.prompt === "archiveClass") return { route: "classDetail", params: { id: "qa-cs201" } };
   if (config.onboardingIndex != null) return { route: "onboarding", params: { onboardingIndex: String(config.onboardingIndex) } };
   if (config.route === "studySession") return { route: "studySession" };
+  if (config.route === "success") return { route: "success", params: { captureDemo: "ready" } };
   if (config.route) return { route: config.route };
   if (config.tab === "import") return { route: "scan" };
   if (config.tab === "courses") return { route: "classes" };
@@ -5618,39 +6501,64 @@ function simulatorCaptureNavItem(config: SimulatorCaptureConfig, importBatch: Im
 }
 
 function buildSimulatorCaptureState(config: SimulatorCaptureConfig): SimulatorCaptureState | null {
-  if (!config.qaState && !config.emptyPlanner && !config.route && !config.tab && !config.screen && config.onboardingIndex == null) return null;
+  const requestedScrollY = Number(config.captureScrollY ?? 0);
+  simulatorCaptureScrollY = Number.isFinite(requestedScrollY) ? Math.max(0, Math.min(20_000, requestedScrollY)) : 0;
+  activeSimulatorCaptureConfig = config;
+  simulatorCaptureResolvedRoute = "";
+  simulatorCaptureResolvedAppearance = "";
+  simulatorCaptureResolvedSystemAppearance = "";
+  simulatorCaptureObservedScrollY = 0;
+  simulatorCaptureContentHeight = 0;
+  simulatorCaptureViewportHeight = 0;
+  simulatorCaptureScrollResetNonce = "";
+  simulatorCaptureScrollResetAt = 0;
+  try {
+    const acknowledgementFile = new File(Paths.document, SIMULATOR_CAPTURE_ACK_FILE);
+    if (acknowledgementFile.exists) acknowledgementFile.delete();
+  } catch {
+    // A stale acknowledgement is also rejected by nonce in the capture runner.
+  }
+  if (!config.qaState && !config.emptyPlanner && !config.emptyContent && !config.route && !config.tab && !config.screen && config.onboardingIndex == null) return null;
   const useBuild66Fixture = config.qaState === "build66";
   const useExamHeavyFixture = config.qaState === "examHeavy";
+  const requestedAppearanceMode = config.appearanceMode ?? config.themeMode;
+  const captureAppearanceMode: AppearanceMode = isAppearanceMode(requestedAppearanceMode) ? requestedAppearanceMode : "light";
   const captureThemeColorId = isSemesterThemeColorId(config.semesterThemeColorId) ? config.semesterThemeColorId : null;
-  const rawData = config.emptyPlanner
+  const rawData = config.emptyPlanner || config.emptyContent
     ? {
         ...defaultData,
         prefs: {
           ...defaultData.prefs,
-          onboardingComplete: config.route !== "onboarding" && Boolean(config.route || config.tab),
-          osLive: config.route !== "onboarding" && Boolean(config.route || config.tab),
-          premium: false,
+          onboardingComplete: config.emptyContent || (config.route !== "onboarding" && Boolean(config.route || config.tab)),
+          osLive: config.emptyContent || (config.route !== "onboarding" && Boolean(config.route || config.tab)),
+          premium: Boolean(config.emptyContent),
         },
       }
     : useExamHeavyFixture ? buildExamHeavyFixtureData() : useBuild66Fixture ? buildBuild66FixtureData() : buildBuild57FixtureData();
-  const themedRawData = captureThemeColorId
-    ? {
-        ...rawData,
-        prefs: {
-          ...rawData.prefs,
+  const themedRawData = {
+    ...rawData,
+    prefs: {
+      ...rawData.prefs,
+      appearanceMode: captureAppearanceMode,
+      ...(captureThemeColorId
+        ? {
           semesterThemeColorId: captureThemeColorId,
           semesterAccentColor: resolveSemesterThemeColor(captureThemeColorId).accent,
-        },
-      }
-    : rawData;
+        }
+        : {}),
+    },
+  };
   const data = localizePreviewStudyBlocks(themedRawData);
   const currentImport = config.screen === "review_edit" || config.route === "review"
     ? useBuild66Fixture ? buildBuild66ImportFixture(data) : buildBuild57ImportFixture(data)
     : null;
+  const navItem = config.route === "studySession"
+    ? { route: "studySession" as const, params: { id: data.studyBlocks.find((block) => !block.completed)?.id || data.studyBlocks[0]?.id || "" } }
+    : simulatorCaptureNavItem(config, currentImport);
   return {
     data,
     currentImport,
-    navItem: simulatorCaptureNavItem(config, currentImport),
+    navItem,
     entitlementStatus: config.emptyPlanner ? "inactive" : "active",
     prompt: config.prompt,
   };
@@ -5672,6 +6580,7 @@ function showSimulatorCapturePrompt(prompt: SimulatorCaptureConfig["prompt"]) {
 }
 
 export default function App() {
+  const systemColorScheme = useColorScheme();
   const [data, setData] = useState<AppData | null>(null);
   const [tab, setTab] = useState<Route>("today");
   const [stack, setStack] = useState<NavItem[]>([]);
@@ -5690,7 +6599,29 @@ export default function App() {
   const notificationResponseHandled = useRef<string | null>(null);
   const currentImportRef = useRef<ImportBatch | null>(null);
   const paywallDestinationRef = useRef<NavItem | null>(null);
-  const theme = palette(data?.prefs.theme || "light", data?.prefs.semesterAccentColor);
+  const appearance = resolvedAppearanceMode(
+    data?.prefs.appearanceMode,
+    systemColorScheme === "dark" ? "dark" : "light",
+    data?.prefs.theme,
+  );
+  const theme = palette(data?.prefs.theme || "light", data?.prefs.semesterAccentColor, appearance);
+
+  useEffect(() => {
+    const preference = data?.prefs.appearanceMode;
+    const legacyDark = !preference && data?.prefs.theme && ["dark", "neon", "athlete"].includes(data.prefs.theme);
+    Appearance.setColorScheme(preference === "light" || preference === "dark" ? preference : legacyDark ? "dark" : "unspecified");
+    return () => Appearance.setColorScheme("unspecified");
+  }, [data?.prefs.appearanceMode, data?.prefs.theme]);
+
+  const captureActiveRoute = stack[stack.length - 1]?.route || tab;
+  const captureDisplayRoute = data ? gatedRoute(captureActiveRoute, data, entitlementStatus) : "";
+  useEffect(() => {
+    if (!simulatorCaptureIsEnabled() || !loaded || !data || !activeSimulatorCaptureConfig?.captureNonce) return;
+    simulatorCaptureResolvedRoute = captureDisplayRoute;
+    simulatorCaptureResolvedAppearance = appearance;
+    simulatorCaptureResolvedSystemAppearance = systemColorScheme === "dark" ? "dark" : "light";
+    writeSimulatorCaptureAcknowledgement();
+  }, [appearance, captureDisplayRoute, data, loaded, systemColorScheme]);
 
   useEffect(() => {
     currentImportRef.current = currentImport;
@@ -6076,12 +7007,13 @@ export default function App() {
 
   if (!data && loadError) {
     return (
-      <View style={{ flex: 1, backgroundColor: "#F5F5F7", alignItems: "center", justifyContent: "center", padding: 28 }}>
-        <View style={{ width: 58, height: 58, borderRadius: 18, backgroundColor: "#111114", alignItems: "center", justifyContent: "center" }}><AlertTriangle color="#FFFFFF" size={27} /></View>
-        <Text selectable accessibilityRole="header" style={{ color: "#111114", fontSize: 26, lineHeight: 30, fontWeight: "900", textAlign: "center", marginTop: 20 }}>{textFor("storage.safe_title", "Your planner is still safe")}</Text>
-        <Text selectable accessibilityRole="alert" style={{ color: "#5C5C64", fontSize: 15, lineHeight: 21, textAlign: "center", marginTop: 9 }}>{loadError}</Text>
-        <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.try_again", "Try again")} onPress={() => setLoadAttempt((attempt) => attempt + 1)} style={{ minHeight: 52, alignSelf: "stretch", borderRadius: 999, backgroundColor: "#111114", alignItems: "center", justifyContent: "center", marginTop: 22 }}>
-          <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "900" }}>{textFor("common.try_again", "Try again")}</Text>
+      <View style={{ flex: 1, direction: theme.rtl ? "rtl" : "ltr", backgroundColor: theme.bg, alignItems: "center", justifyContent: "center", padding: 28 }}>
+        <StatusBar style={theme.dark ? "light" : "dark"} />
+        <View style={{ width: 58, height: 58, borderRadius: 18, backgroundColor: theme.surface3, alignItems: "center", justifyContent: "center" }}><AlertTriangle color={COLORS.orange} size={27} /></View>
+        <Text selectable accessibilityRole="header" style={{ color: theme.label, fontSize: 26, lineHeight: 30, fontWeight: "900", textAlign: "center", marginTop: 20 }}>{textFor("storage.safe_title", "Your planner is still safe")}</Text>
+        <Text selectable accessibilityRole="alert" style={{ color: theme.label2, fontSize: 15, lineHeight: 21, textAlign: "center", marginTop: 9 }}>{loadError}</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.try_again", "Try again")} onPress={() => setLoadAttempt((attempt) => attempt + 1)} style={{ minHeight: 52, alignSelf: "stretch", borderRadius: 999, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center", marginTop: 22, paddingHorizontal: 18, paddingVertical: 12 }}>
+          <Text style={{ color: theme.accentText, fontSize: 16, fontWeight: "900", textAlign: "center" }}>{textFor("common.try_again", "Try again")}</Text>
         </Pressable>
       </View>
     );
@@ -6089,9 +7021,10 @@ export default function App() {
 
   if (!data) {
     return (
-      <View style={{ flex: 1, backgroundColor: "#0A0A0C", alignItems: "center", justifyContent: "center" }}>
-        <ActivityIndicator color="#fff" />
-        <Text style={{ color: "#fff", fontWeight: "800", marginTop: 16 }}>StudyPlanner</Text>
+      <View style={{ flex: 1, direction: theme.rtl ? "rtl" : "ltr", backgroundColor: theme.bg, alignItems: "center", justifyContent: "center" }}>
+        <StatusBar style={theme.dark ? "light" : "dark"} />
+        <ActivityIndicator color={theme.accent} />
+        <Text style={{ color: theme.label, fontWeight: "800", marginTop: 16 }}>StudyPlanner</Text>
       </View>
     );
   }
@@ -6148,20 +7081,48 @@ export default function App() {
     <Today {...props} />;
 
   const showTabs = entitlementUnlocks(data, entitlementStatus) && stack.length === 0 && !["welcome", "onboarding", "importOptions", "lockedDashboard", "paywall"].includes(displayRoute);
+  const statusBarStyle = displayRoute === "cameraScanner" ? "light" : theme.dark ? "light" : "dark";
+  const safeAreaBackdropColor = [
+    "welcome",
+    "importOptions",
+    "semesterKickoff",
+    "lockedDashboard",
+    "paywall",
+    "terms",
+    "privacy",
+    "today",
+    "classes",
+    "scan",
+    "plan",
+    "tasks",
+    "notes",
+    "profile",
+    "classDetail",
+    "success",
+    "widgets",
+    "homePreview",
+    "lockPreview",
+  ].includes(displayRoute) ? theme.bg : null;
   return (
-    <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      <StatusBar style={theme.dark ? "light" : "dark"} />
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+    <View style={{ flex: 1, direction: theme.rtl ? "rtl" : "ltr", backgroundColor: theme.bg }}>
+      <StatusBar style={statusBarStyle} />
       {screen}
+      {safeAreaBackdropColor ? (
+        <SafeAreaView
+          accessible={false}
+          pointerEvents="none"
+          edges={["top"]}
+          style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 90, backgroundColor: safeAreaBackdropColor }}
+        />
+      ) : null}
       {visibleSaveError ? (
-        <View accessibilityRole="alert" style={{ position: "absolute", top: 54, left: 14, right: 14, zIndex: 100, borderRadius: 18, padding: 13, backgroundColor: "#FFF4E5", borderWidth: 1, borderColor: "#F59E0B", flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <AlertTriangle color="#B45309" size={20} />
-          <Text selectable style={{ color: "#7C2D12", flex: 1, fontSize: 13, lineHeight: 18, fontWeight: "800" }}>{visibleSaveError}</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.try_again", "Try again")} onPress={() => pendingImportSaveError ? setPendingImportSaveAttempt((attempt) => attempt + 1) : setSaveAttempt((attempt) => attempt + 1)} style={{ minHeight: 44, paddingHorizontal: 12, justifyContent: "center" }}><Text style={{ color: "#92400E", fontWeight: "900" }}>{textFor("common.try_again", "Try again")}</Text></Pressable>
-        </View>
+        <SaveErrorBanner message={visibleSaveError} onRetry={() => pendingImportSaveError ? setPendingImportSaveAttempt((attempt) => attempt + 1) : setSaveAttempt((attempt) => attempt + 1)} theme={theme} />
       ) : null}
       {showPendingImportBanner && currentImport ? <PendingImportResumeBanner batch={currentImport} nav={nav} theme={theme} hasTabs={showTabs} /> : null}
       {showTabs ? <TabBar tab={tab} setTab={nav.tab} theme={theme} /> : null}
     </View>
+    </SafeAreaProvider>
   );
 }
 
@@ -6188,7 +7149,14 @@ function withFeedback(
   return appendFeedbackEvent(before, after, action, options);
 }
 
+function tabBarHeightForFontScale(fontScale: number) {
+  return Math.min(152, Math.max(72, 60 + fontScale * 26));
+}
+
 function TabBar({ tab, setTab, theme }: { tab: Route; setTab: (route: Route) => void; theme: ReturnType<typeof palette> }) {
+  const { fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const barHeight = tabBarHeightForFontScale(fontScale);
   const tabs: { route: Route; label: string; icon: string; fab?: boolean }[] = [
     { route: "today", label: textFor("tabs.today", "Today"), icon: "home" },
     { route: "classes", label: textFor("tabs.classes", "Classes"), icon: "classes" },
@@ -6197,20 +7165,20 @@ function TabBar({ tab, setTab, theme }: { tab: Route; setTab: (route: Route) => 
     { route: "profile", label: textFor("tabs.profile", "Profile"), icon: "profile" },
   ];
   return (
-    <View style={{ position: "absolute", left: 12, right: 12, bottom: 18, height: 72, borderRadius: 26, backgroundColor: theme.dark ? "rgba(40,40,46,0.92)" : "rgba(248,248,252,0.96)", borderColor: theme.hairline, borderWidth: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-around", boxShadow: "0 12px 28px rgba(0,0,0,0.18)" }}>
+    <View style={{ position: "absolute", left: 12, right: 12, bottom: insets.bottom + 8, minHeight: barHeight, paddingVertical: 8, borderRadius: 26, backgroundColor: theme.dark ? "rgba(40,40,46,0.96)" : "rgba(248,248,252,0.98)", borderColor: theme.hairline, borderWidth: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-around", boxShadow: "0 12px 28px rgba(0,0,0,0.18)" }}>
       {tabs.map((item) => {
         const on = tab === item.route;
         if (item.fab) {
           return (
             <Pressable key={item.route} accessibilityRole="button" accessibilityLabel={item.label} hitSlop={10} onPress={() => setTab(item.route)} style={{ width: 58, height: 58, borderRadius: 18, marginTop: -28, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center", boxShadow: `0 10px 22px ${theme.accent}66` }}>
-              <Icon name={item.icon} color="#fff" size={27} />
+              <Icon name={item.icon} color={theme.accentText} size={27} />
             </Pressable>
           );
         }
         return (
-          <Pressable key={item.route} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={item.label} hitSlop={8} onPress={() => setTab(item.route)} style={{ flex: 1, alignItems: "center", gap: 4 }}>
+          <Pressable key={item.route} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={item.label} hitSlop={8} onPress={() => setTab(item.route)} style={{ flex: 1, minHeight: 48, alignItems: "center", justifyContent: "center", gap: 4, paddingHorizontal: 2 }}>
             <Icon name={item.icon} color={on ? theme.accent : theme.label3} size={23} strokeWidth={on ? 2.5 : 2} />
-            <Text style={{ color: on ? theme.accent : theme.label3, fontSize: 10, fontWeight: "700" }}>{item.label}</Text>
+            <Text numberOfLines={2} maxFontSizeMultiplier={1.8} style={{ color: on ? theme.accent : theme.label3, fontSize: 11, lineHeight: 14, fontWeight: "700", textAlign: "center" }}>{item.label}</Text>
           </Pressable>
         );
       })}
@@ -6220,6 +7188,9 @@ function TabBar({ tab, setTab, theme }: { tab: Route; setTab: (route: Route) => 
 
 function PendingImportResumeBanner({ batch, nav, theme, hasTabs }: { batch: ImportBatch; nav: ScreenProps["nav"]; theme: ReturnType<typeof palette>; hasTabs: boolean }) {
   const count = batch.candidates.length;
+  const { fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const accessibilityLayout = fontScale >= 1.6;
   return (
     <Pressable
       accessibilityRole="button"
@@ -6230,31 +7201,46 @@ function PendingImportResumeBanner({ batch, nav, theme, hasTabs }: { batch: Impo
         position: "absolute",
         left: 14,
         right: 14,
-        bottom: hasTabs ? 98 : 22,
+        bottom: hasTabs ? tabBarHeightForFontScale(fontScale) + insets.bottom + 20 : insets.bottom + 12,
         borderRadius: 18,
         padding: 13,
         backgroundColor: theme.dark ? "rgba(27,31,42,0.96)" : "rgba(255,255,255,0.98)",
         borderWidth: 1,
         borderColor: theme.hairline,
         boxShadow: theme.dark ? "0 12px 26px rgba(0,0,0,0.38)" : "0 12px 28px rgba(18,36,74,0.16)",
-        flexDirection: "row",
-        alignItems: "center",
+        flexDirection: accessibilityLayout ? "column" : "row",
+        alignItems: accessibilityLayout ? "stretch" : "center",
         gap: 12,
       }}
     >
-      <View style={{ width: 38, height: 38, borderRadius: 13, backgroundColor: `${COLORS.orange}1F`, alignItems: "center", justifyContent: "center" }}>
+      <View style={{ width: 38, height: 38, borderRadius: 13, backgroundColor: `${COLORS.orange}1F`, alignItems: "center", justifyContent: "center", alignSelf: accessibilityLayout ? "flex-start" : undefined }}>
         <ScanLine color={COLORS.orange} size={20} />
       </View>
       <View style={{ flex: 1 }}>
         <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("review.resume_title", "Import waiting for review")}</Text>
-        <Text selectable numberOfLines={2} style={{ color: theme.label2, marginTop: 2, lineHeight: 18 }}>{textFor("review.resume_body", "{count} rows are waiting for review. Nothing changes your semester until you apply them.", { count })}</Text>
+        <Text selectable numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: theme.label2, marginTop: 2, lineHeight: 18 }}>{textFor("review.resume_body", "{count} rows are waiting for review. Nothing changes your semester until you apply them.", { count })}</Text>
       </View>
-      <Text style={{ color: theme.accent, fontWeight: "900" }}>{textFor("review.resume", "Resume review")}</Text>
+      <Text style={{ color: theme.accent, fontWeight: "900", alignSelf: accessibilityLayout ? "flex-start" : undefined }}>{textFor("review.resume", "Resume review")}</Text>
     </Pressable>
   );
 }
 
+function SaveErrorBanner({ message, onRetry, theme }: { message: string; onRetry: () => void; theme: ReturnType<typeof palette> }) {
+  const { fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const accessibilityLayout = fontScale >= 1.6;
+  return (
+    <View accessibilityRole="alert" style={{ position: "absolute", top: insets.top + 8, left: 14, right: 14, zIndex: 100, borderRadius: 18, padding: 13, backgroundColor: theme.dark ? "#2A1F10" : "#FFF4E5", borderWidth: 1, borderColor: theme.dark ? "#F6AD55" : "#F59E0B", flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "stretch" : "center", gap: 10 }}>
+      <AlertTriangle color={theme.dark ? "#F6AD55" : "#B45309"} size={20} />
+      <Text selectable style={{ color: theme.dark ? "#FFE1B2" : "#7C2D12", flex: accessibilityLayout ? undefined : 1, fontSize: 13, lineHeight: 18, fontWeight: "800" }}>{message}</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.try_again", "Try again")} onPress={onRetry} style={{ minHeight: 44, paddingHorizontal: 12, justifyContent: "center", alignSelf: accessibilityLayout ? "flex-start" : undefined }}><Text style={{ color: theme.dark ? "#FFD08A" : "#92400E", fontWeight: "900" }}>{textFor("common.try_again", "Try again")}</Text></Pressable>
+    </View>
+  );
+}
+
 function SemesterKickoff({ data, nav, theme, currentImport, accessState }: ScreenProps) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const copy = semesterKickoffCopy();
   const phase = semesterKickoffPhase();
   const progress = semesterKickoffProgress(data);
@@ -6308,7 +7294,7 @@ function SemesterKickoff({ data, nav, theme, currentImport, accessState }: Scree
             </View>
             <Text selectable accessibilityRole="header" style={{ color: "#FFFFFF", fontSize: 32, lineHeight: 35, fontWeight: "900", marginTop: 18 }}>{copy.title}</Text>
             <Text selectable style={{ color: "rgba(255,255,255,0.78)", fontSize: 16, lineHeight: 23, marginTop: 10 }}>{copy.body}</Text>
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 20 }}>
+            <View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", justifyContent: "space-between", gap: 12, marginTop: 20 }}>
               <Text selectable style={{ color: "#D9CBFF", fontWeight: "900", flex: 1 }}>{phaseLabel}</Text>
               <Text selectable accessibilityLiveRegion="polite" style={{ color: "#FFFFFF", fontWeight: "900" }}>{progressLabel}</Text>
             </View>
@@ -6325,24 +7311,24 @@ function SemesterKickoff({ data, nav, theme, currentImport, accessState }: Scree
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: step.complete }}
                 accessibilityLabel={`${step.title}. ${step.complete ? copy.done : copy.next}. ${step.body}`}
-                style={{ flexDirection: "row", alignItems: "center", gap: 13, padding: 14, borderBottomWidth: index === steps.length - 1 ? 0 : 1, borderBottomColor: theme.hairline }}
+                style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 13, padding: 14, borderBottomWidth: index === steps.length - 1 ? 0 : 1, borderBottomColor: theme.hairline }}
               >
-                <View style={{ width: 44, height: 44, borderRadius: 15, alignItems: "center", justifyContent: "center", backgroundColor: step.complete ? `${COLORS.green}1F` : theme.surface2 }}>
-                  {step.complete ? <CheckCircle2 color={COLORS.green} size={23} /> : <Icon name={step.icon} color={theme.label3} size={22} />}
+                <View style={{ width: 44, height: 44, borderRadius: 15, alignItems: "center", justifyContent: "center", backgroundColor: step.complete ? compositeHexColor(COLORS.green, theme.surface, 0.12) : theme.surface2 }}>
+                  {step.complete ? <CheckCircle2 color={contrastSafeForegroundOn(COLORS.green, compositeHexColor(COLORS.green, theme.surface, 0.12))} size={23} /> : <Icon name={step.icon} color={theme.label3} size={22} />}
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text selectable style={{ color: theme.label, fontSize: 16, fontWeight: "900" }}>{step.title}</Text>
                   <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 3 }}>{step.body}</Text>
                 </View>
-                <Text selectable style={{ color: step.complete ? COLORS.green : theme.accent, fontSize: 12, fontWeight: "900" }}>{step.complete ? copy.done : copy.next}</Text>
+                <Text selectable style={{ color: semanticTextColor(step.complete ? COLORS.green : theme.accent, theme), fontSize: 12, fontWeight: "900" }}>{step.complete ? copy.done : copy.next}</Text>
               </View>
             ))}
           </Card>
 
           {progress.isComplete ? (
             <Card theme={theme} style={{ padding: 18, backgroundColor: theme.dark ? "#14231A" : "#EEFFF4", borderColor: `${COLORS.green}44` }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                <CheckCircle2 color={COLORS.green} size={26} />
+              <View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 12 }}>
+                <CheckCircle2 color={contrastSafeForegroundOn(COLORS.green, theme.dark ? "#14231A" : "#EEFFF4")} size={26} />
                 <View style={{ flex: 1 }}>
                   <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{copy.completeTitle}</Text>
                   <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 4 }}>{copy.completeBody}</Text>
@@ -6359,33 +7345,41 @@ function SemesterKickoff({ data, nav, theme, currentImport, accessState }: Scree
 }
 
 function Screen({ children, theme, bottom = 112 }: { children: React.ReactNode; theme: ReturnType<typeof palette>; bottom?: number }) {
+  const { fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const dynamicTypePadding = Math.max(0, Math.min(88, (fontScale - 1) * 44));
   return (
-    <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" style={{ flex: 1, backgroundColor: theme.bg }} contentContainerStyle={{ paddingTop: 58, paddingBottom: bottom }}>
+    <ScrollView ref={simulatorCaptureIsEnabled() ? registerSimulatorCaptureScrollView : undefined} contentInsetAdjustmentBehavior="automatic" contentOffset={simulatorCaptureContentOffset()} onScroll={simulatorCaptureIsEnabled() ? recordSimulatorCaptureScroll : undefined} onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureViewport : undefined} onContentSizeChange={simulatorCaptureIsEnabled() ? recordSimulatorCaptureContentSize : undefined} scrollEventThrottle={16} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" style={{ flex: 1, backgroundColor: theme.bg }} contentContainerStyle={{ paddingTop: Math.max(58, insets.top), paddingBottom: bottom + dynamicTypePadding + insets.bottom }}>
       {children}
     </ScrollView>
   );
 }
 
 function Header({ title, sub, right, theme }: { title: string; sub?: string; right?: React.ReactNode; theme: ReturnType<typeof palette> }) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   return (
-    <View style={{ paddingHorizontal: 20, paddingBottom: 12, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" }}>
-      <View style={{ flex: 1 }}>
-        {sub ? <Text selectable style={{ color: theme.label2, fontSize: 12.5, fontWeight: "700", marginBottom: 3 }}>{sub}</Text> : null}
-        <Text selectable style={{ color: theme.label, fontSize: 31, lineHeight: 34, fontWeight: "900" }}>{title}</Text>
+    <View style={{ paddingHorizontal: 20, paddingBottom: 12, flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "stretch" : "flex-end", justifyContent: "space-between", gap: 12 }}>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        {sub ? <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label2, fontSize: 12.5, fontWeight: "700", marginBottom: 3 }}>{sub}</Text> : null}
+        <Text selectable lineBreakStrategyIOS="standard" style={{ color: theme.label, fontSize: 31, lineHeight: 36, fontWeight: "900", flexShrink: 1 }}>{title}</Text>
       </View>
-      {right}
+      {right ? <View style={{ alignSelf: accessibilityLayout ? "flex-end" : "auto" }}>{right}</View> : null}
     </View>
   );
 }
 
 function BackHeader({ label, nav, theme, action, embedded = false }: { label?: string; nav: ScreenProps["nav"]; theme: ReturnType<typeof palette>; action?: React.ReactNode; embedded?: boolean }) {
+  const { fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const accessibilityLayout = fontScale >= 1.6;
   return (
-    <View style={{ paddingTop: embedded ? 0 : 54, paddingHorizontal: 18, paddingBottom: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: theme.bg }}>
-      <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} hitSlop={10} onPress={nav.back} style={{ width: 38, height: 38, borderRadius: 99, backgroundColor: theme.surface, alignItems: "center", justifyContent: "center" }}>
-        <ChevronLeft color={theme.label} size={21} strokeWidth={2.6} />
+    <View style={{ paddingTop: embedded ? 0 : Math.max(54, insets.top), paddingHorizontal: 18, paddingBottom: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, backgroundColor: theme.bg }}>
+      <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} hitSlop={10} onPress={nav.back} style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.surface, alignItems: "center", justifyContent: "center" }}>
+        <BackChevron color={theme.label} size={21} strokeWidth={2.6} />
       </Pressable>
-      <Text selectable style={{ color: theme.label, fontSize: 16, fontWeight: "800" }}>{label}</Text>
-      <View style={{ width: 38, height: 38, alignItems: "center", justifyContent: "center" }}>{action || null}</View>
+      <Text selectable numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: theme.label, fontSize: 16, lineHeight: 20, fontWeight: "800", flex: 1, textAlign: "center" }}>{label}</Text>
+      <View style={{ width: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}>{action || null}</View>
     </View>
   );
 }
@@ -6397,7 +7391,7 @@ function Card({ children, theme, style }: { children: React.ReactNode; theme: Re
 function RecoveryScreen({ title, body, action, nav, theme }: { title: string; body: string; action?: string; nav: ScreenProps["nav"]; theme: ReturnType<typeof palette> }) {
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      <BackHeader nav={nav} theme={theme} label={title} />
+      <BackHeader nav={nav} theme={theme} label={title} embedded />
       <View style={{ padding: 20, gap: 14 }}>
         <Card theme={theme} style={{ padding: 18 }}>
           <Text selectable style={{ color: theme.label, fontSize: 24, lineHeight: 28, fontWeight: "900" }}>{title}</Text>
@@ -6411,11 +7405,12 @@ function RecoveryScreen({ title, body, action, nav, theme }: { title: string; bo
 
 function Pill({ text, color, theme, icon }: { text: string; color?: string; theme: ReturnType<typeof palette>; icon?: string }) {
   const c = color || theme.label2;
-  const foreground = theme.dark ? c : contrastSafeLightForeground(c);
+  const pillBackground = /^#[0-9a-f]{6}$/i.test(c) ? compositeHexColor(c, theme.surface, 0.11) : theme.surface2;
+  const foreground = contrastSafeForegroundOn(c, pillBackground);
   return (
-    <View style={{ flexDirection: "row", gap: 5, alignItems: "center", alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: /^#[0-9a-f]{6}$/i.test(c) ? `${c}1C` : theme.surface2 }}>
+    <View style={{ flexDirection: "row", gap: 5, alignItems: "center", alignSelf: "flex-start", maxWidth: "100%", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: pillBackground }}>
       {icon ? <Icon name={icon} size={13} color={foreground} /> : null}
-      <Text selectable style={{ color: foreground, fontSize: 12, fontWeight: "800" }}>{text}</Text>
+      <Text selectable style={{ color: foreground, fontSize: 12, lineHeight: 16, fontWeight: "800", flexShrink: 1 }}>{text}</Text>
     </View>
   );
 }
@@ -6424,78 +7419,95 @@ function FieldInput({ label, value, onChangeText, placeholder, theme, multiline 
   return (
     <View style={{ marginBottom: 10 }}>
       <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 5 }}>{label}</Text>
-      <TextInput accessibilityLabel={label} value={value} onChangeText={onChangeText} placeholder={placeholder} placeholderTextColor={theme.label3} multiline={multiline} textAlignVertical={multiline ? "top" : "center"} style={{ minHeight: multiline ? 76 : 48, borderRadius: 13, backgroundColor: theme.surface2, color: theme.label, paddingHorizontal: 12, paddingVertical: 10, fontWeight: "800" }} />
+      <TextInput accessibilityLabel={label} value={value} onChangeText={onChangeText} placeholder={placeholder} placeholderTextColor={theme.label3} keyboardAppearance={theme.dark ? "dark" : "light"} multiline={multiline} textAlignVertical={multiline ? "top" : "center"} style={{ minHeight: multiline ? 76 : 48, borderRadius: 13, backgroundColor: theme.surface2, color: theme.label, paddingHorizontal: 12, paddingVertical: 10, fontWeight: "800" }} />
     </View>
   );
 }
 
+function ResponsiveRow({ children, gap = 10, style }: { children: React.ReactNode; gap?: number; style?: StyleProp<ViewStyle> }) {
+  const { fontScale } = useWindowDimensions();
+  return <View style={[{ flexDirection: fontScale >= 1.6 ? "column" : "row", gap }, style]}>{children}</View>;
+}
+
 function Section({ title, action, onAction, theme }: { title: string; action?: string; onAction?: () => void; theme: ReturnType<typeof palette> }) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   return (
-    <View style={{ paddingHorizontal: 4, paddingBottom: 9, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-      <Text selectable style={{ color: theme.label, fontSize: 19, fontWeight: "900" }}>{title}</Text>
-      {action && onAction ? <Pressable accessibilityRole="button" onPress={onAction}><Text style={{ color: theme.accent, fontSize: 14, fontWeight: "800" }}>{action}</Text></Pressable> : action ? <Text selectable style={{ color: theme.label2, fontSize: 14, fontWeight: "800" }}>{action}</Text> : null}
+    <View style={{ paddingHorizontal: 4, paddingBottom: 9, flexDirection: accessibilityLayout ? "column" : "row", justifyContent: "space-between", alignItems: accessibilityLayout ? "stretch" : "center", gap: accessibilityLayout ? 2 : 10, flexWrap: accessibilityLayout ? "nowrap" : "wrap" }}>
+      <Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label, fontSize: 19, lineHeight: 24, fontWeight: "900", flexGrow: accessibilityLayout ? 0 : 1, flexShrink: 1, width: accessibilityLayout ? "100%" : undefined, maxWidth: "100%", minWidth: 0 }}>{title}</Text>
+      {action && onAction ? <Pressable accessibilityRole="button" onPress={onAction} style={{ minHeight: 44, justifyContent: "center", alignSelf: accessibilityLayout ? "flex-start" : "auto" }}><Text style={{ color: theme.accent, fontSize: 14, fontWeight: "800" }}>{action}</Text></Pressable> : action ? <Text selectable style={{ color: theme.label2, fontSize: 14, lineHeight: 19, fontWeight: "800", flexShrink: accessibilityLayout ? 0 : 1, alignSelf: accessibilityLayout ? "flex-start" : "auto" }}>{action}</Text> : null}
     </View>
   );
 }
 
 function ClassGlyph({ c, size = 42 }: { c?: ClassItem; size?: number }) {
   const klass = c || FALLBACK_CLASS;
+  const foreground = foregroundForColor(klass.color);
   return (
-    <View style={{ width: size, height: size, borderRadius: Math.round(size * 0.3), backgroundColor: "#F2F2F7", borderWidth: 1, borderColor: "#E4E4EA", alignItems: "center", justifyContent: "center" }}>
-      <Icon name={klass.icon} color="#111111" size={Math.round(size * 0.52)} />
+    <View style={{ width: size, height: size, borderRadius: Math.round(size * 0.3), backgroundColor: klass.color, borderWidth: 1.5, borderColor: foreground, alignItems: "center", justifyContent: "center" }}>
+      <Icon name={klass.icon} color={foreground} size={Math.round(size * 0.52)} />
     </View>
   );
 }
 
 function ProgressBar({ value, color, theme, height = 8 }: { value: number; color: string; theme: ReturnType<typeof palette>; height?: number }) {
   const safeValue = Number.isFinite(value) ? value : 0;
+  const fillColor = contrastSafeForegroundOn(color, theme.surface3);
   return (
     <View style={{ height, borderRadius: 99, backgroundColor: theme.surface3, overflow: "hidden" }}>
-      <View style={{ height: "100%", width: `${Math.max(3, Math.min(100, safeValue * 100))}%`, borderRadius: 99, backgroundColor: color }} />
+      <View style={{ height: "100%", width: `${Math.max(3, Math.min(100, safeValue * 100))}%`, borderRadius: 99, backgroundColor: fillColor }} />
     </View>
   );
 }
 
 function TaskRow({ task, data, theme, onToggle, onOpen }: { task: TaskItem; data: AppData; theme: ReturnType<typeof palette>; onToggle: () => void; onOpen: () => void }) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const c = safeClassFor(data, task.classId);
   const dueDays = hasTaskDate(task) ? daysUntilTask(task) : 99;
   const dueColor = task.done ? theme.label3 : task.missing ? COLORS.orange : dueDays < 0 ? COLORS.red : dueDays === 0 ? COLORS.orange : dueDays <= 2 ? COLORS.blue : theme.label2;
+  const safeDueColor = semanticTextColor(dueColor, theme);
+  const completedColor = contrastSafeForegroundOn(COLORS.green, theme.surface);
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}>
+    <View style={{ flexDirection: "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 12, padding: 14 }}>
       <Pressable accessibilityRole="checkbox" accessibilityLabel={`${task.done ? textFor("task.reopen", "Reopen task") : textFor("task.mark_complete", "Mark complete")}: ${task.title}`} accessibilityHint={`${c.code}. ${taskDueLabel(task)}`} accessibilityState={{ checked: task.done }} hitSlop={8} onPress={onToggle} style={{ width: 44, height: 44, borderRadius: 99, alignItems: "center", justifyContent: "center" }}>
-        <View style={{ width: 27, height: 27, borderRadius: 99, borderWidth: task.done ? 0 : 2, borderColor: dueColor, backgroundColor: task.done ? COLORS.green : "transparent", alignItems: "center", justifyContent: "center" }}>
-        {task.done ? <Check color="#fff" size={17} strokeWidth={3} /> : null}
+        <View style={{ width: 27, height: 27, borderRadius: 99, borderWidth: task.done ? 0 : 2, borderColor: safeDueColor, backgroundColor: task.done ? completedColor : "transparent", alignItems: "center", justifyContent: "center" }}>
+        {task.done ? <Check color={foregroundForColor(completedColor)} size={17} strokeWidth={3} /> : null}
         </View>
       </Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel={`${task.title}, ${c.code}, ${taskDueLabel(task)}`} accessibilityHint={textFor("task.edit", "Open assignment details")} onPress={onOpen} style={{ flex: 1, minHeight: 44, flexDirection: "row", alignItems: "center", gap: 10 }}>
-        <View style={{ flex: 1 }}>
-          <Text selectable numberOfLines={1} style={{ color: task.done ? theme.label3 : theme.label, textDecorationLine: task.done ? "line-through" : "none", fontSize: 16, fontWeight: "800" }}>{task.title}</Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 3 }}>
-            <View style={{ width: 7, height: 7, borderRadius: 99, backgroundColor: dueColor }} />
+      <Pressable accessibilityRole="button" accessibilityLabel={`${task.title}, ${c.code}, ${taskDueLabel(task)}`} accessibilityHint={textFor("task.edit", "Open assignment details")} onPress={onOpen} style={{ flex: 1, minHeight: 44, flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "stretch" : "center", gap: 10 }}>
+        <View style={{ flex: 1, minWidth: 0, width: accessibilityLayout ? "100%" : undefined }}>
+          <Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: task.done ? theme.label3 : theme.label, textDecorationLine: task.done ? "line-through" : "none", fontSize: 16, fontWeight: "800" }}>{task.title}</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6, marginTop: 3 }}>
+            <View style={{ width: 7, height: 7, borderRadius: 99, backgroundColor: safeDueColor }} />
             <Text selectable style={{ color: theme.label2, fontSize: 12.5, fontWeight: "700" }}>{c.code}</Text>
-            <Text selectable style={{ color: dueColor, fontSize: 12.5, fontWeight: "800" }}>{taskDueLabel(task)}</Text>
+            <Text selectable style={{ color: safeDueColor, fontSize: 12.5, fontWeight: "800" }}>{taskDueLabel(task)}</Text>
           </View>
         </View>
-        {task.urgent && !task.done ? <View style={{ width: 8, height: 8, borderRadius: 99, backgroundColor: COLORS.red }} /> : null}
-        <ChevronRight color={theme.label3} size={17} />
+        <View style={{ flexDirection: "row", alignItems: "center", alignSelf: accessibilityLayout ? "flex-end" : "auto", gap: 8 }}>
+          {task.urgent && !task.done ? <View style={{ width: 8, height: 8, borderRadius: 99, backgroundColor: COLORS.red }} /> : null}
+          <ForwardChevron color={theme.label3} size={17} />
+        </View>
       </Pressable>
     </View>
   );
 }
 
 function NoteCard({ note, data, theme, onOpen }: { note: NoteItem; data: AppData; theme: ReturnType<typeof palette>; onOpen: () => void }) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const c = safeClassFor(data, note.classId);
   const insight = parseNoteInsights(note, data);
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={`${note.title}. ${c.code}. ${textFor("note.concepts", "{count} concepts", { count: insight.concepts.length })}`} accessibilityHint={textFor("note.accessibility_open_hint", "Open note details")} onPress={onOpen}>
       <Card theme={theme} style={{ padding: 15 }}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 9 }}>
+        <View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", justifyContent: "space-between", gap: accessibilityLayout ? 8 : 0, marginBottom: 9 }}>
           <Pill text={c.code} color={c.color} theme={theme} />
-          <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "700" }}>{new Date(note.createdAt).toLocaleDateString()}</Text>
+          <Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label2, fontSize: 12, fontWeight: "700", maxWidth: "100%" }}>{new Date(note.createdAt).toLocaleDateString()}</Text>
         </View>
         <Text selectable style={{ color: theme.label, fontSize: 16, fontWeight: "900", marginBottom: 5 }}>{note.title}</Text>
-        <Text selectable numberOfLines={2} style={{ color: theme.label2, fontSize: 14.5, lineHeight: 20 }}>{note.summary}</Text>
-        <View style={{ flexDirection: "row", gap: 6, marginTop: 10 }}>
+        <Text selectable numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: theme.label2, fontSize: 14.5, lineHeight: 20 }}>{note.summary}</Text>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
           <Pill text={textFor("note.concepts", "{count} concepts", { count: insight.concepts.length })} color={COLORS.purple} theme={theme} icon="sparkles" />
           {note.suggestedTasks.length ? <Pill text={textFor("note.tasks", "{count} tasks", { count: note.suggestedTasks.length })} color={COLORS.blue} theme={theme} icon="target" /> : null}
           {insight.formulas.length ? <Pill text={`${insight.formulas.length} formulas`} color={COLORS.green} theme={theme} /> : null}
@@ -6506,6 +7518,7 @@ function NoteCard({ note, data, theme, onOpen }: { note: NoteItem; data: AppData
 }
 
 function Welcome({ data, mutate, nav, theme }: ScreenProps) {
+  const insets = useSafeAreaInsets();
   const heroPulse = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const loop = Animated.loop(Animated.sequence([
@@ -6518,7 +7531,7 @@ function Welcome({ data, mutate, nav, theme }: ScreenProps) {
   const pulseScale = heroPulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.035] });
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      <ScrollView style={{ marginBottom: 112 }} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingTop: 58, paddingHorizontal: 24, paddingBottom: 24 }}>
+      <ScrollView ref={simulatorCaptureIsEnabled() ? registerSimulatorCaptureScrollView : undefined} style={{ flex: 1 }} contentInsetAdjustmentBehavior="automatic" contentOffset={simulatorCaptureContentOffset()} onScroll={simulatorCaptureIsEnabled() ? recordSimulatorCaptureScroll : undefined} onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureViewport : undefined} onContentSizeChange={simulatorCaptureIsEnabled() ? recordSimulatorCaptureContentSize : undefined} scrollEventThrottle={16} contentContainerStyle={{ paddingTop: Math.max(58, insets.top), paddingHorizontal: 24, paddingBottom: 24 + insets.bottom }}>
         <Animated.View style={{ transform: [{ scale: pulseScale }] }}>
           <RNImage source={require("./assets/icon.png")} style={{ width: 56, height: 56, borderRadius: 17, marginBottom: 18 }} />
         </Animated.View>
@@ -6527,9 +7540,9 @@ function Welcome({ data, mutate, nav, theme }: ScreenProps) {
         <AppStoreRatingProof theme={theme} />
         <Card theme={theme} style={{ padding: 16, marginBottom: 12, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
-            <View style={{ width: 72, height: 72, borderRadius: 999, borderWidth: 8, borderColor: COLORS.green, alignItems: "center", justifyContent: "center" }}>
-              <Text selectable style={{ color: theme.label, fontSize: 22, fontWeight: "900" }}>0</Text>
-              <Text selectable style={{ color: theme.label2, fontSize: 9, fontWeight: "900" }}>{textFor("welcome.preview", "preview")}</Text>
+            <View style={{ width: 72, height: 72, borderRadius: 999, borderWidth: 8, borderColor: contrastSafeForegroundOn(COLORS.green, theme.surface), alignItems: "center", justifyContent: "center" }}>
+              <Text selectable maxFontSizeMultiplier={1.4} style={{ color: theme.label, fontSize: 22, lineHeight: 25, fontWeight: "900" }}>0</Text>
+              <Text selectable maxFontSizeMultiplier={1.4} style={{ color: theme.label2, fontSize: 9, lineHeight: 11, fontWeight: "900" }}>{textFor("welcome.preview", "preview")}</Text>
             </View>
             <View style={{ flex: 1 }}>
               <Text selectable style={{ color: theme.label, fontSize: 19, fontWeight: "900" }}>{textFor("welcome.card_title", "syllabus in. Dashboard out.")}</Text>
@@ -6547,7 +7560,7 @@ function Welcome({ data, mutate, nav, theme }: ScreenProps) {
           </Card>
         ))}
       </ScrollView>
-      <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: 24, paddingBottom: 34, backgroundColor: "rgba(245,245,247,0.94)" }}>
+      <View style={{ flexShrink: 0, padding: 24, paddingBottom: Math.max(34, insets.bottom + 8), backgroundColor: theme.dark ? "rgba(18,18,22,0.96)" : "rgba(245,245,247,0.96)", borderTopWidth: 1, borderTopColor: theme.hairline }}>
         <Button label={textFor("welcome.import", "Import syllabus")} theme={theme} icon="upload" onPress={() => nav.push("onboarding")} />
       </View>
     </View>
@@ -6556,25 +7569,26 @@ function Welcome({ data, mutate, nav, theme }: ScreenProps) {
 
 function Button({ label, theme, onPress, secondary, icon }: { label: string; theme: ReturnType<typeof palette>; onPress?: () => void; secondary?: boolean; icon?: string }) {
   const disabled = !onPress;
+  const foreground = secondary || disabled ? theme.label : theme.accentText;
   return (
-    <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} hitSlop={6} onPress={() => { if (!disabled) { tap(); onPress?.(); } }} style={{ minHeight: 51, borderRadius: 999, backgroundColor: disabled ? theme.surface3 : secondary ? theme.surface3 : theme.accent, opacity: disabled ? 0.54 : 1, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, marginTop: 9, paddingHorizontal: 18 }}>
-      {icon ? <Icon name={icon} color={secondary || disabled ? theme.label : "#fff"} size={18} /> : null}
-      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78} style={{ color: secondary || disabled ? theme.label : "#fff", fontSize: 16, fontWeight: "900", flexShrink: 1 }}>{label}</Text>
+    <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} hitSlop={6} onPress={() => { if (!disabled) { tap(); onPress?.(); } }} style={{ minHeight: 52, borderRadius: 999, backgroundColor: disabled ? theme.surface3 : secondary ? theme.surface3 : theme.accent, opacity: disabled ? 0.54 : 1, alignItems: "center", justifyContent: "center", flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 9, paddingHorizontal: 18, paddingVertical: 13 }}>
+      {icon === "chevron-right" ? <ForwardChevron color={foreground} size={18} /> : icon === "chevron-left" ? <BackChevron color={foreground} size={18} /> : icon === "check" ? <Check color={foreground} size={18} /> : icon === "play" ? <Play color={foreground} size={18} /> : icon ? <Icon name={icon} color={foreground} size={18} /> : null}
+      <Text maxFontSizeMultiplier={2} style={{ color: foreground, fontSize: 16, lineHeight: 20, fontWeight: "900", flexShrink: 1, textAlign: "center" }}>{label}</Text>
     </Pressable>
   );
 }
 
 function MiniSemesterHealth({ theme }: { theme: ReturnType<typeof palette> }) {
   return (
-    <View style={{ width: "48%", borderRadius: 18, padding: 13, backgroundColor: "rgba(255,255,255,0.78)", borderWidth: 1, borderColor: theme.hairline }}>
+    <View style={{ width: "48%", borderRadius: 18, padding: 13, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.hairline }}>
       <Text selectable style={{ color: theme.label2, fontSize: 10, fontWeight: "900" }}>{textFor("locked.health", "SEMESTER HEALTH")}</Text>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 10 }}>
-        <View style={{ width: 52, height: 52, borderRadius: 99, borderWidth: 7, borderColor: COLORS.green, alignItems: "center", justifyContent: "center" }}>
-          <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>0</Text>
+        <View style={{ width: 52, height: 52, borderRadius: 99, borderWidth: 7, borderColor: contrastSafeForegroundOn(COLORS.green, theme.surface), alignItems: "center", justifyContent: "center" }}>
+          <Text selectable maxFontSizeMultiplier={1.4} style={{ color: theme.label, fontSize: 17, lineHeight: 20, fontWeight: "900" }}>0</Text>
         </View>
         <View style={{ flex: 1 }}>
           <Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{textFor("mini.builds_live", "Builds live")}</Text>
-          <Text selectable numberOfLines={1} style={{ color: COLORS.green, fontSize: 12, fontWeight: "900" }}>{textFor("mini.after_import", "after import")}</Text>
+          <Text selectable numberOfLines={1} style={{ color: semanticTextColor(COLORS.green, theme), fontSize: 12, fontWeight: "900" }}>{textFor("mini.after_import", "after import")}</Text>
         </View>
       </View>
     </View>
@@ -6583,7 +7597,7 @@ function MiniSemesterHealth({ theme }: { theme: ReturnType<typeof palette> }) {
 
 function MiniPressureForecast({ theme }: { theme: ReturnType<typeof palette> }) {
   return (
-    <View style={{ width: "48%", borderRadius: 18, padding: 13, backgroundColor: "rgba(255,255,255,0.78)", borderWidth: 1, borderColor: theme.hairline }}>
+    <View style={{ width: "48%", borderRadius: 18, padding: 13, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.hairline }}>
       <Text selectable style={{ color: theme.label2, fontSize: 10, fontWeight: "900" }}>{textFor("mini.pressure", "PRESSURE FORECAST")}</Text>
       <Text selectable style={{ color: theme.label, fontSize: 16, fontWeight: "900", marginTop: 8 }}>{textFor("mini.after_import", "After import")}</Text>
       <View style={{ flexDirection: "row", gap: 5, alignItems: "flex-end", height: 48, marginTop: 8 }}>
@@ -6595,13 +7609,13 @@ function MiniPressureForecast({ theme }: { theme: ReturnType<typeof palette> }) 
 
 function MiniClassPulse({ theme }: { theme: ReturnType<typeof palette> }) {
   return (
-    <View style={{ width: "48%", borderRadius: 18, padding: 13, backgroundColor: "rgba(255,255,255,0.78)", borderWidth: 1, borderColor: theme.hairline }}>
+    <View style={{ width: "48%", borderRadius: 18, padding: 13, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.hairline }}>
       <Text selectable style={{ color: theme.label2, fontSize: 10, fontWeight: "900" }}>{textFor("mini.class_pulse", "CLASS PULSE")}</Text>
       <View style={{ flexDirection: "row", gap: 9, alignItems: "center", marginTop: 10 }}>
-        <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: "#F2F2F7", alignItems: "center", justifyContent: "center" }}><Icon name="classes" size={20} /></View>
+        <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: theme.surface2, alignItems: "center", justifyContent: "center" }}><Icon name="classes" color={theme.label} size={20} /></View>
         <View style={{ flex: 1 }}>
           <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("tabs.classes", "Classes")}</Text>
-          <Text selectable style={{ color: COLORS.orange, fontSize: 12, fontWeight: "900" }}>{textFor("widgets.locked", "locked")}</Text>
+          <Text selectable style={{ color: semanticTextColor(COLORS.orange, theme), fontSize: 12, fontWeight: "900" }}>{textFor("widgets.locked", "locked")}</Text>
         </View>
       </View>
       <Text selectable numberOfLines={1} style={{ color: theme.label2, fontSize: 12, marginTop: 8 }}>{textFor("mini.no_fake", "No fake courses")}</Text>
@@ -6611,7 +7625,7 @@ function MiniClassPulse({ theme }: { theme: ReturnType<typeof palette> }) {
 
 function MiniNotesPreparedness({ theme }: { theme: ReturnType<typeof palette> }) {
   return (
-    <View style={{ width: "48%", borderRadius: 18, padding: 13, backgroundColor: "rgba(255,255,255,0.78)", borderWidth: 1, borderColor: theme.hairline }}>
+    <View style={{ width: "48%", borderRadius: 18, padding: 13, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.hairline }}>
       <Text selectable style={{ color: theme.label2, fontSize: 10, fontWeight: "900" }}>{textFor("mini.notes_preparedness", "NOTES PREPAREDNESS")}</Text>
       <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900", marginTop: 8 }}>{textFor("mini.locked", "Locked")}</Text>
       <ProgressBar value={0} color={COLORS.purple} theme={theme} />
@@ -6622,7 +7636,7 @@ function MiniNotesPreparedness({ theme }: { theme: ReturnType<typeof palette> })
 
 function MiniNextMove({ theme }: { theme: ReturnType<typeof palette> }) {
   return (
-    <View style={{ width: "48%", borderRadius: 18, padding: 13, backgroundColor: "rgba(255,255,255,0.78)", borderWidth: 1, borderColor: theme.hairline }}>
+    <View style={{ width: "48%", borderRadius: 18, padding: 13, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.hairline }}>
       <Text selectable style={{ color: theme.label2, fontSize: 10, fontWeight: "900" }}>{textFor("mini.next_move", "NEXT MOVE")}</Text>
       <Text selectable style={{ color: theme.label, fontSize: 16, fontWeight: "900", marginTop: 8 }}>{textFor("mini.first_action", "First action")}</Text>
       <Text selectable numberOfLines={1} style={{ color: theme.label2, fontSize: 12, marginTop: 4 }}>{textFor("mini.after_import", "after import")}</Text>
@@ -6662,6 +7676,10 @@ function AppStoreRatingProof({ theme, dark = false }: { theme: ReturnType<typeof
 }
 
 function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
+  const { fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const accessibilityLayout = fontScale >= 1.6;
+  const stackChoiceCards = fontScale >= 1.2;
   const steps = ["name", "priorities", "build"];
   const studentTypeOptions = ["High school classes", "College courses", "Grad school", "Online classes"];
   const goalOptions = ["Deadlines", "Exams", "Notes", "Grades", "Everything"];
@@ -6713,7 +7731,7 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
   const cameraIntentSelected = profile.scanIntent === "Scan with camera";
   const prioritiesComplete = Boolean(profile.studentType && profile.mainGoal);
   const semesterTheme = resolveSemesterThemeColor(profile.semesterThemeColorId);
-  const onboardingAccent = "#111114";
+  const onboardingAccent = theme.accent;
   const onboardingTheme = { ...theme, accent: onboardingAccent };
   const coursePalette = semesterTheme.courseColors.length >= 4 ? semesterTheme.courseColors : [onboardingAccent, COLORS.blue, COLORS.green, COLORS.orange];
   const loopRadius = 20;
@@ -6793,7 +7811,7 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
         const on = profile[key] === opt;
         return (
           <Pressable key={opt} accessibilityRole="radio" accessibilityLabel={optionText(opt)} accessibilityState={{ selected: on }} onPress={() => pick(key, opt)}>
-            <Card theme={theme} style={{ padding: 17, flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderColor: on ? onboardingAccent : theme.hairline, borderWidth: on ? 2 : 1, backgroundColor: on ? "#FFFFFF" : "rgba(255,255,255,0.72)" }}>
+            <Card theme={theme} style={{ padding: 17, flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderColor: on ? onboardingAccent : theme.hairline, borderWidth: on ? 2 : 1, backgroundColor: on ? theme.surface2 : theme.surface }}>
               <Text selectable style={{ color: theme.label, fontSize: 16, fontWeight: "900" }}>{optionText(opt)}</Text>
               {on ? <CheckCircle2 color={onboardingAccent} size={22} /> : <Circle color={theme.label3} size={22} />}
             </Card>
@@ -6813,9 +7831,9 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
             accessibilityLabel={optionText(opt)}
             accessibilityState={{ selected: on }}
             onPress={() => pick(key, opt)}
-            style={{ width: "48%", minHeight: 68 }}
+            style={{ width: stackChoiceCards ? "100%" : "48%", minHeight: 68 }}
           >
-            <Card theme={theme} style={{ flex: 1, minHeight: 68, padding: 13, flexDirection: "row", gap: 8, alignItems: "center", borderColor: on ? onboardingAccent : theme.hairline, borderWidth: on ? 2 : 1, backgroundColor: on ? "#FFFFFF" : "rgba(255,255,255,0.72)" }}>
+            <Card theme={theme} style={{ flex: 1, minHeight: 68, padding: 13, flexDirection: "row", gap: 8, alignItems: "center", borderColor: on ? onboardingAccent : theme.hairline, borderWidth: on ? 2 : 1, backgroundColor: on ? theme.surface2 : theme.surface }}>
               <Text selectable numberOfLines={2} style={{ color: theme.label, fontSize: 14, lineHeight: 18, fontWeight: "900", flex: 1 }}>{optionText(opt)}</Text>
               {on ? <CheckCircle2 color={onboardingAccent} size={19} /> : <Circle color={theme.label3} size={19} />}
             </Card>
@@ -6825,29 +7843,29 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
     </View>
   );
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: "#F5F5F7" }}>
-      <View style={{ paddingTop: 58, paddingHorizontal: 24, flexDirection: "row", alignItems: "center", gap: 8 }}>
-        {index ? <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} hitSlop={11} onPress={() => setIndex(index - 1)} style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}><ChevronLeft color={theme.label2} size={22} /></Pressable> : <View style={{ width: 44 }} />}
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: theme.bg }}>
+      <View style={{ paddingTop: Math.max(58, insets.top), paddingHorizontal: 24, flexDirection: "row", alignItems: "center", gap: 8 }}>
+        {index ? <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} hitSlop={11} onPress={() => setIndex(index - 1)} style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}><BackChevron color={theme.label2} size={22} /></Pressable> : <View style={{ width: 44 }} />}
         <View style={{ flex: 1, flexDirection: "row", gap: 5 }}>{steps.map((_, i) => <View key={i} style={{ flex: 1, height: 5, borderRadius: 99, backgroundColor: i <= index ? onboardingAccent : theme.surface3 }} />)}</View>
       </View>
-      <ScrollView style={{ flex: 1 }} contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" contentContainerStyle={{ padding: 24, paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={simulatorCaptureIsEnabled() ? registerSimulatorCaptureScrollView : undefined} style={{ flex: 1 }} contentInsetAdjustmentBehavior="automatic" contentOffset={simulatorCaptureContentOffset()} onScroll={simulatorCaptureIsEnabled() ? recordSimulatorCaptureScroll : undefined} onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureViewport : undefined} onContentSizeChange={simulatorCaptureIsEnabled() ? recordSimulatorCaptureContentSize : undefined} scrollEventThrottle={16} keyboardDismissMode="interactive" contentContainerStyle={{ padding: 24, paddingBottom: 24 + insets.bottom }} keyboardShouldPersistTaps="handled">
         <Animated.View style={motionStyle}>
           {step === "name" ? (
             <>
-              <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: "#0A0A0D", alignItems: "center", justifyContent: "center", marginBottom: 22 }}><Icon name="sparkles" color="#fff" size={27} /></View>
+              <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: theme.surface3, alignItems: "center", justifyContent: "center", marginBottom: 22 }}><Icon name="sparkles" color={theme.label} size={27} /></View>
               <Text selectable style={{ color: theme.label, fontSize: 36, lineHeight: 39, fontWeight: "900" }}>{textFor("onboarding.name_title", "What should StudyPlanner call you?")}</Text>
               <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginTop: 10 }}>{textFor("onboarding.name_sub", "Let's build your semester.")}</Text>
-              <TextInput accessibilityLabel={textFor("onboarding.name_placeholder", "Your first name")} autoFocus value={profile.name} onChangeText={(name) => setProfile((current) => ({ ...current, name }))} placeholder={textFor("onboarding.name_placeholder", "Your first name")} placeholderTextColor={theme.label3} selectionColor={onboardingAccent} returnKeyType="next" onSubmitEditing={() => { if (cleanProfileName) next(); }} style={{ marginTop: 26, minHeight: 58, borderRadius: 20, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: theme.hairline, color: theme.label, paddingHorizontal: 18, fontSize: 20, fontWeight: "900" }} />
+              <TextInput accessibilityLabel={textFor("onboarding.name_placeholder", "Your first name")} autoFocus={!accessibilityLayout} value={profile.name} onChangeText={(name) => setProfile((current) => ({ ...current, name }))} placeholder={textFor("onboarding.name_placeholder", "Your first name")} placeholderTextColor={theme.label3} keyboardAppearance={theme.dark ? "dark" : "light"} selectionColor={onboardingAccent} returnKeyType="next" onSubmitEditing={() => { if (cleanProfileName) next(); }} style={{ marginTop: 26, minHeight: 58, borderRadius: 20, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.hairline, color: theme.label, paddingHorizontal: 18, paddingVertical: 12, fontSize: 20, fontWeight: "900" }} />
               {profile.name.trim() ? <Text selectable style={{ color: theme.label, fontSize: 20, lineHeight: 25, fontWeight: "900", marginTop: 22 }}>{textFor("onboarding.nice", "Nice, {name}.", { name: firstName })}</Text> : null}
             </>
           ) : null}
           {step === "priorities" ? (
             <>
-              <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: "#0A0A0D", alignItems: "center", justifyContent: "center", marginBottom: 20 }}><Icon name="graduation-cap" color="#fff" size={27} /></View>
+              <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: theme.surface3, alignItems: "center", justifyContent: "center", marginBottom: 20 }}><Icon name="graduation-cap" color={theme.label} size={27} /></View>
               <Text selectable style={{ color: theme.label, fontSize: 34, lineHeight: 38, fontWeight: "900" }}>{textFor("onboarding.student_title", "What are you managing?")}</Text>
               <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginTop: 8, marginBottom: 17 }}>{textFor("onboarding.artifacts_sub", "Your answers tune the first plan, deadlines, and study rhythm before anything saves.")}</Text>
               {renderChoiceGrid("studentType", studentTypeOptions)}
-              <Text selectable style={{ color: theme.label, fontSize: 24, lineHeight: 28, fontWeight: "900", marginTop: 24, marginBottom: 12 }}>{textFor("onboarding.goal_title", "What do you want under control?")}</Text>
+              <Text selectable maxFontSizeMultiplier={1.6} style={{ color: theme.label, fontSize: 24, lineHeight: 28, fontWeight: "900", marginTop: 24, marginBottom: 12 }}>{textFor("onboarding.goal_title", "What do you want under control?")}</Text>
               {renderChoiceGrid("mainGoal", goalOptions)}
             </>
           ) : null}
@@ -6855,15 +7873,15 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
             <>
               <Text selectable style={{ color: theme.label, fontSize: 34, lineHeight: 37, fontWeight: "900", marginBottom: 8 }}>{buildTitle}</Text>
               <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginBottom: 14 }}>{textFor("onboarding.paywall_first", "Unlock first, then scan, paste, or add manually. You still review everything before it saves.")}</Text>
-              <View accessible accessibilityLabel={`${optionText(profile.studentType)}. ${optionText(profile.mainGoal)}.`} style={{ borderRadius: 18, padding: 13, backgroundColor: "rgba(17,17,20,0.06)", flexDirection: "row", alignItems: "center", gap: 11, marginBottom: 14 }}>
-                <View style={{ width: 38, height: 38, borderRadius: 13, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center" }}><Icon name="graduation-cap" color={onboardingAccent} size={20} /></View>
+              <View accessible accessibilityLabel={`${optionText(profile.studentType)}. ${optionText(profile.mainGoal)}.`} style={{ borderRadius: 18, padding: 13, backgroundColor: theme.surface2, flexDirection: "row", alignItems: "center", gap: 11, marginBottom: 14 }}>
+                <View style={{ width: 38, height: 38, borderRadius: 13, backgroundColor: theme.surface, alignItems: "center", justifyContent: "center" }}><Icon name="graduation-cap" color={onboardingAccent} size={20} /></View>
                 <View style={{ flex: 1 }}>
                   <Text selectable style={{ color: theme.label, fontSize: 15, fontWeight: "900" }}>{optionText(profile.studentType)}</Text>
                   <Text selectable style={{ color: theme.label2, fontSize: 13, fontWeight: "800", marginTop: 2 }}>{optionText(profile.mainGoal)}</Text>
                 </View>
                 <CheckCircle2 color={COLORS.green} size={21} />
               </View>
-              <LiquidGlassSurface tintColor="rgba(255,255,255,0.76)" style={{ borderRadius: 26, padding: 16, backgroundColor: "rgba(255,255,255,0.78)", borderWidth: 1, borderColor: "rgba(17,17,20,0.10)", gap: 13, marginBottom: 14 }} fallbackStyle={{ backgroundColor: "#FFFFFF" }}>
+              <LiquidGlassSurface tintColor={theme.dark ? "rgba(23,23,28,0.76)" : "rgba(255,255,255,0.76)"} colorScheme={theme.dark ? "dark" : "light"} style={{ borderRadius: 26, padding: 16, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.hairline, gap: 13, marginBottom: 14 }} fallbackStyle={{ backgroundColor: theme.surface }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                   <View style={{ width: 46, height: 46, borderRadius: 16, backgroundColor: "#111114", alignItems: "center", justifyContent: "center" }}>
                     <Icon name="target" color="#FFFFFF" size={22} />
@@ -6873,11 +7891,11 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
                     <Text selectable style={{ color: theme.label, fontSize: 20, lineHeight: 23, fontWeight: "900", marginTop: 2 }}>{textFor("onboarding.theme_ready", "Ready to build")}</Text>
                   </View>
                 </View>
-                <View style={{ flexDirection: "row", gap: 8 }}>
+                <View style={{ flexDirection: "row", flexWrap: stackChoiceCards ? "wrap" : "nowrap", gap: 8 }}>
                   {loopFeedback.map((item) => (
-                    <View key={`semester-loop-${item.label}`} style={{ flex: 1, minWidth: 0, alignItems: "center", gap: 2 }}>
+                    <View key={`semester-loop-${item.label}`} style={{ flex: stackChoiceCards ? 0 : 1, flexBasis: stackChoiceCards ? "48%" : undefined, minWidth: 0, minHeight: 66, alignItems: "center", justifyContent: "center", gap: 3 }}>
                       <Svg width={44} height={44} viewBox="0 0 50 50">
-                        <SvgCircle cx={25} cy={25} r={loopRadius} stroke="rgba(17,17,20,0.08)" strokeWidth={7} fill="none" />
+                        <SvgCircle cx={25} cy={25} r={loopRadius} stroke={theme.hairline} strokeWidth={7} fill="none" />
                         <SvgCircle
                           cx={25}
                           cy={25}
@@ -6891,7 +7909,7 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
                           transform="rotate(-90 25 25)"
                         />
                       </Svg>
-                      <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: theme.label2, fontSize: 9, fontWeight: "900", maxWidth: "100%" }}>{item.label}</Text>
+                      <Text selectable numberOfLines={2} style={{ color: theme.label2, fontSize: 11, lineHeight: 14, fontWeight: "900", maxWidth: "100%", textAlign: "center" }}>{item.label}</Text>
                     </View>
                   ))}
                 </View>
@@ -6910,7 +7928,7 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
           ) : null}
         </Animated.View>
       </ScrollView>
-      <LiquidGlassSurface tintColor="rgba(245,245,247,0.72)" style={{ padding: 24, paddingBottom: 34, backgroundColor: "rgba(245,245,247,0.92)" }} fallbackStyle={{ backgroundColor: "rgba(245,245,247,0.94)" }}>
+      <LiquidGlassSurface tintColor={theme.dark ? "rgba(18,18,22,0.82)" : "rgba(245,245,247,0.82)"} colorScheme={theme.dark ? "dark" : "light"} style={{ padding: accessibilityLayout ? 16 : 24, paddingBottom: Math.max(accessibilityLayout ? 20 : 34, insets.bottom + 8), backgroundColor: theme.dark ? "rgba(18,18,22,0.96)" : "rgba(245,245,247,0.96)", borderTopWidth: 1, borderTopColor: theme.hairline }} fallbackStyle={{ backgroundColor: theme.dark ? "#121216" : "#F5F5F7" }}>
         <Button
           label={step !== "build" ? textFor("common.continue", "Continue") : cameraIntentSelected ? textFor("onboarding.unlock_to_scan", "Unlock to scan") : textFor("onboarding.unlock_to_continue", "Unlock to continue")}
           theme={onboardingTheme}
@@ -6923,6 +7941,7 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
 }
 
 function ImportOptions({ data, mutate, nav, theme }: ScreenProps) {
+  const insets = useSafeAreaInsets();
   const completeAnd = (route: "scan" | "paste", params?: Record<string, string>) => {
     mutate((d) => ({
       ...d,
@@ -6937,9 +7956,9 @@ function ImportOptions({ data, mutate, nav, theme }: ScreenProps) {
     else nav.push("paywall", { next: "scan", action: params?.action || "pdf" });
   };
   return (
-    <View style={{ flex: 1, backgroundColor: "#F5F5F7" }}>
-      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingTop: 72, paddingHorizontal: 22, paddingBottom: 120 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} hitSlop={10} onPress={nav.back} style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.surface, alignItems: "center", justifyContent: "center", marginBottom: 18 }}><ChevronLeft color={theme.label} /></Pressable>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <ScrollView ref={simulatorCaptureIsEnabled() ? registerSimulatorCaptureScrollView : undefined} contentInsetAdjustmentBehavior="automatic" contentOffset={simulatorCaptureContentOffset()} onScroll={simulatorCaptureIsEnabled() ? recordSimulatorCaptureScroll : undefined} onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureViewport : undefined} onContentSizeChange={simulatorCaptureIsEnabled() ? recordSimulatorCaptureContentSize : undefined} scrollEventThrottle={16} contentContainerStyle={{ paddingTop: Math.max(72, insets.top), paddingHorizontal: 22, paddingBottom: 120 + insets.bottom }}>
+        <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} hitSlop={10} onPress={nav.back} style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.surface, alignItems: "center", justifyContent: "center", marginBottom: 18 }}><BackChevron color={theme.label} /></Pressable>
         <Text selectable style={{ color: theme.label, fontSize: 38, lineHeight: 41, fontWeight: "900" }}>{textFor("onboarding.build_title", "Build your semester.")}</Text>
         <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22, marginTop: 8, marginBottom: 20 }}>{textFor("paywall.sub_no_import", "Unlock first, then scan or import. StudyPlanner shows every extracted row for review before anything saves.")}</Text>
         <Card theme={theme} style={{ padding: 17, backgroundColor: "#111114", marginBottom: 18 }}>
@@ -6959,7 +7978,7 @@ function ImportOptions({ data, mutate, nav, theme }: ScreenProps) {
                 <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>{title}</Text>
                 <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 3 }}>{body}</Text>
               </View>
-              <ChevronRight color={theme.label3} size={18} />
+              <ForwardChevron color={theme.label3} size={18} />
             </Card>
           </Pressable>
         ))}
@@ -6969,6 +7988,8 @@ function ImportOptions({ data, mutate, nav, theme }: ScreenProps) {
 }
 
 function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const firstName = firstNameFromPrefs(data);
   const approved = currentImport?.candidates.filter((candidate) => candidate.approved) || [];
   const previewSummary = {
@@ -7007,7 +8028,7 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
             ].map(([step, label]) => (
               <View key={`locked-step-${step}`} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 <View style={{ width: 28, height: 28, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.14)", alignItems: "center", justifyContent: "center" }}>
-                  <Text selectable style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "900" }}>{step}</Text>
+                  <Text selectable allowFontScaling={false} style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "900" }}>{step}</Text>
                 </View>
                 <Text selectable style={{ color: "#FFFFFF", flex: 1, fontSize: 16, fontWeight: "900" }}>{label}</Text>
               </View>
@@ -7016,10 +8037,10 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
           <View style={{ marginTop: 16 }}>
             <Pressable accessibilityRole="button" onPress={() => nav.push("paywall", { next: "scan", action: "camera" })} style={{ minHeight: 51, borderRadius: 999, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
               <Icon name="camera" color="#111114" size={18} />
-              <Text style={{ color: "#111114", fontWeight: "900" }}>{textFor("locked.scan", "Unlock camera scan")}</Text>
+              <Text maxFontSizeMultiplier={1.8} style={{ color: "#111114", fontWeight: "900", textAlign: "center", flexShrink: 1 }}>{textFor("locked.scan", "Unlock camera scan")}</Text>
             </Pressable>
-            <Pressable accessibilityRole="button" onPress={() => nav.push("paywall", { next: "paste", mode: "manual" })} style={{ minHeight: 48, borderRadius: 999, borderWidth: 1, borderColor: "rgba(255,255,255,0.22)", alignItems: "center", justifyContent: "center", marginTop: 10 }}>
-              <Text style={{ color: "#FFFFFF", fontWeight: "900" }}>{textFor("classes.add_manual", "Add class manually")}</Text>
+            <Pressable accessibilityRole="button" onPress={() => nav.push("paywall", { next: "paste", mode: "manual" })} style={{ minHeight: 48, borderRadius: 999, borderWidth: 1, borderColor: "rgba(255,255,255,0.35)", alignItems: "center", justifyContent: "center", marginTop: 10 }}>
+              <Text maxFontSizeMultiplier={1.8} style={{ color: "#FFFFFF", fontWeight: "900", textAlign: "center", flexShrink: 1 }}>{textFor("classes.add_manual", "Add class manually")}</Text>
             </Pressable>
           </View>
         </View>
@@ -7027,7 +8048,7 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
         {hasPreview ? (
           <Card theme={theme} style={{ padding: 17, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}>
             <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 10 }}>{textFor("paywall.ready_apply", "Ready to apply")}</Text>
-            <View style={{ flexDirection: "row", gap: 9, marginBottom: 12 }}>
+            <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 9, marginBottom: 12 }}>
               <MiniMetric value={previewSummary.classes} label={textFor("review.classes", "classes")} color={COLORS.blue} theme={theme} />
               <MiniMetric value={previewSummary.assignments} label={textFor("review.assignments", "assignments")} color={COLORS.orange} theme={theme} />
               <MiniMetric value={previewSummary.exams} label={textFor("review.exams", "exams")} color={COLORS.purple} theme={theme} />
@@ -7039,7 +8060,7 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
         ) : null}
 
         <Card theme={theme} style={{ padding: 18, backgroundColor: theme.surface }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", justifyContent: "space-between", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 10, marginBottom: 14 }}>
             <View>
               <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("locked.health", "SEMESTER HEALTH")}</Text>
               <Text selectable style={{ color: theme.label, fontSize: 25, lineHeight: 29, fontWeight: "900", marginTop: 4 }}>{textFor("locked.health_title", "Locked preview")}</Text>
@@ -7050,9 +8071,9 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
           <View style={{ gap: 10 }}>
             {features.map(([title, body], index) => (
               <View key={`locked-feature-${index}`} style={{ padding: 12, borderRadius: 15, backgroundColor: theme.surface2, borderWidth: 1, borderColor: theme.hairline }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   <Lock color={theme.label3} size={15} />
-                  <Text selectable style={{ color: theme.label, fontWeight: "900", flex: 1 }}>{title}</Text>
+                  <Text selectable style={{ color: theme.label, fontWeight: "900", flexGrow: 1, flexShrink: 1 }}>{title}</Text>
                   <Text selectable style={{ color: theme.label3, fontWeight: "900", fontSize: 12 }}>{textFor("locked.after_scan", "after scan")}</Text>
                 </View>
                 <View style={{ height: 8, borderRadius: 999, backgroundColor: theme.hairline, marginTop: 10, overflow: "hidden" }}>
@@ -7090,7 +8111,7 @@ function LegalScreen({ nav, theme, kind }: ScreenProps & { kind: "terms" | "priv
       ];
   return (
     <Screen theme={theme}>
-      <BackHeader nav={nav} theme={theme} label={title} />
+      <BackHeader nav={nav} theme={theme} label={title} embedded />
       <View style={{ paddingHorizontal: 16, gap: 14 }}>
         <Header title={title} sub="StudyPlanner" theme={theme} />
         <Card theme={theme} style={{ overflow: "hidden" }}>
@@ -7111,6 +8132,10 @@ function LegalScreen({ nav, theme, kind }: ScreenProps & { kind: "terms" | "priv
 }
 
 function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentImport, setEntitlementStatus }: ScreenProps) {
+  const { fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const accessibilityLayout = fontScale >= 1.6;
+  const captureQa = simulatorCaptureIsEnabled() && Boolean(activeSimulatorCaptureConfig?.captureNonce);
   const initialPlans = useMemo(() => fallbackPlans(), []);
   const initialSelectedPlan = initialPlans.find((plan) => plan.recommended)?.id || initialPlans[0]?.id || "";
   const firstName = firstNameFromPrefs(data);
@@ -7118,8 +8143,10 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
   const [selected, setSelected] = useState(initialSelectedPlan);
   const [eligibleTrialProductIds, setEligibleTrialProductIds] = useState<string[]>([]);
   const [storePlansReady, setStorePlansReady] = useState(Boolean(initialPlans[0]?.id));
-  const [busy, setBusy] = useState<"loading" | "purchase" | "restore" | "checking" | null>("loading");
-  const [message, setMessage] = useState(textFor("paywall.message_loading", "Connecting to the App Store..."));
+  const [busy, setBusy] = useState<"loading" | "purchase" | "restore" | "checking" | null>(captureQa ? null : "loading");
+  const [message, setMessage] = useState(captureQa
+    ? textFor("paywall.message_store_sheet", "Unlock when ready. The App Store shows the current price and terms before purchase.")
+    : textFor("paywall.message_loading", "Connecting to the App Store..."));
   const [reviewAccessCode, setReviewAccessCode] = useState("");
   const reviewAccessEnabled = googlePlayReviewAccessEnabled();
 
@@ -7135,6 +8162,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
   };
 
   useEffect(() => {
+    if (captureQa) return;
     let mounted = true;
     const storeReady = initializeStudyPlannerStore();
     Promise.allSettled([storeReady, storeReady.then(() => loadStorePlans()), storeReady.then(() => checkStudyPlannerEntitlement())])
@@ -7169,9 +8197,10 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [captureQa]);
 
   useEffect(() => {
+    if (captureQa) return;
     let mounted = true;
     setEligibleTrialProductIds([]);
     loadEligibleIntroOfferProductIds(plans)
@@ -7184,7 +8213,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
     return () => {
       mounted = false;
     };
-  }, [plans]);
+  }, [captureQa, plans]);
 
   const selectedPlan = plans.find((plan) => plan.id === selected) || plans[0] || initialPlans[0];
 
@@ -7318,14 +8347,32 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
   const selectedPlanSummary = selectedPlanHasOneWeekTrial
     ? textFor("paywall.trial_summary", "1 week free, then {price}/{plan}. Auto-renews until canceled.", { price: selectedPlan.displayPrice, plan: selectedPlanPeriodLabel })
     : selectedPlan.displayPrice;
+  const trialCardBackground = theme.dark ? "#10261E" : "#E9F5F0";
+  const purchasePanel = (
+    <LiquidGlassSurface
+      tintColor={theme.dark ? "rgba(18,18,22,0.90)" : "rgba(250,250,252,0.92)"}
+      colorScheme={theme.dark ? "dark" : "light"}
+      style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: Math.max(accessibilityLayout ? 18 : 30, insets.bottom + 8), backgroundColor: theme.dark ? "rgba(18,18,22,0.96)" : "rgba(250,250,252,0.97)", borderTopWidth: 1, borderTopColor: theme.hairline }}
+      fallbackStyle={{ backgroundColor: theme.bg }}
+    >
+      <View accessible accessibilityLabel={`${selectedPlanLabel}. ${selectedPlanSummary}`} style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "stretch" : "center", gap: 12, marginBottom: 8 }}>
+        <View style={{ flex: 1 }}>
+          <Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, fontSize: 14, fontWeight: "900" }}>{selectedPlanLabel}</Text>
+          {selectedPlanSummary !== selectedPlan.displayPrice ? <Text selectable numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: theme.label2, fontSize: 11.5, lineHeight: 16, fontWeight: "800", marginTop: 2 }}>{selectedPlanSummary}</Text> : null}
+        </View>
+        <Text selectable style={{ color: theme.label, fontSize: 14, fontWeight: "900" }}>{selectedPlan.displayPrice}</Text>
+      </View>
+      <Button label={purchaseLabel} theme={theme} icon="crown" onPress={busy || !storePlansReady ? undefined : purchase} />
+    </LiquidGlassSurface>
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: 58, paddingHorizontal: 20, paddingBottom: 180 }}>
+      <ScrollView ref={simulatorCaptureIsEnabled() ? registerSimulatorCaptureScrollView : undefined} contentInsetAdjustmentBehavior="automatic" contentOffset={simulatorCaptureContentOffset()} onScroll={simulatorCaptureIsEnabled() ? recordSimulatorCaptureScroll : undefined} onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureViewport : undefined} onContentSizeChange={simulatorCaptureIsEnabled() ? recordSimulatorCaptureContentSize : undefined} scrollEventThrottle={16} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: Math.max(58, insets.top), paddingHorizontal: 20, paddingBottom: (accessibilityLayout ? 24 : 180) + insets.bottom }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
           <RNImage source={require("./assets/icon.png")} style={{ width: 52, height: 52, borderRadius: 16 }} />
           <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} accessibilityHint={textFor("accessibility.back_hint", "Return to the previous screen")} onPress={() => currentImport ? nav.back() : nav.tab("lockedDashboard")} style={{ minHeight: 38, borderRadius: 999, paddingHorizontal: 13, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: theme.surface2, borderWidth: 1, borderColor: theme.hairline }}>
-            <ChevronLeft color={theme.label2} size={15} />
+            <BackChevron color={theme.label2} size={15} />
             <Text style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("common.back", "Back")}</Text>
           </Pressable>
         </View>
@@ -7335,10 +8382,10 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
           {currentImport ? (
             <View>
               <Text selectable style={{ color: "rgba(255,255,255,0.66)", fontSize: 12, fontWeight: "900", marginBottom: 10 }}>{textFor("paywall.ready_apply", "READY TO APPLY")}</Text>
-              <View style={{ flexDirection: "row", gap: 9, marginBottom: 12 }}>
-                <View style={{ flex: 1 }}><Text selectable style={{ color: "#fff", fontSize: 24, fontWeight: "900" }}>{importSummary.classes}</Text><Text selectable style={{ color: "rgba(255,255,255,0.66)", fontSize: 12, fontWeight: "800" }}>{textFor("review.classes", "classes")}</Text></View>
-                <View style={{ flex: 1 }}><Text selectable style={{ color: "#fff", fontSize: 24, fontWeight: "900" }}>{importSummary.assignments}</Text><Text selectable style={{ color: "rgba(255,255,255,0.66)", fontSize: 12, fontWeight: "800" }}>{textFor("review.assignments", "assignments")}</Text></View>
-                <View style={{ flex: 1 }}><Text selectable style={{ color: "#fff", fontSize: 24, fontWeight: "900" }}>{importSummary.exams}</Text><Text selectable style={{ color: "rgba(255,255,255,0.66)", fontSize: 12, fontWeight: "800" }}>{textFor("review.exams", "exams")}</Text></View>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 9, marginBottom: 12 }}>
+                <View style={{ flex: accessibilityLayout ? 0 : 1, flexBasis: accessibilityLayout ? "100%" : undefined }}><Text selectable style={{ color: "#fff", fontSize: 24, fontWeight: "900" }}>{importSummary.classes}</Text><Text selectable style={{ color: "rgba(255,255,255,0.66)", fontSize: 12, fontWeight: "800" }}>{textFor("review.classes", "classes")}</Text></View>
+                <View style={{ flex: accessibilityLayout ? 0 : 1, flexBasis: accessibilityLayout ? "100%" : undefined }}><Text selectable style={{ color: "#fff", fontSize: 24, fontWeight: "900" }}>{importSummary.assignments}</Text><Text selectable style={{ color: "rgba(255,255,255,0.66)", fontSize: 12, fontWeight: "800" }}>{textFor("review.assignments", "assignments")}</Text></View>
+                <View style={{ flex: accessibilityLayout ? 0 : 1, flexBasis: accessibilityLayout ? "100%" : undefined }}><Text selectable style={{ color: "#fff", fontSize: 24, fontWeight: "900" }}>{importSummary.exams}</Text><Text selectable style={{ color: "rgba(255,255,255,0.66)", fontSize: 12, fontWeight: "800" }}>{textFor("review.exams", "exams")}</Text></View>
               </View>
               <Text selectable style={{ color: "#fff", fontSize: 17, lineHeight: 22, fontWeight: "900" }}>{importSummary.firstAction || textFor("review.title", "Review your imported semester")}</Text>
               <Text selectable style={{ color: "rgba(255,255,255,0.72)", marginTop: 4, lineHeight: 19 }}>{textFor("paywall.sub_import", "Unlock, return to Review, then approve this plan for reminders and widgets.")}</Text>
@@ -7354,11 +8401,11 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
                   <Text selectable style={{ color: "rgba(255,255,255,0.7)", marginTop: 3, lineHeight: 19 }}>{intentPreview.methods}</Text>
                 </View>
               </View>
-              <View style={{ flexDirection: "row", gap: 7 }}>
-                {paywallSteps.map(([value, label], index) => (
-                  <View key={`paywall-preview-chip-${index}`} style={{ flex: 1, borderRadius: 13, padding: 9, backgroundColor: "rgba(255,255,255,0.10)" }}>
-                    <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: "#fff", fontSize: 15, fontWeight: "900" }}>{value}</Text>
-                    <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.66} style={{ color: "rgba(255,255,255,0.62)", fontSize: 11, fontWeight: "800", marginTop: 2 }}>{label}</Text>
+	              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
+	                {paywallSteps.map(([value, label], index) => (
+	                  <View key={`paywall-preview-chip-${index}`} style={{ flex: accessibilityLayout ? 0 : 1, flexBasis: accessibilityLayout ? "100%" : cameraIntent ? "46%" : "30%", minWidth: 88, minHeight: 64, borderRadius: 13, padding: 9, backgroundColor: "rgba(255,255,255,0.10)", justifyContent: "center" }}>
+	                    <Text selectable style={{ color: "#fff", fontSize: 15, lineHeight: 18, fontWeight: "900" }}>{value}</Text>
+	                    <Text selectable style={{ color: "rgba(255,255,255,0.72)", fontSize: 11, lineHeight: 14, fontWeight: "800", marginTop: 2 }}>{label}</Text>
                   </View>
                 ))}
               </View>
@@ -7367,8 +8414,8 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
           )}
         </Card>
         {trialPlan ? (
-          <Card theme={theme} style={{ padding: 15, marginBottom: 12, borderWidth: 2, borderColor: COLORS.green, backgroundColor: theme.dark ? "rgba(28, 110, 75, 0.18)" : "rgba(31, 152, 104, 0.10)" }}>
-            <Text selectable style={{ color: COLORS.green, fontSize: 12, fontWeight: "900", marginBottom: 5 }}>{textFor("paywall.seasonal_kicker", "BACK-TO-SCHOOL OFFER")}</Text>
+          <Card theme={theme} style={{ padding: 15, marginBottom: 12, borderWidth: 2, borderColor: COLORS.green, backgroundColor: trialCardBackground }}>
+            <Text selectable style={{ color: semanticTextColor(COLORS.green, theme, trialCardBackground), fontSize: 12, fontWeight: "900", marginBottom: 5 }}>{textFor("paywall.seasonal_kicker", "BACK-TO-SCHOOL OFFER")}</Text>
             <Text selectable style={{ color: theme.label, fontSize: 22, lineHeight: 27, fontWeight: "900" }}>{textFor("paywall.seasonal_title", "One week free with any plan")}</Text>
             <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 5 }}>{textFor("paywall.seasonal_body", "Eligible new subscribers. Apple confirms eligibility; then {price} for {plan}.", { price: trialPlan.displayPrice, plan: trialPlanLabel })}</Text>
           </Card>
@@ -7386,9 +8433,9 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
                 onPress={() => setSelected(plan.id)}
               >
                 <Card theme={theme} style={{ padding: 13, borderWidth: on ? 2 : 1, borderColor: on ? theme.accent : theme.hairline }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                  <View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "stretch" : "center", gap: 12 }}>
 	                    <View style={{ width: 24, height: 24, borderRadius: 99, borderWidth: on ? 0 : 2, borderColor: theme.label3, backgroundColor: on ? theme.accent : "transparent", alignItems: "center", justifyContent: "center" }}>
-                      {on ? <Check color="#fff" size={16} strokeWidth={3} /> : null}
+	                      {on ? <Check color={theme.accentText} size={16} strokeWidth={3} /> : null}
                     </View>
                     <View style={{ flex: 1 }}>
                       <View style={{ flexDirection: "row", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
@@ -7398,7 +8445,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
                       </View>
 	                      <Text selectable style={{ color: theme.label2, marginTop: 3, fontSize: 13, lineHeight: 18 }}>{textFor(plan.id.toLowerCase().includes("year") ? "paywall.benefit_apply" : "paywall.benefit_health", plan.description)}</Text>
                     </View>
-                    <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{plan.displayPrice}</Text>
+                    <Text selectable style={{ color: theme.label, fontWeight: "900", alignSelf: accessibilityLayout ? "flex-start" : "auto" }}>{plan.displayPrice}</Text>
                   </View>
                 </Card>
               </Pressable>
@@ -7407,13 +8454,13 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
         </View>
         <Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label2, lineHeight: 19, marginBottom: 10 }}>{message}</Text>
         <Card theme={theme} style={{ padding: 15, marginBottom: 14, backgroundColor: theme.surface }}>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "stretch" : "center", justifyContent: "space-between", gap: 12 }}>
             <View style={{ flex: 1 }}>
-              <Text selectable numberOfLines={1} style={{ color: theme.label, fontSize: 15, fontWeight: "900" }}>{selectedPlanLabel}</Text>
-              <Text selectable numberOfLines={3} style={{ color: theme.label2, marginTop: 2, fontSize: 12, lineHeight: 17, fontWeight: "800" }}>{selectedPlanSummary}</Text>
+              <Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, fontSize: 15, fontWeight: "900" }}>{selectedPlanLabel}</Text>
+              <Text selectable numberOfLines={accessibilityLayout ? undefined : 3} style={{ color: theme.label2, marginTop: 2, fontSize: 12, lineHeight: 17, fontWeight: "800" }}>{selectedPlanSummary}</Text>
             </View>
-            <Pressable accessibilityRole="button" accessibilityLabel={restoreLabel} accessibilityHint={textFor("paywall.accessibility_restore_hint", "Check this store account for an active subscription")} accessibilityState={{ disabled: Boolean(busy), busy: busy === "restore" }} onPress={busy ? undefined : restore} disabled={Boolean(busy)} hitSlop={8} style={{ minHeight: 44, borderRadius: 999, paddingHorizontal: 13, alignItems: "center", justifyContent: "center", backgroundColor: theme.surface2, opacity: busy === "purchase" ? 0.54 : 1 }}>
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ color: theme.label, fontSize: 12, fontWeight: "900" }}>{restoreLabel}</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel={restoreLabel} accessibilityHint={textFor("paywall.accessibility_restore_hint", "Check this store account for an active subscription")} accessibilityState={{ disabled: Boolean(busy), busy: busy === "restore" }} onPress={busy ? undefined : restore} disabled={Boolean(busy)} hitSlop={8} style={{ minHeight: accessibilityLayout ? 52 : 44, width: accessibilityLayout ? "100%" : undefined, maxWidth: accessibilityLayout ? "100%" : 132, alignSelf: accessibilityLayout ? "stretch" : "auto", borderRadius: 22, paddingHorizontal: 13, paddingVertical: 7, alignItems: "center", justifyContent: "center", backgroundColor: theme.surface2, opacity: busy === "purchase" ? 0.54 : 1 }}>
+              <Text lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: theme.label, fontSize: 12, lineHeight: 15, fontWeight: "900", textAlign: "center" }}>{restoreLabel}</Text>
             </Pressable>
           </View>
         </Card>
@@ -7427,6 +8474,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
               onChangeText={setReviewAccessCode}
               placeholder="Access code"
               placeholderTextColor={theme.label3}
+              keyboardAppearance={theme.dark ? "dark" : "light"}
               autoCapitalize="characters"
               autoCorrect={false}
               style={{ minHeight: 50, borderRadius: 15, backgroundColor: theme.surface2, borderWidth: 1, borderColor: theme.hairline, color: theme.label, paddingHorizontal: 14, marginTop: 12, fontWeight: "900" }}
@@ -7434,32 +8482,22 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
             <Button label="Unlock review access" theme={theme} icon="shield" onPress={normalizedReviewAccessCode(reviewAccessCode) ? unlockReviewAccess : undefined} />
           </Card>
         ) : null}
-        <Text selectable style={{ color: theme.label3, fontSize: 12, lineHeight: 17, marginTop: 14 }}>{textFor("paywall.legal", "Auto-renewing subscription. The App Store confirms the current price and terms before any charge. Manage or cancel in Apple subscriptions.")}</Text>
-        <View style={{ flexDirection: "row", justifyContent: "center", gap: 18, marginTop: 12 }}>
+        <Text selectable style={{ color: theme.label2, fontSize: 12, lineHeight: 17, marginTop: 14 }}>{textFor("paywall.legal", "Auto-renewing subscription. The App Store confirms the current price and terms before any charge. Manage or cancel in Apple subscriptions.")}</Text>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 18, marginTop: 12 }}>
           <Pressable accessibilityRole="link" accessibilityLabel={textFor("common.terms", "Terms of Use")} accessibilityHint={textFor("paywall.accessibility_terms_hint", "Open the subscription terms")} onPress={() => nav.push("terms")}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.terms", "Terms of Use")}</Text></Pressable>
           <Pressable accessibilityRole="link" accessibilityLabel={textFor("common.privacy", "Privacy Policy")} accessibilityHint={textFor("paywall.accessibility_privacy_hint", "Open the privacy policy")} onPress={() => nav.push("privacy")}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.privacy", "Privacy Policy")}</Text></Pressable>
           <Pressable accessibilityRole="link" accessibilityLabel={textFor("common.support", "Support")} accessibilityHint={textFor("paywall.accessibility_support_hint", "Open StudyPlanner support")} onPress={() => openExternal(SUPPORT_URL)}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.support", "Support")}</Text></Pressable>
         </View>
+        {accessibilityLayout ? purchasePanel : null}
       </ScrollView>
-      <LiquidGlassSurface
-        tintColor={theme.dark ? "rgba(18,18,22,0.90)" : "rgba(250,250,252,0.92)"}
-        style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 30, backgroundColor: theme.dark ? "rgba(18,18,22,0.96)" : "rgba(250,250,252,0.97)", borderTopWidth: 1, borderTopColor: theme.hairline }}
-        fallbackStyle={{ backgroundColor: theme.bg }}
-      >
-        <View accessible accessibilityLabel={`${selectedPlanLabel}. ${selectedPlanSummary}`} style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 8 }}>
-          <View style={{ flex: 1 }}>
-            <Text selectable numberOfLines={1} style={{ color: theme.label, fontSize: 14, fontWeight: "900" }}>{selectedPlanLabel}</Text>
-            <Text selectable numberOfLines={2} style={{ color: theme.label2, fontSize: 11.5, lineHeight: 16, fontWeight: "800", marginTop: 2 }}>{selectedPlanSummary}</Text>
-          </View>
-          <Text selectable style={{ color: theme.label, fontSize: 14, fontWeight: "900" }}>{selectedPlan.displayPrice}</Text>
-        </View>
-        <Button label={purchaseLabel} theme={theme} icon="crown" onPress={busy || !storePlansReady ? undefined : purchase} />
-      </LiquidGlassSurface>
+      {!accessibilityLayout ? purchasePanel : null}
     </View>
   );
 }
 
 function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
+  const { fontScale, width: windowWidth } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const liveData = useMemo(() => activeSemesterData(data), [data]);
   const snapshot = useMemo(() => buildDashboardSnapshot(liveData), [liveData]);
   const semester = useMemo(() => buildSemesterSnapshot(liveData), [liveData]);
@@ -7502,7 +8540,7 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
   if (!hasSemesterData) {
     return (
       <Screen theme={theme}>
-        <Header title={todayTitle} sub={todayHeaderLabel()} theme={theme} right={<Pressable accessibilityRole="button" accessibilityLabel={textFor("tabs.profile", "Profile")} accessibilityHint={textFor("profile.accessibility_open_hint", "Open profile and app settings")} onPress={() => nav.tab("profile")}><View style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 17 }}>{userInitial(data)}</Text></View></Pressable>} />
+        <Header title={todayTitle} sub={todayHeaderLabel()} theme={theme} right={<Pressable accessibilityRole="button" accessibilityLabel={textFor("tabs.profile", "Profile")} accessibilityHint={textFor("profile.accessibility_open_hint", "Open profile and app settings")} onPress={() => nav.tab("profile")}><View style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text allowFontScaling={false} style={{ color: theme.accentText, fontWeight: "900", fontSize: 17 }}>{userInitial(data)}</Text></View></Pressable>} />
         <View style={{ paddingHorizontal: 16, gap: 16 }}>
           <SemesterHealthHero semester={semester} narrative={narrative} theme={theme} hasSemesterData={false} />
           <Card theme={theme} style={{ padding: 18, backgroundColor: "#111114" }}>
@@ -7513,14 +8551,14 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
             <Text selectable style={{ color: "#FFFFFF", fontSize: 26, lineHeight: 30, fontWeight: "900" }}>{textFor("today.empty_title", "Add a class or scan a syllabus.")}</Text>
             <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 8 }}>{textFor("locked.sub", "Build your semester first.")}</Text>
             <Button label={textFor("locked.scan", "Scan syllabus")} theme={theme} icon="scan" onPress={() => nav.tab("scan")} />
-            <View style={{ flexDirection: "row", gap: 9 }}>
+            <ResponsiveRow gap={9}>
               <View style={{ flex: 1 }}>
                 <Button label={textFor("classes.add", "Add class")} theme={theme} secondary icon="classes" onPress={() => nav.tab("classes")} />
               </View>
               <View style={{ flex: 1 }}>
                 <Button label={textFor("scan.paste_text", "Paste text")} theme={theme} secondary icon="file" onPress={() => nav.push("paste", { mode: "syllabus" })} />
               </View>
-            </View>
+            </ResponsiveRow>
           </Card>
         </View>
       </Screen>
@@ -7529,12 +8567,12 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
 
   return (
     <Screen theme={theme}>
-      <Header title={todayTitle} sub={todayHeaderLabel()} theme={theme} right={<Pressable accessibilityRole="button" accessibilityLabel={textFor("tabs.profile", "Profile")} accessibilityHint={textFor("profile.accessibility_open_hint", "Open profile and app settings")} onPress={() => nav.tab("profile")}><View style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 17 }}>{userInitial(data)}</Text></View></Pressable>} />
+      <Header title={todayTitle} sub={todayHeaderLabel()} theme={theme} right={<Pressable accessibilityRole="button" accessibilityLabel={textFor("tabs.profile", "Profile")} accessibilityHint={textFor("profile.accessibility_open_hint", "Open profile and app settings")} onPress={() => nav.tab("profile")}><View style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text allowFontScaling={false} style={{ color: theme.accentText, fontWeight: "900", fontSize: 17 }}>{userInitial(data)}</Text></View></Pressable>} />
       <View style={{ paddingHorizontal: 16, gap: 18 }}>
         <SemesterHealthHero semester={semester} narrative={narrative} theme={theme} hasSemesterData={hasSemesterData} />
         {semester.feedbackEvents[0] ? <FeedbackLoopCard event={semester.feedbackEvents[0]} theme={theme} /> : null}
         <Card theme={theme} style={{ padding: 18, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
-          <View style={{ flexDirection: "row", gap: 12, alignItems: "center", marginBottom: 12 }}>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 12, alignItems: accessibilityLayout ? "flex-start" : "center", marginBottom: 12 }}>
             <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: `${theme.accent}1C`, alignItems: "center", justifyContent: "center" }}><Sparkles color={theme.accent} size={21} /></View>
             <View style={{ flex: 1 }}>
               <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{textFor("today.at_a_glance", "Today at a glance")}</Text>
@@ -7542,78 +8580,92 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
             </View>
           </View>
           <View style={{ gap: 9 }}>
-            <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("today.next_class", "Next class")}. ${snapshot.nextClass ? `${snapshot.nextClass.code}, ${new Date(snapshot.nextClass.startsAt).toLocaleTimeString(appLocale(), { hour: "numeric", minute: "2-digit" })}` : textFor("classes.add", "Add a class")}`} accessibilityHint={textFor("today.accessibility_next_class_hint", "Open the next class")} onPress={() => snapshot.nextClass ? nav.push("classDetail", { id: snapshot.nextClass.classId }) : nav.tab("classes")} style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44 }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("today.next_class", "Next class")}. ${snapshot.nextClass ? `${snapshot.nextClass.code}, ${new Date(snapshot.nextClass.startsAt).toLocaleTimeString(appLocale(), { hour: "numeric", minute: "2-digit" })}` : textFor("classes.add", "Add a class")}`} accessibilityHint={textFor("today.accessibility_next_class_hint", "Open the next class")} onPress={() => snapshot.nextClass ? nav.push("classDetail", { id: snapshot.nextClass.classId }) : nav.tab("classes")} style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 10, minHeight: 44 }}>
               <Icon name="classes" color={snapshot.nextClass?.color || COLORS.blue} size={18} />
-              <Text selectable style={{ color: theme.label2, width: 86, fontWeight: "800" }}>{textFor("today.next_class", "Next class")}</Text>
-              <Text selectable numberOfLines={1} style={{ color: theme.label, flex: 1, fontWeight: "900" }}>{snapshot.nextClass ? `${snapshot.nextClass.code} · ${new Date(snapshot.nextClass.startsAt).toLocaleTimeString(appLocale(), { hour: "numeric", minute: "2-digit" })}` : textFor("classes.add", "Add a class")}</Text>
+              <Text selectable style={{ color: theme.label2, width: accessibilityLayout ? undefined : 86, fontWeight: "800" }}>{textFor("today.next_class", "Next class")}</Text>
+              <Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, flex: accessibilityLayout ? undefined : 1, fontWeight: "900" }}>{snapshot.nextClass ? `${snapshot.nextClass.code} · ${new Date(snapshot.nextClass.startsAt).toLocaleTimeString(appLocale(), { hour: "numeric", minute: "2-digit" })}` : textFor("classes.add", "Add a class")}</Text>
             </Pressable>
-            <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("today.deadline", "Deadline")}. ${snapshot.nearestDeadline ? `${snapshot.nearestDeadline.dueLabel}, ${snapshot.nearestDeadline.title}` : textFor("plan.clear_day", "No active deadline")}`} accessibilityHint={snapshot.nearestDeadline ? textFor("task.edit", "Open assignment details") : textFor("today.accessibility_add_work_hint", "Open import and quick add")} onPress={() => snapshot.nearestDeadline ? nav.push("taskDetail", { id: snapshot.nearestDeadline.taskId }) : nav.tab("scan")} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("today.deadline", "Deadline")}. ${snapshot.nearestDeadline ? `${snapshot.nearestDeadline.dueLabel}, ${snapshot.nearestDeadline.title}` : textFor("plan.clear_day", "No active deadline")}`} accessibilityHint={snapshot.nearestDeadline ? textFor("task.edit", "Open assignment details") : textFor("today.accessibility_add_work_hint", "Open import and quick add")} onPress={() => snapshot.nearestDeadline ? nav.push("taskDetail", { id: snapshot.nearestDeadline.taskId }) : nav.tab("scan")} style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 10 }}>
               <Icon name="target" color={COLORS.orange} size={18} />
-              <Text selectable style={{ color: theme.label2, width: 86, fontWeight: "800" }}>{textFor("today.deadline", "Deadline")}</Text>
-              <Text selectable numberOfLines={1} style={{ color: theme.label, flex: 1, fontWeight: "900" }}>{snapshot.nearestDeadline ? `${snapshot.nearestDeadline.dueLabel} · ${snapshot.nearestDeadline.title}` : textFor("plan.clear_day", "No active deadline")}</Text>
+              <Text selectable style={{ color: theme.label2, width: accessibilityLayout ? undefined : 86, fontWeight: "800" }}>{textFor("today.deadline", "Deadline")}</Text>
+              <Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, flex: accessibilityLayout ? undefined : 1, fontWeight: "900" }}>{snapshot.nearestDeadline ? `${snapshot.nearestDeadline.dueLabel} · ${snapshot.nearestDeadline.title}` : textFor("plan.clear_day", "No active deadline")}</Text>
             </Pressable>
-            <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("today.focus", "Focus")}. ${firstBlock ? `${firstBlock.title}, ${firstBlock.time}` : textFor("scan.quick_title", "Scan or quick add to plan")}`} accessibilityHint={firstBlock ? textFor("study.focus_session", "Open focus session") : textFor("today.accessibility_add_work_hint", "Open import and quick add")} onPress={() => firstBlock ? nav.push("studySession", { id: firstBlock.id }) : nav.tab("scan")} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("today.focus", "Focus")}. ${firstBlock ? `${firstBlock.title}, ${firstBlock.time}` : textFor("scan.quick_title", "Scan or quick add to plan")}`} accessibilityHint={firstBlock ? textFor("study.focus_session", "Open focus session") : textFor("today.accessibility_add_work_hint", "Open import and quick add")} onPress={() => firstBlock ? nav.push("studySession", { id: firstBlock.id }) : nav.tab("scan")} style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 10 }}>
               <Icon name="clock" color={COLORS.purple} size={18} />
-              <Text selectable style={{ color: theme.label2, width: 86, fontWeight: "800" }}>{textFor("today.focus", "Focus")}</Text>
-              {firstBlock ? <View style={{ flex: 1 }}><Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{firstBlock.title}</Text><Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "800", marginTop: 1 }}>{firstBlock.time}</Text></View> : <Text selectable numberOfLines={1} style={{ color: theme.label, flex: 1, fontWeight: "900" }}>{textFor("scan.quick_title", "Scan or quick add to plan")}</Text>}
+              <Text selectable style={{ color: theme.label2, width: accessibilityLayout ? undefined : 86, fontWeight: "800" }}>{textFor("today.focus", "Focus")}</Text>
+              {firstBlock ? <View style={{ flex: accessibilityLayout ? undefined : 1 }}><Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, fontWeight: "900" }}>{firstBlock.title}</Text><Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "800", marginTop: 1 }}>{firstBlock.time}</Text></View> : <Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, flex: accessibilityLayout ? undefined : 1, fontWeight: "900" }}>{textFor("scan.quick_title", "Scan or quick add to plan")}</Text>}
             </Pressable>
           </View>
-          <View style={{ flexDirection: "row", gap: 9, marginTop: 14 }}>
-            <Pressable accessibilityRole="button" accessibilityLabel={textFor("today.open_plan", "Open plan")} accessibilityHint={textFor("today.accessibility_plan_hint", "Open your semester plan")} onPress={() => nav.tab("plan")} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingHorizontal: 15, paddingVertical: 10 }}><Text style={{ color: "#fff", fontWeight: "900" }}>{textFor("today.open_plan", "Open plan")}</Text></Pressable>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 9, marginTop: 14, alignItems: accessibilityLayout ? "stretch" : undefined }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={textFor("today.open_plan", "Open plan")} accessibilityHint={textFor("today.accessibility_plan_hint", "Open your semester plan")} onPress={() => nav.tab("plan")} style={{ minHeight: 44, backgroundColor: theme.accent, borderRadius: 999, paddingHorizontal: 15, paddingVertical: 10, justifyContent: "center" }}><Text style={{ color: theme.accentText, fontWeight: "900", textAlign: "center" }}>{textFor("today.open_plan", "Open plan")}</Text></Pressable>
             <Pressable accessibilityRole="button" accessibilityLabel={firstBlock ? textFor("today.start_focus", "Start focus") : textFor("locked.scan", "Scan first")} accessibilityHint={firstBlock ? `${textFor("study.focus_session", "Open focus session")}: ${firstBlock.title}` : textFor("today.accessibility_add_work_hint", "Open import and quick add")} onPress={() => firstBlock ? nav.push("studySession", { id: firstBlock.id }) : nav.tab("scan")} style={{ backgroundColor: theme.surface2, borderRadius: 999, paddingHorizontal: 15, paddingVertical: 10 }}><Text style={{ color: theme.label, fontWeight: "900" }}>{firstBlock ? textFor("today.start_focus", "Start focus") : textFor("locked.scan", "Scan first")}</Text></Pressable>
           </View>
         </Card>
         {preparedness.score < 75 || !liveData.notes.length ? (
           <Pressable accessibilityRole="button" accessibilityLabel={localizedNarrativeText("notes", narrative.notesNudge)} accessibilityHint={textFor("notes.accessibility_open_hint", "Open notes and study assets")} onPress={() => nav.push("notes")}>
-            <Card theme={theme} style={{ padding: 15, flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: theme.dark ? "#211E2B" : "#F7F0FF" }}>
+            <Card theme={theme} style={{ padding: 15, flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 12, backgroundColor: theme.dark ? "#211E2B" : "#F7F0FF" }}>
               <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: `${COLORS.purple}20`, alignItems: "center", justifyContent: "center" }}><NotebookPen color={COLORS.purple} size={21} /></View>
               <View style={{ flex: 1 }}>
                 <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{localizedNarrativeText("notes", narrative.notesNudge)}</Text>
-                <Text selectable numberOfLines={1} style={{ color: theme.label2, marginTop: 2 }}>{`${textFor("notes.title", "Notes")} / ${textFor("locked.preparedness", "Preparedness")} / ${textFor("class.pulse", "Class Pulse")}`}</Text>
+                <Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label2, marginTop: 2 }}>{`${textFor("notes.title", "Notes")} / ${textFor("locked.preparedness", "Preparedness")} / ${textFor("class.pulse", "Class Pulse")}`}</Text>
               </View>
-              <ChevronRight color={theme.label3} size={18} />
+              <ForwardChevron color={theme.label3} size={18} />
             </Card>
           </Pressable>
         ) : null}
-        <View style={{ flexDirection: "row", gap: 10 }}>
-          <Stat n={snapshot.nextClass ? 1 : 0} label={previewMetricLabel("nextClass", "next class")} icon="classes" color={COLORS.blue} theme={theme} />
-          <Stat n={dueNow.length} label={previewMetricLabel("dueToday", "due today")} icon="target" color={COLORS.orange} theme={theme} />
-          <Stat n={minutesLabel(snapshot.todayPressure.studyMinutes)} label={previewMetricLabel("studyToday", "study today")} icon="clock" color={COLORS.purple} theme={theme} />
+        <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 10 }}>
+          {accessibilityLayout ? [
+            { n: snapshot.nextClass ? 1 : 0, label: previewMetricLabel("nextClass", "next class"), icon: "classes", color: COLORS.blue },
+            { n: dueNow.length, label: previewMetricLabel("dueToday", "due today"), icon: "target", color: COLORS.orange },
+            { n: minutesLabel(snapshot.todayPressure.studyMinutes), label: previewMetricLabel("studyToday", "study today"), icon: "clock", color: COLORS.purple },
+          ].map((metric) => (
+            <Card key={metric.label} theme={theme} style={{ padding: 13, width: "100%", flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <Icon name={metric.icon} color={contrastSafeForegroundOn(metric.color, theme.surface)} size={18} />
+              <Text selectable maxFontSizeMultiplier={1.8} style={{ color: theme.label, fontSize: 24, fontWeight: "900" }}>{metric.n}</Text>
+              <Text selectable style={{ color: theme.label2, fontSize: 12, flexShrink: 1 }}>{metric.label}</Text>
+            </Card>
+          )) : (
+            <>
+              <Stat n={snapshot.nextClass ? 1 : 0} label={previewMetricLabel("nextClass", "next class")} icon="classes" color={contrastSafeForegroundOn(COLORS.blue, theme.surface)} theme={theme} />
+              <Stat n={dueNow.length} label={previewMetricLabel("dueToday", "due today")} icon="target" color={contrastSafeForegroundOn(COLORS.orange, theme.surface)} theme={theme} />
+              <Stat n={minutesLabel(snapshot.todayPressure.studyMinutes)} label={previewMetricLabel("studyToday", "study today")} icon="clock" color={contrastSafeForegroundOn(COLORS.purple, theme.surface)} theme={theme} />
+            </>
+          )}
         </View>
         {awaitingDate ? (
           <Pressable accessibilityRole="button" accessibilityLabel={textFor("tasks.need_dates_title", "{count} item(s) need dates", { count: awaitingDate })} accessibilityHint={textFor("tasks.accessibility_open_hint", "Open assignments to add due dates")} onPress={() => nav.push("tasks")}>
-            <Card theme={theme} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: theme.dark ? "#2A2018" : "#FFF7E8" }}>
+            <Card theme={theme} style={{ padding: 14, flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 12, backgroundColor: theme.dark ? "#2A2018" : "#FFF7E8" }}>
               <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: `${COLORS.orange}1F`, alignItems: "center", justifyContent: "center" }}><CalendarDays color={COLORS.orange} size={19} /></View>
               <View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("tasks.need_dates_title", "{count} item(s) need dates", { count: awaitingDate })}</Text><Text selectable style={{ color: theme.label2, marginTop: 2 }}>{textFor("tasks.need_dates_body", "They stay visible until you set real due dates.")}</Text></View>
-              <ChevronRight color={theme.label3} size={18} />
+              <ForwardChevron color={theme.label3} size={18} />
             </Card>
           </Pressable>
         ) : null}
         <Card theme={theme} style={{ padding: 16 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", justifyContent: "space-between", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 8, marginBottom: 12 }}>
             <View>
               <Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 18 }}>{textFor("today.next_30", "Next 30 Days")}</Text>
               <Text selectable style={{ color: theme.label2, marginTop: 3 }}>{timeline.pressureDays ? `${timeline.pressureDays} ${previewMetricLabel("pressureLabel", "pressure")}` : previewMetricLabel("clear", "Clear runway")}</Text>
             </View>
             <Pill text={localizedNarrativeText("pressure", narrative.pressureLabel)} color={colorForState(semester.pressureForecast.colorState)} theme={theme} />
           </View>
-          <View style={{ flexDirection: "row", gap: 9 }}>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 9 }}>
             <MiniMetric value={timeline.assignments} label={previewMetricLabel("assignments", "assignments")} color={COLORS.orange} theme={theme} />
             <MiniMetric value={timeline.exams} label={previewMetricLabel("exams", "exams")} color={COLORS.purple} theme={theme} />
             <MiniMetric value={timeline.pressureDays} label={previewMetricLabel("pressureLabel", "pressure")} color={timeline.pressureDays ? COLORS.orange : COLORS.green} theme={theme} />
           </View>
         </Card>
         <Card theme={theme} style={{ padding: 16 }}>
-          <View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}>
-            <View style={{ width: 74, height: 74, borderRadius: 99, borderWidth: 8, borderColor: loop.status === "strained" ? COLORS.red : loop.status === "steady" ? COLORS.orange : COLORS.green, alignItems: "center", justifyContent: "center" }}>
-              <Text selectable style={{ color: theme.label, fontSize: 22, fontWeight: "900" }}>{loop.score}</Text>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 14, alignItems: accessibilityLayout ? "flex-start" : "center" }}>
+            <View style={{ width: 74, height: 74, borderRadius: 99, borderWidth: 8, borderColor: contrastSafeForegroundOn(loop.status === "strained" ? COLORS.red : loop.status === "steady" ? COLORS.orange : COLORS.green, theme.surface), alignItems: "center", justifyContent: "center" }}>
+              <Text selectable maxFontSizeMultiplier={1.5} style={{ color: theme.label, fontSize: 22, fontWeight: "900" }}>{loop.score}</Text>
             </View>
             <View style={{ flex: 1 }}>
               <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{localizedNarrativeText("pressure", narrative.pressureLabel)}</Text>
               <Text selectable style={{ color: theme.label2, marginTop: 4, lineHeight: 19 }}>{localizedNarrativeText("driver", narrative.primaryDriver)}</Text>
             </View>
           </View>
-          <View style={{ flexDirection: "row", gap: 8, marginTop: 14 }}>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 8, marginTop: 14 }}>
             {loop.rings.map((ring) => {
               const ringLabel = ring.label === "Grades"
                 ? textFor("locked.grades", "Grades")
@@ -7622,7 +8674,7 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
                   : ring.label === "Work"
                     ? textFor("locked.workload", "Workload")
                     : ring.label;
-              return <View key={ring.label} style={{ flex: 1 }}><Text selectable style={{ color: ring.color, fontWeight: "900", fontSize: 12 }}>{ringLabel}</Text><ProgressBar value={ring.value} color={ring.color} theme={theme} height={7} /></View>;
+              return <View key={ring.label} style={{ flex: accessibilityLayout ? undefined : 1, width: accessibilityLayout ? "100%" : undefined }}><Text selectable style={{ color: semanticTextColor(ring.color, theme), fontWeight: "900", fontSize: 12 }}>{ringLabel}</Text><ProgressBar value={ring.value} color={ring.color} theme={theme} height={7} /></View>;
             })}
           </View>
         </Card>
@@ -7630,10 +8682,10 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
           <Section title={textFor("today.risk_radar", "Risk Radar")} action={textFor("plan.rebuild", "Replan")} onAction={() => mutate((d) => ({ ...d, studyBlocks: buildStudyPlan(d) }))} theme={theme} />
           <View style={{ gap: 9 }}>{risks.slice(0, 3).map((risk) => (
             <Pressable key={risk.id} accessibilityRole="button" accessibilityLabel={`${localizedRiskLabel(risk)}. ${localizedRiskDetail(risk.detail)}. ${risk.score}`} accessibilityHint={textFor("today.accessibility_risk_hint", "Open the related planner detail")} onPress={() => risk.taskId ? nav.push("taskDetail", { id: risk.taskId }) : risk.examId ? nav.push("assessmentDetail", { id: risk.examId }) : risk.classId ? nav.push("classDetail", { id: risk.classId }) : nav.tab("plan")}>
-              <Card theme={theme} style={{ padding: 13, flexDirection: "row", gap: 12, alignItems: "center" }}>
+              <Card theme={theme} style={{ padding: 13, flexDirection: accessibilityLayout ? "column" : "row", gap: 12, alignItems: accessibilityLayout ? "flex-start" : "center" }}>
                 <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: `${risk.color}20`, alignItems: "center", justifyContent: "center" }}><AlertTriangle color={risk.color} size={19} /></View>
-                <View style={{ flex: 1 }}><Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{localizedRiskLabel(risk)}</Text><Text selectable numberOfLines={1} style={{ color: theme.label2 }}>{localizedRiskDetail(risk.detail)}</Text></View>
-                <Text selectable style={{ color: risk.color, fontWeight: "900" }}>{risk.score}</Text>
+                <View style={{ flex: accessibilityLayout ? undefined : 1 }}><Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, fontWeight: "900" }}>{localizedRiskLabel(risk)}</Text><Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label2 }}>{localizedRiskDetail(risk.detail)}</Text></View>
+                <Text selectable style={{ color: semanticTextColor(risk.color, theme), fontWeight: "900" }}>{risk.score}</Text>
               </Card>
             </Pressable>
           ))}</View>
@@ -7645,14 +8697,14 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
         {upcomingAssessments.length ? (
           <View>
             <Section title={textFor("today.upcoming_assessments", "Upcoming Assessments")} action={`${upcomingAssessments.length}`} theme={theme} />
-            <Card theme={theme} style={{ overflow: "hidden" }}>{upcomingAssessments.map((exam) => { const klass = safeClassFor(liveData, exam.classId); return <Pressable key={exam.id} accessibilityRole="button" accessibilityLabel={`${exam.title}. ${klass.code}. ${localizedDueLabel(daysUntilExam(exam))}. ${exam.time}`} accessibilityHint={textFor("assessment.accessibility_open_hint", "Open assessment details")} onPress={() => nav.push("assessmentDetail", { id: exam.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}><ClassGlyph c={klass} size={34} /><View style={{ flex: 1 }}><Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{exam.title}</Text><Text selectable style={{ color: theme.label2 }}>{klass.code} · {localizedDueLabel(daysUntilExam(exam))} · {exam.time}</Text></View><Pill text={localizedExamKind(exam.kind)} color={COLORS.purple} theme={theme} /></Pressable>; })}</Card>
+            <Card theme={theme} style={{ overflow: "hidden" }}>{upcomingAssessments.map((exam) => { const klass = safeClassFor(liveData, exam.classId); return <Pressable key={exam.id} accessibilityRole="button" accessibilityLabel={`${exam.title}. ${klass.code}. ${localizedDueLabel(daysUntilExam(exam))}. ${exam.time}`} accessibilityHint={textFor("assessment.accessibility_open_hint", "Open assessment details")} onPress={() => nav.push("assessmentDetail", { id: exam.id })} style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 12, padding: 14 }}><ClassGlyph c={klass} size={34} /><View style={{ flex: accessibilityLayout ? undefined : 1 }}><Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, fontWeight: "900" }}>{exam.title}</Text><Text selectable style={{ color: theme.label2 }}>{klass.code} · {localizedDueLabel(daysUntilExam(exam))} · {exam.time}</Text></View><Pill text={localizedExamKind(exam.kind)} color={COLORS.purple} theme={theme} /></Pressable>; })}</Card>
           </View>
         ) : null}
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}>
-          <View style={{ flexDirection: "row", gap: 8, alignItems: "center", marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} size={18} /><Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 16 }}>{insight.headline}</Text></View>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 8, alignItems: accessibilityLayout ? "flex-start" : "center", marginBottom: 8 }}><Icon name="sparkles" color={contrastSafeForegroundOn(COLORS.purple, theme.dark ? "#241E33" : "#F7F0FF")} size={18} /><Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 16, flex: accessibilityLayout ? undefined : 1, minWidth: 0 }}>{insight.headline}</Text></View>
           <Text selectable style={{ color: theme.label, lineHeight: 21 }}>{insight.body}</Text>
-          <View style={{ flexDirection: "row", gap: 9, marginTop: 13 }}>
-            <Pressable accessibilityRole="button" accessibilityLabel={previewText("viewPlan", "View plan")} accessibilityHint={textFor("today.accessibility_plan_hint", "Open your semester plan")} onPress={() => nav.tab("plan")} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingHorizontal: 15, paddingVertical: 10 }}><Text style={{ color: "#fff", fontWeight: "900" }}>{previewText("viewPlan", "View plan")}</Text></Pressable>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 9, marginTop: 13, alignItems: accessibilityLayout ? "stretch" : undefined }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={previewText("viewPlan", "View plan")} accessibilityHint={textFor("today.accessibility_plan_hint", "Open your semester plan")} onPress={() => nav.tab("plan")} style={{ minHeight: 44, backgroundColor: theme.accent, borderRadius: 999, paddingHorizontal: 15, paddingVertical: 10, justifyContent: "center" }}><Text style={{ color: theme.accentText, fontWeight: "900", textAlign: "center" }}>{previewText("viewPlan", "View plan")}</Text></Pressable>
             <Pressable accessibilityRole="button" accessibilityLabel={firstBlock ? textFor("today.start_focus", "Start focus") : textFor("plan.rebuild", "Build a focus plan")} accessibilityHint={firstBlock ? `${textFor("study.focus_session", "Open focus session")}: ${firstBlock.title}` : textFor("plan.rebuild", "Build a focus plan")} onPress={() => {
               if (firstBlock) {
                 nav.push("studySession", { id: firstBlock.id });
@@ -7669,7 +8721,7 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
           </View>
         </Card>
         <Card theme={theme} style={{ padding: 16 }}>
-          <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 12, alignItems: accessibilityLayout ? "flex-start" : "center" }}>
             <ClassGlyph c={firstPulseClass} size={42} />
             <View style={{ flex: 1 }}>
               <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>{firstPulseClass.code} {textFor("class.forecast", "forecast")} · {localizedPulseText("forecast", firstPulse?.forecastLabel || "")}</Text>
@@ -7679,16 +8731,16 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
           </View>
         </Card>
         <Card theme={theme} style={{ padding: 16 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", justifyContent: "space-between", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 8, marginBottom: 12 }}>
             <Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 17 }}>{textFor("today.next_30", "Pressure Forecast")}</Text>
             <Pill text={localizedNarrativeText("pressure", semester.pressureForecast.label)} color={colorForState(semester.pressureForecast.colorState)} theme={theme} />
           </View>
-          <View style={{ flexDirection: "row", gap: 7 }}>{semester.pressureForecast.weekLoads.map((load, index) => <View key={`${load}${index}`} style={{ flex: 1, alignItems: "center", gap: 5 }}><View style={{ width: "100%", height: 46, borderRadius: 10, backgroundColor: theme.surface2, justifyContent: "flex-end", overflow: "hidden" }}><View style={{ height: `${Math.max(8, Math.min(100, load))}%`, backgroundColor: load > 85 ? COLORS.red : load > 64 ? COLORS.orange : load > 38 ? COLORS.yellow : COLORS.green }} /></View><Text style={{ color: theme.label2, fontSize: 11, fontWeight: "900" }}>{localizedWeekdayNarrow(index)}</Text></View>)}</View>
+          <View style={{ flexDirection: "row", gap: 7 }}>{semester.pressureForecast.weekLoads.map((load, index) => { const rawColor = load > 85 ? COLORS.red : load > 64 ? COLORS.orange : load > 38 ? COLORS.yellow : COLORS.green; return <View key={`${load}${index}`} style={{ flex: 1, alignItems: "center", gap: 5 }}><View style={{ width: "100%", height: 46, borderRadius: 10, backgroundColor: theme.surface2, justifyContent: "flex-end", overflow: "hidden" }}><View style={{ height: `${Math.max(8, Math.min(100, load))}%`, backgroundColor: contrastSafeForegroundOn(rawColor, theme.surface2) }} /></View><Text maxFontSizeMultiplier={1.8} style={{ color: theme.label2, fontSize: 11, fontWeight: "900" }}>{localizedRollingWeekdayNarrow(index)}</Text></View>; })}</View>
           {semester.pressureForecast.recoverySuggestion ? <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 10 }}>{localizedNarrativeText("detail", semester.pressureForecast.recoverySuggestion)}</Text> : null}
         </Card>
         <View>
           <Section title={previewText("classPulse", "Class Pulse")} action={previewText("classes", "Classes")} onAction={() => nav.tab("classes")} theme={theme} />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 11 }}>{semester.classPulses.map((pulse) => { const c = safeClassFor(data, pulse.classId); return <Pressable key={c.id} accessibilityRole="button" accessibilityLabel={`${c.code}. ${localizedPulseText("forecast", pulse.forecastLabel)}. ${localizedPulseText("reason", pulse.reason)}`} accessibilityHint={textFor("class.accessibility_open_hint", "Open class details")} onPress={() => nav.push("classDetail", { id: c.id })}><Card theme={theme} style={{ width: 158, padding: 13 }}><View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}><ClassGlyph c={c} size={34} /><View style={{ alignItems: "flex-end" }}><Text style={{ color: colorForState(pulse.colorState), fontWeight: "900" }}>{localizedPulseText("forecast", pulse.forecastLabel)}</Text><Text style={{ color: theme.label2, fontSize: 10, fontWeight: "900" }}>{localizedPulseText("trend", pulse.trend)}</Text></View></View><Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{c.code}</Text><Text selectable numberOfLines={2} style={{ color: theme.label2, marginTop: 2, minHeight: 34 }}>{localizedPulseText("reason", pulse.reason)}</Text><Text selectable numberOfLines={1} style={{ color: colorForState(pulse.colorState), marginTop: 9, fontWeight: "800" }}>{localizedPulseText("nudge", pulse.nudge)}</Text></Card></Pressable>; })}</ScrollView>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 11 }}>{semester.classPulses.map((pulse) => { const c = safeClassFor(data, pulse.classId); const pulseColor = semanticTextColor(colorForState(pulse.colorState), theme); return <Pressable key={c.id} accessibilityRole="button" accessibilityLabel={`${c.code}. ${localizedPulseText("forecast", pulse.forecastLabel)}. ${localizedPulseText("reason", pulse.reason)}`} accessibilityHint={textFor("class.accessibility_open_hint", "Open class details")} onPress={() => nav.push("classDetail", { id: c.id })}><Card theme={theme} style={{ width: accessibilityLayout ? Math.max(250, windowWidth - 48) : 158, padding: 13 }}><View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : undefined, justifyContent: "space-between", gap: 8, marginBottom: 10 }}><ClassGlyph c={c} size={34} /><View style={{ alignItems: accessibilityLayout ? "flex-start" : "flex-end" }}><Text style={{ color: pulseColor, fontWeight: "900" }}>{localizedPulseText("forecast", pulse.forecastLabel)}</Text><Text style={{ color: theme.label2, fontSize: 10, fontWeight: "900" }}>{localizedPulseText("trend", pulse.trend)}</Text></View></View><Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, fontWeight: "900" }}>{c.code}</Text><Text selectable numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: theme.label2, marginTop: 2, minHeight: accessibilityLayout ? undefined : 34 }}>{localizedPulseText("reason", pulse.reason)}</Text><Text selectable numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: pulseColor, marginTop: 9, fontWeight: "800" }}>{localizedPulseText("nudge", pulse.nudge)}</Text></Card></Pressable>; })}</ScrollView>
         </View>
         <View>
           <Section title={textFor("today.notes_activity", "Notes Activity")} action={previewText("allNotes", "All notes")} onAction={() => nav.push("notes")} theme={theme} />
@@ -7704,10 +8756,11 @@ function Stat({ n, label, icon, color, theme }: { n: string | number; label: str
 }
 
 function MiniMetric({ value, label, color, theme }: { value: string | number; label: string; color: string; theme: ReturnType<typeof palette> }) {
+  const safeColor = semanticTextColor(color, theme, theme.surface2);
   return (
     <View style={{ flex: 1, borderRadius: 16, backgroundColor: theme.surface2, padding: 12 }}>
-      <Text selectable style={{ color, fontSize: 23, fontWeight: "900" }}>{value}</Text>
-      <Text selectable numberOfLines={1} style={{ color: theme.label2, fontSize: 12, fontWeight: "800", marginTop: 2 }}>{label}</Text>
+      <Text selectable style={{ color: safeColor, fontSize: 23, fontWeight: "900" }}>{value}</Text>
+      <Text selectable style={{ color: theme.label2, fontSize: 12, lineHeight: 16, fontWeight: "800", marginTop: 2 }}>{label}</Text>
     </View>
   );
 }
@@ -7716,6 +8769,7 @@ const AnimatedSvgCircle = Animated.createAnimatedComponent(SvgCircle as any);
 
 function HealthRing({ score, color, theme, size = 122 }: { score: number; color: string; theme: ReturnType<typeof palette>; size?: number }) {
   const progress = useRef(new Animated.Value(0)).current;
+  const safeStrokeColor = contrastSafeForegroundOn(color, theme.surface);
   const stroke = 12;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -7739,7 +8793,7 @@ function HealthRing({ score, color, theme, size = 122 }: { score: number; color:
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={color}
+          stroke={safeStrokeColor}
           strokeWidth={stroke}
           strokeLinecap="round"
           fill="none"
@@ -7747,19 +8801,23 @@ function HealthRing({ score, color, theme, size = 122 }: { score: number; color:
           strokeDashoffset={dashOffset as any}
         />
       </Svg>
-      <Text selectable style={{ color: theme.label, fontSize: size > 100 ? 31 : 22, lineHeight: size > 100 ? 35 : 26, fontWeight: "900" }}>{score}</Text>
-      <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "800" }}>{textFor("health.score", "score")}</Text>
+      <Text selectable maxFontSizeMultiplier={1.5} style={{ color: theme.label, fontSize: size > 100 ? 31 : 22, lineHeight: size > 100 ? 35 : 26, fontWeight: "900" }}>{score}</Text>
+      <Text selectable maxFontSizeMultiplier={1.5} style={{ color: theme.label2, fontSize: 12, fontWeight: "800" }}>{textFor("health.score", "score")}</Text>
     </View>
   );
 }
 
 function SemesterHealthHero({ semester, narrative, theme, hasSemesterData = true }: { semester: ReturnType<typeof buildSemesterSnapshot>; narrative: ReturnType<typeof buildSemesterNarrative>; theme: ReturnType<typeof palette>; hasSemesterData?: boolean }) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const statusColor = colorForState(narrative.colorState);
+  const statusTextColor = semanticTextColor(statusColor, theme, theme.surface);
+  const insetStatusTextColor = semanticTextColor(statusColor, theme, theme.surface2);
   const dims = narrative.dimensions;
   if (!hasSemesterData) {
     return (
       <Card theme={theme} style={{ padding: 20, backgroundColor: theme.surface }}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+        <View style={{ flexDirection: accessibilityLayout ? "column" : "row", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 16 }}>
           <View style={{ flex: 1 }}>
             <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 4 }}>{textFor("locked.health", "SEMESTER HEALTH")}</Text>
             <Text selectable style={{ color: theme.label, fontSize: 31, lineHeight: 34, fontWeight: "900" }}>{textFor("locked.scan", "Scan syllabus")}</Text>
@@ -7767,11 +8825,11 @@ function SemesterHealthHero({ semester, narrative, theme, hasSemesterData = true
           </View>
           <Pill text={textFor("health.start_here", "Start here")} color={theme.accent} theme={theme} />
         </View>
-        <View style={{ flexDirection: "row", gap: 18, alignItems: "center" }}>
-          <HealthRing score={0} color={theme.accent} theme={theme} />
+        <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 18, alignItems: accessibilityLayout ? "stretch" : "center" }}>
+          <View style={{ alignSelf: accessibilityLayout ? "center" : "auto" }}><HealthRing score={0} color={theme.accent} theme={theme} /></View>
           <View style={{ flex: 1, gap: 9 }}>
             {[textFor("locked.workload", "Workload"), textFor("locked.grades", "Grades"), textFor("locked.preparedness", "Preparedness"), textFor("locked.consistency", "Consistency")].map((label, index) => (
-              <View key={`locked-dimension-${index}`} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 8, borderBottomWidth: index === 3 ? 0 : 1, borderBottomColor: theme.hairline }}>
+              <View key={`locked-dimension-${index}`} style={{ flexDirection: accessibilityLayout ? "column" : "row", justifyContent: "space-between", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 3, paddingVertical: 8, borderBottomWidth: index === 3 ? 0 : 1, borderBottomColor: theme.hairline }}>
                 <Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 13 }}>{label}</Text>
                 <Text selectable style={{ color: theme.label3, fontWeight: "900", fontSize: 13 }}>--</Text>
               </View>
@@ -7788,22 +8846,22 @@ function SemesterHealthHero({ semester, narrative, theme, hasSemesterData = true
   }
   return (
     <Card theme={theme} style={{ padding: 20, backgroundColor: theme.surface }}>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+      <View style={{ flexDirection: accessibilityLayout ? "column" : "row", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 16 }}>
         <View style={{ flex: 1 }}>
           <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 4 }}>{textFor("locked.health", "SEMESTER HEALTH")}</Text>
           <Text selectable style={{ color: theme.label, fontSize: 31, lineHeight: 34, fontWeight: "900" }}>{localizedNarrativeText("state", narrative.state)}</Text>
-          <Text selectable style={{ color: statusColor, fontSize: 15, lineHeight: 20, marginTop: 5, fontWeight: "900" }}>{localizedNarrativeText("driver", narrative.primaryDriver)}</Text>
+          <Text selectable lineBreakStrategyIOS="standard" style={{ color: statusTextColor, fontSize: accessibilityLayout ? 12 : 15, lineHeight: accessibilityLayout ? 17 : 20, marginTop: 5, fontWeight: "900" }}>{localizedNarrativeText("driver", narrative.primaryDriver)}</Text>
         </View>
         <Pill text={localizedNarrativeText("health", narrative.healthLabel)} color={statusColor} theme={theme} />
       </View>
-      <View style={{ flexDirection: "row", gap: 18, alignItems: "center" }}>
-        <HealthRing score={semester.semesterHealth.overallScore} color={statusColor} theme={theme} />
+      <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 18, alignItems: accessibilityLayout ? "stretch" : "center" }}>
+        <View style={{ alignSelf: accessibilityLayout ? "center" : "auto" }}><HealthRing score={semester.semesterHealth.overallScore} color={statusColor} theme={theme} /></View>
         <View style={{ flex: 1, gap: 10 }}>
           {dims.map((dim) => (
             <View key={dim.key}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
-                <Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 13 }}>{dim.trend} {textFor(`locked.${dim.key}`, dim.label)}</Text>
-                <Text selectable style={{ color: colorForState(dim.colorState), fontWeight: "900", fontSize: 13 }}>{dim.score}</Text>
+              <View style={{ flexDirection: accessibilityLayout ? "column" : "row", justifyContent: "space-between", gap: 3, marginBottom: 4 }}>
+                <Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label, fontWeight: "900", fontSize: 13, width: accessibilityLayout ? "100%" : undefined }}>{dim.trend} {textFor(`locked.${dim.key}`, dim.label)}</Text>
+                <Text selectable style={{ color: semanticTextColor(colorForState(dim.colorState), theme), fontWeight: "900", fontSize: 13 }}>{dim.score}</Text>
               </View>
               <ProgressBar value={dim.score / 100} color={colorForState(dim.colorState)} theme={theme} height={7} />
             </View>
@@ -7812,7 +8870,7 @@ function SemesterHealthHero({ semester, narrative, theme, hasSemesterData = true
       </View>
       <View style={{ marginTop: 16, padding: 13, borderRadius: 16, backgroundColor: theme.surface2 }}>
         <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("today.next_move", "Next Move")}</Text>
-        <Text selectable style={{ color: statusColor, lineHeight: 20, marginTop: 4, fontWeight: "900" }}>{localizedNarrativeText("next", narrative.nextMoveLabel)}</Text>
+        <Text selectable style={{ color: insetStatusTextColor, lineHeight: 20, marginTop: 4, fontWeight: "900" }}>{localizedNarrativeText("next", narrative.nextMoveLabel)}</Text>
         <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 4 }}>{localizedNarrativeText("detail", narrative.nextMoveDetail)}</Text>
       </View>
     </Card>
@@ -7820,23 +8878,27 @@ function SemesterHealthHero({ semester, narrative, theme, hasSemesterData = true
 }
 
 function FeedbackLoopCard({ event, theme }: { event: FeedbackEvent; theme: ReturnType<typeof palette> }) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const positive = event.delta >= 0;
   const color = positive ? COLORS.green : COLORS.orange;
+  const backgroundColor = theme.dark ? "#172019" : positive ? "#F1FFF6" : "#FFF8EF";
+  const safeColor = contrastSafeForegroundOn(color, backgroundColor);
   const dimension = event.dimension || "semester";
   const before = event.dimension ? event.before[event.dimension] : event.before.semesterHealth;
   const after = event.dimension ? event.after[event.dimension] : event.after.semesterHealth;
   return (
-    <Card theme={theme} style={{ padding: 15, borderColor: `${color}55`, backgroundColor: theme.dark ? "#172019" : positive ? "#F1FFF6" : "#FFF8EF" }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+    <Card theme={theme} style={{ padding: 15, borderColor: safeColor, backgroundColor }}>
+      <View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 12 }}>
         <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: `${color}22`, alignItems: "center", justifyContent: "center" }}>
-          <Icon name={positive ? "check" : "refresh"} color={color} />
+          {positive ? <Check color={safeColor} size={20} strokeWidth={2.4} /> : <RefreshCw color={safeColor} size={20} strokeWidth={2.4} />}
         </View>
         <View style={{ flex: 1 }}>
           <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("study.impact", "Impact")}</Text>
           <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 2 }}>{event.message}</Text>
         </View>
-        <View style={{ alignItems: "flex-end" }}>
-          <Text selectable style={{ color, fontSize: 18, fontWeight: "900" }}>{before}{" -> "}{after}</Text>
+        <View style={{ alignItems: accessibilityLayout ? "flex-start" : "flex-end" }}>
+          <Text selectable style={{ color: safeColor, fontSize: 18, fontWeight: "900" }}>{before}{" → "}{after}</Text>
           <Text selectable style={{ color: theme.label2, fontSize: 11, fontWeight: "800" }}>{dimension}</Text>
         </View>
       </View>
@@ -7911,7 +8973,7 @@ function Classes({ data, mutate, nav, theme }: ScreenProps) {
   const restoreClass = (id: string) => mutate((current) => ({ ...current, classes: current.classes.map((klass) => klass.id === id ? { ...klass, archivedAt: undefined } : klass), studyBlocks: buildStudyPlan({ ...current, classes: current.classes.map((klass) => klass.id === id ? { ...klass, archivedAt: undefined } : klass) }) }));
   return (
     <Screen theme={theme}>
-      <Header title={textFor("classes.title", "Manage Semester")} sub={`${liveData.classes.length} ${textFor("common.active", "active")} · ${archivedClasses.length} ${textFor("classes.archived", "archived")}`} theme={theme} right={<Pressable accessibilityRole="button" accessibilityLabel={adding ? textFor("common.close", "Close") : textFor("classes.add", "Add class")} accessibilityHint={adding ? textFor("classes.accessibility_close_form_hint", "Close the add class form") : textFor("classes.accessibility_add_form_hint", "Open the add class form")} accessibilityState={{ expanded: adding }} onPress={() => setAdding((value) => !value)} style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}>{adding ? <X color="#fff" size={21} strokeWidth={3} /> : <Plus color="#fff" size={21} strokeWidth={3} />}</Pressable>} />
+      <Header title={textFor("classes.title", "Manage Semester")} sub={`${liveData.classes.length} ${textFor("common.active", "active")} · ${archivedClasses.length} ${textFor("classes.archived", "archived")}`} theme={theme} right={<Pressable accessibilityRole="button" accessibilityLabel={adding ? textFor("common.close", "Close") : textFor("classes.add", "Add class")} accessibilityHint={adding ? textFor("classes.accessibility_close_form_hint", "Close the add class form") : textFor("classes.accessibility_add_form_hint", "Open the add class form")} accessibilityState={{ expanded: adding }} onPress={() => setAdding((value) => !value)} style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}>{adding ? <X color={theme.accentText} size={21} strokeWidth={3} /> : <Plus color={theme.accentText} size={21} strokeWidth={3} />}</Pressable>} />
       <View style={{ paddingHorizontal: 16, gap: 13 }}>
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}>
           <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{textFor("classes.truth", "Single source of truth")}</Text>
@@ -7950,7 +9012,7 @@ function Classes({ data, mutate, nav, theme }: ScreenProps) {
         <Pressable key={c.id} accessibilityRole="button" accessibilityLabel={`${c.code}. ${c.name}`} accessibilityHint={textFor("class.accessibility_open_hint", "Open class details")} onPress={() => nav.push("classDetail", { id: c.id })}>
           {(() => {
             const pulse = classPulse(liveData, c);
-            const pulseColor = colorForState(pulse.colorState as any);
+            const pulseColor = semanticTextColor(colorForState(pulse.colorState as any), theme);
             const dueCount = liveData.tasks.filter((task) => task.classId === c.id && !task.done).length;
             const examCount = liveData.exams.filter((exam) => exam.classId === c.id).length;
             const noteCount = liveData.notes.filter((note) => note.classId === c.id).length;
@@ -7974,7 +9036,7 @@ function Classes({ data, mutate, nav, theme }: ScreenProps) {
         <View>
           <Section title={textFor("classes.archived", "Archived")} action={`${archivedClasses.length}`} theme={theme} />
           <Card theme={theme} style={{ overflow: "hidden" }}>{archivedClasses.map((klass) => (
-            <View key={klass.id} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12, opacity: 0.75 }}>
+            <View key={klass.id} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: theme.surface2 }}>
               <ClassGlyph c={klass} size={34} />
               <View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{klass.code}</Text><Text selectable style={{ color: theme.label2 }}>{klass.name}</Text></View>
               <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("classes.restore", "Restore class")}: ${klass.code}`} accessibilityHint={`${klass.name}. ${textFor("classes.accessibility_restore_hint", "Return this class to the active semester")}`} onPress={() => restoreClass(klass.id)} style={{ minHeight: 44, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, backgroundColor: theme.surface2, justifyContent: "center" }}><Text style={{ color: theme.accent, fontWeight: "900" }}>{textFor("classes.restore", "Restore class")}</Text></Pressable>
@@ -7988,6 +9050,9 @@ function Classes({ data, mutate, nav, theme }: ScreenProps) {
 }
 
 function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
+  const { fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const accessibilityLayout = fontScale >= 1.6;
   const c = data.classes.find((item) => item.id === params.id);
   if (!c) return <RecoveryScreen title={textFor("class.not_found", "Class not found")} body={textFor("class.not_found_body", "That class is not in this semester anymore.")} action={textFor("class.open_dashboard", "Open dashboard")} nav={nav} theme={theme} />;
   const classTasks = data.tasks.filter((t) => t.classId === c.id);
@@ -8148,17 +9213,19 @@ function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
     setWorkDraft({ title: "", dueDate: "", time: "11:59 PM", type: textFor("class.assignment", "Assignment"), effort: "45", priority: previewFixtureText("medium", "Medium"), description: "", recurring: false });
     setAddingWork(null);
   };
+  const heroForeground = foregroundForColor(c.color);
+  const heroOverlay = heroForeground === "#050507" ? "rgba(5,5,7,0.10)" : "rgba(255,255,255,0.20)";
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 40 }}>
-        <View style={{ paddingTop: 58, paddingHorizontal: 20, paddingBottom: 22, backgroundColor: c.color }}>
-          <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} accessibilityHint={textFor("accessibility.back_hint", "Return to the previous screen")} hitSlop={10} onPress={nav.back} style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: "rgba(255,255,255,.24)", alignItems: "center", justifyContent: "center", marginBottom: 20 }}><ChevronLeft color="#fff" /></Pressable>
-          <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><View style={{ width: 54, height: 54, borderRadius: 16, backgroundColor: "rgba(255,255,255,.22)", alignItems: "center", justifyContent: "center" }}><Icon name={c.icon} color="#fff" size={28} /></View><View><Text selectable style={{ color: "#fff", fontSize: 29, fontWeight: "900" }}>{c.code}</Text><Text selectable style={{ color: "rgba(255,255,255,.9)", fontWeight: "800" }}>{c.name}</Text></View></View>
-          <View style={{ flexDirection: "row", gap: 18, marginTop: 20 }}>{[{ l: textFor("class.forecast", "Forecast"), v: pulse.label }, { l: textFor("class.pulse", "Pulse"), v: pulse.score }, { l: textFor("class.due", "Due"), v: tasks.length }, { l: textFor("class.exams", "Exams"), v: exams.length }].map((s, index) => <View key={`class-stat-${index}`}><Text selectable style={{ color: "#fff", fontSize: 22, fontWeight: "900" }}>{s.v}</Text><Text selectable style={{ color: "rgba(255,255,255,.84)", fontSize: 12, fontWeight: "800" }}>{s.l}</Text></View>)}</View>
+      <ScrollView ref={simulatorCaptureIsEnabled() ? registerSimulatorCaptureScrollView : undefined} contentInsetAdjustmentBehavior="automatic" contentOffset={simulatorCaptureContentOffset()} onScroll={simulatorCaptureIsEnabled() ? recordSimulatorCaptureScroll : undefined} onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureViewport : undefined} onContentSizeChange={simulatorCaptureIsEnabled() ? recordSimulatorCaptureContentSize : undefined} scrollEventThrottle={16} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
+        <View style={{ paddingTop: Math.max(58, insets.top), paddingHorizontal: 20, paddingBottom: 22, backgroundColor: c.color }}>
+          <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} accessibilityHint={textFor("accessibility.back_hint", "Return to the previous screen")} hitSlop={10} onPress={nav.back} style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: heroOverlay, alignItems: "center", justifyContent: "center", marginBottom: 20 }}><BackChevron color={heroForeground} /></Pressable>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 12, alignItems: accessibilityLayout ? "flex-start" : "center" }}><View style={{ width: 54, height: 54, borderRadius: 16, backgroundColor: heroOverlay, alignItems: "center", justifyContent: "center" }}><Icon name={c.icon} color={heroForeground} size={28} /></View><View style={{ flex: accessibilityLayout ? undefined : 1, minWidth: 0 }}><Text selectable style={{ color: heroForeground, fontSize: 29, fontWeight: "900" }}>{c.code}</Text><Text selectable numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: `${heroForeground}D6`, fontWeight: "800" }}>{c.name}</Text></View></View>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 18, marginTop: 20 }}>{[{ l: textFor("class.forecast", "Forecast"), v: pulse.label }, { l: textFor("class.pulse", "Pulse"), v: pulse.score }, { l: textFor("class.due", "Due"), v: tasks.length }, { l: textFor("class.exams", "Exams"), v: exams.length }].map((s, index) => <View key={`class-stat-${index}`} style={{ minWidth: 54 }}><Text selectable maxFontSizeMultiplier={1.5} style={{ color: heroForeground, fontSize: 22, fontWeight: "900" }}>{s.v}</Text><Text selectable maxFontSizeMultiplier={1.8} style={{ color: `${heroForeground}D6`, fontSize: 12, fontWeight: "800" }}>{s.l}</Text></View>)}</View>
         </View>
         <View style={{ padding: 16, gap: 16 }}>
           <Card theme={theme} style={{ padding: 16 }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <View style={{ flexDirection: accessibilityLayout ? "column" : "row", justifyContent: "space-between", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 8, marginBottom: 8 }}>
               <Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 16 }}>{textFor("class.schedule", "Schedule")}</Text>
               <Pressable accessibilityRole="button" accessibilityLabel={editing ? textFor("common.close", "Close") : textFor("common.edit", "Edit")} accessibilityHint={editing ? textFor("class.accessibility_close_edit_hint", "Close class editing") : textFor("class.accessibility_edit_hint", "Edit class details")} accessibilityState={{ expanded: editing }} onPress={() => setEditing((value) => !value)} style={{ minHeight: 44, paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999, backgroundColor: theme.surface2, justifyContent: "center" }}><Text style={{ color: theme.accent, fontWeight: "900" }}>{editing ? textFor("common.close", "Close") : textFor("common.edit", "Edit")}</Text></Pressable>
             </View>
@@ -8170,58 +9237,58 @@ function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
             <Card theme={theme} style={{ padding: 16 }}>
               <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900", marginBottom: 10 }}>{textFor("common.edit", "Edit")}</Text>
               <FieldInput label={textFor("class.code", "Code")} value={classDraft.code} onChangeText={(code) => setClassDraft((current) => ({ ...current, code }))} theme={theme} />
-              <FieldInput label={textFor("class.name", "Name")} value={classDraft.name} onChangeText={(name) => setClassDraft((current) => ({ ...current, name }))} theme={theme} />
-              <View style={{ flexDirection: "row", gap: 10 }}>
+              <FieldInput label={textFor("class.name", "Name")} value={classDraft.name} onChangeText={(name) => setClassDraft((current) => ({ ...current, name }))} theme={theme} multiline={accessibilityLayout} />
+              <ResponsiveRow>
                 <View style={{ flex: 1 }}><FieldInput label={textFor("class.days", "Days")} value={classDraft.days} onChangeText={(days) => setClassDraft((current) => ({ ...current, days }))} theme={theme} /></View>
                 <View style={{ flex: 1 }}><FieldInput label={textFor("class.time", "Time")} value={classDraft.time} onChangeText={(time) => setClassDraft((current) => ({ ...current, time }))} theme={theme} /></View>
-              </View>
-              <View style={{ flexDirection: "row", gap: 10 }}>
+              </ResponsiveRow>
+              <ResponsiveRow>
                 <View style={{ flex: 1 }}><FieldInput label={textFor("assessment.room", "Room")} value={classDraft.room} onChangeText={(room) => setClassDraft((current) => ({ ...current, room }))} theme={theme} /></View>
                 <View style={{ flex: 1 }}><FieldInput label={textFor("class.professor", "Professor")} value={classDraft.professor} onChangeText={(professor) => setClassDraft((current) => ({ ...current, professor }))} theme={theme} /></View>
-              </View>
+              </ResponsiveRow>
             <FieldInput label={textFor("class.notes_label", "Notes")} value={classDraft.notes} onChangeText={(notes) => setClassDraft((current) => ({ ...current, notes }))} theme={theme} multiline />
-              <View style={{ flexDirection: "row", gap: 9 }}>
+              <ResponsiveRow gap={9}>
                 <View style={{ flex: 1 }}><Button label={textFor("common.save", "Save")} theme={theme} icon="target" onPress={saveClass} /></View>
                 <View style={{ flex: 1 }}><Button label={textFor("common.archive", "Archive")} theme={theme} secondary icon="archive" onPress={archiveClass} /></View>
-              </View>
+              </ResponsiveRow>
               <Button label={textFor("common.delete", "Delete")} theme={theme} secondary icon="trash" onPress={deleteClass} />
             </Card>
           ) : null}
           <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}>
             <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{textFor("class.add_work", "Add missing work")}</Text>
             <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 5 }}>{textFor("class.add_work_body", "Add a surprise quiz, recurring discussion, project, or undated assignment without re-importing.")}</Text>
-            <View style={{ flexDirection: "row", gap: 9, marginTop: 10 }}>
+            <ResponsiveRow gap={9} style={{ marginTop: 10 }}>
               <View style={{ flex: 1 }}><Button label={textFor("class.assignment", "Assignment")} theme={theme} icon="plus" onPress={() => { setAddingWork("assignment"); setWorkDraft((current) => ({ ...current, type: textFor("class.assignment", "Assignment") })); }} /></View>
               <View style={{ flex: 1 }}><Button label={textFor("class.assessment", "Assessment")} theme={theme} secondary icon="flask-conical" onPress={() => { setAddingWork("exam"); setWorkDraft((current) => ({ ...current, type: textFor("class.assessment", "Exam"), time: "9:00 AM" })); }} /></View>
-            </View>
+            </ResponsiveRow>
           </Card>
           {addingWork ? (
             <Card theme={theme} style={{ padding: 16 }}>
               <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900", marginBottom: 10 }}>{addingWork === "exam" ? textFor("class.add_assessment", "Add assessment") : textFor("class.add_assignment", "Add assignment")}</Text>
               <FieldInput label={textFor("class.title", "Title")} value={workDraft.title} onChangeText={(title) => setWorkDraft((current) => ({ ...current, title }))} placeholder={addingWork === "exam" ? textFor("class.assessment", "Quiz") : textFor("class.weekly_discussion", "Weekly discussion")} theme={theme} />
-              <View style={{ flexDirection: "row", gap: 10 }}>
+              <ResponsiveRow>
                 <View style={{ flex: 1 }}><FieldInput label={textFor("task.due", "Due date")} value={workDraft.dueDate} onChangeText={(dueDate) => setWorkDraft((current) => ({ ...current, dueDate }))} placeholder="YYYY-MM-DD" theme={theme} /></View>
                 <View style={{ flex: 1 }}><FieldInput label={textFor("class.time", "Time")} value={workDraft.time} onChangeText={(time) => setWorkDraft((current) => ({ ...current, time }))} theme={theme} /></View>
-              </View>
-              <View style={{ flexDirection: "row", gap: 10 }}>
+              </ResponsiveRow>
+              <ResponsiveRow>
                 <View style={{ flex: 1 }}><FieldInput label={textFor("assessment.type", "Type")} value={workDraft.type} onChangeText={(type) => setWorkDraft((current) => ({ ...current, type }))} placeholder={addingWork === "exam" ? textFor("class.assessment", "Exam") : textFor("class.assignment", "Assignment")} theme={theme} /></View>
                 {addingWork === "assignment" ? <View style={{ flex: 1 }}><FieldInput label={textFor("class.effort", "Effort")} value={workDraft.effort} onChangeText={(effort) => setWorkDraft((current) => ({ ...current, effort }))} placeholder="45" theme={theme} /></View> : null}
-              </View>
+              </ResponsiveRow>
               <FieldInput label={textFor("class.description", "Description")} value={workDraft.description} onChangeText={(description) => setWorkDraft((current) => ({ ...current, description }))} theme={theme} multiline />
               {addingWork === "assignment" ? (
                 <Pressable accessibilityRole="checkbox" accessibilityLabel={textFor("class.repeat_weekly", "Repeat weekly for 12 weeks")} accessibilityHint={textFor("class.accessibility_repeat_hint", "Toggle weekly recurrence for this assignment")} accessibilityState={{ checked: workDraft.recurring }} onPress={() => setWorkDraft((current) => ({ ...current, recurring: !current.recurring, title: current.title || textFor("class.weekly_discussion", "Weekly discussion") }))} style={{ flexDirection: "row", gap: 10, alignItems: "center", paddingVertical: 8 }}>
-                  <View style={{ width: 24, height: 24, borderRadius: 99, borderWidth: workDraft.recurring ? 0 : 2, borderColor: theme.label3, backgroundColor: workDraft.recurring ? theme.accent : "transparent", alignItems: "center", justifyContent: "center" }}>{workDraft.recurring ? <Check color="#fff" size={15} strokeWidth={3} /> : null}</View>
-                  <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("class.repeat_weekly", "Repeat weekly for 12 weeks")}</Text>
+                  <View style={{ width: 24, height: 24, borderRadius: 99, borderWidth: workDraft.recurring ? 0 : 2, borderColor: theme.label3, backgroundColor: workDraft.recurring ? theme.accent : "transparent", alignItems: "center", justifyContent: "center" }}>{workDraft.recurring ? <Check color={theme.accentText} size={15} strokeWidth={3} /> : null}</View>
+                  <Text selectable style={{ color: theme.label, fontWeight: "900", flex: 1, flexShrink: 1 }}>{textFor("class.repeat_weekly", "Repeat weekly for 12 weeks")}</Text>
                 </Pressable>
               ) : null}
-              {addingWork === "exam" && !workDraft.dueDate.trim() ? <Text selectable accessibilityRole="alert" style={{ color: COLORS.orange, fontWeight: "800", lineHeight: 19 }}>{textFor("review.invalid_date", "Enter a valid YYYY-MM-DD date before creating this assessment.")}</Text> : null}
+              {addingWork === "exam" && !workDraft.dueDate.trim() ? <Text selectable accessibilityRole="alert" style={{ color: semanticTextColor(COLORS.orange, theme), fontWeight: "800", lineHeight: 19 }}>{textFor("review.invalid_date", "Enter a valid YYYY-MM-DD date before creating this assessment.")}</Text> : null}
               <Button label={addingWork === "exam" || workDraft.dueDate.trim() ? textFor("class.create_work", "Create") : textFor("class.create_awaiting", "Create as Awaiting Date")} theme={theme} icon="plus" onPress={createWork} />
               <Button label={textFor("common.cancel", "Cancel")} theme={theme} secondary onPress={() => setAddingWork(null)} />
             </Card>
           ) : null}
-          <Card theme={theme} style={{ padding: 16 }}><View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 12 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("class.pulse", "Class pulse")}</Text><Text selectable style={{ color: colorForState(pulse.colorState as any), fontWeight: "900" }}>{pulse.label}</Text></View><ProgressBar value={pulse.score / 100} color={colorForState(pulse.colorState as any)} theme={theme} /><Text selectable style={{ color: theme.label2, marginTop: 8 }}>{pulse.nextMove} · {pulse.causes[0]}</Text></Card>
+          <Card theme={theme} style={{ padding: 16 }}><View style={{ flexDirection: accessibilityLayout ? "column" : "row", justifyContent: "space-between", gap: 6, marginBottom: 12 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("class.pulse", "Class pulse")}</Text><Text selectable style={{ color: semanticTextColor(colorForState(pulse.colorState as any), theme), fontWeight: "900" }}>{pulse.label}</Text></View><ProgressBar value={pulse.score / 100} color={colorForState(pulse.colorState as any)} theme={theme} /><Text selectable style={{ color: theme.label2, marginTop: 8 }}>{pulse.nextMove} · {pulse.causes[0]}</Text></Card>
           {tasks.length ? <View><Section title={textFor("class.assignments", "Assignments")} action={textFor("notes.all", "All")} onAction={() => nav.push("tasks")} theme={theme} /><Card theme={theme} style={{ overflow: "hidden" }}>{tasks.map((t) => <TaskRow key={t.id} task={t} data={data} theme={theme} onToggle={() => toggle(t.id)} onOpen={() => nav.push("taskDetail", { id: t.id })} />)}</Card></View> : null}
-          {exams.length ? <View><Section title={textFor("class.exams", "Upcoming exams")} theme={theme} /><View style={{ gap: 10 }}>{exams.map((e) => <Pressable key={e.id} accessibilityRole="button" accessibilityLabel={`${e.title}. ${localizedExamKind(e.kind)}. ${localizedDaysShort(daysUntilExam(e))}. ${e.time}`} accessibilityHint={textFor("assessment.accessibility_open_hint", "Open assessment details")} onPress={() => nav.push("assessmentDetail", { id: e.id })}><Card theme={theme} style={{ padding: 15 }}><View style={{ flexDirection: "row", justifyContent: "space-between" }}><View><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{e.title}</Text><Text selectable style={{ color: theme.label2, marginTop: 2 }}>{localizedExamKind(e.kind)} · {localizedImportedText(e.room)} · {e.time}</Text></View><Text selectable style={{ color: c.color, fontSize: 20, fontWeight: "900" }}>{localizedDaysShort(daysUntilExam(e))}</Text></View><View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 }}>{e.topics.map((topic) => <Pill key={topic} text={localizedImportedText(topic)} theme={theme} />)}</View></Card></Pressable>)}</View></View> : null}
+          {exams.length ? <View><Section title={textFor("class.exams", "Upcoming exams")} theme={theme} /><View style={{ gap: 10 }}>{exams.map((e) => <Pressable key={e.id} accessibilityRole="button" accessibilityLabel={`${e.title}. ${localizedExamKind(e.kind)}. ${localizedDaysShort(daysUntilExam(e))}. ${e.time}`} accessibilityHint={textFor("assessment.accessibility_open_hint", "Open assessment details")} onPress={() => nav.push("assessmentDetail", { id: e.id })}><Card theme={theme} style={{ padding: 15 }}><View style={{ flexDirection: accessibilityLayout ? "column" : "row", justifyContent: "space-between", gap: 8 }}><View style={{ flex: accessibilityLayout ? undefined : 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{e.title}</Text><Text selectable style={{ color: theme.label2, marginTop: 2 }}>{localizedExamKind(e.kind)} · {e.time}</Text></View><Text selectable style={{ color: semanticTextColor(c.color, theme), fontSize: 20, fontWeight: "900" }}>{localizedDaysShort(daysUntilExam(e))}</Text></View><Text selectable style={{ color: theme.label2, marginTop: 3 }}>{localizedImportedText(e.room)}</Text><View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 }}>{e.topics.map((topic) => <Pill key={topic} text={localizedImportedText(topic)} theme={theme} />)}</View></Card></Pressable>)}</View></View> : null}
           {notes.length ? <View><Section title={textFor("class.notes", "Recent notes")} action={textFor("notes.all", "All")} onAction={() => nav.push("notes")} theme={theme} /><View style={{ gap: 10 }}>{notes.slice(0, 2).map((n) => <NoteCard key={n.id} note={n} data={data} theme={theme} onOpen={() => nav.push("noteDetail", { id: n.id })} />)}</View></View> : null}
         </View>
       </ScrollView>
@@ -8230,6 +9297,8 @@ function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
 }
 
 function Tasks({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const liveData = useMemo(() => activeSemesterData(data), [data]);
   const done = liveData.tasks.filter((t) => t.done).length;
   const groups = [
@@ -8255,14 +9324,16 @@ function Tasks({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
       <BackHeader embedded nav={nav} theme={theme} label={textFor("tasks.title", "Tasks")} />
       <Header title={textFor("tasks.title", "Tasks")} sub={`${textFor("tasks.active_count", "{count} active", { count: liveData.tasks.length - done })} · ${textFor("tasks.complete_count", "{count} complete", { count: done })}`} theme={theme} />
       <View style={{ paddingHorizontal: 16, gap: 18 }}>
-        <Card theme={theme} style={{ padding: 15 }}><View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("tasks.this_week", "This week")}</Text><Text selectable style={{ color: theme.label2 }}>{done}/{liveData.tasks.length} {textFor("tasks.complete_count", "{count} complete", { count: "" }).trim()}</Text></View><ProgressBar value={liveData.tasks.length ? done / liveData.tasks.length : 0} color={theme.accent} theme={theme} height={9} /></Card>
-        {groups.filter((g) => g[2].length).map(([name, color, items], index) => <View key={`task-group-${index}`}><View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingBottom: 9 }}><View style={{ width: 9, height: 9, borderRadius: 99, backgroundColor: color }} /><Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{name}</Text><Text selectable style={{ color: theme.label2 }}>{items.length}</Text></View><Card theme={theme} style={{ overflow: "hidden", opacity: index === 1 ? 0.7 : 1 }}>{items.map((t) => <TaskRow key={t.id} task={t} data={liveData} theme={theme} onToggle={() => toggle(t.id)} onOpen={() => nav.push("taskDetail", { id: t.id })} />)}</Card></View>)}
+        <Card theme={theme} style={{ padding: 15 }}><View style={{ flexDirection: accessibilityLayout ? "column" : "row", justifyContent: "space-between", gap: 6, marginBottom: 10 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("tasks.this_week", "This week")}</Text><Text selectable style={{ color: theme.label2 }}>{done}/{liveData.tasks.length} {textFor("tasks.complete_count", "{count} complete", { count: "" }).trim()}</Text></View><ProgressBar value={liveData.tasks.length ? done / liveData.tasks.length : 0} color={theme.accent} theme={theme} height={9} /></Card>
+        {groups.filter((g) => g[2].length).map(([name, color, items], index) => <View key={`task-group-${index}`}><View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingBottom: 9 }}><View style={{ width: 9, height: 9, borderRadius: 99, backgroundColor: contrastSafeForegroundOn(color, theme.bg) }} /><Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{name}</Text><Text selectable style={{ color: theme.label2 }}>{items.length}</Text></View><Card theme={theme} style={{ overflow: "hidden" }}>{items.map((t) => <TaskRow key={t.id} task={t} data={liveData} theme={theme} onToggle={() => toggle(t.id)} onOpen={() => nav.push("taskDetail", { id: t.id })} />)}</Card></View>)}
       </View>
     </Screen>
   );
 }
 
 function TaskDetail({ data, mutate, nav, theme, params, recordReviewTrigger }: ScreenProps) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const task = data.tasks.find((t) => t.id === params.id);
   const [subs, setSubs] = useState(task?.subtasks || []);
   const [editing, setEditing] = useState(params.edit === "1");
@@ -8399,34 +9470,34 @@ function TaskDetail({ data, mutate, nav, theme, params, recordReviewTrigger }: S
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={c.code} />
-      <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
+      <ScrollView ref={simulatorCaptureIsEnabled() ? registerSimulatorCaptureScrollView : undefined} contentInsetAdjustmentBehavior="automatic" contentOffset={simulatorCaptureContentOffset()} onScroll={simulatorCaptureIsEnabled() ? recordSimulatorCaptureScroll : undefined} onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureViewport : undefined} onContentSizeChange={simulatorCaptureIsEnabled() ? recordSimulatorCaptureContentSize : undefined} scrollEventThrottle={16} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
         <View><View style={{ flexDirection: "row", gap: 8, marginBottom: 10, flexWrap: "wrap" }}><Pill text={c.code} color={c.color} theme={theme} /><Pill text={localizedImportedText(task.type)} theme={theme} />{task.missing ? <Pill text={textFor("task.awaiting_date", "Awaiting Date")} color={COLORS.orange} theme={theme} /> : null}{task.recurringId ? <Pill text={textFor("task.repeats_weekly", "Repeats weekly")} color={COLORS.purple} theme={theme} /> : null}</View><Text selectable style={{ color: theme.label, fontSize: 26, lineHeight: 30, fontWeight: "900", marginBottom: 14 }}>{task.title}</Text>{recurrenceLabel ? <Text selectable style={{ color: theme.label2, lineHeight: 20, marginBottom: 10 }}>{recurrenceLabel}</Text> : null}<View style={{ gap: 2 }}><Button label={completionLabel} theme={theme} icon="target" onPress={() => { markComplete(); nav.back(); }} /><Button label={editing ? textFor("task.close_edit", "Close edit") : textFor("common.edit", "Edit")} theme={theme} secondary icon="pencil" onPress={() => setEditing((value) => !value)} /></View></View>
         {editing ? (
           <Card theme={theme} style={{ padding: 16 }}>
-            <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900", marginBottom: 10 }}>{textFor("task.edit", "Edit assignment")}</Text>
-            <FieldInput label={textFor("class.title", "Title")} value={draft.title} onChangeText={(title) => setDraft((current) => ({ ...current, title }))} theme={theme} />
-            <View style={{ flexDirection: "row", gap: 10 }}>
+            <Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label, fontSize: 18, fontWeight: "900", marginBottom: 10, width: "100%" }}>{textFor("task.edit", "Edit assignment")}</Text>
+            <FieldInput label={textFor("class.title", "Title")} value={draft.title} onChangeText={(title) => setDraft((current) => ({ ...current, title }))} theme={theme} multiline={accessibilityLayout} />
+            <ResponsiveRow>
               <View style={{ flex: 1 }}><FieldInput label={textFor("task.due", "Due date")} value={draft.dueDate} onChangeText={(dueDate) => setDraft((current) => ({ ...current, dueDate }))} placeholder="YYYY-MM-DD" theme={theme} /></View>
               <View style={{ flex: 1 }}><FieldInput label={textFor("class.time", "Time")} value={draft.time} onChangeText={(time) => setDraft((current) => ({ ...current, time }))} theme={theme} /></View>
-            </View>
-            <View style={{ flexDirection: "row", gap: 10 }}>
+            </ResponsiveRow>
+            <ResponsiveRow>
               <View style={{ flex: 1 }}><FieldInput label={textFor("assessment.type", "Type")} value={draft.type} onChangeText={(type) => setDraft((current) => ({ ...current, type }))} theme={theme} /></View>
               <View style={{ flex: 1 }}><FieldInput label={textFor("class.effort", "Effort")} value={draft.estimateMinutes} onChangeText={(estimateMinutes) => setDraft((current) => ({ ...current, estimateMinutes }))} theme={theme} /></View>
-            </View>
+            </ResponsiveRow>
             <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("task.move_to_class", "Move to class")}</Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>{data.classes.filter((klass) => !klass.archivedAt).map((klass) => (
-              <Pressable key={klass.id} accessibilityRole="radio" accessibilityLabel={`${klass.code}. ${klass.name}`} accessibilityHint={textFor("task.accessibility_move_class_hint", "Move this assignment to the selected class")} accessibilityState={{ selected: draft.classId === klass.id }} onPress={() => setDraft((current) => ({ ...current, classId: klass.id }))} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: draft.classId === klass.id ? klass.color : theme.surface2 }}><Text style={{ color: draft.classId === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
+              <Pressable key={klass.id} accessibilityRole="radio" accessibilityLabel={`${klass.code}. ${klass.name}`} accessibilityHint={textFor("task.accessibility_move_class_hint", "Move this assignment to the selected class")} accessibilityState={{ selected: draft.classId === klass.id }} onPress={() => setDraft((current) => ({ ...current, classId: klass.id }))} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: draft.classId === klass.id ? contrastSafeForegroundOn(klass.color, theme.surface) : theme.surface2 }}><Text style={{ color: draft.classId === klass.id ? foregroundForColor(contrastSafeForegroundOn(klass.color, theme.surface)) : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
             ))}</View>
             <FieldInput label={textFor("class.description", "Description")} value={draft.description} onChangeText={(description) => setDraft((current) => ({ ...current, description }))} theme={theme} multiline />
             <Button label={draft.dueDate.trim() ? textFor("task.save", "Save assignment") : textFor("task.save_awaiting", "Save as Awaiting Date")} theme={theme} icon="target" onPress={saveTask} />
-            <View style={{ flexDirection: "row", gap: 9 }}>
+            <ResponsiveRow gap={9}>
               <View style={{ flex: 1 }}><Button label={textFor("common.duplicate", "Duplicate")} theme={theme} secondary icon="copy" onPress={duplicateTask} /></View>
               <View style={{ flex: 1 }}><Button label={textFor("common.delete", "Delete")} theme={theme} secondary icon="trash" onPress={deleteTask} /></View>
-            </View>
+            </ResponsiveRow>
           </Card>
         ) : null}
-        <Card theme={theme} style={{ overflow: "hidden" }}>{[[Clock, textFor("task.due", "Due"), taskDueLabel(task), task.missing || dueDays <= 0 ? COLORS.orange : theme.label], [Timer, textFor("task.estimated", "Estimated"), minutesLabel(task.estimateMinutes), theme.label], [FileText, textFor("task.source", "Source"), localizedTaskSource(task.source), theme.label], [CalendarDays, textFor("task.on_calendar", "On calendar"), readablePlannerTimeRange(data.studyBlocks.find((b) => b.taskId === task.id)?.time || textFor("task.not_scheduled", "Not scheduled")), theme.label]].map(([I, l, v, color]: any, index) => <View key={`task-detail-row-${index}`} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: index === 3 ? 0 : 1, borderBottomColor: theme.hairline }}><I color={theme.label2} size={18} /><Text selectable style={{ color: theme.label2, flex: 1 }}>{l}</Text><Text selectable style={{ color, fontWeight: "900", maxWidth: 180, textAlign: "right" }}>{v}</Text></View>)}</Card>
-        {subs.length ? <View><Section title={textFor("task.subtasks", "Subtasks")} action={`${subs.filter((s) => s.done).length}/${subs.length}`} theme={theme} /><Card theme={theme} style={{ overflow: "hidden" }}>{subs.map((s, i) => <Pressable key={s.title} accessibilityRole="checkbox" accessibilityLabel={localizedImportedText(s.title)} accessibilityHint={s.done ? textFor("task.accessibility_reopen_subtask_hint", "Mark this subtask incomplete") : textFor("task.accessibility_complete_subtask_hint", "Mark this subtask complete")} accessibilityState={{ checked: s.done }} onPress={() => toggleSubtask(i)} style={{ flexDirection: "row", gap: 12, alignItems: "center", padding: 14 }}><View style={{ width: 23, height: 23, borderRadius: 99, borderWidth: s.done ? 0 : 2, borderColor: c.color, backgroundColor: s.done ? c.color : "transparent", alignItems: "center", justifyContent: "center" }}>{s.done ? <Check color="#fff" size={14} strokeWidth={3} /> : null}</View><Text selectable style={{ color: s.done ? theme.label3 : theme.label, textDecorationLine: s.done ? "line-through" : "none", fontWeight: "700" }}>{localizedImportedText(s.title)}</Text></Pressable>)}</Card></View> : null}
+        <Card theme={theme} style={{ overflow: "hidden" }}>{[[Clock, textFor("task.due", "Due"), taskDueLabel(task), task.missing || dueDays <= 0 ? COLORS.orange : theme.label], [Timer, textFor("task.estimated", "Estimated"), minutesLabel(task.estimateMinutes), theme.label], [FileText, textFor("task.source", "Source"), localizedTaskSource(task.source), theme.label], [CalendarDays, textFor("task.on_calendar", "On calendar"), readablePlannerTimeRange(data.studyBlocks.find((b) => b.taskId === task.id)?.time || textFor("task.not_scheduled", "Not scheduled")), theme.label]].map(([I, l, v, color]: any, index) => <View key={`task-detail-row-${index}`} style={{ padding: 14, flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: accessibilityLayout ? 6 : 12, borderBottomWidth: index === 3 ? 0 : 1, borderBottomColor: theme.hairline }}><View style={{ flexDirection: "row", alignItems: "center", gap: 12, width: accessibilityLayout ? "100%" : undefined, flex: accessibilityLayout ? undefined : 1 }}><I color={theme.label2} size={18} /><Text selectable style={{ color: theme.label2, flexShrink: 1 }}>{l}</Text></View><Text selectable style={{ color: semanticTextColor(color, theme), fontWeight: "900", maxWidth: accessibilityLayout ? undefined : 180, textAlign: accessibilityLayout ? "auto" : theme.rtl ? "left" : "right", marginStart: accessibilityLayout ? 30 : 0 }}>{v}</Text></View>)}</Card>
+        {subs.length ? <View><Section title={textFor("task.subtasks", "Subtasks")} action={`${subs.filter((s) => s.done).length}/${subs.length}`} theme={theme} /><Card theme={theme} style={{ overflow: "hidden" }}>{subs.map((s, i) => { const checkedColor = contrastSafeForegroundOn(c.color, theme.surface); return <Pressable key={s.title} accessibilityRole="checkbox" accessibilityLabel={localizedImportedText(s.title)} accessibilityHint={s.done ? textFor("task.accessibility_reopen_subtask_hint", "Mark this subtask incomplete") : textFor("task.accessibility_complete_subtask_hint", "Mark this subtask complete")} accessibilityState={{ checked: s.done }} onPress={() => toggleSubtask(i)} style={{ flexDirection: "row", gap: 12, alignItems: "flex-start", padding: 14 }}><View style={{ width: 23, height: 23, borderRadius: 99, borderWidth: s.done ? 0 : 2, borderColor: semanticTextColor(c.color, theme), backgroundColor: s.done ? checkedColor : "transparent", alignItems: "center", justifyContent: "center" }}>{s.done ? <Check color={foregroundForColor(checkedColor)} size={14} strokeWidth={3} /> : null}</View><Text selectable style={{ color: s.done ? theme.label3 : theme.label, textDecorationLine: s.done ? "line-through" : "none", fontWeight: "700", flex: 1, minWidth: 0 }}>{localizedImportedText(s.title)}</Text></Pressable>; })}</Card></View> : null}
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("today.next_move", "Next Move")}</Text></View><Text selectable style={{ color: canAddStudyBlock ? theme.label : theme.label2, lineHeight: 21 }}>{canAddStudyBlock ? textFor("task.schedule_hint", "Create a {minutes} focus block around your existing plan.", { minutes: minutesLabel(task.estimateMinutes) }) : `${task.done ? textFor("task.reopen", "Reopen task") : textFor("task.awaiting_date", "Due date required")} · ${textFor("task.not_scheduled", "Not scheduled")}`}</Text><Button label={canAddStudyBlock ? textFor("assessment.rebuild", "Add study block") : task.done ? textFor("task.reopen", "Reopen task to schedule") : textFor("task.awaiting_date", "Due date required")} theme={theme} icon="clock" onPress={canAddStudyBlock ? addBlock : undefined} /></Card>
       </ScrollView>
     </View>
@@ -8434,6 +9505,8 @@ function TaskDetail({ data, mutate, nav, theme, params, recordReviewTrigger }: S
 }
 
 function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const exam = data.exams.find((item) => item.id === params.id);
   const [editing, setEditing] = useState(params.edit === "1");
   const [draft, setDraft] = useState<{
@@ -8522,41 +9595,41 @@ function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={c.code} />
-      <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
+      <ScrollView ref={simulatorCaptureIsEnabled() ? registerSimulatorCaptureScrollView : undefined} contentInsetAdjustmentBehavior="automatic" contentOffset={simulatorCaptureContentOffset()} onScroll={simulatorCaptureIsEnabled() ? recordSimulatorCaptureScroll : undefined} onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureViewport : undefined} onContentSizeChange={simulatorCaptureIsEnabled() ? recordSimulatorCaptureContentSize : undefined} scrollEventThrottle={16} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
         <View>
           <View style={{ flexDirection: "row", gap: 8, marginBottom: 10, flexWrap: "wrap" }}><Pill text={c.code} color={c.color} theme={theme} /><Pill text={localizedExamKind(exam.kind)} color={COLORS.purple} theme={theme} /><Pill text={localizedPriority(exam.priority)} color={exam.priority === "Low" ? COLORS.blue : exam.priority === "Medium" ? COLORS.orange : COLORS.red} theme={theme} /></View>
           <Text selectable style={{ color: theme.label, fontSize: 26, lineHeight: 30, fontWeight: "900", marginBottom: 14 }}>{exam.title}</Text>
-          <View style={{ flexDirection: "row", gap: 9 }}>
+          <ResponsiveRow gap={9}>
             <View style={{ flex: 1 }}><Button label={editing ? textFor("task.close_edit", "Close edit") : textFor("common.edit", "Edit")} theme={theme} icon="pencil" onPress={() => setEditing((value) => !value)} /></View>
             <View style={{ flex: 1 }}><Button label={textFor("common.duplicate", "Duplicate")} theme={theme} secondary icon="copy" onPress={duplicateAssessment} /></View>
-          </View>
+          </ResponsiveRow>
         </View>
         {editing ? (
           <Card theme={theme} style={{ padding: 16 }}>
             <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900", marginBottom: 10 }}>{textFor("class.assessment", "Assessment")}</Text>
             <FieldInput label={textFor("class.title", "Title")} value={draft.title} onChangeText={(title) => setDraft((current) => ({ ...current, title }))} theme={theme} />
-            <View style={{ flexDirection: "row", gap: 10 }}>
+            <ResponsiveRow>
               <View style={{ flex: 1 }}><FieldInput label={textFor("assessment.date", "Date")} value={draft.date} onChangeText={(date) => setDraft((current) => ({ ...current, date }))} placeholder="YYYY-MM-DD" theme={theme} /></View>
               <View style={{ flex: 1 }}><FieldInput label={textFor("class.time", "Time")} value={draft.time} onChangeText={(time) => setDraft((current) => ({ ...current, time }))} theme={theme} /></View>
-            </View>
-            <View style={{ flexDirection: "row", gap: 10 }}>
+            </ResponsiveRow>
+            <ResponsiveRow>
               <View style={{ flex: 1 }}><FieldInput label={textFor("assessment.type", "Type")} value={draft.type} onChangeText={(type) => setDraft((current) => ({ ...current, type }))} placeholder={textFor("class.assessment", "Exam")} theme={theme} /></View>
               <View style={{ flex: 1 }}><FieldInput label={textFor("class.effort", "Effort")} value={draft.effort} onChangeText={(effort) => setDraft((current) => ({ ...current, effort }))} placeholder="120" theme={theme} /></View>
-            </View>
-            <View style={{ flexDirection: "row", gap: 10 }}>
+            </ResponsiveRow>
+            <ResponsiveRow>
               <View style={{ flex: 1 }}><FieldInput label={textFor("assessment.room", "Room")} value={draft.room} onChangeText={(room) => setDraft((current) => ({ ...current, room }))} theme={theme} /></View>
               <View style={{ flex: 1 }}><FieldInput label={textFor("assessment.priority", "Priority")} value={draft.priority} onChangeText={(priority) => setDraft((current) => ({ ...current, priority }))} placeholder={previewFixtureText("high", "High")} theme={theme} /></View>
-            </View>
+            </ResponsiveRow>
             <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("task.move_to_class", "Move to class")}</Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>{data.classes.filter((klass) => !klass.archivedAt).map((klass) => (
-              <Pressable key={klass.id} accessibilityRole="radio" accessibilityLabel={`${klass.code}. ${klass.name}`} accessibilityHint={textFor("assessment.accessibility_move_class_hint", "Move this assessment to the selected class")} accessibilityState={{ selected: draft.classId === klass.id }} onPress={() => setDraft((current) => ({ ...current, classId: klass.id }))} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: draft.classId === klass.id ? klass.color : theme.surface2 }}><Text style={{ color: draft.classId === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
+              <Pressable key={klass.id} accessibilityRole="radio" accessibilityLabel={`${klass.code}. ${klass.name}`} accessibilityHint={textFor("assessment.accessibility_move_class_hint", "Move this assessment to the selected class")} accessibilityState={{ selected: draft.classId === klass.id }} onPress={() => setDraft((current) => ({ ...current, classId: klass.id }))} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: draft.classId === klass.id ? contrastSafeForegroundOn(klass.color, theme.surface) : theme.surface2 }}><Text style={{ color: draft.classId === klass.id ? foregroundForColor(contrastSafeForegroundOn(klass.color, theme.surface)) : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
             ))}</View>
             <FieldInput label={textFor("class.notes_label", "Notes")} value={draft.notes} onChangeText={(notes) => setDraft((current) => ({ ...current, notes }))} theme={theme} multiline />
             <Button label={textFor("assessment.save", "Save assessment")} theme={theme} icon="target" onPress={saveAssessment} />
             <Button label={textFor("assessment.delete_title", "Delete assessment?")} theme={theme} secondary icon="trash" onPress={deleteAssessment} />
           </Card>
         ) : null}
-        <Card theme={theme} style={{ overflow: "hidden" }}>{[[Clock, textFor("assessment.date", "Date"), `${localizedDueLabel(dueDays)} · ${exam.time}`, dueDays <= 3 ? COLORS.orange : theme.label], [Timer, textFor("class.effort", "Effort"), minutesLabel(exam.effortMinutes || 120), theme.label], [MapPin, textFor("assessment.room", "Room"), localizedImportedText(exam.room), theme.label], [FileText, textFor("class.notes_label", "Notes"), exam.notes || exam.description || textFor("assessment.no_notes", "No notes yet"), theme.label]].map(([I, l, v, color]: any, index) => <View key={`assessment-detail-row-${index}`} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: index === 3 ? 0 : 1, borderBottomColor: theme.hairline }}><I color={theme.label2} size={18} /><Text selectable style={{ color: theme.label2, flex: 1 }}>{l}</Text><Text selectable numberOfLines={2} style={{ color, fontWeight: "900", maxWidth: 190, textAlign: "right" }}>{v}</Text></View>)}</Card>
+        <Card theme={theme} style={{ overflow: "hidden" }}>{[[Clock, textFor("assessment.date", "Date"), `${localizedDueLabel(dueDays)} · ${exam.time}`, dueDays <= 3 ? COLORS.orange : theme.label], [Timer, textFor("class.effort", "Effort"), minutesLabel(exam.effortMinutes || 120), theme.label], [MapPin, textFor("assessment.room", "Room"), localizedImportedText(exam.room), theme.label], [FileText, textFor("class.notes_label", "Notes"), exam.notes || exam.description || textFor("assessment.no_notes", "No notes yet"), theme.label]].map(([I, l, v, color]: any, index) => <View key={`assessment-detail-row-${index}`} style={{ padding: 14, flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: accessibilityLayout ? 6 : 12, borderBottomWidth: index === 3 ? 0 : 1, borderBottomColor: theme.hairline }}><View style={{ flexDirection: "row", alignItems: "center", gap: 12, width: accessibilityLayout ? "100%" : undefined, flex: accessibilityLayout ? undefined : 1 }}><I color={theme.label2} size={18} /><Text selectable style={{ color: theme.label2, flexShrink: 1 }}>{l}</Text></View><Text selectable numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: semanticTextColor(color, theme), fontWeight: "900", maxWidth: accessibilityLayout ? undefined : 190, textAlign: accessibilityLayout ? "auto" : theme.rtl ? "left" : "right", marginStart: accessibilityLayout ? 30 : 0 }}>{v}</Text></View>)}</Card>
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 18 }}>{textFor("assessment.prep_plan", "Prep plan")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21, marginTop: 5 }}>{textFor("assessment.prep_body", "{minutes} of prep. Due {due}.", { minutes: minutesLabel(exam.effortMinutes || 120), due: localizedDueLabel(dueDays) })}</Text><Button label={textFor("assessment.rebuild", "Rebuild study blocks")} theme={theme} icon="refresh" onPress={() => mutate((d) => ({ ...d, studyBlocks: buildStudyPlan(d) }))} /></Card>
       </ScrollView>
     </View>
@@ -8564,6 +9637,8 @@ function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
 }
 
 function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProps) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const previewOnly = !data.prefs.premium;
   const autoActionHandled = useRef(false);
   const imageOcrAvailable = hasNativeImageTextRecognition();
@@ -8768,6 +9843,12 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
       requiresOcr: false,
     },
   ];
+  const captureActions = [
+    ["syllabus", textFor("scan.more_assignment", "Assignment sheet"), textFor("scan.more_assignment_body", "Extract task details"), COLORS.orange, "file"],
+    ["syllabus", textFor("scan.more_exam", "Exam review"), textFor("scan.more_exam_body", "Build a study set"), COLORS.pink, "flask-conical"],
+    ["syllabus", textFor("scan.upload_pdf", "Upload PDF"), textFor("scan.more_upload_body", "Pick syllabus PDF"), COLORS.green, "upload"],
+  ];
+  const stackCaptureTiles = fontScale >= 1.2 || captureActions.some(([, title]) => longestUnbrokenTokenLength(title) >= 18);
 
   return (
     <Screen theme={theme} bottom={132}>
@@ -8780,21 +9861,21 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
       <View style={{ paddingHorizontal: 16, gap: 16 }}>
         <View style={{ borderRadius: 28, overflow: "hidden", backgroundColor: theme.dark ? "#0D1422" : "#FFFFFF", borderWidth: 1, borderColor: theme.hairline, boxShadow: theme.dark ? "0 16px 32px rgba(0,0,0,0.42)" : "0 16px 34px rgba(18,36,74,0.12)" }}>
           <View style={{ padding: 18, gap: 16 }}>
-            <View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}>
+            <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 14, alignItems: accessibilityLayout ? "flex-start" : "center" }}>
               <View style={{ width: 70, height: 92, borderRadius: 22, backgroundColor: theme.dark ? "#101A2C" : "#EEF4FF", borderWidth: 1, borderColor: theme.dark ? "rgba(255,255,255,0.10)" : "#D7E4FF", alignItems: "center", justifyContent: "center" }}>
                 <View style={{ width: 46, height: 58, borderRadius: 12, backgroundColor: theme.dark ? "#172238" : "#FFFFFF", borderWidth: 2, borderColor: scannerReady ? COLORS.green : COLORS.orange, alignItems: "center", justifyContent: "center" }}>
                   {isWorking ? <ActivityIndicator color={scannerReady ? COLORS.green : COLORS.orange} /> : <ScanLine color={scannerReady ? COLORS.green : COLORS.orange} size={27} strokeWidth={2.4} />}
                 </View>
               </View>
-              <View style={{ flex: 1, gap: 7 }}>
-                <Text selectable style={{ color: scannerReady ? COLORS.green : COLORS.orange, fontSize: 12, fontWeight: "900" }}>{scannerReady ? textFor("scan.status_ready", "On-device text scan is ready.") : textFor("scan.status_backup", "On-device text scan is unavailable here. Paste text to continue.")}</Text>
-                <Text selectable style={{ color: theme.label, fontSize: 26, lineHeight: 29, fontWeight: "900" }}>{previewOnly ? textFor("scan.title_preview", "Unlock. Then review.") : textFor("scan.title", "Import. Review. Start.")}</Text>
-                <Text selectable style={{ color: theme.label2, lineHeight: 20 }}>{scanStatus}</Text>
+              <View style={{ flex: accessibilityLayout ? undefined : 1, width: accessibilityLayout ? "100%" : undefined, gap: 7 }}>
+                <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: semanticTextColor(scannerReady ? COLORS.green : COLORS.orange, theme, theme.dark ? "#0D1422" : "#FFFFFF"), fontSize: 12, fontWeight: "900" }}>{scannerReady ? textFor("scan.status_ready", "On-device text scan is ready.") : textFor("scan.status_backup", "On-device text scan is unavailable here. Paste text to continue.")}</Text>
+                <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label, fontSize: 26, lineHeight: 29, fontWeight: "900" }}>{previewOnly ? textFor("scan.title_preview", "Unlock. Then review.") : textFor("scan.title", "Import. Review. Start.")}</Text>
+                <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label2, lineHeight: 20 }}>{scanStatus}</Text>
               </View>
             </View>
-            <View style={{ flexDirection: "row", gap: 8 }}>
+            <View style={{ flexDirection: accessibilityLayout ? "column" : "row", flexWrap: accessibilityLayout ? "nowrap" : "wrap", gap: 8 }}>
               <ScannerMetric value={scannerReady ? textFor("widgets.ready", "Ready") : textFor("scan.paste_text", "Paste text")} label={textFor("scan.metric_ocr", "OCR")} color={scannerReady ? COLORS.green : COLORS.orange} theme={theme} />
-              <ScannerMetric value={previewOnly ? textFor("review.guard_preview", "Preview") : textFor("review.guard_active", "Review")} label={textFor("scan.metric_gate", "Save gate")} color={previewOnly ? COLORS.orange : COLORS.blue} theme={theme} />
+              <ScannerMetric value={previewOnly ? textFor("review.guard_preview", "Preview") : textFor("scan.rail_review", "Review")} label={textFor("scan.metric_gate", "Save gate")} color={previewOnly ? COLORS.orange : COLORS.blue} theme={theme} />
               <ScannerMetric value={String(data.imports.length)} label={textFor("scan.history", "Import history")} color={COLORS.purple} theme={theme} />
             </View>
           </View>
@@ -8810,7 +9891,7 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
                   <View style={{ width: 24, height: 24, borderRadius: 8, backgroundColor: `${color}1A`, alignItems: "center", justifyContent: "center" }}>
                     <Icon name={icon} color={color} size={14} />
                   </View>
-                  <Text selectable style={{ color: theme.label2, flex: 1, lineHeight: 18, fontSize: 12, fontWeight: "800" }}>{label}</Text>
+                  <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label2, flex: 1, lineHeight: 18, fontSize: 12, fontWeight: "800" }}>{label}</Text>
                 </View>
               ))}
             </View>
@@ -8819,7 +9900,7 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
 
         {!previewOnly && semesterReady ? (
           <ScannerPanel theme={theme} icon="notebook-pen" color={COLORS.purple} title={textFor("scan.notes_title", "Scan notes")} body={textFor("scan.notes_body", "Summaries, terms, flashcards, quizzes, and review tasks.")}>
-            <View style={{ flexDirection: "row", gap: 10 }}>
+            <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 10 }}>
               <ScannerCompactButton theme={theme} label={textFor("scan.camera", "Camera")} icon="camera" color={COLORS.purple} busy={working === "notesCamera"} disabled={isWorking || !scannerReady} onPress={() => nav.push("cameraScanner", { mode: "notes" })} />
               <ScannerCompactButton theme={theme} label={textFor("scan.photo", "Photo")} icon="image" color={COLORS.blue} busy={working === "notesLibrary"} disabled={isWorking || !scannerReady} onPress={() => runImageOcr("library", "notes")} />
             </View>
@@ -8845,7 +9926,7 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
 
         {!previewOnly && !semesterReady ? (
           <ScannerPanel theme={theme} icon="notebook-pen" color={COLORS.purple} title={textFor("scan.notes_title", "Scan notes")} body={textFor("scan.notes_body", "Summaries, terms, flashcards, quizzes, and review tasks.")}>
-            <View style={{ flexDirection: "row", gap: 10 }}>
+            <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 10 }}>
               <ScannerCompactButton theme={theme} label={textFor("scan.camera", "Camera")} icon="camera" color={COLORS.purple} busy={working === "notesCamera"} disabled={isWorking || !scannerReady} onPress={() => nav.push("cameraScanner", { mode: "notes" })} />
               <ScannerCompactButton theme={theme} label={textFor("scan.photo", "Photo")} icon="image" color={COLORS.blue} busy={working === "notesLibrary"} disabled={isWorking || !scannerReady} onPress={() => runImageOcr("library", "notes")} />
             </View>
@@ -8860,7 +9941,11 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
               onChangeText={setQuickTask}
               placeholder={textFor("scan.quick_seed", "chem lab report due tomorrow, estimate 2 hours")}
               placeholderTextColor={theme.label3}
-              style={{ minHeight: 52, borderRadius: 16, backgroundColor: theme.surface2, color: theme.label, paddingHorizontal: 14, paddingVertical: 11, fontWeight: "800", borderWidth: 1, borderColor: theme.hairline }}
+              keyboardAppearance={theme.dark ? "dark" : "light"}
+              multiline
+              maxFontSizeMultiplier={2}
+              textAlignVertical="top"
+              style={{ height: accessibilityLayout ? 208 : 88, borderRadius: 16, backgroundColor: theme.surface2, color: theme.label, paddingHorizontal: 14, paddingVertical: 11, fontWeight: "800", borderWidth: 1, borderColor: theme.hairline }}
             />
             <Button label={textFor("scan.quick_button", "Create task + replan")} theme={theme} icon="sparkles" onPress={captureTask} />
           </ScannerPanel>
@@ -8870,11 +9955,7 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
           <View style={{ gap: 10 }}>
             <Section title={textFor("scan.more", "More captures")} theme={theme} />
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-              {[
-                ["syllabus", textFor("scan.more_assignment", "Assignment sheet"), textFor("scan.more_assignment_body", "Extract task details"), COLORS.orange, "file"],
-                ["syllabus", textFor("scan.more_exam", "Exam review"), textFor("scan.more_exam_body", "Build a study set"), COLORS.pink, "flask-conical"],
-                ["syllabus", textFor("scan.upload_pdf", "Upload PDF"), textFor("scan.more_upload_body", "Pick syllabus PDF"), COLORS.green, "upload"],
-              ].map(([mode, name, sub, color, icon], index) => (
+              {captureActions.map(([mode, name, sub, color, icon], index) => (
                 <ScannerCaptureTile
                   key={`scanner-capture-${index}`}
                   theme={theme}
@@ -8882,6 +9963,7 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
                   body={sub}
                   icon={icon}
                   color={color}
+                  fullWidth={stackCaptureTiles}
                   disabled={isWorking}
                   onPress={() => icon === "upload" ? runPdfImport() : nav.push("paste", { mode })}
                 />
@@ -8912,24 +9994,35 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
 
 function ScannerModeBadge({ label, theme, locked }: { label: string; theme: ReturnType<typeof palette>; locked?: boolean }) {
   const color = locked ? COLORS.orange : COLORS.green;
+  const backgroundColor = compositeHexColor(color, theme.surface, 0.09);
+  const safeColor = contrastSafeForegroundOn(color, backgroundColor);
   return (
-    <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999, backgroundColor: `${color}18`, borderWidth: 1, borderColor: `${color}34` }}>
-      <Icon name={locked ? "lock" : "shield"} size={14} color={color} />
-      <Text style={{ color, fontSize: 12, fontWeight: "900" }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>{label}</Text>
+    <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999, backgroundColor, borderWidth: 1, borderColor: safeColor }}>
+      <Icon name={locked ? "lock" : "shield"} size={14} color={safeColor} />
+      <Text maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: safeColor, fontSize: 12, lineHeight: 15, fontWeight: "900", flexShrink: 1 }} numberOfLines={2}>{label}</Text>
     </View>
   );
 }
 
+function longestUnbrokenTokenLength(value: string) {
+  return value.split(/\s+/u).reduce((longest, token) => Math.max(longest, Array.from(token).length), 0);
+}
+
 function ScannerMetric({ value, label, color, theme }: { value: string; label: string; color: string; theme: ReturnType<typeof palette> }) {
+  const { fontScale } = useWindowDimensions();
+  const needsReadableColumn = fontScale < 1.6 && (fontScale >= 1.2 || longestUnbrokenTokenLength(label) >= 13);
+  const safeColor = semanticTextColor(color, theme, theme.surface2);
   return (
-    <View style={{ flex: 1, minHeight: 62, borderRadius: 16, padding: 10, backgroundColor: theme.surface2, borderWidth: 1, borderColor: theme.hairline, justifyContent: "center" }}>
-      <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color, fontSize: 16, fontWeight: "900" }}>{value}</Text>
-      <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: theme.label2, fontSize: 11, fontWeight: "800", marginTop: 2 }}>{label}</Text>
+    <View style={{ flex: 1, minWidth: needsReadableColumn ? 140 : 0, minHeight: 62, borderRadius: 16, padding: 10, backgroundColor: theme.surface2, borderWidth: 1, borderColor: theme.hairline, justifyContent: "center" }}>
+      <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: safeColor, fontSize: 16, lineHeight: 19, fontWeight: "900" }}>{value}</Text>
+      <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label2, fontSize: 11, lineHeight: 14, fontWeight: "800", marginTop: 2 }}>{label}</Text>
     </View>
   );
 }
 
 function ScannerStatusRail({ theme, activeIndex }: { theme: ReturnType<typeof palette>; activeIndex: number }) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const steps = [
     [textFor("scan.rail_capture", "Capture"), "camera"],
     [textFor("scan.rail_read", "Read text"), "scan"],
@@ -8937,14 +10030,16 @@ function ScannerStatusRail({ theme, activeIndex }: { theme: ReturnType<typeof pa
     [textFor("scan.rail_plan", "Plan"), "target"],
   ];
   return (
-    <View style={{ flexDirection: "row", gap: 7 }}>
+    <View style={{ flexDirection: "row", flexWrap: accessibilityLayout ? "wrap" : "nowrap", gap: 7 }}>
       {steps.map(([label, icon], index) => {
         const active = index <= activeIndex;
         const color = active ? [COLORS.green, COLORS.blue, COLORS.purple, COLORS.orange][index] : theme.label3;
+        const backgroundColor = active ? compositeHexColor(color, theme.surface, 0.08) : theme.surface2;
+        const safeColor = contrastSafeForegroundOn(color, backgroundColor);
         return (
-          <View key={`${icon}-${index}`} style={{ flex: 1, minHeight: 58, borderRadius: 14, padding: 9, backgroundColor: active ? `${color}14` : theme.surface2, borderWidth: 1, borderColor: active ? `${color}30` : theme.hairline, justifyContent: "center", alignItems: "center", gap: 5 }}>
-            <Icon name={icon} color={color} size={16} />
-            <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.64} style={{ color: active ? theme.label : theme.label2, fontSize: 11, fontWeight: "900", textAlign: "center" }}>{label}</Text>
+          <View key={`${icon}-${index}`} style={{ flex: accessibilityLayout ? 0 : 1, flexBasis: accessibilityLayout ? "48%" : undefined, minHeight: 58, borderRadius: 14, padding: 9, backgroundColor, borderWidth: 1, borderColor: safeColor, justifyContent: "center", alignItems: "center", gap: 5 }}>
+            <Icon name={icon} color={safeColor} size={16} />
+            <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: active ? theme.label : theme.label2, fontSize: 11, lineHeight: 14, fontWeight: "900", textAlign: "center" }}>{label}</Text>
           </View>
         );
       })}
@@ -8953,7 +10048,10 @@ function ScannerStatusRail({ theme, activeIndex }: { theme: ReturnType<typeof pa
 }
 
 function ScannerActionButton({ theme, icon, label, detail, color, busy, disabled, featured, onPress }: { theme: ReturnType<typeof palette>; icon: string; label: string; detail: string; color: string; busy?: boolean; disabled?: boolean; featured?: boolean; onPress: () => void }) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const inactive = disabled || busy;
+  const foreground = featured ? foregroundForColor(color) : semanticTextColor(color, theme);
   return (
     <Pressable
       accessibilityRole="button"
@@ -8969,34 +10067,36 @@ function ScannerActionButton({ theme, icon, label, detail, color, busy, disabled
         borderWidth: 1,
         borderColor: featured ? color : theme.hairline,
         opacity: inactive ? 0.58 : pressed ? 0.82 : 1,
-        flexDirection: "row",
-        alignItems: "center",
+        flexDirection: accessibilityLayout ? "column" : "row",
+        alignItems: accessibilityLayout ? "stretch" : "center",
         gap: 12,
         boxShadow: featured ? (theme.dark ? "0 12px 24px rgba(0,0,0,0.34)" : "0 12px 24px rgba(47,107,255,0.20)") : "none",
       })}
     >
-      <View style={{ width: featured ? 48 : 42, height: featured ? 48 : 42, borderRadius: featured ? 16 : 14, backgroundColor: featured ? "rgba(255,255,255,0.18)" : `${color}18`, alignItems: "center", justifyContent: "center" }}>
-        {busy ? <ActivityIndicator color={featured ? "#fff" : color} /> : <Icon name={icon} color={featured ? "#fff" : color} size={featured ? 24 : 21} />}
+      <View style={{ width: featured ? 48 : 42, height: featured ? 48 : 42, borderRadius: featured ? 16 : 14, backgroundColor: featured ? "rgba(255,255,255,0.18)" : `${color}18`, alignItems: "center", justifyContent: "center", alignSelf: accessibilityLayout ? "flex-start" : undefined }}>
+        {busy ? <ActivityIndicator color={foreground} /> : <Icon name={icon} color={foreground} size={featured ? 24 : 21} />}
       </View>
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ color: featured ? "#fff" : theme.label, fontSize: featured ? 18 : 16, fontWeight: "900" }}>{label}</Text>
-        <Text selectable numberOfLines={2} style={{ color: featured ? "rgba(255,255,255,0.82)" : theme.label2, lineHeight: 18, marginTop: 3 }}>{detail}</Text>
+      <View style={{ flex: accessibilityLayout ? 0 : 1, width: accessibilityLayout ? "100%" : undefined, maxWidth: "100%", minWidth: 0, alignSelf: accessibilityLayout ? "stretch" : undefined }}>
+        <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: featured ? foreground : theme.label, fontSize: featured ? 18 : 16, lineHeight: featured ? 22 : 20, fontWeight: "900", flexShrink: 1, maxWidth: "100%", writingDirection: theme.rtl ? "rtl" : "ltr", textAlign: theme.rtl ? "right" : "left" }}>{label}</Text>
+        <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: featured ? `${foreground}D1` : theme.label2, lineHeight: 18, marginTop: 3, flexShrink: 1, maxWidth: "100%", writingDirection: theme.rtl ? "rtl" : "ltr", textAlign: theme.rtl ? "right" : "left" }}>{detail}</Text>
       </View>
-      <ChevronRight color={featured ? "rgba(255,255,255,0.76)" : theme.label3} size={20} />
+      <View style={{ alignSelf: accessibilityLayout ? "flex-end" : undefined }}><ForwardChevron color={featured ? foreground : theme.label3} size={20} /></View>
     </Pressable>
   );
 }
 
 function ScannerPanel({ theme, icon, color, title, body, children }: { theme: ReturnType<typeof palette>; icon: string; color: string; title: string; body: string; children: React.ReactNode }) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   return (
     <View style={{ borderRadius: 22, padding: 16, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.hairline, gap: 13 }}>
-      <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+      <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 12, alignItems: accessibilityLayout ? "flex-start" : "center" }}>
         <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: `${color}18`, alignItems: "center", justifyContent: "center" }}>
           <Icon name={icon} color={color} size={22} />
         </View>
-        <View style={{ flex: 1 }}>
-          <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>{title}</Text>
-          <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 2 }}>{body}</Text>
+        <View style={{ flex: accessibilityLayout ? undefined : 1, width: accessibilityLayout ? "100%" : undefined }}>
+          <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>{title}</Text>
+          <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label2, lineHeight: 19, marginTop: 2 }}>{body}</Text>
         </View>
       </View>
       {children}
@@ -9005,45 +10105,113 @@ function ScannerPanel({ theme, icon, color, title, body, children }: { theme: Re
 }
 
 function ScannerCompactButton({ theme, label, icon, color, busy, disabled, onPress }: { theme: ReturnType<typeof palette>; label: string; icon: string; color: string; busy?: boolean; disabled?: boolean; onPress: () => void }) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const inactive = disabled || busy;
+  const backgroundColor = compositeHexColor(color, theme.surface, 0.09);
+  const safeColor = contrastSafeForegroundOn(color, backgroundColor);
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled: inactive, busy }} disabled={inactive} onPress={() => { tap(); onPress(); }} style={({ pressed }) => ({ flex: 1, minHeight: 48, borderRadius: 16, backgroundColor: `${color}18`, borderWidth: 1, borderColor: `${color}34`, opacity: inactive ? 0.58 : pressed ? 0.82 : 1, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 7, paddingHorizontal: 10 })}>
-      {busy ? <ActivityIndicator color={color} /> : <Icon name={icon} color={color} size={18} />}
-      <Text style={{ color, fontWeight: "900", flexShrink: 1 }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.74}>{label}</Text>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled: inactive, busy }} disabled={inactive} onPress={() => { tap(); onPress(); }} style={({ pressed }) => ({ flex: accessibilityLayout ? 0 : 1, width: accessibilityLayout ? "100%" : undefined, minHeight: 48, borderRadius: 16, backgroundColor, borderWidth: 1, borderColor: safeColor, opacity: inactive ? 0.58 : pressed ? 0.82 : 1, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 7, paddingHorizontal: 10, paddingVertical: 10 })}>
+      {busy ? <ActivityIndicator color={safeColor} /> : <Icon name={icon} color={safeColor} size={18} />}
+      <Text maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: safeColor, fontWeight: "900", flexShrink: 1, textAlign: "center" }}>{label}</Text>
     </Pressable>
   );
 }
 
-function ScannerCaptureTile({ theme, title, body, icon, color, disabled, onPress }: { theme: ReturnType<typeof palette>; title: string; body: string; icon: string; color: string; disabled?: boolean; onPress: () => void }) {
+function ScannerCaptureTile({ theme, title, body, icon, color, disabled, fullWidth, onPress }: { theme: ReturnType<typeof palette>; title: string; body: string; icon: string; color: string; disabled?: boolean; fullWidth?: boolean; onPress: () => void }) {
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={title} disabled={disabled} onPress={() => { tap(); onPress(); }} style={({ pressed }) => ({ width: "48%", minHeight: 118, borderRadius: 18, padding: 14, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.hairline, opacity: disabled ? 0.54 : pressed ? 0.82 : 1, gap: 10 })}>
+    <Pressable accessibilityRole="button" accessibilityLabel={title} disabled={disabled} onPress={() => { tap(); onPress(); }} style={({ pressed }) => ({ width: fullWidth ? "100%" : "48%", minHeight: 118, borderRadius: 18, padding: 14, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.hairline, opacity: disabled ? 0.54 : pressed ? 0.82 : 1, gap: 10 })}>
       <View style={{ width: 38, height: 38, borderRadius: 13, backgroundColor: `${color}18`, alignItems: "center", justifyContent: "center" }}>
         <Icon name={icon} color={color} size={20} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text selectable numberOfLines={2} style={{ color: theme.label, fontWeight: "900", lineHeight: 18 }}>{title}</Text>
-        <Text selectable numberOfLines={2} style={{ color: theme.label2, marginTop: 3, lineHeight: 17, fontSize: 12.5 }}>{body}</Text>
+        <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label, fontWeight: "900", lineHeight: 18 }}>{title}</Text>
+        <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label2, marginTop: 3, lineHeight: 17, fontSize: 12.5 }}>{body}</Text>
       </View>
     </Pressable>
   );
 }
 
 function ScannerImportHistoryRow({ imp, index, theme }: { imp: ImportBatch; index: number; theme: ReturnType<typeof palette> }) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const color = imp.status === "applied" ? COLORS.green : COLORS.orange;
+  const localizedStatus = imp.status === "applied"
+    ? textFor("import.status_applied", "Applied")
+    : textFor("import.status_review", "Needs review");
   return (
-    <View style={{ padding: 14, flexDirection: "row", gap: 12, alignItems: "center", borderTopWidth: index === 0 ? 0 : 1, borderTopColor: theme.hairline }}>
+    <View style={{ padding: 14, flexDirection: accessibilityLayout ? "column" : "row", gap: 12, alignItems: accessibilityLayout ? "flex-start" : "center", borderTopWidth: index === 0 ? 0 : 1, borderTopColor: theme.hairline }}>
       <View style={{ width: 38, height: 38, borderRadius: 14, backgroundColor: `${color}18`, alignItems: "center", justifyContent: "center" }}>
         <CheckCircle2 color={color} size={20} />
       </View>
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{imp.sourceName}</Text>
-        <Text selectable numberOfLines={1} style={{ color: theme.label2, marginTop: 2 }}>{imp.status} - {imp.candidates.length} {textFor("plan.items", "items")}</Text>
+      <View style={{ flex: accessibilityLayout ? undefined : 1, width: accessibilityLayout ? "100%" : undefined, minWidth: 0 }}>
+        <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label, fontWeight: "900" }}>{imp.sourceName}</Text>
+        <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label2, marginTop: 2 }}>{textFor("scan.history_row_summary", "{status} · {count} items", { status: localizedStatus, count: imp.candidates.length })}</Text>
       </View>
     </View>
   );
 }
 
+function AccessibleScannerLayout({ nav, mode, ready, feedback, bodyLines, wordCount, busy, primaryDisabled, onPrimary, onSecondary, onPhoto, torch, onToggleTorch, cameraPreview }: {
+  nav: ScreenProps["nav"];
+  mode: "syllabus" | "notes";
+  ready: boolean;
+  feedback: string;
+  bodyLines: string[];
+  wordCount: number;
+  busy?: boolean;
+  primaryDisabled?: boolean;
+  onPrimary: () => void;
+  onSecondary: () => void;
+  onPhoto?: () => void;
+  torch?: boolean;
+  onToggleTorch?: () => void;
+  cameraPreview: React.ReactNode;
+}) {
+  const insets = useSafeAreaInsets();
+  const primaryLabel = ready ? textFor("review.title", "Review Import") : textFor("scanner.capture", "Capture page");
+  const secondaryLabel = ready ? textFor("scanner.retake", "Retake") : textFor("scan.paste_text", "Paste text");
+  return (
+    <View style={{ flex: 1, backgroundColor: "#050507" }}>
+      <ScrollView ref={simulatorCaptureIsEnabled() ? registerSimulatorCaptureScrollView : undefined} contentInsetAdjustmentBehavior="automatic" contentOffset={simulatorCaptureContentOffset()} onScroll={simulatorCaptureIsEnabled() ? recordSimulatorCaptureScroll : undefined} onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureViewport : undefined} onContentSizeChange={simulatorCaptureIsEnabled() ? recordSimulatorCaptureContentSize : undefined} scrollEventThrottle={16} contentContainerStyle={{ paddingTop: Math.max(54, insets.top), paddingHorizontal: 18, paddingBottom: 34 + insets.bottom, gap: 16 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <Pressable accessibilityRole="button" accessibilityLabel={textFor("scanner.exit", "Exit scanner")} hitSlop={12} onPress={nav.back} style={{ width: 52, height: 52, borderRadius: 999, backgroundColor: "#202024", alignItems: "center", justifyContent: "center" }}><BackChevron color="#fff" size={24} /></Pressable>
+          <Text selectable style={{ color: "#fff", flex: 1, fontSize: 27, lineHeight: 31, fontWeight: "900" }}>{mode === "notes" ? textFor("scanner.notes_mode", "Guided notes scan") : textFor("scanner.syllabus_mode", "Guided syllabus scan")}</Text>
+          {onToggleTorch ? <Pressable accessibilityRole="switch" accessibilityLabel={textFor("scanner.toggle_torch", "Toggle torch")} accessibilityState={{ checked: Boolean(torch), disabled: busy }} disabled={busy} onPress={onToggleTorch} style={{ minWidth: 52, minHeight: 52, borderRadius: 18, backgroundColor: torch ? COLORS.orange : "#202024", alignItems: "center", justifyContent: "center" }}><Zap color="#fff" size={22} /></Pressable> : null}
+        </View>
+
+        <View style={{ borderRadius: 22, padding: 16, backgroundColor: "#17171B", borderWidth: 1, borderColor: "#3A3A40" }}>
+          <Text selectable style={{ color: "#fff", fontWeight: "900", fontSize: 18 }}>{ready ? textFor("scanner.ready_title", "Ready to review") : feedback}</Text>
+          <Text selectable style={{ color: "#D0D0D6", marginTop: 6, lineHeight: 21 }}>{textFor("scanner.promise", "Nothing saves until you review and approve the extracted rows.")}</Text>
+          <View style={{ marginTop: 12, gap: 8 }}>
+            {bodyLines.map((item, index) => <View key={`accessible-scanner-rule-${index}`} style={{ flexDirection: "row", alignItems: "flex-start", gap: 9 }}><CheckCircle2 color={COLORS.green} size={19} /><Text selectable style={{ color: "#ECECF2", flex: 1, lineHeight: 21 }}>{item}</Text></View>)}
+          </View>
+        </View>
+
+        <View style={{ height: 300, borderRadius: 24, overflow: "hidden", borderWidth: 3, borderColor: ready ? COLORS.green : "#F7F8FA", backgroundColor: "#101114" }}>
+          {cameraPreview}
+          <View pointerEvents="none" style={{ position: "absolute", left: 22, right: 22, top: "50%", height: 2, backgroundColor: ready ? COLORS.green : COLORS.orange }} />
+          <View pointerEvents="none" style={{ position: "absolute", left: 16, right: 16, bottom: 16, borderRadius: 16, padding: 12, backgroundColor: "rgba(0,0,0,0.70)" }}>
+            <Text selectable style={{ color: "#fff", fontWeight: "900" }}>{ready ? textFor("scanner.ready_review_count", "{count} words found. Review the extracted rows before saving.", { count: wordCount }) : textFor("scanner.guide_start", "Place the full page inside the frame.")}</Text>
+          </View>
+        </View>
+
+        <Pressable accessibilityRole="button" accessibilityLabel={primaryLabel} accessibilityState={{ disabled: Boolean(primaryDisabled), busy }} disabled={primaryDisabled} onPress={onPrimary} style={{ minHeight: 64, borderRadius: 22, backgroundColor: "#FFFFFF", borderWidth: 4, borderColor: ready ? contrastSafeForegroundOn(COLORS.green, "#FFFFFF") : contrastSafeForegroundOn(COLORS.orange, "#FFFFFF"), alignItems: "center", justifyContent: "center", padding: 14, opacity: primaryDisabled ? 0.58 : 1 }}>
+          {busy ? <ActivityIndicator color="#111" /> : <Text style={{ color: "#050507", fontSize: 17, fontWeight: "900", textAlign: "center" }}>{primaryLabel}</Text>}
+        </Pressable>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+          <Pressable accessibilityRole="button" accessibilityLabel={secondaryLabel} disabled={busy} onPress={onSecondary} style={{ minHeight: 52, flexGrow: 1, flexBasis: "46%", borderRadius: 18, backgroundColor: "#202024", alignItems: "center", justifyContent: "center", padding: 12 }}><Text style={{ color: "#fff", fontWeight: "900", textAlign: "center" }}>{secondaryLabel}</Text></Pressable>
+          {onPhoto ? <Pressable accessibilityRole="button" accessibilityLabel={textFor("scan.photo", "Photo")} disabled={busy} onPress={onPhoto} style={{ minHeight: 52, flexGrow: 1, flexBasis: "46%", borderRadius: 18, backgroundColor: "#202024", alignItems: "center", justifyContent: "center", padding: 12 }}><Text style={{ color: "#fff", fontWeight: "900", textAlign: "center" }}>{textFor("scan.photo", "Photo")}</Text></Pressable> : null}
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
 function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenProps) {
+  const { fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const accessibilityLayout = fontScale >= 1.6;
   const mode = data.prefs.premium && params.mode === "notes" ? "notes" : "syllabus";
   const cameraRef = useRef<CameraView | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
@@ -9240,6 +10408,36 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
     );
   }
 
+  if (accessibilityLayout) {
+    const bodyLines = captureState === "ready" ? [
+      textFor("scanner.ready_rule_1", "{count} words found.", { count: capturedWordCount }),
+      textFor("scanner.ready_rule_2", "Next screen lets you edit, approve, or remove every row."),
+      textFor("scanner.ready_rule_3", "Retake if the page was cropped or blurry."),
+    ] : [
+      textFor("scanner.rule_1", "Page edges visible, not cropped."),
+      textFor("scanner.rule_2", "Text is sharp enough to read on screen."),
+      textFor("scanner.rule_3", "No fingers, glare, or dark shadows over text."),
+    ];
+    return (
+      <AccessibleScannerLayout
+        nav={nav}
+        mode={mode}
+        ready={captureState === "ready"}
+        feedback={feedback}
+        bodyLines={bodyLines}
+        wordCount={capturedWordCount}
+        busy={busy}
+        primaryDisabled={!cameraReady || busy}
+        onPrimary={() => captureState === "ready" ? useCapturedText(capturedText, capturedWordCount) : capture()}
+        onSecondary={() => captureState === "ready" ? resetCapture() : nav.push("paste", { mode })}
+        onPhoto={pickPhotoFallback}
+        torch={torch}
+        onToggleTorch={() => setTorch((value) => !value)}
+        cameraPreview={<CameraView ref={cameraRef} style={{ flex: 1 }} facing="back" mode="picture" active={captureState !== "ready"} autofocus="on" enableTorch={torch} animateShutter responsiveOrientationWhenOrientationLocked onCameraReady={() => { setCameraReady(true); setFeedback(guidance[guidanceIndex]); }} onMountError={(event) => setFeedback(event.message)} />}
+      />
+    );
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: "#050507" }}>
       <CameraView
@@ -9264,12 +10462,12 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
         ))}
         <View style={{ position: "absolute", left: 18, right: 18, top: "47%", height: 2, backgroundColor: "rgba(74,222,128,0.72)", borderRadius: 999 }} />
       </View>
-      <View style={{ position: "absolute", left: 16, right: 16, top: 54, gap: 10, zIndex: 20, elevation: 20 }}>
+      <View style={{ position: "absolute", left: 16, right: 16, top: Math.max(54, insets.top), gap: 10, zIndex: 20, elevation: 20 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-          <Pressable accessibilityRole="button" accessibilityLabel={textFor("scanner.exit", "Exit scanner")} hitSlop={16} onPress={nav.back} style={{ width: 46, height: 46, borderRadius: 999, backgroundColor: "rgba(0,0,0,0.60)", alignItems: "center", justifyContent: "center", zIndex: 21, elevation: 21 }}><ChevronLeft color="#fff" size={24} /></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel={textFor("scanner.exit", "Exit scanner")} hitSlop={16} onPress={nav.back} style={{ width: 46, height: 46, borderRadius: 999, backgroundColor: "rgba(0,0,0,0.60)", alignItems: "center", justifyContent: "center", zIndex: 21, elevation: 21 }}><BackChevron color="#fff" size={24} /></Pressable>
           <View style={{ flex: 1, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 9, backgroundColor: "rgba(0,0,0,0.54)", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7 }}>
             <Shield color={readyScore >= 100 ? COLORS.green : COLORS.orange} size={16} />
-            <Text style={{ color: "#fff", fontWeight: "900" }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>{mode === "notes" ? textFor("scanner.notes_mode", "Guided notes scan") : textFor("scanner.syllabus_mode", "Guided syllabus scan")}</Text>
+            <Text style={{ color: "#fff", fontWeight: "900", lineHeight: 18, textAlign: "center", flexShrink: 1 }} numberOfLines={2}>{mode === "notes" ? textFor("scanner.notes_mode", "Guided notes scan") : textFor("scanner.syllabus_mode", "Guided syllabus scan")}</Text>
           </View>
           <Pressable accessibilityRole="switch" accessibilityLabel={textFor("scanner.toggle_torch", "Toggle torch")} accessibilityState={{ checked: torch, disabled: busy || captureState === "ready" }} disabled={busy || captureState === "ready"} onPress={() => { tap(); setTorch((value) => !value); }} style={{ width: 42, height: 42, borderRadius: 999, backgroundColor: torch ? COLORS.orange : "rgba(0,0,0,0.54)", alignItems: "center", justifyContent: "center", opacity: busy || captureState === "ready" ? 0.52 : 1 }}><Zap color="#fff" size={21} /></Pressable>
         </View>
@@ -9288,7 +10486,7 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
           </View>
         </View>
       </View>
-      <View style={{ position: "absolute", left: 16, right: 16, bottom: 34, gap: 12 }}>
+      <View style={{ position: "absolute", left: 16, right: 16, bottom: Math.max(34, insets.bottom + 8), gap: 12 }}>
         <View style={{ borderRadius: 18, padding: 13, backgroundColor: "rgba(0,0,0,0.62)", borderWidth: 1, borderColor: "rgba(255,255,255,0.16)" }}>
           <Text selectable style={{ color: "#fff", fontWeight: "900", marginBottom: 8 }}>{captureState === "ready" ? textFor("scanner.after_capture", "Captured text") : textFor("scanner.before_capture", "Before capture")}</Text>
           {(captureState === "ready" ? [
@@ -9308,8 +10506,8 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 18 }}>
           <Pressable accessibilityRole="button" accessibilityLabel={captureState === "ready" ? textFor("scanner.retake", "Retake") : textFor("scan.paste_text", "Paste text")} disabled={busy} onPress={() => captureState === "ready" ? resetCapture() : nav.push("paste", { mode })} style={{ width: 58, height: 58, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.16)", alignItems: "center", justifyContent: "center", opacity: busy ? 0.5 : 1 }}>{captureState === "ready" ? <RefreshCw color="#fff" size={23} /> : <FileText color="#fff" size={23} />}</Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel={captureState === "ready" ? textFor("review.title", "Review Import") : textFor("scanner.capture", "Capture page")} accessibilityState={{ disabled: !cameraReady || busy, busy }} disabled={!cameraReady || busy} onPress={() => { tap(Haptics.ImpactFeedbackStyle.Medium); captureState === "ready" ? useCapturedText(capturedText, capturedWordCount) : capture(); }} style={({ pressed }) => ({ width: 82, height: 82, borderRadius: 999, backgroundColor: "#FFFFFF", borderWidth: 6, borderColor: captureState === "ready" ? COLORS.green : readyScore >= 100 ? COLORS.green : COLORS.orange, alignItems: "center", justifyContent: "center", opacity: !cameraReady || busy ? 0.6 : pressed ? 0.78 : 1 })}>
-            {busy ? <ActivityIndicator color="#111" /> : captureState === "ready" ? <Check color={COLORS.green} size={42} strokeWidth={3} /> : <View style={{ width: 54, height: 54, borderRadius: 999, backgroundColor: readyScore >= 100 ? COLORS.green : COLORS.orange }} />}
+          <Pressable accessibilityRole="button" accessibilityLabel={captureState === "ready" ? textFor("review.title", "Review Import") : textFor("scanner.capture", "Capture page")} accessibilityState={{ disabled: !cameraReady || busy, busy }} disabled={!cameraReady || busy} onPress={() => { tap(Haptics.ImpactFeedbackStyle.Medium); captureState === "ready" ? useCapturedText(capturedText, capturedWordCount) : capture(); }} style={({ pressed }) => ({ width: 82, height: 82, borderRadius: 999, backgroundColor: "#FFFFFF", borderWidth: 6, borderColor: contrastSafeForegroundOn(captureState === "ready" || readyScore >= 100 ? COLORS.green : COLORS.orange, "#FFFFFF"), alignItems: "center", justifyContent: "center", opacity: !cameraReady || busy ? 0.6 : pressed ? 0.78 : 1 })}>
+            {busy ? <ActivityIndicator color="#111" /> : captureState === "ready" ? <Check color={contrastSafeForegroundOn(COLORS.green, "#FFFFFF")} size={42} strokeWidth={3} /> : <View style={{ width: 54, height: 54, borderRadius: 999, backgroundColor: readyScore >= 100 ? COLORS.green : COLORS.orange }} />}
           </Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel={textFor("scan.photo", "Photo")} disabled={busy} onPress={pickPhotoFallback} style={{ width: 58, height: 58, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.16)", alignItems: "center", justifyContent: "center", opacity: busy ? 0.5 : 1 }}><Image color="#fff" size={23} /></Pressable>
         </View>
@@ -9319,6 +10517,9 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
 }
 
 function GuidedScannerDemoSurface({ nav, mode, captureState, wordCount, onReview }: { nav: ScreenProps["nav"]; mode: "syllabus" | "notes"; captureState: "aiming" | "ready"; wordCount: number; onReview: () => void }) {
+  const { fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const accessibilityLayout = fontScale >= 1.6;
   const ready = captureState === "ready";
   const feedback = ready
     ? textFor("scanner.ready_review_count", "{count} words found. Review the extracted rows before saving.", { count: wordCount })
@@ -9333,8 +10534,24 @@ function GuidedScannerDemoSurface({ nav, mode, captureState, wordCount, onReview
     textFor("scanner.rule_3", "No fingers, glare, or dark shadows over text."),
   ];
 
+  if (accessibilityLayout) {
+    return (
+      <AccessibleScannerLayout
+        nav={nav}
+        mode={mode}
+        ready={ready}
+        feedback={feedback}
+        bodyLines={bodyLines}
+        wordCount={wordCount}
+        onPrimary={onReview}
+        onSecondary={() => ready ? onReview() : nav.push("paste", { mode })}
+        cameraPreview={<View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}><FileText color="#A8ACB5" size={64} /><Text selectable style={{ color: "#D0D3DA", marginTop: 14, textAlign: "center" }}>{ready ? textFor("scanner.after_capture", "Captured text") : textFor("scanner.before_capture", "Before capture")}</Text></View>}
+      />
+    );
+  }
+
   return (
-    <View style={{ flex: 1, backgroundColor: "#050507" }}>
+    <View onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureFixedViewport : undefined} style={{ flex: 1, backgroundColor: "#050507" }}>
       <View style={{ position: "absolute", inset: 0, backgroundColor: "#020302" }} />
       <View pointerEvents="none" style={{ position: "absolute", left: 18, right: 18, top: 216, bottom: 230, borderRadius: 26, borderWidth: 2, borderColor: ready ? "rgba(74,222,128,0.95)" : "rgba(255,255,255,0.86)", backgroundColor: "rgba(255,255,255,0.025)" }}>
         {[["top", "left"], ["top", "right"], ["bottom", "left"], ["bottom", "right"]].map(([vertical, horizontal]) => (
@@ -9342,12 +10559,12 @@ function GuidedScannerDemoSurface({ nav, mode, captureState, wordCount, onReview
         ))}
         <View style={{ position: "absolute", left: 18, right: 18, top: "47%", height: 2, backgroundColor: "rgba(74,222,128,0.72)", borderRadius: 999 }} />
       </View>
-      <View style={{ position: "absolute", left: 16, right: 16, top: 54, gap: 10, zIndex: 20, elevation: 20 }}>
+      <View style={{ position: "absolute", left: 16, right: 16, top: Math.max(54, insets.top), gap: 10, zIndex: 20, elevation: 20 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-          <Pressable accessibilityRole="button" accessibilityLabel={textFor("scanner.exit", "Exit scanner")} hitSlop={16} onPress={nav.back} style={{ width: 46, height: 46, borderRadius: 999, backgroundColor: "rgba(0,0,0,0.60)", alignItems: "center", justifyContent: "center", zIndex: 21, elevation: 21 }}><ChevronLeft color="#fff" size={24} /></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel={textFor("scanner.exit", "Exit scanner")} hitSlop={16} onPress={nav.back} style={{ width: 46, height: 46, borderRadius: 999, backgroundColor: "rgba(0,0,0,0.60)", alignItems: "center", justifyContent: "center", zIndex: 21, elevation: 21 }}><BackChevron color="#fff" size={24} /></Pressable>
           <View style={{ flex: 1, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 9, backgroundColor: "rgba(0,0,0,0.54)", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7 }}>
             <Shield color={ready ? COLORS.green : COLORS.orange} size={16} />
-            <Text style={{ color: "#fff", fontWeight: "900" }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76}>{mode === "notes" ? textFor("scanner.notes_mode", "Guided notes scan") : textFor("scanner.syllabus_mode", "Guided syllabus scan")}</Text>
+            <Text style={{ color: "#fff", fontWeight: "900", lineHeight: 18, textAlign: "center", flexShrink: 1 }} numberOfLines={2}>{mode === "notes" ? textFor("scanner.notes_mode", "Guided notes scan") : textFor("scanner.syllabus_mode", "Guided syllabus scan")}</Text>
           </View>
           <View style={{ width: 42, height: 42, borderRadius: 999, backgroundColor: "rgba(0,0,0,0.54)", alignItems: "center", justifyContent: "center" }}><Zap color="#fff" size={21} /></View>
         </View>
@@ -9366,7 +10583,7 @@ function GuidedScannerDemoSurface({ nav, mode, captureState, wordCount, onReview
           </View>
         </View>
       </View>
-      <View style={{ position: "absolute", left: 16, right: 16, bottom: 34, gap: 12 }}>
+      <View style={{ position: "absolute", left: 16, right: 16, bottom: Math.max(34, insets.bottom + 8), gap: 12 }}>
         <View style={{ borderRadius: 18, padding: 13, backgroundColor: "rgba(0,0,0,0.62)", borderWidth: 1, borderColor: "rgba(255,255,255,0.16)" }}>
           <Text selectable style={{ color: "#fff", fontWeight: "900", marginBottom: 8 }}>{ready ? textFor("scanner.after_capture", "Captured text") : textFor("scanner.before_capture", "Before capture")}</Text>
           {bodyLines.map((item, index) => (
@@ -9378,8 +10595,8 @@ function GuidedScannerDemoSurface({ nav, mode, captureState, wordCount, onReview
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 18 }}>
           <View style={{ width: 58, height: 58, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.16)", alignItems: "center", justifyContent: "center" }}>{ready ? <RefreshCw color="#fff" size={23} /> : <FileText color="#fff" size={23} />}</View>
-          <Pressable accessibilityRole="button" accessibilityLabel={ready ? textFor("review.title", "Review Import") : textFor("scanner.capture", "Capture page")} onPress={ready ? onReview : undefined} style={({ pressed }) => ({ width: 82, height: 82, borderRadius: 999, backgroundColor: "#FFFFFF", borderWidth: 6, borderColor: ready ? COLORS.green : COLORS.orange, alignItems: "center", justifyContent: "center", opacity: pressed ? 0.78 : 1 })}>
-            {ready ? <Check color={COLORS.green} size={42} strokeWidth={3} /> : <View style={{ width: 54, height: 54, borderRadius: 999, backgroundColor: COLORS.orange }} />}
+          <Pressable accessibilityRole="button" accessibilityLabel={ready ? textFor("review.title", "Review Import") : textFor("scanner.capture", "Capture page")} onPress={ready ? onReview : undefined} style={({ pressed }) => ({ width: 82, height: 82, borderRadius: 999, backgroundColor: "#FFFFFF", borderWidth: 6, borderColor: contrastSafeForegroundOn(ready ? COLORS.green : COLORS.orange, "#FFFFFF"), alignItems: "center", justifyContent: "center", opacity: pressed ? 0.78 : 1 })}>
+            {ready ? <Check color={contrastSafeForegroundOn(COLORS.green, "#FFFFFF")} size={42} strokeWidth={3} /> : <View style={{ width: 54, height: 54, borderRadius: 999, backgroundColor: COLORS.orange }} />}
           </Pressable>
           <View style={{ width: 58, height: 58, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.16)", alignItems: "center", justifyContent: "center" }}><Image color="#fff" size={23} /></View>
         </View>
@@ -9389,9 +10606,12 @@ function GuidedScannerDemoSurface({ nav, mode, captureState, wordCount, onReview
 }
 
 function CameraChecklistPill({ label, active }: { label: string; active: boolean }) {
+  const color = active ? "#4ADE80" : "#FFFFFF";
+  const backgroundColor = compositeHexColor(color, "#050507", active ? 0.2 : 0.12);
+  const safeColor = contrastSafeForegroundOn(color, backgroundColor);
   return (
-    <View style={{ flex: 1, minHeight: 31, borderRadius: 999, backgroundColor: active ? "rgba(74,222,128,0.20)" : "rgba(255,255,255,0.12)", borderWidth: 1, borderColor: active ? "rgba(74,222,128,0.42)" : "rgba(255,255,255,0.14)", alignItems: "center", justifyContent: "center", paddingHorizontal: 7 }}>
-      <Text style={{ color: active ? "#BDFBD3" : "rgba(255,255,255,0.72)", fontSize: 12, fontWeight: "900" }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.66}>{label}</Text>
+    <View style={{ flex: 1, minHeight: 44, borderRadius: 20, backgroundColor, borderWidth: 1, borderColor: safeColor, alignItems: "center", justifyContent: "center", paddingHorizontal: 7, paddingVertical: 5 }}>
+      <Text style={{ color: safeColor, fontSize: 12, lineHeight: 15, fontWeight: "900", textAlign: "center" }} numberOfLines={2}>{label}</Text>
     </View>
   );
 }
@@ -9533,7 +10753,7 @@ function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps
     return (
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: theme.bg }}>
         <BackHeader nav={nav} theme={theme} label={lockedTitle} />
-        <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+        <ScrollView ref={simulatorCaptureIsEnabled() ? registerSimulatorCaptureScrollView : undefined} contentInsetAdjustmentBehavior="automatic" contentOffset={simulatorCaptureContentOffset()} onScroll={simulatorCaptureIsEnabled() ? recordSimulatorCaptureScroll : undefined} onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureViewport : undefined} onContentSizeChange={simulatorCaptureIsEnabled() ? recordSimulatorCaptureContentSize : undefined} scrollEventThrottle={16} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
           <Card theme={theme} style={{ padding: 18, marginBottom: 14, backgroundColor: "#111114" }}>
             <View style={{ width: 54, height: 54, borderRadius: 18, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
               <Icon name={manualMode ? "plus" : "file"} color="#FFFFFF" size={25} />
@@ -9566,7 +10786,7 @@ function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps
     return (
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: theme.bg }}>
         <BackHeader nav={nav} theme={theme} label={textFor("classes.add_manual", "Add class manually")} />
-        <ScrollView style={{ flex: 1 }} contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
+        <ScrollView ref={simulatorCaptureIsEnabled() ? registerSimulatorCaptureScrollView : undefined} style={{ flex: 1 }} contentInsetAdjustmentBehavior="automatic" contentOffset={simulatorCaptureContentOffset()} onScroll={simulatorCaptureIsEnabled() ? recordSimulatorCaptureScroll : undefined} onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureViewport : undefined} onContentSizeChange={simulatorCaptureIsEnabled() ? recordSimulatorCaptureContentSize : undefined} scrollEventThrottle={16} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
           <Card theme={theme} style={{ padding: 16, marginBottom: 14, backgroundColor: "#111114" }}>
             <Text selectable style={{ color: "rgba(255,255,255,0.62)", fontSize: 12, fontWeight: "900" }}>{textFor("onboarding.manual_kicker", "RELIABLE FALLBACK")}</Text>
             <Text selectable style={{ color: "#FFFFFF", fontSize: 25, lineHeight: 29, fontWeight: "900", marginTop: 7 }}>{textFor("onboarding.manual_title", "Start with one class. Add the rest later.")}</Text>
@@ -9587,7 +10807,7 @@ function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps
             <Text selectable style={{ color: theme.label2, lineHeight: 19 }}>{textFor("onboarding.manual_deadline_hint", "Optional, but adding one deadline makes the review artifact more useful.")}</Text>
           </Card>
         </ScrollView>
-        <LiquidGlassSurface tintColor="rgba(245,245,247,0.78)" style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24, backgroundColor: theme.dark ? "rgba(6,6,8,0.94)" : "rgba(245,245,247,0.96)", borderTopWidth: 1, borderTopColor: theme.hairline }} fallbackStyle={{ backgroundColor: theme.bg }}>
+        <LiquidGlassSurface tintColor={theme.dark ? "rgba(6,6,8,0.78)" : "rgba(245,245,247,0.78)"} colorScheme={theme.dark ? "dark" : "light"} style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24, backgroundColor: theme.dark ? "rgba(6,6,8,0.96)" : "rgba(245,245,247,0.96)", borderTopWidth: 1, borderTopColor: theme.hairline }} fallbackStyle={{ backgroundColor: theme.bg }}>
           <Button label={textFor("onboarding.manual_preview", "Preview manual plan")} icon="sparkles" theme={theme} onPress={buildManualPreview} />
           <Button label={textFor("locked.paste", "Paste manually")} icon="file" theme={theme} secondary onPress={() => nav.push("paste", { mode: "syllabus" })} />
         </LiquidGlassSurface>
@@ -9597,12 +10817,12 @@ function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={mode === "notes" ? textFor("notes.paste", "Paste notes") : textFor("option.paste_syllabus", "Paste syllabus")} />
-      <ScrollView style={{ flex: 1 }} contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
+      <ScrollView ref={simulatorCaptureIsEnabled() ? registerSimulatorCaptureScrollView : undefined} style={{ flex: 1 }} contentInsetAdjustmentBehavior="automatic" contentOffset={simulatorCaptureContentOffset()} onScroll={simulatorCaptureIsEnabled() ? recordSimulatorCaptureScroll : undefined} onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureViewport : undefined} onContentSizeChange={simulatorCaptureIsEnabled() ? recordSimulatorCaptureContentSize : undefined} scrollEventThrottle={16} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
         <Text selectable style={{ color: theme.label, fontSize: 26, fontWeight: "900", marginBottom: 8 }}>{mode === "notes" ? textFor("paste.notes_title", "Notes become a study set.") : textFor("paste.syllabus_title", "syllabus becomes a semester.")}</Text>
         <Text selectable style={{ color: theme.label2, lineHeight: 21, marginBottom: 14 }}>{data.prefs.premium ? textFor("paste.premium_sub", "Review everything before it saves.") : textFor("paste.preview_sub", "Review what StudyPlanner finds before anything saves.")}</Text>
-        <TextInput accessibilityLabel={mode === "notes" ? textFor("notes.paste", "Paste notes") : textFor("option.paste_syllabus", "Paste syllabus")} multiline value={text} onChangeText={setText} placeholder={mode === "notes" ? textFor("paste.notes_placeholder", "Paste lecture notes, reading notes, or review material...") : textFor("paste.syllabus_placeholder", "Paste syllabus text, assignment sheets, or extracted PDF text...")} placeholderTextColor={theme.label3} textAlignVertical="top" style={{ minHeight: 290, borderRadius: 18, backgroundColor: theme.surface, color: theme.label, borderWidth: 1, borderColor: theme.hairline, padding: 16, fontSize: 15, lineHeight: 22 }} />
+        <TextInput accessibilityLabel={mode === "notes" ? textFor("notes.paste", "Paste notes") : textFor("option.paste_syllabus", "Paste syllabus")} multiline value={text} onChangeText={setText} placeholder={mode === "notes" ? textFor("paste.notes_placeholder", "Paste lecture notes, reading notes, or review material...") : textFor("paste.syllabus_placeholder", "Paste syllabus text, assignment sheets, or extracted PDF text...")} placeholderTextColor={theme.label3} keyboardAppearance={theme.dark ? "dark" : "light"} textAlignVertical="top" style={{ minHeight: 290, borderRadius: 18, backgroundColor: theme.surface, color: theme.label, borderWidth: 1, borderColor: theme.hairline, padding: 16, fontSize: 15, lineHeight: 22 }} />
       </ScrollView>
-      <LiquidGlassSurface tintColor="rgba(245,245,247,0.78)" style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24, backgroundColor: theme.dark ? "rgba(6,6,8,0.94)" : "rgba(245,245,247,0.96)", borderTopWidth: 1, borderTopColor: theme.hairline }} fallbackStyle={{ backgroundColor: theme.bg }}>
+      <LiquidGlassSurface tintColor={theme.dark ? "rgba(6,6,8,0.78)" : "rgba(245,245,247,0.78)"} colorScheme={theme.dark ? "dark" : "light"} style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24, backgroundColor: theme.dark ? "rgba(6,6,8,0.96)" : "rgba(245,245,247,0.96)", borderTopWidth: 1, borderTopColor: theme.hairline }} fallbackStyle={{ backgroundColor: theme.bg }}>
         <Button label={working ? textFor("paste.reading", "Reading...") : textFor("review.title", "Review import")} icon="sparkles" theme={theme} onPress={working ? undefined : analyze} />
       </LiquidGlassSurface>
     </KeyboardAvoidingView>
@@ -9610,6 +10830,9 @@ function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps
 }
 
 function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, currentImport, setCurrentImport, recordReviewTrigger }: ScreenProps) {
+  const { fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const accessibilityLayout = fontScale >= 1.6;
   const batch = currentImport;
   const [applying, setApplying] = useState(false);
   if (!batch) return (
@@ -9841,7 +11064,7 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
     ]
     : [
       { value: classesFound, label: textFor("review.classes", "classes"), color: COLORS.blue },
-      { value: assignmentsFound, label: textFor("review.assignments", "assignments"), color: COLORS.orange },
+      { value: assignmentsFound, label: textFor("tasks.title", "Tasks"), color: COLORS.orange },
       { value: examsFound, label: textFor("review.exams", "exams"), color: COLORS.purple },
     ];
   const pressureWeek = assignmentsFound + examsFound >= 5 ? previewText("busy", "Heavy") : assignmentsFound + examsFound >= 2 ? localizedNarrativeText("pressure", "Moderate") : previewText("clear", "Light");
@@ -9851,35 +11074,37 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
   const primaryApplyLabel = data.prefs.premium
     ? textFor("review.apply", "Apply approved items ({count})", { count: approvedCount })
     : textFor("review.locked_cta", "Unlock to apply plan");
+  const reconciliationHint = textFor("review.reconcile_hint", "Choose how to handle this import row. StudyPlanner will not overwrite or duplicate it silently.");
+  const reconciliationHintLines = balancedCopyLines(reconciliationHint, accessibilityLayout ? 22 : 40).split("\n");
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={textFor("review.title", "Review Import")} />
-      <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 34 }}>
-        <Card theme={theme} style={{ padding: 14, flexDirection: "row", gap: 10, alignItems: "center", marginBottom: 16 }}><Lock color={COLORS.green} size={19} /><Text selectable style={{ color: theme.label, flex: 1, lineHeight: 20 }}><Text style={{ fontWeight: "900" }}>{data.prefs.premium ? textFor("review.guard_active", "Nothing saves until you approve.") : textFor("review.guard_preview", "Preview only.")}</Text> {data.prefs.premium ? textFor("review.guard_active_body", "Edit, remove, or confirm each item.") : textFor("review.guard_preview_body", "Unlock to apply this semester to the real app.")}</Text></Card>
+      <ScrollView ref={simulatorCaptureIsEnabled() ? registerSimulatorCaptureScrollView : undefined} contentInsetAdjustmentBehavior="automatic" contentOffset={simulatorCaptureContentOffset()} onScroll={simulatorCaptureIsEnabled() ? recordSimulatorCaptureScroll : undefined} onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureViewport : undefined} onContentSizeChange={simulatorCaptureIsEnabled() ? recordSimulatorCaptureContentSize : undefined} scrollEventThrottle={16} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 34 + insets.bottom }}>
+        <Card theme={theme} style={{ padding: 14, flexDirection: accessibilityLayout ? "column" : "row", gap: 10, alignItems: accessibilityLayout ? "flex-start" : "center", marginBottom: 16 }}><Lock color={COLORS.green} size={19} /><Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label, flex: accessibilityLayout ? undefined : 1, width: accessibilityLayout ? "100%" : undefined, lineHeight: 20 }}><Text style={{ fontWeight: "900" }}>{data.prefs.premium ? textFor("review.guard_active", "Nothing saves until you approve.") : textFor("review.guard_preview", "Preview only.")}</Text> {data.prefs.premium ? textFor("review.guard_active_body", "Edit, remove, or confirm each item.") : textFor("review.guard_preview_body", "Unlock to apply this semester to the real app.")}</Text></Card>
         <Card theme={theme} style={{ padding: 16, marginBottom: 16, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
-          <Text selectable style={{ color: theme.label, fontSize: 19, fontWeight: "900", marginBottom: 12 }}>{notesOnlyImport ? textFor("notes.body", "Notes raise Preparedness and sharpen Class Pulse.") : textFor("review.found", "StudyPlanner found your semester.")}</Text>
-          <View style={{ flexDirection: "row", gap: 9, marginBottom: 12 }}>
+          <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label, fontSize: 19, fontWeight: "900", marginBottom: 12 }}>{notesOnlyImport ? textFor("notes.body", "Notes raise Preparedness and sharpen Class Pulse.") : textFor("review.found", "StudyPlanner found your semester.")}</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 9, marginBottom: 12 }}>
             {reviewMetrics.map((metric) => (
-              <View key={metric.label} style={{ flex: 1, minWidth: 0, borderRadius: 16, backgroundColor: theme.surface2, padding: 12 }}>
-                <Text selectable style={{ color: metric.color, fontSize: 23, fontWeight: "900" }}>{metric.value}</Text>
-                <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ color: theme.label2, fontSize: 12, fontWeight: "800", marginTop: 2 }}>{metric.label}</Text>
+              <View key={metric.label} style={{ flex: accessibilityLayout ? 0 : 1, flexBasis: accessibilityLayout ? "100%" : "30%", minWidth: 88, minHeight: 74, borderRadius: 16, backgroundColor: theme.surface2, padding: 12 }}>
+                <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: semanticTextColor(metric.color, theme, theme.surface2), fontSize: 23, fontWeight: "900" }}>{metric.value}</Text>
+                <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label2, fontSize: 12, lineHeight: 15, fontWeight: "800", marginTop: 2 }}>{metric.label}</Text>
               </View>
             ))}
           </View>
           <View style={{ padding: 13, borderRadius: 16, backgroundColor: theme.surface2 }}>
-            <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{notesOnlyImport ? textFor("note.generated_assets", "Generated study assets") : textFor("review.pressure_preview", "Pressure preview")}: {notesOnlyImport ? `${textFor("note.flashcards", "Flashcards")} + ${textFor("note.quiz", "Quiz")}` : pressureWeek}</Text>
-            <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 4 }}>{notesOnlyImport ? textFor("note.suggested_tasks", "Suggested study tasks") : textFor("review.first_action", "First recommended action")}: {firstAction}</Text>
+            <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label, fontWeight: "900" }}>{notesOnlyImport ? textFor("note.generated_assets", "Generated study assets") : textFor("review.pressure_preview", "Pressure preview")}: {notesOnlyImport ? `${textFor("note.flashcards", "Flashcards")} + ${textFor("note.quiz", "Quiz")}` : pressureWeek}</Text>
+            <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label2, lineHeight: 20, marginTop: 4 }}>{notesOnlyImport ? textFor("note.suggested_tasks", "Suggested study tasks") : textFor("review.first_action", "First recommended action")}: {firstAction}</Text>
           </View>
-          <View style={{ flexDirection: "row", gap: 9, marginTop: 12 }}>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 9, marginTop: 12 }}>
             <View style={{ flex: 1 }}><Button label={textFor("review.approve", "Approve trusted")} theme={theme} icon="target" onPress={highConfidenceCount ? approveTrusted : undefined} /></View>
             <View style={{ flex: 1 }}><Button label={textFor("review.manual", "Manual setup")} theme={theme} secondary icon="plus" onPress={() => nav.push("paste", { mode: "manual" })} /></View>
           </View>
         </Card>
         {batch.candidates.length === 0 || batch.candidates.every((candidate) => candidate.confidence < 0.75) ? (
           <Card theme={theme} style={{ padding: 16, marginBottom: 16, backgroundColor: theme.dark ? "#2A2018" : "#FFF7E8" }}>
-            <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{textFor("review.weak_title", "Extraction looks weak.")}</Text>
-            <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 5 }}>{textFor("review.weak_body", "Use the rows below only if they match the syllabus. You can retry, paste text, or build the semester manually.")}</Text>
-            <View style={{ flexDirection: "row", gap: 9, marginTop: 10 }}>
+            <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{textFor("review.weak_title", "Extraction looks weak.")}</Text>
+            <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label2, lineHeight: 20, marginTop: 5 }}>{textFor("review.weak_body", "Use the rows below only if they match the syllabus. You can retry, paste text, or build the semester manually.")}</Text>
+            <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 9, marginTop: 10 }}>
               <View style={{ flex: 1 }}><Button label={textFor("review.retry", "Retry")} theme={theme} icon="refresh" onPress={() => nav.tab("scan")} /></View>
               <View style={{ flex: 1 }}><Button label={textFor("scan.paste_text", "Paste text")} theme={theme} secondary icon="file" onPress={() => nav.push("paste", { mode: notesOnlyImport ? "notes" : "syllabus" })} /></View>
             </View>
@@ -9901,44 +11126,61 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
             const ownerBlocked = requiresResolvedOwner(item, currentApprovedClassIds);
             const rowBlocked = titleBlocked || dateBlocked || timeBlocked || ownerBlocked;
             const effectivelyApproved = item.approved && !rowBlocked;
+            const localizedItemKind = localizedKindLabel(item.kind);
+            const titleRequiredMessage = textFor("review.title_required", "Add a specific title before approving this row ({kind}).", { kind: localizedItemKind });
+            const timeRequiredMessage = textFor("review.time_required", "Enter a valid time, such as 9:00 AM or 17:00, before approving this row.");
+            const ownerRequiredMessage = textFor("review.owner_required", "Assign this row to an existing class or approve its matching class first. Orphaned rows are never attached automatically.");
             const blockedHint = titleBlocked
-              ? "Add a specific title before approving this row."
+              ? titleRequiredMessage
               : dateBlocked
                 ? textFor("review.invalid_date", "Enter a valid YYYY-MM-DD date before approving this row.")
                 : timeBlocked
-                  ? "Use a real time such as 9:00 AM or 17:00 before approving this row."
+                  ? timeRequiredMessage
                   : ownerBlocked
-                    ? "Assign this row to an existing class or approve its matching class first."
+                    ? ownerRequiredMessage
                     : textFor("review.accessibility_toggle_apply", "Toggle whether this row will be applied.");
             return (
-              <View key={item.id} style={{ padding: 13, opacity: effectivelyApproved ? 1 : 0.45, borderBottomWidth: 1, borderBottomColor: theme.hairline }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 11 }}>
+              <View key={item.id} style={{ padding: 13, backgroundColor: effectivelyApproved ? "transparent" : theme.surface2, borderBottomWidth: 1, borderBottomColor: theme.hairline }}>
+                <View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "stretch" : "center", gap: 11 }}>
                   <ClassGlyph c={rowClass} size={32} />
                   <View style={{ flex: 1 }}>
-                    <TextInput accessibilityLabel={textFor("review.accessibility_title", "{kind} title", { kind: localizedKindLabel(item.kind) })} accessibilityHint={textFor("review.accessibility_title_hint", "Edit the imported row title before approving it.")} value={item.title} onChangeText={(title) => updateTitle(item, title)} style={{ color: theme.label, fontSize: 14.5, fontWeight: "900", padding: 0 }} />
-                    <Text selectable numberOfLines={2} style={{ color: theme.label2, lineHeight: 17 }}><Text style={{ color: confColor, fontWeight: "900" }}>{item.confidence >= 0.9 ? textFor("review.high", "High") : item.confidence >= 0.75 ? textFor("review.good", "Good") : textFor("review.title", "Review")}</Text>{` · ${item.meta}`}</Text>
+                    <TextInput accessibilityLabel={textFor("review.accessibility_title", "{kind} title", { kind: localizedKindLabel(item.kind) })} accessibilityHint={textFor("review.accessibility_title_hint", "Edit the imported row title before approving it.")} value={item.title} onChangeText={(title) => updateTitle(item, title)} keyboardAppearance={theme.dark ? "dark" : "light"} multiline={accessibilityLayout} maxFontSizeMultiplier={2} style={{ color: theme.label, fontSize: 14.5, fontWeight: "900", padding: 0 }} />
+                    <Text selectable numberOfLines={accessibilityLayout ? undefined : 2} maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label2, lineHeight: 17 }}><Text style={{ color: semanticTextColor(confColor, theme), fontWeight: "900" }}>{item.confidence >= 0.9 ? textFor("review.high", "High") : item.confidence >= 0.75 ? textFor("review.good", "Good") : textFor("review.title", "Review")}</Text>{` · ${item.meta}`}</Text>
                   </View>
-                  <Pressable accessibilityRole="checkbox" accessibilityLabel={effectivelyApproved ? textFor("review.accessibility_unapprove", "Unapprove {title}", { title: item.title }) : textFor("review.accessibility_approve", "Approve {title}", { title: item.title || localizedKindLabel(item.kind) })} accessibilityHint={blockedHint} accessibilityState={{ checked: effectivelyApproved, disabled: rowBlocked }} disabled={rowBlocked} onPress={() => update(item.id, { approved: !item.approved })}>{effectivelyApproved ? <CheckCircle2 color={COLORS.green} /> : <Circle color={rowBlocked ? COLORS.orange : theme.label3} />}</Pressable>
+                  <Pressable accessibilityRole="checkbox" accessibilityLabel={effectivelyApproved ? textFor("review.accessibility_unapprove", "Unapprove {title}", { title: item.title }) : textFor("review.accessibility_approve", "Approve {title}", { title: item.title || localizedKindLabel(item.kind) })} accessibilityHint={blockedHint} accessibilityState={{ checked: effectivelyApproved, disabled: rowBlocked }} disabled={rowBlocked} onPress={() => update(item.id, { approved: !item.approved })}>{effectivelyApproved ? <CheckCircle2 color={semanticTextColor(COLORS.green, theme)} /> : <Circle color={rowBlocked ? semanticTextColor(COLORS.orange, theme) : theme.label3} />}</Pressable>
                   <Pressable accessibilityRole="button" accessibilityLabel={textFor("review.accessibility_remove", "Remove {title}", { title: item.title })} accessibilityHint={textFor("review.accessibility_remove_hint", "Deletes this row from the import review.")} hitSlop={10} onPress={() => removeCandidate(item)}><Trash2 color={theme.label3} size={19} /></Pressable>
                 </View>
-                {item.confidence < 0.75 ? <Text selectable style={{ color: COLORS.orange, marginTop: 8, fontWeight: "800" }}>{textFor("review.needs_review", "Needs review")}: {textFor("review.needs_review_body", "StudyPlanner is not confident this row is complete.")}</Text> : null}
-                {titleBlocked ? <Text selectable accessibilityRole="alert" style={{ color: COLORS.orange, marginTop: 8, fontWeight: "900" }}>Add a specific {localizedKindLabel(item.kind).toLowerCase()} title before approving this row.</Text> : null}
-                {dateBlocked ? <Text selectable accessibilityRole="alert" style={{ color: COLORS.orange, marginTop: 8, fontWeight: "900" }}>{textFor("review.invalid_date", "Enter a valid YYYY-MM-DD date before approving this row.")}</Text> : null}
-                {timeBlocked ? <Text selectable accessibilityRole="alert" style={{ color: COLORS.orange, marginTop: 8, fontWeight: "900" }}>Use a real time such as 9:00 AM or 17:00 before approving this row.</Text> : null}
-                {ownerBlocked ? <Text selectable accessibilityRole="alert" style={{ color: COLORS.orange, marginTop: 8, fontWeight: "900" }}>Assign this row to an existing class or approve its matching class first. Orphaned rows are never attached automatically.</Text> : null}
+                {item.confidence < 0.75 ? <Text selectable style={{ color: semanticTextColor(COLORS.orange, theme), marginTop: 8, fontWeight: "800" }}>{textFor("review.needs_review", "Needs review")}: {textFor("review.needs_review_body", "StudyPlanner is not confident this row is complete.")}</Text> : null}
+                {titleBlocked ? <Text selectable accessibilityRole="alert" style={{ color: semanticTextColor(COLORS.orange, theme), marginTop: 8, fontWeight: "900" }}>{titleRequiredMessage}</Text> : null}
+                {dateBlocked ? <Text selectable accessibilityRole="alert" style={{ color: semanticTextColor(COLORS.orange, theme), marginTop: 8, fontWeight: "900" }}>{textFor("review.invalid_date", "Enter a valid YYYY-MM-DD date before approving this row.")}</Text> : null}
+                {timeBlocked ? <Text selectable accessibilityRole="alert" style={{ color: semanticTextColor(COLORS.orange, theme), marginTop: 8, fontWeight: "900" }}>{timeRequiredMessage}</Text> : null}
+                {ownerBlocked ? <Text selectable accessibilityRole="alert" style={{ color: semanticTextColor(COLORS.orange, theme), marginTop: 8, fontWeight: "900" }}>{ownerRequiredMessage}</Text> : null}
                 {match ? (
                   <View style={{ marginTop: 10, padding: 12, borderRadius: 14, backgroundColor: theme.surface2 }}>
-	                    <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("review.existing_found", "Existing item found")}: {match.label}</Text>
-                    {match.oldDate && match.newDate && match.oldDate !== match.newDate ? <Text selectable style={{ color: COLORS.orange, fontWeight: "900", marginTop: 4 }}>{match.oldDate} to {match.newDate}</Text> : null}
-                    <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 4 }}>{textFor("review.reconcile_hint", "Choose how to handle this import row. StudyPlanner will not overwrite or duplicate it silently.")}</Text>
-                    <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
+	                    <Text selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label, fontWeight: "900" }}>{textFor("review.existing_found", "Existing item found")}: {match.label}</Text>
+                    {match.oldDate && match.newDate && match.oldDate !== match.newDate ? (
+                      <View
+                        accessible
+                        accessibilityRole="text"
+                        accessibilityLabel={textFor("review.date_change_accessibility", "Changed from {oldDate} to {newDate}", { oldDate: match.oldDate, newDate: match.newDate })}
+                        style={{ flexDirection: accessibilityLayout ? "column" : "row", flexWrap: accessibilityLayout ? "nowrap" : "wrap", columnGap: 4, marginTop: 4 }}
+                      >
+                        <Text accessible={false} selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: semanticTextColor(COLORS.orange, theme, theme.surface2), fontSize: 14, lineHeight: 18, fontWeight: "900", fontVariant: ["tabular-nums"], flexShrink: 0, writingDirection: "ltr" }}>{match.oldDate}</Text>
+                        <Text accessible={false} selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: semanticTextColor(COLORS.orange, theme, theme.surface2), fontSize: 14, lineHeight: 18, fontWeight: "900", flexShrink: 0 }}>{textFor("review.date_change_connector", "to")}</Text>
+                        <Text accessible={false} selectable maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: semanticTextColor(COLORS.orange, theme, theme.surface2), fontSize: 14, lineHeight: 18, fontWeight: "900", fontVariant: ["tabular-nums"], flexShrink: 0, writingDirection: "ltr" }}>{match.newDate}</Text>
+                      </View>
+                    ) : null}
+                    <View accessible accessibilityRole="text" accessibilityLabel={reconciliationHint} style={{ alignSelf: "stretch", paddingEnd: 16, marginTop: 4 }}>
+                      {reconciliationHintLines.map((line, lineIndex) => <Text key={`review-reconciliation-hint-${lineIndex}`} accessible={false} maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: theme.label2, lineHeight: 19 }}>{line}</Text>)}
+                    </View>
+                    <View accessibilityRole="radiogroup" style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 8, marginTop: 10 }}>
                       {[
                         ["keep", textFor("review.keep_existing", "Keep existing")],
 	                        ["update", textFor("review.update_existing", "Update existing")],
 	                        ["duplicate", textFor("review.create_duplicate", "Create duplicate")],
                       ].map(([value, label]) => (
-                        <Pressable key={value} accessibilityRole="button" accessibilityLabel={`${label} for ${item.title}`} accessibilityState={{ selected: choice === value }} onPress={() => update(item.id, { reconciliationChoice: value as ImportCandidate["reconciliationChoice"], approved: !dateBlocked })} style={{ flex: 1, minWidth: 0, minHeight: 48, paddingHorizontal: 7, paddingVertical: 8, borderRadius: 14, backgroundColor: choice === value ? theme.accent : theme.surface, alignItems: "center", justifyContent: "center" }}>
-                          <Text numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.72} style={{ color: choice === value ? "#fff" : theme.label, fontSize: 12, lineHeight: 15, fontWeight: "900", textAlign: "center" }}>{label}</Text>
+                        <Pressable key={value} accessibilityRole="radio" accessibilityLabel={textFor("review.reconciliation_action_accessibility", "{action} for {title}", { action: label, title: item.title })} accessibilityState={{ selected: choice === value }} onPress={() => update(item.id, { reconciliationChoice: value as ImportCandidate["reconciliationChoice"], approved: !dateBlocked })} style={{ flex: 1, minWidth: 0, minHeight: 48, paddingHorizontal: 7, paddingVertical: 8, borderRadius: 14, backgroundColor: choice === value ? theme.accent : theme.surface, alignItems: "center", justifyContent: "center" }}>
+                          <Text numberOfLines={accessibilityLayout ? undefined : 2} maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: choice === value ? theme.accentText : theme.label, fontSize: 12, lineHeight: 15, fontWeight: "900", textAlign: "center" }}>{label}</Text>
                         </Pressable>
                       ))}
                     </View>
@@ -9946,26 +11188,26 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
                 ) : null}
                 {item.kind === "class" ? (
                   <View style={{ marginTop: 10 }}>
-                    <View style={{ flexDirection: "row", gap: 8 }}>
+                    <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 8 }}>
 	                      <View style={{ flex: 1 }}><FieldInput label={textFor("class.days", "Days")} value={payload.days || ""} onChangeText={(days) => updatePayload(item, { days })} theme={theme} /></View>
 	                      <View style={{ flex: 1 }}><FieldInput label={textFor("class.time", "Time")} value={payload.time || ""} onChangeText={(time) => updateTime(item, time)} theme={theme} /></View>
                     </View>
-                    <View style={{ flexDirection: "row", gap: 8 }}>
-	                      <View style={{ flex: 1 }}><FieldInput label={textFor("assessment.room", "Room")} value={payload.room || ""} onChangeText={(room) => updatePayload(item, { room })} theme={theme} /></View>
-	                      <View style={{ flex: 1 }}><FieldInput label={textFor("class.professor", "Professor")} value={payload.professor || ""} onChangeText={(professor) => updatePayload(item, { professor })} theme={theme} /></View>
+                    <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 8 }}>
+	                      <View style={{ flex: 1 }}><FieldInput label={textFor("assessment.room", "Room")} value={payload.room || ""} onChangeText={(room) => updatePayload(item, { room })} theme={theme} multiline={accessibilityLayout} /></View>
+	                      <View style={{ flex: 1 }}><FieldInput label={textFor("class.professor", "Professor")} value={payload.professor || ""} onChangeText={(professor) => updatePayload(item, { professor })} theme={theme} multiline={accessibilityLayout} /></View>
                     </View>
                   </View>
                 ) : null}
                 {(item.kind === "task" || item.kind === "exam") ? (
                   <View style={{ marginTop: 10 }}>
-                    <View style={{ flexDirection: "row", gap: 8 }}>
+                    <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 8 }}>
 	                      <View style={{ flex: 1 }}><FieldInput label={textFor("task.due", "Due date")} value={payload.missing ? "" : payload.dueDate || ""} onChangeText={(dueDate) => updateDueDate(item, dueDate)} placeholder="YYYY-MM-DD" theme={theme} /></View>
 	                      <View style={{ flex: 1 }}><FieldInput label={textFor("class.time", "Time")} value={payload.time || ""} onChangeText={(time) => updateTime(item, time)} theme={theme} /></View>
                     </View>
-	                    {payload.missing ? <Text selectable style={{ color: COLORS.orange, fontWeight: "900", marginBottom: 8 }}>{textFor("task.save_awaiting", "Awaiting Date")}</Text> : null}
+	                    {payload.missing ? <Text selectable style={{ color: semanticTextColor(COLORS.orange, theme), fontWeight: "900", marginBottom: 8 }}>{textFor("task.save_awaiting", "Awaiting Date")}</Text> : null}
                     {item.kind === "task" ? (
-                      <View style={{ flexDirection: "row", gap: 8 }}>
-	                        <View style={{ flex: 1 }}><FieldInput label={textFor("class.assignment", "Type")} value={payload.type || ""} onChangeText={(type) => updatePayload(item, { type })} theme={theme} /></View>
+                      <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 8 }}>
+	                        <View style={{ flex: 1 }}><FieldInput label={textFor("assessment.type", "Type")} value={payload.type || ""} onChangeText={(type) => updatePayload(item, { type })} theme={theme} /></View>
               <View style={{ flex: 1 }}><FieldInput label={textFor("class.effort", "Effort")} value={String(payload.estimateMinutes || "")} onChangeText={(estimateMinutes) => updatePayload(item, { estimateMinutes: Number(estimateMinutes) || 45 })} theme={theme} /></View>
                       </View>
                     ) : null}
@@ -9973,7 +11215,7 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
                       <View>
 	                        <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("tabs.classes", "Class")}</Text>
                         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{data.classes.filter((klass) => !klass.archivedAt).map((klass) => (
-                          <Pressable key={klass.id} accessibilityRole="button" accessibilityLabel={`Assign ${item.title} to ${klass.code}`} accessibilityState={{ selected: (payload.classId || item.classId) === klass.id }} onPress={() => updatePayload(item, { classId: klass.id })} style={{ paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999, backgroundColor: (payload.classId || item.classId) === klass.id ? klass.color : theme.surface2 }}><Text style={{ color: (payload.classId || item.classId) === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
+	                          <Pressable key={klass.id} accessibilityRole="button" accessibilityLabel={textFor("review.assign_to_class_accessibility", "Assign {title} to {classCode}", { title: item.title, classCode: klass.code })} accessibilityState={{ selected: (payload.classId || item.classId) === klass.id }} onPress={() => updatePayload(item, { classId: klass.id })} style={{ minHeight: 44, justifyContent: "center", paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999, backgroundColor: (payload.classId || item.classId) === klass.id ? klass.color : theme.surface2 }}><Text maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: (payload.classId || item.classId) === klass.id ? foregroundForColor(klass.color) : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
                         ))}</View>
                       </View>
                     ) : null}
@@ -9983,7 +11225,7 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
                   <View style={{ marginTop: 10 }}>
                     <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("tabs.classes", "Class")}</Text>
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{data.classes.filter((klass) => !klass.archivedAt).map((klass) => (
-                      <Pressable key={klass.id} accessibilityRole="button" accessibilityLabel={`Assign ${item.title} to ${klass.code}`} accessibilityState={{ selected: (payload.classId || item.classId) === klass.id }} onPress={() => updatePayload(item, { classId: klass.id })} style={{ paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999, backgroundColor: (payload.classId || item.classId) === klass.id ? klass.color : theme.surface2 }}><Text style={{ color: (payload.classId || item.classId) === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
+                      <Pressable key={klass.id} accessibilityRole="button" accessibilityLabel={textFor("review.assign_to_class_accessibility", "Assign {title} to {classCode}", { title: item.title, classCode: klass.code })} accessibilityState={{ selected: (payload.classId || item.classId) === klass.id }} onPress={() => updatePayload(item, { classId: klass.id })} style={{ minHeight: 44, justifyContent: "center", paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999, backgroundColor: (payload.classId || item.classId) === klass.id ? klass.color : theme.surface2 }}><Text maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: (payload.classId || item.classId) === klass.id ? foregroundForColor(klass.color) : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
                     ))}</View>
                   </View>
                 ) : null}
@@ -9993,23 +11235,27 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
         })}
         <Card theme={theme} style={{ padding: 16, marginBottom: 8 }}>
           <Button label={applying ? textFor("review.applying", "Applying...") : primaryApplyLabel} icon={data.prefs.premium ? "target" : "crown"} theme={theme} onPress={approvedCount && !applying ? apply : undefined} />
-          <Text selectable accessibilityLiveRegion="polite" style={{ color: approvedCount ? theme.label2 : COLORS.orange, textAlign: "center", marginTop: 8 }}>{approvedCount ? `${textFor("review.approved_footer", "{count} approved items · {state}", { count: approvedCount, state: data.prefs.premium ? textFor("review.editable_later", "editable later") : textFor("review.locked_until_premium", "locked until premium") })}${unresolvedCount ? ` · ${unresolvedCount} ${textFor("review.needs_review", "need review")}` : ""}` : textFor("review.approve_one", "Approve at least one item to continue")}</Text>
+          <Text selectable accessibilityLiveRegion="polite" maxFontSizeMultiplier={2} lineBreakStrategyIOS="standard" style={{ color: approvedCount ? theme.label2 : semanticTextColor(COLORS.orange, theme), textAlign: "center", marginTop: 8 }}>{approvedCount ? `${textFor("review.approved_footer", "{count} approved items · {state}", { count: approvedCount, state: data.prefs.premium ? textFor("review.editable_later", "editable later") : textFor("review.locked_until_premium", "locked until premium") })}${unresolvedCount ? ` · ${unresolvedCount} ${textFor("review.needs_review", "need review")}` : ""}` : textFor("review.approve_one", "Approve at least one item to continue")}</Text>
         </Card>
       </ScrollView>
     </View>
   );
 }
 
-function ApplySuccess({ data, nav, theme }: ScreenProps) {
+function ApplySuccess({ data, nav, theme, params }: ScreenProps) {
+  const { fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const accessibilityLayout = fontScale >= 1.6;
   const semester = buildSemesterSnapshot(data);
   const narrative = buildSemesterNarrative(data, semester);
   const widgetSnapshots = buildNativeWidgetSnapshots(data, widgetCopyFor);
   const semesterTheme = resolveSemesterThemeColor("graphite");
   const successCoursePalette = semesterTheme.courseColors.length >= 4 ? semesterTheme.courseColors : [COLORS.ink, COLORS.blue, COLORS.green, COLORS.orange];
   const firstFocusBlock = data.studyBlocks.find((block) => !block.completed) || data.studyBlocks[0];
-  const [step, setStep] = useState(0);
-  const pulse = useRef(new Animated.Value(0)).current;
   const steps = [textFor("success.step_reading", "Reading scan"), textFor("success.step_deadlines", "Finding deadlines and notes"), textFor("success.step_schedule", "Building plan"), textFor("success.step_health", "Updating Today and widgets"), textFor("success.step_next", "Preparing next move")];
+  const captureReady = simulatorCaptureIsEnabled() && params.captureDemo === "ready";
+  const [step, setStep] = useState(captureReady ? steps.length : 0);
+  const pulse = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     if (step >= steps.length) return;
     const id = setTimeout(() => setStep((current) => current + 1), 260);
@@ -10032,12 +11278,12 @@ function ApplySuccess({ data, nav, theme }: ScreenProps) {
   ];
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingTop: 80, paddingHorizontal: 22, paddingBottom: 34, gap: 16 }}>
+      <ScrollView ref={simulatorCaptureIsEnabled() ? registerSimulatorCaptureScrollView : undefined} contentInsetAdjustmentBehavior="automatic" contentOffset={simulatorCaptureContentOffset()} onScroll={simulatorCaptureIsEnabled() ? recordSimulatorCaptureScroll : undefined} onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureViewport : undefined} onContentSizeChange={simulatorCaptureIsEnabled() ? recordSimulatorCaptureContentSize : undefined} scrollEventThrottle={16} contentContainerStyle={{ paddingTop: Math.max(80, insets.top), paddingHorizontal: 22, paddingBottom: 34 + insets.bottom, gap: 16 }}>
         <View style={{ alignItems: "center", marginBottom: 4 }}>
           <View style={{ width: 104, height: 104, marginBottom: 22, alignItems: "center", justifyContent: "center" }}>
             {ready ? <Animated.View style={{ position: "absolute", width: 104, height: 104, borderRadius: 34, backgroundColor: semesterTheme.accent, opacity: pulseOpacity, transform: [{ scale: pulseScale }] }} /> : null}
             <View style={{ width: 104, height: 104, borderRadius: 34, backgroundColor: ready ? semesterTheme.accent : theme.surface, borderWidth: 1, borderColor: ready ? semesterTheme.accent : theme.hairline, alignItems: "center", justifyContent: "center" }}>
-            {ready ? <Check color="#fff" size={58} strokeWidth={2.4} /> : <ActivityIndicator color={theme.accent} />}
+            {ready ? <Check color={semesterTheme.foreground} size={58} strokeWidth={2.4} /> : <ActivityIndicator color={theme.accent} />}
             </View>
           </View>
           <Text selectable accessibilityRole="header" accessibilityLiveRegion="polite" style={{ color: theme.label, fontSize: 34, lineHeight: 37, fontWeight: "900", textAlign: "center" }}>{ready ? textFor("success.ready", "Semester Ready") : steps[Math.min(step, steps.length - 1)]}</Text>
@@ -10046,36 +11292,36 @@ function ApplySuccess({ data, nav, theme }: ScreenProps) {
         {ready ? (
           <>
             <Card theme={theme} style={{ padding: 16 }}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10 }}>
+              <View style={{ flexDirection: accessibilityLayout ? "column" : "row", justifyContent: "space-between", gap: accessibilityLayout ? 12 : 10 }}>
                 {[
 	                  [narrative.importSummary.classes, textFor("review.classes", "classes"), COLORS.blue],
 		                  [narrative.importSummary.assignments, textFor("tasks.title", "Tasks"), COLORS.orange],
 		                  [narrative.importSummary.exams, textFor("review.exams", "exams"), COLORS.purple],
 		                  [narrative.importSummary.highPressureWeeks, textFor("success.metric_30d", "30d"), COLORS.red],
 	                ].map(([value, label, color], index) => (
-	                  <View key={`success-metric-${index}`} style={{ flex: 1 }}>
-	                    <Text selectable style={{ color: color as string, fontSize: 24, fontWeight: "900" }}>{value}</Text>
-	                    <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78} style={{ color: theme.label2, fontSize: 12, fontWeight: "800" }}>{label}</Text>
+	                  <View key={`success-metric-${index}`} style={{ flex: accessibilityLayout ? undefined : 1, flexDirection: accessibilityLayout ? "row" : "column", alignItems: accessibilityLayout ? "baseline" : undefined, gap: accessibilityLayout ? 8 : 0 }}>
+	                    <Text selectable maxFontSizeMultiplier={1.8} style={{ color: theme.dark ? contrastSafeDarkForeground(color as string) : contrastSafeLightForeground(color as string), fontSize: 24, fontWeight: "900" }}>{value}</Text>
+	                    <Text selectable numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: theme.label2, fontSize: 12, lineHeight: 16, fontWeight: "800", flexShrink: 1 }}>{label}</Text>
 	                  </View>
 	                ))}
               </View>
             </Card>
-            <LiquidGlassSurface tintColor="rgba(255,255,255,0.72)" style={{ borderRadius: 22, padding: 16, backgroundColor: "#F7F7FA", borderWidth: 1, borderColor: "rgba(17,17,20,0.10)", gap: 12 }} fallbackStyle={{ backgroundColor: "#F7F7FA" }}>
-              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                <View style={{ flex: 1 }}>
+            <LiquidGlassSurface tintColor={theme.dark ? "rgba(23,23,28,0.72)" : "rgba(255,255,255,0.72)"} colorScheme={theme.dark ? "dark" : "light"} style={{ borderRadius: 22, padding: 16, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.hairline, gap: 12 }} fallbackStyle={{ backgroundColor: theme.surface }}>
+              <View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", justifyContent: "space-between", gap: 12 }}>
+                <View style={{ flex: 1, width: accessibilityLayout ? "100%" : undefined, minWidth: 0 }}>
                   <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("success.theme_kicker", "SYSTEM APPLIED")}</Text>
-                  <Text selectable style={{ color: theme.label, fontSize: 20, lineHeight: 24, fontWeight: "900", marginTop: 3 }}>{textFor("success.theme_title", "White system, class colors")}</Text>
-                  <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 4 }}>{textFor("success.theme_body", "Dashboard, focus blocks, classes, and widgets keep black controls with automatic course colors for context.")}</Text>
+                  <Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label, fontSize: 20, lineHeight: 24, fontWeight: "900", marginTop: 3 }}>{textFor("success.theme_title", "App appearance, adaptive widgets")}</Text>
+                  <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 4 }}>{textFor("success.theme_body", "Dashboard, focus blocks, and classes follow your app appearance. Widgets adapt separately to the Home and Lock Screen.")}</Text>
                 </View>
-                <View style={{ width: 58, height: 58, borderRadius: 20, backgroundColor: "#111114", alignItems: "center", justifyContent: "center" }}>
-                  <Icon name="sparkles" color={semesterTheme.foreground} size={25} />
+                <View style={{ width: 58, height: 58, borderRadius: 20, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}>
+                  <Icon name="sparkles" color={theme.accentText} size={25} />
                 </View>
               </View>
-              <View style={{ flexDirection: "row", gap: 10 }}>
+              <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 10 }}>
                 {successLoops.map((item) => (
-                  <View key={`success-loop-${item.label}`} style={{ flex: 1, minHeight: 76, borderRadius: 18, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "rgba(17,17,20,0.10)", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                  <View key={`success-loop-${item.label}`} style={{ flex: accessibilityLayout ? undefined : 1, minHeight: 76, borderRadius: 18, backgroundColor: theme.surface2, borderWidth: 1, borderColor: theme.hairline, alignItems: "center", justifyContent: "center", gap: 4, padding: 10 }}>
                     <Svg width={48} height={48} viewBox="0 0 48 48">
-                      <SvgCircle cx={24} cy={24} r={successLoopRadius} stroke="rgba(17,17,20,0.08)" strokeWidth={7} fill="none" />
+                      <SvgCircle cx={24} cy={24} r={successLoopRadius} stroke={theme.hairline} strokeWidth={7} fill="none" />
                       <SvgCircle
                         cx={24}
                         cy={24}
@@ -10089,23 +11335,23 @@ function ApplySuccess({ data, nav, theme }: ScreenProps) {
                         transform="rotate(-90 24 24)"
                       />
                     </Svg>
-                    <Text selectable numberOfLines={1} style={{ color: theme.label, fontSize: 13, fontWeight: "900" }}>{item.value}</Text>
-                    <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ color: theme.label2, fontSize: 10, fontWeight: "800" }}>{item.label}</Text>
+                    <Text selectable maxFontSizeMultiplier={1.8} style={{ color: theme.label, fontSize: 13, fontWeight: "900" }}>{item.value}</Text>
+                    <Text selectable numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: theme.label2, fontSize: 10, lineHeight: 13, fontWeight: "800", textAlign: "center" }}>{item.label}</Text>
                   </View>
                 ))}
               </View>
-              <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "800" }}>{textFor("success.theme_proof", "No color setup required. Course colors stay automatic for classes and widgets.")}</Text>
+              <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "800" }}>{textFor("success.theme_proof", "App appearance stays consistent. Widgets use their own system environment and automatic course colors.")}</Text>
             </LiquidGlassSurface>
             <Card theme={theme} style={{ padding: 18 }}>
 	              <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 6 }}>{textFor("locked.health", "SEMESTER HEALTH")}</Text>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
-                <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 14 }}>
+                <View style={{ flex: 1, width: accessibilityLayout ? "100%" : undefined, minWidth: 0 }}>
 	                  <Text selectable style={{ color: theme.label, fontSize: 24, fontWeight: "900" }}>{localizedNarrativeText("state", narrative.state)}</Text>
-	                  <Text selectable style={{ color: colorForState(narrative.colorState), lineHeight: 20, marginTop: 4, fontWeight: "900" }}>{localizedNarrativeText("driver", narrative.primaryDriver)}</Text>
+	                  <Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: semanticTextColor(colorForState(narrative.colorState), theme), lineHeight: 20, marginTop: 4, fontWeight: "900" }}>{localizedNarrativeText("driver", narrative.primaryDriver)}</Text>
                 </View>
-                <View style={{ width: 72, height: 72, borderRadius: 999, borderWidth: 8, borderColor: colorForState(narrative.colorState), alignItems: "center", justifyContent: "center" }}>
-                  <Text selectable style={{ color: theme.label, fontSize: 24, fontWeight: "900" }}>{semester.semesterHealth.overallScore}</Text>
-                  <Text selectable style={{ color: theme.label2, fontSize: 11, fontWeight: "800" }}>{textFor("health.score", "score")}</Text>
+                <View style={{ width: 72, height: 72, borderRadius: 999, borderWidth: 8, borderColor: contrastSafeForegroundOn(colorForState(narrative.colorState), theme.surface), alignItems: "center", justifyContent: "center" }}>
+                  <Text selectable maxFontSizeMultiplier={1.2} style={{ color: theme.label, fontSize: 24, lineHeight: 28, fontWeight: "900" }}>{semester.semesterHealth.overallScore}</Text>
+                  <Text selectable maxFontSizeMultiplier={1.2} style={{ color: theme.label2, fontSize: 11, lineHeight: 13, fontWeight: "800" }}>{textFor("health.score", "score")}</Text>
                 </View>
               </View>
             </Card>
@@ -10115,30 +11361,30 @@ function ApplySuccess({ data, nav, theme }: ScreenProps) {
             </Card>
             {firstFocusBlock ? (
               <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#172019" : "#F1FFF6" }}>
-                <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+                <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 12, alignItems: accessibilityLayout ? "flex-start" : "center" }}>
                   <View style={{ width: 46, height: 46, borderRadius: 16, backgroundColor: `${COLORS.green}1F`, alignItems: "center", justifyContent: "center" }}>
                     <Icon name="timer" color={COLORS.green} size={22} />
                   </View>
-                  <View style={{ flex: 1, minWidth: 0 }}>
+                  <View style={{ flex: 1, minWidth: 0, width: accessibilityLayout ? "100%" : undefined }}>
                     <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("success.first_focus_kicker", "FIRST FOCUS BLOCK")}</Text>
-                    <Text selectable numberOfLines={2} style={{ color: theme.label, fontSize: 18, lineHeight: 22, fontWeight: "900", marginTop: 3 }}>{firstFocusBlock.title}</Text>
-                    <Text selectable numberOfLines={1} style={{ color: theme.label2, marginTop: 3 }}>{localizedStudyBlockDay(firstFocusBlock.day)} · {firstFocusBlock.time} · {minutesLabel(firstFocusBlock.minutes)}</Text>
+                    <Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: theme.label, fontSize: 18, lineHeight: 22, fontWeight: "900", marginTop: 3 }}>{firstFocusBlock.title}</Text>
+                    <Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label2, marginTop: 3 }}>{localizedStudyBlockDay(firstFocusBlock.day)} · {firstFocusBlock.time} · {minutesLabel(firstFocusBlock.minutes)}</Text>
                   </View>
                 </View>
                 <Button label={textFor("success.start_focus", "Start first focus block")} theme={theme} icon="play" onPress={() => nav.push("studySession", { id: firstFocusBlock.id })} />
               </Card>
             ) : null}
-            <LiquidGlassSurface tintColor={`${widgetSnapshots.week.accentColor}18`} style={{ borderRadius: 22, padding: 16, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.hairline }} fallbackStyle={{ backgroundColor: theme.surface }}>
-              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12, gap: 12 }}>
-                <View style={{ flex: 1 }}>
-                  <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("success.widgets_kicker", "RECOMMENDED WIDGET")}</Text>
-                  <Text selectable style={{ color: theme.label, fontSize: 20, lineHeight: 24, fontWeight: "900", marginTop: 3 }}>{textFor("success.calendar_widget_title", "Semester calendar widget")}</Text>
+            <LiquidGlassSurface tintColor={`${widgetSnapshots.week.accentColor}18`} colorScheme={theme.dark ? "dark" : "light"} style={{ borderRadius: 22, padding: 16, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.hairline }} fallbackStyle={{ backgroundColor: theme.surface }}>
+              <View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", justifyContent: "space-between", marginBottom: 12, gap: 12 }}>
+                <View style={{ flex: 1, width: accessibilityLayout ? "100%" : undefined, minWidth: 0 }}>
+                  <Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("success.widgets_kicker", "RECOMMENDED WIDGET")}</Text>
+                  <Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label, fontSize: 20, lineHeight: 24, fontWeight: "900", marginTop: 3 }}>{textFor("success.calendar_widget_title", "Semester calendar widget")}</Text>
                   <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 3 }}>{textFor("success.calendar_widget_body", "See this week, exam markers, and pressure days before opening the app.")}</Text>
                 </View>
                 <Pill text={textFor("widgets.ready", "ready")} color={COLORS.green} theme={theme} icon="grid" />
               </View>
               <View style={{ alignItems: "center" }}>
-                <NativeHomeWidgetPreview snapshot={widgetSnapshots.week} family="systemMedium" />
+                <NativeHomeWidgetPreview snapshot={widgetSnapshots.week} family="systemMedium" dark={theme.dark} />
               </View>
 	              <Button label={textFor("success.set_up_widgets", "Set up widgets")} theme={theme} icon="grid" onPress={() => nav.push("widgets")} />
             </LiquidGlassSurface>
@@ -10178,6 +11424,8 @@ function SkeletonLine({ theme, width = "100%", height = 7 }: { theme: ReturnType
 }
 
 function Plan({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const liveData = useMemo(() => activeSemesterData(data), [data]);
   const rebuild = () => mutate((d) => {
     const updated = { ...d, studyBlocks: buildStudyPlan(activeSemesterData(d)) };
@@ -10229,12 +11477,39 @@ function Plan({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
       <Header title={textFor("plan.title", "Plan")} sub={`${localizedNarrativeText("state", narrative.state)} · ${textFor("plan.sub_suffix", "semester autopilot")}`} theme={theme} />
       <View style={{ paddingHorizontal: 16, gap: 16 }}>
         <Card theme={theme} style={{ padding: 14 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-            <Text selectable numberOfLines={1} style={{ color: theme.label, fontSize: 22, fontWeight: "900", flexShrink: 1 }}>{monthLabel}</Text>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", justifyContent: "space-between", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 10 }}>
+            <Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, fontSize: 22, fontWeight: "900", flexShrink: 1 }}>{monthLabel}</Text>
             <Pill text={textFor("plan.notes_feed", "{count} notes feed plan", { count: liveData.notes.length })} color={COLORS.purple} theme={theme} icon="note" />
           </View>
           <Text selectable style={{ color: theme.label2, marginTop: 2, marginBottom: 12 }}>{monthPressure} {textFor("plan.pressure_points", "pressure points")} · {localizedNarrativeText("pressure", narrative.pressureLabel)}</Text>
-          <View style={{ flexDirection: "row", marginBottom: 6 }}>{Array.from({ length: 7 }, (_value, index) => localizedWeekdayNarrow(index)).map((d, index) => <Text key={`${d}${index}`} style={{ flex: 1, textAlign: "center", color: theme.label2, fontWeight: "900", fontSize: 12 }}>{d}</Text>)}</View>
+          {accessibilityLayout ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingVertical: 4 }}>
+              {cells.filter((day) => day >= 1 && day <= daysInMonth).map((day) => {
+                const selected = day === selectedDay;
+                const isToday = day === today.getDate();
+                const items = itemsForDay(day);
+                const eventCount = items.tasks.length + items.exams.length + items.blocks.length + items.notes.length;
+                const date = dateForDay(day);
+                const dateLabel = date.toLocaleDateString(appLocale(), { weekday: "long", month: "long", day: "numeric" });
+                const eventCategorySummary = ([
+                  [items.exams.length, textFor("review.exams", "Exams")],
+                  [items.tasks.length, textFor("tasks.title", "Tasks")],
+                  [items.blocks.length, textFor("plan.focus_blocks", "Focus blocks")],
+                  [items.notes.length, textFor("notes.title", "Notes")],
+                ] as [number, string][]).filter(([count]) => count > 0).map(([count, label]) => `${count} ${label}`).join(" · ");
+                return (
+                  <Pressable key={`accessible-calendar-${day}`} accessibilityRole="button" accessibilityLabel={`${dateLabel}. ${eventCount} ${previewMetricLabel("signals", "items")}${eventCategorySummary ? `. ${eventCategorySummary}` : ""}`} accessibilityHint={textFor("plan.accessibility_select_day_hint", "Show planner items for this day")} accessibilityState={{ selected }} onPress={() => setSelectedDay(day)} style={{ width: Math.max(156, Math.min(240, fontScale * 72)), minHeight: 132, borderRadius: 18, padding: 14, backgroundColor: selected ? theme.accent : isToday ? `${theme.accent}22` : theme.surface2, borderWidth: 1, borderColor: selected ? theme.accent : theme.hairline }}>
+                    <Text selectable style={{ color: selected ? theme.accentText : theme.label2, fontWeight: "900" }}>{date.toLocaleDateString(appLocale(), { weekday: "short" })}</Text>
+                    <Text selectable maxFontSizeMultiplier={1.6} style={{ color: selected ? theme.accentText : theme.label, fontSize: 26, lineHeight: 30, fontWeight: "900", marginTop: 4 }}>{day}</Text>
+                    <Text selectable style={{ color: selected ? theme.accentText : theme.label2, fontWeight: "800", marginTop: 5 }}>{eventCount} {previewMetricLabel("signals", "items")}</Text>
+                    {eventCategorySummary ? <Text selectable style={{ color: selected ? theme.accentText : theme.label2, lineHeight: 18, marginTop: 4 }}>{eventCategorySummary}</Text> : null}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          ) : (
+          <>
+          <View style={{ flexDirection: "row", marginBottom: 6 }}>{Array.from({ length: 7 }, (_value, index) => localizedWeekdayNarrow(index)).map((d, index) => <Text key={`${d}${index}`} maxFontSizeMultiplier={1.5} style={{ flex: 1, textAlign: "center", color: theme.label2, fontWeight: "900", fontSize: 12 }}>{d}</Text>)}</View>
           <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
             {cells.map((day, index) => {
               const inMonth = day >= 1 && day <= daysInMonth;
@@ -10254,25 +11529,27 @@ function Plan({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
               return (
                 <Pressable key={index} accessibilityRole="button" accessibilityLabel={`${dateLabel}. ${eventCount} ${previewMetricLabel("signals", "items")}${eventCategorySummary ? `. ${eventCategorySummary}` : ""}`} accessibilityHint={textFor("plan.accessibility_select_day_hint", "Show planner items for this day")} accessibilityState={{ selected }} onPress={() => setSelectedDay(day)} style={{ width: "14.285%", minHeight: 56, padding: 3 }}>
                   <View style={{ minHeight: 50, borderRadius: 12, padding: 5, alignItems: "center", justifyContent: "center", backgroundColor: selected ? theme.accent : isToday ? `${theme.accent}22` : "transparent", opacity: inMonth ? 1 : 0.25 }}>
-                    <Text style={{ color: selected ? "#fff" : theme.label, fontWeight: selected || isToday ? "900" : "700", fontSize: 13 }}>{inMonth ? day : ""}</Text>
+                    <Text maxFontSizeMultiplier={1.5} style={{ color: selected ? theme.accentText : theme.label, fontWeight: selected || isToday ? "900" : "700", fontSize: 13 }}>{inMonth ? day : ""}</Text>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 2, minHeight: 7, marginTop: 4 }}>
-                      {items.exams.length ? <Text accessible={false} style={{ color: selected ? "#fff" : COLORS.purple, fontSize: 7, lineHeight: 7 }}>◆</Text> : null}
-                      {items.tasks.length ? <Text accessible={false} style={{ color: selected ? "#fff" : COLORS.orange, fontSize: 7, lineHeight: 7 }}>■</Text> : null}
-                      {items.blocks.length ? <Text accessible={false} style={{ color: selected ? "#fff" : COLORS.green, fontSize: 7, lineHeight: 7 }}>●</Text> : null}
-                      {items.notes.length ? <Text accessible={false} style={{ color: selected ? "#fff" : COLORS.blue, fontSize: 7, lineHeight: 7 }}>▬</Text> : null}
-                      {eventCount ? <Text accessible={false} style={{ color: selected ? "#fff" : theme.label2, fontSize: 10, lineHeight: 11, fontWeight: "900", marginLeft: 1 }}>{eventCount}</Text> : null}
+                      {items.exams.length ? <Text accessible={false} style={{ color: selected ? theme.accentText : COLORS.purple, fontSize: 7, lineHeight: 7 }}>◆</Text> : null}
+                      {items.tasks.length ? <Text accessible={false} style={{ color: selected ? theme.accentText : COLORS.orange, fontSize: 7, lineHeight: 7 }}>■</Text> : null}
+                      {items.blocks.length ? <Text accessible={false} style={{ color: selected ? theme.accentText : COLORS.green, fontSize: 7, lineHeight: 7 }}>●</Text> : null}
+                      {items.notes.length ? <Text accessible={false} style={{ color: selected ? theme.accentText : COLORS.blue, fontSize: 7, lineHeight: 7 }}>▬</Text> : null}
+                      {eventCount ? <Text accessible={false} style={{ color: selected ? theme.accentText : theme.label2, fontSize: 10, lineHeight: 11, fontWeight: "900", marginLeft: 1 }}>{eventCount}</Text> : null}
                     </View>
-                    {pressure > 3 ? <Text style={{ color: selected ? "#fff" : COLORS.red, fontSize: 9, fontWeight: "900", marginTop: 1 }}>{previewMetricLabel("busy", "busy")}</Text> : null}
+                    {pressure > 3 ? <Text style={{ color: selected ? theme.accentText : COLORS.red, fontSize: 9, fontWeight: "900", marginTop: 1 }}>{previewMetricLabel("busy", "busy")}</Text> : null}
                   </View>
                 </Pressable>
               );
             })}
           </View>
+          </>
+          )}
           <View accessibilityRole="summary" style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginTop: 10 }}>
             {calendarLegend.map(([color, label, marker]) => <View key={label} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}><Text accessible={false} style={{ color, fontSize: 10, lineHeight: 10 }}>{marker}</Text><Text selectable style={{ color: theme.label2, fontSize: 11, fontWeight: "800" }}>{label}</Text></View>)}
           </View>
         </Card>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("plan.autopilot", "Autopilot")}</Text></View><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{localizedNarrativeText("next", narrative.nextMoveLabel)}. {localizedNarrativeText("detail", narrative.nextMoveDetail)}</Text><Text selectable style={{ color: theme.label2, marginTop: 7 }}>{localizedNarrativeText("driver", narrative.primaryDriver)}</Text>{semester.schedulePlan.changedSinceLastPlan.slice(0, 2).map((change) => <Text selectable key={change} style={{ color: theme.label2, marginTop: 7 }}>- {localizedNarrativeText("detail", change)}</Text>)}<View style={{ flexDirection: "row", gap: 7, marginTop: 12 }}>{semester.pressureForecast.weekLoads.map((load, index) => <View key={`${index}${load}`} style={{ flex: 1 }}><ProgressBar value={load / 100} color={load > 85 ? COLORS.red : load > 64 ? COLORS.orange : load > 38 ? COLORS.yellow : COLORS.green} theme={theme} height={8} /><Text style={{ color: theme.label2, textAlign: "center", fontSize: 10, marginTop: 4, fontWeight: "900" }}>{localizedWeekdayNarrow(index)}</Text></View>)}</View><Button label={textFor("plan.rebuild", "Rebuild plan")} theme={theme} icon="refresh" onPress={rebuild} /></Card>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("plan.autopilot", "Autopilot")}</Text></View><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{localizedNarrativeText("next", narrative.nextMoveLabel)}. {localizedNarrativeText("detail", narrative.nextMoveDetail)}</Text><Text selectable style={{ color: theme.label2, marginTop: 7 }}>{localizedNarrativeText("driver", narrative.primaryDriver)}</Text>{semester.schedulePlan.changedSinceLastPlan.slice(0, 2).map((change) => <Text selectable key={change} style={{ color: theme.label2, marginTop: 7 }}>- {localizedNarrativeText("detail", change)}</Text>)}<View style={{ flexDirection: "row", gap: 7, marginTop: 12 }}>{semester.pressureForecast.weekLoads.map((load, index) => <View key={`${index}${load}`} style={{ flex: 1 }}><ProgressBar value={load / 100} color={load > 85 ? COLORS.red : load > 64 ? COLORS.orange : load > 38 ? COLORS.yellow : COLORS.green} theme={theme} height={8} /><Text style={{ color: theme.label2, textAlign: "center", fontSize: 10, marginTop: 4, fontWeight: "900" }}>{localizedRollingWeekdayNarrow(index)}</Text></View>)}</View><Button label={textFor("plan.rebuild", "Rebuild plan")} theme={theme} icon="refresh" onPress={rebuild} /></Card>
         <View>
           <Section title={dateForDay(selectedDay).toLocaleDateString(appLocale(), { weekday: "short", month: "short", day: "numeric" })} action={`${selectedItems.tasks.length + selectedItems.exams.length + selectedItems.notes.length + selectedItems.blocks.length} ${previewMetricLabel("signals", "items")}`} theme={theme} />
           <Card theme={theme} style={{ overflow: "hidden" }}>
@@ -10289,7 +11566,7 @@ function Plan({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
               });
             }} onOpen={() => nav.push("taskDetail", { id: task.id })} />)}
             {selectedItems.blocks.map((block) => { const c = safeClassFor(liveData, block.classId); return <Pressable key={block.id} accessibilityRole="button" accessibilityLabel={`${block.title}. ${c.code}. ${block.time}. ${minutesLabel(block.minutes)}`} accessibilityHint={textFor("study.focus_session", "Open focus session")} onPress={() => nav.push("studySession", { id: block.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}><ClassGlyph c={c} size={34} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{block.title}</Text><Text selectable style={{ color: theme.label2 }}>{block.time} · {minutesLabel(block.minutes)}</Text></View><Pill text={textFor("plan.study", "Study")} color={COLORS.green} theme={theme} /></Pressable>; })}
-            {selectedItems.notes.map((note) => <Pressable key={note.id} accessibilityRole="button" accessibilityLabel={`${note.title}. ${note.suggestedTasks.length} ${textFor("plan.suggested_tasks", "suggested tasks")}`} accessibilityHint={textFor("note.accessibility_open_hint", "Open note details")} onPress={() => nav.push("noteDetail", { id: note.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}><NotebookPen color={COLORS.blue} size={22} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{note.title}</Text><Text selectable style={{ color: theme.label2 }}>{note.suggestedTasks.length} {textFor("plan.suggested_tasks", "suggested tasks")}</Text></View><ChevronRight color={theme.label3} size={16} /></Pressable>)}
+            {selectedItems.notes.map((note) => <Pressable key={note.id} accessibilityRole="button" accessibilityLabel={`${note.title}. ${note.suggestedTasks.length} ${textFor("plan.suggested_tasks", "suggested tasks")}`} accessibilityHint={textFor("note.accessibility_open_hint", "Open note details")} onPress={() => nav.push("noteDetail", { id: note.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}><NotebookPen color={COLORS.blue} size={22} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{note.title}</Text><Text selectable style={{ color: theme.label2 }}>{note.suggestedTasks.length} {textFor("plan.suggested_tasks", "suggested tasks")}</Text></View><ForwardChevron color={theme.label3} size={16} /></Pressable>)}
             {!selectedItems.tasks.length && !selectedItems.exams.length && !selectedItems.blocks.length && !selectedItems.notes.length ? <View style={{ padding: 16 }}><Text selectable style={{ color: theme.label2 }}>{textFor("plan.clear_day", "Clear day.")}</Text></View> : null}
           </Card>
         </View>
@@ -10313,9 +11590,9 @@ function Plan({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
                   <Text selectable style={{ color: theme.label2 }}>{localizedStudyBlockDay(b.day)} · {b.time} · {minutesLabel(b.minutes)}</Text>
                   <Text selectable numberOfLines={2} style={{ color: theme.label2, marginTop: 5, lineHeight: 18 }}><Text style={{ fontWeight: "900", color: theme.label }}>{textFor("plan.why", "Why")}: </Text>{localizedStudyBlockReason(b.reason)}</Text>
                 </Pressable>
-                {canMarkMissed ? <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("plan.missed", "Missed? make up tomorrow")}: ${b.title}`} accessibilityHint={textFor("plan.accessibility_missed_hint", "Move this missed focus block to tomorrow")} hitSlop={8} onPress={markMissed} style={{ minHeight: 44, justifyContent: "center" }}><Text style={{ color: COLORS.orange, fontWeight: "900" }}>{textFor("plan.missed", "Missed? make up tomorrow")}</Text></Pressable> : null}
+                {canMarkMissed ? <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("plan.missed", "Missed? make up tomorrow")}: ${b.title}`} accessibilityHint={textFor("plan.accessibility_missed_hint", "Move this missed focus block to tomorrow")} hitSlop={8} onPress={markMissed} style={{ minHeight: 44, justifyContent: "center" }}><Text style={{ color: semanticTextColor(COLORS.orange, theme), fontWeight: "900" }}>{textFor("plan.missed", "Missed? make up tomorrow")}</Text></Pressable> : null}
               </View>
-              <Pressable accessibilityRole="checkbox" accessibilityLabel={b.completed ? textFor("task.reopen", "Reopen study block") : textFor("task.mark_complete", "Complete study block")} accessibilityHint={b.title} accessibilityState={{ checked: b.completed }} hitSlop={10} onPress={() => complete(b.id)} style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>{b.completed ? <CheckCircle2 color={COLORS.green} /> : <Circle color={theme.accent} />}</Pressable>
+              <Pressable accessibilityRole="checkbox" accessibilityLabel={b.completed ? textFor("task.reopen", "Reopen study block") : textFor("task.mark_complete", "Complete study block")} accessibilityHint={b.title} accessibilityState={{ checked: b.completed }} hitSlop={10} onPress={() => complete(b.id)} style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>{b.completed ? <CheckCircle2 color={contrastSafeForegroundOn(COLORS.green, theme.surface)} /> : <Circle color={contrastSafeForegroundOn(theme.accent, theme.surface)} />}</Pressable>
             </Card>
           );
         })}</View>
@@ -10372,11 +11649,11 @@ function StudySession({ data, mutate, nav, theme, params, recordReviewTrigger }:
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={textFor("study.focus_session", "Focus Session")} />
-      <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
+      <ScrollView ref={simulatorCaptureIsEnabled() ? registerSimulatorCaptureScrollView : undefined} contentInsetAdjustmentBehavior="automatic" contentOffset={simulatorCaptureContentOffset()} onScroll={simulatorCaptureIsEnabled() ? recordSimulatorCaptureScroll : undefined} onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureViewport : undefined} onContentSizeChange={simulatorCaptureIsEnabled() ? recordSimulatorCaptureContentSize : undefined} scrollEventThrottle={16} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
         <Card theme={theme} style={{ padding: 18 }}><View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><ClassGlyph c={c} size={50} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontSize: 22, fontWeight: "900" }}>{block.title}</Text><Text selectable style={{ color: theme.label2, marginTop: 3 }}>{localizedStudyBlockDay(block.day)} · {block.time} · {minutesLabel(block.minutes)}</Text></View></View></Card>
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#172019" : "#F1FFF6" }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.impact", "Impact")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21 }}>{c.code} {textFor("locked.preparedness", "preparedness")}. {pulse ? `${localizedPulseText("forecast", pulse.forecastLabel)} ${textFor("class.forecast", "forecast")}.` : localizedNarrativeText("detail", "Risk reduced.")}</Text></Card>
         <Card theme={theme} style={{ padding: 16 }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.goal", "Goal")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21 }}>{textFor("study.goal_body", "One item. Then recall.")}</Text></Card>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.active_recall", "Active recall")}</Text><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{textFor("study.recall_body", "Explain it without looking.")}</Text><TextInput accessibilityLabel={textFor("study.active_recall", "Active recall")} multiline value={answer} onChangeText={setAnswer} placeholder={textFor("study.recall_placeholder", "Type your recall answer...")} placeholderTextColor={theme.label3} style={{ minHeight: 120, backgroundColor: theme.surface, color: theme.label, borderRadius: 14, padding: 12, marginTop: 12, textAlignVertical: "top" }} />{responseWordCount ? <Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label2, fontWeight: "800", marginTop: 10 }}>{responseMetricLabel}</Text> : null}</Card>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.active_recall", "Active recall")}</Text><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{textFor("study.recall_body", "Explain it without looking.")}</Text><TextInput accessibilityLabel={textFor("study.active_recall", "Active recall")} multiline value={answer} onChangeText={setAnswer} placeholder={textFor("study.recall_placeholder", "Type your recall answer...")} placeholderTextColor={theme.label3} keyboardAppearance={theme.dark ? "dark" : "light"} style={{ minHeight: 120, backgroundColor: theme.surface, color: theme.label, borderRadius: 14, padding: 12, marginTop: 12, textAlignVertical: "top" }} />{responseWordCount ? <Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label2, fontWeight: "800", marginTop: 10 }}>{responseMetricLabel}</Text> : null}</Card>
         <Button label={block.completed ? textFor("tasks.completed", "Session already complete") : answer.trim() ? textFor("study.complete", "Complete session") : textFor("study.skip_complete", "Skip recall and complete")} theme={theme} secondary={!answer.trim() || block.completed} icon="check" onPress={block.completed ? undefined : () => { if (!finish()) return; recordReviewTrigger("focus_completed"); nav.back(); }} />
       </ScrollView>
     </View>
@@ -10384,6 +11661,8 @@ function StudySession({ data, mutate, nav, theme, params, recordReviewTrigger }:
 }
 
 function Notes({ data, nav, theme }: ScreenProps) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const liveData = activeSemesterData(data);
   const [filter, setFilter] = useState("all");
   const notes = filter === "all" ? liveData.notes : liveData.notes.filter((n) => n.classId === filter);
@@ -10400,16 +11679,16 @@ function Notes({ data, nav, theme }: ScreenProps) {
       <Header title={textFor("notes.title", "Notes")} sub={textFor("notes.sub", "{score} preparedness · {count} notes", { score: preparedness, count: liveData.notes.length })} theme={theme} />
       <View style={{ paddingHorizontal: 16, gap: 14 }}>
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#111114" : "#FFFFFF" }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 13 }}>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 13 }}>
             <View style={{ width: 54, height: 54, borderRadius: 18, backgroundColor: `${COLORS.purple}18`, alignItems: "center", justifyContent: "center" }}>
               <NotebookPen color={COLORS.purple} size={26} />
             </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text selectable numberOfLines={2} style={{ color: theme.label, fontSize: 20, lineHeight: 24, fontWeight: "900" }}>{localizedNarrativeText("notes", narrative.notesNudge)}</Text>
-              <Text selectable numberOfLines={2} style={{ color: theme.label2, lineHeight: 19, marginTop: 4 }}>{textFor("notes.body", "Notes raise Preparedness and sharpen Class Pulse.")}</Text>
+            <View style={{ flex: accessibilityLayout ? undefined : 1, minWidth: 0, width: accessibilityLayout ? "100%" : undefined, maxWidth: "100%" }}>
+              <Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: theme.label, fontSize: 20, lineHeight: 24, fontWeight: "900" }}>{localizedNarrativeText("notes", narrative.notesNudge)}</Text>
+              <Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: theme.label2, lineHeight: 19, marginTop: 4 }}>{textFor("notes.body", "Notes raise Preparedness and sharpen Class Pulse.")}</Text>
             </View>
           </View>
-          <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 10, marginTop: 14 }}>
             <View style={{ flex: 1 }}>
               <Button label={textFor("notes.scan", "Scan notes")} theme={theme} icon="camera" onPress={() => nav.push("cameraScanner", { mode: "notes" })} />
             </View>
@@ -10419,27 +11698,27 @@ function Notes({ data, nav, theme }: ScreenProps) {
           </View>
         </Card>
         <Card theme={theme} style={{ padding: 15, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 12 }}>
             <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: `${COLORS.blue}1C`, alignItems: "center", justifyContent: "center" }}>
               <Shield color={COLORS.blue} size={21} />
             </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>{textFor("review.guard_active", "Nothing saves before you approve.")}</Text>
-              <Text selectable numberOfLines={2} style={{ color: theme.label2, lineHeight: 19, marginTop: 3 }}>{textFor("scan.notes_body", "Summaries, terms, flashcards, quizzes, and review tasks.")}</Text>
+            <View style={{ flex: accessibilityLayout ? undefined : 1, minWidth: 0, width: accessibilityLayout ? "100%" : undefined, maxWidth: "100%" }}>
+              <Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>{textFor("review.guard_active", "Nothing saves before you approve.")}</Text>
+              <Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: theme.label2, lineHeight: 19, marginTop: 3 }}>{textFor("scan.notes_body", "Summaries, terms, flashcards, quizzes, and review tasks.")}</Text>
             </View>
           </View>
         </Card>
 
-        <View style={{ flexDirection: "row", gap: 8 }}>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           {[
             [String(notes.length), textFor("notes.title", "Notes"), COLORS.purple],
             [String(suggestedTasks.length), textFor("note.tasks", "{count} tasks", { count: suggestedTasks.length }).replace(String(suggestedTasks.length), "").trim() || "tasks", COLORS.blue],
             [String(allTerms.length), textFor("note.concepts", "{count} concepts", { count: allTerms.length }).replace(String(allTerms.length), "").trim() || "concepts", COLORS.green],
             [String(linkedClasses), textFor("notes.classes_count", "classes"), COLORS.orange],
           ].map(([value, label, color]) => (
-            <View key={`${value}-${label}`} style={{ flex: 1, minHeight: 68, borderRadius: 16, padding: 10, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.hairline, justifyContent: "center" }}>
-              <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ color, fontSize: 20, fontWeight: "900" }}>{value}</Text>
-              <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.62} style={{ color: theme.label2, fontSize: 11, fontWeight: "800", marginTop: 2 }}>{label}</Text>
+            <View key={`${value}-${label}`} style={{ flex: accessibilityLayout ? 0 : 1, flexBasis: accessibilityLayout ? "100%" : "47%", minWidth: 132, minHeight: 76, borderRadius: 16, padding: 10, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.hairline, justifyContent: "center" }}>
+              <Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: semanticTextColor(color as string, theme), fontSize: 20, fontWeight: "900" }}>{value}</Text>
+              <Text selectable numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: theme.label2, fontSize: 11, lineHeight: 14, fontWeight: "800", marginTop: 2 }}>{label}</Text>
             </View>
           ))}
         </View>
@@ -10447,7 +11726,7 @@ function Notes({ data, nav, theme }: ScreenProps) {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingBottom: 2 }}>
           {[{ id: "all", code: textFor("notes.all", "All") }, ...liveData.classes].map((c: any) => (
             <Pressable key={c.id} accessibilityRole="radio" accessibilityLabel={c.code} accessibilityHint={textFor("notes.accessibility_filter_hint", "Filter notes by this class")} accessibilityState={{ selected: filter === c.id }} onPress={() => setFilter(c.id)} style={{ minHeight: 44, borderRadius: 999, paddingHorizontal: 14, backgroundColor: filter === c.id ? theme.accent : theme.surface, borderWidth: 1, borderColor: filter === c.id ? theme.accent : theme.hairline, alignItems: "center", justifyContent: "center" }}>
-              <Text style={{ color: filter === c.id ? "#fff" : theme.label2, fontWeight: "900" }} numberOfLines={1}>{c.code}</Text>
+              <Text style={{ color: filter === c.id ? theme.accentText : theme.label2, fontWeight: "900" }} numberOfLines={1}>{c.code}</Text>
             </Pressable>
           ))}
         </ScrollView>
@@ -10459,13 +11738,13 @@ function Notes({ data, nav, theme }: ScreenProps) {
               {suggestedTasks.map(({ task, note }, index) => {
                 const c = safeClassFor(liveData, note.classId);
                 return (
-                  <Pressable key={`${note.id}-${task}`} accessibilityRole="button" accessibilityLabel={`${task}. ${c.code}. ${note.title}`} accessibilityHint={textFor("note.accessibility_open_hint", "Open note details")} onPress={() => nav.push("noteDetail", { id: note.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderTopWidth: index === 0 ? 0 : 1, borderTopColor: theme.hairline }}>
+                  <Pressable key={`${note.id}-${task}`} accessibilityRole="button" accessibilityLabel={`${task}. ${c.code}. ${note.title}`} accessibilityHint={textFor("note.accessibility_open_hint", "Open note details")} onPress={() => nav.push("noteDetail", { id: note.id })} style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 12, padding: 14, borderTopWidth: index === 0 ? 0 : 1, borderTopColor: theme.hairline }}>
                     <View style={{ width: 34, height: 34, borderRadius: 12, backgroundColor: `${c.color}18`, alignItems: "center", justifyContent: "center" }}><Target color={c.color} size={18} /></View>
                     <View style={{ flex: 1, minWidth: 0 }}>
-                      <Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{task}</Text>
-                      <Text selectable numberOfLines={1} style={{ color: theme.label2, marginTop: 2, fontSize: 12.5 }}>{c.code} · {note.title}</Text>
+                      <Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, fontWeight: "900" }}>{task}</Text>
+                      <Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label2, marginTop: 2, fontSize: 12.5 }}>{c.code} · {note.title}</Text>
                     </View>
-                    <ChevronRight color={theme.label3} size={16} />
+                    <ForwardChevron color={theme.label3} size={16} />
                   </Pressable>
                 );
               })}
@@ -10500,6 +11779,8 @@ function Notes({ data, nav, theme }: ScreenProps) {
 }
 
 function NoteDetail({ data, mutate, nav, theme, params }: ScreenProps) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const note = data.notes.find((n) => n.id === params.id);
   if (!note) return <RecoveryScreen title={textFor("note.not_found", "Note not found")} body={textFor("note.not_found_body", "That note is not in this semester anymore.")} action={textFor("class.open_dashboard", "Open dashboard")} nav={nav} theme={theme} />;
   const c = data.classes.find((item) => item.id === note.classId);
@@ -10537,7 +11818,7 @@ function NoteDetail({ data, mutate, nav, theme, params }: ScreenProps) {
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={c.code} />
-      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
+      <ScrollView ref={simulatorCaptureIsEnabled() ? registerSimulatorCaptureScrollView : undefined} contentInsetAdjustmentBehavior="automatic" contentOffset={simulatorCaptureContentOffset()} onScroll={simulatorCaptureIsEnabled() ? recordSimulatorCaptureScroll : undefined} onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureViewport : undefined} onContentSizeChange={simulatorCaptureIsEnabled() ? recordSimulatorCaptureContentSize : undefined} scrollEventThrottle={16} contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
         <View><Pill text={c.code} color={c.color} theme={theme} /><Text selectable style={{ color: theme.label, fontSize: 26, fontWeight: "900", marginTop: 10 }}>{note.title}</Text></View>
         <Card theme={theme} style={{ padding: 16 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("note.effect", "Effect on {code}", { code: c.code })}</Text><Text selectable style={{ color: theme.label2, marginTop: 7, lineHeight: 20 }}>{pulse ? `${localizedPulseText("forecast", pulse.forecastLabel)}. ${localizedPulseText("nudge", pulse.nudge)}` : textFor("note.readiness_up", "Readiness up.")}</Text></Card>
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("note.summary", "Summary")}</Text></View><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{note.summary}</Text></Card>
@@ -10545,7 +11826,7 @@ function NoteDetail({ data, mutate, nav, theme, params }: ScreenProps) {
         <View><Section title={textFor("note.signals", "Signals")} action={`${Math.round(insight.confidence * 100)}%`} theme={theme} /><Card theme={theme} style={{ padding: 15, gap: 12 }}><View><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 6 }}>{textFor("note.exam_topics", "Exam topics")}</Text><View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>{insight.likelyExamTopics.slice(0, 6).map((topic) => <Pill key={topic} text={topic} color={COLORS.orange} theme={theme} />)}</View></View>{insight.formulas.length ? <View><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 6 }}>{textFor("note.formulas", "Formulas")}</Text>{insight.formulas.slice(0, 3).map((formula) => <Text selectable key={formula} style={{ color: theme.label2, marginTop: 3 }}>{formula}</Text>)}</View> : null}<View><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 6 }}>{textFor("note.weak_area", "Weak area")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 20 }}>{insight.weakAreas[0]}</Text></View></Card></View>
         <View><Section title={textFor("note.suggested_tasks", "Suggested study tasks")} theme={theme} /><Card theme={theme} style={{ overflow: "hidden" }}>{note.suggestedTasks.map((t) => {
           const alreadyAdded = data.tasks.some((task) => task.title.toLowerCase() === t.toLowerCase() && task.classId === note.classId);
-          return <View key={t} style={{ flexDirection: "row", gap: 12, alignItems: "center", padding: 14 }}><Icon name="target" color={alreadyAdded ? COLORS.green : COLORS.blue} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "800" }}>{t}</Text><Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "700", marginTop: 4 }}>{taskDisclosure}</Text></View><Pressable accessibilityRole="button" accessibilityLabel={`${alreadyAdded ? addedLabel : textFor("note.add", "Add")}: ${t}`} accessibilityHint={alreadyAdded ? textFor("note.accessibility_added_hint", "This task is already in your planner") : `${taskDisclosure}. ${textFor("note.accessibility_add_hint", "Add this task to your planner")}`} accessibilityState={{ disabled: alreadyAdded }} disabled={alreadyAdded} onPress={() => addTask(t)} style={{ opacity: alreadyAdded ? 0.68 : 1 }}><Pill text={alreadyAdded ? addedLabel : textFor("note.add", "Add")} color={alreadyAdded ? COLORS.green : theme.accent} theme={theme} /></Pressable></View>;
+          return <View key={t} style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 12, alignItems: accessibilityLayout ? "flex-start" : "center", padding: 14 }}><Icon name="target" color={contrastSafeForegroundOn(alreadyAdded ? COLORS.green : COLORS.blue, theme.surface)} /><View style={{ flex: accessibilityLayout ? undefined : 1, width: accessibilityLayout ? "100%" : undefined }}><Text selectable style={{ color: theme.label, fontWeight: "800" }}>{t}</Text><Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "700", marginTop: 4 }}>{taskDisclosure}</Text></View><Pressable accessibilityRole="button" accessibilityLabel={`${alreadyAdded ? addedLabel : textFor("note.add", "Add")}: ${t}`} accessibilityHint={alreadyAdded ? textFor("note.accessibility_added_hint", "This task is already in your planner") : `${taskDisclosure}. ${textFor("note.accessibility_add_hint", "Add this task to your planner")}`} accessibilityState={{ disabled: alreadyAdded }} disabled={alreadyAdded} onPress={() => addTask(t)} style={{ opacity: alreadyAdded ? 0.68 : 1, alignSelf: accessibilityLayout ? "stretch" : undefined, minHeight: 44, justifyContent: "center" }}><Pill text={alreadyAdded ? addedLabel : textFor("note.add", "Add")} color={alreadyAdded ? COLORS.green : theme.accent} theme={theme} /></Pressable></View>;
         })}</Card></View>
         <View><Section title={textFor("note.generated_assets", "Generated study assets")} action={`${assets.flashcards.length} ${textFor("note.cards", "cards")}`} theme={theme} /><Card theme={theme} style={{ padding: 15, gap: 12 }}>
           <View><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("note.flashcards", "Flashcards")}</Text>{assets.flashcards.slice(0, 3).map((card) => <View key={card.front} style={{ paddingVertical: 8, borderTopWidth: 1, borderTopColor: theme.hairline }}><Text selectable style={{ color: theme.label, fontWeight: "800" }}>{card.front}</Text><Text selectable style={{ color: theme.label2, marginTop: 3 }}>{card.back}</Text></View>)}</View>
@@ -10560,21 +11841,35 @@ function NoteDetail({ data, mutate, nav, theme, params }: ScreenProps) {
   );
 }
 
-function NativeHomeWidgetPreview({ snapshot, family }: { snapshot: NativeWidgetSnapshot; family: "systemSmall" | "systemMedium" }) {
+function WidgetPreviewText(props: React.ComponentProps<typeof Text>) {
+  return <Text {...props} allowFontScaling={false} />;
+}
+
+function NativeHomeWidgetPreview({ snapshot, family, dark = false }: { snapshot: NativeWidgetSnapshot; family: "systemSmall" | "systemMedium"; dark?: boolean }) {
+  const { width: windowWidth } = useWindowDimensions();
   const isMedium = family === "systemMedium";
-  const width = isMedium ? 338 : 158;
+  const nominalWidth = isMedium ? 338 : 158;
+  const nominalHeight = 158;
+  const availableWidth = Math.max(1, windowWidth - 96);
+  const previewScale = Math.min(1, availableWidth / nominalWidth);
+  const previewWidth = nominalWidth * previewScale;
+  const previewHeight = nominalHeight * previewScale;
   const items = snapshot.items.slice(0, isMedium ? 2 : 1);
   const accent = snapshot.accentColor || "#0A84FF";
-  const bg = snapshot.backgroundColor || "#FFFFFF";
-  const ink = accent === "#000000" || accent === "#111111" ? "#050505" : "#111318";
-  const muted = "#686D76";
+  const bg = dark ? "#1C1C1E" : snapshot.backgroundColor || "#FFFFFF";
+  const darkBackground = (relativeLuminance(bg) ?? 1) < 0.18;
+  const ink = foregroundForColor(bg);
+  const muted = contrastSafeForegroundOn(darkBackground ? "#B6BBC5" : "#686D76", bg);
+  const accentText = contrastSafeForegroundOn(accent, bg);
+  const graphicalAccent = contrastSafeForegroundOn(accent, bg);
+  const chrome = darkBackground ? "rgba(0,0,0,0.18)" : "rgba(255,255,255,0.68)";
+  const insetSurface = darkBackground ? "rgba(44,44,48,0.86)" : "rgba(255,255,255,0.76)";
   const signalLabel = snapshot.signalLabel || snapshot.headline;
   const timelineLabel = snapshot.timelineLabel || snapshot.headline;
   const updatedLabel = snapshot.updatedLabel || snapshot.footnote;
   const weekLabels = snapshot.weekLabels || ["M", "T", "W", "T", "F", "S", "S"];
   const weekCounts = snapshot.weekCounts || [];
   const calendarDays = snapshot.calendarDays || [];
-  const maxWeek = Math.max(1, ...weekCounts.map((count) => count || 0));
   const examDays = snapshot.examDays || [];
   const todayIndex = typeof snapshot.todayIndex === "number" ? snapshot.todayIndex : -1;
   const peakDayLabel = snapshot.peakDayLabel || snapshot.updatedLabel || updatedLabel;
@@ -10596,7 +11891,7 @@ function NativeHomeWidgetPreview({ snapshot, family }: { snapshot: NativeWidgetS
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke={accent}
+            stroke={accentText}
             strokeWidth={stroke}
             strokeLinecap="round"
             fill="none"
@@ -10604,111 +11899,114 @@ function NativeHomeWidgetPreview({ snapshot, family }: { snapshot: NativeWidgetS
             strokeDashoffset={dashOffset}
           />
         </Svg>
-        <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: ink, fontSize: size > 58 ? 19 : 16, lineHeight: size > 58 ? 21 : 18, fontWeight: "900" }}>{ringScore}</Text>
-        <Text selectable numberOfLines={1} style={{ color: muted, fontSize: 7, fontWeight: "800" }}>{ringLabel}</Text>
+        <WidgetPreviewText selectable numberOfLines={1} style={{ color: ink, fontSize: size > 58 ? 19 : 16, lineHeight: size > 58 ? 21 : 18, fontWeight: "900" }}>{ringScore}</WidgetPreviewText>
+        <WidgetPreviewText selectable numberOfLines={1} style={{ color: muted, fontSize: 9, lineHeight: 11, fontWeight: "800" }}>{ringLabel}</WidgetPreviewText>
       </View>
     );
   };
   return (
-    <View style={{ width, height: 158, borderRadius: isMedium ? 28 : 24, overflow: "hidden", backgroundColor: bg, borderWidth: 1, borderColor: "rgba(0,0,0,0.06)", boxShadow: "0 14px 26px rgba(15,23,42,0.12)" }}>
-      <View style={{ position: "absolute", top: 0, left: 0, right: 0, height: 48, backgroundColor: "rgba(255,255,255,0.68)" }} />
-      <View style={{ padding: isMedium ? 12 : 11, gap: isMedium ? 7 : 6, height: 158 }}>
+    <View style={{ width: previewWidth, height: previewHeight, overflow: "hidden" }}>
+      <View style={{ position: "absolute", left: (previewWidth - nominalWidth) / 2, top: (previewHeight - nominalHeight) / 2, width: nominalWidth, height: nominalHeight, transform: [{ scale: previewScale }], borderRadius: isMedium ? 28 : 24, overflow: "hidden", backgroundColor: bg, borderWidth: 1, borderColor: darkBackground ? "rgba(255,255,255,0.16)" : "rgba(0,0,0,0.08)", boxShadow: darkBackground ? "0 14px 26px rgba(0,0,0,0.30)" : "0 14px 26px rgba(15,23,42,0.12)" }}>
+        <View style={{ position: "absolute", top: 0, left: 0, right: 0, height: 48, backgroundColor: chrome }} />
+        <View style={{ padding: isMedium ? 12 : 11, gap: isMedium ? 7 : 6, height: nominalHeight }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <View style={{ width: 8, height: 8, borderRadius: 99, backgroundColor: accent }} />
-          <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ color: muted, fontSize: 10, fontWeight: "900", flexShrink: 1, minWidth: isMedium ? 0 : 34 }}>{timelineLabel}</Text>
+          <View style={{ width: 8, height: 8, borderRadius: 99, backgroundColor: accentText }} />
+          <WidgetPreviewText selectable numberOfLines={2} style={{ color: muted, fontSize: 10, lineHeight: 12, fontWeight: "900", flexShrink: 1, minWidth: isMedium ? 0 : 34 }}>{timelineLabel}</WidgetPreviewText>
           <View style={{ flex: 1, minWidth: 4 }} />
-          <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.68} style={{ color: accent, fontSize: 9, fontWeight: "900", maxWidth: isMedium ? 190 : 72 }}>{signalLabel}</Text>
+          <WidgetPreviewText selectable numberOfLines={2} style={{ color: accentText, fontSize: 10, lineHeight: 12, fontWeight: "900", maxWidth: isMedium ? 190 : 72, textAlign: appLocale() === "ar" ? "left" : "right" }}>{signalLabel}</WidgetPreviewText>
         </View>
-        {snapshot.kind === "classProgress" ? (
+        {snapshot.kind === "week" ? null : snapshot.kind === "classProgress" ? (
           <View style={{ flexDirection: "row", alignItems: "center", gap: isMedium ? 13 : 10 }}>
             {renderProgressRing(isMedium ? 66 : 54)}
             <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
-              <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.68} style={{ color: ink, fontSize: isMedium ? 21 : 15, lineHeight: isMedium ? 24 : 18, fontWeight: "900" }}>{snapshot.value}</Text>
-              <Text selectable numberOfLines={1} style={{ color: muted, fontSize: isMedium ? 11 : 10, fontWeight: "900" }}>{snapshot.detail}</Text>
-              <Text selectable numberOfLines={isMedium ? 2 : 1} style={{ color: muted, fontSize: isMedium ? 11 : 10, lineHeight: isMedium ? 14 : 13, fontWeight: "700" }}>{snapshot.footnote}</Text>
+              <WidgetPreviewText selectable numberOfLines={2} style={{ color: ink, fontSize: isMedium ? 21 : 15, lineHeight: isMedium ? 24 : 18, fontWeight: "900" }}>{snapshot.value}</WidgetPreviewText>
+              <WidgetPreviewText selectable numberOfLines={1} style={{ color: muted, fontSize: isMedium ? 11 : 10, fontWeight: "900" }}>{snapshot.detail}</WidgetPreviewText>
+              <WidgetPreviewText selectable numberOfLines={2} style={{ color: muted, fontSize: isMedium ? 11 : 10, lineHeight: isMedium ? 14 : 13, fontWeight: "700" }}>{snapshot.footnote}</WidgetPreviewText>
             </View>
           </View>
         ) : (
           <>
             <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 6 }}>
-              <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.58} style={{ color: ink, fontSize: isMedium ? 24 : 21, lineHeight: isMedium ? 28 : 25, fontWeight: "900", flexShrink: 1, maxWidth: isMedium ? 235 : 96 }}>{snapshot.value}</Text>
-              <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: ink, fontSize: 12, fontWeight: "800", marginBottom: 2, flexShrink: 1 }}>{snapshot.detail}</Text>
+              <WidgetPreviewText selectable numberOfLines={2} style={{ color: ink, fontSize: isMedium ? 24 : 19, lineHeight: isMedium ? 28 : 22, fontWeight: "900", flexShrink: 1, maxWidth: isMedium ? 235 : 96 }}>{snapshot.value}</WidgetPreviewText>
+              <WidgetPreviewText selectable numberOfLines={2} style={{ color: ink, fontSize: 12, lineHeight: 15, fontWeight: "800", marginBottom: 2, flexShrink: 1 }}>{snapshot.detail}</WidgetPreviewText>
             </View>
-            <Text selectable numberOfLines={isMedium ? 2 : 1} style={{ color: muted, fontSize: isMedium ? 12 : 10, lineHeight: isMedium ? 15 : 13, fontWeight: "900" }}>{snapshot.footnote}</Text>
+            <WidgetPreviewText selectable numberOfLines={2} style={{ color: muted, fontSize: isMedium ? 12 : 10, lineHeight: isMedium ? 15 : 13, fontWeight: "900" }}>{snapshot.footnote}</WidgetPreviewText>
           </>
         )}
         {snapshot.kind === "week" ? (
-          <View style={{ gap: isMedium ? 5 : 4 }}>
+          <View style={{ gap: isMedium ? 4 : 3 }}>
             {Array.from({ length: 2 }).map((_rowValue, rowIndex) => (
               <View key={`${snapshot.kind}-calendar-row-${rowIndex}`} style={{ flexDirection: "row", alignItems: "center", gap: isMedium ? 4 : 2, maxWidth: isMedium ? 300 : 130 }}>
                 {Array.from({ length: 7 }).map((_value, columnIndex) => {
                 const index = rowIndex * 7 + columnIndex;
                 const day = calendarDays[index];
                 const count = day?.count ?? weekCounts[columnIndex] ?? 0;
-                const isToday = Boolean(day?.isToday) || index === todayIndex;
+                const isToday = calendarDays.length > 0 ? Boolean(day?.isToday) : index === todayIndex;
                 const hasExam = Boolean(day?.hasExam) || examDays.includes(index);
-                const load = Math.max(0, Math.min(1, count / maxWeek));
                 const countText = count > 9 ? "9+" : String(count);
-                const dayBg = isToday ? accent : count ? `rgba(255,255,255,${0.76 + load * 0.2})` : "rgba(255,255,255,0.52)";
-                const dayInk = isToday ? "#FFFFFF" : ink;
-                const dayMuted = isToday ? "rgba(255,255,255,0.76)" : muted;
+                const dayBg = isToday ? graphicalAccent : count ? insetSurface : darkBackground ? "rgba(44,44,48,0.62)" : "rgba(255,255,255,0.52)";
+                const dayInk = isToday ? foregroundForColor(graphicalAccent) : ink;
+                const dayMuted = isToday ? foregroundForColor(graphicalAccent) : muted;
                 return (
-                  <View key={`${snapshot.kind}-native-day-${index}`} style={{ flex: 1, height: isMedium ? 42 : 30, minWidth: 0, borderRadius: isMedium ? 11 : 6, backgroundColor: dayBg, borderWidth: hasExam && !isToday ? 1 : 0, borderColor: hasExam ? COLORS.orange : "transparent", alignItems: "center", justifyContent: "center", gap: isMedium ? 1 : 0 }}>
-                    <Text selectable numberOfLines={1} style={{ color: dayMuted, fontSize: isMedium ? 7 : 5, fontWeight: "900" }}>{day?.weekday || weekLabels[columnIndex] || ""}</Text>
-                    <Text selectable numberOfLines={1} style={{ color: dayInk, fontSize: isMedium ? 11 : 8, lineHeight: isMedium ? 13 : 9, fontWeight: "900" }}>{day?.dayNumber || (count ? countText : "-")}</Text>
-                    <View style={{ width: hasExam ? (isMedium ? 5 : 3) : 3, height: hasExam ? (isMedium ? 5 : 3) : 3, borderRadius: 99, backgroundColor: hasExam ? (isToday ? "#FFFFFF" : COLORS.orange) : count ? accent : "#D9DDE5" }} />
+                  <View key={`${snapshot.kind}-native-day-${index}`} style={{ flex: 1, height: isMedium ? 35 : 20, minWidth: 0, borderRadius: isMedium ? 11 : 6, backgroundColor: dayBg, borderWidth: hasExam && !isToday ? 1 : 0, borderColor: hasExam ? contrastSafeForegroundOn(COLORS.orange, bg) : "transparent", alignItems: "center", justifyContent: "center", gap: isMedium ? 1 : 0 }}>
+                    <WidgetPreviewText selectable numberOfLines={1} style={{ color: dayMuted, fontSize: 9, lineHeight: 10, fontWeight: "900" }}>{day?.weekday || weekLabels[columnIndex] || ""}</WidgetPreviewText>
+                    <WidgetPreviewText selectable numberOfLines={1} style={{ color: dayInk, fontSize: isMedium ? 11 : 9, lineHeight: isMedium ? 13 : 10, fontWeight: "900" }}>{day?.dayNumber || (count ? countText : "-")}</WidgetPreviewText>
+                    <View style={{ width: hasExam ? (isMedium ? 5 : 4) : 3, height: hasExam ? (isMedium ? 5 : 4) : 3, borderRadius: 99, backgroundColor: hasExam ? (isToday ? foregroundForColor(graphicalAccent) : semanticTextColor(COLORS.orange, { surface: bg })) : count ? accentText : muted }} />
                   </View>
                 );
               })}
               </View>
             ))}
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <Text selectable numberOfLines={1} style={{ color: muted, fontSize: 10, fontWeight: "900", flex: 1 }}>{calendarHeadline}</Text>
-              <Text selectable numberOfLines={1} style={{ color: accent, fontSize: 10, fontWeight: "900", maxWidth: isMedium ? 128 : 64 }}>{peakDayLabel}</Text>
+              <WidgetPreviewText selectable numberOfLines={1} style={{ color: ink, fontSize: 10, fontWeight: "900" }}>{`${snapshot.value} ${snapshot.detail}`}</WidgetPreviewText>
+              <View style={{ flex: 1, minWidth: 3 }} />
+              <WidgetPreviewText selectable numberOfLines={1} style={{ color: muted, fontSize: 9, fontWeight: "900", maxWidth: isMedium ? 118 : 52 }}>{calendarHeadline}</WidgetPreviewText>
+              <View style={{ flex: 1, minWidth: 3 }} />
+              <WidgetPreviewText selectable numberOfLines={1} style={{ color: muted, fontSize: 9, fontWeight: "700", maxWidth: isMedium ? 92 : 44, textAlign: appLocale() === "ar" ? "left" : "right" }}>{snapshot.footnote}</WidgetPreviewText>
             </View>
           </View>
         ) : (
           <View style={{ gap: 4 }}>
             {items.length ? items.map((item, index) => (
               <View key={item.id || `${snapshot.kind}-native-row-${index}`} style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
-                <View style={{ width: 7, height: 7, borderRadius: 99, backgroundColor: accent }} />
-                <Text selectable numberOfLines={1} style={{ color: accent, fontSize: 10, fontWeight: "900", flex: !isMedium && (snapshot.kind === "today" || snapshot.kind === "upcoming") ? 1 : undefined }}>{item.courseCode}</Text>
-                {isMedium || (snapshot.kind !== "today" && snapshot.kind !== "upcoming") ? <Text selectable numberOfLines={1} style={{ color: ink, flex: 1, fontSize: 11, fontWeight: "600" }}>{item.title}</Text> : null}
-                <Text selectable numberOfLines={1} style={{ color: muted, fontSize: 10, fontWeight: "800" }}>{item.dueLabel}</Text>
+                <View style={{ width: 7, height: 7, borderRadius: 99, backgroundColor: accentText }} />
+                <WidgetPreviewText selectable numberOfLines={1} style={{ color: accentText, fontSize: 10, fontWeight: "900", flex: !isMedium && (snapshot.kind === "today" || snapshot.kind === "upcoming") ? 1 : undefined }}>{item.courseCode}</WidgetPreviewText>
+                {isMedium || (snapshot.kind !== "today" && snapshot.kind !== "upcoming") ? <WidgetPreviewText selectable numberOfLines={1} style={{ color: ink, flex: 1, fontSize: 11, fontWeight: "600" }}>{item.title}</WidgetPreviewText> : null}
+                <WidgetPreviewText selectable numberOfLines={1} style={{ color: muted, fontSize: 10, fontWeight: "800" }}>{item.dueLabel}</WidgetPreviewText>
               </View>
-            )) : <Text selectable numberOfLines={isMedium ? 2 : 1} style={{ color: muted, fontSize: 11, lineHeight: 14, fontWeight: "600" }}>{snapshot.footnote}</Text>}
+            )) : <WidgetPreviewText selectable numberOfLines={isMedium ? 2 : 1} style={{ color: muted, fontSize: 11, lineHeight: 14, fontWeight: "600" }}>{snapshot.footnote}</WidgetPreviewText>}
           </View>
         )}
         {isMedium ? (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <Text selectable numberOfLines={1} style={{ color: muted, fontSize: 10, fontWeight: "600", flex: 1 }}>{snapshot.lastInteractionLabel || updatedLabel}</Text>
-            {actionLabel ? (
-              <View style={{ minHeight: 24, maxWidth: 116, borderRadius: 999, paddingHorizontal: 10, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.58)", borderWidth: 1, borderColor: "rgba(255,255,255,0.76)" }}>
-                <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ color: accent, fontSize: 10, fontWeight: "900" }}>{actionLabel}</Text>
-              </View>
-            ) : null}
+            <WidgetPreviewText selectable numberOfLines={1} style={{ color: muted, fontSize: 10, fontWeight: "600", flex: 1 }}>{snapshot.lastInteractionLabel || updatedLabel}</WidgetPreviewText>
+            {actionLabel ? <WidgetPreviewText selectable numberOfLines={1} style={{ color: accentText, fontSize: 10, lineHeight: 12, fontWeight: "900", maxWidth: 116, textAlign: appLocale() === "ar" ? "left" : "right" }}>{actionLabel}</WidgetPreviewText> : null}
           </View>
         ) : <View style={{ flex: 1 }} />}
+        </View>
       </View>
     </View>
   );
 }
 
 function WidgetSnapshotCard({ snapshot, title, icon, theme, selected, onPress }: { snapshot: NativeWidgetSnapshot; title: string; icon: string; theme: ReturnType<typeof palette>; selected: boolean; onPress: () => void }) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const family = snapshot.kind === "week" ? "systemMedium" : "systemSmall";
-  const spansRow = snapshot.kind === "week" || snapshot.kind === "classProgress";
+  const spansRow = true;
+  const safeAccent = semanticTextColor(snapshot.accentColor, theme);
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={`${title}. ${snapshot.headline}`} accessibilityState={{ selected }} onPress={onPress} style={{ width: spansRow ? "100%" : "48%", borderRadius: 18, overflow: "hidden" }}>
-      <LiquidGlassSurface interactive={selected} tintColor={selected ? `${snapshot.accentColor}20` : "rgba(255,255,255,0.74)"} style={{ borderRadius: 18, padding: 12, backgroundColor: selected ? `${snapshot.accentColor}14` : theme.surface, borderWidth: 1, borderColor: selected ? snapshot.accentColor : theme.hairline }} fallbackStyle={{ backgroundColor: selected ? `${snapshot.accentColor}14` : theme.surface }}>
+      <LiquidGlassSurface interactive={selected} colorScheme={theme.dark ? "dark" : "light"} tintColor={selected ? `${snapshot.accentColor}20` : theme.dark ? "rgba(23,23,28,0.76)" : "rgba(255,255,255,0.74)"} style={{ borderRadius: 18, padding: 12, backgroundColor: selected ? `${snapshot.accentColor}14` : theme.surface, borderWidth: 1, borderColor: selected ? safeAccent : theme.hairline }} fallbackStyle={{ backgroundColor: selected ? `${snapshot.accentColor}14` : theme.surface }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 }}>
-        <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: `${snapshot.accentColor}1F`, alignItems: "center", justifyContent: "center" }}><Icon name={icon} color={snapshot.accentColor} size={17} /></View>
+        <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: theme.surface2, alignItems: "center", justifyContent: "center" }}><Icon name={icon} color={safeAccent} size={17} /></View>
         <View style={{ flex: 1 }}>
-          <Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{title}</Text>
-          <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76} style={{ color: theme.label2, fontSize: 12, marginTop: 1 }}>{snapshot.timelineLabel || snapshot.densityLabel}</Text>
+          <Text selectable numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: theme.label, fontWeight: "900" }}>{title}</Text>
+          <Text selectable numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: theme.label2, fontSize: 12, lineHeight: 15, marginTop: 1 }}>{snapshot.timelineLabel || snapshot.densityLabel}</Text>
         </View>
       </View>
       <View style={{ alignItems: "center" }}>
-        <NativeHomeWidgetPreview snapshot={snapshot} family={family} />
+        <NativeHomeWidgetPreview snapshot={snapshot} family={family} dark={theme.dark} />
       </View>
       </LiquidGlassSurface>
     </Pressable>
@@ -10716,6 +12014,8 @@ function WidgetSnapshotCard({ snapshot, title, icon, theme, selected, onPress }:
 }
 
 function WidgetsScreen({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const liveData = activeSemesterData(data);
   const snapshots = buildNativeWidgetSnapshots(liveData, widgetCopyFor);
   const [selectedKind, setSelectedKind] = useState<NativeWidgetKind>("today");
@@ -10723,6 +12023,7 @@ function WidgetsScreen({ data, mutate, nav, theme, recordReviewTrigger }: Screen
   const [manualSyncStatus, setManualSyncStatus] = useState<{ state: string; message: string; updatedAt?: string } | null>(null);
   const widgetsUpToDate = manualSyncStatus?.state === "synced";
   const selectedSnapshot = snapshots[selectedKind];
+  const selectedSnapshotAccent = contrastSafeForegroundOn(selectedSnapshot.accentColor, theme.surface);
   const activeDeadlines = liveData.tasks.filter((task) => !task.done).length + liveData.exams.length;
   const focusClass = liveData.classes[0];
   const legacyWeekWidgetTitle = textFor("widgets.row_week", "Week Load");
@@ -10766,7 +12067,7 @@ function WidgetsScreen({ data, mutate, nav, theme, recordReviewTrigger }: Screen
       <Header title={textFor("widgets.title", "Widgets")} sub={data.prefs.premium ? textFor("widgets.sub_ready", "Home Screen snapshots") : textFor("widgets.sub_locked", "Locked preview")} theme={theme} />
       <View style={{ paddingHorizontal: 16, gap: 14 }}>
         <LiquidGlassSurface tintColor={theme.dark ? "rgba(23,23,28,0.72)" : "rgba(255,255,255,0.76)"} colorScheme={theme.dark ? "dark" : "light"} style={{ borderRadius: 22, padding: 18, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF", borderWidth: 1, borderColor: theme.hairline }} fallbackStyle={{ backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
-          <View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 14, alignItems: accessibilityLayout ? "flex-start" : "center" }}>
             <View style={{ width: 72, height: 72, borderRadius: 22, backgroundColor: "#111114", alignItems: "center", justifyContent: "center" }}><Grid2X2 color="#fff" size={30} /></View>
             <View style={{ flex: 1 }}>
               <Text selectable style={{ color: theme.label, fontSize: 21, lineHeight: 25, fontWeight: "900" }}>{data.prefs.premium ? syncing ? textFor("widgets.syncing", "Syncing...") : widgetsUpToDate ? textFor("widgets.up_to_date_title", "Widgets are up to date") : textFor("widgets.ready_to_sync_title", "Widgets are ready to sync") : textFor("widgets.locked_title", "Unlock widgets")}</Text>
@@ -10779,7 +12080,7 @@ function WidgetsScreen({ data, mutate, nav, theme, recordReviewTrigger }: Screen
             </View>
           </View>
           <Button label={syncing ? textFor("widgets.syncing", "Syncing...") : data.prefs.premium ? widgetsUpToDate ? textFor("widgets.refresh", "Refresh widgets") : textFor("widgets.sync", "Update widgets") : textFor("widgets.locked_title", "Unlock widgets")} theme={theme} icon={data.prefs.premium ? "refresh" : "crown"} onPress={syncing ? undefined : handleSync} />
-          {manualSyncStatus ? <Text selectable accessibilityLiveRegion="polite" style={{ color: manualSyncStatus.state === "error" ? COLORS.red : theme.label2, lineHeight: 19, marginTop: 8, fontWeight: "800" }}>{manualSyncStatus.message}</Text> : null}
+          {manualSyncStatus ? <Text selectable accessibilityLiveRegion="polite" style={{ color: manualSyncStatus.state === "error" ? semanticTextColor(COLORS.red, theme) : theme.label2, lineHeight: 19, marginTop: 8, fontWeight: "800" }}>{manualSyncStatus.message}</Text> : null}
         </LiquidGlassSurface>
         <View>
           <Section title={textFor("widgets.live_preview", "Recommended widgets")} action={data.prefs.premium ? undefined : textFor("widgets.locked", "locked")} theme={theme} />
@@ -10790,8 +12091,8 @@ function WidgetsScreen({ data, mutate, nav, theme, recordReviewTrigger }: Screen
           </View>
         </View>
         <Card theme={theme} style={{ padding: 15, gap: 14 }}>
-          <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
-            <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: `${selectedSnapshot.accentColor}1C`, alignItems: "center", justifyContent: "center" }}><Icon name={widgetCards.find((card) => card.kind === selectedKind)?.icon || "grid"} color={selectedSnapshot.accentColor} /></View>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 12, alignItems: accessibilityLayout ? "flex-start" : "center" }}>
+            <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: `${selectedSnapshot.accentColor}1C`, alignItems: "center", justifyContent: "center" }}><Icon name={widgetCards.find((card) => card.kind === selectedKind)?.icon || "grid"} color={selectedSnapshotAccent} /></View>
             <View style={{ flex: 1 }}>
               <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{selectedSnapshot.headline}</Text>
               <Text selectable style={{ color: theme.label2, marginTop: 3 }}>{widgetCards.find((card) => card.kind === selectedKind)?.body}</Text>
@@ -10805,11 +12106,11 @@ function WidgetsScreen({ data, mutate, nav, theme, recordReviewTrigger }: Screen
           </View>
         </Card>
         <Card theme={theme} style={{ padding: 15, gap: 12, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
-          <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
-            <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: `${selectedSnapshot.accentColor}1C`, alignItems: "center", justifyContent: "center" }}><Sparkles color={selectedSnapshot.accentColor} size={20} /></View>
-            <View style={{ flex: 1 }}>
-              <Text selectable style={{ color: theme.label, fontSize: 16, fontWeight: "900" }}>{textFor("success.theme_title", "White system, class colors")}</Text>
-              <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 3 }}>{textFor("success.theme_proof", "No color setup required. Course colors stay automatic for classes and widgets.")}</Text>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 12, alignItems: accessibilityLayout ? "flex-start" : "center" }}>
+            <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: `${selectedSnapshot.accentColor}1C`, alignItems: "center", justifyContent: "center" }}><Sparkles color={selectedSnapshotAccent} size={20} /></View>
+            <View style={{ flex: 1, width: accessibilityLayout ? "100%" : undefined, minWidth: 0 }}>
+              <Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label, fontSize: 16, fontWeight: "900" }}>{textFor("success.theme_title", "App appearance, adaptive widgets")}</Text>
+              <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 3 }}>{textFor("success.theme_proof", "App appearance stays consistent. Widgets use their own system environment and automatic course colors.")}</Text>
             </View>
           </View>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
@@ -10820,6 +12121,46 @@ function WidgetsScreen({ data, mutate, nav, theme, recordReviewTrigger }: Screen
         </Card>
       </View>
     </Screen>
+  );
+}
+
+function AppearancePicker({ data, mutate, theme }: Pick<ScreenProps, "data" | "mutate" | "theme">) {
+  const { fontScale } = useWindowDimensions();
+  const selectedMode: AppearanceMode = isAppearanceMode(data.prefs.appearanceMode) ? data.prefs.appearanceMode : "system";
+  const stacked = fontScale >= 1.3;
+  const options: Array<{ value: AppearanceMode; label: string; icon: string }> = [
+    { value: "system", label: textFor("appearance.system", "System"), icon: "sparkles" },
+    { value: "light", label: textFor("appearance.light", "Light"), icon: "sun" },
+    { value: "dark", label: textFor("appearance.dark", "Dark"), icon: "moon" },
+  ];
+  return (
+    <Card theme={theme} style={{ padding: 16, gap: 12 }}>
+      <View>
+        <Text selectable accessibilityRole="header" style={{ color: theme.label, fontSize: 18, lineHeight: 23, fontWeight: "900" }}>{textFor("appearance.title", "Appearance")}</Text>
+        <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 3 }}>{textFor("appearance.description", "Choose how StudyPlanner looks.")}</Text>
+      </View>
+      <View accessibilityRole="radiogroup" style={{ flexDirection: stacked ? "column" : "row", gap: 8 }}>
+        {options.map((option) => {
+          const selected = selectedMode === option.value;
+          const foreground = selected ? theme.accentText : theme.label;
+          return (
+            <Pressable
+              key={option.value}
+              accessibilityRole="radio"
+              accessibilityLabel={option.label}
+              accessibilityHint={option.value === "system" ? textFor("appearance.system_hint", "Follows your device setting.") : undefined}
+              accessibilityState={{ selected }}
+              onPress={() => mutate((current) => ({ ...current, prefs: { ...current.prefs, appearanceMode: option.value } }))}
+              style={{ flex: stacked ? undefined : 1, minHeight: 52, borderRadius: 15, paddingHorizontal: 10, paddingVertical: 10, backgroundColor: selected ? theme.accent : theme.surface2, borderWidth: 1, borderColor: selected ? theme.accent : theme.hairline, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 7 }}
+            >
+              <Icon name={option.icon} color={foreground} size={17} />
+              <Text numberOfLines={2} style={{ color: foreground, fontSize: 13, lineHeight: 17, fontWeight: "900", textAlign: "center", flexShrink: 1 }}>{option.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      {selectedMode === "system" ? <Text selectable style={{ color: theme.label2, fontSize: 12, lineHeight: 17 }}>{textFor("appearance.system_hint", "Follows your device setting.")}</Text> : null}
+    </Card>
   );
 }
 
@@ -10839,7 +12180,8 @@ function Profile({ data, mutate, nav, theme }: ScreenProps) {
     <Screen theme={theme}>
       <Header title={textFor("tabs.profile", "Profile")} sub={textFor("profile.active_semester", "Active semester")} theme={theme} />
       <View style={{ paddingHorizontal: 16, gap: 16 }}>
-        <Card theme={theme} style={{ padding: 18 }}><View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}><View style={{ width: 62, height: 62, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 26, fontWeight: "900" }}>{userInitial(data)}</Text></View><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontSize: 24, fontWeight: "900" }}>{firstNameFromPrefs(data)}</Text><Text selectable style={{ color: theme.label2 }}>{optionText(data.prefs.level)} · {optionText(data.prefs.studentPersona || "School semester")}</Text><View style={{ flexDirection: "row", gap: 6, marginTop: 6 }}><Pill text={data.prefs.premium ? textFor("profile.subscribed", "Subscribed") : textFor("profile.locked", "Locked")} color={data.prefs.premium ? COLORS.green : COLORS.orange} icon="crown" theme={theme} /><Pill text={textFor("profile.on_device", "On device")} color={COLORS.green} icon="shield" theme={theme} /></View></View></View><View style={{ marginTop: 18 }}><View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 7 }}><Text selectable style={{ color: theme.label2, fontWeight: "900" }}>{textFor("profile.semester_progress", "SEMESTER PROGRESS")}</Text><Text selectable style={{ color: theme.label2 }}>{liveData.classes.length ? textFor("profile.classes_count", "{count} classes", { count: liveData.classes.length }) : textFor("profile.no_semester", "No semester yet")}</Text></View><ProgressBar value={liveData.tasks.length ? liveData.tasks.filter((task) => task.done).length / liveData.tasks.length : 0} color={theme.accent} theme={theme} /></View></Card>
+        <Card theme={theme} style={{ padding: 18 }}><View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}><View style={{ width: 62, height: 62, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text allowFontScaling={false} style={{ color: theme.accentText, fontSize: 26, fontWeight: "900" }}>{userInitial(data)}</Text></View><View style={{ flex: 1, minWidth: 0 }}><Text selectable style={{ color: theme.label, fontSize: 24, fontWeight: "900" }}>{firstNameFromPrefs(data)}</Text><Text selectable style={{ color: theme.label2 }}>{optionText(data.prefs.level)} · {optionText(data.prefs.studentPersona || "School semester")}</Text><View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 }}><Pill text={data.prefs.premium ? textFor("profile.subscribed", "Subscribed") : textFor("profile.locked", "Locked")} color={data.prefs.premium ? COLORS.green : COLORS.orange} icon="crown" theme={theme} /><Pill text={textFor("profile.on_device", "On device")} color={COLORS.green} icon="shield" theme={theme} /></View></View></View><View style={{ marginTop: 18 }}><View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, marginBottom: 7, flexWrap: "wrap" }}><Text selectable style={{ color: theme.label2, fontWeight: "900", flexShrink: 1 }}>{textFor("profile.semester_progress", "SEMESTER PROGRESS")}</Text><Text selectable style={{ color: theme.label2, flexShrink: 1 }}>{liveData.classes.length ? textFor("profile.classes_count", "{count} classes", { count: liveData.classes.length }) : textFor("profile.no_semester", "No semester yet")}</Text></View><ProgressBar value={liveData.tasks.length ? liveData.tasks.filter((task) => task.done).length / liveData.tasks.length : 0} color={theme.accent} theme={theme} /></View></Card>
+        <AppearancePicker data={data} mutate={mutate} theme={theme} />
         <Pressable accessibilityRole={data.prefs.premium ? "link" : "button"} accessibilityLabel={data.prefs.premium ? textFor("profile.manage_subscription", "Manage subscription") : textFor("locked.unlock", "Unlock StudyPlanner")} accessibilityHint={data.prefs.premium ? textFor("profile.accessibility_manage_hint", "Open subscription management for this store account") : textFor("profile.accessibility_unlock_hint", "Open StudyPlanner subscription options")} onPress={() => data.prefs.premium ? openExternal(MANAGE_SUBSCRIPTION_URL) : nav.push("paywall")}><View style={{ borderRadius: 22, padding: 18, backgroundColor: "#282139" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Crown color={COLORS.yellow} size={19} /><Text selectable style={{ color: "#fff", fontWeight: "900" }}>{textFor("profile.subscription", "StudyPlanner subscription")}</Text></View><Text selectable style={{ color: "rgba(255,255,255,.85)" }}>{textFor("profile.subscription_body", "Scans, reminders, study sets, and planning are active.")}</Text></View></Pressable>
         <Card theme={theme} style={{ overflow: "hidden" }}>{rows.map(([icon, color, title, value, route]) => <Pressable key={`profile-row-${route}`} accessibilityRole={route === "manage" || route === "privacy" || route === "terms" || route === "support" ? "link" : "button"} accessibilityLabel={`${title}. ${value}`} accessibilityHint={route === "manage" ? textFor("profile.accessibility_manage_hint", "Open subscription management for this store account") : route === "privacy" ? textFor("paywall.accessibility_privacy_hint", "Open the privacy policy") : route === "terms" ? textFor("paywall.accessibility_terms_hint", "Open the subscription terms") : route === "support" ? textFor("paywall.accessibility_support_hint", "Open StudyPlanner support") : textFor("profile.accessibility_row_hint", "Open this setting")} onPress={() => {
           if (route === "scan") nav.tab("scan");
@@ -10847,7 +12189,7 @@ function Profile({ data, mutate, nav, theme }: ScreenProps) {
           else if (route === "privacy" || route === "terms") nav.push(route);
           else if (route === "support") openExternal(SUPPORT_URL);
           else nav.push(route as Route);
-        }} style={{ flexDirection: "row", gap: 12, alignItems: "center", padding: 14 }}><View style={{ width: 32, height: 32, borderRadius: 9, backgroundColor: `${color}1C`, alignItems: "center", justifyContent: "center" }}><Icon name={icon} color={color} size={18} /></View><Text selectable style={{ color: theme.label, flex: 1, fontWeight: "900" }}>{title}</Text><Text selectable style={{ color: theme.label2 }}>{value}</Text><ChevronRight color={theme.label3} size={16} /></Pressable>)}</Card>
+        }} style={{ flexDirection: "row", gap: 12, alignItems: "center", padding: 14 }}><View style={{ width: 32, height: 32, borderRadius: 9, backgroundColor: `${color}1C`, alignItems: "center", justifyContent: "center" }}><Icon name={icon} color={color} size={18} /></View><Text selectable style={{ color: theme.label, flex: 1, fontWeight: "900" }}>{title}</Text><Text selectable style={{ color: theme.label2 }}>{value}</Text><ForwardChevron color={theme.label3} size={16} /></Pressable>)}</Card>
       </View>
     </Screen>
   );
@@ -10991,7 +12333,7 @@ function Reminders({ data, mutate, nav, theme, params }: ScreenProps) {
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={textFor("reminders.title", "Reminders")} />
-      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 18 }}>
+      <ScrollView ref={simulatorCaptureIsEnabled() ? registerSimulatorCaptureScrollView : undefined} contentInsetAdjustmentBehavior="automatic" contentOffset={simulatorCaptureContentOffset()} onScroll={simulatorCaptureIsEnabled() ? recordSimulatorCaptureScroll : undefined} onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureViewport : undefined} onContentSizeChange={simulatorCaptureIsEnabled() ? recordSimulatorCaptureContentSize : undefined} scrollEventThrottle={16} contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 18 }}>
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("reminders.smart", "Smart reminders")}</Text></View><Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label, lineHeight: 21 }}>{status}</Text><Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 8 }}>{localizedNarrativeText("next", semester.coachCopy.nextAction)}</Text>{shouldAddSuggestionsFirst ? <Button label={`${textFor("reminders.add_suggestions", "Add suggestions")} (${smartSuggestions.length})`} theme={theme} onPress={scheduling || updatingReminderId ? undefined : addSmart} /> : liveData.reminders.length ? <><Button label={scheduling ? textFor("reminders.scheduling", "Scheduling...") : `${hasScheduledNotifications ? textFor("reminders.refresh", "Refresh schedule") : textFor("reminders.schedule", "Schedule reminders")} (${scheduleContextCount})`} theme={theme} onPress={scheduling || scheduleContextCount === 0 ? undefined : () => { schedule().catch(() => setScheduling(false)); }} />{smartSuggestions.length ? <Button label={`${textFor("reminders.add_suggestions", "Add suggestions")} (${smartSuggestions.length})`} secondary theme={theme} onPress={scheduling || updatingReminderId ? undefined : addSmart} /> : null}</> : null}</Card>
         <Section title={textFor("reminders.title", "Reminders")} action={scheduledReminderCount ? textFor("reminders.scheduled_count", "{count} scheduled", { count: scheduledReminderCount }) : undefined} theme={theme} />
         <Card theme={theme} style={{ overflow: "hidden" }}>
@@ -10999,9 +12341,10 @@ function Reminders({ data, mutate, nav, theme, params }: ScreenProps) {
             const c = safeClassFor(liveData, r.classId);
             const hasNativeEvidence = verifiedIdsFor(r).length > 0;
             const appearsEnabled = r.enabled || hasNativeEvidence;
+            const switchTrackColor = contrastSafeForegroundOn(appearsEnabled ? COLORS.green : theme.surface3, theme.surface);
             const stateLabel = hasNativeEvidence ? textFor("reminders.scheduled", "Scheduled") : !r.enabled ? textFor("reminders.off", "Off") : textFor("reminders.configured", "Configured, not scheduled");
             const updating = updatingReminderId === r.id;
-            return <View key={r.id} style={{ flexDirection: "row", gap: 12, alignItems: "center", padding: 14, opacity: updating ? 0.66 : 1 }}><ClassGlyph c={c} size={34} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{r.title}</Text><Text selectable style={{ color: theme.label2 }}>{r.lead}{r.room ? ` · ${r.room}` : ""}</Text><Text selectable style={{ color: appearsEnabled ? theme.accent : theme.label3, fontSize: 12, fontWeight: "900", marginTop: 3 }}>{stateLabel}</Text></View><Pressable accessibilityRole="switch" accessibilityLabel={textFor("reminders.toggle", "Toggle reminder for {title}", { title: r.title })} accessibilityState={{ checked: appearsEnabled, disabled: Boolean(updatingReminderId) }} disabled={Boolean(updatingReminderId)} onPress={() => { toggle(r.id).catch(() => setUpdatingReminderId(null)); }} style={{ width: 52, height: 44, borderRadius: 99, justifyContent: "center", backgroundColor: "transparent" }}><View style={{ width: 48, height: 29, borderRadius: 99, backgroundColor: appearsEnabled ? COLORS.green : theme.surface3, padding: 2, alignItems: appearsEnabled ? "flex-end" : "flex-start" }}><View style={{ width: 25, height: 25, borderRadius: 99, backgroundColor: "#fff" }} /></View></Pressable></View>;
+            return <View key={r.id} style={{ flexDirection: "row", gap: 12, alignItems: "center", padding: 14, opacity: updating ? 0.66 : 1 }}><ClassGlyph c={c} size={34} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{r.title}</Text><Text selectable style={{ color: theme.label2 }}>{r.lead}{r.room ? ` · ${r.room}` : ""}</Text><Text selectable style={{ color: appearsEnabled ? theme.accent : theme.label2, fontSize: 12, fontWeight: "900", marginTop: 3 }}>{stateLabel}</Text></View><Pressable accessibilityRole="switch" accessibilityLabel={textFor("reminders.toggle", "Toggle reminder for {title}", { title: r.title })} accessibilityState={{ checked: appearsEnabled, disabled: Boolean(updatingReminderId) }} disabled={Boolean(updatingReminderId)} onPress={() => { toggle(r.id).catch(() => setUpdatingReminderId(null)); }} style={{ width: 52, height: 44, borderRadius: 99, justifyContent: "center", backgroundColor: "transparent" }}><View style={{ width: 48, height: 29, borderRadius: 99, backgroundColor: switchTrackColor, padding: 2, alignItems: appearsEnabled ? "flex-end" : "flex-start" }}><View style={{ width: 25, height: 25, borderRadius: 99, backgroundColor: foregroundForColor(switchTrackColor) }} /></View></Pressable></View>;
           }) : (
             <View style={{ padding: 18 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
@@ -11013,9 +12356,9 @@ function Reminders({ data, mutate, nav, theme, params }: ScreenProps) {
               </View>
               <View style={{ flexDirection: "row", gap: 8, marginTop: 14 }}>
                 {[["1", textFor("reminders.add_suggestions", "Add")], ["2", textFor("reminders.step_review", "Review")], ["3", textFor("reminders.schedule", "Schedule")]].map(([step, label]) => (
-                  <View key={step} style={{ flex: 1, minHeight: 48, borderRadius: 14, backgroundColor: theme.surface2, alignItems: "center", justifyContent: "center", paddingHorizontal: 6 }}>
+                  <View key={step} style={{ flex: 1, minHeight: 58, borderRadius: 14, backgroundColor: theme.surface2, alignItems: "center", justifyContent: "center", paddingHorizontal: 6, paddingVertical: 6 }}>
                     <Text selectable style={{ color: theme.accent, fontSize: 11, fontWeight: "900" }}>{step}</Text>
-                    <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ color: theme.label, fontSize: 12, fontWeight: "900", marginTop: 2 }}>{label}</Text>
+                    <Text selectable numberOfLines={2} style={{ color: theme.label, fontSize: 12, lineHeight: 15, fontWeight: "900", marginTop: 2, textAlign: "center" }}>{label}</Text>
                   </View>
                 ))}
               </View>

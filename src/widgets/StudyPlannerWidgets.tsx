@@ -14,7 +14,7 @@ function StudyPlannerWidgetLayout(props, environment) {
   function text(value, modifiers) {
     return view("TextView", {
       text: String(value || ""),
-      modifiers: (modifiers || []).concat([allowsTightening(true), minimumScaleFactor(0.72)])
+      modifiers: (modifiers || []).concat([allowsTightening(true)])
     });
   }
 
@@ -25,6 +25,58 @@ function StudyPlannerWidgetLayout(props, environment) {
         background(color, shapes.circle())
       ]
     });
+  }
+
+  function colorChannels(color) {
+    var match = /^#([0-9a-f]{6})$/i.exec(String(color || ""));
+    if (!match) return null;
+    return [
+      parseInt(match[1].slice(0, 2), 16),
+      parseInt(match[1].slice(2, 4), 16),
+      parseInt(match[1].slice(4, 6), 16)
+    ];
+  }
+
+  function luminance(color) {
+    var channels = colorChannels(color);
+    if (!channels) return null;
+    var values = [];
+    for (var index = 0; index < channels.length; index += 1) {
+      var normalized = channels[index] / 255;
+      values.push(normalized <= 0.04045 ? normalized / 12.92 : Math.pow((normalized + 0.055) / 1.055, 2.4));
+    }
+    return 0.2126 * values[0] + 0.7152 * values[1] + 0.0722 * values[2];
+  }
+
+  function contrastRatio(first, second) {
+    var firstLuminance = luminance(first);
+    var secondLuminance = luminance(second);
+    if (firstLuminance === null || secondLuminance === null) return 1;
+    var lighter = Math.max(firstLuminance, secondLuminance);
+    var darker = Math.min(firstLuminance, secondLuminance);
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  function readableForeground(fill) {
+    return contrastRatio(fill, "#050507") >= contrastRatio(fill, "#FFFFFF") ? "#050507" : "#FFFFFF";
+  }
+
+  function safeColorOn(color, surface, minimumRatio) {
+    var channels = colorChannels(color);
+    var surfaceLuminance = luminance(surface);
+    if (!channels || surfaceLuminance === null) return readableForeground(surface);
+    var candidate = color;
+    var target = surfaceLuminance < 0.179 ? 255 : 0;
+    var threshold = typeof minimumRatio === "number" ? minimumRatio : 4.5;
+    var attempts = 0;
+    while (contrastRatio(candidate, surface) < threshold && attempts < 32) {
+      for (var index = 0; index < channels.length; index += 1) {
+        channels[index] = Math.round(channels[index] + (target - channels[index]) * 0.12);
+      }
+      candidate = "#" + channels.map(function (value) { return value.toString(16).padStart(2, "0"); }).join("");
+      attempts += 1;
+    }
+    return candidate;
   }
 
   var items = props.items || [];
@@ -41,13 +93,19 @@ function StudyPlannerWidgetLayout(props, environment) {
   var levelOfDetail = environment.levelOfDetail || "default";
   var isSimplified = isLuminanceReduced || levelOfDetail === "simplified";
   var accent = props.accentColor || "#0A84FF";
-  var bg = isLuminanceReduced ? "#F6F7FA" : (props.backgroundColor || "#F7F9FC");
-  var ink = isDark ? "#F7F8FA" : (accent === "#000000" || accent === "#111111" || accent === "#111827" ? "#050505" : "#111318");
-  var muted = isDark ? "#C9CDD6" : (isAccentedMode ? "#5F646D" : "#686D76");
-  var quiet = isDark ? "#AEB4BF" : "#7A808B";
-  var shellFill = isDark ? "#1C1C1ECC" : "#FFFFFF70";
-  var shellPlane = isDark ? "#2A2A2ECC" : "#FFFFFF9C";
-  var shellPlaneSoft = isDark ? "#2A2A2E88" : "#FFFFFF66";
+  var bg = isAccentedMode ? "#00000000" : (isDark ? "#18181C" : (isLuminanceReduced ? "#E7E8EC" : (props.backgroundColor || "#F7F9FC")));
+  var ink = isDark ? "#F7F8FA" : "#111318";
+  var muted = isDark ? "#D0D3DA" : "#5F646D";
+  var quiet = isDark ? "#B6BBC5" : "#686D76";
+  var primaryStyle = isAccentedMode ? { type: "hierarchical", style: "primary" } : ink;
+  var secondaryStyle = isAccentedMode ? { type: "hierarchical", style: "secondary" } : muted;
+  var tertiaryStyle = isAccentedMode ? { type: "hierarchical", style: "tertiary" } : quiet;
+  var accentFill = isAccentedMode ? "#FFFFFF" : (isLuminanceReduced ? safeColorOn(isDark ? "#6F747E" : "#737780", bg, 3) : safeColorOn(accent, bg, 3));
+  var accentStyle = isAccentedMode ? { type: "hierarchical", style: "primary" } : safeColorOn(accent, bg);
+  var accentFillInk = readableForeground(accentFill);
+  var shellFill = isAccentedMode ? "#00000000" : (isDark ? "#1C1C1ECC" : "#FFFFFF70");
+  var shellPlane = isAccentedMode ? "#FFFFFF26" : (isDark ? "#2A2A2ECC" : "#FFFFFF9C");
+  var shellPlaneSoft = isAccentedMode ? "#FFFFFF18" : (isDark ? "#2A2A2E88" : "#FFFFFF66");
   var progress = Math.max(0, Math.min(1, props.progress || 0));
   var ringValue = props.ringValue || String(Math.round(progress * 100));
   var ringLabel = props.ringLabel || "score";
@@ -57,7 +115,7 @@ function StudyPlannerWidgetLayout(props, environment) {
   var firstItem = items[0] || null;
   var circularValue = props.kind === "classProgress" ? ringValue : (firstItem ? (firstItem.courseCode || props.value) : props.value);
   var circularLabel = props.kind === "classProgress" ? ringLabel : (firstItem ? signalLabel : timelineLabel);
-  var rowLimit = Math.min(items.length, isMedium ? 2 : 1);
+  var rowLimit = isSimplified ? 0 : Math.min(items.length, isMedium ? 2 : 1);
   var isNextTaskLayout = configuredViewMode === "today" || configuredViewMode === "upcoming" || props.kind === "today" || props.kind === "upcoming";
   var weekLabels = props.weekLabels || ["M", "T", "W", "T", "F", "S", "S"];
   var weekCounts = props.weekCounts || [];
@@ -75,49 +133,44 @@ function StudyPlannerWidgetLayout(props, environment) {
 
   function actionControl() {
     if (!actionLabel || !isMedium || isSimplified) return view("SpacerView", { minLength: 1 });
-    return Link({
-      label: actionLabel,
-      destination: props.openURL || "studyplanner://today",
-      modifiers: [
-        buttonStyle("glass"),
-        controlSize("mini"),
-        tint(accent),
-        frame({ maxWidth: 112 })
-      ]
-    });
+    // The entire widget is already a large widgetURL target. A compact hint
+    // preserves the 158pt layout budget without adding a competing tiny link.
+    return text(actionLabel, [font({ textStyle: "caption2", weight: "black" }), foregroundStyle(accentStyle), lineLimit(1)]);
   }
 
   var shellModifiers = [
     frame({ maxWidth: isMedium ? 338 : 158, maxHeight: 158 }),
     containerBackground(bg, "widget"),
-    background(shellFill, shapes.roundedRectangle({ cornerRadius: corner, roundedCornerStyle: "continuous" })),
-    shadow({ color: "#0000001A", radius: 13, x: 0, y: 6 }),
     widgetURL(props.openURL || "studyplanner://today")
   ];
+  if (!isAccentedMode) {
+    shellModifiers.splice(2, 0,
+      background(shellFill, shapes.roundedRectangle({ cornerRadius: corner, roundedCornerStyle: "continuous" })),
+      shadow({ color: "#0000001A", radius: 13, x: 0, y: 6 })
+    );
+  }
 
   function scoreRing(size) {
     return view("ZStackView", {
       alignment: "center",
       modifiers: [frame({ width: size, height: size })],
       children: [
-        view("CircleView", {
+        view("GaugeView", {
+          value: progress,
+          min: 0,
+          max: 1,
           modifiers: [
             frame({ width: size, height: size }),
-            background(accent, shapes.circle())
-          ]
-        }),
-        view("CircleView", {
-          modifiers: [
-            frame({ width: size - 12, height: size - 12 }),
-            background(isDark ? "#050505AA" : "#111318D9", shapes.circle())
+            gaugeStyle("circularCapacity"),
+            tint(accentFill)
           ]
         }),
         view("VStackView", {
           alignment: "center",
           spacing: 0,
           children: [
-            text(ringValue, [font({ size: size > 58 ? 19 : 16, weight: "black", design: "rounded" }), foregroundStyle("#FFFFFF"), lineLimit(1)]),
-            text(ringLabel, [font({ size: 7, weight: "bold" }), foregroundStyle("#FFFFFFCC"), lineLimit(1)])
+            text(ringValue, [font({ textStyle: size > 58 ? "headline" : "subheadline", weight: "black", design: "rounded" }), foregroundStyle(primaryStyle), lineLimit(1)]),
+            text(ringLabel, [font({ textStyle: "caption2", weight: "bold" }), foregroundStyle(secondaryStyle), lineLimit(1)])
           ]
         })
       ]
@@ -132,19 +185,19 @@ function StudyPlannerWidgetLayout(props, environment) {
       spacing: 7,
       modifiers: [frame({ maxWidth: 320 })],
       children: [
-        circle(6, item.courseColor || accent),
-        text(item.courseCode || "", [font({ size: 9, weight: "black" }), foregroundStyle(accent), lineLimit(1)]),
-        text(item.title || "", [font({ size: 10, weight: "semibold" }), foregroundStyle(ink), lineLimit(1)]),
+        circle(7, isAccentedMode ? "#FFFFFFCC" : safeColorOn(item.courseColor || accentFill, bg, 3)),
+        text(item.courseCode || "", [font({ textStyle: "caption2", weight: "black" }), foregroundStyle(accentStyle), lineLimit(1)]),
+        text(item.title || "", [font({ textStyle: "caption", weight: "semibold" }), foregroundStyle(primaryStyle), lineLimit(1)]),
         view("SpacerView", { minLength: 2 }),
-        text(item.dueLabel || "", [font({ size: 9, weight: "bold" }), foregroundStyle(muted), lineLimit(1)])
+        text(item.dueLabel || "", [font({ textStyle: "caption2", weight: "bold" }), foregroundStyle(secondaryStyle), lineLimit(1)])
       ]
     }, item.id || String(i)));
   }
 
   if (isAccessoryInline) {
     return text(timelineLabel + ": " + circularValue + " " + signalLabel, [
-      font({ size: 13, weight: "semibold" }),
-      foregroundStyle(ink),
+      font({ textStyle: "caption", weight: "semibold" }),
+      foregroundStyle(primaryStyle),
       lineLimit(1),
       widgetURL(props.openURL || "studyplanner://today")
     ]);
@@ -156,25 +209,32 @@ function StudyPlannerWidgetLayout(props, environment) {
       modifiers: [frame({ maxWidth: 74, maxHeight: 74 }), containerBackground(bg, "widget"), widgetURL(props.openURL || "studyplanner://today")],
       children: [
         view("AccessoryWidgetBackgroundView", {}),
-        view("CircleView", { modifiers: [frame({ width: 66, height: 66 }), background(shellFill, shapes.circle()), glassEffect({ glass: { variant: "regular", interactive: false, tint: bg }, shape: "circle" })] }),
-        view("CircleView", { modifiers: [frame({ width: 52, height: 52 }), background(accent, shapes.circle()), shadow({ color: "#00000022", radius: 5, x: 0, y: 2 })] }),
+        view("CircleView", { modifiers: [frame({ width: 66, height: 66 }), background(shellFill, shapes.circle())] }),
+        view("CircleView", { modifiers: [frame({ width: 52, height: 52 }), background(accentFill, shapes.circle()), shadow({ color: "#00000022", radius: 5, x: 0, y: 2 })] }),
         view("VStackView", { alignment: "center", spacing: 1, children: [
-          text(circularValue, [font({ size: 16, weight: "black", design: "rounded" }), foregroundStyle("#FFFFFF"), lineLimit(1)]),
-          text(circularLabel, [font({ size: 8, weight: "bold" }), foregroundStyle("#FFFFFF"), lineLimit(1)])
+          text(circularValue, [font({ textStyle: "headline", weight: "black", design: "rounded" }), foregroundStyle(accentFillInk), lineLimit(1)]),
+          text(circularLabel, [font({ textStyle: "caption2", weight: "bold" }), foregroundStyle(accentFillInk), lineLimit(1)])
         ]})
       ]
     });
   }
 
   if (isAccessoryRectangular) {
-    return view("VStackView", {
+    return view("ZStackView", {
       alignment: "leading",
-      spacing: 3,
-      modifiers: [frame({ maxWidth: 180, maxHeight: 72 }), containerBackground(bg, "widget"), widgetURL(props.openURL || "studyplanner://today")],
+      modifiers: [frame({ maxWidth: 180, maxHeight: 72 }), containerBackground("#00000000", "widget"), widgetURL(props.openURL || "studyplanner://today")],
       children: [
-        text(signalLabel, [font({ size: 10, weight: "black" }), foregroundStyle(accent), lineLimit(1)]),
-        text(props.value + " " + props.detail, [font({ size: 14, weight: "black", design: "rounded" }), foregroundStyle(ink), lineLimit(1)]),
-        text(props.footnote, [font({ size: 10, weight: "semibold" }), foregroundStyle(muted), lineLimit(1)])
+        view("AccessoryWidgetBackgroundView", {}),
+        view("VStackView", {
+          alignment: "leading",
+          spacing: 3,
+          modifiers: [padding({ all: 6 })],
+          children: [
+            text(signalLabel, [font({ textStyle: "caption2", weight: "black" }), foregroundStyle(accentStyle), lineLimit(1)]),
+            text(props.value + " " + props.detail, [font({ textStyle: "headline", weight: "black", design: "rounded" }), foregroundStyle(primaryStyle), lineLimit(1)]),
+            text(props.footnote, [font({ textStyle: "caption", weight: "semibold" }), foregroundStyle(secondaryStyle), lineLimit(1)])
+          ]
+        })
       ]
     });
   }
@@ -193,12 +253,12 @@ function StudyPlannerWidgetLayout(props, environment) {
       var calendarIndex = row * 7 + col;
       var day = calendarDays[calendarIndex] || {};
       var count = day.count || 0;
-      var isToday = day.isToday === true || calendarIndex === todayIndex;
+      var isToday = calendarDays.length > 0 ? day.isToday === true : calendarIndex === todayIndex;
       var hasExam = day.hasExam === true || hasExamDay(calendarIndex);
       var load = Math.max(0, Math.min(1, count / maxWeek));
-      var cellBg = isToday ? accent : (count > 0 ? shellPlane : shellPlaneSoft);
-      var cellInk = isToday ? "#FFFFFF" : ink;
-      var cellMuted = isToday ? "#FFFFFFCC" : muted;
+      var cellBg = isToday ? accentFill : (count > 0 ? shellPlane : shellPlaneSoft);
+      var cellInk = isToday ? accentFillInk : primaryStyle;
+      var cellMuted = isToday ? accentFillInk : secondaryStyle;
       calendarCells.push(view("VStackView", {
         alignment: "center",
         spacing: isMedium ? 1 : 0,
@@ -207,9 +267,9 @@ function StudyPlannerWidgetLayout(props, environment) {
           background(cellBg, shapes.roundedRectangle({ cornerRadius: isMedium ? 11 : 6, roundedCornerStyle: "continuous" }))
         ],
         children: [
-          text(day.weekday || weekLabels[col] || "", [font({ size: isMedium ? 7 : 5, weight: "black" }), foregroundStyle(cellMuted), lineLimit(1)]),
-          text(day.dayNumber || (count > 0 ? String(count) : "-"), [font({ size: isMedium ? 11 : 8, weight: "black", design: "rounded" }), foregroundStyle(cellInk), lineLimit(1)]),
-          hasExam ? circle(isMedium ? 4 : 2, isToday ? "#FFFFFF" : "#FF5A1F") : circle(isMedium ? 2 : 1, count > 0 ? accent : "#D9DDE5")
+          text(day.weekday || weekLabels[col] || "", [font({ textStyle: "caption2", weight: "black" }), foregroundStyle(cellMuted), lineLimit(1)]),
+          text(day.dayNumber || (count > 0 ? String(count) : "-"), [font({ textStyle: "caption2", weight: "black", design: "rounded" }), foregroundStyle(cellInk), lineLimit(1)]),
+          hasExam ? circle(isMedium ? 5 : 4, isToday ? accentFillInk : (isAccentedMode ? "#FFFFFF" : safeColorOn("#FF5A1F", bg))) : circle(isMedium ? 3 : 2, count > 0 ? accentFill : (isAccentedMode ? "#FFFFFF99" : quiet))
         ]
       }, "cal-" + String(calendarIndex)));
     }
@@ -234,19 +294,19 @@ function StudyPlannerWidgetLayout(props, environment) {
             modifiers: [padding({ all: 11 }), frame({ maxWidth: 158, maxHeight: 158 })],
             children: [
               view("HStackView", { alignment: "center", spacing: 6, children: [
-                text(timelineLabel, [font({ size: 9, weight: "black" }), foregroundStyle(muted), lineLimit(1)]),
+                text(timelineLabel, [font({ textStyle: "caption2", weight: "black" }), foregroundStyle(secondaryStyle), lineLimit(1)]),
                 view("SpacerView", { minLength: 2 }),
-                text(signalLabel, [font({ size: 8, weight: "black" }), foregroundStyle(accent), lineLimit(1)])
+                text(signalLabel, [font({ textStyle: "caption2", weight: "black" }), foregroundStyle(accentStyle), lineLimit(1)])
               ]}),
               view("HStackView", { alignment: "center", spacing: 10, children: [
                 scoreRing(54),
                 view("VStackView", { alignment: "leading", spacing: 2, children: [
-                  text(props.value, [font({ size: 15, weight: "black" }), foregroundStyle(ink), lineLimit(1)]),
-                  text(props.detail, [font({ size: 10, weight: "bold" }), foregroundStyle(muted), lineLimit(1)])
+                  text(props.value, [font({ textStyle: "headline", weight: "black" }), foregroundStyle(primaryStyle), lineLimit(1)]),
+                  text(props.detail, [font({ textStyle: "caption", weight: "bold" }), foregroundStyle(secondaryStyle), lineLimit(1)])
                 ]})
               ]}),
-              text(props.footnote, [font({ size: 10, weight: "semibold" }), foregroundStyle(muted), lineLimit(2)]),
-              rows.length ? rows[0] : text(updatedLabel || props.footnote, [font({ size: 9, weight: "semibold" }), foregroundStyle(quiet), lineLimit(1)])
+              text(props.footnote, [font({ textStyle: "caption", weight: "semibold" }), foregroundStyle(secondaryStyle), lineLimit(2)]),
+              rows.length ? rows[0] : text(updatedLabel || props.footnote, [font({ textStyle: "caption2", weight: "semibold" }), foregroundStyle(tertiaryStyle), lineLimit(1)])
             ]
           })
         ]
@@ -264,21 +324,21 @@ function StudyPlannerWidgetLayout(props, environment) {
           modifiers: [padding({ all: 11 }), frame({ maxWidth: 158, maxHeight: 158 })],
           children: [
             view("HStackView", { alignment: "center", spacing: 6, children: [
-              circle(7, accent),
-              text(timelineLabel, [font({ size: 9, weight: "black" }), foregroundStyle(muted), lineLimit(1)]),
+              circle(7, accentFill),
+              text(timelineLabel, [font({ textStyle: "caption2", weight: "black" }), foregroundStyle(secondaryStyle), lineLimit(1)]),
               view("SpacerView", { minLength: 2 }),
-              text(signalLabel, [font({ size: 8, weight: "black" }), foregroundStyle(accent), lineLimit(1)])
+              text(signalLabel, [font({ textStyle: "caption2", weight: "black" }), foregroundStyle(accentStyle), lineLimit(1)])
             ]}),
-            text(props.value, [font({ size: isNextTaskLayout ? 21 : 23, weight: "black", design: "rounded" }), foregroundStyle(ink), lineLimit(1)]),
-            text(props.detail, [font({ size: 11, weight: "black" }), foregroundStyle(ink), lineLimit(1)]),
-            text(props.footnote, [font({ size: 10, weight: "semibold" }), foregroundStyle(muted), lineLimit(isMedium ? 2 : 1)]),
+            text(props.value, [font({ textStyle: isNextTaskLayout ? "title3" : "title2", weight: "black", design: "rounded" }), foregroundStyle(primaryStyle), lineLimit(1)]),
+            text(props.detail, [font({ textStyle: "footnote", weight: "black" }), foregroundStyle(primaryStyle), lineLimit(1)]),
+            text(props.footnote, [font({ textStyle: "caption", weight: "semibold" }), foregroundStyle(secondaryStyle), lineLimit(2)]),
             props.kind === "week"
               ? view("VStackView", { alignment: "leading", spacing: 4, children: [
                 calendarGrid,
-                text(peakDayLabel || calendarHeadline, [font({ size: 8, weight: "black" }), foregroundStyle(accent), lineLimit(1)])
+                text(peakDayLabel || calendarHeadline, [font({ textStyle: "caption2", weight: "black" }), foregroundStyle(accentStyle), lineLimit(1)])
               ]})
               : view("VStackView", { alignment: "leading", spacing: 4, children: rows.length ? rows : [
-                text(updatedLabel || props.footnote, [font({ size: 9, weight: "semibold" }), foregroundStyle(muted), lineLimit(1)])
+                text(updatedLabel || props.footnote, [font({ textStyle: "caption2", weight: "semibold" }), foregroundStyle(secondaryStyle), lineLimit(1)])
               ]})
           ]
         })
@@ -298,22 +358,22 @@ function StudyPlannerWidgetLayout(props, environment) {
           modifiers: [padding({ all: 12 }), frame({ maxWidth: 338, maxHeight: 158 })],
           children: [
             view("HStackView", { alignment: "center", spacing: 8, children: [
-              text(timelineLabel, [font({ size: 10, weight: "black" }), foregroundStyle(muted), lineLimit(1)]),
+              text(timelineLabel, [font({ textStyle: "caption", weight: "black" }), foregroundStyle(secondaryStyle), lineLimit(1)]),
               view("SpacerView", { minLength: 4 }),
-              text(signalLabel, [font({ size: 9, weight: "black" }), foregroundStyle(accent), lineLimit(1)])
+              text(signalLabel, [font({ textStyle: "caption2", weight: "black" }), foregroundStyle(accentStyle), lineLimit(1)])
             ]}),
             view("VStackView", { alignment: "leading", spacing: 5, children: [
               calendarGrid,
               view("HStackView", { alignment: "center", spacing: 6, children: [
-                text(props.value + " " + props.detail, [font({ size: 11, weight: "black", design: "rounded" }), foregroundStyle(ink), lineLimit(1)]),
+                text(props.value + " " + props.detail, [font({ textStyle: "footnote", weight: "black", design: "rounded" }), foregroundStyle(primaryStyle), lineLimit(1)]),
                 view("SpacerView", { minLength: 4 }),
-                text(calendarHeadline, [font({ size: 9, weight: "black" }), foregroundStyle(muted), lineLimit(1)]),
+                text(calendarHeadline, [font({ textStyle: "caption2", weight: "black" }), foregroundStyle(secondaryStyle), lineLimit(1)]),
                 view("SpacerView", { minLength: 4 }),
-                text(props.footnote, [font({ size: 9, weight: "semibold" }), foregroundStyle(quiet), lineLimit(1)])
+                text(props.footnote, [font({ textStyle: "caption2", weight: "semibold" }), foregroundStyle(tertiaryStyle), lineLimit(1)])
               ]})
             ]}),
             view("HStackView", { alignment: "center", spacing: 6, children: [
-              text(updatedLabel || peakDayLabel, [font({ size: 9, weight: "semibold" }), foregroundStyle(muted), lineLimit(1)]),
+              text(updatedLabel || peakDayLabel, [font({ textStyle: "caption2", weight: "semibold" }), foregroundStyle(secondaryStyle), lineLimit(1)]),
               view("SpacerView", { minLength: 4 }),
               actionControl()
             ]})
@@ -335,23 +395,23 @@ function StudyPlannerWidgetLayout(props, environment) {
           modifiers: [padding({ all: 12 }), frame({ maxWidth: 338, maxHeight: 158 })],
           children: [
             view("HStackView", { alignment: "center", spacing: 8, children: [
-              text(timelineLabel, [font({ size: 10, weight: "black" }), foregroundStyle(muted), lineLimit(1)]),
+              text(timelineLabel, [font({ textStyle: "caption", weight: "black" }), foregroundStyle(secondaryStyle), lineLimit(1)]),
               view("SpacerView", { minLength: 4 }),
-              text(signalLabel, [font({ size: 9, weight: "black" }), foregroundStyle(accent), lineLimit(1)])
+              text(signalLabel, [font({ textStyle: "caption2", weight: "black" }), foregroundStyle(accentStyle), lineLimit(1)])
             ]}),
             view("HStackView", { alignment: "center", spacing: 13, children: [
               scoreRing(66),
               view("VStackView", { alignment: "leading", spacing: 4, modifiers: [frame({ maxWidth: 236 })], children: [
-                text(props.value, [font({ size: 21, weight: "black", design: "rounded" }), foregroundStyle(ink), lineLimit(1)]),
-                text(props.detail, [font({ size: 11, weight: "black" }), foregroundStyle(muted), lineLimit(1)]),
-                text(props.footnote, [font({ size: 11, weight: "semibold" }), foregroundStyle(muted), lineLimit(2)])
+                text(props.value, [font({ textStyle: "title3", weight: "black", design: "rounded" }), foregroundStyle(primaryStyle), lineLimit(1)]),
+                text(props.detail, [font({ textStyle: "footnote", weight: "black" }), foregroundStyle(secondaryStyle), lineLimit(1)]),
+                text(props.footnote, [font({ textStyle: "footnote", weight: "semibold" }), foregroundStyle(secondaryStyle), lineLimit(2)])
               ]})
             ]}),
             view("VStackView", { alignment: "leading", spacing: 4, children: rows.length ? rows : [
-              text(updatedLabel || props.footnote, [font({ size: 10, weight: "semibold" }), foregroundStyle(muted), lineLimit(1)])
+              text(updatedLabel || props.footnote, [font({ textStyle: "caption", weight: "semibold" }), foregroundStyle(secondaryStyle), lineLimit(1)])
             ]}),
             view("HStackView", { alignment: "center", spacing: 6, children: [
-              text(props.lastInteractionLabel || updatedLabel || props.footnote, [font({ size: 9, weight: "semibold" }), foregroundStyle(muted), lineLimit(1)]),
+              text(props.lastInteractionLabel || updatedLabel || props.footnote, [font({ textStyle: "caption2", weight: "semibold" }), foregroundStyle(secondaryStyle), lineLimit(1)]),
               view("SpacerView", { minLength: 4 }),
               actionControl()
             ]})
@@ -372,20 +432,20 @@ function StudyPlannerWidgetLayout(props, environment) {
         modifiers: [padding({ all: 12 }), frame({ maxWidth: 338, maxHeight: 158 })],
         children: [
           view("HStackView", { alignment: "center", spacing: 8, children: [
-            text(timelineLabel, [font({ size: 10, weight: "black" }), foregroundStyle(muted), lineLimit(1)]),
+            text(timelineLabel, [font({ textStyle: "caption", weight: "black" }), foregroundStyle(secondaryStyle), lineLimit(1)]),
             view("SpacerView", { minLength: 4 }),
-            text(signalLabel, [font({ size: 9, weight: "black" }), foregroundStyle(accent), lineLimit(1)])
+            text(signalLabel, [font({ textStyle: "caption2", weight: "black" }), foregroundStyle(accentStyle), lineLimit(1)])
           ]}),
           view("HStackView", { alignment: "firstTextBaseline", spacing: 6, children: [
-            text(props.value, [font({ size: 24, weight: "black", design: "rounded" }), foregroundStyle(ink), lineLimit(1)]),
-            text(props.detail, [font({ size: 12, weight: "bold" }), foregroundStyle(ink), lineLimit(1)])
+            text(props.value, [font({ textStyle: "title2", weight: "black", design: "rounded" }), foregroundStyle(primaryStyle), lineLimit(1)]),
+            text(props.detail, [font({ textStyle: "subheadline", weight: "bold" }), foregroundStyle(primaryStyle), lineLimit(1)])
           ]}),
-          text(props.footnote, [font({ size: 12, weight: "black" }), foregroundStyle(muted), lineLimit(2)]),
+          text(props.footnote, [font({ textStyle: "subheadline", weight: "black" }), foregroundStyle(secondaryStyle), lineLimit(2)]),
           view("VStackView", { alignment: "leading", spacing: 4, children: rows.length ? rows : [
-            text(props.footnote, [font({ size: 10, weight: "semibold" }), foregroundStyle(muted), lineLimit(2)])
+            text(props.footnote, [font({ textStyle: "caption", weight: "semibold" }), foregroundStyle(secondaryStyle), lineLimit(2)])
           ]}),
           view("HStackView", { alignment: "center", spacing: 6, children: [
-            text(props.lastInteractionLabel || updatedLabel || props.footnote, [font({ size: 9, weight: "semibold" }), foregroundStyle(muted), lineLimit(1)]),
+            text(props.lastInteractionLabel || updatedLabel || props.footnote, [font({ textStyle: "caption2", weight: "semibold" }), foregroundStyle(secondaryStyle), lineLimit(1)]),
             view("SpacerView", { minLength: 4 }),
             actionControl()
           ]})

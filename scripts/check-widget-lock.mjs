@@ -22,7 +22,7 @@ expect(widgetSource.includes('t("widget.native.preview_unlock_plan", "Preview on
 expect(widgetSource.includes('actionLabel: locked ? t("widget.native.unlock_plan", "Unlock plan")'), "locked widgets must expose an unlock action");
 expect(widgetSource.includes('openURL: locked ? "studyplanner://paywall" : "studyplanner://scan"'), "locked and empty widget actions must open their exact gated destination");
 expect(widgetViewSource.includes('widgetURL(props.openURL || "studyplanner://today")'), "widget views must use gated URL");
-expect(widgetViewSource.includes("Link({") && widgetViewSource.includes("destination: props.openURL"), "widget action labels must use real deep links");
+expect(widgetViewSource.includes("return text(actionLabel") && !widgetViewSource.includes("Link({"), "widget action labels must remain compact while the full widget provides the deep-link target");
 
 if (failures.length) {
   console.error("Widget lock checks failed:");

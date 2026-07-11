@@ -1,6 +1,6 @@
 import { Platform } from "react-native";
 import type * as SQLite from "expo-sqlite";
-import { AppData, ClassItem, ExamItem, ImportBatch, NoteItem, ReminderItem, StudyBlock, TaskItem } from "./types";
+import { AppData, AppearanceMode, ClassItem, ExamItem, ImportBatch, NoteItem, ReminderItem, StudyBlock, TaskItem } from "./types";
 import { buildStudyPlan } from "./ai";
 import { defaultData } from "./seed";
 import { appendFeedbackEvent, dateKey } from "./intelligence";
@@ -188,6 +188,14 @@ function normalizeNote(note: Partial<NoteItem>, index: number): NoteItem {
 
 export function normalizeData(data: Partial<AppData> | null | undefined): AppData {
   const incomingPrefs = data?.prefs || {};
+  const storedAppearanceMode = (incomingPrefs as any).appearanceMode;
+  const hasStoredAppearanceMode = Object.prototype.hasOwnProperty.call(incomingPrefs, "appearanceMode");
+  const legacyTheme = (incomingPrefs as any).theme;
+  const appearanceMode: AppearanceMode = storedAppearanceMode === "system" || storedAppearanceMode === "light" || storedAppearanceMode === "dark"
+    ? storedAppearanceMode
+    : !hasStoredAppearanceMode && ["dark", "neon", "athlete"].includes(legacyTheme)
+      ? "dark"
+      : "system";
   const name = cleanText((incomingPrefs as any).name, defaultData.prefs.name);
   const firstName = cleanText((incomingPrefs as any).firstName || name.split(/\s+/)[0], "Student");
   const studentType = cleanText((incomingPrefs as any).studentType || (incomingPrefs as any).studentPersona, defaultData.prefs.studentType || "College");
@@ -209,6 +217,7 @@ export function normalizeData(data: Partial<AppData> | null | undefined): AppDat
       semesterGoal: mainGoal,
       workloadStyle: cleanText((incomingPrefs as any).workloadStyle, defaultData.prefs.workloadStyle),
       scanIntent: cleanText((incomingPrefs as any).scanIntent, defaultData.prefs.scanIntent || "Scan with camera"),
+      appearanceMode,
       onboardingComplete,
       osLive: cleanBoolean((incomingPrefs as any).osLive),
       premium: false,

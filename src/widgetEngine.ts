@@ -219,10 +219,22 @@ function todayWeekdayIndex() {
   return day === 0 ? 6 : day - 1;
 }
 
-function calendarDaysFor(data: AppData): NativeWidgetCalendarDay[] {
+function localizedWeekdayLabels(t: WidgetCopy = defaultWidgetCopy) {
+  return [
+    t("widget.weekday.mon", "M"),
+    t("widget.weekday.tue", "T"),
+    t("widget.weekday.wed", "W"),
+    t("widget.weekday.thu", "T"),
+    t("widget.weekday.fri", "F"),
+    t("widget.weekday.sat", "S"),
+    t("widget.weekday.sun", "S"),
+  ];
+}
+
+function calendarDaysFor(data: AppData, t: WidgetCopy = defaultWidgetCopy): NativeWidgetCalendarDay[] {
   const today = new Date();
   const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0);
-  const weekdays = ["M", "T", "W", "T", "F", "S", "S"];
+  const weekdays = localizedWeekdayLabels(t);
   const tasks = activeTasks(data);
   const exams = activeAssessments(data);
   return Array.from({ length: 14 }, (_value, offset) => {
@@ -429,7 +441,8 @@ export function buildNativeWidgetSnapshots(data: AppData, t: WidgetCopy = defaul
     const localizedValue = locked ? t("widget.native.build", value) : t("widget.native.start", value);
     const detail = locked ? t("widget.native.semester_lower", "semester") : t("widget.native.semester", "Semester");
     const footnote = locked ? t("widget.native.preview_unlock_plan", "Preview only. Unlock plan from app.") : t("widget.native.syllabus_in", "Syllabus in. Semester out.");
-    const emptyCalendarDays = calendarDaysFor(data);
+    const emptyCalendarDays = calendarDaysFor(data, t);
+    const weekLabels = emptyCalendarDays.slice(0, 7).map((day) => day.weekday);
     const base = {
       version: 1 as const,
       generatedAt: now,
@@ -454,7 +467,7 @@ export function buildNativeWidgetSnapshots(data: AppData, t: WidgetCopy = defaul
     return {
       today: { ...base, kind: "today" },
       upcoming: { ...base, kind: "upcoming", headline: locked ? t("widget.native.unlock_plan", "Unlock plan") : t("widget.native.build_plan", "Build plan"), detail: locked ? t("widget.native.required", "Required") : t("widget.native.ready", "Ready"), signalLabel: t("widget.native.next_move", "Next move") },
-      week: { ...base, kind: "week", headline: t("widget.native.no_schedule", "No schedule"), value: "0", detail: t("widget.native.no_load", "No load"), signalLabel: t("widget.native.week_load", "Week load"), timelineLabel: t("widget.native.seven_days", "7 days"), updatedLabel: t("widget.native.light_week", "Light week"), weekLabels: ["M", "T", "W", "T", "F", "S", "S"], weekCounts: [0, 0, 0, 0, 0, 0, 0], calendarDays: emptyCalendarDays, examDays: [], todayIndex: todayWeekdayIndex(), peakDayLabel: t("widget.native.light_week", "Light week"), calendarHeadline: t("widget.native.calendar_widget", "Calendar widget") },
+      week: { ...base, kind: "week", headline: t("widget.native.no_schedule", "No schedule"), value: "0", detail: t("widget.native.no_load", "No load"), signalLabel: t("widget.native.week_load", "Week load"), timelineLabel: t("widget.native.seven_days", "7 days"), updatedLabel: t("widget.native.light_week", "Light week"), weekLabels, weekCounts: [0, 0, 0, 0, 0, 0, 0], calendarDays: emptyCalendarDays, examDays: [], todayIndex: 0, peakDayLabel: t("widget.native.light_week", "Light week"), calendarHeadline: t("widget.native.calendar_widget", "Calendar widget") },
       classProgress: { ...base, kind: "classProgress", headline: t("widget.native.no_classes", "No classes"), value: localizedValue, detail: t("widget.native.import_first", "Import first"), signalLabel: t("widget.native.class_pulse", "Class pulse"), timelineLabel: t("widget.native.class", "Class") },
     };
   }
@@ -472,8 +485,8 @@ export function buildNativeWidgetSnapshots(data: AppData, t: WidgetCopy = defaul
   const nextTask = tasks[0];
   const nextDueEntry = itemsByDue[0];
   const weekCounts = snapshot.pressureForecast.weekLoads;
-  const weekLabels = snapshot.pressureForecast.weekLabels;
-  const calendarDays = calendarDaysFor(data);
+  const calendarDays = calendarDaysFor(data, t);
+  const weekLabels = calendarDays.slice(0, 7).map((day) => day.weekday);
   const examDays = examDayOffsets(data);
   const overdueCount = tasks.filter((task) => daysUntilTask(task) < 0).length;
   const classPulse = snapshot.classPulses.find((pulse) => pulse.classId === classFocus.id) || snapshot.classPulses[0];
@@ -562,7 +575,7 @@ export function buildNativeWidgetSnapshots(data: AppData, t: WidgetCopy = defaul
       weekLabels,
       weekCounts,
       examDays,
-      todayIndex: todayWeekdayIndex(),
+      todayIndex: 0,
       peakDayLabel: weekPeakLabel,
       calendarHeadline: t("widget.native.calendar_widget", "Calendar widget"),
       openURL: "studyplanner://plan",

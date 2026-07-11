@@ -44,14 +44,21 @@ for (const phrase of forbiddenSampleWidgetData) {
   expect(!widgetsScreenSource.includes(phrase), `active widget screen must not pass fake coursework into previews: ${phrase}`);
 }
 
-expect(previewSource.includes("const width = isMedium ? 338 : 158"), "in-app widget preview must use native Home Screen widget widths");
-expect(previewSource.includes("height: 158"), "in-app widget preview must use native Home Screen widget height");
+expect(
+  previewSource.includes("const nominalWidth = isMedium ? 338 : 158") &&
+    previewSource.includes("const previewScale = Math.min(1, availableWidth / nominalWidth)") &&
+    previewSource.includes("transform: [{ scale: previewScale }]") ,
+  "in-app widget preview must preserve native Home Screen widths while scaling proportionally to fit"
+);
+expect(previewSource.includes("const nominalHeight = 158") && previewSource.includes("height: nominalHeight"), "in-app widget preview must preserve the native Home Screen widget height");
 expect(previewSource.includes("snapshot.items.slice(0, isMedium ? 2 : 1)"), "in-app widget preview must match native row limits");
 expect(
   previewSource.includes("const actionLabel = snapshot.actionLabel") &&
     previewSource.includes("snapshot.lastInteractionLabel || updatedLabel") &&
-    previewSource.includes("minimumFontScale={0.72}"),
-  "in-app widget preview must mirror the native medium-widget action chip"
+    previewSource.includes("maxWidth: 116") &&
+    previewSource.includes("numberOfLines={1}") &&
+    !previewSource.includes("minimumFontScale={0.72}"),
+  "in-app widget preview must mirror the compact root-link action hint"
 );
 expect(
   previewSource.includes("const examDays = snapshot.examDays || []") &&
@@ -59,20 +66,22 @@ expect(
     previewSource.includes("const calendarHeadline = snapshot.calendarHeadline") &&
     previewSource.includes("examDays.includes(index)") &&
     previewSource.includes('const countText = count > 9 ? "9+" : String(count)') &&
-    previewSource.includes("height: isMedium ? 42 : 30") &&
+    previewSource.includes('snapshot.kind === "week" ? null') &&
+    previewSource.includes("height: isMedium ? 35 : 20") &&
+    previewSource.includes('`${snapshot.value} ${snapshot.detail}`') &&
     previewSource.includes("peakDayLabel"),
-  "in-app week preview must render calendar cells from native week snapshot props"
+  "in-app week preview must mirror the compact native calendar hierarchy"
 );
 expect(!previewSource.includes("const percent") && !previewSource.includes("ProgressBar"), "in-app widget preview must not add preview-only progress UI");
-expect(widgetViewSource.includes("Math.min(items.length, isMedium ? 2 : 1)"), "native widget renderer must keep the same row limits as the in-app preview");
+expect(widgetViewSource.includes("isSimplified ? 0 : Math.min(items.length, isMedium ? 2 : 1)"), "native widget renderer must reduce rows in simplified mode and otherwise mirror preview limits");
 expect(widgetViewSource.includes("frame({ maxWidth: isMedium ? 338 : 158, maxHeight: 158 })"), "native widget renderer must keep the same Home Screen frame as the in-app preview");
 expect(
-  widgetViewSource.includes("Link({") &&
-    widgetViewSource.includes('destination: props.openURL || "studyplanner://today"') &&
-    !widgetViewSource.includes("interactionProps(actionLabel)") &&
+  widgetViewSource.includes('widgetURL(props.openURL || "studyplanner://today")') &&
+    widgetViewSource.includes("return text(actionLabel") &&
+    !widgetViewSource.includes("Link({") &&
     widgetViewSource.includes("environment.levelOfDetail") &&
     widgetViewSource.includes("environment.isLuminanceReduced"),
-  "native widget renderer must use a real deep-link action and keep iOS 26 environment guards"
+  "native widget renderer must use its full surface as the deep-link action and keep iOS 26 environment guards"
 );
 expect(!widgetSource.includes("value: String(loop.score)") && !widgetSource.includes('detail: "Semester Health"'), "native widget snapshots must be action-first, not score-first filler");
 expect(

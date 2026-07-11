@@ -6,12 +6,13 @@
     "version": "2.0.8",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "backgroundColor": "#F5F5F7",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
       "appleTeamId": "5JN35MJ3QD",
       "bundleIdentifier": "com.mattnewman.studyplanner",
-      "buildNumber": "80",
+      "buildNumber": "81",
       "entitlements": {
         "com.apple.security.application-groups": [
           "group.com.mattnewman.studyplanner"
@@ -60,6 +61,20 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "expo-system-ui",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F5F5F7",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "resizeMode": "contain",
+          "dark": {
+            "backgroundColor": "#050507",
+            "image": "./assets/splash-icon-dark.png"
+          }
+        }
+      ],
       "expo-iap",
       "expo-notifications",
       "expo-sqlite",
@@ -107,8 +122,7 @@
                       "type": "enum",
                       "default": "today",
                       "values": [
-                        { "name": "Today", "value": "today" },
-                        { "name": "Upcoming", "value": "upcoming" }
+                        { "name": "Today", "value": "today" }
                       ]
                     }
                   }
@@ -138,8 +152,7 @@
                       "type": "enum",
                       "default": "upcoming",
                       "values": [
-                        { "name": "Upcoming", "value": "upcoming" },
-                        { "name": "Today", "value": "today" }
+                        { "name": "Upcoming", "value": "upcoming" }
                       ]
                     }
                   }

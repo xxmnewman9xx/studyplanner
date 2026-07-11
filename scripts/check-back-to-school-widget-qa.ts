@@ -155,6 +155,8 @@ function assertWeekContract(name: string, week: NativeWidgetSnapshot, assertions
   expect(week.weekLabels?.length === 7, `${name}: week snapshot has seven labels`, assertions);
   expect(week.weekCounts?.length === 7, `${name}: week snapshot has seven load cells`, assertions);
   expect(typeof week.todayIndex === "number" && week.todayIndex >= 0 && week.todayIndex <= 6, `${name}: today index is a valid week cell`, assertions);
+  expect(week.todayIndex === 0, `${name}: rolling seven-day data starts at today`, assertions);
+  expect(JSON.stringify(week.weekLabels) === JSON.stringify((week.calendarDays || []).slice(0, 7).map((day) => day.weekday)), `${name}: rolling load labels align with calendar dates`, assertions);
   expect((week.examDays || []).every((day) => Number.isInteger(day) && day >= 0 && day <= 6), `${name}: exam markers are valid week cells`, assertions);
   expect(Boolean(week.calendarHeadline), `${name}: calendar headline is present`, assertions);
   expect(Boolean(week.peakDayLabel), `${name}: peak-day label is present`, assertions);
@@ -164,11 +166,13 @@ function validateRendererSafeguards(assertions: string[]) {
   const source = readFileSync("src/widgets/StudyPlannerWidgets.tsx", "utf8");
   expect(source.includes("widgetRenderingMode") && source.includes("accented") && source.includes("vibrant"), "renderer handles accented/tinted widget modes", assertions);
   expect(source.includes("containerBackground(bg, \"widget\")"), "renderer uses WidgetKit container background", assertions);
-  expect(source.includes("glassEffect({ glass: { variant: \"regular\""), "renderer applies WidgetKit glass effect", assertions);
-  expect(source.includes("allowsTightening(true)") && source.includes("minimumScaleFactor(0.72)"), "renderer tightens/scales long widget text", assertions);
-  expect(source.includes("lineLimit(1)") && source.includes("lineLimit(isMedium ? 2 : 1)"), "renderer caps single-line and medium footnote text", assertions);
-  expect(source.includes("Link({") && source.includes('destination: props.openURL || "studyplanner://today"'), "renderer includes a real deep-link medium-widget action", assertions);
-  expect(source.includes("buttonStyle(\"glass\")") && source.includes("controlSize(\"mini\")") && !source.includes("interactionProps(actionLabel)"), "renderer styles the widget link without a placeholder mutation", assertions);
+  expect(source.includes("AccessoryWidgetBackgroundView") && source.includes('containerBackground("#00000000", "widget")'), "renderer uses adaptive system backgrounds for accessory and system-rendered modes", assertions);
+  expect(source.includes("allowsTightening(true)") && !source.includes("minimumScaleFactor("), "renderer tightens without shrinking text below its semantic Dynamic Type size", assertions);
+  expect(source.includes('font({ textStyle: "caption2"') && source.includes('font({ textStyle: "title2"'), "renderer uses semantic Dynamic Type text styles", assertions);
+  expect(source.includes("lineLimit(1)") && source.includes("lineLimit(2)"), "renderer caps single-line and multi-line widget text", assertions);
+  expect(source.includes('widgetURL(props.openURL || "studyplanner://today")') && source.includes("return text(actionLabel") && !source.includes("Link({"), "renderer makes the full widget the deep-link target and keeps a compact action hint", assertions);
+  expect(source.includes("isSimplified ? 0 : Math.min(items.length"), "renderer reduces row density for simplified and reduced-luminance environments", assertions);
+  expect(source.includes('view("GaugeView"') && source.includes('gaugeStyle("circularCapacity")'), "renderer draws progress with a truthful capacity gauge", assertions);
   expect(source.includes("environment.levelOfDetail") && source.includes("environment.isLuminanceReduced") && source.includes("isSimplified"), "renderer adapts to iOS 26 detail and reduced-luminance environments", assertions);
 }
 

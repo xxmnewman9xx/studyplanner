@@ -8,6 +8,8 @@ export type ThemeId =
   | "athlete"
   | "academic";
 
+export type AppearanceMode = "system" | "light" | "dark";
+
 export type ClassItem = {
   id: string;
   code: string;
@@ -149,6 +151,7 @@ export type UserPrefs = {
   semesterGoal?: string;
   scanIntent?: string;
   theme: ThemeId;
+  appearanceMode?: AppearanceMode;
   presetId: string;
   customWidgets?: WidgetKey[];
   widgetTheme?: WidgetThemeChoice;

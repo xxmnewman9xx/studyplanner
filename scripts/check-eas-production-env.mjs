@@ -14,6 +14,11 @@ for (const name of retiredParserVariables) {
   assert(!output.includes(name), `Production EAS environment must not contain retired remote-parser variable ${name}`);
 }
 
+assert(
+  !output.includes("EXPO_PUBLIC_STUDYPLANNER_CAPTURE_QA"),
+  "Production EAS environment must not enable the simulator-only capture harness",
+);
+
 for (const name of ["EXPO_PUBLIC_IAP_SUBSCRIPTION_IDS", "EXPO_PUBLIC_PRIVACY_URL", "EXPO_PUBLIC_TERMS_URL"]) {
   assert(output.includes(name), `Production EAS environment must contain ${name}`);
 }
