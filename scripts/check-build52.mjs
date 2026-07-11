@@ -29,13 +29,13 @@ const finishPurchaseSource = finishPurchaseStart >= 0 && finishPurchaseEnd > fin
   : "";
 
 expect(appSource.includes('type AccessState = "loading" | "onboarding" | "preview_allowed" | "locked" | "paywall" | "unlocked"'), "single AccessState union must exist");
-expect(appJson.version === "2.0.8" && appJson.ios?.buildNumber === "80" && appJson.android?.versionCode === 79, "release metadata must be iOS 2.0.8 (80) with Android remaining at 79");
+expect(appJson.version === "2.0.8" && appJson.ios?.buildNumber === "81" && appJson.android?.versionCode === 79, "release metadata must be iOS 2.0.8 (81) with Android remaining at 79");
 expect(appJson.android?.package === "com.mattnewman.studyplanner", "Android package must match the Play app");
-expect(!xcodeProject.includes("CURRENT_PROJECT_VERSION = 79;") && (xcodeProject.match(/CURRENT_PROJECT_VERSION = 80;/g) || []).length >= 4, "native iOS app and widget project versions must be 80");
+expect(!xcodeProject.includes("CURRENT_PROJECT_VERSION = 80;") && (xcodeProject.match(/CURRENT_PROJECT_VERSION = 81;/g) || []).length >= 4, "native iOS app and widget project versions must be 81");
 expect((xcodeProject.match(/MARKETING_VERSION = 2\.0\.8;/g) || []).length >= 4, "native app and widget marketing versions must be 2.0.8");
 expect([appInfoPlist, widgetInfoPlist].every((plist) => {
   const inheritsBuildSettings = plist.includes("<string>$(MARKETING_VERSION)</string>") && plist.includes("<string>$(CURRENT_PROJECT_VERSION)</string>");
-  const matchesGeneratedRelease = plist.includes("<string>2.0.8</string>") && plist.includes("<string>80</string>");
+  const matchesGeneratedRelease = plist.includes("<string>2.0.8</string>") && plist.includes("<string>81</string>");
   return inheritsBuildSettings || matchesGeneratedRelease;
 }), "native Info.plist files must inherit or exactly match Xcode marketing/build versions");
 expect(/function entitlementUnlocks[\s\S]{0,160}return entitlementStatus === "active";/.test(appSource), "only active StoreKit entitlement may unlock");
@@ -111,9 +111,9 @@ expect(appSource.includes('"locked.title": "{name}, build your semester."') && a
 expect(appSource.includes("The camera scan, PDF import, paste, and manual setup are locked until App Store unlock. You review every row before anything saves."), "locked home must state the unlock-first review-before-save path");
 expect(appSource.includes("Unlock the scanner. Build the semester."), "locked home must explain the camera-first value path");
 expect(appSource.includes("Unlock StudyPlanner") && appSource.includes("Scan with camera, PDF, paste, or manual setup") && appSource.includes("Review every extracted row before save"), "locked home must show the unlock-first three-step import path");
-expect(appSource.includes('textFor("success.theme_kicker", "SYSTEM APPLIED")') && appSource.includes('textFor("success.theme_title", "White system, class colors")') && appSource.includes("success-loop"), "semester-ready payoff must prove the white system, black controls, and automatic class colors are applied");
-expect(appSource.includes("Dashboard, focus blocks, classes, and widgets keep black controls with automatic course colors for context."), "semester-ready payoff must connect black controls and automatic course colors to dashboard, focus, classes, and widgets");
-expect(appSource.includes("const SEMESTER_THEME_COPY") && appSource.includes('"onboarding.theme_locked_title": "White by default"') && appSource.includes('"onboarding.theme_locked_title": "Blanco por defecto"'), "white system/class-color labels and payoff copy must be localized instead of fallback-only");
+expect(appSource.includes('textFor("success.theme_kicker", "SYSTEM APPLIED")') && appSource.includes('textFor("success.theme_title", "App appearance, adaptive widgets")') && appSource.includes("success-loop"), "semester-ready payoff must prove the selected app appearance and adaptive widgets are applied");
+expect(appSource.includes("Dashboard, focus blocks, and classes follow your app appearance. Widgets adapt separately to the Home and Lock Screen."), "semester-ready payoff must separate app appearance from the widget system environment");
+expect(appSource.includes("const APPEARANCE_COPY") && appSource.includes('"appearance.system": "System"') && appSource.includes('"appearance.system": "Sistema"'), "System, Light, and Dark appearance labels must be localized instead of fallback-only");
 expect(!appSource.includes('onPress={() => pickThemeColor') && !appSource.includes("semesterThemeColors.map"), "visible semester color picker must be removed from onboarding");
 expect(appSource.includes('textFor("onboarding.theme_ready", "Ready to build")') && appSource.includes("const loopFeedback = ["), "compact setup proof must show the applied automatic semester system without exposing color choices");
 const oldUnlockPhrase = ["before", "you", "unlock"].join(" ");
@@ -170,9 +170,9 @@ const pkg = JSON.parse(packageSource);
 expect(pkg.scripts?.["check:build52"] === "node scripts/check-build52.mjs", "package.json must expose check:build52");
 
 if (failures.length) {
-  console.error("Build 80 checks failed:");
+  console.error("Build 81 checks failed:");
   failures.forEach((failure) => console.error(`- ${failure}`));
   process.exit(1);
 }
 
-console.log("Build 80 access, onboarding, and locked funnel checks passed.");
+console.log("Build 81 access, onboarding, appearance, and locked funnel checks passed.");

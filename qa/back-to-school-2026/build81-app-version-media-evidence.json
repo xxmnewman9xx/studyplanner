@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-11T16:54:17Z",
+  "release": {
+    "platform": "ios",
+    "appVersion": "2.0.8",
+    "buildNumber": "81",
+    "bundleId": "com.mattnewman.studyplanner",
+    "sourceCommit": "ee414a9fd0c6817fff4287506f2f0018c01e585f"
+  },
+  "easBuild": {
+    "id": "e1a8535b-696a-4288-ad1c-d0e7c81fc6c3",
+    "profile": "production",
+    "distribution": "STORE",
+    "status": "FINISHED",
+    "artifactUrl": "https://expo.dev/artifacts/eas/gs2pkVs8LuXFerC5S9m5DQeR8OqYV79Q147dsB6u6EM.ipa"
+  },
+  "artifact": {
+    "localPath": "builds/studyplanner-2.0.8-81-ee414a9f.ipa",
+    "bytes": 18956021,
+    "ipaSha256": "7b5189d613ebe51b643c6f9dc4cdad824a7a62db43292eb5609505466abb60e6",
+    "mainBundleSha256": "8fd086d6f1b03b6203ebc4acb621b40857ea20445bdf73fd2d8865475ffb0a59",
+    "appExecutableSha256": "8e704c8e00d385790b6f82c5c5df953b015df99617ee8f3965ac58153efbe6fc",
+    "widgetExecutableSha256": "ed39f5f3253fdcdd86e3932c2510fec14b6849a9ca53c43c1f863017ad219f85"
+  },
+  "easSubmission": {
+    "id": "1a31b69d-960d-403d-9729-3c2d0565dcb9",
+    "scheduledAt": "2026-07-11T16:54:17Z",
+    "status": "FINISHED",
+    "ascAppId": "6766181202",
+    "apiKeyId": "HDR783736G"
+  },
+  "appStoreConnect": {
+    "buildResourceId": "19d58b82-7679-4e92-be12-aae4acb847f2",
+    "processingState": "VALID",
+    "selectedForVersion": false,
+    "selectedBuildNumber": "79",
+    "versionResourceId": "a05e2964-6639-4f7a-9109-09c56cc36ebe",
+    "versionState": "PREPARE_FOR_SUBMISSION",
+    "appReviewSubmitted": false,
+    "readbackAt": "2026-07-11T16:57:50Z"
+  },
+  "physicalDeviceQa": {
+    "iphone": null,
+    "ipad": null,
+    "passed": false
+  },
+  "screenshots": {
+    "required": 170,
+    "iphone": [],
+    "ipad": [],
+    "exactBinaryProvenanceComplete": false,
+    "mechanicalQaPassed": false,
+    "humanQaPassed": false
+  },
+  "appPreviewVideoDecision": "no_upload",
+  "authorization": {
+    "authorized": false,
+    "reviewer": null,
+    "reviewedAt": null,
+    "authorizedIpaSha256": null,
+    "authorizedScreenshotManifestSha256": null
+  }
+}
