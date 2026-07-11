@@ -2,11 +2,11 @@
 
 Release: Back-to-School Semester Kickoff
 Target featuring window: 2026-08-24 to 2026-08-31
-Generated: 2026-07-09
+Generated: 2026-07-11
 
 Use this folder for the manual App Store Connect session.
 
-## Controlling release-media decision (2026-07-10)
+## Controlling release-media decision (2026-07-11)
 
 Overall media status: **BLOCKED / NOT SUBMISSION-READY**.
 
@@ -14,7 +14,8 @@ Overall media status: **BLOCKED / NOT SUBMISSION-READY**.
 - The only selected nomination-media candidates are slides 01-06 under `qa/back-to-school-2026/copy-b-reviewed-plan-review-only-2026-07-09/screenshots/en-US/APP_IPHONE_65/`.
 - Slide 07 in that folder is not selected. It remains conditional until the raw SpringBoard/WidgetKit capture is hash-linked to the exact App Store submission binary and the composed output is re-reviewed.
 - The three existing App Preview candidates are all 1080x1920 and are not ready for the current `APP_IPHONE_65` slot, which requires 886x1920. Two also exceed Apple's 30fps maximum. Keep them supplemental-only and do not upload them as App Previews.
-- Independent review scored the event card `8.5/10`, event details art `7.3/10`, and supplemental hero `7.5/10`. All three are below the requested `10/10` release bar, are omitted from this curated branch, and are not approved for a new upload.
+- Replacement event-card and event-details candidates are present at the exact Apple dimensions and independently scored `9.6/10` across Apple-editorial, art-direction, and product-truth reviews. They are candidate-approved in the manifest but remain upload-blocked because the controlling release bar, live App Store Connect readback, exact-binary screenshots, and human authorization are incomplete.
+- The rejected `7.5/10` press-only supplemental hero remains intentionally omitted. It is optional and is not App Store Connect In-App Event media.
 - Selection for the nomination packet is not App Store Connect upload authorization.
 
 Local packet checks before submission:
@@ -34,6 +35,8 @@ Use `npm run check:copy-b-image2` for the optional PPO Copy B set. It proves the
 `store.config.json` intentionally remains pointed at Copy A/control. `copy-b-image2-upload-map.json` is a historical map only; do not use it to upload or resubmit the blocked `17 x 7 = 119` Image 2.0 matrix.
 
 ## Live App Store Connect Status
+
+Current Build 80 evidence: production EAS build `8d157ad7-d41e-4909-972d-859f05f9349e` and EAS submission `acd97888-613f-415b-9724-c4ae9e121b19` both finished without an EAS error. The verified IPA is iOS `2.0.8 (80)`, SHA-256 `57c7e6f03546eeed476eb47702e5bb88684c640a6657efc78bfee394fe61fc4a`. This proves the binary handoff, not Apple processing or selection; those fields remain false until live App Store Connect readback.
 
 Verified in App Store Connect on 2026-07-09:
 
@@ -70,13 +73,18 @@ The following sequence records the July 9 workflow only. It is blocked for any n
 - `event-media/01-event-card-image-1920x1080.png`
 - `event-media/02-event-details-image-1080x1920.png`
 
-These paths are reserved for regenerated candidates. The files are intentionally absent and their manifest approvals are `false`. Do not upload either event image or the branded supplemental hero.
+Both replacement candidates are present, RGB PNGs without alpha, and candidate-approved after independent `9.6/10` review:
+
+- Card SHA-256: `17a2d91cbda8865863fd112e348aab7581da06115d86da4cfdf022d63fbe9724`
+- Details SHA-256: `9b3da196b288cae63dc67e30b850d93dab072ae0fbed13fee95f9246347ef268`
+
+Candidate approval is not upload authorization. The manifest and Build 80 evidence both keep upload authorization `false`.
 
 ## Supplemental/Press
 
 - `supplemental/studyplanner-branded-supplemental-hero-1920x1080.png`
 
-This path is reserved for regenerated supplemental art. The prior `7.5/10` file is intentionally absent and is not approved for use.
+The prior `7.5/10` file is intentionally absent and is not approved for use. Press-only supplemental art is optional and is excluded from the event-media gate.
 
 ## Reference Files
 

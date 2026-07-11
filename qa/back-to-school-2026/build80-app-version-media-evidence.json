@@ -1,6 +1,6 @@
 {
   "status": "verified",
-  "readiness": "blocked_pending_asc_screenshots_event_media_and_human_authorization",
+  "readiness": "blocked_pending_asc_processing_selection_screenshots_and_human_authorization",
   "version": "2.0.8",
   "buildNumber": "80",
   "bundleIdentifier": "com.mattnewman.studyplanner",
@@ -41,10 +41,14 @@
     "appAppleId": "6766181202",
     "version": "2.0.8",
     "buildNumber": "80",
-    "uploaded": false,
+    "uploaded": true,
     "processed": false,
     "selectedForVersion": false,
-    "stateSource": "not_uploaded_by_this_workflow"
+    "submissionId": "acd97888-613f-415b-9724-c4ae9e121b19",
+    "submissionStatus": "finished",
+    "submissionDetailsUrl": "https://expo.dev/accounts/xxmnewman9xx/projects/study-planner-syllabus-ai/submissions/acd97888-613f-415b-9724-c4ae9e121b19",
+    "stateSource": "eas_submission_graphql",
+    "submissionVerifiedAt": "2026-07-11T06:03:02Z"
   },
   "screenshots": {
     "iphone": {
@@ -65,10 +69,10 @@
     "reviewPath": "qa/back-to-school-2026/product-video-review.json"
   },
   "eventMedia": {
-    "status": "blocked_below_10",
-    "eventCardScore": 8.5,
-    "eventDetailsScore": 7.3,
-    "supplementalHeroScore": 7.5,
+    "status": "approved_candidates_upload_blocked",
+    "eventCardScore": 9.6,
+    "eventDetailsScore": 9.6,
+    "supplementalHeroStatus": "omitted_optional_rejected_7_5",
     "uploadAuthorized": false
   },
   "humanUploadAuthorization": {

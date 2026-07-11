@@ -66,4 +66,4 @@ Historical Event Card Image path: `event-media/01-event-card-image-1920x1080.png
 
 Historical Event Details Page Image path: `event-media/02-event-details-image-1080x1920.png`
 
-Current status: both files are intentionally absent and blocked below the requested `10/10` bar. Do not upload them. Regenerated replacements must be text-free, device-free, contain no fake app UI or fake widgets, pass independent full-resolution review, and be explicitly approved in the event-media manifest.
+Current status: exact replacement files are present and independently score `9.6/10`. They are text-free, logo-free, device-free, contain no fake app UI or widgets, and are candidate-approved in the manifest. Upload authorization remains `false`; do not upload them until the controlling release and human-authorization gates pass.

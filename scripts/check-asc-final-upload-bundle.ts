@@ -506,7 +506,10 @@ async function main() {
   expect(eventMedia.eventName === "Semester Kickoff Week", "event media manifest event name must match final upload packet");
   expect(Boolean(eventCard?.approvedForEventMedia), "event card must be approved for event media");
   expect(Boolean(eventDetails?.approvedForEventMedia), "event details image must be approved for event media");
-  expect(supplementalHero?.approvedForEventMedia === false, "supplemental hero must not be approved for event media");
+  expect(
+    !supplementalHero || supplementalHero.approvedForEventMedia === false,
+    "optional supplemental hero must not be approved for event media",
+  );
 
   for (const file of mediaFiles) {
     expect(Boolean(file.path && existsSync(file.path)), `event media file is missing: ${file.path || file.id || "unknown"}`);
