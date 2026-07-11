@@ -70,7 +70,7 @@ export const semesterThemeColors: SemesterThemeColor[] = [
     softBackground: "#F3F4F6",
     widgetBackground: "#F7F7FA",
     focus: "#374151",
-    courseColors: ["#111827", "#1476FF", "#16A66E", "#FF5A1F"]
+    courseColors: ["#1476FF", "#16A66E", "#FF5A1F", "#8B3DFF"]
   }
 ];
 

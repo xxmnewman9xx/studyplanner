@@ -1,14 +1,14 @@
 export const lightColors = {
-  canvas: "#F6F8FC",
-  canvasTint: "#EAF0F8",
+  canvas: "#FFFFFF",
+  canvasTint: "#FFFFFF",
   surface: "#FFFFFF",
-  surfaceAlt: "#EEF3FA",
-  surfaceTint: "#E5F6F0",
-  ink: "#111827",
-  muted: "#586174",
-  faint: "#8A94A6",
-  line: "#D8E0EA",
-  lineStrong: "#B9C5D3",
+  surfaceAlt: "#F7F7F7",
+  surfaceTint: "#FFFFFF",
+  ink: "#000000",
+  muted: "#505050",
+  faint: "#777777",
+  line: "#E0E0E0",
+  lineStrong: "#B8B8B8",
   softGold: "#FFF0C8",
   gold: "#B8730D",
   mint: "#DDF8EF",
@@ -18,31 +18,31 @@ export const lightColors = {
   red: "#D92D4B",
   green: "#16A66E",
   lavender: "#E9E7FF",
-  accent: "#315BFF",
+  accent: "#050507",
   accentText: "#FFFFFF",
-  accentSoft: "#E5EBFF",
-  brandPink: "#D84B7B",
-  brandViolet: "#5D5FEF",
-  brandIndigo: "#315BFF",
-  brandOrange: "#C98316",
+  accentSoft: "#F0F0F0",
+  brandPink: "#050507",
+  brandViolet: "#050507",
+  brandIndigo: "#050507",
+  brandOrange: "#050507",
   elevated: "#FFFFFF",
-  heroSurface: "#15233A",
+  heroSurface: "#050507",
   heroText: "#FFFFFF",
-  heroMuted: "#CBD6E6",
-  shadow: "#15233A"
+  heroMuted: "#D8D8D8",
+  shadow: "#000000"
 };
 
 export const darkColors = {
-  canvas: "#070A12",
-  canvasTint: "#0A101D",
-  surface: "#0D1422",
-  surfaceAlt: "#151D2A",
-  surfaceTint: "#0A2B31",
-  ink: "#F7F8FC",
-  muted: "#C7D0DE",
-  faint: "#8995A7",
-  line: "#263142",
-  lineStrong: "#3C4B62",
+  canvas: "#000000",
+  canvasTint: "#000000",
+  surface: "#000000",
+  surfaceAlt: "#111111",
+  surfaceTint: "#000000",
+  ink: "#FFFFFF",
+  muted: "#C8C8C8",
+  faint: "#8E8E93",
+  line: "#2C2C2E",
+  lineStrong: "#48484A",
   softGold: "#35270B",
   gold: "#FFD166",
   mint: "#0B3025",
@@ -52,17 +52,17 @@ export const darkColors = {
   red: "#FF7182",
   green: "#4ADE80",
   lavender: "#11253D",
-  accent: "#56A8FF",
-  accentText: "#07111F",
-  accentSoft: "#112B4A",
-  brandPink: "#FF4D8D",
-  brandViolet: "#38D8FF",
-  brandIndigo: "#56A8FF",
-  brandOrange: "#FFBE45",
-  elevated: "#151D2A",
-  heroSurface: "#0A0F1A",
-  heroText: "#FFF8EA",
-  heroMuted: "#B8C8D4",
+  accent: "#FFFFFF",
+  accentText: "#000000",
+  accentSoft: "#1C1C1E",
+  brandPink: "#FFFFFF",
+  brandViolet: "#FFFFFF",
+  brandIndigo: "#FFFFFF",
+  brandOrange: "#FFFFFF",
+  elevated: "#111111",
+  heroSurface: "#000000",
+  heroText: "#FFFFFF",
+  heroMuted: "#C8C8C8",
   shadow: "#000000"
 };
 
@@ -374,7 +374,7 @@ export function createTypography(themeColors: ColorTokens) {
 export const typography = createTypography(colors);
 
 export function createGlassTokens(themeColors: ColorTokens, mode: ThemeMode) {
-  const isDark = false;
+  const isDark = mode === "dark";
 
   return {
     blurAmount: {
@@ -401,7 +401,7 @@ export function createGlassTokens(themeColors: ColorTokens, mode: ThemeMode) {
     },
     rimHighlight: isDark ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.72)",
     innerGlow: isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.46)",
-    ambientSpill: isDark ? "rgba(86,168,255,0.18)" : "rgba(49,91,255,0.12)",
+    ambientSpill: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
     depth: {
       surfaceShadowOpacity: isDark ? 0.34 : 0.12,
       heroShadowOpacity: isDark ? 0.42 : 0.16,
@@ -418,14 +418,13 @@ export function createGlassTokens(themeColors: ColorTokens, mode: ThemeMode) {
 }
 
 export function getTheme(mode: ThemeMode, accent: ThemeAccent = "campus") {
-  const baseColors = lightColors;
-  const overrides = lightAccentOverrides[accent];
-  const themeColors = { ...baseColors, ...overrides };
+  const baseColors = mode === "dark" ? darkColors : lightColors;
+  const themeColors = { ...baseColors };
 
   return {
     mode,
     accent,
-    isDark: false,
+    isDark: mode === "dark",
     colors: themeColors,
     spacing,
     radii,
