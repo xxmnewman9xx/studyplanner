@@ -29,7 +29,7 @@ const finishPurchaseSource = finishPurchaseStart >= 0 && finishPurchaseEnd > fin
   : "";
 
 expect(appSource.includes('type AccessState = "loading" | "onboarding" | "preview_allowed" | "locked" | "paywall" | "unlocked"'), "single AccessState union must exist");
-expect(appJson.version === "2.0.8" && appJson.ios?.buildNumber === "82" && appJson.android?.versionCode === 79, "release metadata must be iOS 2.0.8 (82) with Android remaining at 79");
+expect(appJson.version === "2.0.8" && appJson.ios?.buildNumber === "83" && appJson.android?.versionCode === 79, "release metadata must be iOS 2.0.8 (83) with Android remaining at 79");
 expect(appJson.android?.package === "com.mattnewman.studyplanner", "Android package must match the Play app");
 expect(!xcodeProject.includes("CURRENT_PROJECT_VERSION = 81;") && (xcodeProject.match(/CURRENT_PROJECT_VERSION = 82;/g) || []).length >= 4, "native iOS app and widget project versions must be 82");
 expect((xcodeProject.match(/MARKETING_VERSION = 2\.0\.8;/g) || []).length >= 4, "native app and widget marketing versions must be 2.0.8");
@@ -170,9 +170,9 @@ const pkg = JSON.parse(packageSource);
 expect(pkg.scripts?.["check:build52"] === "node scripts/check-build52.mjs", "package.json must expose check:build52");
 
 if (failures.length) {
-  console.error("Build 82 checks failed:");
+  console.error("Build 83 checks failed:");
   failures.forEach((failure) => console.error(`- ${failure}`));
   process.exit(1);
 }
 
-console.log("Build 82 access, onboarding, appearance, and locked funnel checks passed.");
+console.log("Build 83 access, onboarding, appearance, and locked funnel checks passed.");

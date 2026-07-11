@@ -3,7 +3,7 @@
   "status": "draft_requires_native_language_review",
   "story": "input-control-outcome-plan-appearance",
   "productUiPolicy": "exact_build_pixels_only",
-  "sourceCommit": "a8ec2af6b74a84ea88459d51f634ee49f03de149",
+  "sourceCommit": "081972c34f3191f9e8709d17c49630b72f07cc70",
   "localizations": {
     "ar-SA": [
       {

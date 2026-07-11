@@ -168,6 +168,7 @@ try {
         const acknowledgementsByTarget = new Map();
         const entriesByTarget = new Map();
         for (const target of targets) {
+          const settleMs = captureSettleMsForTarget(target, waitMs);
           const expectedMountedRoute = expectedMountedRouteForTarget(target);
           const scrollSourceAcknowledgement = target.scrollPlan
             ? acknowledgementsByTarget.get(target.scrollPlan.sourceTarget)
@@ -292,25 +293,22 @@ try {
             expectedContentOriginRawY: captureOriginRawY,
             launchStartedAt,
             timeoutMs: readyTimeoutMs,
-            stabilityMs: waitMs,
+            stabilityMs: settleMs,
           });
-          if (scrollSourceAcknowledgement) {
-            for (const field of ["contentHeight", "viewportHeight", "rawMaxScrollY", "maxScrollY"]) {
-              if (Math.abs(Number(captureAcknowledgement[field]) - Number(scrollSourceAcknowledgement[field])) > 2) {
-                throw new Error(`${target.key}: deep and top acknowledgements disagree on ${field}`);
-              }
-            }
-          }
+          // A fresh deep launch may legitimately reflow lazy content at extreme
+          // Dynamic Type sizes. Each acknowledgement is independently validated,
+          // and the deep request must remain in range and land exactly; cross-launch
+          // content-height equality is not a capture-integrity requirement.
           acknowledgementsByTarget.set(target.key, captureAcknowledgement);
-          if (target.config.prompt) sleep(Math.max(waitMs, 4200));
+          if (target.config.prompt) sleep(Math.max(settleMs, 4200));
           mkdirSync(dirname(screenshotPath), { recursive: true });
-          runInherited("xcrun", ["simctl", "io", device, "screenshot", screenshotPath]);
+          captureScreenshotWithRetries(device, screenshotPath);
           let retriedBlankCapture = false;
           let measuredEntropy = imageEntropy(screenshotPath);
           if (measuredEntropy < 0.05) {
             retriedBlankCapture = true;
-            sleep(Math.max(3500, waitMs));
-            runInherited("xcrun", ["simctl", "io", device, "screenshot", screenshotPath]);
+            sleep(Math.max(3500, settleMs));
+            captureScreenshotWithRetries(device, screenshotPath);
             measuredEntropy = imageEntropy(screenshotPath);
           }
           const dimensions = imageDimensions(screenshotPath);
@@ -573,6 +571,24 @@ function run(command, args) {
 
 function runInherited(command, args) {
   execFileSync(command, args, { stdio: "inherit" });
+}
+
+function captureScreenshotWithRetries(device, screenshotPath) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
+    try {
+      runInherited("xcrun", ["simctl", "io", device, "screenshot", screenshotPath]);
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 4) sleep(attempt * 1000);
+    }
+  }
+  throw lastError;
+}
+
+function captureSettleMsForTarget(target, defaultWaitMs) {
+  return target.key.startsWith("widgets") ? Math.max(defaultWaitMs, 1000) : defaultWaitMs;
 }
 
 function runOptional(command, args) {

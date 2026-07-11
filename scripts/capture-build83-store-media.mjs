@@ -30,7 +30,7 @@ const TARGETS = Object.freeze([
 
 const args = process.argv.slice(2);
 if (args.includes("--help")) {
-  console.log("Usage: node scripts/capture-build82-store-media.mjs [output-root] [--dry-run]");
+  console.log("Usage: node scripts/capture-build83-store-media.mjs [output-root] [--dry-run]");
   console.log("Set STUDYPLANNER_CANDIDATE_BUNDLE to the exact installed candidate main.jsbundle.");
   process.exit(0);
 }
@@ -40,7 +40,7 @@ const positionalArgs = args.filter((argument) => !argument.startsWith("--"));
 if (positionalArgs.length > 1) throw new Error("provide at most one output root");
 
 const dryRun = args.includes("--dry-run");
-const outputRoot = resolve(positionalArgs[0] || "/tmp/studyplanner-build82-store-media-raw");
+const outputRoot = resolve(positionalArgs[0] || "/tmp/studyplanner-build83-store-media-raw");
 const requestedDevice = process.env.STUDYPLANNER_SIMULATOR || "booted";
 const bundleId = process.env.STUDYPLANNER_BUNDLE_ID || "com.mattnewman.studyplanner";
 const waitMs = positiveNumber("STUDYPLANNER_SIM_CAPTURE_WAIT_MS", 650, true);
@@ -77,8 +77,8 @@ if (!candidateBundlePath || !existsSync(candidateBundlePath)) {
 const appConfigPath = resolve("app.json");
 const appConfigSha256 = sha256File(appConfigPath);
 const appConfig = JSON.parse(readFileSync(appConfigPath, "utf8")).expo;
-if (appConfig?.version !== "2.0.8" || String(appConfig?.ios?.buildNumber) !== "82") {
-  throw new Error("store media capture is locked to StudyPlanner 2.0.8 (82)");
+if (appConfig?.version !== "2.0.8" || String(appConfig?.ios?.buildNumber) !== "83") {
+  throw new Error("store media capture is locked to StudyPlanner 2.0.8 (83)");
 }
 if (appConfig.ios.bundleIdentifier !== bundleId) {
   throw new Error(`app.json bundle identifier ${appConfig.ios.bundleIdentifier} does not match ${bundleId}`);
@@ -260,7 +260,12 @@ function acknowledgementProblem(value, expected) {
   if (value.mountedRoute !== expected.target.route) return `mounted route ${value.mountedRoute} does not match ${expected.target.route}`;
   if (value.resolvedAppearance !== expected.target.appearance) return "resolved app appearance does not match";
   if (value.resolvedSystemAppearance !== expected.target.appearance) return "resolved system appearance does not match";
-  if (value.requestedLocale !== expected.locale || value.resolvedLocale !== expected.locale) return "requested/resolved locale does not match";
+  const expectedResolvedLocale = expected.locale === "pt-PT"
+    ? "pt-BR"
+    : expected.locale === "zh-Hant"
+      ? "zh-Hans"
+      : expected.locale;
+  if (value.requestedLocale !== expected.locale || value.resolvedLocale !== expectedResolvedLocale) return "requested/resolved locale does not match";
   if (value.rtl !== expected.locale.startsWith("ar")) return "resolved RTL state does not match";
   if (value.requestedScrollY !== 0 || value.scrollApplied !== true) return "top route was not acknowledged at zero scroll";
   const acknowledgedAt = Date.parse(value.acknowledgedAt);

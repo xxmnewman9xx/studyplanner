@@ -38,7 +38,7 @@ const DEVICES = Object.freeze({
 
 const args = process.argv.slice(2);
 if (args.includes("--help")) {
-  console.log("Usage: node scripts/create-build82-chatgpt-preview-queue.mjs --iphone-root DIR --ipad-root DIR --reference-one PNG --reference-two PNG [--out JSON]");
+  console.log("Usage: node scripts/create-build83-chatgpt-preview-queue.mjs --iphone-root DIR --ipad-root DIR --reference-one PNG --reference-two PNG [--out JSON]");
   process.exit(0);
 }
 
@@ -47,8 +47,8 @@ const roots = {
   ipad: requiredPath("--ipad-root"),
 };
 const references = [requiredPath("--reference-one"), requiredPath("--reference-two")];
-const outputPath = resolve(valueArg("--out") || "qa/back-to-school-2026/build82-chatgpt-image2-preview-queue.json");
-const copyPath = resolve("docs/launch/back-to-school-2026/build82-five-slide-copy.json");
+const outputPath = resolve(valueArg("--out") || "qa/back-to-school-2026/build83-chatgpt-image2-preview-queue.json");
+const copyPath = resolve("docs/launch/back-to-school-2026/build83-five-slide-copy.json");
 const copy = JSON.parse(readFileSync(copyPath, "utf8"));
 const manifests = {
   iphone: readManifest(roots.iphone, DEVICES.iphone),
@@ -65,7 +65,7 @@ for (const [storeLocale, localizedSlides] of Object.entries(copy.localizations))
       const raw = findRaw(manifests[deviceKey], runtimeLocale, slide.target);
       const id = `${storeLocale}-${deviceKey}-${String(index + 1).padStart(2, "0")}`;
       const outputPathRecommended = join(
-        "store/apple/build82-chatgpt-image2",
+        "store/apple/build83-chatgpt-image2",
         storeLocale,
         device.slot,
         `${slide.id}.png`,
@@ -111,7 +111,7 @@ const payload = {
   model: "GPT Image 2.0",
   release: {
     appVersion: "2.0.8",
-    buildNumber: "82",
+    buildNumber: "83",
     runtimeSourceCommit: copy.sourceCommit,
     candidateBundleSha256: manifests.iphone.candidateBundleSha256,
   },
@@ -133,7 +133,7 @@ function promptFor({ device, slide, localized, storeLocale, sourceSha256 }) {
   return `GPT Image 2.0 in the ChatGPT Mac app: create exactly one final App Store screenshot PNG at exactly ${device.width}x${device.height} pixels.
 
 Attachment order:
-1. The first attached image is immutable real StudyPlanner Build 82 ${device.family} UI for locale ${storeLocale}. Its SHA-256 is ${sourceSha256}.
+1. The first attached image is immutable real StudyPlanner Build 83 ${device.family} UI for locale ${storeLocale}. Its SHA-256 is ${sourceSha256}.
 2. The second and third attached images are layout and art-direction references only.
 
 Product-truth requirement:
@@ -155,7 +155,7 @@ Keep the headline and subhead in the top 20-25% safe area. Make the real UI the 
 function readManifest(root, device) {
   const path = join(root, "manifest.json");
   const manifest = JSON.parse(readFileSync(path, "utf8"));
-  if (manifest.appVersion !== "2.0.8" || manifest.buildNumber !== "82") throw new Error(`${path}: expected Build 82`);
+  if (manifest.appVersion !== "2.0.8" || manifest.buildNumber !== "83") throw new Error(`${path}: expected Build 83`);
   if (!String(manifest.device?.name || "").includes(device.family)) throw new Error(`${path}: expected ${device.family}`);
   if (manifest.screenshotCount !== 72 || manifest.entries?.length !== 72) throw new Error(`${path}: expected 72 raw captures`);
   if (!manifest.installedBundleVerified || manifest.releaseEligible !== false || manifest.uploadAuthorized !== false) throw new Error(`${path}: unsafe raw provenance`);

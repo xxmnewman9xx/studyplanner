@@ -4,8 +4,8 @@
   "generatedAt": "2026-07-11T17:30:00Z",
   "release": {
     "version": "2.0.8",
-    "buildNumber": "82",
-    "sourceCommit": "a8ec2af6b74a84ea88459d51f634ee49f03de149"
+    "buildNumber": "83",
+    "sourceCommit": "081972c34f3191f9e8709d17c49630b72f07cc70"
   },
   "liveStateReadback": {
     "inAppEvent": {
@@ -46,7 +46,7 @@
     ],
     "regions": "all_available",
     "relatedInAppEventId": "6789245011",
-    "description": "Study Planner AI helps students turn the first stack of syllabi into a calm plan they control. Students scan or import class material, review detected courses, assignments, exams, and uncertain dates, then approve every deadline before anything is saved. Build 82 adds user-controlled System, Light, and Dark appearance with white-and-black app chrome while course colors stay distinct and native widgets adapt independently to the Home and Lock Screen. The release combines transparent review-before-save safeguards, focused study blocks built from real deadlines, accessible Dynamic Type and RTL layouts, and localized product and store experiences across 17 key student markets.",
+    "description": "Study Planner AI helps students turn the first stack of syllabi into a calm plan they control. Students scan or import class material, review detected courses, assignments, exams, and uncertain dates, then approve every deadline before anything is saved. Build 83 adds user-controlled System, Light, and Dark appearance with white-and-black app chrome while course colors stay distinct, Profile settings stay properly localized, and native widgets adapt independently to the Home and Lock Screen. The release combines transparent review-before-save safeguards, focused study blocks built from real deadlines, accessible Dynamic Type and RTL layouts, and localized product and store experiences across 17 key student markets.",
     "helpfulDetails": "Built by an independent developer focused on reducing semester overwhelm. The update pairs review-before-save OCR with real System, Light, and Dark support, native WidgetKit views, on-device planning data, Dynamic Type and RTL QA, and localized iPhone and iPad product pages. The seasonal event asks students to complete a concrete first-week setup goal rather than promoting general app awareness."
   },
   "copyQualityScore": {

@@ -87,7 +87,7 @@
     "qa:appearance-matrix": "node scripts/sim-qa-appearance-matrix.mjs",
     "check:appearance-matrix": "node scripts/audit-appearance-matrix.mjs",
     "check:appearance-matrix-spec": "node scripts/sim-qa-appearance-matrix.mjs --dry-run && node scripts/audit-appearance-matrix.mjs --dry-run",
-    "check:build82-release-packet": "node scripts/check-build82-release-packet.mjs",
+    "check:build83-release-packet": "node scripts/check-build83-release-packet.mjs",
     "check:localization": "node scripts/check-localization.mjs",
     "qa:release": "npm run check:activation-spine && npm run check:semester-kickoff && npm run check:dark-mode && npm run check:localization && npm run check:appearance-matrix-spec && npm run check:eas-production-env && tsx scripts/check-semester-ownership-cycle.ts && npm run test:runtime-safety && node scripts/check-release-docs.mjs && npm run check:ios-privacy && npm run check:release-media-provenance && npm run check:build52"
   },

@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 
 export const APPEARANCE_MATRIX_SPEC = Object.freeze({
-  id: "studyplanner-build81-dark-mode-v9",
-  schemaVersion: 9,
+  id: "studyplanner-build83-appearance-v10",
+  schemaVersion: 10,
   fixtureQaState: "build57",
   conditionalDeepCapturePolicy: Object.freeze({
     reason: "source-has-no-meaningful-scroll-range",
@@ -175,7 +175,10 @@ export function captureScrollYForTarget(target, sourceAcknowledgement) {
   if (conditionalDeepCaptureSkipReason(target, sourceAcknowledgement)) {
     throw new Error(`${target.key}: source target ${target.scrollPlan.sourceTarget} has no meaningful scroll range`);
   }
-  if (target.scrollPlan.anchor === "end") return Math.floor(maxScrollY);
+  // The simulator capture bridge intentionally clamps requested offsets to
+  // 20,000 points. Keep the shared capture/audit expectation inside that
+  // transport ceiling while still exercising the deepest reachable content.
+  if (target.scrollPlan.anchor === "end") return Math.min(Math.floor(maxScrollY), 20_000);
   if (target.scrollPlan.anchor === "fraction") {
     const fraction = Number(target.scrollPlan.fraction);
     const requestedScrollY = Math.round(maxScrollY * fraction);
