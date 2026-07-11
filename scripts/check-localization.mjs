@@ -78,6 +78,8 @@ expect(appSource.includes('textFor("scan.rail_review", "Review")} label={textFor
 const sourceFile = ts.createSourceFile("App.tsx", appSource, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 const runtimeCopyNode = objectLiteralForConst(sourceFile, "SCAN_REVIEW_RUNTIME_COPY");
 expect(Boolean(runtimeCopyNode), "Missing typed SCAN_REVIEW_RUNTIME_COPY table");
+const profileRuntimeCopyNode = objectLiteralForConst(sourceFile, "PROFILE_RUNTIME_COPY");
+expect(Boolean(profileRuntimeCopyNode), "Missing typed PROFILE_RUNTIME_COPY table");
 
 if (runtimeCopyNode) {
   const runtimeCopy = literalObject(runtimeCopyNode);
@@ -158,8 +160,57 @@ if (runtimeCopyNode) {
   );
 }
 
+if (profileRuntimeCopyNode) {
+  const profileCopy = literalObject(profileRuntimeCopyNode);
+  const locales = ["pt-BR", "ja", "ko", "zh-Hans", "hi"];
+  const requiredKeys = [
+    "profile.active_semester",
+    "profile.reminders",
+    "profile.active_count",
+    "profile.import_history",
+    "profile.import_count",
+    "profile.manage_subscription",
+    "profile.apple_account",
+    "profile.google_play",
+    "profile.privacy_policy",
+    "profile.studyplanner_data",
+    "profile.terms_use",
+    "profile.subscription_terms",
+    "profile.email_help",
+    "profile.subscribed",
+    "profile.locked",
+    "profile.on_device",
+    "profile.semester_progress",
+    "profile.classes_count",
+    "profile.no_semester",
+    "profile.subscription",
+    "profile.subscription_body",
+    "common.support",
+    "reminders.configured_count",
+    "profile.accessibility_open_hint",
+    "profile.accessibility_manage_hint",
+    "profile.accessibility_unlock_hint",
+    "profile.accessibility_row_hint",
+    "paywall.accessibility_privacy_hint",
+    "paywall.accessibility_terms_hint",
+    "paywall.accessibility_support_hint",
+  ];
+  expect(Object.keys(profileCopy).sort().join("|") === [...locales].sort().join("|"), "Profile runtime table must cover exactly the five locales that previously fell back to repeated labels");
+  for (const locale of locales) {
+    const copy = profileCopy[locale] || {};
+    expect(requiredKeys.every((key) => typeof copy[key] === "string" && copy[key].trim().length > 0), `${locale} is missing required Profile runtime copy`);
+    expect(requiredKeys.every((key) => Object.hasOwn(copy, key)), `${locale} Profile runtime copy must not rely on category fallback`);
+    expect(new Set([copy["profile.reminders"], copy["profile.import_history"], copy["profile.manage_subscription"], copy["profile.privacy_policy"], copy["profile.terms_use"], copy["common.support"]]).size === 6, `${locale} Profile row labels must remain distinct`);
+    expect(placeholders(copy["profile.active_count"] || "").join("|") === "count", `${locale} profile.active_count placeholder parity failed`);
+    expect(placeholders(copy["profile.import_count"] || "").join("|") === "count", `${locale} profile.import_count placeholder parity failed`);
+    expect(placeholders(copy["profile.classes_count"] || "").join("|") === "count", `${locale} profile.classes_count placeholder parity failed`);
+    expect(placeholders(copy["reminders.configured_count"] || "").join("|") === "count", `${locale} reminders.configured_count placeholder parity failed`);
+  }
+}
+
 expect(appSource.includes('Object.assign(APP_COPY[locale], SCAN_REVIEW_RUNTIME_COPY[locale]);'), "Scan/Review runtime copy must be applied to APP_COPY");
 expect(appSource.lastIndexOf("SCAN_REVIEW_RUNTIME_COPY[locale]") > appSource.lastIndexOf("EDITORIAL_POLISH_COPY[locale]"), "Scan/Review runtime copy must be the final locale overlay");
+expect(appSource.includes("if (profileRuntimeCopy) Object.assign(APP_COPY[locale], profileRuntimeCopy);"), "Profile runtime copy must be applied to APP_COPY");
 expect(!appSource.includes("{imp.status} -"), "Import history must not render a raw internal status");
 expect(!/>to<\/Text>/.test(appSource), "Review date changes must not hard-code an English connector");
 expect(!appSource.includes('textFor("class.assignment", "Type")'), "Review type fields must use the assessment.type localization key");
