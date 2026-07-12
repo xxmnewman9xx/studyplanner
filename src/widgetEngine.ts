@@ -3,6 +3,7 @@ import { AppData, ClassItem, ExamItem, SemanticColorState, TaskItem, WidgetDensi
 import { buildSemesterSnapshot, colorForState, dateKey, daysUntilTask } from "./intelligence";
 import { buildSemesterNarrative } from "./semesterNarrative";
 import { resolveSemesterThemeColor } from "./semesterTheme";
+import { formatPlannerTime, normalizeStorefrontLocale, type StorefrontLocale } from "./storefrontLocale";
 
 export type NativeWidgetKind = "today" | "upcoming" | "week" | "classProgress";
 
@@ -205,9 +206,9 @@ function liquidBackgroundFor(state: string) {
   return "#F9FAFC";
 }
 
-function widgetUpdatedLabel(iso: string, t: WidgetCopy = defaultWidgetCopy) {
+function widgetUpdatedLabel(iso: string, t: WidgetCopy = defaultWidgetCopy, locale: StorefrontLocale = "en-US") {
   try {
-    const time = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date(iso));
+    const time = new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit" }).format(new Date(iso));
     return t("widget.native.updated_time", "Updated {time}", { time });
   } catch {
     return t("widget.native.updated_now", "Updated now");
@@ -404,8 +405,8 @@ function localizedGeneratedText(value: string | undefined, t: WidgetCopy, generi
   return t(genericKey, genericFallback);
 }
 
-function localizedClassScheduleFootnote(klass: ClassItem, t: WidgetCopy) {
-  const time = klass.time || t("widget.native.time_tbd", "Time TBD");
+function localizedClassScheduleFootnote(klass: ClassItem, t: WidgetCopy, locale: StorefrontLocale) {
+  const time = klass.time ? formatPlannerTime(klass.time, locale) : t("widget.native.time_tbd", "Time TBD");
   const room = localizedGeneratedText(klass.room || "Room TBD", t, "widget.native.room_tbd", "Room TBD");
   return `${time} · ${room}`;
 }
@@ -428,7 +429,11 @@ export function buildSemesterLoop(data: AppData): SemesterLoop {
   };
 }
 
-export function buildNativeWidgetSnapshots(data: AppData, t: WidgetCopy = defaultWidgetCopy): NativeWidgetSnapshots {
+export function buildNativeWidgetSnapshots(
+  data: AppData,
+  t: WidgetCopy = defaultWidgetCopy,
+  locale: StorefrontLocale = normalizeStorefrontLocale(Intl.DateTimeFormat().resolvedOptions().locale) || "en-US"
+): NativeWidgetSnapshots {
   const now = new Date().toISOString();
   const density = data.prefs.widgetDensity || "balanced";
   const widgetTheme = activeTheme(data);
@@ -522,7 +527,7 @@ export function buildNativeWidgetSnapshots(data: AppData, t: WidgetCopy = defaul
     backgroundColor: themedBackground(snapshot.semesterHealth.colorState),
     styleLabel: widgetThemeLabel(widgetTheme, t),
     densityLabel: widgetDensityLabel(density, t),
-    updatedLabel: widgetUpdatedLabel(now, t),
+    updatedLabel: widgetUpdatedLabel(now, t, locale),
     openURL: "studyplanner://today",
   };
 
@@ -587,7 +592,7 @@ export function buildNativeWidgetSnapshots(data: AppData, t: WidgetCopy = defaul
       headline: classFocus.code,
       value: localizedGeneratedText(classPulse?.forecastLabel || classFocus.grade, t, "widget.native.forecast", "Forecast"),
       detail: classPulse?.mode === "unknown" ? t("widget.native.add_grade", "Add grade") : t("widget.native.forecast", "Forecast"),
-      footnote: classPulse?.nudge ? localizedGeneratedText(classPulse.nudge, t, "widget.native.detail_review_next_item", "Review the next planner item.") : classTasks[0]?.title || localizedClassScheduleFootnote(classFocus, t),
+      footnote: classPulse?.nudge ? localizedGeneratedText(classPulse.nudge, t, "widget.native.detail_review_next_item", "Review the next planner item.") : classTasks[0]?.title || localizedClassScheduleFootnote(classFocus, t, locale),
       signalLabel: classPulse?.trend ? localizedGeneratedText(classPulse.trend, t, "widget.native.class_pulse", "Class pulse") : t("widget.native.class_pulse", "Class pulse"),
       timelineLabel: classFocus.code,
       accentColor: classPulse ? accentForState(classPulse.colorState) : semesterAccent,
@@ -602,14 +607,14 @@ export function buildNativeWidgetSnapshots(data: AppData, t: WidgetCopy = defaul
   };
 }
 
-export async function syncNativeWidgets(data: AppData, t: WidgetCopy = defaultWidgetCopy): Promise<WidgetSyncStatus> {
+export async function syncNativeWidgets(data: AppData, t: WidgetCopy = defaultWidgetCopy, locale?: StorefrontLocale): Promise<WidgetSyncStatus> {
   if (Platform.OS !== "ios") {
     return { state: "skipped", message: t("widget.native.sync_iphone_only", "Native widgets sync on iPhone builds.") };
   }
 
   try {
     const widgets = require("./widgets/StudyPlannerWidgets");
-    const snapshots = buildNativeWidgetSnapshots(data, t);
+    const snapshots = buildNativeWidgetSnapshots(data, t, locale);
     widgets.StudyPlannerTodayWidget.updateSnapshot(snapshots.today);
     widgets.StudyPlannerUpcomingWidget.updateSnapshot(snapshots.upcoming);
     widgets.StudyPlannerWeekWidget.updateSnapshot(snapshots.week);

@@ -29,13 +29,13 @@ const finishPurchaseSource = finishPurchaseStart >= 0 && finishPurchaseEnd > fin
   : "";
 
 expect(appSource.includes('type AccessState = "loading" | "onboarding" | "preview_allowed" | "locked" | "paywall" | "unlocked"'), "single AccessState union must exist");
-expect(appJson.version === "2.0.8" && appJson.ios?.buildNumber === "83" && appJson.android?.versionCode === 79, "release metadata must be iOS 2.0.8 (83) with Android remaining at 79");
+expect(appJson.version === "2.0.8" && appJson.ios?.buildNumber === "84" && appJson.android?.versionCode === 79, "release metadata must be iOS 2.0.8 (84) with Android remaining at 79");
 expect(appJson.android?.package === "com.mattnewman.studyplanner", "Android package must match the Play app");
-expect(!xcodeProject.includes("CURRENT_PROJECT_VERSION = 81;") && (xcodeProject.match(/CURRENT_PROJECT_VERSION = 82;/g) || []).length >= 4, "native iOS app and widget project versions must be 82");
+expect((xcodeProject.match(/CURRENT_PROJECT_VERSION = 84;/g) || []).length >= 4, "native iOS app and widget project versions must be 84");
 expect((xcodeProject.match(/MARKETING_VERSION = 2\.0\.8;/g) || []).length >= 4, "native app and widget marketing versions must be 2.0.8");
 expect([appInfoPlist, widgetInfoPlist].every((plist) => {
   const inheritsBuildSettings = plist.includes("<string>$(MARKETING_VERSION)</string>") && plist.includes("<string>$(CURRENT_PROJECT_VERSION)</string>");
-  const matchesGeneratedRelease = plist.includes("<string>2.0.8</string>") && plist.includes("<string>82</string>");
+  const matchesGeneratedRelease = plist.includes("<string>2.0.8</string>") && plist.includes("<string>84</string>");
   return inheritsBuildSettings || matchesGeneratedRelease;
 }), "native Info.plist files must inherit or exactly match Xcode marketing/build versions");
 expect(/function entitlementUnlocks[\s\S]{0,160}return entitlementStatus === "active";/.test(appSource), "only active StoreKit entitlement may unlock");
@@ -99,7 +99,7 @@ expect(seedSource.includes('scanIntent: "Scan with camera"') && storageSource.in
 expect(appSource.includes("What should StudyPlanner call you?") && appSource.includes("Your first name"), "onboarding must ask for name first");
 expect(appSource.includes('"onboarding.nice": "Nice, {name}."') && appSource.includes('textFor("onboarding.nice", "Nice, {name}.", { name: firstName })'), "onboarding must personalize the setup");
 expect(appSource.includes('const steps = ["name", "priorities", "build"]'), "onboarding must stay concise while collecting name, context, priority, and build action");
-expect(appSource.includes('scanIntent: data.prefs.scanIntent || "Scan with camera"') && appSource.includes('const scanOptions = ["Scan with camera", "Paste syllabus", "Add manually"]'), "camera scan must be the default first onboarding intent with fewer choices");
+expect(appSource.includes('scanIntent: "Scan with camera"') && appSource.includes('const scanFirstProfile = index === steps.length - 1 ? { ...source, scanIntent: "Scan with camera" } : source'), "camera scan must be the single default onboarding intent");
 expect(["Paste syllabus", "Add manually", "Scan with camera"].every((label) => appSource.includes(label)), "simplified action step must expose camera, paste, and manual fallback");
 expect(appSource.includes('studentType: source.studentType') && appSource.includes('mainGoal: source.mainGoal') && appSource.includes('renderChoiceGrid("studentType", studentTypeOptions)') && appSource.includes('renderChoiceGrid("mainGoal", goalOptions)'), "onboarding must persist the student context and priority that shape the live planner");
 expect(!appSource.includes('step === "studentType"') && !appSource.includes('step === "mainGoal"') && !appSource.includes('step === "artifacts"'), "personalization must stay consolidated instead of restoring legacy option-heavy setup screens");
@@ -133,12 +133,11 @@ expect(!appSource.includes("No active schedule") && !appSource.includes("No dash
 expect(appSource.includes('const showTabs = entitlementUnlocks(data, entitlementStatus)'), "normal tab bar must be entitlement-gated");
 expect(appSource.includes('displayRoute === "today" ? <Today') && appSource.includes('setStack([{ route: "lockedDashboard" }])'), "deep links to real app routes must resolve to locked home before entitlement");
 
-expect(appSource.includes('if (source.scanIntent === "Paste syllabus") nav.push("paywall", { next: "paste", mode: "syllabus" })'), "paste onboarding choice must route through hard paywall continuation");
-expect(appSource.includes('else if (source.scanIntent === "Add manually") nav.push("paywall", { next: "paste", mode: "manual" })'), "manual onboarding choice must route through hard paywall continuation");
+expect(appSource.includes('textFor("scan.paste_text", "Paste text")') && appSource.includes('textFor("classes.add_manual", "Add class manually")'), "Scan must keep paste and manual entry as visible fallback paths");
 expect(!appSource.includes('source.scanIntent === "Skip for now"') && !appSource.includes('completeAnd("lockedDashboard")'), "skip setup path must stay removed from onboarding and import options");
-expect(appSource.includes('else nav.push("paywall", { next: "scan", action: "camera" })'), "camera onboarding choice must carry selected scan action into paywall continuation");
-expect(appSource.includes('nav.push("paywall", { next: "scan", action: "camera" })') && appSource.includes('const cameraIntent = !currentImport && (params.action === "camera" || data.prefs.scanIntent === "Scan with camera")'), "locked/paywall funnel must preserve camera intent");
-expect(appSource.includes('(step === "priorities" && !prioritiesComplete) ? undefined : next}') && appSource.includes('cameraIntentSelected ? textFor("onboarding.unlock_to_scan", "Unlock to scan")') && !appSource.includes('setTimeout(() => next(nextProfile)'), "onboarding must require a name and personalization choices, then use an explicit sticky CTA instead of auto-routing");
+expect(appSource.includes('nav.push("paywall", { next: "scan", action: "camera" })'), "scan-first onboarding must carry camera intent into paywall continuation");
+expect(appSource.includes('const cameraIntent = !currentImport && explicitDestination === "scan" && params.action !== "pdf"'), "locked/paywall funnel must preserve camera intent");
+expect(appSource.includes('onPress={(step === "name" && !cleanProfileName) || (step === "priorities" && !prioritiesComplete) ? undefined : next}') && appSource.includes('textFor("onboarding.unlock_to_scan", "Unlock to scan")') && !appSource.includes('setTimeout(() => next(nextProfile)'), "onboarding must require a name and personalization choices, then use an explicit scan-first sticky CTA instead of auto-routing");
 expect(appSource.includes("function PasteImport") && appSource.includes('params.mode === "manual"') && appSource.includes("Preview manual plan"), "manual class fallback must create a previewable import artifact");
 expect(appSource.includes('params.action === "pdf"') && appSource.includes("runPdfImport()") && appSource.includes('params.action === "camera"') && appSource.includes('runImageOcr("camera", "syllabus")'), "scan screen must auto-run selected onboarding action");
 expect(appSource.includes("if (!data.prefs.premium)") && appSource.includes('nav.push("paywall")'), "import apply must route to paywall without premium");
@@ -170,9 +169,9 @@ const pkg = JSON.parse(packageSource);
 expect(pkg.scripts?.["check:build52"] === "node scripts/check-build52.mjs", "package.json must expose check:build52");
 
 if (failures.length) {
-  console.error("Build 83 checks failed:");
+  console.error("Build 84 checks failed:");
   failures.forEach((failure) => console.error(`- ${failure}`));
   process.exit(1);
 }
 
-console.log("Build 83 access, onboarding, appearance, and locked funnel checks passed.");
+console.log("Build 84 access, onboarding, appearance, and locked funnel checks passed.");

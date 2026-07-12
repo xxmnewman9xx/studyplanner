@@ -43,11 +43,12 @@ const checks = [
       appSource.includes('const showTabs = entitlementUnlocks(data, entitlementStatus)'),
   },
   {
-    name: "every onboarding source routes to paywall before scanner or import",
+    name: "scan-first onboarding routes to paywall before scanner or import",
     pass:
-      onboardingSource.includes('source.scanIntent === "Paste syllabus") nav.push("paywall", { next: "paste", mode: "syllabus" })') &&
-      onboardingSource.includes('source.scanIntent === "Add manually") nav.push("paywall", { next: "paste", mode: "manual" })') &&
+      onboardingSource.includes('scanIntent: "Scan with camera"') &&
+      onboardingSource.includes('const scanFirstProfile = index === steps.length - 1 ? { ...source, scanIntent: "Scan with camera" } : source') &&
       onboardingSource.includes('nav.push("paywall", { next: "scan", action: "camera" })') &&
+      !onboardingSource.includes('nav.push("paywall", { next: "paste"') &&
       !onboardingSource.includes('nav.push("cameraScanner"') &&
       !onboardingSource.includes('nav.push("paste",'),
   },
@@ -89,6 +90,7 @@ const checks = [
       appSource.includes("const paywallDestinationRef = useRef<NavItem | null>(null)") &&
       appSource.includes('if (params.next === "scan") return { route: "scan"') &&
       appSource.includes('if (params.next === "paste") return { route: "paste"') &&
+      appSource.includes('return { route: "scan", params: { action: "camera" } };') &&
       appSource.includes('if (route === "paywall") paywallDestinationRef.current = { route, params }') &&
       appSource.includes('activateEntitlement(entitlement.productId, entitlement.checkedAt, { destination: paywallDestinationRef.current })'),
   },

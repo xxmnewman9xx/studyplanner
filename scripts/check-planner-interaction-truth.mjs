@@ -51,7 +51,7 @@ assert.doesNotMatch(widgets, /Boolean\(data\.prefs\.widgetLastSyncedAt\)/, "A hi
 assert.doesNotMatch(widgets, /updateWidgetPrefs\(\{ osLive: true \}\)/, "Widget sync must not claim OS-live before native confirmation");
 assert.match(widgets, /if \(status\.state === "synced"\) \{[\s\S]*updateWidgetPrefs\(\{ osLive: true, widgetLastSyncedAt: status\.updatedAt \|\| new Date\(\)\.toISOString\(\) \}\)/, "Widget sync must persist live state only after native confirmation");
 assert.match(widgets, /else \{\s*updateWidgetPrefs\(\{ osLive: false, widgetLastSyncedAt: undefined \}\)/, "Resolved widget sync failures must invalidate historical evidence");
-assert.match(appSource, /const status = await syncNativeWidgets\(widgetSyncData, widgetCopyFor\);\s*if \(status\.state !== "synced"\)/, "automatic widget sync must inspect resolved failure states");
+assert.match(appSource, /const status = await syncNativeWidgets\(widgetSyncData, widgetCopyFor, storefrontLocale\(\)\);\s*if \(status\.state !== "synced"\)/, "automatic localized widget sync must inspect resolved failure states");
 assert.doesNotMatch(widgets, /data\.prefs\.premium \? textFor\("widgets\.ready", "ready"\)/, "Unlocked widget previews must not be labeled synced before native confirmation");
 assert.match(applySuccess, /nav\.push\("widgets"\)/, "Apply Success must push Widgets so Back has a real route");
 assert.doesNotMatch(applySuccess, /nav\.tab\("widgets"\)/, "Widgets must not be installed as a hidden tab root");

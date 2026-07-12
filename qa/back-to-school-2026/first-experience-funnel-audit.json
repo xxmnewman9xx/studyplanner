@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-11T01:47:55.867Z",
+  "generatedAt": "2026-07-12T19:47:35.569Z",
   "status": "ready",
   "funnel": {
     "steps": [
@@ -7,18 +7,15 @@
       "priorities",
       "build"
     ],
-    "scanOptions": [
-      "Scan with camera",
-      "Paste syllabus",
-      "Add manually"
-    ],
+    "scanOptions": [],
     "maxClicksToPaywallWithOptionChange": 4,
     "personalization": {
       "nameStep": false,
       "personalBuildTitle": true
     },
     "activeRoutes": {
-      "camera": "paywall?next=scan&action=camera -> cameraScanner after StoreKit entitlement",
+      "primary": "onboarding -> paywall?next=scan&action=camera -> scan after StoreKit entitlement",
+      "camera": "scan -> cameraScanner",
       "paste": "paywall?next=paste&mode=syllabus -> paste after StoreKit entitlement",
       "manual": "paywall?next=paste&mode=manual -> manual setup after StoreKit entitlement"
     }
@@ -40,9 +37,9 @@
       "detail": "steps=[\"name\",\"priorities\",\"build\"]"
     },
     {
-      "name": "onboarding exposes only three build choices",
+      "name": "onboarding is scan-first with fallbacks deferred to Scan",
       "pass": true,
-      "detail": "scanOptions=[\"Scan with camera\",\"Paste syllabus\",\"Add manually\"]"
+      "detail": "Expected onboarding to lead with syllabus scanning and keep Paste/Manual on the Scan screen."
     },
     {
       "name": "first setup surface has no skip path",
@@ -55,9 +52,9 @@
       "detail": "maxClicksToPreviewWithOptionChange=4"
     },
     {
-      "name": "scan, paste, and manual onboarding routes hit paywall before import",
+      "name": "scan-first onboarding hits paywall before import",
       "pass": true,
-      "detail": "Expected every onboarding source to open the purchase route before camera, paste, or manual input."
+      "detail": "Expected fresh onboarding and a generic successful unlock to continue to Scan."
     },
     {
       "name": "paywall is a full screen, not a transient popup",

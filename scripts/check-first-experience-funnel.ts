@@ -113,13 +113,16 @@ pushCheck(checks, {
 });
 
 pushCheck(checks, {
-  name: "onboarding exposes only three build choices",
+  name: "onboarding is scan-first with fallbacks deferred to Scan",
   pass:
-    scanOptions.length === 3 &&
-    scanOptions[0] === "Scan with camera" &&
-    scanOptions[1] === "Paste syllabus" &&
-    scanOptions[2] === "Add manually",
-  detail: `scanOptions=${JSON.stringify(scanOptions)}`,
+    scanOptions.length === 0 &&
+    onboarding.includes('scanIntent: "Scan with camera"') &&
+    onboarding.includes('const scanFirstProfile = index === steps.length - 1 ? { ...source, scanIntent: "Scan with camera" } : source') &&
+    onboarding.includes('nav.push("paywall", { next: "scan", action: "camera" })') &&
+    !onboarding.includes('nav.push("paywall", { next: "paste"') &&
+    appSource.includes('textFor("scan.paste_text", "Paste text")') &&
+    appSource.includes('textFor("classes.add_manual", "Add class manually")'),
+  detail: "Expected onboarding to lead with syllabus scanning and keep Paste/Manual on the Scan screen.",
 });
 
 pushCheck(checks, {
@@ -139,14 +142,13 @@ pushCheck(checks, {
 });
 
 pushCheck(checks, {
-  name: "scan, paste, and manual onboarding routes hit paywall before import",
+  name: "scan-first onboarding hits paywall before import",
   pass:
-    onboarding.includes('source.scanIntent === "Paste syllabus") nav.push("paywall", { next: "paste", mode: "syllabus" })') &&
-    onboarding.includes('source.scanIntent === "Add manually") nav.push("paywall", { next: "paste", mode: "manual" })') &&
     onboarding.includes('nav.push("paywall", { next: "scan", action: "camera" })') &&
     !onboarding.includes('nav.push("cameraScanner"') &&
-    !onboarding.includes('nav.push("paste",'),
-  detail: "Expected every onboarding source to open the purchase route before camera, paste, or manual input.",
+    !onboarding.includes('nav.push("paste",') &&
+    appSource.includes('return { route: "scan", params: { action: "camera" } };'),
+  detail: "Expected fresh onboarding and a generic successful unlock to continue to Scan.",
 });
 
 pushCheck(checks, {
@@ -175,7 +177,7 @@ pushCheck(checks, {
     paywall.includes("Auto-renews until canceled.") &&
     paywall.includes("trialPlan ? (") &&
     paywall.includes("selectedPlanHasOneWeekTrial ?") &&
-    paywall.includes("paddingBottom: 180") &&
+    (paywall.includes("paddingBottom: 180") || paywall.includes("paddingBottom: (accessibilityLayout ? 24 : 180) + insets.bottom")) &&
     paywall.includes("selectedPlanSummary") &&
     iapSource.includes('offer.paymentMode !== "free-trial"') &&
     iapSource.includes('offer.periodUnit === "week" && totalUnits === 1') &&
@@ -190,6 +192,7 @@ pushCheck(checks, {
     appSource.includes("const paywallDestinationRef = useRef<NavItem | null>(null)") &&
     appSource.includes('if (params.next === "scan") return { route: "scan"') &&
     appSource.includes('if (params.next === "paste") return { route: "paste"') &&
+    appSource.includes('return { route: "scan", params: { action: "camera" } };') &&
     appSource.includes('if (route === "paywall") paywallDestinationRef.current = { route, params }') &&
     appSource.includes('activateEntitlement(entitlement.productId, entitlement.checkedAt, { destination: paywallDestinationRef.current })'),
   detail: "Expected real StoreKit purchase updates to route to the selected scan/paste/manual/widget destination after unlock.",
@@ -251,7 +254,8 @@ const payload = {
       personalBuildTitle: onboarding.includes("onboarding.build_title_personal"),
     },
     activeRoutes: {
-      camera: 'paywall?next=scan&action=camera -> cameraScanner after StoreKit entitlement',
+      primary: 'onboarding -> paywall?next=scan&action=camera -> scan after StoreKit entitlement',
+      camera: 'scan -> cameraScanner',
       paste: 'paywall?next=paste&mode=syllabus -> paste after StoreKit entitlement',
       manual: 'paywall?next=paste&mode=manual -> manual setup after StoreKit entitlement',
     },

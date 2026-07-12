@@ -1,5 +1,13 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
 import { I18nManager } from "react-native";
+import {
+  contentLocaleForStorefront,
+  isRTLStorefront,
+  normalizeStorefrontLocale,
+  storefrontLocales,
+  type ContentLocale,
+  type StorefrontLocale,
+} from "./storefrontLocale";
 
 declare const require: (path: string) => unknown;
 declare const process:
@@ -15,22 +23,13 @@ type LaunchStrings = {
   [key: string]: unknown;
 };
 
-const launchCatalog = require("../localized-app-strings/core-launch-strings.json") as Record<string, LaunchStrings>;
+const launchCatalog = require("../localized-app-strings/core-launch-strings.json") as Record<ContentLocale, LaunchStrings>;
+const storefrontRuntimeCopy = require("../localized-app-strings/storefront-runtime-copy.json") as {
+  locales: Partial<Record<StorefrontLocale, { launch?: LaunchStrings }>>;
+};
 
-export const supportedLocales = [
-  "ar",
-  "de",
-  "en-US",
-  "es",
-  "fr",
-  "hi",
-  "ja",
-  "ko",
-  "pt-BR",
-  "zh-Hans"
-] as const;
-
-export type SupportedLocale = typeof supportedLocales[number];
+export const supportedLocales = storefrontLocales;
+export type SupportedLocale = StorefrontLocale;
 
 type I18nContextValue = {
   locale: SupportedLocale;
@@ -48,7 +47,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     normalizeLocale(readLocaleOverride())
   );
   const locale = resolveLocale(localeOverride);
-  const direction = launchCatalog[locale]?.direction || "ltr";
+  const direction = launchStringsFor(locale).direction || (isRTLStorefront(locale) ? "rtl" : "ltr");
 
   const value = useMemo<I18nContextValue>(
     () => ({
@@ -71,7 +70,7 @@ export function useI18n() {
   if (context) return context;
 
   const locale = resolveLocale();
-  const direction = launchCatalog[locale]?.direction || "ltr";
+  const direction = launchStringsFor(locale).direction || (isRTLStorefront(locale) ? "rtl" : "ltr");
   return {
     locale,
     direction,
@@ -82,10 +81,10 @@ export function useI18n() {
 }
 
 export function translate(locale: SupportedLocale, key: string, fallback?: string) {
-  const localized = valueAtPath(launchCatalog[locale], key);
+  const localized = valueAtPath(launchStringsFor(locale), key);
   if (typeof localized === "string" && localized.trim()) return localized;
 
-  const fallbackValue = valueAtPath(launchCatalog[fallbackLocale], key);
+  const fallbackValue = valueAtPath(launchStringsFor(fallbackLocale), key);
   if (typeof fallbackValue === "string" && fallbackValue.trim()) return fallbackValue;
 
   return fallback || key;
@@ -105,20 +104,13 @@ function getRuntimeLocale() {
 }
 
 function normalizeLocale(value: string | undefined): SupportedLocale | undefined {
-  if (!value) return undefined;
-  const normalized = value.replace("_", "-");
-  if (isSupportedLocale(normalized)) return normalized;
-
-  const lower = normalized.toLowerCase();
-  if (lower === "pt" || lower.startsWith("pt-")) return "pt-BR";
-  if (lower === "zh" || lower.startsWith("zh-cn") || lower.startsWith("zh-hans")) return "zh-Hans";
-
-  const language = lower.split("-")[0];
-  return supportedLocales.find((locale) => locale.toLowerCase().split("-")[0] === language);
+  return normalizeStorefrontLocale(value);
 }
 
-function isSupportedLocale(value: string): value is SupportedLocale {
-  return supportedLocales.includes(value as SupportedLocale);
+function launchStringsFor(locale: SupportedLocale): LaunchStrings {
+  const exact = storefrontRuntimeCopy.locales[locale]?.launch;
+  if (exact) return exact;
+  return launchCatalog[contentLocaleForStorefront(locale)];
 }
 
 function valueAtPath(source: LaunchStrings | undefined, key: string): unknown {

@@ -12,6 +12,7 @@
     "expo-haptics": "~56.0.3",
     "expo-iap": "^4.3.1",
     "expo-image-picker": "~56.0.20",
+    "expo-localization": "~56.0.6",
     "expo-notifications": "~56.0.20",
     "expo-splash-screen": "~56.0.12",
     "expo-sqlite": "~56.0.5",
@@ -60,6 +61,7 @@
     "test:runtime-safety": "npm run test:date-engine && node scripts/check-storage-read-safety.mjs && node scripts/check-detail-route-safety.mjs && tsx scripts/check-fast-capture-truth.ts && tsx scripts/check-notification-deletion-cleanup.ts && npm run test:reminder-cancellation && npm run test:import-safety && npm run test:planner-interactions && npm run test:accessibility-semantics && npm run test:edit-forms && node scripts/check-note-deletion-safety.mjs",
     "test:widgets": "node scripts/check-widget-lock.mjs",
     "test:widget-integrity": "node scripts/check-widget-integrity.mjs",
+    "check:widget-native-keys": "npx expo prebuild --platform ios --no-install && node scripts/check-widget-native-keys.mjs",
     "test:back-to-school-widgets": "tsx scripts/check-back-to-school-widget-qa.ts",
     "check:iap": "node scripts/check-iap-config.mjs",
     "check:ios-privacy": "node scripts/check-ios-privacy-manifests.mjs",
@@ -67,7 +69,7 @@
     "check:release-media-provenance": "tsx scripts/check-release-media-provenance.ts",
     "check:first-experience": "tsx scripts/check-first-experience-funnel.ts",
     "check:asc-final-upload": "tsx scripts/check-asc-final-upload-bundle.ts",
-    "check:nomination-ready": "npm run check:first-experience && npm run check:asc-final-upload && npm run qa:release && npm run test:hard-paywall && npm run test:notes-stress && npm run test:syllabus-stress && npm run test:widgets && npm run test:widget-integrity && npm run test:back-to-school-widgets && npm run typecheck && git diff --check && tsx scripts/check-nomination-submit-readiness.ts",
+    "check:nomination-ready": "npm run check:first-experience && npm run check:asc-final-upload && npm run qa:release && npm run test:hard-paywall && npm run test:notes-stress && npm run test:syllabus-stress && npm run test:widgets && npm run test:widget-integrity && npm run check:widget-native-keys && npm run test:back-to-school-widgets && npm run typecheck && git diff --check && tsx scripts/check-nomination-submit-readiness.ts",
     "check:build41": "node scripts/check-build41-hardening.mjs",
     "check:build42": "node scripts/check-build42-living-semester.mjs",
     "check:build42-6": "tsx scripts/check-build42-6-trust-gauntlet.ts",
@@ -88,8 +90,9 @@
     "check:appearance-matrix": "node scripts/audit-appearance-matrix.mjs",
     "check:appearance-matrix-spec": "node scripts/sim-qa-appearance-matrix.mjs --dry-run && node scripts/audit-appearance-matrix.mjs --dry-run",
     "check:build83-release-packet": "node scripts/check-build83-release-packet.mjs",
+    "check:storefront-locales": "tsx scripts/check-storefront-locales.ts",
     "check:localization": "node scripts/check-localization.mjs",
-    "qa:release": "npm run check:activation-spine && npm run check:semester-kickoff && npm run check:dark-mode && npm run check:localization && npm run check:appearance-matrix-spec && npm run check:eas-production-env && tsx scripts/check-semester-ownership-cycle.ts && npm run test:runtime-safety && node scripts/check-release-docs.mjs && npm run check:ios-privacy && npm run check:release-media-provenance && npm run check:build52"
+    "qa:release": "npm run check:activation-spine && npm run check:semester-kickoff && npm run check:dark-mode && npm run check:storefront-locales && npm run check:localization && npm run check:appearance-matrix-spec && npm run check:eas-production-env && tsx scripts/check-semester-ownership-cycle.ts && npm run test:runtime-safety && node scripts/check-release-docs.mjs && npm run check:ios-privacy && npm run check:release-media-provenance && npm run check:build52"
   },
   "private": true
 }

@@ -12,7 +12,7 @@
       "supportsTablet": true,
       "appleTeamId": "5JN35MJ3QD",
       "bundleIdentifier": "com.mattnewman.studyplanner",
-      "buildNumber": "83",
+      "buildNumber": "84",
       "entitlements": {
         "com.apple.security.application-groups": [
           "group.com.mattnewman.studyplanner"
@@ -22,19 +22,31 @@
         "NSPrivacyAccessedAPITypes": [
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
-            "NSPrivacyAccessedAPITypeReasons": ["C617.1", "0A2A.1", "3B52.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "C617.1",
+              "0A2A.1",
+              "3B52.1"
+            ]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
-            "NSPrivacyAccessedAPITypeReasons": ["CA92.1", "1C8F.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "CA92.1",
+              "1C8F.1"
+            ]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
-            "NSPrivacyAccessedAPITypeReasons": ["E174.1", "85F4.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "E174.1",
+              "85F4.1"
+            ]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
-            "NSPrivacyAccessedAPITypeReasons": ["35F9.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "35F9.1"
+            ]
           }
         ]
       },
@@ -113,20 +125,6 @@
                   "accessoryCircular",
                   "accessoryRectangular"
                 ],
-                "configuration": {
-                  "title": "StudyPlanner Today",
-                  "description": "Choose the Today widget view.",
-                  "parameters": {
-                    "viewMode": {
-                      "title": "View",
-                      "type": "enum",
-                      "default": "today",
-                      "values": [
-                        { "name": "Today", "value": "today" }
-                      ]
-                    }
-                  }
-                },
                 "contentMarginsDisabled": true
               }
             },
@@ -143,20 +141,6 @@
                   "accessoryCircular",
                   "accessoryRectangular"
                 ],
-                "configuration": {
-                  "title": "StudyPlanner Upcoming",
-                  "description": "Choose the Upcoming widget view.",
-                  "parameters": {
-                    "viewMode": {
-                      "title": "View",
-                      "type": "enum",
-                      "default": "upcoming",
-                      "values": [
-                        { "name": "Upcoming", "value": "upcoming" }
-                      ]
-                    }
-                  }
-                },
                 "contentMarginsDisabled": true
               }
             },
@@ -172,20 +156,6 @@
                   "accessoryCircular",
                   "accessoryRectangular"
                 ],
-                "configuration": {
-                  "title": "StudyPlanner Week",
-                  "description": "Use the calendar widget view.",
-                  "parameters": {
-                    "viewMode": {
-                      "title": "View",
-                      "type": "enum",
-                      "default": "week",
-                      "values": [
-                        { "name": "Week", "value": "week" }
-                      ]
-                    }
-                  }
-                },
                 "contentMarginsDisabled": true
               }
             },
@@ -202,27 +172,39 @@
                   "accessoryCircular",
                   "accessoryRectangular"
                 ],
-                "configuration": {
-                  "title": "StudyPlanner Class",
-                  "description": "Use the class progress widget view.",
-                  "parameters": {
-                    "viewMode": {
-                      "title": "View",
-                      "type": "enum",
-                      "default": "classProgress",
-                      "values": [
-                        { "name": "Class", "value": "classProgress" }
-                      ]
-                    }
-                  }
-                },
                 "contentMarginsDisabled": true
               }
             }
           ]
         }
       ],
-      "./plugins/with-android-localized-string-defaults"
+      "./plugins/with-android-localized-string-defaults",
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": [
+              "ar-SA",
+              "de-DE",
+              "en-AU",
+              "en-CA",
+              "en-GB",
+              "en-US",
+              "es-ES",
+              "es-MX",
+              "fr-CA",
+              "fr-FR",
+              "hi",
+              "ja",
+              "ko",
+              "pt-BR",
+              "pt-PT",
+              "zh-Hans",
+              "zh-Hant"
+            ]
+          }
+        }
+      ]
     ],
     "locales": {
       "ar-SA": "./locales/ios/ar-SA.json",
@@ -244,6 +226,7 @@
       "zh-Hant": "./locales/ios/zh-Hant.json"
     },
     "extra": {
+      "supportsRTL": true,
       "eas": {
         "projectId": "69335c75-753e-424e-8a76-c8bd2455a112"
       }

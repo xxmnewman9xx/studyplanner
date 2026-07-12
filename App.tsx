@@ -5,7 +5,6 @@ import * as Notifications from "expo-notifications";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { File, Paths } from "expo-file-system";
 import { purchaseErrorListener, purchaseUpdatedListener } from "expo-iap";
-import OpenCC from "opencc-js/cn2t";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -100,7 +99,16 @@ import {
 } from "./src/intelligence";
 import { extractTextFromImage, hasNativeImageTextRecognition } from "./src/imageTextRecognition";
 import { countOcrWords } from "./src/ocrText";
-import { COLORS, THEMES, defaultData, formatDue, isoFromOffset, minutesLabel } from "./src/seed";
+import { COLORS, THEMES, defaultData, isoFromOffset, minutesLabel } from "./src/seed";
+import {
+  contentLocaleForStorefront,
+  formatPlannerTime,
+  formatPlannerTimeRange,
+  isRTLStorefront,
+  normalizeStorefrontLocale,
+  type StorefrontLocale,
+} from "./src/storefrontLocale";
+import storefrontRuntimeCopyJson from "./localized-app-strings/storefront-runtime-copy.json";
 import { AppearanceMode, AppData, ClassItem, ExamItem, FeedbackEvent, HealthDimensionKey, ImportBatch, ImportCandidate, NoteItem, ReminderItem, StudyBlock, TaskItem, ThemeId } from "./src/types";
 import { buildNativeWidgetSnapshots, buildSemesterLoop, syncNativeWidgets, type NativeWidgetKind, type NativeWidgetSnapshot, type WidgetCopy } from "./src/widgetEngine";
 import { cancelReminderNotificationIds, listPendingReminderNotifications, scheduleLocalReminders } from "./src/reminders";
@@ -200,7 +208,10 @@ function unlockDestinationFromPaywall(destination?: NavItem | null): NavItem | n
   if (params.id && ["classDetail", "taskDetail", "assessmentDetail", "studySession"].includes(params.next || "")) {
     return { route: params.next as Route, params: { id: params.id } };
   }
-  return null;
+  // A generic first unlock should always continue the activation spine instead
+  // of dropping the student on an empty dashboard. Paste and manual setup stay
+  // available as explicit fallbacks from the Scan screen.
+  return { route: "scan", params: { action: "camera" } };
 }
 
 function destinationFromNotificationData(value: unknown): NavItem | null {
@@ -678,11 +689,11 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
     "onboarding.artifacts_title": "Scan the syllabus. Review the plan. Start with a real next move.",
     "onboarding.artifacts_sub": "Camera scan is locked behind the App Store unlock. After unlock, every extracted class, deadline, exam, and widget signal waits for your review before it saves.",
     "onboarding.build_title": "Build your semester.",
-    "onboarding.paywall_first": "Pick how you want to start. Every path unlocks first, then opens the real scanner, PDF, paste, or manual review flow.",
+    "onboarding.paywall_first": "Scan your syllabus first. After unlock, camera and PDF lead into Review; paste and manual setup remain available as fallbacks.",
     "onboarding.camera_gate_title": "Unlock the camera scan.",
     "onboarding.camera_gate_body": "The guided camera opens after App Store unlock, reads the syllabus on this iPhone, then sends every row to review before anything saves.",
     "onboarding.paywall_gate_title": "Unlock first. Then build.",
-    "onboarding.paywall_gate_body": "Camera, PDF, paste, and manual setup start after the App Store unlock, so the first real import can become your live semester.",
+    "onboarding.paywall_gate_body": "Camera and PDF start after the App Store unlock. Paste and manual setup remain available on Scan if the syllabus is missing or hard to read.",
     "onboarding.unlock_to_scan": "Unlock camera scan",
     "onboarding.unlock_to_continue": "Unlock to continue",
     "onboarding.preview_title": "Preview first. Unlock when the plan is ready.",
@@ -752,7 +763,7 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
     "scan.limited_photos": "Photo access is limited. Pick an allowed image, open Settings for more access, or paste text.",
     "scan.quick_seed": "chem lab report due tomorrow, estimate 2 hours",
     "paywall.title": "{name}, unlock trusted syllabus scan.",
-    "paywall.sub_no_import": "Unlock first, then scan, upload, paste, or add manually. StudyPlanner shows every class, exam, and deadline for review before anything reaches your dashboard, widgets, reminders, or next moves.",
+    "paywall.sub_no_import": "Unlock first, then scan your syllabus. Camera and PDF lead into Review; paste and manual setup remain available as fallbacks before anything reaches your dashboard.",
     "paywall.sub_import": "Your preview is ready. Unlock, return to Review, then approve it for the live dashboard, reminders, and widgets.",
     "paywall.message_loading": "Connecting to the App Store...",
     "paywall.message_choose": "Choose a StudyPlanner plan to continue.",
@@ -1595,7 +1606,7 @@ const ONBOARDING_FUNNEL_COPY: Record<SupportedLocale, Record<string, string>> = 
 	    "onboarding.rating_title": "App Store checkout",
 	    "onboarding.rating_body": "Price, terms, and subscription confirmation appear before purchase.",
     "onboarding.paywall_gate_title": "Unlock first. Then scan.",
-    "onboarding.paywall_gate_body": "Camera, PDF, paste, and manual setup start after the App Store unlock, so the first real import can become your live semester.",
+    "onboarding.paywall_gate_body": "Camera and PDF start after the App Store unlock. Paste and manual setup remain available on Scan when the syllabus is missing or hard to read.",
 	    "onboarding.camera_gate_title": "Unlock the camera scan.",
 	    "onboarding.camera_gate_body": "The guided camera opens after App Store unlock, reads the syllabus on this iPhone, then sends every row to review before anything saves.",
 	    "onboarding.unlock_to_scan": "Unlock to scan",
@@ -1603,7 +1614,7 @@ const ONBOARDING_FUNNEL_COPY: Record<SupportedLocale, Record<string, string>> = 
     "onboarding.preview_kicker": "{goal} PLAN",
     "onboarding.preview_title": "{name}, unlock once, then review the first useful version.",
     "onboarding.preview_body": "After unlock, scan, paste, or add one class manually. You review the artifact before anything saves.",
-    "onboarding.paywall_first": "Unlock first, then scan, paste, or add manually. You still review everything before it saves.",
+    "onboarding.paywall_first": "Scan your syllabus first. After unlock, camera and PDF lead into Review; paste and manual setup remain available as fallbacks.",
     "onboarding.fallback_title": "No clean syllabus? Manual setup still works.",
     "onboarding.fallback_body": "Add one class and one deadline by hand. StudyPlanner turns it into the same review preview as scan or import.",
     "onboarding.manual_body": "Type one class and one deadline to build a preview",
@@ -1664,7 +1675,7 @@ const ONBOARDING_FUNNEL_COPY: Record<SupportedLocale, Record<string, string>> = 
     "review.accessibility_toggle_apply": "Toggle whether this row will be applied.",
     "review.accessibility_remove": "Remove {title}",
     "review.accessibility_remove_hint": "Deletes this row from the import review.",
-    "paywall.sub_no_import": "Unlock first, then scan, upload, paste, or add manually. StudyPlanner shows every class, exam, and deadline for review before anything reaches your dashboard, widgets, reminders, or next moves.",
+    "paywall.sub_no_import": "Unlock first, then scan your syllabus. Camera and PDF lead into Review; paste and manual setup remain available as fallbacks before anything reaches your dashboard.",
     "paywall.preview_first_sub": "Unlock first, then scan, upload, paste, or add manually. StudyPlanner shows every class, exam, and deadline for review before anything reaches your dashboard, widgets, reminders, or next moves.",
     "paywall.ready_apply": "Ready to apply",
     "paywall.best_value": "Best value",
@@ -4119,152 +4130,18 @@ for (const locale of supportedLocales) {
 let simulatorLocaleOverride: string | undefined;
 let simulatorCaptureScrollY = 0;
 
-type StoreLocaleVariant = "pt-PT" | "zh-Hant";
-
-const zhHansToTaiwan = OpenCC.Converter({ from: "cn", to: "tw" });
-
-const PT_PT_COPY_OVERRIDES: Record<string, string> = {
-  "common.save": "Guardar",
-  "common.delete": "Eliminar",
-  "common.archive": "Arquivar",
-  "common.restore": "Restaurar compras",
-  "tabs.classes": "Disciplinas",
-  "classes.title": "Gerir semestre",
-  "classes.truth": "Uma única fonte de verdade",
-  "classes.truth_body": "Corrige importações, acrescenta trabalho em falta e mantém Hoje, Plano, lembretes e widgets sincronizados.",
-  "classes.add": "Adicionar disciplina",
-  "classes.add_manual": "Adicionar disciplina manualmente",
-  "classes.empty_title": "Ainda não há disciplinas ativas.",
-  "classes.empty_body": "Começa manualmente se o programa estiver em falta, ilegível ou incorreto.",
-  "classes.restore": "Restaurar disciplina",
-  "class.code": "Código",
-  "class.name": "Nome",
-  "class.professor": "Docente",
-  "class.assignment": "Trabalho",
-  "class.assignments": "Trabalhos",
-  "class.assessment": "Avaliação",
-  "class.exams": "Próximas avaliações",
-  "scan.header": "Digitalizar",
-  "scan.title": "Importa. Revê. Começa.",
-  "scan.sub": "Captura qualquer material",
-  "scan.upload_pdf": "Carregar PDF do programa",
-  "scan.paste_text": "Colar texto",
-  "scan.notes_title": "Digitalizar apontamentos",
-  "scan.notes_body": "Resumos, conceitos, cartões, testes e tarefas de revisão.",
-  "scan.quick_title": "Captura rápida",
-  "scan.quick_body": "Escreve a disciplina, a tarefa, o prazo e a duração.",
-  "scan.quick_button": "Criar tarefa e reorganizar",
-  "review.title": "Rever importação",
-  "review.found": "O StudyPlanner encontrou o teu semestre.",
-  "review.classes": "disciplinas",
-  "review.assignments": "trabalhos",
-  "review.exams": "avaliações",
-  "review.approve": "Aprovar itens fiáveis",
-  "review.approve_count": "Aprovar {count} itens de elevada confiança",
-  "review.manual": "Configuração manual",
-  "review.apply": "Aplicar itens aprovados ({count})",
-  "review.keep_existing": "Manter existente",
-  "review.update_existing": "Atualizar existente",
-  "review.create_duplicate": "Criar duplicado",
-  "success.ready": "Semestre pronto",
-  "success.built": "Guardado a partir da digitalização aprovada.",
-  "success.open_dashboard": "Abrir painel",
-  "today.next_move": "Próximo passo",
-  "today.next_class": "Próxima aula",
-  "today.deadline": "Prazo",
-  "today.start_focus": "Começar foco",
-  "today.upcoming_deadlines": "Próximos prazos",
-  "today.upcoming_assessments": "Próximas avaliações",
-  "plan.title": "Plano",
-  "plan.autopilot": "Piloto automático",
-  "plan.rebuild": "Reconstruir plano",
-  "plan.focus_blocks": "Blocos de foco",
-  "plan.study": "Estudar",
-  "tasks.title": "Tarefas",
-  "notes.title": "Apontamentos",
-  "notes.scan": "Digitalizar apontamentos",
-  "notes.paste": "Colar apontamentos",
-  "notes.classes_count": "disciplinas",
-  "widgets.title": "Widgets",
-  "widgets.sub_ready": "Capturas do ecrã principal",
-  "widgets.ready_to_sync_title": "Widgets prontos a sincronizar",
-  "widgets.up_to_date_title": "Widgets atualizados",
-  "widgets.sync": "Sincronizar com o iPhone",
-  "widgets.refresh": "Atualizar widgets",
-  "widgets.row_today": "StudyPlanner Hoje",
-  "widgets.row_upcoming": "Próximos",
-  "widgets.row_week_calendar": "Calendário do semestre",
-  "widgets.row_class": "Progresso da disciplina",
-  "profile.manage_subscription": "Gerir subscrição",
-  "profile.semester_progress": "PROGRESSO DO SEMESTRE",
-  "option.paste_syllabus": "Colar programa",
-  "option.scan_camera": "Digitalizar com a câmara",
-  "preview.user": "Inês",
-  "preview.class1": "Estruturas de dados",
-  "preview.class2": "Química geral",
-  "preview.class3": "Seminário arquivado",
-  "preview.professor1": "Prof.ª Silva",
-  "preview.professor2": "Prof. Costa",
-  "preview.task1": "Discussão semanal",
-  "preview.task2": "Relatório de laboratório",
-  "preview.task3": "Reflexão de leitura",
-  "preview.exam1": "Avaliação 1",
-  "preview.note1": "Apontamentos sobre árvores binárias",
-  "preview.note2": "Apontamentos de titulação",
-  "preview.source": "Importação do programa",
-  "preview.state": "No bom caminho",
-  "preview.health": "Estável",
-  "preview.driver": "A carga mantém-se estável.",
-  "preview.next": "Preparar o relatório",
-  "preview.detail": "Um bloco de foco protege o plano.",
-  "preview.pressure": "Semana equilibrada",
-  "preview.notes": "Os apontamentos reforçam a preparação.",
-  "preview.forecast": "Estável",
-  "preview.reason": "O próximo prazo está claro.",
-  "preview.nudge": "Começa hoje um bloco de foco.",
-  "preview.mode": "atual",
-  "preview.signals": "sinais",
-  "preview.busy": "cheio",
-  "preview.clear": "Caminho livre",
-  "preview.nextClass": "próxima aula",
-  "preview.dueToday": "vence hoje",
-  "preview.assignments": "tarefas",
-  "preview.exams": "avaliações",
-  "preview.classPulse": "Pulso da disciplina",
-  "preview.classes": "Disciplinas",
-  "preview.allNotes": "Todos os apontamentos",
+type ExactStorefrontCopy = {
+  locales: Partial<Record<StorefrontLocale, {
+    app: Record<string, string>;
+    preview: Record<string, string>;
+    fixture: Record<string, string>;
+  }>>;
 };
 
-function storeLocaleVariant(): StoreLocaleVariant | null {
-  const envLocale = typeof process !== "undefined" ? process.env?.EXPO_PUBLIC_STUDYPLANNER_LOCALE : undefined;
-  let runtimeLocale = "";
-  try {
-    runtimeLocale = Intl.DateTimeFormat().resolvedOptions().locale;
-  } catch {
-    runtimeLocale = "";
-  }
-  const raw = (simulatorLocaleOverride || envLocale || runtimeLocale).replace("_", "-").toLowerCase();
-  if (raw === "pt-pt" || raw.startsWith("pt-pt-")) return "pt-PT";
-  if (raw === "zh-hant" || raw.startsWith("zh-hant-") || raw === "zh-tw" || raw.startsWith("zh-tw-")) return "zh-Hant";
-  return null;
-}
+const EXACT_STOREFRONT_COPY = storefrontRuntimeCopyJson as ExactStorefrontCopy;
 
-function europeanPortuguese(text: string) {
-  return [
-    ["Gerenciar", "Gerir"], ["gerenciar", "gerir"],
-    ["Salvar", "Guardar"], ["salvar", "guardar"],
-    ["Excluir", "Eliminar"], ["excluir", "eliminar"],
-    ["Tela de Início", "ecrã principal"], ["tela inicial", "ecrã principal"],
-    ["Arquivos", "Ficheiros"], ["arquivos", "ficheiros"], ["Arquivo", "Ficheiro"], ["arquivo", "ficheiro"],
-    ["planejador", "planeador"], ["celular", "telemóvel"],
-  ].reduce((value, [from, to]) => value.split(from).join(to), text);
-}
-
-function storeVariantText(key: string, text: string) {
-  const variant = storeLocaleVariant();
-  if (variant === "zh-Hant") return zhHansToTaiwan(text);
-  if (variant === "pt-PT") return PT_PT_COPY_OVERRIDES[key] || europeanPortuguese(text);
-  return text;
+function exactStorefrontText(section: "app" | "preview" | "fixture", key: string) {
+  return EXACT_STOREFRONT_COPY.locales[storefrontLocale()]?.[section]?.[key];
 }
 
 type PreviewCopy = Record<string, string>;
@@ -4292,9 +4169,10 @@ Object.assign(PREVIEW_COPY.hi, {
 });
 
 function previewCopy() {
+  const exact = EXACT_STOREFRONT_COPY.locales[storefrontLocale()]?.preview;
+  if (exact) return exact;
   const copy = PREVIEW_COPY[appLocale()] || PREVIEW_COPY["en-US"];
-  if (!storeLocaleVariant()) return copy;
-  return Object.fromEntries(Object.entries(copy).map(([key, value]) => [key, storeVariantText(`preview.${key}`, value)]));
+  return copy;
 }
 
 function previewClean<T>(englishValue: T, localizedValue: T): T {
@@ -4311,6 +4189,8 @@ function previewMetricLabel(key: keyof PreviewCopy, fallback: string) {
 }
 
 function previewFixtureText(key: string, fallback: string) {
+  const exact = exactStorefrontText("fixture", key);
+  if (exact) return exact;
   const locale = appLocale();
   const localized: Record<SupportedLocale, Record<string, string>> = {
     "en-US": {},
@@ -4324,7 +4204,7 @@ function previewFixtureText(key: string, fallback: string) {
     hi: { roomScience: "विज्ञान कक्ष 214", roomLab: "प्रयोगशाला 5", roomHall: "हॉल 3", daysMw: "सोम बुध", daysTt: "मंगल गुरु", daysFri: "शुक्र", nextWed: "बुधवार", nextThu: "गुरुवार", archived: "आर्काइव", discussion: "चर्चा", assignment: "असाइनमेंट", reflection: "चिंतन", high: "उच्च", medium: "मध्यम", low: "कम", draftPost: "पोस्ट का मसौदा", checkRubric: "रूब्रिक देखें", midtermKind: "मध्य परीक्षा", aiImport: "सिलेबस इम्पोर्ट", awaitingDate: "तारीख बाकी", tbd: "बाकी", roomTbd: "कक्ष बाकी", daysTbd: "दिन बाकी", timeTbd: "समय बाकी", due: "जमा", professor3: "प्रो. नासिर" },
     ar: { roomScience: "قاعة العلوم 214", roomLab: "مختبر 5", roomHall: "قاعة 3", daysMw: "الاثنين الأربعاء", daysTt: "الثلاثاء الخميس", daysFri: "الجمعة", nextWed: "الأربعاء", nextThu: "الخميس", archived: "مؤرشف", discussion: "نقاش", assignment: "واجب", reflection: "تأمل", high: "عالٍ", medium: "متوسط", low: "منخفض", draftPost: "مسودة المشاركة", checkRubric: "راجع المعيار", midtermKind: "اختبار منتصف", aiImport: "استيراد المنهج", awaitingDate: "بانتظار التاريخ", tbd: "غير محدد", roomTbd: "القاعة غير محددة", daysTbd: "الأيام غير محددة", timeTbd: "الوقت غير محدد", due: "مستحق", professor3: "أ. ناصر" },
   };
-  return storeVariantText(`fixture.${key}`, localized[locale]?.[key] || fallback);
+  return localized[locale]?.[key] || fallback;
 }
 
 function localizedNarrativeText(kind: "state" | "health" | "driver" | "next" | "detail" | "pressure" | "notes", fallback: string) {
@@ -4424,10 +4304,11 @@ function widgetFallbackTemplateForKey(key: string, fallback: string) {
 const widgetCopyFor: WidgetCopy = (key, fallback, vars) => {
   const locale = appLocale();
   const template =
+    exactStorefrontText("app", key) ||
     APP_COPY[locale]?.[key] ||
     (locale === "en-US" ? APP_COPY["en-US"][key] : undefined) ||
     (key.startsWith("widget.native.") ? widgetFallbackTemplateForKey(key, fallback) : undefined);
-  if (template) return renderWidgetCopy(storeVariantText(key, template), vars || {});
+  if (template) return renderWidgetCopy(template, vars || {});
   return textFor(key, fallback, vars || {});
 };
 
@@ -5435,17 +5316,11 @@ function localizedRollingWeekdayNarrow(offset: number) {
   return localizedWeekdayNarrow(mondayFirstIndex);
 }
 
-function localeFromRuntime(value?: string): SupportedLocale {
-  const raw = (value || "").replace("_", "-");
-  if (supportedLocales.includes(raw as SupportedLocale)) return raw as SupportedLocale;
-  const lower = raw.toLowerCase();
-  if (lower.startsWith("pt")) return "pt-BR";
-  if (lower.startsWith("zh")) return "zh-Hans";
-  const byLanguage = supportedLocales.find((locale) => locale.toLowerCase().split("-")[0] === lower.split("-")[0]);
-  return byLanguage || "en-US";
+function localeFromRuntime(value?: string): StorefrontLocale {
+  return normalizeStorefrontLocale(value) || "en-US";
 }
 
-function appLocale(): SupportedLocale {
+function storefrontLocale(): StorefrontLocale {
   if (simulatorLocaleOverride) return localeFromRuntime(simulatorLocaleOverride);
   const envLocale = typeof process !== "undefined" ? process.env?.EXPO_PUBLIC_STUDYPLANNER_LOCALE : undefined;
   if (envLocale) return localeFromRuntime(envLocale);
@@ -5454,6 +5329,10 @@ function appLocale(): SupportedLocale {
   } catch {
     return "en-US";
   }
+}
+
+function appLocale(): SupportedLocale {
+  return contentLocaleForStorefront(storefrontLocale()) as SupportedLocale;
 }
 
 function nonEnglishMissingCopy(locale: SupportedLocale, key: string) {
@@ -5475,9 +5354,9 @@ function nonEnglishMissingCopy(locale: SupportedLocale, key: string) {
 
 function textFor(key: string, fallback: string, vars: CopyVars = {}) {
   const locale = appLocale();
-  const localized = APP_COPY[locale]?.[key];
+  const localized = exactStorefrontText("app", key) || APP_COPY[locale]?.[key];
   const template = localized || (locale === "en-US" || key.startsWith("scanner.") ? APP_COPY["en-US"][key] || fallback : nonEnglishMissingCopy(locale, key));
-  return storeVariantText(key, template).replace(/\{(\w+)\}/g, (_match, name) => String(vars[name] ?? ""));
+  return template.replace(/\{(\w+)\}/g, (_match, name) => String(vars[name] ?? ""));
 }
 
 function optionText(value: string) {
@@ -5727,7 +5606,8 @@ function safeClassFor(data: AppData, classId?: string) {
 }
 
 function taskDueLabel(task: TaskItem) {
-  return hasTaskDate(task) ? `${localizedDueLabel(daysUntilTask(task))} · ${task.time}` : `${previewFixtureText("awaitingDate", "Awaiting Date")} · ${task.time || previewFixtureText("tbd", "TBD")}`;
+  const time = task.time ? formatPlannerTime(task.time, storefrontLocale()) : previewFixtureText("tbd", "TBD");
+  return hasTaskDate(task) ? `${localizedDueLabel(daysUntilTask(task))} · ${time}` : `${previewFixtureText("awaitingDate", "Awaiting Date")} · ${time}`;
 }
 
 function localDateKey(date: Date) {
@@ -5944,15 +5824,24 @@ function lockedWidgetData(data: AppData): AppData {
 }
 
 function todayHeaderLabel() {
-  return new Date().toLocaleDateString(appLocale(), { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  return new Date().toLocaleDateString(storefrontLocale(), { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 }
 
 function shortDateLabel() {
-  return new Date().toLocaleDateString(appLocale(), { weekday: "long", month: "long", day: "numeric" });
+  return new Date().toLocaleDateString(storefrontLocale(), { weekday: "long", month: "long", day: "numeric" });
 }
 
 function readablePlannerTimeRange(value: string) {
-  return value.replace(/(\d)(AM|PM)\b/gi, "$1 $2").replace(/\s*-\s*/g, " – ");
+  return formatPlannerTimeRange(value, storefrontLocale());
+}
+
+function localizedDueAtLabel(value: string) {
+  const due = new Date(value);
+  if (!Number.isFinite(due.getTime())) return value;
+  const now = new Date();
+  const dueDay = Date.UTC(due.getFullYear(), due.getMonth(), due.getDate());
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return localizedDueLabel(Math.round((dueDay - today) / 86_400_000));
 }
 
 function balancedCopyLines(value: string, maximumCharacters: number) {
@@ -6107,8 +5996,8 @@ function writeSimulatorCaptureAcknowledgement() {
       resolvedAppearance: simulatorCaptureResolvedAppearance,
       resolvedSystemAppearance: simulatorCaptureResolvedSystemAppearance,
       requestedLocale: config.locale || "",
-      resolvedLocale: appLocale(),
-      rtl: appLocale() === "ar",
+      resolvedLocale: storefrontLocale(),
+      rtl: isRTLStorefront(storefrontLocale()),
       requestedScrollY,
       scrollPositionSource,
       rawContentOffsetY,
@@ -6972,7 +6861,7 @@ export default function App() {
               return { ...current, prefs: { ...current.prefs, osLive: false, widgetLastSyncedAt: undefined } };
             });
             try {
-              const status = await syncNativeWidgets(widgetSyncData, widgetCopyFor);
+              const status = await syncNativeWidgets(widgetSyncData, widgetCopyFor, storefrontLocale());
               if (status.state !== "synced") {
                 invalidateWidgetSyncEvidence();
                 setSaveError(status.message || textFor("storage.widget_retry", "Planner changes are saved, but widgets have not refreshed yet."));
@@ -7851,6 +7740,9 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
   const goalOptions = ["Deadlines", "Exams", "Notes", "Grades", "Everything"];
   const initialIndex = Math.max(0, Math.min(steps.length - 1, Number(params.onboardingIndex || 0) || 0));
   const [index, setIndex] = useState(initialIndex);
+  useEffect(() => {
+    setIndex(initialIndex);
+  }, [initialIndex]);
   const storedFirstName = data.prefs.firstName && data.prefs.firstName !== "Student" ? data.prefs.firstName : "";
   const storedStudentType = data.prefs.studentType || data.prefs.level || "";
   const hasSavedPersonalization = Boolean(data.prefs.onboardingComplete || params.returnTo);
@@ -7883,7 +7775,7 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
     name: storedFirstName || (data.prefs.name === "Student" ? "" : firstNameFromPrefs(data)),
     studentType: initialStudentType,
     mainGoal: initialMainGoal,
-    scanIntent: data.prefs.scanIntent || "Scan with camera",
+    scanIntent: "Scan with camera",
     semesterThemeColorId: data.prefs.semesterThemeColorId || "graphite" as SemesterThemeColorId,
   });
   const motion = useRef(new Animated.Value(1)).current;
@@ -7893,8 +7785,6 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
   const buildTitle = cleanProfileName
     ? textFor("onboarding.build_title_personal", "Build {name}'s semester.", { name: firstName })
     : textFor("onboarding.build_title", "Build your semester.");
-  const scanOptions = ["Scan with camera", "Paste syllabus", "Add manually"];
-  const cameraIntentSelected = profile.scanIntent === "Scan with camera";
   const prioritiesComplete = Boolean(profile.studentType && profile.mainGoal);
   const semesterTheme = resolveSemesterThemeColor(profile.semesterThemeColorId);
   const onboardingAccent = theme.accent;
@@ -7943,11 +7833,10 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
   });
 
   const next = (source = profile) => {
-    persistProfile(index === steps.length - 1, source);
+    const scanFirstProfile = index === steps.length - 1 ? { ...source, scanIntent: "Scan with camera" } : source;
+    persistProfile(index === steps.length - 1, scanFirstProfile);
     if (index < steps.length - 1) setIndex(index + 1);
     else if (params.returnTo === "semesterKickoff") nav.back();
-    else if (source.scanIntent === "Paste syllabus") nav.push("paywall", { next: "paste", mode: "syllabus" });
-    else if (source.scanIntent === "Add manually") nav.push("paywall", { next: "paste", mode: "manual" });
     else nav.push("paywall", { next: "scan", action: "camera" });
   };
   const pick = (key: keyof typeof profile, value: string) => {
@@ -8083,20 +7972,23 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
               <Card theme={theme} style={{ padding: 14, marginBottom: 16, backgroundColor: "#111114" }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
                   <View style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}>
-                    <Icon name={cameraIntentSelected ? "camera" : "crown"} color="#FFFFFF" size={21} />
+                    <Icon name="camera" color="#FFFFFF" size={21} />
                   </View>
-                  <Text selectable style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "900", flex: 1 }}>{cameraIntentSelected ? textFor("onboarding.camera_gate_title", "Unlock the camera scan.") : textFor("onboarding.paywall_gate_title", "Unlock first. Then build.")}</Text>
+                  <Text selectable style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "900", flex: 1 }}>{textFor("onboarding.camera_gate_title", "Unlock the camera scan.")}</Text>
                 </View>
-                <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 5 }}>{cameraIntentSelected ? textFor("onboarding.camera_gate_body_simple", "Unlock first, then scan the syllabus on this iPhone. Every extracted row still goes to review before anything saves.") : textFor("onboarding.paywall_gate_body_simple", "Unlock first, then review the first real version before it reaches Today, reminders, or widgets.")}</Text>
+                <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 5 }}>{textFor("onboarding.camera_gate_body_simple", "Unlock first, then scan the syllabus on this iPhone. Every extracted row still goes to review before anything saves.")}</Text>
               </Card>
-              <View style={{ marginTop: 2, marginBottom: 16 }}>{renderOptions("scanIntent", scanOptions)}</View>
+              <Card theme={theme} style={{ padding: 14, marginBottom: 16 }}>
+                <Text selectable style={{ color: theme.label, fontSize: 16, fontWeight: "900" }}>{textFor("scan.title", "Import. Review. Start.")}</Text>
+                <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 5 }}>{textFor("paywall.preview_first_sub", "Camera and PDF are the fastest path. Paste text and manual setup remain available on the Scan screen.")}</Text>
+              </Card>
             </>
           ) : null}
         </Animated.View>
       </ScrollView>
       <LiquidGlassSurface tintColor={theme.dark ? "rgba(0,0,0,0.88)" : "rgba(255,255,255,0.88)"} colorScheme={theme.dark ? "dark" : "light"} style={{ padding: accessibilityLayout ? 16 : 24, paddingBottom: Math.max(accessibilityLayout ? 20 : 34, insets.bottom + 8), backgroundColor: theme.dark ? "rgba(0,0,0,0.96)" : "rgba(255,255,255,0.96)", borderTopWidth: 1, borderTopColor: theme.hairline }} fallbackStyle={{ backgroundColor: theme.surface }}>
         <Button
-          label={step !== "build" ? textFor("common.continue", "Continue") : cameraIntentSelected ? textFor("onboarding.unlock_to_scan", "Unlock to scan") : textFor("onboarding.unlock_to_continue", "Unlock to continue")}
+          label={step !== "build" ? textFor("common.continue", "Continue") : textFor("onboarding.unlock_to_scan", "Unlock to scan")}
           theme={onboardingTheme}
           icon={step !== "build" ? "chevron-right" : "crown"}
           onPress={(step === "name" && !cleanProfileName) || (step === "priorities" && !prioritiesComplete) ? undefined : next}
@@ -8438,10 +8330,11 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
     exams: importCandidates.filter((candidate) => candidate.kind === "exam").length,
     firstAction: importCandidates.find((candidate) => candidate.kind === "task" || candidate.kind === "exam")?.title,
   };
-  const cameraIntent = !currentImport && (params.action === "camera" || data.prefs.scanIntent === "Scan with camera");
+  const explicitDestination = params.next || "scan";
+  const cameraIntent = !currentImport && explicitDestination === "scan" && params.action !== "pdf";
   const pdfIntent = !currentImport && (params.action === "pdf" || data.prefs.scanIntent === "Upload PDF");
   const manualIntent = !currentImport && params.next === "paste" && (params.mode === "manual" || data.prefs.scanIntent === "Add manually");
-  const pasteIntent = !currentImport && !manualIntent && (params.next === "paste" || data.prefs.scanIntent === "Paste syllabus");
+  const pasteIntent = !currentImport && !manualIntent && params.next === "paste";
   const intentPreview = cameraIntent
     ? {
         icon: "camera",
@@ -8492,7 +8385,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
     [textFor("paywall.preview_chip_move", "First move"), textFor("paywall.preview_chip_move_sub", "after review")],
   ];
   const selectedPlanLabel = textFor(selectedPlan.id.toLowerCase().includes("year") ? "paywall.yearly" : selectedPlan.id.toLowerCase().includes("week") ? "paywall.weekly" : "paywall.monthly", selectedPlan.cadence);
-  const selectedPlanPeriodLabel = selectedPlanLabel.toLocaleLowerCase(appLocale());
+  const selectedPlanPeriodLabel = selectedPlanLabel.toLocaleLowerCase(storefrontLocale());
   const eligibleTrialProductIdSet = new Set(eligibleTrialProductIds);
   const selectedPlanHasOneWeekTrial = hasOneWeekFreeTrial(selectedPlan) && eligibleTrialProductIdSet.has(selectedPlan.id);
   const allPlansHaveOneWeekTrial = plans.length > 0 && plans.every((plan) => hasOneWeekFreeTrial(plan) && eligibleTrialProductIdSet.has(plan.id));
@@ -8681,6 +8574,7 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
   const firstPulseClass = safeClassFor(liveData, firstPulse?.classId);
   const preparedness = semester.semesterHealth.dimensions.preparedness;
   const todayTitle = previewText("user", snapshot.greeting);
+  const nearestDeadlineDueLabel = snapshot.nearestDeadline ? localizedDueAtLabel(snapshot.nearestDeadline.dueAt) : "";
   const timeline = useMemo(() => {
     const within30 = (iso: string) => {
       const days = Math.ceil((new Date(`${iso}T12:00:00`).getTime() - new Date().setHours(12, 0, 0, 0)) / 86400000);
@@ -8746,20 +8640,20 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
             </View>
           </View>
           <View style={{ gap: 9 }}>
-            <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("today.next_class", "Next class")}. ${snapshot.nextClass ? `${snapshot.nextClass.code}, ${new Date(snapshot.nextClass.startsAt).toLocaleTimeString(appLocale(), { hour: "numeric", minute: "2-digit" })}` : textFor("classes.add", "Add a class")}`} accessibilityHint={textFor("today.accessibility_next_class_hint", "Open the next class")} onPress={() => snapshot.nextClass ? nav.push("classDetail", { id: snapshot.nextClass.classId }) : nav.tab("classes")} style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 10, minHeight: 44 }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("today.next_class", "Next class")}. ${snapshot.nextClass ? `${snapshot.nextClass.code}, ${new Date(snapshot.nextClass.startsAt).toLocaleTimeString(storefrontLocale(), { hour: "numeric", minute: "2-digit" })}` : textFor("classes.add", "Add a class")}`} accessibilityHint={textFor("today.accessibility_next_class_hint", "Open the next class")} onPress={() => snapshot.nextClass ? nav.push("classDetail", { id: snapshot.nextClass.classId }) : nav.tab("classes")} style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 10, minHeight: 44 }}>
               <Icon name="classes" color={snapshot.nextClass?.color || COLORS.blue} size={18} />
               <Text selectable style={{ color: theme.label2, width: accessibilityLayout ? undefined : 86, fontWeight: "800" }}>{textFor("today.next_class", "Next class")}</Text>
-              <Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, flex: accessibilityLayout ? undefined : 1, fontWeight: "900" }}>{snapshot.nextClass ? `${snapshot.nextClass.code} · ${new Date(snapshot.nextClass.startsAt).toLocaleTimeString(appLocale(), { hour: "numeric", minute: "2-digit" })}` : textFor("classes.add", "Add a class")}</Text>
+              <Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, flex: accessibilityLayout ? undefined : 1, fontWeight: "900" }}>{snapshot.nextClass ? `${snapshot.nextClass.code} · ${new Date(snapshot.nextClass.startsAt).toLocaleTimeString(storefrontLocale(), { hour: "numeric", minute: "2-digit" })}` : textFor("classes.add", "Add a class")}</Text>
             </Pressable>
-            <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("today.deadline", "Deadline")}. ${snapshot.nearestDeadline ? `${snapshot.nearestDeadline.dueLabel}, ${snapshot.nearestDeadline.title}` : textFor("plan.clear_day", "No active deadline")}`} accessibilityHint={snapshot.nearestDeadline ? textFor("task.edit", "Open assignment details") : textFor("today.accessibility_add_work_hint", "Open import and quick add")} onPress={() => snapshot.nearestDeadline ? nav.push("taskDetail", { id: snapshot.nearestDeadline.taskId }) : nav.tab("scan")} style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 10 }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("today.deadline", "Deadline")}. ${snapshot.nearestDeadline ? `${nearestDeadlineDueLabel}, ${snapshot.nearestDeadline.title}` : textFor("plan.clear_day", "No active deadline")}`} accessibilityHint={snapshot.nearestDeadline ? textFor("task.edit", "Open assignment details") : textFor("today.accessibility_add_work_hint", "Open import and quick add")} onPress={() => snapshot.nearestDeadline ? nav.push("taskDetail", { id: snapshot.nearestDeadline.taskId }) : nav.tab("scan")} style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 10 }}>
               <Icon name="target" color={COLORS.orange} size={18} />
               <Text selectable style={{ color: theme.label2, width: accessibilityLayout ? undefined : 86, fontWeight: "800" }}>{textFor("today.deadline", "Deadline")}</Text>
-              <Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, flex: accessibilityLayout ? undefined : 1, fontWeight: "900" }}>{snapshot.nearestDeadline ? `${snapshot.nearestDeadline.dueLabel} · ${snapshot.nearestDeadline.title}` : textFor("plan.clear_day", "No active deadline")}</Text>
+              <Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, flex: accessibilityLayout ? undefined : 1, fontWeight: "900" }}>{snapshot.nearestDeadline ? `${nearestDeadlineDueLabel} · ${snapshot.nearestDeadline.title}` : textFor("plan.clear_day", "No active deadline")}</Text>
             </Pressable>
-            <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("today.focus", "Focus")}. ${firstBlock ? `${firstBlock.title}, ${firstBlock.time}` : textFor("scan.quick_title", "Scan or quick add to plan")}`} accessibilityHint={firstBlock ? textFor("study.focus_session", "Open focus session") : textFor("today.accessibility_add_work_hint", "Open import and quick add")} onPress={() => firstBlock ? nav.push("studySession", { id: firstBlock.id }) : nav.tab("scan")} style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 10 }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("today.focus", "Focus")}. ${firstBlock ? `${firstBlock.title}, ${readablePlannerTimeRange(firstBlock.time)}` : textFor("scan.quick_title", "Scan or quick add to plan")}`} accessibilityHint={firstBlock ? textFor("study.focus_session", "Open focus session") : textFor("today.accessibility_add_work_hint", "Open import and quick add")} onPress={() => firstBlock ? nav.push("studySession", { id: firstBlock.id }) : nav.tab("scan")} style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 10 }}>
               <Icon name="clock" color={COLORS.purple} size={18} />
               <Text selectable style={{ color: theme.label2, width: accessibilityLayout ? undefined : 86, fontWeight: "800" }}>{textFor("today.focus", "Focus")}</Text>
-              {firstBlock ? <View style={{ flex: accessibilityLayout ? undefined : 1 }}><Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, fontWeight: "900" }}>{firstBlock.title}</Text><Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "800", marginTop: 1 }}>{firstBlock.time}</Text></View> : <Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, flex: accessibilityLayout ? undefined : 1, fontWeight: "900" }}>{textFor("scan.quick_title", "Scan or quick add to plan")}</Text>}
+              {firstBlock ? <View style={{ flex: accessibilityLayout ? undefined : 1 }}><Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, fontWeight: "900" }}>{firstBlock.title}</Text><Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "800", marginTop: 1 }}>{readablePlannerTimeRange(firstBlock.time)}</Text></View> : <Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, flex: accessibilityLayout ? undefined : 1, fontWeight: "900" }}>{textFor("scan.quick_title", "Scan or quick add to plan")}</Text>}
             </Pressable>
           </View>
           <View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 9, marginTop: 14, alignItems: accessibilityLayout ? "stretch" : undefined }}>
@@ -8863,7 +8757,7 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
         {upcomingAssessments.length ? (
           <View>
             <Section title={textFor("today.upcoming_assessments", "Upcoming Assessments")} action={`${upcomingAssessments.length}`} theme={theme} />
-            <Card theme={theme} style={{ overflow: "hidden" }}>{upcomingAssessments.map((exam) => { const klass = safeClassFor(liveData, exam.classId); return <Pressable key={exam.id} accessibilityRole="button" accessibilityLabel={`${exam.title}. ${klass.code}. ${localizedDueLabel(daysUntilExam(exam))}. ${exam.time}`} accessibilityHint={textFor("assessment.accessibility_open_hint", "Open assessment details")} onPress={() => nav.push("assessmentDetail", { id: exam.id })} style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 12, padding: 14 }}><ClassGlyph c={klass} size={34} /><View style={{ flex: accessibilityLayout ? undefined : 1 }}><Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, fontWeight: "900" }}>{exam.title}</Text><Text selectable style={{ color: theme.label2 }}>{klass.code} · {localizedDueLabel(daysUntilExam(exam))} · {exam.time}</Text></View><Pill text={localizedExamKind(exam.kind)} color={COLORS.purple} theme={theme} /></Pressable>; })}</Card>
+            <Card theme={theme} style={{ overflow: "hidden" }}>{upcomingAssessments.map((exam) => { const klass = safeClassFor(liveData, exam.classId); const time = formatPlannerTime(exam.time, storefrontLocale()); return <Pressable key={exam.id} accessibilityRole="button" accessibilityLabel={`${exam.title}. ${klass.code}. ${localizedDueLabel(daysUntilExam(exam))}. ${time}`} accessibilityHint={textFor("assessment.accessibility_open_hint", "Open assessment details")} onPress={() => nav.push("assessmentDetail", { id: exam.id })} style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 12, padding: 14 }}><ClassGlyph c={klass} size={34} /><View style={{ flex: accessibilityLayout ? undefined : 1 }}><Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, fontWeight: "900" }}>{exam.title}</Text><Text selectable style={{ color: theme.label2 }}>{klass.code} · {localizedDueLabel(daysUntilExam(exam))} · {time}</Text></View><Pill text={localizedExamKind(exam.kind)} color={COLORS.purple} theme={theme} /></Pressable>; })}</Card>
           </View>
         ) : null}
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.surface2 }}>
@@ -9227,6 +9121,9 @@ function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
   const notes = data.notes.filter((n) => n.classId === c.id);
   const pulse = classPulse(data, c);
   const [editing, setEditing] = useState(params.edit === "1");
+  useEffect(() => {
+    setEditing(params.edit === "1");
+  }, [params.edit, params.id]);
   const [addingWork, setAddingWork] = useState<"assignment" | "exam" | null>(null);
   const [classDraft, setClassDraft] = useState({
     code: c.code,
@@ -9395,7 +9292,7 @@ function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
               <Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 16 }}>{textFor("class.schedule", "Schedule")}</Text>
               <Pressable accessibilityRole="button" accessibilityLabel={editing ? textFor("common.close", "Close") : textFor("common.edit", "Edit")} accessibilityHint={editing ? textFor("class.accessibility_close_edit_hint", "Close class editing") : textFor("class.accessibility_edit_hint", "Edit class details")} accessibilityState={{ expanded: editing }} onPress={() => setEditing((value) => !value)} style={{ minHeight: 44, paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999, backgroundColor: theme.surface2, justifyContent: "center" }}><Text style={{ color: theme.accent, fontWeight: "900" }}>{editing ? textFor("common.close", "Close") : textFor("common.edit", "Edit")}</Text></Pressable>
             </View>
-            <Text selectable style={{ color: theme.label2, marginTop: 4, lineHeight: 20 }}>{c.days} · {c.time} · {c.room}</Text>
+            <Text selectable style={{ color: theme.label2, marginTop: 4, lineHeight: 20 }}>{c.days} · {formatPlannerTime(c.time, storefrontLocale())} · {c.room}</Text>
             <Text selectable style={{ color: theme.label2, marginTop: 3 }}>{c.professor}</Text>
             {c.notes ? <Text selectable style={{ color: theme.label2, marginTop: 8, lineHeight: 19 }}>{c.notes}</Text> : null}
           </Card>
@@ -9503,6 +9400,9 @@ function TaskDetail({ data, mutate, nav, theme, params, recordReviewTrigger }: S
   const task = data.tasks.find((t) => t.id === params.id);
   const [subs, setSubs] = useState(task?.subtasks || []);
   const [editing, setEditing] = useState(params.edit === "1");
+  useEffect(() => {
+    setEditing(params.edit === "1");
+  }, [params.edit, params.id]);
   const [draft, setDraft] = useState<{
     title: string;
     classId: string;
@@ -9521,7 +9421,7 @@ function TaskDetail({ data, mutate, nav, theme, params, recordReviewTrigger }: S
     description: task?.description || "",
   });
   const recurrenceEndLabel = task?.recurrenceEndDate
-    ? new Date(`${task.recurrenceEndDate}T12:00:00`).toLocaleDateString(appLocale(), { month: "short", day: "numeric", year: "numeric" })
+    ? new Date(`${task.recurrenceEndDate}T12:00:00`).toLocaleDateString(storefrontLocale(), { month: "short", day: "numeric", year: "numeric" })
     : "";
   const recurrenceLabel = task?.recurringId ? `${textFor("task.repeats_weekly", "Repeats weekly")}${recurrenceEndLabel ? ` · ${textFor("task.recurrence_ends", "Ends {date}", { date: recurrenceEndLabel })}` : ""}` : "";
   if (!task) return <RecoveryScreen title="Task not found" body="That task is not in this semester anymore." action={textFor("class.open_dashboard", "Open dashboard")} nav={nav} theme={theme} />;
@@ -9675,6 +9575,9 @@ function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
   const accessibilityLayout = fontScale >= 1.6;
   const exam = data.exams.find((item) => item.id === params.id);
   const [editing, setEditing] = useState(params.edit === "1");
+  useEffect(() => {
+    setEditing(params.edit === "1");
+  }, [params.edit, params.id]);
   const [draft, setDraft] = useState<{
     title: string;
     classId: string;
@@ -9795,7 +9698,7 @@ function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
             <Button label={textFor("assessment.delete_title", "Delete assessment?")} theme={theme} secondary icon="trash" onPress={deleteAssessment} />
           </Card>
         ) : null}
-        <Card theme={theme} style={{ overflow: "hidden" }}>{[[Clock, textFor("assessment.date", "Date"), `${localizedDueLabel(dueDays)} · ${exam.time}`, dueDays <= 3 ? COLORS.orange : theme.label], [Timer, textFor("class.effort", "Effort"), minutesLabel(exam.effortMinutes || 120), theme.label], [MapPin, textFor("assessment.room", "Room"), localizedImportedText(exam.room), theme.label], [FileText, textFor("class.notes_label", "Notes"), exam.notes || exam.description || textFor("assessment.no_notes", "No notes yet"), theme.label]].map(([I, l, v, color]: any, index) => <View key={`assessment-detail-row-${index}`} style={{ padding: 14, flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: accessibilityLayout ? 6 : 12, borderBottomWidth: index === 3 ? 0 : 1, borderBottomColor: theme.hairline }}><View style={{ flexDirection: "row", alignItems: "center", gap: 12, width: accessibilityLayout ? "100%" : undefined, flex: accessibilityLayout ? undefined : 1 }}><I color={theme.label2} size={18} /><Text selectable style={{ color: theme.label2, flexShrink: 1 }}>{l}</Text></View><Text selectable numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: semanticTextColor(color, theme), fontWeight: "900", maxWidth: accessibilityLayout ? undefined : 190, textAlign: accessibilityLayout ? "auto" : theme.rtl ? "left" : "right", marginStart: accessibilityLayout ? 30 : 0 }}>{v}</Text></View>)}</Card>
+        <Card theme={theme} style={{ overflow: "hidden" }}>{[[Clock, textFor("assessment.date", "Date"), `${localizedDueLabel(dueDays)} · ${formatPlannerTime(exam.time, storefrontLocale())}`, dueDays <= 3 ? COLORS.orange : theme.label], [Timer, textFor("class.effort", "Effort"), minutesLabel(exam.effortMinutes || 120), theme.label], [MapPin, textFor("assessment.room", "Room"), localizedImportedText(exam.room), theme.label], [FileText, textFor("class.notes_label", "Notes"), exam.notes || exam.description || textFor("assessment.no_notes", "No notes yet"), theme.label]].map(([I, l, v, color]: any, index) => <View key={`assessment-detail-row-${index}`} style={{ padding: 14, flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: accessibilityLayout ? 6 : 12, borderBottomWidth: index === 3 ? 0 : 1, borderBottomColor: theme.hairline }}><View style={{ flexDirection: "row", alignItems: "center", gap: 12, width: accessibilityLayout ? "100%" : undefined, flex: accessibilityLayout ? undefined : 1 }}><I color={theme.label2} size={18} /><Text selectable style={{ color: theme.label2, flexShrink: 1 }}>{l}</Text></View><Text selectable numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: semanticTextColor(color, theme), fontWeight: "900", maxWidth: accessibilityLayout ? undefined : 190, textAlign: accessibilityLayout ? "auto" : theme.rtl ? "left" : "right", marginStart: accessibilityLayout ? 30 : 0 }}>{v}</Text></View>)}</Card>
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 18 }}>{textFor("assessment.prep_plan", "Prep plan")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21, marginTop: 5 }}>{textFor("assessment.prep_body", "{minutes} of prep. Due {due}.", { minutes: minutesLabel(exam.effortMinutes || 120), due: localizedDueLabel(dueDays) })}</Text><Button label={textFor("assessment.rebuild", "Rebuild study blocks")} theme={theme} icon="refresh" onPress={() => mutate((d) => ({ ...d, studyBlocks: buildStudyPlan(d) }))} /></Card>
       </ScrollView>
     </View>
@@ -11414,7 +11317,7 @@ function ApplySuccess({ data, nav, theme, params }: ScreenProps) {
   const accessibilityLayout = fontScale >= 1.6;
   const semester = buildSemesterSnapshot(data);
   const narrative = buildSemesterNarrative(data, semester);
-  const widgetSnapshots = buildNativeWidgetSnapshots(data, widgetCopyFor);
+  const widgetSnapshots = buildNativeWidgetSnapshots(data, widgetCopyFor, storefrontLocale());
   const semesterTheme = resolveSemesterThemeColor("graphite");
   const successCoursePalette = semesterTheme.courseColors.length >= 4 ? semesterTheme.courseColors : [COLORS.ink, COLORS.blue, COLORS.green, COLORS.orange];
   const firstFocusBlock = data.studyBlocks.find((block) => !block.completed) || data.studyBlocks[0];
@@ -11611,7 +11514,7 @@ function Plan({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
   const today = new Date();
   const [selectedDay, setSelectedDay] = useState(today.getDate());
   const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-  const monthLabel = today.toLocaleDateString(appLocale(), { month: "long", year: "numeric" });
+  const monthLabel = today.toLocaleDateString(storefrontLocale(), { month: "long", year: "numeric" });
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
   const leading = (monthStart.getDay() + 6) % 7;
   const cells = Array.from({ length: 42 }, (_, index) => index - leading + 1);
@@ -11656,7 +11559,7 @@ function Plan({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
                 const items = itemsForDay(day);
                 const eventCount = items.tasks.length + items.exams.length + items.blocks.length + items.notes.length;
                 const date = dateForDay(day);
-                const dateLabel = date.toLocaleDateString(appLocale(), { weekday: "long", month: "long", day: "numeric" });
+                const dateLabel = date.toLocaleDateString(storefrontLocale(), { weekday: "long", month: "long", day: "numeric" });
                 const eventCategorySummary = ([
                   [items.exams.length, textFor("review.exams", "Exams")],
                   [items.tasks.length, textFor("tasks.title", "Tasks")],
@@ -11665,7 +11568,7 @@ function Plan({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
                 ] as [number, string][]).filter(([count]) => count > 0).map(([count, label]) => `${count} ${label}`).join(" · ");
                 return (
                   <Pressable key={`accessible-calendar-${day}`} accessibilityRole="button" accessibilityLabel={`${dateLabel}. ${eventCount} ${previewMetricLabel("signals", "items")}${eventCategorySummary ? `. ${eventCategorySummary}` : ""}`} accessibilityHint={textFor("plan.accessibility_select_day_hint", "Show planner items for this day")} accessibilityState={{ selected }} onPress={() => setSelectedDay(day)} style={{ width: Math.max(156, Math.min(240, fontScale * 72)), minHeight: 132, borderRadius: 18, padding: 14, backgroundColor: selected ? theme.accent : isToday ? `${theme.accent}22` : theme.surface2, borderWidth: 1, borderColor: selected ? theme.accent : theme.hairline }}>
-                    <Text selectable style={{ color: selected ? theme.accentText : theme.label2, fontWeight: "900" }}>{date.toLocaleDateString(appLocale(), { weekday: "short" })}</Text>
+                    <Text selectable style={{ color: selected ? theme.accentText : theme.label2, fontWeight: "900" }}>{date.toLocaleDateString(storefrontLocale(), { weekday: "short" })}</Text>
                     <Text selectable maxFontSizeMultiplier={1.6} style={{ color: selected ? theme.accentText : theme.label, fontSize: 26, lineHeight: 30, fontWeight: "900", marginTop: 4 }}>{day}</Text>
                     <Text selectable style={{ color: selected ? theme.accentText : theme.label2, fontWeight: "800", marginTop: 5 }}>{eventCount} {previewMetricLabel("signals", "items")}</Text>
                     {eventCategorySummary ? <Text selectable style={{ color: selected ? theme.accentText : theme.label2, lineHeight: 18, marginTop: 4 }}>{eventCategorySummary}</Text> : null}
@@ -11684,7 +11587,7 @@ function Plan({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
               const isToday = day === today.getDate();
               const items = itemsForDay(day);
               const pressure = items.tasks.length + items.exams.length * 2 + items.blocks.length + items.notes.length;
-              const dateLabel = dateForDay(day).toLocaleDateString(appLocale(), { weekday: "long", month: "long", day: "numeric" });
+              const dateLabel = dateForDay(day).toLocaleDateString(storefrontLocale(), { weekday: "long", month: "long", day: "numeric" });
               const eventCount = items.tasks.length + items.exams.length + items.blocks.length + items.notes.length;
               const eventCategorySummary = ([
                 [items.exams.length, textFor("review.exams", "Exams")],
@@ -11717,9 +11620,13 @@ function Plan({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
         </Card>
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.surface2 }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={theme.accent} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("plan.autopilot", "Autopilot")}</Text></View><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{localizedNarrativeText("next", narrative.nextMoveLabel)}. {localizedNarrativeText("detail", narrative.nextMoveDetail)}</Text><Text selectable style={{ color: theme.label2, marginTop: 7 }}>{localizedNarrativeText("driver", narrative.primaryDriver)}</Text>{semester.schedulePlan.changedSinceLastPlan.slice(0, 2).map((change) => <Text selectable key={change} style={{ color: theme.label2, marginTop: 7 }}>- {localizedNarrativeText("detail", change)}</Text>)}<View style={{ flexDirection: "row", gap: 7, marginTop: 12 }}>{semester.pressureForecast.weekLoads.map((load, index) => <View key={`${index}${load}`} style={{ flex: 1 }}><ProgressBar value={load / 100} color={load > 85 ? COLORS.red : load > 64 ? COLORS.orange : load > 38 ? COLORS.yellow : COLORS.green} theme={theme} height={8} /><Text style={{ color: theme.label2, textAlign: "center", fontSize: 10, marginTop: 4, fontWeight: "900" }}>{localizedRollingWeekdayNarrow(index)}</Text></View>)}</View><Button label={textFor("plan.rebuild", "Rebuild plan")} theme={theme} icon="refresh" onPress={rebuild} /></Card>
         <View>
-          <Section title={dateForDay(selectedDay).toLocaleDateString(appLocale(), { weekday: "short", month: "short", day: "numeric" })} action={`${selectedItems.tasks.length + selectedItems.exams.length + selectedItems.notes.length + selectedItems.blocks.length} ${previewMetricLabel("signals", "items")}`} theme={theme} />
+          <Section title={dateForDay(selectedDay).toLocaleDateString(storefrontLocale(), { weekday: "short", month: "short", day: "numeric" })} action={`${selectedItems.tasks.length + selectedItems.exams.length + selectedItems.notes.length + selectedItems.blocks.length} ${previewMetricLabel("signals", "items")}`} theme={theme} />
           <Card theme={theme} style={{ overflow: "hidden" }}>
-            {selectedItems.exams.map((exam) => { const c = safeClassFor(liveData, exam.classId); return <Pressable key={exam.id} accessibilityRole="button" accessibilityLabel={`${exam.title}. ${c.code}. ${exam.time}. ${localizedImportedText(exam.room)}`} accessibilityHint={textFor("assessment.accessibility_open_hint", "Open assessment details")} onPress={() => nav.push("assessmentDetail", { id: exam.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}><ClassGlyph c={c} size={34} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{exam.title}</Text><Text selectable style={{ color: theme.label2 }}>{exam.time} · {localizedImportedText(exam.room)}</Text></View><Pill text={localizedExamKind(exam.kind)} color={COLORS.purple} theme={theme} /></Pressable>; })}
+            {selectedItems.exams.map((exam) => {
+              const c = safeClassFor(liveData, exam.classId);
+              const time = formatPlannerTime(exam.time, storefrontLocale());
+              return <Pressable key={exam.id} accessibilityRole="button" accessibilityLabel={`${exam.title}. ${c.code}. ${time}. ${localizedImportedText(exam.room)}`} accessibilityHint={textFor("assessment.accessibility_open_hint", "Open assessment details")} onPress={() => nav.push("assessmentDetail", { id: exam.id })} style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 12, padding: 14 }}><ClassGlyph c={c} size={34} /><View style={{ flex: accessibilityLayout ? undefined : 1, width: accessibilityLayout ? "100%" : undefined, minWidth: 0 }}><Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, fontWeight: "900" }}>{exam.title}</Text><Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label2 }}>{time} · {localizedImportedText(exam.room)}</Text></View><Pill text={localizedExamKind(exam.kind)} color={COLORS.purple} theme={theme} /></Pressable>;
+            })}
             {selectedItems.tasks.map((task) => <TaskRow key={task.id} task={task} data={liveData} theme={theme} onToggle={() => {
               if (!task.done) recordReviewTrigger("assignment_completed");
               mutate((d) => {
@@ -11731,14 +11638,19 @@ function Plan({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
                 return withFeedback(d, updated, "completeTask", { classId: task.classId, actionId: task.id, dimension: "workload" });
               });
             }} onOpen={() => nav.push("taskDetail", { id: task.id })} />)}
-            {selectedItems.blocks.map((block) => { const c = safeClassFor(liveData, block.classId); return <Pressable key={block.id} accessibilityRole="button" accessibilityLabel={`${block.title}. ${c.code}. ${block.time}. ${minutesLabel(block.minutes)}`} accessibilityHint={textFor("study.focus_session", "Open focus session")} onPress={() => nav.push("studySession", { id: block.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}><ClassGlyph c={c} size={34} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{block.title}</Text><Text selectable style={{ color: theme.label2 }}>{block.time} · {minutesLabel(block.minutes)}</Text></View><Pill text={textFor("plan.study", "Study")} color={COLORS.green} theme={theme} /></Pressable>; })}
-            {selectedItems.notes.map((note) => <Pressable key={note.id} accessibilityRole="button" accessibilityLabel={`${note.title}. ${note.suggestedTasks.length} ${textFor("plan.suggested_tasks", "suggested tasks")}`} accessibilityHint={textFor("note.accessibility_open_hint", "Open note details")} onPress={() => nav.push("noteDetail", { id: note.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}><NotebookPen color={COLORS.blue} size={22} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{note.title}</Text><Text selectable style={{ color: theme.label2 }}>{note.suggestedTasks.length} {textFor("plan.suggested_tasks", "suggested tasks")}</Text></View><ForwardChevron color={theme.label3} size={16} /></Pressable>)}
+            {selectedItems.blocks.map((block) => {
+              const c = safeClassFor(liveData, block.classId);
+              const time = readablePlannerTimeRange(block.time);
+              return <Pressable key={block.id} accessibilityRole="button" accessibilityLabel={`${block.title}. ${c.code}. ${time}. ${minutesLabel(block.minutes)}`} accessibilityHint={textFor("study.focus_session", "Open focus session")} onPress={() => nav.push("studySession", { id: block.id })} style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 12, padding: 14 }}><ClassGlyph c={c} size={34} /><View style={{ flex: accessibilityLayout ? undefined : 1, width: accessibilityLayout ? "100%" : undefined, minWidth: 0 }}><Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, fontWeight: "900" }}>{block.title}</Text><Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label2 }}>{time} · {minutesLabel(block.minutes)}</Text></View><Pill text={textFor("plan.study", "Study")} color={COLORS.green} theme={theme} /></Pressable>;
+            })}
+            {selectedItems.notes.map((note) => <Pressable key={note.id} accessibilityRole="button" accessibilityLabel={`${note.title}. ${note.suggestedTasks.length} ${textFor("plan.suggested_tasks", "suggested tasks")}`} accessibilityHint={textFor("note.accessibility_open_hint", "Open note details")} onPress={() => nav.push("noteDetail", { id: note.id })} style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 12, padding: 14 }}><NotebookPen color={COLORS.blue} size={22} /><View style={{ flex: accessibilityLayout ? undefined : 1, width: accessibilityLayout ? "100%" : undefined, minWidth: 0 }}><Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, fontWeight: "900" }}>{note.title}</Text><Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label2 }}>{note.suggestedTasks.length} {textFor("plan.suggested_tasks", "suggested tasks")}</Text></View>{accessibilityLayout ? <View style={{ alignSelf: "flex-end" }}><ForwardChevron color={theme.label3} size={16} /></View> : <ForwardChevron color={theme.label3} size={16} />}</Pressable>)}
             {!selectedItems.tasks.length && !selectedItems.exams.length && !selectedItems.blocks.length && !selectedItems.notes.length ? <View style={{ padding: 16 }}><Text selectable style={{ color: theme.label2 }}>{textFor("plan.clear_day", "Clear day.")}</Text></View> : null}
           </Card>
         </View>
         <Section title={textFor("plan.focus_blocks", "Focus blocks")} action={textFor("plan.regenerate", "Regenerate")} onAction={rebuild} theme={theme} />
         <View style={{ gap: 10 }}>{liveData.studyBlocks.map((b) => {
           const c = safeClassFor(liveData, b.classId);
+          const time = readablePlannerTimeRange(b.time);
           const canMarkMissed = canMarkStudyBlockMissed(b);
           const markMissed = () => mutate((d) => {
             const currentBlock = d.studyBlocks.find((block) => block.id === b.id);
@@ -11748,17 +11660,17 @@ function Plan({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
             return withFeedback(d, updated, "missStudyBlock", { classId: b.classId, actionId: b.id, dimension: "consistency" });
           });
           return (
-            <Card key={b.id} theme={theme} style={{ padding: 15, flexDirection: "row", gap: 12, alignItems: "center" }}>
+            <Card key={b.id} theme={theme} style={{ padding: 15, flexDirection: accessibilityLayout ? "column" : "row", gap: 12, alignItems: accessibilityLayout ? "flex-start" : "center" }}>
               <ClassGlyph c={c} size={40} />
-              <View style={{ flex: 1 }}>
-                <Pressable accessibilityRole="button" accessibilityLabel={`${b.title}. ${localizedStudyBlockDay(b.day)}, ${b.time}, ${minutesLabel(b.minutes)}`} accessibilityHint={textFor("study.focus_session", "Open focus session")} onPress={() => nav.push("studySession", { id: b.id })} style={{ minHeight: 44 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 7, marginBottom: 2 }}><Text selectable style={{ color: theme.label, fontWeight: "900", flex: 1 }}>{b.title}</Text>{b.source ? <Pill text={localizedStudyBlockSource(b.source)} color={b.source === "exam_prep" ? COLORS.purple : b.source === "missed_repair" ? COLORS.orange : COLORS.blue} theme={theme} /> : null}</View>
-                  <Text selectable style={{ color: theme.label2 }}>{localizedStudyBlockDay(b.day)} · {b.time} · {minutesLabel(b.minutes)}</Text>
-                  <Text selectable numberOfLines={2} style={{ color: theme.label2, marginTop: 5, lineHeight: 18 }}><Text style={{ fontWeight: "900", color: theme.label }}>{textFor("plan.why", "Why")}: </Text>{localizedStudyBlockReason(b.reason)}</Text>
+              <View style={{ flex: accessibilityLayout ? undefined : 1, width: accessibilityLayout ? "100%" : undefined, minWidth: 0 }}>
+                <Pressable accessibilityRole="button" accessibilityLabel={`${b.title}. ${localizedStudyBlockDay(b.day)}, ${time}, ${minutesLabel(b.minutes)}`} accessibilityHint={textFor("study.focus_session", "Open focus session")} onPress={() => nav.push("studySession", { id: b.id })} style={{ minHeight: 44 }}>
+                  <View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 7, marginBottom: 2 }}><Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label, fontWeight: "900", flex: accessibilityLayout ? undefined : 1, width: accessibilityLayout ? "100%" : undefined }}>{b.title}</Text>{b.source ? <Pill text={localizedStudyBlockSource(b.source)} color={b.source === "exam_prep" ? COLORS.purple : b.source === "missed_repair" ? COLORS.orange : COLORS.blue} theme={theme} /> : null}</View>
+                  <Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label2 }}>{localizedStudyBlockDay(b.day)} · {time} · {minutesLabel(b.minutes)}</Text>
+                  <Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: theme.label2, marginTop: 5, lineHeight: 18 }}><Text style={{ fontWeight: "900", color: theme.label }}>{textFor("plan.why", "Why")}: </Text>{localizedStudyBlockReason(b.reason)}</Text>
                 </Pressable>
                 {canMarkMissed ? <Pressable accessibilityRole="button" accessibilityLabel={`${textFor("plan.missed", "Missed? make up tomorrow")}: ${b.title}`} accessibilityHint={textFor("plan.accessibility_missed_hint", "Move this missed focus block to tomorrow")} hitSlop={8} onPress={markMissed} style={{ minHeight: 44, justifyContent: "center" }}><Text style={{ color: semanticTextColor(COLORS.orange, theme), fontWeight: "900" }}>{textFor("plan.missed", "Missed? make up tomorrow")}</Text></Pressable> : null}
               </View>
-              <Pressable accessibilityRole="checkbox" accessibilityLabel={b.completed ? textFor("task.reopen", "Reopen study block") : textFor("task.mark_complete", "Complete study block")} accessibilityHint={b.title} accessibilityState={{ checked: b.completed }} hitSlop={10} onPress={() => complete(b.id)} style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>{b.completed ? <CheckCircle2 color={contrastSafeForegroundOn(COLORS.green, theme.surface)} /> : <Circle color={contrastSafeForegroundOn(theme.accent, theme.surface)} />}</Pressable>
+              <Pressable accessibilityRole="checkbox" accessibilityLabel={b.completed ? textFor("task.reopen", "Reopen study block") : textFor("task.mark_complete", "Complete study block")} accessibilityHint={b.title} accessibilityState={{ checked: b.completed }} hitSlop={10} onPress={() => complete(b.id)} style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center", alignSelf: accessibilityLayout ? "flex-end" : undefined }}>{b.completed ? <CheckCircle2 color={contrastSafeForegroundOn(COLORS.green, theme.surface)} /> : <Circle color={contrastSafeForegroundOn(theme.accent, theme.surface)} />}</Pressable>
             </Card>
           );
         })}</View>
@@ -11816,7 +11728,7 @@ function StudySession({ data, mutate, nav, theme, params, recordReviewTrigger }:
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={textFor("study.focus_session", "Focus Session")} />
       <ScrollView ref={simulatorCaptureIsEnabled() ? registerSimulatorCaptureScrollView : undefined} contentInsetAdjustmentBehavior="automatic" contentOffset={simulatorCaptureContentOffset()} onScroll={simulatorCaptureIsEnabled() ? recordSimulatorCaptureScroll : undefined} onLayout={simulatorCaptureIsEnabled() ? recordSimulatorCaptureViewport : undefined} onContentSizeChange={simulatorCaptureIsEnabled() ? recordSimulatorCaptureContentSize : undefined} scrollEventThrottle={16} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
-        <Card theme={theme} style={{ padding: 18 }}><View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><ClassGlyph c={c} size={50} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontSize: 22, fontWeight: "900" }}>{block.title}</Text><Text selectable style={{ color: theme.label2, marginTop: 3 }}>{localizedStudyBlockDay(block.day)} · {block.time} · {minutesLabel(block.minutes)}</Text></View></View></Card>
+        <Card theme={theme} style={{ padding: 18 }}><View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><ClassGlyph c={c} size={50} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontSize: 22, fontWeight: "900" }}>{block.title}</Text><Text selectable style={{ color: theme.label2, marginTop: 3 }}>{localizedStudyBlockDay(block.day)} · {readablePlannerTimeRange(block.time)} · {minutesLabel(block.minutes)}</Text></View></View></Card>
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.surface }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.impact", "Impact")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21 }}>{c.code} {textFor("locked.preparedness", "preparedness")}. {pulse ? `${localizedPulseText("forecast", pulse.forecastLabel)} ${textFor("class.forecast", "forecast")}.` : localizedNarrativeText("detail", "Risk reduced.")}</Text></Card>
         <Card theme={theme} style={{ padding: 16 }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.goal", "Goal")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21 }}>{textFor("study.goal_body", "One item. Then recall.")}</Text></Card>
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.surface }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.active_recall", "Active recall")}</Text><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{textFor("study.recall_body", "Explain it without looking.")}</Text><TextInput accessibilityLabel={textFor("study.active_recall", "Active recall")} multiline value={answer} onChangeText={setAnswer} placeholder={textFor("study.recall_placeholder", "Type your recall answer...")} placeholderTextColor={theme.label3} keyboardAppearance={theme.dark ? "dark" : "light"} style={{ minHeight: 120, backgroundColor: theme.surface, color: theme.label, borderRadius: 14, padding: 12, marginTop: 12, textAlignVertical: "top" }} />{responseWordCount ? <Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label2, fontWeight: "800", marginTop: 10 }}>{responseMetricLabel}</Text> : null}</Card>
@@ -12183,7 +12095,7 @@ function WidgetsScreen({ data, mutate, nav, theme, recordReviewTrigger }: Screen
   const { fontScale } = useWindowDimensions();
   const accessibilityLayout = fontScale >= 1.6;
   const liveData = activeSemesterData(data);
-  const snapshots = buildNativeWidgetSnapshots(liveData, widgetCopyFor);
+	  const snapshots = buildNativeWidgetSnapshots(liveData, widgetCopyFor, storefrontLocale());
   const [selectedKind, setSelectedKind] = useState<NativeWidgetKind>("today");
   const [syncing, setSyncing] = useState(false);
   const [manualSyncStatus, setManualSyncStatus] = useState<{ state: string; message: string; updatedAt?: string } | null>(null);
@@ -12212,7 +12124,7 @@ function WidgetsScreen({ data, mutate, nav, theme, recordReviewTrigger }: Screen
     setSyncing(true);
     setManualSyncStatus(null);
     try {
-      const status = await syncNativeWidgets(syncData, widgetCopyFor);
+      const status = await syncNativeWidgets(syncData, widgetCopyFor, storefrontLocale());
       setManualSyncStatus(status);
       if (status.state === "synced") {
         updateWidgetPrefs({ osLive: true, widgetLastSyncedAt: status.updatedAt || new Date().toISOString() });
@@ -12331,6 +12243,8 @@ function AppearancePicker({ data, mutate, theme }: Pick<ScreenProps, "data" | "m
 }
 
 function Profile({ data, mutate, nav, theme }: ScreenProps) {
+  const { fontScale } = useWindowDimensions();
+  const accessibilityLayout = fontScale >= 1.6;
   const liveData = activeSemesterData(data);
   const subscriptionAccount = Platform.OS === "android" ? textFor("profile.google_play", "Google Play") : textFor("profile.apple_account", "Apple account");
   const rows = [
@@ -12346,16 +12260,16 @@ function Profile({ data, mutate, nav, theme }: ScreenProps) {
     <Screen theme={theme}>
       <Header title={textFor("tabs.profile", "Profile")} sub={textFor("profile.active_semester", "Active semester")} theme={theme} />
       <View style={{ paddingHorizontal: 16, gap: 16 }}>
-        <Card theme={theme} style={{ padding: 18 }}><View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}><View style={{ width: 62, height: 62, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text allowFontScaling={false} style={{ color: theme.accentText, fontSize: 26, fontWeight: "900" }}>{userInitial(data)}</Text></View><View style={{ flex: 1, minWidth: 0 }}><Text selectable style={{ color: theme.label, fontSize: 24, fontWeight: "900" }}>{firstNameFromPrefs(data)}</Text><Text selectable style={{ color: theme.label2 }}>{optionText(data.prefs.level)} · {optionText(data.prefs.studentPersona || "School semester")}</Text><View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 }}><Pill text={data.prefs.premium ? textFor("profile.subscribed", "Subscribed") : textFor("profile.locked", "Locked")} color={data.prefs.premium ? COLORS.green : COLORS.orange} icon="crown" theme={theme} /><Pill text={textFor("profile.on_device", "On device")} color={COLORS.green} icon="shield" theme={theme} /></View></View></View><View style={{ marginTop: 18 }}><View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, marginBottom: 7, flexWrap: "wrap" }}><Text selectable style={{ color: theme.label2, fontWeight: "900", flexShrink: 1 }}>{textFor("profile.semester_progress", "SEMESTER PROGRESS")}</Text><Text selectable style={{ color: theme.label2, flexShrink: 1 }}>{liveData.classes.length ? textFor("profile.classes_count", "{count} classes", { count: liveData.classes.length }) : textFor("profile.no_semester", "No semester yet")}</Text></View><ProgressBar value={liveData.tasks.length ? liveData.tasks.filter((task) => task.done).length / liveData.tasks.length : 0} color={theme.accent} theme={theme} /></View></Card>
+        <Card theme={theme} style={{ padding: 18 }}><View style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 14, alignItems: accessibilityLayout ? "flex-start" : "center" }}><View style={{ width: 62, height: 62, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text allowFontScaling={false} style={{ color: theme.accentText, fontSize: 26, fontWeight: "900" }}>{userInitial(data)}</Text></View><View style={{ flex: accessibilityLayout ? undefined : 1, width: accessibilityLayout ? "100%" : undefined, minWidth: 0 }}><Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label, fontSize: 24, fontWeight: "900" }}>{firstNameFromPrefs(data)}</Text><Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label2 }}>{optionText(data.prefs.level)} · {optionText(data.prefs.studentPersona || "School semester")}</Text><View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : undefined, flexWrap: accessibilityLayout ? "nowrap" : "wrap", gap: 6, marginTop: 6 }}><Pill text={data.prefs.premium ? textFor("profile.subscribed", "Subscribed") : textFor("profile.locked", "Locked")} color={data.prefs.premium ? COLORS.green : COLORS.orange} icon="crown" theme={theme} /><Pill text={textFor("profile.on_device", "On device")} color={COLORS.green} icon="shield" theme={theme} /></View></View></View><View style={{ marginTop: 18 }}><View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : undefined, justifyContent: "space-between", gap: 10, marginBottom: 7, flexWrap: accessibilityLayout ? "nowrap" : "wrap" }}><Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label2, fontWeight: "900", flexShrink: 1, width: accessibilityLayout ? "100%" : undefined }}>{textFor("profile.semester_progress", "SEMESTER PROGRESS")}</Text><Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label2, flexShrink: 1, width: accessibilityLayout ? "100%" : undefined }}>{liveData.classes.length ? textFor("profile.classes_count", "{count} classes", { count: liveData.classes.length }) : textFor("profile.no_semester", "No semester yet")}</Text></View><ProgressBar value={liveData.tasks.length ? liveData.tasks.filter((task) => task.done).length / liveData.tasks.length : 0} color={theme.accent} theme={theme} /></View></Card>
         <AppearancePicker data={data} mutate={mutate} theme={theme} />
-        <Pressable accessibilityRole={data.prefs.premium ? "link" : "button"} accessibilityLabel={data.prefs.premium ? textFor("profile.manage_subscription", "Manage subscription") : textFor("locked.unlock", "Unlock StudyPlanner")} accessibilityHint={data.prefs.premium ? textFor("profile.accessibility_manage_hint", "Open subscription management for this store account") : textFor("profile.accessibility_unlock_hint", "Open StudyPlanner subscription options")} onPress={() => data.prefs.premium ? openExternal(MANAGE_SUBSCRIPTION_URL) : nav.push("paywall")}><View style={{ borderRadius: 22, padding: 18, backgroundColor: theme.dark ? theme.surface2 : "#050507", borderWidth: 1, borderColor: theme.dark ? "rgba(255,255,255,0.24)" : "#050507" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Crown color={theme.dark ? "#FFFFFF" : COLORS.yellow} size={19} /><Text selectable style={{ color: "#fff", fontWeight: "900" }}>{textFor("profile.subscription", "StudyPlanner subscription")}</Text></View><Text selectable style={{ color: "rgba(255,255,255,.85)" }}>{textFor("profile.subscription_body", "Scans, reminders, study sets, and planning are active.")}</Text></View></Pressable>
+        <Pressable accessibilityRole={data.prefs.premium ? "link" : "button"} accessibilityLabel={data.prefs.premium ? textFor("profile.manage_subscription", "Manage subscription") : textFor("locked.unlock", "Unlock StudyPlanner")} accessibilityHint={data.prefs.premium ? textFor("profile.accessibility_manage_hint", "Open subscription management for this store account") : textFor("profile.accessibility_unlock_hint", "Open StudyPlanner subscription options")} onPress={() => data.prefs.premium ? openExternal(MANAGE_SUBSCRIPTION_URL) : nav.push("paywall")}><View style={{ borderRadius: 22, padding: 18, backgroundColor: theme.dark ? theme.surface2 : "#050507", borderWidth: 1, borderColor: theme.dark ? "rgba(255,255,255,0.24)" : "#050507" }}><View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", gap: 8, marginBottom: 8 }}><Crown color={theme.dark ? "#FFFFFF" : COLORS.yellow} size={19} /><Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: "#fff", fontWeight: "900", width: accessibilityLayout ? "100%" : undefined, flexShrink: 1 }}>{textFor("profile.subscription", "StudyPlanner subscription")}</Text></View><Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: "rgba(255,255,255,.85)" }}>{textFor("profile.subscription_body", "Scans, reminders, study sets, and planning are active.")}</Text></View></Pressable>
         <Card theme={theme} style={{ overflow: "hidden" }}>{rows.map(([icon, color, title, value, route]) => <Pressable key={`profile-row-${route}`} accessibilityRole={route === "manage" || route === "privacy" || route === "terms" || route === "support" ? "link" : "button"} accessibilityLabel={`${title}. ${value}`} accessibilityHint={route === "manage" ? textFor("profile.accessibility_manage_hint", "Open subscription management for this store account") : route === "privacy" ? textFor("paywall.accessibility_privacy_hint", "Open the privacy policy") : route === "terms" ? textFor("paywall.accessibility_terms_hint", "Open the subscription terms") : route === "support" ? textFor("paywall.accessibility_support_hint", "Open StudyPlanner support") : textFor("profile.accessibility_row_hint", "Open this setting")} onPress={() => {
           if (route === "scan") nav.tab("scan");
           else if (route === "manage") openExternal(MANAGE_SUBSCRIPTION_URL);
           else if (route === "privacy" || route === "terms") nav.push(route);
           else if (route === "support") openExternal(SUPPORT_URL);
           else nav.push(route as Route);
-        }} style={{ flexDirection: "row", gap: 12, alignItems: "center", padding: 14 }}><View style={{ width: 32, height: 32, borderRadius: 9, backgroundColor: `${color}1C`, alignItems: "center", justifyContent: "center" }}><Icon name={icon} color={color} size={18} /></View><Text selectable style={{ color: theme.label, flex: 1, fontWeight: "900" }}>{title}</Text><Text selectable style={{ color: theme.label2 }}>{value}</Text><ForwardChevron color={theme.label3} size={16} /></Pressable>)}</Card>
+        }} style={{ flexDirection: accessibilityLayout ? "column" : "row", gap: 12, alignItems: accessibilityLayout ? "stretch" : "center", padding: 14 }}><View style={{ width: 32, height: 32, borderRadius: 9, backgroundColor: `${color}1C`, alignItems: "center", justifyContent: "center", alignSelf: accessibilityLayout ? "flex-start" : undefined }}><Icon name={icon} color={color} size={18} /></View><Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label, flex: accessibilityLayout ? undefined : 1, width: accessibilityLayout ? "100%" : undefined, minWidth: 0, fontWeight: "900" }}>{title}</Text><Text selectable lineBreakStrategyIOS="standard" maxFontSizeMultiplier={2} style={{ color: theme.label2, width: accessibilityLayout ? "100%" : undefined }}>{value}</Text>{accessibilityLayout ? <View style={{ alignSelf: "flex-end" }}><ForwardChevron color={theme.label3} size={16} /></View> : <ForwardChevron color={theme.label3} size={16} />}</Pressable>)}</Card>
       </View>
     </Screen>
   );
@@ -12537,7 +12451,7 @@ function Reminders({ data, mutate, nav, theme, params }: ScreenProps) {
 }
 
 function HomePreview({ data, nav, theme }: ScreenProps) {
-  const snapshots = buildNativeWidgetSnapshots(activeSemesterData(data), widgetCopyFor);
+  const snapshots = buildNativeWidgetSnapshots(activeSemesterData(data), widgetCopyFor, storefrontLocale());
   return (
     <Screen theme={theme} bottom={40}>
       <BackHeader embedded nav={nav} theme={theme} label={textFor("widgets.sub_ready", "Home Screen snapshots")} />
@@ -12566,7 +12480,7 @@ function HomePreview({ data, nav, theme }: ScreenProps) {
 }
 
 function LockPreview({ data, nav, theme }: ScreenProps) {
-  const snapshots = buildNativeWidgetSnapshots(data, widgetCopyFor);
+  const snapshots = buildNativeWidgetSnapshots(data, widgetCopyFor, storefrontLocale());
   return (
     <Screen theme={theme} bottom={40}>
       <BackHeader embedded nav={nav} theme={theme} label={textFor("widgets.sub_locked", "Locked preview")} />

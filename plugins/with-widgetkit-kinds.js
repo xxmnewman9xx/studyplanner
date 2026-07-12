@@ -22,6 +22,11 @@ module.exports = function withWidgetKitKinds(config) {
         if (!widget.name || !widget.kind) {
           throw new Error(`Widget ${widget.name ?? "(missing name)"} must define a native WidgetKit kind.`);
         }
+        if (widget.configuration || widget.ios?.configuration) {
+          throw new Error(
+            `Widget ${widget.name} must remain static: configurable generation hard-codes the app-config name into Expo timeline storage.`
+          );
+        }
 
         const swiftPath = path.join(targetRoot, `${widget.name}.swift`);
         if (!fs.existsSync(swiftPath)) {
@@ -29,9 +34,17 @@ module.exports = function withWidgetKitKinds(config) {
         }
 
         const source = fs.readFileSync(swiftPath, "utf8");
-        const nextSource = source.replace(/let name: String = "[^"]+"/, `let name: String = "${widget.kind}"`);
+        const generatedName = `let name: String = "${widget.name}"`;
+        if (!source.includes(generatedName) || !source.includes("StaticConfiguration(kind: name, provider: WidgetsTimelineProvider(name: name))")) {
+          throw new Error(`Expected static Expo WidgetKit source for ${widget.name}.`);
+        }
+
+        const nextSource = source.replace(generatedName, `let name: String = "${widget.kind}"`);
         if (source === nextSource) {
           throw new Error(`Could not update WidgetKit kind in ${swiftPath}.`);
+        }
+        if (!nextSource.includes(`let name: String = "${widget.kind}"`)) {
+          throw new Error(`Generated WidgetKit kind did not match ${widget.kind} in ${swiftPath}.`);
         }
         fs.writeFileSync(swiftPath, nextSource);
       }
