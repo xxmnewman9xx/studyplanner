@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-13T01:11:49.791Z",
+  "status": "prepared_submission_blocked",
+  "releasePrepared": true,
+  "submissionReady": false,
+  "target": {
+    "appVersion": "2.0.8",
+    "buildNumber": "84",
+    "bundleId": "com.mattnewman.studyplanner"
+  },
+  "coverage": {
+    "locales": 17,
+    "localeDeviceGroups": 34,
+    "expectedAssets": 170,
+    "passedAssets": 170,
+    "uniqueFiles": 170,
+    "uniquePrompts": 170,
+    "uniquePixels": 170
+  },
+  "failures": [],
+  "submissionBlockers": [
+    "native-language review is not complete for all 17 locales",
+    "Classic/renderer conversation URL and message provenance is incomplete"
+  ]
+}

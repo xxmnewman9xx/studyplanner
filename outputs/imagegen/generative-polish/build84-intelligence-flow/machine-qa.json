@@ -1,0 +1,858 @@
+{
+  "schemaVersion": 1,
+  "assetCount": 170,
+  "passCount": 170,
+  "hardFailureCount": 0,
+  "findings": [
+    {
+      "jobId": "b84-if-ar-SA-iphone-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ar-SA-iphone-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ar-SA-iphone-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ar-SA-iphone-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ar-SA-iphone-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ar-SA-ipad-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ar-SA-ipad-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ar-SA-ipad-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ar-SA-ipad-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ar-SA-ipad-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-de-DE-iphone-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-de-DE-iphone-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-de-DE-iphone-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-de-DE-iphone-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-de-DE-iphone-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-de-DE-ipad-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-de-DE-ipad-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-de-DE-ipad-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-de-DE-ipad-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-de-DE-ipad-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-AU-iphone-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-AU-iphone-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-AU-iphone-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-AU-iphone-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-AU-iphone-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-AU-ipad-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-AU-ipad-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-AU-ipad-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-AU-ipad-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-AU-ipad-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-CA-iphone-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-CA-iphone-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-CA-iphone-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-CA-iphone-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-CA-iphone-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-CA-ipad-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-CA-ipad-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-CA-ipad-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-CA-ipad-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-CA-ipad-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-GB-iphone-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-GB-iphone-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-GB-iphone-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-GB-iphone-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-GB-iphone-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-GB-ipad-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-GB-ipad-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-GB-ipad-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-GB-ipad-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-GB-ipad-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-US-iphone-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-US-iphone-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-US-iphone-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-US-iphone-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-US-iphone-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-US-ipad-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-US-ipad-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-US-ipad-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-US-ipad-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-en-US-ipad-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-ES-iphone-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-ES-iphone-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-ES-iphone-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-ES-iphone-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-ES-iphone-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-ES-ipad-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-ES-ipad-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-ES-ipad-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-ES-ipad-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-ES-ipad-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-MX-iphone-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-MX-iphone-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-MX-iphone-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-MX-iphone-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-MX-iphone-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-MX-ipad-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-MX-ipad-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-MX-ipad-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-MX-ipad-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-es-MX-ipad-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-CA-iphone-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-CA-iphone-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-CA-iphone-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-CA-iphone-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-CA-iphone-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-CA-ipad-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-CA-ipad-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-CA-ipad-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-CA-ipad-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-CA-ipad-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-FR-iphone-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-FR-iphone-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-FR-iphone-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-FR-iphone-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-FR-iphone-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-FR-ipad-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-FR-ipad-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-FR-ipad-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-FR-ipad-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-fr-FR-ipad-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-hi-iphone-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-hi-iphone-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-hi-iphone-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-hi-iphone-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-hi-iphone-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-hi-ipad-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-hi-ipad-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-hi-ipad-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-hi-ipad-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-hi-ipad-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ja-iphone-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ja-iphone-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ja-iphone-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ja-iphone-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ja-iphone-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ja-ipad-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ja-ipad-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ja-ipad-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ja-ipad-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ja-ipad-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ko-iphone-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ko-iphone-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ko-iphone-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ko-iphone-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ko-iphone-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ko-ipad-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ko-ipad-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ko-ipad-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ko-ipad-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-ko-ipad-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-BR-iphone-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-BR-iphone-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-BR-iphone-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-BR-iphone-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-BR-iphone-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-BR-ipad-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-BR-ipad-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-BR-ipad-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-BR-ipad-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-BR-ipad-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-PT-iphone-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-PT-iphone-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-PT-iphone-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-PT-iphone-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-PT-iphone-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-PT-ipad-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-PT-ipad-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-PT-ipad-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-PT-ipad-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-pt-PT-ipad-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hans-iphone-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hans-iphone-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hans-iphone-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hans-iphone-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hans-iphone-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hans-ipad-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hans-ipad-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hans-ipad-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hans-ipad-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hans-ipad-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hant-iphone-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hant-iphone-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hant-iphone-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hant-iphone-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hant-iphone-s05",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hant-ipad-s01",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hant-ipad-s02",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hant-ipad-s03",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hant-ipad-s04",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "jobId": "b84-if-zh-Hant-ipad-s05",
+      "pass": true,
+      "errors": []
+    }
+  ]
+}

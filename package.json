@@ -66,7 +66,7 @@
     "check:iap": "node scripts/check-iap-config.mjs",
     "check:ios-privacy": "node scripts/check-ios-privacy-manifests.mjs",
     "check:eas-production-env": "node scripts/check-eas-production-env.mjs",
-    "check:release-media-provenance": "tsx scripts/check-release-media-provenance.ts",
+    "check:release-media-provenance": "node scripts/check-build84-intelligence-flow-media.mjs",
     "check:first-experience": "tsx scripts/check-first-experience-funnel.ts",
     "check:asc-final-upload": "tsx scripts/check-asc-final-upload-bundle.ts",
     "check:nomination-ready": "npm run check:first-experience && npm run check:asc-final-upload && npm run qa:release && npm run test:hard-paywall && npm run test:notes-stress && npm run test:syllabus-stress && npm run test:widgets && npm run test:widget-integrity && npm run check:widget-native-keys && npm run test:back-to-school-widgets && npm run typecheck && git diff --check && tsx scripts/check-nomination-submit-readiness.ts",

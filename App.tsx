@@ -6533,6 +6533,7 @@ function buildBuild66ImportFixture(data: AppData): ImportBatch {
 function simulatorCaptureNavItem(config: SimulatorCaptureConfig, importBatch: ImportBatch | null): NavItem {
   if (config.screen === "scannerAiming") return { route: "cameraScanner", params: { mode: "syllabus", captureDemo: "aiming" } };
   if (config.screen === "scannerReady") return { route: "cameraScanner", params: { mode: "syllabus", captureDemo: "ready" } };
+  if (config.screen === "manualCompleted") return { route: "paste", params: { mode: "manual", captureDemo: "completed" } };
   if (config.screen === "review_edit" || config.route === "review" || importBatch) return { route: "review" };
   if (config.screen === "classEdit") return { route: "classDetail", params: { id: "qa-cs201", edit: "1" } };
   if (config.screen === "classDetail") return { route: "classDetail", params: { id: "qa-cs201" } };
@@ -10687,15 +10688,18 @@ function CameraChecklistPill({ label, active }: { label: string; active: boolean
 
 function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps) {
   const manualMode = params.mode === "manual";
+  const completedManualCapture = simulatorCaptureIsEnabled()
+    && params.captureDemo === "completed"
+    && activeSimulatorCaptureConfig?.screen === "manualCompleted";
   const requestedMode = manualMode ? "manual" : params.mode === "notes" ? "notes" : "syllabus";
   const previewOnly = !data.prefs.premium;
   const mode = !manualMode && data.prefs.premium && requestedMode === "notes" ? "notes" : "syllabus";
   const [text, setText] = useState("");
-  const [classCode, setClassCode] = useState("");
-  const [className, setClassName] = useState("");
+  const [classCode, setClassCode] = useState(completedManualCapture ? "BIO 101" : "");
+  const [className, setClassName] = useState(completedManualCapture ? textFor("onboarding.manual_class_placeholder", "Biology Lab") : "");
   const [classDays, setClassDays] = useState("");
   const [classTime, setClassTime] = useState("");
-  const [deadlineTitle, setDeadlineTitle] = useState("");
+  const [deadlineTitle, setDeadlineTitle] = useState(completedManualCapture ? textFor("onboarding.manual_deadline_placeholder", "Problem set 1") : "");
   const [deadlineDate, setDeadlineDate] = useState(isoFromOffset(7));
   const [working, setWorking] = useState(false);
   const analysisTimer = useRef<ReturnType<typeof setTimeout> | null>(null);

@@ -1,0 +1,862 @@
+{
+  "schemaVersion": 1,
+  "status": "draft_requires_native_language_review",
+  "story": "intelligence-flow",
+  "productUiPolicy": "exact_build84_pixels_only",
+  "sourceCommit": "33172679b07f23b6d43da3733191508170830840",
+  "localeCount": 17,
+  "slideCount": 5,
+  "hardClaims": [],
+  "localizations": {
+    "ar-SA": [
+      {
+        "id": "01-scan-material",
+        "proof": [
+          "scan-light",
+          "scanner-ready-dark"
+        ],
+        "appearance": "light",
+        "headline": "امسح. استورد. ابدأ متقدمًا.",
+        "subhead": "حوّل منهجًا أو ملاحظات إلى خطة تراجعها."
+      },
+      {
+        "id": "02-add-your-way",
+        "proof": [
+          "import-options-light",
+          "manual-input-light"
+        ],
+        "appearance": "light",
+        "headline": "أضفه بطريقتك.",
+        "subhead": "استورد ملف PDF، أو الصق نصًا، أو أدخل التفاصيل بنفسك."
+      },
+      {
+        "id": "03-approve-deadlines",
+        "proof": [
+          "review-light"
+        ],
+        "appearance": "light",
+        "headline": "أنت تعتمد كل موعد نهائي.",
+        "subhead": "لا يُحفظ شيء حتى تؤكده."
+      },
+      {
+        "id": "04-make-time",
+        "proof": [
+          "plan-dark"
+        ],
+        "appearance": "dark",
+        "headline": "خصص وقتًا لكل موعد نهائي.",
+        "subhead": "حوّل مواعيد التسليم إلى فترات دراسة هادئة."
+      },
+      {
+        "id": "05-next-move",
+        "proof": [
+          "today-light",
+          "widgets-light"
+        ],
+        "appearance": "light",
+        "headline": "اعرف ما يحتاج إلى اهتمامك اليوم.",
+        "subhead": "الأولويات والمواعيد والتركيز في عرض واحد."
+      }
+    ],
+    "de-DE": [
+      {
+        "id": "01-scan-material",
+        "proof": [
+          "scan-light",
+          "scanner-ready-dark"
+        ],
+        "appearance": "light",
+        "headline": "Scannen. Importieren. Vorsprung gewinnen.",
+        "subhead": "Mach aus Lehrplan oder Notizen einen Plan, den du prüfst."
+      },
+      {
+        "id": "02-add-your-way",
+        "proof": [
+          "import-options-light",
+          "manual-input-light"
+        ],
+        "appearance": "light",
+        "headline": "Füge es auf deine Art hinzu.",
+        "subhead": "Importiere ein PDF, füge Text ein oder gib die Details selbst ein."
+      },
+      {
+        "id": "03-approve-deadlines",
+        "proof": [
+          "review-light"
+        ],
+        "appearance": "light",
+        "headline": "Du bestätigst jede Frist.",
+        "subhead": "Gespeichert wird erst nach deiner Freigabe."
+      },
+      {
+        "id": "04-make-time",
+        "proof": [
+          "plan-dark"
+        ],
+        "appearance": "dark",
+        "headline": "Gib jeder Frist einen Termin.",
+        "subhead": "Mach aus Abgaben ruhige Lernblöcke."
+      },
+      {
+        "id": "05-next-move",
+        "proof": [
+          "today-light",
+          "widgets-light"
+        ],
+        "appearance": "light",
+        "headline": "Wisse, was heute zählt.",
+        "subhead": "Prioritäten, Fristen und Fokus auf einen Blick."
+      }
+    ],
+    "en-AU": [
+      {
+        "id": "01-scan-material",
+        "proof": [
+          "scan-light",
+          "scanner-ready-dark"
+        ],
+        "appearance": "light",
+        "headline": "Scan. Import. Start ahead.",
+        "subhead": "Turn a syllabus or notes into a plan you review."
+      },
+      {
+        "id": "02-add-your-way",
+        "proof": [
+          "import-options-light",
+          "manual-input-light"
+        ],
+        "appearance": "light",
+        "headline": "Add it your way.",
+        "subhead": "Import a PDF, paste text or enter details yourself."
+      },
+      {
+        "id": "03-approve-deadlines",
+        "proof": [
+          "review-light"
+        ],
+        "appearance": "light",
+        "headline": "You approve every due date.",
+        "subhead": "Nothing saves until you confirm it."
+      },
+      {
+        "id": "04-make-time",
+        "proof": [
+          "plan-dark"
+        ],
+        "appearance": "dark",
+        "headline": "Give every due date a time.",
+        "subhead": "Turn deadlines into calm study blocks."
+      },
+      {
+        "id": "05-next-move",
+        "proof": [
+          "today-light",
+          "widgets-light"
+        ],
+        "appearance": "light",
+        "headline": "Know what needs you today.",
+        "subhead": "Priorities, due dates and focus in one view."
+      }
+    ],
+    "en-CA": [
+      {
+        "id": "01-scan-material",
+        "proof": [
+          "scan-light",
+          "scanner-ready-dark"
+        ],
+        "appearance": "light",
+        "headline": "Scan. Import. Start ahead.",
+        "subhead": "Turn a syllabus or notes into a plan you review."
+      },
+      {
+        "id": "02-add-your-way",
+        "proof": [
+          "import-options-light",
+          "manual-input-light"
+        ],
+        "appearance": "light",
+        "headline": "Add it your way.",
+        "subhead": "Import a PDF, paste text, or enter details yourself."
+      },
+      {
+        "id": "03-approve-deadlines",
+        "proof": [
+          "review-light"
+        ],
+        "appearance": "light",
+        "headline": "You approve every deadline.",
+        "subhead": "Nothing is saved until you confirm it."
+      },
+      {
+        "id": "04-make-time",
+        "proof": [
+          "plan-dark"
+        ],
+        "appearance": "dark",
+        "headline": "Make time for every deadline.",
+        "subhead": "Turn due dates into calm study blocks."
+      },
+      {
+        "id": "05-next-move",
+        "proof": [
+          "today-light",
+          "widgets-light"
+        ],
+        "appearance": "light",
+        "headline": "See what needs you today.",
+        "subhead": "Priorities, deadlines, and focus in one view."
+      }
+    ],
+    "en-GB": [
+      {
+        "id": "01-scan-material",
+        "proof": [
+          "scan-light",
+          "scanner-ready-dark"
+        ],
+        "appearance": "light",
+        "headline": "Scan. Import. Start ahead.",
+        "subhead": "Turn a syllabus or notes into a plan you review."
+      },
+      {
+        "id": "02-add-your-way",
+        "proof": [
+          "import-options-light",
+          "manual-input-light"
+        ],
+        "appearance": "light",
+        "headline": "Add it your way.",
+        "subhead": "Import a PDF, paste text or enter details yourself."
+      },
+      {
+        "id": "03-approve-deadlines",
+        "proof": [
+          "review-light"
+        ],
+        "appearance": "light",
+        "headline": "You confirm every deadline.",
+        "subhead": "Nothing is saved until you approve it."
+      },
+      {
+        "id": "04-make-time",
+        "proof": [
+          "plan-dark"
+        ],
+        "appearance": "dark",
+        "headline": "Set time for every deadline.",
+        "subhead": "Turn due dates into calm study blocks."
+      },
+      {
+        "id": "05-next-move",
+        "proof": [
+          "today-light",
+          "widgets-light"
+        ],
+        "appearance": "light",
+        "headline": "Know what matters today.",
+        "subhead": "Priorities, deadlines and focus in one view."
+      }
+    ],
+    "en-US": [
+      {
+        "id": "01-scan-material",
+        "proof": [
+          "scan-light",
+          "scanner-ready-dark"
+        ],
+        "appearance": "light",
+        "headline": "Scan. Import. Start ahead.",
+        "subhead": "Turn a syllabus or notes into a plan you review."
+      },
+      {
+        "id": "02-add-your-way",
+        "proof": [
+          "import-options-light",
+          "manual-input-light"
+        ],
+        "appearance": "light",
+        "headline": "Add it your way.",
+        "subhead": "Import a PDF, paste text, or enter details yourself."
+      },
+      {
+        "id": "03-approve-deadlines",
+        "proof": [
+          "review-light"
+        ],
+        "appearance": "light",
+        "headline": "You approve every deadline.",
+        "subhead": "Nothing saves until you confirm it."
+      },
+      {
+        "id": "04-make-time",
+        "proof": [
+          "plan-dark"
+        ],
+        "appearance": "dark",
+        "headline": "Give every deadline a time.",
+        "subhead": "Turn due dates into calm study blocks."
+      },
+      {
+        "id": "05-next-move",
+        "proof": [
+          "today-light",
+          "widgets-light"
+        ],
+        "appearance": "light",
+        "headline": "Know what needs you today.",
+        "subhead": "Priorities, deadlines, and focus in one view."
+      }
+    ],
+    "es-ES": [
+      {
+        "id": "01-scan-material",
+        "proof": [
+          "scan-light",
+          "scanner-ready-dark"
+        ],
+        "appearance": "light",
+        "headline": "Escanea. Importa. Toma ventaja.",
+        "subhead": "Convierte un temario o unos apuntes en un plan que tú revisas."
+      },
+      {
+        "id": "02-add-your-way",
+        "proof": [
+          "import-options-light",
+          "manual-input-light"
+        ],
+        "appearance": "light",
+        "headline": "Añádelo a tu manera.",
+        "subhead": "Importa un PDF, pega texto o introduce los detalles tú mismo."
+      },
+      {
+        "id": "03-approve-deadlines",
+        "proof": [
+          "review-light"
+        ],
+        "appearance": "light",
+        "headline": "Tú apruebas cada fecha.",
+        "subhead": "Nada se guarda hasta que lo confirmas."
+      },
+      {
+        "id": "04-make-time",
+        "proof": [
+          "plan-dark"
+        ],
+        "appearance": "dark",
+        "headline": "Pon hora a cada entrega.",
+        "subhead": "Convierte entregas en bloques tranquilos."
+      },
+      {
+        "id": "05-next-move",
+        "proof": [
+          "today-light",
+          "widgets-light"
+        ],
+        "appearance": "light",
+        "headline": "Sabe qué importa hoy.",
+        "subhead": "Prioridades, entregas y enfoque en una vista."
+      }
+    ],
+    "es-MX": [
+      {
+        "id": "01-scan-material",
+        "proof": [
+          "scan-light",
+          "scanner-ready-dark"
+        ],
+        "appearance": "light",
+        "headline": "Escanea. Importa. Empieza con ventaja.",
+        "subhead": "Convierte un temario o tus apuntes en un plan que tú revisas."
+      },
+      {
+        "id": "02-add-your-way",
+        "proof": [
+          "import-options-light",
+          "manual-input-light"
+        ],
+        "appearance": "light",
+        "headline": "Agrégalo a tu manera.",
+        "subhead": "Importa un PDF, pega texto o ingresa los detalles tú mismo."
+      },
+      {
+        "id": "03-approve-deadlines",
+        "proof": [
+          "review-light"
+        ],
+        "appearance": "light",
+        "headline": "Tú confirmas cada fecha límite.",
+        "subhead": "Nada se guarda hasta que lo apruebas."
+      },
+      {
+        "id": "04-make-time",
+        "proof": [
+          "plan-dark"
+        ],
+        "appearance": "dark",
+        "headline": "Dale tiempo a cada entrega.",
+        "subhead": "Convierte entregas en bloques tranquilos."
+      },
+      {
+        "id": "05-next-move",
+        "proof": [
+          "today-light",
+          "widgets-light"
+        ],
+        "appearance": "light",
+        "headline": "Sabe qué importa hoy.",
+        "subhead": "Prioridades, fechas y enfoque en una vista."
+      }
+    ],
+    "fr-CA": [
+      {
+        "id": "01-scan-material",
+        "proof": [
+          "scan-light",
+          "scanner-ready-dark"
+        ],
+        "appearance": "light",
+        "headline": "Numérise. Importe. Prends de l’avance.",
+        "subhead": "Transforme un plan de cours ou des notes en plan que tu révises."
+      },
+      {
+        "id": "02-add-your-way",
+        "proof": [
+          "import-options-light",
+          "manual-input-light"
+        ],
+        "appearance": "light",
+        "headline": "Ajoute-le à ta façon.",
+        "subhead": "Importe un PDF, colle du texte ou saisis toi-même les détails."
+      },
+      {
+        "id": "03-approve-deadlines",
+        "proof": [
+          "review-light"
+        ],
+        "appearance": "light",
+        "headline": "Tu confirmes chaque échéance.",
+        "subhead": "Rien n’est enregistré avant ton approbation."
+      },
+      {
+        "id": "04-make-time",
+        "proof": [
+          "plan-dark"
+        ],
+        "appearance": "dark",
+        "headline": "Planifie chaque échéance.",
+        "subhead": "Transforme les remises en blocs d’étude sereins."
+      },
+      {
+        "id": "05-next-move",
+        "proof": [
+          "today-light",
+          "widgets-light"
+        ],
+        "appearance": "light",
+        "headline": "Sache ce qui compte aujourd’hui.",
+        "subhead": "Priorités, échéances et concentration en une vue."
+      }
+    ],
+    "fr-FR": [
+      {
+        "id": "01-scan-material",
+        "proof": [
+          "scan-light",
+          "scanner-ready-dark"
+        ],
+        "appearance": "light",
+        "headline": "Scanne. Importe. Prends de l’avance.",
+        "subhead": "Transforme un syllabus ou des notes en plan que tu vérifies."
+      },
+      {
+        "id": "02-add-your-way",
+        "proof": [
+          "import-options-light",
+          "manual-input-light"
+        ],
+        "appearance": "light",
+        "headline": "Ajoute-le à ta façon.",
+        "subhead": "Importe un PDF, colle du texte ou saisis toi-même les détails."
+      },
+      {
+        "id": "03-approve-deadlines",
+        "proof": [
+          "review-light"
+        ],
+        "appearance": "light",
+        "headline": "Tu valides chaque échéance.",
+        "subhead": "Rien n’est enregistré sans ta confirmation."
+      },
+      {
+        "id": "04-make-time",
+        "proof": [
+          "plan-dark"
+        ],
+        "appearance": "dark",
+        "headline": "Planifie chaque échéance.",
+        "subhead": "Transforme les dates limites en sessions sereines."
+      },
+      {
+        "id": "05-next-move",
+        "proof": [
+          "today-light",
+          "widgets-light"
+        ],
+        "appearance": "light",
+        "headline": "Sache ce qui compte aujourd’hui.",
+        "subhead": "Priorités, échéances et concentration en une vue."
+      }
+    ],
+    "hi": [
+      {
+        "id": "01-scan-material",
+        "proof": [
+          "scan-light",
+          "scanner-ready-dark"
+        ],
+        "appearance": "light",
+        "headline": "स्कैन करें। इम्पोर्ट करें। आगे रहें।",
+        "subhead": "सिलेबस या नोट्स को ऐसे प्लान में बदलें जिसे आप जाँचते हैं।"
+      },
+      {
+        "id": "02-add-your-way",
+        "proof": [
+          "import-options-light",
+          "manual-input-light"
+        ],
+        "appearance": "light",
+        "headline": "अपने तरीके से जोड़ें।",
+        "subhead": "PDF इम्पोर्ट करें, टेक्स्ट पेस्ट करें या विवरण खुद भरें।"
+      },
+      {
+        "id": "03-approve-deadlines",
+        "proof": [
+          "review-light"
+        ],
+        "appearance": "light",
+        "headline": "हर समय-सीमा आप मंज़ूर करते हैं।",
+        "subhead": "आपकी पुष्टि से पहले कुछ भी सेव नहीं होता।"
+      },
+      {
+        "id": "04-make-time",
+        "proof": [
+          "plan-dark"
+        ],
+        "appearance": "dark",
+        "headline": "हर समय-सीमा के लिए समय तय करें।",
+        "subhead": "ड्यू डेट को शांत स्टडी ब्लॉक में बदलें।"
+      },
+      {
+        "id": "05-next-move",
+        "proof": [
+          "today-light",
+          "widgets-light"
+        ],
+        "appearance": "light",
+        "headline": "जानें, आज किस पर ध्यान देना है।",
+        "subhead": "प्राथमिकताएँ, समय-सीमाएँ और फ़ोकस एक ही जगह।"
+      }
+    ],
+    "ja": [
+      {
+        "id": "01-scan-material",
+        "proof": [
+          "scan-light",
+          "scanner-ready-dark"
+        ],
+        "appearance": "light",
+        "headline": "スキャン。読み込み。先回り。",
+        "subhead": "シラバスやノートを、確認できる計画に変えます。"
+      },
+      {
+        "id": "02-add-your-way",
+        "proof": [
+          "import-options-light",
+          "manual-input-light"
+        ],
+        "appearance": "light",
+        "headline": "自分に合う方法で追加。",
+        "subhead": "PDFの読み込み、テキストの貼り付け、手入力から選べます。"
+      },
+      {
+        "id": "03-approve-deadlines",
+        "proof": [
+          "review-light"
+        ],
+        "appearance": "light",
+        "headline": "締切はすべて自分で承認。",
+        "subhead": "確認するまで何も保存されません。"
+      },
+      {
+        "id": "04-make-time",
+        "proof": [
+          "plan-dark"
+        ],
+        "appearance": "dark",
+        "headline": "すべての締切に時間を確保。",
+        "subhead": "期限を落ち着いた学習時間に変えよう。"
+      },
+      {
+        "id": "05-next-move",
+        "proof": [
+          "today-light",
+          "widgets-light"
+        ],
+        "appearance": "light",
+        "headline": "今日やるべきことが分かる。",
+        "subhead": "優先事項・締切・集中時間をひとつの画面で。"
+      }
+    ],
+    "ko": [
+      {
+        "id": "01-scan-material",
+        "proof": [
+          "scan-light",
+          "scanner-ready-dark"
+        ],
+        "appearance": "light",
+        "headline": "스캔. 가져오기. 한발 앞서기.",
+        "subhead": "강의계획서나 노트를 검토 가능한 계획으로 바꾸세요."
+      },
+      {
+        "id": "02-add-your-way",
+        "proof": [
+          "import-options-light",
+          "manual-input-light"
+        ],
+        "appearance": "light",
+        "headline": "내 방식대로 추가하세요.",
+        "subhead": "PDF를 가져오거나 텍스트를 붙여넣거나 직접 입력하세요."
+      },
+      {
+        "id": "03-approve-deadlines",
+        "proof": [
+          "review-light"
+        ],
+        "appearance": "light",
+        "headline": "모든 마감일을 직접 승인하세요.",
+        "subhead": "확인하기 전에는 아무것도 저장되지 않습니다."
+      },
+      {
+        "id": "04-make-time",
+        "proof": [
+          "plan-dark"
+        ],
+        "appearance": "dark",
+        "headline": "모든 마감일에 시간을 배정하세요.",
+        "subhead": "마감일을 여유로운 학습 블록으로 바꾸세요."
+      },
+      {
+        "id": "05-next-move",
+        "proof": [
+          "today-light",
+          "widgets-light"
+        ],
+        "appearance": "light",
+        "headline": "오늘 할 일을 바로 파악하세요.",
+        "subhead": "우선순위, 마감일, 집중 시간을 한눈에."
+      }
+    ],
+    "pt-BR": [
+      {
+        "id": "01-scan-material",
+        "proof": [
+          "scan-light",
+          "scanner-ready-dark"
+        ],
+        "appearance": "light",
+        "headline": "Escaneie. Importe. Saia na frente.",
+        "subhead": "Transforme um plano de ensino ou anotações em um plano que você revisa."
+      },
+      {
+        "id": "02-add-your-way",
+        "proof": [
+          "import-options-light",
+          "manual-input-light"
+        ],
+        "appearance": "light",
+        "headline": "Adicione do seu jeito.",
+        "subhead": "Importe um PDF, cole o texto ou insira os detalhes manualmente."
+      },
+      {
+        "id": "03-approve-deadlines",
+        "proof": [
+          "review-light"
+        ],
+        "appearance": "light",
+        "headline": "Você aprova cada prazo.",
+        "subhead": "Nada é salvo até você confirmar."
+      },
+      {
+        "id": "04-make-time",
+        "proof": [
+          "plan-dark"
+        ],
+        "appearance": "dark",
+        "headline": "Dê um horário a cada prazo.",
+        "subhead": "Transforme entregas em blocos tranquilos."
+      },
+      {
+        "id": "05-next-move",
+        "proof": [
+          "today-light",
+          "widgets-light"
+        ],
+        "appearance": "light",
+        "headline": "Saiba o que importa hoje.",
+        "subhead": "Prioridades, prazos e foco em uma só tela."
+      }
+    ],
+    "pt-PT": [
+      {
+        "id": "01-scan-material",
+        "proof": [
+          "scan-light",
+          "scanner-ready-dark"
+        ],
+        "appearance": "light",
+        "headline": "Digitalize. Importe. Comece à frente.",
+        "subhead": "Transforme um plano de estudos ou apontamentos num plano que revê."
+      },
+      {
+        "id": "02-add-your-way",
+        "proof": [
+          "import-options-light",
+          "manual-input-light"
+        ],
+        "appearance": "light",
+        "headline": "Adicione à sua maneira.",
+        "subhead": "Importe um PDF, cole texto ou introduza os detalhes manualmente."
+      },
+      {
+        "id": "03-approve-deadlines",
+        "proof": [
+          "review-light"
+        ],
+        "appearance": "light",
+        "headline": "Aprovas todos os prazos.",
+        "subhead": "Nada é guardado até confirmares."
+      },
+      {
+        "id": "04-make-time",
+        "proof": [
+          "plan-dark"
+        ],
+        "appearance": "dark",
+        "headline": "Reserva tempo para cada prazo.",
+        "subhead": "Transforma entregas em blocos tranquilos."
+      },
+      {
+        "id": "05-next-move",
+        "proof": [
+          "today-light",
+          "widgets-light"
+        ],
+        "appearance": "light",
+        "headline": "Sabe o que precisa de ti hoje.",
+        "subhead": "Prioridades, prazos e foco numa só vista."
+      }
+    ],
+    "zh-Hans": [
+      {
+        "id": "01-scan-material",
+        "proof": [
+          "scan-light",
+          "scanner-ready-dark"
+        ],
+        "appearance": "light",
+        "headline": "扫描。导入。提前一步。",
+        "subhead": "把教学大纲或笔记变成由你检查的计划。"
+      },
+      {
+        "id": "02-add-your-way",
+        "proof": [
+          "import-options-light",
+          "manual-input-light"
+        ],
+        "appearance": "light",
+        "headline": "按你的方式添加。",
+        "subhead": "导入 PDF、粘贴文本，或亲自输入详细信息。"
+      },
+      {
+        "id": "03-approve-deadlines",
+        "proof": [
+          "review-light"
+        ],
+        "appearance": "light",
+        "headline": "每个截止日期都由你确认。",
+        "subhead": "确认前，不会保存任何内容。"
+      },
+      {
+        "id": "04-make-time",
+        "proof": [
+          "plan-dark"
+        ],
+        "appearance": "dark",
+        "headline": "为每个截止日期安排时间。",
+        "subhead": "把截止任务变成从容的学习时段。"
+      },
+      {
+        "id": "05-next-move",
+        "proof": [
+          "today-light",
+          "widgets-light"
+        ],
+        "appearance": "light",
+        "headline": "清楚今天该做什么。",
+        "subhead": "优先事项、截止日期和专注安排一目了然。"
+      }
+    ],
+    "zh-Hant": [
+      {
+        "id": "01-scan-material",
+        "proof": [
+          "scan-light",
+          "scanner-ready-dark"
+        ],
+        "appearance": "light",
+        "headline": "掃描。匯入。提早一步。",
+        "subhead": "把課程大綱或筆記變成由你檢查的計畫。"
+      },
+      {
+        "id": "02-add-your-way",
+        "proof": [
+          "import-options-light",
+          "manual-input-light"
+        ],
+        "appearance": "light",
+        "headline": "依你的方式加入。",
+        "subhead": "匯入 PDF、貼上文字，或自行輸入詳細資料。"
+      },
+      {
+        "id": "03-approve-deadlines",
+        "proof": [
+          "review-light"
+        ],
+        "appearance": "light",
+        "headline": "每個截止日期都由你確認。",
+        "subhead": "確認前，不會儲存任何內容。"
+      },
+      {
+        "id": "04-make-time",
+        "proof": [
+          "plan-dark"
+        ],
+        "appearance": "dark",
+        "headline": "為每個截止日期安排時間。",
+        "subhead": "把到期任務變成從容的學習時段。"
+      },
+      {
+        "id": "05-next-move",
+        "proof": [
+          "today-light",
+          "widgets-light"
+        ],
+        "appearance": "light",
+        "headline": "清楚今天該做什麼。",
+        "subhead": "優先事項、截止日期和專注安排一目瞭然。"
+      }
+    ]
+  }
+}
