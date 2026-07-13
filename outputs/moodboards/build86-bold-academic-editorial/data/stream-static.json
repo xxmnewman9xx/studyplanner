@@ -1,0 +1,1418 @@
+{
+  "meta": {
+    "title": "Build 86 — Bold Academic Editorial",
+    "subtitle": "Real StudyPlanner pixels lead every frame; atmosphere supports the decision.",
+    "territory": "Bold Academic Editorial",
+    "assetCount": 12,
+    "referencePolicy": "Current live previews and verified native captures are visual references only; Build 86 release media requires fresh binary-bound source evidence."
+  },
+  "signals": {
+    "promise": "Your next move, before you open the app.",
+    "composition": "Application pixels occupy approximately 90% of the frame.",
+    "palette": [
+      "paper white",
+      "editorial black",
+      "semester green",
+      "planning purple",
+      "deadline orange",
+      "class colors"
+    ],
+    "mustHave": [
+      "poster hierarchy",
+      "glanceable outcome",
+      "one supporting detail",
+      "one action",
+      "truthful native UI"
+    ],
+    "avoid": [
+      "recreated UI",
+      "generated typography",
+      "nested cards",
+      "decorative metrics",
+      "blank widget previews",
+      "caption-sized critical text"
+    ]
+  },
+  "items": [
+    {
+      "id": "hero-live-preview",
+      "title": "Hero — Editorial Dashboard",
+      "caption": "Large light and dark planner surfaces establish the product before atmospheric polish.",
+      "source": "Current live App Store preview",
+      "tone": "confident, useful, premium",
+      "motif": "oversized dashboard pair",
+      "palette": "paper white, ink black, semester green",
+      "prompt": "Single editorial product composition with an oversized truthful study-planning interface, restrained paper-white and green atmosphere, no generated text, no logos, no collage. Single coherent frame, one composed scene or object detail, not a collage, not a grid, not a contact sheet, not a scrapbook, not a mood board layout.",
+      "remixSuggestions": {
+        "style": [
+          {
+            "label": "Poster Scale",
+            "description": "Let the real interface dominate with a single decisive hierarchy",
+            "promptHint": "oversized product surface, poster-like crop"
+          },
+          {
+            "label": "Candid Dashboard",
+            "description": "More natural texture and believable lived-in detail for Hero — Editorial Dashboard",
+            "promptHint": "Shift Hero — Editorial Dashboard toward documentary realism while preserving Large light and dark planner surfaces establish the product before atmospheric polish; make..."
+          },
+          {
+            "label": "Editorial Dashboard",
+            "description": "Cleaner light and hierarchy around Hero — Editorial Dashboard",
+            "promptHint": "Apply a polished editorial treatment to Hero — Editorial Dashboard; preserve Large light and dark planner surfaces establish the product before atmospheric polish while..."
+          }
+        ],
+        "palette": [
+          {
+            "label": "Semester Green",
+            "description": "Use green only as a state signal and edge glow",
+            "promptHint": "paper white, black ink, restrained semester green"
+          },
+          {
+            "label": "Accent Dashboard",
+            "description": "A stronger accent color against quieter supporting surfaces",
+            "promptHint": "Add a controlled accent palette to Hero — Editorial Dashboard without changing the main subject"
+          },
+          {
+            "label": "Unexpected Dashboard",
+            "description": "A more surprising secondary color relationship around Hero — Editorial Dashboard",
+            "promptHint": "Keep the subject recognizable, but introduce one unexpected supporting color that extends Large light and dark planner surfaces establish the product before atmospheric polish"
+          }
+        ],
+        "scene": [
+          {
+            "label": "Dashboard Exterior",
+            "description": "Move Hero — Editorial Dashboard into an outdoor or threshold environment with a fresh spatial read",
+            "promptHint": "Relocate Hero — Editorial Dashboard into an exterior or entryway scene while preserving the core cue: Large light and dark planner surfaces establish the product before..."
+          },
+          {
+            "label": "Dashboard Studio",
+            "description": "A cleaner controlled studio setting that keeps Hero — Editorial Dashboard dominant",
+            "promptHint": "Move Hero — Editorial Dashboard into a cleaner studio-hero setting while preserving Large light and dark planner surfaces establish the product before atmospheric polish"
+          },
+          {
+            "label": "Dashboard Detail",
+            "description": "A tighter scene focused on material, craft, or product detail",
+            "promptHint": "Create a close-detail scene for Hero — Editorial Dashboard, keeping the most important source cue visible"
+          }
+        ],
+        "props": [
+          {
+            "label": "Unexpected Dashboard Prop",
+            "description": "One surprising but believable object that opens a new story around Hero — Editorial Dashboard",
+            "promptHint": "Add one unexpected supporting prop that extends Large light and dark planner surfaces establish the product before atmospheric polish without stealing focus from Hero —..."
+          },
+          {
+            "label": "Minimal Support",
+            "description": "Reduce surrounding objects so Hero — Editorial Dashboard carries more weight",
+            "promptHint": "Remove nonessential props and keep Hero — Editorial Dashboard as the dominant read"
+          },
+          {
+            "label": "Premium Finish",
+            "description": "Sharper materials, cleaner surfaces, and more elevated detail",
+            "promptHint": "Add premium material cues around Hero — Editorial Dashboard; preserve the source image's composition"
+          }
+        ],
+        "character": [
+          {
+            "label": "No Human",
+            "description": "Let the object, place, or composition carry the frame",
+            "promptHint": "Remove visible people and let Hero — Editorial Dashboard carry the image"
+          },
+          {
+            "label": "Collector Persona",
+            "description": "A more intentional, taste-driven persona interacting with Hero — Editorial Dashboard",
+            "promptHint": "Introduce a collector or tastemaker presence around Hero — Editorial Dashboard while changing wardrobe, gesture, or posture"
+          },
+          {
+            "label": "Everyday Use",
+            "description": "More approachable human presence while preserving the mood",
+            "promptHint": "Show Hero — Editorial Dashboard in an everyday user context without losing Large light and dark planner surfaces establish the product before atmospheric polish"
+          }
+        ],
+        "format": [
+          {
+            "label": "90% Pixels",
+            "description": "Reserve only a narrow atmospheric perimeter",
+            "promptHint": "real app pixels fill approximately ninety percent of the frame"
+          },
+          {
+            "label": "Split-Depth Dashboard",
+            "description": "Foreground detail and background atmosphere in one composed frame",
+            "promptHint": "Create a single-frame split-depth composition for Hero — Editorial Dashboard; do not make a collage or panel layout"
+          },
+          {
+            "label": "Wide Dashboard",
+            "description": "Broader horizontal composition for landing-page or banner use",
+            "promptHint": "Adapt Hero — Editorial Dashboard to a wide hero composition with room for layout"
+          }
+        ]
+      },
+      "imageUrl": "generated/hero-live-preview.png"
+    },
+    {
+      "id": "scan-live-preview",
+      "title": "Loop Entry — Scan",
+      "caption": "The conversion loop begins with a syllabus becoming structured work.",
+      "source": "Current live App Store preview",
+      "tone": "fast, capable, direct",
+      "motif": "camera-to-plan transformation",
+      "palette": "white, cobalt, purple, green",
+      "prompt": "Single editorial product image showing a truthful syllabus scanning interface at dominant scale, restrained cobalt and green lighting, no generated text, no logos, no split panels. Single coherent frame, one composed scene or object detail, not a collage, not a grid, not a contact sheet, not a scrapbook, not a mood board layout.",
+      "remixSuggestions": {
+        "style": [
+          {
+            "label": "Clinical Clarity",
+            "description": "Keep the environment quiet so the camera UI reads instantly",
+            "promptHint": "clean white field, crisp product pixels"
+          },
+          {
+            "label": "Candid Scan",
+            "description": "More natural texture and believable lived-in detail for Loop Entry — Scan",
+            "promptHint": "Shift Loop Entry — Scan toward documentary realism while preserving The conversion loop begins with a syllabus becoming structured work; make lighting and staging feel newly..."
+          },
+          {
+            "label": "Editorial Scan",
+            "description": "Cleaner light and hierarchy around Loop Entry — Scan",
+            "promptHint": "Apply a polished editorial treatment to Loop Entry — Scan; preserve The conversion loop begins with a syllabus becoming structured work while changing the composition enough to..."
+          }
+        ],
+        "palette": [
+          {
+            "label": "Warm Scan",
+            "description": "Warmer neutrals and tactile highlights around Loop Entry — Scan",
+            "promptHint": "Shift the palette warmer while preserving the subject and composition of Loop Entry — Scan"
+          },
+          {
+            "label": "Accent Scan",
+            "description": "A stronger accent color against quieter supporting surfaces",
+            "promptHint": "Add a controlled accent palette to Loop Entry — Scan without changing the main subject"
+          },
+          {
+            "label": "Unexpected Scan",
+            "description": "A more surprising secondary color relationship around Loop Entry — Scan",
+            "promptHint": "Keep the subject recognizable, but introduce one unexpected supporting color that extends The conversion loop begins with a syllabus becoming structured work"
+          }
+        ],
+        "scene": [
+          {
+            "label": "Input Moment",
+            "description": "Frame the scan surface as the first move in a planning loop",
+            "promptHint": "single decisive syllabus input moment"
+          },
+          {
+            "label": "Scan Detail",
+            "description": "A tighter scene focused on material, craft, or product detail",
+            "promptHint": "Create a close-detail scene for Loop Entry — Scan, keeping the most important source cue visible"
+          },
+          {
+            "label": "Scan Backstage",
+            "description": "A behind-the-scenes environment that adds process and atmosphere around Loop Entry — Scan",
+            "promptHint": "Reframe Loop Entry — Scan as a backstage or preparation moment; keep The conversion loop begins with a syllabus becoming structured work recognizable"
+          }
+        ],
+        "props": [
+          {
+            "label": "Premium Finish",
+            "description": "Sharper materials, cleaner surfaces, and more elevated detail",
+            "promptHint": "Add premium material cues around Loop Entry — Scan; preserve the source image's composition"
+          },
+          {
+            "label": "Process Cues",
+            "description": "Tools, traces, or handling details that make Loop Entry — Scan feel actively used",
+            "promptHint": "Add restrained process cues around Loop Entry — Scan; preserve the strongest visual idea from The conversion loop begins with a syllabus becoming structured work"
+          },
+          {
+            "label": "Scan Cues",
+            "description": "Add restrained supporting objects that clarify the context of Loop Entry — Scan",
+            "promptHint": "Add a few contextual props that reinforce The conversion loop begins with a syllabus becoming structured work without distracting from Loop Entry — Scan"
+          }
+        ],
+        "character": [
+          {
+            "label": "Collector Persona",
+            "description": "A more intentional, taste-driven persona interacting with Loop Entry — Scan",
+            "promptHint": "Introduce a collector or tastemaker presence around Loop Entry — Scan while changing wardrobe, gesture, or posture"
+          },
+          {
+            "label": "Everyday Use",
+            "description": "More approachable human presence while preserving the mood",
+            "promptHint": "Show Loop Entry — Scan in an everyday user context without losing The conversion loop begins with a syllabus becoming structured work"
+          },
+          {
+            "label": "Passing Figure",
+            "description": "A partial human presence that adds scale and motion without taking over Loop Entry — Scan",
+            "promptHint": "Add a cropped passing figure or gesture around Loop Entry — Scan; keep identity nonspecific and preserve The conversion loop begins with a syllabus becoming structured work"
+          }
+        ],
+        "format": [
+          {
+            "label": "Portrait Scan",
+            "description": "Tighter vertical crop for social or story placement",
+            "promptHint": "Adapt Loop Entry — Scan to a portrait social crop while preserving the key visual read"
+          },
+          {
+            "label": "Scan Crop",
+            "description": "Closer inspection of the material, surface, or focal subject",
+            "promptHint": "Create a closer detail crop of Loop Entry — Scan; keep The conversion loop begins with a syllabus becoming structured work legible"
+          },
+          {
+            "label": "Split-Depth Scan",
+            "description": "Foreground detail and background atmosphere in one composed frame",
+            "promptHint": "Create a single-frame split-depth composition for Loop Entry — Scan; do not make a collage or panel layout"
+          }
+        ]
+      },
+      "imageUrl": "generated/scan-live-preview.png"
+    },
+    {
+      "id": "schedule-live-preview",
+      "title": "Schedule — Heavy Week",
+      "caption": "A dark schedule frame makes workload shape and deadline color immediately legible.",
+      "source": "Current live App Store preview",
+      "tone": "calm foresight",
+      "motif": "weekly workload rhythm",
+      "palette": "editorial black, planning purple, deadline orange",
+      "prompt": "Single dark editorial product composition with a truthful weekly schedule interface occupying most of the frame, subtle purple and orange edge light, no generated text, no collage. Single coherent frame, one composed scene or object detail, not a collage, not a grid, not a contact sheet, not a scrapbook, not a mood board layout.",
+      "remixSuggestions": {
+        "style": [
+          {
+            "label": "Editorial Week",
+            "description": "Cleaner light and hierarchy around Schedule — Heavy Week",
+            "promptHint": "Apply a polished editorial treatment to Schedule — Heavy Week; preserve A dark schedule frame makes workload shape and deadline color immediately legible while changing the..."
+          },
+          {
+            "label": "Minimal Week",
+            "description": "Quieter hierarchy, more negative space, and stricter restraint around Schedule — Heavy Week",
+            "promptHint": "Strip Schedule — Heavy Week down to a minimal premium frame; keep A dark schedule frame makes workload shape and deadline color immediately legible legible but change the..."
+          },
+          {
+            "label": "Motion Week",
+            "description": "More kinetic gesture, blur, or environmental energy around Schedule — Heavy Week",
+            "promptHint": "Introduce controlled motion to Schedule — Heavy Week while preserving the campaign cue: A dark schedule frame makes workload shape and deadline color immediately legible"
+          }
+        ],
+        "palette": [
+          {
+            "label": "Deadline Heat",
+            "description": "Use orange for urgency without warming the whole frame",
+            "promptHint": "black field, purple planning accent, precise orange deadline signal"
+          },
+          {
+            "label": "Monochrome Week",
+            "description": "A narrower near-monochrome treatment that lets one cue around Schedule — Heavy Week stand out",
+            "promptHint": "Reduce the palette around Schedule — Heavy Week to tonal restraint plus one preserved cue from A dark schedule frame makes workload shape and deadline color immediately legible"
+          },
+          {
+            "label": "Warm Week",
+            "description": "Warmer neutrals and tactile highlights around Schedule — Heavy Week",
+            "promptHint": "Shift the palette warmer while preserving the subject and composition of Schedule — Heavy Week"
+          }
+        ],
+        "scene": [
+          {
+            "label": "Week Backstage",
+            "description": "A behind-the-scenes environment that adds process and atmosphere around Schedule — Heavy Week",
+            "promptHint": "Reframe Schedule — Heavy Week as a backstage or preparation moment; keep A dark schedule frame makes workload shape and deadline color immediately legible recognizable"
+          },
+          {
+            "label": "Week In Use",
+            "description": "A more believable real-world context for Schedule — Heavy Week",
+            "promptHint": "Place Schedule — Heavy Week into a realistic usage context; preserve the source image's core cue: A dark schedule frame makes workload shape and deadline color immediately legible"
+          },
+          {
+            "label": "Week Exterior",
+            "description": "Move Schedule — Heavy Week into an outdoor or threshold environment with a fresh spatial read",
+            "promptHint": "Relocate Schedule — Heavy Week into an exterior or entryway scene while preserving the core cue: A dark schedule frame makes workload shape and deadline color immediately legible"
+          }
+        ],
+        "props": [
+          {
+            "label": "Process Cues",
+            "description": "Tools, traces, or handling details that make Schedule — Heavy Week feel actively used",
+            "promptHint": "Add restrained process cues around Schedule — Heavy Week; preserve the strongest visual idea from A dark schedule frame makes workload shape and deadline color immediately legible"
+          },
+          {
+            "label": "Week Cues",
+            "description": "Add restrained supporting objects that clarify the context of Schedule — Heavy Week",
+            "promptHint": "Add a few contextual props that reinforce A dark schedule frame makes workload shape and deadline color immediately legible without distracting from Schedule — Heavy Week"
+          },
+          {
+            "label": "Unexpected Week Prop",
+            "description": "One surprising but believable object that opens a new story around Schedule — Heavy Week",
+            "promptHint": "Add one unexpected supporting prop that extends A dark schedule frame makes workload shape and deadline color immediately legible without stealing focus from Schedule — Heavy Week"
+          }
+        ],
+        "character": [
+          {
+            "label": "Passing Figure",
+            "description": "A partial human presence that adds scale and motion without taking over Schedule — Heavy Week",
+            "promptHint": "Add a cropped passing figure or gesture around Schedule — Heavy Week; keep identity nonspecific and preserve A dark schedule frame makes workload shape and deadline color..."
+          },
+          {
+            "label": "Expert Hands",
+            "description": "More credible craft, authority, and purposeful interaction with Schedule — Heavy Week",
+            "promptHint": "If a person appears, make them an expert operator interacting naturally with Schedule — Heavy Week"
+          },
+          {
+            "label": "No Human",
+            "description": "Let the object, place, or composition carry the frame",
+            "promptHint": "Remove visible people and let Schedule — Heavy Week carry the image"
+          }
+        ],
+        "format": [
+          {
+            "label": "Week First",
+            "description": "Crop around the week structure and peak day",
+            "promptHint": "dominant weekly workload strip"
+          },
+          {
+            "label": "Portrait Week",
+            "description": "Tighter vertical crop for social or story placement",
+            "promptHint": "Adapt Schedule — Heavy Week to a portrait social crop while preserving the key visual read"
+          },
+          {
+            "label": "Week Crop",
+            "description": "Closer inspection of the material, surface, or focal subject",
+            "promptHint": "Create a closer detail crop of Schedule — Heavy Week; keep A dark schedule frame makes workload shape and deadline color immediately legible legible"
+          }
+        ]
+      },
+      "imageUrl": "generated/schedule-live-preview.png"
+    },
+    {
+      "id": "focus-live-preview",
+      "title": "Loop Dark — Focus",
+      "caption": "The planning loop resolves into a quiet, singular work session.",
+      "source": "Current live App Store preview",
+      "tone": "immersive, frictionless",
+      "motif": "one next action",
+      "palette": "ink black, cool white, planning purple",
+      "prompt": "Single dark editorial product image with a truthful focus timer interface at oversized scale, restrained purple depth and clean white type already present in the source, no generated text, no logos. Single coherent frame, one composed scene or object detail, not a collage, not a grid, not a contact sheet, not a scrapbook, not a mood board layout.",
+      "remixSuggestions": {
+        "style": [
+          {
+            "label": "Quiet Intensity",
+            "description": "Build depth through luminance rather than decoration",
+            "promptHint": "dark reduced-luminance atmosphere, focused center"
+          },
+          {
+            "label": "Dramatic Focus",
+            "description": "Richer blacks, sharper highlights, and more cinematic emphasis",
+            "promptHint": "Apply high-contrast cinematic treatment to Loop Dark — Focus; keep The planning loop resolves into a quiet, singular work session recognizable but alter camera angle or staging"
+          },
+          {
+            "label": "Candid Focus",
+            "description": "More natural texture and believable lived-in detail for Loop Dark — Focus",
+            "promptHint": "Shift Loop Dark — Focus toward documentary realism while preserving The planning loop resolves into a quiet, singular work session; make lighting and staging feel newly observed"
+          }
+        ],
+        "palette": [
+          {
+            "label": "Monochrome Focus",
+            "description": "A narrower near-monochrome treatment that lets one cue around Loop Dark — Focus stand out",
+            "promptHint": "Reduce the palette around Loop Dark — Focus to tonal restraint plus one preserved cue from The planning loop resolves into a quiet, singular work session"
+          },
+          {
+            "label": "Warm Focus",
+            "description": "Warmer neutrals and tactile highlights around Loop Dark — Focus",
+            "promptHint": "Shift the palette warmer while preserving the subject and composition of Loop Dark — Focus"
+          },
+          {
+            "label": "Accent Focus",
+            "description": "A stronger accent color against quieter supporting surfaces",
+            "promptHint": "Add a controlled accent palette to Loop Dark — Focus without changing the main subject"
+          }
+        ],
+        "scene": [
+          {
+            "label": "Next Action",
+            "description": "Make one work session feel inevitable and ready",
+            "promptHint": "single next-action focus state"
+          },
+          {
+            "label": "Focus Exterior",
+            "description": "Move Loop Dark — Focus into an outdoor or threshold environment with a fresh spatial read",
+            "promptHint": "Relocate Loop Dark — Focus into an exterior or entryway scene while preserving the core cue: The planning loop resolves into a quiet, singular work session"
+          },
+          {
+            "label": "Focus Studio",
+            "description": "A cleaner controlled studio setting that keeps Loop Dark — Focus dominant",
+            "promptHint": "Move Loop Dark — Focus into a cleaner studio-hero setting while preserving The planning loop resolves into a quiet, singular work session"
+          }
+        ],
+        "props": [
+          {
+            "label": "Unexpected Focus Prop",
+            "description": "One surprising but believable object that opens a new story around Loop Dark — Focus",
+            "promptHint": "Add one unexpected supporting prop that extends The planning loop resolves into a quiet, singular work session without stealing focus from Loop Dark — Focus"
+          },
+          {
+            "label": "Minimal Support",
+            "description": "Reduce surrounding objects so Loop Dark — Focus carries more weight",
+            "promptHint": "Remove nonessential props and keep Loop Dark — Focus as the dominant read"
+          },
+          {
+            "label": "Premium Finish",
+            "description": "Sharper materials, cleaner surfaces, and more elevated detail",
+            "promptHint": "Add premium material cues around Loop Dark — Focus; preserve the source image's composition"
+          }
+        ],
+        "character": [
+          {
+            "label": "Collector Persona",
+            "description": "A more intentional, taste-driven persona interacting with Loop Dark — Focus",
+            "promptHint": "Introduce a collector or tastemaker presence around Loop Dark — Focus while changing wardrobe, gesture, or posture"
+          },
+          {
+            "label": "Everyday Use",
+            "description": "More approachable human presence while preserving the mood",
+            "promptHint": "Show Loop Dark — Focus in an everyday user context without losing The planning loop resolves into a quiet, singular work session"
+          },
+          {
+            "label": "Passing Figure",
+            "description": "A partial human presence that adds scale and motion without taking over Loop Dark — Focus",
+            "promptHint": "Add a cropped passing figure or gesture around Loop Dark — Focus; keep identity nonspecific and preserve The planning loop resolves into a quiet, singular work session"
+          }
+        ],
+        "format": [
+          {
+            "label": "Focus Crop",
+            "description": "Closer inspection of the material, surface, or focal subject",
+            "promptHint": "Create a closer detail crop of Loop Dark — Focus; keep The planning loop resolves into a quiet, singular work session legible"
+          },
+          {
+            "label": "Split-Depth Focus",
+            "description": "Foreground detail and background atmosphere in one composed frame",
+            "promptHint": "Create a single-frame split-depth composition for Loop Dark — Focus; do not make a collage or panel layout"
+          },
+          {
+            "label": "Wide Focus",
+            "description": "Broader horizontal composition for landing-page or banner use",
+            "promptHint": "Adapt Loop Dark — Focus to a wide hero composition with room for layout"
+          }
+        ]
+      },
+      "imageUrl": "generated/focus-live-preview.png"
+    },
+    {
+      "id": "widgets-live-preview",
+      "title": "Widgets — Conversion Promise",
+      "caption": "Widget value is decision support before the full planner opens.",
+      "source": "Current live App Store preview",
+      "tone": "glanceable, reassuring",
+      "motif": "planner intelligence outside the app",
+      "palette": "white, black, blue, semester green",
+      "prompt": "Single editorial product image centered on truthful StudyPlanner widget surfaces, oversized glanceable metric, one detail and one action, subtle blue-green atmosphere, no generated text or logos. Single coherent frame, one composed scene or object detail, not a collage, not a grid, not a contact sheet, not a scrapbook, not a mood board layout.",
+      "remixSuggestions": {
+        "style": [
+          {
+            "label": "One Outcome",
+            "description": "Prioritize the dominant metric and action",
+            "promptHint": "one metric, one supporting detail, one action"
+          },
+          {
+            "label": "Candid Promise",
+            "description": "More natural texture and believable lived-in detail for Widgets — Conversion Promise",
+            "promptHint": "Shift Widgets — Conversion Promise toward documentary realism while preserving Widget value is decision support before the full planner opens; make lighting and staging feel..."
+          },
+          {
+            "label": "Editorial Promise",
+            "description": "Cleaner light and hierarchy around Widgets — Conversion Promise",
+            "promptHint": "Apply a polished editorial treatment to Widgets — Conversion Promise; preserve Widget value is decision support before the full planner opens while changing the composition..."
+          }
+        ],
+        "palette": [
+          {
+            "label": "Monochrome Promise",
+            "description": "A narrower near-monochrome treatment that lets one cue around Widgets — Conversion Promise stand out",
+            "promptHint": "Reduce the palette around Widgets — Conversion Promise to tonal restraint plus one preserved cue from Widget value is decision support before the full planner opens"
+          },
+          {
+            "label": "Warm Promise",
+            "description": "Warmer neutrals and tactile highlights around Widgets — Conversion Promise",
+            "promptHint": "Shift the palette warmer while preserving the subject and composition of Widgets — Conversion Promise"
+          },
+          {
+            "label": "Accent Promise",
+            "description": "A stronger accent color against quieter supporting surfaces",
+            "promptHint": "Add a controlled accent palette to Widgets — Conversion Promise without changing the main subject"
+          }
+        ],
+        "scene": [
+          {
+            "label": "Promise Studio",
+            "description": "A cleaner controlled studio setting that keeps Widgets — Conversion Promise dominant",
+            "promptHint": "Move Widgets — Conversion Promise into a cleaner studio-hero setting while preserving Widget value is decision support before the full planner opens"
+          },
+          {
+            "label": "Promise Detail",
+            "description": "A tighter scene focused on material, craft, or product detail",
+            "promptHint": "Create a close-detail scene for Widgets — Conversion Promise, keeping the most important source cue visible"
+          },
+          {
+            "label": "Promise Backstage",
+            "description": "A behind-the-scenes environment that adds process and atmosphere around Widgets — Conversion Promise",
+            "promptHint": "Reframe Widgets — Conversion Promise as a backstage or preparation moment; keep Widget value is decision support before the full planner opens recognizable"
+          }
+        ],
+        "props": [
+          {
+            "label": "Minimal Support",
+            "description": "Reduce surrounding objects so Widgets — Conversion Promise carries more weight",
+            "promptHint": "Remove nonessential props and keep Widgets — Conversion Promise as the dominant read"
+          },
+          {
+            "label": "Premium Finish",
+            "description": "Sharper materials, cleaner surfaces, and more elevated detail",
+            "promptHint": "Add premium material cues around Widgets — Conversion Promise; preserve the source image's composition"
+          },
+          {
+            "label": "Process Cues",
+            "description": "Tools, traces, or handling details that make Widgets — Conversion Promise feel actively used",
+            "promptHint": "Add restrained process cues around Widgets — Conversion Promise; preserve the strongest visual idea from Widget value is decision support before the full planner opens"
+          }
+        ],
+        "character": [
+          {
+            "label": "No Human",
+            "description": "Let the object, place, or composition carry the frame",
+            "promptHint": "Remove visible people and let Widgets — Conversion Promise carry the image"
+          },
+          {
+            "label": "Collector Persona",
+            "description": "A more intentional, taste-driven persona interacting with Widgets — Conversion Promise",
+            "promptHint": "Introduce a collector or tastemaker presence around Widgets — Conversion Promise while changing wardrobe, gesture, or posture"
+          },
+          {
+            "label": "Everyday Use",
+            "description": "More approachable human presence while preserving the mood",
+            "promptHint": "Show Widgets — Conversion Promise in an everyday user context without losing Widget value is decision support before the full planner opens"
+          }
+        ],
+        "format": [
+          {
+            "label": "Home First",
+            "description": "Move the promise from a studio preview to a native Home Screen context",
+            "promptHint": "truthful native Home Screen widget placement"
+          },
+          {
+            "label": "Square Promise",
+            "description": "A balanced square crop for gallery or feed review",
+            "promptHint": "Recompose Widgets — Conversion Promise as a square frame with a changed focal balance and the core cue intact"
+          },
+          {
+            "label": "Portrait Promise",
+            "description": "Tighter vertical crop for social or story placement",
+            "promptHint": "Adapt Widgets — Conversion Promise to a portrait social crop while preserving the key visual read"
+          }
+        ]
+      },
+      "imageUrl": "generated/widgets-live-preview.png"
+    },
+    {
+      "id": "today-light-native",
+      "title": "Loop Light — Today",
+      "caption": "The light Today surface is the canonical daily decision frame.",
+      "source": "Verified native app capture",
+      "tone": "bright, ordered, immediate",
+      "motif": "daily priority stack",
+      "palette": "paper white, black, green, class colors",
+      "prompt": "Single light editorial product image using a truthful Today interface at near-full-frame scale, paper-white atmosphere and restrained semester green, no generated UI, no text additions, no collage. Single coherent frame, one composed scene or object detail, not a collage, not a grid, not a contact sheet, not a scrapbook, not a mood board layout.",
+      "remixSuggestions": {
+        "style": [
+          {
+            "label": "Dramatic Today",
+            "description": "Richer blacks, sharper highlights, and more cinematic emphasis",
+            "promptHint": "Apply high-contrast cinematic treatment to Loop Light — Today; keep The light Today surface is the canonical daily decision frame recognizable but alter camera angle or staging"
+          },
+          {
+            "label": "Candid Today",
+            "description": "More natural texture and believable lived-in detail for Loop Light — Today",
+            "promptHint": "Shift Loop Light — Today toward documentary realism while preserving The light Today surface is the canonical daily decision frame; make lighting and staging feel newly observed"
+          },
+          {
+            "label": "Editorial Today",
+            "description": "Cleaner light and hierarchy around Loop Light — Today",
+            "promptHint": "Apply a polished editorial treatment to Loop Light — Today; preserve The light Today surface is the canonical daily decision frame while changing the composition enough to read..."
+          }
+        ],
+        "palette": [
+          {
+            "label": "Paper Day",
+            "description": "Keep whites warm-neutral and state colors exact",
+            "promptHint": "paper white field, faithful app colors"
+          },
+          {
+            "label": "Cool Today",
+            "description": "Crisper whites, cooler shadows, and restrained technical contrast",
+            "promptHint": "Use cooler minimal accents around Loop Light — Today; keep The light Today surface is the canonical daily decision frame intact"
+          },
+          {
+            "label": "Monochrome Today",
+            "description": "A narrower near-monochrome treatment that lets one cue around Loop Light — Today stand out",
+            "promptHint": "Reduce the palette around Loop Light — Today to tonal restraint plus one preserved cue from The light Today surface is the canonical daily decision frame"
+          }
+        ],
+        "scene": [
+          {
+            "label": "Today Backstage",
+            "description": "A behind-the-scenes environment that adds process and atmosphere around Loop Light — Today",
+            "promptHint": "Reframe Loop Light — Today as a backstage or preparation moment; keep The light Today surface is the canonical daily decision frame recognizable"
+          },
+          {
+            "label": "Today In Use",
+            "description": "A more believable real-world context for Loop Light — Today",
+            "promptHint": "Place Loop Light — Today into a realistic usage context; preserve the source image's core cue: The light Today surface is the canonical daily decision frame"
+          },
+          {
+            "label": "Today Exterior",
+            "description": "Move Loop Light — Today into an outdoor or threshold environment with a fresh spatial read",
+            "promptHint": "Relocate Loop Light — Today into an exterior or entryway scene while preserving the core cue: The light Today surface is the canonical daily decision frame"
+          }
+        ],
+        "props": [
+          {
+            "label": "Process Cues",
+            "description": "Tools, traces, or handling details that make Loop Light — Today feel actively used",
+            "promptHint": "Add restrained process cues around Loop Light — Today; preserve the strongest visual idea from The light Today surface is the canonical daily decision frame"
+          },
+          {
+            "label": "Today Cues",
+            "description": "Add restrained supporting objects that clarify the context of Loop Light — Today",
+            "promptHint": "Add a few contextual props that reinforce The light Today surface is the canonical daily decision frame without distracting from Loop Light — Today"
+          },
+          {
+            "label": "Unexpected Today Prop",
+            "description": "One surprising but believable object that opens a new story around Loop Light — Today",
+            "promptHint": "Add one unexpected supporting prop that extends The light Today surface is the canonical daily decision frame without stealing focus from Loop Light — Today"
+          }
+        ],
+        "character": [
+          {
+            "label": "Collector Persona",
+            "description": "A more intentional, taste-driven persona interacting with Loop Light — Today",
+            "promptHint": "Introduce a collector or tastemaker presence around Loop Light — Today while changing wardrobe, gesture, or posture"
+          },
+          {
+            "label": "Everyday Use",
+            "description": "More approachable human presence while preserving the mood",
+            "promptHint": "Show Loop Light — Today in an everyday user context without losing The light Today surface is the canonical daily decision frame"
+          },
+          {
+            "label": "Passing Figure",
+            "description": "A partial human presence that adds scale and motion without taking over Loop Light — Today",
+            "promptHint": "Add a cropped passing figure or gesture around Loop Light — Today; keep identity nonspecific and preserve The light Today surface is the canonical daily decision frame"
+          }
+        ],
+        "format": [
+          {
+            "label": "Daily Loop",
+            "description": "Show the most important work and next action in one glance",
+            "promptHint": "dominant Today surface"
+          },
+          {
+            "label": "Split-Depth Today",
+            "description": "Foreground detail and background atmosphere in one composed frame",
+            "promptHint": "Create a single-frame split-depth composition for Loop Light — Today; do not make a collage or panel layout"
+          },
+          {
+            "label": "Wide Today",
+            "description": "Broader horizontal composition for landing-page or banner use",
+            "promptHint": "Adapt Loop Light — Today to a wide hero composition with room for layout"
+          }
+        ]
+      },
+      "imageUrl": "generated/today-light-native.png"
+    },
+    {
+      "id": "today-dark-native",
+      "title": "Loop Dark — Today",
+      "caption": "The same daily loop remains legible and premium under reduced luminance.",
+      "source": "Verified native app capture",
+      "tone": "calm, nocturnal, precise",
+      "motif": "daily priority in dark mode",
+      "palette": "black, cool gray, green, class colors",
+      "prompt": "Single dark editorial product image using a truthful Today interface at near-full-frame scale, reduced-luminance black atmosphere and precise state color, no generated UI or text. Single coherent frame, one composed scene or object detail, not a collage, not a grid, not a contact sheet, not a scrapbook, not a mood board layout.",
+      "remixSuggestions": {
+        "style": [
+          {
+            "label": "Reduced Luminance",
+            "description": "Protect contrast without washing the dark surface",
+            "promptHint": "true black field, restrained cool edge light"
+          },
+          {
+            "label": "Dramatic Today",
+            "description": "Richer blacks, sharper highlights, and more cinematic emphasis",
+            "promptHint": "Apply high-contrast cinematic treatment to Loop Dark — Today; keep The same daily loop remains legible and premium under reduced luminance recognizable but alter camera angle..."
+          },
+          {
+            "label": "Candid Today",
+            "description": "More natural texture and believable lived-in detail for Loop Dark — Today",
+            "promptHint": "Shift Loop Dark — Today toward documentary realism while preserving The same daily loop remains legible and premium under reduced luminance; make lighting and staging feel..."
+          }
+        ],
+        "palette": [
+          {
+            "label": "Cool Today",
+            "description": "Crisper whites, cooler shadows, and restrained technical contrast",
+            "promptHint": "Use cooler minimal accents around Loop Dark — Today; keep The same daily loop remains legible and premium under reduced luminance intact"
+          },
+          {
+            "label": "Monochrome Today",
+            "description": "A narrower near-monochrome treatment that lets one cue around Loop Dark — Today stand out",
+            "promptHint": "Reduce the palette around Loop Dark — Today to tonal restraint plus one preserved cue from The same daily loop remains legible and premium under reduced luminance"
+          },
+          {
+            "label": "Warm Today",
+            "description": "Warmer neutrals and tactile highlights around Loop Dark — Today",
+            "promptHint": "Shift the palette warmer while preserving the subject and composition of Loop Dark — Today"
+          }
+        ],
+        "scene": [
+          {
+            "label": "Today Detail",
+            "description": "A tighter scene focused on material, craft, or product detail",
+            "promptHint": "Create a close-detail scene for Loop Dark — Today, keeping the most important source cue visible"
+          },
+          {
+            "label": "Today Backstage",
+            "description": "A behind-the-scenes environment that adds process and atmosphere around Loop Dark — Today",
+            "promptHint": "Reframe Loop Dark — Today as a backstage or preparation moment; keep The same daily loop remains legible and premium under reduced luminance recognizable"
+          },
+          {
+            "label": "Today In Use",
+            "description": "A more believable real-world context for Loop Dark — Today",
+            "promptHint": "Place Loop Dark — Today into a realistic usage context; preserve the source image's core cue: The same daily loop remains legible and premium under reduced luminance"
+          }
+        ],
+        "props": [
+          {
+            "label": "Premium Finish",
+            "description": "Sharper materials, cleaner surfaces, and more elevated detail",
+            "promptHint": "Add premium material cues around Loop Dark — Today; preserve the source image's composition"
+          },
+          {
+            "label": "Process Cues",
+            "description": "Tools, traces, or handling details that make Loop Dark — Today feel actively used",
+            "promptHint": "Add restrained process cues around Loop Dark — Today; preserve the strongest visual idea from The same daily loop remains legible and premium under reduced luminance"
+          },
+          {
+            "label": "Today Cues",
+            "description": "Add restrained supporting objects that clarify the context of Loop Dark — Today",
+            "promptHint": "Add a few contextual props that reinforce The same daily loop remains legible and premium under reduced luminance without distracting from Loop Dark — Today"
+          }
+        ],
+        "character": [
+          {
+            "label": "Everyday Use",
+            "description": "More approachable human presence while preserving the mood",
+            "promptHint": "Show Loop Dark — Today in an everyday user context without losing The same daily loop remains legible and premium under reduced luminance"
+          },
+          {
+            "label": "Passing Figure",
+            "description": "A partial human presence that adds scale and motion without taking over Loop Dark — Today",
+            "promptHint": "Add a cropped passing figure or gesture around Loop Dark — Today; keep identity nonspecific and preserve The same daily loop remains legible and premium under reduced luminance"
+          },
+          {
+            "label": "Expert Hands",
+            "description": "More credible craft, authority, and purposeful interaction with Loop Dark — Today",
+            "promptHint": "If a person appears, make them an expert operator interacting naturally with Loop Dark — Today"
+          }
+        ],
+        "format": [
+          {
+            "label": "Paired Loop",
+            "description": "Match the light composition closely for an intentional pair",
+            "promptHint": "paired composition matching the light Today frame"
+          },
+          {
+            "label": "Square Today",
+            "description": "A balanced square crop for gallery or feed review",
+            "promptHint": "Recompose Loop Dark — Today as a square frame with a changed focal balance and the core cue intact"
+          },
+          {
+            "label": "Portrait Today",
+            "description": "Tighter vertical crop for social or story placement",
+            "promptHint": "Adapt Loop Dark — Today to a portrait social crop while preserving the key visual read"
+          }
+        ]
+      },
+      "imageUrl": "generated/today-dark-native.png"
+    },
+    {
+      "id": "plan-dark-native",
+      "title": "Schedule — Native Plan",
+      "caption": "The real Plan screen anchors the heavy-week promise in actual behavior.",
+      "source": "Verified native app capture",
+      "tone": "predictive, structured",
+      "motif": "calendar density and workload",
+      "palette": "black, purple, orange, class colors",
+      "prompt": "Single dark editorial product image using a truthful planning calendar at dominant scale, minimal purple and orange atmosphere, no generated UI labels, no collage. Single coherent frame, one composed scene or object detail, not a collage, not a grid, not a contact sheet, not a scrapbook, not a mood board layout.",
+      "remixSuggestions": {
+        "style": [
+          {
+            "label": "Material Plan",
+            "description": "A closer tactile read of surface, temperature, and finish around Schedule — Native Plan",
+            "promptHint": "Rebuild Schedule — Native Plan as a tactile material study inspired by The real Plan screen anchors the heavy-week promise in actual behavior, with a visibly different crop and..."
+          },
+          {
+            "label": "Dramatic Plan",
+            "description": "Richer blacks, sharper highlights, and more cinematic emphasis",
+            "promptHint": "Apply high-contrast cinematic treatment to Schedule — Native Plan; keep The real Plan screen anchors the heavy-week promise in actual behavior recognizable but alter camera..."
+          },
+          {
+            "label": "Candid Plan",
+            "description": "More natural texture and believable lived-in detail for Schedule — Native Plan",
+            "promptHint": "Shift Schedule — Native Plan toward documentary realism while preserving The real Plan screen anchors the heavy-week promise in actual behavior; make lighting and staging feel..."
+          }
+        ],
+        "palette": [
+          {
+            "label": "Planning Purple",
+            "description": "Let purple organize while orange signals urgency",
+            "promptHint": "purple structure with selective orange deadlines"
+          },
+          {
+            "label": "Cool Plan",
+            "description": "Crisper whites, cooler shadows, and restrained technical contrast",
+            "promptHint": "Use cooler minimal accents around Schedule — Native Plan; keep The real Plan screen anchors the heavy-week promise in actual behavior intact"
+          },
+          {
+            "label": "Monochrome Plan",
+            "description": "A narrower near-monochrome treatment that lets one cue around Schedule — Native Plan stand out",
+            "promptHint": "Reduce the palette around Schedule — Native Plan to tonal restraint plus one preserved cue from The real Plan screen anchors the heavy-week promise in actual behavior"
+          }
+        ],
+        "scene": [
+          {
+            "label": "Peak Day",
+            "description": "Use crop and lighting to draw attention to workload concentration",
+            "promptHint": "weekly plan with one visibly heavy day"
+          },
+          {
+            "label": "Plan Detail",
+            "description": "A tighter scene focused on material, craft, or product detail",
+            "promptHint": "Create a close-detail scene for Schedule — Native Plan, keeping the most important source cue visible"
+          },
+          {
+            "label": "Plan Backstage",
+            "description": "A behind-the-scenes environment that adds process and atmosphere around Schedule — Native Plan",
+            "promptHint": "Reframe Schedule — Native Plan as a backstage or preparation moment; keep The real Plan screen anchors the heavy-week promise in actual behavior recognizable"
+          }
+        ],
+        "props": [
+          {
+            "label": "Premium Finish",
+            "description": "Sharper materials, cleaner surfaces, and more elevated detail",
+            "promptHint": "Add premium material cues around Schedule — Native Plan; preserve the source image's composition"
+          },
+          {
+            "label": "Process Cues",
+            "description": "Tools, traces, or handling details that make Schedule — Native Plan feel actively used",
+            "promptHint": "Add restrained process cues around Schedule — Native Plan; preserve the strongest visual idea from The real Plan screen anchors the heavy-week promise in actual behavior"
+          },
+          {
+            "label": "Plan Cues",
+            "description": "Add restrained supporting objects that clarify the context of Schedule — Native Plan",
+            "promptHint": "Add a few contextual props that reinforce The real Plan screen anchors the heavy-week promise in actual behavior without distracting from Schedule — Native Plan"
+          }
+        ],
+        "character": [
+          {
+            "label": "Everyday Use",
+            "description": "More approachable human presence while preserving the mood",
+            "promptHint": "Show Schedule — Native Plan in an everyday user context without losing The real Plan screen anchors the heavy-week promise in actual behavior"
+          },
+          {
+            "label": "Passing Figure",
+            "description": "A partial human presence that adds scale and motion without taking over Schedule — Native Plan",
+            "promptHint": "Add a cropped passing figure or gesture around Schedule — Native Plan; keep identity nonspecific and preserve The real Plan screen anchors the heavy-week promise in actual behavior"
+          },
+          {
+            "label": "Expert Hands",
+            "description": "More credible craft, authority, and purposeful interaction with Schedule — Native Plan",
+            "promptHint": "If a person appears, make them an expert operator interacting naturally with Schedule — Native Plan"
+          }
+        ],
+        "format": [
+          {
+            "label": "Square Plan",
+            "description": "A balanced square crop for gallery or feed review",
+            "promptHint": "Recompose Schedule — Native Plan as a square frame with a changed focal balance and the core cue intact"
+          },
+          {
+            "label": "Portrait Plan",
+            "description": "Tighter vertical crop for social or story placement",
+            "promptHint": "Adapt Schedule — Native Plan to a portrait social crop while preserving the key visual read"
+          },
+          {
+            "label": "Plan Crop",
+            "description": "Closer inspection of the material, surface, or focal subject",
+            "promptHint": "Create a closer detail crop of Schedule — Native Plan; keep The real Plan screen anchors the heavy-week promise in actual behavior legible"
+          }
+        ]
+      },
+      "imageUrl": "generated/plan-dark-native.png"
+    },
+    {
+      "id": "review-light-native",
+      "title": "Review — Uncertain Dates",
+      "caption": "Review is a trust surface: uncertainty is visible before it affects the schedule.",
+      "source": "Verified native app capture",
+      "tone": "transparent, careful",
+      "motif": "human confirmation",
+      "palette": "paper white, orange, purple",
+      "prompt": "Single light editorial product image using a truthful review interface at dominant scale, soft paper-white field with precise orange uncertainty cues, no generated text or interface. Single coherent frame, one composed scene or object detail, not a collage, not a grid, not a contact sheet, not a scrapbook, not a mood board layout.",
+      "remixSuggestions": {
+        "style": [
+          {
+            "label": "Trust Surface",
+            "description": "Make review feel controlled, not alarming",
+            "promptHint": "calm editorial review state, precise uncertainty cue"
+          },
+          {
+            "label": "Candid Dates",
+            "description": "More natural texture and believable lived-in detail for Review — Uncertain Dates",
+            "promptHint": "Shift Review — Uncertain Dates toward documentary realism while preserving Review is a trust surface: uncertainty is visible before it affects the schedule; make lighting and..."
+          },
+          {
+            "label": "Editorial Dates",
+            "description": "Cleaner light and hierarchy around Review — Uncertain Dates",
+            "promptHint": "Apply a polished editorial treatment to Review — Uncertain Dates; preserve Review is a trust surface: uncertainty is visible before it affects the schedule while changing the..."
+          }
+        ],
+        "palette": [
+          {
+            "label": "Measured Orange",
+            "description": "Restrict orange to items needing confirmation",
+            "promptHint": "paper white and selective orange"
+          },
+          {
+            "label": "Unexpected Dates",
+            "description": "A more surprising secondary color relationship around Review — Uncertain Dates",
+            "promptHint": "Keep the subject recognizable, but introduce one unexpected supporting color that extends Review is a trust surface: uncertainty is visible before it affects the schedule"
+          },
+          {
+            "label": "Cool Dates",
+            "description": "Crisper whites, cooler shadows, and restrained technical contrast",
+            "promptHint": "Use cooler minimal accents around Review — Uncertain Dates; keep Review is a trust surface: uncertainty is visible before it affects the schedule intact"
+          }
+        ],
+        "scene": [
+          {
+            "label": "Dates Backstage",
+            "description": "A behind-the-scenes environment that adds process and atmosphere around Review — Uncertain Dates",
+            "promptHint": "Reframe Review — Uncertain Dates as a backstage or preparation moment; keep Review is a trust surface: uncertainty is visible before it affects the schedule recognizable"
+          },
+          {
+            "label": "Dates In Use",
+            "description": "A more believable real-world context for Review — Uncertain Dates",
+            "promptHint": "Place Review — Uncertain Dates into a realistic usage context; preserve the source image's core cue: Review is a trust surface: uncertainty is visible before it affects the..."
+          },
+          {
+            "label": "Dates Exterior",
+            "description": "Move Review — Uncertain Dates into an outdoor or threshold environment with a fresh spatial read",
+            "promptHint": "Relocate Review — Uncertain Dates into an exterior or entryway scene while preserving the core cue: Review is a trust surface: uncertainty is visible before it affects the schedule"
+          }
+        ],
+        "props": [
+          {
+            "label": "Process Cues",
+            "description": "Tools, traces, or handling details that make Review — Uncertain Dates feel actively used",
+            "promptHint": "Add restrained process cues around Review — Uncertain Dates; preserve the strongest visual idea from Review is a trust surface: uncertainty is visible before it affects the..."
+          },
+          {
+            "label": "Dates Cues",
+            "description": "Add restrained supporting objects that clarify the context of Review — Uncertain Dates",
+            "promptHint": "Add a few contextual props that reinforce Review is a trust surface: uncertainty is visible before it affects the schedule without distracting from Review — Uncertain Dates"
+          },
+          {
+            "label": "Unexpected Dates Prop",
+            "description": "One surprising but believable object that opens a new story around Review — Uncertain Dates",
+            "promptHint": "Add one unexpected supporting prop that extends Review is a trust surface: uncertainty is visible before it affects the schedule without stealing focus from Review — Uncertain..."
+          }
+        ],
+        "character": [
+          {
+            "label": "Expert Hands",
+            "description": "More credible craft, authority, and purposeful interaction with Review — Uncertain Dates",
+            "promptHint": "If a person appears, make them an expert operator interacting naturally with Review — Uncertain Dates"
+          },
+          {
+            "label": "No Human",
+            "description": "Let the object, place, or composition carry the frame",
+            "promptHint": "Remove visible people and let Review — Uncertain Dates carry the image"
+          },
+          {
+            "label": "Collector Persona",
+            "description": "A more intentional, taste-driven persona interacting with Review — Uncertain Dates",
+            "promptHint": "Introduce a collector or tastemaker presence around Review — Uncertain Dates while changing wardrobe, gesture, or posture"
+          }
+        ],
+        "format": [
+          {
+            "label": "Square Dates",
+            "description": "A balanced square crop for gallery or feed review",
+            "promptHint": "Recompose Review — Uncertain Dates as a square frame with a changed focal balance and the core cue intact"
+          },
+          {
+            "label": "Portrait Dates",
+            "description": "Tighter vertical crop for social or story placement",
+            "promptHint": "Adapt Review — Uncertain Dates to a portrait social crop while preserving the key visual read"
+          },
+          {
+            "label": "Dates Crop",
+            "description": "Closer inspection of the material, surface, or focal subject",
+            "promptHint": "Create a closer detail crop of Review — Uncertain Dates; keep Review is a trust surface: uncertainty is visible before it affects the schedule legible"
+          }
+        ]
+      },
+      "imageUrl": "generated/review-light-native.png"
+    },
+    {
+      "id": "focus-ipad-native",
+      "title": "iPad — Focus Canvas",
+      "caption": "The larger canvas keeps the same singular outcome without filling space decoratively.",
+      "source": "Verified native iPad capture",
+      "tone": "spacious, focused",
+      "motif": "large-format work session",
+      "palette": "white, black, purple",
+      "prompt": "Single large-format editorial product image using a truthful iPad focus interface, generous but purposeful spacing, restrained purple depth, no generated text, no fake UI. Single coherent frame, one composed scene or object detail, not a collage, not a grid, not a contact sheet, not a scrapbook, not a mood board layout.",
+      "remixSuggestions": {
+        "style": [
+          {
+            "label": "Editorial Restraint",
+            "description": "Let typography and spacing carry the composition",
+            "promptHint": "minimal surrounding atmosphere"
+          },
+          {
+            "label": "Motion Canvas",
+            "description": "More kinetic gesture, blur, or environmental energy around iPad — Focus Canvas",
+            "promptHint": "Introduce controlled motion to iPad — Focus Canvas while preserving the campaign cue: The larger canvas keeps the same singular outcome without filling space decoratively"
+          },
+          {
+            "label": "Material Canvas",
+            "description": "A closer tactile read of surface, temperature, and finish around iPad — Focus Canvas",
+            "promptHint": "Rebuild iPad — Focus Canvas as a tactile material study inspired by The larger canvas keeps the same singular outcome without filling space decoratively, with a visibly..."
+          }
+        ],
+        "palette": [
+          {
+            "label": "Accent Canvas",
+            "description": "A stronger accent color against quieter supporting surfaces",
+            "promptHint": "Add a controlled accent palette to iPad — Focus Canvas without changing the main subject"
+          },
+          {
+            "label": "Unexpected Canvas",
+            "description": "A more surprising secondary color relationship around iPad — Focus Canvas",
+            "promptHint": "Keep the subject recognizable, but introduce one unexpected supporting color that extends The larger canvas keeps the same singular outcome without filling space decoratively"
+          },
+          {
+            "label": "Cool Canvas",
+            "description": "Crisper whites, cooler shadows, and restrained technical contrast",
+            "promptHint": "Use cooler minimal accents around iPad — Focus Canvas; keep The larger canvas keeps the same singular outcome without filling space decoratively intact"
+          }
+        ],
+        "scene": [
+          {
+            "label": "Canvas Detail",
+            "description": "A tighter scene focused on material, craft, or product detail",
+            "promptHint": "Create a close-detail scene for iPad — Focus Canvas, keeping the most important source cue visible"
+          },
+          {
+            "label": "Canvas Backstage",
+            "description": "A behind-the-scenes environment that adds process and atmosphere around iPad — Focus Canvas",
+            "promptHint": "Reframe iPad — Focus Canvas as a backstage or preparation moment; keep The larger canvas keeps the same singular outcome without filling space decoratively recognizable"
+          },
+          {
+            "label": "Canvas In Use",
+            "description": "A more believable real-world context for iPad — Focus Canvas",
+            "promptHint": "Place iPad — Focus Canvas into a realistic usage context; preserve the source image's core cue: The larger canvas keeps the same singular outcome without filling space decoratively"
+          }
+        ],
+        "props": [
+          {
+            "label": "Premium Finish",
+            "description": "Sharper materials, cleaner surfaces, and more elevated detail",
+            "promptHint": "Add premium material cues around iPad — Focus Canvas; preserve the source image's composition"
+          },
+          {
+            "label": "Process Cues",
+            "description": "Tools, traces, or handling details that make iPad — Focus Canvas feel actively used",
+            "promptHint": "Add restrained process cues around iPad — Focus Canvas; preserve the strongest visual idea from The larger canvas keeps the same singular outcome without filling space decoratively"
+          },
+          {
+            "label": "Canvas Cues",
+            "description": "Add restrained supporting objects that clarify the context of iPad — Focus Canvas",
+            "promptHint": "Add a few contextual props that reinforce The larger canvas keeps the same singular outcome without filling space decoratively without distracting from iPad — Focus Canvas"
+          }
+        ],
+        "character": [
+          {
+            "label": "Passing Figure",
+            "description": "A partial human presence that adds scale and motion without taking over iPad — Focus Canvas",
+            "promptHint": "Add a cropped passing figure or gesture around iPad — Focus Canvas; keep identity nonspecific and preserve The larger canvas keeps the same singular outcome without filling..."
+          },
+          {
+            "label": "Expert Hands",
+            "description": "More credible craft, authority, and purposeful interaction with iPad — Focus Canvas",
+            "promptHint": "If a person appears, make them an expert operator interacting naturally with iPad — Focus Canvas"
+          },
+          {
+            "label": "No Human",
+            "description": "Let the object, place, or composition carry the frame",
+            "promptHint": "Remove visible people and let iPad — Focus Canvas carry the image"
+          }
+        ],
+        "format": [
+          {
+            "label": "Large Canvas",
+            "description": "Scale the app surface for iPad rather than widening empty decoration",
+            "promptHint": "truthful iPad UI fills approximately ninety percent"
+          },
+          {
+            "label": "Wide Canvas",
+            "description": "Broader horizontal composition for landing-page or banner use",
+            "promptHint": "Adapt iPad — Focus Canvas to a wide hero composition with room for layout"
+          },
+          {
+            "label": "Square Canvas",
+            "description": "A balanced square crop for gallery or feed review",
+            "promptHint": "Recompose iPad — Focus Canvas as a square frame with a changed focal balance and the core cue intact"
+          }
+        ]
+      },
+      "imageUrl": "generated/focus-ipad-native.png"
+    },
+    {
+      "id": "scan-ipad-native",
+      "title": "iPad — Syllabus Entry",
+      "caption": "The acquisition hook remains immediate and truthful on the larger device.",
+      "source": "Verified native iPad capture",
+      "tone": "capable, clear",
+      "motif": "syllabus-to-plan entry",
+      "palette": "white, cobalt, green",
+      "prompt": "Single large-format editorial product image using a truthful iPad syllabus scan interface, crisp white field and subtle cobalt-green light, no generated text or reconstructed UI. Single coherent frame, one composed scene or object detail, not a collage, not a grid, not a contact sheet, not a scrapbook, not a mood board layout.",
+      "remixSuggestions": {
+        "style": [
+          {
+            "label": "Material Entry",
+            "description": "A closer tactile read of surface, temperature, and finish around iPad — Syllabus Entry",
+            "promptHint": "Rebuild iPad — Syllabus Entry as a tactile material study inspired by The acquisition hook remains immediate and truthful on the larger device, with a visibly different crop..."
+          },
+          {
+            "label": "Dramatic Entry",
+            "description": "Richer blacks, sharper highlights, and more cinematic emphasis",
+            "promptHint": "Apply high-contrast cinematic treatment to iPad — Syllabus Entry; keep The acquisition hook remains immediate and truthful on the larger device recognizable but alter camera..."
+          },
+          {
+            "label": "Candid Entry",
+            "description": "More natural texture and believable lived-in detail for iPad — Syllabus Entry",
+            "promptHint": "Shift iPad — Syllabus Entry toward documentary realism while preserving The acquisition hook remains immediate and truthful on the larger device; make lighting and staging feel..."
+          }
+        ],
+        "palette": [
+          {
+            "label": "Monochrome Entry",
+            "description": "A narrower near-monochrome treatment that lets one cue around iPad — Syllabus Entry stand out",
+            "promptHint": "Reduce the palette around iPad — Syllabus Entry to tonal restraint plus one preserved cue from The acquisition hook remains immediate and truthful on the larger device"
+          },
+          {
+            "label": "Warm Entry",
+            "description": "Warmer neutrals and tactile highlights around iPad — Syllabus Entry",
+            "promptHint": "Shift the palette warmer while preserving the subject and composition of iPad — Syllabus Entry"
+          },
+          {
+            "label": "Accent Entry",
+            "description": "A stronger accent color against quieter supporting surfaces",
+            "promptHint": "Add a controlled accent palette to iPad — Syllabus Entry without changing the main subject"
+          }
+        ],
+        "scene": [
+          {
+            "label": "Acquisition Hook",
+            "description": "Make the input action obvious at first glance",
+            "promptHint": "dominant syllabus scan action"
+          },
+          {
+            "label": "Entry In Use",
+            "description": "A more believable real-world context for iPad — Syllabus Entry",
+            "promptHint": "Place iPad — Syllabus Entry into a realistic usage context; preserve the source image's core cue: The acquisition hook remains immediate and truthful on the larger device"
+          },
+          {
+            "label": "Entry Exterior",
+            "description": "Move iPad — Syllabus Entry into an outdoor or threshold environment with a fresh spatial read",
+            "promptHint": "Relocate iPad — Syllabus Entry into an exterior or entryway scene while preserving the core cue: The acquisition hook remains immediate and truthful on the larger device"
+          }
+        ],
+        "props": [
+          {
+            "label": "Entry Cues",
+            "description": "Add restrained supporting objects that clarify the context of iPad — Syllabus Entry",
+            "promptHint": "Add a few contextual props that reinforce The acquisition hook remains immediate and truthful on the larger device without distracting from iPad — Syllabus Entry"
+          },
+          {
+            "label": "Unexpected Entry Prop",
+            "description": "One surprising but believable object that opens a new story around iPad — Syllabus Entry",
+            "promptHint": "Add one unexpected supporting prop that extends The acquisition hook remains immediate and truthful on the larger device without stealing focus from iPad — Syllabus Entry"
+          },
+          {
+            "label": "Minimal Support",
+            "description": "Reduce surrounding objects so iPad — Syllabus Entry carries more weight",
+            "promptHint": "Remove nonessential props and keep iPad — Syllabus Entry as the dominant read"
+          }
+        ],
+        "character": [
+          {
+            "label": "Everyday Use",
+            "description": "More approachable human presence while preserving the mood",
+            "promptHint": "Show iPad — Syllabus Entry in an everyday user context without losing The acquisition hook remains immediate and truthful on the larger device"
+          },
+          {
+            "label": "Passing Figure",
+            "description": "A partial human presence that adds scale and motion without taking over iPad — Syllabus Entry",
+            "promptHint": "Add a cropped passing figure or gesture around iPad — Syllabus Entry; keep identity nonspecific and preserve The acquisition hook remains immediate and truthful on the larger..."
+          },
+          {
+            "label": "Expert Hands",
+            "description": "More credible craft, authority, and purposeful interaction with iPad — Syllabus Entry",
+            "promptHint": "If a person appears, make them an expert operator interacting naturally with iPad — Syllabus Entry"
+          }
+        ],
+        "format": [
+          {
+            "label": "Device Truth",
+            "description": "Preserve the native iPad proportions and pixels",
+            "promptHint": "unaltered iPad UI source"
+          },
+          {
+            "label": "Wide Entry",
+            "description": "Broader horizontal composition for landing-page or banner use",
+            "promptHint": "Adapt iPad — Syllabus Entry to a wide hero composition with room for layout"
+          },
+          {
+            "label": "Square Entry",
+            "description": "A balanced square crop for gallery or feed review",
+            "promptHint": "Recompose iPad — Syllabus Entry as a square frame with a changed focal balance and the core cue intact"
+          }
+        ]
+      },
+      "imageUrl": "generated/scan-ipad-native.png"
+    },
+    {
+      "id": "native-home-widgets",
+      "title": "Native Home Screen — Widget Proof",
+      "caption": "A real placed-widget capture is the required truth standard; this older capture is composition reference only.",
+      "source": "Historical native Home Screen capture — reference only",
+      "tone": "immediate, glanceable",
+      "motif": "next move on Home Screen",
+      "palette": "native wallpaper blue, black widget, class blue, white",
+      "prompt": "Single truthful native iPhone Home Screen composition with populated StudyPlanner widgets, clear dominant outcome and action, unaltered operating-system chrome, no generated UI or text. Single coherent frame, one composed scene or object detail, not a collage, not a grid, not a contact sheet, not a scrapbook, not a mood board layout.",
+      "remixSuggestions": {
+        "style": [
+          {
+            "label": "OS Authentic",
+            "description": "Preserve wallpaper, icons, status bar, labels and widget pixels exactly",
+            "promptHint": "unaltered iOS Home Screen capture"
+          },
+          {
+            "label": "Dramatic Proof",
+            "description": "Richer blacks, sharper highlights, and more cinematic emphasis",
+            "promptHint": "Apply high-contrast cinematic treatment to Native Home Screen — Widget Proof; keep A real placed-widget capture is the required truth standard; this older capture is..."
+          },
+          {
+            "label": "Candid Proof",
+            "description": "More natural texture and believable lived-in detail for Native Home Screen — Widget Proof",
+            "promptHint": "Shift Native Home Screen — Widget Proof toward documentary realism while preserving A real placed-widget capture is the required truth standard; this older capture is..."
+          }
+        ],
+        "palette": [
+          {
+            "label": "Warm Proof",
+            "description": "Warmer neutrals and tactile highlights around Native Home Screen — Widget Proof",
+            "promptHint": "Shift the palette warmer while preserving the subject and composition of Native Home Screen — Widget Proof"
+          },
+          {
+            "label": "Accent Proof",
+            "description": "A stronger accent color against quieter supporting surfaces",
+            "promptHint": "Add a controlled accent palette to Native Home Screen — Widget Proof without changing the main subject"
+          },
+          {
+            "label": "Unexpected Proof",
+            "description": "A more surprising secondary color relationship around Native Home Screen — Widget Proof",
+            "promptHint": "Keep the subject recognizable, but introduce one unexpected supporting color that extends A real placed-widget capture is the required truth standard; this older capture is..."
+          }
+        ],
+        "scene": [
+          {
+            "label": "Proof Detail",
+            "description": "A tighter scene focused on material, craft, or product detail",
+            "promptHint": "Create a close-detail scene for Native Home Screen — Widget Proof, keeping the most important source cue visible"
+          },
+          {
+            "label": "Proof Backstage",
+            "description": "A behind-the-scenes environment that adds process and atmosphere around Native Home Screen — Widget Proof",
+            "promptHint": "Reframe Native Home Screen — Widget Proof as a backstage or preparation moment; keep A real placed-widget capture is the required truth standard; this older capture is..."
+          },
+          {
+            "label": "Proof In Use",
+            "description": "A more believable real-world context for Native Home Screen — Widget Proof",
+            "promptHint": "Place Native Home Screen — Widget Proof into a realistic usage context; preserve the source image's core cue: A real placed-widget capture is the required truth standard; this..."
+          }
+        ],
+        "props": [
+          {
+            "label": "Premium Finish",
+            "description": "Sharper materials, cleaner surfaces, and more elevated detail",
+            "promptHint": "Add premium material cues around Native Home Screen — Widget Proof; preserve the source image's composition"
+          },
+          {
+            "label": "Process Cues",
+            "description": "Tools, traces, or handling details that make Native Home Screen — Widget Proof feel actively used",
+            "promptHint": "Add restrained process cues around Native Home Screen — Widget Proof; preserve the strongest visual idea from A real placed-widget capture is the required truth standard; this..."
+          },
+          {
+            "label": "Proof Cues",
+            "description": "Add restrained supporting objects that clarify the context of Native Home Screen — Widget Proof",
+            "promptHint": "Add a few contextual props that reinforce A real placed-widget capture is the required truth standard; this older capture is composition reference only without distracting from..."
+          }
+        ],
+        "character": [
+          {
+            "label": "Collector Persona",
+            "description": "A more intentional, taste-driven persona interacting with Native Home Screen — Widget Proof",
+            "promptHint": "Introduce a collector or tastemaker presence around Native Home Screen — Widget Proof while changing wardrobe, gesture, or posture"
+          },
+          {
+            "label": "Everyday Use",
+            "description": "More approachable human presence while preserving the mood",
+            "promptHint": "Show Native Home Screen — Widget Proof in an everyday user context without losing A real placed-widget capture is the required truth standard; this older capture is composition..."
+          },
+          {
+            "label": "Passing Figure",
+            "description": "A partial human presence that adds scale and motion without taking over Native Home Screen — Widget Proof",
+            "promptHint": "Add a cropped passing figure or gesture around Native Home Screen — Widget Proof; keep identity nonspecific and preserve A real placed-widget capture is the required truth..."
+          }
+        ],
+        "format": [
+          {
+            "label": "Placed Proof",
+            "description": "Use a fresh Build 86 capture with both a medium and small widget visible",
+            "promptHint": "fresh native Home Screen placement from exact release build"
+          },
+          {
+            "label": "Portrait Proof",
+            "description": "Tighter vertical crop for social or story placement",
+            "promptHint": "Adapt Native Home Screen — Widget Proof to a portrait social crop while preserving the key visual read"
+          },
+          {
+            "label": "Proof Crop",
+            "description": "Closer inspection of the material, surface, or focal subject",
+            "promptHint": "Create a closer detail crop of Native Home Screen — Widget Proof; keep A real placed-widget capture is the required truth standard; this older capture is composition reference..."
+          }
+        ]
+      },
+      "imageUrl": "generated/native-home-widgets.png"
+    }
+  ]
+}

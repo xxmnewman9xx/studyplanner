@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "provenanceClass": "signed_release_simulator_qa_not_production_ipa",
+  "releaseEligible": false,
+  "uploadAuthorized": false,
+  "appVersion": "2.0.9",
+  "buildNumber": "86",
+  "bundleId": "com.mattnewman.studyplanner",
+  "widgetBundleId": "com.mattnewman.studyplanner.widgets",
+  "appGroup": "group.com.mattnewman.studyplanner",
+  "productionIpaSha256": "3cfc2d4c482fd088fba2b00e9ab8e39487b8edfc3b772dbb4b97176ab482888a",
+  "captureMode": "EXPO_PUBLIC_STUDYPLANNER_CAPTURE_QA=1",
+  "fixture": "build57",
+  "locale": "en-US",
+  "devices": [
+    {
+      "kind": "iphone",
+      "name": "StudyPlanner Build86 iPhone 16 Pro",
+      "udid": "D897216F-1BB4-44B4-B289-A625EE33677A",
+      "runtime": "iOS 26.5"
+    },
+    {
+      "kind": "ipad",
+      "name": "StudyPlanner Build81 iPad Pro 13",
+      "udid": "21862392-352E-4BB6-8647-C536E16FEE5E",
+      "runtime": "iOS 26.5"
+    }
+  ],
+  "proof": {
+    "appAtlasPerDevice": [
+      "scan-light",
+      "today-light",
+      "today-dark",
+      "plan-dark",
+      "focus-dark",
+      "review-light"
+    ],
+    "widgetGalleryPerDevice": [
+      "today-medium",
+      "upcoming-small"
+    ],
+    "homeScreenPerDevice": "populated-today-medium-and-upcoming-small"
+  },
+  "notes": [
+    "The simulator app and widget extension were signed locally by Xcode and registered the production App Group in both simulators.",
+    "These pixels prove Build 86 source behavior and native WidgetKit placement, but they are not exact production-IPA capture provenance and must not be uploaded as final App Store media without the release-media approval chain."
+  ]
+}
