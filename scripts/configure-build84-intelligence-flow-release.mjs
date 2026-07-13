@@ -96,6 +96,7 @@ for (const job of ledger.jobs) {
   job.status = passingJobs.has(job.jobId) ? "accepted_machine_qa" : "rejected_machine_qa";
 }
 ledger.copyStatus = "draft_requires_native_language_review";
+ledger.reviewStatus = "pending_independent_editorial_aso_native_signoff";
 writeJson(ledgerPath, ledger);
 
 for (const artifact of ["atlas-manifest.json", "intelligence-flow-job-queue.json"]) {

@@ -132,10 +132,12 @@ if (machineQa.assetCount !== 170 || machineQa.passCount !== 170 || machineQa.har
 }
 
 const nativeCopyReviewed = ledger.copyStatus === "native_language_review_complete";
+const independentReviewComplete = ledger.reviewStatus === "independent_editorial_aso_native_signoff_complete";
 const chatTraceComplete = ledger.jobs.every((job) =>
   job.classicConversationUrl && job.classicMessageId && job.rendererConversationUrl && job.rendererMessageId,
 );
 if (!nativeCopyReviewed) submissionBlockers.push("native-language review is not complete for all 17 locales");
+if (!independentReviewComplete) submissionBlockers.push("independent Apple-editorial, ASO, and native-language scoring is not complete");
 if (!chatTraceComplete) submissionBlockers.push("Classic/renderer conversation URL and message provenance is incomplete");
 
 const releasePrepared = failures.length === 0;
