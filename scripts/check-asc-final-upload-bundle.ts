@@ -109,6 +109,7 @@ type Build80ReleaseEvidence = {
     screenshotPaths?: string[];
     appPreviewDecision?: string;
     treatmentBUploadAuthorized?: boolean;
+    creativeProductionFinalsAuthorized?: boolean;
   };
 };
 
@@ -120,7 +121,7 @@ type ProductVideoReview = {
 
 const BUNDLE_ROOT = "docs/launch/back-to-school-2026/app-store-connect-final-upload";
 const OUTPUT_PATH = "qa/back-to-school-2026/asc-final-upload-gate.json";
-const BUILD80_RELEASE_EVIDENCE_PATH = "qa/back-to-school-2026/build80-app-version-media-evidence.json";
+const BUILD80_RELEASE_EVIDENCE_PATH = "qa/back-to-school-2026/build86-app-version-media-evidence.json";
 const APP_PREVIEW_REVIEW_PATH = "qa/back-to-school-2026/product-video-review.json";
 const APP_CONFIG_PATH = "app.json";
 const APP_SOURCE_PATH = "App.tsx";
@@ -133,12 +134,12 @@ const SUPPLEMENTAL_MD_PATH = `${BUNDLE_ROOT}/supplemental-url-registry.md`;
 const DEEPLINK_PATH = `${BUNDLE_ROOT}/deeplink-validation.md`;
 const WIDGET_RUNTIME_PATH = "src/widgets/StudyPlannerWidgets.tsx";
 
-const EXPECTED_VERSION = "2.0.8";
-const EXPECTED_BUILD_NUMBER = "80";
-const EXPECTED_SCREENSHOT_REFS = 144;
+const EXPECTED_VERSION = "2.0.9";
+const EXPECTED_BUILD_NUMBER = "86";
+const EXPECTED_SCREENSHOT_REFS = 238;
 const EXPECTED_IPHONE_SCREENSHOT_REFS = 119;
-const EXPECTED_IPAD_SCREENSHOT_REFS = 25;
-const CANONICAL_SCREENSHOT_ROOT = "store/apple/screenshot/";
+const EXPECTED_IPAD_SCREENSHOT_REFS = 119;
+const CANONICAL_SCREENSHOT_ROOT = "store/apple/screenshot-build86-creative-production/";
 const EXPECTED_ASC_APP_ID = "6766181202";
 const EXPECTED_DEEP_LINK = "studyplanner://import";
 const EXPECTED_SCHEME = "studyplanner";
@@ -318,12 +319,12 @@ function validateScreenshotPlatformEvidence(
   const assetPaths = assets.flatMap((asset) => (asset.path ? [asset.path] : []));
 
   requireReadiness(
-    evidence?.captureSource === "exact_build80_binary",
-    `${label} screenshot provenance must declare captureSource=exact_build80_binary`,
+    evidence?.captureSource === "exact_build86_binary",
+    `${label} screenshot provenance must declare captureSource=exact_build86_binary`,
   );
   requireReadiness(
     isSha256(evidence?.sourceIpaSha256) && evidence?.sourceIpaSha256 === expectedIpaSha256,
-    `${label} screenshot provenance must link to the verified Build 80 IPA SHA-256`,
+    `${label} screenshot provenance must link to the verified Build 86 IPA SHA-256`,
   );
   requireReadiness(
     sameStringSet(assetPaths, configuredRefs),
@@ -334,10 +335,10 @@ function validateScreenshotPlatformEvidence(
     const asset = assets.find((candidate) => candidate.path === ref);
     requireReadiness(Boolean(asset), `${label} screenshot provenance is missing ${ref}`);
     if (!asset) continue;
-    requireReadiness(asset.exactBinarySource === true, `${ref} must be marked as sourced from the exact Build 80 binary`);
+    requireReadiness(asset.exactBinarySource === true, `${ref} must be marked as sourced from the exact Build 86 binary`);
     requireReadiness(
       isSha256(asset.sourceIpaSha256) && asset.sourceIpaSha256 === expectedIpaSha256,
-      `${ref} must carry the verified Build 80 IPA SHA-256`,
+      `${ref} must carry the verified Build 86 IPA SHA-256`,
     );
     requireReadiness(isSha256(asset.sha256), `${ref} must have a valid screenshot SHA-256`);
     if (existsSync(ref) && isSha256(asset.sha256)) {
@@ -549,64 +550,64 @@ async function main() {
   const easBuild = build80Evidence.easBuild;
   const ascBuild = build80Evidence.appStoreConnect;
 
-  requireReadiness(build80EvidenceExists, `missing Build 80 release evidence: ${BUILD80_RELEASE_EVIDENCE_PATH}`);
+  requireReadiness(build80EvidenceExists, `missing Build 86 release evidence: ${BUILD80_RELEASE_EVIDENCE_PATH}`);
   if (build80EvidenceExists) {
-    requireReadiness(build80Evidence.status === "verified", "Build 80 release evidence status must be verified");
+    requireReadiness(build80Evidence.status === "verified", "Build 86 release evidence status must be verified");
     requireReadiness(
       build80Evidence.version === EXPECTED_VERSION && build80Evidence.buildNumber === EXPECTED_BUILD_NUMBER,
-      `Build 80 release evidence must identify iOS ${EXPECTED_VERSION} (${EXPECTED_BUILD_NUMBER})`,
+      `Build 86 release evidence must identify iOS ${EXPECTED_VERSION} (${EXPECTED_BUILD_NUMBER})`,
     );
     requireReadiness(
       build80Evidence.bundleIdentifier === "com.mattnewman.studyplanner",
-      "Build 80 release evidence bundle identifier must be com.mattnewman.studyplanner",
+      "Build 86 release evidence bundle identifier must be com.mattnewman.studyplanner",
     );
-    requireReadiness(isUuid(easBuild?.id), "Build 80 evidence must include a real EAS build UUID");
-    requireReadiness(easBuild?.status === "finished", "Build 80 EAS build must be finished");
-    requireReadiness(easBuild?.platform === "ios" && easBuild.profile === "production", "Build 80 EAS identity must be an iOS production build");
-    requireReadiness(isHttpsUrl(easBuild?.artifactUrl), "Build 80 EAS evidence must include its HTTPS IPA artifact URL");
+    requireReadiness(isUuid(easBuild?.id), "Build 86 evidence must include a real EAS build UUID");
+    requireReadiness(easBuild?.status === "finished", "Build 86 EAS build must be finished");
+    requireReadiness(easBuild?.platform === "ios" && easBuild.profile === "production", "Build 86 EAS identity must be an iOS production build");
+    requireReadiness(isHttpsUrl(easBuild?.artifactUrl), "Build 86 EAS evidence must include its HTTPS IPA artifact URL");
     requireReadiness(
       easBuild?.appVersion === EXPECTED_VERSION && easBuild.buildNumber === EXPECTED_BUILD_NUMBER,
-      "Build 80 EAS identity must match the configured app version and build number",
+      "Build 86 EAS identity must match the configured app version and build number",
     );
     requireReadiness(
       typeof easBuild?.sourceCommit === "string" && /^[a-f0-9]{40}$/i.test(easBuild.sourceCommit),
-      "Build 80 EAS evidence must include the 40-character source commit",
+      "Build 86 EAS evidence must include the 40-character source commit",
     );
-    requireReadiness(isRecordedAt(easBuild?.completedAt), "Build 80 EAS evidence must include its completion timestamp");
+    requireReadiness(isRecordedAt(easBuild?.completedAt), "Build 86 EAS evidence must include its completion timestamp");
 
-    requireReadiness(Boolean(evidenceIpaPath && existsSync(evidenceIpaPath)), "Build 80 IPA must be downloaded locally for identity and hash verification");
-    requireReadiness(isSha256(evidenceIpaSha256), "Build 80 IPA evidence must include a valid SHA-256");
+    requireReadiness(Boolean(evidenceIpaPath && existsSync(evidenceIpaPath)), "Build 86 IPA must be downloaded locally for identity and hash verification");
+    requireReadiness(isSha256(evidenceIpaSha256), "Build 86 IPA evidence must include a valid SHA-256");
     if (evidenceIpaPath && existsSync(evidenceIpaPath) && isSha256(evidenceIpaSha256)) {
       const actualBytes = statSync(evidenceIpaPath).size;
-      requireReadiness(actualBytes > 0, "Build 80 IPA must not be empty");
-      requireReadiness(fileSha256(evidenceIpaPath) === evidenceIpaSha256, "downloaded Build 80 IPA SHA-256 does not match its evidence record");
-      requireReadiness(build80Evidence.ipa?.bytes === actualBytes, "Build 80 IPA byte count does not match its evidence record");
+      requireReadiness(actualBytes > 0, "Build 86 IPA must not be empty");
+      requireReadiness(fileSha256(evidenceIpaPath) === evidenceIpaSha256, "downloaded Build 86 IPA SHA-256 does not match its evidence record");
+      requireReadiness(build80Evidence.ipa?.bytes === actualBytes, "Build 86 IPA byte count does not match its evidence record");
     }
     requireReadiness(
       build80Evidence.ipa?.version === EXPECTED_VERSION &&
         build80Evidence.ipa?.buildNumber === EXPECTED_BUILD_NUMBER &&
         build80Evidence.ipa?.bundleIdentifier === "com.mattnewman.studyplanner",
-      "inspected IPA identity must match iOS 2.0.8 (80) and com.mattnewman.studyplanner",
+      "inspected IPA identity must match iOS 2.0.9 (86) and com.mattnewman.studyplanner",
     );
-    requireReadiness(isRecordedAt(build80Evidence.ipa?.inspectedAt), "Build 80 IPA evidence must include its inspection timestamp");
+    requireReadiness(isRecordedAt(build80Evidence.ipa?.inspectedAt), "Build 86 IPA evidence must include its inspection timestamp");
 
     requireReadiness(ascBuild?.appAppleId === EXPECTED_ASC_APP_ID, `App Store Connect identity must use app Apple ID ${EXPECTED_ASC_APP_ID}`);
     requireReadiness(
       ascBuild?.version === EXPECTED_VERSION && ascBuild.buildNumber === EXPECTED_BUILD_NUMBER,
-      "App Store Connect must show iOS 2.0.8 build 80",
+      "App Store Connect must show iOS 2.0.9 build 86",
     );
     requireReadiness(
       ascBuild?.uploaded === true && ascBuild.processed === true && ascBuild.selectedForVersion === true,
-      "App Store Connect must show Build 80 uploaded, processed, and selected for app version 2.0.8",
+      "App Store Connect must show Build 86 uploaded, processed, and selected for app version 2.0.9",
     );
-    requireReadiness(isRecordedAt(ascBuild?.verifiedAt), "Build 80 App Store Connect evidence must include its verification timestamp");
+    requireReadiness(isRecordedAt(ascBuild?.verifiedAt), "Build 86 App Store Connect evidence must include its verification timestamp");
 
     if (isSha256(evidenceIpaSha256)) {
       validateScreenshotPlatformEvidence("iPhone", iphoneScreenshotRefs, build80Evidence.screenshots?.iphone, evidenceIpaSha256);
       validateScreenshotPlatformEvidence("iPad", ipadScreenshotRefs, build80Evidence.screenshots?.ipad, evidenceIpaSha256);
     } else {
-      requireReadiness(false, "iPhone exact-binary screenshot provenance cannot be verified without the Build 80 IPA SHA-256");
-      requireReadiness(false, "iPad exact-binary screenshot provenance cannot be verified without the Build 80 IPA SHA-256");
+      requireReadiness(false, "iPhone exact-binary screenshot provenance cannot be verified without the Build 86 IPA SHA-256");
+      requireReadiness(false, "iPad exact-binary screenshot provenance cannot be verified without the Build 86 IPA SHA-256");
     }
 
     const appPreview = build80Evidence.appPreview;
@@ -627,14 +628,14 @@ async function main() {
       }
       requireReadiness(
         appPreview.exactBinarySource === true && appPreview.sourceIpaSha256 === evidenceIpaSha256,
-        "approved App Preview must be sourced from the exact verified Build 80 binary",
+        "approved App Preview must be sourced from the exact verified Build 86 binary",
       );
     } else {
       requireReadiness(false, "App Preview must have an explicit decision: upload a valid reviewed preview or no_upload because previews are optional");
     }
 
     const authorization = build80Evidence.humanUploadAuthorization;
-    requireReadiness(authorization?.authorized === true, "a human must explicitly authorize the Build 80 app-version media upload");
+    requireReadiness(authorization?.authorized === true, "a human must explicitly authorize the Build 86 app-version media upload");
     requireReadiness(
       Boolean(authorization?.authorizedBy?.trim()) && isRecordedAt(authorization?.authorizedAt),
       "human upload authorization must record who authorized it and when",
@@ -642,11 +643,11 @@ async function main() {
     requireReadiness(authorization?.scope === "app_version_media", "human upload authorization scope must be app_version_media");
     requireReadiness(
       authorization?.version === EXPECTED_VERSION && authorization.buildNumber === EXPECTED_BUILD_NUMBER,
-      "human upload authorization must identify iOS 2.0.8 build 80",
+      "human upload authorization must identify iOS 2.0.9 build 86",
     );
     requireReadiness(
       isSha256(authorization?.ipaSha256) && authorization?.ipaSha256 === evidenceIpaSha256,
-      "human upload authorization must bind to the verified Build 80 IPA SHA-256",
+      "human upload authorization must bind to the verified Build 86 IPA SHA-256",
     );
     requireReadiness(
       sameStringSet(authorization?.screenshotPaths || [], screenshotRefs),
@@ -657,15 +658,15 @@ async function main() {
       "human upload authorization must cover the exact App Preview upload/no-upload decision",
     );
     requireReadiness(
-      authorization?.treatmentBUploadAuthorized === false,
-      "human upload authorization must explicitly keep GPT Image 2.0 Treatment B blocked",
+      authorization?.creativeProductionFinalsAuthorized === true,
+      "human upload authorization must explicitly approve the final 238 Creative Production assets",
     );
   } else {
-    requireReadiness(false, "real Build 80 EAS, IPA, and App Store Connect identity has not been recorded");
+    requireReadiness(false, "real Build 86 EAS, IPA, and App Store Connect identity has not been recorded");
     requireReadiness(false, "exact-binary iPhone screenshot provenance has not been recorded");
     requireReadiness(false, "exact-binary iPad screenshot provenance has not been recorded");
-    requireReadiness(false, "App Preview upload/no-upload decision has not been bound to Build 80");
-    requireReadiness(false, "human Build 80 media upload authorization has not been recorded");
+    requireReadiness(false, "App Preview upload/no-upload decision has not been bound to Build 86");
+    requireReadiness(false, "human Build 86 media upload authorization has not been recorded");
   }
 
   warn(
@@ -774,12 +775,12 @@ async function main() {
     requiredEvidenceSchema: {
       path: BUILD80_RELEASE_EVIDENCE_PATH,
       requirements: [
-        "Finished iOS production EAS Build 80 UUID, artifact URL, source commit, and completion timestamp.",
-        "Downloaded IPA path, bytes, SHA-256, and inspected 2.0.8/80/bundle identity.",
-        "Live App Store Connect app 6766181202 readback showing Build 80 uploaded, processed, and selected.",
-        "Per-file iPhone and iPad screenshot hashes linked to the exact Build 80 IPA SHA-256.",
+        "Finished iOS production EAS Build 86 UUID, artifact URL, source commit, and completion timestamp.",
+        "Downloaded IPA path, bytes, SHA-256, and inspected 2.0.9/86/bundle identity.",
+        "Live App Store Connect app 6766181202 readback showing Build 86 uploaded, processed, and selected.",
+        "Per-file iPhone and iPad screenshot hashes linked to the exact Build 86 IPA SHA-256.",
         "Either a valid exact-binary App Preview upload decision or an explicit optional no_upload decision.",
-        "Named, timestamped human authorization covering the exact IPA, screenshots, preview decision, and continued Treatment B block.",
+        "Named, timestamped human authorization covering the exact IPA, all 238 Creative Production screenshots, and the preview decision.",
       ],
     },
     controlPlaneFailures: failures,

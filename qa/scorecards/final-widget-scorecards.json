@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-04T10:57:25.658Z",
+  "generatedAt": "2026-07-13T03:25:28.771Z",
   "scoringMethod": "Layout-budget validation plus source/render review. Raw PNGs remain local under marketing_exports.",
   "thresholds": {
     "noCropReliability": 100,

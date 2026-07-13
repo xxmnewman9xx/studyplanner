@@ -1,14 +1,14 @@
 {
   "configVersion": 0,
   "apple": {
-    "version": "2.0.8",
+    "version": "2.0.9",
     "copyright": "© 2026 Matt Newman",
     "release": {
       "automaticRelease": true
     },
     "info": {
       "de-DE": {
-        "description": "Importiere Kurspläne und mach daraus einen Lernplan, dem du vertrauen kannst.\n\nDer Kursplaner hilft dir, Schule und Studium nach Aufgaben, Prüfungen, Fristen, Notizen, Erinnerungen, Kalender und Lernzeiten zu ordnen. Prüfe vorgeschlagene Termine vor dem Speichern und behalte jedes Fach im Semester leichter im Blick.\n\nNutze ihn für:\nKursplanung für echte Fächer\nPrüfung von Aufgaben und Terminen vor dem Speichern\nAufgaben, Notizen, Erinnerungen und Kalender\nLernzeiten vor vollen Wochen\nEinen ruhigeren Blick auf das, was als Nächstes ansteht\n\nEinige Funktionen können ein Abonnement erfordern.\n\nNutzungsbedingungen:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nDatenschutzrichtlinie:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "description": "Dein nächster Schritt, bevor du die App öffnest. Die Widgets Heute, Demnächst, Woche und Kursfortschritt zeigen Abonnenten die nächste Entscheidung auf dem Home-Bildschirm und bleiben im gesperrten Zustand privat.\n\nImportiere Kurspläne und mach daraus einen Lernplan, dem du vertrauen kannst.\n\nDer Kursplaner hilft dir, Schule und Studium nach Aufgaben, Prüfungen, Fristen, Notizen, Erinnerungen, Kalender und Lernzeiten zu ordnen. Prüfe vorgeschlagene Termine vor dem Speichern und behalte jedes Fach im Semester leichter im Blick.\n\nNutze ihn für:\nKursplanung für echte Fächer\nPrüfung von Aufgaben und Terminen vor dem Speichern\nAufgaben, Notizen, Erinnerungen und Kalender\nLernzeiten vor vollen Wochen\nEinen ruhigeren Blick auf das, was als Nächstes ansteht\n\nEinige Funktionen können ein Abonnement erfordern.\n\nNutzungsbedingungen:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nDatenschutzrichtlinie:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "keywords": [
           "hausaufgaben",
           "aufgabe",
@@ -25,31 +25,35 @@
           "plan",
           "fh"
         ],
-        "releaseNotes": "Fehlerbehebungen, Leistungsverbesserungen und Verfeinerungen bei Kursplanprüfung und Lernplanung.",
-        "promoText": "Wandle Kurspläne in geprüfte Aufgaben, Fristen, Notizen, Erinnerungen und ruhige Lernzeiten um. Du bestätigst alles vor dem Speichern.",
+        "releaseNotes": "Version 2.0.9 gestaltet die Abo-Widgets Heute, Demnächst, Woche und Kursfortschritt neu: klarere Entscheidungen, echte Wochenlast, lokalisierte Texte und private Sperrzustände.",
+        "promoText": "Vom Lehrplan zum Plan—und den nächsten Schritt schon vor dem Öffnen der App auf dem Home-Bildschirm sehen.",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "Kursplaner fürs Lernen",
         "subtitle": "Kurspläne klar ordnen",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot-intelligence-flow/de-DE/APP_IPHONE_65/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/de-DE/APP_IPHONE_65/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/de-DE/APP_IPHONE_65/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/de-DE/APP_IPHONE_65/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/de-DE/APP_IPHONE_65/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/de-DE/APP_IPHONE_65/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/de-DE/APP_IPHONE_65/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/de-DE/APP_IPHONE_65/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/de-DE/APP_IPHONE_65/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/de-DE/APP_IPHONE_65/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/de-DE/APP_IPHONE_65/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/de-DE/APP_IPHONE_65/07-review-uncertain-dates.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot-intelligence-flow/de-DE/APP_IPAD_PRO_3GEN_129/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/de-DE/APP_IPAD_PRO_3GEN_129/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/de-DE/APP_IPAD_PRO_3GEN_129/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/de-DE/APP_IPAD_PRO_3GEN_129/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/de-DE/APP_IPAD_PRO_3GEN_129/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/de-DE/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/de-DE/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/de-DE/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/de-DE/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/de-DE/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/de-DE/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/de-DE/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png"
           ]
         }
       },
       "fr-CA": {
-        "description": "Importez vos plans de cours et transformez-les en organisation claire pour la session.\n\nLe planificateur vous aide à classer travaux, examens, échéances, notes, rappels, calendrier et périodes d’étude par cours. Vérifiez les dates suggérées avant de les enregistrer, puis gardez l’école, le cégep ou l’université plus faciles à suivre.\n\nUtilisez-le pour:\nPlanifier de vrais cours\nVérifier travaux et examens avant l’enregistrement\nOrganiser tâches, notes, rappels et calendrier\nPréparer des périodes d’étude avant les semaines chargées\nVoir plus clairement ce qui s’en vient\n\nCertaines fonctions peuvent nécessiter un abonnement.\n\nConditions d’utilisation:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolitique de confidentialité:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "description": "Votre prochaine étape, avant d’ouvrir l’app. Les widgets abonnés Aujourd’hui, À venir, Semaine et Progression gardent la prochaine décision visible sur l’écran d’accueil sans afficher les cours lorsqu’ils sont verrouillés.\n\nImportez vos plans de cours et transformez-les en organisation claire pour la session.\n\nLe planificateur vous aide à classer travaux, examens, échéances, notes, rappels, calendrier et périodes d’étude par cours. Vérifiez les dates suggérées avant de les enregistrer, puis gardez l’école, le cégep ou l’université plus faciles à suivre.\n\nUtilisez-le pour:\nPlanifier de vrais cours\nVérifier travaux et examens avant l’enregistrement\nOrganiser tâches, notes, rappels et calendrier\nPréparer des périodes d’étude avant les semaines chargées\nVoir plus clairement ce qui s’en vient\n\nCertaines fonctions peuvent nécessiter un abonnement.\n\nConditions d’utilisation:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolitique de confidentialité:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "keywords": [
           "devoir",
           "travail",
@@ -66,31 +70,35 @@
           "étude",
           "plan"
         ],
-        "releaseNotes": "Corrections d’erreurs, améliorations des performances et ajustements de la vérification des plans de cours.",
-        "promoText": "Transformez vos plans de cours en tâches, échéances, rappels, notes et périodes d’étude. Vérifiez chaque détail avant d’enregistrer.",
+        "releaseNotes": "La version 2.0.9 repense les widgets abonnés Aujourd’hui, À venir, Semaine et Progression : décisions plus claires, charge réelle, libellés localisés et états verrouillés privés.",
+        "promoText": "Transformez un syllabus en plan et voyez la prochaine étape sur vos widgets avant d’ouvrir l’app.",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "Plan de Cours Étudiant",
         "subtitle": "Plans de cours en tâches",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot-intelligence-flow/fr-CA/APP_IPHONE_65/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/fr-CA/APP_IPHONE_65/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/fr-CA/APP_IPHONE_65/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/fr-CA/APP_IPHONE_65/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/fr-CA/APP_IPHONE_65/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/fr-CA/APP_IPHONE_65/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/fr-CA/APP_IPHONE_65/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/fr-CA/APP_IPHONE_65/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/fr-CA/APP_IPHONE_65/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/fr-CA/APP_IPHONE_65/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/fr-CA/APP_IPHONE_65/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/fr-CA/APP_IPHONE_65/07-review-uncertain-dates.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot-intelligence-flow/fr-CA/APP_IPAD_PRO_3GEN_129/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/fr-CA/APP_IPAD_PRO_3GEN_129/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/fr-CA/APP_IPAD_PRO_3GEN_129/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/fr-CA/APP_IPAD_PRO_3GEN_129/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/fr-CA/APP_IPAD_PRO_3GEN_129/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/fr-CA/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/fr-CA/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/fr-CA/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/fr-CA/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/fr-CA/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/fr-CA/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/fr-CA/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png"
           ]
         }
       },
       "en-GB": {
-        "description": "Import syllabuses and make coursework easier to plan.\n\nStudy Planner AI helps you organise modules around coursework, exams, deadlines, notes, reminders, calendar views and focused revision sessions. Review suggested dates before anything is saved, then keep school, sixth form or university work easier to follow through the term.\n\nUse it for:\nCoursework and exam planning\nDate review before saving\nTasks, notes, reminders and calendar organisation\nFocused revision before busy weeks\nA calmer view of what needs attention next\n\nSome features may require a subscription.\n\nTerms of Use:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPrivacy Policy:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "description": "Your next move, before you open the app. Subscriber-only Today, Upcoming, Week, and Class Progress widgets keep the next decision visible on your Home Screen without revealing coursework while locked.\n\nImport syllabuses and make coursework easier to plan.\n\nStudy Planner AI helps you organise modules around coursework, exams, deadlines, notes, reminders, calendar views and focused revision sessions. Review suggested dates before anything is saved, then keep school, sixth form or university work easier to follow through the term.\n\nUse it for:\nCoursework and exam planning\nDate review before saving\nTasks, notes, reminders and calendar organisation\nFocused revision before busy weeks\nA calmer view of what needs attention next\n\nSome features may require a subscription.\n\nTerms of Use:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPrivacy Policy:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "keywords": [
           "homework",
           "deadline",
@@ -107,31 +115,35 @@
           "essay",
           "uk"
         ],
-        "releaseNotes": "Bug fixes, performance improvements, and refinements to syllabus review and study planning.",
-        "promoText": "Turn syllabuses into checked coursework dates, revision tasks, reminders and focused study sessions, with every detail under your control.",
+        "releaseNotes": "Version 2.0.9 redesigns the subscriber-only Today, Upcoming, Week, and Class Progress widgets for faster decisions, truthful workload counts, localized labels, and private locked states.",
+        "promoText": "Turn a syllabus into a plan—and see your next move on subscriber-only Home Screen widgets before you open the app.",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "Study Planner AI",
         "subtitle": "Coursework made clear",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot-intelligence-flow/en-GB/APP_IPHONE_65/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/en-GB/APP_IPHONE_65/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/en-GB/APP_IPHONE_65/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/en-GB/APP_IPHONE_65/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/en-GB/APP_IPHONE_65/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/en-GB/APP_IPHONE_65/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/en-GB/APP_IPHONE_65/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/en-GB/APP_IPHONE_65/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/en-GB/APP_IPHONE_65/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/en-GB/APP_IPHONE_65/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/en-GB/APP_IPHONE_65/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/en-GB/APP_IPHONE_65/07-review-uncertain-dates.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot-intelligence-flow/en-GB/APP_IPAD_PRO_3GEN_129/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/en-GB/APP_IPAD_PRO_3GEN_129/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/en-GB/APP_IPAD_PRO_3GEN_129/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/en-GB/APP_IPAD_PRO_3GEN_129/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/en-GB/APP_IPAD_PRO_3GEN_129/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/en-GB/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/en-GB/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/en-GB/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/en-GB/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/en-GB/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/en-GB/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/en-GB/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png"
           ]
         }
       },
       "en-AU": {
-        "description": "Import syllabuses and turn the term into a plan you can trust.\n\nStudy Planner AI helps you organise classes around assignments, exams, due dates, notes, reminders, calendar views and focused study sessions. Review suggested dates before saving, then keep school, uni or TAFE work easier to track.\n\nUse it for:\nSyllabus planning for real classes\nAssignment and exam review before saving\nTasks, notes, reminders and calendar organisation\nFocused study sessions for busy weeks\nA clearer view of what is due next\n\nSome features may require a subscription.\n\nTerms of Use:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPrivacy Policy:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "description": "Your next move, before you open the app. Subscriber-only Today, Upcoming, Week, and Class Progress widgets keep the next decision visible on your Home Screen without revealing coursework while locked.\n\nImport syllabuses and turn the term into a plan you can trust.\n\nStudy Planner AI helps you organise classes around assignments, exams, due dates, notes, reminders, calendar views and focused study sessions. Review suggested dates before saving, then keep school, uni or TAFE work easier to track.\n\nUse it for:\nSyllabus planning for real classes\nAssignment and exam review before saving\nTasks, notes, reminders and calendar organisation\nFocused study sessions for busy weeks\nA clearer view of what is due next\n\nSome features may require a subscription.\n\nTerms of Use:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPrivacy Policy:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "keywords": [
           "homework",
           "assignment",
@@ -148,31 +160,35 @@
           "study",
           "plan"
         ],
-        "releaseNotes": "Bug fixes, performance improvements, and refinements to syllabus review and study planning.",
-        "promoText": "Turn syllabuses into checked class tasks, due dates, reminders, notes and focused study sessions for the term ahead.",
+        "releaseNotes": "Version 2.0.9 redesigns the subscriber-only Today, Upcoming, Week, and Class Progress widgets for faster decisions, truthful workload counts, localized labels, and private locked states.",
+        "promoText": "Turn a syllabus into a plan—and see your next move on subscriber-only Home Screen widgets before you open the app.",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "Study Planner AI",
         "subtitle": "Syllabuses to tasks",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot-intelligence-flow/en-AU/APP_IPHONE_65/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/en-AU/APP_IPHONE_65/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/en-AU/APP_IPHONE_65/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/en-AU/APP_IPHONE_65/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/en-AU/APP_IPHONE_65/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/en-AU/APP_IPHONE_65/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/en-AU/APP_IPHONE_65/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/en-AU/APP_IPHONE_65/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/en-AU/APP_IPHONE_65/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/en-AU/APP_IPHONE_65/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/en-AU/APP_IPHONE_65/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/en-AU/APP_IPHONE_65/07-review-uncertain-dates.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot-intelligence-flow/en-AU/APP_IPAD_PRO_3GEN_129/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/en-AU/APP_IPAD_PRO_3GEN_129/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/en-AU/APP_IPAD_PRO_3GEN_129/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/en-AU/APP_IPAD_PRO_3GEN_129/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/en-AU/APP_IPAD_PRO_3GEN_129/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/en-AU/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/en-AU/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/en-AU/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/en-AU/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/en-AU/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/en-AU/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/en-AU/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png"
           ]
         }
       },
       "zh-Hans": {
-        "description": "把课程大纲整理成更可信的学习计划。\n\n课程大纲学习计划可按课程整理作业、截止日期、考试、笔记、提醒、日历和学习时段。保存前，你可以先检查建议日期，让学校或大学安排在整个学期里更清楚。\n\n适合用来：\n规划真实课程\n保存前检查作业和考试日期\n整理笔记、提醒、任务和日历\n为忙碌周提前安排学习时段\n更清楚地看到接下来要做什么\n\n部分功能可能需要订阅。\n\n使用条款:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\n隐私政策:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "description": "打开 App 前，就知道下一步。订阅用户可通过今天、即将到来、本周和课程进度小组件在主屏幕查看下一项决策；锁定时不会显示课程信息。\n\n把课程大纲整理成更可信的学习计划。\n\n课程大纲学习计划可按课程整理作业、截止日期、考试、笔记、提醒、日历和学习时段。保存前，你可以先检查建议日期，让学校或大学安排在整个学期里更清楚。\n\n适合用来：\n规划真实课程\n保存前检查作业和考试日期\n整理笔记、提醒、任务和日历\n为忙碌周提前安排学习时段\n更清楚地看到接下来要做什么\n\n部分功能可能需要订阅。\n\n使用条款:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\n隐私政策:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "keywords": [
           "作业管理",
           "截止日",
@@ -206,31 +222,35 @@
           "课",
           "卷"
         ],
-        "releaseNotes": "修复问题、提升性能，并优化课程大纲检查和学习计划流程。",
-        "promoText": "把课程大纲和笔记整理成作业、截止日、考试、提醒和学习时段。保存前可以先检查每个细节。",
+        "releaseNotes": "2.0.9 版重新设计了订阅用户专享的今天、即将到来、本周和课程进度小组件，带来更清晰的决策、真实任务量、本地化标签和私密锁定状态。",
+        "promoText": "把教学大纲变成计划，在打开 App 前通过主屏幕小组件看到下一步。",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "课程大纲学习计划",
         "subtitle": "大纲变学习计划",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot-intelligence-flow/zh-Hans/APP_IPHONE_65/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/zh-Hans/APP_IPHONE_65/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/zh-Hans/APP_IPHONE_65/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/zh-Hans/APP_IPHONE_65/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/zh-Hans/APP_IPHONE_65/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/zh-Hans/APP_IPHONE_65/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hans/APP_IPHONE_65/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hans/APP_IPHONE_65/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hans/APP_IPHONE_65/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hans/APP_IPHONE_65/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hans/APP_IPHONE_65/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hans/APP_IPHONE_65/07-review-uncertain-dates.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot-intelligence-flow/zh-Hans/APP_IPAD_PRO_3GEN_129/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/zh-Hans/APP_IPAD_PRO_3GEN_129/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/zh-Hans/APP_IPAD_PRO_3GEN_129/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/zh-Hans/APP_IPAD_PRO_3GEN_129/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/zh-Hans/APP_IPAD_PRO_3GEN_129/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/zh-Hans/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hans/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hans/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hans/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hans/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hans/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hans/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png"
           ]
         }
       },
       "es-ES": {
-        "description": "Importa guías docentes y conviértelas en un plan de estudio claro.\n\nEl planificador te ayuda a organizar asignaturas por tareas, entregas, exámenes, apuntes, recordatorios, calendario y sesiones de estudio. Revisa las fechas sugeridas antes de guardarlas y mantén instituto o universidad bajo control durante el curso.\n\nÚsalo para:\nPlanificar asignaturas reales\nRevisar entregas y exámenes antes de guardar\nOrganizar tareas, apuntes, recordatorios y calendario\nPreparar sesiones de estudio para semanas cargadas\nVer con más claridad qué viene después\n\nAlgunas funciones pueden requerir una suscripción.\n\nCondiciones de uso:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolítica de privacidad:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "description": "Tu siguiente paso, antes de abrir la app. Los widgets para suscriptores Hoy, Próximo, Semana y Progreso de clase mantienen visible la siguiente decisión en Inicio y no muestran cursos cuando están bloqueados.\n\nImporta guías docentes y conviértelas en un plan de estudio claro.\n\nEl planificador te ayuda a organizar asignaturas por tareas, entregas, exámenes, apuntes, recordatorios, calendario y sesiones de estudio. Revisa las fechas sugeridas antes de guardarlas y mantén instituto o universidad bajo control durante el curso.\n\nÚsalo para:\nPlanificar asignaturas reales\nRevisar entregas y exámenes antes de guardar\nOrganizar tareas, apuntes, recordatorios y calendario\nPreparar sesiones de estudio para semanas cargadas\nVer con más claridad qué viene después\n\nAlgunas funciones pueden requerir una suscripción.\n\nCondiciones de uso:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolítica de privacidad:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "keywords": [
           "tareas",
           "examen",
@@ -246,31 +266,35 @@
           "uni",
           "eso"
         ],
-        "releaseNotes": "Corrección de errores, mejoras de rendimiento y ajustes en la revisión de guías docentes y la planificación de estudios.",
-        "promoText": "Convierte guías docentes y apuntes en tareas, entregas, recordatorios y sesiones de estudio. Revisa cada fecha antes de guardarla.",
+        "releaseNotes": "La versión 2.0.9 renueva los widgets para suscriptores Hoy, Próximo, Semana y Progreso de clase con decisiones más claras, carga semanal real, textos localizados y estados bloqueados privados.",
+        "promoText": "Convierte un programa en un plan y mira tu siguiente paso en los widgets de Inicio antes de abrir la app.",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "Planificador de Temarios",
         "subtitle": "Guías docentes a tareas",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot-intelligence-flow/es-ES/APP_IPHONE_65/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/es-ES/APP_IPHONE_65/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/es-ES/APP_IPHONE_65/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/es-ES/APP_IPHONE_65/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/es-ES/APP_IPHONE_65/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/es-ES/APP_IPHONE_65/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/es-ES/APP_IPHONE_65/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/es-ES/APP_IPHONE_65/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/es-ES/APP_IPHONE_65/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/es-ES/APP_IPHONE_65/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/es-ES/APP_IPHONE_65/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/es-ES/APP_IPHONE_65/07-review-uncertain-dates.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot-intelligence-flow/es-ES/APP_IPAD_PRO_3GEN_129/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/es-ES/APP_IPAD_PRO_3GEN_129/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/es-ES/APP_IPAD_PRO_3GEN_129/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/es-ES/APP_IPAD_PRO_3GEN_129/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/es-ES/APP_IPAD_PRO_3GEN_129/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/es-ES/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/es-ES/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/es-ES/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/es-ES/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/es-ES/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/es-ES/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/es-ES/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png"
           ]
         }
       },
       "pt-BR": {
-        "description": "Importe ementas e transforme tudo em um plano de estudo claro.\n\nO planejador ajuda a organizar disciplinas por tarefas, provas, prazos, notas, lembretes, calendário e sessões de estudo. Revise as datas sugeridas antes de salvar e acompanhe escola ou faculdade com mais controle durante o semestre.\n\nUse para:\nPlanejar disciplinas reais\nRevisar tarefas e provas antes de salvar\nOrganizar notas, lembretes, tarefas e calendário\nPreparar sessões de estudo para semanas cheias\nVer com mais clareza o que vem a seguir\n\nAlguns recursos podem exigir assinatura.\n\nTermos de uso:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolítica de privacidade:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "description": "Seu próximo passo, antes de abrir o app. Os widgets para assinantes Hoje, Próximos, Semana e Progresso da aula mantêm a próxima decisão visível na Tela de Início sem mostrar atividades quando bloqueados.\n\nImporte ementas e transforme tudo em um plano de estudo claro.\n\nO planejador ajuda a organizar disciplinas por tarefas, provas, prazos, notas, lembretes, calendário e sessões de estudo. Revise as datas sugeridas antes de salvar e acompanhe escola ou faculdade com mais controle durante o semestre.\n\nUse para:\nPlanejar disciplinas reais\nRevisar tarefas e provas antes de salvar\nOrganizar notas, lembretes, tarefas e calendário\nPreparar sessões de estudo para semanas cheias\nVer com mais clareza o que vem a seguir\n\nAlguns recursos podem exigir assinatura.\n\nTermos de uso:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolítica de privacidade:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "keywords": [
           "tarefa",
           "prova",
@@ -287,31 +311,35 @@
           "estudo",
           "foco"
         ],
-        "releaseNotes": "Correções de erros, melhorias de desempenho e ajustes na revisão de ementas e no planejamento dos estudos.",
-        "promoText": "Transforme ementas e anotações em tarefas, provas, prazos, lembretes e sessões de estudo. Revise tudo antes de salvar.",
+        "releaseNotes": "A versão 2.0.9 redesenha os widgets para assinantes Hoje, Próximos, Semana e Progresso da aula com decisões mais claras, carga real, textos localizados e estados bloqueados privados.",
+        "promoText": "Transforme o plano de ensino em um plano e veja o próximo passo nos widgets antes de abrir o app.",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "Planejador de Ementas",
         "subtitle": "Ementas viram tarefas",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot-intelligence-flow/pt-BR/APP_IPHONE_65/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/pt-BR/APP_IPHONE_65/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/pt-BR/APP_IPHONE_65/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/pt-BR/APP_IPHONE_65/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/pt-BR/APP_IPHONE_65/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/pt-BR/APP_IPHONE_65/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/pt-BR/APP_IPHONE_65/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/pt-BR/APP_IPHONE_65/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/pt-BR/APP_IPHONE_65/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/pt-BR/APP_IPHONE_65/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/pt-BR/APP_IPHONE_65/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/pt-BR/APP_IPHONE_65/07-review-uncertain-dates.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot-intelligence-flow/pt-BR/APP_IPAD_PRO_3GEN_129/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/pt-BR/APP_IPAD_PRO_3GEN_129/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/pt-BR/APP_IPAD_PRO_3GEN_129/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/pt-BR/APP_IPAD_PRO_3GEN_129/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/pt-BR/APP_IPAD_PRO_3GEN_129/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/pt-BR/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/pt-BR/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/pt-BR/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/pt-BR/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/pt-BR/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/pt-BR/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/pt-BR/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png"
           ]
         }
       },
       "pt-PT": {
-        "description": "Importa programas e transforma tudo num plano de estudo claro.\n\nO planeador ajuda a organizar disciplinas por tarefas, testes, prazos, apontamentos, lembretes, calendário e sessões de estudo. Revê as datas sugeridas antes de guardar e acompanha escola ou universidade com mais controlo durante o período.\n\nUsa para:\nPlanear disciplinas reais\nRever tarefas e testes antes de guardar\nOrganizar apontamentos, lembretes, tarefas e calendário\nPreparar sessões de estudo para semanas cheias\nVer com mais clareza o que vem a seguir\n\nAlgumas funcionalidades podem exigir uma subscrição.\n\nTermos de uso:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolítica de privacidade:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "description": "O próximo passo, antes de abrir a app. Os widgets para subscritores Hoje, Próximos, Semana e Progresso da disciplina mantêm a próxima decisão visível no ecrã principal sem mostrar trabalhos quando bloqueados.\n\nImporta programas e transforma tudo num plano de estudo claro.\n\nO planeador ajuda a organizar disciplinas por tarefas, testes, prazos, apontamentos, lembretes, calendário e sessões de estudo. Revê as datas sugeridas antes de guardar e acompanha escola ou universidade com mais controlo durante o período.\n\nUsa para:\nPlanear disciplinas reais\nRever tarefas e testes antes de guardar\nOrganizar apontamentos, lembretes, tarefas e calendário\nPreparar sessões de estudo para semanas cheias\nVer com mais clareza o que vem a seguir\n\nAlgumas funcionalidades podem exigir uma subscrição.\n\nTermos de uso:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolítica de privacidade:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "keywords": [
           "tarefa",
           "teste",
@@ -327,31 +355,35 @@
           "estudo",
           "ia"
         ],
-        "releaseNotes": "Correções de erros, melhorias de desempenho e ajustes na revisão de programas e no planeamento dos estudos.",
-        "promoText": "Transforma programas e apontamentos em tarefas, testes, prazos, lembretes e sessões de estudo. Revê tudo antes de guardar.",
+        "releaseNotes": "A versão 2.0.9 redesenha os widgets para subscritores Hoje, Próximos, Semana e Progresso da disciplina com decisões mais claras, carga real, textos localizados e estados bloqueados privados.",
+        "promoText": "Transforme o programa num plano e veja o próximo passo nos widgets antes de abrir a app.",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "Planeador de Programas",
         "subtitle": "Programas em tarefas",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot-intelligence-flow/pt-PT/APP_IPHONE_65/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/pt-PT/APP_IPHONE_65/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/pt-PT/APP_IPHONE_65/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/pt-PT/APP_IPHONE_65/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/pt-PT/APP_IPHONE_65/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/pt-PT/APP_IPHONE_65/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/pt-PT/APP_IPHONE_65/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/pt-PT/APP_IPHONE_65/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/pt-PT/APP_IPHONE_65/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/pt-PT/APP_IPHONE_65/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/pt-PT/APP_IPHONE_65/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/pt-PT/APP_IPHONE_65/07-review-uncertain-dates.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot-intelligence-flow/pt-PT/APP_IPAD_PRO_3GEN_129/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/pt-PT/APP_IPAD_PRO_3GEN_129/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/pt-PT/APP_IPAD_PRO_3GEN_129/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/pt-PT/APP_IPAD_PRO_3GEN_129/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/pt-PT/APP_IPAD_PRO_3GEN_129/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/pt-PT/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/pt-PT/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/pt-PT/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/pt-PT/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/pt-PT/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/pt-PT/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/pt-PT/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png"
           ]
         }
       },
       "ar-SA": {
-        "description": "حوّل المنهج إلى خطة مذاكرة يمكنك الوثوق بها.\n\nيساعدك مخطط المنهج الدراسي على ترتيب واجبات كل مادة، الاختبارات، المواعيد، الملاحظات، التنبيهات، التقويم وجلسات المذاكرة. راجع التواريخ المقترحة قبل الحفظ حتى تبقى المدرسة أو الجامعة أوضح طوال الفصل.\n\nاستخدمه من أجل:\nتخطيط موادك الفعلية\nمراجعة الواجبات والاختبارات قبل الحفظ\nترتيب الملاحظات والتنبيهات والمهام والتقويم\nتجهيز جلسات مذاكرة قبل الأسابيع المزدحمة\nرؤية أوضح لما يجب عمله بعد ذلك\n\nقد تتطلب بعض الميزات اشتراكًا.\n\nشروط الاستخدام:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nسياسة الخصوصية:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "description": "خطوتك التالية، قبل فتح التطبيق. تعرض أدوات اليوم والقادم والأسبوع وتقدم المقرر للمشتركين القرار التالي على الشاشة الرئيسية من دون إظهار بيانات المقررات عند القفل.\n\nحوّل المنهج إلى خطة مذاكرة يمكنك الوثوق بها.\n\nيساعدك مخطط المنهج الدراسي على ترتيب واجبات كل مادة، الاختبارات، المواعيد، الملاحظات، التنبيهات، التقويم وجلسات المذاكرة. راجع التواريخ المقترحة قبل الحفظ حتى تبقى المدرسة أو الجامعة أوضح طوال الفصل.\n\nاستخدمه من أجل:\nتخطيط موادك الفعلية\nمراجعة الواجبات والاختبارات قبل الحفظ\nترتيب الملاحظات والتنبيهات والمهام والتقويم\nتجهيز جلسات مذاكرة قبل الأسابيع المزدحمة\nرؤية أوضح لما يجب عمله بعد ذلك\n\nقد تتطلب بعض الميزات اشتراكًا.\n\nشروط الاستخدام:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nسياسة الخصوصية:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "keywords": [
           "واجبات",
           "اختبار",
@@ -370,31 +402,35 @@
           "اختبارات",
           "تركيز"
         ],
-        "releaseNotes": "إصلاحات للأخطاء وتحسينات في الأداء مع ضبط مراجعة المنهج وتخطيط الدراسة.",
-        "promoText": "حوّل المنهج والملاحظات إلى واجبات ومواعيد واختبارات وتذكيرات وجلسات مذاكرة. راجع التفاصيل قبل الحفظ.",
+        "releaseNotes": "يعيد الإصدار 2.0.9 تصميم أدوات اليوم والقادم والأسبوع وتقدم المقرر للمشتركين بقرارات أوضح وأعداد عمل حقيقية ونصوص محلية وحالات قفل خاصة.",
+        "promoText": "حوّل الخطة الدراسية إلى خطة وشاهد خطوتك التالية على أدوات الشاشة الرئيسية قبل فتح التطبيق.",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "مخطط المنهج الدراسي",
         "subtitle": "حوّل منهجك إلى خطة",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot-intelligence-flow/ar-SA/APP_IPHONE_65/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/ar-SA/APP_IPHONE_65/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/ar-SA/APP_IPHONE_65/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/ar-SA/APP_IPHONE_65/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/ar-SA/APP_IPHONE_65/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/ar-SA/APP_IPHONE_65/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/ar-SA/APP_IPHONE_65/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/ar-SA/APP_IPHONE_65/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/ar-SA/APP_IPHONE_65/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/ar-SA/APP_IPHONE_65/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/ar-SA/APP_IPHONE_65/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/ar-SA/APP_IPHONE_65/07-review-uncertain-dates.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot-intelligence-flow/ar-SA/APP_IPAD_PRO_3GEN_129/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/ar-SA/APP_IPAD_PRO_3GEN_129/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/ar-SA/APP_IPAD_PRO_3GEN_129/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/ar-SA/APP_IPAD_PRO_3GEN_129/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/ar-SA/APP_IPAD_PRO_3GEN_129/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/ar-SA/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/ar-SA/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/ar-SA/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/ar-SA/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/ar-SA/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/ar-SA/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/ar-SA/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png"
           ]
         }
       },
       "hi": {
-        "description": "सिलेबस को भरोसेमंद पढ़ाई योजना में बदलें।\n\nसिलेबस योजनाकार कक्षा के कार्य, परीक्षाएँ, समयसीमाएँ, नोट्स, रिमाइंडर, दिनदर्शिका और पढ़ाई सत्र व्यवस्थित करने में मदद करता है। सुझाई गई तारीखों को सेव करने से पहले जाँचें और स्कूल या कॉलेज के काम को पूरे सत्र में साफ रखें।\n\nइसके लिए उपयोग करें:\nवास्तविक कक्षाओं की योजना\nसेव करने से पहले कार्य और परीक्षा की जाँच\nनोट्स, रिमाइंडर, कार्य और दिनदर्शिका की व्यवस्था\nव्यस्त सप्ताहों के लिए पढ़ाई सत्र\nआगे आने वाले काम का साफ दृश्य\n\nकुछ सुविधाओं के लिए सदस्यता की आवश्यकता हो सकती है।\n\nउपयोग की शर्तें:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nगोपनीयता नीति:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "description": "ऐप खोलने से पहले अपना अगला कदम जानें। सदस्यों के लिए आज, आगामी, सप्ताह और कक्षा प्रगति विजेट अगला निर्णय होम स्क्रीन पर दिखाते हैं और लॉक होने पर पाठ्यक्रम छिपा रहता है।\n\nसिलेबस को भरोसेमंद पढ़ाई योजना में बदलें।\n\nसिलेबस योजनाकार कक्षा के कार्य, परीक्षाएँ, समयसीमाएँ, नोट्स, रिमाइंडर, दिनदर्शिका और पढ़ाई सत्र व्यवस्थित करने में मदद करता है। सुझाई गई तारीखों को सेव करने से पहले जाँचें और स्कूल या कॉलेज के काम को पूरे सत्र में साफ रखें।\n\nइसके लिए उपयोग करें:\nवास्तविक कक्षाओं की योजना\nसेव करने से पहले कार्य और परीक्षा की जाँच\nनोट्स, रिमाइंडर, कार्य और दिनदर्शिका की व्यवस्था\nव्यस्त सप्ताहों के लिए पढ़ाई सत्र\nआगे आने वाले काम का साफ दृश्य\n\nकुछ सुविधाओं के लिए सदस्यता की आवश्यकता हो सकती है।\n\nउपयोग की शर्तें:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nगोपनीयता नीति:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "keywords": [
           "परीक्षा",
           "कार्य",
@@ -411,31 +447,35 @@
           "पाठ",
           "योजना"
         ],
-        "releaseNotes": "त्रुटि सुधार, प्रदर्शन सुधार और सिलेबस समीक्षा व पढ़ाई योजना में सुधार।",
-        "promoText": "सिलेबस और नोट्स को कार्य, परीक्षाओं, समयसीमाओं और पढ़ाई सत्रों में बदलें। सेव करने से पहले हर बात जाँचें।",
+        "releaseNotes": "संस्करण 2.0.9 सदस्य विजेट—आज, आगामी, सप्ताह और कक्षा प्रगति—को साफ निर्णयों, वास्तविक कार्यभार, स्थानीयकृत लेबल और निजी लॉक स्थिति के साथ नया बनाता है।",
+        "promoText": "सिलेबस को योजना में बदलें और ऐप खोलने से पहले होम स्क्रीन विजेट पर अगला कदम देखें।",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "सिलेबस योजनाकार",
         "subtitle": "सिलेबस से पढ़ाई योजना",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot-intelligence-flow/hi/APP_IPHONE_65/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/hi/APP_IPHONE_65/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/hi/APP_IPHONE_65/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/hi/APP_IPHONE_65/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/hi/APP_IPHONE_65/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/hi/APP_IPHONE_65/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/hi/APP_IPHONE_65/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/hi/APP_IPHONE_65/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/hi/APP_IPHONE_65/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/hi/APP_IPHONE_65/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/hi/APP_IPHONE_65/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/hi/APP_IPHONE_65/07-review-uncertain-dates.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot-intelligence-flow/hi/APP_IPAD_PRO_3GEN_129/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/hi/APP_IPAD_PRO_3GEN_129/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/hi/APP_IPAD_PRO_3GEN_129/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/hi/APP_IPAD_PRO_3GEN_129/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/hi/APP_IPAD_PRO_3GEN_129/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/hi/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/hi/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/hi/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/hi/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/hi/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/hi/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/hi/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png"
           ]
         }
       },
       "ko": {
-        "description": "강의계획서를 믿고 쓸 수 있는 학습 계획으로 정리하세요.\n\n강의계획서 학습계획은 수업별 과제, 마감일, 시험, 필기, 알림, 달력, 공부 시간을 정리하도록 도와줍니다. 저장하기 전에 제안된 날짜를 확인할 수 있어 학교와 대학교 일정을 직접 관리할 수 있습니다.\n\n이럴 때 사용하세요:\n실제 수업에 맞춘 계획\n저장 전 과제와 시험 날짜 확인\n필기, 알림, 과제, 달력 정리\n바쁜 주 전 공부 시간 준비\n다음 할 일을 더 분명하게 확인\n\n일부 기능은 유료 구독이 필요할 수 있습니다.\n\n이용 약관:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\n개인정보 처리방침:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "description": "앱을 열기 전에, 다음 할 일을 확인하세요. 구독자용 오늘, 예정, 주간, 수업 진행 위젯이 홈 화면에 다음 결정을 보여 주고 잠긴 상태에서는 수업 정보를 숨깁니다.\n\n강의계획서를 믿고 쓸 수 있는 학습 계획으로 정리하세요.\n\n강의계획서 학습계획은 수업별 과제, 마감일, 시험, 필기, 알림, 달력, 공부 시간을 정리하도록 도와줍니다. 저장하기 전에 제안된 날짜를 확인할 수 있어 학교와 대학교 일정을 직접 관리할 수 있습니다.\n\n이럴 때 사용하세요:\n실제 수업에 맞춘 계획\n저장 전 과제와 시험 날짜 확인\n필기, 알림, 과제, 달력 정리\n바쁜 주 전 공부 시간 준비\n다음 할 일을 더 분명하게 확인\n\n일부 기능은 유료 구독이 필요할 수 있습니다.\n\n이용 약관:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\n개인정보 처리방침:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "keywords": [
           "과제관리",
           "마감일",
@@ -466,31 +506,35 @@
           "발표",
           "계획"
         ],
-        "releaseNotes": "오류 수정, 성능 개선, 강의계획서 확인과 학습 계획 흐름을 다듬었습니다.",
-        "promoText": "강의계획서와 필기를 과제, 마감일, 시험, 알림, 공부 시간으로 정리하세요. 저장 전 내용을 확인할 수 있습니다.",
+        "releaseNotes": "버전 2.0.9는 구독자용 오늘, 예정, 주간, 수업 진행 위젯을 더 명확한 결정, 실제 작업량, 현지화 레이블, 비공개 잠금 상태로 새롭게 디자인했습니다.",
+        "promoText": "강의계획서를 계획으로 바꾸고 앱을 열기 전에 홈 화면 위젯에서 다음 할 일을 확인하세요.",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "강의계획서 학습계획",
         "subtitle": "강의계획서를 일정으로",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot-intelligence-flow/ko/APP_IPHONE_65/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/ko/APP_IPHONE_65/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/ko/APP_IPHONE_65/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/ko/APP_IPHONE_65/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/ko/APP_IPHONE_65/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/ko/APP_IPHONE_65/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/ko/APP_IPHONE_65/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/ko/APP_IPHONE_65/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/ko/APP_IPHONE_65/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/ko/APP_IPHONE_65/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/ko/APP_IPHONE_65/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/ko/APP_IPHONE_65/07-review-uncertain-dates.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot-intelligence-flow/ko/APP_IPAD_PRO_3GEN_129/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/ko/APP_IPAD_PRO_3GEN_129/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/ko/APP_IPAD_PRO_3GEN_129/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/ko/APP_IPAD_PRO_3GEN_129/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/ko/APP_IPAD_PRO_3GEN_129/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/ko/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/ko/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/ko/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/ko/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/ko/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/ko/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/ko/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png"
           ]
         }
       },
       "es-MX": {
-        "description": "Importa temarios y conviértelos en un plan de estudio claro.\n\nEl planificador te ayuda a organizar materias por tareas, entregas, exámenes, apuntes, recordatorios, calendario y sesiones de estudio. Revisa las fechas sugeridas antes de guardarlas y mantén la prepa o universidad bajo control durante el semestre.\n\nÚsalo para:\nPlanificar materias reales\nRevisar entregas y exámenes antes de guardar\nOrganizar tareas, apuntes, recordatorios y calendario\nPreparar sesiones de estudio para semanas pesadas\nVer con más claridad qué sigue\n\nAlgunas funciones pueden requerir una suscripción.\n\nCondiciones de uso:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolítica de privacidad:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "description": "Tu siguiente paso, antes de abrir la app. Los widgets para suscriptores Hoy, Próximo, Semana y Progreso de clase mantienen visible la siguiente decisión en Inicio y no muestran cursos cuando están bloqueados.\n\nImporta temarios y conviértelos en un plan de estudio claro.\n\nEl planificador te ayuda a organizar materias por tareas, entregas, exámenes, apuntes, recordatorios, calendario y sesiones de estudio. Revisa las fechas sugeridas antes de guardarlas y mantén la prepa o universidad bajo control durante el semestre.\n\nÚsalo para:\nPlanificar materias reales\nRevisar entregas y exámenes antes de guardar\nOrganizar tareas, apuntes, recordatorios y calendario\nPreparar sesiones de estudio para semanas pesadas\nVer con más claridad qué sigue\n\nAlgunas funciones pueden requerir una suscripción.\n\nCondiciones de uso:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolítica de privacidad:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "keywords": [
           "tareas",
           "examen",
@@ -505,31 +549,35 @@
           "notas",
           "estudiar"
         ],
-        "releaseNotes": "Corrección de errores, mejoras de rendimiento y ajustes en la revisión de temarios y la planificación de estudios.",
-        "promoText": "Convierte temarios y apuntes en tareas, entregas, recordatorios y sesiones de estudio. Revisa cada fecha antes de guardarla.",
+        "releaseNotes": "La versión 2.0.9 renueva los widgets para suscriptores Hoy, Próximo, Semana y Progreso de clase con decisiones más claras, carga semanal real, textos localizados y estados bloqueados privados.",
+        "promoText": "Convierte un programa en un plan y mira tu siguiente paso en los widgets de Inicio antes de abrir la app.",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "Planificador de Materias",
         "subtitle": "Temarios a tareas",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot-intelligence-flow/es-MX/APP_IPHONE_65/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/es-MX/APP_IPHONE_65/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/es-MX/APP_IPHONE_65/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/es-MX/APP_IPHONE_65/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/es-MX/APP_IPHONE_65/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/es-MX/APP_IPHONE_65/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/es-MX/APP_IPHONE_65/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/es-MX/APP_IPHONE_65/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/es-MX/APP_IPHONE_65/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/es-MX/APP_IPHONE_65/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/es-MX/APP_IPHONE_65/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/es-MX/APP_IPHONE_65/07-review-uncertain-dates.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot-intelligence-flow/es-MX/APP_IPAD_PRO_3GEN_129/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/es-MX/APP_IPAD_PRO_3GEN_129/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/es-MX/APP_IPAD_PRO_3GEN_129/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/es-MX/APP_IPAD_PRO_3GEN_129/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/es-MX/APP_IPAD_PRO_3GEN_129/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/es-MX/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/es-MX/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/es-MX/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/es-MX/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/es-MX/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/es-MX/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/es-MX/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png"
           ]
         }
       },
       "zh-Hant": {
-        "description": "把課程大綱整理成更可信的學習計畫。\n\n課程大綱學習計畫可依課程整理作業、截止日期、考試、筆記、提醒、行事曆和讀書時段。儲存前，你可以先檢查建議日期，讓學校或大學安排在整個學期裡更清楚。\n\n適合用來：\n規劃真實課程\n儲存前檢查作業和考試日期\n整理筆記、提醒、任務和行事曆\n為忙碌週提前安排讀書時段\n更清楚地看到接下來要做什麼\n\n部分功能可能需要訂閱。\n\n使用條款:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\n隱私權政策:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "description": "打開 App 前，就知道下一步。訂閱用戶可透過今天、即將到來、本週和課程進度小工具在主畫面查看下一項決策；鎖定時不會顯示課程資料。\n\n把課程大綱整理成更可信的學習計畫。\n\n課程大綱學習計畫可依課程整理作業、截止日期、考試、筆記、提醒、行事曆和讀書時段。儲存前，你可以先檢查建議日期，讓學校或大學安排在整個學期裡更清楚。\n\n適合用來：\n規劃真實課程\n儲存前檢查作業和考試日期\n整理筆記、提醒、任務和行事曆\n為忙碌週提前安排讀書時段\n更清楚地看到接下來要做什麼\n\n部分功能可能需要訂閱。\n\n使用條款:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\n隱私權政策:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "keywords": [
           "作業管理",
           "截止日",
@@ -562,31 +610,35 @@
           "日程",
           "課"
         ],
-        "releaseNotes": "修正問題、提升效能，並優化課程大綱檢查和學習計畫流程。",
-        "promoText": "把課程大綱和筆記整理成作業、截止日、考試、提醒與讀書時段。儲存前可先檢查每個細節。",
+        "releaseNotes": "2.0.9 版重新設計了訂閱用戶專享的今天、即將到來、本週和課程進度小工具，帶來更清晰的決策、真實工作量、本地化標籤和私密鎖定狀態。",
+        "promoText": "把課程大綱變成計畫，在打開 App 前透過主畫面小工具看到下一步。",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "課程大綱學習計畫",
         "subtitle": "課程大綱變計畫",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot-intelligence-flow/zh-Hant/APP_IPHONE_65/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/zh-Hant/APP_IPHONE_65/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/zh-Hant/APP_IPHONE_65/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/zh-Hant/APP_IPHONE_65/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/zh-Hant/APP_IPHONE_65/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/zh-Hant/APP_IPHONE_65/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hant/APP_IPHONE_65/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hant/APP_IPHONE_65/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hant/APP_IPHONE_65/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hant/APP_IPHONE_65/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hant/APP_IPHONE_65/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hant/APP_IPHONE_65/07-review-uncertain-dates.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot-intelligence-flow/zh-Hant/APP_IPAD_PRO_3GEN_129/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/zh-Hant/APP_IPAD_PRO_3GEN_129/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/zh-Hant/APP_IPAD_PRO_3GEN_129/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/zh-Hant/APP_IPAD_PRO_3GEN_129/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/zh-Hant/APP_IPAD_PRO_3GEN_129/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/zh-Hant/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hant/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hant/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hant/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hant/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hant/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/zh-Hant/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png"
           ]
         }
       },
       "fr-FR": {
-        "description": "Importez vos supports de cours et transformez-les en planning clair.\n\nLe planificateur vous aide à organiser devoirs, partiels, échéances, notes, rappels, calendrier et séances de révision par cours. Vérifiez les dates suggérées avant de les enregistrer, puis suivez plus facilement le lycée, la fac ou les périodes d’examens.\n\nUtilisez-le pour:\nPlanifier de vrais cours\nVérifier devoirs et partiels avant l’enregistrement\nOrganiser tâches, notes, rappels et calendrier\nPréparer des révisions avant les semaines chargées\nVoir plus clairement ce qui arrive ensuite\n\nCertaines fonctions peuvent nécessiter un abonnement.\n\nConditions d’utilisation:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolitique de confidentialité:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "description": "Votre prochaine étape, avant d’ouvrir l’app. Les widgets abonnés Aujourd’hui, À venir, Semaine et Progression gardent la prochaine décision visible sur l’écran d’accueil sans afficher les cours lorsqu’ils sont verrouillés.\n\nImportez vos supports de cours et transformez-les en planning clair.\n\nLe planificateur vous aide à organiser devoirs, partiels, échéances, notes, rappels, calendrier et séances de révision par cours. Vérifiez les dates suggérées avant de les enregistrer, puis suivez plus facilement le lycée, la fac ou les périodes d’examens.\n\nUtilisez-le pour:\nPlanifier de vrais cours\nVérifier devoirs et partiels avant l’enregistrement\nOrganiser tâches, notes, rappels et calendrier\nPréparer des révisions avant les semaines chargées\nVoir plus clairement ce qui arrive ensuite\n\nCertaines fonctions peuvent nécessiter un abonnement.\n\nConditions d’utilisation:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPolitique de confidentialité:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "keywords": [
           "devoir",
           "examen",
@@ -605,31 +657,35 @@
           "bac",
           "dut"
         ],
-        "releaseNotes": "Corrections d’erreurs, améliorations des performances et ajustements de la vérification des supports de cours.",
-        "promoText": "Transformez supports de cours et notes en devoirs, échéances, rappels et révisions. Vérifiez chaque détail avant d’enregistrer.",
+        "releaseNotes": "La version 2.0.9 repense les widgets abonnés Aujourd’hui, À venir, Semaine et Progression : décisions plus claires, charge réelle, libellés localisés et états verrouillés privés.",
+        "promoText": "Transformez un syllabus en plan et voyez la prochaine étape sur vos widgets avant d’ouvrir l’app.",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "Cours et Devoirs",
         "subtitle": "Cours et devoirs clairs",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot-intelligence-flow/fr-FR/APP_IPHONE_65/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/fr-FR/APP_IPHONE_65/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/fr-FR/APP_IPHONE_65/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/fr-FR/APP_IPHONE_65/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/fr-FR/APP_IPHONE_65/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/fr-FR/APP_IPHONE_65/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/fr-FR/APP_IPHONE_65/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/fr-FR/APP_IPHONE_65/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/fr-FR/APP_IPHONE_65/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/fr-FR/APP_IPHONE_65/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/fr-FR/APP_IPHONE_65/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/fr-FR/APP_IPHONE_65/07-review-uncertain-dates.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot-intelligence-flow/fr-FR/APP_IPAD_PRO_3GEN_129/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/fr-FR/APP_IPAD_PRO_3GEN_129/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/fr-FR/APP_IPAD_PRO_3GEN_129/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/fr-FR/APP_IPAD_PRO_3GEN_129/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/fr-FR/APP_IPAD_PRO_3GEN_129/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/fr-FR/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/fr-FR/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/fr-FR/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/fr-FR/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/fr-FR/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/fr-FR/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/fr-FR/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png"
           ]
         }
       },
       "ja": {
-        "description": "シラバスを、信頼できる学習計画に整えます。\n\nシラバス学習計画は、授業ごとの課題、締切、試験、メモ、リマインダー、カレンダー、学習時間を整理するためのアプリです。保存前に提案された日付を確認できるので、学校や大学の予定を自分で管理できます。\n\nできること:\n実際の授業に合わせた計画\n保存前の課題と試験日の確認\nメモ、リマインダー、課題、カレンダーの整理\n忙しい週に向けた学習時間の準備\n次にやることの見やすい把握\n\n一部の機能には有料登録が必要な場合があります。\n\n利用規約:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nプライバシーポリシー:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "description": "アプリを開く前に、次の一手を。登録者向けの「今日」「まもなく」「週」「授業進捗」ウィジェットが次の判断をホーム画面に表示し、ロック中は授業データを隠します。\n\nシラバスを、信頼できる学習計画に整えます。\n\nシラバス学習計画は、授業ごとの課題、締切、試験、メモ、リマインダー、カレンダー、学習時間を整理するためのアプリです。保存前に提案された日付を確認できるので、学校や大学の予定を自分で管理できます。\n\nできること:\n実際の授業に合わせた計画\n保存前の課題と試験日の確認\nメモ、リマインダー、課題、カレンダーの整理\n忙しい週に向けた学習時間の準備\n次にやることの見やすい把握\n\n一部の機能には有料登録が必要な場合があります。\n\n利用規約:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nプライバシーポリシー:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "keywords": [
           "課題管理",
           "締切",
@@ -660,31 +716,35 @@
           "日程",
           "単位"
         ],
-        "releaseNotes": "不具合修正、動作改善、シラバス確認と学習計画の調整を行いました。",
-        "promoText": "シラバスやノートを課題、締切、試験、メモ、学習時間に整理。保存前に内容を確認できます。",
+        "releaseNotes": "バージョン2.0.9では、登録者向けの「今日」「まもなく」「週」「授業進捗」ウィジェットを刷新。判断しやすい階層、実際の負荷、ローカライズ表示、非公開のロック状態に対応しました。",
+        "promoText": "シラバスを計画に変え、アプリを開く前にホーム画面ウィジェットで次の一手を確認。",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "シラバス学習計画",
         "subtitle": "シラバスを予定に",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot-intelligence-flow/ja/APP_IPHONE_65/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/ja/APP_IPHONE_65/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/ja/APP_IPHONE_65/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/ja/APP_IPHONE_65/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/ja/APP_IPHONE_65/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/ja/APP_IPHONE_65/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/ja/APP_IPHONE_65/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/ja/APP_IPHONE_65/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/ja/APP_IPHONE_65/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/ja/APP_IPHONE_65/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/ja/APP_IPHONE_65/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/ja/APP_IPHONE_65/07-review-uncertain-dates.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot-intelligence-flow/ja/APP_IPAD_PRO_3GEN_129/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/ja/APP_IPAD_PRO_3GEN_129/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/ja/APP_IPAD_PRO_3GEN_129/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/ja/APP_IPAD_PRO_3GEN_129/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/ja/APP_IPAD_PRO_3GEN_129/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/ja/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/ja/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/ja/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/ja/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/ja/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/ja/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/ja/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png"
           ]
         }
       },
       "en-CA": {
-        "description": "Import syllabi and class notes into a semester plan you can trust.\n\nStudy Planner AI helps you organize school around assignments, exams, due dates, notes, reminders, calendar views, and focused study sessions. Review suggested dates before saving, then keep each class easier to manage across the semester.\n\nUse it for:\nSyllabus planning for real classes\nAssignment and exam review before saving\nTasks, notes, reminders, and calendar organization\nFocused study sessions for busy weeks\nA clearer view of what is due next\n\nSome features may require a subscription.\n\nTerms of Use:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPrivacy Policy:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "description": "Your next move, before you open the app. Subscriber-only Today, Upcoming, Week, and Class Progress widgets keep the next decision visible on your Home Screen without revealing coursework while locked.\n\nImport syllabi and class notes into a semester plan you can trust.\n\nStudy Planner AI helps you organize school around assignments, exams, due dates, notes, reminders, calendar views, and focused study sessions. Review suggested dates before saving, then keep each class easier to manage across the semester.\n\nUse it for:\nSyllabus planning for real classes\nAssignment and exam review before saving\nTasks, notes, reminders, and calendar organization\nFocused study sessions for busy weeks\nA clearer view of what is due next\n\nSome features may require a subscription.\n\nTerms of Use:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPrivacy Policy:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "keywords": [
           "homework",
           "assignment",
@@ -700,31 +760,35 @@
           "syllabi",
           "uni"
         ],
-        "releaseNotes": "Bug fixes, performance improvements, and refinements to syllabus review and study planning.",
-        "promoText": "Import syllabi, review due dates, and organize classes into tasks, notes, reminders, and focused study sessions.",
+        "releaseNotes": "Version 2.0.9 redesigns the subscriber-only Today, Upcoming, Week, and Class Progress widgets for faster decisions, truthful workload counts, localized labels, and private locked states.",
+        "promoText": "Turn a syllabus into a plan—and see your next move on subscriber-only Home Screen widgets before you open the app.",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "Study Planner AI",
         "subtitle": "Syllabi to class plans",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot-intelligence-flow/en-CA/APP_IPHONE_65/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/en-CA/APP_IPHONE_65/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/en-CA/APP_IPHONE_65/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/en-CA/APP_IPHONE_65/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/en-CA/APP_IPHONE_65/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/en-CA/APP_IPHONE_65/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/en-CA/APP_IPHONE_65/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/en-CA/APP_IPHONE_65/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/en-CA/APP_IPHONE_65/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/en-CA/APP_IPHONE_65/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/en-CA/APP_IPHONE_65/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/en-CA/APP_IPHONE_65/07-review-uncertain-dates.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot-intelligence-flow/en-CA/APP_IPAD_PRO_3GEN_129/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/en-CA/APP_IPAD_PRO_3GEN_129/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/en-CA/APP_IPAD_PRO_3GEN_129/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/en-CA/APP_IPAD_PRO_3GEN_129/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/en-CA/APP_IPAD_PRO_3GEN_129/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/en-CA/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/en-CA/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/en-CA/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/en-CA/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/en-CA/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/en-CA/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/en-CA/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png"
           ]
         }
       },
       "en-US": {
-        "description": "Import a class syllabus and turn it into a study plan you can trust.\n\nStudy Planner AI helps you organize school around the details that matter: assignments, exams, due dates, notes, reminders, calendar views, and focused study sessions. Import syllabus files, review suggested dates before saving, then keep every class easier to track through the semester.\n\nUse it for:\nSyllabus planning for real classes\nAssignment and exam review before saving\nTasks, notes, reminders, and calendar organization\nFocused study sessions for busy weeks\nA calmer view of what is due next\n\nSome features may require a subscription.\n\nTerms of Use:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPrivacy Policy:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
+        "description": "Your next move, before you open the app. Subscriber-only Today, Upcoming, Week, and Class Progress widgets keep the next decision visible on your Home Screen without revealing coursework while locked.\n\nImport a class syllabus and turn it into a study plan you can trust.\n\nStudy Planner AI helps you organize school around the details that matter: assignments, exams, due dates, notes, reminders, calendar views, and focused study sessions. Import syllabus files, review suggested dates before saving, then keep every class easier to track through the semester.\n\nUse it for:\nSyllabus planning for real classes\nAssignment and exam review before saving\nTasks, notes, reminders, and calendar organization\nFocused study sessions for busy weeks\nA calmer view of what is due next\n\nSome features may require a subscription.\n\nTerms of Use:\nhttps://www.apple.com/legal/internet-services/itunes/dev/stdeula/\n\nPrivacy Policy:\nhttps://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "keywords": [
           "homework",
           "school",
@@ -740,26 +804,30 @@
           "study",
           "lecture"
         ],
-        "releaseNotes": "Bug fixes, performance improvements, and refinements to syllabus review and study planning.",
-        "promoText": "Import a syllabus, review the dates, and turn each class into clear tasks, notes, reminders, and focused study sessions.",
+        "releaseNotes": "Version 2.0.9 redesigns the subscriber-only Today, Upcoming, Week, and Class Progress widgets for faster decisions, truthful workload counts, localized labels, and private locked states.",
+        "promoText": "Turn a syllabus into a plan—and see your next move on subscriber-only Home Screen widgets before you open the app.",
         "supportUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Support-d2f55c60b858421bb8e51e3d0c946d0a",
         "title": "Study Planner AI",
         "subtitle": "Syllabus to study plans",
         "privacyPolicyUrl": "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408",
         "screenshots": {
           "APP_IPHONE_65": [
-            "store/apple/screenshot-intelligence-flow/en-US/APP_IPHONE_65/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/en-US/APP_IPHONE_65/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/en-US/APP_IPHONE_65/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/en-US/APP_IPHONE_65/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/en-US/APP_IPHONE_65/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/en-US/APP_IPHONE_65/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/en-US/APP_IPHONE_65/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/en-US/APP_IPHONE_65/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/en-US/APP_IPHONE_65/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/en-US/APP_IPHONE_65/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/en-US/APP_IPHONE_65/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/en-US/APP_IPHONE_65/07-review-uncertain-dates.png"
           ],
           "APP_IPAD_PRO_3GEN_129": [
-            "store/apple/screenshot-intelligence-flow/en-US/APP_IPAD_PRO_3GEN_129/01-scan-material.png",
-            "store/apple/screenshot-intelligence-flow/en-US/APP_IPAD_PRO_3GEN_129/02-add-your-way.png",
-            "store/apple/screenshot-intelligence-flow/en-US/APP_IPAD_PRO_3GEN_129/03-approve-deadlines.png",
-            "store/apple/screenshot-intelligence-flow/en-US/APP_IPAD_PRO_3GEN_129/04-make-time.png",
-            "store/apple/screenshot-intelligence-flow/en-US/APP_IPAD_PRO_3GEN_129/05-next-move.png"
+            "store/apple/screenshot-build86-creative-production/en-US/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
+            "store/apple/screenshot-build86-creative-production/en-US/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
+            "store/apple/screenshot-build86-creative-production/en-US/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
+            "store/apple/screenshot-build86-creative-production/en-US/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
+            "store/apple/screenshot-build86-creative-production/en-US/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
+            "store/apple/screenshot-build86-creative-production/en-US/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
+            "store/apple/screenshot-build86-creative-production/en-US/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png"
           ]
         }
       }

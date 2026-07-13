@@ -110,7 +110,7 @@ import {
 } from "./src/storefrontLocale";
 import storefrontRuntimeCopyJson from "./localized-app-strings/storefront-runtime-copy.json";
 import { AppearanceMode, AppData, ClassItem, ExamItem, FeedbackEvent, HealthDimensionKey, ImportBatch, ImportCandidate, NoteItem, ReminderItem, StudyBlock, TaskItem, ThemeId } from "./src/types";
-import { buildNativeWidgetSnapshots, buildSemesterLoop, syncNativeWidgets, type NativeWidgetKind, type NativeWidgetSnapshot, type WidgetCopy } from "./src/widgetEngine";
+import { buildNativeWidgetSnapshots, buildSemesterLoop, buildWidgetExampleSnapshot, syncNativeWidgets, type NativeWidgetKind, type NativeWidgetSnapshot, type WidgetCopy } from "./src/widgetEngine";
 import { cancelReminderNotificationIds, listPendingReminderNotifications, scheduleLocalReminders } from "./src/reminders";
 import { cleanupRemindersForDeletedEntities, pruneOrphanedStudyBlocks, reconcileReminderNotificationEvidence } from "./src/reminderCleanup";
 import { pickAndExtractPdf } from "./src/pdfImport";
@@ -4127,6 +4127,23 @@ for (const locale of supportedLocales) {
   Object.assign(APP_COPY[locale], REMINDER_RELIABILITY_COPY[locale]);
 }
 
+const WIDGET_VALUE_COPY: Record<SupportedLocale, Record<string, string>> = {
+  "en-US": { "paywall.widget_value_title": "Your next move, before you open the app.", "paywall.widget_value_body": "Today, Upcoming, Week, and Class Progress keep the next decision visible without reopening the full planner.", "paywall.widget_value_private": "Subscriber-only. Locked widgets never show coursework." },
+  de: { "paywall.widget_value_title": "Dein nächster Schritt, bevor du die App öffnest.", "paywall.widget_value_body": "Heute, Demnächst, Woche und Kursfortschritt zeigen die nächste Entscheidung, ohne den ganzen Planer zu öffnen.", "paywall.widget_value_private": "Nur für Abonnenten. Gesperrte Widgets zeigen keine Kursdaten." },
+  es: { "paywall.widget_value_title": "Tu siguiente paso, antes de abrir la app.", "paywall.widget_value_body": "Hoy, Próximo, Semana y Progreso de clase mantienen visible la siguiente decisión sin abrir todo el planificador.", "paywall.widget_value_private": "Solo para suscriptores. Los widgets bloqueados no muestran cursos." },
+  fr: { "paywall.widget_value_title": "Votre prochaine étape, avant d’ouvrir l’app.", "paywall.widget_value_body": "Aujourd’hui, À venir, Semaine et Progression gardent la prochaine décision visible sans rouvrir tout le planning.", "paywall.widget_value_private": "Réservé aux abonnés. Les widgets verrouillés n’affichent aucun cours." },
+  "pt-BR": { "paywall.widget_value_title": "Seu próximo passo, antes de abrir o app.", "paywall.widget_value_body": "Hoje, Próximos, Semana e Progresso da aula mantêm a próxima decisão visível sem reabrir todo o planner.", "paywall.widget_value_private": "Só para assinantes. Widgets bloqueados não mostram atividades." },
+  ja: { "paywall.widget_value_title": "アプリを開く前に、次の一手を。", "paywall.widget_value_body": "今日、まもなく、週、授業進捗で、プランナー全体を開かずに次の判断が分かります。", "paywall.widget_value_private": "登録者限定。ロック中は授業データを表示しません。" },
+  ko: { "paywall.widget_value_title": "앱을 열기 전에, 다음 할 일을.", "paywall.widget_value_body": "오늘, 예정, 주간, 수업 진행 위젯으로 전체 플래너를 다시 열지 않고 다음 결정을 확인하세요.", "paywall.widget_value_private": "구독자 전용. 잠긴 위젯에는 수업 정보가 표시되지 않습니다." },
+  "zh-Hans": { "paywall.widget_value_title": "打开 App 前，就知道下一步。", "paywall.widget_value_body": "今天、即将到来、本周和课程进度小组件，让你无需打开完整计划也能看到下一项决策。", "paywall.widget_value_private": "仅限订阅用户。锁定时绝不显示课程信息。" },
+  hi: { "paywall.widget_value_title": "ऐप खोलने से पहले, अपना अगला कदम जानें।", "paywall.widget_value_body": "आज, आगामी, सप्ताह और कक्षा प्रगति पूरे प्लानर को खोले बिना अगला निर्णय दिखाते हैं।", "paywall.widget_value_private": "केवल सदस्यों के लिए। लॉक विजेट पाठ्यक्रम नहीं दिखाते।" },
+  ar: { "paywall.widget_value_title": "خطوتك التالية، قبل فتح التطبيق.", "paywall.widget_value_body": "تعرض أدوات اليوم والقادم والأسبوع وتقدم المقرر القرار التالي من دون فتح المخطط بالكامل.", "paywall.widget_value_private": "للمشتركين فقط. الأدوات المقفلة لا تعرض بيانات المقررات." },
+};
+
+for (const locale of supportedLocales) {
+  Object.assign(APP_COPY[locale], WIDGET_VALUE_COPY[locale]);
+}
+
 let simulatorLocaleOverride: string | undefined;
 let simulatorCaptureScrollY = 0;
 
@@ -5791,9 +5808,10 @@ function routeFromUrl(rawUrl: string): Route | null {
   if (routeTokens.has("scan")) return "scan";
   if (routeTokens.has("paste")) return "paste";
   if (routeTokens.has("notes")) return "notes";
-  if (routeTokens.has("classes") || routeTokens.has("courses")) return "classes";
+  if (routeTokens.has("class") || routeTokens.has("classes") || routeTokens.has("courses")) return "classes";
+  if (routeTokens.has("review")) return "review";
   if (routeTokens.has("calendar") || routeTokens.has("plan")) return "plan";
-  if (routeTokens.has("study")) return "plan";
+  if (routeTokens.has("study") || routeTokens.has("focus")) return "plan";
   if (routeTokens.has("reminders")) return "reminders";
   if (routeTokens.has("homepreview") || (routeTokens.has("home") && routeTokens.has("preview"))) return "homePreview";
   if (routeTokens.has("lockpreview") || (routeTokens.has("lock") && routeTokens.has("preview"))) return "lockPreview";
@@ -8407,6 +8425,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
   const selectedPlanSummary = selectedPlanHasOneWeekTrial
     ? textFor("paywall.trial_summary", "1 week free, then {price}/{plan}. Auto-renews until canceled.", { price: selectedPlan.displayPrice, plan: selectedPlanPeriodLabel })
     : selectedPlan.displayPrice;
+  const paywallWidgetExample = buildWidgetExampleSnapshot(widgetCopyFor, storefrontLocale());
   const trialCardBackground = theme.surface;
   const purchasePanel = (
     <LiquidGlassSurface
@@ -8451,7 +8470,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
               <Text selectable style={{ color: "rgba(255,255,255,0.72)", marginTop: 4, lineHeight: 19 }}>{textFor("paywall.sub_import", "Unlock, return to Review, then approve this plan for reminders and widgets.")}</Text>
             </View>
           ) : (
-            <View style={{ gap: 11 }}>
+	              <View style={{ gap: 11 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                 <View style={{ width: 50, height: 50, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}>
                   <Icon name={intentPreview.icon} color="#fff" size={25} />
@@ -8460,7 +8479,11 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
                   <Text selectable style={{ color: "#fff", fontSize: 18, fontWeight: "900" }}>{intentPreview.title}</Text>
                   <Text selectable style={{ color: "rgba(255,255,255,0.7)", marginTop: 3, lineHeight: 19 }}>{intentPreview.methods}</Text>
                 </View>
-              </View>
+	                </View>
+	                <View pointerEvents="none" style={{ alignItems: "center", gap: 7 }}>
+	                  <Text selectable style={{ alignSelf: "stretch", color: "rgba(255,255,255,0.66)", fontSize: 10, fontWeight: "900" }}>{textFor("widget.example.label", "EXAMPLE DATA")}</Text>
+	                  <WidgetDisplayPreview snapshot={paywallWidgetExample} family="systemMedium" dark />
+	                </View>
 	              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
 	                {paywallSteps.map(([value, label], index) => (
 	                  <View key={`paywall-preview-chip-${index}`} style={{ flex: accessibilityLayout ? 0 : 1, flexBasis: accessibilityLayout ? "100%" : cameraIntent ? "46%" : "30%", minWidth: 88, minHeight: 64, borderRadius: 13, padding: 9, backgroundColor: "rgba(255,255,255,0.10)", justifyContent: "center" }}>
@@ -8512,6 +8535,11 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
             );
           })}
         </View>
+        <Card theme={theme} style={{ padding: 15, marginBottom: 14, backgroundColor: theme.surface }}>
+          <Text selectable style={{ color: theme.label, fontSize: 18, lineHeight: 22, fontWeight: "900" }}>{textFor("paywall.widget_value_title", "Your next move, before you open the app.")}</Text>
+          <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 6 }}>{textFor("paywall.widget_value_body", "Today, Upcoming, Week, and Class Progress keep the next decision visible without reopening the full planner.")}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 7, marginTop: 10 }}><Icon name="shield" color={theme.accent} size={15} /><Text selectable style={{ color: theme.label2, fontSize: 12, lineHeight: 16, fontWeight: "800", flex: 1 }}>{textFor("paywall.widget_value_private", "Subscriber-only. Locked widgets never show coursework.")}</Text></View>
+        </Card>
         <Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label2, lineHeight: 19, marginBottom: 10 }}>{message}</Text>
         <Card theme={theme} style={{ padding: 15, marginBottom: 14, backgroundColor: theme.surface }}>
           <View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "stretch" : "center", justifyContent: "space-between", gap: 12 }}>
@@ -11927,7 +11955,109 @@ function WidgetPreviewText(props: React.ComponentProps<typeof Text>) {
   return <Text {...props} allowFontScaling={false} />;
 }
 
+function WidgetDisplayPreview({ snapshot, family, dark = false }: { snapshot: NativeWidgetSnapshot; family: "systemSmall" | "systemMedium"; dark?: boolean }) {
+  const { width: windowWidth } = useWindowDimensions();
+  const isMedium = family === "systemMedium";
+  const nominalWidth = isMedium ? 338 : 158;
+  const nominalHeight = 158;
+  const previewScale = Math.min(1, Math.max(1, windowWidth - 96) / nominalWidth);
+  const previewWidth = nominalWidth * previewScale;
+  const previewHeight = nominalHeight * previewScale;
+  const background = dark ? "#111113" : snapshot.backgroundColor || "#FFFFFF";
+  const darkBackground = (relativeLuminance(background) ?? 1) < 0.18;
+  const ink = darkBackground ? "#FFFFFF" : "#050507";
+  const muted = darkBackground ? "#C8C8CE" : "#55555D";
+  const tertiary = darkBackground ? "#A6A6AE" : "#6E6E76";
+  const accent = snapshot.accent || snapshot.accentColor || COLORS.purple;
+  const accentText = contrastSafeForegroundOn(accent, background);
+  const plane = darkBackground ? "rgba(255,255,255,0.08)" : "rgba(5,5,7,0.06)";
+  const firstItem = snapshot.items[0];
+  const mode = snapshot.mode || "placeholder";
+  const metric = snapshot.primaryMetric || snapshot.value;
+  const shellStyle = {
+    width: nominalWidth,
+    height: nominalHeight,
+    borderRadius: isMedium ? 28 : 24,
+    overflow: "hidden" as const,
+    backgroundColor: background,
+    borderWidth: 1,
+    borderColor: darkBackground ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.08)",
+    padding: isMedium ? 12 : 11,
+  };
+  const scaleShell = (content: React.ReactNode) => (
+    <View style={{ width: previewWidth, height: previewHeight, overflow: "hidden" }}>
+      <View style={{ position: "absolute", left: (previewWidth - nominalWidth) / 2, top: (previewHeight - nominalHeight) / 2, transform: [{ scale: previewScale }] }}>
+        <View style={shellStyle}>{content}</View>
+      </View>
+    </View>
+  );
+
+  if (mode === "placeholder") {
+    return scaleShell(
+      <View style={{ gap: 12 }}>
+        <View style={{ width: isMedium ? 92 : 66, height: 10, borderRadius: 5, backgroundColor: plane }} />
+        <View style={{ width: isMedium ? 210 : 118, height: isMedium ? 34 : 28, borderRadius: 10, backgroundColor: plane }} />
+        <View style={{ width: isMedium ? 270 : 132, height: 13, borderRadius: 6, backgroundColor: plane }} />
+        <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}><View style={{ width: 11, height: 11, borderRadius: 99, backgroundColor: accentText }} /><View style={{ width: isMedium ? 96 : 72, height: 10, borderRadius: 5, backgroundColor: plane }} /></View>
+      </View>,
+    );
+  }
+
+  if (mode === "locked" || mode === "empty") {
+    return scaleShell(
+      <View style={{ flex: 1, gap: isMedium ? 8 : 7 }}>
+        <WidgetPreviewText numberOfLines={1} style={{ color: accentText, fontSize: 11, lineHeight: 13, fontWeight: "900" }}>{metric}</WidgetPreviewText>
+        <WidgetPreviewText numberOfLines={isMedium ? 2 : 3} style={{ color: ink, fontSize: isMedium ? 24 : 19, lineHeight: isMedium ? 27 : 22, fontWeight: "900" }}>{snapshot.headline}</WidgetPreviewText>
+        <WidgetPreviewText numberOfLines={2} style={{ color: muted, fontSize: 11, lineHeight: 14, fontWeight: "700" }}>{snapshot.detail}</WidgetPreviewText>
+        <View style={{ flex: 1 }} />
+        <View style={{ flexDirection: "row", gap: 7, alignItems: "center" }}><View style={{ width: 8, height: 8, borderRadius: 99, backgroundColor: accentText }} /><WidgetPreviewText numberOfLines={1} style={{ color: accentText, fontSize: 11, fontWeight: "900" }}>{snapshot.actionLabel}</WidgetPreviewText></View>
+      </View>,
+    );
+  }
+
+  if (snapshot.kind === "week") {
+    const counts = snapshot.weekCounts || [];
+    const labels = snapshot.weekLabels || ["M", "T", "W", "T", "F", "S", "S"];
+    const maxCount = Math.max(1, ...counts);
+    return scaleShell(
+      <View style={{ flex: 1, gap: 6 }}>
+        <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}><WidgetPreviewText numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78} style={{ color: ink, fontSize: 20, lineHeight: 23, fontWeight: "900", flex: 1 }}>{metric}</WidgetPreviewText><WidgetPreviewText numberOfLines={1} style={{ color: accentText, fontSize: 10, fontWeight: "900" }}>{snapshot.actionLabel}</WidgetPreviewText></View>
+        <WidgetPreviewText numberOfLines={1} style={{ color: muted, fontSize: 10, fontWeight: "700" }}>{snapshot.headline}</WidgetPreviewText>
+        <View style={{ flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 8 }}>
+          {labels.slice(0, 7).map((label, index) => {
+            const count = counts[index] || 0;
+            const peak = count > 0 && count === maxCount;
+            return <View key={`${label}-${index}`} style={{ alignItems: "center", gap: 3, flex: 1 }}><WidgetPreviewText style={{ color: peak ? accentText : muted, fontSize: 9, fontWeight: "900" }}>{count}</WidgetPreviewText><View style={{ width: 26, height: 5 + Math.round((count / maxCount) * 21), borderRadius: 5, backgroundColor: peak ? accentText : plane }} /><WidgetPreviewText style={{ color: tertiary, fontSize: 9, fontWeight: "900" }}>{label}</WidgetPreviewText></View>;
+          })}
+        </View>
+      </View>,
+    );
+  }
+
+  if (snapshot.kind === "today" && isMedium) {
+    return scaleShell(
+      <View style={{ flex: 1, gap: 6 }}>
+        <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}><WidgetPreviewText numberOfLines={1} style={{ color: ink, fontSize: 42, lineHeight: 44, fontWeight: "900" }}>{metric}</WidgetPreviewText><WidgetPreviewText numberOfLines={1} style={{ color: accentText, fontSize: 10, fontWeight: "900" }}>{snapshot.headline}</WidgetPreviewText><View style={{ flex: 1 }} /><WidgetPreviewText numberOfLines={1} style={{ color: accentText, fontSize: 10, fontWeight: "900" }}>{snapshot.actionLabel}</WidgetPreviewText></View>
+        <WidgetPreviewText numberOfLines={1} style={{ color: ink, fontSize: 18, lineHeight: 21, fontWeight: "900" }}>{snapshot.detail}</WidgetPreviewText>
+        <View style={{ flexDirection: "row", gap: 7, alignItems: "center" }}><View style={{ width: 8, height: 8, borderRadius: 99, backgroundColor: firstItem?.courseColor || accentText }} /><WidgetPreviewText numberOfLines={1} style={{ color: accentText, fontSize: 11, fontWeight: "900" }}>{firstItem?.courseCode || ""}</WidgetPreviewText><WidgetPreviewText numberOfLines={1} style={{ color: muted, fontSize: 11, fontWeight: "700" }}>{firstItem?.timeLabel || firstItem?.dueLabel || snapshot.footnote}</WidgetPreviewText></View>
+      </View>,
+    );
+  }
+
+  return scaleShell(
+    <View style={{ flex: 1, gap: 6 }}>
+      <WidgetPreviewText numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ color: ink, fontSize: 31, lineHeight: 34, fontWeight: "900" }}>{metric}</WidgetPreviewText>
+      <WidgetPreviewText numberOfLines={2} style={{ color: ink, fontSize: 16, lineHeight: 19, fontWeight: "900" }}>{snapshot.headline}</WidgetPreviewText>
+      <WidgetPreviewText numberOfLines={1} style={{ color: muted, fontSize: 11, lineHeight: 13, fontWeight: "700" }}>{snapshot.detail}</WidgetPreviewText>
+      <View style={{ flex: 1 }} />
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><View style={{ width: 7, height: 7, borderRadius: 99, backgroundColor: firstItem?.courseColor || accentText }} /><WidgetPreviewText numberOfLines={1} style={{ color: muted, fontSize: 9, fontWeight: "800", flex: 1 }}>{firstItem ? `${firstItem.courseCode}${firstItem.timeLabel ? ` · ${firstItem.timeLabel}` : ""}` : snapshot.footnote}</WidgetPreviewText><WidgetPreviewText numberOfLines={1} style={{ color: accentText, fontSize: 10, fontWeight: "900" }}>{snapshot.actionLabel}</WidgetPreviewText></View>
+    </View>,
+  );
+}
+
 function NativeHomeWidgetPreview({ snapshot, family, dark = false }: { snapshot: NativeWidgetSnapshot; family: "systemSmall" | "systemMedium"; dark?: boolean }) {
+  return <WidgetDisplayPreview snapshot={snapshot} family={family} dark={dark} />;
+  /* Legacy preview retained temporarily for comparison fixtures. */
   const { width: windowWidth } = useWindowDimensions();
   const isMedium = family === "systemMedium";
   const nominalWidth = isMedium ? 338 : 158;
@@ -12074,7 +12204,7 @@ function NativeHomeWidgetPreview({ snapshot, family, dark = false }: { snapshot:
 function WidgetSnapshotCard({ snapshot, title, icon, theme, selected, onPress }: { snapshot: NativeWidgetSnapshot; title: string; icon: string; theme: ReturnType<typeof palette>; selected: boolean; onPress: () => void }) {
   const { fontScale } = useWindowDimensions();
   const accessibilityLayout = fontScale >= 1.6;
-  const family = snapshot.kind === "week" ? "systemMedium" : "systemSmall";
+  const family = snapshot.kind === "today" || snapshot.kind === "week" ? "systemMedium" : "systemSmall";
   const spansRow = true;
   const safeAccent = semanticTextColor(snapshot.accentColor, theme);
   return (
@@ -12470,7 +12600,7 @@ function HomePreview({ data, nav, theme }: ScreenProps) {
             <Pill text={textFor("widgets.ready", "ready")} color={COLORS.green} theme={theme} icon="grid" />
           </View>
           <View style={{ alignItems: "center" }}>
-            <NativeHomeWidgetPreview snapshot={snapshots.today} family="systemSmall" />
+            <NativeHomeWidgetPreview snapshot={snapshots.today} family="systemMedium" />
           </View>
         </Card>
         <Card theme={theme} style={{ padding: 16, gap: 14 }}>

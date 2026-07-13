@@ -1,0 +1,51 @@
+{
+  "status": "pending",
+  "version": "2.0.9",
+  "buildNumber": "86",
+  "bundleIdentifier": "com.mattnewman.studyplanner",
+  "easBuild": {
+    "status": "not_started",
+    "platform": "ios",
+    "profile": "production",
+    "appVersion": "2.0.9",
+    "buildNumber": "86"
+  },
+  "ipa": {
+    "version": "2.0.9",
+    "buildNumber": "86",
+    "bundleIdentifier": "com.mattnewman.studyplanner"
+  },
+  "appStoreConnect": {
+    "appAppleId": "6766181202",
+    "version": "2.0.9",
+    "buildNumber": "86",
+    "uploaded": false,
+    "processed": false,
+    "selectedForVersion": false
+  },
+  "screenshots": {
+    "iphone": {
+      "captureSource": "exact_build86_binary",
+      "assets": []
+    },
+    "ipad": {
+      "captureSource": "exact_build86_binary",
+      "assets": []
+    }
+  },
+  "appPreview": {
+    "decision": "no_upload",
+    "optional": true,
+    "uploadApproved": false,
+    "reviewPath": "qa/back-to-school-2026/product-video-review.json"
+  },
+  "humanUploadAuthorization": {
+    "authorized": false,
+    "scope": "app_version_media",
+    "version": "2.0.9",
+    "buildNumber": "86",
+    "screenshotPaths": [],
+    "appPreviewDecision": "no_upload",
+    "creativeProductionFinalsAuthorized": false
+  }
+}

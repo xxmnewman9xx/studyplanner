@@ -1,0 +1,96 @@
+{
+  "status": "pending",
+  "version": "2.0.8",
+  "buildNumber": "85",
+  "bundleIdentifier": "com.mattnewman.studyplanner",
+  "widgetCertification": {
+    "status": "partial",
+    "binary": {
+      "version": "2.0.8",
+      "buildNumber": "85",
+      "appBundleIdentifier": "com.mattnewman.studyplanner",
+      "extensionBundleIdentifier": "com.mattnewman.studyplanner.widgets",
+      "extensionDisplayName": "StudyPlanner Widgets"
+    },
+    "iphoneEnUS": {
+      "simulator": "iPhone 15 Pro / iOS 26.5",
+      "gallerySearch": "Study Planner",
+      "galleryPages": 7,
+      "layoutKeysPersisted": [
+        "studyplanner.today",
+        "studyplanner.upcoming",
+        "studyplanner.week",
+        "studyplanner.classProgress"
+      ],
+      "uiTest": "StudyPlannerUITests.testDumpSpringBoardWidgetEntry",
+      "uiTestResult": "passed",
+      "artifact": "/Users/mattnewman/work/StudyPlanner-release-artifacts/build85/widget-certification/iphone-widget-gallery-en-US-second-pass.png",
+      "sha256": "b9e946045c04c621f90ecbf29146e50a303ea2af4fdd7df6cb1dd8ddc878dd2f"
+    },
+    "ipadEnUS": {
+      "simulator": "iPad Pro 13-inch / iOS 26.5",
+      "gallerySearch": "Study Planner",
+      "galleryPages": 7,
+      "layoutKeysPersisted": [
+        "studyplanner.today",
+        "studyplanner.upcoming",
+        "studyplanner.week",
+        "studyplanner.classProgress"
+      ],
+      "uiTest": "StudyPlannerUITests.testDumpSpringBoardWidgetEntry",
+      "uiTestResult": "passed",
+      "artifact": "/Users/mattnewman/work/StudyPlanner-release-artifacts/build85/widget-certification/ipad-widget-gallery-en-US.png",
+      "sha256": "720e22ed1c55a0c0e7fc430219e4df1f589c6d846d3e334045e84dc24c8886f0"
+    },
+    "placedWidgetProbes": {
+      "status": "rejected_as_production_sources",
+      "iphoneEnUS": {
+        "placementObserved": true,
+        "artifact": "/Users/mattnewman/work/StudyPlanner-release-artifacts/build85/widget-certification/iphone-home-screen-widget-en-US.png",
+        "sha256": "318e8060b172f8cd3e4d7b780a0d01a9cdc63908f86967c552dba31b90a5dd7a",
+        "acceptedForAtlas": false,
+        "reasons": [
+          "fresh-launch privacy-safe empty widget content",
+          "Home Screen remained in edit mode",
+          "unrelated simulator apps make the source unsuitable for production composition"
+        ]
+      },
+      "ipadEnUS": {
+        "placementObserved": true,
+        "artifact": "/Users/mattnewman/work/StudyPlanner-release-artifacts/build85/widget-certification/ipad-home-screen-widget-en-US.png",
+        "sha256": "b79deb0a1390642ff568d47b653806f110a59a54dc71a1671c888dcd3dc8a9b6",
+        "acceptedForAtlas": false,
+        "reasons": [
+          "fresh-launch privacy-safe empty widget content",
+          "the plan requires seeded priorities and week content"
+        ]
+      }
+    },
+    "remaining": "These two artifacts certify English widget-gallery discovery only. They are not placed-widget Home Screen captures; all 34 localized iPhone/iPad Home Screen sources required by the production atlas matrix remain."
+  },
+  "screenshots": {
+    "iphone": {
+      "captureSource": "exact_build85_binary",
+      "assets": []
+    },
+    "ipad": {
+      "captureSource": "exact_build85_binary",
+      "assets": []
+    }
+  },
+  "appPreview": {
+    "decision": "no_upload",
+    "optional": true,
+    "uploadApproved": false,
+    "reviewPath": "qa/back-to-school-2026/product-video-review.json"
+  },
+  "humanUploadAuthorization": {
+    "authorized": false,
+    "scope": "app_version_media",
+    "version": "2.0.8",
+    "buildNumber": "85",
+    "screenshotPaths": [],
+    "appPreviewDecision": "no_upload",
+    "image2FinalsAuthorized": false
+  }
+}

@@ -66,7 +66,8 @@
     "check:iap": "node scripts/check-iap-config.mjs",
     "check:ios-privacy": "node scripts/check-ios-privacy-manifests.mjs",
     "check:eas-production-env": "node scripts/check-eas-production-env.mjs",
-    "check:release-media-provenance": "node scripts/check-build84-intelligence-flow-media.mjs",
+    "check:release-media-provenance": "node scripts/check-build86-widget-led-media.mjs",
+    "check:build86-media-ready": "node scripts/check-build86-widget-led-media.mjs --require-ready",
     "check:first-experience": "tsx scripts/check-first-experience-funnel.ts",
     "check:asc-final-upload": "tsx scripts/check-asc-final-upload-bundle.ts",
     "check:nomination-ready": "npm run check:first-experience && npm run check:asc-final-upload && npm run qa:release && npm run test:hard-paywall && npm run test:notes-stress && npm run test:syllabus-stress && npm run test:widgets && npm run test:widget-integrity && npm run check:widget-native-keys && npm run test:back-to-school-widgets && npm run typecheck && git diff --check && tsx scripts/check-nomination-submit-readiness.ts",
@@ -82,6 +83,7 @@
     "check:build49": "tsx scripts/check-build49.ts",
     "check:build51": "node scripts/check-build51.mjs",
     "check:build52": "node scripts/check-build52.mjs",
+    "check:build86": "node scripts/check-build86.mjs",
     "check:installed-build52": "node scripts/check-installed-build52.mjs",
     "check:activation-spine": "tsx scripts/check-activation-spine.ts",
     "check:semester-kickoff": "tsx scripts/check-semester-kickoff.ts",
@@ -92,7 +94,8 @@
     "check:build83-release-packet": "node scripts/check-build83-release-packet.mjs",
     "check:storefront-locales": "tsx scripts/check-storefront-locales.ts",
     "check:localization": "node scripts/check-localization.mjs",
-    "qa:release": "npm run check:activation-spine && npm run check:semester-kickoff && npm run check:dark-mode && npm run check:storefront-locales && npm run check:localization && npm run check:appearance-matrix-spec && npm run check:eas-production-env && tsx scripts/check-semester-ownership-cycle.ts && npm run test:runtime-safety && node scripts/check-release-docs.mjs && npm run check:ios-privacy && npm run check:release-media-provenance && npm run check:build52"
+    "check:build86-widget-localization": "node scripts/check-build86-widget-localization.mjs",
+    "qa:release": "npm run check:activation-spine && npm run check:semester-kickoff && npm run check:dark-mode && npm run check:storefront-locales && npm run check:localization && npm run check:build86-widget-localization && npm run check:appearance-matrix-spec && npm run check:eas-production-env && tsx scripts/check-semester-ownership-cycle.ts && npm run test:runtime-safety && node scripts/check-release-docs.mjs && npm run check:ios-privacy && npm run check:build86-media-ready && npm run check:build86"
   },
   "private": true
 }

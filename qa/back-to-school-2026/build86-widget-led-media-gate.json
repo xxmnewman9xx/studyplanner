@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-13T06:41:13.568Z",
+  "status": "blocked",
+  "ready": false,
+  "target": {
+    "version": "2.0.9",
+    "buildNumber": "86",
+    "assets": 238,
+    "locales": 17,
+    "devices": 2,
+    "slides": 7
+  },
+  "coverage": {
+    "expectedAssets": 238,
+    "existingUniqueFiles": 0,
+    "passingAssets": 0
+  },
+  "failures": [],
+  "blockers": [
+    "native-language approval is incomplete for one or more headline sets",
+    "14-image iPhone/iPad canary review is missing",
+    "Build 86 Creative Production provenance ledger is missing",
+    "all 238 final files must exist with unique SHA-256 hashes",
+    "0/238 assets currently pass dimension, provenance, OCR, safe-zone, and truth checks"
+  ]
+}

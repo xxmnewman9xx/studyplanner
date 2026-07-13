@@ -49,7 +49,7 @@ function safeColorOn(color, surface) {
 }
 
 expect(appConfig.userInterfaceStyle === "automatic", "app config must allow automatic native appearance");
-expect(appConfig.ios?.buildNumber === "84", "the final monochrome appearance and Profile localization fix must ship in Build 84");
+expect(appConfig.ios?.buildNumber === "86", "the widget-led conversion system must ship in Build 86");
 expect(JSON.stringify(appConfig.plugins).includes("expo-system-ui"), "expo-system-ui config plugin must be enabled");
 expect(JSON.stringify(appConfig.plugins).includes("expo-splash-screen"), "expo-splash-screen config plugin must be enabled");
 expect(JSON.stringify(appConfig.plugins).includes("splash-icon-dark.png"), "splash config must include a dark launch image");
@@ -75,21 +75,21 @@ expect(appSource.includes("maxFontSizeMultiplier={1.5}") && appSource.includes("
 const textInputCount = (appSource.match(/<TextInput\b/g) || []).length;
 const keyboardAppearanceCount = (appSource.match(/keyboardAppearance=/g) || []).length;
 expect(textInputCount > 0 && textInputCount === keyboardAppearanceCount, "every text input must declare a matching keyboard appearance");
-expect(!appSource.includes("adjustsFontSizeToFit") && !appSource.includes("minimumFontScale"), "app text must reflow instead of shrinking below the user's Dynamic Type size");
+expect(appSource.includes("function WidgetPreviewText") && appSource.includes("allowFontScaling={false}") && appSource.includes("const accessibilityLayout = fontScale >= 1.6"), "fixed preview typography must be bounded while the live app reflows for large Dynamic Type");
 
 const glassTags = [...appSource.matchAll(/<LiquidGlassSurface\b[\s\S]*?>/g)].map((match) => match[0]);
 expect(glassTags.length > 0 && glassTags.every((tag) => tag.includes("colorScheme=")), "every Liquid Glass surface must declare its color scheme");
 
-expect(widgetSource.includes("widgetRenderingMode") && widgetSource.includes("isAccentedMode"), "native widgets must branch on the system rendering mode");
-expect(widgetSource.includes("primaryStyle") && widgetSource.includes('style: "secondary"'), "native widget text must use hierarchical system styles");
-expect(widgetSource.includes('font({ textStyle: "caption2"') && widgetSource.includes('font({ textStyle: "title2"'), "native widgets must use semantic Dynamic Type fonts");
-expect(!widgetSource.includes("font({ size:") && !widgetSource.includes("minimumScaleFactor("), "native widgets must not use fixed tiny fonts or global shrink factors");
-expect(widgetSource.includes('view("GaugeView"') && widgetSource.includes('gaugeStyle("circularCapacity")'), "class progress must render a truthful capacity gauge");
+expect(widgetSource.includes("widgetRenderingMode") && widgetSource.includes("isSystemTint"), "native widgets must branch on accented and vibrant rendering modes");
+expect(widgetSource.includes('type: "hierarchical", style: "primary"') && widgetSource.includes('style: "secondary"'), "native widget text must use hierarchical system styles");
+expect(widgetSource.includes('font({ textStyle: "caption2"') && widgetSource.includes('font({ textStyle: "headline"'), "supporting widget copy must use semantic Dynamic Type fonts");
+expect(!widgetSource.includes("minimumScaleFactor("), "native widgets must not apply global shrink factors to critical copy");
+expect(widgetEngineSource.includes('const classMetric = `${Math.round(classProgress * 100)}%`'), "class progress must serialize a truthful dominant completion percentage");
 expect(widgetSource.includes('view("AccessoryWidgetBackgroundView"'), "accessory widgets must use the adaptive system background");
-expect(widgetSource.includes("calendarDays.length > 0 ? day.isToday === true"), "week widget must not mark two cells as today");
+expect(widgetSource.includes('props.kind === "week"') && widgetSource.includes("workloadCells") && widgetSource.includes("dayIndex < 7"), "week widget must render one seven-day workload strip");
 expect(widgetEngineSource.includes("localizedWeekdayLabels") && widgetEngineSource.includes('t("widget.weekday.mon"'), "weekday labels must be localized before widget serialization");
-expect(widgetEngineSource.includes("calendarDays.slice(0, 7).map((day) => day.weekday)"), "rolling week loads must use rolling calendar labels");
-expect(widgetSource.includes("safeColorOn(accent, bg, 3)") && widgetSource.includes("safeColorOn(item.courseColor || accentFill, bg, 3)"), "meaningful widget graphics must use actual-background 3:1 contrast adjustment");
+expect(widgetEngineSource.includes("calendarDays.slice(0, 7).map((day) => day.count)"), "rolling week loads must serialize real assignment counts");
+expect(widgetSource.includes("safeColorOn(accent, bg, 3)") && widgetSource.includes("safeColorOn(firstItem.courseColor || accentFill, bg, 3)"), "meaningful widget graphics must use actual-background 3:1 contrast adjustment");
 expect(!widgetSource.includes('isLuminanceReduced ? (isDark ? "#B6BBC5"'), "reduced-luminance widgets must not substitute a brighter raw fill");
 
 const semanticColors = ["#007AFF", "#AF52DE", "#34C759", "#FF9500", "#FF3B30", "#FF2D55", "#5AC8FA", "#FFD60A"];

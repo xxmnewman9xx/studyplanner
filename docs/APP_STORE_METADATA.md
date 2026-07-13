@@ -25,6 +25,8 @@ Hold `canvas planner` until a shipped Canvas-compatible workflow exists.
 
 Import a syllabus with AI assistance, review every class and deadline, then start each day with a calm plan.
 
+Your next move, before you open the app. Subscriber-only Today, Upcoming, Week, and Class Progress widgets keep the next decision visible on the Home Screen; locked widgets never reveal coursework.
+
 ## Long Description Draft
 
 StudyPlanner: Syllabus AI helps high-school and college students turn syllabi, assignments, exams, class schedules, and grades into one daily plan.
@@ -47,7 +49,7 @@ https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Polic
 2. Review every detected deadline.
 3. Know what to do today.
 4. Track grades and final targets.
-5. Keep the semester visible with reminders and widgets.
+5. See the next decision on subscriber-only widgets without reopening the full planner.
 
 ## Review Notes To Prepare
 

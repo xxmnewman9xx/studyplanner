@@ -3,7 +3,7 @@
     "name": "Studyplanner: Syllabus AI",
     "slug": "study-planner-syllabus-ai",
     "scheme": "studyplanner",
-    "version": "2.0.8",
+    "version": "2.0.9",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "backgroundColor": "#F5F5F7",
@@ -12,7 +12,7 @@
       "supportsTablet": true,
       "appleTeamId": "5JN35MJ3QD",
       "bundleIdentifier": "com.mattnewman.studyplanner",
-      "buildNumber": "84",
+      "buildNumber": "86",
       "entitlements": {
         "com.apple.security.application-groups": [
           "group.com.mattnewman.studyplanner"
@@ -116,39 +116,37 @@
               "name": "StudyPlannerTodayWidget",
               "kind": "studyplanner.today",
               "displayName": "StudyPlanner Today",
-              "description": "See what needs your attention today.",
+              "description": "Your next move before you open StudyPlanner.",
               "ios": {
                 "supportedFamilies": [
-                  "systemSmall",
                   "systemMedium",
                   "accessoryInline",
                   "accessoryCircular",
                   "accessoryRectangular"
                 ],
-                "contentMarginsDisabled": true
+                "contentMarginsDisabled": false
               }
             },
             {
               "name": "StudyPlannerUpcomingWidget",
               "kind": "studyplanner.upcoming",
               "displayName": "StudyPlanner Upcoming",
-              "description": "Preview upcoming assignments and deadlines.",
+              "description": "Count down to the next assignment that matters.",
               "ios": {
                 "supportedFamilies": [
                   "systemSmall",
-                  "systemMedium",
                   "accessoryInline",
                   "accessoryCircular",
                   "accessoryRectangular"
                 ],
-                "contentMarginsDisabled": true
+                "contentMarginsDisabled": false
               }
             },
             {
               "name": "StudyPlannerWeekWidget",
               "kind": "studyplanner.week",
               "displayName": "StudyPlanner Week",
-              "description": "Check your weekly workload at a glance.",
+              "description": "Spot the heaviest day in your seven-day plan.",
               "ios": {
                 "supportedFamilies": [
                   "systemMedium",
@@ -156,23 +154,22 @@
                   "accessoryCircular",
                   "accessoryRectangular"
                 ],
-                "contentMarginsDisabled": true
+                "contentMarginsDisabled": false
               }
             },
             {
               "name": "StudyPlannerClassProgressWidget",
               "kind": "studyplanner.classProgress",
               "displayName": "StudyPlanner Class Progress",
-              "description": "Track progress for a selected class.",
+              "description": "See class progress and the next assignment.",
               "ios": {
                 "supportedFamilies": [
                   "systemSmall",
-                  "systemMedium",
                   "accessoryInline",
                   "accessoryCircular",
                   "accessoryRectangular"
                 ],
-                "contentMarginsDisabled": true
+                "contentMarginsDisabled": false
               }
             }
           ]

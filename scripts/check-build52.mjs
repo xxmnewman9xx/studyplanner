@@ -29,13 +29,13 @@ const finishPurchaseSource = finishPurchaseStart >= 0 && finishPurchaseEnd > fin
   : "";
 
 expect(appSource.includes('type AccessState = "loading" | "onboarding" | "preview_allowed" | "locked" | "paywall" | "unlocked"'), "single AccessState union must exist");
-expect(appJson.version === "2.0.8" && appJson.ios?.buildNumber === "84" && appJson.android?.versionCode === 79, "release metadata must be iOS 2.0.8 (84) with Android remaining at 79");
+expect(appJson.version === "2.0.9" && appJson.ios?.buildNumber === "86" && appJson.android?.versionCode === 79, "release metadata must be iOS 2.0.9 (86) with Android remaining at 79");
 expect(appJson.android?.package === "com.mattnewman.studyplanner", "Android package must match the Play app");
-expect((xcodeProject.match(/CURRENT_PROJECT_VERSION = 84;/g) || []).length >= 4, "native iOS app and widget project versions must be 84");
-expect((xcodeProject.match(/MARKETING_VERSION = 2\.0\.8;/g) || []).length >= 4, "native app and widget marketing versions must be 2.0.8");
+expect((xcodeProject.match(/CURRENT_PROJECT_VERSION = 86;/g) || []).length >= 4, "native iOS app and widget project versions must be 86");
+expect((xcodeProject.match(/MARKETING_VERSION = 2\.0\.9;/g) || []).length >= 4, "native app and widget marketing versions must be 2.0.9");
 expect([appInfoPlist, widgetInfoPlist].every((plist) => {
   const inheritsBuildSettings = plist.includes("<string>$(MARKETING_VERSION)</string>") && plist.includes("<string>$(CURRENT_PROJECT_VERSION)</string>");
-  const matchesGeneratedRelease = plist.includes("<string>2.0.8</string>") && plist.includes("<string>84</string>");
+  const matchesGeneratedRelease = plist.includes("<string>2.0.9</string>") && plist.includes("<string>86</string>");
   return inheritsBuildSettings || matchesGeneratedRelease;
 }), "native Info.plist files must inherit or exactly match Xcode marketing/build versions");
 expect(/function entitlementUnlocks[\s\S]{0,160}return entitlementStatus === "active";/.test(appSource), "only active StoreKit entitlement may unlock");
@@ -169,9 +169,9 @@ const pkg = JSON.parse(packageSource);
 expect(pkg.scripts?.["check:build52"] === "node scripts/check-build52.mjs", "package.json must expose check:build52");
 
 if (failures.length) {
-  console.error("Build 84 checks failed:");
+  console.error("Build 86 checks failed:");
   failures.forEach((failure) => console.error(`- ${failure}`));
   process.exit(1);
 }
 
-console.log("Build 84 access, onboarding, appearance, and locked funnel checks passed.");
+console.log("Build 86 access, onboarding, appearance, and locked funnel checks passed.");

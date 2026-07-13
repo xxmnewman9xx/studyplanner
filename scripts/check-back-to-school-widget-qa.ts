@@ -145,7 +145,9 @@ function assertKinds(name: string, snapshots: NativeWidgetSnapshots, assertions:
   for (const kind of requiredKinds) {
     expect(Boolean(snapshots[kind]), `${name}: ${kind} snapshot is present`, assertions);
     expect(snapshots[kind]?.version === 1, `${name}: ${kind} snapshot uses version 1`, assertions);
-    expect(/^studyplanner:\/\/(today|plan|classes|scan|paywall)$/.test(snapshots[kind]?.openURL || ""), `${name}: ${kind} exposes a supported app destination`, assertions);
+    expect(/^studyplanner:\/\/(today|plan|review|scan|paywall|class(?:\?id=.+)?)$/.test(snapshots[kind]?.openURL || ""), `${name}: ${kind} exposes a supported app destination`, assertions);
+    expect(["live", "empty", "locked", "placeholder"].includes(snapshots[kind]?.mode), `${name}: ${kind} exposes a supported display mode`, assertions);
+    expect(Boolean(snapshots[kind]?.primaryMetric), `${name}: ${kind} exposes one dominant metric`, assertions);
     expect(Boolean(snapshots[kind]?.actionLabel), `${name}: ${kind} exposes a widget action label`, assertions);
   }
 }
@@ -168,12 +170,13 @@ function validateRendererSafeguards(assertions: string[]) {
   expect(source.includes("containerBackground(bg, \"widget\")"), "renderer uses WidgetKit container background", assertions);
   expect(source.includes("AccessoryWidgetBackgroundView") && source.includes('containerBackground("#00000000", "widget")'), "renderer uses adaptive system backgrounds for accessory and system-rendered modes", assertions);
   expect(source.includes("allowsTightening(true)") && !source.includes("minimumScaleFactor("), "renderer tightens without shrinking text below its semantic Dynamic Type size", assertions);
-  expect(source.includes('font({ textStyle: "caption2"') && source.includes('font({ textStyle: "title2"'), "renderer uses semantic Dynamic Type text styles", assertions);
+  expect(source.includes('font({ textStyle: "caption2"') && source.includes('font({ textStyle: "headline"'), "renderer uses semantic Dynamic Type text styles", assertions);
   expect(source.includes("lineLimit(1)") && source.includes("lineLimit(2)"), "renderer caps single-line and multi-line widget text", assertions);
-  expect(source.includes('widgetURL(props.openURL || "studyplanner://today")') && source.includes("return text(actionLabel") && !source.includes("Link({"), "renderer makes the full widget the deep-link target and keeps a compact action hint", assertions);
-  expect(source.includes("isSimplified ? 0 : Math.min(items.length"), "renderer reduces row density for simplified and reduced-luminance environments", assertions);
-  expect(source.includes('view("GaugeView"') && source.includes('gaugeStyle("circularCapacity")'), "renderer draws progress with a truthful capacity gauge", assertions);
-  expect(source.includes("environment.levelOfDetail") && source.includes("environment.isLuminanceReduced") && source.includes("isSimplified"), "renderer adapts to iOS 26 detail and reduced-luminance environments", assertions);
+  expect(source.includes("widgetURL(openURL)") && source.includes("text(action") && !source.includes("Link({"), "renderer makes the full widget the deep-link target and keeps a compact action hint", assertions);
+  expect(source.includes('mode === "placeholder"') && source.includes('mode === "locked" || mode === "empty"'), "renderer provides structural placeholder plus useful locked and empty states", assertions);
+  expect(source.includes("var workloadCells = []") && source.includes("barHeight"), "renderer draws the truthful seven-day workload strip", assertions);
+  expect(source.includes("environment.levelOfDetail") && source.includes("environment.isLuminanceReduced") && source.includes("isReduced"), "renderer adapts to iOS 26 detail and reduced-luminance environments", assertions);
+  expect(source.includes("environment.widgetContentMargins") && source.includes("hasSystemMargins"), "renderer adapts to increased system content margins", assertions);
 }
 
 async function main() {
@@ -214,7 +217,7 @@ async function main() {
         expect(snapshots.week.backgroundColor === theme.widgetBackground, "calm calendar uses internal green widget background fixture", assertions);
         expect(snapshots.today.openURL === "studyplanner://today", "calm Today action opens Today", assertions);
         expect(snapshots.week.openURL === "studyplanner://plan", "calm calendar action opens Plan", assertions);
-        expect(snapshots.classProgress.openURL === "studyplanner://classes", "calm class action opens Classes", assertions);
+        expect(snapshots.classProgress.openURL.startsWith("studyplanner://class?id="), "calm class action opens the selected Class", assertions);
       },
     },
     {
@@ -244,7 +247,7 @@ async function main() {
         const titles = snapshots.upcoming.items.map((item) => item.title).join(" ");
         expect(titles.includes("Comprehensive literature review"), "long-copy item reaches the upcoming widget snapshot", assertions);
         expect(snapshots.upcoming.accentColor === theme.accent, "long-copy upcoming uses selected pink accent when not urgent", assertions);
-        expect(snapshots.upcoming.openURL === "studyplanner://today", "long-copy upcoming action opens Today", assertions);
+        expect(snapshots.upcoming.openURL === "studyplanner://review", "long-copy upcoming action opens Review", assertions);
       },
     },
   ];

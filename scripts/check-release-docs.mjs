@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 
 function read(path) {
   return readFileSync(path, "utf8");
@@ -49,10 +49,10 @@ assert(reviewLower.includes("invalid dates or times cannot be applied"), "App Re
 assert(reviewLower.includes("camera/photo ocr controls are enabled only when the native ios vision ocr module is present"), "App Review notes must disclose the native OCR gate.");
 assert(reviewLower.includes("does not upload syllabus content to a studyplanner parser service"), "App Review notes must preserve the on-device import boundary");
 assert(reviewLower.includes("instead of applying uncertain data"), "App Review notes must state unclear photo data is not applied");
-assert(reviewLower.includes("studyplanner today (small, medium, inline, circular, rectangular)"), "App Review notes must document the StudyPlanner Today widget families");
-assert(reviewLower.includes("studyplanner upcoming (small, medium, inline, circular, rectangular)"), "App Review notes must document the StudyPlanner Upcoming widget families");
-assert(reviewLower.includes("studyplanner week (medium, inline, circular, rectangular)"), "App Review notes must document the StudyPlanner Week widget families");
-assert(reviewLower.includes("studyplanner class progress (small, medium, inline, circular, rectangular)"), "App Review notes must document the StudyPlanner Class Progress widget families");
+assert(reviewLower.includes("studyplanner today (medium plus inline, circular, and rectangular accessories)"), "App Review notes must document the medium Today family and accessories");
+assert(reviewLower.includes("studyplanner upcoming (small plus accessories)"), "App Review notes must document the small Upcoming family and accessories");
+assert(reviewLower.includes("studyplanner week (medium plus accessories)"), "App Review notes must document the medium Week family and accessories");
+assert(reviewLower.includes("studyplanner class progress (small plus accessories)"), "App Review notes must document the small Class Progress family and accessories");
 assert(reviewLower.includes("lock screen accessory families"), "App Review notes must document supported WidgetKit accessory families");
 assert(reviewLower.includes("expo_public_studyplanner_capture_qa"), "App Review notes must include the production capture-bypass env audit");
 assert(reviewLower.includes("does not claim server-side receipt validation"), "App Review notes must not overclaim server receipt validation");
@@ -105,7 +105,8 @@ const screenshotReferences = Object.values(storeConfig?.apple?.info ?? {}).flatM
 );
 assert(screenshotReferences.length > 0, "Store configuration must preserve explicit screenshot references");
 assert(!screenshotReferences.some((path) => path.includes("screenshot-pop")), "Store configuration must not reference the blocked generated screenshot-pop tree");
-assert(screenshotReferences.every((path) => existsSync(path)), "Every App Store screenshot reference must resolve to a local source file");
+assert(screenshotReferences.length === 238, "Build 86 store configuration must contain 238 screenshot references");
+assert(screenshotReferences.every((path) => path.startsWith("store/apple/screenshot-build86-creative-production/")), "Every screenshot reference must use the Build 86 Creative Production root");
 
 assert(!storeConfigText.includes("tinyurl.com"), "Store metadata must use the direct hosted privacy-policy URL, never a short link");
 for (const [locale, info] of Object.entries(storeConfig?.apple?.info ?? {})) {

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "provenance": "Materialized from the Build 83 catalogs for Build 84 exact storefront resolution; no runtime language transforms.",
+  "provenance": "Build 86 exact storefront copy with deterministic paid-widget display states; no runtime language transforms.",
   "locales": {
     "pt-PT": {
       "app": {
@@ -2242,6 +2242,61 @@
               "name": "Pulso do semestre",
               "description": "Progresso do semestre em um olhar."
             }
+          }
+        },
+        "widget": {
+          "native": {
+            "locked_metric": "PRÓXIMO PASSO",
+            "locked_headline": "O próximo passo—no ecrã principal",
+            "locked_detail": "Nenhuma disciplina aparece antes da subscrição.",
+            "unlock_studyplanner": "Desbloquear StudyPlanner",
+            "private_locked": "Privado por predefinição",
+            "locked": "Bloqueado",
+            "empty_metric": "COMEÇAR",
+            "empty_headline": "O semestre começa aqui",
+            "empty_detail": "Adicionar programa",
+            "add_syllabus": "Adicionar programa",
+            "empty_support": "Planeie uma vez. Veja o que importa a seguir.",
+            "setup": "Configurar",
+            "ready": "Pronto",
+            "today": "Hoje",
+            "tomorrow": "Amanhã",
+            "overdue": "Em atraso",
+            "days_metric": "{count} DIAS",
+            "due_today_headline": "Entrega hoje",
+            "next_deadline_headline": "Próximo prazo",
+            "clear_today_headline": "Hoje livre",
+            "clear": "Livre",
+            "due_today_detail": "entrega hoje",
+            "today_lower": "hoje",
+            "review_today": "Rever hoje",
+            "clear_today": "Hoje livre",
+            "open_today": "Abrir Hoje",
+            "no_deadlines": "Sem prazos próximos",
+            "semester": "Semestre",
+            "next_move": "Próximo passo",
+            "next": "Próximo",
+            "review": "Rever",
+            "heavy_day_insight": "{day} ESTÁ PESADO",
+            "light_week": "SEMANA TRANQUILA",
+            "peak_count": "{count} no dia de pico",
+            "seven_day_workload": "Carga de 7 dias",
+            "max_per_day": "máx. {count}/dia",
+            "seven_days": "7 dias",
+            "calendar_widget": "Widget de calendário",
+            "peak_day": "Pico {day}",
+            "no_next_assignment": "Sem próximo trabalho",
+            "class_pulse": "Progresso da disciplina",
+            "open_class": "Abrir disciplina"
+          },
+          "weekday": {
+            "mon": "S",
+            "tue": "T",
+            "wed": "Q",
+            "thu": "Q",
+            "fri": "S",
+            "sat": "S",
+            "sun": "D"
           }
         }
       }
@@ -4485,6 +4540,61 @@
               "name": "學期脈搏",
               "description": "一眼查看學期進度。"
             }
+          }
+        },
+        "widget": {
+          "native": {
+            "locked_metric": "下一步",
+            "locked_headline": "下一步行動，就在主畫面",
+            "locked_detail": "訂閱前不會顯示課程資料。",
+            "unlock_studyplanner": "解鎖 StudyPlanner",
+            "private_locked": "預設保護私隱",
+            "locked": "已鎖定",
+            "empty_metric": "開始",
+            "empty_headline": "你的學期從這裡開始",
+            "empty_detail": "加入課程大綱",
+            "add_syllabus": "加入課程大綱",
+            "empty_support": "規劃一次，隨時看到下一要事。",
+            "setup": "設定",
+            "ready": "就緒",
+            "today": "今天",
+            "tomorrow": "明天",
+            "overdue": "已逾期",
+            "days_metric": "{count}天",
+            "due_today_headline": "今天截止",
+            "next_deadline_headline": "下個截止日期",
+            "clear_today_headline": "今天無任務",
+            "clear": "無任務",
+            "due_today_detail": "今天截止",
+            "today_lower": "今天",
+            "review_today": "查看今天",
+            "clear_today": "今天無任務",
+            "open_today": "打開今天",
+            "no_deadlines": "暫無即將到來的截止日期",
+            "semester": "學期",
+            "next_move": "下一步",
+            "next": "下一個",
+            "review": "查看",
+            "heavy_day_insight": "{day}任務繁重",
+            "light_week": "輕鬆的一週",
+            "peak_count": "最忙一天有{count}項",
+            "seven_day_workload": "7天工作量",
+            "max_per_day": "每天最多{count}項",
+            "seven_days": "7天",
+            "calendar_widget": "日曆小工具",
+            "peak_day": "高峰 {day}",
+            "no_next_assignment": "暫無下一項作業",
+            "class_pulse": "課程進度",
+            "open_class": "打開課程"
+          },
+          "weekday": {
+            "mon": "一",
+            "tue": "二",
+            "wed": "三",
+            "thu": "四",
+            "fri": "五",
+            "sat": "六",
+            "sun": "日"
           }
         }
       }
