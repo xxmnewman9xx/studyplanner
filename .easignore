@@ -26,7 +26,9 @@ marketing_exports/
 research/
 reference/
 logs/
-localized-app-strings/
+localized-app-strings/*
+!localized-app-strings/core-launch-strings.json
+!localized-app-strings/storefront-runtime-copy.json
 localized-screenshot-proof/
 receipts/
 storybook/
