@@ -1,27 +1,59 @@
 {
-  "status": "pending",
+  "status": "pending_remote_eas_and_app_store_connect",
+  "readiness": "local_eas_ipa_verified_media_and_remote_release_pending",
   "version": "2.0.9",
   "buildNumber": "86",
   "bundleIdentifier": "com.mattnewman.studyplanner",
   "easBuild": {
-    "status": "not_started",
+    "status": "local_finished",
+    "local": true,
     "platform": "ios",
     "profile": "production",
     "appVersion": "2.0.9",
-    "buildNumber": "86"
+    "buildNumber": "86",
+    "sourceCommit": "7d91a027dcff67d2bdccbfbc83601ffccbbcb012",
+    "completedAt": "2026-07-13T07:00:03Z",
+    "remoteBuildStatus": "blocked_monthly_ios_build_quota_resets_2026-08-01"
   },
   "ipa": {
+    "localPath": "builds/StudyPlanner-2.0.9-86-7d91a027.ipa",
+    "sha256": "3cfc2d4c482fd088fba2b00e9ab8e39487b8edfc3b772dbb4b97176ab482888a",
+    "bytes": 17968689,
     "version": "2.0.9",
     "buildNumber": "86",
-    "bundleIdentifier": "com.mattnewman.studyplanner"
+    "bundleIdentifier": "com.mattnewman.studyplanner",
+    "widgetBundleIdentifier": "com.mattnewman.studyplanner.widgets",
+    "widgetVersion": "2.0.9",
+    "widgetBuildNumber": "86",
+    "architectures": [
+      "arm64"
+    ],
+    "appExecutableSha256": "a1d9519df0834711d7e12dec27b2235c0b0bec44472589c1d1d48875cf52eb96",
+    "widgetExecutableSha256": "2ab93be4b60802155f414ec4901f28073a5c72df6f8ac2fc7635e14df988dee8",
+    "signingTeamIdentifier": "5JN35MJ3QD",
+    "appGroup": "group.com.mattnewman.studyplanner",
+    "urlSchemes": [
+      "studyplanner",
+      "com.mattnewman.studyplanner"
+    ],
+    "signatureVerified": true,
+    "appPrivacyManifestEmbedded": true,
+    "widgetPrivacyManifestEmbedded": true,
+    "inspectedAt": "2026-07-13T07:00:03Z"
   },
   "appStoreConnect": {
     "appAppleId": "6766181202",
     "version": "2.0.9",
     "buildNumber": "86",
-    "uploaded": false,
+    "uploaded": true,
     "processed": false,
-    "selectedForVersion": false
+    "selectedForVersion": false,
+    "submissionId": "b7b78a63-e18c-43c7-b0db-279c7a7265af",
+    "submissionStatus": "finished",
+    "submissionDetailsUrl": "https://expo.dev/accounts/xxmnewman9xx/projects/study-planner-syllabus-ai/submissions/b7b78a63-e18c-43c7-b0db-279c7a7265af",
+    "submissionStateSource": "eas_submit_transport_receipt",
+    "transportVerifiedAt": "2026-07-13T07:05:57Z",
+    "processingReadback": "blocked_app_store_connect_session_signed_out"
   },
   "screenshots": {
     "iphone": {
