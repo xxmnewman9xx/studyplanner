@@ -1,0 +1,80 @@
+{
+  "submittedAt": "2026-07-15T01:33:00Z",
+  "appId": "6766181202",
+  "bundleId": "com.mattnewman.studyplanner",
+  "versionId": "a05e2964-6639-4f7a-9109-09c56cc36ebe",
+  "version": "2.0.9",
+  "build": "87",
+  "releaseCommit": "77591a84",
+  "ipa": {
+    "path": "builds/StudyPlanner-2.0.9-87-77591a84.ipa",
+    "bytes": 17968099,
+    "sha256": "3947c6689c4b110e87ca2736f6b9eeacc31e6950cdba0e8588b2d7c5dd7eb252",
+    "codesignVerified": true
+  },
+  "binaryUpload": {
+    "route": "Apple altool direct upload after canceling the backlogged EAS Submit job",
+    "deliveryUuid": "5bcaad7e-2858-4b1c-865b-daa826f00b8a",
+    "transferredBytes": 17968099,
+    "result": "UPLOAD SUCCEEDED with no errors",
+    "appStoreConnectProcessingState": "VALID"
+  },
+  "supersededEasSubmission": {
+    "id": "172e52f7-12b7-4bf1-9c2d-832c97e45b3c",
+    "finalState": "CANCELED",
+    "reason": "The job remained IN_QUEUE after Expo's resolved iOS submission incident; it was canceled before direct upload to prevent a duplicate-build race."
+  },
+  "appStoreVersion": {
+    "selectedBuild": "87",
+    "reviewSubmissionId": "6f71ae58-678c-4493-b320-255b1b6cca73",
+    "reviewItemCount": 1,
+    "reviewSubmissionState": "WAITING_FOR_REVIEW",
+    "releaseType": "AFTER_APPROVAL"
+  },
+  "localizedStorefront": {
+    "localeCount": 17,
+    "metadataLocalesMatching": 17,
+    "deviceFamilies": 2,
+    "screenshotsPerDevice": 7,
+    "screenshotCount": 238,
+    "screenshotProcessingState": "COMPLETE",
+    "screenshotProcessingErrors": [],
+    "uniqueHashCount": 238,
+    "realLocalizedUi": true
+  },
+  "hero": {
+    "localization": "en-US",
+    "displayType": "APP_IPHONE_65",
+    "position": 0,
+    "fileName": "01-syllabus-to-plan.png",
+    "localPath": "store/apple/screenshot-build86-creative-production/en-US/APP_IPHONE_65/01-syllabus-to-plan.png",
+    "sourceUiPath": "outputs/build86-localized-simulator-ui/iphone/en-US/01-scanner-ready-dark.png",
+    "sha256": "139b8f608118508542415f3b437a8270b614ec523aa8e0d6c0f5b96475aa94a0",
+    "approvalScore": 9.7,
+    "remainingBrightGreenPixelsOutsideScreens": 0,
+    "showsScannerUi": true
+  },
+  "ageRating": {
+    "calculatedRating": "4+",
+    "socialMedia": false,
+    "socialMediaDisabledForUsersUnder13": false,
+    "userGeneratedContent": false,
+    "messagingAndChat": false,
+    "ageAssurance": false,
+    "advertising": false,
+    "unrestrictedWebAccess": false,
+    "savedInAppStoreConnect": true
+  },
+  "qualityGates": {
+    "qaReleasePassed": true,
+    "metadataLintPassed": true,
+    "iosExportPassed": true,
+    "typecheckPassed": true,
+    "hardPaywallPassed": true,
+    "iapPassed": true,
+    "activationSpinePassed": true,
+    "runtimeSafetyPassed": true,
+    "widgetsPassed": true,
+    "widgetIntegrityPassed": true
+  }
+}
