@@ -53,8 +53,6 @@ function placeholders(value) {
 }
 
 [
-  "StudyPlanner unlocked",
-  "Your subscription is active.",
   "Add Syllabus",
   "No semester loaded.",
   "Start here",

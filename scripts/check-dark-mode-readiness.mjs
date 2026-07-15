@@ -49,7 +49,7 @@ function safeColorOn(color, surface) {
 }
 
 expect(appConfig.userInterfaceStyle === "automatic", "app config must allow automatic native appearance");
-expect(appConfig.ios?.buildNumber === "86", "the widget-led conversion system must ship in Build 86");
+expect(appConfig.ios?.buildNumber === "87", "the widget-led conversion system must ship in Build 87");
 expect(JSON.stringify(appConfig.plugins).includes("expo-system-ui"), "expo-system-ui config plugin must be enabled");
 expect(JSON.stringify(appConfig.plugins).includes("expo-splash-screen"), "expo-splash-screen config plugin must be enabled");
 expect(JSON.stringify(appConfig.plugins).includes("splash-icon-dark.png"), "splash config must include a dark launch image");

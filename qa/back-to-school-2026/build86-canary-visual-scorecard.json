@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 2,
+  "artifactType": "build86_scene_canary_visual_scorecard",
+  "reviewStatus": "ai_visual_gate_passed_human_release_approval_pending",
+  "threshold": 9.5,
+  "minimumScore": 9.5,
+  "maximumScore": 9.8,
+  "meanScore": 9.7071,
+  "packCoherenceScore": 9.8,
+  "assetCount": 14,
+  "passedAssetCount": 14,
+  "method": "Independent full-resolution and App Store thumbnail review after review-driven whole-scene reframing, genuine progressed Build 86 Focus recapture, iPad source-edge overscan beneath the bezel, robust perspective recovery, matte despill, safe headline fitting, and deterministic rebuild. The final pack audit scored every asset at or above 9.5; the stricter device specialist separately confirmed v4 dominates every earlier iPad candidate without regression.",
+  "machineVerification": {
+    "passed": true,
+    "checkCount": 68,
+    "deterministicPngCount": 15,
+    "deterministicPngPassCount": 15,
+    "verificationPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-canary/verification.json",
+    "verificationSha256": "b3d84241722a533776c88a9b1d21bfd3004b4a5fee8d4710681bd5184c440358"
+  },
+  "contactSheet": {
+    "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-canary/en-US/build86-en-US-scene-canary-contact-sheet.png",
+    "sha256": "d80160f898e6419d9e10501cd6ee88a6c6828743cf0bab14e7254b3e1cf33187"
+  },
+  "assets": [
+    {"device":"APP_IPHONE_65","slideIndex":1,"score":9.7,"passed":true},
+    {"device":"APP_IPHONE_65","slideIndex":2,"score":9.7,"passed":true},
+    {"device":"APP_IPHONE_65","slideIndex":3,"score":9.8,"passed":true},
+    {"device":"APP_IPHONE_65","slideIndex":4,"score":9.7,"passed":true},
+    {"device":"APP_IPHONE_65","slideIndex":5,"score":9.8,"passed":true},
+    {"device":"APP_IPHONE_65","slideIndex":6,"score":9.8,"passed":true},
+    {"device":"APP_IPHONE_65","slideIndex":7,"score":9.7,"passed":true},
+    {"device":"APP_IPAD_PRO_3GEN_129","slideIndex":1,"score":9.5,"passed":true},
+    {"device":"APP_IPAD_PRO_3GEN_129","slideIndex":2,"score":9.5,"passed":true},
+    {"device":"APP_IPAD_PRO_3GEN_129","slideIndex":3,"score":9.8,"passed":true},
+    {"device":"APP_IPAD_PRO_3GEN_129","slideIndex":4,"score":9.8,"passed":true},
+    {"device":"APP_IPAD_PRO_3GEN_129","slideIndex":5,"score":9.8,"passed":true},
+    {"device":"APP_IPAD_PRO_3GEN_129","slideIndex":6,"score":9.8,"passed":true},
+    {"device":"APP_IPAD_PRO_3GEN_129","slideIndex":7,"score":9.5,"passed":true}
+  ],
+  "truthBoundary": "Every visible app screen is a genuine Build 86 simulator or Home Screen capture. Scene pixels are generated; UI pixels are only perspective-warped, with an 8-pixel iPad destination overscan beneath the device bezel. These canary assets are not exact production-IPA physical-device release captures.",
+  "releaseEligible": false,
+  "uploadAuthorized": false
+}

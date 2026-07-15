@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "pending_human_review",
+  "approvedBy": "",
+  "approvedAt": "",
+  "note": "Copy this template to build86-widget-led-final-approval.json only after full-size review of all 34 generated locale/device contact sheets. Populate each sheet with the generated SHA-256, status approved, and truthStatus truthful_build86_feature.",
+  "sheets": [
+    {
+      "locale": "en-US",
+      "device": "APP_IPHONE_65",
+      "sha256": "replace with generated contact-sheet SHA-256",
+      "status": "pending",
+      "truthStatus": "pending_human_truth_review"
+    }
+  ]
+}

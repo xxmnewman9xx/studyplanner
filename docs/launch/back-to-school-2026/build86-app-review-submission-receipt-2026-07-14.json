@@ -1,0 +1,45 @@
+{
+  "submittedAt": "2026-07-14",
+  "appId": "6766181202",
+  "bundleId": "com.mattnewman.studyplanner",
+  "versionId": "a05e2964-6639-4f7a-9109-09c56cc36ebe",
+  "version": "2.0.9",
+  "build": "86",
+  "reviewSubmissionId": "900671e0-21df-4df7-acb8-e4f919f35795",
+  "removedFromReviewAt": "2026-07-14",
+  "cancellationRequestedState": "CANCELING",
+  "reviewSubmissionState": "COMPLETE",
+  "versionStateAfterCancellation": "DEVELOPER_REJECTED",
+  "submissionRemoved": true,
+  "resubmissionAuthorized": true,
+  "resubmissionAuthorizedAt": "2026-07-14T19:25:00Z",
+  "resubmissionAuthorizationSource": "User message: Submit",
+  "resubmissionAttemptBlocked": true,
+  "resubmissionBlockers": [
+    "No physical iPhone or iPad is connected for exact TestFlight Build 86 capture.",
+    "All 238 prepared previews are simulator-derived and releaseEligible is false.",
+    "Sixteen translated headline sets remain pending native-language approval."
+  ],
+  "reviewItemCount": 1,
+  "hero": {
+    "localization": "en-US",
+    "displayType": "APP_IPHONE_65",
+    "position": 0,
+    "assetId": "85d6d4bc-c162-49b7-b8f7-262bb2d59ffb",
+    "fileName": "01-notes-scanner-five-star.png",
+    "assetDeliveryState": "COMPLETE",
+    "assetErrors": [],
+    "localPath": "outputs/imagegen/generative-polish/build86-notes-scanner-five-star-hero/final/en-US/APP_IPHONE_65/01-notes-scanner-five-star.png",
+    "sha256": "9938a7dde98de11ad56ffc5f2e3e84d66bf5d030e44aeb3a58767038f7850fe3",
+    "visualScore": 9.55,
+    "remainingBrightGreenPixelsOutsideScreens": 0,
+    "supersededBySevenSlideLocalizedPreviewSystem": true
+  },
+  "ratingClaim": {
+    "storefront": "US",
+    "rating": 5.0,
+    "ratingCount": 2,
+    "verifiedAt": "2026-07-14",
+    "source": "https://apps.apple.com/us/app/study-planner-ai/id6766181202"
+  }
+}

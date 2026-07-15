@@ -1,0 +1,28 @@
+{
+  "artifact": "outputs/imagegen/generative-polish/build86-notes-scanner-five-star-hero/final/en-US/APP_IPHONE_65/01-notes-scanner-five-star.png",
+  "sha256": "9938a7dde98de11ad56ffc5f2e3e84d66bf5d030e44aeb3a58767038f7850fe3",
+  "dimensions": [1242, 2688],
+  "reviewedAt": "2026-07-14",
+  "scores": {
+    "primaryVisualAudit": 9.9,
+    "secondaryVisualAudit": 9.2,
+    "mean": 9.55
+  },
+  "machineChecks": {
+    "guidedScannerIsDominantFrontDevice": true,
+    "scannerOverviewIsVisibleOnSecondDevice": true,
+    "fiveStarsRender": true,
+    "ratingClaimVerifiedForUSStorefront": true,
+    "remainingBrightGreenPixelsOutsideScreens": 0,
+    "zeroChromaLeak": true,
+    "exactTargetDimensions": true
+  },
+  "provenance": {
+    "frontGuidedScanner": "user-supplied UI capture; perspective warp only",
+    "rearScannerOverview": "genuine Build 86 simulator UI; perspective warp only",
+    "uiRedrawn": false,
+    "releaseEligible": false,
+    "releaseEligibilityNote": "Simulator-backed proof is not production-IPA/physical-TestFlight release media."
+  },
+  "decision": "visual_pass_non_release_canary"
+}

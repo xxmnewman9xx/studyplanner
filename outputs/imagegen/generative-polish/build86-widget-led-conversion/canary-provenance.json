@@ -1,14 +1,30 @@
 {
-  "schemaVersion": 1,
-  "workflow": "claude_creative_production_generative_polish",
-  "status": "canary_draft",
+  "schemaVersion": 2,
+  "workflow": "chatgpt_image_2_creative_production_generative_polish",
+  "status": "canary_pending_human_review",
   "sourceBinary": {
     "version": "2.0.9",
     "buildNumber": "86",
-    "provenanceClass": "signed_release_simulator_qa_not_production_ipa",
-    "productionIpaSha256": "3cfc2d4c482fd088fba2b00e9ab8e39487b8edfc3b772dbb4b97176ab482888a"
+    "bundleId": "com.mattnewman.studyplanner",
+    "ipaSha256": "3cfc2d4c482fd088fba2b00e9ab8e39487b8edfc3b772dbb4b97176ab482888a",
+    "provenanceClass": "signed_release_simulator_qa_not_production_ipa"
   },
-  "aiImageGenerations": 0,
+  "scenePlateGeneration": {
+    "initialRequested": 14,
+    "initialComplete": 14,
+    "initialFailed": 0,
+    "targetedRetries": 10,
+    "totalGenerations": 24,
+    "maxAttempt": 2
+  },
+  "verification": {
+    "passed": true,
+    "checkCount": 68,
+    "reportPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-canary/verification.json"
+  },
+  "contactSheetApproval": "pending_human_canary_review",
+  "releaseEligible": false,
+  "uploadAuthorized": false,
   "jobs": [
     {
       "locale": "en-US",
@@ -16,21 +32,98 @@
       "slideIndex": 1,
       "family": "hero",
       "headline": "Turn your syllabus into a plan.",
-      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/canary-draft/en-US/APP_IPHONE_65/01-syllabus-to-plan.png",
-      "sha256": "207892ac220568f545e403022ce7b2fec5a99ce61ad27ed2953aedae15876b97",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-canary/en-US/APP_IPHONE_65/01-syllabus-to-plan.png",
+      "sha256": "b5734d111bb061bcb72303dfde6465a73d258f2d7a4b3e862bb4bb47edd81a70",
       "sourcePath": "outputs/build86-native-proof/iphone/en-US/app-atlas/scan-light.png",
       "sourceHash": "dd99a2c0545f6b9deb5dc009ff7052483fd11df6cfeae279ef27a0518b4575d7",
-      "prompt": "Bold Academic Editorial generative polish: preserve the supplied Build 86 simulator app pixels; add only calm poster framing, exact deterministic headline typography, safe zones, and a restrained StudyPlanner color atmosphere.",
+      "prompt": "Use case: precise-object-edit\nAsset type: portrait App Store scene plate, iPhone slide 1 retry, attempt 2\nInput images: Image 1 is the edit target and visual-system source plate. Image 2 is the genuine StudyPlanner Scan UI reference for composition and eventual readability only; never reproduce any UI from it.\nPrimary request: Preserve Image 1's high-key cream studio scene, realistic black/silver phone, camera position, scale, premium restrained lighting, and large empty headline zone. Correct the failed chroma treatment.\nDisplay: the entire inner-glass display must be one perfectly flat, uninterrupted, uniform chroma green #00FF63 surface. It must contain no UI, text, icon, logo, symbol, number, wallpaper, status bar, notch, Dynamic Island, reflection, glare, texture, shadow, gradient, or tonal variation.\nSpill correction: remove every green reflection, green cast, green glow, and chroma spill outside the inner glass—especially the floor/contact reflection, bezel, metal chassis, glass edge, and cast shadow. The floor beneath and around the phone must be neutral warm cream/soft gray with a physically credible neutral contact shadow. Absolutely zero green may appear outside the inner-glass display.\nComposition: large near-front phone, true portrait proportions, UI-first scale readable at App Store thumbnail size; generous clean negative space above for deterministic headline.\nConstraints: change only what is needed to correct chroma spill and make the device/screen physically clean. No headline, no marketing copy, no extra devices, no hands, no people, no props, no Apple logo, no watermark. Image 2 is supporting reference only and must not appear in the generated screen.",
       "generationMetadata": {
-        "workflow": "claude_creative_production_generative_polish",
-        "method": "deterministic_imagemagick_composite",
-        "aiImageGenerations": 0,
-        "visualReferenceWeight": "near_90_percent_current_live_preview_system"
+        "workflow": "chatgpt_image_2_creative_production_generative_polish",
+        "method": "image_2_scene_plate_plus_deterministic_perspective_composite",
+        "generationAttempt": 2,
+        "aiImageGenerations": 2,
+        "referenceImages": [
+          {
+            "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPHONE_65/01-syllabus-to-plan-plate.png",
+            "role": "edit target and visual-system continuity reference",
+            "sha256": "213d6b111946aca3cbb4e9cefb2f27abe53ed94791c6ef5b7c4c40a24f03ec1f"
+          },
+          {
+            "path": "outputs/build86-native-proof/iphone/en-US/app-atlas/scan-light.png",
+            "role": "genuine en-US Build 86 Scan UI reference for composition and eventual readability only; excluded from generated screen",
+            "sha256": "dd99a2c0545f6b9deb5dc009ff7052483fd11df6cfeae279ef27a0518b4575d7"
+          }
+        ],
+        "scenePlatePath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPHONE_65/01-syllabus-to-plan-plate.png",
+        "scenePlateSha256": "d48e48f0a92a8acce7fd2a263c830e2e523b10864f96bf9cf1304d57dcc9d58b",
+        "sceneTransform": {
+          "cropBox": [
+            66,
+            184,
+            1175,
+            2584
+          ],
+          "method": "review_driven_center_crop_zoom",
+          "shiftY": 45,
+          "zoom": 1.12
+        },
+        "uiSourceOverscanPixels": 0,
+        "perspectiveQuad": [
+          [
+            361.0,
+            842.012
+          ],
+          [
+            915.0,
+            853.018
+          ],
+          [
+            915.0,
+            2266.179
+          ],
+          [
+            361.0,
+            2279.156
+          ]
+        ],
+        "chromaAperture": {
+          "boundingBox": [
+            361,
+            844,
+            915,
+            2277
+          ],
+          "geometry": {
+            "componentOutsideRate": 0.000647,
+            "despillPixelCount": 953,
+            "featherPixelCount": 4959,
+            "matteSupportPixelCount": 789927,
+            "opaquePixelCount": 784968,
+            "polygonOverpaintRate": 0.008128,
+            "quadIoU": 0.991236
+          },
+          "pixelCount": 784968,
+          "replacementCoverage": 1.0,
+          "spill": {
+            "brightGreenExteriorPixelCount": 1,
+            "brightGreenExteriorRate": 0.000249,
+            "exteriorRingPixelCount": 4009
+          }
+        },
+        "targetedRetry": {
+          "reason": "Attempt 1 retained a large chroma-green floor reflection that read as unreplaced green-screen spill.",
+          "manifestPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/retry-manifest.json",
+          "manifestSha256": "3baf25879e20a7e202772f72a77382719ee71d4d68c044a80d0128b8af6ae68b",
+          "retryOutputPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/APP_IPHONE_65/01-syllabus-to-plan-plate-attempt-2.png",
+          "retryOutputSha256": "d48e48f0a92a8acce7fd2a263c830e2e523b10864f96bf9cf1304d57dcc9d58b"
+        }
       },
-      "uiTreatment": "immutable_build86_simulator_pixels",
-      "textTreatment": "deterministic_en_US_typography",
+      "uiTreatment": "immutable_signed_build86_simulator_pixels_perspective_warp_only",
+      "textTreatment": "deterministic_exact_en_US_typography",
       "reviewStatus": "pending_human_canary_review",
-      "releaseEligible": false
+      "releaseEligible": false,
+      "uploadAuthorized": false,
+      "pixelSignature": "cc7df180364fc4377939b87e74e2ce10b2999d60c6c730df5c95083b021c5bc0"
     },
     {
       "locale": "en-US",
@@ -38,21 +131,85 @@
       "slideIndex": 2,
       "family": "loop-light",
       "headline": "Know what needs you today.",
-      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/canary-draft/en-US/APP_IPHONE_65/02-needs-you-today.png",
-      "sha256": "91c8c5ab43aa913bdcad31a90064ee64f594cac6feef1545f98003d9bfe3455d",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-canary/en-US/APP_IPHONE_65/02-needs-you-today.png",
+      "sha256": "2aabe7f3e82a87425cc77749697b73e9ea47737d2f34b03336567e3f52b131cf",
       "sourcePath": "outputs/build86-native-proof/iphone/en-US/app-atlas/today-light.png",
       "sourceHash": "2a4da1ff9d6c94cfd3e9da856ee9e0bd7512b3b8db1ea94fe5336c7ecbc7cf91",
-      "prompt": "Bold Academic Editorial generative polish: preserve the supplied Build 86 simulator app pixels; add only calm poster framing, exact deterministic headline typography, safe zones, and a restrained StudyPlanner color atmosphere.",
+      "prompt": "Create one premium vertical App Store scene plate in a Bold Academic Editorial visual system. Use the supplied phone-scene references for camera language, negative space, studio lighting, restrained blue/purple/green color atmosphere, realistic metal and glass, and calm poster-like hierarchy. Use the supplied StudyPlanner preview only for approximate composition and scale, never for its UI.\n\nRender a realistic modern device with one perfectly flat, uninterrupted chroma-green screen surface (#00FF63) suitable for deterministic perspective replacement. The screen must contain no UI, text, icon, logo, symbol, number, wallpaper, notch, Dynamic Island, reflection, glare, texture, or gradient. Do not write any marketing copy anywhere.\n\nReserve a generous clean headline safe zone above the device. Keep the device large enough that subsequently composited real app pixels will remain readable. Lighting may affect the chassis and environment but must not contaminate the green screen.\n\nUse high-end restrained product photography, not surreal illustration. No hands, people, stationery clutter, Apple logo, watermark, branding, decorative metrics, or extra devices unless the job explicitly requests a pair.\n\nOutput one scene only.\n\nUse a genuine modern portrait smartphone chassis with realistic iPhone-class proportions, but no branding. Frame for a final 1242×2688 App Store canvas.\n\nLoop / light. Single large device with generous white negative space, restrained purple and blue floor light, at most a subtle three-degree yaw, crisp readable screen-replacement geometry.",
       "generationMetadata": {
-        "workflow": "claude_creative_production_generative_polish",
-        "method": "deterministic_imagemagick_composite",
-        "aiImageGenerations": 0,
-        "visualReferenceWeight": "near_90_percent_current_live_preview_system"
+        "workflow": "chatgpt_image_2_creative_production_generative_polish",
+        "method": "image_2_scene_plate_plus_deterministic_perspective_composite",
+        "generationAttempt": 1,
+        "aiImageGenerations": 1,
+        "referenceImages": [
+          {
+            "path": "/Users/mattnewman/.codex/attachments/ce119123-d178-4ecb-846b-7d6b7fd58053/image-2.png",
+            "sha256": "b2562c81cebfccc6d832cadf7705685a3af8f27d660dbf6b66081eb691464087"
+          }
+        ],
+        "scenePlatePath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPHONE_65/02-needs-you-today-plate.png",
+        "scenePlateSha256": "49eff17ea8c9186717fc7f1438a603d447f78e38f87738f3591d77d7b05f0dd4",
+        "sceneTransform": {
+          "cropBox": [
+            81,
+            223,
+            1161,
+            2560
+          ],
+          "method": "review_driven_center_crop_zoom",
+          "shiftY": 55,
+          "zoom": 1.15
+        },
+        "uiSourceOverscanPixels": 0,
+        "perspectiveQuad": [
+          [
+            344.0,
+            919.0
+          ],
+          [
+            901.0,
+            919.0
+          ],
+          [
+            901.0,
+            2217.0
+          ],
+          [
+            344.0,
+            2217.0
+          ]
+        ],
+        "chromaAperture": {
+          "boundingBox": [
+            344,
+            919,
+            901,
+            2218
+          ],
+          "geometry": {
+            "componentOutsideRate": 4e-06,
+            "despillPixelCount": 3337,
+            "featherPixelCount": 7063,
+            "matteSupportPixelCount": 727467,
+            "opaquePixelCount": 720404,
+            "polygonOverpaintRate": 0.006127,
+            "quadIoU": 0.993869
+          },
+          "pixelCount": 720404,
+          "replacementCoverage": 1.0,
+          "spill": {
+            "brightGreenExteriorPixelCount": 0,
+            "brightGreenExteriorRate": 0.0,
+            "exteriorRingPixelCount": 3734
+          }
+        }
       },
-      "uiTreatment": "immutable_build86_simulator_pixels",
-      "textTreatment": "deterministic_en_US_typography",
+      "uiTreatment": "immutable_signed_build86_simulator_pixels_perspective_warp_only",
+      "textTreatment": "deterministic_exact_en_US_typography",
       "reviewStatus": "pending_human_canary_review",
-      "releaseEligible": false
+      "releaseEligible": false,
+      "uploadAuthorized": false,
+      "pixelSignature": "6549ad399a10cb45e468248dab6fd6593dd3842219ff83f760f9ef0c79f1081b"
     },
     {
       "locale": "en-US",
@@ -60,21 +217,89 @@
       "slideIndex": 3,
       "family": "widgets-home-screen",
       "headline": "Your next move—before you open the app.",
-      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/canary-draft/en-US/APP_IPHONE_65/03-before-you-open.png",
-      "sha256": "04278b6d548b955f87d54d0dee3842b2c8338ee42f089fdaf0b606325b7c3cf7",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-canary/en-US/APP_IPHONE_65/03-before-you-open.png",
+      "sha256": "7067028abd0a72f28a36439d95804a645bb1645e0163ad636940d38b54d0d67c",
       "sourcePath": "outputs/build86-native-proof/iphone/en-US/home-screen-widgets-final.png",
       "sourceHash": "5a7510dd4193bdf1c4c7d34c24c4d7c0f4de2df1a520002d42cdc32c1167e326",
-      "prompt": "Bold Academic Editorial generative polish: preserve the supplied Build 86 simulator app pixels; add only calm poster framing, exact deterministic headline typography, safe zones, and a restrained StudyPlanner color atmosphere.",
+      "prompt": "Create one premium vertical App Store scene plate in a Bold Academic Editorial visual system. Use the supplied phone-scene references for camera language, negative space, studio lighting, restrained blue/purple/green color atmosphere, realistic metal and glass, and calm poster-like hierarchy. Use the supplied StudyPlanner preview only for approximate composition and scale, never for its UI.\n\nRender a realistic modern device with one perfectly flat, uninterrupted chroma-green screen surface (#00FF63) suitable for deterministic perspective replacement. The screen must contain no UI, text, icon, logo, symbol, number, wallpaper, notch, Dynamic Island, reflection, glare, texture, or gradient. Do not write any marketing copy anywhere.\n\nReserve a generous clean headline safe zone above the device. Keep the device large enough that subsequently composited real app pixels will remain readable. Lighting may affect the chassis and environment but must not contaminate the green screen.\n\nUse high-end restrained product photography, not surreal illustration. No hands, people, stationery clutter, Apple logo, watermark, branding, decorative metrics, or extra devices unless the job explicitly requests a pair.\n\nOutput one scene only.\n\nUse a genuine modern portrait smartphone chassis with realistic iPhone-class proportions, but no branding. Frame for a final 1242×2688 App Store canvas.\n\nWidgets on Home Screen / light. Large display nearly front-facing with no more than four degrees of perspective because real Home Screen widgets must remain fully legible. Use the StudyPlanner preview only for device scale and composition. Quiet luminous white and very pale blue environment with restrained green grounding.",
       "generationMetadata": {
-        "workflow": "claude_creative_production_generative_polish",
-        "method": "deterministic_imagemagick_composite",
-        "aiImageGenerations": 0,
-        "visualReferenceWeight": "near_90_percent_current_live_preview_system"
+        "workflow": "chatgpt_image_2_creative_production_generative_polish",
+        "method": "image_2_scene_plate_plus_deterministic_perspective_composite",
+        "generationAttempt": 1,
+        "aiImageGenerations": 1,
+        "referenceImages": [
+          {
+            "path": "/Users/mattnewman/.codex/attachments/ce119123-d178-4ecb-846b-7d6b7fd58053/image-2.png",
+            "sha256": "b2562c81cebfccc6d832cadf7705685a3af8f27d660dbf6b66081eb691464087"
+          },
+          {
+            "path": "/Users/mattnewman/.codex/attachments/ce119123-d178-4ecb-846b-7d6b7fd58053/image-5.png",
+            "sha256": "4ebe2ab2d4098e56b4bd804e68f82f31a912ac3c6e70bd780a7ec33872f73c0c"
+          }
+        ],
+        "scenePlatePath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPHONE_65/03-before-you-open-plate.png",
+        "scenePlateSha256": "879ce9aad763df310d51aeb6cdbcdd7f4da2a252e34b5e9fc5cf8f571867084b",
+        "sceneTransform": {
+          "cropBox": [
+            24,
+            80,
+            1218,
+            2665
+          ],
+          "method": "review_driven_center_crop_zoom",
+          "shiftY": 30,
+          "zoom": 1.04
+        },
+        "uiSourceOverscanPixels": 0,
+        "perspectiveQuad": [
+          [
+            306.0,
+            796.0
+          ],
+          [
+            939.0,
+            796.0
+          ],
+          [
+            939.0,
+            2214.0
+          ],
+          [
+            306.0,
+            2214.0
+          ]
+        ],
+        "chromaAperture": {
+          "boundingBox": [
+            306,
+            796,
+            939,
+            2214
+          ],
+          "geometry": {
+            "componentOutsideRate": 0.0,
+            "despillPixelCount": 2089,
+            "featherPixelCount": 6277,
+            "matteSupportPixelCount": 900235,
+            "opaquePixelCount": 893958,
+            "polygonOverpaintRate": 0.006322,
+            "quadIoU": 0.993678
+          },
+          "pixelCount": 893958,
+          "replacementCoverage": 1.0,
+          "spill": {
+            "brightGreenExteriorPixelCount": 0,
+            "brightGreenExteriorRate": 0.0,
+            "exteriorRingPixelCount": 4153
+          }
+        }
       },
-      "uiTreatment": "immutable_build86_simulator_pixels",
-      "textTreatment": "deterministic_en_US_typography",
+      "uiTreatment": "immutable_signed_build86_simulator_pixels_perspective_warp_only",
+      "textTreatment": "deterministic_exact_en_US_typography",
       "reviewStatus": "pending_human_canary_review",
-      "releaseEligible": false
+      "releaseEligible": false,
+      "uploadAuthorized": false,
+      "pixelSignature": "60d64a5b6bc127432f99a0b95f59777603ba806e751ea31744193f8491ac8946"
     },
     {
       "locale": "en-US",
@@ -82,43 +307,197 @@
       "slideIndex": 4,
       "family": "schedule",
       "headline": "See heavy weeks before they hit.",
-      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/canary-draft/en-US/APP_IPHONE_65/04-heavy-weeks.png",
-      "sha256": "aa1e469a6b3a3c60b789f6869bd01ddef7e05e0086e48b1183f215488995a303",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-canary/en-US/APP_IPHONE_65/04-heavy-weeks.png",
+      "sha256": "c067bb5771e4b5e4729af55e5e8e24810be004a37960de6588cc7120b9c63e6e",
       "sourcePath": "outputs/build86-native-proof/iphone/en-US/app-atlas/plan-dark.png",
       "sourceHash": "5b9372c78661e91d14e62ae75bacc6fed1ac7fb309e57c0e9ae2e67f9331c30a",
-      "prompt": "Bold Academic Editorial generative polish: preserve the supplied Build 86 simulator app pixels; add only calm poster framing, exact deterministic headline typography, safe zones, and a restrained StudyPlanner color atmosphere.",
+      "prompt": "Use case: precise-object-edit\nAsset type: portrait App Store scene plate, iPhone slide 4 retry, attempt 2\nInput images: Image 1 is the edit target and visual-system continuity reference. Image 2 is the genuine StudyPlanner Plan UI reference for composition, device scale, and future readability only; never reproduce its UI.\nPrimary request: Preserve Image 1's premium dark navy/black product-photography territory, restrained blue rim light, subtle orange workload accent, realistic metal/glass, and large empty headline zone. Rebuild the phone as a large near-front UI-first product shot, upright in portrait, with yaw and pitch each no more than 4 degrees.\nDisplay: the complete inner-glass display must be one flat uninterrupted uniform #00FF63 surface. No UI, text, icons, logo, symbols, numbers, wallpaper, status bar, notch, Dynamic Island, reflection, glare, texture, shadow, gradient, or tonal variation.\nSpill correction: absolutely zero green outside the inner-glass display. No green edge fringe, bezel contamination, chassis tint, cast light, floor glow, floor reflection, or green shadow. Use a neutral charcoal/navy floor with blue and restrained orange illumination only.\nComposition: phone large enough for the eventual real Plan calendar to be readable at App Store thumbnail scale; screen nearly front-facing; device fully inside frame with clean inner-glass boundary; generous untouched headline safe zone above.\nConstraints: no headline, marketing copy, extra device, UI, hands, people, props, Apple logo, branding, or watermark. Image 2 is supporting reference only and must not appear in the generated display.",
       "generationMetadata": {
-        "workflow": "claude_creative_production_generative_polish",
-        "method": "deterministic_imagemagick_composite",
-        "aiImageGenerations": 0,
-        "visualReferenceWeight": "near_90_percent_current_live_preview_system"
+        "workflow": "chatgpt_image_2_creative_production_generative_polish",
+        "method": "image_2_scene_plate_plus_deterministic_perspective_composite",
+        "generationAttempt": 2,
+        "aiImageGenerations": 2,
+        "referenceImages": [
+          {
+            "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPHONE_65/04-heavy-weeks-plate.png",
+            "role": "edit target and visual-system continuity reference",
+            "sha256": "2004d07c82123ff365911a51bf32c4ec8bcf4b99a070493d43085b677d3625f0"
+          },
+          {
+            "path": "outputs/build86-native-proof/iphone/en-US/app-atlas/plan-dark.png",
+            "role": "genuine en-US Build 86 Plan UI reference for composition and eventual readability only; excluded from generated screen",
+            "sha256": "5b9372c78661e91d14e62ae75bacc6fed1ac7fb309e57c0e9ae2e67f9331c30a"
+          }
+        ],
+        "scenePlatePath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPHONE_65/04-heavy-weeks-plate.png",
+        "scenePlateSha256": "e45e510dfe742398d4f785bf191269d06d0f8ffe2c12cca99c0eda8e4fe8ea08",
+        "sceneTransform": {
+          "cropBox": [
+            0,
+            0,
+            1242,
+            2688
+          ],
+          "method": "identity",
+          "shiftY": 0,
+          "zoom": 1.0
+        },
+        "uiSourceOverscanPixels": 0,
+        "perspectiveQuad": [
+          [
+            262.0,
+            745.0
+          ],
+          [
+            976.0,
+            745.0
+          ],
+          [
+            976.0,
+            2305.0
+          ],
+          [
+            262.0,
+            2305.0
+          ]
+        ],
+        "chromaAperture": {
+          "boundingBox": [
+            262,
+            745,
+            976,
+            2305
+          ],
+          "geometry": {
+            "componentOutsideRate": 0.0,
+            "despillPixelCount": 840,
+            "featherPixelCount": 5444,
+            "matteSupportPixelCount": 1115664,
+            "opaquePixelCount": 1110220,
+            "polygonOverpaintRate": 0.005282,
+            "quadIoU": 0.994718
+          },
+          "pixelCount": 1110220,
+          "replacementCoverage": 1.0,
+          "spill": {
+            "brightGreenExteriorPixelCount": 0,
+            "brightGreenExteriorRate": 0.0,
+            "exteriorRingPixelCount": 4586
+          }
+        },
+        "targetedRetry": {
+          "reason": "Attempt 1 had severe perspective drift, residual green edge fringe, and calendar UI too skewed for App Store thumbnail comprehension.",
+          "manifestPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/retry-manifest.json",
+          "manifestSha256": "3baf25879e20a7e202772f72a77382719ee71d4d68c044a80d0128b8af6ae68b",
+          "retryOutputPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/APP_IPHONE_65/04-heavy-weeks-plate-attempt-2.png",
+          "retryOutputSha256": "e45e510dfe742398d4f785bf191269d06d0f8ffe2c12cca99c0eda8e4fe8ea08"
+        }
       },
-      "uiTreatment": "immutable_build86_simulator_pixels",
-      "textTreatment": "deterministic_en_US_typography",
+      "uiTreatment": "immutable_signed_build86_simulator_pixels_perspective_warp_only",
+      "textTreatment": "deterministic_exact_en_US_typography",
       "reviewStatus": "pending_human_canary_review",
-      "releaseEligible": false
+      "releaseEligible": false,
+      "uploadAuthorized": false,
+      "pixelSignature": "40dd338bbb95a83a562743096ba1649e6cf460ab49717a336341f6ddd1f2accf"
     },
     {
       "locale": "en-US",
       "device": "APP_IPHONE_65",
       "slideIndex": 5,
-      "family": "focus",
+      "family": "focus-session",
       "headline": "Turn deadlines into focus time.",
-      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/canary-draft/en-US/APP_IPHONE_65/05-deadlines-to-focus.png",
-      "sha256": "cf96aed112763f435a2c82a6147ea38ea61261ab3656743dabb61e3c4328750a",
-      "sourcePath": "outputs/build86-native-proof/iphone/en-US/app-atlas/focus-dark.png",
-      "sourceHash": "1defbff2c70df59c01d931dc0bbea48c9068f38cd24bccf8ddef4dfd232eaef6",
-      "prompt": "Bold Academic Editorial generative polish: preserve the supplied Build 86 simulator app pixels; add only calm poster framing, exact deterministic headline typography, safe zones, and a restrained StudyPlanner color atmosphere.",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-canary/en-US/APP_IPHONE_65/05-deadlines-to-focus.png",
+      "sha256": "b6e5345c5c693eb8cf12dc88e2c01aa7fe5b34144abf4971e3acda7ee885a3d4",
+      "sourcePath": "outputs/build86-native-proof-recapture/iphone/study-session-dark.png",
+      "sourceHash": "44b1d5baef5d4ac9c7e8b952337be63b8eac734f6adf915cb42cfbcd6c613f2e",
+      "prompt": "Use case: precise-object-edit\nAsset type: portrait App Store scene plate, iPhone slide 5 retry, attempt 2\nInput images: Image 1 is the edit target and visual-system continuity reference. Image 2 is the genuine StudyPlanner Focus Session UI reference for composition, device scale, and future readability only; never reproduce its UI.\nPrimary request: Preserve Image 1's premium dark purple/black studio world, quiet restrained orange focal light, realistic metal/glass, and generous empty headline zone. Rebuild the phone as a large near-front UI-first product shot, upright in portrait, with yaw and pitch each no more than 4 degrees.\nDisplay: the complete inner-glass display must be one perfectly flat uninterrupted uniform #00FF63 surface. No UI, text, icon, logo, symbol, number, wallpaper, status bar, notch, Dynamic Island, reflection, glare, texture, shadow, gradient, or tonal variation.\nSpill correction: absolutely zero green outside the inner-glass display. No green edge seam, bezel contamination, chassis tint, cast light, floor glow, floor reflection, or green shadow. Floor and contact shadow must be neutral charcoal/purple with restrained orange light only.\nComposition: phone large enough for the eventual real Focus Session UI to be readable at App Store thumbnail scale; nearly front-facing, true iPhone portrait proportions, clean inner-glass edge, fully inside frame; generous clean headline safe zone above.\nConstraints: no headline, marketing copy, extra device, generated UI, hands, people, props, Apple logo, branding, or watermark. Image 2 is supporting reference only and must not appear in the generated display.",
       "generationMetadata": {
-        "workflow": "claude_creative_production_generative_polish",
-        "method": "deterministic_imagemagick_composite",
-        "aiImageGenerations": 0,
-        "visualReferenceWeight": "near_90_percent_current_live_preview_system"
+        "workflow": "chatgpt_image_2_creative_production_generative_polish",
+        "method": "image_2_scene_plate_plus_deterministic_perspective_composite",
+        "generationAttempt": 2,
+        "aiImageGenerations": 2,
+        "referenceImages": [
+          {
+            "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPHONE_65/05-deadlines-to-focus-plate.png",
+            "role": "edit target and visual-system continuity reference",
+            "sha256": "f2d4fd9f1dfb5e40a7b587458360360603e514b7826b403b0da7a5f31a05f8bc"
+          },
+          {
+            "path": "outputs/build86-native-proof-recapture/iphone/study-session-dark.png",
+            "role": "genuine en-US Build 86 Focus Session UI reference for composition and eventual readability only; excluded from generated screen",
+            "sha256": "44b1d5baef5d4ac9c7e8b952337be63b8eac734f6adf915cb42cfbcd6c613f2e"
+          }
+        ],
+        "scenePlatePath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPHONE_65/05-deadlines-to-focus-plate.png",
+        "scenePlateSha256": "1da090df7721c23d4adc1e14ec632c9b17a30c8c0e5aaae29c414e39d4b378f4",
+        "sceneTransform": {
+          "cropBox": [
+            0,
+            0,
+            1242,
+            2688
+          ],
+          "method": "identity",
+          "shiftY": 0,
+          "zoom": 1.0
+        },
+        "uiSourceOverscanPixels": 0,
+        "perspectiveQuad": [
+          [
+            237.0,
+            698.0
+          ],
+          [
+            1002.0,
+            698.0
+          ],
+          [
+            1002.0,
+            2359.0
+          ],
+          [
+            237.0,
+            2359.0
+          ]
+        ],
+        "chromaAperture": {
+          "boundingBox": [
+            237,
+            698,
+            1002,
+            2359
+          ],
+          "geometry": {
+            "componentOutsideRate": 0.0,
+            "despillPixelCount": 680,
+            "featherPixelCount": 5575,
+            "matteSupportPixelCount": 1271589,
+            "opaquePixelCount": 1266014,
+            "polygonOverpaintRate": 0.00556,
+            "quadIoU": 0.99444
+          },
+          "pixelCount": 1266014,
+          "replacementCoverage": 1.0,
+          "spill": {
+            "brightGreenExteriorPixelCount": 0,
+            "brightGreenExteriorRate": 0.0,
+            "exteriorRingPixelCount": 4872
+          }
+        },
+        "targetedRetry": {
+          "reason": "Attempt 1 had the pack's worst green edge/floor spill and rendered genuine Focus UI too obliquely and too small.",
+          "manifestPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/retry-manifest.json",
+          "manifestSha256": "3baf25879e20a7e202772f72a77382719ee71d4d68c044a80d0128b8af6ae68b",
+          "retryOutputPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/APP_IPHONE_65/05-deadlines-to-focus-plate-attempt-2.png",
+          "retryOutputSha256": "1da090df7721c23d4adc1e14ec632c9b17a30c8c0e5aaae29c414e39d4b378f4"
+        }
       },
-      "uiTreatment": "immutable_build86_simulator_pixels",
-      "textTreatment": "deterministic_en_US_typography",
+      "uiTreatment": "immutable_signed_build86_simulator_pixels_perspective_warp_only",
+      "textTreatment": "deterministic_exact_en_US_typography",
       "reviewStatus": "pending_human_canary_review",
-      "releaseEligible": false
+      "releaseEligible": false,
+      "uploadAuthorized": false,
+      "pixelSignature": "d00210d66df2ec54fc6e6942b36a8a0ff37fabcd3a5e28604a4d964309609ce4"
     },
     {
       "locale": "en-US",
@@ -126,21 +505,98 @@
       "slideIndex": 6,
       "family": "loop-dark",
       "headline": "Keep every class moving.",
-      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/canary-draft/en-US/APP_IPHONE_65/06-every-class-moving.png",
-      "sha256": "19319a0ce2870a54065cb1e27b0682c0d76585081aec31ee8a4761e629d92a46",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-canary/en-US/APP_IPHONE_65/06-every-class-moving.png",
+      "sha256": "a95d17a745594097ec0d620654141f01fe04a44c7184805dca410304aad919e3",
       "sourcePath": "outputs/build86-native-proof/iphone/en-US/app-atlas/today-dark.png",
       "sourceHash": "1defbff2c70df59c01d931dc0bbea48c9068f38cd24bccf8ddef4dfd232eaef6",
-      "prompt": "Bold Academic Editorial generative polish: preserve the supplied Build 86 simulator app pixels; add only calm poster framing, exact deterministic headline typography, safe zones, and a restrained StudyPlanner color atmosphere.",
+      "prompt": "Use case: precise-object-edit\nAsset type: portrait App Store scene plate, iPhone slide 6 retry, attempt 2\nInput images: Image 1 is the edit target and visual-system continuity reference. Image 2 is the genuine StudyPlanner Today dark UI reference for composition, device scale, and future readability only; never reproduce its UI.\nPrimary request: Preserve Image 1's premium dark blue/purple studio scene, realistic metal/glass, calm poster hierarchy, and large empty headline zone. Rebuild the phone as a large near-front UI-first portrait product shot with yaw and pitch each no more than 4 degrees.\nDisplay: the complete inner-glass display must be one perfectly flat uninterrupted uniform #00FF63 surface. No UI, text, icon, logo, symbol, number, wallpaper, status bar, notch, Dynamic Island, reflection, glare, texture, shadow, gradient, or tonal variation.\nSpill correction: absolutely zero green outside the inner-glass display. No green background accent, edge seam, bezel contamination, chassis tint, cast light, floor glow, floor reflection, or green shadow. Use blue and purple lighting only outside the screen, with a neutral dark floor/contact shadow.\nComposition: phone large enough for the eventual Today UI to read at App Store thumbnail scale; nearly front-facing, upright, true iPhone portrait proportions, clean inner-glass boundary, fully inside frame; generous clean headline safe zone above.\nConstraints: no headline, marketing copy, extra device, generated UI, hands, people, props, Apple logo, branding, or watermark. Image 2 is supporting reference only and must not appear in the generated display.",
       "generationMetadata": {
-        "workflow": "claude_creative_production_generative_polish",
-        "method": "deterministic_imagemagick_composite",
-        "aiImageGenerations": 0,
-        "visualReferenceWeight": "near_90_percent_current_live_preview_system"
+        "workflow": "chatgpt_image_2_creative_production_generative_polish",
+        "method": "image_2_scene_plate_plus_deterministic_perspective_composite",
+        "generationAttempt": 2,
+        "aiImageGenerations": 2,
+        "referenceImages": [
+          {
+            "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPHONE_65/06-every-class-moving-plate.png",
+            "role": "edit target and visual-system continuity reference",
+            "sha256": "a66166218fa4f3b9229804efffd9b8a70d9a3c69554da8dc2fa43a55704cbacd"
+          },
+          {
+            "path": "outputs/build86-native-proof/iphone/en-US/app-atlas/today-dark.png",
+            "role": "genuine en-US Build 86 Today dark UI reference for composition and eventual readability only; excluded from generated screen",
+            "sha256": "1defbff2c70df59c01d931dc0bbea48c9068f38cd24bccf8ddef4dfd232eaef6"
+          }
+        ],
+        "scenePlatePath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPHONE_65/06-every-class-moving-plate.png",
+        "scenePlateSha256": "aa038835edd035c0645f8fc05bdbf5996a328ec0aa6beaf4e5a73c54353f87f5",
+        "sceneTransform": {
+          "cropBox": [
+            29,
+            97,
+            1212,
+            2657
+          ],
+          "method": "review_driven_center_crop_zoom",
+          "shiftY": 35,
+          "zoom": 1.05
+        },
+        "uiSourceOverscanPixels": 0,
+        "perspectiveQuad": [
+          [
+            292.0,
+            832.0
+          ],
+          [
+            949.229,
+            832.0
+          ],
+          [
+            946.456,
+            2295.0
+          ],
+          [
+            292.0,
+            2295.0
+          ]
+        ],
+        "chromaAperture": {
+          "boundingBox": [
+            291,
+            832,
+            949,
+            2295
+          ],
+          "geometry": {
+            "componentOutsideRate": 0.00061,
+            "despillPixelCount": 1809,
+            "featherPixelCount": 6097,
+            "matteSupportPixelCount": 961822,
+            "opaquePixelCount": 955725,
+            "polygonOverpaintRate": 0.006216,
+            "quadIoU": 0.993182
+          },
+          "pixelCount": 955725,
+          "replacementCoverage": 1.0,
+          "spill": {
+            "brightGreenExteriorPixelCount": 0,
+            "brightGreenExteriorRate": 0.0,
+            "exteriorRingPixelCount": 4278
+          }
+        },
+        "targetedRetry": {
+          "reason": "Attempt 1 retained a green screen-edge seam and large green floor pool, with UI perspective too aggressive and lower content clipped.",
+          "manifestPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/retry-manifest.json",
+          "manifestSha256": "3baf25879e20a7e202772f72a77382719ee71d4d68c044a80d0128b8af6ae68b",
+          "retryOutputPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/APP_IPHONE_65/06-every-class-moving-plate-attempt-2.png",
+          "retryOutputSha256": "aa038835edd035c0645f8fc05bdbf5996a328ec0aa6beaf4e5a73c54353f87f5"
+        }
       },
-      "uiTreatment": "immutable_build86_simulator_pixels",
-      "textTreatment": "deterministic_en_US_typography",
+      "uiTreatment": "immutable_signed_build86_simulator_pixels_perspective_warp_only",
+      "textTreatment": "deterministic_exact_en_US_typography",
       "reviewStatus": "pending_human_canary_review",
-      "releaseEligible": false
+      "releaseEligible": false,
+      "uploadAuthorized": false,
+      "pixelSignature": "679c06f3752a3b52fd48f616c75076f9de26290230dfced0b250deb592be8c6a"
     },
     {
       "locale": "en-US",
@@ -148,21 +604,98 @@
       "slideIndex": 7,
       "family": "review",
       "headline": "Review uncertain dates before they count.",
-      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/canary-draft/en-US/APP_IPHONE_65/07-review-uncertain-dates.png",
-      "sha256": "dc74cc674e3d807fec345e296c310e3d50e39046b11a9b5c21387c74eee1726c",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-canary/en-US/APP_IPHONE_65/07-review-uncertain-dates.png",
+      "sha256": "4a2c6a3ed605fd83b20f27248f80651bee36b0193cb864c4e5aabc33356f1f53",
       "sourcePath": "outputs/build86-native-proof/iphone/en-US/app-atlas/review-light.png",
       "sourceHash": "7a393ada18b2df1b9e55730da67941771186f11a3aac81b0b2279ce606a68436",
-      "prompt": "Bold Academic Editorial generative polish: preserve the supplied Build 86 simulator app pixels; add only calm poster framing, exact deterministic headline typography, safe zones, and a restrained StudyPlanner color atmosphere.",
+      "prompt": "Use case: precise-object-edit\nAsset type: portrait App Store scene plate, iPhone slide 7 retry, attempt 2\nInput images: Image 1 is the edit target and source of visual-system continuity. Image 2 is the exact genuine en-US StudyPlanner Review Import UI reference for device scale and eventual thumbnail legibility only; never reproduce any UI from it.\nPrimary request: Preserve Image 1's high-key warm cream studio world, restrained orange review accent at left, premium realistic black/silver metal and glass, calm poster hierarchy, and generous empty headline zone. Rebuild the phone substantially larger and nearly front-facing so the eventual genuine Review UI is the proof object.\nComposition: one upright portrait phone centered in the lower half; the outer phone must occupy approximately 55–60% of total canvas width; yaw no more than 3 degrees and pitch no more than 3 degrees; true modern iPhone proportions; fully inside frame; clean readable screen geometry at 20% App Store thumbnail scale; generous clean negative space above for deterministic headline.\nDisplay: the complete inner-glass display must be one perfectly flat, uninterrupted, uniform chroma green #00FF63 surface. No UI, text, icon, logo, symbol, number, wallpaper, status bar, notch, Dynamic Island, reflection, glare, texture, shadow, gradient, or tonal variation.\nSpill correction: absolutely zero green outside the inner-glass display. No green edge fringe, bezel contamination, chassis tint, cast light, floor glow, floor reflection, or green shadow. The floor and contact shadow must be neutral warm cream/soft gray; retain only the restrained orange environmental accent.\nConstraints: no headline, no marketing copy, no generated UI, no extra device, no hands, no people, no props, no Apple logo, no branding, no watermark. Image 2 is a supporting composition/scale reference only and must not appear in the generated display.",
       "generationMetadata": {
-        "workflow": "claude_creative_production_generative_polish",
-        "method": "deterministic_imagemagick_composite",
-        "aiImageGenerations": 0,
-        "visualReferenceWeight": "near_90_percent_current_live_preview_system"
+        "workflow": "chatgpt_image_2_creative_production_generative_polish",
+        "method": "image_2_scene_plate_plus_deterministic_perspective_composite",
+        "generationAttempt": 2,
+        "aiImageGenerations": 2,
+        "referenceImages": [
+          {
+            "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPHONE_65/07-review-uncertain-dates-plate.png",
+            "role": "edit target and warm cream/orange visual-system continuity reference",
+            "sha256": "cfaff27b5130867b999a53b02afdc8c6c4f0edfe240096cf8b3f1c7f9b4220e7"
+          },
+          {
+            "path": "outputs/build86-native-proof/iphone/en-US/app-atlas/review-light.png",
+            "role": "exact genuine en-US Build 86 Review Import UI reference for composition, scale, and eventual thumbnail readability only; excluded from generated screen",
+            "sha256": "7a393ada18b2df1b9e55730da67941771186f11a3aac81b0b2279ce606a68436"
+          }
+        ],
+        "scenePlatePath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPHONE_65/07-review-uncertain-dates-plate.png",
+        "scenePlateSha256": "1192b230e3af78e323122d4447f38ff5e4e8240737edd43f52064229dc9289cf",
+        "sceneTransform": {
+          "cropBox": [
+            0,
+            0,
+            1242,
+            2688
+          ],
+          "method": "identity",
+          "shiftY": 0,
+          "zoom": 1.0
+        },
+        "uiSourceOverscanPixels": 0,
+        "perspectiveQuad": [
+          [
+            317.0,
+            794.0
+          ],
+          [
+            938.38,
+            794.0
+          ],
+          [
+            936.697,
+            2198.0
+          ],
+          [
+            317.0,
+            2198.0
+          ]
+        ],
+        "chromaAperture": {
+          "boundingBox": [
+            317,
+            794,
+            938,
+            2199
+          ],
+          "geometry": {
+            "componentOutsideRate": 0.00102,
+            "despillPixelCount": 1930,
+            "featherPixelCount": 6044,
+            "matteSupportPixelCount": 873879,
+            "opaquePixelCount": 867835,
+            "polygonOverpaintRate": 0.006366,
+            "quadIoU": 0.992628
+          },
+          "pixelCount": 867835,
+          "replacementCoverage": 1.0,
+          "spill": {
+            "brightGreenExteriorPixelCount": 0,
+            "brightGreenExteriorRate": 0.0,
+            "exteriorRingPixelCount": 4081
+          }
+        },
+        "targetedRetry": {
+          "reason": "Blind v3 review scored attempt 1 at 8.6/10 because the narrow three-quarter phone occupied only about 38% of canvas width, making Review Import, the approval action, and conflict-review proof unreadable at 20% App Store thumbnail scale and breaking pack coherence.",
+          "manifestPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/retry-manifest.json",
+          "manifestSha256": "3baf25879e20a7e202772f72a77382719ee71d4d68c044a80d0128b8af6ae68b",
+          "retryOutputPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/APP_IPHONE_65/07-review-uncertain-dates-plate-attempt-2.png",
+          "retryOutputSha256": "1192b230e3af78e323122d4447f38ff5e4e8240737edd43f52064229dc9289cf"
+        }
       },
-      "uiTreatment": "immutable_build86_simulator_pixels",
-      "textTreatment": "deterministic_en_US_typography",
+      "uiTreatment": "immutable_signed_build86_simulator_pixels_perspective_warp_only",
+      "textTreatment": "deterministic_exact_en_US_typography",
       "reviewStatus": "pending_human_canary_review",
-      "releaseEligible": false
+      "releaseEligible": false,
+      "uploadAuthorized": false,
+      "pixelSignature": "4ee5e9bf368a85ff05a6f901e403dd37b2e1e317aaea71bc754f5c37b453c86f"
     },
     {
       "locale": "en-US",
@@ -170,21 +703,98 @@
       "slideIndex": 1,
       "family": "hero",
       "headline": "Turn your syllabus into a plan.",
-      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/canary-draft/en-US/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
-      "sha256": "b4dbc6685eca7d184155f873544e9ec36a66f3508d9f8ce6d2811c7b6c6c1be4",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-canary/en-US/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan.png",
+      "sha256": "97ed666149173361b6e4bbc2dfc32ac69450189202425d5ea9819798fb32a176",
       "sourcePath": "outputs/build86-native-proof/ipad/en-US/app-atlas/scan-light.png",
       "sourceHash": "1162fcee242f3de6941f498ad990c5839aecb7d648059c248a7341780a78ac7b",
-      "prompt": "Bold Academic Editorial generative polish: preserve the supplied Build 86 simulator app pixels; add only calm poster framing, exact deterministic headline typography, safe zones, and a restrained StudyPlanner color atmosphere.",
+      "prompt": "Use case: ads-marketing\nAsset type: targeted retry scene plate for a vertical iPad App Store screenshot, attempt 2\nPrimary request: Create one premium 3:4 portrait Bold Academic Editorial product-photography scene plate for slide 1. The deliverable is only the environment, device chassis, lighting, shadows, and a replaceable chroma screen.\nInput images: Image 1 is the current scene plate; preserve its calm high-key cream/white visual territory and restrained blue-violet depth, but correct its green spill and screen-edge defects. Image 2 is genuine StudyPlanner Build 86 iPad UI; use it only to understand the portrait screen aspect ratio and the need for a large legible screen after later deterministic compositing. Do not reproduce, imitate, redraw, or retain any UI, text, icon, status bar, number, logo, or coursework from Image 2.\nScene/backdrop: high-key cream-white studio with subtle neutral floor and restrained blue-violet atmospheric depth. The floor and all surroundings must be neutral/non-green.\nSubject: exactly one genuine portrait 12.9-inch iPad Pro-style tablet with authentic tablet proportions, thin uniform black bezel, realistic metal and glass, no phone notch, no phone buttons, no Apple logo. The entire inner-glass display is one perfectly flat, uninterrupted, uniform chroma-green #00FF63 replacement surface.\nComposition/framing: vertical 3:4. Reserve the clean upper 35% as generous empty headline space. Place the iPad large in the lower portion, about 72–76% of canvas width, almost front-facing with no more than 2 degrees yaw or pitch. Keep the whole display aperture visible and easy to perspective-replace.\nLighting/mood: premium restrained product photography, soft studio light, calm and editorial. Lighting may affect chassis and environment but must not affect the green surface.\nConstraints: The green surface is a non-emissive digital replacement layer contained strictly inside the inner glass. It must be exactly uniform #00FF63 edge to edge with hard clean coverage under the bezel. No green pixel, halo, bloom, spill, cast, reflection, edge fringe, or floor light may exist outside the inner display aperture. No white curl, corner glint, reflection, glare, highlight, texture, gradient, shadow, notch, Dynamic Island, symbol, or artifact inside the green glass. Keep a solid opaque black bezel separating green from the scene.\nAvoid: any generated UI or text; headlines; logos; icons; charts; numbers; claims; coursework; status-bar content; hands; people; stationery; clutter; watermark; branding; extra devices; green anywhere except the inner glass.",
       "generationMetadata": {
-        "workflow": "claude_creative_production_generative_polish",
-        "method": "deterministic_imagemagick_composite",
-        "aiImageGenerations": 0,
-        "visualReferenceWeight": "near_90_percent_current_live_preview_system"
+        "workflow": "chatgpt_image_2_creative_production_generative_polish",
+        "method": "image_2_scene_plate_plus_deterministic_perspective_composite",
+        "generationAttempt": 2,
+        "aiImageGenerations": 2,
+        "referenceImages": [
+          {
+            "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan-plate.png",
+            "role": "visual-system continuity",
+            "sha256": "0babed488f2cd0041528b6f0181a707aa592b4bbe9fa673ad81dfc7e60e70d4b"
+          },
+          {
+            "path": "outputs/build86-native-proof/ipad/en-US/app-atlas/scan-light.png",
+            "role": "genuine Build 86 UI layout/legibility reference only",
+            "sha256": "1162fcee242f3de6941f498ad990c5839aecb7d648059c248a7341780a78ac7b"
+          }
+        ],
+        "scenePlatePath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan-plate.png",
+        "scenePlateSha256": "0503c490d49e8917a68caa173d13676c2a54a04332034019b09930dfcaadddfa",
+        "sceneTransform": {
+          "cropBox": [
+            0,
+            0,
+            2048,
+            2732
+          ],
+          "method": "identity",
+          "shiftY": 0,
+          "zoom": 1.0
+        },
+        "uiSourceOverscanPixels": 8,
+        "perspectiveQuad": [
+          [
+            468.0,
+            942.098
+          ],
+          [
+            1578.0,
+            958.349
+          ],
+          [
+            1578.0,
+            2464.93
+          ],
+          [
+            468.0,
+            2482.479
+          ]
+        ],
+        "chromaAperture": {
+          "boundingBox": [
+            475,
+            950,
+            1572,
+            2473
+          ],
+          "geometry": {
+            "componentOutsideRate": 0.001134,
+            "despillPixelCount": 2166,
+            "featherPixelCount": 7445,
+            "matteSupportPixelCount": 1659545,
+            "opaquePixelCount": 1652100,
+            "polygonOverpaintRate": 0.000304,
+            "quadIoU": 0.998563
+          },
+          "pixelCount": 1652100,
+          "replacementCoverage": 1.0,
+          "spill": {
+            "brightGreenExteriorPixelCount": 0,
+            "brightGreenExteriorRate": 0.0,
+            "exteriorRingPixelCount": 5278
+          }
+        },
+        "targetedRetry": {
+          "reason": "Original hero had keyed edge residue and lower-right white curl; retry requires a larger clean near-front display.",
+          "manifestPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/APP_IPAD_PRO_3GEN_129/retry-manifest.json",
+          "manifestSha256": "4f3287b86b5593d6a7b8f2ab486909028f94a122a126dd697c1eb8e605831dcd",
+          "retryOutputPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/APP_IPAD_PRO_3GEN_129/01-syllabus-to-plan-plate.png",
+          "retryOutputSha256": "0503c490d49e8917a68caa173d13676c2a54a04332034019b09930dfcaadddfa"
+        }
       },
-      "uiTreatment": "immutable_build86_simulator_pixels",
-      "textTreatment": "deterministic_en_US_typography",
+      "uiTreatment": "immutable_signed_build86_simulator_pixels_perspective_warp_only",
+      "textTreatment": "deterministic_exact_en_US_typography",
       "reviewStatus": "pending_human_canary_review",
-      "releaseEligible": false
+      "releaseEligible": false,
+      "uploadAuthorized": false,
+      "pixelSignature": "74e1a60b7b4a531a024d696269ecde0f3b1a3bbd27fed974f4d658245f6b7adb"
     },
     {
       "locale": "en-US",
@@ -192,21 +802,98 @@
       "slideIndex": 2,
       "family": "loop-light",
       "headline": "Know what needs you today.",
-      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/canary-draft/en-US/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
-      "sha256": "172c647623bf0c90bf1c81db1275ad4d67234403aeb9a33ed97b3622820cd149",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-canary/en-US/APP_IPAD_PRO_3GEN_129/02-needs-you-today.png",
+      "sha256": "94c43717aea53e70d93cda32b3ae207969ca98c9875e86647ac6cb122d13269b",
       "sourcePath": "outputs/build86-native-proof/ipad/en-US/app-atlas/today-light.png",
       "sourceHash": "05f9489def8264082cd47703e7f7214776297e1aa5154bba541de6f354010701",
-      "prompt": "Bold Academic Editorial generative polish: preserve the supplied Build 86 simulator app pixels; add only calm poster framing, exact deterministic headline typography, safe zones, and a restrained StudyPlanner color atmosphere.",
+      "prompt": "Use case: ads-marketing\nAsset type: targeted retry scene plate for vertical iPad App Store screenshot, attempt 2, slide 2\nPrimary request: Create one premium 3:4 portrait Bold Academic Editorial product-photography plate containing only scene, device chassis, lighting, shadow, and a replaceable chroma screen.\nInput images: Image 1 is visual-system continuity only: preserve its high-key white negative space with restrained blue/violet grounding, but make the tablet substantially larger and remove every green spill or screen-edge defect. Image 2 is genuine StudyPlanner Build 86 iPad UI, used only for portrait screen aspect and required later legibility. Never reproduce or retain any UI, text, icon, status bar, number, logo, or coursework.\nScene/backdrop: white/cream studio, neutral floor, restrained blue and violet grounding. No green in the set or floor.\nSubject: exactly one genuine portrait 12.9-inch iPad Pro-style chassis, realistic tablet proportions, thin solid black bezel, no phone notch or phone buttons, no Apple logo. The complete inner-glass display is one perfectly flat, uninterrupted, exactly uniform #00FF63 screen.\nComposition/framing: vertical 3:4; clean upper 35% empty headline zone; tablet large in lower portion at 68–73% canvas width; nearly front-facing, maximum 2 degrees yaw/pitch; whole display visible and easy to replace.\nLighting/mood: soft restrained premium studio photography. Green layer is non-emissive and casts no light.\nConstraints: #00FF63 exists only inside the inner glass, edge-to-edge under the bezel. Absolutely zero green pixel, halo, bloom, spill, cast, reflection, fringe, or floor light outside the display. No white curl, corner glint, reflection, glare, texture, gradient, shadow, notch, symbol, or artifact inside the green glass. Opaque black bezel must cleanly isolate screen from scene.\nAvoid: generated UI or text, headlines, icons, logos, charts, numbers, claims, coursework, status-bar content, hands, people, clutter, watermark, branding, extra devices, green anywhere except inner glass.",
       "generationMetadata": {
-        "workflow": "claude_creative_production_generative_polish",
-        "method": "deterministic_imagemagick_composite",
-        "aiImageGenerations": 0,
-        "visualReferenceWeight": "near_90_percent_current_live_preview_system"
+        "workflow": "chatgpt_image_2_creative_production_generative_polish",
+        "method": "image_2_scene_plate_plus_deterministic_perspective_composite",
+        "generationAttempt": 2,
+        "aiImageGenerations": 2,
+        "referenceImages": [
+          {
+            "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPAD_PRO_3GEN_129/02-needs-you-today-plate.png",
+            "role": "visual-system continuity",
+            "sha256": "26b64accb0d66f372783f719e288c277ddccb823b33cc9fb80171b6436503077"
+          },
+          {
+            "path": "outputs/build86-native-proof/ipad/en-US/app-atlas/today-light.png",
+            "role": "genuine Build 86 UI layout/legibility reference only",
+            "sha256": "05f9489def8264082cd47703e7f7214776297e1aa5154bba541de6f354010701"
+          }
+        ],
+        "scenePlatePath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPAD_PRO_3GEN_129/02-needs-you-today-plate.png",
+        "scenePlateSha256": "1540f6b80f58bcafeb593a9b6b37d36df11b61c3b018ef02654900d449e39fc1",
+        "sceneTransform": {
+          "cropBox": [
+            0,
+            0,
+            2048,
+            2732
+          ],
+          "method": "identity",
+          "shiftY": 0,
+          "zoom": 1.0
+        },
+        "uiSourceOverscanPixels": 8,
+        "perspectiveQuad": [
+          [
+            557.001,
+            878.071
+          ],
+          [
+            1603.913,
+            853.168
+          ],
+          [
+            1604.161,
+            2436.081
+          ],
+          [
+            557.001,
+            2392.675
+          ]
+        ],
+        "chromaAperture": {
+          "boundingBox": [
+            565,
+            862,
+            1597,
+            2426
+          ],
+          "geometry": {
+            "componentOutsideRate": 0.001302,
+            "despillPixelCount": 2255,
+            "featherPixelCount": 7556,
+            "matteSupportPixelCount": 1590514,
+            "opaquePixelCount": 1582958,
+            "polygonOverpaintRate": 0.000592,
+            "quadIoU": 0.998107
+          },
+          "pixelCount": 1582958,
+          "replacementCoverage": 1.0,
+          "spill": {
+            "brightGreenExteriorPixelCount": 0,
+            "brightGreenExteriorRate": 0.0,
+            "exteriorRingPixelCount": 5292
+          }
+        },
+        "targetedRetry": {
+          "reason": "Original device was too small for strong UI readability and retained edge/curl artifacts.",
+          "manifestPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/APP_IPAD_PRO_3GEN_129/retry-manifest.json",
+          "manifestSha256": "4f3287b86b5593d6a7b8f2ab486909028f94a122a126dd697c1eb8e605831dcd",
+          "retryOutputPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/APP_IPAD_PRO_3GEN_129/02-needs-you-today-plate.png",
+          "retryOutputSha256": "1540f6b80f58bcafeb593a9b6b37d36df11b61c3b018ef02654900d449e39fc1"
+        }
       },
-      "uiTreatment": "immutable_build86_simulator_pixels",
-      "textTreatment": "deterministic_en_US_typography",
+      "uiTreatment": "immutable_signed_build86_simulator_pixels_perspective_warp_only",
+      "textTreatment": "deterministic_exact_en_US_typography",
       "reviewStatus": "pending_human_canary_review",
-      "releaseEligible": false
+      "releaseEligible": false,
+      "uploadAuthorized": false,
+      "pixelSignature": "a85df6b5c179e55a16ee480eaf905a73cdf087ea65c585b534369fdaa5fb441e"
     },
     {
       "locale": "en-US",
@@ -214,21 +901,89 @@
       "slideIndex": 3,
       "family": "widgets-home-screen",
       "headline": "Your next move—before you open the app.",
-      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/canary-draft/en-US/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
-      "sha256": "14c20b99d41ca9875c5914bc7d1bc5d7eaed01787d8eda3c4ec7ee67f62b2ae7",
-      "sourcePath": "outputs/build86-native-proof/ipad/en-US/home-screen-widgets-final.png",
-      "sourceHash": "22d14e602dd67799433c23472507f2e5ba14ccaa9d71da39da8ff07a40f94f70",
-      "prompt": "Bold Academic Editorial generative polish: preserve the supplied Build 86 simulator app pixels; add only calm poster framing, exact deterministic headline typography, safe zones, and a restrained StudyPlanner color atmosphere.",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-canary/en-US/APP_IPAD_PRO_3GEN_129/03-before-you-open.png",
+      "sha256": "9689469ebcdcdfb8f6ea20c38a91cf0ea0c4dc9cd102cc1fda1d0a268f6e529d",
+      "sourcePath": "outputs/build86-native-proof-recapture/ipad/home-screen-widgets-clean.png",
+      "sourceHash": "46071eff332fce3a231bc520d536016c232e7872e50cd6650626b70acacdbf41",
+      "prompt": "Create one premium vertical App Store scene plate in a Bold Academic Editorial visual system. Use the supplied phone-scene references for camera language, negative space, studio lighting, restrained blue/purple/green color atmosphere, realistic metal and glass, and calm poster-like hierarchy. Use the supplied StudyPlanner preview only for approximate composition and scale, never for its UI.\n\nRender a realistic modern device with one perfectly flat, uninterrupted chroma-green screen surface (#00FF63) suitable for deterministic perspective replacement. The screen must contain no UI, text, icon, logo, symbol, number, wallpaper, notch, Dynamic Island, reflection, glare, texture, or gradient. Do not write any marketing copy anywhere.\n\nReserve a generous clean headline safe zone above the device. Keep the device large enough that subsequently composited real app pixels will remain readable. Lighting may affect the chassis and environment but must not contaminate the green screen.\n\nUse high-end restrained product photography, not surreal illustration. No hands, people, stationery clutter, Apple logo, watermark, branding, decorative metrics, or extra devices unless the job explicitly requests a pair.\n\nOutput one scene only.\n\nUse a genuine portrait 12.9-inch iPad Pro-style chassis and tablet proportions. Do not stretch an iPhone, add phone buttons, or add a phone notch. Frame for a final 2048×2732 App Store canvas.\n\nWidgets on Home Screen / light. Large display nearly front-facing with no more than four degrees of perspective because real Home Screen widgets must remain fully legible. Use the StudyPlanner preview only for device scale and composition. Quiet luminous white and very pale blue environment with restrained green grounding.",
       "generationMetadata": {
-        "workflow": "claude_creative_production_generative_polish",
-        "method": "deterministic_imagemagick_composite",
-        "aiImageGenerations": 0,
-        "visualReferenceWeight": "near_90_percent_current_live_preview_system"
+        "workflow": "chatgpt_image_2_creative_production_generative_polish",
+        "method": "image_2_scene_plate_plus_deterministic_perspective_composite",
+        "generationAttempt": 1,
+        "aiImageGenerations": 1,
+        "referenceImages": [
+          {
+            "path": "/Users/mattnewman/.codex/attachments/ce119123-d178-4ecb-846b-7d6b7fd58053/image-2.png",
+            "sha256": "b2562c81cebfccc6d832cadf7705685a3af8f27d660dbf6b66081eb691464087"
+          },
+          {
+            "path": "/Users/mattnewman/.codex/attachments/ce119123-d178-4ecb-846b-7d6b7fd58053/image-5.png",
+            "sha256": "4ebe2ab2d4098e56b4bd804e68f82f31a912ac3c6e70bd780a7ec33872f73c0c"
+          }
+        ],
+        "scenePlatePath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPAD_PRO_3GEN_129/03-before-you-open-plate.png",
+        "scenePlateSha256": "f0fdcb2b44c0e58c5eb8c19742fc18e735d06d222cec1ca6a790d566ed8fb1df",
+        "sceneTransform": {
+          "cropBox": [
+            0,
+            0,
+            2048,
+            2732
+          ],
+          "method": "identity",
+          "shiftY": 0,
+          "zoom": 1.0
+        },
+        "uiSourceOverscanPixels": 8,
+        "perspectiveQuad": [
+          [
+            467.317,
+            758.0
+          ],
+          [
+            1624.99,
+            758.0
+          ],
+          [
+            1624.99,
+            2441.0
+          ],
+          [
+            464.454,
+            2441.0
+          ]
+        ],
+        "chromaAperture": {
+          "boundingBox": [
+            473,
+            766,
+            1618,
+            2433
+          ],
+          "geometry": {
+            "componentOutsideRate": 8e-05,
+            "despillPixelCount": 4387,
+            "featherPixelCount": 10031,
+            "matteSupportPixelCount": 1916852,
+            "opaquePixelCount": 1906821,
+            "polygonOverpaintRate": 0.001235,
+            "quadIoU": 0.998685
+          },
+          "pixelCount": 1906821,
+          "replacementCoverage": 1.0,
+          "spill": {
+            "brightGreenExteriorPixelCount": 0,
+            "brightGreenExteriorRate": 0.0,
+            "exteriorRingPixelCount": 5646
+          }
+        }
       },
-      "uiTreatment": "immutable_build86_simulator_pixels",
-      "textTreatment": "deterministic_en_US_typography",
+      "uiTreatment": "immutable_signed_build86_simulator_pixels_perspective_warp_only",
+      "textTreatment": "deterministic_exact_en_US_typography",
       "reviewStatus": "pending_human_canary_review",
-      "releaseEligible": false
+      "releaseEligible": false,
+      "uploadAuthorized": false,
+      "pixelSignature": "cbae25d74677ff231e36d509425fa1b0c1eabc54519551eeb83d7ee02efc1e6b"
     },
     {
       "locale": "en-US",
@@ -236,43 +991,197 @@
       "slideIndex": 4,
       "family": "schedule",
       "headline": "See heavy weeks before they hit.",
-      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/canary-draft/en-US/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
-      "sha256": "65cf81c0667443c485e8bdf52338d3e99003b01a34a672f2068253e83f1a0f2e",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-canary/en-US/APP_IPAD_PRO_3GEN_129/04-heavy-weeks.png",
+      "sha256": "6699477df722a239b3b5081d140fad4a3a5be10418a0465f2feee70017a0d0a9",
       "sourcePath": "outputs/build86-native-proof/ipad/en-US/app-atlas/plan-dark.png",
       "sourceHash": "11b52677648b5655b8e4a67702a594d213f46b5559e076857e683b192699fbc0",
-      "prompt": "Bold Academic Editorial generative polish: preserve the supplied Build 86 simulator app pixels; add only calm poster framing, exact deterministic headline typography, safe zones, and a restrained StudyPlanner color atmosphere.",
+      "prompt": "Use case: ads-marketing\nAsset type: targeted retry scene plate for vertical iPad App Store screenshot, attempt 2, slide 4\nPrimary request: Create one premium 3:4 portrait Bold Academic Editorial dark product-photography plate containing only scene, device chassis, lighting, shadow, and a replaceable chroma screen.\nInput images: Image 1 provides dark navy/black, blue rim light, and restrained orange workload atmosphere; preserve that visual family while correcting its extreme perspective and green leakage. Image 2 is genuine StudyPlanner Build 86 Plan UI, used only for portrait aspect and the requirement that later UI be large and readable. Do not reproduce or retain any UI/text/icons/numbers/status bar.\nScene/backdrop: dark navy-black studio, neutral charcoal floor, deep blue rim illumination and one restrained distant orange accent. No green outside the tablet.\nSubject: exactly one large genuine portrait 12.9-inch iPad Pro-style chassis, authentic tablet proportions, thin opaque black bezel, realistic metal/glass, no phone notch/buttons, no Apple logo. Entire inner-glass display is a flat uninterrupted exact-uniform #00FF63 replacement surface.\nComposition/framing: vertical 3:4. Reserve clean upper 32–35% headline space. Place tablet large in lower portion, 72–77% canvas width. It must be almost front-facing with yaw and pitch each no greater than 3 degrees; no dramatic angle, foreshortening, or trapezoid. Keep full display visible.\nLighting/mood: cinematic but restrained and highly legible; chassis may catch blue/orange rim light. Chroma surface is non-emissive and unaffected by lighting.\nConstraints: green is strictly contained inside glass, edge-to-edge beneath bezel. Zero green pixel/halo/bloom/spill/cast/reflection/fringe outside glass or on floor/chassis. No white curl or corner reflection anywhere. Inside display: no glare, texture, gradient, highlight, shadow, symbol, or artifact. Opaque black bezel cleanly separates glass from scene.\nAvoid: any generated UI/text/headline/logo/icon/chart/number/coursework/status bar; people/hands; clutter; watermark; branding; extra devices; green anywhere except inner glass.",
       "generationMetadata": {
-        "workflow": "claude_creative_production_generative_polish",
-        "method": "deterministic_imagemagick_composite",
-        "aiImageGenerations": 0,
-        "visualReferenceWeight": "near_90_percent_current_live_preview_system"
+        "workflow": "chatgpt_image_2_creative_production_generative_polish",
+        "method": "image_2_scene_plate_plus_deterministic_perspective_composite",
+        "generationAttempt": 2,
+        "aiImageGenerations": 2,
+        "referenceImages": [
+          {
+            "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPAD_PRO_3GEN_129/04-heavy-weeks-plate.png",
+            "role": "visual-system continuity",
+            "sha256": "6ed16f44038246eee2b9f6493a6f533ced33ec8431ee463923241366c640c315"
+          },
+          {
+            "path": "outputs/build86-native-proof/ipad/en-US/app-atlas/plan-dark.png",
+            "role": "genuine Build 86 UI layout/legibility reference only",
+            "sha256": "11b52677648b5655b8e4a67702a594d213f46b5559e076857e683b192699fbc0"
+          }
+        ],
+        "scenePlatePath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPAD_PRO_3GEN_129/04-heavy-weeks-plate.png",
+        "scenePlateSha256": "0fe2dccfe1cc71eb22cd86c7e79afc6607317ad72333d41b60de01b85d56a91f",
+        "sceneTransform": {
+          "cropBox": [
+            133,
+            178,
+            1914,
+            2554
+          ],
+          "method": "review_driven_center_crop_zoom",
+          "shiftY": 0,
+          "zoom": 1.15
+        },
+        "uiSourceOverscanPixels": 8,
+        "perspectiveQuad": [
+          [
+            386.322,
+            823.0
+          ],
+          [
+            1695.995,
+            823.0
+          ],
+          [
+            1695.995,
+            2602.0
+          ],
+          [
+            384.677,
+            2602.0
+          ]
+        ],
+        "chromaAperture": {
+          "boundingBox": [
+            393,
+            831,
+            1688,
+            2594
+          ],
+          "geometry": {
+            "componentOutsideRate": 0.0,
+            "despillPixelCount": 1025,
+            "featherPixelCount": 7184,
+            "matteSupportPixelCount": 2291309,
+            "opaquePixelCount": 2284125,
+            "polygonOverpaintRate": 0.000883,
+            "quadIoU": 0.999117
+          },
+          "pixelCount": 2284125,
+          "replacementCoverage": 1.0,
+          "spill": {
+            "brightGreenExteriorPixelCount": 0,
+            "brightGreenExteriorRate": 0.0,
+            "exteriorRingPixelCount": 6143
+          }
+        },
+        "targetedRetry": {
+          "reason": "Original plate failed for severe perspective compression, green perimeter leakage, unreadable UI scale, and bottom crop.",
+          "manifestPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/APP_IPAD_PRO_3GEN_129/retry-manifest.json",
+          "manifestSha256": "4f3287b86b5593d6a7b8f2ab486909028f94a122a126dd697c1eb8e605831dcd",
+          "retryOutputPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/APP_IPAD_PRO_3GEN_129/04-heavy-weeks-plate.png",
+          "retryOutputSha256": "0fe2dccfe1cc71eb22cd86c7e79afc6607317ad72333d41b60de01b85d56a91f"
+        }
       },
-      "uiTreatment": "immutable_build86_simulator_pixels",
-      "textTreatment": "deterministic_en_US_typography",
+      "uiTreatment": "immutable_signed_build86_simulator_pixels_perspective_warp_only",
+      "textTreatment": "deterministic_exact_en_US_typography",
       "reviewStatus": "pending_human_canary_review",
-      "releaseEligible": false
+      "releaseEligible": false,
+      "uploadAuthorized": false,
+      "pixelSignature": "80df9803696d680af129c5397914055097e81d0034201fffbb8884872286a591"
     },
     {
       "locale": "en-US",
       "device": "APP_IPAD_PRO_3GEN_129",
       "slideIndex": 5,
-      "family": "focus",
+      "family": "focus-session",
       "headline": "Turn deadlines into focus time.",
-      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/canary-draft/en-US/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
-      "sha256": "c4df440a8b0c4b09d0715716ec31fead2a1db61366e01ba033f0ebcd38f0aaeb",
-      "sourcePath": "outputs/build86-native-proof/ipad/en-US/app-atlas/focus-dark.png",
-      "sourceHash": "3dfcb8d11c204bdc61dee03bce381d7023a5502c37f351fe1e20380e1ea2f76c",
-      "prompt": "Bold Academic Editorial generative polish: preserve the supplied Build 86 simulator app pixels; add only calm poster framing, exact deterministic headline typography, safe zones, and a restrained StudyPlanner color atmosphere.",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-canary/en-US/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus.png",
+      "sha256": "2a5a79aa4750293bf6e941748971ec3878e6d5f7fd048a9350e0d3ca8dff0bf1",
+      "sourcePath": "outputs/build86-native-proof-recapture/ipad/study-session-progressed-dark.png",
+      "sourceHash": "8c52de1675e8033ce9f220201028757c1a701a29ee12944838c1297811bd5cca",
+      "prompt": "Use case: ads-marketing\nAsset type: targeted retry scene plate for vertical iPad App Store screenshot, attempt 2, slide 5 Focus\nPrimary request: Create one premium 3:4 portrait Bold Academic Editorial dark product-photography plate containing only scene, device chassis, lighting, shadow, and a replaceable chroma screen. This retry must make the later real Focus UI large and plainly legible.\nInput images: Image 1 provides dark purple/black and quiet orange focal-light continuity, but discard its extreme oblique angle, green spill, and white-curl defects. Image 2 is genuine StudyPlanner Build 86 Focus Session UI; use it only for portrait aspect and to size the tablet so the later exact UI is large/readable. Never reproduce or retain any UI, words, icons, numbers, status bar, or coursework.\nScene/backdrop: dark purple-black studio with neutral charcoal floor, deep indigo ambience, and one restrained warm orange side/rim accent. No green outside tablet glass.\nSubject: exactly one large genuine portrait 12.9-inch iPad Pro-style chassis with authentic proportions, thin opaque black bezel, realistic metal and glass, no phone notch/buttons, no Apple logo. Entire inner-glass screen is one perfectly flat uninterrupted exactly uniform #00FF63 replacement surface.\nComposition/framing: vertical 3:4; generous clean upper 32–35% headline zone; iPad large in lower portion, 74–78% canvas width, screen visually dominant; near-front with yaw and pitch each <=3 degrees; no dramatic tilt, foreshortening, or cropping. Full display aperture visible.\nLighting/mood: restrained premium cinematic photography; quiet focus, not flashy. Screen green is non-emissive and casts no light.\nConstraints: #00FF63 strictly inside inner glass, edge-to-edge beneath bezel. Zero green outside—no spill, reflection, cast, halo, bloom, fringe, floor light, or chassis tint. No white curl or corner glint. Inside screen: no UI/text/logo/icon/number, no reflection/glare/texture/gradient/highlight/shadow/notch/artifact. Solid opaque bezel isolates screen.\nAvoid: any generated UI/headline/branding/coursework; people/hands; clutter; watermark; extra devices; green anywhere except inner glass.",
       "generationMetadata": {
-        "workflow": "claude_creative_production_generative_polish",
-        "method": "deterministic_imagemagick_composite",
-        "aiImageGenerations": 0,
-        "visualReferenceWeight": "near_90_percent_current_live_preview_system"
+        "workflow": "chatgpt_image_2_creative_production_generative_polish",
+        "method": "image_2_scene_plate_plus_deterministic_perspective_composite",
+        "generationAttempt": 2,
+        "aiImageGenerations": 2,
+        "referenceImages": [
+          {
+            "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus-plate.png",
+            "role": "visual-system continuity",
+            "sha256": "554fb3ae5c0d17edf60b420f35a15bac26f73a3563637edb80f1265dc1795d52"
+          },
+          {
+            "path": "outputs/build86-native-proof-recapture/ipad/study-session-dark.png",
+            "role": "genuine Build 86 Focus UI layout/legibility reference only",
+            "sha256": "7ba1164596a89036521a6585854c9bce1c26713db6503d873f0358fe3a80c53c"
+          }
+        ],
+        "scenePlatePath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus-plate.png",
+        "scenePlateSha256": "54cea894bfd842eb58c077370a0d9b6b5d0791bce3740aed76c472900a98119f",
+        "sceneTransform": {
+          "cropBox": [
+            0,
+            0,
+            2048,
+            2732
+          ],
+          "method": "identity",
+          "shiftY": 0,
+          "zoom": 1.0
+        },
+        "uiSourceOverscanPixels": 8,
+        "perspectiveQuad": [
+          [
+            502.914,
+            954.082
+          ],
+          [
+            1595.617,
+            930.004
+          ],
+          [
+            1591.245,
+            2483.476
+          ],
+          [
+            492.722,
+            2451.467
+          ]
+        ],
+        "chromaAperture": {
+          "boundingBox": [
+            500,
+            939,
+            1588,
+            2475
+          ],
+          "geometry": {
+            "componentOutsideRate": 0.001118,
+            "despillPixelCount": 2106,
+            "featherPixelCount": 7371,
+            "matteSupportPixelCount": 1639419,
+            "opaquePixelCount": 1632048,
+            "polygonOverpaintRate": 0.001312,
+            "quadIoU": 0.997574
+          },
+          "pixelCount": 1632048,
+          "replacementCoverage": 1.0,
+          "spill": {
+            "brightGreenExteriorPixelCount": 0,
+            "brightGreenExteriorRate": 0.0,
+            "exteriorRingPixelCount": 5267
+          }
+        },
+        "targetedRetry": {
+          "reason": "Original Focus plate failed for extreme oblique warp, unreadable UI scale, dead-black dominance, green seam, and white curl.",
+          "manifestPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/APP_IPAD_PRO_3GEN_129/retry-manifest.json",
+          "manifestSha256": "4f3287b86b5593d6a7b8f2ab486909028f94a122a126dd697c1eb8e605831dcd",
+          "retryOutputPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/APP_IPAD_PRO_3GEN_129/05-deadlines-to-focus-plate.png",
+          "retryOutputSha256": "54cea894bfd842eb58c077370a0d9b6b5d0791bce3740aed76c472900a98119f"
+        }
       },
-      "uiTreatment": "immutable_build86_simulator_pixels",
-      "textTreatment": "deterministic_en_US_typography",
+      "uiTreatment": "immutable_signed_build86_simulator_pixels_perspective_warp_only",
+      "textTreatment": "deterministic_exact_en_US_typography",
       "reviewStatus": "pending_human_canary_review",
-      "releaseEligible": false
+      "releaseEligible": false,
+      "uploadAuthorized": false,
+      "pixelSignature": "2cadfddad6941ffe0a186c77ccc187bf2cc390b22648843ef9752211e5d0e595"
     },
     {
       "locale": "en-US",
@@ -280,21 +1189,98 @@
       "slideIndex": 6,
       "family": "loop-dark",
       "headline": "Keep every class moving.",
-      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/canary-draft/en-US/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
-      "sha256": "d3775df26461290bfc3048211006eed3d84a0aa3163a39c88b6a2b95f17b0b28",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-canary/en-US/APP_IPAD_PRO_3GEN_129/06-every-class-moving.png",
+      "sha256": "189850585535fa1dfda1634d97a19572a6f79d25da77d7fe1bac13d188a21a7d",
       "sourcePath": "outputs/build86-native-proof/ipad/en-US/app-atlas/today-dark.png",
       "sourceHash": "f0a8f29260ec7a1d267d8232d60b241b77e0e18f843279b02569249044a699c5",
-      "prompt": "Bold Academic Editorial generative polish: preserve the supplied Build 86 simulator app pixels; add only calm poster framing, exact deterministic headline typography, safe zones, and a restrained StudyPlanner color atmosphere.",
+      "prompt": "Use case: ads-marketing\nAsset type: targeted retry scene plate for vertical iPad App Store screenshot, attempt 2, slide 6\nPrimary request: Create one premium 3:4 portrait Bold Academic Editorial dark product-photography plate containing only scene, device chassis, lighting, shadow, and a replaceable chroma screen.\nInput images: Image 1 supplies dark blue/purple cinematic continuity, but eliminate its green floor spill and registration-prone perspective. Image 2 is genuine StudyPlanner Build 86 dark Today UI, used only for portrait aspect and desired later legibility. Never reproduce or retain its UI/text/icons/numbers/status bar.\nScene/backdrop: dark blue/black studio, neutral charcoal floor, restrained violet depth and blue rim light. No green atmosphere or floor light; any later green health accent will come only from exact UI.\nSubject: exactly one large genuine portrait 12.9-inch iPad Pro-style chassis, authentic tablet proportions, thin opaque black bezel, realistic metal/glass, no phone notch/buttons, no Apple logo. The entire inner-glass display is one perfectly flat, uninterrupted, exactly uniform #00FF63 replacement surface.\nComposition/framing: vertical 3:4; clean upper 32–35% headline zone; tablet large in lower portion at 72–77% canvas width; nearly front-facing, yaw and pitch each <=3 degrees; no dramatic perspective. Whole display aperture visible.\nLighting/mood: calm premium cinematic product photography, readable and editorial. Chroma surface non-emissive and unaffected by lighting.\nConstraints: #00FF63 exists only inside inner glass, edge-to-edge beneath bezel. Zero green pixel, halo, bloom, spill, cast, reflection, fringe, floor/chassis light outside display. No white curl/corner glint. No screen glare, texture, gradient, highlight, shadow, notch, symbol, or artifact. Solid black bezel cleanly separates screen from scene.\nAvoid: generated UI/text/headline/logo/icon/chart/number/coursework/status bar; hands/people; clutter; watermark; branding; extra devices; green anywhere except inner glass.",
       "generationMetadata": {
-        "workflow": "claude_creative_production_generative_polish",
-        "method": "deterministic_imagemagick_composite",
-        "aiImageGenerations": 0,
-        "visualReferenceWeight": "near_90_percent_current_live_preview_system"
+        "workflow": "chatgpt_image_2_creative_production_generative_polish",
+        "method": "image_2_scene_plate_plus_deterministic_perspective_composite",
+        "generationAttempt": 2,
+        "aiImageGenerations": 2,
+        "referenceImages": [
+          {
+            "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPAD_PRO_3GEN_129/06-every-class-moving-plate.png",
+            "role": "visual-system continuity",
+            "sha256": "d8ac0c33246b8a304f60d6f530c4d03bc0ccdc90f8fd8c37ece7d3282dacc23c"
+          },
+          {
+            "path": "outputs/build86-native-proof/ipad/en-US/app-atlas/today-dark.png",
+            "role": "genuine Build 86 UI layout/legibility reference only",
+            "sha256": "f0a8f29260ec7a1d267d8232d60b241b77e0e18f843279b02569249044a699c5"
+          }
+        ],
+        "scenePlatePath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPAD_PRO_3GEN_129/06-every-class-moving-plate.png",
+        "scenePlateSha256": "5fe8237928a7a152229966bea6efa90b67be108e7954904e300d80bad6b763dc",
+        "sceneTransform": {
+          "cropBox": [
+            109,
+            146,
+            1938,
+            2585
+          ],
+          "method": "review_driven_center_crop_zoom",
+          "shiftY": 0,
+          "zoom": 1.12
+        },
+        "uiSourceOverscanPixels": 8,
+        "perspectiveQuad": [
+          [
+            442.0,
+            846.716
+          ],
+          [
+            1649.0,
+            848.435
+          ],
+          [
+            1649.0,
+            2521.996
+          ],
+          [
+            442.0,
+            2521.996
+          ]
+        ],
+        "chromaAperture": {
+          "boundingBox": [
+            449,
+            854,
+            1641,
+            2514
+          ],
+          "geometry": {
+            "componentOutsideRate": 0.000277,
+            "despillPixelCount": 2123,
+            "featherPixelCount": 7889,
+            "matteSupportPixelCount": 1985316,
+            "opaquePixelCount": 1977427,
+            "polygonOverpaintRate": 0.000629,
+            "quadIoU": 0.999094
+          },
+          "pixelCount": 1977427,
+          "replacementCoverage": 1.0,
+          "spill": {
+            "brightGreenExteriorPixelCount": 0,
+            "brightGreenExteriorRate": 0.0,
+            "exteriorRingPixelCount": 5748
+          }
+        },
+        "targetedRetry": {
+          "reason": "Original dark loop retained neon-green boundary leakage and quadrilateral registration drift.",
+          "manifestPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/APP_IPAD_PRO_3GEN_129/retry-manifest.json",
+          "manifestSha256": "4f3287b86b5593d6a7b8f2ab486909028f94a122a126dd697c1eb8e605831dcd",
+          "retryOutputPath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/APP_IPAD_PRO_3GEN_129/06-every-class-moving-plate.png",
+          "retryOutputSha256": "5fe8237928a7a152229966bea6efa90b67be108e7954904e300d80bad6b763dc"
+        }
       },
-      "uiTreatment": "immutable_build86_simulator_pixels",
-      "textTreatment": "deterministic_en_US_typography",
+      "uiTreatment": "immutable_signed_build86_simulator_pixels_perspective_warp_only",
+      "textTreatment": "deterministic_exact_en_US_typography",
       "reviewStatus": "pending_human_canary_review",
-      "releaseEligible": false
+      "releaseEligible": false,
+      "uploadAuthorized": false,
+      "pixelSignature": "d70842a78ff324bc71175d6a551335023a63e452f74c35e490c89fc11e11cf25"
     },
     {
       "locale": "en-US",
@@ -302,21 +1288,89 @@
       "slideIndex": 7,
       "family": "review",
       "headline": "Review uncertain dates before they count.",
-      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/canary-draft/en-US/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png",
-      "sha256": "4f898cc740418e4aa8b149c4bff236990c861dec943146e57ee98eadcad0f4bf",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-canary/en-US/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates.png",
+      "sha256": "1de10cadbcc6d3fccb9fc40f68835b7627974c9585abe2f4b1efbc6fb2c9931f",
       "sourcePath": "outputs/build86-native-proof/ipad/en-US/app-atlas/review-light.png",
       "sourceHash": "f59ef626a91c91cd56b9e168f8e614d247f7d7dab223cfaf1499936bf6fc9f1f",
-      "prompt": "Bold Academic Editorial generative polish: preserve the supplied Build 86 simulator app pixels; add only calm poster framing, exact deterministic headline typography, safe zones, and a restrained StudyPlanner color atmosphere.",
+      "prompt": "Create one premium vertical App Store scene plate in a Bold Academic Editorial visual system. Use the supplied phone-scene references for camera language, negative space, studio lighting, restrained blue/purple/green color atmosphere, realistic metal and glass, and calm poster-like hierarchy. Use the supplied StudyPlanner preview only for approximate composition and scale, never for its UI.\n\nRender a realistic modern device with one perfectly flat, uninterrupted chroma-green screen surface (#00FF63) suitable for deterministic perspective replacement. The screen must contain no UI, text, icon, logo, symbol, number, wallpaper, notch, Dynamic Island, reflection, glare, texture, or gradient. Do not write any marketing copy anywhere.\n\nReserve a generous clean headline safe zone above the device. Keep the device large enough that subsequently composited real app pixels will remain readable. Lighting may affect the chassis and environment but must not contaminate the green screen.\n\nUse high-end restrained product photography, not surreal illustration. No hands, people, stationery clutter, Apple logo, watermark, branding, decorative metrics, or extra devices unless the job explicitly requests a pair.\n\nOutput one scene only.\n\nUse a genuine portrait 12.9-inch iPad Pro-style chassis and tablet proportions. Do not stretch an iPhone, add phone buttons, or add a phone notch. Frame for a final 2048×2732 App Store canvas.\n\nReview / light. High-key cream and warm white scene with a restrained orange review accent, one large device, clean poster-like hierarchy and generous quiet headline space.",
       "generationMetadata": {
-        "workflow": "claude_creative_production_generative_polish",
-        "method": "deterministic_imagemagick_composite",
-        "aiImageGenerations": 0,
-        "visualReferenceWeight": "near_90_percent_current_live_preview_system"
+        "workflow": "chatgpt_image_2_creative_production_generative_polish",
+        "method": "image_2_scene_plate_plus_deterministic_perspective_composite",
+        "generationAttempt": 1,
+        "aiImageGenerations": 1,
+        "referenceImages": [
+          {
+            "path": "/Users/mattnewman/.codex/attachments/ce119123-d178-4ecb-846b-7d6b7fd58053/image-1.png",
+            "sha256": "ee099ca0edbf82b326ee85a793ee06777e573f478f8d322291b52093ad616706"
+          },
+          {
+            "path": "/Users/mattnewman/.codex/attachments/ce119123-d178-4ecb-846b-7d6b7fd58053/image-4.png",
+            "sha256": "7a9259926164df688883de97569e54662886cf40aeff5219b261d813d8deddf1"
+          }
+        ],
+        "scenePlatePath": "outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/APP_IPAD_PRO_3GEN_129/07-review-uncertain-dates-plate.png",
+        "scenePlateSha256": "a387ce8848a4109d96daa4a0343d9ad127e2e889e091ebe674b60d6c81efe24d",
+        "sceneTransform": {
+          "cropBox": [
+            0,
+            0,
+            2048,
+            2732
+          ],
+          "method": "identity",
+          "shiftY": 0,
+          "zoom": 1.0
+        },
+        "uiSourceOverscanPixels": 8,
+        "perspectiveQuad": [
+          [
+            512.031,
+            910.48
+          ],
+          [
+            1560.702,
+            976.719
+          ],
+          [
+            1569.012,
+            2492.349
+          ],
+          [
+            512.031,
+            2556.235
+          ]
+        ],
+        "chromaAperture": {
+          "boundingBox": [
+            520,
+            921,
+            1561,
+            2546
+          ],
+          "geometry": {
+            "componentOutsideRate": 0.001627,
+            "despillPixelCount": 1998,
+            "featherPixelCount": 7366,
+            "matteSupportPixelCount": 1631546,
+            "opaquePixelCount": 1624180,
+            "polygonOverpaintRate": 0.000876,
+            "quadIoU": 0.997499
+          },
+          "pixelCount": 1624180,
+          "replacementCoverage": 1.0,
+          "spill": {
+            "brightGreenExteriorPixelCount": 0,
+            "brightGreenExteriorRate": 0.0,
+            "exteriorRingPixelCount": 5373
+          }
+        }
       },
-      "uiTreatment": "immutable_build86_simulator_pixels",
-      "textTreatment": "deterministic_en_US_typography",
+      "uiTreatment": "immutable_signed_build86_simulator_pixels_perspective_warp_only",
+      "textTreatment": "deterministic_exact_en_US_typography",
       "reviewStatus": "pending_human_canary_review",
-      "releaseEligible": false
+      "releaseEligible": false,
+      "uploadAuthorized": false,
+      "pixelSignature": "13660c48f09181bed7c0994f9ddb3870c1584c1d5479a124011270c0a8a3e74b"
     }
   ]
 }

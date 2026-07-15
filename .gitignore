@@ -65,6 +65,24 @@ credentials.json
 /qa/back-to-school-2026/copy-b-reviewed-plan-review-only-2026-07-09/screenshots/
 /store/apple/screenshot-pop/
 /store/apple/screenshot/*/APP_IPHONE_65/07-widgets.png
+/store/apple/screenshot-build86-creative-production/
+/outputs/build86-localized-simulator-ui/
+/outputs/build86-native-proof-recapture/
+/outputs/imagegen/generative-polish/build86-notes-scanner-five-star-hero/
+/outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/
+/outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-canary/
+/outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates/
+/outputs/imagegen/generative-polish/build86-widget-led-conversion/scene-plates-retries/
+/scripts/__pycache__/
+/scripts/build86_media_text.swift
+/scripts/capture-build86-localized-scene-ui.mjs
+/scripts/compose-build86-localized-simulator-previews.py
+/scripts/compose_build86_localized_release.py
+/scripts/compose_build86_notes_scanner_hero.py
+/scripts/compose_build86_scene_canary.py
+/scripts/publish_build86_scene_canary.py
+/scripts/sync_asc_localized_release.rb
+/scripts/sync_asc_review_notes.rb
 
 # generated native folders
 /ios

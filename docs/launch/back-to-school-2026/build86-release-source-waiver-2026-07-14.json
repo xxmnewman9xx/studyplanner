@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "status": "active",
+  "recordedAt": "2026-07-14T23:56:23Z",
+  "authority": "release_owner_via_codex_task",
+  "directives": [
+    "No physical device shouldn’t be a blocker.",
+    "Review the locales now and prepare to submit.",
+    "Upload and submit.",
+    "Remove the ‘Unlock StudyPlanner’ notification pop up, make sure it is polished and runs perfect and fast, then finish submission with the new build and assets."
+  ],
+  "physicalCaptureRequirement": {
+    "waived": true,
+    "acceptedProvenanceClass": "installed-build86-simulator-ui-not-production-ipa",
+    "reason": "The release owner explicitly directed that absence of a physical device must not block preparation."
+  },
+  "languageReview": {
+    "mode": "delegated_ai_multilingual_review",
+    "nativeHumanCertificationRequired": false,
+    "truthLabelRequired": "ai_review_approved"
+  },
+  "truthConstraints": [
+    "Simulator captures must remain labeled as simulator captures.",
+    "AI language review must not be described as native-human certification.",
+    "Build 86 screenshot-source hashes, dimensions, UI integrity, and locale bindings must still pass.",
+    "The release target is Build 87. Build 86-origin media may be reused because Build 87 changes only a post-entitlement alert and startup routing/sync timing; none of the approved screenshot states or visible UI pixels changed.",
+    "The Build 87 binary, bundle identifiers, entitlements, version/build metadata, signing, and IPA hash must pass before upload or submission."
+  ],
+  "prepareForUploadAuthorized": true,
+  "targetBuildNumber": "87",
+  "uploadNowAuthorized": true,
+  "submitNowAuthorized": true
+}

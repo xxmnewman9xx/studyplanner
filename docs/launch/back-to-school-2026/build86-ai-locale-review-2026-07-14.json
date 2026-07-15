@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "status": "approved_all_17_via_delegated_ai_review",
+  "reviewedAt": "2026-07-14T23:56:23Z",
+  "reviewMode": "delegated_ai_multilingual_review",
+  "nativeHumanCertification": false,
+  "authorityPath": "docs/launch/back-to-school-2026/build86-release-source-waiver-2026-07-14.json",
+  "scope": {
+    "locales": 17,
+    "devices": 2,
+    "slidesPerDevice": 7,
+    "metadataFields": [
+      "title",
+      "subtitle",
+      "promoText",
+      "description",
+      "keywords",
+      "releaseNotes"
+    ],
+    "checks": [
+      "grammar",
+      "idiom",
+      "regional_usage",
+      "register",
+      "rtl_and_script",
+      "line_breaks",
+      "glyph_integrity",
+      "app_store_limits",
+      "claim_truth"
+    ]
+  },
+  "result": {
+    "minimumScore": 9.2,
+    "allLocalesAtOrAboveNine": true,
+    "clippingFailures": 0,
+    "missingGlyphFailures": 0,
+    "metadataLimitFailures": 0,
+    "unsupportedClaimFailures": 0
+  },
+  "locales": [
+    { "locale": "ar-SA", "score": 9.4, "status": "ai_review_approved", "reviewer": "iphone_visual_audit" },
+    { "locale": "de-DE", "score": 9.5, "status": "ai_review_approved", "reviewer": "iphone_visual_audit" },
+    { "locale": "en-AU", "score": 9.5, "status": "ai_review_approved", "reviewer": "ipad_visual_audit" },
+    { "locale": "en-CA", "score": 9.6, "status": "ai_review_approved", "reviewer": "ipad_visual_audit" },
+    { "locale": "en-GB", "score": 9.4, "status": "ai_review_approved", "reviewer": "ipad_visual_audit" },
+    { "locale": "en-US", "score": 9.7, "status": "ai_review_approved", "reviewer": "root" },
+    { "locale": "es-ES", "score": 9.5, "status": "ai_review_approved", "reviewer": "ipad_visual_audit" },
+    { "locale": "es-MX", "score": 9.5, "status": "ai_review_approved", "reviewer": "ipad_visual_audit" },
+    { "locale": "fr-CA", "score": 9.4, "status": "ai_review_approved", "reviewer": "iphone_visual_audit" },
+    { "locale": "fr-FR", "score": 9.4, "status": "ai_review_approved", "reviewer": "iphone_visual_audit" },
+    { "locale": "hi", "score": 9.2, "status": "ai_review_approved", "reviewer": "pipeline_gap_audit" },
+    { "locale": "ja", "score": 9.5, "status": "ai_review_approved", "reviewer": "pipeline_gap_audit" },
+    { "locale": "ko", "score": 9.3, "status": "ai_review_approved", "reviewer": "pipeline_gap_audit" },
+    { "locale": "pt-BR", "score": 9.5, "status": "ai_review_approved", "reviewer": "ipad_visual_audit" },
+    { "locale": "pt-PT", "score": 9.4, "status": "ai_review_approved", "reviewer": "ipad_visual_audit" },
+    { "locale": "zh-Hans", "score": 9.4, "status": "ai_review_approved", "reviewer": "pipeline_gap_audit" },
+    { "locale": "zh-Hant", "score": 9.4, "status": "ai_review_approved", "reviewer": "pipeline_gap_audit" }
+  ],
+  "notes": [
+    "This record is AI review evidence delegated by the release owner; it is not native-human certification.",
+    "Fifty-eight localized preview assets were regenerated after copy review, followed by four Portuguese hero assets after a contrast regression was found and fixed.",
+    "Every final locale/device pack was rechecked at full resolution after regeneration."
+  ]
+}

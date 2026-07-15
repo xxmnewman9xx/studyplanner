@@ -2,111 +2,247 @@
   "schemaVersion": 1,
   "territory": "Bold Academic Editorial",
   "promise": "Your next move, before you open the app.",
-  "approvalStatus": "pending_native_language_approval",
+  "approvalStatus": "ai_language_reviewed_all_17",
   "typography": "deterministic_overlay_only",
-  "notes": "Candidate translations only. Final generation remains blocked until a native-language reviewer approves every locale.",
+  "notes": "All 17 locale sets passed delegated AI multilingual review at 9.2/10 or better under the release-owner waiver. This is AI review approval, not native-human certification.",
   "locales": [
     {
       "locale": "ar-SA",
       "direction": "rtl",
-      "status": "pending_native_approval",
-      "headlines": ["حوّل منهجك إلى خطة.", "اعرف ما يحتاج إليك اليوم.", "خطوتك التالية—قبل فتح التطبيق.", "اكتشف الأسابيع المزدحمة قبل أن تبدأ.", "حوّل المواعيد النهائية إلى وقت للتركيز.", "حافظ على تقدّم كل مادة.", "راجع التواريخ غير المؤكدة قبل اعتمادها."]
+      "status": "ai_review_approved",
+      "headlines": [
+        "حوّل منهجك إلى خطة.",
+        "اعرف ما يحتاج إلى اهتمامك اليوم.",
+        "خطوتك التالية—قبل فتح التطبيق.",
+        "اكتشف الأسابيع المزدحمة قبل أن تبدأ.",
+        "حوّل المواعيد النهائية إلى وقت للتركيز.",
+        "حافظ على تقدّم كل مادة.",
+        "راجع التواريخ غير المؤكدة قبل اعتمادها."
+      ]
     },
     {
       "locale": "de-DE",
       "direction": "ltr",
-      "status": "pending_native_approval",
-      "headlines": ["Mach aus deinem Kursplan einen Lernplan.", "Weiß, was heute deine Aufmerksamkeit braucht.", "Dein nächster Schritt – bevor du die App öffnest.", "Erkenne volle Wochen, bevor sie da sind.", "Mach aus Fristen konzentrierte Lernzeit.", "Halte jeden Kurs in Bewegung.", "Prüfe unsichere Termine, bevor sie zählen."]
+      "status": "ai_review_approved",
+      "headlines": [
+        "Mach aus deinem Kursplan einen Lernplan.",
+        "Sieh, was heute wichtig ist.",
+        "Dein nächster Schritt – bevor du die App öffnest.",
+        "Erkenne arbeitsreiche Wochen, bevor sie beginnen.",
+        "Mach aus Fristen konzentrierte Lernzeit.",
+        "Halte jeden Kurs auf Kurs.",
+        "Prüfe unsichere Termine, bevor sie übernommen werden."
+      ]
     },
     {
       "locale": "en-AU",
       "direction": "ltr",
-      "status": "pending_native_approval",
-      "headlines": ["Turn your syllabus into a plan.", "Know what needs you today.", "Your next move—before you open the app.", "See heavy weeks before they hit.", "Turn deadlines into focus time.", "Keep every class moving.", "Review uncertain dates before they count."]
+      "status": "ai_review_approved",
+      "headlines": [
+        "Turn your syllabus into a plan.",
+        "Know what needs you today.",
+        "Your next move—before you open the app.",
+        "See heavy weeks before they hit.",
+        "Turn deadlines into focus time.",
+        "Keep every class moving.",
+        "Review uncertain dates before they count."
+      ]
     },
     {
       "locale": "en-CA",
       "direction": "ltr",
-      "status": "pending_native_approval",
-      "headlines": ["Turn your syllabus into a plan.", "Know what needs you today.", "Your next move—before you open the app.", "See heavy weeks before they hit.", "Turn deadlines into focus time.", "Keep every class moving.", "Review uncertain dates before they count."]
+      "status": "ai_review_approved",
+      "headlines": [
+        "Turn your syllabus into a plan.",
+        "Know what needs you today.",
+        "Your next move—before you open the app.",
+        "See heavy weeks before they hit.",
+        "Turn deadlines into focus time.",
+        "Keep every class moving.",
+        "Review uncertain dates before they count."
+      ]
     },
     {
       "locale": "en-GB",
       "direction": "ltr",
-      "status": "pending_native_approval",
-      "headlines": ["Turn your syllabus into a plan.", "Know what needs you today.", "Your next move—before you open the app.", "See heavy weeks before they hit.", "Turn deadlines into focus time.", "Keep every class moving.", "Review uncertain dates before they count."]
+      "status": "ai_review_approved",
+      "headlines": [
+        "Turn your syllabus into a plan.",
+        "Know what needs you today.",
+        "Your next move—before you open the app.",
+        "See heavy weeks before they hit.",
+        "Turn deadlines into focus time.",
+        "Keep every class moving.",
+        "Review uncertain dates before they count."
+      ]
     },
     {
       "locale": "en-US",
       "direction": "ltr",
-      "status": "source_approved",
-      "headlines": ["Turn your syllabus into a plan.", "Know what needs you today.", "Your next move—before you open the app.", "See heavy weeks before they hit.", "Turn deadlines into focus time.", "Keep every class moving.", "Review uncertain dates before they count."]
+      "status": "ai_review_approved",
+      "headlines": [
+        "Turn your syllabus into a plan.",
+        "Know what needs you today.",
+        "Your next move—before you open the app.",
+        "See heavy weeks before they hit.",
+        "Turn deadlines into focus time.",
+        "Keep every class moving.",
+        "Review uncertain dates before they count."
+      ]
     },
     {
       "locale": "es-ES",
       "direction": "ltr",
-      "status": "pending_native_approval",
-      "headlines": ["Convierte tu programa en un plan.", "Sabe qué necesita de ti hoy.", "Tu próximo paso, antes de abrir la app.", "Detecta las semanas intensas antes de que lleguen.", "Convierte las fechas límite en tiempo de concentración.", "Haz que todas tus clases sigan avanzando.", "Revisa las fechas dudosas antes de confirmarlas."]
+      "status": "ai_review_approved",
+      "headlines": [
+        "Convierte tu programa en un plan.",
+        "Descubre qué necesita tu atención hoy.",
+        "Tu próximo paso, antes de abrir la app.",
+        "Detecta las semanas intensas antes de que lleguen.",
+        "Convierte las fechas límite en tiempo para concentrarte.",
+        "Haz que todas tus clases sigan avanzando.",
+        "Revisa las fechas inciertas antes de confirmarlas."
+      ]
     },
     {
       "locale": "es-MX",
       "direction": "ltr",
-      "status": "pending_native_approval",
-      "headlines": ["Convierte tu programa en un plan.", "Sabe qué necesita de ti hoy.", "Tu próximo paso, antes de abrir la app.", "Detecta las semanas intensas antes de que lleguen.", "Convierte las fechas límite en tiempo de concentración.", "Haz que todas tus clases sigan avanzando.", "Revisa las fechas dudosas antes de confirmarlas."]
+      "status": "ai_review_approved",
+      "headlines": [
+        "Convierte tu programa en un plan.",
+        "Descubre qué necesita tu atención hoy.",
+        "Tu próximo paso, antes de abrir la app.",
+        "Detecta las semanas intensas antes de que lleguen.",
+        "Convierte las fechas límite en tiempo para concentrarte.",
+        "Haz que todas tus clases sigan avanzando.",
+        "Revisa las fechas inciertas antes de confirmarlas."
+      ]
     },
     {
       "locale": "fr-CA",
       "direction": "ltr",
-      "status": "pending_native_approval",
-      "headlines": ["Transformez votre plan de cours en plan d’action.", "Sachez ce qui vous attend aujourd’hui.", "Votre prochaine étape, avant d’ouvrir l’app.", "Repérez les semaines chargées avant qu’elles arrivent.", "Transformez les échéances en temps de concentration.", "Faites avancer chaque cours.", "Vérifiez les dates incertaines avant de les confirmer."]
+      "status": "ai_review_approved",
+      "headlines": [
+        "Transformez votre plan de cours en plan d’action.",
+        "Sachez ce qui vous attend aujourd’hui.",
+        "Votre prochaine étape, avant d’ouvrir l’app.",
+        "Repérez les semaines chargées avant qu’elles ne commencent.",
+        "Transformez les échéances en temps de concentration.",
+        "Faites avancer chaque cours.",
+        "Vérifiez les dates incertaines avant de les confirmer."
+      ]
     },
     {
       "locale": "fr-FR",
       "direction": "ltr",
-      "status": "pending_native_approval",
-      "headlines": ["Transformez votre plan de cours en plan d’action.", "Sachez ce qui vous attend aujourd’hui.", "Votre prochaine étape, avant d’ouvrir l’app.", "Repérez les semaines chargées avant qu’elles arrivent.", "Transformez les échéances en temps de concentration.", "Faites avancer chaque cours.", "Vérifiez les dates incertaines avant de les confirmer."]
+      "status": "ai_review_approved",
+      "headlines": [
+        "Transformez votre plan de cours en plan d’action.",
+        "Sachez ce qui vous attend aujourd’hui.",
+        "Votre prochaine étape, avant d’ouvrir l’app.",
+        "Repérez les semaines chargées avant qu’elles ne commencent.",
+        "Transformez les échéances en temps de concentration.",
+        "Faites avancer chaque cours.",
+        "Vérifiez les dates incertaines avant de les confirmer."
+      ]
     },
     {
       "locale": "hi",
       "direction": "ltr",
-      "status": "pending_native_approval",
-      "headlines": ["अपने सिलेबस को योजना में बदलें।", "जानें कि आज किस काम को आपकी ज़रूरत है।", "ऐप खोलने से पहले—अपना अगला कदम जानें।", "व्यस्त हफ्तों को आने से पहले देखें।", "समय-सीमाओं को फ़ोकस समय में बदलें।", "हर कक्षा को आगे बढ़ाते रहें।", "अनिश्चित तारीखों को मानने से पहले जाँचें।"]
+      "status": "ai_review_approved",
+      "headlines": [
+        "अपने सिलेबस को योजना में बदलें।",
+        "जानें कि आज किस काम पर ध्यान देना है।",
+        "ऐप खोलने से पहले—अपना अगला कदम जानें।",
+        "व्यस्त हफ्तों की तैयारी पहले से करें।",
+        "समय-सीमाओं को फ़ोकस सत्रों में बदलें।",
+        "हर कक्षा को आगे बढ़ाते रहें।",
+        "अनिश्चित तारीखें? पुष्टि से पहले जाँचें।"
+      ]
     },
     {
       "locale": "ja",
       "direction": "ltr",
-      "status": "pending_native_approval",
-      "headlines": ["シラバスを学習計画に。", "今日やるべきことがすぐわかる。", "アプリを開く前に、次の一手を。", "忙しい週を早めに見通す。", "締切を集中時間に変える。", "すべての授業を前へ。", "確定前に不確かな日付を確認。"]
+      "status": "ai_review_approved",
+      "headlines": [
+        "シラバスを学習計画に。",
+        "今日やるべきことがすぐわかる。",
+        "アプリを開く前に、次の一手を。",
+        "忙しい週を早めに見通す。",
+        "締切を集中時間に変える。",
+        "すべての授業を前へ。",
+        "確定前に不確かな日付を確認。"
+      ]
     },
     {
       "locale": "ko",
       "direction": "ltr",
-      "status": "pending_native_approval",
-      "headlines": ["강의계획서를 학습 계획으로.", "오늘 무엇이 필요한지 한눈에.", "앱을 열기 전에, 다음 할 일을.", "바쁜 주가 오기 전에 미리 확인하세요.", "마감일을 집중 시간으로 바꾸세요.", "모든 수업을 계속 앞으로.", "확정 전에 불확실한 날짜를 검토하세요."]
+      "status": "ai_review_approved",
+      "headlines": [
+        "강의계획서를 학습 계획으로.",
+        "오늘 무엇을 해야 하는지 한눈에.",
+        "앱을 열기 전에, 다음 할 일을.",
+        "바쁜 주가 오기 전에 미리 확인하세요.",
+        "마감일을 집중 학습 시간으로 바꾸세요.",
+        "모든 수업을 꾸준히 이어 가세요.",
+        "확정 전에 불확실한 날짜를 검토하세요."
+      ]
     },
     {
       "locale": "pt-BR",
       "direction": "ltr",
-      "status": "pending_native_approval",
-      "headlines": ["Transforme seu plano de ensino em um plano.", "Saiba o que precisa de você hoje.", "Seu próximo passo, antes de abrir o app.", "Veja as semanas pesadas antes que cheguem.", "Transforme prazos em tempo de foco.", "Mantenha todas as matérias avançando.", "Revise datas incertas antes de confirmá-las."]
+      "status": "ai_review_approved",
+      "headlines": [
+        "Transforme sua ementa em um plano.",
+        "Veja o que precisa da sua atenção hoje.",
+        "Seu próximo passo, antes de abrir o app.",
+        "Veja as semanas mais intensas antes que cheguem.",
+        "Transforme prazos em tempo de foco.",
+        "Mantenha todas as matérias em dia.",
+        "Revise datas incertas antes de confirmá-las."
+      ]
     },
     {
       "locale": "pt-PT",
       "direction": "ltr",
-      "status": "pending_native_approval",
-      "headlines": ["Transforme o seu programa num plano.", "Saiba o que precisa de si hoje.", "O seu próximo passo, antes de abrir a app.", "Antecipe as semanas mais pesadas.", "Transforme prazos em tempo de concentração.", "Mantenha todas as cadeiras a avançar.", "Reveja datas incertas antes de as confirmar."]
+      "status": "ai_review_approved",
+      "headlines": [
+        "Transforme o programa num plano de estudo.",
+        "Veja o que exige a sua atenção hoje.",
+        "O seu próximo passo, antes de abrir a app.",
+        "Antecipe as semanas mais exigentes.",
+        "Transforme prazos em tempo de concentração.",
+        "Mantenha todas as disciplinas em dia.",
+        "Reveja datas incertas antes de as confirmar."
+      ]
     },
     {
       "locale": "zh-Hans",
       "direction": "ltr",
-      "status": "pending_native_approval",
-      "headlines": ["把教学大纲变成学习计划。", "知道今天什么最需要你。", "打开 App 前，就知道下一步。", "繁忙周来临前，提前看见。", "把截止日期变成专注时间。", "让每门课都持续推进。", "日期不确定？确认前先检查。"]
+      "status": "ai_review_approved",
+      "headlines": [
+        "把教学大纲变成学习计划。",
+        "今天最该做什么，一目了然。",
+        "打开 App 前，就知道下一步。",
+        "忙碌周到来前，提前做好安排。",
+        "把截止日期转化为专注学习时间。",
+        "让每门课都持续推进。",
+        "日期不确定？确认前先检查。"
+      ]
     },
     {
       "locale": "zh-Hant",
       "direction": "ltr",
-      "status": "pending_native_approval",
-      "headlines": ["把課程大綱變成學習計畫。", "知道今天什麼最需要你。", "打開 App 前，就知道下一步。", "忙碌週來臨前，提早看見。", "把截止日期變成專注時間。", "讓每門課都持續推進。", "日期不確定？確認前先檢查。"]
+      "status": "ai_review_approved",
+      "headlines": [
+        "把課程大綱變成學習計畫。",
+        "今天最該做什麼，一目瞭然。",
+        "打開 App 前，就知道下一步。",
+        "忙碌的一週到來前，提早做好安排。",
+        "把截止日轉化為專注讀書時間。",
+        "讓每門課都持續推進。",
+        "日期不確定？確認前先檢查。"
+      ]
     }
   ]
 }

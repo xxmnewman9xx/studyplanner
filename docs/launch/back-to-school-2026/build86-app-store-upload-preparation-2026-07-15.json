@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "status": "ready_for_upload_not_uploaded",
+  "preparedAt": "2026-07-15T00:04:20Z",
+  "appId": "6766181202",
+  "bundleId": "com.mattnewman.studyplanner",
+  "versionId": "a05e2964-6639-4f7a-9109-09c56cc36ebe",
+  "version": "2.0.9",
+  "build": "87",
+  "screenshotSourceBuild": "86",
+  "appStoreVersionState": "DEVELOPER_REJECTED",
+  "package": {
+    "locales": 17,
+    "devices": 2,
+    "slidesPerDevice": 7,
+    "assets": 238,
+    "uniqueHashes": 238,
+    "approvedContactSheets": 34,
+    "minimumLocaleScore": 9.2,
+    "mediaGatePassingAssets": 238,
+    "metadataLintErrors": 0
+  },
+  "releasePolicy": {
+    "waiverPath": "docs/launch/back-to-school-2026/build86-release-source-waiver-2026-07-14.json",
+    "physicalCaptureRequired": false,
+    "acceptedProvenanceClass": "installed-build86-simulator-ui-not-production-ipa",
+    "languageReviewMode": "delegated_ai_multilingual_review",
+    "nativeHumanCertification": false
+  },
+  "artifacts": {
+    "storeConfig": "store.config.json",
+    "previewManifest": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-preview-manifest.json",
+    "provenanceLedger": "outputs/imagegen/generative-polish/build86-widget-led-conversion/provenance-ledger.json",
+    "languageReview": "docs/launch/back-to-school-2026/build86-ai-locale-review-2026-07-14.json",
+    "finalApproval": "docs/launch/back-to-school-2026/build86-widget-led-final-approval.json",
+    "mediaGateReport": "qa/back-to-school-2026/build86-widget-led-media-gate.json"
+  },
+  "appStoreAudit": {
+    "reviewNotesMatchLocal": true,
+    "localeCount": 17,
+    "expectedScreenshotCount": 238,
+    "screenshotSetCount": 34,
+    "buildSelected": true
+  },
+  "uploadAuthorized": true,
+  "submissionAuthorized": true,
+  "uploadPerformed": false,
+  "submissionPerformed": false,
+  "nextActionRequiresExplicitDirective": false
+}

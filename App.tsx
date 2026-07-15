@@ -5596,8 +5596,6 @@ const MANAGE_SUBSCRIPTION_URL = Platform.OS === "android"
 const PRE_PURCHASE_ROUTES: Route[] = ["welcome", "onboarding", "importOptions", "semesterKickoff", "lockedDashboard", "paywall", "terms", "privacy"];
 type EntitlementStatus = "loading" | "active" | "inactive" | "error";
 type AccessState = "loading" | "onboarding" | "preview_allowed" | "locked" | "paywall" | "unlocked";
-type UnlockSuccessSource = "purchase_action" | "restore_action" | "startup_hydration" | "google_play_review_access";
-let lastUnlockSuccessAlertAt = 0;
 const FALLBACK_CLASS: ClassItem = {
   id: "empty-class",
   code: "Class",
@@ -5761,14 +5759,6 @@ function appRouteForInitialRoute(initialRoute: ReturnType<typeof resolveInitialR
   if (initialRoute === "onboarding") return "onboarding";
   if (initialRoute === "reviewPendingImport") return "review";
   return "lockedDashboard";
-}
-
-function maybeShowUnlockSuccess(source: UnlockSuccessSource) {
-  if (source !== "purchase_action" && source !== "restore_action") return;
-  const now = Date.now();
-  if (now - lastUnlockSuccessAlertAt < 1200) return;
-  lastUnlockSuccessAlertAt = now;
-  Alert.alert(textFor("paywall.unlock", "StudyPlanner unlocked", { plan: "StudyPlanner" }), textFor("profile.subscription_body", "Your subscription is active."));
 }
 
 function routeTokensFromUrl(rawUrl: string) {
@@ -6795,7 +6785,6 @@ export default function App() {
         if (!mounted) return;
         const entitlement = await checkStudyPlannerEntitlement();
         if (!mounted) return;
-        maybeShowUnlockSuccess("startup_hydration");
         if (entitlement.isPremium) activateEntitlement(entitlement.productId, entitlement.checkedAt, { applyPendingImport: !pendingImport });
         else setEntitlementStatus("inactive");
       } catch {
@@ -6819,7 +6808,6 @@ export default function App() {
         const entitlement = await finishStudyPlannerPurchase(purchase);
         if (entitlement.isPremium) {
           activateEntitlement(entitlement.productId, entitlement.checkedAt, { destination: paywallDestinationRef.current });
-          maybeShowUnlockSuccess("purchase_action");
         }
       } catch (error) {
         Alert.alert(textFor("paywall.purchase_attention", "Purchase needs attention"), textFor("paywall.try_restore", "Try Restore Purchases."));
@@ -6863,7 +6851,7 @@ export default function App() {
   }, [activateEntitlement]);
 
   useEffect(() => {
-    if (loaded && data) {
+    if (loaded && data && entitlementStatus !== "loading") {
       const snapshot = data;
       saveChain.current = saveChain.current
         .catch(() => {})
@@ -6958,7 +6946,7 @@ export default function App() {
   }, [nav, stack, tab]);
 
   useEffect(() => {
-    if (Platform.OS === "web" || !loaded || !data) return;
+    if (Platform.OS === "web" || !loaded || !data || entitlementStatus === "loading") return;
     const openResponse = (response: Notifications.NotificationResponse | null) => {
       if (!response) return;
       const request = response.notification.request;
@@ -8319,7 +8307,6 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
         const entitlement = await restoreStudyPlannerPurchases();
         if (entitlement.isPremium) {
           unlock(entitlement.productId, entitlement.checkedAt);
-          maybeShowUnlockSuccess("restore_action");
         }
         else {
           setBusy(null);
@@ -8339,7 +8326,6 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
     }
     setMessage("Google Play review access unlocked.");
     unlock(GOOGLE_PLAY_REVIEW_PRODUCT_ID, new Date().toISOString());
-    maybeShowUnlockSuccess("google_play_review_access");
   };
 
   const importCandidates = currentImport?.candidates.filter((candidate) => candidate.approved) || [];

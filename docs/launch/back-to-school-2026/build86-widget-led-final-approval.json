@@ -1,0 +1,320 @@
+{
+  "schemaVersion": 1,
+  "status": "approved_all_34_via_release_owner_delegated_ai_review",
+  "approvedBy": "release_owner_delegated_ai_review",
+  "approvedAt": "2026-07-15T00:00:26.803Z",
+  "nativeHumanCertification": false,
+  "waiverPath": "docs/launch/back-to-school-2026/build86-release-source-waiver-2026-07-14.json",
+  "languageReviewPath": "docs/launch/back-to-school-2026/build86-ai-locale-review-2026-07-14.json",
+  "targetBuildNumber": "87",
+  "uploadAuthorized": true,
+  "submissionAuthorized": true,
+  "sheets": [
+    {
+      "locale": "ar-SA",
+      "device": "APP_IPHONE_65",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/ar-SA/APP_IPHONE_65-contact-sheet.jpg",
+      "sha256": "33b446d6e9572d4967a826e2f3bc7ad67cc38ba40b917b0c1218c40e1a2c05da",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.4
+    },
+    {
+      "locale": "ar-SA",
+      "device": "APP_IPAD_PRO_3GEN_129",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/ar-SA/APP_IPAD_PRO_3GEN_129-contact-sheet.jpg",
+      "sha256": "ec6c78505ce21fc6b983778859d7b51aaff2c0c97e469696fb8f493c400fe10a",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.4
+    },
+    {
+      "locale": "de-DE",
+      "device": "APP_IPHONE_65",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/de-DE/APP_IPHONE_65-contact-sheet.jpg",
+      "sha256": "4c75667810941a3b2abdd90fb3132b30edc8c205a8c83488851850387962c801",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.5
+    },
+    {
+      "locale": "de-DE",
+      "device": "APP_IPAD_PRO_3GEN_129",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/de-DE/APP_IPAD_PRO_3GEN_129-contact-sheet.jpg",
+      "sha256": "a3c5abaf10436c3cf4c6631c2d9a5dfc5fa096f5f79294469640dd44f5c76ae9",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.5
+    },
+    {
+      "locale": "en-AU",
+      "device": "APP_IPHONE_65",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/en-AU/APP_IPHONE_65-contact-sheet.jpg",
+      "sha256": "6adb68eae7bdd2f9c6b5946a96e8719c87cce0263b58514729fac048190c41c0",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.5
+    },
+    {
+      "locale": "en-AU",
+      "device": "APP_IPAD_PRO_3GEN_129",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/en-AU/APP_IPAD_PRO_3GEN_129-contact-sheet.jpg",
+      "sha256": "9bf25d73a757cccc95d0aa6a4d1244192fcb2714d7e27590376007fe5d6276ca",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.5
+    },
+    {
+      "locale": "en-CA",
+      "device": "APP_IPHONE_65",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/en-CA/APP_IPHONE_65-contact-sheet.jpg",
+      "sha256": "c3faeee4894d76b1433302b33c96e9b5416b662164d1100987136bf6d96e2285",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.6
+    },
+    {
+      "locale": "en-CA",
+      "device": "APP_IPAD_PRO_3GEN_129",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/en-CA/APP_IPAD_PRO_3GEN_129-contact-sheet.jpg",
+      "sha256": "2be16c85da45b2b5b88ad29017a1909b091b65b69e86c023385a3bb48b4f7a23",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.6
+    },
+    {
+      "locale": "en-GB",
+      "device": "APP_IPHONE_65",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/en-GB/APP_IPHONE_65-contact-sheet.jpg",
+      "sha256": "ac2ebc60e511a131fe75709ea4f948a7fa49e5dbfa8c76dedccffa1e851fe7e1",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.4
+    },
+    {
+      "locale": "en-GB",
+      "device": "APP_IPAD_PRO_3GEN_129",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/en-GB/APP_IPAD_PRO_3GEN_129-contact-sheet.jpg",
+      "sha256": "6c3418d48820e6fffa58dabdc3e1f73d58fcdc3724d7f2140ea91b7ef2070a91",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.4
+    },
+    {
+      "locale": "en-US",
+      "device": "APP_IPHONE_65",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/en-US/APP_IPHONE_65-contact-sheet.jpg",
+      "sha256": "2d819fa51d521297bb52c46988192c78c8a57dc92d84d97069654e3d4853f828",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.7
+    },
+    {
+      "locale": "en-US",
+      "device": "APP_IPAD_PRO_3GEN_129",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/en-US/APP_IPAD_PRO_3GEN_129-contact-sheet.jpg",
+      "sha256": "e6c4c239a1b68eff1d2f0f4ea90f3fd86386032d415564a97b44fb6ae5c8282a",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.7
+    },
+    {
+      "locale": "es-ES",
+      "device": "APP_IPHONE_65",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/es-ES/APP_IPHONE_65-contact-sheet.jpg",
+      "sha256": "c70c6a428ba90c121722949077952ee38dbc60e6f570cf175bb2ddbaebc1424d",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.5
+    },
+    {
+      "locale": "es-ES",
+      "device": "APP_IPAD_PRO_3GEN_129",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/es-ES/APP_IPAD_PRO_3GEN_129-contact-sheet.jpg",
+      "sha256": "dc2eafe1d5489fb474aadcb2ca7e082bb8cafbe627f6650264037eacb3c33323",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.5
+    },
+    {
+      "locale": "es-MX",
+      "device": "APP_IPHONE_65",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/es-MX/APP_IPHONE_65-contact-sheet.jpg",
+      "sha256": "c28788120112690f5f7b3907921c5818a4dd2eef3ea3eb6e5fbcc3f3df594bdf",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.5
+    },
+    {
+      "locale": "es-MX",
+      "device": "APP_IPAD_PRO_3GEN_129",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/es-MX/APP_IPAD_PRO_3GEN_129-contact-sheet.jpg",
+      "sha256": "3de8d7ef5743d6859ff9f60ac0f3d59177ce9a7978f7302328e5adc20079d46b",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.5
+    },
+    {
+      "locale": "fr-CA",
+      "device": "APP_IPHONE_65",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/fr-CA/APP_IPHONE_65-contact-sheet.jpg",
+      "sha256": "473e71b2c6ee13cf59632151de23a1ea1d712041d64af56d7bf44b38092222a5",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.4
+    },
+    {
+      "locale": "fr-CA",
+      "device": "APP_IPAD_PRO_3GEN_129",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/fr-CA/APP_IPAD_PRO_3GEN_129-contact-sheet.jpg",
+      "sha256": "4cd30d3fcb985d9fe4f3a087e689e508f830e121c40753fa6df0e3bd514b3c6a",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.4
+    },
+    {
+      "locale": "fr-FR",
+      "device": "APP_IPHONE_65",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/fr-FR/APP_IPHONE_65-contact-sheet.jpg",
+      "sha256": "97b22270cba003ffe6c03502f410b0d846dce39ded4363bb9a46e8c3255a7ccd",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.4
+    },
+    {
+      "locale": "fr-FR",
+      "device": "APP_IPAD_PRO_3GEN_129",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/fr-FR/APP_IPAD_PRO_3GEN_129-contact-sheet.jpg",
+      "sha256": "efe5a1d697acf83f1f64b57bd13b5e96f6a01fccc05a280b7288edeccbe40745",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.4
+    },
+    {
+      "locale": "hi",
+      "device": "APP_IPHONE_65",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/hi/APP_IPHONE_65-contact-sheet.jpg",
+      "sha256": "097c72c766dd2ceef5cd758a5127b50060ab88524b58d9834ba16fe38b819d57",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.2
+    },
+    {
+      "locale": "hi",
+      "device": "APP_IPAD_PRO_3GEN_129",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/hi/APP_IPAD_PRO_3GEN_129-contact-sheet.jpg",
+      "sha256": "5e4d356a0422e62b691e770cdd6703973c3ba2010cd478bcda1c34a16396d895",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.2
+    },
+    {
+      "locale": "ja",
+      "device": "APP_IPHONE_65",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/ja/APP_IPHONE_65-contact-sheet.jpg",
+      "sha256": "340b4e7bd911ce6cee55ce03ff08f4e99d41474da44c00ed402aa0623dfb069a",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.5
+    },
+    {
+      "locale": "ja",
+      "device": "APP_IPAD_PRO_3GEN_129",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/ja/APP_IPAD_PRO_3GEN_129-contact-sheet.jpg",
+      "sha256": "6d7ce4c8d61ac7abab38b7a1ec4bfe3d347bbb82f828a18774a31faeae1447cb",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.5
+    },
+    {
+      "locale": "ko",
+      "device": "APP_IPHONE_65",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/ko/APP_IPHONE_65-contact-sheet.jpg",
+      "sha256": "e8bebf30b36abd11e7992a72131360a5873c8a97eae3ff6d28ffc07ff98fecb0",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.3
+    },
+    {
+      "locale": "ko",
+      "device": "APP_IPAD_PRO_3GEN_129",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/ko/APP_IPAD_PRO_3GEN_129-contact-sheet.jpg",
+      "sha256": "8642554a0376ddd966ee80d615f2ca16c915394548121c7b2799ac79133da85c",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.3
+    },
+    {
+      "locale": "pt-BR",
+      "device": "APP_IPHONE_65",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/pt-BR/APP_IPHONE_65-contact-sheet.jpg",
+      "sha256": "d1b2fa00a45184c3606955aa9efb571a086ffdd07961acf4cf076711098cc6e4",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.5
+    },
+    {
+      "locale": "pt-BR",
+      "device": "APP_IPAD_PRO_3GEN_129",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/pt-BR/APP_IPAD_PRO_3GEN_129-contact-sheet.jpg",
+      "sha256": "6b3f8fb37c62e0362e214ffdf5b3d602e228255df0b72f01838d19818cf9e2f9",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.5
+    },
+    {
+      "locale": "pt-PT",
+      "device": "APP_IPHONE_65",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/pt-PT/APP_IPHONE_65-contact-sheet.jpg",
+      "sha256": "05b010537aee2fb34ba0885dc54e859517c269972875d8361dfe96331f2c78af",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.4
+    },
+    {
+      "locale": "pt-PT",
+      "device": "APP_IPAD_PRO_3GEN_129",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/pt-PT/APP_IPAD_PRO_3GEN_129-contact-sheet.jpg",
+      "sha256": "99e44c11393dbab7e6b276c4c70d79da73b6527001275f9a8163ee7038b4e826",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.4
+    },
+    {
+      "locale": "zh-Hans",
+      "device": "APP_IPHONE_65",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/zh-Hans/APP_IPHONE_65-contact-sheet.jpg",
+      "sha256": "61e660a915ff22497076e912a56025b68f67dc2bf1e0975c31d3eb4418093e11",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.4
+    },
+    {
+      "locale": "zh-Hans",
+      "device": "APP_IPAD_PRO_3GEN_129",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/zh-Hans/APP_IPAD_PRO_3GEN_129-contact-sheet.jpg",
+      "sha256": "d92154b16d8b11d399bec1d5d7828485cf07b226a4d93bef34ef943ae57e0713",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.4
+    },
+    {
+      "locale": "zh-Hant",
+      "device": "APP_IPHONE_65",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/zh-Hant/APP_IPHONE_65-contact-sheet.jpg",
+      "sha256": "ff3f8273cb8013a76d99677c98d4b75169dd87829e45c32c94bb10bd0a2c6ce6",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.4
+    },
+    {
+      "locale": "zh-Hant",
+      "device": "APP_IPAD_PRO_3GEN_129",
+      "path": "outputs/imagegen/generative-polish/build86-widget-led-conversion/localized-simulator-contact-sheets/zh-Hant/APP_IPAD_PRO_3GEN_129-contact-sheet.jpg",
+      "sha256": "f3c2cc5d7c79523a446591f26130a4d5588305f02f98ff77555f0393538cb74a",
+      "status": "ai_review_approved",
+      "truthStatus": "truthful_installed_build86_simulator_ui",
+      "score": 9.4
+    }
+  ]
+}

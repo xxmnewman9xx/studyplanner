@@ -1,5 +1,7 @@
 # Build 86 widget-led readiness
 
+Current release policy: the release owner waived the physical-device capture requirement and delegated multilingual review to AI in `build86-release-source-waiver-2026-07-14.json`. The strict physical workflow below remains available, but it is not the active preparation path for this package.
+
 ## Locked release identity
 
 - App version: `2.0.9`
@@ -18,7 +20,7 @@
 - Week uses seven real rolling workload counts. Today accessories use the real due-state metric. Week and Class labels are localized across all 17 storefronts.
 - Store metadata and the 17 × 2 × 7 screenshot matrix target Build 86, with the widget promise fixed in slot three.
 
-## Required external proof before media production
+## Strict-path external proof before media production
 
 1. Native-language approval for every seven-headline locale set.
 2. A committed Build 86 source revision and finished EAS production build.
