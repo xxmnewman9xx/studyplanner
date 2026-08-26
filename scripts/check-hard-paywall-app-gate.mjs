@@ -75,9 +75,10 @@ const checks = [
       iapSource.includes("eligibility.set(groupId, false)") &&
       appSource.includes("loadEligibleIntroOfferProductIds(plans)") &&
       appSource.includes("const selectedPlanHasOneWeekTrial = hasOneWeekFreeTrial(selectedPlan) && eligibleTrialProductIdSet.has(selectedPlan.id)") &&
-      appSource.includes("const allPlansHaveOneWeekTrial = plans.length > 0 && plans.every") &&
-      appSource.includes("const trialPlan = allPlansHaveOneWeekTrial && selectedPlanHasOneWeekTrial ? selectedPlan : undefined") &&
-      appSource.includes('textFor("paywall.seasonal_title", "One week free with any plan")') &&
+      appSource.includes('const subscriptionPlans = plans.filter((plan) => plan.kind === "subscription")') &&
+      appSource.includes("const allSubscriptionsHaveOneWeekTrial = subscriptionPlans.length > 0 && subscriptionPlans.every") &&
+      appSource.includes("const trialPlan = allSubscriptionsHaveOneWeekTrial && selectedPlanHasOneWeekTrial ? selectedPlan : undefined") &&
+      appSource.includes('textFor("paywall.seasonal_title", "One week free on eligible subscriptions")') &&
       appSource.includes('textFor("paywall.trial_cta", "Start one-week free trial")') &&
       appSource.includes('Auto-renews until canceled.') &&
       appSource.includes("selectedPlanSummary") &&

@@ -1,7 +1,28 @@
 {
   "identifier": "studyplanner-local-storekit",
   "nonRenewingSubscriptions": [],
-  "products": [],
+  "products": [
+    {
+      "displayPrice": "59.99",
+      "familyShareable": false,
+      "localizations": [
+        { "description": "Lifetime StudyPlanner access with one payment and no renewal.", "displayName": "StudyPlanner Lifetime", "locale": "en_US" },
+        { "description": "Dauerhafter StudyPlanner-Zugang mit einer einmaligen Zahlung und ohne Verlängerung.", "displayName": "StudyPlanner Lebenslang", "locale": "de" },
+        { "description": "Acceso de por vida a StudyPlanner con un solo pago y sin renovación.", "displayName": "StudyPlanner de por vida", "locale": "es" },
+        { "description": "Accès à vie à StudyPlanner avec un paiement unique et sans renouvellement.", "displayName": "StudyPlanner à vie", "locale": "fr" },
+        { "description": "Acesso vitalício ao StudyPlanner com pagamento único e sem renovação.", "displayName": "StudyPlanner vitalício", "locale": "pt_BR" },
+        { "description": "وصول مدى الحياة إلى StudyPlanner بدفعة واحدة ومن دون تجديد.", "displayName": "StudyPlanner مدى الحياة", "locale": "ar" },
+        { "description": "एक भुगतान में StudyPlanner का आजीवन ऐक्सेस, बिना नवीनीकरण।", "displayName": "StudyPlanner आजीवन", "locale": "hi" },
+        { "description": "1回の支払いで更新なしのStudyPlanner永久アクセス。", "displayName": "StudyPlanner ライフタイム", "locale": "ja" },
+        { "description": "한 번 결제로 갱신 없이 StudyPlanner 평생 이용.", "displayName": "StudyPlanner 평생", "locale": "ko" },
+        { "description": "一次付款，永久使用 StudyPlanner，无需续订。", "displayName": "StudyPlanner 终身版", "locale": "zh_Hans" },
+        { "description": "一次付款，永久使用 StudyPlanner，無需續訂。", "displayName": "StudyPlanner 終身版", "locale": "zh_Hant" }
+      ],
+      "productID": "com.mattnewman.studyplanner.plus.lifetime",
+      "referenceName": "StudyPlanner Lifetime",
+      "type": "NonConsumable"
+    }
+  ],
   "settings": {
     "_applicationInternalID": "6766181202",
     "_developerTeamID": "",
@@ -24,7 +45,7 @@
         {
           "adHocOffers": [],
           "codeOffers": [],
-          "displayPrice": "9.99",
+          "displayPrice": "6.99",
           "familyShareable": false,
           "groupNumber": 1,
           "introductoryOffer": {
@@ -50,7 +71,7 @@
         {
           "adHocOffers": [],
           "codeOffers": [],
-          "displayPrice": "19.99",
+          "displayPrice": "14.99",
           "familyShareable": false,
           "groupNumber": 2,
           "introductoryOffer": {

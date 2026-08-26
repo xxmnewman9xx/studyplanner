@@ -4,12 +4,13 @@ import {
   fetchProducts,
   finishTransaction,
   getActiveSubscriptions,
+  getAvailablePurchases,
   initConnection,
   isEligibleForIntroOfferIOS,
   requestPurchase,
   restorePurchases,
 } from "expo-iap";
-import type { ProductSubscription, Purchase } from "expo-iap";
+import type { Product, ProductSubscription, Purchase } from "expo-iap";
 
 declare const process:
   | {
@@ -27,6 +28,13 @@ export const STUDYPLANNER_SUBSCRIPTION_IDS = [
   "com.mattnewman.studyplanner.plus.yearly",
 ] as const;
 
+export const STUDYPLANNER_LIFETIME_PRODUCT_ID = "com.mattnewman.studyplanner.plus.lifetime";
+
+export const STUDYPLANNER_PRODUCT_IDS = [
+  ...STUDYPLANNER_SUBSCRIPTION_IDS,
+  STUDYPLANNER_LIFETIME_PRODUCT_ID,
+] as const;
+
 let storeConnectionPromise: Promise<boolean> | null = null;
 
 export type PaywallPlan = {
@@ -34,8 +42,11 @@ export type PaywallPlan = {
   title: string;
   description: string;
   displayPrice: string;
-  cadence: "Weekly" | "Monthly" | "Yearly";
+  originalDisplayPrice?: string;
+  cadence: "Weekly" | "Monthly" | "Yearly" | "Lifetime";
+  kind: "subscription" | "lifetime";
   recommended: boolean;
+  bestValue: boolean;
   subscriptionGroupId?: string;
   introductoryOffer?: {
     displayPrice: string;
@@ -82,18 +93,22 @@ export function fallbackPlans(): PaywallPlan[] {
     {
       id: STUDYPLANNER_SUBSCRIPTION_IDS[1],
       title: "StudyPlanner Monthly",
-      description: "Flexible access for the current term.",
+      description: "The sale plan for a full month of StudyPlanner access.",
       displayPrice: "Shown by App Store",
       cadence: "Monthly",
-      recommended: false,
+      kind: "subscription",
+      recommended: true,
+      bestValue: false,
     },
     {
-      id: STUDYPLANNER_SUBSCRIPTION_IDS[2],
-      title: "StudyPlanner Yearly",
-      description: "Best value for the full school year.",
+      id: STUDYPLANNER_LIFETIME_PRODUCT_ID,
+      title: "StudyPlanner Lifetime",
+      description: "Lifetime access with one payment and no renewal.",
       displayPrice: "Shown by App Store",
-      cadence: "Yearly",
-      recommended: true,
+      cadence: "Lifetime",
+      kind: "lifetime",
+      recommended: false,
+      bestValue: true,
     },
     {
       id: STUDYPLANNER_SUBSCRIPTION_IDS[0],
@@ -101,7 +116,46 @@ export function fallbackPlans(): PaywallPlan[] {
       description: "Short-term access when you need a focused planning push.",
       displayPrice: "Shown by App Store",
       cadence: "Weekly",
+      kind: "subscription",
       recommended: false,
+      bestValue: false,
+    },
+  ];
+}
+
+function simulatorQaFixturePlans(): PaywallPlan[] | null {
+  if (typeof process === "undefined" || process.env?.EXPO_PUBLIC_STUDYPLANNER_CAPTURE_QA !== "1") return null;
+  return [
+    {
+      id: STUDYPLANNER_SUBSCRIPTION_IDS[1],
+      title: "StudyPlanner Monthly",
+      description: "The sale plan for a full month of StudyPlanner access.",
+      displayPrice: "$14.99",
+      originalDisplayPrice: "$20.99",
+      cadence: "Monthly",
+      kind: "subscription",
+      recommended: true,
+      bestValue: false,
+    },
+    {
+      id: STUDYPLANNER_LIFETIME_PRODUCT_ID,
+      title: "StudyPlanner Lifetime",
+      description: "Lifetime access with one payment and no renewal.",
+      displayPrice: "$59.99",
+      cadence: "Lifetime",
+      kind: "lifetime",
+      recommended: false,
+      bestValue: true,
+    },
+    {
+      id: STUDYPLANNER_SUBSCRIPTION_IDS[0],
+      title: "StudyPlanner Weekly",
+      description: "Short-term access when you need a focused planning push.",
+      displayPrice: "$6.99",
+      cadence: "Weekly",
+      kind: "subscription",
+      recommended: false,
+      bestValue: false,
     },
   ];
 }
@@ -128,26 +182,41 @@ export async function closeStudyPlannerStore() {
 }
 
 export async function loadStorePlans(): Promise<PaywallPlan[]> {
+  const fixturePlans = simulatorQaFixturePlans();
+  if (fixturePlans) return fixturePlans;
+
   if (typeof process !== "undefined" && process.env?.EXPO_PUBLIC_IAP_FORCE_FALLBACK_PLANS === "1") {
     return fallbackPlans();
   }
 
-  const products = await fetchProducts({ skus: [...STUDYPLANNER_SUBSCRIPTION_IDS], type: "subs" });
-  const mapped = (products || [])
-    .filter((product): product is ProductSubscription => product.type === "subs")
-    .map(mapProduct)
-    .sort((a, b) => (a.recommended === b.recommended ? 0 : a.recommended ? -1 : 1));
+  const [subscriptionResult, lifetimeResult] = await Promise.allSettled([
+    fetchProducts({ skus: [...STUDYPLANNER_SUBSCRIPTION_IDS], type: "subs" }),
+    fetchProducts({ skus: [STUDYPLANNER_LIFETIME_PRODUCT_ID], type: "in-app" }),
+  ]);
+  const subscriptions = subscriptionResult.status === "fulfilled" ? subscriptionResult.value : [];
+  const lifetimeProducts = lifetimeResult.status === "fulfilled" ? lifetimeResult.value : [];
+  const mapped = [
+    ...(subscriptions || [])
+      .filter((product): product is ProductSubscription => product.type === "subs")
+      .map(mapSubscriptionProduct)
+      .filter((plan) => plan.cadence !== "Yearly"),
+    ...(lifetimeProducts || [])
+      .filter((product): product is Product => product.type === "in-app")
+      .map(mapLifetimeProduct),
+  ].sort(sortPrimaryPaywallPlans);
   return mapped.length ? mapped : fallbackPlans();
 }
 
 export async function purchasePlan(productId: string): Promise<void> {
-  await requestPurchase({
-    type: "subs",
-    request: {
-      apple: { sku: productId },
-      google: { skus: [productId] },
-    },
-  });
+  const request = {
+    apple: { sku: productId },
+    google: { skus: [productId] },
+  };
+  if (productId === STUDYPLANNER_LIFETIME_PRODUCT_ID) {
+    await requestPurchase({ type: "in-app", request });
+    return;
+  }
+  await requestPurchase({ type: "subs", request });
 }
 
 export async function restoreStudyPlannerPurchases(): Promise<EntitlementResult> {
@@ -170,20 +239,29 @@ export async function finishStudyPlannerPurchase(purchase: Purchase): Promise<En
 
 export async function checkStudyPlannerEntitlement(): Promise<EntitlementResult> {
   if (Platform.OS === "web") return { isPremium: false, checkedAt: new Date().toISOString() };
-  const active = await getActiveSubscriptions([...STUDYPLANNER_SUBSCRIPTION_IDS]);
-  const subscription = active.find((item) => item.isActive && isKnownProduct(item.productId));
+  const [activeSubscriptions, availablePurchases] = await Promise.all([
+    getActiveSubscriptions([...STUDYPLANNER_SUBSCRIPTION_IDS]),
+    getAvailablePurchases({ onlyIncludeActiveItemsIOS: true, includeSuspendedAndroid: false }),
+  ]);
+  const subscription = activeSubscriptions.find(
+    (item) => item.isActive && (STUDYPLANNER_SUBSCRIPTION_IDS as readonly string[]).includes(item.productId),
+  );
+  const lifetimePurchase = availablePurchases.find(
+    (item) => item.purchaseState === "purchased" && item.productId === STUDYPLANNER_LIFETIME_PRODUCT_ID,
+  );
+  const productId = subscription?.productId || lifetimePurchase?.productId;
   return {
-    isPremium: Boolean(subscription),
-    productId: subscription?.productId,
+    isPremium: Boolean(productId),
+    productId,
     checkedAt: new Date().toISOString(),
   };
 }
 
 export function isKnownProduct(productId: string | null | undefined) {
-  return Boolean(productId && (STUDYPLANNER_SUBSCRIPTION_IDS as readonly string[]).includes(productId));
+  return Boolean(productId && (STUDYPLANNER_PRODUCT_IDS as readonly string[]).includes(productId));
 }
 
-function mapProduct(product: ProductSubscription): PaywallPlan {
+function mapSubscriptionProduct(product: ProductSubscription): PaywallPlan {
   const yearly = product.id.includes("year");
   const weekly = product.id.includes("week");
   const standardizedIntro = product.subscriptionOffers?.find((offer) => offer.type === "introductory");
@@ -212,9 +290,63 @@ function mapProduct(product: ProductSubscription): PaywallPlan {
     title: product.displayName || product.title || (yearly ? "StudyPlanner Yearly" : weekly ? "StudyPlanner Weekly" : "StudyPlanner Monthly"),
     description: product.description || (yearly ? "Full access for the school year." : weekly ? "Full access week to week." : "Full access month to month."),
     displayPrice: product.displayPrice || "Shown by App Store",
+    originalDisplayPrice: !yearly && !weekly ? monthlyOriginalDisplayPrice(product) : undefined,
     cadence: yearly ? "Yearly" : weekly ? "Weekly" : "Monthly",
-    recommended: yearly,
+    kind: "subscription",
+    recommended: !yearly && !weekly,
+    bestValue: false,
     subscriptionGroupId: product.platform === "ios" ? product.subscriptionInfoIOS?.subscriptionGroupId || undefined : undefined,
     introductoryOffer,
   };
+}
+
+function mapLifetimeProduct(product: Product): PaywallPlan {
+  return {
+    id: product.id,
+    title: product.displayName || product.title || "StudyPlanner Lifetime",
+    description: product.description || "Lifetime access with one payment and no renewal.",
+    displayPrice: product.displayPrice || "Shown by App Store",
+    cadence: "Lifetime",
+    kind: "lifetime",
+    recommended: false,
+    bestValue: true,
+  };
+}
+
+function monthlyOriginalDisplayPrice(product: ProductSubscription) {
+  if (!product.price || !product.currency) return undefined;
+  const decimals = currencyFractionDigits(product.currency);
+  const factor = 10 ** decimals;
+  const referencePrice = Math.ceil(product.price * 1.4 * factor) / factor;
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: product.currency,
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    }).format(referencePrice);
+  } catch {
+    return undefined;
+  }
+}
+
+function currencyFractionDigits(currency: string): number {
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency,
+    }).resolvedOptions().maximumFractionDigits ?? 2;
+  } catch {
+    return 2;
+  }
+}
+
+function sortPrimaryPaywallPlans(a: PaywallPlan, b: PaywallPlan) {
+  const rank = (plan: PaywallPlan) => {
+    if (plan.cadence === "Monthly") return 0;
+    if (plan.cadence === "Lifetime") return 1;
+    if (plan.cadence === "Weekly") return 2;
+    return 3;
+  };
+  return rank(a) - rank(b);
 }

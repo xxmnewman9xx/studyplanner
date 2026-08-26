@@ -2904,7 +2904,7 @@ for (const locale of Object.keys(PREVIEW_BEFORE_PURCHASE_COPY) as SupportedLocal
 const SEASONAL_TRIAL_COPY: Record<SupportedLocale, Record<string, string>> = {
   "en-US": {
     "paywall.seasonal_kicker": "BACK-TO-SCHOOL OFFER",
-    "paywall.seasonal_title": "One week free with any plan",
+    "paywall.seasonal_title": "One week free on eligible subscriptions",
     "paywall.seasonal_body": "Eligible new subscribers. Apple confirms eligibility; then {price} on the {plan} plan. Renews automatically until canceled.",
     "paywall.trial_badge": "1 week free",
     "paywall.trial_cta": "Start one-week free trial",
@@ -2912,7 +2912,7 @@ const SEASONAL_TRIAL_COPY: Record<SupportedLocale, Record<string, string>> = {
   },
   de: {
     "paywall.seasonal_kicker": "ANGEBOT ZUM SEMESTERSTART",
-    "paywall.seasonal_title": "Eine Woche gratis mit jedem Abo",
+    "paywall.seasonal_title": "Eine Woche gratis mit berechtigten Abos",
     "paywall.seasonal_body": "Für berechtigte neue Abonnenten. Apple bestätigt die Berechtigung; danach {price} im {plan}-Abo. Verlängert sich automatisch bis zur Kündigung.",
     "paywall.trial_badge": "1 Woche kostenlos",
     "paywall.trial_cta": "Kostenlose Woche starten",
@@ -2920,7 +2920,7 @@ const SEASONAL_TRIAL_COPY: Record<SupportedLocale, Record<string, string>> = {
   },
   es: {
     "paywall.seasonal_kicker": "OFERTA DE VUELTA A CLASES",
-    "paywall.seasonal_title": "Una semana gratis con cualquier plan",
+    "paywall.seasonal_title": "Una semana gratis en suscripciones elegibles",
     "paywall.seasonal_body": "Para nuevos suscriptores que cumplan los requisitos. Apple confirma la elegibilidad; después, {price} con el plan {plan}. Se renueva automáticamente hasta que canceles.",
     "paywall.trial_badge": "1 semana gratis",
     "paywall.trial_cta": "Iniciar semana gratis",
@@ -2928,7 +2928,7 @@ const SEASONAL_TRIAL_COPY: Record<SupportedLocale, Record<string, string>> = {
   },
   fr: {
     "paywall.seasonal_kicker": "OFFRE DE RENTRÉE",
-    "paywall.seasonal_title": "Une semaine offerte avec chaque formule",
+    "paywall.seasonal_title": "Une semaine offerte sur les abonnements éligibles",
     "paywall.seasonal_body": "Pour les nouveaux abonnés éligibles. Apple confirme l’éligibilité ; puis {price} avec la formule {plan}. Renouvellement automatique jusqu’à résiliation.",
     "paywall.trial_badge": "1 semaine gratuite",
     "paywall.trial_cta": "Commencer la semaine gratuite",
@@ -2936,7 +2936,7 @@ const SEASONAL_TRIAL_COPY: Record<SupportedLocale, Record<string, string>> = {
   },
   "pt-BR": {
     "paywall.seasonal_kicker": "OFERTA DE VOLTA ÀS AULAS",
-    "paywall.seasonal_title": "Uma semana grátis em qualquer plano",
+    "paywall.seasonal_title": "Uma semana grátis em assinaturas elegíveis",
     "paywall.seasonal_body": "Para novos assinantes elegíveis. A Apple confirma a elegibilidade; depois, {price} no plano {plan}. Renovação automática até o cancelamento.",
     "paywall.trial_badge": "1 semana grátis",
     "paywall.trial_cta": "Iniciar semana grátis",
@@ -2944,7 +2944,7 @@ const SEASONAL_TRIAL_COPY: Record<SupportedLocale, Record<string, string>> = {
   },
   ja: {
     "paywall.seasonal_kicker": "新学期キャンペーン",
-    "paywall.seasonal_title": "どのプランも最初の1週間は無料",
+    "paywall.seasonal_title": "対象サブスクリプションは1週間無料",
     "paywall.seasonal_body": "対象となる新規登録者向けです。Appleが適用条件を確認し、その後は{plan}が{price}です。解約するまで自動更新されます。",
     "paywall.trial_badge": "1週間無料",
     "paywall.trial_cta": "1週間の無料体験を開始",
@@ -2952,7 +2952,7 @@ const SEASONAL_TRIAL_COPY: Record<SupportedLocale, Record<string, string>> = {
   },
   ko: {
     "paywall.seasonal_kicker": "새 학기 프로모션",
-    "paywall.seasonal_title": "모든 요금제 첫 1주 무료",
+    "paywall.seasonal_title": "대상 구독 첫 1주 무료",
     "paywall.seasonal_body": "대상 신규 구독자에게 적용됩니다. Apple이 대상 여부를 확인하며 이후 {plan} 요금은 {price}입니다. 취소할 때까지 자동 갱신됩니다.",
     "paywall.trial_badge": "1주 무료",
     "paywall.trial_cta": "1주 무료 체험 시작",
@@ -2960,7 +2960,7 @@ const SEASONAL_TRIAL_COPY: Record<SupportedLocale, Record<string, string>> = {
   },
   "zh-Hans": {
     "paywall.seasonal_kicker": "开学季优惠",
-    "paywall.seasonal_title": "任一方案首周免费",
+    "paywall.seasonal_title": "符合条件的订阅首周免费",
     "paywall.seasonal_body": "适用于符合条件的新订阅用户。Apple 会确认资格；之后{plan}价格为 {price}。取消前将自动续订。",
     "paywall.trial_badge": "免费 1 周",
     "paywall.trial_cta": "开始一周免费试用",
@@ -2968,7 +2968,7 @@ const SEASONAL_TRIAL_COPY: Record<SupportedLocale, Record<string, string>> = {
   },
   hi: {
     "paywall.seasonal_kicker": "बैक-टू-स्कूल ऑफ़र",
-    "paywall.seasonal_title": "हर प्लान के साथ पहला सप्ताह मुफ़्त",
+    "paywall.seasonal_title": "योग्य सब्सक्रिप्शन के साथ पहला सप्ताह मुफ़्त",
     "paywall.seasonal_body": "योग्य नए सब्सक्राइबर के लिए। Apple पात्रता की पुष्टि करता है; फिर {plan} के लिए {price}। रद्द करने तक अपने-आप नवीनीकृत होगा।",
     "paywall.trial_badge": "1 सप्ताह मुफ़्त",
     "paywall.trial_cta": "एक सप्ताह का मुफ़्त ट्रायल शुरू करें",
@@ -2976,7 +2976,7 @@ const SEASONAL_TRIAL_COPY: Record<SupportedLocale, Record<string, string>> = {
   },
   ar: {
     "paywall.seasonal_kicker": "عرض العودة إلى الدراسة",
-    "paywall.seasonal_title": "أسبوع مجانًا مع أي خطة",
+    "paywall.seasonal_title": "أسبوع مجانًا للاشتراكات المؤهلة",
     "paywall.seasonal_body": "للمشتركين الجدد المؤهلين. تؤكد Apple الأهلية؛ ثم {price} لخطة {plan}. يتجدد تلقائيًا حتى الإلغاء.",
     "paywall.trial_badge": "أسبوع مجانًا",
     "paywall.trial_cta": "ابدأ التجربة المجانية لأسبوع",
@@ -2986,6 +2986,173 @@ const SEASONAL_TRIAL_COPY: Record<SupportedLocale, Record<string, string>> = {
 
 for (const locale of Object.keys(SEASONAL_TRIAL_COPY) as SupportedLocale[]) {
   Object.assign(APP_COPY[locale], SEASONAL_TRIAL_COPY[locale]);
+}
+
+const PRICING_SALE_COPY: Record<SupportedLocale, Record<string, string>> = {
+  "en-US": {
+    "paywall.sale_kicker": "LIMITED-TIME SALE",
+    "paywall.sale_title": "40% off monthly",
+    "paywall.sale_body": "Was {original}. Now {price} per month.",
+    "paywall.sale_body_loading": "Monthly is 40% off. The App Store shows your localized sale price before checkout.",
+    "paywall.sale_badge": "SALE · 40% OFF",
+    "paywall.lifetime": "Lifetime",
+    "paywall.one_time": "One-time purchase",
+    "paywall.monthly_sale_summary": "40% off: was {original}, now {price}/month. Auto-renews until canceled.",
+    "paywall.lifetime_summary": "{price} once. Lifetime access; no renewal.",
+    "paywall.subscription_summary": "{price}/{plan}. Auto-renews until canceled.",
+    "paywall.monthly_cta": "Get monthly for {price}",
+    "paywall.weekly_cta": "Get weekly for {price}",
+    "paywall.lifetime_cta": "Get lifetime for {price}",
+    "paywall.legal_mixed": "Subscriptions auto-renew until canceled. Lifetime is a one-time purchase. The App Store confirms the localized price and terms before any charge.",
+  },
+  de: {
+    "paywall.sale_kicker": "ANGEBOT FÜR KURZE ZEIT",
+    "paywall.sale_title": "40 % Rabatt auf monatlich",
+    "paywall.sale_body": "Statt {original} jetzt {price} pro Monat.",
+    "paywall.sale_body_loading": "Monatlich ist 40 % günstiger. Der App Store zeigt vor dem Kauf deinen lokalen Angebotspreis.",
+    "paywall.sale_badge": "ANGEBOT · 40 % RABATT",
+    "paywall.lifetime": "Lebenslang",
+    "paywall.one_time": "Einmaliger Kauf",
+    "paywall.monthly_sale_summary": "40 % Rabatt: statt {original} jetzt {price}/Monat. Verlängert sich bis zur Kündigung.",
+    "paywall.lifetime_summary": "Einmal {price}. Lebenslanger Zugang ohne Verlängerung.",
+    "paywall.subscription_summary": "{price}/{plan}. Verlängert sich bis zur Kündigung.",
+    "paywall.monthly_cta": "Monatlich für {price}",
+    "paywall.weekly_cta": "Wöchentlich für {price}",
+    "paywall.lifetime_cta": "Lebenslang für {price}",
+    "paywall.legal_mixed": "Abos verlängern sich bis zur Kündigung automatisch. Lebenslang ist ein einmaliger Kauf. Der App Store bestätigt vor jeder Belastung lokalen Preis und Bedingungen.",
+  },
+  es: {
+    "paywall.sale_kicker": "OFERTA POR TIEMPO LIMITADO",
+    "paywall.sale_title": "40 % menos en el plan mensual",
+    "paywall.sale_body": "Antes {original}. Ahora {price} al mes.",
+    "paywall.sale_body_loading": "El plan mensual tiene un 40 % de descuento. App Store muestra tu precio local antes de pagar.",
+    "paywall.sale_badge": "OFERTA · 40 % MENOS",
+    "paywall.lifetime": "De por vida",
+    "paywall.one_time": "Pago único",
+    "paywall.monthly_sale_summary": "40 % menos: antes {original}, ahora {price}/mes. Renovación automática hasta cancelar.",
+    "paywall.lifetime_summary": "{price} una vez. Acceso de por vida, sin renovación.",
+    "paywall.subscription_summary": "{price}/{plan}. Renovación automática hasta cancelar.",
+    "paywall.monthly_cta": "Mensual por {price}",
+    "paywall.weekly_cta": "Semanal por {price}",
+    "paywall.lifetime_cta": "De por vida por {price}",
+    "paywall.legal_mixed": "Las suscripciones se renuevan hasta que canceles. De por vida es un pago único. App Store confirma el precio local y las condiciones antes de cobrar.",
+  },
+  fr: {
+    "paywall.sale_kicker": "OFFRE À DURÉE LIMITÉE",
+    "paywall.sale_title": "−40 % sur la formule mensuelle",
+    "paywall.sale_body": "Au lieu de {original}, maintenant {price} par mois.",
+    "paywall.sale_body_loading": "La formule mensuelle est à −40 %. L’App Store affiche votre prix local avant l’achat.",
+    "paywall.sale_badge": "PROMO · −40 %",
+    "paywall.lifetime": "À vie",
+    "paywall.one_time": "Achat unique",
+    "paywall.monthly_sale_summary": "−40 % : au lieu de {original}, maintenant {price}/mois. Renouvellement jusqu’à résiliation.",
+    "paywall.lifetime_summary": "{price} une fois. Accès à vie, sans renouvellement.",
+    "paywall.subscription_summary": "{price}/{plan}. Renouvellement jusqu’à résiliation.",
+    "paywall.monthly_cta": "Mensuel à {price}",
+    "paywall.weekly_cta": "Hebdo à {price}",
+    "paywall.lifetime_cta": "À vie pour {price}",
+    "paywall.legal_mixed": "Les abonnements se renouvellent jusqu’à résiliation. L’accès à vie est un achat unique. L’App Store confirme le prix local et les conditions avant tout débit.",
+  },
+  "pt-BR": {
+    "paywall.sale_kicker": "OFERTA POR TEMPO LIMITADO",
+    "paywall.sale_title": "40% de desconto no mensal",
+    "paywall.sale_body": "De {original} por {price} ao mês.",
+    "paywall.sale_body_loading": "O mensal está com 40% de desconto. A App Store mostra seu preço local antes da compra.",
+    "paywall.sale_badge": "OFERTA · 40% OFF",
+    "paywall.lifetime": "Vitalício",
+    "paywall.one_time": "Compra única",
+    "paywall.monthly_sale_summary": "40% de desconto: de {original} por {price}/mês. Renovação automática até cancelar.",
+    "paywall.lifetime_summary": "{price} uma vez. Acesso vitalício, sem renovação.",
+    "paywall.subscription_summary": "{price}/{plan}. Renovação automática até cancelar.",
+    "paywall.monthly_cta": "Mensal por {price}",
+    "paywall.weekly_cta": "Semanal por {price}",
+    "paywall.lifetime_cta": "Vitalício por {price}",
+    "paywall.legal_mixed": "Assinaturas renovam automaticamente até o cancelamento. Vitalício é uma compra única. A App Store confirma o preço local e os termos antes de cobrar.",
+  },
+  ar: {
+    "paywall.sale_kicker": "عرض لفترة محدودة",
+    "paywall.sale_title": "خصم 40٪ على الخطة الشهرية",
+    "paywall.sale_body": "بدلًا من {original}، الآن {price} شهريًا.",
+    "paywall.sale_body_loading": "خصم 40٪ على الخطة الشهرية. يعرض App Store السعر المحلي قبل الدفع.",
+    "paywall.sale_badge": "تخفيض · خصم 40٪",
+    "paywall.lifetime": "مدى الحياة",
+    "paywall.one_time": "شراء لمرة واحدة",
+    "paywall.monthly_sale_summary": "خصم 40٪: بدلًا من {original}، الآن {price}/شهر. يتجدد حتى الإلغاء.",
+    "paywall.lifetime_summary": "{price} مرة واحدة. وصول مدى الحياة بلا تجديد.",
+    "paywall.subscription_summary": "{price}/{plan}. يتجدد تلقائيًا حتى الإلغاء.",
+    "paywall.monthly_cta": "شهريًا مقابل {price}",
+    "paywall.weekly_cta": "أسبوعيًا مقابل {price}",
+    "paywall.lifetime_cta": "مدى الحياة مقابل {price}",
+    "paywall.legal_mixed": "تتجدد الاشتراكات حتى الإلغاء. مدى الحياة شراء لمرة واحدة. يؤكد App Store السعر المحلي والشروط قبل أي خصم.",
+  },
+  hi: {
+    "paywall.sale_kicker": "सीमित समय की सेल",
+    "paywall.sale_title": "मासिक पर 40% छूट",
+    "paywall.sale_body": "पहले {original}, अब {price} प्रति माह।",
+    "paywall.sale_body_loading": "मासिक पर 40% छूट है। भुगतान से पहले App Store आपका स्थानीय सेल मूल्य दिखाता है।",
+    "paywall.sale_badge": "सेल · 40% छूट",
+    "paywall.lifetime": "आजीवन",
+    "paywall.one_time": "एक बार की खरीद",
+    "paywall.monthly_sale_summary": "40% छूट: पहले {original}, अब {price}/माह। रद्द करने तक अपने-आप नवीनीकरण।",
+    "paywall.lifetime_summary": "एक बार {price}। आजीवन ऐक्सेस, कोई नवीनीकरण नहीं।",
+    "paywall.subscription_summary": "{price}/{plan}। रद्द करने तक अपने-आप नवीनीकरण।",
+    "paywall.monthly_cta": "{price} में मासिक लें",
+    "paywall.weekly_cta": "{price} में साप्ताहिक लें",
+    "paywall.lifetime_cta": "{price} में आजीवन लें",
+    "paywall.legal_mixed": "सब्सक्रिप्शन रद्द होने तक अपने-आप नवीनीकृत होते हैं। आजीवन एक बार की खरीद है। शुल्क से पहले App Store स्थानीय मूल्य और शर्तें दिखाता है।",
+  },
+  ja: {
+    "paywall.sale_kicker": "期間限定セール",
+    "paywall.sale_title": "月額プランが40%オフ",
+    "paywall.sale_body": "通常{original}、今なら月額{price}。",
+    "paywall.sale_body_loading": "月額プランが40%オフ。購入前にApp Storeで地域別のセール価格を確認できます。",
+    "paywall.sale_badge": "セール · 40%オフ",
+    "paywall.lifetime": "買い切り",
+    "paywall.one_time": "1回限りの購入",
+    "paywall.monthly_sale_summary": "40%オフ：通常{original}、今なら{price}/月。解約まで自動更新。",
+    "paywall.lifetime_summary": "{price}を1回支払い。永久アクセス、更新なし。",
+    "paywall.subscription_summary": "{price}/{plan}。解約まで自動更新。",
+    "paywall.monthly_cta": "月額{price}で始める",
+    "paywall.weekly_cta": "週額{price}で始める",
+    "paywall.lifetime_cta": "{price}で買い切り",
+    "paywall.legal_mixed": "サブスクリプションは解約まで自動更新されます。買い切りは1回限りの購入です。請求前にApp Storeが地域別価格と条件を確認します。",
+  },
+  ko: {
+    "paywall.sale_kicker": "기간 한정 세일",
+    "paywall.sale_title": "월간 40% 할인",
+    "paywall.sale_body": "기존 {original}, 지금 월 {price}.",
+    "paywall.sale_body_loading": "월간 요금제가 40% 할인됩니다. 결제 전에 App Store에서 현지 세일 가격을 확인하세요.",
+    "paywall.sale_badge": "세일 · 40% 할인",
+    "paywall.lifetime": "평생",
+    "paywall.one_time": "일회성 구매",
+    "paywall.monthly_sale_summary": "40% 할인: 기존 {original}, 지금 {price}/월. 취소 전까지 자동 갱신.",
+    "paywall.lifetime_summary": "{price} 한 번 결제. 평생 이용, 갱신 없음.",
+    "paywall.subscription_summary": "{price}/{plan}. 취소 전까지 자동 갱신.",
+    "paywall.monthly_cta": "월 {price}로 시작",
+    "paywall.weekly_cta": "주 {price}로 시작",
+    "paywall.lifetime_cta": "{price}에 평생 이용",
+    "paywall.legal_mixed": "구독은 취소 전까지 자동 갱신됩니다. 평생 이용은 일회성 구매입니다. 청구 전에 App Store에서 현지 가격과 조건을 확인합니다.",
+  },
+  "zh-Hans": {
+    "paywall.sale_kicker": "限时特惠",
+    "paywall.sale_title": "月度方案立减 40%",
+    "paywall.sale_body": "原价 {original}，现仅需每月 {price}。",
+    "paywall.sale_body_loading": "月度方案立减 40%。付款前，App Store 会显示你的本地优惠价。",
+    "paywall.sale_badge": "特惠 · 立减 40%",
+    "paywall.lifetime": "终身版",
+    "paywall.one_time": "一次性购买",
+    "paywall.monthly_sale_summary": "立减 40%：原价 {original}，现价 {price}/月。取消前自动续订。",
+    "paywall.lifetime_summary": "一次支付 {price}。终身使用，无需续订。",
+    "paywall.subscription_summary": "{price}/{plan}。取消前自动续订。",
+    "paywall.monthly_cta": "以 {price} 订阅月度方案",
+    "paywall.weekly_cta": "以 {price} 订阅周度方案",
+    "paywall.lifetime_cta": "以 {price} 买断终身版",
+    "paywall.legal_mixed": "订阅会自动续订，直至取消。终身版为一次性购买。扣款前，App Store 会确认本地价格和条款。",
+  },
+};
+
+for (const locale of Object.keys(PRICING_SALE_COPY) as SupportedLocale[]) {
+  Object.assign(APP_COPY[locale], PRICING_SALE_COPY[locale]);
 }
 
 const SEMESTER_THEME_COPY: Record<SupportedLocale, Record<string, string>> = {
@@ -8389,28 +8556,47 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
     [textFor("paywall.preview_chip_deadline", "Deadline"), textFor("paywall.preview_chip_deadline_sub", "review before save")],
     [textFor("paywall.preview_chip_move", "First move"), textFor("paywall.preview_chip_move_sub", "after review")],
   ];
-  const selectedPlanLabel = textFor(selectedPlan.id.toLowerCase().includes("year") ? "paywall.yearly" : selectedPlan.id.toLowerCase().includes("week") ? "paywall.weekly" : "paywall.monthly", selectedPlan.cadence);
+  const planLabelFor = (plan: PaywallPlan) => textFor(
+    plan.kind === "lifetime"
+      ? "paywall.lifetime"
+      : plan.id.toLowerCase().includes("year")
+        ? "paywall.yearly"
+        : plan.id.toLowerCase().includes("week")
+          ? "paywall.weekly"
+          : "paywall.monthly",
+    plan.cadence,
+  );
+  const selectedPlanLabel = planLabelFor(selectedPlan);
   const selectedPlanPeriodLabel = selectedPlanLabel.toLocaleLowerCase(storefrontLocale());
+  const monthlyPlan = plans.find((plan) => plan.cadence === "Monthly") || initialPlans.find((plan) => plan.cadence === "Monthly");
+  const monthlyOriginalDisplayPrice = monthlyPlan?.originalDisplayPrice;
+  const monthlyStorePriceReady = Boolean(monthlyPlan && monthlyPlan.displayPrice !== "Shown by App Store");
+  const selectedMonthlyOriginalDisplayPrice = selectedPlan.cadence === "Monthly" ? selectedPlan.originalDisplayPrice || monthlyOriginalDisplayPrice : undefined;
   const eligibleTrialProductIdSet = new Set(eligibleTrialProductIds);
   const selectedPlanHasOneWeekTrial = hasOneWeekFreeTrial(selectedPlan) && eligibleTrialProductIdSet.has(selectedPlan.id);
-  const allPlansHaveOneWeekTrial = plans.length > 0 && plans.every((plan) => hasOneWeekFreeTrial(plan) && eligibleTrialProductIdSet.has(plan.id));
-  const trialPlan = allPlansHaveOneWeekTrial && selectedPlanHasOneWeekTrial ? selectedPlan : undefined;
+  const subscriptionPlans = plans.filter((plan) => plan.kind === "subscription");
+  const allSubscriptionsHaveOneWeekTrial = subscriptionPlans.length > 0 && subscriptionPlans.every((plan) => hasOneWeekFreeTrial(plan) && eligibleTrialProductIdSet.has(plan.id));
+  const trialPlan = allSubscriptionsHaveOneWeekTrial && selectedPlanHasOneWeekTrial ? selectedPlan : undefined;
   const trialPlanLabel = trialPlan
-    ? textFor(trialPlan.id.toLowerCase().includes("year") ? "paywall.yearly" : trialPlan.id.toLowerCase().includes("week") ? "paywall.weekly" : "paywall.monthly", trialPlan.cadence)
+    ? planLabelFor(trialPlan)
     : "";
   const purchaseLabel = busy === "purchase"
     ? textFor("paywall.opening", "Opening App Store...")
     : selectedPlanHasOneWeekTrial
       ? textFor("paywall.trial_cta", "Start one-week free trial")
-      : currentImport
-      ? textFor("review.locked_cta", "Unlock to apply plan")
-      : cameraIntent
-        ? textFor("paywall.unlock_camera", "Unlock camera scan")
-        : textFor("paywall.unlock", "Unlock {plan}", { plan: intentPreview.unlockTarget || selectedPlanLabel });
+      : selectedPlan.kind === "lifetime"
+        ? textFor("paywall.lifetime_cta", "Get lifetime for {price}", { price: selectedPlan.displayPrice })
+        : selectedPlan.cadence === "Monthly"
+          ? textFor("paywall.monthly_cta", "Get monthly for {price}", { price: selectedPlan.displayPrice })
+          : textFor("paywall.weekly_cta", "Get weekly for {price}", { price: selectedPlan.displayPrice });
   const restoreLabel = busy === "restore" ? textFor("paywall.restoring", "Restoring...") : textFor("common.restore", "Restore Purchases");
   const selectedPlanSummary = selectedPlanHasOneWeekTrial
     ? textFor("paywall.trial_summary", "1 week free, then {price}/{plan}. Auto-renews until canceled.", { price: selectedPlan.displayPrice, plan: selectedPlanPeriodLabel })
-    : selectedPlan.displayPrice;
+    : selectedPlan.kind === "lifetime"
+      ? textFor("paywall.lifetime_summary", "{price} once. Lifetime access; no renewal.", { price: selectedPlan.displayPrice })
+      : selectedPlan.cadence === "Monthly" && selectedMonthlyOriginalDisplayPrice
+        ? textFor("paywall.monthly_sale_summary", "40% off: was {original}, now {price}/month. Auto-renews until canceled.", { original: selectedMonthlyOriginalDisplayPrice, price: selectedPlan.displayPrice })
+        : textFor("paywall.subscription_summary", "{price}/{plan}. Auto-renews until canceled.", { price: selectedPlan.displayPrice, plan: selectedPlanPeriodLabel });
   const paywallWidgetExample = buildWidgetExampleSnapshot(widgetCopyFor, storefrontLocale());
   const trialCardBackground = theme.surface;
   const purchasePanel = (
@@ -8425,7 +8611,11 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
           <Text selectable numberOfLines={accessibilityLayout ? undefined : 1} style={{ color: theme.label, fontSize: 14, fontWeight: "900" }}>{selectedPlanLabel}</Text>
           {selectedPlanSummary !== selectedPlan.displayPrice ? <Text selectable numberOfLines={accessibilityLayout ? undefined : 2} style={{ color: theme.label2, fontSize: 11.5, lineHeight: 16, fontWeight: "800", marginTop: 2 }}>{selectedPlanSummary}</Text> : null}
         </View>
-        <Text selectable style={{ color: theme.label, fontSize: 14, fontWeight: "900" }}>{selectedPlan.displayPrice}</Text>
+        <View style={{ alignItems: accessibilityLayout ? "flex-start" : "flex-end" }}>
+          {selectedMonthlyOriginalDisplayPrice ? <Text selectable style={{ color: theme.label3, fontSize: 11, fontWeight: "800", textDecorationLine: "line-through" }}>{selectedMonthlyOriginalDisplayPrice}</Text> : null}
+          <Text selectable style={{ color: selectedPlan.cadence === "Monthly" ? COLORS.green : theme.label, fontSize: 18, fontWeight: "900" }}>{selectedPlan.displayPrice}</Text>
+          {selectedPlan.kind === "lifetime" ? <Text selectable style={{ color: theme.label2, fontSize: 10, fontWeight: "800" }}>{textFor("paywall.one_time", "One-time purchase")}</Text> : null}
+        </View>
       </View>
       <Button label={purchaseLabel} theme={theme} icon="crown" onPress={busy || !storePlansReady ? undefined : purchase} />
     </LiquidGlassSurface>
@@ -8443,6 +8633,23 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
         </View>
         <Text selectable style={{ color: theme.label, fontSize: 34, lineHeight: 37, fontWeight: "900", marginBottom: 8 }}>{currentImport ? textFor("paywall.ready_apply", "Your plan is ready to apply") : textFor("paywall.title", "{name}, unlock StudyPlanner.", { name: firstName })}</Text>
         <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginBottom: 14 }}>{currentImport ? textFor("paywall.sub_import", "Your preview is ready. Unlock, return to Review, then approve it for the live dashboard, reminders, and widgets.") : textFor("paywall.sub_no_import", "Unlock first, then scan, upload, paste, or add manually. StudyPlanner shows every class, exam, and deadline for review before anything reaches your dashboard, widgets, reminders, or next moves.")}</Text>
+        <Card theme={theme} style={{ padding: 16, marginBottom: 12, borderWidth: 2, borderColor: COLORS.green, backgroundColor: theme.dark ? "#102318" : "#E9F8EE" }}>
+          <View style={{ flexDirection: accessibilityLayout ? "column" : "row", alignItems: accessibilityLayout ? "flex-start" : "center", justifyContent: "space-between", gap: 10 }}>
+            <View style={{ flex: 1 }}>
+              <Text selectable style={{ color: COLORS.green, fontSize: 12, fontWeight: "900", letterSpacing: 0.5 }}>{textFor("paywall.sale_kicker", "LIMITED-TIME SALE")}</Text>
+              <Text selectable style={{ color: theme.label, fontSize: 25, lineHeight: 29, fontWeight: "900", marginTop: 4 }}>{textFor("paywall.sale_title", "40% off monthly")}</Text>
+            </View>
+            <View style={{ minWidth: accessibilityLayout ? undefined : 96, alignItems: accessibilityLayout ? "flex-start" : "flex-end" }}>
+              {monthlyOriginalDisplayPrice ? <Text selectable style={{ color: theme.label3, fontSize: 14, fontWeight: "800", textDecorationLine: "line-through" }}>{monthlyOriginalDisplayPrice}</Text> : null}
+              <Text selectable style={{ color: COLORS.green, fontSize: 27, lineHeight: 31, fontWeight: "900" }}>{monthlyPlan?.displayPrice || "Shown by App Store"}</Text>
+            </View>
+          </View>
+          <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 7 }}>{monthlyStorePriceReady
+            ? monthlyOriginalDisplayPrice
+              ? textFor("paywall.sale_body", "Was {original}. Now {price} per month.", { original: monthlyOriginalDisplayPrice, price: monthlyPlan?.displayPrice || "" })
+              : textFor("paywall.sale_body_loading", "Monthly is 40% off. The App Store shows your localized sale price before checkout.")
+            : textFor("paywall.sale_body_loading", "Monthly is 40% off. The App Store shows your localized sale price before checkout.")}</Text>
+        </Card>
         <Card theme={theme} style={{ padding: 13, marginBottom: 12, backgroundColor: "#111114" }}>
           {currentImport ? (
             <View>
@@ -8485,20 +8692,21 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
         {trialPlan ? (
           <Card theme={theme} style={{ padding: 15, marginBottom: 12, borderWidth: 2, borderColor: COLORS.green, backgroundColor: trialCardBackground }}>
             <Text selectable style={{ color: semanticTextColor(COLORS.green, theme, trialCardBackground), fontSize: 12, fontWeight: "900", marginBottom: 5 }}>{textFor("paywall.seasonal_kicker", "BACK-TO-SCHOOL OFFER")}</Text>
-            <Text selectable style={{ color: theme.label, fontSize: 22, lineHeight: 27, fontWeight: "900" }}>{textFor("paywall.seasonal_title", "One week free with any plan")}</Text>
+            <Text selectable style={{ color: theme.label, fontSize: 22, lineHeight: 27, fontWeight: "900" }}>{textFor("paywall.seasonal_title", "One week free on eligible subscriptions")}</Text>
             <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 5 }}>{textFor("paywall.seasonal_body", "Eligible new subscribers. Apple confirms eligibility; then {price} for {plan}.", { price: trialPlan.displayPrice, plan: trialPlanLabel })}</Text>
           </Card>
         ) : null}
         <View style={{ gap: 8, marginBottom: 14 }}>
           {plans.map((plan) => {
             const on = selected === plan.id;
+            const planOriginalDisplayPrice = plan.cadence === "Monthly" ? plan.originalDisplayPrice || monthlyOriginalDisplayPrice : undefined;
             return (
               <Pressable
                 key={plan.id}
                 accessibilityRole="radio"
                 accessibilityState={{ selected: on }}
-                accessibilityLabel={`${plan.cadence}, ${plan.displayPrice}${hasOneWeekFreeTrial(plan) && eligibleTrialProductIdSet.has(plan.id) ? `, ${textFor("paywall.trial_badge", "1 week free")}` : ""}`}
-                accessibilityHint={textFor("paywall.accessibility_plan_hint", "Select this subscription plan")}
+                accessibilityLabel={`${planLabelFor(plan)}, ${plan.cadence === "Monthly" ? `${textFor("paywall.sale_badge", "SALE · 40% OFF")}${planOriginalDisplayPrice ? `, ${planOriginalDisplayPrice}, ` : ", "}` : ""}${plan.displayPrice}${plan.kind === "lifetime" ? `, ${textFor("paywall.one_time", "One-time purchase")}` : ""}${hasOneWeekFreeTrial(plan) && eligibleTrialProductIdSet.has(plan.id) ? `, ${textFor("paywall.trial_badge", "1 week free")}` : ""}`}
+                accessibilityHint={textFor("paywall.accessibility_plan_hint", "Select this purchase plan")}
                 onPress={() => setSelected(plan.id)}
               >
                 <Card theme={theme} style={{ padding: 13, borderWidth: on ? 2 : 1, borderColor: on ? theme.accent : theme.hairline }}>
@@ -8508,13 +8716,17 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
                     </View>
                     <View style={{ flex: 1 }}>
                       <View style={{ flexDirection: "row", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-	                        <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>{textFor(plan.id.toLowerCase().includes("year") ? "paywall.yearly" : plan.id.toLowerCase().includes("week") ? "paywall.weekly" : "paywall.monthly", plan.cadence)}</Text>
-                        {plan.recommended ? <Pill text={textFor("paywall.best_value", "Best value")} color={COLORS.green} theme={theme} icon="star" /> : null}
+                        <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>{planLabelFor(plan)}</Text>
+                        {plan.cadence === "Monthly" ? <Pill text={textFor("paywall.sale_badge", "SALE · 40% OFF")} color={COLORS.green} theme={theme} icon="sparkles" /> : null}
+                        {plan.bestValue ? <Pill text={textFor("paywall.best_value", "Best value")} color={COLORS.orange} theme={theme} icon="star" /> : null}
                         {hasOneWeekFreeTrial(plan) && eligibleTrialProductIdSet.has(plan.id) ? <Pill text={textFor("paywall.trial_badge", "1 week free")} color={theme.accent} theme={theme} icon="sparkles" /> : null}
                       </View>
-	                      <Text selectable style={{ color: theme.label2, marginTop: 3, fontSize: 13, lineHeight: 18 }}>{textFor(plan.id.toLowerCase().includes("year") ? "paywall.benefit_apply" : "paywall.benefit_health", plan.description)}</Text>
+	                      <Text selectable style={{ color: theme.label2, marginTop: 3, fontSize: 13, lineHeight: 18 }}>{plan.kind === "lifetime" ? textFor("paywall.one_time", "One-time purchase") : plan.description}</Text>
                     </View>
-                    <Text selectable style={{ color: theme.label, fontWeight: "900", alignSelf: accessibilityLayout ? "flex-start" : "auto" }}>{plan.displayPrice}</Text>
+                    <View style={{ alignItems: accessibilityLayout ? "flex-start" : "flex-end", alignSelf: accessibilityLayout ? "flex-start" : "auto" }}>
+                      {planOriginalDisplayPrice ? <Text selectable style={{ color: theme.label3, fontSize: 12, fontWeight: "800", textDecorationLine: "line-through" }}>{planOriginalDisplayPrice}</Text> : null}
+                      <Text selectable style={{ color: plan.cadence === "Monthly" ? COLORS.green : theme.label, fontSize: plan.cadence === "Monthly" ? 22 : 17, fontWeight: "900" }}>{plan.displayPrice}</Text>
+                    </View>
                   </View>
                 </Card>
               </Pressable>
@@ -8556,7 +8768,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
             <Button label="Unlock review access" theme={theme} icon="shield" onPress={normalizedReviewAccessCode(reviewAccessCode) ? unlockReviewAccess : undefined} />
           </Card>
         ) : null}
-        <Text selectable style={{ color: theme.label2, fontSize: 12, lineHeight: 17, marginTop: 14 }}>{textFor("paywall.legal", "Auto-renewing subscription. The App Store confirms the current price and terms before any charge. Manage or cancel in Apple subscriptions.")}</Text>
+        <Text selectable style={{ color: theme.label2, fontSize: 12, lineHeight: 17, marginTop: 14 }}>{textFor("paywall.legal_mixed", "Subscriptions auto-renew until canceled. Lifetime is a one-time purchase. The App Store confirms the localized price and terms before any charge.")}</Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 18, marginTop: 12 }}>
           <Pressable accessibilityRole="link" accessibilityLabel={textFor("common.terms", "Terms of Use")} accessibilityHint={textFor("paywall.accessibility_terms_hint", "Open the subscription terms")} onPress={() => nav.push("terms")}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.terms", "Terms of Use")}</Text></Pressable>
           <Pressable accessibilityRole="link" accessibilityLabel={textFor("common.privacy", "Privacy Policy")} accessibilityHint={textFor("paywall.accessibility_privacy_hint", "Open the privacy policy")} onPress={() => nav.push("privacy")}><Text style={{ color: theme.accent, fontSize: 12, fontWeight: "900" }}>{textFor("common.privacy", "Privacy Policy")}</Text></Pressable>

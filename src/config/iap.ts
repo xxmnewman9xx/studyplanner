@@ -26,7 +26,7 @@ export const studyPlannerIapManifest = {
   subscriptionGroup: {
     referenceName: "StudyPlanner",
     appStoreConnectIdentifier: "22066553",
-    verificationStatus: "ASC verified: Study Planner Plus subscription group contains weekly, monthly, and yearly Plus products."
+    verificationStatus: "Study Planner Plus keeps weekly, monthly, and yearly subscriptions for compatibility; the primary paywall presents weekly, monthly sale, and lifetime."
   },
   products: [
     {
@@ -36,7 +36,8 @@ export const studyPlannerIapManifest = {
       description: "Full access to StudyPlanner: Syllabus AI while the weekly plan is active.",
       entitlementUnlocked: "studyplanner_pro",
       subscriptionPeriod: "P1W",
-      appStoreConnectPriceUsd: "9.99",
+      appStoreConnectPriceUsd: "6.99",
+      primaryPaywallVisible: true,
       hasFreeTrial: true,
       hasIntroOffer: true,
       introductoryOffer: {
@@ -57,7 +58,13 @@ export const studyPlannerIapManifest = {
       description: "Full access to StudyPlanner: Syllabus AI while the monthly plan is active.",
       entitlementUnlocked: "studyplanner_pro",
       subscriptionPeriod: "P1M",
-      appStoreConnectPriceUsd: "19.99",
+      appStoreConnectPriceUsd: "14.99",
+      primaryPaywallVisible: true,
+      sale: {
+        originalPriceUsd: "24.99",
+        discountPercent: 40,
+        merchandising: "Show the localized live StoreKit price as the charge and the localized 40%-higher reference price struck through."
+      },
       hasFreeTrial: true,
       hasIntroOffer: true,
       introductoryOffer: {
@@ -79,6 +86,7 @@ export const studyPlannerIapManifest = {
       entitlementUnlocked: "studyplanner_pro",
       subscriptionPeriod: "P1Y",
       appStoreConnectPriceUsd: "59.99",
+      primaryPaywallVisible: false,
       hasFreeTrial: true,
       hasIntroOffer: true,
       introductoryOffer: {
@@ -90,7 +98,19 @@ export const studyPlannerIapManifest = {
         countriesOrRegions: 175,
         appStoreConnectReadback: "Jul 9, 2026 to Sep 30, 2026; 175 Countries or Regions; Free for the first week"
       },
-      sandboxNotes: "Use an App Store sandbox tester or local StoreKit config. ASC verified a worldwide one-week introductory offer for July 9-Sept. 30, 2026; do not use this value as a bundle identifier."
+      sandboxNotes: "Use an App Store sandbox tester or local StoreKit config. ASC verified a worldwide one-week introductory offer for July 9-Sept. 30, 2026; the yearly product remains entitlement-compatible but is hidden from the primary paywall."
+    },
+    {
+      productId: "com.mattnewman.studyplanner.plus.lifetime",
+      type: "non_consumable" as IapProductType,
+      displayName: "StudyPlanner: Syllabus AI Lifetime",
+      description: "Lifetime access to StudyPlanner: Syllabus AI with one payment and no renewal.",
+      entitlementUnlocked: "studyplanner_pro",
+      appStoreConnectPriceUsd: "59.99",
+      primaryPaywallVisible: true,
+      hasFreeTrial: false,
+      hasIntroOffer: false,
+      sandboxNotes: "Non-consumable lifetime purchase. Restore with the purchasing Apple ID or Google Play account."
     }
   ],
   sandboxTesting: {
@@ -102,8 +122,8 @@ export const studyPlannerIapManifest = {
     ]
   },
   externalVerificationRequired: [
-    "Confirm all three subscription product IDs exist in App Store Connect for app 6766181202.",
-    "Confirm subscription group membership, pricing, localization, cleared-for-sale, and review state.",
+    "Confirm the three subscription product IDs and lifetime non-consumable exist in App Store Connect for app 6766181202.",
+    "Confirm weekly 6.99 USD, monthly sale 14.99 USD, lifetime 59.99 USD, localized pricing, cleared-for-sale, and review state.",
     "Confirm introductory offer eligibility copy follows Apple's one-intro-offer-per-subscription-group rule before claiming a universal trial in UI."
   ]
 } as const;

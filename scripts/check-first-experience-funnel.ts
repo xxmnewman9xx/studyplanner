@@ -169,9 +169,10 @@ pushCheck(checks, {
   pass:
     paywall.includes("loadEligibleIntroOfferProductIds(plans)") &&
     paywall.includes("const selectedPlanHasOneWeekTrial = hasOneWeekFreeTrial(selectedPlan) && eligibleTrialProductIdSet.has(selectedPlan.id)") &&
-    paywall.includes("const allPlansHaveOneWeekTrial = plans.length > 0 && plans.every") &&
-    paywall.includes("const trialPlan = allPlansHaveOneWeekTrial && selectedPlanHasOneWeekTrial ? selectedPlan : undefined") &&
-    paywall.includes('textFor("paywall.seasonal_title", "One week free with any plan")') &&
+    paywall.includes('const subscriptionPlans = plans.filter((plan) => plan.kind === "subscription")') &&
+    paywall.includes("const allSubscriptionsHaveOneWeekTrial = subscriptionPlans.length > 0 && subscriptionPlans.every") &&
+    paywall.includes("const trialPlan = allSubscriptionsHaveOneWeekTrial && selectedPlanHasOneWeekTrial ? selectedPlan : undefined") &&
+    paywall.includes('textFor("paywall.seasonal_title", "One week free on eligible subscriptions")') &&
     paywall.includes('textFor("paywall.trial_cta", "Start one-week free trial")') &&
     paywall.includes("selectedPlanPeriodLabel") &&
     paywall.includes("Auto-renews until canceled.") &&

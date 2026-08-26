@@ -612,10 +612,10 @@ function androidOfferToken(product: ProductSubscription) {
 
 function sortProducts(a: PaywallProduct, b: PaywallProduct) {
   const rank = (product: PaywallProduct) => {
-    if (product.periodLabel === "Yearly") return 0;
-    if (product.periodLabel === "Monthly") return 1;
+    if (product.periodLabel === "Monthly") return 0;
+    if (product.kind === "lifetime") return 1;
     if (product.periodLabel === "Weekly") return 2;
-    if (product.kind === "lifetime") return 3;
+    if (product.periodLabel === "Yearly") return 3;
     return 4;
   };
 
