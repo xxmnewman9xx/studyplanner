@@ -3,7 +3,7 @@
     "name": "Studyplanner: Syllabus AI",
     "slug": "study-planner-syllabus-ai",
     "scheme": "studyplanner",
-    "version": "2.0.11",
+    "version": "2.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "backgroundColor": "#F5F5F7",
@@ -12,7 +12,7 @@
       "supportsTablet": true,
       "appleTeamId": "5JN35MJ3QD",
       "bundleIdentifier": "com.mattnewman.studyplanner",
-      "buildNumber": "88",
+      "buildNumber": "89",
       "entitlements": {
         "com.apple.security.application-groups": [
           "group.com.mattnewman.studyplanner"
