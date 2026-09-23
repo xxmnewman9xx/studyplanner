@@ -13,7 +13,7 @@ const WEB_KEY = "studyplanner-ai:app-data";
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
-async function database() {
+export async function database() {
   if (!dbPromise) {
     const SQLite = await import("expo-sqlite");
     dbPromise = SQLite.openDatabaseAsync(DB_NAME);

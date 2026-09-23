@@ -29,6 +29,7 @@
     "react-native": "0.85.3",
     "react-native-svg": "15.15.4",
     "react-native-view-shot": "^5.1.0",
+    "studyplanner-apple-intelligence": "file:modules/studyplanner-apple-intelligence",
     "studyplanner-vision-ocr": "file:modules/studyplanner-vision-ocr",
     "tesseract.js": "^7.0.0"
   },
@@ -51,6 +52,7 @@
     "start:syllabus-parser": "node dist/server/syllabus-parser/server.js",
     "typecheck": "node --stack_size=8192 ./node_modules/typescript/bin/tsc --noEmit",
     "test:intelligence": "tsx scripts/check-intelligence-core.ts",
+    "test:ai-native": "tsx scripts/check-apple-intelligence-native-contract.ts",
     "test:semester": "tsx scripts/check-semester-snapshot.ts",
     "test:narrative": "tsx scripts/check-semester-narrative.ts",
     "test:syllabus-stress": "tsx scripts/check-syllabus-stress.ts",
