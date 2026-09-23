@@ -3,7 +3,7 @@
     "name": "Studyplanner: Syllabus AI",
     "slug": "study-planner-syllabus-ai",
     "scheme": "studyplanner",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -11,12 +11,15 @@
       "supportsTablet": true,
       "appleTeamId": "5JN35MJ3QD",
       "bundleIdentifier": "com.mattnewman.studyplanner",
-      "buildNumber": "90",
+      "buildNumber": "91",
       "entitlements": {
         "com.apple.security.application-groups": [
           "group.com.mattnewman.studyplanner"
         ]
       },
+      "associatedDomains": [
+        "applinks:studyplanner-ai.xxmnewman9xx.workers.dev"
+      ],
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
           {
@@ -209,6 +212,7 @@
           ]
         }
       ],
+      "./plugins/with-studyplanner-app-intents",
       "./plugins/with-android-localized-string-defaults"
     ],
     "locales": {

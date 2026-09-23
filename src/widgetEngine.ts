@@ -54,6 +54,9 @@ export type NativeWidgetSnapshot = {
   todayIndex?: number;
   peakDayLabel?: string;
   calendarHeadline?: string;
+  /** Today widget only: deterministic Study Now line the app wrote (never generated in the extension). */
+  studyNowLine?: string;
+  studyNowReason?: string;
 };
 
 export type NativeWidgetSnapshots = Record<NativeWidgetKind, NativeWidgetSnapshot>;
@@ -73,6 +76,30 @@ export type WidgetSyncStatus = {
 };
 
 export type WidgetCopy = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
+
+/** Study Now copy for the Today widget. Built by the app (template or validated on-device copy); widgets only display it. */
+export type WidgetStudyNow = {
+  line: string;
+  reason?: string;
+  /** Local YYYY-MM-DD the line was built for. A line from another day is ignored so the widget never shows stale-day text. */
+  dateKey?: string;
+};
+
+export type NativeWidgetBuildOptions = {
+  studyNow?: WidgetStudyNow | null;
+};
+
+function studyNowFields(studyNow: WidgetStudyNow | null | undefined): Pick<NativeWidgetSnapshot, "studyNowLine" | "studyNowReason"> {
+  const line = studyNow?.line?.trim();
+  if (!studyNow || !line) return {};
+  if (studyNow.dateKey && studyNow.dateKey !== dateKey(new Date())) return {};
+  const reason = studyNow.reason?.trim();
+  return reason ? { studyNowLine: line, studyNowReason: reason } : { studyNowLine: line };
+}
+
+function nextLocalMidnight(from = new Date()) {
+  return new Date(from.getFullYear(), from.getMonth(), from.getDate() + 1, 0, 0, 0, 0);
+}
 
 const defaultWidgetCopy: WidgetCopy = (_key, fallback, vars = {}) =>
   Object.entries(vars).reduce((text, [name, value]) => text.replace(new RegExp(`\\{${name}\\}`, "g"), String(value)), fallback);
@@ -416,7 +443,7 @@ export function buildSemesterLoop(data: AppData): SemesterLoop {
   };
 }
 
-export function buildNativeWidgetSnapshots(data: AppData, t: WidgetCopy = defaultWidgetCopy): NativeWidgetSnapshots {
+export function buildNativeWidgetSnapshots(data: AppData, t: WidgetCopy = defaultWidgetCopy, options: NativeWidgetBuildOptions = {}): NativeWidgetSnapshots {
   const now = new Date().toISOString();
   const density = data.prefs.widgetDensity || "balanced";
   const widgetTheme = activeTheme(data);
@@ -528,6 +555,7 @@ export function buildNativeWidgetSnapshots(data: AppData, t: WidgetCopy = defaul
       progress: todayProgress,
       actionLabel: overdueCount || todayCount ? t("widget.native.review_today", "Review today") : t("tabs.today", "Today"),
       items: todayItems,
+      ...studyNowFields(options.studyNow),
     },
     upcoming: {
       ...base,
@@ -589,15 +617,24 @@ export function buildNativeWidgetSnapshots(data: AppData, t: WidgetCopy = defaul
   };
 }
 
-export async function syncNativeWidgets(data: AppData, t: WidgetCopy = defaultWidgetCopy): Promise<WidgetSyncStatus> {
+export async function syncNativeWidgets(data: AppData, t: WidgetCopy = defaultWidgetCopy, options: NativeWidgetBuildOptions = {}): Promise<WidgetSyncStatus> {
   if (Platform.OS !== "ios") {
     return { state: "skipped", message: t("widget.native.sync_iphone_only", "Native widgets sync on iPhone builds.") };
   }
 
   try {
     const widgets = require("./widgets/StudyPlannerWidgets");
-    const snapshots = buildNativeWidgetSnapshots(data, t);
-    widgets.StudyPlannerTodayWidget.updateSnapshot(snapshots.today);
+    const snapshots = buildNativeWidgetSnapshots(data, t, options);
+    if (snapshots.today.studyNowLine) {
+      // The Study Now line is only true for today: schedule a midnight entry without it.
+      const { studyNowLine: _line, studyNowReason: _reason, ...todayWithoutStudyNow } = snapshots.today;
+      widgets.StudyPlannerTodayWidget.updateTimeline([
+        { date: new Date(), props: snapshots.today },
+        { date: nextLocalMidnight(), props: todayWithoutStudyNow },
+      ]);
+    } else {
+      widgets.StudyPlannerTodayWidget.updateSnapshot(snapshots.today);
+    }
     widgets.StudyPlannerUpcomingWidget.updateSnapshot(snapshots.upcoming);
     widgets.StudyPlannerWeekWidget.updateSnapshot(snapshots.week);
     widgets.StudyPlannerClassProgressWidget.updateSnapshot(snapshots.classProgress);
