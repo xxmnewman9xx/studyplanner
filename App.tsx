@@ -125,7 +125,10 @@ import {
   closeStudyPlannerStore,
   fallbackPlans,
   finishStudyPlannerPurchase,
+  freeTrialDays,
+  hasFreeTrialOffer,
   hasOneWeekIntroOffer,
+  orderPaywallPlans,
   initializeStudyPlannerStore,
   loadEligibleIntroOfferProductIds,
   loadStorePlans,
@@ -4852,6 +4855,10 @@ const MANAGE_SUBSCRIPTION_URL = Platform.OS === "android"
   ? "https://play.google.com/store/account/subscriptions?package=com.mattnewman.studyplanner"
   : "https://apps.apple.com/account/subscriptions";
 const PRE_PURCHASE_ROUTES: Route[] = ["welcome", "onboarding", "importOptions", "semesterKickoff", "lockedDashboard", "paywall", "terms", "privacy"];
+// 2.2 free-first funnel: importing and reviewing syllabi (and seeing the Crunch
+// Forecast built from that pending review) is free. Nothing reaches the live
+// planner, reminders, or widgets until an entitlement applies the review.
+const FREE_IMPORT_ROUTES: Route[] = ["scan", "cameraScanner", "paste", "review"];
 type EntitlementStatus = "loading" | "active" | "inactive" | "error";
 type AccessState = "loading" | "onboarding" | "preview_allowed" | "locked" | "paywall" | "unlocked";
 type UnlockSuccessSource = "purchase_action" | "restore_action" | "startup_hydration" | "google_play_review_access";
@@ -4956,9 +4963,10 @@ function appAccessLocked(data: AppData, entitlementStatus: EntitlementStatus) {
 function accessStateFor(data: AppData, entitlementStatus: EntitlementStatus, active?: Route): AccessState {
   if (!onboardingComplete(data)) return active === "semesterKickoff" ? "preview_allowed" : "onboarding";
   if (entitlementUnlocks(data, entitlementStatus)) return "unlocked";
-  if (entitlementStatus === "loading") return PRE_PURCHASE_ROUTES.includes(active || "lockedDashboard") ? "preview_allowed" : "loading";
+  if (entitlementStatus === "loading") return PRE_PURCHASE_ROUTES.includes(active || "lockedDashboard") || (active && FREE_IMPORT_ROUTES.includes(active)) ? "preview_allowed" : "loading";
   if (active === "paywall") return "paywall";
   if (PRE_PURCHASE_ROUTES.includes(active || "lockedDashboard")) return "preview_allowed";
+  if (active && FREE_IMPORT_ROUTES.includes(active)) return "preview_allowed";
   return "locked";
 }
 
@@ -6064,12 +6072,13 @@ export default function App() {
           openResolvedRoute(route);
           return;
         }
+        // Free-first funnel: scanning and pasting a syllabus open directly.
         if (route === "scan") {
-          nav.push("paywall", { next: "scan" });
+          nav.push("scan");
           return;
         }
         if (route === "paste") {
-          nav.push("paywall", { next: "paste", mode: "syllabus" });
+          nav.push("paste", { mode: "syllabus" });
           return;
         }
         if (route === "paywall" || route === "terms" || route === "privacy") {
@@ -6128,7 +6137,7 @@ export default function App() {
   };
   const active = stack[stack.length - 1]?.route || tab;
   const params = stack[stack.length - 1]?.params || {};
-  const hardGateActive = !entitlementUnlocks(data, entitlementStatus) && !PRE_PURCHASE_ROUTES.includes(active);
+  const hardGateActive = !entitlementUnlocks(data, entitlementStatus) && !PRE_PURCHASE_ROUTES.includes(active) && !FREE_IMPORT_ROUTES.includes(active);
   const displayRoute = gatedRoute(active, data, entitlementStatus);
   const accessState = accessStateFor(data, entitlementStatus, active);
   const screenData = dataForAccessState(data, entitlementStatus);
@@ -6683,6 +6692,20 @@ function AppStoreRatingProof({ theme, dark = false }: { theme: ReturnType<typeof
   );
 }
 
+function onboardingStartLabel(scanIntent: string) {
+  if (scanIntent === "Upload PDF") return textFor("onboarding.start_pdf", "Upload my syllabus");
+  if (scanIntent === "Paste syllabus") return textFor("onboarding.start_paste", "Paste my syllabus");
+  if (scanIntent === "Add manually") return textFor("onboarding.start_manual", "Add my first class");
+  return textFor("onboarding.start_scan", "Scan my syllabus");
+}
+
+function onboardingStartIcon(scanIntent: string) {
+  if (scanIntent === "Upload PDF") return "upload";
+  if (scanIntent === "Paste syllabus") return "file";
+  if (scanIntent === "Add manually") return "plus";
+  return "camera";
+}
+
 function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
   const steps = ["name", "priorities", "build"];
   const studentTypeOptions = ["High school classes", "College courses", "Grad school", "Online classes"];
@@ -6731,7 +6754,7 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
   const buildTitle = cleanProfileName
     ? textFor("onboarding.build_title_personal", "Build {name}'s semester.", { name: firstName })
     : textFor("onboarding.build_title", "Build your semester.");
-  const scanOptions = ["Scan with camera", "Paste syllabus", "Add manually"];
+  const scanOptions = ["Scan with camera", "Upload PDF", "Paste syllabus", "Add manually"];
   const cameraIntentSelected = profile.scanIntent === "Scan with camera";
   const prioritiesComplete = Boolean(profile.studentType && profile.mainGoal);
   const semesterTheme = resolveSemesterThemeColor(profile.semesterThemeColorId);
@@ -6784,9 +6807,13 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
     persistProfile(index === steps.length - 1, source);
     if (index < steps.length - 1) setIndex(index + 1);
     else if (params.returnTo === "semesterKickoff") nav.back();
-    else if (source.scanIntent === "Paste syllabus") nav.push("paywall", { next: "paste", mode: "syllabus" });
-    else if (source.scanIntent === "Add manually") nav.push("paywall", { next: "paste", mode: "manual" });
-    else nav.push("paywall", { next: "scan", action: "camera" });
+    // 2.2: the first import is free. Scan, upload, paste, or type a class,
+    // review every row, and see the whole-term Crunch Forecast before the
+    // paywall. Applying the reviewed plan still requires the App Store unlock.
+    else if (source.scanIntent === "Paste syllabus") nav.push("paste", { mode: "syllabus" });
+    else if (source.scanIntent === "Add manually") nav.push("paste", { mode: "manual" });
+    else if (source.scanIntent === "Upload PDF") nav.push("scan", { action: "pdf" });
+    else nav.push("scan", { action: "camera" });
   };
   const pick = (key: keyof typeof profile, value: string) => {
     const nextProfile = { ...profile, [key]: value };
@@ -6876,7 +6903,7 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
           {step === "build" ? (
             <>
               <Text selectable style={{ color: theme.label, fontSize: 34, lineHeight: 37, fontWeight: "900", marginBottom: 8 }}>{buildTitle}</Text>
-              <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginBottom: 14 }}>{textFor("onboarding.paywall_first", "Unlock first, then scan, paste, or add manually. You still review everything before it saves.")}</Text>
+              <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginBottom: 14 }}>{textFor("onboarding.free_first", "Start with one syllabus. See every deadline and your crunch weeks for free — nothing saves until you review it.")}</Text>
               <View accessible accessibilityLabel={`${optionText(profile.studentType)}. ${optionText(profile.mainGoal)}.`} style={{ borderRadius: 18, padding: 13, backgroundColor: "rgba(17,17,20,0.06)", flexDirection: "row", alignItems: "center", gap: 11, marginBottom: 14 }}>
                 <View style={{ width: 38, height: 38, borderRadius: 13, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center" }}><Icon name="graduation-cap" color={onboardingAccent} size={20} /></View>
                 <View style={{ flex: 1 }}>
@@ -6921,11 +6948,11 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
               <Card theme={theme} style={{ padding: 14, marginBottom: 16, backgroundColor: "#111114" }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
                   <View style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}>
-                    <Icon name={cameraIntentSelected ? "camera" : "crown"} color="#FFFFFF" size={21} />
+                    <Icon name={cameraIntentSelected ? "camera" : "sparkles"} color="#FFFFFF" size={21} />
                   </View>
-                  <Text selectable style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "900", flex: 1 }}>{cameraIntentSelected ? textFor("onboarding.camera_gate_title", "Unlock the camera scan.") : textFor("onboarding.paywall_gate_title", "Unlock first. Then build.")}</Text>
+                  <Text selectable style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "900", flex: 1 }}>{textFor("onboarding.free_scan_title", "Free: see your whole semester.")}</Text>
                 </View>
-                <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 5 }}>{cameraIntentSelected ? textFor("onboarding.camera_gate_body_simple", "Unlock first, then scan the syllabus on this iPhone. Every extracted row still goes to review before anything saves.") : textFor("onboarding.paywall_gate_body_simple", "Unlock first, then review the first real version before it reaches Today, reminders, or widgets.")}</Text>
+                <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 5 }}>{textFor("onboarding.free_scan_body", "Scan or add every class. StudyPlanner reads them on this iPhone, lists every deadline for review, and forecasts your red weeks. Unlock when you want the daily plan.")}</Text>
               </Card>
               <View style={{ marginTop: 2, marginBottom: 16 }}>{renderOptions("scanIntent", scanOptions)}</View>
             </>
@@ -6934,9 +6961,9 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
       </ScrollView>
       <LiquidGlassSurface tintColor="rgba(245,245,247,0.72)" style={{ padding: 24, paddingBottom: 34, backgroundColor: "rgba(245,245,247,0.92)" }} fallbackStyle={{ backgroundColor: "rgba(245,245,247,0.94)" }}>
         <Button
-          label={step !== "build" ? textFor("common.continue", "Continue") : cameraIntentSelected ? textFor("onboarding.unlock_to_scan", "Unlock to scan") : textFor("onboarding.unlock_to_continue", "Unlock to continue")}
+          label={step !== "build" ? textFor("common.continue", "Continue") : onboardingStartLabel(profile.scanIntent)}
           theme={onboardingTheme}
-          icon={step !== "build" ? "chevron-right" : "crown"}
+          icon={step !== "build" ? "chevron-right" : onboardingStartIcon(profile.scanIntent)}
           onPress={(step === "name" && !cleanProfileName) || (step === "priorities" && !prioritiesComplete) ? undefined : next}
         />
       </LiquidGlassSurface>
@@ -6955,21 +6982,21 @@ function ImportOptions({ data, mutate, nav, theme }: ScreenProps) {
         premium: false,
       },
     }));
-    if (route === "paste") nav.push("paywall", { next: "paste", mode: params?.mode || "syllabus" });
-    else nav.push("paywall", { next: "scan", action: params?.action || "pdf" });
+    if (route === "paste") nav.push("paste", { mode: params?.mode || "syllabus" });
+    else nav.push("scan", { action: params?.action || "pdf" });
   };
   return (
     <View style={{ flex: 1, backgroundColor: "#F5F5F7" }}>
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingTop: 72, paddingHorizontal: 22, paddingBottom: 120 }}>
         <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} hitSlop={10} onPress={nav.back} style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.surface, alignItems: "center", justifyContent: "center", marginBottom: 18 }}><ChevronLeft color={theme.label} /></Pressable>
         <Text selectable style={{ color: theme.label, fontSize: 38, lineHeight: 41, fontWeight: "900" }}>{textFor("onboarding.build_title", "Build your semester.")}</Text>
-        <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22, marginTop: 8, marginBottom: 20 }}>{textFor("paywall.sub_no_import", "Unlock first, then scan or import. StudyPlanner shows every extracted row for review before anything saves.")}</Text>
+        <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22, marginTop: 8, marginBottom: 20 }}>{textFor("onboarding.free_first", "Start with one syllabus. See every deadline and your crunch weeks for free — nothing saves until you review it.")}</Text>
         <Card theme={theme} style={{ padding: 17, backgroundColor: "#111114", marginBottom: 18 }}>
-          <Text selectable style={{ color: "#fff", fontSize: 21, lineHeight: 25, fontWeight: "900" }}>{textFor("paywall.camera_title", "Camera scan unlocks here")}</Text>
-          <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 6 }}>{textFor("paywall.camera_body", "Use the guided camera after purchase to capture syllabus pages, read the text on this iPhone, and review the extracted rows before anything saves.")}</Text>
+          <Text selectable style={{ color: "#fff", fontSize: 21, lineHeight: 25, fontWeight: "900" }}>{textFor("onboarding.free_scan_title", "Free: see your whole semester.")}</Text>
+          <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 6 }}>{textFor("onboarding.free_scan_body", "Scan or add every class. StudyPlanner reads them on this iPhone, lists every deadline for review, and forecasts your red weeks. Unlock when you want the daily plan.")}</Text>
         </Card>
         {[
-          [textFor("option.scan_camera", "Scan with camera"), textFor("paywall.camera_body", "Unlock guided camera scan, OCR, and review."), "camera", COLORS.orange, () => completeAnd("scan", { action: "camera" })],
+          [textFor("option.scan_camera", "Scan with camera"), textFor("scan.camera_action_body", "Capture pages, boards, packets, and printed schedules."), "camera", COLORS.orange, () => completeAnd("scan", { action: "camera" })],
           [textFor("option.upload_pdf", "Upload PDF"), textFor("scan.more_upload_body", "Pick a syllabus file"), "upload", COLORS.green, () => completeAnd("scan", { action: "pdf" })],
           [textFor("locked.paste", "Paste manually"), textFor("paste.syllabus_required", "Enter syllabus text"), "file", COLORS.blue, () => completeAnd("paste", { mode: "syllabus" })],
           [textFor("classes.add_manual", "Add class manually"), textFor("onboarding.manual_body", "Type one class and one deadline to build a preview"), "plus", COLORS.purple, () => completeAnd("paste", { mode: "manual" })],
@@ -7011,7 +7038,7 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
         <View style={{ gap: 8, paddingHorizontal: 2 }}>
           <Text selectable style={{ color: theme.label2, fontSize: 13, fontWeight: "900" }}>{textFor("locked.kicker", "LOCKED PREVIEW")}</Text>
           <Text selectable style={{ color: theme.label, fontSize: 36, lineHeight: 39, fontWeight: "900" }}>{textFor("locked.title", "{name}, build your semester.", { name: firstName })}</Text>
-          <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22 }}>{textFor("locked.preview_sub", "Unlock first, then scan, paste, or add a class. You review every row before anything saves.")}</Text>
+          <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22 }}>{textFor("locked.free_sub", "Scan every syllabus for free. Review each deadline and see your crunch weeks before you decide.")}</Text>
         </View>
         <AppStoreRatingProof theme={theme} />
 
@@ -7019,13 +7046,13 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
           <View style={{ width: 52, height: 52, borderRadius: 17, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
             <Icon name="scan" color="#FFFFFF" size={26} />
           </View>
-          <Text selectable style={{ color: "rgba(255,255,255,0.62)", fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("locked.preview_card_kicker", "CAMERA SCAN LOCKED")}</Text>
-          <Text selectable style={{ color: "#FFFFFF", fontSize: 25, lineHeight: 29, fontWeight: "900" }}>{textFor("locked.card_title", "Unlock the scanner. Build the semester.")}</Text>
+          <Text selectable style={{ color: "rgba(255,255,255,0.62)", fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("locked.free_kicker", "FREE SEMESTER SCAN")}</Text>
+          <Text selectable style={{ color: "#FFFFFF", fontSize: 25, lineHeight: 29, fontWeight: "900" }}>{textFor("locked.free_card_title", "Scan every class. See the semester coming.")}</Text>
           <View style={{ gap: 11, marginTop: 17 }}>
             {[
-              ["1", textFor("locked.preview_step1", "Unlock StudyPlanner")],
-              ["2", textFor("locked.preview_step2", "Scan with camera, PDF, paste, or manual setup")],
-              ["3", textFor("locked.preview_step3", "Review every extracted row before save")],
+              ["1", textFor("locked.free_step1", "Scan, upload, paste, or add each class")],
+              ["2", textFor("locked.free_step2", "Review every deadline StudyPlanner finds")],
+              ["3", textFor("locked.free_step3", "See your crunch weeks, then unlock the daily plan")],
             ].map(([step, label]) => (
               <View key={`locked-step-${step}`} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 <View style={{ width: 28, height: 28, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.14)", alignItems: "center", justifyContent: "center" }}>
@@ -7036,11 +7063,11 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
             ))}
           </View>
           <View style={{ marginTop: 16 }}>
-            <Pressable accessibilityRole="button" onPress={() => nav.push("paywall", { next: "scan", action: "camera" })} style={{ minHeight: 51, borderRadius: 999, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
+            <Pressable accessibilityRole="button" onPress={() => nav.push("scan", currentImport ? { append: "1" } : undefined)} style={{ minHeight: 51, borderRadius: 999, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
               <Icon name="camera" color="#111114" size={18} />
-              <Text style={{ color: "#111114", fontWeight: "900" }}>{textFor("locked.scan", "Unlock camera scan")}</Text>
+              <Text style={{ color: "#111114", fontWeight: "900" }}>{currentImport ? textFor("locked.scan_another", "Scan another syllabus") : textFor("locked.scan_free", "Scan a syllabus free")}</Text>
             </Pressable>
-            <Pressable accessibilityRole="button" onPress={() => nav.push("paywall", { next: "paste", mode: "manual" })} style={{ minHeight: 48, borderRadius: 999, borderWidth: 1, borderColor: "rgba(255,255,255,0.22)", alignItems: "center", justifyContent: "center", marginTop: 10 }}>
+            <Pressable accessibilityRole="button" onPress={() => nav.push("paste", currentImport ? { mode: "manual", append: "1" } : { mode: "manual" })} style={{ minHeight: 48, borderRadius: 999, borderWidth: 1, borderColor: "rgba(255,255,255,0.22)", alignItems: "center", justifyContent: "center", marginTop: 10 }}>
               <Text style={{ color: "#FFFFFF", fontWeight: "900" }}>{textFor("classes.add_manual", "Add class manually")}</Text>
             </Pressable>
           </View>
@@ -7267,63 +7294,27 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
     exams: importCandidates.filter((candidate) => candidate.kind === "exam").length,
     firstAction: importCandidates.find((candidate) => candidate.kind === "task" || candidate.kind === "exam")?.title,
   };
-  const cameraIntent = !currentImport && (params.action === "camera" || data.prefs.scanIntent === "Scan with camera");
-  const pdfIntent = !currentImport && (params.action === "pdf" || data.prefs.scanIntent === "Upload PDF");
-  const manualIntent = !currentImport && params.next === "paste" && (params.mode === "manual" || data.prefs.scanIntent === "Add manually");
-  const pasteIntent = !currentImport && !manualIntent && (params.next === "paste" || data.prefs.scanIntent === "Paste syllabus");
-  const intentPreview = cameraIntent
-    ? {
-        icon: "camera",
-        title: textFor("paywall.camera_title", "Camera scan unlocks here"),
-        methods: textFor("paywall.camera_methods", "Camera scan · OCR · Review"),
-        body: textFor("paywall.camera_body", "Use the guided camera after purchase to capture syllabus pages, read the text on this iPhone, and review the extracted rows before anything saves."),
-        unlockTarget: textFor("option.scan_camera", "camera scan"),
-      }
-    : pdfIntent
-      ? {
-          icon: "upload",
-          title: textFor("scan.upload_pdf", "Upload syllabus PDF"),
-          methods: textFor("scan.pdf_action_body", "Best for full syllabi and multi-page handouts."),
-          body: textFor("paywall.preview_first_sub", "Unlock first, then scan, upload, paste, or add manually. StudyPlanner shows every class, exam, and deadline for review before anything reaches your dashboard, widgets, reminders, or next moves."),
-          unlockTarget: textFor("option.upload_pdf", "PDF import"),
-        }
-      : manualIntent
-        ? {
-            icon: "plus",
-            title: textFor("classes.add_manual", "Add class manually"),
-            methods: textFor("onboarding.manual_body", "Type one class and one deadline to build a preview"),
-            body: textFor("onboarding.manual_sub", "Use this when a syllabus is missing, blurry, or wrong. Nothing saves until you approve the preview."),
-            unlockTarget: textFor("classes.add_manual", "manual setup"),
-          }
-        : pasteIntent
-          ? {
-              icon: "file",
-              title: textFor("option.paste_syllabus", "Paste syllabus"),
-              methods: textFor("paste.syllabus_title", "Syllabus becomes a semester preview."),
-              body: textFor("paste.preview_sub", "Review what StudyPlanner finds before anything saves."),
-              unlockTarget: textFor("option.paste_syllabus", "paste import"),
-            }
-          : {
-              icon: "sparkles",
-              title: textFor("paywall.plan_preview_title", "Plan preview"),
-              methods: textFor("paywall.plan_preview_methods", "Scan · Paste · Manual setup"),
-              body: textFor("paywall.preview_first_sub", "Unlock first, then scan, upload, paste, or add manually. StudyPlanner shows every class, exam, and deadline for review before anything reaches your dashboard, widgets, reminders, or next moves."),
-              unlockTarget: selectedPlan.cadence,
-            };
-  const paywallSteps = cameraIntent ? [
-    [textFor("paywall.camera_step_scan", "Scan"), textFor("option.scan_camera", "camera")],
-    [textFor("paywall.camera_step_read", "Read"), textFor("scan.metric_ocr", "OCR")],
-    [textFor("paywall.camera_step_review", "Review"), textFor("review.guard_active", "before save")],
-    [textFor("paywall.camera_step_apply", "Apply"), textFor("tabs.today", "dashboard")],
-  ] : [
-    [pdfIntent ? textFor("scan.upload_pdf", "Upload PDF") : manualIntent ? textFor("classes.add_manual", "Add manually") : pasteIntent ? textFor("scan.paste_text", "Paste text") : textFor("paywall.preview_chip_class", "Class"), pdfIntent ? textFor("scan.metric_ocr", "Text") : textFor("paywall.preview_chip_class_sub", "from setup")],
-    [textFor("paywall.preview_chip_deadline", "Deadline"), textFor("paywall.preview_chip_deadline_sub", "review before save")],
-    [textFor("paywall.preview_chip_move", "First move"), textFor("paywall.preview_chip_move_sub", "after review")],
+  // 2.2: scanning is free, so the paywall no longer sells "unlock the camera".
+  // Without a pending review it sells the daily plan that Plus runs.
+  const intentPreview = {
+    icon: "sparkles",
+    title: textFor("paywall.free_scan_title", "Scan free. Plan with Plus."),
+    methods: textFor("paywall.free_scan_methods", "Scan · Review · Forecast · Daily plan"),
+    body: textFor("paywall.free_scan_body", "Scan every syllabus and see your Crunch Forecast for free. Plus applies the reviewed plan to Today, widgets, reminders, Exam Mode, and Siri."),
+    unlockTarget: "",
+  };
+  const paywallSteps = [
+    [textFor("paywall.step_scan", "Scan"), textFor("paywall.step_free", "free")],
+    [textFor("paywall.step_forecast", "Forecast"), textFor("paywall.step_free", "free")],
+    [textFor("paywall.step_plan", "Daily plan"), textFor("paywall.step_plus", "Plus")],
   ];
   const selectedPlanLabel = textFor(selectedPlan.id.toLowerCase().includes("year") ? "paywall.yearly" : selectedPlan.id.toLowerCase().includes("week") ? "paywall.weekly" : "paywall.monthly", selectedPlan.cadence);
   const selectedPlanPeriodLabel = selectedPlanLabel.toLocaleLowerCase(appLocale());
   const eligibleTrialProductIdSet = new Set(eligibleTrialProductIds);
   const selectedPlanHasOneWeekIntro = hasOneWeekIntroOffer(selectedPlan) && eligibleTrialProductIdSet.has(selectedPlan.id);
+  const selectedPlanHasFreeTrial = hasFreeTrialOffer(selectedPlan) && eligibleTrialProductIdSet.has(selectedPlan.id);
+  const selectedTrialDays = freeTrialDays(selectedPlan);
+  const displayPlans = orderPaywallPlans(plans);
   const introPlan = plans.find((plan) => plan.id === STUDYPLANNER_INTRO_PRODUCT_ID && hasOneWeekIntroOffer(plan) && eligibleTrialProductIdSet.has(plan.id));
   const introPlanLabel = introPlan
     ? textFor("paywall.weekly", introPlan.cadence)
@@ -7340,15 +7331,17 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
     : textFor("paywall.best_value", "Best value");
   const purchaseLabel = busy === "purchase"
     ? textFor("paywall.opening", "Opening App Store...")
+    : selectedPlanHasFreeTrial
+      ? textFor("paywall.free_trial_cta", "Start {days}-day free trial", { days: selectedTrialDays })
     : selectedPlanHasOneWeekIntro
       ? textFor("paywall.trial_cta", "Start for {intro}", { intro: introPrice })
       : currentImport
       ? textFor("review.locked_cta", "Unlock to apply plan")
-      : cameraIntent
-        ? textFor("paywall.unlock_camera", "Unlock camera scan")
-        : textFor("paywall.unlock", "Unlock {plan}", { plan: intentPreview.unlockTarget || selectedPlanLabel });
+      : textFor("paywall.unlock", "Unlock {plan}", { plan: intentPreview.unlockTarget || selectedPlanLabel });
   const restoreLabel = busy === "restore" ? textFor("paywall.restoring", "Restoring...") : textFor("common.restore", "Restore Purchases");
-  const selectedPlanSummary = selectedPlanHasOneWeekIntro
+  const selectedPlanSummary = selectedPlanHasFreeTrial
+    ? textFor("paywall.free_trial_summary", "{days} days free, then {price}/{plan}. Auto-renews until canceled.", { days: selectedTrialDays, price: selectedPlan.displayPrice, plan: selectedPlanPeriodLabel })
+    : selectedPlanHasOneWeekIntro
     ? textFor("paywall.trial_summary", "{intro} first week, then {price}/{plan}. Auto-renews until canceled.", { intro: introPrice, price: selectedPlan.displayPrice, plan: selectedPlanPeriodLabel })
     : `${selectedPlan.displayPrice}/${selectedPlanPeriodLabel}. ${textFor("paywall.auto_renew", "Auto-renews until canceled.")}`;
 
@@ -7363,7 +7356,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
           </Pressable>
         </View>
         <Text selectable style={{ color: theme.label, fontSize: 34, lineHeight: 37, fontWeight: "900", marginBottom: 8 }}>{currentImport ? textFor("paywall.ready_apply", "Your plan is ready to apply") : textFor("paywall.title", "{name}, unlock StudyPlanner.", { name: firstName })}</Text>
-        <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginBottom: 14 }}>{currentImport ? textFor("paywall.sub_import", "Your preview is ready. Unlock, return to Review, then approve it for the live dashboard, reminders, and widgets.") : textFor("paywall.sub_no_import", "Unlock first, then scan, upload, paste, or add manually. StudyPlanner shows every class, exam, and deadline for review before anything reaches your dashboard, widgets, reminders, or next moves.")}</Text>
+        <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginBottom: 14 }}>{currentImport ? textFor("paywall.sub_import", "Your preview is ready. Unlock, return to Review, then approve it for the live dashboard, reminders, and widgets.") : textFor("paywall.sub_free_first", "Scanning and your Crunch Forecast stay free. Plus applies the plan and keeps it running every day.")}</Text>
         <Card theme={theme} style={{ padding: 13, marginBottom: 12, backgroundColor: "#111114" }}>
           {currentImport ? (
             <View>
@@ -7399,6 +7392,21 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
             </View>
           )}
         </Card>
+        <Card theme={theme} style={{ padding: 14, marginBottom: 12, gap: 10 }}>
+          <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("paywall.plus_kicker", "PLUS TURNS YOUR SEMESTER INTO A DAILY PLAN")}</Text>
+          {[
+            ["target", COLORS.blue, textFor("paywall.plus_study_now", "Study Now: one clear move every day, self-repairing")],
+            ["brain", COLORS.purple, textFor("paywall.plus_exam_mode", "Exam Mode: flashcards and quizzes from your own notes")],
+            ["grid", COLORS.green, textFor("paywall.plus_widgets", "Lock Screen and Home Screen widgets")],
+            ["bell", COLORS.orange, textFor("paywall.plus_reminders", "Start-by reminders before every crunch week")],
+            ["sparkles", COLORS.pink, textFor("paywall.plus_siri", "Siri, Spotlight, and quick add")],
+          ].map(([icon, color, label]) => (
+            <View key={`plus-benefit-${icon}`} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+              <View style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: `${color}1C`, alignItems: "center", justifyContent: "center" }}><Icon name={icon} color={color} size={16} /></View>
+              <Text selectable style={{ color: theme.label, flex: 1, fontSize: 14, lineHeight: 19, fontWeight: "800" }}>{label}</Text>
+            </View>
+          ))}
+        </Card>
         {introPlan ? (
           <Pressable accessibilityRole="button" accessibilityLabel={textFor("paywall.seasonal_title", "First week for {intro}", { intro: introPlanPrice })} accessibilityHint={textFor("paywall.accessibility_plan_hint", "Select the weekly subscription plan")} onPress={() => setSelected(introPlan.id)}>
           <Card theme={theme} style={{ padding: 15, marginBottom: 12, borderWidth: 2, borderColor: COLORS.green, backgroundColor: theme.dark ? "rgba(28, 110, 75, 0.18)" : "rgba(31, 152, 104, 0.10)" }}>
@@ -7413,8 +7421,9 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
           </Pressable>
         ) : null}
         <View style={{ gap: 8, marginBottom: 14 }}>
-          {plans.map((plan) => {
+          {displayPlans.map((plan) => {
             const on = selected === plan.id;
+            const planHasFreeTrial = hasFreeTrialOffer(plan) && eligibleTrialProductIdSet.has(plan.id);
             return (
               <Pressable
                 key={plan.id}
@@ -7433,9 +7442,10 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
                       <View style={{ flexDirection: "row", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
 	                        <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>{textFor(plan.id.toLowerCase().includes("year") ? "paywall.yearly" : plan.id.toLowerCase().includes("week") ? "paywall.weekly" : "paywall.monthly", plan.cadence)}</Text>
                         {plan.recommended ? <Pill text={bestValueLabel} color={COLORS.green} theme={theme} icon="star" /> : null}
+                        {planHasFreeTrial ? <Pill text={textFor("paywall.free_trial_badge", "{days} days free", { days: freeTrialDays(plan) })} color={theme.accent} theme={theme} icon="sparkles" /> : null}
                         {hasOneWeekIntroOffer(plan) && eligibleTrialProductIdSet.has(plan.id) ? <Pill text={textFor("paywall.trial_badge", "{intro} first week", { intro: plan.introductoryOffer?.displayPrice || "" })} color={theme.accent} theme={theme} icon="sparkles" /> : null}
                       </View>
-	                      <Text selectable style={{ color: theme.label2, marginTop: 3, fontSize: 13, lineHeight: 18 }}>{textFor(plan.id.toLowerCase().includes("year") ? "paywall.benefit_apply" : "paywall.benefit_health", plan.description)}</Text>
+	                      <Text selectable style={{ color: theme.label2, marginTop: 3, fontSize: 13, lineHeight: 18 }}>{plan.cadence === "Weekly" ? textFor("paywall.benefit_cram", "Finals cram: a focused week of plans and practice.") : textFor(plan.id.toLowerCase().includes("year") ? "paywall.benefit_apply" : "paywall.benefit_health", plan.description)}</Text>
                     </View>
                     <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{plan.displayPrice}</Text>
                   </View>
@@ -8623,7 +8633,8 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
   };
 
   const runImageOcr = async (source: "camera" | "library", mode: "syllabus" | "notes") => {
-    if (requirePremium(source === "camera" ? { next: "scan", action: "camera" } : { next: "scan" })) return;
+    // Syllabus import is free (review + forecast before the paywall); notes stay Plus.
+    if (mode === "notes" && requirePremium({ next: "scan" })) return;
     if (source === "camera") {
       nav.push("cameraScanner", { mode });
       return;
@@ -8667,7 +8678,6 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
   };
 
   const runPdfImport = async () => {
-    if (requirePremium({ next: "scan", action: "pdf" })) return;
     setWorking("syllabusPdf");
     setScanStatus(textFor("scan.opening_pdf", "Opening PDF..."));
     try {
@@ -8801,18 +8811,19 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
       detail: textFor("scan.paste_action_body", "Fallback for locked PDFs or copied LMS text."),
       color: COLORS.orange,
       busy: false,
-      onPress: () => previewOnly ? requirePremium({ next: "paste", mode: "syllabus" }) : nav.push("paste", { mode: "syllabus" }),
+      onPress: () => nav.push("paste", { mode: "syllabus" }),
       requiresOcr: false,
     },
   ];
 
   return (
     <Screen theme={theme} bottom={132}>
+      {previewOnly ? <BackHeader embedded nav={nav} theme={theme} label="" /> : null}
       <Header
-        title={previewOnly ? textFor("scan.header_preview", "Preview syllabus") : textFor("scan.header", "Scan")}
-        sub={previewOnly ? textFor("scan.sub_preview", "Unlock before scan") : textFor("scan.sub", "Capture anything")}
+        title={textFor("scan.header", "Scan")}
+        sub={previewOnly ? textFor("scan.sub_free", "Free to scan and review") : textFor("scan.sub", "Capture anything")}
         theme={theme}
-        right={<ScannerModeBadge label={previewOnly ? textFor("review.guard_preview", "Preview only.") : textFor("widgets.ready", "Ready")} theme={theme} locked={previewOnly} />}
+        right={<ScannerModeBadge label={previewOnly ? textFor("scan.badge_free", "Free") : textFor("widgets.ready", "Ready")} theme={theme} />}
       />
       <View style={{ paddingHorizontal: 16, gap: 16 }}>
         <View style={{ borderRadius: 28, overflow: "hidden", backgroundColor: theme.dark ? "#0D1422" : "#FFFFFF", borderWidth: 1, borderColor: theme.hairline, boxShadow: theme.dark ? "0 16px 32px rgba(0,0,0,0.42)" : "0 16px 34px rgba(18,36,74,0.12)" }}>
@@ -8825,13 +8836,13 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
               </View>
               <View style={{ flex: 1, gap: 7 }}>
                 <Text selectable style={{ color: scannerReady ? COLORS.green : COLORS.orange, fontSize: 12, fontWeight: "900" }}>{scannerReady ? textFor("scan.status_ready", "On-device text scan is ready.") : textFor("scan.status_backup", "On-device text scan is unavailable here. Paste text to continue.")}</Text>
-                <Text selectable style={{ color: theme.label, fontSize: 26, lineHeight: 29, fontWeight: "900" }}>{previewOnly ? textFor("scan.title_preview", "Unlock. Then review.") : textFor("scan.title", "Import. Review. Start.")}</Text>
+                <Text selectable style={{ color: theme.label, fontSize: 26, lineHeight: 29, fontWeight: "900" }}>{previewOnly ? textFor("scan.title_free", "Scan every class. See the semester.") : textFor("scan.title", "Import. Review. Start.")}</Text>
                 <Text selectable style={{ color: theme.label2, lineHeight: 20 }}>{scanStatus}</Text>
               </View>
             </View>
             <View style={{ flexDirection: "row", gap: 8 }}>
               <ScannerMetric value={scannerReady ? textFor("widgets.ready", "Ready") : textFor("scan.paste_text", "Paste text")} label={textFor("scan.metric_ocr", "OCR")} color={scannerReady ? COLORS.green : COLORS.orange} theme={theme} />
-              <ScannerMetric value={previewOnly ? textFor("review.guard_preview", "Preview") : textFor("review.guard_active", "Review")} label={textFor("scan.metric_gate", "Save gate")} color={previewOnly ? COLORS.orange : COLORS.blue} theme={theme} />
+              <ScannerMetric value={textFor("review.guard_active", "Review")} label={textFor("scan.metric_gate", "Save gate")} color={COLORS.blue} theme={theme} />
               <ScannerMetric value={String(data.imports.length)} label={textFor("scan.history", "Import history")} color={COLORS.purple} theme={theme} />
             </View>
           </View>
@@ -9124,7 +9135,8 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
     return () => clearInterval(id);
   }, [busy, guidance, permission?.granted]);
 
-  if (!data.prefs.premium) {
+  // Syllabus camera scans are free (review + forecast); note scans are Plus.
+  if (!data.prefs.premium && params.mode === "notes") {
     return (
       <View style={{ flex: 1, backgroundColor: theme.bg }}>
         <BackHeader nav={nav} theme={theme} label={textFor("scan.camera", "Camera")} />
@@ -9136,7 +9148,7 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
             <Text selectable style={{ color: "rgba(255,255,255,0.62)", fontSize: 12, fontWeight: "900" }}>{textFor("locked.kicker", "LOCKED PREVIEW")}</Text>
             <Text selectable style={{ color: "#FFFFFF", fontSize: 27, lineHeight: 31, fontWeight: "900", marginTop: 7 }}>{textFor("paywall.camera_title", "Camera scan unlocks here")}</Text>
             <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 8 }}>{textFor("paywall.camera_body", "Use the guided camera after purchase to capture syllabus pages, read the text on this iPhone, and review the extracted rows before anything saves.")}</Text>
-            <Button label={textFor("paywall.unlock_camera", "Unlock camera scan")} theme={theme} icon="crown" onPress={() => nav.push("paywall", { next: "scan", action: "camera" })} />
+            <Button label={textFor("paywall.unlock_camera", "Unlock camera scan")} theme={theme} icon="crown" onPress={() => nav.push("paywall", { next: "scan" })} />
             <Button label={textFor("welcome.preview", "Preview")} theme={theme} secondary icon="chevron-left" onPress={() => nav.tab("lockedDashboard")} />
           </Card>
         </View>
@@ -9451,11 +9463,9 @@ function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps
     if (analysisTimer.current) clearTimeout(analysisTimer.current);
   }, []);
   const openPasteUnlock = () => nav.push("paywall", { next: "paste", mode: requestedMode });
+  // Syllabus paste and manual setup are free to review; only notes need Plus.
+  const notesLocked = previewOnly && requestedMode === "notes";
   const buildManualPreview = () => {
-    if (previewOnly) {
-      openPasteUnlock();
-      return;
-    }
     const code = classCode.trim().toUpperCase();
     const name = className.trim();
     const taskTitle = deadlineTitle.trim();
@@ -9542,7 +9552,7 @@ function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps
     nav.push("review");
   };
   const analyze = () => {
-    if (previewOnly) {
+    if (notesLocked) {
       openPasteUnlock();
       return;
     }
@@ -9560,7 +9570,7 @@ function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps
       nav.push("review");
     }, 650);
   };
-  if (previewOnly) {
+  if (notesLocked) {
     const lockedTitle = manualMode ? textFor("classes.add_manual", "Add class manually") : requestedMode === "notes" ? textFor("notes.paste", "Paste notes") : textFor("option.paste_syllabus", "Paste syllabus");
     const lockedBody = manualMode
       ? textFor("onboarding.manual_sub", "Use this when a syllabus is missing, blurry, or wrong. Nothing saves until you approve the preview.")
