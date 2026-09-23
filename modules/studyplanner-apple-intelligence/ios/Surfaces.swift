@@ -9,7 +9,7 @@ import UniformTypeIdentifiers
 enum AppGroupStore {
   /// Must match app.json ios.entitlements and plugins/with-studyplanner-watch.js.
   static let groupIdentifier = "group.com.mattnewman.studyplanner"
-  static let allowedNames: Set<String> = ["intelligence-snapshot", "intent-inbox"]
+  static let allowedNames: Set<String> = ["intelligence-snapshot", "intent-inbox", "pending-route"]
 
   private static func fileURL(_ name: String) -> URL? {
     guard allowedNames.contains(name) else { return nil }

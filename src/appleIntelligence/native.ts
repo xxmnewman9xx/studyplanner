@@ -13,7 +13,7 @@ export const AI_SCHEMA_VERSION = 1;
 /** Must equal AIVersions.instructions in ios/Schemas.swift. */
 export const AI_INSTRUCTIONS_VERSION = 1;
 
-export type AppGroupFileName = "intelligence-snapshot" | "intent-inbox";
+export type AppGroupFileName = "intelligence-snapshot" | "intent-inbox" | "pending-route";
 
 export type NativeDocumentText = { text: string; pages: number; usedDocumentReader: boolean };
 
