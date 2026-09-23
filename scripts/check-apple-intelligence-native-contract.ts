@@ -269,10 +269,10 @@ check("App Group id matches app.json and only the two allowed files are addressa
   const groupId = surfacesSwift.match(/groupIdentifier = "([^"]+)"/)?.[1];
   assert.equal(groupId, "group.com.mattnewman.studyplanner");
   assert.ok(appJson.includes(`"${groupId}"`), "App Group id missing from app.json");
-  assert.match(surfacesSwift, /\["intelligence-snapshot", "intent-inbox"\]/);
+  assert.match(surfacesSwift, /\["intelligence-snapshot", "intent-inbox", "pending-route"\]/);
   assert.match(surfacesSwift, /options: \[\.atomic\]/);
   assert.match(surfacesSwift, /"class:\\\(id\)"/);
-  assert.match(surfacesSwift, /"deadline:\\\(id\)"/);
+  assert.match(surfacesSwift, /"\\\(linkKind\):\\\(id\)"/);
 });
 
 // ---------------------------------------------------------------------------

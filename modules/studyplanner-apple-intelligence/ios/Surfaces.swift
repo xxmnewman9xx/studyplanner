@@ -99,8 +99,11 @@ enum SpotlightIndexer {
       attributes.contentDescription = description.joined(separator: " · ")
       attributes.keywords = [classCode, kind].filter { !$0.isEmpty }
       attributes.dueDate = due
-      attributes.contentURL = deepLink("task", id)
-      let item = CSSearchableItem(uniqueIdentifier: "deadline:\(id)", domainIdentifier: deadlineDomain, attributeSet: attributes)
+      // Exams and tasks open different screens: `exam:<id>` / `task:<id>` match the
+      // App Intents Spotlight router (plugins/studyplanner-app-intents).
+      let linkKind = kind.lowercased() == "exam" ? "exam" : "task"
+      attributes.contentURL = deepLink(linkKind, id)
+      let item = CSSearchableItem(uniqueIdentifier: "\(linkKind):\(id)", domainIdentifier: deadlineDomain, attributeSet: attributes)
       // Keep past deadlines searchable for two weeks, then let Spotlight drop them.
       item.expirationDate = due.map { $0.addingTimeInterval(14 * 24 * 60 * 60) } ?? Date.distantFuture
       items.append(item)
