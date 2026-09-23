@@ -1,127 +1,115 @@
-# StudyPlanner 2.2 "Apple Intelligence" implementation prompt
+# StudyPlanner 2.2: Build prompt
 
-**How to use:** paste everything below into a fresh Claude Code session opened in `/Users/mattnewman/work/StudyPlanner`.
+**Start by creating a worktree:** `git -C /Users/mattnewman/work/StudyPlanner worktree add ../StudyPlanner-ai feature/apple-intelligence-2.2`. Open Claude Code in `../StudyPlanner-ai` and paste everything below.
 
 ---
 
-You are the orchestrator implementing **StudyPlanner 2.2**. It adds on-device Apple Intelligence (Foundation Models) to a live Expo/React Native iOS app and redesigns the product around **"See your crunch weeks months early, then beat them."**
+## Mission
+Turn StudyPlanner from a syllabus-to-planner app into **the study app that sees your semester coming**. It forecasts crunch weeks months ahead, tells you what to do tonight, and quizzes you from your own notes.
 
-**Goals:**
-- Every category scores **≥ 9/10**: virality, utility, monetization, localization, reliability, and tests.
-- **Maximum impact with minimum inference.** Deterministic code decides. The on-device model reads, phrases, and quizzes, and only when language understanding is required.
+- **All of it runs privately on the iPhone** through Apple's on-device Foundation Models. There is no account, no server, and no usage cap.
+- Ship it as **StudyPlanner 2.2**: a major update built to go viral, earn subscriptions, and score **≥ 9/10** on concept, utility, virality, monetization, localization, and quality.
+- Decide the implementation details yourself. Use a small swarm of subagents where parallel work genuinely helps. Have independent reviewers score the result, and keep improving it until every category reaches 9 or higher.
 
-## 0. Read first (source of truth; do not re-derive)
-- `docs/apple-intelligence/MASTER_PLAN.md`: the concept (A), features F1–F8 with acceptance criteria (B), the engineering spec (C1–C9), gates G0–G9 (D), and decision defaults (E).
-- `docs/apple-intelligence/RECON_BUILD90.md`: the repo map, data flow, and SDK-verified APIs.
-- `docs/apple-intelligence/SCORECARD.md`: the rubric and round-1 findings. Round 2 still needs an **independent re-score**.
-- `AGENTS.md` / `CLAUDE.md`:
-  - Read the Expo **v56** docs before writing Expo module or config-plugin code.
-  - If the GitNexus MCP is available, run `impact` before editing a symbol and `detect_changes` before every commit.
+## Context (verified, so trust it)
+**Live app**
+- iOS 2.1.0 build 90 on the App Store ("Studyplanner: Syllabus AI", ASC app 6766181202).
+- Source is tag `v2.1.0-build90`. Work on branch `feature/apple-intelligence-2.2`, which also holds the planning docs.
+- Never push to `main`.
 
-## 1. Facts you must respect
-- **Git:** work on branch `feature/apple-intelligence-2.2`. Its baseline is `release/build-90`, tag `v2.1.0-build90`: iOS 2.1.0 build 90, which is live.
-- **Stack:**
-  - Expo SDK 56, RN 0.85.3 (New Architecture), TS 6.
-  - Xcode 26.6, iOS SDK 26.5. Minimum iOS **16.4**.
-  - `ios/` is **generated and gitignored**. Native code goes only in `modules/` (Expo modules) and `plugins/` (config plugins), followed by `npx expo prebuild -p ios --clean`.
-- **Where the logic lives:**
-  - **App shell:** `App.tsx` (11k lines) holds all screens.
-  - **Deterministic engine:** `src/intelligence.ts`.
-  - **Heuristic parser:** `src/ai.ts`.
-  - **Persistence:** `src/storage.ts` stores one JSON blob `app-data` in expo-sqlite `studyplanner-ai.db`, table `kv`.
-  - **Mutation:** only through `mutate()` (`App.tsx:6121`) or `applyImport`.
-  - **Human import gate:** `ReviewImport` (`App.tsx:9649`).
-  - **Widgets:** `src/widgetEngine.ts` → expo-widgets.
-- **The live module graph is 31 files.** `src/screens/*`, `src/core/*`, and `src/design/*` are dead. Do not revive or edit them.
-- **Foundation Models, as verified:**
-  - Requires iOS 26 and an eligible device with Apple Intelligence on.
-  - `contextSize` is 4096 on iOS 26 (reportedly 8192 on iOS 27), so always read it at runtime.
-  - One request per session at a time.
-  - Background use is rate-limited, so run it in the foreground only.
-  - `supportsLocale` is false for `hi` and `ar`.
-  - Do not use inference inside widgets or extensions.
-- **Locales:** 10 in-app (`App.tsx:228`: `ar de en-US es fr hi ja ko pt-BR zh-Hans`) and 17 in the store (`store.config.json`).
-- **Tooling:** `node_modules` and Pods are absent until G0.
-- **Trademark:** "Apple Intelligence" may appear only referentially, in English, and never in the app name or subtitle. Never use Apple's glyph.
+**Stack**
+- Expo SDK 56, React Native 0.85 (New Architecture), TypeScript. Xcode 26.6, iOS SDK 26.5, minimum iOS 16.4.
+- `ios/` is generated and gitignored. Native Swift belongs in Expo modules (`modules/`) or config plugins (`plugins/`). Follow `AGENTS.md`: read the Expo v56 docs first, and use GitNexus impact checks if they are available.
 
-## 2. Hard rules (a violation means the gate fails)
-1. The model **never writes AppData**. The only path is model output → validators (MASTER_PLAN C5) → `ImportCandidate`/proposal → user confirmation → `mutate()`/`applyImport`.
-2. The model never supplies trusted dates, IDs, grades, completion state, schedule, reminders, or billing state.
-3. Build 90 behavior is the fallback on every unavailable path: iOS < 26, an ineligible device, Apple Intelligence off, an unsupported locale, Android, and web.
-4. 2.2 makes exactly **four** model calls: `syllabusExtract`, `noteStudySet`, `dailyBrief`, `taskProposal`. Each is cache-first, follows the skip rules in C6, and runs only while `AppState === "active"`.
-5. **Only one agent edits `App.tsx` at a time.** Keep `App.tsx` edits additive. New UI lives in `src/appleIntelligence/ui/*`.
-6. Do not modify existing functions except for the export-only edits listed in C2 and the G4 access edits.
-7. Commit per gate with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Push the feature branch. **Never push to `main`.**
+**Where things live**
+- **UI:** all screens and navigation are in `App.tsx` (about 11k lines).
+- **Deterministic engine:** `src/intelligence.ts`. It builds the schedule, Semester Health, Class Pulse, forecasts, risks, the notification plan, and quick-capture parsing.
+- **Heuristic "AI":** `src/ai.ts`, a regex syllabus and notes parser. Flashcards and quizzes are template strings today. **The app has zero real model inference.**
+- **Data:** one JSON blob (`app-data` in expo-sqlite), changed only through `mutate()` or `applyImport`.
+- **Import review:** imports pass through a human review screen (`ReviewImport`) before they are applied.
+- **OCR:** Vision OCR runs in `modules/studyplanner-vision-ocr`.
+- **Widgets:** four widgets (Today, Upcoming, Week, Class Progress) via expo-widgets.
+- **Other plumbing:** local reminders; StoreKit subscriptions (weekly, monthly, yearly) behind a hard paywall.
+- **Dead code:** only 31 source files are live. `src/screens`, `src/core`, and `src/design` are dead; leave them alone.
 
-## 3. Swarm plan (lean: at most 3 parallel agents; worktree isolation for parallel writers)
-**Wave 0 (you, sequential): G0.**
-- Run `npm ci`, `npx expo prebuild -p ios --clean`, and pod install.
-- Run `npm run typecheck` and every `npm run test:*`.
-- Boot the iOS 26.5 simulator and take screenshots of Today, Scan, Review, Notes, and Paywall.
-- Record anything that was already failing before you change code.
+**Apple platform facts**
+- Foundation Models needs iOS 26 and an Apple Intelligence device (iPhone 15 Pro or later) with the feature turned on.
+- Context is about 4K tokens on iOS 26 and larger on iOS 27, so read `contextSize` at runtime.
+- One request runs per session at a time. Run models in the foreground only; never inside widgets or extensions.
+- On-device models don't support Hindi or Arabic.
+- Other APIs: iOS 26 `RecognizeDocumentsRequest` reads syllabus tables; App Intents / App Shortcuts / `IndexedEntity` bring the app into Siri and Spotlight.
 
-**Wave 1 (3 agents in parallel, `isolation: "worktree"`): G1–G2 foundations.**
-- **W1 Native:** build `modules/studyplanner-apple-intelligence` as specified in C2, C3, and C4:
-  - Schemas, features, the serial actor, `DocumentReader`, and `Surfaces`: share card, QR, App Group JSON, pasteboard, and Keychain cohort.
-  - Weak-link FoundationModels, and mark types `@available(iOS 26.0, *)`.
-  - **Exit:** `otool -l` shows `LC_LOAD_WEAK_DYLIB`, and the iOS 16.4 and 17 simulators launch.
-- **W2 TS core:**
-  - The export-only edits (C2).
-  - `src/appleIntelligence/{client,context,validators,merge,cache,budget,types}.ts`, plus `src/crunchForecast.ts` and `src/classPack.ts`. These must be pure, with no `react-native` imports in validators, merge, context, forecast, or classPack.
-  - `npm run test:ai`, covering every case listed in C8.
-- **W3 Eval:**
-  - `scripts/export-fm-fixtures.ts`.
-  - Hand-labeled gold items for the 21 syllabus fixtures plus ≥ 10 real public multi-page syllabi.
-  - The heuristic baseline.
-  - `tools/fm-eval` (a Swift package reusing W1's `Schemas.swift`/`Features.swift`). It runs on the Mac once the owner enables Apple Intelligence.
-- **You:** merge W1–W3 and run all tests, then clear gate G1.
+**Locales:** 10 in the app (`ar de en-US es fr hi ja ko pt-BR zh-Hans`) and 17 in the App Store.
 
-**Wave 2 (sequential App.tsx owner + 2 parallel non-App.tsx agents): G2, G3, G5, G6, G7.**
-- **W4 App.tsx integrator (sole owner of `App.tsx`),** following touch points (a)–(j) in C2:
-  - `analyzeSyllabusSmart` async and cancellable.
-  - `packFromUrl` placed before `routeFromUrl` at `routeUrl`, line 6017.
-  - `ReviewImport` origin chips.
-  - `ForecastSection`, `BriefCard`, Exam Mode routes, the quick-add fallback, the snapshot write, and the purge hooks.
-- **W5 Surfaces:**
-  - `plugins/with-studyplanner-app-intents.js` with intents (Open Scan, Today's brief, What's due, Add assignment → inbox) and `IndexedEntity` marked `@available(iOS 18, *)`.
-  - `AppShortcuts.xcstrings` for 10 locales.
-  - Associated domains, plus a static AASA file and `/p` page for the workers.dev site; hand these to the owner for deploy.
-  - The widget brief line and red-week dot.
-  - `startBy` notifications through `buildNotificationPlan`.
-  - **Exit:** `Metadata.appintents` is present after a clean prebuild, and intents work with the app killed.
-- **W6 UI + localization:**
-  - Build the `src/appleIntelligence/ui/*` components.
-  - Add `ai.*` keys for all 10 locales (RTL for `ar`).
-  - Add store copy for 17 locales following the A3/A6 claim rules (no AI claims for zh-Hans, hi, or ar).
-  - Add `scripts/check-apple-intelligence-copy.ts`.
+**Planning docs** (in `docs/apple-intelligence/`)
+- **`MASTER_PLAN.md`:** the detailed spec: competitors, schemas, validators, gates, and owner decisions.
+- **`RECON_BUILD90.md`:** the repo map and API verification.
+- **`SCORECARD.md`:** the rubric and prior review findings.
 
-**Wave 3 (you, sequential, high risk): G4 free-first paywall.**
-- Edit `PRE_PURCHASE_ROUTES` (4854), `dataForAccessState` (4972), `lockedWidgetData`, `hardGateActive` (6131), `previewOnly` (~8604, ~9439), and the `ReviewImport` apply path.
-- The free-class counter lives in AppData prefs and is mirrored to the Keychain.
-- Build the annual-first paywall with its disclosure text.
-- Update `test:hard-paywall` for these cases: restore, lapse, a pending import across purchase, a second class blocked, and reinstall.
+Use these docs as references, not as a script.
 
-**Wave 4 (scoring swarm, 3 read-only reviewers in parallel; at most 2 rounds):**
-- **R1 Engineering.** Run `/code-review` at high effort on the branch diff, then score against the rubric in SCORECARD.md.
-- **R2 Product/Growth.** Score concept, virality, monetization, compliance, and F1–F7, using the simulator screenshots.
-- **R3 Localization/QA.** Run the locale sweep (10 in-app × key screens, the `ar` RTL layout, `hi`/`ar` fallback copy) and the device-matrix checklist from C8.
+## The finished product
+A student opens StudyPlanner in syllabus week:
 
-Fix every item scored below 9, then re-score only the changed rows. Stop when every row is ≥ 9 or after round 2; if you stop at round 2, report the rows that remain honestly.
+1. **Scan everything, see the whole semester.**
+   - They photograph or import every syllabus. Tables, week grids, and multi-page PDFs are read correctly.
+   - Seconds later there's a reviewed list of every assignment, quiz, and exam.
+   - Next to it is the **Crunch Forecast**: a heatmap of the whole term with the brutal weeks glowing red, plus "start Bio on Oct 12" dates that beat each crunch.
+   - They get all of this **before paying**, and it's shareable.
+2. **Share it.**
+   - A clean Forecast card goes to the group chat ("the week I'm going to cry").
+   - One tap turns a class into a **Class Pack** link or QR code, so classmates import the same deadlines in seconds without scanning anything.
+3. **Every day after, one clear move.**
+   - Today, the Lock Screen widget, and Siri all say the same thing: *"Now: 25 min Bio ch. 7, exam in 12 days,"* along with one sentence explaining why.
+   - Missed a session? The plan quietly repairs itself.
+4. **Before every exam, Exam Mode.**
+   - Their own notes become flashcards and practice questions. Every one cites the note line it came from.
+   - It works offline and has no caps.
+   - Weak topics surface on their own and earn extra review blocks.
+   - A **Quiz Duel** lets them challenge a friend with the same deck.
+5. **Capture without friction.**
+   - "Lab report Friday, 10%" typed or said to Siri becomes a correctly dated task after one confirmation.
+   - Classes and deadlines show up in Spotlight.
+6. **Honest everywhere.**
+   - On older iPhones, with Apple Intelligence off, or in Hindi or Arabic, everything still works, just as well as Build 90 does today.
+   - The AI features simply appear where the device supports them.
 
-## 4. Definition of done (G8)
-- **Tests green:** all existing `test:*`, `test:ai`, typecheck, and the copy-coverage check for 10 locales.
-- **Evaluation gates met** (Mac with Apple Intelligence on, then re-run on iOS 27):
-  - 0 invented dates after validation.
-  - Precision ≥ 0.95.
-  - Recall ≥ baseline + 10 points.
-- **Latency on iPhone 15 Pro:** p95 ≤ 6 s per chunk and ≤ 3 s for the daily brief.
-- **Fallback screens identical to Build 90** on iOS 16.4 and 17 simulators and on ineligible, AI-off, `hi`, and `ar` configurations.
-- **Release metadata:** version `2.2.0`, build ≥ 91. Store copy for 17 locales. App Preview built from beats 2–5. Review notes cite on-device generation and the eligibility fallback.
-- **Final report:** the scorecard with every row ≥ 9, or an honest list of the gaps; a TestFlight-ready build; and the owner actions listed below.
+## How AI makes each piece dramatically better
+| Buildout | Today (Build 90) | 2.2 with Apple Intelligence |
+|---|---|---|
+| **Syllabus → Semester** | Regex misses tables and odd date formats | Document-structure OCR plus on-device structured extraction (`@Generable` schemas). Every item is grounded to a verbatim source line, merged with the regex results, and still human-reviewed. Far higher recall, and zero invented dates. |
+| **Crunch Forecast** (deterministic) | 7-day pressure strip | A term-wide weekly heatmap with back-scheduled start dates. It's only as good as extraction, which is why AI extraction comes first. |
+| **Study Now** | Templated coach copy | The deterministic engine picks the task. The model writes a short, personal "why", once per day, cached, and reused by Today, the widget, notifications, and Siri. |
+| **Exam Mode** | "Explain {term}" template flashcards | Real cards and multiple-choice questions generated from the student's notes, each citing its source. Practice results drive weak-topic detection and extra `exam_prep` blocks. |
+| **Quick-add** | Regex capture that fails on ambiguity | The model proposes a task only when regex fails. Existing date and class resolvers validate it, and the user confirms. |
+| **Siri / Shortcuts / Spotlight** | None | App Intents covering "What should I study now?", "What's due?", Add assignment, and Open scan. Classes and tasks are indexed. |
+| **Growth loops** | None | Forecast share card, Class Pack (universal link with the payload in the `#fragment`, so no server), and Quiz Duel. |
+| **Monetization** | Hard paywall before any scan | The aha moment comes free: import every class and see the full forecast. Plus unlocks planning, Exam Mode, widgets, reminders, and Siri. Paywall is annual-first, with a no-trial weekly "finals cram" plan. On-device inference costs nothing per use, unlike metered competitors. |
 
-## 5. Owner actions to surface (never perform them yourself)
-- Turn on Apple Intelligence on the dev Mac and provide an iPhone 15 Pro or later (D7).
-- ASC product and offer changes: annual-first, weekly without a trial, and the price-test product IDs (D2, D6).
-- Deploy the AASA file and `/p` page to the workers.dev site (D4).
-- Approve the free-first-class reversal of the Build 52 doctrine (D1). The default is yes.
+## Non-negotiables
+- **The model proposes; deterministic code and the user decide.**
+  - The model never writes app data directly, and never supplies trusted dates, IDs, grades, completion state, schedules, reminders, or billing.
+  - Everything goes through validation and confirmation, then the existing `mutate()`/`applyImport`.
+- **Minimum inference, maximum impact.** Deterministic code chooses wherever it can. Every model call is cached and justified. There is no background inference.
+- **Keep Build 90 behavior as the fallback** everywhere the model can't run. Android and web stay unaffected.
+- **Trademark and honesty rules**
+  - "Apple Intelligence" may appear only as a reference, in English. It never goes in the app name or subtitle, and Apple's logo is never used.
+  - State the device requirements. Make no AI claims for the zh-Hans, hi, or ar store listings.
+  - Exam Mode is practice from the student's own notes, never homework solving.
+
+## Definition of done
+- **Every buildout above works on device,** including the free-first paywall, sharing loops, widgets, Siri, and Spotlight.
+- **Localized** in all 10 in-app locales, with Arabic right-to-left. Store copy and the App Preview are updated for all 17 store locales.
+- **Tested**
+  - All existing test suites plus new tests stay green.
+  - Extraction is evaluated against hand-labelled syllabi: zero invented dates, precision at least 0.95, and recall clearly above the regex baseline.
+  - Verified on an eligible iPhone, an ineligible device, and iOS 16.4.
+- **Reviewed.** Run `/code-review` at high effort, then independent reviewer scores. Every category must be ≥ 9/10, or remaining gaps are reported honestly.
+- **Packaged** as version 2.2.0 (build 91 or later), TestFlight-ready, with App Review notes explaining on-device generation.
+
+## Leave to the owner
+Surface these clearly and never perform them:
+- Enable Apple Intelligence on the dev Mac, and supply an iPhone 15 Pro or later.
+- App Store Connect subscription and offer changes.
+- Deploy the universal-link files to the support site.
 - Upload to TestFlight and submit for review.
