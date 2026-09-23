@@ -293,3 +293,13 @@ export type QuizDuel = {
 };
 
 export type SharedPayload = { kind: "pack"; pack: ClassPack } | { kind: "duel"; duel: QuizDuel };
+
+// ---------------------------------------------------------------------------
+// Dependency-injected model runner. Pure orchestrators (smartSyllabus, study
+// sets, briefs, quick-add) take one of these so they are testable with fakes;
+// client.ts provides the real one backed by the native module.
+// ---------------------------------------------------------------------------
+
+export type ModelRunOptions = { signal?: AbortSignal; timeoutMs?: number };
+
+export type ModelRunner = (feature: AIFeature, input: Record<string, unknown>, options?: ModelRunOptions) => Promise<AIResult<unknown>>;
