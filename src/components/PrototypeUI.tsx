@@ -189,10 +189,10 @@ export function SemesterPulse({
 
 export function WidgetPreview({
   classColor = SP.blue,
-  title = "Midterm 1",
-  days = 2,
-  assignment = "Essay · Jun 6",
-  pulse = 78
+  title = "Open StudyPlanner",
+  days = 0,
+  assignment = "Add real coursework",
+  pulse = 0
 }: {
   classColor?: string;
   title?: string;

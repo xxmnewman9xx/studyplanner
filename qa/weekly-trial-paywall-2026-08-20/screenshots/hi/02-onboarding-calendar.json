@@ -1,0 +1,25 @@
+{
+  "locale": "hi",
+  "device": "KAMI iPhone 17 Pro",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "onboarding-calendar",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "onboardingIndex": 2
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "qa/weekly-trial-paywall-2026-08-20/screenshots/hi/02-onboarding-calendar.png",
+  "bytes": 370884,
+  "sha256": "96eaba170f2d8cf1b3a4f9d21d3a390827e0fe191ce2f06d19009235854129fb",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "63992b2f",
+  "timestamp": "2026-08-20T23:30:40.554Z"
+}

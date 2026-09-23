@@ -27,7 +27,7 @@ Score: 10/10
 | zh-Hant | 課程大綱 | 1 | 1/1 | 1/1 | 1 | Attention Needed | PASS |
 | hi | सिलेबस | 1 | 1/1 | 1/1 | 1 | Attention Needed | PASS |
 | ar-SA | خطة مقرر | 1 | 1/1 | 1/1 | 1 | Attention Needed | PASS |
-| Mixed OCR | Messy scan | 1 | 2/1 | 2/2 | 3 | Attention Needed | PASS |
+| Mixed OCR | Messy scan | 1 | 1/1 | 2/2 | 3 | Attention Needed | PASS |
 | Mixed language | Columns | 1 | 1/1 | 1/1 | 3 | Attention Needed | PASS |
 | OCR cleanup | Line breaks and spaced dates | 1 | 1/1 | 1/1 | 2 | Attention Needed | PASS |
 

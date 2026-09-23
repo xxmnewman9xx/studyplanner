@@ -61,7 +61,6 @@ export const defaultData: AppData = {
     semesterGoal: "Stay ahead",
     scanIntent: "Scan with camera",
     theme: "light",
-    appearanceMode: "system",
     presetId: "academic",
     widgetTheme: "liquidLight",
     widgetDensity: "balanced",

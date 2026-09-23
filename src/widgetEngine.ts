@@ -3,22 +3,8 @@ import { AppData, ClassItem, ExamItem, SemanticColorState, TaskItem, WidgetDensi
 import { buildSemesterSnapshot, colorForState, dateKey, daysUntilTask } from "./intelligence";
 import { buildSemesterNarrative } from "./semesterNarrative";
 import { resolveSemesterThemeColor } from "./semesterTheme";
-import { formatPlannerTime, normalizeStorefrontLocale, type StorefrontLocale } from "./storefrontLocale";
-import "./widgets/StudyPlannerWidgets";
 
 export type NativeWidgetKind = "today" | "upcoming" | "week" | "classProgress";
-
-export type WidgetDisplayMode = "live" | "empty" | "locked" | "placeholder";
-
-export type WidgetDisplayState = {
-  mode: WidgetDisplayMode;
-  primaryMetric: string;
-  headline: string;
-  detail: string;
-  accent: string;
-  actionLabel: string;
-  openURL: string;
-};
 
 export type NativeWidgetItem = {
   id: string;
@@ -26,7 +12,6 @@ export type NativeWidgetItem = {
   courseCode: string;
   courseColor: string;
   dueLabel: string;
-  timeLabel?: string;
 };
 
 export type NativeWidgetCalendarDay = {
@@ -38,11 +23,13 @@ export type NativeWidgetCalendarDay = {
   hasExam: boolean;
 };
 
-export type NativeWidgetSnapshot = WidgetDisplayState & {
+export type NativeWidgetSnapshot = {
   version: 1;
   kind: NativeWidgetKind;
   generatedAt: string;
+  headline: string;
   value: string;
+  detail: string;
   footnote: string;
   signalLabel?: string;
   timelineLabel?: string;
@@ -52,6 +39,8 @@ export type NativeWidgetSnapshot = WidgetDisplayState & {
   styleLabel: string;
   densityLabel: string;
   progress: number;
+  openURL: string;
+  actionLabel?: string;
   actionTarget?: string;
   interactionCount?: number;
   lastInteractionLabel?: string;
@@ -87,53 +76,6 @@ export type WidgetCopy = (key: string, fallback: string, vars?: Record<string, s
 
 const defaultWidgetCopy: WidgetCopy = (_key, fallback, vars = {}) =>
   Object.entries(vars).reduce((text, [name, value]) => text.replace(new RegExp(`\\{${name}\\}`, "g"), String(value)), fallback);
-
-function interpolatingWidgetCopy(source: WidgetCopy): WidgetCopy {
-  return (key, fallback, vars = {}) =>
-    Object.entries(vars).reduce(
-      (text, [name, value]) => text.replace(new RegExp(`\\{${name}\\}`, "g"), String(value)),
-      source(key, fallback),
-    );
-}
-
-export function buildWidgetExampleSnapshot(
-  t: WidgetCopy = defaultWidgetCopy,
-  locale: StorefrontLocale = "en-US",
-): NativeWidgetSnapshot {
-  t = interpolatingWidgetCopy(t);
-  const accent = "#FF8A00";
-  const item: NativeWidgetItem = {
-    id: "example-lab-report",
-    title: t("widget.example.assignment", "Lab report draft"),
-    courseCode: t("widget.example.course", "BIO 201"),
-    courseColor: "#34C759",
-    dueLabel: t("widget.native.today", "Today"),
-    timeLabel: formatPlannerTime("16:00", locale),
-  };
-  return {
-    version: 1,
-    kind: "today",
-    generatedAt: "example",
-    mode: "live",
-    primaryMetric: "2",
-    headline: t("widget.native.due_today_headline", "Due Today"),
-    detail: item.title,
-    accent,
-    actionLabel: t("widget.native.open_today", "Open Today"),
-    openURL: "studyplanner://today",
-    value: "2",
-    footnote: `${item.courseCode} · ${item.timeLabel}`,
-    signalLabel: t("widget.example.label", "Example data"),
-    timelineLabel: t("widget.native.today", "Today"),
-    updatedLabel: t("widget.example.label", "Example data"),
-    accentColor: accent,
-    backgroundColor: "#FFF8EF",
-    styleLabel: t("widget.native.theme_liquid_light", "Liquid Light"),
-    densityLabel: t("widget.native.density_quiet", "Quiet"),
-    progress: 0.56,
-    items: [item],
-  };
-}
 
 export const widgetThemeOptions: { id: WidgetThemeChoice; label: string; accent: string; background: string }[] = [
   { id: "liquidLight", label: "Liquid Light", accent: "#0A84FF", background: "#F9FAFC" },
@@ -219,12 +161,7 @@ function widgetDueLabel(offset: number, t: WidgetCopy) {
   return t("widget.native.in_days", "In {count} days", { count: offset });
 }
 
-function itemFor(
-  data: AppData,
-  task: TaskItem,
-  t: WidgetCopy = defaultWidgetCopy,
-  locale: StorefrontLocale = "en-US",
-): NativeWidgetItem {
+function itemFor(data: AppData, task: TaskItem, t: WidgetCopy = defaultWidgetCopy): NativeWidgetItem {
   const klass = classFor(data, task.classId);
   return {
     id: task.id,
@@ -232,16 +169,10 @@ function itemFor(
     courseCode: klass.code,
     courseColor: klass.color,
     dueLabel: widgetDueLabel(daysUntilTask(task), t),
-    timeLabel: task.time ? formatPlannerTime(task.time, locale) : undefined,
   };
 }
 
-function examItemFor(
-  data: AppData,
-  exam: ExamItem,
-  t: WidgetCopy = defaultWidgetCopy,
-  locale: StorefrontLocale = "en-US",
-): NativeWidgetItem {
+function examItemFor(data: AppData, exam: ExamItem, t: WidgetCopy = defaultWidgetCopy): NativeWidgetItem {
   const klass = classFor(data, exam.classId);
   return {
     id: exam.id,
@@ -249,22 +180,13 @@ function examItemFor(
     courseCode: klass.code,
     courseColor: klass.color,
     dueLabel: widgetDueLabel(daysUntilIso(exam.dueDate), t),
-    timeLabel: exam.time ? formatPlannerTime(exam.time, locale) : undefined,
   };
 }
 
-function dueItems(data: AppData, t: WidgetCopy = defaultWidgetCopy, locale: StorefrontLocale = "en-US") {
-  const taskItems = activeTasks(data).map((task) => ({ sort: daysUntilTask(task), item: itemFor(data, task, t, locale) }));
-  const examItems = activeAssessments(data).map((exam) => ({ sort: daysUntilIso(exam.dueDate), item: examItemFor(data, exam, t, locale) }));
+function dueItems(data: AppData, t: WidgetCopy = defaultWidgetCopy) {
+  const taskItems = activeTasks(data).map((task) => ({ sort: daysUntilTask(task), item: itemFor(data, task, t) }));
+  const examItems = activeAssessments(data).map((exam) => ({ sort: daysUntilIso(exam.dueDate), item: examItemFor(data, exam, t) }));
   return [...taskItems, ...examItems].sort((a, b) => a.sort - b.sort);
-}
-
-function countdownMetric(offset: number | undefined, t: WidgetCopy) {
-  if (offset === undefined) return t("widget.native.ready", "READY").toLocaleUpperCase();
-  if (offset < 0) return t("widget.native.overdue", "OVERDUE").toLocaleUpperCase();
-  if (offset === 0) return t("widget.native.today", "TODAY").toLocaleUpperCase();
-  if (offset === 1) return t("widget.native.tomorrow", "TOMORROW").toLocaleUpperCase();
-  return t("widget.native.days_metric", "{count} DAYS", { count: offset }).toLocaleUpperCase();
 }
 
 function itemLimit(density: WidgetDensity) {
@@ -283,9 +205,9 @@ function liquidBackgroundFor(state: string) {
   return "#F9FAFC";
 }
 
-function widgetUpdatedLabel(iso: string, t: WidgetCopy = defaultWidgetCopy, locale: StorefrontLocale = "en-US") {
+function widgetUpdatedLabel(iso: string, t: WidgetCopy = defaultWidgetCopy) {
   try {
-    const time = new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit" }).format(new Date(iso));
+    const time = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date(iso));
     return t("widget.native.updated_time", "Updated {time}", { time });
   } catch {
     return t("widget.native.updated_now", "Updated now");
@@ -297,22 +219,10 @@ function todayWeekdayIndex() {
   return day === 0 ? 6 : day - 1;
 }
 
-function localizedWeekdayLabels(t: WidgetCopy = defaultWidgetCopy) {
-  return [
-    t("widget.weekday.mon", "M"),
-    t("widget.weekday.tue", "T"),
-    t("widget.weekday.wed", "W"),
-    t("widget.weekday.thu", "T"),
-    t("widget.weekday.fri", "F"),
-    t("widget.weekday.sat", "S"),
-    t("widget.weekday.sun", "S"),
-  ];
-}
-
-function calendarDaysFor(data: AppData, t: WidgetCopy = defaultWidgetCopy): NativeWidgetCalendarDay[] {
+function calendarDaysFor(data: AppData): NativeWidgetCalendarDay[] {
   const today = new Date();
   const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0);
-  const weekdays = localizedWeekdayLabels(t);
+  const weekdays = ["M", "T", "W", "T", "F", "S", "S"];
   const tasks = activeTasks(data);
   const exams = activeAssessments(data);
   return Array.from({ length: 14 }, (_value, offset) => {
@@ -482,8 +392,8 @@ function localizedGeneratedText(value: string | undefined, t: WidgetCopy, generi
   return t(genericKey, genericFallback);
 }
 
-function localizedClassScheduleFootnote(klass: ClassItem, t: WidgetCopy, locale: StorefrontLocale) {
-  const time = klass.time ? formatPlannerTime(klass.time, locale) : t("widget.native.time_tbd", "Time TBD");
+function localizedClassScheduleFootnote(klass: ClassItem, t: WidgetCopy) {
+  const time = klass.time || t("widget.native.time_tbd", "Time TBD");
   const room = localizedGeneratedText(klass.room || "Room TBD", t, "widget.native.room_tbd", "Room TBD");
   return `${time} · ${room}`;
 }
@@ -506,47 +416,30 @@ export function buildSemesterLoop(data: AppData): SemesterLoop {
   };
 }
 
-export function buildNativeWidgetSnapshots(
-  data: AppData,
-  t: WidgetCopy = defaultWidgetCopy,
-  locale: StorefrontLocale = normalizeStorefrontLocale(Intl.DateTimeFormat().resolvedOptions().locale) || "en-US"
-): NativeWidgetSnapshots {
-  t = interpolatingWidgetCopy(t);
+export function buildNativeWidgetSnapshots(data: AppData, t: WidgetCopy = defaultWidgetCopy): NativeWidgetSnapshots {
   const now = new Date().toISOString();
   const density = data.prefs.widgetDensity || "balanced";
   const widgetTheme = activeTheme(data);
   const locked = !data.prefs.premium;
   const empty = !(data.classes.length || data.tasks.length || data.exams.length);
   if (locked || empty) {
-    const mode: WidgetDisplayMode = locked ? "locked" : "empty";
-    const primaryMetric = locked ? t("widget.native.locked_metric", "NEXT MOVE") : t("widget.native.empty_metric", "START");
-    const headline = locked
-      ? t("widget.native.locked_headline", "Your next move—on your Home Screen")
-      : t("widget.native.empty_headline", "Your semester starts here");
-    const detail = locked
-      ? t("widget.native.locked_detail", "No coursework appears until you subscribe.")
-      : t("widget.native.empty_detail", "Add a syllabus");
-    const actionLabel = locked
-      ? t("widget.native.unlock_studyplanner", "Unlock StudyPlanner")
-      : t("widget.native.add_syllabus", "Add a syllabus");
-    const footnote = locked
-      ? t("widget.native.private_locked", "Private by default")
-      : t("widget.native.empty_support", "Build the plan once. See what matters next.");
-    const emptyCalendarDays = calendarDaysFor(data, t);
-    const weekLabels = emptyCalendarDays.slice(0, 7).map((day) => day.weekday);
+    const headline = locked ? "Build semester" : "Scan syllabus";
+    const value = locked ? "Build" : "Start";
+    const localizedHeadline = locked ? t("widget.native.build_semester", headline) : t("widget.native.scan_syllabus", headline);
+    const localizedValue = locked ? t("widget.native.build", value) : t("widget.native.start", value);
+    const detail = locked ? t("widget.native.semester_lower", "semester") : t("widget.native.semester", "Semester");
+    const footnote = locked ? t("widget.native.preview_unlock_plan", "Preview only. Unlock plan from app.") : t("widget.native.syllabus_in", "Syllabus in. Semester out.");
+    const emptyCalendarDays = calendarDaysFor(data);
     const base = {
       version: 1 as const,
       generatedAt: now,
-      mode,
-      primaryMetric,
-      headline,
-      value: primaryMetric,
+      headline: localizedHeadline,
+      value: localizedValue,
       detail,
       footnote,
-      signalLabel: locked ? t("widget.native.locked", "Locked") : t("widget.native.setup", "Setup"),
-      timelineLabel: t("brand.name", "StudyPlanner"),
+      signalLabel: locked ? t("widget.native.preview_badge", "Preview") : t("widget.native.import_syllabus", "Import syllabus"),
+      timelineLabel: locked ? t("widget.native.build_semester", "Build semester") : t("widget.native.setup", "Setup"),
       updatedLabel: t("widget.native.ready", "Ready"),
-      accent: widgetTheme.accent,
       accentColor: widgetTheme.accent,
       backgroundColor: widgetTheme.background,
       styleLabel: widgetThemeLabel(widgetTheme, t),
@@ -555,32 +448,32 @@ export function buildNativeWidgetSnapshots(
       ringValue: "0",
       ringLabel: t("health.score", "score"),
       openURL: locked ? "studyplanner://paywall" : "studyplanner://scan",
-      actionLabel,
+      actionLabel: locked ? t("widget.native.unlock_plan", "Unlock plan") : t("widget.native.import_syllabus", "Import syllabus"),
       items: [] as NativeWidgetItem[],
     };
     return {
       today: { ...base, kind: "today" },
-      upcoming: { ...base, kind: "upcoming" },
-      week: { ...base, kind: "week", weekLabels, weekCounts: [0, 0, 0, 0, 0, 0, 0], calendarDays: emptyCalendarDays, examDays: [], todayIndex: 0, peakDayLabel: t("widget.native.light_week", "Light week"), calendarHeadline: t("widget.native.seven_days", "7 days") },
-      classProgress: { ...base, kind: "classProgress" },
+      upcoming: { ...base, kind: "upcoming", headline: locked ? t("widget.native.unlock_plan", "Unlock plan") : t("widget.native.build_plan", "Build plan"), detail: locked ? t("widget.native.required", "Required") : t("widget.native.ready", "Ready"), signalLabel: t("widget.native.next_move", "Next move") },
+      week: { ...base, kind: "week", headline: t("widget.native.no_schedule", "No schedule"), value: "0", detail: t("widget.native.no_load", "No load"), signalLabel: t("widget.native.week_load", "Week load"), timelineLabel: t("widget.native.seven_days", "7 days"), updatedLabel: t("widget.native.light_week", "Light week"), weekLabels: ["M", "T", "W", "T", "F", "S", "S"], weekCounts: [0, 0, 0, 0, 0, 0, 0], calendarDays: emptyCalendarDays, examDays: [], todayIndex: todayWeekdayIndex(), peakDayLabel: t("widget.native.light_week", "Light week"), calendarHeadline: t("widget.native.calendar_widget", "Calendar widget") },
+      classProgress: { ...base, kind: "classProgress", headline: t("widget.native.no_classes", "No classes"), value: localizedValue, detail: t("widget.native.import_first", "Import first"), signalLabel: t("widget.native.class_pulse", "Class pulse"), timelineLabel: t("widget.native.class", "Class") },
     };
   }
   const snapshot = buildSemesterSnapshot(data);
   const narrative = buildSemesterNarrative(data, snapshot);
   const tasks = activeTasks(data);
-  const itemsByDue = dueItems(data, t, locale);
+  const itemsByDue = dueItems(data, t);
   const limit = itemLimit(density);
   const todayEntries = itemsByDue.filter((entry) => entry.sort <= 0);
   const today = todayEntries.slice(0, limit).map((entry) => entry.item);
   const upcoming = itemsByDue.slice(0, limit + 1).map((entry) => entry.item);
   const classFocus = classFor(data, data.prefs.widgetClassId);
-  const classTasks = tasks.filter((task) => task.classId === classFocus.id).slice(0, limit).map((task) => itemFor(data, task, t, locale));
+  const classTasks = tasks.filter((task) => task.classId === classFocus.id).slice(0, limit).map((task) => itemFor(data, task, t));
   const nextAction = snapshot.recommendedActions[0];
   const nextTask = tasks[0];
   const nextDueEntry = itemsByDue[0];
-  const calendarDays = calendarDaysFor(data, t);
-  const weekCounts = calendarDays.slice(0, 7).map((day) => day.count);
-  const weekLabels = calendarDays.slice(0, 7).map((day) => day.weekday);
+  const weekCounts = snapshot.pressureForecast.weekLoads;
+  const weekLabels = snapshot.pressureForecast.weekLabels;
+  const calendarDays = calendarDaysFor(data);
   const examDays = examDayOffsets(data);
   const overdueCount = tasks.filter((task) => daysUntilTask(task) < 0).length;
   const classPulse = snapshot.classPulses.find((pulse) => pulse.classId === classFocus.id) || snapshot.classPulses[0];
@@ -600,23 +493,6 @@ export function buildNativeWidgetSnapshots(
   const weekDetail = busyDays === 1 ? t("widget.native.busy_day", "busy day") : t("widget.native.busy_days", "busy days");
   const weekFootnote = nextDueEntry ? `${nextDueEntry.item.title} ${nextDueEntry.item.dueLabel}` : localizedGeneratedText(narrative.primaryDriver, t, "widget.native.week_load", "Week load");
   const weekPeakLabel = peakDayLabel(weekLabels, weekCounts, t);
-  const peakIndex = Math.max(0, weekCounts.findIndex((count) => count === maxWeekLoad));
-  const peakDay = calendarDays[peakIndex];
-  let peakDayName = weekLabels[peakIndex] || t("widget.native.this_week", "This week");
-  if (peakDay?.id) {
-    try {
-      peakDayName = new Intl.DateTimeFormat(locale, { weekday: "short" })
-        .format(new Date(`${peakDay.id}T12:00:00`))
-        .toLocaleUpperCase(locale);
-    } catch {
-      peakDayName = peakDayName.toLocaleUpperCase(locale);
-    }
-  }
-  const weekInsight = maxWeekLoad
-    ? t("widget.native.heavy_day_insight", "{day} IS HEAVY", { day: peakDayName })
-    : t("widget.native.light_week", "LIGHT WEEK").toLocaleUpperCase(locale);
-  const upcomingMetric = countdownMetric(nextDueEntry?.sort, t);
-  const classMetric = `${Math.round(classProgress * 100)}%`;
 
   const semesterAccent = widgetTheme.accent;
   const themedBackground = (state: SemanticColorState | string | undefined) =>
@@ -629,13 +505,11 @@ export function buildNativeWidgetSnapshots(
   const base = {
     version: 1 as const,
     generatedAt: now,
-    mode: "live" as const,
-    accent: semesterAccent,
     accentColor: semesterAccent,
     backgroundColor: themedBackground(snapshot.semesterHealth.colorState),
     styleLabel: widgetThemeLabel(widgetTheme, t),
     densityLabel: widgetDensityLabel(density, t),
-    updatedLabel: widgetUpdatedLabel(now, t, locale),
+    updatedLabel: widgetUpdatedLabel(now, t),
     openURL: "studyplanner://today",
   };
 
@@ -643,50 +517,43 @@ export function buildNativeWidgetSnapshots(
     today: {
       ...base,
       kind: "today",
-      primaryMetric: todayValue,
       headline: todayHeadline,
       value: todayValue,
-      detail: todayFootnote,
-      footnote: todayItems[0] ? `${todayItems[0].courseCode} · ${todayItems[0].timeLabel || todayItems[0].dueLabel}` : todayDetail,
+      detail: todayDetail,
+      footnote: todayFootnote,
       signalLabel: overdueCount ? t("widget.native.overdue_count", "{count} overdue", { count: overdueCount }) : todayCount ? t("widget.native.review_today", "Review today") : t("widget.native.clear_today", "Clear today"),
       timelineLabel: t("widget.native.today", "Today"),
-      accent: overdueCount ? "#FF453A" : todayCount ? "#FF9F0A" : semesterAccent,
       accentColor: overdueCount ? "#FF453A" : todayCount ? "#FF9F0A" : semesterAccent,
       backgroundColor: themedBackground(todayState),
       progress: todayProgress,
-      actionLabel: t("widget.native.open_today", "Open Today"),
+      actionLabel: overdueCount || todayCount ? t("widget.native.review_today", "Review today") : t("tabs.today", "Today"),
       items: todayItems,
     },
     upcoming: {
       ...base,
       kind: "upcoming",
-      primaryMetric: upcomingMetric,
-      headline: nextDueEntry?.item.title || t("widget.native.no_deadlines", "No upcoming deadlines"),
-      value: upcomingMetric,
-      detail: nextDueEntry?.item.courseCode || localizedGeneratedText(narrative.state, t, "widget.native.semester", "Semester"),
-      footnote: nextDueEntry ? `${nextDueEntry.item.dueLabel}${nextDueEntry.item.timeLabel ? ` · ${nextDueEntry.item.timeLabel}` : ""}` : localizedGeneratedText(narrative.nextMoveDetail, t, "widget.native.detail_review_next_item", "Review the next planner item."),
+      headline: t("widget.native.next_move_headline", "Next Move"),
+      value: localizedGeneratedText(narrative.nextMoveLabel, t, "widget.native.next_move", "Next move"),
+      detail: nextTask ? classFor(data, nextTask.classId).code : localizedGeneratedText(narrative.state, t, "widget.native.semester", "Semester"),
+      footnote: localizedGeneratedText(narrative.nextMoveDetail, t, "widget.native.detail_review_next_item", "Review the next planner item."),
       signalLabel: localizedGeneratedText(nextAction?.label || narrative.nextMoveLabel, t, "widget.native.next_move", "Next move"),
       timelineLabel: t("widget.native.next", "Next"),
       accentColor: nextAction ? accentForState(nextAction.colorState) : overdueCount ? "#FF453A" : semesterAccent,
-      accent: nextAction ? accentForState(nextAction.colorState) : overdueCount ? "#FF453A" : semesterAccent,
       backgroundColor: themedBackground(nextAction?.colorState || (overdueCount ? "red" : "blue")),
       progress: Math.max(0, Math.min(1, 1 - overdueCount * 0.18)),
-      openURL: "studyplanner://review",
-      actionLabel: t("widget.native.review", "Review"),
+      actionLabel: t("tabs.today", "Today"),
       items: upcoming,
     },
     week: {
       ...base,
       kind: "week",
-      primaryMetric: weekInsight,
-      headline: maxWeekLoad ? t("widget.native.peak_count", "{count} on the peak day", { count: maxWeekLoad }) : t("widget.native.no_deadlines", "No upcoming deadlines"),
-      value: weekInsight,
-      detail: t("widget.native.seven_day_workload", "7-day workload"),
-      footnote: weekFootnote || `${weekValue} ${weekDetail}`,
+      headline: localizedGeneratedText(narrative.pressureLabel, t, "widget.native.week_load", "Week load"),
+      value: weekValue,
+      detail: weekDetail,
+      footnote: weekFootnote,
       signalLabel: maxWeekLoad ? t("widget.native.max_per_day", "{count} max/day", { count: maxWeekLoad }) : t("widget.native.light_week", "Light week"),
       timelineLabel: t("widget.native.seven_days", "7 days"),
       updatedLabel: weekPeakLabel,
-      accent: accentForState(weekState),
       accentColor: accentForState(weekState),
       backgroundColor: themedBackground(weekState),
       progress: busyDays ? Math.max(0.12, 1 - Math.min(0.88, maxWeekLoad * 0.14)) : 1,
@@ -695,7 +562,7 @@ export function buildNativeWidgetSnapshots(
       weekLabels,
       weekCounts,
       examDays,
-      todayIndex: 0,
+      todayIndex: todayWeekdayIndex(),
       peakDayLabel: weekPeakLabel,
       calendarHeadline: t("widget.native.calendar_widget", "Calendar widget"),
       openURL: "studyplanner://plan",
@@ -704,34 +571,32 @@ export function buildNativeWidgetSnapshots(
     classProgress: {
       ...base,
       kind: "classProgress",
-      primaryMetric: classMetric,
       headline: classFocus.code,
-      value: classMetric,
-      detail: classTasks[0]?.title || t("widget.native.no_next_assignment", "No next assignment"),
-      footnote: classFocus.name || localizedClassScheduleFootnote(classFocus, t, locale),
+      value: localizedGeneratedText(classPulse?.forecastLabel || classFocus.grade, t, "widget.native.forecast", "Forecast"),
+      detail: classPulse?.mode === "unknown" ? t("widget.native.add_grade", "Add grade") : t("widget.native.forecast", "Forecast"),
+      footnote: classPulse?.nudge ? localizedGeneratedText(classPulse.nudge, t, "widget.native.detail_review_next_item", "Review the next planner item.") : classTasks[0]?.title || localizedClassScheduleFootnote(classFocus, t),
       signalLabel: classPulse?.trend ? localizedGeneratedText(classPulse.trend, t, "widget.native.class_pulse", "Class pulse") : t("widget.native.class_pulse", "Class pulse"),
       timelineLabel: classFocus.code,
-      accent: classPulse ? accentForState(classPulse.colorState) : semesterAccent,
       accentColor: classPulse ? accentForState(classPulse.colorState) : semesterAccent,
       backgroundColor: themedBackground(classPulse?.colorState || "blue"),
       progress: classProgress,
       ringValue: String(Math.round(classProgress * 100)),
       ringLabel: t("health.score", "score"),
-      openURL: `studyplanner://class?id=${encodeURIComponent(classFocus.id)}`,
-      actionLabel: t("widget.native.open_class", "Open Class"),
+      openURL: "studyplanner://classes",
+      actionLabel: t("tabs.classes", "Classes"),
       items: classTasks,
     },
   };
 }
 
-export async function syncNativeWidgets(data: AppData, t: WidgetCopy = defaultWidgetCopy, locale?: StorefrontLocale): Promise<WidgetSyncStatus> {
+export async function syncNativeWidgets(data: AppData, t: WidgetCopy = defaultWidgetCopy): Promise<WidgetSyncStatus> {
   if (Platform.OS !== "ios") {
     return { state: "skipped", message: t("widget.native.sync_iphone_only", "Native widgets sync on iPhone builds.") };
   }
 
   try {
     const widgets = require("./widgets/StudyPlannerWidgets");
-    const snapshots = buildNativeWidgetSnapshots(data, t, locale);
+    const snapshots = buildNativeWidgetSnapshots(data, t);
     widgets.StudyPlannerTodayWidget.updateSnapshot(snapshots.today);
     widgets.StudyPlannerUpcomingWidget.updateSnapshot(snapshots.upcoming);
     widgets.StudyPlannerWeekWidget.updateSnapshot(snapshots.week);

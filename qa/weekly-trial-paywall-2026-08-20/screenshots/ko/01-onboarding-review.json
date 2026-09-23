@@ -1,0 +1,25 @@
+{
+  "locale": "ko",
+  "device": "KAMI iPhone 17 Pro",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "onboarding-review",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "onboardingIndex": 1
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "qa/weekly-trial-paywall-2026-08-20/screenshots/ko/01-onboarding-review.png",
+  "bytes": 550943,
+  "sha256": "95ccd1ba055cfb0d6f8d4b96b8340ae3ea68af058c26a6845575180095dfb738",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "63992b2f",
+  "timestamp": "2026-08-20T23:26:54.657Z"
+}

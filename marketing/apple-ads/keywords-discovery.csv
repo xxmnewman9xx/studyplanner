@@ -1,0 +1,11 @@
+market,locale,campaign,ad_group,keyword,match_type,search_match,max_cpt_usd,cpp_brief,notes
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,agenda escolar,BROAD,off,0.20,cpp_assignments,Broad discovery seed from exact core
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,planificador estudio,BROAD,off,0.20,cpp_assignments,Broad discovery seed from exact core; generic CPP for low-budget discovery
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,horario clases,BROAD,off,0.18,cpp_assignments,Broad discovery seed from exact core; generic CPP for low-budget discovery
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Broad,agenda escolar,BROAD,off,0.20,cpp_assignments,Broad discovery seed from exact core
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Broad,cronograma estudos,BROAD,off,0.20,cpp_assignments,Broad discovery seed from exact core; generic CPP for low-budget discovery
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Broad,horario aulas,BROAD,off,0.18,cpp_assignments,Broad discovery seed from exact core; generic CPP for low-budget discovery
+South Korea,ko,SP_ko_Search_Discovery,Discovery_Broad,공부 계획,BROAD,off,0.22,cpp_assignments,Later test only; generic CPP for low-budget discovery
+Japan,ja,SP_ja_Search_Discovery,Discovery_Broad,勉強計画,BROAD,off,0.22,cpp_assignments,Later test only; generic CPP for low-budget discovery
+France,fr-FR,SP_fr-FR_Search_Discovery,Discovery_Broad,planning etudiant,BROAD,off,0.18,cpp_assignments,Expansion only; generic CPP for low-budget discovery
+Germany,de-DE,SP_de-DE_Search_Discovery,Discovery_Broad,lernplaner,BROAD,off,0.18,cpp_assignments,Expansion only; generic CPP for low-budget discovery

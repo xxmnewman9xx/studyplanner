@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 function read(path) {
   return readFileSync(path, "utf8");
@@ -22,6 +22,9 @@ const metadata = read("docs/APP_STORE_METADATA.md");
 const reviewNotes = read("docs/APP_REVIEW_NOTES.md");
 const prd = read("docs/PRD.md");
 const appSource = read("App.tsx");
+const importSource = read("src/screens/ImportScreen.tsx");
+const paywallSource = read("src/screens/UpgradeScreen.tsx");
+const moreSource = read("src/screens/MoreScreen.tsx");
 const localizedMetadata = read("localized-app-store-metadata.md");
 const appJson = JSON.parse(read("app.json"));
 const storeConfigText = read("store.config.json");
@@ -39,7 +42,7 @@ const guardrails = section(metadata, "## Review Notes To Prepare").toLowerCase()
 assert(!subtitle.includes("canvas"), "Subtitle must not claim Canvas support before a shipped Canvas workflow exists");
 assert(!keywords.includes("canvas"), "Keywords must not include Canvas before a shipped Canvas workflow exists");
 assert(description.includes("editable"), "Description should preserve editable/review-before-apply positioning");
-assert(metadata.includes("StudyPlanner: Syllabus AI"), "Metadata should preserve the Syllabus AI hook for text/PDF organization.");
+assert(metadata.includes("Study Planner AI") && subtitle.includes("syllabus"), "Metadata should preserve both the Study Planner AI brand and syllabus hook for text/PDF organization.");
 assert(guardrails.includes("do not mention canvas"), "Metadata guardrails must explicitly block unsupported Canvas claims");
 assert(guardrails.includes("does not claim server-side parsing"), "Metadata guardrails must block unsupported server-side parsing claims");
 assert(guardrails.includes("native ios vision ocr") && guardrails.includes("text-based pdfs and pasted text can still parse on device"), "Metadata guardrails must disclose native photo OCR and local text/PDF fallback");
@@ -49,10 +52,10 @@ assert(reviewLower.includes("invalid dates or times cannot be applied"), "App Re
 assert(reviewLower.includes("camera/photo ocr controls are enabled only when the native ios vision ocr module is present"), "App Review notes must disclose the native OCR gate.");
 assert(reviewLower.includes("does not upload syllabus content to a studyplanner parser service"), "App Review notes must preserve the on-device import boundary");
 assert(reviewLower.includes("instead of applying uncertain data"), "App Review notes must state unclear photo data is not applied");
-assert(reviewLower.includes("studyplanner today (medium plus inline, circular, and rectangular accessories)"), "App Review notes must document the medium Today family and accessories");
-assert(reviewLower.includes("studyplanner upcoming (small plus accessories)"), "App Review notes must document the small Upcoming family and accessories");
-assert(reviewLower.includes("studyplanner week (medium plus accessories)"), "App Review notes must document the medium Week family and accessories");
-assert(reviewLower.includes("studyplanner class progress (small plus accessories)"), "App Review notes must document the small Class Progress family and accessories");
+assert(reviewLower.includes("studyplanner today (small, medium, inline, circular, rectangular)"), "App Review notes must document the StudyPlanner Today widget families");
+assert(reviewLower.includes("studyplanner upcoming (small, medium, inline, circular, rectangular)"), "App Review notes must document the StudyPlanner Upcoming widget families");
+assert(reviewLower.includes("studyplanner week (medium, inline, circular, rectangular)"), "App Review notes must document the StudyPlanner Week widget families");
+assert(reviewLower.includes("studyplanner class progress (small, medium, inline, circular, rectangular)"), "App Review notes must document the StudyPlanner Class Progress widget families");
 assert(reviewLower.includes("lock screen accessory families"), "App Review notes must document supported WidgetKit accessory families");
 assert(reviewLower.includes("expo_public_studyplanner_capture_qa"), "App Review notes must include the production capture-bypass env audit");
 assert(reviewLower.includes("does not claim server-side receipt validation"), "App Review notes must not overclaim server receipt validation");
@@ -60,6 +63,9 @@ assert(process.env.EXPO_PUBLIC_STUDYPLANNER_CAPTURE_QA !== "1", "Release QA must
 
 const runtimeAndReleaseText = [
   appSource,
+  importSource,
+  paywallSource,
+  moreSource,
   metadata,
   reviewNotes,
   prd,
@@ -73,8 +79,8 @@ for (const phrase of [`${oldNoCostPrefix}mium`, `${oldNoCostPrefix} plan`, `${ol
   assert(!runtimeAndReleaseText.includes(phrase), `Release/runtime copy must not include unsupported phrase: ${phrase}`);
 }
 assert(appSource.includes("const imageOcrAvailable = hasNativeImageTextRecognition()") && appSource.includes("const scannerReady = hasNativeImageTextRecognition()"), "Active camera/photo OCR controls must match the native Vision OCR implementation they call.");
-assert(appSource.includes("createParsedImportFromCameraAsset") && appSource.includes("extractTextFromImage(result.assets[0].uri)"), "Active camera/photo OCR must create a real reviewed import from native text extraction.");
-assert(appSource.includes("const result = await pickAndExtractPdf()") && appSource.includes("result.fallbackNeeded") && appSource.includes('textFor("scan.scan_pages", "Scan pages")'), "Active PDF import must preserve on-device text extraction with camera/paste fallback.");
+assert(appSource.includes("createParsedImportFromCameraAsset") && importSource.includes("createParsedImportFromCameraAsset"), "Camera/photo OCR must create real photo parsed imports.");
+assert(importSource.includes('type: ["application/pdf", "text/plain"]') && importSource.includes('Upload ${"PDF or text"}'), "Import copy must preserve supported PDF/text upload.");
 assert(localizedMetadata.includes("AI-assisted text/PDF syllabus organization only"), "Localized metadata must define the AI truth boundary.");
 
 const prdLower = prd.toLowerCase();
@@ -105,8 +111,7 @@ const screenshotReferences = Object.values(storeConfig?.apple?.info ?? {}).flatM
 );
 assert(screenshotReferences.length > 0, "Store configuration must preserve explicit screenshot references");
 assert(!screenshotReferences.some((path) => path.includes("screenshot-pop")), "Store configuration must not reference the blocked generated screenshot-pop tree");
-assert(screenshotReferences.length === 238, "Build 86 store configuration must contain 238 screenshot references");
-assert(screenshotReferences.every((path) => path.startsWith("store/apple/screenshot-build86-creative-production/")), "Every screenshot reference must use the Build 86 Creative Production root");
+assert(screenshotReferences.every((path) => existsSync(path)), "Every App Store screenshot reference must resolve to a local source file");
 
 assert(!storeConfigText.includes("tinyurl.com"), "Store metadata must use the direct hosted privacy-policy URL, never a short link");
 for (const [locale, info] of Object.entries(storeConfig?.apple?.info ?? {})) {

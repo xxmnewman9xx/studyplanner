@@ -1,0 +1,6 @@
+market,locale,campaign,ad_group,search_match,default_max_cpt_usd,daily_budget_usd,cpp_brief,status,notes
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Search_Match,on,0.15,0.50,cpp_assignments,launch,No keyword rows; apply exact negatives from negatives-discovery.csv
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Search_Match,on,0.15,0.50,cpp_assignments,test_second,No keyword rows; apply exact negatives from negatives-discovery.csv
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Search_Match,on,0.20,0.50,cpp_assignments,disabled_until_exact_converts,Enable only after US exact terms convert
+South Korea,ko,SP_ko_Search_Discovery,Discovery_Search_Match,on,0.18,0.50,cpp_exam_study,later_test,Enable only after native CPP review
+Japan,ja,SP_ja_Search_Discovery,Discovery_Search_Match,on,0.18,0.50,cpp_exam_study,later_test,Enable only after native CPP review

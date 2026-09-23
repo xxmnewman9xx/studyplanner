@@ -1,0 +1,54 @@
+market,locale,campaign,ad_group,keyword,match_type,search_match,max_cpt_usd,cpp_brief,priority,notes
+Mexico,es-MX,SP_es-MX_Search_Exact_Core,Brand_Exact,StudyPlanner,EXACT,off,0.70,cpp_assignments,1,Defensive branded demand
+Mexico,es-MX,SP_es-MX_Search_Exact_Core,Brand_Exact,StudyPlanner app,EXACT,off,0.70,cpp_assignments,1,Defensive branded demand
+Mexico,es-MX,SP_es-MX_Search_Exact_Core,Category_Assignments_Exact,agenda escolar,EXACT,off,0.55,cpp_assignments,1,High-intent localized planner phrase
+Mexico,es-MX,SP_es-MX_Search_Exact_Core,Category_Class_Schedule_Exact,agenda universitaria,EXACT,off,0.55,cpp_class_schedule,1,University planner intent
+Mexico,es-MX,SP_es-MX_Search_Exact_Core,Category_Class_Schedule_Exact,horario clases,EXACT,off,0.50,cpp_class_schedule,1,Class schedule intent
+Mexico,es-MX,SP_es-MX_Search_Exact_Core,Category_Assignments_Exact,tareas escolares,EXACT,off,0.50,cpp_assignments,1,Homework/task intent
+Mexico,es-MX,SP_es-MX_Search_Exact_Core,Category_Assignments_Exact,organizador tareas,EXACT,off,0.50,cpp_assignments,1,Task organization intent
+Mexico,es-MX,SP_es-MX_Search_Exact_Core,Category_Class_Schedule_Exact,calendario escolar,EXACT,off,0.45,cpp_class_schedule,2,Calendar intent
+Mexico,es-MX,SP_es-MX_Search_Exact_Core,Category_Study_Exams_Exact,planificador estudio,EXACT,off,0.50,cpp_exam_study,1,Study planning intent
+Mexico,es-MX,SP_es-MX_Search_Exact_Core,Category_Study_Exams_Exact,estudiar examenes,EXACT,off,0.45,cpp_exam_study,2,Exam prep intent
+Mexico,es-MX,SP_es-MX_Search_Exact_Core,Category_Assignments_Exact,planner estudiante,EXACT,off,0.45,cpp_assignments,2,English/Spanish hybrid query
+Brazil,pt-BR,SP_pt-BR_Search_Exact_Core,Brand_Exact,StudyPlanner,EXACT,off,0.70,cpp_assignments,1,Defensive branded demand
+Brazil,pt-BR,SP_pt-BR_Search_Exact_Core,Category_Assignments_Exact,agenda escolar,EXACT,off,0.55,cpp_assignments,1,High-intent planner phrase
+Brazil,pt-BR,SP_pt-BR_Search_Exact_Core,Category_Study_Exams_Exact,cronograma estudos,EXACT,off,0.55,cpp_exam_study,1,Study schedule intent
+Brazil,pt-BR,SP_pt-BR_Search_Exact_Core,Category_Class_Schedule_Exact,horario aulas,EXACT,off,0.50,cpp_class_schedule,1,Class schedule intent
+Brazil,pt-BR,SP_pt-BR_Search_Exact_Core,Category_Assignments_Exact,tarefas escola,EXACT,off,0.50,cpp_assignments,1,Homework/task intent
+Brazil,pt-BR,SP_pt-BR_Search_Exact_Core,Category_Study_Exams_Exact,organizador estudos,EXACT,off,0.50,cpp_exam_study,1,Study organization intent
+Brazil,pt-BR,SP_pt-BR_Search_Exact_Core,Category_Class_Schedule_Exact,calendario escolar,EXACT,off,0.45,cpp_class_schedule,2,Calendar intent
+Brazil,pt-BR,SP_pt-BR_Search_Exact_Core,Category_Study_Exams_Exact,plano estudos,EXACT,off,0.50,cpp_exam_study,1,Study plan intent
+Brazil,pt-BR,SP_pt-BR_Search_Exact_Core,Category_Study_Exams_Exact,provas escola,EXACT,off,0.45,cpp_exam_study,2,Exam intent
+Brazil,pt-BR,SP_pt-BR_Search_Exact_Core,Category_Study_Exams_Exact,vestibular,EXACT,off,0.40,cpp_exam_study,3,Use only if CPP/promo stays generic and not test-specific
+United States,en-US,SP_en-US_Search_Exact_Core,Brand_Exact,StudyPlanner,EXACT,off,0.90,cpp_assignments,1,Defensive branded demand
+United States,en-US,SP_en-US_Search_Exact_Core,Brand_Exact,Study Planner AI,EXACT,off,0.90,cpp_assignments,1,Defensive branded demand
+United States,en-US,SP_en-US_Search_Exact_Core,Category_Study_Exams_Exact,study planner,EXACT,off,0.75,cpp_exam_study,1,Core category intent
+United States,en-US,SP_en-US_Search_Exact_Core,Category_Assignments_Exact,student planner,EXACT,off,0.75,cpp_assignments,1,Core student planner intent
+United States,en-US,SP_en-US_Search_Exact_Core,Category_Assignments_Exact,homework planner,EXACT,off,0.70,cpp_assignments,1,Homework planning intent
+United States,en-US,SP_en-US_Search_Exact_Core,Category_Assignments_Exact,assignment tracker,EXACT,off,0.70,cpp_assignments,1,Assignment tracking intent
+United States,en-US,SP_en-US_Search_Exact_Core,Category_Class_Schedule_Exact,class schedule,EXACT,off,0.65,cpp_class_schedule,2,Schedule intent
+United States,en-US,SP_en-US_Search_Exact_Core,Category_Study_Exams_Exact,exam planner,EXACT,off,0.70,cpp_exam_study,1,Exam planning intent
+United States,en-US,SP_en-US_Search_Exact_Core,Category_Study_Exams_Exact,study schedule,EXACT,off,0.65,cpp_exam_study,2,Study schedule intent
+United States,en-US,SP_en-US_Search_Exact_Core,Category_Assignments_Exact,deadline tracker,EXACT,off,0.65,cpp_assignments,2,Deadline anxiety intent
+South Korea,ko,SP_ko_Search_Exact_Core,Category_Study_Exams_Exact,공부 계획,EXACT,off,0.60,cpp_exam_study,1,Study plan intent
+South Korea,ko,SP_ko_Search_Exact_Core,Category_Study_Exams_Exact,학습 플래너,EXACT,off,0.60,cpp_exam_study,1,Student planner intent
+South Korea,ko,SP_ko_Search_Exact_Core,Category_Class_Schedule_Exact,시간표,EXACT,off,0.55,cpp_class_schedule,1,Timetable intent
+South Korea,ko,SP_ko_Search_Exact_Core,Category_Assignments_Exact,과제 관리,EXACT,off,0.55,cpp_assignments,1,Assignment management intent
+South Korea,ko,SP_ko_Search_Exact_Core,Category_Study_Exams_Exact,시험 공부,EXACT,off,0.55,cpp_exam_study,2,Exam study intent
+South Korea,ko,SP_ko_Search_Exact_Core,Category_Class_Schedule_Exact,대학생 플래너,EXACT,off,0.50,cpp_class_schedule,2,College planner intent
+Japan,ja,SP_ja_Search_Exact_Core,Category_Study_Exams_Exact,勉強計画,EXACT,off,0.65,cpp_exam_study,1,Study plan intent
+Japan,ja,SP_ja_Search_Exact_Core,Category_Study_Exams_Exact,学習管理,EXACT,off,0.65,cpp_exam_study,1,Learning management intent
+Japan,ja,SP_ja_Search_Exact_Core,Category_Class_Schedule_Exact,時間割,EXACT,off,0.60,cpp_class_schedule,1,Timetable intent
+Japan,ja,SP_ja_Search_Exact_Core,Category_Assignments_Exact,課題管理,EXACT,off,0.60,cpp_assignments,1,Assignment management intent
+Japan,ja,SP_ja_Search_Exact_Core,Category_Study_Exams_Exact,テスト勉強,EXACT,off,0.55,cpp_exam_study,2,Exam study intent
+Japan,ja,SP_ja_Search_Exact_Core,Category_Class_Schedule_Exact,大学生,EXACT,off,0.45,cpp_class_schedule,3,Broad student intent; watch CPA
+France,fr-FR,SP_fr-FR_Search_Exact_Core,Category_Class_Schedule_Exact,planning etudiant,EXACT,off,0.55,cpp_class_schedule,1,Student planning intent
+France,fr-FR,SP_fr-FR_Search_Exact_Core,Category_Assignments_Exact,agenda scolaire,EXACT,off,0.50,cpp_assignments,1,School agenda intent
+France,fr-FR,SP_fr-FR_Search_Exact_Core,Category_Class_Schedule_Exact,emploi du temps,EXACT,off,0.50,cpp_class_schedule,1,Schedule intent
+France,fr-FR,SP_fr-FR_Search_Exact_Core,Category_Assignments_Exact,devoirs,EXACT,off,0.45,cpp_assignments,2,Homework intent
+France,fr-FR,SP_fr-FR_Search_Exact_Core,Category_Study_Exams_Exact,revisions,EXACT,off,0.45,cpp_exam_study,2,Revision intent without accents for query variance
+Germany,de-DE,SP_de-DE_Search_Exact_Core,Category_Study_Exams_Exact,lernplaner,EXACT,off,0.55,cpp_exam_study,1,Study planner intent
+Germany,de-DE,SP_de-DE_Search_Exact_Core,Category_Class_Schedule_Exact,studienplaner,EXACT,off,0.55,cpp_class_schedule,1,College planner intent
+Germany,de-DE,SP_de-DE_Search_Exact_Core,Category_Class_Schedule_Exact,stundenplan,EXACT,off,0.50,cpp_class_schedule,1,Timetable intent
+Germany,de-DE,SP_de-DE_Search_Exact_Core,Category_Assignments_Exact,hausaufgabenplaner,EXACT,off,0.50,cpp_assignments,1,Homework planner intent
+Germany,de-DE,SP_de-DE_Search_Exact_Core,Category_Study_Exams_Exact,pruefungsplaner,EXACT,off,0.45,cpp_exam_study,2,Exam planner intent

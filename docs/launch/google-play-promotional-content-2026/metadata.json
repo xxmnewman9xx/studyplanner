@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "platform": "Google Play",
+  "internalEventName": "Fall Reset — 7-Day Monthly Trial",
+  "eventType": "OFFER",
+  "eventSubtype": "SUBSCRIPTION_TRIAL",
+  "userEligibility": "NEW_USERS_ONLY",
+  "priority": "FEATURING_REQUESTED",
+  "submissionState": "DRAFT",
+  "defaultLanguageCode": "en-US",
+  "countryTargeting": "All countries and regions where the app and Monthly base plan are active",
+  "startTimeUtc": "2026-09-18 12:00",
+  "endTimeUtc": "2026-10-15 12:00",
+  "previewOptIn": "OPT_OUT",
+  "previewTimeUtc": null,
+  "deepLink": "studyplanner://paywall",
+  "offer": {
+    "productId": "com.mattnewman.studyplanner.plus.monthly",
+    "basePlanId": "monthly1",
+    "offerId": "seven-day-free-trial",
+    "trialDuration": "P7D",
+    "renewalCadence": "P1M",
+    "renewalPriceDisclosure": "The localized monthly price displayed by Google Play",
+    "eligibilityDisclosure": "One introductory trial per eligible new StudyPlanner subscriber"
+  },
+  "assets": {
+    "primaryImage": "assets/primary-1920x1080.jpg",
+    "squareImage": "assets/square-1080x1080.jpg",
+    "localizationStrategy": "Use the same text-free images as the default for every locale"
+  },
+  "localizations": {
+    "en-US": {
+      "tagline": "7 days free for new users, then billed monthly",
+      "description": "Turn a new semester’s syllabi into one organized study plan with StudyPlanner Plus. Eligible new subscribers can choose Monthly and use Plus free for 7 days. Scan or import syllabi, organize assignments, exams, and deadlines, and keep your schedule synced. After the trial, the subscription automatically renews at the monthly price shown in Google Play unless canceled before the trial ends. One introductory trial per eligible user. Open the app to redeem."
+    },
+    "ar": {
+      "tagline": "للمستخدمين الجدد: 7 أيام مجانًا ثم فوترة شهرية",
+      "description": "حوّل مناهج الفصل الجديد إلى خطة دراسة منظمة باستخدام StudyPlanner Plus. يمكن للمشتركين الجدد المؤهلين اختيار الخطة الشهرية واستخدام Plus مجانًا لمدة 7 أيام. امسح المناهج أو استوردها ونظّم الواجبات والاختبارات والمواعيد النهائية. بعد انتهاء التجربة، يتجدد الاشتراك تلقائيًا بالسعر الشهري المعروض في Google Play ما لم يتم إلغاؤه قبل نهايتها. تجربة تمهيدية واحدة لكل مستخدم مؤهل. افتح التطبيق للاستفادة من العرض."
+    },
+    "de-DE": {
+      "tagline": "Neue Nutzer: 7 Tage gratis, danach monatlich",
+      "description": "Verwandle Kursunterlagen für das neue Semester mit StudyPlanner Plus in einen organisierten Lernplan. Berechtigte neue Abonnent:innen können „Monatlich“ wählen und Plus 7 Tage kostenlos nutzen. Scanne oder importiere Lehrpläne und ordne Aufgaben, Prüfungen und Fristen. Danach verlängert sich das Abo automatisch zum in Google Play angezeigten Monatspreis, sofern es nicht vor Ende des Testzeitraums gekündigt wird. Ein Testzeitraum pro berechtigter Person. Öffne die App, um das Angebot zu nutzen."
+    },
+    "en-AU": {
+      "tagline": "7 days free for new users, then billed monthly",
+      "description": "Turn a new semester’s subject outlines into one organised study plan with StudyPlanner Plus. Eligible new subscribers can choose Monthly and use Plus free for 7 days. Scan or import outlines, organise assignments, exams and deadlines, and keep your schedule synced. After the trial, the subscription automatically renews at the monthly price shown in Google Play unless cancelled before the trial ends. One introductory trial per eligible user. Open the app to redeem."
+    },
+    "en-CA": {
+      "tagline": "7 days free for new users, then billed monthly",
+      "description": "Turn a new semester’s course outlines into one organized study plan with StudyPlanner Plus. Eligible new subscribers can choose Monthly and use Plus free for 7 days. Scan or import outlines, organize assignments, exams and deadlines, and keep your schedule synced. After the trial, the subscription automatically renews at the monthly price shown in Google Play unless cancelled before the trial ends. One introductory trial per eligible user. Open the app to redeem."
+    },
+    "en-GB": {
+      "tagline": "7 days free for new users, then billed monthly",
+      "description": "Turn a new term’s course outlines into one organised study plan with StudyPlanner Plus. Eligible new subscribers can choose Monthly and use Plus free for 7 days. Scan or import outlines, organise assignments, exams and deadlines, and keep your timetable synced. After the trial, the subscription automatically renews at the monthly price shown in Google Play unless cancelled before the trial ends. One introductory trial per eligible user. Open the app to redeem."
+    },
+    "es-419": {
+      "tagline": "Nuevos usuarios: 7 días gratis, luego mensual",
+      "description": "Convierte los programas de tus materias del nuevo semestre en un plan de estudio organizado con StudyPlanner Plus. Los nuevos suscriptores elegibles pueden elegir el plan Mensual y usar Plus gratis durante 7 días. Escanea o importa programas y organiza tareas, exámenes y fechas límite. Después, la suscripción se renueva automáticamente al precio mensual que muestra Google Play, salvo que se cancele antes de que termine la prueba. Una prueba por usuario elegible. Abre la app para canjearla."
+    },
+    "es-ES": {
+      "tagline": "Nuevos usuarios: 7 días gratis, luego mensual",
+      "description": "Convierte las guías docentes del nuevo semestre en un plan de estudio organizado con StudyPlanner Plus. Los nuevos suscriptores que cumplan los requisitos pueden elegir el plan Mensual y usar Plus gratis durante 7 días. Escanea o importa guías y organiza tareas, exámenes y entregas. Después, la suscripción se renueva automáticamente al precio mensual que muestra Google Play, salvo que se cancele antes de que termine la prueba. Una prueba por usuario válido. Abre la app para canjearla."
+    },
+    "es-US": {
+      "tagline": "Nuevos usuarios: 7 días gratis, luego mensual",
+      "description": "Convierte los programas de tus clases del nuevo semestre en un plan de estudio organizado con StudyPlanner Plus. Los nuevos suscriptores elegibles pueden elegir el plan Mensual y usar Plus gratis durante 7 días. Escanea o importa programas y organiza tareas, exámenes y fechas límite. Después, la suscripción se renueva automáticamente al precio mensual que muestra Google Play, salvo que se cancele antes de que termine la prueba. Una prueba por usuario elegible. Abre la app para canjearla."
+    },
+    "fr-CA": {
+      "tagline": "Nouveaux : 7 jours gratuits, puis mensuel",
+      "description": "Transformez les plans de cours du nouveau trimestre en un programme d’étude organisé avec StudyPlanner Plus. Les nouveaux abonnés admissibles peuvent choisir l’offre mensuelle et utiliser Plus gratuitement pendant 7 jours. Importez les plans de cours, puis organisez travaux, examens et échéances. Ensuite, l’abonnement est renouvelé automatiquement au tarif mensuel affiché dans Google Play, sauf annulation avant la fin de l’essai. Un essai par personne admissible. Ouvrez l’app pour en profiter."
+    },
+    "fr-FR": {
+      "tagline": "Nouveaux : 7 jours gratuits, puis mensuel",
+      "description": "Transformez les syllabus du nouveau semestre en un programme d’étude organisé avec StudyPlanner Plus. Les nouveaux abonnés éligibles peuvent choisir l’offre mensuelle et utiliser Plus gratuitement pendant 7 jours. Scannez ou importez les syllabus, puis organisez devoirs, examens et échéances. Ensuite, l’abonnement est renouvelé automatiquement au tarif mensuel affiché dans Google Play, sauf résiliation avant la fin de l’essai. Un essai par personne éligible. Ouvrez l’app pour en profiter."
+    },
+    "hi-IN": {
+      "tagline": "नए सदस्यों को 7 दिन मुफ़्त, फिर मासिक बिल",
+      "description": "StudyPlanner Plus से नए सेमेस्टर के सिलेबस को एक व्यवस्थित स्टडी प्लान में बदलें। योग्य नए सदस्य मासिक प्लान चुनकर 7 दिन तक Plus मुफ़्त इस्तेमाल कर सकते हैं। सिलेबस स्कैन या इंपोर्ट करें और असाइनमेंट, परीक्षाएँ व डेडलाइन व्यवस्थित करें। ट्रायल के बाद सदस्यता Google Play में दिखाई गई मासिक कीमत पर अपने आप नवीनीकृत होगी, जब तक कि ट्रायल खत्म होने से पहले इसे रद्द न किया जाए। प्रत्येक योग्य उपयोगकर्ता को एक परिचयात्मक ट्रायल। ऑफ़र पाने के लिए ऐप खोलें।"
+    },
+    "ja-JP": {
+      "tagline": "新規限定7日間無料、その後月額自動更新",
+      "description": "StudyPlanner Plusなら、新学期のシラバスを整理された学習計画にまとめられます。対象となる新規登録者は月額プランを選び、Plusを7日間無料で利用できます。シラバスをスキャンまたは読み込み、課題、試験、締切を整理できます。無料期間終了後は、終了前に解約しない限り、Google Playに表示される月額料金で自動更新されます。無料体験は対象者1名につき1回です。アプリを開いてご利用ください。"
+    },
+    "ko-KR": {
+      "tagline": "신규 7일 무료, 이후 월간 자동 갱신",
+      "description": "StudyPlanner Plus로 새 학기 강의계획서를 체계적인 학습 계획으로 정리하세요. 대상 신규 구독자는 월간 요금제를 선택해 Plus를 7일 동안 무료로 이용할 수 있습니다. 강의계획서를 스캔하거나 가져오고 과제, 시험, 마감일을 정리하세요. 체험 종료 전에 취소하지 않으면 Google Play에 표시된 월간 가격으로 자동 갱신됩니다. 무료 체험은 대상 사용자당 1회 제공됩니다. 앱을 열어 혜택을 받으세요."
+    },
+    "pt-BR": {
+      "tagline": "Novos usuários: 7 dias grátis, depois mensal",
+      "description": "Transforme os programas das disciplinas do novo semestre em um plano de estudos organizado com o StudyPlanner Plus. Novos assinantes qualificados podem escolher o plano Mensal e usar o Plus grátis por 7 dias. Digitalize ou importe programas e organize tarefas, provas e prazos. Depois, a assinatura é renovada automaticamente pelo preço mensal exibido no Google Play, a menos que seja cancelada antes do fim do teste. Um teste por usuário elegível. Abra o app para aproveitar."
+    },
+    "pt-PT": {
+      "tagline": "Novos: 7 dias grátis, depois mensal",
+      "description": "Transforme os planos das disciplinas do novo semestre num plano de estudo organizado com o StudyPlanner Plus. Novos subscritores elegíveis podem escolher o plano Mensal e usar o Plus grátis durante 7 dias. Digitalize ou importe os planos e organize trabalhos, exames e prazos. Depois, a subscrição é renovada automaticamente pelo preço mensal apresentado no Google Play, salvo cancelamento antes do fim do teste. Um teste por utilizador elegível. Abra a app para aproveitar."
+    },
+    "zh-CN": {
+      "tagline": "新用户免费7天，之后按月自动续订",
+      "description": "使用 StudyPlanner Plus，把新学期的课程大纲整理成清晰的学习计划。符合条件的新订阅用户可选择月度方案，免费使用 Plus 7 天。扫描或导入课程大纲，整理作业、考试和截止日期。试用结束后，除非在结束前取消，否则将按 Google Play 显示的月度价格自动续订。每位符合条件的用户仅可享受一次新用户试用。打开应用即可领取。"
+    },
+    "zh-HK": {
+      "tagline": "新用戶免費7天，之後按月自動續訂",
+      "description": "使用 StudyPlanner Plus，將新學期的課程大綱整理成清晰的溫習計劃。合資格的新訂閱者可選擇月費方案，免費使用 Plus 7 天。掃描或匯入課程大綱，整理功課、考試和截止日期。試用期結束後，除非在完結前取消，否則會按 Google Play 顯示的月費自動續訂。每位合資格用戶只可享一次新用戶試用。開啟應用程式即可享用。"
+    },
+    "zh-TW": {
+      "tagline": "新用戶免費7天，之後按月自動續訂",
+      "description": "使用 StudyPlanner Plus，將新學期的課程大綱整理成清楚的讀書計畫。符合資格的新訂閱者可選擇月繳方案，免費使用 Plus 7 天。掃描或匯入課程大綱，整理作業、考試和截止日期。試用期結束後，除非在結束前取消，否則會依 Google Play 顯示的月費自動續訂。每位符合資格的使用者僅可享有一次新用戶試用。開啟應用程式即可使用。"
+    }
+  }
+}

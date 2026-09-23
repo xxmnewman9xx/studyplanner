@@ -17,6 +17,7 @@ const sourceFiles = {
   paywall: readFileSync("src/screens/UpgradeScreen.tsx", "utf8"),
   modeToggle: readFileSync("src/components/ModeToggle.tsx", "utf8"),
   widgets: readFileSync("src/screens/MoreScreen.tsx", "utf8"),
+  widgetEngine: readFileSync("src/widgetEngine.ts", "utf8"),
   widgetSnapshot: readFileSync("src/services/widgetSnapshot.ts", "utf8"),
   appleComponents: readFileSync("src/components/AppleComponents.tsx", "utf8")
 };
@@ -90,7 +91,24 @@ const requiredKeys = [
   "permissions.notifications",
   "widgets.sync_after_load"
 ];
-const sourceForKeyScan = Object.values(sourceFiles).join("\n");
+const sourceForKeyScan = [
+  sourceFiles.i18n,
+  sourceFiles.today,
+  sourceFiles.plan,
+  sourceFiles.courses,
+  sourceFiles.focus,
+  sourceFiles.grades,
+  sourceFiles.onboarding,
+  sourceFiles.importScreen,
+  sourceFiles.assignmentDetail,
+  sourceFiles.notes,
+  sourceFiles.entitlementGate,
+  sourceFiles.paywall,
+  sourceFiles.modeToggle,
+  sourceFiles.widgets,
+  sourceFiles.widgetSnapshot,
+  sourceFiles.appleComponents
+].join("\n");
 const staticRuntimeKeys = Array.from(sourceForKeyScan.matchAll(/\bt\(\s*["']([a-z0-9_.-]+)["']/gi))
   .map((match) => match[1])
   .filter((key) => key.includes("."));
@@ -593,6 +611,66 @@ for (const { file, source, phrases } of hardcodedLaunchStrings) {
   }
 }
 
+const mountedAppSource = stripLocalizedFallbacks(sourceFiles.app);
+assert(
+  !mountedAppSource.includes('accessibilityLabel="Toggle torch"') &&
+    sourceFiles.app.includes('textFor("scanner.toggle_torch"'),
+  "Mounted scanner torch accessibility label must be localized in every launch locale."
+);
+assert(
+  !sourceFiles.app.includes("error instanceof Error ? error.message") &&
+    !sourceFiles.app.includes("error.message || textFor(\"paywall.purchase_sheet_failed\""),
+  "Mounted purchase alerts must not expose raw App Store error text in localized builds."
+);
+assert(
+  sourceFiles.widgetEngine.includes("export type WidgetCopy") &&
+    sourceFiles.widgetEngine.includes('t("widget.native.due_today_headline"') &&
+    sourceFiles.widgetEngine.includes("styleLabel: widgetThemeLabel(widgetTheme, t)") &&
+    sourceFiles.widgetEngine.includes("densityLabel: widgetDensityLabel(density, t)") &&
+    sourceFiles.widgetEngine.includes("localizedGeneratedText(narrative.nextMoveLabel") &&
+    sourceFiles.widgetEngine.includes("localizedGeneratedText(narrative.nextMoveDetail") &&
+    sourceFiles.widgetEngine.includes("localizedGeneratedText(narrative.pressureLabel") &&
+    sourceFiles.widgetEngine.includes("localizedGeneratedText(classPulse?.forecastLabel") &&
+    sourceFiles.widgetEngine.includes("localizedGeneratedText(classPulse.nudge") &&
+    sourceFiles.widgetEngine.includes("localizedGeneratedText(classPulse.trend") &&
+    sourceFiles.app.includes("buildNativeWidgetSnapshots(data, widgetCopyFor)") &&
+    sourceFiles.app.includes("syncNativeWidgets(syncData, widgetCopyFor)") &&
+    sourceFiles.app.includes("widgetFallbackTemplateForKey") &&
+    sourceFiles.app.includes("WIDGET_FINAL_LOCALIZATION_COPY"),
+  "Native widget previews and sync payloads must use runtime localization, not English snapshot copy."
+);
+assert(
+  !sourceFiles.app.includes('target: "camera"') &&
+    sourceFiles.app.includes('target: textFor("scan.camera"'),
+  "Camera permission copy must localize the permission target."
+);
+assert(
+  sourceFiles.app.includes("widgetDensityLabel(density, widgetCopyFor)") &&
+    sourceFiles.app.includes("widgetThemeLabel(option, widgetCopyFor)") &&
+    !sourceFiles.app.includes("textTransform: \"capitalize\"") &&
+    !sourceFiles.app.includes("{option.label}</Text>"),
+  "Widgets screen theme and density controls must render localized labels."
+);
+assert(
+  sourceFiles.app.includes("localizedImportBatch(batch") &&
+    sourceFiles.app.includes("localizedImportedText(s.title)") &&
+    sourceFiles.app.includes("localizedTaskSource(task.source)"),
+  "Scanner, PDF, paste, and saved task import defaults must be localized before display."
+);
+assert(
+  sourceFiles.app.includes("localizedRiskLabel(risk)") &&
+    sourceFiles.app.includes("localizedRiskDetail(risk.detail)") &&
+    sourceFiles.app.includes("localizedStudyBlockReason(b.reason)"),
+  "Computed risk radar and study block reasons must be localized at render time."
+);
+assert(
+  !sourceFiles.app.includes("अगली deadline") &&
+    !sourceFiles.app.includes("subscription confirmation दिखती") &&
+    !sourceFiles.app.includes("syllabusr") &&
+    !sourceFiles.app.includes("les syllabus"),
+  "Known live localization leaks from the release audit must not reappear."
+);
+
 const englishCatalog = flattenStrings(catalog["en-US"]);
 const allowedSameAsEnglishKeys = new Set([
   "direction",
@@ -639,7 +717,9 @@ function valueAtPath(source, key) {
 }
 
 function stripLocalizedFallbacks(source) {
-  return source.replace(/\bt\(\s*["'][a-z0-9_.-]+["']\s*,\s*(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')\s*\)/gi, "t()");
+  return source
+    .replace(/\bt\(\s*["'][a-z0-9_.-]+["']\s*,\s*(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')\s*\)/gi, "t()")
+    .replace(/\btextFor\(\s*["'][a-z0-9_.-]+["']\s*,\s*(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/gi, "textFor(");
 }
 
 function flattenStrings(source, prefix = "", target = {}) {

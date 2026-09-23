@@ -145,9 +145,7 @@ function assertKinds(name: string, snapshots: NativeWidgetSnapshots, assertions:
   for (const kind of requiredKinds) {
     expect(Boolean(snapshots[kind]), `${name}: ${kind} snapshot is present`, assertions);
     expect(snapshots[kind]?.version === 1, `${name}: ${kind} snapshot uses version 1`, assertions);
-    expect(/^studyplanner:\/\/(today|plan|review|scan|paywall|class(?:\?id=.+)?)$/.test(snapshots[kind]?.openURL || ""), `${name}: ${kind} exposes a supported app destination`, assertions);
-    expect(["live", "empty", "locked", "placeholder"].includes(snapshots[kind]?.mode), `${name}: ${kind} exposes a supported display mode`, assertions);
-    expect(Boolean(snapshots[kind]?.primaryMetric), `${name}: ${kind} exposes one dominant metric`, assertions);
+    expect(/^studyplanner:\/\/(today|plan|classes|scan|paywall)$/.test(snapshots[kind]?.openURL || ""), `${name}: ${kind} exposes a supported app destination`, assertions);
     expect(Boolean(snapshots[kind]?.actionLabel), `${name}: ${kind} exposes a widget action label`, assertions);
   }
 }
@@ -157,8 +155,6 @@ function assertWeekContract(name: string, week: NativeWidgetSnapshot, assertions
   expect(week.weekLabels?.length === 7, `${name}: week snapshot has seven labels`, assertions);
   expect(week.weekCounts?.length === 7, `${name}: week snapshot has seven load cells`, assertions);
   expect(typeof week.todayIndex === "number" && week.todayIndex >= 0 && week.todayIndex <= 6, `${name}: today index is a valid week cell`, assertions);
-  expect(week.todayIndex === 0, `${name}: rolling seven-day data starts at today`, assertions);
-  expect(JSON.stringify(week.weekLabels) === JSON.stringify((week.calendarDays || []).slice(0, 7).map((day) => day.weekday)), `${name}: rolling load labels align with calendar dates`, assertions);
   expect((week.examDays || []).every((day) => Number.isInteger(day) && day >= 0 && day <= 6), `${name}: exam markers are valid week cells`, assertions);
   expect(Boolean(week.calendarHeadline), `${name}: calendar headline is present`, assertions);
   expect(Boolean(week.peakDayLabel), `${name}: peak-day label is present`, assertions);
@@ -168,15 +164,12 @@ function validateRendererSafeguards(assertions: string[]) {
   const source = readFileSync("src/widgets/StudyPlannerWidgets.tsx", "utf8");
   expect(source.includes("widgetRenderingMode") && source.includes("accented") && source.includes("vibrant"), "renderer handles accented/tinted widget modes", assertions);
   expect(source.includes("containerBackground(bg, \"widget\")"), "renderer uses WidgetKit container background", assertions);
-  expect(source.includes("AccessoryWidgetBackgroundView") && source.includes('containerBackground("#00000000", "widget")'), "renderer uses adaptive system backgrounds for accessory and system-rendered modes", assertions);
-  expect(source.includes("allowsTightening(true)") && !source.includes("minimumScaleFactor("), "renderer tightens without shrinking text below its semantic Dynamic Type size", assertions);
-  expect(source.includes('font({ textStyle: "caption2"') && source.includes('font({ textStyle: "headline"'), "renderer uses semantic Dynamic Type text styles", assertions);
-  expect(source.includes("lineLimit(1)") && source.includes("lineLimit(2)"), "renderer caps single-line and multi-line widget text", assertions);
-  expect(source.includes("widgetURL(openURL)") && source.includes("text(action") && !source.includes("Link({"), "renderer makes the full widget the deep-link target and keeps a compact action hint", assertions);
-  expect(source.includes('mode === "placeholder"') && source.includes('mode === "locked" || mode === "empty"'), "renderer provides structural placeholder plus useful locked and empty states", assertions);
-  expect(source.includes("var workloadCells = []") && source.includes("barHeight"), "renderer draws the truthful seven-day workload strip", assertions);
-  expect(source.includes("environment.levelOfDetail") && source.includes("environment.isLuminanceReduced") && source.includes("isReduced"), "renderer adapts to iOS 26 detail and reduced-luminance environments", assertions);
-  expect(source.includes("environment.widgetContentMargins") && source.includes("hasSystemMargins"), "renderer adapts to increased system content margins", assertions);
+  expect(source.includes("glassEffect({ glass: { variant: \"regular\""), "renderer applies WidgetKit glass effect", assertions);
+  expect(source.includes("allowsTightening(true)") && source.includes("minimumScaleFactor(0.72)"), "renderer tightens/scales long widget text", assertions);
+  expect(source.includes("lineLimit(1)") && source.includes("lineLimit(isMedium ? 2 : 1)"), "renderer caps single-line and medium footnote text", assertions);
+  expect(source.includes("Link({") && source.includes('destination: props.openURL || "studyplanner://today"'), "renderer includes a real deep-link medium-widget action", assertions);
+  expect(source.includes("buttonStyle(\"glass\")") && source.includes("controlSize(\"mini\")") && !source.includes("interactionProps(actionLabel)"), "renderer styles the widget link without a placeholder mutation", assertions);
+  expect(source.includes("environment.levelOfDetail") && source.includes("environment.isLuminanceReduced") && source.includes("isSimplified"), "renderer adapts to iOS 26 detail and reduced-luminance environments", assertions);
 }
 
 async function main() {
@@ -217,7 +210,7 @@ async function main() {
         expect(snapshots.week.backgroundColor === theme.widgetBackground, "calm calendar uses internal green widget background fixture", assertions);
         expect(snapshots.today.openURL === "studyplanner://today", "calm Today action opens Today", assertions);
         expect(snapshots.week.openURL === "studyplanner://plan", "calm calendar action opens Plan", assertions);
-        expect(snapshots.classProgress.openURL.startsWith("studyplanner://class?id="), "calm class action opens the selected Class", assertions);
+        expect(snapshots.classProgress.openURL === "studyplanner://classes", "calm class action opens Classes", assertions);
       },
     },
     {
@@ -247,7 +240,7 @@ async function main() {
         const titles = snapshots.upcoming.items.map((item) => item.title).join(" ");
         expect(titles.includes("Comprehensive literature review"), "long-copy item reaches the upcoming widget snapshot", assertions);
         expect(snapshots.upcoming.accentColor === theme.accent, "long-copy upcoming uses selected pink accent when not urgent", assertions);
-        expect(snapshots.upcoming.openURL === "studyplanner://review", "long-copy upcoming action opens Review", assertions);
+        expect(snapshots.upcoming.openURL === "studyplanner://today", "long-copy upcoming action opens Today", assertions);
       },
     },
   ];

@@ -30,6 +30,10 @@ export function supportsSyllabusImageParsing() {
   return Boolean(parseEndpoint && imageParsingEnabled);
 }
 
+function isImageSource(source: SyllabusImportSource) {
+  return source.kind === "photo" || Boolean(source.mimeType?.startsWith("image/"));
+}
+
 export async function parseSyllabus(source: SyllabusImportSource): Promise<SyllabusParseResult> {
   if (source.kind === "typed" && source.text?.trim()) {
     return parseSyllabusText(source.text, source.name || "Typed syllabus");
@@ -39,7 +43,8 @@ export async function parseSyllabus(source: SyllabusImportSource): Promise<Sylla
     throw new Error("Choose a syllabus file before importing.");
   }
 
-  if (!parseEndpoint) {
+  const imageSource = isImageSource(source);
+  if (!parseEndpoint || (imageSource && !imageParsingEnabled)) {
     return parseSyllabusOnDevice(source);
   }
 
@@ -66,6 +71,10 @@ export async function parseSyllabus(source: SyllabusImportSource): Promise<Sylla
 }
 
 async function parseSyllabusWithEndpoint(source: SyllabusImportSource, endpoint: string) {
+  if (isImageSource(source) && !imageParsingEnabled) {
+    throw new Error("Photo parser uploads require EXPO_PUBLIC_SYLLABUS_IMAGE_PARSING_ENABLED=1.");
+  }
+
   const response = await fetch(endpoint, {
     method: "POST",
     body: buildUploadBody(source)
@@ -97,7 +106,7 @@ async function readSourceText(source: SyllabusImportSource) {
     throw new Error("Choose a syllabus file before importing.");
   }
 
-  if (source.kind === "photo" || source.mimeType?.startsWith("image/")) {
+  if (isImageSource(source)) {
     return extractTextFromImage(source.uri);
   }
 

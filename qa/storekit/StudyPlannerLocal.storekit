@@ -1,28 +1,7 @@
 {
   "identifier": "studyplanner-local-storekit",
   "nonRenewingSubscriptions": [],
-  "products": [
-    {
-      "displayPrice": "59.99",
-      "familyShareable": false,
-      "localizations": [
-        { "description": "Lifetime StudyPlanner access with one payment and no renewal.", "displayName": "StudyPlanner Lifetime", "locale": "en_US" },
-        { "description": "Dauerhafter StudyPlanner-Zugang mit einer einmaligen Zahlung und ohne Verlängerung.", "displayName": "StudyPlanner Lebenslang", "locale": "de" },
-        { "description": "Acceso de por vida a StudyPlanner con un solo pago y sin renovación.", "displayName": "StudyPlanner de por vida", "locale": "es" },
-        { "description": "Accès à vie à StudyPlanner avec un paiement unique et sans renouvellement.", "displayName": "StudyPlanner à vie", "locale": "fr" },
-        { "description": "Acesso vitalício ao StudyPlanner com pagamento único e sem renovação.", "displayName": "StudyPlanner vitalício", "locale": "pt_BR" },
-        { "description": "وصول مدى الحياة إلى StudyPlanner بدفعة واحدة ومن دون تجديد.", "displayName": "StudyPlanner مدى الحياة", "locale": "ar" },
-        { "description": "एक भुगतान में StudyPlanner का आजीवन ऐक्सेस, बिना नवीनीकरण।", "displayName": "StudyPlanner आजीवन", "locale": "hi" },
-        { "description": "1回の支払いで更新なしのStudyPlanner永久アクセス。", "displayName": "StudyPlanner ライフタイム", "locale": "ja" },
-        { "description": "한 번 결제로 갱신 없이 StudyPlanner 평생 이용.", "displayName": "StudyPlanner 평생", "locale": "ko" },
-        { "description": "一次付款，永久使用 StudyPlanner，无需续订。", "displayName": "StudyPlanner 终身版", "locale": "zh_Hans" },
-        { "description": "一次付款，永久使用 StudyPlanner，無需續訂。", "displayName": "StudyPlanner 終身版", "locale": "zh_Hant" }
-      ],
-      "productID": "com.mattnewman.studyplanner.plus.lifetime",
-      "referenceName": "StudyPlanner Lifetime",
-      "type": "NonConsumable"
-    }
-  ],
+  "products": [],
   "settings": {
     "_applicationInternalID": "6766181202",
     "_developerTeamID": "",
@@ -49,15 +28,15 @@
           "familyShareable": false,
           "groupNumber": 1,
           "introductoryOffer": {
-            "displayPrice": "0",
-            "internalID": "weekly_intro_back_to_school_2026",
+            "displayPrice": "0.99",
+            "internalID": "weekly-first-week-099-2026",
             "numberOfPeriods": 1,
-            "paymentMode": "free",
+            "paymentMode": "payAsYouGo",
             "subscriptionPeriod": "P1W"
           },
           "localizations": [
             {
-              "description": "Full access to StudyPlanner while the weekly plan is active.",
+              "description": "Eligible new subscribers pay $0.99 for the first week, then $6.99 per week until canceled.",
               "displayName": "StudyPlanner Weekly",
               "locale": "en_US"
             }
@@ -74,16 +53,10 @@
           "displayPrice": "14.99",
           "familyShareable": false,
           "groupNumber": 2,
-          "introductoryOffer": {
-            "displayPrice": "0",
-            "internalID": "monthly_intro_back_to_school_2026",
-            "numberOfPeriods": 1,
-            "paymentMode": "free",
-            "subscriptionPeriod": "P1W"
-          },
+          "introductoryOffer": null,
           "localizations": [
             {
-              "description": "Full access to StudyPlanner while the monthly plan is active.",
+              "description": "Full access to StudyPlanner for $14.99 per month until canceled.",
               "displayName": "StudyPlanner Monthly",
               "locale": "en_US"
             }
@@ -97,19 +70,13 @@
         {
           "adHocOffers": [],
           "codeOffers": [],
-          "displayPrice": "59.99",
+          "displayPrice": "39.99",
           "familyShareable": false,
           "groupNumber": 3,
-          "introductoryOffer": {
-            "displayPrice": "0",
-            "internalID": "yearly_intro_back_to_school_2026",
-            "numberOfPeriods": 1,
-            "paymentMode": "free",
-            "subscriptionPeriod": "P1W"
-          },
+          "introductoryOffer": null,
           "localizations": [
             {
-              "description": "Full access to StudyPlanner while the yearly plan is active.",
+              "description": "Full access to StudyPlanner while the yearly plan is active. No introductory trial.",
               "displayName": "StudyPlanner Yearly",
               "locale": "en_US"
             }

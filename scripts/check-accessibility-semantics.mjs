@@ -10,14 +10,14 @@ const appPath = new URL("../App.tsx", import.meta.url);
 const appSource = readFileSync(appPath, "utf8");
 const sourceFile = ts.createSourceFile("App.tsx", appSource, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 const scopedComponents = new Map([
-  ["Paywall", 6],
+  ["Paywall", 7],
   ["Today", 14],
   ["Classes", 3],
   ["ClassDetail", 4],
   ["Tasks", 0],
   ["TaskDetail", 2],
   ["AssessmentDetail", 1],
-  ["Plan", 8],
+  ["Plan", 7],
   ["Notes", 2],
   ["NoteDetail", 1],
   ["Profile", 2],

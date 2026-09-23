@@ -43,12 +43,11 @@ const checks = [
       appSource.includes('const showTabs = entitlementUnlocks(data, entitlementStatus)'),
   },
   {
-    name: "scan-first onboarding routes to paywall before scanner or import",
+    name: "every onboarding source routes to paywall before scanner or import",
     pass:
-      onboardingSource.includes('scanIntent: "Scan with camera"') &&
-      onboardingSource.includes('const scanFirstProfile = index === steps.length - 1 ? { ...source, scanIntent: "Scan with camera" } : source') &&
+      onboardingSource.includes('source.scanIntent === "Paste syllabus") nav.push("paywall", { next: "paste", mode: "syllabus" })') &&
+      onboardingSource.includes('source.scanIntent === "Add manually") nav.push("paywall", { next: "paste", mode: "manual" })') &&
       onboardingSource.includes('nav.push("paywall", { next: "scan", action: "camera" })') &&
-      !onboardingSource.includes('nav.push("paywall", { next: "paste"') &&
       !onboardingSource.includes('nav.push("cameraScanner"') &&
       !onboardingSource.includes('nav.push("paste",'),
   },
@@ -65,23 +64,27 @@ const checks = [
       appSource.includes('previewOnly ? requirePremium({ next: "paste", mode: "syllabus" })'),
   },
   {
-    name: "seasonal one-week trial is sourced from StoreKit and shown conditionally",
+    name: "paid first-week offer is sourced from StoreKit and shown only to eligible accounts",
     pass:
       iapSource.includes("product.subscriptionOffers?.find((offer) => offer.type === \"introductory\")") &&
-      iapSource.includes('offer.paymentMode !== "free-trial"') &&
+      iapSource.includes('offer.paymentMode !== "pay-as-you-go"') &&
+      iapSource.includes("offer.price <= 0") &&
       iapSource.includes('offer.periodUnit === "week" && totalUnits === 1') &&
       iapSource.includes('offer.periodUnit === "day" && totalUnits === 7') &&
       iapSource.includes("await isEligibleForIntroOfferIOS(groupId)") &&
       iapSource.includes("eligibility.set(groupId, false)") &&
       appSource.includes("loadEligibleIntroOfferProductIds(plans)") &&
-      appSource.includes("const selectedPlanHasOneWeekTrial = hasOneWeekFreeTrial(selectedPlan) && eligibleTrialProductIdSet.has(selectedPlan.id)") &&
-      appSource.includes('const subscriptionPlans = plans.filter((plan) => plan.kind === "subscription")') &&
-      appSource.includes("const allSubscriptionsHaveOneWeekTrial = subscriptionPlans.length > 0 && subscriptionPlans.every") &&
-      appSource.includes("const trialPlan = allSubscriptionsHaveOneWeekTrial && selectedPlanHasOneWeekTrial ? selectedPlan : undefined") &&
-      appSource.includes('textFor("paywall.seasonal_title", "One week free on eligible subscriptions")') &&
-      appSource.includes('textFor("paywall.trial_cta", "Start one-week free trial")') &&
+      appSource.includes("const selectedPlanHasOneWeekIntro = hasOneWeekIntroOffer(selectedPlan) && eligibleTrialProductIdSet.has(selectedPlan.id)") &&
+      iapSource.includes('STUDYPLANNER_INTRO_PRODUCT_ID = "com.mattnewman.studyplanner.plus.weekly"') &&
+      iapSource.includes("plan?.id !== STUDYPLANNER_INTRO_PRODUCT_ID") &&
+      appSource.includes("plan.id === STUDYPLANNER_INTRO_PRODUCT_ID && hasOneWeekIntroOffer(plan)") &&
+      appSource.includes('textFor("paywall.seasonal_title", "First week for {intro}"') &&
+      appSource.includes('textFor("paywall.trial_cta", "Start for {intro}"') &&
+      appSource.includes('"paywall.seasonal_body": "Choose Weekly.') &&
       appSource.includes('Auto-renews until canceled.') &&
       appSource.includes("selectedPlanSummary") &&
+      appSource.includes("const [storePlansReady, setStorePlansReady] = useState(false)") &&
+      appSource.includes("setStorePlansReady(localizedPlansReady)") &&
       !iapSource.match(/fallbackPlans[\s\S]{0,1600}introductoryOffer/),
   },
   {
@@ -91,7 +94,6 @@ const checks = [
       appSource.includes("const paywallDestinationRef = useRef<NavItem | null>(null)") &&
       appSource.includes('if (params.next === "scan") return { route: "scan"') &&
       appSource.includes('if (params.next === "paste") return { route: "paste"') &&
-      appSource.includes('return { route: "scan", params: { action: "camera" } };') &&
       appSource.includes('if (route === "paywall") paywallDestinationRef.current = { route, params }') &&
       appSource.includes('activateEntitlement(entitlement.productId, entitlement.checkedAt, { destination: paywallDestinationRef.current })'),
   },

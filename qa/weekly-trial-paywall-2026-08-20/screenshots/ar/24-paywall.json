@@ -1,0 +1,26 @@
+{
+  "locale": "ar",
+  "device": "KAMI iPhone 17 Pro",
+  "appearance": "light",
+  "theme": "default",
+  "widgetType": "paywall",
+  "size": "screen",
+  "background": "default",
+  "palette": "default",
+  "font": "system",
+  "layout": "default",
+  "classFocus": "all",
+  "dataState": "normal",
+  "route": {
+    "route": "paywall",
+    "emptyPlanner": true
+  },
+  "source": "actual-app-simulator-preview",
+  "screenshotPath": "qa/weekly-trial-paywall-2026-08-20/screenshots/ar/24-paywall.png",
+  "bytes": 505986,
+  "sha256": "98453b13b4e4d53d0f3581365d083fa4333194bab24689b857fc4061db34f77f",
+  "noCropResult": "pending-layout-manifest-validation",
+  "scoreResult": "pending-scorecard",
+  "gitCommit": "63992b2f",
+  "timestamp": "2026-08-21T00:50:17.565Z"
+}

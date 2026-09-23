@@ -44,7 +44,7 @@ type TodayScreenProps = {
   onAddQuickAssignment: (courseId: string, title: string, dueDate: string, kind: "assignment") => boolean;
 };
 
-export function TodayScreen({ assignments, courses, semester, studentName, onOpenAssignment, onOpenPlan }: TodayScreenProps) {
+export function TodayScreen({ assignments, courses, semester, studentName, onOpenAssignment, onOpenPlan, onOpenClasses, onOpenScan }: TodayScreenProps) {
   const { t } = useI18n();
   const openItems = assignments
     .filter((item) => item.status !== "done" && item.status !== "archived")
@@ -100,7 +100,7 @@ export function TodayScreen({ assignments, courses, semester, studentName, onOpe
           </TouchableOpacity>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.nextClassCard} activeOpacity={0.84}>
+        <TouchableOpacity style={styles.nextClassCard} activeOpacity={0.84} onPress={onOpenClasses}>
           <View style={styles.rowBetween}>
             <Text style={styles.blueLabel}>NEXT CLASS</Text>
             <View style={styles.lightPill}><Bell size={16} color={SP.sub} /><Text style={styles.lightPillText}>18 min</Text></View>
@@ -160,7 +160,7 @@ export function TodayScreen({ assignments, courses, semester, studentName, onOpe
         })}
       </ScrollView>
 
-      <TouchableOpacity style={styles.fab} activeOpacity={0.82}>
+      <TouchableOpacity style={styles.fab} activeOpacity={0.82} onPress={onOpenScan}>
         <Plus size={30} color={SP.white} />
       </TouchableOpacity>
     </View>

@@ -1,0 +1,187 @@
+{
+  "release": "Back to School with AI",
+  "targetWindow": "2026-08-24 to 2026-08-31",
+  "rules": [
+    "Final App Store creative must come from real native release UI.",
+    "Web smoke screenshots are implementation evidence only, not App Store creative.",
+    "Do not composite Home Screen widget placements.",
+    "Widget screenshots must come from real WidgetKit surfaces.",
+    "Every claim must reinforce semester setup, review before save, focus, and widgets without unsupported LMS or automation claims."
+  ],
+  "appStoreScreenshots": [
+    {
+      "id": "store-01-setup",
+      "headline": "Set up your semester in minutes",
+      "captureId": "app-01-name",
+      "status": "ready",
+      "sourceType": "native_capture_required",
+      "file": "qa-screenshots/back-to-school-2026-native/app-01-name.png",
+      "purpose": "Open the Back-to-School story with an empty-semester setup moment."
+    },
+    {
+      "id": "store-02-theme",
+      "headline": "Your semester, cleanly set up",
+      "captureId": "app-02-color-blue",
+      "alternateCaptureIds": [
+        "app-03-color-orange",
+        "app-04-color-graphite"
+      ],
+      "status": "ready",
+      "sourceType": "native_capture_required",
+      "file": "qa-screenshots/back-to-school-2026-native/app-02-color-blue.png",
+      "purpose": "Show the personal white semester preview with automatic class colors and no visible color customization step."
+    },
+    {
+      "id": "store-03-import",
+      "headline": "Import your syllabus",
+      "captureId": "app-05-import-choice",
+      "status": "ready",
+      "sourceType": "native_capture_required",
+      "file": "qa-screenshots/back-to-school-2026-native/app-05-import-choice.png",
+      "purpose": "Show camera, PDF, paste, and manual setup paths without unsupported LMS claims."
+    },
+    {
+      "id": "store-04-review",
+      "headline": "Review every deadline first",
+      "captureId": "app-06-review",
+      "status": "ready",
+      "sourceType": "native_capture_required",
+      "file": "qa-screenshots/back-to-school-2026-native/app-06-review.png",
+      "purpose": "Prove students review classes, assignments, exams, and uncertain dates before save."
+    },
+    {
+      "id": "store-05-ready",
+      "headline": "Your semester plan is ready",
+      "captureId": "app-07-semester-ready",
+      "status": "ready",
+      "sourceType": "native_capture_required",
+      "file": "qa-screenshots/back-to-school-2026-native/app-07-semester-ready.png",
+      "purpose": "Show the post-apply payoff: Semester Pulse, next move, focus block, widget recommendation."
+    },
+    {
+      "id": "store-06-today",
+      "headline": "Know what matters today",
+      "captureId": "app-08-today",
+      "status": "ready",
+      "sourceType": "native_capture_required",
+      "file": "qa-screenshots/back-to-school-2026-native/app-08-today.png",
+      "purpose": "Show the daily plan after semester setup."
+    },
+    {
+      "id": "store-07-heavy-week",
+      "headline": "See heavy weeks before they hit",
+      "captureId": "widget-03-exam-heavy-medium",
+      "status": "ready",
+      "sourceType": "native_widget_capture_required",
+      "file": "qa-screenshots/back-to-school-2026-native/widget-03-exam-heavy-medium.png",
+      "purpose": "Show real WidgetKit Semester Calendar pressure and exam markers."
+    },
+    {
+      "id": "store-08-focus",
+      "headline": "Turn deadlines into focus blocks",
+      "captureId": "app-09-focus",
+      "status": "ready",
+      "sourceType": "native_capture_required",
+      "file": "qa-screenshots/back-to-school-2026-native/app-09-focus.png",
+      "purpose": "Show sustainable study habits and next useful work."
+    },
+    {
+      "id": "store-09-home-screen",
+      "headline": "Keep your semester on your Home Screen",
+      "captureId": "widget-02-normal-medium",
+      "alternateCaptureIds": [
+        "widget-05-dark-medium",
+        "widget-06-tinted-medium"
+      ],
+      "status": "ready",
+      "sourceType": "native_widget_capture_required",
+      "file": "qa-screenshots/back-to-school-2026-native/widget-02-normal-medium.png",
+      "purpose": "Show real WidgetKit widgets only after native capture."
+    }
+  ],
+  "promotionalArtwork": [
+    {
+      "id": "promo-hero",
+      "title": "Back to School with AI",
+      "status": "ready",
+      "sourceType": "approved_hosted_artwork",
+      "file": "docs/launch/back-to-school-2026/event-media/final/semester-kickoff-supplemental-hero-branded-1920x1080.png",
+      "purpose": "Editorial hero or contact-sheet cover for nomination supplemental material."
+    },
+    {
+      "id": "promo-widget-sheet",
+      "title": "Semester Calendar Widget States",
+      "status": "planned",
+      "sourceType": "native_widget_capture_required",
+      "file": null,
+      "purpose": "WidgetKit sheet covering light, dark, tinted, empty, normal, and exam-heavy states."
+    }
+  ],
+  "socialAssets": [
+    {
+      "id": "social-import",
+      "copy": "Turn a syllabus into a reviewed semester plan.",
+      "status": "ready",
+      "sourceType": "approved_editorial_artwork",
+      "file": "docs/launch/back-to-school-2026/event-media/final/semester-kickoff-social-editorial-1080x1350.png"
+    },
+    {
+      "id": "social-trust",
+      "copy": "Review every deadline before it saves.",
+      "status": "copy_ready",
+      "sourceType": "native_capture_required",
+      "file": null
+    },
+    {
+      "id": "social-widget",
+      "copy": "See busy days and exams on your Home Screen.",
+      "status": "copy_ready",
+      "sourceType": "native_widget_capture_required",
+      "file": null
+    },
+    {
+      "id": "social-focus",
+      "copy": "Start with the first useful study block.",
+      "status": "copy_ready",
+      "sourceType": "native_capture_required",
+      "file": null
+    }
+  ],
+  "supplementalMaterials": [
+    {
+      "id": "product-video",
+      "title": "Import, Review, Semester Ready, Home, Focus, Widgets",
+      "status": "ready",
+      "url": "https://github.com/xxmnewman9xx/studyplanner/releases/download/back-to-school-2026-supplementals/product-video.mp4"
+    },
+    {
+      "id": "screenshot-contact-sheet",
+      "title": "Release Build Screenshot Contact Sheet",
+      "status": "ready",
+      "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/screenshot-contact-sheet.md"
+    },
+    {
+      "id": "native-widget-sheet",
+      "title": "Native WidgetKit Screenshot Sheet",
+      "status": "ready",
+      "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/native-widget-sheet.md"
+    },
+    {
+      "id": "accessibility-localization-summary",
+      "title": "Accessibility and Localization QA Summary",
+      "status": "ready",
+      "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/accessibility-localization-summary.md"
+    },
+    {
+      "id": "app-review-proof",
+      "title": "App Review Notes and Purchase Flow Proof",
+      "status": "ready",
+      "url": "https://gist.githubusercontent.com/xxmnewman9xx/8ce183d571c61df26dc64d69c429f166/raw/app-review-proof.md"
+    }
+  ],
+  "pressKit": {
+    "status": "optional_planned",
+    "file": null,
+    "requiredForNomination": false
+  }
+}

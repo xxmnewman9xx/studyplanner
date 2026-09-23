@@ -29,13 +29,13 @@ const finishPurchaseSource = finishPurchaseStart >= 0 && finishPurchaseEnd > fin
   : "";
 
 expect(appSource.includes('type AccessState = "loading" | "onboarding" | "preview_allowed" | "locked" | "paywall" | "unlocked"'), "single AccessState union must exist");
-expect(appJson.version === "2.0.9" && appJson.ios?.buildNumber === "87" && appJson.android?.versionCode === 79, "release metadata must be iOS 2.0.9 (87) with Android remaining at 79");
+expect(appJson.version === "2.1.0" && appJson.ios?.buildNumber === "90" && appJson.android?.versionCode === 80, "release metadata must be iOS 2.1.0 (90) with Android remaining at versionCode 80");
 expect(appJson.android?.package === "com.mattnewman.studyplanner", "Android package must match the Play app");
-expect((xcodeProject.match(/CURRENT_PROJECT_VERSION = 87;/g) || []).length >= 4, "native iOS app and widget project versions must be 87");
-expect((xcodeProject.match(/MARKETING_VERSION = 2\.0\.9;/g) || []).length >= 4, "native app and widget marketing versions must be 2.0.9");
+expect((xcodeProject.match(/CURRENT_PROJECT_VERSION = 90;/g) || []).length >= 4, "native iOS app, widget, and watch project versions must be 90");
+expect((xcodeProject.match(/MARKETING_VERSION = 2\.1\.0;/g) || []).length >= 4, "native app, widget, and watch marketing versions must be 2.1.0");
 expect([appInfoPlist, widgetInfoPlist].every((plist) => {
   const inheritsBuildSettings = plist.includes("<string>$(MARKETING_VERSION)</string>") && plist.includes("<string>$(CURRENT_PROJECT_VERSION)</string>");
-  const matchesGeneratedRelease = plist.includes("<string>2.0.9</string>") && plist.includes("<string>87</string>");
+  const matchesGeneratedRelease = plist.includes("<string>2.1.0</string>") && plist.includes("<string>90</string>");
   return inheritsBuildSettings || matchesGeneratedRelease;
 }), "native Info.plist files must inherit or exactly match Xcode marketing/build versions");
 expect(/function entitlementUnlocks[\s\S]{0,160}return entitlementStatus === "active";/.test(appSource), "only active StoreKit entitlement may unlock");
@@ -47,12 +47,12 @@ expect(appSource.includes("allowValidatedPremium") && appSource.includes("lockUn
 expect(appSource.includes("[Build52Access]") && appSource.includes("entitlementTraceSource"), "QA entitlement trace logs must identify source and route decision");
 expect(appSource.includes('"terms"') && appSource.includes('"privacy"') && appSource.includes('displayRoute === "privacy"'), "terms and privacy must be in-app locked-safe routes");
 expect(
-  appSource.includes('const PRIVACY_URL = "https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408"') &&
+  appSource.includes('const PRIVACY_URL = "https://studyplanner-ai.xxmnewman9xx.workers.dev/privacy"') &&
     appSource.includes("openExternal(PRIVACY_URL)") &&
     !appSource.includes("https://www.apple.com/legal/privacy/"),
   "privacy screen must open StudyPlanner's hosted policy, never Apple's generic privacy page",
 );
-expect(appSource.includes("purchasablePlansReady") && appSource.includes("paywall.message_store_sheet") && appSource.includes("await purchasePlan(productId)") && appSource.includes("busy || !storePlansReady ? undefined : purchase") && !appSource.includes("Loading App Store price"), "purchase CTA must stay tappable with fallback product IDs instead of waiting for localized price text");
+expect(appSource.includes("const [storePlansReady, setStorePlansReady] = useState(false)") && appSource.includes("setStorePlansReady(localizedPlansReady)") && appSource.includes("await purchasePlan(productId)") && appSource.includes("busy || !storePlansReady ? undefined : purchase"), "purchase CTA must remain disabled until StoreKit returns a localized product instead of trusting fallback IDs");
 expect(
   iapSource.includes("let storeConnectionPromise: Promise<boolean> | null = null") &&
     iapSource.includes("storeConnectionPromise = initConnection().catch") &&
@@ -99,7 +99,7 @@ expect(seedSource.includes('scanIntent: "Scan with camera"') && storageSource.in
 expect(appSource.includes("What should StudyPlanner call you?") && appSource.includes("Your first name"), "onboarding must ask for name first");
 expect(appSource.includes('"onboarding.nice": "Nice, {name}."') && appSource.includes('textFor("onboarding.nice", "Nice, {name}.", { name: firstName })'), "onboarding must personalize the setup");
 expect(appSource.includes('const steps = ["name", "priorities", "build"]'), "onboarding must stay concise while collecting name, context, priority, and build action");
-expect(appSource.includes('scanIntent: "Scan with camera"') && appSource.includes('const scanFirstProfile = index === steps.length - 1 ? { ...source, scanIntent: "Scan with camera" } : source'), "camera scan must be the single default onboarding intent");
+expect(appSource.includes('scanIntent: data.prefs.scanIntent || "Scan with camera"') && appSource.includes('const scanOptions = ["Scan with camera", "Paste syllabus", "Add manually"]'), "camera scan must be the default first onboarding intent with fewer choices");
 expect(["Paste syllabus", "Add manually", "Scan with camera"].every((label) => appSource.includes(label)), "simplified action step must expose camera, paste, and manual fallback");
 expect(appSource.includes('studentType: source.studentType') && appSource.includes('mainGoal: source.mainGoal') && appSource.includes('renderChoiceGrid("studentType", studentTypeOptions)') && appSource.includes('renderChoiceGrid("mainGoal", goalOptions)'), "onboarding must persist the student context and priority that shape the live planner");
 expect(!appSource.includes('step === "studentType"') && !appSource.includes('step === "mainGoal"') && !appSource.includes('step === "artifacts"'), "personalization must stay consolidated instead of restoring legacy option-heavy setup screens");
@@ -111,9 +111,9 @@ expect(appSource.includes('"locked.title": "{name}, build your semester."') && a
 expect(appSource.includes("The camera scan, PDF import, paste, and manual setup are locked until App Store unlock. You review every row before anything saves."), "locked home must state the unlock-first review-before-save path");
 expect(appSource.includes("Unlock the scanner. Build the semester."), "locked home must explain the camera-first value path");
 expect(appSource.includes("Unlock StudyPlanner") && appSource.includes("Scan with camera, PDF, paste, or manual setup") && appSource.includes("Review every extracted row before save"), "locked home must show the unlock-first three-step import path");
-expect(appSource.includes('textFor("success.theme_kicker", "SYSTEM APPLIED")') && appSource.includes('textFor("success.theme_title", "App appearance, adaptive widgets")') && appSource.includes("success-loop"), "semester-ready payoff must prove the selected app appearance and adaptive widgets are applied");
-expect(appSource.includes("Dashboard, focus blocks, and classes follow your app appearance. Widgets adapt separately to the Home and Lock Screen."), "semester-ready payoff must separate app appearance from the widget system environment");
-expect(appSource.includes("const APPEARANCE_COPY") && appSource.includes('"appearance.system": "System"') && appSource.includes('"appearance.system": "Sistema"'), "System, Light, and Dark appearance labels must be localized instead of fallback-only");
+expect(appSource.includes('textFor("success.theme_kicker", "SYSTEM APPLIED")') && appSource.includes('textFor("success.theme_title", "White system, class colors")') && appSource.includes("success-loop"), "semester-ready payoff must prove the white system, black controls, and automatic class colors are applied");
+expect(appSource.includes("Dashboard, focus blocks, classes, and widgets keep black controls with automatic course colors for context."), "semester-ready payoff must connect black controls and automatic course colors to dashboard, focus, classes, and widgets");
+expect(appSource.includes("const SEMESTER_THEME_COPY") && appSource.includes('"onboarding.theme_locked_title": "White by default"') && appSource.includes('"onboarding.theme_locked_title": "Blanco por defecto"'), "white system/class-color labels and payoff copy must be localized instead of fallback-only");
 expect(!appSource.includes('onPress={() => pickThemeColor') && !appSource.includes("semesterThemeColors.map"), "visible semester color picker must be removed from onboarding");
 expect(appSource.includes('textFor("onboarding.theme_ready", "Ready to build")') && appSource.includes("const loopFeedback = ["), "compact setup proof must show the applied automatic semester system without exposing color choices");
 const oldUnlockPhrase = ["before", "you", "unlock"].join(" ");
@@ -133,11 +133,12 @@ expect(!appSource.includes("No active schedule") && !appSource.includes("No dash
 expect(appSource.includes('const showTabs = entitlementUnlocks(data, entitlementStatus)'), "normal tab bar must be entitlement-gated");
 expect(appSource.includes('displayRoute === "today" ? <Today') && appSource.includes('setStack([{ route: "lockedDashboard" }])'), "deep links to real app routes must resolve to locked home before entitlement");
 
-expect(appSource.includes('textFor("scan.paste_text", "Paste text")') && appSource.includes('textFor("classes.add_manual", "Add class manually")'), "Scan must keep paste and manual entry as visible fallback paths");
+expect(appSource.includes('if (source.scanIntent === "Paste syllabus") nav.push("paywall", { next: "paste", mode: "syllabus" })'), "paste onboarding choice must route through hard paywall continuation");
+expect(appSource.includes('else if (source.scanIntent === "Add manually") nav.push("paywall", { next: "paste", mode: "manual" })'), "manual onboarding choice must route through hard paywall continuation");
 expect(!appSource.includes('source.scanIntent === "Skip for now"') && !appSource.includes('completeAnd("lockedDashboard")'), "skip setup path must stay removed from onboarding and import options");
-expect(appSource.includes('nav.push("paywall", { next: "scan", action: "camera" })'), "scan-first onboarding must carry camera intent into paywall continuation");
-expect(appSource.includes('const cameraIntent = !currentImport && explicitDestination === "scan" && params.action !== "pdf"'), "locked/paywall funnel must preserve camera intent");
-expect(appSource.includes('onPress={(step === "name" && !cleanProfileName) || (step === "priorities" && !prioritiesComplete) ? undefined : next}') && appSource.includes('textFor("onboarding.unlock_to_scan", "Unlock to scan")') && !appSource.includes('setTimeout(() => next(nextProfile)'), "onboarding must require a name and personalization choices, then use an explicit scan-first sticky CTA instead of auto-routing");
+expect(appSource.includes('else nav.push("paywall", { next: "scan", action: "camera" })'), "camera onboarding choice must carry selected scan action into paywall continuation");
+expect(appSource.includes('nav.push("paywall", { next: "scan", action: "camera" })') && appSource.includes('const cameraIntent = !currentImport && (params.action === "camera" || data.prefs.scanIntent === "Scan with camera")'), "locked/paywall funnel must preserve camera intent");
+expect(appSource.includes('(step === "priorities" && !prioritiesComplete) ? undefined : next}') && appSource.includes('cameraIntentSelected ? textFor("onboarding.unlock_to_scan", "Unlock to scan")') && !appSource.includes('setTimeout(() => next(nextProfile)'), "onboarding must require a name and personalization choices, then use an explicit sticky CTA instead of auto-routing");
 expect(appSource.includes("function PasteImport") && appSource.includes('params.mode === "manual"') && appSource.includes("Preview manual plan"), "manual class fallback must create a previewable import artifact");
 expect(appSource.includes('params.action === "pdf"') && appSource.includes("runPdfImport()") && appSource.includes('params.action === "camera"') && appSource.includes('runImageOcr("camera", "syllabus")'), "scan screen must auto-run selected onboarding action");
 expect(appSource.includes("if (!data.prefs.premium)") && appSource.includes('nav.push("paywall")'), "import apply must route to paywall without premium");
@@ -169,9 +170,9 @@ const pkg = JSON.parse(packageSource);
 expect(pkg.scripts?.["check:build52"] === "node scripts/check-build52.mjs", "package.json must expose check:build52");
 
 if (failures.length) {
-  console.error("Build 86 checks failed:");
+  console.error("Build 90 checks failed:");
   failures.forEach((failure) => console.error(`- ${failure}`));
   process.exit(1);
 }
 
-console.log("Build 86 access, onboarding, appearance, and locked funnel checks passed.");
+console.log("Build 90 access, onboarding, and locked funnel checks passed.");

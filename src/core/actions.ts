@@ -250,7 +250,7 @@ export function applyNoteScanDraft(state: AppState, draftId: string): AppState {
         dueDate: draft.taskDueDate || new Date().toISOString().slice(0, 10),
         dueTime: draft.taskDueTime || "23:59",
         priority: "Medium",
-        reminder: "From scanned note"
+        reminder: "From captured note"
       })
     : noteState;
 

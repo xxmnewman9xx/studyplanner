@@ -33,7 +33,6 @@ import { courseEmoji } from "../utils/courseVisuals";
 import { useI18n } from "../i18n";
 import { widgetStyleColors } from "../widgets/widgetThemes";
 import { ellipsizeWidgetText, resolveWidgetLayoutPlan } from "../widgets/widgetLayoutEngine";
-import type { WidgetDisplayState } from "../widgetEngine";
 
 export const emojiMap = {
   study: BookOpen,
@@ -392,7 +391,6 @@ export function WidgetPreviewCard({
   nativeNextLabel,
   nativeTimelineLabel,
   nativeProgress,
-  displayState,
   progress,
   progressLabel,
   weekLoad,
@@ -420,7 +418,6 @@ export function WidgetPreviewCard({
   nativeNextLabel?: string;
   nativeTimelineLabel?: string;
   nativeProgress?: number;
-  displayState?: WidgetDisplayState;
   progress?: number;
   progressLabel?: string;
   weekLoad?: DailyLoad[];
@@ -455,14 +452,14 @@ export function WidgetPreviewCard({
     ...item,
     title: ellipsizeWidgetText(widgetItemTitle(item), layoutPlan.titleMaxChars)
   }));
-  const displayTitle = ellipsizeWidgetText(displayState?.headline || title, layoutPlan.subtitleMaxChars);
-  const displayValue = ellipsizeWidgetText(displayState?.primaryMetric || value, size === "small" || isLock ? 12 : 18);
-  const displayDetail = ellipsizeWidgetText(displayState?.detail || detail, layoutPlan.titleMaxChars);
+  const displayTitle = ellipsizeWidgetText(title, layoutPlan.subtitleMaxChars);
+  const displayValue = ellipsizeWidgetText(value, size === "small" || isLock ? 12 : 18);
+  const displayDetail = ellipsizeWidgetText(detail, layoutPlan.titleMaxChars);
   const fontStyle = font === "Mono" ? styles.widgetMono : font === "Rounded" ? styles.widgetRounded : null;
   const WidgetIcon = iconForKey(iconKey);
   const statusText = widgetStatusText(type, value, detail, previewItems, t);
   const resolvedWidgetStyle = widgetStyleColors({ background, palette });
-  const nativeAccent = displayState?.accent || nativeAccentColor || course?.color || resolvedWidgetStyle.accentColor || theme.colors.accent;
+  const nativeAccent = nativeAccentColor || course?.color || resolvedWidgetStyle.accentColor || theme.colors.accent;
   const nativeBackground = nativeBackgroundColor || resolvedWidgetStyle.backgroundColor;
   const nativeDark = ["#171A20", "#101723", "#0D1422", "#061827", "#070A12", "#05070B"].includes(nativeBackground.toUpperCase());
   const nativeInk = nativeDark ? "#F8FAFC" : "#171A20";
@@ -470,7 +467,7 @@ export function WidgetPreviewCard({
   const nativeQuiet = nativeDark ? "#A8B3C5" : "#8A93A3";
   const nativeSignal = nativeSignalLabel || (previewItems.length > 0 ? t("widget_preview.live_plan", "Live plan") : t("widget_preview.setup", "Setup"));
   const nativeMetric = nativeMetricLabel || statusText;
-  const nativeNext = displayState?.actionLabel || nativeNextLabel || footnote || t("widget_snapshot.open_studyplanner", "Open StudyPlanner");
+  const nativeNext = nativeNextLabel || footnote || t("widget_snapshot.open_studyplanner", "Open StudyPlanner");
   const nativeTimeline = nativeTimelineLabel || (type === "today" ? t("widget_snapshot.today", "Today") : t("common.next", "Next"));
   const nativeProgressValue = Math.max(0, Math.min(1, nativeProgress ?? progress ?? 0));
   const previewProgressValue = Math.max(0, Math.min(1, progress ?? nativeProgress ?? 0));

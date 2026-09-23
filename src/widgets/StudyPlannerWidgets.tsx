@@ -3,9 +3,6 @@ import type { NativeWidgetSnapshot } from "../widgetEngine";
 
 type WidgetLayout = (props: NativeWidgetSnapshot, environment: object) => any;
 
-// Expo SDK 56 serializes only this function body into WidgetKit. Keep every
-// helper and constant inside the function, return synchronously, and rely only
-// on snapshot props plus the WidgetEnvironment.
 const layoutSource = `
 function StudyPlannerWidgetLayout(props, environment) {
   "widget";
@@ -17,190 +14,272 @@ function StudyPlannerWidgetLayout(props, environment) {
   function text(value, modifiers) {
     return view("TextView", {
       text: String(value || ""),
-      modifiers: (modifiers || []).concat([allowsTightening(true)])
+      modifiers: (modifiers || []).concat([allowsTightening(true), minimumScaleFactor(0.72)])
     });
   }
 
-  function dot(size, color) {
+  function circle(size, color) {
     return view("CircleView", {
-      modifiers: [frame({ width: size, height: size }), background(color, shapes.circle())]
+      modifiers: [
+        frame({ width: size, height: size }),
+        background(color, shapes.circle())
+      ]
     });
   }
 
-  function rounded(width, height, color, radius) {
-    return view("VStackView", {
-      modifiers: [frame({ width: width, height: height }), background(color, shapes.roundedRectangle({ cornerRadius: radius, roundedCornerStyle: "continuous" }))]
-    });
-  }
-
-  function channels(color) {
-    var match = /^#([0-9a-f]{6})$/i.exec(String(color || ""));
-    if (!match) return null;
-    return [parseInt(match[1].slice(0, 2), 16), parseInt(match[1].slice(2, 4), 16), parseInt(match[1].slice(4, 6), 16)];
-  }
-
-  function luminance(color) {
-    var rgb = channels(color);
-    if (!rgb) return null;
-    var values = [];
-    for (var index = 0; index < rgb.length; index += 1) {
-      var value = rgb[index] / 255;
-      values.push(value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4));
-    }
-    return 0.2126 * values[0] + 0.7152 * values[1] + 0.0722 * values[2];
-  }
-
-  function readableForeground(color) {
-    var value = luminance(color);
-    return value !== null && value < 0.36 ? "#FFFFFF" : "#050507";
-  }
-
-  function contrastRatio(first, second) {
-    var firstValue = luminance(first);
-    var secondValue = luminance(second);
-    if (firstValue === null || secondValue === null) return 1;
-    var lighter = Math.max(firstValue, secondValue);
-    var darker = Math.min(firstValue, secondValue);
-    return (lighter + 0.05) / (darker + 0.05);
-  }
-
-  function safeColorOn(color, surface, minimumRatio) {
-    var rgb = channels(color);
-    var surfaceValue = luminance(surface);
-    if (!rgb || surfaceValue === null) return readableForeground(surface);
-    var target = surfaceValue < 0.179 ? 255 : 0;
-    var candidate = color;
-    var attempts = 0;
-    while (contrastRatio(candidate, surface) < minimumRatio && attempts < 32) {
-      for (var channelIndex = 0; channelIndex < rgb.length; channelIndex += 1) {
-        rgb[channelIndex] = Math.round(rgb[channelIndex] + (target - rgb[channelIndex]) * 0.12);
-      }
-      candidate = "#" + rgb.map(function(value) { return value.toString(16).padStart(2, "0"); }).join("");
-      attempts += 1;
-    }
-    return candidate;
-  }
-
-  var family = environment.widgetFamily || "systemSmall";
-  var isMedium = family === "systemMedium";
-  var isInline = family === "accessoryInline";
-  var isCircular = family === "accessoryCircular";
-  var isRectangular = family === "accessoryRectangular";
-  var renderingMode = environment.widgetRenderingMode || "fullColor";
-  var isSystemTint = renderingMode === "accented" || renderingMode === "vibrant";
-  var isDark = environment.colorScheme === "dark";
-  var isReduced = environment.isLuminanceReduced === true || environment.levelOfDetail === "simplified";
-  var hasSystemMargins = !!environment.widgetContentMargins;
-  var mode = props.mode || "placeholder";
-  var metric = props.primaryMetric || props.value || "—";
-  var headline = props.headline || "StudyPlanner";
-  var detail = props.detail || "";
-  var action = props.actionLabel || "Open";
-  var accent = props.accent || props.accentColor || "#8B5CF6";
-  var bg = isSystemTint ? "#00000000" : (isDark ? "#111113" : (props.backgroundColor || "#FFFFFF"));
-  var ink = isSystemTint ? { type: "hierarchical", style: "primary" } : (isDark ? "#FFFFFF" : "#050507");
-  var secondary = isSystemTint ? { type: "hierarchical", style: "secondary" } : (isDark ? "#C8C8CE" : "#55555D");
-  var tertiary = isSystemTint ? { type: "hierarchical", style: "tertiary" } : (isDark ? "#A6A6AE" : "#6E6E76");
-  var accentStyle = isSystemTint ? { type: "hierarchical", style: "primary" } : safeColorOn(accent, bg, 4.5);
-  var accentFill = isSystemTint ? "#FFFFFF" : (isReduced ? (isDark ? "#8E8E93" : "#636366") : safeColorOn(accent, bg, 3));
-  var plane = isSystemTint ? "#FFFFFF22" : (isDark ? "#FFFFFF12" : "#0505070D");
-  var contentPadding = hasSystemMargins ? 2 : (isMedium ? 12 : 11);
   var items = props.items || [];
+  var configuration = environment.configuration || {};
+  var configuredViewMode = configuration.viewMode || props.kind || "today";
+  var isMedium = environment.widgetFamily === "systemMedium";
+  var isAccessoryCircular = environment.widgetFamily === "accessoryCircular";
+  var isAccessoryRectangular = environment.widgetFamily === "accessoryRectangular";
+  var isAccessoryInline = environment.widgetFamily === "accessoryInline";
+  var renderingMode = environment.widgetRenderingMode || "fullColor";
+  var isAccentedMode = renderingMode === "accented" || renderingMode === "vibrant";
+  var isDark = environment.colorScheme === "dark";
+  var isLuminanceReduced = environment.isLuminanceReduced === true;
+  var levelOfDetail = environment.levelOfDetail || "default";
+  var isSimplified = isLuminanceReduced || levelOfDetail === "simplified";
+  var accent = props.accentColor || "#0A84FF";
+  var bg = isLuminanceReduced ? "#F6F7FA" : (props.backgroundColor || "#F7F9FC");
+  var ink = isDark ? "#F7F8FA" : (accent === "#000000" || accent === "#111111" || accent === "#111827" ? "#050505" : "#111318");
+  var muted = isDark ? "#C9CDD6" : (isAccentedMode ? "#5F646D" : "#686D76");
+  var quiet = isDark ? "#AEB4BF" : "#7A808B";
+  var shellFill = isDark ? "#1C1C1ECC" : "#FFFFFF70";
+  var shellPlane = isDark ? "#2A2A2ECC" : "#FFFFFF9C";
+  var shellPlaneSoft = isDark ? "#2A2A2E88" : "#FFFFFF66";
+  var progress = Math.max(0, Math.min(1, props.progress || 0));
+  var ringValue = props.ringValue || String(Math.round(progress * 100));
+  var ringLabel = props.ringLabel || "score";
+  var signalLabel = props.signalLabel || props.headline || "Next";
+  var timelineLabel = props.timelineLabel || props.headline || "Today";
+  var updatedLabel = props.updatedLabel || "";
   var firstItem = items[0] || null;
-  var openURL = props.openURL || "studyplanner://paywall";
+  var circularValue = props.kind === "classProgress" ? ringValue : (firstItem ? (firstItem.courseCode || props.value) : props.value);
+  var circularLabel = props.kind === "classProgress" ? ringLabel : (firstItem ? signalLabel : timelineLabel);
+  var rowLimit = Math.min(items.length, isMedium ? 2 : 1);
+  var isNextTaskLayout = configuredViewMode === "today" || configuredViewMode === "upcoming" || props.kind === "today" || props.kind === "upcoming";
+  var weekLabels = props.weekLabels || ["M", "T", "W", "T", "F", "S", "S"];
+  var weekCounts = props.weekCounts || [];
+  var examDays = props.examDays || [];
+  var todayIndex = typeof props.todayIndex === "number" ? props.todayIndex : -1;
+  var calendarDays = props.calendarDays || [];
+  var peakDayLabel = props.peakDayLabel || updatedLabel || "";
+  var calendarHeadline = props.calendarHeadline || timelineLabel;
+  var maxWeekdayCount = 0;
+  for (var wc = 0; wc < weekCounts.length; wc += 1) maxWeekdayCount = Math.max(maxWeekdayCount, weekCounts[wc] || 0);
+  for (var cd = 0; cd < calendarDays.length; cd += 1) maxWeekdayCount = Math.max(maxWeekdayCount, calendarDays[cd].count || 0);
+  var maxWeek = Math.max(1, maxWeekdayCount);
+  var corner = isMedium ? 28 : 24;
+  var actionLabel = props.actionLabel || "";
 
-  var rootModifiers = [
+  function actionControl() {
+    if (!actionLabel || !isMedium || isSimplified) return view("SpacerView", { minLength: 1 });
+    return Link({
+      label: actionLabel,
+      destination: props.openURL || "studyplanner://today",
+      modifiers: [
+        buttonStyle("glass"),
+        controlSize("mini"),
+        tint(accent),
+        frame({ maxWidth: 112 })
+      ]
+    });
+  }
+
+  var shellModifiers = [
     frame({ maxWidth: isMedium ? 338 : 158, maxHeight: 158 }),
     containerBackground(bg, "widget"),
-    widgetURL(openURL)
+    background(shellFill, shapes.roundedRectangle({ cornerRadius: corner, roundedCornerStyle: "continuous" })),
+    shadow({ color: "#0000001A", radius: 13, x: 0, y: 6 }),
+    widgetURL(props.openURL || "studyplanner://today")
   ];
 
-  if (mode === "placeholder") {
+  function scoreRing(size) {
     return view("ZStackView", {
-      alignment: "topLeading",
-      modifiers: rootModifiers,
+      alignment: "center",
+      modifiers: [frame({ width: size, height: size })],
       children: [
+        view("CircleView", {
+          modifiers: [
+            frame({ width: size, height: size }),
+            background(accent, shapes.circle())
+          ]
+        }),
+        view("CircleView", {
+          modifiers: [
+            frame({ width: size - 12, height: size - 12 }),
+            background(isDark ? "#050505AA" : "#111318D9", shapes.circle())
+          ]
+        }),
         view("VStackView", {
-          alignment: "leading",
-          spacing: 12,
-          modifiers: [padding({ all: contentPadding })],
+          alignment: "center",
+          spacing: 0,
           children: [
-            rounded(isMedium ? 92 : 66, 10, plane, 5),
-            rounded(isMedium ? 210 : 118, isMedium ? 34 : 28, plane, 10),
-            rounded(isMedium ? 270 : 132, 13, plane, 6),
-            view("HStackView", { alignment: "center", spacing: 8, children: [
-              dot(11, accentFill),
-              rounded(isMedium ? 96 : 72, 10, plane, 5)
-            ]})
+            text(ringValue, [font({ size: size > 58 ? 19 : 16, weight: "black", design: "rounded" }), foregroundStyle("#FFFFFF"), lineLimit(1)]),
+            text(ringLabel, [font({ size: 7, weight: "bold" }), foregroundStyle("#FFFFFFCC"), lineLimit(1)])
           ]
         })
       ]
     });
   }
 
-  if (isInline) {
-    return text(metric + " · " + action, [
-      font({ textStyle: "caption", weight: "black" }),
+  var rows = [];
+  for (var i = 0; i < rowLimit; i += 1) {
+    var item = items[i];
+    rows.push(view("HStackView", {
+      alignment: "center",
+      spacing: 7,
+      modifiers: [frame({ maxWidth: 320 })],
+      children: [
+        circle(6, item.courseColor || accent),
+        text(item.courseCode || "", [font({ size: 9, weight: "black" }), foregroundStyle(accent), lineLimit(1)]),
+        text(item.title || "", [font({ size: 10, weight: "semibold" }), foregroundStyle(ink), lineLimit(1)]),
+        view("SpacerView", { minLength: 2 }),
+        text(item.dueLabel || "", [font({ size: 9, weight: "bold" }), foregroundStyle(muted), lineLimit(1)])
+      ]
+    }, item.id || String(i)));
+  }
+
+  if (isAccessoryInline) {
+    return text(timelineLabel + ": " + circularValue + " " + signalLabel, [
+      font({ size: 13, weight: "semibold" }),
       foregroundStyle(ink),
       lineLimit(1),
-      widgetURL(openURL)
+      widgetURL(props.openURL || "studyplanner://today")
     ]);
   }
 
-  if (isCircular) {
-    var circularMetric = metric.length > 5 ? metric.slice(0, 5) : metric;
-    var circularAction = action.length > 8 ? action.slice(0, 8) : action;
+  if (isAccessoryCircular) {
     return view("ZStackView", {
       alignment: "center",
-      modifiers: [frame({ maxWidth: 74, maxHeight: 74 }), containerBackground("#00000000", "widget"), widgetURL(openURL)],
+      modifiers: [frame({ maxWidth: 74, maxHeight: 74 }), containerBackground(bg, "widget"), widgetURL(props.openURL || "studyplanner://today")],
       children: [
         view("AccessoryWidgetBackgroundView", {}),
+        view("CircleView", { modifiers: [frame({ width: 66, height: 66 }), background(shellFill, shapes.circle()), glassEffect({ glass: { variant: "regular", interactive: false, tint: bg }, shape: "circle" })] }),
+        view("CircleView", { modifiers: [frame({ width: 52, height: 52 }), background(accent, shapes.circle()), shadow({ color: "#00000022", radius: 5, x: 0, y: 2 })] }),
         view("VStackView", { alignment: "center", spacing: 1, children: [
-          text(circularMetric, [font({ textStyle: "headline", weight: "black", design: "rounded" }), foregroundStyle(ink), lineLimit(1)]),
-          text(circularAction, [font({ textStyle: "caption2", weight: "bold" }), foregroundStyle(secondary), lineLimit(1)])
+          text(circularValue, [font({ size: 16, weight: "black", design: "rounded" }), foregroundStyle("#FFFFFF"), lineLimit(1)]),
+          text(circularLabel, [font({ size: 8, weight: "bold" }), foregroundStyle("#FFFFFF"), lineLimit(1)])
         ]})
       ]
     });
   }
 
-  if (isRectangular) {
-    return view("ZStackView", {
+  if (isAccessoryRectangular) {
+    return view("VStackView", {
       alignment: "leading",
-      modifiers: [frame({ maxWidth: 180, maxHeight: 72 }), containerBackground("#00000000", "widget"), widgetURL(openURL)],
+      spacing: 3,
+      modifiers: [frame({ maxWidth: 180, maxHeight: 72 }), containerBackground(bg, "widget"), widgetURL(props.openURL || "studyplanner://today")],
       children: [
-        view("AccessoryWidgetBackgroundView", {}),
-        view("VStackView", {
-          alignment: "leading",
-          spacing: 2,
-          modifiers: [padding({ all: 5 })],
-          children: [
-            text(metric, [font({ textStyle: "headline", weight: "black", design: "rounded" }), foregroundStyle(ink), lineLimit(1)]),
-            text(headline, [font({ textStyle: "caption", weight: "semibold" }), foregroundStyle(secondary), lineLimit(1)]),
-            text(action, [font({ textStyle: "caption2", weight: "black" }), foregroundStyle(accentStyle), lineLimit(1)])
-          ]
-        })
+        text(signalLabel, [font({ size: 10, weight: "black" }), foregroundStyle(accent), lineLimit(1)]),
+        text(props.value + " " + props.detail, [font({ size: 14, weight: "black", design: "rounded" }), foregroundStyle(ink), lineLimit(1)]),
+        text(props.footnote, [font({ size: 10, weight: "semibold" }), foregroundStyle(muted), lineLimit(1)])
       ]
     });
   }
 
-  if (mode === "locked" || mode === "empty") {
+  function hasExamDay(index) {
+    for (var ed = 0; ed < examDays.length; ed += 1) {
+      if (examDays[ed] === index) return true;
+    }
+    return false;
+  }
+
+  var calendarRows = [];
+  for (var row = 0; row < 2; row += 1) {
+    var calendarCells = [];
+    for (var col = 0; col < 7; col += 1) {
+      var calendarIndex = row * 7 + col;
+      var day = calendarDays[calendarIndex] || {};
+      var count = day.count || 0;
+      var isToday = day.isToday === true || calendarIndex === todayIndex;
+      var hasExam = day.hasExam === true || hasExamDay(calendarIndex);
+      var load = Math.max(0, Math.min(1, count / maxWeek));
+      var cellBg = isToday ? accent : (count > 0 ? shellPlane : shellPlaneSoft);
+      var cellInk = isToday ? "#FFFFFF" : ink;
+      var cellMuted = isToday ? "#FFFFFFCC" : muted;
+      calendarCells.push(view("VStackView", {
+        alignment: "center",
+        spacing: isMedium ? 1 : 0,
+        modifiers: [
+          frame({ width: isMedium ? 38 : 17, height: isMedium ? 35 : 20 }),
+          background(cellBg, shapes.roundedRectangle({ cornerRadius: isMedium ? 11 : 6, roundedCornerStyle: "continuous" }))
+        ],
+        children: [
+          text(day.weekday || weekLabels[col] || "", [font({ size: isMedium ? 7 : 5, weight: "black" }), foregroundStyle(cellMuted), lineLimit(1)]),
+          text(day.dayNumber || (count > 0 ? String(count) : "-"), [font({ size: isMedium ? 11 : 8, weight: "black", design: "rounded" }), foregroundStyle(cellInk), lineLimit(1)]),
+          hasExam ? circle(isMedium ? 4 : 2, isToday ? "#FFFFFF" : "#FF5A1F") : circle(isMedium ? 2 : 1, count > 0 ? accent : "#D9DDE5")
+        ]
+      }, "cal-" + String(calendarIndex)));
+    }
+    calendarRows.push(view("HStackView", {
+      alignment: "center",
+      spacing: isMedium ? 4 : 2,
+      children: calendarCells
+    }, "cal-row-" + String(row)));
+  }
+  var calendarGrid = view("VStackView", { alignment: "leading", spacing: isMedium ? 4 : 2, children: calendarRows });
+
+  if (!isMedium) {
+    if (props.kind === "classProgress") {
+      return view("ZStackView", {
+        alignment: "topLeading",
+        modifiers: shellModifiers,
+        children: [
+          view("VStackView", { modifiers: [frame({ maxWidth: 158, maxHeight: 42 }), background(shellPlaneSoft, shapes.roundedRectangle({ cornerRadius: 24, roundedCornerStyle: "continuous" }))] }),
+          view("VStackView", {
+            alignment: "leading",
+            spacing: 7,
+            modifiers: [padding({ all: 11 }), frame({ maxWidth: 158, maxHeight: 158 })],
+            children: [
+              view("HStackView", { alignment: "center", spacing: 6, children: [
+                text(timelineLabel, [font({ size: 9, weight: "black" }), foregroundStyle(muted), lineLimit(1)]),
+                view("SpacerView", { minLength: 2 }),
+                text(signalLabel, [font({ size: 8, weight: "black" }), foregroundStyle(accent), lineLimit(1)])
+              ]}),
+              view("HStackView", { alignment: "center", spacing: 10, children: [
+                scoreRing(54),
+                view("VStackView", { alignment: "leading", spacing: 2, children: [
+                  text(props.value, [font({ size: 15, weight: "black" }), foregroundStyle(ink), lineLimit(1)]),
+                  text(props.detail, [font({ size: 10, weight: "bold" }), foregroundStyle(muted), lineLimit(1)])
+                ]})
+              ]}),
+              text(props.footnote, [font({ size: 10, weight: "semibold" }), foregroundStyle(muted), lineLimit(2)]),
+              rows.length ? rows[0] : text(updatedLabel || props.footnote, [font({ size: 9, weight: "semibold" }), foregroundStyle(quiet), lineLimit(1)])
+            ]
+          })
+        ]
+      });
+    }
+
     return view("ZStackView", {
       alignment: "topLeading",
-      modifiers: rootModifiers,
+      modifiers: shellModifiers,
       children: [
+        view("VStackView", { modifiers: [frame({ maxWidth: 158, maxHeight: 42 }), background(shellPlaneSoft, shapes.roundedRectangle({ cornerRadius: 24, roundedCornerStyle: "continuous" }))] }),
         view("VStackView", {
           alignment: "leading",
-          spacing: isMedium ? 8 : 7,
-          modifiers: [padding({ all: contentPadding })],
+          spacing: 6,
+          modifiers: [padding({ all: 11 }), frame({ maxWidth: 158, maxHeight: 158 })],
           children: [
-            text(metric, [font({ textStyle: "caption", weight: "black" }), foregroundStyle(accentStyle), lineLimit(1)]),
-            text(headline, [font({ textStyle: isMedium ? "title2" : "title3", weight: "black", design: "rounded" }), foregroundStyle(ink), lineLimit(isMedium ? 2 : 3)]),
-            text(detail, [font({ textStyle: "caption", weight: "semibold" }), foregroundStyle(secondary), lineLimit(2)]),
-            view("SpacerView", { minLength: 2 }),
-            view("HStackView", { alignment: "center", spacing: 7, children: [
-              dot(8, accentFill),
-              text(action, [font({ textStyle: "caption", weight: "black" }), foregroundStyle(accentStyle), lineLimit(1)])
-            ]})
+            view("HStackView", { alignment: "center", spacing: 6, children: [
+              circle(7, accent),
+              text(timelineLabel, [font({ size: 9, weight: "black" }), foregroundStyle(muted), lineLimit(1)]),
+              view("SpacerView", { minLength: 2 }),
+              text(signalLabel, [font({ size: 8, weight: "black" }), foregroundStyle(accent), lineLimit(1)])
+            ]}),
+            text(props.value, [font({ size: isNextTaskLayout ? 21 : 23, weight: "black", design: "rounded" }), foregroundStyle(ink), lineLimit(1)]),
+            text(props.detail, [font({ size: 11, weight: "black" }), foregroundStyle(ink), lineLimit(1)]),
+            text(props.footnote, [font({ size: 10, weight: "semibold" }), foregroundStyle(muted), lineLimit(isMedium ? 2 : 1)]),
+            props.kind === "week"
+              ? view("VStackView", { alignment: "leading", spacing: 4, children: [
+                calendarGrid,
+                text(peakDayLabel || calendarHeadline, [font({ size: 8, weight: "black" }), foregroundStyle(accent), lineLimit(1)])
+              ]})
+              : view("VStackView", { alignment: "leading", spacing: 4, children: rows.length ? rows : [
+                text(updatedLabel || props.footnote, [font({ size: 9, weight: "semibold" }), foregroundStyle(muted), lineLimit(1)])
+              ]})
           ]
         })
       ]
@@ -208,71 +287,35 @@ function StudyPlannerWidgetLayout(props, environment) {
   }
 
   if (props.kind === "week") {
-    var weekLabels = props.weekLabels || ["M", "T", "W", "T", "F", "S", "S"];
-    var weekCounts = props.weekCounts || [];
-    var maxCount = 1;
-    for (var countIndex = 0; countIndex < weekCounts.length; countIndex += 1) {
-      maxCount = Math.max(maxCount, weekCounts[countIndex] || 0);
-    }
-    var workloadCells = [];
-    for (var dayIndex = 0; dayIndex < 7; dayIndex += 1) {
-      var dayCount = weekCounts[dayIndex] || 0;
-      var barHeight = isReduced ? 5 : 5 + Math.round((dayCount / maxCount) * 21);
-      workloadCells.push(view("VStackView", {
-        alignment: "center",
-        spacing: 3,
-        children: [
-          text(String(dayCount), [font({ textStyle: "caption2", weight: "black", design: "rounded" }), foregroundStyle(dayCount === maxCount && dayCount > 0 ? accentStyle : secondary), lineLimit(1)]),
-          rounded(26, barHeight, dayCount === maxCount && dayCount > 0 ? accentFill : plane, 5),
-          text(weekLabels[dayIndex] || "", [font({ textStyle: "caption2", weight: "black" }), foregroundStyle(tertiary), lineLimit(1)])
-        ]
-      }, "week-" + String(dayIndex)));
-    }
     return view("ZStackView", {
       alignment: "topLeading",
-      modifiers: rootModifiers,
+      modifiers: shellModifiers,
       children: [
+        view("VStackView", { modifiers: [frame({ maxWidth: 338, maxHeight: 44 }), background(shellPlaneSoft, shapes.roundedRectangle({ cornerRadius: 28, roundedCornerStyle: "continuous" }))] }),
         view("VStackView", {
           alignment: "leading",
           spacing: 7,
-          modifiers: [padding({ all: contentPadding })],
+          modifiers: [padding({ all: 12 }), frame({ maxWidth: 338, maxHeight: 158 })],
           children: [
-            view("HStackView", { alignment: "firstTextBaseline", spacing: 8, children: [
-              text(metric, [font({ textStyle: "title3", weight: "black", design: "rounded" }), foregroundStyle(ink), lineLimit(1)]),
-              view("SpacerView", { minLength: 3 }),
-              text(action, [font({ textStyle: "caption", weight: "black" }), foregroundStyle(accentStyle), lineLimit(1)])
-            ]}),
-            text(headline, [font({ textStyle: "caption", weight: "semibold" }), foregroundStyle(secondary), lineLimit(1)]),
-            view("HStackView", { alignment: "bottom", spacing: 10, children: workloadCells })
-          ]
-        })
-      ]
-    });
-  }
-
-  if (props.kind === "today" && isMedium) {
-    var todayCourse = firstItem ? firstItem.courseCode : "";
-    var todayTime = firstItem ? (firstItem.timeLabel || firstItem.dueLabel) : props.footnote;
-    return view("ZStackView", {
-      alignment: "topLeading",
-      modifiers: rootModifiers,
-      children: [
-        view("VStackView", {
-          alignment: "leading",
-          spacing: 7,
-          modifiers: [padding({ all: contentPadding })],
-          children: [
-            view("HStackView", { alignment: "firstTextBaseline", spacing: 8, children: [
-              text(metric, [font({ size: 42, weight: "black", design: "rounded" }), foregroundStyle(ink), lineLimit(1)]),
-              text(headline, [font({ textStyle: "caption", weight: "black" }), foregroundStyle(accentStyle), lineLimit(1)]),
+            view("HStackView", { alignment: "center", spacing: 8, children: [
+              text(timelineLabel, [font({ size: 10, weight: "black" }), foregroundStyle(muted), lineLimit(1)]),
               view("SpacerView", { minLength: 4 }),
-              text(action, [font({ textStyle: "caption", weight: "black" }), foregroundStyle(accentStyle), lineLimit(1)])
+              text(signalLabel, [font({ size: 9, weight: "black" }), foregroundStyle(accent), lineLimit(1)])
             ]}),
-            text(detail, [font({ textStyle: "headline", weight: "black" }), foregroundStyle(ink), lineLimit(1)]),
-            view("HStackView", { alignment: "center", spacing: 7, children: [
-              dot(8, firstItem ? safeColorOn(firstItem.courseColor || accentFill, bg, 3) : accentFill),
-              text(todayCourse, [font({ textStyle: "caption", weight: "black" }), foregroundStyle(accentStyle), lineLimit(1)]),
-              text(todayTime, [font({ textStyle: "caption", weight: "semibold" }), foregroundStyle(secondary), lineLimit(1)])
+            view("VStackView", { alignment: "leading", spacing: 5, children: [
+              calendarGrid,
+              view("HStackView", { alignment: "center", spacing: 6, children: [
+                text(props.value + " " + props.detail, [font({ size: 11, weight: "black", design: "rounded" }), foregroundStyle(ink), lineLimit(1)]),
+                view("SpacerView", { minLength: 4 }),
+                text(calendarHeadline, [font({ size: 9, weight: "black" }), foregroundStyle(muted), lineLimit(1)]),
+                view("SpacerView", { minLength: 4 }),
+                text(props.footnote, [font({ size: 9, weight: "semibold" }), foregroundStyle(quiet), lineLimit(1)])
+              ]})
+            ]}),
+            view("HStackView", { alignment: "center", spacing: 6, children: [
+              text(updatedLabel || peakDayLabel, [font({ size: 9, weight: "semibold" }), foregroundStyle(muted), lineLimit(1)]),
+              view("SpacerView", { minLength: 4 }),
+              actionControl()
             ]})
           ]
         })
@@ -280,28 +323,71 @@ function StudyPlannerWidgetLayout(props, environment) {
     });
   }
 
-  var courseColor = firstItem ? safeColorOn(firstItem.courseColor || accentFill, bg, 3) : accentFill;
-  var supportingDetail = firstItem
-    ? (firstItem.courseCode + (firstItem.timeLabel ? " · " + firstItem.timeLabel : ""))
-    : props.footnote;
+  if (props.kind === "classProgress") {
+    return view("ZStackView", {
+      alignment: "topLeading",
+      modifiers: shellModifiers,
+      children: [
+        view("VStackView", { modifiers: [frame({ maxWidth: 338, maxHeight: 44 }), background(shellPlaneSoft, shapes.roundedRectangle({ cornerRadius: 28, roundedCornerStyle: "continuous" }))] }),
+        view("VStackView", {
+          alignment: "leading",
+          spacing: 7,
+          modifiers: [padding({ all: 12 }), frame({ maxWidth: 338, maxHeight: 158 })],
+          children: [
+            view("HStackView", { alignment: "center", spacing: 8, children: [
+              text(timelineLabel, [font({ size: 10, weight: "black" }), foregroundStyle(muted), lineLimit(1)]),
+              view("SpacerView", { minLength: 4 }),
+              text(signalLabel, [font({ size: 9, weight: "black" }), foregroundStyle(accent), lineLimit(1)])
+            ]}),
+            view("HStackView", { alignment: "center", spacing: 13, children: [
+              scoreRing(66),
+              view("VStackView", { alignment: "leading", spacing: 4, modifiers: [frame({ maxWidth: 236 })], children: [
+                text(props.value, [font({ size: 21, weight: "black", design: "rounded" }), foregroundStyle(ink), lineLimit(1)]),
+                text(props.detail, [font({ size: 11, weight: "black" }), foregroundStyle(muted), lineLimit(1)]),
+                text(props.footnote, [font({ size: 11, weight: "semibold" }), foregroundStyle(muted), lineLimit(2)])
+              ]})
+            ]}),
+            view("VStackView", { alignment: "leading", spacing: 4, children: rows.length ? rows : [
+              text(updatedLabel || props.footnote, [font({ size: 10, weight: "semibold" }), foregroundStyle(muted), lineLimit(1)])
+            ]}),
+            view("HStackView", { alignment: "center", spacing: 6, children: [
+              text(props.lastInteractionLabel || updatedLabel || props.footnote, [font({ size: 9, weight: "semibold" }), foregroundStyle(muted), lineLimit(1)]),
+              view("SpacerView", { minLength: 4 }),
+              actionControl()
+            ]})
+          ]
+        })
+      ]
+    });
+  }
+
   return view("ZStackView", {
     alignment: "topLeading",
-    modifiers: rootModifiers,
+    modifiers: shellModifiers,
     children: [
+      view("VStackView", { modifiers: [frame({ maxWidth: 338, maxHeight: 44 }), background(shellPlaneSoft, shapes.roundedRectangle({ cornerRadius: 28, roundedCornerStyle: "continuous" }))] }),
       view("VStackView", {
         alignment: "leading",
         spacing: 7,
-        modifiers: [padding({ all: contentPadding })],
+        modifiers: [padding({ all: 12 }), frame({ maxWidth: 338, maxHeight: 158 })],
         children: [
-          text(metric, [font({ size: 31, weight: "black", design: "rounded" }), foregroundStyle(ink), lineLimit(1)]),
-          text(headline, [font({ textStyle: "headline", weight: "black" }), foregroundStyle(ink), lineLimit(2)]),
-          text(detail, [font({ textStyle: "caption", weight: "semibold" }), foregroundStyle(secondary), lineLimit(1)]),
-          view("SpacerView", { minLength: 2 }),
+          view("HStackView", { alignment: "center", spacing: 8, children: [
+            text(timelineLabel, [font({ size: 10, weight: "black" }), foregroundStyle(muted), lineLimit(1)]),
+            view("SpacerView", { minLength: 4 }),
+            text(signalLabel, [font({ size: 9, weight: "black" }), foregroundStyle(accent), lineLimit(1)])
+          ]}),
+          view("HStackView", { alignment: "firstTextBaseline", spacing: 6, children: [
+            text(props.value, [font({ size: 24, weight: "black", design: "rounded" }), foregroundStyle(ink), lineLimit(1)]),
+            text(props.detail, [font({ size: 12, weight: "bold" }), foregroundStyle(ink), lineLimit(1)])
+          ]}),
+          text(props.footnote, [font({ size: 12, weight: "black" }), foregroundStyle(muted), lineLimit(2)]),
+          view("VStackView", { alignment: "leading", spacing: 4, children: rows.length ? rows : [
+            text(props.footnote, [font({ size: 10, weight: "semibold" }), foregroundStyle(muted), lineLimit(2)])
+          ]}),
           view("HStackView", { alignment: "center", spacing: 6, children: [
-            dot(7, courseColor),
-            text(supportingDetail, [font({ textStyle: "caption2", weight: "bold" }), foregroundStyle(secondary), lineLimit(1)]),
-            view("SpacerView", { minLength: 2 }),
-            text(action, [font({ textStyle: "caption", weight: "black" }), foregroundStyle(accentStyle), lineLimit(1)])
+            text(props.lastInteractionLabel || updatedLabel || props.footnote, [font({ size: 9, weight: "semibold" }), foregroundStyle(muted), lineLimit(1)]),
+            view("SpacerView", { minLength: 4 }),
+            actionControl()
           ]})
         ]
       })

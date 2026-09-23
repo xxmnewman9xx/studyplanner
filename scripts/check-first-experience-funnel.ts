@@ -76,6 +76,7 @@ const copyBHumanReview = read(COPY_B_HUMAN_REVIEW_PATH);
 
 const onboarding = section(appSource, "function Onboarding(", "\nfunction ImportOptions(");
 const paywall = section(appSource, "function Paywall(", "\nfunction Today(");
+const purchaseFooter = section(paywall, "<LiquidGlassSurface", "</LiquidGlassSurface>");
 const review = section(appSource, "function ReviewImport(", "\nfunction ApplySuccess(");
 const scanOptions = quotedArray(onboarding, "scanOptions");
 const steps = quotedArray(onboarding, "steps");
@@ -113,16 +114,13 @@ pushCheck(checks, {
 });
 
 pushCheck(checks, {
-  name: "onboarding is scan-first with fallbacks deferred to Scan",
+  name: "onboarding exposes only three build choices",
   pass:
-    scanOptions.length === 0 &&
-    onboarding.includes('scanIntent: "Scan with camera"') &&
-    onboarding.includes('const scanFirstProfile = index === steps.length - 1 ? { ...source, scanIntent: "Scan with camera" } : source') &&
-    onboarding.includes('nav.push("paywall", { next: "scan", action: "camera" })') &&
-    !onboarding.includes('nav.push("paywall", { next: "paste"') &&
-    appSource.includes('textFor("scan.paste_text", "Paste text")') &&
-    appSource.includes('textFor("classes.add_manual", "Add class manually")'),
-  detail: "Expected onboarding to lead with syllabus scanning and keep Paste/Manual on the Scan screen.",
+    scanOptions.length === 3 &&
+    scanOptions[0] === "Scan with camera" &&
+    scanOptions[1] === "Paste syllabus" &&
+    scanOptions[2] === "Add manually",
+  detail: `scanOptions=${JSON.stringify(scanOptions)}`,
 });
 
 pushCheck(checks, {
@@ -142,13 +140,14 @@ pushCheck(checks, {
 });
 
 pushCheck(checks, {
-  name: "scan-first onboarding hits paywall before import",
+  name: "scan, paste, and manual onboarding routes hit paywall before import",
   pass:
+    onboarding.includes('source.scanIntent === "Paste syllabus") nav.push("paywall", { next: "paste", mode: "syllabus" })') &&
+    onboarding.includes('source.scanIntent === "Add manually") nav.push("paywall", { next: "paste", mode: "manual" })') &&
     onboarding.includes('nav.push("paywall", { next: "scan", action: "camera" })') &&
     !onboarding.includes('nav.push("cameraScanner"') &&
-    !onboarding.includes('nav.push("paste",') &&
-    appSource.includes('return { route: "scan", params: { action: "camera" } };'),
-  detail: "Expected fresh onboarding and a generic successful unlock to continue to Scan.",
+    !onboarding.includes('nav.push("paste",'),
+  detail: "Expected every onboarding source to open the purchase route before camera, paste, or manual input.",
 });
 
 pushCheck(checks, {
@@ -165,25 +164,41 @@ pushCheck(checks, {
 });
 
 pushCheck(checks, {
-  name: "paywall presents the seasonal one-week trial only from live StoreKit data",
+  name: "paywall presents the paid first-week offer only from eligible live StoreKit data",
   pass:
     paywall.includes("loadEligibleIntroOfferProductIds(plans)") &&
-    paywall.includes("const selectedPlanHasOneWeekTrial = hasOneWeekFreeTrial(selectedPlan) && eligibleTrialProductIdSet.has(selectedPlan.id)") &&
-    paywall.includes('const subscriptionPlans = plans.filter((plan) => plan.kind === "subscription")') &&
-    paywall.includes("const allSubscriptionsHaveOneWeekTrial = subscriptionPlans.length > 0 && subscriptionPlans.every") &&
-    paywall.includes("const trialPlan = allSubscriptionsHaveOneWeekTrial && selectedPlanHasOneWeekTrial ? selectedPlan : undefined") &&
-    paywall.includes('textFor("paywall.seasonal_title", "One week free on eligible subscriptions")') &&
-    paywall.includes('textFor("paywall.trial_cta", "Start one-week free trial")') &&
+    paywall.includes("const selectedPlanHasOneWeekIntro = hasOneWeekIntroOffer(selectedPlan) && eligibleTrialProductIdSet.has(selectedPlan.id)") &&
+    paywall.includes("plan.id === STUDYPLANNER_INTRO_PRODUCT_ID && hasOneWeekIntroOffer(plan)") &&
+    paywall.includes('textFor("paywall.seasonal_title", "First week for {intro}"') &&
+    paywall.includes('textFor("paywall.trial_cta", "Start for {intro}"') &&
+    paywall.includes('"Select the weekly subscription plan"') &&
     paywall.includes("selectedPlanPeriodLabel") &&
     paywall.includes("Auto-renews until canceled.") &&
-    paywall.includes("trialPlan ? (") &&
-    paywall.includes("selectedPlanHasOneWeekTrial ?") &&
-    (paywall.includes("paddingBottom: 180") || paywall.includes("paddingBottom: (accessibilityLayout ? 24 : 180) + insets.bottom")) &&
+    paywall.includes("introPlan ? (") &&
+    paywall.includes("paddingBottom: 224") &&
     paywall.includes("selectedPlanSummary") &&
-    iapSource.includes('offer.paymentMode !== "free-trial"') &&
+    paywall.includes("const [storePlansReady, setStorePlansReady] = useState(false)") &&
+    paywall.includes("setStorePlansReady(localizedPlansReady)") &&
+    iapSource.includes('offer.paymentMode !== "pay-as-you-go"') &&
+    iapSource.includes("offer.price <= 0") &&
     iapSource.includes('offer.periodUnit === "week" && totalUnits === 1') &&
+    iapSource.includes('STUDYPLANNER_INTRO_PRODUCT_ID = "com.mattnewman.studyplanner.plus.weekly"') &&
+    iapSource.includes("plan?.id !== STUDYPLANNER_INTRO_PRODUCT_ID") &&
     iapSource.includes("await isEligibleForIntroOfferIOS(groupId)"),
   detail: "Expected StoreKit introductory-offer data to control the seasonal card, plan badges, and purchase CTA.",
+});
+
+pushCheck(checks, {
+  name: "paywall keeps localized legal utilities in the persistent purchase footer",
+  pass:
+    purchaseFooter.includes("restoreLabel") &&
+    purchaseFooter.includes('textFor("common.terms", "Terms of Use")') &&
+    purchaseFooter.includes('textFor("common.privacy", "Privacy Policy")') &&
+    purchaseFooter.includes('textFor("common.support", "Support")') &&
+    purchaseFooter.includes('appLocale() === "ar" ? "row-reverse" : "row"') &&
+    purchaseFooter.includes('accessibilityRole="button"') &&
+    purchaseFooter.includes('accessibilityRole="link"'),
+  detail: "Expected Restore, Terms, Privacy, and Support to remain accessible beside the persistent purchase controls in every locale.",
 });
 
 pushCheck(checks, {
@@ -193,7 +208,6 @@ pushCheck(checks, {
     appSource.includes("const paywallDestinationRef = useRef<NavItem | null>(null)") &&
     appSource.includes('if (params.next === "scan") return { route: "scan"') &&
     appSource.includes('if (params.next === "paste") return { route: "paste"') &&
-    appSource.includes('return { route: "scan", params: { action: "camera" } };') &&
     appSource.includes('if (route === "paywall") paywallDestinationRef.current = { route, params }') &&
     appSource.includes('activateEntitlement(entitlement.productId, entitlement.checkedAt, { destination: paywallDestinationRef.current })'),
   detail: "Expected real StoreKit purchase updates to route to the selected scan/paste/manual/widget destination after unlock.",
@@ -255,8 +269,7 @@ const payload = {
       personalBuildTitle: onboarding.includes("onboarding.build_title_personal"),
     },
     activeRoutes: {
-      primary: 'onboarding -> paywall?next=scan&action=camera -> scan after StoreKit entitlement',
-      camera: 'scan -> cameraScanner',
+      camera: 'paywall?next=scan&action=camera -> cameraScanner after StoreKit entitlement',
       paste: 'paywall?next=paste&mode=syllabus -> paste after StoreKit entitlement',
       manual: 'paywall?next=paste&mode=manual -> manual setup after StoreKit entitlement',
     },

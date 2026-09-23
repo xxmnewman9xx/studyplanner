@@ -17,6 +17,8 @@ export type SyllabusParseErrorCode =
   | "PDF_TEXT_REQUIRED"
   | "OCR_NOT_CONFIGURED"
   | "OCR_TEXT_REQUIRED"
+  | "OCR_TIMEOUT"
+  | "PAYLOAD_TOO_LARGE"
   | "PARSE_FAILED";
 
 export type SyllabusParseErrorResponse = {
@@ -34,6 +36,11 @@ type ParsePayload = {
 };
 
 let ocrWorkerPromise: Promise<any> | null = null;
+let ocrQueue: Promise<void> = Promise.resolve();
+
+const MAX_TEXT_CHARACTERS = 500_000;
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+const OCR_TIMEOUT_MS = 30_000;
 
 const jsonHeaders = {
   "content-type": "application/json; charset=utf-8"
@@ -114,6 +121,15 @@ async function payloadFromFormData(form: FormData): Promise<ParsePayload> {
     throw errorResponse("TEXT_REQUIRED", "Attach a text-based syllabus file or send pasted text.", false, 400);
   }
 
+  if (file.size > MAX_UPLOAD_BYTES) {
+    throw errorResponse(
+      "PAYLOAD_TOO_LARGE",
+      "Choose a syllabus file smaller than 8 MB.",
+      false,
+      413
+    );
+  }
+
   const name = file.name || "Uploaded syllabus";
   const type = file.type || mimeTypeFromName(name);
   if (type.startsWith("image/")) {
@@ -139,6 +155,14 @@ async function payloadFromFormData(form: FormData): Promise<ParsePayload> {
 function payloadFromText(text: string, sourceName: string): ParsePayload {
   if (!text.trim()) {
     throw errorResponse("TEXT_REQUIRED", "Paste syllabus text or upload a readable text file.", false, 400);
+  }
+  if (text.length > MAX_TEXT_CHARACTERS) {
+    throw errorResponse(
+      "PAYLOAD_TOO_LARGE",
+      "Choose syllabus text shorter than 500,000 characters.",
+      false,
+      413
+    );
   }
 
   return {
@@ -176,10 +200,15 @@ async function recognizeImageBuffer(imageBytes: Uint8Array) {
   }
 
   try {
-    const worker = await getOcrWorker();
-    const result = await worker.recognize(Buffer.from(imageBytes));
+    const recognition = ocrQueue.then(async () => {
+      const worker = await getOcrWorker();
+      return worker.recognize(Buffer.from(imageBytes));
+    });
+    ocrQueue = recognition.then(() => undefined, () => undefined);
+    const result = await withTimeout(recognition, OCR_TIMEOUT_MS);
     return typeof result?.data?.text === "string" ? result.data.text : "";
-  } catch {
+  } catch (error) {
+    if (error instanceof Response) throw error;
     throw errorResponse(
       "OCR_TEXT_REQUIRED",
       "The parser could not recognize readable text in that image. Try a brighter, flatter photo or paste the text.",
@@ -187,6 +216,29 @@ async function recognizeImageBuffer(imageBytes: Uint8Array) {
       422
     );
   }
+}
+
+function withTimeout<T>(operation: Promise<T>, timeoutMs: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(errorResponse(
+        "OCR_TIMEOUT",
+        "Text recognition took too long. Try a smaller image or paste the text.",
+        true,
+        503
+      ));
+    }, timeoutMs);
+    operation.then(
+      (value) => {
+        clearTimeout(timeout);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timeout);
+        reject(error);
+      }
+    );
+  });
 }
 
 async function getOcrWorker() {

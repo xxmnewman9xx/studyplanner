@@ -26,12 +26,12 @@ expect(JSON.stringify(appJson).includes("group.com.mattnewman.studyplanner"), "A
 expect(appJson.ios?.appleTeamId === "5JN35MJ3QD", "Apple Team must remain 5JN35MJ3QD");
 
 expect(appSource.includes("Let's build your semester.") && appSource.includes("Your first name"), "onboarding must ask for name");
-expect(appSource.includes("Build your semester.") && appSource.includes("Preview what StudyPlanner finds before you unlock."), "Build 49 value-first funnel must remain");
-expect(["Upload PDF", "Scan with camera", "Skip for now"].every((copy) => appSource.includes(copy)) && (appSource.includes("Paste manually") || appSource.includes("Paste syllabus")), "import options must remain");
+expect(appSource.includes("Build your semester.") && appSource.includes("Review what StudyPlanner finds before anything saves."), "unlock-first review-before-save funnel must remain");
+expect(["Upload PDF", "Scan with camera", "Add class manually"].every((copy) => appSource.includes(copy)) && (appSource.includes("Paste manually") || appSource.includes("Paste syllabus")) && !appSource.includes('[textFor("option.skip", "Skip for now")'), "import options must remain without a skip option");
 expect(appSource.includes("const previewOnly = !data.prefs.premium"), "import scan must remain preview-only pre-paywall");
 expect(appSource.includes("Preview only.") && appSource.includes("Unlock my semester"), "review must show preview-only state");
 expect(appSource.includes("if (!data.prefs.premium)") && appSource.includes('nav.push("paywall")'), "apply must require paywall");
-expect(appSource.includes('completeAnd("lockedDashboard")') || appSource.includes('nav.tab("lockedDashboard")') || appSource.includes('route === "lockedDashboard"'), "skip must route locked");
+expect(!appSource.includes('completeAnd("lockedDashboard")') && !appSource.includes('source.scanIntent === "Skip for now"'), "skip setup path must stay removed");
 expect(appSource.includes("Semester locked") && appSource.includes("0 / locked") && appSource.includes("No dashboard data"), "locked dashboard must show 0/no data");
 expect(appSource.includes("function routeTokensFromUrl") && !appSource.includes('target.includes("plan")'), "deep links must be token gated");
 expect(appSource.includes("function appAccessLocked") && appSource.includes('setStack([{ route: "lockedDashboard" }]'), "deep links must route locked users to locked state");
@@ -52,7 +52,7 @@ ${failures.length ? "FAIL" : "PASS"}
 - Metadata: ${appJson.version} (${appJson.ios?.buildNumber})
 - Value-first funnel: ${appSource.includes("Build your semester.") ? "PASS" : "FAIL"}
 - Onboarding asks name: ${appSource.includes("Your first name") ? "PASS" : "FAIL"}
-- Import options: ${["Upload PDF", "Scan with camera", "Skip for now"].every((copy) => appSource.includes(copy)) && (appSource.includes("Paste manually") || appSource.includes("Paste syllabus")) ? "PASS" : "FAIL"}
+- Import options: ${["Upload PDF", "Scan with camera", "Add class manually"].every((copy) => appSource.includes(copy)) && (appSource.includes("Paste manually") || appSource.includes("Paste syllabus")) && !appSource.includes('[textFor("option.skip", "Skip for now")') ? "PASS" : "FAIL"}
 - Preview-only import: ${appSource.includes("const previewOnly = !data.prefs.premium") ? "PASS" : "FAIL"}
 - Apply requires paywall: ${appSource.includes("if (!data.prefs.premium)") && appSource.includes('nav.push("paywall")') ? "PASS" : "FAIL"}
 - Locked dashboard: ${appSource.includes("Semester locked") && appSource.includes("0 / locked") ? "PASS" : "FAIL"}

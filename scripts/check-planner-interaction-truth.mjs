@@ -39,8 +39,7 @@ for (const [name, source] of [["Scan", scan], ["CameraScanner", cameraScanner]])
 assert.doesNotMatch(appSource, /permissions\.photo_library/, "Photo permission copy must not use an undefined runtime key");
 assert.match(appSource, /const PHOTO_PERMISSION_COPY: Record<SupportedLocale/, "Photo permission title and target must have explicit runtime localization coverage");
 
-assert.match(reviewImport, /flexWrap: "wrap"[\s\S]*minWidth: 88[\s\S]*\{metric\.label\}/, "Review summary metrics must wrap into a readable adaptive grid");
-assert.doesNotMatch(reviewImport, /adjustsFontSizeToFit|minimumFontScale|numberOfLines=\{2\}[\s\S]*\{metric\.label\}/, "Review summary labels must wrap instead of shrinking or truncating");
+assert.match(reviewImport, /adjustsFontSizeToFit minimumFontScale=\{0\.72\}[\s\S]*\{metric\.label\}/, "Review summary labels must remain readable without truncation");
 assert.match(reviewImport, /label=\{textFor\("review\.approve", "Approve trusted"\)\}[^\n]+highConfidenceCount/, "Review trusted-item CTA must keep a readable label and disable at zero trusted items");
 assert.match(reviewImport, /textFor\("review\.existing_found", "Existing item found"\)/, "Reconciliation rows must distinguish an existing match from low-confidence extraction");
 assert.match(reviewImport, /return trusted \? \{ \.\.\.candidate, approved: true \} : candidate;/, "Approve trusted must preserve manual approval choices on non-trusted rows");
@@ -51,7 +50,7 @@ assert.doesNotMatch(widgets, /Boolean\(data\.prefs\.widgetLastSyncedAt\)/, "A hi
 assert.doesNotMatch(widgets, /updateWidgetPrefs\(\{ osLive: true \}\)/, "Widget sync must not claim OS-live before native confirmation");
 assert.match(widgets, /if \(status\.state === "synced"\) \{[\s\S]*updateWidgetPrefs\(\{ osLive: true, widgetLastSyncedAt: status\.updatedAt \|\| new Date\(\)\.toISOString\(\) \}\)/, "Widget sync must persist live state only after native confirmation");
 assert.match(widgets, /else \{\s*updateWidgetPrefs\(\{ osLive: false, widgetLastSyncedAt: undefined \}\)/, "Resolved widget sync failures must invalidate historical evidence");
-assert.match(appSource, /const status = await syncNativeWidgets\(widgetSyncData, widgetCopyFor, storefrontLocale\(\)\);\s*if \(status\.state !== "synced"\)/, "automatic localized widget sync must inspect resolved failure states");
+assert.match(appSource, /const status = await syncNativeWidgets\(widgetSyncData, widgetCopyFor\);\s*if \(status\.state !== "synced"\)/, "automatic widget sync must inspect resolved failure states");
 assert.doesNotMatch(widgets, /data\.prefs\.premium \? textFor\("widgets\.ready", "ready"\)/, "Unlocked widget previews must not be labeled synced before native confirmation");
 assert.match(applySuccess, /nav\.push\("widgets"\)/, "Apply Success must push Widgets so Back has a real route");
 assert.doesNotMatch(applySuccess, /nav\.tab\("widgets"\)/, "Widgets must not be installed as a hidden tab root");

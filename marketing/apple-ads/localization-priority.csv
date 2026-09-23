@@ -1,0 +1,18 @@
+rank,locale,market,campaign_status,paid_role,reason,next_action
+1,es-MX,Mexico / Spanish LATAM,launch_first,Primary active market,Best budget leverage because one localization can expand across multiple Spanish-speaking student markets,Launch exact core plus discovery at 5 USD/day total
+2,pt-BR,Brazil,test_second,Second active market,Strong existing localization and student search language around agenda/provas/cronograma,Run after es-MX first review window or if Spanish CPA is weak
+3,en-US,United States,exact_control,High-intent exact only,Large revenue market but likely expensive for 5 USD/day,Run brand plus 6-8 highest-intent exact terms only
+4,ko,South Korea,later_test,Localized high-intent test,Strong study-planner culture but requires native-quality CPP review before spend,Review CPP screenshots and run exact-only after LATAM/Brazil
+5,ja,Japan,later_test,Localized high-value test,High-value iOS education market but higher localization/cultural risk,Review native phrasing and run exact-only after cheaper markets
+6,fr-FR,France,expansion_test,Premium market test,Mature market with localized metadata and manageable keyword set,Use after one low-cost market proves subscription quality
+7,de-DE,Germany,expansion_test,Premium market test,Strong study-planner/timetable language but likely more competitive,Use after one low-cost market proves subscription quality
+8,en-GB,United Kingdom,defer,English expansion,Useful English market but spend should not fragment before US exact is understood,Reuse en-US winners with UK terms like revision/coursework
+9,en-CA,Canada,defer,English expansion,Good English market but budget fragmentation risk,Use after US exact and fr-CA decision
+10,en-AU,Australia,defer,English expansion,Good English market but budget fragmentation risk,Use after US/UK terms prove CPA
+11,es-ES,Spain,defer,Spanish expansion,Localized metadata exists but Spanish LATAM likely better early cost leverage,Reuse winning Spanish themes with Spain-specific school terms
+12,fr-CA,Canada French,defer,French expansion,Localized metadata exists but budget should not split from fr-FR/en-CA yet,Use only after Canada becomes a target market
+13,pt-PT,Portugal,defer,Portuguese expansion,Localized metadata exists but smaller scale than Brazil for same language family,Reuse Brazil winners after pt-BR proves signal
+14,zh-Hans,Mainland China / Simplified Chinese,defer,Do not launch now,Apple Ads and App Store requirements differ by region and product-page ads are not available in mainland China per Apple help,Do separate compliance and market review before spend
+15,zh-Hant,Taiwan / Hong Kong,defer,Later localized test,Localized metadata exists but not first-wave budget leverage,Review region availability and run exact-only if expanding in East Asia
+16,hi,India,defer,Later low-cost test,Localized metadata exists but subscription conversion and iOS purchasing power need proof,Consider only after pricing/subscription data supports India
+17,ar-SA,Saudi Arabia,defer,Later localized test,Localized metadata exists but requires RTL creative QA and market-specific review,Run CPP/RTL screenshot QA before any spend

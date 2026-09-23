@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import math
 import shutil
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -21,6 +22,7 @@ SOURCE_ROOT = ROOT / "test-results" / "localized-final-sweep"
 ASSET_ROOT = ROOT / "assets" / "AppPreviews" / "final"
 STORE_ROOT = ROOT / "store" / "apple" / "screenshot"
 LOGO_PATH = ROOT / "assets" / "app" / "study-planner-icon.png"
+WIDGET_HOME_SOURCE = ROOT / "qa-screenshots" / "live" / "device-studyplanner-two-small-week-final-candidate.png"
 
 CANVAS = (1242, 2688)
 SCREEN_SLOT = "APP_IPHONE_65"
@@ -70,7 +72,8 @@ SLIDES = [
     SlideSpec(4, "04-manage-semester.png", "17-classes.png", "s4h", "s4s", "s4p", (230, 126, 34), (255, 242, 229)),
     SlideSpec(5, "05-class-detail.png", "17a-class-detail.png", "s5h", "s5s", "s5p", (32, 128, 141), (229, 247, 248)),
     SlideSpec(6, "06-notes.png", "17b-notes.png", "s6h", "s6s", "s6p", (79, 98, 148), (235, 239, 250)),
-    SlideSpec(7, "07-focus.png", "17k-study-session.png", "s7h", "s7s", "s7p", (35, 35, 39), (241, 242, 244)),
+    SlideSpec(7, "07-real-home-screen-widgets.png", "__real_home_screen_widgets__", "s8h", "s8s", "s8p", (10, 132, 255), (232, 244, 255)),
+    SlideSpec(8, "08-focus.png", "17k-study-session.png", "s7h", "s7s", "s7p", (35, 35, 39), (241, 242, 244)),
 ]
 
 
@@ -98,6 +101,9 @@ COPY = {
         "s7h": "Always know what’s next.",
         "s7s": "Study sessions adapt around the work that matters most.",
         "s7p": "Focus session",
+        "s8h": "Keep it on your Home Screen.",
+        "s8s": "Real widgets show Today, class progress, and the week ahead.",
+        "s8p": "Real WidgetKit proof",
     },
     "de": {
         "brand": "StudyPlanner AI",
@@ -122,6 +128,9 @@ COPY = {
         "s7h": "Immer wissen, was kommt.",
         "s7s": "Lernsitzungen passen sich deinen wichtigsten Aufgaben an.",
         "s7p": "Fokuszeit",
+        "s8h": "Auf dem Home-Bildschirm.",
+        "s8s": "Echte Widgets zeigen Heute, Kursfortschritt und die Woche.",
+        "s8p": "Echter WidgetKit-Nachweis",
     },
     "es": {
         "brand": "StudyPlanner AI",
@@ -146,6 +155,9 @@ COPY = {
         "s7h": "Siempre sabes qué sigue.",
         "s7s": "Sesiones adaptadas al trabajo que más importa.",
         "s7p": "Sesión de foco",
+        "s8h": "En tu pantalla de inicio.",
+        "s8s": "Widgets reales muestran Hoy, progreso y la semana.",
+        "s8p": "Prueba real de WidgetKit",
     },
     "fr": {
         "brand": "StudyPlanner AI",
@@ -170,6 +182,9 @@ COPY = {
         "s7h": "Toujours la bonne suite.",
         "s7s": "Des sessions adaptées au travail le plus important.",
         "s7p": "Session focus",
+        "s8h": "Sur ton écran d’accueil.",
+        "s8s": "De vrais widgets montrent Aujourd’hui, progrès et semaine.",
+        "s8p": "Preuve WidgetKit réelle",
     },
     "pt-BR": {
         "brand": "StudyPlanner AI",
@@ -194,6 +209,9 @@ COPY = {
         "s7h": "Sempre saiba o próximo passo.",
         "s7s": "Sessões adaptadas ao que mais importa.",
         "s7p": "Sessão de foco",
+        "s8h": "Na sua Tela de Início.",
+        "s8s": "Widgets reais mostram Hoje, progresso e a semana.",
+        "s8p": "Prova real do WidgetKit",
     },
     "ja": {
         "brand": "StudyPlanner AI",
@@ -218,6 +236,9 @@ COPY = {
         "s7h": "次にやることが明確。",
         "s7s": "大事な作業に合わせて学習セッションを調整。",
         "s7p": "集中セッション",
+        "s8h": "ホーム画面で確認。",
+        "s8s": "実際のウィジェットで今日・進捗・週予定を表示",
+        "s8p": "実際のWidgetKit証明",
     },
     "ko": {
         "brand": "StudyPlanner AI",
@@ -242,6 +263,9 @@ COPY = {
         "s7h": "다음 할 일이 보입니다.",
         "s7s": "중요한 일에 맞춰 공부 세션이 조정됩니다.",
         "s7p": "집중 세션",
+        "s8h": "홈 화면에서 바로.",
+        "s8s": "실제 위젯이 오늘, 진행률, 이번 주를 보여줍니다.",
+        "s8p": "실제 WidgetKit 증거",
     },
     "zh-Hans": {
         "brand": "StudyPlanner AI",
@@ -266,6 +290,9 @@ COPY = {
         "s7h": "下一步一目了然。",
         "s7s": "学习时段围绕最重要的任务自动调整。",
         "s7p": "专注学习",
+        "s8h": "放在主屏幕上。",
+        "s8s": "真实小组件显示今日、进度和本周安排。",
+        "s8p": "真实 WidgetKit 证明",
     },
     "zh-Hant": {
         "brand": "StudyPlanner AI",
@@ -290,6 +317,9 @@ COPY = {
         "s7h": "下一步一目了然。",
         "s7s": "學習時段圍繞最重要的任務自動調整。",
         "s7p": "專注學習",
+        "s8h": "放在主畫面上。",
+        "s8s": "真實小工具顯示今日、進度和本週安排。",
+        "s8p": "真實 WidgetKit 證明",
     },
     "hi": {
         "brand": "StudyPlanner AI",
@@ -314,6 +344,9 @@ COPY = {
         "s7h": "अगला कदम हमेशा साफ।",
         "s7s": "जरूरी काम के हिसाब से पढ़ाई सत्र बदलते हैं।",
         "s7p": "फोकस सत्र",
+        "s8h": "होम स्क्रीन पर रखें।",
+        "s8s": "असली विजेट आज, प्रगति और हफ्ते को दिखाते हैं।",
+        "s8p": "असली WidgetKit प्रमाण",
     },
     "ar": {
         "brand": "StudyPlanner AI",
@@ -338,6 +371,78 @@ COPY = {
         "s7h": "اعرف خطوتك التالية.",
         "s7s": "جلسات دراسة تتكيف مع أهم عمل لديك.",
         "s7p": "جلسة تركيز",
+        "s8h": "على الشاشة الرئيسية.",
+        "s8s": "ويدجت حقيقية تعرض اليوم والتقدم والأسبوع.",
+        "s8p": "إثبات WidgetKit حقيقي",
+    },
+}
+
+WIDGET_COPY = {
+    "en-US": {
+        "today": "Today", "review": "Review today", "due": "due today", "reading": "Reading reflection", "readingShort": "Reading...",
+        "todayShort": "Today", "forecast": "Forecast", "score": "score", "recover": "Recover reading.", "flat": "flat",
+        "days": "7 days", "maxDay": "44 max/day", "busy": "5 busy days", "calendar": "Calendar widget", "peak": "Peak M",
+        "weekdays": ["M", "T", "W", "T", "F", "S", "S"],
+    },
+    "de": {
+        "today": "Heute", "review": "Heute prüfen", "due": "heute fällig", "reading": "Lese-Reflexion", "readingShort": "Lesen...",
+        "todayShort": "Heute", "forecast": "Prognose", "score": "Punkte", "recover": "Lesen nachholen.", "flat": "flach",
+        "days": "7 Tage", "maxDay": "44 max./Tag", "busy": "5 volle Tage", "calendar": "Kalender-Widget", "peak": "Spitze Mo",
+        "weekdays": ["M", "D", "M", "D", "F", "S", "S"],
+    },
+    "es": {
+        "today": "Hoy", "review": "Revisar hoy", "due": "vence hoy", "reading": "Reflexión de lectura", "readingShort": "Lectura...",
+        "todayShort": "Hoy", "forecast": "Pronóstico", "score": "puntos", "recover": "Recuperar lectura.", "flat": "plano",
+        "days": "7 días", "maxDay": "44 máx./día", "busy": "5 días cargados", "calendar": "Widget calendario", "peak": "Pico lun",
+        "weekdays": ["L", "M", "X", "J", "V", "S", "D"],
+    },
+    "fr": {
+        "today": "Aujourd’hui", "review": "Réviser", "due": "à rendre", "reading": "Réflexion lecture", "readingShort": "Lecture...",
+        "todayShort": "Aujourd’hui", "forecast": "Prévision", "score": "score", "recover": "Reprendre la lecture.", "flat": "plat",
+        "days": "7 jours", "maxDay": "44 max/jour", "busy": "5 jours chargés", "calendar": "Widget calendrier", "peak": "Pic lun",
+        "weekdays": ["L", "M", "M", "J", "V", "S", "D"],
+    },
+    "pt-BR": {
+        "today": "Hoje", "review": "Revisar hoje", "due": "vence hoje", "reading": "Reflexão de leitura", "readingShort": "Leitura...",
+        "todayShort": "Hoje", "forecast": "Previsão", "score": "pontos", "recover": "Retomar leitura.", "flat": "plano",
+        "days": "7 dias", "maxDay": "44 máx./dia", "busy": "5 dias cheios", "calendar": "Widget calendário", "peak": "Pico seg",
+        "weekdays": ["S", "T", "Q", "Q", "S", "S", "D"],
+    },
+    "ja": {
+        "today": "今日", "review": "今日確認", "due": "今日締切", "reading": "読書リフレクション", "readingShort": "読書...",
+        "todayShort": "今日", "forecast": "予測", "score": "点", "recover": "読書を回復。", "flat": "フラット",
+        "days": "7日", "maxDay": "44/日 最大", "busy": "忙しい日5日", "calendar": "カレンダー", "peak": "ピーク 月",
+        "weekdays": ["月", "火", "水", "木", "金", "土", "日"],
+    },
+    "ko": {
+        "today": "오늘", "review": "오늘 확인", "due": "오늘 마감", "reading": "읽기 리플렉션", "readingShort": "읽기...",
+        "todayShort": "오늘", "forecast": "예측", "score": "점수", "recover": "읽기 보완.", "flat": "플랫",
+        "days": "7일", "maxDay": "44 최대/일", "busy": "바쁜 날 5일", "calendar": "캘린더 위젯", "peak": "피크 월",
+        "weekdays": ["월", "화", "수", "목", "금", "토", "일"],
+    },
+    "zh-Hans": {
+        "today": "今天", "review": "今天查看", "due": "今天截止", "reading": "阅读反思", "readingShort": "阅读...",
+        "todayShort": "今天", "forecast": "预测", "score": "分", "recover": "补上阅读。", "flat": "扁平",
+        "days": "7天", "maxDay": "44/天最高", "busy": "5个忙碌日", "calendar": "日历小组件", "peak": "高峰 周一",
+        "weekdays": ["一", "二", "三", "四", "五", "六", "日"],
+    },
+    "zh-Hant": {
+        "today": "今天", "review": "今天查看", "due": "今天截止", "reading": "閱讀反思", "readingShort": "閱讀...",
+        "todayShort": "今天", "forecast": "預測", "score": "分", "recover": "補上閱讀。", "flat": "扁平",
+        "days": "7天", "maxDay": "44/天最高", "busy": "5個忙碌日", "calendar": "行事曆小工具", "peak": "高峰 週一",
+        "weekdays": ["一", "二", "三", "四", "五", "六", "日"],
+    },
+    "hi": {
+        "today": "आज", "review": "आज समीक्षा", "due": "आज देय", "reading": "पढ़ाई चिंतन", "readingShort": "पढ़ना...",
+        "todayShort": "आज", "forecast": "पूर्वानुमान", "score": "स्कोर", "recover": "पढ़ाई संभालें.", "flat": "फ्लैट",
+        "days": "7 दिन", "maxDay": "44 अधिक/दिन", "busy": "5 व्यस्त दिन", "calendar": "कैलेंडर विजेट", "peak": "शिखर सोम",
+        "weekdays": ["सो", "मं", "बु", "गु", "शु", "श", "र"],
+    },
+    "ar": {
+        "today": "اليوم", "review": "راجع اليوم", "due": "مستحق اليوم", "reading": "تأمل قراءة", "readingShort": "قراءة...",
+        "todayShort": "اليوم", "forecast": "التوقع", "score": "درجة", "recover": "استعد القراءة.", "flat": "مسطح",
+        "days": "٧ أيام", "maxDay": "٤٤ كحد/يوم", "busy": "٥ أيام مزدحمة", "calendar": "ويدجت التقويم", "peak": "الذروة الاثنين",
+        "weekdays": ["ن", "ث", "ر", "خ", "ج", "س", "ح"],
     },
 }
 
@@ -531,12 +636,141 @@ def fit_cover(src: Image.Image, size: tuple[int, int]) -> Image.Image:
     return resized.crop((left, top, left + tw, top + th))
 
 
-def draw_phone(img: Image.Image, source: Path, spec: SlideSpec) -> None:
+def widget_copy(locale: str, key: str):
+    return WIDGET_COPY.get(locale, WIDGET_COPY["en-US"])[key]
+
+
+def draw_widget_text(
+    draw: ImageDraw.ImageDraw,
+    locale: str,
+    box: tuple[int, int, int, int],
+    text: str,
+    size: int,
+    fill: tuple[int, int, int],
+    bold: bool = False,
+    minimum: int = 15,
+) -> None:
+    x1, y1, x2, y2 = box
+    face = fitted_font(draw, locale, text, max(1, x2 - x1), size, minimum, bold)
+    draw_text_line(draw, locale, (x1, y1, x2, y2), text, face, fill)
+
+
+def draw_widget_wrapped(
+    draw: ImageDraw.ImageDraw,
+    locale: str,
+    x: int,
+    y: int,
+    max_width: int,
+    text: str,
+    size: int,
+    fill: tuple[int, int, int],
+    bold: bool = False,
+    max_lines: int = 2,
+) -> None:
+    face = font(locale, size, bold)
+    draw_wrapped(draw, locale, x, y, max_width, text, face, fill, 5, max_lines)
+
+
+def localized_widget_home_source(locale: str, source: Path) -> Image.Image:
+    raw = Image.open(source).convert("RGBA")
+    width = raw.width
+    out_height = raw.height
+    blur = raw.filter(ImageFilter.GaussianBlur(34))
+    label_blur = raw.filter(ImageFilter.GaussianBlur(120))
+    out = blur.crop((0, 0, width, out_height))
+    out.alpha_composite(raw.crop((0, 0, width, min(1395, raw.height))), (0, 0))
+
+    def paste_blurred_band(y1: int, y2: int, opacity: int, feather: int) -> None:
+        band = label_blur.crop((0, y1, width, y2))
+        height = y2 - y1
+        mask = Image.new("L", (width, height), 0)
+        pixels = mask.load()
+        for y in range(height):
+            edge = min(y, height - 1 - y)
+            strength = min(1.0, edge / max(1, feather))
+            value = round(opacity * strength)
+            for x in range(width):
+                pixels[x, y] = value
+        out.paste(band, (0, y1), mask)
+
+    # Remove original English widget attribution labels and lower Home Screen app grid.
+    paste_blurred_band(665, 902, 255, 78)
+    paste_blurred_band(1255, 1465, 255, 72)
+    lower = blur.crop((0, 1395, width, out_height))
+    fade = Image.new("L", (width, out_height - 1395), 230)
+    out.alpha_composite(Image.composite(lower, Image.new("RGBA", lower.size, (236, 248, 250, 255)), fade), (0, 1395))
+
+    draw = ImageDraw.Draw(out)
+    ink = (12, 12, 15)
+    muted = (106, 111, 123)
+    orange = (255, 149, 0)
+    green = (22, 166, 110)
+    black = (0, 0, 0)
+
+    # Small Today widget.
+    draw.rounded_rectangle((78, 265, 562, 746), 62, fill=(255, 250, 242, 236), outline=(255, 255, 255, 160), width=2)
+    draw.ellipse((119, 368, 139, 388), fill=black)
+    draw_widget_text(draw, locale, (160, 360, 330, 402), widget_copy(locale, "today"), 30, muted, True)
+    draw_widget_text(draw, locale, (340, 360, 540, 402), widget_copy(locale, "review"), 24, orange, True)
+    draw_widget_text(draw, locale, (120, 425, 235, 500), "1", 62, ink, True)
+    draw_widget_text(draw, locale, (120, 512, 505, 560), widget_copy(locale, "due"), 34, ink, True)
+    draw_widget_text(draw, locale, (120, 580, 510, 625), widget_copy(locale, "reading"), 28, muted, True)
+    draw.ellipse((119, 650, 139, 670), fill=black)
+    draw_widget_text(draw, locale, (160, 642, 270, 684), "CS 201", 27, orange, True)
+    draw_widget_text(draw, locale, (286, 646, 420, 684), widget_copy(locale, "readingShort"), 22, ink, True)
+    draw_widget_text(draw, locale, (430, 646, 535, 684), widget_copy(locale, "todayShort"), 22, muted, True)
+
+    # Class progress widget.
+    draw.rounded_rectangle((620, 265, 1128, 746), 62, fill=(244, 255, 249, 238), outline=(255, 255, 255, 170), width=2)
+    draw_widget_text(draw, locale, (672, 327, 820, 370), "CS 201", 26, muted, True)
+    draw_widget_text(draw, locale, (1012, 327, 1102, 370), widget_copy(locale, "flat"), 22, green, True)
+    draw.ellipse((666, 420, 830, 584), fill=black)
+    draw_widget_text(draw, locale, (700, 455, 796, 510), "88", 42, (255, 255, 255), True)
+    draw_widget_text(draw, locale, (704, 512, 794, 550), widget_copy(locale, "score"), 20, (220, 220, 224), True)
+    draw_widget_text(draw, locale, (858, 420, 1110, 468), widget_copy(locale, "forecast"), 36, ink, True)
+    draw_widget_text(draw, locale, (858, 472, 1110, 512), widget_copy(locale, "forecast"), 27, muted, True)
+    draw_widget_wrapped(draw, locale, 672, 592, 390, widget_copy(locale, "recover"), 27, muted, True, 2)
+    draw.ellipse((668, 654, 688, 674), fill=black)
+    draw_widget_text(draw, locale, (708, 646, 820, 684), "CS 201", 25, green, True)
+    draw_widget_text(draw, locale, (835, 646, 966, 684), widget_copy(locale, "readingShort"), 22, ink, True)
+    draw_widget_text(draw, locale, (994, 646, 1112, 684), widget_copy(locale, "todayShort"), 22, muted, True)
+
+    # Week widget.
+    draw.rounded_rectangle((78, 855, 1128, 1328), 68, fill=(244, 255, 250, 238), outline=(255, 255, 255, 168), width=2)
+    draw_widget_text(draw, locale, (130, 895, 360, 935), widget_copy(locale, "days"), 27, muted, True)
+    draw_widget_text(draw, locale, (884, 895, 1085, 935), widget_copy(locale, "maxDay"), 24, green, True)
+    weekdays = widget_copy(locale, "weekdays")
+    xs = [132, 255, 378, 501, 624, 747, 870]
+    ys = [950, 1065]
+    numbers = [["6", "7", "8", "9", "10", "11", "12"], ["13", "14", "15", "16", "17", "18", "19"]]
+    for row, y in enumerate(ys):
+        for index, x in enumerate(xs):
+            active = row == 0 and index == 0
+            fill = green if active else (255, 255, 255, 214)
+            text_fill = (255, 255, 255) if active else ink
+            label_fill = (229, 255, 244) if active else muted
+            draw.rounded_rectangle((x, y, x + 82, y + 84), 25, fill=fill)
+            draw_widget_text(draw, locale, (x + 10, y + 11, x + 72, y + 39), weekdays[index], 18, label_fill, True, 10)
+            draw_widget_text(draw, locale, (x + 10, y + 38, x + 72, y + 72), numbers[row][index], 28, text_fill, True, 14)
+            draw.ellipse((x + 38, y + 70, x + 44, y + 76), fill=text_fill)
+    draw_widget_text(draw, locale, (130, 1190, 355, 1230), widget_copy(locale, "busy"), 25, ink, True)
+    draw_widget_text(draw, locale, (460, 1190, 735, 1230), widget_copy(locale, "calendar"), 20, muted, True)
+    draw_widget_text(draw, locale, (812, 1190, 1088, 1230), f"{widget_copy(locale, 'reading')} {widget_copy(locale, 'todayShort')}", 19, muted, True, 12)
+    draw_widget_text(draw, locale, (130, 1260, 355, 1305), widget_copy(locale, "peak"), 27, muted, True)
+
+    return out
+
+
+def draw_phone(img: Image.Image, source: Path, spec: SlideSpec, locale: str) -> None:
     outer_w = 950
     border = 19
     inner_w = outer_w - border * 2
-    with Image.open(source) as probe:
-        sw, sh = probe.size
+    if spec.source == "__real_home_screen_widgets__":
+        source_image = localized_widget_home_source(locale, source)
+        sw, sh = source_image.size
+    else:
+        source_image = Image.open(source).convert("RGBA")
+        sw, sh = source_image.size
     inner_h = round(inner_w * sh / sw)
     outer_h = inner_h + border * 2
     x = (CANVAS[0] - outer_w) // 2
@@ -558,7 +792,7 @@ def draw_phone(img: Image.Image, source: Path, spec: SlideSpec) -> None:
     pd.rounded_rectangle((border, border, outer_w - border - 1, outer_h - border - 1), 84, fill=(255, 255, 255))
     pd.rounded_rectangle((outer_w // 2 - 82, 23, outer_w // 2 + 82, 58), 18, fill=(5, 5, 6))
 
-    screen = fit_cover(Image.open(source).convert("RGBA"), (inner_w, inner_h))
+    screen = fit_cover(source_image, (inner_w, inner_h))
     screen_layer = Image.new("RGBA", (inner_w, inner_h), (0, 0, 0, 0))
     screen_layer.paste(screen, (0, 0), rounded_mask((inner_w, inner_h), 82))
     phone.alpha_composite(screen_layer, (border, border))
@@ -570,14 +804,20 @@ def draw_phone(img: Image.Image, source: Path, spec: SlideSpec) -> None:
     img.alpha_composite(phone, (x, y))
 
 
+def source_path_for(locale: str, spec: SlideSpec) -> Path:
+    if spec.source == "__real_home_screen_widgets__":
+        return WIDGET_HOME_SOURCE
+    return SOURCE_ROOT / SOURCE_LOCALE.get(locale, locale) / spec.source
+
+
 def compose(locale: str, spec: SlideSpec) -> Image.Image:
-    source = SOURCE_ROOT / SOURCE_LOCALE.get(locale, locale) / spec.source
+    source = source_path_for(locale, spec)
     if not source.exists():
         raise FileNotFoundError(source)
     img = background(spec)
     paste_logo_and_brand(img, locale)
     draw_header(img, locale, spec)
-    draw_phone(img, source, spec)
+    draw_phone(img, source, spec, locale)
     return img.convert("RGB")
 
 
@@ -590,6 +830,9 @@ def copy_to_store(locale: str, outputs: list[Path]) -> list[Path]:
     for store_locale in STORE_LOCALES[locale]:
         target_dir = STORE_ROOT / store_locale / SCREEN_SLOT
         target_dir.mkdir(parents=True, exist_ok=True)
+        stale_focus = target_dir / "07-focus.png"
+        if stale_focus.exists() and any(src.name == "08-focus.png" for src in outputs):
+            stale_focus.unlink()
         for src in outputs:
             dst = target_dir / src.name
             shutil.copy2(src, dst)
@@ -604,6 +847,7 @@ def main() -> None:
     ASSET_ROOT.mkdir(parents=True, exist_ok=True)
     outputs: dict[str, list[Path]] = {}
     copied_count = 0
+    requested_slides = [spec for spec in SLIDES if spec.source == "__real_home_screen_widgets__"] if "--widgets-only" in sys.argv else SLIDES
     for stale in list(ASSET_ROOT.glob("**/contact-sheet*.png")) + [ASSET_ROOT / "manifest.json", ASSET_ROOT / "review-gallery.html"]:
         if stale.exists():
             stale.unlink()
@@ -612,7 +856,7 @@ def main() -> None:
         out_dir = locale_asset_dir(locale)
         out_dir.mkdir(parents=True, exist_ok=True)
         locale_outputs: list[Path] = []
-        for spec in SLIDES:
+        for spec in requested_slides:
             output = out_dir / spec.output
             compose(locale, spec).save(output, optimize=True)
             locale_outputs.append(output)

@@ -22,8 +22,10 @@ type PlanScreenProps = {
   onOpenScan: () => void;
 };
 
-export function PlanScreen({ assignments, courses }: PlanScreenProps) {
+export function PlanScreen({ assignments, courses, onOpenAssignment, onOpenFocus, onOpenScan }: PlanScreenProps) {
   const { t } = useI18n();
+  const [viewMode, setViewMode] = React.useState<(typeof viewModes)[number]>("Day");
+  const [dateOffset, setDateOffset] = React.useState(0);
   const scheduleCourses = [
     courses[0] || fallbackCourses[0],
     courses[1] || fallbackCourses[1],
@@ -32,13 +34,14 @@ export function PlanScreen({ assignments, courses }: PlanScreenProps) {
   ];
   const load = assignments.filter((item) => item.status !== "done" && item.status !== "archived").length;
   const riskLevel = heat(load);
+  const dateTitle = dateTitles[((dateOffset % dateTitles.length) + dateTitles.length) % dateTitles.length];
 
   return (
     <View style={styles.surface}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.appBar}>
           <Text style={styles.title}>{t("plan.capture_title", "Calendar")}</Text>
-          <TouchableOpacity style={styles.iconButton} activeOpacity={0.78}>
+          <TouchableOpacity style={styles.iconButton} activeOpacity={0.78} onPress={onOpenScan}>
             <Plus size={22} color={SP.ink} />
           </TouchableOpacity>
         </View>
@@ -65,18 +68,18 @@ export function PlanScreen({ assignments, courses }: PlanScreenProps) {
         </View>
 
         <View style={styles.segment}>
-          {["Day", "Week", "Month"].map((item, index) => (
-            <TouchableOpacity key={item} style={[styles.segmentItem, index === 0 ? styles.segmentActive : null]} activeOpacity={0.82}>
-              <Text style={[styles.segmentText, index === 0 ? styles.segmentTextActive : null]}>{item}</Text>
+          {viewModes.map((item) => (
+            <TouchableOpacity key={item} style={[styles.segmentItem, viewMode === item ? styles.segmentActive : null]} activeOpacity={0.82} onPress={() => setViewMode(item)}>
+              <Text style={[styles.segmentText, viewMode === item ? styles.segmentTextActive : null]}>{item}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
         <View style={styles.dateRow}>
-          <Text style={styles.dateTitle}>Mon, Jun 2</Text>
+          <Text style={styles.dateTitle}>{dateTitle}</Text>
           <View style={styles.chevrons}>
-            <TouchableOpacity style={styles.smallIcon}><ChevronLeft size={18} color={SP.ink} /></TouchableOpacity>
-            <TouchableOpacity style={styles.smallIcon}><ChevronRight size={18} color={SP.ink} /></TouchableOpacity>
+            <TouchableOpacity style={styles.smallIcon} onPress={() => setDateOffset((current) => current - 1)}><ChevronLeft size={18} color={SP.ink} /></TouchableOpacity>
+            <TouchableOpacity style={styles.smallIcon} onPress={() => setDateOffset((current) => current + 1)}><ChevronRight size={18} color={SP.ink} /></TouchableOpacity>
           </View>
         </View>
 
@@ -84,12 +87,17 @@ export function PlanScreen({ assignments, courses }: PlanScreenProps) {
           {hours.map((hour, index) => {
             const block = blocks.find((item) => item.index === index);
             const course = block ? scheduleCourses[block.courseIndex] : null;
+            const nextAssignment = course ? assignments.find((item) => item.courseId === course.id && item.status !== "done" && item.status !== "archived") : undefined;
             return (
               <View key={hour} style={styles.hourRow}>
                 <Text style={styles.hourLabel}>{hour}</Text>
                 <View style={styles.hourLine}>
                   {block && course ? (
-                    <TouchableOpacity style={[styles.classBlock, { backgroundColor: tintFor(course.color), borderLeftColor: course.color || SP.blue }]} activeOpacity={0.84}>
+                    <TouchableOpacity
+                      style={[styles.classBlock, { backgroundColor: tintFor(course.color), borderLeftColor: course.color || SP.blue }]}
+                      activeOpacity={0.84}
+                      onPress={() => nextAssignment ? onOpenAssignment(nextAssignment.id) : onOpenFocus()}
+                    >
                       <Text style={styles.blockTitle}>{course.name}</Text>
                       <Text style={styles.blockRoom}>Room {course.room || block.room}</Text>
                     </TouchableOpacity>
@@ -104,6 +112,8 @@ export function PlanScreen({ assignments, courses }: PlanScreenProps) {
   );
 }
 
+const viewModes = ["Day", "Week", "Month"] as const;
+const dateTitles = ["Sun, Jun 1", "Mon, Jun 2", "Tue, Jun 3", "Wed, Jun 4", "Thu, Jun 5", "Fri, Jun 6", "Sat, Jun 7"];
 const hours = ["8a", "9a", "10a", "11a", "12p", "1p", "2p", "3p", "4p"];
 const blocks = [
   { index: 1, courseIndex: 0, room: "B204" },

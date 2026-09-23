@@ -1,0 +1,17 @@
+market,locale,campaign,campaign_daily_budget_usd,ad_group,search_match,default_max_cpt_usd,match_type,cpp_brief,status
+Mexico,es-MX,SP_es-MX_Search_Exact_Core,4.50,Brand_Exact,off,0.70,EXACT,cpp_assignments,launch
+Mexico,es-MX,SP_es-MX_Search_Exact_Core,4.50,Category_Assignments_Exact,off,0.55,EXACT,cpp_assignments,launch
+Mexico,es-MX,SP_es-MX_Search_Exact_Core,4.50,Category_Class_Schedule_Exact,off,0.50,EXACT,cpp_class_schedule,launch
+Mexico,es-MX,SP_es-MX_Search_Exact_Core,4.50,Category_Study_Exams_Exact,off,0.50,EXACT,cpp_exam_study,launch
+Mexico,es-MX,SP_es-MX_Search_Discovery,0.50,Discovery_Broad,off,0.20,BROAD,cpp_assignments,launch
+Mexico,es-MX,SP_es-MX_Search_Discovery,0.50,Discovery_Search_Match,on,0.15,NONE,cpp_assignments,launch
+Brazil,pt-BR,SP_pt-BR_Search_Exact_Core,4.50,Brand_Exact,off,0.70,EXACT,cpp_assignments,test_second
+Brazil,pt-BR,SP_pt-BR_Search_Exact_Core,4.50,Category_Assignments_Exact,off,0.55,EXACT,cpp_assignments,test_second
+Brazil,pt-BR,SP_pt-BR_Search_Exact_Core,4.50,Category_Class_Schedule_Exact,off,0.50,EXACT,cpp_class_schedule,test_second
+Brazil,pt-BR,SP_pt-BR_Search_Exact_Core,4.50,Category_Study_Exams_Exact,off,0.50,EXACT,cpp_exam_study,test_second
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,0.50,Discovery_Broad,off,0.20,BROAD,cpp_assignments,test_second
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,0.50,Discovery_Search_Match,on,0.15,NONE,cpp_assignments,test_second
+United States,en-US,SP_en-US_Search_Exact_Core,5.00,Brand_Exact,off,0.90,EXACT,cpp_assignments,exact_control
+United States,en-US,SP_en-US_Search_Exact_Core,5.00,Category_Assignments_Exact,off,0.75,EXACT,cpp_assignments,exact_control
+United States,en-US,SP_en-US_Search_Exact_Core,5.00,Category_Class_Schedule_Exact,off,0.65,EXACT,cpp_class_schedule,exact_control
+United States,en-US,SP_en-US_Search_Exact_Core,5.00,Category_Study_Exams_Exact,off,0.70,EXACT,cpp_exam_study,exact_control

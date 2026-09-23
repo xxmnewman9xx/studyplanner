@@ -12,6 +12,7 @@ import {
 } from "expo-iap";
 import type { ActiveSubscription, Product, ProductSubscription, Purchase } from "expo-iap";
 
+import { STUDYPLANNER_TRIAL_PRODUCT_ID } from "../iap";
 import { loadJson, removeJson, saveJson } from "./storage";
 import { allPremiumProductIds, hasConfiguredPurchases, purchaseConfig } from "./purchaseConfig";
 import { validateEntitlementWithServer } from "./purchaseValidation";
@@ -558,6 +559,12 @@ function subscriptionPeriodLabel(product: ProductSubscription) {
     return periodUnitLabel(product.subscriptionPeriodUnitIOS);
   }
 
+  if (product.platform === "android") {
+    if (/year/i.test(product.id)) return "Yearly";
+    if (/month/i.test(product.id)) return "Monthly";
+    if (/week/i.test(product.id)) return "Weekly";
+  }
+
   const offer = product.subscriptionOffers?.[0];
   if (offer?.period) {
     return periodUnitLabel(offer.period.unit);
@@ -604,18 +611,44 @@ function productHasFreeTrial(product: ProductSubscription) {
 function androidOfferToken(product: ProductSubscription) {
   if (product.platform !== "android") return undefined;
 
-  return (
-    product.subscriptionOffers?.find((offer) => offer.offerTokenAndroid)?.offerTokenAndroid ||
-    product.subscriptionOfferDetailsAndroid?.[0]?.offerToken
+  const standardizedOffers = (product.subscriptionOffers || []).filter((offer) =>
+    Boolean(offer.offerTokenAndroid)
   );
+  const standardizedTrial = standardizedOffers.find(
+    (offer) =>
+      offer.paymentMode === "free-trial" ||
+      offer.pricingPhasesAndroid?.pricingPhaseList.some(
+        (phase) => Number.parseInt(phase.priceAmountMicros, 10) === 0
+      )
+  );
+  const standardizedBasePlan = standardizedOffers.find((offer) => offer !== standardizedTrial);
+  const standardizedSelection =
+    product.id === STUDYPLANNER_TRIAL_PRODUCT_ID
+      ? standardizedTrial || standardizedBasePlan
+      : standardizedBasePlan || standardizedOffers[0];
+  if (standardizedSelection?.offerTokenAndroid) return standardizedSelection.offerTokenAndroid;
+
+  const legacyOffers = product.subscriptionOfferDetailsAndroid || [];
+  const legacyTrial = legacyOffers.find((offer) =>
+    offer.pricingPhases.pricingPhaseList.some(
+      (phase) => Number.parseInt(phase.priceAmountMicros, 10) === 0
+    )
+  );
+  const legacyBasePlan = legacyOffers.find((offer) => offer !== legacyTrial);
+  const legacySelection =
+    product.id === STUDYPLANNER_TRIAL_PRODUCT_ID
+      ? legacyTrial || legacyBasePlan
+      : legacyBasePlan || legacyOffers[0];
+
+  return legacySelection?.offerToken;
 }
 
 function sortProducts(a: PaywallProduct, b: PaywallProduct) {
   const rank = (product: PaywallProduct) => {
-    if (product.periodLabel === "Monthly") return 0;
-    if (product.kind === "lifetime") return 1;
+    if (product.periodLabel === "Yearly") return 0;
+    if (product.periodLabel === "Monthly") return 1;
     if (product.periodLabel === "Weekly") return 2;
-    if (product.periodLabel === "Yearly") return 3;
+    if (product.kind === "lifetime") return 3;
     return 4;
   };
 

@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-01",
+  "status": "locally_locked_external_verification_required",
+  "target": {
+    "platform": "ios",
+    "appStoreConnectAppId": "6766181202",
+    "bundleIdentifier": "com.mattnewman.studyplanner",
+    "version": "2.1.0",
+    "buildNumber": "82",
+    "previousRejectedBuildNumber": "81",
+    "appleTeamId": "5JN35MJ3QD"
+  },
+  "nativeBundles": [
+    "StudyplannerSyllabusAI",
+    "ExpoWidgetsTarget",
+    "StudyPlannerWatchApp",
+    "StudyPlannerWatchWidgets"
+  ],
+  "versioning": {
+    "appVersionSource": "local",
+    "autoIncrement": false,
+    "androidVersionCodeUnchanged": 80,
+    "requiredNextIosBuildNumber": "82"
+  },
+  "subscriptionContract": {
+    "groupIdentifier": "22066553",
+    "products": [
+      {
+        "productId": "com.mattnewman.studyplanner.plus.weekly",
+        "period": "P1W",
+        "usRenewalPrice": "6.99",
+        "introductoryOffer": {
+          "eligibleOnly": true,
+          "paymentMode": "pay_as_you_go",
+          "period": "P1W",
+          "periodCount": 1,
+          "usPrice": "0.99"
+        }
+      },
+      {
+        "productId": "com.mattnewman.studyplanner.plus.monthly",
+        "period": "P1M",
+        "usRenewalPrice": "14.99",
+        "introductoryOffer": null
+      },
+      {
+        "productId": "com.mattnewman.studyplanner.plus.yearly",
+        "period": "P1Y",
+        "usRenewalPrice": "39.99",
+        "introductoryOffer": null
+      }
+    ]
+  },
+  "locales": [
+    "ar-SA",
+    "de-DE",
+    "en-AU",
+    "en-CA",
+    "en-GB",
+    "en-US",
+    "es-ES",
+    "es-MX",
+    "fr-CA",
+    "fr-FR",
+    "hi",
+    "ja",
+    "ko",
+    "pt-BR",
+    "pt-PT",
+    "zh-Hans",
+    "zh-Hant"
+  ],
+  "commands": {
+    "localReleaseBuild": "xcodebuild -workspace ios/StudyplannerSyllabusAI.xcworkspace -scheme StudyplannerSyllabusAI -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build",
+    "easProductionBuild": "npx eas-cli@latest build --platform ios --profile production --non-interactive",
+    "easSubmission": "npx eas-cli@latest submit --platform ios --profile production --id <EAS_BUILD_ID> --non-interactive",
+    "metadataPush": "npx eas-cli@latest metadata:push"
+  },
+  "provenance": {
+    "sourceCommitAtAudit": "63992b2",
+    "requiresCleanReleaseCommit": true,
+    "easBuildId": null,
+    "artifactUrl": null,
+    "ipaSha256": null,
+    "processedInAppStoreConnect": false
+  },
+  "localVerification": {
+    "passed": [
+      "Expo SDK dependency compatibility",
+      "TypeScript typecheck",
+      "aggregate qa:release suite",
+      "runtime safety regression suite",
+      "IAP contract gate",
+      "17-locale runtime and metadata parity",
+      "iOS privacy manifest gate",
+      "release documentation guardrails",
+      "Build 82 access/onboarding/locked-funnel gate",
+      "iOS Hermes export",
+      "JSON and plist parsing",
+      "git diff whitespace validation"
+    ],
+    "blocked": [
+      "Unsigned native Release build: CocoaPods support files are not installed and pod update stopped because the host volume had only about 149 MiB free.",
+      "npm audit retains four high-severity image-size advisories in Metro build tooling; the only remaining automated resolution requires an unsafe/breaking Expo downgrade and was not applied.",
+      "GitNexus detect-changes crashed with exit code 139 on the unusually large pre-existing dirty worktree."
+    ]
+  },
+  "submissionPolicy": [
+    "Do not use --latest for submission; insert the exact verified EAS build ID.",
+    "Do not build until the release source is captured in an approved immutable commit.",
+    "Do not attach build 82 until IPA inspection confirms version 2.1.0, build 82, and matching embedded bundle versions.",
+    "Do not submit until App Store Connect pricing and Weekly introductory-offer eligibility are read back exactly."
+  ]
+}

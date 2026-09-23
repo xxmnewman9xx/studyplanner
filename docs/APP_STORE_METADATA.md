@@ -2,11 +2,11 @@
 
 ## Title
 
-StudyPlanner: Syllabus AI
+Study Planner AI
 
 ## Subtitle
 
-Homework, Exams, Class Schedule
+Syllabus, Homework & Exams
 
 This is safer than `Homework, Exams, Canvas` for the current release because Canvas sync is not implemented. Apple warns against metadata that uses trademarked, popular app, or irrelevant terms to game discovery, and App Store product-page guidance calls out improper keyword use as a rejection risk.
 
@@ -17,19 +17,19 @@ Sources:
 
 ## Keywords
 
-study planner, school planner, student planner, homework tracker, assignment tracker, exam planner, grade tracker, class schedule, timetable, syllabus ai, college planner
+`school,college,deadline,assignment,class,calendar,notes,focus,semester,lecture,GPA,timetable,todo`
+
+The field is 97 characters and avoids repeating words already indexed from the title and subtitle.
 
 Hold `canvas planner` until a shipped Canvas-compatible workflow exists.
 
 ## Short Description
 
-Import a syllabus with AI assistance, review every class and deadline, then start each day with a calm plan.
-
-Your next move, before you open the app. Subscriber-only Today, Upcoming, Week, and Class Progress widgets keep the next decision visible on the Home Screen; locked widgets never reveal coursework.
+Turn one syllabus into a reviewed semester plan—classes, deadlines, exams, reminders, and the next study move.
 
 ## Long Description Draft
 
-StudyPlanner: Syllabus AI helps high-school and college students turn syllabi, assignments, exams, class schedules, and grades into one daily plan.
+Study Planner AI helps high-school and college students turn one syllabus into a reviewed semester plan.
 
 Scan a syllabus photo, upload a text-based syllabus PDF, or paste class material, review the detected courses, deadlines, due times, and grade categories, then see what matters today. Track weighted grades, calculate what you need on remaining work, start a focus session for one assignment, and set reminders before exams and due dates.
 
@@ -41,7 +41,7 @@ Terms of Use:
 https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 
 Privacy Policy:
-https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408
+https://studyplanner-ai.xxmnewman9xx.workers.dev/privacy
 
 ## Screenshot Narrative
 
@@ -49,7 +49,7 @@ https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Polic
 2. Review every detected deadline.
 3. Know what to do today.
 4. Track grades and final targets.
-5. See the next decision on subscriber-only widgets without reopening the full planner.
+5. Keep the semester visible with reminders and widgets.
 
 ## Review Notes To Prepare
 

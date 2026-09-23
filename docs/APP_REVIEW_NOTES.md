@@ -4,13 +4,15 @@ StudyPlanner is available through the in-app subscription screen. To test subscr
 
 Purchase entitlement is checked against active subscriptions with native `expo-iap` store APIs. This build does not claim server-side receipt validation.
 
-Weekly, monthly, and yearly Plus products are each configured with a one-week introductory free trial for eligible new subscribers during the active offer period. Because Apple permits one introductory offer per subscription group, the paywall checks StoreKit eligibility before showing trial language. Eligible customers see the localized full renewal price and period (for example, “1 week free, then [price]/[period]”), plus auto-renewal and cancellation terms; ineligible customers see the normal localized plan price without a trial claim.
+The target U.S. prices are Weekly USD $6.99, Monthly USD $14.99, and Yearly USD $39.99. Weekly (`com.mattnewman.studyplanner.plus.weekly`) is the only product intended to carry a paid introductory offer: eligible new subscribers pay USD $0.99 for the first weekly period, then the localized weekly renewal price until canceled. Monthly and Yearly have no introductory offer. The paywall never hardcodes production prices; it enables checkout only after StoreKit returns a localized product, checks Apple’s subscription-group eligibility before showing the paid first-week offer, and always shows renewal and cancellation terms. Ineligible customers see the normal localized Weekly price without an introductory-offer claim.
+
+Before attaching this build to a review submission, verify the live App Store Connect subscription group matches those target prices and the paid first-week offer is attached to Weekly only. The checked local StoreKit configuration mirrors the target contract but is not evidence of live App Store Connect state.
 
 The app uses Apple's standard EULA:
 https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 
 Privacy Policy:
-https://political-turtle-752.notion.site/Study-Planner-Syllabus-AI-Privacy-Policy-51dfaa74348846e0996b2e0ca22b1408
+https://studyplanner-ai.xxmnewman9xx.workers.dev/privacy
 
 ## Supported syllabus import flow for this build
 
@@ -35,7 +37,7 @@ StudyPlanner keeps deadline data reviewable before it affects planning or device
 
 ## WidgetKit behavior
 
-iOS builds include four subscriber-only WidgetKit Home Screen widgets plus concise Lock Screen accessory families backed by the app group `group.com.mattnewman.studyplanner`: StudyPlanner Today (medium plus inline, circular, and rectangular accessories), StudyPlanner Upcoming (small plus accessories), StudyPlanner Week (medium plus accessories), and StudyPlanner Class Progress (small plus accessories). These widgets receive compact display snapshots from the app, not the full planner database. A non-entitled snapshot contains no coursework and opens the paywall; widget links only open Today, Plan, Class, Review, Focus, Scan, or Paywall routes.
+iOS builds include four WidgetKit Home Screen and Lock Screen accessory families backed by the app group `group.com.mattnewman.studyplanner`: StudyPlanner Today (small, medium, inline, circular, rectangular), StudyPlanner Upcoming (small, medium, inline, circular, rectangular), StudyPlanner Week (medium, inline, circular, rectangular), and StudyPlanner Class Progress (small, medium, inline, circular, rectangular). These widgets receive compact timeline snapshots from the app, not the full planner database.
 
 The widget snapshot includes reviewed assignment display fields only: local assignment ID, title, course code/color, due label, priority, assignment type, semester name, widget state, generated time, colors, and display copy. It excludes raw syllabus text, parsed raw text, teacher names, rooms, grades, notes, checklist details, reminder identifiers, calendar event identifiers, purchase state, and student name. Demo coursework and unreviewed or invalid scan results are not written to native widgets.
 

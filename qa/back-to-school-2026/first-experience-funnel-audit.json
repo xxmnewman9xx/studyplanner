@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T06:33:42.848Z",
+  "generatedAt": "2026-09-01T06:34:00.351Z",
   "status": "ready",
   "funnel": {
     "steps": [
@@ -7,15 +7,18 @@
       "priorities",
       "build"
     ],
-    "scanOptions": [],
+    "scanOptions": [
+      "Scan with camera",
+      "Paste syllabus",
+      "Add manually"
+    ],
     "maxClicksToPaywallWithOptionChange": 4,
     "personalization": {
       "nameStep": false,
       "personalBuildTitle": true
     },
     "activeRoutes": {
-      "primary": "onboarding -> paywall?next=scan&action=camera -> scan after StoreKit entitlement",
-      "camera": "scan -> cameraScanner",
+      "camera": "paywall?next=scan&action=camera -> cameraScanner after StoreKit entitlement",
       "paste": "paywall?next=paste&mode=syllabus -> paste after StoreKit entitlement",
       "manual": "paywall?next=paste&mode=manual -> manual setup after StoreKit entitlement"
     }
@@ -37,9 +40,9 @@
       "detail": "steps=[\"name\",\"priorities\",\"build\"]"
     },
     {
-      "name": "onboarding is scan-first with fallbacks deferred to Scan",
+      "name": "onboarding exposes only three build choices",
       "pass": true,
-      "detail": "Expected onboarding to lead with syllabus scanning and keep Paste/Manual on the Scan screen."
+      "detail": "scanOptions=[\"Scan with camera\",\"Paste syllabus\",\"Add manually\"]"
     },
     {
       "name": "first setup surface has no skip path",
@@ -52,9 +55,9 @@
       "detail": "maxClicksToPreviewWithOptionChange=4"
     },
     {
-      "name": "scan-first onboarding hits paywall before import",
+      "name": "scan, paste, and manual onboarding routes hit paywall before import",
       "pass": true,
-      "detail": "Expected fresh onboarding and a generic successful unlock to continue to Scan."
+      "detail": "Expected every onboarding source to open the purchase route before camera, paste, or manual input."
     },
     {
       "name": "paywall is a full screen, not a transient popup",
@@ -62,9 +65,14 @@
       "detail": "Expected the Paywall component to render a full route with App Store proof, purchase, and restore actions."
     },
     {
-      "name": "paywall presents the seasonal one-week trial only from live StoreKit data",
+      "name": "paywall presents the paid first-week offer only from eligible live StoreKit data",
       "pass": true,
       "detail": "Expected StoreKit introductory-offer data to control the seasonal card, plan badges, and purchase CTA."
+    },
+    {
+      "name": "paywall keeps localized legal utilities in the persistent purchase footer",
+      "pass": true,
+      "detail": "Expected Restore, Terms, Privacy, and Support to remain accessible beside the persistent purchase controls in every locale."
     },
     {
       "name": "actual IAP purchase callback preserves the selected paywall destination",

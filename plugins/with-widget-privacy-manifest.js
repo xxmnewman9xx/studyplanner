@@ -59,7 +59,7 @@ function ensureExistingFileIsAResource(project, targetUuid, fileRef) {
   phase.files.push({ value: buildFileUuid, comment });
 }
 
-function syncTargetVersions(project, targetUuid, marketingVersion, buildNumber, displayName) {
+function syncTargetVersions(project, targetUuid, marketingVersion, buildNumber) {
   const target = project.pbxNativeTargetSection()[targetUuid];
   const configList = project.pbxXCConfigurationList()[target?.buildConfigurationList];
   const configurations = project.pbxXCBuildConfigurationSection();
@@ -72,7 +72,6 @@ function syncTargetVersions(project, targetUuid, marketingVersion, buildNumber, 
       ...buildConfig.buildSettings,
       CURRENT_PROJECT_VERSION: Number.isInteger(Number(buildNumber)) ? Number(buildNumber) : buildNumber,
       MARKETING_VERSION: marketingVersion,
-      ...(displayName ? { INFOPLIST_KEY_CFBundleDisplayName: JSON.stringify(displayName) } : {}),
     };
   }
 }
@@ -86,7 +85,7 @@ module.exports = function withWidgetPrivacyManifest(config) {
       project.addBuildPhase([], "PBXResourcesBuildPhase", "Resources", targetUuid);
     }
     syncTargetVersions(project, project.getFirstTarget().uuid, projectConfig.version || "1.0.0", projectConfig.ios?.buildNumber || "1");
-    syncTargetVersions(project, targetUuid, projectConfig.version || "1.0.0", projectConfig.ios?.buildNumber || "1", "StudyPlanner Widgets");
+    syncTargetVersions(project, targetUuid, projectConfig.version || "1.0.0", projectConfig.ios?.buildNumber || "1");
 
     const targetDirectory = path.join(projectConfig.modRequest.platformProjectRoot, TARGET_NAME);
     fs.mkdirSync(targetDirectory, { recursive: true });

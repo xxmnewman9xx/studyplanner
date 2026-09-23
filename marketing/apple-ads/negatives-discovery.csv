@@ -1,0 +1,91 @@
+market,locale,campaign,ad_group,negative_keyword,match_type,reason
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,StudyPlanner,EXACT,Prevent overlap with brand exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Search_Match,StudyPlanner,EXACT,Prevent overlap with brand exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,StudyPlanner app,EXACT,Prevent overlap with brand exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Search_Match,StudyPlanner app,EXACT,Prevent overlap with brand exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,agenda escolar,EXACT,Prevent overlap with category exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Search_Match,agenda escolar,EXACT,Prevent overlap with category exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,agenda universitaria,EXACT,Prevent overlap with category exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Search_Match,agenda universitaria,EXACT,Prevent overlap with category exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,horario clases,EXACT,Prevent overlap with category exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Search_Match,horario clases,EXACT,Prevent overlap with category exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,tareas escolares,EXACT,Prevent overlap with category exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Search_Match,tareas escolares,EXACT,Prevent overlap with category exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,organizador tareas,EXACT,Prevent overlap with category exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Search_Match,organizador tareas,EXACT,Prevent overlap with category exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,calendario escolar,EXACT,Prevent overlap with category exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Search_Match,calendario escolar,EXACT,Prevent overlap with category exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,planificador estudio,EXACT,Prevent overlap with study exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Search_Match,planificador estudio,EXACT,Prevent overlap with study exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,estudiar examenes,EXACT,Prevent overlap with study exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Search_Match,estudiar examenes,EXACT,Prevent overlap with study exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,planner estudiante,EXACT,Prevent overlap with assignment exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Search_Match,planner estudiante,EXACT,Prevent overlap with assignment exact
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,para maestros,BROAD,Teacher-side intent
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Search_Match,para maestros,BROAD,Teacher-side intent
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,plan de clase,BROAD,Teacher lesson-plan intent
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Search_Match,plan de clase,BROAD,Teacher lesson-plan intent
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,respuestas,BROAD,Homework-answer intent
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Search_Match,respuestas,BROAD,Homework-answer intent
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,trampa,BROAD,Cheating intent
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Search_Match,trampa,BROAD,Cheating intent
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,canvas,EXACT,Unsupported LMS claim
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Search_Match,canvas,EXACT,Unsupported LMS claim
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Broad,classroom,EXACT,Unsupported classroom-platform intent
+Mexico,es-MX,SP_es-MX_Search_Discovery,Discovery_Search_Match,classroom,EXACT,Unsupported classroom-platform intent
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Broad,StudyPlanner,EXACT,Prevent overlap with brand exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Search_Match,StudyPlanner,EXACT,Prevent overlap with brand exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Broad,agenda escolar,EXACT,Prevent overlap with category exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Search_Match,agenda escolar,EXACT,Prevent overlap with category exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Broad,cronograma estudos,EXACT,Prevent overlap with category exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Search_Match,cronograma estudos,EXACT,Prevent overlap with category exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Broad,horario aulas,EXACT,Prevent overlap with category exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Search_Match,horario aulas,EXACT,Prevent overlap with category exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Broad,calendario escolar,EXACT,Prevent overlap with schedule exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Search_Match,calendario escolar,EXACT,Prevent overlap with schedule exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Broad,tarefas escola,EXACT,Prevent overlap with category exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Search_Match,tarefas escola,EXACT,Prevent overlap with category exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Broad,organizador estudos,EXACT,Prevent overlap with category exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Search_Match,organizador estudos,EXACT,Prevent overlap with category exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Broad,plano estudos,EXACT,Prevent overlap with study exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Search_Match,plano estudos,EXACT,Prevent overlap with study exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Broad,provas escola,EXACT,Prevent overlap with study exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Search_Match,provas escola,EXACT,Prevent overlap with study exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Broad,vestibular,EXACT,Prevent overlap with study exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Search_Match,vestibular,EXACT,Prevent overlap with study exact
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Broad,para professores,BROAD,Teacher-side intent
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Search_Match,para professores,BROAD,Teacher-side intent
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Broad,plano de aula,BROAD,Teacher lesson-plan intent
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Search_Match,plano de aula,BROAD,Teacher lesson-plan intent
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Broad,respostas,BROAD,Homework-answer intent
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Search_Match,respostas,BROAD,Homework-answer intent
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Broad,cola,BROAD,Cheating intent
+Brazil,pt-BR,SP_pt-BR_Search_Discovery,Discovery_Search_Match,cola,BROAD,Cheating intent
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Broad,StudyPlanner,EXACT,Prevent overlap with brand exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Search_Match,StudyPlanner,EXACT,Prevent overlap with brand exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Broad,Study Planner AI,EXACT,Prevent overlap with brand exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Search_Match,Study Planner AI,EXACT,Prevent overlap with brand exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Broad,study planner,EXACT,Prevent overlap with category exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Search_Match,study planner,EXACT,Prevent overlap with category exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Broad,student planner,EXACT,Prevent overlap with category exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Search_Match,student planner,EXACT,Prevent overlap with category exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Broad,homework planner,EXACT,Prevent overlap with category exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Search_Match,homework planner,EXACT,Prevent overlap with category exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Broad,assignment tracker,EXACT,Prevent overlap with category exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Search_Match,assignment tracker,EXACT,Prevent overlap with category exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Broad,class schedule,EXACT,Prevent overlap with schedule exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Search_Match,class schedule,EXACT,Prevent overlap with schedule exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Broad,exam planner,EXACT,Prevent overlap with study exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Search_Match,exam planner,EXACT,Prevent overlap with study exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Broad,study schedule,EXACT,Prevent overlap with study exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Search_Match,study schedule,EXACT,Prevent overlap with study exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Broad,deadline tracker,EXACT,Prevent overlap with assignment exact
+United States,en-US,SP_en-US_Search_Discovery,Discovery_Search_Match,deadline tracker,EXACT,Prevent overlap with assignment exact
+Global,all,all,all,teacher,BROAD,Irrelevant teacher-side intent unless search term report proves conversion
+Global,all,all,all,lesson plan,BROAD,Teacher lesson planning intent
+Global,all,all,all,canvas,EXACT,Unsupported LMS claim
+Global,all,all,all,blackboard,EXACT,Unsupported LMS claim
+Global,all,all,all,google classroom,EXACT,Unsupported classroom-platform intent
+Global,all,all,all,answers,EXACT,Avoid homework-answer intent
+Global,all,all,all,cheat,EXACT,Avoid cheating intent
+Global,all,all,all,template,BROAD,Avoid template-seeker intent unless proven

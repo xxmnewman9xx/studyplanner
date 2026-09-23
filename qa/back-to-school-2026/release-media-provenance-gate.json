@@ -1,0 +1,379 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-01T07:06:42.850Z",
+  "status": "blocked_not_release_media_ready",
+  "releaseMediaReady": false,
+  "mode": "audit",
+  "inputs": {
+    "manifest": "docs/launch/back-to-school-2026/app-store-connect-final-upload/release-media-provenance.json",
+    "schema": "docs/launch/back-to-school-2026/app-store-connect-final-upload/release-media-provenance.schema.json",
+    "storeConfig": "store.config.json",
+    "appConfig": "app.json"
+  },
+  "target": {
+    "platform": "ios",
+    "appVersion": "2.1.0",
+    "buildNumber": "82",
+    "bundleId": "com.mattnewman.studyplanner"
+  },
+  "coverage": {
+    "selectedIphoneExpected": 6,
+    "referencedIpadExpected": 25,
+    "totalExpected": 31,
+    "filesPresent": 25,
+    "manifestEntries": 0,
+    "ready": 0,
+    "blocked": 31
+  },
+  "exactBuildEvidence": {
+    "easBuildIds": [],
+    "gitShas": [],
+    "ipaSha256s": [],
+    "oneConsistentBuild": false
+  },
+  "failures": [
+    "Release-media provenance is locked to Build 80; app.json currently declares 82",
+    "Manifest status is blocked until all exact Build 80 evidence is complete",
+    "Manifest target appVersion does not match app.json",
+    "31 of 31 expected release screenshot(s) lack complete exact Build 80 provenance"
+  ],
+  "warnings": [],
+  "blockedAssets": [
+    {
+      "file": "qa/back-to-school-2026/copy-b-reviewed-plan-review-only-2026-07-09/screenshots/en-US/APP_IPHONE_65/01-start-with-class-material.png",
+      "locale": "en-US",
+      "screenSlot": "APP_IPHONE_65",
+      "scope": "selected_iphone",
+      "reasons": [
+        "output_file_missing",
+        "manifest_entry_missing"
+      ]
+    },
+    {
+      "file": "qa/back-to-school-2026/copy-b-reviewed-plan-review-only-2026-07-09/screenshots/en-US/APP_IPHONE_65/02-approve-every-deadline.png",
+      "locale": "en-US",
+      "screenSlot": "APP_IPHONE_65",
+      "scope": "selected_iphone",
+      "reasons": [
+        "output_file_missing",
+        "manifest_entry_missing"
+      ]
+    },
+    {
+      "file": "qa/back-to-school-2026/copy-b-reviewed-plan-review-only-2026-07-09/screenshots/en-US/APP_IPHONE_65/03-semester-takes-shape.png",
+      "locale": "en-US",
+      "screenSlot": "APP_IPHONE_65",
+      "scope": "selected_iphone",
+      "reasons": [
+        "output_file_missing",
+        "manifest_entry_missing"
+      ]
+    },
+    {
+      "file": "qa/back-to-school-2026/copy-b-reviewed-plan-review-only-2026-07-09/screenshots/en-US/APP_IPHONE_65/04-know-today.png",
+      "locale": "en-US",
+      "screenSlot": "APP_IPHONE_65",
+      "scope": "selected_iphone",
+      "reasons": [
+        "output_file_missing",
+        "manifest_entry_missing"
+      ]
+    },
+    {
+      "file": "qa/back-to-school-2026/copy-b-reviewed-plan-review-only-2026-07-09/screenshots/en-US/APP_IPHONE_65/05-give-deadlines-time.png",
+      "locale": "en-US",
+      "screenSlot": "APP_IPHONE_65",
+      "scope": "selected_iphone",
+      "reasons": [
+        "output_file_missing",
+        "manifest_entry_missing"
+      ]
+    },
+    {
+      "file": "qa/back-to-school-2026/copy-b-reviewed-plan-review-only-2026-07-09/screenshots/en-US/APP_IPHONE_65/06-choose-what-stays-visible.png",
+      "locale": "en-US",
+      "screenSlot": "APP_IPHONE_65",
+      "scope": "selected_iphone",
+      "reasons": [
+        "output_file_missing",
+        "manifest_entry_missing"
+      ]
+    },
+    {
+      "file": "store/apple/screenshot/de-DE/APP_IPAD_PRO_3GEN_129/german.png",
+      "locale": "de-DE",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "f6442fea3ee35c553c686f52518eafea79591734cafaa332e2254d370e90bd4f"
+    },
+    {
+      "file": "store/apple/screenshot/fr-CA/APP_IPAD_PRO_3GEN_129/french.png",
+      "locale": "fr-CA",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "487f1b259f67d0df3e6e7479ee19b739bae1bc527fda56f13834eb584a776680"
+    },
+    {
+      "file": "store/apple/screenshot/en-GB/APP_IPAD_PRO_3GEN_129/ipad-01-dashboard.png",
+      "locale": "en-GB",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "00534a65745c719a99f6a97d401614fec86130848d2648e9087dd4088b229c33"
+    },
+    {
+      "file": "store/apple/screenshot/en-GB/APP_IPAD_PRO_3GEN_129/ipad-02-calendar.png",
+      "locale": "en-GB",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "a2e68475079687e8a7412cf104c5fa54999488edc140fc87901085aac18ff5a7"
+    },
+    {
+      "file": "store/apple/screenshot/en-GB/APP_IPAD_PRO_3GEN_129/ipad-03-classes.png",
+      "locale": "en-GB",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "30ebbb7b351b3d59839bdb7e4b7179ab5ee9a7f62c80d2875648c0adff779f4a"
+    },
+    {
+      "file": "store/apple/screenshot/en-AU/APP_IPAD_PRO_3GEN_129/ipad-01-dashboard.png",
+      "locale": "en-AU",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "ce8041d4b807a1f0cca9ba541bfbd6b025dfb98b734bd59e6551399052cec260"
+    },
+    {
+      "file": "store/apple/screenshot/en-AU/APP_IPAD_PRO_3GEN_129/ipad-02-calendar.png",
+      "locale": "en-AU",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "7f7272fba9678c800e0cb915053ed804192ffe2014273625f75c6ba1860ca484"
+    },
+    {
+      "file": "store/apple/screenshot/en-AU/APP_IPAD_PRO_3GEN_129/ipad-03-classes.png",
+      "locale": "en-AU",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "2e5685e17055a0df319f2f320081108f7a9e77baf2c6a353113381d54162d8ca"
+    },
+    {
+      "file": "store/apple/screenshot/zh-Hans/APP_IPAD_PRO_3GEN_129/chinese.png",
+      "locale": "zh-Hans",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "df9ce11e6155c469c11996c2c8528a84e61055a82ffed5433af457049c2d0518"
+    },
+    {
+      "file": "store/apple/screenshot/es-ES/APP_IPAD_PRO_3GEN_129/spanish.png",
+      "locale": "es-ES",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "9ccef0688e598ba30fe40d81cb705c0f64365f50d8cd65af37a139d96dc61961"
+    },
+    {
+      "file": "store/apple/screenshot/pt-BR/APP_IPAD_PRO_3GEN_129/portugese.png",
+      "locale": "pt-BR",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "6c4aed722b3acfbdaaf1ab921b2fb2ce3e9c0384b5f7ecac96852adca4bd8af2"
+    },
+    {
+      "file": "store/apple/screenshot/pt-PT/APP_IPAD_PRO_3GEN_129/portugese.png",
+      "locale": "pt-PT",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "0bae857d7afee00bdf6b16b00d43d3434eef05feae918a989407c57cf580fff4"
+    },
+    {
+      "file": "store/apple/screenshot/ar-SA/APP_IPAD_PRO_3GEN_129/arabic.png",
+      "locale": "ar-SA",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "43751aee106673fa569c1d1f5b2d10323ec504ac66a63b5ecbbea8efc9e7d0ee"
+    },
+    {
+      "file": "store/apple/screenshot/hi/APP_IPAD_PRO_3GEN_129/hindi.png",
+      "locale": "hi",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "65a88c9f2b824bdd6c3631f6382e5c2f4b423c68f393b70aecfd48033a1061ef"
+    },
+    {
+      "file": "store/apple/screenshot/ko/APP_IPAD_PRO_3GEN_129/korean.png",
+      "locale": "ko",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "f99fd192c04312eafff627d100246020836a9989d8397a6485f4fd5bbe1bb9a4"
+    },
+    {
+      "file": "store/apple/screenshot/es-MX/APP_IPAD_PRO_3GEN_129/spanish.png",
+      "locale": "es-MX",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "912667c2259044842defe5aa6ad7311a487a7191ff140910224e9e4ef9173f63"
+    },
+    {
+      "file": "store/apple/screenshot/zh-Hant/APP_IPAD_PRO_3GEN_129/chinese.png",
+      "locale": "zh-Hant",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "c56dc3d0c8ccebe88c147e5ac85ed763c814cbf8c2d132eb4ddcbaf4fb75c23a"
+    },
+    {
+      "file": "store/apple/screenshot/fr-FR/APP_IPAD_PRO_3GEN_129/french.png",
+      "locale": "fr-FR",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "031f41f1cb59c7ae609cc6c58705cdc4540a8f5fa9b23510c34c48e70606382b"
+    },
+    {
+      "file": "store/apple/screenshot/ja/APP_IPAD_PRO_3GEN_129/japanese.png",
+      "locale": "ja",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "90aedac478ef906d0189fd4c699afcdeb4bce0045634f2aab7e68a89e5c30d72"
+    },
+    {
+      "file": "store/apple/screenshot/en-CA/APP_IPAD_PRO_3GEN_129/ipad-01-dashboard.png",
+      "locale": "en-CA",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "c88698f0fc99c024ed76c1ec3117b5ac3a1273b7b420471b7a6323e2b2b21689"
+    },
+    {
+      "file": "store/apple/screenshot/en-CA/APP_IPAD_PRO_3GEN_129/ipad-02-calendar.png",
+      "locale": "en-CA",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "b6ff9bbfcdb3530a27ade97191d3246ed69e092135c692b5d0d4a6ad675a4ef9"
+    },
+    {
+      "file": "store/apple/screenshot/en-CA/APP_IPAD_PRO_3GEN_129/ipad-03-classes.png",
+      "locale": "en-CA",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "825dae16af8bf5be6b70b853580dc2e0462df1dee121c468fe37422ba5f0858f"
+    },
+    {
+      "file": "store/apple/screenshot/en-US/APP_IPAD_PRO_3GEN_129/ipad-01-dashboard.png",
+      "locale": "en-US",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "6bf1269be0ba29c81f07fa4c53d78fd381b31ccc2e5d090e0c81c0235d417d53"
+    },
+    {
+      "file": "store/apple/screenshot/en-US/APP_IPAD_PRO_3GEN_129/ipad-02-calendar.png",
+      "locale": "en-US",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "53b96532a96017e5059995f044fd7a0b3c5f017762515b53a68bbf146f7d8f3b"
+    },
+    {
+      "file": "store/apple/screenshot/en-US/APP_IPAD_PRO_3GEN_129/ipad-03-classes.png",
+      "locale": "en-US",
+      "screenSlot": "APP_IPAD_PRO_3GEN_129",
+      "scope": "referenced_ipad",
+      "reasons": [
+        "manifest_entry_missing",
+        "current_ipad_asset_is_legacy_or_unproven_for_build80"
+      ],
+      "actualOutputSha256": "520ee48d2bc2a361f8a3fd8958a52187c11815d90402057b7f1dd6dbeac21939"
+    }
+  ],
+  "extraManifestFiles": []
+}

@@ -1,0 +1,194 @@
+{
+  "generatedAt": "2026-06-19",
+  "dailyBudgetUsd": 5,
+  "monthlyBudgetEstimateUsd": 152,
+  "sourceOfTruth": {
+    "appStoreMetadata": "store.config.json",
+    "activeReviewBoundary": "store.config.json apple.review.notes",
+    "metadataGuardrails": "docs/APP_STORE_METADATA.md"
+  },
+  "globalRules": {
+    "placement": "App Store search results",
+    "product": "Apple Ads Advanced / Manage Bids",
+    "activeMarketsAtOnce": 1,
+    "defaultExactDailyBudgetUsd": 4.5,
+    "defaultDiscoveryDailyBudgetUsd": 0.5,
+    "searchMatch": "Discovery only",
+    "competitorBidding": "Disabled at launch; enable after category exact terms convert",
+    "cpaCap": "Do not set during the first learning window unless spend escapes",
+    "primaryOptimizationMetric": "subscription or trial start CPA when available; install CPA is a proxy only",
+    "maxCptFormula": "target subscription CPA x tap-to-install CVR x install-to-subscription CVR",
+    "calendarDayCapRule": "Apple daily budgets are monthly averages; if spend must never exceed 5 USD on a calendar day, pause manually as spend approaches the cap.",
+    "excludedClaims": [
+      "Canvas",
+      "LMS sync",
+      "automatic homework submission",
+      "guaranteed syllabus extraction",
+      "camera/photo OCR",
+      "school account connection"
+    ]
+  },
+  "marketRotation": [
+    {
+      "rank": 1,
+      "market": "Mexico / Spanish LATAM",
+      "primaryLocale": "es-MX",
+      "countryCodes": ["MX"],
+      "laterCountryTests": ["CO", "CL", "PE", "AR"],
+      "status": "launch_first",
+      "reason": "One Spanish localization can cover multiple lower-cost student markets, and the current App Store metadata is localized and conversion-ready.",
+      "targetSubscriptionCpaUsd": 8,
+      "temporaryInstallCpaGuardrailUsd": 2.5,
+      "campaigns": [
+        {
+          "name": "SP_es-MX_Search_Exact_Core",
+          "dailyBudgetUsd": 4.5,
+          "searchMatch": false,
+          "adGroups": [
+            {
+              "name": "Brand_Exact",
+              "matchType": "EXACT",
+              "defaultMaxCptUsd": 0.7,
+              "intent": "defensive branded demand"
+            },
+            {
+              "name": "Category_Assignments_Exact",
+              "matchType": "EXACT",
+              "defaultMaxCptUsd": 0.55,
+              "intent": "agenda, homework, assignments"
+            },
+            {
+              "name": "Category_Class_Schedule_Exact",
+              "matchType": "EXACT",
+              "defaultMaxCptUsd": 0.5,
+              "intent": "class schedule and calendar"
+            },
+            {
+              "name": "Category_Study_Exams_Exact",
+              "matchType": "EXACT",
+              "defaultMaxCptUsd": 0.5,
+              "intent": "study planning and exam preparation"
+            }
+          ]
+        },
+        {
+          "name": "SP_es-MX_Search_Discovery",
+          "dailyBudgetUsd": 0.5,
+          "searchMatch": "separate ad group only",
+          "adGroups": [
+            {
+              "name": "Discovery_Broad",
+              "matchType": "BROAD",
+              "defaultMaxCptUsd": 0.2,
+              "intent": "query mining from proven exact themes"
+            },
+            {
+              "name": "Discovery_Search_Match",
+              "matchType": "NONE",
+              "defaultMaxCptUsd": 0.15,
+              "intent": "Apple metadata-based query mining"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rank": 2,
+      "market": "Brazil",
+      "primaryLocale": "pt-BR",
+      "countryCodes": ["BR"],
+      "status": "test_second",
+      "reason": "Localized metadata is strong and student demand clusters around agenda, provas, vestibular/ENEM, and study routine language.",
+      "targetSubscriptionCpaUsd": 8,
+      "temporaryInstallCpaGuardrailUsd": 2.5,
+      "defaultExactMaxCptUsd": 0.55,
+      "defaultDiscoveryMaxCptUsd": 0.2
+    },
+    {
+      "rank": 3,
+      "market": "United States",
+      "primaryLocale": "en-US",
+      "countryCodes": ["US"],
+      "status": "exact_control",
+      "reason": "Largest revenue market but likely expensive; keep to high-intent exact terms only until conversion data supports scale.",
+      "targetSubscriptionCpaUsd": 12,
+      "temporaryInstallCpaGuardrailUsd": 4,
+      "defaultExactMaxCptUsd": 0.75,
+      "defaultDiscoveryMaxCptUsd": 0
+    },
+    {
+      "rank": 4,
+      "market": "South Korea",
+      "primaryLocale": "ko",
+      "countryCodes": ["KR"],
+      "status": "later_test",
+      "reason": "Strong study productivity culture and localized App Store metadata, but requires native-quality CPP review before spend.",
+      "targetSubscriptionCpaUsd": 10,
+      "temporaryInstallCpaGuardrailUsd": 3.5,
+      "defaultExactMaxCptUsd": 0.6,
+      "defaultDiscoveryMaxCptUsd": 0.22
+    },
+    {
+      "rank": 5,
+      "market": "Japan",
+      "primaryLocale": "ja",
+      "countryCodes": ["JP"],
+      "status": "later_test",
+      "reason": "High-value iOS market with localized metadata; launch after LATAM/Brazil prove subscription conversion.",
+      "targetSubscriptionCpaUsd": 10,
+      "temporaryInstallCpaGuardrailUsd": 3.5,
+      "defaultExactMaxCptUsd": 0.65,
+      "defaultDiscoveryMaxCptUsd": 0.22
+    },
+    {
+      "rank": 6,
+      "market": "France",
+      "primaryLocale": "fr-FR",
+      "countryCodes": ["FR"],
+      "status": "expansion_test",
+      "reason": "Mature education market; useful after cheaper markets validate paid funnel quality.",
+      "targetSubscriptionCpaUsd": 10,
+      "temporaryInstallCpaGuardrailUsd": 3.5,
+      "defaultExactMaxCptUsd": 0.55,
+      "defaultDiscoveryMaxCptUsd": 0.18
+    },
+    {
+      "rank": 7,
+      "market": "Germany",
+      "primaryLocale": "de-DE",
+      "countryCodes": ["DE"],
+      "status": "expansion_test",
+      "reason": "Strong study-planner search language, but likely more competitive than LATAM/Brazil.",
+      "targetSubscriptionCpaUsd": 10,
+      "temporaryInstallCpaGuardrailUsd": 3.5,
+      "defaultExactMaxCptUsd": 0.55,
+      "defaultDiscoveryMaxCptUsd": 0.18
+    }
+  ],
+  "customProductPageBriefs": [
+    {
+      "id": "cpp_assignments",
+      "intent": "assignments and deadlines",
+      "recommendedScreenshots": ["01-scan-syllabus", "03-plan-autopilot", "04-manage-semester"],
+      "deepLink": "studyplanner://today",
+      "primaryLocales": ["es-MX", "pt-BR", "en-US"],
+      "expansionLocales": ["ja", "ko", "fr-FR", "de-DE"]
+    },
+    {
+      "id": "cpp_class_schedule",
+      "intent": "classes, calendar, and semester organization",
+      "recommendedScreenshots": ["02-semester-health", "04-manage-semester", "05-class-detail"],
+      "deepLink": "studyplanner://courses",
+      "primaryLocales": ["es-MX", "pt-BR", "en-US"],
+      "expansionLocales": ["ja", "ko", "fr-FR", "de-DE"]
+    },
+    {
+      "id": "cpp_exam_study",
+      "intent": "exam planning and focused study sessions",
+      "recommendedScreenshots": ["02-semester-health", "07-focus", "06-notes"],
+      "deepLink": "studyplanner://study",
+      "primaryLocales": ["es-MX", "pt-BR", "en-US"],
+      "expansionLocales": ["ja", "ko", "fr-FR", "de-DE"]
+    }
+  ]
+}

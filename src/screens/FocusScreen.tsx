@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
 import { AppButton, AppHeader, AppSurface, SP } from "../components/PrototypeUI";
@@ -20,11 +20,26 @@ type FocusScreenProps = {
   onAddNote: (note: Omit<StudyNote, "id" | "createdAt" | "updatedAt">) => void;
 };
 
-export function FocusScreen({ assignments, courses, defaultMinutes, preferredAssignmentId, focusAccent = SP.blue }: FocusScreenProps) {
+export function FocusScreen({ assignments, courses, defaultMinutes, sessions, preferredAssignmentId, focusAccent = SP.blue, onRecordSession }: FocusScreenProps) {
   const { t } = useI18n();
+  const [paused, setPaused] = React.useState(false);
   const assignment = assignments.find((item) => item.id === preferredAssignmentId) || assignments.find((item) => item.status !== "done");
   const course = courses.find((item) => item.id === assignment?.courseId);
   const minutes = Math.max(defaultMinutes || 45, 45);
+  const assignmentId = assignment?.id || "focus-session";
+  const recordStoppedSession = () => {
+    const endedAt = new Date();
+    onRecordSession({
+      id: `focus-prototype-${endedAt.getTime()}`,
+      assignmentId,
+      durationMinutes: minutes,
+      startedAt: new Date(endedAt.getTime() - minutes * 60_000).toISOString(),
+      endedAt: endedAt.toISOString(),
+      status: "stopped",
+      sessionNumber: sessions.filter((session) => session.assignmentId === assignmentId).length + 1,
+      notes: "Focus session ended from prototype screen."
+    });
+  };
   return (
     <AppSurface style={styles.screen}>
       <AppHeader eyebrow={t("focus.stage_kicker", "Focus session")} title="" />
@@ -56,8 +71,10 @@ export function FocusScreen({ assignments, courses, defaultMinutes, preferredAss
         </View>
       </View>
       <View style={styles.actions}>
-        <AppButton label="Pause" variant="blue" style={{ height: 64 }} />
-        <Text style={styles.end}>End session</Text>
+        <AppButton label={paused ? "Resume" : "Pause"} variant="blue" onPress={() => setPaused((current) => !current)} style={{ height: 64 }} />
+        <TouchableOpacity onPress={recordStoppedSession} activeOpacity={0.78}>
+          <Text style={styles.end}>End session</Text>
+        </TouchableOpacity>
       </View>
     </AppSurface>
   );

@@ -1,0 +1,36 @@
+{
+  "generatedAt": "2026-08-21T00:49:29.817Z",
+  "outputRoot": "qa/weekly-trial-paywall-2026-08-20/screenshots/pt-BR",
+  "device": "KAMI iPhone 17 Pro",
+  "bundleId": "com.mattnewman.studyplanner",
+  "locale": "pt-BR",
+  "screenshotCount": 1,
+  "entries": [
+    {
+      "locale": "pt-BR",
+      "device": "KAMI iPhone 17 Pro",
+      "appearance": "light",
+      "theme": "default",
+      "widgetType": "paywall",
+      "size": "screen",
+      "background": "default",
+      "palette": "default",
+      "font": "system",
+      "layout": "default",
+      "classFocus": "all",
+      "dataState": "normal",
+      "route": {
+        "route": "paywall",
+        "emptyPlanner": true
+      },
+      "source": "actual-app-simulator-preview",
+      "screenshotPath": "qa/weekly-trial-paywall-2026-08-20/screenshots/pt-BR/24-paywall.png",
+      "bytes": 431399,
+      "sha256": "f3a2ee5b60087e1866a2fb256078557cf7902ecd808c78a965c2e4b4cb35a309",
+      "noCropResult": "pending-layout-manifest-validation",
+      "scoreResult": "pending-scorecard",
+      "gitCommit": "63992b2f",
+      "timestamp": "2026-08-21T00:49:29.817Z"
+    }
+  ]
+}

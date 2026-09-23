@@ -23,7 +23,8 @@ export function extractTextFromPdfBase64(base64: string) {
     textChunks.push(fallback);
   }
 
-  return cleanExtractedText(textChunks.join("\n"));
+  const text = cleanExtractedText(textChunks.join("\n"));
+  return looksCorrupted(text) ? "" : text;
 }
 
 function base64ToBytes(base64: string) {
@@ -260,4 +261,14 @@ function cleanExtractedText(text: string) {
     .replace(/\n\s+/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+}
+
+function looksCorrupted(text: string) {
+  if (!text.trim()) return true;
+  const badMarkers = text.match(/[�□]|Ã.|Â.|â[€\u0080-\u00bf]|ã[€\u0080-\u00bf]/g) || [];
+  const controls = text.match(/[\u0001-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f]/g) || [];
+  const letters = text.match(/\p{L}/gu) || [];
+  if (badMarkers.length > 0) return true;
+  if (controls.length > Math.max(2, text.length * 0.01)) return true;
+  return letters.length < Math.min(12, Math.floor(text.length * 0.08));
 }

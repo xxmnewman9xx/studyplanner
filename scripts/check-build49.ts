@@ -29,8 +29,8 @@ expect(appSource.includes("PRE_PURCHASE_ROUTES") && appSource.includes("\"locked
 expect(appSource.includes("gatedRoute") && appSource.includes("return \"lockedDashboard\""), "non-premium routes must resolve to locked dashboard");
 expect(appSource.includes("function routeTokensFromUrl") && appSource.includes("setStack([{ route: \"lockedDashboard\" }]"), "deep links must be tokenized and gated");
 
-expect(appSource.includes("Build your semester.") && appSource.includes("Preview what StudyPlanner finds before you unlock."), "onboarding end must be value-first import options");
-expect(["Upload PDF", "Paste manually", "Scan with camera", "Skip for now"].every((copy) => appSource.includes(copy)), "onboarding end must offer PDF, paste, scan, and skip");
+expect(appSource.includes("Build your semester.") && appSource.includes("Review what StudyPlanner finds before anything saves."), "onboarding end must be unlock-first review-before-save import options");
+expect(["Upload PDF", "Paste manually", "Scan with camera", "Add class manually"].every((copy) => appSource.includes(copy)) && !appSource.includes('[textFor("option.skip", "Skip for now")'), "onboarding end must offer PDF, paste, scan, and manual setup without a skip option");
 
 expect(appSource.includes("Preview only.") && appSource.includes("Unlock my semester"), "import review must show preview-only state and premium CTA");
 expect(appSource.includes("if (!data.prefs.premium)") && appSource.includes("nav.push(\"paywall\")"), "review apply must require paywall before persistence");
@@ -62,7 +62,7 @@ ${failures.length ? "FAIL" : "PASS"}
 - Metadata: ${appJson.version} (${appJson.ios?.buildNumber})
 - Explicit gate model: ${appSource.includes("gatedRoute") ? "PASS" : "FAIL"}
 - Onboarding separate from premium: ${appSource.includes("onboardingComplete") && appSource.includes("lockUnvalidatedPremium") ? "PASS" : "FAIL"}
-- Import options: ${["Upload PDF", "Paste manually", "Scan with camera", "Skip for now"].every((copy) => appSource.includes(copy)) ? "PASS" : "FAIL"}
+- Import options: ${["Upload PDF", "Paste manually", "Scan with camera", "Add class manually"].every((copy) => appSource.includes(copy)) && !appSource.includes('[textFor("option.skip", "Skip for now")') ? "PASS" : "FAIL"}
 - Preview-only review: ${appSource.includes("Preview only.") && appSource.includes("Unlock my semester") ? "PASS" : "FAIL"}
 - Paywall-before-apply: ${appSource.includes("if (!data.prefs.premium)") && appSource.includes("nav.push(\"paywall\")") ? "PASS" : "FAIL"}
 - Locked dashboard: ${appSource.includes("Semester locked") && appSource.includes("0 / locked") ? "PASS" : "FAIL"}

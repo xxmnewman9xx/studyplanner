@@ -218,6 +218,7 @@ function SemesterOrganized({ draft, onApply }: { draft: SyllabusParseResult; onA
 }
 
 function ReviewInbox({ draft, onApply }: { draft: SyllabusParseResult; onApply: () => void }) {
+  const [editingId, setEditingId] = React.useState<string | null>(null);
   const items = draft.assignments.slice(0, 8);
   return (
     <AppSurface scroll>
@@ -233,11 +234,12 @@ function ReviewInbox({ draft, onApply }: { draft: SyllabusParseResult; onApply: 
               <View style={{ flex: 1 }}>
                 <Text style={styles.reviewTitle}>{item.title}</Text>
                 <Text style={styles.reviewSub}>{item.dueAt?.slice(0, 10) || "Needs date"} · {Math.round((item.confidence || 0.88) * 100)}% confidence</Text>
+                {editingId === item.id ? <Text style={styles.editingSub}>Selected for edit before approval</Text> : null}
               </View>
             </View>
             <View style={styles.reviewActions}>
               <AppButton label="Approve" onPress={onApply} style={styles.reviewButton} />
-              <AppButton label="Edit" variant="darkOnLight" style={styles.reviewButton} />
+              <AppButton label={editingId === item.id ? "Editing" : "Edit"} variant="darkOnLight" onPress={() => setEditingId(item.id)} style={styles.reviewButton} />
             </View>
           </AppCard>
         ))}
@@ -268,6 +270,7 @@ const styles = StyleSheet.create({
   reviewTop: { flexDirection: "row", gap: 12, alignItems: "center" },
   reviewTitle: { color: SP.ink, fontSize: 17, fontWeight: "900" },
   reviewSub: { color: SP.sub, fontSize: 13, fontWeight: "700", marginTop: 2 },
+  editingSub: { color: SP.blue, fontSize: 12, fontWeight: "800", marginTop: 4 },
   reviewActions: { flexDirection: "row", gap: 10, marginTop: 14 },
   reviewButton: { flex: 1, height: 42, borderRadius: 13 }
 });

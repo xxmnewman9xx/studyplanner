@@ -1,13 +1,5 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
 import { I18nManager } from "react-native";
-import {
-  contentLocaleForStorefront,
-  isRTLStorefront,
-  normalizeStorefrontLocale,
-  storefrontLocales,
-  type ContentLocale,
-  type StorefrontLocale,
-} from "./storefrontLocale";
 
 declare const require: (path: string) => unknown;
 declare const process:
@@ -23,13 +15,44 @@ type LaunchStrings = {
   [key: string]: unknown;
 };
 
-const launchCatalog = require("../localized-app-strings/core-launch-strings.json") as Record<ContentLocale, LaunchStrings>;
-const storefrontRuntimeCopy = require("../localized-app-strings/storefront-runtime-copy.json") as {
-  locales: Partial<Record<StorefrontLocale, { launch?: LaunchStrings }>>;
-};
+const launchCatalog = require("../localized-app-strings/core-launch-strings.json") as Record<string, LaunchStrings>;
 
-export const supportedLocales = storefrontLocales;
-export type SupportedLocale = StorefrontLocale;
+export const supportedLocales = [
+  "ar",
+  "de",
+  "en-US",
+  "es",
+  "fr",
+  "hi",
+  "ja",
+  "ko",
+  "pt-BR",
+  "pt-PT",
+  "zh-Hans",
+  "zh-Hant"
+] as const;
+
+export type SupportedLocale = typeof supportedLocales[number];
+
+export const appStoreLocaleMap: Record<string, SupportedLocale> = {
+  "ar-SA": "ar",
+  "de-DE": "de",
+  "en-AU": "en-US",
+  "en-CA": "en-US",
+  "en-GB": "en-US",
+  "en-US": "en-US",
+  "es-ES": "es",
+  "es-MX": "es",
+  "fr-CA": "fr",
+  "fr-FR": "fr",
+  hi: "hi",
+  ja: "ja",
+  ko: "ko",
+  "pt-BR": "pt-BR",
+  "pt-PT": "pt-PT",
+  "zh-Hans": "zh-Hans",
+  "zh-Hant": "zh-Hant"
+};
 
 type I18nContextValue = {
   locale: SupportedLocale;
@@ -47,7 +70,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     normalizeLocale(readLocaleOverride())
   );
   const locale = resolveLocale(localeOverride);
-  const direction = launchStringsFor(locale).direction || (isRTLStorefront(locale) ? "rtl" : "ltr");
+  const direction = launchCatalog[locale]?.direction || "ltr";
 
   const value = useMemo<I18nContextValue>(
     () => ({
@@ -70,7 +93,7 @@ export function useI18n() {
   if (context) return context;
 
   const locale = resolveLocale();
-  const direction = launchStringsFor(locale).direction || (isRTLStorefront(locale) ? "rtl" : "ltr");
+  const direction = launchCatalog[locale]?.direction || "ltr";
   return {
     locale,
     direction,
@@ -81,10 +104,10 @@ export function useI18n() {
 }
 
 export function translate(locale: SupportedLocale, key: string, fallback?: string) {
-  const localized = valueAtPath(launchStringsFor(locale), key);
+  const localized = valueAtPath(launchCatalog[locale], key);
   if (typeof localized === "string" && localized.trim()) return localized;
 
-  const fallbackValue = valueAtPath(launchStringsFor(fallbackLocale), key);
+  const fallbackValue = valueAtPath(launchCatalog[fallbackLocale], key);
   if (typeof fallbackValue === "string" && fallbackValue.trim()) return fallbackValue;
 
   return fallback || key;
@@ -104,13 +127,22 @@ function getRuntimeLocale() {
 }
 
 function normalizeLocale(value: string | undefined): SupportedLocale | undefined {
-  return normalizeStorefrontLocale(value);
+  if (!value) return undefined;
+  const normalized = value.replace("_", "-");
+  const mapped = appStoreLocaleMap[normalized] || appStoreLocaleMap[normalized.toLowerCase()];
+  if (mapped) return mapped;
+  if (isSupportedLocale(normalized)) return normalized;
+
+  const lower = normalized.toLowerCase();
+  if (lower === "pt" || lower.startsWith("pt-")) return "pt-BR";
+  if (lower === "zh" || lower.startsWith("zh-cn") || lower.startsWith("zh-hans")) return "zh-Hans";
+
+  const language = lower.split("-")[0];
+  return supportedLocales.find((locale) => locale.toLowerCase().split("-")[0] === language);
 }
 
-function launchStringsFor(locale: SupportedLocale): LaunchStrings {
-  const exact = storefrontRuntimeCopy.locales[locale]?.launch;
-  if (exact) return exact;
-  return launchCatalog[contentLocaleForStorefront(locale)];
+function isSupportedLocale(value: string): value is SupportedLocale {
+  return supportedLocales.includes(value as SupportedLocale);
 }
 
 function valueAtPath(source: LaunchStrings | undefined, key: string): unknown {

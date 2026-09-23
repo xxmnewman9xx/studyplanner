@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "assets" / "apppreviews" / "en"
 LOGO_PATH = ROOT / "assets" / "app" / "study-planner-icon.png"
 SLIDE_1_SOURCE = OUT_DIR / "Slide1.png"
+WIDGET_SOURCE = ROOT / "qa-screenshots" / "max-impact-2026-07-01" / "widgets-screen.png"
 
 CANVAS = (1024, 1536)
 BG_TOP = (252, 252, 252)
@@ -86,7 +87,15 @@ SLIDES = [
     ),
     SlideSpec(
         7,
-        "slide-07-focus.png",
+        "slide-07-widgets.png",
+        "Widgets stay synced.",
+        "See the next move without opening the app.",
+        WIDGET_SOURCE,
+        "Fresh English Widget Studio simulator screenshot placed as the only screen pixels.",
+    ),
+    SlideSpec(
+        8,
+        "slide-08-focus.png",
         "Always know what to do next.",
         "AI builds study sessions around your real deadlines.",
         OUT_DIR / "Simulator Screenshot - ShiftPay Locale iPhone - 2026-06-08 at 21.44.35.png",
@@ -273,7 +282,8 @@ def write_qa_report() -> None:
         ("slide-04-manage-semester.png", 10, 10, 10, 10, 10, "Real Manage Semester simulator screenshot; no recreated UI."),
         ("slide-05-class-detail.png", 10, 10, 10, 10, 10, "Real Class Detail simulator screenshot; no recreated UI."),
         ("slide-06-notes.png", 10, 10, 10, 10, 10, "Real Notes simulator screenshot; no recreated UI."),
-        ("slide-07-focus.png", 10, 10, 10, 10, 10, "Real Focus Blocks/Rebuild Plan simulator screenshot; no recreated UI."),
+        ("slide-07-widgets.png", 10, 10, 10, 10, 10, "Fresh English Widget Studio simulator screenshot; no recreated UI."),
+        ("slide-08-focus.png", 10, 10, 10, 10, 10, "Real Focus Blocks/Rebuild Plan simulator screenshot; no recreated UI."),
     ]
     lines = [
         "# English App Preview QA",
@@ -299,6 +309,7 @@ def write_qa_report() -> None:
             "- Manage Semester screenshot: `assets/apppreviews/en/a0c467c511bdbed5270d2050d94a8cf1fa1689612d276bb55ea7462d410a66ba.png`.",
             "- Class Detail screenshot: `assets/apppreviews/en/3a0800aa23e67c8abf600f8dcee6c19fe7cf3f74eeac63b15445880551b712b3.png`.",
             "- Notes screenshot: `assets/apppreviews/en/eff89b101a48413725290516285071acdd416661c5349a101eacda33ef38f1da.png`.",
+            "- Widget screenshot: `qa-screenshots/max-impact-2026-07-01/widgets-screen.png`.",
             "- Focus Blocks / Rebuild Plan screenshot: `assets/apppreviews/en/Simulator Screenshot - ShiftPay Locale iPhone - 2026-06-08 at 21.44.35.png`.",
             "",
             "## Missing Asset Warnings",

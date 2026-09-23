@@ -20,7 +20,7 @@ type CoursesScreenProps = {
   onUpdateCourse: (courseId: string, patch: Partial<Course>) => void;
 };
 
-export function CoursesScreen({ semester, courses, assignments }: CoursesScreenProps) {
+export function CoursesScreen({ semester, courses, assignments, onOpenAssignment, onOpenNotes }: CoursesScreenProps) {
   const { t } = useI18n();
   const localizationAnchor = t("classes.course_hub", "Course hub");
   void localizationAnchor;
@@ -33,7 +33,12 @@ export function CoursesScreen({ semester, courses, assignments }: CoursesScreenP
           const courseAssignments = assignments.filter((item) => item.courseId === course.id && item.status !== "done");
           const score = Math.max(25, Math.min(90, 82 - courseAssignments.length * 8));
           return (
-            <TouchableOpacity key={course.id} style={[styles.classCard, { backgroundColor: course.color || palette[index % palette.length] }]}>
+            <TouchableOpacity
+              key={course.id}
+              style={[styles.classCard, { backgroundColor: course.color || palette[index % palette.length] }]}
+              activeOpacity={0.84}
+              onPress={() => courseAssignments[0] ? onOpenAssignment(courseAssignments[0].id) : onOpenNotes()}
+            >
               <View style={styles.glass} />
               <Text style={styles.emoji}>{emoji[index % emoji.length]}</Text>
               <View style={styles.cardContent}>

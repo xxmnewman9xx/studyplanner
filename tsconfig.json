@@ -16,6 +16,7 @@
     "scripts/check-capture-parser-truth.ts",
     "scripts/check-customization-studio.ts",
     "scripts/check-photo-ocr-import.ts",
+    "scripts/check-parser-hardening.ts",
     "scripts/check-quick-homework-parser.ts",
     "scripts/check-semester-loop-stress.ts",
     "scripts/check-syllabus-endpoint-normalizer.ts",

@@ -6,7 +6,7 @@ export type IapReadiness =
 export type IapProductType = "auto_renewable_subscription" | "non_consumable";
 
 export const studyPlannerIapManifest = {
-  readiness: "ready" as IapReadiness,
+  readiness: "ready-with-placeholders" as IapReadiness,
   app: {
     bundleIdentifier: "com.mattnewman.studyplanner",
     appStoreConnectAppId: "6766181202",
@@ -26,7 +26,7 @@ export const studyPlannerIapManifest = {
   subscriptionGroup: {
     referenceName: "StudyPlanner",
     appStoreConnectIdentifier: "22066553",
-    verificationStatus: "Study Planner Plus keeps weekly, monthly, and yearly subscriptions for compatibility; the primary paywall presents weekly, monthly sale, and lifetime."
+    verificationStatus: "Target configuration: one subscription group with Weekly, Monthly, and Yearly. Only Weekly may carry the paid first-week introductory offer; the app displays it only when StoreKit confirms the offer and account eligibility."
   },
   products: [
     {
@@ -37,19 +37,16 @@ export const studyPlannerIapManifest = {
       entitlementUnlocked: "studyplanner_pro",
       subscriptionPeriod: "P1W",
       appStoreConnectPriceUsd: "6.99",
-      primaryPaywallVisible: true,
-      hasFreeTrial: true,
+      hasFreeTrial: false,
       hasIntroOffer: true,
       introductoryOffer: {
-        referenceName: "Back-to-School 2026 Weekly Plus One-Week Trial",
-        paymentMode: "free_trial",
+        referenceName: "Weekly First Week USD 0.99",
+        paymentMode: "pay_as_you_go",
         duration: "P1W",
-        availabilityStart: "2026-07-09",
-        availabilityEnd: "2026-09-30",
-        countriesOrRegions: 175,
-        appStoreConnectReadback: "Jul 9, 2026 to Sep 30, 2026; 175 Countries or Regions; Free for the first week"
+        numberOfPeriods: 1,
+        appStoreConnectTarget: "Eligible customers pay USD 0.99 for the first week, then USD 6.99 per week until canceled. Re-verify the live App Store Connect record before release."
       },
-      sandboxNotes: "Use an App Store sandbox tester or local StoreKit config. ASC verified a worldwide one-week introductory offer for July 9-Sept. 30, 2026; do not use this value as a bundle identifier."
+      sandboxNotes: "Use an App Store sandbox tester or local StoreKit config. The paid first-week offer belongs to Weekly only; production UI must use StoreKit's localized prices and eligibility result."
     },
     {
       productId: "com.mattnewman.studyplanner.plus.monthly",
@@ -59,24 +56,9 @@ export const studyPlannerIapManifest = {
       entitlementUnlocked: "studyplanner_pro",
       subscriptionPeriod: "P1M",
       appStoreConnectPriceUsd: "14.99",
-      primaryPaywallVisible: true,
-      sale: {
-        originalPriceUsd: "24.99",
-        discountPercent: 40,
-        merchandising: "Show the localized live StoreKit price as the charge and the localized 40%-higher reference price struck through."
-      },
-      hasFreeTrial: true,
-      hasIntroOffer: true,
-      introductoryOffer: {
-        referenceName: "Back-to-School 2026 Monthly Plus One-Week Trial",
-        paymentMode: "free_trial",
-        duration: "P1W",
-        availabilityStart: "2026-07-09",
-        availabilityEnd: "2026-09-30",
-        countriesOrRegions: 175,
-        appStoreConnectReadback: "Jul 9, 2026 to Sep 30, 2026; 175 Countries or Regions; Free for the first week"
-      },
-      sandboxNotes: "Use an App Store sandbox tester or local StoreKit config. ASC verified a worldwide one-week introductory offer for July 9-Sept. 30, 2026; do not use this value as a bundle identifier."
+      hasFreeTrial: false,
+      hasIntroOffer: false,
+      sandboxNotes: "Monthly renews at the localized monthly price with no introductory offer."
     },
     {
       productId: "com.mattnewman.studyplanner.plus.yearly",
@@ -85,32 +67,10 @@ export const studyPlannerIapManifest = {
       description: "Full access to StudyPlanner: Syllabus AI while the yearly plan is active.",
       entitlementUnlocked: "studyplanner_pro",
       subscriptionPeriod: "P1Y",
-      appStoreConnectPriceUsd: "59.99",
-      primaryPaywallVisible: false,
-      hasFreeTrial: true,
-      hasIntroOffer: true,
-      introductoryOffer: {
-        referenceName: "Back-to-School 2026 Yearly Plus One-Week Trial",
-        paymentMode: "free_trial",
-        duration: "P1W",
-        availabilityStart: "2026-07-09",
-        availabilityEnd: "2026-09-30",
-        countriesOrRegions: 175,
-        appStoreConnectReadback: "Jul 9, 2026 to Sep 30, 2026; 175 Countries or Regions; Free for the first week"
-      },
-      sandboxNotes: "Use an App Store sandbox tester or local StoreKit config. ASC verified a worldwide one-week introductory offer for July 9-Sept. 30, 2026; the yearly product remains entitlement-compatible but is hidden from the primary paywall."
-    },
-    {
-      productId: "com.mattnewman.studyplanner.plus.lifetime",
-      type: "non_consumable" as IapProductType,
-      displayName: "StudyPlanner: Syllabus AI Lifetime",
-      description: "Lifetime access to StudyPlanner: Syllabus AI with one payment and no renewal.",
-      entitlementUnlocked: "studyplanner_pro",
-      appStoreConnectPriceUsd: "59.99",
-      primaryPaywallVisible: true,
+      appStoreConnectPriceUsd: "39.99",
       hasFreeTrial: false,
       hasIntroOffer: false,
-      sandboxNotes: "Non-consumable lifetime purchase. Restore with the purchasing Apple ID or Google Play account."
+      sandboxNotes: "Yearly remains a paid renewal option. Do not attach or advertise an introductory trial on this product."
     }
   ],
   sandboxTesting: {
@@ -122,9 +82,10 @@ export const studyPlannerIapManifest = {
     ]
   },
   externalVerificationRequired: [
-    "Confirm the three subscription product IDs and lifetime non-consumable exist in App Store Connect for app 6766181202.",
-    "Confirm weekly 6.99 USD, monthly sale 14.99 USD, lifetime 59.99 USD, localized pricing, cleared-for-sale, and review state.",
-    "Confirm introductory offer eligibility copy follows Apple's one-intro-offer-per-subscription-group rule before claiming a universal trial in UI."
+    "Confirm all three subscription product IDs exist in App Store Connect for app 6766181202.",
+    "Confirm subscription group membership, pricing, localization, cleared-for-sale, and review state.",
+    "Confirm the paid first-week introductory offer is active on Weekly only and removed from Monthly and Yearly before release.",
+    "Confirm US storefront targets are USD 0.99 for the eligible first Weekly period, then USD 6.99/week, USD 14.99/month, and USD 39.99/year; localized StoreKit pricing must be shown elsewhere."
   ]
 } as const;
 
