@@ -1,0 +1,8 @@
+{
+  "name": "studyplanner-apple-intelligence",
+  "version": "1.0.0",
+  "description": "Local iOS on-device intelligence module for StudyPlanner (Foundation Models, document reading, App Group, Spotlight).",
+  "main": "index.ts",
+  "license": "UNLICENSED",
+  "private": true
+}
