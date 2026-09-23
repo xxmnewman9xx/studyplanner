@@ -71,6 +71,8 @@
     "test:widgets": "node scripts/check-widget-lock.mjs",
     "test:widget-integrity": "node scripts/check-widget-integrity.mjs",
     "test:back-to-school-widgets": "tsx scripts/check-back-to-school-widget-qa.ts",
+    "test:widget-study-now": "tsx scripts/check-widget-study-now.ts",
+    "test:app-intents": "node scripts/check-app-intents-plugin.mjs",
     "check:back-to-school-launch": "npm run check:back-to-school-remote-capture && npm run check:back-to-school-product-video && npm run plan:back-to-school-app-captures && npm run plan:back-to-school-widget-captures && npm run plan:back-to-school-supplemental-urls && npm run check:back-to-school-supplementals && npm run check:back-to-school-upload-package && npm run check:back-to-school-marketing-assets && npm run check:back-to-school-supplementals && tsx scripts/check-back-to-school-launch-readiness.ts",
     "check:back-to-school-assets": "tsx scripts/check-back-to-school-assets.ts",
     "check:back-to-school-editorial": "tsx scripts/check-back-to-school-editorial-readiness.ts",

@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["5JN35MJ3QD.com.mattnewman.studyplanner"],
+        "components": [
+          { "/": "/p", "comment": "Class Pack landing page; payload is in the #fragment" },
+          { "/": "/p/*", "comment": "Class Pack with trailing path" },
+          { "/": "/d", "comment": "Quiz Duel landing page; payload is in the #fragment" },
+          { "/": "/d/*", "comment": "Quiz Duel with trailing path" }
+        ]
+      }
+    ]
+  }
+}

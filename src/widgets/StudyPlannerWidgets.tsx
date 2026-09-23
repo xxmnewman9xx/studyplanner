@@ -72,6 +72,8 @@ function StudyPlannerWidgetLayout(props, environment) {
   var maxWeek = Math.max(1, maxWeekdayCount);
   var corner = isMedium ? 28 : 24;
   var actionLabel = props.actionLabel || "";
+  // Study Now: text the app wrote for today only (the extension never generates copy).
+  var studyNowLine = props.kind === "today" && props.studyNowLine ? String(props.studyNowLine) : "";
 
   function actionControl() {
     if (!actionLabel || !isMedium || isSimplified) return view("SpacerView", { minLength: 1 });
@@ -174,7 +176,9 @@ function StudyPlannerWidgetLayout(props, environment) {
       children: [
         text(signalLabel, [font({ size: 10, weight: "black" }), foregroundStyle(accent), lineLimit(1)]),
         text(props.value + " " + props.detail, [font({ size: 14, weight: "black", design: "rounded" }), foregroundStyle(ink), lineLimit(1)]),
-        text(props.footnote, [font({ size: 10, weight: "semibold" }), foregroundStyle(muted), lineLimit(1)])
+        studyNowLine
+          ? text(studyNowLine, [font({ size: 10, weight: "bold" }), foregroundStyle(ink), lineLimit(1)])
+          : text(props.footnote, [font({ size: 10, weight: "semibold" }), foregroundStyle(muted), lineLimit(1)])
       ]
     });
   }
@@ -380,7 +384,9 @@ function StudyPlannerWidgetLayout(props, environment) {
             text(props.value, [font({ size: 24, weight: "black", design: "rounded" }), foregroundStyle(ink), lineLimit(1)]),
             text(props.detail, [font({ size: 12, weight: "bold" }), foregroundStyle(ink), lineLimit(1)])
           ]}),
-          text(props.footnote, [font({ size: 12, weight: "black" }), foregroundStyle(muted), lineLimit(2)]),
+          studyNowLine
+            ? text(studyNowLine, [font({ size: 12, weight: "black" }), foregroundStyle(accent), lineLimit(2)])
+            : text(props.footnote, [font({ size: 12, weight: "black" }), foregroundStyle(muted), lineLimit(2)]),
           view("VStackView", { alignment: "leading", spacing: 4, children: rows.length ? rows : [
             text(props.footnote, [font({ size: 10, weight: "semibold" }), foregroundStyle(muted), lineLimit(2)])
           ]}),
