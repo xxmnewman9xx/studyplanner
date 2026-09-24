@@ -81,6 +81,11 @@ export function hasFreeTrialOffer(plan: PaywallPlan | null | undefined) {
 export function hasPaidIntroOffer(plan: PaywallPlan | null | undefined) {
   const offer = plan?.introductoryOffer;
   if (!offer || (offer.paymentMode !== "pay-as-you-go" && offer.paymentMode !== "pay-up-front") || offer.price <= 0) return false;
+  // A multi-period pay-as-you-go offer charges displayPrice every period, so
+  // "{intro} for {days} days" would understate the cost. Show no intro copy
+  // (StoreKit's purchase sheet still states the exact terms) rather than a
+  // misleading price.
+  if (offer.paymentMode === "pay-as-you-go" && offer.periodCount > 1) return false;
   return offer.periodValue * offer.periodCount > 0 && offer.periodUnit !== "unknown";
 }
 
