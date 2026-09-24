@@ -194,15 +194,24 @@ export type BriefOptions = { signal?: AbortSignal; timeoutMs?: number; locale?: 
  */
 /** True when model copy names an item from today's picks (exported for tests). */
 export function reasonNamesCandidate(body: string, candidates: StudyNowCandidate[]) {
-  return candidates.some((candidate) => namesCandidate(normalizeText(body), candidate));
+  const text = ` ${normalizeText(body)} `;
+  return candidates.some((candidate) => namesCandidate(text, candidate));
 }
 
-function namesCandidate(text: string, candidate: StudyNowCandidate) {
-  const tokens = [candidate.classCode, ...normalizeText(candidate.title).split(/\s+/).filter((word) => word.length >= 4)]
-    .filter((token): token is string => Boolean(token))
-    .map((token) => normalizeText(token));
-  if (tokens.some((token) => token && text.includes(token))) return true;
-  return typeof candidate.daysUntil === "number" && candidate.daysUntil > 1 && text.split(" ").includes(String(candidate.daysUntil));
+// Whole-word matches only: "exams" in generic advice must not match a title word "exam".
+function namesCandidate(paddedText: string, candidate: StudyNowCandidate) {
+  const tokens = [candidate.classCode, ...normalizeText(candidate.title).split(" ").filter((word) => word.length >= 4)]
+    .map((token) => normalizeText(token || ""))
+    .filter(Boolean);
+  if (tokens.some((token) => paddedText.includes(` ${token} `))) return true;
+  return typeof candidate.daysUntil === "number" && candidate.daysUntil > 1 && paddedText.includes(` ${candidate.daysUntil} `);
+}
+
+const ENGLISH_FUNCTION_WORDS = new Set(["the", "is", "and", "your", "you", "to", "it", "its", "of", "with", "before", "now", "so", "first", "today", "make", "sure"]);
+
+/** English copy in a non-English UI: 2+ English function words (exported for tests). */
+export function looksEnglish(body: string) {
+  return normalizeText(body).split(" ").filter((word) => ENGLISH_FUNCTION_WORDS.has(word)).length >= 2;
 }
 
 export async function briefWithModel(
@@ -224,9 +233,10 @@ export async function briefWithModel(
     const picked = templateBrief(candidates, data, now, t, validated.focusIndex) || template;
     // The model may choose the focus, but its sentence replaces the specific
     // template reason only when it names one of today's picks (class code, a
-    // title word, or a day count). Generic advice ("prioritize your time
-    // wisely") keeps the template reason.
-    const reason = reasonNamesCandidate(validated.body, candidates.slice(0, MAX_STUDY_NOW_CANDIDATES)) ? validated.body : picked.reason;
+    // title word, or a day count) and is in the UI language. Generic advice
+    // ("prioritize your time wisely") keeps the localized template reason.
+    const wrongLanguage = Boolean(options.locale) && !/^en\b/i.test(options.locale!) && looksEnglish(validated.body);
+    const reason = !wrongLanguage && reasonNamesCandidate(validated.body, candidates.slice(0, MAX_STUDY_NOW_CANDIDATES)) ? validated.body : picked.reason;
     return { ...picked, reason, origin: "onDevice" };
   } catch {
     return template;

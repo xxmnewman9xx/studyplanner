@@ -11,7 +11,7 @@ import { addDaysKey, dateKey } from "../src/appleIntelligence/dateKeys";
 import { drainInbox, intelligenceSnapshot } from "../src/appleIntelligence/inbox";
 import { MERGE_CAP, mergeSyllabusCandidates } from "../src/appleIntelligence/merge";
 import { quickAddSmart } from "../src/appleIntelligence/quickAdd";
-import { briefWithModel, reasonNamesCandidate, studyNowCandidates, templateBrief, STUDY_NOW_COPY } from "../src/appleIntelligence/studyNow";
+import { briefWithModel, looksEnglish, reasonNamesCandidate, studyNowCandidates, templateBrief, STUDY_NOW_COPY } from "../src/appleIntelligence/studyNow";
 import { buildStudySet, extractDefinitionPairs, heuristicStudySet } from "../src/appleIntelligence/studySets";
 import { isGrounded, lineOf, normalizeText, stableHash, tokenOverlap } from "../src/appleIntelligence/text";
 import { AIAvailabilityState, ModelRunner, PracticeResult, StudyNowCandidate } from "../src/appleIntelligence/types";
@@ -506,6 +506,11 @@ check("templateBrief builds the line from facts only", () => {
   assert.equal(reasonNamesCandidate("CHEM 311 is close, so a short pass now pays off.", [pick]), true);
   assert.equal(reasonNamesCandidate("Tu examen de Organic Chem llega pronto.", [pick]), true);
   assert.equal(reasonNamesCandidate("Faltan 4 días para el examen.", [pick]), true);
+  const examWeek = { id: "y", kind: "study_block" as const, title: "Exam Week review", minutes: 30 };
+  assert.equal(reasonNamesCandidate("Today is a busy day with exams and tasks. Make sure to prioritize your time wisely.", [pick, examWeek]), false, "\"exams\" must not match the title word \"exam\"");
+  assert.equal(looksEnglish("Today is a busy day with exams and tasks."), true);
+  assert.equal(looksEnglish("CHEM 311 ist bald dran, also lerne jetzt kurz."), false);
+  assert.equal(looksEnglish("CHEM 311 : révise-le maintenant."), false);
   assert.equal(templateBrief([], defaultData, NOW), null);
 });
 
