@@ -9,6 +9,15 @@
 // (ai.status.explainer, ai.status.not_enabled_body), referentially, and stays in
 // English in every locale per the trademark rules in MASTER_PLAN.md §A3.
 import type { AIText } from "./ui/theme";
+import ar22 from "./locales/ar";
+import de22 from "./locales/de";
+import es22 from "./locales/es";
+import fr22 from "./locales/fr";
+import hi22 from "./locales/hi";
+import ja22 from "./locales/ja";
+import ko22 from "./locales/ko";
+import ptBR22 from "./locales/pt-BR";
+import zhHans22 from "./locales/zh-Hans";
 
 export type SupportedLocaleString = "ar" | "de" | "en-US" | "es" | "fr" | "hi" | "ja" | "ko" | "pt-BR" | "zh-Hans";
 
@@ -295,17 +304,64 @@ export const AI_COPY_EN: Record<string, string> = {
   "ai.unlock.starts": "starts {date}",
 };
 
+
+// 2.2 copy used directly by App.tsx screens (onboarding, scan, locked preview,
+// paywall, and the integration surfaces). Same translation workflow as ai.*.
+export const APP22_COPY_EN: Record<string, string> = {
+  "locked.free_card_title": "Scan every class. See the semester coming.",
+  "locked.free_kicker": "FREE SEMESTER SCAN",
+  "locked.free_step1": "Scan, upload, paste, or add each class",
+  "locked.free_step2": "Review every deadline StudyPlanner finds",
+  "locked.free_step3": "See your crunch weeks, then unlock the daily plan",
+  "locked.free_sub": "Scan every syllabus for free. Review each deadline and see your crunch weeks before you decide.",
+  "locked.scan_another": "Scan another syllabus",
+  "locked.scan_free": "Scan a syllabus free",
+  "onboarding.free_first": "Start with one syllabus. See every deadline and your crunch weeks for free — nothing saves until you review it.",
+  "onboarding.free_scan_body": "Scan or add every class. StudyPlanner reads them on this iPhone, lists every deadline for review, and forecasts your red weeks. Unlock when you want the daily plan.",
+  "onboarding.free_scan_title": "Free: see your whole semester.",
+  "onboarding.start_manual": "Add my first class",
+  "onboarding.start_paste": "Paste my syllabus",
+  "onboarding.start_pdf": "Upload my syllabus",
+  "onboarding.start_scan": "Scan my syllabus",
+  "paywall.benefit_cram": "Finals cram: a focused week of plans and practice.",
+  "paywall.free_scan_body": "Scan every syllabus and see your Crunch Forecast for free. Plus applies the reviewed plan to Today, widgets, reminders, Exam Mode, and Siri.",
+  "paywall.free_scan_methods": "Scan · Review · Forecast · Daily plan",
+  "paywall.free_scan_title": "Scan free. Plan with Plus.",
+  "paywall.free_trial_badge": "{days} days free",
+  "paywall.free_trial_cta": "Start {days}-day free trial",
+  "paywall.free_trial_summary": "{days} days free, then {price}/{plan}. Auto-renews until canceled.",
+  "paywall.plus_exam_mode": "Exam Mode: flashcards and quizzes from your own notes",
+  "paywall.plus_kicker": "PLUS TURNS YOUR SEMESTER INTO A DAILY PLAN",
+  "paywall.plus_reminders": "Start-by reminders before every crunch week",
+  "paywall.plus_siri": "Siri, Spotlight, and quick add",
+  "paywall.plus_study_now": "Study Now: one clear move every day, self-repairing",
+  "paywall.plus_widgets": "Lock Screen and Home Screen widgets",
+  "paywall.step_forecast": "Forecast",
+  "paywall.step_free": "free",
+  "paywall.step_plan": "Daily plan",
+  "paywall.step_plus": "Plus",
+  "paywall.step_scan": "Scan",
+  "paywall.sub_free_first": "Scanning and your Crunch Forecast stay free. Plus applies the plan and keeps it running every day.",
+  "scan.badge_free": "Free",
+  "scan.sub_free": "Free to scan and review",
+  "scan.title_free": "Scan every class. See the semester.",
+  "paywall.no_caps": "No credits. No caps. No account. It runs on your iPhone.",
+};
+
+/** Every 2.2 English string (ai.* + App.tsx 2.2 keys); translators mirror these keys. */
+export const COPY_22_EN: Record<string, string> = { ...AI_COPY_EN, ...APP22_COPY_EN };
+
 export const AI_COPY: Record<SupportedLocaleString, Partial<Record<string, string>>> = {
-  "en-US": AI_COPY_EN,
-  ar: {},
-  de: {},
-  es: {},
-  fr: {},
-  hi: {},
-  ja: {},
-  ko: {},
-  "pt-BR": {},
-  "zh-Hans": {},
+  "en-US": COPY_22_EN,
+  ar: ar22,
+  de: de22,
+  es: es22,
+  fr: fr22,
+  hi: hi22,
+  ja: ja22,
+  ko: ko22,
+  "pt-BR": ptBR22,
+  "zh-Hans": zhHans22,
 };
 
 function resolveLocale(locale: string): SupportedLocaleString {
@@ -326,7 +382,7 @@ function resolveLocale(locale: string): SupportedLocaleString {
 export function createAIText(locale: string): AIText {
   const table = AI_COPY[resolveLocale(locale)];
   return (key, fallback, vars = {}) => {
-    const template = table[key] ?? AI_COPY_EN[key] ?? fallback;
+    const template = table[key] ?? COPY_22_EN[key] ?? fallback;
     return template.replace(/\{(\w+)\}/g, (_match, name: string) => String(vars[name] ?? ""));
   };
 }

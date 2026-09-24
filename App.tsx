@@ -146,6 +146,7 @@ import {
   type SemesterThemeColorId,
 } from "./src/semesterTheme";
 import { semesterKickoffPhase, semesterKickoffProgress } from "./src/semesterKickoff";
+import { AI_COPY, COPY_22_EN } from "./src/appleIntelligence/copy";
 
 declare const process:
   | {
@@ -4665,6 +4666,10 @@ for (const locale of supportedLocales) {
   APP_COPY[locale]["reminders.schedule"] = REMINDER_SCHEDULE_COPY[locale];
   Object.assign(APP_COPY[locale], CONTROL_TRUTH_COPY[locale]);
   Object.assign(APP_COPY[locale], EDITORIAL_POLISH_COPY[locale]);
+  // StudyPlanner 2.2 copy (ai.* components + new App.tsx keys). English is
+  // the source of truth; locales fall back to English per key, never to a
+  // generic string, because every 2.2 key ships in COPY_22_EN.
+  Object.assign(APP_COPY[locale], COPY_22_EN, AI_COPY[locale]);
 }
 
 function localizedWeekdayNarrow(index: number) {
