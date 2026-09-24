@@ -25,9 +25,15 @@ const SWIFT_SOURCES = [
   "StudyPlannerSpotlightRouter.swift",
 ];
 
-// AppShortcuts.xcstrings must keep this exact name: Siri reads phrase
-// translations from the AppShortcuts table of the app bundle.
-const RESOURCE_FILES = ["AppShortcuts.xcstrings", "Localizable.xcstrings"];
+// Localizable.xcstrings compiles for any deployment target and is copied as is.
+const RESOURCE_FILES = ["Localizable.xcstrings"];
+
+// Siri reads phrase translations from the AppShortcuts table of the app bundle.
+// Xcode only accepts AppShortcuts.xcstrings for iOS 17+, and the app still
+// supports iOS 16.4, so the catalog stays the source of truth and prebuild
+// writes <lang>.lproj/AppShortcuts.strings into a variant group.
+const SHORTCUTS_CATALOG = "AppShortcuts.xcstrings";
+const SHORTCUTS_STRINGS = "AppShortcuts.strings";
 
 const REGIONS = ["en", "ar", "de", "es", "fr", "hi", "ja", "ko", "pt-BR", "zh-Hans"];
 
@@ -143,6 +149,56 @@ function ensureKnownRegions(project) {
   rootProject.knownRegions = known.map((region) => (/^[A-Za-z0-9_]+$/.test(region) ? region : quote(region)));
 }
 
+/** Languages in the AppShortcuts catalog (exported for tests). */
+function shortcutLanguages(catalog) {
+  const languages = new Set([catalog.sourceLanguage || "en"]);
+  for (const entry of Object.values(catalog.strings || {})) {
+    for (const language of Object.keys(entry.localizations || {})) languages.add(language);
+  }
+  return [...languages].sort();
+}
+
+function escapeStrings(value) {
+  return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n");
+}
+
+/** Pure catalog -> .strings rendering for one language (exported for tests). */
+function renderShortcutStrings(catalog, language) {
+  const lines = [];
+  for (const [key, entry] of Object.entries(catalog.strings || {}).sort(([a], [b]) => a.localeCompare(b))) {
+    const value = entry.localizations?.[language]?.stringUnit?.value ?? (language === (catalog.sourceLanguage || "en") ? key : null);
+    if (value != null) lines.push(`"${escapeStrings(key)}" = "${escapeStrings(value)}";`);
+  }
+  return `${lines.join("\n")}\n`;
+}
+
+function readShortcutsCatalog(projectRoot = process.cwd()) {
+  return JSON.parse(fs.readFileSync(path.join(projectRoot, TEMPLATE_DIR, SHORTCUTS_CATALOG), "utf8"));
+}
+
+function ensureShortcutsVariantGroup(project, group, resources, groupPath) {
+  const variants = objects(project, "PBXVariantGroup");
+  const refs = objects(project, "PBXFileReference");
+  let variantUuid = entries(variants).find(([, variant]) => unquote(variant.name) === SHORTCUTS_STRINGS)?.[0];
+  if (!variantUuid) {
+    variantUuid = project.generateUuid();
+    variants[variantUuid] = { isa: "PBXVariantGroup", children: [], name: quote(SHORTCUTS_STRINGS), sourceTree: '"<group>"' };
+    variants[`${variantUuid}_comment`] = SHORTCUTS_STRINGS;
+  }
+  const variant = variants[variantUuid];
+  for (const language of shortcutLanguages(readShortcutsCatalog())) {
+    const relativePath = `${groupPath}/${language}.lproj/${SHORTCUTS_STRINGS}`;
+    if (entries(refs).some(([uuid, ref]) => unquote(ref.path) === relativePath && variant.children.some((child) => child.value === uuid))) continue;
+    const fileRef = project.generateUuid();
+    refs[fileRef] = { isa: "PBXFileReference", lastKnownFileType: "text.plist.strings", name: quote(language), path: quote(relativePath), sourceTree: '"<group>"' };
+    refs[`${fileRef}_comment`] = language;
+    variant.children.push({ value: fileRef, comment: language });
+  }
+  group.children = group.children || [];
+  if (!group.children.some((child) => child.value === variantUuid)) group.children.push({ value: variantUuid, comment: SHORTCUTS_STRINGS });
+  return ensureBuildFile(project, resources, variantUuid, SHORTCUTS_STRINGS, "Resources");
+}
+
 /**
  * Pure pbxproj mutation (exported for tests). Adds the Swift sources to the
  * main app target's Sources phase and the string catalogs to its Resources
@@ -165,6 +221,7 @@ function applyAppIntentsToXcodeProject(project, { projectName }) {
     const fileRef = ensureFileReference(project, group, `${projectName}/${INTENTS_GROUP}/${file}`, "text.json.xcstrings");
     if (ensureBuildFile(project, resources, fileRef, file, "Resources")) added.push(file);
   }
+  if (ensureShortcutsVariantGroup(project, group, resources, `${projectName}/${INTENTS_GROUP}`)) added.push(SHORTCUTS_STRINGS);
   ensureKnownRegions(project);
   return added;
 }
@@ -216,6 +273,12 @@ function copyTemplates(projectRoot, iosRoot, projectName) {
     if (!fs.existsSync(from)) throw new Error(`[with-studyplanner-app-intents] Missing template ${from}.`);
     fs.copyFileSync(from, path.join(destination, file));
   }
+  const catalog = readShortcutsCatalog(projectRoot);
+  for (const language of shortcutLanguages(catalog)) {
+    const lproj = path.join(destination, `${language}.lproj`);
+    fs.mkdirSync(lproj, { recursive: true });
+    fs.writeFileSync(path.join(lproj, SHORTCUTS_STRINGS), renderShortcutStrings(catalog, language));
+  }
 }
 
 function withStudyPlannerAppIntents(config) {
@@ -254,6 +317,9 @@ module.exports.patchAppDelegateSource = patchAppDelegateSource;
 module.exports.applyAlternativeAppNames = applyAlternativeAppNames;
 module.exports.SWIFT_SOURCES = SWIFT_SOURCES;
 module.exports.RESOURCE_FILES = RESOURCE_FILES;
+module.exports.SHORTCUTS_STRINGS = SHORTCUTS_STRINGS;
+module.exports.shortcutLanguages = shortcutLanguages;
+module.exports.renderShortcutStrings = renderShortcutStrings;
 module.exports.REGIONS = REGIONS;
 module.exports.INTENTS_GROUP = INTENTS_GROUP;
 module.exports.APP_DELEGATE_MARKER = APP_DELEGATE_MARKER;

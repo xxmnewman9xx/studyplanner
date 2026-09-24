@@ -205,7 +205,7 @@ function phaseFileNames(project, targetName, isa) {
   const phase = objects[isa][phaseRef.value];
   return phase.files.map((entry) => {
     const buildFile = objects.PBXBuildFile[entry.value];
-    return unquote(objects.PBXFileReference[buildFile.fileRef]?.path);
+    return unquote(objects.PBXFileReference[buildFile.fileRef]?.path ?? objects.PBXVariantGroup?.[buildFile.fileRef]?.name);
   });
 }
 
@@ -213,7 +213,8 @@ function phaseFileNames(project, targetName, isa) {
   const project = parseProject(FIXTURE_PBXPROJ);
   const firstAdded = plugin.applyAppIntentsToXcodeProject(project, { projectName: "FakeApp" });
   const expectedFiles = [...plugin.SWIFT_SOURCES, ...plugin.RESOURCE_FILES];
-  expect(firstAdded.length === expectedFiles.length, `first run links every file (${firstAdded.length}/${expectedFiles.length})`);
+  const expectedLinks = expectedFiles.length + 1; // + AppShortcuts.strings variant group
+  expect(firstAdded.length === expectedLinks, `first run links every file (${firstAdded.length}/${expectedLinks})`);
 
   const firstOutput = project.writeSync();
   const secondAdded = plugin.applyAppIntentsToXcodeProject(project, { projectName: "FakeApp" });
@@ -246,7 +247,16 @@ function phaseFileNames(project, targetName, isa) {
     expect(matches.length === 1, `${file} has exactly one file reference`);
   }
   const xcstringsTypes = refs.filter(([, ref]) => unquote(ref.path).endsWith(".xcstrings")).map(([, ref]) => ref.lastKnownFileType);
-  expect(xcstringsTypes.length === 2 && xcstringsTypes.every((type) => type === "text.json.xcstrings"), "string catalogs use the text.json.xcstrings file type");
+  expect(xcstringsTypes.length === plugin.RESOURCE_FILES.length && xcstringsTypes.every((type) => type === "text.json.xcstrings"), "string catalogs use the text.json.xcstrings file type");
+  expect(!refs.some(([, ref]) => unquote(ref.path).endsWith("AppShortcuts.xcstrings")), "AppShortcuts.xcstrings is not a build resource (Xcode requires iOS 17 for it; the app supports 16.4)");
+  const variants = Object.entries(project.hash.project.objects.PBXVariantGroup || {}).filter(([key, group]) => !key.endsWith("_comment") && unquote(group.name) === plugin.SHORTCUTS_STRINGS);
+  expect(variants.length === 1, "one AppShortcuts.strings variant group");
+  expect(appResources.filter((entry) => entry === plugin.SHORTCUTS_STRINGS).length === 1 && !widgetResources.includes(plugin.SHORTCUTS_STRINGS), "AppShortcuts.strings is in the app Resources phase once, not the widget");
+  const shortcutsCatalog22 = JSON.parse(read(path.join(SWIFT_DIR, "AppShortcuts.xcstrings")));
+  const variantPaths = variants[0][1].children.map((child) => unquote(project.hash.project.objects.PBXFileReference[child.value].path));
+  expect(plugin.shortcutLanguages(shortcutsCatalog22).every((language) => variantPaths.includes(`FakeApp/${plugin.INTENTS_GROUP}/${language}.lproj/AppShortcuts.strings`)), "every catalog language has an AppShortcuts.strings variant");
+  const deStrings = plugin.renderShortcutStrings(shortcutsCatalog22, "de");
+  expect(deStrings.includes('"${applicationName} add assignment" = "${applicationName} Aufgabe hinzufügen";'), "AppShortcuts.strings keeps ${applicationName} keys and translations");
 
   const groups = Object.entries(project.hash.project.objects.PBXGroup).filter(([key]) => !key.endsWith("_comment"));
   expect(groups.filter(([, group]) => unquote(group.name) === plugin.INTENTS_GROUP).length === 1, "one StudyPlannerAppIntents group");
