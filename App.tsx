@@ -10580,7 +10580,10 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
             <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 4 }}>{notesOnlyImport ? textFor("note.suggested_tasks", "Suggested study tasks") : textFor("review.first_action", "First recommended action")}: {firstAction}</Text>
           </View>
           <View style={{ marginTop: 3 }}>
-            <Button label={textFor("review.approve", "Approve trusted")} theme={theme} icon="target" onPress={highConfidenceCount ? approveTrusted : undefined} />
+            <Button label={highConfidenceCount ? `${textFor("review.approve", "Approve trusted")} (${highConfidenceCount})` : textFor("review.approve", "Approve trusted")} theme={theme} icon="target" onPress={highConfidenceCount ? approveTrusted : undefined} />
+            {batch.candidates.some((candidate) => candidate.origin === "both") ? (
+              <Text selectable style={{ color: theme.label2, fontSize: 12.5, lineHeight: 17, marginTop: 6, textAlign: "center" }}>{textFor("review.trust_hint", "Trusted rows were found by both readers. Rows only one reader found need a quick check.")}</Text>
+            ) : null}
             <Button label={textFor("review.manual", "Manual setup")} theme={theme} secondary icon="plus" onPress={() => nav.push("paste", { mode: "manual" })} />
           </View>
         </Card>

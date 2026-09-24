@@ -447,6 +447,7 @@ const copy: Partial<Record<string, string>> = {
   "paywall.purchase_failed": "App Store no pudo iniciar la compra.",
   "paywall.restore_none": "No se encontró una suscripción activa de StudyPlanner para este Apple ID.",
   "paywall.restore_failed": "No se pudo completar la restauración.",
+  "review.trust_hint": "Las filas de confianza las encontraron ambos lectores. Revisa rápido las que encontró solo uno.",
 };
 
 export default copy;

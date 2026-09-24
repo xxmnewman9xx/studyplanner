@@ -447,6 +447,7 @@ const copy: Partial<Record<string, string>> = {
   "paywall.purchase_failed": "App Store 无法发起购买。",
   "paywall.restore_none": "此 Apple 账户下没有找到有效的 StudyPlanner 订阅。",
   "paywall.restore_failed": "无法完成恢复购买。",
+  "review.trust_hint": "可信行由两种读取方式同时找到。仅一种方式找到的行请快速核对。",
 };
 
 export default copy;
