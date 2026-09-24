@@ -152,7 +152,9 @@ import { analyzeSyllabusSmart } from "./src/appleIntelligence/smartSyllabus";
 import * as aiCache from "./src/appleIntelligence/cache";
 import { clearSpotlight, deleteAppGroupJSON, readAppGroupJSON } from "./src/appleIntelligence/native";
 import type { AIAvailability } from "./src/appleIntelligence/types";
-import { AIStatusRow, ScanProgress, type AIText } from "./src/appleIntelligence/ui";
+import { AIStatusRow, ForecastSection, ForecastShareCard, OriginChip, ScanProgress, UnlockForecastCTA, shareForecastCard, type AIText } from "./src/appleIntelligence/ui";
+import { buildCrunchForecast, type CrunchForecastResult } from "./src/crunchForecast";
+import { appStoreLink } from "./src/classPack";
 
 declare const process:
   | {
@@ -4763,6 +4765,34 @@ function useAIAvailability() {
   return { availability, enabled, setEnabled, refresh, locale };
 }
 
+function forecastFromImport(data: AppData, batch: ImportBatch | null): CrunchForecastResult | null {
+  if (!batch) return null;
+  const dated = batch.candidates.filter((candidate) => (candidate.kind === "task" || candidate.kind === "exam") && candidate.approved);
+  if (!dated.length) return null;
+  const forecast = buildCrunchForecast(data, new Date(), { pending: { ...batch, candidates: batch.candidates.filter((candidate) => candidate.approved) } });
+  return forecast.weeks.length ? forecast : null;
+}
+
+// Renders the story-sized Forecast card off-screen so it can be captured and
+// shared. "Hide class names" is on by default: nothing identifying leaves.
+function useForecastShare(forecast: CrunchForecastResult | null, theme: ReturnType<typeof palette>) {
+  const cardRef = useRef<View | null>(null);
+  const share = useCallback(() => {
+    if (!forecast) return;
+    tap();
+    shareForecastCard(cardRef, {
+      message: textFor("ai.share.message", "My semester, forecast by StudyPlanner. Which week is yours?"),
+      url: appStoreLink("forecast"),
+    }).catch(() => {});
+  }, [forecast]);
+  const host = forecast ? (
+    <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ position: "absolute", left: -10000, top: 0, opacity: 1 }}>
+      <ForecastShareCard ref={cardRef} forecast={forecast} theme={theme} t={aiText} locale={appLocale()} hideNames caption={forecast.crunchWeeks.length ? "cry" : "default"} />
+    </View>
+  ) : null;
+  return { share, host };
+}
+
 function optionText(value: string) {
   const key = {
     "School semester": "option.school_semester",
@@ -7210,6 +7240,8 @@ function ImportOptions({ data, mutate, nav, theme }: ScreenProps) {
 
 function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
   const firstName = firstNameFromPrefs(data);
+  const forecast = useMemo(() => forecastFromImport(data, currentImport), [data, currentImport]);
+  const forecastShare = useForecastShare(forecast, theme);
   const approved = currentImport?.candidates.filter((candidate) => candidate.approved) || [];
   const previewSummary = {
     classes: approved.filter((candidate) => candidate.kind === "class").length,
@@ -7232,6 +7264,20 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
           <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22 }}>{textFor("locked.free_sub", "Scan every syllabus for free. Review each deadline and see your crunch weeks before you decide.")}</Text>
         </View>
         <AppStoreRatingProof theme={theme} />
+
+        {forecast ? (
+          <ForecastSection
+            theme={theme}
+            t={aiText}
+            locale={appLocale()}
+            forecast={forecast}
+            mode="preview"
+            onShare={forecastShare.share}
+            onUnlock={() => nav.push("paywall")}
+            onOpen={() => nav.push("review")}
+            onImport={() => nav.push("scan")}
+          />
+        ) : null}
 
         <View style={{ borderRadius: 28, padding: 20, backgroundColor: "#111114", overflow: "hidden" }}>
           <View style={{ width: 52, height: 52, borderRadius: 17, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
@@ -7307,6 +7353,7 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
         <Button label={textFor("locked.unlock", "Unlock StudyPlanner")} theme={theme} icon="crown" onPress={() => nav.push("paywall")} />
         <Button label={textFor("common.restore", "Restore Purchases")} theme={theme} secondary icon="refresh" onPress={() => nav.push("paywall")} />
       </View>
+      {forecastShare.host}
     </Screen>
   );
 }
@@ -7478,6 +7525,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
     maybeShowUnlockSuccess("google_play_review_access");
   };
 
+  const importForecast = useMemo(() => forecastFromImport(data, currentImport), [data, currentImport]);
   const importCandidates = currentImport?.candidates.filter((candidate) => candidate.approved) || [];
   const importSummary = {
     classes: importCandidates.filter((candidate) => candidate.kind === "class").length,
@@ -7548,7 +7596,12 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
         </View>
         <Text selectable style={{ color: theme.label, fontSize: 34, lineHeight: 37, fontWeight: "900", marginBottom: 8 }}>{currentImport ? textFor("paywall.ready_apply", "Your plan is ready to apply") : textFor("paywall.title", "{name}, unlock StudyPlanner.", { name: firstName })}</Text>
         <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginBottom: 14 }}>{currentImport ? textFor("paywall.sub_import", "Your preview is ready. Unlock, return to Review, then approve it for the live dashboard, reminders, and widgets.") : textFor("paywall.sub_free_first", "Scanning and your Crunch Forecast stay free. Plus applies the plan and keeps it running every day.")}</Text>
-        <Card theme={theme} style={{ padding: 13, marginBottom: 12, backgroundColor: "#111114" }}>
+        {importForecast ? (
+          <View style={{ marginBottom: 12 }}>
+            <UnlockForecastCTA theme={theme} t={aiText} locale={appLocale()} forecast={importForecast} onPress={() => nav.back()} />
+          </View>
+        ) : null}
+        <Card theme={theme} style={{ padding: 13, marginBottom: 12, backgroundColor: "#111114", display: importForecast ? "none" : "flex" }}>
           {currentImport ? (
             <View>
               <Text selectable style={{ color: "rgba(255,255,255,0.66)", fontSize: 12, fontWeight: "900", marginBottom: 10 }}>{textFor("paywall.ready_apply", "READY TO APPLY")}</Text>
@@ -7585,6 +7638,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
         </Card>
         <Card theme={theme} style={{ padding: 14, marginBottom: 12, gap: 10 }}>
           <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("paywall.plus_kicker", "PLUS TURNS YOUR SEMESTER INTO A DAILY PLAN")}</Text>
+          <Text selectable style={{ color: theme.label, fontSize: 13, lineHeight: 18, fontWeight: "800" }}>{textFor("paywall.no_caps", "No credits. No caps. No account. It runs on your iPhone.")}</Text>
           {[
             ["target", COLORS.blue, textFor("paywall.plus_study_now", "Study Now: one clear move every day, self-repairing")],
             ["brain", COLORS.purple, textFor("paywall.plus_exam_mode", "Exam Mode: flashcards and quizzes from your own notes")],
@@ -9878,6 +9932,8 @@ function PasteImport({ data, nav, theme, params, currentImport, setCurrentImport
 function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, currentImport, setCurrentImport, recordReviewTrigger }: ScreenProps) {
   const batch = currentImport;
   const [applying, setApplying] = useState(false);
+  const forecast = useMemo(() => forecastFromImport(data, batch), [data, batch]);
+  const forecastShare = useForecastShare(forecast, theme);
   if (!batch) return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={textFor("review.title", "Review Import")} />
@@ -10141,6 +10197,26 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
             <View style={{ flex: 1 }}><Button label={textFor("review.manual", "Manual setup")} theme={theme} secondary icon="plus" onPress={() => nav.push("paste", { mode: "manual" })} /></View>
           </View>
         </Card>
+        {forecast ? (
+          <View style={{ marginBottom: 16 }}>
+            <ForecastSection
+              theme={theme}
+              t={aiText}
+              locale={appLocale()}
+              forecast={forecast}
+              mode={data.prefs.premium ? "compact" : "preview"}
+              onShare={forecastShare.share}
+              onUnlock={() => nav.push("paywall")}
+              onImport={() => nav.push("scan")}
+            />
+          </View>
+        ) : null}
+        {!notesOnlyImport ? (
+          <Pressable accessibilityRole="button" accessibilityHint={textFor("review.add_another_hint", "Scan, upload, or paste another syllabus into this review")} onPress={() => nav.push("scan")} style={{ minHeight: 48, borderRadius: 16, borderWidth: 1, borderStyle: "dashed", borderColor: theme.hairline, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 16 }}>
+            <Icon name="plus" color={theme.accent} size={18} />
+            <Text style={{ color: theme.accent, fontWeight: "900" }}>{textFor("review.add_another", "Add another class")}</Text>
+          </Pressable>
+        ) : null}
         {batch.candidates.length === 0 || batch.candidates.every((candidate) => candidate.confidence < 0.75) ? (
           <Card theme={theme} style={{ padding: 16, marginBottom: 16, backgroundColor: theme.dark ? "#2A2018" : "#FFF7E8" }}>
             <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{textFor("review.weak_title", "Extraction looks weak.")}</Text>
@@ -10187,6 +10263,7 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
                   <Pressable accessibilityRole="checkbox" accessibilityLabel={effectivelyApproved ? textFor("review.accessibility_unapprove", "Unapprove {title}", { title: item.title }) : textFor("review.accessibility_approve", "Approve {title}", { title: item.title || localizedKindLabel(item.kind) })} accessibilityHint={blockedHint} accessibilityState={{ checked: effectivelyApproved, disabled: rowBlocked }} disabled={rowBlocked} onPress={() => update(item.id, { approved: !item.approved })}>{effectivelyApproved ? <CheckCircle2 color={COLORS.green} /> : <Circle color={rowBlocked ? COLORS.orange : theme.label3} />}</Pressable>
                   <Pressable accessibilityRole="button" accessibilityLabel={textFor("review.accessibility_remove", "Remove {title}", { title: item.title })} accessibilityHint={textFor("review.accessibility_remove_hint", "Deletes this row from the import review.")} hitSlop={10} onPress={() => removeCandidate(item)}><Trash2 color={theme.label3} size={19} /></Pressable>
                 </View>
+                {item.origin && item.origin !== "heuristic" ? <View style={{ marginTop: 8, alignSelf: "flex-start" }}><OriginChip theme={theme} t={aiText} locale={appLocale()} origin={item.origin} /></View> : null}
                 {item.confidence < 0.75 ? <Text selectable style={{ color: COLORS.orange, marginTop: 8, fontWeight: "800" }}>{textFor("review.needs_review", "Needs review")}: {textFor("review.needs_review_body", "StudyPlanner is not confident this row is complete.")}</Text> : null}
                 {titleBlocked ? <Text selectable accessibilityRole="alert" style={{ color: COLORS.orange, marginTop: 8, fontWeight: "900" }}>Add a specific {localizedKindLabel(item.kind).toLowerCase()} title before approving this row.</Text> : null}
                 {dateBlocked ? <Text selectable accessibilityRole="alert" style={{ color: COLORS.orange, marginTop: 8, fontWeight: "900" }}>{textFor("review.invalid_date", "Enter a valid YYYY-MM-DD date before approving this row.")}</Text> : null}
@@ -10259,9 +10336,11 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
         })}
         <Card theme={theme} style={{ padding: 16, marginBottom: 8 }}>
           <Button label={applying ? textFor("review.applying", "Applying...") : primaryApplyLabel} icon={data.prefs.premium ? "target" : "crown"} theme={theme} onPress={approvedCount && !applying ? apply : undefined} />
+          {!data.prefs.premium ? <Text selectable style={{ color: theme.label3, textAlign: "center", marginTop: 8, fontSize: 12, fontWeight: "800" }}>{textFor("paywall.no_caps", "No credits. No caps. No account. It runs on your iPhone.")}</Text> : null}
           <Text selectable accessibilityLiveRegion="polite" style={{ color: approvedCount ? theme.label2 : COLORS.orange, textAlign: "center", marginTop: 8 }}>{approvedCount ? `${textFor("review.approved_footer", "{count} approved items · {state}", { count: approvedCount, state: data.prefs.premium ? textFor("review.editable_later", "editable later") : textFor("review.locked_until_premium", "locked until premium") })}${unresolvedCount ? ` · ${unresolvedCount} ${textFor("review.needs_review", "need review")}` : ""}` : textFor("review.approve_one", "Approve at least one item to continue")}</Text>
         </Card>
       </ScrollView>
+      {forecastShare.host}
     </View>
   );
 }
