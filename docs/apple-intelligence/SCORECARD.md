@@ -54,3 +54,19 @@ The plan was reviewed by two independent read-only agents: Market/CEO and Engine
 
 ## Round 2
 The owner stopped round 2 before either reviewer returned a re-score. **The post-fix scores are not independently verified.** The implementation swarm's review wave (IMPLEMENTATION_PROMPT.md, wave 4) must re-score the plan and the built product against the same rubric, with a target of **≥ 9 in every row**.
+
+## Implementation review (2.2 build, independent reviewers)
+Round 1 (full review) → fixes → Round 2 (targeted re-score, HEAD f478a83) → count/action fix (0e05c6e).
+
+| Category | R1 | R2 | Remaining gap to ≥ 9 |
+|---|---|---|---|
+| Concept | 9 | 9 | — |
+| Utility | 8 | 7.5 → fixed | R2's only finding (Approve-trusted count mismatch) fixed in 0e05c6e |
+| Virality | 7 | 8 | Share links on `workers.dev`; move to a custom domain (owner: DNS + AASA) |
+| Monetization | 8 | 8 | On-device StoreKit sandbox pass; annual trial / weekly no-trial offers (owner: ASC) |
+| Localization | 6 | 9 | — (399 keys × 10 locales; 742 App.tsx keys resolve; English fallback) |
+| Quality | 7 | 7 | First Xcode 26.6 compile of the Swift module + App Intents; `otool` weak-link check; App.tsx monolith split (post-2.2) |
+| Minimum inference | 9.5 | 9.5 | — |
+| Honesty / App Review | 7 | 8.5 | Device-verified purchase/restore; consider dropping "AI" from the en title (owner) |
+
+Categories below 9 are blocked on a Mac, a device, or App Store Connect, not on code in this repo.
