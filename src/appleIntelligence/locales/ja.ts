@@ -435,6 +435,9 @@ const copy: Partial<Record<string, string>> = {
   "profile.accessibility_manage_hint": "このストアアカウントのサブスクリプション管理を開きます",
   "profile.accessibility_unlock_hint": "StudyPlannerのサブスクリプションオプションを開きます",
   "profile.accessibility_row_hint": "この設定を開きます",
+  "ai.exam.entry_tomorrow": "{title}は明日",
+  "review.full_title": "この確認リストはいっぱいです",
+  "review.full_body": "{count}件が入りませんでした（最大80件）。この内容を反映してから残りを追加してください。",
 };
 
 export default copy;

@@ -435,6 +435,9 @@ const copy: Partial<Record<string, string>> = {
   "profile.accessibility_manage_hint": "يفتح إدارة الاشتراك لحساب المتجر هذا",
   "profile.accessibility_unlock_hint": "يفتح خيارات اشتراك StudyPlanner",
   "profile.accessibility_row_hint": "يفتح هذا الإعداد",
+  "ai.exam.entry_tomorrow": "{title} غدًا",
+  "review.full_title": "هذه المراجعة ممتلئة",
+  "review.full_body": "صفوف لم تتسع: {count} (الحد الأقصى 80). طبّق هذه المراجعة ثم أضف الباقي.",
 };
 
 export default copy;

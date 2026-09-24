@@ -435,6 +435,9 @@ const copy: Partial<Record<string, string>> = {
   "profile.accessibility_manage_hint": "Öffnet die Abo-Verwaltung für dieses Store-Konto",
   "profile.accessibility_unlock_hint": "Öffnet die StudyPlanner-Abo-Optionen",
   "profile.accessibility_row_hint": "Öffnet diese Einstellung",
+  "ai.exam.entry_tomorrow": "{title} ist morgen",
+  "review.full_title": "Diese Prüfung ist voll",
+  "review.full_body": "{count} Zeilen passen nicht mehr (maximal 80). Übernimm diese Prüfung und füge den Rest danach hinzu.",
 };
 
 export default copy;

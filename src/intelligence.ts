@@ -1299,9 +1299,11 @@ export function replanAfterMissedBlock(data: AppData, missedBlock: StudyBlock, n
   const target = startOfDay(now);
   target.setDate(target.getDate() + 1);
   const makeup = blockFromSlot({
-    id: `sb_makeup_${Date.now()}`,
+    // Unique per missed block (several can be repaired in one pass) and placed
+    // after any block already on that day instead of stacking in slot 0.
+    id: `sb_makeup_${missedBlock.id}_${Date.now()}`,
     date: target,
-    slotIndex: 0,
+    slotIndex: blocks.filter((block) => block.date === dateKey(target)).length,
     minutes: Math.max(30, Math.min(75, missedBlock.minutes)),
     taskId: missedBlock.taskId,
     classId: missedBlock.classId,

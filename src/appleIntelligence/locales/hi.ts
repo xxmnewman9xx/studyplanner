@@ -435,6 +435,9 @@ const copy: Partial<Record<string, string>> = {
   "profile.accessibility_manage_hint": "इस स्टोर अकाउंट का सदस्यता प्रबंधन खोलता है",
   "profile.accessibility_unlock_hint": "StudyPlanner सदस्यता विकल्प खोलता है",
   "profile.accessibility_row_hint": "यह सेटिंग खोलता है",
+  "ai.exam.entry_tomorrow": "{title} कल है",
+  "review.full_title": "यह रिव्यू भर गया है",
+  "review.full_body": "{count} पंक्तियाँ नहीं आ सकीं (अधिकतम 80)। पहले यह रिव्यू लागू करें, फिर बाकी जोड़ें।",
 };
 
 export default copy;

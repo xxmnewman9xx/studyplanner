@@ -45,17 +45,23 @@ export function useStudySets(notes: NoteItem[], data: AppData, locale: string) {
   const [cached, setCached] = useState<Record<string, StudySet>>({});
   const [preparing, setPreparing] = useState(false);
   const preparedKey = useRef<string>("");
+  // The cache read is kept as a promise so `prepare` can wait for it: a set
+  // saved in an earlier session must never be regenerated.
+  const cacheLoad = useRef<Promise<Record<string, StudySet>> | null>(null);
 
   useEffect(() => {
     let active = true;
-    Promise.all(notes.map((note) => aiCache.loadStudySet(note.id))).then((sets) => {
-      if (!active) return;
+    const load = Promise.all(notes.map((note) => aiCache.loadStudySet(note.id))).then((sets) => {
       const next: Record<string, StudySet> = {};
       sets.forEach((set, index) => {
         const note = notes[index];
         if (set && note && set.sourceHash === stableHash(String(note.sourceText || ""))) next[note.id] = set;
       });
-      setCached(next);
+      return next;
+    });
+    cacheLoad.current = load;
+    load.then((next) => {
+      if (active) setCached(next);
     });
     return () => {
       active = false;
@@ -71,8 +77,9 @@ export function useStudySets(notes: NoteItem[], data: AppData, locale: string) {
   const prepare = useCallback(async () => {
     if (Platform.OS !== "ios" || preparedKey.current === noteKey) return;
     preparedKey.current = noteKey;
+    const saved = (await cacheLoad.current?.catch(() => ({} as Record<string, StudySet>))) || cached;
     const eligible = notes
-      .filter((note) => !cached[note.id] && String(note.sourceText || "").trim().length >= MIN_MODEL_NOTE_CHARS)
+      .filter((note) => !saved[note.id] && !cached[note.id] && String(note.sourceText || "").trim().length >= MIN_MODEL_NOTE_CHARS)
       .slice(0, MAX_MODEL_NOTES);
     if (!eligible.length || AppState.currentState !== "active") return;
     const availability = await getAvailability(locale).catch(() => null);

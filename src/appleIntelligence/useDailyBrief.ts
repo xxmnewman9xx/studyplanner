@@ -14,6 +14,7 @@ import { dateKey } from "../intelligence";
 import type { AppData } from "../types";
 import * as aiCache from "./cache";
 import { createModelRunner, getAvailability } from "./client";
+import { shouldRunBrief } from "./budget";
 import { briefWithModel, studyNowCandidates, templateBrief, type CopyFn } from "./studyNow";
 import type { DailyBrief } from "./types";
 
@@ -41,12 +42,16 @@ export function useDailyBrief(data: AppData | null, t: CopyFn, locale: string): 
   const candidates = useMemo(() => (data ? studyNowCandidates(data, new Date()) : []), [data]);
   const template = useMemo(() => (data ? templateBrief(candidates, data, new Date(), t) : null), [candidates, data, t]);
   const [cached, setCached] = useState<CachedBrief | null>(null);
+  // The model may only be considered after today's cache row has been read.
+  const [cacheReadFor, setCacheReadFor] = useState<string>("");
   const inFlight = useRef(false);
 
   useEffect(() => {
     let active = true;
     aiCache.metaGet(BRIEF_META_KEY).then((raw) => {
-      if (active) setCached(parseCached(raw));
+      if (!active) return;
+      setCached(parseCached(raw));
+      setCacheReadFor(today);
     });
     return () => {
       active = false;
@@ -55,7 +60,7 @@ export function useDailyBrief(data: AppData | null, t: CopyFn, locale: string): 
 
   useEffect(() => {
     if (!data || Platform.OS !== "ios" || candidates.length <= 1 || inFlight.current) return;
-    if (cached && cached.dateKey === today) return;
+    if (cacheReadFor !== today || !shouldRunBrief(cached?.dateKey, today)) return;
     if (AppState.currentState !== "active") return;
     let cancelled = false;
     inFlight.current = true;
@@ -76,7 +81,7 @@ export function useDailyBrief(data: AppData | null, t: CopyFn, locale: string): 
     return () => {
       cancelled = true;
     };
-  }, [cached, candidates, data, locale, t, today]);
+  }, [cacheReadFor, cached, candidates, data, locale, t, today]);
 
   return useMemo(() => {
     if (!data || !template) return null;

@@ -435,6 +435,9 @@ const copy: Partial<Record<string, string>> = {
   "profile.accessibility_manage_hint": "打开此商店账户的订阅管理",
   "profile.accessibility_unlock_hint": "打开 StudyPlanner 订阅选项",
   "profile.accessibility_row_hint": "打开此设置",
+  "ai.exam.entry_tomorrow": "{title} 就在明天",
+  "review.full_title": "此检查列表已满",
+  "review.full_body": "有 {count} 行未能加入（最多 80 行）。请先应用本次检查，再添加其余内容。",
 };
 
 export default copy;

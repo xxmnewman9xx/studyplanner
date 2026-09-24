@@ -435,6 +435,9 @@ const copy: Partial<Record<string, string>> = {
   "profile.accessibility_manage_hint": "이 스토어 계정의 구독 관리를 엽니다",
   "profile.accessibility_unlock_hint": "StudyPlanner 구독 옵션을 엽니다",
   "profile.accessibility_row_hint": "이 설정을 엽니다",
+  "ai.exam.entry_tomorrow": "{title}은(는) 내일",
+  "review.full_title": "검토 목록이 가득 찼어요",
+  "review.full_body": "{count}개 항목이 들어가지 않았어요(최대 80개). 먼저 적용한 뒤 나머지를 추가하세요.",
 };
 
 export default copy;

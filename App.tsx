@@ -5861,19 +5861,44 @@ const INBOX_PROCESSED_KEY = "inbox:processed";
 // batch joins a pending syllabus review instead of replacing it; notes imports
 // and applied batches never merge. Duplicate rows (same kind, title, and date)
 // are skipped, and the batch honors the 80-candidate pending-import cap.
+const MAX_REVIEW_ROWS = 80;
+
 function appendImportBatch(current: ImportBatch | null, next: ImportBatch): ImportBatch {
+  return appendImportBatchWithReport(current, next).batch;
+}
+
+function appendImportBatchWithReport(current: ImportBatch | null, next: ImportBatch): { batch: ImportBatch; dropped: number } {
   const isNotesOnly = (batch: ImportBatch) => batch.candidates.length > 0 && batch.candidates.every((candidate) => candidate.kind === "note");
-  if (!current || current.status !== "review" || isNotesOnly(current) || isNotesOnly(next)) return next;
-  const rowKey = (candidate: ImportCandidate) => `${candidate.kind}|${candidate.title.trim().toLowerCase()}|${String((candidate.payload as { dueDate?: unknown }).dueDate || "")}`;
+  if (!current || current.status !== "review" || isNotesOnly(current) || isNotesOnly(next)) {
+    return { batch: { ...next, candidates: next.candidates.slice(0, MAX_REVIEW_ROWS) }, dropped: Math.max(0, next.candidates.length - MAX_REVIEW_ROWS) };
+  }
+  const classKey = (candidate: ImportCandidate) => {
+    const payload = candidate.payload as { classId?: unknown; code?: unknown };
+    return candidate.kind === "class" ? String(payload.code || candidate.title).trim().toLowerCase() : String(payload.classId || candidate.classId || "");
+  };
+  // Same kind + title + date + class: two classes can both have "Homework 1".
+  const rowKey = (candidate: ImportCandidate) => `${candidate.kind}|${classKey(candidate)}|${candidate.title.trim().toLowerCase()}|${String((candidate.payload as { dueDate?: unknown }).dueDate || "")}`;
   const seen = new Set(current.candidates.map(rowKey));
   const added = next.candidates.filter((candidate) => !seen.has(rowKey(candidate)));
+  const room = Math.max(0, MAX_REVIEW_ROWS - current.candidates.length);
   const sourceName = current.sourceName === next.sourceName ? current.sourceName : `${current.sourceName} + ${next.sourceName}`.slice(0, 160);
   return {
-    ...current,
-    sourceName,
-    sourceText: `${current.sourceText}\n\n${next.sourceText}`,
-    candidates: [...current.candidates, ...added].slice(0, 80),
+    batch: {
+      ...current,
+      sourceName,
+      sourceText: `${current.sourceText}\n\n${next.sourceText}`,
+      candidates: [...current.candidates, ...added.slice(0, room)],
+    },
+    dropped: Math.max(0, added.length - room),
   };
+}
+
+function alertReviewFull(dropped: number) {
+  if (dropped <= 0) return;
+  Alert.alert(
+    textFor("review.full_title", "This review is full"),
+    textFor("review.full_body", "{count} rows didn't fit (a review holds 80). Apply this review, then add the rest.", { count: dropped }),
+  );
 }
 
 type SmartImportProgress = { page: number; pageCount: number; found: number; documentReader: boolean; onDevice: boolean };
@@ -5909,6 +5934,7 @@ export default function App() {
   const [classPackClassId, setClassPackClassId] = useState<string | null>(null);
   const selfRepairDayRef = useRef<string>("");
   const [quickAddQueue, setQuickAddQueue] = useState<QuickAddRequest[]>([]);
+  const queuedInboxIdsRef = useRef<Set<string>>(new Set());
   const routeUrlRef = useRef<((url: string) => void) | null>(null);
   const theme = palette(data?.prefs.theme || "light", data?.prefs.semesterAccentColor);
 
@@ -6113,7 +6139,18 @@ export default function App() {
         })
         .catch(() => setSaveError(textFor("storage.save_retry", "Changes are safe in this session but could not be saved to this device yet.")));
     }
-  }, [data, entitlementStatus, loaded, saveAttempt, dailyBrief?.line, dailyBrief?.reason]);
+  }, [data, entitlementStatus, loaded, saveAttempt]);
+
+  // When only today's Study Now line changes, refresh widgets without
+  // re-saving the planner.
+  const briefWidgetKey = dailyBrief ? `${dailyBrief.dateKey}|${dailyBrief.line}|${dailyBrief.reason}` : "";
+  const lastBriefWidgetKey = useRef("");
+  useEffect(() => {
+    if (Platform.OS === "web" || !loaded || !data || !briefWidgetKey || briefWidgetKey === lastBriefWidgetKey.current) return;
+    lastBriefWidgetKey.current = briefWidgetKey;
+    if (!entitlementUnlocks(data, entitlementStatus) || !data.prefs.osLive || !dailyBrief) return;
+    syncNativeWidgets(activeSemesterData(data), widgetCopyFor, { studyNow: { line: dailyBrief.line, reason: dailyBrief.reason, dateKey: dailyBrief.dateKey } }).catch(() => {});
+  }, [briefWidgetKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Siri (App Intents) and Spotlight read an App Group snapshot the app writes;
   // extensions never run inference. A locked planner publishes nothing.
@@ -6171,9 +6208,11 @@ export default function App() {
         if (!raw) return;
         const processedRaw = await aiCache.metaGet(INBOX_PROCESSED_KEY);
         const processed = new Set<string>(processedRaw ? (JSON.parse(processedRaw) as string[]) : []);
-        const { entries, processedIds } = drainInbox(raw, processed);
+        // Entries already waiting in the confirm queue this session are skipped too.
+        queuedInboxIdsRef.current.forEach((id) => processed.add(id));
+        const { entries } = drainInbox(raw, processed);
         if (!entries.length) return;
-        await aiCache.metaSet(INBOX_PROCESSED_KEY, JSON.stringify(Array.from(processedIds).slice(-200)));
+        entries.forEach((entry) => queuedInboxIdsRef.current.add(entry.id));
         const current = latestDataRef.current;
         if (!current) return;
         const locale = appLocale();
@@ -6237,7 +6276,8 @@ export default function App() {
       });
       if (controller.signal.aborted) return;
       const batch = localizedImportBatch(result.batch, sourceName);
-      const merged = appendImportBatch(currentImportRef.current, batch);
+      const { batch: merged, dropped } = appendImportBatchWithReport(currentImportRef.current, batch);
+      alertReviewFull(dropped);
       currentImportRef.current = merged;
       setCurrentImport(merged);
       setStack((s) => [...s, { route: "review" }]);
@@ -6289,17 +6329,18 @@ export default function App() {
       });
     }
     if (request.inboxId) {
-      // Remove only the handled entry so a Siri capture saved meanwhile survives.
-      const raw = await readAppGroupJSON("intent-inbox");
+      // Only now is the Siri entry "handled". JS never rewrites intent-inbox.json
+      // (the intent may be appending at the same moment); the Swift side keeps
+      // the newest 20 entries, and handled ids are skipped by drainInbox.
+      const processedRaw = await aiCache.metaGet(INBOX_PROCESSED_KEY);
+      let processed: string[] = [];
       try {
-        const parsed = raw ? JSON.parse(raw) : null;
-        const entries = Array.isArray(parsed?.entries) ? parsed.entries : Array.isArray(parsed) ? parsed : [];
-        const remaining = entries.filter((entry: { id?: unknown }) => entry?.id !== request.inboxId);
-        if (remaining.length) await writeAppGroupJSON("intent-inbox", JSON.stringify({ entries: remaining }));
-        else await deleteAppGroupJSON("intent-inbox");
+        processed = processedRaw ? (JSON.parse(processedRaw) as string[]) : [];
       } catch {
-        await deleteAppGroupJSON("intent-inbox");
+        processed = [];
       }
+      await aiCache.metaSet(INBOX_PROCESSED_KEY, JSON.stringify([...processed.filter((id) => id !== request.inboxId), request.inboxId].slice(-200)));
+      queuedInboxIdsRef.current.delete(request.inboxId);
     }
   }, []);
 
@@ -6316,7 +6357,8 @@ export default function App() {
     const current = latestDataRef.current;
     if (!current) return false;
     const batch = localizedImportBatch(packToImportBatch(shared.pack, activeSemesterData(current), new Date()), textFor("ai.pack.source", "Class Pack · {code}", { code: shared.pack.c.code }));
-    const merged = appendImportBatch(currentImportRef.current, batch);
+    const { batch: merged, dropped } = appendImportBatchWithReport(currentImportRef.current, batch);
+    alertReviewFull(dropped);
     currentImportRef.current = merged;
     setCurrentImport(merged);
     setStack((s) => [...s, { route: current.prefs.onboardingComplete ? "review" : "onboarding" }]);
@@ -9659,6 +9701,7 @@ function ScannerImportHistoryRow({ imp, index, theme }: { imp: ImportBatch; inde
 }
 
 function CameraScanner({ data, nav, theme, params, setCurrentImport, startSyllabusImport }: ScreenProps) {
+  const lastReadUsedDocumentReader = useRef(false);
   const mode = data.prefs.premium && params.mode === "notes" ? "notes" : "syllabus";
   const cameraRef = useRef<CameraView | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
@@ -9723,7 +9766,6 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport, startSyllab
     );
   }
 
-  const lastReadUsedDocumentReader = useRef(false);
   const analyzeCapturedText = (sourceText: string, sourceName: string) => {
     if (mode === "syllabus") {
       startSyllabusImport(sourceText, sourceName, { documentReader: lastReadUsedDocumentReader.current }).catch(() => setFeedback(textFor("scan.image_failed", "That image could not be scanned.")));
@@ -11230,7 +11272,7 @@ function ExamModeEntryCard({ exam, theme, nav }: { exam: ExamItem; theme: Return
         <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}><Brain color="#D9CBFF" size={21} /></View>
         <View style={{ flex: 1 }}>
           <Text selectable style={{ color: "#D9CBFF", fontSize: 11, fontWeight: "900", letterSpacing: 0.6 }}>{textFor("ai.exam.entry_kicker", "EXAM MODE")}</Text>
-          <Text selectable style={{ color: "#FFFFFF", fontSize: 17, lineHeight: 22, fontWeight: "900" }}>{days === 0 ? textFor("ai.exam.entry_today", "{title} is today", { title: exam.title }) : textFor("ai.exam.entry_title", "{title} in {days} days", { title: exam.title, days })}</Text>
+          <Text selectable style={{ color: "#FFFFFF", fontSize: 17, lineHeight: 22, fontWeight: "900" }}>{days === 0 ? textFor("ai.exam.entry_today", "{title} is today", { title: exam.title }) : days === 1 ? textFor("ai.exam.entry_tomorrow", "{title} is tomorrow", { title: exam.title }) : textFor("ai.exam.entry_title", "{title} in {days} days", { title: exam.title, days })}</Text>
         </View>
       </View>
       <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 19 }}>{textFor("ai.exam.entry_body", "Flashcards and practice questions from your own notes. Every one cites its source line.")}</Text>
@@ -11295,7 +11337,7 @@ function ExamModeRoute({ data, mutate, nav, theme, params }: ScreenProps) {
     studySetOrigin: sets.origin,
   };
   const addReviewTasks = () => Alert.alert(
-    textFor("ai.exam.review_confirm_title", "Add {count} review sessions?", { count: proposal.length }),
+    textFor("ai.exam.review_confirm_title", "Add review sessions ({count})?", { count: proposal.length }),
     textFor("ai.exam.review_confirm_body", "StudyPlanner adds short review tasks for your weakest topics before the exam. You can edit or delete them anytime."),
     [
       { text: textFor("common.cancel", "Cancel"), style: "cancel" },
