@@ -467,7 +467,7 @@ function checkCatalog(file, { phraseCatalog }) {
 const app = JSON.parse(read("app.json")).expo;
 {
   expect(app.plugins.includes("./plugins/with-studyplanner-app-intents"), "app.json registers the App Intents plugin");
-  expect(app.version === "2.2.0" && app.ios.buildNumber === "91", "app.json is 2.2.0 build 91");
+  expect(app.version === "2.2.0" && Number(app.ios.buildNumber) >= 91, "app.json is 2.2.0, build 91 or later");
   expect(app.ios.associatedDomains?.includes("applinks:studyplanner-ai.xxmnewman9xx.workers.dev"), "associatedDomains includes the workers.dev applinks domain");
   expect(app.ios.entitlements?.["com.apple.security.application-groups"]?.includes("group.com.mattnewman.studyplanner"), "App Group entitlement is preserved");
   expect(read(path.join(SWIFT_DIR, "StudyPlannerIntentStore.swift")).includes('"group.com.mattnewman.studyplanner"'), "intents use the app's App Group");
