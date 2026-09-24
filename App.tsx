@@ -147,6 +147,11 @@ import {
 } from "./src/semesterTheme";
 import { semesterKickoffPhase, semesterKickoffProgress } from "./src/semesterKickoff";
 import { AI_COPY, COPY_22_EN } from "./src/appleIntelligence/copy";
+import { getAvailability, invalidateAvailability, isUserAIEnabled, setUserAIEnabled } from "./src/appleIntelligence/client";
+import * as aiCache from "./src/appleIntelligence/cache";
+import { clearSpotlight, deleteAppGroupJSON, readAppGroupJSON } from "./src/appleIntelligence/native";
+import type { AIAvailability } from "./src/appleIntelligence/types";
+import { AIStatusRow, type AIText } from "./src/appleIntelligence/ui";
 
 declare const process:
   | {
@@ -4733,6 +4738,30 @@ function textFor(key: string, fallback: string, vars: CopyVars = {}) {
   return storeVariantText(key, template).replace(/\{(\w+)\}/g, (_match, name) => String(vars[name] ?? ""));
 }
 
+// Adapter so the 2.2 UI kit (src/appleIntelligence/ui) reads the same copy tables.
+const aiText: AIText = (key, fallback, vars) => textFor(key, fallback, vars || {});
+
+function useAIAvailability() {
+  const locale = appLocale();
+  const [availability, setAvailability] = useState<AIAvailability | null>(null);
+  const [enabled, setEnabled] = useState(true);
+  const refresh = useCallback(() => {
+    let active = true;
+    Promise.all([getAvailability(locale), isUserAIEnabled()])
+      .then(([next, on]) => {
+        if (!active) return;
+        setAvailability(next);
+        setEnabled(on);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [locale]);
+  useEffect(() => refresh(), [refresh]);
+  return { availability, enabled, setEnabled, refresh, locale };
+}
+
 function optionText(value: string) {
   const key = {
     "School semester": "option.school_semester",
@@ -5068,6 +5097,30 @@ function routeTokensFromUrl(rawUrl: string) {
   }
 
   return tokens;
+}
+
+// Spotlight results and Siri entities open `studyplanner://class/<id>`,
+// `studyplanner://task/<id>`, or `studyplanner://exam/<id>`. IDs are matched
+// against real records before navigating, so a stale index entry is harmless.
+function entityRouteFromUrl(rawUrl: string): NavItem | null {
+  const match = /^studyplanner:\/\/(class|task|exam)\/([^/?#]+)/i.exec(rawUrl.trim());
+  if (!match) return null;
+  let id = match[2];
+  try {
+    id = decodeURIComponent(id);
+  } catch {
+    return null;
+  }
+  const kind = match[1].toLowerCase();
+  const route: Route = kind === "class" ? "classDetail" : kind === "exam" ? "assessmentDetail" : "taskDetail";
+  return { route, params: { id } };
+}
+
+function entityExists(data: AppData, item: NavItem) {
+  const id = item.params?.id || "";
+  if (item.route === "classDetail") return data.classes.some((klass) => klass.id === id);
+  if (item.route === "assessmentDetail") return data.exams.some((exam) => exam.id === id);
+  return data.tasks.some((task) => task.id === id);
 }
 
 function routeFromUrl(rawUrl: string): Route | null {
@@ -5725,6 +5778,8 @@ export default function App() {
   const notificationResponseHandled = useRef<string | null>(null);
   const currentImportRef = useRef<ImportBatch | null>(null);
   const paywallDestinationRef = useRef<NavItem | null>(null);
+  const lastRoutedUrlRef = useRef<{ url: string; at: number } | null>(null);
+  const routeUrlRef = useRef<((url: string) => void) | null>(null);
   const theme = palette(data?.prefs.theme || "light", data?.prefs.semesterAccentColor);
 
   useEffect(() => {
@@ -6013,6 +6068,11 @@ export default function App() {
     const routeUrl = (url: string | null, initial = false) => {
       if (!url || (initial && initialUrlHandled.current)) return;
       if (entitlementStatus === "loading") return;
+      // Siri/Spotlight can deliver the same URL twice (openURL for a warm app plus
+      // the App Group pending-route file for a cold launch). Treat as one.
+      const now = Date.now();
+      if (lastRoutedUrlRef.current && lastRoutedUrlRef.current.url === url && now - lastRoutedUrlRef.current.at < 4000) return;
+      lastRoutedUrlRef.current = { url, at: now };
       const captureConfig = simulatorCaptureConfigFromUrl(url);
       if (captureConfig) {
         const captureState = buildSimulatorCaptureState(captureConfig);
@@ -6025,6 +6085,17 @@ export default function App() {
         setPendingImportStoreReady(true);
         setStack([captureState.navItem]);
         if (captureState.prompt) setTimeout(() => showSimulatorCapturePrompt(captureState.prompt), 1200);
+        return;
+      }
+      const entity = entityRouteFromUrl(url);
+      if (entity) {
+        if (initial) initialUrlHandled.current = true;
+        if (!entitlementUnlocks(data, entitlementStatus)) {
+          setStack([{ route: onboardingComplete(data) ? "lockedDashboard" : "onboarding" }]);
+          return;
+        }
+        if (entityExists(data, entity)) nav.push(entity.route, entity.params);
+        else nav.tab("today");
         return;
       }
       const route = routeFromUrl(url);
@@ -6095,10 +6166,41 @@ export default function App() {
       }
       openResolvedRoute(route);
     };
+    routeUrlRef.current = (url: string) => routeUrl(url);
     Linking.getInitialURL().then((url) => routeUrl(url, true)).catch(() => {});
     const subscription = Linking.addEventListener("url", ({ url }) => routeUrl(url));
     return () => subscription.remove();
   }, [data, entitlementStatus, loaded, nav]);
+
+  // App Intents (Open scanner) and tapped Spotlight results leave a one-shot
+  // `pending-route.json` in the App Group for cold launches. Consume it once the
+  // planner and entitlement are known, and again on every return to foreground.
+  useEffect(() => {
+    if (Platform.OS !== "ios" || !loaded || entitlementStatus === "loading") return;
+    let cancelled = false;
+    const consume = async () => {
+      const raw = await readAppGroupJSON("pending-route");
+      if (!raw || cancelled) return;
+      await deleteAppGroupJSON("pending-route");
+      try {
+        const parsed = JSON.parse(raw) as { url?: unknown; createdAt?: unknown };
+        const createdAt = typeof parsed.createdAt === "string" ? Date.parse(parsed.createdAt) : NaN;
+        if (typeof parsed.url !== "string" || !/^studyplanner:\/\//i.test(parsed.url)) return;
+        if (Number.isFinite(createdAt) && Date.now() - createdAt > 10 * 60 * 1000) return;
+        routeUrlRef.current?.(parsed.url);
+      } catch {
+        // A malformed handoff file is ignored; it has already been deleted.
+      }
+    };
+    consume();
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") consume();
+    });
+    return () => {
+      cancelled = true;
+      subscription.remove();
+    };
+  }, [entitlementStatus, loaded]);
 
   useEffect(() => {
     if (!loaded || !data) return;
@@ -10877,6 +10979,30 @@ function WidgetsScreen({ data, mutate, nav, theme, recordReviewTrigger }: Screen
 
 function Profile({ data, mutate, nav, theme }: ScreenProps) {
   const liveData = activeSemesterData(data);
+  const ai = useAIAvailability();
+  const [clearingAI, setClearingAI] = useState(false);
+  const toggleAI = (next: boolean) => {
+    ai.setEnabled(next);
+    setUserAIEnabled(next).finally(() => {
+      invalidateAvailability();
+      ai.refresh();
+    });
+  };
+  const clearAIData = () => Alert.alert(
+    textFor("ai.status.clear_confirm_title", "Clear on-device AI data?"),
+    textFor("ai.status.clear_confirm_body", "Removes generated study sets, practice history, and cached results from this iPhone. Your classes, tasks, and notes stay."),
+    [
+      { text: textFor("common.cancel", "Cancel"), style: "cancel" },
+      {
+        text: textFor("ai.status.clear_action", "Clear"),
+        style: "destructive",
+        onPress: () => {
+          setClearingAI(true);
+          Promise.all([aiCache.clearAllAIData(), clearSpotlight()]).finally(() => setClearingAI(false));
+        },
+      },
+    ],
+  );
   const subscriptionAccount = Platform.OS === "android" ? textFor("profile.google_play", "Google Play") : textFor("profile.apple_account", "Apple account");
   const rows = [
     ["bell", COLORS.red, textFor("profile.reminders", "Reminders"), textFor("reminders.configured_count", "{count} configured", { count: liveData.reminders.filter((r) => r.enabled).length }), "reminders"],
@@ -10893,6 +11019,7 @@ function Profile({ data, mutate, nav, theme }: ScreenProps) {
       <View style={{ paddingHorizontal: 16, gap: 16 }}>
         <Card theme={theme} style={{ padding: 18 }}><View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}><View style={{ width: 62, height: 62, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 26, fontWeight: "900" }}>{userInitial(data)}</Text></View><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontSize: 24, fontWeight: "900" }}>{firstNameFromPrefs(data)}</Text><Text selectable style={{ color: theme.label2 }}>{optionText(data.prefs.level)} · {optionText(data.prefs.studentPersona || "School semester")}</Text><View style={{ flexDirection: "row", gap: 6, marginTop: 6 }}><Pill text={data.prefs.premium ? textFor("profile.subscribed", "Subscribed") : textFor("profile.locked", "Locked")} color={data.prefs.premium ? COLORS.green : COLORS.orange} icon="crown" theme={theme} /><Pill text={textFor("profile.on_device", "On device")} color={COLORS.green} icon="shield" theme={theme} /></View></View></View><View style={{ marginTop: 18 }}><View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 7 }}><Text selectable style={{ color: theme.label2, fontWeight: "900" }}>{textFor("profile.semester_progress", "SEMESTER PROGRESS")}</Text><Text selectable style={{ color: theme.label2 }}>{liveData.classes.length ? textFor("profile.classes_count", "{count} classes", { count: liveData.classes.length }) : textFor("profile.no_semester", "No semester yet")}</Text></View><ProgressBar value={liveData.tasks.length ? liveData.tasks.filter((task) => task.done).length / liveData.tasks.length : 0} color={theme.accent} theme={theme} /></View></Card>
         <Pressable accessibilityRole={data.prefs.premium ? "link" : "button"} accessibilityLabel={data.prefs.premium ? textFor("profile.manage_subscription", "Manage subscription") : textFor("locked.unlock", "Unlock StudyPlanner")} accessibilityHint={data.prefs.premium ? textFor("profile.accessibility_manage_hint", "Open subscription management for this store account") : textFor("profile.accessibility_unlock_hint", "Open StudyPlanner subscription options")} onPress={() => data.prefs.premium ? openExternal(MANAGE_SUBSCRIPTION_URL) : nav.push("paywall")}><View style={{ borderRadius: 22, padding: 18, backgroundColor: "#282139" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Crown color={COLORS.yellow} size={19} /><Text selectable style={{ color: "#fff", fontWeight: "900" }}>{textFor("profile.subscription", "StudyPlanner subscription")}</Text></View><Text selectable style={{ color: "rgba(255,255,255,.85)" }}>{textFor("profile.subscription_body", "Scans, reminders, study sets, and planning are active.")}</Text></View></Pressable>
+        {ai.availability ? <AIStatusRow theme={theme} t={aiText} locale={ai.locale} availability={ai.availability} enabled={ai.enabled} onToggle={toggleAI} onClear={clearAIData} clearing={clearingAI} /> : null}
         <Card theme={theme} style={{ overflow: "hidden" }}>{rows.map(([icon, color, title, value, route]) => <Pressable key={`profile-row-${route}`} accessibilityRole={route === "manage" || route === "privacy" || route === "terms" || route === "support" ? "link" : "button"} accessibilityLabel={`${title}. ${value}`} accessibilityHint={route === "manage" ? textFor("profile.accessibility_manage_hint", "Open subscription management for this store account") : route === "privacy" ? textFor("paywall.accessibility_privacy_hint", "Open the privacy policy") : route === "terms" ? textFor("paywall.accessibility_terms_hint", "Open the subscription terms") : route === "support" ? textFor("paywall.accessibility_support_hint", "Open StudyPlanner support") : textFor("profile.accessibility_row_hint", "Open this setting")} onPress={() => {
           if (route === "scan") nav.tab("scan");
           else if (route === "manage") openExternal(MANAGE_SUBSCRIPTION_URL);
