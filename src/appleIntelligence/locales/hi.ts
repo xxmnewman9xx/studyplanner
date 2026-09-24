@@ -442,6 +442,11 @@ const copy: Partial<Record<string, string>> = {
   "ai.check.option_hint": "यह उत्तर चुनें",
   "ai.check.source": "आपके नोट्स से{line}: “{quote}”",
   "ai.check.line": "पंक्ति {line}",
+  "paywall.store_down": "App Store अभी उपलब्ध नहीं है।",
+  "paywall.approve_sheet": "App Store शीट में सब्सक्रिप्शन स्वीकृत करें। Apple की पुष्टि होते ही StudyPlanner अनलॉक हो जाएगा।",
+  "paywall.purchase_failed": "App Store खरीदारी शुरू नहीं कर सका।",
+  "paywall.restore_none": "इस Apple ID के लिए कोई सक्रिय StudyPlanner सब्सक्रिप्शन नहीं मिला।",
+  "paywall.restore_failed": "रीस्टोर पूरा नहीं हो सका।",
 };
 
 export default copy;

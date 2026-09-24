@@ -442,6 +442,11 @@ const copy: Partial<Record<string, string>> = {
   "ai.check.option_hint": "이 답 선택",
   "ai.check.source": "내 노트에서{line}: “{quote}”",
   "ai.check.line": "{line}번째 줄",
+  "paywall.store_down": "지금은 App Store를 사용할 수 없어요.",
+  "paywall.approve_sheet": "App Store 창에서 구독을 승인하세요. Apple이 확인하면 바로 StudyPlanner가 잠금 해제돼요.",
+  "paywall.purchase_failed": "App Store에서 구매를 시작할 수 없어요.",
+  "paywall.restore_none": "이 Apple 계정에서 활성 StudyPlanner 구독을 찾지 못했어요.",
+  "paywall.restore_failed": "복원을 완료할 수 없어요.",
 };
 
 export default copy;

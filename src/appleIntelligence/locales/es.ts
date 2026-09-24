@@ -442,6 +442,11 @@ const copy: Partial<Record<string, string>> = {
   "ai.check.option_hint": "Elegir esta respuesta",
   "ai.check.source": "De tus apuntes{line}: «{quote}»",
   "ai.check.line": "línea {line}",
+  "paywall.store_down": "App Store no está disponible ahora.",
+  "paywall.approve_sheet": "Aprueba la suscripción en la ventana de App Store. StudyPlanner se desbloquea en cuanto Apple la confirme.",
+  "paywall.purchase_failed": "App Store no pudo iniciar la compra.",
+  "paywall.restore_none": "No se encontró una suscripción activa de StudyPlanner para este Apple ID.",
+  "paywall.restore_failed": "No se pudo completar la restauración.",
 };
 
 export default copy;

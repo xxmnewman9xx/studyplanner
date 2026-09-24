@@ -442,6 +442,11 @@ const copy: Partial<Record<string, string>> = {
   "ai.check.option_hint": "Diese Antwort wählen",
   "ai.check.source": "Aus deinen Notizen{line}: „{quote}“",
   "ai.check.line": "Zeile {line}",
+  "paywall.store_down": "Der App Store ist gerade nicht verfügbar.",
+  "paywall.approve_sheet": "Bestätige das Abo im App-Store-Fenster. StudyPlanner wird freigeschaltet, sobald Apple es bestätigt.",
+  "paywall.purchase_failed": "Der App Store konnte den Kauf nicht starten.",
+  "paywall.restore_none": "Für diese Apple-ID wurde kein aktives StudyPlanner-Abo gefunden.",
+  "paywall.restore_failed": "Die Wiederherstellung konnte nicht abgeschlossen werden.",
 };
 
 export default copy;

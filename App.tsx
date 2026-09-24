@@ -159,11 +159,11 @@ import type { DailyBrief, TaskProposal } from "./src/appleIntelligence/types";
 import type { AIAvailability } from "./src/appleIntelligence/types";
 import { AIStatusRow, ClassPackSheet, DuelIntroCard, PastePackBanner, QuickAddConfirmSheet, ExamModeScreen, ForecastSection, ForecastShareCard, OriginChip, PracticeSession, ScanProgress, StudyNowCard, UnlockForecastCTA, shareForecastCard, shareLink, type AIText, type ExamModeSummary, type PracticeAnswer, type PracticeMode, type PracticeScore } from "./src/appleIntelligence/ui";
 import { buildCrunchForecast, type CrunchForecastResult } from "./src/crunchForecast";
-import { appStoreLink, classPackFromData, decodeShared, duelFromStudySet, duelLink, duelToStudyQuestions, encodeShared, packLink, packToImportBatch, qrEligible, sharedFromUrl } from "./src/classPack";
+import { appStoreLink, classPackFromData, classPacksFromBatch, decodeShared, duelFromStudySet, duelLink, duelToStudyQuestions, encodeShared, packLink, packToImportBatch, qrEligible, sharedFromUrl } from "./src/classPack";
 import * as Clipboard from "expo-clipboard";
 import { useStudySets } from "./src/appleIntelligence/useStudySets";
 import { computeWeakTopics, proposeWeakTopicBlocks } from "./src/appleIntelligence/weakTopics";
-import type { PracticeResult, StudyQuestion, StudySet } from "./src/appleIntelligence/types";
+import type { ClassPack, PracticeResult, StudyQuestion, StudySet } from "./src/appleIntelligence/types";
 import { qrMatrix } from "./src/qrMatrix";
 
 declare const process:
@@ -4754,23 +4754,6 @@ function appLocale(): SupportedLocale {
   }
 }
 
-function nonEnglishMissingCopy(locale: SupportedLocale, key: string) {
-  const localized = APP_COPY[locale] || APP_COPY["en-US"];
-  if (key.startsWith("welcome.") || key.startsWith("onboarding.")) return localized["onboarding.build_title"] || localized["locked.title"] || localized["common.continue"];
-  if (key.startsWith("mini.") || key.startsWith("health.")) return localized["locked.health"] || localized["locked.health_title"] || localized["common.continue"];
-  if (key.startsWith("today.")) return localized["tabs.today"] || localized["common.continue"];
-  if (key.startsWith("scan.") || key.startsWith("paste.")) return localized["scan.title"] || localized["tabs.scan"] || localized["common.continue"];
-  if (key.startsWith("paywall.")) return localized["locked.unlock"] || localized["paywall.title"] || localized["common.continue"];
-  if (key.startsWith("review.") || key.startsWith("success.")) return localized["review.title"] || localized["common.continue"];
-  if (key.startsWith("class.") || key.startsWith("task.") || key.startsWith("tasks.")) return localized["class.assignment"] || localized["tabs.classes"] || localized["common.continue"];
-  if (key.startsWith("assessment.")) return localized["class.assessment"] || localized["tabs.classes"] || localized["common.continue"];
-  if (key.startsWith("plan.") || key.startsWith("study.")) return localized["plan.title"] || localized["tabs.plan"] || localized["common.continue"];
-  if (key.startsWith("note.") || key.startsWith("notes.")) return localized["notes.title"] || localized["common.continue"];
-  if (key.startsWith("profile.")) return localized["tabs.profile"] || localized["common.continue"];
-  if (key.startsWith("reminders.")) return localized["profile.reminders"] || localized["widgets.ready"] || localized["common.continue"];
-  return localized["common.continue"] || localized["common.close"] || "";
-}
-
 function textFor(key: string, fallback: string, vars: CopyVars = {}) {
   const locale = appLocale();
   const localized = APP_COPY[locale]?.[key];
@@ -4780,7 +4763,9 @@ function textFor(key: string, fallback: string, vars: CopyVars = {}) {
     const misses = ((globalThis as { __copyMisses?: Record<string, string> }).__copyMisses ||= {});
     misses[`${locale}|${key}`] = fallback;
   }
-  const template = localized || (locale === "en-US" || key.startsWith("scanner.") ? APP_COPY["en-US"][key] || fallback : nonEnglishMissingCopy(locale, key));
+  // A missing translation reads in English (its real meaning), never as an
+  // unrelated generic word from the same screen area.
+  const template = localized || APP_COPY["en-US"][key] || fallback;
   return storeVariantText(key, template).replace(/\{(\w+)\}/g, (_match, name) => String(vars[name] ?? ""));
 }
 
@@ -4968,7 +4953,7 @@ const PRE_PURCHASE_ROUTES: Route[] = ["welcome", "onboarding", "importOptions", 
 // planner, reminders, or widgets until an entitlement applies the review.
 const FREE_IMPORT_ROUTES: Route[] = ["scan", "cameraScanner", "paste", "review"];
 // Playing a Quiz Duel a classmate sent is free (it never touches the planner).
-const FREE_PLAY_ROUTES: Route[] = ["duel"];
+const FREE_PLAY_ROUTES: Route[] = ["duel", "forecast"];
 type EntitlementStatus = "loading" | "active" | "inactive" | "error";
 type AccessState = "loading" | "onboarding" | "preview_allowed" | "locked" | "paywall" | "unlocked";
 type UnlockSuccessSource = "purchase_action" | "restore_action" | "startup_hydration" | "google_play_review_access";
@@ -5846,7 +5831,9 @@ function buildSimulatorCaptureState(config: SimulatorCaptureConfig): SimulatorCa
     data,
     currentImport,
     navItem,
-    entitlementStatus: config.emptyPlanner ? "inactive" : "active",
+    // Fixture planners are unlocked only in dev builds and web QA; a release
+    // build (even with the QA capture flag) keeps the real App Store state.
+    entitlementStatus: config.emptyPlanner || !((typeof __DEV__ !== "undefined" && __DEV__) || Platform.OS === "web") ? "inactive" : "active",
     prompt: config.prompt,
   };
 }
@@ -5976,7 +5963,7 @@ export default function App() {
   const dailyBriefRef = useRef<DailyBrief | null>(null);
   dailyBriefRef.current = dailyBrief;
   const spotlightSignatureRef = useRef<string>("");
-  const [classPackClassId, setClassPackClassId] = useState<string | null>(null);
+  const [classPackTarget, setClassPackTarget] = useState<ClassPackTarget | null>(null);
   const selfRepairDayRef = useRef<string>("");
   const [quickAddQueue, setQuickAddQueue] = useState<QuickAddRequest[]>([]);
   const queuedInboxIdsRef = useRef<Set<string>>(new Set());
@@ -6686,7 +6673,7 @@ export default function App() {
     ? textFor("storage.save_retry", "Changes are safe in this session but could not be saved to this device yet.")
     : saveError;
 
-  const props = { data: screenData, mutate, persistPlannerSnapshot, nav, theme, params, currentImport, setCurrentImport, setEntitlementStatus, accessState, recordReviewTrigger, startSyllabusImport, smartImportBusy: Boolean(smartImportProgress), dailyBrief, openClassPack: setClassPackClassId, proposeQuickAdd, pasteSharedPayload };
+  const props = { data: screenData, mutate, persistPlannerSnapshot, nav, theme, params, currentImport, setCurrentImport, setEntitlementStatus, accessState, recordReviewTrigger, startSyllabusImport, smartImportBusy: Boolean(smartImportProgress), dailyBrief, openClassPack: (classId: string) => setClassPackTarget({ classId }), sharePack: (pack: ClassPack) => setClassPackTarget({ pack }), proposeQuickAdd, pasteSharedPayload };
   const screen =
     displayRoute === "welcome" ? <Welcome {...props} /> :
     displayRoute === "onboarding" ? <Onboarding {...props} /> :
@@ -6766,19 +6753,23 @@ export default function App() {
           </ScrollView>
         </Modal>
       ) : null}
-      {classPackClassId ? <ClassPackModal data={screenData} classId={classPackClassId} theme={theme} onClose={() => setClassPackClassId(null)} /> : null}
+      {classPackTarget ? <ClassPackModal data={screenData} target={classPackTarget} theme={theme} onClose={() => setClassPackTarget(null)} /> : null}
       {showPendingImportBanner && currentImport ? <PendingImportResumeBanner batch={currentImport} nav={nav} theme={theme} hasTabs={showTabs} /> : null}
       {showTabs ? <TabBar tab={tab} setTab={nav.tab} theme={theme} /> : null}
     </View>
   );
 }
 
-function ClassPackModal({ data, classId, theme, onClose }: { data: AppData; classId: string; theme: ReturnType<typeof palette>; onClose: () => void }) {
-  const klass = data.classes.find((item) => item.id === classId);
-  const pack = useMemo(() => classPackFromData(data, classId), [classId, data]);
+type ClassPackTarget = { classId?: string; pack?: ClassPack };
+
+function ClassPackModal({ data, target, theme, onClose }: { data: AppData; target: ClassPackTarget; theme: ReturnType<typeof palette>; onClose: () => void }) {
+  // A pack comes from the live planner (Plus) or straight from a pending
+  // review (free), so every scan can become a share.
+  const pack = useMemo(() => target.pack || (target.classId ? classPackFromData(data, target.classId) : null), [data, target]);
   const link = pack ? packLink(pack) : "";
   const matrix = useMemo(() => (link && qrEligible(link) ? qrMatrix(link) : null), [link]);
-  if (!klass || !pack) return null;
+  if (!pack) return null;
+  const code = pack.c.code;
   return (
     <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} contentContainerStyle={{ padding: 18, paddingTop: 24, paddingBottom: 40 }}>
@@ -6786,13 +6777,13 @@ function ClassPackModal({ data, classId, theme, onClose }: { data: AppData; clas
           theme={theme}
           t={aiText}
           locale={appLocale()}
-          className={klass.name || klass.code}
-          classCode={klass.code}
+          className={pack.c.name || code}
+          classCode={code}
           itemCount={pack.i.length}
           link={link}
           matrix={matrix}
           onShareLink={() => {
-            shareLink(textFor("ai.pack.share_message", "Here are all the {code} deadlines. Tap to add them to StudyPlanner:", { code: klass.code }), link).catch(() => {});
+            shareLink(textFor("ai.pack.share_message", "Here are all the {code} deadlines. Tap to add them to StudyPlanner:", { code }), link).catch(() => {});
           }}
           onDone={onClose}
         />
@@ -6817,6 +6808,7 @@ type ScreenProps = {
   smartImportBusy: boolean;
   dailyBrief: DailyBrief | null;
   openClassPack: (classId: string) => void;
+  sharePack: (pack: ClassPack) => void;
   proposeQuickAdd: (input: string) => Promise<"saved" | "confirm" | "empty">;
   pasteSharedPayload: () => Promise<void>;
 };
@@ -7814,7 +7806,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
       .catch((error) => {
         if (!mounted) return;
         setBusy(null);
-        setMessage(textFor("paywall.message_unavailable", "The App Store is not available right now."));
+        setMessage(textFor("paywall.store_down", "The App Store is not available right now."));
       });
     return () => {
       mounted = false;
@@ -7848,11 +7840,11 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
     setMessage(textFor("paywall.opening", "Opening the App Store purchase sheet..."));
     try {
       await purchasePlan(productId);
-      setMessage(textFor("paywall.opening", "Approve the subscription in the App Store sheet. StudyPlanner unlocks as soon as Apple confirms it."));
+      setMessage(textFor("paywall.approve_sheet", "Approve the subscription in the App Store sheet. StudyPlanner unlocks as soon as Apple confirms it."));
       setBusy(null);
     } catch (error) {
       setBusy(null);
-      setMessage(textFor("paywall.message_unavailable", "The App Store could not start the purchase."));
+      setMessage(textFor("paywall.purchase_failed", "The App Store could not start the purchase."));
     }
   };
 
@@ -7867,11 +7859,11 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
         }
         else {
           setBusy(null);
-          setMessage(textFor("paywall.message_unavailable", "No active StudyPlanner subscription was found for this Apple ID."));
+          setMessage(textFor("paywall.restore_none", "No active StudyPlanner subscription was found for this Apple ID."));
       }
     } catch (error) {
       setBusy(null);
-      setMessage(textFor("paywall.message_unavailable", "Restore could not be completed."));
+      setMessage(textFor("paywall.restore_failed", "Restore could not be completed."));
     }
   };
 
@@ -10323,10 +10315,11 @@ function PasteImport({ data, nav, theme, params, currentImport, setCurrentImport
   );
 }
 
-function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, currentImport, setCurrentImport, recordReviewTrigger }: ScreenProps) {
+function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, currentImport, setCurrentImport, recordReviewTrigger, sharePack }: ScreenProps) {
   const batch = currentImport;
   const [applying, setApplying] = useState(false);
   const forecast = useMemo(() => forecastFromImport(data, batch), [data, batch]);
+  const reviewPacks = useMemo(() => classPacksFromBatch(batch), [batch]);
   const forecastShare = useForecastShare(forecast, theme);
   if (!batch) return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
@@ -10602,8 +10595,23 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
               onShare={forecastShare.share}
               onUnlock={() => nav.push("paywall")}
               onImport={() => nav.push("scan")}
+              onOpen={() => nav.push("forecast")}
             />
           </View>
+        ) : null}
+        {reviewPacks.length ? (
+          <Card theme={theme} style={{ padding: 14, gap: 10, marginBottom: 16 }}>
+            <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("ai.pack.section_kicker", "SHARE A CLASS PACK")}</Text>
+            <Text selectable style={{ color: theme.label2, lineHeight: 19 }}>{textFor("ai.pack.section_body", "Classmates get the same deadlines in seconds. Only dates, titles and weights are shared.")}</Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              {reviewPacks.map((pack) => (
+                <Pressable key={`review-pack-${pack.c.code}`} accessibilityRole="button" accessibilityLabel={textFor("ai.pack.share_class", "Share {code} Class Pack", { code: pack.c.code })} accessibilityHint={textFor("ai.pack.class_hint", "Share this class's deadlines as a link or QR code")} onPress={() => sharePack(pack)} style={{ minHeight: 44, paddingHorizontal: 14, borderRadius: 999, backgroundColor: theme.surface2, flexDirection: "row", alignItems: "center", gap: 7 }}>
+                  <Share2 color={theme.label} size={15} />
+                  <Text style={{ color: theme.label, fontWeight: "900" }}>{pack.c.code}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </Card>
         ) : null}
         {!notesOnlyImport ? (
           <Pressable accessibilityRole="button" accessibilityHint={textFor("review.add_another_hint", "Scan, upload, or paste another syllabus into this review")} onPress={() => nav.push("scan")} style={{ minHeight: 48, borderRadius: 16, borderWidth: 1, borderStyle: "dashed", borderColor: theme.hairline, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 16 }}>
@@ -11546,8 +11554,10 @@ function PracticeRoute({ data, nav, theme, params }: ScreenProps) {
     }).catch(() => {});
   };
   const shareDuel = (score: PracticeScore) => {
-    const duel = duelFromStudySet({ ...(Object.values(sets.byNote)[0] as StudySet), questions: sets.questions } as StudySet, title, score.total ? (score.correct / score.total) * Math.min(10, sets.questions.length) : undefined);
-    if (!duel) return;
+    const base = duelFromStudySet({ ...(Object.values(sets.byNote)[0] as StudySet), questions: sets.questions } as StudySet, title);
+    if (!base) return;
+    // Scale the sender's score to the questions actually in the duel.
+    const duel = { ...base, score: score.total ? Math.round((score.correct / score.total) * base.q.length) : undefined };
     shareLink(textFor("ai.duel.share_message", "I scored {score}/{total} on {title}. Beat me:", { score: score.correct, total: score.total, title }), duelLink(duel)).catch(() => {});
   };
   const cards = sets.cards.filter((card) => !reported.includes(card.id));
@@ -11609,7 +11619,13 @@ function DuelRoute({ nav, theme, params }: ScreenProps) {
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={textFor("ai.duel.nav_title", "Quiz Duel")} />
       {playing ? (
-        <View style={{ flex: 1, paddingHorizontal: 16 }}><PracticeSession theme={theme} t={aiText} locale={appLocale()} mode="quiz" questions={questions} title={duel.title} origin="duel" onAnswer={() => {}} onClose={nav.back} /></View>
+        <View style={{ flex: 1, paddingHorizontal: 16 }}><PracticeSession theme={theme} t={aiText} locale={appLocale()} mode="quiz" questions={questions} title={duel.title} origin="duel" onAnswer={() => {}} onClose={nav.back}
+          onShareScore={(score) => {
+            // Challenge back: same questions, the player's score as the new target.
+            const reply = { ...duel, score: score.total ? Math.round((score.correct / score.total) * duel.q.length) : undefined };
+            shareLink(textFor("ai.duel.share_message", "I scored {score}/{total} on {title}. Beat me:", { score: score.correct, total: score.total, title: duel.title }), duelLink(reply)).catch(() => {});
+          }}
+        /></View>
       ) : (
         <ScrollView contentContainerStyle={{ padding: 16, gap: 14 }}>
           <DuelIntroCard theme={theme} t={aiText} locale={appLocale()} title={duel.title} questionCount={questions.length} targetScore={duel.score} onStart={() => setPlaying(true)} />
@@ -11619,17 +11635,23 @@ function DuelRoute({ nav, theme, params }: ScreenProps) {
   );
 }
 
-function ForecastRoute({ data, nav, theme, openClassPack }: ScreenProps) {
+function ForecastRoute({ data, nav, theme, openClassPack, currentImport }: ScreenProps) {
   const liveData = useMemo(() => activeSemesterData(data), [data]);
-  const forecast = useMemo(() => buildCrunchForecast(liveData, new Date()), [liveData]);
+  // Free students see the forecast of the review they just scanned; Plus
+  // students see the live planner (plus any pending review on top).
+  const forecast = useMemo(() => {
+    const live = buildCrunchForecast(liveData, new Date(), { pending: currentImport && currentImport.status === "review" ? { ...currentImport, candidates: currentImport.candidates.filter((candidate) => candidate.approved) } : null });
+    return live;
+  }, [currentImport, liveData]);
+  const preview = !data.prefs.premium;
   const share = useForecastShare(forecast.weeks.length ? forecast : null, theme);
   const classes = liveData.classes.filter((klass) => !klass.archivedAt);
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={textFor("ai.forecast.nav_title", "Crunch Forecast")} />
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
-        <ForecastSection theme={theme} t={aiText} locale={appLocale()} forecast={forecast.weeks.length ? forecast : null} mode="full" onShare={share.share} onImport={() => nav.push("scan")} />
-        {classes.length ? (
+        <ForecastSection theme={theme} t={aiText} locale={appLocale()} forecast={forecast.weeks.length ? forecast : null} mode={preview ? "preview" : "full"} onShare={share.share} onImport={() => nav.push("scan")} onUnlock={() => nav.push("paywall")} />
+        {classes.length && !preview ? (
           <Card theme={theme} style={{ padding: 16, gap: 10 }}>
             <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("ai.pack.section_kicker", "SHARE A CLASS PACK")}</Text>
             <Text selectable style={{ color: theme.label2, lineHeight: 19 }}>{textFor("ai.pack.section_body", "Classmates get the same deadlines in seconds. Only dates, titles and weights are shared.")}</Text>

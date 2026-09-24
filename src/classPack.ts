@@ -19,7 +19,7 @@ import {
 import { normalizeText, stableHash } from "./appleIntelligence/text";
 import { dateKey } from "./intelligence";
 import { findImportMatch, makeOwnershipId } from "./ownership/semesterOwnership";
-import { AppData, ImportBatch, ImportCandidate } from "./types";
+import { AppData, ClassItem, ExamItem, ImportBatch, ImportCandidate, TaskItem } from "./types";
 
 export const SHARE_BASE_URL = "https://studyplanner-ai.xxmnewman9xx.workers.dev";
 export const APP_STORE_ID = "6766181202";
@@ -354,6 +354,34 @@ export function classPackFromData(data: AppData, classId: string, now: Date = ne
   const pack: ClassPack = { v: 1, c, i: unique.slice(0, MAX_PACK_ITEMS) };
   while (pack.i.length && encodeShared({ kind: "pack", pack }).length > MAX_LINK_PAYLOAD_CHARS) pack.i.pop();
   return pack;
+}
+
+/**
+ * Class Packs straight from a pending review, so a free student can share the
+ * deadlines they just scanned. Reuses classPackFromData (same caps, same
+ * validation) over a synthetic planner built only from approved rows.
+ */
+export function classPacksFromBatch(batch: ImportBatch | null, now: Date = new Date()): ClassPack[] {
+  if (!batch) return [];
+  const approved = batch.candidates.filter((candidate) => candidate.approved);
+  const classIdOf = (candidate: ImportCandidate) => {
+    const payload = candidate.payload as { classId?: unknown; id?: unknown };
+    if (candidate.kind === "class") return typeof payload.id === "string" ? payload.id : candidate.classId || "";
+    return typeof payload.classId === "string" && payload.classId ? payload.classId : candidate.classId || "";
+  };
+  const classes = approved
+    .filter((candidate) => candidate.kind === "class" && classIdOf(candidate))
+    .map((candidate) => ({ ...(candidate.payload as ClassItem), id: classIdOf(candidate) }));
+  const tasks = approved
+    .filter((candidate) => candidate.kind === "task")
+    .map((candidate) => ({ ...(candidate.payload as TaskItem), classId: classIdOf(candidate) }));
+  const exams = approved
+    .filter((candidate) => candidate.kind === "exam")
+    .map((candidate) => ({ ...(candidate.payload as ExamItem), classId: classIdOf(candidate) }));
+  const synthetic = { classes, tasks, exams } as unknown as AppData;
+  return classes
+    .map((klass) => classPackFromData(synthetic, klass.id, now))
+    .filter((pack): pack is ClassPack => Boolean(pack && pack.i.length));
 }
 
 /** Turns a received pack into a normal review batch (ReviewImport stays mandatory). */
