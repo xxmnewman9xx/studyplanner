@@ -20,14 +20,15 @@ import type { DailyBrief } from "./types";
 
 const BRIEF_META_KEY = "brief:v1";
 
-type CachedBrief = { dateKey: string; candidateId: string; reason: string; origin: DailyBrief["origin"] };
+// `locale` is the UI language the reason was written in; another language shows the template reason.
+type CachedBrief = { dateKey: string; candidateId: string; reason: string; origin: DailyBrief["origin"]; locale?: string };
 
 function parseCached(raw: string | null): CachedBrief | null {
   if (!raw) return null;
   try {
     const value = JSON.parse(raw) as Partial<CachedBrief>;
     if (typeof value.dateKey !== "string" || typeof value.candidateId !== "string" || typeof value.reason !== "string") return null;
-    return { dateKey: value.dateKey, candidateId: value.candidateId, reason: value.reason, origin: value.origin === "onDevice" ? "onDevice" : "template" };
+    return { dateKey: value.dateKey, candidateId: value.candidateId, reason: value.reason, origin: value.origin === "onDevice" ? "onDevice" : "template", locale: typeof value.locale === "string" ? value.locale : undefined };
   } catch {
     return null;
   }
@@ -70,7 +71,7 @@ export function useDailyBrief(data: AppData | null, t: CopyFn, locale: string): 
         if (cancelled || availability.state !== "available" || AppState.currentState !== "active") return;
         const brief = await briefWithModel(candidates, data, new Date(), t, createModelRunner(locale), { locale });
         if (!brief || cancelled) return;
-        const entry: CachedBrief = { dateKey: brief.dateKey, candidateId: brief.candidate.id, reason: brief.reason, origin: brief.origin };
+        const entry: CachedBrief = { dateKey: brief.dateKey, candidateId: brief.candidate.id, reason: brief.reason, origin: brief.origin, locale };
         // Cache even a template result: it records that today's one call happened.
         await aiCache.metaSet(BRIEF_META_KEY, JSON.stringify(entry));
         if (!cancelled) setCached(entry);
@@ -85,10 +86,10 @@ export function useDailyBrief(data: AppData | null, t: CopyFn, locale: string): 
 
   return useMemo(() => {
     if (!data || !template) return null;
-    if (!cached || cached.dateKey !== today || cached.origin !== "onDevice") return template;
+    if (!cached || cached.dateKey !== today || cached.origin !== "onDevice" || cached.locale !== locale) return template;
     const index = candidates.findIndex((candidate) => candidate.id === cached.candidateId);
     if (index < 0) return template;
     const picked = templateBrief(candidates, data, new Date(), t, index) || template;
     return { ...picked, reason: cached.reason, origin: "onDevice" };
-  }, [cached, candidates, data, t, template, today]);
+  }, [cached, candidates, data, locale, t, template, today]);
 }
