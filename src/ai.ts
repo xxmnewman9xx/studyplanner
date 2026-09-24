@@ -70,9 +70,9 @@ function classSlug(code: string) {
   return code.toLowerCase().replace(/\s+/g, "").replace(/[^a-z0-9]/g, "");
 }
 
-const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
-const MONTH_PATTERN = String.raw`(?:jan|feb|mar|apr|may|jun|jul|aug|sept?|oct|nov|dec)\.?[a-z]*`;
-const DATE_PATTERN = String.raw`\d{4}-\d{1,2}-\d{1,2}|\d{1,2}\s+${MONTH_PATTERN}(?:,?\s+\d{4})?|${MONTH_PATTERN}\s+\d{1,2}(?:,?\s+\d{4})?|\d{1,2}[\/-]\d{1,2}(?:[\/-]\d{2,4})?|today|tomorrow|next\s+\w+|(?:mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)(?:day)?(?:,\s+${MONTH_PATTERN}\s+\d{1,2})?|in\s+\d+\s+days?|midnight`;
+export const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+export const MONTH_PATTERN = String.raw`(?:jan|feb|mar|apr|may|jun|jul|aug|sept?|oct|nov|dec)\.?[a-z]*`;
+export const DATE_PATTERN = String.raw`\d{4}-\d{1,2}-\d{1,2}|\d{1,2}\s+${MONTH_PATTERN}(?:,?\s+\d{4})?|${MONTH_PATTERN}\s+\d{1,2}(?:,?\s+\d{4})?|\d{1,2}[\/-]\d{1,2}(?:[\/-]\d{2,4})?|today|tomorrow|next\s+\w+|(?:mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)(?:day)?(?:,\s+${MONTH_PATTERN}\s+\d{1,2})?|in\s+\d+\s+days?|midnight`;
 
 const GLOBAL_MONTHS: Record<string, string> = {
   enero: "January", janeiro: "January", janvier: "January", januar: "January", eneroo: "January", "1月": "January", "1월": "January", जनवरी: "January", يناير: "January",
@@ -174,10 +174,15 @@ function validDateParts(year: number, month: number, day: number) {
   return target.getFullYear() === year && target.getMonth() === month - 1 && target.getDate() === day;
 }
 
+const PAST_DATE_ROLLOVER_DAYS = 120;
+
 function dateFromParts(year: number, month: number, day: number, explicitYear: boolean, now: Date) {
   if (!validDateParts(year, month, day)) return null;
   const target = new Date(year, month - 1, day, 12, 0, 0);
-  if (!explicitYear && target.getTime() < now.getTime()) {
+  // A yearless date that already passed this term (a syllabus imported in week
+  // 3 still lists week 1) stays in this year. Only dates far in the past, like
+  // "January 15" seen in November, roll forward to the next occurrence.
+  if (!explicitYear && now.getTime() - target.getTime() > PAST_DATE_ROLLOVER_DAYS * 86400000) {
     const nextYear = year + 1;
     return validDateParts(nextYear, month, day) ? new Date(nextYear, month - 1, day, 12, 0, 0) : null;
   }
@@ -188,7 +193,7 @@ function hasDateLikeToken(phrase: string) {
   return /\b\d{4}-\d{1,2}-\d{1,2}\b|\b\d{1,2}[/-]\d{1,2}(?:[/-]\d{2,4})?\b|\b(?:[a-z]+\.?\s+\d{1,2}|\d{1,2}\s+[a-z]+\.?)\b/i.test(phrase);
 }
 
-function dateFromPhrase(phrase: string, now: Date) {
+export function dateFromPhrase(phrase: string, now: Date) {
   const p = phrase.toLowerCase().replace(/[–—]/g, "-").replace(/\./g, "").trim();
   if (p.includes("today")) return new Date(now);
   if (p.includes("tomorrow")) {

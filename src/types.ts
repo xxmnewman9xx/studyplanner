@@ -440,6 +440,8 @@ export type ImportCandidate = {
   payload: Partial<ClassItem & TaskItem & ExamItem & NoteItem>;
   approved: boolean;
   reconciliationChoice?: "keep" | "update" | "duplicate";
+  /** Which extractor found this candidate (2.2 on-device merge). Absent on Build 90 batches. */
+  origin?: "heuristic" | "onDevice" | "both";
 };
 
 export type ImportBatch = {

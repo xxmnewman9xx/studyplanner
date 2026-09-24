@@ -17,6 +17,7 @@ import {
   Image as RNImage,
 	  KeyboardAvoidingView,
 	  Linking,
+  Modal,
   Platform,
 	  Pressable,
   ScrollView,
@@ -78,7 +79,7 @@ import {
 } from "lucide-react-native";
 import Svg, { Circle as SvgCircle } from "react-native-svg";
 import { applyImport, loadData, saveData } from "./src/storage";
-import { analyzeNotes, analyzeSyllabus, buildStudyPlan, deadlineInsight } from "./src/ai";
+import { analyzeNotes, buildStudyPlan, deadlineInsight } from "./src/ai";
 import {
   appendFeedbackEvent,
   buildDashboardSnapshot,
@@ -94,7 +95,7 @@ import {
   replanAfterMissedBlock,
   suggestSmartReminders,
 } from "./src/intelligence";
-import { extractTextFromImage, hasNativeImageTextRecognition } from "./src/imageTextRecognition";
+import { hasNativeImageTextRecognition } from "./src/imageTextRecognition";
 import { countOcrWords } from "./src/ocrText";
 import { COLORS, THEMES, defaultData, formatDue, isoFromOffset, minutesLabel } from "./src/seed";
 import { AppData, ClassItem, ExamItem, FeedbackEvent, HealthDimensionKey, ImportBatch, ImportCandidate, NoteItem, ReminderItem, StudyBlock, TaskItem, ThemeId } from "./src/types";
@@ -125,7 +126,12 @@ import {
   closeStudyPlannerStore,
   fallbackPlans,
   finishStudyPlannerPurchase,
+  freeTrialDays,
+  hasFreeTrialOffer,
+  hasPaidIntroOffer,
+  introOfferDays,
   hasOneWeekIntroOffer,
+  orderPaywallPlans,
   initializeStudyPlannerStore,
   loadEligibleIntroOfferProductIds,
   loadStorePlans,
@@ -143,6 +149,24 @@ import {
   type SemesterThemeColorId,
 } from "./src/semesterTheme";
 import { semesterKickoffPhase, semesterKickoffProgress } from "./src/semesterKickoff";
+import { AI_COPY, COPY_22_EN, LEGACY_GAP_COPY } from "./src/appleIntelligence/copy";
+import { createModelRunner, getAvailability, invalidateAvailability, isUserAIEnabled, readDocumentText, setUserAIEnabled } from "./src/appleIntelligence/client";
+import { analyzeSyllabusSmart } from "./src/appleIntelligence/smartSyllabus";
+import * as aiCache from "./src/appleIntelligence/cache";
+import { clearSpotlight, deleteAppGroupJSON, indexSpotlight, readAppGroupJSON, writeAppGroupJSON } from "./src/appleIntelligence/native";
+import { useDailyBrief } from "./src/appleIntelligence/useDailyBrief";
+import { drainInbox, intelligenceSnapshot } from "./src/appleIntelligence/inbox";
+import { quickAddSmart } from "./src/appleIntelligence/quickAdd";
+import type { DailyBrief, TaskProposal } from "./src/appleIntelligence/types";
+import type { AIAvailability } from "./src/appleIntelligence/types";
+import { AIStatusRow, ClassPackSheet, DuelIntroCard, PastePackBanner, QuickAddConfirmSheet, ExamModeScreen, ForecastSection, ForecastShareCard, OriginChip, PracticeSession, ScanProgress, StudyNowCard, UnlockForecastCTA, shareForecastCard, shareLink, type AIText, type ExamModeSummary, type PracticeAnswer, type PracticeMode, type PracticeScore } from "./src/appleIntelligence/ui";
+import { buildCrunchForecast, type CrunchForecastResult } from "./src/crunchForecast";
+import { appStoreLink, classPackFromData, classPacksFromBatch, decodeShared, duelFromStudySet, duelLink, duelToStudyQuestions, encodeShared, packLink, packToImportBatch, qrEligible, sharedFromUrl } from "./src/classPack";
+import * as Clipboard from "expo-clipboard";
+import { useStudySets } from "./src/appleIntelligence/useStudySets";
+import { computeWeakTopics, proposeWeakTopicBlocks } from "./src/appleIntelligence/weakTopics";
+import type { ClassPack, PracticeResult, StudyQuestion, StudySet } from "./src/appleIntelligence/types";
+import { qrMatrix } from "./src/qrMatrix";
 
 declare const process:
   | {
@@ -154,6 +178,10 @@ declare const process:
 // <I18nProvider> labelForTab(tab.id, t) t(tab.labelKey
 
 type Route =
+  | "examMode"
+  | "practice"
+  | "duel"
+  | "forecast"
   | "welcome"
   | "onboarding"
   | "importOptions"
@@ -205,6 +233,7 @@ function destinationFromNotificationData(value: unknown): NavItem | null {
   const data = value as Record<string, unknown>;
   const sourceId = typeof data.sourceId === "string" ? data.sourceId : "";
   const kind = typeof data.kind === "string" ? data.kind : "";
+  if (data.startBy === true) return { route: "forecast" };
   if (!sourceId) return null;
   if (kind === "Class") return { route: "classDetail", params: { id: sourceId } };
   if (kind === "Assignment") return { route: "taskDetail", params: { id: sourceId } };
@@ -602,7 +631,7 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
     "scan.status_backup": "Camera opens for capture. Paste text is available if this device cannot read photos.",
     "scan.limited_photos": "Photo access is limited. Pick an allowed image, open Settings for more access, or paste text.",
     "scan.quick_seed": "chem lab report due tomorrow, estimate 2 hours",
-    "paywall.title": "{name}, unlock trusted syllabus scan.",
+    "paywall.title": "{name}, turn your semester into a daily plan.",
     "paywall.sub_no_import": "Unlock first, then scan, upload, paste, or add manually. StudyPlanner shows every class, exam, and deadline for review before anything reaches your dashboard, widgets, reminders, or next moves.",
     "paywall.sub_import": "Your preview is ready. Unlock, return to Review, then approve it for the live dashboard, reminders, and widgets.",
     "paywall.message_loading": "Connecting to the App Store...",
@@ -4290,7 +4319,20 @@ function localizedImportedText(value?: string) {
 }
 
 function localizedTaskSource(source?: string) {
-  return localizedImportedText(source || textFor("review.manual", "Manual"));
+  switch (source) {
+    case "On-device AI import":
+      return textFor("ai.source.on_device", "Found on-device, reviewed by you");
+    case "Class Pack":
+      return textFor("ai.source.class_pack", "Class Pack");
+    case "Exam Mode":
+      return textFor("ai.source.exam_mode", "Exam Mode review");
+    case "Siri":
+      return "Siri";
+    case "Fast capture":
+      return textFor("scan.quick_title", "Fast capture");
+    default:
+      return localizedImportedText(source || textFor("review.manual", "Manual"));
+  }
 }
 
 function localizedImportCandidate(candidate: ImportCandidate): ImportCandidate {
@@ -4662,6 +4704,19 @@ for (const locale of supportedLocales) {
   APP_COPY[locale]["reminders.schedule"] = REMINDER_SCHEDULE_COPY[locale];
   Object.assign(APP_COPY[locale], CONTROL_TRUTH_COPY[locale]);
   Object.assign(APP_COPY[locale], EDITORIAL_POLISH_COPY[locale]);
+  // StudyPlanner 2.2 copy (ai.* components + new App.tsx keys). English is
+  // the source of truth; locales fall back to English per key, never to a
+  // generic string, because every 2.2 key ships in COPY_22_EN.
+  Object.assign(APP_COPY[locale], COPY_22_EN, AI_COPY[locale]);
+  // Fill Build 90 keys this locale never had (only where still missing).
+  for (const [key, value] of Object.entries(LEGACY_GAP_COPY[locale] || {})) {
+    if (value && !APP_COPY[locale][key]) APP_COPY[locale][key] = value;
+  }
+}
+// QA capture builds only: expose the resolved tables so localization gaps can
+// be measured in one page load. Never set in release builds.
+if (typeof process !== "undefined" && process.env?.EXPO_PUBLIC_STUDYPLANNER_CAPTURE_QA === "1") {
+  (globalThis as { __APP_COPY?: typeof APP_COPY }).__APP_COPY = APP_COPY;
 }
 
 function localizedWeekdayNarrow(index: number) {
@@ -4701,28 +4756,71 @@ function appLocale(): SupportedLocale {
   }
 }
 
-function nonEnglishMissingCopy(locale: SupportedLocale, key: string) {
-  const localized = APP_COPY[locale] || APP_COPY["en-US"];
-  if (key.startsWith("welcome.") || key.startsWith("onboarding.")) return localized["onboarding.build_title"] || localized["locked.title"] || localized["common.continue"];
-  if (key.startsWith("mini.") || key.startsWith("health.")) return localized["locked.health"] || localized["locked.health_title"] || localized["common.continue"];
-  if (key.startsWith("today.")) return localized["tabs.today"] || localized["common.continue"];
-  if (key.startsWith("scan.") || key.startsWith("paste.")) return localized["scan.title"] || localized["tabs.scan"] || localized["common.continue"];
-  if (key.startsWith("paywall.")) return localized["locked.unlock"] || localized["paywall.title"] || localized["common.continue"];
-  if (key.startsWith("review.") || key.startsWith("success.")) return localized["review.title"] || localized["common.continue"];
-  if (key.startsWith("class.") || key.startsWith("task.") || key.startsWith("tasks.")) return localized["class.assignment"] || localized["tabs.classes"] || localized["common.continue"];
-  if (key.startsWith("assessment.")) return localized["class.assessment"] || localized["tabs.classes"] || localized["common.continue"];
-  if (key.startsWith("plan.") || key.startsWith("study.")) return localized["plan.title"] || localized["tabs.plan"] || localized["common.continue"];
-  if (key.startsWith("note.") || key.startsWith("notes.")) return localized["notes.title"] || localized["common.continue"];
-  if (key.startsWith("profile.")) return localized["tabs.profile"] || localized["common.continue"];
-  if (key.startsWith("reminders.")) return localized["profile.reminders"] || localized["widgets.ready"] || localized["common.continue"];
-  return localized["common.continue"] || localized["common.close"] || "";
-}
-
 function textFor(key: string, fallback: string, vars: CopyVars = {}) {
   const locale = appLocale();
   const localized = APP_COPY[locale]?.[key];
-  const template = localized || (locale === "en-US" || key.startsWith("scanner.") ? APP_COPY["en-US"][key] || fallback : nonEnglishMissingCopy(locale, key));
+  // QA capture builds record every key that falls back to a generic string so
+  // localization gaps are measured, not guessed. Never active in release.
+  if (!localized && locale !== "en-US" && simulatorCaptureIsEnabled()) {
+    const misses = ((globalThis as { __copyMisses?: Record<string, string> }).__copyMisses ||= {});
+    misses[`${locale}|${key}`] = fallback;
+  }
+  // A missing translation reads in English (its real meaning), never as an
+  // unrelated generic word from the same screen area.
+  const template = localized || APP_COPY["en-US"][key] || fallback;
   return storeVariantText(key, template).replace(/\{(\w+)\}/g, (_match, name) => String(vars[name] ?? ""));
+}
+
+// Adapter so the 2.2 UI kit (src/appleIntelligence/ui) reads the same copy tables.
+const aiText: AIText = (key, fallback, vars) => textFor(key, fallback, vars || {});
+
+function useAIAvailability() {
+  const locale = appLocale();
+  const [availability, setAvailability] = useState<AIAvailability | null>(null);
+  const [enabled, setEnabled] = useState(true);
+  const refresh = useCallback(() => {
+    let active = true;
+    Promise.all([getAvailability(locale), isUserAIEnabled()])
+      .then(([next, on]) => {
+        if (!active) return;
+        setAvailability(next);
+        setEnabled(on);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [locale]);
+  useEffect(() => refresh(), [refresh]);
+  return { availability, enabled, setEnabled, refresh, locale };
+}
+
+function forecastFromImport(data: AppData, batch: ImportBatch | null): CrunchForecastResult | null {
+  if (!batch) return null;
+  const dated = batch.candidates.filter((candidate) => (candidate.kind === "task" || candidate.kind === "exam") && candidate.approved);
+  if (!dated.length) return null;
+  const forecast = buildCrunchForecast(data, new Date(), { pending: { ...batch, candidates: batch.candidates.filter((candidate) => candidate.approved) } });
+  return forecast.weeks.length ? forecast : null;
+}
+
+// Renders the story-sized Forecast card off-screen so it can be captured and
+// shared. "Hide class names" is on by default: nothing identifying leaves.
+function useForecastShare(forecast: CrunchForecastResult | null, theme: ReturnType<typeof palette>) {
+  const cardRef = useRef<View | null>(null);
+  const share = useCallback(() => {
+    if (!forecast) return;
+    tap();
+    shareForecastCard(cardRef, {
+      message: textFor("ai.share.message", "My semester, forecast by StudyPlanner. Which week is yours?"),
+      url: appStoreLink("forecast"),
+    }).catch(() => {});
+  }, [forecast]);
+  const host = forecast ? (
+    <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ position: "absolute", left: -10000, top: 0, opacity: 1 }}>
+      <ForecastShareCard ref={cardRef} forecast={forecast} theme={theme} t={aiText} locale={appLocale()} hideNames caption={forecast.crunchWeeks.length ? "cry" : "default"} />
+    </View>
+  ) : null;
+  return { share, host };
 }
 
 function optionText(value: string) {
@@ -4822,22 +4920,22 @@ function contrastSafeLightForeground(color: string) {
   return `#${[red, green, blue].map((value) => value.toString(16).padStart(2, "0")).join("")}`;
 }
 
-function palette(theme: ThemeId, accentOverride?: string) {
+function palette(theme: ThemeId, _accentOverride?: string) {
+  // 2.2 minimalist system: white/black base, graphite text, one ink accent.
+  // Color is reserved for feedback (done, busy, crunch, info) via COLORS.
   const dark = ["dark", "neon", "athlete"].includes(theme);
-  const accentSource = accentOverride || THEMES.find((t) => t.id === theme)?.swatches[1] || COLORS.blue;
-  const accent = dark ? accentSource : contrastSafeLightForeground(accentSource);
   return {
     dark,
-    bg: dark ? "#050507" : "#EFEFF4",
-    surface: dark ? "#1A1A1E" : "#FFFFFF",
-    surface2: dark ? "#232329" : "#F6F6FA",
-    surface3: dark ? "#2C2C33" : "#ECECF2",
-    hairline: dark ? "rgba(255,255,255,0.10)" : "rgba(60,60,67,0.12)",
-    label: dark ? "#FFFFFF" : "#0A0A0D",
-    label2: dark ? "rgba(235,235,245,0.72)" : "#515158",
-    label3: dark ? "rgba(235,235,245,0.52)" : "#6E6E76",
-    accent,
-    accent2: accentOverride || THEMES.find((t) => t.id === theme)?.swatches[0] || COLORS.purple,
+    bg: dark ? "#000000" : "#FFFFFF",
+    surface: dark ? "#111113" : "#FFFFFF",
+    surface2: dark ? "#1C1C1F" : "#F5F5F5",
+    surface3: dark ? "#2A2A2E" : "#EBEBEB",
+    hairline: dark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.09)",
+    label: dark ? "#FFFFFF" : "#0A0A0A",
+    label2: dark ? "rgba(255,255,255,0.72)" : "#555558",
+    label3: dark ? "rgba(255,255,255,0.52)" : "#6E6E73",
+    accent: dark ? "#FFFFFF" : "#0A0A0A",
+    accent2: dark ? "#FFFFFF" : "#0A0A0A",
   };
 }
 
@@ -4852,6 +4950,12 @@ const MANAGE_SUBSCRIPTION_URL = Platform.OS === "android"
   ? "https://play.google.com/store/account/subscriptions?package=com.mattnewman.studyplanner"
   : "https://apps.apple.com/account/subscriptions";
 const PRE_PURCHASE_ROUTES: Route[] = ["welcome", "onboarding", "importOptions", "semesterKickoff", "lockedDashboard", "paywall", "terms", "privacy"];
+// 2.2 free-first funnel: importing and reviewing syllabi (and seeing the Crunch
+// Forecast built from that pending review) is free. Nothing reaches the live
+// planner, reminders, or widgets until an entitlement applies the review.
+const FREE_IMPORT_ROUTES: Route[] = ["scan", "cameraScanner", "paste", "review"];
+// Playing a Quiz Duel a classmate sent is free (it never touches the planner).
+const FREE_PLAY_ROUTES: Route[] = ["duel", "forecast"];
 type EntitlementStatus = "loading" | "active" | "inactive" | "error";
 type AccessState = "loading" | "onboarding" | "preview_allowed" | "locked" | "paywall" | "unlocked";
 type UnlockSuccessSource = "purchase_action" | "restore_action" | "startup_hydration" | "google_play_review_access";
@@ -4954,11 +5058,13 @@ function appAccessLocked(data: AppData, entitlementStatus: EntitlementStatus) {
 }
 
 function accessStateFor(data: AppData, entitlementStatus: EntitlementStatus, active?: Route): AccessState {
-  if (!onboardingComplete(data)) return active === "semesterKickoff" ? "preview_allowed" : "onboarding";
+  if (!onboardingComplete(data)) return active === "semesterKickoff" || (active && FREE_PLAY_ROUTES.includes(active)) ? "preview_allowed" : "onboarding";
   if (entitlementUnlocks(data, entitlementStatus)) return "unlocked";
-  if (entitlementStatus === "loading") return PRE_PURCHASE_ROUTES.includes(active || "lockedDashboard") ? "preview_allowed" : "loading";
+  if (entitlementStatus === "loading") return PRE_PURCHASE_ROUTES.includes(active || "lockedDashboard") || (active && (FREE_IMPORT_ROUTES.includes(active) || FREE_PLAY_ROUTES.includes(active))) ? "preview_allowed" : "loading";
   if (active === "paywall") return "paywall";
   if (PRE_PURCHASE_ROUTES.includes(active || "lockedDashboard")) return "preview_allowed";
+  if (active && FREE_IMPORT_ROUTES.includes(active)) return "preview_allowed";
+  if (active && FREE_PLAY_ROUTES.includes(active)) return "preview_allowed";
   return "locked";
 }
 
@@ -5057,6 +5163,30 @@ function routeTokensFromUrl(rawUrl: string) {
   return tokens;
 }
 
+// Spotlight results and Siri entities open `studyplanner://class/<id>`,
+// `studyplanner://task/<id>`, or `studyplanner://exam/<id>`. IDs are matched
+// against real records before navigating, so a stale index entry is harmless.
+function entityRouteFromUrl(rawUrl: string): NavItem | null {
+  const match = /^studyplanner:\/\/(class|task|exam)\/([^/?#]+)/i.exec(rawUrl.trim());
+  if (!match) return null;
+  let id = match[2];
+  try {
+    id = decodeURIComponent(id);
+  } catch {
+    return null;
+  }
+  const kind = match[1].toLowerCase();
+  const route: Route = kind === "class" ? "classDetail" : kind === "exam" ? "assessmentDetail" : "taskDetail";
+  return { route, params: { id } };
+}
+
+function entityExists(data: AppData, item: NavItem) {
+  const id = item.params?.id || "";
+  if (item.route === "classDetail") return data.classes.some((klass) => klass.id === id);
+  if (item.route === "assessmentDetail") return data.exams.some((exam) => exam.id === id);
+  return data.tasks.some((task) => task.id === id);
+}
+
 function routeFromUrl(rawUrl: string): Route | null {
   if (rawUrl.toLowerCase().includes("expo-development-client")) return null;
   const routeTokens = routeTokensFromUrl(rawUrl);
@@ -5115,6 +5245,9 @@ type SimulatorCaptureConfig = {
   route?: Route;
   screen?: string;
   onboardingIndex?: number;
+  // Store captures that open a later onboarding step: pre-fill the answers the
+  // earlier steps require, as a real student would have picked them.
+  onboardingProfile?: boolean;
   locale?: string;
   qaState?: "build57" | "build66" | "examHeavy";
   emptyPlanner?: boolean;
@@ -5129,6 +5262,14 @@ type SimulatorCaptureState = {
   entitlementStatus: EntitlementStatus;
   prompt?: SimulatorCaptureConfig["prompt"];
 };
+
+// Simulator store screenshots show the planner in use. Both flags are inlined
+// at bundle time; App Store builds set neither (check-release-docs asserts it).
+function storeScreenshotUnlockIsEnabled() {
+  return typeof process !== "undefined"
+    && process.env?.EXPO_PUBLIC_STUDYPLANNER_CAPTURE_QA === "1"
+    && process.env?.EXPO_PUBLIC_STUDYPLANNER_CAPTURE_UNLOCK === "1";
+}
 
 function simulatorCaptureIsEnabled() {
   const releaseCaptureEnabled = typeof process !== "undefined" && process.env?.EXPO_PUBLIC_STUDYPLANNER_CAPTURE_QA === "1";
@@ -5168,6 +5309,22 @@ async function loadSimulatorCaptureConfig(): Promise<SimulatorCaptureConfig | nu
     return null;
   }
 }
+
+// QA/App Preview fixture only: a realistic lecture note so Exam Mode shows real
+// cited cards and questions on every device (heuristic path included).
+const QA_TREES_LECTURE_NOTE = [
+  "Lecture 9: Trees and hashing",
+  "Binary tree: a tree where each node has at most two children.",
+  "Binary search tree: a binary tree where left keys are smaller and right keys are larger than the node.",
+  "Tree height: the number of edges on the longest path from the root to a leaf.",
+  "Balanced tree: a tree whose height stays O(log n) as keys are inserted.",
+  "In-order traversal: visits left subtree, node, then right subtree, giving sorted order in a BST.",
+  "Hash table: stores key-value pairs in buckets chosen by a hash function.",
+  "Collision: two keys that hash to the same bucket.",
+  "Load factor: the number of stored keys divided by the number of buckets.",
+  "Heap: a complete binary tree where every parent is smaller than its children (min-heap).",
+  "Midterm covers BST insert, delete, traversal order, and hash collisions.",
+].join("\n");
 
 function buildBuild57FixtureData() {
   const copy = previewCopy();
@@ -5297,7 +5454,7 @@ function buildBuild57FixtureData() {
     suggestedTasks: [copy.next || "Review traversal examples", copy.detail || "Make flashcards for tree rotations"],
     examId: exam.id,
     pages: 3,
-    sourceText: copy.summary1 || "Mock syllabus notes: CS 201 covers arrays, linked lists, stacks, queues, trees, hashing, and a midterm review.",
+    sourceText: `${copy.summary1 || "Mock syllabus notes: CS 201 covers arrays, linked lists, stacks, queues, trees, hashing, and a midterm review."}\n${QA_TREES_LECTURE_NOTE}`,
     reviewedConcepts: (copy.term1 || "Stacks|Queues").split("|").slice(0, 2),
     generatedAssetsAt: new Date().toISOString(),
   };
@@ -5626,8 +5783,13 @@ function simulatorCaptureNavItem(config: SimulatorCaptureConfig, importBatch: Im
   if (config.screen === "assessmentEdit") return { route: "assessmentDetail", params: { id: "qa-midterm", edit: "1" } };
   if (config.screen === "assessmentDetail") return { route: "assessmentDetail", params: { id: "qa-midterm" } };
   if (config.screen === "noteDetail") return { route: "noteDetail", params: { id: "qa-note-trees" } };
+  // 2.2 surfaces (QA capture + App Preview recording).
+  if (config.screen === "examMode") return { route: "examMode", params: { id: "qa-midterm" } };
+  if (config.screen === "practiceCards") return { route: "practice", params: { noteId: "qa-note-trees", mode: "cards" } };
+  if (config.screen === "practiceQuiz") return { route: "practice", params: { noteId: "qa-note-trees", mode: "quiz" } };
+  if (config.screen === "forecast") return { route: "forecast" };
   if (config.prompt === "archiveClass") return { route: "classDetail", params: { id: "qa-cs201" } };
-  if (config.onboardingIndex != null) return { route: "onboarding", params: { onboardingIndex: String(config.onboardingIndex) } };
+  if (config.onboardingIndex != null) return { route: "onboarding", params: { onboardingIndex: String(config.onboardingIndex), ...(config.onboardingProfile ? { captureProfile: "1" } : {}) } };
   if (config.route === "studySession") return { route: "studySession" };
   if (config.route) return { route: config.route };
   if (config.tab === "import") return { route: "scan" };
@@ -5669,11 +5831,24 @@ function buildSimulatorCaptureState(config: SimulatorCaptureConfig): SimulatorCa
   const currentImport = config.screen === "review_edit" || config.route === "review"
     ? useBuild66Fixture ? buildBuild66ImportFixture(data) : buildBuild57ImportFixture(data)
     : null;
+  const baseNavItem = simulatorCaptureNavItem(config, currentImport);
+  // 2.2 capture screens target whatever exam/note the chosen fixture contains.
+  const richestNote = data.notes.slice().sort((a, b) => (b.sourceText || "").length - (a.sourceText || "").length)[0];
+  const nextExam = data.exams.slice().sort((a, b) => a.dueDate.localeCompare(b.dueDate)).find((exam) => daysUntilExam(exam) >= 0) || data.exams[0];
+  const navItem = baseNavItem.route === "examMode" && nextExam
+    ? { route: baseNavItem.route, params: { id: nextExam.id } }
+    : baseNavItem.route === "practice" && richestNote
+      ? { route: baseNavItem.route, params: { ...baseNavItem.params, noteId: richestNote.id } }
+      : baseNavItem;
   return {
     data,
     currentImport,
-    navItem: simulatorCaptureNavItem(config, currentImport),
-    entitlementStatus: config.emptyPlanner ? "inactive" : "active",
+    navItem,
+    // Fixture planners are unlocked only in dev builds, web QA, and simulator
+    // store-screenshot builds that set BOTH build-time capture flags. A normal
+    // release build (even with only the QA capture flag) keeps the real App
+    // Store state.
+    entitlementStatus: config.emptyPlanner || !((typeof __DEV__ !== "undefined" && __DEV__) || Platform.OS === "web" || storeScreenshotUnlockIsEnabled()) ? "inactive" : "active",
     prompt: config.prompt,
   };
 }
@@ -5692,6 +5867,88 @@ function showSimulatorCapturePrompt(prompt: SimulatorCaptureConfig["prompt"]) {
     ]);
   }
 }
+
+type QuickAddRequest = { id: string; proposal: TaskProposal; inboxId?: string };
+
+// The confirm sheet returns the student's edited proposal; deterministic code
+// re-validates it (real class, real calendar date, sane title and estimate)
+// before it becomes a TaskItem through mutate(). The model never writes here.
+function taskFromConfirmedProposal(proposal: TaskProposal, data: AppData, source: string): TaskItem | null {
+  const title = proposal.title.trim().slice(0, 120);
+  const klass = data.classes.find((item) => item.id === proposal.classId && !item.archivedAt);
+  const dueDate = (proposal.dueDate || "").trim();
+  if (title.length < 3 || !klass || !isValidDateInput(dueDate)) return null;
+  const time = proposal.time && isValidPlannerTime(proposal.time) ? proposal.time : "11:59 PM";
+  return {
+    id: makeOwnershipId("task"),
+    title,
+    classId: klass.id,
+    type: proposal.type || "Assignment",
+    dueOffset: 0,
+    dueDate,
+    time,
+    estimateMinutes: Math.max(15, Math.min(240, Math.round(proposal.estimateMinutes || 60))),
+    done: false,
+    urgent: false,
+    source,
+    priority: "Medium",
+    subtasks: [],
+    weight: typeof proposal.weight === "number" && proposal.weight >= 0 && proposal.weight <= 100 ? proposal.weight : undefined,
+    userEditedAt: new Date().toISOString(),
+  };
+}
+
+function proposalFromTask(task: TaskItem): TaskProposal {
+  return { title: task.title, classId: task.classId, dueDate: task.dueDate, time: task.time, type: task.type, estimateMinutes: task.estimateMinutes, weight: task.weight, needs: [], origin: "heuristic" };
+}
+
+const INBOX_PROCESSED_KEY = "inbox:processed";
+
+// Free-first funnel: students scan every class into ONE review. A new syllabus
+// batch joins a pending syllabus review instead of replacing it; notes imports
+// and applied batches never merge. Duplicate rows (same kind, title, and date)
+// are skipped, and the batch honors the 80-candidate pending-import cap.
+const MAX_REVIEW_ROWS = 80;
+
+function appendImportBatch(current: ImportBatch | null, next: ImportBatch): ImportBatch {
+  return appendImportBatchWithReport(current, next).batch;
+}
+
+function appendImportBatchWithReport(current: ImportBatch | null, next: ImportBatch): { batch: ImportBatch; dropped: number } {
+  const isNotesOnly = (batch: ImportBatch) => batch.candidates.length > 0 && batch.candidates.every((candidate) => candidate.kind === "note");
+  if (!current || current.status !== "review" || isNotesOnly(current) || isNotesOnly(next)) {
+    return { batch: { ...next, candidates: next.candidates.slice(0, MAX_REVIEW_ROWS) }, dropped: Math.max(0, next.candidates.length - MAX_REVIEW_ROWS) };
+  }
+  const classKey = (candidate: ImportCandidate) => {
+    const payload = candidate.payload as { classId?: unknown; code?: unknown };
+    return candidate.kind === "class" ? String(payload.code || candidate.title).trim().toLowerCase() : String(payload.classId || candidate.classId || "");
+  };
+  // Same kind + title + date + class: two classes can both have "Homework 1".
+  const rowKey = (candidate: ImportCandidate) => `${candidate.kind}|${classKey(candidate)}|${candidate.title.trim().toLowerCase()}|${String((candidate.payload as { dueDate?: unknown }).dueDate || "")}`;
+  const seen = new Set(current.candidates.map(rowKey));
+  const added = next.candidates.filter((candidate) => !seen.has(rowKey(candidate)));
+  const room = Math.max(0, MAX_REVIEW_ROWS - current.candidates.length);
+  const sourceName = current.sourceName === next.sourceName ? current.sourceName : `${current.sourceName} + ${next.sourceName}`.slice(0, 160);
+  return {
+    batch: {
+      ...current,
+      sourceName,
+      sourceText: `${current.sourceText}\n\n${next.sourceText}`,
+      candidates: [...current.candidates, ...added.slice(0, room)],
+    },
+    dropped: Math.max(0, added.length - room),
+  };
+}
+
+function alertReviewFull(dropped: number) {
+  if (dropped <= 0) return;
+  Alert.alert(
+    textFor("review.full_title", "This review is full"),
+    textFor("review.full_body", "{count} rows didn't fit (a review holds 80). Apply this review, then add the rest.", { count: dropped }),
+  );
+}
+
+type SmartImportProgress = { page: number; pageCount: number; found: number; documentReader: boolean; onDevice: boolean };
 
 export default function App() {
   const [data, setData] = useState<AppData | null>(null);
@@ -5712,7 +5969,23 @@ export default function App() {
   const notificationResponseHandled = useRef<string | null>(null);
   const currentImportRef = useRef<ImportBatch | null>(null);
   const paywallDestinationRef = useRef<NavItem | null>(null);
+  const lastRoutedUrlRef = useRef<{ url: string; at: number } | null>(null);
+  const [smartImportProgress, setSmartImportProgress] = useState<SmartImportProgress | null>(null);
+  const smartImportAbort = useRef<AbortController | null>(null);
+  const latestDataRef = useRef<AppData | null>(null);
+  const briefData = useMemo(() => (data && entitlementStatus === "active" ? activeSemesterData(data) : null), [data, entitlementStatus]);
+  const dailyBrief = useDailyBrief(briefData, aiText, appLocale());
+  const dailyBriefRef = useRef<DailyBrief | null>(null);
+  dailyBriefRef.current = dailyBrief;
+  const spotlightSignatureRef = useRef<string>("");
+  const [classPackTarget, setClassPackTarget] = useState<ClassPackTarget | null>(null);
+  const selfRepairDayRef = useRef<string>("");
+  const [quickAddQueue, setQuickAddQueue] = useState<QuickAddRequest[]>([]);
+  const queuedInboxIdsRef = useRef<Set<string>>(new Set());
+  const routeUrlRef = useRef<((url: string) => void) | null>(null);
   const theme = palette(data?.prefs.theme || "light", data?.prefs.semesterAccentColor);
+
+  latestDataRef.current = data;
 
   useEffect(() => {
     currentImportRef.current = currentImport;
@@ -5891,13 +6164,16 @@ export default function App() {
           const widgetSyncData = appAccessLocked(persistedSnapshot, entitlementStatus)
             ? lockedWidgetData(persistedSnapshot)
             : activeSemesterData(persistedSnapshot);
-          if (persistedSnapshot.prefs.osLive || appAccessLocked(persistedSnapshot, entitlementStatus)) {
+          if (Platform.OS !== "web" && (persistedSnapshot.prefs.osLive || appAccessLocked(persistedSnapshot, entitlementStatus))) {
             const invalidateWidgetSyncEvidence = () => setData((current) => {
               if (!current || (!current.prefs.osLive && !current.prefs.widgetLastSyncedAt)) return current;
               return { ...current, prefs: { ...current.prefs, osLive: false, widgetLastSyncedAt: undefined } };
             });
             try {
-              const status = await syncNativeWidgets(widgetSyncData, widgetCopyFor);
+              const brief = dailyBriefRef.current;
+              const status = await syncNativeWidgets(widgetSyncData, widgetCopyFor, {
+                studyNow: !appAccessLocked(persistedSnapshot, entitlementStatus) && brief ? { line: brief.line, reason: brief.reason, dateKey: brief.dateKey } : null,
+              });
               if (status.state !== "synced") {
                 invalidateWidgetSyncEvidence();
                 setSaveError(status.message || textFor("storage.widget_retry", "Planner changes are saved, but widgets have not refreshed yet."));
@@ -5911,6 +6187,102 @@ export default function App() {
         .catch(() => setSaveError(textFor("storage.save_retry", "Changes are safe in this session but could not be saved to this device yet.")));
     }
   }, [data, entitlementStatus, loaded, saveAttempt]);
+
+  // When only today's Study Now line changes, refresh widgets without
+  // re-saving the planner.
+  const briefWidgetKey = dailyBrief ? `${dailyBrief.dateKey}|${dailyBrief.line}|${dailyBrief.reason}` : "";
+  const lastBriefWidgetKey = useRef("");
+  useEffect(() => {
+    if (Platform.OS === "web" || !loaded || !data || !briefWidgetKey || briefWidgetKey === lastBriefWidgetKey.current) return;
+    lastBriefWidgetKey.current = briefWidgetKey;
+    if (!entitlementUnlocks(data, entitlementStatus) || !data.prefs.osLive || !dailyBrief) return;
+    syncNativeWidgets(activeSemesterData(data), widgetCopyFor, { studyNow: { line: dailyBrief.line, reason: dailyBrief.reason, dateKey: dailyBrief.dateKey } }).catch(() => {});
+  }, [briefWidgetKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Siri (App Intents) and Spotlight read an App Group snapshot the app writes;
+  // extensions never run inference. A locked planner publishes nothing.
+  useEffect(() => {
+    if (Platform.OS !== "ios" || !loaded || !data || entitlementStatus === "loading") return;
+    const unlocked = entitlementUnlocks(data, entitlementStatus);
+    const snapshot = intelligenceSnapshot(unlocked ? data : lockedWidgetData(data), unlocked ? dailyBrief : null, new Date());
+    writeAppGroupJSON("intelligence-snapshot", JSON.stringify(snapshot)).catch(() => {});
+    const signature = JSON.stringify([snapshot.classes, snapshot.deadlines.map((item) => [item.id, item.title, item.dueDate, item.classCode])]);
+    if (signature === spotlightSignatureRef.current) return;
+    spotlightSignatureRef.current = signature;
+    if (!unlocked || (!snapshot.classes.length && !snapshot.deadlines.length)) clearSpotlight().catch(() => {});
+    else indexSpotlight({ classes: snapshot.classes, deadlines: snapshot.deadlines }).catch(() => {});
+  }, [data, dailyBrief, entitlementStatus, loaded]);
+
+  // "Missed a session? The plan quietly repairs itself." Once per day, on the
+  // first unlocked foreground, study blocks whose time has passed without being
+  // completed get the same deterministic make-up block as the Plan "Missed?"
+  // action. No inference; capped so a long absence can't flood tomorrow.
+  useEffect(() => {
+    if (!loaded || entitlementStatus !== "active") return;
+    const repair = () => {
+      const today = localDateKey(new Date());
+      if (selfRepairDayRef.current === today) return;
+      selfRepairDayRef.current = today;
+      setData((current) => {
+        if (!current) return current;
+        const missed = current.studyBlocks.filter((block) => canMarkStudyBlockMissed(block) && block.date && block.date < today).slice(0, 3);
+        if (!missed.length) return current;
+        return missed.reduce((acc, block) => {
+          const missedBlock = { ...block, missed: true };
+          const updated = replanAfterMissedBlock({ ...acc, studyBlocks: acc.studyBlocks.map((item) => item.id === block.id ? missedBlock : item) }, missedBlock);
+          return withFeedback(acc, updated, "missStudyBlock", { classId: block.classId, actionId: block.id, dimension: "consistency" });
+        }, current);
+      });
+    };
+    repair();
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") repair();
+    });
+    return () => subscription.remove();
+  }, [entitlementStatus, loaded]);
+
+  // Siri "Add assignment" (F6) queues raw text in the App Group; the app turns
+  // each entry into a proposal on foreground and always asks before saving.
+  // Replay is idempotent: handled ids are remembered and removed one by one.
+  useEffect(() => {
+    if (Platform.OS !== "ios" || !loaded || entitlementStatus !== "active") return;
+    let running = false;
+    const drain = async () => {
+      if (running || AppState.currentState !== "active") return;
+      running = true;
+      try {
+        const raw = await readAppGroupJSON("intent-inbox");
+        if (!raw) return;
+        const processedRaw = await aiCache.metaGet(INBOX_PROCESSED_KEY);
+        const processed = new Set<string>(processedRaw ? (JSON.parse(processedRaw) as string[]) : []);
+        // Entries already waiting in the confirm queue this session are skipped too.
+        queuedInboxIdsRef.current.forEach((id) => processed.add(id));
+        const { entries } = drainInbox(raw, processed);
+        if (!entries.length) return;
+        entries.forEach((entry) => queuedInboxIdsRef.current.add(entry.id));
+        const current = latestDataRef.current;
+        if (!current) return;
+        const locale = appLocale();
+        const availability = await getAvailability(locale).catch(() => null);
+        const runner = availability?.state === "available" ? createModelRunner(locale) : null;
+        const requests: QuickAddRequest[] = [];
+        for (const entry of entries) {
+          const result = await quickAddSmart(entry.text, activeSemesterData(current), new Date(), runner, { locale });
+          requests.push({ id: makeOwnershipId("quick"), inboxId: entry.id, proposal: result.kind === "task" ? proposalFromTask(result.task) : result.proposal });
+        }
+        setQuickAddQueue((queue) => [...queue, ...requests]);
+      } catch {
+        // A malformed inbox never blocks the app; the entries stay for next time.
+      } finally {
+        running = false;
+      }
+    };
+    drain();
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") drain();
+    });
+    return () => subscription.remove();
+  }, [entitlementStatus, loaded]);
 
   const persistPlannerSnapshot = useCallback(async (snapshot: AppData) => {
     // Import apply is a transaction boundary: queue the exact reviewed
@@ -5927,6 +6299,130 @@ export default function App() {
       setSaveError(textFor("storage.save_retry", "Changes are safe in this session but could not be saved to this device yet."));
       throw error;
     }
+  }, []);
+
+  // Syllabus → Semester (F2): the Build 90 parser always runs; the on-device
+  // model adds grounded, validated rows only when this iPhone supports it and
+  // the app is in the foreground. The student still reviews every row.
+  const startSyllabusImport = useCallback(async (sourceText: string, sourceName: string, options: { documentReader?: boolean } = {}) => {
+    const current = latestDataRef.current;
+    if (!current || !sourceText.trim()) return;
+    smartImportAbort.current?.abort();
+    const controller = new AbortController();
+    smartImportAbort.current = controller;
+    const locale = appLocale();
+    const availability = Platform.OS === "ios" ? await getAvailability(locale).catch(() => null) : null;
+    const onDevice = availability?.state === "available" && AppState.currentState === "active";
+    const runner = onDevice ? createModelRunner(locale) : null;
+    setSmartImportProgress({ page: 0, pageCount: 1, found: 0, documentReader: Boolean(options.documentReader), onDevice });
+    try {
+      const result = await analyzeSyllabusSmart(sourceText, current, new Date(), runner, {
+        contextSize: availability?.contextSize || 4096,
+        signal: controller.signal,
+        onProgress: (progress) => setSmartImportProgress((previous) => previous ? { ...previous, page: progress.chunk, pageCount: Math.max(1, progress.total), found: progress.found } : previous),
+      });
+      if (controller.signal.aborted) return;
+      const batch = localizedImportBatch(result.batch, sourceName);
+      const { batch: merged, dropped } = appendImportBatchWithReport(currentImportRef.current, batch);
+      alertReviewFull(dropped);
+      currentImportRef.current = merged;
+      setCurrentImport(merged);
+      setStack((s) => [...s, { route: "review" }]);
+    } finally {
+      if (smartImportAbort.current === controller) {
+        smartImportAbort.current = null;
+        setSmartImportProgress(null);
+      }
+    }
+  }, []);
+
+  // Fast capture (F6): the Build 90 regex runs first; the on-device model only
+  // proposes when the regex reports issues. Anything uncertain goes to the
+  // confirm sheet; a clean regex capture saves immediately, as in Build 90.
+  const proposeQuickAdd = useCallback(async (input: string): Promise<"saved" | "confirm" | "empty"> => {
+    const current = latestDataRef.current;
+    if (!current || !input.trim()) return "empty";
+    const locale = appLocale();
+    const availability = Platform.OS === "ios" ? await getAvailability(locale).catch(() => null) : null;
+    const runner = availability?.state === "available" && AppState.currentState === "active" ? createModelRunner(locale) : null;
+    const result = await quickAddSmart(input, activeSemesterData(current), new Date(), runner, { locale });
+    if (result.kind === "task") {
+      const task = result.task;
+      setData((d) => {
+        if (!d) return d;
+        const tasks = [task, ...d.tasks];
+        return withFeedback(d, { ...d, tasks, studyBlocks: buildStudyPlan({ ...d, tasks }) }, "reschedulePlan", { classId: task.classId, actionId: task.id, dimension: "workload" });
+      });
+      return "saved";
+    }
+    setQuickAddQueue((queue) => [...queue, { id: makeOwnershipId("quick"), proposal: result.proposal }]);
+    return "confirm";
+  }, []);
+
+  const finishQuickAdd = useCallback(async (request: QuickAddRequest, confirmed: TaskProposal | null) => {
+    setQuickAddQueue((queue) => queue.filter((item) => item.id !== request.id));
+    if (confirmed) {
+      const current = latestDataRef.current;
+      const task = current ? taskFromConfirmedProposal(confirmed, activeSemesterData(current), request.inboxId ? "Siri" : "Fast capture") : null;
+      if (!task) {
+        Alert.alert(textFor("scan.quick_error_heading", "Fast capture needs more detail"), textFor("ai.quick.invalid", "Pick a class and a real due date, then try again."));
+        setQuickAddQueue((queue) => [{ ...request, proposal: { ...confirmed, needs: ["class", "date"] } }, ...queue]);
+        return;
+      }
+      setData((d) => {
+        if (!d) return d;
+        const tasks = [task, ...d.tasks];
+        return withFeedback(d, { ...d, tasks, studyBlocks: buildStudyPlan({ ...d, tasks }) }, "reschedulePlan", { classId: task.classId, actionId: task.id, dimension: "workload" });
+      });
+    }
+    if (request.inboxId) {
+      // Only now is the Siri entry "handled". JS never rewrites intent-inbox.json
+      // (the intent may be appending at the same moment); the Swift side keeps
+      // the newest 20 entries, and handled ids are skipped by drainInbox.
+      const processedRaw = await aiCache.metaGet(INBOX_PROCESSED_KEY);
+      let processed: string[] = [];
+      try {
+        processed = processedRaw ? (JSON.parse(processedRaw) as string[]) : [];
+      } catch {
+        processed = [];
+      }
+      await aiCache.metaSet(INBOX_PROCESSED_KEY, JSON.stringify([...processed.filter((id) => id !== request.inboxId), request.inboxId].slice(-200)));
+      queuedInboxIdsRef.current.delete(request.inboxId);
+    }
+  }, []);
+
+  // Growth loops (F3/F5): a Class Pack becomes a free, reviewable import; a Quiz
+  // Duel opens straight into free play. Payloads are validated by decodeShared
+  // (size caps, schema, real dates) before anything is shown.
+  const openSharedPayload = useCallback((raw: string): boolean => {
+    const shared = sharedFromUrl(raw) || decodeShared(raw.trim());
+    if (!shared) return false;
+    if (shared.kind === "duel") {
+      setStack((s) => [...s, { route: "duel", params: { p: encodeShared(shared) } }]);
+      return true;
+    }
+    const current = latestDataRef.current;
+    if (!current) return false;
+    const batch = localizedImportBatch(packToImportBatch(shared.pack, activeSemesterData(current), new Date()), textFor("ai.pack.source", "Class Pack · {code}", { code: shared.pack.c.code }));
+    const { batch: merged, dropped } = appendImportBatchWithReport(currentImportRef.current, batch);
+    alertReviewFull(dropped);
+    currentImportRef.current = merged;
+    setCurrentImport(merged);
+    setStack((s) => [...s, { route: current.prefs.onboardingComplete ? "review" : "onboarding" }]);
+    return true;
+  }, []);
+
+  const pasteSharedPayload = useCallback(async () => {
+    const text = await Clipboard.getStringAsync().catch(() => "");
+    if (!openSharedPayload(text || "")) {
+      Alert.alert(textFor("ai.paste.none_title", "No Class Pack found"), textFor("ai.paste.none_body", "Copy the Class Pack link your classmate sent, then tap Paste again."));
+    }
+  }, [openSharedPayload]);
+
+  const cancelSmartImport = useCallback(() => {
+    smartImportAbort.current?.abort();
+    smartImportAbort.current = null;
+    setSmartImportProgress(null);
   }, []);
 
   const nav = useMemo(
@@ -6000,6 +6496,11 @@ export default function App() {
     const routeUrl = (url: string | null, initial = false) => {
       if (!url || (initial && initialUrlHandled.current)) return;
       if (entitlementStatus === "loading") return;
+      // Siri/Spotlight can deliver the same URL twice (openURL for a warm app plus
+      // the App Group pending-route file for a cold launch). Treat as one.
+      const now = Date.now();
+      if (lastRoutedUrlRef.current && lastRoutedUrlRef.current.url === url && now - lastRoutedUrlRef.current.at < 4000) return;
+      lastRoutedUrlRef.current = { url, at: now };
       const captureConfig = simulatorCaptureConfigFromUrl(url);
       if (captureConfig) {
         const captureState = buildSimulatorCaptureState(captureConfig);
@@ -6012,6 +6513,22 @@ export default function App() {
         setPendingImportStoreReady(true);
         setStack([captureState.navItem]);
         if (captureState.prompt) setTimeout(() => showSimulatorCapturePrompt(captureState.prompt), 1200);
+        return;
+      }
+      if (sharedFromUrl(url)) {
+        if (initial) initialUrlHandled.current = true;
+        openSharedPayload(url);
+        return;
+      }
+      const entity = entityRouteFromUrl(url);
+      if (entity) {
+        if (initial) initialUrlHandled.current = true;
+        if (!entitlementUnlocks(data, entitlementStatus)) {
+          setStack([{ route: onboardingComplete(data) ? "lockedDashboard" : "onboarding" }]);
+          return;
+        }
+        if (entityExists(data, entity)) nav.push(entity.route, entity.params);
+        else nav.tab("today");
         return;
       }
       const route = routeFromUrl(url);
@@ -6064,12 +6581,13 @@ export default function App() {
           openResolvedRoute(route);
           return;
         }
+        // Free-first funnel: scanning and pasting a syllabus open directly.
         if (route === "scan") {
-          nav.push("paywall", { next: "scan" });
+          nav.push("scan");
           return;
         }
         if (route === "paste") {
-          nav.push("paywall", { next: "paste", mode: "syllabus" });
+          nav.push("paste", { mode: "syllabus" });
           return;
         }
         if (route === "paywall" || route === "terms" || route === "privacy") {
@@ -6081,10 +6599,41 @@ export default function App() {
       }
       openResolvedRoute(route);
     };
+    routeUrlRef.current = (url: string) => routeUrl(url);
     Linking.getInitialURL().then((url) => routeUrl(url, true)).catch(() => {});
     const subscription = Linking.addEventListener("url", ({ url }) => routeUrl(url));
     return () => subscription.remove();
-  }, [data, entitlementStatus, loaded, nav]);
+  }, [data, entitlementStatus, loaded, nav, openSharedPayload]);
+
+  // App Intents (Open scanner) and tapped Spotlight results leave a one-shot
+  // `pending-route.json` in the App Group for cold launches. Consume it once the
+  // planner and entitlement are known, and again on every return to foreground.
+  useEffect(() => {
+    if (Platform.OS !== "ios" || !loaded || entitlementStatus === "loading") return;
+    let cancelled = false;
+    const consume = async () => {
+      const raw = await readAppGroupJSON("pending-route");
+      if (!raw || cancelled) return;
+      await deleteAppGroupJSON("pending-route");
+      try {
+        const parsed = JSON.parse(raw) as { url?: unknown; createdAt?: unknown };
+        const createdAt = typeof parsed.createdAt === "string" ? Date.parse(parsed.createdAt) : NaN;
+        if (typeof parsed.url !== "string" || !/^studyplanner:\/\//i.test(parsed.url)) return;
+        if (Number.isFinite(createdAt) && Date.now() - createdAt > 10 * 60 * 1000) return;
+        routeUrlRef.current?.(parsed.url);
+      } catch {
+        // A malformed handoff file is ignored; it has already been deleted.
+      }
+    };
+    consume();
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") consume();
+    });
+    return () => {
+      cancelled = true;
+      subscription.remove();
+    };
+  }, [entitlementStatus, loaded]);
 
   useEffect(() => {
     if (!loaded || !data) return;
@@ -6098,11 +6647,11 @@ export default function App() {
 
   if (!data && loadError) {
     return (
-      <View style={{ flex: 1, backgroundColor: "#F5F5F7", alignItems: "center", justifyContent: "center", padding: 28 }}>
-        <View style={{ width: 58, height: 58, borderRadius: 18, backgroundColor: "#111114", alignItems: "center", justifyContent: "center" }}><AlertTriangle color="#FFFFFF" size={27} /></View>
-        <Text selectable accessibilityRole="header" style={{ color: "#111114", fontSize: 26, lineHeight: 30, fontWeight: "900", textAlign: "center", marginTop: 20 }}>{textFor("storage.safe_title", "Your planner is still safe")}</Text>
+      <View style={{ flex: 1, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", padding: 28 }}>
+        <View style={{ width: 58, height: 58, borderRadius: 18, backgroundColor: "#0A0A0A", alignItems: "center", justifyContent: "center" }}><AlertTriangle color="#FFFFFF" size={27} /></View>
+        <Text selectable accessibilityRole="header" style={{ color: "#0A0A0A", fontSize: 26, lineHeight: 30, fontWeight: "900", textAlign: "center", marginTop: 20 }}>{textFor("storage.safe_title", "Your planner is still safe")}</Text>
         <Text selectable accessibilityRole="alert" style={{ color: "#5C5C64", fontSize: 15, lineHeight: 21, textAlign: "center", marginTop: 9 }}>{loadError}</Text>
-        <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.try_again", "Try again")} onPress={() => setLoadAttempt((attempt) => attempt + 1)} style={{ minHeight: 52, alignSelf: "stretch", borderRadius: 999, backgroundColor: "#111114", alignItems: "center", justifyContent: "center", marginTop: 22 }}>
+        <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.try_again", "Try again")} onPress={() => setLoadAttempt((attempt) => attempt + 1)} style={{ minHeight: 52, alignSelf: "stretch", borderRadius: 999, backgroundColor: "#0A0A0A", alignItems: "center", justifyContent: "center", marginTop: 22 }}>
           <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "900" }}>{textFor("common.try_again", "Try again")}</Text>
         </Pressable>
       </View>
@@ -6128,16 +6677,18 @@ export default function App() {
   };
   const active = stack[stack.length - 1]?.route || tab;
   const params = stack[stack.length - 1]?.params || {};
-  const hardGateActive = !entitlementUnlocks(data, entitlementStatus) && !PRE_PURCHASE_ROUTES.includes(active);
+  const hardGateActive = !entitlementUnlocks(data, entitlementStatus) && !PRE_PURCHASE_ROUTES.includes(active) && !FREE_IMPORT_ROUTES.includes(active);
   const displayRoute = gatedRoute(active, data, entitlementStatus);
   const accessState = accessStateFor(data, entitlementStatus, active);
   const screenData = dataForAccessState(data, entitlementStatus);
   const showPendingImportBanner = entitlementUnlocks(data, entitlementStatus) && Boolean(currentImport && displayRoute !== "review" && displayRoute !== "cameraScanner" && displayRoute !== "paste" && displayRoute !== "paywall" && displayRoute !== "success");
-  const visibleSaveError = pendingImportSaveError
+  // The pending-import recovery file uses expo-file-system, which web builds
+  // (used only for screenshot QA) do not support; iOS/Android keep the banner.
+  const visibleSaveError = pendingImportSaveError && Platform.OS !== "web"
     ? textFor("storage.save_retry", "Changes are safe in this session but could not be saved to this device yet.")
     : saveError;
 
-  const props = { data: screenData, mutate, persistPlannerSnapshot, nav, theme, params, currentImport, setCurrentImport, setEntitlementStatus, accessState, recordReviewTrigger };
+  const props = { data: screenData, mutate, persistPlannerSnapshot, nav, theme, params, currentImport, setCurrentImport, setEntitlementStatus, accessState, recordReviewTrigger, startSyllabusImport, smartImportBusy: Boolean(smartImportProgress), dailyBrief, openClassPack: (classId: string) => setClassPackTarget({ classId }), sharePack: (pack: ClassPack) => setClassPackTarget({ pack }), proposeQuickAdd, pasteSharedPayload };
   const screen =
     displayRoute === "welcome" ? <Welcome {...props} /> :
     displayRoute === "onboarding" ? <Onboarding {...props} /> :
@@ -6167,6 +6718,10 @@ export default function App() {
     displayRoute === "studySession" ? <StudySession {...props} /> :
     displayRoute === "homePreview" ? <HomePreview {...props} /> :
     displayRoute === "lockPreview" ? <LockPreview {...props} /> :
+    displayRoute === "examMode" ? <ExamModeRoute key={`examMode:${params.id || ""}`} {...props} /> :
+    displayRoute === "practice" ? <PracticeRoute key={`practice:${params.examId || ""}:${params.noteId || ""}:${params.mode || ""}`} {...props} /> :
+    displayRoute === "duel" ? <DuelRoute key={`duel:${params.p || ""}`} {...props} /> :
+    displayRoute === "forecast" ? <ForecastRoute {...props} /> :
     <Today {...props} />;
 
   const showTabs = entitlementUnlocks(data, entitlementStatus) && stack.length === 0 && !["welcome", "onboarding", "importOptions", "lockedDashboard", "paywall"].includes(displayRoute);
@@ -6181,9 +6736,74 @@ export default function App() {
           <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.try_again", "Try again")} onPress={() => pendingImportSaveError ? setPendingImportSaveAttempt((attempt) => attempt + 1) : setSaveAttempt((attempt) => attempt + 1)} style={{ minHeight: 44, paddingHorizontal: 12, justifyContent: "center" }}><Text style={{ color: "#92400E", fontWeight: "900" }}>{textFor("common.try_again", "Try again")}</Text></Pressable>
         </View>
       ) : null}
+      {smartImportProgress ? (
+        <View pointerEvents="box-none" style={{ position: "absolute", left: 14, right: 14, bottom: 34, zIndex: 120 }}>
+          <ScanProgress
+            theme={theme}
+            t={aiText}
+            locale={appLocale()}
+            page={smartImportProgress.page}
+            pageCount={smartImportProgress.pageCount}
+            found={smartImportProgress.found}
+            documentReader={smartImportProgress.documentReader}
+            onDevice={smartImportProgress.onDevice}
+            onCancel={cancelSmartImport}
+          />
+        </View>
+      ) : null}
+      {quickAddQueue[0] && entitlementUnlocks(data, entitlementStatus) ? (
+        <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={() => finishQuickAdd(quickAddQueue[0], null)}>
+          <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 18, paddingTop: 24, paddingBottom: 40 }}>
+            <QuickAddConfirmSheet
+              key={quickAddQueue[0].id}
+              theme={theme}
+              t={aiText}
+              locale={appLocale()}
+              proposal={quickAddQueue[0].proposal}
+              classes={activeSemesterData(data).classes.filter((klass) => !klass.archivedAt).map((klass) => ({ id: klass.id, code: klass.code, name: klass.name, color: klass.color }))}
+              today={localDateKey(new Date())}
+              onConfirm={(proposal) => finishQuickAdd(quickAddQueue[0], proposal)}
+              onCancel={() => finishQuickAdd(quickAddQueue[0], null)}
+            />
+          </ScrollView>
+        </Modal>
+      ) : null}
+      {classPackTarget ? <ClassPackModal data={screenData} target={classPackTarget} theme={theme} onClose={() => setClassPackTarget(null)} /> : null}
       {showPendingImportBanner && currentImport ? <PendingImportResumeBanner batch={currentImport} nav={nav} theme={theme} hasTabs={showTabs} /> : null}
       {showTabs ? <TabBar tab={tab} setTab={nav.tab} theme={theme} /> : null}
     </View>
+  );
+}
+
+type ClassPackTarget = { classId?: string; pack?: ClassPack };
+
+function ClassPackModal({ data, target, theme, onClose }: { data: AppData; target: ClassPackTarget; theme: ReturnType<typeof palette>; onClose: () => void }) {
+  // A pack comes from the live planner (Plus) or straight from a pending
+  // review (free), so every scan can become a share.
+  const pack = useMemo(() => target.pack || (target.classId ? classPackFromData(data, target.classId) : null), [data, target]);
+  const link = pack ? packLink(pack) : "";
+  const matrix = useMemo(() => (link && qrEligible(link) ? qrMatrix(link) : null), [link]);
+  if (!pack) return null;
+  const code = pack.c.code;
+  return (
+    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+      <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} contentContainerStyle={{ padding: 18, paddingTop: 24, paddingBottom: 40 }}>
+        <ClassPackSheet
+          theme={theme}
+          t={aiText}
+          locale={appLocale()}
+          className={pack.c.name || code}
+          classCode={code}
+          itemCount={pack.i.length}
+          link={link}
+          matrix={matrix}
+          onShareLink={() => {
+            shareLink(textFor("ai.pack.share_message", "Here are all the {code} deadlines. Tap to add them to StudyPlanner:", { code }), link).catch(() => {});
+          }}
+          onDone={onClose}
+        />
+      </ScrollView>
+    </Modal>
   );
 }
 
@@ -6199,6 +6819,13 @@ type ScreenProps = {
   setEntitlementStatus: (status: EntitlementStatus) => void;
   accessState: AccessState;
   recordReviewTrigger: (trigger: ReviewTrigger) => void;
+  startSyllabusImport: (sourceText: string, sourceName: string, options?: { documentReader?: boolean }) => Promise<void>;
+  smartImportBusy: boolean;
+  dailyBrief: DailyBrief | null;
+  openClassPack: (classId: string) => void;
+  sharePack: (pack: ClassPack) => void;
+  proposeQuickAdd: (input: string) => Promise<"saved" | "confirm" | "empty">;
+  pasteSharedPayload: () => Promise<void>;
 };
 
 function withFeedback(
@@ -6324,18 +6951,18 @@ function SemesterKickoff({ data, nav, theme, currentImport, accessState }: Scree
       <Screen theme={theme} bottom={44}>
         <BackHeader embedded nav={nav} theme={theme} label={copy.title} />
         <View style={{ paddingHorizontal: 16, gap: 14 }}>
-          <View style={{ borderRadius: 28, padding: 22, backgroundColor: theme.dark ? "#1C1730" : "#191326", overflow: "hidden" }}>
+          <View style={{ borderRadius: 28, padding: 22, backgroundColor: theme.dark ? "#0A0A0A" : "#0A0A0A", overflow: "hidden" }}>
             <View style={{ alignSelf: "flex-start", borderRadius: 999, paddingHorizontal: 11, paddingVertical: 7, backgroundColor: "rgba(255,255,255,0.12)" }}>
               <Text selectable style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "900", letterSpacing: 0.7 }}>{copy.kicker}</Text>
             </View>
             <Text selectable accessibilityRole="header" style={{ color: "#FFFFFF", fontSize: 32, lineHeight: 35, fontWeight: "900", marginTop: 18 }}>{copy.title}</Text>
             <Text selectable style={{ color: "rgba(255,255,255,0.78)", fontSize: 16, lineHeight: 23, marginTop: 10 }}>{copy.body}</Text>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 20 }}>
-              <Text selectable style={{ color: "#D9CBFF", fontWeight: "900", flex: 1 }}>{phaseLabel}</Text>
+              <Text selectable style={{ color: "rgba(255,255,255,0.72)", fontWeight: "900", flex: 1 }}>{phaseLabel}</Text>
               <Text selectable accessibilityLiveRegion="polite" style={{ color: "#FFFFFF", fontWeight: "900" }}>{progressLabel}</Text>
             </View>
             <View style={{ height: 8, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.14)", overflow: "hidden", marginTop: 10 }}>
-              <View style={{ width: `${(progress.completedCount / progress.totalCount) * 100}%`, height: "100%", borderRadius: 999, backgroundColor: "#B89CFF" }} />
+              <View style={{ width: `${(progress.completedCount / progress.totalCount) * 100}%`, height: "100%", borderRadius: 999, backgroundColor: "#FFFFFF" }} />
             </View>
           </View>
 
@@ -6413,7 +7040,7 @@ function BackHeader({ label, nav, theme, action, embedded = false }: { label?: s
 }
 
 function Card({ children, theme, style }: { children: React.ReactNode; theme: ReturnType<typeof palette>; style?: StyleProp<ViewStyle> }) {
-  return <View style={[{ backgroundColor: theme.surface, borderRadius: 14, borderWidth: 1, borderColor: theme.hairline, boxShadow: theme.dark ? "0 8px 20px rgba(0,0,0,0.30)" : "0 8px 18px rgba(20,20,40,0.08)" }, style]}>{children}</View>;
+  return <View style={[{ backgroundColor: theme.surface, borderRadius: 14, borderWidth: 1, borderColor: theme.hairline }, style]}>{children}</View>;
 }
 
 function RecoveryScreen({ title, body, action, nav, theme }: { title: string; body: string; action?: string; nav: ScreenProps["nav"]; theme: ReturnType<typeof palette> }) {
@@ -6547,7 +7174,7 @@ function Welcome({ data, mutate, nav, theme }: ScreenProps) {
         <Text selectable style={{ color: theme.label, fontSize: 38, lineHeight: 40, fontWeight: "900", marginBottom: 10 }}>{textFor("welcome.title", "Know exactly where you stand.")}</Text>
         <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22, marginBottom: 18 }}>{textFor("welcome.body", "Import a syllabus. StudyPlanner maps the semester, finds pressure, and tells you the next move.")}</Text>
         <AppStoreRatingProof theme={theme} />
-        <Card theme={theme} style={{ padding: 16, marginBottom: 12, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
+        <Card theme={theme} style={{ padding: 16, marginBottom: 12, backgroundColor: theme.dark ? "#111113" : "#FFFFFF" }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
             <View style={{ width: 72, height: 72, borderRadius: 999, borderWidth: 8, borderColor: COLORS.green, alignItems: "center", justifyContent: "center" }}>
               <Text selectable style={{ color: theme.label, fontSize: 22, fontWeight: "900" }}>0</Text>
@@ -6580,8 +7207,8 @@ function Button({ label, theme, onPress, secondary, icon }: { label: string; the
   const disabled = !onPress;
   return (
     <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} hitSlop={6} onPress={() => { if (!disabled) { tap(); onPress?.(); } }} style={{ minHeight: 51, borderRadius: 999, backgroundColor: disabled ? theme.surface3 : secondary ? theme.surface3 : theme.accent, opacity: disabled ? 0.54 : 1, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, marginTop: 9, paddingHorizontal: 18 }}>
-      {icon ? <Icon name={icon} color={secondary || disabled ? theme.label : "#fff"} size={18} /> : null}
-      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78} style={{ color: secondary || disabled ? theme.label : "#fff", fontSize: 16, fontWeight: "900", flexShrink: 1 }}>{label}</Text>
+      {icon ? <Icon name={icon} color={secondary || disabled ? theme.label : theme.dark ? "#000" : "#fff"} size={18} /> : null}
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78} style={{ color: secondary || disabled ? theme.label : theme.dark ? "#000" : "#fff", fontSize: 16, fontWeight: "900", flexShrink: 1 }}>{label}</Text>
     </Pressable>
   );
 }
@@ -6654,7 +7281,7 @@ function MiniNextMove({ theme }: { theme: ReturnType<typeof palette> }) {
 
 function MiniWidgetPreview({ theme, accent = COLORS.blue }: { theme: ReturnType<typeof palette>; accent?: string }) {
   return (
-    <View style={{ width: "48%", borderRadius: 18, padding: 13, backgroundColor: "#111114" }}>
+    <View style={{ width: "48%", borderRadius: 18, padding: 13, backgroundColor: "#0A0A0A" }}>
       <Text selectable style={{ color: "rgba(255,255,255,0.56)", fontSize: 10, fontWeight: "900" }}>{textFor("mini.widget", "WIDGET")}</Text>
       <Text selectable style={{ color: "#fff", fontSize: 16, fontWeight: "900", marginTop: 8 }}>{textFor("widgets.sub_locked", "Locked preview")}</Text>
       <Text selectable numberOfLines={1} style={{ color: "rgba(255,255,255,0.68)", fontSize: 12, marginTop: 4 }}>{textFor("mini.unlock_after", "Unlock after purchase")}</Text>
@@ -6683,7 +7310,28 @@ function AppStoreRatingProof({ theme, dark = false }: { theme: ReturnType<typeof
   );
 }
 
-function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
+const ONBOARDING_SCAN_OPTION_META: Record<string, { icon: string; color: string; hintKey: string; hint: string }> = {
+  "Scan with camera": { icon: "camera", color: COLORS.ink, hintKey: "onboarding.option_camera_hint", hint: "Point at each page. Tables read row by row." },
+  "Upload PDF": { icon: "upload", color: COLORS.ink, hintKey: "onboarding.option_pdf_hint", hint: "Multi-page syllabi and course handouts." },
+  "Paste syllabus": { icon: "file", color: COLORS.ink, hintKey: "onboarding.option_paste_hint", hint: "From Canvas, email, or a document." },
+  "Add manually": { icon: "plus", color: COLORS.ink, hintKey: "onboarding.option_manual_hint", hint: "Type a class and its first deadline." },
+};
+
+function onboardingStartLabel(scanIntent: string) {
+  if (scanIntent === "Upload PDF") return textFor("onboarding.start_pdf", "Upload my syllabus");
+  if (scanIntent === "Paste syllabus") return textFor("onboarding.start_paste", "Paste my syllabus");
+  if (scanIntent === "Add manually") return textFor("onboarding.start_manual", "Add my first class");
+  return textFor("onboarding.start_scan", "Scan my syllabus");
+}
+
+function onboardingStartIcon(scanIntent: string) {
+  if (scanIntent === "Upload PDF") return "upload";
+  if (scanIntent === "Paste syllabus") return "file";
+  if (scanIntent === "Add manually") return "plus";
+  return "camera";
+}
+
+function Onboarding({ data, mutate, nav, theme, params, currentImport }: ScreenProps) {
   const steps = ["name", "priorities", "build"];
   const studentTypeOptions = ["High school classes", "College courses", "Grad school", "Online classes"];
   const goalOptions = ["Deadlines", "Exams", "Notes", "Grades", "Everything"];
@@ -6717,10 +7365,11 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
             : storedMainGoal.toLowerCase().includes("everything")
               ? "Everything"
               : "Deadlines";
+  const captureProfile = params.captureProfile === "1" && simulatorCaptureIsEnabled();
   const [profile, setProfile] = useState({
     name: storedFirstName || (data.prefs.name === "Student" ? "" : firstNameFromPrefs(data)),
-    studentType: initialStudentType,
-    mainGoal: initialMainGoal,
+    studentType: captureProfile ? "College courses" : initialStudentType,
+    mainGoal: captureProfile ? "Everything" : initialMainGoal,
     scanIntent: data.prefs.scanIntent || "Scan with camera",
     semesterThemeColorId: data.prefs.semesterThemeColorId || "graphite" as SemesterThemeColorId,
   });
@@ -6731,20 +7380,10 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
   const buildTitle = cleanProfileName
     ? textFor("onboarding.build_title_personal", "Build {name}'s semester.", { name: firstName })
     : textFor("onboarding.build_title", "Build your semester.");
-  const scanOptions = ["Scan with camera", "Paste syllabus", "Add manually"];
-  const cameraIntentSelected = profile.scanIntent === "Scan with camera";
-  const prioritiesComplete = Boolean(profile.studentType && profile.mainGoal);
-  const semesterTheme = resolveSemesterThemeColor(profile.semesterThemeColorId);
-  const onboardingAccent = "#111114";
+  const scanOptions = ["Scan with camera", "Upload PDF", "Paste syllabus", "Add manually"];
+  const onboardingAccent = "#0A0A0A";
   const onboardingTheme = { ...theme, accent: onboardingAccent };
-  const coursePalette = semesterTheme.courseColors.length >= 4 ? semesterTheme.courseColors : [onboardingAccent, COLORS.blue, COLORS.green, COLORS.orange];
-  const loopRadius = 20;
-  const loopCircumference = 2 * Math.PI * loopRadius;
-  const loopFeedback = [
-    { label: textFor("paywall.camera_step_scan", "Scan"), progress: 0.76, color: coursePalette[1] },
-    { label: textFor("paywall.camera_step_review", "Review"), progress: 0.58, color: coursePalette[2] },
-    { label: textFor("paywall.camera_step_apply", "Apply"), progress: 0.42, color: coursePalette[3] },
-  ];
+  const prioritiesComplete = Boolean(profile.studentType && profile.mainGoal);
   useEffect(() => {
     motion.setValue(0);
     Animated.timing(motion, {
@@ -6784,9 +7423,15 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
     persistProfile(index === steps.length - 1, source);
     if (index < steps.length - 1) setIndex(index + 1);
     else if (params.returnTo === "semesterKickoff") nav.back();
-    else if (source.scanIntent === "Paste syllabus") nav.push("paywall", { next: "paste", mode: "syllabus" });
-    else if (source.scanIntent === "Add manually") nav.push("paywall", { next: "paste", mode: "manual" });
-    else nav.push("paywall", { next: "scan", action: "camera" });
+    // A Class Pack opened before onboarding is waiting: review it first.
+    else if (currentImport && currentImport.status === "review") nav.push("review");
+    // 2.2: the first import is free. Scan, upload, paste, or type a class,
+    // review every row, and see the whole-term Crunch Forecast before the
+    // paywall. Applying the reviewed plan still requires the App Store unlock.
+    else if (source.scanIntent === "Paste syllabus") nav.push("paste", { mode: "syllabus" });
+    else if (source.scanIntent === "Add manually") nav.push("paste", { mode: "manual" });
+    else if (source.scanIntent === "Upload PDF") nav.push("scan", { action: "pdf" });
+    else nav.push("scan", { action: "camera" });
   };
   const pick = (key: keyof typeof profile, value: string) => {
     const nextProfile = { ...profile, [key]: value };
@@ -6809,21 +7454,6 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
       }
     ]
   };
-  const renderOptions = (key: keyof typeof profile, opts: string[]) => (
-    <View style={{ gap: 10 }}>
-      {opts.map((opt) => {
-        const on = profile[key] === opt;
-        return (
-          <Pressable key={opt} accessibilityRole="radio" accessibilityLabel={optionText(opt)} accessibilityState={{ selected: on }} onPress={() => pick(key, opt)}>
-            <Card theme={theme} style={{ padding: 17, flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderColor: on ? onboardingAccent : theme.hairline, borderWidth: on ? 2 : 1, backgroundColor: on ? "#FFFFFF" : "rgba(255,255,255,0.72)" }}>
-              <Text selectable style={{ color: theme.label, fontSize: 16, fontWeight: "900" }}>{optionText(opt)}</Text>
-              {on ? <CheckCircle2 color={onboardingAccent} size={22} /> : <Circle color={theme.label3} size={22} />}
-            </Card>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
   const renderChoiceGrid = (key: keyof typeof profile, opts: string[]) => (
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
       {opts.map((opt) => {
@@ -6847,7 +7477,7 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
     </View>
   );
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: "#F5F5F7" }}>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
       <View style={{ paddingTop: 58, paddingHorizontal: 24, flexDirection: "row", alignItems: "center", gap: 8 }}>
         {index ? <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} hitSlop={11} onPress={() => setIndex(index - 1)} style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}><ChevronLeft color={theme.label2} size={22} /></Pressable> : <View style={{ width: 44 }} />}
         <View style={{ flex: 1, flexDirection: "row", gap: 5 }}>{steps.map((_, i) => <View key={i} style={{ flex: 1, height: 5, borderRadius: 99, backgroundColor: i <= index ? onboardingAccent : theme.surface3 }} />)}</View>
@@ -6876,7 +7506,7 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
           {step === "build" ? (
             <>
               <Text selectable style={{ color: theme.label, fontSize: 34, lineHeight: 37, fontWeight: "900", marginBottom: 8 }}>{buildTitle}</Text>
-              <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginBottom: 14 }}>{textFor("onboarding.paywall_first", "Unlock first, then scan, paste, or add manually. You still review everything before it saves.")}</Text>
+              <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginBottom: 14 }}>{textFor("onboarding.free_first", "Start with one syllabus. See every deadline and your crunch weeks for free — nothing saves until you review it.")}</Text>
               <View accessible accessibilityLabel={`${optionText(profile.studentType)}. ${optionText(profile.mainGoal)}.`} style={{ borderRadius: 18, padding: 13, backgroundColor: "rgba(17,17,20,0.06)", flexDirection: "row", alignItems: "center", gap: 11, marginBottom: 14 }}>
                 <View style={{ width: 38, height: 38, borderRadius: 13, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center" }}><Icon name="graduation-cap" color={onboardingAccent} size={20} /></View>
                 <View style={{ flex: 1 }}>
@@ -6885,58 +7515,44 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
                 </View>
                 <CheckCircle2 color={COLORS.green} size={21} />
               </View>
-              <LiquidGlassSurface tintColor="rgba(255,255,255,0.76)" style={{ borderRadius: 26, padding: 16, backgroundColor: "rgba(255,255,255,0.78)", borderWidth: 1, borderColor: "rgba(17,17,20,0.10)", gap: 13, marginBottom: 14 }} fallbackStyle={{ backgroundColor: "#FFFFFF" }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                  <View style={{ width: 46, height: 46, borderRadius: 16, backgroundColor: "#111114", alignItems: "center", justifyContent: "center" }}>
-                    <Icon name="target" color="#FFFFFF" size={22} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text selectable style={{ color: theme.label2, fontSize: 11, fontWeight: "900" }}>{textFor("onboarding.theme_pulse", "SEMESTER PULSE")}</Text>
-                    <Text selectable style={{ color: theme.label, fontSize: 20, lineHeight: 23, fontWeight: "900", marginTop: 2 }}>{textFor("onboarding.theme_ready", "Ready to build")}</Text>
-                  </View>
-                </View>
-                <View style={{ flexDirection: "row", gap: 8 }}>
-                  {loopFeedback.map((item) => (
-                    <View key={`semester-loop-${item.label}`} style={{ flex: 1, minWidth: 0, alignItems: "center", gap: 2 }}>
-                      <Svg width={44} height={44} viewBox="0 0 50 50">
-                        <SvgCircle cx={25} cy={25} r={loopRadius} stroke="rgba(17,17,20,0.08)" strokeWidth={7} fill="none" />
-                        <SvgCircle
-                          cx={25}
-                          cy={25}
-                          r={loopRadius}
-                          stroke={item.color}
-                          strokeWidth={7}
-                          strokeLinecap="round"
-                          fill="none"
-                          strokeDasharray={`${loopCircumference} ${loopCircumference}`}
-                          strokeDashoffset={loopCircumference * (1 - item.progress)}
-                          transform="rotate(-90 25 25)"
-                        />
-                      </Svg>
-                      <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: theme.label2, fontSize: 9, fontWeight: "900", maxWidth: "100%" }}>{item.label}</Text>
-                    </View>
-                  ))}
-                </View>
-              </LiquidGlassSurface>
-              <Card theme={theme} style={{ padding: 14, marginBottom: 16, backgroundColor: "#111114" }}>
+              <View accessibilityRole="radiogroup" style={{ gap: 10, marginBottom: 14 }}>
+                {scanOptions.map((opt) => {
+                  const on = profile.scanIntent === opt;
+                  const meta = ONBOARDING_SCAN_OPTION_META[opt];
+                  return (
+                    <Pressable key={opt} accessibilityRole="radio" accessibilityLabel={`${optionText(opt)}. ${textFor(meta.hintKey, meta.hint)}`} accessibilityState={{ selected: on }} onPress={() => pick("scanIntent", opt)}>
+                      <Card theme={theme} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 13, borderColor: on ? onboardingAccent : theme.hairline, borderWidth: on ? 2 : 1, backgroundColor: on ? "#FFFFFF" : "rgba(255,255,255,0.78)" }}>
+                        <View style={{ width: 46, height: 46, borderRadius: 15, backgroundColor: on ? "#0A0A0A" : `${meta.color}1A`, alignItems: "center", justifyContent: "center" }}>
+                          <Icon name={meta.icon} color={on ? "#FFFFFF" : meta.color} size={22} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text selectable style={{ color: theme.label, fontSize: 16.5, fontWeight: "900" }}>{optionText(opt)}</Text>
+                          <Text selectable style={{ color: theme.label2, fontSize: 13, lineHeight: 18, marginTop: 2, fontWeight: "700" }}>{textFor(meta.hintKey, meta.hint)}</Text>
+                        </View>
+                        {on ? <CheckCircle2 color={onboardingAccent} size={22} /> : <Circle color={theme.label3} size={22} />}
+                      </Card>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <Card theme={theme} style={{ padding: 14, marginBottom: 16, backgroundColor: "#0A0A0A" }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
                   <View style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}>
-                    <Icon name={cameraIntentSelected ? "camera" : "crown"} color="#FFFFFF" size={21} />
+                    <Icon name="sparkles" color="#FFFFFF" size={21} />
                   </View>
-                  <Text selectable style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "900", flex: 1 }}>{cameraIntentSelected ? textFor("onboarding.camera_gate_title", "Unlock the camera scan.") : textFor("onboarding.paywall_gate_title", "Unlock first. Then build.")}</Text>
+                  <Text selectable style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "900", flex: 1 }}>{textFor("onboarding.free_scan_title", "Free: see your whole semester.")}</Text>
                 </View>
-                <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 5 }}>{cameraIntentSelected ? textFor("onboarding.camera_gate_body_simple", "Unlock first, then scan the syllabus on this iPhone. Every extracted row still goes to review before anything saves.") : textFor("onboarding.paywall_gate_body_simple", "Unlock first, then review the first real version before it reaches Today, reminders, or widgets.")}</Text>
+                <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 5 }}>{textFor("onboarding.free_scan_body", "Scan or add every class. StudyPlanner reads them on this iPhone, lists every deadline for review, and forecasts your red weeks. Unlock when you want the daily plan.")}</Text>
               </Card>
-              <View style={{ marginTop: 2, marginBottom: 16 }}>{renderOptions("scanIntent", scanOptions)}</View>
             </>
           ) : null}
         </Animated.View>
       </ScrollView>
       <LiquidGlassSurface tintColor="rgba(245,245,247,0.72)" style={{ padding: 24, paddingBottom: 34, backgroundColor: "rgba(245,245,247,0.92)" }} fallbackStyle={{ backgroundColor: "rgba(245,245,247,0.94)" }}>
         <Button
-          label={step !== "build" ? textFor("common.continue", "Continue") : cameraIntentSelected ? textFor("onboarding.unlock_to_scan", "Unlock to scan") : textFor("onboarding.unlock_to_continue", "Unlock to continue")}
+          label={step !== "build" ? textFor("common.continue", "Continue") : onboardingStartLabel(profile.scanIntent)}
           theme={onboardingTheme}
-          icon={step !== "build" ? "chevron-right" : "crown"}
+          icon={step !== "build" ? "chevron-right" : onboardingStartIcon(profile.scanIntent)}
           onPress={(step === "name" && !cleanProfileName) || (step === "priorities" && !prioritiesComplete) ? undefined : next}
         />
       </LiquidGlassSurface>
@@ -6955,21 +7571,21 @@ function ImportOptions({ data, mutate, nav, theme }: ScreenProps) {
         premium: false,
       },
     }));
-    if (route === "paste") nav.push("paywall", { next: "paste", mode: params?.mode || "syllabus" });
-    else nav.push("paywall", { next: "scan", action: params?.action || "pdf" });
+    if (route === "paste") nav.push("paste", { mode: params?.mode || "syllabus" });
+    else nav.push("scan", { action: params?.action || "pdf" });
   };
   return (
-    <View style={{ flex: 1, backgroundColor: "#F5F5F7" }}>
+    <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingTop: 72, paddingHorizontal: 22, paddingBottom: 120 }}>
         <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} hitSlop={10} onPress={nav.back} style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.surface, alignItems: "center", justifyContent: "center", marginBottom: 18 }}><ChevronLeft color={theme.label} /></Pressable>
         <Text selectable style={{ color: theme.label, fontSize: 38, lineHeight: 41, fontWeight: "900" }}>{textFor("onboarding.build_title", "Build your semester.")}</Text>
-        <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22, marginTop: 8, marginBottom: 20 }}>{textFor("paywall.sub_no_import", "Unlock first, then scan or import. StudyPlanner shows every extracted row for review before anything saves.")}</Text>
-        <Card theme={theme} style={{ padding: 17, backgroundColor: "#111114", marginBottom: 18 }}>
-          <Text selectable style={{ color: "#fff", fontSize: 21, lineHeight: 25, fontWeight: "900" }}>{textFor("paywall.camera_title", "Camera scan unlocks here")}</Text>
-          <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 6 }}>{textFor("paywall.camera_body", "Use the guided camera after purchase to capture syllabus pages, read the text on this iPhone, and review the extracted rows before anything saves.")}</Text>
+        <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22, marginTop: 8, marginBottom: 20 }}>{textFor("onboarding.free_first", "Start with one syllabus. See every deadline and your crunch weeks for free — nothing saves until you review it.")}</Text>
+        <Card theme={theme} style={{ padding: 17, backgroundColor: "#0A0A0A", marginBottom: 18 }}>
+          <Text selectable style={{ color: "#fff", fontSize: 21, lineHeight: 25, fontWeight: "900" }}>{textFor("onboarding.free_scan_title", "Free: see your whole semester.")}</Text>
+          <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 6 }}>{textFor("onboarding.free_scan_body", "Scan or add every class. StudyPlanner reads them on this iPhone, lists every deadline for review, and forecasts your red weeks. Unlock when you want the daily plan.")}</Text>
         </Card>
         {[
-          [textFor("option.scan_camera", "Scan with camera"), textFor("paywall.camera_body", "Unlock guided camera scan, OCR, and review."), "camera", COLORS.orange, () => completeAnd("scan", { action: "camera" })],
+          [textFor("option.scan_camera", "Scan with camera"), textFor("scan.camera_action_body", "Capture pages, boards, packets, and printed schedules."), "camera", COLORS.orange, () => completeAnd("scan", { action: "camera" })],
           [textFor("option.upload_pdf", "Upload PDF"), textFor("scan.more_upload_body", "Pick a syllabus file"), "upload", COLORS.green, () => completeAnd("scan", { action: "pdf" })],
           [textFor("locked.paste", "Paste manually"), textFor("paste.syllabus_required", "Enter syllabus text"), "file", COLORS.blue, () => completeAnd("paste", { mode: "syllabus" })],
           [textFor("classes.add_manual", "Add class manually"), textFor("onboarding.manual_body", "Type one class and one deadline to build a preview"), "plus", COLORS.purple, () => completeAnd("paste", { mode: "manual" })],
@@ -6990,8 +7606,10 @@ function ImportOptions({ data, mutate, nav, theme }: ScreenProps) {
   );
 }
 
-function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
+function LockedDashboard({ data, nav, theme, currentImport, pasteSharedPayload }: ScreenProps) {
   const firstName = firstNameFromPrefs(data);
+  const forecast = useMemo(() => forecastFromImport(data, currentImport), [data, currentImport]);
+  const forecastShare = useForecastShare(forecast, theme);
   const approved = currentImport?.candidates.filter((candidate) => candidate.approved) || [];
   const previewSummary = {
     classes: approved.filter((candidate) => candidate.kind === "class").length,
@@ -7011,21 +7629,36 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
         <View style={{ gap: 8, paddingHorizontal: 2 }}>
           <Text selectable style={{ color: theme.label2, fontSize: 13, fontWeight: "900" }}>{textFor("locked.kicker", "LOCKED PREVIEW")}</Text>
           <Text selectable style={{ color: theme.label, fontSize: 36, lineHeight: 39, fontWeight: "900" }}>{textFor("locked.title", "{name}, build your semester.", { name: firstName })}</Text>
-          <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22 }}>{textFor("locked.preview_sub", "Unlock first, then scan, paste, or add a class. You review every row before anything saves.")}</Text>
+          <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22 }}>{textFor("locked.free_sub", "Scan every syllabus for free. Review each deadline and see your crunch weeks before you decide.")}</Text>
         </View>
         <AppStoreRatingProof theme={theme} />
 
-        <View style={{ borderRadius: 28, padding: 20, backgroundColor: "#111114", overflow: "hidden" }}>
+        {!currentImport ? <PastePackBanner theme={theme} t={aiText} locale={appLocale()} onPaste={() => { pasteSharedPayload().catch(() => {}); }} /> : null}
+        {forecast ? (
+          <ForecastSection
+            theme={theme}
+            t={aiText}
+            locale={appLocale()}
+            forecast={forecast}
+            mode="preview"
+            onShare={forecastShare.share}
+            onUnlock={() => nav.push("paywall")}
+            onOpen={() => nav.push("review")}
+            onImport={() => nav.push("scan")}
+          />
+        ) : null}
+
+        <View style={{ borderRadius: 28, padding: 20, backgroundColor: "#0A0A0A", overflow: "hidden" }}>
           <View style={{ width: 52, height: 52, borderRadius: 17, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
             <Icon name="scan" color="#FFFFFF" size={26} />
           </View>
-          <Text selectable style={{ color: "rgba(255,255,255,0.62)", fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("locked.preview_card_kicker", "CAMERA SCAN LOCKED")}</Text>
-          <Text selectable style={{ color: "#FFFFFF", fontSize: 25, lineHeight: 29, fontWeight: "900" }}>{textFor("locked.card_title", "Unlock the scanner. Build the semester.")}</Text>
+          <Text selectable style={{ color: "rgba(255,255,255,0.62)", fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("locked.free_kicker", "FREE SEMESTER SCAN")}</Text>
+          <Text selectable style={{ color: "#FFFFFF", fontSize: 25, lineHeight: 29, fontWeight: "900" }}>{textFor("locked.free_card_title", "Scan every class. See the semester coming.")}</Text>
           <View style={{ gap: 11, marginTop: 17 }}>
             {[
-              ["1", textFor("locked.preview_step1", "Unlock StudyPlanner")],
-              ["2", textFor("locked.preview_step2", "Scan with camera, PDF, paste, or manual setup")],
-              ["3", textFor("locked.preview_step3", "Review every extracted row before save")],
+              ["1", textFor("locked.free_step1", "Scan, upload, paste, or add each class")],
+              ["2", textFor("locked.free_step2", "Review every deadline StudyPlanner finds")],
+              ["3", textFor("locked.free_step3", "See your crunch weeks, then unlock the daily plan")],
             ].map(([step, label]) => (
               <View key={`locked-step-${step}`} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 <View style={{ width: 28, height: 28, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.14)", alignItems: "center", justifyContent: "center" }}>
@@ -7036,18 +7669,18 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
             ))}
           </View>
           <View style={{ marginTop: 16 }}>
-            <Pressable accessibilityRole="button" onPress={() => nav.push("paywall", { next: "scan", action: "camera" })} style={{ minHeight: 51, borderRadius: 999, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
-              <Icon name="camera" color="#111114" size={18} />
-              <Text style={{ color: "#111114", fontWeight: "900" }}>{textFor("locked.scan", "Unlock camera scan")}</Text>
+            <Pressable accessibilityRole="button" onPress={() => nav.push("scan", currentImport ? { append: "1" } : undefined)} style={{ minHeight: 51, borderRadius: 999, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
+              <Icon name="camera" color="#0A0A0A" size={18} />
+              <Text style={{ color: "#0A0A0A", fontWeight: "900" }}>{currentImport ? textFor("locked.scan_another", "Scan another syllabus") : textFor("locked.scan_free", "Scan a syllabus free")}</Text>
             </Pressable>
-            <Pressable accessibilityRole="button" onPress={() => nav.push("paywall", { next: "paste", mode: "manual" })} style={{ minHeight: 48, borderRadius: 999, borderWidth: 1, borderColor: "rgba(255,255,255,0.22)", alignItems: "center", justifyContent: "center", marginTop: 10 }}>
+            <Pressable accessibilityRole="button" onPress={() => nav.push("paste", currentImport ? { mode: "manual", append: "1" } : { mode: "manual" })} style={{ minHeight: 48, borderRadius: 999, borderWidth: 1, borderColor: "rgba(255,255,255,0.22)", alignItems: "center", justifyContent: "center", marginTop: 10 }}>
               <Text style={{ color: "#FFFFFF", fontWeight: "900" }}>{textFor("classes.add_manual", "Add class manually")}</Text>
             </Pressable>
           </View>
         </View>
 
         {hasPreview ? (
-          <Card theme={theme} style={{ padding: 17, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}>
+          <Card theme={theme} style={{ padding: 17, backgroundColor: theme.dark ? "#1C1C1F" : "#F5F5F5" }}>
             <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 10 }}>{textFor("paywall.ready_apply", "Ready to apply")}</Text>
             <View style={{ flexDirection: "row", gap: 9, marginBottom: 12 }}>
               <MiniMetric value={previewSummary.classes} label={textFor("review.classes", "classes")} color={COLORS.blue} theme={theme} />
@@ -7089,6 +7722,7 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
         <Button label={textFor("locked.unlock", "Unlock StudyPlanner")} theme={theme} icon="crown" onPress={() => nav.push("paywall")} />
         <Button label={textFor("common.restore", "Restore Purchases")} theme={theme} secondary icon="refresh" onPress={() => nav.push("paywall")} />
       </View>
+      {forecastShare.host}
     </Screen>
   );
 }
@@ -7188,7 +7822,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
       .catch((error) => {
         if (!mounted) return;
         setBusy(null);
-        setMessage(textFor("paywall.message_unavailable", "The App Store is not available right now."));
+        setMessage(textFor("paywall.store_down", "The App Store is not available right now."));
       });
     return () => {
       mounted = false;
@@ -7222,11 +7856,11 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
     setMessage(textFor("paywall.opening", "Opening the App Store purchase sheet..."));
     try {
       await purchasePlan(productId);
-      setMessage(textFor("paywall.opening", "Approve the subscription in the App Store sheet. StudyPlanner unlocks as soon as Apple confirms it."));
+      setMessage(textFor("paywall.approve_sheet", "Approve the subscription in the App Store sheet. StudyPlanner unlocks as soon as Apple confirms it."));
       setBusy(null);
     } catch (error) {
       setBusy(null);
-      setMessage(textFor("paywall.message_unavailable", "The App Store could not start the purchase."));
+      setMessage(textFor("paywall.purchase_failed", "The App Store could not start the purchase."));
     }
   };
 
@@ -7241,11 +7875,11 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
         }
         else {
           setBusy(null);
-          setMessage(textFor("paywall.message_unavailable", "No active StudyPlanner subscription was found for this Apple ID."));
+          setMessage(textFor("paywall.restore_none", "No active StudyPlanner subscription was found for this Apple ID."));
       }
     } catch (error) {
       setBusy(null);
-      setMessage(textFor("paywall.message_unavailable", "Restore could not be completed."));
+      setMessage(textFor("paywall.restore_failed", "Restore could not be completed."));
     }
   };
 
@@ -7260,6 +7894,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
     maybeShowUnlockSuccess("google_play_review_access");
   };
 
+  const importForecast = useMemo(() => forecastFromImport(data, currentImport), [data, currentImport]);
   const importCandidates = currentImport?.candidates.filter((candidate) => candidate.approved) || [];
   const importSummary = {
     classes: importCandidates.filter((candidate) => candidate.kind === "class").length,
@@ -7267,63 +7902,30 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
     exams: importCandidates.filter((candidate) => candidate.kind === "exam").length,
     firstAction: importCandidates.find((candidate) => candidate.kind === "task" || candidate.kind === "exam")?.title,
   };
-  const cameraIntent = !currentImport && (params.action === "camera" || data.prefs.scanIntent === "Scan with camera");
-  const pdfIntent = !currentImport && (params.action === "pdf" || data.prefs.scanIntent === "Upload PDF");
-  const manualIntent = !currentImport && params.next === "paste" && (params.mode === "manual" || data.prefs.scanIntent === "Add manually");
-  const pasteIntent = !currentImport && !manualIntent && (params.next === "paste" || data.prefs.scanIntent === "Paste syllabus");
-  const intentPreview = cameraIntent
-    ? {
-        icon: "camera",
-        title: textFor("paywall.camera_title", "Camera scan unlocks here"),
-        methods: textFor("paywall.camera_methods", "Camera scan · OCR · Review"),
-        body: textFor("paywall.camera_body", "Use the guided camera after purchase to capture syllabus pages, read the text on this iPhone, and review the extracted rows before anything saves."),
-        unlockTarget: textFor("option.scan_camera", "camera scan"),
-      }
-    : pdfIntent
-      ? {
-          icon: "upload",
-          title: textFor("scan.upload_pdf", "Upload syllabus PDF"),
-          methods: textFor("scan.pdf_action_body", "Best for full syllabi and multi-page handouts."),
-          body: textFor("paywall.preview_first_sub", "Unlock first, then scan, upload, paste, or add manually. StudyPlanner shows every class, exam, and deadline for review before anything reaches your dashboard, widgets, reminders, or next moves."),
-          unlockTarget: textFor("option.upload_pdf", "PDF import"),
-        }
-      : manualIntent
-        ? {
-            icon: "plus",
-            title: textFor("classes.add_manual", "Add class manually"),
-            methods: textFor("onboarding.manual_body", "Type one class and one deadline to build a preview"),
-            body: textFor("onboarding.manual_sub", "Use this when a syllabus is missing, blurry, or wrong. Nothing saves until you approve the preview."),
-            unlockTarget: textFor("classes.add_manual", "manual setup"),
-          }
-        : pasteIntent
-          ? {
-              icon: "file",
-              title: textFor("option.paste_syllabus", "Paste syllabus"),
-              methods: textFor("paste.syllabus_title", "Syllabus becomes a semester preview."),
-              body: textFor("paste.preview_sub", "Review what StudyPlanner finds before anything saves."),
-              unlockTarget: textFor("option.paste_syllabus", "paste import"),
-            }
-          : {
-              icon: "sparkles",
-              title: textFor("paywall.plan_preview_title", "Plan preview"),
-              methods: textFor("paywall.plan_preview_methods", "Scan · Paste · Manual setup"),
-              body: textFor("paywall.preview_first_sub", "Unlock first, then scan, upload, paste, or add manually. StudyPlanner shows every class, exam, and deadline for review before anything reaches your dashboard, widgets, reminders, or next moves."),
-              unlockTarget: selectedPlan.cadence,
-            };
-  const paywallSteps = cameraIntent ? [
-    [textFor("paywall.camera_step_scan", "Scan"), textFor("option.scan_camera", "camera")],
-    [textFor("paywall.camera_step_read", "Read"), textFor("scan.metric_ocr", "OCR")],
-    [textFor("paywall.camera_step_review", "Review"), textFor("review.guard_active", "before save")],
-    [textFor("paywall.camera_step_apply", "Apply"), textFor("tabs.today", "dashboard")],
-  ] : [
-    [pdfIntent ? textFor("scan.upload_pdf", "Upload PDF") : manualIntent ? textFor("classes.add_manual", "Add manually") : pasteIntent ? textFor("scan.paste_text", "Paste text") : textFor("paywall.preview_chip_class", "Class"), pdfIntent ? textFor("scan.metric_ocr", "Text") : textFor("paywall.preview_chip_class_sub", "from setup")],
-    [textFor("paywall.preview_chip_deadline", "Deadline"), textFor("paywall.preview_chip_deadline_sub", "review before save")],
-    [textFor("paywall.preview_chip_move", "First move"), textFor("paywall.preview_chip_move_sub", "after review")],
+  // 2.2: scanning is free, so the paywall no longer sells "unlock the camera".
+  // Without a pending review it sells the daily plan that Plus runs.
+  const intentPreview = {
+    icon: "sparkles",
+    title: textFor("paywall.free_scan_title", "Scan free. Plan with Plus."),
+    methods: textFor("paywall.free_scan_methods", "Scan · Review · Forecast · Daily plan"),
+    body: textFor("paywall.free_scan_body", "Scan every syllabus and see your Crunch Forecast for free. Plus applies the reviewed plan to Today, widgets, reminders, Exam Mode, and Siri."),
+    unlockTarget: "",
+  };
+  const paywallSteps = [
+    [textFor("paywall.step_scan", "Scan"), textFor("paywall.step_free", "free")],
+    [textFor("paywall.step_forecast", "Forecast"), textFor("paywall.step_free", "free")],
+    [textFor("paywall.step_plan", "Daily plan"), textFor("paywall.step_plus", "Plus")],
   ];
   const selectedPlanLabel = textFor(selectedPlan.id.toLowerCase().includes("year") ? "paywall.yearly" : selectedPlan.id.toLowerCase().includes("week") ? "paywall.weekly" : "paywall.monthly", selectedPlan.cadence);
   const selectedPlanPeriodLabel = selectedPlanLabel.toLocaleLowerCase(appLocale());
   const eligibleTrialProductIdSet = new Set(eligibleTrialProductIds);
   const selectedPlanHasOneWeekIntro = hasOneWeekIntroOffer(selectedPlan) && eligibleTrialProductIdSet.has(selectedPlan.id);
+  const selectedPlanHasFreeTrial = hasFreeTrialOffer(selectedPlan) && eligibleTrialProductIdSet.has(selectedPlan.id);
+  // Any paid intro that isn't the legacy one-week weekly offer (e.g. $0.99 / 3 days).
+  const selectedPlanHasPaidIntro = !selectedPlanHasOneWeekIntro && hasPaidIntroOffer(selectedPlan) && eligibleTrialProductIdSet.has(selectedPlan.id);
+  const selectedIntroDays = introOfferDays(selectedPlan);
+  const selectedTrialDays = freeTrialDays(selectedPlan);
+  const displayPlans = orderPaywallPlans(plans);
   const introPlan = plans.find((plan) => plan.id === STUDYPLANNER_INTRO_PRODUCT_ID && hasOneWeekIntroOffer(plan) && eligibleTrialProductIdSet.has(plan.id));
   const introPlanLabel = introPlan
     ? textFor("paywall.weekly", introPlan.cadence)
@@ -7340,15 +7942,21 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
     : textFor("paywall.best_value", "Best value");
   const purchaseLabel = busy === "purchase"
     ? textFor("paywall.opening", "Opening App Store...")
+    : selectedPlanHasFreeTrial
+      ? textFor("paywall.free_trial_cta", "Start {days}-day free trial", { days: selectedTrialDays })
+    : selectedPlanHasPaidIntro
+      ? textFor("paywall.trial_cta", "Start for {intro}", { intro: selectedPlan.introductoryOffer?.displayPrice || "" })
     : selectedPlanHasOneWeekIntro
       ? textFor("paywall.trial_cta", "Start for {intro}", { intro: introPrice })
       : currentImport
       ? textFor("review.locked_cta", "Unlock to apply plan")
-      : cameraIntent
-        ? textFor("paywall.unlock_camera", "Unlock camera scan")
-        : textFor("paywall.unlock", "Unlock {plan}", { plan: intentPreview.unlockTarget || selectedPlanLabel });
+      : textFor("paywall.unlock", "Unlock {plan}", { plan: intentPreview.unlockTarget || selectedPlanLabel });
   const restoreLabel = busy === "restore" ? textFor("paywall.restoring", "Restoring...") : textFor("common.restore", "Restore Purchases");
-  const selectedPlanSummary = selectedPlanHasOneWeekIntro
+  const selectedPlanSummary = selectedPlanHasPaidIntro
+    ? textFor("paywall.intro_summary", "{intro} for {days} days, then {price}/{plan}. Auto-renews until canceled.", { intro: selectedPlan.introductoryOffer?.displayPrice || "", days: selectedIntroDays, price: selectedPlan.displayPrice, plan: selectedPlanPeriodLabel })
+    : selectedPlanHasFreeTrial
+    ? textFor("paywall.free_trial_summary", "{days} days free, then {price}/{plan}. Auto-renews until canceled.", { days: selectedTrialDays, price: selectedPlan.displayPrice, plan: selectedPlanPeriodLabel })
+    : selectedPlanHasOneWeekIntro
     ? textFor("paywall.trial_summary", "{intro} first week, then {price}/{plan}. Auto-renews until canceled.", { intro: introPrice, price: selectedPlan.displayPrice, plan: selectedPlanPeriodLabel })
     : `${selectedPlan.displayPrice}/${selectedPlanPeriodLabel}. ${textFor("paywall.auto_renew", "Auto-renews until canceled.")}`;
 
@@ -7363,8 +7971,13 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
           </Pressable>
         </View>
         <Text selectable style={{ color: theme.label, fontSize: 34, lineHeight: 37, fontWeight: "900", marginBottom: 8 }}>{currentImport ? textFor("paywall.ready_apply", "Your plan is ready to apply") : textFor("paywall.title", "{name}, unlock StudyPlanner.", { name: firstName })}</Text>
-        <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginBottom: 14 }}>{currentImport ? textFor("paywall.sub_import", "Your preview is ready. Unlock, return to Review, then approve it for the live dashboard, reminders, and widgets.") : textFor("paywall.sub_no_import", "Unlock first, then scan, upload, paste, or add manually. StudyPlanner shows every class, exam, and deadline for review before anything reaches your dashboard, widgets, reminders, or next moves.")}</Text>
-        <Card theme={theme} style={{ padding: 13, marginBottom: 12, backgroundColor: "#111114" }}>
+        <Text selectable style={{ color: theme.label2, fontSize: 15, lineHeight: 21, marginBottom: 14 }}>{currentImport ? textFor("paywall.sub_import", "Your preview is ready. Unlock, return to Review, then approve it for the live dashboard, reminders, and widgets.") : textFor("paywall.sub_free_first", "Scanning and your Crunch Forecast stay free. Plus applies the plan and keeps it running every day.")}</Text>
+        {importForecast ? (
+          <View style={{ marginBottom: 12 }}>
+            <UnlockForecastCTA theme={theme} t={aiText} locale={appLocale()} forecast={importForecast} onPress={() => nav.back()} />
+          </View>
+        ) : null}
+        <Card theme={theme} style={{ padding: 13, marginBottom: 12, backgroundColor: "#0A0A0A", display: importForecast ? "none" : "flex" }}>
           {currentImport ? (
             <View>
               <Text selectable style={{ color: "rgba(255,255,255,0.66)", fontSize: 12, fontWeight: "900", marginBottom: 10 }}>{textFor("paywall.ready_apply", "READY TO APPLY")}</Text>
@@ -7399,6 +8012,22 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
             </View>
           )}
         </Card>
+        <Card theme={theme} style={{ padding: 14, marginBottom: 12, gap: 10 }}>
+          <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("paywall.plus_kicker", "PLUS TURNS YOUR SEMESTER INTO A DAILY PLAN")}</Text>
+          <Text selectable style={{ color: theme.label, fontSize: 13, lineHeight: 18, fontWeight: "800" }}>{textFor("paywall.no_caps", "No credits. No caps. No account. It runs on your iPhone.")}</Text>
+          {[
+            ["target", COLORS.ink, textFor("paywall.plus_study_now", "Study Now: one clear move every day, self-repairing")],
+            ["brain", COLORS.purple, textFor("paywall.plus_exam_mode", "Exam Mode: flashcards and quizzes from your own notes")],
+            ["grid", COLORS.ink, textFor("paywall.plus_widgets", "Lock Screen and Home Screen widgets")],
+            ["bell", COLORS.ink, textFor("paywall.plus_reminders", "Start-by reminders before every crunch week")],
+            ["sparkles", COLORS.pink, textFor("paywall.plus_siri", "Siri, Spotlight, and quick add")],
+          ].map(([icon, color, label]) => (
+            <View key={`plus-benefit-${icon}`} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+              <View style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: `${color}1C`, alignItems: "center", justifyContent: "center" }}><Icon name={icon} color={color} size={16} /></View>
+              <Text selectable style={{ color: theme.label, flex: 1, fontSize: 14, lineHeight: 19, fontWeight: "800" }}>{label}</Text>
+            </View>
+          ))}
+        </Card>
         {introPlan ? (
           <Pressable accessibilityRole="button" accessibilityLabel={textFor("paywall.seasonal_title", "First week for {intro}", { intro: introPlanPrice })} accessibilityHint={textFor("paywall.accessibility_plan_hint", "Select the weekly subscription plan")} onPress={() => setSelected(introPlan.id)}>
           <Card theme={theme} style={{ padding: 15, marginBottom: 12, borderWidth: 2, borderColor: COLORS.green, backgroundColor: theme.dark ? "rgba(28, 110, 75, 0.18)" : "rgba(31, 152, 104, 0.10)" }}>
@@ -7413,8 +8042,10 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
           </Pressable>
         ) : null}
         <View style={{ gap: 8, marginBottom: 14 }}>
-          {plans.map((plan) => {
+          {displayPlans.map((plan) => {
             const on = selected === plan.id;
+            const planHasFreeTrial = hasFreeTrialOffer(plan) && eligibleTrialProductIdSet.has(plan.id);
+            const planHasPaidIntro = !hasOneWeekIntroOffer(plan) && hasPaidIntroOffer(plan) && eligibleTrialProductIdSet.has(plan.id);
             return (
               <Pressable
                 key={plan.id}
@@ -7433,9 +8064,11 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
                       <View style={{ flexDirection: "row", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
 	                        <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>{textFor(plan.id.toLowerCase().includes("year") ? "paywall.yearly" : plan.id.toLowerCase().includes("week") ? "paywall.weekly" : "paywall.monthly", plan.cadence)}</Text>
                         {plan.recommended ? <Pill text={bestValueLabel} color={COLORS.green} theme={theme} icon="star" /> : null}
+                        {planHasPaidIntro ? <Pill text={textFor("paywall.intro_badge", "{intro} for {days} days", { intro: plan.introductoryOffer?.displayPrice || "", days: introOfferDays(plan) })} color={theme.accent} theme={theme} icon="sparkles" /> : null}
+                        {planHasFreeTrial ? <Pill text={textFor("paywall.free_trial_badge", "{days} days free", { days: freeTrialDays(plan) })} color={theme.accent} theme={theme} icon="sparkles" /> : null}
                         {hasOneWeekIntroOffer(plan) && eligibleTrialProductIdSet.has(plan.id) ? <Pill text={textFor("paywall.trial_badge", "{intro} first week", { intro: plan.introductoryOffer?.displayPrice || "" })} color={theme.accent} theme={theme} icon="sparkles" /> : null}
                       </View>
-	                      <Text selectable style={{ color: theme.label2, marginTop: 3, fontSize: 13, lineHeight: 18 }}>{textFor(plan.id.toLowerCase().includes("year") ? "paywall.benefit_apply" : "paywall.benefit_health", plan.description)}</Text>
+	                      <Text selectable style={{ color: theme.label2, marginTop: 3, fontSize: 13, lineHeight: 18 }}>{plan.cadence === "Weekly" ? textFor("paywall.benefit_cram", "Finals cram: a focused week of plans and practice.") : textFor(plan.id.toLowerCase().includes("year") ? "paywall.benefit_apply" : "paywall.benefit_health", plan.description)}</Text>
                     </View>
                     <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{plan.displayPrice}</Text>
                   </View>
@@ -7496,8 +8129,34 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
   );
 }
 
-function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
+function Today({ data, mutate, nav, theme, recordReviewTrigger, dailyBrief, openClassPack }: ScreenProps) {
   const liveData = useMemo(() => activeSemesterData(data), [data]);
+  const termForecast = useMemo(() => {
+    const forecast = buildCrunchForecast(liveData, new Date());
+    return forecast.weeks.length && forecast.totals.items ? forecast : null;
+  }, [liveData]);
+  const forecastShare = useForecastShare(termForecast, theme);
+  const startBrief = () => {
+    const candidate = dailyBrief?.candidate;
+    if (!candidate) return;
+    if (candidate.blockId && liveData.studyBlocks.some((block) => block.id === candidate.blockId)) nav.push("studySession", { id: candidate.blockId });
+    else if (candidate.examId) nav.push("examMode", { id: candidate.examId });
+    else if (candidate.taskId) nav.push("taskDetail", { id: candidate.taskId });
+    else if (candidate.noteId) nav.push("noteDetail", { id: candidate.noteId });
+    else nav.tab("plan");
+  };
+  const laterBrief = () => {
+    const blockId = dailyBrief?.candidate.blockId;
+    if (!blockId) return;
+    mutate((d) => {
+      const block = d.studyBlocks.find((item) => item.id === blockId);
+      if (!block || block.completed) return d;
+      const missedBlock = { ...block, missed: true };
+      const updated = replanAfterMissedBlock({ ...d, studyBlocks: d.studyBlocks.map((item) => item.id === blockId ? missedBlock : item) }, missedBlock);
+      return withFeedback(d, updated, "reschedulePlan", { classId: block.classId, actionId: block.id, dimension: "consistency" });
+    });
+  };
+  const packClassId = termForecast ? (liveData.classes.find((klass) => !klass.archivedAt)?.id || "") : "";
   const snapshot = useMemo(() => buildDashboardSnapshot(liveData), [liveData]);
   const semester = useMemo(() => buildSemesterSnapshot(liveData), [liveData]);
   const narrative = useMemo(() => buildSemesterNarrative(liveData, semester), [liveData, semester]);
@@ -7542,7 +8201,7 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
         <Header title={todayTitle} sub={todayHeaderLabel()} theme={theme} right={<Pressable accessibilityRole="button" accessibilityLabel={textFor("tabs.profile", "Profile")} accessibilityHint={textFor("profile.accessibility_open_hint", "Open profile and app settings")} onPress={() => nav.tab("profile")}><View style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 17 }}>{userInitial(data)}</Text></View></Pressable>} />
         <View style={{ paddingHorizontal: 16, gap: 16 }}>
           <SemesterHealthHero semester={semester} narrative={narrative} theme={theme} hasSemesterData={false} />
-          <Card theme={theme} style={{ padding: 18, backgroundColor: "#111114" }}>
+          <Card theme={theme} style={{ padding: 18, backgroundColor: "#0A0A0A" }}>
             <View style={{ width: 52, height: 52, borderRadius: 17, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
               <Icon name="scan" color="#FFFFFF" size={25} />
             </View>
@@ -7568,9 +8227,23 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
     <Screen theme={theme}>
       <Header title={todayTitle} sub={todayHeaderLabel()} theme={theme} right={<Pressable accessibilityRole="button" accessibilityLabel={textFor("tabs.profile", "Profile")} accessibilityHint={textFor("profile.accessibility_open_hint", "Open profile and app settings")} onPress={() => nav.tab("profile")}><View style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 17 }}>{userInitial(data)}</Text></View></Pressable>} />
       <View style={{ paddingHorizontal: 16, gap: 18 }}>
+        {dailyBrief ? <StudyNowCard theme={theme} t={aiText} locale={appLocale()} brief={dailyBrief} onStart={startBrief} onReschedule={dailyBrief.candidate.blockId ? laterBrief : undefined} /> : null}
+        {termForecast ? (
+          <ForecastSection
+            theme={theme}
+            t={aiText}
+            locale={appLocale()}
+            forecast={termForecast}
+            mode="compact"
+            onShare={forecastShare.share}
+            onClassPack={packClassId ? () => (liveData.classes.filter((klass) => !klass.archivedAt).length > 1 ? nav.tab("classes") : openClassPack(packClassId)) : undefined}
+            onOpen={() => nav.push("forecast")}
+          />
+        ) : null}
         <SemesterHealthHero semester={semester} narrative={narrative} theme={theme} hasSemesterData={hasSemesterData} />
+        {forecastShare.host}
         {semester.feedbackEvents[0] ? <FeedbackLoopCard event={semester.feedbackEvents[0]} theme={theme} /> : null}
-        <Card theme={theme} style={{ padding: 18, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
+        <Card theme={theme} style={{ padding: 18, backgroundColor: theme.dark ? "#111113" : "#FFFFFF" }}>
           <View style={{ flexDirection: "row", gap: 12, alignItems: "center", marginBottom: 12 }}>
             <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: `${theme.accent}1C`, alignItems: "center", justifyContent: "center" }}><Sparkles color={theme.accent} size={21} /></View>
             <View style={{ flex: 1 }}>
@@ -7602,7 +8275,7 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
         </Card>
         {preparedness.score < 75 || !liveData.notes.length ? (
           <Pressable accessibilityRole="button" accessibilityLabel={localizedNarrativeText("notes", narrative.notesNudge)} accessibilityHint={textFor("notes.accessibility_open_hint", "Open notes and study assets")} onPress={() => nav.push("notes")}>
-            <Card theme={theme} style={{ padding: 15, flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: theme.dark ? "#211E2B" : "#F7F0FF" }}>
+            <Card theme={theme} style={{ padding: 15, flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: theme.dark ? "#1C1C1F" : "#F5F5F5" }}>
               <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: `${COLORS.purple}20`, alignItems: "center", justifyContent: "center" }}><NotebookPen color={COLORS.purple} size={21} /></View>
               <View style={{ flex: 1 }}>
                 <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{localizedNarrativeText("notes", narrative.notesNudge)}</Text>
@@ -7685,7 +8358,7 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
             <Card theme={theme} style={{ overflow: "hidden" }}>{upcomingAssessments.map((exam) => { const klass = safeClassFor(liveData, exam.classId); return <Pressable key={exam.id} accessibilityRole="button" accessibilityLabel={`${exam.title}. ${klass.code}. ${localizedDueLabel(daysUntilExam(exam))}. ${exam.time}`} accessibilityHint={textFor("assessment.accessibility_open_hint", "Open assessment details")} onPress={() => nav.push("assessmentDetail", { id: exam.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}><ClassGlyph c={klass} size={34} /><View style={{ flex: 1 }}><Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{exam.title}</Text><Text selectable style={{ color: theme.label2 }}>{klass.code} · {localizedDueLabel(daysUntilExam(exam))} · {exam.time}</Text></View><Pill text={localizedExamKind(exam.kind)} color={COLORS.purple} theme={theme} /></Pressable>; })}</Card>
           </View>
         ) : null}
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F5F5F5" }}>
           <View style={{ flexDirection: "row", gap: 8, alignItems: "center", marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} size={18} /><Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 16 }}>{insight.headline}</Text></View>
           <Text selectable style={{ color: theme.label, lineHeight: 21 }}>{insight.body}</Text>
           <View style={{ flexDirection: "row", gap: 9, marginTop: 13 }}>
@@ -7950,7 +8623,7 @@ function Classes({ data, mutate, nav, theme }: ScreenProps) {
     <Screen theme={theme}>
       <Header title={textFor("classes.title", "Manage Semester")} sub={`${liveData.classes.length} ${textFor("common.active", "active")} · ${archivedClasses.length} ${textFor("classes.archived", "archived")}`} theme={theme} right={<Pressable accessibilityRole="button" accessibilityLabel={adding ? textFor("common.close", "Close") : textFor("classes.add", "Add class")} accessibilityHint={adding ? textFor("classes.accessibility_close_form_hint", "Close the add class form") : textFor("classes.accessibility_add_form_hint", "Open the add class form")} accessibilityState={{ expanded: adding }} onPress={() => setAdding((value) => !value)} style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}>{adding ? <X color="#fff" size={21} strokeWidth={3} /> : <Plus color="#fff" size={21} strokeWidth={3} />}</Pressable>} />
       <View style={{ paddingHorizontal: 16, gap: 13 }}>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#1C1C1F" : "#F5F5F5" }}>
           <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{textFor("classes.truth", "Single source of truth")}</Text>
           <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 5 }}>{textFor("classes.truth_body", "Fix imports, add missing work, drop classes, and keep Today, Plan, reminders, and widgets aligned.")}</Text>
           <View style={{ flexDirection: "row", gap: 9, marginTop: 10 }}>
@@ -8024,7 +8697,7 @@ function Classes({ data, mutate, nav, theme }: ScreenProps) {
   );
 }
 
-function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
+function ClassDetail({ data, mutate, nav, theme, params, openClassPack }: ScreenProps) {
   const c = data.classes.find((item) => item.id === params.id);
   if (!c) return <RecoveryScreen title={textFor("class.not_found", "Class not found")} body={textFor("class.not_found_body", "That class is not in this semester anymore.")} action={textFor("class.open_dashboard", "Open dashboard")} nav={nav} theme={theme} />;
   const classTasks = data.tasks.filter((t) => t.classId === c.id);
@@ -8115,6 +8788,11 @@ function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
         };
         return { ...next, studyBlocks: buildStudyPlan(next) };
       });
+      // Generated study sets and practice history for this class go too.
+      aiCache.purgeAIDataForClass(c.id).catch(() => {});
+      data.notes.filter((note) => note.classId === c.id).forEach((note) => {
+        aiCache.purgeAIDataForNote(note.id).catch(() => {});
+      });
       nav.tab("classes");
     } },
   ]);
@@ -8188,7 +8866,7 @@ function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 40 }}>
-        <View style={{ paddingTop: 58, paddingHorizontal: 20, paddingBottom: 22, backgroundColor: c.color }}>
+        <View style={{ paddingTop: 58, paddingHorizontal: 20, paddingBottom: 22, backgroundColor: theme.dark ? "#111113" : "#0A0A0A" }}>
           <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} accessibilityHint={textFor("accessibility.back_hint", "Return to the previous screen")} hitSlop={10} onPress={nav.back} style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: "rgba(255,255,255,.24)", alignItems: "center", justifyContent: "center", marginBottom: 20 }}><ChevronLeft color="#fff" /></Pressable>
           <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><View style={{ width: 54, height: 54, borderRadius: 16, backgroundColor: "rgba(255,255,255,.22)", alignItems: "center", justifyContent: "center" }}><Icon name={c.icon} color="#fff" size={28} /></View><View><Text selectable style={{ color: "#fff", fontSize: 29, fontWeight: "900" }}>{c.code}</Text><Text selectable style={{ color: "rgba(255,255,255,.9)", fontWeight: "800" }}>{c.name}</Text></View></View>
           <View style={{ flexDirection: "row", gap: 18, marginTop: 20 }}>{[{ l: textFor("class.forecast", "Forecast"), v: pulse.label }, { l: textFor("class.pulse", "Pulse"), v: pulse.score }, { l: textFor("class.due", "Due"), v: tasks.length }, { l: textFor("class.exams", "Exams"), v: exams.length }].map((s, index) => <View key={`class-stat-${index}`}><Text selectable style={{ color: "#fff", fontSize: 22, fontWeight: "900" }}>{s.v}</Text><Text selectable style={{ color: "rgba(255,255,255,.84)", fontSize: 12, fontWeight: "800" }}>{s.l}</Text></View>)}</View>
@@ -8203,6 +8881,20 @@ function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
             <Text selectable style={{ color: theme.label2, marginTop: 3 }}>{c.professor}</Text>
             {c.notes ? <Text selectable style={{ color: theme.label2, marginTop: 8, lineHeight: 19 }}>{c.notes}</Text> : null}
           </Card>
+          {(() => {
+            const nextExam = data.exams.filter((exam) => exam.classId === c.id && daysUntilExam(exam) >= 0).sort((a, b) => daysUntilExam(a) - daysUntilExam(b))[0];
+            return nextExam ? <ExamModeEntryCard exam={nextExam} theme={theme} nav={nav} /> : null;
+          })()}
+          <Pressable accessibilityRole="button" accessibilityLabel={textFor("ai.pack.class_title", "Share Class Pack")} accessibilityHint={textFor("ai.pack.class_hint", "Share this class's deadlines as a link or QR code")} onPress={() => openClassPack(c.id)}>
+            <Card theme={theme} style={{ padding: 15, flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <View style={{ width: 40, height: 40, borderRadius: 13, backgroundColor: `${c.color}1F`, alignItems: "center", justifyContent: "center" }}><Share2 color={c.color} size={19} /></View>
+              <View style={{ flex: 1 }}>
+                <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("ai.pack.class_title", "Share Class Pack")}</Text>
+                <Text selectable style={{ color: theme.label2, marginTop: 2, lineHeight: 18 }}>{textFor("ai.pack.class_body", "Classmates get every {code} deadline in seconds.", { code: c.code })}</Text>
+              </View>
+              <ChevronRight color={theme.label3} size={17} />
+            </Card>
+          </Pressable>
           {editing ? (
             <Card theme={theme} style={{ padding: 16 }}>
               <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900", marginBottom: 10 }}>{textFor("common.edit", "Edit")}</Text>
@@ -8224,7 +8916,7 @@ function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
               <Button label={textFor("common.delete", "Delete")} theme={theme} secondary icon="trash" onPress={deleteClass} />
             </Card>
           ) : null}
-          <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}>
+          <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#1C1C1F" : "#F5F5F5" }}>
             <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{textFor("class.add_work", "Add missing work")}</Text>
             <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 5 }}>{textFor("class.add_work_body", "Add a surprise quiz, recurring discussion, project, or undated assignment without re-importing.")}</Text>
             <View style={{ flexDirection: "row", gap: 9, marginTop: 10 }}>
@@ -8452,7 +9144,7 @@ function TaskDetail({ data, mutate, nav, theme, params, recordReviewTrigger }: S
             </View>
             <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("task.move_to_class", "Move to class")}</Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>{data.classes.filter((klass) => !klass.archivedAt).map((klass) => (
-              <Pressable key={klass.id} accessibilityRole="radio" accessibilityLabel={`${klass.code}. ${klass.name}`} accessibilityHint={textFor("task.accessibility_move_class_hint", "Move this assignment to the selected class")} accessibilityState={{ selected: draft.classId === klass.id }} onPress={() => setDraft((current) => ({ ...current, classId: klass.id }))} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: draft.classId === klass.id ? klass.color : theme.surface2 }}><Text style={{ color: draft.classId === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
+              <Pressable key={klass.id} accessibilityRole="radio" accessibilityLabel={`${klass.code}. ${klass.name}`} accessibilityHint={textFor("task.accessibility_move_class_hint", "Move this assignment to the selected class")} accessibilityState={{ selected: draft.classId === klass.id }} onPress={() => setDraft((current) => ({ ...current, classId: klass.id }))} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: draft.classId === klass.id ? theme.accent : theme.surface2 }}><Text style={{ color: draft.classId === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
             ))}</View>
             <FieldInput label={textFor("class.description", "Description")} value={draft.description} onChangeText={(description) => setDraft((current) => ({ ...current, description }))} theme={theme} multiline />
             <Button label={draft.dueDate.trim() ? textFor("task.save", "Save assignment") : textFor("task.save_awaiting", "Save as Awaiting Date")} theme={theme} icon="target" onPress={saveTask} />
@@ -8464,7 +9156,7 @@ function TaskDetail({ data, mutate, nav, theme, params, recordReviewTrigger }: S
         ) : null}
         <Card theme={theme} style={{ overflow: "hidden" }}>{[[Clock, textFor("task.due", "Due"), taskDueLabel(task), task.missing || dueDays <= 0 ? COLORS.orange : theme.label], [Timer, textFor("task.estimated", "Estimated"), minutesLabel(task.estimateMinutes), theme.label], [FileText, textFor("task.source", "Source"), localizedTaskSource(task.source), theme.label], [CalendarDays, textFor("task.on_calendar", "On calendar"), readablePlannerTimeRange(data.studyBlocks.find((b) => b.taskId === task.id)?.time || textFor("task.not_scheduled", "Not scheduled")), theme.label]].map(([I, l, v, color]: any, index) => <View key={`task-detail-row-${index}`} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: index === 3 ? 0 : 1, borderBottomColor: theme.hairline }}><I color={theme.label2} size={18} /><Text selectable style={{ color: theme.label2, flex: 1 }}>{l}</Text><Text selectable style={{ color, fontWeight: "900", maxWidth: 180, textAlign: "right" }}>{v}</Text></View>)}</Card>
         {subs.length ? <View><Section title={textFor("task.subtasks", "Subtasks")} action={`${subs.filter((s) => s.done).length}/${subs.length}`} theme={theme} /><Card theme={theme} style={{ overflow: "hidden" }}>{subs.map((s, i) => <Pressable key={s.title} accessibilityRole="checkbox" accessibilityLabel={localizedImportedText(s.title)} accessibilityHint={s.done ? textFor("task.accessibility_reopen_subtask_hint", "Mark this subtask incomplete") : textFor("task.accessibility_complete_subtask_hint", "Mark this subtask complete")} accessibilityState={{ checked: s.done }} onPress={() => toggleSubtask(i)} style={{ flexDirection: "row", gap: 12, alignItems: "center", padding: 14 }}><View style={{ width: 23, height: 23, borderRadius: 99, borderWidth: s.done ? 0 : 2, borderColor: c.color, backgroundColor: s.done ? c.color : "transparent", alignItems: "center", justifyContent: "center" }}>{s.done ? <Check color="#fff" size={14} strokeWidth={3} /> : null}</View><Text selectable style={{ color: s.done ? theme.label3 : theme.label, textDecorationLine: s.done ? "line-through" : "none", fontWeight: "700" }}>{localizedImportedText(s.title)}</Text></Pressable>)}</Card></View> : null}
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("today.next_move", "Next Move")}</Text></View><Text selectable style={{ color: canAddStudyBlock ? theme.label : theme.label2, lineHeight: 21 }}>{canAddStudyBlock ? textFor("task.schedule_hint", "Create a {minutes} focus block around your existing plan.", { minutes: minutesLabel(task.estimateMinutes) }) : `${task.done ? textFor("task.reopen", "Reopen task") : textFor("task.awaiting_date", "Due date required")} · ${textFor("task.not_scheduled", "Not scheduled")}`}</Text><Button label={canAddStudyBlock ? textFor("assessment.rebuild", "Add study block") : task.done ? textFor("task.reopen", "Reopen task to schedule") : textFor("task.awaiting_date", "Due date required")} theme={theme} icon="clock" onPress={canAddStudyBlock ? addBlock : undefined} /></Card>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F5F5F5" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("today.next_move", "Next Move")}</Text></View><Text selectable style={{ color: canAddStudyBlock ? theme.label : theme.label2, lineHeight: 21 }}>{canAddStudyBlock ? textFor("task.schedule_hint", "Create a {minutes} focus block around your existing plan.", { minutes: minutesLabel(task.estimateMinutes) }) : `${task.done ? textFor("task.reopen", "Reopen task") : textFor("task.awaiting_date", "Due date required")} · ${textFor("task.not_scheduled", "Not scheduled")}`}</Text><Button label={canAddStudyBlock ? textFor("assessment.rebuild", "Add study block") : task.done ? textFor("task.reopen", "Reopen task to schedule") : textFor("task.awaiting_date", "Due date required")} theme={theme} icon="clock" onPress={canAddStudyBlock ? addBlock : undefined} /></Card>
       </ScrollView>
     </View>
   );
@@ -8568,6 +9260,7 @@ function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
             <View style={{ flex: 1 }}><Button label={textFor("common.duplicate", "Duplicate")} theme={theme} secondary icon="copy" onPress={duplicateAssessment} /></View>
           </View>
         </View>
+        {!editing ? <ExamModeEntryCard exam={exam} theme={theme} nav={nav} /> : null}
         {editing ? (
           <Card theme={theme} style={{ padding: 16 }}>
             <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900", marginBottom: 10 }}>{textFor("class.assessment", "Assessment")}</Text>
@@ -8586,7 +9279,7 @@ function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
             </View>
             <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("task.move_to_class", "Move to class")}</Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>{data.classes.filter((klass) => !klass.archivedAt).map((klass) => (
-              <Pressable key={klass.id} accessibilityRole="radio" accessibilityLabel={`${klass.code}. ${klass.name}`} accessibilityHint={textFor("assessment.accessibility_move_class_hint", "Move this assessment to the selected class")} accessibilityState={{ selected: draft.classId === klass.id }} onPress={() => setDraft((current) => ({ ...current, classId: klass.id }))} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: draft.classId === klass.id ? klass.color : theme.surface2 }}><Text style={{ color: draft.classId === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
+              <Pressable key={klass.id} accessibilityRole="radio" accessibilityLabel={`${klass.code}. ${klass.name}`} accessibilityHint={textFor("assessment.accessibility_move_class_hint", "Move this assessment to the selected class")} accessibilityState={{ selected: draft.classId === klass.id }} onPress={() => setDraft((current) => ({ ...current, classId: klass.id }))} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: draft.classId === klass.id ? theme.accent : theme.surface2 }}><Text style={{ color: draft.classId === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
             ))}</View>
             <FieldInput label={textFor("class.notes_label", "Notes")} value={draft.notes} onChangeText={(notes) => setDraft((current) => ({ ...current, notes }))} theme={theme} multiline />
             <Button label={textFor("assessment.save", "Save assessment")} theme={theme} icon="target" onPress={saveAssessment} />
@@ -8594,13 +9287,13 @@ function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
           </Card>
         ) : null}
         <Card theme={theme} style={{ overflow: "hidden" }}>{[[Clock, textFor("assessment.date", "Date"), `${localizedDueLabel(dueDays)} · ${exam.time}`, dueDays <= 3 ? COLORS.orange : theme.label], [Timer, textFor("class.effort", "Effort"), minutesLabel(exam.effortMinutes || 120), theme.label], [MapPin, textFor("assessment.room", "Room"), localizedImportedText(exam.room), theme.label], [FileText, textFor("class.notes_label", "Notes"), exam.notes || exam.description || textFor("assessment.no_notes", "No notes yet"), theme.label]].map(([I, l, v, color]: any, index) => <View key={`assessment-detail-row-${index}`} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: index === 3 ? 0 : 1, borderBottomColor: theme.hairline }}><I color={theme.label2} size={18} /><Text selectable style={{ color: theme.label2, flex: 1 }}>{l}</Text><Text selectable numberOfLines={2} style={{ color, fontWeight: "900", maxWidth: 190, textAlign: "right" }}>{v}</Text></View>)}</Card>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 18 }}>{textFor("assessment.prep_plan", "Prep plan")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21, marginTop: 5 }}>{textFor("assessment.prep_body", "{minutes} of prep. Due {due}.", { minutes: minutesLabel(exam.effortMinutes || 120), due: localizedDueLabel(dueDays) })}</Text><Button label={textFor("assessment.rebuild", "Rebuild study blocks")} theme={theme} icon="refresh" onPress={() => mutate((d) => ({ ...d, studyBlocks: buildStudyPlan(d) }))} /></Card>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F5F5F5" }}><Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 18 }}>{textFor("assessment.prep_plan", "Prep plan")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21, marginTop: 5 }}>{textFor("assessment.prep_body", "{minutes} of prep. Due {due}.", { minutes: minutesLabel(exam.effortMinutes || 120), due: localizedDueLabel(dueDays) })}</Text><Button label={textFor("assessment.rebuild", "Rebuild study blocks")} theme={theme} icon="refresh" onPress={() => mutate((d) => ({ ...d, studyBlocks: buildStudyPlan(d) }))} /></Card>
       </ScrollView>
     </View>
   );
 }
 
-function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProps) {
+function Scan({ data, mutate, nav, theme, params, setCurrentImport, startSyllabusImport, proposeQuickAdd }: ScreenProps) {
   const previewOnly = !data.prefs.premium;
   const autoActionHandled = useRef(false);
   const imageOcrAvailable = hasNativeImageTextRecognition();
@@ -8616,14 +9309,19 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
     return true;
   };
 
-  const analyzeText = (sourceText: string, sourceName: string, mode: "syllabus" | "notes") => {
-    const batch = mode === "notes" ? analyzeNotes(sourceText, data) : analyzeSyllabus(sourceText, data);
+  const analyzeText = (sourceText: string, sourceName: string, mode: "syllabus" | "notes", options: { documentReader?: boolean } = {}) => {
+    if (mode === "syllabus") {
+      startSyllabusImport(sourceText, sourceName, options).catch(() => setScanStatus(textFor("scan.image_failed", "That image could not be scanned.")));
+      return;
+    }
+    const batch = analyzeNotes(sourceText, data);
     setCurrentImport(localizedImportBatch(batch, sourceName));
     nav.push("review");
   };
 
   const runImageOcr = async (source: "camera" | "library", mode: "syllabus" | "notes") => {
-    if (requirePremium(source === "camera" ? { next: "scan", action: "camera" } : { next: "scan" })) return;
+    // Syllabus import is free (review + forecast before the paywall); notes stay Plus.
+    if (mode === "notes" && requirePremium({ next: "scan" })) return;
     if (source === "camera") {
       nav.push("cameraScanner", { mode });
       return;
@@ -8656,9 +9354,11 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
       }
 
       setScanStatus(mode === "notes" ? textFor("scan.reading_notes", "Reading note text on this iPhone...") : textFor("scan.reading_syllabus", "Reading syllabus text on this iPhone..."));
-      const text = await extractTextFromImage(result.assets[0].uri);
+      // iOS 26 reads syllabus tables row by row; older systems use Build 90 OCR.
+      const read = await readDocumentText(result.assets[0].uri);
+      const text = read.text;
       setScanStatus(textFor("scan.found_words", "Found {count} words. Review before saving.", { count: countOcrWords(text) }));
-      analyzeText(text, mode === "notes" ? textFor("import.source_photo_notes", "Photo notes scan") : textFor("import.source_photo_syllabus", "Photo syllabus scan"), mode);
+      analyzeText(text, mode === "notes" ? textFor("import.source_photo_notes", "Photo notes scan") : textFor("import.source_photo_syllabus", "Photo syllabus scan"), mode, { documentReader: read.usedDocumentReader });
     } catch (error) {
       setScanStatus(textFor("scan.image_failed", "That image could not be scanned."));
     } finally {
@@ -8667,7 +9367,6 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
   };
 
   const runPdfImport = async () => {
-    if (requirePremium({ next: "scan", action: "pdf" })) return;
     setWorking("syllabusPdf");
     setScanStatus(textFor("scan.opening_pdf", "Opening PDF..."));
     try {
@@ -8675,6 +9374,15 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
       if (!result) {
         setScanStatus(textFor("scan.pdf_canceled", "PDF import canceled."));
         return;
+      }
+      if (result.fallbackNeeded && result.uri) {
+        // Image-only (scanned) PDF: render pages and read them on this iPhone.
+        const native = await readDocumentText(result.uri).catch(() => null);
+        if (native && countOcrWords(native.text) >= 20) {
+          setScanStatus(`${result.fileName}: ${textFor("scan.pdf_read", "PDF read: {count} words. Review before saving.", { count: countOcrWords(native.text) })}`);
+          analyzeText(native.text, textFor("import.source_pdf", "PDF - {name}", { name: result.fileName }), "syllabus", { documentReader: native.usedDocumentReader });
+          return;
+        }
       }
       if (result.fallbackNeeded) {
         const fallbackMessage = `${textFor("scan.pdf_unreadable", "PDF opened. Text was not readable here. Paste text or scan pages.")}${result.wordCount ? ` ${result.wordCount} words found.` : ""}`;
@@ -8698,49 +9406,22 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
 
   const captureTask = () => {
     if (requirePremium({ next: "scan" })) return;
-    const result = createNaturalLanguageTask(quickTask, data);
-    if (!result.ok) {
-      const details = Array.from(new Set(result.issues.map((issue) => {
-        switch (issue) {
-          case "input":
-            return textFor("scan.quick_error_input", "Type the task, its class, and an explicit due date.");
-          case "title":
-            return textFor("scan.quick_error_title", "Add what you need to do, not only the class and date.");
-          case "class":
-            return textFor("scan.quick_error_class", "Include a class code or name from this semester.");
-          case "class-ambiguous":
-            return textFor("scan.quick_error_class_ambiguous", "Name exactly one class.");
-          case "date":
-            return textFor("scan.quick_error_date", "Add today, tomorrow, next week, or a YYYY-MM-DD due date.");
-          case "date-invalid":
-            return textFor("scan.quick_error_date_invalid", "That YYYY-MM-DD value is not a real calendar date.");
-          case "date-ambiguous":
-            return textFor("scan.quick_error_date_ambiguous", "Use exactly one due date.");
-        }
-      })));
-      const status = details.join(" ");
-      const exampleClass = data.classes.find((klass) => !klass.archivedAt)?.code;
-      const example = exampleClass
-        ? textFor("scan.quick_error_example", "Example: {classCode} lab report due tomorrow, estimate 2 hours.", { classCode: exampleClass })
-        : textFor("scan.quick_error_no_class", "Add a class to this semester before using Fast capture.");
-      setScanStatus(status);
-      Alert.alert(
-        textFor("scan.quick_error_heading", "Fast capture needs more detail"),
-        `${details.map((detail) => `• ${detail}`).join("\n")}\n\n${example}`,
-        [{ text: textFor("common.close", "Close") }],
-      );
+    if (!quickTask.trim()) {
+      setScanStatus(textFor("scan.quick_error_input", "Type the task, its class, and an explicit due date."));
       return;
     }
-    const task = result.task;
-    mutate((d) => {
-      const tasks = [task, ...d.tasks];
-      const updated = { ...d, tasks, studyBlocks: buildStudyPlan({ ...d, tasks }) };
-      return withFeedback(d, updated, "reschedulePlan", { classId: task.classId, actionId: task.id, dimension: "workload" });
-    });
-    const classCode = data.classes.find((klass) => klass.id === task.classId)?.code || "";
-    setQuickTask("");
-    setScanStatus(textFor("scan.quick_created", "Created {title} for {classCode}, due {dueDate}.", { title: task.title, classCode, dueDate: task.dueDate }));
-    nav.push("tasks");
+    const input = quickTask;
+    proposeQuickAdd(input)
+      .then((outcome) => {
+        if (outcome === "saved") {
+          setQuickTask("");
+          setScanStatus(textFor("ai.quick.saved", "Saved and added to your plan."));
+          nav.push("tasks");
+        } else if (outcome === "confirm") {
+          setScanStatus(textFor("ai.quick.check", "Check the class and date, then save."));
+        }
+      })
+      .catch(() => setScanStatus(textFor("scan.quick_error_heading", "Fast capture needs more detail")));
   };
   useEffect(() => {
     if (autoActionHandled.current) return;
@@ -8801,43 +9482,44 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
       detail: textFor("scan.paste_action_body", "Fallback for locked PDFs or copied LMS text."),
       color: COLORS.orange,
       busy: false,
-      onPress: () => previewOnly ? requirePremium({ next: "paste", mode: "syllabus" }) : nav.push("paste", { mode: "syllabus" }),
+      onPress: () => nav.push("paste", { mode: "syllabus" }),
       requiresOcr: false,
     },
   ];
 
   return (
     <Screen theme={theme} bottom={132}>
+      {previewOnly ? <BackHeader embedded nav={nav} theme={theme} label="" /> : null}
       <Header
-        title={previewOnly ? textFor("scan.header_preview", "Preview syllabus") : textFor("scan.header", "Scan")}
-        sub={previewOnly ? textFor("scan.sub_preview", "Unlock before scan") : textFor("scan.sub", "Capture anything")}
+        title={textFor("scan.header", "Scan")}
+        sub={previewOnly ? textFor("scan.sub_free", "Free to scan and review") : textFor("scan.sub", "Capture anything")}
         theme={theme}
-        right={<ScannerModeBadge label={previewOnly ? textFor("review.guard_preview", "Preview only.") : textFor("widgets.ready", "Ready")} theme={theme} locked={previewOnly} />}
+        right={<ScannerModeBadge label={previewOnly ? textFor("scan.badge_free", "Free") : textFor("widgets.ready", "Ready")} theme={theme} />}
       />
       <View style={{ paddingHorizontal: 16, gap: 16 }}>
-        <View style={{ borderRadius: 28, overflow: "hidden", backgroundColor: theme.dark ? "#0D1422" : "#FFFFFF", borderWidth: 1, borderColor: theme.hairline, boxShadow: theme.dark ? "0 16px 32px rgba(0,0,0,0.42)" : "0 16px 34px rgba(18,36,74,0.12)" }}>
+        <View style={{ borderRadius: 28, overflow: "hidden", backgroundColor: theme.dark ? "#111113" : "#FFFFFF", borderWidth: 1, borderColor: theme.hairline, boxShadow: theme.dark ? "0 16px 32px rgba(0,0,0,0.42)" : "0 16px 34px rgba(18,36,74,0.12)" }}>
           <View style={{ padding: 18, gap: 16 }}>
             <View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}>
-              <View style={{ width: 70, height: 92, borderRadius: 22, backgroundColor: theme.dark ? "#101A2C" : "#EEF4FF", borderWidth: 1, borderColor: theme.dark ? "rgba(255,255,255,0.10)" : "#D7E4FF", alignItems: "center", justifyContent: "center" }}>
-                <View style={{ width: 46, height: 58, borderRadius: 12, backgroundColor: theme.dark ? "#172238" : "#FFFFFF", borderWidth: 2, borderColor: scannerReady ? COLORS.green : COLORS.orange, alignItems: "center", justifyContent: "center" }}>
+              <View style={{ width: 70, height: 92, borderRadius: 22, backgroundColor: theme.dark ? "#1C1C1F" : "#F5F5F5", borderWidth: 1, borderColor: theme.dark ? "rgba(255,255,255,0.10)" : "#E5E5E5", alignItems: "center", justifyContent: "center" }}>
+                <View style={{ width: 46, height: 58, borderRadius: 12, backgroundColor: theme.dark ? "#1C1C1F" : "#FFFFFF", borderWidth: 2, borderColor: scannerReady ? COLORS.green : COLORS.orange, alignItems: "center", justifyContent: "center" }}>
                   {isWorking ? <ActivityIndicator color={scannerReady ? COLORS.green : COLORS.orange} /> : <ScanLine color={scannerReady ? COLORS.green : COLORS.orange} size={27} strokeWidth={2.4} />}
                 </View>
               </View>
               <View style={{ flex: 1, gap: 7 }}>
                 <Text selectable style={{ color: scannerReady ? COLORS.green : COLORS.orange, fontSize: 12, fontWeight: "900" }}>{scannerReady ? textFor("scan.status_ready", "On-device text scan is ready.") : textFor("scan.status_backup", "On-device text scan is unavailable here. Paste text to continue.")}</Text>
-                <Text selectable style={{ color: theme.label, fontSize: 26, lineHeight: 29, fontWeight: "900" }}>{previewOnly ? textFor("scan.title_preview", "Unlock. Then review.") : textFor("scan.title", "Import. Review. Start.")}</Text>
+                <Text selectable style={{ color: theme.label, fontSize: 26, lineHeight: 29, fontWeight: "900" }}>{previewOnly ? textFor("scan.title_free", "Scan every class. See the semester.") : textFor("scan.title", "Import. Review. Start.")}</Text>
                 <Text selectable style={{ color: theme.label2, lineHeight: 20 }}>{scanStatus}</Text>
               </View>
             </View>
             <View style={{ flexDirection: "row", gap: 8 }}>
               <ScannerMetric value={scannerReady ? textFor("widgets.ready", "Ready") : textFor("scan.paste_text", "Paste text")} label={textFor("scan.metric_ocr", "OCR")} color={scannerReady ? COLORS.green : COLORS.orange} theme={theme} />
-              <ScannerMetric value={previewOnly ? textFor("review.guard_preview", "Preview") : textFor("review.guard_active", "Review")} label={textFor("scan.metric_gate", "Save gate")} color={previewOnly ? COLORS.orange : COLORS.blue} theme={theme} />
+              <ScannerMetric value={textFor("review.guard_active", "Review")} label={textFor("scan.metric_gate", "Save gate")} color={COLORS.blue} theme={theme} />
               <ScannerMetric value={String(data.imports.length)} label={textFor("scan.history", "Import history")} color={COLORS.purple} theme={theme} />
             </View>
           </View>
           <View style={{ paddingHorizontal: 18, paddingBottom: 18 }}>
             <ScannerStatusRail theme={theme} activeIndex={isWorking ? 1 : latestImport ? 3 : 0} />
-            <View style={{ marginTop: 12, borderRadius: 18, padding: 12, backgroundColor: theme.dark ? "rgba(255,255,255,0.06)" : "#F7F9FC", borderWidth: 1, borderColor: theme.hairline, gap: 9 }}>
+            <View style={{ marginTop: 12, borderRadius: 18, padding: 12, backgroundColor: theme.dark ? "rgba(255,255,255,0.06)" : "#F5F5F5", borderWidth: 1, borderColor: theme.hairline, gap: 9 }}>
               {[
                 ["upload", COLORS.blue, textFor("scan.pdf_action_body", "Best for full syllabi and multi-page handouts.")],
                 ["shield", COLORS.green, textFor("review.guard_active", "Nothing saves before you approve.")],
@@ -9080,7 +9762,8 @@ function ScannerImportHistoryRow({ imp, index, theme }: { imp: ImportBatch; inde
   );
 }
 
-function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenProps) {
+function CameraScanner({ data, nav, theme, params, setCurrentImport, startSyllabusImport }: ScreenProps) {
+  const lastReadUsedDocumentReader = useRef(false);
   const mode = data.prefs.premium && params.mode === "notes" ? "notes" : "syllabus";
   const cameraRef = useRef<CameraView | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
@@ -9124,19 +9807,20 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
     return () => clearInterval(id);
   }, [busy, guidance, permission?.granted]);
 
-  if (!data.prefs.premium) {
+  // Syllabus camera scans are free (review + forecast); note scans are Plus.
+  if (!data.prefs.premium && params.mode === "notes") {
     return (
       <View style={{ flex: 1, backgroundColor: theme.bg }}>
         <BackHeader nav={nav} theme={theme} label={textFor("scan.camera", "Camera")} />
         <View style={{ padding: 18 }}>
-          <Card theme={theme} style={{ padding: 18, backgroundColor: "#111114" }}>
+          <Card theme={theme} style={{ padding: 18, backgroundColor: "#0A0A0A" }}>
             <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
               <Camera color="#FFFFFF" size={27} />
             </View>
             <Text selectable style={{ color: "rgba(255,255,255,0.62)", fontSize: 12, fontWeight: "900" }}>{textFor("locked.kicker", "LOCKED PREVIEW")}</Text>
             <Text selectable style={{ color: "#FFFFFF", fontSize: 27, lineHeight: 31, fontWeight: "900", marginTop: 7 }}>{textFor("paywall.camera_title", "Camera scan unlocks here")}</Text>
             <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 8 }}>{textFor("paywall.camera_body", "Use the guided camera after purchase to capture syllabus pages, read the text on this iPhone, and review the extracted rows before anything saves.")}</Text>
-            <Button label={textFor("paywall.unlock_camera", "Unlock camera scan")} theme={theme} icon="crown" onPress={() => nav.push("paywall", { next: "scan", action: "camera" })} />
+            <Button label={textFor("paywall.unlock_camera", "Unlock camera scan")} theme={theme} icon="crown" onPress={() => nav.push("paywall", { next: "scan" })} />
             <Button label={textFor("welcome.preview", "Preview")} theme={theme} secondary icon="chevron-left" onPress={() => nav.tab("lockedDashboard")} />
           </Card>
         </View>
@@ -9145,7 +9829,11 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
   }
 
   const analyzeCapturedText = (sourceText: string, sourceName: string) => {
-    const batch = mode === "notes" ? analyzeNotes(sourceText, data) : analyzeSyllabus(sourceText, data);
+    if (mode === "syllabus") {
+      startSyllabusImport(sourceText, sourceName, { documentReader: lastReadUsedDocumentReader.current }).catch(() => setFeedback(textFor("scan.image_failed", "That image could not be scanned.")));
+      return;
+    }
+    const batch = analyzeNotes(sourceText, data);
     setCurrentImport(localizedImportBatch(batch, sourceName));
     nav.push("review");
   };
@@ -9199,7 +9887,9 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
       if (!photo?.uri) throw new Error(textFor("scanner.capture_failed", "The camera did not return a photo."));
       setCaptureState("reading");
       setFeedback(textFor("scanner.reading", "Reading text. This works best with crisp, flat pages."));
-      const text = await extractTextFromImage(photo.uri);
+      const read = await readDocumentText(photo.uri);
+      lastReadUsedDocumentReader.current = read.usedDocumentReader;
+      const text = read.text;
       const wordCount = countOcrWords(text);
       finishOcrRead(text, wordCount);
     } catch (error) {
@@ -9234,7 +9924,9 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
         return;
       }
       setFeedback(mode === "notes" ? textFor("scan.reading_notes", "Reading note text on this iPhone...") : textFor("scan.reading_syllabus", "Reading syllabus text on this iPhone..."));
-      const text = await extractTextFromImage(result.assets[0].uri);
+      const read = await readDocumentText(result.assets[0].uri);
+      lastReadUsedDocumentReader.current = read.usedDocumentReader;
+      const text = read.text;
       const wordCount = countOcrWords(text);
       finishOcrRead(text, wordCount);
     } catch (error) {
@@ -9433,7 +10125,7 @@ function CameraChecklistPill({ label, active }: { label: string; active: boolean
   );
 }
 
-function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps) {
+function PasteImport({ data, nav, theme, params, currentImport, setCurrentImport, startSyllabusImport }: ScreenProps) {
   const manualMode = params.mode === "manual";
   const requestedMode = manualMode ? "manual" : params.mode === "notes" ? "notes" : "syllabus";
   const previewOnly = !data.prefs.premium;
@@ -9451,11 +10143,9 @@ function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps
     if (analysisTimer.current) clearTimeout(analysisTimer.current);
   }, []);
   const openPasteUnlock = () => nav.push("paywall", { next: "paste", mode: requestedMode });
+  // Syllabus paste and manual setup are free to review; only notes need Plus.
+  const notesLocked = previewOnly && requestedMode === "notes";
   const buildManualPreview = () => {
-    if (previewOnly) {
-      openPasteUnlock();
-      return;
-    }
     const code = classCode.trim().toUpperCase();
     const name = className.trim();
     const taskTitle = deadlineTitle.trim();
@@ -9531,18 +10221,18 @@ function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps
         },
       });
     }
-    setCurrentImport({
+    setCurrentImport(appendImportBatch(currentImport, {
       id: makeOwnershipId("import"),
       sourceName: textFor("review.manual", "Manual setup"),
       sourceText: [cleanCode, cleanName, classDays, classTime, taskTitle, dueDate].filter(Boolean).join("\n"),
       createdAt: now,
       status: "review",
       candidates,
-    });
+    }));
     nav.push("review");
   };
   const analyze = () => {
-    if (previewOnly) {
+    if (notesLocked) {
       openPasteUnlock();
       return;
     }
@@ -9552,15 +10242,19 @@ function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps
     }
     setWorking(true);
     if (analysisTimer.current) clearTimeout(analysisTimer.current);
+    if (mode === "syllabus") {
+      startSyllabusImport(text, textFor("import.source_paste", "Pasted syllabus")).finally(() => setWorking(false));
+      return;
+    }
     analysisTimer.current = setTimeout(() => {
       analysisTimer.current = null;
-      const batch = mode === "notes" ? analyzeNotes(text, data) : analyzeSyllabus(text, data);
+      const batch = analyzeNotes(text, data);
       setCurrentImport(localizedImportBatch(batch));
       setWorking(false);
       nav.push("review");
     }, 650);
   };
-  if (previewOnly) {
+  if (notesLocked) {
     const lockedTitle = manualMode ? textFor("classes.add_manual", "Add class manually") : requestedMode === "notes" ? textFor("notes.paste", "Paste notes") : textFor("option.paste_syllabus", "Paste syllabus");
     const lockedBody = manualMode
       ? textFor("onboarding.manual_sub", "Use this when a syllabus is missing, blurry, or wrong. Nothing saves until you approve the preview.")
@@ -9571,7 +10265,7 @@ function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: theme.bg }}>
         <BackHeader nav={nav} theme={theme} label={lockedTitle} />
         <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-          <Card theme={theme} style={{ padding: 18, marginBottom: 14, backgroundColor: "#111114" }}>
+          <Card theme={theme} style={{ padding: 18, marginBottom: 14, backgroundColor: "#0A0A0A" }}>
             <View style={{ width: 54, height: 54, borderRadius: 18, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
               <Icon name={manualMode ? "plus" : "file"} color="#FFFFFF" size={25} />
             </View>
@@ -9604,7 +10298,7 @@ function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: theme.bg }}>
         <BackHeader nav={nav} theme={theme} label={textFor("classes.add_manual", "Add class manually")} />
         <ScrollView style={{ flex: 1 }} contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
-          <Card theme={theme} style={{ padding: 16, marginBottom: 14, backgroundColor: "#111114" }}>
+          <Card theme={theme} style={{ padding: 16, marginBottom: 14, backgroundColor: "#0A0A0A" }}>
             <Text selectable style={{ color: "rgba(255,255,255,0.62)", fontSize: 12, fontWeight: "900" }}>{textFor("onboarding.manual_kicker", "RELIABLE FALLBACK")}</Text>
             <Text selectable style={{ color: "#FFFFFF", fontSize: 25, lineHeight: 29, fontWeight: "900", marginTop: 7 }}>{textFor("onboarding.manual_title", "Start with one class. Add the rest later.")}</Text>
             <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 7 }}>{textFor("onboarding.manual_sub", "This creates a review preview just like scan or import, so nothing saves until you approve it.")}</Text>
@@ -9617,7 +10311,7 @@ function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps
               <View style={{ flex: 1 }}><FieldInput label={textFor("class.time", "Time")} value={classTime} onChangeText={setClassTime} placeholder="10:00 AM" theme={theme} /></View>
             </View>
           </Card>
-          <Card theme={theme} style={{ padding: 15, marginBottom: 14, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}>
+          <Card theme={theme} style={{ padding: 15, marginBottom: 14, backgroundColor: theme.dark ? "#1C1C1F" : "#F5F5F5" }}>
             <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900", marginBottom: 10 }}>{textFor("onboarding.manual_deadline_title", "First deadline preview")}</Text>
             <FieldInput label={textFor("class.title", "Title")} value={deadlineTitle} onChangeText={setDeadlineTitle} placeholder={textFor("onboarding.manual_deadline_placeholder", "Problem set 1")} theme={theme} />
             <FieldInput label={textFor("task.awaiting_date", "Date pending")} value={deadlineDate} onChangeText={setDeadlineDate} placeholder="YYYY-MM-DD" theme={theme} />
@@ -9646,9 +10340,12 @@ function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps
   );
 }
 
-function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, currentImport, setCurrentImport, recordReviewTrigger }: ScreenProps) {
+function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, currentImport, setCurrentImport, recordReviewTrigger, sharePack }: ScreenProps) {
   const batch = currentImport;
   const [applying, setApplying] = useState(false);
+  const forecast = useMemo(() => forecastFromImport(data, batch), [data, batch]);
+  const reviewPacks = useMemo(() => classPacksFromBatch(batch), [batch]);
+  const forecastShare = useForecastShare(forecast, theme);
   if (!batch) return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={textFor("review.title", "Review Import")} />
@@ -9751,21 +10448,22 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
     }
     updatePayload(item, { dueDate: clean, missing: false, invalidDate: undefined });
   };
+  // One definition of "trusted" shared by the button's count and its action,
+  // so "Approve trusted (N)" approves exactly N rows.
+  const trustedClassIdSet = () => new Set(batch.candidates
+    .filter((candidate) => candidate.kind === "class" && candidate.confidence >= 0.85 && !requiresResolvedTitle(candidate) && !requiresResolvedTime(candidate))
+    .map(candidateClassId)
+    .filter(Boolean));
+  const isTrustedRow = (candidate: ImportCandidate, trustedClassIds: Set<string>) => candidate.confidence >= 0.85
+    && !requiresResolvedTitle(candidate)
+    && !requiresResolvedDate(candidate)
+    && !requiresResolvedTime(candidate)
+    && !requiresResolvedOwner(candidate, trustedClassIds);
   const approveTrusted = () => {
-    const trustedClassIds = new Set(batch.candidates
-      .filter((candidate) => candidate.kind === "class" && candidate.confidence >= 0.85 && !requiresResolvedTitle(candidate) && !requiresResolvedTime(candidate))
-      .map(candidateClassId)
-      .filter(Boolean));
+    const trustedClassIds = trustedClassIdSet();
     setCurrentImport({
       ...batch,
-      candidates: batch.candidates.map((candidate) => {
-        const trusted = candidate.confidence >= 0.85
-          && !requiresResolvedTitle(candidate)
-          && !requiresResolvedDate(candidate)
-          && !requiresResolvedTime(candidate)
-          && !requiresResolvedOwner(candidate, trustedClassIds);
-        return trusted ? { ...candidate, approved: true } : candidate;
-      }),
+      candidates: batch.candidates.map((candidate) => isTrustedRow(candidate, trustedClassIds) ? { ...candidate, approved: true } : candidate),
     });
   };
   const removeCandidate = (item: ImportCandidate) => Alert.alert(
@@ -9851,7 +10549,8 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
     || requiresResolvedOwner(candidate, currentApprovedClassIds);
   const approved = batch.candidates.filter((candidate) => candidate.approved && !candidateIsBlocked(candidate));
   const approvedCount = approved.length;
-  const highConfidenceCount = batch.candidates.filter((candidate) => candidate.confidence >= 0.85 && !candidateIsBlocked(candidate)).length;
+  const trustedClassIdsNow = trustedClassIdSet();
+  const highConfidenceCount = batch.candidates.filter((candidate) => isTrustedRow(candidate, trustedClassIdsNow)).length;
   const unresolvedCount = batch.candidates.filter((candidate) => !candidate.approved || candidateIsBlocked(candidate)).length;
   const classesFound = approved.filter((candidate) => candidate.kind === "class").length;
   const assignmentsFound = approved.filter((candidate) => candidate.kind === "task").length;
@@ -9893,7 +10592,7 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
       <BackHeader nav={nav} theme={theme} label={textFor("review.title", "Review Import")} />
       <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 34 }}>
         <Card theme={theme} style={{ padding: 14, flexDirection: "row", gap: 10, alignItems: "center", marginBottom: 16 }}><Lock color={COLORS.green} size={19} /><Text selectable style={{ color: theme.label, flex: 1, lineHeight: 20 }}><Text style={{ fontWeight: "900" }}>{data.prefs.premium ? textFor("review.guard_active", "Nothing saves until you approve.") : textFor("review.guard_preview", "Preview only.")}</Text> {data.prefs.premium ? textFor("review.guard_active_body", "Edit, remove, or confirm each item.") : textFor("review.guard_preview_body", "Unlock to apply this semester to the real app.")}</Text></Card>
-        <Card theme={theme} style={{ padding: 16, marginBottom: 16, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
+        <Card theme={theme} style={{ padding: 16, marginBottom: 16, backgroundColor: theme.dark ? "#111113" : "#FFFFFF" }}>
           <Text selectable style={{ color: theme.label, fontSize: 19, fontWeight: "900", marginBottom: 12 }}>{notesOnlyImport ? textFor("notes.body", "Notes raise Preparedness and sharpen Class Pulse.") : textFor("review.found", "StudyPlanner found your semester.")}</Text>
           <View style={{ flexDirection: "row", gap: 9, marginBottom: 12 }}>
             {reviewMetrics.map((metric) => (
@@ -9907,11 +10606,49 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
             <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{notesOnlyImport ? textFor("note.generated_assets", "Generated study assets") : textFor("review.pressure_preview", "Pressure preview")}: {notesOnlyImport ? `${textFor("note.flashcards", "Flashcards")} + ${textFor("note.quiz", "Quiz")}` : pressureWeek}</Text>
             <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 4 }}>{notesOnlyImport ? textFor("note.suggested_tasks", "Suggested study tasks") : textFor("review.first_action", "First recommended action")}: {firstAction}</Text>
           </View>
-          <View style={{ flexDirection: "row", gap: 9, marginTop: 12 }}>
-            <View style={{ flex: 1 }}><Button label={textFor("review.approve", "Approve trusted")} theme={theme} icon="target" onPress={highConfidenceCount ? approveTrusted : undefined} /></View>
-            <View style={{ flex: 1 }}><Button label={textFor("review.manual", "Manual setup")} theme={theme} secondary icon="plus" onPress={() => nav.push("paste", { mode: "manual" })} /></View>
+          <View style={{ marginTop: 3 }}>
+            <Button label={highConfidenceCount ? `${textFor("review.approve", "Approve trusted")} (${highConfidenceCount})` : textFor("review.approve", "Approve trusted")} theme={theme} icon="target" onPress={highConfidenceCount ? approveTrusted : undefined} />
+            {batch.candidates.some((candidate) => candidate.origin === "both") ? (
+              <Text selectable style={{ color: theme.label2, fontSize: 12.5, lineHeight: 17, marginTop: 6, textAlign: "center" }}>{textFor("review.trust_hint", "Trusted rows were found by both readers. Rows only one reader found need a quick check.")}</Text>
+            ) : null}
+            <Button label={textFor("review.manual", "Manual setup")} theme={theme} secondary icon="plus" onPress={() => nav.push("paste", { mode: "manual" })} />
           </View>
         </Card>
+        {forecast ? (
+          <View style={{ marginBottom: 16 }}>
+            <ForecastSection
+              theme={theme}
+              t={aiText}
+              locale={appLocale()}
+              forecast={forecast}
+              mode={data.prefs.premium ? "compact" : "preview"}
+              onShare={forecastShare.share}
+              onUnlock={() => nav.push("paywall")}
+              onImport={() => nav.push("scan")}
+              onOpen={() => nav.push("forecast")}
+            />
+          </View>
+        ) : null}
+        {reviewPacks.length ? (
+          <Card theme={theme} style={{ padding: 14, gap: 10, marginBottom: 16 }}>
+            <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("ai.pack.section_kicker", "SHARE A CLASS PACK")}</Text>
+            <Text selectable style={{ color: theme.label2, lineHeight: 19 }}>{textFor("ai.pack.section_body", "Classmates get the same deadlines in seconds. Only dates, titles and weights are shared.")}</Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              {reviewPacks.map((pack) => (
+                <Pressable key={`review-pack-${pack.c.code}`} accessibilityRole="button" accessibilityLabel={textFor("ai.pack.share_class", "Share {code} Class Pack", { code: pack.c.code })} accessibilityHint={textFor("ai.pack.class_hint", "Share this class's deadlines as a link or QR code")} onPress={() => sharePack(pack)} style={{ minHeight: 44, paddingHorizontal: 14, borderRadius: 999, backgroundColor: theme.surface2, flexDirection: "row", alignItems: "center", gap: 7 }}>
+                  <Share2 color={theme.label} size={15} />
+                  <Text style={{ color: theme.label, fontWeight: "900" }}>{pack.c.code}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </Card>
+        ) : null}
+        {!notesOnlyImport ? (
+          <Pressable accessibilityRole="button" accessibilityHint={textFor("review.add_another_hint", "Scan, upload, or paste another syllabus into this review")} onPress={() => nav.push("scan")} style={{ minHeight: 48, borderRadius: 16, borderWidth: 1, borderStyle: "dashed", borderColor: theme.hairline, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 16 }}>
+            <Icon name="plus" color={theme.accent} size={18} />
+            <Text style={{ color: theme.accent, fontWeight: "900" }}>{textFor("review.add_another", "Add another class")}</Text>
+          </Pressable>
+        ) : null}
         {batch.candidates.length === 0 || batch.candidates.every((candidate) => candidate.confidence < 0.75) ? (
           <Card theme={theme} style={{ padding: 16, marginBottom: 16, backgroundColor: theme.dark ? "#2A2018" : "#FFF7E8" }}>
             <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{textFor("review.weak_title", "Extraction looks weak.")}</Text>
@@ -9958,6 +10695,7 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
                   <Pressable accessibilityRole="checkbox" accessibilityLabel={effectivelyApproved ? textFor("review.accessibility_unapprove", "Unapprove {title}", { title: item.title }) : textFor("review.accessibility_approve", "Approve {title}", { title: item.title || localizedKindLabel(item.kind) })} accessibilityHint={blockedHint} accessibilityState={{ checked: effectivelyApproved, disabled: rowBlocked }} disabled={rowBlocked} onPress={() => update(item.id, { approved: !item.approved })}>{effectivelyApproved ? <CheckCircle2 color={COLORS.green} /> : <Circle color={rowBlocked ? COLORS.orange : theme.label3} />}</Pressable>
                   <Pressable accessibilityRole="button" accessibilityLabel={textFor("review.accessibility_remove", "Remove {title}", { title: item.title })} accessibilityHint={textFor("review.accessibility_remove_hint", "Deletes this row from the import review.")} hitSlop={10} onPress={() => removeCandidate(item)}><Trash2 color={theme.label3} size={19} /></Pressable>
                 </View>
+                {item.origin && item.origin !== "heuristic" ? <View style={{ marginTop: 8, alignSelf: "flex-start" }}><OriginChip theme={theme} t={aiText} locale={appLocale()} origin={item.origin} /></View> : null}
                 {item.confidence < 0.75 ? <Text selectable style={{ color: COLORS.orange, marginTop: 8, fontWeight: "800" }}>{textFor("review.needs_review", "Needs review")}: {textFor("review.needs_review_body", "StudyPlanner is not confident this row is complete.")}</Text> : null}
                 {titleBlocked ? <Text selectable accessibilityRole="alert" style={{ color: COLORS.orange, marginTop: 8, fontWeight: "900" }}>Add a specific {localizedKindLabel(item.kind).toLowerCase()} title before approving this row.</Text> : null}
                 {dateBlocked ? <Text selectable accessibilityRole="alert" style={{ color: COLORS.orange, marginTop: 8, fontWeight: "900" }}>{textFor("review.invalid_date", "Enter a valid YYYY-MM-DD date before approving this row.")}</Text> : null}
@@ -10010,7 +10748,7 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
                       <View>
 	                        <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("tabs.classes", "Class")}</Text>
                         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{data.classes.filter((klass) => !klass.archivedAt).map((klass) => (
-                          <Pressable key={klass.id} accessibilityRole="button" accessibilityLabel={`Assign ${item.title} to ${klass.code}`} accessibilityState={{ selected: (payload.classId || item.classId) === klass.id }} onPress={() => updatePayload(item, { classId: klass.id })} style={{ paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999, backgroundColor: (payload.classId || item.classId) === klass.id ? klass.color : theme.surface2 }}><Text style={{ color: (payload.classId || item.classId) === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
+                          <Pressable key={klass.id} accessibilityRole="button" accessibilityLabel={`Assign ${item.title} to ${klass.code}`} accessibilityState={{ selected: (payload.classId || item.classId) === klass.id }} onPress={() => updatePayload(item, { classId: klass.id })} style={{ paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999, backgroundColor: (payload.classId || item.classId) === klass.id ? theme.accent : theme.surface2 }}><Text style={{ color: (payload.classId || item.classId) === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
                         ))}</View>
                       </View>
                     ) : null}
@@ -10020,7 +10758,7 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
                   <View style={{ marginTop: 10 }}>
                     <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("tabs.classes", "Class")}</Text>
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{data.classes.filter((klass) => !klass.archivedAt).map((klass) => (
-                      <Pressable key={klass.id} accessibilityRole="button" accessibilityLabel={`Assign ${item.title} to ${klass.code}`} accessibilityState={{ selected: (payload.classId || item.classId) === klass.id }} onPress={() => updatePayload(item, { classId: klass.id })} style={{ paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999, backgroundColor: (payload.classId || item.classId) === klass.id ? klass.color : theme.surface2 }}><Text style={{ color: (payload.classId || item.classId) === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
+                      <Pressable key={klass.id} accessibilityRole="button" accessibilityLabel={`Assign ${item.title} to ${klass.code}`} accessibilityState={{ selected: (payload.classId || item.classId) === klass.id }} onPress={() => updatePayload(item, { classId: klass.id })} style={{ paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999, backgroundColor: (payload.classId || item.classId) === klass.id ? theme.accent : theme.surface2 }}><Text style={{ color: (payload.classId || item.classId) === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
                     ))}</View>
                   </View>
                 ) : null}
@@ -10030,9 +10768,11 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
         })}
         <Card theme={theme} style={{ padding: 16, marginBottom: 8 }}>
           <Button label={applying ? textFor("review.applying", "Applying...") : primaryApplyLabel} icon={data.prefs.premium ? "target" : "crown"} theme={theme} onPress={approvedCount && !applying ? apply : undefined} />
+          {!data.prefs.premium ? <Text selectable style={{ color: theme.label3, textAlign: "center", marginTop: 8, fontSize: 12, fontWeight: "800" }}>{textFor("paywall.no_caps", "No credits. No caps. No account. It runs on your iPhone.")}</Text> : null}
           <Text selectable accessibilityLiveRegion="polite" style={{ color: approvedCount ? theme.label2 : COLORS.orange, textAlign: "center", marginTop: 8 }}>{approvedCount ? `${textFor("review.approved_footer", "{count} approved items · {state}", { count: approvedCount, state: data.prefs.premium ? textFor("review.editable_later", "editable later") : textFor("review.locked_until_premium", "locked until premium") })}${unresolvedCount ? ` · ${unresolvedCount} ${textFor("review.needs_review", "need review")}` : ""}` : textFor("review.approve_one", "Approve at least one item to continue")}</Text>
         </Card>
       </ScrollView>
+      {forecastShare.host}
     </View>
   );
 }
@@ -10104,7 +10844,7 @@ function ApplySuccess({ data, nav, theme }: ScreenProps) {
                   <Text selectable style={{ color: theme.label, fontSize: 20, lineHeight: 24, fontWeight: "900", marginTop: 3 }}>{textFor("success.theme_title", "White system, class colors")}</Text>
                   <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 4 }}>{textFor("success.theme_body", "Dashboard, focus blocks, classes, and widgets keep black controls with automatic course colors for context.")}</Text>
                 </View>
-                <View style={{ width: 58, height: 58, borderRadius: 20, backgroundColor: "#111114", alignItems: "center", justifyContent: "center" }}>
+                <View style={{ width: 58, height: 58, borderRadius: 20, backgroundColor: "#0A0A0A", alignItems: "center", justifyContent: "center" }}>
                   <Icon name="sparkles" color={semesterTheme.foreground} size={25} />
                 </View>
               </View>
@@ -10146,7 +10886,7 @@ function ApplySuccess({ data, nav, theme }: ScreenProps) {
                 </View>
               </View>
             </Card>
-            <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
+            <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#111113" : "#FFFFFF" }}>
 	              <Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 18 }}>{textFor("today.next_move", "Next Move")}</Text>
 	              <Text selectable style={{ color: theme.label2, lineHeight: 21, marginTop: 5 }}>{localizedNarrativeText("next", narrative.nextMoveLabel)}. {localizedNarrativeText("detail", narrative.nextMoveDetail)}</Text>
             </Card>
@@ -10309,7 +11049,7 @@ function Plan({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
             {calendarLegend.map(([color, label, marker]) => <View key={label} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}><Text accessible={false} style={{ color, fontSize: 10, lineHeight: 10 }}>{marker}</Text><Text selectable style={{ color: theme.label2, fontSize: 11, fontWeight: "800" }}>{label}</Text></View>)}
           </View>
         </Card>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("plan.autopilot", "Autopilot")}</Text></View><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{localizedNarrativeText("next", narrative.nextMoveLabel)}. {localizedNarrativeText("detail", narrative.nextMoveDetail)}</Text><Text selectable style={{ color: theme.label2, marginTop: 7 }}>{localizedNarrativeText("driver", narrative.primaryDriver)}</Text>{semester.schedulePlan.changedSinceLastPlan.slice(0, 2).map((change) => <Text selectable key={change} style={{ color: theme.label2, marginTop: 7 }}>- {localizedNarrativeText("detail", change)}</Text>)}<View style={{ flexDirection: "row", gap: 7, marginTop: 12 }}>{semester.pressureForecast.weekLoads.map((load, index) => <View key={`${index}${load}`} style={{ flex: 1 }}><ProgressBar value={load / 100} color={load > 85 ? COLORS.red : load > 64 ? COLORS.orange : load > 38 ? COLORS.yellow : COLORS.green} theme={theme} height={8} /><Text style={{ color: theme.label2, textAlign: "center", fontSize: 10, marginTop: 4, fontWeight: "900" }}>{localizedWeekdayNarrow(index)}</Text></View>)}</View><Button label={textFor("plan.rebuild", "Rebuild plan")} theme={theme} icon="refresh" onPress={rebuild} /></Card>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F5F5F5" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("plan.autopilot", "Autopilot")}</Text></View><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{localizedNarrativeText("next", narrative.nextMoveLabel)}. {localizedNarrativeText("detail", narrative.nextMoveDetail)}</Text><Text selectable style={{ color: theme.label2, marginTop: 7 }}>{localizedNarrativeText("driver", narrative.primaryDriver)}</Text>{semester.schedulePlan.changedSinceLastPlan.slice(0, 2).map((change) => <Text selectable key={change} style={{ color: theme.label2, marginTop: 7 }}>- {localizedNarrativeText("detail", change)}</Text>)}<View style={{ flexDirection: "row", gap: 7, marginTop: 12 }}>{semester.pressureForecast.weekLoads.map((load, index) => <View key={`${index}${load}`} style={{ flex: 1 }}><ProgressBar value={load / 100} color={load > 85 ? COLORS.red : load > 64 ? COLORS.orange : load > 38 ? COLORS.yellow : COLORS.green} theme={theme} height={8} /><Text style={{ color: theme.label2, textAlign: "center", fontSize: 10, marginTop: 4, fontWeight: "900" }}>{localizedWeekdayNarrow(index)}</Text></View>)}</View><Button label={textFor("plan.rebuild", "Rebuild plan")} theme={theme} icon="refresh" onPress={rebuild} /></Card>
         <View>
           <Section title={dateForDay(selectedDay).toLocaleDateString(appLocale(), { weekday: "short", month: "short", day: "numeric" })} action={`${selectedItems.tasks.length + selectedItems.exams.length + selectedItems.notes.length + selectedItems.blocks.length} ${previewMetricLabel("signals", "items")}`} theme={theme} />
           <Card theme={theme} style={{ overflow: "hidden" }}>
@@ -10368,6 +11108,16 @@ function StudySession({ data, mutate, nav, theme, params, recordReviewTrigger }:
   const finishStarted = useRef(false);
   const semester = buildSemesterSnapshot(data);
   const pulse = semester.classPulses.find((item) => item.classId === block?.classId);
+  // Close the loop: one question from the student's own notes (cached or
+  // heuristic set — never a new model call), recorded for weak topics.
+  const checkNotes = useMemo(() => {
+    if (!block) return [];
+    const byNote = block.noteId ? data.notes.filter((note) => note.id === block.noteId) : [];
+    if (byNote.length) return byNote;
+    return (block.examId ? notesForExam(data, block.examId, block.classId) : data.notes.filter((note) => note.classId === block.classId)).slice(0, 4);
+  }, [block, data]);
+  const checkSets = useStudySets(checkNotes, data, appLocale());
+  const checkQuestion = checkSets.questions.length ? checkSets.questions[(block?.id || "").length % checkSets.questions.length] : null;
   if (!block) {
     if (params.id || data.studyBlocks.length) {
       return <RecoveryScreen title="Study block not found" body="That study block is not in this semester anymore." action={textFor("class.open_dashboard", "Open dashboard")} nav={nav} theme={theme} />;
@@ -10413,7 +11163,29 @@ function StudySession({ data, mutate, nav, theme, params, recordReviewTrigger }:
         <Card theme={theme} style={{ padding: 18 }}><View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><ClassGlyph c={c} size={50} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontSize: 22, fontWeight: "900" }}>{block.title}</Text><Text selectable style={{ color: theme.label2, marginTop: 3 }}>{localizedStudyBlockDay(block.day)} · {block.time} · {minutesLabel(block.minutes)}</Text></View></View></Card>
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#172019" : "#F1FFF6" }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.impact", "Impact")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21 }}>{c.code} {textFor("locked.preparedness", "preparedness")}. {pulse ? `${localizedPulseText("forecast", pulse.forecastLabel)} ${textFor("class.forecast", "forecast")}.` : localizedNarrativeText("detail", "Risk reduced.")}</Text></Card>
         <Card theme={theme} style={{ padding: 16 }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.goal", "Goal")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21 }}>{textFor("study.goal_body", "One item. Then recall.")}</Text></Card>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.active_recall", "Active recall")}</Text><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{textFor("study.recall_body", "Explain it without looking.")}</Text><TextInput accessibilityLabel={textFor("study.active_recall", "Active recall")} multiline value={answer} onChangeText={setAnswer} placeholder={textFor("study.recall_placeholder", "Type your recall answer...")} placeholderTextColor={theme.label3} style={{ minHeight: 120, backgroundColor: theme.surface, color: theme.label, borderRadius: 14, padding: 12, marginTop: 12, textAlignVertical: "top" }} />{responseWordCount ? <Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label2, fontWeight: "800", marginTop: 10 }}>{responseMetricLabel}</Text> : null}</Card>
+        {checkQuestion ? (
+          <QuickCheckCard
+            key={checkQuestion.id}
+            question={checkQuestion}
+            theme={theme}
+            onAnswer={(correct) => {
+              const set = Object.values(checkSets.byNote).find((item) => item.questions.some((question) => question.id === checkQuestion.id));
+              setAnswer((current) => current || "quick-check");
+              aiCache.recordPractice({
+                id: makeOwnershipId("practice"),
+                noteId: set?.noteId || "",
+                examId: block.examId,
+                classId: block.classId,
+                itemId: checkQuestion.id,
+                kind: "question",
+                concept: set?.concepts.find((value) => checkQuestion.stem.toLowerCase().includes(value.toLowerCase())) || checkQuestion.options[checkQuestion.answerIndex],
+                correct,
+                answeredAt: new Date().toISOString(),
+              }).catch(() => {});
+            }}
+          />
+        ) : null}
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#1C1C1F" : "#F5F5F5", display: checkQuestion ? "none" : "flex" }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.active_recall", "Active recall")}</Text><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{textFor("study.recall_body", "Explain it without looking.")}</Text><TextInput accessibilityLabel={textFor("study.active_recall", "Active recall")} multiline value={answer} onChangeText={setAnswer} placeholder={textFor("study.recall_placeholder", "Type your recall answer...")} placeholderTextColor={theme.label3} style={{ minHeight: 120, backgroundColor: theme.surface, color: theme.label, borderRadius: 14, padding: 12, marginTop: 12, textAlignVertical: "top" }} />{responseWordCount ? <Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label2, fontWeight: "800", marginTop: 10 }}>{responseMetricLabel}</Text> : null}</Card>
         <Button label={block.completed ? textFor("tasks.completed", "Session already complete") : answer.trim() ? textFor("study.complete", "Complete session") : textFor("study.skip_complete", "Skip recall and complete")} theme={theme} secondary={!answer.trim() || block.completed} icon="check" onPress={block.completed ? undefined : () => { if (!finish()) return; recordReviewTrigger("focus_completed"); nav.back(); }} />
       </ScrollView>
     </View>
@@ -10436,7 +11208,7 @@ function Notes({ data, nav, theme }: ScreenProps) {
       <BackHeader embedded nav={nav} theme={theme} label={textFor("notes.title", "Notes")} />
       <Header title={textFor("notes.title", "Notes")} sub={textFor("notes.sub", "{score} preparedness · {count} notes", { score: preparedness, count: liveData.notes.length })} theme={theme} />
       <View style={{ paddingHorizontal: 16, gap: 14 }}>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#111114" : "#FFFFFF" }}>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#0A0A0A" : "#FFFFFF" }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 13 }}>
             <View style={{ width: 54, height: 54, borderRadius: 18, backgroundColor: `${COLORS.purple}18`, alignItems: "center", justifyContent: "center" }}>
               <NotebookPen color={COLORS.purple} size={26} />
@@ -10455,7 +11227,7 @@ function Notes({ data, nav, theme }: ScreenProps) {
             </View>
           </View>
         </Card>
-        <Card theme={theme} style={{ padding: 15, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}>
+        <Card theme={theme} style={{ padding: 15, backgroundColor: theme.dark ? "#1C1C1F" : "#F5F5F5" }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: `${COLORS.blue}1C`, alignItems: "center", justifyContent: "center" }}>
               <Shield color={COLORS.blue} size={21} />
@@ -10566,6 +11338,7 @@ function NoteDetail({ data, mutate, nav, theme, params }: ScreenProps) {
         style: "destructive",
         onPress: () => {
           mutate((d) => ({ ...d, notes: d.notes.filter((item) => item.id !== note.id) }));
+          aiCache.purgeAIDataForNote(note.id).catch(() => {});
           nav.back();
         },
       },
@@ -10576,8 +11349,16 @@ function NoteDetail({ data, mutate, nav, theme, params }: ScreenProps) {
       <BackHeader nav={nav} theme={theme} label={c.code} />
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
         <View><Pill text={c.code} color={c.color} theme={theme} /><Text selectable style={{ color: theme.label, fontSize: 26, fontWeight: "900", marginTop: 10 }}>{note.title}</Text></View>
+        <View style={{ borderRadius: 24, padding: 16, backgroundColor: "#0A0A0A", gap: 12 }}>
+          <Text selectable style={{ color: "rgba(255,255,255,0.72)", fontSize: 11, fontWeight: "900", letterSpacing: 0.6 }}>{textFor("ai.note.practice_kicker", "PRACTICE FROM THIS NOTE")}</Text>
+          <Text selectable style={{ color: "rgba(255,255,255,0.78)", lineHeight: 19 }}>{textFor("ai.note.practice_body", "Cards and questions come only from this note, each with the line it came from.")}</Text>
+          <View style={{ flexDirection: "row", gap: 9 }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={textFor("ai.note.practice_cards", "Flashcards")} accessibilityHint={textFor("ai.note.practice_cards_hint", "Practice flashcards made from this note")} onPress={() => nav.push("practice", { noteId: note.id, mode: "cards" })} style={{ flex: 1, minHeight: 46, borderRadius: 999, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#0A0A0A", fontWeight: "900" }}>{textFor("ai.note.practice_cards", "Flashcards")}</Text></Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel={textFor("ai.note.practice_quiz", "Quiz me")} accessibilityHint={textFor("ai.note.practice_quiz_hint", "Answer practice questions made from this note")} onPress={() => nav.push("practice", { noteId: note.id, mode: "quiz" })} style={{ flex: 1, minHeight: 46, borderRadius: 999, borderWidth: 1, borderColor: "rgba(255,255,255,0.26)", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#FFFFFF", fontWeight: "900" }}>{textFor("ai.note.practice_quiz", "Quiz me")}</Text></Pressable>
+          </View>
+        </View>
         <Card theme={theme} style={{ padding: 16 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("note.effect", "Effect on {code}", { code: c.code })}</Text><Text selectable style={{ color: theme.label2, marginTop: 7, lineHeight: 20 }}>{pulse ? `${localizedPulseText("forecast", pulse.forecastLabel)}. ${localizedPulseText("nudge", pulse.nudge)}` : textFor("note.readiness_up", "Readiness up.")}</Text></Card>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("note.summary", "Summary")}</Text></View><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{note.summary}</Text></Card>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F5F5F5" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("note.summary", "Summary")}</Text></View><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{note.summary}</Text></Card>
         <View><Text selectable style={{ color: theme.label2, fontWeight: "900", marginBottom: 8 }}>{textFor("note.key_terms", "KEY TERMS")}</Text><View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>{note.terms.map((t) => <Pill key={t} text={t} theme={theme} />)}</View></View>
         <View><Section title={textFor("note.signals", "Signals")} action={`${Math.round(insight.confidence * 100)}%`} theme={theme} /><Card theme={theme} style={{ padding: 15, gap: 12 }}><View><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 6 }}>{textFor("note.exam_topics", "Exam topics")}</Text><View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>{insight.likelyExamTopics.slice(0, 6).map((topic) => <Pill key={topic} text={topic} color={COLORS.orange} theme={theme} />)}</View></View>{insight.formulas.length ? <View><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 6 }}>{textFor("note.formulas", "Formulas")}</Text>{insight.formulas.slice(0, 3).map((formula) => <Text selectable key={formula} style={{ color: theme.label2, marginTop: 3 }}>{formula}</Text>)}</View> : null}<View><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 6 }}>{textFor("note.weak_area", "Weak area")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 20 }}>{insight.weakAreas[0]}</Text></View></Card></View>
         <View><Section title={textFor("note.suggested_tasks", "Suggested study tasks")} theme={theme} /><Card theme={theme} style={{ overflow: "hidden" }}>{note.suggestedTasks.map((t) => {
@@ -10593,6 +11374,329 @@ function NoteDetail({ data, mutate, nav, theme, params }: ScreenProps) {
         <Card theme={theme} style={{ padding: 16 }}><Text selectable style={{ color: theme.label2, fontWeight: "900", marginBottom: 8 }}>{textFor("note.source_text", "SOURCE TEXT")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21 }}>{note.sourceText}</Text></Card>
         <Button label={textFor("note.delete", "Delete note")} theme={theme} secondary icon="trash" onPress={deleteNote} />
       </ScrollView>
+    </View>
+  );
+}
+
+function QuickCheckCard({ question, theme, onAnswer }: { question: StudyQuestion; theme: ReturnType<typeof palette>; onAnswer: (correct: boolean) => void }) {
+  const [picked, setPicked] = useState<number | null>(null);
+  const answered = picked !== null;
+  return (
+    <Card theme={theme} style={{ padding: 16, gap: 10 }}>
+      <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("ai.check.kicker", "QUICK CHECK · FROM YOUR NOTES")}</Text>
+      <Text selectable style={{ color: theme.label, fontSize: 17, lineHeight: 23, fontWeight: "900" }}>{question.stem}</Text>
+      {question.options.map((option, index) => {
+        const isAnswer = index === question.answerIndex;
+        const chosen = picked === index;
+        const tone = answered && isAnswer ? COLORS.green : answered && chosen ? COLORS.red : null;
+        return (
+          <Pressable
+            key={`${question.id}-${index}`}
+            accessibilityRole="button"
+            accessibilityLabel={option}
+            accessibilityHint={textFor("ai.check.option_hint", "Choose this answer")}
+            accessibilityState={{ disabled: answered, selected: chosen }}
+            disabled={answered}
+            onPress={() => {
+              tap();
+              setPicked(index);
+              onAnswer(isAnswer);
+            }}
+            style={{ minHeight: 46, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: tone || theme.hairline, backgroundColor: tone ? `${tone}14` : theme.surface2, flexDirection: "row", alignItems: "center", gap: 10 }}
+          >
+            <Text style={{ color: theme.label, flex: 1, fontWeight: "800" }}>{option}</Text>
+            {answered && isAnswer ? <CheckCircle2 color={COLORS.green} size={18} /> : answered && chosen ? <X color={COLORS.red} size={18} /> : null}
+          </Pressable>
+        );
+      })}
+      {answered ? (
+        <Text selectable style={{ color: theme.label2, lineHeight: 19 }}>
+          {textFor("ai.check.source", "From your notes{line}: “{quote}”", { line: question.source.line ? ` · ${textFor("ai.check.line", "line {line}", { line: question.source.line })}` : "", quote: question.source.quote })}
+        </Text>
+      ) : null}
+    </Card>
+  );
+}
+
+function ExamModeEntryCard({ exam, theme, nav }: { exam: ExamItem; theme: ReturnType<typeof palette>; nav: ScreenProps["nav"] }) {
+  const days = daysUntilExam(exam);
+  if (days < 0) return null;
+  return (
+    <View style={{ borderRadius: 24, padding: 18, backgroundColor: "#0A0A0A", gap: 12 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}><Brain color="rgba(255,255,255,0.72)" size={21} /></View>
+        <View style={{ flex: 1 }}>
+          <Text selectable style={{ color: "rgba(255,255,255,0.72)", fontSize: 11, fontWeight: "900", letterSpacing: 0.6 }}>{textFor("ai.exam.entry_kicker", "EXAM MODE")}</Text>
+          <Text selectable style={{ color: "#FFFFFF", fontSize: 17, lineHeight: 22, fontWeight: "900" }}>{days === 0 ? textFor("ai.exam.entry_today", "{title} is today", { title: exam.title }) : days === 1 ? textFor("ai.exam.entry_tomorrow", "{title} is tomorrow", { title: exam.title }) : textFor("ai.exam.entry_title", "{title} in {days} days", { title: exam.title, days })}</Text>
+        </View>
+      </View>
+      <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 19 }}>{textFor("ai.exam.entry_body", "Flashcards and practice questions from your own notes. Every one cites its source line.")}</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel={textFor("ai.exam.entry_cta", "Open Exam Mode")} accessibilityHint={textFor("ai.exam.entry_hint", "Practice for this exam from your own notes")} onPress={() => nav.push("examMode", { id: exam.id })} style={{ minHeight: 48, borderRadius: 999, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
+        <Target color="#0A0A0A" size={17} />
+        <Text style={{ color: "#0A0A0A", fontWeight: "900" }}>{textFor("ai.exam.entry_cta", "Open Exam Mode")}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// StudyPlanner 2.2: Exam Mode, practice, Quiz Duel, and the full Crunch Forecast.
+// Practice is from the student's own notes (never homework solving). Results
+// live in the on-device AI store, not AppData; the only planner write is the
+// confirmed "extra review" tasks, which go through mutate() like any edit.
+// ---------------------------------------------------------------------------
+
+function notesForExam(data: AppData, examId: string, classId: string) {
+  const linked = data.notes.filter((note) => note.examId === examId);
+  return (linked.length ? linked : data.notes.filter((note) => note.classId === classId)).slice(0, 8);
+}
+
+function ExamModeRoute({ data, mutate, nav, theme, params }: ScreenProps) {
+  const liveData = useMemo(() => activeSemesterData(data), [data]);
+  const exam = liveData.exams.find((item) => item.id === params.id) || null;
+  const klass = exam ? liveData.classes.find((item) => item.id === exam.classId) : undefined;
+  const notes = useMemo(() => (exam ? notesForExam(liveData, exam.id, exam.classId) : []), [exam, liveData]);
+  const sets = useStudySets(notes, liveData, appLocale());
+  const [results, setResults] = useState<PracticeResult[]>([]);
+  useEffect(() => {
+    if (!exam) return;
+    let active = true;
+    aiCache.listPractice({ classId: exam.classId, limit: 500 }).then((rows) => {
+      if (active) setResults(rows);
+    });
+    return () => {
+      active = false;
+    };
+  }, [exam?.id, exam?.classId]);
+  if (!exam) return <RecoveryScreen title={textFor("assessment.missing_title", "Assessment not found")} body={textFor("assessment.missing_body", "This exam may have been removed.")} nav={nav} theme={theme} />;
+  const now = new Date();
+  const examResults = results.filter((row) => row.examId === exam.id || (!row.examId && notes.some((note) => note.id === row.noteId)));
+  const weakTopics = computeWeakTopics(examResults, liveData);
+  const proposal = proposeWeakTopicBlocks(weakTopics, liveData, now);
+  const masteredCards = new Set(examResults.filter((row) => row.kind === "card" && row.correct).map((row) => row.itemId));
+  const summary: ExamModeSummary = {
+    examTitle: exam.title,
+    examKindLabel: exam.kind ? localizedExamKind(exam.kind) : undefined,
+    classCode: klass?.code,
+    className: klass?.name,
+    classColor: klass?.color,
+    examDate: exam.dueDate,
+    examTime: exam.time,
+    daysUntil: Math.max(0, daysUntilExam(exam, now)),
+    notesLinked: notes.length,
+    cardsMastered: sets.cards.filter((card) => masteredCards.has(card.id)).length,
+    cardsTotal: sets.cards.length,
+    answersRecorded: examResults.length,
+    weakTopics,
+    reviewProposal: proposal.length ? { blocks: proposal.length, minutesEach: proposal[0].minutes } : null,
+    studySetOrigin: sets.origin,
+  };
+  const addReviewTasks = () => Alert.alert(
+    textFor("ai.exam.review_confirm_title", "Add review sessions ({count})?", { count: proposal.length }),
+    textFor("ai.exam.review_confirm_body", "StudyPlanner adds short review tasks for your weakest topics before the exam. You can edit or delete them anytime."),
+    [
+      { text: textFor("common.cancel", "Cancel"), style: "cancel" },
+      {
+        text: textFor("ai.exam.review_confirm_action", "Add to plan"),
+        onPress: () => mutate((d) => {
+          const nowIso = new Date().toISOString();
+          const additions: TaskItem[] = proposal
+            .filter((block) => block.date && !d.tasks.some((task) => task.source === "Exam Mode" && task.title.endsWith(block.title) && task.dueDate === block.date))
+            .map((block) => ({
+              id: makeOwnershipId("task"),
+              title: textFor("ai.exam.review_task_title", "Review: {topic}", { topic: block.title }),
+              classId: block.classId,
+              type: "Review",
+              dueOffset: 0,
+              dueDate: block.date || "",
+              time: "",
+              estimateMinutes: block.minutes,
+              done: false,
+              urgent: false,
+              source: "Exam Mode",
+              priority: "Medium",
+              description: textFor("ai.exam.review_task_body", "Extra review before {exam}: practice from your own notes.", { exam: exam.title }),
+              subtasks: [],
+              userEditedAt: nowIso,
+            }));
+          if (!additions.length) return d;
+          const tasks = [...additions, ...d.tasks];
+          const updated = { ...d, tasks, studyBlocks: buildStudyPlan({ ...d, tasks }) };
+          return withFeedback(d, updated, "reviewWeakConcept", { classId: exam.classId, actionId: exam.id, dimension: "preparedness" });
+        }),
+      },
+    ],
+  );
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <BackHeader nav={nav} theme={theme} label={textFor("ai.exam.nav_title", "Exam Mode")} />
+      <ExamModeScreen
+        theme={theme}
+        t={aiText}
+        locale={appLocale()}
+        summary={summary}
+        onPracticeCards={() => nav.push("practice", { examId: exam.id, mode: "cards" })}
+        onPracticeQuiz={() => nav.push("practice", { examId: exam.id, mode: "quiz" })}
+        onDuel={sets.questions.length ? () => nav.push("practice", { examId: exam.id, mode: "quiz", duel: "1" }) : undefined}
+        onProposeBlocks={proposal.length ? addReviewTasks : undefined}
+        onAddNotes={() => nav.push("paste", { mode: "notes" })}
+      />
+    </View>
+  );
+}
+
+function PracticeRoute({ data, nav, theme, params }: ScreenProps) {
+  const liveData = useMemo(() => activeSemesterData(data), [data]);
+  const exam = params.examId ? liveData.exams.find((item) => item.id === params.examId) : undefined;
+  const note = params.noteId ? liveData.notes.find((item) => item.id === params.noteId) : undefined;
+  const notes = useMemo(() => (note ? [note] : exam ? notesForExam(liveData, exam.id, exam.classId) : []), [exam, liveData, note]);
+  const sets = useStudySets(notes, liveData, appLocale());
+  const [started, setStarted] = useState(false);
+  const [reported, setReported] = useState<string[]>([]);
+  const mode: PracticeMode = params.mode === "quiz" ? "quiz" : "cards";
+  useEffect(() => {
+    let active = true;
+    // First practice on these notes is the only moment the model may run.
+    sets.prepare().finally(() => {
+      if (active) setStarted(true);
+    });
+    return () => {
+      active = false;
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const title = exam?.title || note?.title || textFor("ai.practice.title", "Practice");
+  const noteForItem = (itemId: string) => Object.values(sets.byNote).find((set: StudySet) => set.cards.some((card) => card.id === itemId) || set.questions.some((question) => question.id === itemId));
+  const recordAnswer = (answer: PracticeAnswer) => {
+    const set = noteForItem(answer.itemId);
+    const card = sets.cards.find((item) => item.id === answer.itemId);
+    const question = sets.questions.find((item) => item.id === answer.itemId);
+    const concept = card?.front || (question ? set?.concepts.find((value) => question.stem.toLowerCase().includes(value.toLowerCase())) : undefined) || set?.concepts[0];
+    aiCache.recordPractice({
+      id: makeOwnershipId("practice"),
+      noteId: set?.noteId || note?.id || "",
+      examId: exam?.id,
+      classId: exam?.classId || note?.classId,
+      itemId: answer.itemId,
+      kind: answer.kind,
+      concept: concept ? concept.slice(0, 80) : undefined,
+      correct: answer.correct,
+      answeredAt: new Date().toISOString(),
+    }).catch(() => {});
+  };
+  const shareDuel = (score: PracticeScore) => {
+    const base = duelFromStudySet({ ...(Object.values(sets.byNote)[0] as StudySet), questions: sets.questions } as StudySet, title);
+    if (!base) return;
+    // Scale the sender's score to the questions actually in the duel.
+    const duel = { ...base, score: score.total ? Math.round((score.correct / score.total) * base.q.length) : undefined };
+    shareLink(textFor("ai.duel.share_message", "I scored {score}/{total} on {title}. Beat me:", { score: score.correct, total: score.total, title }), duelLink(duel)).catch(() => {});
+  };
+  const cards = sets.cards.filter((card) => !reported.includes(card.id));
+  const questions = sets.questions.filter((question) => !reported.includes(question.id));
+  if (!notes.length || (!cards.length && !questions.length)) {
+    return (
+      <RecoveryScreen
+        title={textFor("ai.practice.empty_title", "Add notes to practice")}
+        body={textFor("ai.practice.empty_body", "Practice is built from your own notes. Add or scan notes for this class, then come back.")}
+        action={textFor("notes.paste", "Paste notes")}
+        nav={nav}
+        theme={theme}
+      />
+    );
+  }
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <BackHeader nav={nav} theme={theme} label={title} />
+      {!started && sets.preparing ? (
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 28, gap: 14 }}>
+          <ActivityIndicator color={theme.accent} />
+          <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900", textAlign: "center" }}>{textFor("ai.practice.preparing", "Building practice from your notes on this iPhone…")}</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel={textFor("ai.practice.start_now", "Start with quick cards")} accessibilityHint={textFor("ai.practice.start_now_hint", "Skips on-device generation and starts right away")} onPress={() => setStarted(true)} style={{ minHeight: 44, justifyContent: "center" }}><Text style={{ color: theme.accent, fontWeight: "900" }}>{textFor("ai.practice.start_now", "Start with quick cards")}</Text></Pressable>
+        </View>
+      ) : (
+        <View style={{ flex: 1, paddingHorizontal: 16 }}>
+        <PracticeSession
+          theme={theme}
+          t={aiText}
+          locale={appLocale()}
+          mode={mode}
+          cards={cards}
+          questions={questions}
+          title={title}
+          origin={sets.origin || undefined}
+          onAnswer={recordAnswer}
+          onShareScore={params.duel === "1" || mode === "quiz" ? shareDuel : undefined}
+          onReportWrong={(itemId) => {
+            setReported((current) => [...current, itemId]);
+            Alert.alert(textFor("ai.practice.reported_title", "Thanks for flagging it"), textFor("ai.practice.reported_body", "That item is hidden from this session. Check it against your notes."));
+          }}
+          onClose={nav.back}
+        />
+        </View>
+      )}
+    </View>
+  );
+}
+
+function DuelRoute({ nav, theme, params }: ScreenProps) {
+  const shared = useMemo(() => decodeShared(params.p || ""), [params.p]);
+  const duel = shared?.kind === "duel" ? shared.duel : null;
+  const [playing, setPlaying] = useState(false);
+  const questions = useMemo(() => (duel ? duelToStudyQuestions(duel) : []), [duel]);
+  if (!duel || !questions.length) {
+    return <RecoveryScreen title={textFor("ai.duel.invalid_title", "This challenge can't be opened")} body={textFor("ai.duel.invalid_body", "The link may be incomplete. Ask your classmate to share it again.")} nav={nav} theme={theme} />;
+  }
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <BackHeader nav={nav} theme={theme} label={textFor("ai.duel.nav_title", "Quiz Duel")} />
+      {playing ? (
+        <View style={{ flex: 1, paddingHorizontal: 16 }}><PracticeSession theme={theme} t={aiText} locale={appLocale()} mode="quiz" questions={questions} title={duel.title} origin="duel" onAnswer={() => {}} onClose={nav.back}
+          onShareScore={(score) => {
+            // Challenge back: same questions, the player's score as the new target.
+            const reply = { ...duel, score: score.total ? Math.round((score.correct / score.total) * duel.q.length) : undefined };
+            shareLink(textFor("ai.duel.share_message", "I scored {score}/{total} on {title}. Beat me:", { score: score.correct, total: score.total, title: duel.title }), duelLink(reply)).catch(() => {});
+          }}
+        /></View>
+      ) : (
+        <ScrollView contentContainerStyle={{ padding: 16, gap: 14 }}>
+          <DuelIntroCard theme={theme} t={aiText} locale={appLocale()} title={duel.title} questionCount={questions.length} targetScore={duel.score} onStart={() => setPlaying(true)} />
+        </ScrollView>
+      )}
+    </View>
+  );
+}
+
+function ForecastRoute({ data, nav, theme, openClassPack, currentImport }: ScreenProps) {
+  const liveData = useMemo(() => activeSemesterData(data), [data]);
+  // Free students see the forecast of the review they just scanned; Plus
+  // students see the live planner (plus any pending review on top).
+  const forecast = useMemo(() => {
+    const live = buildCrunchForecast(liveData, new Date(), { pending: currentImport && currentImport.status === "review" ? { ...currentImport, candidates: currentImport.candidates.filter((candidate) => candidate.approved) } : null });
+    return live;
+  }, [currentImport, liveData]);
+  const preview = !data.prefs.premium;
+  const share = useForecastShare(forecast.weeks.length ? forecast : null, theme);
+  const classes = liveData.classes.filter((klass) => !klass.archivedAt);
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <BackHeader nav={nav} theme={theme} label={textFor("ai.forecast.nav_title", "Crunch Forecast")} />
+      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
+        <ForecastSection theme={theme} t={aiText} locale={appLocale()} forecast={forecast.weeks.length ? forecast : null} mode={preview ? "preview" : "full"} onShare={share.share} onImport={() => nav.push("scan")} onUnlock={() => nav.push("paywall")} />
+        {classes.length && !preview ? (
+          <Card theme={theme} style={{ padding: 16, gap: 10 }}>
+            <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("ai.pack.section_kicker", "SHARE A CLASS PACK")}</Text>
+            <Text selectable style={{ color: theme.label2, lineHeight: 19 }}>{textFor("ai.pack.section_body", "Classmates get the same deadlines in seconds. Only dates, titles and weights are shared.")}</Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              {classes.map((klass) => (
+                <Pressable key={klass.id} accessibilityRole="button" accessibilityLabel={textFor("ai.pack.share_class", "Share {code} Class Pack", { code: klass.code })} accessibilityHint={textFor("ai.pack.class_hint", "Share this class's deadlines as a link or QR code")} onPress={() => openClassPack(klass.id)} style={{ minHeight: 44, paddingHorizontal: 14, borderRadius: 999, backgroundColor: `${klass.color}1F`, flexDirection: "row", alignItems: "center", gap: 7 }}>
+                  <Share2 color={klass.color} size={15} />
+                  <Text style={{ color: theme.label, fontWeight: "900" }}>{klass.code}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </Card>
+        ) : null}
+      </ScrollView>
+      {share.host}
     </View>
   );
 }
@@ -10802,9 +11906,9 @@ function WidgetsScreen({ data, mutate, nav, theme, recordReviewTrigger }: Screen
       <BackHeader embedded nav={nav} theme={theme} label="" />
       <Header title={textFor("widgets.title", "Widgets")} sub={data.prefs.premium ? textFor("widgets.sub_ready", "Home Screen snapshots") : textFor("widgets.sub_locked", "Locked preview")} theme={theme} />
       <View style={{ paddingHorizontal: 16, gap: 14 }}>
-        <LiquidGlassSurface tintColor={theme.dark ? "rgba(23,23,28,0.72)" : "rgba(255,255,255,0.76)"} colorScheme={theme.dark ? "dark" : "light"} style={{ borderRadius: 22, padding: 18, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF", borderWidth: 1, borderColor: theme.hairline }} fallbackStyle={{ backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
+        <LiquidGlassSurface tintColor={theme.dark ? "rgba(23,23,28,0.72)" : "rgba(255,255,255,0.76)"} colorScheme={theme.dark ? "dark" : "light"} style={{ borderRadius: 22, padding: 18, backgroundColor: theme.dark ? "#111113" : "#FFFFFF", borderWidth: 1, borderColor: theme.hairline }} fallbackStyle={{ backgroundColor: theme.dark ? "#111113" : "#FFFFFF" }}>
           <View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}>
-            <View style={{ width: 72, height: 72, borderRadius: 22, backgroundColor: "#111114", alignItems: "center", justifyContent: "center" }}><Grid2X2 color="#fff" size={30} /></View>
+            <View style={{ width: 72, height: 72, borderRadius: 22, backgroundColor: "#0A0A0A", alignItems: "center", justifyContent: "center" }}><Grid2X2 color="#fff" size={30} /></View>
             <View style={{ flex: 1 }}>
               <Text selectable style={{ color: theme.label, fontSize: 21, lineHeight: 25, fontWeight: "900" }}>{data.prefs.premium ? syncing ? textFor("widgets.syncing", "Syncing...") : widgetsUpToDate ? textFor("widgets.up_to_date_title", "Widgets are up to date") : textFor("widgets.ready_to_sync_title", "Widgets are ready to sync") : textFor("widgets.locked_title", "Unlock widgets")}</Text>
 	              <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 4 }}>{data.prefs.premium ? textFor("widgets.ready_body", "Today, upcoming deadlines, semester calendar, and class progress match your iPhone widgets after sync.") : textFor("widgets.locked_body", "Apply a syllabus and unlock to keep widgets current.")}</Text>
@@ -10841,7 +11945,7 @@ function WidgetsScreen({ data, mutate, nav, theme, recordReviewTrigger }: Screen
             <Pill text={selectedSnapshot.updatedLabel || selectedSnapshot.timelineLabel || selectedSnapshot.kind} color={COLORS.blue} theme={theme} />
           </View>
         </Card>
-        <Card theme={theme} style={{ padding: 15, gap: 12, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
+        <Card theme={theme} style={{ padding: 15, gap: 12, backgroundColor: theme.dark ? "#111113" : "#FFFFFF" }}>
           <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
             <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: `${selectedSnapshot.accentColor}1C`, alignItems: "center", justifyContent: "center" }}><Sparkles color={selectedSnapshot.accentColor} size={20} /></View>
             <View style={{ flex: 1 }}>
@@ -10862,6 +11966,30 @@ function WidgetsScreen({ data, mutate, nav, theme, recordReviewTrigger }: Screen
 
 function Profile({ data, mutate, nav, theme }: ScreenProps) {
   const liveData = activeSemesterData(data);
+  const ai = useAIAvailability();
+  const [clearingAI, setClearingAI] = useState(false);
+  const toggleAI = (next: boolean) => {
+    ai.setEnabled(next);
+    setUserAIEnabled(next).finally(() => {
+      invalidateAvailability();
+      ai.refresh();
+    });
+  };
+  const clearAIData = () => Alert.alert(
+    textFor("ai.status.clear_confirm_title", "Clear on-device AI data?"),
+    textFor("ai.status.clear_confirm_body", "Removes generated study sets, practice history, and cached results from this iPhone. Your classes, tasks, and notes stay."),
+    [
+      { text: textFor("common.cancel", "Cancel"), style: "cancel" },
+      {
+        text: textFor("ai.status.clear_action", "Clear"),
+        style: "destructive",
+        onPress: () => {
+          setClearingAI(true);
+          Promise.all([aiCache.clearAllAIData(), clearSpotlight()]).finally(() => setClearingAI(false));
+        },
+      },
+    ],
+  );
   const subscriptionAccount = Platform.OS === "android" ? textFor("profile.google_play", "Google Play") : textFor("profile.apple_account", "Apple account");
   const rows = [
     ["bell", COLORS.red, textFor("profile.reminders", "Reminders"), textFor("reminders.configured_count", "{count} configured", { count: liveData.reminders.filter((r) => r.enabled).length }), "reminders"],
@@ -10877,7 +12005,8 @@ function Profile({ data, mutate, nav, theme }: ScreenProps) {
       <Header title={textFor("tabs.profile", "Profile")} sub={textFor("profile.active_semester", "Active semester")} theme={theme} />
       <View style={{ paddingHorizontal: 16, gap: 16 }}>
         <Card theme={theme} style={{ padding: 18 }}><View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}><View style={{ width: 62, height: 62, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 26, fontWeight: "900" }}>{userInitial(data)}</Text></View><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontSize: 24, fontWeight: "900" }}>{firstNameFromPrefs(data)}</Text><Text selectable style={{ color: theme.label2 }}>{optionText(data.prefs.level)} · {optionText(data.prefs.studentPersona || "School semester")}</Text><View style={{ flexDirection: "row", gap: 6, marginTop: 6 }}><Pill text={data.prefs.premium ? textFor("profile.subscribed", "Subscribed") : textFor("profile.locked", "Locked")} color={data.prefs.premium ? COLORS.green : COLORS.orange} icon="crown" theme={theme} /><Pill text={textFor("profile.on_device", "On device")} color={COLORS.green} icon="shield" theme={theme} /></View></View></View><View style={{ marginTop: 18 }}><View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 7 }}><Text selectable style={{ color: theme.label2, fontWeight: "900" }}>{textFor("profile.semester_progress", "SEMESTER PROGRESS")}</Text><Text selectable style={{ color: theme.label2 }}>{liveData.classes.length ? textFor("profile.classes_count", "{count} classes", { count: liveData.classes.length }) : textFor("profile.no_semester", "No semester yet")}</Text></View><ProgressBar value={liveData.tasks.length ? liveData.tasks.filter((task) => task.done).length / liveData.tasks.length : 0} color={theme.accent} theme={theme} /></View></Card>
-        <Pressable accessibilityRole={data.prefs.premium ? "link" : "button"} accessibilityLabel={data.prefs.premium ? textFor("profile.manage_subscription", "Manage subscription") : textFor("locked.unlock", "Unlock StudyPlanner")} accessibilityHint={data.prefs.premium ? textFor("profile.accessibility_manage_hint", "Open subscription management for this store account") : textFor("profile.accessibility_unlock_hint", "Open StudyPlanner subscription options")} onPress={() => data.prefs.premium ? openExternal(MANAGE_SUBSCRIPTION_URL) : nav.push("paywall")}><View style={{ borderRadius: 22, padding: 18, backgroundColor: "#282139" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Crown color={COLORS.yellow} size={19} /><Text selectable style={{ color: "#fff", fontWeight: "900" }}>{textFor("profile.subscription", "StudyPlanner subscription")}</Text></View><Text selectable style={{ color: "rgba(255,255,255,.85)" }}>{textFor("profile.subscription_body", "Scans, reminders, study sets, and planning are active.")}</Text></View></Pressable>
+        <Pressable accessibilityRole={data.prefs.premium ? "link" : "button"} accessibilityLabel={data.prefs.premium ? textFor("profile.manage_subscription", "Manage subscription") : textFor("locked.unlock", "Unlock StudyPlanner")} accessibilityHint={data.prefs.premium ? textFor("profile.accessibility_manage_hint", "Open subscription management for this store account") : textFor("profile.accessibility_unlock_hint", "Open StudyPlanner subscription options")} onPress={() => data.prefs.premium ? openExternal(MANAGE_SUBSCRIPTION_URL) : nav.push("paywall")}><View style={{ borderRadius: 22, padding: 18, backgroundColor: "#0A0A0A" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Crown color={COLORS.yellow} size={19} /><Text selectable style={{ color: "#fff", fontWeight: "900" }}>{textFor("profile.subscription", "StudyPlanner subscription")}</Text></View><Text selectable style={{ color: "rgba(255,255,255,.85)" }}>{textFor("profile.subscription_body", "Scans, reminders, study sets, and planning are active.")}</Text></View></Pressable>
+        {ai.availability ? <AIStatusRow theme={theme} t={aiText} locale={ai.locale} availability={ai.availability} enabled={ai.enabled} onToggle={toggleAI} onClear={clearAIData} clearing={clearingAI} /> : null}
         <Card theme={theme} style={{ overflow: "hidden" }}>{rows.map(([icon, color, title, value, route]) => <Pressable key={`profile-row-${route}`} accessibilityRole={route === "manage" || route === "privacy" || route === "terms" || route === "support" ? "link" : "button"} accessibilityLabel={`${title}. ${value}`} accessibilityHint={route === "manage" ? textFor("profile.accessibility_manage_hint", "Open subscription management for this store account") : route === "privacy" ? textFor("paywall.accessibility_privacy_hint", "Open the privacy policy") : route === "terms" ? textFor("paywall.accessibility_terms_hint", "Open the subscription terms") : route === "support" ? textFor("paywall.accessibility_support_hint", "Open StudyPlanner support") : textFor("profile.accessibility_row_hint", "Open this setting")} onPress={() => {
           if (route === "scan") nav.tab("scan");
           else if (route === "manage") openExternal(MANAGE_SUBSCRIPTION_URL);
@@ -11029,7 +12158,7 @@ function Reminders({ data, mutate, nav, theme, params }: ScreenProps) {
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={textFor("reminders.title", "Reminders")} />
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 18 }}>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("reminders.smart", "Smart reminders")}</Text></View><Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label, lineHeight: 21 }}>{status}</Text><Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 8 }}>{localizedNarrativeText("next", semester.coachCopy.nextAction)}</Text>{shouldAddSuggestionsFirst ? <Button label={`${textFor("reminders.add_suggestions", "Add suggestions")} (${smartSuggestions.length})`} theme={theme} onPress={scheduling || updatingReminderId ? undefined : addSmart} /> : liveData.reminders.length ? <><Button label={scheduling ? textFor("reminders.scheduling", "Scheduling...") : `${hasScheduledNotifications ? textFor("reminders.refresh", "Refresh schedule") : textFor("reminders.schedule", "Schedule reminders")} (${scheduleContextCount})`} theme={theme} onPress={scheduling || scheduleContextCount === 0 ? undefined : () => { schedule().catch(() => setScheduling(false)); }} />{smartSuggestions.length ? <Button label={`${textFor("reminders.add_suggestions", "Add suggestions")} (${smartSuggestions.length})`} secondary theme={theme} onPress={scheduling || updatingReminderId ? undefined : addSmart} /> : null}</> : null}</Card>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F5F5F5" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("reminders.smart", "Smart reminders")}</Text></View><Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label, lineHeight: 21 }}>{status}</Text><Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 8 }}>{localizedNarrativeText("next", semester.coachCopy.nextAction)}</Text>{shouldAddSuggestionsFirst ? <Button label={`${textFor("reminders.add_suggestions", "Add suggestions")} (${smartSuggestions.length})`} theme={theme} onPress={scheduling || updatingReminderId ? undefined : addSmart} /> : liveData.reminders.length ? <><Button label={scheduling ? textFor("reminders.scheduling", "Scheduling...") : `${hasScheduledNotifications ? textFor("reminders.refresh", "Refresh schedule") : textFor("reminders.schedule", "Schedule reminders")} (${scheduleContextCount})`} theme={theme} onPress={scheduling || scheduleContextCount === 0 ? undefined : () => { schedule().catch(() => setScheduling(false)); }} />{smartSuggestions.length ? <Button label={`${textFor("reminders.add_suggestions", "Add suggestions")} (${smartSuggestions.length})`} secondary theme={theme} onPress={scheduling || updatingReminderId ? undefined : addSmart} /> : null}</> : null}</Card>
         <Section title={textFor("reminders.title", "Reminders")} action={scheduledReminderCount ? textFor("reminders.scheduled_count", "{count} scheduled", { count: scheduledReminderCount }) : undefined} theme={theme} />
         <Card theme={theme} style={{ overflow: "hidden" }}>
           {liveData.reminders.length ? liveData.reminders.map((r) => {

@@ -1,0 +1,28 @@
+{
+  "id": "stress-10-college-stem",
+  "name": "College STEM syllabus",
+  "source": "scripts/check-syllabus-stress.ts",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "PHYS 220 Mechanics\nMWF 10:30-11:20 Richards Hall 201\nProblem Set 2 due September 16\nLab Practical on October 2\nMidterm on October 15",
+  "gold": [
+    {
+      "title": "Problem Set 2",
+      "kind": "task",
+      "date": "2026-09-16",
+      "courseCode": "PHYS 220"
+    },
+    {
+      "title": "Lab Practical",
+      "kind": "exam",
+      "date": "2026-10-02",
+      "courseCode": "PHYS 220"
+    },
+    {
+      "title": "Midterm",
+      "kind": "exam",
+      "date": "2026-10-15",
+      "courseCode": "PHYS 220"
+    }
+  ]
+}

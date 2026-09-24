@@ -1,0 +1,612 @@
+{
+  "generatedAt": "2026-09-24T00:49:44.114Z",
+  "scope": "Fixture/preflight proof for Back-to-School 2026 widget snapshots. Native iOS Home Screen placement still requires a development or TestFlight build.",
+  "rendererAssertions": [
+    "renderer handles accented/tinted widget modes",
+    "renderer uses WidgetKit container background",
+    "renderer applies WidgetKit glass effect",
+    "renderer tightens/scales long widget text",
+    "renderer caps single-line and medium footnote text",
+    "renderer includes a real deep-link medium-widget action",
+    "renderer styles the widget link without a placeholder mutation",
+    "renderer adapts to iOS 26 detail and reduced-luminance environments"
+  ],
+  "scenarios": [
+    {
+      "name": "empty-graphite-onboarding",
+      "purpose": "Empty semester previews keep the quiet default system and expose a zero-load calendar scaffold.",
+      "themeColor": "graphite",
+      "density": "quiet",
+      "assertions": [
+        "empty-graphite-onboarding: today snapshot is present",
+        "empty-graphite-onboarding: today snapshot uses version 1",
+        "empty-graphite-onboarding: today exposes a supported app destination",
+        "empty-graphite-onboarding: today exposes a widget action label",
+        "empty-graphite-onboarding: upcoming snapshot is present",
+        "empty-graphite-onboarding: upcoming snapshot uses version 1",
+        "empty-graphite-onboarding: upcoming exposes a supported app destination",
+        "empty-graphite-onboarding: upcoming exposes a widget action label",
+        "empty-graphite-onboarding: week snapshot is present",
+        "empty-graphite-onboarding: week snapshot uses version 1",
+        "empty-graphite-onboarding: week exposes a supported app destination",
+        "empty-graphite-onboarding: week exposes a widget action label",
+        "empty-graphite-onboarding: classProgress snapshot is present",
+        "empty-graphite-onboarding: classProgress snapshot uses version 1",
+        "empty-graphite-onboarding: classProgress exposes a supported app destination",
+        "empty-graphite-onboarding: classProgress exposes a widget action label",
+        "empty-graphite-onboarding: week snapshot is canonical kind",
+        "empty-graphite-onboarding: week snapshot has seven labels",
+        "empty-graphite-onboarding: week snapshot has seven load cells",
+        "empty-graphite-onboarding: today index is a valid week cell",
+        "empty-graphite-onboarding: exam markers are valid week cells",
+        "empty-graphite-onboarding: calendar headline is present",
+        "empty-graphite-onboarding: peak-day label is present",
+        "empty onboarding uses quiet graphite accent",
+        "empty onboarding uses quiet graphite widget background",
+        "empty calendar starts with zero load",
+        "empty calendar action opens syllabus capture"
+      ],
+      "snapshots": {
+        "today": {
+          "headline": "Scan syllabus",
+          "value": "Start",
+          "detail": "Semester",
+          "footnote": "Syllabus in. Semester out.",
+          "signalLabel": "Import syllabus",
+          "timelineLabel": "Setup",
+          "updatedLabel": "Ready",
+          "accentColor": "#111827",
+          "backgroundColor": "#F7F7FA",
+          "styleLabel": "Liquid Light",
+          "densityLabel": "Quiet",
+          "progress": 0,
+          "actionLabel": "Import syllabus",
+          "openURL": "studyplanner://scan",
+          "items": []
+        },
+        "upcoming": {
+          "headline": "Build plan",
+          "value": "Start",
+          "detail": "Ready",
+          "footnote": "Syllabus in. Semester out.",
+          "signalLabel": "Next move",
+          "timelineLabel": "Setup",
+          "updatedLabel": "Ready",
+          "accentColor": "#111827",
+          "backgroundColor": "#F7F7FA",
+          "styleLabel": "Liquid Light",
+          "densityLabel": "Quiet",
+          "progress": 0,
+          "actionLabel": "Import syllabus",
+          "openURL": "studyplanner://scan",
+          "items": []
+        },
+        "week": {
+          "headline": "No schedule",
+          "value": "0",
+          "detail": "No load",
+          "footnote": "Syllabus in. Semester out.",
+          "signalLabel": "Week load",
+          "timelineLabel": "7 days",
+          "updatedLabel": "Light week",
+          "accentColor": "#111827",
+          "backgroundColor": "#F7F7FA",
+          "styleLabel": "Liquid Light",
+          "densityLabel": "Quiet",
+          "progress": 0,
+          "actionLabel": "Import syllabus",
+          "openURL": "studyplanner://scan",
+          "items": [],
+          "weekLabels": [
+            "M",
+            "T",
+            "W",
+            "T",
+            "F",
+            "S",
+            "S"
+          ],
+          "weekCounts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "examDays": [],
+          "todayIndex": 3,
+          "peakDayLabel": "Light week",
+          "calendarHeadline": "Calendar widget"
+        },
+        "classProgress": {
+          "headline": "No classes",
+          "value": "Start",
+          "detail": "Import first",
+          "footnote": "Syllabus in. Semester out.",
+          "signalLabel": "Class pulse",
+          "timelineLabel": "Class",
+          "updatedLabel": "Ready",
+          "accentColor": "#111827",
+          "backgroundColor": "#F7F7FA",
+          "styleLabel": "Liquid Light",
+          "densityLabel": "Quiet",
+          "progress": 0,
+          "actionLabel": "Import syllabus",
+          "openURL": "studyplanner://scan",
+          "items": []
+        }
+      }
+    },
+    {
+      "name": "calm-green-semester",
+      "purpose": "Normal non-danger widgets keep the existing internal theme path instead of generic semantic blue/green.",
+      "themeColor": "green",
+      "density": "balanced",
+      "assertions": [
+        "calm-green-semester: today snapshot is present",
+        "calm-green-semester: today snapshot uses version 1",
+        "calm-green-semester: today exposes a supported app destination",
+        "calm-green-semester: today exposes a widget action label",
+        "calm-green-semester: upcoming snapshot is present",
+        "calm-green-semester: upcoming snapshot uses version 1",
+        "calm-green-semester: upcoming exposes a supported app destination",
+        "calm-green-semester: upcoming exposes a widget action label",
+        "calm-green-semester: week snapshot is present",
+        "calm-green-semester: week snapshot uses version 1",
+        "calm-green-semester: week exposes a supported app destination",
+        "calm-green-semester: week exposes a widget action label",
+        "calm-green-semester: classProgress snapshot is present",
+        "calm-green-semester: classProgress snapshot uses version 1",
+        "calm-green-semester: classProgress exposes a supported app destination",
+        "calm-green-semester: classProgress exposes a widget action label",
+        "calm-green-semester: week snapshot is canonical kind",
+        "calm-green-semester: week snapshot has seven labels",
+        "calm-green-semester: week snapshot has seven load cells",
+        "calm-green-semester: today index is a valid week cell",
+        "calm-green-semester: exam markers are valid week cells",
+        "calm-green-semester: calendar headline is present",
+        "calm-green-semester: peak-day label is present",
+        "calm today uses internal green accent fixture",
+        "calm calendar uses internal green accent fixture",
+        "calm class progress uses internal green accent fixture",
+        "calm calendar uses internal green widget background fixture",
+        "calm Today action opens Today",
+        "calm calendar action opens Plan",
+        "calm class action opens Classes"
+      ],
+      "snapshots": {
+        "today": {
+          "headline": "Clear Today",
+          "value": "Clear",
+          "detail": "today",
+          "footnote": "Raise preparedness before exams.",
+          "signalLabel": "Clear today",
+          "timelineLabel": "Today",
+          "updatedLabel": "Updated 12:49 AM",
+          "accentColor": "#16A66E",
+          "backgroundColor": "#F0FFF8",
+          "styleLabel": "Liquid Light",
+          "densityLabel": "Balanced",
+          "progress": 1,
+          "actionLabel": "Today",
+          "openURL": "studyplanner://today",
+          "items": []
+        },
+        "upcoming": {
+          "headline": "Next Move",
+          "value": "Scan notes",
+          "detail": "Attention Needed",
+          "footnote": "Raise preparedness before exams.",
+          "signalLabel": "BIO 101 next",
+          "timelineLabel": "Next",
+          "updatedLabel": "Updated 12:49 AM",
+          "accentColor": "#16A66E",
+          "backgroundColor": "#F0FFF8",
+          "styleLabel": "Liquid Light",
+          "densityLabel": "Balanced",
+          "progress": 1,
+          "actionLabel": "Today",
+          "openURL": "studyplanner://today",
+          "items": []
+        },
+        "week": {
+          "headline": "Balanced week",
+          "value": "0",
+          "detail": "busy days",
+          "footnote": "Preparedness needs notes.",
+          "signalLabel": "Light week",
+          "timelineLabel": "7 days",
+          "updatedLabel": "Light week",
+          "accentColor": "#16A66E",
+          "backgroundColor": "#F0FFF8",
+          "styleLabel": "Liquid Light",
+          "densityLabel": "Balanced",
+          "progress": 1,
+          "actionLabel": "Open plan",
+          "openURL": "studyplanner://plan",
+          "items": [],
+          "weekLabels": [
+            "T",
+            "F",
+            "S",
+            "S",
+            "M",
+            "T",
+            "W"
+          ],
+          "weekCounts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "examDays": [],
+          "todayIndex": 3,
+          "peakDayLabel": "Light week",
+          "calendarHeadline": "Calendar widget"
+        },
+        "classProgress": {
+          "headline": "BIO 101",
+          "value": "Forecast",
+          "detail": "Forecast",
+          "footnote": "Stay current.",
+          "signalLabel": "up",
+          "timelineLabel": "BIO 101",
+          "updatedLabel": "Updated 12:49 AM",
+          "accentColor": "#16A66E",
+          "backgroundColor": "#F0FFF8",
+          "styleLabel": "Liquid Light",
+          "densityLabel": "Balanced",
+          "progress": 0.95,
+          "actionLabel": "Classes",
+          "openURL": "studyplanner://classes",
+          "items": []
+        }
+      }
+    },
+    {
+      "name": "exam-heavy-purple-semester",
+      "purpose": "Urgent widgets preserve red/orange warning semantics while stable widgets keep the internal theme path.",
+      "themeColor": "purple",
+      "density": "balanced",
+      "assertions": [
+        "exam-heavy-purple-semester: today snapshot is present",
+        "exam-heavy-purple-semester: today snapshot uses version 1",
+        "exam-heavy-purple-semester: today exposes a supported app destination",
+        "exam-heavy-purple-semester: today exposes a widget action label",
+        "exam-heavy-purple-semester: upcoming snapshot is present",
+        "exam-heavy-purple-semester: upcoming snapshot uses version 1",
+        "exam-heavy-purple-semester: upcoming exposes a supported app destination",
+        "exam-heavy-purple-semester: upcoming exposes a widget action label",
+        "exam-heavy-purple-semester: week snapshot is present",
+        "exam-heavy-purple-semester: week snapshot uses version 1",
+        "exam-heavy-purple-semester: week exposes a supported app destination",
+        "exam-heavy-purple-semester: week exposes a widget action label",
+        "exam-heavy-purple-semester: classProgress snapshot is present",
+        "exam-heavy-purple-semester: classProgress snapshot uses version 1",
+        "exam-heavy-purple-semester: classProgress exposes a supported app destination",
+        "exam-heavy-purple-semester: classProgress exposes a widget action label",
+        "exam-heavy-purple-semester: week snapshot is canonical kind",
+        "exam-heavy-purple-semester: week snapshot has seven labels",
+        "exam-heavy-purple-semester: week snapshot has seven load cells",
+        "exam-heavy-purple-semester: today index is a valid week cell",
+        "exam-heavy-purple-semester: exam markers are valid week cells",
+        "exam-heavy-purple-semester: calendar headline is present",
+        "exam-heavy-purple-semester: peak-day label is present",
+        "overdue today overrides theme with red urgency",
+        "overdue upcoming overrides theme with red urgency",
+        "exam-heavy calendar overrides theme with orange pressure",
+        "exam-heavy calendar exposes multiple exam markers",
+        "stable class progress keeps internal purple accent fixture",
+        "urgent Today review opens Today"
+      ],
+      "snapshots": {
+        "today": {
+          "headline": "Due Today",
+          "value": "3",
+          "detail": "due today",
+          "footnote": "Problem Set 3",
+          "signalLabel": "1 overdue",
+          "timelineLabel": "Today",
+          "updatedLabel": "Updated 12:49 AM",
+          "accentColor": "#FF453A",
+          "backgroundColor": "#FFF1F1",
+          "styleLabel": "Liquid Light",
+          "densityLabel": "Balanced",
+          "progress": 0.33999999999999997,
+          "actionLabel": "Review today",
+          "openURL": "studyplanner://today",
+          "items": [
+            {
+              "id": "t1",
+              "title": "Problem Set 3",
+              "courseCode": "CS 214",
+              "dueLabel": "Yesterday"
+            },
+            {
+              "id": "t2",
+              "title": "Lab Report: Mitosis",
+              "courseCode": "BIO 101",
+              "dueLabel": "Today"
+            }
+          ]
+        },
+        "upcoming": {
+          "headline": "Next Move",
+          "value": "Recover Problem Set 3",
+          "detail": "CS 214",
+          "footnote": "Clear the oldest risk first.",
+          "signalLabel": "1 overdue",
+          "timelineLabel": "Next",
+          "updatedLabel": "Updated 12:49 AM",
+          "accentColor": "#FF453A",
+          "backgroundColor": "#FFF1F1",
+          "styleLabel": "Liquid Light",
+          "densityLabel": "Balanced",
+          "progress": 0.8200000000000001,
+          "actionLabel": "Today",
+          "openURL": "studyplanner://today",
+          "items": [
+            {
+              "id": "t1",
+              "title": "Problem Set 3",
+              "courseCode": "CS 214",
+              "dueLabel": "Yesterday"
+            },
+            {
+              "id": "t2",
+              "title": "Lab Report: Mitosis",
+              "courseCode": "BIO 101",
+              "dueLabel": "Today"
+            },
+            {
+              "id": "t3",
+              "title": "Reaction Mechanisms Set",
+              "courseCode": "CHEM 311",
+              "dueLabel": "Today"
+            }
+          ]
+        },
+        "week": {
+          "headline": "Heavy Monday",
+          "value": "7",
+          "detail": "busy days",
+          "footnote": "Problem Set 3 Yesterday",
+          "signalLabel": "85 max/day",
+          "timelineLabel": "7 days",
+          "updatedLabel": "Peak M",
+          "accentColor": "#FF9F0A",
+          "backgroundColor": "#FFF6EA",
+          "styleLabel": "Liquid Light",
+          "densityLabel": "Balanced",
+          "progress": 0.12,
+          "actionLabel": "Open plan",
+          "openURL": "studyplanner://plan",
+          "items": [
+            {
+              "id": "t1",
+              "title": "Problem Set 3",
+              "courseCode": "CS 214",
+              "dueLabel": "Yesterday"
+            },
+            {
+              "id": "t2",
+              "title": "Lab Report: Mitosis",
+              "courseCode": "BIO 101",
+              "dueLabel": "Today"
+            }
+          ],
+          "weekLabels": [
+            "T",
+            "F",
+            "S",
+            "S",
+            "M",
+            "T",
+            "W"
+          ],
+          "weekCounts": [
+            68,
+            21,
+            45,
+            44,
+            85,
+            58,
+            58
+          ],
+          "examDays": [
+            4,
+            5,
+            6
+          ],
+          "todayIndex": 3,
+          "peakDayLabel": "Peak M",
+          "calendarHeadline": "Calendar widget"
+        },
+        "classProgress": {
+          "headline": "BIO 101",
+          "value": "Forecast",
+          "detail": "Forecast",
+          "footnote": "Prep for Biology Unit Exam 2.",
+          "signalLabel": "up",
+          "timelineLabel": "BIO 101",
+          "updatedLabel": "Updated 12:49 AM",
+          "accentColor": "#8B3DFF",
+          "backgroundColor": "#F8F2FF",
+          "styleLabel": "Liquid Light",
+          "densityLabel": "Balanced",
+          "progress": 0.91,
+          "actionLabel": "Classes",
+          "openURL": "studyplanner://classes",
+          "items": [
+            {
+              "id": "t2",
+              "title": "Lab Report: Mitosis",
+              "courseCode": "BIO 101",
+              "dueLabel": "Today"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "long-copy-pink-detailed",
+      "purpose": "Detailed widgets tolerate long student copy while relying on native line limits and text scaling.",
+      "themeColor": "pink",
+      "density": "detailed",
+      "assertions": [
+        "long-copy-pink-detailed: today snapshot is present",
+        "long-copy-pink-detailed: today snapshot uses version 1",
+        "long-copy-pink-detailed: today exposes a supported app destination",
+        "long-copy-pink-detailed: today exposes a widget action label",
+        "long-copy-pink-detailed: upcoming snapshot is present",
+        "long-copy-pink-detailed: upcoming snapshot uses version 1",
+        "long-copy-pink-detailed: upcoming exposes a supported app destination",
+        "long-copy-pink-detailed: upcoming exposes a widget action label",
+        "long-copy-pink-detailed: week snapshot is present",
+        "long-copy-pink-detailed: week snapshot uses version 1",
+        "long-copy-pink-detailed: week exposes a supported app destination",
+        "long-copy-pink-detailed: week exposes a widget action label",
+        "long-copy-pink-detailed: classProgress snapshot is present",
+        "long-copy-pink-detailed: classProgress snapshot uses version 1",
+        "long-copy-pink-detailed: classProgress exposes a supported app destination",
+        "long-copy-pink-detailed: classProgress exposes a widget action label",
+        "long-copy-pink-detailed: week snapshot is canonical kind",
+        "long-copy-pink-detailed: week snapshot has seven labels",
+        "long-copy-pink-detailed: week snapshot has seven load cells",
+        "long-copy-pink-detailed: today index is a valid week cell",
+        "long-copy-pink-detailed: exam markers are valid week cells",
+        "long-copy-pink-detailed: calendar headline is present",
+        "long-copy-pink-detailed: peak-day label is present",
+        "long-copy item reaches the upcoming widget snapshot",
+        "long-copy upcoming uses selected pink accent when not urgent",
+        "long-copy upcoming action opens Today"
+      ],
+      "snapshots": {
+        "today": {
+          "headline": "Next Deadline",
+          "value": "Tomorrow",
+          "detail": "BIO 101",
+          "footnote": "Comprehensive literature review and annotated bibliography checkpoint",
+          "signalLabel": "Clear today",
+          "timelineLabel": "Today",
+          "updatedLabel": "Updated 12:49 AM",
+          "accentColor": "#EC4899",
+          "backgroundColor": "#FFF3FA",
+          "styleLabel": "Liquid Light",
+          "densityLabel": "Detailed",
+          "progress": 0.9666666666666667,
+          "actionLabel": "Today",
+          "openURL": "studyplanner://today",
+          "items": [
+            {
+              "id": "long-copy-literature-review",
+              "title": "Comprehensive literature review and annotated bibliography checkpoint",
+              "courseCode": "BIO 101",
+              "dueLabel": "Tomorrow"
+            }
+          ]
+        },
+        "upcoming": {
+          "headline": "Next Move",
+          "value": "Scan notes",
+          "detail": "BIO 101",
+          "footnote": "Raise preparedness before exams.",
+          "signalLabel": "BIO 101 next",
+          "timelineLabel": "Next",
+          "updatedLabel": "Updated 12:49 AM",
+          "accentColor": "#EC4899",
+          "backgroundColor": "#FFF3FA",
+          "styleLabel": "Liquid Light",
+          "densityLabel": "Detailed",
+          "progress": 1,
+          "actionLabel": "Today",
+          "openURL": "studyplanner://today",
+          "items": [
+            {
+              "id": "long-copy-literature-review",
+              "title": "Comprehensive literature review and annotated bibliography checkpoint",
+              "courseCode": "BIO 101",
+              "dueLabel": "Tomorrow"
+            }
+          ]
+        },
+        "week": {
+          "headline": "Balanced week",
+          "value": "2",
+          "detail": "busy days",
+          "footnote": "Comprehensive literature review and annotated bibliography checkpoint Tomorrow",
+          "signalLabel": "34 max/day",
+          "timelineLabel": "7 days",
+          "updatedLabel": "Peak F",
+          "accentColor": "#EC4899",
+          "backgroundColor": "#FFF3FA",
+          "styleLabel": "Liquid Light",
+          "densityLabel": "Detailed",
+          "progress": 0.12,
+          "actionLabel": "Open plan",
+          "openURL": "studyplanner://plan",
+          "items": [
+            {
+              "id": "long-copy-literature-review",
+              "title": "Comprehensive literature review and annotated bibliography checkpoint",
+              "courseCode": "BIO 101",
+              "dueLabel": "Tomorrow"
+            }
+          ],
+          "weekLabels": [
+            "T",
+            "F",
+            "S",
+            "S",
+            "M",
+            "T",
+            "W"
+          ],
+          "weekCounts": [
+            20,
+            34,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "examDays": [],
+          "todayIndex": 3,
+          "peakDayLabel": "Peak F",
+          "calendarHeadline": "Calendar widget"
+        },
+        "classProgress": {
+          "headline": "BIO 101",
+          "value": "Forecast",
+          "detail": "Forecast",
+          "footnote": "Finish Comprehensive literature review and annotated bibliography checkpoint",
+          "signalLabel": "up",
+          "timelineLabel": "BIO 101",
+          "updatedLabel": "Updated 12:49 AM",
+          "accentColor": "#EC4899",
+          "backgroundColor": "#FFF3FA",
+          "styleLabel": "Liquid Light",
+          "densityLabel": "Detailed",
+          "progress": 0.91,
+          "actionLabel": "Classes",
+          "openURL": "studyplanner://classes",
+          "items": [
+            {
+              "id": "long-copy-literature-review",
+              "title": "Comprehensive literature review and annotated bibliography checkpoint",
+              "courseCode": "BIO 101",
+              "dueLabel": "Tomorrow"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

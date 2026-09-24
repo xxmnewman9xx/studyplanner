@@ -1,3 +1,4 @@
+import { startByNotificationItems } from "./startByReminders";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import { buildSemesterSnapshot } from "./intelligence";
@@ -111,10 +112,18 @@ export async function scheduleLocalReminders(data: AppData, options: ReminderSch
     const configuredById = new Map(data.reminders.map((reminder) => [reminder.id, reminder]));
     const configuredByKey = new Map(data.reminders.map((reminder) => [reminderKey(reminder), reminder]));
     const hasConfiguredReminders = data.reminders.length > 0;
-    for (const item of plan.items) {
+    // Start-by reminders follow the student's Study reminder choice.
+    const isStartByRow = (reminder: ReminderItem) => reminder.id.startsWith("r_startby:");
+    const studyRemindersOn = !hasConfiguredReminders || data.reminders.some((reminder) => reminder.kind === "Study" && reminder.enabled && !isStartByRow(reminder));
+    const startByIds = new Set<string>();
+    const startByItems = studyRemindersOn ? startByNotificationItems(data, now) : [];
+    startByItems.forEach((item) => startByIds.add(item.stableId));
+    for (const item of [...plan.items, ...startByItems]) {
       const stableReminderId = `r_${item.stableId}`;
       const configured = configuredById.get(stableReminderId) || configuredByKey.get(reminderKey(item));
-      if (hasConfiguredReminders && (!configured || !configured.enabled)) continue;
+      if (hasConfiguredReminders && !startByIds.has(item.stableId) && (!configured || !configured.enabled)) continue;
+      // A start-by row the student switched off stays off.
+      if (startByIds.has(item.stableId) && configured && !configured.enabled) continue;
       const triggerDate = new Date(item.triggerAt);
       if (triggerDate.getTime() <= Date.now() + 5000) continue;
       const notificationId = await Notifications.scheduleNotificationAsync({
@@ -122,7 +131,7 @@ export async function scheduleLocalReminders(data: AppData, options: ReminderSch
         content: {
           title: item.title,
           body: item.body,
-          data: { classId: item.classId, sourceId: item.sourceId, kind: item.kind },
+          data: { classId: item.classId, sourceId: item.sourceId, kind: item.kind, ...(startByIds.has(item.stableId) ? { startBy: true } : {}) },
         },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: triggerDate },
       });

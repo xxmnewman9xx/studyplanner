@@ -1,0 +1,16 @@
+{
+  "id": "stress-19-class-meeting",
+  "name": "Class meeting schedule",
+  "source": "scripts/check-syllabus-stress.ts",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "MATH 240 Linear Algebra\nMWF 10:30-11:20, Richards Hall 201\nProblem Set 1 due September 14",
+  "gold": [
+    {
+      "title": "Problem Set 1",
+      "kind": "task",
+      "date": "2026-09-14",
+      "courseCode": "MATH 240"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "id": "stress-20-mixed-content",
+  "name": "Mixed content",
+  "source": "scripts/check-syllabus-stress.ts",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "BIO 210 Human Biology\nProfessor Rivera, Science Hall 204. Meets Mon Wed Fri 10:00 AM.\nLate work policy: 10% per day.\nLab Report 1 due June 12, 2026 5:00 PM\nGenetics Problem Set due June 18, 2026 11:59 PM\nMidterm Exam on June 25, 2026 Room Science Hall 204\nOffice hours Tuesday 2:00 PM",
+  "gold": [
+    {
+      "title": "Lab Report 1",
+      "kind": "task",
+      "date": "2026-06-12",
+      "courseCode": "BIO 210"
+    },
+    {
+      "title": "Genetics Problem Set",
+      "kind": "task",
+      "date": "2026-06-18",
+      "courseCode": "BIO 210"
+    },
+    {
+      "title": "Midterm Exam",
+      "kind": "exam",
+      "date": "2026-06-25",
+      "courseCode": "BIO 210"
+    }
+  ],
+  "notes": "Explicit 2026 dates before now stay in 2026."
+}

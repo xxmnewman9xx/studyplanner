@@ -66,8 +66,54 @@ export function hasOneWeekIntroOffer(plan: PaywallPlan | null | undefined) {
   return (offer.periodUnit === "week" && totalUnits === 1) || (offer.periodUnit === "day" && totalUnits === 7);
 }
 
+// Free trials are configured in App Store Connect (2.2 plan: 7-day trial on the
+// annual plan only). The paywall shows one only when StoreKit reports it and
+// Apple confirms the account is eligible.
+export function hasFreeTrialOffer(plan: PaywallPlan | null | undefined) {
+  const offer = plan?.introductoryOffer;
+  if (!offer || offer.paymentMode !== "free-trial") return false;
+  return offer.periodValue * offer.periodCount > 0 && offer.periodUnit !== "unknown";
+}
+
+// Paid introductory offers of any length on any plan (e.g. $0.99 for 3 days on
+// annual, monthly and weekly). StoreKit supplies price and period; the paywall
+// shows the offer only for accounts Apple reports as eligible.
+export function hasPaidIntroOffer(plan: PaywallPlan | null | undefined) {
+  const offer = plan?.introductoryOffer;
+  if (!offer || (offer.paymentMode !== "pay-as-you-go" && offer.paymentMode !== "pay-up-front") || offer.price <= 0) return false;
+  // A multi-period pay-as-you-go offer charges displayPrice every period, so
+  // "{intro} for {days} days" would understate the cost. Show no intro copy
+  // (StoreKit's purchase sheet still states the exact terms) rather than a
+  // misleading price.
+  if (offer.paymentMode === "pay-as-you-go" && offer.periodCount > 1) return false;
+  return offer.periodValue * offer.periodCount > 0 && offer.periodUnit !== "unknown";
+}
+
+export function introOfferDays(plan: PaywallPlan | null | undefined) {
+  const offer = plan?.introductoryOffer;
+  if (!offer || offer.periodUnit === "unknown") return 0;
+  const units = offer.periodValue * offer.periodCount;
+  const perUnit = offer.periodUnit === "day" ? 1 : offer.periodUnit === "week" ? 7 : offer.periodUnit === "month" ? 30 : 365;
+  return units * perUnit;
+}
+
+export function freeTrialDays(plan: PaywallPlan | null | undefined) {
+  const offer = plan?.introductoryOffer;
+  if (!offer || !hasFreeTrialOffer(plan)) return 0;
+  const units = offer.periodValue * offer.periodCount;
+  const perUnit = offer.periodUnit === "day" ? 1 : offer.periodUnit === "week" ? 7 : offer.periodUnit === "month" ? 30 : 365;
+  return units * perUnit;
+}
+
+const CADENCE_ORDER: Record<PaywallPlan["cadence"], number> = { Yearly: 0, Monthly: 1, Weekly: 2 };
+
+// Annual first (preselected, best value), then monthly, then weekly "finals cram".
+export function orderPaywallPlans(plans: PaywallPlan[]) {
+  return [...plans].sort((a, b) => CADENCE_ORDER[a.cadence] - CADENCE_ORDER[b.cadence]);
+}
+
 export async function loadEligibleIntroOfferProductIds(plans: PaywallPlan[]) {
-  const introPlans = plans.filter(hasOneWeekIntroOffer);
+  const introPlans = plans.filter((plan) => hasOneWeekIntroOffer(plan) || hasFreeTrialOffer(plan) || hasPaidIntroOffer(plan));
   if (Platform.OS !== "ios") return introPlans.map((plan) => plan.id);
   const groupIds = [...new Set(introPlans.map((plan) => plan.subscriptionGroupId).filter((groupId): groupId is string => Boolean(groupId)))];
   if (!groupIds.length) return [];

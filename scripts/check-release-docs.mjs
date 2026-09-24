@@ -60,6 +60,7 @@ assert(reviewLower.includes("lock screen accessory families"), "App Review notes
 assert(reviewLower.includes("expo_public_studyplanner_capture_qa"), "App Review notes must include the production capture-bypass env audit");
 assert(reviewLower.includes("does not claim server-side receipt validation"), "App Review notes must not overclaim server receipt validation");
 assert(process.env.EXPO_PUBLIC_STUDYPLANNER_CAPTURE_QA !== "1", "Release QA must run without EXPO_PUBLIC_STUDYPLANNER_CAPTURE_QA=1");
+assert(process.env.EXPO_PUBLIC_STUDYPLANNER_CAPTURE_UNLOCK !== "1", "Release QA must run without EXPO_PUBLIC_STUDYPLANNER_CAPTURE_UNLOCK=1");
 
 const runtimeAndReleaseText = [
   appSource,

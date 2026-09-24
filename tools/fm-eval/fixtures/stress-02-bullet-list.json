@@ -1,0 +1,23 @@
+{
+  "id": "stress-02-bullet-list",
+  "name": "Bullet list syllabus",
+  "source": "scripts/check-syllabus-stress.ts",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "BIO 210\n- Jan 18: Read Chapter 2 due\n- Jan 25: Quiz 1",
+  "gold": [
+    {
+      "title": "Read Chapter 2",
+      "kind": "task",
+      "date": "2027-01-18",
+      "courseCode": "BIO 210"
+    },
+    {
+      "title": "Quiz 1",
+      "kind": "exam",
+      "date": "2027-01-25",
+      "courseCode": "BIO 210"
+    }
+  ],
+  "notes": "No year given; next occurrence after now (2026-08-20)."
+}

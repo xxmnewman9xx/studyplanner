@@ -1,0 +1,23 @@
+{
+  "id": "stress-01-standard-table",
+  "name": "Standard table syllabus",
+  "source": "scripts/check-syllabus-stress.ts",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "BIO 210 Human Biology\nWeek | Date | Topic | Assignment | Due\n1 | September 14 | Cells | Lab Report due September 21\n2 | September 28 | Genetics | Quiz 1",
+  "gold": [
+    {
+      "title": "Lab Report",
+      "kind": "task",
+      "date": "2026-09-21",
+      "courseCode": "BIO 210"
+    },
+    {
+      "title": "Quiz 1",
+      "kind": "exam",
+      "date": "2026-09-28",
+      "courseCode": "BIO 210"
+    }
+  ],
+  "notes": "September 14 is the lecture date for Cells, not a deliverable."
+}

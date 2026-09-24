@@ -1,0 +1,16 @@
+{
+  "id": "stress-05-date-ranges",
+  "name": "Date ranges",
+  "source": "scripts/check-syllabus-stress.ts",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "Mar 3-7: Spring Break, no class\nMar 10: Reflection due",
+  "gold": [
+    {
+      "title": "Reflection",
+      "kind": "task",
+      "date": "2027-03-10"
+    }
+  ],
+  "notes": "Spring break range is not a deliverable."
+}

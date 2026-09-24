@@ -1,0 +1,85 @@
+{
+  "id": "hand-08-cs-japanese",
+  "name": "情報科学概論 (CS 201) Japanese syllabus",
+  "source": "handwritten",
+  "locale": "ja",
+  "now": "2026-08-20",
+  "text": "情報科学概論（CS 201）シラバス　2026年度 秋学期\n担当教員：佐藤 健一　　研究室：工学部3号館 402\n授業時間：火曜日 3限（13:00〜14:30）　教室：講義棟 B201\n\n【授業の概要】\n計算機の仕組み、アルゴリズムの基礎、プログラミングの考え方を学ぶ。\n毎回の授業で小テストまたは演習を行う。\n\n【成績評価】\n課題（4回）　　　40%\n小テスト　　　　 10%\n中間試験　　　　 20%\n期末試験　　　　 30%\n\n【授業計画】\n第1回　9月29日　ガイダンス、計算機の歴史\n第2回　10月6日　2進数と情報の表現\n第3回　10月13日　論理回路　／　課題1 締切\n第4回　10月20日　計算機の構成\n第5回　10月27日　小テスト1、アルゴリズム入門\n第6回　11月3日　祝日のため休講\n第7回　11月10日　探索とソート　／　課題2 締切\n第8回　11月17日　中間試験\n第9回　11月24日　データ構造\n第10回　12月1日　プログラミング言語　／　課題3 締切\n第11回　12月8日　小テスト2、オペレーティングシステム\n第12回　12月15日　ネットワーク\n第13回　12月22日　情報セキュリティ　／　課題4 締切\n第14回　2027年1月12日　総復習\n期末試験　2027年1月19日（火）13:00〜14:30　講義棟 B201\n\n【注意事項】\n課題の提出期限は各締切日の23:59とする。\n遅れて提出した課題は減点する。",
+  "gold": [
+    {
+      "title": "課題1",
+      "kind": "task",
+      "date": "2026-10-13",
+      "courseCode": "CS 201",
+      "aliases": [
+        "assignment 1"
+      ]
+    },
+    {
+      "title": "小テスト1",
+      "kind": "exam",
+      "date": "2026-10-27",
+      "courseCode": "CS 201",
+      "aliases": [
+        "quiz 1"
+      ]
+    },
+    {
+      "title": "課題2",
+      "kind": "task",
+      "date": "2026-11-10",
+      "courseCode": "CS 201",
+      "aliases": [
+        "assignment 2"
+      ]
+    },
+    {
+      "title": "中間試験",
+      "kind": "exam",
+      "date": "2026-11-17",
+      "courseCode": "CS 201",
+      "aliases": [
+        "midterm exam",
+        "中間 exam"
+      ]
+    },
+    {
+      "title": "課題3",
+      "kind": "task",
+      "date": "2026-12-01",
+      "courseCode": "CS 201",
+      "aliases": [
+        "assignment 3"
+      ]
+    },
+    {
+      "title": "小テスト2",
+      "kind": "exam",
+      "date": "2026-12-08",
+      "courseCode": "CS 201",
+      "aliases": [
+        "quiz 2"
+      ]
+    },
+    {
+      "title": "課題4",
+      "kind": "task",
+      "date": "2026-12-22",
+      "courseCode": "CS 201",
+      "aliases": [
+        "assignment 4"
+      ]
+    },
+    {
+      "title": "期末試験",
+      "kind": "exam",
+      "date": "2027-01-19",
+      "courseCode": "CS 201",
+      "aliases": [
+        "final exam",
+        "期末 exam"
+      ]
+    }
+  ],
+  "notes": "Aliases hold the English forms normalizeGlobalAcademicText produces."
+}

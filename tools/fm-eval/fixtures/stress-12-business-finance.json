@@ -1,0 +1,28 @@
+{
+  "id": "stress-12-business-finance",
+  "name": "Business finance syllabus",
+  "source": "scripts/check-syllabus-stress.ts",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "FIN 301 Accounting for Managers\nCase Memo due 14 Sep\nGroup Project Milestone due October 10\nMidterm Exam on October 21",
+  "gold": [
+    {
+      "title": "Case Memo",
+      "kind": "task",
+      "date": "2026-09-14",
+      "courseCode": "FIN 301"
+    },
+    {
+      "title": "Group Project Milestone",
+      "kind": "task",
+      "date": "2026-10-10",
+      "courseCode": "FIN 301"
+    },
+    {
+      "title": "Midterm Exam",
+      "kind": "exam",
+      "date": "2026-10-21",
+      "courseCode": "FIN 301"
+    }
+  ]
+}

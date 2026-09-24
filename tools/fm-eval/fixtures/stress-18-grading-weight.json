@@ -1,0 +1,21 @@
+{
+  "id": "stress-18-grading-weight",
+  "name": "Grading-weight section",
+  "source": "scripts/check-syllabus-stress.ts",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "Grading: Midterm 30%, Final 35%, Homework 20%, Participation 15%.\nHomework 1 due September 14\nFinal Exam on December 10",
+  "gold": [
+    {
+      "title": "Homework 1",
+      "kind": "task",
+      "date": "2026-09-14"
+    },
+    {
+      "title": "Final Exam",
+      "kind": "exam",
+      "date": "2026-12-10"
+    }
+  ],
+  "notes": "Grading percentages are not deliverables."
+}

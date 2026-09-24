@@ -1,0 +1,65 @@
+{
+  "id": "hand-07-hist-spanish",
+  "name": "HIST 230 Spanish syllabus",
+  "source": "handwritten",
+  "locale": "es-ES",
+  "now": "2026-08-20",
+  "text": "HIST 230 — Historia de América Latina Contemporánea\nSemestre de otoño 2026 · Lunes y miércoles 11:00–12:15 · Aula 3B\nProfesora: Dra. Lucía Fernández · Correo: lfernandez@universidad.edu\nHorario de atención: martes 10:00–12:00, despacho 214\n\nDescripción del curso\nEl curso examina los procesos políticos, sociales y económicos de América Latina\ndesde las independencias hasta el presente, con énfasis en fuentes primarias.\n\nEvaluación\n- Participación y lecturas: 10%\n- Reseñas de lectura (3): 20%\n- Examen parcial: 25%\n- Ensayo final: 25%\n- Examen final: 20%\n\nCalendario de entregas y exámenes\n- Reseña de lectura 1: entrega el 14 de septiembre\n- Reseña de lectura 2: entrega el 5 de octubre\n- Examen parcial: miércoles 21 de octubre, en clase\n- Propuesta del ensayo final: entrega el 4 de noviembre\n- Reseña de lectura 3: entrega el 16 de noviembre\n- Ensayo final: entrega el 7 de diciembre\n- Examen final: 14/12/2026, 9:00–11:00\n\nPrograma semanal\nSemana 1 (24/08): Independencias y caudillismo\nSemana 2 (31/08): Economías de exportación\nSemana 3 (07/09): Feriado — no hay clase el lunes\nSemana 4 (14/09): Revolución mexicana\nSemana 5 (21/09): Populismos\nSemana 6 (28/09): Guerra Fría en la región\nSemana 7 (05/10): Revolución cubana\nSemana 8 (12/10): Día de la Raza — clase solo el miércoles\nSemana 9 (19/10): Repaso y examen parcial\nSemana 10 (26/10): Dictaduras del Cono Sur\nSemana 11 (02/11): Transiciones democráticas\nSemana 12 (09/11): Neoliberalismo\nSemana 13 (16/11): Movimientos sociales\nSemana 14 (23/11): Receso de Acción de Gracias\nSemana 15 (30/11): América Latina hoy\n\nIntegridad académica: el plagio implica la reprobación del trabajo.",
+  "gold": [
+    {
+      "title": "Reseña de lectura 1",
+      "kind": "task",
+      "date": "2026-09-14",
+      "courseCode": "HIST 230"
+    },
+    {
+      "title": "Reseña de lectura 2",
+      "kind": "task",
+      "date": "2026-10-05",
+      "courseCode": "HIST 230"
+    },
+    {
+      "title": "Examen parcial",
+      "kind": "exam",
+      "date": "2026-10-21",
+      "courseCode": "HIST 230",
+      "aliases": [
+        "exam parcial"
+      ]
+    },
+    {
+      "title": "Propuesta del ensayo final",
+      "kind": "task",
+      "date": "2026-11-04",
+      "courseCode": "HIST 230",
+      "aliases": [
+        "Propuesta del essay final"
+      ]
+    },
+    {
+      "title": "Reseña de lectura 3",
+      "kind": "task",
+      "date": "2026-11-16",
+      "courseCode": "HIST 230"
+    },
+    {
+      "title": "Ensayo final",
+      "kind": "task",
+      "date": "2026-12-07",
+      "courseCode": "HIST 230",
+      "aliases": [
+        "essay final"
+      ]
+    },
+    {
+      "title": "Examen final",
+      "kind": "exam",
+      "date": "2026-12-14",
+      "courseCode": "HIST 230",
+      "aliases": [
+        "exam final"
+      ]
+    }
+  ],
+  "notes": "Semana rows are lecture weeks; 'Repaso y examen parcial' in week 9 refers to the 21 Oct exam already listed."
+}

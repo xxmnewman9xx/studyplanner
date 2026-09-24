@@ -9,6 +9,7 @@
     "expo": "~56.0.21",
     "expo-blur": "~56.0.4",
     "expo-camera": "~56.0.8",
+    "expo-clipboard": "~56.0.4",
     "expo-document-picker": "~56.0.4",
     "expo-file-system": "~56.0.11",
     "expo-glass-effect": "~56.0.4",
@@ -16,6 +17,7 @@
     "expo-iap": "^4.3.1",
     "expo-image-picker": "~56.0.25",
     "expo-notifications": "~56.0.25",
+    "expo-sharing": "~56.0.26",
     "expo-sqlite": "~56.0.6",
     "expo-status-bar": "~56.0.4",
     "expo-store-review": "~56.0.4",
@@ -23,18 +25,22 @@
     "lucide-react-native": "^1.17.0",
     "opencc-js": "^1.4.0",
     "pako": "^2.2.0",
+    "qrcode-generator": "^2.0.4",
     "react": "19.2.3",
-    "react-dom": "19.2.3",
     "react-native": "0.85.3",
     "react-native-svg": "15.15.4",
-    "react-native-web": "^0.21.2",
+    "react-native-view-shot": "^5.1.0",
+    "studyplanner-apple-intelligence": "file:modules/studyplanner-apple-intelligence",
     "studyplanner-vision-ocr": "file:modules/studyplanner-vision-ocr",
     "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
+    "@expo/metro-runtime": "~56.0.21",
     "@types/node": "^25.9.1",
     "@types/react": "~19.2.2",
     "babel-preset-expo": "^56.0.14",
+    "react-dom": "^19.2.3",
+    "react-native-web": "^0.21.2",
     "tsx": "^4.22.4",
     "typescript": "~6.0.3"
   },
@@ -47,6 +53,8 @@
     "start:syllabus-parser": "node dist/server/syllabus-parser/server.js",
     "typecheck": "node --stack_size=8192 ./node_modules/typescript/bin/tsc --noEmit",
     "test:intelligence": "tsx scripts/check-intelligence-core.ts",
+    "test:ai-native": "tsx scripts/check-apple-intelligence-native-contract.ts",
+    "test:ai": "tsx scripts/check-apple-intelligence-core.ts && tsx scripts/check-crunch-forecast.ts && tsx scripts/check-class-pack.ts && tsx scripts/check-smart-syllabus.ts && tsx scripts/eval-extraction.ts --baseline",
     "test:semester": "tsx scripts/check-semester-snapshot.ts",
     "test:narrative": "tsx scripts/check-semester-narrative.ts",
     "test:syllabus-stress": "tsx scripts/check-syllabus-stress.ts",
@@ -67,6 +75,8 @@
     "test:widgets": "node scripts/check-widget-lock.mjs",
     "test:widget-integrity": "node scripts/check-widget-integrity.mjs",
     "test:back-to-school-widgets": "tsx scripts/check-back-to-school-widget-qa.ts",
+    "test:widget-study-now": "tsx scripts/check-widget-study-now.ts",
+    "test:app-intents": "node scripts/check-app-intents-plugin.mjs",
     "check:back-to-school-launch": "npm run check:back-to-school-remote-capture && npm run check:back-to-school-product-video && npm run plan:back-to-school-app-captures && npm run plan:back-to-school-widget-captures && npm run plan:back-to-school-supplemental-urls && npm run check:back-to-school-supplementals && npm run check:back-to-school-upload-package && npm run check:back-to-school-marketing-assets && npm run check:back-to-school-supplementals && tsx scripts/check-back-to-school-launch-readiness.ts",
     "check:back-to-school-assets": "tsx scripts/check-back-to-school-assets.ts",
     "check:back-to-school-editorial": "tsx scripts/check-back-to-school-editorial-readiness.ts",
@@ -122,7 +132,8 @@
     "check:activation-spine": "tsx scripts/check-activation-spine.ts",
     "check:semester-kickoff": "tsx scripts/check-semester-kickoff.ts",
     "check:localization": "node scripts/check-localization.mjs",
-    "qa:release": "npm run check:activation-spine && npm run check:semester-kickoff && tsx scripts/check-semester-ownership-cycle.ts && npm run test:runtime-safety && node scripts/check-release-docs.mjs && npm run check:ios-privacy && npm run check:release-media-provenance && npm run check:build52"
+    "qa:release": "npm run check:activation-spine && npm run check:semester-kickoff && tsx scripts/check-semester-ownership-cycle.ts && npm run test:runtime-safety && node scripts/check-release-docs.mjs && npm run check:ios-privacy && npm run check:release-media-provenance && npm run check:build52",
+    "test:copy-22": "tsx scripts/check-copy-22.ts"
   },
   "private": true
 }

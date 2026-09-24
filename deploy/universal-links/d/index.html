@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-kind="duel">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#111114">
+<meta name="format-detection" content="telephone=no">
+<title>StudyPlanner</title>
+<script>
+// Smart App Banner. Its "Open" button hands this exact URL (including the #payload)
+// to the installed app. Built on the device; nothing is sent anywhere.
+(function () {
+  try {
+    var u = String(location.href).replace(/[",<>\s]/g, function (c) { return encodeURIComponent(c); });
+    document.write('<meta name="apple-itunes-app" content="app-id=6766181202, app-argument=' + u + '">');
+  } catch (e) {}
+})();
+</script>
+<style>
+  :root {
+    --ink: #111114;
+    --muted: #6c6c76;
+    --soft: #f1f1f5;
+    --line: #ececf1;
+    --blue: #0a84ff;
+    --green: #34c759;
+    --orange: #ff9f0a;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: #f5f5f7;
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Segoe UI", Roboto,
+      "Helvetica Neue", "Noto Sans", "Noto Sans Arabic", "Noto Sans Devanagari", "Hiragino Sans", "Apple SD Gothic Neo",
+      "PingFang SC", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .hero {
+    background: radial-gradient(120% 90% at 85% 0%, #2a2a34 0%, #111114 58%);
+    color: #fff;
+    padding: calc(env(safe-area-inset-top) + 26px) 22px 92px;
+    border-radius: 0 0 28px 28px;
+  }
+  .wrap { max-width: 460px; margin: 0 auto; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 15px; letter-spacing: -0.01em; }
+  .mark {
+    width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center;
+    background: linear-gradient(145deg, #3d9bff, #0a64e0);
+    box-shadow: 0 6px 16px rgba(10, 132, 255, 0.35);
+  }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 30px; padding: 7px 13px; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1); font-weight: 800; font-size: 13px; letter-spacing: 0.02em;
+  }
+  .eyebrow i { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+  [data-kind="duel"] .eyebrow i { background: var(--orange); }
+  h1 {
+    font-weight: 900; font-size: clamp(31px, 8.6vw, 42px); line-height: 1.04; letter-spacing: -0.025em;
+    margin: 14px 0 12px; text-wrap: balance;
+  }
+  .lede { margin: 0; font-size: 17px; line-height: 1.45; color: rgba(255, 255, 255, 0.72); text-wrap: pretty; }
+  main { margin-top: -62px; padding: 0 16px calc(env(safe-area-inset-bottom) + 34px); }
+  .card {
+    background: #fff; color: var(--ink); border-radius: 28px; padding: 20px;
+    box-shadow: 0 1px 0 rgba(17, 17, 20, 0.04), 0 22px 48px rgba(17, 17, 20, 0.14);
+  }
+  .card + .card { margin-top: 14px; }
+  .status { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 15px; margin: 2px 2px 16px; }
+  .status .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 5px rgba(52, 199, 89, 0.16); }
+  .status.missing .dot { background: var(--orange); box-shadow: 0 0 0 5px rgba(255, 159, 10, 0.18); }
+  .status.missing { color: #8a5a00; font-weight: 800; line-height: 1.35; align-items: flex-start; }
+  .status.missing .dot { margin-top: 4px; flex: none; }
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; min-height: 58px; padding: 0 18px;
+    border: 0; border-radius: 18px; font: inherit; font-weight: 900; font-size: 17px; letter-spacing: -0.01em;
+    text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: transform 0.12s ease, opacity 0.2s ease;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+  .btn + .btn { margin-top: 10px; }
+  .btn svg { flex: none; }
+  .primary { background: var(--ink); color: #fff; }
+  .secondary { background: var(--blue); color: #fff; }
+  .tertiary { background: var(--soft); color: var(--ink); }
+  .btn[aria-disabled="true"] { opacity: 0.38; pointer-events: none; }
+  .hint { display: none; margin: 12px 4px 0; color: var(--muted); font-size: 14px; line-height: 1.45; text-align: center; }
+  .hint.show { display: block; }
+  h2 { margin: 2px 2px 14px; font-size: 19px; font-weight: 900; letter-spacing: -0.015em; }
+  ol { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+  li {
+    counter-increment: step; display: flex; align-items: center; gap: 12px; padding: 11px 0;
+    font-size: 16px; line-height: 1.35; font-weight: 600;
+  }
+  li + li { border-top: 1px solid var(--line); }
+  li::before {
+    content: counter(step); flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--ink); color: #fff; font-weight: 900; font-size: 14px;
+  }
+  .foot { display: flex; gap: 8px; align-items: flex-start; justify-content: center; margin: 22px 10px 0; color: var(--muted); font-size: 13px; line-height: 1.5; text-align: center; }
+  .foot svg { flex: none; margin-top: 2px; }
+  .toast {
+    position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 22px); transform: translate(-50%, 16px);
+    max-width: calc(100% - 32px); background: var(--ink); color: #fff; border-radius: 999px; padding: 13px 20px;
+    font-weight: 800; font-size: 15px; opacity: 0; pointer-events: none; transition: opacity 0.22s ease, transform 0.22s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  [dir="rtl"] .btn svg.flip { transform: scaleX(-1); }
+  @media (prefers-color-scheme: dark) {
+    body { background: #050507; }
+    .card { box-shadow: 0 22px 48px rgba(0, 0, 0, 0.5); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn, .toast { transition: none; }
+  }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M8 3v4M16 3v4M3.5 10h17M8.5 15l2.3 2.2L15.5 13"/></svg>
+      </span>
+      <span>StudyPlanner</span>
+    </div>
+    <div class="eyebrow"><i aria-hidden="true"></i><span data-t="eyebrow">Quiz Duel</span></div>
+    <h1 data-t="title">You've been challenged to a Quiz Duel</h1>
+    <p class="lede" data-t="body">Up to 10 practice questions from a classmate. Answer them, then send your score back.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section class="card" aria-live="polite">
+      <div class="status" id="status"><span class="dot" aria-hidden="true"></span><span id="status-text" data-t="ready">Duel ready</span></div>
+
+      <a class="btn primary" id="open" href="studyplanner://d">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="flip"><path d="M7 17 17 7M8 7h9v9"/></svg>
+        <span data-t="open">Open in StudyPlanner</span>
+      </a>
+      <a class="btn secondary" id="get" href="https://apps.apple.com/app/id6766181202?ct=duel" rel="noopener noreferrer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5 12 15.5l5-5M5 20h14"/></svg>
+        <span data-t="get">Get the app</span>
+      </a>
+      <button class="btn tertiary" id="copy" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/></svg>
+        <span data-t="copy">Copy duel</span>
+      </button>
+      <p class="hint" id="hint" data-t="didntOpen">Didn't open? Get the app first, then use Copy.</p>
+    </section>
+
+    <section class="card">
+      <h2 data-t="stepsTitle">New to StudyPlanner?</h2>
+      <ol>
+        <li data-t="step1">Tap Copy duel.</li>
+        <li data-t="step2">Get StudyPlanner from the App Store.</li>
+        <li data-t="step3">Open it and paste the duel when asked.</li>
+      </ol>
+    </section>
+
+    <p class="foot">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>
+      <span data-t="privacy">Everything is inside this link. This page never uploads or stores it.</span>
+    </p>
+    <noscript><p class="foot">Open this link on an iPhone with StudyPlanner installed, or get the app from the App Store.</p></noscript>
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+  // Everything below runs on this device only. The #fragment is never sent to a
+  // server (browsers do not transmit it) and this page makes no network requests
+  // (see the Content-Security-Policy above).
+  var KIND = document.documentElement.getAttribute("data-kind") === "duel" ? "duel" : "pack";
+  var APP_STORE = "https://apps.apple.com/app/id6766181202?ct=" + KIND;
+  var APP_PATH = KIND === "duel" ? "d" : "p";
+
+  var I18N = {
+    en: {
+      pack: { eyebrow: "Class Pack", title: "A classmate shared a class with you", body: "Deadlines, exam dates, and weights for one class, ready for your planner. No notes or syllabus text.", ready: "Pack ready", copy: "Copy pack", step1: "Tap Copy pack.", step3: "Open it and tap Paste Class Pack.", pageTitle: "Class Pack · StudyPlanner" },
+      duel: { eyebrow: "Quiz Duel", title: "You've been challenged to a Quiz Duel", body: "Up to 10 practice questions from a classmate. Answer them, then send your score back.", ready: "Duel ready", copy: "Copy duel", step1: "Tap Copy duel.", step3: "Open it and paste the duel when asked.", pageTitle: "Quiz Duel · StudyPlanner" },
+      open: "Open in StudyPlanner", get: "Get the app", copied: "Copied to clipboard.", copyFailed: "Couldn't copy. Press and hold the address bar to copy the link.",
+      stepsTitle: "New to StudyPlanner?", step2: "Get StudyPlanner from the App Store.",
+      missing: "This link is incomplete. Ask your classmate to share it again.", didntOpen: "Didn't open? Get the app first, then use Copy.",
+      privacy: "Everything is inside this link. This page never uploads or stores it."
+    },
+    ar: {
+      pack: { eyebrow: "حزمة مادة", title: "شاركك زميل مادة دراسية", body: "مواعيد التسليم وتواريخ الاختبارات والأوزان لمادة واحدة، جاهزة لمخططك. بدون ملاحظات أو نص المنهج.", ready: "الحزمة جاهزة", copy: "نسخ الحزمة", step1: "اضغط على نسخ الحزمة.", step3: "افتح التطبيق والصق الحزمة.", pageTitle: "حزمة مادة · StudyPlanner" },
+      duel: { eyebrow: "تحدي أسئلة", title: "تلقيت تحديًا في مسابقة أسئلة", body: "حتى 10 أسئلة تدريبية من زميلك. أجب عنها ثم أرسل نتيجتك.", ready: "التحدي جاهز", copy: "نسخ التحدي", step1: "اضغط على نسخ التحدي.", step3: "افتح التطبيق والصق التحدي عند الطلب.", pageTitle: "تحدي أسئلة · StudyPlanner" },
+      open: "فتح في StudyPlanner", get: "احصل على التطبيق", copied: "تم النسخ إلى الحافظة.", copyFailed: "تعذّر النسخ. اضغط مطولًا على شريط العنوان لنسخ الرابط.",
+      stepsTitle: "جديد على StudyPlanner؟", step2: "احصل على StudyPlanner من App Store.",
+      missing: "هذا الرابط غير مكتمل. اطلب من زميلك مشاركته مرة أخرى.", didntOpen: "لم يُفتح؟ احصل على التطبيق أولًا ثم استخدم النسخ.",
+      privacy: "كل شيء داخل هذا الرابط. هذه الصفحة لا ترفعه ولا تحفظه."
+    },
+    de: {
+      pack: { eyebrow: "Kurspaket", title: "Jemand aus deinem Kurs hat einen Kurs mit dir geteilt", body: "Fristen, Prüfungstermine und Gewichtungen für einen Kurs, bereit für deinen Planer. Keine Notizen und kein Kursplantext.", ready: "Paket bereit", copy: "Paket kopieren", step1: "Tippe auf „Paket kopieren“.", step3: "Öffne die App und füge das Paket ein.", pageTitle: "Kurspaket · StudyPlanner" },
+      duel: { eyebrow: "Quiz-Duell", title: "Du wurdest zu einem Quiz-Duell herausgefordert", body: "Bis zu 10 Übungsfragen von jemandem aus deinem Kurs. Beantworte sie und schick deine Punktzahl zurück.", ready: "Duell bereit", copy: "Duell kopieren", step1: "Tippe auf „Duell kopieren“.", step3: "Öffne die App und füge das Duell ein, wenn du gefragt wirst.", pageTitle: "Quiz-Duell · StudyPlanner" },
+      open: "In StudyPlanner öffnen", get: "App laden", copied: "In die Zwischenablage kopiert.", copyFailed: "Kopieren nicht möglich. Halte die Adressleiste gedrückt, um den Link zu kopieren.",
+      stepsTitle: "Neu bei StudyPlanner?", step2: "Lade StudyPlanner im App Store.",
+      missing: "Dieser Link ist unvollständig. Bitte lass ihn dir noch einmal schicken.", didntOpen: "Nichts passiert? Lade zuerst die App und nutze dann „Kopieren“.",
+      privacy: "Alles steckt in diesem Link. Diese Seite lädt nichts hoch und speichert nichts."
+    },
+    es: {
+      pack: { eyebrow: "Paquete de clase", title: "Un compañero compartió una clase contigo", body: "Entregas, fechas de examen y ponderaciones de una clase, listas para tu planificador. Sin apuntes ni texto del temario.", ready: "Paquete listo", copy: "Copiar paquete", step1: "Toca Copiar paquete.", step3: "Ábrela y pega el paquete.", pageTitle: "Paquete de clase · StudyPlanner" },
+      duel: { eyebrow: "Duelo de preguntas", title: "Te retaron a un duelo de preguntas", body: "Hasta 10 preguntas de práctica de un compañero. Respóndelas y envía tu puntuación.", ready: "Duelo listo", copy: "Copiar duelo", step1: "Toca Copiar duelo.", step3: "Ábrela y pega el duelo cuando te lo pida.", pageTitle: "Duelo de preguntas · StudyPlanner" },
+      open: "Abrir en StudyPlanner", get: "Descargar la app", copied: "Copiado al portapapeles.", copyFailed: "No se pudo copiar. Mantén pulsada la barra de direcciones para copiar el enlace.",
+      stepsTitle: "¿Nuevo en StudyPlanner?", step2: "Descarga StudyPlanner en el App Store.",
+      missing: "Este enlace está incompleto. Pide que te lo compartan de nuevo.", didntOpen: "¿No se abrió? Descarga la app primero y luego usa Copiar.",
+      privacy: "Todo está dentro de este enlace. Esta página no lo sube ni lo guarda."
+    },
+    fr: {
+      pack: { eyebrow: "Pack de cours", title: "Un camarade t’a partagé un cours", body: "Échéances, dates d’examen et pondérations d’un cours, prêtes pour ton agenda. Aucune note ni texte du plan de cours.", ready: "Pack prêt", copy: "Copier le pack", step1: "Touche Copier le pack.", step3: "Ouvre l’app et colle le pack.", pageTitle: "Pack de cours · StudyPlanner" },
+      duel: { eyebrow: "Duel de quiz", title: "On te défie en duel de quiz", body: "Jusqu’à 10 questions d’entraînement d’un camarade. Réponds-y, puis renvoie ton score.", ready: "Duel prêt", copy: "Copier le duel", step1: "Touche Copier le duel.", step3: "Ouvre l’app et colle le duel quand elle te le demande.", pageTitle: "Duel de quiz · StudyPlanner" },
+      open: "Ouvrir dans StudyPlanner", get: "Obtenir l’app", copied: "Copié dans le presse-papiers.", copyFailed: "Copie impossible. Maintiens la barre d’adresse pour copier le lien.",
+      stepsTitle: "Nouveau sur StudyPlanner ?", step2: "Télécharge StudyPlanner sur l’App Store.",
+      missing: "Ce lien est incomplet. Demande qu’on te le renvoie.", didntOpen: "Rien ne s’est passé ? Installe d’abord l’app, puis utilise Copier.",
+      privacy: "Tout est dans ce lien. Cette page ne l’envoie ni ne le stocke nulle part."
+    },
+    hi: {
+      pack: { eyebrow: "क्लास पैक", title: "एक सहपाठी ने आपके साथ एक क्लास शेयर की है", body: "एक क्लास की डेडलाइन, परीक्षा की तारीखें और वेटेज, आपके प्लानर के लिए तैयार। कोई नोट्स या सिलेबस टेक्स्ट नहीं।", ready: "पैक तैयार", copy: "पैक कॉपी करें", step1: "पैक कॉपी करें पर टैप करें।", step3: "ऐप खोलें और पैक पेस्ट करें।", pageTitle: "क्लास पैक · StudyPlanner" },
+      duel: { eyebrow: "क्विज़ ड्यूल", title: "आपको क्विज़ ड्यूल की चुनौती मिली है", body: "एक सहपाठी के 10 तक अभ्यास प्रश्न। जवाब दें और अपना स्कोर वापस भेजें।", ready: "ड्यूल तैयार", copy: "ड्यूल कॉपी करें", step1: "ड्यूल कॉपी करें पर टैप करें।", step3: "ऐप खोलें और पूछे जाने पर ड्यूल पेस्ट करें।", pageTitle: "क्विज़ ड्यूल · StudyPlanner" },
+      open: "StudyPlanner में खोलें", get: "ऐप पाएँ", copied: "क्लिपबोर्ड पर कॉपी हो गया।", copyFailed: "कॉपी नहीं हो सका। लिंक कॉपी करने के लिए एड्रेस बार को दबाकर रखें।",
+      stepsTitle: "StudyPlanner पर नए हैं?", step2: "App Store से StudyPlanner पाएँ।",
+      missing: "यह लिंक अधूरा है। अपने सहपाठी से इसे फिर से शेयर करने को कहें।", didntOpen: "नहीं खुला? पहले ऐप पाएँ, फिर कॉपी का इस्तेमाल करें।",
+      privacy: "सब कुछ इसी लिंक में है। यह पेज इसे न अपलोड करता है, न सहेजता है।"
+    },
+    ja: {
+      pack: { eyebrow: "授業パック", title: "クラスメイトが授業を共有しました", body: "1つの授業の締め切り、試験日、配点をそのままプランナーに追加できます。ノートやシラバス本文は含まれません。", ready: "パックの準備完了", copy: "パックをコピー", step1: "「パックをコピー」をタップ。", step3: "アプリを開いてパックを貼り付け。", pageTitle: "授業パック · StudyPlanner" },
+      duel: { eyebrow: "クイズ対決", title: "クイズ対決が届きました", body: "クラスメイトからの練習問題（最大10問）。解いてスコアを送り返しましょう。", ready: "対決の準備完了", copy: "対決をコピー", step1: "「対決をコピー」をタップ。", step3: "アプリを開いて、表示されたら対決を貼り付け。", pageTitle: "クイズ対決 · StudyPlanner" },
+      open: "StudyPlannerで開く", get: "アプリを入手", copied: "クリップボードにコピーしました。", copyFailed: "コピーできませんでした。アドレスバーを長押ししてリンクをコピーしてください。",
+      stepsTitle: "StudyPlannerは初めてですか？", step2: "App StoreでStudyPlannerを入手。",
+      missing: "このリンクは不完全です。もう一度共有してもらってください。", didntOpen: "開かない場合は、先にアプリを入手してからコピーを使ってください。",
+      privacy: "内容はすべてこのリンクの中にあります。このページはアップロードも保存もしません。"
+    },
+    ko: {
+      pack: { eyebrow: "수업 팩", title: "친구가 수업을 공유했어요", body: "한 수업의 마감일, 시험 날짜, 배점을 플래너에 바로 넣을 수 있어요. 노트나 강의계획서 본문은 없어요.", ready: "팩 준비 완료", copy: "팩 복사", step1: "팩 복사를 탭하세요.", step3: "앱을 열고 팩을 붙여 넣으세요.", pageTitle: "수업 팩 · StudyPlanner" },
+      duel: { eyebrow: "퀴즈 대결", title: "퀴즈 대결 도전장이 도착했어요", body: "친구가 보낸 연습 문제 최대 10개. 풀고 점수를 돌려보내세요.", ready: "대결 준비 완료", copy: "대결 복사", step1: "대결 복사를 탭하세요.", step3: "앱을 열고 안내가 나오면 대결을 붙여 넣으세요.", pageTitle: "퀴즈 대결 · StudyPlanner" },
+      open: "StudyPlanner에서 열기", get: "앱 받기", copied: "클립보드에 복사했어요.", copyFailed: "복사하지 못했어요. 주소창을 길게 눌러 링크를 복사하세요.",
+      stepsTitle: "StudyPlanner가 처음인가요?", step2: "App Store에서 StudyPlanner를 받으세요.",
+      missing: "이 링크가 완전하지 않아요. 다시 공유해 달라고 요청하세요.", didntOpen: "열리지 않나요? 먼저 앱을 받은 다음 복사를 사용하세요.",
+      privacy: "모든 내용은 이 링크 안에 있어요. 이 페이지는 업로드하거나 저장하지 않아요."
+    },
+    "pt-BR": {
+      pack: { eyebrow: "Pacote da disciplina", title: "Um colega compartilhou uma disciplina com você", body: "Prazos, datas de prova e pesos de uma disciplina, prontos para o seu planner. Sem anotações nem texto da ementa.", ready: "Pacote pronto", copy: "Copiar pacote", step1: "Toque em Copiar pacote.", step3: "Abra o app e cole o pacote.", pageTitle: "Pacote da disciplina · StudyPlanner" },
+      duel: { eyebrow: "Duelo de quiz", title: "Você foi desafiado para um duelo de quiz", body: "Até 10 questões de prática de um colega. Responda e envie sua pontuação de volta.", ready: "Duelo pronto", copy: "Copiar duelo", step1: "Toque em Copiar duelo.", step3: "Abra o app e cole o duelo quando ele pedir.", pageTitle: "Duelo de quiz · StudyPlanner" },
+      open: "Abrir no StudyPlanner", get: "Baixar o app", copied: "Copiado para a área de transferência.", copyFailed: "Não foi possível copiar. Toque e segure a barra de endereço para copiar o link.",
+      stepsTitle: "Novo no StudyPlanner?", step2: "Baixe o StudyPlanner na App Store.",
+      missing: "Este link está incompleto. Peça para compartilharem de novo.", didntOpen: "Não abriu? Baixe o app primeiro e depois use Copiar.",
+      privacy: "Tudo está dentro deste link. Esta página não envia nem guarda nada."
+    },
+    "zh-Hans": {
+      pack: { eyebrow: "课程包", title: "同学和你分享了一门课", body: "一门课的截止日期、考试日期和权重，可直接加入你的计划。不含笔记或课程大纲原文。", ready: "课程包已就绪", copy: "复制课程包", step1: "轻点“复制课程包”。", step3: "打开 App 并粘贴课程包。", pageTitle: "课程包 · StudyPlanner" },
+      duel: { eyebrow: "问答对决", title: "你收到了一场问答对决挑战", body: "同学出的最多 10 道练习题。答完后把分数发回去。", ready: "对决已就绪", copy: "复制对决", step1: "轻点“复制对决”。", step3: "打开 App，按提示粘贴对决。", pageTitle: "问答对决 · StudyPlanner" },
+      open: "在 StudyPlanner 中打开", get: "获取 App", copied: "已复制到剪贴板。", copyFailed: "无法复制。请长按地址栏复制链接。",
+      stepsTitle: "第一次用 StudyPlanner？", step2: "从 App Store 获取 StudyPlanner。",
+      missing: "此链接不完整。请让同学重新分享。", didntOpen: "没有打开？请先获取 App，再使用复制。",
+      privacy: "所有内容都在这个链接里。本页面不会上传或保存。"
+    }
+  };
+
+  function pickLocale() {
+    var list = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || "en"]);
+    for (var i = 0; i < list.length; i += 1) {
+      var tag = String(list[i] || "").toLowerCase();
+      if (tag.indexOf("pt") === 0) return "pt-BR";
+      if (tag.indexOf("zh") === 0) return "zh-Hans";
+      var base = tag.split("-")[0];
+      if (I18N[base]) return base;
+    }
+    return "en";
+  }
+
+  var locale = pickLocale();
+  var table = I18N[locale];
+  function t(key) {
+    return (table[KIND] && table[KIND][key]) || table[key] || I18N.en[KIND][key] || I18N.en[key] || "";
+  }
+
+  var root = document.documentElement;
+  root.lang = locale;
+  root.dir = locale === "ar" ? "rtl" : "ltr";
+  document.title = t("pageTitle");
+  var nodes = document.querySelectorAll("[data-t]");
+  for (var n = 0; n < nodes.length; n += 1) nodes[n].textContent = t(nodes[n].getAttribute("data-t"));
+
+  var hash = String(location.hash || "");
+  var hasPayload = /^#v\d+\.[^\s]{2,}$/.test(hash);
+
+  var open = document.getElementById("open");
+  var get = document.getElementById("get");
+  var copy = document.getElementById("copy");
+  var hint = document.getElementById("hint");
+  var toast = document.getElementById("toast");
+  get.href = APP_STORE;
+
+  if (hasPayload) {
+    // Safari keeps same-domain universal links in the browser, so the button uses the
+    // app's custom scheme with the same path and #payload. The Smart App Banner (above)
+    // also offers "Open" with the full universal link.
+    open.href = "studyplanner://" + APP_PATH + hash;
+    open.addEventListener("click", function () {
+      setTimeout(function () {
+        if (document.visibilityState === "visible") hint.className = "hint show";
+      }, 1600);
+    });
+  } else {
+    var status = document.getElementById("status");
+    status.className = "status missing";
+    document.getElementById("status-text").textContent = t("missing");
+    open.setAttribute("aria-disabled", "true");
+    open.removeAttribute("href");
+    copy.setAttribute("aria-disabled", "true");
+    copy.disabled = true;
+  }
+
+  var toastTimer = 0;
+  function showToast(message) {
+    toast.textContent = message;
+    toast.className = "toast show";
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.className = "toast"; }, 2600);
+  }
+
+  function legacyCopy(text) {
+    var area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.select();
+    area.setSelectionRange(0, text.length);
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(area);
+    return ok;
+  }
+
+  copy.addEventListener("click", function () {
+    // The full link (with #payload) is what the app's first-launch "Paste Class Pack" reads.
+    var text = String(location.href);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { showToast(t("copied")); }, function () {
+        showToast(legacyCopy(text) ? t("copied") : t("copyFailed"));
+      });
+    } else {
+      showToast(legacyCopy(text) ? t("copied") : t("copyFailed"));
+    }
+  });
+})();
+</script>
+</body>
+</html>

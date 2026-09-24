@@ -4,6 +4,8 @@ import { extractPdfTextFromBase64, PdfTextExtraction } from "./pdfText";
 
 export type PdfImportResult = PdfTextExtraction & {
   fileName: string;
+  /** Cached file:// copy, used to OCR image-only PDFs on device. */
+  uri?: string;
 };
 
 export const MAX_PDF_IMPORT_BYTES = 18 * 1024 * 1024;
@@ -46,5 +48,6 @@ export async function pickAndExtractPdf(): Promise<PdfImportResult | null> {
   return {
     ...extractPdfTextFromBase64(base64),
     fileName,
+    uri: asset.uri,
   };
 }

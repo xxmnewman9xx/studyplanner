@@ -7,6 +7,7 @@ const iapSource = read("src/iap.ts");
 const onboardingSource = appSource.slice(appSource.indexOf("function Onboarding("), appSource.indexOf("\nfunction ImportOptions("));
 const cameraScannerSource = appSource.slice(appSource.indexOf("function CameraScanner("), appSource.indexOf("\nfunction GuidedScannerDemoSurface("));
 const pasteImportSource = appSource.slice(appSource.indexOf("function PasteImport("), appSource.indexOf("\nfunction ReviewImport("));
+const reviewImportSource = appSource.slice(appSource.indexOf("function ReviewImport("), appSource.indexOf("\nfunction ApplySuccess("));
 
 const checks = [
   {
@@ -43,25 +44,40 @@ const checks = [
       appSource.includes('const showTabs = entitlementUnlocks(data, entitlementStatus)'),
   },
   {
-    name: "every onboarding source routes to paywall before scanner or import",
+    // 2.2 doctrine: importing + reviewing a syllabus (and seeing the forecast
+    // built from that review) is free; applying it to the planner is not.
+    name: "onboarding routes to free import review, never to a saved plan",
     pass:
-      onboardingSource.includes('source.scanIntent === "Paste syllabus") nav.push("paywall", { next: "paste", mode: "syllabus" })') &&
-      onboardingSource.includes('source.scanIntent === "Add manually") nav.push("paywall", { next: "paste", mode: "manual" })') &&
-      onboardingSource.includes('nav.push("paywall", { next: "scan", action: "camera" })') &&
-      !onboardingSource.includes('nav.push("cameraScanner"') &&
-      !onboardingSource.includes('nav.push("paste",'),
+      onboardingSource.includes('source.scanIntent === "Paste syllabus") nav.push("paste", { mode: "syllabus" })') &&
+      onboardingSource.includes('source.scanIntent === "Add manually") nav.push("paste", { mode: "manual" })') &&
+      onboardingSource.includes('nav.push("scan", { action: "camera" })') &&
+      !onboardingSource.includes("applyImport(") &&
+      !onboardingSource.includes("persistPlannerSnapshot"),
   },
   {
-    name: "scanner and import routes keep defensive premium guards",
+    name: "free import routes are exactly scan, camera, paste, and review",
     pass:
-      cameraScannerSource.includes("if (!data.prefs.premium)") &&
-      cameraScannerSource.includes('nav.push("paywall", { next: "scan", action: "camera" })') &&
+      appSource.includes('const FREE_IMPORT_ROUTES: Route[] = ["scan", "cameraScanner", "paste", "review"]') &&
+      appSource.includes("if (active && FREE_IMPORT_ROUTES.includes(active)) return \"preview_allowed\"") &&
+      !appSource.includes('const FREE_IMPORT_ROUTES: Route[] = ["scan", "cameraScanner", "paste", "review", "today"'),
+  },
+  {
+    name: "applying a reviewed import still requires the entitlement",
+    pass:
+      reviewImportSource.includes("if (!data.prefs.premium) {") &&
+      reviewImportSource.includes('nav.push("paywall");') &&
+      reviewImportSource.indexOf("if (!data.prefs.premium) {") < reviewImportSource.indexOf("await persistPlannerSnapshot(appliedSnapshot)"),
+  },
+  {
+    name: "notes, fast capture, and planner surfaces keep premium guards",
+    pass:
+      cameraScannerSource.includes('if (!data.prefs.premium && params.mode === "notes")') &&
       pasteImportSource.includes("const previewOnly = !data.prefs.premium") &&
-      pasteImportSource.includes('const openPasteUnlock = () => nav.push("paywall", { next: "paste", mode: requestedMode })') &&
-      pasteImportSource.includes("if (previewOnly)") &&
+      pasteImportSource.includes('const notesLocked = previewOnly && requestedMode === "notes"') &&
+      pasteImportSource.includes("if (notesLocked)") &&
       appSource.includes("const requirePremium = (paywallParams: Record<string, string>)") &&
-      appSource.includes("if (requirePremium({ next: \"scan\", action: \"pdf\" })) return") &&
-      appSource.includes('previewOnly ? requirePremium({ next: "paste", mode: "syllabus" })'),
+      appSource.includes('if (requirePremium({ next: "scan" })) return') &&
+      appSource.includes('if (mode === "notes" && requirePremium({ next: "scan" })) return'),
   },
   {
     name: "paid first-week offer is sourced from StoreKit and shown only to eligible accounts",
