@@ -438,6 +438,10 @@ const copy: Partial<Record<string, string>> = {
   "ai.exam.entry_tomorrow": "{title} कल है",
   "review.full_title": "यह रिव्यू भर गया है",
   "review.full_body": "{count} पंक्तियाँ नहीं आ सकीं (अधिकतम 80)। पहले यह रिव्यू लागू करें, फिर बाकी जोड़ें।",
+  "ai.check.kicker": "त्वरित जाँच · आपके नोट्स से",
+  "ai.check.option_hint": "यह उत्तर चुनें",
+  "ai.check.source": "आपके नोट्स से{line}: “{quote}”",
+  "ai.check.line": "पंक्ति {line}",
 };
 
 export default copy;

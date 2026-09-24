@@ -163,7 +163,7 @@ import { appStoreLink, classPackFromData, decodeShared, duelFromStudySet, duelLi
 import * as Clipboard from "expo-clipboard";
 import { useStudySets } from "./src/appleIntelligence/useStudySets";
 import { computeWeakTopics, proposeWeakTopicBlocks } from "./src/appleIntelligence/weakTopics";
-import type { PracticeResult, StudySet } from "./src/appleIntelligence/types";
+import type { PracticeResult, StudyQuestion, StudySet } from "./src/appleIntelligence/types";
 import { qrMatrix } from "./src/qrMatrix";
 
 declare const process:
@@ -11070,6 +11070,16 @@ function StudySession({ data, mutate, nav, theme, params, recordReviewTrigger }:
   const finishStarted = useRef(false);
   const semester = buildSemesterSnapshot(data);
   const pulse = semester.classPulses.find((item) => item.classId === block?.classId);
+  // Close the loop: one question from the student's own notes (cached or
+  // heuristic set — never a new model call), recorded for weak topics.
+  const checkNotes = useMemo(() => {
+    if (!block) return [];
+    const byNote = block.noteId ? data.notes.filter((note) => note.id === block.noteId) : [];
+    if (byNote.length) return byNote;
+    return (block.examId ? notesForExam(data, block.examId, block.classId) : data.notes.filter((note) => note.classId === block.classId)).slice(0, 4);
+  }, [block, data]);
+  const checkSets = useStudySets(checkNotes, data, appLocale());
+  const checkQuestion = checkSets.questions.length ? checkSets.questions[(block?.id || "").length % checkSets.questions.length] : null;
   if (!block) {
     if (params.id || data.studyBlocks.length) {
       return <RecoveryScreen title="Study block not found" body="That study block is not in this semester anymore." action={textFor("class.open_dashboard", "Open dashboard")} nav={nav} theme={theme} />;
@@ -11115,7 +11125,29 @@ function StudySession({ data, mutate, nav, theme, params, recordReviewTrigger }:
         <Card theme={theme} style={{ padding: 18 }}><View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><ClassGlyph c={c} size={50} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontSize: 22, fontWeight: "900" }}>{block.title}</Text><Text selectable style={{ color: theme.label2, marginTop: 3 }}>{localizedStudyBlockDay(block.day)} · {block.time} · {minutesLabel(block.minutes)}</Text></View></View></Card>
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#172019" : "#F1FFF6" }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.impact", "Impact")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21 }}>{c.code} {textFor("locked.preparedness", "preparedness")}. {pulse ? `${localizedPulseText("forecast", pulse.forecastLabel)} ${textFor("class.forecast", "forecast")}.` : localizedNarrativeText("detail", "Risk reduced.")}</Text></Card>
         <Card theme={theme} style={{ padding: 16 }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.goal", "Goal")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21 }}>{textFor("study.goal_body", "One item. Then recall.")}</Text></Card>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#1C1C1F" : "#F5F5F5" }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.active_recall", "Active recall")}</Text><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{textFor("study.recall_body", "Explain it without looking.")}</Text><TextInput accessibilityLabel={textFor("study.active_recall", "Active recall")} multiline value={answer} onChangeText={setAnswer} placeholder={textFor("study.recall_placeholder", "Type your recall answer...")} placeholderTextColor={theme.label3} style={{ minHeight: 120, backgroundColor: theme.surface, color: theme.label, borderRadius: 14, padding: 12, marginTop: 12, textAlignVertical: "top" }} />{responseWordCount ? <Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label2, fontWeight: "800", marginTop: 10 }}>{responseMetricLabel}</Text> : null}</Card>
+        {checkQuestion ? (
+          <QuickCheckCard
+            key={checkQuestion.id}
+            question={checkQuestion}
+            theme={theme}
+            onAnswer={(correct) => {
+              const set = Object.values(checkSets.byNote).find((item) => item.questions.some((question) => question.id === checkQuestion.id));
+              setAnswer((current) => current || "quick-check");
+              aiCache.recordPractice({
+                id: makeOwnershipId("practice"),
+                noteId: set?.noteId || "",
+                examId: block.examId,
+                classId: block.classId,
+                itemId: checkQuestion.id,
+                kind: "question",
+                concept: set?.concepts.find((value) => checkQuestion.stem.toLowerCase().includes(value.toLowerCase())) || checkQuestion.options[checkQuestion.answerIndex],
+                correct,
+                answeredAt: new Date().toISOString(),
+              }).catch(() => {});
+            }}
+          />
+        ) : null}
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#1C1C1F" : "#F5F5F5", display: checkQuestion ? "none" : "flex" }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.active_recall", "Active recall")}</Text><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{textFor("study.recall_body", "Explain it without looking.")}</Text><TextInput accessibilityLabel={textFor("study.active_recall", "Active recall")} multiline value={answer} onChangeText={setAnswer} placeholder={textFor("study.recall_placeholder", "Type your recall answer...")} placeholderTextColor={theme.label3} style={{ minHeight: 120, backgroundColor: theme.surface, color: theme.label, borderRadius: 14, padding: 12, marginTop: 12, textAlignVertical: "top" }} />{responseWordCount ? <Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label2, fontWeight: "800", marginTop: 10 }}>{responseMetricLabel}</Text> : null}</Card>
         <Button label={block.completed ? textFor("tasks.completed", "Session already complete") : answer.trim() ? textFor("study.complete", "Complete session") : textFor("study.skip_complete", "Skip recall and complete")} theme={theme} secondary={!answer.trim() || block.completed} icon="check" onPress={block.completed ? undefined : () => { if (!finish()) return; recordReviewTrigger("focus_completed"); nav.back(); }} />
       </ScrollView>
     </View>
@@ -11305,6 +11337,46 @@ function NoteDetail({ data, mutate, nav, theme, params }: ScreenProps) {
         <Button label={textFor("note.delete", "Delete note")} theme={theme} secondary icon="trash" onPress={deleteNote} />
       </ScrollView>
     </View>
+  );
+}
+
+function QuickCheckCard({ question, theme, onAnswer }: { question: StudyQuestion; theme: ReturnType<typeof palette>; onAnswer: (correct: boolean) => void }) {
+  const [picked, setPicked] = useState<number | null>(null);
+  const answered = picked !== null;
+  return (
+    <Card theme={theme} style={{ padding: 16, gap: 10 }}>
+      <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("ai.check.kicker", "QUICK CHECK · FROM YOUR NOTES")}</Text>
+      <Text selectable style={{ color: theme.label, fontSize: 17, lineHeight: 23, fontWeight: "900" }}>{question.stem}</Text>
+      {question.options.map((option, index) => {
+        const isAnswer = index === question.answerIndex;
+        const chosen = picked === index;
+        const tone = answered && isAnswer ? COLORS.green : answered && chosen ? COLORS.red : null;
+        return (
+          <Pressable
+            key={`${question.id}-${index}`}
+            accessibilityRole="button"
+            accessibilityLabel={option}
+            accessibilityHint={textFor("ai.check.option_hint", "Choose this answer")}
+            accessibilityState={{ disabled: answered, selected: chosen }}
+            disabled={answered}
+            onPress={() => {
+              tap();
+              setPicked(index);
+              onAnswer(isAnswer);
+            }}
+            style={{ minHeight: 46, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: tone || theme.hairline, backgroundColor: tone ? `${tone}14` : theme.surface2, flexDirection: "row", alignItems: "center", gap: 10 }}
+          >
+            <Text style={{ color: theme.label, flex: 1, fontWeight: "800" }}>{option}</Text>
+            {answered && isAnswer ? <CheckCircle2 color={COLORS.green} size={18} /> : answered && chosen ? <X color={COLORS.red} size={18} /> : null}
+          </Pressable>
+        );
+      })}
+      {answered ? (
+        <Text selectable style={{ color: theme.label2, lineHeight: 19 }}>
+          {textFor("ai.check.source", "From your notes{line}: “{quote}”", { line: question.source.line ? ` · ${textFor("ai.check.line", "line {line}", { line: question.source.line })}` : "", quote: question.source.quote })}
+        </Text>
+      ) : null}
+    </Card>
   );
 }
 

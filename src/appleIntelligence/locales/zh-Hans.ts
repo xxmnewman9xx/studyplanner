@@ -438,6 +438,10 @@ const copy: Partial<Record<string, string>> = {
   "ai.exam.entry_tomorrow": "{title} 就在明天",
   "review.full_title": "此检查列表已满",
   "review.full_body": "有 {count} 行未能加入（最多 80 行）。请先应用本次检查，再添加其余内容。",
+  "ai.check.kicker": "快速检测 · 来自你的笔记",
+  "ai.check.option_hint": "选择此答案",
+  "ai.check.source": "来自你的笔记{line}：“{quote}”",
+  "ai.check.line": "第 {line} 行",
 };
 
 export default copy;

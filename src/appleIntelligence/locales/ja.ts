@@ -438,6 +438,10 @@ const copy: Partial<Record<string, string>> = {
   "ai.exam.entry_tomorrow": "{title}は明日",
   "review.full_title": "この確認リストはいっぱいです",
   "review.full_body": "{count}件が入りませんでした（最大80件）。この内容を反映してから残りを追加してください。",
+  "ai.check.kicker": "クイックチェック・あなたのノートから",
+  "ai.check.option_hint": "この答えを選ぶ",
+  "ai.check.source": "あなたのノートより{line}：「{quote}」",
+  "ai.check.line": "{line}行目",
 };
 
 export default copy;
