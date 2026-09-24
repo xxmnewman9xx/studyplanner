@@ -42,7 +42,7 @@ assert.match(appSource, /const PHOTO_PERMISSION_COPY: Record<SupportedLocale/, "
 assert.match(reviewImport, /adjustsFontSizeToFit minimumFontScale=\{0\.72\}[\s\S]*\{metric\.label\}/, "Review summary labels must remain readable without truncation");
 assert.match(reviewImport, /label=\{[^\n]*textFor\("review\.approve", "Approve trusted"\)[^\n]*\}[^\n]+onPress=\{highConfidenceCount \? approveTrusted : undefined\}/, "Review trusted-item CTA must keep a readable label and disable at zero trusted items");
 assert.match(reviewImport, /textFor\("review\.existing_found", "Existing item found"\)/, "Reconciliation rows must distinguish an existing match from low-confidence extraction");
-assert.match(reviewImport, /return trusted \? \{ \.\.\.candidate, approved: true \} : candidate;/, "Approve trusted must preserve manual approval choices on non-trusted rows");
+assert.match(reviewImport, /(?:return trusted|isTrustedRow\(candidate, trustedClassIds\)) \? \{ \.\.\.candidate, approved: true \} : candidate/, "Approve trusted must preserve manual approval choices on non-trusted rows");
 assert.match(reviewImport, /textFor\("review\.apply", "Apply approved items \(\{count\}\)", \{ count: approvedCount \}\)/, "Review apply CTA must disclose the exact approved row count without claiming a content type");
 
 assert.match(widgets, /const widgetsUpToDate = manualSyncStatus\?\.state === "synced";/, "Only a current confirmed native sync may claim widgets are up to date");

@@ -10423,21 +10423,22 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
     }
     updatePayload(item, { dueDate: clean, missing: false, invalidDate: undefined });
   };
+  // One definition of "trusted" shared by the button's count and its action,
+  // so "Approve trusted (N)" approves exactly N rows.
+  const trustedClassIdSet = () => new Set(batch.candidates
+    .filter((candidate) => candidate.kind === "class" && candidate.confidence >= 0.85 && !requiresResolvedTitle(candidate) && !requiresResolvedTime(candidate))
+    .map(candidateClassId)
+    .filter(Boolean));
+  const isTrustedRow = (candidate: ImportCandidate, trustedClassIds: Set<string>) => candidate.confidence >= 0.85
+    && !requiresResolvedTitle(candidate)
+    && !requiresResolvedDate(candidate)
+    && !requiresResolvedTime(candidate)
+    && !requiresResolvedOwner(candidate, trustedClassIds);
   const approveTrusted = () => {
-    const trustedClassIds = new Set(batch.candidates
-      .filter((candidate) => candidate.kind === "class" && candidate.confidence >= 0.85 && !requiresResolvedTitle(candidate) && !requiresResolvedTime(candidate))
-      .map(candidateClassId)
-      .filter(Boolean));
+    const trustedClassIds = trustedClassIdSet();
     setCurrentImport({
       ...batch,
-      candidates: batch.candidates.map((candidate) => {
-        const trusted = candidate.confidence >= 0.85
-          && !requiresResolvedTitle(candidate)
-          && !requiresResolvedDate(candidate)
-          && !requiresResolvedTime(candidate)
-          && !requiresResolvedOwner(candidate, trustedClassIds);
-        return trusted ? { ...candidate, approved: true } : candidate;
-      }),
+      candidates: batch.candidates.map((candidate) => isTrustedRow(candidate, trustedClassIds) ? { ...candidate, approved: true } : candidate),
     });
   };
   const removeCandidate = (item: ImportCandidate) => Alert.alert(
@@ -10523,7 +10524,8 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
     || requiresResolvedOwner(candidate, currentApprovedClassIds);
   const approved = batch.candidates.filter((candidate) => candidate.approved && !candidateIsBlocked(candidate));
   const approvedCount = approved.length;
-  const highConfidenceCount = batch.candidates.filter((candidate) => candidate.confidence >= 0.85 && !candidateIsBlocked(candidate)).length;
+  const trustedClassIdsNow = trustedClassIdSet();
+  const highConfidenceCount = batch.candidates.filter((candidate) => isTrustedRow(candidate, trustedClassIdsNow)).length;
   const unresolvedCount = batch.candidates.filter((candidate) => !candidate.approved || candidateIsBlocked(candidate)).length;
   const classesFound = approved.filter((candidate) => candidate.kind === "class").length;
   const assignmentsFound = approved.filter((candidate) => candidate.kind === "task").length;
