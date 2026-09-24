@@ -132,7 +132,8 @@
     "check:activation-spine": "tsx scripts/check-activation-spine.ts",
     "check:semester-kickoff": "tsx scripts/check-semester-kickoff.ts",
     "check:localization": "node scripts/check-localization.mjs",
-    "qa:release": "npm run check:activation-spine && npm run check:semester-kickoff && tsx scripts/check-semester-ownership-cycle.ts && npm run test:runtime-safety && node scripts/check-release-docs.mjs && npm run check:ios-privacy && npm run check:release-media-provenance && npm run check:build52"
+    "qa:release": "npm run check:activation-spine && npm run check:semester-kickoff && tsx scripts/check-semester-ownership-cycle.ts && npm run test:runtime-safety && node scripts/check-release-docs.mjs && npm run check:ios-privacy && npm run check:release-media-provenance && npm run check:build52",
+    "test:copy-22": "tsx scripts/check-copy-22.ts"
   },
   "private": true
 }
