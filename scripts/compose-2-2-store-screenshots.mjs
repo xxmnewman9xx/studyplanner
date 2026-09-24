@@ -14,7 +14,7 @@
 // Honesty rules baked in: "Apple Intelligence" stays in English, appears only as
 // a referential line on the hero, never in zh-Hans / hi / ar, and always with
 // the device-requirement footnote. No Apple logos.
-import { mkdirSync, existsSync } from "node:fs";
+import { mkdirSync, existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { createRequire } from "node:module";
 
@@ -42,7 +42,7 @@ const SLIDES = [
   { id: "01-semester", capture: { tab: "today", qaState: "examHeavy" } },
   { id: "02-crunch-forecast", capture: { screen: "forecast", qaState: "examHeavy" } },
   { id: "03-exam-mode", capture: { screen: "practiceQuiz", qaState: "build57" } },
-  { id: "04-scan-anything", capture: { onboardingIndex: 2, emptyPlanner: true } },
+  { id: "04-scan-anything", capture: { onboardingIndex: 2, onboardingProfile: true, emptyPlanner: true } },
 ];
 // Extra raw screens for App Preview / hero editing (captured, not composed).
 const RAW_EXTRA = [
@@ -81,11 +81,15 @@ async function captureScreens(browser, captureDir) {
       mkdirSync(join(captureDir, locale), { recursive: true });
       const page = await context.newPage();
       const config = encodeURIComponent(JSON.stringify({ ...slide.capture, locale }));
-      await page.goto(`${args["capture-url"]}/capture?config=${config}`, { waitUntil: "networkidle" }).catch(() => {});
+      const response = await page.goto(`${args["capture-url"]}/capture?config=${config}`, { waitUntil: "networkidle" });
+      if (!response || !response.ok()) throw new Error(`Capture ${locale}/${slide.id}: ${args["capture-url"]} answered ${response?.status() ?? "nothing"}`);
       await page.addStyleTag({ url: FONT_CSS }).catch(() => {});
       await page.addStyleTag({ content: `* { font-family: ${fontStack(lang)} !important; }` });
       await page.evaluate(() => document.fonts.ready);
       await page.waitForTimeout(1600);
+      // A blank or error page must fail the run, never become a store screenshot.
+      const visibleText = (await page.evaluate(() => document.body?.innerText || "")).trim();
+      if (visibleText.length < 20) throw new Error(`Capture ${locale}/${slide.id} rendered no app content`);
       await page.screenshot({ path: out });
       await page.close();
     }
@@ -118,7 +122,7 @@ function slideHtml({ lang, rtl, index, screenPath, aiAllowed }) {
     .foot{position:absolute;bottom:40px;left:90px;right:90px;text-align:center;font-size:24px;line-height:1.35;color:#8E8E93;background:rgba(255,255,255,0.92);padding:12px 18px;border-radius:18px}
   </style></head><body>
     <div class="top">${kicker}${stars}<h1>${copy.h[index]}</h1><p>${copy.s[index]}</p>${trust}</div>
-    <div class="phone"><div class="screen"><img src="file://${screenPath}"><div class="status"><span>9:41</span><span class="icons"><i class="sig"></i><i class="bat"></i></span></div><div class="island"></div></div></div>
+    <div class="phone"><div class="screen"><img src="data:image/png;base64,${readFileSync(screenPath).toString("base64")}"><div class="status"><span>9:41</span><span class="icons"><i class="sig"></i><i class="bat"></i></span></div><div class="island"></div></div></div>
     ${foot}
   </body></html>`;
 }
