@@ -1,0 +1,29 @@
+{
+  "id": "stress-11-humanities",
+  "name": "Humanities syllabus",
+  "source": "scripts/check-syllabus-stress.ts",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "HIST 180 Modern History\nReading Response due September 14\nEssay 1 due October 3\nPresentation on November 8",
+  "gold": [
+    {
+      "title": "Reading Response",
+      "kind": "task",
+      "date": "2026-09-14",
+      "courseCode": "HIST 180"
+    },
+    {
+      "title": "Essay 1",
+      "kind": "task",
+      "date": "2026-10-03",
+      "courseCode": "HIST 180"
+    },
+    {
+      "title": "Presentation",
+      "kind": "task",
+      "date": "2026-11-08",
+      "courseCode": "HIST 180"
+    }
+  ],
+  "notes": "Presentations are labeled task (deliverable), matching analyzeSyllabus conventions."
+}

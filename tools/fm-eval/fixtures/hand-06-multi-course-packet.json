@@ -1,0 +1,107 @@
+{
+  "id": "hand-06-multi-course-packet",
+  "name": "Three courses in one cohort packet",
+  "source": "handwritten",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "First-Year Science Cohort — Fall 2026 Course Packet\nKeep this page: it lists every graded deadline for your three cohort courses.\n\nBIO 150 Principles of Biology · MWF 10:00 AM · Life Sciences 120\nInstructor: Dr. Ramos\nLab reports are due at the start of your lab section.\n- Lab Report 1 (microscopy) due September 11\n- Quiz 1 on September 18\n- Lab Report 2 (enzymes) due October 2\n- Midterm Exam on October 16\n- Lab Report 3 (genetics) due November 6\n- Final Exam on December 11, 10:30 AM\n\nCHEM 101 General Chemistry I · TR 8:00 AM · Chemistry 200\nInstructor: Prof. Nguyen\nWeekly online problem sets close Mondays at 9:00 AM.\n- Exam 1: September 24\n- Exam 2: October 22\n- Exam 3: November 19\n- Lab notebook check due December 3\n- Final Exam: December 14, 8:00 AM\n\nHIST 110 World Civilizations · TR 1:00 PM · Humanities 301\nInstructor: Dr. Castillo\n- Map quiz on September 10\n- Primary source analysis due October 1\n- Midterm essay due October 29\n- Museum visit reflection due November 12\n- Final paper due December 8\n\nCohort events\n- Study skills workshop: September 2, 6:00 PM (optional)\n- Advising week: October 19-23, no assignments due\n- Thanksgiving recess: November 25-29",
+  "gold": [
+    {
+      "title": "Lab Report 1",
+      "kind": "task",
+      "date": "2026-09-11",
+      "courseCode": "BIO 150"
+    },
+    {
+      "title": "Quiz 1",
+      "kind": "exam",
+      "date": "2026-09-18",
+      "courseCode": "BIO 150"
+    },
+    {
+      "title": "Lab Report 2",
+      "kind": "task",
+      "date": "2026-10-02",
+      "courseCode": "BIO 150"
+    },
+    {
+      "title": "Midterm Exam",
+      "kind": "exam",
+      "date": "2026-10-16",
+      "courseCode": "BIO 150"
+    },
+    {
+      "title": "Lab Report 3",
+      "kind": "task",
+      "date": "2026-11-06",
+      "courseCode": "BIO 150"
+    },
+    {
+      "title": "Final Exam",
+      "kind": "exam",
+      "date": "2026-12-11",
+      "courseCode": "BIO 150"
+    },
+    {
+      "title": "Exam 1",
+      "kind": "exam",
+      "date": "2026-09-24",
+      "courseCode": "CHEM 101"
+    },
+    {
+      "title": "Exam 2",
+      "kind": "exam",
+      "date": "2026-10-22",
+      "courseCode": "CHEM 101"
+    },
+    {
+      "title": "Exam 3",
+      "kind": "exam",
+      "date": "2026-11-19",
+      "courseCode": "CHEM 101"
+    },
+    {
+      "title": "Lab notebook check",
+      "kind": "task",
+      "date": "2026-12-03",
+      "courseCode": "CHEM 101"
+    },
+    {
+      "title": "Final Exam",
+      "kind": "exam",
+      "date": "2026-12-14",
+      "courseCode": "CHEM 101"
+    },
+    {
+      "title": "Map quiz",
+      "kind": "exam",
+      "date": "2026-09-10",
+      "courseCode": "HIST 110"
+    },
+    {
+      "title": "Primary source analysis",
+      "kind": "task",
+      "date": "2026-10-01",
+      "courseCode": "HIST 110"
+    },
+    {
+      "title": "Midterm essay",
+      "kind": "task",
+      "date": "2026-10-29",
+      "courseCode": "HIST 110"
+    },
+    {
+      "title": "Museum visit reflection",
+      "kind": "task",
+      "date": "2026-11-12",
+      "courseCode": "HIST 110"
+    },
+    {
+      "title": "Final paper",
+      "kind": "task",
+      "date": "2026-12-08",
+      "courseCode": "HIST 110"
+    }
+  ],
+  "notes": "The optional workshop is not graded and is excluded."
+}

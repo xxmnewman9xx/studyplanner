@@ -1,0 +1,25 @@
+{
+  "id": "stress-04-multiple-dates-per-line",
+  "name": "Multiple dates per line",
+  "source": "scripts/check-syllabus-stress.ts",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "Feb 1: Homework 1 due; Feb 8: Quiz 1; Feb 15: Exam 1",
+  "gold": [
+    {
+      "title": "Homework 1",
+      "kind": "task",
+      "date": "2027-02-01"
+    },
+    {
+      "title": "Quiz 1",
+      "kind": "exam",
+      "date": "2027-02-08"
+    },
+    {
+      "title": "Exam 1",
+      "kind": "exam",
+      "date": "2027-02-15"
+    }
+  ]
+}

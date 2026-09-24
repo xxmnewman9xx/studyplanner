@@ -1,0 +1,71 @@
+{
+  "id": "hand-09-bio-noisy-ocr",
+  "name": "BIO 220 noisy OCR scan",
+  "source": "handwritten",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "BI0 220  CELL BI0LOGY   Fa11 2026\nlnstructor: Dr. M. Petrov    Rm: Sci 3O4    MWF l0:00\n0ffice hrs: Thurs 2-4\n\nGrad1ng:  Lab rep0rts 25%  Quizzes l0%  Midterm 25%  Fina1 40%\n\nSCHEDULE (tentative)\nWk 1   Aug 24    lntro to ce1ls\nWk 2   Aug 3l    Membranes             Lab Rep0rt 1 due Sept 4\nWk 3   Sep 7     N0 CLASS - Lab0r Day\nWk 4   Sep l4    Transp0rt             Quiz 1 on Sep 16\nWk 5   Sep 21    Cytoske1eton          Lab Report 2 due Sep 25\nWk 6   Sep 28    Cell cyc1e\nWk 7   Oct 5     Mit0sis               Quiz 2 on 0ct 7\nWk 8   Oct 12    MIDTERM  Oct 14\nWk 9   Oct 19    Signa1ing             Lab Rep0rt 3 due 0ct 23\nWk 10  Oct 26    Apoptosis\nWk 11  Nov 2     Stem ce11s            Quiz 3 on Nov 4\nWk 12  Nov 9     Cance r bi0logy        Lab Report 4 due Nov l3\nWk 13  Nov 16    Review\nWk 14  Nov 23    THANKSG1VING\nWk 15  Nov 30    Tissue engineering\nFINAL EXAM  Dec 9  8-l0 AM\n\npg 2\nLab rep0rts must be uploaded to Canvas by 5 PM on the due date.\nMissed quizzes cannot be made up excep t with d0cumentation.\nBring a lab c0at and g0ggles to every lab sessi0n.\nExam rev1ew sessi0ns will be posted on Canvas.\nTextb00k: Alberts, Molecular Bi0logy of the Ce11, 7th ed.",
+  "gold": [
+    {
+      "title": "Lab Report 1",
+      "kind": "task",
+      "date": "2026-09-04",
+      "courseCode": "BIO 220",
+      "aliases": [
+        "Lab Rep0rt 1"
+      ]
+    },
+    {
+      "title": "Quiz 1",
+      "kind": "exam",
+      "date": "2026-09-16",
+      "courseCode": "BIO 220"
+    },
+    {
+      "title": "Lab Report 2",
+      "kind": "task",
+      "date": "2026-09-25",
+      "courseCode": "BIO 220"
+    },
+    {
+      "title": "Quiz 2",
+      "kind": "exam",
+      "date": "2026-10-07",
+      "courseCode": "BIO 220"
+    },
+    {
+      "title": "Midterm",
+      "kind": "exam",
+      "date": "2026-10-14",
+      "courseCode": "BIO 220"
+    },
+    {
+      "title": "Lab Report 3",
+      "kind": "task",
+      "date": "2026-10-23",
+      "courseCode": "BIO 220",
+      "aliases": [
+        "Lab Rep0rt 3"
+      ]
+    },
+    {
+      "title": "Quiz 3",
+      "kind": "exam",
+      "date": "2026-11-04",
+      "courseCode": "BIO 220"
+    },
+    {
+      "title": "Lab Report 4",
+      "kind": "task",
+      "date": "2026-11-13",
+      "courseCode": "BIO 220"
+    },
+    {
+      "title": "Final Exam",
+      "kind": "exam",
+      "date": "2026-12-09",
+      "courseCode": "BIO 220"
+    }
+  ],
+  "notes": "OCR letter/digit swaps (0ct, l3) are read as a human would read them."
+}

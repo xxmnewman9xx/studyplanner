@@ -1,0 +1,25 @@
+{
+  "id": "stress-16-pdf-extraction-artifacts",
+  "name": "PDF extraction artifacts",
+  "source": "scripts/check-syllabus-stress.ts",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "BIO 210 Syllabus Page 1\nLab Re-\nport due September 21\nBIO 210 Syllabus Page 2\nQuiz 1 on September 28\n2",
+  "gold": [
+    {
+      "title": "Lab Report",
+      "kind": "task",
+      "date": "2026-09-21",
+      "courseCode": "BIO 210",
+      "aliases": [
+        "Lab Re- port"
+      ]
+    },
+    {
+      "title": "Quiz 1",
+      "kind": "exam",
+      "date": "2026-09-28",
+      "courseCode": "BIO 210"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "id": "stress-15-bad-ocr",
+  "name": "Bad OCR text",
+  "source": "scripts/check-syllabus-stress.ts",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "B10 21O humam bio lab rep0rt due 9/14 quizl on 9/21 pr0blem set due 9 / 28",
+  "gold": [
+    {
+      "title": "Lab report",
+      "kind": "task",
+      "date": "2026-09-14",
+      "aliases": [
+        "lab rep0rt"
+      ]
+    },
+    {
+      "title": "Quiz 1",
+      "kind": "exam",
+      "date": "2026-09-21",
+      "aliases": [
+        "quizl"
+      ]
+    },
+    {
+      "title": "Problem set",
+      "kind": "task",
+      "date": "2026-09-28",
+      "aliases": [
+        "pr0blem set"
+      ]
+    }
+  ]
+}

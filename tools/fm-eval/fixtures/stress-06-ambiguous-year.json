@@ -1,0 +1,20 @@
+{
+  "id": "stress-06-ambiguous-year",
+  "name": "Ambiguous year",
+  "source": "scripts/check-syllabus-stress.ts",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "Due 9/14: Problem Set 1\nQuiz 1 on 9/21",
+  "gold": [
+    {
+      "title": "Problem Set 1",
+      "kind": "task",
+      "date": "2026-09-14"
+    },
+    {
+      "title": "Quiz 1",
+      "kind": "exam",
+      "date": "2026-09-21"
+    }
+  ]
+}

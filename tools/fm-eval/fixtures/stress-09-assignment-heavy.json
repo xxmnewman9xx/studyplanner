@@ -1,0 +1,35 @@
+{
+  "id": "stress-09-assignment-heavy",
+  "name": "Assignment-heavy syllabus",
+  "source": "scripts/check-syllabus-stress.ts",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "Problem Set 1 due 9/14\nLab Report due 9/21\nDiscussion Post due 9/28\nProject Milestone due 10/5\nReflection due 10/12",
+  "gold": [
+    {
+      "title": "Problem Set 1",
+      "kind": "task",
+      "date": "2026-09-14"
+    },
+    {
+      "title": "Lab Report",
+      "kind": "task",
+      "date": "2026-09-21"
+    },
+    {
+      "title": "Discussion Post",
+      "kind": "task",
+      "date": "2026-09-28"
+    },
+    {
+      "title": "Project Milestone",
+      "kind": "task",
+      "date": "2026-10-05"
+    },
+    {
+      "title": "Reflection",
+      "kind": "task",
+      "date": "2026-10-12"
+    }
+  ]
+}

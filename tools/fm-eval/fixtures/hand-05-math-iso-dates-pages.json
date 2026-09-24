@@ -1,0 +1,89 @@
+{
+  "id": "hand-05-math-iso-dates-pages",
+  "name": "MATH 221 ISO dates across page markers",
+  "source": "handwritten",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "MATH 221 — Linear Algebra with Applications                        Page 1 of 3\nFall 2026 | Lectures TR 9:30-10:45 AM | Science Center 105\nInstructor: Dr. Hannah Brooks | hbrooks@college.edu\n\nCourse Description\nSystems of linear equations, matrices, vector spaces, linear transformations,\neigenvalues and eigenvectors, orthogonality, and least squares, with applications.\n\nRequired Materials\nLay, Lay & McDonald, Linear Algebra and Its Applications, 6th ed.\nWeBWorK online homework access (free through the course site).\n\nGrading Policy\nOnline homework (WeBWorK) 15%, Written homework 15%, Quizzes 10%,\nExam 1 15%, Exam 2 15%, Final Exam 30%.\nGrades: A 93-100, A- 90-92, B+ 87-89, B 83-86, B- 80-82, C+ 77-79, C 70-76, D 60-69.\n\nMATH 221 Syllabus                                                   Page 2 of 3\nImportant Dates\n2026-09-03  Written Homework 1 due\n2026-09-10  Quiz 1 (Sections 1.1-1.5)\n2026-09-17  Written Homework 2 due\n2026-09-24  Quiz 2 (Sections 1.7-2.3)\n2026-10-01  Written Homework 3 due\n2026-10-08  Exam 1 (Chapters 1-2)\n2026-10-15  No class: Fall recess\n2026-10-22  Written Homework 4 due\n2026-10-29  Quiz 3 (Sections 4.1-4.6)\n2026-11-05  Written Homework 5 due\n2026-11-12  Exam 2 (Chapters 3-5)\n2026-11-19  Written Homework 6 due\n2026-11-26  Thanksgiving: no class\n2026-12-03  Quiz 4 (Chapter 6)\n2026-12-15  Final Exam, 8:00-11:00 AM, Science Center 105\n\nMATH 221 Syllabus                                                   Page 3 of 3\nHomework Policy\nWeBWorK sets close every Sunday at 11:59 PM. Written homework is collected at the\nstart of lecture on the due date. The lowest written homework score is dropped.\n\nAccommodations\nStudents with documented accommodations should contact the instructor during the\nfirst two weeks of the term.",
+  "gold": [
+    {
+      "title": "Written Homework 1",
+      "kind": "task",
+      "date": "2026-09-03",
+      "courseCode": "MATH 221"
+    },
+    {
+      "title": "Quiz 1",
+      "kind": "exam",
+      "date": "2026-09-10",
+      "courseCode": "MATH 221"
+    },
+    {
+      "title": "Written Homework 2",
+      "kind": "task",
+      "date": "2026-09-17",
+      "courseCode": "MATH 221"
+    },
+    {
+      "title": "Quiz 2",
+      "kind": "exam",
+      "date": "2026-09-24",
+      "courseCode": "MATH 221"
+    },
+    {
+      "title": "Written Homework 3",
+      "kind": "task",
+      "date": "2026-10-01",
+      "courseCode": "MATH 221"
+    },
+    {
+      "title": "Exam 1",
+      "kind": "exam",
+      "date": "2026-10-08",
+      "courseCode": "MATH 221"
+    },
+    {
+      "title": "Written Homework 4",
+      "kind": "task",
+      "date": "2026-10-22",
+      "courseCode": "MATH 221"
+    },
+    {
+      "title": "Quiz 3",
+      "kind": "exam",
+      "date": "2026-10-29",
+      "courseCode": "MATH 221"
+    },
+    {
+      "title": "Written Homework 5",
+      "kind": "task",
+      "date": "2026-11-05",
+      "courseCode": "MATH 221"
+    },
+    {
+      "title": "Exam 2",
+      "kind": "exam",
+      "date": "2026-11-12",
+      "courseCode": "MATH 221"
+    },
+    {
+      "title": "Written Homework 6",
+      "kind": "task",
+      "date": "2026-11-19",
+      "courseCode": "MATH 221"
+    },
+    {
+      "title": "Quiz 4",
+      "kind": "exam",
+      "date": "2026-12-03",
+      "courseCode": "MATH 221"
+    },
+    {
+      "title": "Final Exam",
+      "kind": "exam",
+      "date": "2026-12-15",
+      "courseCode": "MATH 221"
+    }
+  ],
+  "notes": "Recurring weekly WeBWorK deadlines have no single date and are excluded."
+}

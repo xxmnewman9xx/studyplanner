@@ -1,0 +1,35 @@
+{
+  "id": "stress-07-different-date-styles",
+  "name": "Different date styles",
+  "source": "scripts/check-syllabus-stress.ts",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "September 14: Lab Report due\nSept. 21: Quiz 1\n09-28: Project Milestone due\n14 Sep: Case memo due\nTuesday, September 29: Discussion Post due",
+  "gold": [
+    {
+      "title": "Lab Report",
+      "kind": "task",
+      "date": "2026-09-14"
+    },
+    {
+      "title": "Quiz 1",
+      "kind": "exam",
+      "date": "2026-09-21"
+    },
+    {
+      "title": "Project Milestone",
+      "kind": "task",
+      "date": "2026-09-28"
+    },
+    {
+      "title": "Case memo",
+      "kind": "task",
+      "date": "2026-09-14"
+    },
+    {
+      "title": "Discussion Post",
+      "kind": "task",
+      "date": "2026-09-29"
+    }
+  ]
+}
