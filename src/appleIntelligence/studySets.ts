@@ -25,6 +25,8 @@ function termOk(term: string) {
   if (term.length < 2 || term.length > 60) return false;
   if (!/\p{L}/u.test(term)) return false;
   if (ADMIN_TERM.test(term) || /https?:|www\./i.test(term)) return false;
+  // Section headers ("Lecture 9: …", "Week 3 notes: …") are not definitions.
+  if (/^(?:lecture|week|chapter|unit|module|lesson|session|topic|section|part|reading|page|day|mock|my|class|course)\b|\bnotes?$/i.test(term)) return false;
   if (CJK.test(term)) return term.replace(/\s+/g, "").length <= 20;
   const words = term.split(/\s+/).filter(Boolean);
   return words.length >= 1 && words.length <= 6;

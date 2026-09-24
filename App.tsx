@@ -4765,6 +4765,12 @@ function nonEnglishMissingCopy(locale: SupportedLocale, key: string) {
 function textFor(key: string, fallback: string, vars: CopyVars = {}) {
   const locale = appLocale();
   const localized = APP_COPY[locale]?.[key];
+  // QA capture builds record every key that falls back to a generic string so
+  // localization gaps are measured, not guessed. Never active in release.
+  if (!localized && locale !== "en-US" && simulatorCaptureIsEnabled()) {
+    const misses = ((globalThis as { __copyMisses?: Record<string, string> }).__copyMisses ||= {});
+    misses[`${locale}|${key}`] = fallback;
+  }
   const template = localized || (locale === "en-US" || key.startsWith("scanner.") ? APP_COPY["en-US"][key] || fallback : nonEnglishMissingCopy(locale, key));
   return storeVariantText(key, template).replace(/\{(\w+)\}/g, (_match, name) => String(vars[name] ?? ""));
 }
