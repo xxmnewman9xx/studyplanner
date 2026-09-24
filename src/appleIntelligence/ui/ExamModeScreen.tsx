@@ -59,7 +59,7 @@ export function ExamModeScreen({ summary, onPracticeCards, onPracticeQuiz, onDue
   const entrance = useEntrance();
   const rtl = isRTLLocale(locale);
   const hasNotes = summary.notesLinked > 0;
-  const ringColor = summary.daysUntil <= 3 ? COLORS.red : summary.daysUntil <= 7 ? COLORS.orange : HERO.lavender;
+  const ringColor = summary.daysUntil <= 3 ? COLORS.red : summary.daysUntil <= 7 ? COLORS.orange : HERO.onHero;
   const whenLine = [formatLongDate(locale, summary.examDate), summary.examTime].filter(Boolean).join(" · ");
   const titleLine = [summary.examKindLabel, summary.examTitle].filter(Boolean).join(" · ");
 
@@ -115,7 +115,7 @@ export function ExamModeScreen({ summary, onPracticeCards, onPracticeQuiz, onDue
             {onDuel ? (
               <ActionRow
                 icon={Swords}
-                color={COLORS.orange}
+                color={COLORS.ink}
                 label={t("ai.exam.duel", "Challenge a friend")}
                 detail={t("ai.exam.duel_detail", "Send a Quiz Duel. Playing it is free.")}
                 onPress={onDuel}
@@ -128,7 +128,7 @@ export function ExamModeScreen({ summary, onPracticeCards, onPracticeQuiz, onDue
           {summary.reviewProposal && onProposeBlocks ? (
             <AICard theme={theme} style={{ gap: SPACE.sm }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.md }}>
-                <IconTile icon={CalendarPlus} color={COLORS.blue} />
+                <IconTile icon={CalendarPlus} color={COLORS.ink} />
                 <View style={{ flex: 1 }}>
                   <Text selectable style={{ color: theme.label, fontSize: TYPE.callout, fontWeight: "900" }}>{t("ai.exam.blocks_title", "Add extra review blocks")}</Text>
                   <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 2 }}>

@@ -4707,6 +4707,11 @@ for (const locale of supportedLocales) {
   // generic string, because every 2.2 key ships in COPY_22_EN.
   Object.assign(APP_COPY[locale], COPY_22_EN, AI_COPY[locale]);
 }
+// QA capture builds only: expose the resolved tables so localization gaps can
+// be measured in one page load. Never set in release builds.
+if (typeof process !== "undefined" && process.env?.EXPO_PUBLIC_STUDYPLANNER_CAPTURE_QA === "1") {
+  (globalThis as { __APP_COPY?: typeof APP_COPY }).__APP_COPY = APP_COPY;
+}
 
 function localizedWeekdayNarrow(index: number) {
   const labels: Record<SupportedLocale, string[]> = {
@@ -7158,7 +7163,7 @@ function Welcome({ data, mutate, nav, theme }: ScreenProps) {
         <Text selectable style={{ color: theme.label, fontSize: 38, lineHeight: 40, fontWeight: "900", marginBottom: 10 }}>{textFor("welcome.title", "Know exactly where you stand.")}</Text>
         <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22, marginBottom: 18 }}>{textFor("welcome.body", "Import a syllabus. StudyPlanner maps the semester, finds pressure, and tells you the next move.")}</Text>
         <AppStoreRatingProof theme={theme} />
-        <Card theme={theme} style={{ padding: 16, marginBottom: 12, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
+        <Card theme={theme} style={{ padding: 16, marginBottom: 12, backgroundColor: theme.dark ? "#111113" : "#FFFFFF" }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
             <View style={{ width: 72, height: 72, borderRadius: 999, borderWidth: 8, borderColor: COLORS.green, alignItems: "center", justifyContent: "center" }}>
               <Text selectable style={{ color: theme.label, fontSize: 22, fontWeight: "900" }}>0</Text>
@@ -7295,10 +7300,10 @@ function AppStoreRatingProof({ theme, dark = false }: { theme: ReturnType<typeof
 }
 
 const ONBOARDING_SCAN_OPTION_META: Record<string, { icon: string; color: string; hintKey: string; hint: string }> = {
-  "Scan with camera": { icon: "camera", color: COLORS.green, hintKey: "onboarding.option_camera_hint", hint: "Point at each page. Tables read row by row." },
-  "Upload PDF": { icon: "upload", color: COLORS.blue, hintKey: "onboarding.option_pdf_hint", hint: "Multi-page syllabi and course handouts." },
-  "Paste syllabus": { icon: "file", color: COLORS.orange, hintKey: "onboarding.option_paste_hint", hint: "From Canvas, email, or a document." },
-  "Add manually": { icon: "plus", color: COLORS.purple, hintKey: "onboarding.option_manual_hint", hint: "Type a class and its first deadline." },
+  "Scan with camera": { icon: "camera", color: COLORS.ink, hintKey: "onboarding.option_camera_hint", hint: "Point at each page. Tables read row by row." },
+  "Upload PDF": { icon: "upload", color: COLORS.ink, hintKey: "onboarding.option_pdf_hint", hint: "Multi-page syllabi and course handouts." },
+  "Paste syllabus": { icon: "file", color: COLORS.ink, hintKey: "onboarding.option_paste_hint", hint: "From Canvas, email, or a document." },
+  "Add manually": { icon: "plus", color: COLORS.ink, hintKey: "onboarding.option_manual_hint", hint: "Type a class and its first deadline." },
 };
 
 function onboardingStartLabel(scanIntent: string) {
@@ -7663,7 +7668,7 @@ function LockedDashboard({ data, nav, theme, currentImport, pasteSharedPayload }
         </View>
 
         {hasPreview ? (
-          <Card theme={theme} style={{ padding: 17, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}>
+          <Card theme={theme} style={{ padding: 17, backgroundColor: theme.dark ? "#1C1C1F" : "#F5F5F5" }}>
             <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 10 }}>{textFor("paywall.ready_apply", "Ready to apply")}</Text>
             <View style={{ flexDirection: "row", gap: 9, marginBottom: 12 }}>
               <MiniMetric value={previewSummary.classes} label={textFor("review.classes", "classes")} color={COLORS.blue} theme={theme} />
@@ -7992,10 +7997,10 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
           <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("paywall.plus_kicker", "PLUS TURNS YOUR SEMESTER INTO A DAILY PLAN")}</Text>
           <Text selectable style={{ color: theme.label, fontSize: 13, lineHeight: 18, fontWeight: "800" }}>{textFor("paywall.no_caps", "No credits. No caps. No account. It runs on your iPhone.")}</Text>
           {[
-            ["target", COLORS.blue, textFor("paywall.plus_study_now", "Study Now: one clear move every day, self-repairing")],
+            ["target", COLORS.ink, textFor("paywall.plus_study_now", "Study Now: one clear move every day, self-repairing")],
             ["brain", COLORS.purple, textFor("paywall.plus_exam_mode", "Exam Mode: flashcards and quizzes from your own notes")],
-            ["grid", COLORS.green, textFor("paywall.plus_widgets", "Lock Screen and Home Screen widgets")],
-            ["bell", COLORS.orange, textFor("paywall.plus_reminders", "Start-by reminders before every crunch week")],
+            ["grid", COLORS.ink, textFor("paywall.plus_widgets", "Lock Screen and Home Screen widgets")],
+            ["bell", COLORS.ink, textFor("paywall.plus_reminders", "Start-by reminders before every crunch week")],
             ["sparkles", COLORS.pink, textFor("paywall.plus_siri", "Siri, Spotlight, and quick add")],
           ].map(([icon, color, label]) => (
             <View key={`plus-benefit-${icon}`} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -8217,7 +8222,7 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger, dailyBrief, open
         <SemesterHealthHero semester={semester} narrative={narrative} theme={theme} hasSemesterData={hasSemesterData} />
         {forecastShare.host}
         {semester.feedbackEvents[0] ? <FeedbackLoopCard event={semester.feedbackEvents[0]} theme={theme} /> : null}
-        <Card theme={theme} style={{ padding: 18, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
+        <Card theme={theme} style={{ padding: 18, backgroundColor: theme.dark ? "#111113" : "#FFFFFF" }}>
           <View style={{ flexDirection: "row", gap: 12, alignItems: "center", marginBottom: 12 }}>
             <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: `${theme.accent}1C`, alignItems: "center", justifyContent: "center" }}><Sparkles color={theme.accent} size={21} /></View>
             <View style={{ flex: 1 }}>
@@ -8249,7 +8254,7 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger, dailyBrief, open
         </Card>
         {preparedness.score < 75 || !liveData.notes.length ? (
           <Pressable accessibilityRole="button" accessibilityLabel={localizedNarrativeText("notes", narrative.notesNudge)} accessibilityHint={textFor("notes.accessibility_open_hint", "Open notes and study assets")} onPress={() => nav.push("notes")}>
-            <Card theme={theme} style={{ padding: 15, flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: theme.dark ? "#211E2B" : "#F7F0FF" }}>
+            <Card theme={theme} style={{ padding: 15, flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: theme.dark ? "#1C1C1F" : "#F5F5F5" }}>
               <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: `${COLORS.purple}20`, alignItems: "center", justifyContent: "center" }}><NotebookPen color={COLORS.purple} size={21} /></View>
               <View style={{ flex: 1 }}>
                 <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{localizedNarrativeText("notes", narrative.notesNudge)}</Text>
@@ -8332,7 +8337,7 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger, dailyBrief, open
             <Card theme={theme} style={{ overflow: "hidden" }}>{upcomingAssessments.map((exam) => { const klass = safeClassFor(liveData, exam.classId); return <Pressable key={exam.id} accessibilityRole="button" accessibilityLabel={`${exam.title}. ${klass.code}. ${localizedDueLabel(daysUntilExam(exam))}. ${exam.time}`} accessibilityHint={textFor("assessment.accessibility_open_hint", "Open assessment details")} onPress={() => nav.push("assessmentDetail", { id: exam.id })} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}><ClassGlyph c={klass} size={34} /><View style={{ flex: 1 }}><Text selectable numberOfLines={1} style={{ color: theme.label, fontWeight: "900" }}>{exam.title}</Text><Text selectable style={{ color: theme.label2 }}>{klass.code} · {localizedDueLabel(daysUntilExam(exam))} · {exam.time}</Text></View><Pill text={localizedExamKind(exam.kind)} color={COLORS.purple} theme={theme} /></Pressable>; })}</Card>
           </View>
         ) : null}
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F5F5F5" }}>
           <View style={{ flexDirection: "row", gap: 8, alignItems: "center", marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} size={18} /><Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 16 }}>{insight.headline}</Text></View>
           <Text selectable style={{ color: theme.label, lineHeight: 21 }}>{insight.body}</Text>
           <View style={{ flexDirection: "row", gap: 9, marginTop: 13 }}>
@@ -8597,7 +8602,7 @@ function Classes({ data, mutate, nav, theme }: ScreenProps) {
     <Screen theme={theme}>
       <Header title={textFor("classes.title", "Manage Semester")} sub={`${liveData.classes.length} ${textFor("common.active", "active")} · ${archivedClasses.length} ${textFor("classes.archived", "archived")}`} theme={theme} right={<Pressable accessibilityRole="button" accessibilityLabel={adding ? textFor("common.close", "Close") : textFor("classes.add", "Add class")} accessibilityHint={adding ? textFor("classes.accessibility_close_form_hint", "Close the add class form") : textFor("classes.accessibility_add_form_hint", "Open the add class form")} accessibilityState={{ expanded: adding }} onPress={() => setAdding((value) => !value)} style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}>{adding ? <X color="#fff" size={21} strokeWidth={3} /> : <Plus color="#fff" size={21} strokeWidth={3} />}</Pressable>} />
       <View style={{ paddingHorizontal: 16, gap: 13 }}>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#1C1C1F" : "#F5F5F5" }}>
           <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{textFor("classes.truth", "Single source of truth")}</Text>
           <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 5 }}>{textFor("classes.truth_body", "Fix imports, add missing work, drop classes, and keep Today, Plan, reminders, and widgets aligned.")}</Text>
           <View style={{ flexDirection: "row", gap: 9, marginTop: 10 }}>
@@ -8890,7 +8895,7 @@ function ClassDetail({ data, mutate, nav, theme, params, openClassPack }: Screen
               <Button label={textFor("common.delete", "Delete")} theme={theme} secondary icon="trash" onPress={deleteClass} />
             </Card>
           ) : null}
-          <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}>
+          <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#1C1C1F" : "#F5F5F5" }}>
             <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900" }}>{textFor("class.add_work", "Add missing work")}</Text>
             <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 5 }}>{textFor("class.add_work_body", "Add a surprise quiz, recurring discussion, project, or undated assignment without re-importing.")}</Text>
             <View style={{ flexDirection: "row", gap: 9, marginTop: 10 }}>
@@ -9130,7 +9135,7 @@ function TaskDetail({ data, mutate, nav, theme, params, recordReviewTrigger }: S
         ) : null}
         <Card theme={theme} style={{ overflow: "hidden" }}>{[[Clock, textFor("task.due", "Due"), taskDueLabel(task), task.missing || dueDays <= 0 ? COLORS.orange : theme.label], [Timer, textFor("task.estimated", "Estimated"), minutesLabel(task.estimateMinutes), theme.label], [FileText, textFor("task.source", "Source"), localizedTaskSource(task.source), theme.label], [CalendarDays, textFor("task.on_calendar", "On calendar"), readablePlannerTimeRange(data.studyBlocks.find((b) => b.taskId === task.id)?.time || textFor("task.not_scheduled", "Not scheduled")), theme.label]].map(([I, l, v, color]: any, index) => <View key={`task-detail-row-${index}`} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: index === 3 ? 0 : 1, borderBottomColor: theme.hairline }}><I color={theme.label2} size={18} /><Text selectable style={{ color: theme.label2, flex: 1 }}>{l}</Text><Text selectable style={{ color, fontWeight: "900", maxWidth: 180, textAlign: "right" }}>{v}</Text></View>)}</Card>
         {subs.length ? <View><Section title={textFor("task.subtasks", "Subtasks")} action={`${subs.filter((s) => s.done).length}/${subs.length}`} theme={theme} /><Card theme={theme} style={{ overflow: "hidden" }}>{subs.map((s, i) => <Pressable key={s.title} accessibilityRole="checkbox" accessibilityLabel={localizedImportedText(s.title)} accessibilityHint={s.done ? textFor("task.accessibility_reopen_subtask_hint", "Mark this subtask incomplete") : textFor("task.accessibility_complete_subtask_hint", "Mark this subtask complete")} accessibilityState={{ checked: s.done }} onPress={() => toggleSubtask(i)} style={{ flexDirection: "row", gap: 12, alignItems: "center", padding: 14 }}><View style={{ width: 23, height: 23, borderRadius: 99, borderWidth: s.done ? 0 : 2, borderColor: c.color, backgroundColor: s.done ? c.color : "transparent", alignItems: "center", justifyContent: "center" }}>{s.done ? <Check color="#fff" size={14} strokeWidth={3} /> : null}</View><Text selectable style={{ color: s.done ? theme.label3 : theme.label, textDecorationLine: s.done ? "line-through" : "none", fontWeight: "700" }}>{localizedImportedText(s.title)}</Text></Pressable>)}</Card></View> : null}
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("today.next_move", "Next Move")}</Text></View><Text selectable style={{ color: canAddStudyBlock ? theme.label : theme.label2, lineHeight: 21 }}>{canAddStudyBlock ? textFor("task.schedule_hint", "Create a {minutes} focus block around your existing plan.", { minutes: minutesLabel(task.estimateMinutes) }) : `${task.done ? textFor("task.reopen", "Reopen task") : textFor("task.awaiting_date", "Due date required")} · ${textFor("task.not_scheduled", "Not scheduled")}`}</Text><Button label={canAddStudyBlock ? textFor("assessment.rebuild", "Add study block") : task.done ? textFor("task.reopen", "Reopen task to schedule") : textFor("task.awaiting_date", "Due date required")} theme={theme} icon="clock" onPress={canAddStudyBlock ? addBlock : undefined} /></Card>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F5F5F5" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("today.next_move", "Next Move")}</Text></View><Text selectable style={{ color: canAddStudyBlock ? theme.label : theme.label2, lineHeight: 21 }}>{canAddStudyBlock ? textFor("task.schedule_hint", "Create a {minutes} focus block around your existing plan.", { minutes: minutesLabel(task.estimateMinutes) }) : `${task.done ? textFor("task.reopen", "Reopen task") : textFor("task.awaiting_date", "Due date required")} · ${textFor("task.not_scheduled", "Not scheduled")}`}</Text><Button label={canAddStudyBlock ? textFor("assessment.rebuild", "Add study block") : task.done ? textFor("task.reopen", "Reopen task to schedule") : textFor("task.awaiting_date", "Due date required")} theme={theme} icon="clock" onPress={canAddStudyBlock ? addBlock : undefined} /></Card>
       </ScrollView>
     </View>
   );
@@ -9261,7 +9266,7 @@ function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
           </Card>
         ) : null}
         <Card theme={theme} style={{ overflow: "hidden" }}>{[[Clock, textFor("assessment.date", "Date"), `${localizedDueLabel(dueDays)} · ${exam.time}`, dueDays <= 3 ? COLORS.orange : theme.label], [Timer, textFor("class.effort", "Effort"), minutesLabel(exam.effortMinutes || 120), theme.label], [MapPin, textFor("assessment.room", "Room"), localizedImportedText(exam.room), theme.label], [FileText, textFor("class.notes_label", "Notes"), exam.notes || exam.description || textFor("assessment.no_notes", "No notes yet"), theme.label]].map(([I, l, v, color]: any, index) => <View key={`assessment-detail-row-${index}`} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: index === 3 ? 0 : 1, borderBottomColor: theme.hairline }}><I color={theme.label2} size={18} /><Text selectable style={{ color: theme.label2, flex: 1 }}>{l}</Text><Text selectable numberOfLines={2} style={{ color, fontWeight: "900", maxWidth: 190, textAlign: "right" }}>{v}</Text></View>)}</Card>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 18 }}>{textFor("assessment.prep_plan", "Prep plan")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21, marginTop: 5 }}>{textFor("assessment.prep_body", "{minutes} of prep. Due {due}.", { minutes: minutesLabel(exam.effortMinutes || 120), due: localizedDueLabel(dueDays) })}</Text><Button label={textFor("assessment.rebuild", "Rebuild study blocks")} theme={theme} icon="refresh" onPress={() => mutate((d) => ({ ...d, studyBlocks: buildStudyPlan(d) }))} /></Card>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F5F5F5" }}><Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 18 }}>{textFor("assessment.prep_plan", "Prep plan")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21, marginTop: 5 }}>{textFor("assessment.prep_body", "{minutes} of prep. Due {due}.", { minutes: minutesLabel(exam.effortMinutes || 120), due: localizedDueLabel(dueDays) })}</Text><Button label={textFor("assessment.rebuild", "Rebuild study blocks")} theme={theme} icon="refresh" onPress={() => mutate((d) => ({ ...d, studyBlocks: buildStudyPlan(d) }))} /></Card>
       </ScrollView>
     </View>
   );
@@ -9471,11 +9476,11 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport, startSyllabu
         right={<ScannerModeBadge label={previewOnly ? textFor("scan.badge_free", "Free") : textFor("widgets.ready", "Ready")} theme={theme} />}
       />
       <View style={{ paddingHorizontal: 16, gap: 16 }}>
-        <View style={{ borderRadius: 28, overflow: "hidden", backgroundColor: theme.dark ? "#0D1422" : "#FFFFFF", borderWidth: 1, borderColor: theme.hairline, boxShadow: theme.dark ? "0 16px 32px rgba(0,0,0,0.42)" : "0 16px 34px rgba(18,36,74,0.12)" }}>
+        <View style={{ borderRadius: 28, overflow: "hidden", backgroundColor: theme.dark ? "#111113" : "#FFFFFF", borderWidth: 1, borderColor: theme.hairline, boxShadow: theme.dark ? "0 16px 32px rgba(0,0,0,0.42)" : "0 16px 34px rgba(18,36,74,0.12)" }}>
           <View style={{ padding: 18, gap: 16 }}>
             <View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}>
-              <View style={{ width: 70, height: 92, borderRadius: 22, backgroundColor: theme.dark ? "#101A2C" : "#EEF4FF", borderWidth: 1, borderColor: theme.dark ? "rgba(255,255,255,0.10)" : "#D7E4FF", alignItems: "center", justifyContent: "center" }}>
-                <View style={{ width: 46, height: 58, borderRadius: 12, backgroundColor: theme.dark ? "#172238" : "#FFFFFF", borderWidth: 2, borderColor: scannerReady ? COLORS.green : COLORS.orange, alignItems: "center", justifyContent: "center" }}>
+              <View style={{ width: 70, height: 92, borderRadius: 22, backgroundColor: theme.dark ? "#1C1C1F" : "#F5F5F5", borderWidth: 1, borderColor: theme.dark ? "rgba(255,255,255,0.10)" : "#E5E5E5", alignItems: "center", justifyContent: "center" }}>
+                <View style={{ width: 46, height: 58, borderRadius: 12, backgroundColor: theme.dark ? "#1C1C1F" : "#FFFFFF", borderWidth: 2, borderColor: scannerReady ? COLORS.green : COLORS.orange, alignItems: "center", justifyContent: "center" }}>
                   {isWorking ? <ActivityIndicator color={scannerReady ? COLORS.green : COLORS.orange} /> : <ScanLine color={scannerReady ? COLORS.green : COLORS.orange} size={27} strokeWidth={2.4} />}
                 </View>
               </View>
@@ -9493,7 +9498,7 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport, startSyllabu
           </View>
           <View style={{ paddingHorizontal: 18, paddingBottom: 18 }}>
             <ScannerStatusRail theme={theme} activeIndex={isWorking ? 1 : latestImport ? 3 : 0} />
-            <View style={{ marginTop: 12, borderRadius: 18, padding: 12, backgroundColor: theme.dark ? "rgba(255,255,255,0.06)" : "#F7F9FC", borderWidth: 1, borderColor: theme.hairline, gap: 9 }}>
+            <View style={{ marginTop: 12, borderRadius: 18, padding: 12, backgroundColor: theme.dark ? "rgba(255,255,255,0.06)" : "#F5F5F5", borderWidth: 1, borderColor: theme.hairline, gap: 9 }}>
               {[
                 ["upload", COLORS.blue, textFor("scan.pdf_action_body", "Best for full syllabi and multi-page handouts.")],
                 ["shield", COLORS.green, textFor("review.guard_active", "Nothing saves before you approve.")],
@@ -10285,7 +10290,7 @@ function PasteImport({ data, nav, theme, params, currentImport, setCurrentImport
               <View style={{ flex: 1 }}><FieldInput label={textFor("class.time", "Time")} value={classTime} onChangeText={setClassTime} placeholder="10:00 AM" theme={theme} /></View>
             </View>
           </Card>
-          <Card theme={theme} style={{ padding: 15, marginBottom: 14, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}>
+          <Card theme={theme} style={{ padding: 15, marginBottom: 14, backgroundColor: theme.dark ? "#1C1C1F" : "#F5F5F5" }}>
             <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900", marginBottom: 10 }}>{textFor("onboarding.manual_deadline_title", "First deadline preview")}</Text>
             <FieldInput label={textFor("class.title", "Title")} value={deadlineTitle} onChangeText={setDeadlineTitle} placeholder={textFor("onboarding.manual_deadline_placeholder", "Problem set 1")} theme={theme} />
             <FieldInput label={textFor("task.awaiting_date", "Date pending")} value={deadlineDate} onChangeText={setDeadlineDate} placeholder="YYYY-MM-DD" theme={theme} />
@@ -10563,7 +10568,7 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
       <BackHeader nav={nav} theme={theme} label={textFor("review.title", "Review Import")} />
       <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 34 }}>
         <Card theme={theme} style={{ padding: 14, flexDirection: "row", gap: 10, alignItems: "center", marginBottom: 16 }}><Lock color={COLORS.green} size={19} /><Text selectable style={{ color: theme.label, flex: 1, lineHeight: 20 }}><Text style={{ fontWeight: "900" }}>{data.prefs.premium ? textFor("review.guard_active", "Nothing saves until you approve.") : textFor("review.guard_preview", "Preview only.")}</Text> {data.prefs.premium ? textFor("review.guard_active_body", "Edit, remove, or confirm each item.") : textFor("review.guard_preview_body", "Unlock to apply this semester to the real app.")}</Text></Card>
-        <Card theme={theme} style={{ padding: 16, marginBottom: 16, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
+        <Card theme={theme} style={{ padding: 16, marginBottom: 16, backgroundColor: theme.dark ? "#111113" : "#FFFFFF" }}>
           <Text selectable style={{ color: theme.label, fontSize: 19, fontWeight: "900", marginBottom: 12 }}>{notesOnlyImport ? textFor("notes.body", "Notes raise Preparedness and sharpen Class Pulse.") : textFor("review.found", "StudyPlanner found your semester.")}</Text>
           <View style={{ flexDirection: "row", gap: 9, marginBottom: 12 }}>
             {reviewMetrics.map((metric) => (
@@ -10839,7 +10844,7 @@ function ApplySuccess({ data, nav, theme }: ScreenProps) {
                 </View>
               </View>
             </Card>
-            <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
+            <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#111113" : "#FFFFFF" }}>
 	              <Text selectable style={{ color: theme.label, fontWeight: "900", fontSize: 18 }}>{textFor("today.next_move", "Next Move")}</Text>
 	              <Text selectable style={{ color: theme.label2, lineHeight: 21, marginTop: 5 }}>{localizedNarrativeText("next", narrative.nextMoveLabel)}. {localizedNarrativeText("detail", narrative.nextMoveDetail)}</Text>
             </Card>
@@ -11002,7 +11007,7 @@ function Plan({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
             {calendarLegend.map(([color, label, marker]) => <View key={label} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}><Text accessible={false} style={{ color, fontSize: 10, lineHeight: 10 }}>{marker}</Text><Text selectable style={{ color: theme.label2, fontSize: 11, fontWeight: "800" }}>{label}</Text></View>)}
           </View>
         </Card>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("plan.autopilot", "Autopilot")}</Text></View><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{localizedNarrativeText("next", narrative.nextMoveLabel)}. {localizedNarrativeText("detail", narrative.nextMoveDetail)}</Text><Text selectable style={{ color: theme.label2, marginTop: 7 }}>{localizedNarrativeText("driver", narrative.primaryDriver)}</Text>{semester.schedulePlan.changedSinceLastPlan.slice(0, 2).map((change) => <Text selectable key={change} style={{ color: theme.label2, marginTop: 7 }}>- {localizedNarrativeText("detail", change)}</Text>)}<View style={{ flexDirection: "row", gap: 7, marginTop: 12 }}>{semester.pressureForecast.weekLoads.map((load, index) => <View key={`${index}${load}`} style={{ flex: 1 }}><ProgressBar value={load / 100} color={load > 85 ? COLORS.red : load > 64 ? COLORS.orange : load > 38 ? COLORS.yellow : COLORS.green} theme={theme} height={8} /><Text style={{ color: theme.label2, textAlign: "center", fontSize: 10, marginTop: 4, fontWeight: "900" }}>{localizedWeekdayNarrow(index)}</Text></View>)}</View><Button label={textFor("plan.rebuild", "Rebuild plan")} theme={theme} icon="refresh" onPress={rebuild} /></Card>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F5F5F5" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("plan.autopilot", "Autopilot")}</Text></View><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{localizedNarrativeText("next", narrative.nextMoveLabel)}. {localizedNarrativeText("detail", narrative.nextMoveDetail)}</Text><Text selectable style={{ color: theme.label2, marginTop: 7 }}>{localizedNarrativeText("driver", narrative.primaryDriver)}</Text>{semester.schedulePlan.changedSinceLastPlan.slice(0, 2).map((change) => <Text selectable key={change} style={{ color: theme.label2, marginTop: 7 }}>- {localizedNarrativeText("detail", change)}</Text>)}<View style={{ flexDirection: "row", gap: 7, marginTop: 12 }}>{semester.pressureForecast.weekLoads.map((load, index) => <View key={`${index}${load}`} style={{ flex: 1 }}><ProgressBar value={load / 100} color={load > 85 ? COLORS.red : load > 64 ? COLORS.orange : load > 38 ? COLORS.yellow : COLORS.green} theme={theme} height={8} /><Text style={{ color: theme.label2, textAlign: "center", fontSize: 10, marginTop: 4, fontWeight: "900" }}>{localizedWeekdayNarrow(index)}</Text></View>)}</View><Button label={textFor("plan.rebuild", "Rebuild plan")} theme={theme} icon="refresh" onPress={rebuild} /></Card>
         <View>
           <Section title={dateForDay(selectedDay).toLocaleDateString(appLocale(), { weekday: "short", month: "short", day: "numeric" })} action={`${selectedItems.tasks.length + selectedItems.exams.length + selectedItems.notes.length + selectedItems.blocks.length} ${previewMetricLabel("signals", "items")}`} theme={theme} />
           <Card theme={theme} style={{ overflow: "hidden" }}>
@@ -11106,7 +11111,7 @@ function StudySession({ data, mutate, nav, theme, params, recordReviewTrigger }:
         <Card theme={theme} style={{ padding: 18 }}><View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><ClassGlyph c={c} size={50} /><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontSize: 22, fontWeight: "900" }}>{block.title}</Text><Text selectable style={{ color: theme.label2, marginTop: 3 }}>{localizedStudyBlockDay(block.day)} · {block.time} · {minutesLabel(block.minutes)}</Text></View></View></Card>
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#172019" : "#F1FFF6" }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.impact", "Impact")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21 }}>{c.code} {textFor("locked.preparedness", "preparedness")}. {pulse ? `${localizedPulseText("forecast", pulse.forecastLabel)} ${textFor("class.forecast", "forecast")}.` : localizedNarrativeText("detail", "Risk reduced.")}</Text></Card>
         <Card theme={theme} style={{ padding: 16 }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.goal", "Goal")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21 }}>{textFor("study.goal_body", "One item. Then recall.")}</Text></Card>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.active_recall", "Active recall")}</Text><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{textFor("study.recall_body", "Explain it without looking.")}</Text><TextInput accessibilityLabel={textFor("study.active_recall", "Active recall")} multiline value={answer} onChangeText={setAnswer} placeholder={textFor("study.recall_placeholder", "Type your recall answer...")} placeholderTextColor={theme.label3} style={{ minHeight: 120, backgroundColor: theme.surface, color: theme.label, borderRadius: 14, padding: 12, marginTop: 12, textAlignVertical: "top" }} />{responseWordCount ? <Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label2, fontWeight: "800", marginTop: 10 }}>{responseMetricLabel}</Text> : null}</Card>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#1C1C1F" : "#F5F5F5" }}><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 8 }}>{textFor("study.active_recall", "Active recall")}</Text><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{textFor("study.recall_body", "Explain it without looking.")}</Text><TextInput accessibilityLabel={textFor("study.active_recall", "Active recall")} multiline value={answer} onChangeText={setAnswer} placeholder={textFor("study.recall_placeholder", "Type your recall answer...")} placeholderTextColor={theme.label3} style={{ minHeight: 120, backgroundColor: theme.surface, color: theme.label, borderRadius: 14, padding: 12, marginTop: 12, textAlignVertical: "top" }} />{responseWordCount ? <Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label2, fontWeight: "800", marginTop: 10 }}>{responseMetricLabel}</Text> : null}</Card>
         <Button label={block.completed ? textFor("tasks.completed", "Session already complete") : answer.trim() ? textFor("study.complete", "Complete session") : textFor("study.skip_complete", "Skip recall and complete")} theme={theme} secondary={!answer.trim() || block.completed} icon="check" onPress={block.completed ? undefined : () => { if (!finish()) return; recordReviewTrigger("focus_completed"); nav.back(); }} />
       </ScrollView>
     </View>
@@ -11148,7 +11153,7 @@ function Notes({ data, nav, theme }: ScreenProps) {
             </View>
           </View>
         </Card>
-        <Card theme={theme} style={{ padding: 15, backgroundColor: theme.dark ? "#18222A" : "#EEF7FF" }}>
+        <Card theme={theme} style={{ padding: 15, backgroundColor: theme.dark ? "#1C1C1F" : "#F5F5F5" }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: `${COLORS.blue}1C`, alignItems: "center", justifyContent: "center" }}>
               <Shield color={COLORS.blue} size={21} />
@@ -11279,7 +11284,7 @@ function NoteDetail({ data, mutate, nav, theme, params }: ScreenProps) {
           </View>
         </View>
         <Card theme={theme} style={{ padding: 16 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("note.effect", "Effect on {code}", { code: c.code })}</Text><Text selectable style={{ color: theme.label2, marginTop: 7, lineHeight: 20 }}>{pulse ? `${localizedPulseText("forecast", pulse.forecastLabel)}. ${localizedPulseText("nudge", pulse.nudge)}` : textFor("note.readiness_up", "Readiness up.")}</Text></Card>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("note.summary", "Summary")}</Text></View><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{note.summary}</Text></Card>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F5F5F5" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("note.summary", "Summary")}</Text></View><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{note.summary}</Text></Card>
         <View><Text selectable style={{ color: theme.label2, fontWeight: "900", marginBottom: 8 }}>{textFor("note.key_terms", "KEY TERMS")}</Text><View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>{note.terms.map((t) => <Pill key={t} text={t} theme={theme} />)}</View></View>
         <View><Section title={textFor("note.signals", "Signals")} action={`${Math.round(insight.confidence * 100)}%`} theme={theme} /><Card theme={theme} style={{ padding: 15, gap: 12 }}><View><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 6 }}>{textFor("note.exam_topics", "Exam topics")}</Text><View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>{insight.likelyExamTopics.slice(0, 6).map((topic) => <Pill key={topic} text={topic} color={COLORS.orange} theme={theme} />)}</View></View>{insight.formulas.length ? <View><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 6 }}>{textFor("note.formulas", "Formulas")}</Text>{insight.formulas.slice(0, 3).map((formula) => <Text selectable key={formula} style={{ color: theme.label2, marginTop: 3 }}>{formula}</Text>)}</View> : null}<View><Text selectable style={{ color: theme.label, fontWeight: "900", marginBottom: 6 }}>{textFor("note.weak_area", "Weak area")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 20 }}>{insight.weakAreas[0]}</Text></View></Card></View>
         <View><Section title={textFor("note.suggested_tasks", "Suggested study tasks")} theme={theme} /><Card theme={theme} style={{ overflow: "hidden" }}>{note.suggestedTasks.map((t) => {
@@ -11492,6 +11497,7 @@ function PracticeRoute({ data, nav, theme, params }: ScreenProps) {
           <Pressable accessibilityRole="button" accessibilityLabel={textFor("ai.practice.start_now", "Start with quick cards")} accessibilityHint={textFor("ai.practice.start_now_hint", "Skips on-device generation and starts right away")} onPress={() => setStarted(true)} style={{ minHeight: 44, justifyContent: "center" }}><Text style={{ color: theme.accent, fontWeight: "900" }}>{textFor("ai.practice.start_now", "Start with quick cards")}</Text></Pressable>
         </View>
       ) : (
+        <View style={{ flex: 1, paddingHorizontal: 16 }}>
         <PracticeSession
           theme={theme}
           t={aiText}
@@ -11509,6 +11515,7 @@ function PracticeRoute({ data, nav, theme, params }: ScreenProps) {
           }}
           onClose={nav.back}
         />
+        </View>
       )}
     </View>
   );
@@ -11526,7 +11533,7 @@ function DuelRoute({ nav, theme, params }: ScreenProps) {
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={textFor("ai.duel.nav_title", "Quiz Duel")} />
       {playing ? (
-        <PracticeSession theme={theme} t={aiText} locale={appLocale()} mode="quiz" questions={questions} title={duel.title} origin="duel" onAnswer={() => {}} onClose={nav.back} />
+        <View style={{ flex: 1, paddingHorizontal: 16 }}><PracticeSession theme={theme} t={aiText} locale={appLocale()} mode="quiz" questions={questions} title={duel.title} origin="duel" onAnswer={() => {}} onClose={nav.back} /></View>
       ) : (
         <ScrollView contentContainerStyle={{ padding: 16, gap: 14 }}>
           <DuelIntroCard theme={theme} t={aiText} locale={appLocale()} title={duel.title} questionCount={questions.length} targetScore={duel.score} onStart={() => setPlaying(true)} />
@@ -11771,7 +11778,7 @@ function WidgetsScreen({ data, mutate, nav, theme, recordReviewTrigger }: Screen
       <BackHeader embedded nav={nav} theme={theme} label="" />
       <Header title={textFor("widgets.title", "Widgets")} sub={data.prefs.premium ? textFor("widgets.sub_ready", "Home Screen snapshots") : textFor("widgets.sub_locked", "Locked preview")} theme={theme} />
       <View style={{ paddingHorizontal: 16, gap: 14 }}>
-        <LiquidGlassSurface tintColor={theme.dark ? "rgba(23,23,28,0.72)" : "rgba(255,255,255,0.76)"} colorScheme={theme.dark ? "dark" : "light"} style={{ borderRadius: 22, padding: 18, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF", borderWidth: 1, borderColor: theme.hairline }} fallbackStyle={{ backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
+        <LiquidGlassSurface tintColor={theme.dark ? "rgba(23,23,28,0.72)" : "rgba(255,255,255,0.76)"} colorScheme={theme.dark ? "dark" : "light"} style={{ borderRadius: 22, padding: 18, backgroundColor: theme.dark ? "#111113" : "#FFFFFF", borderWidth: 1, borderColor: theme.hairline }} fallbackStyle={{ backgroundColor: theme.dark ? "#111113" : "#FFFFFF" }}>
           <View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}>
             <View style={{ width: 72, height: 72, borderRadius: 22, backgroundColor: "#0A0A0A", alignItems: "center", justifyContent: "center" }}><Grid2X2 color="#fff" size={30} /></View>
             <View style={{ flex: 1 }}>
@@ -11810,7 +11817,7 @@ function WidgetsScreen({ data, mutate, nav, theme, recordReviewTrigger }: Screen
             <Pill text={selectedSnapshot.updatedLabel || selectedSnapshot.timelineLabel || selectedSnapshot.kind} color={COLORS.blue} theme={theme} />
           </View>
         </Card>
-        <Card theme={theme} style={{ padding: 15, gap: 12, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
+        <Card theme={theme} style={{ padding: 15, gap: 12, backgroundColor: theme.dark ? "#111113" : "#FFFFFF" }}>
           <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
             <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: `${selectedSnapshot.accentColor}1C`, alignItems: "center", justifyContent: "center" }}><Sparkles color={selectedSnapshot.accentColor} size={20} /></View>
             <View style={{ flex: 1 }}>
@@ -12023,7 +12030,7 @@ function Reminders({ data, mutate, nav, theme, params }: ScreenProps) {
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <BackHeader nav={nav} theme={theme} label={textFor("reminders.title", "Reminders")} />
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 18 }}>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("reminders.smart", "Smart reminders")}</Text></View><Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label, lineHeight: 21 }}>{status}</Text><Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 8 }}>{localizedNarrativeText("next", semester.coachCopy.nextAction)}</Text>{shouldAddSuggestionsFirst ? <Button label={`${textFor("reminders.add_suggestions", "Add suggestions")} (${smartSuggestions.length})`} theme={theme} onPress={scheduling || updatingReminderId ? undefined : addSmart} /> : liveData.reminders.length ? <><Button label={scheduling ? textFor("reminders.scheduling", "Scheduling...") : `${hasScheduledNotifications ? textFor("reminders.refresh", "Refresh schedule") : textFor("reminders.schedule", "Schedule reminders")} (${scheduleContextCount})`} theme={theme} onPress={scheduling || scheduleContextCount === 0 ? undefined : () => { schedule().catch(() => setScheduling(false)); }} />{smartSuggestions.length ? <Button label={`${textFor("reminders.add_suggestions", "Add suggestions")} (${smartSuggestions.length})`} secondary theme={theme} onPress={scheduling || updatingReminderId ? undefined : addSmart} /> : null}</> : null}</Card>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F5F5F5" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("reminders.smart", "Smart reminders")}</Text></View><Text selectable accessibilityLiveRegion="polite" style={{ color: theme.label, lineHeight: 21 }}>{status}</Text><Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 8 }}>{localizedNarrativeText("next", semester.coachCopy.nextAction)}</Text>{shouldAddSuggestionsFirst ? <Button label={`${textFor("reminders.add_suggestions", "Add suggestions")} (${smartSuggestions.length})`} theme={theme} onPress={scheduling || updatingReminderId ? undefined : addSmart} /> : liveData.reminders.length ? <><Button label={scheduling ? textFor("reminders.scheduling", "Scheduling...") : `${hasScheduledNotifications ? textFor("reminders.refresh", "Refresh schedule") : textFor("reminders.schedule", "Schedule reminders")} (${scheduleContextCount})`} theme={theme} onPress={scheduling || scheduleContextCount === 0 ? undefined : () => { schedule().catch(() => setScheduling(false)); }} />{smartSuggestions.length ? <Button label={`${textFor("reminders.add_suggestions", "Add suggestions")} (${smartSuggestions.length})`} secondary theme={theme} onPress={scheduling || updatingReminderId ? undefined : addSmart} /> : null}</> : null}</Card>
         <Section title={textFor("reminders.title", "Reminders")} action={scheduledReminderCount ? textFor("reminders.scheduled_count", "{count} scheduled", { count: scheduledReminderCount }) : undefined} theme={theme} />
         <Card theme={theme} style={{ overflow: "hidden" }}>
           {liveData.reminders.length ? liveData.reminders.map((r) => {
