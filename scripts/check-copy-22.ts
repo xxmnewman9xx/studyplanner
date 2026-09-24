@@ -6,7 +6,8 @@
 //    same {placeholders}.
 // Run with --list-missing to print missing keys as a JSON object (key: fallback).
 import { readFileSync } from "node:fs";
-import { AI_COPY, COPY_22_EN } from "../src/appleIntelligence/copy";
+import { AI_COPY, COPY_22_EN, LEGACY_GAP_COPY } from "../src/appleIntelligence/copy";
+import { LEGACY_GAP_EN } from "../src/appleIntelligence/locales/legacyGaps";
 
 const app = readFileSync("App.tsx", "utf8");
 const pairs = new Map<string, string>();
@@ -40,6 +41,14 @@ for (const [locale, table] of Object.entries(AI_COPY)) {
   for (const [key, value] of Object.entries(table)) {
     if (!(key in COPY_22_EN)) failures.push(`${locale}: stale key ${key}`);
     else if (value && placeholders(value) !== placeholders(COPY_22_EN[key])) failures.push(`${locale}: placeholder mismatch in ${key}`);
+  }
+}
+
+for (const [key, entry] of Object.entries(LEGACY_GAP_EN)) {
+  for (const locale of entry.locales) {
+    const value = LEGACY_GAP_COPY[locale as keyof typeof LEGACY_GAP_COPY]?.[key];
+    if (!value) failures.push(`${locale}: legacy gap ${key} untranslated`);
+    else if (placeholders(value) !== placeholders(entry.en)) failures.push(`${locale}: placeholder mismatch in legacy gap ${key}`);
   }
 }
 

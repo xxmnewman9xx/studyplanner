@@ -147,7 +147,7 @@ import {
   type SemesterThemeColorId,
 } from "./src/semesterTheme";
 import { semesterKickoffPhase, semesterKickoffProgress } from "./src/semesterKickoff";
-import { AI_COPY, COPY_22_EN } from "./src/appleIntelligence/copy";
+import { AI_COPY, COPY_22_EN, LEGACY_GAP_COPY } from "./src/appleIntelligence/copy";
 import { createModelRunner, getAvailability, invalidateAvailability, isUserAIEnabled, readDocumentText, setUserAIEnabled } from "./src/appleIntelligence/client";
 import { analyzeSyllabusSmart } from "./src/appleIntelligence/smartSyllabus";
 import * as aiCache from "./src/appleIntelligence/cache";
@@ -4706,6 +4706,10 @@ for (const locale of supportedLocales) {
   // the source of truth; locales fall back to English per key, never to a
   // generic string, because every 2.2 key ships in COPY_22_EN.
   Object.assign(APP_COPY[locale], COPY_22_EN, AI_COPY[locale]);
+  // Fill Build 90 keys this locale never had (only where still missing).
+  for (const [key, value] of Object.entries(LEGACY_GAP_COPY[locale] || {})) {
+    if (value && !APP_COPY[locale][key]) APP_COPY[locale][key] = value;
+  }
 }
 // QA capture builds only: expose the resolved tables so localization gaps can
 // be measured in one page load. Never set in release builds.

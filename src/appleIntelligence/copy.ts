@@ -18,6 +18,15 @@ import ja22 from "./locales/ja";
 import ko22 from "./locales/ko";
 import ptBR22 from "./locales/pt-BR";
 import zhHans22 from "./locales/zh-Hans";
+import gapAr from "./locales/gaps/ar";
+import gapDe from "./locales/gaps/de";
+import gapEs from "./locales/gaps/es";
+import gapFr from "./locales/gaps/fr";
+import gapHi from "./locales/gaps/hi";
+import gapJa from "./locales/gaps/ja";
+import gapKo from "./locales/gaps/ko";
+import gapPtBR from "./locales/gaps/pt-BR";
+import gapZhHans from "./locales/gaps/zh-Hans";
 
 export type SupportedLocaleString = "ar" | "de" | "en-US" | "es" | "fr" | "hi" | "ja" | "ko" | "pt-BR" | "zh-Hans";
 
@@ -482,6 +491,20 @@ export const AI_COPY: Record<SupportedLocaleString, Partial<Record<string, strin
   ko: ko22,
   "pt-BR": ptBR22,
   "zh-Hans": zhHans22,
+};
+
+/** Translations for Build 90 keys that were missing per locale (see locales/legacyGaps.ts). */
+export const LEGACY_GAP_COPY: Record<SupportedLocaleString, Partial<Record<string, string>>> = {
+  "en-US": {},
+  ar: gapAr,
+  de: gapDe,
+  es: gapEs,
+  fr: gapFr,
+  hi: gapHi,
+  ja: gapJa,
+  ko: gapKo,
+  "pt-BR": gapPtBR,
+  "zh-Hans": gapZhHans,
 };
 
 function resolveLocale(locale: string): SupportedLocaleString {
