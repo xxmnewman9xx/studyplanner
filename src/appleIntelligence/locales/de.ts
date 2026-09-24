@@ -448,6 +448,8 @@ const copy: Partial<Record<string, string>> = {
   "paywall.restore_none": "Für diese Apple-ID wurde kein aktives StudyPlanner-Abo gefunden.",
   "paywall.restore_failed": "Die Wiederherstellung konnte nicht abgeschlossen werden.",
   "review.trust_hint": "Vertrauenswürdige Zeilen haben beide Leser gefunden. Zeilen von nur einem Leser kurz prüfen.",
+  "paywall.intro_summary": "{intro} für {days} Tage, dann {price}/{plan}. Verlängert sich automatisch bis zur Kündigung.",
+  "paywall.intro_badge": "{intro} für {days} Tage",
 };
 
 export default copy;

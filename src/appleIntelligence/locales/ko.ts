@@ -448,6 +448,8 @@ const copy: Partial<Record<string, string>> = {
   "paywall.restore_none": "이 Apple 계정에서 활성 StudyPlanner 구독을 찾지 못했어요.",
   "paywall.restore_failed": "복원을 완료할 수 없어요.",
   "review.trust_hint": "신뢰 항목은 두 판독기가 모두 찾았어요. 한쪽만 찾은 항목은 빠르게 확인하세요.",
+  "paywall.intro_summary": "{days}일간 {intro}, 이후 {price}/{plan}. 해지할 때까지 자동 갱신돼요.",
+  "paywall.intro_badge": "{days}일간 {intro}",
 };
 
 export default copy;

@@ -448,6 +448,8 @@ const copy: Partial<Record<string, string>> = {
   "paywall.restore_none": "इस Apple ID के लिए कोई सक्रिय StudyPlanner सब्सक्रिप्शन नहीं मिला।",
   "paywall.restore_failed": "रीस्टोर पूरा नहीं हो सका।",
   "review.trust_hint": "भरोसेमंद पंक्तियाँ दोनों रीडर ने पाईं। केवल एक रीडर वाली पंक्तियाँ जल्दी जाँच लें।",
+  "paywall.intro_summary": "{days} दिन {intro} में, फिर {price}/{plan}। रद्द करने तक अपने-आप रिन्यू होता है।",
+  "paywall.intro_badge": "{days} दिन {intro} में",
 };
 
 export default copy;

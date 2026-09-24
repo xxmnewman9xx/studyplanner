@@ -448,6 +448,8 @@ const copy: Partial<Record<string, string>> = {
   "paywall.restore_none": "このApple Accountに有効なStudyPlannerのサブスクリプションが見つかりませんでした。",
   "paywall.restore_failed": "復元を完了できませんでした。",
   "review.trust_hint": "信頼できる行は2つの読み取りの両方で見つかりました。片方だけの行はさっと確認してください。",
+  "paywall.intro_summary": "{days}日間{intro}、その後{price}/{plan}。解約するまで自動更新されます。",
+  "paywall.intro_badge": "{days}日間{intro}",
 };
 
 export default copy;

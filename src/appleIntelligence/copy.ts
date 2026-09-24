@@ -431,6 +431,8 @@ export const APP22_COPY_EN: Record<string, string> = {
   "ai.exam.entry_kicker": "EXAM MODE",
   "ai.exam.entry_today": "{title} is today",
   "ai.exam.entry_tomorrow": "{title} is tomorrow",
+  "paywall.intro_summary": "{intro} for {days} days, then {price}/{plan}. Auto-renews until canceled.",
+  "paywall.intro_badge": "{intro} for {days} days",
   "review.trust_hint": "Trusted rows were found by both readers. Rows only one reader found need a quick check.",
   "paywall.store_down": "The App Store is not available right now.",
   "paywall.approve_sheet": "Approve the subscription in the App Store sheet. StudyPlanner unlocks as soon as Apple confirms it.",

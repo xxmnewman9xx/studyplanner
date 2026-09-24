@@ -128,6 +128,8 @@ import {
   finishStudyPlannerPurchase,
   freeTrialDays,
   hasFreeTrialOffer,
+  hasPaidIntroOffer,
+  introOfferDays,
   hasOneWeekIntroOffer,
   orderPaywallPlans,
   initializeStudyPlannerStore,
@@ -7905,6 +7907,9 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
   const eligibleTrialProductIdSet = new Set(eligibleTrialProductIds);
   const selectedPlanHasOneWeekIntro = hasOneWeekIntroOffer(selectedPlan) && eligibleTrialProductIdSet.has(selectedPlan.id);
   const selectedPlanHasFreeTrial = hasFreeTrialOffer(selectedPlan) && eligibleTrialProductIdSet.has(selectedPlan.id);
+  // Any paid intro that isn't the legacy one-week weekly offer (e.g. $0.99 / 3 days).
+  const selectedPlanHasPaidIntro = !selectedPlanHasOneWeekIntro && hasPaidIntroOffer(selectedPlan) && eligibleTrialProductIdSet.has(selectedPlan.id);
+  const selectedIntroDays = introOfferDays(selectedPlan);
   const selectedTrialDays = freeTrialDays(selectedPlan);
   const displayPlans = orderPaywallPlans(plans);
   const introPlan = plans.find((plan) => plan.id === STUDYPLANNER_INTRO_PRODUCT_ID && hasOneWeekIntroOffer(plan) && eligibleTrialProductIdSet.has(plan.id));
@@ -7925,13 +7930,17 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
     ? textFor("paywall.opening", "Opening App Store...")
     : selectedPlanHasFreeTrial
       ? textFor("paywall.free_trial_cta", "Start {days}-day free trial", { days: selectedTrialDays })
+    : selectedPlanHasPaidIntro
+      ? textFor("paywall.trial_cta", "Start for {intro}", { intro: selectedPlan.introductoryOffer?.displayPrice || "" })
     : selectedPlanHasOneWeekIntro
       ? textFor("paywall.trial_cta", "Start for {intro}", { intro: introPrice })
       : currentImport
       ? textFor("review.locked_cta", "Unlock to apply plan")
       : textFor("paywall.unlock", "Unlock {plan}", { plan: intentPreview.unlockTarget || selectedPlanLabel });
   const restoreLabel = busy === "restore" ? textFor("paywall.restoring", "Restoring...") : textFor("common.restore", "Restore Purchases");
-  const selectedPlanSummary = selectedPlanHasFreeTrial
+  const selectedPlanSummary = selectedPlanHasPaidIntro
+    ? textFor("paywall.intro_summary", "{intro} for {days} days, then {price}/{plan}. Auto-renews until canceled.", { intro: selectedPlan.introductoryOffer?.displayPrice || "", days: selectedIntroDays, price: selectedPlan.displayPrice, plan: selectedPlanPeriodLabel })
+    : selectedPlanHasFreeTrial
     ? textFor("paywall.free_trial_summary", "{days} days free, then {price}/{plan}. Auto-renews until canceled.", { days: selectedTrialDays, price: selectedPlan.displayPrice, plan: selectedPlanPeriodLabel })
     : selectedPlanHasOneWeekIntro
     ? textFor("paywall.trial_summary", "{intro} first week, then {price}/{plan}. Auto-renews until canceled.", { intro: introPrice, price: selectedPlan.displayPrice, plan: selectedPlanPeriodLabel })
@@ -8022,6 +8031,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
           {displayPlans.map((plan) => {
             const on = selected === plan.id;
             const planHasFreeTrial = hasFreeTrialOffer(plan) && eligibleTrialProductIdSet.has(plan.id);
+            const planHasPaidIntro = !hasOneWeekIntroOffer(plan) && hasPaidIntroOffer(plan) && eligibleTrialProductIdSet.has(plan.id);
             return (
               <Pressable
                 key={plan.id}
@@ -8040,6 +8050,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
                       <View style={{ flexDirection: "row", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
 	                        <Text selectable style={{ color: theme.label, fontSize: 17, fontWeight: "900" }}>{textFor(plan.id.toLowerCase().includes("year") ? "paywall.yearly" : plan.id.toLowerCase().includes("week") ? "paywall.weekly" : "paywall.monthly", plan.cadence)}</Text>
                         {plan.recommended ? <Pill text={bestValueLabel} color={COLORS.green} theme={theme} icon="star" /> : null}
+                        {planHasPaidIntro ? <Pill text={textFor("paywall.intro_badge", "{intro} for {days} days", { intro: plan.introductoryOffer?.displayPrice || "", days: introOfferDays(plan) })} color={theme.accent} theme={theme} icon="sparkles" /> : null}
                         {planHasFreeTrial ? <Pill text={textFor("paywall.free_trial_badge", "{days} days free", { days: freeTrialDays(plan) })} color={theme.accent} theme={theme} icon="sparkles" /> : null}
                         {hasOneWeekIntroOffer(plan) && eligibleTrialProductIdSet.has(plan.id) ? <Pill text={textFor("paywall.trial_badge", "{intro} first week", { intro: plan.introductoryOffer?.displayPrice || "" })} color={theme.accent} theme={theme} icon="sparkles" /> : null}
                       </View>
