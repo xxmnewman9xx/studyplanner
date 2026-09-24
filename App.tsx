@@ -153,12 +153,14 @@ import { analyzeSyllabusSmart } from "./src/appleIntelligence/smartSyllabus";
 import * as aiCache from "./src/appleIntelligence/cache";
 import { clearSpotlight, deleteAppGroupJSON, indexSpotlight, readAppGroupJSON, writeAppGroupJSON } from "./src/appleIntelligence/native";
 import { useDailyBrief } from "./src/appleIntelligence/useDailyBrief";
-import { intelligenceSnapshot } from "./src/appleIntelligence/inbox";
-import type { DailyBrief } from "./src/appleIntelligence/types";
+import { drainInbox, intelligenceSnapshot } from "./src/appleIntelligence/inbox";
+import { quickAddSmart } from "./src/appleIntelligence/quickAdd";
+import type { DailyBrief, TaskProposal } from "./src/appleIntelligence/types";
 import type { AIAvailability } from "./src/appleIntelligence/types";
-import { AIStatusRow, ClassPackSheet, DuelIntroCard, ExamModeScreen, ForecastSection, ForecastShareCard, OriginChip, PracticeSession, ScanProgress, StudyNowCard, UnlockForecastCTA, shareForecastCard, shareLink, type AIText, type ExamModeSummary, type PracticeAnswer, type PracticeMode, type PracticeScore } from "./src/appleIntelligence/ui";
+import { AIStatusRow, ClassPackSheet, DuelIntroCard, PastePackBanner, QuickAddConfirmSheet, ExamModeScreen, ForecastSection, ForecastShareCard, OriginChip, PracticeSession, ScanProgress, StudyNowCard, UnlockForecastCTA, shareForecastCard, shareLink, type AIText, type ExamModeSummary, type PracticeAnswer, type PracticeMode, type PracticeScore } from "./src/appleIntelligence/ui";
 import { buildCrunchForecast, type CrunchForecastResult } from "./src/crunchForecast";
-import { appStoreLink, classPackFromData, decodeShared, duelFromStudySet, duelLink, duelToStudyQuestions, packLink, qrEligible } from "./src/classPack";
+import { appStoreLink, classPackFromData, decodeShared, duelFromStudySet, duelLink, duelToStudyQuestions, encodeShared, packLink, packToImportBatch, qrEligible, sharedFromUrl } from "./src/classPack";
+import * as Clipboard from "expo-clipboard";
 import { useStudySets } from "./src/appleIntelligence/useStudySets";
 import { computeWeakTopics, proposeWeakTopicBlocks } from "./src/appleIntelligence/weakTopics";
 import type { PracticeResult, StudySet } from "./src/appleIntelligence/types";
@@ -4314,7 +4316,20 @@ function localizedImportedText(value?: string) {
 }
 
 function localizedTaskSource(source?: string) {
-  return localizedImportedText(source || textFor("review.manual", "Manual"));
+  switch (source) {
+    case "On-device AI import":
+      return textFor("ai.source.on_device", "Found on-device, reviewed by you");
+    case "Class Pack":
+      return textFor("ai.source.class_pack", "Class Pack");
+    case "Exam Mode":
+      return textFor("ai.source.exam_mode", "Exam Mode review");
+    case "Siri":
+      return "Siri";
+    case "Fast capture":
+      return textFor("scan.quick_title", "Fast capture");
+    default:
+      return localizedImportedText(source || textFor("review.manual", "Manual"));
+  }
 }
 
 function localizedImportCandidate(candidate: ImportCandidate): ImportCandidate {
@@ -5040,7 +5055,7 @@ function appAccessLocked(data: AppData, entitlementStatus: EntitlementStatus) {
 }
 
 function accessStateFor(data: AppData, entitlementStatus: EntitlementStatus, active?: Route): AccessState {
-  if (!onboardingComplete(data)) return active === "semesterKickoff" ? "preview_allowed" : "onboarding";
+  if (!onboardingComplete(data)) return active === "semesterKickoff" || (active && FREE_PLAY_ROUTES.includes(active)) ? "preview_allowed" : "onboarding";
   if (entitlementUnlocks(data, entitlementStatus)) return "unlocked";
   if (entitlementStatus === "loading") return PRE_PURCHASE_ROUTES.includes(active || "lockedDashboard") || (active && (FREE_IMPORT_ROUTES.includes(active) || FREE_PLAY_ROUTES.includes(active))) ? "preview_allowed" : "loading";
   if (active === "paywall") return "paywall";
@@ -5805,6 +5820,42 @@ function showSimulatorCapturePrompt(prompt: SimulatorCaptureConfig["prompt"]) {
   }
 }
 
+type QuickAddRequest = { id: string; proposal: TaskProposal; inboxId?: string };
+
+// The confirm sheet returns the student's edited proposal; deterministic code
+// re-validates it (real class, real calendar date, sane title and estimate)
+// before it becomes a TaskItem through mutate(). The model never writes here.
+function taskFromConfirmedProposal(proposal: TaskProposal, data: AppData, source: string): TaskItem | null {
+  const title = proposal.title.trim().slice(0, 120);
+  const klass = data.classes.find((item) => item.id === proposal.classId && !item.archivedAt);
+  const dueDate = (proposal.dueDate || "").trim();
+  if (title.length < 3 || !klass || !isValidDateInput(dueDate)) return null;
+  const time = proposal.time && isValidPlannerTime(proposal.time) ? proposal.time : "11:59 PM";
+  return {
+    id: makeOwnershipId("task"),
+    title,
+    classId: klass.id,
+    type: proposal.type || "Assignment",
+    dueOffset: 0,
+    dueDate,
+    time,
+    estimateMinutes: Math.max(15, Math.min(240, Math.round(proposal.estimateMinutes || 60))),
+    done: false,
+    urgent: false,
+    source,
+    priority: "Medium",
+    subtasks: [],
+    weight: typeof proposal.weight === "number" && proposal.weight >= 0 && proposal.weight <= 100 ? proposal.weight : undefined,
+    userEditedAt: new Date().toISOString(),
+  };
+}
+
+function proposalFromTask(task: TaskItem): TaskProposal {
+  return { title: task.title, classId: task.classId, dueDate: task.dueDate, time: task.time, type: task.type, estimateMinutes: task.estimateMinutes, weight: task.weight, needs: [], origin: "heuristic" };
+}
+
+const INBOX_PROCESSED_KEY = "inbox:processed";
+
 // Free-first funnel: students scan every class into ONE review. A new syllabus
 // batch joins a pending syllabus review instead of replacing it; notes imports
 // and applied batches never merge. Duplicate rows (same kind, title, and date)
@@ -5856,6 +5907,7 @@ export default function App() {
   const spotlightSignatureRef = useRef<string>("");
   const [classPackClassId, setClassPackClassId] = useState<string | null>(null);
   const selfRepairDayRef = useRef<string>("");
+  const [quickAddQueue, setQuickAddQueue] = useState<QuickAddRequest[]>([]);
   const routeUrlRef = useRef<((url: string) => void) | null>(null);
   const theme = palette(data?.prefs.theme || "light", data?.prefs.semesterAccentColor);
 
@@ -6104,6 +6156,47 @@ export default function App() {
     return () => subscription.remove();
   }, [entitlementStatus, loaded]);
 
+  // Siri "Add assignment" (F6) queues raw text in the App Group; the app turns
+  // each entry into a proposal on foreground and always asks before saving.
+  // Replay is idempotent: handled ids are remembered and removed one by one.
+  useEffect(() => {
+    if (Platform.OS !== "ios" || !loaded || entitlementStatus !== "active") return;
+    let running = false;
+    const drain = async () => {
+      if (running || AppState.currentState !== "active") return;
+      running = true;
+      try {
+        const raw = await readAppGroupJSON("intent-inbox");
+        if (!raw) return;
+        const processedRaw = await aiCache.metaGet(INBOX_PROCESSED_KEY);
+        const processed = new Set<string>(processedRaw ? (JSON.parse(processedRaw) as string[]) : []);
+        const { entries, processedIds } = drainInbox(raw, processed);
+        if (!entries.length) return;
+        await aiCache.metaSet(INBOX_PROCESSED_KEY, JSON.stringify(Array.from(processedIds).slice(-200)));
+        const current = latestDataRef.current;
+        if (!current) return;
+        const locale = appLocale();
+        const availability = await getAvailability(locale).catch(() => null);
+        const runner = availability?.state === "available" ? createModelRunner(locale) : null;
+        const requests: QuickAddRequest[] = [];
+        for (const entry of entries) {
+          const result = await quickAddSmart(entry.text, activeSemesterData(current), new Date(), runner, { locale });
+          requests.push({ id: makeOwnershipId("quick"), inboxId: entry.id, proposal: result.kind === "task" ? proposalFromTask(result.task) : result.proposal });
+        }
+        setQuickAddQueue((queue) => [...queue, ...requests]);
+      } catch {
+        // A malformed inbox never blocks the app; the entries stay for next time.
+      } finally {
+        running = false;
+      }
+    };
+    drain();
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") drain();
+    });
+    return () => subscription.remove();
+  }, [entitlementStatus, loaded]);
+
   const persistPlannerSnapshot = useCallback(async (snapshot: AppData) => {
     // Import apply is a transaction boundary: queue the exact reviewed
     // snapshot behind any earlier writes and do not clear its recovery file
@@ -6154,6 +6247,87 @@ export default function App() {
       }
     }
   }, []);
+
+  // Fast capture (F6): the Build 90 regex runs first; the on-device model only
+  // proposes when the regex reports issues. Anything uncertain goes to the
+  // confirm sheet; a clean regex capture saves immediately, as in Build 90.
+  const proposeQuickAdd = useCallback(async (input: string): Promise<"saved" | "confirm" | "empty"> => {
+    const current = latestDataRef.current;
+    if (!current || !input.trim()) return "empty";
+    const locale = appLocale();
+    const availability = Platform.OS === "ios" ? await getAvailability(locale).catch(() => null) : null;
+    const runner = availability?.state === "available" && AppState.currentState === "active" ? createModelRunner(locale) : null;
+    const result = await quickAddSmart(input, activeSemesterData(current), new Date(), runner, { locale });
+    if (result.kind === "task") {
+      const task = result.task;
+      setData((d) => {
+        if (!d) return d;
+        const tasks = [task, ...d.tasks];
+        return withFeedback(d, { ...d, tasks, studyBlocks: buildStudyPlan({ ...d, tasks }) }, "reschedulePlan", { classId: task.classId, actionId: task.id, dimension: "workload" });
+      });
+      return "saved";
+    }
+    setQuickAddQueue((queue) => [...queue, { id: makeOwnershipId("quick"), proposal: result.proposal }]);
+    return "confirm";
+  }, []);
+
+  const finishQuickAdd = useCallback(async (request: QuickAddRequest, confirmed: TaskProposal | null) => {
+    setQuickAddQueue((queue) => queue.filter((item) => item.id !== request.id));
+    if (confirmed) {
+      const current = latestDataRef.current;
+      const task = current ? taskFromConfirmedProposal(confirmed, activeSemesterData(current), request.inboxId ? "Siri" : "Fast capture") : null;
+      if (!task) {
+        Alert.alert(textFor("scan.quick_error_heading", "Fast capture needs more detail"), textFor("ai.quick.invalid", "Pick a class and a real due date, then try again."));
+        setQuickAddQueue((queue) => [{ ...request, proposal: { ...confirmed, needs: ["class", "date"] } }, ...queue]);
+        return;
+      }
+      setData((d) => {
+        if (!d) return d;
+        const tasks = [task, ...d.tasks];
+        return withFeedback(d, { ...d, tasks, studyBlocks: buildStudyPlan({ ...d, tasks }) }, "reschedulePlan", { classId: task.classId, actionId: task.id, dimension: "workload" });
+      });
+    }
+    if (request.inboxId) {
+      // Remove only the handled entry so a Siri capture saved meanwhile survives.
+      const raw = await readAppGroupJSON("intent-inbox");
+      try {
+        const parsed = raw ? JSON.parse(raw) : null;
+        const entries = Array.isArray(parsed?.entries) ? parsed.entries : Array.isArray(parsed) ? parsed : [];
+        const remaining = entries.filter((entry: { id?: unknown }) => entry?.id !== request.inboxId);
+        if (remaining.length) await writeAppGroupJSON("intent-inbox", JSON.stringify({ entries: remaining }));
+        else await deleteAppGroupJSON("intent-inbox");
+      } catch {
+        await deleteAppGroupJSON("intent-inbox");
+      }
+    }
+  }, []);
+
+  // Growth loops (F3/F5): a Class Pack becomes a free, reviewable import; a Quiz
+  // Duel opens straight into free play. Payloads are validated by decodeShared
+  // (size caps, schema, real dates) before anything is shown.
+  const openSharedPayload = useCallback((raw: string): boolean => {
+    const shared = sharedFromUrl(raw) || decodeShared(raw.trim());
+    if (!shared) return false;
+    if (shared.kind === "duel") {
+      setStack((s) => [...s, { route: "duel", params: { p: encodeShared(shared) } }]);
+      return true;
+    }
+    const current = latestDataRef.current;
+    if (!current) return false;
+    const batch = localizedImportBatch(packToImportBatch(shared.pack, activeSemesterData(current), new Date()), textFor("ai.pack.source", "Class Pack · {code}", { code: shared.pack.c.code }));
+    const merged = appendImportBatch(currentImportRef.current, batch);
+    currentImportRef.current = merged;
+    setCurrentImport(merged);
+    setStack((s) => [...s, { route: current.prefs.onboardingComplete ? "review" : "onboarding" }]);
+    return true;
+  }, []);
+
+  const pasteSharedPayload = useCallback(async () => {
+    const text = await Clipboard.getStringAsync().catch(() => "");
+    if (!openSharedPayload(text || "")) {
+      Alert.alert(textFor("ai.paste.none_title", "No Class Pack found"), textFor("ai.paste.none_body", "Copy the Class Pack link your classmate sent, then tap Paste again."));
+    }
+  }, [openSharedPayload]);
 
   const cancelSmartImport = useCallback(() => {
     smartImportAbort.current?.abort();
@@ -6251,6 +6425,11 @@ export default function App() {
         if (captureState.prompt) setTimeout(() => showSimulatorCapturePrompt(captureState.prompt), 1200);
         return;
       }
+      if (sharedFromUrl(url)) {
+        if (initial) initialUrlHandled.current = true;
+        openSharedPayload(url);
+        return;
+      }
       const entity = entityRouteFromUrl(url);
       if (entity) {
         if (initial) initialUrlHandled.current = true;
@@ -6334,7 +6513,7 @@ export default function App() {
     Linking.getInitialURL().then((url) => routeUrl(url, true)).catch(() => {});
     const subscription = Linking.addEventListener("url", ({ url }) => routeUrl(url));
     return () => subscription.remove();
-  }, [data, entitlementStatus, loaded, nav]);
+  }, [data, entitlementStatus, loaded, nav, openSharedPayload]);
 
   // App Intents (Open scanner) and tapped Spotlight results leave a one-shot
   // `pending-route.json` in the App Group for cold launches. Consume it once the
@@ -6419,7 +6598,7 @@ export default function App() {
     ? textFor("storage.save_retry", "Changes are safe in this session but could not be saved to this device yet.")
     : saveError;
 
-  const props = { data: screenData, mutate, persistPlannerSnapshot, nav, theme, params, currentImport, setCurrentImport, setEntitlementStatus, accessState, recordReviewTrigger, startSyllabusImport, smartImportBusy: Boolean(smartImportProgress), dailyBrief, openClassPack: setClassPackClassId };
+  const props = { data: screenData, mutate, persistPlannerSnapshot, nav, theme, params, currentImport, setCurrentImport, setEntitlementStatus, accessState, recordReviewTrigger, startSyllabusImport, smartImportBusy: Boolean(smartImportProgress), dailyBrief, openClassPack: setClassPackClassId, proposeQuickAdd, pasteSharedPayload };
   const screen =
     displayRoute === "welcome" ? <Welcome {...props} /> :
     displayRoute === "onboarding" ? <Onboarding {...props} /> :
@@ -6482,6 +6661,23 @@ export default function App() {
           />
         </View>
       ) : null}
+      {quickAddQueue[0] && entitlementUnlocks(data, entitlementStatus) ? (
+        <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={() => finishQuickAdd(quickAddQueue[0], null)}>
+          <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 18, paddingTop: 24, paddingBottom: 40 }}>
+            <QuickAddConfirmSheet
+              key={quickAddQueue[0].id}
+              theme={theme}
+              t={aiText}
+              locale={appLocale()}
+              proposal={quickAddQueue[0].proposal}
+              classes={activeSemesterData(data).classes.filter((klass) => !klass.archivedAt).map((klass) => ({ id: klass.id, code: klass.code, name: klass.name, color: klass.color }))}
+              today={localDateKey(new Date())}
+              onConfirm={(proposal) => finishQuickAdd(quickAddQueue[0], proposal)}
+              onCancel={() => finishQuickAdd(quickAddQueue[0], null)}
+            />
+          </ScrollView>
+        </Modal>
+      ) : null}
       {classPackClassId ? <ClassPackModal data={screenData} classId={classPackClassId} theme={theme} onClose={() => setClassPackClassId(null)} /> : null}
       {showPendingImportBanner && currentImport ? <PendingImportResumeBanner batch={currentImport} nav={nav} theme={theme} hasTabs={showTabs} /> : null}
       {showTabs ? <TabBar tab={tab} setTab={nav.tab} theme={theme} /> : null}
@@ -6533,6 +6729,8 @@ type ScreenProps = {
   smartImportBusy: boolean;
   dailyBrief: DailyBrief | null;
   openClassPack: (classId: string) => void;
+  proposeQuickAdd: (input: string) => Promise<"saved" | "confirm" | "empty">;
+  pasteSharedPayload: () => Promise<void>;
 };
 
 function withFeedback(
@@ -7038,7 +7236,7 @@ function onboardingStartIcon(scanIntent: string) {
   return "camera";
 }
 
-function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
+function Onboarding({ data, mutate, nav, theme, params, currentImport }: ScreenProps) {
   const steps = ["name", "priorities", "build"];
   const studentTypeOptions = ["High school classes", "College courses", "Grad school", "Online classes"];
   const goalOptions = ["Deadlines", "Exams", "Notes", "Grades", "Everything"];
@@ -7129,6 +7327,8 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
     persistProfile(index === steps.length - 1, source);
     if (index < steps.length - 1) setIndex(index + 1);
     else if (params.returnTo === "semesterKickoff") nav.back();
+    // A Class Pack opened before onboarding is waiting: review it first.
+    else if (currentImport && currentImport.status === "review") nav.push("review");
     // 2.2: the first import is free. Scan, upload, paste, or type a class,
     // review every row, and see the whole-term Crunch Forecast before the
     // paywall. Applying the reviewed plan still requires the App Store unlock.
@@ -7310,7 +7510,7 @@ function ImportOptions({ data, mutate, nav, theme }: ScreenProps) {
   );
 }
 
-function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
+function LockedDashboard({ data, nav, theme, currentImport, pasteSharedPayload }: ScreenProps) {
   const firstName = firstNameFromPrefs(data);
   const forecast = useMemo(() => forecastFromImport(data, currentImport), [data, currentImport]);
   const forecastShare = useForecastShare(forecast, theme);
@@ -7337,6 +7537,7 @@ function LockedDashboard({ data, nav, theme, currentImport }: ScreenProps) {
         </View>
         <AppStoreRatingProof theme={theme} />
 
+        {!currentImport ? <PastePackBanner theme={theme} t={aiText} locale={appLocale()} onPaste={() => { pasteSharedPayload().catch(() => {}); }} /> : null}
         {forecast ? (
           <ForecastSection
             theme={theme}
@@ -8482,6 +8683,11 @@ function ClassDetail({ data, mutate, nav, theme, params, openClassPack }: Screen
         };
         return { ...next, studyBlocks: buildStudyPlan(next) };
       });
+      // Generated study sets and practice history for this class go too.
+      aiCache.purgeAIDataForClass(c.id).catch(() => {});
+      data.notes.filter((note) => note.classId === c.id).forEach((note) => {
+        aiCache.purgeAIDataForNote(note.id).catch(() => {});
+      });
       nav.tab("classes");
     } },
   ]);
@@ -8982,7 +9188,7 @@ function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
   );
 }
 
-function Scan({ data, mutate, nav, theme, params, setCurrentImport, startSyllabusImport }: ScreenProps) {
+function Scan({ data, mutate, nav, theme, params, setCurrentImport, startSyllabusImport, proposeQuickAdd }: ScreenProps) {
   const previewOnly = !data.prefs.premium;
   const autoActionHandled = useRef(false);
   const imageOcrAvailable = hasNativeImageTextRecognition();
@@ -9095,49 +9301,22 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport, startSyllabu
 
   const captureTask = () => {
     if (requirePremium({ next: "scan" })) return;
-    const result = createNaturalLanguageTask(quickTask, data);
-    if (!result.ok) {
-      const details = Array.from(new Set(result.issues.map((issue) => {
-        switch (issue) {
-          case "input":
-            return textFor("scan.quick_error_input", "Type the task, its class, and an explicit due date.");
-          case "title":
-            return textFor("scan.quick_error_title", "Add what you need to do, not only the class and date.");
-          case "class":
-            return textFor("scan.quick_error_class", "Include a class code or name from this semester.");
-          case "class-ambiguous":
-            return textFor("scan.quick_error_class_ambiguous", "Name exactly one class.");
-          case "date":
-            return textFor("scan.quick_error_date", "Add today, tomorrow, next week, or a YYYY-MM-DD due date.");
-          case "date-invalid":
-            return textFor("scan.quick_error_date_invalid", "That YYYY-MM-DD value is not a real calendar date.");
-          case "date-ambiguous":
-            return textFor("scan.quick_error_date_ambiguous", "Use exactly one due date.");
-        }
-      })));
-      const status = details.join(" ");
-      const exampleClass = data.classes.find((klass) => !klass.archivedAt)?.code;
-      const example = exampleClass
-        ? textFor("scan.quick_error_example", "Example: {classCode} lab report due tomorrow, estimate 2 hours.", { classCode: exampleClass })
-        : textFor("scan.quick_error_no_class", "Add a class to this semester before using Fast capture.");
-      setScanStatus(status);
-      Alert.alert(
-        textFor("scan.quick_error_heading", "Fast capture needs more detail"),
-        `${details.map((detail) => `• ${detail}`).join("\n")}\n\n${example}`,
-        [{ text: textFor("common.close", "Close") }],
-      );
+    if (!quickTask.trim()) {
+      setScanStatus(textFor("scan.quick_error_input", "Type the task, its class, and an explicit due date."));
       return;
     }
-    const task = result.task;
-    mutate((d) => {
-      const tasks = [task, ...d.tasks];
-      const updated = { ...d, tasks, studyBlocks: buildStudyPlan({ ...d, tasks }) };
-      return withFeedback(d, updated, "reschedulePlan", { classId: task.classId, actionId: task.id, dimension: "workload" });
-    });
-    const classCode = data.classes.find((klass) => klass.id === task.classId)?.code || "";
-    setQuickTask("");
-    setScanStatus(textFor("scan.quick_created", "Created {title} for {classCode}, due {dueDate}.", { title: task.title, classCode, dueDate: task.dueDate }));
-    nav.push("tasks");
+    const input = quickTask;
+    proposeQuickAdd(input)
+      .then((outcome) => {
+        if (outcome === "saved") {
+          setQuickTask("");
+          setScanStatus(textFor("ai.quick.saved", "Saved and added to your plan."));
+          nav.push("tasks");
+        } else if (outcome === "confirm") {
+          setScanStatus(textFor("ai.quick.check", "Check the class and date, then save."));
+        }
+      })
+      .catch(() => setScanStatus(textFor("scan.quick_error_heading", "Fast capture needs more detail")));
   };
   useEffect(() => {
     if (autoActionHandled.current) return;

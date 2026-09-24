@@ -262,7 +262,7 @@ export function decodeShared(raw: unknown): SharedPayload | null {
 }
 
 const HTTPS_LINK = /^https:\/\/studyplanner-ai\.xxmnewman9xx\.workers\.dev\/(p|d)\/?(?:\?[^#]*)?#(.+)$/i;
-const SCHEME_LINK = /^studyplanner:\/\/(pack|duel)\/?(?:\?[^#]*)?#(.+)$/i;
+const SCHEME_LINK = /^studyplanner:\/\/(pack|duel|p|d)\/?(?:\?[^#]*)?#(.+)$/i;
 
 /**
  * Reads a pack/duel from the RAW, case-preserved URL (call before any
@@ -281,7 +281,8 @@ export function sharedFromUrl(rawUrl: unknown): SharedPayload | null {
       expected = https[1].toLowerCase() === "p" ? "pack" : "duel";
       fragment = https[2];
     } else if (scheme) {
-      expected = scheme[1].toLowerCase() === "pack" ? "pack" : "duel";
+      // The static landing page's "Open" button uses the short p/d hosts.
+      expected = ["pack", "p"].includes(scheme[1].toLowerCase()) ? "pack" : "duel";
       fragment = scheme[2];
     } else {
       return null;

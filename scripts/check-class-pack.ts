@@ -100,6 +100,9 @@ check("40-item Class Pack round-trips through links and never carries private te
   assert.deepEqual(sharedFromUrl(link), { kind: "pack", pack });
   assert.deepEqual(sharedFromUrl(`studyplanner://pack#${encoded}`), { kind: "pack", pack });
   assert.deepEqual(sharedFromUrl(`studyplanner://pack?ct=pack#${encoded}`), { kind: "pack", pack });
+  // The landing page "Open" button uses the short hosts.
+  assert.deepEqual(sharedFromUrl(`studyplanner://p#${encoded}`), { kind: "pack", pack });
+  assert.equal(sharedFromUrl(`studyplanner://d#${encoded}`), null);
   assert.equal(sharedFromUrl(link.replace("/p?", "/d?")), null, "path must match payload kind");
   assert.equal(sharedFromUrl(`studyplanner://duel#${encoded}`), null);
   assert.equal(sharedFromUrl(link.toLowerCase()), null, "lowercased payloads are rejected (use the raw URL)");
