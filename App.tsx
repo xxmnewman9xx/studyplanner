@@ -78,7 +78,7 @@ import {
 } from "lucide-react-native";
 import Svg, { Circle as SvgCircle } from "react-native-svg";
 import { applyImport, loadData, saveData } from "./src/storage";
-import { analyzeNotes, analyzeSyllabus, buildStudyPlan, deadlineInsight } from "./src/ai";
+import { analyzeNotes, buildStudyPlan, deadlineInsight } from "./src/ai";
 import {
   appendFeedbackEvent,
   buildDashboardSnapshot,
@@ -94,7 +94,7 @@ import {
   replanAfterMissedBlock,
   suggestSmartReminders,
 } from "./src/intelligence";
-import { extractTextFromImage, hasNativeImageTextRecognition } from "./src/imageTextRecognition";
+import { hasNativeImageTextRecognition } from "./src/imageTextRecognition";
 import { countOcrWords } from "./src/ocrText";
 import { COLORS, THEMES, defaultData, formatDue, isoFromOffset, minutesLabel } from "./src/seed";
 import { AppData, ClassItem, ExamItem, FeedbackEvent, HealthDimensionKey, ImportBatch, ImportCandidate, NoteItem, ReminderItem, StudyBlock, TaskItem, ThemeId } from "./src/types";
@@ -147,11 +147,12 @@ import {
 } from "./src/semesterTheme";
 import { semesterKickoffPhase, semesterKickoffProgress } from "./src/semesterKickoff";
 import { AI_COPY, COPY_22_EN } from "./src/appleIntelligence/copy";
-import { getAvailability, invalidateAvailability, isUserAIEnabled, setUserAIEnabled } from "./src/appleIntelligence/client";
+import { createModelRunner, getAvailability, invalidateAvailability, isUserAIEnabled, readDocumentText, setUserAIEnabled } from "./src/appleIntelligence/client";
+import { analyzeSyllabusSmart } from "./src/appleIntelligence/smartSyllabus";
 import * as aiCache from "./src/appleIntelligence/cache";
 import { clearSpotlight, deleteAppGroupJSON, readAppGroupJSON } from "./src/appleIntelligence/native";
 import type { AIAvailability } from "./src/appleIntelligence/types";
-import { AIStatusRow, type AIText } from "./src/appleIntelligence/ui";
+import { AIStatusRow, ScanProgress, type AIText } from "./src/appleIntelligence/ui";
 
 declare const process:
   | {
@@ -5759,6 +5760,27 @@ function showSimulatorCapturePrompt(prompt: SimulatorCaptureConfig["prompt"]) {
   }
 }
 
+// Free-first funnel: students scan every class into ONE review. A new syllabus
+// batch joins a pending syllabus review instead of replacing it; notes imports
+// and applied batches never merge. Duplicate rows (same kind, title, and date)
+// are skipped, and the batch honors the 80-candidate pending-import cap.
+function appendImportBatch(current: ImportBatch | null, next: ImportBatch): ImportBatch {
+  const isNotesOnly = (batch: ImportBatch) => batch.candidates.length > 0 && batch.candidates.every((candidate) => candidate.kind === "note");
+  if (!current || current.status !== "review" || isNotesOnly(current) || isNotesOnly(next)) return next;
+  const rowKey = (candidate: ImportCandidate) => `${candidate.kind}|${candidate.title.trim().toLowerCase()}|${String((candidate.payload as { dueDate?: unknown }).dueDate || "")}`;
+  const seen = new Set(current.candidates.map(rowKey));
+  const added = next.candidates.filter((candidate) => !seen.has(rowKey(candidate)));
+  const sourceName = current.sourceName === next.sourceName ? current.sourceName : `${current.sourceName} + ${next.sourceName}`.slice(0, 160);
+  return {
+    ...current,
+    sourceName,
+    sourceText: `${current.sourceText}\n\n${next.sourceText}`,
+    candidates: [...current.candidates, ...added].slice(0, 80),
+  };
+}
+
+type SmartImportProgress = { page: number; pageCount: number; found: number; documentReader: boolean; onDevice: boolean };
+
 export default function App() {
   const [data, setData] = useState<AppData | null>(null);
   const [tab, setTab] = useState<Route>("today");
@@ -5779,8 +5801,13 @@ export default function App() {
   const currentImportRef = useRef<ImportBatch | null>(null);
   const paywallDestinationRef = useRef<NavItem | null>(null);
   const lastRoutedUrlRef = useRef<{ url: string; at: number } | null>(null);
+  const [smartImportProgress, setSmartImportProgress] = useState<SmartImportProgress | null>(null);
+  const smartImportAbort = useRef<AbortController | null>(null);
+  const latestDataRef = useRef<AppData | null>(null);
   const routeUrlRef = useRef<((url: string) => void) | null>(null);
   const theme = palette(data?.prefs.theme || "light", data?.prefs.semesterAccentColor);
+
+  latestDataRef.current = data;
 
   useEffect(() => {
     currentImportRef.current = currentImport;
@@ -5995,6 +6022,46 @@ export default function App() {
       setSaveError(textFor("storage.save_retry", "Changes are safe in this session but could not be saved to this device yet."));
       throw error;
     }
+  }, []);
+
+  // Syllabus → Semester (F2): the Build 90 parser always runs; the on-device
+  // model adds grounded, validated rows only when this iPhone supports it and
+  // the app is in the foreground. The student still reviews every row.
+  const startSyllabusImport = useCallback(async (sourceText: string, sourceName: string, options: { documentReader?: boolean } = {}) => {
+    const current = latestDataRef.current;
+    if (!current || !sourceText.trim()) return;
+    smartImportAbort.current?.abort();
+    const controller = new AbortController();
+    smartImportAbort.current = controller;
+    const locale = appLocale();
+    const availability = Platform.OS === "ios" ? await getAvailability(locale).catch(() => null) : null;
+    const onDevice = availability?.state === "available" && AppState.currentState === "active";
+    const runner = onDevice ? createModelRunner(locale) : null;
+    setSmartImportProgress({ page: 0, pageCount: 1, found: 0, documentReader: Boolean(options.documentReader), onDevice });
+    try {
+      const result = await analyzeSyllabusSmart(sourceText, current, new Date(), runner, {
+        contextSize: availability?.contextSize || 4096,
+        signal: controller.signal,
+        onProgress: (progress) => setSmartImportProgress((previous) => previous ? { ...previous, page: progress.chunk, pageCount: Math.max(1, progress.total), found: progress.found } : previous),
+      });
+      if (controller.signal.aborted) return;
+      const batch = localizedImportBatch(result.batch, sourceName);
+      const merged = appendImportBatch(currentImportRef.current, batch);
+      currentImportRef.current = merged;
+      setCurrentImport(merged);
+      setStack((s) => [...s, { route: "review" }]);
+    } finally {
+      if (smartImportAbort.current === controller) {
+        smartImportAbort.current = null;
+        setSmartImportProgress(null);
+      }
+    }
+  }, []);
+
+  const cancelSmartImport = useCallback(() => {
+    smartImportAbort.current?.abort();
+    smartImportAbort.current = null;
+    setSmartImportProgress(null);
   }, []);
 
   const nav = useMemo(
@@ -6253,7 +6320,7 @@ export default function App() {
     ? textFor("storage.save_retry", "Changes are safe in this session but could not be saved to this device yet.")
     : saveError;
 
-  const props = { data: screenData, mutate, persistPlannerSnapshot, nav, theme, params, currentImport, setCurrentImport, setEntitlementStatus, accessState, recordReviewTrigger };
+  const props = { data: screenData, mutate, persistPlannerSnapshot, nav, theme, params, currentImport, setCurrentImport, setEntitlementStatus, accessState, recordReviewTrigger, startSyllabusImport, smartImportBusy: Boolean(smartImportProgress) };
   const screen =
     displayRoute === "welcome" ? <Welcome {...props} /> :
     displayRoute === "onboarding" ? <Onboarding {...props} /> :
@@ -6297,6 +6364,21 @@ export default function App() {
           <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.try_again", "Try again")} onPress={() => pendingImportSaveError ? setPendingImportSaveAttempt((attempt) => attempt + 1) : setSaveAttempt((attempt) => attempt + 1)} style={{ minHeight: 44, paddingHorizontal: 12, justifyContent: "center" }}><Text style={{ color: "#92400E", fontWeight: "900" }}>{textFor("common.try_again", "Try again")}</Text></Pressable>
         </View>
       ) : null}
+      {smartImportProgress ? (
+        <View pointerEvents="box-none" style={{ position: "absolute", left: 14, right: 14, bottom: 34, zIndex: 120 }}>
+          <ScanProgress
+            theme={theme}
+            t={aiText}
+            locale={appLocale()}
+            page={smartImportProgress.page}
+            pageCount={smartImportProgress.pageCount}
+            found={smartImportProgress.found}
+            documentReader={smartImportProgress.documentReader}
+            onDevice={smartImportProgress.onDevice}
+            onCancel={cancelSmartImport}
+          />
+        </View>
+      ) : null}
       {showPendingImportBanner && currentImport ? <PendingImportResumeBanner batch={currentImport} nav={nav} theme={theme} hasTabs={showTabs} /> : null}
       {showTabs ? <TabBar tab={tab} setTab={nav.tab} theme={theme} /> : null}
     </View>
@@ -6315,6 +6397,8 @@ type ScreenProps = {
   setEntitlementStatus: (status: EntitlementStatus) => void;
   accessState: AccessState;
   recordReviewTrigger: (trigger: ReviewTrigger) => void;
+  startSyllabusImport: (sourceText: string, sourceName: string, options?: { documentReader?: boolean }) => Promise<void>;
+  smartImportBusy: boolean;
 };
 
 function withFeedback(
@@ -8717,7 +8801,7 @@ function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
   );
 }
 
-function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProps) {
+function Scan({ data, mutate, nav, theme, params, setCurrentImport, startSyllabusImport }: ScreenProps) {
   const previewOnly = !data.prefs.premium;
   const autoActionHandled = useRef(false);
   const imageOcrAvailable = hasNativeImageTextRecognition();
@@ -8733,8 +8817,12 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
     return true;
   };
 
-  const analyzeText = (sourceText: string, sourceName: string, mode: "syllabus" | "notes") => {
-    const batch = mode === "notes" ? analyzeNotes(sourceText, data) : analyzeSyllabus(sourceText, data);
+  const analyzeText = (sourceText: string, sourceName: string, mode: "syllabus" | "notes", options: { documentReader?: boolean } = {}) => {
+    if (mode === "syllabus") {
+      startSyllabusImport(sourceText, sourceName, options).catch(() => setScanStatus(textFor("scan.image_failed", "That image could not be scanned.")));
+      return;
+    }
+    const batch = analyzeNotes(sourceText, data);
     setCurrentImport(localizedImportBatch(batch, sourceName));
     nav.push("review");
   };
@@ -8774,9 +8862,11 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
       }
 
       setScanStatus(mode === "notes" ? textFor("scan.reading_notes", "Reading note text on this iPhone...") : textFor("scan.reading_syllabus", "Reading syllabus text on this iPhone..."));
-      const text = await extractTextFromImage(result.assets[0].uri);
+      // iOS 26 reads syllabus tables row by row; older systems use Build 90 OCR.
+      const read = await readDocumentText(result.assets[0].uri);
+      const text = read.text;
       setScanStatus(textFor("scan.found_words", "Found {count} words. Review before saving.", { count: countOcrWords(text) }));
-      analyzeText(text, mode === "notes" ? textFor("import.source_photo_notes", "Photo notes scan") : textFor("import.source_photo_syllabus", "Photo syllabus scan"), mode);
+      analyzeText(text, mode === "notes" ? textFor("import.source_photo_notes", "Photo notes scan") : textFor("import.source_photo_syllabus", "Photo syllabus scan"), mode, { documentReader: read.usedDocumentReader });
     } catch (error) {
       setScanStatus(textFor("scan.image_failed", "That image could not be scanned."));
     } finally {
@@ -8792,6 +8882,15 @@ function Scan({ data, mutate, nav, theme, params, setCurrentImport }: ScreenProp
       if (!result) {
         setScanStatus(textFor("scan.pdf_canceled", "PDF import canceled."));
         return;
+      }
+      if (result.fallbackNeeded && result.uri) {
+        // Image-only (scanned) PDF: render pages and read them on this iPhone.
+        const native = await readDocumentText(result.uri).catch(() => null);
+        if (native && countOcrWords(native.text) >= 20) {
+          setScanStatus(`${result.fileName}: ${textFor("scan.pdf_read", "PDF read: {count} words. Review before saving.", { count: countOcrWords(native.text) })}`);
+          analyzeText(native.text, textFor("import.source_pdf", "PDF - {name}", { name: result.fileName }), "syllabus", { documentReader: native.usedDocumentReader });
+          return;
+        }
       }
       if (result.fallbackNeeded) {
         const fallbackMessage = `${textFor("scan.pdf_unreadable", "PDF opened. Text was not readable here. Paste text or scan pages.")}${result.wordCount ? ` ${result.wordCount} words found.` : ""}`;
@@ -9198,7 +9297,7 @@ function ScannerImportHistoryRow({ imp, index, theme }: { imp: ImportBatch; inde
   );
 }
 
-function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenProps) {
+function CameraScanner({ data, nav, theme, params, setCurrentImport, startSyllabusImport }: ScreenProps) {
   const mode = data.prefs.premium && params.mode === "notes" ? "notes" : "syllabus";
   const cameraRef = useRef<CameraView | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
@@ -9263,8 +9362,13 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
     );
   }
 
+  const lastReadUsedDocumentReader = useRef(false);
   const analyzeCapturedText = (sourceText: string, sourceName: string) => {
-    const batch = mode === "notes" ? analyzeNotes(sourceText, data) : analyzeSyllabus(sourceText, data);
+    if (mode === "syllabus") {
+      startSyllabusImport(sourceText, sourceName, { documentReader: lastReadUsedDocumentReader.current }).catch(() => setFeedback(textFor("scan.image_failed", "That image could not be scanned.")));
+      return;
+    }
+    const batch = analyzeNotes(sourceText, data);
     setCurrentImport(localizedImportBatch(batch, sourceName));
     nav.push("review");
   };
@@ -9318,7 +9422,9 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
       if (!photo?.uri) throw new Error(textFor("scanner.capture_failed", "The camera did not return a photo."));
       setCaptureState("reading");
       setFeedback(textFor("scanner.reading", "Reading text. This works best with crisp, flat pages."));
-      const text = await extractTextFromImage(photo.uri);
+      const read = await readDocumentText(photo.uri);
+      lastReadUsedDocumentReader.current = read.usedDocumentReader;
+      const text = read.text;
       const wordCount = countOcrWords(text);
       finishOcrRead(text, wordCount);
     } catch (error) {
@@ -9353,7 +9459,9 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport }: ScreenPro
         return;
       }
       setFeedback(mode === "notes" ? textFor("scan.reading_notes", "Reading note text on this iPhone...") : textFor("scan.reading_syllabus", "Reading syllabus text on this iPhone..."));
-      const text = await extractTextFromImage(result.assets[0].uri);
+      const read = await readDocumentText(result.assets[0].uri);
+      lastReadUsedDocumentReader.current = read.usedDocumentReader;
+      const text = read.text;
       const wordCount = countOcrWords(text);
       finishOcrRead(text, wordCount);
     } catch (error) {
@@ -9552,7 +9660,7 @@ function CameraChecklistPill({ label, active }: { label: string; active: boolean
   );
 }
 
-function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps) {
+function PasteImport({ data, nav, theme, params, currentImport, setCurrentImport, startSyllabusImport }: ScreenProps) {
   const manualMode = params.mode === "manual";
   const requestedMode = manualMode ? "manual" : params.mode === "notes" ? "notes" : "syllabus";
   const previewOnly = !data.prefs.premium;
@@ -9648,14 +9756,14 @@ function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps
         },
       });
     }
-    setCurrentImport({
+    setCurrentImport(appendImportBatch(currentImport, {
       id: makeOwnershipId("import"),
       sourceName: textFor("review.manual", "Manual setup"),
       sourceText: [cleanCode, cleanName, classDays, classTime, taskTitle, dueDate].filter(Boolean).join("\n"),
       createdAt: now,
       status: "review",
       candidates,
-    });
+    }));
     nav.push("review");
   };
   const analyze = () => {
@@ -9669,9 +9777,13 @@ function PasteImport({ data, nav, theme, params, setCurrentImport }: ScreenProps
     }
     setWorking(true);
     if (analysisTimer.current) clearTimeout(analysisTimer.current);
+    if (mode === "syllabus") {
+      startSyllabusImport(text, textFor("import.source_paste", "Pasted syllabus")).finally(() => setWorking(false));
+      return;
+    }
     analysisTimer.current = setTimeout(() => {
       analysisTimer.current = null;
-      const batch = mode === "notes" ? analyzeNotes(text, data) : analyzeSyllabus(text, data);
+      const batch = analyzeNotes(text, data);
       setCurrentImport(localizedImportBatch(batch));
       setWorking(false);
       nav.push("review");
