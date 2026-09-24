@@ -5245,6 +5245,9 @@ type SimulatorCaptureConfig = {
   route?: Route;
   screen?: string;
   onboardingIndex?: number;
+  // Store captures that open a later onboarding step: pre-fill the answers the
+  // earlier steps require, as a real student would have picked them.
+  onboardingProfile?: boolean;
   locale?: string;
   qaState?: "build57" | "build66" | "examHeavy";
   emptyPlanner?: boolean;
@@ -5259,6 +5262,14 @@ type SimulatorCaptureState = {
   entitlementStatus: EntitlementStatus;
   prompt?: SimulatorCaptureConfig["prompt"];
 };
+
+// Simulator store screenshots show the planner in use. Both flags are inlined
+// at bundle time; App Store builds set neither (check-release-docs asserts it).
+function storeScreenshotUnlockIsEnabled() {
+  return typeof process !== "undefined"
+    && process.env?.EXPO_PUBLIC_STUDYPLANNER_CAPTURE_QA === "1"
+    && process.env?.EXPO_PUBLIC_STUDYPLANNER_CAPTURE_UNLOCK === "1";
+}
 
 function simulatorCaptureIsEnabled() {
   const releaseCaptureEnabled = typeof process !== "undefined" && process.env?.EXPO_PUBLIC_STUDYPLANNER_CAPTURE_QA === "1";
@@ -5778,7 +5789,7 @@ function simulatorCaptureNavItem(config: SimulatorCaptureConfig, importBatch: Im
   if (config.screen === "practiceQuiz") return { route: "practice", params: { noteId: "qa-note-trees", mode: "quiz" } };
   if (config.screen === "forecast") return { route: "forecast" };
   if (config.prompt === "archiveClass") return { route: "classDetail", params: { id: "qa-cs201" } };
-  if (config.onboardingIndex != null) return { route: "onboarding", params: { onboardingIndex: String(config.onboardingIndex) } };
+  if (config.onboardingIndex != null) return { route: "onboarding", params: { onboardingIndex: String(config.onboardingIndex), ...(config.onboardingProfile ? { captureProfile: "1" } : {}) } };
   if (config.route === "studySession") return { route: "studySession" };
   if (config.route) return { route: config.route };
   if (config.tab === "import") return { route: "scan" };
@@ -5833,9 +5844,11 @@ function buildSimulatorCaptureState(config: SimulatorCaptureConfig): SimulatorCa
     data,
     currentImport,
     navItem,
-    // Fixture planners are unlocked only in dev builds and web QA; a release
-    // build (even with the QA capture flag) keeps the real App Store state.
-    entitlementStatus: config.emptyPlanner || !((typeof __DEV__ !== "undefined" && __DEV__) || Platform.OS === "web") ? "inactive" : "active",
+    // Fixture planners are unlocked only in dev builds, web QA, and simulator
+    // store-screenshot builds that set BOTH build-time capture flags. A normal
+    // release build (even with only the QA capture flag) keeps the real App
+    // Store state.
+    entitlementStatus: config.emptyPlanner || !((typeof __DEV__ !== "undefined" && __DEV__) || Platform.OS === "web" || storeScreenshotUnlockIsEnabled()) ? "inactive" : "active",
     prompt: config.prompt,
   };
 }
@@ -7352,10 +7365,11 @@ function Onboarding({ data, mutate, nav, theme, params, currentImport }: ScreenP
             : storedMainGoal.toLowerCase().includes("everything")
               ? "Everything"
               : "Deadlines";
+  const captureProfile = params.captureProfile === "1" && simulatorCaptureIsEnabled();
   const [profile, setProfile] = useState({
     name: storedFirstName || (data.prefs.name === "Student" ? "" : firstNameFromPrefs(data)),
-    studentType: initialStudentType,
-    mainGoal: initialMainGoal,
+    studentType: captureProfile ? "College courses" : initialStudentType,
+    mainGoal: captureProfile ? "Everything" : initialMainGoal,
     scanIntent: data.prefs.scanIntent || "Scan with camera",
     semesterThemeColorId: data.prefs.semesterThemeColorId || "graphite" as SemesterThemeColorId,
   });

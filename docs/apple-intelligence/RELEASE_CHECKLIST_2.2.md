@@ -1,4 +1,4 @@
-# StudyPlanner 2.2.0 (build 92) — release checklist
+# StudyPlanner 2.2.0 (build 93) — release checklist
 
 Branch `claude/serene-franklin-l59tqr` → PR into `feature/apple-intelligence-2.2` (never `main`).
 Everything below the line "Verified here" was checked in a Linux container; everything under

@@ -11,7 +11,7 @@ import { addDaysKey, dateKey } from "../src/appleIntelligence/dateKeys";
 import { drainInbox, intelligenceSnapshot } from "../src/appleIntelligence/inbox";
 import { MERGE_CAP, mergeSyllabusCandidates } from "../src/appleIntelligence/merge";
 import { quickAddSmart } from "../src/appleIntelligence/quickAdd";
-import { briefWithModel, studyNowCandidates, templateBrief, STUDY_NOW_COPY } from "../src/appleIntelligence/studyNow";
+import { briefWithModel, reasonNamesCandidate, studyNowCandidates, templateBrief, STUDY_NOW_COPY } from "../src/appleIntelligence/studyNow";
 import { buildStudySet, extractDefinitionPairs, heuristicStudySet } from "../src/appleIntelligence/studySets";
 import { isGrounded, lineOf, normalizeText, stableHash, tokenOverlap } from "../src/appleIntelligence/text";
 import { AIAvailabilityState, ModelRunner, PracticeResult, StudyNowCandidate } from "../src/appleIntelligence/types";
@@ -487,7 +487,7 @@ check("studyNowCandidates is deterministic, capped at 5, and prefers the nearest
 
 check("templateBrief builds the line from facts only", () => {
   const brief = templateBrief(briefCandidates, defaultData, NOW);
-  assert.equal(brief!.line, "Now: 45 min Organic Chem Midterm, exam in 4 days");
+  assert.equal(brief!.line, "Now: 45 min Organic Chem Midterm");
   assert.equal(brief!.reason, "Your exam is 4 days out. Short sessions now beat a late cram.");
   assert.equal(brief!.origin, "template");
   const task = templateBrief([briefCandidates[1]], defaultData, NOW);
@@ -499,8 +499,13 @@ check("templateBrief builds the line from facts only", () => {
     return `[${key}]${vars ? JSON.stringify(vars) : ""}${fallback.length ? "" : ""}`;
   };
   templateBrief(briefCandidates, defaultData, NOW, t);
-  assert.deepEqual(keys, ["ai.brief.line", "ai.brief.exam_in", "ai.brief.reason_exam"]);
+  assert.deepEqual(keys, ["ai.brief.line", "ai.brief.reason_exam"]);
   Object.values(STUDY_NOW_COPY).forEach(([key]) => assert.match(key, /^ai\.brief\./));
+  const pick = { id: "x", kind: "exam_prep" as const, title: "Organic Chem Midterm", minutes: 30, classCode: "CHEM 311", daysUntil: 4 };
+  assert.equal(reasonNamesCandidate("Today is a busy day with exams and tasks. Make sure to prioritize your time wisely.", [pick]), false, "generic model advice keeps the template reason");
+  assert.equal(reasonNamesCandidate("CHEM 311 is close, so a short pass now pays off.", [pick]), true);
+  assert.equal(reasonNamesCandidate("Tu examen de Organic Chem llega pronto.", [pick]), true);
+  assert.equal(reasonNamesCandidate("Faltan 4 días para el examen.", [pick]), true);
   assert.equal(templateBrief([], defaultData, NOW), null);
 });
 

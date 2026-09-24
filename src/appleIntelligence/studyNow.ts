@@ -18,9 +18,6 @@ export type CopyFn = (key: string, fallback: string, vars?: Record<string, strin
 /** Every copy key this module uses, with its English fallback. */
 export const STUDY_NOW_COPY = {
   line: ["ai.brief.line", "Now: {minutes} min {title}"],
-  examIn: ["ai.brief.exam_in", ", exam in {days} days"],
-  examTomorrow: ["ai.brief.exam_tomorrow", ", exam tomorrow"],
-  examToday: ["ai.brief.exam_today", ", exam today"],
   reasonExam: ["ai.brief.reason_exam", "Your exam is {days} days out. Short sessions now beat a late cram."],
   reasonExamSoon: ["ai.brief.reason_exam_soon", "Your exam is close. One focused pass now matters most."],
   reasonTaskDue: ["ai.brief.reason_task_due", "It's due in {days} days. Starting now keeps it small."],
@@ -157,15 +154,12 @@ export function studyNowCandidates(data: AppData, now: Date): StudyNowCandidate[
 const englishCopy: CopyFn = (_key, fallback, vars) =>
   fallback.replace(/\{(\w+)\}/g, (match, name) => (vars && name in vars ? String(vars[name]) : match));
 
+// The line is minutes + title only. The exam countdown lives in the card's meta
+// line and the reason: the ai.brief.exam_* keys are standalone phrases with
+// {count} (StudyNowCard), so appending them here rendered "Midtermexam in days".
 function lineFor(candidate: StudyNowCandidate, t: CopyFn) {
   const [lineKey, lineFallback] = STUDY_NOW_COPY.line;
-  let line = t(lineKey, lineFallback, { minutes: candidate.minutes, title: candidate.title });
-  if (candidate.kind === "exam_prep" && typeof candidate.daysUntil === "number" && candidate.daysUntil >= 0) {
-    const days = candidate.daysUntil;
-    const [key, fallback] = days === 0 ? STUDY_NOW_COPY.examToday : days === 1 ? STUDY_NOW_COPY.examTomorrow : STUDY_NOW_COPY.examIn;
-    line += t(key, fallback, { days });
-  }
-  return line;
+  return t(lineKey, lineFallback, { minutes: candidate.minutes, title: candidate.title });
 }
 
 function reasonFor(candidate: StudyNowCandidate, t: CopyFn) {
@@ -198,6 +192,19 @@ export type BriefOptions = { signal?: AbortSignal; timeoutMs?: number; locale?: 
  * model's focus pick and reason only when they pass `validateDailyBrief`.
  * The line is always template-built from the chosen candidate's facts.
  */
+/** True when model copy names an item from today's picks (exported for tests). */
+export function reasonNamesCandidate(body: string, candidates: StudyNowCandidate[]) {
+  return candidates.some((candidate) => namesCandidate(normalizeText(body), candidate));
+}
+
+function namesCandidate(text: string, candidate: StudyNowCandidate) {
+  const tokens = [candidate.classCode, ...normalizeText(candidate.title).split(/\s+/).filter((word) => word.length >= 4)]
+    .filter((token): token is string => Boolean(token))
+    .map((token) => normalizeText(token));
+  if (tokens.some((token) => token && text.includes(token))) return true;
+  return typeof candidate.daysUntil === "number" && candidate.daysUntil > 1 && text.split(" ").includes(String(candidate.daysUntil));
+}
+
 export async function briefWithModel(
   candidates: StudyNowCandidate[],
   data: AppData,
@@ -215,7 +222,12 @@ export async function briefWithModel(
     const validated = validateDailyBrief(result.value, candidates.slice(0, MAX_STUDY_NOW_CANDIDATES), facts);
     if (!validated) return template;
     const picked = templateBrief(candidates, data, now, t, validated.focusIndex) || template;
-    return { ...picked, reason: validated.body, origin: "onDevice" };
+    // The model may choose the focus, but its sentence replaces the specific
+    // template reason only when it names one of today's picks (class code, a
+    // title word, or a day count). Generic advice ("prioritize your time
+    // wisely") keeps the template reason.
+    const reason = reasonNamesCandidate(validated.body, candidates.slice(0, MAX_STUDY_NOW_CANDIDATES)) ? validated.body : picked.reason;
+    return { ...picked, reason, origin: "onDevice" };
   } catch {
     return template;
   }
