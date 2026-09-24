@@ -231,6 +231,7 @@ function destinationFromNotificationData(value: unknown): NavItem | null {
   const data = value as Record<string, unknown>;
   const sourceId = typeof data.sourceId === "string" ? data.sourceId : "";
   const kind = typeof data.kind === "string" ? data.kind : "";
+  if (data.startBy === true) return { route: "forecast" };
   if (!sourceId) return null;
   if (kind === "Class") return { route: "classDetail", params: { id: sourceId } };
   if (kind === "Assignment") return { route: "taskDetail", params: { id: sourceId } };
