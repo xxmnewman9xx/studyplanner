@@ -8,8 +8,8 @@ Match rule: same ISO date, same kind class (exam vs task), and title token overl
 
 | Set | Fixtures | Gold | Predicted | Matched | Precision | Recall | Invented dates |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| All | 32 | 165 | 166 | 114 | 68.7% | 69.1% | 3 |
-| Stress (21 inline cases) | 21 | 57 | 61 | 53 | 86.9% | 93.0% | 3 |
+| All | 32 | 165 | 163 | 114 | 69.9% | 69.1% | 0 |
+| Stress (21 inline cases) | 21 | 57 | 58 | 53 | 91.4% | 93.0% | 0 |
 | Handwritten multi-page | 11 | 108 | 105 | 61 | 58.1% | 56.5% | 0 |
 
 Model gate (MASTER_PLAN §C8), measured on the validated pipeline: 0 invented dates, precision ≥ 0.95, recall ≥ 79.1% (baseline + 10 pts).
@@ -48,7 +48,7 @@ Model gate (MASTER_PLAN §C8), measured on the validated pipeline: 0 invented da
 | stress-17-time-bearing-dates | 2 | 2 | 2 | 100.0% | 100.0% | 0 |
 | stress-18-grading-weight | 2 | 2 | 2 | 100.0% | 100.0% | 0 |
 | stress-19-class-meeting | 1 | 1 | 1 | 100.0% | 100.0% | 0 |
-| stress-20-mixed-content | 3 | 6 | 3 | 50.0% | 100.0% | 3 |
+| stress-20-mixed-content | 3 | 3 | 3 | 100.0% | 100.0% | 0 |
 | stress-21-pdf-fixture | 4 | 4 | 2 | 50.0% | 50.0% | 0 |
 
 ## Details
@@ -107,10 +107,6 @@ Model gate (MASTER_PLAN §C8), measured on the validated pipeline: 0 invented da
 
 ### stress-15-bad-ocr
 - Missed: task "Problem set" 2026-09-28
-
-### stress-20-mixed-content
-- Unmatched predictions: task "Lab Report 1" 2027-06-12; task "Genetics Problem Set" 2027-06-18; exam "Midterm Exam" 2027-06-25
-- Invented dates: 2027-06-12 "Lab Report 1"; 2027-06-18 "Genetics Problem Set"; 2027-06-25 "Midterm Exam"
 
 ### stress-21-pdf-fixture
 - Missed: task "Genetics Problem Set" 2026-09-28; exam "Final Exam" 2026-12-12

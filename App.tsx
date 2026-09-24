@@ -6016,7 +6016,7 @@ export default function App() {
           const widgetSyncData = appAccessLocked(persistedSnapshot, entitlementStatus)
             ? lockedWidgetData(persistedSnapshot)
             : activeSemesterData(persistedSnapshot);
-          if (persistedSnapshot.prefs.osLive || appAccessLocked(persistedSnapshot, entitlementStatus)) {
+          if (Platform.OS !== "web" && (persistedSnapshot.prefs.osLive || appAccessLocked(persistedSnapshot, entitlementStatus))) {
             const invalidateWidgetSyncEvidence = () => setData((current) => {
               if (!current || (!current.prefs.osLive && !current.prefs.widgetLastSyncedAt)) return current;
               return { ...current, prefs: { ...current.prefs, osLive: false, widgetLastSyncedAt: undefined } };
@@ -6346,7 +6346,9 @@ export default function App() {
   const accessState = accessStateFor(data, entitlementStatus, active);
   const screenData = dataForAccessState(data, entitlementStatus);
   const showPendingImportBanner = entitlementUnlocks(data, entitlementStatus) && Boolean(currentImport && displayRoute !== "review" && displayRoute !== "cameraScanner" && displayRoute !== "paste" && displayRoute !== "paywall" && displayRoute !== "success");
-  const visibleSaveError = pendingImportSaveError
+  // The pending-import recovery file uses expo-file-system, which web builds
+  // (used only for screenshot QA) do not support; iOS/Android keep the banner.
+  const visibleSaveError = pendingImportSaveError && Platform.OS !== "web"
     ? textFor("storage.save_retry", "Changes are safe in this session but could not be saved to this device yet.")
     : saveError;
 
@@ -6913,6 +6915,13 @@ function AppStoreRatingProof({ theme, dark = false }: { theme: ReturnType<typeof
   );
 }
 
+const ONBOARDING_SCAN_OPTION_META: Record<string, { icon: string; color: string; hintKey: string; hint: string }> = {
+  "Scan with camera": { icon: "camera", color: COLORS.green, hintKey: "onboarding.option_camera_hint", hint: "Point at each page. Tables read row by row." },
+  "Upload PDF": { icon: "upload", color: COLORS.blue, hintKey: "onboarding.option_pdf_hint", hint: "Multi-page syllabi and course handouts." },
+  "Paste syllabus": { icon: "file", color: COLORS.orange, hintKey: "onboarding.option_paste_hint", hint: "From Canvas, email, or a document." },
+  "Add manually": { icon: "plus", color: COLORS.purple, hintKey: "onboarding.option_manual_hint", hint: "Type a class and its first deadline." },
+};
+
 function onboardingStartLabel(scanIntent: string) {
   if (scanIntent === "Upload PDF") return textFor("onboarding.start_pdf", "Upload my syllabus");
   if (scanIntent === "Paste syllabus") return textFor("onboarding.start_paste", "Paste my syllabus");
@@ -6976,19 +6985,9 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
     ? textFor("onboarding.build_title_personal", "Build {name}'s semester.", { name: firstName })
     : textFor("onboarding.build_title", "Build your semester.");
   const scanOptions = ["Scan with camera", "Upload PDF", "Paste syllabus", "Add manually"];
-  const cameraIntentSelected = profile.scanIntent === "Scan with camera";
-  const prioritiesComplete = Boolean(profile.studentType && profile.mainGoal);
-  const semesterTheme = resolveSemesterThemeColor(profile.semesterThemeColorId);
   const onboardingAccent = "#111114";
   const onboardingTheme = { ...theme, accent: onboardingAccent };
-  const coursePalette = semesterTheme.courseColors.length >= 4 ? semesterTheme.courseColors : [onboardingAccent, COLORS.blue, COLORS.green, COLORS.orange];
-  const loopRadius = 20;
-  const loopCircumference = 2 * Math.PI * loopRadius;
-  const loopFeedback = [
-    { label: textFor("paywall.camera_step_scan", "Scan"), progress: 0.76, color: coursePalette[1] },
-    { label: textFor("paywall.camera_step_review", "Review"), progress: 0.58, color: coursePalette[2] },
-    { label: textFor("paywall.camera_step_apply", "Apply"), progress: 0.42, color: coursePalette[3] },
-  ];
+  const prioritiesComplete = Boolean(profile.studentType && profile.mainGoal);
   useEffect(() => {
     motion.setValue(0);
     Animated.timing(motion, {
@@ -7057,21 +7056,6 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
       }
     ]
   };
-  const renderOptions = (key: keyof typeof profile, opts: string[]) => (
-    <View style={{ gap: 10 }}>
-      {opts.map((opt) => {
-        const on = profile[key] === opt;
-        return (
-          <Pressable key={opt} accessibilityRole="radio" accessibilityLabel={optionText(opt)} accessibilityState={{ selected: on }} onPress={() => pick(key, opt)}>
-            <Card theme={theme} style={{ padding: 17, flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderColor: on ? onboardingAccent : theme.hairline, borderWidth: on ? 2 : 1, backgroundColor: on ? "#FFFFFF" : "rgba(255,255,255,0.72)" }}>
-              <Text selectable style={{ color: theme.label, fontSize: 16, fontWeight: "900" }}>{optionText(opt)}</Text>
-              {on ? <CheckCircle2 color={onboardingAccent} size={22} /> : <Circle color={theme.label3} size={22} />}
-            </Card>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
   const renderChoiceGrid = (key: keyof typeof profile, opts: string[]) => (
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
       {opts.map((opt) => {
@@ -7133,49 +7117,35 @@ function Onboarding({ data, mutate, nav, theme, params }: ScreenProps) {
                 </View>
                 <CheckCircle2 color={COLORS.green} size={21} />
               </View>
-              <LiquidGlassSurface tintColor="rgba(255,255,255,0.76)" style={{ borderRadius: 26, padding: 16, backgroundColor: "rgba(255,255,255,0.78)", borderWidth: 1, borderColor: "rgba(17,17,20,0.10)", gap: 13, marginBottom: 14 }} fallbackStyle={{ backgroundColor: "#FFFFFF" }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                  <View style={{ width: 46, height: 46, borderRadius: 16, backgroundColor: "#111114", alignItems: "center", justifyContent: "center" }}>
-                    <Icon name="target" color="#FFFFFF" size={22} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text selectable style={{ color: theme.label2, fontSize: 11, fontWeight: "900" }}>{textFor("onboarding.theme_pulse", "SEMESTER PULSE")}</Text>
-                    <Text selectable style={{ color: theme.label, fontSize: 20, lineHeight: 23, fontWeight: "900", marginTop: 2 }}>{textFor("onboarding.theme_ready", "Ready to build")}</Text>
-                  </View>
-                </View>
-                <View style={{ flexDirection: "row", gap: 8 }}>
-                  {loopFeedback.map((item) => (
-                    <View key={`semester-loop-${item.label}`} style={{ flex: 1, minWidth: 0, alignItems: "center", gap: 2 }}>
-                      <Svg width={44} height={44} viewBox="0 0 50 50">
-                        <SvgCircle cx={25} cy={25} r={loopRadius} stroke="rgba(17,17,20,0.08)" strokeWidth={7} fill="none" />
-                        <SvgCircle
-                          cx={25}
-                          cy={25}
-                          r={loopRadius}
-                          stroke={item.color}
-                          strokeWidth={7}
-                          strokeLinecap="round"
-                          fill="none"
-                          strokeDasharray={`${loopCircumference} ${loopCircumference}`}
-                          strokeDashoffset={loopCircumference * (1 - item.progress)}
-                          transform="rotate(-90 25 25)"
-                        />
-                      </Svg>
-                      <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: theme.label2, fontSize: 9, fontWeight: "900", maxWidth: "100%" }}>{item.label}</Text>
-                    </View>
-                  ))}
-                </View>
-              </LiquidGlassSurface>
+              <View accessibilityRole="radiogroup" style={{ gap: 10, marginBottom: 14 }}>
+                {scanOptions.map((opt) => {
+                  const on = profile.scanIntent === opt;
+                  const meta = ONBOARDING_SCAN_OPTION_META[opt];
+                  return (
+                    <Pressable key={opt} accessibilityRole="radio" accessibilityLabel={`${optionText(opt)}. ${textFor(meta.hintKey, meta.hint)}`} accessibilityState={{ selected: on }} onPress={() => pick("scanIntent", opt)}>
+                      <Card theme={theme} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 13, borderColor: on ? onboardingAccent : theme.hairline, borderWidth: on ? 2 : 1, backgroundColor: on ? "#FFFFFF" : "rgba(255,255,255,0.78)" }}>
+                        <View style={{ width: 46, height: 46, borderRadius: 15, backgroundColor: on ? "#111114" : `${meta.color}1A`, alignItems: "center", justifyContent: "center" }}>
+                          <Icon name={meta.icon} color={on ? "#FFFFFF" : meta.color} size={22} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text selectable style={{ color: theme.label, fontSize: 16.5, fontWeight: "900" }}>{optionText(opt)}</Text>
+                          <Text selectable style={{ color: theme.label2, fontSize: 13, lineHeight: 18, marginTop: 2, fontWeight: "700" }}>{textFor(meta.hintKey, meta.hint)}</Text>
+                        </View>
+                        {on ? <CheckCircle2 color={onboardingAccent} size={22} /> : <Circle color={theme.label3} size={22} />}
+                      </Card>
+                    </Pressable>
+                  );
+                })}
+              </View>
               <Card theme={theme} style={{ padding: 14, marginBottom: 16, backgroundColor: "#111114" }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
                   <View style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}>
-                    <Icon name={cameraIntentSelected ? "camera" : "sparkles"} color="#FFFFFF" size={21} />
+                    <Icon name="sparkles" color="#FFFFFF" size={21} />
                   </View>
                   <Text selectable style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "900", flex: 1 }}>{textFor("onboarding.free_scan_title", "Free: see your whole semester.")}</Text>
                 </View>
                 <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 5 }}>{textFor("onboarding.free_scan_body", "Scan or add every class. StudyPlanner reads them on this iPhone, lists every deadline for review, and forecasts your red weeks. Unlock when you want the daily plan.")}</Text>
               </Card>
-              <View style={{ marginTop: 2, marginBottom: 16 }}>{renderOptions("scanIntent", scanOptions)}</View>
             </>
           ) : null}
         </Animated.View>
